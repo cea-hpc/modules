@@ -1,0 +1,77 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2002/05/02
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen, Ph.D., rk@owen.sj.ca.us
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	eschars/1.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'setenv' module subcommand for escaping
+#			pathelogical chars.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "pathelogical" to
+#    be set up
+#
+
+set module "eschars/1.0"
+set modulefile "$env(MODULEPATH)/$module"
+
+#
+#  For the different shells ...
+#
+
+set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
+set ts_sh "pathelogical=abc\\ :\\	\\{\\}\\|\\<\\>\\!\\#\\$\\^\\&\\'\\\"\\(\\)@x%y\\\\z:sh\\* ;export pathelogical;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile ;"
+set lm_csh "setenv LOADEDMODULES $module ;"
+set ts_csh "setenv pathelogical abc\\ :\\	\\{\\}\\|\\<\\>\\!\\#\\$\\^\\&\\'\\\"\\(\\)@x%y\\\\z:sh\\* ;"
+
+set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
+set ts_perl "\$ENV{'pathelogical'} = 'abc :	{}|<>!#$^&\\\'\"()@x%y\\\\z:sh*';"
+
+#
+#  The tests
+#
+
+test_cmd "sh" "load $module" "$ts_sh$lmf_sh$lm_sh"
+test_cmd "ksh" "load $module" "$ts_sh$lmf_sh$lm_sh"
+test_cmd "zsh" "load $module" "$ts_sh$lmf_sh$lm_sh"
+test_cmd "csh" "load $module" "$ts_csh$lmf_csh$lm_csh"
+test_cmd "tcsh" "load $module" "$ts_csh$lmf_csh$lm_csh"
+test_cmd "perl" "load $module" "$ts_perl$lmf_perl$lm_perl"
+
+#
+#  Cleanup
+#
+
+unset ts_sh
+unset lm_sh
+unset lmf_sh
+
+unset ts_csh
+unset lm_csh
+unset lmf_csh
+
+unset ts_perl
+unset lm_perl
+unset lmf_perl
+
+unset modulefile
+unset module

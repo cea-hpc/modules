@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.8 2002/04/29 21:16:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.9 2002/05/03 04:56:59 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -139,6 +139,8 @@ static	char	*chop( const char*);
 static  void     EscapeCshString(const char* in,
 				 char* out);
 static  void     EscapeShString(const char* in,
+				 char* out);
+static  void     EscapePerlString(const char* in,
 				 char* out);
 
 
@@ -680,7 +682,7 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 		if( i == 1) {
 		    output_unset_variable( (char*) key);
 		} else {
-		    if( val = Tcl_GetVar2( interp, "env", key, TCL_GLOBAL_ONLY)) 
+		    if( val = Tcl_GetVar2( interp, "env", key, TCL_GLOBAL_ONLY))
 			output_set_variable( interp, (char*) key, val);
 		}
 
@@ -696,8 +698,8 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
     Output_Modulefile_Aliases( interp);
   
     /**
-     **  Delete and reset the hash tables now that the current contents have been
-     **  flushed.
+     ** Delete and reset the hash tables now that the current contents have been
+     ** flushed.
      **/
 
     Clear_Global_Hash_Tables();
@@ -910,7 +912,10 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	    char *cptr;
 	    int	lmfiles_len;
 	    int	count = 0;
-	    if(( lmfiles_len = strlen(val)) > LMSPLIT_SIZE) {
+	    char* escaped = stringer(NULL,strlen(val)*2+1,NULL);
+	    EscapeCshString(val,escaped);
+
+	    if(( lmfiles_len = strlen(escaped)) > LMSPLIT_SIZE) {
 
 	    char buffer[ LMSPLIT_SIZE + 1];
 
@@ -919,11 +924,11 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	     **/
 	    while( lmfiles_len > LMSPLIT_SIZE) {
 
-		    strncpy( buffer, ( val + count*LMSPLIT_SIZE ),
+		    strncpy( buffer, ( escaped + count*LMSPLIT_SIZE ),
 			     LMSPLIT_SIZE);
 		buffer[ LMSPLIT_SIZE] = '\0';
 
-		fprintf( stdout, "setenv %s%03d '%s'%c", var, count, buffer,
+		fprintf( stdout, "setenv %s%03d %s%c", var, count, buffer,
 		    cmd_separator);
 
 		lmfiles_len -= LMSPLIT_SIZE;
@@ -931,8 +936,8 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	    }
 
 		if( lmfiles_len) {
-		fprintf( stdout, "setenv %s%03d '%s'%c", var, count,
-		    (val + count*LMSPLIT_SIZE), cmd_separator);
+		fprintf( stdout, "setenv %s%03d %s%c", var, count,
+		    (escaped + count*LMSPLIT_SIZE), cmd_separator);
 		    count++;
 		}
 
@@ -944,7 +949,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 
 	    } else {	/** if ( lmfiles_len = strlen(val)) > LMSPLIT_SIZE) **/
 
-		fprintf(stdout, "setenv %s '%s'%c", var, val, cmd_separator);
+		fprintf(stdout, "setenv %s %s%c", var, escaped, cmd_separator);
 	    }
 
 	    /**
@@ -958,15 +963,16 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 		}
 	    } while( cptr);
 	
+	  null_free(&escaped);
 
-	} else {	/** if( var == "_LMFILES_" **/
+	} else {	/** if( var == "_LMFILES_") **/
 
 #endif /* not LMSPLIT_SIZE */
 	  
-	  char* escaped = (char*)malloc(strlen(val)*2+1);
-	  EscapeCshString(val,escaped);
-	  fprintf(stdout, "setenv %s %s %c", var, escaped, cmd_separator);
-	  free(escaped);
+		char* escaped = stringer(NULL,strlen(val)*2+1,NULL);
+		EscapeCshString(val,escaped);
+		fprintf(stdout, "setenv %s %s %c", var, escaped, cmd_separator);
+		null_free((void *) &escaped);
 #ifdef LMSPLIT_SIZE
 	}
 #endif /* not LMSPLIT_SIZE */
@@ -993,7 +999,11 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
      **  PERL
      **/
     } else if( !strcmp((char*) shell_derelict, "perl")) {
-	fprintf( stdout, "$ENV{'%s'} = '%s'%c", var, val, cmd_separator);  
+		char* escaped = stringer(NULL,strlen(val)*2+1,NULL);
+		EscapePerlString(val,escaped);
+		fprintf(stdout, "$ENV{'%s'} = '%s'%c", var, escaped,
+			cmd_separator);  
+		null_free((void *) &escaped);
 
     /**
      **  PYTHON
@@ -2689,6 +2699,8 @@ void EscapeCshString(const char* in,
   
   for(;*in;in++) {
     if (*in == ' ' ||
+	*in == '\t'||
+	*in == '\\'||
 	*in == '{' ||
 	*in == '}' ||
 	*in == '|' ||
@@ -2699,6 +2711,7 @@ void EscapeCshString(const char* in,
 	*in == '$' ||
 	*in == '^' ||
 	*in == '&' ||
+	*in == '*' ||
 	*in == '\''||
 	*in == '"' ||
 	*in == '(' ||
@@ -2715,6 +2728,8 @@ void EscapeShString(const char* in,
   
   for(;*in;in++) {
     if (*in == ' ' ||
+	*in == '\t'||
+	*in == '\\'||
 	*in == '{' ||
 	*in == '}' ||
 	*in == '|' ||
@@ -2730,6 +2745,19 @@ void EscapeShString(const char* in,
 	*in == '"' ||
 	*in == '(' ||
 	*in == ')') {
+      *out++ = '\\';
+    }
+    *out++ = *in;
+  }
+  *out = 0;
+}
+
+void EscapePerlString(const char* in,
+		     char* out) {
+  
+  for(;*in;in++) {
+    if (*in == '\\'||
+	*in == '\'') {
       *out++ = '\\';
     }
     *out++ = *in;
@@ -2763,11 +2791,10 @@ int tmpfile_mod(char** filename, FILE** file) {
   FILE* f = NULL;
   int trial = 0;
 
-  filename2 = (char*) malloc(strlen(TMP_DIR)+strlen("modulesource")+20);
-  if (! filename2) {
-    perror(__FILE__);
-    return 1;
-  }
+  if ((char *) NULL == (filename2 =
+	 stringer(NULL, strlen(TMP_DIR)+strlen("modulesource")+20, NULL)))
+     if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	 return 1;
   
   do {
     int fildes;
@@ -2785,7 +2812,9 @@ int tmpfile_mod(char** filename, FILE** file) {
     }
   } while (trial < 1000);
 
-  fprintf(stderr,"FATAL: could not get a temp file! at %s(%d)",__FILE__,__LINE__);
+  null_free((void *) &filename2);
+  fprintf(stderr,
+	"FATAL: could not get a temp file! at %s(%d)",__FILE__,__LINE__);
   
   return 1;
 }
