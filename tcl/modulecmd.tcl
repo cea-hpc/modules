@@ -140,7 +140,7 @@ proc unsetenv {var} {
 # path fiddling
 
 proc getReferenceCountArray {var} {
-    global env
+    global env g_force
 
     set sharevar "${var}_modshare"
     set modshareok 1
@@ -169,12 +169,15 @@ proc getReferenceCountArray {var} {
 #			set fixers($path) 1
 		    }
 		}
-		if [array size fixers] {
+
+		if {! $g_force} {
+		  if [array size fixers] {
 		    puts stderr "WARNING: \$$var does not agree with \$${var}_modshare counter. The following directories' usage counters were adjusted to match. Note that this may mean that module unloading may not work correctly."
 		    foreach dir [array names fixers] {
 			puts -nonewline stderr " $dir"
 		    }
 		    puts stderr ""
+		  }
 		}
 
 	    } else {
@@ -511,7 +514,7 @@ proc renderSettings {} {
 		    }
 		    sh {
 			set val $g_Aliases($var)
-			puts $f "$var () {\n$val\n}"
+			puts $f "function $var () {\n$val\n}"
 		    }
 		}
 	    }
@@ -1140,7 +1143,7 @@ global g_shellType
 set g_shell [lindex $argv 0]
 set command [lindex $argv 1]
 set argv [lreplace $argv 0 1]
-set g_force 0
+set g_force 1
 
 switch -regexp $g_shell {
     ^(sh|bash|ksh|zsh)$ {
