@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Bootstrap.c,v 1.2 2002/04/29 18:45:25 lakata Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Bootstrap.c,v 1.3 2002/04/29 19:58:06 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -221,10 +221,11 @@ def module(command, *arguments):
   
   sprintf(command,"
 setenv MODULE_VERSION %s
+setenv MODULESHOME %s
 if { ! [info exists env(MODULEPATH)    ] } { setenv MODULEPATH    \"%s\" }
 if { ! [info exists env(LOADEDMODULES) ] } { setenv LOADEDMODULES \"\"}
 ",
-	  version_string,MODULEPATH);
+	  version_string,PREFIX,MODULEPATH);
   
   g_flags |= M_LOAD; /* this is necessary so that the setenv do something */
   
