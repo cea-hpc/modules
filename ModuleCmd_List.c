@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_List.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_List.c,v 1.2 2002/04/29 18:45:00 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -57,10 +57,8 @@ static void *UseId[] = { &UseId, Id };
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-#if WITH_DEBUGGING_MODULECMD
 static	char	module_name[] = "ModuleCmd_List.c";	/** File name of this module **/
 static	char	_proc_ModuleCmd_List[] = "ModuleCmd_List";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -101,7 +99,7 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
      **/
 
     char	*loaded, *lmfiles;
-    int		 i, count;
+    int		 i, count1, count2;
     char	*list[ MOD_BUFSIZE];
     char	*files[ MOD_BUFSIZE];
     char	*tmplist[ MOD_BUFSIZE], *s;
@@ -132,17 +130,22 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
 	/**
 	 **  LOADEDMODULES and _LMFILES_ should provide a list of loaded
 	 **  modules and assigned files in the SAME ORDER
+	 ** but double check, because if they aren't you will get a crash.
 	 **/
 
-	count = 1;
+	count1 = 1;
         for( list[ 0] = strtok( loaded, ":");
-	     list[ count] = strtok( NULL, ":");
-	     count++ );
+	     list[ count1] = strtok( NULL, ":");
+	     count1++ );
 
-	count = 1;
+	count2 = 1;
         for( files[ 0] = strtok( lmfiles, ":");
-	     files[ count] = strtok( NULL, ":");
-	     count++ );
+	     files[ count2] = strtok( NULL, ":");
+	     count2++ );
+	if (count1 != count2) {
+	  ErrorLogger( ERR_ENVVAR, LOC, NULL);
+	}
+	  
 
 	/**
 	 **  We have to build a single list of files for each loaded entry
@@ -150,7 +153,7 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
 	 **  part
 	 **/
 
-	for( i=0; i<count; i++) {
+	for( i=0; i<count1; i++) {
 
 	    len = strlen( files[i]) - strlen( list[i]);
 	    tmplist[i] = files[i];
@@ -176,7 +179,7 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
 	     **  Print this guy
 	     **/
 	}
-	print_aligned_files( interp, NULL, NULL, tmplist, count, 1);
+	print_aligned_files( interp, NULL, NULL, tmplist, count1, 1);
     }
 
     /**
