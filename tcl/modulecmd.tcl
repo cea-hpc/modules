@@ -1236,6 +1236,8 @@ proc renderSettings {} {
 	    set env(MODULESHOME)  [file dirname $argv0]
 	    set g_stateEnvVars(MODULESHOME) "new"
 
+	    set modulerc_init_file $env(MODULESHOME)/init/modulerc
+
 	    
 	    switch -- $g_shellType {
 		csh {
@@ -1253,12 +1255,20 @@ proc renderSettings {} {
 		    puts $f "    alias module 'eval `'$argv0' '$g_shell' \\!*`'"
 		    puts $f "  endif"
 		    puts $f "endif"
-
-		    puts $f "source $env(MODULESHOME)/init/modulerc"
+		    
+		    if [file exists $modulerc_init_file] {
+			puts $f "source $modulerc_init_file"
+		    } else {
+			reportWarning "WARNING: $modulerc_init_file does not exist"
+		    }
 		}
 		sh {
 		    puts $f "module () { eval `'$argv0' '$g_shell' \$*`; }"
-		    puts $f ". $env(MODULESHOME)/init/modulerc"
+		    if [file exists $modulerc_init_file] {
+			puts $f ". $modulerc_init_file"
+		    } else {
+			reportWarning "WARNING: $modulerc_init_file does not exist"
+		    }
 		}
 		perl {
 		    puts $f "sub module {"
@@ -2437,7 +2447,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.45 $:
+                ModulesTcl 0.101/$Revision: 1.46 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
