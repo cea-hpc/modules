@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS=foreign dejagnu no-installinfo
 ACLOCAL_AMFLAGS=@CFLAGS@ -I config
 
 bin_PROGRAMS = modulecmd
-modulecmd_CFLAGS= -DINSTPATH=\"$(prefix)\"
+modulecmd_CFLAGS=
 modulecmd_LDFLAGS= @TCL_LIB_SPEC@ @TCLX_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@ @LIBS@
 modulecmd_SOURCES = \
 	ModuleCmd_Avail.c ModuleCmd_Bootstrap.c \
@@ -19,8 +19,11 @@ modulecmd_SOURCES = \
 #aclocal.m4 : acinclude.m4
 #	aclocal -I config
 
-# Makefile.in : Makefile.am aclocal.m4
+#Makefile.in : Makefile.am aclocal.m4
 # 	automake --foreign --add-missing
+
+#config.h.in : acconfig.h
+#	autoheader
 
 test: check
 

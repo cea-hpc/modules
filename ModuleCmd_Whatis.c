@@ -23,7 +23,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.3 2002/04/29 21:16:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.4 2002/06/13 16:16:03 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -709,7 +709,7 @@ static	char	*apropos_cache()
      **	 ment variable 'MODULEWHATISCACHE', which can be set to one of the
      **	 following:
      **
-     **		<filename>	-->	INSTPATH/etc/<filename>
+     **		<filename>	-->	PREFIX/etc/<filename>
      **		<dir>/		-->	<dir>/RC_FILE
      **		<dir>/<file>	-->	<dir>/<file>
      **/
@@ -734,7 +734,7 @@ static	char	*apropos_cache()
     }
 
     /**
-     **	 Finaly we have to change INSTPATH -> INSTPATH/etc
+     **	 Finaly we have to change PREFIX -> PREFIX/etc
      **/
     if( env_path == instpath) {
 	if((char *) NULL == (buffer = stringer(NULL,0,

@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.5 2002/06/12 20:07:57 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.6 2002/06/13 16:16:03 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -78,11 +78,11 @@ char	  _default[] = "default";	/** id string for default versions   **/
 
 /**
  **  Name of the rc files
- **  INSTPATH points to the location where modules is going to be installed.
+ **  PREFIX points to the location where modules is going to be installed.
  **  It comes from the Makefile
  **/
 
-char	*instpath = INSTPATH,
+char	*instpath = PREFIX,
 	*rc_file = RCFILE,
 	*modulerc_file = MODULERCFILE,
 	*version_file = VERSIONFILE;
@@ -226,7 +226,7 @@ int	main( int argc, char *argv[], char *environ[]) {
      **  Figure out, which global RC file to use. This depends on the environ-
      **  ment variable 'MODULERCFILE', which can be set to one of the following:
      **
-     **		<filename>	-->	INSTPATH/etc/<filename>
+     **		<filename>	-->	PREFIX/etc/<filename>
      **		<dir>/		-->	<dir>/RC_FILE
      **		<dir>/<file>	-->	<dir>/<file>
      **  Use xgetenv to expand 1 level of env.vars.
@@ -257,7 +257,7 @@ int	main( int argc, char *argv[], char *environ[]) {
     }
 
     /**
-     **  Finally we have to change INSTPATH -> INSTPATH/etc
+     **  Finally we have to change PREFIX -> PREFIX/etc
      **/
 
     if( rc_path == instpath) {

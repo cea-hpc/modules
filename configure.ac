@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.3 2002/06/11 05:23:09 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.4 2002/06/13 16:16:03 rkowen Exp $
 dnl Created:     94/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -93,6 +93,7 @@ if test "$prefix" != "NONE" ; then
     prefix=$BASEPREFIX/Modules
     export prefix
   fi
+  PREFIX=$prefix
   MODULES_INIT_DIR=$prefix/init
 else
   if test "$WANTS_VERSIONING" -eq 1 ; then
@@ -109,6 +110,7 @@ else
     export ac_default_prefix
   fi
   MODULES_INIT_DIR=$ac_default_prefix/init
+  PREFIX=$ac_default_prefix
 fi
 AC_DEFINE_UNQUOTED(MODULES_INIT_DIR, "$MODULES_INIT_DIR")
 AC_ARG_ENABLE(use-default,
@@ -119,9 +121,11 @@ AC_ARG_ENABLE(use-default,
 	fi)
 AC_MSG_RESULT([DEFAULTPATH = $DEFAULTPATH])
 AC_MSG_RESULT([BASEPREFIX = $BASEPREFIX])
+AC_MSG_RESULT([PREFIX = $PREFIX])
 AC_SUBST(DEFAULTPATH)
 AC_SUBST(BASEPREFIX)
-AC_DEFINE_UNQUOTED(PREFIX, "$prefix")
+AC_DEFINE_UNQUOTED(BASEPREFIX, "$BASEPREFIX")
+AC_DEFINE_UNQUOTED(PREFIX, "$PREFIX")
 export DEFAULTPATH
 export NODEFAULTPATH
 export BASEPREFIX
