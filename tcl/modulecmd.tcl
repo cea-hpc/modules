@@ -256,6 +256,7 @@ proc unload-path {var path} {
 	}
 	set g_stateEnvVars($sharevar) "del"
     }
+    return {}
 }
 
 proc add-path {var path pos} {
@@ -293,6 +294,7 @@ proc add-path {var path pos} {
     set env($sharevar) [join [array get countarr] ":"]
     set g_stateEnvVars($var) "new"
     set g_stateEnvVars($sharevar) "new"
+    return {}
 }
 
 proc prepend-path {var path} {
@@ -305,6 +307,7 @@ proc prepend-path {var path} {
     } elseif {$mode == "display"} {
 	report "prepend-path\t$var\t$path"
     }
+    return {}
 }
 
 
@@ -318,6 +321,7 @@ proc append-path {var path} {
     } elseif {$mode == "display"} {
 	report "append-path\t$var\t$path"
     }
+    return {}
 }
 
 proc set-alias {alias what} {
@@ -333,6 +337,7 @@ proc set-alias {alias what} {
     } elseif {$mode == "display"} {
 	report "alias\t$alias\t$what"
     }
+    return {}
 }
 
 
@@ -365,6 +370,7 @@ proc conflict {args} {
     } elseif {$mode == "display"} {
 	report "conflict\t$args"
     }
+    return {}
 }
 
 proc x-resource {resource {value {}}} {
@@ -378,6 +384,7 @@ proc x-resource {resource {value {}}} {
     } elseif {$mode == "display"} {
 	report "x-resource\t$resource\t$value"
     }
+    return {}
 }
 
 proc uname {what} {
@@ -437,7 +444,9 @@ proc popMode {} {
 #
 
     global g_modeStack
-    set g_modeStack [lrange g_modeStack 0 end-1]
+    set len [llength $g_modeStack]
+    set len [expr $len - 2]
+    set g_modeStack [lrange $g_modeStack 0 $len]
 #    report "g_modeStack/pop = $g_modeStack"
 }
 
@@ -1426,7 +1435,7 @@ catch {
 	}
 	default {
 	    report {
-		ModulesTcl 0.100/$Revision: 1.18 $:
+		ModulesTcl 0.100/$Revision: 1.19 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
