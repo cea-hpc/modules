@@ -8,7 +8,7 @@
 
                               R.K. Owen, Ph.D.
                                KooZ Software
-                             rk@owen.sj.ca.us
+                              rk@owen.sj.ca.us
 1. Introduction
 _______________
 
@@ -120,7 +120,7 @@ _________________________________________________________________________
 		  be explained below.
 _________________________________________________________________________
 
-f [ -x /etc/custom/bashrc ]; then
+if [ -x /etc/custom/bashrc ]; then
 	. /etc/custom/bashrc
 fi
 _________________________________________________________________________
@@ -170,7 +170,7 @@ $ENV		- called per-process (bash only), typically defined
 		  It's intended for the user's alias customizations.
 		  If $ENV is not defined, then nothing is sourced!
 
-3.0 Skeleton Files
+3. Skeleton Files
 __________________
 
 RedHat is fairly light on the skeleton dot files. Of those
@@ -180,7 +180,7 @@ should be sufficient.  The purpose of the default .bashrc provided
 is to source the system /etc/bashrc to overcome this deficiency
 inherent to sh/bash/ksh.
 
-4.0 Custom System Files
+4. Custom System Files
 _______________________
 
 If you have followed the above recommendations, then you are now
@@ -190,344 +190,96 @@ This document will refer to the modules source directory as $MODULES_SRC, which
 would be set to /usr/local/Modules/src/modules-3.x.y if that is where
 you have unpacked the module sources.
 
+The system files provided in the modules sources references a `default'
+directory.  If you follow the template provided by the RKOConfigure script
+and are doing a configure with
+	./configure --prefix=/usr/local/Modules/@VERSION@ ...
+then the different module versions are placed in /usr/local/Modules.
+In this directory, the stable module version directory should be
+set as a symbolic link named `default'.  New versions of the modules
+package can be added, tried and tested before making it the operable
+version for the general users.
+
+(This is described in further detail in sect 2.1 of the INSTALL document.)
+
+4.1 System Environment Variables
+________________________________
+
+There are many environment variables that are used by the various tools
+found on a Unix system.  For example: `man' looks at $MANPATH to search
+for man directories.  The system shell files should define these environment
+variables so that the modulefiles can append onto them.  It's not a
+requirement, but it does make things explicitly clear.
+
+MANPATH			UNIX man documentation search path
+PATH			executable search path
+XAPPLRESDIR		X11 resource location search path
+
+The following environment variables are typically found on Unix systems
+with dynamically loaded libraries and GNU compilers and tools
+
+CPLUS_INCLUDE_PATH	g++ include directory search path
+C_INCLUDE_PATH		gcc include directory search path
+INFOPATH		GNU info documentation search path
+LD_LIBRARY_PATH		run-time dynamically loaded libraries search path
+LD_RUN_PATH		ELF object settable run-time dynamically loaded
+			library directory search path
+LIBRARY_PATH		generic ld library directory search path
+
+These environment variables are specific to GNOME and application
+development.
+
+GNOME_LIBCONFIG_PATH	GNOME library definition script search path
+GNOME_PATH		GNOME application and library package search path
 
 
-Should have Tcl 8.x.  Earlier versions may work, but not supported.
-Recent sources can be found
-at http://dev.scriptics.com/ .  Build Tcl using a directory
-structure anticipating a modules environment, such as:
-	configure --prefix=/usr/local/pkg/tcltk/8.x.y/
+4.2 C-shell System Files
+________________________
 
-For later use, define the environment variable TCLTKROOT to
-/usr/local/pkg/tcltk/8.x.y/ in this case.
+The C-shell /etc/custom files that were referenced in section 2.1
+are located in $MODULES_SRC/etc/global.  The files of
+interest are:
 
-Decide where you will place your local module files and the root
-for the module package.  It should be a file system separate from
-your system root, else it may get wiped out with every OS upgrade.
-For this document, the root /usr/local/Modules/ will be used.
-The local module files will be placed in /usr/local/Modules/modulefiles/.
-This will remain constant regardless what module version is used.
-Put the module version files in /usr/local/Modules/versions/. This
-directory is only visible if the "modules" modulefile is loaded,
-and is only intended for switching between differing module command
-versions.
+	csh.cshrc	Per-process run-command script.
+			Defines `module' alias, and alias `sh' to `bash'.
 
-The root for the a particular version of modules will have an
-indicative name, such as /usr/local/Modules/@VERSION@/, where
-@VERSION@ will get substituted with something like 3.0.8-rko .
-Once the installation is done, put a symbolic link in the
-/usr/local/Modules directory named default pointing to the version
-(e.g. "cd /usr/local/Modules; ln -s @VERSION@ default", where you
-have substituted the actual version for @VERSION@).
+	csh.login	Per-session run-command script.
+			Sets the environment variables mentioned in sect 4.2.
+			Sources the csh.modules script and sets $ENV
+			to $HOME/.bashrc (see sects 2.2 & 2.3).
 
-2.2 Building and Installing Modules
-___________________________________
-
-First - I recommend placing the sources into /usr/local/Modules/src/
-either from the tar file or CVS.
-
-Second - modify the RKOConfigure file, which looks something like this,
-to the actual paths used:
-
-#!/bin/sh
-CFLAGS=-g
-LDFLAGS=-g
-CC=gcc
-export CFLAGS LDFLAGS CC
-TCLTKROOT=/usr/local/tcltk/8.2.3
-export TCLTKROOT
-
-./configure \
-		--prefix=/usr/local/Modules/@VERSION@ \
-		--with-module-path=/usr/local/Modules/modulefiles \
-		--with-version-path=/usr/local/Modules/versions \
-		--with-etc-path=/etc \
-		--with-skel-path=/etc/skel \
-		--with-split-size=960 \
-		--x-includes=/usr/include/X11 \
-		--x-libraries=/usr/X11/lib \
-		--with-tcl-include=$TCLTKROOT/include \
-		--with-tcl-libraries=$TCLTKROOT/lib
-exit
-
-Then run ./RKOConfigure to configure the sources for your machine.
-Run "./configure --help" to view some of the other options.
-
-After the sources are configured then:
-	make
-	make check	# only if you have dejagnu available
-	make install
-
-Each successive step depends on successfully completing the previous steps.
-However, don't expect everything to work once it's installed,
-because the system rc files and the user rc `dot' files need to be
-modified to use modules.
-
-Make sure you have a "default" symbolic link in /usr/local/Modules
-to point to some version, since the system rc files will refer to
-it.
-
-2.3 Setting Up the Shell RC Files
-_________________________________
-
-Here's a quick tutorial on Shell rc (run-command) files.
-When a user logs in and if they have /bin/csh(/bin/sh) as their shell,
-the first rc fire to be parsed by the shell is /etc/csh.login &
-/etc/csh.cshrc (/etc/profile) (the order is implementation dependent),
-and then the user's $HOME/.cshrc ($HOME/.kshenv) and finally
-$HOME/.login ($HOME/.profile).  All the other login shells are based on
-/bin/csh and /bin/sh with additional features and rc files.
-
-Certain environment variables and aliases (functions) need to be set for
-Modules to work correctly.  This is handled by the Module init files
-in /usr/local/Modules/default/init, which contains separate init files
-for each of the various supported shells, where default is a symbolic
-link to a module command version.
-
-2.3.1 Global Shell RC Files
-___________________________
-
-Since Modules sets & appends to several environment variables it's a good
-idea to set them up with the default system values, else the compilers,
-loaders, man pages, etc. may not find the default system paths if not
-listed in the appropriate environment variables.
-
-Look in ./etc/global for example rc files (csh.login, profile) that
-defines most of the variables you'll likely need.
-(These files are not yet tailored to each different platform.  The
-current ones are targeted at GNU/Linux systems.)
-None of the environment variables are needed directly for a correct
-Modules environment.
-
-The Modules specific commands are located in ./etc/global and are named
-``csh.modules'' and ``profile.modules''.  These files should be copied
-to /etc [or where ever you specified with the --with-etc-path=<path>
-option to the configure script].
-These files will be source'd from the users' .login and .profile .  Edit
-these files if you want certain modules to be automatically loaded by
-every user.  Currently, it loads only ``null'' which does absolutely
-nothing.
-
-2.3.2 Skeleton Shell RC (``Dot'') Files
-_______________________________________
-
-You have these, I presume?  If you don't now is the time to set them up.
-The skeleton files provide a ``default'' environment when new users are
-added to your system.  The files are usually placed in /etc/skel [or
-where ever you specified with the --with-skel-path=<path> option to the
-configure script], and contains a minimal set of ``dot'' files and
-directories that every new user should start with.  The skeleton files
-are copied to the new user's $HOME directory with the ``-m'' option to
-the ``useradd'' command.  A set of example ``dot'' files are located in
-./etc/skel .  Copy everything but the .*.in and CVS files and
-directories to the skeleton directory.  Edit and tailor for your own
-system.
-
-If you have a pre-existing set of skeleton files, then make sure
-the following minimum set exists: .cshrc, .login, .kshenv, .profile .
-They can be automatically updated with:
-	env HOME=/etc/skel /usr/local/Modules/default/bin/add.modules
-and hit return.  Inspect the new ``dot'' files and if OK, then
-remove all the .*.old (original) files.
-
-An alternative way of setting-up the users' dot files can be found
-in ./ext.  This model can be used with the --with-dot-ext configure
-option.
-
-2.3.3 User Shell RC (``Dot'') Files
-___________________________________
-
-The final step for a functioning Modules environment is to modify the
-user ``dot'' files to source the right files.
-One way to do this is to put a message in the /etc/motd telling each
-user to run the command:
-	/usr/local/Modules/default/bin/add.modules
-which is a sophisticated script that parses their existing ``dot''
-files pre-pending the appropriate commands to initialize the Modules
-environment.  The user can re-run this script and it will find
-and remember what modules they have initially loaded, strip out
-the previous module initialization and restore it with an upgraded
-one.  If the user lacks a necessary ``dot'' file, the script will
-copy one over from the skeleton directory.  The user will have
-to logout and login for it to come into effect.
-
-Another way is for the system administrator to "su - username" to
-each user and run it interactively.  The process can be semi-automated
-with a single line command that obviates the need for direct interaction:
-
-	su - username -c "yes | /usr/local/Modules/default/bin/add.modules"
-
-Power users can create a script to directly parse the /etc/passwd file
-to perform this command.  For the rest of us, just copy the passwd file
-and edit it appropriately to execute this command for each valid user.
-
-2.4 Module Files
-________________
-
-Once the above steps have been performed, then it's important to
-have module files in each of the modulefile directories.  The
-install will place the following module files (for example):
-------------------- /usr/local/Modules/3.0.9-rko/modulefiles -------------------
-dot         module-info modules     null        use.own
-
-If you don't have your own module files in /usr/local/Modules/modulefiles
-then copy ``null'' to that directory.  On some systems an empty
-modulefile directory will cause a core dump, on other systems no problem.
-
-Use /usr/local/Modules/default/modulefiles/modules as a template for
-creating your own module files.  For more information do
-	module load modules
-and then you have ready access to the module(1) modulefile(4) man
-pages, as well as the versions directory.  Study the man pages carefully.
-The version directory may look something like this:
-------------------------- /usr/local/Modules/versions --------------------------3.0.5-rko 3.0.6-rko 3.0.7-rko 3.0.8-rko 3.0.9-rko
+	csh.modules	Sources the appropriate C-shell (or derivative)
+			modules init script in the `default' modules
+			directory (see sect 4.0).
 
 
-The model you should use for modulefiles is ``name/version''.  For
-example my /usr/local/Modules/modulefiles directory has a directory
-named ``netscape'' which contains the following module files: 301, 405c,
-451c, etc.  When it's displayed with ``module avail'' it looks something
-like this:
+4.3 Bourne Shell Derivative System Files
+________________________________________
 
-	netscape/301
-	netscape/405c
-	netscape/451c(default)
-	netscape/45c
-	netscape/46
+The bash & ksh /etc/custom files that were alluded to in sections 2.2 & 2.3
+are located in $MODULES_SRC/etc/global.  As mentioned in sect 2.2 we do
+not use a strict Bourne shell, because of its limitations; therefore,
+only the derivative shells will and should be used.
+The files of interest are:
 
-The default is established with .version file in the netscape directory
-and it looks something like this:
+	bashrc		Per-process run-command script.
+			Defines a module shell function, and defines a
+			shell function for `sh' to reference `bash' instead.
 
-#%Module1.0###########################################################
-##
-## version file for Netscape
-##
-set ModulesVersion      "451c"
+	profile		Per-session run-command script.
+			Sets the environment variables mentioned in sect 4.2.
+			Sources the profile.modules script and sets $ENV
+			to $HOME/.bashrc (see sects 2.2 & 2.3).
 
-If the user does ``module load netscape'', then the default
-netscape/451c will be used.  The default can be instantly changed by
-editing the .version file to point to a different module file in that
-directory.  If no .version file exists then Modules will just assume the
-last module in the alphabetical ordered directory listing as the
-default.
-
-3. Package Location Suggestions
-_______________________________
-
-To make Modules a useful tool in your environment, it's a good idea to
-use some discipline and may require some work in placing binaries and man
-pages in suitable locations.  It's a way to stop using /usr/local/bin as
-a catch-all dump for every miscellaneous binary, especially the ones
-that don't get used too often.  There are some scripts to help this along.
-For this discussion I will use the mythical ``foobar'' package.  I've
-down-loaded the sources in a form of a gzip'd tar file -
-foobar-1.2.3.tar.gz .
-
-Most sources can be placed anywhere, and in most cases will configure
-and build without any problems.  For this example I will do everything
-from /tmp.  I unload the sources with ``tar -xzf foobar-1.2.3.tar.gz''
-which creates a directory in the current working directory (/tmp) named
-./foobar-1.2.3 .  Cd to this directory and run the configure script
-	./configure --prefix=/usr/local/pkg/foobar/1.2.3
-and it should configure the sources to place all necessary files to
-that location.  Continue the build, typically with:
-	make
-	make check
-	make install
-
-The binaries, libraries, man pages, and info pages are now placed
-in /usr/local/pkg/foobar/1.2.3 .  If you need to create the ``root''
-yourself, then load the ``modules'' module with ``module load modules''.
-Use the ``mkroot -m'' script to create a collection of ./bin, ./etc,
-./lib, ./man/ directories.  Install the items as needed, then use
-``mkroot -c'' to clean out the empty directories.
-
-Finally, after installing the binaries, etc. then create a module file
-using another module file as a template and place it somewhere in the
-modulefile hierarchy.  Also be sure to keep your original sources
-somewhere.  If you had no problems just copy the original gzip'd tar file
-to, say, /usr/src.
-
-If your module file is new and somewhat involved, then it's a good idea
-to do "module load use.own" to create your own private modules directory
-off your $HOME directory.  It's a good place to test module files, or to
-keep your own private collection of module files.
-
-The following is an example of the module configuration for
-rk@owen.sj.ca.us "module avail"
-
-------------------------- /usr/local/Modules/versions --------------------------
-3.0.5-rko 3.0.6-rko 3.0.7-rko 3.0.8-rko 3.0.9-rko
-
-------------------- /usr/local/Modules/3.0.8-rko/modulefiles -------------------
-dot         module-info modules     null        use.own
-
------------------------- /usr/local/Modules/modulefiles ------------------------
-F/970328               gif2png/2.0.1(default) perl5/005static
-RKO                    gnuplot/3.7            pgp/pgp-5.0
-X/bohr                 http                   postgres/6.5.1
-X/console              java/1.1.6v5(default)  postgres/7.0(default)
-X/dark                 java/1.2.2RC4          python/1.5.2c
-X/dirac                jpeg/6b                samba/1.9.18p2
-X/light                l2h                    sfw
-X/owen                 lesstif                slatec/4.1
-X/xfig                 libpng/1.0.5           sniff
-acrobat/3.0.2          linklint/2.1           staroffice/5.1
-acrobat/4.0            netcdf                 tcltk/8.0.5(default)
-apache/1.3.12(default) netscape/6.0.0pr1      tcltk/8.2.3
-apache/1.3.9           new                    tex/te
-applix/4.4.2(default)  nntp                   texinfo/3.12
-applix/shelf/2.0       ntp/3-5.92             vastf90/3.4N5
-aux                    ntp/3-5.93e            vmware/2.0
-cxref/1.4b             openssl/0.9.5          workman
-cxref/1.5b             oracle/8i              xgks
-dejagnu/1.3            pbm/1mar94p1           xpdf/0.90
-gcc/2.95.2             perl5/004
-gettext/0.10.35        perl5/005(default)
-
--------------------------- /u/owen/rk/privatemodules ---------------------------
-dump             htm4.old         m4html           yyy/xxx/test/2.0
-htm4             librko           umask
-htm4.new         librko.xxx       yyy/xxx/test/1.0
-
-The module list I use for compiling modules (plus some additional things)
-from "module list"
-
-Currently Loaded Modulefiles:
-  1) applix/4.4.2   3) gcc/2.95.2     5) tcltk/8.2.3
-  2) null           4) dejagnu/1.3    6) use.own
+	profile.modules	Sources the appropriate Bourne shell (or derivative)
+			modules init script in the `default' modules
+			directory (see sect 4.0).
 
 
-4. Upgrading Module Commands
-____________________________
+5. Disclaimer
+_____________
 
-The theory is that Modules should use a similar package/version locality
-as the package environments it helps define.  Switching between versions
-of the module command should be as easy as switching between different
-packages via the module command.
-
-Suppose there is a change from 3.0.5-rko to version 3.0.6-rko.  The goal
-is to semi-automate the changes to the user ``dot'' files, such that
-the the user can be oblivious to the change.
-
-The first step is to install the new module command & files to
-/usr/local/Modules/3.0.6-rko/.
-Test it out by loading with "module load modules 3.0.6-rko".
-You may get an error like:
-3.0.6-rko(25):ERROR:152: Module 'modules' is currently not loaded
-This is OK and will likely go away with future versions.
-
-Make sure you have the new version with "module --version".
-If it seems stable enough for yourself, then advertise it to
-your adventureous users.
-
-Once you are satisfied that it appears to work adequately well, then
-go into /usr/local/Modules remove the old "default" symbolic link
-to the new versions.  For example:
-	cd /usr/local/Modules
-	rm default; ln -s 3.0.6-rko default
-
-This new version is now the default, and will be referenced by
-all the users that log in and those that haven't loaded a specific
-module command version.
+The files provided by the modules package are only templates.
+You will probably need to modify these files for your own system
+and requirements.
 
