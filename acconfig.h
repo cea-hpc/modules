@@ -65,15 +65,6 @@
 #undef CACHE_AVAIL
 
 
-/* EVAL_ALIAS:
- *     This symbol, if defined, indicates that Modules should ask the sheel
- *     to evaluate aliases via stdout like other environment changes instead
- *     of opening a file and then asking the shell to source the file and
- *     then remove it.
- */
-#undef EVAL_ALIAS
-
-
 /* AUTOLOADPATH:
  *     This symbol, if defined, is the "default" path of directories
  *     Tcl will look for functions to autoload.  It is space separated!
@@ -81,8 +72,24 @@
 #undef AUTOLOADPATH
 
 
+/* MODULE_INIT_DIR:
+ *     This symbol declares where the module init scripts are located
+ *     for the bootstrap code.
+ */
+#undef MODULE_INIT_DIR
+
+
+/* EVAL_ALIAS:
+ *     This symbol, if defined, indicates that Modules should ask the shell
+ *     to evaluate aliases via stdout like other environment changes instead
+ *     of opening a file and then asking the shell to source the file and
+ *     then remove it.
+ */
+#undef EVAL_ALIAS
+
+
 /* HAS_BOURNE_FUNCS:
- *     This symbol, if defined, indicates that Modules should ask the sheel
+ *     This symbol, if defined, indicates that Modules should ask the shell
  *     to evaluate aliases via stdout like other environment changes instead
  *     of opening a file and then asking the shell to source the file and
  *     then remove it.
@@ -136,6 +143,21 @@
  */
 #undef USE_FREE
 
+/* WANTS_VERSIONING
+ *	Does the system want to use modules versions
+ */
+#undef WANTS_VERSIONING
+
+/* PREFIX
+ * Equivalent to /usr/local/Modules[/version_number]
+ */
+#undef PREFIX
+
+/* MODULEPATH:
+ *	Directory that contains all the module files
+ */
+#undef MODULEPATH
+
 /* VERSIONPATH:
  *	Directory that contains the env.modules version files.
  */
@@ -148,6 +170,11 @@
  *	.login.ext.
  */
 #define DOT_EXT		""
+
+/* TMP_DIR:
+ *  * tmp directory name
+ *   */
+#define TMP_DIR "/tmp"
 
 /* VERSION_MAGIC:
  *	By default, .version files will require to have the modulefile

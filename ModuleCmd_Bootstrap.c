@@ -13,7 +13,7 @@
  **			the 'module' alias/shell function and the dependent  **
  **			shell variables. Replaces the old $MODULESHOME/init  **
  ** 									     **
- **   Exports:		ModuleCmd_Bootstrap					     **
+ **   Exports:		ModuleCmd_Bootstrap				     **
  ** 									     **
  **   Notes:								     **
  ** 									     **
@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Bootstrap.c,v 1.5 2002/04/30 17:29:52 lakata Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Bootstrap.c,v 1.6 2002/06/10 22:00:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -59,7 +59,8 @@ static void *UseId[] = { &UseId, Id };
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-static	char	module_name[] = "ModuleCmd_Bootstrap.c";	/** File name of this module **/
+/** File name of this module **/
+static	char	module_name[] = "ModuleCmd_Bootstrap.c";
 
 #if WITH_DEBUGGING_MODULECMD
 static	char	_proc_ModuleCmd_Bootstrap[] = "ModuleCmd_Bootstrap";
@@ -79,11 +80,11 @@ int      tmpfile_mod(char** filename, FILE** file);
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
- **   Function:		ModuleCmd_Bootstrap					     **
+ **   Function:		ModuleCmd_Bootstrap				     **
  ** 									     **
- **   Description:	Execution of the module-command 'Bootstrap'		     **
+ **   Description:	Execution of the module-command 'Bootstrap'	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	2002/04/15					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
  **			int		 argc		Number of arguments  **
@@ -114,7 +115,6 @@ int	ModuleCmd_Bootstrap(	Tcl_Interp	*interp,
   const char *execname;
   char        binary_path[1024];
 
-
   /*
    * First get an absolute path to this modulecmd binary *
    */
@@ -135,6 +135,7 @@ int	ModuleCmd_Bootstrap(	Tcl_Interp	*interp,
    * an eval expression.
     */
   if( !strcmp( shell_derelict, "csh")) {
+#if 0
     if(tmpfile_mod(&aliasfilename,&aliasfile)) {
       ErrorLogger( ERR_OPEN, LOC, aliasfilename, NULL);
       return(TCL_ERROR);
@@ -175,6 +176,47 @@ unset exec_prefix
 unset prefix
 unset postfix
 ";
+#endif
+
+    modcmd =
+"if ($?tcsh) then\n"
+"	set modules_shell=\"tcsh\"\n"
+"else\n"
+"	set modules_shell=\"csh\"\n"
+"endif\n"
+"if ( $?MODULE_VERSION ) then\n"
+"	setenv MODULE_VERSION_STACK 	\"$MODULE_VERSION\"\n"
+"else\n"
+"	setenv MODULE_VERSION		\"3.2.0a\"\n"
+"	setenv MODULE_VERSION_STACK	\"3.2.0a\"\n"
+"endif\n"
+"set exec_prefix='/usr/local/Modules/$MODULE_VERSION'\n"
+"\n"
+"if ( $?histchars ) then\n"
+"  set _histchars = $histchars\n"
+"  if ($?prompt) then\n"
+"    alias module 'unset histchars;set _prompt=\"$prompt\";eval \\`'$exec_prefix'/bin/modulecmd '$modules_shell \\!*\\`;set histchars = $_histchars; set prompt=\"$_prompt\";unset _prompt'\n"
+"  else\n"
+"  alias module 'unset histchars;eval \\`'$exec_prefix'/bin/modulecmd '$modules_shell \\!*\\`;set histchars = $_histchars'\n"
+"  endif\n"
+"else\n"
+"  if ($?prompt) then\n"
+"    alias module 'set _prompt=\"$prompt\";set prompt=\"\";eval \\`'$exec_prefix'/bin/modulecmd '$modules_shell' \\!*\\`;set prompt=\"$_prompt\";unset _prompt'\n"
+"else\n"
+"  alias module 'eval \\`'$exec_prefix'/bin/modulecmd '$modules_shell' \\!*\\`'\n"
+"  endif\n"
+"endif\n"
+"unset exec_prefix\n"
+"\n"
+"setenv MODULESHOME /usr/local/Modules/3.2.0a\n"
+"\n"
+"if (! $?MODULEPATH ) then\n"
+"  setenv MODULEPATH \\`sed 's/#.*$//' ${MODULESHOME}/init/.modulespath | awk 'NF==1{printf(\"%s:\",$1)}'\\`\n"
+"endif\n"
+"\n"
+"if (! $?LOADEDMODULES ) then\n"
+"  setenv LOADEDMODULES \"\"\n"
+"endif\n";
   } else if( !strcmp( shell_derelict, "sh")) {
     if(tmpfile_mod(&aliasfilename,&aliasfile)) {
       ErrorLogger( ERR_OPEN, LOC, aliasfilename, NULL);
@@ -246,6 +288,3 @@ if { ! [info exists env(LOADEDMODULES) ] } { setenv LOADEDMODULES \"\"}
 
   return( TCL_OK);
 } /** end of 'ModuleCmd_Bootstrap' **/
-
-
-

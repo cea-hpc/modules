@@ -1,20 +1,21 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.1 2002/06/06 20:17:27 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.2 2002/06/10 22:00:47 rkowen Exp $
 dnl Created:     94/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
 dnl 		 Peter W. Osel <pwo@GUUG.DE>
 dnl
 dnl Process this file with autoconf to produce a configure script
-dnl You need autoconf 2.4 or better!
+dnl You need autoconf 2.52 or better!
 dnl
 dnl --------------------------------------------------------------
 AC_INIT
-AC_CONFIG_SRCDIR([version.c])
-AC_CONFIG_HEADER(config.h)
-AC_PREREQ(2.52)
 AC_CONFIG_AUX_DIR(config)
+AM_INIT_AUTOMAKE(modules,3.2)
+AC_CONFIG_SRCDIR([version.c])
+AM_CONFIG_HEADER(config.h)
+AC_PREREQ(2.52)
 
 dnl --------------------------------------------------------------
 dnl
@@ -42,6 +43,22 @@ AC_SUBST(DOT_EXT)dnl
 AC_SUBST(VERSION)dnl
 AC_SUBST(DATE)dnl
 AC_SUBST(THISDIR)dnl
+dnl --------------------------------------------------------------
+dnl Need to know if versioning is asked for before setting certain paths
+dnl
+dnl --enable-versioning		Use modules versioning 	[DEF]
+dnl --disable-versioning	Without  - " -
+dnl --------------------------------------------------------------
+AC_ARG_ENABLE(versioning,
+	[  --enable-versioning         use modules versioning          [yes]],
+	if test "$enableval" = "yes"; then
+	    WANTS_VERSIONING=1
+	    AC_DEFINE(WANTS_VERSIONING,1)
+	else
+	    WANTS_VERSIONING=0
+	    AC_DEFINE(WANTS_VERSIONING,0)
+	fi, WANTS_VERSIONING=1
+	    AC_DEFINE(WANTS_VERSIONING,1))
 dnl
 dnl --------------------------------------------------------------
 dnl Get Modules version & date
@@ -53,27 +70,50 @@ DATE='(DDMmmYYYY)'
 DATE=`sed -n -e 's/^.*date_string.*"\(.*\)";$/\1/p' ${srcdir}/version.c`
 AC_MSG_RESULT([DATE = $DATE])
 echo "configuring for Modules $VERSION		$DATE"
-dnl --------------------------------------------------------------
 THISDIR=`pwd`
-AC_MSG_RESULT([THISDIR = $THISDIR])
 dnl --------------------------------------------------------------
-dnl compute a default path ... strip off @VERSION@ if present in prefix
-dnl also expand @VERSION@ in path
+dnl
+dnl --enable-use-default        Use PREFIX - VERSION in init scripts [DEF]
+dnl --disable-use-default       Use PREFIX in init scripts
+dnl
+AC_MSG_RESULT([THISDIR = $THISDIR])
 dnl --------------------------------------------------------------
 DEFAULTPATH=default
 if test "$prefix" != "NONE" ; then
-  DEFAULTPATH=`echo $prefix | sed -e s%@VERSION@%$DEFAULTPATH%g`
-  BASEPREFIX=`echo $prefix | sed -e s%@VERSION@%%g`
-  prefix=`echo $prefix | sed -e s%@VERSION@%$VERSION%g`
-  NODEFAULTPATH=$prefix
-  export prefix
+  if test "$WANTS_VERSIONING" -eq 1 ; then
+    DEFAULTPATH=$prefix/Modules/default
+    NODEFAULTPATH=$prefix/Modules/$VERSION
+    BASEPREFIX=$prefix
+    prefix=$BASEPREFIX/Modules/$VERSION
+    export prefix
+  else
+    DEFAULTPATH=$prefix/Modules
+    NODEFAULTPATH=$prefix/Modules
+    BASEPREFIX=$prefix
+    prefix=$BASEPREFIX/Modules
+    export prefix
+  fi
 else
-  DEFAULTPATH=`echo $ac_default_prefix | sed -e s%@VERSION@%$DEFAULTPATH%g`
-  BASEPREFIX=`echo $ac_default_prefix | sed -e s%@VERSION@%%g`
-  ac_default_prefix=`echo $ac_default_prefix | sed -e s%@VERSION@%$VERSION%g`
-  NODEFAULTPATH=$ac_default_prefix
-  export prefix
+  if test "$WANTS_VERSIONING" -eq 1 ; then
+    DEFAULTPATH=$ac_default_prefix/Modules/default
+    NODEFAULTPATH=$ac_default_prefix/Modules/$VERSION
+    BASEPREFIX=$ac_default_prefix
+    ac_default_prefix=$BASEPREFIX/Modules/$VERSION
+    export ax_default_prefix
+  else
+    DEFAULTPATH=$ac_default_prefix/Modules
+    NODEFAULTPATH=$ac_default_prefix/Modules
+    BASEPREFIX=$ac_default_prefix
+    ac_default_prefix=$BASEPREFIX/Modules
+    export ax_default_prefix
+  fi
 fi
+AC_ARG_ENABLE(use-default,
+	[  --enable-use-default        use DEFAULTPATH in init scripts [yes]],
+	if test "$enableval" = "no" -o $WANTS_VERSIONING -eq 0; then
+		DEFAULTPATH=$NODEFAULTPATH
+		AC_SUBST(DEFAULTPATH)
+	fi)
 AC_MSG_RESULT([DEFAULTPATH = $DEFAULTPATH])
 AC_MSG_RESULT([BASEPREFIX = $BASEPREFIX])
 AC_SUBST(DEFAULTPATH)
@@ -163,8 +203,6 @@ AC_ARG_WITH(tmp-dir,
            AC_DEFINE_UNQUOTED(TMP_DIR, "/var/tmp")
         fi
 	)
-dnl
-dnl
 dnl
 dnl Check for cc
 AC_PROG_CC
@@ -260,9 +298,6 @@ dnl
 dnl --enable-version-magic      Set .version magic requirement [DEF]
 dnl --disable-version-magic     .version need not have magic cookie
 dnl
-dnl --enable-use-default        Use PREFIX - VERSION in init scripts [DEF]
-dnl --disable-use-default       Use PREFIX in init scripts
-dnl
 AC_ARG_WITH(force-path,
 	[  --with-force-path=<path>    use force path=<path>         [no]],
 	if test "$withval" != "no"; then
@@ -279,23 +314,23 @@ AC_ARG_WITH(static,
 	[  --with-static[=<option>]    use static linking            [no]],
 	EM_SET_STATIC(STATIC, $withval))
 AC_ARG_ENABLE(cache,
-	[  --enable-cache              use directory cache           [yes]],
+	[  --enable-cache              use directory cache             [yes]],
 	if test "$enableval" = "yes"; then
 	    AC_DEFINE(CACHE_AVAIL)
 	fi,
 	AC_DEFINE(CACHE_AVAIL))
 AC_ARG_ENABLE(shell-funcs,
-	[  --enable-shell-funcs        use sh functions              [yes]],
+	[  --enable-shell-funcs        use sh functions                [yes]],
 	if test "$enableval" = "yes"; then
 	    AC_DEFINE(HAS_BOURNE_FUNCS)
 	fi, AC_DEFINE(HAS_BOURNE_FUNCS))
 AC_ARG_ENABLE(shell-eval,
-	[  --enable-shell-eval         use shell alias eval          [no]],
+	[  --enable-shell-eval         use shell alias eval            [no]],
 	if test "$enableval" = "yes"; then
 	    AC_DEFINE(EVAL_ALIAS)
 	fi)
 AC_ARG_ENABLE(free,
-	[  --enable-free               use free() calls              [no]],
+	[  --enable-free               use free() calls                [no]],
 	if test "$enableval" = "yes"; then
 	    AC_DEFINE(USE_FREE)
 	fi)
@@ -312,18 +347,12 @@ AC_ARG_WITH(debug,
 		AC_DEFINE_UNQUOTED(WITH_DEBUG_INFO, ${withval})
 	fi)
 AC_ARG_ENABLE(version-magic,
-	[  --enable-version-magic      set .version magic requirement[yes]],
+	[  --enable-version-magic      set .version magic requirement  [yes]],
 	if test "$enableval" != "no"; then
 		AC_DEFINE(VERSION_MAGIC,1)
 	else
 		AC_DEFINE(VERSION_MAGIC,0)
 	fi, AC_DEFINE(VERSION_MAGIC,1))
-AC_ARG_ENABLE(use-default,
-	[  --enable-use-default        use DEFAULTPATH in init scripts [DEF]],
-	if test "$enableval" = "no"; then
-		DEFAULTPATH=$NODEFAULTPATH
-		AC_SUBST(DEFAULTPATH)
-	fi)
 dnl --------------------------------------------------------------
 dnl  Logging
 dnl  The following option allow switching logging on and off
@@ -331,7 +360,7 @@ dnl  and provide a possibility to set up the default facilities
 dnl --------------------------------------------------------------
 WITH_LOGGING=0
 AC_ARG_ENABLE(logging,
-	[  --enable-logging            turn logging on		    [no]],
+	[  --enable-logging            turn logging on                 [no]],
 	if test "$enableval" = "yes"; then
 		AC_DEFINE(WITH_LOGGING)
 		WITH_LOGGING=1
