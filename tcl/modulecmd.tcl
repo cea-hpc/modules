@@ -396,7 +396,7 @@ proc uname {what} {
 		catch { exec /bin/uname -r } result
 	    }
 	    default {
-		error "uname setting $what not implemented"
+		error "'uname $what' not implemented"
 	    }
 	}
 	set unameCache($what) $result
@@ -447,7 +447,7 @@ proc renderSettings {} {
     global env g_Aliases g_shellType g_shell
     global g_stateEnvVars g_stateAliases
     global g_newXResources g_delXResources
-    global error_count
+    global g_pathList error_count
 
     set iattempt 0
     set f ""
@@ -506,6 +506,7 @@ proc renderSettings {} {
 
 	    }
 	}
+
 # new aliases
 	if {$g_shell != "sh"} {
 	    foreach var [array names g_stateAliases] {
@@ -544,6 +545,7 @@ proc renderSettings {} {
 		}
 	    }
 	}
+
 # obsolete aliases
 	if {$g_shell != "sh"} {
 	    foreach var [array names g_stateAliases] {
@@ -635,6 +637,25 @@ proc renderSettings {} {
 	    }
 	}
 
+# module path{s,} output
+	foreach var $g_pathList {
+	    switch $g_shellType {
+		csh {
+		    puts $f "echo '$var'"
+		}
+		sh {
+		    puts $f "echo '$var'"
+		}
+		perl {
+		    puts $f "print '$var'.\"\\n\";"
+		}
+		python {
+# I'm not a python programmer
+		}
+	    }
+	}
+
+###
 	set nop 0
 	if {  $error_count == 0  && ! [tell $f] } {
 	    set nop 1
@@ -876,6 +897,41 @@ proc cmdModuleDisplay {mod} {
     } errMsg
     if {$errMsg != ""} {
 	puts stderr "ERROR: module display $mod failed. $errMsg"
+    }
+}
+
+proc cmdModulePaths {mod} {
+    global env g_pathList
+
+    # Not right - see cmdModuleAvail
+    set g_mode "display"
+    catch {
+	set modfile [getPathToModule $mod]
+	set currentModule [lindex $modfile 1]
+	set modfile	  [lindex $modfile 0]
+	lappend g_pathList $modfile
+	set junk ""
+    } errMsg
+    if {$errMsg != ""} {
+	puts stderr "ERROR: module paths $mod failed. $errMsg"
+    }
+}
+
+proc cmdModulePath {mod} {
+    global env g_pathList
+
+    set g_mode "display"
+    catch {
+	set modfile [getPathToModule $mod]
+	set currentModule [lindex $modfile 1]
+	set modfile	  [lindex $modfile 0]
+
+	set g_pathList $modfile
+
+	set junk ""
+    } errMsg
+    if {$errMsg != ""} {
+	puts stderr "ERROR: module path $mod failed. $errMsg"
     }
 }
 
@@ -1242,6 +1298,16 @@ catch {
 	    eval cmdModuleSource $argv
 	    renderSettings
 	}
+	{^paths} {
+	    # HMS: We probably don't need the eval
+	    eval cmdModulePaths $argv
+	    renderSettings
+	}
+	{^path} {
+	    # HMS: We probably don't need the eval
+	    eval cmdModulePath $argv
+	    renderSettings
+	}
 	{^pu} {
 	    cmdModulePurge
 	    renderSettings
@@ -1284,7 +1350,7 @@ catch {
 	}
 	default {
 	    puts stderr {
-		ModulesTcl 0.98:
+		ModulesTcl 0.99:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
@@ -1293,6 +1359,8 @@ catch {
 		 switch|swap           modulefile1 modulefile2
 		 display|show          modulefile [modulefile ...]
 		 avail                 [modulefile [modulefile ...]]
+		 path                  modulefile
+		 paths                 modulefile
 		 use                   dir [dir ...]
 		 unuse                 dir [dir ...]
 		 purge
