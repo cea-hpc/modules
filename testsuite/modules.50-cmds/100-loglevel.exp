@@ -1,0 +1,100 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	log/err_both_1, log/err_both_2, log/err_syslog,
+#   Modulefiles:	log/err_file
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'log-facility' module command. 
+#			At the moment this only checks the execution of the
+#			log-facility command. This is not a check wheter the
+#			log output really goes to the configured target.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module1 "log/err_both_1"
+set modulefile1 "$env(MODULEPATH)/$module1"
+
+set module2 "log/err_both_2"
+set modulefile2 "$env(MODULEPATH)/$module2"
+
+set module3 "log/err_syslog"
+set modulefile3 "$env(MODULEPATH)/$module3"
+
+set module4 "log/err_file"
+set modulefile4 "$env(MODULEPATH)/$module4"
+
+#
+#  Check only for the csh
+#
+
+set lmf1 "setenv _LMFILES_ $modulefile1;"
+set lm1 "setenv LOADEDMODULES $module1;"
+
+set lmf2 "setenv _LMFILES_ $modulefile2;"
+set lm2 "setenv LOADEDMODULES $module2;"
+
+set lmf3 "setenv _LMFILES_ $modulefile3;"
+set lm3 "setenv LOADEDMODULES $module3;"
+
+set lmf4 "setenv _LMFILES_ $modulefile4;"
+set lm4 "setenv LOADEDMODULES $module4;"
+
+#
+#  The tests
+#
+
+if { [info exists config_file] } {
+    if { ![catch { exec grep "#define WITH_LOGGING" $config_file } ] } {
+	
+	test_cmd "csh" "load $module1" "$lmf1$lm1"
+	test_cmd "csh" "load $module2" "$lmf2$lm2"
+	test_cmd "csh" "load $module3" "$lmf3$lm3"
+	test_cmd "csh" "load $module4" "$lmf4$lm4"
+	
+    } else {
+	send_user "Skipping Syslog tests, since they were not compiled\n"
+    }
+} else {
+    send_user "ERROR: config_file wasn't set"
+}
+
+#
+#  Cleanup
+#
+
+unset lm1
+unset lmf1
+unset lm2
+unset lmf2
+unset lm3
+unset lmf3
+unset lm4
+unset lmf4
+
+unset modulefile1
+unset module1
+unset modulefile2
+unset module2
+unset modulefile3
+unset module3
+unset modulefile4
+unset module4
