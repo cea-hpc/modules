@@ -1222,13 +1222,18 @@ proc report {message {nonewline ""}} {
 proc cmdModuleList {} {
     global env
 
+    report "Currently Loaded Modulefiles:"
     if [info exists env(LOADEDMODULES)] {
-	set list [split $env(LOADEDMODULES) ":"]
 	set max 0
-	foreach mod $list {
-	    if {[string length $mod] > $max} {
-		set max [string length $mod]
+	foreach mod [split  $env(LOADEDMODULES) ":"] {
+            set len [string length $mod]
+	    if {$len > $max} {
+		set max $len
 	    }
+            if {$len > 0} {
+                # skip zero length module names
+                lappend list $mod
+            }
 	}
 # save room for numbers and spacing: 2 digits + ) + space + space
 	incr max 1
@@ -1617,7 +1622,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.100/$Revision: 1.31 $:
+                ModulesTcl 0.100/$Revision: 1.32 $:
                 Available Commands and Usage:
                  add|load              modulefile [modulefile ...]
                  rm|unload             modulefile [modulefile ...]
