@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.3 2001/07/09 18:21:36 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.4 2002/06/17 05:58:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -73,6 +73,7 @@ static	char	_proc_ModuleCmd_UnUse[] = "ModuleCmd_UnUse";
 /**				    PROTOTYPES				     **/
 /** ************************************************************************ **/
 
+#ifdef BEGINENV
 static	void	append_to_modulesbeginenv( Tcl_Interp*, char*);
 
 
@@ -138,6 +139,7 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
     } /** if( var passed) **/
 
 } /** End of 'append_to_modulesbeginenv' **/
+#endif
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -239,6 +241,7 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
 
     } /** for **/
   
+#ifdef BEGINENV
     /**
      **  Add the new value of MODULESPATH to the end
      **  of the beginenvcache so that update will be able to find its
@@ -246,6 +249,7 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
      **/
 
     append_to_modulesbeginenv( interp, "MODULEPATH");
+#endif
 
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Use, NULL);
@@ -313,13 +317,15 @@ int  ModuleCmd_UnUse(	Tcl_Interp	*interp,
 
     } /** for **/
   
+#ifdef BEGINENV
     /**
-     **  What I'm going to do here is add the new value of MODULESPATH to the end
+     **  Add the new value of MODULESPATH to the end
      **  of the beginenvcache so that update will be able to find its
      **  modulefiles.
      **/
 
     append_to_modulesbeginenv( interp, "MODULEPATH");
+#endif
 
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_UnUse, NULL);

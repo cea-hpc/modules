@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.4 2002/04/29 21:16:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.5 2002/06/17 05:58:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -307,6 +307,8 @@ static	ErrTransTab	TransTab[] = {
     { ERR_DUP_ALIAS,	WGHT_WARN,  "Duplicate alias '$1' found" },
     { ERR_CACHE_INVAL,	WGHT_ERROR, "Invalid cache version '$1' found" },
     { ERR_CACHE_LOAD,	WGHT_WARN,  "Couldn't load the cache properly" },
+    { ERR_BEGINENV,	WGHT_WARN,  "Invalid update subcommand "
+	    			    "- no .modulesbeginenv" },
     { ERR_INIT_TCL,	WGHT_ERROR, "Cannot initialize TCL" },
     { ERR_INIT_TCLX,	WGHT_WARN,  "Cannot initialize TCLX modules using "
 				    "extended commands might fail" },

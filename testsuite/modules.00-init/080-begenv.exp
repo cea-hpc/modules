@@ -33,6 +33,8 @@ set env(HOME) $env(TESTSUITEDIR)
 # The tests ...
 #
 
+if { [ version_test "BEGINENV=1" ] } {
+
 testerr_cmd "sh" "--long list" \
 		"_MODULESBEGINENV_=$beg_env ;export _MODULESBEGINENV_;$not_load"
 testerr_cmd "ksh" "--long list" \
@@ -45,6 +47,9 @@ testerr_cmd "tcsh" "--long list" \
     "setenv _MODULESBEGINENV_ $beg_env ;$not_load"
 testerr_cmd "perl" "--long list" \
 		"\$ENV{'_MODULESBEGINENV_'} = '$beg_env';$not_load"
+} else {
+	send_user "skipping .modulesbeginenv tests"
+}
 
 #
 # Finally set up the _MODULESBEGINENV_ environment variable for all

@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.4 2002/04/29 21:16:47 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.5 2002/06/17 05:58:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -325,7 +325,9 @@ int ModuleCmd_Avail(	Tcl_Interp	*interp,
     if(Result < 0) Result = TCL_OK;
 
 unwind2:
+#ifdef CACHE_AVAIL
     null_free((void *) &namebuf);
+#endif
 unwind1:
     null_free((void *) &modpath);
 

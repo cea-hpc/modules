@@ -5,14 +5,13 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		ModuleCmd_Update.c				     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
  ** 									     **
  **   Description: 	Uses the beginning environment stored the first time **
  **			each login session to reload all of the currently    **
- ** 									     **
  ** 									     **
  **   Notes:								     **
  ** 									     **
@@ -26,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.2 2002/04/29 21:16:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.3 2002/06/17 05:58:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -94,6 +93,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
                  		int		 count,
                  		char		*module_list[])
 {
+#ifdef  BEGINENV
     char	 *buf,			/** Read buffer			     **/
 		 *var_ptr,		/** Pointer to a variables name	     **/
 		 *val_ptr,		/** Pointer to a variables value     **/
@@ -281,6 +281,9 @@ success0:
 unwind1:
     null_free((void *) &load_list);
 unwind0:
+#else	/* BEGINENV */
+	ErrorLogger( ERR_BEGINENV, LOC, NULL);
+#endif	/* BEGINENV */
     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'ModuleCmd_Update' **/

@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.7 2002/06/13 22:54:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.8 2002/06/17 05:58:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -402,7 +402,9 @@ void module_usage(FILE *output)
 "	+ avail			[modulefile [modulefile ...]]\n"
 "	+ use [-a|--append]	dir [dir ...]\n"
 "	+ unuse			dir [dir ...]\n"
+#ifdef BEGINENV
 "	+ update\n"
+#endif
 "	+ purge\n"
 "	+ list\n"
 "	+ clear\n"
@@ -754,20 +756,21 @@ static void version (FILE *output) {
 
 	fprintf(output, format, "VERSION", version_string);
 	fprintf(output, "\n");
-	isdefined(CACHE_AVAIL,str(CACHE_AVAIL));
-	isdefined(USE_FREE,str(USE_FREE));
 	isdefined(AUTOLOADPATH,str(AUTOLOADPATH));
+	isdefined(BEGINENV,str(BEGINENV));
+	isdefined(CACHE_AVAIL,str(CACHE_AVAIL));
+	isdefined(DOT_EXT,str(DOT_EXT));
 	isdefined(EVAL_ALIAS,str(EVAL_ALIAS));
 	isdefined(HAS_BOURNE_FUNCS,str(HAS_BOURNE_FUNCS));
-	isdefined(WANTS_VERSIONING,str(WANTS_VERSIONING));
-	isdefined(PREFIX,str(PREFIX));
-	isdefined(MODULES_INIT_DIR,str(MODULES_INIT_DIR));
-	isdefined(MODULEPATH,str(MODULEPATH));
-	isdefined(VERSIONPATH,str(VERSIONPATH));
-	isdefined(DOT_EXT,str(DOT_EXT));
-	isdefined(TMP_DIR,str(TMP_DIR));
-	isdefined(VERSION_MAGIC,str(VERSION_MAGIC));
 	isdefined(LMSPLIT_SIZE,str(LMSPLIT_SIZE));
+	isdefined(MODULEPATH,str(MODULEPATH));
+	isdefined(MODULES_INIT_DIR,str(MODULES_INIT_DIR));
+	isdefined(PREFIX,str(PREFIX));
+	isdefined(TMP_DIR,str(TMP_DIR));
+	isdefined(USE_FREE,str(USE_FREE));
+	isdefined(VERSION_MAGIC,str(VERSION_MAGIC));
+	isdefined(VERSIONPATH,str(VERSIONPATH));
+	isdefined(WANTS_VERSIONING,str(WANTS_VERSIONING));
 	isdefined(WITH_DEBUG_INFO,str(WITH_DEBUG_INFO));
 }
 

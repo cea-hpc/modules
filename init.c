@@ -36,7 +36,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.5 2002/06/12 20:07:57 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.6 2002/06/17 05:58:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -358,6 +358,7 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
      **  environment and then reload every modulefile that has been loaded
      **  since as stored in the LOADEDMODULES environment variable in order.
      **/
+#ifdef BEGINENV
     if( !getenv( "_MODULESBEGINENV_") ) {
 
         FILE*  file;
@@ -388,6 +389,7 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
 
 	    null_free((void *) &buffer);
     }
+#endif
 
     /**
      **  Exit to the main program

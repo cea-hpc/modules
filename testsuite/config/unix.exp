@@ -96,6 +96,28 @@ proc modulecmd_start {command} {
 }
 
 #
+# modulecmd__ -- start modulecmd running
+#   (same as above but no verbose output)
+
+proc modulecmd__ {command} {
+    global MODULECMD
+    global verbose
+    global shell
+    global comp_output
+    global comp_error
+
+    if ![info exists command] then {
+	unresolved "internal testsuite error: no module command specified"
+    }
+
+    default_shell 
+    default_modulecmd
+
+    catch {set comp_output [eval exec $MODULECMD $shell [split $command { }]]
+	} comp_error
+}
+
+#
 # modulecmd_version -- extract and print the version number of modulecmd
 #
 

@@ -28,6 +28,7 @@
 
 set module "setenv/1.0"
 set modulefile "$env(MODULEPATH)/$module"
+set err_update "$warn_msgs: Invalid update subcommand - no .modulesbeginenv"
 # this allows the test to pass, but don't know why update needs to
 # set the path again
 set setpath "setenv MODULEPATH $env(MODULEPATH) ;"
@@ -51,7 +52,11 @@ set env(_MODULESBEGINENV_) "$env(TESTSUITEDIR)/.modulesbeginenv"
 #  The tests
 #
 
-test_cmd "csh" "update" "$ts_csh"
+if { [ version_test "BEGINENV=1" ] } {
+	test_cmd_re "csh" "update" "$ts_csh"
+} else {
+	testerr_cmd_re "csh" "update" "$err_update"
+}
 
 #
 #  Cleanup
