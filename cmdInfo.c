@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdInfo.c,v 1.3 2002/08/02 22:11:23 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdInfo.c,v 1.4 2002/08/14 21:05:30 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -105,7 +105,9 @@ int	cmdModuleInfo(	ClientData	 client_data,
 	      		int		 argc,
 	      		char		*argv[])
 {
-    char *s, *t, buf[ BUFSIZ];
+  const char *s;
+  char *t;
+  char buf[ BUFSIZ];
 
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleInfo, NULL);
@@ -350,7 +352,7 @@ int	cmdModuleInfo(	ClientData	 client_data,
 	if((char *) NULL == (s = ExpandVersions( name)))
 	    Tcl_SetResult( interp, "*undef*", TCL_STATIC);
 	else
-	    Tcl_SetResult( interp, s, TCL_VOLATILE);
+	    Tcl_SetResult( interp, (char*)s, TCL_VOLATILE);
 
     /**
      **  'module-info version'

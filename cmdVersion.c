@@ -43,7 +43,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.4 2002/08/02 22:11:23 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.5 2002/08/14 21:06:00 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -926,7 +926,7 @@ const char *	AliasLookup( const char *alias )
  ** ************************************************************************ **
  ++++*/
 
-int	VersionLookup(	char *name, char **module, char **version)
+int	VersionLookup(	char *name, const char **module, char **version)
 {
     ElemModule	*mptr;
     char	*s, *t;
@@ -956,7 +956,7 @@ int	VersionLookup(	char *name, char **module, char **version)
 
 	if((char *) NULL == (*version = strrchr( buffer, '/'))) {
 
-	    /* see if an alias was passwd */
+	    /* see if an alias was passed */
 	    if( s = (char *) avec_lookup(aliaslist, buffer)) {
 		*module = s; *version = t;
 
