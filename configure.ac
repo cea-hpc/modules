@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.11 2002/09/16 16:49:20 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.12 2004/10/22 01:33:30 harlan Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl You need autoconf 2.52 or better!
@@ -696,7 +696,7 @@ AC_ARG_WITH(module-path,
 	AC_HELP_STRING([--with-module-path=<path>],[use module path=<path> [[EPREFIX/Modules/modulefiles]]]),
 	MODULEPATH="$withval"
 	AC_MSG_RESULT([MODULEPATH = $with_module_path])
-	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval")dnl
+	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval", [module path])dnl
 	,
 dnl 	AC_MSG_WARN([if using '--with-module-path': need to specify a path!])
 	withval="$BASEPREFIX/Modules/modulefiles"
