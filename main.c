@@ -14,6 +14,7 @@
  **			the global data.				     **
  ** 									     **
  **   Exports:		main		Main program			     **
+ **			module_usage	Module usage information	     **
  **			Tcl_AppInit	Tcl Application initialization	     **
  ** 									     **
  **   Notes:								     **
@@ -28,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.6 2002/06/13 16:16:03 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.7 2002/06/13 22:54:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -157,6 +158,7 @@ static	char	_proc_Tcl_AppInit[] = "Tcl_AppInit";
 /** ************************************************************************ **/
 
 static int	Check_Switches( int *argc, char *argv[]);
+static void	version (FILE *output);
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -199,7 +201,7 @@ int	main( int argc, char *argv[], char *environ[]) {
      **/
     if (argc > 1 && *argv[1] == '-') {
         if (!strcmp("-V", argv[1]) || !strcmp("--version", argv[1])) {
-	    printf("%s\n", version_string);
+	    version(stdout);
 	    return 0;
         }
     }
@@ -347,6 +349,79 @@ unwind0:
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
+ **   Function:		module_usage					     **
+ ** 									     **
+ **   Description:	Lists out the helpful usage info that we've all come **
+ ** 			to expect from unix commands.			     **
+ ** 									     **
+ **   First Edition:	2002/10/13					     **
+ ** 									     **
+ **   Parameters:	FILE	*output		Where the output goes	     **
+ ** 									     **
+ **   Result:		void			No return values	     **
+ ** 									     **
+ **   Attached Globals:							     **
+ ** 			version_string		Current module version	     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+void module_usage(FILE *output)
+{
+    /**
+     **  General help wanted.
+     **/
+
+#if WITH_DEBUGGING_MODULECMD
+    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Help, NULL);
+#endif
+
+	fprintf(output,
+		"\n  Modules Release %s (Copyright GNU GPL v2 1991):\n\n",
+                version_string);
+	
+	fprintf(output,
+"  Usage: module [ switches ] [ subcommand ] [subcommand-args ]\n\n"
+"Switches:\n"
+"	-H|--help		this usage info\n"
+"	-V|--version		modules version & configuration options\n"
+"	-f|--force		force active dependency resolution\n"
+"	-t|--terse		terse    format avail and list format\n"
+"	-l|--long		long     format avail and list format\n"
+"	-h|--human		readable format avail and list format\n"
+"	-v|--verbose		enable  verbose messages\n"
+"	-s|--silent		disable verbose messages\n"
+"	-c|--create		create caches for avail and apropos\n"
+"	-i|--icase		case insensitive\n"
+"	-u|--userlvl <lvl>	set user level to (nov[ice],exp[ert],adv[anced])\n"
+"  Available SubCommands and Args:\n"
+"	+ add|load		modulefile [modulefile ...]\n"
+"	+ rm|unload		modulefile [modulefile ...]\n"
+"	+ switch|swap		[modulefile1] modulefile2\n"
+"	+ display|show		modulefile [modulefile ...]\n"
+"	+ avail			[modulefile [modulefile ...]]\n"
+"	+ use [-a|--append]	dir [dir ...]\n"
+"	+ unuse			dir [dir ...]\n"
+"	+ update\n"
+"	+ purge\n"
+"	+ list\n"
+"	+ clear\n"
+"	+ help			[modulefile [modulefile ...]]\n"
+"	+ whatis		[modulefile [modulefile ...]]\n"
+"	+ apropos|keyword	string\n"
+"	+ bootstrap\n"
+"	+ initadd		modulefile [modulefile ...]\n"
+"	+ initprepend		modulefile [modulefile ...]\n"
+"	+ initrm		modulefile [modulefile ...]\n"
+"	+ initswitch		modulefile1 modulefile2\n"
+"	+ initlist\n"
+"	+ initclear\n\n");
+
+} /** End of 'module_usage' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
  **   Function:		Tcl_AppInit					     **
  ** 									     **
  **   Description:	This is needed if you use shared TCL libraries.	     **
@@ -398,9 +473,10 @@ int Tcl_AppInit(Tcl_Interp *interp)
  **			    --userlvl, -u	Change the user level	     **
  **			    --icase, -i		Ignore case of modulefile    **
  **						names			     **
+ **			    --help, -H		Helpful usage info	     **
  **			    --version, -V	Report version only	     **
  ** 									     **
- **   First Edition:	95/12/20					     **
+ **   First Edition:	1995/12/20					     **
  ** 									     **
  **   Parameters:	int	*argc		Number of parameters	     **
  **			char	*argv[]		Command line arguments	     **
@@ -442,6 +518,7 @@ static int	Check_Switches( int *argc, char *argv[])
 	{ "icase", no_argument, NULL, 'i' },
 	{ "userlvl", required_argument, NULL, 'u'},
 	{ "append", no_argument, NULL, 'a' },
+	{ "help", no_argument, NULL, 'H' },
 	{ "version", no_argument, NULL, 'V' },
 	{ NULL, no_argument, NULL, 0 }
     };
@@ -457,7 +534,7 @@ static int	Check_Switches( int *argc, char *argv[])
 
     if( *argc > 1) {
 
-	while( EOF != (c = getopt_long( *argc-1, &argv[1], "hpftlvsciu:aV",
+	while( EOF != (c = getopt_long( *argc-1, &argv[1], "hpftlvsciu:aHV",
 	    longopts, NULL))) {
 
 	    switch( c) {
@@ -537,8 +614,12 @@ static int	Check_Switches( int *argc, char *argv[])
 		    append_flag = 1;
 		    break;
 
+		case 'H':			/* helpful info */
+		    module_usage(stderr);
+		    return ~TCL_OK;
+
 		case 'V':			/* version */
-		    fprintf(stderr, "%s\n", version_string);
+		    version(stderr);
 		    return ~TCL_OK;
 
 		/**
@@ -644,4 +725,51 @@ int dup2( int old, int new)
     return( fd);
 }
 #endif
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		version						     **
+ ** 									     **
+ **   Description:	Outputs the Modules version and features	     **
+ ** 									     **
+ **   First Edition:	2002/06/13					     **
+ ** 									     **
+ **   Parameters:	FILE *	output		All input is from defined    **
+ **						macros			     **
+ **									     **
+ **   Result:		void			no return value		     **
+ **						All output is to output	     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
 
+#define str(a) #a
+#define isdefined(a,b)	{if (strcmp(str(a),b)) x=str(a); else x="undef"; \
+			fprintf(output,format,b,x);}
+
+static void version (FILE *output) {
+	char	*x,
+		*format = "%s=%s\n";
+
+	fprintf(output, format, "VERSION", version_string);
+	fprintf(output, "\n");
+	isdefined(CACHE_AVAIL,str(CACHE_AVAIL));
+	isdefined(USE_FREE,str(USE_FREE));
+	isdefined(AUTOLOADPATH,str(AUTOLOADPATH));
+	isdefined(EVAL_ALIAS,str(EVAL_ALIAS));
+	isdefined(HAS_BOURNE_FUNCS,str(HAS_BOURNE_FUNCS));
+	isdefined(WANTS_VERSIONING,str(WANTS_VERSIONING));
+	isdefined(PREFIX,str(PREFIX));
+	isdefined(MODULES_INIT_DIR,str(MODULES_INIT_DIR));
+	isdefined(MODULEPATH,str(MODULEPATH));
+	isdefined(VERSIONPATH,str(VERSIONPATH));
+	isdefined(DOT_EXT,str(DOT_EXT));
+	isdefined(TMP_DIR,str(TMP_DIR));
+	isdefined(VERSION_MAGIC,str(VERSION_MAGIC));
+	isdefined(LMSPLIT_SIZE,str(LMSPLIT_SIZE));
+	isdefined(WITH_DEBUG_INFO,str(WITH_DEBUG_INFO));
+}
+
+#undef str
+#undef isdefined

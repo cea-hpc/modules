@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS=foreign dejagnu no-installinfo
 
-ACLOCAL_AMFLAGS=@CFLAGS@ -I config
+ACLOCAL_AMFLAGS= -I config
 
 bin_PROGRAMS = modulecmd
 modulecmd_CFLAGS=

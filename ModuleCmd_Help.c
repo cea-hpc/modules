@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.4 2002/04/29 20:07:59 lakata Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.5 2002/06/13 22:54:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -114,36 +114,10 @@ int  ModuleCmd_Help(	Tcl_Interp	*interp,
     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Help, NULL);
 #endif
 
-    if( argc > 0) {
+    if( argc > 0)
 	PerModuleHelp( interp, argc, argv);
-    } else {
-	fprintf( stderr,
-		"\n  Modules Release %s (Copyright GNU GPL v2 1991):\n",
-                version_string);
-	
-	fprintf( stderr, "  Available Commands and Usage:\n");
-	
-	fprintf( stderr, "\t+ add|load\t\tmodulefile [modulefile ...]\n");
-	fprintf( stderr, "\t+ rm|unload\t\tmodulefile [modulefile ...]\n");
-	fprintf( stderr, "\t+ switch|swap\t\t[modulefile1] modulefile2\n");
-	fprintf( stderr, "\t+ display|show\t\tmodulefile [modulefile ...]\n");
-	fprintf( stderr, "\t+ avail\t\t\t[modulefile [modulefile ...]]\n");
-	fprintf( stderr, "\t+ use [-a|--append]\tdir [dir ...]\n");
-	fprintf( stderr, "\t+ unuse\t\t\tdir [dir ...]\n");
-	fprintf( stderr, "\t+ update\n");
-	fprintf( stderr, "\t+ purge\n");
-	fprintf( stderr, "\t+ list\n");
-	fprintf( stderr, "\t+ clear\n");
-	fprintf( stderr, "\t+ help\t\t\t[modulefile [modulefile ...]]\n");
-	fprintf( stderr, "\t+ whatis\t\t[modulefile [modulefile ...]]\n");
-	fprintf( stderr, "\t+ apropos|keyword\tstring\n");
-	fprintf( stderr, "\t+ initadd\t\tmodulefile [modulefile ...]\n");
-	fprintf( stderr, "\t+ initprepend\t\tmodulefile [modulefile ...]\n");
-	fprintf( stderr, "\t+ initrm\t\tmodulefile [modulefile ...]\n");
-	fprintf( stderr, "\t+ initswitch\t\tmodulefile1 modulefile2\n");
-	fprintf( stderr, "\t+ initlist\n");
-	fprintf( stderr, "\t+ initclear\n\n");
-    }
+    else
+	module_usage(stderr);
 
     /**
      **  Return on success

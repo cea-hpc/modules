@@ -541,6 +541,9 @@ extern	int	  SourceRC( Tcl_Interp *interp, char *path, char *name);
 extern	void	  FreeList( char**, int);
 #endif
 
+/**  main.c  **/
+extern  void	  module_usage(FILE *output);
+
 /**  ModuleCmd_Avail.c  **/
 extern	int	  ModuleCmd_Avail( Tcl_Interp*, int, char*[]);
 extern	void	  print_dirents( char*);
