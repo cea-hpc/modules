@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.3 2001/06/22 20:54:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.4 2002/04/29 20:07:59 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -125,7 +125,7 @@ int  ModuleCmd_Help(	Tcl_Interp	*interp,
 	
 	fprintf( stderr, "\t+ add|load\t\tmodulefile [modulefile ...]\n");
 	fprintf( stderr, "\t+ rm|unload\t\tmodulefile [modulefile ...]\n");
-	fprintf( stderr, "\t+ switch|swap\t\tmodulefile1 modulefile2\n");
+	fprintf( stderr, "\t+ switch|swap\t\t[modulefile1] modulefile2\n");
 	fprintf( stderr, "\t+ display|show\t\tmodulefile [modulefile ...]\n");
 	fprintf( stderr, "\t+ avail\t\t\t[modulefile [modulefile ...]]\n");
 	fprintf( stderr, "\t+ use [-a|--append]\tdir [dir ...]\n");
