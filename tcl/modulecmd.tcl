@@ -84,6 +84,8 @@ proc execute-modulefile-help {modfile} {
 
 proc execute-modulefile {modfile} {
     global env g_stateEnvVars
+    global ModulesCurrentModulefile
+    set ModulesCurrentModulefile $modfile
 
 #    puts stderr "Starting $modfile"
     set slave [currentModuleName]
@@ -104,8 +106,8 @@ proc execute-modulefile {modfile} {
 	interp alias $slave unset-alias   {} unset-alias  
 	interp alias $slave uname         {} uname        
 	interp alias $slave x-resource    {} x-resource   
-# BOZO Is this needed in regular modules?     	interp alias $slave module-version         {} module-version
-# BOZO Is this needed in regular modules?	interp alias $slave module-alias  {} module-alias
+     	interp alias $slave module-version         {} module-version
+	interp alias $slave module-alias  {} module-alias
 
 	interp eval $slave [list global ModulesCurrentModulefile]
 	interp eval $slave [list set ModulesCurrentModulefile $modfile]
@@ -141,6 +143,12 @@ proc execute-modulerc {modfile} {
 # BOZO - ajb: I'm not sure what functions should be supported in a .modulerc file.  For now it's a small subset
     global env g_stateEnvVars g_rcfilesSourced
     global g_debug
+    global ModulesCurrentModulefile
+
+    set ModulesCurrentModulefile $modfile
+
+#BOZO Not sure if this should be checked on RC file
+#    checkValidModule $modfile
 
     # If we have already loaded an RC file, don't load it again - BOZO may want this to add to execute-version
     if { ![info exists g_rcfilesSourced($modfile)]} {
@@ -174,6 +182,12 @@ proc execute-modulerc {modfile} {
 
 proc execute-version {modfile} {
     global env g_stateEnvVars
+
+    if { ![checkValidModule $modfile] } {
+	puts stderr "+(0):ERROR:0: Magic cookie '#%Module' missing in '$modfile'"
+	return ""
+    }
+    
 
     set slave .version
     if { ![interp exists $slave] } {
@@ -222,6 +236,7 @@ set ModulesCurrentModulefile {}
 
 proc module-info {what {more {}}} {
     global g_shellType g_shell
+    global g_moduleAlias g_symbolHash g_versionHash
 
     set mode [currentMode]
     switch -- $what {
@@ -245,6 +260,34 @@ proc module-info {what {more {}}} {
         "shelltype" {
             return $g_shellType
         }
+	"alias" {
+	    return $g_moduleAlias($more)
+	}
+	"symbols" {
+	    if [regexp {^\/} $more] {
+		set tmp [currentModuleName]
+		regexp {(\S+)\/\S+} $tmp match tmp
+		set more "${tmp}$more"
+	    }
+	    if {[ info exists g_symbolHash($more)] } {
+		return $g_symbolHash($more)
+	    } else {
+		return {}
+	    }
+	}
+	"version" {
+	    if [regexp {^\/} $more] {
+		set tmp [currentModuleName]
+		regexp {(\S+)\/\S+} $tmp match tmp
+		set more "${tmp}$more"
+	    }
+	    if {[ info exists g_versionHash($more)] } {
+		return $g_versionHash($more)
+	    } else {
+		return {}
+	    }
+	}
+
 	default {
 	    error "module-info $what not supported"
             return {}
@@ -267,46 +310,84 @@ proc module-whatis {message} {
 
 proc module-version {args} {
 # Specifies a default or alias version for a module that points to an existing module version
-    global g_moduleVersion
+    global g_moduleVersion g_versionHash
     global g_moduleDefault
     global g_debug
+    global ModulesCurrentModulefile
 
     if { $g_debug } { puts stderr "DEBUG module-version: executing module-version $args" }
     set module_file [ lindex $args 0]
+
+    # Check for shorthand notation of just a version "/version".  Base is implied by current dir
+    # prepend the current directory to module_file
+    if { [regexp {^\/} $module_file] } {
+	set base [file tail [file dirname $ModulesCurrentModulefile]]
+	set module_file "${base}$module_file"
+    }
+
     foreach version [lrange $args 1 end ] {
-	# Default version
-	if { [ string compare $version "default"] == 0} {
-	    if { [ regexp {(\S+)\/(\S+)} $module_file match base defversion] } {
+
+	set base [file tail [file dirname $module_file]]
+	set aliasversion [file tail $module_file]
+
+	if { $base != "" } {
+	    if { [ string equal $version "default"] } {
 		# If we see more than one default for the same module, just keep the first
 		if { ![info exists g_moduleDefault($base)] } {
-		    set g_moduleDefault($base) $defversion
-		    if { $g_debug } { puts stderr "DEBUG module-verions: default $base = $defversion" }
+		    set g_moduleDefault($base) $aliasversion
+		    if { $g_debug } { puts stderr "DEBUG module-verions: default $base = $aliasversion" }
 		}
-	    } else {
-		error "module-version: module argument for default must not be fully version qualified"
-	    }
-	} else {
-	    # alias version
-	    if { [ regexp {(\S+)\/\S+} $module_file match base ] } {
+	    }  else {
 		set aliasversion "$base/$version"
+		if { $g_debug } { puts stderr "DEBUG module-verions: alias $aliasversion = $module_file" }
 		set g_moduleVersion($aliasversion) $module_file
-		if { $g_debug } { puts stderr "DEBUG module-version: $aliasversion  = $module_file" }
-	    } else {
-		error "module-version: module argument needs a fully qualifed version"
+		
+		if { [info exists g_versionHash($module_file)] } {
+		    set tmplist $g_versionHash($module_file)
+		    set tmplist [linsert $tmplist end $aliasversion]
+		set g_versionHash($module_file) $tmplist
+		} else {
+		    set g_versionHash($module_file) $aliasversion
+		}
 	    }
+		
+		
+	    if { $g_debug } { puts stderr "DEBUG module-version: $aliasversion  = $module_file" }
+	} else {
+	    error "module-version: module argument for default must not be fully version qualified"
 	}
+    }
+    if { [string equal [currentMode] "display"] } {
+	report "module-version\t$args"
     }
     return {}
 }
 
 
 proc module-alias {args} {
-    global g_moduleAlias
+    global g_moduleAlias g_symbolHash
+    global ModulesCurrentModulefile
+    global g_debug
 
-    set module_file [ lindex $args 0]
-    set alias [ lindex $args 1 ]
+    set alias [ lindex $args 0 ]
+    set module_file [ lindex $args 1 ]
+
+    if { $g_debug } { puts stderr "DEBUG module-alias: $alias  = $module_file" }
 
     set g_moduleAlias($alias) $module_file
+
+    if { [info exists g_aliasHash($module_file)] } {
+	set tmplist $g_aliasHash($module_file)
+	set tmplist [linsert $tmplist end $alias]
+	set g_aliasHash($module_file) $tmplist
+    } else {
+	set g_aliasHash($module_file) $alias
+    }
+
+    if { [string equal [currentMode] "display"] } {
+	report "module-alias\t$args"
+    }
+
 
     return {}
 }
@@ -709,10 +790,11 @@ proc is-loaded {args} {
 
 
 proc conflict {args} {
-    global g_reloadMode ModulesCurrentModulefile
+    global g_reloadMode ModulesCurrentModulefile g_debug
     set mode [currentMode]
     set currentModule [currentModuleName]
 
+   
     if { $g_reloadMode == 1} {
 	return {}
     }
@@ -720,13 +802,14 @@ proc conflict {args} {
     if {$mode == "load"} {
         foreach mod $args {
             if [is-loaded $mod] {
-                set modfile [getPathToModule $mod]
-                set modfile [lindex $modfile 0]
-                if [string compare $modfile $ModulesCurrentModulefile] {
-                    set errMsg "WARNING: $currentModule cannot be loaded due to a conflict."
-                    set errMsg "$errMsg\nHINT: Might try \"module unload $mod\" first."
-                    error $errMsg
-                }
+		
+		# Checking if the current module was the same as the conflict module removed.
+		# This fails when the conflict module is given with a version and resolves to
+		# a default.  In that case, if you are trying to load the default and some other
+		# version was already loaded, it would still load the default.
+		set errMsg "WARNING: $currentModule cannot be loaded due to a conflict."
+		set errMsg "$errMsg\nHINT: Might try \"module unload $mod\" first."
+		error $errMsg
             }
         }
     } elseif {$mode == "display"} {
@@ -855,83 +938,154 @@ proc popModuleName {} {
 
 
 proc getPathToModule {mod} {
+# Return the full pathname and modulename to the module.  Resolve aliases and default versions
+# the module name is something like "name/version" or just name (find default version)
+# this is a workhorse for finding a module given a modulename.
     global env g_loadedModulesGeneric
+    global g_moduleAlias g_moduleVersion
+    global g_debug
+    global ModulesCurrentModulefile
+
+    set retlist ""
 
     if {$mod == "null"} {
-	return ""
+	return "" 
     }
 
+    if { $g_debug } { puts stderr "DEBUG getPathToModule: Finding $mod" }
+    
+    # Check for aliases
+    set newmod [resolveModuleVersionOrAlias $mod]
+    if {$newmod != $mod} {
+	# Alias before ModulesVersion
+	return [getPathToModule $newmod]
+    } 
+
+    # Check for $mod specified as a full pathname
     if [string match {/*} $mod] {
         if [file exists $mod] {
             if [file readable $mod] {
                 if [file isfile $mod] {
-                    return [list $mod $mod]
+		    # note that a raw filename as an argment returns the full path as the module name
+		    if { [checkValidModule $mod] } {
+			return [list $mod $mod]
+		    } else {
+			puts stderr "+(0):ERROR:0: Unable to locate a modulefile for '$mod'"
+			return ""
+		    }
                 }
             }
         }
     } elseif [info exists env(MODULEPATH)] {
+	# Now search for $mod in MODULEPATH
 	foreach dir [split $env(MODULEPATH) ":"] {
 	    set path "$dir/$mod"
-	    while [file exists $path] {
-		if [file readable $path] {
 
-		    if [file isdirectory $path] {
-			if [info exists g_loadedModulesGeneric($mod)] {
-			    set ModulesVersion $g_loadedModulesGeneric($mod)
-			} elseif [file exists "$path/.version"] {
-			    set ModulesVersion [execute-version "$path/.version"]
-	                    if { $ModulesVersion == "" || 
-                                 ![file exists "$path/$ModulesVersion"]} {
-				# Some may not want this warning message
-				# comment it out if you do not want it.
-           	                reportWarning "WARNING from getPathToModule: Execution of $path/.version did not set the ModulesVersion variable as expected."
-                                # This is the fallback
-                                set ModulesVersion [file dirname [lindex [listModules $path "" 0] end]]
-				if {$ModulesVersion == ""} {break}
-                            }
-			} else {
-			    set ModulesVersion [file dirname [lindex [listModules $path "" 0] end]]
-			}
-                        if { $ModulesVersion == "." } {
-                           # No subdirectories left - take the tail file
-                           set ModulesVersion [file tail [lindex [listModules $dir $mod] end]]
-                        }
-                        if { $ModulesVersion == "" } {
-                            reportWarning "WARNING: Module $mod not found on \$MODULEPATH.\nHINT: Use 'module use ...' to add to search path."
-                            return ""
-                        }
+	    # modparent is the the modulename minus the module version.  
+	    set modparent [file dirname $mod]
+	    set modversion [file tail $mod]
+	    # If $mod was specified without a version (no "/") then mod is really modparent
+	    if {$modparent == "."} {
+		set modparent $mod
+	    }
+	    set modparentpath "$dir/$modparent"
 
-			set path "$path/$ModulesVersion"
-			set mod "$mod/$ModulesVersion"
+
+	    # Search the modparent directory for .modulerc files in case we need to translate an alias
+	    if [file isdirectory $modparentpath] {
+		# Execute any modulerc for this module
+		if [file exists "$modparentpath/.modulerc"] {
+		    if { $g_debug } { puts stderr "DEBUG getPathToModule: Found $modparentpath/.modulerc" }
+		    execute-modulerc $modparentpath/.modulerc
+		} 
+		# Check for an alias
+		set newmod [resolveModuleVersionOrAlias $mod]
+		if {$newmod != $mod} {
+		# Alias before ModulesVersion
+		    return [getPathToModule $newmod]
+		} 
+	    } 
+
+	    # Now check if the mod specified is a file or a directory
+	    if [file readable $path] {
+		# If a directory, return the defailt if a .version file is present or return the last file
+		# in the dir
+		if [file isdirectory $path] {
+		    set ModulesVersion ""
+		    # Not an alias or version alias - check for a .version file or find the default file
+		    if [info exists g_loadedModulesGeneric($mod)] {
+			set ModulesVersion $g_loadedModulesGeneric($mod)
+		    } elseif [file exists "$path/.version"] {
+			if { $g_debug } { puts stderr "DEBUG getPathToModule: Found $path/.version" }
+			set ModulesVersion [execute-version "$path/.version"]
+		    } 
+		    
+		    
+		    # Try for the last file in directory if no luck so far
+		    if { $ModulesVersion == "" } {
+			set ModulesVersion [lindex [listModules $path "" 0] end]
+			if { $g_debug } { puts stderr "DEBUG getPathToModule: Found $ModulesVersion in $path" }
 		    }
+		    
+		    
+		    if { $ModulesVersion != "" } {
+			# The path to the module file
+			set verspath "$path/$ModulesVersion"
+			# The modulename (name + version)
+			set versmod "$mod/$ModulesVersion"
+			set retlist [list $verspath $versmod]
+		    }
+		} else {
+		    # If mod was a file in this path, try and return that file
+		    set retlist [list $path $mod]
+		}
 
-		    if [file isfile $path] {
-			return [list $path $mod]
+		# We may have a winner, check validity of result
+		if { [ llength $retlist ] == 2} {
+		    # Check to see if we've found only a directory.  If so, keep looking
+		    if { [file isdirectory [lindex $retlist 0]] } {
+			set retlist [getPathToModule $versmod]
+		    } 
+
+		    if {! [checkValidModule [lindex $retlist 0]]} {
+			set path [lindex $retlist 0]
+			puts stderr "+(0):ERROR:0: Magic cookie '#%Module' missing in '$path'"
+		    } else {
+			return $retlist
 		    }
 		}
 	    }
-	}
-        reportWarning "WARNING: Module $mod not found on \$MODULEPATH.\nHINT: Use 'module use ...' to add to search path."
+	    # File wasn't readable, go to next path
+	} 
+	# End of of foreach loop
+	puts stderr "+(0):ERROR:0: Unable to locate a modulefile for '$mod'"
 	return ""
     } else {
 	error "\$MODULEPATH not defined"
+	return ""
     }
 }
 
 proc runModulerc {} {
-# Uses listModules to find and execute any .modulerc or .version file found in the modules directories
+# Runs the global RC files if they exist
     global env g_debug
 
-    catch {
-        foreach dir [split $env(MODULEPATH) ":"] {
-            if [file isdirectory $dir] {
-		if { $g_debug } { puts stderr "DEBUG runModuleRC: running listModules $dir" }
-                listModules $dir ""
-            }
-        }
-    } errMsg
-    if {$errMsg != ""} {
-	reportWarning "ERROR: runModulerc failed. $errMsg"
+    if { [info exists env(MODULERCFILE)] } {
+	if { [ file readable $env(MODULERCFILE) ] } {
+	    if { $g_debug } { puts stderr "DEBUG runModulerc: Executing $env(MODULERCFILE)" }
+	    execute-modulerc $env(MODULERCFILE)
+	}
+    }
+    if { [ info exists env(MODULESHOME) ] } {
+	if { [ file readable "$env(MODULESHOME)/etc/rc" ] } {
+	    if { $g_debug } { puts stderr "DEBUG runModulerc: Executing $env(MODULESHOME)/etc/rc" }
+	    execute-modulerc "$env(MODULESHOME)/etc/rc"
+	}
+    }
+    if { [ info exists env(HOME) ] } {
+	if { [ file readable "$env(HOME)/.modulerc"] } {
+	    execute-modulerc "$env(HOME)/.modulerc"
+	}
     }
 }
 
@@ -1014,16 +1168,16 @@ proc renderSettings {} {
 				set val [string range $val 0 999]
 			    }
 			}
-			puts $f "setenv $var \"$val\""
+			puts $f "setenv $var $val ;"
 		    }
 		    sh {
 			set val [doubleQuoteEscaped $env($var)]
-			puts $f "$var=\"$val\"; export $var"
+			puts $f "$var=$val ;export $var;"
 		    }
 		    perl {
 			set val [doubleQuoteEscaped $env($var)]
 			set val [atSymbolEscaped $env($var)]
-			puts $f "\$ENV{$var}=\"$val\";"
+			puts $f "\$ENV{\'$var\'} = \'$val\';"
 		    }
 		    python {
 			set val [singleQuoteEscaped $env($var)]
@@ -1363,8 +1517,24 @@ proc replaceFromList {list1 olditem newitem} {
     return [join $list1 " "]
 }
 
+proc checkValidModule { modfile } {
+    # Check for valid module
+    if {![catch {open $modfile r} fileId]} {
+	gets $fileId first_line
+	close $fileId
+        if {[string first "\#%Module" $first_line] == 0 } {
+	    return 1
+	}
+    }
+    return 0
+}
+
 proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
+# What is this supposed to do without a mod?
     global ignoreDir
+    global ModulesCurrentModulefile
+    global g_moduleDefault
+    global g_debug
 
 # On Cygwin, glob may change the $dir path if there are symlinks involved
 # So it is safest to reglob the $dir.
@@ -1383,59 +1553,75 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
         set tail [file tail $element]
         set direlem [file dirname $element]
 
+	set sstart [expr [string length $dir] +1]
+	set modulename [string range $element $sstart end]
+	set modparent ""
+	regexp {(\S+?)\/\S+} $modulename match modparent
+
         if [file isdirectory $element] {
+	    set ModulesVersion ""
             if {![info exists ignoreDir($tail)]} {
-                foreach f [glob -nocomplain "$element/.modulerc" "$element/.version" "$element/*"] {
+                foreach f [glob -nocomplain "$element/.version" "$element/.modulerc" "$element/*"] {
                     lappend full_list $f
                 }
             }
         } else {
+	    if {$g_debug} { puts stderr "DEGUG listModules: checking $element ($modulename) dir=$flag_default_dir mf=$flag_default_mf" }
             switch -glob -- $tail {
 		{.modulerc} {
-		    execute-modulerc $element
+		    if { $flag_default_dir || $flag_default_mf } {
+			execute-modulerc $element
+		    }
 		}
                 {.version} {
 		    if { $flag_default_dir || $flag_default_mf } {
+			set ModulesCurrentModulefile $element
 			set ModulesVersion [execute-version "$element"]
+
+			if {$g_debug} { puts stderr "DEGUG listModules: checking default $ModulesVersion" }
 			if {$flag_default_dir && $ModulesVersion != "" && [file isdirectory $direlem/$ModulesVersion]} {
 			    set sstart [expr [string length $dir] + 1]
 			    # Directories below MODULEPATH that are defaulted in the path to the modulefile need to be reported.
-			    lappend clean_list [string range $direlem/${ModulesVersion}$default_tag $sstart end]
+			     lappend clean_list "$modparent/${ModulesVersion}$default_tag"
 			}
 		    }
 		}
                 {.*} -
                 {*~} -
                 {*,v} -
-                {#*#} {}
-                default {
-                    if {![catch {open $element r} fileId]} {
-                        gets $fileId first_line
-                        close $fileId
-                        if {[string first {#%Module} $first_line] == 0} {
-                            if {$full_path} {
-				if {$flag_default_mf && $tail == $ModulesVersion} {
-				    lappend clean_list "${element}$default_tag"
-				} else {
-				    lappend clean_list $element
-				}
-                            } else {
-                                set sstart [expr [string length $dir] + 1]
-				if {$flag_default_mf && $tail == $ModulesVersion} {
-				    lappend clean_list [string range "${element}$default_tag" $sstart end]
-				} else {
-				    lappend clean_list [string range $element $sstart end]
-				}
-                            }
-                        }
-                    }
-                }
-            }
-        }
+                {\#*\#} {}
+
+		default {
+		    if { [checkValidModule $element] } {
+
+			# Check if this matches default set by .modulerc (trumps .version)
+			if { [info exists g_moduleDefault($modparent) ] } {
+			    set ModulesVersion $g_moduleDefault($modparent)
+			}
+			if {$full_path} {
+			    if {$flag_default_mf && ($tail == $ModulesVersion)} {
+				lappend clean_list "${element}$default_tag"
+			    } else {
+				lappend clean_list $element
+			    }
+			} else {
+			    set sstart [expr [string length $dir] + 1]
+			    if {$flag_default_mf && ($tail == $ModulesVersion)} {
+				lappend clean_list "${modulename}$default_tag"
+			    } else {
+				lappend clean_list $modulename
+			    }
+			}
+		    }
+		}
+	    }
+	}
     }
     if {$how != {}} {
         set clean_list [lsort -dictionary $clean_list]
     }
+    if {$g_debug} { puts stderr "DEGUG listModules: Returning $clean_list" }
+   
     return $clean_list
 }
 
@@ -1479,7 +1665,7 @@ proc report {message {nonewline ""}} {
 # command line commands
 
 proc cmdModuleList {} {
-    global env
+    global env 
 
     report "Currently Loaded Modulefiles:"
     if [info exists env(LOADEDMODULES)] {
@@ -1540,6 +1726,7 @@ proc cmdModuleDisplay {mod} {
 	popMode
 	popModuleName
 	report "-------------------------------------------------------------------"
+	report ""
     }
 }
 
@@ -1661,6 +1848,7 @@ proc cmdModuleLoad {args} {
                 if [execute-modulefile $modfile] {
 		    restoreSettings
 		} else {
+		    append-path _LMFILES_ $modfile
                     append-path LOADEDMODULES $currentModule
                     set g_loadedModules($currentModule) 1
                     set genericModName [file dirname $mod]
@@ -1699,6 +1887,7 @@ proc cmdModuleUnload {args} {
 		    popMode
 		    popModuleName
 		    
+		    unload-path _LMFILES_ $modfile
 		    unload-path LOADEDMODULES $currentModule
 		    unset g_loadedModules($currentModule)
 		    if [info exists g_loadedModulesGeneric([file dirname $currentModule])] {
@@ -1808,20 +1997,22 @@ proc cmdModuleUse {args} {
 	showModulePath
     } else {
 	set stuff_path "prepend-path"
-	foreach path [split $args " "] {
+	foreach path $args {
 	    # -a -append --append (and -p -prepend --prepend) would be nice...
 	    if { $path == "" } {
 		# Skip "holes"
-	    } elseif { $path == "--append" } {
+	    } elseif { [string compare $path "--append"] == 0} {
 		set stuff_path "append-path"
-	    } elseif {$path == "--prepend"} {
+	    } elseif { [string compare $path "--prepend"] == 0} {
 		set stuff_path "prepend-path"
 	    } elseif [file isdirectory $path] {
 		pushMode "load"
 		eval $stuff_path MODULEPATH $path
 		popMode
 	    } else {
-		reportWarning "WARNING: Directory \"$path\" does not exist, not added to module search path."
+#		reportWarning "WARNING: Directory \"$path\" does not exist, not added to module search path."
+		puts stderr "+(0):ERROR:0: Directory '$path' not found"
+		exit -1
 	    }
 	}
     }
@@ -1835,11 +2026,14 @@ proc cmdModuleUnuse {args} {
     } else {
 	global env
 	foreach path $args {
-	    if [info exists env(MODULEPATH)] {
+	    regsub -all {\/} $path {\/} escpath
+	    set regexp [ subst {(^|\:)${escpath}(\:|$)} ]
+	    if { [info exists env(MODULEPATH)] && [regexp -line $regexp $env(MODULEPATH) ] } {
+
 		set oldMODULEPATH $env(MODULEPATH)
 		pushMode "unload"
 		catch {
-		    unload-path MODULEPATH $path
+			unload-path MODULEPATH $path
 		    set junk ""
 		}
 		popMode
@@ -2025,7 +2219,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.38 $:
+                ModulesTcl 0.101/$Revision: 1.39 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
@@ -2052,10 +2246,6 @@ initclear    |  initprepend         modulefile
 
 ########################################################################
 # main program
-
-set g_shell [lindex $argv 0]
-set command [lindex $argv 1]
-set argv [lreplace $argv 0 1]
 set g_debug 0
 
 # needed on a gentoo system. Shouldn't hurt since it is
@@ -2063,15 +2253,72 @@ set g_debug 0
 fconfigure stderr -translation auto
 
 # Parse options
-set optIndex [lsearch -regexp $argv {^-}]
-while { $optIndex >= 0 } {
-    if { [ regexp {^-debug$} [lindex $argv $optIndex] ] } {
+set opt [lindex $argv 1]
+switch -regexp -- $opt {
+    {^-deb}  {
 	set g_debug 1
 	puts stderr "DEBUG : debug enabled"
+	
+	# only remove options here.  Some module commands have options also, which should
+	    # be preserved
+	set argv [ removeFromList $argv $opt ]
     }
-    set argv [lreplace $argv $optIndex $optIndex]
-    set optIndex [lsearch -regexp $argv {^-}]
+    {^--verb} {
+	# BOZO nothing to do with --verbose yet
+	# only remove options here.  Some module commands have options also, which should
+	# be preserved
+	set argv [ removeFromList $argv $opt ]
+    }
+    {^--for} {
+	# BOZO nothing to do with --verbose yet
+	# only remove options here.  Some module commands have options also, which should
+	# be preserved
+	set argv [ removeFromList $argv $opt ]
+    }
+    {^--ter} {
+	# BOZO nothing to do with --verbose yet
+	# only remove options here.  Some module commands have options also, which should
+	# be preserved
+	set argv [ removeFromList $argv $opt ]
+    }
+    {^--lon} {
+	# BOZO nothing to do with --verbose yet
+	# only remove options here.  Some module commands have options also, which should
+	# be preserved
+	set argv [ removeFromList $argv $opt ]
+    }
+    {^--cre} {
+	# BOZO nothing to do with --verbose yet
+	# only remove options here.  Some module commands have options also, which should
+	# be preserved
+	set argv [ removeFromList $argv $opt ]
+    }
+    {^--us} {
+	# BOZO nothing to do with --verbose yet
+	# only remove options here.  Some module commands have options also, which should
+	# be preserved
+	set argv [ removeFromList $argv $opt ]
+    }
+    {^--ica} {
+	# BOZO nothing to do with --verbose yet
+	# only remove options here.  Some module commands have options also, which should
+	# be preserved
+	set argv [ removeFromList $argv $opt ]
+    }
+    {^--ver} {
+	puts stderr "3.1.6"
+	exit 0
+    }
+    {^--} {
+	puts stderr "+(0):ERROR:0: Unrecognized option '$opt'"
+	exit -1
+    }
+    
 }
+
+set g_shell [lindex $argv 0]
+set command [lindex $argv 1]
+set argv [lreplace $argv 0 1]
 
 switch -regexp -- $g_shell {
     ^(sh|bash|ksh|zsh)$ {
@@ -2087,21 +2334,24 @@ switch -regexp -- $g_shell {
 	set g_shellType python
     }
     . {
-	error "bad shell $g_shell"
+	error " +(0):ERROR:0: Unknown shell type \'($g_shell)\'"
     }
 }
 
+
+
 cacheCurrentModules
 
-# Resolve aliases and run .modulerc files only for commands that need it.  Finding modulerc files
-# can be slow with lots of modules to search
-if { [regexp $command {^(di|show|add|load|sw|rm|unload|wh|aprop|init(add|load|rm|unload))} ] } {
-    # Find and execute any .modulerc file found in the module directories defined in env(MODULESPATH)
-    runModulerc
-    # Resolve any aliased module names - safe to run nonmodule arguments
-    if { $g_debug } { puts stderr "DEBUG: Resolving $argv" }
-    set argv [resolveModuleVersionOrAlias $argv]
-    if { $g_debug } { puts stderr "DEBUG: Resolved $argv" }
+# Find and execute any .modulerc file found in the module directories defined in env(MODULESPATH)
+runModulerc
+# Resolve any aliased module names - safe to run nonmodule arguments
+if { $g_debug } { puts stderr "DEBUG: Resolving $argv" }
+set argv [resolveModuleVersionOrAlias $argv]
+if { $g_debug } { puts stderr "DEBUG: Resolved $argv" }
+
+if { ![info exists env(MODULEPATH)] } {
+    puts stderr "+(0):ERROR:0: \'MODULEPATH\' not set"
+    exit -1
 }
 
 catch {
