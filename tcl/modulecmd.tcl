@@ -715,6 +715,7 @@ proc getPathToModule {mod} {
            	                reportWarning "WARNING from getPathToModule: Execution of $path/.version did not set the ModulesVersion variable as expected."
                                 # This is the fallback
                                 set ModulesVersion [file dirname [lindex [listModules $path "" 0] end]]
+				if {$ModulesVersion == ""} {break}
                             }
 			} else {
 			    set ModulesVersion [file dirname [lindex [listModules $path "" 0] end]]
@@ -1652,7 +1653,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.100/$Revision: 1.33 $:
+                ModulesTcl 0.100/$Revision: 1.34 $:
                 Available Commands and Usage:
                  add|load              modulefile [modulefile ...]
                  rm|unload             modulefile [modulefile ...]
