@@ -1231,7 +1231,11 @@ proc cmdModuleList {} {
 	}
 # save room for numbers and spacing: 2 digits + ) + space + space
 	incr max 1
-	set cols [expr int(79/($max+4))]
+        if [info exist env(COLUMNS)] {
+           set cols [expr int($env(COLUMNS)/($max+4))]
+        } else {
+           set cols [expr int(79/($max+4))]
+        }
 	set lines [expr int(([llength $list] -1)/ $cols) +1]
 	for {set i 0} { $i < $lines} {incr i} {
 	    for {set col 0} {$col < $cols } { incr col} {
@@ -1487,7 +1491,12 @@ proc cmdModuleAvail { {mod {*}}} {
 		}
 	    }
 	    incr max 1
-	    set cols [expr int(79/($max))]
+            if [info exist env(COLUMNS)] {
+                set cols [expr int($env(COLUMNS)/($max))]
+            } else {
+                set cols [expr int(79/($max))]
+            }
+
 	    set lines [expr int(([llength $list] -1)/ $cols) +1]
 	    for {set i 0} { $i < $lines} {incr i} {
 		for {set col 0} {$col < $cols } { incr col} {
@@ -1607,7 +1616,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.100/$Revision: 1.29 $:
+                ModulesTcl 0.100/$Revision: 1.30 $:
                 Available Commands and Usage:
                  add|load              modulefile [modulefile ...]
                  rm|unload             modulefile [modulefile ...]
