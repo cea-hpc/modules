@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.1 2002/07/18 22:30:57 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.2 2002/07/29 20:10:32 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -40,6 +40,14 @@ isqrt_srcs = \
 	isqrt/lsqrt.c isqrt/scsqrt.c isqrt/ucsrt.c	\
 	isqrt/uhsqrt.c isqrt/uisqrt.c isqrt/ulsqrt.c
 
+list_srcs = \
+	list/list_.c list/list_append.c list/list_insert.c		\
+	list/list_delete.c list/list_swap.c list/list_qsort.c		\
+	list/list_ctor.c list/list_dtor.c list/list_exists.c		\
+	list/list_first.c list/list_last.c list/list_number.c		\
+	list/list_pop.c list/list_push.c list/list_shift.c		\
+	list/list_sizeof.c list/list_unshift.c
+
 uvec_srcs =  \
 	uvec/str2uvec.c uvec/uvec2str.c uvec/uvec2uvec.c		\
 	uvec/uvec_accessor.c uvec/uvec_add.c uvec/uvec_alloc.c		\
@@ -55,8 +63,9 @@ libmodules_a_SOURCES	=	\
 	$(avec_srcs) 		\
 	$(iprime_srcs) 		\
 	$(isqrt_srcs) 		\
+	$(list_srcs) 		\
 	strmalloc.c		\
 	$(uvec_srcs) 
 
-man3_MANS = avec.man iprime.man isqrt.man strmalloc.man uvec.man
+man3_MANS = avec.man iprime.man isqrt.man list.man strmalloc.man uvec.man
 

@@ -1,0 +1,340 @@
+.\" RCSID @(#)$Id: list.man,v 1.1 2002/07/29 20:10:32 rkowen Exp $
+.\" LIBDIR
+.TH "LIST" "3rko" "31 October 1998"
+.SH NAME
+list \- generic list ``object'' for Std-C that can contain any sort
+of data type or struct.
+
+.SH SYNOPSIS
+
+.nf
+#include "list.h"
+
+defines the following structures and typedef's:
+
+typedef struct list list;
+typedef struct list_elem list_elem;
+
+/* warning sizeof(list) does not necessarily give the correct memory size
+ * since we make it "expandable" to handle a variable size tag
+ */
+struct list {
+	list_elem *first;		/* head of list */
+	list_elem *last;		/* last in list */
+	int number;			/* number in list */
+	int (*addfn)(void **, va_list);	/* user fn to add user data */
+	int (*delfn)(void **, va_list);	/* user fn to del user data */
+	char tag[1];			/* name tag for list */
+/* followed by expanded memory allocation to contain rest of tag with
+ * terminating NULL.  A list object must only be defined as "list *"
+ * and set with list_ctor(TAG,ADDFN,DELFN);
+ */
+};
+
+struct list_elem {
+	list_elem *prev;		/* previous one in list */
+	list_elem *next;		/* next one in list */
+	void *object;			/* pointer to object of interest */
+};
+
+/* shield users from  certain internal details */
+#define LIST_OBJECT(le)	((le)->object)
+#define LIST_NEXT(le)	((le)->next)
+#define LIST_PREV(le)	((le)->prev)
+
+list *list_ctor(const char *tag,
+	int (addfn)(void **, va_list), int (delfn)(void **, va_list));
+int list_dtor(list **lst, char const *tag, ...);
+
+int list_exists(list const *lst, const char *tag);
+int list_sizeof(list const *lst, const char *tag);
+int list_number(list const *lst, const char *tag);
+list_elem *list_first(list const *lst, const char *tag);
+list_elem *list_last(list const *lst, const char *tag);
+
+int list_append(list *lst, char const *tag, list_elem *here, ...);
+int list_insert(list *lst, char const *tag, list_elem *here, ...);
+int list_delete(list *lst, char const *tag, list_elem *here, ...);
+
+int list_push(list *lst, char const *tag, ...);
+int list_pop(list *lst, char const *tag, ...);
+int list_unshift(list *lst, char const *tag, ...);
+int list_shift(list *lst, char const *tag, ...);
+
+int list_swap(list *lst, char const *tag, list_elem *here, list_elem *there);
+int list_qsort(list *lst, char const *tag,
+		int (*cmp)(const void *, const void *));
+
+.fi
+
+.SH DESCRIPTION
+.I list
+could have easily been made a C++ class, but is confined to C for
+maximum portability.
+.I list
+is designed for easy constant time adding or deleting elements
+at the beginning or end of the list.
+It uses user-defined functions to handle the actual insertion
+or deletion
+of user data in a list element, which just contains a (void *)
+pointer to the user data.
+To see how this is done, it's best to look at the example below.
+.P
+All the functions refer to a ``tag'', a simple ASCII string that
+the library will compare with.  This ensures that the list object
+is not refered to incorrectly.
+.P
+All the functions, except for the ``constructor'' or
+accessor functions, return 0 if no error occured, else
+return <0 if an error occured.
+The
+.I list_pop
+and
+.I list_shift
+functions will return 1, if they're executed on an empty list.
+(This is not considered an error, but something the user may
+wish to know.)
+
+.TP 15
+.I list_ctor
+construct the list object, registering a tag and user functions for
+handling the user data.
+.TP
+.I list_dtor
+destroy the list object.
+.TP
+.I list_exists
+returns 0 if the list is not constructed.
+.TP
+.I list_sizeof
+returns the particular sizeof the list structure, which depends on
+the tag size, otherwise returns -1
+if the list is not defined.
+.TP
+.I list_number
+returns the number of elements in the list, otherwise returns -1
+if the list is not defined.
+.TP
+.I list_first
+returns a pointer to the first list_elem in the list object.
+It's intended for creating sequential access through the list.
+.TP
+.I list_last
+returns a pointer to the last list_elem in the list object.
+It's intended for creating sequential access through the list.
+
+.TP
+.I list_append
+add a new element immediately after the given element.
+If the given element is NULL then the new element is appended
+at the end of the list (i.e.
+.IR list_push ).
+.TP
+.I list_insert
+add a new element immediately before the given element.
+If the given element is NULL then the new element is inserted
+at the beginning of the list (i.e.
+.IR list_unshift ).
+.TP
+.I list_delete
+delete the given element in the list.
+
+.TP
+.I list_unshift
+add an element to the beginning of the list.  It has a variable length
+argument, which is passed to the user-defined add-function,
+to allow data to be entered in the argument list.
+.TP
+.I list_shift
+delete an element at the end of the list.  It has a variable
+length argument, which is passed to the user-define delete-function,
+to allow user data handling.
+.TP
+.I list_push
+add an element to the end of the list.  It has a variable length
+argument, which is passed to the user-defined add-function,
+to allow data to be entered in the argument list.
+.TP
+.I list_pop
+delete an element at the end of the list.  It has a variable
+length argument, which is passed to the user-define delete-function,
+to allow user data handling.
+
+.TP
+.I list_swap
+Swaps the contents of the two given elements.  This list element
+itself does not change location.  Only the contents are exchanged.
+.TP
+.I list_qsort
+Sorts the list contents according to the passed in comparison function.
+The list elements themselves remain the same.  Only the contents are
+exchanged and sorted.
+(See
+.I qsort(3)
+for more details.)
+
+.TP
+.I LIST_OBJECT
+a macro that ``returns'' a pointer to the object given a list_elem
+.TP
+.I LIST_NEXT
+a macro that ``returns'' a pointer to the next list_elem
+.TP
+.I LIST_PREV
+a macro that ``returns'' a pointer to the previous list_elem
+.TP
+.I addfn(void **, va_list)
+the user function for adding data in a list element.
+It must return 0 if successful.
+It's advised to return a value less than -1 for errors, since
+list_unshift and list_push will return -1 on error.
+.TP
+.I delfn(void **, va_list)
+the user function for deleting data in a list element.
+It must return 0 if successful.
+It's advised to return a value less than -1 for errors, since
+list_shift and list_pop will return -1 on error
+(and 1 if the list is empty).
+
+.SH EXAMPLES
+This example just stores, prints, and remove a list of ``double''
+values.
+.nf
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+
+#define RKOERROR	/* enable use of librko error facility */
+#include "rkoerror.h"
+#include "list.h"
+
+/*----- functions to handle a single element of "double" data -----*/
+int addflt(void **ptr, va_list ap) {
+	double *iptr;
+	if ((iptr = malloc(sizeof(double))) == (double *) NULL)
+		return -1;
+	*iptr = va_arg(ap, double);
+	*ptr = (void *)iptr;
+	return 0;
+}
+
+int delflt(void **ptr, va_list ap) {
+	free(*ptr);
+	*ptr = (void *) NULL;
+	return 0;
+}
+
+int cmpflt(const void *e1, const void *e2) {
+	if (**(double **)e1 < **(double **)e2)
+		return -1;
+	else if (**(double **)e1 > **(double **)e2)
+		return  1;
+	else
+		return 0;
+}
+
+
+
+int main() {
+	list *listobj = (list *) NULL;
+	const char tagflt[] = "FLOATS";
+	list_elem *eptr;
+
+	/* construct list object */
+	if ((listobj = list_ctor(tagflt, addflt, delflt)) == (list *) NULL)
+		rkoperror("main");
+
+	/* add elements to flt list */
+	if (list_unshift(listobj, tagflt, 3.3)) rkoperror("main");
+	if (list_unshift(listobj, tagflt, 2.2)) rkoperror("main");
+	if (list_unshift(listobj, tagflt, 1.1)) rkoperror("main");
+	if (list_push(listobj, tagflt, 2.2)) rkoperror("main");
+	if (list_push(listobj, tagflt, 1.1)) rkoperror("main");
+	
+	/* display contents of list */
+	printf("number=%d sizeof=%d", list_number(listobj, tagflt),
+		list_sizeof(listobj, tagflt));
+	for (eptr = list_first(listobj,tagflt); eptr != (list_elem *) NULL;
+	eptr = LIST_NEXT(eptr)) {
+		printf(" %3.1f :", *(double *)LIST_OBJECT(eptr));
+	}
+	printf("\n");
+
+	/* sort list */
+	if (list_qsort(listobj, tagflt, cmpflt)) rkoperror("main");
+
+	/* display again */
+	printf("number=%d sizeof=%d", list_number(listobj, tagflt),
+		list_sizeof(listobj, tagflt));
+	for (eptr = list_first(listobj,tagflt); eptr != (list_elem *) NULL;
+	eptr = LIST_NEXT(eptr)) {
+		printf(" %3.1f :", *(double *)LIST_OBJECT(eptr));
+	}
+	printf("\n");
+
+	/* destroy the list object */
+	if (list_dtor(&listobj, tagflt)) rkoperror("main");
+
+	return 0;
+}
+
+.fi
+should display when executed:
+.nf
+number=5 sizeof=30 1.1 : 2.2 : 3.3 : 2.2 : 1.1 :
+number=5 sizeof=30 1.1 : 1.1 : 2.2 : 2.2 : 3.3 :
+
+.fi
+.P
+A more complex example is to use a user-defined structure.  The full
+program will not be shown, except for the few differences from the
+above code.
+
+.nf
+typedef struct mix mix;
+struct mix {
+	int ival;
+	double fval;
+};
+/*----- handle a single element of "struct" data -----*/
+int addmix(void **ptr, va_list ap) {
+	mix *iptr;
+	if ((iptr = malloc(sizeof(mix))) == (mix *) NULL)
+		return -1;
+	iptr->ival = va_arg(ap, int);
+	iptr->fval = va_arg(ap, double);
+	*ptr = (void *)iptr;
+	return 0;
+}
+
+int delmix(void **ptr, va_list ap) {
+	free(*ptr);
+	*ptr = (void *) NULL;
+	return 0;
+}
+
+int cmpmix(const void *e1, const void *e2) {
+	/* sort on ival */
+	if ((*(mix **)e1)->ival < (*(mix **)e2)->ival)
+		return -1;
+	else if ((*(mix **)e1)->ival > (*(mix **)e2)->ival)
+		return  1;
+	else
+		return 0;
+}
+
+ ...
+	if (list_unshift(listobj, tagmix, 1, 1.1)) rkoerror("main");
+ ...
+	printf(" %d | %3.1f :",
+		(((mix *)LIST_OBJECT(eptr))->ival),
+		(((mix *)LIST_OBJECT(eptr))->fval));
+.fi
+
+.SH SEE ALSO
+malloc(3),free(3),uvec(3rko),rkoerror(3rko)
+
+.SH AUTHOR
+R.K.Owen,Ph.D.
+
+.KEY WORDS
