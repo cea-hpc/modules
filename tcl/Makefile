@@ -1,4 +1,4 @@
-all: clean initdir test
+all: initdir
 
 distclean: clean
 
