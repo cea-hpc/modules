@@ -1211,6 +1211,9 @@ proc renderSettings {} {
 	    python {
 		puts $f "os.unlink('$tmpfile')"
 	    }
+	    lisp {
+		puts $f "(delete-file \"$tmpfile\")"
+	    }
 	}
 
 	switch -- $g_shellType {
@@ -1285,6 +1288,9 @@ proc renderSettings {} {
 		    puts $f "        commands = os.popen('$argv0 python %s %s' % (command, string.join(arguments))).read()"
 		    puts $f "        exec commands"
 		}
+		lisp {
+                    error "ERROR: XXX lisp mode autoinit not yet implemented"
+		}
 	    }
 	    
 	    if [ file exists "$env(MODULESHOME)/modulerc"] {
@@ -1326,6 +1332,10 @@ proc renderSettings {} {
 		    python {
 			set val [singleQuoteEscaped $env($var)]
 			puts $f "os.environ\['$var'\] = '$val'"
+		    }
+		    lisp {
+			set val [doubleQuoteEscaped $env($var)]
+			puts $f "(setenv \"$var\" \"$val\")"
 		    }
 		}
 
@@ -1371,6 +1381,9 @@ proc renderSettings {} {
 		    python {
 			puts $f "os.environ\['$var'\] = ''"
 			puts $f "del os.environ\['$var'\]"
+		    }
+		    lisp {
+			puts $f "(setenv \"$var\" nil)"
 		    }
 		}
 	    }
@@ -1426,6 +1439,13 @@ proc renderSettings {} {
 				puts $f "os.popen('$xrdb -merge').write('$var')"
 			    }
 			}
+			lisp {
+			    if [ file exists $var] {
+				puts $f "(shell-command-to-string \"$xrdb -merge $var\")"
+			    } else {
+				puts $f "(shell-command-to-string \"echo $var | $xrdb -merge\")"
+			    }
+			}
 		    }
 		} else {
 		    switch -regexp -- $g_shellType {
@@ -1445,6 +1465,9 @@ proc renderSettings {} {
 			    set var [singleQuoteEscaped $var]
 			    set val [singleQuoteEscaped $val]
 			    puts $f "os.popen('$xrdb -merge').write('$var: $val')"
+			}
+			lisp {
+                            puts $f "(shell-command-to-string \"echo $var: $val | $xrdb -merge\")"
 			}
 		    }
 		}
@@ -1479,6 +1502,9 @@ proc renderSettings {} {
 		    python {
 			# I'm not a python programmer
 		    }
+		    lisp {
+			puts $f "(message \"$var\")"
+		    }
 		}
 	    }
 	}
@@ -1503,6 +1529,9 @@ proc renderSettings {} {
 		}
 		python {
 		    # I am not a python programmer...
+		}
+		lisp {
+		    puts $f "(error \"modulefile.tcl: $error_count error(s) detected!\")"
 		}
 	    }
 	    set nop 0
@@ -1534,6 +1563,9 @@ proc renderSettings {} {
 		    # this is not correct
 		    puts ""
 		}
+		lisp {
+		    puts "t"
+		}
 	    }
 	} else {
 	    switch -- $g_shellType {
@@ -1549,6 +1581,10 @@ proc renderSettings {} {
 		python {
 		    # this is not correct
 		    puts "exec '$tmpfile'"
+		}
+		lisp {
+                    # the module defun() expects just a pathname here
+		    puts "$tmpfile"
 		}
 	    }
 	}
@@ -2447,7 +2483,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.46 $:
+                ModulesTcl 0.101/$Revision: 1.47 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
@@ -2562,6 +2598,9 @@ switch -regexp -- $g_shell {
     }
     ^(python)$ {
 	set g_shellType python
+    }
+    ^(lisp)$ {
+	set g_shellType lisp
     }
     . {
 	error " +(0):ERROR:0: Unknown shell type \'($g_shell)\'"
@@ -2680,7 +2719,11 @@ catch {
 	    cmdModuleAutoinit
 	    renderSettings
 	}
-	default {
+	help {
+	   cmdModuleHelp $argv
+	}
+	. {
+           reportWarning "ERROR: command '$command' not recognized"
 	   cmdModuleHelp $argv
 	}
 
