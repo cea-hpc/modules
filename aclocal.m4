@@ -128,10 +128,13 @@ if test ! -n "$tcl_libraries"; then
 	    /usr/lib /usr/local/lib /usr/gnu/lib /usr/local/gnu/lib /local/lib \
 	    /opt/lib /opt/local/lib /opt/gnu/lib /opt/local/gnu/lib;
     do
-       if test -r "$dir"/libtcl* ; then
+      for pat in "$dir"/libtcl* ;
+      do
+        if test -r "$pat" ; then
 	  tcl_libraries=$dir
-	  break
-       fi
+	  break 2
+        fi
+      done
     done
 fi
 test -z "$tcl_libraries" && AC_MSG_ERROR(can't find TCL library file $tcl_libraries; ...exit configure)
