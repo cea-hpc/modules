@@ -1,0 +1,68 @@
+###########################################################################
+#
+# File:        Makefile.in
+# Revision:    1.3
+# Last Mod:    11:25:38, 15 Aug 1995
+# Created:     94/06/18
+#
+###########################################################################
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+CC = @CC@
+@SET_MAKE@
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = $(INSTALL) -m 0555
+INSTALL_DATA = $(INSTALL) -m 0644
+
+# Standard definition (a'la GNU)
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+man_prefix = @prefix@
+
+# Directory in which to install man pages
+mandir = @mandir@
+man1dir = $(mandir)/man1
+man4dir = $(mandir)/man4
+
+SHELL = /bin/sh
+
+#### End of system configuration section. ####
+
+MAN_FILES= module.1 modulefile.4
+
+MAKEDIRS=  $(man1dir) $(man4dir)
+
+all:
+
+install: all install-dirs
+	$(INSTALL_DATA) module.1     $(man1dir)
+	$(INSTALL_DATA) modulefile.4 $(man4dir)
+
+install-dirs:
+	@for i in $(MAKEDIRS) ; do \
+		echo Making $$i... ; \
+		parent=`echo $$i | sed -e 's@/[^/]*$$@@' | sed -e 's@^$$@/@'`; \
+		if [ -d $$parent ] ; then true ; else mkdir $$parent ; fi ; \
+		if [ ! -d $$i ] ; then \
+			if mkdir $$i ; then \
+				true ; \
+			else \
+				exit 1 ; \
+			fi ; \
+		else \
+			true ; \
+		fi ; \
+	done
+
+clean:
+
+mostlyclean: clean
+
+distclean:	clean
+	rm -f module.1 modulefile.4
+
+realclean:	distclean

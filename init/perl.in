@@ -1,0 +1,24 @@
+
+if (! defined $ENV{MODULE_VERSION} ) {
+	$ENV{MODULE_VERSION_STACK}="@VERSION@";
+	$ENV{MODULE_VERSION}="@VERSION@";
+} else {
+	$ENV{MODULE_VERSION_STACK}="$MODULE_VERSION";
+}
+
+sub module {
+        local ($exec_prefix);
+        $exec_prefix = "@BASEPREFIX@".$ENV{MODULE_VERSION};
+
+	eval `$exec_prefix/bin/modulecmd perl @_`;
+}
+
+$ENV{MODULESHOME} = "@prefix@";
+
+if (! defined $ENV{MODULEPATH} ) {
+  $ENV{MODULEPATH} = `sed 's/#.*$//' ${MODULESHOME}/init/.modulespath | awk 'NF==1{printf("%s:",$1)}'` 
+}
+
+if (! defined $ENV{LOADEDMODULES} ) {
+  $ENV{LOADEDMODULES} = "";
+}

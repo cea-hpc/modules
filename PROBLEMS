@@ -1,0 +1,71 @@
+GENERAL
+------
+
+If you define a module for Tcl and incorrectly define TCL_LIBRARY
+then "module whatis" will likely fail with an error message
+of this form:
+	tcltk(51):ERROR:159: Cannot initialize TCL
+when it tries to initialize an interpretor for the next entry.
+This will happen if your Tcl was built such that it requires
+this environment variable to find the initializing Tcl scripts.
+It may also fail if the Tcl version is incompatible.
+
+SOLARIS
+-------
+
+IF you really want a static binary, you will have to make sure to
+link everything EXCEPT `-ldl' static. This you control with the
+option -Bstatic and -Bdynamic. GCC doesn't support this, so you
+must call the `ld' directly...
+
+Also, if you have X11 support, and want a static binary in OW3.3,
+you must add these libraries as well:
+
+	-lsocket -lnsl -lw -lintl
+
+
+UNICOS
+------
+
+I remember having problems with -O3 on an older version of Unicos.
+I'd recommend using -O2 or less for the entire compilation. Perhaps
+this bug is fixed in newer versions of Unicos.
+
+
+ULTRIX
+------
+
+With the Ultrix/X11 installation I used, this had to be done:
+
+   * Remove the line #include <X11/Xmu/SysUtil.h>
+   * Change -lX11 to -lX11-mit, -lXmu to -lXmu-mit and -lXt to -lXt-mit
+
+I guess this is a poor X11 installation on the machine...
+
+
+DYNIX
+-----
+
+TCL will not compile out of the box. You have to add -DSTRCSPN, and
+remove the STATIC type declaration of that function in regexp.c.
+Dynix doesn't have a fmod() function either... The fmod.c file from
+BSD4.3 works, if you compile with -Dtahoe (!?!). Perhaps the TCL
+guru's will add this to the next TCL distribution... But I doubt it!
+
+Dynix is stupid enough to provide a dirent.h file, which only include
+sys/dir.h. This causes the autoconfig script to fail. I have reported
+this to the maintainers of autoconf. For the time being, you have to
+edit config.h after doing the configuration. Replace the line
+
+	#define DIRENT 1
+with
+	#define SYSDIR 1
+
+
+GCC
+---
+
+If the TCL library is compiled with `gcc', you might have trouble if you
+compile Modules with another compiler. If you get a warning about missing
+"___main", try adding the gcc library, e.g -lgcc or use a sequence like
+`gcc -print-libgcc-file-name`.

@@ -1,0 +1,81 @@
+#!/bin/sh
+#
+# Adds $ETC/*.modules to the $HOME/.login@DOT_EXT@, .cshrc@DOT_EXT@,
+#   .profile@DOT_EXT@, .bashrc@DOT_EXT@ & .kshenv@DOT_EXT@
+#
+#set -x
+VERSION='$Id: add.ext.in,v 1.1 2000/06/28 00:17:32 rk Exp $'
+SKEL=@SKELPATH@
+ETC=@ETCPATH@
+# add the appropriate option to 'cp' such that it preserve symbolic links
+#CP="/bin/cp -h"		# AIX
+CP="/bin/cp -d"			# GNU/Linux
+/bin/cat <<!
+
+$0
+	checks to make sure that your .cshrc, .login,
+	.profile, .bashrc, and .kshenv are symbolic links to the
+	comparable files in the $ETC directory.  All your shell
+	customizations should be confined to your 'dot@DOT_EXT@' files
+	which are invoked from the 'dot' files.
+
+	If you are missing any of the 'dot@DOT_EXT@' files they will
+	be copied from the $SKEL directory.
+
+	If you substitute your own 'dot' files instead, it's likely that
+	modules will not work for you, and you are unsupported if you
+	experience any problems.
+
+	This is version $VERSION .
+
+!
+
+/bin/echo "Continue on (type n for no - default=yes)?\c"
+read xxx
+
+if [ x$xxx = xn ]
+then
+	exit 1
+fi
+
+
+cpdot() {
+/bin/echo "Checking if have $1 as link ...\c"
+	if [ -h $1 ]
+	then
+		echo you do. OK.
+	else
+		/bin/cat <<!
+Not symbolic link. Copying $2 for you.
+!
+		/bin/mv -f $1 $1.old >/dev/null 2>&1
+		$CP -f $2 $1
+	fi
+}
+
+cpext() {
+/bin/echo "Checking if have $1 ...\c"
+	if [ -f $1 ]
+	then
+		echo you do. OK.
+	else
+		/bin/cat <<!
+No $1.  Copying $2 for you.
+!
+		$CP $2 $1
+	fi
+}
+
+# process files in $HOME
+cd $HOME
+cpdot .profile $SKEL/.profile
+cpdot .bashrc $SKEL/.kshenv
+cpdot `basename ${ENV:=.kshenv}` $SKEL/.kshenv
+cpdot .login $SKEL/.login
+cpdot .cshrc $SKEL/.cshrc
+cpext .profile.ext $SKEL/.profile.ext
+cpext .kshenv.ext $SKEL/.kshenv.ext
+cpext .login.ext $SKEL/.login.ext
+cpext .cshrc.ext $SKEL/.cshrc.ext
+
+exit

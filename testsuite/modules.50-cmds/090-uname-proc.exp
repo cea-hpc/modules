@@ -1,0 +1,171 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		
+#   Modulefiles:	
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Checks, wheter 'uname' is configured and retrieves
+#			all data required for the tests from the configuration
+#			file.
+#		}C%
+#
+##############################################################################
+
+#
+#  Check the configuration
+#
+
+if { [info exists config_file] } {
+
+    if { ![catch { exec grep "#define HAVE_UNAME" $config_file } ] } {
+	set config_uname 1
+    } else {
+	set config_uname  0
+    }
+
+    if { ![catch { exec grep "#define HAVE_GETDOMAINNAME" $config_file } ] } {
+	set config_domainname 1
+    } else {
+	set config_domainname  0
+    }
+
+} else {
+    set config_uname  0
+    set config_domainname  0
+}
+
+#
+#  if UNAME is configured, check where to find the 'uname' and the 'domainname'
+#  binary on this system
+#
+
+if { $config_uname } {
+
+    #
+    # uname binary
+    #
+
+    set uname [which uname]
+    if { ![info exists uname] } {
+	if { $verbose > 0 } {
+	    send_user "Using default /bin/uname for uname checking ..."
+	}
+	set uname "/bin/uname"
+    }
+    if { ![file executable $uname] } {
+	if { $verbose > 0 } {
+	    send_user "No executable uname binary found. Assuming 'unknown' ..."
+	}
+	unset uname
+    }
+}
+
+if { $config_domainname } {
+
+    #
+    # domainname binary
+    #
+
+    set domainname [which domainname]
+    if { ![info exists domainname] || ![file executable $domainname] } {
+        set domainname [which domainname-yp]
+    }
+
+    if { ![info exists domainname] } {
+	if { $verbose > 0 } {
+	    send_user "Using default /bin/domainname for domainname checking ..."
+	}
+	set domainname "/bin/domainname"
+    }
+    if { ![file executable $domainname] } {
+	if { $verbose > 0 } {
+	    send_user "No executable domainname binary found. Assuming 'unknown' ..."
+	}
+	unset domainname
+    }
+}
+
+#
+#  set up variables for uname checking
+#
+
+if { $config_uname } {
+
+    if { [info exists uname] } {
+	set u_sysname [exec $uname -s]
+	set u_nodename [exec $uname -n]
+	set u_release [exec $uname -r]
+	set u_version [exec $uname -v]
+	set u_machine [exec $uname -m]
+    } else {
+	set u_sysname "unknown"
+	set u_nodename "unknown"
+	set u_release "unknown"
+	set u_version "unknown"
+	set u_machine "unknown"
+    }
+
+} else {
+
+    set u_sysname "unknown"
+    set u_nodename "unknown"
+    set u_release "unknown"
+    set u_version "unknown"
+    set u_machine "unknown"
+}
+
+#
+#  set up variables for domainname checking
+#
+
+if { $config_domainname } {
+
+    if { [info exists domainname] } {
+	set u_domainname [exec $domainname]
+    } else {
+	set u_domainname "unknown"
+    }
+
+} else {
+
+    set u_domainname "unknown"
+}
+
+#
+#  Verbosity
+#
+
+if { $verbose > 0 } {
+    send_user "   Uname defaults:\n"
+    send_user "        system name      $u_sysname\n"
+    send_user "        node name        $u_nodename\n"
+    send_user "        domain name      $u_domainname\n"
+    send_user "        release          $u_release\n"
+    send_user "        version          $u_version\n"
+    send_user "        machine          $u_machine\n"
+}
+
+#
+#  Cleanup
+#
+
+if { [info exist uname] } {
+    unset uname
+}
+if { [info exist domainname] } {
+    unset domainname
+}
+
+unset config_uname
+unset config_domainname

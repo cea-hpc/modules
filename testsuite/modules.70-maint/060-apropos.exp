@@ -1,0 +1,55 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		apropos
+#   Modulefiles:	whatis/lines, whatis/multiple, whatis/none,
+#   Modulefiles:	whatis/string
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Checks the 'module apropos' command. The first
+#			invocation creates an apropos cache (which has been
+#			removed while initialization of this part of the
+#			testsuite), the second one searches case insensitive
+#			thrue the cache and the last one lokks up a not-
+#			existing pattern.
+#		}C%
+#
+##############################################################################
+
+#
+#  Test only for the csh
+#
+
+set ts_1  "whatis/lines         : Testsuite Whatis Modulefile\n"
+set ts_1a "whatis/lines         : Second line of whatis tokens\n"
+set ts_2  "whatis/multiple      : Whatis\n"
+set ts_3  "whatis/none          : Whatis\n"
+set ts_4  "whatis/string        : Testsuite Whatis Modulefile"
+
+#
+#  The tests
+#
+
+testerr_cmd "csh" "-c apropos Whatis" "$ts_1$ts_2$ts_4"
+testerr_cmd "csh" "-i apropos WHATIS" "$ts_1$ts_1a$ts_2$ts_4"
+testerr_cmd "csh" "apropos sdlhasdh" ""
+
+#
+#  Cleanup
+#
+
+unset ts_1
+unset ts_1a
+unset ts_2
+unset ts_3
+unset ts_4

@@ -1,0 +1,50 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.90-avail/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		avail
+#   Modulefiles:	setenv/1.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check the module 'avail' command for a full qualified
+#			module name in terse output mode.
+#		}C%
+#
+##############################################################################
+
+set module "setenv"
+set version "1.0"
+eval set  [ array get env MODULEPATH ]
+
+#
+#  Check this only fo the /bin/csh
+#
+
+set header "$MODULEPATH:\n"
+set ts_csh "$header$module/$version"
+
+#
+#  The tests
+#
+
+testerr_cmd "csh" "--terse avail $module/$version" "$ts_csh"
+testerr_cmd "csh" "--terse avail $module" "$ts_csh"
+
+#
+#  Cleanup
+#
+
+unset ts_csh
+unset header
+unset MODULEPATH
+unset version
+unset module

@@ -1,0 +1,250 @@
+###########################################################################
+#
+# File:        Makefile.in
+# Revision:    $Id: Makefile.in,v 1.1 2000/06/28 00:17:32 rk Exp $
+# Created:     94/06/18
+# Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
+#
+# Description:
+#      Makefile for the Modules project
+#
+###########################################################################
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+CC		= @CC@
+SED		= /usr/bin/sed
+@SET_MAKE@
+INSTALL		= @INSTALL@
+INSTALL_PROGRAM	= $(INSTALL) -m 0555
+INSTALL_DATA	= $(INSTALL) -m 0644
+RUNTEST		= @RUNTEST@
+RUNTESTFLAGS	= 
+TAR		= tar
+GZIP		= gzip
+FIND		= find
+DISTNAME	= modules-@VERSION@
+
+# We support tclX commands only (not the TclX library handling and
+# shell, so we have to first link -ltcl and then -tclx)
+LIBS = -ltcl @TCLX_LIBS@ @X11_LIBS@ @X_EXTRA_LIBS@ @LIBS@
+
+# Standard definition (a'la GNU)
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+man_prefix = @prefix@
+
+CFLAGS = @CFLAGS@ -DINSTPATH=\"$(prefix)\"
+LDFLAGS = @LDFLAGS@
+
+# Directory in which to install binaries, module files, and init files
+bindir = $(exec_prefix)/bin
+filedir = $(prefix)/modulefiles
+initdir = $(prefix)/init
+
+SHELL =	/bin/sh
+
+#### End of system configuration section. ####
+
+SRCS =	ModuleCmd_Avail.c ModuleCmd_Clear.c ModuleCmd_Display.c ModuleCmd_Help.c\
+	ModuleCmd_Init.c ModuleCmd_List.c ModuleCmd_Load.c ModuleCmd_Purge.c	\
+	ModuleCmd_Switch.c ModuleCmd_Update.c ModuleCmd_Use.c ModuleCmd_Whatis.c\
+	cmdAlias.c cmdConflict.c cmdIsLoaded.c cmdInfo.c cmdMisc.c cmdModule.c	\
+	cmdPath.c cmdSetenv.c cmdUname.c cmdXResource.c cmdUlvl.c cmdLog.c	\
+	cmdTrace.c cmdVersion.c cmdVerbose.c cmdWhatis.c			\
+	init.c locate_module.c utility.c main.c error.c getopt.c version.c
+
+OBJS =	ModuleCmd_Avail.o ModuleCmd_Clear.o ModuleCmd_Display.o ModuleCmd_Help.o\
+	ModuleCmd_Init.o ModuleCmd_List.o ModuleCmd_Load.o ModuleCmd_Purge.o	\
+	ModuleCmd_Switch.o ModuleCmd_Update.o ModuleCmd_Use.o ModuleCmd_Whatis.o\
+	cmdAlias.o cmdConflict.o cmdIsLoaded.o cmdInfo.o cmdMisc.o cmdModule.o	\
+	cmdPath.o cmdSetenv.o cmdUname.o cmdXResource.o cmdUlvl.o cmdLog.o	\
+	cmdTrace.o cmdVersion.o cmdVerbose.o cmdWhatis.o			\
+	init.o locate_module.o utility.o main.o error.o getopt.o version.o
+
+HDRS =	modules_def.h
+ACS =	configure Makefile.in config.h.in configure.in acconfig.h aclocal.m4 
+
+MAKEDIRS = $(bindir) $(filedir)
+
+## X_CFLAGS, X_LIBS from AC_PATH_XTRA
+ALL_CFLAGS = -I.. -I$(srcdir) @TCL_INC_DIR@ @TCLX_INC_DIR@ @X_CFLAGS@ $(CFLAGS)
+ALL_LDFLAGS = @STATIC@ @TCL_LIB_DIR@ @TCLX_LIB_DIR@ @X_LIBS@ @R_OPTION@ $(LDFLAGS)
+
+all: modulecmd
+
+.c.o:
+	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
+
+depend:		$(SRCS)
+	./stripmkf Makefile > tmp_makefile.$$
+	$(CC) -M $(CPPFLAGS) $(ALL_CFLAGS) $(SRCS) >> tmp_makefile.$$
+	mv tmp_makefile.$$ Makefile
+
+modulecmd:	$(OBJS)
+	$(CC) -o $@ $(ALL_LDFLAGS) $(OBJS) $(LIBS)
+
+getopt:	getopt.c error.o
+	$(CC) -c $(CPPFLAGS) -DTEST $(ALL_CFLAGS) getopt.c
+	$(CC) -o $@ $(ALL_LDFLAGS) getopt.o error.o
+
+${srcdir}/configure: configure.in aclocal.m4
+	cd ${srcdir} && autoconf
+
+# autoheader might not change config.h.in, so touch a stamp file.
+${srcdir}/config.h.in: stamp-h.in
+${srcdir}/stamp-h.in: configure.in aclocal.m4 acconfig.h
+	cd ${srcdir} && autoheader
+	date > ${srcdir}/stamp-h.in
+
+config.h: stamp-h
+stamp-h: config.h.in config.status
+	./config.status
+
+Makefile: ${srcdir}/Makefile.in config.status
+	./config.status
+
+config.status: configure
+	./config.status --recheck
+
+install:	all install-dirs
+	$(INSTALL_PROGRAM) modulecmd $(bindir)/modulecmd
+	(cd init;         $(MAKE) install)
+	(cd doc;          $(MAKE) install)
+	(cd etc;          $(MAKE) install)
+	(cd modulefiles;  $(MAKE) install)
+
+install-dirs:
+	@for i in $(MAKEDIRS) ; do \
+		echo Making $$i... ; \
+		parent=`echo $$i | sed -e 's@/[^/]*$$@@' | sed -e 's@^$$@/@'`; \
+		if [ -d $$parent ] ; then true ; else mkdir $$parent ; fi ; \
+		if [ ! -d $$i ] ; then \
+			if mkdir $$i ; then \
+				true ; \
+			else \
+				exit 1 ; \
+			fi ; \
+		else \
+			true ; \
+		fi ; \
+	done
+
+tags:	TAGS
+TAGS:	$(SRCS)
+	ctags $(SRCS)
+
+test: check
+
+check:	modulecmd
+	(cd testsuite; $(RUNTEST) $(RUNTESTFLAGS) --tool=modules)
+
+dist: $(srcdir)/configure 
+	@echo "Creating $(DISTNAME) directory"
+	mkdir $(DISTNAME)
+	@for d in `$(FIND) . -type d ! -name CVS -print`; do \
+		if [ "$$d" != "." -a "$$d" != "./$(DISTNAME)" ]; then \
+			mkdir $(DISTNAME)/$$d; \
+		fi; \
+	done
+# need this CVS to pass testsuite for distribution build
+	@mkdir $(DISTNAME)/testsuite/modulefiles/trace/CVS
+	@echo "Copying files to $(DISTNAME) directory"
+	@for f in `$(FIND) . -type f -print -o \( -name "CVS" -o -name "html" -o -name "$(DISTNAME)" \) -prune`; do \
+		if cvs log -R $$f >/dev/null 2>&1 ; then \
+			ln $(srcdir)/$$f $(DISTNAME)/$$f || \
+			{ echo copying $$f; cp -p $(srcdir)/$$f $(DISTNAME)/$$f ; } \
+	fi; done
+	@echo "Creating $(DISTNAME).tar.gz"
+	$(TAR) chf - $(DISTNAME) | $(GZIP) -c --best >$(DISTNAME).tar.gz
+	$(RM) -r $(DISTNAME)
+
+patch: $(srcdir)/configure
+	@echo "Creating patch file -- do this after CVS tagging"
+	cvs rdiff -c \
+	 -r `sed -n -e 's/^.*OLD TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c` \
+	 -r `sed -n -e 's/^.*NEW TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c` \
+	modules-3.0rko | gzip -c \
+	> modules-`sed -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`sed -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-rko.diff.gz
+
+tag:
+	@echo "CVS tagging - TAG = "\
+	  `sed -n -e 's/^.*NEW TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c`
+	cvs rtag -F \
+	  `sed -n -e 's/^.*NEW TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c` \
+	  modules-3.0rko
+
+lsm:
+# sends off the modules.lsm file to update the Linux Software Map
+# this should be done by the maintainer (R.K.Owen) only!
+	mail -s add modules@kooz.sj.ca.us,lsm@execpc.com < modules.lsm
+
+ftp-local:
+# this should be done by the maintainer (R.K.Owen) only!
+	@echo "placing $(DISTNAME).tar.gz"
+	-@if [ -e $(DISTNAME).tar.gz ]; then \
+		cp $(DISTNAME).tar.gz /u/ftp/pub/rkowen/modules; \
+	else echo "Can't find $(DISTNAME).tar.gz"; fi
+	-@XXX=modules-`sed -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`sed -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-rko.diff.gz ; \
+	echo "placing $$XXX"; \
+	if [ -e $$XXX ]; then \
+		cp $$XXX /u/ftp/pub/rkowen/modules; \
+	else echo "Can't find $$XXX"; fi
+	-@echo "placing modules.lsm"
+	-@if [ -e modules.lsm ]; then \
+		cp modules.lsm /u/ftp/pub/rkowen/modules; \
+	else echo "Can't find modules.lsm"; fi
+
+ftp: ftp-local
+# do local files first ... mostly to verify their existence
+# this should be done by the maintainer (R.K.Owen) only!
+	@echo "placing sunsite.unc.edu files";
+	-@XXX=modules-`sed -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`sed -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-rko.diff.gz ; \
+	echo "placing modules.lsm $$XXX $(DISTNAME).tar.gz"; \
+	./.ftp modules.lsm $$XXX $(DISTNAME).tar.gz;
+
+clean:
+	rm -f modulecmd *.o core
+	(cd init;         $(MAKE) clean)
+	(cd doc;          $(MAKE) clean)
+	(cd etc;          $(MAKE) clean)
+	(cd modulefiles;  $(MAKE) clean)
+
+mostlyclean: clean
+
+distclean:	clean
+	(cd init;         $(MAKE) distclean)
+	(cd doc;          $(MAKE) distclean)
+	(cd etc;          $(MAKE) distclean)
+	(cd modulefiles;  $(MAKE) distclean)
+	rm -f Makefile config.status config.cache config.log config.h \
+		stamp-h .spec testsuite/modules.00-init/015-version.exp \
+		testsuite/modules.50-cmds/100-loglevel.exp \
+		testsuite/.modulesbeginenv testsuite/modules.sum \
+		testsuite/modules.log doc/Makefile
+
+realclean:	distclean
+	rm -f TAGS
+	(cd init;         $(MAKE) realclean)
+	(cd doc;          $(MAKE) realclean)
+	(cd etc;          $(MAKE) realclean)
+	(cd modulefiles;  $(MAKE) realclean)
+	rm -f modules.lsm config.h.in stamp-h.in configure
+
+help:
+	@echo ""
+	@echo "make           - compiles sources to executable"
+	@echo "make all       - same as above"
+	@echo "make check     - runs test suite - needs dejagnu runtest"
+	@echo "make install   - copy program & man pages to destination"
+	@echo "make clean     - cleans out most useless files"
+	@echo "make distclean - cleans & removes most made files"
+	@echo "make dist      - creates a distribution tarball - requires CVS access"
+	@echo "make patch     - creates a patch file tarball - requires CVS access"
+	@echo ""
+
+######### The following is automatically generated. DO NOT EDIT #########
+########### Do not delete this line ... 'make depend' uses it ###########

@@ -1,0 +1,77 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	setenv/1.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'setenv' module subcommand for all allowed
+#			shell types.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "setenv/1.0"
+set modulefile "$env(MODULEPATH)/$module"
+
+#
+#  For the different shells ...
+#
+
+set lmf_sh "_LMFILES_=$modulefile;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module;export LOADEDMODULES;"
+set ts_sh "testsuite=yes;export testsuite;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lm_csh "setenv LOADEDMODULES $module;"
+set ts_csh "setenv testsuite yes;"
+
+set lmf_perl "\$ENV{'_LMFILES_'} = \"$modulefile\";"
+set lm_perl "\$ENV{'LOADEDMODULES'} = \"$module\";"
+set ts_perl "\$ENV{'testsuite'} = \"yes\";"
+
+#
+#  The tests
+#
+
+test_cmd "sh" "load $module" "$lmf_sh$lm_sh$ts_sh"
+test_cmd "ksh" "load $module" "$lmf_sh$lm_sh$ts_sh"
+test_cmd "zsh" "load $module" "$lmf_sh$lm_sh$ts_sh"
+test_cmd "csh" "load $module" "$lmf_csh$lm_csh$ts_csh"
+test_cmd "tcsh" "load $module" "$lmf_csh$lm_csh$ts_csh"
+test_cmd "perl" "load $module" "$lmf_perl$lm_perl$ts_perl"
+
+#
+#  Cleanup
+#
+
+unset ts_sh
+unset lm_sh
+unset lmf_sh
+
+unset ts_csh
+unset lm_csh
+unset lmf_csh
+
+unset ts_perl
+unset lm_perl
+unset lmf_perl
+
+unset modulefile
+unset module

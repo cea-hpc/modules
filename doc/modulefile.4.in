@@ -1,0 +1,746 @@
+.TH MODULEFILE 4 "1 July 1994"
+.nh
+.SH NAME
+modulefile \- files containing Tcl code for The Modules package
+.SH DESCRIPTION
+.LP
+.I modulefiles
+are written in the Tool Command Language,
+.BR Tcl(3)
+and are interpreted by the
+.B modulecmd
+program via the
+.BR module(1)
+user interface.
+.I modulefiles
+can be loaded, unloaded, or switched on-the-fly while the user is working.
+.LP
+A \fImodulefile\fP begins with the magic cookie, '#%Module'.
+A version number may be placed after this string.
+The version number is useful as the format of \fImodulefiles\fP may change.
+If a version number doesn't exist, then
+.B modulecmd
+will assume the \fImodulefile\fP is compatible with the latest version.
+The current version for \fImodulefiles\fP is
+.B 1.0.
+Files without the magic cookie will not be interpreted by
+.B modulecmd.
+.LP
+Each \fImodulefile\fP contains the changes to a user's environment needed
+to access an application.
+Tcl is a simple programming language which permits \fImodulefiles\fP to be
+arbitrarily complex, depending upon the application's and the \fImodulefile\fP
+writer's needs.
+If support for extended tcl (tclX) has been configured for your
+installation of modules, you may use all the extended commands provided by
+tclX, too.
+\fImodulefiles\fP can be used to implement site policies regarding the access
+and use of applications.
+.LP
+A typical \fImodulefiles\fP is a simple bit of code that set or add entries to
+the PATH, MANPATH, or other environment variables.
+Tcl has conditional statements that are evaluated when the \fImodulefile\fP
+is loaded.
+This is very effective for managing path or environment changes due to different
+OS releases or architectures.
+The user environment information is encapsulated into a single \fImodulefile\fP
+kept in a central location.
+The same \fImodulefile\fP is used by every user on any machine.
+So, from the user's perspective, starting an application is exactly the same
+irregardless of the machine or platform they are on.
+.LP
+\fImodulefiles\fP also hide the notion of different types of shells.
+From the user's perspective, changing the environment for one shell looks exactly
+the same as changing the environment for another shell.
+This is useful for new or novice users and eliminates the need for statements such
+as "if you're using the C Shell do this ..., otherwise if you're using the Bourne
+shell do this ..."
+Announcing and accessing new software is uniform and independent of the user's shell.
+From the \fImodulefile\fP writer's perspective, this means one set of information
+will take care of every type of shell.
+.LP
+.SH Modules Specific Tcl Commands
+The Modules Package uses commands which are extensions to the "standard"
+.BR Tcl(3)
+package.
+Unless otherwise specified, the Module commands return the empty string.
+Some commands behave differently when a \fImodulefile\fP is loaded or
+unloaded.
+The command descriptions assume the \fImodulefile\fP is being loaded.
+.PP
+.B setenv
+.I variable
+.I value
+.RS
+Set environment \fIvariable\fP to \fIvalue\fP.
+The \fBsetenv\fP command will also change the process' environment.
+A reference using Tcl's \fBenv\fP associative array will reference changes
+made with the \fBsetenv\fP command.
+Changes made using Tcl's \fBenv\fP associative array will \fBNOT\fP
+change the user's environment variable like the \fBsetenv\fP command.
+An environment change made this way will only affect the
+module parsing process.
+The \fBsetenv\fP command is also useful for changing the environment prior
+to the \fBexec\fP or \fBsystem\fP command.
+When a \fImodulefile\fP is unloaded, \fBsetenv\fP becomes \fBunsetenv\fP.
+If the environment variable had been defined it will be overwritten while
+loading the modulefile.  A subsequent unload will unset the environment
+variable - the previous value cannot be restored!  (Unless you handle
+it explicitly.)
+.RE
+.PP
+.B unsetenv
+.I variable
+.RI [ value ]
+.RS
+Unsets environment \fIvariable\fP.
+However, if there is an optional \fIvalue\fP, then when unloading
+a module then it will set \fIvariable\fP to \fIvalue\fP.
+The \fBunsetenv\fP command changes the process' environment like
+\fBsetenv\fP.
+.RE
+.PP
+.B append-path
+.I variable
+.I value
+.br
+.B prepend-path
+.I variable
+.I value
+.RS
+Append or prepend \fIvalue\fP to environment \fIvariable\fP.
+The \fIvariable\fP is a colon separated list
+such as "PATH=directory:directory:directory".
+If the \fIvariable\fP is not set, it is created.
+When a \fImodulefile\fP is unloaded, \fBappend-path\fP and
+\fBprepend-path\fP become \fBremove-path\fP.
+.RE
+.PP
+.B remove-path
+.I variable
+.I value
+.RS
+Remove \fIvalue\fP from the colon separated list in \fIvariable\fP.
+Every string between colons in \fIvariable\fP is compared to \fIvalue\fP.
+If the two match, \fIvalue\fP is removed from \fIvariable\fP.
+.RE
+.PP
+.B prereq
+.I modulefile
+[
+.I modulefile
+\&.\|.\|.
+]
+.br
+.B conflict
+.I modulefile
+[
+.I modulefile
+\&.\|.\|.
+]
+.RS
+\fBprereq\fP and \fBconflict\fP control whether or not the \fImodulefile\fP
+will be loaded.
+The \fBprereq\fP command lists \fImodulefiles\fP which must have been 
+previously loaded before the current \fImodulefile\fP will be loaded.
+Similarly, the \fBconflict\fP command lists \fImodulefiles\fP which conflict
+with the current \fImodulefile\fP.
+If a list contains more than one \fImodulefile\fP, then each member of the
+list acts as a Boolean OR operation.
+Multiple \fBprereq\fP and \fBconflict\fP commands may be used to create a 
+Boolean AND operation.
+If one of the requirements have not been satisfied, an error is reported
+and the current \fImodulefile\fP makes no changes to the user's environment.
+.LP
+If an argument for \fBprereq\fP is a directory and any \fImodulefile\fP from
+the directory has been loaded, then the prerequisite is met.
+For example, specifying \fIX11\fP as a prereq means that any version
+of \fIX11\fP, \fIX11/R4\fP or \fIX11/R5\fP, must be loaded before proceeding.
+.LP
+If an argument for \fBconflict\fP is a directory and any other \fImodulefile\fP
+from that directory has been loaded, then a conflict will occur.
+For example, specifying \fIX11\fP as a conflict will stop \fIX11/R4\fP and
+\fIX11/R5\fP from being loaded at the same time.
+.RE
+.PP
+.B is-loaded
+.I modulefile
+[
+.I modulefile
+\&.\|.\|.
+]
+.RS
+The \fBis-loaded\fP command returns a true value if any of the listed
+\fImodulefiles\fP has been loaded.  If a list contains more than one
+\fImodulefile\fP, then each member acts as a boolean OR operation.  If an
+argument for \fBis-loaded\fP is a directory and any \fImodulefile\fP from the
+directory has been loaded \fBis-loaded\fP would return a true value.
+.RE
+.PP
+.B module
+[
+.I sub-command
+] [
+.I sub-command-args
+]
+.RS
+Contains the same sub-commands as described in the
+.BR module(1)
+man page in the Module Sub-Commands section.
+This command permits a \fImodulefile\fP to load or remove other
+\fImodulefiles\fP.
+No checks are made to ensure that the \fImodulefile\fP does not try to
+load itself.
+Often it is useful to have a single \fImodulefile\fP that performs a 
+number of \fBmodule load\fP commands.
+For example, if every user on the system requires a basic set of
+applications loaded, then a \fIcore\fP \fImodulefile\fP would contain the
+necessary \fBmodule load\fP commands.
+.RE
+.PP
+.B module-info
+.I option
+[
+.I info-args
+]
+.RS
+Provide information about the \fBmodulecmd\fP program's state.
+Some of the information is specific to the internals of \fBmodulecmd\fP.
+\fIoption\fP is the type of information to be provided, and \fIinfo-args\fP
+are any arguments needed.
+.TP
+.B module-info flags
+.RS
+Returns the integer value of \fBmodulecmd's\fP flags state.
+.RE
+.B module-info mode [\fImodetype\fP]
+.RS
+Returns the current \fBmodulecmd's\fP mode as a string if no \fImodetype\fP is
+given.
+.PP
+Returns 1 if \fBmodulecmd's\fP mode is \fImodetype\fP.
+\fImodetype\fP can be: \fIload, remove, display, help, whatis, 
+switch, switch1, switch2,\fP or \fBswitch3.\fP
+.RE
+.TP
+.B module-info name
+.RS
+Return the name of the \fImodulefile\fP.
+This is not the full pathname for \fImodulefile\fP.
+See the Modules Variables section for information on the full pathname.
+.RE
+.TP
+.B module-info specified
+.RS
+Return the name of the \fImodulefile\fP specified on the command line.
+.RE
+.TP
+.B module-info shell
+.RS
+Return the current shell under which \fImodulecmd\fP was invoked.
+This is the first parameter of \fImodulecmd\fP, which is normally hidden
+by the \fImodule\fP alias.
+.RE
+.TP
+.B module-info shelltype
+.RS
+Return the family of the shell under which \fImodulefile\fP was invoked.
+As of \fImodule-info shell\fP this depends on the first parameter of
+\fImodulecmd\fP. The output reflects a shell type determining the shell
+syntax of the commands produced by \fImodulecmd\fP.
+.RE
+.TP
+.B module-info alias \fIname\fP
+.RS
+Returns the full module file name to which the module file alias \fIname\fP
+is assigned
+.RE
+.TP
+.B module-info version \fImodule-file\fP
+.RS
+Returns a list of all symbolic versions assigned to the passed
+\fImodule-file\fP. The paremeter \fImodule-file\fP might either be a 
+full qualified module file with name and version, another symbolic
+module file name or a module file alias.
+.RE
+.RE
+.PP
+.B module-version
+.I module-file
+.I version-name [version-name ...]
+.RS
+Assignes the symbolic \fIversion-name\fP to the module file \fImodule-file\fP
+This command should be placed in one of the modulecmd rc files
+in order to provide shorthand invocations of frequently used module file
+names.
+.LP
+The special \fIversion-name\fP \fBdefault\fP specifies the default version to be
+used for module commands, if no specific verion is given. This replaces the
+definitions made in the \fI.version\fP file in former \fBmodulecmd\fP releases.
+.LP
+The parameter \fImodule-file\fP may be either
+.PP
+.RS
+.I a fully qualified modulefile
+with name and version
+.RE
+.RS
+.I a symbolic module file name
+.RE
+.RS
+.I another module file alias
+.RE
+.RE
+.PP
+.B module-alias
+.I name
+.I module-file
+.RS
+Assignes the module file \fImodule-file\fP to the alias 
+\fIname\fP. This command should be placed in one of the modulecmd rc files
+in order to provide shorthand invocations of frequently used module file
+names.
+.LP
+The parameter \fImodule-file\fP may be either
+.PP
+.RS
+.I a fully qualified modulefile
+with name and version
+.RE
+.RS
+.I a symbolic module file name
+.RE
+.RS
+.I another module file alias
+.RE
+.RE
+.PP
+.B module-trace
+.I {on|off}
+.I [command [command ...]]
+.I [-module modulefile [modulefile ...]]
+.RS
+Switches tracing on or off. Without parameters this command will affect
+globally all tracing setups for all commands and modulefiles. The \fIcommand\fP
+parameter may be used to affect tracing of specified module commands only
+and the switch \fI-module\fP finally limits the affect of the \fImodule-trace\fP
+command to a well defined set of module files.
+.LP
+The \fIcommand\fP may be one of the following
+.PP
+.RS
+.I avail
+- 'module avail' command
+.RE
+.RS
+.I clear
+- 'module clear' command
+.RE
+.RS
+.I display
+- 'module display' command
+.RE
+.RS
+.I init
+- 'module init' command
+.RE
+.RS
+.I help
+- 'module help' command
+.RE
+.RS
+.I list
+- 'module list' command
+.RE
+.RS
+.I load
+- 'module load' command
+.RE
+.RS
+.I purge
+- 'module purge' command
+.RE
+.RS
+.I switch
+- 'module switch' command
+.RE
+.RS
+.I unuse
+- 'module unuse' command
+.RE
+.RS
+.I unload
+- 'module unload' command
+.RE
+.RS
+.I update
+- 'module update' command
+.RE
+.RS
+.I use
+- 'module use' command
+.RE
+.PP
+The \fImodule\fP parameter specifies a set of module files using TCL regular
+expressions. For example
+.PP
+.RS
+.I .*
+will affect all module files
+.RE
+.RS
+.I */2.0
+affects all module files at version 2.0
+.RE
+.RS
+.I gnu/.*
+affects all versions of the gnu modulefile
+.RE
+.RS
+.I gnu/2.0
+affects only version 2.0 of the gnu modulefile
+.RE
+.PP
+The \fImodule\fP parameter is prepended to the current tracing pattern list
+for the specified module command.
+It is evaluated from the left to the right. The first matching
+pattern defines the tracing parameter.
+.LP
+The internal trace pattern list is stored as a colon separated list.
+In advanced user level only, colons may be specified on the \fImodule\fP
+parameter of the \fImodule-trace\fP command. This will directly take 
+effect in the internal trace pattern list. In novice or expert user level
+a warning messge will be generated.
+.RE
+.RE
+.PP
+.B module-user
+.I level
+.RS
+Defines the user level under wich \fImodule-cmd\fP runs. This takes effect
+on the error messages being produced and on the behavior of \fImodulecmd\fP
+in case of detecting an outage.
+.LP
+The \fIlevel\fP parameter specifies the user level and may be one of the
+following values:
+.PP
+.RS
+.I advanced, adv
+- advanced user level
+.RE
+.RS
+.I expert, exp
+- expert user level
+.RE
+.RS
+.I novice, nov
+- novice user level
+.RE
+.RE
+.PP
+.B module-verbosity
+.I {on|off}
+.RS
+Switches verbose \fImodulecmd\fP message display on or off.
+.RE
+.PP
+.B module-log
+.I error-weight
+.I log-facility
+.RS
+Defines whether error messages of the specified weight should be logged
+and conditionally assignes a log-facility. \fIalias-name\fP
+.LP
+The \fIerror-weight\fP parameter specifies the error level to be logged.
+It may be one of the following values:
+.PP
+.RS
+.I verb
+- verbose messages
+.RE
+.RS
+.I info
+- informal messages
+.RE
+.RS
+.I debug
+- debugging messages
+.RE
+.RS
+.I trace
+- tracing output
+.RE
+.RS
+.I warn
+- warnings
+.RE
+.RS
+.I prob
+- problems (normally the modulecmd may be completed)
+.RE
+.RS
+.I error
+- errors (which normally leads to unsuccessful end of the modulecmd)
+.RE
+.RS
+.I fatal
+- fatal system errors
+.RE
+.RS
+.I panic
+- very fatal system errors, e.g. internal program inconsistencies.
+.RE
+.LP
+The \fIlog-facility\fP parameter specifies the log destination. This may
+either switch off logging for the specified \fIerror-weight\fP, direct 
+log messages to a special stream or a file or specify a syslog facility
+for logging. The following values are allowed:
+.PP
+.RS
+.I stderr, stdout
+- predefined output streams for normal and error outputs. Note, that stdout
+is normally used for passing parameters to the invoking shell. Directing
+error output to this stream might screw up the \fImodulecmd\fP integration
+to your shell.
+.RE
+.RS
+.I a syslog facility
+- directs logging to the syslog. See \fBsyslog.conf(4)\fP for detailed
+description of the valid syslog facilities.
+.RE
+.RS
+.I null, none
+- will suppress logging of the specified \fIerror-weight\fP.
+.RE
+.RS
+.I a filename
+- is recognized by the first character being either a '.' or a '/'. You
+must have write permission to the file you specify.
+.RE
+.RE
+.PP
+.B module-whatis
+.I string
+.RS
+Defines a string which is displayed in case of the invocation
+of the 'module whatis' command.
+There may be more than one \fImodule-whatis\fP line in a modulefile. This
+command takes no actions in case of load, display, etc. invocations of
+\fImodulecmd\fP.
+.LP
+The \fIstring\fP parameter has to be enclosed in double-quotes if there's
+more than one word specified. Words are defined to be separated by whitespace
+characters (space, tab, cr).
+.RE
+.PP
+.B set-alias
+.I alias-name
+.I alias-string
+.RS
+Sets an alias or function with the name \fIalias-name\fP
+in the user's environment to the string \fIalias-string\fP.
+Arguments can be specified using the Bourne Shell style of function arguments.
+If the string contains "$1", then this will become the first argument when the
+alias is interpreted by the shell.
+The string "$*" corresponds to all of the arguments given to the alias.
+The character '$' may be escaped using the '\\' character.
+.LP
+For some shells, aliases are not possible and the command has no effect.
+For Bourne shell derivatives, a shell function will be written (if supported) to
+give the impression of an alias.
+When a \fImodulefile\fP is unloaded, \fBset-alias\fP becomes \fBunset-alias\fP.
+.RE
+.PP
+.B unset-alias
+.I alias-name
+.RS
+Unsets an alias with the name \fIalias-name\fP in the user's environment.
+If the shell supports functions then the shell is instructed to unset
+function \fIalias-name\fP.
+.RE
+.PP
+.B system
+.I string
+.RS
+Pass \fIstring\fP to the C library routine
+.BR system(3).
+For the
+.BR system(3)
+call \fBmodulecmd\fP redirects stdout to stderr since stdout would
+be parsed by the evaluating shell.
+The exit status of the executed command is returned.
+.RE
+.PP
+.B uname
+.I field
+.RS
+Provide fast lookup of system information on systems that support
+.BR uname(3).
+\fBuname\fP is significantly faster than using \fBsystem\fP to execute a
+program to return host information.
+If
+.BR uname(3)
+is not available,
+.BR gethostname(3)
+or some program will make the nodename available.
+\fBuname\fP will return the string "unknown" if information is unavailable
+for the \fIfield\fP.
+.PP
+\fBuname\fP will invoke \fBgetdomainname\fP in order to figure out the
+name of the domain.
+.LP
+\fIfield\fP values are:
+.PP
+.RS
+.I sysname
+- the operating system name
+.RE
+.RS
+.I nodename
+- the hostname
+.RE
+.RS
+.I domain
+- the name of the domain
+.RE
+.RS
+.I release
+- the operating system release
+.RE
+.RS
+.I version
+- the operating system version
+.RE
+.RS
+.I machine
+- a standard name that identifies the system's hardware
+.RE
+.RE
+.PP
+.B x-resource
+.I resource-string
+.br
+.B x-resource
+.I filename
+.RS
+Merge resources into the \fIX11\fP resource database.
+The resources are used to control look and behavior of X11 applications.
+The command will attempt to read resources from \fIfilename\fP.
+If the argument isn't a valid file name, then string will be interpreted
+as a resource.
+If a file is found, it will be filtered through the 
+.BR cpp(1)
+preprocessor, just as
+.BR xrdb(1)
+would do.
+.PP
+\fImodulefiles\fP that use this command, should in most cases contain one or more
+\fIx-resource\fP lines, each defining one X11 resource.
+Reading resources from \fIfilename\fP is much slower, due to the preprocessing.
+The DISPLAY environment variable should be properly set and the X11 server should
+be accessible.
+If \fBx-resource\fP can't manipulate the X11 resource database, the
+\fImodulefile\fP will exit with an error message.
+.PP
+Examples:
+.TP
+.B x-resource /u2/staff/leif/.xres/Ileaf
+.RS
+The file \fIIleaf\fP is preprocessed by 
+.BR cpp(1)
+and the result is merged into the X11 resource database.
+.RE
+.TP
+.B x-resource [glob ~/.xres/ileaf]
+.RS
+The Tcl \fIglob\fP function is used to have the \fImodulefile\fP read different
+resource files for different users.
+.RE
+.TP
+.B x-resource {Ileaf.popup.saveUnder:  True}
+.RS
+Merge the \fIIleaf\fP resource into the X11 resource database.
+.RE
+.RE
+.SH Modules Variables
+.PP
+The \fBModulesCurrentModulefile\fP variable contains the full pathname of the
+\fImodulefile\fP being interpreted.
+.PP
+.SH Locating Modulefiles
+Every directory in \s-1MODULEPATH\s0 is searched to find the \fImodulefile\fP.
+A directory in \s-1MODULEPATH\s0 can have an arbitrary number of sub-directories.
+If the user names a \fImodulefile\fP to be loaded which is actually a directory,
+the directory is opened and a search begins for an actual \fImodulefile\fP.
+First, \fBmodulecmd\fP looks for a file with the name \fI.modulerc\fP in the
+directory. If this file exists, its contents will be evaluated as if it was
+a module file to be load. You may place \fImodule-version\fP and
+\fImodule-alias\fP commands inside this file. Additionally, before seeking
+for \fI.modulerc\fP files in the module directory, the global \fI.modulerc\fP
+file is sourced, too. If a named version \fIdefault\fP now exists for the
+module file to be load, the assigned modulefile now will be sourced. Otherwise
+the file \fI.version\fP is looked up in the directory.
+If the \fI.version\fP file exists, it is opened and interpreted as Tcl code.
+If the Tcl variable \fBModulesVersion\fP is set by the \fI.version\fP file,
+\fBmodulecmd\fP will use the name as if it specifies a \fImodulefile\fP in the
+directory. This will become the \fIdefault\fP module file in this case.
+If \fBModulesVersion\fP is a directory, the search begins anew down that
+directory. If the name does not match any files located in the current
+directory, the search continues through the remaining directories in
+\s-1MODULEPATH\s0.
+.LP
+Every \fI.version\fP  and \fI.modulerc\fP file found is Tcl interpreted.
+So, changes made in these file will affect the subsequently
+interpreted \fImodulefile\fP.
+.LP
+If no \fIdefault\fP version may be figured out, then the highest
+lexicographically sorted \fImodulefile\fP under the directory will be used.
+.LP
+For example, it is possible for a user to have a directory named \fIX11\fP which
+simply contains a \fI.version\fP file specifying which version of X11 is to be loaded.
+Such a file would look like:
+.LP
+.RS
+.nf
+#%Module1.0
+##
+##  The desired version of X11
+##
+set ModulesVersion "R4"
+.fi
+.RE
+.LP
+.SH Modulefile Specific Help
+Users can request help about a specific \fImodulefile\fP through the
+.BR module(1)
+command.
+The \fImodulefile\fP can print helpful information or start help oriented
+programs by defining a \fBModulesHelp\fP subroutine.
+The subroutine will be called when the 'module help \fImodulefile\fP' command
+is used.
+.SH Modulefile Display
+The 'module display \fImodulefile\fP' command will detail all changes that will
+be made to the environment.
+After displaying all of the environment changes \fBmodulecmd\fP will call the
+\fBModulesDisplay\fP subroutine.
+The \fBModulesDisplay\fP subroutine is a good place to put additional descriptive
+information about the \fImodulefile\fP.
+.SH ENVIRONMENT
+.TP
+.B ${\s-1MODULEPATH\s0}
+Path of directories containing \fImodulefiles\fP.
+.SH SEE ALSO
+.BR module(1),
+.BR Tcl(3),
+.BR TclX(3),
+.BR xrdb(1),
+.BR cpp(1),
+.BR system(3),
+.BR uname(3),
+.BR gethostname(3)
+.BR getdomainname(3)
+.SH NOTES
+Tcl was developed by John Ousterhout at the University of California
+at Berkeley.
+.LP
+TclX was developed by Karl Lehenbauer and Mark Diekhans.

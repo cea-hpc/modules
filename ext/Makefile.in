@@ -1,0 +1,72 @@
+###########################################################################
+#
+# File:        Makefile.in
+# Revision:    1.6
+# Last Mod:    11:24:39, 15 Aug 1995
+# Created:     94/06/18
+#
+###########################################################################
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+@SET_MAKE@
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = $(INSTALL) -m 0755
+INSTALL_DATA = $(INSTALL) -m 0644
+
+# Standard definition (a'la GNU)
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+man_prefix = @prefix@
+
+# Directory in which to install scripts
+bindir = $(exec_prefix)/bin
+filedir = $(prefix)/modulefiles
+
+SHELL = /bin/sh
+
+#### End of system configuration section. ####
+
+BINFILES= add.ext
+
+MAKEDIRS= $(bindir)
+
+all:    $(BINFILES)
+
+install: all install-dirs
+	$(INSTALL_PROGRAM) add.ext $(bindir)
+
+install-dirs:
+	@for i in $(MAKEDIRS) ; do \
+		echo Making $$i... ; \
+		parent=`echo $$i | sed -e 's@/[^/]*$$@@' | sed -e 's@^$$@/@'`; \
+		if [ -d $$parent ] ; then true ; else mkdir $$parent ; fi ; \
+		if [ ! -d $$i ] ; then \
+			if mkdir $$i ; then \
+				true ; \
+			else \
+				exit 1 ; \
+			fi ; \
+		else \
+			true ; \
+		fi ; \
+	done
+
+clean:
+	rm -f $(BINFILES)
+
+mostlyclean: clean
+
+distclean:	clean
+	rm -f Makefile
+	rm -f skel/.cshrc  skel/.kshenv  skel/.login  skel/.profile
+	rm -f	global/csh.login global/csh.modules \
+		global/profile global/profile.modules
+
+realclean:	distclean
+
+add.ext:
+	(cd ..; ./config.status)

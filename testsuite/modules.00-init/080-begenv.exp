@@ -1,0 +1,61 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Checks the uninitialized modulecmd. This should
+#			result in the setup of the beginning-environment
+#			$env(HOME)/.modulesbeginenv
+#		}C%
+#
+##############################################################################
+
+#
+# The following answers are to be expected in this testcase ...
+#
+
+set not_load "No Modulefiles Currently Loaded."
+set beg_env "[pwd]/.modulesbeginenv"
+set env(HOME) [pwd]
+
+#
+# The tests ...
+#
+
+testerr_cmd "sh" "--long list" \
+		"_MODULESBEGINENV_=$beg_env;export _MODULESBEGINENV_;$not_load"
+testerr_cmd "ksh" "--long list" \
+		"_MODULESBEGINENV_=$beg_env;export _MODULESBEGINENV_;$not_load"
+testerr_cmd "zsh" "--long list" \
+		"_MODULESBEGINENV_=$beg_env;export _MODULESBEGINENV_;$not_load"
+testerr_cmd "csh" "--long list" \
+		"setenv _MODULESBEGINENV_ $beg_env;$not_load"
+testerr_cmd "tcsh" "--long list" \
+		"setenv _MODULESBEGINENV_ $beg_env;$not_load"
+testerr_cmd "perl" "--long list" \
+		"\$ENV{'_MODULESBEGINENV_'} = \"$beg_env\";$not_load"
+
+#
+# Finally set up the _MODULESBEGINENV_ environment variable for all
+# further tests
+#
+
+set env(_MODULESBEGINENV_) $beg_env
+
+#
+# Cleanup
+#
+
+unset not_load
+unset beg_env

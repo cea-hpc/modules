@@ -1,0 +1,34 @@
+if ($?tcsh) then
+	set modules_shell="tcsh"
+else
+	set modules_shell="csh"
+endif
+if ( $?MODULE_VERSION ) then
+	setenv MODULE_VERSION_STACK 	"$MODULE_VERSION"
+else
+	setenv MODULE_VERSION		"@VERSION@"
+	setenv MODULE_VERSION_STACK	"@VERSION@"
+endif
+set exec_prefix='@BASEPREFIX@$MODULE_VERSION'
+
+if ( $?histchars ) then
+  set histchar = `echo $histchars | cut -c1`
+  set _histchars = $histchars
+  alias module 'unset histchars; \\
+eval `'$exec_prefix'/bin/modulecmd '$modules_shell $histchar'*`; \\
+set histchars = $_histchars'
+  unset histchar
+else
+  alias module 'eval `'$exec_prefix'/bin/modulecmd '$modules_shell' \!*`'
+endif
+unset exec_prefix
+
+setenv MODULESHOME @prefix@
+
+if (! $?MODULEPATH ) then
+  setenv MODULEPATH `sed 's/#.*$//' ${MODULESHOME}/init/.modulespath | awk 'NF==1{printf("%s:",$1)}'`
+endif
+
+if (! $?LOADEDMODULES ) then
+  setenv LOADEDMODULES ""
+endif

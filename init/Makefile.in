@@ -1,0 +1,77 @@
+###########################################################################
+#
+# File:        Makefile.in
+# Revision:    $Id: Makefile.in,v 1.1 2000/06/28 00:17:33 rk Exp $
+# Created:     94/06/18
+#
+###########################################################################
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+CC = @CC@
+@SET_MAKE@
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = $(INSTALL) -m 0555
+INSTALL_DATA = $(INSTALL) -m 0644
+
+# Standard definition (a'la GNU)
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+man_prefix = @prefix@
+
+# Directory in which to install binaries, module files, and init files
+bindir = $(exec_prefix)/bin
+filedir = $(prefix)/modulefiles
+initdir = $(prefix)/init
+
+SHELL = /bin/sh
+
+#### End of system configuration section. ####
+
+INIT_FILES= bash csh ksh perl sh tcsh zsh ksh .modulespath
+
+MAKEDIRS= $(initdir)
+
+all:    $(INIT_FILES)
+
+install: all install-dirs
+	$(INSTALL_DATA) bash $(initdir)
+	$(INSTALL_DATA) csh  $(initdir)
+	$(INSTALL_DATA) perl $(initdir)
+	$(INSTALL_DATA) sh   $(initdir)
+	$(INSTALL_DATA) tcsh $(initdir)
+	$(INSTALL_DATA) zsh  $(initdir)
+	$(INSTALL_DATA) ksh  $(initdir)
+	$(INSTALL_DATA) .modulespath  $(initdir)
+
+install-dirs:
+	@for i in $(MAKEDIRS) ; do \
+		echo Making $$i... ; \
+		parent=`echo $$i | sed -e 's@/[^/]*$$@@' | sed -e 's@^$$@/@'`; \
+		if [ -d $$parent ] ; then true ; else mkdir $$parent ; fi ; \
+		if [ ! -d $$i ] ; then \
+			if mkdir $$i ; then \
+				true ; \
+			else \
+				exit 1 ; \
+			fi ; \
+		else \
+			true ; \
+		fi ; \
+	done
+
+clean:
+	rm -f $(INIT_FILES)
+
+mostlyclean: clean
+
+distclean:	clean
+	rm -f Makefile
+
+realclean:	distclean
+
+bash:
+	(cd ..; ./config.status)

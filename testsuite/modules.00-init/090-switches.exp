@@ -1,0 +1,82 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check all valid command line switches in long
+#			and short presentation.
+#		}C%
+#
+##############################################################################
+
+#
+# The following answers are to be expected in this testcase ...
+#
+
+set modpath $env(MODULEPATH)
+
+set bad_arg	"$error_msgs: Unrecognized option 'foobar'"
+set bad_ulvl	"$error_msgs: Undefined userlevel 'foobar'"
+set pos_ans	"$modlin$modpath/loc_fq/1.0:\n\n$modlin"
+
+#
+# The tests
+#
+
+if { $verbose > 0 } {
+    send_user "\tChecking command line arguments ..."
+}
+
+testerr_cmd "sh" "--force display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--terse display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--long display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--verbose display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--create display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--userlvl=expert display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--icase display loc_fq/1.0" "$pos_ans"
+
+testerr_cmd "sh" "--for display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--ter display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--lon display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--verb display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--cre display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--use=expert display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--ica display loc_fq/1.0" "$pos_ans"
+
+testerr_cmd "sh" "-f display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "-t display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "-l display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "-v display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "-c display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "-u expert display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "-i display loc_fq/1.0" "$pos_ans"
+
+testerr_cmd "sh" "--use=exp display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--use=novice display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--use=nov display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--use=advanced display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--use=adv display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--u novice display loc_fq/1.0" "$pos_ans"
+testerr_cmd "sh" "--u advanced display loc_fq/1.0" "$pos_ans"
+
+testerr_cmd_re "sh" "--foobar display loc_fq/2.0" "$bad_arg"
+testerr_cmd_re "sh" "--userlvl=foobar display loc_fq/1.0" "$bad_ulvl"
+
+#
+#  Clean up variables used in this test case
+#
+
+unset bad_arg
+unset bad_ulvl
+unset pos_ans

@@ -1,0 +1,28 @@
+#%Module1.0#####################################################################
+##
+## modules modulefile
+##
+proc ModulesHelp { } {
+        global version modroot
+
+        puts stderr "\tmodules - loads the modules software & application environment"
+        puts stderr "\n\tThis adds $modroot/* to several of the"
+        puts stderr "\tenvironment variables."
+        puts stderr "\n\tVersion $version\n"
+}
+
+module-whatis	"loads the modules environment"
+
+# for Tcl script use only
+set	version		@VERSION@
+set	modroot		@prefix@
+
+
+setenv		MODULESHOME	$modroot
+prepend-path    PATH   		$modroot/bin
+prepend-path    MANPATH		$modroot/man
+
+module		use		@VERSIONPATH@
+if [ module-info mode remove ] {
+	module unuse @VERSIONPATH@
+}

@@ -1,0 +1,199 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Defines the test procedures for the alias commands.
+#			Depending on the 'module' setup, this checks
+#			if direct eval of aliases or sourcing of tempfiles
+#			is configured.
+#		}C%
+#
+##############################################################################
+
+#
+#  Test procedure for alias solutions using temporary files
+#
+
+proc _test_alias_fn {cmd pattern filecmd} {
+    global comp_output
+    global verbose
+    global shell
+
+    if { ![info exists pattern] ||
+	 ![info exists cmd] || ![info exists filecmd] } {
+	unresolved "Internal testsuite error in alias-checking";
+    }
+
+    #
+    #  There *SHOULD* be output on stdout ....
+    #
+
+    if { [info exists comp_output] } then {
+	if { [regexp "$pattern" $comp_output tmp tempfile] } then {
+	    set tmp [exec cat $tempfile]
+
+	    if { $verbose > 0 } {
+		send_user "Checking \"$shell\" temp alias file '$tempfile'\n"
+	    }
+
+	    #
+	    #  The contents of the temporary file do match?
+	    #
+
+	    if { $tmp == $filecmd } {
+		pass "$cmd ($shell)"
+	    } else {
+		if { $verbose > 0 } {
+		    send_user "File content:\n$tmp\n"
+		    send_user "Expected:\n$filecmd\n"
+		}
+		fail "$cmd ($shell)"  
+	    }
+
+	    #
+	    #  Remove the temporary file written by modulecmd
+	    #
+
+	    exec rm -f $tempfile
+
+	} else {
+
+	    #
+	    #  stdout doesn't match to the pattern that's expected
+	    #
+
+	    if { $verbose > 0 } {
+		send_user "OUT:$comp_output\n"
+		send_user "EXP (re):$pattern\n"
+	    }
+	    fail "$cmd ($shell)"
+	}
+
+    } else {
+
+	#
+	#  Nothing received on stdout. fail and report what's going on on
+	#  stderr
+	#
+
+	if { $verbose > 0 } {
+	    send_user "ERR:$comp_error\n"
+	}
+	fail "$cmd ($shell)"
+    }
+}
+
+#
+#  Test procedure for eval-solution
+#
+
+proc _test_alias_eval {cmd pattern filecmd} {
+    global comp_output
+    global verbose
+    global shell
+
+    if { ![info exists pattern] ||
+	 ![info exists cmd] || ![info exists filecmd] } {
+	unresolved "Internal testsuite error in alias-checking";
+    }
+
+    #
+    #  There *SHOULD* be output on stdout ....
+    #
+
+    if { [info exists comp_output] } then {
+	if { [regexp "$pattern$filecmd" $comp_output] } then {
+	    pass "$cmd ($shell)"
+	} else {
+	    if { $verbose > 0 } {
+		send_user "OUT:$comp_output\n"
+		send_user "EXP (re):$pattern$filecmd\n"
+	    }
+	    fail "$cmd ($shell)"
+	}
+
+    } else {
+
+	#
+	#  Nothing received on stdout. fail and report what's going on on
+	#  stderr
+	#
+
+	if { $verbose > 0 } {
+	    send_user "ERR:$comp_error\n"
+	}
+	fail "$cmd ($shell)"
+    }
+}
+
+#
+#  Perform the 'modulecmd $cmd' command and
+#  check the configuration in order to select the desired alis-test-procedure
+#
+
+proc test_alias {test_shell cmd pattern filecmd} {
+    global MODULECMD
+    global comp_output
+    global verbose
+    global shell
+    global config_file
+    global config_eval
+
+    #
+    #  Check parameters and set up the shell
+    #
+
+    if { ![info exists test_shell] || ![info exists pattern] ||
+	 ![info exists cmd] || ![info exists filecmd] } {
+	unresolved "Internal testsuite error in alias-checking";
+    }
+
+    set shell "$test_shell"
+    modulecmd_start "$cmd"
+
+    #
+    #  Now evaluate the result of the 'modulecmd' call
+    #
+
+    if { $config_eval } {
+	_test_alias_eval $cmd $pattern $filecmd
+    } else {
+	_test_alias_fn $cmd $pattern $filecmd
+    }
+}
+
+#
+#  Grap the config-file for the EVAL setup. If there's no config-file
+#  found, the tempfile-solution is assumed to be configured
+#
+
+set config_eval 0
+
+if { ![file exists $config_file] } {
+    if { $verbose > 0 } {
+	send_user "Configfile '$config_file' not found.\n"
+	send_user "tmpfile assumed for aliasing\n"
+    }
+} else {
+    #
+    #  grep exits with status 0 if it is successfull ...
+    #  check wheter EVAL_ALIAS is defined in the config file
+    #
+    if { ![catch {exec grep "#define EVAL_ALIAS" $config_file}] } {
+	set config_eval 1
+    }
+}
+

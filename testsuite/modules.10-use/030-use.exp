@@ -1,0 +1,50 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.10-use/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		use
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check the 'module use' command for the uninitialized
+#			modulecmd. This should end up in the setup of the
+#			MODULEPATH environment variable
+#		}C%
+#
+##############################################################################
+
+#
+# Variables for this test
+#
+
+set path "$pwd/modulefile.other"
+set mod_path "$path:$env(MODULEPATH)"
+
+set use	"use"
+
+#
+# The tests ...
+#
+
+test_cmd "sh" "$use $path" "MODULEPATH=$mod_path;export MODULEPATH;"
+test_cmd "ksh" "$use $path" "MODULEPATH=$mod_path;export MODULEPATH;"
+test_cmd "zsh" "$use $path" "MODULEPATH=$mod_path;export MODULEPATH;"
+test_cmd "csh" "$use $path" "setenv MODULEPATH $mod_path;"
+test_cmd "tcsh" "$use $path" "setenv MODULEPATH $mod_path;"
+test_cmd "perl" "$use $path" "\$ENV{'MODULEPATH'} = \"$mod_path\";"
+
+#
+# Cleanup
+#
+
+unset path
+unset mod_path
+unset use

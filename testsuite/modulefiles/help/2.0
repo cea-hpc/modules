@@ -1,0 +1,101 @@
+#%Module1.0
+
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		alias/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite modulefile
+#   Command:
+#   Sub-Command:	set-alias, unset-alias, setenv, append-path,
+#   Sub-Command:	prepend-path, remove-path, unsetenv, x-resource,
+#   Sub-Command:	module-user, module-verbosity, module-trace,
+#   Sub-Command:	module-log, system, module, module-alias,
+#   Sub-Command:	module-version, module-info mode, module-whatis
+#
+#   Invocation:		display @M@, help @M@
+#   Result:	%R(display){
+#			-------------------------------------------------------------------
+#			@P@/@M@/@V@:
+#
+#			set-alias	 al-testsuite ps -auxww | grep modulecmd 
+#			unset-alias	 al-testsuite 
+#			setenv		 testsuite yes 
+#			append-path	 testsuite no 
+#			prepend-path	 testsuite maybe 
+#			remove-path	 testsuite yes 
+#			unsetenv	 testsuite 
+#			xrdb -merge	 my-prog*my-ress:true 
+#			module-user	 advanced 
+#			module-verbosity on 
+#			module-trace	 on load -module .* 
+#			module-log	 trace local7.info 
+#			system		 ls 
+#			module		 load setenv/1.0 
+#			module-alias	 foo setenv/1.0
+#			module-version	 foo foo bar blah 
+#			module-whatis	 Some checks for HELP and DISPLAY 
+#			-------------------------------------------------------------------
+#		}R%
+#
+#		%R(help){
+#			----------- Module Specific Help for 'help/2.0' -------------------
+#
+#			Help
+#		}R%
+#   Comment:	%C{
+#			Main purpose of this modulefile is checking if all
+#			modulecommands are displayed proper and if none
+#			of them are executed in help mode.
+#		}C%
+#
+##############################################################################
+
+#
+#  Thats what's gonna be tested
+#
+
+proc ModulesHelp { } {
+    puts stdout Help
+}
+
+#
+#  The following should lead to no result in M_HELP mode
+#
+
+set-alias	al-testsuite	"ps -auxww | grep modulecmd"
+unset-alias	al-testsuite
+
+setenv		testsuite	yes
+append-path	testsuite	no
+prepend-path	testsuite	maybe
+remove-path	testsuite	yes
+unsetenv	testsuite
+
+x-resource	my-prog*my-ress:true
+
+module-user			advanced
+module-verbosity		on
+module-trace	on load 	-module .*
+module-log	trace		local7.info
+
+system		ls
+
+module		load		setenv/1.0
+
+module-alias	foo		setenv/1.0
+module-version	foo		foo bar blah
+
+#
+#  Don't corrupt the 'apropos' tests ...
+#
+
+if { ![module-info mode whatis] } {
+    module-whatis "Some checks for HELP and DISPLAY"
+}

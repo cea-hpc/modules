@@ -1,0 +1,63 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.10-use/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		unuse
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check removing a path for the list of modulefile
+#			paths in $MODULEPATH
+#		}C%
+#
+##############################################################################
+
+#
+# Variables for this test
+#
+
+set path "$pwd/modulefile.other"
+set mod_path "$env(MODULEPATH)"
+
+set use	"unuse"
+
+#
+# Put a new entry to unuse to the MODULEPATH
+#
+
+if { $verbose > 0 } {
+    send_user "Setup MODULEPATH = $path:$mod_path\n"
+}
+set env(MODULEPATH) "$path:$mod_path"
+
+#
+# The tests ...
+#
+
+test_cmd "sh" "$use $path" "MODULEPATH=$mod_path;export MODULEPATH;"
+test_cmd "ksh" "$use $path" "MODULEPATH=$mod_path;export MODULEPATH;"
+test_cmd "zsh" "$use $path" "MODULEPATH=$mod_path;export MODULEPATH;"
+test_cmd "csh" "$use $path" "setenv MODULEPATH $mod_path;"
+test_cmd "tcsh" "$use $path" "setenv MODULEPATH $mod_path;"
+test_cmd "perl" "$use $path" "\$ENV{'MODULEPATH'} = \"$mod_path\";"
+
+#
+# Cleanup
+#
+
+if { $verbose > 0 } {
+    send_user "Resetting MODULEPATH\n"
+}
+set env(MODULEPATH) "$mod_path"
+
+unset path
+unset mod_path
+unset use

@@ -1,0 +1,60 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	uname
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'uname' module command
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "uname"
+set modulefile "$env(MODULEPATH)/$module"
+
+#
+#  For the different shells ...
+#
+
+set lmf "setenv _LMFILES_ $modulefile"
+set lm "setenv LOADEDMODULES $module"
+set ts "setenv testsuite "
+
+#
+#  The tests
+#
+
+test_cmd "csh" "load $module/sysname" "$lmf/sysname;$lm/sysname;$ts$u_sysname;"
+test_cmd "csh" "load $module/nodename" "$lmf/nodename;$lm/nodename;$ts$u_nodename;"
+test_cmd "csh" "load $module/domain" "$lmf/domain;$lm/domain;$ts$u_domainname;"
+test_cmd "csh" "load $module/release" "$lmf/release;$lm/release;$ts$u_release;"
+test_cmd "csh" "load $module/version" "$lmf/version;$lm/version;$ts$u_version;"
+test_cmd "csh" "load $module/machine" "$lmf/machine;$lm/machine;$ts$u_machine;"
+
+#
+#  Cleanup
+#
+
+unset ts
+unset lm
+unset lmf
+
+unset modulefile
+unset module
