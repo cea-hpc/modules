@@ -2354,7 +2354,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.41 $:
+                ModulesTcl 0.101/$Revision: 1.42 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
