@@ -423,7 +423,7 @@ proc getPathToModule {mod} {
 			} elseif [file exists "$path/.version"] {
 			    source "$path/.version"
 			} else {
-			    set ModulesVersion [file tail [lindex [lsHack $path] 0]]
+			    set ModulesVersion [file tail [lindex [lsHack $path -dictionary] end]]
 			}
 			set path "$path/$ModulesVersion"
 			set mod "$mod/$ModulesVersion"
@@ -638,19 +638,21 @@ proc renderSettings {} {
 	}
 
 # module path{s,} output
-	foreach var $g_pathList {
-	    switch $g_shellType {
-		csh {
-		    puts $f "echo '$var'"
-		}
-		sh {
-		    puts $f "echo '$var'"
-		}
-		perl {
-		    puts $f "print '$var'.\"\\n\";"
-		}
-		python {
-# I'm not a python programmer
+	if [info exists g_pathList] {
+	    foreach var $g_pathList {
+		switch $g_shellType {
+		    csh {
+			puts $f "echo '$var'"
+		    }
+		    sh {
+			puts $f "echo '$var'"
+		    }
+		    perl {
+			puts $f "print '$var'.\"\\n\";"
+		    }
+		    python {
+			# I'm not a python programmer
+		    }
 		}
 	    }
 	}
@@ -795,7 +797,7 @@ proc reverseList {list} {
 # this is a hack to work around the fact that globs don't work
 # well on Cygwin with symlinks
 
-proc lsHack {dir} {
+proc lsHack {dir {how {}} {prefixlist {}} } {
     global tcl_platform ignoreDir
 
     if {$tcl_platform(os) == "Windows NT"} {
@@ -804,13 +806,18 @@ proc lsHack {dir} {
 	    lappend fileParts *
 	}
 	set pattern [join $fileParts {/}]
-	set globlist {}
 	catch {
 #	    puts stderr  "globbing $pattern"
 	    set globlist [exec ls -d $pattern]
 	}
     } else {
 	set globlist [glob -nocomplain "$dir/*"]
+    }
+    if {$how != ""} {
+	set globlist [lsort $how $globlist]
+    }
+    if {$prefixlist != ""} {
+	set globlist [concat $prefixlist $globlist]
     }
     foreach file $globlist {
 	set pieces [split $file "/"]
@@ -903,7 +910,14 @@ proc cmdModuleDisplay {mod} {
 proc cmdModulePaths {mod} {
     global env g_pathList
 
-    # Not right - see cmdModuleAvail
+    # Not right - see cmdModuleAvail.
+
+    # This will be tough - we don't want errors (cmdModuleAvail calls lsHack
+    # and not getPathToModule, which solves this problem there).
+    # getPathToModule wants a module name, not a path to a file.  This makes
+    # it tough if the same modulefile is available in multiple places in the
+    # MODULEPATH.
+
     set g_mode "display"
     catch {
 	set modfile [getPathToModule $mod]
@@ -953,14 +967,12 @@ proc cmdModuleSearch {{mod {}} {search {}} } {
 	if [file isdirectory $dir] {
 	    puts stderr "---- $dir ---- "
 	    cd $dir
-	    array set availHash {}
 	    if [file isfile $mod] {
-		set availHash($mod) 1
+		set modlist [lsHack $mod -dictionary $mod]
+	    } else {
+		set modlist [lsHack $mod -dictionary]
 	    }
-	    foreach file [lsHack $mod] {
-		set availHash($file) 1
-	    }
-	    foreach mod2 [lsort -dictionary [array names availHash]] {
+	    foreach mod2 $modlist {
 		set g_whatis ""
 		catch {
 		    set modfile [getPathToModule $mod2]
@@ -974,7 +986,6 @@ proc cmdModuleSearch {{mod {}} {search {}} } {
 		    puts stderr [format "%20s: %s" $mod2 $g_whatis]
 		}
 	    }
-	    unset availHash
 	}
     }
 }
@@ -1121,18 +1132,11 @@ proc cmdModuleAvail { {mod {}}} {
 	if [file isdirectory $dir] {
 	    puts stderr "---- $dir ---- "
 	    cd $dir
-	    array set availHash {}
 	    if [file isfile $mod] {
-		set availHash($mod) 1
+		set list [lsHack $mod -dictionary $mod]
+	    } else {
+		set list [lsHack $mod -dictionary]
 	    }
-#puts stderr "globing $dir/$mod/*"
-	    foreach file [lsHack $mod] {
-
-#puts stderr "glob returned $file"
-		set availHash($file) 1
-	    }
-	    set list [lsort -dictionary [array names availHash]]
-
 	    set max 0
 	    foreach mod2 $list {
 		if {[string length $mod2] > $max} {
@@ -1153,8 +1157,6 @@ proc cmdModuleAvail { {mod {}}} {
 		}
 		puts stderr ""
 	    }
-
-	    unset availHash
 	}
     }
 }
@@ -1350,7 +1352,7 @@ catch {
 	}
 	default {
 	    puts stderr {
-		ModulesTcl 0.99/$Revision: 1.14 $:
+		ModulesTcl 0.100/$Revision: 1.15 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
