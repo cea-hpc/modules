@@ -301,7 +301,7 @@ proc module-info {what {more {}}} {
 	"symbols" {
 	    if [regexp {^\/} $more] {
 		set tmp [currentModuleName]
-		regexp {(\S+)\/\S+} $tmp match tmp
+		set tmp [ file dirname $tmp ]
 		set more "${tmp}$more"
 	    }
 	    if {[ info exists g_symbolHash($more)] } {
@@ -313,7 +313,7 @@ proc module-info {what {more {}}} {
 	"version" {
 	    if [regexp {^\/} $more] {
 		set tmp [currentModuleName]
-		regexp {(\S+)\/\S+} $tmp match tmp
+		set tmp [ file dirname $tmp ]
 		set more "${tmp}$more"
 	    }
 	    if {[ info exists g_versionHash($more)] } {
@@ -370,7 +370,7 @@ proc module-version {args} {
 	set aliasversion [file tail $module_name]
 
 	if { $base != "" } {
-	    if { [ string equal $version "default"] } {
+	    if { [ string match $version "default"] } {
 		# If we see more than one default for the same module, just keep the first
 		if { ![info exists g_moduleDefault($base)] } {
 		    set g_moduleDefault($base) $aliasversion
@@ -399,7 +399,7 @@ proc module-version {args} {
 	    error "module-version: module argument for default must not be fully version qualified"
 	}
     }
-    if { [string equal [currentMode] "display"] } {
+    if { [string match [currentMode] "display"] } {
 	report "module-version\t$args"
     }
     return {}
@@ -426,7 +426,7 @@ proc module-alias {args} {
 	set g_aliasHash($module_file) $alias
     }
 
-    if { [string equal [currentMode] "display"] } {
+    if { [string match [currentMode] "display"] } {
 	report "module-alias\t$args"
     }
 
@@ -565,6 +565,10 @@ proc setenv {var val} {
         #unset-env $var
 	set g_stateEnvVars($var) "del"
     } elseif {$mode == "display"} {
+	# Let display set the variable for later use in the display
+	# but don't commit it to the env
+	set env($var) $val
+	set g_stateEnvVars($var) "nop"
 	report "setenv\t$var\t$val"
     }
     return {}
@@ -716,7 +720,6 @@ proc add-path {var path pos} {
     set sharevar "${var}_modshare"
     array set countarr [getReferenceCountArray $var]
 
-
     if {$pos == "prepend"} {
 	set pathelems [reverseList [split $path ":"]]
     } else {
@@ -741,6 +744,7 @@ proc add-path {var path pos} {
 	    set countarr($dir) 1
 	}
     }
+
 
     set env($sharevar) [join [array get countarr] ":"]
     set g_stateEnvVars($var) "new"
@@ -907,6 +911,8 @@ proc x-resource {resource {value {}}} {
 
 proc uname {what} {
     global unameCache tcl_platform
+    set result {}
+
     if { ! [info exists unameCache($what)] } {
 	switch -- $what {
 	    sysname {
@@ -1212,6 +1218,7 @@ proc renderSettings {} {
 	    }
 	}
 
+
 # new environment variables
 	foreach var [array names g_stateEnvVars] {
 	    if {$g_stateEnvVars($var) == "new"} {
@@ -1422,6 +1429,12 @@ proc renderSettings {} {
 		}
 	    }
 	    set nop 0
+	} else {
+	    switch -- $g_shellType {
+		perl {
+		    puts $f "1;"
+		}
+	    }
 	}
 	close $f
 
@@ -1601,9 +1614,10 @@ proc getVersAliasList { modulename } {
     set tag_list {}
     if { [ info exists g_versionHash($modulename) ] } {
 	# remove module basenames to get just version names
-	set alias_tag [join  $g_versionHash($modulename) ":"]
-	regsub -all {[^\s\:]+?\/([^\s\:])} $alias_tag {\1} alias_tag
-	set tag_list [linsert $tag_list end $alias_tag]
+	foreach version $g_versionHash($modulename) {
+	    set alias_tag [file tail $version]
+	    set tag_list [linsert $tag_list end $alias_tag]
+	}
     } 
     if { [info exists g_moduleDefault($modparent) ] } {
 	set tmp_name "$modparent/$g_moduleDefault($modparent)"
@@ -1650,8 +1664,6 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
 
 	set sstart [expr [string length $dir] +1]
 	set modulename [string range $element $sstart end]
-	set modparent ""
-	regexp {(\S+?)\/\S+} $modulename match modparent
 
 
         if [file isdirectory $element] {
@@ -2146,8 +2158,7 @@ proc cmdModuleUse {args} {
 		popMode
 	    } else {
 #		reportWarning "WARNING: Directory \"$path\" does not exist, not added to module search path."
-		puts stderr "+(0):ERROR:0: Directory '$path' not found"
-		exit -1
+		puts stderr "+(0):WARN:0: Directory '$path' not found"
 	    }
 	}
     }
@@ -2163,7 +2174,7 @@ proc cmdModuleUnuse {args} {
 	foreach path $args {
 	    regsub -all {\/} $path {\/} escpath
 	    set regexp [ subst {(^|\:)${escpath}(\:|$)} ]
-	    if { [info exists env(MODULEPATH)] && [regexp -line $regexp $env(MODULEPATH) ] } {
+	    if { [info exists env(MODULEPATH)] && [regexp $regexp $env(MODULEPATH) ] } {
 
 		set oldMODULEPATH $env(MODULEPATH)
 		pushMode "unload"
@@ -2261,11 +2272,11 @@ proc cmdModuleInit {args} {
 
 	    while { [gets $fid curline] >= 0 } { 
 		# Find module load/add command in startup file 
-		if { [regexp -line {^([ \t]*module[ \t]+)((?:load|add)\s+)([^\#]+\S)(\s+\#.*)?} $curline match cmd subcmd modules comments ] } {
-
-# remove existing references to the named module from the list
-
-
+		set comments {}
+		if { [regexp  {^([ \t]*module[ \t]+(load|add)[ \t]+)(.*)} $curline match cmd subcmd modules] } {
+		    regexp {([ \t]*\#.+)} $modules match comments
+		    regsub {\#.+} $modules {} modules
+		    # remove existing references to the named module from the list
 		    # Change the module command line to reflect the given command
 		    switch $moduleinit_cmd {
 			list {
@@ -2275,31 +2286,31 @@ proc cmdModuleInit {args} {
 			    set newmodule [lindex $args 1]
 			    set modules [removeFromList $modules $newmodule]
 			    append modules " $newmodule"
-			    puts $newfid "$cmd$subcmd$modules$comments"
+			    puts $newfid "$cmd$modules$comments"
 			}
 			prepend {
 			    set newmodule [lindex $args 1]
 			    set modules [removeFromList $modules $newmodule]
 			    set modules "$newmodule $modules"
-			    puts $newfid "$cmd$subcmd$modules$comments"
+			    puts $newfid "$cmd$modules$comments"
 			}
 			rm {
 			    set oldmodule [lindex $args 1]
 			    set modules [removeFromList $modules $oldmodule]
-			    if { ![ regexp -line {\S} $modules] } {
+			    if { [llength $modules] == 0 } {
 				set modules "null"
 			    }
-			    puts $newfid "$cmd$subcmd$modules$comments"
+			    puts $newfid "$cmd$modules$comments"
 			}
 			switch {
 			    set oldmodule [lindex $args 1]
 			    set newmodule [lindex $args 2]
 			    set modules [replaceFromList $modules $oldmodule $newmodule]
-			    puts $newfid "$cmd$subcmd$modules$comments"
+			    puts $newfid "$cmd$modules$comments"
 			}
 			clear {
 			    set modules "null"
-			    puts $newfid "$cmd$subcmd$modules$comments"
+			    puts $newfid "$cmd$modules$comments"
 			}
 			default {
 			    puts stderr "Command init$moduleinit_cmd not recognized"
@@ -2354,7 +2365,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.42 $:
+                ModulesTcl 0.101/$Revision: 1.43 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
