@@ -1,4 +1,4 @@
-.TH MODULE 1 "1 July 1994"
+.TH MODULE 1 "26 April 2002
 .nh
 .SH NAME
 module \- command interface to the Modules package
@@ -62,54 +62,84 @@ and its associated arguments.
 .LP
 The Modules package and the
 .B module
-command are initialized when a shell-specific initialization script is
-sourced into the shell.
-The script creates the
+command are initialized by evaluating the output of the bootstrap
+command. The bootstrap command generates the necessary shell-specific
+code to set some environment variables and sets up the actual
 .B module
-command as either an alias or function, creates Modules environment variables,
-and a snapshot of the environment is saved in ${\s-1HOME\s0}/\fI.modulesbeginenv\fP.
+command, either as an alias or shell function.
+.LP
+If you install the 
+.B modulecmd
+binary in your
+.B PATH
+(for example /usr/local/bin)
+then all you need to do is
+.B eval
+the output of the 
+.B modulecmd 
+.I shell
+.B bootstrap
+command. In most shells, this looks like
+.nf
+        eval `modulecmd <shell> bootstrap`
+.fi
+
+
 The
 .B module
 alias or function executes the
 .B modulecmd
-program located in ${\s-1MODULESHOME\s0}/bin and has the shell evaluate
+program and has the shell evaluate
 the command's output.  The first argument to
 .B modulecmd
 specifies the type of shell.
 .LP
-The initialization scripts are kept in ${\s-1MODULESHOME\s0}/init/\fIshellname\fP 
-where \fIshellname\fP 
-is the name of the sourcing shell.
-For example, a C Shell user sources the ${\s-1MODULESHOME\s0}/init/\fIcsh\fP
-script.  The sh, csh, tcsh, bash, ksh, and zsh shells are supported by
+The sh, csh, tcsh, bash, ksh, and zsh shells are supported by
 .B modulecmd.
 In addition, python and perl "shells" are supported which writes
 the environment changes to stdout as python or perl code.
 .SS Examples of initialization
-In the following examples, replace ${\s-1MODULESHOME\s0} with the actual
-directory name.
-.LP
-C Shell initialization (and derivatives):
+In the following examples, you can replace
+.B modulecmd
+with a full path to a particular
+.B modulecmd 
+binary. Also replace <shell> with the appropriate shell, which is one
+of
 .nf
 
-	source ${\s-1MODULESHOME\s0}/init/csh
+        sh ksh bash zsh
+        csh tcsh
+        python
+        perl
+.fi
+.LP
+C Shell initialization example:
+.nf
+
+	eval `modulecmd csh bootstrap`
 	module load modulefile modulefile ...
 
 .fi
-Bourne Shell (sh) (and derivatives):
+ZSH initialization example:
 .nf
 
-	. ${\s-1MODULESHOME\s0}/init/sh
+	eval `modulecmd zsh bootstrap`
 	module load modulefile modulefile ...
 
 .fi
 Perl:
 .nf
 
-	require "${\s-1MODULESHOME\s0}/init/perl";
-	&module("load modulefile modulefile ...");
+	eval `modulecmd perl bootstrap`;
+	module("load modulefile modulefile ...");
 
 .fi
+Python:
+.nf
+        <no example yet>
+.fi
+
+
 .SS Modulecmd startup
 .LP
 Upon invocation \fImodulecmd\fP sources rc files which contain global, user
@@ -205,6 +235,15 @@ Experienced module user
 Advanced module user
 .SS Module Sub-Commands
 .RS
+.TP 15
+.B bootstrap
+Used to bootstrap the 
+.B module
+command and necessary support environment variables. You only use this
+in the context of setting up the 
+.B module 
+command, not in actual use. See the section on Package Initialization
+for instructions on how to use this.
 .TP 15
 .B help [modulefile...]
 Print the usage of each sub-command.

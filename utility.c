@@ -50,7 +50,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.6 2002/04/24 01:14:02 lakata Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.7 2002/04/27 01:15:55 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -138,7 +138,6 @@ static  void     EscapeCshString(const char* in,
 				 char* out);
 static  void     EscapeShString(const char* in,
 				 char* out);
-static  int      tmpfile_mod(char** filename, FILE** file);
 
 
 /*++++
@@ -2871,7 +2870,7 @@ void EscapeShString(const char* in,
  ** ************************************************************************ **
  ++++*/
 
-static int tmpfile_mod(char** filename, FILE** file) {
+int tmpfile_mod(char** filename, FILE** file) {
   char* filename2;
   FILE* f = NULL;
   int trial = 0;

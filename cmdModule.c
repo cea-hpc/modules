@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.5 2002/04/24 01:06:20 lakata Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.6 2002/04/27 01:15:55 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -412,6 +412,13 @@ int	cmdModule(	ClientData	 client_data,
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, helpRE)) {
 	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
 	return_val = ModuleCmd_Help( interp, num_modulefiles, modulefile_list);
+    /**
+     **  --- module bootstrap
+     **/
+
+    } else if(_MTCH Tcl_RegExpMatch(interp,module_command, bootstrapRE)) {
+	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	return_val = ModuleCmd_Bootstrap( interp, num_modulefiles, modulefile_list);
     }
     
     /**

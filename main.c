@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.3 2002/04/27 01:15:55 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -68,6 +68,7 @@ char	**shell_startups;		/** A list off all startup files our **/
 					/** invoking shell will source	     **/
 char	  shell_name[20];		/** Name of the shell (first para-   **/
 					/** meter to modulcmd)		     **/
+char      binary_name[1024];            /** name or path of this modulecmd   **/
 char	  shell_derelict[20];		/** Shell family (sh, csh)	     **/
 int	  g_flags = 0;			/** Control what to do at the moment **/
 					/** The posible values are defined in**/
@@ -106,6 +107,7 @@ char
     *purgeRE    = "^purge",			/** 'module purge'	     **/
     *clearRE    = "^clear",			/** 'module clear'	     **/
     *whatisRE   = "^wh",			/** 'module whatis'	     **/
+    *bootstrapRE= "^bootstrap",                 /** 'module bootstrap'       **/
     *aproposRE  = "^(apr|key)";			/** 'module apropos'	     **/
 
 /**
@@ -197,12 +199,15 @@ int	main( int argc, char *argv[], char *environ[]) {
 	 ** version to stdout.  This is a special circumstance handled
 	 ** by the regular options.
 	 **/
-	if (argc > 1 && *argv[1] == '-') {
-		if (!strcmp("-V", argv[1]) || !strcmp("--version", argv[1])) {
-		    printf("%s\n", version_string);
-		    return 0;
-		}
-	}
+    if (argc > 1 && *argv[1] == '-') {
+      if (!strcmp("-V", argv[1]) || !strcmp("--version", argv[1])) {
+	printf("%s\n", version_string);
+	return 0;
+      }
+    }
+    if (argc >=1 && argv[0]) {
+      strcpy(binary_name,argv[0]);
+    }
     /**
      **  Initialization. 
      **  Check the command line syntax. There will be no return from the

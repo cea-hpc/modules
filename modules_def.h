@@ -463,6 +463,7 @@ extern	char	 *g_current_module;
 extern	char	 *specified_module;
 extern	char	**shell_startups;
 extern	char	  shell_name[];
+extern  char      binary_name[];
 extern	char	  shell_derelict[];
 extern	int	  g_flags;
 extern	int	  append_flag;
@@ -488,6 +489,7 @@ extern	char	*updateRE;
 extern	char	*purgeRE;
 extern	char	*clearRE;
 extern	char	*whatisRE;
+extern  char    *bootstrapRE;
 extern	char	*aproposRE;
 
 extern	Tcl_HashTable	*setenvHashTable;
@@ -691,6 +693,7 @@ extern	void	  chk4spch( char*);
 extern	void	  cleanse_path( const char*, char*, int);
 extern	char	 *xdup(char const *);
 extern	char	 *xgetenv(char const *);
+extern  int       tmpfile_mod(char** filename, FILE** file);
 
 #ifndef HAVE_STRDUP
 extern	char	 * strdup( char*);

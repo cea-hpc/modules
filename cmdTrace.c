@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdTrace.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdTrace.c,v 1.3 2002/04/27 01:15:55 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -144,6 +144,12 @@ typedef	struct	_mod_trace	{
 #   define	MOD_TR_WHATIS	_all_off
 #endif
 
+#ifdef  WITH_TRACE_BOOTSTRAP
+#   define	MOD_TR_BOOTSTRAP WITH_TRACE_BOOTSTRAP
+#else
+#   define	MOD_TR_BOOTSTRAP	_all_off
+#endif
+
 /** ************************************************************************ **/
 /**				      MACROS				     **/
 /** ************************************************************************ **/
@@ -191,7 +197,8 @@ static	ModTrace	TraceSelect[] = {
     { &purgeRE,		"purge",	MOD_TR_PURGE,	0 },	/** 11 **/
     { &clearRE,		"clear",	MOD_TR_CLEAR,	0 },	/** 12 **/
     { &whatisRE,	"whatis",	MOD_TR_WHATIS,	0 },	/** 13 **/
-    { &aproposRE,	"apropos",	MOD_TR_APROPOS,	0 }	/** 14 **/
+    { &aproposRE,	"apropos",	MOD_TR_APROPOS,	0 },	/** 14 **/
+    { &bootstrapRE,     "bootstrap",    MOD_TR_BOOTSTRAP,0}     /** 15 **/
 };
 
 /** ************************************************************************ **/
