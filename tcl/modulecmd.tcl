@@ -704,19 +704,23 @@ proc getPathToModule {mod} {
 	    while [file exists $path] {
 		if [file readable $path] {
 
-
 		    if [file isdirectory $path] {
 			if [info exists g_loadedModulesGeneric($mod)] {
 			    set ModulesVersion $g_loadedModulesGeneric($mod)
 			} elseif [file exists "$path/.version"] {
 			    set ModulesVersion [execute-version "$path/.version"]
+	                    if { $ModulesVersion == "" || 
+                                 ![file exists "$path/$ModulesVersion"]} {
+           	                reportWarning "WARNING from getPathToModule: Execution of $path/.version did not set the ModulesVersion variable as expected."
+                                # This is the fallback
+                                set ModulesVersion [file tail [lindex [listModules $path ""] end]]
+                            }
 			} else {
 			    set ModulesVersion [file tail [lindex [listModules $dir $mod] end]]
 			}
 			set path "$path/$ModulesVersion"
 			set mod "$mod/$ModulesVersion"
 		    }
-
 
 		    if [file isfile $path] {
 			return [list $path $mod]
@@ -1603,7 +1607,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.100/$Revision: 1.28 $:
+                ModulesTcl 0.100/$Revision: 1.29 $:
                 Available Commands and Usage:
                  add|load              modulefile [modulefile ...]
                  rm|unload             modulefile [modulefile ...]
