@@ -50,7 +50,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.5 2001/07/09 18:21:37 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.6 2002/04/24 01:14:02 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -134,6 +134,11 @@ static	int	 __IsLoaded( Tcl_Interp*, char*, char**, char*, int);
 static	char	*get_module_basename( char*);
 static	int	 ForcePath( Tcl_Interp*, char*, char*, int);
 static	char	*chop( const char*);
+static  void     EscapeCshString(const char* in,
+				 char* out);
+static  void     EscapeShString(const char* in,
+				 char* out);
+static  int      tmpfile_mod(char** filename, FILE** file);
 
 
 /*++++
@@ -760,16 +765,8 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
      **  The default for aliasfile, if no shell sourcing is used, is stdout.
      **/
 
-#ifdef HAVE_TEMPNAM
-    char*            aliasfilename = (char *)tempnam(NULL, "M_od_");
-#else
-#ifdef HAVE_TMPNAM
-    char*            aliasfilename[L_tmpnam + 16]; /* Just to be sure... */
-    tmpnam((char *)aliasfilename);
-#else /* not HAVE_TMPNAM */
-    char*            aliasfilename = "M_od_temp";
-#endif /* not HAVE_TMPNAM */
-#endif /* not HAVE_TEMPNAM */
+    char* aliasfilename; /* this is malloc'ed by tmpfile_mod() below */
+
 #endif /* not EVAL_ALIAS */
 
     table[0] = aliasSetHashTable;
@@ -803,7 +800,7 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
 	 **  Open the file ...
 	 **/
 
-	if( !( aliasfile = fopen((char *) aliasfilename, "w+"))) {
+	if( tmpfile_mod(&aliasfilename,&aliasfile)) {
 	    if( OK != ErrorLogger( ERR_OPEN, LOC, aliasfilename, "append", NULL))
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 
@@ -818,7 +815,7 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
 	    alias_separator = '\n';
 
 	    fprintf( stdout, sourceCommand, aliasfilename, cmd_separator);
-		fprintf( stdout, "/bin/rm -f %s%c", aliasfilename, cmd_separator);
+	    fprintf( stdout, "/bin/rm -f %s%c", aliasfilename, cmd_separator);
 	} /** if( fopen) **/
     } /** if( alias to set) **/
 
@@ -982,23 +979,29 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 
 	} else {	/** if( var == "_LMFILES_" **/
 
-	    fprintf(stdout, "setenv %s '%s'%c", var, val, cmd_separator);
+#endif /* not LMSPLIT_SIZE */
+	  
+	  char* escaped = (char*)malloc(strlen(val)*2+1);
+	  EscapeCshString(val,escaped);
+	  fprintf(stdout, "setenv %s %s %c", var, escaped, cmd_separator);
+	  free(escaped);
+#ifdef LMSPLIT_SIZE
 	}
-
-#else /* not LMSPLIT_SIZE */
-
-      fprintf(stdout, "setenv %s '%s'%c", var, val, cmd_separator);
-
-#endif
+#endif /* not LMSPLIT_SIZE */
 
     /**
      **  SH
      **/
 
     } else if( !strcmp((char*) shell_derelict, "sh")) {
-	fprintf( stdout, "%s='%s'%cexport %s%c", var, val, cmd_separator,
-	    var, cmd_separator);
 
+      char* escaped = (char*)malloc(strlen(val)*2+1);
+      EscapeShString(val,escaped);
+
+      fprintf( stdout, "%s=%s %cexport %s%c", var, escaped, cmd_separator,
+	       var, cmd_separator);
+      free(escaped);
+      
     /**
      **  EMACS
      **/
@@ -1565,7 +1568,11 @@ static	int	output_unset_alias(	const char	*alias,
 	 **  alias.  This will catch both.
 	 **/
 
-        } else if( !strcmp( shell_name, "zsh") || !strcmp( shell_name, "ksh")) {
+        } else if( !strcmp( shell_name, "zsh")){
+
+            fprintf(aliasfile, "unalias %s%c", alias, alias_separator);
+
+        } else if( !strcmp( shell_name, "ksh")) {
 
             fprintf(aliasfile, "unalias %s%c", alias, alias_separator);
             fprintf(aliasfile, "unset -f %s%c", alias, alias_separator);
@@ -2762,6 +2769,7 @@ char *xdup(char const *string) {
  ++++*/
 
 
+
 char *xgetenv(char const * var) {
 	char *result = NULL;
 
@@ -2770,3 +2778,129 @@ char *xgetenv(char const * var) {
 	return xdup(getenv(var));
 
 } /** End of 'xgetenv' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		EscapeCshString(char* in,char* out)                  **
+ ** 									     **
+ **   Description:	will translate input string to escaped output string **
+ **                     out must be allocated first                          **
+ ** 									     **
+ **   First Edition:	2002/04/10					     **
+ ** 									     **
+ **   Parameters:	char	*in		input            	     **
+ **              	char	*out		output               	     **
+ ** 									     **
+ **   Attached Globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+void EscapeCshString(const char* in,
+		     char* out) {
+  
+  for(;*in;in++) {
+    if (*in == ' ' ||
+	*in == '{' ||
+	*in == '}' ||
+	*in == '|' ||
+	*in == '<' ||
+	*in == '>' ||
+	*in == '!' ||
+	*in == '#' ||
+	*in == '$' ||
+	*in == '^' ||
+	*in == '&' ||
+	*in == '\''||
+	*in == '"' ||
+	*in == '(' ||
+	*in == ')') {
+      *out++ = '\\';
+    }
+    *out++ = *in;
+  }
+  *out = 0;
+}
+
+void EscapeShString(const char* in,
+		     char* out) {
+  
+  for(;*in;in++) {
+    if (*in == ' ' ||
+	*in == '{' ||
+	*in == '}' ||
+	*in == '|' ||
+	*in == '<' ||
+	*in == '>' ||
+	*in == '!' ||
+	*in == '#' ||
+	*in == '$' ||
+	*in == '^' ||
+	*in == '&' ||
+	*in == '*' ||
+	*in == '\''||
+	*in == '"' ||
+	*in == '(' ||
+	*in == ')') {
+      *out++ = '\\';
+    }
+    *out++ = *in;
+  }
+  *out = 0;
+}
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		tmpfile_mod                                          **
+ ** 									     **
+ **   Description:	emulates tempnam  and tmpnam  and mktemp             **
+ **                     Atomically creates a unique temp file and opens it   **
+ **                     for writing. returns 0 on success, 1 on failure      **
+ **                     Filename and file handle are returned through        **
+ **                     argument pointers                                    **
+ ** 									     **
+ **   First Edition:	2002/04/22					     **
+ ** 									     **
+ **   Parameters:	char	**filename	pointer to char* 	     **
+ **              	char	**file          pointer to FILE*     	     **
+ ** 									     **
+ **   Attached Globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+static int tmpfile_mod(char** filename, FILE** file) {
+  char* filename2;
+  FILE* f = NULL;
+  int trial = 0;
+
+  filename2 = (char*) malloc(strlen(TMP_DIR)+strlen("modulesource")+20);
+  if (! filename2) {
+    perror(__FILE__);
+    return 1;
+  }
+  
+  do {
+    int fildes;
+
+    sprintf(filename2,"%s/modulesource_%d",TMP_DIR,trial++);
+    fildes = open(filename2,O_WRONLY | O_CREAT | O_EXCL | O_TRUNC,0755);
+#if 0
+    fprintf(stderr,"DEBUG: filename=%s fildes=%d\n",
+	   filename2,fildes);
+#endif
+    if (fildes >=0) {
+      *file = fdopen(fildes,"w");
+      *filename = filename2;
+      return 0;
+    }
+  } while (trial < 1000);
+
+  fprintf(stderr,"FATAL: could not get a temp file! at %s(%d)",__FILE__,__LINE__);
+  
+  return 1;
+}
+
+
