@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.6 2002/06/14 21:57:03 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.7 2002/08/02 22:11:23 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -16,12 +16,14 @@ AUTOMAKE_OPTIONS=foreign dejagnu no-installinfo
 
 ACLOCAL_AMFLAGS= -I config
 
+SUBDIRS = lib . init modulefiles @EXTDIR@
+INCLUDES = -I$(srcdir)/lib -I$(srcdir)
+
 man_MANS = doc/module.1 doc/modulefile.4
-SUBDIRS =. init modulefiles @EXTDIR@
 bin_PROGRAMS = modulecmd
 # bin_SCRIPTS = etc/mkroot etc/add.modules ext/add.ext
 modulecmd_CFLAGS=
-modulecmd_LDFLAGS= @TCL_LIB_SPEC@ @TCLX_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@ @LIBS@
+modulecmd_LDFLAGS=-L$(srcdir)/lib @TCL_LIB_SPEC@ @TCLX_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@
 modulecmd_SOURCES = \
 	ModuleCmd_Avail.c ModuleCmd_Bootstrap.c \
         ModuleCmd_Clear.c ModuleCmd_Display.c ModuleCmd_Help.c \
@@ -48,7 +50,7 @@ check-local:	modulecmd
 	MODULEVERSION=@VERSION@; export MODULEVERSION; TESTSUITEDIR=$(srcdir)/testsuite; export TESTSUITEDIR; $(RUNTEST) --srcdir $$TESTSUITEDIR $(RUNTESTFLAGS) --tool=modules
 
 cxref:
-	cxref $(SRCS)
+	cxref $(modulecmd_SOURCES)
 	@echo "==============================="
 	@echo "You may need to run this twice!"
 	@echo "==============================="

@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.5 2002/06/17 05:58:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.6 2002/08/02 22:11:23 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -285,6 +285,7 @@ static	ErrTransTab	TransTab[] = {
     { ERR_GETHOSTNAME,	WGHT_FATAL, "'gethostname (2)' failed." },
     { ERR_GETDOMAINNAME,WGHT_FATAL, "'getdomainname (2)' failed." },
     { ERR_STRING,	WGHT_FATAL, "string error" },
+    { ERR_MODLIB,	WGHT_FATAL, "Modules library error '$1'" },
     { ERR_DISPLAY,	WGHT_ERROR, "Cannot open display" },
     { ERR_PARSE,	WGHT_ERROR, "Parse error" },
     { ERR_EXEC,		WGHT_ERROR, "Tcl command execution failed: $1" },
@@ -322,6 +323,7 @@ static	ErrTransTab	TransTab[] = {
     { ERR_INVWGHT_WARN,	WGHT_WARN,  "Invalid error weight '$1' found" },
     { ERR_INVFAC_WARN,	WGHT_WARN,  "Invalid log facility '$1'" },
     { ERR_COLON,	WGHT_WARN,  "Spurious colon in pattern '$1'" },
+    { ERR_INTERNAL,	WGHT_PANIC, "Modules Internal error" },
     { ERR_INTERAL,	WGHT_PANIC, "Internal error in the alias handler" },
     { ERR_INTERRL,	WGHT_PANIC, "Internal error in the error logger" },
     { ERR_INVAL,	WGHT_PANIC, "Invalid error type '$1' found" },

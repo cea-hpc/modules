@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.5 2002/06/17 05:58:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.6 2002/08/02 22:11:23 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -180,7 +180,7 @@ static	char	**create_cache_list( FILE*, int*, char* );
  **   Result:		int	TCL_OK		Successfull operation	     **
  **				TCL_ERROR	Any failure		     **
  ** 									     **
- **   Attached Globals:	specified_module	The module name from the     **
+ **   Attached Globals:	g_specified_module	The module name from the     **
  **						command line.		     **
  ** 									     **
  ** ************************************************************************ **
@@ -226,7 +226,7 @@ int ModuleCmd_Avail(	Tcl_Interp	*interp,
 	     ** Set the name of the module specified on the command line
 	     **/
 
-	    specified_module = *argv;
+	    g_specified_module = *argv;
 
 	    if( !check_dir( *argv))
 		if( OK != ErrorLogger( ERR_PARAM, LOC, NULL)) {
@@ -259,7 +259,7 @@ int ModuleCmd_Avail(	Tcl_Interp	*interp,
 		 ** Set the name of the module specified on the command line
 		 **/
 
-		specified_module = *argv;
+		g_specified_module = *argv;
 
 		dirname = modpath;
 		while( dirname && *dirname) {

@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.8 2002/06/17 05:58:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.9 2002/08/02 22:11:23 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -63,8 +63,9 @@ static void *UseId[] = { &UseId, Id };
 
 char	 *g_current_module = NULL,	/** The module which is handled by   **/
 					/** the current command		     **/
-	 *specified_module = NULL,	/** The module that was specified    **/
+	 *g_specified_module = NULL,	/** The module that was specified    **/
 					/** on the command line		     **/
+	 *g_module_path = NULL,		/** The path to the module	     **/
 	 *shell_name,			/** Name of the shell		     **/
 					/** (first parameter to modulcmd)    **/
 	 *shell_derelict,		/** Shell family (sh, csh, etc)	     **/

@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Display.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Display.c,v 1.3 2002/08/02 22:11:23 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -89,7 +89,7 @@ static	char	_proc_ModuleCmd_Display[] = "ModuleCmd_Display";
  **   Result:		int	TCL_ERROR	Failure			     **
  **				TCL_OK		Successfull operation	     **
  ** 									     **
- **   Attached Globals:	specified_module	The module name from the     **
+ **   Attached Globals:	g_specified_module	The module name from the     **
  **						command line.		     **
  **   			g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
@@ -133,7 +133,7 @@ int ModuleCmd_Display(	Tcl_Interp	*interp,
          ** Set the name of the module specified on the command line
          **/
 
-        specified_module = argv[i];
+        g_specified_module = argv[i];
 
 	disp_interp = Tcl_CreateInterp();
 	if( TCL_OK != (result = InitializeModuleCommands( disp_interp))) {

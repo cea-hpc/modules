@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.5 2002/06/12 19:54:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.6 2002/08/02 22:11:23 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -85,7 +85,7 @@ static	char	module_name[] = "ModuleCmd_Switch.c";	/** File name of this module *
  ** 									     **
  **   Attached Globals:	g_flags			Controlling the callback     **
  **						functions.		     **
- **			specified_module	The module name from the     **
+ **			g_specified_module	The module name from the     **
  **						command line.		     **
  **			g_current_module	The module which is handled  **
  **						by the current command	     **
@@ -162,7 +162,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
      ** Set the name of the module specified on the command line
      **/
 
-    specified_module = oldmodule;
+    g_specified_module = oldmodule;
 
     /**
      **  First try to find a match for the modulefile out of the LOADEDMODULES.
@@ -204,7 +204,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
      ** Set the name of the module specified on the command line
      **/
 
-    specified_module = newmodule;
+    g_specified_module = newmodule;
 
     /**
      **  Now try to find the new file to swap with.
@@ -226,7 +226,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 
     g_flags |= (M_REMOVE | M_SWSTATE1);
     
-    specified_module = oldmodule;
+    g_specified_module = oldmodule;
     g_current_module = oldname;
     if( Read_Modulefile( interp, oldfile) == 0)
 	Update_LoadedList( interp, oldname, oldfile);
@@ -244,7 +244,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 
     g_flags |= M_SWSTATE2;
 
-    specified_module = newmodule;
+    g_specified_module = newmodule;
     g_current_module = newname;
     if( Read_Modulefile( interp, newfile) == 0)
 	Update_LoadedList( interp, newname, newfile);
@@ -262,7 +262,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 
     g_flags |= (M_REMOVE | M_SWSTATE3);
 
-    specified_module = oldmodule;
+    g_specified_module = oldmodule;
     g_current_module = oldname;
     if( Read_Modulefile( interp, oldfile) == 0)
 	Update_LoadedList( interp, newname, newfile);
@@ -283,7 +283,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
     /**
      ** free space
      **   assume don't need what's pointed to by g_current_module
-     **   and specified_module
+     **   and g_specified_module
      **/
     null_free((void *) &newname);
     null_free((void *) &oldname);

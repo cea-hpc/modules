@@ -114,6 +114,8 @@
 extern	int	  errno;
 #endif
 
+#include "uvec.h"
+
 #ifdef MEMDEBUG
 #  include <librko.h>
 #endif
@@ -181,6 +183,7 @@ typedef	enum	{
 	ERR_GETHOSTNAME,		/** gethostname failed		     **/
 	ERR_GETDOMAINNAME,		/** getdomainname failed	     **/
 	ERR_STRING,			/** string error		     **/
+	ERR_MODLIB,			/** Modules library error	     **/
 	ERR_DISPLAY = 90,		/** cannot open display	    	     **/
 	ERR_IN_MODULEFILE = 100,	/** modulefile related errors	     **/
 	ERR_PARSE,			/** Parse error (modulefile)	     **/
@@ -463,7 +466,8 @@ extern	char	**environ;
 
 extern	char	 *version_string;
 extern	char	 *g_current_module;
-extern	char	 *specified_module;
+extern	char	 *g_specified_module;
+extern	char	 *g_module_path;
 extern	char	 *shell_name;
 extern	char	 *shell_derelict;
 extern	char	 *shell_init;
@@ -528,16 +532,19 @@ extern	char	*version_file;
 
 extern	char	 long_header[];
 
+extern	uvec_str	module_str_fns;
+
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
 /** ************************************************************************ **/
 
 /**  locate_module.c  **/
 extern	int	  Locate_ModuleFile( Tcl_Interp*, char*, char*, char*);
-extern	char	**SortedDirList( Tcl_Interp*, char*, char*, int*);
-extern	char	**SplitIntoList( Tcl_Interp*, char*, int*);
-extern	int	  SourceVers( Tcl_Interp*, char*, char*);
+extern	char	**SortedDirList( char*, char*, int*);
+extern	char	**SplitIntoList( char*, int*);
+extern	int	  SourceVers( Tcl_Interp *interp, char *path, char *name);
 extern	int	  SourceRC( Tcl_Interp *interp, char *path, char *name);
+extern	char	 *GetDefault( Tcl_Interp *interp, char *path);
 #ifdef USE_FREE
 extern	void	  FreeList( char**, int);
 #endif
@@ -658,7 +665,8 @@ extern	int	  CheckTracingList(Tcl_Interp*, char*, int, char**);
 /**  cmdVersion.c  **/
 extern	int	  cmdModuleVersion( ClientData, Tcl_Interp*, int, char*[]);
 extern	int	  cmdModuleAlias( ClientData, Tcl_Interp*, int, char*[]);
-extern	int	  AliasLookup( char*, char**, char**);
+extern	int	  InitVersion( void);
+extern	const char *AliasLookup( const char*);
 extern	int	  VersionLookup( char*, char**, char**);
 extern	char	 *ExpandVersions( char*);
 

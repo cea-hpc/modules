@@ -51,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.10 2002/06/12 20:07:57 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.11 2002/08/02 22:11:23 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -59,6 +59,7 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 #include "modules_def.h"
+#include "uvec.h"
 
 /** ************************************************************************ **/
 /** 				  LOCAL DATATYPES			     **/
@@ -2555,7 +2556,7 @@ char *xdup(char const *string) {
 			}
 		}
 		null_free((void *) &result);
-		return strdup(buffer);
+		return stringer(NULL,0,buffer,NULL);
 	}
 
 } /** End of 'xdup' **/
@@ -2826,7 +2827,7 @@ char *stringer(	char *		buffer,
  ** 									     **
  **   Description:	does a free and then nulls the pointer.		     **
  ** 									     **
- **   first edition:	2000/08/24	r.k.owen <rk@owen.sj.ca.us>	     **
+ **   first edition:	2000/08/24	R.K.Owen <rk@owen.sj.ca.us>	     **
  ** 									     **
  **   parameters:	void	**var		allocated memory	     **
  ** 									     **
@@ -2847,4 +2848,35 @@ void null_free(void ** var) {
 	*var = NULL;
 
 } /** End of 'null_free' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		module_uvec_fns					     **
+ ** 									     **
+ **   Description:	the default string functions for uvec.		     **
+ ** 									     **
+ **   first edition:	2002/08/01	R.K.Owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+static char *module_str_alloc(char const * str, size_t n) {
+    char* new;
+    if (((char *) NULL) == (new = stringer(NULL,n+1, str, NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, str, NULL))
+	    return( (char*) NULL);	/** -------- EXIT (FAILURE) -------> **/
+    return( new);			/** -------- EXIT (SUCCESS) -------> **/
+}
+
+static int module_str_free(char **str) {
+    null_free((void *) str);
+    return 0;
+}
+
+uvec_str module_str_fns = {
+	UVEC_USER,
+	module_str_alloc,
+	module_str_free
+};
 

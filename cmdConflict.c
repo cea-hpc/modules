@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.3 2002/04/29 21:16:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.4 2002/08/02 22:11:23 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -146,7 +146,7 @@ static	int	checkConflict(	Tcl_Interp	*interp,
 
         if( S_ISDIR( stat_info.st_mode)) {
 
-            if( NULL == (new_modulelist = SortedDirList( interp, path, 
+            if( NULL == (new_modulelist = SortedDirList( path, 
 		modulelist[k], &new_nummodules)))
                 continue;
 
@@ -270,7 +270,7 @@ int	cmdConflict(	ClientData	 client_data,
 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
 	    goto unwind0;
 
-    if((char **) NULL==(pathlist=SplitIntoList(interp, modulepath, &numpaths)))
+    if((char **) NULL==(pathlist=SplitIntoList(modulepath, &numpaths)))
         goto success1;
 
     /**
@@ -293,7 +293,7 @@ int	cmdConflict(	ClientData	 client_data,
         for( j = 0; j < numpaths; j++) {
 
             if((char **)NULL == (modulelist
-		  = SortedDirList( interp, pathlist[j], argv[i], &nummodules)))
+		  = SortedDirList( pathlist[j], argv[i], &nummodules)))
                 continue;		/** not browseable		     **/
 
 	    /**
@@ -421,7 +421,7 @@ int	cmdPrereq(	ClientData	 client_data,
     ErrorLogger( NO_ERR_DEBUG, LOC, "Got modulepath: '", modulepath, "'", NULL);
 #endif
 
-    if((char **) NULL==(pathlist=SplitIntoList(interp, modulepath, &numpaths)))
+    if((char **) NULL==(pathlist=SplitIntoList(modulepath, &numpaths)))
         goto success1;
 
     /**
@@ -447,7 +447,7 @@ int	cmdPrereq(	ClientData	 client_data,
     for( i=1; i<argc && argv[i] && notloaded_flag; i++) {
         for( j = 0; j < numpaths && notloaded_flag; j++) {
 
-            if((char **) NULL == (modulelist = SortedDirList(interp,pathlist[j],
+            if((char **) NULL == (modulelist = SortedDirList(pathlist[j],
 	        argv[i], &nummodules)))
                 continue;
 

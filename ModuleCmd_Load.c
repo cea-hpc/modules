@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.6 2002/04/29 21:16:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.7 2002/08/02 22:11:23 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -92,7 +92,7 @@ static	char	_proc_ModuleCmd_Load[] = "ModuleCmd_Load";
  **				1		At least one module has been **
  **						read			     **
  ** 									     **
- **   Attached Globals:	specified_module	The module name from the     **
+ **   Attached Globals:	g_specified_module	The module name from the     **
  **						command line		     **
  **   			g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
@@ -139,7 +139,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 	 ** Set the name of the module specified on the command line
 	 **/
 
-	specified_module = argv[i];
+	g_specified_module = argv[i];
 
 	/**
 	 **  Create a Tcl interpreter and initialize it with the module commands

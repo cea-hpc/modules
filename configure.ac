@@ -1,19 +1,16 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.7 2002/06/17 05:58:43 rkowen Exp $
-dnl Created:     94/06/18
-dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
-dnl		 Martin S. Utesch <wstd@hl.siemens.de>
-dnl 		 Peter W. Osel <pwo@GUUG.DE>
+dnl Revision:    $Id: configure.ac,v 1.8 2002/08/02 22:11:23 rkowen Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl You need autoconf 2.52 or better!
 dnl
 dnl ---------------------------------------------------------------------------
-AC_INIT
+AC_INIT(modules,3.2,modules_dev@kooz.sj.ca.us)
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE(modules,3.2)
 AC_CONFIG_SRCDIR([version.c])
+AC_CONFIG_SUBDIRS(lib)
 AM_CONFIG_HEADER(config.h)
 AC_PROG_MAKE_SET
 AC_PREREQ(2.52)
@@ -827,6 +824,10 @@ PREFIX/Modules/
 System modulefiles can safely be placed in:
 PREFIX/Modules/modulefiles
 ]])dnl
+dnl ---------------------------------------------------------------------------
+dnl want to statically link to the modules library
+dnl ---------------------------------------------------------------------------
+LIBS="$LIBS -lmodules"
 dnl ---------------------------------------------------------------------------
 dnl Now put it all out!
 dnl ---------------------------------------------------------------------------

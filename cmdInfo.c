@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdInfo.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdInfo.c,v 1.3 2002/08/02 22:11:23 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -92,7 +92,7 @@ static	char	_proc_cmdModuleInfo[] = "cmdModuleInfo";
  **						before this function is	     **
  **						called in order to control   **
  **						everything.		     **
- **			specified_module	The module name from the     **
+ **			g_specified_module	The module name from the     **
  **						command line.		     **
  **			g_current_module	The module which is handled  **
  **						by the current command	     **
@@ -327,7 +327,7 @@ int	cmdModuleInfo(	ClientData	 client_data,
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	}
       
-	if( AliasLookup( argv[2], &s, &t)) {
+	if( s = AliasLookup( argv[2])) {
 	    /* sprintf( buf, "%s/%s", s, t); */
 	    strcpy( buf, s);
 	    strcat( buf, "/");
@@ -380,9 +380,9 @@ int	cmdModuleInfo(	ClientData	 client_data,
      **/
 
     } else if( !strcmp(argv[1], "specified")) {
-	if( specified_module) {
+	if( g_specified_module) {
 	    /* TCL_STATIC because it comes from the command line */
-	    Tcl_SetResult( interp, specified_module, TCL_STATIC);
+	    Tcl_SetResult( interp, g_specified_module, TCL_STATIC);
 	} else {
 	    Tcl_SetResult( interp, "*undef*", TCL_STATIC);
 	}
