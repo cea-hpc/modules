@@ -31,47 +31,49 @@ proc execute-modulefile-help {modfile} {
 
     #puts stderr "Starting $modfile"
     set slave [currentModuleName]
-    interp create $slave
-    interp alias $slave setenv        {} setenv
-    interp alias $slave unsetenv      {} unsetenv
-    interp alias $slave append-path   {} append-path
-    interp alias $slave prepend-path  {} prepend-path
-    interp alias $slave remove-path   {} remove-path
-    interp alias $slave prereq        {} prereq
-    interp alias $slave conflict      {} conflict
-    interp alias $slave is-loaded     {} is-loaded
-    interp alias $slave module        {} module
-    interp alias $slave module-info   {} module-info
-    interp alias $slave module-whatis {} module-whatis
-    interp alias $slave set-alias     {} set-alias
-    interp alias $slave unset-alias   {} unset-alias
-    interp alias $slave uname         {} uname
-    interp alias $slave x-resource    {} x-resource
-
-    interp eval $slave [list global ModulesCurrentModulefile]
-    interp eval $slave [list set ModulesCurrentModulefile $modfile]
-
+    if { ![interp exists $slave] } {
+	interp create $slave
+	interp alias $slave setenv        {} setenv
+	interp alias $slave unsetenv      {} unsetenv
+	interp alias $slave append-path   {} append-path
+	interp alias $slave prepend-path  {} prepend-path
+	interp alias $slave remove-path   {} remove-path
+	interp alias $slave prereq        {} prereq
+	interp alias $slave conflict      {} conflict
+	interp alias $slave is-loaded     {} is-loaded
+	interp alias $slave module        {} module
+	interp alias $slave module-info   {} module-info
+	interp alias $slave module-whatis {} module-whatis
+	interp alias $slave set-alias     {} set-alias
+	interp alias $slave unset-alias   {} unset-alias
+	interp alias $slave uname         {} uname
+	interp alias $slave x-resource    {} x-resource
+	
+	interp eval $slave [list global ModulesCurrentModulefile]
+	interp eval $slave [list set ModulesCurrentModulefile $modfile]
+	
+    }
     set errorVal [interp eval $slave {
-        if [catch {source $ModulesCurrentModulefile} errorMsg] {
-            if {$errorMsg == "" && $errorInfo == ""} {
-                unset errorMsg
-                return 1
-            } elseif [regexp "^WARNING" $errorMsg] {
-                puts stderr $errorMsg
-                return 1
-            } else {
-                global errorInfo
-                set errorMsg "ERROR occured in file $ModulesCurrentModulefile."
-                set errorMsg "$errorMsg\nContact your local modulefile maintainer."
-                set errorMsg "$errorMsg\n----------errorInfo----------\n$errorInfo"
-                puts stderr $errorMsg
-                exit 1
-            }
-        } else {
+	if [catch {source $ModulesCurrentModulefile} errorMsg] {
+	    if {$errorMsg == "" && $errorInfo == ""} {
+		unset errorMsg
+		return 1
+	    } elseif [regexp "^WARNING" $errorMsg] {
+		puts stderr $errorMsg
+		return 1
+	    } else {
+		global errorInfo
+		set errorMsg "ERROR occured in file $ModulesCurrentModulefile."
+		set errorMsg "$errorMsg\nContact your local modulefile maintainer."
+		set errorMsg "$errorMsg\n----------errorInfo----------\n$errorInfo"
+		puts stderr $errorMsg
+		exit 1
+	    }
+	} else {
 	    ModulesHelp
-            unset errorMsg
-            return 0
-        }
+	    unset errorMsg
+	    return 0
+	}
     }]
     interp delete $slave
     #puts stderr "Exiting $modfile"
@@ -81,27 +83,30 @@ proc execute-modulefile-help {modfile} {
 proc execute-modulefile {modfile} {
     global env g_stateEnvVars
 
-    #puts stderr "Starting $modfile"
+#    puts stderr "Starting $modfile"
     set slave [currentModuleName]
-    interp create $slave
-    interp alias $slave setenv        {} setenv       
-    interp alias $slave unsetenv      {} unsetenv     
-    interp alias $slave append-path   {} append-path  
-    interp alias $slave prepend-path  {} prepend-path 
-    interp alias $slave remove-path   {} remove-path  
-    interp alias $slave prereq        {} prereq       
-    interp alias $slave conflict      {} conflict     
-    interp alias $slave is-loaded     {} is-loaded    
-    interp alias $slave module        {} module       
-    interp alias $slave module-info   {} module-info  
-    interp alias $slave module-whatis {} module-whatis
-    interp alias $slave set-alias     {} set-alias    
-    interp alias $slave unset-alias   {} unset-alias  
-    interp alias $slave uname         {} uname        
-    interp alias $slave x-resource    {} x-resource   
+    if { ![interp exists $slave] } {
+	interp create $slave
+	interp alias $slave setenv        {} setenv       
+	interp alias $slave unsetenv      {} unsetenv     
+	interp alias $slave append-path   {} append-path  
+	interp alias $slave prepend-path  {} prepend-path 
+	interp alias $slave remove-path   {} remove-path  
+	interp alias $slave prereq        {} prereq       
+	interp alias $slave conflict      {} conflict     
+	interp alias $slave is-loaded     {} is-loaded    
+	interp alias $slave module        {} module       
+	interp alias $slave module-info   {} module-info  
+	interp alias $slave module-whatis {} module-whatis
+	interp alias $slave set-alias     {} set-alias    
+	interp alias $slave unset-alias   {} unset-alias  
+	interp alias $slave uname         {} uname        
+	interp alias $slave x-resource    {} x-resource   
+    
+	interp eval $slave [list global ModulesCurrentModulefile]
+	interp eval $slave [list set ModulesCurrentModulefile $modfile]
 
-    interp eval $slave [list global ModulesCurrentModulefile]
-    interp eval $slave [list set ModulesCurrentModulefile $modfile]
+    }
     set errorVal [interp eval $slave {
         if [catch {source $ModulesCurrentModulefile} errorMsg] {
             if {$errorMsg == "" && $errorInfo == ""} {
@@ -133,15 +138,17 @@ proc execute-version {modfile} {
     global env g_stateEnvVars
 
     set slave .version
-    interp create $slave
-    interp alias $slave uname         {} uname        
-    interp  eval $slave [list global ModulesCurrentModulefile]
-    interp  eval $slave [list set ModulesCurrentModulefile $modfile]
-    interp  eval $slave [list global ModulesVersion]
-    interp  eval $slave [list set ModulesVersion {}]
+    if { ![interp exists $slave] } {
+	interp create $slave
+	interp alias $slave uname         {} uname        
+	interp  eval $slave [list global ModulesCurrentModulefile]
+	interp  eval $slave [list set ModulesCurrentModulefile $modfile]
+	interp  eval $slave [list global ModulesVersion]
+	interp  eval $slave [list set ModulesVersion {}]
+    }
     set ModulesVersion [interp eval $slave {
-        if [catch {source $ModulesCurrentModulefile} errorMsg] {
-            set errorMsg "ERROR occured in file $ModulesCurrentModulefile."
+	if [catch {source $ModulesCurrentModulefile} errorMsg] {
+	    set errorMsg "ERROR occured in file $ModulesCurrentModulefile."
             global errorInfo
             set errorMsg "$errorMsg\nContact your local modulefile maintainer."
             set errorMsg "$errorMsg\n----------errorInfo----------\n$errorInfo"
@@ -248,11 +255,80 @@ proc module {command args} {
 		report "module unload $args"
 	    }
 	}
+	reload {
+	    cmdModuleReload
+	}
 	use {
 	    eval cmdModuleUse $args
 	}
 	unuse {
 	    eval cmdModuleUnuse $args
+	}
+	source {
+	    eval cmdModuleSource $args
+	}
+	switch {
+	    eval cmdModuleSwitch $args
+	}
+	swap {
+	    eval cmdModuleSwitch $args
+	}
+	display {
+	    eval cmdModuleDisplay $args
+	}
+	show {
+	    eval cmdModuleDisplay $args
+	}
+	avail {
+	    if {$args != ""} {
+		foreach arg $args {
+		    cmdModuleAvail $arg
+		}
+	    } else {
+		cmdModuleAvail
+	    }
+	}
+	path {
+	    eval cmdModulePath $args
+	}
+	paths {
+	    eval cmdModulePaths $args
+	}
+	list {
+	    cmdModuleList
+	}
+	whatis {
+	    if {$args != ""} {
+		foreach arg $args {
+		    cmdModuleWhatIs $arg
+		}
+	    } else {
+		cmdModuleWhatIs
+	    }
+	}
+	apropos {
+	    eval cmdModuleApropos $args
+	}
+	keyword {
+	    eval cmdModuleApropos $args
+	}
+	purge {
+	    eval cmdModulePurge
+	}
+	initadd {
+	    eval cmdModuleInit add $args
+	}
+	initprepend {
+	    eval cmdModuleInit prepend $args
+	}
+	initrm {
+	    eval cmdModuleInit rm $args
+	}
+	initlist {
+	    eval cmdModuleInit list $args
+	}
+	initclear {
+	    eval cmdModuleInit clear $args
 	}
 	default {
 	    error "module $command not understood"
@@ -689,6 +765,10 @@ proc popModuleName {} {
 proc getPathToModule {mod} {
     global env g_loadedModulesGeneric
 
+    if {$mod == "null"} {
+	return ""
+    }
+
     if [string match {/*} $mod] {
         if [file exists $mod] {
             if [file readable $mod] {
@@ -1118,6 +1198,29 @@ proc reverseList {list} {
     return $newlist
 }
 
+proc removeFromList {list1 item} {		    
+    eval set list2 \[list $list1 \]
+    set list1 {}
+    foreach x $list2 {
+	if {$x != $item && $x != "null"} {
+	    lappend list1 $x
+	}
+    }
+    return [join $list1 " "]
+}
+
+proc replaceFromList {list1 olditem newitem} {		    
+    eval set list2 \[list $list1 \]
+    set list1 {}
+    foreach x $list2 {
+	if {$x == $olditem} {
+	    lappend list1 $newitem
+	} else {
+	    lappend list1 $x
+	}
+    }
+    return [join $list1 " "]
+}
 
 proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
     global ignoreDir
@@ -1629,6 +1732,127 @@ proc cmdModuleDebug {} {
     }
 }
 
+
+proc cmdModuleInit {args} {
+
+    global g_shell env
+    set moduleinit_cmd [lindex $args 0]
+
+    # Define startup files for each shell
+    set files(csh) [ list ".modules" ".cshrc" ".cshrc_variables" ".login" ]
+    set files(tcsh) [ list ".modules" ".tcshrc" ".cshrc" ".cshrc_variables" ".login" ]
+    set files(sh) [ list ".modules" ".bash_profile" ".bash_login" ".profile" ".bashrc"]
+    set files(ksh) $files(sh)
+    set files(zsh) [ list ".modules" ".zshrc" ".zshenv" ".zlogin" ]
+
+    # Process startup files for this shell
+    set current_files $files($g_shell)
+    foreach filename $current_files {
+	set filepath $env(HOME)
+	append filepath "/" $filename
+	# create a new file to put the changes in
+	set newfilepath "$filepath-NEW"
+
+	if { [ file readable $filepath ] } {
+	    set fid [ open $filepath r ]
+
+	    array set nargs {
+		list    0
+		add     1
+		load    1
+		prepend 1
+		rm      1
+		unload  1
+		switch  2
+		clear   0
+	    }
+	    
+	    # everything but list requires at least one argument
+	    if { [expr [llength $args] -1 ] !=  $nargs($moduleinit_cmd) } {
+		error "'module init$moduleinit_cmd' requires exactly $nargs($moduleinit_cmd) arg(s)."
+#		cmdModuleHelp
+		exit -1
+	    }
+	
+	    # Only open the new file if we are not doing "initlist"
+	    if {[ string compare $moduleinit_cmd "list"] != 0} {
+		
+		set newfid [ open $newfilepath w ]
+
+	    } 
+		
+
+	    while { [gets $fid curline] >= 0 } { 
+		# Find module load/add command in startup file 
+		if { [regexp -line {^([ \t]*module[ \t]+)((?:load|add)\s+)([^\#]+\S)(\s+\#.*)?} $curline match cmd subcmd modules comments ] } {
+
+# remove existing references to the named module from the list
+
+
+		    # Change the module command line to reflect the given command
+		    switch $moduleinit_cmd {
+			list {
+			    puts stderr "$g_shell initialization file $filepath loads modules: $modules"
+			}
+			add {
+			    set newmodule [lindex $args 1]
+			    set modules [removeFromList $modules $newmodule]
+			    append modules " $newmodule"
+			    puts $newfid "$cmd$subcmd$modules$comments"
+			}
+			prepend {
+			    set newmodule [lindex $args 1]
+			    set modules [removeFromList $modules $newmodule]
+			    set modules "$newmodule $modules"
+			    puts $newfid "$cmd$subcmd$modules$comments"
+			}
+			rm {
+			    set oldmodule [lindex $args 1]
+			    set modules [removeFromList $modules $oldmodule]
+			    if { ![ regexp -line {\S} $modules] } {
+				set modules "null"
+			    }
+			    puts $newfid "$cmd$subcmd$modules$comments"
+			}
+			switch {
+			    set oldmodule [lindex $args 1]
+			    set newmodule [lindex $args 2]
+			    set modules [replaceFromList $modules $oldmodule $newmodule]
+			    puts $newfid "$cmd$subcmd$modules$comments"
+			}
+			clear {
+			    set modules "null"
+			    puts $newfid "$cmd$subcmd$modules$comments"
+			}
+			default {
+			    puts stderr "Command init$moduleinit_cmd not recognized"
+			}
+
+		    }  
+		} else  {  
+		    # copy the line from the old file to the new
+		    if { [info exists newfid] } {
+			puts $newfid $curline
+		    }
+		}
+            }  
+            close $fid
+            if { [info exists newfid] } {
+		close $newfid
+		if { [catch "file copy -force $filepath $filepath-OLD"] != 0 } {
+		    puts stderr "Failed to back up original $filepath...exiting"
+		    exit -1
+		}
+		if { [catch "file copy -force $newfilepath $filepath"] != 0} {
+		    puts stderr "Failed to write $filepath...exiting"
+		    exit -1
+		}
+	    }
+        }
+    }
+}
+
+
 proc cmdModuleHelp {args} {
    global done
 
@@ -1653,24 +1877,26 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.100/$Revision: 1.35 $:
+                ModulesTcl 0.101/$Revision: 1.36 $:
                 Available Commands and Usage:
-                 add|load              modulefile [modulefile ...]
-                 rm|unload             modulefile [modulefile ...]
-                 reload
-                 source                scriptfile
-                 switch|swap           modulefile1 modulefile2
-                 display|show          modulefile [modulefile ...]
-                 avail                 [modulefile [modulefile ...]]
-                 path                  modulefile
-                 paths                 modulefile
-                 use                   dir [dir ...]
-                 unuse                 dir [dir ...]
-                 purge
-                 list
-                 whatis                [modulefile [modulefile ...]]
-                 help                  [modulefile [modulefile ...]]
-                 apropos|keyword       string
+
+list         |  add|load            modulefile [modulefile ...]
+purge        |  rm|unload           modulefile [modulefile ...]
+reload       |  switch|swap        [oldmodulefile] newmodulefile
+             |  display|show        modulefile [modulefile ...]
+             |  avail              [modulefile [modulefile ...]]
+             |  whatis             [modulefile [modulefile ...]]
+             |  help               [modulefile [modulefile ...]]
+             |  path                modulefile
+             |  paths               modulefile
+             |  use                 dir [dir ...]
+             |  unuse               dir [dir ...]
+             |  source              scriptfile
+             |  apropos|keyword     string
+             |
+initlist     |  initadd             modulefile
+initclear    |  initprepend         modulefile
+	     |  initrm              modulefile
             }
     }
 }
@@ -1778,6 +2004,24 @@ catch {
 	{^rel} {
 	    cmdModuleReload
 	    renderSettings
+	}
+	{^init(add|load)$} {
+	    eval cmdModuleInit add $argv
+	}
+	{^initprepend$} {
+		    eval cmdModuleInit prepend $argv
+	}
+	{^initswitch$} {
+		    eval cmdModuleInit switch $argv
+	}
+	{^init(rm|unload)$} {
+	    eval cmdModuleInit rm $argv
+	}
+	{^initlist$} {
+	    eval cmdModuleInit list $argv
+	}
+	{^initclear$} {
+	    eval cmdModuleInit clear $argv
 	}
 	default {
 	   cmdModuleHelp $argv
