@@ -21,6 +21,39 @@ which is the equivalent of
  module load  <module>/<newrev>
 
 
+0. make sure you tclsh install in a sane place, ie /usr/bin or
+   /usr/local/bin. 
+(if not, you can hack modulecmd.tcl to change the path.)
+
+1. untar in a global place that all users can see
+   (hint: something that is available on NFS and SAMBA is a good idea
+   if you
+    have a mix of Unix and WinNT/2000/XP users)
+
+2. cd to init/
+
+3. run 'make' (this just hardcodes the installation path into the
+   init/ files 
+   with a perl one liner. if you don't have perl, then you can hand
+   edit the 
+   files. i suppose this should have been done using tclsh, but i'm a
+   perl
+   person.)
+
+4. edit the 'modulerc' file to point to the place where the
+   modulefiles are 
+   stored. 
+
+5. instruct users to source the appropriate file inside the init/
+   directory, eg
+
+ 
+ source /foo/bar/modules/init/tcsh
+
+or
+
+ . /foo/bar/modules/init/zsh
+
 
 Be sure to run 'make' in the init directory, to create the
 initialization scripts.
@@ -28,3 +61,4 @@ initialization scripts.
 
 -Mark Lakata <lakata@mips.com>
 Nov 29, 2002
+May 30, 2003

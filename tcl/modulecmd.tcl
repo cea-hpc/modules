@@ -25,6 +25,7 @@ set ignoreDIr(RCS) 1
 set ignoreDir(SCCS) 1
 set g_reloadMode  0
 set error_count  0
+set g_force 0
 
 proc module-info {what {more {}}} {
     upvar g_mode mode
@@ -446,8 +447,8 @@ proc renderSettings {} {
     global env g_Aliases g_shellType g_shell
     global g_stateEnvVars g_stateAliases
     global g_newXResources g_delXResources
-
-
+    global error_count
+    
     set iattempt 0
     set f ""
     while {$iattempt < 100 && $f == ""} {
@@ -629,6 +630,12 @@ proc renderSettings {} {
 		}
 	    }
 	}
+
+	set nop 0
+	if {  $error_count == 0  && ! [tell $f] } {
+	    set nop 1
+	}
+
 	switch $g_shellType {
 	    csh {
 		puts $f "/bin/rm -f $tmpfile"
@@ -655,29 +662,51 @@ proc renderSettings {} {
 		}
 		perl {
 		    # HMS: is this right?
-		    puts $f "die 'modulefile.tcl: $error_count error(s) detected!\n'"
+		    puts $f "die \"modulefile.tcl: $error_count error(s) detected!\\n\""
 		}
 		python {
 		    # I am not a python programmer...
 		}
 	    }
+	    set nop 0
+	}
 	close $f
 
 	fconfigure stdout -translation lf
 
-	switch $g_shellType {
-	    csh {
-		puts "source $tmpfile"
+	if {$nop} {
+#	    puts stderr "WARNING: nothing written!"
+	    file delete $tmpfile
+	    switch $g_shellType {
+		csh {
+		    puts "/bin/true"
+		}
+		sh {
+		    puts "/bin/true"
+		}
+		perl {
+		    puts "1;"
+		}
+		python {
+		    # this is not correct
+		    puts ""
+		}
 	    }
-	    sh {
-		puts ". $tmpfile"
-	    }
-	    perl {
-		puts "require \"$tmpfile\";"
-	    }
-	    python {
-# this is not correct
-		puts "exec '$tmpfile'"
+	} else {
+	    switch $g_shellType {
+		csh {
+		    puts "source $tmpfile"
+		}
+		sh {
+		    puts ". $tmpfile"
+		}
+		perl {
+		    puts "require \"$tmpfile\";"
+		}
+		python {
+		    # this is not correct
+		    puts "exec '$tmpfile'"
+		}
 	    }
 	}
     }
@@ -1161,7 +1190,6 @@ global g_shellType
 set g_shell [lindex $argv 0]
 set command [lindex $argv 1]
 set argv [lreplace $argv 0 1]
-set g_force 1
 
 switch -regexp $g_shell {
     ^(sh|bash|ksh|zsh)$ {
@@ -1253,7 +1281,7 @@ catch {
 	}
 	default {
 	    puts stderr {
-		ModulesTcl 0.97:
+		ModulesTcl 0.98:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
