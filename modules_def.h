@@ -667,7 +667,7 @@ extern	int	  cmdModuleVersion( ClientData, Tcl_Interp*, int, char*[]);
 extern	int	  cmdModuleAlias( ClientData, Tcl_Interp*, int, char*[]);
 extern	int	  InitVersion( void);
 extern	const char *AliasLookup( const char*);
-extern	int	  VersionLookup( char*, char**, char**);
+extern	int	  VersionLookup( char*, const char**, char**);
 extern	char	 *ExpandVersions( char*);
 
 /**  init.c  **/

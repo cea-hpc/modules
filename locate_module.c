@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.6 2002/08/02 22:11:23 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.7 2002/08/14 21:07:52 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -165,7 +165,7 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
     		  i;			/** Loop counter		     **/
     char	*modulespath;		/** Buffer for the contents of the   **/
 					/** environment variable MODULEPATH  **/
-    char	*mod, *vers;		/** Module and version name for sym- **/
+    const char	*mod, *vers;		/** Module and version name for sym- **/
 					/** bolic name lookup		     **/
 
     /**
@@ -1093,8 +1093,9 @@ char *GetDefault(Tcl_Interp *interp, char *path)
     char *buffer,			/** fullpath buffer		**/
     	 *save_module_path,		/** save module path state	**/
 	 *version = (char *) NULL,	/** return string		**/
-	 *mod,*ver,			/** module,version		**/
 	**dirlist;			/** dir listing (if needed)	**/
+    const char *mod;
+    char *ver;                  	/** module,version		**/
 
     /**
      **  If there's a problem with the input parameters it means, that
