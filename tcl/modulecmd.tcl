@@ -1251,13 +1251,12 @@ proc cmdModuleList {} {
         if [info exist env(COLUMNS)] {
            set cols [expr int($env(COLUMNS)/$col_width)]
         } else {
-           set cols [expr int(79/$col_width)]
+           set cols [expr int(80/$col_width)]
         }
         # safety check to prevent divide by zero error below
         if {$cols <= 0} {set cols 1}
  
-        # Don't count the '{}' at the begining of 'list'
-        set item_cnt [expr [llength $list] - 1]
+        set item_cnt [llength $list]
         set rows [expr int($item_cnt / $cols)]
         set lastrow_item_cnt [expr int($item_cnt % $cols)]
         if {$lastrow_item_cnt > 0} {incr rows}
@@ -1266,10 +1265,11 @@ proc cmdModuleList {} {
         #report "item_cnt = $item_cnt,  lastrow_item_cnt = $lastrow_item_cnt"
         for {set row 0} { $row < $rows } {incr row} {
             for {set col 0} {$col < $cols} {incr col} {
-                set index [expr $col * $rows + $row + 1]
+                set index [expr $col * $rows + $row]
 		set mod [lindex $list $index]
 		if {$mod != ""} {
-		    set mod [format "%2d) %-${max}s" $index $mod]
+		    set n [expr $index +1]
+		    set mod [format "%2d) %-${max}s" $n $mod]
 		    report $mod -nonewline
 		}
 	    }
@@ -1653,7 +1653,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.100/$Revision: 1.34 $:
+                ModulesTcl 0.100/$Revision: 1.35 $:
                 Available Commands and Usage:
                  add|load              modulefile [modulefile ...]
                  rm|unload             modulefile [modulefile ...]
