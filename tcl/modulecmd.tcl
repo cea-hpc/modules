@@ -29,8 +29,7 @@ set g_force 1
 set ModulesCurrentModulefile {}
 
 proc module-info {what {more {}}} {
-    upvar g_mode mode
-
+    set mode [currentMode]
     switch $what {
 	"name" {
 	    upvar currentModule currentModule
@@ -54,18 +53,20 @@ proc module-info {what {more {}}} {
 }
 
 proc module-whatis {message} {
-    upvar g_mode  mode
+    set mode [currentMode]
+
     upvar g_whatis whatis
 
     if {$mode == "display"} {
-	puts stderr "module-whatis\t$message"
+	report "module-whatis\t$message"
     } elseif {$mode == "whatis"} {
 	set whatis $message
     }
+    return {}
 }
 
 proc module {command args} {
-    upvar g_mode mode
+    set mode [currentMode]
     global g_reloadMode
 
     if { $g_reloadMode == 1} {
@@ -76,13 +77,11 @@ proc module {command args} {
 	add -
 	load {
 	    if {$mode == "load"} {
-#puts stderr "DEBUG: module load: cmdModuleLoad <$args>"
 		eval cmdModuleLoad $args
 	    } elseif {$mode == "unload"} {
-#puts stderr "DEBUG: module load: cmdModuleUnload <$args>"
 		eval cmdModuleUnload $args
 	    } elseif {$mode == "display"} {
-		puts stderr "module load $args"
+		report "module load $args"
 	    }
 	}
 	rm -
@@ -92,11 +91,10 @@ proc module {command args} {
 	    } elseif {$mode == "unload"} {
 		eval cmdModuleUnload $args
 	    } elseif {$mode == "display"} {
-		puts stderr "module unload $args"
+		report "module unload $args"
 	    }
 	}
 	use {
-#puts stderr "DEBUG: module: cmdModuleUse <$args>"
 	    eval cmdModuleUse $args
 	}
 	unuse {
@@ -106,11 +104,12 @@ proc module {command args} {
 	    error "module $command not understood"
 	}
     }
+    return {}
 }
 
 proc setenv {var val} {
     global g_stateEnvVars env
-    upvar g_mode mode
+    set mode [currentMode]
 
     if {$mode == "load"} {
 	set env($var) $val
@@ -121,13 +120,14 @@ proc setenv {var val} {
 	}
 	set g_stateEnvVars($var) "del"
     } elseif {$mode == "display"} {
-	puts stderr "setenv\t$var\t$val"
+	report "setenv\t$var\t$val"
     }
+    return {}
 }
 
 proc unsetenv {var} {
     global g_stateEnvVars env
-    upvar g_mode mode
+    set mode [currentMode]
 
     if {$mode == "load"} {
 	if [info exists env($var)] {
@@ -135,8 +135,9 @@ proc unsetenv {var} {
 	}
 	set g_stateEnvVars($var) "del"
     } elseif {$mode == "display"} {
-	puts stderr "unsetenv\t$var"
+	report "unsetenv\t$var"
     }
+    return {}
 }
 
 ########################################################################
@@ -175,20 +176,20 @@ proc getReferenceCountArray {var} {
 
 		if {! $g_force} {
 		  if [array size fixers] {
-		    puts stderr "WARNING: \$$var does not agree with \$${var}_modshare counter. The following directories' usage counters were adjusted to match. Note that this may mean that module unloading may not work correctly."
+		      reportWarning "WARNING: \$$var does not agree with \$${var}_modshare counter. The following directories' usage counters were adjusted to match. Note that this may mean that module unloading may not work correctly."
 		    foreach dir [array names fixers] {
-			puts -nonewline stderr " $dir"
+			report " $dir" -nonewline
 		    }
-		    puts stderr ""
+		      reportWarning ""
 		  }
 		}
 
 	    } else {
-#		puts stderr "WARNING: module: $sharevar was corrupted, odd number of elements."
+#		sharevar was corrupted, odd number of elements.
 		set modshareok 0
 	    }
 	} else {
-#	    puts stderr "WARNING: module: $sharevar exists ( $env($sharevar) ), but $var doesn't. Environment is corrupted. Contact lakata@mips.com for help."
+#	    WARNING: module: $sharevar exists ( $env($sharevar) ), but $var doesn't. Environment is corrupted. Contact lakata@mips.com for help.
 	    set modshareok 0
 	}
     } else {
@@ -206,7 +207,7 @@ proc getReferenceCountArray {var} {
 
 
 proc unload-path {var path} {
-    global g_stateEnvVars env
+    global g_stateEnvVars env g_force
 
     array set countarr [getReferenceCountArray $var]
 
@@ -223,7 +224,7 @@ proc unload-path {var path} {
 	    set doit 1
 	}
 
-	if {$doit} {
+	if {$doit || $g_force } {
 	    if [info exists env($var)] {
 		set dirs [split $env($var) ":"]
 		set newpath ""
@@ -271,7 +272,7 @@ proc add-path {var path pos} {
     }
     foreach dir $pathelems {
 	if [info exists countarr($dir)] {
-	    #	    puts stderr "INFO: already see $dir in $var"
+	    #	    already see $dir in $var"
 	    incr countarr($dir)
 	} else {
 	    if [info exists env($var)] {
@@ -280,7 +281,7 @@ proc add-path {var path pos} {
 		} elseif {$pos == "append"} {
 		    set env($var) "$env($var):$dir"
 		} else {
-		    error
+		    error "add-path doesnt support $pos"
 		}
 	    } else {
 		set env($var) "$dir"
@@ -295,33 +296,33 @@ proc add-path {var path pos} {
 }
 
 proc prepend-path {var path} {
-    upvar g_mode mode
+    set mode [currentMode]
 
     if {$mode == "load"} {
 	add-path $var $path "prepend"
     } elseif {$mode == "unload"} {
 	unload-path $var $path
     } elseif {$mode == "display"} {
-	puts stderr "prepend-path\t$var\t$path"
+	report "prepend-path\t$var\t$path"
     }
 }
 
 
 proc append-path {var path} {
-    upvar g_mode mode
+    set mode [currentMode]
 
     if {$mode == "load"} {
 	add-path $var $path "append"
     } elseif {$mode == "unload"} {
 	unload-path $var $path
     } elseif {$mode == "display"} {
-	puts stderr "append-path\t$var\t$path"
+	report "append-path\t$var\t$path"
     }
 }
 
 proc set-alias {alias what} {
     global g_Aliases g_stateAliases
-    upvar g_mode mode
+    set mode [currentMode]
 
     if {$mode == "load"} {
 	set g_Aliases($alias) $what
@@ -330,14 +331,14 @@ proc set-alias {alias what} {
 	set g_Aliases($alias) $what
 	set g_stateAliases($alias) "del"
     } elseif {$mode == "display"} {
-	puts stderr "alias\t$alias\t$what"
+	report "alias\t$alias\t$what"
     }
 }
 
 
 proc conflict {args} {
     global g_loadedModules g_loadedModulesGeneric g_reloadMode
-    upvar g_mode mode
+    set mode [currentMode]
     upvar currentModule currentModule
 
     if { $g_reloadMode == 1} {
@@ -351,31 +352,31 @@ proc conflict {args} {
 		if { [info exists g_loadedModulesGeneric($conflict) ] } {
 		    set x $conflict/$g_loadedModulesGeneric($conflict)
 		    if { $x != $currentModule } {
-			error "Conflict with loaded module $x \nHINT: Do 'module unload $x' and then try again."
+			error "WARNING: Conflict with loaded module $x \nHINT: Do 'module unload $x' and then try again."
 		    }
 		}
 	    } else {
 		if { [info exists g_loadedModules($conflict)] &&
 		     $conflict != $currentModule } {
-		    error "Conflict ($currentModule) with loaded module: $conflict"
+		    error "WARNING: Conflict ($currentModule) with loaded module: $conflict"
 		}
 	    }
 	}
     } elseif {$mode == "display"} {
-	puts stderr "conflict\t$args"
+	report "conflict\t$args"
     }
 }
 
 proc x-resource {resource {value {}}} {
     global g_newXResources g_delXResources
-    upvar g_mode mode
+    set mode [currentMode]
 
     if {$mode == "load"} {
 	set g_newXResources($resource) $value
     } elseif {$mode =="unload"} {
 	set g_delXResources($resource) 1
     } elseif {$mode == "display"} {
-	puts stderr "x-resource\t$resource\t$value"
+	report "x-resource\t$resource\t$value"
     }
 }
 
@@ -409,6 +410,36 @@ proc uname {what} {
 ########################################################################
 # internal module procedures
 
+set g_modeStack {}
+#set g_mode {}
+
+proc currentMode {} {
+#    upvar 2 g_mode mode
+#    return $mode
+
+    global g_modeStack
+#    report "g_modeStack/cu = $g_modeStack"
+    set mode [lindex $g_modeStack end]
+#    report "mode = $mode"
+    return $mode
+}
+
+proc pushMode {mode} {
+#    upvar 1 g_mode mode2
+#    set mode2 $mode
+
+    global g_modeStack
+    lappend g_modeStack $mode
+#    report "g_modeStack/push = $g_modeStack"
+}
+
+proc popMode {} {
+#
+
+    global g_modeStack
+    set g_modeStack [lrange g_modeStack 0 end-1]
+#    report "g_modeStack/pop = $g_modeStack"
+}
 
 proc getPathToModule {mod} {
     global env g_loadedModulesGeneric
@@ -438,9 +469,25 @@ proc getPathToModule {mod} {
 		}
 	    }
 	}
-	error "Module $mod not found on \$MODULEPATH.\nHINT: Use 'module use ...' to add to search path."
+	error "WARNING: Module $mod not found on \$MODULEPATH.\nHINT: Use 'module use ...' to add to search path."
     } else {
 	error "\$MODULEPATH not defined"
+    }
+}
+
+proc saveSettings {} {
+    foreach var {env g_Aliases g_stateEnvVars g_stateAliases
+	g_newXResource g_delXResource} {
+	eval "global g_SAVE_$var $var"
+	eval "array set g_SAVE_$var \[array get $var\]"
+    }
+}
+
+proc restoreSettings {} {
+    foreach var {env g_Aliases g_stateEnvVars g_stateAliases
+	g_newXResource g_delXResource} {
+	eval "global g_SAVE_$var $var"
+	eval "array set $var \[array get g_SAVE_$var\]"
     }
 }
 
@@ -481,10 +528,10 @@ proc renderSettings {} {
 # csh barfs on long env vars
 			if {$g_shell == "csh" && [string length $val] > 1000} {
 			    if { $var == "PATH"} {
-				puts stderr "WARNING: module: PATH exceeds 1000 characters, truncating to 900 and appending /usr/bin:/bin ..."
+				reportWarning "WARNING: module: PATH exceeds 1000 characters, truncating to 900 and appending /usr/bin:/bin ..."
 				set val [string range $val 0 900]:/usr/bin:/bin
 			    } else {
-				puts stderr "WARNING: module: $var exceeds 1000 characters, truncating..."
+				reportWarning "WARNING: module: $var exceeds 1000 characters, truncating..."
 				set val [string range $val 0 999]
 			    }
 			}
@@ -680,7 +727,7 @@ proc renderSettings {} {
 	}
 
 	if {$error_count > 0} {
-	    puts stderr "ERROR: $error_count error(s) detected."
+	    reportWarning "ERROR: $error_count error(s) detected."
 	    switch $g_shellType {
 		csh {
 		    puts $f "/bin/false"
@@ -702,7 +749,7 @@ proc renderSettings {} {
 	fconfigure stdout -translation lf
 
 	if {$nop} {
-#	    puts stderr "WARNING: nothing written!"
+#	    nothing written!
 	    file delete $tmpfile
 	    switch $g_shellType {
 		csh {
@@ -847,14 +894,36 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
 proc showModulePath {} {
     global env
     if [info exists env(MODULEPATH)] {
-	puts stderr "Search path for module files (in search order):"
+	report "Search path for module files (in search order):"
 	foreach path [split $env(MODULEPATH) ":"] {
-	    puts stderr "  $path";
+	    report "  $path";
 	}
     } else {
-	puts stderr "WARNING: no directories on module search path"
+	reportWarning "WARNING: no directories on module search path"
     }
 
+}
+
+#
+# Info, Warnings and Error message handling.
+#
+proc reportWarning {message} {
+    puts stderr $message
+}
+
+proc reportInternalBug {message} {
+    puts stderr "ERROR: $message\nPlease contact your local friendly maintainer of the module command."
+#
+# future: send email to maintainer
+#
+}
+
+proc report {message {nonewline ""}} {
+    if {$nonewline != ""} {
+	puts -nonewline stderr "$message"
+    } else {
+	puts stderr "$message"
+    }
 }
 
 ########################################################################
@@ -881,10 +950,10 @@ proc cmdModuleList {} {
 		set mod [lindex $list $index]
 		if {$mod != ""} {
 		    set mod [format "%2d) %-${max}s" $index $mod]
-		    puts -nonewline stderr $mod
+		    report $mod -nonewline
 		}
 	    }
-	    puts stderr ""
+	    report ""
 	}
     }
 }
@@ -892,27 +961,27 @@ proc cmdModuleList {} {
 proc cmdModuleDisplay {mod} {
     global env tcl_version ModulesCurrentModulefile
 
-    set g_mode "display"
+    pushMode "display"
     catch {
 	set modfile [getPathToModule $mod]
 	set currentModule [lindex $modfile 1]
 	set modfile	  [lindex $modfile 0]
         set ModulesCurrentModulefile $modfile
-	puts stderr "-------------------------------------------------------------------"
-	puts stderr "$modfile:\n"
+	report "-------------------------------------------------------------------"
+	report "$modfile:\n"
 	source $modfile
-	puts stderr "-------------------------------------------------------------------"
+	report "-------------------------------------------------------------------"
 	set junk ""
     } errMsg
+    popMode
     if {$errMsg != ""} {
-	puts stderr "ERROR: module display $mod failed. $errMsg"
+	reportWarning "ERROR: module display $mod failed. $errMsg"
     }
 }
 
 proc cmdModulePaths {mod} {
     global env g_pathList
 
-    set g_mode "display"
     catch {
         foreach dir [split $env(MODULEPATH) ":"] {
             if [file isdirectory $dir] {
@@ -923,14 +992,13 @@ proc cmdModulePaths {mod} {
         }
     } errMsg
     if {$errMsg != ""} {
-	puts stderr "ERROR: module paths $mod failed. $errMsg"
+	reportWarning "ERROR: module paths $mod failed. $errMsg"
     }
 }
 
 proc cmdModulePath {mod} {
     global env g_pathList ModulesCurrentModulefile
 
-    set g_mode "display"
     catch {
 	set modfile [getPathToModule $mod]
 	set currentModule [lindex $modfile 1]
@@ -942,7 +1010,7 @@ proc cmdModulePath {mod} {
 	set junk ""
     } errMsg
     if {$errMsg != ""} {
-	puts stderr "ERROR: module path $mod failed. $errMsg"
+	report Warning "ERROR: module path $mod failed. $errMsg"
     }
 }
 
@@ -962,21 +1030,22 @@ proc cmdModuleSearch {{mod {}} {search {}} } {
     }
     foreach dir [split $env(MODULEPATH) ":"] {
 	if [file isdirectory $dir] {
-	    puts stderr "---- $dir ---- "
+	    report "---- $dir ---- "
             set modlist [listModules $dir $mod 0]
 	    foreach mod2 $modlist {
 		set g_whatis ""
+		pushMode "whatis"
 		catch {
 		    set modfile [getPathToModule $mod2]
 		    set currentModule [lindex $modfile 1]
 		    set modfile       [lindex $modfile 0]
                     set ModulesCurrentModulefile $modfile
-		    set g_mode "whatis"
 		    source $modfile
 		    set junk ""
 		} errmsg
+		popMode
 		if {$search =="" || [regexp -nocase $search $g_whatis]} {
-		    puts stderr [format "%20s: %s" $mod2 $g_whatis]
+		    report [format "%20s: %s" $mod2 $g_whatis]
 		}
 	    }
 	}
@@ -1000,8 +1069,11 @@ proc cmdModuleSource {args} {
 
     foreach file $args {
 	if [file exists $file] {
-	    set g_mode "load"
-	    source $file
+	    pushMode "load"
+	    catch {
+		source $file
+	    }
+	    popMode
 	} else {
 	    error "File $file does not exist"
 	}
@@ -1012,22 +1084,17 @@ proc cmdModuleLoad {args} {
     global env tcl_version g_loadedModules g_loadedModulesGeneric g_force
     global ModulesCurrentModulefile
 
-#puts stderr "DEBUG: cmdModuleLoad: args <$args>"
-
     foreach mod $args {
-#puts stderr "DEBUG: cmdModuleLoad: mods <$mod>"
 	catch {
 	    set modfile [getPathToModule $mod]
-#puts stderr "DEBUG: cmdModuleLoad: modfile <$modfile>"
 	    set currentModule [lindex $modfile 1]
 	    set modfile       [lindex $modfile 0]
             set ModulesCurrentModulefile $modfile
-#puts stderr "DEBUG: cmdModuleLoad: currentModule <$currentModule>"
-#puts stderr "DEBUG: cmdModuleLoad: modfile <$modfile>"
 
 	    if { $g_force || ! [ info exists g_loadedModules($currentModule)]} {
-		set g_mode "load"
+		pushMode "load"
 
+		saveSettings
 		append-path LOADEDMODULES $currentModule
 		set g_loadedModules($currentModule) 1
 		set genericModName [file dirname $mod]
@@ -1035,13 +1102,23 @@ proc cmdModuleLoad {args} {
 		if { ![ info exists g_loadedModulesGeneric($genericModName) ] } {
 		    set g_loadedModulesGeneric($genericModName) [file tail $currentModule]
 		}
-		source $modfile
+		catch {
+		    source $modfile
+		} moderr
+		popMode
+		if {$moderr != ""} {
+		    restoreSettings
+		    if ([regexp "WARNING" $moderr]) {
+			reportWarning "WARNING: In \"$modfile\", \n$moderr"
+		    } else {
+			reportInternalBug "TCL error in module file \"$modfile\":\n  $moderr"
+		    }
+		}
 	    }
 	    set junk ""
 	} errMsg
-
         if {$errMsg != ""} {
-	    puts stderr "ERROR: module: module load $mod failed. $errMsg"
+	    reportWarning "ERROR: module: module load \"$mod\" failed.\n$errMsg"
 	}
     }
 }
@@ -1061,8 +1138,21 @@ proc cmdModuleUnload {args} {
 	    } moderr
 	    if { $moderr == ""} {
 		if [ info exists g_loadedModules($currentModule)] {
-		    set g_mode "unload"
-		    source $modfile
+		    pushMode "unload"
+		    saveSettings
+		    catch {
+			source $modfile
+		    } moderr
+		    popMode
+		    if {$moderr != ""} {
+			restoreSettings
+			if ([regexp "^WARNING" $moderr]) {
+			    reportWarning "WARNING: In \"$modfile\", \n$moderr"
+			} else {
+			    reportInternalBug "TCL error in module file \"$modfile\":\n  $moderr"
+			}
+		    }
+
 		    unload-path LOADEDMODULES $currentModule
 		    unset g_loadedModules($currentModule)
 		    if [info exists g_loadedModulesGeneric([file dirname $currentModule])] {
@@ -1070,7 +1160,7 @@ proc cmdModuleUnload {args} {
 		    }
 		}
 	    } else {
-		puts stderr "WARNING: module: Could not find module $mod for unload, $moderr\n"
+		reportWarning "WARNING: module: Could not find module $mod for unload,\n$moderr\n"
 		if [info exists g_loadedModulesGeneric($mod) ] {
 		    set mod "$mod/$g_loadedModulesGeneric($mod)"
 		}
@@ -1085,7 +1175,7 @@ proc cmdModuleUnload {args} {
 	    set junk ""
 	} errMsg
 	if {$errMsg != ""} {
-	    puts stderr "ERROR: module: module unload $mod failed. $errMsg"
+	    reportWarning "ERROR: module: module unload $mod failed.\n$errMsg"
 	}
     }
 }
@@ -1125,7 +1215,7 @@ proc cmdModuleAvail { {mod {*}}} {
 
     foreach dir [split $env(MODULEPATH) ":"] {
 	if [file isdirectory $dir] {
-	    puts stderr "---- $dir ---- "
+	    report "---- $dir ---- "
             set list [listModules $dir $mod 0]
 	    set max 0
 	    foreach mod2 $list {
@@ -1142,10 +1232,10 @@ proc cmdModuleAvail { {mod {*}}} {
 		    set mod2 [lindex $list $index]
 		    if {$mod2 != ""} {
 			set mod2 [format "%-${max}s" $mod2]
-			puts -nonewline stderr $mod2
+			report $mod2 -nonewline
 		    }
 		}
-		puts stderr ""
+		report ""
 	    }
 	}
     }
@@ -1154,14 +1244,11 @@ proc cmdModuleAvail { {mod {*}}} {
 
 proc cmdModuleUse {args} {
 
-    set g_mode "load"
-#puts stderr "DEBUG: cmdModuleUse: args <$args>"
     if {$args == ""} {
 	showModulePath
     } else {
 	set stuff_path "prepend-path"
 	foreach path [split $args " "] {
-#puts stderr "DEBUG: cmdModuleUse: <$path>"
 	    # -a -append --append (and -p -prepend --prepend) would be nice...
 	    if { $path == "" } {
 		# Skip "holes"
@@ -1170,10 +1257,11 @@ proc cmdModuleUse {args} {
 	    } elseif {$path == "--prepend"} {
 		set stuff_path "prepend-path"
 	    } elseif [file isdirectory $path] {
-#puts stderr "DEBUG: cmdModuleUse: $stuff_path MODULEPATH $path"
+		pushMode "load"
 		eval $stuff_path MODULEPATH $path
+		popMode
 	    } else {
-		puts stderr "WARNING: Directory \"$path\" does not exist, not added to module search path."
+		reportWarning "WARNING: Directory \"$path\" does not exist, not added to module search path."
 	    }
 	}
     }
@@ -1182,7 +1270,6 @@ proc cmdModuleUse {args} {
 
 proc cmdModuleUnuse {args} {
 
-    set g_mode "unload"
     if {$args == ""} {
 	showModulePath
     } else {
@@ -1190,10 +1277,14 @@ proc cmdModuleUnuse {args} {
 	foreach path $args {
 	    if [info exists env(MODULEPATH)] {
 		set oldMODULEPATH $env(MODULEPATH)
-		unload-path MODULEPATH $path
+		pushMode "unload"
+		catch {
+		    unload-path MODULEPATH $path
+		}
+		popMode "unload"
 		if { [info exists env(MODULEPATH) ] &&
 		     $oldMODULEPATH == $env(MODULEPATH)} {
-		    puts stderr "WARNING: Did not unuse $path"
+		    reportWarning "WARNING: Did not unuse $path"
 		}
 	    }
 	}
@@ -1209,7 +1300,7 @@ proc cmdModuleDebug {} {
 	array set countarr [getReferenceCountArray $var]
 
 	foreach path [array names countarr] {
-	    puts stderr "$var\t$path\t$countarr($path)"
+	    report "$var\t$path\t$countarr($path)"
 	}
 	unset countarr
     }
@@ -1223,7 +1314,7 @@ proc cmdModuleDebug {} {
     }
     foreach file [lsort -dictionary [array names execcount]] {
 	if {[llength $execcount($file)] > 1} {
-	    puts stderr "$file:\t$execcount($file)"
+	    report "$file:\t$execcount($file)"
 	}
     }
 }
@@ -1277,7 +1368,6 @@ catch {
 	    }
 	}
 	{^(add|load)} {
-#puts stderr "DEBUG: main: Calling cmdModuleLoad, argv <$argv>"
 	    eval cmdModuleLoad $argv
 	    renderSettings
 	}
@@ -1308,7 +1398,6 @@ catch {
 	    renderSettings
 	}
 	{^use$} {
-#puts stderr "DEBUG: main: Calling cmdModuleUse, argv <$argv>"
 	    eval cmdModuleUse $argv
 	    renderSettings
 	}
@@ -1336,8 +1425,8 @@ catch {
 	    renderSettings
 	}
 	default {
-	    puts stderr {
-		ModulesTcl 0.100/$Revision: 1.17 $:
+	    report {
+		ModulesTcl 0.100/$Revision: 1.18 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
@@ -1361,7 +1450,7 @@ catch {
 } errMsg
 
 if {$errMsg != ""} {
-    puts stderr "ERROR: $errMsg"
+    reportWarning "ERROR: $errMsg"
 }
 
 # ;;; Local Variables: ***
