@@ -715,6 +715,24 @@ proc renderSettings {} {
 	fconfigure $f -translation lf
 
 # preliminaries
+
+	# Do this first so if there is a problem while running the script
+	# we won't leave a "turd".
+	switch -- $g_shellType {
+	    csh {
+		puts $f "/bin/rm -f $tmpfile"
+	    }
+	    sh {
+		puts $f "/bin/rm -f $tmpfile"
+	    }
+	    perl {
+		puts $f "unlink(\"$tmpfile\");"
+	    }
+	    python {
+		puts $f "os.unlink('$tmpfile')"
+	    }
+	}
+
 	switch -- $g_shellType {
 	    python {
 		puts $f "import os";
@@ -773,7 +791,7 @@ proc renderSettings {} {
 			}
 			sh {
 			    set val $g_Aliases($var)
-			    puts $f "$var () {$val;}"
+			    puts $f "function $var () {$val;}"
 			}
 		    }
 		}
@@ -912,21 +930,6 @@ proc renderSettings {} {
 	set nop 0
 	if {  $error_count == 0  && ! [tell $f] } {
 	    set nop 1
-	}
-
-	switch -- $g_shellType {
-	    csh {
-		puts $f "/bin/rm -f $tmpfile"
-	    }
-	    sh {
-		puts $f "/bin/rm -f $tmpfile"
-	    }
-	    perl {
-		puts $f "unlink(\"$tmpfile\");"
-	    }
-	    python {
-		puts $f "os.unlink('$tmpfile')"
-	    }
 	}
 
 	if {$error_count > 0} {
@@ -1602,7 +1605,7 @@ catch {
 	}
 	default {
 	    report {
-		ModulesTcl 0.100/$Revision: 1.25 $:
+		ModulesTcl 0.100/$Revision: 1.26 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
