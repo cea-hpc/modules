@@ -16,42 +16,12 @@ echo FATAL: module: Could not find tclsh on \$PATH or in standard directories; e
 #
 
 ########################################################################
-# Create a slave TCL interpreter to execute modulefiles
+# Use a slave TCL interpreter to execute modulefiles
 #
-
-interp create slave
-interp alias slave setenv        {} setenv       
-interp alias slave unsetenv      {} unsetenv     
-interp alias slave append-path   {} append-path  
-interp alias slave prepend-path  {} prepend-path 
-interp alias slave remove-path   {} remove-path  
-interp alias slave prereq        {} prereq       
-interp alias slave conflict      {} conflict     
-interp alias slave is-loaded     {} is-loaded    
-interp alias slave module        {} module       
-interp alias slave module-info   {} module-info  
-interp alias slave module-whatis {} module-whatis
-interp alias slave set-alias     {} set-alias    
-interp alias slave unset-alias   {} unset-alias  
-interp alias slave uname         {} uname        
-interp alias slave x-resource    {} x-resource   
-
-proc set-env {var val} {
-    global env
-
-    set env($var) $val
-    interp eval slave [list global env]
-    interp eval slave [list set env($var) $val]
-}
-
 
 proc unset-env {var} {
     global env
 
-    interp eval slave [list global env]
-    interp eval slave [list unset env($var)]
-    # Some TCL implementations may share the env array between master 
-    # and slave so we need to do this check before we attempt to unset
     if [info exists env($var)] {
         unset env($var)
     }
@@ -59,9 +29,30 @@ proc unset-env {var} {
 
 
 proc execute-modulefile {modfile} {
-    interp eval slave [list global ModulesCurrentModulefile]
-    interp eval slave [list set ModulesCurrentModulefile $modfile]
-    set errorVal [interp eval slave {
+    global env g_stateEnvVars
+
+    #puts stderr "Starting $modfile"
+    set slave [currentModuleName]
+    interp create $slave
+    interp alias $slave setenv        {} setenv       
+    interp alias $slave unsetenv      {} unsetenv     
+    interp alias $slave append-path   {} append-path  
+    interp alias $slave prepend-path  {} prepend-path 
+    interp alias $slave remove-path   {} remove-path  
+    interp alias $slave prereq        {} prereq       
+    interp alias $slave conflict      {} conflict     
+    interp alias $slave is-loaded     {} is-loaded    
+    interp alias $slave module        {} module       
+    interp alias $slave module-info   {} module-info  
+    interp alias $slave module-whatis {} module-whatis
+    interp alias $slave set-alias     {} set-alias    
+    interp alias $slave unset-alias   {} unset-alias  
+    interp alias $slave uname         {} uname        
+    interp alias $slave x-resource    {} x-resource   
+
+    interp eval $slave [list global ModulesCurrentModulefile]
+    interp eval $slave [list set ModulesCurrentModulefile $modfile]
+    set errorVal [interp eval $slave {
         if [catch {source $ModulesCurrentModulefile} errorMsg] {
             if [regexp "^WARNING" $errorMsg] {
                 puts stderr $errorMsg
@@ -79,17 +70,22 @@ proc execute-modulefile {modfile} {
             return 0
         }
     }]
-    interp eval slave [list set ModulesCurrentModulefile $modfile]
+    interp delete $slave
+    #puts stderr "Exiting $modfile"
     return $errorVal
 }
 
 
 proc execute-version {modfile} {
-    interp eval slave [list global ModulesCurrentModulefile]
-    interp eval slave [list set ModulesCurrentModulefile $modfile]
-    interp eval slave [list global ModulesVersion]
-    interp eval slave [list set ModulesVersion {}]
-    set ModulesVersion [interp eval slave {
+    global env g_stateEnvVars
+
+    set slave .version
+    interp create $slave
+    interp eval $slave [list global ModulesCurrentModulefile]
+    interp eval $slave [list set ModulesCurrentModulefile $modfile]
+    interp eval $slave [list global ModulesVersion]
+    interp eval $slave [list set ModulesVersion {}]
+    set ModulesVersion [interp eval $slave {
         if [catch {source $ModulesCurrentModulefile} errorMsg] {
             set errorMsg "ERROR occured in file $ModulesCurrentModulefile."
             global errorInfo
@@ -103,6 +99,7 @@ proc execute-version {modfile} {
             return {}
         }
     }]
+    interp delete $slave
     return $ModulesVersion
 }
 
@@ -123,6 +120,8 @@ set g_force 1
 set ModulesCurrentModulefile {}
 
 proc module-info {what {more {}}} {
+    global g_shellType g_shell
+
     set mode [currentMode]
     switch -- $what {
 	"mode" {
@@ -170,6 +169,7 @@ proc module {command args} {
     global g_reloadMode
 
     if { $g_reloadMode == 1} {
+        puts stderr "g_reloadMode is set"
 	return
     }
 
@@ -212,12 +212,12 @@ proc setenv {var val} {
     set mode [currentMode]
 
     if {$mode == "load"} {
-	set-env $var $val
+	set env($var) $val
 	set g_stateEnvVars($var) "new"
     } elseif {$mode == "unload"} {
-	if [info exists env($var)] {
-	    unset-env $var
-	}
+        # Don't unset-env here ... it breaks modulefiles
+        # that use env(var) is later in the modulefile
+        #unset-env $var
 	set g_stateEnvVars($var) "del"
     } elseif {$mode == "display"} {
 	report "setenv\t$var\t$val"
@@ -236,7 +236,7 @@ proc unsetenv {var {val {}}} {
 	set g_stateEnvVars($var) "del"
     } elseif {$mode == "unload"} {
         if {$val != ""} {
-            set-env $var $val
+            set env($var) $val
             set g_stateEnvVars($var) "new"
         }
     } elseif {$mode == "display"} {
@@ -339,12 +339,10 @@ proc unload-path {var path} {
 		    }
 		}
 		if {$newpath == ""} {
-		    if [info exists env($var)] {
-			unset-env $var
-		    }
+                    unset-env $var
 		    set g_stateEnvVars($var) "del"
 		} else {
-		    set-env $var [join $newpath ":"]
+		    set env($var) [join $newpath ":"]
 		    set g_stateEnvVars($var) "new"
 		}
 	    }
@@ -353,12 +351,10 @@ proc unload-path {var path} {
 
     set sharevar "${var}_modshare"
     if {[array size countarr] > 0} {
-	set-env $sharevar [join [array get countarr] ":"]
+	set env($sharevar) [join [array get countarr] ":"]
 	set g_stateEnvVars($sharevar) "new"
     } else {
-	if [info exists env($sharevar)] {
-	    unset-env $sharevar
-	}
+        unset-env $sharevar
 	set g_stateEnvVars($sharevar) "del"
     }
     return {}
@@ -383,20 +379,20 @@ proc add-path {var path pos} {
 	} else {
 	    if [info exists env($var)] {
 		if {$pos == "prepend"} {
-		    set-env $var "$dir:$env($var)"
+		    set env($var) "$dir:$env($var)"
 		} elseif {$pos == "append"} {
-		    set-env $var "$env($var):$dir"
+		    set env($var) "$env($var):$dir"
 		} else {
 		    error "add-path doesn't support $pos"
 		}
 	    } else {
-		set-env $var "$dir"
+		set env($var) "$dir"
 	    }
 	    set countarr($dir) 1
 	}
     }
 
-    set-env $sharevar [join [array get countarr] ":"]
+    set env($sharevar) [join [array get countarr] ":"]
     set g_stateEnvVars($var) "new"
     set g_stateEnvVars($sharevar) "new"
     return {}
@@ -430,11 +426,11 @@ proc append-path {var path} {
 }
 
 proc remove-path {var path} {
-    set mod [currentMode]
+    set mode [currentMode]
 
     if {$mode == "load"} {
         unload-path $var $path
-    } elsif {$mode == "display"} {
+    } elseif {$mode == "display"} {
         report "remove-path\t$var\t$path"
     }
     return {}
@@ -640,7 +636,15 @@ proc popModuleName {} {
 proc getPathToModule {mod} {
     global env g_loadedModulesGeneric
 
-    if [info exists env(MODULEPATH)] {
+    if [string match {/*} $mod] {
+        if [file exists $mod] {
+            if [file readable $mod] {
+                if [file isfile $mod] {
+                    return [list $mod $mod]
+                }
+            }
+        }
+    } elseif [info exists env(MODULEPATH)] {
 	foreach dir [split $env(MODULEPATH) ":"] {
 	    set path "$dir/$mod"
 	    if [file exists $path] {
@@ -663,7 +667,7 @@ proc getPathToModule {mod} {
 		}
 	    }
 	}
-	reportWarning "WARNING: Module $mod not found on \$MODULEPATH.\nHINT: Use 'module use ...' to add to search path."
+        reportWarning "WARNING: Module $mod not found on \$MODULEPATH.\nHINT: Use 'module use ...' to add to search path."
 	return ""
     } else {
 	error "\$MODULEPATH not defined"
@@ -756,12 +760,17 @@ proc renderSettings {} {
 		if {$g_stateAliases($var) == "new"} {
 		    switch -- $g_shellType {
 			csh {
-			    set val [multiEscaped $g_Aliases($var)]
-			    puts $f "alias $var $val"
+			    # set val [multiEscaped $g_Aliases($var)]
+                            set val $g_Aliases($var)
+                            # Convert $n -> \!\!:n
+                            regsub -all {\$([0-9]+)} $val {\\!\\!:\1} val
+                            # Convert $* -> \!*
+                            regsub -all {\$\*} $val {\\!*} val
+			    puts $f "alias $var '$val'"
 			}
 			sh {
 			    set val $g_Aliases($var)
-			    puts $f "function $var () {\n$val\n}"
+			    puts $f "$var () {$val;}"
 			}
 		    }
 		}
@@ -782,8 +791,8 @@ proc renderSettings {} {
 			puts $f "delete \$ENV{$var};"
 		    }
 		    python {
-# this is not correct, but I'm not a python programmer
 			puts $f "os.environ\['$var'\] = ''"
+			puts $f "del os.environ\['$var'\]"
 		    }
 		}
 	    }
@@ -798,11 +807,7 @@ proc renderSettings {} {
 			    puts $f "unalias $var"
 			}
 			sh {
-			    if {$g_shell == "zsh"} {
-				puts $f "unfunction $var"
-			    } else {
-				puts $f "unset $var"
-			    }
+                            puts $f "unset -f $var"
 			}
 		    }
 		}
@@ -1594,7 +1599,7 @@ catch {
 	}
 	default {
 	    report {
-		ModulesTcl 0.100/$Revision: 1.23 $:
+		ModulesTcl 0.100/$Revision: 1.24 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
