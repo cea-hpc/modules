@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # File:        Makefile.in
-# Revision:    $Id: Makefile.in,v 1.15 2002/03/10 07:09:55 rkowen Exp $
+# Revision:    $Id: Makefile.in,v 1.16 2002/03/11 21:30:21 lakata Exp $
 # Orig Author: Leif Hedstrom<hedstrom@inf.ethz.ch>
 #
 # Description:
@@ -74,7 +74,7 @@ ACS =	configure Makefile.in config.h.in configure.in acconfig.h aclocal.m4
 MAKEDIRS = $(bindir) $(filedir)
 
 ## X_CFLAGS, X_LIBS from AC_PATH_XTRA
-ALL_CFLAGS = -I.. -I$(srcdir) @TCL_INC_DIR@ @TCLX_INC_DIR@ @X_CFLAGS@ $(CFLAGS)
+ALL_CFLAGS = -I. -I$(srcdir) @TCL_INC_DIR@ @TCLX_INC_DIR@ @X_CFLAGS@ $(CFLAGS)
 ALL_LDFLAGS = @STATIC@ @TCL_LIB_DIR@ @TCLX_LIB_DIR@ @X_LIBS@ @R_OPTION@ $(LDFLAGS)
 
 all: modulecmd
@@ -145,8 +145,9 @@ CTAGS:	$(SRCS)
 
 test: check
 
+
 check:	modulecmd
-	(cd testsuite; $(RUNTEST) $(RUNTESTFLAGS) --tool=modules)
+	MODULEVERSION=@VERSION@; export MODULEVERSION; TESTSUITEDIR=$(srcdir)/testsuite; export TESTSUITDIR; $(RUNTEST) --srcdir \$$TESTSUITEDIR $(RUNTESTFLAGS) --tool=modules
 
 cxref:
 	cxref $(SRCS)
@@ -265,10 +266,9 @@ distclean:	clean
 	(cd ext;          $(MAKE) distclean)
 	(cd modulefiles;  $(MAKE) distclean)
 	rm -f Makefile config.status config.cache config.log config.h \
-		stamp-h .spec testsuite/modules.00-init/015-version.exp \
-		testsuite/modules.50-cmds/100-loglevel.exp \
-		testsuite/.modulesbeginenv testsuite/modules.sum \
-		testsuite/modules.log doc/Makefile
+		stamp-h .spec  \
+		.modulesbeginenv modules.sum \
+		modules.log doc/Makefile modules.lsm
 
 realclean:	distclean
 	rm -f TAGS
