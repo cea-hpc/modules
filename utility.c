@@ -50,7 +50,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.4 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.5 2001/07/09 18:21:37 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -942,7 +942,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 			     LMSPLIT_SIZE);
 		buffer[ LMSPLIT_SIZE] = '\0';
 
-		fprintf( stdout, "setenv %s%03d %s%c", var, count, buffer,
+		fprintf( stdout, "setenv %s%03d '%s'%c", var, count, buffer,
 		    cmd_separator);
 
 		lmfiles_len -= LMSPLIT_SIZE;
@@ -950,7 +950,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	    }
 
 		if( lmfiles_len) {
-		fprintf( stdout, "setenv %s%03d %s%c", var, count,
+		fprintf( stdout, "setenv %s%03d '%s'%c", var, count,
 		    (val + count*LMSPLIT_SIZE), cmd_separator);
 		    count++;
 		}
@@ -964,7 +964,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 
 	    } else {	/** if ( lmfiles_len = strlen(val)) > LMSPLIT_SIZE) **/
 
-		fprintf(stdout, "setenv %s %s%c", var, val, cmd_separator);
+		fprintf(stdout, "setenv %s '%s'%c", var, val, cmd_separator);
 	    }
 
 	    /**
@@ -982,12 +982,12 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 
 	} else {	/** if( var == "_LMFILES_" **/
 
-	    fprintf(stdout, "setenv %s %s%c", var, val, cmd_separator);
+	    fprintf(stdout, "setenv %s '%s'%c", var, val, cmd_separator);
 	}
 
 #else /* not LMSPLIT_SIZE */
 
-      fprintf(stdout, "setenv %s %s%c", var, val, cmd_separator);
+      fprintf(stdout, "setenv %s '%s'%c", var, val, cmd_separator);
 
 #endif
 
@@ -996,7 +996,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
      **/
 
     } else if( !strcmp((char*) shell_derelict, "sh")) {
-	fprintf( stdout, "%s=%s%cexport %s%c", var, val, cmd_separator,
+	fprintf( stdout, "%s='%s'%cexport %s%c", var, val, cmd_separator,
 	    var, cmd_separator);
 
     /**
@@ -1004,14 +1004,14 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
      **/
 
     } else if( !strcmp((char*) shell_derelict, "emacs")) {
-	fprintf( stdout, "(setenv \"%s\" \"%s\")\n", var, val);
+	fprintf( stdout, "(setenv \"%s\" \'%s\')\n", var, val);
 
     /**
      **  PERL
      **/
 
     } else if( !strcmp((char*) shell_derelict, "perl")) {
-	fprintf( stdout, "$ENV{'%s'} = \"%s\"%c", var, val, cmd_separator);  
+	fprintf( stdout, "$ENV{'%s'} = '%s'%c", var, val, cmd_separator);  
 
     /**
      **  PYTHON
@@ -2408,7 +2408,7 @@ void cleanse_path( const char	*path,
         }
 
 	/**
-	 **  Flush the current charater into the newpath buffer
+	 **  Flush the current character into the newpath buffer
 	 **/
 
         *newpath++ = *path++;

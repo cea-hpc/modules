@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.3 2001/07/09 18:21:36 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -207,12 +207,20 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
     pathargv[3] = NULL;
 
     for( i=0; i < argc; i++) {
+	/**
+	 **  Check for -a|--append flag (if in modulefile - it's not parsed
+	 **	by getoptlong) (keep -append for backward compatibility)
+	 **/
+	if( (!strcmp("-a",argv[i])) || (!strcmp("--append",argv[i]))
+	|| (!strcmp("-append",argv[i]))) {
 
+		pathargv[0] = "append-path";
+		continue;
+
+	} else if( stat( argv[i], &stats) < 0) {
 	/**
 	 **  Check for existing, readable directories
 	 **/
-
-	if( stat( argv[i], &stats) < 0) {
 	    if( OK != ErrorLogger( ERR_DIRNOTFOUND, LOC, argv[i], NULL))
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	} else if( !S_ISDIR( stats.st_mode))  {
@@ -232,7 +240,7 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
     } /** for **/
   
     /**
-     **  What I'm going to do here is add the new value of MODULESPATH to the end
+     **  Add the new value of MODULESPATH to the end
      **  of the beginenvcache so that update will be able to find its
      **  modulefiles.
      **/

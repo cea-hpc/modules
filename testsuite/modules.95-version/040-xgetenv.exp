@@ -1,0 +1,119 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2001/06/20
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen,  rk@owen.sj.ca.us
+#
+#   Description:	Testuite testsequence
+#   Command:		load & unload
+#   Modulefiles:	versions/1.1, versions/1.2, versions/1.3
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the module versioning capability.
+#			specifically the $MODULE_VERSION selection
+#		}C%
+#
+##############################################################################
+
+if { $verbose > 0 } {
+	send_user "\tLoading and unloading a module selected by \$MODULE_VERSION...\n"
+}
+
+set env(MODULEPATH) "$modulepath"
+set env(MODULE_VERSION) "$version3"
+set env(MODULE_VERSION_STACK) "$module_version_stack3"
+set env(_LMFILES_) "$modulefile1:$modulefile2:$modulefile3"
+set env(LOADEDMODULES) "$module1:$module2:$module3"
+
+#
+#  For the different shells ...
+#
+set lmf_sh "_LMFILES_='$modulefile1:$modulefile2:$modulefile3:$path3/version';export _LMFILES_;"
+set lm_sh "LOADEDMODULES='$module1:$module2:$module3:version';export LOADEDMODULES;"
+set ts_sh "TESTSUITE='1.3';export TESTSUITE;"
+
+set lmf_csh "setenv _LMFILES_ '$modulefile1:$modulefile2:$modulefile3:$path3/version';"
+set lm_csh "setenv LOADEDMODULES '$module1:$module2:$module3:version';"
+set ts_csh "setenv TESTSUITE '1.3';"
+
+set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile1:$modulefile2:$modulefile3:$path3/version';"
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$module1:$module2:$module3:version';"
+set ts_perl "\$ENV{'TESTSUITE'} = '1.3';"
+
+#
+#  The tests
+#
+
+test_cmd "sh" "load version" "$lmf_sh$lm_sh$ts_sh"
+test_cmd "ksh" "load version" "$lmf_sh$lm_sh$ts_sh"
+test_cmd "zsh" "load version" "$lmf_sh$lm_sh$ts_sh"
+test_cmd "csh" "load version" "$lmf_csh$lm_csh$ts_csh"
+test_cmd "tcsh" "load version" "$lmf_csh$lm_csh$ts_csh"
+test_cmd "perl" "load version" "$lmf_perl$lm_perl$ts_perl"
+
+#
+# Remove a module
+#
+#  For the different shells ...
+#
+
+set env(_LMFILES_) "$modulefile1:$modulefile2:$path3/version:$modulefile3"
+set env(LOADEDMODULES) "$module1:$module2:version:$module3"
+set env(TESTSUITE) "1.3"
+
+set lmf_sh "_LMFILES_='$modulefile1:$modulefile2:$modulefile3';export _LMFILES_;"
+set lm_sh "LOADEDMODULES='$module1:$module2:$module3';export LOADEDMODULES;"
+set ts_sh "unset TESTSUITE;"
+
+set lmf_csh "setenv _LMFILES_ '$modulefile1:$modulefile2:$modulefile3';"
+set lm_csh "setenv LOADEDMODULES '$module1:$module2:$module3';"
+set ts_csh "unsetenv TESTSUITE;"
+
+set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile1:$modulefile2:$modulefile3';"
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$module1:$module2:$module3';"
+set ts_perl "delete \$ENV{'TESTSUITE'};"
+
+#
+#  The tests
+#
+
+test_cmd "sh" "unload version" "$lmf_sh$lm_sh$ts_sh"
+test_cmd "ksh" "unload version" "$lmf_sh$lm_sh$ts_sh"
+test_cmd "zsh" "unload version" "$lmf_sh$lm_sh$ts_sh"
+test_cmd "csh" "unload version" "$lmf_csh$lm_csh$ts_csh"
+test_cmd "tcsh" "unload version" "$lmf_csh$lm_csh$ts_csh"
+test_cmd "perl" "unload version" "$lmf_perl$lm_perl$ts_perl"
+
+#
+#  Cleanup
+#
+
+unset lm_sh
+unset lmf_sh
+unset ts_sh
+
+unset lm_csh
+unset lmf_csh
+unset ts_csh
+
+unset lm_perl
+unset lmf_perl
+unset ts_perl
+
+#
+#  Clean up the environment, too
+#
+
+unset env(MODULEPATH)
+unset env(MODULE_VERSION)
+unset env(MODULE_VERSION_STACK)
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+unset env(TESTSUITE)
+

@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.3 2001/07/09 18:21:36 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -328,8 +328,11 @@ int	cmdUnsetEnv(	ClientData	 client_data,
 	    fprintf( stderr, "%s ", *++argv);
 	fprintf( stderr, "\n");
     } else if( g_flags & M_REMOVE && argc == 3) {
+	int save_flags = g_flags;
 	/** allow an optional 3rd argument to set the env.var. to on removal **/
+	g_flags = (g_flags & ~M_REMOVE) | M_LOAD;
 	moduleSetenv( interp, argv[1], argv[2], 0);
+	g_flags = save_flags;
     } else {
 	moduleUnsetenv( interp, argv[1]);
     }

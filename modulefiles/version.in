@@ -5,26 +5,33 @@
 proc ModulesHelp { } {
         global version
 
-        puts stderr "\tadds the MODULE_VERSION environment variable"
+        puts stderr "\tChanges the MODULE_VERSION environment variable"
+        puts stderr "\tto the new version selected such that a different"
+        puts stderr "\tversion of the module command can be used."
         puts stderr "\n\tVersion $version\n"
 }
 
-module-whatis	"adds the MODULE_VERSION environment variable"
+module-whatis	"Changes the MODULE_VERSION environment variable"
 
 # for Tcl script use only
 set     version      @VERSION@
 
-if [ module-info mode load ] {
+if [ expr [ module-info mode load ] || [ module-info mode display ] ] {
 # get rid of old version
-	module		unload			modules
-	setenv		MODULE_VERSION		@VERSION@
+    module		unload			null
+    module		unload			modules
+    setenv		MODULE_VERSION		@VERSION@
 }
+
+# version stack
+    prepend-path 	MODULE_VERSION_STACK	@VERSION@
+
 if [ module-info mode remove ] {
- unsetenv MODULE_VERSION [lindex [split $env(MODULE_VERSION_STACK) : ] 1 ]
+    unsetenv MODULE_VERSION [lindex [split $env(MODULE_VERSION_STACK) : ] 0 ]
 }
-if [ module-info mode load ] {
+
+if [ expr [ module-info mode load ] || [ module-info mode display ] ] {
 # bring in new version
-	module		load			modules
+    module		load			modules
 }
-prepend-path 	MODULE_VERSION_STACK	@VERSION@
 

@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.3 2001/07/09 18:21:36 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -179,7 +179,6 @@ int	cmdSetPath(	ClientData	 client_data,
      **  Get the old value of the variable. MANPATH defaults to "/usr/man".
      **  Put a \ in front of each '.' and '+'.
      **/
-
     oldpath = Tcl_GetVar2( interp, "env", argv[1], TCL_GLOBAL_ONLY);
     _TCLCHK(interp)
 
@@ -269,18 +268,16 @@ int	cmdSetPath(	ClientData	 client_data,
 	    if( !append) {
 		char ch = *endp;
 		*endp = '\0';
-		/* sprintf(newpath, "%s:%s", oldpath, argv[2]); */
 		strcpy(newpath, oldpath);
-		strcat(newpath, ":");
+		if (newpath[strlen(newpath)-1] != ':')	strcat(newpath, ":");
 		strcat(newpath, argv[2]);
 		*endp = ch;
 		strcat(newpath, endp);
 	    } else {
 		char ch = *startp;
 		*startp = '\0';
-		/* sprintf(newpath, "%s%s:", oldpath, argv[2]); (error?) */
 		strcpy(newpath, argv[2]);
-		strcat(newpath, ":");
+		if (*oldpath != ':')	strcat(newpath, ":");
 		strcat(newpath, oldpath);
 		*startp = ch;
 		strcat(newpath, startp);
@@ -293,14 +290,12 @@ int	cmdSetPath(	ClientData	 client_data,
 	     **/
 
 	    if( !append) {
-		/* sprintf( newpath, "%s:%s", argv[2], oldpath); */
 		strcpy(newpath, argv[2]);
-		strcat(newpath, ":");
+		if (*oldpath != ':')	strcat(newpath, ":");
 		strcat(newpath, oldpath);
 	    } else {
-		/* sprintf( newpath, "%s:%s", oldpath, argv[2]); */
 		strcpy(newpath, oldpath);
-		strcat(newpath, ":");
+		if (newpath[strlen(newpath)-1] != ':')	strcat(newpath, ":");
 		strcat(newpath, argv[2]);
 	    }
 
@@ -468,7 +463,6 @@ int	cmdRemovePath(	ClientData	 client_data,
      **  This is to ensure the colons get cut off properly.
      **/
 
-    /* sprintf( searchpath, "^%s:", buffer); */
     strcpy( searchpath, "^");
     strcat( searchpath, buffer);
     strcat( searchpath, ":");
@@ -488,7 +482,6 @@ int	cmdRemovePath(	ClientData	 client_data,
 
     } else {
 
-	/* sprintf( searchpath, ":%s:", buffer); */
 	strcpy( searchpath, ":");
 	strcat( searchpath, buffer);
 	strcat( searchpath, ":");
@@ -508,7 +501,6 @@ int	cmdRemovePath(	ClientData	 client_data,
 
 	} else {
 
-	    /* sprintf( searchpath, ":%s$", buffer); */
 	    strcpy( searchpath, ":");
 	    strcat( searchpath, buffer);
 	    strcat( searchpath, "$");
@@ -528,7 +520,6 @@ int	cmdRemovePath(	ClientData	 client_data,
 
 	    } else {
 
-		/* sprintf( searchpath, "^%s$", buffer); */
 		strcpy( searchpath, "^");
 		strcat( searchpath, buffer);
 		strcat( searchpath, "$");
@@ -628,13 +619,10 @@ int	cmdRemovePath(	ClientData	 client_data,
 	*(startp + start_offset) = '\0';
 
 	if(*(endp + end_offset) == '\0') {
-	    /* sprintf( newenv, "%s:%s", oldpath, sw_marker); */
 	    strcpy( newenv, oldpath);
 	    strcat( newenv, ":");
 	    strcat( newenv, sw_marker);
 	} else {
-	    /* sprintf( newenv, "%s%s%s", oldpath, sw_marker, endp +
-		end_offset); */
 	    strcpy( newenv, oldpath);
 	    strcat( newenv, sw_marker);
 	    strcat( newenv, endp + end_offset);
