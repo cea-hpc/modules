@@ -999,6 +999,7 @@ proc cmdModulePaths {mod} {
                 }
             }
         }
+	set junk ""
     } errMsg
     if {$errMsg != ""} {
 	reportWarning "ERROR: module paths $mod failed. $errMsg"
@@ -1081,6 +1082,7 @@ proc cmdModuleSource {args} {
 	    pushMode "load"
 	    catch {
 		source $file
+		set junk ""
 	    }
 	    popMode
 	} else {
@@ -1113,6 +1115,7 @@ proc cmdModuleLoad {args} {
 		}
 		catch {
 		    source $modfile
+		    set junk ""
 		} moderr
 		popMode
 		if {$moderr != ""} {
@@ -1151,6 +1154,7 @@ proc cmdModuleUnload {args} {
 		    saveSettings
 		    catch {
 			source $modfile
+			set junk ""
 		    } moderr
 		    popMode
 		    if {$moderr != ""} {
@@ -1289,6 +1293,7 @@ proc cmdModuleUnuse {args} {
 		pushMode "unload"
 		catch {
 		    unload-path MODULEPATH $path
+		    set junk ""
 		}
 		popMode "unload"
 		if { [info exists env(MODULEPATH) ] &&
@@ -1435,7 +1440,7 @@ catch {
 	}
 	default {
 	    report {
-		ModulesTcl 0.100/$Revision: 1.19 $:
+		ModulesTcl 0.100/$Revision: 1.20 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
