@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.3 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.4 2001/08/17 17:46:05 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -209,34 +209,35 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
          **/
 
 	g_current_module = modulename;
-	if( TCL_OK == return_val &&
-            0 == Read_Modulefile( tmp_interp, filename)) {
+	if( TCL_OK == return_val) {
+            if( 0 == Read_Modulefile( tmp_interp, filename)) {
 
-	    Update_LoadedList( tmp_interp, modulename, filename);
+		Update_LoadedList( tmp_interp, modulename, filename);
 
-	    /**
-	     **  Save the current environment setup before the next module
-	     **  file is (un)loaded in case something is broken ...
-	     **  ... for Unwind_Modulefile_Changes later on
-	     **/
+		/**
+		 **  Save the current environment setup before the next module
+		 **  file is (un)loaded in case something is broken ...
+		 **  ... for Unwind_Modulefile_Changes later on
+		 **/
 
-            if( oldTables) {
-                Delete_Hash_Tables( oldTables);
-                free((char*) oldTables);
-            }
-            oldTables = Copy_Hash_Tables();
-            a_successful_load = 1;
+        	if( oldTables) {
+                    Delete_Hash_Tables( oldTables);
+                    free((char*) oldTables);
+        	}
+        	oldTables = Copy_Hash_Tables();
+		a_successful_load = 1;
 
-	} else {
+	    } else {
 
-	    /**
-	     **  Reset what has been changed.
-	     **/
+		/**
+		 **  Reset what has been changed.
+		 **/
 
-	    Unwind_Modulefile_Changes( tmp_interp, oldTables);
+		Unwind_Modulefile_Changes( tmp_interp, oldTables);
             
-            oldTables = NULL;
-	    return_val = TCL_ERROR;
+        	oldTables = NULL;
+		return_val = TCL_ERROR;
+	    }
 	}
 
         Tcl_DeleteInterp(tmp_interp);
