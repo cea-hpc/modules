@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.in,v 1.8 2002/03/11 23:21:17 lakata Exp $
+dnl Revision:    $Id: configure.in,v 1.9 2002/04/24 01:08:56 lakata Exp $
 dnl Created:     94/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -166,6 +166,19 @@ AC_ARG_WITH(dot-ext,
 	else
 		AC_DEFINE_UNQUOTED(DOT_EXT, "")
 	fi)
+AC_ARG_WITH(tmp-dir,
+	[  --with-tmp-dir=<dir>]     use <dir> as a temporary dir    [/tmp]],
+        if test ! -d $withval ; then
+           AC_MSG_ERROR([tmp dir $withval does not exist])
+        fi
+	AC_DEFINE_UNQUOTED(TMP_DIR, "$withval")
+	AC_MSG_RESULT([TMP_DIR = $withval]),
+        if test -d "/tmp" ; then
+           AC_DEFINE_UNQUOTED(TMP_DIR, "/tmp")
+        elif test -d "/var/tmp" ; then
+           AC_DEFINE_UNQUOTED(TMP_DIR, "/var/tmp")
+        fi
+	)
 dnl
 dnl
 dnl
@@ -602,7 +615,7 @@ dnl --------------------------------------------------------------
 dnl Now put it all out!
 dnl
 AC_OUTPUT(Makefile modules.lsm .spec doc/Makefile init/Makefile
-	init/bash init/csh init/ksh init/perl init/python init/sh init/tcsh
+	init/bash init/csh init/ksh init/perl init/python init/sh
 	init/zsh init/.modulespath
 	doc/module.1 doc/modulefile.4
 	etc/Makefile etc/add.modules etc/mkroot
