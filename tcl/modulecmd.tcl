@@ -448,7 +448,7 @@ proc renderSettings {} {
     global g_stateEnvVars g_stateAliases
     global g_newXResources g_delXResources
     global error_count
-    
+
     set iattempt 0
     set f ""
     while {$iattempt < 100 && $f == ""} {
@@ -661,7 +661,6 @@ proc renderSettings {} {
 		    puts $f "/bin/false"
 		}
 		perl {
-		    # HMS: is this right?
 		    puts $f "die \"modulefile.tcl: $error_count error(s) detected!\\n\""
 		}
 		python {
@@ -898,7 +897,7 @@ proc cmdModuleSearch {{mod {}} {search {}} } {
 	    if [file isfile $mod] {
 		set availHash($mod) 1
 	    }
- 	    foreach file [lsHack $mod] {
+	    foreach file [lsHack $mod] {
 		set availHash($file) 1
 	    }
 	    foreach mod2 [lsort -dictionary [array names availHash]] {
@@ -1067,7 +1066,7 @@ proc cmdModuleAvail { {mod {}}} {
 		set availHash($mod) 1
 	    }
 #puts stderr "globing $dir/$mod/*"
- 	    foreach file [lsHack $mod] {
+	    foreach file [lsHack $mod] {
 
 #puts stderr "glob returned $file"
 		set availHash($file) 1
