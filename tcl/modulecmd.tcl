@@ -2025,7 +2025,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.37 $:
+                ModulesTcl 0.101/$Revision: 1.38 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
@@ -2057,6 +2057,10 @@ set g_shell [lindex $argv 0]
 set command [lindex $argv 1]
 set argv [lreplace $argv 0 1]
 set g_debug 0
+
+# needed on a gentoo system. Shouldn't hurt since it is
+# supposed to be the default behavior
+fconfigure stderr -translation auto
 
 # Parse options
 set optIndex [lsearch -regexp $argv {^-}]
