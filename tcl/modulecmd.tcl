@@ -656,7 +656,6 @@ proc pushMode {mode} {
 }
 
 proc popMode {} {
-#
 
     global g_modeStack
     set len [llength $g_modeStack]
@@ -711,13 +710,24 @@ proc getPathToModule {mod} {
 			    set ModulesVersion [execute-version "$path/.version"]
 	                    if { $ModulesVersion == "" || 
                                  ![file exists "$path/$ModulesVersion"]} {
+				# Some may not want this warning message
+				# comment it out if you do not want it.
            	                reportWarning "WARNING from getPathToModule: Execution of $path/.version did not set the ModulesVersion variable as expected."
                                 # This is the fallback
-                                set ModulesVersion [file tail [lindex [listModules $path ""] end]]
+                                set ModulesVersion [file dirname [lindex [listModules $path "" 0] end]]
                             }
 			} else {
-			    set ModulesVersion [file tail [lindex [listModules $dir $mod] end]]
+			    set ModulesVersion [file dirname [lindex [listModules $path "" 0] end]]
 			}
+                        if { $ModulesVersion == "." } {
+                           # No subdirectories left - take the tail file
+                           set ModulesVersion [file tail [lindex [listModules $dir $mod] end]]
+                        }
+                        if { $ModulesVersion == "" } {
+                            reportWarning "WARNING: Module $mod not found on \$MODULEPATH.\nHINT: Use 'module use ...' to add to search path."
+                            return ""
+                        }
+
 			set path "$path/$ModulesVersion"
 			set mod "$mod/$ModulesVersion"
 		    }
@@ -1236,19 +1246,29 @@ proc cmdModuleList {} {
             }
 	}
 # save room for numbers and spacing: 2 digits + ) + space + space
-	incr max 1
+        set col_width [expr $max +4]
         if [info exist env(COLUMNS)] {
-           set cols [expr int($env(COLUMNS)/($max+4))]
+           set cols [expr int($env(COLUMNS)/$col_width)]
         } else {
-           set cols [expr int(79/($max+4))]
+           set cols [expr int(79/$col_width)]
         }
-	set lines [expr int(([llength $list] -1)/ $cols) +1]
-	for {set i 0} { $i < $lines} {incr i} {
-	    for {set col 0} {$col < $cols } { incr col} {
-		set index [expr $col * $lines + $i]
+        # safety check to prevent divide by zero error below
+        if {$cols <= 0} {set cols 1}
+ 
+        # Don't count the '{}' at the begining of 'list'
+        set item_cnt [expr [llength $list] - 1]
+        set rows [expr int($item_cnt / $cols)]
+        set lastrow_item_cnt [expr int($item_cnt % $cols)]
+        if {$lastrow_item_cnt > 0} {incr rows}
+        #report "list = $list"
+        #report "rows/cols = $rows/$cols,   max = $max"
+        #report "item_cnt = $item_cnt,  lastrow_item_cnt = $lastrow_item_cnt"
+        for {set row 0} { $row < $rows } {incr row} {
+            for {set col 0} {$col < $cols} {incr col} {
+                set index [expr $col * $rows + $row + 1]
 		set mod [lindex $list $index]
 		if {$mod != ""} {
-		    set mod [format "%2d) %-${max}s" [expr $index+1] $mod]
+		    set mod [format "%2d) %-${max}s" $index $mod]
 		    report $mod -nonewline
 		}
 	    }
@@ -1500,13 +1520,23 @@ proc cmdModuleAvail { {mod {*}}} {
             if [info exist env(COLUMNS)] {
                 set cols [expr int($env(COLUMNS)/($max))]
             } else {
-                set cols [expr int(79/($max))]
+                set cols [expr int(80/($max))]
             }
+            # safety check to prevent divide by zero error below
+            if {$cols <= 0} {set cols 1}
 
-	    set lines [expr int(([llength $list] -1)/ $cols) +1]
-	    for {set i 0} { $i < $lines} {incr i} {
+           # There is no '{}' at the begining of this 'list' as there is in cmd 
+	   #               ModuleList - ?
+           set item_cnt [expr [llength $list] - 0]
+           set rows [expr int($item_cnt / $cols)]
+           set lastrow_item_cnt [expr int($item_cnt % $cols)]
+           if {$lastrow_item_cnt > 0} {incr rows}
+           #report "list = $list"
+           #report "rows/cols = $rows/$cols,   max = $max"
+           #report "item_cnt = $item_cnt,  lastrow_item_cnt = $lastrow_item_cnt"
+           for {set row 0} { $row < $rows} {incr row} {
 		for {set col 0} {$col < $cols } { incr col} {
-		    set index [expr $col * $lines + $i]
+		    set index [expr $col * $rows + $row]
 		    set mod2 [lindex $list $index]
 		    if {$mod2 != ""} {
 			set mod2 [format "%-${max}s" $mod2]
@@ -1622,7 +1652,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.100/$Revision: 1.32 $:
+                ModulesTcl 0.100/$Revision: 1.33 $:
                 Available Commands and Usage:
                  add|load              modulefile [modulefile ...]
                  rm|unload             modulefile [modulefile ...]
