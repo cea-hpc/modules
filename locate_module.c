@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.3 2001/11/05 21:50:41 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -195,6 +195,12 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 		return( TCL_ERROR);	/** --- EXIT PROCEDURE (FAILURE) --> **/
 	
 	    /**
+	     **  Reinstall the 'modulefile' which has been corrupted by
+	     **  tokenization
+	     **/
+	    *p = '/';
+
+	    /**
 	     **  ... Looks good! Conditionally (if there has been no version
 	     **  specified) we have to add the default version
 	     **/
@@ -208,13 +214,6 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
                 strcat( filename, result);
             }
  
-	    /**
-	     **  Reinstall the 'modulefile' which has been corrupted by tokeni-
-	     **  zation
-	     **/
-
-	    *p = '/';
-
         } else {
 
 	    /**

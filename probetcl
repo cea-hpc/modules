@@ -4,9 +4,16 @@
 # This is put into an extra file because of M4 interpreting the brackets ... ;-(
 
 if [ $# -gt 1 ]; then
-    tcl_version=`$1/tcl -c "puts [info tclversion]"`
+	tcl_version=`echo "puts [info tclversion]" | $1/tclsh 2>/dev/null`
 else
-    tcl_version=`tcl -c "puts [info tclversion]"`
+	tcl_version=`echo "puts [info tclversion]" | tclsh 2>/dev/null`
+fi
+if [ x$tcl_version = x ]; then
+	if [ $# -gt 1 ]; then
+		tcl_version=`echo "puts [info tclversion]" | $1/tcl 2>/dev/null`
+	else
+		tcl_version=`echo "puts [info tclversion]" | tcl 2>/dev/null`
+	fi
 fi
 
 echo $tcl_version
