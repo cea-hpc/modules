@@ -19,10 +19,13 @@
 #
 ##############################################################################
 
-set pwd [pwd]
-
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH ... $pwd/modulefiles"
+if [info exists env(TESTSUITEDIR)] {
+    set env(MODULEPATH) "$env(TESTSUITEDIR)/modulefiles"
+    if { $verbose > 0 } {
+	send_user "\tSetup MODULEPATH ... $env(MODULEPATH)"
+    }
+} else {
+    send_user "\n\n\nFATAL: Please set the TESTSUITEDIR env var first\n\n\n"
+    exit
 }
-
-set env(MODULEPATH) "$pwd/modulefiles"
+    
