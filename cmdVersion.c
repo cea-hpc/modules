@@ -43,7 +43,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.5 2002/08/14 21:06:00 lakata Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.6 2002/08/22 21:39:16 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -92,15 +92,15 @@ static void *UseId[] = { &UseId, Id };
 /**	list of module	    list of names depending    list of aliases	     **/
 /**	paths		    to a single module file			     **/
 /**									     **/
-/**   Each module name points to a list of symbolic names and versions.	     **/
-/**   The versions themselves can be symbolic names and therefore are of the **/
-/**   same record type as the names.					     **/
-/**   The name and the version list is alphabetically sorted (even the       **/
-/**   module list is). A version record points to a related name record	     **/
-/**   containing a symbolic name for the version. Starting at this record,   **/
-/**   the name records built a queue of symbolic names for the version.	     **/
-/**   Both, the version and the name record do have a backward pointer to    **/
-/**   the module record.						     **/
+/**X  Each module name points to a list of symbolic names and versions.	     **/
+/**X  The versions themselves can be symbolic names and therefore are of the **/
+/**X  same record type as the names.					     **/
+/**X  The name and the version list is alphabetically sorted (even the       **/
+/**X  module list is). A version record points to a related name record	     **/
+/**X  containing a symbolic name for the version. Starting at this record,   **/
+/**X  the name records built a queue of symbolic names for the version.	     **/
+/**X  Both, the version and the name record do have a backward pointer to    **/
+/**X  the module record.						     **/
 /**									     **/
 /**   The alias list is an associative array where the alias is a substitute **/
 /**   string, which may contain other aliases.  An alias string	can contain  **/
@@ -908,7 +908,7 @@ const char *	AliasLookup( const char *alias )
  ** 									     **
  **   Function:		VersionLookup					     **
  ** 									     **
- **   Description:	Resolves a given alias to a module/version string    **
+ **   Description:	Resolves a given name to a module/version string    **
  ** 									     **
  **   First Edition:	1995/12/28					     **
  ** 									     **
@@ -920,35 +920,29 @@ const char *	AliasLookup( const char *alias )
  **   Result:		int	1		Success, value in the buffer **
  **						is valid		     **
  **				0		Any error, or not found	     **
- **   Attached Globals:	g_current_module	The module which is handled  **
- **						by the current command	     **
+ **   Attached Globals:	modlist		List containing all version names    **
+ **			aliaslist	List containing all aliases	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
 
-int	VersionLookup(	char *name, const char **module, char **version)
+int	VersionLookup(	char *name, char **module, char **version)
 {
     ElemModule	*mptr;
     char	*s, *t;
-    static char  buffer[ BUFSIZ];
-#if 0
-    ModName	*vptr, *vtmp;
-    ModName	**history;
-    int		 histsize = 0, histndx = 0, i;
-#endif
+    char	 buffer[BUFSIZ];
 
     /**
-     **  Check whether this is an alias ...
-     **  BTW: Alias lookups return the FQMN (full qualifed module name ;-)
+     **  If given a path - check module list
      **/
 
     if( '/' == *name) {
-	strcpy( buffer, g_current_module);
-	if( s = strrchr( buffer, '/'))
-	    *s = '\0';
-	*module = buffer;
-	*version = name + 1;
-    
+	if((ElemModule *) NULL == (mptr = FindModule(name)))
+		return 0;
+	*module = (char *) NULL;
+	/* return default - if given */
+	if(!(*version = FindName(mptr,_default)))
+		return 0;
     } else {
 
 	strcpy( buffer, name);
@@ -969,83 +963,11 @@ int	VersionLookup(	char *name, const char **module, char **version)
 
     /**
      **  Look up modulename ...
-     **  We call it success, if we do not find a registerd name.
+     **  We call it success, if we do not find a registered name.
      **  In this case <module>/<version> will be returned as passed.
      **/
     if((ElemModule *) NULL == (mptr = FindModule(g_module_path)))
 	return( 1);			/** -------- EXIT (SUCCESS) -------> **/
-
-#if 0
-    /**
-     **  This is for preventing from endless loops
-     **/
-    histsize = HISTTAB;
-    histndx = 0;
-
-    if((ModName **) NULL == (history = (ModName **) malloc( histsize * 
-	sizeof( ModName *)))) {
-	ErrorLogger( ERR_ALLOC, LOC, NULL);
-	return( 0);			/** -------- EXIT (FAILURE) -------> **/
-    }
-
-    /**
-     **  Now look up the version name. Check symbolic names first. If some-
-     **  thing is found, check if the related version record itself relates
-     **  to a name record ...
-     **/
-    while( 1) {
-
-	/**
-	 **  Check the symbolic names ...
-	 **/
-	if((ModName *) NULL != (vptr = FindName( *version, mptr->name))){
-	    if( !vptr->version || !vptr->version->name) {
-		if( OK != ErrorLogger( ERR_INTERAL, LOC, NULL)) 
-		    *version = (char *) NULL;
-		break;
-	    }
-
-	    *version = vptr->version->name;
-
-	    /**
-	     **  Prevent from looping ...
-	     **/
-	    for( i=0; i<histndx; i++) {
-		if( history[ i] == vptr) {		/** That's the loop  **/
-		    ErrorLogger( ERR_SYMLOOP, LOC, *version, NULL);
-		    *version = (char *) NULL;
-		    break;
-		}
-	    }
-
-	    if( !*version)
-		break;
-
-	    if( histndx >= histsize) {
-		histsize += HISTTAB;
-
-		if((ModName **) NULL == (history = (ModName **) realloc(
-		    history, histsize * sizeof( ModName *)))) {
-		    ErrorLogger( ERR_ALLOC, LOC, NULL);
-		    return( 0);		/** -------- EXIT (FAILURE) -------> **/
-		}
-	    }
-
-	    history[ histndx++] = vptr;
-
-	} else {
-	    break;
-
-	} /** if( FindName) **/
-    } /** while( 1) **/
-
-    /**
-     **  Free the loop preventing list
-     **  If version is NULL now, something went wrong in the lookup loop above
-     **/
-    null_free((void *) &history);
-    return((char *) NULL != *version);
-#endif
 
 } /** End of 'VersionLookup' **/
 
@@ -1064,7 +986,7 @@ int	VersionLookup(	char *name, const char **module, char **version)
  ** 					else != 0 if failure		     **
  ** 									     **
  **   Attached Globals:	modlist		List containing all version names    **
- **			aliaslist	List containing all alises	     **
+ **			aliaslist	List containing all aliases	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/

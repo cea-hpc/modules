@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.7 2002/08/14 21:07:52 lakata Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.8 2002/08/22 21:39:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -1093,9 +1093,9 @@ char *GetDefault(Tcl_Interp *interp, char *path)
     char *buffer,			/** fullpath buffer		**/
     	 *save_module_path,		/** save module path state	**/
 	 *version = (char *) NULL,	/** return string		**/
-	**dirlist;			/** dir listing (if needed)	**/
-    const char *mod;
-    char *ver;                  	/** module,version		**/
+	**dirlist,			/** dir listing (if needed)	**/
+	 *new_argv[4];			/** module-version argv array	**/
+    char *mod, *ver;                  	/** module,version		**/
 
     /**
      **  If there's a problem with the input parameters it means, that
@@ -1134,11 +1134,10 @@ char *GetDefault(Tcl_Interp *interp, char *path)
 
 	    if (TCL_ERROR != (Result = Execute_TclFile(interp, buffer))) {
 		/**
-		 **  The version has been specified in the
+		 **  Maybe the version has been specified in the
 		 **  '.modulerc' file. Set up the result code
 		 **/
-		    /* RKO : need to call VersionLookup here */
-		if (VersionLookup(path,&mod,&ver)) {
+		if (VersionLookup(path,&mod, &ver)) {
 			version = ver;
 			goto unwind1;
 		}
@@ -1170,7 +1169,14 @@ char *GetDefault(Tcl_Interp *interp, char *path)
 		/**
 		 **  The version has been specified in the
 		 **  '.version' file. Set up the result code
+		 **  First set the module-version properly
 		 **/
+		new_argv[0] = "module-version";
+		new_argv[1] = version;
+		new_argv[2] = _default;
+		new_argv[3] = NULL;
+		(void) cmdModuleVersion( (ClientData) 0,
+		    (Tcl_Interp *) NULL, 3, new_argv);
 		goto unwind1;
 	    }
 	}
