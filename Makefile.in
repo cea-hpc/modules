@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # File:        Makefile.in
-# Revision:    $Id: Makefile.in,v 1.10 2001/06/10 05:35:53 rkowen Exp $
+# Revision:    $Id: Makefile.in,v 1.11 2001/08/03 19:59:32 rkowen Exp $
 # Created:     94/06/18
 # Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 #
@@ -25,6 +25,8 @@ CC		= @CC@
 SED		= sed
 TAR		= tar
 GZIP		= gzip
+BZIP2		= bzip2
+CVS		= cvs
 FIND		= find
 XARGS		= xargs
 RM		= rm
@@ -153,9 +155,15 @@ cxref:
 	@echo "You may need to run this twice!"
 	@echo "==============================="
 
-dist: $(srcdir)/configure 
+dist: distgz distbz2
+
+distgz : ${DISTNAME}.tar.gz
+
+distbz2 : ${DISTNAME}.tar.bz2
+
+${DISTNAME}.tar.gz : $(srcdir)/configure 
 	@echo "checking out ${DISTNAME} into directory modules"
-	cvs -f checkout -r \
+	${CVS} -f checkout -r \
 	 `${SED} -n -e 's/^.*NEW TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c` \
 	 modules
 	@echo "renaming directory to ${DISTNAME}"
@@ -169,18 +177,27 @@ dist: $(srcdir)/configure
 	@echo "removing directory ${DISTNAME}"
 	${RM} -r ${DISTNAME}
 
+${DISTNAME}.tar.bz2 : ${DISTNAME}.tar.gz
+	@echo "Creating ${DISTNAME}.tar.bz2"
+	${GZIP} -d -c ${DISTNAME}.tar.gz | ${BZIP2} > ${DISTNAME}.tar.bz2
+
 patch: $(srcdir)/configure
 	@echo "Creating patch file -- do this after CVS tagging"
-	cvs rdiff -c \
+	${CVS} rdiff -c \
 	 -r `${SED} -n -e 's/^.*OLD TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c` \
 	 -r `${SED} -n -e 's/^.*NEW TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c` \
-	modules | gzip -c \
+	modules | ${GZIP} -c \
 	> modules-`${SED} -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`${SED} -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`.diff.gz
+	${CVS} rdiff -c \
+	 -r `${SED} -n -e 's/^.*OLD TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c` \
+	 -r `${SED} -n -e 's/^.*NEW TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c` \
+	modules | ${BZIP2} -c \
+	> modules-`${SED} -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`${SED} -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`.diff.bz2
 
 tag:
 	@echo "CVS tagging - TAG = "\
 	  `${SED} -n -e 's/^.*NEW TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c`
-	cvs rtag -F \
+	${CVS} rtag -F \
 	  `${SED} -n -e 's/^.*NEW TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c` \
 	  modules
 
@@ -191,11 +208,14 @@ lsm:
 
 ftp-local:
 # this should be done by the maintainer (R.K.Owen) only!
-	@echo "placing $(DISTNAME).tar.gz"
+	@echo "placing $(DISTNAME).tar.{gz|bz2}"
 	-@if [ -e $(DISTNAME).tar.gz ]; then \
 		cp $(DISTNAME).tar.gz /u/ftp/pub/rkowen/modules; \
 	else echo "Can't find $(DISTNAME).tar.gz"; fi
-	-@XXX=modules-`${SED} -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`${SED} -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`.diff.gz ; \
+	-@if [ -e $(DISTNAME).tar.bz2 ]; then \
+		cp $(DISTNAME).tar.bz2 /u/ftp/pub/rkowen/modules; \
+	else echo "Can't find $(DISTNAME).tar.bz2"; fi
+	-@XXX=modules-`${SED} -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`${SED} -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`.diff."*" ; \
 	echo "placing $$XXX"; \
 	if [ -e $$XXX ]; then \
 		cp $$XXX /u/ftp/pub/rkowen/modules; \
@@ -211,15 +231,15 @@ ftp-sunsite:
 # do local files first ... mostly to verify their existence
 # this should be done by the maintainer (R.K.Owen) only!
 	@echo "placing sunsite.unc.edu files";
-	-@XXX=modules-`${SED} -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`${SED} -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`.diff.gz ; \
-	echo "placing modules.lsm $$XXX $(DISTNAME).tar.gz"; \
-	./.ftp modules.lsm $$XXX $(DISTNAME).tar.gz;
+	-@XXX=modules-`${SED} -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`${SED} -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`.diff."*" ; \
+	echo "placing modules.lsm $$XXX $(DISTNAME).tar.*"; \
+	./.ftp modules.lsm $$XXX $(DISTNAME).tar.*;
 
 ftp-sourceforge-rko:
 	@echo "placing modules.sourceforge.net files";
-	-@XXX=modules-`${SED} -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`${SED} -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`.diff.gz ; \
-	echo "placing modules.lsm $$XXX $(DISTNAME).tar.gz"; \
-	scp modules.lsm $$XXX $(DISTNAME).tar.gz rkowen@shell.sourceforge.net:ftp
+	-@XXX=modules-`${SED} -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`${SED} -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`.diff."*" ; \
+	echo "placing modules.lsm $$XXX $(DISTNAME).tar."*""; \
+	scp modules.lsm $$XXX $(DISTNAME).tar."*" rkowen@shell.sourceforge.net:ftp
 
 clean:
 	rm -f modulecmd *.o core
