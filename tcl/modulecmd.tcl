@@ -791,7 +791,7 @@ proc renderSettings {} {
 			}
 			sh {
 			    set val $g_Aliases($var)
-			    puts $f "function $var () {$val;}"
+			    puts $f "function $var () { $val;}"
 			}
 		    }
 		}
@@ -1605,7 +1605,7 @@ catch {
 	}
 	default {
 	    report {
-		ModulesTcl 0.100/$Revision: 1.26 $:
+		ModulesTcl 0.100/$Revision: 1.27 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
