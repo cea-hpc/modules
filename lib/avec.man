@@ -1,0 +1,455 @@
+.\" RCSID @(#)$Id: avec.man,v 1.1 2002/07/18 22:03:39 rkowen Exp $
+.\" LIBDIR
+.TH "avec" "3rko" "31 Oct 1997"
+.SH NAME
+avec \- associative vector (hash array) stores data according to a string key.
+
+.SH SYNOPSIS
+
+.nf
+
+enum avec_def_fns {AVEC_DEFAULT, AVEC_USER, AVEC_COUNT, AVEC_STDC
+#  ifdef HAVE_STRMALLOC
+	, AVEC_STRMALLOC
+#endif
+	};
+
+
+typedef struct {
+	/* store the data type - user can ignore this */
+	enum avec_def_fns	type;
+	int  (*data_add)(void **,va_list); /* allocate data element for insert*/
+	int  (*data_del)(void **,va_list); /* dealloc  data element for delete*/
+	int  (*data_rm)(void **,va_list);  /* remove   data element for close*/
+} avec_fns;
+	
+typedef struct {
+	char const	 *key;		/* key for associative array */
+	void		 *data;		/* container for datum */
+} avec_element;
+
+typedef struct {
+	char		  tag[5];	/* name tag for this type */
+	avec_element	**hash;		/* container for keys & data */
+	int		  number;	/* current number of hash */
+	int		  capacity;	/* the possible capacity of hash */
+	int		  percentage;	/* percentage of capacity that
+					   forces a resize larger 
+					   (< 0 = no resizeing )*/
+	avec_fns	  fns;		/* which alloc fns to use */
+} avec;
+
+/* shield users from certain internal details */
+#define AVEC_KEY(elemptr)	((elemptr)->key)
+#define AVEC_DATA(elemptr)	((elemptr)->data)
+
+
+int                avec_set_fns(enum avec_def_fns type, avec_fns *fns);
+enum avec_def_fns  avec_get_fns(void);
+
+avec  *avec_ctor_(int cap, avec_fns fns);
+avec  *avec_ctor(int cap);
+int    avec_dtor(avec **av, ...);
+avec  *avec_alloc_(avec_fns strfns);
+avec  *avec_alloc(void);
+int    avec_dealloc(avec **av);
+int    avec_init_(avec *av, int cap, avec_fns fns);
+int    avec_init(avec *av, int cap);
+int    avec_close(avec *av, ...);
+
+int    avec_exists(avec const *av);
+int    avec_capacity(avec const *av);
+int    avec_number(avec const *av);
+int    avec_resize_percentage(avec *av, int percentage);
+ 
+int    avec_resize(avec *av, int newcap);
+int    avec_increase(avec *av, int newcap);
+int    avec_decrease(avec *av, int newcap);
+
+int    avec_insert(avec *av, char const *key, ...);
+int    avec_delete(avec *av, char const *key, ...);
+int    avec_remove(avec *av, char const *key, ...);
+void  *avec_lookup(avec *av, char const *key);
+
+avec_element             **avec_walk_r(avec *av, avec_element **ptrptr);
+avec_element             **avec_walk(avec *av);
+char const * const        *avec_keys(avec *av);
+void                     **avec_values(avec *av);
+avec_element const *const *avec_hash(avec *av);
+
+.fi
+
+.SH DESCRIPTION
+.I avec
+could have easily been made a C++ class, but is
+confined to C so that it can be maximally portable.
+This is an associative vector package (a hash array)
+that uses open-addressed
+quadratic hashing to search the hash array.
+That is, open-addressed means that all the data is stored in
+the hash table itself, as opposed to using chained lists.
+Quadratic hashing uses a hashing and search algorithm that is second order,
+which may have second order clustering.
+.P
+An associative vector provides approximately constant access to the
+stored data by using a hash function that converts the string key
+to an index in the hash array, then compares the key to what is stored
+in the data element, and if they compare then returns a pointer to
+the data.
+A perfect hashing function would have no ``collisions'' between
+any two of the input keys and would deliver a unique hash value
+for each.  However, this is not usually the case, and the quadratic
+hashing identifies subsequent hash array indexes to test.
+.P
+The capacity of the hash array should be a prime value and
+all capacities passed into any of the functions will be increased
+to the closet prime value.
+.P
+All the functions,
+except for the accessor and constructor functions,
+return 0 if no error or return <0 otherwise.
+
+.TP 15
+.I avec_set_fns
+register the set of data functions to use by default.
+
+.TP
+.I avec_get_fns
+query as to which set of data functions are being used,
+only the values given by enum avec_def_fns will be returned.
+
+.TP
+.I avec_ctor_
+construct associative vector to at least capacity ``cap''
+using the given set of data functions.
+
+.TP
+.I avec_ctor
+construct associative vector to capacity ``cap''
+using the default set of data functions.
+
+.TP
+.I avec_dtor
+destroy the associative vector and all contents.
+
+.TP
+.I avec_alloc_
+allocate the uninitialized avec object (no hash array is allocated)
+using the given set of data functions.
+
+.TP
+.I avec_alloc
+allocate the uninitialized avec object (no hash array is allocated)
+using the default set of data functions.
+
+.TP
+.I avec_dealloc
+Deallocate the avec object (hash array data elements are not touched)
+but the avec_element's are deallocated hence losing the keys and
+pointers to the data.  The user should have collected these pointers
+prior to this call, else there will be a massive memory leak.
+
+.TP
+.I avec_init_
+initialize associative vector to capacity ``cap''
+using the given set of data functions.  Creates the internal hash array.
+
+.TP
+.I avec_init
+initialize associative vector to capacity ``cap''
+using the default set of data functions.  Creates the internal hash array.
+
+.TP
+.I avec_close
+destroy the associative vector contents - data and keys.
+
+.TP
+.I avec_exists
+returns 0 if the associative vector is not constructed, else non-0.
+.TP
+.I avec_capacity
+returns the maximum capacity of the associative vector, otherwise returns -1
+if the vector is not defined or there are no elements to the vector.
+.TP
+.I avec_number
+returns the current number of entries (must always be less than
+the capacity, otherwise returns -1 if the vector is not defined.
+.TP
+.I avec_resize_percentage
+Sets or gets the percentage size of number to capacity that
+will cause an automatic resizing of the hash to a larger capacity.
+.br
+If percent==0 then it returns the current value, or the value 0 if
+no automatic resizing will be done.
+.br
+If percent < 0 then it turns off automatic resizing.
+If 10 < percent < 70 then automatic resizing will kick in if
+number/capacity * 100% > percent.
+
+.TP
+.I avec_resize
+Resize the internal hash array to the new capacity, which must be as large
+as the current collection of data elements!
+
+.TP
+.I avec_increase
+Enlarge the internal hash array to the new capacity.
+
+.TP
+.I avec_decrease
+Resize the internal hash array to the new capacity, which must be as large
+as the current collection of data elements!
+
+.TP
+.I avec_insert
+``insert'' an element for the given key.  This calls the object data_add
+function, which must handle either an empty slot or a pre-existing slot.
+See the section on
+.IR avec_fns .
+
+.TP
+.I avec_delete
+``deletes'' an element for the given key.  This calls the object data_del
+function, which must handle a pre-existing slot and either clear it
+or perform some action on it.
+See the section on
+.IR avec_fns .
+
+.TP
+.I avec_remove
+``removes'' an element for the given key.  This calls the object data_rm
+function, which must handle a pre-existing slot and remove the data.
+See the section on
+.IR avec_fns .
+
+.TP
+.I avec_lookup
+Returns the address of the pointer to the data element pointed
+to by the given key.
+
+.TP
+.I avec_walk_r
+A re-entrant version of
+.I avec_walk
+which will march through the entries of the object hash array
+with repeated calls
+returning a address of the pointer to the avec_element that contains the
+key and the data.
+The first call should have ptrptr = NULL, (unless you know exactly
+what you're doing).
+.I avec_walk_r
+will return NULL when all the elements have been visited.
+See the example.
+
+.TP
+.I avec_walk
+marches through the entries of the object hash array
+with repeated calls
+returning a pointer to the avec_element that contains the
+key and the data.
+The first call must have av pointing to an avec object,
+and subsequent calls must have av=NULL.
+br
+This routine is not thread safe since it uses internal static variables.
+It should not be used at all.  Use
+.I avec_walk_r
+instead.  See the example.
+
+.TP
+.I avec_keys
+Returns a Unix vector of pointers to the keys in the hash array.
+The returned vector needs to be free'd when through.
+Do not change the key values, else it screws up the hashing.
+
+.TP
+.I avec_values
+Returns a Unix vector of pointers to the data in the hash array.
+The returned vector needs to be free'd when through.
+The data values can be changed.
+
+.TP
+.I avec_hash
+Returns pointer to the internal hash array.  This routine is only
+meant for those users that want to study the hashing distribution.
+
+.SH AVEC_FNS
+
+.I avec
+provides the hashing mechanism only, and leaves the data handling
+to call-back functions.  A default set is provided which just
+associates a string to a key, and does not overwrite the stored
+string on subsequent calls to
+.I avec_insert
+for the same key.
+.P
+The form of these functions using StdC functions are as follows:
+
+.nf
+/* --------------------------------------------------- */
+/* wrappers for the StdC string functions
+ */
+int stdc_malloc (void **data, va_list ap) {
+        char const *str = va_arg(ap,char *);
+        if (!data) return -1;
+        if (*data) return 1;
+        if((*data = calloc((strlen(str)+1),sizeof(char)))) {
+                (void) strcpy((char *) *data, str);
+                return 0;
+        }
+        return -2;
+}
+int stdc_free (void **data, va_list ap) {
+        free(*data);
+        *data = (char *) NULL;
+        return 0;
+}
+
+avec_fns stdc_fns = {
+        AVEC_STDC,
+        stdc_malloc,
+        stdc_free,
+        stdc_free
+};
+
+.fi
+Note that the
+.I data_add
+function
+.I stdc_malloc
+returns 1 if the key already exists and only returns 0 if
+the data slot was unoccupied and a string memory allocation
+was successfully completed and the pointer placed there.
+A zero signals to
+.I avec_insert
+success and to increment the number of elements in the hash
+.P
+The second function in the
+.I avec_fns
+structure
+.IR data_del ,
+.I std_free
+in this case, is called only by
+.I avec_delete
+and does not need to deallocate the data, but must return
+a positive value in this case.  However, if it does
+deallocate the data then and only then it can return 0.
+This is the function used by
+.IR avec_delete .
+.P
+The third function in the
+.I ave_fns
+structure is
+.I data_rm
+and for the default case is
+.I std_free
+also.  This function must deallocate the data and never return a value
+greater than 0.  To do so is an error and may cause unexpected behavior.
+This is the function used by
+.I avec_remove
+and
+.IR avec_close .
+
+.P
+A second set of provided
+.I avec_fns
+can be used by declaring
+.I avec_set_fns(AVEC_COUNT, NULL);
+which will then use the internal counting functions for the
+next
+.IR avec_ctor(capacity) ,
+which does
+not allocate any memory for the data, but stores a numerical
+value in the (void *) data pointer.
+However, the numerical limit is limited by the size of a (void *)
+pointer, and it's upto the application to cast to an appropriate
+size integer type.  However, the following code fragment might be
+of use for a generalized way to retrieve values,  but ignore
+any compiler warnings because at least one of the casts should
+be to a different size.  A more efficient way would be to use a
+.I GNU configure
+script to arrive at the void * pointer size and use the appropriate
+sized integer, prior to compile time.
+.nf
+
+/* convert a void *  to a long */
+long v2l (void *vptr) {
+	unsigned int	icount;
+	unsigned short	scount;
+	unsigned long	lcount;
+
+	if (sizeof(void *) == sizeof(unsigned int)) {
+		icount = (unsigned int) vptr;
+		lcount = icount;
+	} else if (sizeof(void *) == sizeof(unsigned short)) {
+		scount = (unsigned short) vptr;
+		lcount = scount;
+	} else if (sizeof(void *) == sizeof(unsigned long)) {
+		lcount = (unsigned long) vptr;
+	} else {
+		lcount = (unsigned long) vptr;
+	}
+	return lcount;
+}
+.fi
+
+.SH EXAMPLES
+
+The following example counts some words that are inserted.
+(Some more detailed and varying examples can be viewed in the
+.I wf.c
+and
+.I memdbg.c
+sources.)
+
+.nf
+#include <stdio.h>
+#include "avec.h"
+
+int main() {
+	avec *wordcount;
+	avec_element **elem = (avec_element **) NULL;
+	int i;
+
+	if (avec_set_fns(AVEC_COUNT, NULL)) return -2;
+	if (!(wordcount = avec_ctor(50))) return -1;
+	if (avec_resize_percentage(wordcount,40)) return -3;
+
+	avec_insert(wordcount,"first");
+	for (i=0; i < 4; i++) {
+		avec_insert(wordcount,"second");
+		avec_insert(wordcount,"third");
+	}
+
+	while ((elem = avec_walk_r(wordcount, elem))) {
+		printf("%s\t%d\n", AVEC_KEY(*elem), (int) AVEC_DATA(*elem));
+	}
+
+	if(avec_dtor(&wordcount)) return -4;
+
+	return 0;
+}
+.fi
+.P
+Should get the following results:
+.nf
+first	1
+third	4
+second	4
+.fi
+
+.SH SEE ALSO
+malloc(3),free(3),strmalloc(3rko),rkoerror(3rko),uvec(3rko)
+
+.SH NOTES
+
+.SH DIAGNOSTICS
+Uses the
+.I rkoerror
+mechanism, and should be self explanatory.
+
+.SH BUGS
+
+.SH AUTHOR
+R.K.Owen,Ph.D. 2002/02/14
+
+.KEY WORDS
