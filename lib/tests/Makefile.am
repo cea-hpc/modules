@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./lib/tests/Makefile.am
-## Versions:    $Id: Makefile.am,v 1.1 2002/07/18 22:30:57 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.2 2002/09/13 04:50:41 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -18,11 +18,11 @@ noinst_PROGRAMS = tavec.x tiprime.x tisqrt.x tuvec.x tstrmalloc.x
 
 LDADD		= ../libmodules.a
 
-tavec_SOURCES		= tavec.c
-tiprime_SOURCES		= tiprime.c
-tisqrt_SOURCES		= tisqrt.c
-tuvec_SOURCES		= tuvec.c
-tstrmalloc_SOURCES	= tstrmalloc.c
+# tavec_SOURCES		= tavec.c
+# tiprime_SOURCES		= tiprime.c
+# tisqrt_SOURCES		= tisqrt.c
+# tuvec_SOURCES		= tuvec.c
+# tstrmalloc_SOURCES	= tstrmalloc.c
 
 help : 
 	@echo "Targets:"
