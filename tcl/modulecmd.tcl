@@ -21,6 +21,8 @@ echo FATAL: module: Could not find tclsh on \$PATH or in standard directories; e
 #
 
 set ignoreDir(CVS) 1
+set ignoreDIr(RCS) 1
+set ignoreDir(SCCS) 1
 set g_reloadMode  0
 
 proc module-info {what {more {}}} {
@@ -60,37 +62,42 @@ proc module-whatis {message} {
 }
 
 proc module {command args} {
-    upvar g_mode mode 
+    upvar g_mode mode
     global g_reloadMode
 
     if { $g_reloadMode == 1} {
 	return
     }
-    
+
     switch $command {
+	add -
 	load {
 	    if {$mode == "load"} {
-		cmdModuleLoad $args
+#puts stderr "DEBUG: module load: cmdModuleLoad <$args>"
+		eval cmdModuleLoad $args
 	    } elseif {$mode == "unload"} {
-		cmdModuleUnload $args
+#puts stderr "DEBUG: module load: cmdModuleUnload <$args>"
+		eval cmdModuleUnload $args
 	    } elseif {$mode == "display"} {
 		puts stderr "module load $args"
 	    }
 	}
+	rm -
 	unload {
 	    if {$mode == "load"} {
-		cmdModuleUnload $args
+		eval cmdModuleUnload $args
 	    } elseif {$mode == "unload"} {
-		cmdModuleUnload $args
+		eval cmdModuleUnload $args
 	    } elseif {$mode == "display"} {
 		puts stderr "module unload $args"
 	    }
 	}
 	use {
-	    cmdModuleUse $args
+#puts stderr "DEBUG: module: cmdModuleUse <$args>"
+	    eval cmdModuleUse $args
 	}
 	unuse {
-	    cmdModuleUnuse $args
+	    eval cmdModuleUnuse $args
 	}
 	default {
 	    error "module $command not understood"
@@ -99,7 +106,7 @@ proc module {command args} {
 }
 
 proc setenv {var val} {
-    global g_stateEnvVars env 
+    global g_stateEnvVars env
     upvar g_mode mode
 
     if {$mode == "load"} {
@@ -116,9 +123,9 @@ proc setenv {var val} {
 }
 
 proc unsetenv {var} {
-    global g_stateEnvVars env 
+    global g_stateEnvVars env
     upvar g_mode mode
-    
+
     if {$mode == "load"} {
 	if [info exists env($var)] {
 	    unset env($var)
@@ -155,7 +162,7 @@ proc getReferenceCountArray {var} {
 			set fixers($path) 1
 		    }
 		}
-		
+
 		foreach path [array names usagearr] {
 		    if {! [info exists countarr($path)]} {
 			set countarr($path) 999999999
@@ -181,7 +188,7 @@ proc getReferenceCountArray {var} {
     } else {
 	set modshareok 0
     }
-    
+
     if {$modshareok == 0 && [info exists env($var)]} {
 	array set countarr {}
 	foreach dir [split $env($var) ":"] {
@@ -196,7 +203,7 @@ proc unload-path {var path} {
     global g_stateEnvVars env
 
     array set countarr [getReferenceCountArray $var]
-    
+
     set doit 0
 
     foreach dir [split $path ":"] {
@@ -249,8 +256,8 @@ proc add-path {var path pos} {
 
     set sharevar "${var}_modshare"
     array set countarr [getReferenceCountArray $var]
-   
-   
+
+
     if {$pos == "prepend"} {
 	set pathelems [reverseList [split $path ":"]]
     } else {
@@ -307,7 +314,7 @@ proc append-path {var path} {
 }
 
 proc set-alias {alias what} {
-    global g_Aliases g_stateAliases 
+    global g_Aliases g_stateAliases
     upvar g_mode mode
 
     if {$mode == "load"} {
@@ -330,7 +337,7 @@ proc conflict {args} {
     if { $g_reloadMode == 1} {
 	return
     }
-    
+
     if {$mode == "load"} {
 	foreach conflict $args {
 	    set modpath [split $conflict "/"]
@@ -354,9 +361,9 @@ proc conflict {args} {
 }
 
 proc x-resource {resource {value {}}} {
-    global g_newXResources g_delXResources 
+    global g_newXResources g_delXResources
     upvar g_mode mode
-    
+
     if {$mode == "load"} {
 	set g_newXResources($resource) $value
     } elseif {$mode =="unload"} {
@@ -376,6 +383,7 @@ proc uname {what} {
 	    machine {
 		catch { exec /bin/uname -p } result
 	    }
+	    nodename -
 	    node {
 		catch { exec /bin/uname -n } result
 	    }
@@ -388,7 +396,7 @@ proc uname {what} {
 	}
 	set unameCache($what) $result
     }
-    
+
     return $unameCache($what)
 }
 
@@ -415,7 +423,7 @@ proc getPathToModule {mod} {
 			set path "$path/$ModulesVersion"
 			set mod "$mod/$ModulesVersion"
 		    }
-		    
+
 		    if [file isfile $path] {
 			return [list $path $mod]
 		    }
@@ -443,7 +451,7 @@ proc renderSettings {} {
 	set f [open  $tmpfile "w"]
 	incr iattempt
     }
-    
+
     if {$f == ""} {
 	error "Could not open a temporary file in /tmp/modulescript_* !"
     } else {
@@ -490,7 +498,7 @@ proc renderSettings {} {
 			puts $f "os.environ\['$var'\] = '$val'"
 		    }
 		}
-		
+
 	    }
 	}
 # new aliases
@@ -509,7 +517,7 @@ proc renderSettings {} {
 	    }
 	}
 
-# obsolete (deleted) env vars	
+# obsolete (deleted) env vars
 	foreach var [array names g_stateEnvVars] {
 	    if {$g_stateEnvVars($var) == "del"} {
 		switch $g_shellType {
@@ -572,7 +580,7 @@ proc renderSettings {} {
 				puts $f "print XRDB \"$var\\n\";"
 				puts $f "close XRDB;"
 			    }
-			} 
+			}
 			python {
 			    if [ file isfile $var] {
 				puts $f "os.popen('$xrdb -merge $var');"
@@ -672,7 +680,7 @@ proc spaceEscaped {text} {
 }
 
 proc multiEscaped {text} {
-    regsub -all {["'; ]} $text {\\\0} text 
+    regsub -all {["'; ]} $text {\\\0} text
 #"
     return $text
 }
@@ -714,7 +722,7 @@ proc reverseList {list} {
 # well on Cygwin with symlinks
 
 proc lsHack {dir} {
-    global tcl_platform
+    global tcl_platform ignoreDir
 
     if {$tcl_platform(os) == "Windows NT"} {
 	set fileParts [lrange [split $dir {/}] 0 1]
@@ -726,11 +734,31 @@ proc lsHack {dir} {
 	catch {
 #	    puts stderr  "globbing $pattern"
 	    set globlist [exec ls -d $pattern]
-	} 
+	}
     } else {
 	set globlist [glob -nocomplain "$dir/*"]
     }
-    return $globlist
+    foreach file $globlist {
+	set pieces [split $file "/"]
+	set ok 1
+	foreach piece $pieces {
+#puts stderr "DEBUG: lsHack: Checking <$piece>"
+	    if [info exists ignoreDir($piece)] {
+#puts stderr "DEBUG: lsHack: <$piece> is an ignoreDir"
+		set ok 0
+	    }
+# cygwin tcl doesn't seem to filter out hidden (dot) files
+	    if [regexp {^\.} $piece] {
+		set ok 0
+	    }
+	}
+	if {$ok == 1} {
+	    lappend cleanlist $file
+	}
+    }
+    # Make sure cleanlist isn't empty
+    lappend cleanlist
+    return $cleanlist
 }
 
 
@@ -744,7 +772,7 @@ proc showModulePath {} {
     } else {
 	puts stderr "WARNING: no directories on module search path"
     }
-    
+
 }
 
 ########################################################################
@@ -807,8 +835,8 @@ proc cmdModuleApropos {{search {}}} {
 }
 
 proc cmdModuleSearch {{mod {}} {search {}} } {
-    global env tcl_version ignoreDir
-    
+    global env tcl_version
+
     if {$mod == ""} {
 	set mod  "*"
     }
@@ -821,22 +849,9 @@ proc cmdModuleSearch {{mod {}} {search {}} } {
 		set availHash($mod) 1
 	    }
  	    foreach file [lsHack $mod] {
-		set pieces [split $file "/"]
-		set ok 1
-		foreach piece $pieces {
-		    if [info exists ignoreDir($piece)] {
-			set ok 0
-		    }
-# cygwin tcl doesn't seem to filter out hidden (dot) files
-		    if [regexp {^\.} $piece] {
-			set ok 0
-		    }
-		}
-		if {$ok == 1} {
-		    set availHash($file) 1
-		}
+		set availHash($file) 1
 	    }
-	    foreach mod2 [lsort [array names availHash]] {
+	    foreach mod2 [lsort -dictionary [array names availHash]] {
 		set g_whatis ""
 		catch {
 		    set modfile [getPathToModule $mod2]
@@ -869,7 +884,7 @@ proc cmdModuleSwitch {old {new {}}} {
 
 proc cmdModuleSource {args} {
     global env tcl_version g_loadedModules g_loadedModulesGeneric g_force
- 
+
     foreach file $args {
 	if [file exists $file] {
 	    set g_mode "load"
@@ -882,12 +897,18 @@ proc cmdModuleSource {args} {
 
 proc cmdModuleLoad {args} {
     global env tcl_version g_loadedModules g_loadedModulesGeneric g_force
- 
+
+#puts stderr "DEBUG: cmdModuleLoad: args <$args>"
+
     foreach mod $args {
+#puts stderr "DEBUG: cmdModuleLoad: mods <$mod>"
 	catch {
 	    set modfile [getPathToModule $mod]
+#puts stderr "DEBUG: cmdModuleLoad: modfile <$modfile>"
 	    set currentModule [lindex $modfile 1]
 	    set modfile       [lindex $modfile 0]
+#puts stderr "DEBUG: cmdModuleLoad: currentModule <$currentModule>"
+#puts stderr "DEBUG: cmdModuleLoad: modfile <$modfile>"
 
 	    if { $g_force || ! [ info exists g_loadedModules($currentModule)]} {
 		set g_mode "load"
@@ -903,7 +924,7 @@ proc cmdModuleLoad {args} {
 	    }
 	    set junk ""
 	} errMsg
-	
+
         if {$errMsg != ""} {
 	    puts stderr "ERROR: module: module load $mod failed. $errMsg"
 	}
@@ -912,7 +933,7 @@ proc cmdModuleLoad {args} {
 
 proc cmdModuleUnload {args} {
     global env tcl_version g_loadedModules g_loadedModulesGeneric
- 
+
     foreach mod $args {
 	catch {
 	    catch {
@@ -955,18 +976,18 @@ proc cmdModuleUnload {args} {
 
 proc cmdModulePurge {} {
     global env
-    
+
     if [info exists env(LOADEDMODULES)] {
-	set list [split $env(LOADEDMODULES) ":"] 
+	set list [split $env(LOADEDMODULES) ":"]
 	eval cmdModuleUnload $list
     }
 }
 
 proc cmdModuleReload {} {
     global env g_reloadMode
-    
+
     if [info exists env(LOADEDMODULES)] {
-	set list [split $env(LOADEDMODULES) ":"] 
+	set list [split $env(LOADEDMODULES) ":"]
 	set rlist [reverseList $list]
 	set g_reloadMode 1
 	# we set reload mode for two reasons
@@ -982,7 +1003,7 @@ proc cmdModuleReload {} {
 
 
 proc cmdModuleAvail { {mod {}}} {
-    global env ignoreDir
+    global env
 
     if {$mod == ""} {
 	set mod  "*"
@@ -999,22 +1020,9 @@ proc cmdModuleAvail { {mod {}}} {
  	    foreach file [lsHack $mod] {
 
 #puts stderr "glob returned $file"
-		set pieces [split $file "/"]
-		set ok 1
-		foreach piece $pieces {
-		    if [info exists ignoreDir($piece)] {
-			set ok 0
-		    }
-# cygwin tcl doesn't seem to filter out hidden (dot) files
-		    if [regexp {^\.} $piece] {
-			set ok 0
-		    }
-		}
-		if {$ok == 1} {
-		    set availHash($file) 1
-		}
+		set availHash($file) 1
 	    }
-	    set list [lsort [array names availHash]]
+	    set list [lsort -dictionary [array names availHash]]
 
 	    set max 0
 	    foreach mod2 $list {
@@ -1036,7 +1044,7 @@ proc cmdModuleAvail { {mod {}}} {
 		}
 		puts stderr ""
 	    }
-	    
+
 	    unset availHash
 	}
     }
@@ -1045,19 +1053,30 @@ proc cmdModuleAvail { {mod {}}} {
 proc cmdModuleUse {args} {
 
     set g_mode "load"
+#puts stderr "DEBUG: cmdModuleUse: args <$args>"
     if {$args == ""} {
 	showModulePath
     } else {
-	foreach path $args {
-	    if [file isdirectory $path] {
-		prepend-path MODULEPATH $path
+	set stuff_path "prepend-path"
+	foreach path [split $args " "] {
+#puts stderr "DEBUG: cmdModuleUse: <$path>"
+	    # -a -append --append (and -p -prepend --prepend) would be nice...
+	    if { $path == "" } {
+		# Skip "holes"
+	    } elseif { $path == "--append" } {
+		set stuff_path "append-path"
+	    } elseif {$path == "--prepend"} {
+		set stuff_path "prepend-path"
+	    } elseif [file isdirectory $path] {
+#puts stderr "DEBUG: cmdModuleUse: $stuff_path MODULEPATH $path"
+		eval $stuff_path MODULEPATH $path
 	    } else {
 		puts stderr "WARNING: Directory \"$path\" does not exist, not added to module search path."
 	    }
 	}
     }
 }
-    
+
 
 proc cmdModuleUnuse {args} {
 
@@ -1106,7 +1125,7 @@ proc cmdModuleDebug {} {
 	    }
 	}
     }
-    foreach file [lsort [array names execcount]] {
+    foreach file [lsort -dictionary [array names execcount]] {
 	if {[llength $execcount($file)] > 1} {
 	    puts stderr "$file:\t$execcount($file)"
 	}
@@ -1120,7 +1139,7 @@ global g_shellType
 
 set g_shell [lindex $argv 0]
 set command [lindex $argv 1]
-set argv [lreplace $argv 0 1] 
+set argv [lreplace $argv 0 1]
 set g_force 0
 
 switch -regexp $g_shell {
@@ -1163,6 +1182,7 @@ catch {
 	    }
 	}
 	{^(add|load)} {
+#puts stderr "DEBUG: main: Calling cmdModuleLoad, argv <$argv>"
 	    eval cmdModuleLoad $argv
 	    renderSettings
 	}
@@ -1183,6 +1203,7 @@ catch {
 	    renderSettings
 	}
 	{^use$} {
+#puts stderr "DEBUG: main: Calling cmdModuleUse, argv <$argv>"
 	    eval cmdModuleUse $argv
 	    renderSettings
 	}
@@ -1211,7 +1232,7 @@ catch {
 	}
 	default {
 	    puts stderr {
-		ModulesTcl 0.96:
+		ModulesTcl 0.97:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
@@ -1228,7 +1249,7 @@ catch {
 		 apropos|keyword       string
 	    }
 	}
-	
+
     }
 } errMsg
 
@@ -1236,6 +1257,6 @@ if {$errMsg != ""} {
     puts stderr "ERROR: $errMsg"
 }
 
-
- 
-
+# ;;; Local Variables: ***
+# ;;; mode:tcl ***
+# ;;; End: ***
