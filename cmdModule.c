@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.3 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.4 2001/07/11 20:11:02 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -394,11 +394,8 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, useRE)) {
-	int tmpflags = g_flags;
 	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
-	g_flags = M_LOAD;
 	return_val = ModuleCmd_Use( interp, num_modulefiles, modulefile_list);
-	g_flags = tmpflags;
 
     /**
      **  --- module UNUSE
