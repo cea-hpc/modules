@@ -40,7 +40,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdXResource.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdXResource.c,v 1.3 2002/03/11 21:32:13 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -52,7 +52,7 @@ static void *UseId[] = { &UseId, Id };
 #ifdef HAS_X11LIBS
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
-#include <X11/Xmu/SysUtil.h>
+// #include <X11/Xmu/SysUtil.h>
 #endif
 
 /** ************************************************************************ **/
@@ -147,7 +147,7 @@ static	ErrType	initBuffers(Tcl_Interp*, register int );
  ** 									     **
  **   First Edition:	91/10/23					     **
  ** 									     **
- **   Parameters:	char	*title		Name of the ressource	     **
+ **   Parameters:	char	*title		Name of the resource	     **
  **			char	*value		and its value		     **
  ** 									     **
  **   Result:		-						     **
@@ -244,7 +244,8 @@ static	void	doDisplayDefines()
      **  faults to the client.
      **/
 
-    XmuGetHostname( client, MAXHOSTNAME);
+    //    XmuGetHostname( client, MAXHOSTNAME);
+    gethostname(client,MAXHOSTNAME);
     strcpy( server, XDisplayName( NULL));
 
     if( colon = strchr( server, ':'))
@@ -364,7 +365,7 @@ static	void	 doScreenDefines( int	scrno)
  **   Result:		-						     **
  ** 									     **
  **   Attached Globals:	line		Buffer for a line to be read	     **
- **			buffer		Buffer for the whole ressource file  **
+ **			buffer		Buffer for the whole resource file  **
  **					image				     **
  ** 									     **
  ** ************************************************************************ **
@@ -401,19 +402,19 @@ static	int	readFile(	register FILE	*input,
  ** 									     **
  **   Function:		getEntries					     **
  ** 									     **
- **   Description:	Updates the ressources database (which is a Tcl hash **
- **			table) with the ressources passed in the buffer. The **
- **			buffer contains a X ressource lookalike text image.  **
+ **   Description:	Updates the resources database (which is a Tcl hash **
+ **			table) with the resources passed in the buffer. The **
+ **			buffer contains a X resource lookalike text image.  **
  ** 									     **
  **   First Edition:	91/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **			Tcl_HashTable	*data	The hash tables holding the  **
- **						ressource data		     **
+ **						resource data		     **
  **			register char	*buf	The buffer containing the    **
- **						ressources to be modified in **
- **						X ressource syntax	     **
- **			int		 remove	Remove or add ressources     **
+ **						resources to be modified in **
+ **						X resource syntax	     **
+ **			int		 remove	Remove or add resources     **
  ** 									     **
  **   Result:		ErrType	NO_ERR		Success			     **
  **				ERR_PARSE	Parse error		     **
@@ -428,7 +429,7 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
 				register char	*buf,
 				int		 remove)
 {
-    static Tcl_RegExp		res_exp = (Tcl_RegExp) NULL;
+    Tcl_RegExp		res_exp = (Tcl_RegExp) NULL;
     register Tcl_HashEntry	*entry;
     char			*end;
     int				 new_res;
@@ -442,14 +443,14 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
      **
      **       <resource>:	<value>
      **
-     **  The ressource will be returned as \1 and the value as \2
+     **  The resource will be returned as \1 and the value as \2
      **  Set the regexp pointer only, if it hasn't already been set. This 
      **  is a constant regexp!
      **/
 
     if( !res_exp)
 	res_exp  = Tcl_RegExpCompile(interp,
-		 "[ \t]*([^ \t]*)[ \t]*:[ \t]*(.*)[ \t]*");
+		 "^[ \t]*([^ \t]*)[ \t]*:[ \t]*(.*)[ \t]*$");
 
     /**
      **  Seek for the lines (buffers) end. Put a terminator there. Take care of
@@ -473,7 +474,7 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
 	    while( *buf++) ;
 
 	/**
-	 **  Otherwise we're seeking for a syntacticl correct X ressource entry
+	 **  Otherwise we're seeking for a syntacticl correct X resource entry
 	 **/
 
 	} else if( !Tcl_RegExpExec(interp, res_exp, buf, buf)) {
@@ -486,7 +487,7 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
 	    /**
 	     **  Valid entry found. Set up buf pointing behind the pattern
 	     **  that has matched and put a terminator at the end of either the
-	     **  ressource name and its value.
+	     **  resource name and its value.
 	     **/
 
 	    char *startp, *endp;
@@ -498,7 +499,7 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
 	    *endp = '\0';
 
 	    /**
-	     **  Now create (or remove) a hash entry for the parsed ressource
+	     **  Now create (or remove) a hash entry for the parsed resource
 	     **/
 
 	    if( remove) {
@@ -537,7 +538,7 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
  ** 									     **
  **   First Edition:	91/10/23					     **
  ** 									     **
- **   Parameters:	register ResourceDB *rdb	Ressource database   **
+ **   Parameters:	register ResourceDB *rdb	Resource database   **
  ** 									     **
  **   Result:		-						     **
  ** 									     **
@@ -561,10 +562,10 @@ static	void	storeResProp(	register ResourceDB *rdb)
 #endif
 
     /**
-     **	 Write all attached ressources into the buffer. Follow the X 
-     **  ressource syntax:
+     **	 Write all attached resources into the buffer. Follow the X 
+     **  resource syntax:
      **
-     **        <ressource>:	<value>
+     **        <resource>:	<value>
      **/
 
     Tcl_DStringTrunc( buffer, 0);
@@ -618,7 +619,7 @@ static	void	storeResProp(	register ResourceDB *rdb)
  ** 									     **
  **   First Edition:	91/10/23					     **
  ** 									     **
- **   Parameters:	register char	**buf	Buffer for the old ressource **
+ **   Parameters:	register char	**buf	Buffer for the old resource **
  **						database		     **
  ** 									     **
  **   Result:		ErrType	ERR_PARAM	resDB.data != NULL	     **
@@ -644,7 +645,7 @@ static	ErrType getOld( register char **buf)
      **/
 
     if( resDB.data)
-	if( OK != ErrorLogger( ERR_PARAM, LOC, "Ressource database", NULL))
+	if( OK != ErrorLogger( ERR_PARAM, LOC, "Resource database", NULL))
 	    return( ERR_PARAM);		/** ------- EXIT (PARAMETER) -----> **/
 
     if( !(resDB.data = (Tcl_HashTable *) malloc( sizeof( Tcl_HashTable))))
@@ -652,7 +653,7 @@ static	ErrType getOld( register char **buf)
 	    return( ERR_ALLOC);		/** ----- EXIT (OUT OF MEMORY) ----> **/
 
     /**
-     **  Initialize the hash table and read in the old ressources
+     **  Initialize the hash table and read in the old resources
      **/
 
     Tcl_InitHashTable( resDB.data, TCL_STRING_KEYS);
@@ -680,8 +681,8 @@ static	ErrType getOld( register char **buf)
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **   			register int is_file	Differs between a single X   **
- **						ressource to be modified or  **
- **						a ressource file to be merged**
+ **						resource to be modified or  **
+ **						a resource file to be merged**
  ** 									     **
  **   Result:		ErrType	ERR_DISPLAY	Cannot open DISPLAY	     **
  **				ERR_ALLOC	ALLOC failure		     **
@@ -689,7 +690,7 @@ static	ErrType getOld( register char **buf)
  **				NO_ERR		Success			     **
  ** 									     **
  **   Attached Globals:	dpy		Display will be openend		     **
- **			resDB		Ressource database will be filled up **
+ **			resDB		Resource database will be filled up **
  **					with the current setup		     **
  **			defines						     **
  ** 									     **
@@ -714,7 +715,7 @@ static	ErrType	initBuffers(	Tcl_Interp *interp,
 	    return( ERR_DISPLAY);	/** -------- EXIT (FAILURE) -------> **/
 
     /**
-     **  Read in the old setup at first and put it into the ressource database
+     **  Read in the old setup at first and put it into the resource database
      **/
 
     if( !resDB.data) {
@@ -804,7 +805,7 @@ void xresourceFinish(register int no_errors)
 #ifdef HAS_X11LIBS
 
     /**
-     **  If there is data stored in the ressource database, spool it to the
+     **  If there is data stored in the resource database, spool it to the
      **  according X server
      **/
 
@@ -829,8 +830,8 @@ void xresourceFinish(register int no_errors)
  ** 									     **
  **   Function:	 	cmdXResource					     **
  ** 									     **
- **   Description:	Callback function for 'x-ressource'. The function    **
- **			sets up a hash table containing all ressources to be **
+ **   Description:	Callback function for 'x-resource'. The function    **
+ **			sets up a hash table containing all resources to be **
  **			passed to the X server. This hash table will be	     **
  **			flushed whenever the function xresourceFinish is cal-**
  **			led.						     **
@@ -888,8 +889,8 @@ int	cmdXResource(	ClientData	 client_data,
     }
 
     /**
-     **  Ok, now let's treat all remaining arguments as X ressources or
-     **  X ressource files. At first let's check if it is a file ...
+     **  Ok, now let's treat all remaining arguments as X resources or
+     **  X resource files. At first let's check if it is a file ...
      **/
 
     while( opt_ind < argc) {
@@ -913,7 +914,7 @@ int	cmdXResource(	ClientData	 client_data,
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 
 	    /**
-	     **  This puts all required ressources into a text image buffer ...
+	     **  This puts all required resources into a text image buffer ...
 	     **/
 
 	    if( !is_file) {
