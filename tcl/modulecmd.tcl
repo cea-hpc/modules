@@ -995,7 +995,7 @@ catch {
 	}
 	default {
 	    puts stderr {
-		ModulesTcl 0.95 (Copyright MIPS Technologies 2002):
+		ModulesTcl 0.95 :
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
