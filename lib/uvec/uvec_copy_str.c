@@ -1,4 +1,4 @@
-static const char RCSID[]="@(#)$Id: uvec_copy_str.c,v 1.1 2002/07/18 22:20:42 rkowen Exp $";
+static const char RCSID[]="@(#)$Id: uvec_copy_str.c,v 1.2 2002/08/02 21:57:51 rkowen Exp $";
 static const char AUTHOR[]="@(#)uvec 1.1 10/31/2001 R.K.Owen,Ph.D.";
 /* uvec.c -
  * uvec_copy_str create a uvec from a token delimited string.
@@ -49,7 +49,7 @@ int uvec_copy_str(uvec *u, char const *token, char const *string) {
 	}
 #endif
 
-	if ((rstat = uvec_init(u, num + 1))) {
+	if ((rstat = uvec_init_(u, num + 1,u->str_fns))) {
 #ifdef RKOERROR
 		(void) rkopsterror("uvec_copy_str : ");
 #endif

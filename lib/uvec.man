@@ -1,4 +1,4 @@
-.\" RCSID @(#)$Id: uvec.man,v 1.1 2002/07/18 22:20:42 rkowen Exp $
+.\" RCSID @(#)$Id: uvec.man,v 1.2 2002/08/02 21:57:50 rkowen Exp $
 .\" LIBDIR
 .TH "UVEC" "3rko" "31 Oct 1997"
 .SH NAME
@@ -44,8 +44,10 @@ typedef struct {
 
 #include "uvec.h"
 
-int    uvec_set_strfns(enum uvec_def_str_fns type, uvec_str *strfns);
-enum   uvec_def_str_fns uvec_get_strfns(void);
+int       uvec_set_def_strfns(enum uvec_def_str_fns type, uvec_str *strfns);
+uvec_str *uvec_get_def_strfns(void);
+int       uvec_set_strfns(uvec *uv, uvec_str *strfns);
+uvec_str *uvec_get_strfns(uvec *uv);
 
 uvec  *uvec_ctor_(int cap, uvec_str strfns);
 uvec  *uvec_ctor(int cap);
@@ -109,13 +111,25 @@ except for the accessor and constructor functions,
 return 0 if no error or return <0 otherwise.
 
 .TP 15
-.I uvec_set_strfns
+.I uvec_set_def_strfns
 register the set of string functions to use by default.
 
 .TP
-.I uvec_get_strfns
+.I uvec_get_def_strfns
 query as to which set of string functions are being used,
-only the values given by enum uvec_def_str_fns will be returned.
+returns a pointer (str_fns *).
+
+.TP
+.I uvec_set_strfns
+register the set of string functions to use for the object
+overrides the current set ... don't do this if the object is already
+fully defined.
+
+.TP
+.I uvec_get_strfns
+query  as  to which set of string functions
+are being used for the object.
+returns a pointer (str_fns *).
 
 .TP
 .I uvec_ctor_

@@ -1,14 +1,22 @@
-static const char RCSID[]="@(#)$Id: uvec_strfns.c,v 1.1 2002/07/18 22:20:42 rkowen Exp $";
+static const char RCSID[]="@(#)$Id: uvec_strfns.c,v 1.2 2002/08/02 21:57:51 rkowen Exp $";
 static const char AUTHOR[]="@(#)uvec 1.1 10/31/2001 R.K.Owen,Ph.D.";
 /* uvec.c -
+ *  uvec_set_def_strfns
+ *  register the set of string functions to use by default.
+ *
+ *  uvec_get_def_strfns
+ *  query  as  to which set of string functions are being used
+ *  returns a str_fns *
+ *
  *  uvec_set_strfns
- *  register the set of string functions to use
- *  by default.
+ *  register the set of string functions to use for the object
+ *  overrides the current set ... don't do this if the object is already
+ *  fully defined.
  *
  *  uvec_get_strfns
  *  query  as  to which set of string functions
- *  are being used, only the  values  given  by
- *  enum uvec_def_str_fns will be returned.
+ *  are being used for the object.
+ *  returns a str_fns *
  */
 /** ** Copyright *********************************************************** **
  ** 									     **
@@ -77,7 +85,7 @@ uvec_str default_str_fns = {
 #endif
 /* set the default set of string functions to use
  */
-int uvec_set_strfns(enum uvec_def_str_fns type, uvec_str *strfns) {
+int uvec_set_def_strfns(enum uvec_def_str_fns type, uvec_str *strfns) {
 #ifdef RKOERROR
 	rkoerrno = RKO_OK;
 #endif
@@ -102,7 +110,7 @@ int uvec_set_strfns(enum uvec_def_str_fns type, uvec_str *strfns) {
 		|| strfns->str_free == NULL) {
 #ifdef RKOERROR
 			(void) rkocpyerror(
-				"uvec_set_strfns : null string functions!");
+				"uvec_set_def_strfns : null string functions!");
 			rkoerrno = RKOUSEERR;
 #endif
 			return -1;
@@ -116,7 +124,49 @@ int uvec_set_strfns(enum uvec_def_str_fns type, uvec_str *strfns) {
 
 /* return what type of string functions are currently default
  */
-enum uvec_def_str_fns uvec_get_strfns(void) {
-	return default_str_fns.type;
+uvec_str *uvec_get_def_strfns(void) {
+	return &default_str_fns;
 }
 
+/* set the string functions to use
+ */
+int uvec_set_strfns(uvec *uv, uvec_str *strfns) {
+#ifdef RKOERROR
+	rkoerrno = RKO_OK;
+#endif
+	if (!strfns) {
+#ifdef RKOERROR
+		(void) rkocpyerror(
+			"uvec_set_strfns : null string functions!");
+		rkoerrno = RKOUSEERR;
+#endif
+		return -1;
+	}
+	if (uv) {
+		uv->str_fns.type = strfns->type;
+		uv->str_fns.str_alloc = strfns->str_alloc;
+		uv->str_fns.str_free = strfns->str_free;
+	} else {
+#ifdef RKOERROR
+		(void) rkocpyerror("uvec_get_strfns : null uvec object");
+#endif
+		return -2;
+	}
+	return 0;
+}
+
+/* return what type of string functions are currently default
+ */
+uvec_str *uvec_get_strfns(uvec *uv) {
+#ifdef RKOERROR
+		rkoerrno = RKO_OK;
+#endif
+	if (uvec_exists(uv)) {
+		return &(uv->str_fns);
+	} else {
+#ifdef RKOERROR
+		(void) rkopsterror("uvec_get_strfns : ");
+#endif
+		return (uvec_str *) NULL;
+	}
+}
