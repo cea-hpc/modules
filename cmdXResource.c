@@ -40,7 +40,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdXResource.c,v 1.3 2002/03/11 21:32:13 lakata Exp $";
+static char Id[] = "@(#)$Id: cmdXResource.c,v 1.4 2002/04/24 01:07:57 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -873,6 +873,12 @@ int	cmdXResource(	ClientData	 client_data,
 
     if( g_flags & (M_WHATIS | M_HELP))
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
+
+    if( !getenv("DISPLAY")) {
+      /* don't bother trying to set display variables, if there is no display */
+      return(TCL_OK);
+    }
+    
 	
     /**
      **  Parameter check
