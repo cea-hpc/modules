@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.3 2002/04/29 18:45:25 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -103,7 +103,8 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 		 oldfile[ MOD_BUFSIZE],
 		 newfile[ MOD_BUFSIZE],
 		 oldname[ MOD_BUFSIZE],
-		 newname[ MOD_BUFSIZE];
+		 newname[ MOD_BUFSIZE],
+                 oldmodule_buffer[ MOD_BUFSIZE];
     int		 ret_val = TCL_OK;
     
 #if WITH_DEBUGGING_MODULECMD
@@ -112,16 +113,36 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 
     /**
      **  Parameter check. the required syntax is:
-     **    module switch <old> <new>
+     **    module switch [ <old> ] <new>
+     **  If <old> is not specified, then the pathname of <new> is assumed.
      **/
 
-    if( argc != 2)
-	if( OK != ErrorLogger( ERR_USAGE, LOC, "switch oldmodule newmodule",
-	    NULL))
-	    return( TCL_ERROR);		/** ------- EXIT (FAILURE) --------> **/
+    if( argc == 1) {
+      char* o;
+      oldmodule = oldmodule_buffer;
+      newmodule = argv[0];
+      strncpy(oldmodule_buffer,newmodule,MOD_BUFSIZE);
+      oldmodule_buffer[MOD_BUFSIZE-1]=0; /* terminate just in case */
+      /* starting from the end of the module name, find the first
+       * forward slash and replace with null 
+       */
+      for(o = &oldmodule_buffer[strlen(oldmodule_buffer)-1];
+	  o>oldmodule_buffer;
+	  o--) {
+	if (*o == '/') {
+	  *o = 0;
+	  break;
+	}
+      }
+    } else if( argc == 2) {
+      oldmodule = argv[0];
+      newmodule = argv[1];
+    } else {
+      if( OK != ErrorLogger( ERR_USAGE, LOC, "switch oldmodule newmodule",
+			     NULL))
+	return( TCL_ERROR);		/** ------- EXIT (FAILURE) --------> **/
+    }
 
-    oldmodule = argv[0];
-    newmodule = argv[1];
 
     /**
      ** Set the name of the module specified on the command line

@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.3 2002/04/29 18:45:25 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -324,6 +324,7 @@ static	ErrTransTab	TransTab[] = {
     { ERR_INVAL,	WGHT_PANIC, "Invalid error type '$1' found" },
     { ERR_INVWGHT,	WGHT_PANIC, "Invalid error weight '$1' found" },
     { ERR_INVFAC,	WGHT_PANIC, "Invalid log facility '$1'" },
+    { ERR_ENVVAR,       WGHT_FATAL, "The environment variables LOADMODULES and _LMFILES_ have inconsistent lengths." }
 };
 
 /** ************************************************************************ **/

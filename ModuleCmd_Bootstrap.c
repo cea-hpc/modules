@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Bootstrap.c,v 1.1 2002/04/27 01:15:55 lakata Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Bootstrap.c,v 1.2 2002/04/29 18:45:25 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -221,7 +221,6 @@ def module(command, *arguments):
   
   sprintf(command,"
 setenv MODULE_VERSION %s
-setenv MODULESHOME /mips/tools/freeware/Modules-2.2beta
 if { ! [info exists env(MODULEPATH)    ] } { setenv MODULEPATH    \"%s\" }
 if { ! [info exists env(LOADEDMODULES) ] } { setenv LOADEDMODULES \"\"}
 ",

@@ -210,7 +210,8 @@ typedef	enum	{
 	ERR_INTERRL,			/** Error logger internal error	     **/
 	ERR_INVAL,			/** Invalid parameter to the error   **/
 	ERR_INVWGHT,			/** logger			     **/
-	ERR_INVFAC			/** Invalid error facility	     **/
+	ERR_INVFAC,			/** Invalid error facility	     **/
+        ERR_ENVVAR,                     /** environment variables are inconsistent **/ 
 } ErrType;
 
 /**
