@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Bootstrap.c,v 1.4 2002/04/29 20:19:59 lakata Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Bootstrap.c,v 1.5 2002/04/30 17:29:52 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -118,7 +118,8 @@ int	ModuleCmd_Bootstrap(	Tcl_Interp	*interp,
   /*
    * First get an absolute path to this modulecmd binary *
    */
-  execname = getexecname();
+  Tcl_FindExecutable(binary_name);
+  execname = Tcl_GetNameOfExecutable();
   if (execname[0] != '/') { 
     char cwd[1024];
     getcwd(cwd,1024);
