@@ -36,7 +36,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.3 2002/01/04 04:59:14 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.4 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -186,31 +186,27 @@ int Module_Tcl_ExitCmd(	ClientData	  client_data,
      **     exit;
      **     exit value;
      **/
-
-    if((argc != 1) && (argc != 2)) {
+    if((argc != 1) && (argc != 2))
 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "?returnCode?", NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	    goto unwind0;
 
     /**
      **  If the exit command comes with an paramter, set up the TCL result.
      **  Otherwise the result is 0.
      **/
-
     if( argc == 1) {
 	value = 0;
     } else if( Tcl_GetInt( interp, argv[1], &value) != TCL_OK) {
 	if( OK != ErrorLogger( ERR_PARAM, LOC, argv[1], NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+	    goto unwind0;
     }
 
     /**
      **  Allocate memory
      **/
-
-    if( NULL == (buffer = (char *) malloc( 25)))
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+    if((char *) NULL == (buffer = stringer(NULL,25,NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind0;
 
     sprintf( buffer, "EXIT %d", value);
     Tcl_SetResult( interp, buffer, NULL);
@@ -219,11 +215,11 @@ int Module_Tcl_ExitCmd(	ClientData	  client_data,
      **  Exit from this module command.
      **  ??? Why hardcoded on error ???
      **/
-
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_END, LOC, _proc_Module_Tcl_ExitCmd, NULL);
 #endif
 
+unwind0:
     return( TCL_ERROR);
 
 } /** End of 'Module_Tcl_ExitCmd' **/
@@ -259,7 +255,7 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
 	       		char		 *argv[],
                		char		 *environ[])
 {
-    int 	Result;
+    int 	Result = TCL_ERROR;
 
 #if WITH_DEBUGGING_INIT
     ErrorLogger( NO_ERR_START, LOC, _proc_Initialize_Tcl, NULL);
@@ -270,27 +266,29 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
      **  Less than 3 parameters isn't valid. Invocation should be
      **   'modulecmd <shell> <command>'
      **/
-
     if(argc < 2) 
 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], " shellname", NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+	    goto unwind0;
 
     strcpy( shell_name, argv[1]);
 
     /**
      **  Check the first parameter to modulcmd for a known shell type
      **/
-
-    if( !set_derelict( argv[1])) {
+    if( !set_derelict( argv[1]))
 	if( OK != ErrorLogger( ERR_SHELL, LOC, argv[1], NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	    goto unwind0;
 
     /**
-     **  Now create a Tcl interpreter in order to proceed the command. Initialize
+     **  Create a Tcl interpreter in order to proceed the command. Initialize
      **  this interpreter and set up pointers to all Tcl Module commands
      **  (InitializeModuleCommands)
      **/
+ 
+#ifdef __CYGWIN__
+    /* ABr, 12/10/01: from Cygwin stuff */
+    Tcl_FindExecutable( argv[0] ) ;
+#endif
 
 #ifdef __CYGWIN__
     /* ABr, 12/10/2001: from Cygwin stuff */
@@ -299,7 +297,7 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
 
     *interp = Tcl_CreateInterp();
     if( TCL_OK != (Result = InitializeModuleCommands( *interp)))
-	return( Result);		/** -------- EXIT (FAILURE) -------> **/
+	goto unwind0;
 
     /**
      **  Now set up the hash-tables for shell environment modifications.
@@ -307,7 +305,6 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
      **  they're defined.  The tables have to be allocated and thereafter
      **  initialized. Exit from the whole program in case allocation fails.
      **/
-
     if( ( ! ( setenvHashTable = 
 	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( unsetenvHashTable = 
@@ -322,7 +319,7 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
 	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ) {
 
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+	    goto unwind0;
     }
 
     Tcl_InitHashTable( setenvHashTable, TCL_STRING_KEYS);
@@ -344,7 +341,6 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
      **  environment and then reload every modulefile that has been loaded
      **  since as stored in the LOADEDMODULES environment variable in order.
      **/
-
     if( !getenv( "_MODULESBEGINENV_") ) {
 
         FILE*  file;
@@ -353,17 +349,14 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
 	char *ptr, *buffer;
 
 	ptr = getenv("HOME");
-	if( ptr == (char *) NULL)
+	if((char *) NULL == (ptr = getenv("HOME")))
 	    if( OK != ErrorLogger( ERR_HOME, LOC, NULL))
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+		goto unwind0;
 
-	if( NULL == (buffer = (char *) malloc(strlen(ptr)+strlen(savefile)+1)))
-	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+	if((char *) NULL == (buffer = stringer(NULL,0,ptr,savefile,NULL)))
+	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+		goto unwind0;
 
-	    strcpy(buffer, ptr);
-	    strcat(buffer, savefile);
-        
             if( file = fopen(buffer, "w+")) {
                 int i=0;
                 while( environ[i]) {
@@ -374,16 +367,18 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
             } else
 		if( OK != ErrorLogger( ERR_OPEN, LOC, (*interp)->result,
 		    "append", NULL))
-		    return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+		    goto unwind0;
 
-	    free(buffer);
+	    null_free((void *) &buffer);
     }
 
     /**
      **  Exit to the main program
      **/
+    return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
 
-    return( TCL_OK);
+unwind0:
+    return( Result);			/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'Initialize_Tcl' **/
 
@@ -420,11 +415,9 @@ int InitializeModuleCommands( Tcl_Interp* interp)
     /**
      **  General initialization of the Tcl interpreter
      **/
-
-    if( Tcl_Init( interp) == TCL_ERROR) {
+    if( Tcl_Init( interp) == TCL_ERROR)
 	if( OK != ErrorLogger( ERR_INIT_TCL, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	    goto unwind0;
 
 #ifdef  HAS_TCLXLIBS
 
@@ -433,12 +426,13 @@ int InitializeModuleCommands( Tcl_Interp* interp)
      **/
 
 #if (TCL_MAJOR_VERSION > 7 || TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION > 5)
-    if( Tclxcmd_Init( interp) == TCL_ERROR) {
+    if( Tclxcmd_Init( interp) == TCL_ERROR)
 #else
-    if( TclXCmd_Init( interp) == TCL_ERROR) {
+    if( TclXCmd_Init( interp) == TCL_ERROR)
 #endif
+    {
 	if( OK != ErrorLogger( ERR_INIT_TCLX, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+	    goto unwind0;
     }
 
 #endif  /* HAS_TCLXLIBS */
@@ -448,80 +442,76 @@ int InitializeModuleCommands( Tcl_Interp* interp)
     /**
      ** Extend autoload path
      **/
-
     if( TCL_OK != Tcl_VarEval( interp, "set auto_path [linsert $auto_path 0 ",
-	AUTOLOADPATH, "]", (char *) NULL)) {
+	AUTOLOADPATH, "]", (char *) NULL))
 	if( OK != ErrorLogger( ERR_INIT_ALPATH, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	    goto unwind0;
 
 #endif	/* AUTOLOADPATH */
 
     /**
      **   Now for each module command a callback routine has to be specified
      **/
-
     Tcl_CreateCommand( interp, "exit", Module_Tcl_ExitCmd,
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
 
     Tcl_CreateCommand( interp, "setenv", cmdSetEnv, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "unsetenv", cmdUnsetEnv, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
   
     Tcl_CreateCommand( interp, "prepend-path", cmdSetPath, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "append-path", cmdSetPath, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "remove-path", cmdRemovePath, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
 
     Tcl_CreateCommand( interp, "module-info", cmdModuleInfo, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "module", cmdModule, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
 
     Tcl_CreateCommand( interp, "module-whatis", cmdModuleWhatis, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "module-verbosity", cmdModuleVerbose, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "module-user", cmdModuleUser, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "module-log", cmdModuleLog, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "module-trace", cmdModuleTrace, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
 
     Tcl_CreateCommand( interp, "module-alias", cmdModuleAlias, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "module-version", cmdModuleVersion, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
   
     Tcl_CreateCommand( interp, "set-alias", cmdSetAlias, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "unset-alias", cmdSetAlias, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
 
     Tcl_CreateCommand( interp, "conflict", cmdConflict, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "prereq", cmdPrereq, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
 
     Tcl_CreateCommand( interp, "is-loaded", cmdIsLoaded, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "system", cmdSystem, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "uname", cmdUname, 
-		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
 
     Tcl_CreateCommand( interp, "x-resource", cmdXResource,
- 		       (ClientData) shell_derelict, (void (*)(ClientData)) NULL);
+ 		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
 
-    /**
-     **  Success
-     **/
+    return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
 
-    return( TCL_OK);
+unwind0:
+    return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'InitializeModuleCommands' **/
 
@@ -564,7 +554,6 @@ int Setup_Environment( Tcl_Interp*	interp)
      **  Scan the whole environment value by value.
      **  Count its size
      **/
-
     for( i = 0; environ[i]; i++) {
 
 	envsize += strlen( environ[i]) + 1;
@@ -572,7 +561,6 @@ int Setup_Environment( Tcl_Interp*	interp)
 	/**
 	 **  Locate the equal sign and terminate the string at its position.
 	 **/
-
 	eq = environ[i];
 	while( *eq++ != '=' && *eq);
 	*(eq - 1) = '\0';
@@ -581,16 +569,13 @@ int Setup_Environment( Tcl_Interp*	interp)
 	 **  Now set up a Tcl variable of the same name and value as the
 	 **  environment variable
 	 **/
-
-	if( Tcl_SetVar( interp, environ[i], eq, 0) == NULL) {
+	if( Tcl_SetVar( interp, environ[i], eq, 0) == (char *) NULL)
 	    if( OK != ErrorLogger( ERR_SET_VAR, LOC, environ[i], NULL))
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-	}
+		goto unwind0;
 
 	/**
 	 **  Reinstall the changed environment
 	 **/
-
 	*(eq - 1) = '=';
 
     } /** for **/
@@ -598,18 +583,17 @@ int Setup_Environment( Tcl_Interp*	interp)
     /**
      ** Reconstruct the _LMFILES_ environment variable
      **/
-
     loaded = getLMFILES( interp);
-    if( loaded) {
+    if( loaded)
 	if( Tcl_SetVar2( interp, "env", "_LMFILES_", loaded,
-			 TCL_GLOBAL_ONLY) == NULL)
-	{
+			 TCL_GLOBAL_ONLY) == (char *) NULL)
 	    if( OK != ErrorLogger( ERR_SET_VAR, LOC, environ[i], NULL))
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-	}
-    }
+		goto unwind0;
 
-    return( TCL_OK);
+    return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
+
+unwind0:
+    return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
 
 } /** end of 'Setup_Environment' **/
 
@@ -643,24 +627,26 @@ int TieStdout( void) {
     ErrorLogger( NO_ERR_START, LOC, _proc_TieStdout, NULL);
 #endif
 
-    if( -1 == (save = dup(1)))
+    if( 0 > (save = dup(1)))
 	if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stdout, NULL))
-	    return( -1);		/** ------- EXIT (FAILURE) --------> **/
+	    goto unwind0;
 
-    if( -1 == close( 1))
+    if( 0 > close( 1))
 	if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stdout, NULL))
-	    return( -1);		/** ------- EXIT (FAILURE) --------> **/
+	    goto unwind0;
 
     /**
      ** dup used the very first closed handle for duplication. Since stdout
      ** has just been closed, this will be reopened as stderr here.
      **/
-
-    if( -1 == (dup(2)))
+    if( 0 > (dup(2)))
 	if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stderr, NULL))
-	    return( -1);		/** ------- EXIT (FAILURE) --------> **/
+	    goto unwind0;
 
-    return save;
+    return( save);			/** ------- EXIT (RESULT)  --------> **/
+
+unwind0:
+    return( -1);			/** ------- EXIT (FAILURE) --------> **/
 }
 
 int UnTieStdout( int saved_stdout) {
@@ -671,15 +657,18 @@ int UnTieStdout( int saved_stdout) {
     ErrorLogger( NO_ERR_START, LOC, _proc_UnTieStdout, NULL);
 #endif
 
-    if( -1 == close( 1))
+    if( 0 > close( 1))
 	if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stdout, NULL))
-	    return( -1);		/** ------- EXIT (FAILURE) --------> **/
+	    goto unwind0;
 
-    if( -1 == (retval = dup( saved_stdout)))
+    if( 0 > (retval = dup( saved_stdout)))
 	if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stdout, NULL))
-	    return( -1);		/** ------- EXIT (FAILURE) --------> **/
+	    goto unwind0;
 
     return( retval);
+
+unwind0:
+    return( -1);			/** ------- EXIT (FAILURE) --------> **/
 }
 
 /*++++
@@ -689,20 +678,20 @@ int UnTieStdout( int saved_stdout) {
  ** 									     **
  **   Description:	Collects all startupfiles used by the various shells **
  **			in the array 'shell_startups'. This function does not**
- **			take care, if the startup file do exist!	     **
+ **			care if the startup file do not exist!		     **
  ** 									     **
  **   First Edition:	91/10/23					     **
  ** 									     **
- **   Parameters:	-						     **
- **   Result:		-						     **
- **   Attached Globals:	shell_startups	will be set up with a list of all    **
- **					startup files used by the shell      **
- **					specified in 'shell_name'	     **
+ **   Parameters:	shell_name	the shell being used		     **
+ **   Result:		shell_startups	NULL terminated list of startup files**
+ **					for the shell			     **
+ **					returns NULL if an error	     **
+ **   Attached Globals:	-						     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
 
-int SetStartupFiles(void)
+char **SetStartupFiles(char *shell_name)
 {
 
 #if WITH_DEBUGGING_UTIL
@@ -712,60 +701,48 @@ int SetStartupFiles(void)
     /**
      ** CSH
      **/
-
     if( (strcmp( "csh", shell_name) == 0)) {
 
-       shell_startups = cshStartUps;
+       return cshStartUps;
 
     /**
      ** TCSH
      **/
-
     } else if((strcmp("tcsh", shell_name) == 0)) {
 
-       shell_startups = tcshStartUps;
+       return tcshStartUps;
 
     /**
      ** SH and KSH
      ** ??? What's about .environ ???
      **/
-
     } else if((strcmp("sh", shell_name) == 0) ||
 	      (strcmp("ksh", shell_name) == 0)) {
 
-       shell_startups = shStartUps;
+       return shStartUps;
 
     /**
      ** BASH
      ** ??? doesn't this guy use the SH startups, too ???
      **/
-
     } else if((strcmp("bash", shell_name) == 0)) { 
 
-       shell_startups = bashStartUps;
+       return bashStartUps;
 
     /**
      ** ZSH
      **/
-
     } else if((strcmp("zsh", shell_name) == 0)) { 
 
-       shell_startups = zshStartUps;
+       return zshStartUps;
        
     /**
      **  All of the remainig "shells" are not supposed to used startup
      **  files
      **/
-
     } else {
 
-       shell_startups = genericStartUps;
+       return genericStartUps;
     }
-
-    /**
-     **  Success
-     **/
-
-    return( TCL_OK);
 
 } /** End of 'SetStartupFiles' **/

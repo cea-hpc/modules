@@ -34,6 +34,8 @@
  **			chk4spch					     **
  **			xdup						     **
  **			xgetenv						     **
+ **			stringer					     **
+ **			null_clean					     **
  **									     **
  **			strdup		if not defined by the system libs.   **
  **			strtok		if not defined by the system libs.   **
@@ -50,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.7 2002/04/27 01:15:55 lakata Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.8 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -188,7 +190,7 @@ int store_hash_value(	Tcl_HashTable* htable,
     if( !new) {
 	tmp = (char *) Tcl_GetHashValue( hentry);
     	if( tmp)
-            free( tmp);
+	    null_free((void *) &tmp);
     }
 
     /**
@@ -244,7 +246,7 @@ int clear_hash_value(	Tcl_HashTable	*htable,
 
         tmp = (char*) Tcl_GetHashValue( hentry);
         if( tmp)
-	    free( tmp);
+	    null_free((void *) &tmp);
 
         Tcl_DeleteHashEntry( hentry);
     }
@@ -313,7 +315,7 @@ static	void	Clear_Global_Hash_Tables( void)
 	do {
 	    val = (char*) Tcl_GetHashValue( hashEntry);
 	    if( val)
-	        free(val);
+		null_free((void *) &val);
 	} while( hashEntry = Tcl_NextHashEntry( &searchPtr));
 
 	/**
@@ -388,7 +390,6 @@ void Delete_Hash_Tables( Tcl_HashTable	**table_ptr)
      **  Loop for all the hash tables named above. Remove all values stored in
      **  the table and then free up the whole table
      **/
-
     for( ; *table_ptr; table_ptr++) {
 
         if( ( hashEntry = Tcl_FirstHashEntry( *table_ptr, &searchPtr))) {
@@ -396,21 +397,19 @@ void Delete_Hash_Tables( Tcl_HashTable	**table_ptr)
 	    /**
 	     **  Remove all values stored in the table
 	     **/
-
 	    do {
 		val = (char*) Tcl_GetHashValue( hashEntry);
 		if( val)
-		    free(val);
+		    null_free((void *) &val);
 	    } while( hashEntry = Tcl_NextHashEntry( &searchPtr));
 
 	    /**
 	     **  Remove internal hash control structures
 	     **/
-
 	    Tcl_DeleteHashTable( *table_ptr);
 	}
 
-        free( (char*) *table_ptr);
+	null_free((void *) table_ptr);
 
     } /** for **/
 
@@ -469,40 +468,31 @@ Tcl_HashTable	**Copy_Hash_Tables( void)
     /**
      **  Allocate storage for the new list of hash tables
      **/
-
-    if( !(newTable = (Tcl_HashTable**) malloc( sizeof( oldTable)))) {
+    if( !(newTable = (Tcl_HashTable**) malloc( sizeof( oldTable))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    return( NULL);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	    goto unwind0;
 
     /**
      **  Now copy each hashtable out of the list
      **/
-
     for( o_ptr = oldTable, n_ptr = newTable; *o_ptr; o_ptr++, n_ptr++) {
 
 	/**
 	 **  Allocate memory for a single hash table
 	 **/
-
-	if( !(*n_ptr = (Tcl_HashTable*) malloc( sizeof( Tcl_HashTable)))) {
-	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-		free( newTable);
-		return( NULL);		/** -------- EXIT (FAILURE) -------> **/
-	    }
-	}
+	if( !(*n_ptr = (Tcl_HashTable*) malloc( sizeof( Tcl_HashTable))))
+	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+		goto unwind1;
 
 	/**
 	 **  Initialize that guy and copy it from the old table
 	 **/
-
 	Tcl_InitHashTable( *n_ptr, TCL_STRING_KEYS);
         if( oldHashEntry = Tcl_FirstHashEntry( *o_ptr, &searchPtr)) {
 
 	    /**
 	     **  Copy all entries if there are any
 	     **/
-
 	    do {
 
 		key = (char*) Tcl_GetHashKey( *o_ptr, oldHashEntry);
@@ -523,7 +513,6 @@ Tcl_HashTable	**Copy_Hash_Tables( void)
     /**
      **  Put a terminator at the end of the new table
      **/
-
     *n_ptr = NULL;
 
 #if WITH_DEBUGGING_UTIL_2
@@ -532,6 +521,10 @@ Tcl_HashTable	**Copy_Hash_Tables( void)
 
     return( newTable);
 
+unwind1:
+    null_free((void *) &newTable);
+unwind0:
+    return( NULL);			/** -------- EXIT (FAILURE) -------> **/
 } /** End of 'Copy_Hash_Tables' **/
 
 /*++++
@@ -751,7 +744,6 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
      **  The following hash tables do contain all changes to be made on
      **  shell aliases
      **/
-
     Tcl_HashTable	*table[2];
 
 #ifndef EVAL_ALIAS
@@ -760,7 +752,7 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
      **  If configured so, all changes to aliases are written into a temporary
      **  file which is sourced by the invoking shell ...
      **  In this case a temporary filename has to be assigned for the alias
-     **  source file. The file has to be openend as 'aliasfile'.
+     **  source file. The file has to be opened as 'aliasfile'.
      **  The default for aliasfile, if no shell sourcing is used, is stdout.
      **/
 
@@ -780,13 +772,12 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
      **  We only need to output stuff into a temporary file if we're setting
      **  stuff.  We can unset variables and aliases by just using eval.
      **/
-
     if( hashEntry = Tcl_FirstHashEntry( aliasSetHashTable, &searchPtr)) {
+
 	/**
-	 **  We only support sh and csh varients for aliases.  If not either
+	 **  We only support sh and csh variants for aliases.  If not either
 	 **  sh or csh print warning message and return
 	 **/
-
 	if( !strcmp( shell_derelict, "csh")) {
 	    sourceCommand = "source %s%c";
 	} else if( !strcmp( shell_derelict, "sh")) {
@@ -800,7 +791,7 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
 	 **/
 
 	if( tmpfile_mod(&aliasfilename,&aliasfile)) {
-	    if( OK != ErrorLogger( ERR_OPEN, LOC, aliasfilename, "append", NULL))
+	    if(OK != ErrorLogger( ERR_OPEN, LOC, aliasfilename, "append", NULL))
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 
 	} else {
@@ -810,7 +801,6 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
 	     **  sourcing the alias definition (temporary) file, the source
 	     **  file is to be removed.
 	     **/
-
 	    alias_separator = '\n';
 
 	    fprintf( stdout, sourceCommand, aliasfilename, cmd_separator);
@@ -818,7 +808,7 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
 	} /** if( fopen) **/
     } /** if( alias to set) **/
 
-    free( aliasfilename);
+    /* null_free((void *) &aliasfilename); *//* generally not malloc'd space */
 
 #endif /* EVAL_ALIAS */
   
@@ -838,7 +828,6 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
 		 **  The hashtable list index is used to differ between aliases
 		 **  to be set and aliases to be reset
 		 **/
-
 		if(i == 1) {
 		    output_unset_alias( key, val);
 		} else {
@@ -893,7 +882,6 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
      **
      **  CSH
      **/
-
     chop( val);
     chop( var);
 
@@ -917,8 +905,6 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	 **  it should probably be <1000.  I don't count the size of
 	 **  "setenv _LMFILES_xxx" so subtract this from your limit.
 	 **/
-
-
 	if( !strcmp( var, "_LMFILES_")) {
 	    char formatted[ MOD_BUFSIZE];
 	    char *cptr;
@@ -931,7 +917,6 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	    /**
 	     **  Break up the _LMFILES_ variable...
 	     **/
-
 	    while( lmfiles_len > LMSPLIT_SIZE) {
 
 		    strncpy( buffer, ( val + count*LMSPLIT_SIZE ),
@@ -955,7 +940,6 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 		 ** Unset _LMFILES_ as indicator to use the multi-variable
 		 ** _LMFILES_
 	     **/
-
 	    fprintf(stdout, "unsetenv %s%c", var, cmd_separator);
 
 	    } else {	/** if ( lmfiles_len = strlen(val)) > LMSPLIT_SIZE) **/
@@ -966,7 +950,6 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	    /**
 	     ** Unset the extra _LMFILES_%03d variables that may be set
 	     **/
-
 	    do {
 		sprintf( formatted, "_LMFILES_%03d", count++);
 		cptr = Tcl_GetVar2( interp, "env", formatted, TCL_GLOBAL_ONLY);
@@ -991,7 +974,6 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
     /**
      **  SH
      **/
-
     } else if( !strcmp((char*) shell_derelict, "sh")) {
 
       char* escaped = (char*)malloc(strlen(val)*2+1);
@@ -1004,35 +986,30 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
     /**
      **  EMACS
      **/
-
     } else if( !strcmp((char*) shell_derelict, "emacs")) {
 	fprintf( stdout, "(setenv \"%s\" \'%s\')\n", var, val);
 
     /**
      **  PERL
      **/
-
     } else if( !strcmp((char*) shell_derelict, "perl")) {
 	fprintf( stdout, "$ENV{'%s'} = '%s'%c", var, val, cmd_separator);  
 
     /**
      **  PYTHON
      **/
-
     } else if( !strcmp((char*) shell_derelict, "python")) {
 	fprintf( stdout, "os.environ['%s'] = '%s'\n", var, val);
 
     /**
      ** SCM
      **/
-
     } else if ( !strcmp((char*) shell_derelict, "scm")) {
 	fprintf( stdout, "(putenv \"%s=%s\")\n", var, val);
 
     /**
      ** MEL (Maya Extension Language)
      **/
-
     } else if ( !strcmp((char*) shell_derelict, "mel")) {
         fprintf( stdout, "putenv \"%s\" \"%s\";", var, val);
 
@@ -1040,7 +1017,6 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
      **  Unknown shell type - print an error message and 
      **  return on error
      **/
-
     } else {
 	if( OK != ErrorLogger( ERR_DERELICT, LOC, shell_derelict, NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
@@ -1049,7 +1025,6 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
     /**
      **  Return and acknowldge success
      **/
-
     return( TCL_ERROR);
 
 } /** End of 'output_set_variable' **/
@@ -1086,7 +1061,6 @@ static	int	output_unset_variable( const char* var)
     /**
      **  Display the 'unsetenv' command according to the current invoking shell.
      **/
-
     if( !strcmp( shell_derelict, "csh")) {
 	fprintf( stdout, "unsetenv %s%c", var, cmd_separator);
     } else if( !strcmp( shell_derelict, "sh")) {
@@ -1096,8 +1070,7 @@ static	int	output_unset_variable( const char* var)
     } else if( !strcmp( shell_derelict, "perl")) {
 	fprintf( stdout, "delete $ENV{'%s'}%c", var, cmd_separator);  
     } else if( !strcmp( shell_derelict, "python")) {
-      fprintf( stdout, "os.environ['%s'] = ''\ndel os.environ['%s']\n",
-	       var, var);
+      fprintf( stdout, "os.environ['%s'] = ''\ndel os.environ['%s']\n",var,var);
     } else if( !strcmp( shell_derelict, "scm")) {
 	fprintf( stdout, "(putenv \"%s\")\n", var);
     } else if( !strcmp( shell_derelict, "mel")) {
@@ -1110,7 +1083,6 @@ static	int	output_unset_variable( const char* var)
     /**
      **  Return and acknowldge success
      **/
-
     return( TCL_OK);
 
 } /** End of 'output_unset_variable' **/
@@ -1144,7 +1116,6 @@ char	*set_derelict(	const char	*name)
     /**
      **  Use bourne shell syntax for SH, BASH, ZSH and KSH
      **/
-
     if( !strcmp((char*) name, "sh") || 
         !strcmp((char*) name, "bash") || 
         !strcmp((char*) name, "zsh") || 
@@ -1154,7 +1125,6 @@ char	*set_derelict(	const char	*name)
     /**
      **  CSH and TCSH
      **/
-
     } else if( !strcmp((char*) name, "csh") || 
 	       !strcmp((char*) name, "tcsh")) {
 	return( strcpy( shell_derelict, "csh"));
@@ -1162,28 +1132,24 @@ char	*set_derelict(	const char	*name)
     /** 
      **  EMACS
      **/ 
-
     } else if( !strcmp((char*) name, "emacs")) {
 	return( strcpy( shell_derelict, "emacs"));
 
     /** 
      **  PERL
      **/ 
-
     } else if( !strcmp((char*) name, "perl")) {
 	return( strcpy( shell_derelict, "perl"));
 
     /**
      ** PYTHON
      **/
-
     } else if( !strcmp((char*) name, "python")) {
 	return( strcpy( shell_derelict, "python"));
 
     /**
      ** SCM
      **/
-
     } else if( !strcmp((char *) name, "scm") ||
 	       !strcmp((char *) name, "scheme") ||
 	       !strcmp((char *) name, "guile")) {
@@ -1192,7 +1158,6 @@ char	*set_derelict(	const char	*name)
     /**
      ** MEL (Maya Extension Language)
      **/
-
     } else if( !strcmp((char *) name, "mel")) {
 	return( strcpy( shell_derelict, "mel"));
     }
@@ -1200,7 +1165,6 @@ char	*set_derelict(	const char	*name)
     /**
      **  Oops! Undefined shell name ...
      **/
-
     return( NULL);
 
 } /** End of 'set_derelict' **/
@@ -1242,14 +1206,12 @@ static	void	output_function(	const char	*var,
     /**
      **  This opens a function ...
      **/
-
     fprintf( aliasfile, "%s() {%c", var, alias_separator);
 
     /**
      **  ... now print the value. Print it as a single line and remove any
      **  backslash
      **/
-
     while( *cptr) {
 
         if( *cptr == '\\') {
@@ -1269,7 +1231,6 @@ static	void	output_function(	const char	*var,
     /**
      **  Finally close the function
      **/
-
     fprintf( aliasfile, ";%c}%c", alias_separator,alias_separator);
 
 } /** End of 'output_function' **/
@@ -1304,7 +1265,6 @@ static	int	output_set_alias(	const char	*alias,
 					/** to be print			     **/
     const char *cptr = val;		/** Scan the value char by char	     **/
         
-    
 #if WITH_DEBUGGING_UTIL_2
     ErrorLogger( NO_ERR_START, LOC, _proc_output_set_alias, NULL);
 #endif
@@ -1314,14 +1274,12 @@ static	int	output_set_alias(	const char	*alias,
      **  CSHs need to switch $* to \!* and $n to \!\!:n unless the $ has a
      **  backslash before it
      **/
-
     if( !strcmp( shell_derelict, "csh")) {
 
 	/**
 	 **  On CSHs the command is 'alias <name> <value>'. Print the beginning
 	 **  of the command and then print the value char by char.
 	 **/
-
         fprintf( aliasfile, "alias %s '", alias);
 
         while( *cptr) {
@@ -1329,7 +1287,6 @@ static	int	output_set_alias(	const char	*alias,
 	    /**
 	     **  Convert $n to \!\!:n
 	     **/
-
             if( *cptr == '$' && nobackslash) {
                 cptr++;
                 if( *cptr == '*')
@@ -1341,7 +1298,6 @@ static	int	output_set_alias(	const char	*alias,
 	    /**
 	     **  Recognize backslashes
 	     **/
-
             if( *cptr == '\\') {
                 if( !nobackslash)
 		    putc( *cptr, aliasfile);
@@ -1355,7 +1311,6 @@ static	int	output_set_alias(	const char	*alias,
 	    /**
 	     **  print the read character
 	     **/
-
             putc( *cptr++, aliasfile);
 
         } /** while **/
@@ -1364,14 +1319,12 @@ static	int	output_set_alias(	const char	*alias,
 	 **  Now close up the command using the alias command terinator as
 	 **  defined in the according global variable
 	 **/
-
         fprintf( aliasfile, "'%c", alias_separator);
 
     /**
      **  Bourne shell family: The alias has to be  translated into a
      **  function using the function call 'output_function'
      **/
-
     } else if( !strcmp(shell_derelict, "sh")) {
 
 	/**
@@ -1379,7 +1332,6 @@ static	int	output_set_alias(	const char	*alias,
          **  need to write a function unless this sh doesn't support
 	 **  functions
 	 **/
-
         if( !strcmp( shell_name, "sh")) {
 #ifdef HAS_BOURNE_FUNCS
             output_function(alias, val);
@@ -1390,7 +1342,6 @@ static	int	output_set_alias(	const char	*alias,
 	/**
 	 **  Shells supportig extended bourne shell syntax ....
 	 **/
-
         } else if( !strcmp( shell_name, "bash") ||
                    !strcmp( shell_name, "zsh" ) ||
                    !strcmp( shell_name, "ksh")) {
@@ -1400,7 +1351,6 @@ static	int	output_set_alias(	const char	*alias,
 	     **  take arguments. This is the case if the value has somewhere
 	     **  a '$' in it without a '\' infront.
 	     **/
-
 	    while( *cptr) {
 		if( *cptr == '\\') {
 		    if( nobackslash) {
@@ -1421,7 +1371,6 @@ static	int	output_set_alias(	const char	*alias,
             /**
              **  So, we can just output an alias with '\$' translated to '$'...
              **/
-
 	    fprintf( aliasfile, "alias %s='", alias);
 
 	    nobackslash = 1;
@@ -1444,7 +1393,6 @@ static	int	output_set_alias(	const char	*alias,
 	    fprintf( aliasfile, "'%c", alias_separator);
 
         } /** if( bash, zsh, ksh) **/
-
 	/** ??? Unknwn derelict ??? **/
 
     } /** if( !csh ) **/
@@ -1492,7 +1440,6 @@ static	int	output_unset_alias(	const char	*alias,
      **  Check for the shell family at first
      **  Ahh! CSHs ... ;-)
      **/
-
     if( !strcmp( shell_derelict, "csh")) {
         fprintf( aliasfile, "unalias %s%c", alias, alias_separator);
 
@@ -1500,7 +1447,6 @@ static	int	output_unset_alias(	const char	*alias,
      **  Hmmm ... bourne shell types ;-(
      **  Need to unset a function in case of sh or if the alias took parameters
      **/
-
     } else if( !strcmp( shell_derelict, "sh")) {
 
         if( !strcmp( shell_name, "sh")) {
@@ -1509,7 +1455,6 @@ static	int	output_unset_alias(	const char	*alias,
 	/**
 	 **  BASH
 	 **/
-
         } else if( !strcmp( shell_name, "bash")) {
 
             /**
@@ -1517,14 +1462,12 @@ static	int	output_unset_alias(	const char	*alias,
              **  see if it was a function or an alias because bash spits out an
              **  error if you try to unalias a non-existent alias.
              **/
-
             if(val) {
 
                 /**
                  **  Was it a function?
                  **  Yes, if it has arguments...
                  **/
-
 		while( *cptr) {
 		    if( *cptr == '\\') {
 			if( nobackslash) {
@@ -1546,7 +1489,6 @@ static	int	output_unset_alias(	const char	*alias,
                 /**
                  **  Well, it wasn't a function, so we'll put out an unalias...
                  **/
-
 		    fprintf( aliasfile, "unalias %s%c", alias, alias_separator);
 
             } else {	/** No value known (any more?) **/
@@ -1557,7 +1499,6 @@ static	int	output_unset_alias(	const char	*alias,
                  **  will not be cleared properly here because it was an
                  **  unset-alias command.
                  **/
-
                 fprintf( aliasfile, "unset -f %s%c", alias, alias_separator);
             }
 
@@ -1618,9 +1559,8 @@ char	*getLMFILES( Tcl_Interp	*interp)
      **  Try to read the variable _LMFILES_. If the according buffer pointer
      **  contains a value, disallocate it before.
      **/
-
     if( lmfiles)
-        free(lmfiles);
+        null_free((void *) &lmfiles);
 
     lmfiles = Tcl_GetVar2( interp, "env", "_LMFILES_", TCL_GLOBAL_ONLY);
 
@@ -1628,7 +1568,6 @@ char	*getLMFILES( Tcl_Interp	*interp)
      **  Now the pointer is NULL in case of the variable has not been defined.
      **  In this case try to read in the splitted variable from _LMFILES_xxx
      **/
-
     if( !lmfiles) {
 
         char	buffer[ MOD_BUFSIZE];	/** Used to set up the split variab- **/
@@ -1643,7 +1582,6 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	 **  Set up the split part environment variable name and try to read it
 	 **  in
 	 **/
-
         sprintf( buffer, "_LMFILES_%03d", count++);
         cptr = Tcl_GetVar2( interp, "env", buffer, TCL_GLOBAL_ONLY);
 
@@ -1652,7 +1590,6 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	    /**
 	     **  Count up the variables length
 	     **/
-
             cptr_len = strlen( cptr);	
             old_lmsize = lmsize;
             lmsize += cptr_len;
@@ -1661,7 +1598,6 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	     **  Reallocate the value's buffer and copy the current split
 	     **  part at its end
 	     **/
-
             if((char *) NULL == (lmfiles =
 		(char*) realloc( lmfiles, lmsize * sizeof(char) + 1))) {
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
@@ -1674,7 +1610,6 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	    /**
 	     **  Read the next split part variable
 	     **/
-
             sprintf( buffer, "_LMFILES_%03d", count++);
             cptr = Tcl_GetVar2( interp, "env", buffer, TCL_GLOBAL_ONLY);
 
@@ -1687,7 +1622,6 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	 **  of the returned buffer into a free allocated one in order to
 	 **  avoid side effects.
 	 **/
-
 	char	*tmp = strdup(lmfiles);
 
 	if( !tmp)
@@ -1698,7 +1632,6 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	 **  Set up lmfiles pointing to the new buffer in order to be able to
 	 **  disallocate when invoked next time.
 	 **/
-
         lmfiles = tmp;
 
     } /** if( lmfiles) **/
@@ -1706,7 +1639,6 @@ char	*getLMFILES( Tcl_Interp	*interp)
     /**
      **  Return the received value to the caller
      **/
-
     return( lmfiles);
 
 } /** end of 'getLMFILES' **/
@@ -1769,7 +1701,6 @@ int IsLoaded(	Tcl_Interp	 *interp,
 /**
  **  Check only an exact match of the passed module and version
  **/
-
 int IsLoaded_ExactMatch(	Tcl_Interp	 *interp,
 				char		 *modulename,
 				char		**realname,
@@ -1782,7 +1713,6 @@ int IsLoaded_ExactMatch(	Tcl_Interp	 *interp,
  **  The subroutine __IsLoaded finally checks for the requested module being
  **  loaded or not.
  **/
-
 static int __IsLoaded(	Tcl_Interp	 *interp,
 			char		 *modulename,
 			char		**realname,
@@ -1801,7 +1731,6 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
      **  Get a list of loaded modules (environment variable 'LOADEDMODULES')
      **  and the list of loaded module-files (env. var. __LMFILES__)
      **/
-
     char	*loaded_modules = Tcl_GetVar2( interp, "env", "LOADEDMODULES",
 				    TCL_GLOBAL_ONLY);
     char	*loaded_modulefiles = getLMFILES( interp);
@@ -1811,45 +1740,37 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
 #endif
 
     /**
-     **  If no module is currently loaded ... the requested module is shurely
+     **  If no module is currently loaded ... the requested module is surely
      **  not loaded, too ;-)
      **/
-
     if( !loaded_modules) 
-	return( 0);			/** -------- EXIT PROCEDURE -------> **/
+	goto unwind0;
     
     /**
      **  Copy the list of currently loaded modules into a new allocated array
-     **  for further handling. If this failes it will be assumed, that the 
+     **  for further handling. If this fails it will be assumed, that the 
      **  module is *NOT* loaded.
      **/
-
-    l_modules = strdup(loaded_modules);
-    if( !l_modules) {
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    return( 0);			/** -------- EXIT (FAILURE) -------> **/
-    }
+    if((char *) NULL == (l_modules = stringer(NULL,0,loaded_modules,NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind0;
 
     /**
      **  Copy the list of currently loaded modulefiles into a new allocated
      **  array for further handling. If this failes it will be assumed, that
      **  the module is *NOT* loaded.
      **/
-
-    if(loaded_modulefiles) {
-	l_modulefiles = strdup( loaded_modulefiles);
-	if( !l_modulefiles) {
-	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-		return( 0);		/** -------- EXIT (FAILURE) -------> **/
-        }
-    }
+    if(loaded_modulefiles)
+	if((char *) NULL == (l_modulefiles = stringer(NULL,0,
+		loaded_modulefiles,NULL)))
+	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+		goto unwind1;
 
     /**
      **  Assume the modulename given was an exact match so there is no
      **  difference to return -- this will change in the case it wasn't an
      **  exact match below
      **/
-
     if( realname)
         *realname = modulename;
 
@@ -1861,28 +1782,21 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
 	 **  following:
 	 **                gnu/2.0:openwin/3.0
 	 **/
-
 	loadedmodule_path = strtok( l_modules, ":");
 	while( loadedmodule_path) {
 
-	    loaded = strdup( loadedmodule_path);
-	    if ( !loaded) {
-		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-		    if( l_modulefiles)
-			free( l_modulefiles);
-		    free ( l_modules);
-		    return( 0);		/** -------- EXIT PROCEDURE -------> **/
-		}
-	    }
+	    if((char *) NULL == (loaded = stringer(NULL,0,
+		    loadedmodule_path,NULL)))
+		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+		    goto unwind2;
 
 	    /**
 	     **  Get a modulefile without a version and check if this is the
 	     **  requested one.
 	     **/
-
 	    if( !strcmp( loaded, modulename)) {	/** FOUND    **/
 
-		free ( loaded);
+		null_free ((void *) &loaded);
 		break;			/** leave the while loop	     **/
 
 	    } else if( !exact) {		/** NOT FOUND	     **/
@@ -1891,7 +1805,6 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
 		 **  Try to more and more simplify the modulename by removing
 		 **  all detail (version) information
 		 **/
-
 		basename = get_module_basename( loaded);
 		while( basename && strcmp( basename, modulename)) {
 		    basename = get_module_basename( basename);
@@ -1903,20 +1816,13 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
                  **  Since the name given was a basename, return the fully
 		 **  loaded path
 		 **/
-
                 if( basename) {
-		    free( loaded);
-                    if( realname) {
-			*realname = strdup( loadedmodule_path);
-			if ( !*realname) {
-			    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-				if( l_modulefiles)
-				    free( l_modulefiles);
-				free ( l_modules);
-				return( 0);	/** ---- EXIT PROCEDURE ---> **/
-			    }
-                        }
-                    }
+		    null_free ((void *) &loaded);
+                    if( realname)
+			if((char *) NULL == (*realname = stringer(NULL,0,
+				loadedmodule_path,NULL)))
+			    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+				goto unwind2;
 
 		    break;		/** leave the while loop	     **/
 
@@ -1926,11 +1832,10 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
 	    /**
 	     **  Get the next entry from the loaded modules list
 	     **/
-
 	    loadedmodule_path = strtok( NULL, ":");
             count++;
 
-	    free( loaded);		/** Free what has been alloc. **/
+	    null_free ((void *) &loaded); /** Free what has been alloc. **/
 
 	} /** while **/
     } /** if( *l_modules) **/
@@ -1938,7 +1843,6 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
     /**
      **  If we found something locate it's associated modulefile
      **/
-
     if( loadedmodule_path) {
         if( filename && l_modulefiles && *l_modulefiles) {
 
@@ -1949,7 +1853,6 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
 	     **  list of modulefiles by the colon until the wanted position
 	     **  is reached.
 	     **/
-
             char* modulefile_path = strtok(l_modulefiles, ":");
 	
             while( count) {
@@ -1964,10 +1867,7 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
 		     **  means the search will continue using the old method of
 		     **  looking through MODULEPATH.  
                      */
-
-                    free( l_modulefiles);
-                    free( l_modules);
-                    return( 1);		/** -------- EXIT PROCEDURE -------> **/
+		    goto success0;
                 }
                 count--;
 
@@ -1976,19 +1876,14 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
 	    /**
 	     **  Copy the result into the buffer passed from the caller
 	     **/
-
             strcpy( filename, modulefile_path);
         }
 
 	/**
 	 **  FOUND.
-	 **  free up everything which has been allocetd and return on success
+	 **  free up everything which has been allocated and return on success
 	 **/
-
-	if( l_modulefiles)
-	    free( l_modulefiles);
-	free( l_modules);
-	return( 1);			/** -------- EXIT PROCEDURE -------> **/
+	goto success0;
     }
 
     /**
@@ -1996,11 +1891,19 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
      **  failure
      **/
 
-    free( l_modules);
+unwind2:
     if( l_modulefiles)
-    free( l_modulefiles);
+	null_free((void *) &l_modulefiles);
+unwind1:
+    null_free((void *) &l_modules);
+unwind0:
+    return( 0);				/** -------- EXIT (FAILURE) -------> **/
 
-    return( 0);
+success0:
+    if( l_modulefiles)
+	null_free((void *) &l_modulefiles);
+    null_free((void *) &l_modules);
+    return( 1);				/** -------- EXIT (SUCCESS) -------> **/
 
 } /** End of '__IsLoaded' **/
 
@@ -2095,7 +1998,6 @@ static	char	*get_module_basename(	char	*modulename)
      **  Use strrchr to locate the very last version string on the module
      **  name.
      **/
-
     if((version = strrchr( modulename, '/'))) {
 	*version = '\0';
     } else {
@@ -2105,7 +2007,6 @@ static	char	*get_module_basename(	char	*modulename)
     /**
      **  Return the *COPIED* string
      **/
-
     return( modulename);
 
 } /** End of 'get_module_basename' **/
@@ -2150,7 +2051,6 @@ int Update_LoadedList(	Tcl_Interp	*interp,
     /**
      **  Apply changes to LOADEDMODULES first
      **/
-
     argv[1] = "LOADEDMODULES";
     argv[2] = modulename;
     argv[3] = NULL;
@@ -2166,7 +2066,6 @@ int Update_LoadedList(	Tcl_Interp	*interp,
     /**
      **  Apply changes to _LMFILES_ now
      **/
-
     argv[1] = "_LMFILES_";
     argv[2] = filename;
     argv[3] = NULL;
@@ -2184,7 +2083,6 @@ int Update_LoadedList(	Tcl_Interp	*interp,
      **  removing one of its versions. We'll want to look for the basename in
      **  the path too.
      **/
-
     if( g_flags & M_REMOVE) {
 	module = strdup( modulename);
 	basename = module;
@@ -2193,13 +2091,12 @@ int Update_LoadedList(	Tcl_Interp	*interp,
 	argv[0] = "remove-path";
 	cmdRemovePath( 0, interp, 3, argv);
 	}
-	free( module);
+	null_free((void *) &module);
     }
 
     /**
      **  Return on success
      **/
-
     return( 1);
 
 } /** End of 'Update_LoadedList' **/
@@ -2257,14 +2154,12 @@ static int ForcePath(	Tcl_Interp	*interp,
     /**
      **  If no pathname to be forced is specified, success is suggested
      **/
-
     if(	force_pathname == NULL)
 	return( 1);
 
     /**
      **  Set up an according environment and call the command functions
      **/
-
     argv[1] = variable_name;
     argv[2] = force_pathname;
     argv[3] = NULL;
@@ -2272,21 +2167,18 @@ static int ForcePath(	Tcl_Interp	*interp,
     /**
      **  First remove the pathname that we're forcing...
      **/
-
     argv[0] = "remove-path";
     cmdRemovePath( 0, interp, 3, argv);
 
     /**
      **  Next, add it back to the very end of the list
      **/
-
     argv[0] = append ? "append-path" : "prepend-path";
     cmdSetPath( 0, interp, 3, argv);
 
     /**
      **  Return on success 
      **/
-
     return( 1);
 
 } /** End of 'ForcePath' **/
@@ -2332,7 +2224,6 @@ int check_magic( char	*filename,
      **  Parameter check. The length of the magic cookie shouldn't exceed the
      **  length of out read buffer
      **/
-
     if( magic_len > BUFSIZ)
 	return 0;
 
@@ -2341,14 +2232,13 @@ int check_magic( char	*filename,
      **  magic cookie. If there's an I/O error (Unable to open the file or
      **  less than magic_len have been read) return on failure.
      **/
-
-    if( -1 == (fd = open( filename, O_RDONLY)))
+    if( 0 > (fd = open( filename, O_RDONLY)))
 	if( OK != ErrorLogger( ERR_OPEN, LOC, filename, "reading", NULL))
 	    return( 0);			/** -------- EXIT (FAILURE) -------> **/
 
     read_len = read( fd, buf, magic_len);
     
-    if( -1 == close(fd))
+    if( 0 > close(fd))
 	if( OK != ErrorLogger( ERR_CLOSE, LOC, filename, NULL))
 	    return( 0);			/** -------- EXIT (FAILURE) -------> **/
 
@@ -2358,7 +2248,6 @@ int check_magic( char	*filename,
     /**
      **  Check the magic cookie now
      **/
-
     return( !strncmp( buf, magic_name, magic_len));
 
 } /** end of 'check_magic' **/
@@ -2402,7 +2291,6 @@ void cleanse_path( const char	*path,
      **  Stopping at (len - 1) ensures that the newpath string can be
      **  null-terminated below.
      **/
-
     for( i=0, j=0; i<path_len && j<(len - 1); i++, j++) {
 
         switch(*path) {
@@ -2416,7 +2304,6 @@ void cleanse_path( const char	*path,
 	/**
 	 **  Flush the current character into the newpath buffer
 	 **/
-
         *newpath++ = *path++;
 
     } /** for **/
@@ -2424,7 +2311,6 @@ void cleanse_path( const char	*path,
     /**
      **  Put a string terminator at the newpaths end
      **/
-
     *newpath = '\0';
 
 } /** End of 'cleanse_path' **/
@@ -2470,7 +2356,6 @@ static	char *chop( const char	*string)
     /**
      **  Copy the trailing terminator and return
      **/
-
     *t++ = '\0';
     return( (char *) string);
 
@@ -2498,10 +2383,11 @@ static	char *chop( const char	*string)
 
 char	*strdup( char *str)
 {
-    int len = strlen( str) + 1;
-    char* new = (char *) malloc( len);
-    strcpy( new, str);
-    return( new);
+    char* new;
+    if ((char *) NULL) == (new = stringer(NULL,0, str, NULL))
+	if( OK != ErrorLogger( ERR_STRING, LOC, filename, NULL))
+	    return( (char*) NULL);	/** -------- EXIT (FAILURE) -------> **/
+    return( new);			/** -------- EXIT (SUCCESS) -------> **/
 }
 #endif /* HAVE_STRDUP  */
 
@@ -2650,7 +2536,7 @@ void chk4spch(char* s)
  **			\$ escapes the expansion and substitutes a '$' in    **
  **			its place.					     **
  ** 									     **
- **   First Edition:	2000/01/21					     **
+ **   First Edition:	2000/01/21	R.K.Owen <rk@owen.sj.ca.us>	     **
  ** 									     **
  **   Parameters:	char	*string		Environment variable	     **
  ** 									     **
@@ -2667,9 +2553,12 @@ char *xdup(char const *string) {
 	if (string == (char *)NULL) return result;
 
 	/** need to work from copy of string **/
-	result = strdup(string);
+	if (((char *) NULL) == (result = stringer(NULL,0, string, NULL)))
+	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+		return( (char*) NULL);	/** -------- EXIT (FAILURE) -------> **/
+
 	/** check for '$' else just pass strdup of it **/
-	if ((dollarptr = strchr(result, '$')) == (char *)NULL) {
+	if ((dollarptr = strchr(result, '$')) == (char *) NULL) {
 		return result;
 	} else {
 	/** found something **/
@@ -2742,11 +2631,12 @@ char *xdup(char const *string) {
 				dollarptr = (char *)NULL;
 			}
 		}
-		free(result);
+		null_free((void *) &result);
 		return strdup(buffer);
 	}
 
 } /** End of 'xdup' **/
+
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
@@ -2756,7 +2646,7 @@ char *xdup(char const *string) {
  ** 			However, it will only expand 1 level.		     **
  ** 			See xdup() for details.				     **
  ** 									     **
- **   First Edition:	2000/01/18					     **
+ **   First Edition:	2000/01/18	R.K.Owen <rk@owen.sj.ca.us>	     **
  ** 									     **
  **   Parameters:	char	*var		Environment variable	     **
  ** 									     **
@@ -2766,8 +2656,6 @@ char *xdup(char const *string) {
  ** 									     **
  ** ************************************************************************ **
  ++++*/
-
-
 
 char *xgetenv(char const * var) {
 	char *result = NULL;
@@ -2902,4 +2790,119 @@ int tmpfile_mod(char** filename, FILE** file) {
   return 1;
 }
 
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		stringer					     **
+ ** 									     **
+ **   Description:	Safely copies and concates series of strings	     **
+ **			until it hits a NULL argument.			     **
+ **			Either a buffer & length are given or if the buffer  **
+ **			pointer is NULL then it will allocate memory to the  **
+ **			given length. If the length is 0 then get the length **
+ **			from the series of strings.			     **
+ **			The resultant buffer is returned unless there	     **
+ **			is an error then NULL is returned.		     **
+ **			(Therefore, one of the main uses of stringer is to   **
+ **			 allocate string memory.)			     **
+ ** 									     **
+ ** 									     **
+ **   First Edition:	2001/08/08	R.K.Owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   Parameters:	char		*buffer	string buffer (if not NULL)  **
+ **			int		 len	maximum length of buffer     **
+ **			const char	*str1	1st string to copy to buffer **
+ **			const char	*str2	2nd string to cat  to buffer **
+ ** 			...						     **
+ **			const char	*strN	Nth string to cat  to buffer **
+ **			const char	*NULL	end of arguments	     **
+ ** 									     **
+ **   Result:		char		*buffer	if successfull completion    **
+ ** 					else NULL			     **
+ ** 									     **
+ **   Attached Globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
 
+char *stringer(	char *		buffer,
+		int		len,
+		... )
+{
+	va_list argptr;		/** stdarg argument ptr			**/
+	char *ptr;		/** argument string ptr			**/
+	char *tbuf = buffer;	/** tempory buffer  ptr			**/
+	int sumlen = 0;		/** length of all the concat strings	**/
+	char *(*strfn)(char*,const char*) = strcpy;
+				/** ptr to 1st string function		**/
+
+#if WITH_DEBUGGING_UTIL_2
+    ErrorLogger( NO_ERR_START, LOC, _proc_stringer, NULL);
+#endif
+
+	/* get start of optional arguments and sum string lengths */
+	va_start(argptr, len);
+	while (ptr = va_arg(argptr, char *)) {
+		sumlen += strlen(ptr);
+	}
+	va_end(argptr);
+
+	/* can we even proceed? */
+	if (tbuf && (sumlen >= len || len < 0)) {
+		return (char *) NULL;
+	}
+
+	/* do we need to allocate memory? */
+	if (tbuf == (char *) NULL) {
+		if (len == 0) {
+			len = sumlen + 1;
+		}
+		if ((char *) NULL == (tbuf = (char*) malloc(len))) {
+			if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+				return (char *) NULL;
+		}
+	}
+
+	/* concat all the strings to buffer */
+	va_start(argptr, len);
+	while (ptr = va_arg(argptr, char *)) {
+		strfn(tbuf, ptr);
+		strfn = strcat;
+	}
+	va_end(argptr);
+
+	/* got here successfully - return buffer */
+	return tbuf;
+
+} /** End of 'stringer' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		null_free					     **
+ ** 									     **
+ **   Description:	does a free and then nulls the pointer.		     **
+ ** 									     **
+ **   first edition:	2000/08/24	r.k.owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   parameters:	void	**var		allocated memory	     **
+ ** 									     **
+ **   result:		void    		(nothing)		     **
+ ** 									     **
+ **   attached globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+void null_free(void ** var) {
+
+	if (! *var) return;	/* passed in a NULL ptr */
+
+#ifdef USE_FREE
+	free( *var);
+#endif
+	*var = NULL;
+
+} /** End of 'null_free' **/
+

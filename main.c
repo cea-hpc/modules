@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.3 2002/04/27 01:15:55 lakata Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.4 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -64,8 +64,6 @@ char	 *g_current_module = NULL;	/** The module which is handled by   **/
 					/** the current command		     **/
 char	 *specified_module = NULL;	/** The module that was specified    **/
 					/** on the command line		     **/
-char	**shell_startups;		/** A list off all startup files our **/
-					/** invoking shell will source	     **/
 char	  shell_name[20];		/** Name of the shell (first para-   **/
 					/** meter to modulcmd)		     **/
 char      binary_name[1024];            /** name or path of this modulecmd   **/
@@ -215,17 +213,17 @@ int	main( int argc, char *argv[], char *environ[]) {
      **/
 
     if( TCL_OK != Initialize_Tcl( &interp, argc, argv, environ))
-	exit( 1);
+	goto unwind0;
 
     if( TCL_OK != Setup_Environment( interp))
-	exit( 1);
+	goto unwind0;
 
     /**
      **  Check for command line switches
      **/
 
     if( TCL_OK != Check_Switches( &argc, argv))
-	exit( 1);
+	goto unwind0;
 
     /**
      **  Figure out, which global RC file to use. This depends on the environ-
@@ -239,47 +237,39 @@ int	main( int argc, char *argv[], char *environ[]) {
 
     if((rc_name = xgetenv( "MODULERCFILE"))) {
 	/* found something in MODULERCFILE */
-	if((char *) NULL == (rc_path = strdup(rc_name))) {
-	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-		exit( 1);
-	    else {
-		free(rc_name);
-		rc_name = NULL;
-	    }
+	if((char *) NULL == (rc_path = stringer(NULL,0,rc_name,NULL))) {
+	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+		goto unwind1;
+	    else
+		null_free((void *) &rc_name);
 	} else {
-	    free(rc_name);
+	    null_free((void *) &rc_name);
 	    if((char *) NULL == (rc_name = strrchr( rc_path, '/'))) {
 		rc_name = rc_path;
 		rc_path = instpath;
 	    } else
 		*rc_name++ = '\0';
-	    
 	    if( !*rc_name) {
 		rc_name = rc_file;
 	    }
 	}
-
     } else {
 	rc_path = instpath;
-	free(rc_name);
+	null_free((void *) &rc_name);
 	rc_name = rc_file;
     }
 
     /**
-     **  Finaly we have to change INSTPATH -> INSTPATH/etc
+     **  Finally we have to change INSTPATH -> INSTPATH/etc
      **/
 
     if( rc_path == instpath) {
-	if((char *) NULL == (rc_path = malloc( strlen( instpath) + 5))) {
+	if((char *) NULL == (rc_path = stringer(NULL,0, instpath,"/etc",NULL))){
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-		exit( 1);
+		goto unwind1;
 	    else
 		rc_path = NULL;
 	
-	} else {
-	    /* sprintf( rc_path, "%s/etc", instpath); */
-	    strcpy( rc_path, instpath);
-	    strcat( rc_path, "/etc");
 	}
     }
 
@@ -294,7 +284,7 @@ int	main( int argc, char *argv[], char *environ[]) {
 	exit( 1);
 
     if( rc_path)
-	free( rc_path);
+	null_free((void *) &rc_path);
 
     /**
      **  Invocation of the module command as specified in the command line
@@ -333,19 +323,27 @@ int	main( int argc, char *argv[], char *environ[]) {
     Delete_Global_Hash_Tables();
 
     if( line)
-	free( line);
+	null_free((void *) &line);
     if( error_line)
-	free( error_line);
+	null_free((void *) &error_line);
 
     /**
      **  This return value may be evaluated by the calling shell
      **/
-
 #if WITH_DEBUGGING
     ErrorLogger( NO_ERR_END, LOC, _proc_main, NULL);
 #endif
 
-    return( return_val);
+    return ( return_val);
+
+unwind2:
+    null_free((void *) &rc_path);
+unwind1:
+    null_free((void *) &rc_name);
+unwind0:
+
+    /* and error occurred of some type */
+    return( 1);
 
 } /** End of 'main' **/
 

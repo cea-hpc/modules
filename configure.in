@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.in,v 1.10 2002/04/29 19:58:06 lakata Exp $
+dnl Revision:    $Id: configure.in,v 1.11 2002/04/29 21:16:48 rkowen Exp $
 dnl Created:     94/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -10,24 +10,16 @@ dnl Process this file with autoconf to produce a configure script
 dnl You need autoconf 2.4 or better!
 dnl
 dnl --------------------------------------------------------------
-AC_INIT(version.c)
+AC_INIT
+AC_CONFIG_SRCDIR([version.c])
 AC_CONFIG_HEADER(config.h)
-AC_PREREQ(2.4)
+AC_PREREQ(2.52)
+AC_CONFIG_AUX_DIR(config)
+
 dnl --------------------------------------------------------------
 dnl
 dnl Some special substitution we need:
 dnl
-dnl X11_INC_DIR		To find the X11 include files
-dnl X11_LIB_DIR		To find the X11 library files
-dnl X11_LIBS		The X11 libararies we need
-dnl TCL_MINOR_VERSION	The installed TCL version
-dnl TCL_MAJOR_VERSION	The installed TCL version
-dnl TCL_VERSION		The installed TCL version (major.minor)
-dnl TCL_INC_DIR		To find the TCL include files
-dnl TCL_LIB_DIR		To find the TCL library file
-dnl TCLX_INC_DIR	To find the TCLX include files
-dnl TCLX_LIB_DIR	To find the TCLX library file
-dnl TCLX_LIBS		The TCLX libararies we need
 dnl STATIC		Link the binary 'static'
 dnl WITH_LOGGING	Whether syslogging is enabled
 dnl MODULEPATH		The modulepath we want
@@ -38,17 +30,7 @@ dnl SKELPATH		Where to find the $HOME/dot file skeletons
 dnl DATE		Module package date
 dnl VERSION		Module package version
 dnl THISDIR		Full path to this source directory
-dnl R_OPTION
 dnl
-AC_SUBST(X11_INC_DIR)dnl
-AC_SUBST(X11_LIB_DIR)dnl
-AC_SUBST(X11_LIBS)dnl
-AC_SUBST(TCL_INC_DIR)dnl
-AC_SUBST(TCL_LIB_DIR)dnl
-AC_SUBST(TCL_VERSION)dnl
-AC_SUBST(TCLX_INC_DIR)dnl
-AC_SUBST(TCLX_LIB_DIR)dnl
-AC_SUBST(TCLX_LIBS)dnl
 AC_SUBST(STATIC)dnl
 AC_SUBST(WITH_LOGGING)dnl
 AC_SUBST(MODULEPATH)dnl
@@ -58,12 +40,12 @@ AC_SUBST(ETCPATH)dnl
 AC_SUBST(SKELPATH)dnl
 AC_SUBST(DOT_EXT)dnl
 AC_SUBST(VERSION)dnl
-AC_SUBST(R_OPTION)dnl
 AC_SUBST(DATE)dnl
 AC_SUBST(THISDIR)dnl
 dnl
 dnl --------------------------------------------------------------
 dnl Get Modules version & date
+dnl --------------------------------------------------------------
 VERSION='(unknown)'
 VERSION=`sed -n -e 's/^.*version_string.*"\(.*\)";$/\1/p' ${srcdir}/version.c`
 AC_MSG_RESULT([VERSION = $VERSION])
@@ -77,6 +59,7 @@ AC_MSG_RESULT([THISDIR = $THISDIR])
 dnl --------------------------------------------------------------
 dnl compute a default path ... strip off @VERSION@ if present in prefix
 dnl also expand @VERSION@ in path
+dnl --------------------------------------------------------------
 DEFAULTPATH=default
 if test "$prefix" != "NONE" ; then
   DEFAULTPATH=`echo $prefix | sed -e s%@VERSION@%$DEFAULTPATH%g`
@@ -188,75 +171,65 @@ AC_PROG_CC
 dnl --------------------------------------------------------------
 dnl Some standard autoconfig stuff
 dnl Checks for programs
-dnl
-AC_PROG_CPP
-AC_AIX
-AC_PROGRAM_PATH(UNAME, uname, "")
-AC_FIND_TCL
 dnl --------------------------------------------------------------
-dnl
-dnl
-dnl Locate TCL libraries and include files
-dnl
-dnl --with-tcl-include=<path>	With TCL include path=<path>
-dnl --without-tcl-include	Seek for default include path
-dnl
-dnl --with-tcl-libraries=<path>	With TCL lib path=<path>
-dnl --without-tcl-libraries	Seek for default lib path
-dnl
-dnl --with-tcl-version=<vers>  	With TCL version=<version
-dnl --without-tcl-version	Seek for the TCL version
-dnl
-AC_MAKE_INCLUDE(tcl_includes, TCL_INC_DIR)
-AC_MAKE_LIBRARY(tcl_libraries, TCL_LIB_DIR)
-dnl the TCL versions are defined in the tcl.h
-dnl AC_DEFINE_UNQUOTED(TCL_MINOR_VERSION, `echo $tcl_version | sed 's/^.*\.//'`)
-dnl AC_DEFINE_UNQUOTED(TCL_MAJOR_VERSION, `echo $tcl_version | sed 's/\..*$//'`)
-TCL_VERSION=$tcl_version
-AC_ARG_WITH(tcl-library,
-  	[  --with-tcl-library=<path>   Path to TCL support files     [/usr/local/lib/tcl8.x]],
- 	TCL_LIBRARY="$withval",
- 	TCL_LIBRARY="$tcl_library"
-         if test "$TCL_LIBRARY" = "" ; then
-            AC_MSG_ERROR([Can not find location of init.tcl {ie TCL script library}. Please rerun configure with --with-tcl-library=<path>. The standard location is /usr/local/lib/tcl*])
-         fi
-         if test ! -d "$TCL_LIBRARY"; then
-            AC_MSG_ERROR([${TCL_LIBRARY} does not exist; ...exit configure])
-         fi)
-AC_DEFINE_UNQUOTED(TCL_LIBRARY,"$TCL_LIBRARY")
-AC_MSG_RESULT([TCL_LIBRARY set to $TCL_LIBRARY])
-dnl
-AC_ISC_POSIX
+AC_PROG_CC
+AC_PROG_CPP
 AC_PROG_GCC_TRADITIONAL
 AC_PROG_INSTALL
-AC_SET_MAKE
-AC_HEADER_DIRENT
-AC_STDC_HEADERS
-AC_HAVE_HEADERS(string.h memory.h stdlib.h unistd.h termio.h fcntl.h ctype.h \
-	stdarg.h varargs.h syslog.h)
-AC_HAVE_HEADERS(errno.h sys/ioctl.h sys/termios.h sys/mode.h sys/stat.h      \
-	sys/param.h)
-AC_SIZE_T
-AC_CONST
-AC_FIND_X 
+AC_PROG_MAKE_SET
+AC_AIX
+AC_ISC_POSIX
+AC_PATH_PROG([UNAME],[uname],[""])
+AC_PATH_X
+AC_PATH_XTRA
+if test "$no_x" != "yes"; then
+	AC_DEFINE(HAS_X11LIBS)
+	AC_CHECK_LIB(X11, XMaxRequestSize)
+	AC_CHECK_LIB(Xmu, XmuGetHostname)
+fi
+
 dnl --------------------------------------------------------------
 dnl Checks for header files
+dnl --------------------------------------------------------------
+
+AC_HEADER_DIRENT
+AC_HEADER_STDC
+AC_CHECK_HEADERS(string.h memory.h stdlib.h unistd.h termio.h fcntl.h ctype.h \
+	stdarg.h varargs.h syslog.h)
+AC_CHECK_HEADERS(errno.h sys/ioctl.h sys/termios.h sys/mode.h sys/stat.h      \
+	sys/param.h)
+dnl --------------------------------------------------------------
+dnl Checks for typedefs, structures, and compiler characteristics.
+dnl --------------------------------------------------------------
+AC_C_CONST
+AC_TYPE_UID_T
+AC_TYPE_SIZE_T
+AC_STRUCT_TM
+dnl --------------------------------------------------------------
+dnl Checks for libraries
+dnl --------------------------------------------------------------
 dnl Solaris 2.x: This requires -lnsl and -lsocket. If AC_PATH_XTRA
 dnl              did not search for these, search them explicitely.
 dnl              MUST be done BEFORE AC_PATH_XTRA!
+dnl --------------------------------------------------------------
 AC_CHECK_LIB(socket, socket)
 AC_CHECK_LIB(nsl, t_accept)
-AC_PATH_XTRA 
-AC_HAVE_FUNCS(strdup strtok uname gethostname getdomainname tempnam tmpnam \
-	syslog dup2)
-AC_PATH_PROG_SEARCH(_CPPSTDIN, cpp, /lib /usr/lib /usr/lang \
+
+dnl --------------------------------------------------------------
+dnl Checks for library functions.
+dnl --------------------------------------------------------------
+AC_CHECK_FUNCS([strdup strtok uname gethostname getdomainname \
+	mktemp tmpnam tempnam \
+	syslog dup2])
+EM_PATH_PROG_SEARCH(_CPPSTDIN, cpp, /lib /usr/lib /usr/lang \
 	/usr/local/lang /usr/ccs/lib, [${CC} -E])
 AC_DEFINE_UNQUOTED(CPPSTDIN, "$_CPPSTDIN")
-AC_PROGRAM_PATH(_PHOST, hostname, "")
+AC_PATH_PROG([_PHOST],[hostname],[""])
 test "$_PHOST" != ""  && AC_DEFINE_UNQUOTED(PHOSTNAME, "$_PHOST")
 AC_PATH_PROG(RUNTEST, runtest, "./not_installed")
 test "$RUNTEST" = "" && echo "Install DEJAGNU and rerun configure if you \
 want to run the testsuite"
+
 dnl
 dnl Here we define some --with & --enable things:
 dnl
@@ -290,16 +263,6 @@ dnl
 dnl --enable-use-default        Use PREFIX - VERSION in init scripts [DEF]
 dnl --disable-use-default       Use PREFIX in init scripts
 dnl
-if test "$no_x" != "yes"; then
-	AC_DEFINE(HAS_X11LIBS)
-	AC_MAKE_INCLUDE(x_includes, X11_INC_DIR)
-	AC_MAKE_LIBRARY(x_libraries, X11_LIB_DIR)
-	X11_LIBS="-lXt -lX11"
-dnl	AC_CHECKING(for -lXmu)
-dnl	test -f "$x_libraries/libXmu.a" && X11_LIBS="$X11_LIBS -lXmu"
-	AC_CHECKING(for -lXext)
-	test -f "$x_libraries/libXext.a" && X11_LIBS="$X11_LIBS -lXext"
-fi
 AC_ARG_WITH(force-path,
 	[  --with-force-path=<path>    use force path=<path>         [no]],
 	if test "$withval" != "no"; then
@@ -314,7 +277,7 @@ AC_ARG_WITH(split-size,
 	fi)
 AC_ARG_WITH(static,
 	[  --with-static[=<option>]    use static linking            [no]],
-	AC_SET_STATIC(STATIC, $withval))
+	EM_SET_STATIC(STATIC, $withval))
 AC_ARG_ENABLE(cache,
 	[  --enable-cache              use directory cache           [yes]],
 	if test "$enableval" = "yes"; then
@@ -362,11 +325,10 @@ AC_ARG_ENABLE(use-default,
 		AC_SUBST(DEFAULTPATH)
 	fi)
 dnl --------------------------------------------------------------
-dnl
 dnl  Logging
 dnl  The following option allow switching logging on and off
 dnl  and provide a possibility to set up the default facilities
-dnl
+dnl --------------------------------------------------------------
 WITH_LOGGING=0
 AC_ARG_ENABLE(logging,
 	[  --enable-logging            turn logging on		    [no]],
@@ -435,11 +397,10 @@ AC_ARG_WITH(log-facility-panic,
 		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_PANIC, "$withval")
 	fi)
 dnl --------------------------------------------------------------
-dnl
 dnl  Tracing
 dnl  The following option allow switching tracing on and off on a
 dnl  per module command basis
-dnl
+dnl --------------------------------------------------------------
 AC_ARG_WITH(trace-load,
 	[  --with-trace-load=<value>   specify a pattern for trace   [no]],
 	if test "$withval" != "no"; then
@@ -576,46 +537,111 @@ AC_ARG_WITH(trace-apropos,
 		fi
 	fi)
 dnl --------------------------------------------------------------
-dnl
 dnl Find libraries, functions and special programs
 dnl	The dynamic loader library should only be probed for, if
 dnl	static linking is not switched on!
-dnl
+dnl --------------------------------------------------------------
 AC_CHECK_LIB(m, log)
 if test "${STATIC-foobar}" = "foobar"; then
     AC_CHECK_LIB(dl, dlopen)
 fi
 
 dnl
-dnl --------------------------------------------------------------
+dnl--------------------------------------------------------------------
+dnl Load the tclConfig.sh file
+dnl--------------------------------------------------------------------
+
+SC_PATH_TCLCONFIG
+SC_LOAD_TCLCONFIG
+SC_PUBLIC_TCL_HEADERS
+
+dnl--------------------------------------------------------------------
+dnl Load the tclxConfig.sh file
 dnl search for tclx after tcl, not before to benefit from tcl_includes and
-dnl tcl_libraries;
+dnl--------------------------------------------------------------------
+
+EM_PATH_TCLXCONFIG
+EM_LOAD_TCLXCONFIG
+if test x"$no_tclx" != x"true"; then
+	AC_DEFINE(HAS_TCLXLIBS)
+fi
+
 dnl
-dnl --with-tclx			With extended TCL
-dnl --without-tclx		Without  - " -		[DEF]
+dnl --------------------------------------------------------------
 dnl
-dnl --with-tclx-include=<path>	With ext. TCL include path=<path>
-dnl --without-tclx-include	Seek for default include path
+dnl   --with-module-path
+dnl   --with-version-path
+dnl   --with-autoload-path
+dnl   --with-etc-path
+dnl   --with-skel-path
 dnl
-dnl --with-tclx-libraries=<path>With ext. TCL lib path=<path>
-dnl --without-tclx-libraries	Seek for default lib path
-dnl
-AC_ARG_WITH(tclx,
-	[  --with-tclx                 use Extended TCL              [no]],
+AC_ARG_WITH(module-path,
+	[  --with-module-path=<path>   use module path=<path>        [/usr/local/Modules/modulefiles]],
+	MODULEPATH="$withval"
+	AC_MSG_RESULT([MODULEPATH = $with_module_path])
+	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval")
+	,
+	AC_MSG_WARN([if using '--with-module-path': need to specify a path!])
+	if test "$withval" = "no" || test "$withval" = "yes"; then
+		withval="/usr/local/Modules/modulefiles"
+	fi
+	AC_MSG_WARN([will use MODULEPATH=$withval])
+	MODULEPATH="$withval"
+	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval"))
+AC_ARG_WITH(version-path,
+	[  --with-version-path=<path>  use module path=<path>        [/usr/local/Modules/versions]],
+	VERSIONPATH="$withval"
+	AC_MSG_RESULT([VERSIONPATH = $with_version_path])
+	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval")
+	,
+	AC_MSG_WARN([if using '--with-version-path': need to specify a path!])
+	if test "$withval" = "no" || test "$withval" = "yes"; then
+		withval="$prefix/Modules/versions"
+	fi
+	AC_MSG_WARN([will use VERSIONPATH=$withval])
+	VERSIONPATH="$withval"
+	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval"))
+AC_ARG_WITH(autoload-path,
+	[  --with-autoload-path=<path> use autoload path=<path>      [$ac_default_prefix/lib/tcl]],
+	if test "$withval" = "no" || test "$withval" = "yes"; then
+		if test "$prefix" != "NONE" ; then
+			withval="$prefix/lib/tcl"
+		else
+			withval="$ac_default_prefix/lib/tcl"
+		fi
+	fi
+	AUTOLOADPATH="$withval"
+	AC_DEFINE_UNQUOTED(AUTOLOADPATH, "$withval"))
+AC_ARG_WITH(etc-path,
+	[  --with-etc-path=<path>      use etc path=<path>           [/etc]],
+	if test "$withval" = "no" || test "$withval" = "yes"; then
+	AC_MSG_WARN([if using '--with-etc-path': need to specify a path! Using /etc])
+		withval="/etc"
+	fi
+	ETCPATH="$withval"
+	,
+	ETCPATH="/etc")
+AC_ARG_WITH(skel-path,
+	[  --with-skel-path=<path>     use skel path=<path>          [/etc/skel]],
+	if test "$withval" = "no" || test "$withval" = "yes"; then
+	AC_MSG_WARN([if using '--with-skel-path': need to specify a path! Using /etc/skel])
+		withval="/etc/skel"
+	fi
+	SKELPATH="$withval"
+	,
+	SKELPATH="/etc/skel")
+AC_ARG_WITH(dot-ext,
+	[  --with-dot-ext[=<.ext>]     append <.ext> to shell init   [.ext]],
 	if test "$withval" != "no"; then
-		AC_DEFINE(HAS_TCLXLIBS)
-		AC_FIND_TCLX
-		AC_MAKE_INCLUDE(tclx_includes, TCLX_INC_DIR)
-		AC_MAKE_LIBRARY(tclx_libraries, TCLX_LIB_DIR)
-		TCLX_LIBS="-ltclx"
-		AC_REQUIRE([AC_PATH_XTRA])
+		test "$withval" = "yes" && withval=".ext"
+		AC_DEFINE_UNQUOTED(DOT_EXT, "$withval")
+	else
+		AC_DEFINE_UNQUOTED(DOT_EXT, "")
 	fi)
-dnl
-dnl
 dnl --------------------------------------------------------------
 dnl Now put it all out!
-dnl
-AC_OUTPUT(Makefile modules.lsm .spec doc/Makefile init/Makefile
+dnl --------------------------------------------------------------
+AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile init/Makefile
 	init/bash init/csh init/ksh init/perl init/python init/sh
 	init/zsh init/.modulespath
 	doc/module.1 doc/modulefile.4
@@ -630,4 +656,7 @@ AC_OUTPUT(Makefile modules.lsm .spec doc/Makefile init/Makefile
 	modulefiles/Makefile modulefiles/modules
 	modulefiles/module-cvs modulefiles/module-info modulefiles/null
 	modulefiles/use.own modulefiles/dot modulefiles/version
-	, date > stamp-h)dnl
+	])
+AC_CONFIG_COMMANDS([default],[[date > stamp-h]],[[]])
+AC_OUTPUT
+dnl

@@ -40,7 +40,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdXResource.c,v 1.4 2002/04/24 01:07:57 lakata Exp $";
+static char Id[] = "@(#)$Id: cmdXResource.c,v 1.5 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -505,14 +505,14 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
 	    if( remove) {
 	        Tcl_RegExpRange(res_exp, 1, &startp, &endp);
 		if( entry = Tcl_FindHashEntry( data, startp)) {
-		    free( Tcl_GetHashValue( entry));
+		    null_free((void *) &( Tcl_GetHashValue( entry)));
 		    Tcl_DeleteHashEntry( entry);
 		}
 	    } else {
 	        Tcl_RegExpRange(res_exp, 1, &startp, &endp);
 		entry = Tcl_CreateHashEntry( data, startp, &new_res);
 		if( !new_res)
-		    free( Tcl_GetHashValue( entry));
+		    null_free((void *) &( Tcl_GetHashValue( entry)));
 	        Tcl_RegExpRange(res_exp, 2, &startp, &endp);
 		Tcl_SetHashValue( entry, strdup( startp));
 	    }

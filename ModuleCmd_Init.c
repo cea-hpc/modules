@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.3 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -119,23 +119,25 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	       		int            	 argc,
 	       		char		*argv[])
 {
-    static char	  home_pathname[ MOD_BUFSIZE + 40];
-    static char	  home_pathname2[ MOD_BUFSIZE + 40];
+    char	 *home_pathname,
+		 *home_pathname2,
+		 **shell_startups;	/** A list off all startup files our **/                                        /** invoking shell will source       **/
+    int		  max_home_path = MOD_BUFSIZE + 40;
     Tcl_RegExp	 modcmdPtr = Tcl_RegExpCompile(interp,
 	"^([ \t]*module[ \t]+)(load|add)[ \t]+([^#\n]*)([#.\n]*)");
-    char	**modlist;
-    char	 *home;
-    char	 *buffer;
-    char	  ch;
-    char	 *startp, *endp;
+    char	**modlist,
+		 *home,
+		 *buffer,
+		  ch,
+		 *startp, *endp;
     FILE	 *fileptr, *newfileptr;
-    int		  i, j;
-    int		  found_module_command = 0;
-    int		  found_modload_flag = 0;
-    int		  shell_num = 0;
-    int		  nummods, bufsiz = 8192;
-    int		  home_end, path_end;
-    int		  sw_found = 0, rm_found = 0;
+    int		  i, j,
+		  found_module_command = 0,
+		  found_modload_flag = 0,
+		  shell_num = 0,
+		  nummods, bufsiz = 8192,
+		  homelen, home_end, path_end,
+		  sw_found = 0, rm_found = 0;
 
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Init, NULL);
@@ -145,65 +147,64 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
      **  If called with no arguments and the flags don't say that there's some-
      **  thing to do - exit now!
      **/
-
     if( argc < 1 && !(g_flags & (M_DISPLAY | M_CLEAR)))
-	return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
+	goto success0;
   
     /**
      **  Parameter check for the initswitch command
      **/
-
     if(g_flags & M_SWITCH) {
 	argc--;
-	if(argc != 1) {
-	    if( OK != ErrorLogger( ERR_USAGE, LOC, "initswitch oldmodule newmodule",
-		NULL))
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-	}
+	if(argc != 1)
+	    if( OK != ErrorLogger( ERR_USAGE, LOC,
+		"initswitch oldmodule newmodule", NULL))
+		goto unwind0;
     }
+  
+    /**
+     **  Where's my HOME?
+     **/
+    if((char *) NULL == (home = (char *) getenv("HOME")))
+	if( OK != ErrorLogger( ERR_HOME, LOC, NULL))
+	    goto unwind1;
+      
+    /**
+     **  Put HOME into a buffer and store a slash where the end of HOME is
+     **  for quick concatination of the shell startup files.
+     **/
+    homelen = strlen(home) + 40;
+    if ((char *) NULL ==
+	(home_pathname = stringer( NULL, homelen, home,"/", NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind0;
+
+    if ((char *) NULL ==
+	(home_pathname2 = stringer( NULL, homelen, NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind1;
+
+    home_end = strlen(home_pathname);
   
     /**
      **  Allocate a buffer for fgets ...
      **/
+    if( NULL == (buffer = stringer(NULL, bufsiz ,NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind2;
 
-    if( NULL == (buffer = (char*) malloc( bufsiz * sizeof(char)))) {
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
-
-    /**
-     **  Where's my HOME?
-     **/
-
-    if( NULL == (home = (char *) getenv("HOME")))
-	if( OK != ErrorLogger( ERR_HOME, LOC, NULL)) {
-	    free( buffer);
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-	}
-      
-    home_end = strlen( home);
-  
-    /**
-     **  Put HOME into a buffer and store a slash where the end of HOME is
-     **  for quick contatination of the shell startup files.
-     **/
-
-    strcpy( home_pathname, home);
-    home_pathname[ home_end++] = '/';
-    home_pathname[ home_end] = '\0';
-  
     /**
      **  Scan all startup files related to the current invoking shell
      **/
-
-    if( TCL_OK != SetStartupFiles()) {
-	free( buffer);
-	return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+    if((char **) NULL == (shell_startups = SetStartupFiles(shell_name)))
+	goto unwind3;
 
     while( shell_startups[ shell_num]) {
 
-	strcpy( &home_pathname[ home_end], shell_startups[ shell_num]);
+	if ((char *) NULL == stringer( home_pathname + home_end , 40,
+		shell_startups[ shell_num]))
+		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+			goto unwind3;
+
 	if( NULL == (fileptr = fopen(home_pathname, "r"))) {
 	    shell_num++;
 	    continue;			/** while( shell_startups) ...	     **/
@@ -213,14 +214,16 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	 **  ... when the startup file exists ...
 	 **  open a new startupfile with the extension -NEW for output
 	 **/
-
-	path_end = home_end + strlen( shell_startups[ shell_num]);
-	strcpy( &home_pathname[ path_end], "-NEW");
+	path_end = strlen( home_pathname );
+	if ((char *) NULL == stringer( home_pathname + path_end,
+		homelen - path_end, "-NEW", NULL))
+	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+		goto unwind3;
 
 	shell_num++;
 
 	if( !(g_flags & M_DISPLAY) &&
-	NULL == (newfileptr = fopen( home_pathname, "w"))) {
+	((FILE *) NULL == (newfileptr = fopen( home_pathname, "w")))) {
 	    (void) ErrorLogger(ERR_OPEN,LOC,home_pathname,"init",NULL);
 	    continue;			/** while( shell_startups) ...	     **/
 	}
@@ -230,7 +233,6 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	 **  Copy the shell input file to the new one until the magic cookie
 	 **  is found.
 	 **/
-
 	while( fgets( buffer, bufsiz, fileptr)) {
 	    if( Tcl_RegExpExec(interp, modcmdPtr, buffer, buffer)) {
 		found_modload_flag = 1;
@@ -242,27 +244,20 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	/**
 	 **  If not found...
 	 **/
-
 	if( !found_modload_flag) {
 
 	    if( EOF == fclose( fileptr))
-		if( OK != ErrorLogger( ERR_CLOSE, LOC, home_pathname, NULL)) {
-		    free( buffer);
-		    return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-		}
+		if( OK != ErrorLogger( ERR_CLOSE, LOC, home_pathname, NULL))
+		    goto unwind3;
 
 	    if (!(g_flags & M_DISPLAY)) {
 		if( EOF == fclose( newfileptr))
-		    if( OK != ErrorLogger(ERR_CLOSE,LOC,home_pathname,NULL)) {
-			free( buffer);
-			return( TCL_ERROR);	/** ---- EXIT (FAILURE) ---> **/
-		    }
+		    if( OK != ErrorLogger(ERR_CLOSE,LOC,home_pathname,NULL))
+			goto unwind3;
 
-	    if( -1 == unlink( home_pathname))
-		    if( OK != ErrorLogger(ERR_UNLINK,LOC,home_pathname,NULL)) {
-			free( buffer);
-			return( TCL_ERROR);	/** ---- EXIT (FAILURE) ---> **/
-		    }
+		if( 0 > unlink( home_pathname))
+		    if( OK != ErrorLogger(ERR_UNLINK,LOC,home_pathname,NULL))
+			goto unwind3;
 	    }
 
 	    continue;			/** while( shell_startups) ...	     **/
@@ -271,7 +266,6 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	/**
 	 **  ... module load|add found ...
 	 **/
-
 	found_module_command = 1;
 	found_modload_flag = 0;
 
@@ -293,12 +287,11 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		*endp = '\0';
 	    }
 	
-	    if( !( modlist = SplitIntoList( interp, startp, &nummods)))
+	    if((char **) NULL==(modlist=SplitIntoList(interp,startp,&nummods)))
 		continue;
 	    /* restore the list end character */
-	    if(endp) {
+	    if(endp)
 		*endp = ch;
-	    }
 
 	    if( g_flags & M_DISPLAY) {
 		if( modlist[0] == NULL) {
@@ -322,7 +315,6 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		 **  in the ~/.startup.  If one is found, it handles removing
 		 **  it, switching it, etc.
 		 **/
-
 		for( j=0; j < nummods; j++) {
 		    if( !strcmp( modlist[j], argv[i])) {
 			if( g_flags & (M_LOAD | M_PREPEND | M_REMOVE)) {
@@ -330,7 +322,6 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 			     **  If removing, adding, prepending it,
 			     **  NULL it off the list.
 			     **/
-
 			    if ( g_flags & M_REMOVE )
 				fprintf( stderr, "Removed %s\n", modlist[j]);
 			    else if ( (g_flags & M_LOAD)
@@ -339,8 +330,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 			    else if ( g_flags & M_PREPEND )
 				fprintf(stderr,"Moving %s to beginning\n",
 				modlist[j]);
-			    free( modlist[j]);
-			    modlist[j] = NULL;
+			    null_free((void *) modlist + j);
 			    rm_found = 1;
 
 			} else if( g_flags & M_SWITCH) {
@@ -353,7 +343,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 			    fprintf( stderr, "Switching %s to %s\n", modlist[j],
 				argv[i+1]);
 			    sw_found = 1;
-			    free( modlist[j]);
+			    null_free((void *) modlist + j);
 			    modlist[j] = strdup( argv[i+1]);
 			}
 
@@ -365,7 +355,6 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	     **  Ok, if we're removing it, prepending it, or switching it, 
 	     **  the modlist contains what needs to be put where...
 	     **/
-
 	    if( g_flags & M_PREPEND) {
 		/**
 		 **  PREPENDING
@@ -417,111 +406,117 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	 **/
 
 	if( EOF == fclose( fileptr))
-	    if( OK != ErrorLogger( ERR_CLOSE, LOC, home_pathname, NULL)) {
-		free( buffer);
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-	    }
+	    if( OK != ErrorLogger( ERR_CLOSE, LOC, home_pathname, NULL))
+		goto unwind3;
 
 	if( EOF == fclose( newfileptr))
-	    if( OK != ErrorLogger( ERR_CLOSE, LOC, home_pathname, NULL)) {
-		free( buffer);
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-	    }
+	    if( OK != ErrorLogger( ERR_CLOSE, LOC, home_pathname, NULL))
+		goto unwind3;
 
 	/**
 	 **  Truncate -NEW from home_pathname and Create a -OLD name
 	 **  Move ~/.startup to ~/.startup-OLD
 	 **/
-
 	home_pathname[ path_end] = '\0';
-	/* sprintf( home_pathname2, "%s-OLD", home_pathname); */
-	strcpy( home_pathname2, home_pathname);
-	strcat( home_pathname2, "-OLD");
 
-	if( 0 > rename( home_pathname, home_pathname2)) {
+	if ((char *) NULL == stringer( home_pathname2,homelen,
+		home_pathname, "-OLD", NULL))
+		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+		    goto unwind3;
+
+	if( 0 > rename( home_pathname, home_pathname2))
 	    if( OK != ErrorLogger(ERR_RENAME,LOC,home_pathname,home_pathname2,
-		NULL)) {
-		free( buffer);
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-	    }
-	}
+		    NULL))
+		goto unwind3;
 
 	/**
 	 **  Create a -NEW name
 	 **  Move ~/.startup-NEW to ~/.startup
 	 **/
+	if ((char *) NULL == stringer( home_pathname2,homelen,
+		home_pathname, "-NEW", NULL))
+		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+		    goto unwind3;
 
-	/* sprintf( home_pathname2, "%s-NEW", home_pathname); */
-	strcpy( home_pathname2, home_pathname);
-	strcat( home_pathname2, "-NEW");
-
-	if( 0 > rename( home_pathname2, home_pathname)) {
+	if( 0 > rename( home_pathname2, home_pathname))
 	    if( OK != ErrorLogger(ERR_RENAME,LOC,home_pathname2,home_pathname,
 		NULL)) {
 
 		/**
 		 **  Put the -OLD one back if I can't rename it
 		 **/
-
-		/* sprintf( home_pathname2, "%s-OLD", home_pathname); */
-		strcpy( home_pathname2, home_pathname);
-		strcat( home_pathname2, "-OLD");
+		if ((char *) NULL == stringer( home_pathname2,homelen,
+			home_pathname, "-OLD", NULL))
+			if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+			    goto unwind3;
 
 		if( 0 > rename( home_pathname2, home_pathname)) 
 		    ErrorLogger(ERR_RENAME,LOC,home_pathname2,home_pathname,
 		    NULL);
 
-		free( buffer);
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+		goto unwind3;
 	    }
-	}
 
     } /** while( shell_startups) **/
   
     /**
-     **  Free up internal buffers
+     **  Free up internal I/O buffers
      **/
-
-    free( buffer);
+    null_free((void *) &buffer);
 
     /**
      **  Create a -NEW name. This may conditionally be used for removing the
-     **  new files if the operation hasn't had success
+     **  new files if the operation wasn't a success
      **  Check the SWITCH command
      **/
+    if ((char *) NULL == stringer( home_pathname2,homelen,
+	home_pathname, "-NEW", NULL))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind2;
 
-    /* sprintf( home_pathname2, "%s-NEW", home_pathname); */
-    strcpy( home_pathname2, home_pathname);
-    strcat( home_pathname2, "-NEW");
 
-    if((g_flags & M_SWITCH) && !sw_found) {
+    if((g_flags & M_SWITCH) && !sw_found)
 	if( OK != ErrorLogger( ERR_LOCATE, LOC, argv[0], NULL)) {
-	    if( -1 == unlink( home_pathname2))
+	    if( 0 > unlink( home_pathname2))
 		ErrorLogger( ERR_UNLINK, LOC, home_pathname2, NULL);
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+	    goto unwind2;
 	}
-    }
 	
     /**
      **  Check the REMOVE command
      **/
 
-    if((g_flags & M_REMOVE) && !rm_found) {
+    if((g_flags & M_REMOVE) && !rm_found)
 	if( OK != ErrorLogger( ERR_LOCATE, LOC, NULL)) {
-	    if( -1 == unlink( home_pathname2))
+	    if( 0 > unlink( home_pathname2))
 		ErrorLogger( ERR_UNLINK, LOC, home_pathname2, NULL);
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+	    goto unwind2;
 	}
-    }
     
-    if( !found_module_command) {
+    if( !found_module_command)
 	if( OK != ErrorLogger( ERR_INIT_STUP, LOC, shell_name, NULL)) 
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	    goto unwind2;
 
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Init, NULL);
 #endif
 
-    return( TCL_OK);
+    /**
+     **  Free up memory
+     **/
+    null_free((void *) &home_pathname2);
+    null_free((void *) &home_pathname);
+
+success0:
+    return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
+
+unwind3:
+    null_free((void *) &buffer);
+unwind2:
+    null_free((void *) &home_pathname2);
+unwind1:
+    null_free((void *) &home_pathname);
+unwind0:
+    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+
 } /** end of 'ModuleCmd_Init' **/

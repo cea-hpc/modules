@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdLog.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdLog.c,v 1.3 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -116,14 +116,12 @@ int	cmdModuleLog(	ClientData	 client_data,
     /**
      **  Whatis mode?
      **/
-
     if( g_flags & (M_WHATIS | M_HELP))
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
 	
     /**
      **  Parameter check
      **/
-
     if( argc < 3) {
 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], " error-weight",
 	    " facility", NULL))
@@ -133,7 +131,6 @@ int	cmdModuleLog(	ClientData	 client_data,
     /**
      **  Display mode?
      **/
-
     if( g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t ", argv[ 0]);
 	while( --argc)
@@ -145,15 +142,13 @@ int	cmdModuleLog(	ClientData	 client_data,
     /**
      **  Get the current facility pointer.
      **/
-
     if((char **) NULL == (facptr = GetFacilityPtr( argv[1]))) 
 	return(( OK == ErrorLogger( ERR_INVWGHT_WARN, LOC, argv[1], NULL)) ?
 	    TCL_OK : TCL_ERROR);
 
     /**
-     **  Alloctae memory for the facility list
+     **  Allocate memory for the facility list
      **/
-
     if((char *) NULL == (faclist = (char *) malloc( alc_len)))
 	return(( OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) ?
 	    TCL_OK : TCL_ERROR);
@@ -161,7 +156,6 @@ int	cmdModuleLog(	ClientData	 client_data,
     /**
      **  Scan all given facilities and add them to the list
      **/
-
     for( i=2; i<argc; i++) {
 	save_len = len;
 	len += strlen( argv[ i]) + 1;
@@ -180,9 +174,8 @@ int	cmdModuleLog(	ClientData	 client_data,
     /**
      **  Now scan the whole list and copy all valid parts into a new buffer
      **/
-
-    if((char *) NULL == (tmp = (char *) malloc( strlen( faclist)))) {
-	free( faclist);
+    if((char *) NULL == (tmp = stringer(NULL, strlen( faclist), NULL))) {
+	null_free((void *) &faclist);
 	return(( OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) ?
 	    TCL_OK : TCL_ERROR);
     }
@@ -219,10 +212,10 @@ int	cmdModuleLog(	ClientData	 client_data,
      **  We do not need the orginal faclist any more.
      **/
 
-    free( faclist);
+    null_free((void *) &faclist);
 
     if((char *) NULL != *facptr)
-	free( *facptr);
+	null_free((void *) facptr);
 
     *facptr = tmp;
 

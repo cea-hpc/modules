@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.3 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -72,7 +72,8 @@ static	char	_proc_cmdPrereq[] = "cmdPrereq";
 /**				    PROTOTYPES				     **/
 /** ************************************************************************ **/
 
-static	int	checkConflict(	Tcl_Interp*, char*, char**, unsigned int);
+/** not applicable **/
+
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -108,8 +109,8 @@ static	int	checkConflict(	Tcl_Interp	*interp,
 {
     char	**new_modulelist;
     int		  new_nummodules, k;
-    static struct stat stat_info;
-    static char	  buffer[ MOD_BUFSIZE];
+    struct stat	  stat_info;
+    char	 *buffer;
     
 #if WITH_DEBUGGING_UTIL
     ErrorLogger( NO_ERR_START, LOC, _proc_checkConflict, NULL);
@@ -124,15 +125,18 @@ static	int	checkConflict(	Tcl_Interp	*interp,
 
     for( k=0; k<nummodules; k++) {
 
-        /* sprintf( buffer, "%s/%s", path, modulelist[k]); */
-        strcpy( buffer, path);
-        strcat( buffer, "/");
-        strcat( buffer, modulelist[k]);
+	if ((char *) NULL == (buffer = stringer(NULL,0,
+		path,"/", modulelist[k], NULL)))
+	    if( OK != ErrorLogger( ERR_STRING, LOC,NULL))
+		goto unwind0;
+
         if( stat( buffer, &stat_info) < 0) {
-	    if( OK != ErrorLogger( ERR_FILEINDIR, LOC, modulelist[k], path,
-		NULL))
-		strcpy( error_module, modulelist[k]);
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+	    if( OK != ErrorLogger( ERR_FILEINDIR,LOC,modulelist[k], path,NULL))
+		if ((char *) NULL == stringer(error_module,MOD_BUFSIZE,
+			modulelist[k], NULL))
+		    if( OK != ErrorLogger( ERR_STRING, LOC,NULL))
+			goto unwind1;
+	    goto unwind1;
 	}
 
 	/**
@@ -149,7 +153,7 @@ static	int	checkConflict(	Tcl_Interp	*interp,
             if( TCL_ERROR == checkConflict( interp, path, new_modulelist,
 		new_nummodules)) {
                 FreeList( new_modulelist, new_nummodules);
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+		goto unwind1;
             }
 
             FreeList( new_modulelist, new_nummodules);
@@ -169,8 +173,11 @@ static	int	checkConflict(	Tcl_Interp	*interp,
                  **  for reporting purposes when we get back to the top.
                  **/
 
-                strcpy( error_module, modulelist[k]);
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+		if ((char *) NULL == stringer(error_module,MOD_BUFSIZE,
+			modulelist[k], NULL))
+		    if( OK != ErrorLogger( ERR_STRING, LOC,NULL))
+			goto unwind1;
+		goto unwind1;
             }
 
         } /** if( directory) **/
@@ -179,8 +186,17 @@ static	int	checkConflict(	Tcl_Interp	*interp,
 #if WITH_DEBUGGING_UTIL
     ErrorLogger( NO_ERR_END, LOC, _proc_checkConflict, NULL);
 #endif
+    /**
+     ** free resources
+     **/
+    null_free((void *) &buffer);
 
-    return( TCL_OK);
+    return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
+
+unwind1:
+    null_free((void *) &buffer);
+unwind0:
+    return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'checkConflict' **/
 
@@ -228,38 +244,34 @@ int	cmdConflict(	ClientData	 client_data,
      **/
 
     if( g_flags & (M_WHATIS | M_HELP))
-        return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
+	goto success0;
 
     /**
      **  Check the parameters. Usage is 'conflict <module> [<module> ...]'
      **/
 
-    if( argc < 2) {
+    if( argc < 2)
 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0],
 	    "conflicting-modulefiles", NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	    goto unwind0;
 
     /**
      **  There will be no conflicts in case of switch or unload
      **/
 
     if( g_flags & (M_REMOVE | M_SWITCH))
-        return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
+        goto success0;
 
     /**
      **  Load the MODULEPATH and split it into a list of paths. Assume success
-     **  if not list is to be build...
+     **  if no list to be built...
      **/
-
-    if( !(modulepath = (char *) getenv( "MODULEPATH"))) {
+    if((char *) NULL == (modulepath = xgetenv( "MODULEPATH")))
 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	    goto unwind0;
 
-    if( !( pathlist = SplitIntoList( interp, modulepath, &numpaths))) {
-        return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
-    }
+    if((char **) NULL==(pathlist=SplitIntoList(interp, modulepath, &numpaths)))
+        goto success1;
 
     /**
      **  Display?
@@ -270,7 +282,7 @@ int	cmdConflict(	ClientData	 client_data,
 	while( --argc)
 	    fprintf( stderr, "%s ", *++argv);
 	fprintf( stderr, "\n");
-        return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
+        goto success2;
     }
 
     /**
@@ -280,40 +292,49 @@ int	cmdConflict(	ClientData	 client_data,
     for( i=1; i<argc && argv[i]; i++) {
         for( j = 0; j < numpaths; j++) {
 
-            if( NULL == (modulelist = SortedDirList( interp, pathlist[j], 
-		argv[i], &nummodules)))
+            if((char **)NULL == (modulelist
+		  = SortedDirList( interp, pathlist[j], argv[i], &nummodules)))
                 continue;		/** not browseable		     **/
 
 	    /**
 	     **  Actually checking for conflicts is done here
 	     **/
-
             if( TCL_ERROR == checkConflict( interp, pathlist[j], modulelist,
-		nummodules)) {
+		nummodules))
 		if( OK != ErrorLogger( ERR_CONFLICT, LOC, g_current_module,
 		    error_module, NULL)) {
-		    FreeList( pathlist, numpaths);
 		    FreeList( modulelist, nummodules);
-		    return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+		    goto unwind2;
 		}
-            }
 
 	    /**
 	     **  Free the list of modules used in the loops body above.
 	     **/
-
             FreeList( modulelist, nummodules);
 
         } /** for( j) **/
     } /** for( i) **/
 
-    FreeList( pathlist, numpaths);
-
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_END, LOC, _proc_cmdConflict, NULL);
 #endif
 
-    return( TCL_OK);
+    /**
+     ** free resources
+     **/
+success2:
+    FreeList( pathlist, numpaths);
+success1:
+    null_free((void *) &modulepath);
+success0:
+    return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
+
+unwind2:
+    FreeList( pathlist, numpaths);
+unwind1:
+    null_free((void *) &modulepath);
+unwind0:
+    return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'cmdConflict' **/
 
@@ -348,13 +369,13 @@ int	cmdPrereq(	ClientData	 client_data,
 {
     char	***savedlists = (char ***) NULL;
     int		  *savedlens = (int *) NULL;
-    char	 **pathlist;
-    char	 **modulelist;
-    char	  *modulepath;
-    char	  *notloaded_flag = argv[1];
-    int     	   i, j, k, numpaths, nummodules, listcnt = 0;
-    int		   Result = TCL_OK;
-    char	   buffer[ MOD_BUFSIZE], *s;
+    char	 **pathlist,
+		 **modulelist,
+		  *modulepath,
+		  *notloaded_flag = argv[1];
+    int     	   i, j, k, numpaths, nummodules, listcnt = 0,
+		   Result = TCL_OK;
+    char	   buffer[ MOD_BUFSIZE];
 	
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_START, LOC, _proc_cmdPrereq, NULL);
@@ -364,17 +385,17 @@ int	cmdPrereq(	ClientData	 client_data,
      **  Parameter check. Usage is 'prereq <module> [<module> ...]'
      **/
 
-    if( argc < 2) {
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "prerequsite-modules", NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+    if( argc < 2)
+	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0],
+	    "prerequsite-modules", NULL))
+	    goto unwind0;
 
     /**
      **  There's no prerequisite check in case of removal
      **/
 
     if( g_flags & (M_REMOVE | M_WHATIS))
-        return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
+        goto success0;
 
     /**
      **  Display mode
@@ -385,39 +406,34 @@ int	cmdPrereq(	ClientData	 client_data,
 	while( --argc)
 	    fprintf( stderr, "%s ", *++argv);
 	fprintf( stderr, "\n");
-        return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
+        goto success0;
     }
 
     /**
-     **  Load the MODULEPATH and split it into a list of paths
+     **  Load the MODULEPATH and split it into a list of paths. Assume success
+     **  if no list to be built...
      **/
-
-    if( !(modulepath = (char *) getenv( "MODULEPATH"))) {
+    if((char *) NULL == (modulepath = xgetenv( "MODULEPATH")))
 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	    goto unwind0;
 
 #if WITH_DEBUGGING_CALLBACK_1
     ErrorLogger( NO_ERR_DEBUG, LOC, "Got modulepath: '", modulepath, "'", NULL);
 #endif
 
-    if( !(pathlist = SplitIntoList( interp, modulepath, &numpaths)))
-        return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
+    if((char **) NULL==(pathlist=SplitIntoList(interp, modulepath, &numpaths)))
+        goto success1;
 
     /**
      **  Allocate memory for the lists of conflict modules
      **/
-
-    if( NULL == (savedlists = (char***) malloc( numpaths * sizeof(char**)))) {
+    if((char ***) NULL==(savedlists=(char***) malloc(numpaths*sizeof(char**))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
-    if( NULL == (savedlens = (int*) malloc( numpaths * sizeof( int)))) {
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-	    free( savedlists);
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-	}
-    }
+	    goto unwind1;
+
+    if((int *) NULL == (savedlens = (int*) malloc( numpaths * sizeof( int))))
+	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+	    goto unwind2;
 
     /**
      **  Check/Display all passed modules
@@ -431,7 +447,7 @@ int	cmdPrereq(	ClientData	 client_data,
     for( i=1; i<argc && argv[i] && notloaded_flag; i++) {
         for( j = 0; j < numpaths && notloaded_flag; j++) {
 
-            if( NULL == (modulelist = SortedDirList( interp, pathlist[j], 
+            if((char **) NULL == (modulelist = SortedDirList(interp,pathlist[j],
 	        argv[i], &nummodules)))
                 continue;
 
@@ -461,13 +477,6 @@ int	cmdPrereq(	ClientData	 client_data,
                     notloaded_flag = NULL;
                 }
             }
-
-	    /**
-	     **  Free what has been allocted in the loop
-	     **/
-
-            FreeList( modulelist, nummodules);
-
         } /** for( j) **/
     } /** for( i) **/
 
@@ -480,28 +489,30 @@ int	cmdPrereq(	ClientData	 client_data,
      **  Display an error message if this was *NOT* display mode and a
      **  missing prerequisite has been found
      **/
-
     if( notloaded_flag) {
 
 	/**
 	 **  Add the whole list of prerequired module files to the Tcl result
 	 **  string
 	 **/
-
-	s = buffer;
 	for( k=0; k<listcnt; k++) {
 	    char **listptr = savedlists[k];
 
+	    *buffer = '\0';
 	    for( i=0; listptr && i<savedlens[k]; i++, listptr++) {
-		strcpy( s, *listptr);
-		s += strlen( *listptr);
-		*s++ = ' ';
+		if ((char *) NULL == stringer(
+			buffer + strlen(buffer), MOD_BUFSIZE-strlen(buffer),
+			*listptr, " ", NULL))
+		    if( OK != ErrorLogger( ERR_STRING, LOC,NULL)) {
+	    		FreeList( savedlists[k], savedlens[k]);
+			goto unwind2;
+		    }
 	    }
 
 	    FreeList( savedlists[k], savedlens[k]);
 	}
 
-	*s++ = '\0';
+	buffer[strlen(buffer)-1] = '\0';	/* remove last blank */
 
 	if( OK != ErrorLogger( ERR_PREREQ, LOC, g_current_module, buffer, NULL))
 	    Result = TCL_ERROR;	
@@ -521,13 +532,24 @@ int	cmdPrereq(	ClientData	 client_data,
      **  Free up the list of prerequisites and return ...
      **/
 
-    free( savedlists);
-    free( savedlens);
+    null_free((void *) &savedlens);
+    null_free((void *) &savedlists);
 
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_END, LOC, _proc_cmdPrereq, NULL);
 #endif
 
-    return( Result);
+success1:
+    null_free((void *) &modulepath);
+success0:
+    return( Result);			/** -------- EXIT (Result)  -------> **/
 
+unwind3:
+    null_free((void *) &savedlens);
+unwind2:
+    null_free((void *) &savedlists);
+unwind1:
+    null_free((void *) &modulepath);
+unwind0:
+    return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
 } /** End of 'cmdPrereq' **/

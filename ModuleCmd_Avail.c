@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.3 2002/03/09 01:18:49 lakata Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.4 2002/04/29 21:16:47 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -192,7 +192,7 @@ int ModuleCmd_Avail(	Tcl_Interp	*interp,
 {
     char	*dirname;
     char	*modpath;
-    int		 Result = TCL_OK;
+    int		 Result = -TCL_ERROR;
     
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Avail, NULL);
@@ -203,20 +203,14 @@ int ModuleCmd_Avail(	Tcl_Interp	*interp,
      **  We perform 1 level of env.var. expansion
      **/
 
-    if( !(modpath = (char *) xgetenv( "MODULEPATH"))) {
+    if( !(modpath = (char *) xgetenv( "MODULEPATH")))
 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-	    return( TCL_ERROR);		/** --- EXIT PROCEDURE (FAILURE) --> **/
-    }
+	    goto unwind0;
  
 #ifdef CACHE_AVAIL
-    if( !(namebuf = (char*) malloc( MOD_BUFSIZE * sizeof( char)))) {
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-	    free( modpath);
-	    free( buf);
-	    return( TCL_ERROR);		/** --- EXIT PROCEDURE (FAILURE) --> **/
-	}
-    }
-
+    if( (char *) NULL == (namebuf = stringer(NULL, MOD_BUFSIZE, NULL)))
+	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+	    goto unwind1;
 #endif
 
     /**
@@ -293,7 +287,7 @@ int ModuleCmd_Avail(	Tcl_Interp	*interp,
 	    }
 
 	/**
-	 **  Otherwise, if there's no cathegorie given, descend the current
+	 **  Otherwise, if there's no category given, descend the current
 	 **  directory and print its contents.
 	 **/
 
@@ -327,15 +321,23 @@ int ModuleCmd_Avail(	Tcl_Interp	*interp,
     /**
      **  Free up what has been allocated and exit from this procedure
      **/
+    /* if got here via this path ... it must have been OK */
+    if(Result < 0) Result = TCL_OK;
 
-    free( modpath);
-    free( namebuf);
+unwind2:
+    null_free((void *) &namebuf);
+unwind1:
+    null_free((void *) &modpath);
 
+unwind0:
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Avail, NULL);
 #endif
 
-    return( Result);
+    /* if Result is negative here ... must have been an unwind */
+    if (Result < 0) Result = -Result;
+
+    return( Result);		/** --- EXIT PROCEDURE (FAILURE/SUCCESS) --> **/
 
 } /** End of 'ModuleCmd_Avail' **/
 
@@ -444,16 +446,11 @@ static	int	print_dir(	Tcl_Interp	*interp,
     if( module) {
 
 	if( dir) {
-	    if((char *) NULL == (selection = (char *) malloc( dirlen +
-		strlen( module) + 1))) {
-		ErrorLogger( ERR_ALLOC, LOC, NULL);
+	    if((char *) NULL == (selection = stringer(NULL, 0,
+		dir,"/",module, NULL))) {
+		ErrorLogger( ERR_STRING, LOC, NULL);
 		return( TCL_ERROR);     /** --- EXIT (FAILURE) --------> **/
 	    }
-
-	    /* sprintf( selection, "%s/%s", dir, module); */
-	    strcpy( selection, dir);
-	    strcat( selection, "/");
-	    strcat( selection, module);
 
 	} else
 	    selection = module;
@@ -479,16 +476,14 @@ static	int	print_dir(	Tcl_Interp	*interp,
 
 	if( !sw_create) {
 
-	    /* sprintf( namebuf, "%s/.moduleavailcache", dir); */
-	    strcpy( namebuf, dir);
-	    strcat( namebuf, "/.moduleavailcache");
+	    if( (char *) NULL == stringer(namebuf, MOD_BUFSIZE,
+		dir, "/.moduleavailcache", NULL))
+		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+		    goto unwind1;
+
 	    if( NULL == (fi = fopen( namebuf, "r"))) {
-		if( OK != ErrorLogger( ERR_OPEN, LOC, namebuf, "reading",
-		    NULL)) {
-		    if( selection && dir)
-			free( selection);
-		    return( TCL_ERROR);     /** ----- EXIT (FAILURE) ------> **/
-		}
+		if( OK != ErrorLogger( ERR_OPEN, LOC, namebuf, "reading", NULL))
+		    goto unwind1;
 
 	    } else {
 
@@ -499,11 +494,8 @@ static	int	print_dir(	Tcl_Interp	*interp,
 		 **/
 
 		if( EOF == fclose( fi))
-		    if( OK != ErrorLogger( ERR_CLOSE, LOC, namebuf, NULL)) {
-			if( selection && dir)
-			    free( selection);
-			return( TCL_ERROR);	/** --- EXIT (FAILURE) ----> **/
-		    }
+		    if( OK != ErrorLogger( ERR_CLOSE, LOC, namebuf, NULL))
+			goto unwind1;
 	    }
 
 	} /** if( !create) **/
@@ -521,18 +513,12 @@ static	int	print_dir(	Tcl_Interp	*interp,
 	 **/
 
 	if( NULL == (dirlst_head = get_dir( dir, NULL, &count, &tcount)))
-	    if( OK != ErrorLogger( ERR_READDIR, LOC, dir, NULL)) {
-		if( selection && dir)
-		    free( selection);
-		return( TCL_ERROR);     /** ------- EXIT (FAILURE) --------> **/
-	    }
+	    if( OK != ErrorLogger( ERR_READDIR, LOC, dir, NULL))
+		goto unwind1;
 
 	if( NULL == (cache_list = (char**) malloc( tcount * sizeof( char**))))
-	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-		if( selection && dir)
-		    free( selection);
-		return( TCL_ERROR);     /** ------- EXIT (FAILURE) --------> **/
-	    }
+	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+		goto unwind1;
 	(void) memset(cache_list, 0, tcount * sizeof( char **));
 
 	start=0;
@@ -579,9 +565,8 @@ static	int	print_dir(	Tcl_Interp	*interp,
 	SourceVers( interp, dir, module);
     }
 
-    if( dir && selection && selection) {
-	free( selection);
-    }
+    if( dir && selection)
+	null_free((void *) &selection);
 
     /**
      **  Print and remove the cache list
@@ -594,7 +579,14 @@ static	int	print_dir(	Tcl_Interp	*interp,
 
     if( sw_format & SW_LONG)
 	fprintf( stderr, "\n");
-    return( TCL_OK);
+    return( TCL_OK);     		/** ------- EXIT (SUCCESS) --------> **/
+
+unwind1:
+    if( dir && selection)
+	null_free((void *) &selection);
+
+unwind0:
+    return( TCL_ERROR);     		/** ------- EXIT (FAILURE) --------> **/
 
 } /** End of 'print_dir' **/
 
@@ -631,9 +623,9 @@ static	int	check_cache( char *dir)
      **  younger than the related directory.
      **/
 
-    /* sprintf( namebuf, "%s/.moduleavailcachedir", dir); */
-    strcpy( namebuf, dir);
-    strcat( namebuf, "/.moduleavailcachedir");
+    if( (char *) NULL == stringer(namebuf, MOD_BUFSIZE,
+	dir, "/.moduleavailcachedir", NULL))
+            return( 0);
 
     if( NULL != (cdir = fopen( namebuf, "r"))) {
         if( stat( dir, &dir_stats) != -1) {
@@ -750,7 +742,7 @@ fi_ent	*get_dir(	char	*dir,
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
 	    if( -1 == closedir( dirptr))
 		ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
-	    return( NULL);	/** ----------- EXIT (FAILURE) ------------> **/
+	    goto unwind0;
 	}
     }
     dirlst_last = dirlst_head + DIREST;
@@ -772,7 +764,7 @@ fi_ent	*get_dir(	char	*dir,
             if( NULL == (dirlst_head = (fi_ent*) realloc( (char*) dirlst_head, 
 		(count<<1) * sizeof( fi_ent)))) 
 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
-		    return( NULL);	/** ------- EXIT (FAILURE) --------> **/
+		    goto unwind0;
             dirlst_cur = dirlst_head + count;
             dirlst_last = dirlst_head + (count<<1);
 	}
@@ -781,23 +773,19 @@ fi_ent	*get_dir(	char	*dir,
 	 **  Build the complete path name and get information about the file
 	 **/
 
-        if( !( dirname = mkdirnm( dir, dp->d_name))) {
+        if( !( dirname = mkdirnm( dir, dp->d_name)))
 	    if( OK != ErrorLogger( ERR_DIRNAME, LOC, NULL)) {
 		if( -1 == closedir( dirptr))
 		    ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
-		free( dirlst_cur);
-		return( NULL);	/** ----------- EXIT (FAILURE) ------------> **/
+		goto unwind1;
 	    }
-	}
 
-        if( stat( dirname, &(dirlst_cur->fi_stats)) < 0) {
+        if( stat( dirname, &(dirlst_cur->fi_stats)) < 0)
 	    if( OK != ErrorLogger( ERR_DIRNOTFOUND, LOC, dirname, NULL)) {
 		if( -1 == closedir( dirptr))
 		    ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
-		free( dirlst_cur);
-		return( NULL);	/** ----------- EXIT (FAILURE) ------------> **/
+		goto unwind1;
 	    }
-        }
 
 	/**
 	 **  If it is a directory, recursively delve into it ..
@@ -816,33 +804,31 @@ fi_ent	*get_dir(	char	*dir,
 		if( OK != ErrorLogger( ERR_DIRNAME, LOC, NULL)) {
 		    if( -1 == closedir( dirptr))
 			ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
-		    free( dirlst_cur);
-		    return( NULL);	/** ------- EXIT (FAILURE) --------> **/
+		    goto unwind1;
 		}
 	    } else {
 		if( NULL == (np = strdup( tmp)))
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-			return( NULL);	/** ------- EXIT (FAILURE) --------> **/
+			goto unwind1;
 	    }
 
             if( !( tmp = mkdirnm( dir, dp->d_name))) {
 		if( OK != ErrorLogger( ERR_DIRNAME, LOC, NULL)) {
 		    if( -1 == closedir( dirptr))
 			ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
-		    free( dirlst_cur);
-		    return( NULL);	/** ------- EXIT (FAILURE) --------> **/
+		    goto unwind1;
 		}
 	    } else {
 		if( NULL == (ndir = strdup( tmp)))
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
-			return( NULL);	/** ------- EXIT (FAILURE) --------> **/
+			goto unwind1;
 	    }
 
 	    /**
-	     **  The recursion itsself ...
+	     **  The recursion itself ...
 	     **/
 
-            dirlst_cur->fi_subdir = get_dir( ndir, np, &dirlst_cur->fi_listcount, 
+            dirlst_cur->fi_subdir = get_dir( ndir, np,&dirlst_cur->fi_listcount,
 		&tmpcount);
 
             /**
@@ -859,8 +845,8 @@ fi_ent	*get_dir(	char	*dir,
              **/
 
             if( !dirlst_cur->fi_listcount)
-		free( np);
-            free( ndir);
+		null_free((void *) &np);
+            null_free((void *) &ndir);
 
 	/**
 	 **  if it is not a directory check the magic cookie of the file. Only
@@ -883,7 +869,7 @@ fi_ent	*get_dir(	char	*dir,
 	dirlst_cur->fi_prefix = prefix;
 	if( NULL == (dirlst_cur->fi_name = strdup( dp->d_name)))
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
-		return( NULL);		/** ------- EXIT (FAILURE) --------> **/
+		goto unwind1;
 
 	/**
 	 **  Count even the number of elements in the current list as the
@@ -905,16 +891,21 @@ fi_ent	*get_dir(	char	*dir,
 	qsort( dirlst_head, count, sizeof(fi_ent), fi_ent_cmp);
 
     /**
-     **  Close the directory, set upt return values
+     **  Close the directory, set up return values
      **/
 
     if( -1 == closedir( dirptr))
 	if( OK != ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL))
-	    return( NULL);
+	    goto unwind1;
 
     *listcount = count;
-    return( dirlst_head);
+    return( dirlst_head); 	/** ----------- EXIT (SUCCESS) ------------> **/
 
+unwind1:
+    null_free((void *) &dirlst_cur);
+
+unwind0:
+    return( NULL);	 	/** ----------- EXIT (FAILURE) ------------> **/
 } /** End of 'get_dir' **/
 
 /*++++
@@ -980,28 +971,22 @@ void	dirlst_to_list(	char	**list,
         if( dirlst_cur->fi_prefix) {
 
 	    if( path) {
-		/* sprintf( buf, "%s/%s/%s", path, dirlst_cur->fi_prefix,
-		    dirlst_cur->fi_name); */
-		strcpy( buf, path);
-		strcat( buf, "/");
-		strcat( buf, dirlst_cur->fi_prefix);
-		strcat( buf, "/");
-		strcat( buf, dirlst_cur->fi_name);
+		if( (char *) NULL == stringer(buf, MOD_BUFSIZE,
+		    path,"/", dirlst_cur->fi_prefix,"/", dirlst_cur->fi_name,
+		    NULL))
+			return;
 	    } else {
-		/* sprintf( buf, "%s/%s", dirlst_cur->fi_prefix,
-		    dirlst_cur->fi_name); */
-		strcpy( buf, dirlst_cur->fi_prefix);
-		strcat( buf, "/");
-		strcat( buf, dirlst_cur->fi_name);
+		if( (char *) NULL == stringer(buf, MOD_BUFSIZE,
+		    dirlst_cur->fi_prefix,"/", dirlst_cur->fi_name, NULL))
+			return;
 	    }
 
 	    ptr = buf;
         } else {
 	    if( path) {
-		/* sprintf( buf, "%s/%s", path, dirlst_cur->fi_name); */
-		strcpy( buf, path);
-		strcat( buf, "/");
-		strcat( buf, dirlst_cur->fi_name);
+		if( (char *) NULL == stringer(buf, MOD_BUFSIZE,
+		    path,"/", dirlst_cur->fi_name, NULL))
+			return;
 		ptr = buf;
 
 	    } else
@@ -1021,7 +1006,7 @@ void	dirlst_to_list(	char	**list,
 	    if( NULL == (list[(*beginning)++] = strdup( ptr))) {
 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
 		    while( i--) 
-			free( list[--(*beginning)]);
+			null_free((void *) list + (--(*beginning)));
 		    return;		/** ------- EXIT (FAILURE) --------> **/
 		}
 	    }
@@ -1079,7 +1064,7 @@ void	delete_dirlst(	fi_ent	*dirlst_head,
 	 i<count && dirlst_cur;
          i++, dirlst_cur++) {
 
-        free( dirlst_cur->fi_name);
+        null_free((void *) &(dirlst_cur->fi_name));
 
 	/**
 	 **  Recursivle decend to subdirectories
@@ -1094,8 +1079,8 @@ void	delete_dirlst(	fi_ent	*dirlst_head,
      **/
 
     if( dirlst_head->fi_prefix)
-	free( dirlst_head->fi_prefix);
-    free((char*) dirlst_head);
+	null_free((void *) &(dirlst_head->fi_prefix));
+    null_free((void *) &dirlst_head);
 
 } /** End of 'delete_dirlst' **/
 
@@ -1141,15 +1126,17 @@ static	void	store_files(	fi_ent	*dirlst_head,
      **  Open both, the cache info and the cache dir file
      **/
 
-    /* sprintf( namebuf, "%s/.moduleavailcache", dir); */	/** CACHEINFO   **/
-    strcpy( namebuf, dir);					/** CACHEINFO   **/
-    strcat( namebuf, "/.moduleavailcache");
+    /** CACHEINFO   **/
+    if( (char *) NULL == stringer(namebuf, MOD_BUFSIZE,
+	dir, "/.moduleavailcache", NULL))
+            return;
     if( NULL == (fi = fopen( namebuf, "w+")))
 	return;
 
-    /* sprintf( namebuf, "%s/.moduleavailcachedir", dir); */	/** CACHEOUTPUT **/
-    strcpy( namebuf, dir);					/** CACHEOUTPUT **/
-    strcat( namebuf, "/.moduleavailcachedir");
+    /** CACHEOUTPUT **/
+    if( (char *) NULL == stringer(namebuf, MOD_BUFSIZE,
+	dir, "/.moduleavailcachedir", NULL))
+            return;
     if( NULL == (cdir = fopen( namebuf, "w+"))) {
 	if( EOF == fclose( fi))
 	    ErrorLogger( ERR_CLOSE, LOC, NULL);
@@ -1246,13 +1233,13 @@ static	void	store_dirlst(	FILE	*cacheinfo,
     } /** for **/
 
     /**
-     **  Free up everything that has been allocated foe the directory
+     **  Free up everything that has been allocated for the directory
      **  list
      **/
 
     if( dirlst_head->fi_prefix)
-	free( dirlst_head->fi_prefix);
-    free((char*) dirlst_head);
+	null_free((void *) &(dirlst_head->fi_prefix));
+    null_free((void *) &dirlst_head);
 
 } /** End of 'store_dirlst' **/
 
@@ -1310,7 +1297,7 @@ static	void	store_file(	FILE	*cacheoutput,
      **  Finally free up the memory that has been used to store the filename
      **/
 
-    free( file->fi_name);
+    null_free((void *) &(file->fi_name));
 
 } /** End of 'store_file' **/
 
@@ -1402,8 +1389,8 @@ static	char	**create_cache_list(	FILE	*cacheinput,
 	if( 1 != fscanf( cacheinput, "%s", buf)) {
 	    if( OK != ErrorLogger( ERR_READ, LOC, "cache", NULL)) {
 		while( --i)
-		    free( list[ i]);
-		free( list);
+		    null_free((void *) list + i);
+		null_free((void *) &list);
 		return( NULL);	/** ----------- EXIT (I/O error) ----------> **/
 	    }
 	}
@@ -1424,7 +1411,7 @@ static	char	**create_cache_list(	FILE	*cacheinput,
         if( NULL == (list[ i] = strdup( buf))) {
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
 		while( --i)
-		    free( list[ i]);
+		    null_free((void *) list + i);
 		return( NULL);  /** ------------ EXIT (FAILURE) -----------> **/
 	    }
 	}
@@ -1470,9 +1457,9 @@ void delete_cache_list(	char	**list,
 #endif
 
     for( i=0; i<tcount; i++)
-        free( list[i]);
+        null_free((void *) (list + i));
     
-    free((char*) list);
+    null_free((void *)&list);
 
 } /** End of 'delete_cache_list' **/
 
@@ -1711,7 +1698,7 @@ void print_aligned_files(	Tcl_Interp	 *interp,
 
 	    }
 
-	    free( module);
+	    null_free((void *) &module);
 
 	} /** if( !stat) **/
 
@@ -1729,7 +1716,7 @@ void print_aligned_files(	Tcl_Interp	 *interp,
     }
 
     if (! modpath) {
-	free(modpath);
+	null_free((void *)&modpath);
     }
 
 #if WITH_DEBUGGING_UTIL_1
@@ -1866,8 +1853,7 @@ static	void	print_terse_files(  int terminal_width,
 static	void _init_file_list()
 {
     if( _file_list_ptr && !_file_list_cnt) {
-	free( _file_list_ptr);
-	_file_list_ptr = (char **) NULL;
+	null_free((void *) &_file_list_ptr);
 	_file_list_cnt = 0;
     }
 

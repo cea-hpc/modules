@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.3 2002/04/29 18:45:25 lakata Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.4 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -100,16 +100,34 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
     char	*oldmodule,
 		*newmodule,
 		*realname,
-		 oldfile[ MOD_BUFSIZE],
-		 newfile[ MOD_BUFSIZE],
-		 oldname[ MOD_BUFSIZE],
-		 newname[ MOD_BUFSIZE],
-                 oldmodule_buffer[ MOD_BUFSIZE];
+		*oldfile,
+		*newfile,
+		*oldname,
+		*newname,
+                *oldmodule_buffer;
     int		 ret_val = TCL_OK;
     
 #if WITH_DEBUGGING_MODULECMD
     fprintf( stderr, "ModuleCmd_Switch(%d):DEBUG: Starting\n", __LINE__);
 #endif
+    /**
+     ** allocate buffer memory
+     **/
+    if ((char *) NULL == (oldfile = stringer(NULL, MOD_BUFSIZE, NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind0;
+
+    if ((char *) NULL == (newfile = stringer(NULL, MOD_BUFSIZE, NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind1;
+
+    if ((char *) NULL == (oldname = stringer(NULL, MOD_BUFSIZE, NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind2;
+
+    if ((char *) NULL == (newname = stringer(NULL, MOD_BUFSIZE, NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind3;
 
     /**
      **  Parameter check. the required syntax is:
@@ -156,7 +174,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 
     if( !IsLoaded( interp, oldmodule, &realname, oldfile)) 
 	if( OK != ErrorLogger( ERR_NOTLOADED, LOC, oldmodule, NULL))
-	    return( TCL_ERROR);		/** ------- EXIT (FAILURE) --------> **/
+	    goto unwind4;
     
     /**
      **  If we have another name to try, try finding it on disk.
@@ -175,7 +193,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
         if( TCL_ERROR == (ret_val = Locate_ModuleFile( interp, oldmodule,
 	    oldname, oldfile)))
 	    if( OK != ErrorLogger( ERR_LOCATE, LOC, oldmodule, NULL))
-		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------> **/
+		goto unwind4;
 
 	/**
 	 **  OK, this one is known. Is it loaded, too?
@@ -183,7 +201,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 
         if( !IsLoaded( interp, oldname, NULL, oldfile)) 
 	    if( OK != ErrorLogger( ERR_NOTLOADED, LOC, oldmodule, NULL))
-		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------> **/
+		goto unwind4;
     }
 
     /**
@@ -199,7 +217,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
     if( TCL_ERROR == (ret_val = Locate_ModuleFile( interp, newmodule, newname,
 	newfile)))
 	if( OK != ErrorLogger( ERR_LOCATE, LOC, newmodule, NULL))
-	    return( TCL_ERROR);		/** ------- EXIT (FAILURE) --------> **/
+	    goto unwind4;
     
     ErrorLogger( NO_ERR_VERBOSE, LOC, "Switching '$1' to '$2'", oldmodule,
 	newmodule, NULL);
@@ -218,7 +236,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 	Update_LoadedList( interp, oldname, oldfile);
     else {
         ErrorLogger( NO_ERR_VERBOSE, LOC, "failed", NULL);
-	return( TCL_ERROR);		/** ------- EXIT (FAILURE) --------> **/
+	goto unwind4;
     }
     
     g_flags &= ~(M_REMOVE | M_SWSTATE1);
@@ -236,7 +254,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 	Update_LoadedList( interp, newname, newfile);
     else {
         ErrorLogger( NO_ERR_VERBOSE, LOC, "failed", NULL);
-	return( TCL_ERROR);		/** ------- EXIT (FAILURE) --------> **/
+	goto unwind4;
     }
 
     g_flags &= ~M_SWSTATE2;
@@ -254,7 +272,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 	Update_LoadedList( interp, newname, newfile);
     else {
         ErrorLogger( NO_ERR_VERBOSE, LOC, "failed", NULL);
-	return( TCL_ERROR);		/** ------- EXIT (FAILURE) --------> **/
+	goto unwind4;
     }
  
     /**
@@ -266,8 +284,28 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 #if WITH_DEBUGGING_MODULECMD
     fprintf( stderr, "ModuleCmd_Switch(%d):DEBUG: End\n", __LINE__);
 #endif
+    /**
+     ** free space
+     **   assume don't need what's pointed to by g_current_module
+     **   and specified_module
+     **/
+    null_free((void *) &newname);
+    null_free((void *) &oldname);
+    null_free((void *) &newfile);
+    null_free((void *) &oldfile);
 
-    return( TCL_OK);
+    return( TCL_OK);			/** ------- EXIT (SUCCESS) --------> **/
+
+unwind4:
+    null_free((void *) &newname);
+unwind3:
+    null_free((void *) &oldname);
+unwind2:
+    null_free((void *) &newfile);
+unwind1:
+    null_free((void *) &oldfile);
+unwind0:
+    return( TCL_ERROR);			/** ------- EXIT (FAILURE) --------> **/
 
 } /** End of 'ModuleCmd_Switch' **/
 

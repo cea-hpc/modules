@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.2 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -104,8 +104,9 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 					/** beginning environment resides    **/
     FILE	 *file;			/** Handle to read in a file	     **/
     int		  list_count = 0,
-		  maxlist = 16;		/** Max. number of list entries	     **/
-    int		  buffer_size;		/** Cirrent size of the input buffer **/
+		  maxlist = 16,		/** Max. number of list entries	     **/
+		  buffer_size = UPD_BUFSIZE;	
+    					/** Current size of the input buffer **/
     char	 *ptr, c;		/** Read pointers and char buffer    **/
 
 #if WITH_DEBUGGING_MODULECMD
@@ -118,28 +119,25 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 
     if( !( tmpload = (char *) getenv("LOADEDMODULES"))) {
 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+	    goto unwind0;
 	else
-	    return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
+	    goto success0;
     }
 
     /**
      **  First I'll update the environment with what's in _MODULESBEGINENV_
      **/
-
     filename = Tcl_GetVar2( interp, "env", "_MODULESBEGINENV_", TCL_GLOBAL_ONLY);
     if( filename) {
 
 	/**
 	 **  Read the beginning environment
 	 **/
-
 	if( NULL != (file = fopen( filename, "r"))) {
 
-	    if( NULL == (buf = (char*) malloc( buffer_size = UPD_BUFSIZE))) {
-		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-		    return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-	    }
+	    if((char *) NULL == (buf = stringer(NULL, buffer_size, NULL )))
+		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+		    goto unwind0;
 
 	    while( !feof( file)) {
 
@@ -152,18 +150,17 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 		while( !feof( file)) {
 		    
 		    if((ptr-buf) >= buffer_size-10) {	/** 10 bytes safety  **/
-			if( NULL == (buf = (char*) malloc(
-			    buffer_size += UPD_BUFSIZE))) {
-			    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-				return( TCL_ERROR);	/**  EXIT (FAILURE)  **/
-			}
+			null_free((void *) &buf);
+			if((char *) NULL == (buf = stringer(NULL,
+				buffer_size += UPD_BUFSIZE, NULL )))
+			    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+				goto unwind0;
 		    }
 
 		    /**
 		     **  Read a character and put it into the read buffer. Check
 		     **  for the lines (CR) or a terminator character ...
 		     **/
-
 		    if( '\n' == (*ptr++ = c = fgetc( file))) {
 			*ptr++ = c = '\0';
 			break;
@@ -179,14 +176,12 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 		 **  end of the line. Therefor we've left a safety space at the
 		 **  buffers end ;-)
 		 **/
-
 		if( c)
 		    *ptr++ = '\0';
 		 
 		/**
 		 **  Now let's evaluate the read line
 		 **/
-
 		if( var_ptr = strchr( buf, '=')) {
 		
 		    *var_ptr = '\0';
@@ -199,7 +194,6 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 		     **  Do not change the LOADEDMODULES variable ;-)
 		     **  Do not change the TCL_LIBRARY and TK_LIBRARY also.
 		     **/
-
 		    if( strncmp( var_ptr, "LOADEDMODULES", 12) &&
 			strncmp( var_ptr, "TCL_LIBRARY", 10 ) &&
 			strncmp( var_ptr, "TK_LIBRARY", 9 ))
@@ -214,17 +208,16 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 	    /**
 	     **  Close the _MODULESBEGINENV_ file anf free up the read buffer.
 	     **/
-
-	    free(buf);
+	    null_free((void *) &buf);
 
 	    if( EOF == fclose( file))
 		if( OK != ErrorLogger( ERR_CLOSE, LOC, filename, NULL))
-		    return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+		    goto unwind0;
 
 	} else { /** if( fopen) **/
 
 	    if( OK != ErrorLogger( ERR_OPEN, LOC, filename, "reading", NULL))
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+		goto unwind0;
 
 	} /** if( fopen) **/
     } /** if( filename) **/
@@ -233,25 +226,17 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
      **  Allocate memory for a buffer to tokenize the list of loaded modules
      **  and a list buffer
      **/
-
-    if( NULL == (load_list = (char**) malloc( maxlist*sizeof(char**)))) {
+    if( NULL == (load_list = (char**) malloc( maxlist*sizeof(char**))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	    goto unwind0;
     
-    if( NULL == (loaded = (char*) malloc( strlen( tmpload) + 1))) {
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-	    free( load_list);
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-	}
-    }
-    
-    strcpy( loaded, tmpload);
+    if( NULL == (loaded = stringer(NULL, 0, tmpload, NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind1;
     
     /**
      **  Tokenize and build the list
      **/
-
     if( *loaded) {
 
 	for( load_list[ list_count++] = strtok( loaded, ":");
@@ -267,12 +252,9 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
                 maxlist = maxlist<<1;
             
                 if( NULL == (load_list = (char**) realloc((char *) load_list,
-		    maxlist*sizeof(char**)))) {
-		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-			free( load_list);
-			return( TCL_ERROR);	/** ---- EXIT (FAILURE) ---> **/
-		    }
-                }
+		    maxlist*sizeof(char**))))
+		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+			goto unwind1;
 
             } /** if( maxlist) **/
 	} /** for **/
@@ -280,21 +262,25 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 	/**
 	 **  Load all the modules in the list
 	 **/
-
         ModuleCmd_Load( interp, 1, list_count, load_list);
     }
 
     /**
      **  Free up what has been allocated and return on success
      **/
-
-    free( loaded);
-    free( load_list);
+    null_free((void *) &loaded);
+    null_free((void *) &load_list);
 
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Update, NULL);
 #endif
 
-    return( TCL_OK);
+success0:
+    return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
+
+unwind1:
+    null_free((void *) &load_list);
+unwind0:
+    return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'ModuleCmd_Update' **/

@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.3 2001/11/05 21:50:41 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.4 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -177,7 +177,7 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 
     if( !modulename) 
 	if( OK != ErrorLogger( ERR_PARAM, LOC, "modulename", NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+	    goto unwind0;
 	
     if( modulename[0] == '/' || modulename[0] == '.') {
 
@@ -190,10 +190,16 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 	     **  the specified module ...
 	     **/
 
-            if( NULL == (result = GetModuleName(interp, modulename, NULL,
-		(p + 1)))) 
-		return( TCL_ERROR);	/** --- EXIT PROCEDURE (FAILURE) --> **/
-	
+            if((char *) NULL ==
+		(result = GetModuleName(interp, modulename, NULL,(p+1)))) 
+		goto unwind0;
+
+	    /**
+	     **  Reinstall the 'modulefile' which has been corrupted by
+	     **   tokenization
+	     **/
+	    *p = '/';
+
 	    /**
 	     **  Reinstall the 'modulefile' which has been corrupted by
 	     **  tokenization
@@ -206,12 +212,13 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 	     **/
 
             if( !strcmp((p + 1), result)) {
-                strcpy( filename, modulename);
+                if ((char *) NULL == stringer( filename, MOD_BUFSIZE,
+		modulename, NULL))
+		    goto unwind1;
             } else {
-                /* sprintf( filename, "%s/%s", modulename, result); */
-                strcpy( filename, modulename);
-                strcat( filename, "/");
-                strcat( filename, result);
+                if ((char *) NULL == stringer( filename, MOD_BUFSIZE,
+		modulename,"/",result, NULL))
+		    goto unwind1;
             }
  
         } else {
@@ -223,16 +230,17 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 
             if( NULL == (result = GetModuleName( interp, modulename, NULL,
 		modulename)))
-		return( TCL_ERROR);	/** --- EXIT PROCEDURE (FAILURE) --> **/
+		goto unwind0;
 	
             if( !strcmp( modulename, result) ||
 		(strlen( modulename) + 1 + strlen( result) + 1 > MOD_BUFSIZE)) {
-                strncpy( filename, modulename, MOD_BUFSIZE);
+                if ((char *) NULL == stringer( filename, MOD_BUFSIZE,
+		modulename, NULL))
+		    goto unwind1;
             } else {
-                /* sprintf( filename, "%s/%s", modulename, result); */
-                strcpy( filename, modulename);
-                strcat( filename, "/");
-                strcat( filename, result);
+                if ((char *) NULL == stringer( filename, MOD_BUFSIZE,
+		modulename,"/",result, NULL))
+		    goto unwind1;
             }
         }
 
@@ -250,7 +258,7 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 	if( !( modulespath = (char *) getenv( "MODULEPATH"))) {
 	    if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL)) {
 		g_current_module = NULL;
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+		goto unwind0;
 	    }
 	}
 	/**
@@ -266,10 +274,9 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 	 **/
 
 	if( VersionLookup( modulename, &mod, &vers)) {
-	    /* sprintf( buf, "%s/%s", mod, vers); */
-	    strcpy( buf, mod);
-	    strcat( buf, "/");
-	    strcat( buf, vers);
+	    if ((char *) NULL == stringer( buf, MOD_BUFSIZE,
+	    mod,"/",vers, NULL))
+		goto unwind0;
 	    modulename = buf;
 	}
 
@@ -278,7 +285,7 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 	 **/
 
 	if( NULL == (pathlist = SplitIntoList(interp, modulespath, &numpaths)))
-	    return( TCL_ERROR);		/** --- EXIT PROCEDURE (FAILURE) --> **/
+	    goto unwind0;
 
 	/**
 	 **  Check each directory to see if it contains the module
@@ -290,12 +297,13 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 		modulename))) {
 
 		if( strlen( pathlist[i]) + 2 + strlen( result) > MOD_BUFSIZE) {
-		    strncpy( filename, pathlist[i], MOD_BUFSIZE);
+		    if ((char *) NULL == stringer( filename, MOD_BUFSIZE,
+		    pathlist[i], NULL))
+			goto unwind1;
 		} else {
-		    /* sprintf( filename, "%s/%s", pathlist[i], result); */
-		    strcpy( filename, pathlist[i]);
-		    strcat( filename, "/");
-		    strcat( filename, result);
+		    if ((char *) NULL == stringer( filename, MOD_BUFSIZE,
+		    pathlist[i],"/",result, NULL))
+			goto unwind1;
 		}
 
 		break;
@@ -307,10 +315,9 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 	     **/
 
 	    if( VersionLookup( modulename, &mod, &vers)) {
-		/* sprintf( buf, "%s/%s", mod, vers); */
-		strcpy( buf, mod);
-		strcat( buf, "/");
-		strcat( buf, vers);
+                if ((char *) NULL == stringer( buf, MOD_BUFSIZE,
+		mod,"/",vers, NULL))
+		    goto unwind1;
 		modulename = buf;
 	    }
 
@@ -329,7 +336,7 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 
 	if( !result) {
 	    filename[0] = '\0';
-	    return( TCL_ERROR);		/** --- EXIT PROCEDURE (FAILURE) --> **/
+	    goto unwind0;
 	}
 
     } /** not a full path name **/	
@@ -341,14 +348,20 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
      **/
 
     strncpy( realname, result, MOD_BUFSIZE);
-    realname[ MOD_BUFSIZE-1] = filename[ MOD_BUFSIZE-1] = '\0';
-    free( result);
+    if ((char *) NULL == stringer( realname, MOD_BUFSIZE, result, NULL))
+	goto unwind1;
+    null_free((void *) &result);
 
 #if WITH_DEBUGGING_LOCATE
     ErrorLogger( NO_ERR_END, LOC, _proc_Locate_ModuleFile, NULL);
 #endif
 
     return( TCL_OK);
+
+unwind1:
+    null_free((void *) &result);
+unwind0:
+    return( TCL_ERROR);
 }
 
 /*++++
@@ -402,9 +415,9 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
      **  for this
      **/
 
-    if((char *) NULL == (s = strdup( modulename))) {
+    if((char *) NULL == (s = stringer(NULL, 0,  modulename, NULL))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
-	return( NULL);
+	goto unwind0;
     }
     slen = strlen( s) + 1;
     mod = s;
@@ -415,10 +428,9 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
      **  Allocate a buffer for full pathname building
      **/
 
-    if( NULL == (fullpath = (char*) malloc( MOD_BUFSIZE))) {
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-	    free( s);
-	    return( NULL);		/** -------- EXIT (FAILURE) -------> **/
+    if((char *) NULL == (fullpath = stringer(NULL, MOD_BUFSIZE, NULL))) {
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL)) {
+	    goto unwind1;
 	}
     }
 
@@ -427,17 +439,13 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
      **/
 
     if( prefix) {
-	/* sprintf( fullpath, "%s/%s/%s", path, prefix, mod); */
-	strcpy( fullpath, path);
-	strcat( fullpath, "/");
-	strcat( fullpath, prefix);
-	strcat( fullpath, "/");
-	strcat( fullpath, mod);
+	if((char *) NULL == stringer(fullpath, MOD_BUFSIZE,
+	path,"/",prefix,"/",mod, NULL))
+	    goto unwind1;
     } else {
-	/* sprintf( fullpath, "%s/%s", path, mod); */
-	strcpy( fullpath, path);
-	strcat( fullpath, "/");
-	strcat( fullpath, mod);
+	if((char *) NULL == stringer(fullpath, MOD_BUFSIZE,
+	path,"/",mod, NULL))
+	    goto unwind1;
     }
 
     is_def = !strcmp( mod, _default);
@@ -456,26 +464,23 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 	     **/
 
 	    if( prefix) {
-		/* sprintf( modfil_buf, "%s/%s", prefix, mod); */
-		strcpy( modfil_buf, prefix);
-		strcat( modfil_buf, "/");
-		strcat( modfil_buf, mod);
+		if((char *) NULL == stringer(modfil_buf, MOD_BUFSIZE,
+		path,"/",mod, NULL))
+		    goto unwind2;
 	    } else {
-		strcpy( modfil_buf, mod);
+		if((char *) NULL == stringer(modfil_buf, MOD_BUFSIZE,mod, NULL))
+		    goto unwind2;
 	    }
 
-	    /* sprintf( fullpath, "%s/%s", path, modfil_buf); */
-	    strcpy( fullpath, path);
-	    strcat( fullpath, "/");
-	    strcat( fullpath, modfil_buf);
+	    if((char *) NULL == stringer(fullpath, MOD_BUFSIZE,
+	    path,"/",modfil_buf, NULL))
+		goto unwind2;
 	    g_current_module = modfil_buf;
 
 	    if( TCL_ERROR == SourceRC( interp, fullpath, modulerc_file) ||
 		TCL_ERROR == SourceVers( interp, fullpath, modfil_buf)) {
-
-		free( s); free( fullpath);
 		/* flags = save_flags; */
-		return( NULL);		/** -------- EXIT (FAILURE) -------> **/
+		    goto unwind2;
 	    }
 
 	    /**
@@ -490,10 +495,10 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		 **/
 
 		if( len > slen) {
-		    if((char *) NULL == (s = realloc( s, len))) {
-			ErrorLogger( ERR_ALLOC, LOC, NULL);
-			free( fullpath);
-			return( NULL);	/** -------- EXIT (FAILURE) -------> **/
+		    null_free((void *) &s);
+		    if((char *) NULL == (s = stringer( NULL, len, NULL))) {
+			ErrorLogger( ERR_STRING, LOC, NULL);
+			goto unwind2;
 		    }
 		    slen = len;
 		}
@@ -503,9 +508,10 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		 **/
 
 		/* sprintf( s, "%s/%s", mod1, ver1); */
-		strcpy( s, mod1);
-		strcat( s, "/");
-		strcat( s, ver1);
+		if((char *) NULL == stringer( s, len, mod1,"/", ver1, NULL)) {
+		    ErrorLogger( ERR_STRING, LOC, NULL);
+		    goto unwind2;
+		}
 		
 		mod = s;
 		if( ver = strchr( s, '/'))
@@ -526,18 +532,21 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		 **  Build the new prefix
 		 **/
 
-		if((char *) NULL == (t = (char *) malloc( len))) {
-		    ErrorLogger( ERR_ALLOC, LOC, NULL);
-		    return((char *) NULL);
+		if((char *) NULL == (t = stringer(NULL, len, NULL))) {
+		    ErrorLogger( ERR_STRING, LOC, NULL);
+		    goto unwind2;
 		}
 
 		if( prefix) {
-		    /* sprintf( t, "%s/%s", prefix, mod); */
-		    strcpy( t, prefix);
-		    strcat( t, "/");
-		    strcat( t, mod);
+		    if((char *) NULL == stringer(t, len, prefix,"/",mod, NULL)){
+			ErrorLogger( ERR_STRING, LOC, NULL);
+			goto unwindt;
+		    }
 		} else {
-		    strcpy( t, mod);
+		    if((char *) NULL == stringer(t, len, mod, NULL)){
+			ErrorLogger( ERR_STRING, LOC, NULL);
+			goto unwindt;
+		    }
 		}
 
 		/**
@@ -550,7 +559,12 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		 **  Free our temporary prefix buffer
 		 **/
 
-		free( t);
+		null_free((void *) &t);
+		if (0) {	/* an error occurred */
+unwindt:
+		    null_free((void *) &t);
+		    goto unwind2;
+		}
 	    } 
 
 	} else {     /** if( $path/$prefix/$mod is a directory) **/
@@ -567,11 +581,9 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		    prefix = ".";
 
 		if( NULL == (filelist = SortedDirList( interp, path, prefix,
-		    &numlist))) {
-		    free( fullpath);
-		    free( s);
-		    return( NULL);	/** --- EXIT PROCEDURE (FAILURE) --> **/
-		}
+		&numlist)))
+		    goto unwind1;
+
 		prefix = (char *) NULL;
 
 		/**
@@ -590,10 +602,9 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		     **  we're seeking for
 		     **/
 
-		    /* sprintf( fullpath, "%s/%s", path, filelist[ i]); */
-		    strcpy( fullpath, path);
-		    strcat( fullpath, "/");
-		    strcat( fullpath, filelist[ i]);
+		    if ((char *)NULL == stringer(fullpath, MOD_BUFSIZE,
+			path, "/", filelist[i], NULL))
+			    goto unwind2;
 
 		    if( !stat( fullpath, &stats) && S_ISDIR( stats.st_mode)) {
 			Result = GetModuleName( interp, path, prefix,
@@ -641,25 +652,26 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		if( prefix)
 		    len += strlen( prefix) + 1;
 
-		if((char *) NULL == (t = (char *) malloc( len))) {
-		    ErrorLogger( ERR_ALLOC, LOC, NULL);
-		    Result = NULL;
-
-		} else {
-
-		    if( prefix) {
-			/* sprintf( t, "%s/%s", prefix, Result); */
-			strcpy( t, prefix);
-			strcat( t, "/");
-			strcat( t, Result);
-		    } else {
-			strcpy( t, Result);
-		    }
-
-		    Result = t;
+		if((char *) NULL == (t = stringer(NULL, len, NULL))) {
+		   ErrorLogger( ERR_STRING, LOC, NULL);
+		   goto unwind2;
 		}
-	    }
 
+		if( prefix) {
+		    if((char *) NULL == stringer(t,len, prefix,"/",Result,NULL))
+			goto unwindt2;
+		} else {
+		    if((char *) NULL == stringer(t,len, Result,NULL))
+			goto unwindt2;
+		}
+
+		Result = t;
+		if (0) {	/* an error occurred */
+unwindt2:
+		    null_free((void *) &t);
+		    goto unwind2;
+		}
+	    } 
 	} /** mod is a file **/
     } /** mod exists **/
 
@@ -667,15 +679,22 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
      **  Free up temporary values and return what we've found
      **/
 
-    free((void*) fullpath);
-    free((void*) s);
+    null_free((void*) &fullpath);
+    null_free((void*) &s);
     FreeList( filelist, numlist);
     
 #if WITH_DEBUGGING_LOCATE_1
     ErrorLogger( NO_ERR_END, LOC, _proc_GetModuleName, NULL);
 #endif
 
-    return( Result);
+    return( Result);			/** -------- EXIT (SUCCESS) -------> **/
+
+unwind2:
+    null_free((void *) &fullpath);
+unwind1:
+    null_free((void *) &s);
+unwind0:
+    return(NULL);			/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'GetModuleName' **/
 
@@ -735,28 +754,20 @@ char	**SortedDirList(	Tcl_Interp	*interp,
      **  100 Elements. This may be changed later on.
      **/
 
-    if( NULL == (filelist = (char**) calloc( n = 100, sizeof(char*)))) {
+    if( NULL == (filelist = (char**) calloc( n = 100, sizeof(char*))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    return( NULL);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	    goto unwind0;
     
     /**
      **  Form the suggested module file name out of the passed path and 
      **  the name of the module. Alloc memory in order to do this.
      **/
 
-    pathlen = strlen( path) + strlen( modulename) + 1;
-    if( NULL == (full_path = (char*) malloc((pathlen+1) * sizeof(char)))) {
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-	    free( filelist);
-	    return( NULL);		/** --- EXIT PROCEDURE (FAILURE) --> **/
-	}
-    }
-    
-    /* sprintf( full_path, "%s/%s", path, modulename); */
-    strcpy( full_path, path);
-    strcat( full_path, "/");
-    strcat( full_path, modulename);
+    if((char *) NULL == (full_path = stringer(NULL, 0,
+	path,"/",modulename, NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind0;
+    pathlen = strlen(full_path);
     
 #if WITH_DEBUGGING_UTIL_2
     ErrorLogger( NO_ERR_DEBUG, LOC, "full_path='", full_path, "'", NULL);
@@ -767,11 +778,8 @@ char	**SortedDirList(	Tcl_Interp	*interp,
      **  and return on failure
      **/
 
-    if( stat( full_path, &stats)) {
-	FreeList( filelist, n);
-	free((void*) full_path);
-	return( NULL);			/** --- EXIT PROCEDURE (FAILURE) --> **/
-    }
+    if( stat( full_path, &stats))
+	goto unwind2;
     
     /**
      **  If the suggested module file is a regular one, we've found what we've
@@ -786,7 +794,7 @@ char	**SortedDirList(	Tcl_Interp	*interp,
     ErrorLogger( NO_ERR_DEBUG, LOC, "Module '", modulename, "' found", NULL);
 #endif
 
-	free((void*) full_path);
+	null_free((void*) &full_path);
 	return( filelist);		/** --- EXIT PROCEDURE (SUCCESS) --> **/
     }
 
@@ -796,9 +804,9 @@ char	**SortedDirList(	Tcl_Interp	*interp,
 
     if( S_ISDIR( stats.st_mode)) {
 
-        char	*buf;		/** Buffer for the whole filename for each   **/
+        char	*tbuf;		/** Buffer for the whole filename for each   **/
 				/** content of the directory		     **/
-        char	*mpath;		/** Pointer into *buf where to write the dir **/
+        char	*mpath;		/** Pointer into *tbuf where to write the dir**/
 				/** entry				     **/
 
 	/**
@@ -810,31 +818,22 @@ char	**SortedDirList(	Tcl_Interp	*interp,
 	/* if you can't open the directory ... is that really an error? */
 	    if( OK != ErrorLogger( ERR_OPENDIR, LOC, full_path, NULL))
 #endif
-	    {
-		FreeList( filelist, n);
-		free( full_path);
-		return( NULL);		/** --- EXIT PROCEDURE (FAILURE) --> **/
-	    }
+	    goto unwind2;
 	}
 
 	/**
 	 **  Allocate a buffer for constructing complete file names
-	 **  and initialize it with the directoy part we do already know.
+	 **  and initialize it with the directory part we do already know.
 	 **/
 
-        if( NULL == (buf = (char*) malloc( LINELENGTH * sizeof( char)))) {
-	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-		free( full_path);
-		closedir( subdirp);
-		return( NULL);		/** --- EXIT PROCEDURE (FAILURE) --> **/
-	    }
-        }
-        strcpy( buf, full_path);
-        buf[ pathlen] = '/';
-        mpath = (buf + pathlen + 1);
+        if( NULL == (tbuf = stringer(NULL, MOD_BUFSIZE, full_path,"/", NULL)))
+	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+		goto unwind3;
+
+        mpath = (tbuf + pathlen + 1);
 
 	/**
-	 **  Now scan all entries of the just openend directory
+	 **  Now scan all entries of the just opened directory
 	 **/
 
 #if WITH_DEBUGGING_UTIL_2
@@ -849,18 +848,11 @@ char	**SortedDirList(	Tcl_Interp	*interp,
 	     **  Oops! This one exceeds our array. Enlarge it.
 	     **/
 
-	    if( j == n) {
+	    if( j == n)
 		if( NULL == (filelist =
-		    (char**) realloc((char*) filelist, n *= 2))) {
-		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-			free( full_path);
-			free( buf);
-			if( -1 == closedir( subdirp))
-			    ErrorLogger( ERR_CLOSEDIR, LOC, full_path, NULL);
-			return( NULL);	/** --- EXIT PROCEDURE (FAILURE) --> **/
-		    }
-		}
-	    }
+		    (char**) realloc((char*) filelist, n *= 2)))
+		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+			goto unwindt;
 
 	    /**
 	     **  Now, if we got a real entry which is not '.*' or '..' and
@@ -880,29 +872,19 @@ char	**SortedDirList(	Tcl_Interp	*interp,
 		 **/
 
                 strcpy( mpath, file->d_name);
-                if( check_magic( buf, MODULES_MAGIC_COOKIE,
+                if( check_magic( tbuf, MODULES_MAGIC_COOKIE,
 			MODULES_MAGIC_COOKIE_LENGTH) ||
-		    !stat(buf, &stats) ) {
+		    !stat(tbuf, &stats) ) {
 
 		    /**
 		     **  Yep! Found! Put it on the list
 		     **/
 
-                    if( NULL == (filelist[j] = (char*) malloc(
-			strlen( modulename) + NLENGTH(file) + 2)))
-
-			if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-			    free( full_path);
-			    free( buf);
-			    FreeList( filelist, j);
-			    return( NULL); 	/** ---- EXIT (FAILURE) ----> **/
-			}
-
-                    /* sprintf(filelist[j++], "%s/%s", modulename, file->d_name); */
-                    strcpy(filelist[j], modulename);
-                    strcat(filelist[j], "/");
-                    strcat(filelist[j++], file->d_name);
-
+                    if((char *) NULL == (filelist[j] = stringer(NULL,0,
+			modulename,"/",file->d_name, NULL)))
+			if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+			    goto unwindt;
+		    j++;
                 } /** if( mag. cookie or directory) **/
 	    } /** if( not a dotfile) **/
 	} /** for **/
@@ -918,14 +900,13 @@ char	**SortedDirList(	Tcl_Interp	*interp,
 	 **  Free up temporary values ...
 	 **/
 
-	free((void*) full_path);
-	free((void*) buf);
-
 	if( -1 == closedir( subdirp))
 	    if( OK != ErrorLogger( ERR_CLOSEDIR, LOC, full_path, NULL)) {
-		FreeList( filelist, j);
-		return( NULL);		/** --- EXIT PROCEDURE (FAILURE) --> **/
+		goto unwind2;
 	    }
+
+	null_free((void*) &full_path);
+	null_free((void*) &tbuf);
 
 	/**
 	 **  Set up return values and pass the created list to the caller
@@ -933,6 +914,12 @@ char	**SortedDirList(	Tcl_Interp	*interp,
 
 	*listcnt = j;
 	return( filelist);		/** --- EXIT PROCEDURE (SUCCESS) --> **/
+	
+	if(0) {	
+unwindt:
+	    null_free((void*) &tbuf);
+	    goto unwind3;
+	}
     }
 
     /**
@@ -942,14 +929,20 @@ char	**SortedDirList(	Tcl_Interp	*interp,
 
 /** ??? What about links ??? **/
 
+unwind3:
+    if( -1 == closedir( subdirp))
+	ErrorLogger( ERR_CLOSEDIR, LOC, full_path, NULL);
+unwind2:
+    null_free((void*) &full_path);
+unwind1:
     FreeList( filelist, n);
-    free((void*) full_path);
 
+unwind0:
 #if WITH_DEBUGGING_UTIL_1
     ErrorLogger( NO_ERR_END, LOC, _proc_SortedDirList, NULL);
 #endif
 
-    return( NULL);
+    return( NULL);			/** --- EXIT PROCEDURE (FAILURE) --> **/
 
 } /** End of 'SortedDirList' **/
 
@@ -1001,20 +994,18 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
      **  Paramter check
      **/
 
-    if( !pathenv) {
+    if( !pathenv)
 	if( OK != ErrorLogger( ERR_PARAM, LOC, "pathenv", NULL))
-	    return( NULL);		/** -------- EXIT PROCEDURE -------> **/
-    }
+	    goto unwind0;
 
     /**
      **  Allocate space to copy in the value of the path value to
      **  split. Thus this procedure doesn't change its input parameters.
      **/
 
-    if( NULL == (givenpath = (char*) malloc( strlen( pathenv) + 1))) {
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    return( NULL);		/** -------- EXIT PROCEDURE -------> **/
-    }
+    if( (char *) NULL == (givenpath = stringer(NULL,0, pathenv,NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind0;
 
     /**
      **  Allocate the list which is an array of char*.  n is used to
@@ -1023,14 +1014,9 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
      **  Copy the passed path into the new buffer.
      **/
 
-    if( NULL == (pathlist = (char**) calloc( n = 100, sizeof( char*)))) {
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-	    free( givenpath);
-	    return( NULL);		/** -------- EXIT PROCEDURE -------> **/
-	}
-    }
-
-    strcpy( givenpath, pathenv);
+    if((char **) NULL == (pathlist = (char**) calloc( n = 100, sizeof( char*))))
+	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+	    goto unwind1;
 
     /**
      **  Split the given path environment variable into its components.
@@ -1045,15 +1031,11 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
 	 **  and double its size!
 	 **/
 
-	if( i == n) {
-	    if( NULL == (pathlist = (char**) realloc((char*) pathlist,
-		n *= 2))) {
-		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-		    free( givenpath);
-		    return( NULL);	/** -------- EXIT PROCEDURE -------> **/
-		}
-	    }
-	}
+	if( i == n )
+	    if((char **) NULL == (pathlist = (char**) realloc((char*) pathlist,
+		n *= 2)))
+		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+		    goto unwind1;
 
 	/**
 	 **  Put the token into the array. Therefor a new area is allocated for
@@ -1063,8 +1045,7 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
 	if( NULL == (pathlist[ i++] = xdup( dirname)))
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
 		FreeList( pathlist, --i);
-		free( givenpath);
-		return( NULL);		/** -------- EXIT PROCEDURE -------> **/
+		goto unwind1;
 	    }
 
     } /** for **/
@@ -1074,7 +1055,7 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
      **/
 
     if( givenpath)
-	free((void*) givenpath);
+	null_free((void*) &givenpath);
 
     /**
      **  Set up the return value (Number of elements allocated) and pass
@@ -1084,6 +1065,10 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
     *numpaths = i;
     return( pathlist);
 
+unwind1:
+    null_free((void *) &givenpath);
+unwind0:
+    return( NULL);			/** -------- EXIT FAILURE -------> **/
 } /** End of 'SplitIntoList' **/
 
 #ifndef FreeList
@@ -1093,13 +1078,13 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
  ** 									     **
  **   Function:		FreeList					     **
  ** 									     **
- **   Description:	Frees an char* array type list.			     **
+ **   Description:	Frees a char* array type list.			     **
  ** 									     **
  **   First Edition:	91/10/23					     **
  ** 									     **
  **   Parameters:	char	**list		Pointer to the list	     **
- **			int	  numelem	Number of elements in the l. **
- ** 									     **
+ **			int	  numelem	Number of elements in the    **
+ ** 						list			     **
  **   Result:		-						     **
  ** 									     **
  **   Attached Globals:	-						     **
@@ -1129,13 +1114,13 @@ void FreeList(	char	**list,
 
     for( j = 0; j < numelem; j++)
 	if( list[j] != NULL)
-	    free((void*) list[j]);
+	    null_free((void *) (list + j));
  
     /**
      **  Free the entire list
      **/
 
-    free((void*) list);
+    null_free((void *) &list);
 
 } /** End of 'FreeList' **/
 
@@ -1168,7 +1153,7 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
 {
     struct stat	  stats;		/** Buffer for the stat() systemcall **/
     int 	  save_flags, i;
-    char	  buffer[ MOD_BUFSIZE];
+    char	 *buffer;
     int		  Result = TCL_OK;
     static char	**srclist = (char **) NULL;
     static int	  listsize = 0, listndx = 0;
@@ -1190,14 +1175,13 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
      **  Avoid duplicate sourcing
      **/
 
-    /* sprintf( buffer, "%s/%s", path, name); */
-    strcpy( buffer, path);
-    strcat( buffer, "/");
-    strcat( buffer, name);
+    if ((char *) NULL == (buffer = stringer(NULL, 0, path,"/",name, NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    goto unwind0;
 
     for( i=0; i<listndx; i++)
 	if( !strcmp( srclist[ i], buffer))
-	    return( TCL_OK);
+	    goto unwind1;
 
     /**
      **  Check whether the RC file exists and has the magic cookie inside
@@ -1236,7 +1220,7 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
 		if((char **) NULL == (srclist = (char **) malloc( listsize *
 		    sizeof( char **)))) {
 		    ErrorLogger( ERR_ALLOC, LOC, NULL);
-		    return( TCL_ERROR);
+		    goto unwind1;
 		}
 
 	    } else if( listndx + 1 >= listsize) {
@@ -1245,7 +1229,7 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
 		if((char **) NULL == (srclist = (char **) realloc( srclist, 
 		    listsize * sizeof( char **)))) {
 		    ErrorLogger( ERR_ALLOC, LOC, NULL);
-		    return( TCL_ERROR);
+		    goto unwind1;
 		}
 	    }
 
@@ -1253,11 +1237,12 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
 	     **  Put the current RC files name on the list
 	     **/
 
-	    if((char *) NULL == (srclist[ listndx++] = strdup( buffer)))
-		ErrorLogger( ERR_ALLOC, LOC, NULL);
+	    srclist[ listndx++] = buffer;
 
-	} else
+	} else {
 	    ErrorLogger( ERR_MAGIC, LOC, buffer, NULL);
+	    null_free((void *) &buffer);
+	}
 
     } /** if( !stat) **/
 
@@ -1266,6 +1251,11 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
      **/
 
     return( Result);
+
+unwind1:
+    null_free((void *) &buffer);
+unwind0:
+    return( TCL_ERROR);
 
 } /** End of 'SourceRC' **/
 
@@ -1296,7 +1286,7 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
 {
     struct stat	  stats;		/** Buffer for the stat() systemcall **/
     int save_flags;
-    char buffer[ MOD_BUFSIZE];
+    char *buffer;
     int Result = TCL_OK;
     char *version;
     char *new_argv[3];
@@ -1327,10 +1317,10 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
      **  has the magic cookie inside
      **/
 
-    /* sprintf( buffer, "%s/%s", path, version_file); */
-    strcpy( buffer, path);
-    strcat( buffer, "/");
-    strcat( buffer, version_file);
+    if ((char *) NULL == (buffer = stringer(NULL, 0, path,"/",version_file,
+	NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    return( TCL_ERROR);
 
     if( !stat( buffer, &stats)) {
 	if(
@@ -1353,10 +1343,11 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
 		 **  '.version' file. Set up the result code
 		 **/
 
-		/* sprintf( buffer, "%s/%s", name, version); */
-		strcpy( buffer, name);
-		strcat( buffer, "/");
-		strcat( buffer, version);
+		null_free((void *) &buffer);
+		if ((char *) NULL == (buffer = stringer(NULL, 0,
+		name,"/",version, NULL)))
+		    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+			return( TCL_ERROR);
 
 		new_argv[0] = "module-version";
 		new_argv[1] = buffer;
@@ -1379,6 +1370,12 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
 	    ErrorLogger( ERR_MAGIC, LOC, buffer, NULL);
 
     } /** if( !stat) **/
+
+    /**
+     ** free buffer memory
+     **/
+
+    null_free((void *) &buffer);
 
     /**
      **  Result determines if this was successfull

@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Purge.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Purge.c,v 1.2 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -106,23 +106,21 @@ int	ModuleCmd_Purge(	Tcl_Interp	*interp,
      **  Get the list of currently loaded modules from the environment variable
      **  LOADEDMODULES
      **/
-
     if( NULL == (loaded_modules = Tcl_GetVar2( interp, "env", "LOADEDMODULES",
 	TCL_GLOBAL_ONLY))) {
 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) --------> **/
+	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------- **/
 	else
-	    return( TCL_OK);		/** ---- EXIT (Nothing to list) ----> **/
+	    return( TCL_OK);		/** ---- EXIT (Nothing to list) ---- **/
     }
 
-    if( NULL == (lmodules = strdup( loaded_modules))) 
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) --------> **/
+    if((char *) NULL == (lmodules = stringer(NULL,0, loaded_modules, NULL))) 
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------- **/
 
     /**
      **  Build a NULL terminated list of loaded modules
      **/
-
     for( cur_module = strtok( lmodules, ":");
          cur_module && unload_argc < MOD_BUFSIZE-1;
          cur_module = strtok( NULL, ":"))
@@ -135,15 +133,13 @@ int	ModuleCmd_Purge(	Tcl_Interp	*interp,
      **  We always say the load succeeded.  ModuleCmd_Load will
      **  output any necessary error messages.
      **/
-
     ModuleCmd_Load( interp, 0, unload_argc, unload_argv);
     status = TCL_OK;
 
     /**
      **  Free, what has been allocated and pass the load's result to the caller
      **/
-
-    free( lmodules);
+    null_free((void *) &lmodules);
 
 #if WITH_DEBUGGING_MODULECMD
     fprintf( stderr, "ModuleCmd_Purge(%d):DEBUG: End\n", __LINE__);

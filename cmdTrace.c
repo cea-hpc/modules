@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdTrace.c,v 1.3 2002/04/27 01:15:55 lakata Exp $";
+static char Id[] = "@(#)$Id: cmdTrace.c,v 1.4 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -263,14 +263,12 @@ int	cmdModuleTrace(	ClientData	 client_data,
     /**
      **  Whatis mode?
      **/
-
     if( g_flags & (M_WHATIS | M_HELP))
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
 	
     /**
      **  Parameter check
      **/
-
     if( argc < 2) {
 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "on|off",
 	    "[cmd [cmd ...]]", "[ -module module [module ...]]", NULL))
@@ -280,7 +278,6 @@ int	cmdModuleTrace(	ClientData	 client_data,
     /**
      **  On or off?
      **/
-
     if( !strcmp( argv[ 1], "on"))
 	on_off = '+';
     else if( !strcmp( argv[ 1], "off"))
@@ -294,7 +291,6 @@ int	cmdModuleTrace(	ClientData	 client_data,
     /**
      **  Display mode?
      **/
-
     if( g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t ", argv[ 0]);
 	for( i=1; i<argc; i++)
@@ -307,7 +303,6 @@ int	cmdModuleTrace(	ClientData	 client_data,
      **  We need a table of module command involved in this trace selection.
      **  Allocate one and initialize it.
      **/
-
     cmd_tab_size = sizeof( TraceSelect) / sizeof( TraceSelect[ 0]);
     if((char *) NULL == (cmd_table = (char *) malloc( cmd_tab_size)))
 	return((OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) ? TCL_OK : TCL_ERROR);
@@ -316,7 +311,6 @@ int	cmdModuleTrace(	ClientData	 client_data,
      **  Scan all commands specified as options. The last option to be scanned
      **  is either the real last one, or the '-module' one
      **/
-
     args = argv + 2; i = argc - 2;
     memset( cmd_table, !i, cmd_tab_size);
 
@@ -326,7 +320,6 @@ int	cmdModuleTrace(	ClientData	 client_data,
 	/**
 	 **  Check for '-module'
 	 **/
-
 	if( !strncmp( tmp, "-module", strlen( tmp)))
 	    break;
 
@@ -334,12 +327,11 @@ int	cmdModuleTrace(	ClientData	 client_data,
 	 **  This should be a module command.
 	 **  Check it against the TraceSelect table
 	 **/
-
 	if( -1 != (k = GetTraceTable(interp, tmp, cmd_tab_size))) {
 	    cmd_table[ k] = 1;
 	} else {
 	    if( OK != ErrorLogger( ERR_COMMAND, LOC, tmp, NULL)) {
-		free( cmd_table);
+		null_free((void *) &cmd_table);
 		return( TCL_ERROR);
 	    }
 	}
@@ -351,7 +343,6 @@ int	cmdModuleTrace(	ClientData	 client_data,
      **  If we ran to the end of the argument list (i==0), ALL files are
      **  concerned in this ...
      **/
-
     if( 0 >= i) {	
 	ret = ChangeTraceSel(interp, cmd_table, cmd_tab_size, on_off, _all);
     } else {
@@ -363,8 +354,7 @@ int	cmdModuleTrace(	ClientData	 client_data,
     /**
      **  Cleanup finally and return
      **/
-
-    free( cmd_table);
+    null_free((void *) &cmd_table);
 
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleTrace, NULL);
@@ -405,7 +395,6 @@ static	int	GetTraceTable(Tcl_Interp *interp, char *cmd, int num)
     /**
      **  Not found ..
      **/
-
     return( -1);
 
 } /** End of 'GetTraceTable' **/
@@ -481,7 +470,6 @@ static	int	ChangeTraceSel(	Tcl_Interp *interp,
     /**
      **  Need a buffer for to build the complete pattern
      **/
-
     if((char *) NULL == (pattern = (char *) malloc( len + 2))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
 	return( TCL_ERROR);
@@ -491,14 +479,13 @@ static	int	ChangeTraceSel(	Tcl_Interp *interp,
      **  Check if this is the ALL pattern. If it is, replace all affected
      **  entries with '_all_on' or '_all_off'
      **/
-
     if( !strcmp( module_pat, _all)) {
 
 	for( i=0; i < cmd_tab_size; i++) {
 	    if( cmd_table[ i]) {
 
 		if( TraceSelect[ i].alloc)
-		    free( TraceSelect[ i].tracing)
+		    null_free((void *) &(TraceSelect[ i].tracing));
 		TraceSelect[ i].alloc = 0;
 
 		TraceSelect[ i].tracing = ('+' == on_off) ?
@@ -511,7 +498,6 @@ static	int	ChangeTraceSel(	Tcl_Interp *interp,
 	/**
 	 **  Check the pattern for colons ...
 	 **/
-
 	if( strchr( module_pat, ':')) 
 	    if( OK != ErrorLogger( ERR_COLON, LOC, module_pat, NULL))
 		ret = TCL_ERROR;
@@ -521,7 +507,6 @@ static	int	ChangeTraceSel(	Tcl_Interp *interp,
 	    /**
 	     **  Build the complete pattern
 	     **/
-
 	    *pattern = on_off;
 	    strcpy( pattern + 1, module_pat);
 	    len += 1;
@@ -529,14 +514,12 @@ static	int	ChangeTraceSel(	Tcl_Interp *interp,
 	    /**
 	     **  Loop for all entries to be changed
 	     **/
-
 	    for( i=0; i < cmd_tab_size; i++) {
 		if( cmd_table[ i]) {
 
 		    /**
 		     **  allocate a buffer for the new pattern
 		     **/
-		    
 		    if((char *) NULL == (tmp = (char *) malloc( len + 2 +
 			strlen( TraceSelect[ i].tracing)))) {
 			if( OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) {
@@ -550,14 +533,12 @@ static	int	ChangeTraceSel(	Tcl_Interp *interp,
 		    /**
 		     **  Copy the new pattern to the buffer at first
 		     **/
-
 		    strcpy( tmp, pattern);
 		    t = tmp + len;
 
 		    /**
 		     **  Tokenize the old pattern and remove duplicates
 		     **/
-
 		    for( s = strtok( TraceSelect[ i].tracing, ":");
 			 s;
 			 s = strtok( NULL, ":") ) {
@@ -576,7 +557,7 @@ static	int	ChangeTraceSel(	Tcl_Interp *interp,
 		     **/
 
 		    if( TraceSelect[ i].alloc)
-			free( TraceSelect[ i].tracing);
+			null_free((void *) &(TraceSelect[ i].tracing));
 
 		    TraceSelect[ i].tracing = tmp;
 		    TraceSelect[ i].alloc = 1;
@@ -590,8 +571,7 @@ static	int	ChangeTraceSel(	Tcl_Interp *interp,
     /**
      **  Free what has been allocated an return 
      **/
-
-    free( pattern);
+    null_free((void *) &pattern);
     return( ret);
 
 } /** End of 'ChangeTraceSel' **/

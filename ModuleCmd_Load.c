@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.5 2002/01/04 04:59:14 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.6 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -171,8 +171,10 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 		 **  So it is loaded ...
 		 **  Do we know the filename?
 		 **/
-
-                strcpy( modulename, tmpname);
+                if ((char *) NULL == stringer(modulename, MOD_BUFSIZE,
+			tmpname, NULL))
+		    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+			goto unwind0;
                 if( !filename[0])
                     if( TCL_ERROR == (return_val = Locate_ModuleFile(
 			tmp_interp, argv[i], tmpname, filename))) 
@@ -182,8 +184,8 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
                  **  If IsLoaded() created tmpname, then we must free it.
                  **/
 
-                if( tmpname && tmpname != argv[i]) 
-                    free( tmpname);
+                if( tmpname && (tmpname != argv[i]))
+                    null_free((void *) &tmpname);
 
             } /** if loaded **/
 
@@ -210,20 +212,20 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 
 	g_current_module = modulename;
 	if( TCL_OK == return_val) {
-            return_val = Read_Modulefile( tmp_interp, filename);
+	    return_val = Read_Modulefile( tmp_interp, filename);
 
-            switch (return_val) {
-              case TCL_OK:
-                /**
-                 ** If module terminates TCL_OK, add it to the loaded list...
-                 **/
+	    switch (return_val) {
+	    case TCL_OK:
+		/**
+		 ** If module terminates TCL_OK, add it to the loaded list...
+		 **/
 		Update_LoadedList( tmp_interp, modulename, filename);
 
-              case TCL_BREAK:
-                /**
-                 ** If module terminates TCL_BREAK, don't add it to the list,
-                 ** but assume that everything was OK with the module anyway.
-                 **/
+	    case TCL_BREAK:
+		/**
+		 ** If module terminates TCL_BREAK, don't add it to the list,
+		 ** but assume that everything was OK with the module anyway.
+		 **/
 		/**
 		 **  Save the current environment setup before the next module
 		 **  file is (un)loaded in case something is broken ...
@@ -231,43 +233,40 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 		 **/
         	if( oldTables) {
                     Delete_Hash_Tables( oldTables);
-                    free((char*) oldTables);
+                    null_free((void *) &oldTables);
         	}
         	oldTables = Copy_Hash_Tables();
 		a_successful_load = 1;
-                break;  /* switch */
+		break;	/* switch */
 
-              case TCL_ERROR:
-              default:
+	    case TCL_ERROR:
+	    default:
 		/**
 		 **  Reset what has been changed.
 		 **/
+
 		Unwind_Modulefile_Changes( tmp_interp, oldTables);
             
         	oldTables = NULL;
 		return_val = TCL_ERROR;
-                break;  /* switch */
+		break;	/* switch */
 	    }
 	}
-
         Tcl_DeleteInterp(tmp_interp);
-
     } /** for **/
     
     /**
      **  There may only be a spare save environment left, if the final module
      **  has been load successfully. Remove it in this case
      **/
-
     if( return_val == TCL_OK && oldTables) {
         Delete_Hash_Tables( oldTables);
-        free((char*) oldTables);
+        null_free((void *) &oldTables);
     }
 
     /**
      **  Clean up the flags and return 
      **/
-
     if( load)
         g_flags &= ~M_LOAD;
     else
@@ -278,5 +277,8 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 #endif
 
     return( a_successful_load);
+
+unwind0:
+    return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'ModuleCmd_Load' **/

@@ -47,7 +47,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.3 2002/04/29 21:16:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -866,7 +866,6 @@ int	VersionLookup(	char *name, char **module, char **version)
      **  We call it success, if we do not find a registerd name.
      **  In this case <module>/<version> will be returned as passed.
      **/
-
     if((ModModule *) NULL == (mptr = FindModule( *module, &mtmp))) {
 	return( 1);			/** -------- EXIT (SUCCESS) -------> **/
     }
@@ -874,7 +873,6 @@ int	VersionLookup(	char *name, char **module, char **version)
     /**
      **  This is for preventing from endless loops
      **/
-
     histsize = HISTTAB;
     histndx = 0;
 
@@ -889,13 +887,11 @@ int	VersionLookup(	char *name, char **module, char **version)
      **  thing is found, check if the related version record itsself relates
      **  to a name record ...
      **/
-
     while( 1) {
 
 	/**
 	 **  Check the symbolic names ...
 	 **/
-
 	if((ModName *) NULL != (vptr = FindName( *version, mptr->name, &vtmp))){
 	    if( !vptr->version || !vptr->version->name) {
 		if( OK != ErrorLogger( ERR_INTERAL, LOC, NULL)) 
@@ -908,7 +904,6 @@ int	VersionLookup(	char *name, char **module, char **version)
 	    /**
 	     **  Prevent from looping ...
 	     **/
-
 	    for( i=0; i<histndx; i++) {
 		if( history[ i] == vptr) {		/** That's the loop  **/
 		    ErrorLogger( ERR_SYMLOOP, LOC, *version, NULL);
@@ -942,8 +937,7 @@ int	VersionLookup(	char *name, char **module, char **version)
      **  Free the loop preventing list
      **  If version is NULL now, something went wrong in the lookup loop above
      **/
-
-    free( history);
+    null_free((void *) &history);
     return((char *) NULL != *version);
 
 } /** End of 'VersionLookup' **/
@@ -998,7 +992,7 @@ static void	CleanupVersionSub( ModModule *ptr)
 
     CleanupName( ptr->version);
     CleanupName( ptr->name);
-    free( ptr->module);
+    null_free((void *) &(ptr->module));
 
 } /** End of 'CleanupVersionSub' **/
 
@@ -1017,7 +1011,7 @@ static void	CleanupName( ModName *ptr)
      **  Cleanup everything that relates to this record
      **/
 
-    free( ptr->name);
+    null_free((void *) &(ptr->name));
 
 } /** End of 'CleanupName' **/
 
@@ -1078,7 +1072,7 @@ static	ModModule	*AddModule(	char	*name)
 
     if((char *) NULL == (ptr->module = strdup( name))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
-	free( ptr);
+	null_free((void *) &ptr);
 	return((ModModule *) NULL);
     }
 
@@ -1202,7 +1196,7 @@ static	ModName	*AddName(	char	 *name,
 
     if((char *) NULL == (ptr->name = strdup( name))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
-	free( ptr);
+	null_free((void *) &ptr);
 	return((ModName *) NULL);
     }
 
