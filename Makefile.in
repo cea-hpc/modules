@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # File:        Makefile.in
-# Revision:    $Id: Makefile.in,v 1.17 2002/03/18 21:20:52 rkowen Exp $
+# Revision:    $Id: Makefile.in,v 1.18 2002/04/09 22:12:35 lakata Exp $
 # Orig Author: Leif Hedstrom<hedstrom@inf.ethz.ch>
 #
 # Description:
@@ -18,6 +18,7 @@ VPATH = @srcdir@
 INSTALL		= @INSTALL@
 INSTALL_PROGRAM	= $(INSTALL) -m 0555
 INSTALL_DATA	= $(INSTALL) -m 0644
+INSTALL_DIRS	= $(INSTALL) -m 0755
 RUNTEST		= @RUNTEST@
 RUNTESTFLAGS	= 
 CC		= @CC@
@@ -124,20 +125,7 @@ install:	all install-dirs
 	(cd modulefiles;  $(MAKE) install)
 
 install-dirs:
-	@for i in $(MAKEDIRS) ; do \
-		echo Making $$i... ; \
-		parent=`echo $$i | ${SED} -e 's@/[^/]*$$@@' | ${SED} -e 's@^$$@/@'`; \
-		if [ -d $$parent ] ; then true ; else mkdir $$parent ; fi ; \
-		if [ ! -d $$i ] ; then \
-			if mkdir $$i ; then \
-				true ; \
-			else \
-				exit 1 ; \
-			fi ; \
-		else \
-			true ; \
-		fi ; \
-	done
+	$(INSTALL_DIRS) --directory $(MAKEDIRS)
 
 ctags:	CTAGS
 CTAGS:	$(SRCS)
