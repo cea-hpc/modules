@@ -3,7 +3,7 @@
 # Adds $ETC/*.modules to the $HOME/.login, .cshrc, .profile, .bashrc & .kshenv
 #
 #set -x
-VERSION='$Id: add.modules.in,v 1.1 2000/06/28 00:17:33 rk Exp $'
+VERSION='$Id: add.modules.in,v 1.2 2002/06/14 06:15:20 rkowen Exp $'
 SKEL=@SKELPATH@
 ETC=@ETCPATH@
 /bin/cat <<!
@@ -29,13 +29,13 @@ fi
 	The lines are prepended for sourcing the $ETC/csh.modules or
 	$ETC/profile.modules files or to define the module alias or function.
 	Why is it necessary?
-	To insure that you'll have access to modules for all subshells,
+	To insure that you will have access to modules for all subshells,
 	these lines need to be added to some of your 'dot' files.
 
 	Your old .cshrc, .login, .profile, .bashrc and .kshenv will be
 	renamed to .login.old, .cshrc.old, .profile.old, .bashrc.old and
-	.kshenv.old respectively.  So if you have any problems you'll be
-	able to easily restore them.
+	.kshenv.old respectively.  So if you have any problems you will
+	can easily restore them.
 
 	This is version $VERSION .
 
@@ -143,7 +143,8 @@ case "\$0" in
        -zsh|zsh|*/zsh)	modules_shell=zsh ;;
     -bash|bash|*/bash)	modules_shell=bash ;;
 esac
-module() { eval \`@BASEPREFIX@\$MODULE_VERSION/bin/modulecmd \$modules_shell \$*\`; }
+@VERSIONING@module() { eval \`@BASEPREFIX@/Modules/\$MODULE_VERSION/bin/modulecmd \$modules_shell \$*\`; }
+@NOTVERSIONING@module() { eval \`@bindir@/modulecmd \$modules_shell \$*\`; }
 !
 				elif [ x$3 = xcsh ]
 				then
@@ -153,7 +154,8 @@ if (\$?tcsh) then
 else
         set modules_shell="csh"
 endif
-alias module 'eval \`@BASEPREFIX@\$MODULE_VERSION/bin/modulecmd '\$modules_shell '\!*\`'
+@VERSIONING@alias module 'eval \`@BASEPREFIX@/\$MODULE_VERSION/bin/modulecmd '\$modules_shell '\!*\`'
+@NOTVERSIONING@alias module 'eval \`@prefix@/bin/modulecmd '\$modules_shell '\!*\`'
 !
 				fi
 				/bin/cat /tmp/$1.$$ >> $1 && /bin/rm /tmp/$1.$$

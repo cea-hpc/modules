@@ -835,10 +835,10 @@ Optional Features:
   --enable-use-default        use DEFAULTPATH in init scripts yes
   --disable-dependency-tracking Speeds up one-time builds
   --enable-dependency-tracking  Do not reject slow dependency extractors
-  --enable-cache              use directory cache             yes
   --enable-shell-funcs        use sh functions                yes
   --enable-shell-eval         use shell alias eval            no
   --enable-free               use free() calls                no
+  --enable-cache              use directory cache             yes
   --enable-version-magic      set .version magic requirement  yes
   --enable-logging            turn logging on                 no
 
@@ -1633,6 +1633,40 @@ ac_config_headers="$ac_config_headers config.h"
 
 
 
+echo "$as_me:$LINENO: checking whether ${MAKE-make} sets \${MAKE}" >&5
+echo $ECHO_N "checking whether ${MAKE-make} sets \${MAKE}... $ECHO_C" >&6
+set dummy ${MAKE-make}; ac_make=`echo "$2" | sed 'y,./+-,__p_,'`
+if eval "test \"\${ac_cv_prog_make_${ac_make}_set+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.make <<\_ACEOF
+all:
+	@echo 'ac_maketemp="${MAKE}"'
+_ACEOF
+# GNU make sometimes prints "make[1]: Entering...", which would confuse us.
+eval `${MAKE-make} -f conftest.make 2>/dev/null | grep temp=`
+if test -n "$ac_maketemp"; then
+  eval ac_cv_prog_make_${ac_make}_set=yes
+else
+  eval ac_cv_prog_make_${ac_make}_set=no
+fi
+rm -f conftest.make
+fi
+if eval "test \"`echo '$ac_cv_prog_make_'${ac_make}_set`\" = yes"; then
+  echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+  SET_MAKE=
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+  SET_MAKE="MAKE=${MAKE-make}"
+fi
+
+
+
+
+
+
 
 
 # Check whether --enable-versioning or --disable-versioning was given.
@@ -1644,12 +1678,16 @@ if test "${enable_versioning+set}" = set; then
 #define WANTS_VERSIONING 1
 _ACEOF
 
+	    VERSIONING=""
+	    NOTVERSIONING="#"
 	else
 	    WANTS_VERSIONING=0
 	    cat >>confdefs.h <<\_ACEOF
 #define WANTS_VERSIONING 0
 _ACEOF
 
+	    VERSIONING="#"
+	    NOTVERSIONING=""
 	fi
 else
   WANTS_VERSIONING=1
@@ -1657,20 +1695,23 @@ else
 #define WANTS_VERSIONING 1
 _ACEOF
 
-fi;
-VERSION='(unknown)'
+	    VERSIONING=""
+	    NOTVERSIONING="#"
+
+fi; VERSION='(unknown)'
 VERSION=`sed -n -e 's/^.*version_string.*"\(.*\)";$/\1/p' ${srcdir}/version.c`
 echo "$as_me:$LINENO: result: VERSION = $VERSION" >&5
-echo "${ECHO_T}VERSION = $VERSION" >&6
-DATE='(DDMmmYYYY)'
+echo "${ECHO_T}VERSION = $VERSION" >&6DATE='(DDMmmYYYY)'
 DATE=`sed -n -e 's/^.*date_string.*"\(.*\)";$/\1/p' ${srcdir}/version.c`
 echo "$as_me:$LINENO: result: DATE = $DATE" >&5
-echo "${ECHO_T}DATE = $DATE" >&6
-echo "configuring for Modules $VERSION		$DATE"
+echo "${ECHO_T}DATE = $DATE" >&6echo "configuring for Modules $VERSION		$DATE"
 THISDIR=`pwd`
 echo "$as_me:$LINENO: result: THISDIR = $THISDIR" >&5
-echo "${ECHO_T}THISDIR = $THISDIR" >&6
-DEFAULTPATH=default
+echo "${ECHO_T}THISDIR = $THISDIR" >&6DEFAULTPATH=default
+
+
+
+
 if test "$prefix" != "NONE" ; then
   if test "$WANTS_VERSIONING" -eq 1 ; then
     DEFAULTPATH=$prefix/Modules/default
@@ -1737,16 +1778,15 @@ export NODEFAULTPATH
 export BASEPREFIX
 export MODULES_INIT_DIR
 
+
 # Check whether --with-module-path or --without-module-path was given.
 if test "${with_module_path+set}" = set; then
   withval="$with_module_path"
   MODULEPATH="$withval"
 	echo "$as_me:$LINENO: result: MODULEPATH = $with_module_path" >&5
-echo "${ECHO_T}MODULEPATH = $with_module_path" >&6
-	cat >>confdefs.h <<_ACEOF
+echo "${ECHO_T}MODULEPATH = $with_module_path" >&6	cat >>confdefs.h <<_ACEOF
 #define MODULEPATH "$withval"
 _ACEOF
-
 
 else
   	withval="$BASEPREFIX/Modules/modulefiles"
@@ -1780,7 +1820,6 @@ echo "$as_me: WARNING: will use VERSIONPATH=$withval : rerun configure using --w
 _ACEOF
 
 fi;
-
 # Check whether --with-autoload-path or --without-autoload-path was given.
 if test "${with_autoload_path+set}" = set; then
   withval="$with_autoload_path"
@@ -1849,12 +1888,10 @@ if test "${with_tmp_dir+set}" = set; then
   if test ! -d $withval ; then
            { { echo "$as_me:$LINENO: error: tmp dir $withval does not exist" >&5
 echo "$as_me: error: tmp dir $withval does not exist" >&2;}
-   { (exit 1); exit 1; }; }
-        fi
+   { (exit 1); exit 1; }; }        fi
 	cat >>confdefs.h <<_ACEOF
 #define TMP_DIR "$withval"
 _ACEOF
-
 	echo "$as_me:$LINENO: result: TMP_DIR = $withval" >&5
 echo "${ECHO_T}TMP_DIR = $withval" >&6
 else
@@ -1862,16 +1899,13 @@ else
            cat >>confdefs.h <<_ACEOF
 #define TMP_DIR "/tmp"
 _ACEOF
-
         elif test -d "/var/tmp" ; then
            cat >>confdefs.h <<_ACEOF
 #define TMP_DIR "/var/tmp"
 _ACEOF
-
         fi
 
-fi;
-ac_ext=c
+fi; ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -5110,10 +5144,11 @@ fi
 fi
 
 if test "$no_x" != "yes"; then
+
+
 	cat >>confdefs.h <<\_ACEOF
 #define HAS_X11LIBS 1
 _ACEOF
-
 
 echo "$as_me:$LINENO: checking for XMaxRequestSize in -lX11" >&5
 echo $ECHO_N "checking for XMaxRequestSize in -lX11... $ECHO_C" >&6
@@ -5179,7 +5214,6 @@ _ACEOF
 
 fi
 
-
 echo "$as_me:$LINENO: checking for XmuGetHostname in -lXmu" >&5
 echo $ECHO_N "checking for XmuGetHostname in -lXmu... $ECHO_C" >&6
 if test "${ac_cv_lib_Xmu_XmuGetHostname+set}" = set; then
@@ -5243,9 +5277,7 @@ _ACEOF
   LIBS="-lXmu $LIBS"
 
 fi
-
 fi
-
 
 
 
@@ -6536,6 +6568,7 @@ _ACEOF
 fi
 done
 
+
 # Extract the first word of "cpp", so it can be a program name with args.
 set dummy cpp; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -6574,6 +6607,7 @@ fi
 cat >>confdefs.h <<_ACEOF
 #define CPPSTDIN "$_CPPSTDIN"
 _ACEOF
+
 
 # Extract the first word of "hostname", so it can be a program name with args.
 set dummy hostname; ac_word=$2
@@ -6614,7 +6648,6 @@ else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
 fi
-
 test "$_PHOST" != ""  && cat >>confdefs.h <<_ACEOF
 #define PHOSTNAME "$_PHOST"
 _ACEOF
@@ -6658,9 +6691,9 @@ else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
 fi
-
 test "$RUNTEST" = "" && echo "Install DEJAGNU and rerun configure if you \
 want to run the testsuite"
+
 
 
 # Check whether --with-force-path or --without-force-path was given.
@@ -6686,7 +6719,6 @@ _ACEOF
 
 	fi
 fi;
-
 # Check whether --with-static or --without-static was given.
 if test "${with_static+set}" = set; then
   withval="$with_static"
@@ -6724,21 +6756,8 @@ else
 echo "${ECHO_T}no" >&6
 fi
 fi;
-# Check whether --enable-cache or --disable-cache was given.
-if test "${enable_cache+set}" = set; then
-  enableval="$enable_cache"
-  if test "$enableval" = "yes"; then
-	    cat >>confdefs.h <<\_ACEOF
-#define CACHE_AVAIL 1
-_ACEOF
 
-	fi
-else
-  cat >>confdefs.h <<\_ACEOF
-#define CACHE_AVAIL 1
-_ACEOF
 
-fi;
 # Check whether --enable-shell-funcs or --disable-shell-funcs was given.
 if test "${enable_shell_funcs+set}" = set; then
   enableval="$enable_shell_funcs"
@@ -6774,6 +6793,21 @@ _ACEOF
 
 	fi
 fi;
+# Check whether --enable-cache or --disable-cache was given.
+if test "${enable_cache+set}" = set; then
+  enableval="$enable_cache"
+  if test "$enableval" = "yes"; then
+	    cat >>confdefs.h <<\_ACEOF
+#define CACHE_AVAIL 1
+_ACEOF
+
+	fi
+else
+  cat >>confdefs.h <<\_ACEOF
+#define CACHE_AVAIL 1
+_ACEOF
+
+fi;
 
 # Check whether --with-cache-umask or --without-cache-umask was given.
 if test "${with_cache_umask+set}" = set; then
@@ -6787,6 +6821,7 @@ _ACEOF
 	fi
 fi;
 
+
 # Check whether --with-debug or --without-debug was given.
 if test "${with_debug+set}" = set; then
   withval="$with_debug"
@@ -6795,7 +6830,6 @@ if test "${with_debug+set}" = set; then
 		cat >>confdefs.h <<_ACEOF
 #define WITH_DEBUG_INFO ${withval}
 _ACEOF
-
 	fi
 fi;
 # Check whether --enable-version-magic or --disable-version-magic was given.
@@ -6805,12 +6839,10 @@ if test "${enable_version_magic+set}" = set; then
 		cat >>confdefs.h <<\_ACEOF
 #define VERSION_MAGIC 1
 _ACEOF
-
 	else
 		cat >>confdefs.h <<\_ACEOF
 #define VERSION_MAGIC 0
 _ACEOF
-
 	fi
 else
   cat >>confdefs.h <<\_ACEOF
@@ -6818,6 +6850,16 @@ else
 _ACEOF
 
 fi;
+
+
+
+
+
+
+
+
+
+
 WITH_LOGGING=0
 # Check whether --enable-logging or --disable-logging was given.
 if test "${enable_logging+set}" = set; then
@@ -6950,6 +6992,22 @@ _ACEOF
 
 	fi
 fi;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Check whether --with-trace-load or --without-trace-load was given.
 if test "${with_trace_load+set}" = set; then
@@ -7667,10 +7725,10 @@ echo "${ECHO_T}file not found" >&6
 
 
 if test x"$no_tclx" != x"true"; then
+
 	cat >>confdefs.h <<\_ACEOF
 #define HAS_TCLXLIBS 1
 _ACEOF
-
 fi
 
 
@@ -7726,6 +7784,8 @@ _ACEOF
 
 fi;
 
+
+
 # Check whether --with-autoload-path or --without-autoload-path was given.
 if test "${with_autoload_path+set}" = set; then
   withval="$with_autoload_path"
@@ -7771,6 +7831,7 @@ else
   SKELPATH="/etc/skel"
 fi;
 
+
 # Check whether --with-dot-ext or --without-dot-ext was given.
 if test "${with_dot_ext+set}" = set; then
   withval="$with_dot_ext"
@@ -7786,8 +7847,7 @@ _ACEOF
 _ACEOF
 
 	fi
-fi;
-ac_config_files="$ac_config_files Makefile modules.lsm .spec doc/Makefile init/Makefile init/bash init/csh init/ksh init/perl init/python init/sh init/zsh init/.modulespath doc/module.1 doc/modulefile.4 etc/Makefile etc/add.modules etc/mkroot etc/skel/.cshrc etc/skel/.login etc/skel/.kshenv etc/skel/.profile etc/global/csh.cshrc etc/global/csh.login etc/global/csh.modules etc/global/bashrc etc/global/profile etc/global/profile.modules ext/Makefile ext/add.ext ext/common/.cshrc ext/common/.login ext/common/.kshenv ext/common/.profile modulefiles/Makefile modulefiles/modules modulefiles/module-cvs modulefiles/module-info modulefiles/null modulefiles/use.own modulefiles/dot modulefiles/version"
+fi; ac_config_files="$ac_config_files Makefile modules.lsm .spec doc/Makefile init/Makefile init/bash init/csh init/ksh init/perl init/python init/sh init/zsh init/.modulespath doc/module.1 doc/modulefile.4 etc/Makefile etc/add.modules etc/mkroot etc/skel/.cshrc etc/skel/.login etc/skel/.kshenv etc/skel/.profile etc/global/csh.cshrc etc/global/csh.login etc/global/csh.modules etc/global/bashrc etc/global/profile etc/global/profile.modules ext/Makefile ext/add.ext ext/common/.cshrc ext/common/.login ext/common/.kshenv ext/common/.profile modulefiles/Makefile modulefiles/modules modulefiles/module-cvs modulefiles/module-info modulefiles/null modulefiles/use.own modulefiles/dot modulefiles/version"
 
 ac_config_commands="$ac_config_commands default"
 
@@ -8427,15 +8487,17 @@ s,@SET_MAKE@,$SET_MAKE,;t t
 s,@STATIC@,$STATIC,;t t
 s,@WITH_LOGGING@,$WITH_LOGGING,;t t
 s,@MODULEPATH@,$MODULEPATH,;t t
-s,@VERSIONPATH@,$VERSIONPATH,;t t
 s,@AUTOLOADPATH@,$AUTOLOADPATH,;t t
 s,@ETCPATH@,$ETCPATH,;t t
 s,@SKELPATH@,$SKELPATH,;t t
 s,@DOT_EXT@,$DOT_EXT,;t t
 s,@DATE@,$DATE,;t t
 s,@THISDIR@,$THISDIR,;t t
+s,@VERSIONING@,$VERSIONING,;t t
+s,@NOTVERSIONING@,$NOTVERSIONING,;t t
 s,@DEFAULTPATH@,$DEFAULTPATH,;t t
 s,@BASEPREFIX@,$BASEPREFIX,;t t
+s,@VERSIONPATH@,$VERSIONPATH,;t t
 s,@CC@,$CC,;t t
 s,@CFLAGS@,$CFLAGS,;t t
 s,@LDFLAGS@,$LDFLAGS,;t t

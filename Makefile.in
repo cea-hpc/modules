@@ -75,6 +75,7 @@ DOT_EXT = @DOT_EXT@
 ETCPATH = @ETCPATH@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 MODULEPATH = @MODULEPATH@
+NOTVERSIONING = @NOTVERSIONING@
 PACKAGE = @PACKAGE@
 RUNTEST = @RUNTEST@
 SKELPATH = @SKELPATH@
@@ -105,6 +106,7 @@ TCL_STUB_LIB_SPEC = @TCL_STUB_LIB_SPEC@
 THISDIR = @THISDIR@
 UNAME = @UNAME@
 VERSION = @VERSION@
+VERSIONING = @VERSIONING@
 VERSIONPATH = @VERSIONPATH@
 WITH_LOGGING = @WITH_LOGGING@
 X_CFLAGS = @X_CFLAGS@
@@ -119,7 +121,10 @@ AUTOMAKE_OPTIONS = foreign dejagnu no-installinfo
 
 ACLOCAL_AMFLAGS = -I config
 
+# man_MANS = doc/module.1 doc/modulefile.4
+SUBDIRS = etc
 bin_PROGRAMS = modulecmd
+# bin_SCRIPTS = etc/mkroot etc/add.modules ext/add.ext
 modulecmd_CFLAGS = 
 modulecmd_LDFLAGS = @TCL_LIB_SPEC@ @TCLX_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@ @LIBS@
 modulecmd_SOURCES = \
@@ -133,6 +138,11 @@ modulecmd_SOURCES = \
 	cmdTrace.c cmdVersion.c cmdVerbose.c cmdWhatis.c		\
 	init.c locate_module.c utility.c main.c error.c getopt.c version.c
 
+
+INITS = \
+	init/bash init/csh init/ksh init/sh init/zsh \
+	init/perl init/python
+
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
@@ -140,15 +150,14 @@ CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES = modules.lsm .spec doc/Makefile init/Makefile \
 	init/bash init/csh init/ksh init/perl init/python init/sh \
 	init/zsh init/.modulespath doc/module.1 doc/modulefile.4 \
-	etc/Makefile etc/add.modules etc/mkroot etc/skel/.cshrc \
-	etc/skel/.login etc/skel/.kshenv etc/skel/.profile \
-	etc/global/csh.cshrc etc/global/csh.login \
+	etc/skel/.cshrc etc/skel/.login etc/skel/.kshenv \
+	etc/skel/.profile etc/global/csh.cshrc etc/global/csh.login \
 	etc/global/csh.modules etc/global/bashrc etc/global/profile \
-	etc/global/profile.modules ext/Makefile ext/add.ext \
-	ext/common/.cshrc ext/common/.login ext/common/.kshenv \
-	ext/common/.profile modulefiles/Makefile modulefiles/modules \
-	modulefiles/module-cvs modulefiles/module-info modulefiles/null \
-	modulefiles/use.own modulefiles/dot modulefiles/version
+	etc/global/profile.modules ext/common/.cshrc ext/common/.login \
+	ext/common/.kshenv ext/common/.profile modulefiles/Makefile \
+	modulefiles/modules modulefiles/module-cvs \
+	modulefiles/module-info modulefiles/null modulefiles/use.own \
+	modulefiles/dot modulefiles/version
 bin_PROGRAMS = modulecmd$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
@@ -230,14 +239,20 @@ CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
 DIST_SOURCES = $(modulecmd_SOURCES)
+
+RECURSIVE_TARGETS = info-recursive dvi-recursive \
+	uninstall-info-recursive all-recursive install-data-recursive \
+	install-exec-recursive installdirs-recursive install-recursive \
+	uninstall-recursive check-recursive installcheck-recursive
 DIST_COMMON = README .spec.in COPYING ChangeLog INSTALL Makefile.am \
-	Makefile.in TODO acconfig.h acinclude.m4 aclocal.m4 config.h.in \
+	Makefile.in TODO acinclude.m4 aclocal.m4 config.h.in \
 	config/compile config/depcomp config/install-sh config/missing \
 	config/mkinstalldirs configure configure.ac modules.lsm.in
+DIST_SUBDIRS = $(SUBDIRS)
 SOURCES = $(modulecmd_SOURCES)
 
 all: config.h
-	$(MAKE) $(AM_MAKEFLAGS) all-am
+	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
 .SUFFIXES:
 .SUFFIXES: .c .o .obj
@@ -265,7 +280,7 @@ stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status config.h
 
-$(srcdir)/config.h.in:  $(top_srcdir)/configure.ac $(ACLOCAL_M4) $(top_srcdir)/acconfig.h
+$(srcdir)/config.h.in:  $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOHEADER)
 	touch $(srcdir)/config.h.in
 
@@ -299,12 +314,6 @@ doc/module.1: $(top_builddir)/config.status $(top_srcdir)/doc/module.1.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 doc/modulefile.4: $(top_builddir)/config.status $(top_srcdir)/doc/modulefile.4.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
-etc/Makefile: $(top_builddir)/config.status $(top_srcdir)/etc/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-etc/add.modules: $(top_builddir)/config.status $(top_srcdir)/etc/add.modules.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-etc/mkroot: $(top_builddir)/config.status $(top_srcdir)/etc/mkroot.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
 etc/skel/.cshrc: $(top_builddir)/config.status $(top_srcdir)/etc/skel/.cshrc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 etc/skel/.login: $(top_builddir)/config.status $(top_srcdir)/etc/skel/.login.in
@@ -324,10 +333,6 @@ etc/global/bashrc: $(top_builddir)/config.status $(top_srcdir)/etc/global/bashrc
 etc/global/profile: $(top_builddir)/config.status $(top_srcdir)/etc/global/profile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 etc/global/profile.modules: $(top_builddir)/config.status $(top_srcdir)/etc/global/profile.modules.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-ext/Makefile: $(top_builddir)/config.status $(top_srcdir)/ext/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-ext/add.ext: $(top_builddir)/config.status $(top_srcdir)/ext/add.ext.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 ext/common/.cshrc: $(top_builddir)/config.status $(top_srcdir)/ext/common/.cshrc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
@@ -911,6 +916,61 @@ modulecmd-version.obj: version.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run `make' without going through this Makefile.
+# To change the values of `make' variables: instead of editing Makefiles,
+# (1) if the variable is set in `config.status', edit `config.status'
+#     (which will cause the Makefiles to be regenerated when you run `make');
+# (2) otherwise, pass the desired values on the `make' command line.
+$(RECURSIVE_TARGETS):
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	target=`echo $@ | sed s/-recursive//`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    dot_seen=yes; \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done; \
+	if test "$$dot_seen" = "no"; then \
+	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
+	fi; test -z "$$fail"
+
+mostlyclean-recursive clean-recursive distclean-recursive \
+maintainer-clean-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	case "$@" in \
+	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
+	  *) list='$(SUBDIRS)' ;; \
+	esac; \
+	rev=''; for subdir in $$list; do \
+	  if test "$$subdir" = "."; then :; else \
+	    rev="$$subdir $$rev"; \
+	  fi; \
+	done; \
+	rev="$$rev ."; \
+	target=`echo $@ | sed s/-recursive//`; \
+	for subdir in $$rev; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+tags-recursive:
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
+	done
+
 ETAGS = etags
 ETAGSFLAGS =
 
@@ -925,10 +985,15 @@ ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	       END { for (i in files) print i; }'`; \
 	mkid -fID $$unique
 
-TAGS:  $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) \
+TAGS: tags-recursive $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  if test "$$subdir" = .; then :; else \
+	    test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+	  fi; \
+	done; \
 	list='$(SOURCES) $(HEADERS) config.h.in $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
@@ -1010,6 +1075,19 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  if test "$$subdir" = .; then :; else \
+	    test -d $(distdir)/$$subdir \
+	    || mkdir $(distdir)/$$subdir \
+	    || exit 1; \
+	    (cd $$subdir && \
+	      $(MAKE) $(AM_MAKEFLAGS) \
+	        top_distdir="$(top_distdir)" \
+	        distdir=../$(distdir)/$$subdir \
+	        distdir) \
+	      || exit 1; \
+	  fi; \
+	done
 	-find $(distdir) -type d ! -perm -777 -exec chmod a+rwx {} \; -o \
 	  ! -type d ! -perm -444 -links 1 -exec chmod a+r {} \; -o \
 	  ! -type d ! -perm -400 -exec chmod a+r {} \; -o \
@@ -1064,21 +1142,21 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) check-DEJAGNU
-check: check-am
+check: check-recursive
 all-am: Makefile $(PROGRAMS) config.h
-
-installdirs:
+installdirs: installdirs-recursive
+installdirs-am:
 	$(mkinstalldirs) $(DESTDIR)$(bindir)
 
-install: install-am
-install-exec: install-exec-am
-install-data: install-data-am
-uninstall: uninstall-am
+install: install-recursive
+install-exec: install-exec-recursive
+install-data: install-data-recursive
+uninstall: uninstall-recursive
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-am
+installcheck: installcheck-recursive
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
 	  INSTALL_STRIP_FLAG=-s \
@@ -1094,24 +1172,24 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-clean: clean-am
+clean: clean-recursive
 
 clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
 
-distclean: distclean-am
+distclean: distclean-recursive
 	-rm -f config.status config.cache config.log
 distclean-am: clean-am distclean-compile distclean-depend \
 	distclean-generic distclean-hdr distclean-tags
 
-dvi: dvi-am
+dvi: dvi-recursive
 
 dvi-am:
 
-info: info-am
+info: info-recursive
 
 info-am:
 
-install-data-am:
+install-data-am: install-data-local
 
 install-exec-am: install-binPROGRAMS
 
@@ -1121,28 +1199,57 @@ install-man:
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-am
+maintainer-clean: maintainer-clean-recursive
 
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-am
+mostlyclean: mostlyclean-recursive
 
 mostlyclean-am: mostlyclean-compile mostlyclean-generic
 
-uninstall-am: uninstall-binPROGRAMS
+uninstall-am: uninstall-binPROGRAMS uninstall-local
 
-.PHONY: GTAGS all all-am check check-DEJAGNU check-am clean \
-	clean-binPROGRAMS clean-generic dist dist-all dist-gzip \
-	distcheck distclean distclean-compile distclean-depend \
-	distclean-generic distclean-hdr distclean-tags distcleancheck \
-	distdir dvi dvi-am info info-am install install-am \
-	install-binPROGRAMS install-data install-data-am install-exec \
-	install-exec-am install-info install-info-am install-man \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic tags uninstall \
-	uninstall-am uninstall-binPROGRAMS uninstall-info-am
+uninstall-info: uninstall-info-recursive
 
+.PHONY: $(RECURSIVE_TARGETS) GTAGS all all-am check check-DEJAGNU \
+	check-am clean clean-binPROGRAMS clean-generic clean-recursive \
+	dist dist-all dist-gzip distcheck distclean distclean-compile \
+	distclean-depend distclean-generic distclean-hdr \
+	distclean-recursive distclean-tags distcleancheck distdir dvi \
+	dvi-am dvi-recursive info info-am info-recursive install \
+	install-am install-binPROGRAMS install-data install-data-am \
+	install-data-local install-data-recursive install-exec \
+	install-exec-am install-exec-recursive install-info \
+	install-info-am install-man install-recursive install-strip \
+	installcheck installcheck-am installdirs installdirs-am \
+	installdirs-recursive maintainer-clean maintainer-clean-generic \
+	maintainer-clean-recursive mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-recursive tags tags-recursive \
+	uninstall uninstall-am uninstall-binPROGRAMS uninstall-info-am \
+	uninstall-info-recursive uninstall-local uninstall-recursive
+
+
+install-data-local : install-inits
+
+install-inits : $(INITS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(prefix)/init
+	@list='$(INITS)'; for p in $$list; do \
+	  if test -f $$p \
+	  ; then \
+	   echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(prefix)/$$p"; \
+	   $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(prefix)/$$p; \
+	  else :; fi; \
+	done
+
+uninstall-local : uninstall-inits
+
+uninstall-inits :
+	@$(NORMAL_UNINSTALL)
+	@list='$(INITS)'; for p in $$list; do \
+	  echo " rm -f $(DESTDIR)$(prefix)/init/$$p"; \
+	  rm -f $(DESTDIR)$(prefix)/init/$$p; \
+	done
 
 #aclocal.m4 : acinclude.m4
 #	aclocal -I config

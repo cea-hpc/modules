@@ -3,13 +3,14 @@ if ($?tcsh) then
 else
 	set modules_shell="csh"
 endif
-if ( $?MODULE_VERSION ) then
-	setenv MODULE_VERSION_STACK 	"$MODULE_VERSION"
-else
-	setenv MODULE_VERSION		"@VERSION@"
-	setenv MODULE_VERSION_STACK	"@VERSION@"
-endif
-set exec_prefix='@BASEPREFIX@'
+@VERSIONING@if ( $?MODULE_VERSION ) then
+@VERSIONING@ 	setenv MODULE_VERSION_STACK 	"$MODULE_VERSION"
+@VERSIONING@else
+@VERSIONING@ 	setenv MODULE_VERSION		"@VERSION@"
+@VERSIONING@ 	setenv MODULE_VERSION_STACK	"@VERSION@"
+@VERSIONING@endif
+@VERSIONING@set exec_prefix='@BASEPREFIX@/Modules/$MODULE_VERSION'
+@NOTVERSIONING@set exec_prefix='@bindir@'
 
 set prefix=""
 set postfix=""
@@ -34,7 +35,8 @@ if ($?noglob) then
   set postfix = "$postfix""unset noglob;"
 endif
 
-alias module $prefix'eval `'$exec_prefix'/bin/modulecmd '$modules_shell' '$histchar'*`; '$postfix
+@VERSIONING@alias module $prefix'eval `'$exec_prefix'/bin/modulecmd '$modules_shell' '$histchar'*`; '$postfix
+@NOTVERSIONING@alias module $prefix'eval `'$exec_prefix'/modulecmd '$modules_shell' '$histchar'*`; '$postfix
 unset exec_prefix
 unset prefix
 unset postfix
