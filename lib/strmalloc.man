@@ -1,0 +1,117 @@
+.\" RCSID @(#)$Id: strmalloc.man,v 1.1 2002/07/18 22:23:57 rkowen Exp $
+.TH "STRMALLOC" "3rko" "01 Sept 1999"
+.SH NAME
+strmalloc \- adds a strdup-like routine for copying strings
+strfree \- frees the string memory storage
+.SH SYNOPSIS
+
+ #include "strmallloc.h"
+
+ /* old interface */
+ char	*strnmalloc(	char const *in, size_t n);
+ char	*strmalloc(	char const *in);
+ int	 strfree(	char **str);
+ 
+ /* new interface */
+ char	*str_nmalloc(	char const *in, size_t n);
+ char	*str_malloc(	char const *in);
+ int	 str_free(	char **str);
+ size_t	 str_sizeof(	char const *str);
+ char	*str_ncpy(	char **str, char *in, size_t n);
+ char	*str_cpy(	char **str, char *in);
+ char	*str_ncat(	char **str, char *in, size_t n);
+ char	*str_cat(	char **str, char *in);
+
+.SH DESCRIPTION
+.I str_malloc
+adds a strdup-like function for routinely allocating memory
+and copying a string to some other location.
+The only difference is that
+.I str_malloc
+allocates memory on the heap via
+.I malloc()
+instead of the stack.  Hence the memory needs to be freed
+explicitly.  Use the associated
+.I str_free
+to free up the memory.   First it will wipe out the memory area
+and then call
+.IR free() .
+.P
+.TP 15
+.I str_malloc
+copy a string and allocate memory for it, along with some internal
+data.
+.TP
+.I strmalloc
+same as above.
+.TP
+.I str_nmalloc
+same as
+.I str_malloc
+but the amount to allocate and copy is specified.  Can be over or under
+the string length.
+.TP
+.I strnmalloc
+same as above.
+.TP
+.I str_free
+free a string object, clearing memory as much as possible.
+.TP
+.I strfree
+same as above.
+.TP
+.I str_sizeof
+gives the allocated length of the string.
+.TP
+.I str_cpy
+like strcpy, but for string objects.
+Will automatically extend the allocated space if needed.
+.TP
+.I str_ncpy
+like strncpy, but for string objects, and can be over
+or under the string length.
+Will automatically extend the allocated space if needed.
+.TP
+.I str_cat
+like strcat, but for string objects.
+Will automatically extend the allocated space if needed.
+.TP
+.I str_ncat
+like strncat, but for string objects, and can be over
+or under the string length.
+Will automatically extend the allocated space if needed.
+
+.SH NOTES
+The allocated memory will actually be a few bytes larger, since
+.I str_malloc
+prepends the length of the string and a identifiable tag string.
+
+.SH DIAGNOSTICS
+If any of the routines that return (char *) return a NULL,
+then some sort of error occured.
+.P
+.I str_sizeof
+returns (size_t) -1 if an invalid string object, note that (size_t)
+may be an unsigned integer type and that the return value may not
+be negative, but a rather huge positive value.  Always test for
+(size_t) -1 by direct comparison.
+.P
+.I str_free()
+only returns an error if the user sent an invalid string object
+(i.e. user error).
+Details can be queried from
+.I rkoerrno
+and
+.I rkostrerror()
+if RKOERROR is enabled.
+However, it's not really necessary for the same reasons that
+.I free()
+doesn't return a status.
+
+.SH SEE ALSO
+string(3), strdup(3), malloc(3), free(3), rkoerror(3rko)
+
+.SH AUTHOR
+R.K.Owen,Ph.D.
+
+.KEY WORDS
