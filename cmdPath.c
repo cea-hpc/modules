@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.3 2001/07/09 18:21:36 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.4 2001/07/26 04:59:25 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -122,7 +122,7 @@ int	cmdSetPath(	ClientData	 client_data,
     char	*oldpath;			/** Old value of 'var'	     **/
     char	*newpath;			/** New value of 'var'	     **/
     char	*sw_marker = APP_SW_MARKER;	/** arbitrary default	     **/
-    char	*startp, *endp;			/** regexp match endpts	     **/
+    char	*startp=NULL, *endp=NULL;	/** regexp match endpts	     **/
     int		 append = 1;			/** append or prepend	     **/
 
 #if WITH_DEBUGGING_CALLBACK
@@ -160,7 +160,7 @@ int	cmdSetPath(	ClientData	 client_data,
      **  prepend or append. The default is append.
      **/
 
-    if( !( append = strncmp( argv[0], "pre", 3)))
+    if( !( append = !!strncmp( argv[0], "pre", 3)))
 	sw_marker = PRE_SW_MARKER;
   
     /**
@@ -247,7 +247,7 @@ int	cmdSetPath(	ClientData	 client_data,
      **  Otherwise we have to take care on prepending vs. appending ...
      **  If there is a append or prepend marker within the variable (see
      **  modules_def.h) the changes are made according to this markers. Other-
-     **  wise append and prepaend will be relative to the strings begin or end.
+     **  wise append and prepend will be relative to the strings begin or end.
      **/
 
     } else {
@@ -265,7 +265,7 @@ int	cmdSetPath(	ClientData	 client_data,
 	     **  Append/Prepend marker found
 	     **/
 
-	    if( !append) {
+	    if( append) {
 		char ch = *endp;
 		*endp = '\0';
 		strcpy(newpath, oldpath);
@@ -276,6 +276,8 @@ int	cmdSetPath(	ClientData	 client_data,
 	    } else {
 		char ch = *startp;
 		*startp = '\0';
+		strcpy(newpath, oldpath);
+		if (newpath[strlen(newpath)-1] != ':')	strcat(newpath, ":");
 		strcpy(newpath, argv[2]);
 		if (*oldpath != ':')	strcat(newpath, ":");
 		strcat(newpath, oldpath);
@@ -358,9 +360,11 @@ int	cmdRemovePath(	ClientData	 client_data,
     char	*oldpath,			/** Old value of 'var'	     **/
     		*tmppath,			/** Temp. buffer for 'var'   **/
     		*searchpath,
-    		*sw_marker = APP_SW_MARKER;	/** arbitrary default	     **/
-    int  	 start_offset = 0,
-    		 end_offset = 0;
+    		*sw_marker = APP_SW_MARKER,	/** arbitrary default	     **/
+		*startp=NULL, *endp=NULL;	/** regexp match endpts	     **/
+    int  	 start_offset = 0,		/** match offsets	     **/
+    		 end_offset = 0,
+		 path_len = 0;			/** length of unmatched path **/
     Tcl_RegExp	regexpPtr  = (Tcl_RegExp) NULL,
     		begexpPtr  = (Tcl_RegExp) NULL,
     		midexpPtr  = (Tcl_RegExp) NULL,
@@ -374,7 +378,7 @@ int	cmdRemovePath(	ClientData	 client_data,
 
     /**
      **   Check arguments. There should be give 3 args:
-     **     argv[0]  -  prepend/append
+     **     argv[0]  -  prepend/append/remove-path
      **     argv[1]  -  varname
      **     argv[2]  -  value
      **/
@@ -434,6 +438,7 @@ int	cmdRemovePath(	ClientData	 client_data,
     }
 
     strcpy( oldpath, tmppath);
+    path_len = strlen(oldpath);
 
     cleanse_path( argv[2], buffer, PATH_BUFLEN);
 
@@ -469,16 +474,18 @@ int	cmdRemovePath(	ClientData	 client_data,
     begexpPtr = Tcl_RegExpCompile(interp,  searchpath);
     _TCLCHK(interp)
 
-    if( Tcl_RegExpExec(interp, begexpPtr, oldpath, oldpath)) {
+    if( Tcl_RegExpExec(interp, begexpPtr, oldpath, oldpath) > 0) {
 	_TCLCHK(interp)
 	regexpPtr = begexpPtr;
 
 	/**
-	 **  Copy from the beginning of the stringp[0] to one
-	 **  character before endp[0]
+	 **  Copy from the beginning of the startp to one
+	 **  character before endp
 	 **/
 
+	Tcl_RegExpRange(begexpPtr, 0, &startp, &endp);
 	start_offset = 0; end_offset = -1;
+	path_len -= (endp - startp - 1);
 
     } else {
 
@@ -488,7 +495,7 @@ int	cmdRemovePath(	ClientData	 client_data,
 	midexpPtr = Tcl_RegExpCompile(interp, searchpath);
 	_TCLCHK(interp)
 
-	if( Tcl_RegExpExec(interp, midexpPtr, oldpath, oldpath)) {
+	if( Tcl_RegExpExec(interp, midexpPtr, oldpath, oldpath) > 0) {
 	    _TCLCHK(interp)
 	    regexpPtr = midexpPtr;
 
@@ -497,7 +504,9 @@ int	cmdRemovePath(	ClientData	 client_data,
 	     **  character before endp[0]
 	     **/
 
+	    Tcl_RegExpRange(midexpPtr, 0, &startp, &endp);
 	    start_offset = 1; end_offset = -1;
+	    path_len -= (endp - startp - 2);
 
 	} else {
 
@@ -507,7 +516,7 @@ int	cmdRemovePath(	ClientData	 client_data,
 	    endexpPtr = Tcl_RegExpCompile(interp, searchpath);
 	    _TCLCHK(interp)
 
-	    if( Tcl_RegExpExec(interp, endexpPtr, oldpath, oldpath)) {
+	    if( Tcl_RegExpExec(interp, endexpPtr, oldpath, oldpath) > 0) {
 		_TCLCHK(interp)
 		regexpPtr = endexpPtr;
 
@@ -516,7 +525,9 @@ int	cmdRemovePath(	ClientData	 client_data,
 		 **  through endp[0]
 		 **/
 
+		Tcl_RegExpRange(endexpPtr, 0, &startp, &endp);
 		start_offset = 0; end_offset = 0;
+		path_len -= (endp - startp - 1);
 
 	    } else {
 
@@ -526,7 +537,7 @@ int	cmdRemovePath(	ClientData	 client_data,
 		onlyexpPtr = Tcl_RegExpCompile(interp, searchpath);
 		_TCLCHK(interp)
 
-		if(Tcl_RegExpExec(interp, onlyexpPtr, oldpath, oldpath)) {
+		if(Tcl_RegExpExec(interp, onlyexpPtr, oldpath, oldpath) > 0) {
 		    _TCLCHK(interp)
 
 		    /**
@@ -592,8 +603,8 @@ int	cmdRemovePath(	ClientData	 client_data,
      **  the module was formed around.
      **/
 
-    if((g_flags & M_SWSTATE1) && Tcl_RegExpExec(interp,
-	 markexpPtr, oldpath, oldpath)) {
+    if((g_flags & M_SWSTATE1) && ! (Tcl_RegExpExec(interp,
+	 markexpPtr, oldpath, oldpath) > 0)) {
 
 	/**
 	 **  If I don't have enough space to replace the oldpath with the
@@ -601,13 +612,9 @@ int	cmdRemovePath(	ClientData	 client_data,
 	 **  recreate the PATH variable.
 	 **/
 
-	char* newenv, *startp=NULL, *endp=NULL;
-	_TCLCHK(interp)
-	Tcl_RegExpRange(markexpPtr, 0, &startp, &endp);
+	char* newenv;
       
-	if( NULL == ( newenv = (char*) malloc(
-	    startp + start_offset - oldpath + strlen(sw_marker) +
-	    strlen(argv[1]) + strlen(endp) + end_offset + 1) )) {
+	if(NULL == (newenv=(char*) malloc(path_len + strlen(sw_marker) + 1) )) {
 
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
 		free( oldpath);
@@ -615,7 +622,6 @@ int	cmdRemovePath(	ClientData	 client_data,
 	    }
 	}
 
-	Tcl_RegExpRange(regexpPtr, 0, &startp, &endp);
 	*(startp + start_offset) = '\0';
 
 	if(*(endp + end_offset) == '\0') {
@@ -630,7 +636,7 @@ int	cmdRemovePath(	ClientData	 client_data,
 
 	/**
 	 **  Just store the value with the marker into the environment.  I'm not
-	 **  checking to see if it changed because the only case that a PATH-type
+	 **  checking if it changed because the only case that a PATH-type
 	 **  variable will be unset is when I remove the only path remaining in
 	 **  the variable.  So, using moduleSetenv is not necessary here.
 	 **/
@@ -641,14 +647,11 @@ int	cmdRemovePath(	ClientData	 client_data,
 
     } else {  /** SW_STATE1 **/
 
-	char *startp, *endp;
-
 	/**
 	 **  We must be in SW_STATE3 or not in SW_STATE at all.
 	 **  Removing the marker should be just like removing any other path.
 	 **/
 
-	Tcl_RegExpRange(regexpPtr, 0, &startp, &endp);
 	strcpy( startp + start_offset, endp);
 
 	/**
@@ -666,7 +669,7 @@ int	cmdRemovePath(	ClientData	 client_data,
 	Tcl_SetVar2( interp, "env", argv[1], oldpath, TCL_GLOBAL_ONLY);
 	_TCLCHK(interp)
 
-    }  /** SW_STATE1 **/
+    }  /** ! SW_STATE1 **/
 
     /**
      **  Free what has been used and return on success
