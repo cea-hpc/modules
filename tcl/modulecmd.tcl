@@ -9,6 +9,7 @@
 #
 
 set ignoreDir(CVS) 1
+set g_reloadMode  0
 
 proc module-info {what {more {}}} {
     upvar g_mode mode
@@ -47,8 +48,13 @@ proc module-whatis {message} {
 }
 
 proc module {command args} {
-    upvar g_mode mode
+    upvar g_mode mode 
+    global g_reloadMode
 
+    if { $g_reloadMode == 1} {
+	return
+    }
+    
     switch $command {
 	load {
 	    if {$mode == "load"} {
@@ -108,13 +114,42 @@ proc unsetenv {var} {
 ########################################################################
 # path fiddling
 
+proc getReferenceCountArray {var} {
+    global env
+
+    set sharevar "${var}_modshare"
+    set modshareok 1
+    if [info exists env($sharevar)] {
+	if [info exists env($var)] {
+	    set modsharelist [split $env($sharevar) ":"]
+	    if {[expr [llength $modsharelist] % 2] == 0 } {
+		array set countarr $modsharelist
+	    } else {
+#		puts stderr "WARNING: module: $sharevar was corrupted, odd number of elements."
+		set modshareok 0
+	    }
+	} else {
+#	    puts stderr "WARNING: module: $sharevar exists ( $env($sharevar) ), but $var doesn't. Environment is corrupted. Contact lakata@mips.com for help."
+	    set modshareok 0
+	}
+    } else {
+	set modshareok 0
+    }
+    
+    if {$modshareok == 0 && [info exists env($var)]} {
+	array set countarr {}
+	foreach dir [split $env($var) ":"] {
+	    set countarr($dir) 1
+	}
+    }
+    return [array get countarr]
+}
+
+
 proc unload-path {var path} {
     global g_stateEnvVars env
 
-    set sharevar "${var}_modshare"
-    if [info exists env($sharevar)] {
-	array set countarr [split $env($sharevar) ":"]
-    }
+    array set countarr [getReferenceCountArray $var]
     
     set doit 0
 
@@ -139,7 +174,9 @@ proc unload-path {var path} {
 		    }
 		}
 		if {$newpath == ""} {
-		    unset env($var)
+		    if [info exists env($var)] {
+			unset env($var)
+		    }
 		    set g_stateEnvVars($var) "del"
 		} else {
 		    set env($var) [join $newpath ":"]
@@ -149,34 +186,46 @@ proc unload-path {var path} {
 	}
     }
 
-    set env($sharevar) [join [array get countarr] ":"]
-    set g_stateEnvVars($sharevar) "new"
+    set sharevar "${var}_modshare"
+    if {[array size countarr] > 0} {
+	set env($sharevar) [join [array get countarr] ":"]
+	set g_stateEnvVars($sharevar) "new"
+    } else {
+	if [info exists env($sharevar)] {
+	    unset env($sharevar)
+	}
+	set g_stateEnvVars($sharevar) "del"
+    }
 }
 
 proc add-path {var path pos} {
     global env g_stateEnvVars
 
     set sharevar "${var}_modshare"
-    
-    if [info exists env($sharevar)] {
-	array set countarr [split $env($sharevar) ":"]
-    }
-    
-    if [info exists env($var)] {
-	if {$pos == "prepend"} {
-	    set env($var) "$path:$env($var)"
-	} elseif {$pos == "append"} {
-	    set env($var) "$env($var):$path"
-	} else {
-	    error
-	}
+    array set countarr [getReferenceCountArray $var]
+   
+   
+    if {$pos == "prepend"} {
+	set pathelems [reverseList [split $path ":"]]
     } else {
-	set env($var) "$path"
+	set pathelems [split $path ":"]
     }
-    foreach dir [split $path ":"] {
+    foreach dir $pathelems {
 	if [info exists countarr($dir)] {
+	    #	    puts stderr "INFO: already see $dir in $var"
 	    incr countarr($dir)
 	} else {
+	    if [info exists env($var)] {
+		if {$pos == "prepend"} {
+		    set env($var) "$dir:$env($var)"
+		} elseif {$pos == "append"} {
+		    set env($var) "$env($var):$dir"
+		} else {
+		    error
+		}
+	    } else {
+		set env($var) "$dir"
+	    }
 	    set countarr($dir) 1
 	}
     }
@@ -228,10 +277,14 @@ proc set-alias {alias what} {
 
 
 proc conflict {args} {
-    global g_loadedModules g_loadedModulesGeneric 
+    global g_loadedModules g_loadedModulesGeneric g_reloadMode
     upvar g_mode mode
     upvar currentModule currentModule
 
+    if { $g_reloadMode == 1} {
+	return
+    }
+    
     if {$mode == "load"} {
 	foreach conflict $args {
 	    set mod [file dirname $conflict]
@@ -273,16 +326,16 @@ proc uname {what} {
     if { ! [info exists unameCache($what)] } {
 	switch $what {
 	    sysname {
-		catch { exec uname -s } result
+		catch { exec /bin/uname -s } result
 	    }
 	    machine {
-		catch { exec uname -p } result
+		catch { exec /bin/uname -p } result
 	    }
 	    node {
-		catch { exec uname -n } result
+		catch { exec /bin/uname -n } result
 	    }
 	    release {
-		catch { exec uname -r } result
+		catch { exec /bin/uname -r } result
 	    }
 	    default {
 		error "uname setting $what not implemented"
@@ -362,6 +415,11 @@ proc renderSettings {} {
 		switch $g_shellType {
 		    csh {
 			set val [doubleQuoteEscaped $env($var)]
+# csh barfs on long env vars
+			if {$g_shell == "csh" && [string length $val] > 1000} {
+			    puts stderr "WARNING: module: $var exceeds 1000 characters, truncating..."
+			    set val [string range $val 0 999]
+			}
 			puts $f "setenv $var \"$val\""
 		    }
 		    sh {
@@ -370,6 +428,7 @@ proc renderSettings {} {
 		    }
 		    perl {
 			set val [doubleQuoteEscaped $env($var)]
+			set val [atSymbolEscaped $env($var)]
 			puts $f "\$ENV{$var}=\"$val\";"
 		    }
 		    python {
@@ -381,15 +440,17 @@ proc renderSettings {} {
 	    }
 	}
 # new aliases
-	foreach var [array names g_newAliases] {
-	    switch $g_shellType {
-		csh {
-		    set val [multiEscaped $g_newAliases($var)]
-		    puts $f "alias $var $val"
-		}
-		sh {
-		    set val $g_newAliases($var)
-		    puts $f "$var () {\n$val\n}"
+	foreach var [array names g_stateAliases] {
+	    if {$g_stateAliases($var) == "new"} {
+		switch $g_shellType {
+		    csh {
+			set val [multiEscaped $g_Aliases($var)]
+			puts $f "alias $var $val"
+		    }
+		    sh {
+			set val $g_Aliases($var)
+			puts $f "$var () {\n$val\n}"
+		    }
 		}
 	    }
 	}
@@ -415,16 +476,18 @@ proc renderSettings {} {
 	    }
 	}
 # obsolete aliases
-	foreach var [array names g_delAliases] {
-	    switch $g_shellType {
-		csh {
-		    puts $f "unalias $var"
-		}
-		sh {
-		    if {$g_shell == "zsh"} {
-			puts $f "unfunction $var"
-		    } else {
-			puts $f "unset $var"
+	foreach var [array names g_stateAliases] {
+	    if {$g_stateAliases($var) == "def"} {
+		switch $g_shellType {
+		    csh {
+			puts $f "unalias $var"
+		    }
+		    sh {
+			if {$g_shell == "zsh"} {
+			    puts $f "unfunction $var"
+			} else {
+			    puts $f "unset $var"
+			}
 		    }
 		}
 	    }
@@ -525,7 +588,7 @@ proc renderSettings {} {
 		puts ". $tmpfile"
 	    }
 	    perl {
-		puts "do \"$tmpfile\";"
+		puts "require \"$tmpfile\";"
 	    }
 	    python {
 # this is not correct
@@ -563,6 +626,11 @@ proc doubleQuoteEscaped {text} {
     return $text
 }
 
+proc atSymbolEscaped {text} {
+    regsub -all "@" $text "\\@" text
+    return $text
+}
+
 proc singleQuoteEscaped {text} {
     regsub -all "\'" $text "\\\'" text
     return $text
@@ -575,6 +643,15 @@ proc findExecutable {cmd} {
 	}
     }
     return $cmd
+}
+
+proc reverseList {list} {
+    set newlist {}
+
+    foreach item $list {
+	set newlist [linsert $newlist 0 $item]
+    }
+    return $newlist
 }
 
 ########################################################################
@@ -715,7 +792,7 @@ proc cmdModuleLoad {args} {
 	} errMsg
 	
         if {$errMsg != ""} {
-	    puts stderr "ERROR: module load $mod failed. $errMsg"
+	    puts stderr "ERROR: module: module load $mod failed. $errMsg"
 	}
     }
 }
@@ -742,7 +819,7 @@ proc cmdModuleUnload {args} {
 		    }
 		}
 	    } else {
-		puts stderr "WARNING: Could not find module $mod, $moderr\n"
+		puts stderr "WARNING: module: Could not find module $mod for unload, $moderr\n"
 		if [info exists g_loadedModulesGeneric($mod) ] {
 		    set mod "$mod/$g_loadedModulesGeneric($mod)"
 		}
@@ -757,7 +834,7 @@ proc cmdModuleUnload {args} {
 	    set junk ""
 	} errMsg
 	if {$errMsg != ""} {
-	    puts stderr "ERROR: module unload $mod failed. $errMsg"
+	    puts stderr "ERROR: module: module unload $mod failed. $errMsg"
 	}
     }
 }
@@ -773,16 +850,20 @@ proc cmdModulePurge {} {
 }
 
 proc cmdModuleReload {} {
-    global env
+    global env g_reloadMode
     
     if [info exists env(LOADEDMODULES)] {
 	set list [split $env(LOADEDMODULES) ":"] 
-	set rlist {}
-	for {set i [expr [llength $list] - 1]} {$i>=0} {incr i -1} {
-	    lappend rlist [lindex $list $i]
-	}
+	set rlist [reverseList $list]
+	set g_reloadMode 1
+	# we set reload mode for two reasons
+	# 1) we DONT want to follow hierarchical modules
+	# 2) we DONT want to check for conflicts
+	# This is because all of these checks have been done
+	# already, assuming the user used the normal module interface.
 	eval cmdModuleUnload $rlist
 	eval cmdModuleLoad $list
+	set g_reloadMode 0
     }
 }
 
@@ -871,13 +952,12 @@ proc cmdModuleDebug {} {
 
     foreach var [array names env] {
 	set sharevar "${var}_modshare"
-	if [info exists env($sharevar)] {
-	    array set countarr [split $env($sharevar) ":"]
-	    foreach path [array names countarr] {
-		puts stderr "$var\t$path\t$countarr($path)"
-	    }
-	    unset countarr
+	array set countarr [getReferenceCountArray $var]
+
+	foreach path [array names countarr] {
+	    puts stderr "$var\t$path\t$countarr($path)"
 	}
+	unset countarr
     }
     foreach dir  [split $env(PATH) ":"] {
 	foreach file [glob -nocomplain "$dir/*"] {
@@ -995,7 +1075,7 @@ catch {
 	}
 	default {
 	    puts stderr {
-		ModulesTcl 0.95 :
+		ModulesTcl 0.95 (Copyright MIPS Technologies 2002):
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
