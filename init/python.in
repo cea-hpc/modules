@@ -1,0 +1,20 @@
+import os, string
+
+if not os.environ.has_key('MODULE_VERSION'):
+        os.environ['MODULE_VERSION_STACK'] = '@VERSION@'
+        os.environ['MODULE_VERSION'] = '@VERSION@'
+else:
+        os.environ['MODULE_VERSION_STACK'] = os.environ['MODULE_VERSION']
+
+if not os.environ.has_key('MODULEPATH'):
+        os.environ['MODULEPATH'] = os.popen("""sed 's/#.*$//' ${MODULESHOME}/init/.modulespath | awk
+'NF==1{printf("%s:",$1)}'""").readline()
+
+if not os.environ.has_key('LOADEDMODULES'):
+        os.environ['LOADEDMODULES'] = '';
+
+def module(command, *arguments):
+        commands = os.popen('@BASEPREFIX@%s/bin/modulecmd python %s %s' % (os.environ['MODULE_VERSION'], command, string.join(arguments))).read()
+        exec commands
+
+
