@@ -798,7 +798,7 @@ proc set-alias {alias what} {
 	set g_Aliases($alias) $what
 	set g_stateAliases($alias) "new"
     } elseif {$mode == "unload"} {
-	set g_Aliases($alias) $what
+	set g_Aliases($alias) {}
 	set g_stateAliases($alias) "del"
     } elseif {$mode == "display"} {
 	report "set-alias\t$alias\t$what"
@@ -1392,7 +1392,7 @@ proc renderSettings {} {
 # obsolete aliases
 	if {$g_shell != "sh"} {
 	    foreach var [array names g_stateAliases] {
-		if {$g_stateAliases($var) == "def"} {
+		if {$g_stateAliases($var) == "del"} {
 		    switch -- $g_shellType {
 			csh {
 			    puts $f "unalias $var"
@@ -2483,7 +2483,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.47 $:
+                ModulesTcl 0.101/$Revision: 1.48 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
