@@ -21,7 +21,7 @@ SHELL = /bin/sh
 srcdir = .
 top_srcdir = .
 
-prefix = /usr/local
+prefix = /usr/local/Modules/3.2.0a
 exec_prefix = ${prefix}
 
 bindir = ${exec_prefix}/bin
@@ -136,11 +136,14 @@ libmodules_a_SOURCES = \
 	$(iprime_srcs) 		\
 	$(isqrt_srcs) 		\
 	$(list_srcs) 		\
+	memdebug.c		\
 	strmalloc.c		\
 	$(uvec_srcs) 
 
 
-man3_MANS = avec.man iprime.man isqrt.man list.man strmalloc.man uvec.man
+man3_MANS = avec.man iprime.man isqrt.man list.man \
+		memdebug.man strmalloc.man uvec.man
+
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/../config/mkinstalldirs
@@ -193,8 +196,8 @@ am__objects_5 = uvec/str2uvec.$(OBJEXT) uvec/uvec2str.$(OBJEXT) \
 	uvec/uvec_sort.$(OBJEXT) uvec/uvec_strfns.$(OBJEXT) \
 	uvec/vec2uvec.$(OBJEXT)
 am_libmodules_a_OBJECTS = $(am__objects_1) $(am__objects_2) \
-	$(am__objects_3) $(am__objects_4) strmalloc.$(OBJEXT) \
-	$(am__objects_5)
+	$(am__objects_3) $(am__objects_4) memdebug.$(OBJEXT) \
+	strmalloc.$(OBJEXT) $(am__objects_5)
 libmodules_a_OBJECTS = $(am_libmodules_a_OBJECTS)
 
 DEFS = -DHAVE_CONFIG_H
@@ -204,7 +207,8 @@ LDFLAGS =
 LIBS = 
 depcomp = $(SHELL) $(top_srcdir)/../config/depcomp
 am__depfiles_maybe = depfiles
-DEP_FILES = ./$(DEPDIR)/strmalloc.Po avec/$(DEPDIR)/avec_.Po \
+DEP_FILES = ./$(DEPDIR)/memdebug.Po ./$(DEPDIR)/strmalloc.Po \
+	avec/$(DEPDIR)/avec_.Po \
 	avec/$(DEPDIR)/avec_accessor.Po \
 	avec/$(DEPDIR)/avec_alloc.Po \
 	avec/$(DEPDIR)/avec_close.Po \
@@ -631,6 +635,7 @@ distclean-compile:
 	-rm -f uvec/$(DEPDIR)/.dirstamp
 	-rm -f uvec/.dirstamp
 
+include ./$(DEPDIR)/memdebug.Po
 include ./$(DEPDIR)/strmalloc.Po
 include avec/$(DEPDIR)/avec_.Po
 include avec/$(DEPDIR)/avec_accessor.Po

@@ -81,7 +81,7 @@ install_sh = @install_sh@
 
 AUTOMAKE_OPTIONS = foreign no-installinfo no-installman
 
-noinst_PROGRAMS = tavec tiprime tisqrt tuvec
+noinst_PROGRAMS = tavec.x tiprime.x tisqrt.x tuvec.x tstrmalloc.x
 
 LDADD = ../libmodules.a
 
@@ -89,36 +89,42 @@ tavec_SOURCES = tavec.c
 tiprime_SOURCES = tiprime.c
 tisqrt_SOURCES = tisqrt.c
 tuvec_SOURCES = tuvec.c
+tstrmalloc_SOURCES = tstrmalloc.c
 
 EXES = $(noinst_PROGRAMS)
 subdir = tests
 mkinstalldirs = $(SHELL) $(top_srcdir)/../config/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-noinst_PROGRAMS = tavec$(EXEEXT) tiprime$(EXEEXT) tisqrt$(EXEEXT) \
-	tuvec$(EXEEXT)
+noinst_PROGRAMS = tavec.x$(EXEEXT) tiprime.x$(EXEEXT) tisqrt.x$(EXEEXT) \
+	tuvec.x$(EXEEXT) tstrmalloc.x$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 
-am_tavec_OBJECTS = tavec.$(OBJEXT)
-tavec_OBJECTS = $(am_tavec_OBJECTS)
-tavec_LDADD = $(LDADD)
-tavec_DEPENDENCIES = ../libmodules.a
-tavec_LDFLAGS =
-am_tiprime_OBJECTS = tiprime.$(OBJEXT)
-tiprime_OBJECTS = $(am_tiprime_OBJECTS)
-tiprime_LDADD = $(LDADD)
-tiprime_DEPENDENCIES = ../libmodules.a
-tiprime_LDFLAGS =
-am_tisqrt_OBJECTS = tisqrt.$(OBJEXT)
-tisqrt_OBJECTS = $(am_tisqrt_OBJECTS)
-tisqrt_LDADD = $(LDADD)
-tisqrt_DEPENDENCIES = ../libmodules.a
-tisqrt_LDFLAGS =
-am_tuvec_OBJECTS = tuvec.$(OBJEXT)
-tuvec_OBJECTS = $(am_tuvec_OBJECTS)
-tuvec_LDADD = $(LDADD)
-tuvec_DEPENDENCIES = ../libmodules.a
-tuvec_LDFLAGS =
+tavec_x_SOURCES = tavec.x.c
+tavec_x_OBJECTS = tavec.x.$(OBJEXT)
+tavec_x_LDADD = $(LDADD)
+tavec_x_DEPENDENCIES = ../libmodules.a
+tavec_x_LDFLAGS =
+tiprime_x_SOURCES = tiprime.x.c
+tiprime_x_OBJECTS = tiprime.x.$(OBJEXT)
+tiprime_x_LDADD = $(LDADD)
+tiprime_x_DEPENDENCIES = ../libmodules.a
+tiprime_x_LDFLAGS =
+tisqrt_x_SOURCES = tisqrt.x.c
+tisqrt_x_OBJECTS = tisqrt.x.$(OBJEXT)
+tisqrt_x_LDADD = $(LDADD)
+tisqrt_x_DEPENDENCIES = ../libmodules.a
+tisqrt_x_LDFLAGS =
+tstrmalloc_x_SOURCES = tstrmalloc.x.c
+tstrmalloc_x_OBJECTS = tstrmalloc.x.$(OBJEXT)
+tstrmalloc_x_LDADD = $(LDADD)
+tstrmalloc_x_DEPENDENCIES = ../libmodules.a
+tstrmalloc_x_LDFLAGS =
+tuvec_x_SOURCES = tuvec.x.c
+tuvec_x_OBJECTS = tuvec.x.$(OBJEXT)
+tuvec_x_LDADD = $(LDADD)
+tuvec_x_DEPENDENCIES = ../libmodules.a
+tuvec_x_LDFLAGS =
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
@@ -127,17 +133,17 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/../config/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/tavec.Po ./$(DEPDIR)/tiprime.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/tisqrt.Po ./$(DEPDIR)/tuvec.Po
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/tavec.x.Po ./$(DEPDIR)/tiprime.x.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tisqrt.x.Po ./$(DEPDIR)/tstrmalloc.x.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/tuvec.x.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
-DIST_SOURCES = $(tavec_SOURCES) $(tiprime_SOURCES) $(tisqrt_SOURCES) \
-	$(tuvec_SOURCES)
+DIST_SOURCES = tavec.x.c tiprime.x.c tisqrt.x.c tstrmalloc.x.c tuvec.x.c
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(tavec_SOURCES) $(tiprime_SOURCES) $(tisqrt_SOURCES) $(tuvec_SOURCES)
+SOURCES = tavec.x.c tiprime.x.c tisqrt.x.c tstrmalloc.x.c tuvec.x.c
 
 all: all-am
 
@@ -151,18 +157,21 @@ Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-tavec$(EXEEXT): $(tavec_OBJECTS) $(tavec_DEPENDENCIES) 
-	@rm -f tavec$(EXEEXT)
-	$(LINK) $(tavec_LDFLAGS) $(tavec_OBJECTS) $(tavec_LDADD) $(LIBS)
-tiprime$(EXEEXT): $(tiprime_OBJECTS) $(tiprime_DEPENDENCIES) 
-	@rm -f tiprime$(EXEEXT)
-	$(LINK) $(tiprime_LDFLAGS) $(tiprime_OBJECTS) $(tiprime_LDADD) $(LIBS)
-tisqrt$(EXEEXT): $(tisqrt_OBJECTS) $(tisqrt_DEPENDENCIES) 
-	@rm -f tisqrt$(EXEEXT)
-	$(LINK) $(tisqrt_LDFLAGS) $(tisqrt_OBJECTS) $(tisqrt_LDADD) $(LIBS)
-tuvec$(EXEEXT): $(tuvec_OBJECTS) $(tuvec_DEPENDENCIES) 
-	@rm -f tuvec$(EXEEXT)
-	$(LINK) $(tuvec_LDFLAGS) $(tuvec_OBJECTS) $(tuvec_LDADD) $(LIBS)
+tavec.x$(EXEEXT): $(tavec_x_OBJECTS) $(tavec_x_DEPENDENCIES) 
+	@rm -f tavec.x$(EXEEXT)
+	$(LINK) $(tavec_x_LDFLAGS) $(tavec_x_OBJECTS) $(tavec_x_LDADD) $(LIBS)
+tiprime.x$(EXEEXT): $(tiprime_x_OBJECTS) $(tiprime_x_DEPENDENCIES) 
+	@rm -f tiprime.x$(EXEEXT)
+	$(LINK) $(tiprime_x_LDFLAGS) $(tiprime_x_OBJECTS) $(tiprime_x_LDADD) $(LIBS)
+tisqrt.x$(EXEEXT): $(tisqrt_x_OBJECTS) $(tisqrt_x_DEPENDENCIES) 
+	@rm -f tisqrt.x$(EXEEXT)
+	$(LINK) $(tisqrt_x_LDFLAGS) $(tisqrt_x_OBJECTS) $(tisqrt_x_LDADD) $(LIBS)
+tstrmalloc.x$(EXEEXT): $(tstrmalloc_x_OBJECTS) $(tstrmalloc_x_DEPENDENCIES) 
+	@rm -f tstrmalloc.x$(EXEEXT)
+	$(LINK) $(tstrmalloc_x_LDFLAGS) $(tstrmalloc_x_OBJECTS) $(tstrmalloc_x_LDADD) $(LIBS)
+tuvec.x$(EXEEXT): $(tuvec_x_OBJECTS) $(tuvec_x_DEPENDENCIES) 
+	@rm -f tuvec.x$(EXEEXT)
+	$(LINK) $(tuvec_x_LDFLAGS) $(tuvec_x_OBJECTS) $(tuvec_x_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -170,10 +179,11 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tavec.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tiprime.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tisqrt.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tuvec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tavec.x.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tiprime.x.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tisqrt.x.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tstrmalloc.x.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tuvec.x.Po@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)

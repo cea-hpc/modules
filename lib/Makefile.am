@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.2 2002/07/29 20:10:32 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.3 2002/08/27 21:07:41 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -64,8 +64,10 @@ libmodules_a_SOURCES	=	\
 	$(iprime_srcs) 		\
 	$(isqrt_srcs) 		\
 	$(list_srcs) 		\
+	memdebug.c		\
 	strmalloc.c		\
 	$(uvec_srcs) 
 
-man3_MANS = avec.man iprime.man isqrt.man list.man strmalloc.man uvec.man
+man3_MANS =	avec.man iprime.man isqrt.man list.man \
+		memdebug.man strmalloc.man uvec.man
 
