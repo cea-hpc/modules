@@ -8,8 +8,7 @@ type tclsh 1>/dev/null 2>&1 && exec tclsh "$0" "$@"
 # \
 [ -x /bin/tclsh ] && exec /bin/tclsh "$0" "$@"
 # \
-echo FATAL: module: Could not find tclsh on \$PATH or in standard directories; exit 1
-
+echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" >&2; exit 1
 
 ########################################################################
 # This is a pure TCL implementation of the module command
@@ -27,6 +26,57 @@ proc unset-env {var} {
     }
 }
 
+proc execute-modulefile-help {modfile} {
+    global env g_stateEnvVars
+
+    #puts stderr "Starting $modfile"
+    set slave [currentModuleName]
+    interp create $slave
+    interp alias $slave setenv        {} setenv
+    interp alias $slave unsetenv      {} unsetenv
+    interp alias $slave append-path   {} append-path
+    interp alias $slave prepend-path  {} prepend-path
+    interp alias $slave remove-path   {} remove-path
+    interp alias $slave prereq        {} prereq
+    interp alias $slave conflict      {} conflict
+    interp alias $slave is-loaded     {} is-loaded
+    interp alias $slave module        {} module
+    interp alias $slave module-info   {} module-info
+    interp alias $slave module-whatis {} module-whatis
+    interp alias $slave set-alias     {} set-alias
+    interp alias $slave unset-alias   {} unset-alias
+    interp alias $slave uname         {} uname
+    interp alias $slave x-resource    {} x-resource
+
+    interp eval $slave [list global ModulesCurrentModulefile]
+    interp eval $slave [list set ModulesCurrentModulefile $modfile]
+
+    set errorVal [interp eval $slave {
+        if [catch {source $ModulesCurrentModulefile} errorMsg] {
+            if {$errorMsg == "" && $errorInfo == ""} {
+                unset errorMsg
+                return 1
+            } elseif [regexp "^WARNING" $errorMsg] {
+                puts stderr $errorMsg
+                return 1
+            } else {
+                global errorInfo
+                set errorMsg "ERROR occured in file $ModulesCurrentModulefile."
+                set errorMsg "$errorMsg\nContact your local modulefile maintainer."
+                set errorMsg "$errorMsg\n----------errorInfo----------\n$errorInfo"
+                puts stderr $errorMsg
+                exit 1
+            }
+        } else {
+	    ModulesHelp
+            unset errorMsg
+            return 0
+        }
+    }]
+    interp delete $slave
+    #puts stderr "Exiting $modfile"
+    return $errorVal
+}
 
 proc execute-modulefile {modfile} {
     global env g_stateEnvVars
@@ -84,10 +134,11 @@ proc execute-version {modfile} {
 
     set slave .version
     interp create $slave
-    interp eval $slave [list global ModulesCurrentModulefile]
-    interp eval $slave [list set ModulesCurrentModulefile $modfile]
-    interp eval $slave [list global ModulesVersion]
-    interp eval $slave [list set ModulesVersion {}]
+    interp alias $slave uname         {} uname        
+    interp  eval $slave [list global ModulesCurrentModulefile]
+    interp  eval $slave [list set ModulesCurrentModulefile $modfile]
+    interp  eval $slave [list global ModulesVersion]
+    interp  eval $slave [list set ModulesVersion {}]
     set ModulesVersion [interp eval $slave {
         if [catch {source $ModulesCurrentModulefile} errorMsg] {
             set errorMsg "ERROR occured in file $ModulesCurrentModulefile."
@@ -650,8 +701,10 @@ proc getPathToModule {mod} {
     } elseif [info exists env(MODULEPATH)] {
 	foreach dir [split $env(MODULEPATH) ":"] {
 	    set path "$dir/$mod"
-	    if [file exists $path] {
+	    while [file exists $path] {
 		if [file readable $path] {
+
+
 		    if [file isdirectory $path] {
 			if [info exists g_loadedModulesGeneric($mod)] {
 			    set ModulesVersion $g_loadedModulesGeneric($mod)
@@ -663,6 +716,7 @@ proc getPathToModule {mod} {
 			set path "$path/$ModulesVersion"
 			set mod "$mod/$ModulesVersion"
 		    }
+
 
 		    if [file isfile $path] {
 			return [list $path $mod]
@@ -1056,22 +1110,39 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
 # So it is safest to reglob the $dir.
 # example:
 # [glob /home/stuff] -> "//homeserver/users0/stuff"
+
+    set flag_default_dir 1	;# Report default directories
+    set flag_default_mf  1	;# Report default modulefiles
+    set default_tag "(default)"	;# Text used to report defaults
     set dir [glob $dir]
     set full_list [glob -nocomplain "$dir/$mod"]
     set clean_list {}
+    set ModulesVersion {}
     for {set i 0} {$i < [llength $full_list]} {incr i 1} {
         set element [lindex $full_list $i]
         set tail [file tail $element]
+        set direlem [file dirname $element]
         if [file isdirectory $element] {
             if {![info exists ignoreDir($tail)]} {
-                foreach f [glob -nocomplain "$element/*"] {
+                foreach f [glob -nocomplain "$element/.version" "$element/*"] {
                     lappend full_list $f
                 }
             }
         } else {
             switch -glob -- $tail {
+                {.version} {
+		    if { $flag_default_dir || $flag_default_mf } {
+			set ModulesVersion [execute-version "$element"]
+			if {$flag_default_dir && $ModulesVersion != "" && [file isdirectory $direlem/$ModulesVersion]} {
+			    set sstart [expr [string length $dir] + 1]
+			    # Directories below MODULEPATH that are defaulted in the path to the modulefile need to be reported.
+			    lappend clean_list [string range $direlem/${ModulesVersion}$default_tag $sstart end]
+			}
+		    }
+		}
                 {.*} -
                 {*~} -
+                {*,v} -
                 {#*#} {}
                 default {
                     if {![catch {open $element r} fileId]} {
@@ -1079,10 +1150,18 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
                         close $fileId
                         if {[string first {#%Module} $first_line] == 0} {
                             if {$full_path} {
-                                lappend clean_list $element
+				if {$flag_default_mf && $tail == $ModulesVersion} {
+				    lappend clean_list "${element}$default_tag"
+				} else {
+				    lappend clean_list $element
+				}
                             } else {
                                 set sstart [expr [string length $dir] + 1]
-                                lappend clean_list [string range $element $sstart end]
+				if {$flag_default_mf && $tail == $ModulesVersion} {
+				    lappend clean_list [string range "${element}$default_tag" $sstart end]
+				} else {
+				    lappend clean_list [string range $element $sstart end]
+				}
                             }
                         }
                     }
@@ -1500,6 +1579,53 @@ proc cmdModuleDebug {} {
     }
 }
 
+proc cmdModuleHelp {args} {
+   global done
+
+   set done 0
+   foreach arg $args {
+      if {$arg != ""} {
+         set modfile [getPathToModule $arg]
+
+          if {$modfile != ""} {
+             pushModuleName [lindex $modfile 1]
+             set modfile       [lindex $modfile 0]
+             report "-------------------------------------------------------------------"
+             report "Module Specific Help for $modfile:\n"
+	     set mode "Help"
+             execute-modulefile-help $modfile
+             popMode
+             popModuleName
+             report "-------------------------------------------------------------------"
+          }
+	  set done 1
+       }
+    }
+    if {$done == 0 } {
+            report {
+                ModulesTcl 0.100/$Revision: 1.28 $:
+                Available Commands and Usage:
+                 add|load              modulefile [modulefile ...]
+                 rm|unload             modulefile [modulefile ...]
+                 reload
+                 source                scriptfile
+                 switch|swap           modulefile1 modulefile2
+                 display|show          modulefile [modulefile ...]
+                 avail                 [modulefile [modulefile ...]]
+                 path                  modulefile
+                 paths                 modulefile
+                 use                   dir [dir ...]
+                 unuse                 dir [dir ...]
+                 purge
+                 list
+                 whatis                [modulefile [modulefile ...]]
+                 help                  [modulefile [modulefile ...]]
+                 apropos|keyword       string
+            }
+    }
+}
+
+
 ########################################################################
 # main program
 
@@ -1604,25 +1730,7 @@ catch {
 	    renderSettings
 	}
 	default {
-	    report {
-		ModulesTcl 0.100/$Revision: 1.27 $:
-		Available Commands and Usage:
-		 add|load              modulefile [modulefile ...]
-		 rm|unload             modulefile [modulefile ...]
-                 reload
-		 source                scriptfile
-		 switch|swap           modulefile1 modulefile2
-		 display|show          modulefile [modulefile ...]
-		 avail                 [modulefile [modulefile ...]]
-		 path                  modulefile
-		 paths                 modulefile
-		 use                   dir [dir ...]
-		 unuse                 dir [dir ...]
-		 purge
-		 list
-		 whatis                [modulefile [modulefile ...]]
-		 apropos|keyword       string
-	    }
+	   cmdModuleHelp $argv
 	}
 
     }
