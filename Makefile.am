@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.9 2002/09/16 16:49:20 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.10 2002/09/18 05:47:47 harlan Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -22,7 +22,7 @@ INCLUDES = -I$(srcdir)/lib -I$(srcdir)
 man_MANS = doc/module.1 doc/modulefile.4
 bin_PROGRAMS = modulecmd
 # bin_SCRIPTS = etc/mkroot etc/add.modules ext/add.ext
-modulecmd_CFLAGS=
+modulecmd_CFLAGS = ${X_CFLAGS} ${TCL_INCLUDES}
 modulecmd_LDFLAGS=-Llib @TCL_LIB_SPEC@ @TCLX_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@
 modulecmd_SOURCES = \
 	ModuleCmd_Avail.c ModuleCmd_Bootstrap.c \

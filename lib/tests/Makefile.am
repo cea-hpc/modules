@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./lib/tests/Makefile.am
-## Versions:    $Id: Makefile.am,v 1.2 2002/09/13 04:50:41 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.3 2002/09/18 05:47:48 harlan Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -14,7 +14,7 @@
 
 AUTOMAKE_OPTIONS=foreign no-installinfo no-installman
 
-noinst_PROGRAMS = tavec.x tiprime.x tisqrt.x tuvec.x tstrmalloc.x
+EXTRA_PROGRAMS = tavec tiprime tisqrt tuvec tstrmalloc
 
 LDADD		= ../libmodules.a
 
@@ -33,7 +33,7 @@ help :
 	@echo "	help	- this info"
 	@echo "	clean	- remove .o files"
 	@echo "	clobber	- do clean and remove all executables"
-	
+
 EXES = $(noinst_PROGRAMS)
 
 runall : $(EXES)
