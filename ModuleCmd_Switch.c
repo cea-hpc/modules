@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.4 2002/04/29 21:16:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.5 2002/06/12 19:54:39 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -104,7 +104,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 		*newfile,
 		*oldname,
 		*newname,
-                *oldmodule_buffer;
+                *oldmodule_buffer	= (char *) NULL;
     int		 ret_val = TCL_OK;
     
 #if WITH_DEBUGGING_MODULECMD
@@ -136,22 +136,18 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
      **/
 
     if( argc == 1) {
-      char* o;
-      oldmodule = oldmodule_buffer;
       newmodule = argv[0];
-      strncpy(oldmodule_buffer,newmodule,MOD_BUFSIZE);
-      oldmodule_buffer[MOD_BUFSIZE-1]=0; /* terminate just in case */
+      if((char *) NULL == (oldmodule_buffer = stringer(NULL,0,newmodule,NULL)))
+	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+          goto unwind4;
+
       /* starting from the end of the module name, find the first
        * forward slash and replace with null 
        */
-      for(o = &oldmodule_buffer[strlen(oldmodule_buffer)-1];
-	  o>oldmodule_buffer;
-	  o--) {
-	if (*o == '/') {
-	  *o = 0;
-	  break;
-	}
+      if ((oldmodule = strrchr(oldmodule_buffer, '/'))) {
+	  *oldmodule = 0;
       }
+      oldmodule = oldmodule_buffer;
     } else if( argc == 2) {
       oldmodule = argv[0];
       newmodule = argv[1];
@@ -297,6 +293,8 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
     return( TCL_OK);			/** ------- EXIT (SUCCESS) --------> **/
 
 unwind4:
+    if (oldmodule == oldmodule_buffer)
+    	null_free((void *) &oldmodule);
     null_free((void *) &newname);
 unwind3:
     null_free((void *) &oldname);
