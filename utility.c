@@ -50,7 +50,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.2 2001/01/16 20:58:19 rminsk Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.3 2001/02/15 02:34:43 rminsk Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -1028,6 +1028,13 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	fprintf( stdout, "(putenv \"%s=%s\")\n", var, val);
 
     /**
+     ** MEL (Maya Extension Language)
+     **/
+
+    } else if ( !strcmp((char*) shell_derelict, "mel")) {
+        fprintf( stdout, "putenv \"%s\" \"%s\";", var, val);
+
+    /**
      **  Unknown shell type - print an error message and 
      **  return on error
      **/
@@ -1091,6 +1098,8 @@ static	int	output_unset_variable( const char* var)
 	       var, var);
     } else if( !strcmp( shell_derelict, "scm")) {
 	fprintf( stdout, "(putenv \"%s\")\n", var);
+    } else if( !strcmp( shell_derelict, "mel")) {
+	fprintf( stdout, "putenv \"%s\" \"\";", var);
     } else {
 	if( OK != ErrorLogger( ERR_DERELICT, LOC, shell_derelict, NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
@@ -1172,10 +1181,18 @@ char	*set_derelict(	const char	*name)
     /**
      ** SCM
      **/
+
     } else if( !strcmp((char *) name, "scm") ||
 	       !strcmp((char *) name, "scheme") ||
 	       !strcmp((char *) name, "guile")) {
 	return( strcpy( shell_derelict, "scm"));
+
+    /**
+     ** MEL (Maya Extension Language)
+     **/
+
+    } else if( !strcmp((char *) name, "mel")) {
+	return( strcpy( shell_derelict, "mel"));
     }
 
     /**
