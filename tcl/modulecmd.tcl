@@ -25,7 +25,7 @@ set ignoreDIr(RCS) 1
 set ignoreDir(SCCS) 1
 set g_reloadMode  0
 set error_count  0
-set g_force 0
+set g_force 1
 
 proc module-info {what {more {}}} {
     upvar g_mode mode
@@ -507,16 +507,18 @@ proc renderSettings {} {
 	    }
 	}
 # new aliases
-	foreach var [array names g_stateAliases] {
-	    if {$g_stateAliases($var) == "new"} {
-		switch $g_shellType {
-		    csh {
-			set val [multiEscaped $g_Aliases($var)]
-			puts $f "alias $var $val"
-		    }
-		    sh {
-			set val $g_Aliases($var)
-			puts $f "function $var () {\n$val\n}"
+	if {$g_shell != "sh"} {
+	    foreach var [array names g_stateAliases] {
+		if {$g_stateAliases($var) == "new"} {
+		    switch $g_shellType {
+			csh {
+			    set val [multiEscaped $g_Aliases($var)]
+			    puts $f "alias $var $val"
+			}
+			sh {
+			    set val $g_Aliases($var)
+			    puts $f "function $var () {\n$val\n}"
+			}
 		    }
 		}
 	    }
@@ -543,17 +545,19 @@ proc renderSettings {} {
 	    }
 	}
 # obsolete aliases
-	foreach var [array names g_stateAliases] {
-	    if {$g_stateAliases($var) == "def"} {
-		switch $g_shellType {
-		    csh {
-			puts $f "unalias $var"
-		    }
-		    sh {
-			if {$g_shell == "zsh"} {
-			    puts $f "unfunction $var"
-			} else {
-			    puts $f "unset $var"
+	if {$g_shell != "sh"} {
+	    foreach var [array names g_stateAliases] {
+		if {$g_stateAliases($var) == "def"} {
+		    switch $g_shellType {
+			csh {
+			    puts $f "unalias $var"
+			}
+			sh {
+			    if {$g_shell == "zsh"} {
+				puts $f "unfunction $var"
+			    } else {
+				puts $f "unset $var"
+			    }
 			}
 		    }
 		}
@@ -863,7 +867,7 @@ proc cmdModuleDisplay {mod} {
     catch {
 	set modfile [getPathToModule $mod]
 	set currentModule [lindex $modfile 1]
-	set modfile [lindex [getPathToModule $mod] 0]
+	set modfile	  [lindex $modfile 0]
 	puts stderr "-------------------------------------------------------------------"
 	puts stderr "$modfile:\n"
 	source $modfile
