@@ -48,6 +48,8 @@ proc execute-modulefile-help {modfile} {
 	interp alias $slave unset-alias   {} unset-alias
 	interp alias $slave uname         {} uname
 	interp alias $slave x-resource    {} x-resource
+	interp alias $slave module-version         {} module-version
+	interp alias $slave module-alias  {} module-alias
 	
 	interp eval $slave [list global ModulesCurrentModulefile]
 	interp eval $slave [list set ModulesCurrentModulefile $modfile]
@@ -102,7 +104,9 @@ proc execute-modulefile {modfile} {
 	interp alias $slave unset-alias   {} unset-alias  
 	interp alias $slave uname         {} uname        
 	interp alias $slave x-resource    {} x-resource   
-    
+# BOZO Is this needed in regular modules?     	interp alias $slave module-version         {} module-version
+# BOZO Is this needed in regular modules?	interp alias $slave module-alias  {} module-alias
+
 	interp eval $slave [list global ModulesCurrentModulefile]
 	interp eval $slave [list set ModulesCurrentModulefile $modfile]
 
@@ -133,6 +137,40 @@ proc execute-modulefile {modfile} {
     return $errorVal
 }
 
+proc execute-modulerc {modfile} {
+# BOZO - ajb: I'm not sure what functions should be supported in a .modulerc file.  For now it's a small subset
+    global env g_stateEnvVars g_rcfilesSourced
+    global g_debug
+
+    # If we have already loaded an RC file, don't load it again - BOZO may want this to add to execute-version
+    if { ![info exists g_rcfilesSourced($modfile)]} {
+	if { $g_debug } { puts stderr "DEBUG execute-modulerc: sourcing rc $modfile" }
+	set slave .modulerc
+	if { ![interp exists $slave] } {
+	    interp create $slave
+	    interp alias $slave uname         {} uname        
+	    interp alias $slave module-version         {} module-version
+	    interp alias $slave module-alias  {} module-alias
+	    interp alias $slave module         {} module
+	    interp  eval $slave [list global ModulesCurrentModulefile]
+	    interp  eval $slave [list set ModulesCurrentModulefile $modfile]
+	}
+	set ModulesVersion [interp eval $slave {
+	    if [catch {source $ModulesCurrentModulefile} errorMsg] {
+		set errorMsg "ERROR occured in file $ModulesCurrentModulefile."
+		global errorInfo
+		set errorMsg "$errorMsg\nContact your local modulefile maintainer."
+		set errorMsg "$errorMsg\n----------errorInfo----------\n$errorInfo"
+		puts stderr $errorMsg
+		exit 1
+	    }
+	}]
+	interp delete $slave
+	# Keep track of rc files that we already source so we don't run them again
+	set g_rcfilesSourced($modfile) 1
+    }
+}
+
 
 proc execute-version {modfile} {
     global env g_stateEnvVars
@@ -141,6 +179,8 @@ proc execute-version {modfile} {
     if { ![interp exists $slave] } {
 	interp create $slave
 	interp alias $slave uname         {} uname        
+	interp alias $slave module-version         {} module-version
+	interp alias $slave module-alias  {} module-alias
 	interp  eval $slave [list global ModulesCurrentModulefile]
 	interp  eval $slave [list set ModulesCurrentModulefile $modfile]
 	interp  eval $slave [list global ModulesVersion]
@@ -225,14 +265,66 @@ proc module-whatis {message} {
     return {}
 }
 
+proc module-version {args} {
+# Specifies a default or alias version for a module that points to an existing module version
+    global g_moduleVersion
+    global g_moduleDefault
+    global g_debug
+
+    if { $g_debug } { puts stderr "DEBUG module-version: executing module-version $args" }
+    set module_file [ lindex $args 0]
+    foreach version [lrange $args 1 end ] {
+	# Default version
+	if { [ string compare $version "default"] == 0} {
+	    if { [ regexp {(\S+)\/(\S+)} $module_file match base defversion] } {
+		# If we see more than one default for the same module, just keep the first
+		if { ![info exists g_moduleDefault($base)] } {
+		    set g_moduleDefault($base) $defversion
+		    if { $g_debug } { puts stderr "DEBUG module-verions: default $base = $defversion" }
+		}
+	    } else {
+		error "module-version: module argument for default must not be fully version qualified"
+	    }
+	} else {
+	    # alias version
+	    if { [ regexp {(\S+)\/\S+} $module_file match base ] } {
+		set aliasversion "$base/$version"
+		set g_moduleVersion($aliasversion) $module_file
+		if { $g_debug } { puts stderr "DEBUG module-version: $aliasversion  = $module_file" }
+	    } else {
+		error "module-version: module argument needs a fully qualifed version"
+	    }
+	}
+    }
+    return {}
+}
+
+
+proc module-alias {args} {
+    global g_moduleAlias
+
+    set module_file [ lindex $args 0]
+    set alias [ lindex $args 1 ]
+
+    set g_moduleAlias($alias) $module_file
+
+    return {}
+}
+			    
+
 proc module {command args} {
     set mode [currentMode]
-    global g_reloadMode
+    global g_reloadMode g_debug
 
     if { $g_reloadMode == 1} {
         puts stderr "g_reloadMode is set"
 	return
     }
+
+    # Resolve any module aliases
+    if { $g_debug } { puts stderr "DEBUG module: Resolving $args" }
+    set args [resolveModuleVersionOrAlias $args]
+    if { $g_debug } { puts stderr "DEBUG module: Resolved to $args" }
 
     switch -- $command {
 	add -
@@ -826,6 +918,23 @@ proc getPathToModule {mod} {
     }
 }
 
+proc runModulerc {} {
+# Uses listModules to find and execute any .modulerc or .version file found in the modules directories
+    global env g_debug
+
+    catch {
+        foreach dir [split $env(MODULEPATH) ":"] {
+            if [file isdirectory $dir] {
+		if { $g_debug } { puts stderr "DEBUG runModuleRC: running listModules $dir" }
+                listModules $dir ""
+            }
+        }
+    } errMsg
+    if {$errMsg != ""} {
+	reportWarning "ERROR: runModulerc failed. $errMsg"
+    }
+}
+
 proc saveSettings {} {
     foreach var {env g_Aliases g_stateEnvVars g_stateAliases
 	g_newXResource g_delXResource} {
@@ -1154,6 +1263,38 @@ proc cacheCurrentModules {} {
     }
 }
 
+proc resolveModuleVersionOrAlias {names} {
+    # This proc resolves module aliases or version aliases to the real module name and version
+    global g_moduleVersion
+    global g_moduleDefault
+    global g_moduleAlias
+    global g_debug
+
+    if { $g_debug } { puts stderr "DEBUG resolveModuleVersionOrAlias: Resolving $names" }
+    set ret_list {}
+
+    foreach name $names {
+	if { [ info exists g_moduleAlias($name) ] } {
+	    # if the alias is another alias, we need to resolve it
+	    if { $g_debug } { puts stderr "DEBUG resolveModuleVersionOrAlias: $name is an alias"}
+	    set ret_list [linsert $ret_list end [ resolveModuleVersionOrAlias $g_moduleAlias($name) ]]
+	} elseif { [info exists g_moduleVersion($name) ] } {
+	    # if the pseudo version is an alias, we need to resolve it
+	    if { $g_debug } { puts stderr "DEBUG resolveModuleVersionOrAlias: $name is a version alias"}
+	    set ret_list [linsert $ret_list end [resolveModuleVersionOrAlias $g_moduleVersion($name)]]
+	} elseif { [ info exists g_moduleDefault($name) ] } {
+	    # if the default is an alias, we need to resolve it
+	    if { $g_debug } {  puts stderr "DEBUG resolveModuleVersionOrAlias: found a default for $name"}
+	    set ret_list [linsert $ret_list end [resolveModuleVersionOrAlias "$name/$g_moduleDefault($name)"]]
+	} else {
+	    if { $g_debug } { puts stderr "DEBUG resolveModuleVersionOrAlias: $name is nothing special"}
+	    set ret_list [linsert $ret_list end $name]
+	}
+    }
+    if { $g_debug } { puts stderr "DEBUG resolveModuleVersionOrAlias: Resolved to $ret_list"}
+    return $ret_list
+}
+
 proc spaceEscaped {text} {
     regsub -all " " $text "\\ " text
     return $text
@@ -1241,14 +1382,18 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
         set element [lindex $full_list $i]
         set tail [file tail $element]
         set direlem [file dirname $element]
+
         if [file isdirectory $element] {
             if {![info exists ignoreDir($tail)]} {
-                foreach f [glob -nocomplain "$element/.version" "$element/*"] {
+                foreach f [glob -nocomplain "$element/.modulerc" "$element/.version" "$element/*"] {
                     lappend full_list $f
                 }
             }
         } else {
             switch -glob -- $tail {
+		{.modulerc} {
+		    execute-modulerc $element
+		}
                 {.version} {
 		    if { $flag_default_dir || $flag_default_mf } {
 			set ModulesVersion [execute-version "$element"]
@@ -1497,7 +1642,10 @@ proc cmdModuleSource {args} {
 proc cmdModuleLoad {args} {
     global env tcl_version g_loadedModules g_loadedModulesGeneric g_force
     global ModulesCurrentModulefile
+    global g_debug
 
+    if { $g_debug } { puts stderr "DEBUG cmdModuleLoad: loading $args" }
+    
     foreach mod $args {
 	set modfile [getPathToModule $mod]
         if {$modfile != ""} {
@@ -1877,7 +2025,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.36 $:
+                ModulesTcl 0.101/$Revision: 1.37 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
@@ -1908,6 +2056,18 @@ initclear    |  initprepend         modulefile
 set g_shell [lindex $argv 0]
 set command [lindex $argv 1]
 set argv [lreplace $argv 0 1]
+set g_debug 0
+
+# Parse options
+set optIndex [lsearch -regexp $argv {^-}]
+while { $optIndex >= 0 } {
+    if { [ regexp {^-debug$} [lindex $argv $optIndex] ] } {
+	set g_debug 1
+	puts stderr "DEBUG : debug enabled"
+    }
+    set argv [lreplace $argv $optIndex $optIndex]
+    set optIndex [lsearch -regexp $argv {^-}]
+}
 
 switch -regexp -- $g_shell {
     ^(sh|bash|ksh|zsh)$ {
@@ -1928,6 +2088,17 @@ switch -regexp -- $g_shell {
 }
 
 cacheCurrentModules
+
+# Resolve aliases and run .modulerc files only for commands that need it.  Finding modulerc files
+# can be slow with lots of modules to search
+if { [regexp $command {^(di|show|add|load|sw|rm|unload|wh|aprop|init(add|load|rm|unload))} ] } {
+    # Find and execute any .modulerc file found in the module directories defined in env(MODULESPATH)
+    runModulerc
+    # Resolve any aliased module names - safe to run nonmodule arguments
+    if { $g_debug } { puts stderr "DEBUG: Resolving $argv" }
+    set argv [resolveModuleVersionOrAlias $argv]
+    if { $g_debug } { puts stderr "DEBUG: Resolved $argv" }
+}
 
 catch {
     switch -regexp -- $command {
@@ -1950,7 +2121,7 @@ catch {
 	}
 	{^(add|load)} {
 	    eval cmdModuleLoad $argv
-	    renderSettings
+	    renderSettings	
 	}
 	{^source} {
 	    eval cmdModuleSource $argv
@@ -2009,10 +2180,10 @@ catch {
 	    eval cmdModuleInit add $argv
 	}
 	{^initprepend$} {
-		    eval cmdModuleInit prepend $argv
+	    eval cmdModuleInit prepend $argv
 	}
 	{^initswitch$} {
-		    eval cmdModuleInit switch $argv
+	    eval cmdModuleInit switch $argv
 	}
 	{^init(rm|unload)$} {
 	    eval cmdModuleInit rm $argv
