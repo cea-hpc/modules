@@ -1,0 +1,62 @@
+###########################################################################
+##
+## File:        ./Makefile.am
+## Versions:    $Id: Makefile.am,v 1.1 2002/07/18 22:30:57 rkowen Exp $
+## Created:     2002/06/14
+##
+###########################################################################
+##
+## run  automake to generate a Makefile.in
+##	Makefile.am \
+##	configure.ac >  Makefile.in
+##	aclocal.m4  /
+##
+
+AUTOMAKE_OPTIONS=foreign subdir-objects no-installinfo no-installman
+
+ACLOCAL_AMFLAGS=-I $(srcdir)/../config
+
+AM_CPPFLAGS = -I$(srcdir)/lib
+
+avec_srcs = \
+	avec/avec_.c							\
+	avec/avec_accessor.c avec/avec_alloc.c avec/avec_close.c	\
+	avec/avec_ctor.c avec/avec_dealloc.c avec/avec_decrease.c	\
+	avec/avec_delete.c avec/avec_dtor.c avec/avec_increase.c	\
+	avec/avec_init.c avec/avec_insert.c avec/avec_keys.c		\
+	avec/avec_lookup.c avec/avec_remove.c avec/avec_resize.c	\
+	avec/avec_resize_percentage.c avec/avec_set_fns.c		\
+	avec/avec_values.c avec/avec_walk.c avec/avec_walk_r.c
+
+iprime_srcs = \
+	iprime/iprime_lut.c					\
+	iprime/chprime.c iprime/hprime.c iprime/iprime.c	\
+	iprime/lprime.c iprime/scprime.c iprime/ucprime.c	\
+	iprime/uhprime.c iprime/uiprime.c iprime/ulprime.c
+
+isqrt_srcs = \
+	isqrt/isqrt_lut.c				\
+	isqrt/chsqrt.c isqrt/hsqrt.c isqrt/isqrt.c	\
+	isqrt/lsqrt.c isqrt/scsqrt.c isqrt/ucsrt.c	\
+	isqrt/uhsqrt.c isqrt/uisqrt.c isqrt/ulsqrt.c
+
+uvec_srcs =  \
+	uvec/str2uvec.c uvec/uvec2str.c uvec/uvec2uvec.c		\
+	uvec/uvec_accessor.c uvec/uvec_add.c uvec/uvec_alloc.c		\
+	uvec/uvec_close.c uvec/uvec_copy.c uvec/uvec_copy_str.c		\
+	uvec/uvec_copy_vec.c uvec/uvec_count_tok.c uvec/uvec_ctor.c	\
+	uvec/uvec_dealloc.c uvec/uvec_dtor.c uvec/uvec_init.c		\
+	uvec/uvec_insert.c uvec/uvec_push.c uvec/uvec_randomize.c	\
+	uvec/uvec_reverse.c uvec/uvec_shift.c uvec/uvec_sort.c		\
+	uvec/uvec_strfns.c uvec/vec2uvec.c
+
+noinst_LIBRARIES	= libmodules.a
+libmodules_a_SOURCES	=	\
+	$(avec_srcs) 		\
+	$(iprime_srcs) 		\
+	$(isqrt_srcs) 		\
+	strmalloc.c		\
+	$(uvec_srcs) 
+
+man3_MANS = avec.man iprime.man isqrt.man strmalloc.man uvec.man
+
