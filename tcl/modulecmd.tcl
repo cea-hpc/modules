@@ -26,6 +26,7 @@ set ignoreDir(SCCS) 1
 set g_reloadMode  0
 set error_count  0
 set g_force 1
+set ModulesCurrentModulefile {}
 
 proc module-info {what {more {}}} {
     upvar g_mode mode
@@ -414,19 +415,19 @@ proc getPathToModule {mod} {
 
     if [info exists env(MODULEPATH)] {
 	foreach dir [split $env(MODULEPATH) ":"] {
-	    set path "$dir/$mod"
+	    set path [file join $dir $mod]
 	    if [file exists $path] {
 		if [file readable $path] {
 		    if [file isdirectory $path] {
 			if [info exists g_loadedModulesGeneric($mod)] {
 			    set ModulesVersion $g_loadedModulesGeneric($mod)
-			} elseif [file exists "$path/.version"] {
-			    source "$path/.version"
+			} elseif [file exists [file join $path {.version}]] {
+			    source [file join $path {.version}]
 			} else {
-			    set ModulesVersion [file tail [lindex [lsHack $path -dictionary] end]]
+			    set ModulesVersion [file tail [lindex [listModules $dir $mod] end]]
 			}
-			set path "$path/$ModulesVersion"
-			set mod "$mod/$ModulesVersion"
+			set path [file join $path $ModulesVersion]
+			set mod [file join $mod $ModulesVersion]
 		    }
 
 		    if [file isfile $path] {
@@ -794,52 +795,47 @@ proc reverseList {list} {
     return $newlist
 }
 
-# this is a hack to work around the fact that globs don't work
-# well on Cygwin with symlinks
 
-proc lsHack {dir {how {}} {prefixlist {}} } {
-    global tcl_platform ignoreDir
+proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
+    global ignoreDir
 
-    if {$tcl_platform(os) == "Windows NT"} {
-	set fileParts [lrange [split $dir {/}] 0 1]
-	if {[llength $fileParts] <= 1} {
-	    lappend fileParts *
-	}
-	set pattern [join $fileParts {/}]
-	catch {
-#	    puts stderr  "globbing $pattern"
-	    set globlist [exec ls -d $pattern]
-	}
-    } else {
-	set globlist [glob -nocomplain "$dir/*"]
+    set full_list [glob -nocomplain [file join $dir $mod]]
+    set clean_list {}
+    for {set i 0} {$i < [llength $full_list]} {incr i 1} {
+        set element [lindex $full_list $i]
+        set tail [file tail $element]
+        if [file isdirectory $element] {
+            if {![info exists ignoreDir($tail)]} {
+                foreach f [glob -nocomplain [file join $element *]] {
+                    lappend full_list $f
+                }
+            }
+        } else {
+            switch -glob -- $tail {
+                {.*} -
+                {*~} -
+                {#*#} {}
+                default {
+                    if {![catch {open $element r} fileId]} {
+                        gets $fileId first_line
+                        close $fileId
+                        if {[string first {#%Module} $first_line] == 0} {
+                            if {$full_path} {
+                                lappend clean_list $element
+                            } else {
+                                set sstart [expr [string length $dir] + 1]
+                                lappend clean_list [string range $element $sstart end]
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-    if {$how != ""} {
-	set globlist [lsort $how $globlist]
+    if {$how != {}} {
+        set clean_list [lsort -dictionary $clean_list]
     }
-    if {$prefixlist != ""} {
-	set globlist [concat $prefixlist $globlist]
-    }
-    foreach file $globlist {
-	set pieces [split $file "/"]
-	set ok 1
-	foreach piece $pieces {
-#puts stderr "DEBUG: lsHack: Checking <$piece>"
-	    if [info exists ignoreDir($piece)] {
-#puts stderr "DEBUG: lsHack: <$piece> is an ignoreDir"
-		set ok 0
-	    }
-# cygwin tcl doesn't seem to filter out hidden (dot) files
-	    if [regexp {^\.} $piece] {
-		set ok 0
-	    }
-	}
-	if {$ok == 1} {
-	    lappend cleanlist $file
-	}
-    }
-    # Make sure cleanlist isn't empty
-    lappend cleanlist
-    return $cleanlist
+    return $clean_list
 }
 
 
@@ -889,13 +885,14 @@ proc cmdModuleList {} {
 }
 
 proc cmdModuleDisplay {mod} {
-    global env tcl_version
+    global env tcl_version ModulesCurrentModulefile
 
     set g_mode "display"
     catch {
 	set modfile [getPathToModule $mod]
 	set currentModule [lindex $modfile 1]
 	set modfile	  [lindex $modfile 0]
+        set ModulesCurrentModulefile $modfile
 	puts stderr "-------------------------------------------------------------------"
 	puts stderr "$modfile:\n"
 	source $modfile
@@ -910,21 +907,15 @@ proc cmdModuleDisplay {mod} {
 proc cmdModulePaths {mod} {
     global env g_pathList
 
-    # Not right - see cmdModuleAvail.
-
-    # This will be tough - we don't want errors (cmdModuleAvail calls lsHack
-    # and not getPathToModule, which solves this problem there).
-    # getPathToModule wants a module name, not a path to a file.  This makes
-    # it tough if the same modulefile is available in multiple places in the
-    # MODULEPATH.
-
     set g_mode "display"
     catch {
-	set modfile [getPathToModule $mod]
-	set currentModule [lindex $modfile 1]
-	set modfile	  [lindex $modfile 0]
-	lappend g_pathList $modfile
-	set junk ""
+        foreach dir [split $env(MODULEPATH) ":"] {
+            if [file isdirectory $dir] {
+                foreach mod2 [listModules $dir $mod] {
+                    lappend g_pathList $mod2
+                }
+            }
+        }
     } errMsg
     if {$errMsg != ""} {
 	puts stderr "ERROR: module paths $mod failed. $errMsg"
@@ -932,13 +923,14 @@ proc cmdModulePaths {mod} {
 }
 
 proc cmdModulePath {mod} {
-    global env g_pathList
+    global env g_pathList ModulesCurrentModulefile
 
     set g_mode "display"
     catch {
 	set modfile [getPathToModule $mod]
 	set currentModule [lindex $modfile 1]
 	set modfile	  [lindex $modfile 0]
+        set ModulesCurrentModulefile $modfile
 
 	set g_pathList $modfile
 
@@ -958,7 +950,7 @@ proc cmdModuleApropos {{search {}}} {
 }
 
 proc cmdModuleSearch {{mod {}} {search {}} } {
-    global env tcl_version
+    global env tcl_version ModulesCurrentModulefile
 
     if {$mod == ""} {
 	set mod  "*"
@@ -966,18 +958,14 @@ proc cmdModuleSearch {{mod {}} {search {}} } {
     foreach dir [split $env(MODULEPATH) ":"] {
 	if [file isdirectory $dir] {
 	    puts stderr "---- $dir ---- "
-	    cd $dir
-	    if [file isfile $mod] {
-		set modlist [lsHack $mod -dictionary $mod]
-	    } else {
-		set modlist [lsHack $mod -dictionary]
-	    }
+            set modlist [listModules $dir $mod 0]
 	    foreach mod2 $modlist {
 		set g_whatis ""
 		catch {
 		    set modfile [getPathToModule $mod2]
 		    set currentModule [lindex $modfile 1]
 		    set modfile       [lindex $modfile 0]
+                    set ModulesCurrentModulefile $modfile
 		    set g_mode "whatis"
 		    source $modfile
 		    set junk ""
@@ -1017,6 +1005,7 @@ proc cmdModuleSource {args} {
 
 proc cmdModuleLoad {args} {
     global env tcl_version g_loadedModules g_loadedModulesGeneric g_force
+    global ModulesCurrentModulefile
 
 #puts stderr "DEBUG: cmdModuleLoad: args <$args>"
 
@@ -1027,6 +1016,7 @@ proc cmdModuleLoad {args} {
 #puts stderr "DEBUG: cmdModuleLoad: modfile <$modfile>"
 	    set currentModule [lindex $modfile 1]
 	    set modfile       [lindex $modfile 0]
+            set ModulesCurrentModulefile $modfile
 #puts stderr "DEBUG: cmdModuleLoad: currentModule <$currentModule>"
 #puts stderr "DEBUG: cmdModuleLoad: modfile <$modfile>"
 
@@ -1053,6 +1043,7 @@ proc cmdModuleLoad {args} {
 
 proc cmdModuleUnload {args} {
     global env tcl_version g_loadedModules g_loadedModulesGeneric
+    global ModulesCurrentModulefile
 
     foreach mod $args {
 	catch {
@@ -1060,6 +1051,7 @@ proc cmdModuleUnload {args} {
 		set modfile [getPathToModule $mod]
 		set currentModule [lindex $modfile 1]
 		set modfile       [lindex $modfile 0]
+                set ModulesCurrentModulefile $modfile
 		set junk ""
 	    } moderr
 	    if { $moderr == ""} {
@@ -1103,6 +1095,7 @@ proc cmdModulePurge {} {
     }
 }
 
+
 proc cmdModuleReload {} {
     global env g_reloadMode
 
@@ -1122,21 +1115,13 @@ proc cmdModuleReload {} {
 }
 
 
-proc cmdModuleAvail { {mod {}}} {
-    global env
+proc cmdModuleAvail { {mod {*}}} {
+    global env ignoreDir
 
-    if {$mod == ""} {
-	set mod  "*"
-    }
     foreach dir [split $env(MODULEPATH) ":"] {
 	if [file isdirectory $dir] {
 	    puts stderr "---- $dir ---- "
-	    cd $dir
-	    if [file isfile $mod] {
-		set list [lsHack $mod -dictionary $mod]
-	    } else {
-		set list [lsHack $mod -dictionary]
-	    }
+            set list [listModules $dir $mod 0]
 	    set max 0
 	    foreach mod2 $list {
 		if {[string length $mod2] > $max} {
@@ -1160,6 +1145,7 @@ proc cmdModuleAvail { {mod {}}} {
 	}
     }
 }
+
 
 proc cmdModuleUse {args} {
 
@@ -1209,6 +1195,7 @@ proc cmdModuleUnuse {args} {
     }
 }
 
+
 proc cmdModuleDebug {} {
     global env
 
@@ -1222,17 +1209,10 @@ proc cmdModuleDebug {} {
 	unset countarr
     }
     foreach dir  [split $env(PATH) ":"] {
-	foreach file [lsHack $dir] {
-	    if [file exists $file] {
+	foreach file [glob -nocomplain -- [file join $dir *]] {
+	    if [file executable $file] {
 		set exec [file tail $file]
-		if [info exists execcount($exec)] {
-		    lappend execcount($exec) $file
-#		    puts stderr "conflict1: $execcount($exec)"
-#		    puts stderr [llength $execcount($exec)]
-		} else {
-		    lappend execcount($exec) $file
-#		    set execcount($exec) $file
-		}
+                lappend execcount($exec) $file
 	    }
 	}
     }
@@ -1352,7 +1332,7 @@ catch {
 	}
 	default {
 	    puts stderr {
-		ModulesTcl 0.100/$Revision: 1.15 $:
+		ModulesTcl 0.100/$Revision: 1.16 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
