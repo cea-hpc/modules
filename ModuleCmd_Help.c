@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.3 2001/06/22 20:54:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -259,7 +259,6 @@ static	int	PerModuleHelp(	Tcl_Interp	*interp,
      **/
 
     g_flags &= ~M_HELP;
-    fprintf(stderr, "\n");
     Tcl_DStringFree(&cmdbuf);
 
     return( TCL_OK);
