@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.4 2001/07/11 20:11:02 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.5 2002/04/24 01:06:20 lakata Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -166,7 +166,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     if( argc < 2) {
-	(void) ErrorLogger( ERR_USAGE, LOC, argv[0], " subcommand ",
+	(void) ErrorLogger( ERR_USAGE, LOC, "module", " command ",
 	    " [arguments ...] ", NULL);
 	(void) ModuleCmd_Help( interp, 0, modulefile_list);
 	return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
