@@ -91,31 +91,31 @@ ___________________________________
 First - I recommend placing the sources into /usr/local/Modules/src/
 either from the tar file or CVS.
 
-Second - modify the RKOConfigure file, which looks something like this,
-to the actual paths used:
+If you plan on installing everything in the standard places, and you
+have TCL and X installed in the standard places, then just run
 
-#!/bin/sh
-CFLAGS=-g
-LDFLAGS=-g
-CC=gcc
-export CFLAGS LDFLAGS CC
-TCLTKROOT=/usr/local/tcltk/8.2.3
-export TCLTKROOT
+ ./configure
+ make
+ make install
 
-./configure \
-		--prefix=/usr/local/Modules/@VERSION@ \
-		--with-module-path=/usr/local/Modules/modulefiles \
-		--with-version-path=/usr/local/Modules/versions \
-		--with-etc-path=/etc \
-		--with-skel-path=/etc/skel \
-		--with-split-size=960 \
-		--x-includes=/usr/include/X11 \
-		--x-libraries=/usr/X11/lib \
-		--with-tcl-include=$TCLTKROOT/include \
-		--with-tcl-libraries=$TCLTKROOT/lib
-exit
+and you are done if it all runs successfully.
 
-Then run ./RKOConfigure to configure the sources for your machine.
+If you want to specify where the module files are located, AND/OR
+you want to install the binaries/man pages elsewhere (you probably
+do, since that is what modules is good for!), then the two relevant
+options you must specify for configure are --with-module-path and
+--prefix, for example
+
+ ./configure --with-module-path=/your/path/to/module/files \
+             --prefix=/alternate/usr/local/or/equivalent/1.0/eg
+
+The default for --prefix is /usr/local.
+The default for --with-module-path is "", so you should define it.
+
+If you have trouble with the configuration, then you might consider
+editing RKOConfigure and running that instead. Look at this file if
+you have TCL or X installed in a non-standard place.
+
 Run "./configure --help" to view some of the other options.
 
 After the sources are configured then:
