@@ -101,6 +101,15 @@ AC_MSG_RESULT(determining version of $tcl_binary)
 changequote([,])
 fi
 if test ! -n "$tcl_version"; then
+  for lib in /usr/lib/libtcl?*.a ;
+  do
+    if test -r $lib ; then
+      tcl_version=`echo $lib | sed s,/usr/lib/libtcl,, | sed s,.a,,`
+      break
+    fi
+  done
+fi
+if test ! -n "$tcl_version"; then
  AC_MSG_ERROR(can't figure TCL version; ...exit configure)
 fi
 AC_ARG_WITH(tcl-libraries,
@@ -119,13 +128,22 @@ if test ! -n "$tcl_libraries"; then
 	    /usr/lib /usr/local/lib /usr/gnu/lib /usr/local/gnu/lib /local/lib \
 	    /opt/lib /opt/local/lib /opt/gnu/lib /opt/local/gnu/lib;
     do
-       if test -r "$dir/libtcl.a" || test -r "$dir"/libtcl*.s?; then
+       if test -r "$dir"/libtcl* ; then
 	  tcl_libraries=$dir
 	  break
        fi
     done
 fi
 test -z "$tcl_libraries" && AC_MSG_ERROR(can't find TCL library file $tcl_libraries; ...exit configure)
+if test ! -n "$tcl_library"; then
+   for dir in /usr/share/tcl* /usr/local/lib/tcl* /usr/tcl* ;
+   do
+     if test -r "$dir/init.tcl"; then
+       tcl_library=$dir
+       break
+     fi
+   done
+fi
 AC_CACHE_VAL(ac_cv_path_tcl,
 [#cache values $tcl_includes and $tcl_libraries
 ac_cv_path_tcl="ac_tcl_includes=$tcl_includes ac_tcl_libraries=$tcl_libraries"
