@@ -1,4 +1,16 @@
-#!/usr/local/bin/tclsh
+#!/bin/sh
+# \
+type tclsh > /dev/null && exec tclsh "$0" "$@"
+# \
+[ -x /usr/local/bin/tclsh ] && exec /usr/local/bin/tclsh "$0" "$@"
+# \
+[ -x /usr/bin/tclsh ] && exec /usr/bin/tclsh "$0" "$@"
+# \
+[ -x /bin/tclsh ] && exec /bin/tclsh "$0" "$@"
+# \
+echo FATAL: module: Could not find tclsh on \$PATH or in standard directories; exit 1
+
+
 ########################################################################
 #
 # This is a pure TCL implementation of the module command
@@ -287,9 +299,8 @@ proc conflict {args} {
     
     if {$mode == "load"} {
 	foreach conflict $args {
-	    set mod [file dirname $conflict]
-#puts stderr "mod=$mod"
-	    if {$mod == "."} {
+	    set modpath [split $conflict "/"]
+	    if {[llength $modpath] == 1} {
 		if { [info exists g_loadedModulesGeneric($conflict) ] } {
 		    set x $conflict/$g_loadedModulesGeneric($conflict)
 		    if { $x != $currentModule } {
@@ -364,7 +375,7 @@ proc getPathToModule {mod} {
 			} elseif [file exists "$path/.version"] {
 			    source "$path/.version"
 			} else {
-			    set ModulesVersion [file tail [lindex [glob "$path/*"] 0]]
+			    set ModulesVersion [file tail [lindex [lsHack $path] 0]]
 			}
 			set path "$path/$ModulesVersion"
 			set mod "$mod/$ModulesVersion"
@@ -401,6 +412,9 @@ proc renderSettings {} {
     if {$f == ""} {
 	error "Could not open a temporary file in /tmp/modulescript_* !"
     } else {
+
+# required to work on cygwin, shouldn't hurt real linux
+	fconfigure $f -translation lf
 
 # preliminaries
 	switch $g_shellType {
@@ -580,6 +594,8 @@ proc renderSettings {} {
 
 	close $f
 
+	fconfigure stdout -translation lf
+
 	switch $g_shellType {
 	    csh {
 		puts "source $tmpfile"
@@ -652,6 +668,29 @@ proc reverseList {list} {
 	set newlist [linsert $newlist 0 $item]
     }
     return $newlist
+}
+
+# this is a hack to work around the fact that globs don't work
+# well on Cygwin with symlinks
+
+proc lsHack {dir} {
+    global tcl_platform
+
+    if {$tcl_platform(os) == "Windows NT"} {
+	set fileParts [lrange [split $dir {/}] 0 1]
+	if {[llength $fileParts] <= 1} {
+	    lappend fileParts *
+	}
+	set pattern [join $fileParts {/}]
+	set globlist {}
+	catch {
+#	    puts stderr  "globbing $pattern"
+	    set globlist [exec ls -d $pattern]
+	} 
+    } else {
+	set globlist [glob -nocomplain "$dir/*"]
+    }
+    return $globlist
 }
 
 ########################################################################
@@ -727,11 +766,15 @@ proc cmdModuleSearch {{mod {}} {search {}} } {
 	    if [file isfile $mod] {
 		set availHash($mod) 1
 	    }
- 	    foreach file [glob -nocomplain "$mod/*"] {
+ 	    foreach file [lsHack $mod] {
 		set pieces [split $file "/"]
 		set ok 1
 		foreach piece $pieces {
 		    if [info exists ignoreDir($piece)] {
+			set ok 0
+		    }
+# cygwin tcl doesn't seem to filter out hidden (dot) files
+		    if [regexp {^\.} $piece] {
 			set ok 0
 		    }
 		}
@@ -784,8 +827,11 @@ proc cmdModuleLoad {args} {
 
 		append-path LOADEDMODULES $currentModule
 		set g_loadedModules($currentModule) 1
-		set g_loadedModulesGeneric([file dirname $mod]) [file tail $currentModule]
+		set genericModName [file dirname $mod]
 
+		if { ![ info exists g_loadedModulesGeneric($genericModName) ] } {
+		    set g_loadedModulesGeneric($genericModName) [file tail $currentModule]
+		}
 		source $modfile
 	    }
 	    set junk ""
@@ -882,12 +928,18 @@ proc cmdModuleAvail { {mod {}}} {
 	    if [file isfile $mod] {
 		set availHash($mod) 1
 	    }
- 	    foreach file [glob -nocomplain "$mod/*"] {
+#puts stderr "globing $dir/$mod/*"
+ 	    foreach file [lsHack $mod] {
 
+#puts stderr "glob returned $file"
 		set pieces [split $file "/"]
 		set ok 1
 		foreach piece $pieces {
 		    if [info exists ignoreDir($piece)] {
+			set ok 0
+		    }
+# cygwin tcl doesn't seem to filter out hidden (dot) files
+		    if [regexp {^\.} $piece] {
 			set ok 0
 		    }
 		}
@@ -960,7 +1012,7 @@ proc cmdModuleDebug {} {
 	unset countarr
     }
     foreach dir  [split $env(PATH) ":"] {
-	foreach file [glob -nocomplain "$dir/*"] {
+	foreach file [lsHack $dir] {
 	    if [file exists $file] {
 		set exec [file tail $file]
 		if [info exists execcount($exec)] {
@@ -1075,7 +1127,7 @@ catch {
 	}
 	default {
 	    puts stderr {
-		ModulesTcl 0.95 (Copyright MIPS Technologies 2002):
+		ModulesTcl 0.96:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]

@@ -22,14 +22,8 @@ which is the equivalent of
 
 
 
-To use, simply edit the init/* files to point to your local module
-files directory and also the modulecmd.tcl script.
-
-You can use the following perl one-liners to edit the scripts.
-
-perl -pi -e "s|/mips/tools/mips/envmodule|/the/dir/where/modulecmd.tcl/lives|" init/*
-perl -pi -e "s|/mips/tools/freeware/modulefiles|/your/module/files|" init/*
-
+Be sure to run 'make' in the init directory, to create the
+initialization scripts.
 
 
 -Mark Lakata <lakata@mips.com>
