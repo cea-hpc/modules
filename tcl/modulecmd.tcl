@@ -1254,11 +1254,11 @@ proc renderSettings {} {
 		    puts $f "  endif"
 		    puts $f "endif"
 
-		    puts $f "source /home/Mark/envmodule/init/modulerc"
+		    puts $f "source $env(MODULESHOME)/init/modulerc"
 		}
 		sh {
 		    puts $f "module () { eval `'$argv0' '$g_shell' \$*`; }"
-		    puts $f ". /home/Mark/envmodule/init/modulerc"
+		    puts $f ". $env(MODULESHOME)/init/modulerc"
 		}
 		perl {
 		    puts $f "sub module {"
@@ -2437,7 +2437,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.44 $:
+                ModulesTcl 0.101/$Revision: 1.45 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
