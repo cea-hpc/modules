@@ -234,6 +234,22 @@ set error_count  0
 set g_force 1
 set ModulesCurrentModulefile {}
 
+proc module-log {weight facility} {
+    puts stderr "module-log not yet implemented"
+}
+
+proc module-verbosity {mode} {
+    puts stderr "module-verbosity not yet implemented"
+}
+    
+proc module-user {level} {
+    puts stderr "module-user not yet implemented"
+}
+
+proc module-trace {mode args} {
+    puts stderr "module-trace not yet implemented"
+}
+
 proc module-info {what {more {}}} {
     global g_shellType g_shell
     global g_moduleAlias g_symbolHash g_versionHash
@@ -801,15 +817,14 @@ proc conflict {args} {
 
     if {$mode == "load"} {
         foreach mod $args {
-            if [is-loaded $mod] {
-		
-		# Checking if the current module was the same as the conflict module removed.
-		# This fails when the conflict module is given with a version and resolves to
-		# a default.  In that case, if you are trying to load the default and some other
-		# version was already loaded, it would still load the default.
-		set errMsg "WARNING: $currentModule cannot be loaded due to a conflict."
-		set errMsg "$errMsg\nHINT: Might try \"module unload $mod\" first."
-		error $errMsg
+	    # If the current module is already loaded, we can proceed
+	    if {![is-loaded $currentModule]} {
+		# otherwise if the conflict module is loaded, we cannot
+		if [is-loaded $mod] {
+		    set errMsg "WARNING: $currentModule cannot be loaded due to a conflict."
+		    set errMsg "$errMsg\nHINT: Might try \"module unload $mod\" first."
+		    error $errMsg
+		}
             }
         }
     } elseif {$mode == "display"} {
@@ -872,6 +887,12 @@ proc uname {what} {
 	    }
 	    default {
 		error "uname $what not supported"
+	    }
+	    domain {
+		set result [exec /bin/domainname]
+	    }
+	    version {
+		set result [exec /bin/uname -v]
 	    }
 	}
 	set unameCache($what) $result
@@ -955,6 +976,7 @@ proc getPathToModule {mod} {
     if { $g_debug } { puts stderr "DEBUG getPathToModule: Finding $mod" }
     
     # Check for aliases
+    
     set newmod [resolveModuleVersionOrAlias $mod]
     if {$newmod != $mod} {
 	# Alias before ModulesVersion
@@ -1044,7 +1066,7 @@ proc getPathToModule {mod} {
 		if { [ llength $retlist ] == 2} {
 		    # Check to see if we've found only a directory.  If so, keep looking
 		    if { [file isdirectory [lindex $retlist 0]] } {
-			set retlist [getPathToModule $versmod]
+			set retlist [getPathToModule [lindex $retlist 1]]
 		    } 
 
 		    if {! [checkValidModule [lindex $retlist 0]]} {
@@ -1168,16 +1190,16 @@ proc renderSettings {} {
 				set val [string range $val 0 999]
 			    }
 			}
-			puts $f "setenv $var $val ;"
+			puts $f "setenv $var \"$val\""
 		    }
 		    sh {
 			set val [doubleQuoteEscaped $env($var)]
-			puts $f "$var=$val ;export $var;"
+			puts $f "$var=\"$val\"; export $var"
 		    }
 		    perl {
 			set val [doubleQuoteEscaped $env($var)]
 			set val [atSymbolEscaped $env($var)]
-			puts $f "\$ENV{\'$var\'} = \'$val\';"
+			puts $f "\$ENV{$var}=\"$val\";"
 		    }
 		    python {
 			set val [singleQuoteEscaped $env($var)]
@@ -1535,6 +1557,7 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
     global ModulesCurrentModulefile
     global g_moduleDefault
     global g_debug
+    global tcl_platform
 
 # On Cygwin, glob may change the $dir path if there are symlinks involved
 # So it is safest to reglob the $dir.
@@ -1550,6 +1573,14 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
     set ModulesVersion {}
     for {set i 0} {$i < [llength $full_list]} {incr i 1} {
         set element [lindex $full_list $i]
+
+# Cygwin TCL likes to append ".lnk" to the end of symbolic links.
+# This is not necessary and pollutes the module names, so let's
+# trim it off.
+	if {$tcl_platform(platform) == "windows"} {
+	    regsub {\.lnk$} $element {} element
+	}
+
         set tail [file tail $element]
         set direlem [file dirname $element]
 
@@ -1557,6 +1588,7 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
 	set modulename [string range $element $sstart end]
 	set modparent ""
 	regexp {(\S+?)\/\S+} $modulename match modparent
+
 
         if [file isdirectory $element] {
 	    set ModulesVersion ""
@@ -1726,7 +1758,6 @@ proc cmdModuleDisplay {mod} {
 	popMode
 	popModuleName
 	report "-------------------------------------------------------------------"
-	report ""
     }
 }
 
@@ -1848,7 +1879,6 @@ proc cmdModuleLoad {args} {
                 if [execute-modulefile $modfile] {
 		    restoreSettings
 		} else {
-		    append-path _LMFILES_ $modfile
                     append-path LOADEDMODULES $currentModule
                     set g_loadedModules($currentModule) 1
                     set genericModName [file dirname $mod]
@@ -1887,7 +1917,6 @@ proc cmdModuleUnload {args} {
 		    popMode
 		    popModuleName
 		    
-		    unload-path _LMFILES_ $modfile
 		    unload-path LOADEDMODULES $currentModule
 		    unset g_loadedModules($currentModule)
 		    if [info exists g_loadedModulesGeneric([file dirname $currentModule])] {
@@ -2001,9 +2030,9 @@ proc cmdModuleUse {args} {
 	    # -a -append --append (and -p -prepend --prepend) would be nice...
 	    if { $path == "" } {
 		# Skip "holes"
-	    } elseif { [string compare $path "--append"] == 0} {
+	    } elseif {$path == "--append"} {
 		set stuff_path "append-path"
-	    } elseif { [string compare $path "--prepend"] == 0} {
+	    } elseif {$path == "--prepend"} {
 		set stuff_path "prepend-path"
 	    } elseif [file isdirectory $path] {
 		pushMode "load"
@@ -2219,7 +2248,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.39 $:
+                ModulesTcl 0.101/$Revision: 1.40 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
@@ -2306,6 +2335,7 @@ switch -regexp -- $opt {
 	set argv [ removeFromList $argv $opt ]
     }
     {^--ver} {
+	# BOZO - put appropriate version number here
 	puts stderr "3.1.6"
 	exit 0
     }
@@ -2349,10 +2379,10 @@ if { $g_debug } { puts stderr "DEBUG: Resolving $argv" }
 set argv [resolveModuleVersionOrAlias $argv]
 if { $g_debug } { puts stderr "DEBUG: Resolved $argv" }
 
-if { ![info exists env(MODULEPATH)] } {
-    puts stderr "+(0):ERROR:0: \'MODULEPATH\' not set"
-    exit -1
-}
+#if { ![info exists env(MODULEPATH)] } {
+#    puts stderr "+(0):ERROR:0: \'MODULEPATH\' not set"
+#    exit -1
+#}
 
 catch {
     switch -regexp -- $command {
