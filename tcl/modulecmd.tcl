@@ -1,6 +1,6 @@
 #!/bin/sh
 # \
-type tclsh > /dev/null && exec tclsh "$0" "$@"
+type tclsh 1>/dev/null 2>&1 && exec tclsh "$0" "$@"
 # \
 [ -x /usr/local/bin/tclsh ] && exec /usr/local/bin/tclsh "$0" "$@"
 # \
@@ -86,6 +86,12 @@ proc module {command args} {
 		puts stderr "module unload $args"
 	    }
 	}
+	use {
+	    cmdModuleUse $args
+	}
+	unuse {
+	    cmdModuleUnuse $args
+	}
 	default {
 	    error "module $command not understood"
 	}
@@ -136,6 +142,34 @@ proc getReferenceCountArray {var} {
 	    set modsharelist [split $env($sharevar) ":"]
 	    if {[expr [llength $modsharelist] % 2] == 0 } {
 		array set countarr $modsharelist
+
+		# sanity check the modshare list
+		array set fixers {}
+		array set usagearr {}
+		foreach dir [split $env($var) ":"] {
+		    set usagearr($dir) 1
+		}
+		foreach path [array names countarr] {
+		    if {! [info exists usagearr($path)]} {
+			unset countarr($path)
+			set fixers($path) 1
+		    }
+		}
+		
+		foreach path [array names usagearr] {
+		    if {! [info exists countarr($path)]} {
+			set countarr($path) 999999999
+#			set fixers($path) 1
+		    }
+		}
+		if [array size fixers] {
+		    puts stderr "WARNING: \$$var does not agree with \$${var}_modshare counter. The following directories' usage counters were adjusted to match. Note that this may mean that module unloading may not work correctly."
+		    foreach dir [array names fixers] {
+			puts -nonewline stderr " $dir"
+		    }
+		    puts stderr ""
+		}
+
 	    } else {
 #		puts stderr "WARNING: module: $sharevar was corrupted, odd number of elements."
 		set modshareok 0
@@ -361,6 +395,7 @@ proc uname {what} {
 ########################################################################
 # internal module procedures
 
+
 proc getPathToModule {mod} {
     global env g_loadedModulesGeneric
 
@@ -431,8 +466,13 @@ proc renderSettings {} {
 			set val [doubleQuoteEscaped $env($var)]
 # csh barfs on long env vars
 			if {$g_shell == "csh" && [string length $val] > 1000} {
-			    puts stderr "WARNING: module: $var exceeds 1000 characters, truncating..."
-			    set val [string range $val 0 999]
+			    if { $var == "PATH"} {
+				puts stderr "WARNING: module: PATH exceeds 1000 characters, truncating to 900 and appending /usr/bin:/bin ..."
+				set val [string range $val 0 900]:/usr/bin:/bin
+			    } else {
+				puts stderr "WARNING: module: $var exceeds 1000 characters, truncating..."
+				set val [string range $val 0 999]
+			    }
 			}
 			puts $f "setenv $var \"$val\""
 		    }
@@ -693,6 +733,20 @@ proc lsHack {dir} {
     return $globlist
 }
 
+
+proc showModulePath {} {
+    global env
+    if [info exists env(MODULEPATH)] {
+	puts stderr "Search path for module files (in search order):"
+	foreach path [split $env(MODULEPATH) ":"] {
+	    puts stderr "  $path";
+	}
+    } else {
+	puts stderr "WARNING: no directories on module search path"
+    }
+    
+}
+
 ########################################################################
 # command line commands
 
@@ -811,6 +865,19 @@ proc cmdModuleSwitch {old {new {}}} {
 
     cmdModuleUnload $old
     cmdModuleLoad $new
+}
+
+proc cmdModuleSource {args} {
+    global env tcl_version g_loadedModules g_loadedModulesGeneric g_force
+ 
+    foreach file $args {
+	if [file exists $file] {
+	    set g_mode "load"
+	    source $file
+	} else {
+	    error "File $file does not exist"
+	}
+    }
 }
 
 proc cmdModuleLoad {args} {
@@ -978,23 +1045,36 @@ proc cmdModuleAvail { {mod {}}} {
 proc cmdModuleUse {args} {
 
     set g_mode "load"
-    foreach path $args {
-	if [file isdirectory $path] {
-	    prepend-path MODULEPATH $path
-	} else {
-	    error "Directory $path does not exist"
+    if {$args == ""} {
+	showModulePath
+    } else {
+	foreach path $args {
+	    if [file isdirectory $path] {
+		prepend-path MODULEPATH $path
+	    } else {
+		puts stderr "WARNING: Directory \"$path\" does not exist, not added to module search path."
+	    }
 	}
     }
 }
+    
 
 proc cmdModuleUnuse {args} {
 
     set g_mode "unload"
-    foreach path $args {
-	if [file isdirectory $path] {
-	    unload-path MODULEPATH $path
-	} else {
-	    error "Directory $path does not exist"
+    if {$args == ""} {
+	showModulePath
+    } else {
+	global env
+	foreach path $args {
+	    if [info exists env(MODULEPATH)] {
+		set oldMODULEPATH $env(MODULEPATH)
+		unload-path MODULEPATH $path
+		if { [info exists env(MODULEPATH) ] &&
+		     $oldMODULEPATH == $env(MODULEPATH)} {
+		    puts stderr "WARNING: Did not unuse $path"
+		}
+	    }
 	}
     }
 }
@@ -1086,6 +1166,10 @@ catch {
 	    eval cmdModuleLoad $argv
 	    renderSettings
 	}
+	{^source} {
+	    eval cmdModuleSource $argv
+	    renderSettings
+	}
 	{^pu} {
 	    cmdModulePurge
 	    renderSettings
@@ -1132,6 +1216,7 @@ catch {
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
                  reload
+		 source                scriptfile
 		 switch|swap           modulefile1 modulefile2
 		 display|show          modulefile [modulefile ...]
 		 avail                 [modulefile [modulefile ...]]
