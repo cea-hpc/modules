@@ -40,7 +40,6 @@ CPP  : gcc -E -C -dD -dI
  **			Copy_Hash_Tables				     **
  **			Unwind_Modulefile_Changes			     **
  **			Output_Modulefile_Changes			     **
- **			set_derelict					     **
  **			IsLoaded_ExactMatch				     **
  **			IsLoaded					     **
  **			chk_marked_entry				     **
@@ -53,6 +52,8 @@ CPP  : gcc -E -C -dD -dI
  **			chk4spch					     **
  **			xdup						     **
  **			xgetenv						     **
+ **			stringer					     **
+ **			null_clean					     **
  **									     **
  **			strdup		if not defined by the system libs.   **
  **			strtok		if not defined by the system libs.   **
@@ -71,11 +72,12 @@ CPP  : gcc -E -C -dD -dI
 <h2>Included Files</h2>
 
 <ul>
-<li><tt><a href="modules_def.h.html#file">#include &quot;modules_def.h&quot;</a></tt>
+<li><tt><a href="modules_def.h.html#file">#include ";modules_def.h";</a></tt>
 <ul>
 <li><tt>#include &lt;stdio.h&gt;</tt>
+<li><tt>#include &lt;stdarg.h&gt;</tt>
 <li><tt>#include &lt;tcl.h&gt;</tt>
-<li><tt><a href="config.h.html#file">#include &quot;config.h&quot;</a></tt>
+<li><tt><a href="config.h.html#file">#include ";config.h";</a></tt>
 <li><tt>#include &lt;stdlib.h&gt;</tt>
 <li><tt>#include &lt;string.h&gt;</tt>
 <li><tt>#include &lt;unistd.h&gt;</tt>
@@ -89,6 +91,57 @@ CPP  : gcc -E -C -dD -dI
 <li><tt>#include &lt;errno.h&gt;</tt>
 </ul>
 </ul>
+
+<hr>
+<h2>Preprocessor definitions</h2>
+
+<tt>#define __VERSION__ "2.96 20000731 (Red Hat Linux 7.1 2.96-98)"</tt><br>
+<p>
+<tt>#define __USER_LABEL_PREFIX__</tt><br>
+<p>
+<tt>#define __REGISTER_PREFIX__</tt><br>
+<p>
+<tt>#define __HAVE_BUILTIN_SETJMP__ 1</tt><br>
+<p>
+<tt>#define __SIZE_TYPE__</tt><br>
+<p>
+<tt>#define __PTRDIFF_TYPE__ int</tt><br>
+<p>
+<tt>#define __WCHAR_TYPE__</tt><br>
+<p>
+<tt>#define __WINT_TYPE__</tt><br>
+<p>
+<tt>#define __GNUC__ 2</tt><br>
+<p>
+<tt>#define __GNUC_MINOR__ 96</tt><br>
+<p>
+<tt>#define __GNUC_PATCHLEVEL__ 0</tt><br>
+<p>
+<tt>#define __ELF__ 1</tt><br>
+<p>
+<tt>#define unix 1</tt><br>
+<p>
+<tt>#define linux 1</tt><br>
+<p>
+<tt>#define __ELF__ 1</tt><br>
+<p>
+<tt>#define __unix__ 1</tt><br>
+<p>
+<tt>#define __linux__ 1</tt><br>
+<p>
+<tt>#define __unix 1</tt><br>
+<p>
+<tt>#define __linux 1</tt><br>
+<p>
+<tt>#define __NO_INLINE__ 1</tt><br>
+<p>
+<tt>#define i386 1</tt><br>
+<p>
+<tt>#define __i386 1</tt><br>
+<p>
+<tt>#define __i386__ 1</tt><br>
+<p>
+<tt>#define __tune_i386__ 1</tt><br>
 
 <hr>
 <h2>Local Variables</h2>
@@ -123,18 +176,12 @@ CPP  : gcc -E -C -dD -dI
 <td><a href="#func-output_set_variable">output_set_variable()</a>
 <tr><td>&nbsp;
 <td><a href="#func-output_unset_variable">output_unset_variable()</a>
-
-</table>
-<p>
-<b><a name="var-cmd_separator">cmd_separator</a></b><br>
-<tt>static char cmd_separator</tt><br>
-<table>
-<tr><td>Used in:
-<td><a href="#func-Output_Modulefile_Aliases">Output_Modulefile_Aliases()</a>
 <tr><td>&nbsp;
-<td><a href="#func-output_set_variable">output_set_variable()</a>
+<td><a href="#func-stringer">stringer()</a>
 <tr><td>&nbsp;
-<td><a href="#func-output_unset_variable">output_unset_variable()</a>
+<td><a href="#func-tmpfile_mod">tmpfile_mod()</a>
+<tr><td>&nbsp;
+<td><a href="#func-xdup">xdup()</a>
 
 </table>
 <p>
@@ -198,6 +245,8 @@ CPP  : gcc -E -C -dD -dI
 <td colspan=2><a href="modules_def.h.html#file">modules_def.h</a>
 <tr><td>Calls:
 <td><a href="error.c.html#func-Module_Error">Module_Error()</a><td><a href="error.c.html#func-Module_Error">error.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-null_free">null_free()</a><td><a href="utility.c.html#func-null_free">utility.c</a>
 <tr><td>&nbsp;
 <td colspan=2>Tcl_FirstHashEntry(), Tcl_InitHashTable(), Tcl_NextHashEntry(), malloc(), strdup()
 <tr><td>Called by:
@@ -268,11 +317,64 @@ CPP  : gcc -E -C -dD -dI
 <tr><td>Prototyped in:
 <td colspan=2><a href="modules_def.h.html#file">modules_def.h</a>
 <tr><td>Calls:
+<td><a href="utility.c.html#func-null_free">null_free()</a><td><a href="utility.c.html#func-null_free">utility.c</a>
+<tr><td>&nbsp;
 <td colspan=2>Tcl_DeleteHashTable(), Tcl_FirstHashEntry(), Tcl_NextHashEntry()
 <tr><td>Called by:
 <td><a href="utility.c.html#func-Delete_Global_Hash_Tables">Delete_Global_Hash_Tables()</a><td><a href="utility.c.html#func-Delete_Global_Hash_Tables">utility.c</a>
 <tr><td>&nbsp;
 <td><a href="ModuleCmd_Load.c.html#func-ModuleCmd_Load">ModuleCmd_Load()</a><td><a href="ModuleCmd_Load.c.html#func-ModuleCmd_Load">ModuleCmd_Load.c</a>
+
+</table>
+
+<hr>
+<h2><a name="func-EscapeCshString">Global Function EscapeCshString()</a></h2>
+<pre>
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		EscapeCshString(char* in,char* out)                  **
+ ** 									     **
+ **   Description:	will translate input string to escaped output string **
+ **                     out must be allocated first                          **
+ ** 									     **
+ **   First Edition:	2002/04/10					     **
+ ** 									     **
+ **   Parameters:	char	*in		input            	     **
+ **              	char	*out		output               	     **
+ ** 									     **
+ **   Attached Globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+</pre>
+
+<tt>void EscapeCshString ( const char* in, char* out )</tt><br>
+<table>
+<tr><td>Prototyped in:
+<td colspan=2><a href="utility.c.html#file">utility.c</a>
+<tr><td>Called by:
+<td><a href="utility.c.html#func-output_set_variable">output_set_variable()</a><td><a href="utility.c.html#func-output_set_variable">utility.c</a>
+
+</table>
+
+<hr>
+<h2><a name="func-EscapePerlString">Global Function EscapePerlString()</a></h2>
+<tt>void EscapePerlString ( const char* in, char* out )</tt><br>
+<table>
+<tr><td>Prototyped in:
+<td colspan=2><a href="utility.c.html#file">utility.c</a>
+<tr><td>Called by:
+<td><a href="utility.c.html#func-output_set_variable">output_set_variable()</a><td><a href="utility.c.html#func-output_set_variable">utility.c</a>
+
+</table>
+
+<hr>
+<h2><a name="func-EscapeShString">Global Function EscapeShString()</a></h2>
+<tt>void EscapeShString ( const char* in, char* out )</tt><br>
+<table>
+<tr><td>Prototyped in:
+<td colspan=2><a href="utility.c.html#file">utility.c</a>
+<tr><td>Called by:
+<td><a href="utility.c.html#func-output_set_variable">output_set_variable()</a><td><a href="utility.c.html#func-output_set_variable">utility.c</a>
 
 </table>
 
@@ -499,6 +601,8 @@ CPP  : gcc -E -C -dD -dI
 <tr><td>&nbsp;
 <td><a href="utility.c.html#func-get_module_basename">get_module_basename()</a><td><a href="utility.c.html#func-get_module_basename">utility.c</a>
 <tr><td>&nbsp;
+<td><a href="utility.c.html#func-null_free">null_free()</a><td><a href="utility.c.html#func-null_free">utility.c</a>
+<tr><td>&nbsp;
 <td colspan=2>strdup()
 <tr><td>Called by:
 <td><a href="ModuleCmd_Load.c.html#func-ModuleCmd_Load">ModuleCmd_Load()</a><td><a href="ModuleCmd_Load.c.html#func-ModuleCmd_Load">ModuleCmd_Load.c</a>
@@ -519,7 +623,7 @@ CPP  : gcc -E -C -dD -dI
  **   Description:	Check the magic cookie of the file passed as para-   **
  **			meter if it is a valid module file		     **
  **			Based on check_magic in Richard Elling's	     **
- **			find_by_magic &lt;Richard.Elling&quot;@eng.auburn.edu&gt;	     **
+ **			find_by_magic &lt;Richard.Elling"@eng.auburn.edu&gt;	     **
  ** 									     **
  **   First Edition:	91/10/23					     **
  ** 									     **
@@ -588,8 +692,6 @@ CPP  : gcc -E -C -dD -dI
 <td colspan=2><a href="modules_def.h.html#file">modules_def.h</a>
 <tr><td>Called by:
 <td><a href="ModuleCmd_Avail.c.html#func-print_spaced_file">print_spaced_file()</a><td><a href="ModuleCmd_Avail.c.html#func-print_spaced_file">ModuleCmd_Avail.c</a>
-<tr><td>&nbsp;
-<td><a href="ModuleCmd_Avail.c.html#func-store_file">store_file()</a><td><a href="ModuleCmd_Avail.c.html#func-store_file">ModuleCmd_Avail.c</a>
 
 </table>
 
@@ -663,7 +765,7 @@ CPP  : gcc -E -C -dD -dI
 <tr><td>Calls:
 <td colspan=2>strlen()
 <tr><td>Called by:
-<td><a href="cmdPath.c.html#func-cmdRemovePath">cmdRemovePath()</a><td><a href="cmdPath.c.html#func-cmdRemovePath">cmdPath.c</a>
+<td><a href="cmdPath.c.html#func-Remove_Path">Remove_Path()</a><td><a href="cmdPath.c.html#func-Remove_Path">cmdPath.c</a>
 <tr><td>&nbsp;
 <td><a href="cmdPath.c.html#func-cmdSetPath">cmdSetPath()</a><td><a href="cmdPath.c.html#func-cmdSetPath">cmdPath.c</a>
 
@@ -696,9 +798,11 @@ CPP  : gcc -E -C -dD -dI
 <tr><td>Prototyped in:
 <td colspan=2><a href="modules_def.h.html#file">modules_def.h</a>
 <tr><td>Calls:
+<td><a href="utility.c.html#func-null_free">null_free()</a><td><a href="utility.c.html#func-null_free">utility.c</a>
+<tr><td>&nbsp;
 <td colspan=2>Tcl_DeleteHashEntry()
 <tr><td>Called by:
-<td><a href="cmdPath.c.html#func-cmdRemovePath">cmdRemovePath()</a><td><a href="cmdPath.c.html#func-cmdRemovePath">cmdPath.c</a>
+<td><a href="cmdPath.c.html#func-Remove_Path">Remove_Path()</a><td><a href="cmdPath.c.html#func-Remove_Path">cmdPath.c</a>
 <tr><td>&nbsp;
 <td><a href="cmdSetenv.c.html#func-moduleSetenv">moduleSetenv()</a><td><a href="cmdSetenv.c.html#func-moduleSetenv">cmdSetenv.c</a>
 <tr><td>&nbsp;
@@ -735,6 +839,8 @@ CPP  : gcc -E -C -dD -dI
 <tr><td>Calls:
 <td><a href="error.c.html#func-Module_Error">Module_Error()</a><td><a href="error.c.html#func-Module_Error">error.c</a>
 <tr><td>&nbsp;
+<td><a href="utility.c.html#func-null_free">null_free()</a><td><a href="utility.c.html#func-null_free">utility.c</a>
+<tr><td>&nbsp;
 <td colspan=2>Tcl_GetVar2(), realloc(), sprintf(), strdup(), strlen(), strncpy()
 <tr><td>Called by:
 <td><a href="ModuleCmd_List.c.html#func-ModuleCmd_List">ModuleCmd_List()</a><td><a href="ModuleCmd_List.c.html#func-ModuleCmd_List">ModuleCmd_List.c</a>
@@ -748,36 +854,129 @@ CPP  : gcc -E -C -dD -dI
 </table>
 
 <hr>
-<h2><a name="func-set_derelict">Global Function set_derelict()</a></h2>
+<h2><a name="func-null_free">Global Function null_free()</a></h2>
 <pre>
  ** ** Function-Header ***************************************************** **
  ** 									     **
- **   Function:		set_derelict					     **
+ **   Function:		null_free					     **
  ** 									     **
- **   Description:	Normalize the current calling shell to one of the    **
- **			basic shells definig the varaible and alias syntax   **
+ **   Description:	does a free and then nulls the pointer.		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   first edition:	2000/08/24	r.k.owen &lt;rk@owen.sj.ca.us&gt;	     **
  ** 									     **
- **   Parameters:	const char	*name	Invoking shell name	     **
+ **   parameters:	void	**var		allocated memory	     **
  ** 									     **
- **   Result:		char*			Shell derelict name	     **
+ **   result:		void    		(nothing)		     **
  ** 									     **
- **   Attached Globals:	shell_derelict					     **
+ **   attached globals:	-						     **
  ** 									     **
  ** ************************************************************************ **
 </pre>
 
-<tt>char* set_derelict ( const char* name )</tt><br>
+<tt>void null_free ( void** var )</tt><br>
 <table>
 <tr><td>Prototyped in:
 <td colspan=2><a href="modules_def.h.html#file">modules_def.h</a>
-<tr><td>Calls:
-<td colspan=2>strcmp(), strcpy()
 <tr><td>Called by:
-<td><a href="init.c.html#func-Initialize_Tcl">Initialize_Tcl()</a><td><a href="init.c.html#func-Initialize_Tcl">init.c</a>
-<tr><td>References Variables:
-<td><a href="main.c.html#var-shell_derelict">shell_derelict</a><td><a href="main.c.html#var-shell_derelict">main.c</a>
+<td><a href="cmdVersion.c.html#func-AddModule">AddModule()</a><td><a href="cmdVersion.c.html#func-AddModule">cmdVersion.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdVersion.c.html#func-AddName">AddName()</a><td><a href="cmdVersion.c.html#func-AddName">cmdVersion.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdTrace.c.html#func-ChangeTraceSel">ChangeTraceSel()</a><td><a href="cmdTrace.c.html#func-ChangeTraceSel">cmdTrace.c</a>
+<tr><td>&nbsp;
+<td><a href="error.c.html#func-CheckFacility">CheckFacility()</a><td><a href="error.c.html#func-CheckFacility">error.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdVersion.c.html#func-CleanupName">CleanupName()</a><td><a href="cmdVersion.c.html#func-CleanupName">cmdVersion.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdVersion.c.html#func-CleanupVersionSub">CleanupVersionSub()</a><td><a href="cmdVersion.c.html#func-CleanupVersionSub">cmdVersion.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-Clear_Global_Hash_Tables">Clear_Global_Hash_Tables()</a><td><a href="utility.c.html#func-Clear_Global_Hash_Tables">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-Copy_Hash_Tables">Copy_Hash_Tables()</a><td><a href="utility.c.html#func-Copy_Hash_Tables">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-Delete_Hash_Tables">Delete_Hash_Tables()</a><td><a href="utility.c.html#func-Delete_Hash_Tables">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="error.c.html#func-FlushError">FlushError()</a><td><a href="error.c.html#func-FlushError">error.c</a>
+<tr><td>&nbsp;
+<td><a href="error.c.html#func-GetFacilityPtr">GetFacilityPtr()</a><td><a href="error.c.html#func-GetFacilityPtr">error.c</a>
+<tr><td>&nbsp;
+<td><a href="locate_module.c.html#func-GetModuleName">GetModuleName()</a><td><a href="locate_module.c.html#func-GetModuleName">locate_module.c</a>
+<tr><td>&nbsp;
+<td><a href="locate_module.c.html#func-Locate_ModuleFile">Locate_ModuleFile()</a><td><a href="locate_module.c.html#func-Locate_ModuleFile">locate_module.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Whatis.c.html#func-ModuleCmd_Apropos">ModuleCmd_Apropos()</a><td><a href="ModuleCmd_Whatis.c.html#func-ModuleCmd_Apropos">ModuleCmd_Whatis.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Avail.c.html#func-ModuleCmd_Avail">ModuleCmd_Avail()</a><td><a href="ModuleCmd_Avail.c.html#func-ModuleCmd_Avail">ModuleCmd_Avail.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Init.c.html#func-ModuleCmd_Init">ModuleCmd_Init()</a><td><a href="ModuleCmd_Init.c.html#func-ModuleCmd_Init">ModuleCmd_Init.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Load.c.html#func-ModuleCmd_Load">ModuleCmd_Load()</a><td><a href="ModuleCmd_Load.c.html#func-ModuleCmd_Load">ModuleCmd_Load.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Purge.c.html#func-ModuleCmd_Purge">ModuleCmd_Purge()</a><td><a href="ModuleCmd_Purge.c.html#func-ModuleCmd_Purge">ModuleCmd_Purge.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Switch.c.html#func-ModuleCmd_Switch">ModuleCmd_Switch()</a><td><a href="ModuleCmd_Switch.c.html#func-ModuleCmd_Switch">ModuleCmd_Switch.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Whatis.c.html#func-ModuleCmd_Whatis">ModuleCmd_Whatis()</a><td><a href="ModuleCmd_Whatis.c.html#func-ModuleCmd_Whatis">ModuleCmd_Whatis.c</a>
+<tr><td>&nbsp;
+<td><a href="error.c.html#func-Module_Error">Module_Error()</a><td><a href="error.c.html#func-Module_Error">error.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdModule.c.html#func-Read_Modulefile">Read_Modulefile()</a><td><a href="cmdModule.c.html#func-Read_Modulefile">cmdModule.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdPath.c.html#func-Remove_Path">Remove_Path()</a><td><a href="cmdPath.c.html#func-Remove_Path">cmdPath.c</a>
+<tr><td>&nbsp;
+<td><a href="locate_module.c.html#func-SortedDirList">SortedDirList()</a><td><a href="locate_module.c.html#func-SortedDirList">locate_module.c</a>
+<tr><td>&nbsp;
+<td><a href="locate_module.c.html#func-SourceRC">SourceRC()</a><td><a href="locate_module.c.html#func-SourceRC">locate_module.c</a>
+<tr><td>&nbsp;
+<td><a href="locate_module.c.html#func-SourceVers">SourceVers()</a><td><a href="locate_module.c.html#func-SourceVers">locate_module.c</a>
+<tr><td>&nbsp;
+<td><a href="locate_module.c.html#func-SplitIntoList">SplitIntoList()</a><td><a href="locate_module.c.html#func-SplitIntoList">locate_module.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-Update_LoadedList">Update_LoadedList()</a><td><a href="utility.c.html#func-Update_LoadedList">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdVersion.c.html#func-VersionLookup">VersionLookup()</a><td><a href="cmdVersion.c.html#func-VersionLookup">cmdVersion.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-__IsLoaded">__IsLoaded()</a><td><a href="utility.c.html#func-__IsLoaded">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Avail.c.html#func-_init_file_list">_init_file_list()</a><td><a href="ModuleCmd_Avail.c.html#func-_init_file_list">ModuleCmd_Avail.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdConflict.c.html#func-checkConflict">checkConflict()</a><td><a href="cmdConflict.c.html#func-checkConflict">cmdConflict.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-clear_hash_value">clear_hash_value()</a><td><a href="utility.c.html#func-clear_hash_value">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdConflict.c.html#func-cmdConflict">cmdConflict()</a><td><a href="cmdConflict.c.html#func-cmdConflict">cmdConflict.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdLog.c.html#func-cmdModuleLog">cmdModuleLog()</a><td><a href="cmdLog.c.html#func-cmdModuleLog">cmdLog.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdTrace.c.html#func-cmdModuleTrace">cmdModuleTrace()</a><td><a href="cmdTrace.c.html#func-cmdModuleTrace">cmdTrace.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdConflict.c.html#func-cmdPrereq">cmdPrereq()</a><td><a href="cmdConflict.c.html#func-cmdPrereq">cmdConflict.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdPath.c.html#func-cmdSetPath">cmdSetPath()</a><td><a href="cmdPath.c.html#func-cmdSetPath">cmdPath.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Avail.c.html#func-delete_cache_list">delete_cache_list()</a><td><a href="ModuleCmd_Avail.c.html#func-delete_cache_list">ModuleCmd_Avail.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Avail.c.html#func-delete_dirlst">delete_dirlst()</a><td><a href="ModuleCmd_Avail.c.html#func-delete_dirlst">ModuleCmd_Avail.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Avail.c.html#func-dirlst_to_list">dirlst_to_list()</a><td><a href="ModuleCmd_Avail.c.html#func-dirlst_to_list">ModuleCmd_Avail.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-getLMFILES">getLMFILES()</a><td><a href="utility.c.html#func-getLMFILES">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Avail.c.html#func-get_dir">get_dir()</a><td><a href="ModuleCmd_Avail.c.html#func-get_dir">ModuleCmd_Avail.c</a>
+<tr><td>&nbsp;
+<td><a href="main.c.html#func-main">main()</a><td><a href="main.c.html#func-main">main.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-output_set_variable">output_set_variable()</a><td><a href="utility.c.html#func-output_set_variable">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Avail.c.html#func-print_aligned_files">print_aligned_files()</a><td><a href="ModuleCmd_Avail.c.html#func-print_aligned_files">ModuleCmd_Avail.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Avail.c.html#func-print_dir">print_dir()</a><td><a href="ModuleCmd_Avail.c.html#func-print_dir">ModuleCmd_Avail.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-store_hash_value">store_hash_value()</a><td><a href="utility.c.html#func-store_hash_value">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-tmpfile_mod">tmpfile_mod()</a><td><a href="utility.c.html#func-tmpfile_mod">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-xdup">xdup()</a><td><a href="utility.c.html#func-xdup">utility.c</a>
 
 </table>
 
@@ -825,15 +1024,169 @@ CPP  : gcc -E -C -dD -dI
 <tr><td>Prototyped in:
 <td colspan=2><a href="modules_def.h.html#file">modules_def.h</a>
 <tr><td>Calls:
+<td><a href="utility.c.html#func-null_free">null_free()</a><td><a href="utility.c.html#func-null_free">utility.c</a>
+<tr><td>&nbsp;
 <td colspan=2>strdup()
 <tr><td>Called by:
-<td><a href="cmdPath.c.html#func-cmdRemovePath">cmdRemovePath()</a><td><a href="cmdPath.c.html#func-cmdRemovePath">cmdPath.c</a>
+<td><a href="cmdPath.c.html#func-Remove_Path">Remove_Path()</a><td><a href="cmdPath.c.html#func-Remove_Path">cmdPath.c</a>
 <tr><td>&nbsp;
 <td><a href="cmdAlias.c.html#func-cmdSetAlias">cmdSetAlias()</a><td><a href="cmdAlias.c.html#func-cmdSetAlias">cmdAlias.c</a>
 <tr><td>&nbsp;
 <td><a href="cmdSetenv.c.html#func-moduleSetenv">moduleSetenv()</a><td><a href="cmdSetenv.c.html#func-moduleSetenv">cmdSetenv.c</a>
 <tr><td>&nbsp;
 <td><a href="cmdSetenv.c.html#func-moduleUnsetenv">moduleUnsetenv()</a><td><a href="cmdSetenv.c.html#func-moduleUnsetenv">cmdSetenv.c</a>
+
+</table>
+
+<hr>
+<h2><a name="func-stringer">Global Function stringer()</a></h2>
+<pre>
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		stringer					     **
+ ** 									     **
+ **   Description:	Safely copies and concats series of strings	     **
+ **			until it hits a NULL argument.			     **
+ **			Either a buffer &amp; length are given or if the buffer  **
+ **			pointer is NULL then it will allocate memory to the  **
+ **			given length. If the length is 0 then get the length **
+ **			from the series of strings.			     **
+ **			The resultant buffer is returned unless there	     **
+ **			is an error then NULL is returned.		     **
+ **			(Therefore, one of the main uses of stringer is to   **
+ **			 allocate string memory.)			     **
+ ** 									     **
+ ** 									     **
+ **   First Edition:	2001/08/08	R.K.Owen &lt;rk@owen.sj.ca.us&gt;	     **
+ ** 									     **
+ **   Parameters:	char		*buffer	string buffer (if not NULL)  **
+ **			int		 len	maximum length of buffer     **
+ **			const char	*str1	1st string to copy to buffer **
+ **			const char	*str2	2nd string to cat  to buffer **
+ ** 			...						     **
+ **			const char	*strN	Nth string to cat  to buffer **
+ **			const char	*NULL	end of arguments	     **
+ ** 									     **
+ **   Result:		char		*buffer	if successfull completion    **
+ ** 					else NULL			     **
+ ** 									     **
+ **   Attached Globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+</pre>
+
+<tt>char* stringer ( char* buffer, int len, ... )</tt><br>
+<table>
+<tr><td>Prototyped in:
+<td colspan=2><a href="modules_def.h.html#file">modules_def.h</a>
+<tr><td>Calls:
+<td><a href="error.c.html#func-Module_Error">Module_Error()</a><td><a href="error.c.html#func-Module_Error">error.c</a>
+<tr><td>&nbsp;
+<td colspan=2>__builtin_stdarg_start(), __builtin_va_arg(), __builtin_va_end(), malloc(), strlen()
+<tr><td>Called by:
+<td><a href="error.c.html#func-CheckFacility">CheckFacility()</a><td><a href="error.c.html#func-CheckFacility">error.c</a>
+<tr><td>&nbsp;
+<td><a href="error.c.html#func-ErrorString">ErrorString()</a><td><a href="error.c.html#func-ErrorString">error.c</a>
+<tr><td>&nbsp;
+<td><a href="error.c.html#func-FlushError">FlushError()</a><td><a href="error.c.html#func-FlushError">error.c</a>
+<tr><td>&nbsp;
+<td><a href="error.c.html#func-GetFacilityPtr">GetFacilityPtr()</a><td><a href="error.c.html#func-GetFacilityPtr">error.c</a>
+<tr><td>&nbsp;
+<td><a href="locate_module.c.html#func-GetModuleName">GetModuleName()</a><td><a href="locate_module.c.html#func-GetModuleName">locate_module.c</a>
+<tr><td>&nbsp;
+<td><a href="locate_module.c.html#func-Locate_ModuleFile">Locate_ModuleFile()</a><td><a href="locate_module.c.html#func-Locate_ModuleFile">locate_module.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Init.c.html#func-ModuleCmd_Init">ModuleCmd_Init()</a><td><a href="ModuleCmd_Init.c.html#func-ModuleCmd_Init">ModuleCmd_Init.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Load.c.html#func-ModuleCmd_Load">ModuleCmd_Load()</a><td><a href="ModuleCmd_Load.c.html#func-ModuleCmd_Load">ModuleCmd_Load.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Purge.c.html#func-ModuleCmd_Purge">ModuleCmd_Purge()</a><td><a href="ModuleCmd_Purge.c.html#func-ModuleCmd_Purge">ModuleCmd_Purge.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Switch.c.html#func-ModuleCmd_Switch">ModuleCmd_Switch()</a><td><a href="ModuleCmd_Switch.c.html#func-ModuleCmd_Switch">ModuleCmd_Switch.c</a>
+<tr><td>&nbsp;
+<td><a href="init.c.html#func-Module_Tcl_ExitCmd">Module_Tcl_ExitCmd()</a><td><a href="init.c.html#func-Module_Tcl_ExitCmd">init.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdPath.c.html#func-Remove_Path">Remove_Path()</a><td><a href="cmdPath.c.html#func-Remove_Path">cmdPath.c</a>
+<tr><td>&nbsp;
+<td><a href="locate_module.c.html#func-SortedDirList">SortedDirList()</a><td><a href="locate_module.c.html#func-SortedDirList">locate_module.c</a>
+<tr><td>&nbsp;
+<td><a href="locate_module.c.html#func-SourceRC">SourceRC()</a><td><a href="locate_module.c.html#func-SourceRC">locate_module.c</a>
+<tr><td>&nbsp;
+<td><a href="locate_module.c.html#func-SourceVers">SourceVers()</a><td><a href="locate_module.c.html#func-SourceVers">locate_module.c</a>
+<tr><td>&nbsp;
+<td><a href="locate_module.c.html#func-SplitIntoList">SplitIntoList()</a><td><a href="locate_module.c.html#func-SplitIntoList">locate_module.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-__IsLoaded">__IsLoaded()</a><td><a href="utility.c.html#func-__IsLoaded">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Whatis.c.html#func-apropos_cache">apropos_cache()</a><td><a href="ModuleCmd_Whatis.c.html#func-apropos_cache">ModuleCmd_Whatis.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdConflict.c.html#func-checkConflict">checkConflict()</a><td><a href="cmdConflict.c.html#func-checkConflict">cmdConflict.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdLog.c.html#func-cmdModuleLog">cmdModuleLog()</a><td><a href="cmdLog.c.html#func-cmdModuleLog">cmdLog.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdConflict.c.html#func-cmdPrereq">cmdPrereq()</a><td><a href="cmdConflict.c.html#func-cmdPrereq">cmdConflict.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdPath.c.html#func-cmdSetPath">cmdSetPath()</a><td><a href="cmdPath.c.html#func-cmdSetPath">cmdPath.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Avail.c.html#func-dirlst_to_list">dirlst_to_list()</a><td><a href="ModuleCmd_Avail.c.html#func-dirlst_to_list">ModuleCmd_Avail.c</a>
+<tr><td>&nbsp;
+<td><a href="main.c.html#func-main">main()</a><td><a href="main.c.html#func-main">main.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-output_set_variable">output_set_variable()</a><td><a href="utility.c.html#func-output_set_variable">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Avail.c.html#func-print_dir">print_dir()</a><td><a href="ModuleCmd_Avail.c.html#func-print_dir">ModuleCmd_Avail.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-tmpfile_mod">tmpfile_mod()</a><td><a href="utility.c.html#func-tmpfile_mod">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="ModuleCmd_Whatis.c.html#func-whatis_dir">whatis_dir()</a><td><a href="ModuleCmd_Whatis.c.html#func-whatis_dir">ModuleCmd_Whatis.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-xdup">xdup()</a><td><a href="utility.c.html#func-xdup">utility.c</a>
+<tr><td>References Functions:
+<td colspan=2>strcat(), strcpy()
+<tr><td>References Variables:
+<td><a href="utility.c.html#var-module_name">module_name</a><td><a href="utility.c.html#var-module_name">utility.c</a>
+
+</table>
+
+<hr>
+<h2><a name="func-tmpfile_mod">Global Function tmpfile_mod()</a></h2>
+<pre>
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		tmpfile_mod                                          **
+ ** 									     **
+ **   Description:	emulates tempnam  and tmpnam  and mktemp             **
+ **                     Atomically creates a unique temp file and opens it   **
+ **                     for writing. returns 0 on success, 1 on failure      **
+ **                     Filename and file handle are returned through        **
+ **                     argument pointers                                    **
+ ** 									     **
+ **   First Edition:	2002/04/22					     **
+ ** 									     **
+ **   Parameters:	char	**filename	pointer to char* 	     **
+ **              	char	**file          pointer to FILE*     	     **
+ ** 									     **
+ **   Attached Globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+</pre>
+
+<tt>int tmpfile_mod ( char** filename, FILE** file )</tt><br>
+<table>
+<tr><td>Prototyped in:
+<td colspan=2><a href="modules_def.h.html#file">modules_def.h</a>
+<tr><td>Calls:
+<td><a href="error.c.html#func-Module_Error">Module_Error()</a><td><a href="error.c.html#func-Module_Error">error.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-null_free">null_free()</a><td><a href="utility.c.html#func-null_free">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-stringer">stringer()</a><td><a href="utility.c.html#func-stringer">utility.c</a>
+<tr><td>&nbsp;
+<td colspan=2>fdopen(), fprintf(), open(), sprintf(), strlen()
+<tr><td>Called by:
+<td><a href="utility.c.html#func-Output_Modulefile_Aliases">Output_Modulefile_Aliases()</a><td><a href="utility.c.html#func-Output_Modulefile_Aliases">utility.c</a>
+<tr><td>References Variables:
+<td><a href="utility.c.html#var-module_name">module_name</a><td><a href="utility.c.html#var-module_name">utility.c</a>
 
 </table>
 
@@ -850,7 +1203,7 @@ CPP  : gcc -E -C -dD -dI
  **			\$ escapes the expansion and substitutes a '$' in    **
  **			its place.					     **
  ** 									     **
- **   First Edition:	2000/01/21					     **
+ **   First Edition:	2000/01/21	R.K.Owen &lt;rk@owen.sj.ca.us&gt;	     **
  ** 									     **
  **   Parameters:	char	*string		Environment variable	     **
  ** 									     **
@@ -866,11 +1219,19 @@ CPP  : gcc -E -C -dD -dI
 <tr><td>Prototyped in:
 <td colspan=2><a href="modules_def.h.html#file">modules_def.h</a>
 <tr><td>Calls:
+<td><a href="error.c.html#func-Module_Error">Module_Error()</a><td><a href="error.c.html#func-Module_Error">error.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-null_free">null_free()</a><td><a href="utility.c.html#func-null_free">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-stringer">stringer()</a><td><a href="utility.c.html#func-stringer">utility.c</a>
+<tr><td>&nbsp;
 <td colspan=2>getenv(), memset(), strchr(), strcspn(), strdup(), strlen(), strncat(), strncpy()
 <tr><td>Called by:
 <td><a href="locate_module.c.html#func-SplitIntoList">SplitIntoList()</a><td><a href="locate_module.c.html#func-SplitIntoList">locate_module.c</a>
 <tr><td>&nbsp;
 <td><a href="utility.c.html#func-xgetenv">xgetenv()</a><td><a href="utility.c.html#func-xgetenv">utility.c</a>
+<tr><td>References Variables:
+<td><a href="utility.c.html#var-module_name">module_name</a><td><a href="utility.c.html#var-module_name">utility.c</a>
 
 </table>
 
@@ -885,7 +1246,7 @@ CPP  : gcc -E -C -dD -dI
  ** 			However, it will only expand 1 level.		     **
  ** 			See xdup() for details.				     **
  ** 									     **
- **   First Edition:	2000/01/18					     **
+ **   First Edition:	2000/01/18	R.K.Owen &lt;rk@owen.sj.ca.us&gt;	     **
  ** 									     **
  **   Parameters:	char	*var		Environment variable	     **
  ** 									     **
@@ -910,6 +1271,10 @@ CPP  : gcc -E -C -dD -dI
 <td><a href="ModuleCmd_Avail.c.html#func-ModuleCmd_Avail">ModuleCmd_Avail()</a><td><a href="ModuleCmd_Avail.c.html#func-ModuleCmd_Avail">ModuleCmd_Avail.c</a>
 <tr><td>&nbsp;
 <td><a href="ModuleCmd_Whatis.c.html#func-ModuleCmd_Whatis">ModuleCmd_Whatis()</a><td><a href="ModuleCmd_Whatis.c.html#func-ModuleCmd_Whatis">ModuleCmd_Whatis.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdConflict.c.html#func-cmdConflict">cmdConflict()</a><td><a href="cmdConflict.c.html#func-cmdConflict">cmdConflict.c</a>
+<tr><td>&nbsp;
+<td><a href="cmdConflict.c.html#func-cmdPrereq">cmdPrereq()</a><td><a href="cmdConflict.c.html#func-cmdPrereq">cmdConflict.c</a>
 <tr><td>&nbsp;
 <td><a href="main.c.html#func-main">main()</a><td><a href="main.c.html#func-main">main.c</a>
 <tr><td>&nbsp;
@@ -944,6 +1309,8 @@ CPP  : gcc -E -C -dD -dI
 <tr><td>Prototyped in:
 <td colspan=2><a href="utility.c.html#file">utility.c</a>
 <tr><td>Calls:
+<td><a href="utility.c.html#func-null_free">null_free()</a><td><a href="utility.c.html#func-null_free">utility.c</a>
+<tr><td>&nbsp;
 <td colspan=2>Tcl_DeleteHashTable(), Tcl_FirstHashEntry(), Tcl_InitHashTable(), Tcl_NextHashEntry()
 <tr><td>Called by:
 <td><a href="utility.c.html#func-Output_Modulefile_Changes">Output_Modulefile_Changes()</a><td><a href="utility.c.html#func-Output_Modulefile_Changes">utility.c</a>
@@ -1016,7 +1383,9 @@ CPP  : gcc -E -C -dD -dI
 <tr><td>&nbsp;
 <td><a href="utility.c.html#func-output_unset_alias">output_unset_alias()</a><td><a href="utility.c.html#func-output_unset_alias">utility.c</a>
 <tr><td>&nbsp;
-<td colspan=2>Tcl_FirstHashEntry(), Tcl_NextHashEntry(), fclose(), fopen(), fprintf(), strcmp(), tempnam()
+<td><a href="utility.c.html#func-tmpfile_mod">tmpfile_mod()</a><td><a href="utility.c.html#func-tmpfile_mod">utility.c</a>
+<tr><td>&nbsp;
+<td colspan=2>Tcl_FirstHashEntry(), Tcl_NextHashEntry(), fclose(), fprintf(), strcmp()
 <tr><td>Called by:
 <td><a href="utility.c.html#func-Output_Modulefile_Changes">Output_Modulefile_Changes()</a><td><a href="utility.c.html#func-Output_Modulefile_Changes">utility.c</a>
 <tr><td>References Variables:
@@ -1028,9 +1397,9 @@ CPP  : gcc -E -C -dD -dI
 <tr><td>&nbsp;
 <td><a href="utility.c.html#var-aliasfile">aliasfile</a><td><a href="utility.c.html#var-aliasfile">utility.c</a>
 <tr><td>&nbsp;
-<td><a href="utility.c.html#var-cmd_separator">cmd_separator</a><td><a href="utility.c.html#var-cmd_separator">utility.c</a>
-<tr><td>&nbsp;
 <td><a href="utility.c.html#var-module_name">module_name</a><td><a href="utility.c.html#var-module_name">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="main.c.html#var-shell_cmd_separator">shell_cmd_separator</a><td><a href="main.c.html#var-shell_cmd_separator">main.c</a>
 <tr><td>&nbsp;
 <td><a href="main.c.html#var-shell_derelict">shell_derelict</a><td><a href="main.c.html#var-shell_derelict">main.c</a>
 
@@ -1059,7 +1428,11 @@ CPP  : gcc -E -C -dD -dI
 <tr><td>&nbsp;
 <td><a href="utility.c.html#func-get_module_basename">get_module_basename()</a><td><a href="utility.c.html#func-get_module_basename">utility.c</a>
 <tr><td>&nbsp;
-<td colspan=2>Tcl_GetVar2(), strcmp(), strcpy(), strdup(), strtok()
+<td><a href="utility.c.html#func-null_free">null_free()</a><td><a href="utility.c.html#func-null_free">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-stringer">stringer()</a><td><a href="utility.c.html#func-stringer">utility.c</a>
+<tr><td>&nbsp;
+<td colspan=2>Tcl_GetVar2(), strcmp(), strcpy(), strtok()
 <tr><td>Called by:
 <td><a href="utility.c.html#func-IsLoaded">IsLoaded()</a><td><a href="utility.c.html#func-IsLoaded">utility.c</a>
 <tr><td>&nbsp;
@@ -1251,17 +1624,27 @@ CPP  : gcc -E -C -dD -dI
 <tr><td>Prototyped in:
 <td colspan=2><a href="utility.c.html#file">utility.c</a>
 <tr><td>Calls:
+<td><a href="utility.c.html#func-EscapeCshString">EscapeCshString()</a><td><a href="utility.c.html#func-EscapeCshString">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-EscapePerlString">EscapePerlString()</a><td><a href="utility.c.html#func-EscapePerlString">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-EscapeShString">EscapeShString()</a><td><a href="utility.c.html#func-EscapeShString">utility.c</a>
+<tr><td>&nbsp;
 <td><a href="error.c.html#func-Module_Error">Module_Error()</a><td><a href="error.c.html#func-Module_Error">error.c</a>
 <tr><td>&nbsp;
 <td><a href="utility.c.html#func-chop">chop()</a><td><a href="utility.c.html#func-chop">utility.c</a>
 <tr><td>&nbsp;
-<td colspan=2>Tcl_GetVar2(), fprintf(), sprintf(), strcmp(), strlen(), strncpy()
+<td><a href="utility.c.html#func-null_free">null_free()</a><td><a href="utility.c.html#func-null_free">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="utility.c.html#func-stringer">stringer()</a><td><a href="utility.c.html#func-stringer">utility.c</a>
+<tr><td>&nbsp;
+<td colspan=2>fprintf(), malloc(), strcmp(), strlen()
 <tr><td>Called by:
 <td><a href="utility.c.html#func-Output_Modulefile_Changes">Output_Modulefile_Changes()</a><td><a href="utility.c.html#func-Output_Modulefile_Changes">utility.c</a>
 <tr><td>References Variables:
-<td><a href="utility.c.html#var-cmd_separator">cmd_separator</a><td><a href="utility.c.html#var-cmd_separator">utility.c</a>
-<tr><td>&nbsp;
 <td><a href="utility.c.html#var-module_name">module_name</a><td><a href="utility.c.html#var-module_name">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="main.c.html#var-shell_cmd_separator">shell_cmd_separator</a><td><a href="main.c.html#var-shell_cmd_separator">main.c</a>
 <tr><td>&nbsp;
 <td><a href="main.c.html#var-shell_derelict">shell_derelict</a><td><a href="main.c.html#var-shell_derelict">main.c</a>
 
@@ -1348,9 +1731,9 @@ CPP  : gcc -E -C -dD -dI
 <tr><td>Called by:
 <td><a href="utility.c.html#func-Output_Modulefile_Changes">Output_Modulefile_Changes()</a><td><a href="utility.c.html#func-Output_Modulefile_Changes">utility.c</a>
 <tr><td>References Variables:
-<td><a href="utility.c.html#var-cmd_separator">cmd_separator</a><td><a href="utility.c.html#var-cmd_separator">utility.c</a>
-<tr><td>&nbsp;
 <td><a href="utility.c.html#var-module_name">module_name</a><td><a href="utility.c.html#var-module_name">utility.c</a>
+<tr><td>&nbsp;
+<td><a href="main.c.html#var-shell_cmd_separator">shell_cmd_separator</a><td><a href="main.c.html#var-shell_cmd_separator">main.c</a>
 <tr><td>&nbsp;
 <td><a href="main.c.html#var-shell_derelict">shell_derelict</a><td><a href="main.c.html#var-shell_derelict">main.c</a>
 
