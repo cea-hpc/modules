@@ -21,7 +21,7 @@ echo FATAL: module: Could not find tclsh on \$PATH or in standard directories; e
 #
 
 set ignoreDir(CVS) 1
-set ignoreDIr(RCS) 1
+set ignoreDir(RCS) 1
 set ignoreDir(SCCS) 1
 set g_reloadMode  0
 set error_count  0
@@ -1350,7 +1350,7 @@ catch {
 	}
 	default {
 	    puts stderr {
-		ModulesTcl 0.99/$Revision: 1.13 $:
+		ModulesTcl 0.99/$Revision: 1.14 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
