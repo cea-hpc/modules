@@ -1350,7 +1350,7 @@ catch {
 	}
 	default {
 	    puts stderr {
-		ModulesTcl 0.99:
+		ModulesTcl 0.99/$Revision: 1.13 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
