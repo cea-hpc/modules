@@ -1176,6 +1176,7 @@ proc renderSettings {} {
     global g_stateEnvVars g_stateAliases
     global g_newXResources g_delXResources
     global g_pathList error_count
+    global g_autoInit
 
     set iattempt 0
     set f ""
@@ -1218,6 +1219,72 @@ proc renderSettings {} {
 	    }
 	}
 
+	if {$g_autoInit} {
+	    global argv0
+	    
+	    # add cwd if not absolute script path
+	    if {! [regexp {^/} $argv0]} {
+		global tcl_platform
+		if {$tcl_platform(platform) == "windows"} {
+		    set pwd [exec pwd]
+		} else {
+		    set pwd [pwd]
+		}
+		set argv0  "$pwd/$argv0"
+	    }
+
+	    set env(MODULESHOME)  [file dirname $argv0]
+	    set g_stateEnvVars(MODULESHOME) "new"
+
+	    
+	    switch -- $g_shellType {
+		csh {
+		    puts $f "if ( \$?histchars ) then"
+		    puts $f "  set _histchars = \$histchars"
+		    puts $f "  if (\$?prompt) then"
+		    puts $f "  alias module 'unset histchars;set _prompt=\"\$prompt\";eval `'$argv0' '$g_shell' \\!*`;set histchars = \$_histchars; set prompt=\"\$_prompt\";unset _prompt'"
+		    puts $f "  else"
+		    puts $f "    alias module 'unset histchars;eval `'$argv0' '$g_shell' \\!*`;set histchars = \$_histchars'"
+		    puts $f "  endif"
+		    puts $f "else"
+		    puts $f "  if (\$?prompt) then"
+		    puts $f "    alias module 'set _prompt=\"\$prompt\";set prompt=\"\";eval `'$argv0' '$g_shell' \\!*`;set prompt=\"\$_prompt\";unset _prompt'"
+		    puts $f "  else"
+		    puts $f "    alias module 'eval `'$argv0' '$g_shell' \\!*`'"
+		    puts $f "  endif"
+		    puts $f "endif"
+
+		    puts $f "source /home/Mark/envmodule/init/modulerc"
+		}
+		sh {
+		    puts $f "module () { eval `'$argv0' '$g_shell' \$*`; }"
+		    puts $f ". /home/Mark/envmodule/init/modulerc"
+		}
+		perl {
+		    puts $f "sub module {"
+		    puts $f "  eval `\$ENV{MODULESHOME}/modulecmd.tcl perl @_`;"
+		    puts $f "  if(\$@) {"
+		    puts $f "    use Carp;"
+		    puts $f "    confess \"module-error: \$@\n\";"
+		    puts $f "  }"
+		    puts $f "  return 1;"
+		    puts $f "}"
+		}
+		python {
+		    puts $f "def module(command, *arguments):"
+		    puts $f "        commands = os.popen('$argv0 python %s %s' % (command, string.join(arguments))).read()"
+		    puts $f "        exec commands"
+		}
+	    }
+	    
+	    if [ file exists "$env(MODULESHOME)/modulerc"] {
+		cmdModuleSource "$env(MODULESHOME)/modulerc"
+	    }
+	    if [ file exists "$env(MODULESHOME)/init/modulerc"] {
+		cmdModuleSource "$env(MODULESHOME)/init/modulerc"
+	    }
+        }
+	
 
 # new environment variables
 	foreach var [array names g_stateEnvVars] {
@@ -1795,6 +1862,7 @@ proc report {message {nonewline ""}} {
     }
 }
 
+
 ########################################################################
 # command line commands
 
@@ -2220,6 +2288,10 @@ proc cmdModuleDebug {} {
     }
 }
 
+proc cmdModuleAutoinit {} {
+    global g_autoInit
+    set g_autoInit 1
+}
 
 proc cmdModuleInit {args} {
 
@@ -2365,7 +2437,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.43 $:
+                ModulesTcl 0.101/$Revision: 1.44 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
@@ -2393,6 +2465,7 @@ initclear    |  initprepend         modulefile
 ########################################################################
 # main program
 set g_debug 0
+set g_autoInit 0
 
 # needed on a gentoo system. Shouldn't hurt since it is
 # supposed to be the default behavior
@@ -2484,8 +2557,6 @@ switch -regexp -- $g_shell {
 	error " +(0):ERROR:0: Unknown shell type \'($g_shell)\'"
     }
 }
-
-
 
 cacheCurrentModules
 
@@ -2594,6 +2665,10 @@ catch {
 	}
 	{^initclear$} {
 	    eval cmdModuleInit clear $argv
+	}
+	{^autoinit$} {
+	    cmdModuleAutoinit
+	    renderSettings
 	}
 	default {
 	   cmdModuleHelp $argv
