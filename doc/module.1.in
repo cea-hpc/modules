@@ -81,37 +81,21 @@ the output of the
 .B bootstrap
 command. In most shells, this looks like
 .nf
+
         eval `modulecmd <shell> bootstrap`
+
 .fi
-
-
-The
-.B module
-alias or function executes the
-.B modulecmd
-program and has the shell evaluate
-the command's output.  The first argument to
-.B modulecmd
-specifies the type of shell.
-.LP
-The sh, csh, tcsh, bash, ksh, and zsh shells are supported by
-.B modulecmd.
-In addition, python and perl "shells" are supported which writes
-the environment changes to stdout as python or perl code.
-.SS Examples of initialization
-In the following examples, you can replace
-.B modulecmd
-with a full path to a particular
-.B modulecmd 
-binary. Also replace <shell> with the appropriate shell, which is one
-of
+where <shell> is replaced by the name of the shell being used. Allowed
+shell names are
 .nf
 
-        sh ksh bash zsh
-        csh tcsh
-        python
-        perl
+        sh ksh bash zsh csh tcsh perl
+
 .fi
+If 
+.B modulecmd
+is not on the default PATH, then you can insert the full path in the
+eval command.
 .LP
 C Shell initialization example:
 .nf
@@ -138,6 +122,21 @@ Python:
 .nf
         <no example yet>
 .fi
+
+
+The
+.B module
+alias or function executes the
+.B modulecmd
+program and has the shell evaluate
+the command's output.  The first argument to
+.B modulecmd
+specifies the type of shell.
+.LP
+The sh, csh, tcsh, bash, ksh, and zsh shells are supported by
+.B modulecmd.
+In addition, python and perl "shells" are supported which writes
+the environment changes to stdout as python or perl code.
 
 
 .SS Modulecmd startup
@@ -268,15 +267,19 @@ Remove
 .I modulefile
 from the shell environment.
 .TP 15
-.B switch modulefile1 modulefile2
+.B switch [ modulefile1 ] modulefile2
 .PD 0
 .TP 15
-.B swap modulefile1 modulefile2
+.B swap [ modulefile1 ] modulefile2
 .PD
 Switch loaded
 .I modulefile1
 with
 .I modulefile2.
+If 
+.I modulefile1
+is not specified, then it is assumed to be the currently loaded module
+with the same root name as modulefile2.
 .TP 15
 .B display modulefile [modulefile...]
 .PD 0
@@ -435,9 +438,7 @@ The path that the
 .B module
 command searches when looking for
 .I modulefiles.
-Typically, it is set to the master modulefiles directory,
-.I ${\s-1MODULESHOME\s0}/modulefiles,
-by the initialization script.
+Typically, it is set to a default value by the bootstrap procedure.
 \s-1MODULEPATH\s0 can be set using 'module use' or by the module
 initialization script to search group or personal
 .I modulefile
@@ -449,7 +450,7 @@ directory.
 A colon separated list of all loaded
 .I modulefiles.
 .TP
-.SB \s-1_LOADED_MODULEFILES_\s0
+.SB \s-1_LMFILES_\s0
 A colon separated list of the full pathname for all loaded
 .I modulefiles.
 .TP
@@ -485,10 +486,6 @@ interpreter that gets executed upon each invocation of
 .B ${\s-1MODULESHOME\s0}/init/\fIshellname\fP
 The Modules package initialization file sourced into the user's
 environment.
-.TP
-.B ${\s-1MODULESHOME\s0}/init/.modulespath
-The initial search path setup for module files. This file is read
-by all shell init files.
 .TP
 .B ${\s-1MODULEPATH\s0}/.moduleavailcache
 File containing the cached list of all
