@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Bootstrap.c,v 1.6 2002/06/10 22:00:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Bootstrap.c,v 1.7 2002/06/12 20:07:57 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -96,6 +96,10 @@ int      tmpfile_mod(char** filename, FILE** file);
  **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
+ **			shell_name	shell properties		     **
+ **			shell_derelict					     **
+ **			shell_init					     **
+ **			shell_cmd_separator				     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -108,170 +112,32 @@ int	ModuleCmd_Bootstrap(	Tcl_Interp	*interp,
   int         return_val;
   Tcl_Interp *tmp_interp;		/** Tcl interpreter to be    **/
 
-  char        command[8192];
-  char       *modcmd;
+  char       *command;
+  char       *initfile;
+
   FILE       *aliasfile=0;
   char       *aliasfilename;
   const char *execname;
   char        binary_path[1024];
 
   /*
-   * First get an absolute path to this modulecmd binary *
-   */
-  Tcl_FindExecutable(binary_name);
-  execname = Tcl_GetNameOfExecutable();
-  if (execname[0] != '/') { 
-    char cwd[1024];
-    getcwd(cwd,1024);
-    sprintf(binary_path,"%s/%s",cwd,execname);
-  } else {
-    strcpy(binary_path,execname);
-  }
-
-  /*
-   * now generate the commands to create the 'module' command.
-   * For sh and csh types, it is easiest to write commands to
-   * a file and source it. Otherwise, it is too hard to do inside
-   * an eval expression.
+   * generate the commands to source the 'module' init script.
     */
   if( !strcmp( shell_derelict, "csh")) {
-#if 0
-    if(tmpfile_mod(&aliasfilename,&aliasfile)) {
-      ErrorLogger( ERR_OPEN, LOC, aliasfilename, NULL);
-      return(TCL_ERROR);
-    }
-    /*
-     * as you can see, the csh/tcsh is particularly bothersome
-     * because of conflicts with history characters and
-     * glob (*,?,{,}) characters, and also the prompt. So
-     * we unset the histchars, prompt and glob operation
-     * while the command is running.
-     */
-    modcmd = "
-set prefix=\"\"
-set postfix=\"\"
-
-if ( $?histchars ) then
-  set histchar = `echo $histchars | cut -c1`
-  set _histchars = $histchars
-
-  set prefix  = 'unset histchars;'
-  set postfix = 'set histchars = $_histchars;'
-else
-  set histchar = \\!
-endif
-
-if ($?prompt) then
-  set prefix  = \"$prefix\"'set _prompt=\"$prompt\";set prompt=\"\";'
-  set postfix = \"$postfix\"'set prompt=\"$_prompt\";unset _prompt;'
-endif
-
-if ($?noglob) then
-  set prefix  = \"$prefix\"\"set noglob;\"
-  set postfix = \"$postfix\"\"unset noglob;\"
-endif
-
-alias module $prefix'eval `%s %s '$histchar'*`; '$postfix
-unset exec_prefix
-unset prefix
-unset postfix
-";
-#endif
-
-    modcmd =
-"if ($?tcsh) then\n"
-"	set modules_shell=\"tcsh\"\n"
-"else\n"
-"	set modules_shell=\"csh\"\n"
-"endif\n"
-"if ( $?MODULE_VERSION ) then\n"
-"	setenv MODULE_VERSION_STACK 	\"$MODULE_VERSION\"\n"
-"else\n"
-"	setenv MODULE_VERSION		\"3.2.0a\"\n"
-"	setenv MODULE_VERSION_STACK	\"3.2.0a\"\n"
-"endif\n"
-"set exec_prefix='/usr/local/Modules/$MODULE_VERSION'\n"
-"\n"
-"if ( $?histchars ) then\n"
-"  set _histchars = $histchars\n"
-"  if ($?prompt) then\n"
-"    alias module 'unset histchars;set _prompt=\"$prompt\";eval \\`'$exec_prefix'/bin/modulecmd '$modules_shell \\!*\\`;set histchars = $_histchars; set prompt=\"$_prompt\";unset _prompt'\n"
-"  else\n"
-"  alias module 'unset histchars;eval \\`'$exec_prefix'/bin/modulecmd '$modules_shell \\!*\\`;set histchars = $_histchars'\n"
-"  endif\n"
-"else\n"
-"  if ($?prompt) then\n"
-"    alias module 'set _prompt=\"$prompt\";set prompt=\"\";eval \\`'$exec_prefix'/bin/modulecmd '$modules_shell' \\!*\\`;set prompt=\"$_prompt\";unset _prompt'\n"
-"else\n"
-"  alias module 'eval \\`'$exec_prefix'/bin/modulecmd '$modules_shell' \\!*\\`'\n"
-"  endif\n"
-"endif\n"
-"unset exec_prefix\n"
-"\n"
-"setenv MODULESHOME /usr/local/Modules/3.2.0a\n"
-"\n"
-"if (! $?MODULEPATH ) then\n"
-"  setenv MODULEPATH \\`sed 's/#.*$//' ${MODULESHOME}/init/.modulespath | awk 'NF==1{printf(\"%s:\",$1)}'\\`\n"
-"endif\n"
-"\n"
-"if (! $?LOADEDMODULES ) then\n"
-"  setenv LOADEDMODULES \"\"\n"
-"endif\n";
+	  command = "source %s/%s%s";
   } else if( !strcmp( shell_derelict, "sh")) {
-    if(tmpfile_mod(&aliasfilename,&aliasfile)) {
-      ErrorLogger( ERR_OPEN, LOC, aliasfilename, NULL);
-      return(TCL_ERROR);
-    }
-    modcmd = "module() {\n eval `%s %s $*`;\n}\n";
+	  command = ". %s/%s%s";
   } else if( !strcmp( shell_derelict, "perl")) {
-    modcmd = "sub module { eval `%s %s @_`; }\n";
+	  command = "require \"%s/%s%s\"";
   } else if( !strcmp( shell_derelict, "python")) {
-    modcmd = "
-import os, string
-
-def module(command, *arguments):
-        commands = os.popen('%s %s %%s %%s' %% (command, string.join(arguments))).read()
-        exec commands
-}
-";
+	  command = "execfile('%s/%s')%s";
   } else {
-    ErrorLogger( ERR_SHELL, LOC, shell_derelict, NULL);
+    ErrorLogger( ERR_SHELL, LOC, shell_name, NULL);
     return(TCL_ERROR);
   }
+  fprintf( stdout, command, MODULES_INIT_DIR, shell_init, shell_cmd_separator);
 
-  /*
-   * now we either spit out the commands to stderr, or
-   * spit them to a file, and source them from stderr
-   */
-  if (aliasfile) {
-    fprintf(aliasfile,modcmd,binary_path,shell_name);
-    fclose(aliasfile);
-    free(aliasfilename);
-    if( !strcmp( shell_derelict, "csh")) {
-      printf("source %s ; /bin/rm -f %s ; ",aliasfilename,aliasfilename);
-    } else if (!strcmp( shell_derelict, "sh")) {
-      printf(". %s ; /bin/rm -f %s; ",aliasfilename,aliasfilename);
-    }
-  } else {
-    printf(modcmd,binary_path,shell_name);
-  }
-
-
-  /*
-   * now that we got the hard shell-dependent stuff out of the way,
-   * the rest of the initializations are done by the module commands
-   * themselves!
-   * We construct a little TCL script and then execute it.
-   */
-  
-  sprintf(command,"
-setenv MODULE_VERSION %s
-setenv MODULESHOME %s
-if { ! [info exists env(MODULEPATH)    ] } { setenv MODULEPATH    \"%s\" }
-if { ! [info exists env(LOADEDMODULES) ] } { setenv LOADEDMODULES \"\"}
-",
-	  version_string,PREFIX,MODULEPATH);
-  
+#if 0
   g_flags |= M_LOAD; /* this is necessary so that the setenv do something */
   
   tmp_interp = Tcl_CreateInterp();
@@ -285,6 +151,7 @@ if { ! [info exists env(LOADEDMODULES) ] } { setenv LOADEDMODULES \"\"}
   Tcl_DeleteInterp(tmp_interp);
 
   g_flags &= ~M_LOAD;
+#endif
 
   return( TCL_OK);
 } /** end of 'ModuleCmd_Bootstrap' **/

@@ -1,8 +1,10 @@
 AUTOMAKE_OPTIONS=foreign dejagnu no-installinfo
 
-ACLOCAL_AMFLAGS=-I config
+ACLOCAL_AMFLAGS=@CFLAGS@ -I config
 
 bin_PROGRAMS = modulecmd
+modulecmd_CFLAGS= -DINSTPATH=\"$(prefix)\"
+modulecmd_LDFLAGS= @TCL_LIB_SPEC@ @TCLX_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@ @LIBS@
 modulecmd_SOURCES = \
 	ModuleCmd_Avail.c ModuleCmd_Bootstrap.c \
         ModuleCmd_Clear.c ModuleCmd_Display.c ModuleCmd_Help.c \

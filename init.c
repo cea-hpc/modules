@@ -36,7 +36,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.4 2002/04/29 21:16:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.5 2002/06/12 20:07:57 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -88,6 +88,9 @@ static	char	_proc_UnTieStdout[] = "UnTieStdout";
 #if WITH_DEBUGGING_UTIL
 static	char	_proc_SetStartupFiles[] = "SetStartupFiles";
 #endif
+#if WITH_DEBUGGING_UTIL_3
+static	char	_proc_set_shell_properties[] = "set_shell_properties";
+#endif
 
 /** These are the recognized startup files that the given shells
  ** use.  If your site uses a different set, make the modifications here.
@@ -138,11 +141,31 @@ static char *genericStartUps[] = {
     NULL
 };
 
+/** The shell properties matrix - global pointers are set to elements of
+ ** this array
+ **/
+static char *shellprops [][4] = {
+/*	shell		derelict	init		cmd sep		*/
+	{"csh",		"csh",		"csh",		";"},
+	{"tcsh",	"csh",		"csh",		";"},
+	{"sh",		"sh",		"sh",		";"},
+	{"ksh",		"sh",		"ksh",		";"},
+	{"bash",	"sh",		"bash",		";"},
+	{"zsh",		"sh",		"zsh",		";"},
+	{"perl",	"perl",		"perl",		";"},
+	{"python",	"python",	"python",	"\n"},
+	{"scm",		"scm",		NULL,		"\n"},
+	{"scheme",	"scm",		NULL,		"\n"},
+	{"guile",	"scm",		NULL,		"\n"},
+	{"mel",		"mel",		NULL,		";"},
+	{NULL,		NULL,		NULL,		NULL},
+};
+
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
 /** ************************************************************************ **/
 
-/** not applicable **/
+static char	*set_shell_properties(	const char	*name);
 
 
 /*++++
@@ -270,12 +293,11 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], " shellname", NULL))
 	    goto unwind0;
 
-    strcpy( shell_name, argv[1]);
-
     /**
      **  Check the first parameter to modulcmd for a known shell type
+     **  and set the shell properties
      **/
-    if( !set_derelict( argv[1]))
+    if( !set_shell_properties( argv[1]))
 	if( OK != ErrorLogger( ERR_SHELL, LOC, argv[1], NULL))
 	    goto unwind0;
 
@@ -287,11 +309,6 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
  
 #ifdef __CYGWIN__
     /* ABr, 12/10/01: from Cygwin stuff */
-    Tcl_FindExecutable( argv[0] ) ;
-#endif
-
-#ifdef __CYGWIN__
-    /* ABr, 12/10/2001: from Cygwin stuff */
     Tcl_FindExecutable( argv[0] ) ;
 #endif
 
@@ -746,3 +763,57 @@ char **SetStartupFiles(char *shell_name)
     }
 
 } /** End of 'SetStartupFiles' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		set_shell_properties				     **
+ ** 									     **
+ **   Description:	Normalize the current calling shell to one of the    **
+ **			basic shells defining the variable and alias syntax  **
+ ** 									     **
+ **   First Edition:	1991/10/23					     **
+ ** 									     **
+ **   Parameters:	const char	*name	Invoking shell name	     **
+ ** 									     **
+ **   Result:		char*			Shell derelict name	     **
+ ** 									     **
+ **   Attached Globals:	shell_derelict					     **
+ ** 			shell_cmd_separator				     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+static char	*set_shell_properties(	const char	*name) 
+{
+
+#if WITH_DEBUGGING_UTIL_3
+    ErrorLogger( NO_ERR_START, LOC, _proc_set_shell_properties, NULL);
+#endif
+
+    /**
+     ** Loop through the shell properties matrix until a match is found
+     **/
+    int i = 0;
+
+    while (shellprops[i][0]) {
+	if( !strcmp(name,shellprops[i][0])) {	/* found match */
+	    shell_name		= shellprops[i][0];
+	    shell_derelict	= shellprops[i][1];
+	    shell_init		= shellprops[i][2];
+	    shell_cmd_separator	= shellprops[i][3];
+	    return ((char *) name);
+	}
+	i++;
+    }
+
+    shell_name		= NULL;
+    shell_derelict	= NULL;
+    shell_init		= NULL;
+    shell_cmd_separator	= NULL;
+    /**
+     **  Oops! Undefined shell name ...
+     **/
+    return( NULL);
+
+} /** End of 'set_shell_properties' **/

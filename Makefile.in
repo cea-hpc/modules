@@ -117,9 +117,11 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 AUTOMAKE_OPTIONS = foreign dejagnu no-installinfo
 
-ACLOCAL_AMFLAGS = -I config
+ACLOCAL_AMFLAGS = @CFLAGS@ -I config
 
 bin_PROGRAMS = modulecmd
+modulecmd_CFLAGS = -DINSTPATH=\"$(prefix)\"
+modulecmd_LDFLAGS = @TCL_LIB_SPEC@ @TCLX_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@ @LIBS@
 modulecmd_SOURCES = \
 	ModuleCmd_Avail.c ModuleCmd_Bootstrap.c \
         ModuleCmd_Clear.c ModuleCmd_Display.c ModuleCmd_Help.c \
@@ -150,25 +152,34 @@ CONFIG_CLEAN_FILES = modules.lsm .spec doc/Makefile init/Makefile \
 bin_PROGRAMS = modulecmd$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
-am_modulecmd_OBJECTS = ModuleCmd_Avail.$(OBJEXT) \
-	ModuleCmd_Bootstrap.$(OBJEXT) ModuleCmd_Clear.$(OBJEXT) \
-	ModuleCmd_Display.$(OBJEXT) ModuleCmd_Help.$(OBJEXT) \
-	ModuleCmd_Init.$(OBJEXT) ModuleCmd_List.$(OBJEXT) \
-	ModuleCmd_Load.$(OBJEXT) ModuleCmd_Purge.$(OBJEXT) \
-	ModuleCmd_Switch.$(OBJEXT) ModuleCmd_Update.$(OBJEXT) \
-	ModuleCmd_Use.$(OBJEXT) ModuleCmd_Whatis.$(OBJEXT) \
-	cmdAlias.$(OBJEXT) cmdConflict.$(OBJEXT) cmdIsLoaded.$(OBJEXT) \
-	cmdInfo.$(OBJEXT) cmdMisc.$(OBJEXT) cmdModule.$(OBJEXT) \
-	cmdPath.$(OBJEXT) cmdSetenv.$(OBJEXT) cmdUname.$(OBJEXT) \
-	cmdXResource.$(OBJEXT) cmdUlvl.$(OBJEXT) cmdLog.$(OBJEXT) \
-	cmdTrace.$(OBJEXT) cmdVersion.$(OBJEXT) cmdVerbose.$(OBJEXT) \
-	cmdWhatis.$(OBJEXT) init.$(OBJEXT) locate_module.$(OBJEXT) \
-	utility.$(OBJEXT) main.$(OBJEXT) error.$(OBJEXT) \
-	getopt.$(OBJEXT) version.$(OBJEXT)
+am_modulecmd_OBJECTS = modulecmd-ModuleCmd_Avail.$(OBJEXT) \
+	modulecmd-ModuleCmd_Bootstrap.$(OBJEXT) \
+	modulecmd-ModuleCmd_Clear.$(OBJEXT) \
+	modulecmd-ModuleCmd_Display.$(OBJEXT) \
+	modulecmd-ModuleCmd_Help.$(OBJEXT) \
+	modulecmd-ModuleCmd_Init.$(OBJEXT) \
+	modulecmd-ModuleCmd_List.$(OBJEXT) \
+	modulecmd-ModuleCmd_Load.$(OBJEXT) \
+	modulecmd-ModuleCmd_Purge.$(OBJEXT) \
+	modulecmd-ModuleCmd_Switch.$(OBJEXT) \
+	modulecmd-ModuleCmd_Update.$(OBJEXT) \
+	modulecmd-ModuleCmd_Use.$(OBJEXT) \
+	modulecmd-ModuleCmd_Whatis.$(OBJEXT) \
+	modulecmd-cmdAlias.$(OBJEXT) modulecmd-cmdConflict.$(OBJEXT) \
+	modulecmd-cmdIsLoaded.$(OBJEXT) modulecmd-cmdInfo.$(OBJEXT) \
+	modulecmd-cmdMisc.$(OBJEXT) modulecmd-cmdModule.$(OBJEXT) \
+	modulecmd-cmdPath.$(OBJEXT) modulecmd-cmdSetenv.$(OBJEXT) \
+	modulecmd-cmdUname.$(OBJEXT) modulecmd-cmdXResource.$(OBJEXT) \
+	modulecmd-cmdUlvl.$(OBJEXT) modulecmd-cmdLog.$(OBJEXT) \
+	modulecmd-cmdTrace.$(OBJEXT) modulecmd-cmdVersion.$(OBJEXT) \
+	modulecmd-cmdVerbose.$(OBJEXT) modulecmd-cmdWhatis.$(OBJEXT) \
+	modulecmd-init.$(OBJEXT) modulecmd-locate_module.$(OBJEXT) \
+	modulecmd-utility.$(OBJEXT) modulecmd-main.$(OBJEXT) \
+	modulecmd-error.$(OBJEXT) modulecmd-getopt.$(OBJEXT) \
+	modulecmd-version.$(OBJEXT)
 modulecmd_OBJECTS = $(am_modulecmd_OBJECTS)
 modulecmd_LDADD = $(LDADD)
 modulecmd_DEPENDENCIES =
-modulecmd_LDFLAGS =
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I.
@@ -177,31 +188,42 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/ModuleCmd_Avail.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ModuleCmd_Bootstrap.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ModuleCmd_Clear.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ModuleCmd_Display.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ModuleCmd_Help.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ModuleCmd_Init.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ModuleCmd_List.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ModuleCmd_Load.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ModuleCmd_Purge.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ModuleCmd_Switch.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ModuleCmd_Update.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ModuleCmd_Use.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ModuleCmd_Whatis.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/cmdAlias.Po ./$(DEPDIR)/cmdConflict.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/cmdInfo.Po ./$(DEPDIR)/cmdIsLoaded.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/cmdLog.Po ./$(DEPDIR)/cmdMisc.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/cmdModule.Po ./$(DEPDIR)/cmdPath.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/cmdSetenv.Po ./$(DEPDIR)/cmdTrace.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/cmdUlvl.Po ./$(DEPDIR)/cmdUname.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/cmdVerbose.Po ./$(DEPDIR)/cmdVersion.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/cmdWhatis.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/cmdXResource.Po ./$(DEPDIR)/error.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/getopt.Po ./$(DEPDIR)/init.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/locate_module.Po ./$(DEPDIR)/main.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/utility.Po ./$(DEPDIR)/version.Po
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/modulecmd-ModuleCmd_Avail.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-ModuleCmd_Bootstrap.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-ModuleCmd_Clear.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-ModuleCmd_Display.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-ModuleCmd_Help.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-ModuleCmd_Init.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-ModuleCmd_List.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-ModuleCmd_Load.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-ModuleCmd_Purge.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-ModuleCmd_Switch.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-ModuleCmd_Update.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-ModuleCmd_Use.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-ModuleCmd_Whatis.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdAlias.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdConflict.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdInfo.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdIsLoaded.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdLog.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdMisc.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdModule.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdPath.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdSetenv.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdTrace.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdUlvl.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdUname.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdVerbose.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdVersion.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdWhatis.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-cmdXResource.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-error.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-getopt.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-init.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-locate_module.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-main.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-utility.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulecmd-version.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -210,7 +232,7 @@ CFLAGS = @CFLAGS@
 DIST_SOURCES = $(modulecmd_SOURCES)
 DIST_COMMON = README .spec.in COPYING ChangeLog INSTALL Makefile.am \
 	Makefile.in TODO acconfig.h acinclude.m4 aclocal.m4 config.h.in \
-	config/depcomp config/install-sh config/missing \
+	config/compile config/depcomp config/install-sh config/missing \
 	config/mkinstalldirs configure configure.ac modules.lsm.in
 SOURCES = $(modulecmd_SOURCES)
 
@@ -357,6 +379,42 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+modulecmd-ModuleCmd_Avail.$(OBJEXT): ModuleCmd_Avail.c
+modulecmd-ModuleCmd_Bootstrap.$(OBJEXT): ModuleCmd_Bootstrap.c
+modulecmd-ModuleCmd_Clear.$(OBJEXT): ModuleCmd_Clear.c
+modulecmd-ModuleCmd_Display.$(OBJEXT): ModuleCmd_Display.c
+modulecmd-ModuleCmd_Help.$(OBJEXT): ModuleCmd_Help.c
+modulecmd-ModuleCmd_Init.$(OBJEXT): ModuleCmd_Init.c
+modulecmd-ModuleCmd_List.$(OBJEXT): ModuleCmd_List.c
+modulecmd-ModuleCmd_Load.$(OBJEXT): ModuleCmd_Load.c
+modulecmd-ModuleCmd_Purge.$(OBJEXT): ModuleCmd_Purge.c
+modulecmd-ModuleCmd_Switch.$(OBJEXT): ModuleCmd_Switch.c
+modulecmd-ModuleCmd_Update.$(OBJEXT): ModuleCmd_Update.c
+modulecmd-ModuleCmd_Use.$(OBJEXT): ModuleCmd_Use.c
+modulecmd-ModuleCmd_Whatis.$(OBJEXT): ModuleCmd_Whatis.c
+modulecmd-cmdAlias.$(OBJEXT): cmdAlias.c
+modulecmd-cmdConflict.$(OBJEXT): cmdConflict.c
+modulecmd-cmdIsLoaded.$(OBJEXT): cmdIsLoaded.c
+modulecmd-cmdInfo.$(OBJEXT): cmdInfo.c
+modulecmd-cmdMisc.$(OBJEXT): cmdMisc.c
+modulecmd-cmdModule.$(OBJEXT): cmdModule.c
+modulecmd-cmdPath.$(OBJEXT): cmdPath.c
+modulecmd-cmdSetenv.$(OBJEXT): cmdSetenv.c
+modulecmd-cmdUname.$(OBJEXT): cmdUname.c
+modulecmd-cmdXResource.$(OBJEXT): cmdXResource.c
+modulecmd-cmdUlvl.$(OBJEXT): cmdUlvl.c
+modulecmd-cmdLog.$(OBJEXT): cmdLog.c
+modulecmd-cmdTrace.$(OBJEXT): cmdTrace.c
+modulecmd-cmdVersion.$(OBJEXT): cmdVersion.c
+modulecmd-cmdVerbose.$(OBJEXT): cmdVerbose.c
+modulecmd-cmdWhatis.$(OBJEXT): cmdWhatis.c
+modulecmd-init.$(OBJEXT): init.c
+modulecmd-locate_module.$(OBJEXT): locate_module.c
+modulecmd-utility.$(OBJEXT): utility.c
+modulecmd-main.$(OBJEXT): main.c
+modulecmd-error.$(OBJEXT): error.c
+modulecmd-getopt.$(OBJEXT): getopt.c
+modulecmd-version.$(OBJEXT): version.c
 modulecmd$(EXEEXT): $(modulecmd_OBJECTS) $(modulecmd_DEPENDENCIES) 
 	@rm -f modulecmd$(EXEEXT)
 	$(LINK) $(modulecmd_LDFLAGS) $(modulecmd_OBJECTS) $(modulecmd_LDADD) $(LIBS)
@@ -367,42 +425,42 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleCmd_Avail.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleCmd_Bootstrap.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleCmd_Clear.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleCmd_Display.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleCmd_Help.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleCmd_Init.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleCmd_List.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleCmd_Load.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleCmd_Purge.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleCmd_Switch.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleCmd_Update.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleCmd_Use.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ModuleCmd_Whatis.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdAlias.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdConflict.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdInfo.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdIsLoaded.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdLog.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdMisc.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdModule.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdPath.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdSetenv.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdTrace.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdUlvl.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdUname.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdVerbose.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdVersion.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdWhatis.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdXResource.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/error.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getopt.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/init.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/locate_module.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utility.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/version.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-ModuleCmd_Avail.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-ModuleCmd_Bootstrap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-ModuleCmd_Clear.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-ModuleCmd_Display.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-ModuleCmd_Help.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-ModuleCmd_Init.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-ModuleCmd_List.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-ModuleCmd_Load.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-ModuleCmd_Purge.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-ModuleCmd_Switch.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-ModuleCmd_Update.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-ModuleCmd_Use.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-ModuleCmd_Whatis.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdAlias.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdConflict.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdInfo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdIsLoaded.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdLog.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdMisc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdModule.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdPath.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdSetenv.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdTrace.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdUlvl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdUname.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdVerbose.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdVersion.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdWhatis.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-cmdXResource.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-error.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-getopt.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-init.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-locate_module.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-utility.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulecmd-version.Po@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)
@@ -418,6 +476,438 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(COMPILE) -c `cygpath -w $<`
+
+modulecmd-ModuleCmd_Avail.o: ModuleCmd_Avail.c
+@AMDEP_TRUE@	source='ModuleCmd_Avail.c' object='modulecmd-ModuleCmd_Avail.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Avail.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Avail.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Avail.o `test -f ModuleCmd_Avail.c || echo '$(srcdir)/'`ModuleCmd_Avail.c
+
+modulecmd-ModuleCmd_Avail.obj: ModuleCmd_Avail.c
+@AMDEP_TRUE@	source='ModuleCmd_Avail.c' object='modulecmd-ModuleCmd_Avail.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Avail.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Avail.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Avail.obj `cygpath -w ModuleCmd_Avail.c`
+
+modulecmd-ModuleCmd_Bootstrap.o: ModuleCmd_Bootstrap.c
+@AMDEP_TRUE@	source='ModuleCmd_Bootstrap.c' object='modulecmd-ModuleCmd_Bootstrap.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Bootstrap.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Bootstrap.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Bootstrap.o `test -f ModuleCmd_Bootstrap.c || echo '$(srcdir)/'`ModuleCmd_Bootstrap.c
+
+modulecmd-ModuleCmd_Bootstrap.obj: ModuleCmd_Bootstrap.c
+@AMDEP_TRUE@	source='ModuleCmd_Bootstrap.c' object='modulecmd-ModuleCmd_Bootstrap.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Bootstrap.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Bootstrap.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Bootstrap.obj `cygpath -w ModuleCmd_Bootstrap.c`
+
+modulecmd-ModuleCmd_Clear.o: ModuleCmd_Clear.c
+@AMDEP_TRUE@	source='ModuleCmd_Clear.c' object='modulecmd-ModuleCmd_Clear.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Clear.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Clear.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Clear.o `test -f ModuleCmd_Clear.c || echo '$(srcdir)/'`ModuleCmd_Clear.c
+
+modulecmd-ModuleCmd_Clear.obj: ModuleCmd_Clear.c
+@AMDEP_TRUE@	source='ModuleCmd_Clear.c' object='modulecmd-ModuleCmd_Clear.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Clear.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Clear.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Clear.obj `cygpath -w ModuleCmd_Clear.c`
+
+modulecmd-ModuleCmd_Display.o: ModuleCmd_Display.c
+@AMDEP_TRUE@	source='ModuleCmd_Display.c' object='modulecmd-ModuleCmd_Display.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Display.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Display.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Display.o `test -f ModuleCmd_Display.c || echo '$(srcdir)/'`ModuleCmd_Display.c
+
+modulecmd-ModuleCmd_Display.obj: ModuleCmd_Display.c
+@AMDEP_TRUE@	source='ModuleCmd_Display.c' object='modulecmd-ModuleCmd_Display.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Display.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Display.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Display.obj `cygpath -w ModuleCmd_Display.c`
+
+modulecmd-ModuleCmd_Help.o: ModuleCmd_Help.c
+@AMDEP_TRUE@	source='ModuleCmd_Help.c' object='modulecmd-ModuleCmd_Help.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Help.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Help.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Help.o `test -f ModuleCmd_Help.c || echo '$(srcdir)/'`ModuleCmd_Help.c
+
+modulecmd-ModuleCmd_Help.obj: ModuleCmd_Help.c
+@AMDEP_TRUE@	source='ModuleCmd_Help.c' object='modulecmd-ModuleCmd_Help.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Help.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Help.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Help.obj `cygpath -w ModuleCmd_Help.c`
+
+modulecmd-ModuleCmd_Init.o: ModuleCmd_Init.c
+@AMDEP_TRUE@	source='ModuleCmd_Init.c' object='modulecmd-ModuleCmd_Init.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Init.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Init.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Init.o `test -f ModuleCmd_Init.c || echo '$(srcdir)/'`ModuleCmd_Init.c
+
+modulecmd-ModuleCmd_Init.obj: ModuleCmd_Init.c
+@AMDEP_TRUE@	source='ModuleCmd_Init.c' object='modulecmd-ModuleCmd_Init.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Init.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Init.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Init.obj `cygpath -w ModuleCmd_Init.c`
+
+modulecmd-ModuleCmd_List.o: ModuleCmd_List.c
+@AMDEP_TRUE@	source='ModuleCmd_List.c' object='modulecmd-ModuleCmd_List.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_List.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_List.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_List.o `test -f ModuleCmd_List.c || echo '$(srcdir)/'`ModuleCmd_List.c
+
+modulecmd-ModuleCmd_List.obj: ModuleCmd_List.c
+@AMDEP_TRUE@	source='ModuleCmd_List.c' object='modulecmd-ModuleCmd_List.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_List.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_List.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_List.obj `cygpath -w ModuleCmd_List.c`
+
+modulecmd-ModuleCmd_Load.o: ModuleCmd_Load.c
+@AMDEP_TRUE@	source='ModuleCmd_Load.c' object='modulecmd-ModuleCmd_Load.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Load.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Load.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Load.o `test -f ModuleCmd_Load.c || echo '$(srcdir)/'`ModuleCmd_Load.c
+
+modulecmd-ModuleCmd_Load.obj: ModuleCmd_Load.c
+@AMDEP_TRUE@	source='ModuleCmd_Load.c' object='modulecmd-ModuleCmd_Load.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Load.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Load.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Load.obj `cygpath -w ModuleCmd_Load.c`
+
+modulecmd-ModuleCmd_Purge.o: ModuleCmd_Purge.c
+@AMDEP_TRUE@	source='ModuleCmd_Purge.c' object='modulecmd-ModuleCmd_Purge.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Purge.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Purge.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Purge.o `test -f ModuleCmd_Purge.c || echo '$(srcdir)/'`ModuleCmd_Purge.c
+
+modulecmd-ModuleCmd_Purge.obj: ModuleCmd_Purge.c
+@AMDEP_TRUE@	source='ModuleCmd_Purge.c' object='modulecmd-ModuleCmd_Purge.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Purge.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Purge.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Purge.obj `cygpath -w ModuleCmd_Purge.c`
+
+modulecmd-ModuleCmd_Switch.o: ModuleCmd_Switch.c
+@AMDEP_TRUE@	source='ModuleCmd_Switch.c' object='modulecmd-ModuleCmd_Switch.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Switch.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Switch.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Switch.o `test -f ModuleCmd_Switch.c || echo '$(srcdir)/'`ModuleCmd_Switch.c
+
+modulecmd-ModuleCmd_Switch.obj: ModuleCmd_Switch.c
+@AMDEP_TRUE@	source='ModuleCmd_Switch.c' object='modulecmd-ModuleCmd_Switch.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Switch.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Switch.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Switch.obj `cygpath -w ModuleCmd_Switch.c`
+
+modulecmd-ModuleCmd_Update.o: ModuleCmd_Update.c
+@AMDEP_TRUE@	source='ModuleCmd_Update.c' object='modulecmd-ModuleCmd_Update.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Update.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Update.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Update.o `test -f ModuleCmd_Update.c || echo '$(srcdir)/'`ModuleCmd_Update.c
+
+modulecmd-ModuleCmd_Update.obj: ModuleCmd_Update.c
+@AMDEP_TRUE@	source='ModuleCmd_Update.c' object='modulecmd-ModuleCmd_Update.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Update.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Update.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Update.obj `cygpath -w ModuleCmd_Update.c`
+
+modulecmd-ModuleCmd_Use.o: ModuleCmd_Use.c
+@AMDEP_TRUE@	source='ModuleCmd_Use.c' object='modulecmd-ModuleCmd_Use.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Use.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Use.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Use.o `test -f ModuleCmd_Use.c || echo '$(srcdir)/'`ModuleCmd_Use.c
+
+modulecmd-ModuleCmd_Use.obj: ModuleCmd_Use.c
+@AMDEP_TRUE@	source='ModuleCmd_Use.c' object='modulecmd-ModuleCmd_Use.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Use.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Use.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Use.obj `cygpath -w ModuleCmd_Use.c`
+
+modulecmd-ModuleCmd_Whatis.o: ModuleCmd_Whatis.c
+@AMDEP_TRUE@	source='ModuleCmd_Whatis.c' object='modulecmd-ModuleCmd_Whatis.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Whatis.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Whatis.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Whatis.o `test -f ModuleCmd_Whatis.c || echo '$(srcdir)/'`ModuleCmd_Whatis.c
+
+modulecmd-ModuleCmd_Whatis.obj: ModuleCmd_Whatis.c
+@AMDEP_TRUE@	source='ModuleCmd_Whatis.c' object='modulecmd-ModuleCmd_Whatis.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-ModuleCmd_Whatis.Po' tmpdepfile='$(DEPDIR)/modulecmd-ModuleCmd_Whatis.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-ModuleCmd_Whatis.obj `cygpath -w ModuleCmd_Whatis.c`
+
+modulecmd-cmdAlias.o: cmdAlias.c
+@AMDEP_TRUE@	source='cmdAlias.c' object='modulecmd-cmdAlias.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdAlias.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdAlias.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdAlias.o `test -f cmdAlias.c || echo '$(srcdir)/'`cmdAlias.c
+
+modulecmd-cmdAlias.obj: cmdAlias.c
+@AMDEP_TRUE@	source='cmdAlias.c' object='modulecmd-cmdAlias.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdAlias.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdAlias.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdAlias.obj `cygpath -w cmdAlias.c`
+
+modulecmd-cmdConflict.o: cmdConflict.c
+@AMDEP_TRUE@	source='cmdConflict.c' object='modulecmd-cmdConflict.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdConflict.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdConflict.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdConflict.o `test -f cmdConflict.c || echo '$(srcdir)/'`cmdConflict.c
+
+modulecmd-cmdConflict.obj: cmdConflict.c
+@AMDEP_TRUE@	source='cmdConflict.c' object='modulecmd-cmdConflict.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdConflict.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdConflict.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdConflict.obj `cygpath -w cmdConflict.c`
+
+modulecmd-cmdIsLoaded.o: cmdIsLoaded.c
+@AMDEP_TRUE@	source='cmdIsLoaded.c' object='modulecmd-cmdIsLoaded.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdIsLoaded.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdIsLoaded.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdIsLoaded.o `test -f cmdIsLoaded.c || echo '$(srcdir)/'`cmdIsLoaded.c
+
+modulecmd-cmdIsLoaded.obj: cmdIsLoaded.c
+@AMDEP_TRUE@	source='cmdIsLoaded.c' object='modulecmd-cmdIsLoaded.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdIsLoaded.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdIsLoaded.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdIsLoaded.obj `cygpath -w cmdIsLoaded.c`
+
+modulecmd-cmdInfo.o: cmdInfo.c
+@AMDEP_TRUE@	source='cmdInfo.c' object='modulecmd-cmdInfo.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdInfo.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdInfo.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdInfo.o `test -f cmdInfo.c || echo '$(srcdir)/'`cmdInfo.c
+
+modulecmd-cmdInfo.obj: cmdInfo.c
+@AMDEP_TRUE@	source='cmdInfo.c' object='modulecmd-cmdInfo.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdInfo.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdInfo.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdInfo.obj `cygpath -w cmdInfo.c`
+
+modulecmd-cmdMisc.o: cmdMisc.c
+@AMDEP_TRUE@	source='cmdMisc.c' object='modulecmd-cmdMisc.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdMisc.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdMisc.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdMisc.o `test -f cmdMisc.c || echo '$(srcdir)/'`cmdMisc.c
+
+modulecmd-cmdMisc.obj: cmdMisc.c
+@AMDEP_TRUE@	source='cmdMisc.c' object='modulecmd-cmdMisc.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdMisc.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdMisc.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdMisc.obj `cygpath -w cmdMisc.c`
+
+modulecmd-cmdModule.o: cmdModule.c
+@AMDEP_TRUE@	source='cmdModule.c' object='modulecmd-cmdModule.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdModule.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdModule.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdModule.o `test -f cmdModule.c || echo '$(srcdir)/'`cmdModule.c
+
+modulecmd-cmdModule.obj: cmdModule.c
+@AMDEP_TRUE@	source='cmdModule.c' object='modulecmd-cmdModule.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdModule.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdModule.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdModule.obj `cygpath -w cmdModule.c`
+
+modulecmd-cmdPath.o: cmdPath.c
+@AMDEP_TRUE@	source='cmdPath.c' object='modulecmd-cmdPath.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdPath.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdPath.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdPath.o `test -f cmdPath.c || echo '$(srcdir)/'`cmdPath.c
+
+modulecmd-cmdPath.obj: cmdPath.c
+@AMDEP_TRUE@	source='cmdPath.c' object='modulecmd-cmdPath.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdPath.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdPath.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdPath.obj `cygpath -w cmdPath.c`
+
+modulecmd-cmdSetenv.o: cmdSetenv.c
+@AMDEP_TRUE@	source='cmdSetenv.c' object='modulecmd-cmdSetenv.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdSetenv.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdSetenv.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdSetenv.o `test -f cmdSetenv.c || echo '$(srcdir)/'`cmdSetenv.c
+
+modulecmd-cmdSetenv.obj: cmdSetenv.c
+@AMDEP_TRUE@	source='cmdSetenv.c' object='modulecmd-cmdSetenv.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdSetenv.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdSetenv.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdSetenv.obj `cygpath -w cmdSetenv.c`
+
+modulecmd-cmdUname.o: cmdUname.c
+@AMDEP_TRUE@	source='cmdUname.c' object='modulecmd-cmdUname.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdUname.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdUname.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdUname.o `test -f cmdUname.c || echo '$(srcdir)/'`cmdUname.c
+
+modulecmd-cmdUname.obj: cmdUname.c
+@AMDEP_TRUE@	source='cmdUname.c' object='modulecmd-cmdUname.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdUname.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdUname.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdUname.obj `cygpath -w cmdUname.c`
+
+modulecmd-cmdXResource.o: cmdXResource.c
+@AMDEP_TRUE@	source='cmdXResource.c' object='modulecmd-cmdXResource.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdXResource.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdXResource.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdXResource.o `test -f cmdXResource.c || echo '$(srcdir)/'`cmdXResource.c
+
+modulecmd-cmdXResource.obj: cmdXResource.c
+@AMDEP_TRUE@	source='cmdXResource.c' object='modulecmd-cmdXResource.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdXResource.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdXResource.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdXResource.obj `cygpath -w cmdXResource.c`
+
+modulecmd-cmdUlvl.o: cmdUlvl.c
+@AMDEP_TRUE@	source='cmdUlvl.c' object='modulecmd-cmdUlvl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdUlvl.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdUlvl.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdUlvl.o `test -f cmdUlvl.c || echo '$(srcdir)/'`cmdUlvl.c
+
+modulecmd-cmdUlvl.obj: cmdUlvl.c
+@AMDEP_TRUE@	source='cmdUlvl.c' object='modulecmd-cmdUlvl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdUlvl.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdUlvl.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdUlvl.obj `cygpath -w cmdUlvl.c`
+
+modulecmd-cmdLog.o: cmdLog.c
+@AMDEP_TRUE@	source='cmdLog.c' object='modulecmd-cmdLog.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdLog.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdLog.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdLog.o `test -f cmdLog.c || echo '$(srcdir)/'`cmdLog.c
+
+modulecmd-cmdLog.obj: cmdLog.c
+@AMDEP_TRUE@	source='cmdLog.c' object='modulecmd-cmdLog.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdLog.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdLog.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdLog.obj `cygpath -w cmdLog.c`
+
+modulecmd-cmdTrace.o: cmdTrace.c
+@AMDEP_TRUE@	source='cmdTrace.c' object='modulecmd-cmdTrace.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdTrace.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdTrace.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdTrace.o `test -f cmdTrace.c || echo '$(srcdir)/'`cmdTrace.c
+
+modulecmd-cmdTrace.obj: cmdTrace.c
+@AMDEP_TRUE@	source='cmdTrace.c' object='modulecmd-cmdTrace.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdTrace.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdTrace.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdTrace.obj `cygpath -w cmdTrace.c`
+
+modulecmd-cmdVersion.o: cmdVersion.c
+@AMDEP_TRUE@	source='cmdVersion.c' object='modulecmd-cmdVersion.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdVersion.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdVersion.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdVersion.o `test -f cmdVersion.c || echo '$(srcdir)/'`cmdVersion.c
+
+modulecmd-cmdVersion.obj: cmdVersion.c
+@AMDEP_TRUE@	source='cmdVersion.c' object='modulecmd-cmdVersion.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdVersion.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdVersion.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdVersion.obj `cygpath -w cmdVersion.c`
+
+modulecmd-cmdVerbose.o: cmdVerbose.c
+@AMDEP_TRUE@	source='cmdVerbose.c' object='modulecmd-cmdVerbose.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdVerbose.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdVerbose.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdVerbose.o `test -f cmdVerbose.c || echo '$(srcdir)/'`cmdVerbose.c
+
+modulecmd-cmdVerbose.obj: cmdVerbose.c
+@AMDEP_TRUE@	source='cmdVerbose.c' object='modulecmd-cmdVerbose.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdVerbose.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdVerbose.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdVerbose.obj `cygpath -w cmdVerbose.c`
+
+modulecmd-cmdWhatis.o: cmdWhatis.c
+@AMDEP_TRUE@	source='cmdWhatis.c' object='modulecmd-cmdWhatis.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdWhatis.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdWhatis.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdWhatis.o `test -f cmdWhatis.c || echo '$(srcdir)/'`cmdWhatis.c
+
+modulecmd-cmdWhatis.obj: cmdWhatis.c
+@AMDEP_TRUE@	source='cmdWhatis.c' object='modulecmd-cmdWhatis.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-cmdWhatis.Po' tmpdepfile='$(DEPDIR)/modulecmd-cmdWhatis.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-cmdWhatis.obj `cygpath -w cmdWhatis.c`
+
+modulecmd-init.o: init.c
+@AMDEP_TRUE@	source='init.c' object='modulecmd-init.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-init.Po' tmpdepfile='$(DEPDIR)/modulecmd-init.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-init.o `test -f init.c || echo '$(srcdir)/'`init.c
+
+modulecmd-init.obj: init.c
+@AMDEP_TRUE@	source='init.c' object='modulecmd-init.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-init.Po' tmpdepfile='$(DEPDIR)/modulecmd-init.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-init.obj `cygpath -w init.c`
+
+modulecmd-locate_module.o: locate_module.c
+@AMDEP_TRUE@	source='locate_module.c' object='modulecmd-locate_module.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-locate_module.Po' tmpdepfile='$(DEPDIR)/modulecmd-locate_module.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-locate_module.o `test -f locate_module.c || echo '$(srcdir)/'`locate_module.c
+
+modulecmd-locate_module.obj: locate_module.c
+@AMDEP_TRUE@	source='locate_module.c' object='modulecmd-locate_module.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-locate_module.Po' tmpdepfile='$(DEPDIR)/modulecmd-locate_module.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-locate_module.obj `cygpath -w locate_module.c`
+
+modulecmd-utility.o: utility.c
+@AMDEP_TRUE@	source='utility.c' object='modulecmd-utility.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-utility.Po' tmpdepfile='$(DEPDIR)/modulecmd-utility.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-utility.o `test -f utility.c || echo '$(srcdir)/'`utility.c
+
+modulecmd-utility.obj: utility.c
+@AMDEP_TRUE@	source='utility.c' object='modulecmd-utility.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-utility.Po' tmpdepfile='$(DEPDIR)/modulecmd-utility.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-utility.obj `cygpath -w utility.c`
+
+modulecmd-main.o: main.c
+@AMDEP_TRUE@	source='main.c' object='modulecmd-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-main.Po' tmpdepfile='$(DEPDIR)/modulecmd-main.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-main.o `test -f main.c || echo '$(srcdir)/'`main.c
+
+modulecmd-main.obj: main.c
+@AMDEP_TRUE@	source='main.c' object='modulecmd-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-main.Po' tmpdepfile='$(DEPDIR)/modulecmd-main.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-main.obj `cygpath -w main.c`
+
+modulecmd-error.o: error.c
+@AMDEP_TRUE@	source='error.c' object='modulecmd-error.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-error.Po' tmpdepfile='$(DEPDIR)/modulecmd-error.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-error.o `test -f error.c || echo '$(srcdir)/'`error.c
+
+modulecmd-error.obj: error.c
+@AMDEP_TRUE@	source='error.c' object='modulecmd-error.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-error.Po' tmpdepfile='$(DEPDIR)/modulecmd-error.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-error.obj `cygpath -w error.c`
+
+modulecmd-getopt.o: getopt.c
+@AMDEP_TRUE@	source='getopt.c' object='modulecmd-getopt.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-getopt.Po' tmpdepfile='$(DEPDIR)/modulecmd-getopt.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-getopt.o `test -f getopt.c || echo '$(srcdir)/'`getopt.c
+
+modulecmd-getopt.obj: getopt.c
+@AMDEP_TRUE@	source='getopt.c' object='modulecmd-getopt.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-getopt.Po' tmpdepfile='$(DEPDIR)/modulecmd-getopt.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-getopt.obj `cygpath -w getopt.c`
+
+modulecmd-version.o: version.c
+@AMDEP_TRUE@	source='version.c' object='modulecmd-version.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-version.Po' tmpdepfile='$(DEPDIR)/modulecmd-version.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-version.o `test -f version.c || echo '$(srcdir)/'`version.c
+
+modulecmd-version.obj: version.c
+@AMDEP_TRUE@	source='version.c' object='modulecmd-version.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/modulecmd-version.Po' tmpdepfile='$(DEPDIR)/modulecmd-version.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(modulecmd_CFLAGS) $(CFLAGS) -c -o modulecmd-version.obj `cygpath -w version.c`
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 

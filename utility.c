@@ -21,7 +21,6 @@
  **			Copy_Hash_Tables				     **
  **			Unwind_Modulefile_Changes			     **
  **			Output_Modulefile_Changes			     **
- **			set_derelict					     **
  **			IsLoaded_ExactMatch				     **
  **			IsLoaded					     **
  **			chk_marked_entry				     **
@@ -52,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.9 2002/05/03 04:56:59 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.10 2002/06/12 20:07:57 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -111,11 +110,6 @@ static	char	_proc_check_magic[] = "check_magic";
 static	char	_proc_cleanse_path[] = "cleanse_path";
 static	char	_proc_chop[] = "chop";
 #endif
-#if WITH_DEBUGGING_UTIL_3
-static	char	_proc_set_derelict[] = "set_derelict";
-#endif
-
-static	char  cmd_separator = ';';	/** Average command separator	     **/
 
 static	FILE *aliasfile;		/** Temporary file to write aliases  **/
 static	char  alias_separator = ';';	/** Alias command separator	     **/
@@ -781,9 +775,9 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
 	 **  sh or csh print warning message and return
 	 **/
 	if( !strcmp( shell_derelict, "csh")) {
-	    sourceCommand = "source %s%c";
+	    sourceCommand = "source %s%s";
 	} else if( !strcmp( shell_derelict, "sh")) {
-	    sourceCommand = ". %s%c";
+	    sourceCommand = ". %s%s";
 	} else {
 	    return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	}
@@ -805,8 +799,9 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
 	     **/
 	    alias_separator = '\n';
 
-	    fprintf( stdout, sourceCommand, aliasfilename, cmd_separator);
-	    fprintf( stdout, "/bin/rm -f %s%c", aliasfilename, cmd_separator);
+	    fprintf( stdout, sourceCommand, aliasfilename, shell_cmd_separator);
+	    fprintf( stdout, "/bin/rm -f %s%s",
+		aliasfilename, shell_cmd_separator);
 	} /** if( fopen) **/
     } /** if( alias to set) **/
 
@@ -928,16 +923,16 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 			     LMSPLIT_SIZE);
 		buffer[ LMSPLIT_SIZE] = '\0';
 
-		fprintf( stdout, "setenv %s%03d %s%c", var, count, buffer,
-		    cmd_separator);
+		fprintf( stdout, "setenv %s%03d %s%s", var, count, buffer,
+		    shell_cmd_separator);
 
 		lmfiles_len -= LMSPLIT_SIZE;
 		count++;
 	    }
 
 		if( lmfiles_len) {
-		fprintf( stdout, "setenv %s%03d %s%c", var, count,
-		    (escaped + count*LMSPLIT_SIZE), cmd_separator);
+		fprintf( stdout, "setenv %s%03d %s%s", var, count,
+		    (escaped + count*LMSPLIT_SIZE), shell_cmd_separator);
 		    count++;
 		}
 
@@ -945,11 +940,11 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 		 ** Unset _LMFILES_ as indicator to use the multi-variable
 		 ** _LMFILES_
 	     **/
-	    fprintf(stdout, "unsetenv %s%c", var, cmd_separator);
+	    fprintf(stdout, "unsetenv %s%s", var, shell_cmd_separator);
 
 	    } else {	/** if ( lmfiles_len = strlen(val)) > LMSPLIT_SIZE) **/
 
-		fprintf(stdout, "setenv %s %s%c", var, escaped, cmd_separator);
+		fprintf(stdout, "setenv %s %s%s", var, escaped, shell_cmd_separator);
 	    }
 
 	    /**
@@ -959,7 +954,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 		sprintf( formatted, "_LMFILES_%03d", count++);
 		cptr = Tcl_GetVar2( interp, "env", formatted, TCL_GLOBAL_ONLY);
 		if( cptr) {
-		    fprintf(stdout, "unsetenv %s%c", formatted, cmd_separator);
+		    fprintf(stdout, "unsetenv %s%s", formatted, shell_cmd_separator);
 		}
 	    } while( cptr);
 	
@@ -971,7 +966,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	  
 		char* escaped = stringer(NULL,strlen(val)*2+1,NULL);
 		EscapeCshString(val,escaped);
-		fprintf(stdout, "setenv %s %s %c", var, escaped, cmd_separator);
+		fprintf(stdout, "setenv %s %s %s", var, escaped, shell_cmd_separator);
 		null_free((void *) &escaped);
 #ifdef LMSPLIT_SIZE
 	}
@@ -985,8 +980,8 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
       char* escaped = (char*)malloc(strlen(val)*2+1);
       EscapeShString(val,escaped);
 
-      fprintf( stdout, "%s=%s %cexport %s%c", var, escaped, cmd_separator,
-	       var, cmd_separator);
+      fprintf( stdout, "%s=%s %sexport %s%s", var, escaped, shell_cmd_separator,
+	       var, shell_cmd_separator);
       free(escaped);
       
     /**
@@ -1001,8 +996,8 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
     } else if( !strcmp((char*) shell_derelict, "perl")) {
 		char* escaped = stringer(NULL,strlen(val)*2+1,NULL);
 		EscapePerlString(val,escaped);
-		fprintf(stdout, "$ENV{'%s'} = '%s'%c", var, escaped,
-			cmd_separator);  
+		fprintf(stdout, "$ENV{'%s'} = '%s'%s", var, escaped,
+			shell_cmd_separator);  
 		null_free((void *) &escaped);
 
     /**
@@ -1072,13 +1067,13 @@ static	int	output_unset_variable( const char* var)
      **  Display the 'unsetenv' command according to the current invoking shell.
      **/
     if( !strcmp( shell_derelict, "csh")) {
-	fprintf( stdout, "unsetenv %s%c", var, cmd_separator);
+	fprintf( stdout, "unsetenv %s%s", var, shell_cmd_separator);
     } else if( !strcmp( shell_derelict, "sh")) {
-	fprintf( stdout, "unset %s%c", var, cmd_separator);
+	fprintf( stdout, "unset %s%s", var, shell_cmd_separator);
     } else if( !strcmp( shell_derelict, "emacs")) {
 	fprintf( stdout, "(setenv \"%s\" nil)\n", var);
     } else if( !strcmp( shell_derelict, "perl")) {
-	fprintf( stdout, "delete $ENV{'%s'}%c", var, cmd_separator);  
+	fprintf( stdout, "delete $ENV{'%s'}%s", var, shell_cmd_separator);  
     } else if( !strcmp( shell_derelict, "python")) {
       fprintf( stdout, "os.environ['%s'] = ''\ndel os.environ['%s']\n",var,var);
     } else if( !strcmp( shell_derelict, "scm")) {
@@ -1096,88 +1091,6 @@ static	int	output_unset_variable( const char* var)
     return( TCL_OK);
 
 } /** End of 'output_unset_variable' **/
-
-/*++++
- ** ** Function-Header ***************************************************** **
- ** 									     **
- **   Function:		set_derelict					     **
- ** 									     **
- **   Description:	Normalize the current calling shell to one of the    **
- **			basic shells definig the varaible and alias syntax   **
- ** 									     **
- **   First Edition:	91/10/23					     **
- ** 									     **
- **   Parameters:	const char	*name	Invoking shell name	     **
- ** 									     **
- **   Result:		char*			Shell derelict name	     **
- ** 									     **
- **   Attached Globals:	shell_derelict					     **
- ** 									     **
- ** ************************************************************************ **
- ++++*/
-
-char	*set_derelict(	const char	*name) 
-{
-
-#if WITH_DEBUGGING_UTIL_3
-    ErrorLogger( NO_ERR_START, LOC, _proc_set_derelict, NULL);
-#endif
-
-    /**
-     **  Use bourne shell syntax for SH, BASH, ZSH and KSH
-     **/
-    if( !strcmp((char*) name, "sh") || 
-        !strcmp((char*) name, "bash") || 
-        !strcmp((char*) name, "zsh") || 
-        !strcmp((char*) name, "ksh")) {
-	return( strcpy( shell_derelict, "sh"));
-
-    /**
-     **  CSH and TCSH
-     **/
-    } else if( !strcmp((char*) name, "csh") || 
-	       !strcmp((char*) name, "tcsh")) {
-	return( strcpy( shell_derelict, "csh"));
-
-    /** 
-     **  EMACS
-     **/ 
-    } else if( !strcmp((char*) name, "emacs")) {
-	return( strcpy( shell_derelict, "emacs"));
-
-    /** 
-     **  PERL
-     **/ 
-    } else if( !strcmp((char*) name, "perl")) {
-	return( strcpy( shell_derelict, "perl"));
-
-    /**
-     ** PYTHON
-     **/
-    } else if( !strcmp((char*) name, "python")) {
-	return( strcpy( shell_derelict, "python"));
-
-    /**
-     ** SCM
-     **/
-    } else if( !strcmp((char *) name, "scm") ||
-	       !strcmp((char *) name, "scheme") ||
-	       !strcmp((char *) name, "guile")) {
-	return( strcpy( shell_derelict, "scm"));
-
-    /**
-     ** MEL (Maya Extension Language)
-     **/
-    } else if( !strcmp((char *) name, "mel")) {
-	return( strcpy( shell_derelict, "mel"));
-    }
-
-    /**
-     **  Oops! Undefined shell name ...
-     **/
-    return( NULL);
-
-} /** End of 'set_derelict' **/
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -2825,7 +2738,7 @@ int tmpfile_mod(char** filename, FILE** file) {
  ** 									     **
  **   Function:		stringer					     **
  ** 									     **
- **   Description:	Safely copies and concates series of strings	     **
+ **   Description:	Safely copies and concats series of strings	     **
  **			until it hits a NULL argument.			     **
  **			Either a buffer & length are given or if the buffer  **
  **			pointer is NULL then it will allocate memory to the  **

@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.4 2002/04/29 21:16:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.5 2002/06/12 20:07:57 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -60,18 +60,19 @@ static void *UseId[] = { &UseId, Id };
 /** 				    GLOBAL DATA				     **/
 /** ************************************************************************ **/
 
-char	 *g_current_module = NULL;	/** The module which is handled by   **/
+char	 *g_current_module = NULL,	/** The module which is handled by   **/
 					/** the current command		     **/
-char	 *specified_module = NULL;	/** The module that was specified    **/
+	 *specified_module = NULL,	/** The module that was specified    **/
 					/** on the command line		     **/
-char	  shell_name[20];		/** Name of the shell (first para-   **/
-					/** meter to modulcmd)		     **/
-char      binary_name[1024];            /** name or path of this modulecmd   **/
-char	  shell_derelict[20];		/** Shell family (sh, csh)	     **/
-int	  g_flags = 0;			/** Control what to do at the moment **/
+	 *shell_name,			/** Name of the shell		     **/
+					/** (first parameter to modulcmd)    **/
+	 *shell_derelict,		/** Shell family (sh, csh, etc)	     **/
+	 *shell_init,			/** Shell init script name	     **/
+	 *shell_cmd_separator;		/** Shell command separator char     **/
+int	  g_flags = 0,			/** Control what to do at the moment **/
 					/** The posible values are defined in**/
 					/** module_def.h		     **/
-int	  append_flag = 0;		/** only used by the 'use' command   **/
+	  append_flag = 0;		/** only used by the 'use' command   **/
 
 char	  _default[] = "default";	/** id string for default versions   **/
 
@@ -81,11 +82,10 @@ char	  _default[] = "default";	/** id string for default versions   **/
  **  It comes from the Makefile
  **/
 
-char	*instpath = INSTPATH;
-
-char	*rc_file = RCFILE;
-char	*modulerc_file = MODULERCFILE;
-char	*version_file = VERSIONFILE;
+char	*instpath = INSTPATH,
+	*rc_file = RCFILE,
+	*modulerc_file = MODULERCFILE,
+	*version_file = VERSIONFILE;
 
 /**
  **  pointers for regular expression evaluations
@@ -105,7 +105,7 @@ char
     *purgeRE    = "^purge",			/** 'module purge'	     **/
     *clearRE    = "^clear",			/** 'module clear'	     **/
     *whatisRE   = "^wh",			/** 'module whatis'	     **/
-    *bootstrapRE= "^bootstrap",                 /** 'module bootstrap'       **/
+    *bootstrapRE= "^boot",			/** 'module bootstrap'	     **/
     *aproposRE  = "^(apr|key)";			/** 'module apropos'	     **/
 
 /**
@@ -113,12 +113,12 @@ char
  **  ??? What do we save here, the old or the new setup ???
  **/
 
-Tcl_HashTable	*setenvHashTable;
-Tcl_HashTable	*unsetenvHashTable;
-Tcl_HashTable	*aliasSetHashTable;
-Tcl_HashTable	*aliasUnsetHashTable;
-Tcl_HashTable	*markVariableHashTable;
-Tcl_HashTable	*markAliasHashTable;
+Tcl_HashTable	*setenvHashTable,
+		*unsetenvHashTable,
+		*aliasSetHashTable,
+		*aliasUnsetHashTable,
+		*markVariableHashTable,
+		*markAliasHashTable;
 
 /**
  **  A buffer for reading a single line
@@ -130,13 +130,13 @@ char	*line = NULL;
  **  Flags influenced by the command line switches
  **/
 
-int	sw_force = 0;
-int	sw_detach = 0;
-int	sw_format = 0;
-int	sw_verbose = 0;
-int	sw_create = 0;
-int	sw_userlvl = UL_ADVANCED;
-int	sw_icase = 0;
+int	sw_force = 0,
+	sw_detach = 0,
+	sw_format = 0,
+	sw_verbose = 0,
+	sw_create = 0,
+	sw_userlvl = UL_ADVANCED,
+	sw_icase = 0;
 
 /** ************************************************************************ **/
 /** 				    LOCAL DATA				     **/
@@ -192,19 +192,16 @@ int	main( int argc, char *argv[], char *environ[]) {
 #if WITH_DEBUGGING
     ErrorLogger( NO_ERR_START, LOC, _proc_main, NULL);
 #endif
-	/**
-	 ** check if first argument is --version or -V then output the
-	 ** version to stdout.  This is a special circumstance handled
-	 ** by the regular options.
-	 **/
+    /**
+     ** check if first argument is --version or -V then output the
+     ** version to stdout.  This is a special circumstance handled
+     ** by the regular options.
+     **/
     if (argc > 1 && *argv[1] == '-') {
-      if (!strcmp("-V", argv[1]) || !strcmp("--version", argv[1])) {
-	printf("%s\n", version_string);
-	return 0;
-      }
-    }
-    if (argc >=1 && argv[0]) {
-      strcpy(binary_name,argv[0]);
+        if (!strcmp("-V", argv[1]) || !strcmp("--version", argv[1])) {
+	    printf("%s\n", version_string);
+	    return 0;
+        }
     }
     /**
      **  Initialization. 
