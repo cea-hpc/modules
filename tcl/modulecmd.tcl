@@ -24,6 +24,7 @@ set ignoreDir(CVS) 1
 set ignoreDIr(RCS) 1
 set ignoreDir(SCCS) 1
 set g_reloadMode  0
+set error_count  0
 
 proc module-info {what {more {}}} {
     upvar g_mode mode
@@ -643,6 +644,23 @@ proc renderSettings {} {
 	    }
 	}
 
+	if {$error_count > 0} {
+	    puts stderr "ERROR: $error_count error(s) detected."
+	    switch $g_shellType {
+		csh {
+		    puts $f "/bin/false"
+		}
+		sh {
+		    puts $f "/bin/false"
+		}
+		perl {
+		    # HMS: is this right?
+		    puts $f "die 'modulefile.tcl: $error_count error(s) detected!\n'"
+		}
+		python {
+		    # I am not a python programmer...
+		}
+	    }
 	close $f
 
 	fconfigure stdout -translation lf
