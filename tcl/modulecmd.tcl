@@ -54,7 +54,10 @@ proc execute-modulefile {modfile} {
     interp eval $slave [list set ModulesCurrentModulefile $modfile]
     set errorVal [interp eval $slave {
         if [catch {source $ModulesCurrentModulefile} errorMsg] {
-            if [regexp "^WARNING" $errorMsg] {
+            if {$errorMsg == "" && $errorInfo == ""} {
+                unset errorMsg
+                return 1
+            } elseif [regexp "^WARNING" $errorMsg] {
                 puts stderr $errorMsg
                 return 1
             } else {
@@ -1599,7 +1602,7 @@ catch {
 	}
 	default {
 	    report {
-		ModulesTcl 0.100/$Revision: 1.24 $:
+		ModulesTcl 0.100/$Revision: 1.25 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
