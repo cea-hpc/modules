@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -83,10 +83,12 @@ static	char	module_name[] = "ModuleCmd_Switch.c";	/** File name of this module *
  **   Result:		int	TCL_ERROR	Failure			     **
  **				TCL_OK		Successfull operation	     **
  ** 									     **
- **   Attached Globals:	flags			Controlling the callback     **
+ **   Attached Globals:	g_flags			Controlling the callback     **
  **						functions.		     **
  **			specified_module	The module name from the     **
  **						command line.		     **
+ **			g_current_module	The module which is handled  **
+ **						by the current command	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -187,10 +189,10 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
      **  be put in its place for later use.
      **/
 
-    flags |= (M_REMOVE | M_SWSTATE1);
+    g_flags |= (M_REMOVE | M_SWSTATE1);
     
     specified_module = oldmodule;
-    current_module = oldname;
+    g_current_module = oldname;
     if( Read_Modulefile( interp, oldfile) == 0)
 	Update_LoadedList( interp, oldname, oldfile);
     else {
@@ -198,17 +200,17 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 	return( TCL_ERROR);		/** ------- EXIT (FAILURE) --------> **/
     }
     
-    flags &= ~(M_REMOVE | M_SWSTATE1);
+    g_flags &= ~(M_REMOVE | M_SWSTATE1);
 
     /**
      **  Move on to state SWITCH2.  This loads the modulefile at the append
      **  and prepend markers.
      **/
 
-    flags |= M_SWSTATE2;
+    g_flags |= M_SWSTATE2;
 
     specified_module = newmodule;
-    current_module = newname;
+    g_current_module = newname;
     if( Read_Modulefile( interp, newfile) == 0)
 	Update_LoadedList( interp, newname, newfile);
     else {
@@ -216,17 +218,17 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 	return( TCL_ERROR);		/** ------- EXIT (FAILURE) --------> **/
     }
 
-    flags &= ~M_SWSTATE2;
+    g_flags &= ~M_SWSTATE2;
 
     /**
      **  This actually unsets environment variables and gets rid of the
      **  markers.
      **/
 
-    flags |= (M_REMOVE | M_SWSTATE3);
+    g_flags |= (M_REMOVE | M_SWSTATE3);
 
     specified_module = oldmodule;
-    current_module = oldname;
+    g_current_module = oldname;
     if( Read_Modulefile( interp, oldfile) == 0)
 	Update_LoadedList( interp, newname, newfile);
     else {

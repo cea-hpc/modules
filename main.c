@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -60,7 +60,7 @@ static void *UseId[] = { &UseId, Id };
 /** 				    GLOBAL DATA				     **/
 /** ************************************************************************ **/
 
-char	 *current_module = NULL;	/** The module which is handled by   **/
+char	 *g_current_module = NULL;	/** The module which is handled by   **/
 					/** the current command		     **/
 char	 *specified_module = NULL;	/** The module that was specified    **/
 					/** on the command line		     **/
@@ -69,9 +69,13 @@ char	**shell_startups;		/** A list off all startup files our **/
 char	  shell_name[20];		/** Name of the shell (first para-   **/
 					/** meter to modulcmd)		     **/
 char	  shell_derelict[20];		/** Shell family (sh, csh)	     **/
-int	  flags = 0;			/** Control what do do at the moment **/
+int	  g_flags = 0;			/** Control what to do at the moment **/
 					/** The posible values are defined in**/
 					/** module_def.h		     **/
+int	  append_flag = 0;		/** only used by the 'use' command   **/
+
+char	  _default[] = "default";	/** id string for default versions   **/
+
 /**
  **  Name of the rc files
  **  INSTPATH points to the location where modules is going to be installed.
@@ -278,7 +282,7 @@ int	main( int argc, char *argv[], char *environ[]) {
      **  Source the global and the user defined RC file
      **/
 
-    current_module = (char *) NULL;
+    g_current_module = (char *) NULL;
 
     if( TCL_ERROR == SourceRC( interp, rc_path, rc_name) ||
 	TCL_ERROR == SourceRC( interp, getenv( "HOME"), modulerc_file))
@@ -291,7 +295,7 @@ int	main( int argc, char *argv[], char *environ[]) {
      **  Invocation of the module command as specified in the command line
      **/
 
-    flags = 0;
+    g_flags = 0;
     return_val = cmdModule((ClientData) 0, interp, (argc - 1), (argv + 1));
 
     /**
@@ -437,6 +441,7 @@ static int	Check_Switches( int *argc, char *argv[])
 	{ "create", no_argument, NULL, 'c' },
 	{ "icase", no_argument, NULL, 'i' },
 	{ "userlvl", required_argument, NULL, 'u'},
+	{ "append", no_argument, NULL, 'a' },
 	{ "version", no_argument, NULL, 'V' },
 	{ NULL, no_argument, NULL, 0 }
     };
@@ -452,7 +457,7 @@ static int	Check_Switches( int *argc, char *argv[])
 
     if( *argc > 1) {
 
-	while( EOF != (c = getopt_long( *argc-1, &argv[1], "hpftlvsciu:V",
+	while( EOF != (c = getopt_long( *argc-1, &argv[1], "hpftlvsciu:aV",
 	    longopts, NULL))) {
 
 	    switch( c) {
@@ -523,6 +528,13 @@ static int	Check_Switches( int *argc, char *argv[])
 
 		case 'u':			/* userlvl */
 		    cmdModuleUser_sub( optarg);
+		    break;
+
+		/**
+		 **  a special purpose flag for 'use' only
+		 **/
+		case 'a':			/* --append */
+		    append_flag = 1;
 		    break;
 
 		case 'V':			/* version */

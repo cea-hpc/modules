@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -394,7 +394,8 @@ static	void Print_Tracing(	char	 *buffer,
  ** 									     **
  **   Result:		-						     **
  ** 									     **
- **   Attached Globals:							     **
+ **   Attached Globals:	g_current_module	The module which is handled  **
+ **						by the current command	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -414,7 +415,7 @@ void Module_Verbosity(	int	argc,
 		   	char	**argv)
 {
     if( sw_verbose && argc && *argv)
-	if( !FlushError( NO_ERR_VERBOSE, current_module, linenum, WGHT_VERBOSE,
+	if( !FlushError( NO_ERR_VERBOSE, g_current_module,linenum,WGHT_VERBOSE,
 	    Measurements[ MEAS_VERB_NDX].message, *argv, argc, argv)) {
 	    ErrorLogger( ERR_INTERRL, LOC, NULL);
 	}
@@ -1396,9 +1397,9 @@ static	int	PrintError(	char 		 *errbuffer,
      **/
 
     if( ERR_INTERNAL > Type && ERR_IN_MODULEFILE < Type &&
-	linenum && current_module )
+	linenum && g_current_module )
 
-	sprintf( errbuffer, "%s(%s):%s:%d: %s\n", current_module,
+	sprintf( errbuffer, "%s(%s):%s:%d: %s\n", g_current_module,
 	    (sprintf( buffer, "%d", linenum), buffer),
 	    WeightMsg, Type, (error_string ? error_string : "") );
     else

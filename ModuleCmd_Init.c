@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -108,7 +108,9 @@ static int out_substr(FILE *stream, char *start, char *end) {
  **   Result:		int	TCL_ERROR	Failure			     **
  **				TCL_OK		Successfull operation	     **
  ** 									     **
- **   Attached Globals:							     **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
+ **					this function is called in order to  **
+ **					control everything		     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -144,14 +146,14 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
      **  thing to do - exit now!
      **/
 
-    if( argc < 1 && !(flags & (M_DISPLAY | M_CLEAR)))
+    if( argc < 1 && !(g_flags & (M_DISPLAY | M_CLEAR)))
 	return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
   
     /**
      **  Parameter check for the initswitch command
      **/
 
-    if(flags & M_SWITCH) {
+    if(g_flags & M_SWITCH) {
 	argc--;
 	if(argc != 1) {
 	    if( OK != ErrorLogger( ERR_USAGE, LOC, "initswitch oldmodule newmodule",
@@ -217,7 +219,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 
 	shell_num++;
 
-	if( !(flags & M_DISPLAY) &&
+	if( !(g_flags & M_DISPLAY) &&
 	NULL == (newfileptr = fopen( home_pathname, "w"))) {
 	    (void) ErrorLogger(ERR_OPEN,LOC,home_pathname,"init",NULL);
 	    continue;			/** while( shell_startups) ...	     **/
@@ -234,7 +236,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		found_modload_flag = 1;
 		break;
 	    }
-	    if (!(flags & M_DISPLAY)) fputs( buffer, newfileptr);
+	    if (!(g_flags & M_DISPLAY)) fputs( buffer, newfileptr);
 	}
 
 	/**
@@ -249,7 +251,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		    return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 		}
 
-	    if (!(flags & M_DISPLAY)) {
+	    if (!(g_flags & M_DISPLAY)) {
 		if( EOF == fclose( newfileptr))
 		    if( OK != ErrorLogger(ERR_CLOSE,LOC,home_pathname,NULL)) {
 			free( buffer);
@@ -275,13 +277,13 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 
 	/* print out the "module" part */
 	(void) Tcl_RegExpRange(modcmdPtr, 1, &startp, &endp);
-	if (!(flags & M_DISPLAY)) (void) out_substr(newfileptr, startp, endp);
+	if (!(g_flags & M_DISPLAY)) (void) out_substr(newfileptr, startp, endp);
 
 	/* print out the "add/load" part */
 	(void) Tcl_RegExpRange(modcmdPtr, 2, &startp, &endp);
-	if (!(flags & M_DISPLAY)) (void) out_substr(newfileptr, startp, endp);
+	if (!(g_flags & M_DISPLAY)) (void) out_substr(newfileptr, startp, endp);
 
-	if( !(flags & M_CLEAR)) {
+	if( !(g_flags & M_CLEAR)) {
 	
 	    /* look at the "module list" part */
 	    (void) Tcl_RegExpRange(modcmdPtr, 3, &startp, &endp);
@@ -298,7 +300,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		*endp = ch;
 	    }
 
-	    if( flags & M_DISPLAY) {
+	    if( g_flags & M_DISPLAY) {
 		if( modlist[0] == NULL) {
 		    fprintf( stderr,
 			"\nNo modules are loaded in %s's initialization file "
@@ -323,24 +325,25 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 
 		for( j=0; j < nummods; j++) {
 		    if( !strcmp( modlist[j], argv[i])) {
-			if( flags & (M_LOAD | M_PREPEND | M_REMOVE)) {
+			if( g_flags & (M_LOAD | M_PREPEND | M_REMOVE)) {
 			    /**
 			     **  If removing, adding, prepending it,
 			     **  NULL it off the list.
 			     **/
 
-			    if ( flags & M_REMOVE )
+			    if ( g_flags & M_REMOVE )
 				fprintf( stderr, "Removed %s\n", modlist[j]);
-			    else if ( (flags & M_LOAD) && !(flags & M_PREPEND))
+			    else if ( (g_flags & M_LOAD)
+				&& !(g_flags & M_PREPEND))
 				fprintf(stderr,"Moving %s to end\n",modlist[j]);
-			    else if ( flags & M_PREPEND )
+			    else if ( g_flags & M_PREPEND )
 				fprintf(stderr,"Moving %s to beginning\n",
 				modlist[j]);
 			    free( modlist[j]);
 			    modlist[j] = NULL;
 			    rm_found = 1;
 
-			} else if( flags & M_SWITCH) {
+			} else if( g_flags & M_SWITCH) {
 
 			    /**
 			     **  If switching it, swap the old string with
@@ -363,7 +366,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	     **  the modlist contains what needs to be put where...
 	     **/
 
-	    if( flags & M_PREPEND) {
+	    if( g_flags & M_PREPEND) {
 		/**
 		 **  PREPENDING
 		 **/
@@ -371,7 +374,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		    fprintf( newfileptr, " %s", argv[i]);
 	    }
 
-	    if( (flags & (M_LOAD | M_PREPEND | M_REMOVE | M_SWITCH )) )
+	    if( (g_flags & (M_LOAD | M_PREPEND | M_REMOVE | M_SWITCH )) )
 		/**
 		 **  DUMP LIST
 		 **/
@@ -379,7 +382,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		    if( modlist[j])
 			fprintf( newfileptr, " %s", modlist[j]);
 		}
-	    if( (flags & M_LOAD) && !(flags & M_PREPEND)) {
+	    if( (g_flags & M_LOAD) && !(g_flags & M_PREPEND)) {
 		/**
 		 **  ADDING
 		 **/
@@ -491,7 +494,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
     strcpy( home_pathname2, home_pathname);
     strcat( home_pathname2, "-NEW");
 
-    if((flags & M_SWITCH) && !sw_found) {
+    if((g_flags & M_SWITCH) && !sw_found) {
 	if( OK != ErrorLogger( ERR_LOCATE, LOC, argv[0], NULL)) {
 	    if( -1 == unlink( home_pathname2))
 		ErrorLogger( ERR_UNLINK, LOC, home_pathname2, NULL);
@@ -503,7 +506,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
      **  Check the REMOVE command
      **/
 
-    if((flags & M_REMOVE) && !rm_found) {
+    if((g_flags & M_REMOVE) && !rm_found) {
 	if( OK != ErrorLogger( ERR_LOCATE, LOC, NULL)) {
 	    if( -1 == unlink( home_pathname2))
 		ErrorLogger( ERR_UNLINK, LOC, home_pathname2, NULL);

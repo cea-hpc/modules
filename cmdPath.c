@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -105,7 +105,7 @@ static char buffer[ PATH_BUFLEN];
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  ** 									     **
@@ -133,7 +133,7 @@ int	cmdSetPath(	ClientData	 client_data,
      **  Whatis mode?
      **/
 
-    if( flags & (M_WHATIS | M_HELP))
+    if( g_flags & (M_WHATIS | M_HELP))
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
 	
     /**
@@ -153,7 +153,7 @@ int	cmdSetPath(	ClientData	 client_data,
      **  Should this guy be removed from the variable ... If yes, do so!
      **/
 
-    if(flags & M_REMOVE) 
+    if(g_flags & M_REMOVE) 
 	return( cmdRemovePath(client_data, interp, argc, argv));   /** ----> **/
 
     /**
@@ -167,7 +167,7 @@ int	cmdSetPath(	ClientData	 client_data,
      **  Display only ... ok, let's do so!
      **/
 
-    if(flags & M_DISPLAY) {
+    if(g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t ", argv[ 0]);
 	while( --argc)
 	    fprintf( stderr, "%s ", *++argv);
@@ -348,7 +348,7 @@ int	cmdSetPath(	ClientData	 client_data,
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  ** 									     **
@@ -394,7 +394,7 @@ int	cmdRemovePath(	ClientData	 client_data,
      **  Display only ... ok, let's do so!
      **/
 
-    if(flags & M_DISPLAY) {
+    if(g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t ", argv[ 0]);
 	while( --argc)
 	    fprintf( stderr, "%s ", *++argv);
@@ -413,7 +413,7 @@ int	cmdRemovePath(	ClientData	 client_data,
      ** For switch state3, we're looking to remove the markers.
      **/
 
-    if( flags & M_SWSTATE3) 
+    if( g_flags & M_SWSTATE3) 
 	argv[2] = sw_marker;
 
     /**
@@ -601,7 +601,7 @@ int	cmdRemovePath(	ClientData	 client_data,
      **  the module was formed around.
      **/
 
-    if((flags & M_SWSTATE1) && Tcl_RegExpExec(interp,
+    if((g_flags & M_SWSTATE1) && Tcl_RegExpExec(interp,
 	 markexpPtr, oldpath, oldpath)) {
 
 	/**

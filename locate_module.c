@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -79,8 +79,6 @@ static	char	_proc_SplitIntoList[] = "SplitIntoList";
 #if WITH_DEBUGGING_UTIL_2
 static	char	_proc_FreeList[] = "FreeList";
 #endif
-
-static	char	_default[] = "default";
 
 static	char	buf[ MOD_BUFSIZE];
 static	char	modfil_buf[ MOD_BUFSIZE];
@@ -147,7 +145,8 @@ static int  filename_compare(	const void	*fi1,
  **			filename	the full path of the required module **
  **					file is copied in here		     **
  ** 									     **
- **   Attached Globals:							     **
+ **   Attached Globals:	g_current_module	The module which is handled  **
+ **						by the current command	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -251,7 +250,7 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 
 	if( !( modulespath = (char *) getenv( "MODULEPATH"))) {
 	    if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL)) {
-		current_module = NULL;
+		g_current_module = NULL;
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	    }
 	}
@@ -470,7 +469,7 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 	    strcpy( fullpath, path);
 	    strcat( fullpath, "/");
 	    strcat( fullpath, modfil_buf);
-	    current_module = modfil_buf;
+	    g_current_module = modfil_buf;
 
 	    if( TCL_ERROR == SourceRC( interp, fullpath, modulerc_file) ||
 		TCL_ERROR == SourceVers( interp, fullpath, modfil_buf)) {
@@ -1159,7 +1158,9 @@ void FreeList(	char	**list,
  **   Result:		int		TCL_OK		Success		     **
  **					TCL_ERROR	Failure		     **
  **									     **
- **   Attached Globals:	-						     **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
+ **					this function is called in order to  **
+ **					control everything		     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -1212,8 +1213,8 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
 	     **  printing something
 	     **/
 
-	    save_flags = flags;
-	    flags = M_LOAD;
+	    save_flags = g_flags;
+	    g_flags = M_LOAD;
 
 	    /**
 	     **  Source now
@@ -1223,7 +1224,7 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
 		if( OK != ErrorLogger( ERR_SOURCE, LOC, buffer, NULL)) 
 		    Result = TCL_ERROR;
 
-	    flags = save_flags;
+	    g_flags = save_flags;
 
 	    /**
 	     **  Save the currently sourced file in the list
@@ -1285,7 +1286,9 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
  **   Result:		int		TCL_OK		Success		     **
  **					TCL_ERROR	Failure		     **
  **									     **
- **   Attached Globals:	-						     **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
+ **					this function is called in order to  **
+ **					control everything		     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -1340,8 +1343,8 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
 #endif
 	) {
 
-	    save_flags = flags;
-	    flags = M_LOAD;
+	    save_flags = g_flags;
+	    g_flags = M_LOAD;
 
 	    if( TCL_ERROR != (Result = Execute_TclFile( interp, buffer)) && 
 		(version = Tcl_GetVar( interp, "ModulesVersion", 0))) {
@@ -1371,7 +1374,7 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
 
 	    } /** if( Execute...) **/
 
-	    flags = save_flags;
+	    g_flags = save_flags;
 
 	} else
 	    ErrorLogger( ERR_MAGIC, LOC, buffer, NULL);

@@ -15,7 +15,7 @@ module \- command interface to the Modules package
 .LP
 .B module
 is a user interface to the Modules package.
-The Modules package provides for the dynamic modification of a user's
+The Modules package provides for the dynamic modification of the user's
 environment via
 .I modulefiles.
 .LP
@@ -63,7 +63,7 @@ and its associated arguments.
 The Modules package and the
 .B module
 command are initialized when a shell-specific initialization script is
-source'd into the shell.
+sourced into the shell.
 The script creates the
 .B module
 command as either an alias or function, creates Modules environment variables,
@@ -83,20 +83,20 @@ is the name of the sourcing shell.
 For example, a C Shell user sources the ${\s-1MODULESHOME\s0}/init/\fIcsh\fP
 script.  The sh, csh, tcsh, bash, ksh, and zsh shells are supported by
 .B modulecmd.
-In addition, emacs and perl "shells" are supported which writes
-the environment changes to stdout as emacs-readable lisp or perl code.
+In addition, python and perl "shells" are supported which writes
+the environment changes to stdout as python or perl code.
 .SS Examples of initialization
 In the following examples, replace ${\s-1MODULESHOME\s0} with the actual
 directory name.
 .LP
-C Shell initialization:
+C Shell initialization (and derivatives):
 .nf
 
 	source ${\s-1MODULESHOME\s0}/init/csh
 	module load modulefile modulefile ...
 
 .fi
-Bourne Shell (sh):
+Bourne Shell (sh) (and derivatives):
 .nf
 
 	. ${\s-1MODULESHOME\s0}/init/sh
@@ -116,7 +116,7 @@ Upon invocation \fImodulecmd\fP sources rc files which contain global, user
 and modulefile specific setups. These files are interpreted as modulefiles.
 See \fBmodulefile(4)\fP for detailed information.
 .LP
-Upon invocation of modulecmd module RC files are source'd in the following
+Upon invocation of modulecmd module RC files are sourced in the following
 order:
 .nf
 	
@@ -143,7 +143,7 @@ switches are accepted:
 Force active dependency resolution. This will result in modules found on a
 \fIprereq\fP command inside a module file being load automatically.
 Unloading module files using this switch will result in all required modules
-which have been load automatically using the \fI-f\fP switch being unload.
+which have been loaded automatically using the \fI-f\fP switch being unload.
 This switch is experimental at the moment.
 .RS
 .RE
@@ -174,7 +174,7 @@ Disable verbose messages. Redirect \fIstderr\fP to \fI/dev/null\fP if
 \fIstderr\fP is found not to be a tty. This is a useful option for module
 commands being written into \fI.cshrc\fP, \fI.login\fP or \fI.profile\fP
 files, because some remote shells (as \fIrsh\fP(1)) and remote execution
-commands (like \fIrdist\fP) get confused if there's output on stderr.
+commands (like \fIrdist\fP) get confused if there is output on stderr.
 .RS
 .RE
 .TP
@@ -248,9 +248,10 @@ Display information about a
 .I modulefile.
 The display sub-command will list the full path of the
 .I modulefile
-and all of the environment changes the
+and all (or most) of the environment changes the
 .I modulefile
-will make if loaded.
+will make if loaded.  (It will not display any
+environment changes found within conditional statements.)
 .TP 15
 .B list
 List loaded modules.
@@ -276,10 +277,10 @@ for each version.
 .B use directory [directory...]
 .PD 0
 .TP 15
-.B use -append directory [directory...]
+.B use [-a|--append] directory [directory...]
 .PD
 Prepend directory to the \s-1MODULEPATH\s0 environment variable.
-The -append flag will append the directory to \s-1MODULEPATH\s0.
+The --append flag will append the directory to \s-1MODULEPATH\s0.
 .TP 15
 .B unuse directory [directory...]
 Remove directory from the \s-1MODULEPATH\s0 environment variable.
@@ -323,8 +324,8 @@ C Shell; .profile for the Bourne and Korn Shells; .bashrc, .bash_env,
 and .bash_profile for the GNU Bourne Again Shell; .zshrc, .zshenv, and .zlogin
 for zsh. The .modules file is checked for all shells.
 If a 'module load' line is found in any of these files, the
-.I modulefile
-are appended to any existing list of 
+.I modulefile(s)
+is(are) appended to any existing list of 
 .I modulefiles.
 The 'module load' line must be located in at least one of the
 files listed above for any of the 'init' sub-commands to work properly.
@@ -443,7 +444,7 @@ interpreter that gets executed upon each invocation of
 .B module.
 .TP
 .B ${\s-1MODULESHOME\s0}/init/\fIshellname\fP
-The Modules package initialization file source'd into the user's
+The Modules package initialization file sourced into the user's
 environment.
 .TP
 .B ${\s-1MODULESHOME\s0}/init/.modulespath

@@ -329,7 +329,7 @@ typedef	enum	{
 #endif
 
 /**
- **  flags values
+ **  g_flags values
  **/
 
 #define      M_REMOVE	0x0001
@@ -459,15 +459,17 @@ typedef	enum	{
 extern	char	**environ;
 
 extern	char	 *version_string;
-extern	char	 *current_module;
+extern	char	 *g_current_module;
 extern	char	 *specified_module;
 extern	char	**shell_startups;
 extern	char	  shell_name[];
 extern	char	  shell_derelict[];
-extern	int	  flags;
+extern	int	  g_flags;
+extern	int	  append_flag;
 extern	char	 *line;
 extern	char	 *error_line;
 extern	char	  local_line[];
+extern	char	  _default[];
 
 extern	int	  linenum;
 

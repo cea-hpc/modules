@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Display.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Display.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -91,6 +91,11 @@ static	char	_proc_ModuleCmd_Display[] = "ModuleCmd_Display";
  ** 									     **
  **   Attached Globals:	specified_module	The module name from the     **
  **						command line.		     **
+ **   			g_flags		These are set up accordingly before  **
+ **					this function is called in order to  **
+ **					control everything		     **
+ **			g_current_module	The module which is handled  **
+ **						by the current command	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -116,7 +121,7 @@ int ModuleCmd_Display(	Tcl_Interp	*interp,
      **/
 
     Tcl_DStringInit( &cmdbuf);
-    flags |= M_DISPLAY;
+    g_flags |= M_DISPLAY;
 
     /**
      **  Handle each passed module file. Create a Tcl interpreter for each 
@@ -154,7 +159,7 @@ int ModuleCmd_Display(	Tcl_Interp	*interp,
 	 **  executed ...
 	 **/
 
-        current_module = modulename;
+        g_current_module = modulename;
 
         fprintf( stderr, local_line);
 	fprintf( stderr, "%s:\n\n", modulefile);
@@ -176,7 +181,7 @@ int ModuleCmd_Display(	Tcl_Interp	*interp,
      **  Leave the 'display only mode', free up what has been used and return
      **/
 
-    flags &= ~M_DISPLAY;
+    g_flags &= ~M_DISPLAY;
     fprintf( stderr, "\n");
 
     Tcl_DStringFree( &cmdbuf);

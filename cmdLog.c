@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdLog.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: cmdLog.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -93,6 +93,9 @@ static	char	_none[] = "none";
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	tracelist	List containing all tracing settings **
+ **   			g_flags		These are set up accordingly before  **
+ **					this function is called in order to  **
+ **					control everything		     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -114,7 +117,7 @@ int	cmdModuleLog(	ClientData	 client_data,
      **  Whatis mode?
      **/
 
-    if( flags & (M_WHATIS | M_HELP))
+    if( g_flags & (M_WHATIS | M_HELP))
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
 	
     /**
@@ -131,7 +134,7 @@ int	cmdModuleLog(	ClientData	 client_data,
      **  Display mode?
      **/
 
-    if( flags & M_DISPLAY) {
+    if( g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t ", argv[ 0]);
 	while( --argc)
 	    fprintf( stderr, "%s ", *++argv);

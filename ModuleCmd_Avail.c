@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -1496,7 +1496,8 @@ void delete_cache_list(	char	**list,
  ** 									     **
  **   Result:		-						     **
  ** 									     **
- **   Attached Globals:	-						     **
+ **   Attached Globals:	g_current_module	The module which is handled  **
+ **						by the current command	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -1558,13 +1559,13 @@ void print_aligned_files(	Tcl_Interp	 *interp,
 	/**
 	 ** find module[/version] in filename
 	 **/
-	if( current_module = s = strrchr( *list, '/')) {
+	if( g_current_module = s = strrchr( *list, '/')) {
 		*s = 0;
-		current_module++;
-		if (TCL_ERROR == Locate_ModuleFile(interp, current_module,
+		g_current_module++;
+		if (TCL_ERROR == Locate_ModuleFile(interp, g_current_module,
 			modulename, modulefile)) {
-			current_module = strrchr(*list, '/');
-			current_module++;
+			g_current_module = strrchr(*list, '/');
+			g_current_module++;
 		}
 		*s = '/';
 	}
@@ -1577,8 +1578,8 @@ void print_aligned_files(	Tcl_Interp	 *interp,
 
 	    if( S_ISDIR( stats.st_mode)) {
 		SourceRC( interp, *list, modulerc_file);
-		SourceVers( interp, *list, current_module);
-		current_module = (char *) NULL;
+		SourceVers( interp, *list, g_current_module);
+		g_current_module = (char *) NULL;
 		list++;
 		continue;
 	    }

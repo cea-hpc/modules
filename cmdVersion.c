@@ -47,7 +47,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -160,8 +160,6 @@ static	char	_proc_FindName[] = "FindName";
 static	ModModule	*modlist = (ModModule *) NULL;
 static	ModName		*aliaslist = (ModName *) NULL;
 
-static	char	_default[] = "default";
-
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
 /** ************************************************************************ **/
@@ -208,6 +206,9 @@ static	char		*scan_versions(		char 		 *buffer,
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	modlist		List containing all version names    **
+ **   			g_flags		These are set up accordingly before  **
+ **					this function is called in order to  **
+ **					control everything		     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -230,7 +231,7 @@ int	cmdModuleVersion(	ClientData	 client_data,
      **  Whatis mode?
      **/
 
-    if( flags & M_WHATIS) 
+    if( g_flags & M_WHATIS) 
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
 	
     /**
@@ -252,7 +253,7 @@ int	cmdModuleVersion(	ClientData	 client_data,
      **  Display mode?
      **/
 
-    if( flags & M_DISPLAY) {
+    if( g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t ", argv[ 0]);
 	for( i=1; i<argc; i++)
 	    fprintf( stderr, "%s ", argv[ i]);
@@ -504,6 +505,8 @@ static	char	*scan_versions( char		 *buffer,
  ** 									     **
  **   Attached Globals:	modlist		List containing all version names    **
  **			aliaslist	List containing all alises	     **
+ **			g_current_module	The module which is handled  **
+ **						by the current command	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -523,10 +526,10 @@ static	char	*CheckModuleVersion( char *name)
 	 **  get the module name from the current module ...
 	 **/
 
-	if( !current_module)
+	if( !g_current_module)
 	    return((char *) NULL);
 
-	strcpy( buffer, current_module);
+	strcpy( buffer, g_current_module);
 	if((char *) NULL == (t = strrchr( buffer, '/')))
 	    t = buffer + strlen( buffer);
 	*t++ = '/';
@@ -601,6 +604,9 @@ static	char	*CheckModuleVersion( char *name)
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	aliaslist	List containing all alises	     **
+ **   			g_flags		These are set up accordingly before  **
+ **					this function is called in order to  **
+ **					control everything		     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -633,10 +639,10 @@ int	cmdModuleAlias(	ClientData	 client_data,
      **  Whatis mode?
      **/
 
-    if( flags & M_WHATIS) 
+    if( g_flags & M_WHATIS) 
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
 
-    if( flags & M_DISPLAY) {
+    if( g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t %s %s\n", argv[ 0], argv[ 1], argv[ 2]);
     }
 	
@@ -810,6 +816,9 @@ int	AliasLookup(	char	*alias,
  **   Result:		int	1		Success, value in the buffer **
  **						is valid		     **
  **				0		Any error, or not found	     **
+
+ **   Attached Globals:	g_current_module	The module which is handled  **
+ **						by the current command	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -829,7 +838,7 @@ int	VersionLookup(	char *name, char **module, char **version)
      **/
 
     if( '/' == *name) {
-	strcpy( buffer, current_module);
+	strcpy( buffer, g_current_module);
 	if( s = strrchr( buffer, '/'))
 	    *s = '\0';
 	*module = buffer;

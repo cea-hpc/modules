@@ -23,7 +23,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -93,7 +93,11 @@ static	char	*apropos_cache(void);
  **   Result:		int	TCL_ERROR	Failure			     **
  **				TCL_OK		Successfull operation	     **
  **									     **
- **   Attached Globals:							     **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
+ **					this function is called in order to  **
+ **					control everything		     **
+ **			g_current_module	The module which is handled  **
+ **						by the current command	     **
  **									     **
  ** ************************************************************************ **
  ++++*/
@@ -125,7 +129,7 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
      **/
 
     Tcl_DStringInit( &cmdbuf);
-    flags |= M_WHATIS;
+    g_flags |= M_WHATIS;
 
     /**
      **	 Handle each passed module file. Create a Tcl interpreter for each
@@ -163,7 +167,7 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
 	     **	 executed ...
 	     **/
 
-	    current_module = modulename;
+	    g_current_module = modulename;
 
 	    cmdModuleWhatisInit();
 	    result = CallModuleProcedure( whatis_interp, &cmdbuf, modulefile,
@@ -278,7 +282,7 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
      **	 Leave the 'whatis only mode', free up what has been used and return
      **/
 
-    flags &= ~M_WHATIS;
+    g_flags &= ~M_WHATIS;
     fprintf( stderr, "\n");
 
     Tcl_DStringFree( &cmdbuf);
@@ -461,7 +465,11 @@ int ModuleCmd_Apropos(	Tcl_Interp	*interp,
  **									     **
  **   Result:		int	TCL_OK		Successfull operation	     **
  **									     **
- **   Attached Globals: -						     **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
+ **					this function is called in order to  **
+ **					control everything		     **
+ **			g_current_module	The module which is handled  **
+ **						by the current command	     **
  **									     **
  ** ************************************************************************ **
  ++++*/
@@ -506,7 +514,7 @@ static	int	whatis_dir( char *dir, int argc, char **argv, FILE *cfp,
      **/
 
     Tcl_DStringInit( &cmdbuf);
-    flags |= M_WHATIS;
+    g_flags |= M_WHATIS;
 
     /**
      **	 Check all the files in the flat list for the passed tokens
@@ -529,7 +537,7 @@ static	int	whatis_dir( char *dir, int argc, char **argv, FILE *cfp,
 	strcpy( modulefile, dir);
 	strcat( modulefile, "/");
 	strcat( modulefile, list[ i]);
-	current_module = list[ i];
+	g_current_module = list[ i];
 
 	if( stat( modulefile, &stats) || S_ISDIR( stats.st_mode))
 	    continue;
@@ -594,7 +602,7 @@ static	int	whatis_dir( char *dir, int argc, char **argv, FILE *cfp,
      **	 Cleanup
      **/
 
-    flags &= ~M_WHATIS;
+    g_flags &= ~M_WHATIS;
     delete_dirlst( dirlst_head, count);
     delete_cache_list( list, start);
 

@@ -50,7 +50,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.3 2001/02/15 02:34:43 rminsk Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.4 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -2121,7 +2121,7 @@ static	char	*get_module_basename(	char	*modulename)
  **									     **
  **   Result:		int	1	Successfull operation		     **
  **									     **
- **   Attached Globals:	flags		Controls whether the modulename      **
+ **   Attached Globals:	g_flags		Controls whether the modulename      **
  **					should be added (M_XXXX) or removed  **
  **					(M_REMOVE) from the list of loaded   **
  **					modules				     **
@@ -2149,7 +2149,7 @@ int Update_LoadedList(	Tcl_Interp	*interp,
     argv[2] = modulename;
     argv[3] = NULL;
     
-    if(flags & M_REMOVE) {
+    if(g_flags & M_REMOVE) {
 	argv[0] = "remove-path";
 	cmdRemovePath( 0, interp, 3, argv);
     } else {
@@ -2165,7 +2165,7 @@ int Update_LoadedList(	Tcl_Interp	*interp,
     argv[2] = filename;
     argv[3] = NULL;
 
-    if(flags & M_REMOVE) {
+    if(g_flags & M_REMOVE) {
 	argv[0] = "remove-path";
 	cmdRemovePath( 0, interp, 3, argv);
     } else {
@@ -2179,7 +2179,7 @@ int Update_LoadedList(	Tcl_Interp	*interp,
      **  the path too.
      **/
 
-    if( flags & M_REMOVE) {
+    if( g_flags & M_REMOVE) {
 	module = strdup( modulename);
 	basename = module;
 	if( basename = get_module_basename( basename)) {

@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.2 2000/11/03 17:45:24 rk Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.3 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -109,9 +109,11 @@ char	 *module_command;
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
+ **			g_current_module	The module which is handled  **
+ **						by the current command	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -122,7 +124,7 @@ int	cmdModule(	ClientData	 client_data,
 	       		char		*argv[])
 {
     int		  return_val = -1, i;
-    int		  store_flags = flags;
+    int		  store_flags = g_flags;
     char	 *store_curmodule = NULL;
     char	 *save_module_command = NULL;
 #ifdef FORCE_PATH
@@ -156,7 +158,7 @@ int	cmdModule(	ClientData	 client_data,
      **  Help or whatis mode?
      **/
 
-    if( flags & (M_HELP | M_WHATIS))
+    if( g_flags & (M_HELP | M_WHATIS))
 	return( TCL_OK);
 
     /**
@@ -174,7 +176,7 @@ int	cmdModule(	ClientData	 client_data,
      **  Display whatis mode?
      **/
 
-    if( flags & M_DISPLAY) {
+    if( g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t\t ", argv[ 0]);
 	for( i=1; i<argc; i++)
 	    fprintf( stderr, "%s ", argv[ i]);
@@ -189,8 +191,8 @@ int	cmdModule(	ClientData	 client_data,
     save_module_command = module_command;
     module_command  = strdup( argv[1]);
 
-    if( current_module)
-	store_curmodule = current_module;
+    if( g_current_module)
+	store_curmodule = g_current_module;
     
     /**
      **  If the command is '-', we want to just start 
@@ -347,44 +349,44 @@ int	cmdModule(	ClientData	 client_data,
 	
         if( Tcl_RegExpMatch(interp,module_command, "^inita|^ia")){/* initadd */
 	    if (_ISERR) ErrorLogger(ERR_EXEC,LOC,interp->result,NULL);
-	    flags |= M_LOAD;
+	    g_flags |= M_LOAD;
 	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
-	    flags &= ~M_LOAD;
+	    g_flags &= ~M_LOAD;
 	}
 	
         if( Tcl_RegExpMatch(interp,module_command, "^initr|^iw")){ /* initrm */
 	    if (_ISERR) ErrorLogger(ERR_EXEC,LOC,interp->result,NULL);
-	    flags |= M_REMOVE;
+	    g_flags |= M_REMOVE;
 	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
-	    flags &= ~M_REMOVE;
+	    g_flags &= ~M_REMOVE;
 	}
 	
         if( Tcl_RegExpMatch(interp,module_command, "^initl|^il")){/* initlist*/
 	    if (_ISERR) ErrorLogger(ERR_EXEC,LOC,interp->result,NULL);
-	    flags |= M_DISPLAY;
+	    g_flags |= M_DISPLAY;
 	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
-	    flags &= ~M_DISPLAY;
+	    g_flags &= ~M_DISPLAY;
 	}
 	
         if(Tcl_RegExpMatch(interp,module_command, "^inits|^is")){/* initswitch*/
 	    if (_ISERR) ErrorLogger(ERR_EXEC,LOC,interp->result,NULL);
-	    flags |= M_SWITCH;
+	    g_flags |= M_SWITCH;
 	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
-	    flags &= ~M_SWITCH;
+	    g_flags &= ~M_SWITCH;
 	}
 	
         if(Tcl_RegExpMatch(interp,module_command, "^initc|^ic")){/* initclear*/
 	    if (_ISERR) ErrorLogger(ERR_EXEC,LOC,interp->result,NULL);
-	    flags |= M_CLEAR;
+	    g_flags |= M_CLEAR;
 	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
-	    flags &= ~M_CLEAR;
+	    g_flags &= ~M_CLEAR;
 	}
 	
         if(Tcl_RegExpMatch(interp,module_command,"^initp|^ip")){/*initprepend*/
 	    if (_ISERR) ErrorLogger(ERR_EXEC,LOC,interp->result,NULL);
-	    flags |= (M_PREPEND | M_LOAD);
+	    g_flags |= (M_PREPEND | M_LOAD);
 	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
-	    flags &= ~(M_PREPEND | M_LOAD);
+	    g_flags &= ~(M_PREPEND | M_LOAD);
 	}
 
     /**
@@ -392,11 +394,11 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, useRE)) {
-	int tmpflags = flags;
+	int tmpflags = g_flags;
 	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
-	flags = M_LOAD;
+	g_flags = M_LOAD;
 	return_val = ModuleCmd_Use( interp, num_modulefiles, modulefile_list);
-	flags = tmpflags;
+	g_flags = tmpflags;
 
     /**
      **  --- module UNUSE
@@ -436,9 +438,9 @@ int	cmdModule(	ClientData	 client_data,
      **  Clean up from recursion
      **/
 
-    flags = store_flags;
+    g_flags = store_flags;
     if( store_curmodule)
-	current_module = store_curmodule;
+	g_current_module = store_curmodule;
 
     module_command = save_module_command;
  

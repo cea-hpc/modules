@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdAlias.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: cmdAlias.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -86,7 +86,7 @@ static	char	_proc_cmdSetAlias[] = "cmdSetAlias";
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  ** 									     **
@@ -107,7 +107,7 @@ int cmdSetAlias( ClientData	 client_data,
      **  Whatis mode?
      **/
 
-    if( flags & (M_WHATIS | M_HELP)) 
+    if( g_flags & (M_WHATIS | M_HELP)) 
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
 	
     /**
@@ -127,7 +127,7 @@ int cmdSetAlias( ClientData	 client_data,
      **  Display only mode?
      **/
 
-    if( flags & M_DISPLAY) {
+    if( g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t ", argv[ 0]);
 	while( --argc)
 	    fprintf( stderr, "%s ", *++argv);
@@ -139,12 +139,12 @@ int cmdSetAlias( ClientData	 client_data,
      **  Switch command
      **/
 
-    if( flags & M_SWSTATE1) {
+    if( g_flags & M_SWSTATE1) {
         set_marked_entry( markAliasHashTable, argv[1], M_SWSTATE1);
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
-    } else if( flags & M_SWSTATE2) {
+    } else if( g_flags & M_SWSTATE2) {
         set_marked_entry( markAliasHashTable, argv[1], M_SWSTATE2);
-    } else if( flags & M_SWSTATE3) {
+    } else if( g_flags & M_SWSTATE3) {
         int marked_val;
         if( marked_val = chk_marked_entry( markAliasHashTable, argv[1])) {
             if( marked_val == M_SWSTATE1)
@@ -152,7 +152,7 @@ int cmdSetAlias( ClientData	 client_data,
             else
 		return( TCL_OK);	/** ------- EXIT PROCEDURE -------> **/
       }
-    } else if( flags & M_REMOVE) {
+    } else if( g_flags & M_REMOVE) {
         store_hash_value( aliasUnsetHashTable, argv[1], argv[2]);
     }
 
@@ -160,7 +160,7 @@ int cmdSetAlias( ClientData	 client_data,
      **  Finally remove or set the alias
      **/
 
-    if( *argv[0] == 'u' || (flags & M_REMOVE))
+    if( *argv[0] == 'u' || (g_flags & M_REMOVE))
         store_hash_value( aliasUnsetHashTable, argv[1], argv[2]);
     else
         store_hash_value( aliasSetHashTable, argv[1], argv[2]);

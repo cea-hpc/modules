@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -79,7 +79,7 @@ static	int	checkConflict(	Tcl_Interp*, char*, char**, unsigned int);
  ** 									     **
  **   Function:		checkConflict					     **
  ** 									     **
- **   Description:	Check whether the 'current_module' is within the list**
+ **   Description:	Check whether the 'g_current_module' is in the list  **
  **			of passed modules				     **
  ** 									     **
  **   First Edition:	91/10/23					     **
@@ -92,11 +92,11 @@ static	int	checkConflict(	Tcl_Interp*, char*, char**, unsigned int);
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  **									     **
- **		  	current_module	Module to check for		     **
+ **		  	g_current_module	Module to check for	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -162,7 +162,7 @@ static	int	checkConflict(	Tcl_Interp	*interp,
         } else {
 
             if( IsLoaded_ExactMatch( interp, modulelist[k], NULL, NULL) &&
-                strcmp( current_module, modulelist[k])) {
+                strcmp( g_current_module, modulelist[k])) {
 
                 /**
                  **  Save the name of the offending module in a buffer
@@ -201,7 +201,7 @@ static	int	checkConflict(	Tcl_Interp	*interp,
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  ** 									     **
@@ -227,7 +227,7 @@ int	cmdConflict(	ClientData	 client_data,
      **  Whatis mode
      **/
 
-    if( flags & (M_WHATIS | M_HELP))
+    if( g_flags & (M_WHATIS | M_HELP))
         return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
 
     /**
@@ -244,7 +244,7 @@ int	cmdConflict(	ClientData	 client_data,
      **  There will be no conflicts in case of switch or unload
      **/
 
-    if( flags & (M_REMOVE | M_SWITCH))
+    if( g_flags & (M_REMOVE | M_SWITCH))
         return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
 
     /**
@@ -265,7 +265,7 @@ int	cmdConflict(	ClientData	 client_data,
      **  Display?
      **/
 
-    if( flags & M_DISPLAY) {
+    if( g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t ", argv[ 0]);
 	while( --argc)
 	    fprintf( stderr, "%s ", *++argv);
@@ -290,7 +290,7 @@ int	cmdConflict(	ClientData	 client_data,
 
             if( TCL_ERROR == checkConflict( interp, pathlist[j], modulelist,
 		nummodules)) {
-		if( OK != ErrorLogger( ERR_CONFLICT, LOC, current_module,
+		if( OK != ErrorLogger( ERR_CONFLICT, LOC, g_current_module,
 		    error_module, NULL)) {
 		    FreeList( pathlist, numpaths);
 		    FreeList( modulelist, nummodules);
@@ -334,7 +334,7 @@ int	cmdConflict(	ClientData	 client_data,
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  ** 									     **
@@ -373,14 +373,14 @@ int	cmdPrereq(	ClientData	 client_data,
      **  There's no prerequisite check in case of removal
      **/
 
-    if( flags & (M_REMOVE | M_WHATIS))
+    if( g_flags & (M_REMOVE | M_WHATIS))
         return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
 
     /**
      **  Display mode
      **/
 
-    if( flags & M_DISPLAY) {
+    if( g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t ", argv[ 0]);
 	while( --argc)
 	    fprintf( stderr, "%s ", *++argv);
@@ -503,7 +503,7 @@ int	cmdPrereq(	ClientData	 client_data,
 
 	*s++ = '\0';
 
-	if( OK != ErrorLogger( ERR_PREREQ, LOC, current_module, buffer, NULL))
+	if( OK != ErrorLogger( ERR_PREREQ, LOC, g_current_module, buffer, NULL))
 	    Result = TCL_ERROR;	
 
     } else {

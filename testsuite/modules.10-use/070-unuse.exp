@@ -16,6 +16,7 @@
 #   Comment:	%C{
 #			Check removing a path for the list of modulefile
 #			paths in $MODULEPATH
+#			Also it's not an error to unload a bad dir.
 #		}C%
 #
 ##############################################################################
@@ -24,8 +25,10 @@
 # Variables for this test
 #
 
-set path "$pwd/modulefile.other"
+set path "$pwd/modulefiles.other"
+set badpath "$pwd/modulefiles.bad"
 set mod_path "$env(MODULEPATH)"
+set bad_use ""
 
 set use	"unuse"
 
@@ -38,8 +41,21 @@ if { $verbose > 0 } {
 }
 set env(MODULEPATH) "$path:$mod_path"
 
+
+#
+# test the bad first
+#
+
+testerr_cmd "sh" "$use $badpath" "$bad_use"
+testerr_cmd "ksh" "$use $badpath" "$bad_use"
+testerr_cmd "zsh" "$use $badpath" "$bad_use"
+testerr_cmd "csh" "$use $badpath" "$bad_use"
+testerr_cmd "tcsh" "$use $badpath" "$bad_use"
+testerr_cmd "perl" "$use $badpath" "$bad_use"
+
 #
 # The tests ...
+#   do these last so the .modulesbeginenv is left in a good state for 070-Maint
 #
 
 test_cmd "sh" "$use $path" "MODULEPATH=$mod_path;export MODULEPATH;"
@@ -48,7 +64,6 @@ test_cmd "zsh" "$use $path" "MODULEPATH=$mod_path;export MODULEPATH;"
 test_cmd "csh" "$use $path" "setenv MODULEPATH $mod_path;"
 test_cmd "tcsh" "$use $path" "setenv MODULEPATH $mod_path;"
 test_cmd "perl" "$use $path" "\$ENV{'MODULEPATH'} = \"$mod_path\";"
-
 #
 # Cleanup
 #
@@ -61,3 +76,5 @@ set env(MODULEPATH) "$mod_path"
 unset path
 unset mod_path
 unset use
+unset badpath
+unset bad_use

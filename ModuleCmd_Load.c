@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.2 2000/06/28 14:39:19 rk Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.3 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -94,6 +94,11 @@ static	char	_proc_ModuleCmd_Load[] = "ModuleCmd_Load";
  ** 									     **
  **   Attached Globals:	specified_module	The module name from the     **
  **						command line		     **
+ **   			g_flags		These are set up accordingly before  **
+ **					this function is called in order to  **
+ **					control everything		     **
+ **			g_current_module	The module which is handled  **
+ **						by the current command	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -121,9 +126,9 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
      **/
 
     if( load)
-        flags |= M_LOAD;
+        g_flags |= M_LOAD;
     else
-        flags |= M_REMOVE;
+        g_flags |= M_REMOVE;
     
     /**
      **  Handle all module files in the order they are passed to me
@@ -203,7 +208,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 	 **  according to the intention of calling this procedure.
          **/
 
-	current_module = modulename;
+	g_current_module = modulename;
 	if( TCL_OK == return_val &&
             0 == Read_Modulefile( tmp_interp, filename)) {
 
@@ -253,9 +258,9 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
      **/
 
     if( load)
-        flags &= ~M_LOAD;
+        g_flags &= ~M_LOAD;
     else
-        flags &= ~M_REMOVE;
+        g_flags &= ~M_REMOVE;
 
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Load, NULL);

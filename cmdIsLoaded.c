@@ -23,7 +23,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -80,7 +80,7 @@ static	char	_proc_cmdIsLoaded[] = "cmdIsLoaded";
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  ** 									     **
@@ -115,7 +115,7 @@ int	cmdIsLoaded(	ClientData	 client_data,
      **  There's no prerequisite check in case of whatis
      **/
 
-    if( flags & M_WHATIS)
+    if( g_flags & M_WHATIS)
         return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
 
     /**

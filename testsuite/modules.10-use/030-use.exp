@@ -25,8 +25,10 @@
 # Variables for this test
 #
 
-set path "$pwd/modulefile.other"
+set path "$pwd/modulefiles.other"
+set badpath "$pwd/modulefiles.bad"
 set mod_path "$path:$env(MODULEPATH)"
+set bad_use "$error_msgs: Directory '$badpath' not found"
 
 set use	"use"
 
@@ -42,9 +44,22 @@ test_cmd "tcsh" "$use $path" "setenv MODULEPATH $mod_path;"
 test_cmd "perl" "$use $path" "\$ENV{'MODULEPATH'} = \"$mod_path\";"
 
 #
+# test if use non-existent modulefile directory
+#
+
+testerr_cmd_re "sh" "$use $badpath" "$bad_use"
+testerr_cmd_re "ksh" "$use $badpath" "$bad_use"
+testerr_cmd_re "zsh" "$use $badpath" "$bad_use"
+testerr_cmd_re "csh" "$use $badpath" "$bad_use"
+testerr_cmd_re "tcsh" "$use $badpath" "$bad_use"
+testerr_cmd_re "perl" "$use $badpath" "$bad_use"
+
+#
 # Cleanup
 #
 
 unset path
 unset mod_path
 unset use
+unset badpath
+unset bad_use

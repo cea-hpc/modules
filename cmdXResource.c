@@ -40,7 +40,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdXResource.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: cmdXResource.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -845,7 +845,7 @@ void xresourceFinish(register int no_errors)
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  ** 									     **
@@ -870,7 +870,7 @@ int	cmdXResource(	ClientData	 client_data,
      **  Whatis mode?
      **/
 
-    if( flags & (M_WHATIS | M_HELP))
+    if( g_flags & (M_WHATIS | M_HELP))
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
 	
     /**
@@ -897,7 +897,7 @@ int	cmdXResource(	ClientData	 client_data,
 
 #ifdef HAS_X11LIBS
 
-	if( flags & M_DISPLAY) {
+	if( g_flags & M_DISPLAY) {
 	    fprintf( stderr, "xrdb -merge\t ");
 	    for( i=1; i<argc; i++)
 		fprintf( stderr, "%s ", argv[ i]);
@@ -937,12 +937,12 @@ int	cmdXResource(	ClientData	 client_data,
 	     **/
 
 	    if( NO_ERR != getEntries(interp, resDB.data,
-		Tcl_DStringValue( buffer), flags & M_REMOVE)) {
+		Tcl_DStringValue( buffer), g_flags & M_REMOVE)) {
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	    }
 	}
 #else
-	if( flags & M_DISPLAY) {
+	if( g_flags & M_DISPLAY) {
 	    fprintf( stderr, "xrdb -merge\t ");
 	    for( i=1; i<argc; i++)
 		fprintf( stderr, "%s ", argv[ i]);

@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -155,7 +155,7 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
  **   Result:		int	TCL_ERROR	Failure			     **
  **				TCL_OK		Successfull operation	     **
  ** 									     **
- **   Attached Globals:	flags		Controllig the callback functions    **
+ **   Attached Globals:	g_flags		Controllig the callback functions    **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -166,8 +166,7 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
 {
     struct stat	 stats;			/** Buffer for the stat() systemcall **/
     char	*pathargv[4];		/** Argument buffer for Tcl calls    **/
-    int		 i,
-		 start = 0;
+    int		 i;
   
     /**
      **  Parameter check. Usage is 'module use <path> [ <path> ... ]'
@@ -178,7 +177,7 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
 #endif
 
     if( argc < 1) {
-	if( OK != ErrorLogger( ERR_USAGE, LOC, "use [-append] dir [dir ...]", NULL))
+	if( OK != ErrorLogger( ERR_USAGE, LOC, "use [-a|--append] dir [dir ...]", NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
     }
 
@@ -186,16 +185,15 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
      **  Remove is done by another subroutine
      **/
 
-    if( flags & M_REMOVE) 
+    if( g_flags & M_REMOVE) 
 	return( ModuleCmd_UnUse( interp, argc, argv));
       
     /**
-     **  Append or prepned the new module path
+     **  Append or prepend the new module path
      **/
 
-    if( !strncmp( argv[0], "-append", 7)) {
+    if( append_flag ) {
 	pathargv[0] = "append-path";
-	start=1;
     } else {
 	pathargv[0] = "prepend-path";
     }
@@ -208,7 +206,7 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
     pathargv[1] = "MODULEPATH";
     pathargv[3] = NULL;
 
-    for( i=start; i < argc; i++) {
+    for( i=0; i < argc; i++) {
 
 	/**
 	 **  Check for existing, readable directories
@@ -265,7 +263,7 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
  **   Result:		int	TCL_ERROR	Failure			     **
  **				TCL_OK		Successfull operation	     **
  ** 									     **
- **   Attached Globals:	flags		Controllig the callback functions    **
+ **   Attached Globals:	-						     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/

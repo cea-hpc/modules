@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -128,7 +128,7 @@ int  ModuleCmd_Help(	Tcl_Interp	*interp,
 	fprintf( stderr, "\t+ switch|swap\t\tmodulefile1 modulefile2\n");
 	fprintf( stderr, "\t+ display|show\t\tmodulefile [modulefile ...]\n");
 	fprintf( stderr, "\t+ avail\t\t\t[modulefile [modulefile ...]]\n");
-	fprintf( stderr, "\t+ use [-append]\t\tdir [dir ...]\n");
+	fprintf( stderr, "\t+ use [-a|--append]\tdir [dir ...]\n");
 	fprintf( stderr, "\t+ unuse\t\t\tdir [dir ...]\n");
 	fprintf( stderr, "\t+ update\n");
 	fprintf( stderr, "\t+ purge\n");
@@ -173,7 +173,11 @@ int  ModuleCmd_Help(	Tcl_Interp	*interp,
  **   Result:		int	TCL_ERROR	Failure			     **
  **				TCL_OK		Successfull operation	     **
  ** 									     **
- **   Attached Globals:							     **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
+ **					this function is called in order to  **
+ **					control everything		     **
+ **			g_current_module	The module which is handled  **
+ **						by the current command	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -198,7 +202,7 @@ static	int	PerModuleHelp(	Tcl_Interp	*interp,
      **/
 
     Tcl_DStringInit( &cmdbuf);
-    flags |= M_HELP;
+    g_flags |= M_HELP;
 
     /**
      **  Handle each passed module file. Create a Tcl interpreter for each 
@@ -227,10 +231,10 @@ static	int	PerModuleHelp(	Tcl_Interp	*interp,
 	 **  Now print the module specific help ...
 	 **/
 
-        current_module = modulename;
+        g_current_module = modulename;
 	fprintf( stderr,
 		 "\n----------- Module Specific Help for '%s' %.*s-------\n\n", 
-		 current_module, (int)(20-strlen( current_module)),
+		 g_current_module, (int)(20-strlen( g_current_module)),
 		 "--------------------");
 	result = CallModuleProcedure( help_interp, &cmdbuf, modulefile,
 	    "ModulesHelp", 1);
@@ -241,7 +245,7 @@ static	int	PerModuleHelp(	Tcl_Interp	*interp,
 
 	if( result == TCL_ERROR)
 	    fprintf( stderr, "\t*** No Module Specific Help for %s ***\n", 
-		current_module);
+		g_current_module);
 
 	/**
 	 **  Finally clear up the Tcl interpreter and handle the next module
@@ -254,7 +258,7 @@ static	int	PerModuleHelp(	Tcl_Interp	*interp,
      **  Free the used command buffer and return on success
      **/
 
-    flags &= ~M_HELP;
+    g_flags &= ~M_HELP;
     fprintf(stderr, "\n");
     Tcl_DStringFree(&cmdbuf);
 

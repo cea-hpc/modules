@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -97,7 +97,7 @@ static	char	_str_ul_expert[] = "expert";
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  ** 									     **
@@ -118,7 +118,7 @@ int	cmdModuleUser(	ClientData	 client_data,
      **  Whatis mode?
      **/
 
-    if( flags & (M_WHATIS | M_HELP))
+    if( g_flags & (M_WHATIS | M_HELP))
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
 	
     /**
@@ -134,7 +134,7 @@ int	cmdModuleUser(	ClientData	 client_data,
      **  Display mode?
      **/
 
-    if( flags & M_DISPLAY) {
+    if( g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t ", argv[ 0]);
 	while( --argc)
 	    fprintf( stderr, "%s ", *++argv);

@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdInfo.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: cmdInfo.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -88,12 +88,14 @@ static	char	_proc_cmdModuleInfo[] = "cmdModuleInfo";
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags			These are set up accordingly **
+ **   Attached Globals:	g_flags			These are set up accordingly **
  **						before this function is	     **
  **						called in order to control   **
  **						everything.		     **
  **			specified_module	The module name from the     **
  **						command line.		     **
+ **			g_current_module	The module which is handled  **
+ **						by the current command	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -125,7 +127,7 @@ int	cmdModuleInfo(	ClientData	 client_data,
 
     if( !strcmp( argv[1], "flags")) {
         char tmpbuf[6];
-        sprintf( tmpbuf, "%d", flags);
+        sprintf( tmpbuf, "%d", g_flags);
         Tcl_SetResult( interp, tmpbuf, TCL_VOLATILE);
 
     /**
@@ -136,21 +138,21 @@ int	cmdModuleInfo(	ClientData	 client_data,
     } else if( !strcmp( argv[1], "mode")) {
 
         if( argc < 3) {
-            if( flags & M_SWSTATE1)
+            if( g_flags & M_SWSTATE1)
                 Tcl_SetResult( interp, "switch1", TCL_STATIC);
-            else if( flags & M_SWSTATE2)
+            else if( g_flags & M_SWSTATE2)
                 Tcl_SetResult( interp, "switch2", TCL_STATIC);
-            else if( flags & M_SWSTATE3)
+            else if( g_flags & M_SWSTATE3)
                 Tcl_SetResult( interp, "switch3", TCL_STATIC);
-            else if( flags & M_LOAD)
+            else if( g_flags & M_LOAD)
                 Tcl_SetResult( interp, "load", TCL_STATIC);
-            else if( flags & M_REMOVE)
+            else if( g_flags & M_REMOVE)
                 Tcl_SetResult( interp, "remove", TCL_STATIC);
-            else if( flags & M_DISPLAY)
+            else if( g_flags & M_DISPLAY)
                 Tcl_SetResult( interp, "display", TCL_STATIC);
-            else if( flags & M_HELP)
+            else if( g_flags & M_HELP)
                 Tcl_SetResult( interp, "help", TCL_STATIC);
-            else if( flags & M_WHATIS)
+            else if( g_flags & M_WHATIS)
                 Tcl_SetResult( interp, "whatis", TCL_STATIC);
             else
                 Tcl_SetResult( interp, "unknown", TCL_STATIC);
@@ -166,31 +168,31 @@ int	cmdModuleInfo(	ClientData	 client_data,
 	    Tcl_SetResult( interp, "0", TCL_STATIC);
 
 	    if( !strcmp( argv[2], "load")) {
-		if( flags & M_LOAD) Tcl_SetResult( interp, "1", TCL_STATIC);
+		if( g_flags & M_LOAD) Tcl_SetResult( interp, "1", TCL_STATIC);
 	    }
 	    else if( !strcmp( argv[2], "remove")) {
-		if( flags & M_REMOVE) Tcl_SetResult( interp, "1", TCL_STATIC);
+		if( g_flags & M_REMOVE) Tcl_SetResult( interp, "1", TCL_STATIC);
 	    }
 	    else if( !strcmp( argv[2], "display")) {
-		if( flags & M_DISPLAY) Tcl_SetResult( interp, "1", TCL_STATIC);
+		if( g_flags & M_DISPLAY) Tcl_SetResult( interp,"1", TCL_STATIC);
 	    }
 	    else if( !strcmp( argv[2], "help")) {
-		if( flags & M_HELP) Tcl_SetResult( interp, "1", TCL_STATIC);
+		if( g_flags & M_HELP) Tcl_SetResult( interp, "1", TCL_STATIC);
 	    }
 	    else if( !strcmp( argv[2], "whatis")) {
-		if( flags & M_WHATIS) Tcl_SetResult( interp, "1", TCL_STATIC);
+		if( g_flags & M_WHATIS) Tcl_SetResult( interp, "1", TCL_STATIC);
 	    }
 	    else if( !strcmp( argv[2], "switch1")) {
-		if( flags & M_SWSTATE1) Tcl_SetResult( interp, "1", TCL_STATIC);
+		if( g_flags & M_SWSTATE1) Tcl_SetResult( interp,"1",TCL_STATIC);
 	    }
 	    else if( !strcmp(argv[2], "switch2")) {
-		if( flags & M_SWSTATE2) Tcl_SetResult( interp, "1", TCL_STATIC);
+		if( g_flags & M_SWSTATE2) Tcl_SetResult( interp,"1",TCL_STATIC);
 	    }
 	    else if( !strcmp(argv[2], "switch3")) {
-		if( flags & M_SWSTATE3) Tcl_SetResult( interp, "1", TCL_STATIC);
+		if( g_flags & M_SWSTATE3) Tcl_SetResult( interp,"1",TCL_STATIC);
 	    }
 	    else if( !strcmp(argv[2], "switch")) {
-		if( flags & M_SWITCH) Tcl_SetResult( interp, "1", TCL_STATIC);
+		if( g_flags & M_SWITCH) Tcl_SetResult( interp, "1", TCL_STATIC);
 	    } else {
 		ErrorLogger( ERR_USAGE, LOC, argv[0], "mode ", "[load|remove|"
 		    "display|help|whatis|switch1|switch2|switch3|switch]", NULL);
@@ -249,7 +251,7 @@ int	cmdModuleInfo(	ClientData	 client_data,
      **/
 
     } else if( !strcmp(argv[1], "name")) {
-        Tcl_SetResult( interp, current_module, TCL_VOLATILE);
+        Tcl_SetResult( interp, g_current_module, TCL_VOLATILE);
 
     /**
      **  'module-info shell'
@@ -292,7 +294,7 @@ int	cmdModuleInfo(	ClientData	 client_data,
 	if( argc > 3) 
 	    module = argv[ 3];
 	else
-	    module = current_module;
+	    module = g_current_module;
 
 	if( CheckTracing(interp, cmd, module))
 	    Tcl_SetResult( interp, "1", TCL_STATIC);
@@ -343,7 +345,7 @@ int	cmdModuleInfo(	ClientData	 client_data,
     } else if( !strcmp(argv[1], "symbols")) {
 	char *name;
 
-	name = (argc < 3) ? current_module : argv[2];
+	name = (argc < 3) ? g_current_module : argv[2];
 
 	if((char *) NULL == (s = ExpandVersions( name)))
 	    Tcl_SetResult( interp, "*undef*", TCL_STATIC);

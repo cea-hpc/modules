@@ -51,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: getopt.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: getopt.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -237,7 +237,7 @@ extern int strlen( const char *);
 
 #ifdef	_MODULES_DEF_H
 #  ifdef	TEST
-char	*current_module = "getopt";
+char	*g_current_module = "getopt";
 int	linenum = 0;
 #  endif
 #endif /** _MODULES_DEF_H **/

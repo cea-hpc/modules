@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -96,7 +96,7 @@ static	char	_proc_moduleUnsetenv[] = "moduleUnsetenv";
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  ** 									     **
@@ -153,7 +153,7 @@ int	cmdSetEnv(	ClientData	 client_data,
      **  variables may be needed later in the modulefile.
      **/
 
-    if( flags & M_DISPLAY) {
+    if( g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t\t ", argv[ 0]);
 	while( --argc)
 	    fprintf( stderr, "%s ", *++argv);
@@ -185,7 +185,7 @@ int	cmdSetEnv(	ClientData	 client_data,
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  ** 									     **
@@ -209,7 +209,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
      **  Check to see if variable is already set correctly... 
      **/
 
-    if( !(flags & (M_REMOVE | M_DISPLAY | M_SWITCH)) && oldval) {
+    if( !(g_flags & (M_REMOVE | M_DISPLAY | M_SWITCH)) && oldval) {
         if( !strcmp( value, oldval)) {
             return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
         }
@@ -233,12 +233,12 @@ int	moduleSetenv(	Tcl_Interp	*interp,
      **  I'm in remove mode. 
      **/
 
-    if( flags & M_SWSTATE1) {
+    if( g_flags & M_SWSTATE1) {
         set_marked_entry( markVariableHashTable, variable, M_SWSTATE1);
         return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
-    } else if( flags & M_SWSTATE2) {
+    } else if( g_flags & M_SWSTATE2) {
         set_marked_entry( markVariableHashTable, variable, M_SWSTATE2);
-    } else if( flags & M_SWSTATE3) {
+    } else if( g_flags & M_SWSTATE3) {
         int marked_val;
         marked_val = chk_marked_entry( markVariableHashTable, variable);
         if( marked_val) {
@@ -247,7 +247,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
             else
 		return( TCL_OK);	/** -------- EXIT (SUCCESS) -------> **/
         }
-    } else if( (flags & M_REMOVE) && !force) {
+    } else if( (g_flags & M_REMOVE) && !force) {
 	return( moduleUnsetenv( interp, variable));		/** -------> **/
     }
 
@@ -256,7 +256,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
      **  the environment.
      **/
 
-    if( !(flags & (M_DISPLAY | M_WHATIS | M_HELP))) {
+    if( !(g_flags & (M_DISPLAY | M_WHATIS | M_HELP))) {
         store_hash_value( setenvHashTable, variable, value);
         clear_hash_value( unsetenvHashTable, variable);
     }
@@ -292,7 +292,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  ** 									     **
@@ -322,12 +322,12 @@ int	cmdUnsetEnv(	ClientData	 client_data,
      **  Unset the variable or just display what to do ...
      **/
 
-    if( flags & M_DISPLAY) {
+    if( g_flags & M_DISPLAY) {
 	fprintf( stderr, "%s\t ", argv[ 0]);
 	while( --argc)
 	    fprintf( stderr, "%s ", *++argv);
 	fprintf( stderr, "\n");
-    } else if( flags & M_REMOVE && argc == 3) {
+    } else if( g_flags & M_REMOVE && argc == 3) {
 	/** allow an optional 3rd argument to set the env.var. to on removal **/
 	moduleSetenv( interp, argv[1], argv[2], 0);
     } else {
@@ -361,7 +361,7 @@ int	cmdUnsetEnv(	ClientData	 client_data,
  **   Result:		int	TCL_OK		Successfull completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  ** 									     **
@@ -381,7 +381,7 @@ int	moduleUnsetenv(	Tcl_Interp	*interp,
      ** If module writer *REALLY* wants it gone, use $env
      **/
 
-    if( !(flags & (M_DISPLAY | M_WHATIS | M_HELP))) {
+    if( !(g_flags & (M_DISPLAY | M_WHATIS | M_HELP))) {
         store_hash_value( unsetenvHashTable, variable, NULL);
         clear_hash_value( setenvHashTable, variable);
     }
