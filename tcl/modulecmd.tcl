@@ -815,17 +815,17 @@ proc unset-alias {alias} {
 	set g_Aliases($alias) {}
 	set g_stateAliases($alias) "del"
     } elseif {$mode == "display"} {
-	report "unset-alias\t$alias\t$what"
+	report "unset-alias\t$alias\t"
     }
     return {}
 }
 
-proc is-loaded {args} {
+proc is-loaded {modulelist} {
     global env
 
-    if {[llength $args] > 0} {
+    if {[llength $modulelist] > 0} {
         if [info exists env(LOADEDMODULES)] {
-	    foreach arg $args {
+	    foreach arg $modulelist {
 		set arg "$arg/"
 		set arg_found 0
 		foreach mod [split $env(LOADEDMODULES) ":"] {
@@ -886,7 +886,7 @@ proc prereq {args} {
     if {$mode == "load"} {
         if {![is-loaded $args]} {
             set errMsg "WARNING: $currentModule cannot be loaded due to missing prereq."
-            set errMsg "$errMsg\nHINT: Load one of the following modules first: $args"
+            set errMsg "$errMsg\nHINT: the following modules must be loaded first: $args"
             error $errMsg
         }
     } elseif {$mode == "display"} {
@@ -2483,7 +2483,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.48 $:
+                ModulesTcl 0.101/$Revision: 1.49 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
