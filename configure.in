@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.in,v 1.6 2001/11/05 21:50:41 rkowen Exp $
+dnl Revision:    $Id: configure.in,v 1.7 2002/03/11 21:34:15 lakata Exp $
 dnl Created:     94/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -99,17 +99,120 @@ export DEFAULTPATH
 export NODEFAULTPATH
 export BASEPREFIX
 dnl --------------------------------------------------------------
+dnl   --with-module-path
+dnl   --with-version-path
+dnl   --with-autoload-path
+dnl   --with-etc-path
+dnl   --with-skel-path
+dnl
+AC_ARG_WITH(module-path,
+	[  --with-module-path=<path>   use module path=<path>        [$ac_default_prefix/Modules/modulefiles]],
+	MODULEPATH="$withval"
+	AC_MSG_RESULT([MODULEPATH = $with_module_path])
+	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval")
+	,
+dnl 	AC_MSG_WARN([if using '--with-module-path': need to specify a path!])
+	withval="$BASEPREFIX/Modules/modulefiles"
+	AC_MSG_WARN([will use MODULEPATH=$withval : rerun configure using --with-module-path to override default])
+	MODULEPATH="$withval"
+	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval"))
+dnl
+dnl
+AC_ARG_WITH(version-path,
+	[  --with-version-path=<path>  use version path=<path>       [$ac_default_prefix/Modules/versions]],
+	VERSIONPATH="$withval"
+	AC_MSG_RESULT([VERSIONPATH = $with_version_path])
+	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval")
+	,
+dnl AC_MSG_WARN([if using '--with-version-path': need to specify a path!])
+	withval="$BASEPREFIX/Modules/versions"
+	AC_MSG_WARN([will use VERSIONPATH=$withval : rerun configure using --with-version-path to override default])
+	VERSIONPATH="$withval"
+	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval"))
+AC_ARG_WITH(autoload-path,
+	[  --with-autoload-path=<path> use autoload path=<path>      [$ac_default_prefix/lib/tcl]],
+	if test "$withval" = "no" || test "$withval" = "yes"; then
+		if test "$prefix" != "NONE" ; then
+			withval="$prefix/lib/tcl"
+		else
+			withval="$ac_default_prefix/lib/tcl"
+		fi
+	fi
+	AUTOLOADPATH="$withval"
+	AC_DEFINE_UNQUOTED(AUTOLOADPATH, "$withval"))
+AC_ARG_WITH(etc-path,
+	[  --with-etc-path=<path>      use etc path=<path>           [/etc]],
+	if test "$withval" = "no" || test "$withval" = "yes"; then
+	AC_MSG_WARN([if using '--with-etc-path': need to specify a path! Using /etc])
+		withval="/etc"
+	fi
+	ETCPATH="$withval"
+	,
+	ETCPATH="/etc")
+AC_ARG_WITH(skel-path,
+	[  --with-skel-path=<path>     use skel path=<path>          [/etc/skel]],
+	if test "$withval" = "no" || test "$withval" = "yes"; then
+	AC_MSG_WARN([if using '--with-skel-path': need to specify a path! Using /etc/skel])
+		withval="/etc/skel"
+	fi
+	SKELPATH="$withval"
+	,
+	SKELPATH="/etc/skel")
+AC_ARG_WITH(dot-ext,
+	[  --with-dot-ext[=<.ext>]     append <.ext> to shell init   [.ext]],
+	if test "$withval" != "no"; then
+		test "$withval" = "yes" && withval=".ext"
+		AC_DEFINE_UNQUOTED(DOT_EXT, "$withval")
+	else
+		AC_DEFINE_UNQUOTED(DOT_EXT, "")
+	fi)
+dnl
+dnl
+dnl
+dnl Check for cc
+AC_PROG_CC
+dnl --------------------------------------------------------------
 dnl Some standard autoconfig stuff
 dnl Checks for programs
 dnl
-AC_AIX
-AC_ISC_POSIX
-AC_PROG_CC
 AC_PROG_CPP
+AC_AIX
+AC_PROGRAM_PATH(UNAME, uname, "")
+AC_FIND_TCL
+dnl --------------------------------------------------------------
+dnl
+dnl
+dnl Locate TCL libraries and include files
+dnl
+dnl --with-tcl-include=<path>	With TCL include path=<path>
+dnl --without-tcl-include	Seek for default include path
+dnl
+dnl --with-tcl-libraries=<path>	With TCL lib path=<path>
+dnl --without-tcl-libraries	Seek for default lib path
+dnl
+dnl --with-tcl-version=<vers>  	With TCL version=<version
+dnl --without-tcl-version	Seek for the TCL version
+dnl
+AC_MAKE_INCLUDE(tcl_includes, TCL_INC_DIR)
+AC_MAKE_LIBRARY(tcl_libraries, TCL_LIB_DIR)
+dnl the TCL versions are defined in the tcl.h
+dnl AC_DEFINE_UNQUOTED(TCL_MINOR_VERSION, `echo $tcl_version | sed 's/^.*\.//'`)
+dnl AC_DEFINE_UNQUOTED(TCL_MAJOR_VERSION, `echo $tcl_version | sed 's/\..*$//'`)
+TCL_VERSION=$tcl_version
+AC_ARG_WITH(tcl-library,
+  	[  --with-tcl-library=<path>   Path to TCL support files     [/usr/local/lib/tcl8.x]],
+ 	TCL_LIBRARY="$withval",
+ 	TCL_LIBRARY="$tcl_library"
+         if test ! -d "$TCL_LIBRARY"; then
+            AC_MSG_ERROR([${TCL_LIBRARY} does not exist; ...exit configure])
+         fi)
+AC_DEFINE_UNQUOTED(TCL_LIBRARY,"$TCL_LIBRARY")
+AC_MSG_RESULT([TCL_LIBRARY set to $TCL_LIBRARY])
+dnl
+AC_ISC_POSIX
 AC_PROG_GCC_TRADITIONAL
 AC_PROG_INSTALL
 AC_SET_MAKE
-AC_PROGRAM_PATH(UNAME, uname, "")
 AC_HEADER_DIRENT
 AC_STDC_HEADERS
 AC_HAVE_HEADERS(string.h memory.h stdlib.h unistd.h termio.h fcntl.h ctype.h \
@@ -174,7 +277,9 @@ if test "$no_x" != "yes"; then
 	AC_DEFINE(HAS_X11LIBS)
 	AC_MAKE_INCLUDE(x_includes, X11_INC_DIR)
 	AC_MAKE_LIBRARY(x_libraries, X11_LIB_DIR)
-	X11_LIBS="-lXmu -lXt -lX11"
+	X11_LIBS="-lXt -lX11"
+dnl	AC_CHECKING(for -lXmu)
+dnl	test -f "$x_libraries/libXmu.a" && X11_LIBS="$X11_LIBS -lXmu"
 	AC_CHECKING(for -lXext)
 	test -f "$x_libraries/libXext.a" && X11_LIBS="$X11_LIBS -lXext"
 fi
@@ -247,7 +352,7 @@ dnl  and provide a possibility to set up the default facilities
 dnl
 WITH_LOGGING=0
 AC_ARG_ENABLE(logging,
-	[  --enable-logging            turn logging on		     [no]],
+	[  --enable-logging            turn logging on		    [no]],
 	if test "$enableval" = "yes"; then
 		AC_DEFINE(WITH_LOGGING)
 		WITH_LOGGING=1
@@ -463,27 +568,7 @@ AC_CHECK_LIB(m, log)
 if test "${STATIC-foobar}" = "foobar"; then
     AC_CHECK_LIB(dl, dlopen)
 fi
-dnl
-dnl --------------------------------------------------------------
-dnl
-dnl Locate TCL libraries and include files
-dnl
-dnl --with-tcl-include=<path>	With TCL include path=<path>
-dnl --without-tcl-include	Seek for default include path
-dnl
-dnl --with-tcl-libraries=<path>	With TCL lib path=<path>
-dnl --without-tcl-libraries	Seek for default lib path
-dnl
-dnl --with-tcl-version=<vers>  	With TCL version=<version
-dnl --without-tcl-version	Seek for the TCL version
-dnl
-AC_FIND_TCL
-AC_MAKE_INCLUDE(tcl_includes, TCL_INC_DIR)
-AC_MAKE_LIBRARY(tcl_libraries, TCL_LIB_DIR)
-dnl the TCL versions are defined in the tcl.h
-dnl AC_DEFINE_UNQUOTED(TCL_MINOR_VERSION, `echo $tcl_version | sed 's/^.*\.//'`)
-dnl AC_DEFINE_UNQUOTED(TCL_MAJOR_VERSION, `echo $tcl_version | sed 's/\..*$//'`)
-TCL_VERSION=$tcl_version
+
 dnl
 dnl --------------------------------------------------------------
 dnl search for tclx after tcl, not before to benefit from tcl_includes and
@@ -509,77 +594,6 @@ AC_ARG_WITH(tclx,
 		AC_REQUIRE([AC_PATH_XTRA])
 	fi)
 dnl
-dnl --------------------------------------------------------------
-dnl
-dnl   --with-module-path
-dnl   --with-version-path
-dnl   --with-autoload-path
-dnl   --with-etc-path
-dnl   --with-skel-path
-dnl
-AC_ARG_WITH(module-path,
-	[  --with-module-path=<path>   use module path=<path>        [/usr/local/Modules/modulefiles]],
-	MODULEPATH="$withval"
-	AC_MSG_RESULT([MODULEPATH = $with_module_path])
-	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval")
-	,
-	AC_MSG_WARN([if using '--with-module-path': need to specify a path!])
-	if test "$withval" = "no" || test "$withval" = "yes"; then
-		withval="/usr/local/Modules/modulefiles"
-	fi
-	AC_MSG_WARN([will use MODULEPATH=$withval])
-	MODULEPATH="$withval"
-	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval"))
-AC_ARG_WITH(version-path,
-	[  --with-version-path=<path>  use module path=<path>        [/usr/local/Modules/versions]],
-	VERSIONPATH="$withval"
-	AC_MSG_RESULT([VERSIONPATH = $with_version_path])
-	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval")
-	,
-	AC_MSG_WARN([if using '--with-version-path': need to specify a path!])
-	if test "$withval" = "no" || test "$withval" = "yes"; then
-		withval="$prefix/Modules/versions"
-	fi
-	AC_MSG_WARN([will use VERSIONPATH=$withval])
-	VERSIONPATH="$withval"
-	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval"))
-AC_ARG_WITH(autoload-path,
-	[  --with-autoload-path=<path> use autoload path=<path>      [$ac_default_prefix/lib/tcl]],
-	if test "$withval" = "no" || test "$withval" = "yes"; then
-		if test "$prefix" != "NONE" ; then
-			withval="$prefix/lib/tcl"
-		else
-			withval="$ac_default_prefix/lib/tcl"
-		fi
-	fi
-	AUTOLOADPATH="$withval"
-	AC_DEFINE_UNQUOTED(AUTOLOADPATH, "$withval"))
-AC_ARG_WITH(etc-path,
-	[  --with-etc-path=<path>      use etc path=<path>           [/etc]],
-	if test "$withval" = "no" || test "$withval" = "yes"; then
-	AC_MSG_WARN([if using '--with-etc-path': need to specify a path! Using /etc])
-		withval="/etc"
-	fi
-	ETCPATH="$withval"
-	,
-	ETCPATH="/etc")
-AC_ARG_WITH(skel-path,
-	[  --with-skel-path=<path>     use skel path=<path>          [/etc/skel]],
-	if test "$withval" = "no" || test "$withval" = "yes"; then
-	AC_MSG_WARN([if using '--with-skel-path': need to specify a path! Using /etc/skel])
-		withval="/etc/skel"
-	fi
-	SKELPATH="$withval"
-	,
-	SKELPATH="/etc/skel")
-AC_ARG_WITH(dot-ext,
-	[  --with-dot-ext[=<.ext>]     append <.ext> to shell init   [.ext]],
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval=".ext"
-		AC_DEFINE_UNQUOTED(DOT_EXT, "$withval")
-	else
-		AC_DEFINE_UNQUOTED(DOT_EXT, "")
-	fi)
 dnl
 dnl --------------------------------------------------------------
 dnl Now put it all out!
@@ -599,8 +613,4 @@ AC_OUTPUT(Makefile modules.lsm .spec doc/Makefile init/Makefile
 	modulefiles/Makefile modulefiles/modules
 	modulefiles/module-cvs modulefiles/module-info modulefiles/null
 	modulefiles/use.own modulefiles/dot modulefiles/version
-	testsuite/modulefiles/use/1.0 testsuite/modulefiles/use/2.0
-	testsuite/modulefiles/use/2.1 testsuite/modulefiles/use/2.2
-	testsuite/modules.00-init/015-version.exp
-	testsuite/modules.50-cmds/100-loglevel.exp
 	, date > stamp-h)dnl
