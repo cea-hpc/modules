@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.10 2002/09/16 16:49:20 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.11 2004/10/22 01:34:21 harlan Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -158,15 +158,15 @@ static int  filename_compare(	const void	*fi1,
  ++++*/
 
 int Locate_ModuleFile(	Tcl_Interp	*interp,
-                  	char		*modulename,
-                  	char		*realname,
-                  	char		*filename)
+			char		*modulename,
+			char		*realname,
+			char		*filename)
 {
     char	*p;			/** Tokenization pointer	     **/
     char	*result = NULL;		/** This functions result	     **/
     char	**pathlist;		/** List of paths to scan	     **/
     int		  numpaths,		/** Size of this list		     **/
-    		  i;			/** Loop counter		     **/
+		  i;			/** Loop counter		     **/
     char	*modulespath;		/** Buffer for the contents of the   **/
 					/** environment variable MODULEPATH  **/
     const char	*mod, *vers;		/** Module and version name for sym- **/
@@ -361,9 +361,9 @@ unwind0:
  ++++*/
 
 static	char	*GetModuleName(	Tcl_Interp	*interp,
-			     	char		*path,
+				char		*path,
 				char		*prefix,
-			     	char		*modulename)
+				char		*modulename)
 {
     struct stat	  stats;		/** Buffer for the stat() systemcall **/
     char	 *fullpath  = NULL,	/** Buffer for creating path names   **/
@@ -391,7 +391,7 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 	/**
 	 **  If it is a directory
 	 **/
-    	if(S_ISDIR( stats.st_mode)) {
+	if(S_ISDIR( stats.st_mode)) {
 	    /**
 	     ** Get the default version string
 	     **   return NULL if not found
@@ -481,11 +481,11 @@ unwind0:
  ++++*/
 
 char	**SortedDirList(	char		*path,
-		     		char		*modulename,
-		     		int		*listcnt)
+				char		*modulename,
+				int		*listcnt)
 {
     struct dirent	*file;		/** Directory entry		     **/
-    struct stat    	 stats;		/** Stat buffer			     **/
+    struct stat		 stats;		/** Stat buffer			     **/
     DIR			*subdirp;	/** Subdirectoy handle		     **/
     char		*full_path;	/** Sugg. full path (path + module)  **/
     char		**filelist;	/** Temp. base pointer of the list   **/
@@ -535,7 +535,7 @@ char	**SortedDirList(	char		*path,
     ErrorLogger( NO_ERR_DEBUG, LOC, "Module '", modulename, "' found", NULL);
 #endif
 
-    	goto success;
+	goto success;
     }
     /**
      **  What we've found is a directory
@@ -576,21 +576,21 @@ char	**SortedDirList(	char		*path,
 #endif
 	for(file = readdir( subdirp); file != NULL; file = readdir( subdirp)) {
 	    /**
-	     **  Now, if we got a real entry which is not '.*' or '..' and
-	     **  finally is not a temporary file (which are defined to end
-	     **  on '~' ...
-	     **  And it's not a CVS, RCS, or SCCS directory entry
+	     **  Now, if we got a real entry which is not '.*' (implies it's
+	     **  not '..') and it's not a CVS, RCS, or SCCS directory entry,
+	     **  and finally is not a temporary file (which is defined to
+	     **  end with '~' ...
 	     **/
-	    if( file->d_name                && 
-                *file->d_name != '.'        && 
-                strcmp( file->d_name, "..")  &&
-                file->d_name[ NLENGTH( file) - 1] != '~') {
-		if (!strcmp( file->d_name, "RCS")  ||
-		    !strcmp( file->d_name, "SCCS") ||
-                    !strcmp( file->d_name, "CVS") ) {
-                	strcpy( mpath, file->d_name);
-    			stat( tbuf, &stats);
-    			if( S_ISDIR( stats.st_mode)) /* skip if dir */
+	    if( file->d_name
+		&& *file->d_name != '.'
+		&& strcmp( file->d_name, "..")
+		&& strcmp( file->d_name, "CVS")
+		&& strcmp( file->d_name, "RCS")
+		&& strcmp( file->d_name, "SCCS")
+		&& file->d_name[ NLENGTH( file) - 1] != '~') {
+			strcpy( mpath, file->d_name);
+			stat( tbuf, &stats);
+			if( S_ISDIR( stats.st_mode)) /* skip if dir */
 				continue;
 		}
 		/**
@@ -627,7 +627,7 @@ char	**SortedDirList(	char		*path,
 		goto unwind2;
 	    }
 
-    	goto success;
+	goto success;
 	if(0) {	
 unwindt:
 	    null_free((void*) &tbuf);
@@ -730,7 +730,7 @@ uvec_str list_fns = {
 };
 
 char	**SplitIntoList(	char		*pathenv, 
-		     		int		*numpaths) 
+				int		*numpaths) 
 {
     char	**pathlist = NULL;	/** Temporary base pointer for the   **/
 					/** array to be created		     **/
@@ -854,7 +854,7 @@ void FreeList(	char	**list,
 int SourceRC( Tcl_Interp *interp, char *path, char *name)
 {
     struct stat	  stats;		/** Buffer for the stat() systemcall **/
-    int 	  save_flags, i;
+    int		  save_flags, i;
     char	 *buffer;
     int		  Result = TCL_OK;
 #if 0
@@ -1091,11 +1091,11 @@ char *GetDefault(Tcl_Interp *interp, char *path)
 	Result = TCL_OK,		/** Tcl command return		**/
 	dircount;			/** dir list count		**/
     char *buffer,			/** fullpath buffer		**/
-    	 *save_module_path,		/** save module path state	**/
+	 *save_module_path,		/** save module path state	**/
 	 *version = (char *) NULL,	/** return string		**/
 	**dirlist,			/** dir listing (if needed)	**/
 	 *new_argv[4];			/** module-version argv array	**/
-    char *mod, *ver;                  	/** module,version		**/
+    char *mod, *ver;			/** module,version		**/
 
     /**
      **  If there's a problem with the input parameters it means, that
