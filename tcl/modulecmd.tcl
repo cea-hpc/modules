@@ -799,6 +799,11 @@ proc reverseList {list} {
 proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
     global ignoreDir
 
+# On Cygwin, glob may change the $dir path if there are symlinks involved
+# So it is safest to reglob the $dir.
+# example:
+# [glob /home/stuff] -> "//homeserver/users0/stuff"
+    set dir [glob $dir]
     set full_list [glob -nocomplain [file join $dir $mod]]
     set clean_list {}
     for {set i 0} {$i < [llength $full_list]} {incr i 1} {
@@ -1332,7 +1337,7 @@ catch {
 	}
 	default {
 	    puts stderr {
-		ModulesTcl 0.100/$Revision: 1.16 $:
+		ModulesTcl 0.100/$Revision: 1.17 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
