@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.10 2002/09/18 05:47:47 harlan Exp $
+## Versions:    $Id: Makefile.am,v 1.11 2004/10/22 01:31:59 harlan Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -30,9 +30,9 @@ modulecmd_SOURCES = \
 	ModuleCmd_Init.c ModuleCmd_List.c ModuleCmd_Load.c ModuleCmd_Purge.c \
 	ModuleCmd_Switch.c ModuleCmd_Update.c ModuleCmd_Use.c \
 	ModuleCmd_Whatis.c \
-	cmdAlias.c cmdConflict.c cmdIsLoaded.c cmdInfo.c cmdMisc.c cmdModule.c\
-	cmdPath.c cmdSetenv.c cmdUname.c cmdXResource.c cmdUlvl.c cmdLog.c \
-	cmdTrace.c cmdVersion.c cmdVerbose.c cmdWhatis.c	\
+	cmdAlias.c cmdConflict.c cmdIsLoaded.c cmdInfo.c cmdMisc.c \
+	cmdModule.c cmdPath.c cmdSetenv.c cmdUname.c cmdXResource.c cmdUlvl.c \
+	cmdLog.c cmdTrace.c cmdVersion.c cmdVerbose.c cmdWhatis.c \
 	init.c locate_module.c utility.c main.c error.c getopt.c version.c
 
 #aclocal.m4 : acinclude.m4
