@@ -53,14 +53,23 @@ dnl
 AC_DEFUN(AC_FIND_TCL, [
 AC_MSG_CHECKING([for tcl])
 AC_ARG_WITH(tcl-include,
-	[  --with-tcl-include          define TCL include path],
+	[  --with-tcl-include=<path>   Set path to TCL include files],
 	tcl_includes=$withval)
+changequote(XYZZY,YZZYX)
 if test ! -n "$tcl_includes"; then
-    for dir in ../tcl* ./tcl* ../tcl*/include ./tcl*/include ../include \
+  if type tclsh ; then
+    definc1=`echo 'puts [file dirname [file dirname [info nameofexecutable]]]/include' | tclsh`
+    definc2=`echo 'puts [file dirname [file dirname [info library]]]/include' | tclsh`
+  fi
+fi
+changequote([,])
+if test ! -n "$tcl_includes"; then
+    for dir in $definc1 $definc2 ../tcl* ./tcl* ../tcl*/include ./tcl*/include ../include \
 	    /usr/include /usr/include/tcl /usr/local/include \
 	    /usr/gnu/include /opt/include /opt/local/include /opt/gnu/include \
 	    /local/include /opt/local/gnu/include /usr/local/gnu/include;
     do
+       AC_MSG_RESULT(... looking at $dir)
        if test -r "$dir/tcl.h"; then
 	  tcl_includes=$dir
 	  break
@@ -72,7 +81,7 @@ if test -z "$tcl_includes"; then
 fi
 
 AC_ARG_WITH(tcl-version,
-	[  --with-tcl-version          define TCL version],
+	[  --with-tcl-version=<value>  Force TCL version number],
 	tcl_version=$withval)
 if test ! -n "$tcl_version"; then
     for dir in `echo "$tcl_includes" | sed s/include/bin/` \
@@ -80,30 +89,43 @@ if test ! -n "$tcl_version"; then
 	    /usr/bin /usr/local/bin /usr/gnu/bin /usr/local/gnu/bin /local/bin \
 	    /opt/bin /opt/local/bin /opt/gnu/bin /opt/local/gnu/bin;
     do
-       if test -r "$dir/tcl"; then
-	  tcl_binaries=$dir
+       if test -r "$dir/tclsh"; then
+	  tcl_binary=$dir/tclsh
 	  break
        fi
     done
-    tcl_version=`./probetcl $tcl_binaries`
+changequote(XYZZY,YZZYX)
+AC_MSG_RESULT(determining version of $tcl_binary)
+    tcl_version=`echo 'puts [info tclversion]' | $tcl_binary`
+    tcl_library=`echo 'puts [info library]' | $tcl_binary`
+changequote([,])
 fi
-
+if test ! -n "$tcl_version"; then
+ AC_MSG_ERROR(can't figure TCL version; ...exit configure)
+fi
 AC_ARG_WITH(tcl-libraries,
-	[  --with-tcl-libraries        define TCL include path],
+	[  --with-tcl-libraries=<path> Set path to TCL object libraries],
 	tcl_libraries=$withval)
+changequote(XYZZY,YZZYX)
 if test ! -n "$tcl_libraries"; then
-    for dir in `echo "$tcl_includes" | sed s/include/lib/` \
+  if type tclsh ; then
+    deflib1=`echo 'puts [info library]' | tclsh`
+  fi
+fi
+changequote([,])
+if test ! -n "$tcl_libraries"; then
+    for dir in `echo "$tcl_includes" | sed s/include/lib/` $deflib1 \
 	    ../tcl* ./tcl* ../tcl*/lib ./tcl*/lib ../lib \
 	    /usr/lib /usr/local/lib /usr/gnu/lib /usr/local/gnu/lib /local/lib \
 	    /opt/lib /opt/local/lib /opt/gnu/lib /opt/local/gnu/lib;
     do
-       if test -r "$dir/libtcl.a"; then
+       if test -r "$dir/libtcl.a" || test -r "$dir"/libtcl*.s?; then
 	  tcl_libraries=$dir
 	  break
        fi
     done
 fi
-test -z "$tcl_libraries" && AC_MSG_ERROR(can't find TCL library file; ...exit configure)
+test -z "$tcl_libraries" && AC_MSG_ERROR(can't find TCL library file $tcl_libraries; ...exit configure)
 AC_CACHE_VAL(ac_cv_path_tcl,
 [#cache values $tcl_includes and $tcl_libraries
 ac_cv_path_tcl="ac_tcl_includes=$tcl_includes ac_tcl_libraries=$tcl_libraries"
@@ -149,7 +171,7 @@ if test ! -n "$tclx_libraries"; then
 	    /usr/lib /usr/local/lib /usr/gnu/lib /usr/local/gnu/lib /local/lib \
 	    /opt/lib /opt/local/lib /opt/gnu/lib /opt/local/gnu/lib;
     do
-       if test -r "$dir/libtclx.a"; then
+       if test -r "$dir/libtclx.a" ; then
 	  tclx_libraries=$dir
 	  break
        fi
@@ -191,21 +213,29 @@ dnl IF we are on Solaris2, we will also add a -R<directory>.
 dnl I tried to use the `case' structure here, but it wouldn't
 dnl work well when called within another macro call...
 dnl
-AC_DEFUN(AC_MAKE_LIBRARY, [
+AC_DEFUN(AC_MAKE_LIBRARY, [ 
 if test "[$]$1" != "/usr/lib" -a -n "[$]$1"; then
     $2=-L[$]$1
     if test "$UNAME" != ""; then
         os_sys_rel=`$UNAME -rs`
-        if test "`echo $os_sys_rel | grep 'SunOS 5'`" != ""; then
-            if test "$R_OPTION" = ""; then
-                R_OPTION="-R"
-            else
-                R_OPTION="${R_OPTION}:"
-            fi
-            R_OPTION="${R_OPTION}[$]$1"
-        fi
+dnl         echo "OS is '$os_sys_rel'"
+        case "$os_sys_rel" in
+        [SunOS*5*|HP-UX*)] 
+            if test "$R_OPTION" = "" ; then
+                case "$os_sys_rel" in
+                [SunOS*)] R_OPTION="-R" ;;
+                [HP-UX*)] R_OPTION="-Xlinker +b -Xlinker " ;; 
+                esac
+             else
+                 R_OPTION="${R_OPTION}:"
+             fi
+             R_OPTION="${R_OPTION}[$]$1" 
+             ;;
+         [Linux*)] R_OPTION="${R_OPTION} -Xlinker -rpath -Xlinker [$]$1" ;;
+         esac
+        AC_MSG_RESULT(R_OPTION set to $R_OPTION for $os_sys_rel)
     fi
-fi])dnl
+fi] )
 dnl
 dnl --------------------------------------------------------------
 dnl AC_SET_STATIC(VARIABLE [, VALUE])
