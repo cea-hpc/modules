@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.5 2002/06/14 06:15:20 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.6 2002/06/14 21:57:03 rkowen Exp $
 dnl Created:     94/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -49,37 +49,17 @@ dnl ---------------------------------------------------------------------------
 dnl
 dnl Some special substitution we need:
 dnl
-dnl STATIC		Link the binary 'static'
-dnl WITH_LOGGING	Whether syslogging is enabled
-dnl MODULEPATH		The modulepath we want
-dnl VERSIONPATH		The modulepath different versions of modules
-dnl AUTOLOADPATH	directories where Tcl will search for libraries to load
-dnl ETCPATH		Where to find the /etc/"login" files
-dnl SKELPATH		Where to find the $HOME/dot file skeletons
-dnl DATE		Module package date
-dnl VERSION		Module package version
-dnl THISDIR		Full path to this source directory
-dnl
-AC_SUBST(STATIC)dnl
-AC_SUBST(WITH_LOGGING)dnl
-AC_SUBST(MODULEPATH)dnl
-AC_SUBST(AUTOLOADPATH)dnl
-AC_SUBST(ETCPATH)dnl
-AC_SUBST(SKELPATH)dnl
-AC_SUBST(DOT_EXT)dnl
-AC_SUBST(VERSION)dnl
-AC_SUBST(DATE)dnl
-AC_SUBST(THISDIR)dnl
 dnl ---------------------------------------------------------------------------
 dnl Need to know if versioning is asked for before setting certain paths
-dnl
 dnl --enable-versioning		Use modules versioning 	[DEF]
 dnl --disable-versioning	Without  - " -
 dnl ---------------------------------------------------------------------------
-AH_TEMPLATE([WANTS_VERSIONING],[
-WANTS_VERSIONING Does the system want to use modules versions])dnl
+dnl
+AC_SUBST(WANTS_VERSIONING)dnl
 AC_SUBST(VERSIONING)dnl
 AC_SUBST(NOTVERSIONING)dnl
+AH_TEMPLATE([WANTS_VERSIONING],[
+WANTS_VERSIONING Does the system want to use modules versions])dnl
 AC_ARG_ENABLE(versioning,
 	[  --enable-versioning         use modules versioning          [yes]],
 	if test "$enableval" = "yes"; then
@@ -101,21 +81,23 @@ dnl
 dnl ---------------------------------------------------------------------------
 dnl Get Modules version & date
 dnl ---------------------------------------------------------------------------
+dnl DATE		Module package date
+dnl VERSION		Module package version
+dnl
+AC_SUBST(VERSION)dnl
+AC_SUBST(DATE)dnl
 VERSION='(unknown)'
 VERSION=`sed -n -e 's/^.*version_string.*"\(.*\)";$/\1/p' ${srcdir}/version.c`
-AC_MSG_RESULT([VERSION = $VERSION])dnl
+AC_MSG_RESULT([VERSION = $VERSION])
 DATE='(DDMmmYYYY)'
 DATE=`sed -n -e 's/^.*date_string.*"\(.*\)";$/\1/p' ${srcdir}/version.c`
-AC_MSG_RESULT([DATE = $DATE])dnl
+AC_MSG_RESULT([DATE = $DATE])
 echo "configuring for Modules $VERSION		$DATE"
-THISDIR=`pwd`
 dnl ---------------------------------------------------------------------------
-dnl
-dnl --enable-use-default        Use PREFIX - VERSION in init scripts [DEF]
-dnl --disable-use-default       Use PREFIX in init scripts
-dnl
-AC_MSG_RESULT([THISDIR = $THISDIR])dnl
+dnl Set PREFIX and related based on WANTS_VERSIONING
 dnl ---------------------------------------------------------------------------
+AC_SUBST(DEFAULTPATH)
+AC_SUBST(BASEPREFIX)
 DEFAULTPATH=default
 AH_TEMPLATE([BASEPREFIX],[ BASEPREFIX: Usually equivalent to /usr/local])dnl
 AH_TEMPLATE([PREFIX],[
@@ -156,116 +138,25 @@ else
   MODULES_INIT_DIR=$ac_default_prefix/init
   PREFIX=$ac_default_prefix
 fi
+dnl ---------------------------------------------------------------------------
+dnl --enable-use-default        Use PREFIX/default/ in init scripts [DEF]
+dnl --disable-use-default       Use PREFIX/VERSION/ in init scripts
+dnl ---------------------------------------------------------------------------
 AC_DEFINE_UNQUOTED(MODULES_INIT_DIR, "$MODULES_INIT_DIR")
 AC_ARG_ENABLE(use-default,
 	[  --enable-use-default        use DEFAULTPATH in init scripts [yes]],
 	if test "$enableval" = "no" -o $WANTS_VERSIONING -eq 0; then
 		DEFAULTPATH=$NODEFAULTPATH
-		AC_SUBST(DEFAULTPATH)
 	fi)
 AC_MSG_RESULT([DEFAULTPATH = $DEFAULTPATH])
 AC_MSG_RESULT([BASEPREFIX = $BASEPREFIX])
 AC_MSG_RESULT([PREFIX = $PREFIX])
-AC_SUBST(DEFAULTPATH)
-AC_SUBST(BASEPREFIX)
 AC_DEFINE_UNQUOTED(BASEPREFIX, "$BASEPREFIX")
 AC_DEFINE_UNQUOTED(PREFIX, "$PREFIX")
 export DEFAULTPATH
 export NODEFAULTPATH
 export BASEPREFIX
 export MODULES_INIT_DIR
-dnl ---------------------------------------------------------------------------
-dnl   --with-module-path
-dnl   --with-version-path
-dnl   --with-autoload-path
-dnl   --with-etc-path
-dnl   --with-skel-path
-dnl
-dnl ---------------------------------------------------------------------------
-AH_TEMPLATE([MODULEPATH],[
-MODULEPATH: Directory that contains all the module files])dnl
-AC_ARG_WITH(module-path,
-	[  --with-module-path=<path>   use module path=<path>        [$ac_default_prefix/Modules/modulefiles]],
-	MODULEPATH="$withval"
-	AC_MSG_RESULT([MODULEPATH = $with_module_path])dnl
-	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval")dnl
-	,
-dnl 	AC_MSG_WARN([if using '--with-module-path': need to specify a path!])
-	withval="$BASEPREFIX/Modules/modulefiles"
-	AC_MSG_WARN([will use MODULEPATH=$withval : rerun configure using --with-module-path to override default])
-	MODULEPATH="$withval"
-	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval"))dnl
-dnl ---------------------------------------------------------------------------
-AH_TEMPLATE([VERSIONPATH],[
-VERSIONPATH: Directory that contains the env.modules version files.])dnl
-AC_SUBST(VERSIONPATH)dnl
-AC_ARG_WITH(version-path,
-	[  --with-version-path=<path>  use version path=<path>       [$ac_default_prefix/Modules/versions]],
-	VERSIONPATH="$withval"
-	AC_MSG_RESULT([VERSIONPATH = $with_version_path])
-	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval")
-	,
-dnl AC_MSG_WARN([if using '--with-version-path': need to specify a path!])
-	withval="$BASEPREFIX/Modules/versions"
-	AC_MSG_WARN([will use VERSIONPATH=$withval : rerun configure using --with-version-path to override default])
-	VERSIONPATH="$withval"
-	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval"))dnl
-dnl ---------------------------------------------------------------------------
-AC_ARG_WITH(autoload-path,
-	[  --with-autoload-path=<path> use autoload path=<path>      [$ac_default_prefix/lib/tcl]],
-	if test "$withval" = "no" || test "$withval" = "yes"; then
-		if test "$prefix" != "NONE" ; then
-			withval="$prefix/lib/tcl"
-		else
-			withval="$ac_default_prefix/lib/tcl"
-		fi
-	fi
-	AUTOLOADPATH="$withval"
-	AC_DEFINE_UNQUOTED(AUTOLOADPATH, "$withval"))
-AC_ARG_WITH(etc-path,
-	[  --with-etc-path=<path>      use etc path=<path>           [/etc]],
-	if test "$withval" = "no" || test "$withval" = "yes"; then
-	AC_MSG_WARN([if using '--with-etc-path': need to specify a path! Using /etc])
-		withval="/etc"
-	fi
-	ETCPATH="$withval"
-	,
-	ETCPATH="/etc")
-AC_ARG_WITH(skel-path,
-	[  --with-skel-path=<path>     use skel path=<path>          [/etc/skel]],
-	if test "$withval" = "no" || test "$withval" = "yes"; then
-	AC_MSG_WARN([if using '--with-skel-path': need to specify a path! Using /etc/skel])
-		withval="/etc/skel"
-	fi
-	SKELPATH="$withval"
-	,
-	SKELPATH="/etc/skel")
-AC_ARG_WITH(dot-ext,
-	[  --with-dot-ext[=<.ext>]     append <.ext> to shell init   [.ext]],
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval=".ext"
-		AC_DEFINE_UNQUOTED(DOT_EXT, "$withval")
-	else
-		AC_DEFINE_UNQUOTED(DOT_EXT, "")
-	fi)dnl
-dnl ---------------------------------------------------------------------------
-AH_TEMPLATE([TMP_DIR],[TMP_DIR: tmp directory name])dnl
-AC_ARG_WITH(tmp-dir,
-	[  --with-tmp-dir=<dir>]     use <dir> as a temporary dir    [/tmp]],
-        if test ! -d $withval ; then
-           AC_MSG_ERROR([tmp dir $withval does not exist])dnl
-        fi
-	AC_DEFINE_UNQUOTED(TMP_DIR, "$withval")dnl
-	AC_MSG_RESULT([TMP_DIR = $withval]),
-        if test -d "/tmp" ; then
-           AC_DEFINE_UNQUOTED(TMP_DIR, "/tmp")dnl
-        elif test -d "/var/tmp" ; then
-           AC_DEFINE_UNQUOTED(TMP_DIR, "/var/tmp")dnl
-        fi
-	)dnl
-dnl
-dnl Check for cc
-AC_PROG_CC
 dnl ---------------------------------------------------------------------------
 dnl Some standard autoconfig stuff
 dnl Checks for programs
@@ -340,6 +231,7 @@ This symbol contains the second part of the string which will invoke
 the C preprocessor on the standard input and produce to standard
 output.  This symbol will have the value "-" if CPPSTDIN needs a minus
 to specify standard input, otherwise the value is "".])dnl
+AC_DEFINE(CPPMINUS, "")dnl
 dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([PHOSTNAME],[
 PHOSTNAME:
@@ -359,9 +251,6 @@ dnl --without-force-path	Without  - " -		[DEF]
 dnl
 dnl --with-split-size[=<size>]	With split size=<size>
 dnl --without-split-size	Without  - " -		[DEF]
-dnl
-dnl --with-static[=<option>]	With static linking
-dnl --without-static		Without  - " -		[DEF]
 dnl
 dnl --enable-cache		With directory cache	[DEF]
 dnl --disable-cache		Without  - " -
@@ -408,6 +297,12 @@ AC_ARG_WITH(split-size,
 		AC_DEFINE_UNQUOTED(LMSPLIT_SIZE, ${withval})
 	fi)dnl
 dnl ---------------------------------------------------------------------------
+dnl --with-static[=<option>]	With static linking
+dnl --without-static		Without  - " -		[DEF]
+dnl STATIC		Link the binary 'static'
+dnl
+AC_SUBST(STATIC)dnl
+dnl
 AC_ARG_WITH(static,
 	[  --with-static[=<option>]    use static linking            [no]],
 	EM_SET_STATIC(STATIC, $withval))
@@ -494,6 +389,9 @@ dnl  Logging
 dnl  The following option allow switching logging on and off
 dnl  and provide a possibility to set up the default facilities
 dnl ---------------------------------------------------------------------------
+dnl WITH_LOGGING	Whether syslogging is enabled
+dnl
+AC_SUBST(WITH_LOGGING)dnl
 AH_TEMPLATE([WITH_LOGGING],[WITH_LOGGING: Syslog logging and facilities])dnl
 AH_TEMPLATE([WITH_LOG_DIR],[])dnl
 AH_TEMPLATE([WITH_LOG_FACILITY_VERBOSE],[])dnl
@@ -762,43 +660,66 @@ extended TCL (tclX) commands.])dnl
 	AC_DEFINE(HAS_TCLXLIBS)dnl
 fi
 
-dnl
 dnl ---------------------------------------------------------------------------
 dnl
 dnl   --with-module-path
 dnl   --with-version-path
+dnl   --with-tmp-dir
 dnl   --with-autoload-path
-dnl   --with-etc-path
-dnl   --with-skel-path
 dnl
+dnl ---------------------------------------------------------------------------
+dnl MODULEPATH		The modulepath we want
+dnl
+AC_SUBST(MODULEPATH)dnl
+AH_TEMPLATE([MODULEPATH],[
+MODULEPATH: Directory that contains all the module files])dnl
 AC_ARG_WITH(module-path,
-	[  --with-module-path=<path>   use module path=<path>        [/usr/local/Modules/modulefiles]],
+	[  --with-module-path=<path>   use module path=<path>        [$ac_default_prefix/Modules/modulefiles]],
 	MODULEPATH="$withval"
 	AC_MSG_RESULT([MODULEPATH = $with_module_path])
-	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval")
+	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval")dnl
 	,
-	AC_MSG_WARN([if using '--with-module-path': need to specify a path!])
-	if test "$withval" = "no" || test "$withval" = "yes"; then
-		withval="/usr/local/Modules/modulefiles"
-	fi
-	AC_MSG_WARN([will use MODULEPATH=$withval])
+dnl 	AC_MSG_WARN([if using '--with-module-path': need to specify a path!])
+	withval="$BASEPREFIX/Modules/modulefiles"
+	AC_MSG_WARN([will use MODULEPATH=$withval : rerun configure using --with-module-path to override default])
 	MODULEPATH="$withval"
-	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval"))
+	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval"))dnl
+dnl ---------------------------------------------------------------------------
+dnl VERSIONPATH		The modulepath different versions of modules
+dnl
+AC_SUBST(VERSIONPATH)dnl
+AH_TEMPLATE([VERSIONPATH],[
+VERSIONPATH: Directory that contains the env.modules version files.])dnl
 AC_ARG_WITH(version-path,
-	[  --with-version-path=<path>  use module path=<path>        [/usr/local/Modules/versions]],
+	[  --with-version-path=<path>  use version path=<path>       [$ac_default_prefix/Modules/versions]],
 	VERSIONPATH="$withval"
 	AC_MSG_RESULT([VERSIONPATH = $with_version_path])
 	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval")
 	,
-	[AC_MSG_WARN([if using '--with-version-path': need to specify a path!])]
-	if test "$withval" = "no" || test "$withval" = "yes"; then
-		withval="$prefix/Modules/versions"
-	fi
-	AC_MSG_WARN([will use VERSIONPATH=$withval])
+dnl AC_MSG_WARN([if using '--with-version-path': need to specify a path!])
+	withval="$BASEPREFIX/Modules/versions"
+	AC_MSG_WARN([will use VERSIONPATH=$withval : rerun configure using --with-version-path to override default])
 	VERSIONPATH="$withval"
-	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval"))
-
+	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval"))dnl
 dnl ---------------------------------------------------------------------------
+AH_TEMPLATE([TMP_DIR],[TMP_DIR: tmp directory name])dnl
+AC_ARG_WITH(tmp-dir,
+	[  --with-tmp-dir=<dir>]     use <dir> as a temporary dir    [/tmp]],
+        if test ! -d $withval ; then
+           AC_MSG_ERROR([tmp dir $withval does not exist])dnl
+        fi
+	AC_DEFINE_UNQUOTED(TMP_DIR, "$withval")dnl
+	AC_MSG_RESULT([TMP_DIR = $withval]),
+        if test -d "/tmp" ; then
+           AC_DEFINE_UNQUOTED(TMP_DIR, "/tmp")dnl
+        elif test -d "/var/tmp" ; then
+           AC_DEFINE_UNQUOTED(TMP_DIR, "/var/tmp")dnl
+        fi
+	)dnl
+dnl ---------------------------------------------------------------------------
+dnl AUTOLOADPATH	directories where Tcl will search for libraries to load
+dnl
+AC_SUBST(AUTOLOADPATH)dnl
 AH_TEMPLATE([AUTOLOADPATH],[
 AUTOLOADPATH:
 This symbol, if defined, is the "default" path of directories
@@ -813,17 +734,29 @@ AC_ARG_WITH(autoload-path,
 		fi
 	fi
 	AUTOLOADPATH="$withval"
-	AC_DEFINE_UNQUOTED(AUTOLOADPATH, "$withval"))
+	AC_DEFINE_UNQUOTED(AUTOLOADPATH, "$withval"))dnl
+dnl ---------------------------------------------------------------------------
+dnl   --with-etc-path
+dnl   --with-skel-path
+dnl   --with-dot-ext
+dnl ---------------------------------------------------------------------------
+dnl ETCPATH		Where to find the /etc/"login" files
+dnl
+AC_SUBST(ETCPATH)dnl
 AC_ARG_WITH(etc-path,
 	[  --with-etc-path=<path>      use etc path=<path>           [/etc]],
-	if test "$withval" = "no" || test "$withval" = "yes"; then
-	AC_MSG_WARN([if using '--with-etc-path': need to specify a path! Using /etc])
+	[if test "$withval" = "no" || test "$withval" = "yes"; then
+		AC_MSG_WARN(
+	[if using '--with-etc-path': need to specify a path! Using /etc])
 		withval="/etc"
 	fi
-	ETCPATH="$withval"
+	ETCPATH="$withval"]
 	,
-	ETCPATH="/etc")
+	ETCPATH="/etc")dnl
 dnl ---------------------------------------------------------------------------
+dnl SKELPATH		Where to find the $HOME/dot file skeletons
+dnl
+AC_SUBST(SKELPATH)dnl
 AC_ARG_WITH(skel-path,
 	[  --with-skel-path=<path>     use skel path=<path>          [/etc/skel]],
 	if test "$withval" = "no" || test "$withval" = "yes"; then
@@ -834,9 +767,14 @@ AC_ARG_WITH(skel-path,
 	,
 	SKELPATH="/etc/skel")
 dnl ---------------------------------------------------------------------------
+dnl DOT_EXT		Whether to use a dot-file extension
+dnl EXTDIR		Which add.* script to include
+dnl
+AC_SUBST(DOT_EXT)dnl
+AC_SUBST(EXTDIR)dnl
 AH_TEMPLATE([DOT_EXT],[
 DOT_EXT:
-Set this to some extension value (e.g. .ext) to be append onto
+Set this to some extension value (e.g. .ext) to be appended onto
 each shell dot-file name in the list for each shell for processing
 the "module init*" commands.  For example - C-shell: .cshrc.ext,
 .login.ext.])dnl
@@ -845,28 +783,33 @@ AC_ARG_WITH(dot-ext,
 	if test "$withval" != "no"; then
 		test "$withval" = "yes" && withval=".ext"
 		AC_DEFINE_UNQUOTED(DOT_EXT, "$withval")
+		EXTDIR="ext"
 	else
-		AC_DEFINE_UNQUOTED(DOT_EXT, "")
-	fi)dnl
+		AC_DEFINE(DOT_EXT, "")
+		EXTDIR="etc"
+	fi,
+	AC_DEFINE(DOT_EXT, "")
+	EXTDIR="etc"
+)
 dnl ---------------------------------------------------------------------------
 dnl Now put it all out!
 dnl ---------------------------------------------------------------------------
-AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile init/Makefile
-	init/bash init/csh init/ksh init/perl init/python init/sh
-	init/zsh init/.modulespath
+AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile
+	init/Makefile init/.modulespath
 	doc/module.1 doc/modulefile.4
 	etc/Makefile etc/add.modules etc/mkroot
 	etc/skel/.cshrc etc/skel/.login 
 	etc/skel/.kshenv etc/skel/.profile 
 	etc/global/csh.cshrc etc/global/csh.login etc/global/csh.modules
 	etc/global/bashrc etc/global/profile etc/global/profile.modules
-	ext/Makefile ext/add.ext
+	ext/Makefile ext/add.ext ext/mkroot
 	ext/common/.cshrc ext/common/.login 
 	ext/common/.kshenv ext/common/.profile 
 	modulefiles/Makefile modulefiles/modules
 	modulefiles/module-cvs modulefiles/module-info modulefiles/null
 	modulefiles/use.own modulefiles/dot modulefiles/version
 	])
+dnl	init/bash init/csh init/ksh init/perl init/python init/sh init/zsh
 AC_CONFIG_COMMANDS([default],[[date > stamp-h]],[[]])
 AC_OUTPUT
 dnl

@@ -845,13 +845,6 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-module-path=<path>   use module path=<path>        $ac_default_prefix/Modules/modulefiles
-  --with-version-path=<path>  use version path=<path>       $ac_default_prefix/Modules/versions
-  --with-autoload-path=<path> use autoload path=<path>      $ac_default_prefix/lib/tcl
-  --with-etc-path=<path>      use etc path=<path>           /etc
-  --with-skel-path=<path>     use skel path=<path>          /etc/skel
-  --with-dot-ext=<.ext>     append <.ext> to shell init   .ext
-  --with-tmp-dir=<dir>     use <dir> as a temporary dir    /tmp]
   --with-x                use the X Window System
   --with-force-path=<path>    use force path=<path>         no
   --with-split-size=<size>  use split size=<size>         no
@@ -886,8 +879,13 @@ Optional Packages:
   --with-tcl              directory containing tcl configuration (tclConfig.sh)
   --with-tclinclude       directory containing the public Tcl header files.
   --with-tclx             directory containing tclx configuration (tclxConfig.sh)
-  --with-module-path=<path>   use module path=<path>        /usr/local/Modules/modulefiles
-  --with-version-path=<path>  use module path=<path>        /usr/local/Modules/versions
+  --with-module-path=<path>   use module path=<path>        $ac_default_prefix/Modules/modulefiles
+  --with-version-path=<path>  use version path=<path>       $ac_default_prefix/Modules/versions
+  --with-tmp-dir=<dir>     use <dir> as a temporary dir    /tmp]
+  --with-autoload-path=<path> use autoload path=<path>      $ac_default_prefix/lib/tcl
+  --with-etc-path=<path>      use etc path=<path>           /etc
+  --with-skel-path=<path>     use skel path=<path>          /etc/skel
+  --with-dot-ext=<.ext>     append <.ext> to shell init   .ext
 
 Some influential environment variables:
   CC          C compiler command
@@ -1701,13 +1699,15 @@ _ACEOF
 fi; VERSION='(unknown)'
 VERSION=`sed -n -e 's/^.*version_string.*"\(.*\)";$/\1/p' ${srcdir}/version.c`
 echo "$as_me:$LINENO: result: VERSION = $VERSION" >&5
-echo "${ECHO_T}VERSION = $VERSION" >&6DATE='(DDMmmYYYY)'
+echo "${ECHO_T}VERSION = $VERSION" >&6
+DATE='(DDMmmYYYY)'
 DATE=`sed -n -e 's/^.*date_string.*"\(.*\)";$/\1/p' ${srcdir}/version.c`
 echo "$as_me:$LINENO: result: DATE = $DATE" >&5
-echo "${ECHO_T}DATE = $DATE" >&6echo "configuring for Modules $VERSION		$DATE"
-THISDIR=`pwd`
-echo "$as_me:$LINENO: result: THISDIR = $THISDIR" >&5
-echo "${ECHO_T}THISDIR = $THISDIR" >&6DEFAULTPATH=default
+echo "${ECHO_T}DATE = $DATE" >&6
+echo "configuring for Modules $VERSION		$DATE"
+
+
+DEFAULTPATH=default
 
 
 
@@ -1754,7 +1754,6 @@ if test "${enable_use_default+set}" = set; then
   enableval="$enable_use_default"
   if test "$enableval" = "no" -o $WANTS_VERSIONING -eq 0; then
 		DEFAULTPATH=$NODEFAULTPATH
-
 	fi
 fi;
 echo "$as_me:$LINENO: result: DEFAULTPATH = $DEFAULTPATH" >&5
@@ -1763,8 +1762,6 @@ echo "$as_me:$LINENO: result: BASEPREFIX = $BASEPREFIX" >&5
 echo "${ECHO_T}BASEPREFIX = $BASEPREFIX" >&6
 echo "$as_me:$LINENO: result: PREFIX = $PREFIX" >&5
 echo "${ECHO_T}PREFIX = $PREFIX" >&6
-
-
 cat >>confdefs.h <<_ACEOF
 #define BASEPREFIX "$BASEPREFIX"
 _ACEOF
@@ -1777,135 +1774,7 @@ export DEFAULTPATH
 export NODEFAULTPATH
 export BASEPREFIX
 export MODULES_INIT_DIR
-
-
-# Check whether --with-module-path or --without-module-path was given.
-if test "${with_module_path+set}" = set; then
-  withval="$with_module_path"
-  MODULEPATH="$withval"
-	echo "$as_me:$LINENO: result: MODULEPATH = $with_module_path" >&5
-echo "${ECHO_T}MODULEPATH = $with_module_path" >&6	cat >>confdefs.h <<_ACEOF
-#define MODULEPATH "$withval"
-_ACEOF
-
-else
-  	withval="$BASEPREFIX/Modules/modulefiles"
-	{ echo "$as_me:$LINENO: WARNING: will use MODULEPATH=$withval : rerun configure using --with-module-path to override default" >&5
-echo "$as_me: WARNING: will use MODULEPATH=$withval : rerun configure using --with-module-path to override default" >&2;}
-	MODULEPATH="$withval"
-	cat >>confdefs.h <<_ACEOF
-#define MODULEPATH "$withval"
-_ACEOF
-
-fi;
-
-# Check whether --with-version-path or --without-version-path was given.
-if test "${with_version_path+set}" = set; then
-  withval="$with_version_path"
-  VERSIONPATH="$withval"
-	echo "$as_me:$LINENO: result: VERSIONPATH = $with_version_path" >&5
-echo "${ECHO_T}VERSIONPATH = $with_version_path" >&6
-	cat >>confdefs.h <<_ACEOF
-#define VERSIONPATH "$withval"
-_ACEOF
-
-
-else
-  	withval="$BASEPREFIX/Modules/versions"
-	{ echo "$as_me:$LINENO: WARNING: will use VERSIONPATH=$withval : rerun configure using --with-version-path to override default" >&5
-echo "$as_me: WARNING: will use VERSIONPATH=$withval : rerun configure using --with-version-path to override default" >&2;}
-	VERSIONPATH="$withval"
-	cat >>confdefs.h <<_ACEOF
-#define VERSIONPATH "$withval"
-_ACEOF
-
-fi;
-# Check whether --with-autoload-path or --without-autoload-path was given.
-if test "${with_autoload_path+set}" = set; then
-  withval="$with_autoload_path"
-  if test "$withval" = "no" || test "$withval" = "yes"; then
-		if test "$prefix" != "NONE" ; then
-			withval="$prefix/lib/tcl"
-		else
-			withval="$ac_default_prefix/lib/tcl"
-		fi
-	fi
-	AUTOLOADPATH="$withval"
-	cat >>confdefs.h <<_ACEOF
-#define AUTOLOADPATH "$withval"
-_ACEOF
-
-fi;
-
-# Check whether --with-etc-path or --without-etc-path was given.
-if test "${with_etc_path+set}" = set; then
-  withval="$with_etc_path"
-  if test "$withval" = "no" || test "$withval" = "yes"; then
-	{ echo "$as_me:$LINENO: WARNING: if using '--with-etc-path': need to specify a path! Using /etc" >&5
-echo "$as_me: WARNING: if using '--with-etc-path': need to specify a path! Using /etc" >&2;}
-		withval="/etc"
-	fi
-	ETCPATH="$withval"
-
-else
-  ETCPATH="/etc"
-fi;
-
-# Check whether --with-skel-path or --without-skel-path was given.
-if test "${with_skel_path+set}" = set; then
-  withval="$with_skel_path"
-  if test "$withval" = "no" || test "$withval" = "yes"; then
-	{ echo "$as_me:$LINENO: WARNING: if using '--with-skel-path': need to specify a path! Using /etc/skel" >&5
-echo "$as_me: WARNING: if using '--with-skel-path': need to specify a path! Using /etc/skel" >&2;}
-		withval="/etc/skel"
-	fi
-	SKELPATH="$withval"
-
-else
-  SKELPATH="/etc/skel"
-fi;
-
-# Check whether --with-dot-ext or --without-dot-ext was given.
-if test "${with_dot_ext+set}" = set; then
-  withval="$with_dot_ext"
-  if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval=".ext"
-		cat >>confdefs.h <<_ACEOF
-#define DOT_EXT "$withval"
-_ACEOF
-
-	else
-		cat >>confdefs.h <<_ACEOF
-#define DOT_EXT ""
-_ACEOF
-
-	fi
-fi;
-
-# Check whether --with-tmp-dir or --without-tmp-dir was given.
-if test "${with_tmp_dir+set}" = set; then
-  withval="$with_tmp_dir"
-  if test ! -d $withval ; then
-           { { echo "$as_me:$LINENO: error: tmp dir $withval does not exist" >&5
-echo "$as_me: error: tmp dir $withval does not exist" >&2;}
-   { (exit 1); exit 1; }; }        fi
-	cat >>confdefs.h <<_ACEOF
-#define TMP_DIR "$withval"
-_ACEOF
-	echo "$as_me:$LINENO: result: TMP_DIR = $withval" >&5
-echo "${ECHO_T}TMP_DIR = $withval" >&6
-else
-  if test -d "/tmp" ; then
-           cat >>confdefs.h <<_ACEOF
-#define TMP_DIR "/tmp"
-_ACEOF
-        elif test -d "/var/tmp" ; then
-           cat >>confdefs.h <<_ACEOF
-#define TMP_DIR "/var/tmp"
-_ACEOF
-        fi
-
-fi; ac_ext=c
+ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -2735,647 +2604,6 @@ fi
 
 
 
-
-depcc="$CC"   am_compiler_list=
-
-echo "$as_me:$LINENO: checking dependency style of $depcc" >&5
-echo $ECHO_N "checking dependency style of $depcc... $ECHO_C" >&6
-if test "${am_cv_CC_dependencies_compiler_type+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -z "$AMDEP_TRUE" && test -f "$am_depcomp"; then
-  # We make a subdir and do the tests there.  Otherwise we can end up
-  # making bogus files that we don't know about and never remove.  For
-  # instance it was reported that on HP-UX the gcc test will end up
-  # making a dummy file named `D' -- because `-MD' means `put the output
-  # in D'.
-  mkdir conftest.dir
-  # Copy depcomp to subdir because otherwise we won't find it if we're
-  # using a relative directory.
-  cp "$am_depcomp" conftest.dir
-  cd conftest.dir
-
-  am_cv_CC_dependencies_compiler_type=none
-  if test "$am_compiler_list" = ""; then
-     am_compiler_list=`sed -n 's/^#*\([a-zA-Z0-9]*\))$/\1/p' < ./depcomp`
-  fi
-  for depmode in $am_compiler_list; do
-    # We need to recreate these files for each test, as the compiler may
-    # overwrite some of them when testing with obscure command lines.
-    # This happens at least with the AIX C compiler.
-    echo '#include "conftest.h"' > conftest.c
-    echo 'int i;' > conftest.h
-    echo "${am__include} ${am__quote}conftest.Po${am__quote}" > confmf
-
-    case $depmode in
-    nosideeffect)
-      # after this tag, mechanisms are not by side-effect, so they'll
-      # only be used when explicitly requested
-      if test "x$enable_dependency_tracking" = xyes; then
-	continue
-      else
-	break
-      fi
-      ;;
-    none) break ;;
-    esac
-    # We check with `-c' and `-o' for the sake of the "dashmstdout"
-    # mode.  It turns out that the SunPro C++ compiler does not properly
-    # handle `-M -o', and we need to detect this.
-    if depmode=$depmode \
-       source=conftest.c object=conftest.o \
-       depfile=conftest.Po tmpdepfile=conftest.TPo \
-       $SHELL ./depcomp $depcc -c conftest.c -o conftest.o >/dev/null 2>&1 &&
-       grep conftest.h conftest.Po > /dev/null 2>&1 &&
-       ${MAKE-make} -s -f confmf > /dev/null 2>&1; then
-      am_cv_CC_dependencies_compiler_type=$depmode
-      break
-    fi
-  done
-
-  cd ..
-  rm -rf conftest.dir
-else
-  am_cv_CC_dependencies_compiler_type=none
-fi
-
-fi
-echo "$as_me:$LINENO: result: $am_cv_CC_dependencies_compiler_type" >&5
-echo "${ECHO_T}$am_cv_CC_dependencies_compiler_type" >&6
-CCDEPMODE=depmode=$am_cv_CC_dependencies_compiler_type
-
-
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-if test -n "$ac_tool_prefix"; then
-  # Extract the first word of "${ac_tool_prefix}gcc", so it can be a program name with args.
-set dummy ${ac_tool_prefix}gcc; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_CC+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$CC"; then
-  ac_cv_prog_CC="$CC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_CC="${ac_tool_prefix}gcc"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-fi
-fi
-CC=$ac_cv_prog_CC
-if test -n "$CC"; then
-  echo "$as_me:$LINENO: result: $CC" >&5
-echo "${ECHO_T}$CC" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-fi
-if test -z "$ac_cv_prog_CC"; then
-  ac_ct_CC=$CC
-  # Extract the first word of "gcc", so it can be a program name with args.
-set dummy gcc; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_ac_ct_CC+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$ac_ct_CC"; then
-  ac_cv_prog_ac_ct_CC="$ac_ct_CC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_ac_ct_CC="gcc"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-fi
-fi
-ac_ct_CC=$ac_cv_prog_ac_ct_CC
-if test -n "$ac_ct_CC"; then
-  echo "$as_me:$LINENO: result: $ac_ct_CC" >&5
-echo "${ECHO_T}$ac_ct_CC" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-  CC=$ac_ct_CC
-else
-  CC="$ac_cv_prog_CC"
-fi
-
-if test -z "$CC"; then
-  if test -n "$ac_tool_prefix"; then
-  # Extract the first word of "${ac_tool_prefix}cc", so it can be a program name with args.
-set dummy ${ac_tool_prefix}cc; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_CC+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$CC"; then
-  ac_cv_prog_CC="$CC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_CC="${ac_tool_prefix}cc"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-fi
-fi
-CC=$ac_cv_prog_CC
-if test -n "$CC"; then
-  echo "$as_me:$LINENO: result: $CC" >&5
-echo "${ECHO_T}$CC" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-fi
-if test -z "$ac_cv_prog_CC"; then
-  ac_ct_CC=$CC
-  # Extract the first word of "cc", so it can be a program name with args.
-set dummy cc; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_ac_ct_CC+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$ac_ct_CC"; then
-  ac_cv_prog_ac_ct_CC="$ac_ct_CC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_ac_ct_CC="cc"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-fi
-fi
-ac_ct_CC=$ac_cv_prog_ac_ct_CC
-if test -n "$ac_ct_CC"; then
-  echo "$as_me:$LINENO: result: $ac_ct_CC" >&5
-echo "${ECHO_T}$ac_ct_CC" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-  CC=$ac_ct_CC
-else
-  CC="$ac_cv_prog_CC"
-fi
-
-fi
-if test -z "$CC"; then
-  # Extract the first word of "cc", so it can be a program name with args.
-set dummy cc; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_CC+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$CC"; then
-  ac_cv_prog_CC="$CC" # Let the user override the test.
-else
-  ac_prog_rejected=no
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    if test "$as_dir/$ac_word$ac_exec_ext" = "/usr/ucb/cc"; then
-       ac_prog_rejected=yes
-       continue
-     fi
-    ac_cv_prog_CC="cc"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-if test $ac_prog_rejected = yes; then
-  # We found a bogon in the path, so make sure we never use it.
-  set dummy $ac_cv_prog_CC
-  shift
-  if test $# != 0; then
-    # We chose a different compiler from the bogus one.
-    # However, it has the same basename, so the bogon will be chosen
-    # first if we set CC to just the basename; use the full file name.
-    shift
-    set dummy "$as_dir/$ac_word" ${1+"$@"}
-    shift
-    ac_cv_prog_CC="$@"
-  fi
-fi
-fi
-fi
-CC=$ac_cv_prog_CC
-if test -n "$CC"; then
-  echo "$as_me:$LINENO: result: $CC" >&5
-echo "${ECHO_T}$CC" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-fi
-if test -z "$CC"; then
-  if test -n "$ac_tool_prefix"; then
-  for ac_prog in cl
-  do
-    # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
-set dummy $ac_tool_prefix$ac_prog; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_CC+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$CC"; then
-  ac_cv_prog_CC="$CC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_CC="$ac_tool_prefix$ac_prog"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-fi
-fi
-CC=$ac_cv_prog_CC
-if test -n "$CC"; then
-  echo "$as_me:$LINENO: result: $CC" >&5
-echo "${ECHO_T}$CC" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-    test -n "$CC" && break
-  done
-fi
-if test -z "$CC"; then
-  ac_ct_CC=$CC
-  for ac_prog in cl
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_ac_ct_CC+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$ac_ct_CC"; then
-  ac_cv_prog_ac_ct_CC="$ac_ct_CC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_ac_ct_CC="$ac_prog"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-fi
-fi
-ac_ct_CC=$ac_cv_prog_ac_ct_CC
-if test -n "$ac_ct_CC"; then
-  echo "$as_me:$LINENO: result: $ac_ct_CC" >&5
-echo "${ECHO_T}$ac_ct_CC" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-  test -n "$ac_ct_CC" && break
-done
-
-  CC=$ac_ct_CC
-fi
-
-fi
-
-
-test -z "$CC" && { { echo "$as_me:$LINENO: error: no acceptable C compiler found in \$PATH" >&5
-echo "$as_me: error: no acceptable C compiler found in \$PATH" >&2;}
-   { (exit 1); exit 1; }; }
-
-# Provide some information about the compiler.
-echo "$as_me:$LINENO:" \
-     "checking for C compiler version" >&5
-ac_compiler=`set X $ac_compile; echo $2`
-{ (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
-  (eval $ac_compiler --version </dev/null >&5) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }
-{ (eval echo "$as_me:$LINENO: \"$ac_compiler -v </dev/null >&5\"") >&5
-  (eval $ac_compiler -v </dev/null >&5) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }
-{ (eval echo "$as_me:$LINENO: \"$ac_compiler -V </dev/null >&5\"") >&5
-  (eval $ac_compiler -V </dev/null >&5) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }
-
-echo "$as_me:$LINENO: checking whether we are using the GNU C compiler" >&5
-echo $ECHO_N "checking whether we are using the GNU C compiler... $ECHO_C" >&6
-if test "${ac_cv_c_compiler_gnu+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-#include "confdefs.h"
-
-#ifdef F77_DUMMY_MAIN
-#  ifdef __cplusplus
-     extern "C"
-#  endif
-   int F77_DUMMY_MAIN() { return 1; }
-#endif
-int
-main ()
-{
-#ifndef __GNUC__
-       choke me
-#endif
-
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext
-if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  ac_compiler_gnu=yes
-else
-  echo "$as_me: failed program was:" >&5
-cat conftest.$ac_ext >&5
-ac_compiler_gnu=no
-fi
-rm -f conftest.$ac_objext conftest.$ac_ext
-ac_cv_c_compiler_gnu=$ac_compiler_gnu
-
-fi
-echo "$as_me:$LINENO: result: $ac_cv_c_compiler_gnu" >&5
-echo "${ECHO_T}$ac_cv_c_compiler_gnu" >&6
-GCC=`test $ac_compiler_gnu = yes && echo yes`
-ac_test_CFLAGS=${CFLAGS+set}
-ac_save_CFLAGS=$CFLAGS
-CFLAGS="-g"
-echo "$as_me:$LINENO: checking whether $CC accepts -g" >&5
-echo $ECHO_N "checking whether $CC accepts -g... $ECHO_C" >&6
-if test "${ac_cv_prog_cc_g+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-#include "confdefs.h"
-
-#ifdef F77_DUMMY_MAIN
-#  ifdef __cplusplus
-     extern "C"
-#  endif
-   int F77_DUMMY_MAIN() { return 1; }
-#endif
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext
-if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  ac_cv_prog_cc_g=yes
-else
-  echo "$as_me: failed program was:" >&5
-cat conftest.$ac_ext >&5
-ac_cv_prog_cc_g=no
-fi
-rm -f conftest.$ac_objext conftest.$ac_ext
-fi
-echo "$as_me:$LINENO: result: $ac_cv_prog_cc_g" >&5
-echo "${ECHO_T}$ac_cv_prog_cc_g" >&6
-if test "$ac_test_CFLAGS" = set; then
-  CFLAGS=$ac_save_CFLAGS
-elif test $ac_cv_prog_cc_g = yes; then
-  if test "$GCC" = yes; then
-    CFLAGS="-g -O2"
-  else
-    CFLAGS="-g"
-  fi
-else
-  if test "$GCC" = yes; then
-    CFLAGS="-O2"
-  else
-    CFLAGS=
-  fi
-fi
-# Some people use a C++ compiler to compile C.  Since we use `exit',
-# in C++ we need to declare it.  In case someone uses the same compiler
-# for both compiling C and C++ we need to have the C++ compiler decide
-# the declaration of exit, since it's the most demanding environment.
-cat >conftest.$ac_ext <<_ACEOF
-#ifndef __cplusplus
-  choke me
-#endif
-_ACEOF
-rm -f conftest.$ac_objext
-if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  for ac_declaration in \
-   ''\
-   '#include <stdlib.h>' \
-   'extern "C" void std::exit (int) throw (); using std::exit;' \
-   'extern "C" void std::exit (int); using std::exit;' \
-   'extern "C" void exit (int) throw ();' \
-   'extern "C" void exit (int);' \
-   'void exit (int);'
-do
-  cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-#include "confdefs.h"
-#include <stdlib.h>
-$ac_declaration
-#ifdef F77_DUMMY_MAIN
-#  ifdef __cplusplus
-     extern "C"
-#  endif
-   int F77_DUMMY_MAIN() { return 1; }
-#endif
-int
-main ()
-{
-exit (42);
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext
-if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  :
-else
-  echo "$as_me: failed program was:" >&5
-cat conftest.$ac_ext >&5
-continue
-fi
-rm -f conftest.$ac_objext conftest.$ac_ext
-  cat >conftest.$ac_ext <<_ACEOF
-#line $LINENO "configure"
-#include "confdefs.h"
-$ac_declaration
-#ifdef F77_DUMMY_MAIN
-#  ifdef __cplusplus
-     extern "C"
-#  endif
-   int F77_DUMMY_MAIN() { return 1; }
-#endif
-int
-main ()
-{
-exit (42);
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext
-if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-  (eval $ac_compile) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  break
-else
-  echo "$as_me: failed program was:" >&5
-cat conftest.$ac_ext >&5
-fi
-rm -f conftest.$ac_objext conftest.$ac_ext
-done
-rm -f conftest*
-if test -n "$ac_declaration"; then
-  echo '#ifdef __cplusplus' >>confdefs.h
-  echo $ac_declaration      >>confdefs.h
-  echo '#endif'             >>confdefs.h
-fi
-
-else
-  echo "$as_me: failed program was:" >&5
-cat conftest.$ac_ext >&5
-fi
-rm -f conftest.$ac_objext conftest.$ac_ext
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 depcc="$CC"   am_compiler_list=
 
@@ -6608,6 +5836,9 @@ cat >>confdefs.h <<_ACEOF
 #define CPPSTDIN "$_CPPSTDIN"
 _ACEOF
 
+cat >>confdefs.h <<\_ACEOF
+#define CPPMINUS ""
+_ACEOF
 
 # Extract the first word of "hostname", so it can be a program name with args.
 set dummy hostname; ac_word=$2
@@ -7732,6 +6963,7 @@ _ACEOF
 fi
 
 
+
 # Check whether --with-module-path or --without-module-path was given.
 if test "${with_module_path+set}" = set; then
   withval="$with_module_path"
@@ -7742,15 +6974,10 @@ echo "${ECHO_T}MODULEPATH = $with_module_path" >&6
 #define MODULEPATH "$withval"
 _ACEOF
 
-
 else
-  { echo "$as_me:$LINENO: WARNING: if using '--with-module-path': need to specify a path!" >&5
-echo "$as_me: WARNING: if using '--with-module-path': need to specify a path!" >&2;}
-	if test "$withval" = "no" || test "$withval" = "yes"; then
-		withval="/usr/local/Modules/modulefiles"
-	fi
-	{ echo "$as_me:$LINENO: WARNING: will use MODULEPATH=$withval" >&5
-echo "$as_me: WARNING: will use MODULEPATH=$withval" >&2;}
+  	withval="$BASEPREFIX/Modules/modulefiles"
+	{ echo "$as_me:$LINENO: WARNING: will use MODULEPATH=$withval : rerun configure using --with-module-path to override default" >&5
+echo "$as_me: WARNING: will use MODULEPATH=$withval : rerun configure using --with-module-path to override default" >&2;}
 	MODULEPATH="$withval"
 	cat >>confdefs.h <<_ACEOF
 #define MODULEPATH "$withval"
@@ -7770,13 +6997,9 @@ _ACEOF
 
 
 else
-  { echo "$as_me:$LINENO: WARNING: if using '--with-version-path': need to specify a path!" >&5
-echo "$as_me: WARNING: if using '--with-version-path': need to specify a path!" >&2;}
-	if test "$withval" = "no" || test "$withval" = "yes"; then
-		withval="$prefix/Modules/versions"
-	fi
-	{ echo "$as_me:$LINENO: WARNING: will use VERSIONPATH=$withval" >&5
-echo "$as_me: WARNING: will use VERSIONPATH=$withval" >&2;}
+  	withval="$BASEPREFIX/Modules/versions"
+	{ echo "$as_me:$LINENO: WARNING: will use VERSIONPATH=$withval : rerun configure using --with-version-path to override default" >&5
+echo "$as_me: WARNING: will use VERSIONPATH=$withval : rerun configure using --with-version-path to override default" >&2;}
 	VERSIONPATH="$withval"
 	cat >>confdefs.h <<_ACEOF
 #define VERSIONPATH "$withval"
@@ -7784,7 +7007,30 @@ _ACEOF
 
 fi;
 
+# Check whether --with-tmp-dir or --without-tmp-dir was given.
+if test "${with_tmp_dir+set}" = set; then
+  withval="$with_tmp_dir"
+  if test ! -d $withval ; then
+           { { echo "$as_me:$LINENO: error: tmp dir $withval does not exist" >&5
+echo "$as_me: error: tmp dir $withval does not exist" >&2;}
+   { (exit 1); exit 1; }; }        fi
+	cat >>confdefs.h <<_ACEOF
+#define TMP_DIR "$withval"
+_ACEOF
+	echo "$as_me:$LINENO: result: TMP_DIR = $withval" >&5
+echo "${ECHO_T}TMP_DIR = $withval" >&6
+else
+  if test -d "/tmp" ; then
+           cat >>confdefs.h <<_ACEOF
+#define TMP_DIR "/tmp"
+_ACEOF
+        elif test -d "/var/tmp" ; then
+           cat >>confdefs.h <<_ACEOF
+#define TMP_DIR "/var/tmp"
+_ACEOF
+        fi
 
+fi;
 
 # Check whether --with-autoload-path or --without-autoload-path was given.
 if test "${with_autoload_path+set}" = set; then
@@ -7802,12 +7048,11 @@ if test "${with_autoload_path+set}" = set; then
 _ACEOF
 
 fi;
-
 # Check whether --with-etc-path or --without-etc-path was given.
 if test "${with_etc_path+set}" = set; then
   withval="$with_etc_path"
   if test "$withval" = "no" || test "$withval" = "yes"; then
-	{ echo "$as_me:$LINENO: WARNING: if using '--with-etc-path': need to specify a path! Using /etc" >&5
+		{ echo "$as_me:$LINENO: WARNING: if using '--with-etc-path': need to specify a path! Using /etc" >&5
 echo "$as_me: WARNING: if using '--with-etc-path': need to specify a path! Using /etc" >&2;}
 		withval="/etc"
 	fi
@@ -7816,7 +7061,6 @@ echo "$as_me: WARNING: if using '--with-etc-path': need to specify a path! Using
 else
   ETCPATH="/etc"
 fi;
-
 # Check whether --with-skel-path or --without-skel-path was given.
 if test "${with_skel_path+set}" = set; then
   withval="$with_skel_path"
@@ -7841,13 +7085,23 @@ if test "${with_dot_ext+set}" = set; then
 #define DOT_EXT "$withval"
 _ACEOF
 
+		EXTDIR="ext"
 	else
-		cat >>confdefs.h <<_ACEOF
+		cat >>confdefs.h <<\_ACEOF
 #define DOT_EXT ""
 _ACEOF
 
+		EXTDIR="etc"
 	fi
-fi; ac_config_files="$ac_config_files Makefile modules.lsm .spec doc/Makefile init/Makefile init/bash init/csh init/ksh init/perl init/python init/sh init/zsh init/.modulespath doc/module.1 doc/modulefile.4 etc/Makefile etc/add.modules etc/mkroot etc/skel/.cshrc etc/skel/.login etc/skel/.kshenv etc/skel/.profile etc/global/csh.cshrc etc/global/csh.login etc/global/csh.modules etc/global/bashrc etc/global/profile etc/global/profile.modules ext/Makefile ext/add.ext ext/common/.cshrc ext/common/.login ext/common/.kshenv ext/common/.profile modulefiles/Makefile modulefiles/modules modulefiles/module-cvs modulefiles/module-info modulefiles/null modulefiles/use.own modulefiles/dot modulefiles/version"
+else
+  cat >>confdefs.h <<\_ACEOF
+#define DOT_EXT ""
+_ACEOF
+
+	EXTDIR="etc"
+
+fi;
+ac_config_files="$ac_config_files Makefile modules.lsm .spec doc/Makefile init/Makefile init/.modulespath doc/module.1 doc/modulefile.4 etc/Makefile etc/add.modules etc/mkroot etc/skel/.cshrc etc/skel/.login etc/skel/.kshenv etc/skel/.profile etc/global/csh.cshrc etc/global/csh.login etc/global/csh.modules etc/global/bashrc etc/global/profile etc/global/profile.modules ext/Makefile ext/add.ext ext/mkroot ext/common/.cshrc ext/common/.login ext/common/.kshenv ext/common/.profile modulefiles/Makefile modulefiles/modules modulefiles/module-cvs modulefiles/module-info modulefiles/null modulefiles/use.own modulefiles/dot modulefiles/version"
 
 ac_config_commands="$ac_config_commands default"
 
@@ -8345,13 +7599,6 @@ do
   ".spec" ) CONFIG_FILES="$CONFIG_FILES .spec" ;;
   "doc/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
   "init/Makefile" ) CONFIG_FILES="$CONFIG_FILES init/Makefile" ;;
-  "init/bash" ) CONFIG_FILES="$CONFIG_FILES init/bash" ;;
-  "init/csh" ) CONFIG_FILES="$CONFIG_FILES init/csh" ;;
-  "init/ksh" ) CONFIG_FILES="$CONFIG_FILES init/ksh" ;;
-  "init/perl" ) CONFIG_FILES="$CONFIG_FILES init/perl" ;;
-  "init/python" ) CONFIG_FILES="$CONFIG_FILES init/python" ;;
-  "init/sh" ) CONFIG_FILES="$CONFIG_FILES init/sh" ;;
-  "init/zsh" ) CONFIG_FILES="$CONFIG_FILES init/zsh" ;;
   "init/.modulespath" ) CONFIG_FILES="$CONFIG_FILES init/.modulespath" ;;
   "doc/module.1" ) CONFIG_FILES="$CONFIG_FILES doc/module.1" ;;
   "doc/modulefile.4" ) CONFIG_FILES="$CONFIG_FILES doc/modulefile.4" ;;
@@ -8370,6 +7617,7 @@ do
   "etc/global/profile.modules" ) CONFIG_FILES="$CONFIG_FILES etc/global/profile.modules" ;;
   "ext/Makefile" ) CONFIG_FILES="$CONFIG_FILES ext/Makefile" ;;
   "ext/add.ext" ) CONFIG_FILES="$CONFIG_FILES ext/add.ext" ;;
+  "ext/mkroot" ) CONFIG_FILES="$CONFIG_FILES ext/mkroot" ;;
   "ext/common/.cshrc" ) CONFIG_FILES="$CONFIG_FILES ext/common/.cshrc" ;;
   "ext/common/.login" ) CONFIG_FILES="$CONFIG_FILES ext/common/.login" ;;
   "ext/common/.kshenv" ) CONFIG_FILES="$CONFIG_FILES ext/common/.kshenv" ;;
@@ -8484,20 +7732,12 @@ s,@ac_ct_STRIP@,$ac_ct_STRIP,;t t
 s,@INSTALL_STRIP_PROGRAM@,$INSTALL_STRIP_PROGRAM,;t t
 s,@AWK@,$AWK,;t t
 s,@SET_MAKE@,$SET_MAKE,;t t
-s,@STATIC@,$STATIC,;t t
-s,@WITH_LOGGING@,$WITH_LOGGING,;t t
-s,@MODULEPATH@,$MODULEPATH,;t t
-s,@AUTOLOADPATH@,$AUTOLOADPATH,;t t
-s,@ETCPATH@,$ETCPATH,;t t
-s,@SKELPATH@,$SKELPATH,;t t
-s,@DOT_EXT@,$DOT_EXT,;t t
-s,@DATE@,$DATE,;t t
-s,@THISDIR@,$THISDIR,;t t
+s,@WANTS_VERSIONING@,$WANTS_VERSIONING,;t t
 s,@VERSIONING@,$VERSIONING,;t t
 s,@NOTVERSIONING@,$NOTVERSIONING,;t t
+s,@DATE@,$DATE,;t t
 s,@DEFAULTPATH@,$DEFAULTPATH,;t t
 s,@BASEPREFIX@,$BASEPREFIX,;t t
-s,@VERSIONPATH@,$VERSIONPATH,;t t
 s,@CC@,$CC,;t t
 s,@CFLAGS@,$CFLAGS,;t t
 s,@LDFLAGS@,$LDFLAGS,;t t
@@ -8521,6 +7761,8 @@ s,@X_EXTRA_LIBS@,$X_EXTRA_LIBS,;t t
 s,@_CPPSTDIN@,$_CPPSTDIN,;t t
 s,@_PHOST@,$_PHOST,;t t
 s,@RUNTEST@,$RUNTEST,;t t
+s,@STATIC@,$STATIC,;t t
+s,@WITH_LOGGING@,$WITH_LOGGING,;t t
 s,@TCL_DBGX@,$TCL_DBGX,;t t
 s,@TCL_BIN_DIR@,$TCL_BIN_DIR,;t t
 s,@TCL_SRC_DIR@,$TCL_SRC_DIR,;t t
@@ -8543,6 +7785,13 @@ s,@TCLX_LIBS@,$TCLX_LIBS,;t t
 s,@TCLX_BUILD_LIB_SPEC@,$TCLX_BUILD_LIB_SPEC,;t t
 s,@TCLX_LIB_SPEC@,$TCLX_LIB_SPEC,;t t
 s,@TCLX_LD_SEARCH_FLAGS@,$TCLX_LD_SEARCH_FLAGS,;t t
+s,@MODULEPATH@,$MODULEPATH,;t t
+s,@VERSIONPATH@,$VERSIONPATH,;t t
+s,@AUTOLOADPATH@,$AUTOLOADPATH,;t t
+s,@ETCPATH@,$ETCPATH,;t t
+s,@SKELPATH@,$SKELPATH,;t t
+s,@DOT_EXT@,$DOT_EXT,;t t
+s,@EXTDIR@,$EXTDIR,;t t
 CEOF
 
 _ACEOF

@@ -1,15 +1,23 @@
+###########################################################################
+##
+## File:        ./Makefile.am
+## Versions:    $Id: Makefile.am,v 1.6 2002/06/14 21:57:03 rkowen Exp $
+## Created:     2002/06/14
+##
+###########################################################################
 ##
 ## run  automake to generate a Makefile.in
 ##	Makefile.am \
 ##	configure.ac >  Makefile.in
 ##	aclocal.m4  /
 ##
+
 AUTOMAKE_OPTIONS=foreign dejagnu no-installinfo
 
 ACLOCAL_AMFLAGS= -I config
 
-# man_MANS = doc/module.1 doc/modulefile.4
-SUBDIRS = etc
+man_MANS = doc/module.1 doc/modulefile.4
+SUBDIRS =. init modulefiles @EXTDIR@
 bin_PROGRAMS = modulecmd
 # bin_SCRIPTS = etc/mkroot etc/add.modules ext/add.ext
 modulecmd_CFLAGS=
@@ -25,32 +33,6 @@ modulecmd_SOURCES = \
 	cmdTrace.c cmdVersion.c cmdVerbose.c cmdWhatis.c		\
 	init.c locate_module.c utility.c main.c error.c getopt.c version.c
 
-INITS = \
-	init/bash init/csh init/ksh init/sh init/zsh \
-	init/perl init/python
-
-install-data-local : install-inits
-
-install-inits : $(INITS)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(prefix)/init
-	@list='$(INITS)'; for p in $$list; do \
-	  if test -f $$p \
-	  ; then \
-	   echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(prefix)/$$p"; \
-	   $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(prefix)/$$p; \
-	  else :; fi; \
-	done
-
-uninstall-local : uninstall-inits
-
-uninstall-inits :
-	@$(NORMAL_UNINSTALL)
-	@list='$(INITS)'; for p in $$list; do \
-	  echo " rm -f $(DESTDIR)$(prefix)/init/$$p"; \
-	  rm -f $(DESTDIR)$(prefix)/init/$$p; \
-	done
-
 #aclocal.m4 : acinclude.m4
 #	aclocal -I config
 
@@ -60,9 +42,9 @@ uninstall-inits :
 #config.h.in : acconfig.h
 #	autoheader
 
-test: check
+test: check-local
 
-check:	modulecmd
+check-local:	modulecmd
 	MODULEVERSION=@VERSION@; export MODULEVERSION; TESTSUITEDIR=$(srcdir)/testsuite; export TESTSUITEDIR; $(RUNTEST) --srcdir $$TESTSUITEDIR $(RUNTESTFLAGS) --tool=modules
 
 cxref:

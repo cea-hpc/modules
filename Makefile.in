@@ -13,6 +13,9 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
+###########################################################################
+###########################################################################
 SHELL = @SHELL@
 
 srcdir = @srcdir@
@@ -73,6 +76,7 @@ DEFAULTPATH = @DEFAULTPATH@
 DEPDIR = @DEPDIR@
 DOT_EXT = @DOT_EXT@
 ETCPATH = @ETCPATH@
+EXTDIR = @EXTDIR@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 MODULEPATH = @MODULEPATH@
 NOTVERSIONING = @NOTVERSIONING@
@@ -103,11 +107,11 @@ TCL_SHLIB_LD_LIBS = @TCL_SHLIB_LD_LIBS@
 TCL_SRC_DIR = @TCL_SRC_DIR@
 TCL_STUB_LIB_FILE = @TCL_STUB_LIB_FILE@
 TCL_STUB_LIB_SPEC = @TCL_STUB_LIB_SPEC@
-THISDIR = @THISDIR@
 UNAME = @UNAME@
 VERSION = @VERSION@
 VERSIONING = @VERSIONING@
 VERSIONPATH = @VERSIONPATH@
+WANTS_VERSIONING = @WANTS_VERSIONING@
 WITH_LOGGING = @WITH_LOGGING@
 X_CFLAGS = @X_CFLAGS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
@@ -117,12 +121,13 @@ _PHOST = @_PHOST@
 am__include = @am__include@
 am__quote = @am__quote@
 install_sh = @install_sh@
+
 AUTOMAKE_OPTIONS = foreign dejagnu no-installinfo
 
 ACLOCAL_AMFLAGS = -I config
 
-# man_MANS = doc/module.1 doc/modulefile.4
-SUBDIRS = etc
+man_MANS = doc/module.1 doc/modulefile.4
+SUBDIRS = . init modulefiles @EXTDIR@
 bin_PROGRAMS = modulecmd
 # bin_SCRIPTS = etc/mkroot etc/add.modules ext/add.ext
 modulecmd_CFLAGS = 
@@ -138,26 +143,16 @@ modulecmd_SOURCES = \
 	cmdTrace.c cmdVersion.c cmdVerbose.c cmdWhatis.c		\
 	init.c locate_module.c utility.c main.c error.c getopt.c version.c
 
-
-INITS = \
-	init/bash init/csh init/ksh init/sh init/zsh \
-	init/perl init/python
-
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES = modules.lsm .spec doc/Makefile init/Makefile \
-	init/bash init/csh init/ksh init/perl init/python init/sh \
-	init/zsh init/.modulespath doc/module.1 doc/modulefile.4 \
-	etc/skel/.cshrc etc/skel/.login etc/skel/.kshenv \
-	etc/skel/.profile etc/global/csh.cshrc etc/global/csh.login \
-	etc/global/csh.modules etc/global/bashrc etc/global/profile \
-	etc/global/profile.modules ext/common/.cshrc ext/common/.login \
-	ext/common/.kshenv ext/common/.profile modulefiles/Makefile \
-	modulefiles/modules modulefiles/module-cvs \
-	modulefiles/module-info modulefiles/null modulefiles/use.own \
-	modulefiles/dot modulefiles/version
+CONFIG_CLEAN_FILES = modules.lsm .spec doc/Makefile doc/module.1 \
+	doc/modulefile.4 etc/skel/.cshrc etc/skel/.login \
+	etc/skel/.kshenv etc/skel/.profile etc/global/csh.cshrc \
+	etc/global/csh.login etc/global/csh.modules etc/global/bashrc \
+	etc/global/profile etc/global/profile.modules ext/common/.cshrc \
+	ext/common/.login ext/common/.kshenv ext/common/.profile
 bin_PROGRAMS = modulecmd$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
@@ -240,6 +235,9 @@ LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
 DIST_SOURCES = $(modulecmd_SOURCES)
 
+NROFF = nroff
+MANS = $(man_MANS)
+
 RECURSIVE_TARGETS = info-recursive dvi-recursive \
 	uninstall-info-recursive all-recursive install-data-recursive \
 	install-exec-recursive installdirs-recursive install-recursive \
@@ -292,24 +290,6 @@ modules.lsm: $(top_builddir)/config.status modules.lsm.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 doc/Makefile: $(top_builddir)/config.status $(top_srcdir)/doc/Makefile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
-init/Makefile: $(top_builddir)/config.status $(top_srcdir)/init/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-init/bash: $(top_builddir)/config.status $(top_srcdir)/init/bash.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-init/csh: $(top_builddir)/config.status $(top_srcdir)/init/csh.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-init/ksh: $(top_builddir)/config.status $(top_srcdir)/init/ksh.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-init/perl: $(top_builddir)/config.status $(top_srcdir)/init/perl.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-init/python: $(top_builddir)/config.status $(top_srcdir)/init/python.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-init/sh: $(top_builddir)/config.status $(top_srcdir)/init/sh.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-init/zsh: $(top_builddir)/config.status $(top_srcdir)/init/zsh.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-init/.modulespath: $(top_builddir)/config.status $(top_srcdir)/init/.modulespath.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
 doc/module.1: $(top_builddir)/config.status $(top_srcdir)/doc/module.1.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 doc/modulefile.4: $(top_builddir)/config.status $(top_srcdir)/doc/modulefile.4.in
@@ -341,22 +321,6 @@ ext/common/.login: $(top_builddir)/config.status $(top_srcdir)/ext/common/.login
 ext/common/.kshenv: $(top_builddir)/config.status $(top_srcdir)/ext/common/.kshenv.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 ext/common/.profile: $(top_builddir)/config.status $(top_srcdir)/ext/common/.profile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-modulefiles/Makefile: $(top_builddir)/config.status $(top_srcdir)/modulefiles/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-modulefiles/modules: $(top_builddir)/config.status $(top_srcdir)/modulefiles/modules.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-modulefiles/module-cvs: $(top_builddir)/config.status $(top_srcdir)/modulefiles/module-cvs.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-modulefiles/module-info: $(top_builddir)/config.status $(top_srcdir)/modulefiles/module-info.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-modulefiles/null: $(top_builddir)/config.status $(top_srcdir)/modulefiles/null.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-modulefiles/use.own: $(top_builddir)/config.status $(top_srcdir)/modulefiles/use.own.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-modulefiles/dot: $(top_builddir)/config.status $(top_srcdir)/modulefiles/dot.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-modulefiles/version: $(top_builddir)/config.status $(top_srcdir)/modulefiles/version.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 install-binPROGRAMS: $(bin_PROGRAMS)
@@ -916,6 +880,84 @@ modulecmd-version.obj: version.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 
+man1dir = $(mandir)/man1
+install-man1: $(man1_MANS) $(man_MANS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(man1dir)
+	@list='$(man1_MANS) $(dist_man1_MANS) $(nodist_man1_MANS)'; \
+	l2='$(man_MANS) $(dist_man_MANS) $(nodist_man_MANS)'; \
+	for i in $$l2; do \
+	  case "$$i" in \
+	    *.1*) list="$$list $$i" ;; \
+	  esac; \
+	done; \
+	for i in $$list; do \
+	  if test -f $(srcdir)/$$i; then file=$(srcdir)/$$i; \
+	  else file=$$i; fi; \
+	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
+	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
+	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
+	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
+	  echo " $(INSTALL_DATA) $$file $(DESTDIR)$(man1dir)/$$inst"; \
+	  $(INSTALL_DATA) $$file $(DESTDIR)$(man1dir)/$$inst; \
+	done
+uninstall-man1:
+	@$(NORMAL_UNINSTALL)
+	@list='$(man1_MANS) $(dist_man1_MANS) $(nodist_man1_MANS)'; \
+	l2='$(man_MANS) $(dist_man_MANS) $(nodist_man_MANS)'; \
+	for i in $$l2; do \
+	  case "$$i" in \
+	    *.1*) list="$$list $$i" ;; \
+	  esac; \
+	done; \
+	for i in $$list; do \
+	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
+	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
+	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
+	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
+	  echo " rm -f $(DESTDIR)$(man1dir)/$$inst"; \
+	  rm -f $(DESTDIR)$(man1dir)/$$inst; \
+	done
+
+man4dir = $(mandir)/man4
+install-man4: $(man4_MANS) $(man_MANS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(man4dir)
+	@list='$(man4_MANS) $(dist_man4_MANS) $(nodist_man4_MANS)'; \
+	l2='$(man_MANS) $(dist_man_MANS) $(nodist_man_MANS)'; \
+	for i in $$l2; do \
+	  case "$$i" in \
+	    *.4*) list="$$list $$i" ;; \
+	  esac; \
+	done; \
+	for i in $$list; do \
+	  if test -f $(srcdir)/$$i; then file=$(srcdir)/$$i; \
+	  else file=$$i; fi; \
+	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
+	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
+	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
+	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
+	  echo " $(INSTALL_DATA) $$file $(DESTDIR)$(man4dir)/$$inst"; \
+	  $(INSTALL_DATA) $$file $(DESTDIR)$(man4dir)/$$inst; \
+	done
+uninstall-man4:
+	@$(NORMAL_UNINSTALL)
+	@list='$(man4_MANS) $(dist_man4_MANS) $(nodist_man4_MANS)'; \
+	l2='$(man_MANS) $(dist_man_MANS) $(nodist_man_MANS)'; \
+	for i in $$l2; do \
+	  case "$$i" in \
+	    *.4*) list="$$list $$i" ;; \
+	  esac; \
+	done; \
+	for i in $$list; do \
+	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
+	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
+	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
+	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
+	  echo " rm -f $(DESTDIR)$(man4dir)/$$inst"; \
+	  rm -f $(DESTDIR)$(man4dir)/$$inst; \
+	done
+
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
 # To change the values of `make' variables: instead of editing Makefiles,
@@ -1141,12 +1183,12 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
-	$(MAKE) $(AM_MAKEFLAGS) check-DEJAGNU
+	$(MAKE) $(AM_MAKEFLAGS) check-DEJAGNU check-local
 check: check-recursive
-all-am: Makefile $(PROGRAMS) config.h
+all-am: Makefile $(PROGRAMS) $(MANS) config.h
 installdirs: installdirs-recursive
 installdirs-am:
-	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	$(mkinstalldirs) $(DESTDIR)$(bindir) $(DESTDIR)$(man1dir) $(DESTDIR)$(man4dir)
 
 install: install-recursive
 install-exec: install-exec-recursive
@@ -1189,13 +1231,13 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-data-local
+install-data-am: install-man
 
 install-exec-am: install-binPROGRAMS
 
 install-info:
 
-install-man:
+install-man: install-man1 install-man4
 
 installcheck-am:
 
@@ -1207,49 +1249,31 @@ mostlyclean: mostlyclean-recursive
 
 mostlyclean-am: mostlyclean-compile mostlyclean-generic
 
-uninstall-am: uninstall-binPROGRAMS uninstall-local
+uninstall-am: uninstall-binPROGRAMS uninstall-man
 
 uninstall-info: uninstall-info-recursive
 
+uninstall-man: uninstall-man1 uninstall-man4
+
 .PHONY: $(RECURSIVE_TARGETS) GTAGS all all-am check check-DEJAGNU \
-	check-am clean clean-binPROGRAMS clean-generic clean-recursive \
-	dist dist-all dist-gzip distcheck distclean distclean-compile \
-	distclean-depend distclean-generic distclean-hdr \
-	distclean-recursive distclean-tags distcleancheck distdir dvi \
-	dvi-am dvi-recursive info info-am info-recursive install \
-	install-am install-binPROGRAMS install-data install-data-am \
-	install-data-local install-data-recursive install-exec \
+	check-am check-local clean clean-binPROGRAMS clean-generic \
+	clean-recursive dist dist-all dist-gzip distcheck distclean \
+	distclean-compile distclean-depend distclean-generic \
+	distclean-hdr distclean-recursive distclean-tags distcleancheck \
+	distdir dvi dvi-am dvi-recursive info info-am info-recursive \
+	install install-am install-binPROGRAMS install-data \
+	install-data-am install-data-recursive install-exec \
 	install-exec-am install-exec-recursive install-info \
-	install-info-am install-man install-recursive install-strip \
-	installcheck installcheck-am installdirs installdirs-am \
-	installdirs-recursive maintainer-clean maintainer-clean-generic \
+	install-info-am install-man install-man1 install-man4 \
+	install-recursive install-strip installcheck installcheck-am \
+	installdirs installdirs-am installdirs-recursive \
+	maintainer-clean maintainer-clean-generic \
 	maintainer-clean-recursive mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-recursive tags tags-recursive \
 	uninstall uninstall-am uninstall-binPROGRAMS uninstall-info-am \
-	uninstall-info-recursive uninstall-local uninstall-recursive
+	uninstall-info-recursive uninstall-man uninstall-man1 \
+	uninstall-man4 uninstall-recursive
 
-
-install-data-local : install-inits
-
-install-inits : $(INITS)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(prefix)/init
-	@list='$(INITS)'; for p in $$list; do \
-	  if test -f $$p \
-	  ; then \
-	   echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(prefix)/$$p"; \
-	   $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(prefix)/$$p; \
-	  else :; fi; \
-	done
-
-uninstall-local : uninstall-inits
-
-uninstall-inits :
-	@$(NORMAL_UNINSTALL)
-	@list='$(INITS)'; for p in $$list; do \
-	  echo " rm -f $(DESTDIR)$(prefix)/init/$$p"; \
-	  rm -f $(DESTDIR)$(prefix)/init/$$p; \
-	done
 
 #aclocal.m4 : acinclude.m4
 #	aclocal -I config
@@ -1260,9 +1284,9 @@ uninstall-inits :
 #config.h.in : acconfig.h
 #	autoheader
 
-test: check
+test: check-local
 
-check:	modulecmd
+check-local:	modulecmd
 	MODULEVERSION=@VERSION@; export MODULEVERSION; TESTSUITEDIR=$(srcdir)/testsuite; export TESTSUITEDIR; $(RUNTEST) --srcdir $$TESTSUITEDIR $(RUNTESTFLAGS) --tool=modules
 
 cxref:
