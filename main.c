@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.9 2002/08/02 22:11:23 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.10 2002/09/16 16:49:20 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -760,6 +760,7 @@ static void version (FILE *output) {
 	isdefined(AUTOLOADPATH,str(AUTOLOADPATH));
 	isdefined(BEGINENV,str(BEGINENV));
 	isdefined(CACHE_AVAIL,str(CACHE_AVAIL));
+	isdefined(DEF_COLLATE_BY_NUMBER,str(DEF_COLLATE_BY_NUMBER));
 	isdefined(DOT_EXT,str(DOT_EXT));
 	isdefined(EVAL_ALIAS,str(EVAL_ALIAS));
 	isdefined(HAS_BOURNE_FUNCS,str(HAS_BOURNE_FUNCS));

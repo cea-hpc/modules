@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.10 2002/09/12 05:59:25 harlan Exp $
+dnl Revision:    $Id: configure.ac,v 1.11 2002/09/16 16:49:20 rkowen Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl You need autoconf 2.52 or better!
@@ -159,6 +159,8 @@ dnl Some standard autoconfig stuff
 dnl Checks for programs
 dnl ---------------------------------------------------------------------------
 AC_PROG_CC
+dnl force CFLAGS=-g
+CFLAGS=-g
 AC_PROG_CPP
 AC_PROG_GCC_TRADITIONAL
 AC_PROG_INSTALL
@@ -283,7 +285,8 @@ AH_VERBATIM([FORCE_PATH],[
 AC_ARG_WITH(file-collate,
 	AC_HELP_STRING([[--with-file-collate={string or number}]],[how lists collate     [[string]]]),
 	if test "$withval" = "number"; then
-		AC_DEFINE(USE_COLCOMP, 1, [Use colcomp() for list comparisons?])
+		AC_DEFINE(DEF_COLLATE_BY_NUMBER, 1,
+		[Default collate lists numerically?])
 	fi)
 AC_ARG_WITH(force-path,
 	AC_HELP_STRING([--with-force-path=<path>],[use force path=<path> [[no]]]),
@@ -808,11 +811,25 @@ AC_ARG_WITH(dot-ext,
 	EXTDIR="etc"
 )
 dnl ---------------------------------------------------------------------------
+dnl MEMDEBUG		Whether to use the memory debug routines
+dnl
+AC_SUBST(MEMDEBUG)dnl
+AH_TEMPLATE([MEMDEBUG],[
+MEMDEBUG:
+Set this to enable the memory debug routines
+])dnl
+AC_ARG_ENABLE(memdebug,
+	AC_HELP_STRING([--enable-memdebug],[enable memory debugging    [[no]]]),
+	if test "$enableval" = "yes"; then
+		AC_DEFINE(MEMDEBUG)
+	fi
+)dnl
+dnl ---------------------------------------------------------------------------
 dnl helpful configure --help comments
 m4_divert_once([HELP_WITH],[[
 
 The default value or disposition is listed in the square brackets above.
-Beware of new defaults for use-cache, beginenv.
+Beware of new defaults for use-cache and beginenv.
 
 Depending on the above configuration options  the files are approximately
 placed in the following directory structure :

@@ -6,7 +6,7 @@
  ** 									     **
  **   File:		modules_def.h					     **
  **   Revision:		1.21						     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -37,7 +37,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <tcl.h>
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#  include "config.h"
+#endif
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -117,7 +119,7 @@ extern	int	  errno;
 #include "uvec.h"
 
 #ifdef MEMDEBUG
-#  include <librko.h>
+#  include "memdebug.h"
 #endif
 
 /** ************************************************************************ **/

@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.9 2002/09/12 05:59:25 harlan Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.10 2002/09/16 16:49:20 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -118,7 +118,7 @@ static	char	 *GetModuleName( Tcl_Interp*, char*, char*, char*);
 static int  filename_compare(	const void	*fi1,
 				const void	*fi2)
 {
-#ifdef USE_COLCOMP
+#ifdef DEF_COLLATE_BY_NUMBER
     return colcomp(*(char**)fi2, *(char**)fi1);
 #else
     return strcmp(*(char**)fi2, *(char**)fi1);
@@ -366,11 +366,10 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 			     	char		*modulename)
 {
     struct stat	  stats;		/** Buffer for the stat() systemcall **/
-    char	 *fullpath = NULL,	/** Buffer for creating path names   **/
-		 *Result = NULL,	/** Our return value		     **/
-		 *newprefix,		/** new prefix string (if needed)    **/
-		 *dflt,			/** default version		     **/
-		 *safedflt;		/** default version (local copy)     **/
+    char	 *fullpath  = NULL,	/** Buffer for creating path names   **/
+		 *Result    = NULL,	/** Our return value		     **/
+		 *newprefix = NULL,	/** new prefix string (if needed)    **/
+		 *dflt      = NULL;	/** default version		     **/
     
 #if WITH_DEBUGGING_LOCATE_1
     ErrorLogger( NO_ERR_START, LOC, _proc_GetModuleName, NULL);
@@ -400,9 +399,6 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 	    if (!(dflt = GetDefault(interp, fullpath)))
 		    goto unwind1;
 
-	    if((char *) NULL == (safedflt = stringer(NULL, 0, dflt, NULL)))
-		goto unwind1;
-
 	    /**
 	     **  This is the recursion
 	     **/
@@ -416,26 +412,25 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		    goto unwind2;
 	    }
 
-	    Result = GetModuleName( interp, path, newprefix, safedflt);
-	    goto success2;
+	    Result = GetModuleName( interp, path, newprefix, dflt);
+	    goto success1;
 
 	} else {     /** if( path/prefix/modulename is a directory) **/
 	    /**
 	     **  Now 'modulename' should be a file
 	     **/
 	    Result = fullpath;
-	    goto success1;
+	    goto success0;
 
 	} /** mod is a file **/
     } /** mod exists **/
     /**
      **  Free up temporary values and return what we've found
      **/
-success2:
-    null_free((void *) &fullpath);
 success1:
-    null_free((void *) &safedflt);
     null_free((void *) &newprefix);
+    null_free((void *) &dflt);
+    null_free((void *) &fullpath);
 success0:
     
 #if WITH_DEBUGGING_LOCATE_1
@@ -446,7 +441,7 @@ success0:
 unwind3:
     null_free((void *) &newprefix);
 unwind2:
-    null_free((void *) &safedflt);
+    null_free((void *) &dflt);
 unwind1:
     null_free((void *) &fullpath);
 unwind0:

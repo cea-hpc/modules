@@ -5,10 +5,11 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		utility.c					     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	General routines that are called throughout Modules  **
  **			which are not necessarily specific to any single     **
@@ -34,7 +35,7 @@
  **			xdup						     **
  **			xgetenv						     **
  **			stringer					     **
- **			null_clean					     **
+ **			null_free					     **
  **									     **
  **			strdup		if not defined by the system libs.   **
  **			strtok		if not defined by the system libs.   **
@@ -51,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.11 2002/08/02 22:11:23 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.12 2002/09/16 16:49:20 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -2880,3 +2881,127 @@ uvec_str module_str_fns = {
 	module_str_free
 };
 
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		col_comp					     **
+ ** 									     **
+ **   Description:	the default string functions for uvec.		     **
+ ** 									     **
+ **   first edition:	2002/09/11	Harlan Stenn			     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+/* COLLATE COMPARE, COMPARES DIGITS NUMERICALLY AND OTHERS IN ASCII */
+
+/*
+ * Expected collate order for numeric "pieces" is:
+ * 0 - 9	followed by
+ * 00 - 99	followed by
+ * 000 - 999	followed by
+ * ...
+ */
+/* Copyright 2001, Harlan Stenn */
+
+#include <ctype.h>
+
+int 
+colcomp (char *s1, char *s2)
+{
+  int hilo = 0;			/* comparison value */
+
+  while (*s1 && *s2)
+    {
+      if (isascii ((unsigned char) *s1) && isdigit ((unsigned char) *s1) &&
+	  isascii ((unsigned char) *s2) && isdigit ((unsigned char) *s2))
+	{
+	  hilo = (*s1 < *s2) ? -1 : (*s1 > *s2) ? 1 : 0;
+	  ++s1;
+	  ++s2;
+	  while (isascii ((unsigned char) *s1) && isdigit ((unsigned char) *s1)
+	     &&  isascii ((unsigned char) *s2) && isdigit ((unsigned char) *s2))
+	    {
+	      if (!hilo)
+		hilo = (*s1 < *s2) ? -1 : (*s1 > *s2) ? 1 : 0;
+	      ++s1;
+	      ++s2;
+	    }
+	  if (isascii ((unsigned char) *s1) && isdigit ((unsigned char) *s1))
+	    hilo = 1;		/* s2 is first */
+	  if (isascii ((unsigned char) *s2) && isdigit ((unsigned char) *s2))
+	    hilo = -1;		/* s1 is first */
+	  if (hilo)
+	    break;
+	  continue;
+	}
+      if (isascii ((unsigned char) *s1) && isdigit ((unsigned char) *s1))
+	{
+	  hilo = -1;		/* s1 must come first */
+	  break;
+	}
+      if (isascii ((unsigned char) *s2) && isdigit ((unsigned char) *s2))
+	{
+	  hilo = 1;		/* s2 must come first */
+	  break;
+	}
+      hilo = (*s1 < *s2) ? -1 : (*s1 > *s2) ? 1 : 0;
+      if (hilo)
+	break;
+      ++s1;
+      ++s2;
+    }
+  if (*s1 && *s2)
+    return (hilo);
+  if (hilo)
+    return (hilo);
+  return ((*s1 < *s2) ? -1 : (*s1 > *s2) ? 1 : 0);
+}
+
+#if 0
+
+/* break out test code to test colcomp() */
+#include <stdlib.h>
+
+static int  qcmp(   const void      *fi1,
+                    const void      *fi2)
+{
+    return colcomp(*(char**)fi1, *(char**)fi2);
+}
+
+int main( int argc, char *argv[], char *environ[]) {
+  void *base;
+  size_t nmemb = 0;
+  size_t size = sizeof(char *);
+  char *ca[] = {
+    "999", "0", "10", "1", "01", "100", "010", "99", "00", "001", "099", "9"
+  };
+  char **cp;
+  int i;
+
+  if (argc > 1) {
+    /* Sort use-provided list */
+  } else {
+    base = (void *) ca;
+    nmemb = sizeof ca / size;
+  }
+  printf("argc is <%d>, nmemb = <%d>\n", argc, nmemb);
+
+  printf("Before:\n");
+  cp = (char **)base;
+  for (i = 0; i < nmemb; ++i) {
+    printf("%s\n", *cp++);
+  }
+
+  qsort((void *)base, nmemb, size, qcmp);
+
+  printf("After:\n");
+  cp = (char **)base;
+  for (i = 0; i < nmemb; ++i) {
+    printf("%s\n", *cp++);
+  }
+
+  exit(0);
+}
+
+#endif
