@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.7 2002/08/02 22:11:23 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.8 2002/09/12 05:59:25 harlan Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -23,7 +23,7 @@ man_MANS = doc/module.1 doc/modulefile.4
 bin_PROGRAMS = modulecmd
 # bin_SCRIPTS = etc/mkroot etc/add.modules ext/add.ext
 modulecmd_CFLAGS=
-modulecmd_LDFLAGS=-L$(srcdir)/lib @TCL_LIB_SPEC@ @TCLX_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@
+modulecmd_LDFLAGS=-Llib @TCL_LIB_SPEC@ @TCLX_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@
 modulecmd_SOURCES = \
 	ModuleCmd_Avail.c ModuleCmd_Bootstrap.c \
         ModuleCmd_Clear.c ModuleCmd_Display.c ModuleCmd_Help.c \
@@ -32,7 +32,7 @@ modulecmd_SOURCES = \
 	ModuleCmd_Whatis.c \
 	cmdAlias.c cmdConflict.c cmdIsLoaded.c cmdInfo.c cmdMisc.c cmdModule.c\
 	cmdPath.c cmdSetenv.c cmdUname.c cmdXResource.c cmdUlvl.c cmdLog.c \
-	cmdTrace.c cmdVersion.c cmdVerbose.c cmdWhatis.c		\
+	cmdTrace.c cmdVersion.c cmdVerbose.c cmdWhatis.c colcomp.c	\
 	init.c locate_module.c utility.c main.c error.c getopt.c version.c
 
 #aclocal.m4 : acinclude.m4

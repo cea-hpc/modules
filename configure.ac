@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.9 2002/08/14 21:07:21 lakata Exp $
+dnl Revision:    $Id: configure.ac,v 1.10 2002/09/12 05:59:25 harlan Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl You need autoconf 2.52 or better!
@@ -237,9 +237,9 @@ Last resort to get the hostname, if uname() and gethostname()
 are not available.])dnl
 AC_PATH_PROG([_PHOST],[hostname],[""])dnl
 test "$_PHOST" != ""  && AC_DEFINE_UNQUOTED(PHOSTNAME, "$_PHOST")
-AC_PATH_PROG(RUNTEST, runtest, "./not_installed")dnl
-test "$RUNTEST" = "" && echo "Install DEJAGNU and rerun configure if you \
-want to run the testsuite"
+#AC_PATH_PROG(RUNTEST, runtest, "./not_installed")dnl
+#test "$RUNTEST" = "" && echo "Install DEJAGNU and rerun configure if you \
+#want to run the testsuite"
 
 dnl
 dnl Here we define some --with & --enable things:
@@ -280,6 +280,11 @@ AH_VERBATIM([FORCE_PATH],[
 #define FORCE_PATH_SACRED  NULL
 #define FORCE_LD_LIBRARY_PATH_SACRED NULL
 ])dnl
+AC_ARG_WITH(file-collate,
+	AC_HELP_STRING([[--with-file-collate={string or number}]],[how lists collate     [[string]]]),
+	if test "$withval" = "number"; then
+		AC_DEFINE(USE_COLCOMP, 1, [Use colcomp() for list comparisons?])
+	fi)
 AC_ARG_WITH(force-path,
 	AC_HELP_STRING([--with-force-path=<path>],[use force path=<path> [[no]]]),
 	if test "$withval" != "no"; then

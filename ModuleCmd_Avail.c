@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.6 2002/08/02 22:11:23 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.7 2002/09/12 05:59:25 harlan Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -2066,5 +2066,10 @@ static	char *mkdirnm(	char	*dir,
 static	int fi_ent_cmp(	const void	*fi1,
 			const void	*fi2)
 {
+
+#ifdef USE_COLCOMP
+  return colcomp( ((fi_ent*)fi1)->fi_name, ((fi_ent*)fi2)->fi_name);
+#else
   return strcmp( ((fi_ent*)fi1)->fi_name, ((fi_ent*)fi2)->fi_name);
+#endif
 }

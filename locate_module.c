@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.8 2002/08/22 21:39:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.9 2002/09/12 05:59:25 harlan Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -118,7 +118,11 @@ static	char	 *GetModuleName( Tcl_Interp*, char*, char*, char*);
 static int  filename_compare(	const void	*fi1,
 				const void	*fi2)
 {
+#ifdef USE_COLCOMP
+    return colcomp(*(char**)fi2, *(char**)fi1);
+#else
     return strcmp(*(char**)fi2, *(char**)fi1);
+#endif
 }
 
 /*++++
@@ -580,13 +584,14 @@ char	**SortedDirList(	char		*path,
 	     **  Now, if we got a real entry which is not '.*' or '..' and
 	     **  finally is not a temporary file (which are defined to end
 	     **  on '~' ...
-	     **  And it's not a RCS or CVS directory entry
+	     **  And it's not a CVS, RCS, or SCCS directory entry
 	     **/
 	    if( file->d_name                && 
                 *file->d_name != '.'        && 
                 strcmp( file->d_name, "..")  &&
                 file->d_name[ NLENGTH( file) - 1] != '~') {
 		if (!strcmp( file->d_name, "RCS")  ||
+		    !strcmp( file->d_name, "SCCS") ||
                     !strcmp( file->d_name, "CVS") ) {
                 	strcpy( mpath, file->d_name);
     			stat( tbuf, &stats);
