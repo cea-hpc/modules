@@ -1,7 +1,15 @@
 $ENV{MODULESHOME} = "$MODULESHOME";
+
+if ( -f "/usr/bin/tclsh") {
+   $TCLSH="/usr/bin/tclsh";
+} elsif ( -f "/bin/tclsh" ) {
+   $TCLSH="/bin/tclsh";
+} else {
+   $TCLSH="";
+}
 		    
 sub module {
-  eval `$ENV{MODULESHOME}/modulecmd.tcl perl @_`;
+  eval `$TCLSH $ENV{MODULESHOME}/modulecmd.tcl perl @_`;
   if($@) {
     use Carp;
     confess "module-error: $@\n";

@@ -1,6 +1,13 @@
 import os, string
 
 os.environ['MODULESHOME'] = '$MODULESHOME'
+if os.path.exists('/usr/bin/tclsh'):
+   TCLSH="/usr/bin/tclsh"
+else:
+   if os.path.exists('/bin/tclsh') :
+      TCLSH="/bin/tclsh"
+   else: 
+      TCLSH=""
 
 if not os.environ.has_key('MODULEPATH'):
         os.environ['MODULEPATH'] = '/mips/tools/freeware/modulefiles'
@@ -9,5 +16,5 @@ if not os.environ.has_key('LOADEDMODULES'):
         os.environ['LOADEDMODULES'] = '';
 
 def module(command, *arguments):
-        commands = os.popen('$MODULESHOME/modulecmd.tcl python %s %s' % (command, string.join(arguments))).read()
+        commands = os.popen('$TCLSH $MODULESHOME/modulecmd.tcl python %s %s' % (command, string.join(arguments))).read()
         exec commands
