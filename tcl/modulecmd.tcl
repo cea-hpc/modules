@@ -32,8 +32,7 @@ proc module-info {what {more {}}} {
     set mode [currentMode]
     switch $what {
 	"name" {
-	    upvar currentModule currentModule
-	    return $currentModule
+	    return [currentModuleName]
 	}
 	"mode" {
 	    if {$more != ""} {
@@ -55,12 +54,12 @@ proc module-info {what {more {}}} {
 proc module-whatis {message} {
     set mode [currentMode]
 
-    upvar g_whatis whatis
+    global g_whatis
 
     if {$mode == "display"} {
 	report "module-whatis\t$message"
     } elseif {$mode == "whatis"} {
-	set whatis $message
+	set g_whatis $message
     }
     return {}
 }
@@ -344,7 +343,7 @@ proc set-alias {alias what} {
 proc conflict {args} {
     global g_loadedModules g_loadedModulesGeneric g_reloadMode
     set mode [currentMode]
-    upvar currentModule currentModule
+    set currentModule [currentModuleName]
 
     if { $g_reloadMode == 1} {
 	return
@@ -450,6 +449,28 @@ proc popMode {} {
 #    report "g_modeStack/pop = $g_modeStack"
 }
 
+
+set g_moduleNameStack {}
+
+proc currentModuleName {} {
+    global g_moduleNameStack
+    set moduleName [lindex $g_moduleNameStack end]
+    return $moduleName
+}
+
+proc pushModuleName {moduleName} {
+    global g_moduleNameStack
+    lappend g_moduleNameStack $moduleName
+}
+
+proc popModuleName {} {
+    global g_moduleNameStack
+    set len [llength $g_moduleNameStack]
+    set len [expr $len - 2]
+    set g_moduleNameStack [lrange $g_moduleNameStack 0 $len]
+}
+
+
 proc getPathToModule {mod} {
     global env g_loadedModulesGeneric
 
@@ -478,7 +499,8 @@ proc getPathToModule {mod} {
 		}
 	    }
 	}
-	error "WARNING: Module $mod not found on \$MODULEPATH.\nHINT: Use 'module use ...' to add to search path."
+	reportWarning "WARNING: Module $mod not found on \$MODULEPATH.\nHINT: Use 'module use ...' to add to search path."
+	return ""
     } else {
 	error "\$MODULEPATH not defined"
     }
@@ -970,21 +992,24 @@ proc cmdModuleList {} {
 proc cmdModuleDisplay {mod} {
     global env tcl_version ModulesCurrentModulefile
 
-    pushMode "display"
-    catch {
-	set modfile [getPathToModule $mod]
-	set currentModule [lindex $modfile 1]
+    set modfile [getPathToModule $mod]
+    if {$modfile != ""} {
 	set modfile	  [lindex $modfile 0]
-        set ModulesCurrentModulefile $modfile
+	set ModulesCurrentModulefile $modfile
 	report "-------------------------------------------------------------------"
 	report "$modfile:\n"
-	source $modfile
+	pushModuleName [lindex $modfile 1]
+	pushMode "display"
+	catch {
+	    source $modfile
+	    set junk ""
+	} errMsg
+	popMode
+	popModuleName
+	if {$errMsg != ""} {
+	    reportWarning "ERROR: module display $mod failed. $errMsg2"
+	}
 	report "-------------------------------------------------------------------"
-	set junk ""
-    } errMsg
-    popMode
-    if {$errMsg != ""} {
-	reportWarning "ERROR: module display $mod failed. $errMsg"
     }
 }
 
@@ -1009,18 +1034,12 @@ proc cmdModulePaths {mod} {
 proc cmdModulePath {mod} {
     global env g_pathList ModulesCurrentModulefile
 
-    catch {
-	set modfile [getPathToModule $mod]
-	set currentModule [lindex $modfile 1]
+    set modfile [getPathToModule $mod]
+    if {$modfile != ""} {
 	set modfile	  [lindex $modfile 0]
-        set ModulesCurrentModulefile $modfile
+	set ModulesCurrentModulefile $modfile
 
 	set g_pathList $modfile
-
-	set junk ""
-    } errMsg
-    if {$errMsg != ""} {
-	report Warning "ERROR: module path $mod failed. $errMsg"
     }
 }
 
@@ -1034,6 +1053,7 @@ proc cmdModuleApropos {{search {}}} {
 
 proc cmdModuleSearch {{mod {}} {search {}} } {
     global env tcl_version ModulesCurrentModulefile
+    global g_whatis
 
     if {$mod == ""} {
 	set mod  "*"
@@ -1044,18 +1064,21 @@ proc cmdModuleSearch {{mod {}} {search {}} } {
             set modlist [listModules $dir $mod 0]
 	    foreach mod2 $modlist {
 		set g_whatis ""
-		pushMode "whatis"
-		catch {
-		    set modfile [getPathToModule $mod2]
-		    set currentModule [lindex $modfile 1]
-		    set modfile       [lindex $modfile 0]
-                    set ModulesCurrentModulefile $modfile
-		    source $modfile
-		    set junk ""
-		} errmsg
-		popMode
-		if {$search =="" || [regexp -nocase $search $g_whatis]} {
-		    report [format "%20s: %s" $mod2 $g_whatis]
+		set modfile [getPathToModule $mod2]
+		if {$modfile != ""} {
+		    pushMode "whatis"
+		    pushModuleName [lindex $modfile 1]
+		    set modfile    [lindex $modfile 0]
+		    set ModulesCurrentModulefile $modfile
+		    catch {
+			source $modfile
+			set junk ""
+		    } errmsg
+		    popMode
+		    popModuleName
+		    if {$search =="" || [regexp -nocase $search $g_whatis]} {
+			report [format "%20s: %s" $mod2 $g_whatis]
+		    }
 		}
 	    }
 	}
@@ -1080,10 +1103,12 @@ proc cmdModuleSource {args} {
     foreach file $args {
 	if [file exists $file] {
 	    pushMode "load"
+	    pushModuleName $file
 	    catch {
 		source $file
 		set junk ""
 	    }
+	    popModuleName
 	    popMode
 	} else {
 	    error "File $file does not exist"
@@ -1096,20 +1121,21 @@ proc cmdModuleLoad {args} {
     global ModulesCurrentModulefile
 
     foreach mod $args {
-	catch {
-	    set modfile [getPathToModule $mod]
+	set modfile [getPathToModule $mod]
+        if {$modfile != ""} {
 	    set currentModule [lindex $modfile 1]
 	    set modfile       [lindex $modfile 0]
-            set ModulesCurrentModulefile $modfile
-
+	    set ModulesCurrentModulefile $modfile
+	    
 	    if { $g_force || ! [ info exists g_loadedModules($currentModule)]} {
 		pushMode "load"
-
+		pushModuleName $currentModule
+		
 		saveSettings
 		append-path LOADEDMODULES $currentModule
 		set g_loadedModules($currentModule) 1
 		set genericModName [file dirname $mod]
-
+		
 		if { ![ info exists g_loadedModulesGeneric($genericModName) ] } {
 		    set g_loadedModulesGeneric($genericModName) [file tail $currentModule]
 		}
@@ -1118,6 +1144,8 @@ proc cmdModuleLoad {args} {
 		    set junk ""
 		} moderr
 		popMode
+		popModuleName
+		
 		if {$moderr != ""} {
 		    restoreSettings
 		    if ([regexp "WARNING" $moderr]) {
@@ -1127,10 +1155,6 @@ proc cmdModuleLoad {args} {
 		    }
 		}
 	    }
-	    set junk ""
-	} errMsg
-        if {$errMsg != ""} {
-	    reportWarning "ERROR: module: module load \"$mod\" failed.\n$errMsg"
 	}
     }
 }
@@ -1141,22 +1165,22 @@ proc cmdModuleUnload {args} {
 
     foreach mod $args {
 	catch {
-	    catch {
-		set modfile [getPathToModule $mod]
+	    set modfile [getPathToModule $mod]
+	    if {$modfile != ""} {
 		set currentModule [lindex $modfile 1]
 		set modfile       [lindex $modfile 0]
                 set ModulesCurrentModulefile $modfile
-		set junk ""
-	    } moderr
-	    if { $moderr == ""} {
+		
 		if [ info exists g_loadedModules($currentModule)] {
 		    pushMode "unload"
+		    pushModuleName $currentModule
 		    saveSettings
 		    catch {
 			source $modfile
 			set junk ""
 		    } moderr
 		    popMode
+		    popModuleName
 		    if {$moderr != ""} {
 			restoreSettings
 			if ([regexp "^WARNING" $moderr]) {
@@ -1165,7 +1189,7 @@ proc cmdModuleUnload {args} {
 			    reportInternalBug "TCL error in module file \"$modfile\":\n  $moderr"
 			}
 		    }
-
+		    
 		    unload-path LOADEDMODULES $currentModule
 		    unset g_loadedModules($currentModule)
 		    if [info exists g_loadedModulesGeneric([file dirname $currentModule])] {
@@ -1173,7 +1197,6 @@ proc cmdModuleUnload {args} {
 		    }
 		}
 	    } else {
-		reportWarning "WARNING: module: Could not find module $mod for unload,\n$moderr\n"
 		if [info exists g_loadedModulesGeneric($mod) ] {
 		    set mod "$mod/$g_loadedModulesGeneric($mod)"
 		}
@@ -1295,7 +1318,7 @@ proc cmdModuleUnuse {args} {
 		    unload-path MODULEPATH $path
 		    set junk ""
 		}
-		popMode "unload"
+		popMode
 		if { [info exists env(MODULEPATH) ] &&
 		     $oldMODULEPATH == $env(MODULEPATH)} {
 		    reportWarning "WARNING: Did not unuse $path"
@@ -1440,7 +1463,7 @@ catch {
 	}
 	default {
 	    report {
-		ModulesTcl 0.100/$Revision: 1.20 $:
+		ModulesTcl 0.100/$Revision: 1.21 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
