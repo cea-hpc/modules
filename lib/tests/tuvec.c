@@ -1,11 +1,14 @@
 
 #include <stdio.h>
 #include <string.h>
+#ifdef HAVE_CONFIG_H
+#  include "config.h"
+#endif
 #include "uvec.h"
 #ifdef HAVE_STRMALLOC
 #  include "strmalloc.h"
 #else
-#  define strfree(x) 0
+#  define strfree(x) (free(*x),0)
 #endif
 #ifdef RKOERROR
 #  include "rkoerror.h"
@@ -79,6 +82,9 @@ int printval(char const *head, int result, int ans) {
 		return 0;
 	}
 }
+
+/* convenient function to break at will debugging */
+void _break() {static i; i++; }
 
 #define _CHECK(c,v,a) \
 	count++; estat = c; \
@@ -174,8 +180,10 @@ int main() {
 	"e:0 c:-1 n:-1 r:")
 
 /* next batch */
+	uvec_set_strfns(&u,uvec_get_def_strfns());
 	_CHECK(uvec_copy_vec(&u, list, 0), u,
 	"e:0 c:10 n:9 r::xyz:ABC:aaa:bbb:XYZ:AAA:bb:abc:ABC")
+	uvec_set_strfns(&v,uvec_get_def_strfns());
 	_CHECK(uvec_copy(&v, &u), v,
 	"e:0 c:10 n:9 r::xyz:ABC:aaa:bbb:XYZ:AAA:bb:abc:ABC")
 	_CHECK(uvec_sort(&v,UVEC_ASCEND), v,
@@ -232,9 +240,8 @@ int main() {
 	"e:0 c:10 n:7 r::xyz:XYZ:ABC:abc:ABC:aaa:AAA")
 #endif
 #endif
-	_CHECKVAL(uvec_set_strfns(UVEC_STDC, NULL), 0)
-	_CHECKVAL(uvec_get_strfns(), 2)
-	_CHECKVAL(uvec_set_strfns(UVEC_DEFAULT, NULL), 0)
+	_CHECKVAL(uvec_set_def_strfns(UVEC_STDC, NULL), 0)
+	_CHECKVAL(uvec_set_def_strfns(UVEC_DEFAULT, NULL), 0)
 
 	_CHECK(uvec_close(&v), v,
 	"e:0 c:-1 n:-1 r:")
@@ -300,14 +307,16 @@ int main() {
 	"e:0 c:10 n:9 r::xyz:ABC:aaa:bbb:XYZ:AAA:bb:abc:ABC")
 	_CHECK((y = uvec2uvec(x),rkoerrno), *y,
 	"e:0 c:10 n:9 r::xyz:ABC:aaa:bbb:XYZ:AAA:bb:abc:ABC")
-	_CHECK(uvec_dtor(&x), *x, "e:0 c:-1 n:-1 r:")
-	_CHECK((x = str2uvec(";", vec=uvec2str(y,";")),rkoerrno), *x,
+	_CHECK(uvec_dtor(&x), *x, "e:0 c:-1 n:-1 r:");
+	if (!(vec=uvec2str(y,";"))) fprintf(output,">>> uvec2str error\n");
+	_CHECK((x = str2uvec(";", vec),rkoerrno), *x,
 	"e:0 c:10 n:9 r::xyz:ABC:aaa:bbb:XYZ:AAA:bb:abc:ABC")
-	if(strfree(&vec)) fprintf(output,">>> strfree error\n");;
+	if(uvec_strfree(y,&vec)) fprintf(output,">>> uvec_strfree error\n");
 	_CHECK(uvec_dtor(&x), *x, "e:0 c:-1 n:-1 r:")
-	_CHECK((x = str2uvec(":", vec=uvec2str(y,";")),rkoerrno), *x,
+	if (!(vec=uvec2str(y,";"))) fprintf(output,">>> uvec2str error\n");
+	_CHECK((x = str2uvec(":", vec),rkoerrno), *x,
 	"e:0 c:11 n:10 r:xyz;ABC;aaa;bbb;XYZ;AAA;bb;abc;ABC")
-	if(strfree(&vec)) fprintf(output,">>> strfree error\n");;
+	if(uvec_strfree(y,&vec)) fprintf(output,">>> uvec_strfree error\n");
 	_CHECK(uvec_dtor(&x), *x, "e:0 c:-1 n:-1 r:")
 	_CHECK(uvec_dtor(&y), *x, "e:0 c:-1 n:-1 r:")
 

@@ -1,4 +1,4 @@
-static const char RCSID[]="@(#)$Id: uvec_copy_str.c,v 1.2 2002/08/02 21:57:51 rkowen Exp $";
+static const char RCSID[]="@(#)$Id: uvec_copy_str.c,v 1.3 2002/09/13 04:36:21 rkowen Exp $";
 static const char AUTHOR[]="@(#)uvec 1.1 10/31/2001 R.K.Owen,Ph.D.";
 /* uvec.c -
  * uvec_copy_str create a uvec from a token delimited string.
@@ -30,6 +30,7 @@ int uvec_copy_str(uvec *u, char const *token, char const *string) {
 	int toklen = strlen(token);
 	int tokfound = 0;
 	int rstat;
+	size_t fraglen;
 
 	if (num < 0) {
 #ifdef RKOERROR
@@ -49,7 +50,7 @@ int uvec_copy_str(uvec *u, char const *token, char const *string) {
 	}
 #endif
 
-	if ((rstat = uvec_init_(u, num + 1,u->str_fns))) {
+	if ((rstat = uvec_init(u, num + 1))) {
 #ifdef RKOERROR
 		(void) rkopsterror("uvec_copy_str : ");
 #endif
@@ -80,7 +81,11 @@ int uvec_copy_str(uvec *u, char const *token, char const *string) {
 			}
 			break;
 		} else {
-			uvec_nadd(u, ptr, tokptr - ptr);
+			/* add 1 to length and set last char to \0 */
+			fraglen = tokptr - ptr;
+			uvec_nadd(u, ptr, fraglen + 1);
+			ptr = uvec_vector(u)[uvec_end(u)];
+			*(ptr + fraglen) = '\0';
 		}
 		ptr = tokptr + toklen;
 	}

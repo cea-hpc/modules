@@ -1,7 +1,7 @@
 #ifndef _UVEC_H_
 #  define _UVEC_H_
 /* 
- * RCSID @(#)$Id: uvec.h,v 1.2 2002/08/02 21:57:50 rkowen Exp $
+ * RCSID @(#)$Id: uvec.h,v 1.3 2002/09/13 04:36:21 rkowen Exp $
  */
 /** ** Copyright *********************************************************** **
  ** 									     **
@@ -63,6 +63,7 @@ uvec_str *uvec_get_def_strfns(void);
 int       uvec_set_strfns(uvec *uv, uvec_str *strfns);
 uvec_str *uvec_get_strfns(uvec *uv);
 
+
 uvec  *uvec_ctor_(int cap, uvec_str strfns);
 uvec  *uvec_ctor(int cap);
 int    uvec_dtor(uvec **uv);
@@ -104,6 +105,7 @@ uvec  *str2uvec(char const *token, char const *string);
 uvec  *vec2uvec(char const * const *vec, int num);
 uvec  *uvec2uvec(uvec const *uv);
 char  *uvec2str(uvec const *uv, char const *token);
+int    uvec_strfree(uvec const *uv, char **str);
 
 #  ifdef __cplusplus
 	}
