@@ -12,14 +12,18 @@ endif
 set exec_prefix='@BASEPREFIX@$MODULE_VERSION'
 
 if ( $?histchars ) then
-  set histchar = `echo $histchars | cut -c1`
   set _histchars = $histchars
-  alias module 'unset histchars; \\
-eval `'$exec_prefix'/bin/modulecmd '$modules_shell $histchar'*`; \\
-set histchars = $_histchars'
-  unset histchar
+  if ($?prompt) then
+    alias module 'unset histchars;set _prompt="$prompt";eval `'$exec_prefix'/bin/modulecmd '$modules_shell \!*`;set histchars = $_histchars; set prompt="$_prompt";unset _prompt'
+  else
+  alias module 'unset histchars;eval `'$exec_prefix'/bin/modulecmd '$modules_shell \!*`;set histchars = $_histchars'
+  endif
+else
+  if ($?prompt) then
+    alias module 'set _prompt="$prompt";set prompt="";eval `'$exec_prefix'/bin/modulecmd '$modules_shell' \!*`;set prompt="$_prompt";unset _prompt'
 else
   alias module 'eval `'$exec_prefix'/bin/modulecmd '$modules_shell' \!*`'
+  endif
 endif
 unset exec_prefix
 
