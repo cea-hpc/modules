@@ -50,7 +50,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.2 2001/01/16 20:58:19 rminsk Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -124,7 +124,8 @@ static	char  alias_separator = ';';	/** Alias command separator	     **/
 
 static	void	 Clear_Global_Hash_Tables( void);
 static	int	 Output_Modulefile_Aliases( Tcl_Interp *interp);
-static	int	 output_set_variable( const char*, const char*);
+static	int	 output_set_variable( Tcl_Interp *interp, const char*,
+				      const char*);
 static	int	 output_unset_variable( const char* var);
 static	void	 output_function( const char*, const char*);
 static	int	 output_set_alias( const char*, const char*);
@@ -683,7 +684,7 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 		    output_unset_variable( (char*) key);
 		} else {
 		    if( val = Tcl_GetVar2( interp, "env", key, TCL_GLOBAL_ONLY)) 
-			output_set_variable( (char*) key, val);
+			output_set_variable( interp, (char*) key, val);
 		}
 
 	    } while( hashEntry = Tcl_NextHashEntry( &searchPtr));
@@ -873,7 +874,8 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
  ** 									     **
  **   First Edition:	91/10/23					     **
  ** 									     **
- **   Parameters:	const char	*var	Name of the variable to be   **
+ **   Parameters:	Tcl_Interp	*interp	The attached Tcl interpreter **
+ **   			const char	*var	Name of the variable to be   **
  **						set			     **
  **			const char	*val	Value to be assigned	     **
  **									     **
@@ -885,7 +887,8 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
  ** ************************************************************************ **
  ++++*/
 
-static	int	output_set_variable(	const char	*var,
+static	int	output_set_variable(	Tcl_Interp	*interp,
+					const char	*var,
           	          		const char	*val)
 {
 
@@ -919,13 +922,15 @@ static	int	output_set_variable(	const char	*var,
 	 **  "setenv _LMFILES_xxx" so subtract this from your limit.
 	 **/
 
-	int	lmfiles_len;
 
-	if( !strcmp( var, "_LMFILES_") &&
-	    (lmfiles_len = strlen(val)) > LMSPLIT_SIZE) {
+	if( !strcmp( var, "_LMFILES_")) {
+	    char formatted[ MOD_BUFSIZE];
+	    char *cptr;
+	    int	lmfiles_len;
+	    int	count = 0;
+	    if(( lmfiles_len = strlen(val)) > LMSPLIT_SIZE) {
 
 	    char buffer[ LMSPLIT_SIZE + 1];
-	    int count = 0;
 
 	    /**
 	     **  Break up the _LMFILES_ variable...
@@ -933,7 +938,8 @@ static	int	output_set_variable(	const char	*var,
 
 	    while( lmfiles_len > LMSPLIT_SIZE) {
 
-		strncpy( buffer, ( val + count*LMSPLIT_SIZE ), LMSPLIT_SIZE);
+		    strncpy( buffer, ( val + count*LMSPLIT_SIZE ),
+			     LMSPLIT_SIZE);
 		buffer[ LMSPLIT_SIZE] = '\0';
 
 		fprintf( stdout, "setenv %s%03d %s%c", var, count, buffer,
@@ -943,15 +949,36 @@ static	int	output_set_variable(	const char	*var,
 		count++;
 	    }
 
-	    if( lmfiles_len)
+		if( lmfiles_len) {
 		fprintf( stdout, "setenv %s%03d %s%c", var, count,
 		    (val + count*LMSPLIT_SIZE), cmd_separator);
+		    count++;
+		}
 
 	    /**
-	     **  Unset _LMFILES_ as indicator to use the multi-variable _LMFILES_
+		 ** Unset _LMFILES_ as indicator to use the multi-variable
+		 ** _LMFILES_
 	     **/
 
 	    fprintf(stdout, "unsetenv %s%c", var, cmd_separator);
+
+	    } else {	/** if ( lmfiles_len = strlen(val)) > LMSPLIT_SIZE) **/
+
+		fprintf(stdout, "setenv %s %s%c", var, val, cmd_separator);
+	    }
+
+	    /**
+	     ** Unset the extra _LMFILES_%03d variables that may be set
+	     **/
+
+	    do {
+		sprintf( formatted, "_LMFILES_%03d", count++);
+		cptr = Tcl_GetVar2( interp, "env", formatted, TCL_GLOBAL_ONLY);
+		if( cptr) {
+		    fprintf(stdout, "unsetenv %s%c", formatted, cmd_separator);
+		}
+	    } while( cptr);
+	
 
 	} else {	/** if( var == "_LMFILES_" **/
 
@@ -992,6 +1019,13 @@ static	int	output_set_variable(	const char	*var,
 
     } else if( !strcmp((char*) shell_derelict, "python")) {
 	fprintf( stdout, "os.environ['%s'] = '%s'\n", var, val);
+
+    /**
+     ** SCM
+     **/
+
+    } else if ( !strcmp((char*) shell_derelict, "scm")) {
+	fprintf( stdout, "(putenv \"%s=%s\")\n", var, val);
 
     /**
      **  Unknown shell type - print an error message and 
@@ -1055,6 +1089,8 @@ static	int	output_unset_variable( const char* var)
     } else if( !strcmp( shell_derelict, "python")) {
       fprintf( stdout, "os.environ['%s'] = ''\ndel os.environ['%s']\n",
 	       var, var);
+    } else if( !strcmp( shell_derelict, "scm")) {
+	fprintf( stdout, "(putenv \"%s\")\n", var);
     } else {
 	if( OK != ErrorLogger( ERR_DERELICT, LOC, shell_derelict, NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
@@ -1132,6 +1168,14 @@ char	*set_derelict(	const char	*name)
 
     } else if( !strcmp((char*) name, "python")) {
 	return( strcpy( shell_derelict, "python"));
+
+    /**
+     ** SCM
+     **/
+    } else if( !strcmp((char *) name, "scm") ||
+	       !strcmp((char *) name, "scheme") ||
+	       !strcmp((char *) name, "guile")) {
+	return( strcpy( shell_derelict, "scm"));
     }
 
     /**
@@ -1335,23 +1379,50 @@ static	int	output_set_alias(	const char	*alias,
 	    /**
 	     **  in this case we only have to write a function if the alias
 	     **  take arguments. This is the case if the value has somewhere
-	     **  a '$' in it.
+	     **  a '$' in it without a '\' infront.
 	     **/
 
-            while( *cptr && *cptr != '$')
-		cptr++;
-
+	    while( *cptr) {
+		if( *cptr == '\\') {
+		    if( nobackslash) {
+			nobackslash = 0;
+		    }
+		} else {
 	    if( *cptr == '$') {
+			if( nobackslash) {
 		output_function( alias, val);
 		return TCL_OK;
-	    } else
+			}
+		    }
+		    nobackslash = 1;
+		}
+		cptr++;
+	    }
 
             /**
-             **  So, we can just output an alias...
+             **  So, we can just output an alias with '\$' translated to '$'...
              **/
 
-		fprintf( aliasfile, "alias %s='%s'%c", alias, val,
-		    alias_separator);
+	    fprintf( aliasfile, "alias %s='", alias);
+
+	    nobackslash = 1;
+	    cptr = val;
+
+	    while( *cptr) {
+		if( *cptr == '\\') {
+		    if( nobackslash) {
+			nobackslash = 0;
+			cptr++;
+			continue;
+		    }
+		}
+		nobackslash = 1;
+
+		putc(*cptr++, aliasfile);
+
+	    } /** while **/
+
+	    fprintf( aliasfile, "'%c", alias_separator);
 
         } /** if( bash, zsh, ksh) **/
 
@@ -1390,6 +1461,8 @@ static	int	output_set_alias(	const char	*alias,
 static	int	output_unset_alias(	const char	*alias,
 					const char	*val)
 {
+    int nobackslash = 1;		/** Controls wether backslashes are  **/
+					/** to be print			     **/
     const char *cptr = val;	/** Need to read the value char by char      **/
 
 #if WITH_DEBUGGING_UTIL_2
@@ -1433,13 +1506,23 @@ static	int	output_unset_alias(	const char	*alias,
                  **  Yes, if it has arguments...
                  **/
 
-                while( *cptr && *cptr != '$')
-                    cptr++;
-
+		while( *cptr) {
+		    if( *cptr == '\\') {
+			if( nobackslash) {
+			    nobackslash = 0;
+			}
+		    } else {
 		if(*cptr == '$') {
-		    fprintf(aliasfile, "unset -f %s%c", alias, alias_separator);
+			    if( nobackslash) {
+				fprintf(aliasfile, "unset -f %s%c", alias,
+				        alias_separator);
 		    return TCL_OK;
-		} else
+			    }
+			}
+			nobackslash = 1;
+		    }
+		    cptr++;
+		}
 
                 /**
                  **  Well, it wasn't a function, so we'll put out an unalias...
@@ -1799,11 +1882,9 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
 		 **/
 
                 if( basename) {
-
 		    free( loaded);
-
                     if( realname) {
-			*realname = strdup( loaded);
+			*realname = strdup( loadedmodule_path);
 			if ( !*realname) {
 			    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
 				if( l_modulefiles)
@@ -1816,7 +1897,7 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
 
 		    break;		/** leave the while loop	     **/
 
-		} /** if( loaded) **/
+		} /** if( basename) **/
 	    } /** if not found with single basename **/
 
 	    /**
