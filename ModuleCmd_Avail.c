@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.7 2002/09/12 05:59:25 harlan Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.8 2004/10/22 01:32:51 harlan Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -2067,7 +2067,7 @@ static	int fi_ent_cmp(	const void	*fi1,
 			const void	*fi2)
 {
 
-#ifdef USE_COLCOMP
+#ifdef DEF_COLLATE_BY_NUMBER
   return colcomp( ((fi_ent*)fi1)->fi_name, ((fi_ent*)fi2)->fi_name);
 #else
   return strcmp( ((fi_ent*)fi1)->fi_name, ((fi_ent*)fi2)->fi_name);
