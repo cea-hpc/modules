@@ -994,11 +994,11 @@ proc cmdModuleDisplay {mod} {
 
     set modfile [getPathToModule $mod]
     if {$modfile != ""} {
+	pushModuleName [lindex $modfile 1]
 	set modfile	  [lindex $modfile 0]
 	set ModulesCurrentModulefile $modfile
 	report "-------------------------------------------------------------------"
 	report "$modfile:\n"
-	pushModuleName [lindex $modfile 1]
 	pushMode "display"
 	catch {
 	    source $modfile
@@ -1007,7 +1007,7 @@ proc cmdModuleDisplay {mod} {
 	popMode
 	popModuleName
 	if {$errMsg != ""} {
-	    reportWarning "ERROR: module display $mod failed. $errMsg2"
+	    reportWarning "ERROR: module display $mod failed. $errMsg"
 	}
 	report "-------------------------------------------------------------------"
     }
@@ -1463,7 +1463,7 @@ catch {
 	}
 	default {
 	    report {
-		ModulesTcl 0.100/$Revision: 1.21 $:
+		ModulesTcl 0.100/$Revision: 1.22 $:
 		Available Commands and Usage:
 		 add|load              modulefile [modulefile ...]
 		 rm|unload             modulefile [modulefile ...]
