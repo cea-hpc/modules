@@ -759,14 +759,15 @@ proc renderSettings {} {
 
     set iattempt 0
     set f ""
+    set tmpfile ""
     while {$iattempt < 100 && $f == ""} {
 	set tmpfile [format "/tmp/modulescript_%d_%d" [pid] $iattempt]
-	set f [open  $tmpfile "w"]
+	catch { set f [open  $tmpfile "w"] }
 	incr iattempt
     }
 
     if {$f == ""} {
-	error "Could not open a temporary file in /tmp/modulescript_* !"
+	error "Could not open a temporary file in $tmpfile !"
     } else {
 
 # required to work on cygwin, shouldn't hurt real linux
@@ -1616,7 +1617,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.100/$Revision: 1.30 $:
+                ModulesTcl 0.100/$Revision: 1.31 $:
                 Available Commands and Usage:
                  add|load              modulefile [modulefile ...]
                  rm|unload             modulefile [modulefile ...]
