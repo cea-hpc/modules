@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.4 2001/08/17 17:46:05 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.5 2002/01/04 04:59:14 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -210,33 +210,43 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 
 	g_current_module = modulename;
 	if( TCL_OK == return_val) {
-            if( 0 == Read_Modulefile( tmp_interp, filename)) {
+            return_val = Read_Modulefile( tmp_interp, filename);
 
+            switch (return_val) {
+              case TCL_OK:
+                /**
+                 ** If module terminates TCL_OK, add it to the loaded list...
+                 **/
 		Update_LoadedList( tmp_interp, modulename, filename);
 
+              case TCL_BREAK:
+                /**
+                 ** If module terminates TCL_BREAK, don't add it to the list,
+                 ** but assume that everything was OK with the module anyway.
+                 **/
 		/**
 		 **  Save the current environment setup before the next module
 		 **  file is (un)loaded in case something is broken ...
 		 **  ... for Unwind_Modulefile_Changes later on
 		 **/
-
         	if( oldTables) {
                     Delete_Hash_Tables( oldTables);
                     free((char*) oldTables);
         	}
         	oldTables = Copy_Hash_Tables();
 		a_successful_load = 1;
+                break;  /* switch */
 
-	    } else {
-
+              case TCL_ERROR:
+              default:
 		/**
 		 **  Reset what has been changed.
 		 **/
-
 		Unwind_Modulefile_Changes( tmp_interp, oldTables);
             
         	oldTables = NULL;
 		return_val = TCL_ERROR;
+                break;  /* switch */
 	    }
 	}
 

@@ -36,7 +36,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.2 2001/01/16 20:31:59 rminsk Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.3 2002/01/04 04:59:14 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -291,6 +291,11 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
      **  this interpreter and set up pointers to all Tcl Module commands
      **  (InitializeModuleCommands)
      **/
+
+#ifdef __CYGWIN__
+    /* ABr, 12/10/2001: from Cygwin stuff */
+    Tcl_FindExecutable( argv[0] ) ;
+#endif
 
     *interp = Tcl_CreateInterp();
     if( TCL_OK != (Result = InitializeModuleCommands( *interp)))

@@ -61,12 +61,45 @@ will take care of every type of shell.
 .LP
 .SH Modules Specific Tcl Commands
 The Modules Package uses commands which are extensions to the "standard"
-.BR Tcl(3)
+.I Tool Command Language
+.BR Tcl (3)
 package.
 Unless otherwise specified, the Module commands return the empty string.
 Some commands behave differently when a \fImodulefile\fP is loaded or
 unloaded.
 The command descriptions assume the \fImodulefile\fP is being loaded.
+.PP
+.B break
+.RS
+This is not a modules specific command, it's actually part of Tcl.
+However, it will have the effect of causing the module not to be listed
+as loaded and not affect other modules being loaded concurrently.
+All commands within the module will be performed though.
+An example: Suppose that a full selection of modulefiles are needed
+for various different architectures, but some of the modulefiles
+are not needed and the user should be alerted.  Having the unnecessary
+modulefile be a link to the following
+.I notavail
+modulefile will perform the task as required.
+.nf
+
+#%Module1.0
+## notavail modulefile
+##
+proc ModulesHelp { } {
+puts stderr "\tThis module does nothing but alert the user"
+puts stderr "\tthat the [module-info name] module is not available"
+}
+
+module-whatis	"Notifies user that module is not available."
+set curMod [module-info name]
+if { [ module-info mode load ] } {
+puts stderr "Note: '$curMod' is not available for [uname sysname]."
+}
+break
+
+.fi
+.RE
 .PP
 .B setenv
 .I variable
