@@ -1,7 +1,12 @@
 $ENV{MODULESHOME} = "/mips/tools/mips/envmodule";
 		    
 sub module {
-	eval `$ENV{MODULESHOME}/modulecmd.tcl perl @_`;
+  eval `$ENV{MODULESHOME}/modulecmd.tcl perl @_`;
+  if($@) {
+    use Carp;
+    confess "module-error: $@\n";
+  }
+  return 1;
 }
 
 if (! defined $ENV{MODULEPATH} ) {
