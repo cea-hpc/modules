@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.in,v 1.11 2002/04/29 21:16:48 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.1 2002/06/06 20:17:27 rkowen Exp $
 dnl Created:     94/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
