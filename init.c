@@ -36,7 +36,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.2 2001/01/16 20:31:59 rminsk Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -549,6 +549,7 @@ int Setup_Environment( Tcl_Interp*	interp)
 		 envsize = 0;		/** Total size of the environment    **/
     char	*eq;			/** Temp. val. used for location the **/
 					/** Equal sign.			     **/
+    char	*loaded;		/** The currently loaded modules     **/
  
 #if WITH_DEBUGGING_INIT
     ErrorLogger( NO_ERR_START, LOC, _proc_Setup_Environment, NULL);
@@ -588,6 +589,20 @@ int Setup_Environment( Tcl_Interp*	interp)
 	*(eq - 1) = '=';
 
     } /** for **/
+
+    /**
+     ** Reconstruct the _LMFILES_ environment variable
+     **/
+
+    loaded = getLMFILES( interp);
+    if( loaded) {
+	if( Tcl_SetVar2( interp, "env", "_LMFILES_", loaded,
+			 TCL_GLOBAL_ONLY) == NULL)
+	{
+	    if( OK != ErrorLogger( ERR_SET_VAR, LOC, environ[i], NULL))
+		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+	}
+    }
 
     return( TCL_OK);
 
