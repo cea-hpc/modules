@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.8 2002/08/02 22:11:23 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.9 2002/08/14 21:07:21 lakata Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl You need autoconf 2.52 or better!
@@ -176,6 +176,7 @@ HAS_X11LIBS:
 This symbol, if defined, indicates that the C program can use X11
 directly.])dnl
 	AC_DEFINE(HAS_X11LIBS)dnl
+LDFLAGS="$LDFLAGS -L$x_libraries"
 	AC_CHECK_LIB(X11, XMaxRequestSize)dnl
 	AC_CHECK_LIB(Xmu, XmuGetHostname)dnl
 fi
