@@ -13,6 +13,20 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 ########################################################################
 # This is a pure TCL implementation of the module command
 #
+# Some Global Variables.....
+set g_debug 0			;# Set to 1 to enable debugging
+set error_count  0		;# Start with 0 errors
+set g_autoInit 0
+set g_reloadMode  0		;# Used to disable some checks & speed things up
+set g_force 1			;# Path element reference counting if == 0
+set CSH_LIMIT 1000		;# Workaround for commandline limits in csh
+set flag_default_dir 1		;# Report default directories
+set flag_default_mf  1		;# Report default modulefiles and version alias
+
+# Set some directories to ignore when looking for modules.
+set ignoreDir(CVS) 1
+set ignoreDir(RCS) 1
+set ignoreDir(SCCS) 1
 
 ########################################################################
 # Use a slave TCL interpreter to execute modulefiles
@@ -241,12 +255,6 @@ proc execute-version {modfile} {
 global g_shellType
 global g_shell
 
-set ignoreDir(CVS) 1
-set ignoreDir(RCS) 1
-set ignoreDir(SCCS) 1
-set g_reloadMode  0
-set error_count  0
-set g_force 1
 set ModulesCurrentModulefile {}
 
 proc module-log {weight facility} {
@@ -1176,7 +1184,7 @@ proc renderSettings {} {
     global g_stateEnvVars g_stateAliases
     global g_newXResources g_delXResources
     global g_pathList error_count
-    global g_autoInit
+    global g_autoInit CSH_LIMIT
 
     set iattempt 0
     set f ""
@@ -1309,13 +1317,13 @@ proc renderSettings {} {
 		    csh {
 			set val [doubleQuoteEscaped $env($var)]
 # csh barfs on long env vars
-			if {$g_shell == "csh" && [string length $val] > 1000} {
+			if {$g_shell == "csh" && [string length $val] > $CSH_LIMIT} {
 			    if { $var == "PATH"} {
-				reportWarning "WARNING: module: PATH exceeds 1000 characters, truncating to 900 and appending /usr/bin:/bin ..."
-				set val [string range $val 0 900]:/usr/bin:/bin
+				reportWarning "WARNING: module: PATH exceeds $CSH_LIMIT characters, truncating to 900 and appending /usr/bin:/bin ..."
+				set val [string range $val 0 [expr $CSH_LIMIT - 1]]:/usr/bin:/bin
 			    } else {
-				reportWarning "WARNING: module: $var exceeds 1000 characters, truncating..."
-				set val [string range $val 0 999]
+				reportWarning "WARNING: module: $var exceeds $CSH_LIMIT characters, truncating..."
+				set val [string range $val 0 [expr $CSH_LIMIT - 1]]
 			    }
 			}
 			puts $f "setenv $var \"$val\""
@@ -1748,15 +1756,13 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
     global g_moduleDefault
     global g_debug
     global tcl_platform
-    global g_versionHash
+    global g_versionHash flag_default_dir flag_default_mf
 
 # On Cygwin, glob may change the $dir path if there are symlinks involved
 # So it is safest to reglob the $dir.
 # example:
 # [glob /home/stuff] -> "//homeserver/users0/stuff"
 
-    set flag_default_dir 1	;# Report default directories
-    set flag_default_mf  1	;# Report default modulefiles and version aliases
     set dir [glob $dir]
     set full_list [glob -nocomplain "$dir/$mod"]
     set clean_list {}
@@ -1829,7 +1835,7 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
 			set ModulesCurrentModulefile $element
 			execute-version "$element"
 
-			if {$g_debug} { puts stderr "DEGUG listModules: checking default $modulesversion" }
+			if {$g_debug} { puts stderr "DEGUG listModules: checking default $element" }
 		    }
 		}
                 {.*} -
@@ -2348,6 +2354,7 @@ proc cmdModuleInit {args} {
     set files(csh) [ list ".modules" ".cshrc" ".cshrc_variables" ".login" ]
     set files(tcsh) [ list ".modules" ".tcshrc" ".cshrc" ".cshrc_variables" ".login" ]
     set files(sh) [ list ".modules" ".bash_profile" ".bash_login" ".profile" ".bashrc"]
+    set files(bash) [ list ".modules" ".bash_profile" ".bash_login" ".profile" ".bashrc"]
     set files(ksh) $files(sh)
     set files(zsh) [ list ".modules" ".zshrc" ".zshenv" ".zlogin" ]
 
@@ -2483,7 +2490,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.49 $:
+                ModulesTcl 0.101/$Revision: 1.50 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
@@ -2510,8 +2517,6 @@ initclear    |  initprepend         modulefile
 
 ########################################################################
 # main program
-set g_debug 0
-set g_autoInit 0
 
 # needed on a gentoo system. Shouldn't hurt since it is
 # supposed to be the default behavior
@@ -2615,11 +2620,6 @@ runModulerc
 if { $g_debug } { puts stderr "DEBUG: Resolving $argv" }
 set argv [resolveModuleVersionOrAlias $argv]
 if { $g_debug } { puts stderr "DEBUG: Resolved $argv" }
-
-#if { ![info exists env(MODULEPATH)] } {
-#    puts stderr "+(0):ERROR:0: \'MODULEPATH\' not set"
-#    exit -1
-#}
 
 catch {
     switch -regexp -- $command {
