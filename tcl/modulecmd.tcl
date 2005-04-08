@@ -28,6 +28,9 @@ set ignoreDir(CVS) 1
 set ignoreDir(RCS) 1
 set ignoreDir(SCCS) 1
 
+global g_shellType
+global g_shell
+
 ########################################################################
 # Use a slave TCL interpreter to execute modulefiles
 #
@@ -251,10 +254,6 @@ proc execute-version {modfile} {
 ########################################################################
 # commands run from inside a module file
 #
-
-global g_shellType
-global g_shell
-
 set ModulesCurrentModulefile {}
 
 proc module-log {weight facility} {
@@ -2347,124 +2346,129 @@ proc cmdModuleAutoinit {} {
 
 proc cmdModuleInit {args} {
 
-    global g_shell env
+    global g_shell env g_debug
     set moduleinit_cmd [lindex $args 0]
+    set notdone 1
+    set notclear 1
 
     # Define startup files for each shell
     set files(csh) [ list ".modules" ".cshrc" ".cshrc_variables" ".login" ]
     set files(tcsh) [ list ".modules" ".tcshrc" ".cshrc" ".cshrc_variables" ".login" ]
     set files(sh) [ list ".modules" ".bash_profile" ".bash_login" ".profile" ".bashrc"]
-    set files(bash) [ list ".modules" ".bash_profile" ".bash_login" ".profile" ".bashrc"]
+    set files(bash) $files(sh)
     set files(ksh) $files(sh)
     set files(zsh) [ list ".modules" ".zshrc" ".zshenv" ".zlogin" ]
+
+    array set nargs {
+	list    0
+	add     1
+	load    1
+	prepend 1
+	rm      1
+	unload  1
+	switch  2
+	clear   0
+    }
 
     # Process startup files for this shell
     set current_files $files($g_shell)
     foreach filename $current_files {
-	set filepath $env(HOME)
-	append filepath "/" $filename
-	# create a new file to put the changes in
-	set newfilepath "$filepath-NEW"
+        if { $notdone  && $notclear}  {
+	    set filepath $env(HOME)
+	    append filepath "/" $filename
+	    # create a new file to put the changes in
+	    set newfilepath "$filepath-NEW"
 
-	if { [ file readable $filepath ] } {
+            if { $g_debug } { puts stderr "DEBUG: Looking at: $filepath" }
+	    if { [ file readable $filepath ] && [ file isfile $filepath ] } {
 	    set fid [ open $filepath r ]
 
-	    array set nargs {
-		list    0
-		add     1
-		load    1
-		prepend 1
-		rm      1
-		unload  1
-		switch  2
-		clear   0
-	    }
-	    
-	    # everything but list requires at least one argument
 	    if { [expr [llength $args] -1 ] !=  $nargs($moduleinit_cmd) } {
-		error "'module init$moduleinit_cmd' requires exactly $nargs($moduleinit_cmd) arg(s)."
-#		cmdModuleHelp
-		exit -1
+	       error "'module init$moduleinit_cmd' requires exactly $nargs($moduleinit_cmd) arg(s)."
+#	       cmdModuleHelp
+	       exit -1
 	    }
 	
-	    # Only open the new file if we are not doing "initlist"
-	    if {[ string compare $moduleinit_cmd "list"] != 0} {
-		
-		set newfid [ open $newfilepath w ]
-
-	    } 
-		
+            # Only open the new file if we are not doing "initlist"
+            if {[ string compare $moduleinit_cmd "list"] != 0} {
+                set newfid [ open $newfilepath w ]
+            } 
 
 	    while { [gets $fid curline] >= 0 } { 
-		# Find module load/add command in startup file 
-		set comments {}
-		if { [regexp  {^([ \t]*module[ \t]+(load|add)[ \t]+)(.*)} $curline match cmd subcmd modules] } {
-		    regexp {([ \t]*\#.+)} $modules match comments
-		    regsub {\#.+} $modules {} modules
-		    # remove existing references to the named module from the list
-		    # Change the module command line to reflect the given command
-		    switch $moduleinit_cmd {
-			list {
-			    puts stderr "$g_shell initialization file $filepath loads modules: $modules"
-			}
-			add {
-			    set newmodule [lindex $args 1]
-			    set modules [removeFromList $modules $newmodule]
-			    append modules " $newmodule"
-			    puts $newfid "$cmd$modules$comments"
-			}
-			prepend {
-			    set newmodule [lindex $args 1]
-			    set modules [removeFromList $modules $newmodule]
-			    set modules "$newmodule $modules"
-			    puts $newfid "$cmd$modules$comments"
-			}
-			rm {
-			    set oldmodule [lindex $args 1]
-			    set modules [removeFromList $modules $oldmodule]
-			    if { [llength $modules] == 0 } {
-				set modules "null"
-			    }
-			    puts $newfid "$cmd$modules$comments"
-			}
-			switch {
-			    set oldmodule [lindex $args 1]
-			    set newmodule [lindex $args 2]
-			    set modules [replaceFromList $modules $oldmodule $newmodule]
-			    puts $newfid "$cmd$modules$comments"
-			}
-			clear {
-			    set modules "null"
-			    puts $newfid "$cmd$modules$comments"
-			}
-			default {
-			    puts stderr "Command init$moduleinit_cmd not recognized"
-			}
+	       # Find module load/add command in startup file 
+	       set comments {}
+	       if { $notdone && [regexp  {^([ \t]*module[ \t]+(load|add)[ \t]+)(.*)} $curline match cmd subcmd modules] } {
+		       regexp {([ \t]*\#.+)} $modules match comments
+		       regsub {\#.+} $modules {} modules
+		       # remove existing references to the named module from the list
+		       # Change the module command line to reflect the given command
+		       switch $moduleinit_cmd {
+			   list {
+			       puts stderr "$g_shell initialization file $filepath loads modules: $modules"
+			   }
+			   add {
+			       set newmodule [lindex $args 1]
+			       set modules [removeFromList $modules $newmodule]
+			       append modules " $newmodule"
+			       puts $newfid "$cmd$modules$comments"
+		               set notdone 0	
+			   }
+			   prepend {
+			       set newmodule [lindex $args 1]
+			       set modules [removeFromList $modules $newmodule]
+			       set modules "$newmodule $modules"
+			       puts $newfid "$cmd$modules$comments"
+		               set notdone 0	
+			   }
+			   rm {
+			       set oldmodule [lindex $args 1]
+			       set modules [removeFromList $modules $oldmodule]
+			       if { [llength $modules] == 0 } {
+			   	   set modules "null"
+			       }
+			       puts $newfid "$cmd$modules$comments"
+		               set notdone 0	
+			   }
+			   switch {
+			       set oldmodule [lindex $args 1]
+			       set newmodule [lindex $args 2]
+			       set modules [replaceFromList $modules $oldmodule $newmodule]
+			       puts $newfid "$cmd$modules$comments"
+		               set notdone 0	
+			   }
+			   clear {
+			       set modules "null"
+			       puts $newfid "$cmd$modules$comments"
+                               set notclear 0
+			   }
+			   default {
+			       puts stderr "Command init$moduleinit_cmd not recognized"
+			   }
 
-		    }  
-		} else  {  
-		    # copy the line from the old file to the new
-		    if { [info exists newfid] } {
-			puts $newfid $curline
-		    }
-		}
-            }  
-            close $fid
-            if { [info exists newfid] } {
-		close $newfid
-		if { [catch "file copy -force $filepath $filepath-OLD"] != 0 } {
-		    puts stderr "Failed to back up original $filepath...exiting"
-		    exit -1
-		}
-		if { [catch "file copy -force $newfilepath $filepath"] != 0} {
-		    puts stderr "Failed to write $filepath...exiting"
-		    exit -1
-		}
-	    }
+		          }  
+		   } else  {  
+		       # copy the line from the old file to the new
+		       if { [info exists newfid] } {
+		   	   puts $newfid $curline
+		       }
+	   	   }
+               }
+               close $fid
+               if { [info exists newfid] } {
+		   close $newfid
+		   if { [catch "file copy -force $filepath $filepath-OLD"] != 0 } {
+		       puts stderr "Failed to back up original $filepath...exiting"
+		       exit -1
+		   }
+		   if { [catch "file copy -force $newfilepath $filepath"] != 0} {
+		       puts stderr "Failed to write $filepath...exiting"
+		       exit -1
+	   	   }
+	       }
+           }
         }
     }
 }
-
 
 proc cmdModuleHelp {args} {
    global done
@@ -2490,7 +2494,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.50 $:
+                ModulesTcl 0.101/$Revision: 1.51 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
