@@ -2067,6 +2067,10 @@ proc cmdModuleSearch {{mod {}} {search {}} } {
 }
 
 proc cmdModuleSwitch {old {new {}}} {
+    global env
+
+    set unload 0
+    set reload 0
     if {$new == ""} {
 	set new $old
 	if {[file dirname $old] != "."} {
@@ -2074,8 +2078,27 @@ proc cmdModuleSwitch {old {new {}}} {
 	}
     }
 
-    cmdModuleUnload $old
-    cmdModuleLoad $new
+    set loadedlist [split $env(LOADEDMODULES) ":"]
+
+    # Unload $old and everything after it
+    foreach mod $loadedlist {
+       if {$mod == $old} {
+          set unload 1
+          cmdModuleUnload $mod
+       } elseif {$unload == 1} {
+          cmdModuleUnload $mod
+       }
+    }
+
+    # Reload $new and everything after it
+    foreach mod $loadedlist {
+       if {$mod == $old} {
+          set reload 1
+          cmdModuleLoad $new
+       } elseif {$reload == 1} {
+          cmdModuleLoad $mod
+       }
+    }
 }
 
 proc cmdModuleSource {args} {
@@ -2494,7 +2517,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.51 $:
+                ModulesTcl 0.101/$Revision: 1.52 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
