@@ -20,6 +20,8 @@ set g_autoInit 0
 set g_reloadMode  0		;# Used to disable some checks & speed things up
 set g_force 1			;# Path element reference counting if == 0
 set CSH_LIMIT 1000		;# Workaround for commandline limits in csh
+set DEF_COLUMNS 80		;# Default size of columns for formating
+set MODULES_CURRENT_VERSION 3.1.6
 set flag_default_dir 1		;# Report default directories
 set flag_default_mf  1		;# Report default modulefiles and version alias
 
@@ -104,7 +106,6 @@ proc execute-modulefile {modfile} {
     global ModulesCurrentModulefile
     set ModulesCurrentModulefile $modfile
 
-#    puts stderr "Starting $modfile"
     set slave [currentModuleName]
     if { ![interp exists $slave] } {
 	interp create $slave
@@ -211,7 +212,7 @@ proc execute-modulerc {modfile} {
 
 proc execute-version {modfile} {
     global env g_stateEnvVars
-    global g_moduleDefault
+    global g_moduleDefault g_debug
 
     if { ![checkValidModule $modfile] } {
 	puts stderr "+(0):ERROR:0: Magic cookie '#%Module' missing in '$modfile'"
@@ -247,6 +248,9 @@ proc execute-version {modfile} {
     }]
     interp delete $slave
     set g_moduleDefault($modparent) $ModulesVersion
+    if {$g_debug} {
+        puts stderr "DEBUG execute-version: Setting g_moduleDefault($modparent) $ModulesVersion"
+    }
     return $ModulesVersion
 }
 
@@ -958,32 +962,24 @@ set g_modeStack {}
 #set g_mode {}
 
 proc currentMode {} {
-#    upvar 2 g_mode mode
-#    return $mode
-
     global g_modeStack
-#    report "g_modeStack/cu = $g_modeStack"
+
     set mode [lindex $g_modeStack end]
-#    report "mode = $mode"
     return $mode
 }
 
 proc pushMode {mode} {
-#    upvar 1 g_mode mode2
-#    set mode2 $mode
-
     global g_modeStack
+
     lappend g_modeStack $mode
-#    report "g_modeStack/push = $g_modeStack"
 }
 
 proc popMode {} {
-
     global g_modeStack
+
     set len [llength $g_modeStack]
     set len [expr $len - 2]
     set g_modeStack [lrange $g_modeStack 0 $len]
-#    report "g_modeStack/pop = $g_modeStack"
 }
 
 
@@ -991,17 +987,20 @@ set g_moduleNameStack {}
 
 proc currentModuleName {} {
     global g_moduleNameStack
+
     set moduleName [lindex $g_moduleNameStack end]
     return $moduleName
 }
 
 proc pushModuleName {moduleName} {
     global g_moduleNameStack
+
     lappend g_moduleNameStack $moduleName
 }
 
 proc popModuleName {} {
     global g_moduleNameStack
+
     set len [llength $g_moduleNameStack]
     set len [expr $len - 2]
     set g_moduleNameStack [lrange $g_moduleNameStack 0 $len]
@@ -1722,12 +1721,11 @@ proc checkValidModule { modfile } {
     return 0
 }
 
-proc getVersAliasList { modulename } {
 # If given module maps to default or other version aliases, a list of 
 # those aliases is returned.  This does not take the full path to a module as
 # an argument.
-    global g_versionHash
-    global g_moduleDefault
+proc getVersAliasList { modulename } {
+    global g_versionHash g_moduleDefault
 
     set modparent [ file dirname $modulename ]
 
@@ -1749,7 +1747,6 @@ proc getVersAliasList { modulename } {
 }
 
 proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
-# What is this supposed to do without a mod?
     global ignoreDir
     global ModulesCurrentModulefile
     global g_moduleDefault
@@ -1918,7 +1915,7 @@ proc report {message {nonewline ""}} {
 # command line commands
 
 proc cmdModuleList {} {
-    global env 
+    global env DEF_COLUMNS
 
     set list {}
     report "Currently Loaded Modulefiles:"
@@ -1953,7 +1950,7 @@ proc cmdModuleList {} {
         if [info exist env(COLUMNS)] {
            set cols [expr int($env(COLUMNS)/$col_width)]
         } else {
-           set cols [expr int(80/$col_width)]
+           set cols [expr int($DEF_COLUMNS/$col_width)]
         }
         # safety check to prevent divide by zero error below
         if {$cols <= 0} {set cols 1}
@@ -2234,7 +2231,7 @@ proc cmdModuleReload {} {
 
 
 proc cmdModuleAvail { {mod {*}}} {
-    global env ignoreDir
+    global env ignoreDir DEF_COLUMNS
 
     foreach dir [split $env(MODULEPATH) ":"] {
 	if [file isdirectory $dir] {
@@ -2250,7 +2247,7 @@ proc cmdModuleAvail { {mod {*}}} {
             if [info exist env(COLUMNS)] {
                 set cols [expr int($env(COLUMNS)/($max))]
             } else {
-                set cols [expr int(80/($max))]
+                set cols [expr int($DEF_COLUMNS/($max))]
             }
             # safety check to prevent divide by zero error below
             if {$cols <= 0} {set cols 1}
@@ -2261,9 +2258,6 @@ proc cmdModuleAvail { {mod {*}}} {
            set rows [expr int($item_cnt / $cols)]
            set lastrow_item_cnt [expr int($item_cnt % $cols)]
            if {$lastrow_item_cnt > 0} {incr rows}
-           #report "list = $list"
-           #report "rows/cols = $rows/$cols,   max = $max"
-           #report "item_cnt = $item_cnt,  lastrow_item_cnt = $lastrow_item_cnt"
            for {set row 0} { $row < $rows} {incr row} {
 		for {set col 0} {$col < $cols } { incr col} {
 		    set index [expr $col * $rows + $row]
@@ -2517,7 +2511,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.52 $:
+                ModulesTcl 0.101/$Revision: 1.53 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
@@ -2603,8 +2597,7 @@ switch -regexp -- $opt {
 	set argv [ removeFromList $argv $opt ]
     }
     {^--ver} {
-	# BOZO - put appropriate version number here
-	puts stderr "3.1.6"
+	puts stderr "$MODULES_CURRENT_VERSION"
 	exit 0
     }
     {^--} {
