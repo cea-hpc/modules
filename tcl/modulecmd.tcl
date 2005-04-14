@@ -46,9 +46,9 @@ proc unset-env {var} {
 }
 
 proc execute-modulefile-help {modfile} {
-    global env g_stateEnvVars
+    global env g_stateEnvVars g_debug
 
-    #puts stderr "Starting $modfile"
+    if {$g_debug} { puts stderr "Starting $modfile" }
     set slave [currentModuleName]
     if { ![interp exists $slave] } {
 	interp create $slave
@@ -97,7 +97,7 @@ proc execute-modulefile-help {modfile} {
 	}
     }]
     interp delete $slave
-    #puts stderr "Exiting $modfile"
+    if {$g_debug} { puts stderr "Exiting $modfile" }
     return $errorVal
 }
 
@@ -2065,10 +2065,8 @@ proc cmdModuleSearch {{mod {}} {search {}} } {
 }
 
 proc cmdModuleSwitch {old {new {}}} {
-    global env
+    global env g_debug
 
-    set unload 0
-    set reload 0
     if {$new == ""} {
 	set new $old
 	if {[file dirname $old] != "."} {
@@ -2076,26 +2074,28 @@ proc cmdModuleSwitch {old {new {}}} {
 	}
     }
 
+    if {$g_debug} { puts stderr "new=\"$new\" old=\"$old\"" }
     set loadedlist [split $env(LOADEDMODULES) ":"]
+    set x [lsearch $loadedlist $old]
+    if {$x >= 0 } {
+        set updatelist [lrange $loadedlist $x end]
+        set revupdatelist [reverseList $updatelist]
 
-    # Unload $old and everything after it
-    foreach mod $loadedlist {
-       if {$mod == $old} {
-          set unload 1
-          cmdModuleUnload $mod
-       } elseif {$unload == 1} {
-          cmdModuleUnload $mod
-       }
-    }
+        # Unload $old and everything after it
+        foreach mod $revupdatelist {
+            cmdModuleUnload $mod
+        }
 
-    # Reload $new and everything after it
-    foreach mod $loadedlist {
-       if {$mod == $old} {
-          set reload 1
-          cmdModuleLoad $new
-       } elseif {$reload == 1} {
-          cmdModuleLoad $mod
-       }
+        # Reload $old and everything after it
+        foreach mod $updatelist {
+            if {$mod == $old } {
+               cmdModuleLoad $new
+            } else {
+               cmdModuleLoad $mod
+            }
+        }
+    } else {
+       puts stderr "Unable to find module $old in loaded list"
     }
 }
 
@@ -2155,7 +2155,9 @@ proc cmdModuleLoad {args} {
 
 proc cmdModuleUnload {args} {
     global env tcl_version g_loadedModules g_loadedModulesGeneric
-    global ModulesCurrentModulefile
+    global ModulesCurrentModulefile g_debug
+
+    if { $g_debug } { puts stderr "DEBUG cmdModuleUnload: unloading $args" }
 
     foreach mod $args {
 	catch {
@@ -2282,12 +2284,11 @@ proc cmdModuleUse {args} {
     } else {
 	set stuff_path "prepend-path"
 	foreach path $args {
-	    # -a -append --append (and -p -prepend --prepend) would be nice...
 	    if { $path == "" } {
 		# Skip "holes"
-	    } elseif {$path == "--append"} {
+	    } elseif {($path == "--append") || ($path == "-a") || ($path == "-append")} {
 		set stuff_path "append-path"
-	    } elseif {$path == "--prepend"} {
+	    } elseif {($path == "--prepend") || ($path == "-p") || ($path == "-prepend")} {
 		set stuff_path "prepend-path"
 	    } elseif [file isdirectory $path] {
 		pushMode "load"
@@ -2512,7 +2513,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.54 $:
+                ModulesTcl 0.101/$Revision: 1.55 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
