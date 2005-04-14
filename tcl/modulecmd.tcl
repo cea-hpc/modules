@@ -1014,7 +1014,7 @@ proc getPathToModule {mod} {
     global env g_loadedModulesGeneric
     global g_moduleAlias g_moduleVersion
     global g_debug
-    global ModulesCurrentModulefile
+    global ModulesCurrentModulefile flag_default_mf flag_default_dir
 
     set retlist ""
 
@@ -1095,7 +1095,7 @@ proc getPathToModule {mod} {
 		    
 		    # Try for the last file in directory if no luck so far
 		    if { $ModulesVersion == "" } {
-			set ModulesVersion [lindex [listModules $path "" 0] end]
+			set ModulesVersion [lindex [listModules $path "" 0 $flag_default_mf $flag_default_dir] end]
 			if { $g_debug } { puts stderr "DEBUG getPathToModule: Found $ModulesVersion in $path" }
 		    }
 		    
@@ -1746,13 +1746,14 @@ proc getVersAliasList { modulename } {
     return $tag_list
 }
 
-proc listModules {dir mod {full_path 1} {how {-dictionary}}} {
+# Finds all module versions for mod in the module path dir
+proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf {1}} {flag_default_dir {1}}} {
     global ignoreDir
     global ModulesCurrentModulefile
     global g_moduleDefault
     global g_debug
     global tcl_platform
-    global g_versionHash flag_default_dir flag_default_mf
+    global g_versionHash
 
 # On Cygwin, glob may change the $dir path if there are symlinks involved
 # So it is safest to reglob the $dir.
@@ -1996,12 +1997,12 @@ proc cmdModuleDisplay {mod} {
 }
 
 proc cmdModulePaths {mod} {
-    global env g_pathList
+    global env g_pathList flag_default_mf flag_default_dir
 
     catch {
         foreach dir [split $env(MODULEPATH) ":"] {
             if [file isdirectory $dir] {
-                foreach mod2 [listModules $dir $mod] {
+                foreach mod2 [listModules $dir $mod 0 "" $flag_default_mf $flag_default_dir] {
                     lappend g_pathList $mod2
                 }
             }
@@ -2043,7 +2044,7 @@ proc cmdModuleSearch {{mod {}} {search {}} } {
     foreach dir [split $env(MODULEPATH) ":"] {
 	if [file isdirectory $dir] {
 	    report "----------- $dir ------------- "
-            set modlist [listModules $dir $mod 0]
+            set modlist [listModules $dir $mod 0 "" 0 0]
 	    foreach mod2 $modlist {
 		set g_whatis ""
 		set modfile [getPathToModule $mod2]
@@ -2231,12 +2232,12 @@ proc cmdModuleReload {} {
 
 
 proc cmdModuleAvail { {mod {*}}} {
-    global env ignoreDir DEF_COLUMNS
+    global env ignoreDir DEF_COLUMNS flag_default_mf flag_default_dir
 
     foreach dir [split $env(MODULEPATH) ":"] {
 	if [file isdirectory $dir] {
 	    report "------------ $dir ------------ "
-            set list [listModules $dir $mod 0]
+            set list [listModules $dir $mod 0 "" $flag_default_mf $flag_default_dir]
 	    set max 0
 	    foreach mod2 $list {
 		if {[string length $mod2] > $max} {
@@ -2511,7 +2512,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.53 $:
+                ModulesTcl 0.101/$Revision: 1.54 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
