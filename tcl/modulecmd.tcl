@@ -218,7 +218,7 @@ proc execute-version {modfile} {
 	return ""
     }
     
-    set modparent [ file tail [ file dirname $modfile ]]
+    set modparent [file dirname $modfile]
 
     set slave .version
     if { ![interp exists $slave] } {
@@ -382,7 +382,7 @@ proc module-version {args} {
 	if { $base != "" } {
 	    if { [ string match $version "default"] } {
 		# If we see more than one default for the same module, just keep the first
-		if { ![info exists g_moduleDefault($base)] } {
+		if { ![info exists g_moduleDefault($module_name)] } {
 		    set g_moduleDefault($base) $aliasversion
 		    if { $g_debug } { puts stderr "DEBUG module-version: default $base = $aliasversion" }
 		}
@@ -1707,7 +1707,7 @@ proc checkValidModule { modfile } {
 }
 
 # If given module maps to default or other version aliases, a list of 
-# those aliases is returned.  This does not take the full path to a module as
+# those aliases is returned.  This takes the full path to a module as
 # an argument.
 proc getVersAliasList { modulename } {
     global g_versionHash g_moduleDefault
@@ -1735,7 +1735,6 @@ proc getVersAliasList { modulename } {
 proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf {1}} {flag_default_dir {1}}} {
     global ignoreDir
     global ModulesCurrentModulefile
-    global g_moduleDefault
     global g_debug
     global tcl_platform
     global g_versionHash
@@ -1782,7 +1781,7 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf {1}
                 }
 
 		# if element is directory AND default or a version alias, add it to the list
-		set tag_list [getVersAliasList $modulename]
+		set tag_list [getVersAliasList $element]
 
 		set tag {}
 		if [llength $tag_list] {
@@ -1828,7 +1827,7 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf {1}
 		default {
 		    if { [checkValidModule $element] } {
 
-			set tag_list [getVersAliasList $modulename]
+			set tag_list [getVersAliasList $element]
 
 			set tag {}
 			if [llength $tag_list] {
@@ -2495,7 +2494,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.56 $:
+                ModulesTcl 0.101/$Revision: 1.57 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
