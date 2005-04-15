@@ -17,7 +17,6 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 set g_debug 0			;# Set to 1 to enable debugging
 set error_count  0		;# Start with 0 errors
 set g_autoInit 0
-set g_reloadMode  0		;# Used to disable some checks & speed things up
 set g_force 1			;# Path element reference counting if == 0
 set CSH_LIMIT 1000		;# Workaround for commandline limits in csh
 set DEF_COLUMNS 80		;# Default size of columns for formating
@@ -354,12 +353,12 @@ proc module-whatis {message} {
     return {}
 }
 
+# Specifies a default or alias version for a module that points to an 
+# existing module version Note that the C version stores aliases and 
+# defaults by the short module name (not the full path) so aliases and 
+# defaults from one directory will apply to modules of the same name found 
+# in other directories.
 proc module-version {args} {
-# Specifies a default or alias version for a module that points to an existing module version
-# Note that the C version stores aliases and defaults by the short module name (not the full path)
-# so aliases and defaults from one directory will apply to modules of the same name found in other
-# directories.
-
     global g_moduleVersion g_versionHash
     global g_moduleDefault
     global g_debug
@@ -368,8 +367,8 @@ proc module-version {args} {
     if { $g_debug } { puts stderr "DEBUG module-version: executing module-version $args" }
     set module_name [ lindex $args 0]
 
-    # Check for shorthand notation of just a version "/version".  Base is implied by current dir
-    # prepend the current directory to module_name
+    # Check for shorthand notation of just a version "/version".  Base is 
+    # implied by current dir prepend the current directory to module_name
     if { [regexp {^\/} $module_name] } {
 	set base [file tail [file dirname $ModulesCurrentModulefile]]
 	set module_name "${base}$module_name"
@@ -448,12 +447,7 @@ proc module-alias {args} {
 
 proc module {command args} {
     set mode [currentMode]
-    global g_reloadMode g_debug
-
-    if { $g_reloadMode == 1} {
-        puts stderr "g_reloadMode is set"
-	return
-    }
+    global g_debug
 
     # Resolve any module aliases
     if { $g_debug } { puts stderr "DEBUG module: Resolving $args" }
@@ -654,7 +648,7 @@ proc getReferenceCountArray {var} {
 		set modshareok 0
 	    }
 	} else {
-#	    WARNING: module: $sharevar exists ( $env($sharevar) ), but $var doesn't. Environment is corrupted. Contact lakata@mips.com for help.
+#	    reportWarning "WARNING: module: $sharevar exists ( $env($sharevar) ), but $var doesn't. Environment is corrupted. Contact lakata@mips.com for help."
 	    set modshareok 0
 	}
     } else {
@@ -858,15 +852,11 @@ proc is-loaded {modulelist} {
 
 
 proc conflict {args} {
-    global g_reloadMode ModulesCurrentModulefile g_debug
+    global ModulesCurrentModulefile g_debug
     set mode [currentMode]
     set currentModule [currentModuleName]
 
    
-    if { $g_reloadMode == 1} {
-	return {}
-    }
-
     if {$mode == "load"} {
         foreach mod $args {
 	    # If the current module is already loaded, we can proceed
@@ -886,13 +876,8 @@ proc conflict {args} {
 }
 
 proc prereq {args} {
-    global g_reloadMode
     set mode [currentMode]
     set currentModule [currentModuleName]
-
-    if { $g_reloadMode == 1} {
-	return {}
-    }
 
     if {$mode == "load"} {
         if {![is-loaded $args]} {
@@ -2215,20 +2200,17 @@ proc cmdModulePurge {} {
 
 
 proc cmdModuleReload {} {
-    global env g_reloadMode
+    global env
 
     if [info exists env(LOADEDMODULES)] {
 	set list [split $env(LOADEDMODULES) ":"]
 	set rlist [reverseList $list]
-	set g_reloadMode 1
-	# we set reload mode for two reasons
-	# 1) we DONT want to follow hierarchical modules
-	# 2) we DONT want to check for conflicts
-	# This is because all of these checks have been done
-	# already, assuming the user used the normal module interface.
-	eval cmdModuleUnload $rlist
-	eval cmdModuleLoad $list
-	set g_reloadMode 0
+        foreach mod $rlist {
+	   cmdModuleUnload $mod
+        }
+        foreach mod $list {
+	   cmdModuleLoad $mod
+        }
     }
 }
 
@@ -2513,7 +2495,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.55 $:
+                ModulesTcl 0.101/$Revision: 1.56 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
