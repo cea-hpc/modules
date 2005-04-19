@@ -30,7 +30,9 @@ set ignoreDir(RCS) 1
 set ignoreDir(SCCS) 1
 
 global g_shellType
-global g_shell
+global g_shell 
+set show_oneperline 0		 ; # Gets set if you do module list/avail -t
+set show_modtimes 0		 ; # Gets set if you do module list/avail -l
 
 ########################################################################
 # Use a slave TCL interpreter to execute modulefiles
@@ -157,7 +159,6 @@ proc execute-modulefile {modfile} {
         }
     }]
     interp delete $slave
-    #puts stderr "Exiting $modfile"
     return $errorVal
 }
 
@@ -992,10 +993,10 @@ proc popModuleName {} {
 }
 
 
+# Return the full pathname and modulename to the module.  
+# Resolve aliases and default versions the module name is something like 
+# "name/version" or just name (find default version)
 proc getPathToModule {mod} {
-# Return the full pathname and modulename to the module.  Resolve aliases and default versions
-# the module name is something like "name/version" or just name (find default version)
-# this is a workhorse for finding a module given a modulename.
     global env g_loadedModulesGeneric
     global g_moduleAlias g_moduleVersion
     global g_debug
@@ -1594,17 +1595,20 @@ proc cacheCurrentModules {} {
     }
 }
 
+# This proc resolves module aliases or version aliases to the real module name and version
 proc resolveModuleVersionOrAlias {names} {
-    # This proc resolves module aliases or version aliases to the real module name and version
-    global g_moduleVersion
-    global g_moduleDefault
-    global g_moduleAlias
-    global g_debug
+    global g_moduleVersion g_moduleDefault g_moduleAlias g_debug
 
     if { $g_debug } { puts stderr "DEBUG resolveModuleVersionOrAlias: Resolving $names" }
     set ret_list {}
 
     foreach name $names {
+        # Chop off (default) if it exists
+        set x [expr [string length $name] - 9]
+        if { ($x > 0)  && ([string range $name $x end] == "\(default\)") } {
+            set name [string range $name 0 [expr $x -1]]
+	    if { $g_debug} { puts stderr "DEBUG resolveModuleVersionOrAlias: trimming name = \"$name\"" }
+        }
 	if { [ info exists g_moduleAlias($name) ] } {
 	    # if the alias is another alias, we need to resolve it
 	    if { $g_debug } { puts stderr "DEBUG resolveModuleVersionOrAlias: $name is an alias"}
@@ -1900,66 +1904,77 @@ proc report {message {nonewline ""}} {
 # command line commands
 
 proc cmdModuleList {} {
-    global env DEF_COLUMNS
+    global env DEF_COLUMNS show_oneperline show_modtimes g_debug
 
     set list {}
     report "Currently Loaded Modulefiles:"
     if [info exists env(LOADEDMODULES)] {
 	set max 0
 	foreach mod [split  $env(LOADEDMODULES) ":"] {
-            set len [string length $mod]
-	    if {$len > $max} {
-		set max $len
-	    }
-            if {$len > 0} {
-                # skip zero length module names
-
-		# call getPathToModule to find and execute .version and .modulerc files for this module
-		getPathToModule $mod
-		set tag_list [getVersAliasList $mod]
+            if {$show_oneperline} {
+               report $mod
+            } elseif {$show_modtimes} {
+                  set col [expr $DEF_COLUMNS - 10]
+                  set filetime [clock format [file mtime [lindex [getPathToModule $mod] 0]]]
+                  report [format "%-50s%10s" $mod $filetime]
+            } else {
+                set len [string length $mod]
+	        if {$len > $max} {
+	    	    set max $len
+	        }
+                if {$len > 0} {
+                    # skip zero length module names
+		    # call getPathToModule to find and execute .version and .modulerc files for this module
+		    getPathToModule $mod
+		    set tag_list [getVersAliasList $mod]
 		
-		if [ llength $tag_list] {
-		    append mod "(" [join $tag_list ":"] ")"
-		    # expand string length to include version alises
-		    set len [string length $mod]
-		    if {$len > $max} {
-			set max $len
+		    if [ llength $tag_list] {
+		        append mod "(" [join $tag_list ":"] ")"
+		        # expand string length to include version alises
+		        set len [string length $mod]
+		        if {$len > $max} {
+		    	    set max $len
+		        }
 		    }
-		}
 
-                lappend list $mod
+                    lappend list $mod
+                }
             }
-	}
-	# save room for numbers and spacing: 2 digits + ) + space + space
-        set col_width [expr $max +4]
-        if [info exist env(COLUMNS)] {
-           set cols [expr int($env(COLUMNS)/$col_width)]
-        } else {
-           set cols [expr int($DEF_COLUMNS/$col_width)]
         }
-        # safety check to prevent divide by zero error below
-        if {$cols <= 0} {set cols 1}
+        if {$show_oneperline ==0  && $show_modtimes == 0} {
+	    # save room for numbers and spacing: 2 digits + ) + space + space
+            set col_width [expr $max +4]
+            if [info exist env(COLUMNS)] {
+                set cols [expr int($env(COLUMNS)/$col_width)]
+            } else {
+                set cols [expr int($DEF_COLUMNS/$col_width)]
+            }
+            # safety check to prevent divide by zero error below
+            if {$cols <= 0} {set cols 1}
  
-        set item_cnt [llength $list]
-        set rows [expr int($item_cnt / $cols)]
-        set lastrow_item_cnt [expr int($item_cnt % $cols)]
-        if {$lastrow_item_cnt > 0} {incr rows}
-        #report "list = $list"
-        #report "rows/cols = $rows/$cols,   max = $max"
-        #report "item_cnt = $item_cnt,  lastrow_item_cnt = $lastrow_item_cnt"
-        for {set row 0} { $row < $rows } {incr row} {
-            for {set col 0} {$col < $cols} {incr col} {
-                set index [expr $col * $rows + $row]
-		set mod [lindex $list $index]
+            set item_cnt [llength $list]
+            set rows [expr int($item_cnt / $cols)]
+            set lastrow_item_cnt [expr int($item_cnt % $cols)]
+            if {$lastrow_item_cnt > 0} {incr rows}
+            if {$g_debug} {
+                report "list = $list"
+                report "rows/cols = $rows/$cols,   max = $max"
+                report "item_cnt = $item_cnt,  lastrow_item_cnt = $lastrow_item_cnt"
+            }
+            for {set row 0} { $row < $rows } {incr row} {
+                for {set col 0} {$col < $cols} {incr col} {
+                    set index [expr $col * $rows + $row]
+	            set mod [lindex $list $index]
 
-		if { $mod != "" } {
-		    set n [expr $index +1]
-		    set mod [format "%2d) %-${max}s" $n $mod]
-		    report $mod -nonewline
-		}
-	    }
-	    report ""
-	}
+	            if { $mod != "" } {
+		        set n [expr $index +1]
+		        set mod [format "%2d) %-${max}s" $n $mod]
+		        report $mod -nonewline
+	    	    }
+	        }
+	        report ""
+            }
+        }
     }
 }
 
@@ -2216,44 +2231,61 @@ proc cmdModuleReload {} {
 
 proc cmdModuleAvail { {mod {*}}} {
     global env ignoreDir DEF_COLUMNS flag_default_mf flag_default_dir
+    global show_oneperline show_modtimes
+
+    if {$show_modtimes} {
+        report "- Package -----------------------------+- Versions -+- Last mod. ------"
+    }
 
     foreach dir [split $env(MODULEPATH) ":"] {
 	if [file isdirectory $dir] {
 	    report "------------ $dir ------------ "
             set list [listModules $dir $mod 0 "" $flag_default_mf $flag_default_dir]
-	    set max 0
-	    foreach mod2 $list {
-		if {[string length $mod2] > $max} {
-		    set max [string length $mod2]
-		}
-	    }
-	    incr max 1
-            if [info exist env(COLUMNS)] {
-                set cols [expr int($env(COLUMNS)/($max))]
+            if {$show_modtimes} {
+               foreach i $list {
+                  set col [expr $DEF_COLUMNS - 10]
+                  set filetime [clock format [file mtime [lindex [getPathToModule $i] 0]]]
+                  report [format "%-50s%10s" $i $filetime]
+               }
+            } elseif {$show_oneperline} {
+               foreach i $list {
+                  report "$i"
+               }
             } else {
-                set cols [expr int($DEF_COLUMNS/($max))]
-            }
-            # safety check to prevent divide by zero error below
-            if {$cols <= 0} {set cols 1}
-
-           # There is no '{}' at the begining of this 'list' as there is in cmd 
-	   #               ModuleList - ?
-           set item_cnt [expr [llength $list] - 0]
-           set rows [expr int($item_cnt / $cols)]
-           set lastrow_item_cnt [expr int($item_cnt % $cols)]
-           if {$lastrow_item_cnt > 0} {incr rows}
-           for {set row 0} { $row < $rows} {incr row} {
-		for {set col 0} {$col < $cols } { incr col} {
-		    set index [expr $col * $rows + $row]
-		    set mod2 [lindex $list $index]
-		    if {$mod2 != ""} {
-			set mod2 [format "%-${max}s" $mod2]
-			report $mod2 -nonewline
+	        set max 0
+	        foreach mod2 $list {
+	    	    if {[string length $mod2] > $max} {
+		        set max [string length $mod2]
 		    }
-		}
-		report ""
+	        }
+	        incr max 1
+                if [info exist env(COLUMNS)] {
+                    set cols [expr int($env(COLUMNS)/($max))]
+                } else {
+                    set cols [expr int($DEF_COLUMNS/($max))]
+                }
+                # safety check to prevent divide by zero error below
+                if {$cols <= 0} {set cols 1}
+
+               # There is no '{}' at the begining of this 'list' as there is in cmd 
+	       #               ModuleList - ?
+               set item_cnt [expr [llength $list] - 0]
+               set rows [expr int($item_cnt / $cols)]
+               set lastrow_item_cnt [expr int($item_cnt % $cols)]
+               if {$lastrow_item_cnt > 0} {incr rows}
+               for {set row 0} { $row < $rows} {incr row} {
+		    for {set col 0} {$col < $cols } { incr col} {
+		        set index [expr $col * $rows + $row]
+		        set mod2 [lindex $list $index]
+		        if {$mod2 != ""} {
+		    	    set mod2 [format "%-${max}s" $mod2]
+			    report $mod2 -nonewline
+		        }
+		    }
+		    report ""
+	        }
 	    }
-	}
+        }
     }
 }
 
@@ -2494,7 +2526,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.57 $:
+                ModulesTcl 0.101/$Revision: 1.58 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
@@ -2587,7 +2619,6 @@ switch -regexp -- $opt {
 	puts stderr "+(0):ERROR:0: Unrecognized option '$opt'"
 	exit -1
     }
-    
 }
 
 set g_shell [lindex $argv 0]
@@ -2621,6 +2652,15 @@ cacheCurrentModules
 runModulerc
 # Resolve any aliased module names - safe to run nonmodule arguments
 if { $g_debug } { puts stderr "DEBUG: Resolving $argv" }
+
+if {[lsearch $argv "-t"] >= 0} {
+    set show_oneperline 1  
+    set argv [ removeFromList $argv "-t" ]
+}
+if {[lsearch $argv "-l"] >= 0} {
+    set show_modtimes 1
+    set argv [ removeFromList $argv "-l" ]
+}
 set argv [resolveModuleVersionOrAlias $argv]
 if { $g_debug } { puts stderr "DEBUG: Resolved $argv" }
 
