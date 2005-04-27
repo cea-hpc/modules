@@ -2243,6 +2243,10 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 proc cmdModuleSwitch {old {new {}}} {
     global env g_debug g_loadedModulesGeneric g_loadedModules
 
+    if {$new == ""} {
+	set new $old
+    }
+
     if {[info exists g_loadedModules($old)]} {
     } {
 	if [info exists g_loadedModulesGeneric($old)] {
@@ -2252,10 +2256,6 @@ proc cmdModuleSwitch {old {new {}}} {
 
     if {$g_debug} {
 	puts stderr "new=\"$new\" old=\"$old\""
-    }
-
-    if {$new == ""} {
-	set new $old
     }
 
     set loadedlist [split $env(LOADEDMODULES) ":"]
@@ -2749,7 +2749,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.60 $:
+                ModulesTcl 0.101/$Revision: 1.61 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
