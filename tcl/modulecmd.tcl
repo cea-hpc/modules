@@ -2064,16 +2064,21 @@ proc cmdModuleSearch {{mod {}} {search {}} } {
 }
 
 proc cmdModuleSwitch {old {new {}}} {
-    global env g_debug
+    global env g_debug g_loadedModulesGeneric g_loadedModules
 
-    if {$new == ""} {
-	set new $old
-	if {[file dirname $old] != "."} {
-	    set old [file dirname $old]
-	}
+    if { [info exists g_loadedModules($old)] } {
+    } else {
+        if [info exists g_loadedModulesGeneric($old) ] {
+           set old "$old/$g_loadedModulesGeneric($old)"
+        }
     }
 
     if {$g_debug} { puts stderr "new=\"$new\" old=\"$old\"" }
+
+    if {$new == ""} {
+	set new $old
+    }
+
     set loadedlist [split $env(LOADEDMODULES) ":"]
     set x [lsearch $loadedlist $old]
     if {$x >= 0 } {
@@ -2526,7 +2531,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0 } {
             report {
-                ModulesTcl 0.101/$Revision: 1.58 $:
+                ModulesTcl 0.101/$Revision: 1.59 $:
                 Available Commands and Usage:
 
 list         |  add|load            modulefile [modulefile ...]
