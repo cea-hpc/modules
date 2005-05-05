@@ -2112,7 +2112,7 @@ proc cmdModuleList {} {
 	}
 	if {$show_oneperline ==0 && $show_modtimes == 0} {
 	    # save room for numbers and spacing: 2 digits + ) + space + space
-	    set col_width [expr $max +4]
+	    set col_width [expr $max +5]
 	    if [info exist env(COLUMNS)] {
 		set cols [expr int($env(COLUMNS)/$col_width)]
 	    } {
@@ -2142,7 +2142,7 @@ proc cmdModuleList {} {
 
 		    if {$mod != ""} {
 			set n [expr $index +1]
-			set mod [format "%2d) %-${max}s" $n $mod]
+			set mod [format "%2d) %-${max}s " $n $mod]
 			report $mod -nonewline
 		    }
 		}
@@ -2749,7 +2749,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.61 $:
+                ModulesTcl 0.101/$Revision: 1.62 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
