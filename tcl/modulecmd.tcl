@@ -1207,8 +1207,6 @@ proc getPathToModule {mod} {
 
 		    if {! [checkValidModule [lindex $retlist 0]]} {
 			set path [lindex $retlist 0]
-			puts stderr "+(0):ERROR:0: Magic cookie '#%Module'\
-			  missing in '$path'"
 		    } {
 			return $retlist
 		    }
@@ -2749,7 +2747,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.62 $:
+                ModulesTcl 0.101/$Revision: 1.63 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
