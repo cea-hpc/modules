@@ -76,9 +76,9 @@ proc execute-modulefile-help {modfile} {
 	interp alias $slave module-version {} module-version
 	interp alias $slave module-alias {} module-alias
 
-	interp eval $slave [list global ModulesCurrentModulefile]
+	interp eval $slave [list global ModulesCurrentModulefile g_debug]
 	interp eval $slave [list set ModulesCurrentModulefile $modfile]
-
+        interp eval $slave [list set g_debug $g_debug]
     }
     set errorVal [interp eval $slave {
 	if [catch {source $ModulesCurrentModulefile} errorMsg] {
@@ -113,7 +113,7 @@ proc execute-modulefile-help {modfile} {
 }
 
 proc execute-modulefile {modfile} {
-    global env g_stateEnvVars
+    global env g_stateEnvVars g_debug
     global ModulesCurrentModulefile
     set ModulesCurrentModulefile $modfile
 
@@ -142,8 +142,9 @@ proc execute-modulefile {modfile} {
 	interp alias $slave module-user {} module-user
 	interp alias $slave module-log {} module-log
 
-	interp eval $slave [list global ModulesCurrentModulefile]
+	interp eval $slave [list global ModulesCurrentModulefile g_debug]
 	interp eval $slave [list set ModulesCurrentModulefile $modfile]
+        interp eval $slave [list set g_debug $g_debug]
 
     }
     set errorVal [interp eval $slave {
@@ -209,8 +210,10 @@ proc execute-modulerc {modfile} {
 	    interp alias $slave module-user {} module-user
 	    interp alias $slave module-log {} module-log
 
-	    interp eval $slave [list global ModulesCurrentModulefile]
-	    interp eval $slave [list set ModulesCurrentModulefile $modfile]
+            interp eval $slave [list global ModulesCurrentModulefile g_debug]
+            interp eval $slave [list set ModulesCurrentModulefile $modfile]
+            interp eval $slave [list set g_debug $g_debug]
+
 	}
 	set ModulesVersion [interp eval $slave {
 	    if [catch {source $ModulesCurrentModulefile} errorMsg] {
@@ -2747,7 +2750,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.63 $:
+                ModulesTcl 0.101/$Revision: 1.64 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
