@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.3 2002/06/17 05:58:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.4 2005/11/14 23:51:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -113,6 +113,12 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Update, NULL);
 #endif
 
+#if BEGINENV == 99
+    	if (!Tcl_GetVar2( interp,"env","MODULESBEGINENV", TCL_GLOBAL_ONLY)) {
+		ErrorLogger( ERR_BEGINENVX, LOC, NULL);
+		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+	}
+#endif
     /**
      **  Nothing loaded so far - we're ready!
      **/
@@ -127,7 +133,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
     /**
      **  First I'll update the environment with what's in _MODULESBEGINENV_
      **/
-    filename = Tcl_GetVar2( interp, "env", "_MODULESBEGINENV_", TCL_GLOBAL_ONLY);
+    filename = Tcl_GetVar2( interp,"env","_MODULESBEGINENV_", TCL_GLOBAL_ONLY);
     if( filename) {
 
 	/**

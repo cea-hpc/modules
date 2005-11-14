@@ -1,4 +1,4 @@
-.TH MODULE 1 "26 April 2002
+.TH MODULE 1 "10 October 2005
 .nh
 .SH NAME
 module \- command interface to the Modules package
@@ -62,67 +62,18 @@ and its associated arguments.
 .LP
 The Modules package and the
 .B module
-command are initialized by evaluating the output of the bootstrap
-command. The bootstrap command generates the necessary shell-specific
-code to set some environment variables and sets up the actual
+command are initialized when a shell-specific initialization script is
+sourced into the shell.
+The script creates the
 .B module
-command, either as an alias or shell function.
-.LP
-If you install the 
-.B modulecmd
-binary in your
-.B PATH
-(for example /usr/local/bin)
-then all you need to do is
-.B eval
-the output of the 
-.B modulecmd 
-.I shell
-.B bootstrap
-command. In most shells, this looks like
-.nf
-
-        eval `modulecmd <shell> bootstrap`
-
-.fi
-where <shell> is replaced by the name of the shell being used. Allowed
-shell names are
-.nf
-
-        sh ksh bash zsh csh tcsh perl
-
-.fi
-If 
-.B modulecmd
-is not on the default PATH, then you can insert the full path in the
-eval command.
-.LP
-C Shell initialization example:
-.nf
-
-	eval `modulecmd csh bootstrap`
-	module load modulefile modulefile ...
-
-.fi
-ZSH initialization example:
-.nf
-
-	eval `modulecmd zsh bootstrap`
-	module load modulefile modulefile ...
-
-.fi
-Perl:
-.nf
-
-	eval `modulecmd perl bootstrap`;
-	module("load modulefile modulefile ...");
-
-.fi
-Python:
-.nf
-        <no example yet>
-.fi
-
+command, either as an alias or shell function,
+creates Modules environment variables,
+and if enabled to do so, a snapshow of the environment is saved as either
+(if BEGINENV=1)
+.I $HOME/.modulesbeginenv
+or (if BEGINENV=99) whatever
+.I $MODULESBEGINENV
+points to.
 
 The
 .B module
@@ -133,11 +84,15 @@ the command's output.  The first argument to
 .B modulecmd
 specifies the type of shell.
 .LP
+The initialization scripts are kept in
+.I $MODULESHOME/init/<shell>
+where
+.I <shell>
+is the name of the sourcing shell.
 The sh, csh, tcsh, bash, ksh, and zsh shells are supported by
 .B modulecmd.
-In addition, python and perl "shells" are supported which writes
+In addition, python and perl "shells" are supported, which writes
 the environment changes to stdout as python or perl code.
-
 
 .SS Modulecmd startup
 .LP
@@ -246,15 +201,6 @@ Advanced module user
 .SS Module Sub-Commands
 .RS
 .TP 15
-.B bootstrap
-Used to bootstrap the 
-.B module
-command and necessary support environment variables. You only use this
-in the context of setting up the 
-.B module 
-command, not in actual use. See the section on Package Initialization
-for instructions on how to use this.
-.TP 15
 .B help [modulefile...]
 Print the usage of each sub-command.
 If an argument is given, print the Module specific help information for the
@@ -341,11 +287,17 @@ Remove directory from the \s-1MODULEPATH\s0 environment variable.
 .B update
 Attempt to reload all loaded
 .I modulefiles.
-The environment will be reconfigured to match the saved
+The environment will be reconfigured to match the environment saved in
 .I ${\s-1HOME\s0}/.modulesbeginenv
+(if BEGINENV=1)
+or the file pointed at by
+.I $MODULESBEGINEV
+(if BEGINENV=99)
 and the modulefiles will be reloaded.
+
 This is only valid if modules was configured with --enable-beginenv
-else this will cause a warning.  The default is --disable-beginenv.
+(which defines BEGINENV)
+else this will cause a warning.
 .B update
 will only change the environment variables that the
 .I modulefiles
@@ -374,10 +326,18 @@ All module whatis informations matching the string search will be displayed.
 Add
 .I modulefile
 to the shell's initialization file in the user's home directory.
-The startup files checked are .cshrc, .login, and .csh_variables for the
-C Shell; .profile for the Bourne and Korn Shells; .bashrc, .bash_env, 
-and .bash_profile for the GNU Bourne Again Shell; .zshrc, .zshenv, and .zlogin
-for zsh. The .modules file is checked for all shells.
+The startup files checked (in order) are:
+.br
+csh - .modules, .cshrc(.ext), .csh_variables, and .login(.ext)
+.br
+tcsh - .modules, .tcshrc, .cshrc(.ext), .csh_variables, and .login(.ext)
+.br
+sh and ksh - .modules, .profile(.ext), and .kshenv(.ext)
+.br
+bash - .modules, .bash_profile, .bash_login, .profile(.ext), and .bashrc(.ext)
+.br
+zsh - .modules, .zcshrc(.ext), .zshenv(.ext), and .zlogin(.ext)
+
 If a 'module load' line is found in any of these files, the
 .I modulefile(s)
 is(are) appended to any existing list of 
@@ -391,6 +351,7 @@ all of the lines are changed.
 Does the same as
 .B initadd
 but prepends the given modules to the beginning of the list.
+.TP 15
 .B initrm modulefile [modulefile...]
 Remove
 .I modulefile
@@ -416,7 +377,7 @@ from the shell's initialization files.
 .SS Modulefiles
 .LP
 .I modulefiles
-are written in the Tool Command Language (tcl) and are interpreted by
+are written in the Tool Command Language (Tcl) and are interpreted by
 .B modulecmd.
 .I modulefiles
 can use conditional statements.
@@ -467,8 +428,18 @@ A colon separated list of all loaded
 A colon separated list of the full pathname for all loaded
 .I modulefiles.
 .TP
+.SB \s-1MODULESBEGINENV\s0
+If modules has been configured (BEGINENV=99) to test for this environment
+variable, then if it exists, it is the name of the file to store the
+the initial shell environment.  This environment variable will have
+embedded environment variables unrolled to one level.  The contents of
+this variable is only used the first time
+.I modules
+is invoked.
+.TP
 .SB \s-1_MODULESBEGINENV_\s0
 The filename of the file containing the initialization environment snapshot.
+
 .SH FILES
 .TP
 .B @prefix@
@@ -496,23 +467,29 @@ The
 interpreter that gets executed upon each invocation of
 .B module.
 .TP
-.B ${\s-1MODULESHOME\s0}/init/\fIshellname\fP
+.B ${\s-1MODULESHOME\s0}/init/\fI<shell>\fP
 The Modules package initialization file sourced into the user's
 environment.
 .TP
 .B ${\s-1MODULEPATH\s0}/.moduleavailcache
 File containing the cached list of all
 .I modulefiles
-for each directory in the \s-1MODULEPATH\s0 (only when the avail cache is enabled).
+for each directory in the \s-1MODULEPATH\s0
+(only when the avail cache is enabled via the configure option --enable-cache
+which sets CACHE_AVAIL).
 .TP
 .B ${\s-1MODULEPATH\s0}/.moduleavailcachedir
 File containing the names and modification times for all sub-directories with
-an avail cache.
+an avail cache (see above).
 .TP
 .B ${\s-1HOME\s0}/.modulesbeginenv
 A snapshot of the user's environment taken at Module initialization.
 This information is used by the
 .B module update
-sub-command.
+sub-command (if BEGINENV=1), else
+.TP
+.B $MODULESBEGINENV
+If this defines a valid filename, this serves the same purpose as above
+(if BEGINENV=99).
 .SH SEE ALSO
 .BR modulefile(4)

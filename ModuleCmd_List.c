@@ -9,7 +9,6 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	Lists the currently loaded modulefiles.		     **
  ** 									     **
@@ -27,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_List.c,v 1.3 2002/09/16 16:49:20 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_List.c,v 1.4 2005/11/14 23:51:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -35,7 +34,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 #include "modules_def.h"
-#include "uvec.h"
 
 /** ************************************************************************ **/
 /** 				  LOCAL DATATYPES			     **/
@@ -78,7 +76,7 @@ static	char	_proc_ModuleCmd_List[] = "ModuleCmd_List";
  **			Lists all modules stored in the environment variable **
  **			'LOADEDMODULES'					     **
  ** 									     **
- **   First Edition:	1991/10/23					     **
+ **   First Edition:	91/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
  **			int		 argc		Number of args	     **
@@ -102,8 +100,10 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
 
     char	*loaded, *lmfiles;
     int		 i, count1, count2;
-    uvec	*uvlist,		/* list unix vector */
-    		*uvfiles;		/* file unix vector */
+    char	*list[ MOD_BUFSIZE];
+    char	*files[ MOD_BUFSIZE];
+    char	*tmplist[ MOD_BUFSIZE], *s;
+    int	  	 len;
 
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_List, NULL);
@@ -130,33 +130,56 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
 	/**
 	 **  LOADEDMODULES and _LMFILES_ should provide a list of loaded
 	 **  modules and assigned files in the SAME ORDER
-	 ** but double check, because if they aren't you will crash.
+	 ** but double check, because if they aren't you will get a crash.
 	 **/
 
-	uvlist = uvec_alloc_(module_str_fns);
-	uvec_copy_str(uvlist,":",loaded);
-	count1 = uvec_number(uvlist);
+	count1 = 1;
+        for( list[ 0] = strtok( loaded, ":");
+	     list[ count1] = strtok( NULL, ":");
+	     count1++ );
 
-	uvfiles = uvec_alloc_(module_str_fns);
-	uvec_copy_str(uvfiles,":",lmfiles);
-	count2 = uvec_number(uvfiles);
-
+	count2 = 1;
+        for( files[ 0] = strtok( lmfiles, ":");
+	     files[ count2] = strtok( NULL, ":");
+	     count2++ );
 	if (count1 != count2) {
 	  ErrorLogger( ERR_ENVVAR, LOC, NULL);
 	}
+	  
 
-	/** 
-	 **  Print this guy
-	 **/
-	print_aligned_files(interp, NULL, NULL, uvec_vector(uvfiles),count1,1);
-
-#if USE_FREE
 	/**
-	 ** free up vectors
+	 **  We have to build a single list of files for each loaded entry
+	 **  in order to be able to figure out the length of the directory
+	 **  part
 	 **/
-	uvec_dtor(&uvlist);
-	uvec_dtor(&uvfiles);
-#endif
+
+	for( i=0; i<count1; i++) {
+
+	    len = strlen( files[i]) - strlen( list[i]);
+	    tmplist[i] = files[i];
+
+	    /**
+	     **  We have to source all relevant .modulerc and .version files
+	     **  on the path
+	     **/
+
+	    s = files[i] + len;
+	    while( s) {
+		if( s = strchr( s, '/'))
+		    *s = '\0';
+
+		SourceRC( interp, files[i], modulerc_file);
+		SourceVers( interp, files[i], list[i]);
+
+		if( s)
+		    *s++ = '/';
+	    }
+
+	    /** 
+	     **  Print this guy
+	     **/
+	}
+	print_aligned_files( interp, NULL, NULL, tmplist, count1, 1);
     }
 
     /**

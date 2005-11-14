@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.11 2004/10/22 01:31:59 harlan Exp $
+## Versions:    $Id: Makefile.am,v 1.12 2005/11/14 23:51:07 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -12,74 +12,47 @@
 ##	aclocal.m4  /
 ##
 
-AUTOMAKE_OPTIONS=foreign dejagnu no-installinfo
-
 ACLOCAL_AMFLAGS= -I config
 
-SUBDIRS = lib . init modulefiles @EXTDIR@
-INCLUDES = -I$(srcdir)/lib -I$(srcdir)
-
 man_MANS = doc/module.1 doc/modulefile.4
+SUBDIRS = . init modulefiles @EXTDIR@
+DIST_SUBDIRS = . init modulefiles etc ext
+EXTRA_DIST = modules_def.h getopt.h testsuite				\
+	init/filter init/bash.in init/sh.in init/zsh.in			\
+	init/csh.in init/ksh.in init/perl.in init/python.in
+
 bin_PROGRAMS = modulecmd
 # bin_SCRIPTS = etc/mkroot etc/add.modules ext/add.ext
-modulecmd_CFLAGS = ${X_CFLAGS} ${TCL_INCLUDES}
-modulecmd_LDFLAGS=-Llib @TCL_LIB_SPEC@ @TCLX_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@
+modulecmd_CFLAGS= @TCL_INCLUDE_SPEC@ @X_CFLAGS@
+modulecmd_LDFLAGS= @TCL_LIB_SPEC@ @TCLX_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@ @LIBS@
 modulecmd_SOURCES = \
-	ModuleCmd_Avail.c ModuleCmd_Bootstrap.c \
+	ModuleCmd_Avail.c \
         ModuleCmd_Clear.c ModuleCmd_Display.c ModuleCmd_Help.c \
 	ModuleCmd_Init.c ModuleCmd_List.c ModuleCmd_Load.c ModuleCmd_Purge.c \
 	ModuleCmd_Switch.c ModuleCmd_Update.c ModuleCmd_Use.c \
 	ModuleCmd_Whatis.c \
-	cmdAlias.c cmdConflict.c cmdIsLoaded.c cmdInfo.c cmdMisc.c \
-	cmdModule.c cmdPath.c cmdSetenv.c cmdUname.c cmdXResource.c cmdUlvl.c \
-	cmdLog.c cmdTrace.c cmdVersion.c cmdVerbose.c cmdWhatis.c \
+	cmdAlias.c cmdConflict.c cmdIsLoaded.c cmdInfo.c cmdMisc.c cmdModule.c\
+	cmdPath.c cmdSetenv.c cmdUname.c cmdXResource.c cmdUlvl.c cmdLog.c \
+	cmdTrace.c cmdVersion.c cmdVerbose.c cmdWhatis.c		\
 	init.c locate_module.c utility.c main.c error.c getopt.c version.c
-
-#aclocal.m4 : acinclude.m4
-#	aclocal -I config
-
-#Makefile.in : Makefile.am aclocal.m4
-# 	automake --foreign --add-missing
-
-#config.h.in : acconfig.h
-#	autoheader
 
 test: check-local
 
 check-local:	modulecmd
-	MODULEVERSION=@VERSION@; export MODULEVERSION; TESTSUITEDIR=$(srcdir)/testsuite; export TESTSUITEDIR; $(RUNTEST) --srcdir $$TESTSUITEDIR $(RUNTESTFLAGS) --tool=modules
+	MODULEVERSION=@VERSION@; export MODULEVERSION; \
+	TESTSUITEDIR=$(srcdir)/testsuite; export TESTSUITEDIR; \
+	$(RUNTEST) --srcdir $$TESTSUITEDIR \
+	$(AM_RUNTESTFLAGS) $(RUNTESTFLAGS) --tool=modules
+
+ctags:	CTAGS
+CTAGS:	$(modulecmd_SOURCES)
+	ctags	$(modulecmd_SOURCES)
 
 cxref:
-	cxref $(modulecmd_SOURCES)
+	cxref $(SRCS)
 	@echo "==============================="
 	@echo "You may need to run this twice!"
 	@echo "==============================="
-
-dist: distgz distbz2
-
-distgz : ${DISTNAME}.tar.gz
-
-distbz2 : ${DISTNAME}.tar.bz2
-
-${DISTNAME}.tar.gz : $(srcdir)/configure 
-	@echo "checking out ${DISTNAME} into directory modules"
-	${CVS} -f checkout -r \
-	 `${SED} -n -e 's/^.*NEW TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c` \
-	 modules
-	@echo "renaming directory to ${DISTNAME}"
-	mv modules ${DISTNAME}
-	@echo "cleaning out unnecessary directories in ${DISTNAME}"
-	${FIND} ${DISTNAME} -type d -name CVS -print | ${XARGS} ${RM} -rf
-# need this CVS to pass testsuite for distribution build
-	mkdir ${DISTNAME}/testsuite/modulefiles/trace/CVS
-	@echo "Creating ${DISTNAME}.tar.gz"
-	${TAR} chf - ${DISTNAME} | ${GZIP} -c --best >${DISTNAME}.tar.gz
-	@echo "removing directory ${DISTNAME}"
-	${RM} -r ${DISTNAME}
-
-${DISTNAME}.tar.bz2 : ${DISTNAME}.tar.gz
-	@echo "Creating ${DISTNAME}.tar.bz2"
-	${GZIP} -d -c ${DISTNAME}.tar.gz | ${BZIP2} > ${DISTNAME}.tar.bz2
 
 patch: $(srcdir)/configure
 	@echo "Creating patch file -- do this after CVS tagging"
@@ -165,7 +138,7 @@ disthelp:
 	@echo "make cxref     - makes the xref HTML files - needs cxref"
 	@echo "================ requires CVS access ======================="
 	@echo "make tag       - does a CVS rtag"
-	@echo "make dist      - creates a distribution tarball after tagging"
+	@echo "make dist      - creates a distribution tarball"
 	@echo "make patch     - creates a patch file after tagging"
 	@echo "================ maintainers only =========================="
 	@echo "make lsm       - send off to the Linux Software Map"

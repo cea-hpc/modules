@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.10 2002/09/16 16:49:20 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.11 2005/11/14 23:51:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -107,7 +107,6 @@ char
     *purgeRE    = "^purge",			/** 'module purge'	     **/
     *clearRE    = "^clear",			/** 'module clear'	     **/
     *whatisRE   = "^wh",			/** 'module whatis'	     **/
-    *bootstrapRE= "^boot",			/** 'module bootstrap'	     **/
     *aproposRE  = "^(apr|key)";			/** 'module apropos'	     **/
 
 /**
@@ -412,7 +411,6 @@ void module_usage(FILE *output)
 "	+ help			[modulefile [modulefile ...]]\n"
 "	+ whatis		[modulefile [modulefile ...]]\n"
 "	+ apropos|keyword	string\n"
-"	+ bootstrap\n"
 "	+ initadd		modulefile [modulefile ...]\n"
 "	+ initprepend		modulefile [modulefile ...]\n"
 "	+ initrm		modulefile [modulefile ...]\n"
@@ -762,8 +760,9 @@ static void version (FILE *output) {
 	isdefined(CACHE_AVAIL,str(CACHE_AVAIL));
 	isdefined(DEF_COLLATE_BY_NUMBER,str(DEF_COLLATE_BY_NUMBER));
 	isdefined(DOT_EXT,str(DOT_EXT));
-	isdefined(EVAL_ALIAS,str(EVAL_ALIAS));
 	isdefined(HAS_BOURNE_FUNCS,str(HAS_BOURNE_FUNCS));
+	isdefined(HAS_BOURNE_ALIAS,str(HAS_BOURNE_ALIAS));
+	isdefined(EVAL_ALIAS,str(EVAL_ALIAS));
 	isdefined(LMSPLIT_SIZE,str(LMSPLIT_SIZE));
 	isdefined(MODULEPATH,str(MODULEPATH));
 	isdefined(MODULES_INIT_DIR,str(MODULES_INIT_DIR));

@@ -4,7 +4,7 @@
 #
 #   File:		modules.00-init/%M%
 #   Revision:		%I%
-#   First Edition:	95/12/06
+#   First Edition:	1995/12/06
 #   Last Mod.:		%U%, %G%
 #
 #   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
@@ -15,7 +15,7 @@
 #
 #   Comment:	%C{
 #			Checks the uninitialized modulecmd. This should
-#			result in the setup of the beginning-environment
+#			result in the setup of the starting-environment
 #			$env(HOME)/.modulesbeginenv
 #		}C%
 #
@@ -27,6 +27,7 @@
 
 set not_load "No Modulefiles Currently Loaded."
 set beg_env "$env(TESTSUITEDIR)/.modulesbeginenv"
+set beg_envx "$env(TESTSUITEDIR)/.modulesbeginenv.xxx"
 set env(HOME) $env(TESTSUITEDIR)
 
 #
@@ -35,18 +36,37 @@ set env(HOME) $env(TESTSUITEDIR)
 
 if { [ version_test "BEGINENV=1" ] } {
 
-testerr_cmd "sh" "--long list" \
-		"_MODULESBEGINENV_=$beg_env ;export _MODULESBEGINENV_;$not_load"
-testerr_cmd "ksh" "--long list" \
-		"_MODULESBEGINENV_=$beg_env ;export _MODULESBEGINENV_;$not_load"
-testerr_cmd "zsh" "--long list" \
-		"_MODULESBEGINENV_=$beg_env ;export _MODULESBEGINENV_;$not_load"
-testerr_cmd "csh" "--long list" \
-    "setenv _MODULESBEGINENV_ $beg_env ;$not_load"
-testerr_cmd "tcsh" "--long list" \
-    "setenv _MODULESBEGINENV_ $beg_env ;$not_load"
-testerr_cmd "perl" "--long list" \
-		"\$ENV{'_MODULESBEGINENV_'} = '$beg_env';$not_load"
+testouterr_cmd "sh" "--long list" \
+		"_MODULESBEGINENV_=$beg_env ;export _MODULESBEGINENV_;" "$not_load"
+testouterr_cmd "ksh" "--long list" \
+		"_MODULESBEGINENV_=$beg_env ;export _MODULESBEGINENV_;" "$not_load"
+testouterr_cmd "zsh" "--long list" \
+		"_MODULESBEGINENV_=$beg_env ;export _MODULESBEGINENV_;" "$not_load"
+testouterr_cmd "csh" "--long list" \
+    "setenv _MODULESBEGINENV_ $beg_env ;" "$not_load"
+testouterr_cmd "tcsh" "--long list" \
+    "setenv _MODULESBEGINENV_ $beg_env ;" "$not_load"
+testouterr_cmd "perl" "--long list" \
+		"\$ENV{'_MODULESBEGINENV_'} = '$beg_env';" "$not_load"
+} elseif { [ version_test "BEGINENV=99" ] } {
+testerr_cmd_re "sh" "update" \
+		".*Invalid update subcommand - No MODULESBEGINENV.*"
+
+# set this here
+	set env(MODULESBEGINENV) $beg_envx
+
+testouterr_cmd "sh" "--long list" \
+		"_MODULESBEGINENV_=$beg_envx ;export _MODULESBEGINENV_;" "$not_load"
+testouterr_cmd "ksh" "--long list" \
+		"_MODULESBEGINENV_=$beg_envx ;export _MODULESBEGINENV_;" "$not_load"
+testouterr_cmd "zsh" "--long list" \
+		"_MODULESBEGINENV_=$beg_envx ;export _MODULESBEGINENV_;" "$not_load"
+testouterr_cmd "csh" "--long list" \
+    "setenv _MODULESBEGINENV_ $beg_envx ;" "$not_load"
+testouterr_cmd "tcsh" "--long list" \
+    "setenv _MODULESBEGINENV_ $beg_envx ;" "$not_load"
+testouterr_cmd "perl" "--long list" \
+		"\$ENV{'_MODULESBEGINENV_'} = '$beg_envx';" "$not_load"
 } else {
 	send_user "skipping .modulesbeginenv tests\n"
 }
@@ -56,7 +76,11 @@ testerr_cmd "perl" "--long list" \
 # further tests
 #
 
-set env(_MODULESBEGINENV_) $beg_env
+if { [ version_test "BEGINENV=99" ] } {
+	set env(_MODULESBEGINENV_) $beg_envx
+} elseif { [ version_test "BEGINENV=1" ] } {
+	set env(_MODULESBEGINENV_) $beg_env
+}
 
 #
 # Cleanup
@@ -64,3 +88,4 @@ set env(_MODULESBEGINENV_) $beg_env
 
 unset not_load
 unset beg_env
+unset beg_envx

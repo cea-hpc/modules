@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.7 2002/08/02 22:11:23 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.8 2005/11/14 23:51:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -194,7 +194,7 @@ int	cmdSetPath(	ClientData	 client_data,
      **  directory can be checked to see whether it is already in the 
      **  existing path.
      **/
-    if( !( pathlist = SplitIntoList( argv[2], &numpaths)))
+    if( !( pathlist = SplitIntoList( interp, argv[2], &numpaths)))
 	goto unwind0;
 
     /**
@@ -329,8 +329,6 @@ int	cmdSetPath(	ClientData	 client_data,
 
 	} /** if( marker) **/
 
-	null_free((void*) &markexpPtr);
-
     } /** if( strcmp) **/
 
     /**
@@ -443,7 +441,7 @@ int	cmdRemovePath(	ClientData	 client_data,
      **  Split the path into its components so each item can be removed
      **  individually from the variable.
      **/
-    if( !( pathlist = SplitIntoList( argv[2], &numpaths)))
+    if( !( pathlist = SplitIntoList( interp, argv[2], &numpaths)))
 	goto unwind0;
 
     /**
@@ -480,7 +478,7 @@ unwind0:
  **   Description:	This function actually does the work of removing     **
  **			the item from the path.  It is done this way to      **
  **			support multiple items (often directories)	     **
- **			seperated by colons in the variable value.	     **
+ **			separated by colons in the variable value.	     **
  ** 									     **
  **   First Edition:	2001/08/08					     **
  ** 									     **

@@ -36,7 +36,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.6 2002/06/17 05:58:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.7 2005/11/14 23:51:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -279,6 +279,7 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
                		char		 *environ[])
 {
     int 	Result = TCL_ERROR;
+    char *	tmp;
 
 #if WITH_DEBUGGING_INIT
     ErrorLogger( NO_ERR_START, LOC, _proc_Initialize_Tcl, NULL);
@@ -346,10 +347,48 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
     Tcl_InitHashTable( markVariableHashTable, TCL_STRING_KEYS);
     Tcl_InitHashTable( markAliasHashTable, TCL_STRING_KEYS);
 
+#ifdef BEGINENV
+#  if BEGINENV == 99
     /**
-     **  What I'm going to do here is check for the existance of the
-     **  environment variable "_MODULESBEGINENV_".  If it is set, then I will do
-     **  nothing, otherwise, I will store every environment variable into
+     **  Check for the existence of the environment variable
+     **  "MODULESBEGINENV".  This signals that for this
+     **  configuration that the user wants to record the initial
+     **  environment as seen for the first time by the module
+     **  command into the filename given in the MODULESBEGINENV
+     **  environment variable (which can have one level of
+     **  variable expansion).  Whether it's the first time or not
+     **  is moderated by the existence of environment variable
+     **  _MODULESBEGINENV_ or not.
+     **
+     **  The update command will use this information to reinitialize the
+     **  environment and then reload every modulefile that has been loaded
+     **  since as stored in the LOADEDMODULES environment variable in order.
+     **/
+    if( (tmp = xgetenv( "MODULESBEGINENV")) ) {
+	/* MODULESBEGINENV is set ... use it */
+
+	if( !getenv( "_MODULESBEGINENV_") ) {
+		FILE*  file;
+		if( (file = fopen(tmp, "w+")) ) {
+			int i=0;
+			while( environ[i]) {
+				fprintf( file, "%s\n", environ[i++]);
+			}
+			moduleSetenv( *interp, "_MODULESBEGINENV_", tmp, 1);
+			fclose( file);
+		} else
+			if( OK != ErrorLogger( ERR_OPEN, LOC,(*interp)->result,
+			    "append", NULL))
+			    goto unwind0;
+
+		null_free((void *) &tmp);
+	}
+    }
+#  else
+    /**
+     **  Check for the existence of the
+     **  environment variable "_MODULESBEGINENV_".  If it is set, then
+     **  do nothing, otherwise, Store every environment variable into
      **  ~/.modulesbeginenv.  This will be used to store the environment
      **  variables exactly as it was when Modules saw it for the very first
      **  time.
@@ -358,20 +397,20 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
      **  environment and then reload every modulefile that has been loaded
      **  since as stored in the LOADEDMODULES environment variable in order.
      **/
-#ifdef BEGINENV
     if( !getenv( "_MODULESBEGINENV_") ) {
+	/* use .modulesbeginenv */
 
         FILE*  file;
 	
         char savefile[] = "/.modulesbeginenv";
-	char *ptr, *buffer;
+	char *buffer;
 
-	ptr = getenv("HOME");
-	if((char *) NULL == (ptr = getenv("HOME")))
+	tmp = getenv("HOME");
+	if((char *) NULL == (tmp = getenv("HOME")))
 	    if( OK != ErrorLogger( ERR_HOME, LOC, NULL))
 		goto unwind0;
 
-	if((char *) NULL == (buffer = stringer(NULL,0,ptr,savefile,NULL)))
+	if((char *) NULL == (buffer = stringer(NULL,0,tmp,savefile,NULL)))
 	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 		goto unwind0;
 
@@ -389,6 +428,7 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
 
 	    null_free((void *) &buffer);
     }
+#  endif
 #endif
 
     /**

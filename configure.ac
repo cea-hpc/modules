@@ -1,19 +1,23 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.12 2004/10/22 01:33:30 harlan Exp $
+dnl Revision:    $Id: configure.ac,v 1.13 2005/11/14 23:51:07 rkowen Exp $
+dnl Created:     1994/06/18
+dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
+dnl		 Martin S. Utesch <wstd@hl.siemens.de>
+dnl 		 Peter W. Osel <pwo@GUUG.DE>
+dnl 		 R.K. Owen <rk@owen.sj.ca.us>
 dnl
 dnl Process this file with autoconf to produce a configure script
 dnl You need autoconf 2.52 or better!
 dnl
 dnl ---------------------------------------------------------------------------
-AC_INIT(modules,3.2,modules_dev@kooz.sj.ca.us)
-AC_CONFIG_AUX_DIR(config)
-AM_INIT_AUTOMAKE(modules,3.2)
-AC_CONFIG_SRCDIR([version.c])
-AC_CONFIG_SUBDIRS(lib)
-AM_CONFIG_HEADER(config.h)
+AC_INIT(modules,3.2)dnl
+AC_CONFIG_AUX_DIR(config)dnl
+AM_INIT_AUTOMAKE(foreign dejagnu no-installinfo)dnl
+AC_CONFIG_SRCDIR([version.c])dnl
+AM_CONFIG_HEADER(config.h)dnl
 AC_PROG_MAKE_SET
-AC_PREREQ(2.52)
+AC_PREREQ(2.58)dnl
 
 dnl ---------------------------------------------------------------------------
 dnl Autoheader "templates" (was acconfig.h)
@@ -41,7 +45,7 @@ AH_TEMPLATE([TCL_MINOR_VERSION],[
 TCL_MINOR_VERSION: if defined, contains the version of TCL (and TCLX)])dnl
 AH_TEMPLATE([TCL_MAJOR_VERSION],[
 TCL_MAJOR_VERSION: if defined, contains the version of TCL (and TCLX)])dnl
-
+dnl
 dnl ---------------------------------------------------------------------------
 dnl
 dnl Some special substitution we need:
@@ -93,8 +97,8 @@ echo "configuring for Modules $VERSION		$DATE"
 dnl ---------------------------------------------------------------------------
 dnl Set PREFIX and related based on WANTS_VERSIONING
 dnl ---------------------------------------------------------------------------
-AC_SUBST(DEFAULTPATH)
-AC_SUBST(BASEPREFIX)
+AC_SUBST(DEFAULTPATH)dnl
+AC_SUBST(BASEPREFIX)dnl
 DEFAULTPATH=default
 AH_TEMPLATE([BASEPREFIX],[ BASEPREFIX: Usually equivalent to /usr/local])dnl
 AH_TEMPLATE([PREFIX],[
@@ -102,6 +106,14 @@ PREFIX: Usually equivalent to /usr/local/Modules[/version_number]])dnl
 AH_TEMPLATE([MODULES_INIT_DIR],[
 MODULES_INIT_DIR: Directory that contains the modules init files.])dnl
 
+if test "$exec_prefix" != "NONE" ; then
+  EPREFIX=$exec_prefix
+# can not have versioning if specifying exec-prefix
+  if test "$WANTS_VERSIONING" -eq 1 ; then
+     AC_MSG_ERROR([You can not have versioning if --exec-prefix is specified
+must disable with --disable-versioning ])
+  fi
+fi
 if test "$prefix" != "NONE" ; then
   if test "$WANTS_VERSIONING" -eq 1 ; then
     DEFAULTPATH=$prefix/Modules/default
@@ -135,21 +147,27 @@ else
   MODULES_INIT_DIR=$ac_default_prefix/init
   PREFIX=$ac_default_prefix
 fi
+if test "$exec_prefix" != "NONE" ; then
+  EPREFIX=$exec_prefix
+else
+  EPREFIX=$PREFIX
+fi
 dnl ---------------------------------------------------------------------------
 dnl --enable-use-default        Use PREFIX/default/ in init scripts [DEF]
 dnl --disable-use-default       Use PREFIX/VERSION/ in init scripts
 dnl ---------------------------------------------------------------------------
-AC_DEFINE_UNQUOTED(MODULES_INIT_DIR, "$MODULES_INIT_DIR")
+AC_DEFINE_UNQUOTED(MODULES_INIT_DIR, "$MODULES_INIT_DIR")dnl
 AC_ARG_ENABLE(use-default,
 	AC_HELP_STRING([--enable-use-default],[use DEFAULTPATH in init scripts [[yes]]]),
 	if test "$enableval" = "no" -o $WANTS_VERSIONING -eq 0; then
 		DEFAULTPATH=$NODEFAULTPATH
-	fi)
+	fi)dnl
 AC_MSG_RESULT([DEFAULTPATH = $DEFAULTPATH])
 AC_MSG_RESULT([BASEPREFIX = $BASEPREFIX])
 AC_MSG_RESULT([PREFIX = $PREFIX])
-AC_DEFINE_UNQUOTED(BASEPREFIX, "$BASEPREFIX")
-AC_DEFINE_UNQUOTED(PREFIX, "$PREFIX")
+AC_MSG_RESULT([EPREFIX = $EPREFIX])
+AC_DEFINE_UNQUOTED(BASEPREFIX, "$BASEPREFIX")dnl
+AC_DEFINE_UNQUOTED(PREFIX, "$PREFIX")dnl
 export DEFAULTPATH
 export NODEFAULTPATH
 export BASEPREFIX
@@ -159,15 +177,48 @@ dnl Some standard autoconfig stuff
 dnl Checks for programs
 dnl ---------------------------------------------------------------------------
 AC_PROG_CC
-dnl force CFLAGS=-g
-CFLAGS=-g
 AC_PROG_CPP
 AC_PROG_GCC_TRADITIONAL
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_AIX
 AC_ISC_POSIX
-AC_PATH_PROG([UNAME],[uname],[""])
+AC_PATH_PROG([UNAME],[uname],[""])dnl
+dnl ---------------------------------------------------------------------------
+dnl Checks for header files
+dnl ---------------------------------------------------------------------------
+
+AC_HEADER_DIRENT
+AC_HEADER_STDC
+AC_CHECK_HEADERS(string.h memory.h stdlib.h unistd.h termio.h fcntl.h ctype.h \
+	stdarg.h varargs.h syslog.h)dnl
+AC_CHECK_HEADERS(errno.h sys/ioctl.h sys/termios.h sys/mode.h sys/stat.h      \
+	sys/param.h)dnl
+dnl ---------------------------------------------------------------------------
+dnl Checks for typedefs, structures, and compiler characteristics.
+dnl ---------------------------------------------------------------------------
+AC_C_CONST
+AC_TYPE_UID_T
+AC_TYPE_SIZE_T
+AC_STRUCT_TM
+dnl ---------------------------------------------------------------------------
+dnl Checks for library functions.
+dnl ---------------------------------------------------------------------------
+AC_CHECK_FUNCS([strdup strtok uname gethostname getdomainname \
+	mktemp tmpnam tempnam \
+	syslog dup2])dnl
+dnl ---------------------------------------------------------------------------
+dnl Checks for libraries
+dnl ---------------------------------------------------------------------------
+dnl Solaris 2.x: This requires -lnsl and -lsocket. If AC_PATH_XTRA
+dnl              did not search for these, search them explicitly.
+dnl              MUST be done BEFORE AC_PATH_XTRA!
+dnl ---------------------------------------------------------------------------
+AC_CHECK_LIB(socket, socket)dnl
+AC_CHECK_LIB(nsl, t_accept)dnl
+
+dnl ---------------------------------------------------------------------------
+dnl Check for X11 things
 dnl ---------------------------------------------------------------------------
 AC_PATH_X
 AC_PATH_XTRA
@@ -178,43 +229,12 @@ HAS_X11LIBS:
 This symbol, if defined, indicates that the C program can use X11
 directly.])dnl
 	AC_DEFINE(HAS_X11LIBS)dnl
-LDFLAGS="$LDFLAGS -L$x_libraries"
-	AC_CHECK_LIB(X11, XMaxRequestSize)dnl
-	AC_CHECK_LIB(Xmu, XmuGetHostname)dnl
+	AC_CHECK_LIB(X11, XMaxRequestSize,,,
+		[-I $ac_x_includes -L $ac_x_libraries])dnl
+	AC_CHECK_LIB(Xmu, XmuGetHostname,,,
+		[-I $ac_x_includes -L $ac_x_libraries])dnl
+
 fi
-dnl ---------------------------------------------------------------------------
-dnl Checks for header files
-dnl ---------------------------------------------------------------------------
-
-AC_HEADER_DIRENT
-AC_HEADER_STDC
-AC_CHECK_HEADERS(string.h memory.h stdlib.h unistd.h termio.h fcntl.h ctype.h \
-	stdarg.h varargs.h syslog.h)
-AC_CHECK_HEADERS(errno.h sys/ioctl.h sys/termios.h sys/mode.h sys/stat.h      \
-	sys/param.h)
-dnl ---------------------------------------------------------------------------
-dnl Checks for typedefs, structures, and compiler characteristics.
-dnl ---------------------------------------------------------------------------
-AC_C_CONST
-AC_TYPE_UID_T
-AC_TYPE_SIZE_T
-AC_STRUCT_TM
-dnl ---------------------------------------------------------------------------
-dnl Checks for libraries
-dnl ---------------------------------------------------------------------------
-dnl Solaris 2.x: This requires -lnsl and -lsocket. If AC_PATH_XTRA
-dnl              did not search for these, search them explicitely.
-dnl              MUST be done BEFORE AC_PATH_XTRA!
-dnl ---------------------------------------------------------------------------
-AC_CHECK_LIB(socket, socket)
-AC_CHECK_LIB(nsl, t_accept)
-
-dnl ---------------------------------------------------------------------------
-dnl Checks for library functions.
-dnl ---------------------------------------------------------------------------
-AC_CHECK_FUNCS([strdup strtok uname gethostname getdomainname \
-	mktemp tmpnam tempnam \
-	syslog dup2])
 dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([CPPSTDIN],[
 CPPSTDIN:
@@ -239,39 +259,42 @@ Last resort to get the hostname, if uname() and gethostname()
 are not available.])dnl
 AC_PATH_PROG([_PHOST],[hostname],[""])dnl
 test "$_PHOST" != ""  && AC_DEFINE_UNQUOTED(PHOSTNAME, "$_PHOST")
-#AC_PATH_PROG(RUNTEST, runtest, "./not_installed")dnl
-#test "$RUNTEST" = "" && echo "Install DEJAGNU and rerun configure if you \
-#want to run the testsuite"
+AC_PATH_PROG(RUNTEST, runtest, "./not_installed")dnl
+test "$RUNTEST" = "" && echo "Install DEJAGNU and rerun configure if you \
+want to run the testsuite"
 
 dnl
 dnl Here we define some --with & --enable things:
 dnl
 dnl --with-force-path=<path>	With force path=<path>
-dnl --without-force-path	Without  - " -		[DEF]
+dnl --without-force-path	Without  - " -			[DEF]
 dnl
-dnl --with-split-size[=<size>]	With split size=<size>
-dnl --without-split-size	Without  - " -		[DEF]
+dnl --with-split-size[=<size>]	With split size=<size>		[TEST]
+dnl --without-split-size	Without  - " -
 dnl
-dnl --enable-cache		With directory cache	[DEF]
-dnl --disable-cache		Without  - " -
+dnl --enable-cache		With directory cache
+dnl --disable-cache		Without  - " -			[DEF]
 dnl
-dnl --enable-shell-funcs	With sh functions	[DEF]
+dnl --enable-shell-funcs	With sh functions		[TEST]
 dnl --disable-shell-funcs	Without  - " -
 dnl
+dnl --enable-shell-alias	With sh aliases			[TEST]
+dnl --disable-shell-alias	Without  - " -
+dnl
 dnl --enable-shell-eval		With shell alias eval
-dnl --disable-shell-eval	Without  - " -		[DEF]
+dnl --disable-shell-eval	Without  - " -			[DEF]
 dnl
 dnl --enable-free		With free() calls
-dnl --disable-free		Without  - " -		[DEF]
+dnl --disable-free		Without  - " -			[DEF]
 dnl
 dnl --with-debug[=<option>]	Set up debugging level
-dnl --without-debug		Without  - " -		[DEF]
+dnl --without-debug		Without  - " -			[DEF]
 dnl
-dnl --enable-version-magic      Set .version magic requirement [DEF]
+dnl --enable-version-magic      Set .version magic requirement	[DEF]
 dnl --disable-version-magic     .version need not have magic cookie
 dnl
-dnl --enable-beginenv		Use .modulesbeginenv for initial env.
-dnl --disable-beginenv		Do not use .modulesbeginenv [DEF]
+dnl --enable-beginenv		Use .modulesbeginenv for initial env.	[TEST]
+dnl --disable-beginenv		Do not use .modulesbeginenv
 dnl
 dnl ---------------------------------------------------------------------------
 AH_VERBATIM([FORCE_PATH],[
@@ -282,12 +305,6 @@ AH_VERBATIM([FORCE_PATH],[
 #define FORCE_PATH_SACRED  NULL
 #define FORCE_LD_LIBRARY_PATH_SACRED NULL
 ])dnl
-AC_ARG_WITH(file-collate,
-	AC_HELP_STRING([[--with-file-collate={string or number}]],[how lists collate     [[string]]]),
-	if test "$withval" = "number"; then
-		AC_DEFINE(DEF_COLLATE_BY_NUMBER, 1,
-		[Default collate lists numerically?])
-	fi)
 AC_ARG_WITH(force-path,
 	AC_HELP_STRING([--with-force-path=<path>],[use force path=<path> [[no]]]),
 	if test "$withval" != "no"; then
@@ -298,12 +315,57 @@ dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([LMSPLIT_SIZE],[
 LMSPLIT_SIZE:
 This symbol, if defined, will force the environment variable
-_LM_FILES to be split into smaller "chunks".])dnl
+_LM_FILES_ to be split into smaller "chunks".])dnl
+AC_MSG_CHECKING([if /bin/csh supports large environment variables])
+#
+# test to see how many chars can be set in the C-shell env.var.
+#
+em_split_size_total=0
+if test -x /bin/csh ; then
+cat  >_EMEOF.$$ <<'_EMEOF'
+cat <<'!' | /bin/csh 2> /dev/null | tail -1
+setenv X	""
+setenv ZZZ	"0"
+@ num=2
+while ( $num < 10000 )
+	setenv X	$X$ZZZ
+	echo $num
+	@ num++
+end
+'!'
+_EMEOF
+em_split_size_total=`/bin/sh _EMEOF.$$`
+rm _EMEOF.$$
+fi
+if test "$cross_compiling" = "yes"; then
+	em_split_size="cross"
+AC_MSG_WARN([You must specify --with-split-size[=<size>]
+when cross compiling ... configure can not guess whether the target system
+C-shell can handle large environment variables or not.])
+elif test $em_split_size_total -gt 4000 ; then
+	em_split_size="no"
+	AC_MSG_RESULT([yes - $em_split_size_total > 4000])
+else
+	# set split-size a little less
+	em_split_size=`expr $em_split_size_total - 20`
+	AC_MSG_RESULT([no - $em_split_size_total < 4000 - splitting at $em_split_size])
+fi
 AC_ARG_WITH(split-size,
-	AC_HELP_STRING([--without-split-size[=<size>]],[use split size=<size> [[no]]]),
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval=900
+	AC_HELP_STRING([--with-split-size[=<size>]],[use split size=<size> [[test]]]),
+	if test "${withval+set}" = "set" -a "$withval" != "no"; then
+		if test "$withval" = "yes"; then
+			withval=1000
+		fi
+		AC_MSG_NOTICE([csh split-size set to $withval])
 		AC_DEFINE_UNQUOTED(LMSPLIT_SIZE, ${withval})
+	else
+		AC_MSG_NOTICE([csh split-size not set])
+	fi,
+	if test "$em_split_size" != "no" -a "$em_split_size" != "cross" ; then
+		AC_MSG_NOTICE([csh split-size set to $em_split_size])
+		AC_DEFINE_UNQUOTED(LMSPLIT_SIZE, ${em_split_size})
+	else
+		AC_MSG_NOTICE([csh split-size not set])
 	fi)dnl
 dnl ---------------------------------------------------------------------------
 dnl --with-static[=<option>]	With static linking
@@ -314,20 +376,94 @@ AC_SUBST(STATIC)dnl
 dnl
 AC_ARG_WITH(static,
 	AC_HELP_STRING([--with-static[[=<option>]]],[use static linking [[no]]]),
-	EM_SET_STATIC(STATIC, $withval))
+	EM_SET_STATIC(STATIC, $withval))dnl
 
 dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([HAS_BOURNE_FUNCS],[
 HAS_BOURNE_FUNCS:
-This symbol, if defined, indicates that Modules should ask the shell
-to evaluate aliases via stdout like other environment changes instead
-of opening a file and then asking the shell to source the file and
-then remove it.])dnl
+This symbol, if defined, indicates that the Bourne shell can define aliases
+as shell functions.])dnl
+AC_MSG_CHECKING([if /bin/sh supports functions])
+
+if test "$cross_compiling" = "yes"; then
+	em_bourne_funcs="cross"
+AC_MSG_WARN([You must specify --enable-shell-funcs or --disable-shell-funcs
+when cross compiling ... configure can not guess whether the target system
+Bourne shell can handle shell functions or not.])
+elif (
+	cat <<_EMEOF | /bin/sh 2> /dev/null
+if (xxx() { ls; }) > /dev/null 2>&1; then
+	(exit 0); exit 0
+else
+	(exit 42); exit 42
+fi
+_EMEOF
+	 
+	if test $? = 0 ; then
+		(exit 0); exit 0
+	else
+		(exit 42); exit 42
+	fi
+) ; then
+	em_bourne_funcs="yes"
+else
+	em_bourne_funcs="no"
+fi
+AC_MSG_RESULT([$em_bourne_funcs])
 AC_ARG_ENABLE(shell-funcs,
-	AC_HELP_STRING([--enable-shell-funcs],[use sh functions [[yes]]]),
-	if test "$enableval" = "yes"; then
+	AC_HELP_STRING([--enable-shell-funcs],[use sh functions [[test]]]),
+	if test "$enableval" = "yes" ; then
 	    AC_DEFINE(HAS_BOURNE_FUNCS)
-	fi, AC_DEFINE(HAS_BOURNE_FUNCS))dnl
+	fi,
+	if test "$em_bourne_funcs" = "cross" ; then
+AC_MSG_ERROR([You did not --enable-shell-funcs or --disable-shell-funcs
+when cross compiling ... aborting!])
+	elif test "$em_bourne_funcs" = "yes" ; then
+	    AC_DEFINE(HAS_BOURNE_FUNCS)
+	fi)dnl
+dnl ---------------------------------------------------------------------------
+AH_TEMPLATE([HAS_BOURNE_ALIAS],[
+HAS_BOURNE_ALIAS:
+This symbol, if defined, indicates that the Bourne shell can define aliases
+(in other words not a "true" Bourne shell).])dnl
+AC_MSG_CHECKING([if /bin/sh supports aliases])
+
+if test "$cross_compiling" = "yes"; then
+	em_bourne_alias="cross"
+AC_MSG_WARN([You must specify --enable-shell-alias or --disable-shell-alias
+when cross compiling ... configure can not guess whether the target system
+Bourne shell can handle shell aliases or not.])
+elif (
+	cat <<_EMEOF | /bin/sh 2> /dev/null
+if (xxx() { ls; }) > /dev/null 2>&1; then
+	(exit 0); exit 0
+else
+	(exit 42); exit 42
+fi
+_EMEOF
+	 
+	if test $? = 0 ; then
+		(exit 0); exit 0
+	else
+		(exit 42); exit 42
+	fi
+) ; then
+	em_bourne_alias="yes"
+else
+	em_bourne_alias="no"
+fi
+AC_MSG_RESULT([$em_bourne_alias])
+AC_ARG_ENABLE(shell-alias,
+	AC_HELP_STRING([--enable-shell-alias],[use sh functions [[test]]]),
+	if test "$enableval" = "yes" ; then
+	    AC_DEFINE(HAS_BOURNE_ALIAS)
+	fi,
+	if test "$em_bourne_alias" = "cross" ; then
+AC_MSG_ERROR([You did not --enable-shell-alias or --disable-shell-alias
+when cross compiling ... aborting!])
+	elif test "$em_bourne_alias" = "yes" ; then
+	    AC_DEFINE(HAS_BOURNE_ALIAS)
+	fi)dnl
 dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([EVAL_ALIAS],[
 EVAL_ALIAS:
@@ -336,14 +472,14 @@ to evaluate aliases via stdout like other environment changes instead
 of opening a file and then asking the shell to source the file and
 then remove it.])dnl
 AC_ARG_ENABLE(shell-eval,
-	AC_HELP_STRING([--enable-shell-eval],[use shell alias eval [[no]]]),
+	AC_HELP_STRING([--enable-shell-eval],[use shell alias eval [[yes]]]),
 	if test "$enableval" = "yes"; then
 	    AC_DEFINE(EVAL_ALIAS)
-	fi)dnl
+	fi, AC_DEFINE(EVAL_ALIAS))dnl
 dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([USE_FREE],[
 USE_FREE:
-By default, we will not call free() for any dynamic data. This
+By default, Modules will not call free() for any dynamic data. This
 define enables these calls again.])dnl
 AC_ARG_ENABLE(free,
 	AC_HELP_STRING([--enable-free],[use free() calls [[no]]]),
@@ -370,7 +506,7 @@ AC_ARG_WITH(cache-umask,
 	if test "$withval" != "no"; then
 	    test "$withval" = "yes" && withval=0
 	    AC_DEFINE_UNQUOTED(CACHE_UMASK, ${withval})
-	fi)
+	fi)dnl
 dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([WITH_DEBUG_INFO],[WITH_DEBUG_INFO: Debug info level if defined])dnl
 AC_ARG_WITH(debug,
@@ -397,12 +533,17 @@ AH_TEMPLATE([BEGINENV],[
 BEGINENV:
 Modules can save the initial user environment in the .modulesbeginenv
 when the first module is loaded.  If enabled then the module update
-subcommand will work.])dnl
+subcommand will work.  If set to test, then this essentially enables
+this feature, but will only work if the MODULESBEGINENV env.var is
+set to a file name (e.g. '$HOME/.modulesbeginenv.$$'- modules will
+do one-level of variable expansion.)])dnl
 AC_ARG_ENABLE(beginenv,
-	AC_HELP_STRING([--enable-beginenv],[use .modulesbeginenv for initial env [[no]]]),
-	if test "$enableval" != "no"; then
+	AC_HELP_STRING([--enable-beginenv],[use .modulesbeginenv for initial env [[test]]]),
+	if test "$enableval" = "yes"; then
 		AC_DEFINE(BEGINENV,1)dnl
-	fi)dnl
+	elif test "$enableval" = "test"; then
+		AC_DEFINE(BEGINENV,99)dnl
+	fi, AC_DEFINE(BEGINENV,99))dnl
 dnl ---------------------------------------------------------------------------
 dnl  Logging
 dnl  The following option allow switching logging on and off
@@ -428,67 +569,67 @@ AC_ARG_ENABLE(logging,
 	if test "$enableval" = "yes"; then
 		AC_DEFINE(WITH_LOGGING)
 		WITH_LOGGING=1
-	fi)
+	fi)dnl
 AC_ARG_WITH(log-dir,
 	AC_HELP_STRING([--with-log-dir=<value>],[select an alternate log dir.  [[no]]]),
 	if test "$withval" != "no"; then
 		test "$withval" = "yes" && withval="/tmp"
 		AC_DEFINE_UNQUOTED(WITH_LOG_DIR, "$withval")
-	fi)
+	fi)dnl
 AC_ARG_WITH(log-facility-verbose,
 	AC_HELP_STRING([--with-log-facility-verbose[=<facility>]],[Log facility    [[stderr]]]),
 	if test "$withval" != "no"; then
 		test "$withval" = "yes" && withval="stderr"
 		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_VERBOSE, "$withval")
-	fi)
+	fi)dnl
 AC_ARG_WITH(log-facility-info,
 	AC_HELP_STRING([--with-log-facility-info[=<facility>]],[Log facility    [[local7.notice]]]),
 	if test "$withval" != "no"; then
 		test "$withval" = "yes" && withval="local7.notice"
 		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_INFO, "$withval")
-	fi)
+	fi)dnl
 AC_ARG_WITH(log-facility-debug,
 	AC_HELP_STRING([--with-log-facility-debug[=<facility>]],[Log facility    [[local7.notice]]]),
 	if test "$withval" != "no"; then
 		test "$withval" = "yes" && withval="local7.notice"
 		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_DEBUG, "$withval")
-	fi)
+	fi)dnl
 AC_ARG_WITH(log-facility-trace,
 	AC_HELP_STRING([--with-log-facility-trace[=<facility>]],[Log facility    [[local7.notice]]]),
 	if test "$withval" != "no"; then
 		test "$withval" = "yes" && withval="local7.notice"
 		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_TRACE, "$withval")
-	fi)
+	fi)dnl
 AC_ARG_WITH(log-facility-warn,
 	AC_HELP_STRING([--with-log-facility-warn[=<facility>]],[Log facility    [[local7.warning]]]),
 	if test "$withval" != "no"; then
 		test "$withval" = "yes" && withval="local7.warning"
 		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_WARN, "$withval")
-	fi)
+	fi)dnl
 AC_ARG_WITH(log-facility-problem,
 	AC_HELP_STRING([--with-log-facility-problem[=<facility>]],[Log facility    [[local7.error]]]),
 	if test "$withval" != "no"; then
 		test "$withval" = "yes" && withval="local7.error"
 		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_PROB, "$withval")
-	fi)
+	fi)dnl
 AC_ARG_WITH(log-facility-error,
 	AC_HELP_STRING([--with-log-facility-error[=<facility>]],[Log facility    [[local7.error]]]),
 	if test "$withval" != "no"; then
 		test "$withval" = "yes" && withval="local7.error"
 		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_ERROR, "$withval")
-	fi)
+	fi)dnl
 AC_ARG_WITH(log-facility-fatal,
 	AC_HELP_STRING([--with-log-facility-fatal[=<facility>]],[Log facility    [[local7.error]]]),
 	if test "$withval" != "no"; then
 		test "$withval" = "yes" && withval="local7.error"
 		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_FATAL, "$withval")
-	fi)
+	fi)dnl
 AC_ARG_WITH(log-facility-panic,
 	AC_HELP_STRING([--with-log-facility-panic[=<facility>]],[Log facility    [[local7.error]]]),
 	if test "$withval" != "no"; then
 		test "$withval" = "yes" && withval="local7.error"
 		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_PANIC, "$withval")
-	fi)
+	fi)dnl
 dnl ---------------------------------------------------------------------------
 dnl  Tracing
 dnl  The following option allow switching tracing on and off on a
@@ -518,7 +659,7 @@ AC_ARG_WITH(trace-load,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_LOAD, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-unload,
 	AC_HELP_STRING([--with-trace-unload=<value>],[specify a pattern for trace   [[no]]]),
 	if test "$withval" != "no"; then
@@ -527,7 +668,7 @@ AC_ARG_WITH(trace-unload,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_UNLOAD, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-switch,
 	AC_HELP_STRING([--with-trace-switch=<value>],[specify a pattern for trace   [[no]]]),
 	if test "$withval" != "no"; then
@@ -536,7 +677,7 @@ AC_ARG_WITH(trace-switch,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_SWITCH, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-disp,
 	AC_HELP_STRING([--with-trace-disp=<value>],[specify a pattern for trace   [[no]]]),
 	if test "$withval" != "no"; then
@@ -545,7 +686,7 @@ AC_ARG_WITH(trace-disp,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_DISP, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-list,
 	AC_HELP_STRING([--with-trace-list=<value>],[specify a pattern for trace   [[no]]]),
 	if test "$withval" != "no"; then
@@ -554,7 +695,7 @@ AC_ARG_WITH(trace-list,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_LIST, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-avail,
 	AC_HELP_STRING([--with-trace-avail=<value>],[specify a pattern for trace   [[no]]]),
 	if test "$withval" != "no"; then
@@ -563,7 +704,7 @@ AC_ARG_WITH(trace-avail,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_AVAIL, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-help,
 	AC_HELP_STRING([--with-trace-help=<value>],[specify a pattern for trace   [[no]]]),
 	if test "$withval" != "no"; then
@@ -572,7 +713,7 @@ AC_ARG_WITH(trace-help,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_HELP, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-init,
 	AC_HELP_STRING([--with-trace-init=<value>],[specify a pattern for trace   [[no]]]),
 	if test "$withval" != "no"; then
@@ -581,7 +722,7 @@ AC_ARG_WITH(trace-init,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_INIT, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-use,
 	AC_HELP_STRING([--with-trace-use=<value>],[specify a pattern for trace   [[no]]]),
 	if test "$withval" != "no"; then
@@ -590,7 +731,7 @@ AC_ARG_WITH(trace-use,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_USE, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-unuse,
 	AC_HELP_STRING([--with-trace-unuse=<value>],[specify a pattern for trace   [[no]]]),
 	if test "$withval" != "no"; then
@@ -599,7 +740,7 @@ AC_ARG_WITH(trace-unuse,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_UNUSE, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-update,
 	AC_HELP_STRING([--with-trace-update=<value>],[specify a pattern for trace   [[no]]]),
 	if test "$withval" != "no"; then
@@ -608,7 +749,7 @@ AC_ARG_WITH(trace-update,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_UPDATE, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-purge,
 	AC_HELP_STRING([--with-trace-purge=<value>],[specify a pattern for trace   [[no]]]),
 	if test "$withval" != "no"; then
@@ -617,7 +758,7 @@ AC_ARG_WITH(trace-purge,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_PURGE, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-clear,
 	AC_HELP_STRING([--with-trace-clear=<value>],[specify a pattern for trace   [[no]]]),
 	if test "$withval" != "no"; then
@@ -626,7 +767,7 @@ AC_ARG_WITH(trace-clear,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_CLEAR, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-whatis,
 	AC_HELP_STRING([--with-trace-whatis=<value>],[specify a pattern for trace   [[no]]]),
 	if test "$withval" != "no"; then
@@ -635,7 +776,7 @@ AC_ARG_WITH(trace-whatis,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_WHATIS, "$withval")
 		fi
-	fi)
+	fi)dnl
 AC_ARG_WITH(trace-apropos,
 	AC_HELP_STRING([--with-trace-apropos=<value>],[specify a pattern for trace  [[no]]]),
 	if test "$withval" != "no"; then
@@ -644,13 +785,13 @@ AC_ARG_WITH(trace-apropos,
 		else
 			AC_DEFINE_UNQUOTED(WITH_TRACE_APROPOS, "$withval")
 		fi
-	fi)
+	fi)dnl
 dnl ---------------------------------------------------------------------------
 dnl Find libraries, functions and special programs
 dnl	The dynamic loader library should only be probed for, if
 dnl	static linking is not switched on!
 dnl ---------------------------------------------------------------------------
-AC_CHECK_LIB(m, log)
+AC_CHECK_LIB(m, log)dnl
 if test "${STATIC-foobar}" = "foobar"; then
     AC_CHECK_LIB(dl, dlopen)
 fi
@@ -662,11 +803,10 @@ dnl--------------------------------------------------------------------
 
 SC_PATH_TCLCONFIG
 SC_LOAD_TCLCONFIG
-SC_PUBLIC_TCL_HEADERS
 
 dnl--------------------------------------------------------------------
 dnl Load the tclxConfig.sh file
-dnl search for tclx after tcl, not before to benefit from tcl_includes and
+dnl search for tclx after tcl, not before, to benefit from tcl_includes
 dnl--------------------------------------------------------------------
 
 EM_PATH_TCLXCONFIG
@@ -693,10 +833,10 @@ AC_SUBST(MODULEPATH)dnl
 AH_TEMPLATE([MODULEPATH],[
 MODULEPATH: Directory that contains all the module files])dnl
 AC_ARG_WITH(module-path,
-	AC_HELP_STRING([--with-module-path=<path>],[use module path=<path> [[EPREFIX/Modules/modulefiles]]]),
+	AC_HELP_STRING([--with-module-path=<path>],[use module path=<path> [[PREFIX/Modules/modulefiles]]]),
 	MODULEPATH="$withval"
 	AC_MSG_RESULT([MODULEPATH = $with_module_path])
-	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval", [module path])dnl
+	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval")dnl
 	,
 dnl 	AC_MSG_WARN([if using '--with-module-path': need to specify a path!])
 	withval="$BASEPREFIX/Modules/modulefiles"
@@ -715,17 +855,19 @@ AC_ARG_WITH(version-path,
 	AC_MSG_RESULT([VERSIONPATH = $with_version_path])
 	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval")
 	,
+if test "$WANTS_VERSIONING" -eq 1 ; then
 dnl AC_MSG_WARN([if using '--with-version-path': need to specify a path!])
 	withval="$BASEPREFIX/Modules/versions"
 	AC_MSG_WARN([will use VERSIONPATH=$withval : rerun configure using --with-version-path to override default])
 	VERSIONPATH="$withval"
-	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval"))dnl
+	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval")
+fi)dnl
 dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([TMP_DIR],[TMP_DIR: tmp directory name])dnl
 AC_ARG_WITH(tmp-dir,
 	AC_HELP_STRING([--with-tmp-dir=<dir>],[use <dir> as a temporary dir [[/tmp]]]),
         if test ! -d $withval ; then
-           AC_MSG_ERROR([tmp dir $withval does not exist])dnl
+           AC_MSG_ERROR([tmp dir $withval does not exist])
         fi
 	AC_DEFINE_UNQUOTED(TMP_DIR, "$withval")dnl
 	AC_MSG_RESULT([TMP_DIR = $withval]),
@@ -784,7 +926,7 @@ AC_ARG_WITH(skel-path,
 	fi
 	SKELPATH="$withval"
 	,
-	SKELPATH="/etc/skel")
+	SKELPATH="/etc/skel")dnl
 dnl ---------------------------------------------------------------------------
 dnl DOT_EXT		Whether to use a dot-file extension
 dnl EXTDIR		Which add.* script to include
@@ -809,27 +951,13 @@ AC_ARG_WITH(dot-ext,
 	fi,
 	AC_DEFINE(DOT_EXT, "")
 	EXTDIR="etc"
-)
-dnl ---------------------------------------------------------------------------
-dnl MEMDEBUG		Whether to use the memory debug routines
-dnl
-AC_SUBST(MEMDEBUG)dnl
-AH_TEMPLATE([MEMDEBUG],[
-MEMDEBUG:
-Set this to enable the memory debug routines
-])dnl
-AC_ARG_ENABLE(memdebug,
-	AC_HELP_STRING([--enable-memdebug],[enable memory debugging    [[no]]]),
-	if test "$enableval" = "yes"; then
-		AC_DEFINE(MEMDEBUG)
-	fi
 )dnl
 dnl ---------------------------------------------------------------------------
 dnl helpful configure --help comments
 m4_divert_once([HELP_WITH],[[
 
 The default value or disposition is listed in the square brackets above.
-Beware of new defaults for use-cache and beginenv.
+Beware of new defaults for use-cache, beginenv.
 
 Depending on the above configuration options  the files are approximately
 placed in the following directory structure :
@@ -848,10 +976,6 @@ System modulefiles can safely be placed in:
 PREFIX/Modules/modulefiles
 ]])dnl
 dnl ---------------------------------------------------------------------------
-dnl want to statically link to the modules library
-dnl ---------------------------------------------------------------------------
-LIBS="$LIBS -lmodules"
-dnl ---------------------------------------------------------------------------
 dnl Now put it all out!
 dnl ---------------------------------------------------------------------------
 AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile
@@ -868,8 +992,9 @@ AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile
 	modulefiles/Makefile modulefiles/modules
 	modulefiles/module-cvs modulefiles/module-info modulefiles/null
 	modulefiles/use.own modulefiles/dot modulefiles/version
-	])
+	])dnl
+dnl We want these to be recreated for each install
 dnl	init/bash init/csh init/ksh init/perl init/python init/sh init/zsh
-AC_CONFIG_COMMANDS([default],[[date > stamp-h]],[[]])
+AC_CONFIG_COMMANDS([default],[[date > stamp-h]],[[]])dnl
 AC_OUTPUT
 dnl

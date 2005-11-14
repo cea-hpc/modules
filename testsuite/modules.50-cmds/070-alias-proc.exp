@@ -4,7 +4,7 @@
 #
 #   File:		modules.50-cmds/%M%
 #   Revision:		%I%
-#   First Edition:	95/12/06
+#   First Edition:	1995/12/06
 #   Last Mod.:		%U%, %G%
 #
 #   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
@@ -176,24 +176,13 @@ proc test_alias {test_shell cmd pattern filecmd} {
 }
 
 #
-#  Grap the config-file for the EVAL setup. If there's no config-file
+#  Grab the config-file for the EVAL setup. If there's no config-file
 #  found, the tempfile-solution is assumed to be configured
 #
 
-set config_eval 0
-
-if { ![file exists $config_file] } {
-    if { $verbose > 0 } {
-	send_user "Configfile '$config_file' not found.\n"
-	send_user "tmpfile assumed for aliasing\n"
-    }
-} else {
-    #
-    #  grep exits with status 0 if it is successfull ...
-    #  check wheter EVAL_ALIAS is defined in the config file
-    #
-    if { ![catch {exec grep "#define EVAL_ALIAS" $config_file}] } {
+if { [ version_test "EVAL_ALIAS=1" ] } {
 	set config_eval 1
-    }
+} else {
+	set config_eval 0
 }
 

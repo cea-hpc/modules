@@ -4,7 +4,7 @@
 #
 #   File:		config/%M%
 #   Revision:		%I%
-#   First Edition:	95/12/06
+#   First Edition:	1995/12/06
 #   Last Mod.:		%U%, %G%
 #
 #   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
@@ -35,7 +35,7 @@ proc default_shell {} {
 
 #
 # the default for the modulecmd binary is the one in the upper directory
-# if it doesn't exist, look up the serach path in order to locate one.
+# if it doesn't exist, look up the search path in order to locate one.
 #
 
 proc default_modulecmd {} {
@@ -43,23 +43,25 @@ proc default_modulecmd {} {
     global verbose
 
     if ![info exists MODULECMD] then {
-	if [file exists "./modulecmd"] then {
+	if [file exists ../modulecmd] then {
+	    set MODULECMD "../modulecmd"
+	} elseif [file exists ./modulecmd] then {
 	    set MODULECMD "./modulecmd"
 	} else {
 	    set MODULECMD [which modulecmd]
-	    if { $verbose > 0 } {
+	    if { $verbose > 1 } {
 		send_user "using 'modulecmd' from search path"
 	    }
 	}
     }
 
     if ![file exists $MODULECMD] then {
-       if [file exists "./modulecmd.tcl"] then {
+	if [file exists "./modulecmd.tcl"] then {
 	  set MODULECMD "./modulecmd.tcl"
-       } else {
+	} else {
 	  fail "No 'modulecmd' found"
- 	  exit -1
-       }
+	  exit -1
+	}
     }
 }
 
@@ -77,12 +79,13 @@ proc modulecmd_exit {} {
 # has to be installed in order to scan both 
 #
 
-proc modulecmd_start {command} {
+proc modulecmd_xxx_ {command} {
     global MODULECMD
     global verbose
     global shell
     global comp_output
     global comp_error
+    global no_verbose
 
     if ![info exists command] then {
 	unresolved "internal testsuite error: no module command specified"
@@ -91,12 +94,36 @@ proc modulecmd_start {command} {
     default_shell 
     default_modulecmd
 
-    if { $verbose > 0 } {
+    if { ! $no_verbose && $verbose > 1 } {
 	send_user "starting $MODULECMD $shell $command\n"
     }
 
-    catch {set comp_output [eval exec $MODULECMD $shell [split $command { }]]
-	} comp_error
+# this is why I hate Tcl ... you can never count on anything to act
+# in a consistent fashion from one version to the next.
+# This used to work until 8.4
+#   catch {set comp_output [eval exec $MODULECMD $shell [split $command { }]]
+#	} comp_error
+    catch {set comp_output [eval exec $MODULECMD $shell [split $command { }] 2> test.err ]
+    } comp_error
+                                                                                
+    catch {
+        set errfile [ open test.err ]
+        read -nonewline $errfile
+    } comp_error
+    file delete test.err
+
+#   if { $verbose > 1 } {
+#	send_user "got STDOUT = $comp_output \n"
+#	send_user "got STDERR = $comp_error \n"
+#   }
+}
+
+proc modulecmd_start {command} {
+	global no_verbose
+
+	set no_verbose 0
+	modulecmd_xxx_ "$command"
+	unset no_verbose
 }
 
 #
@@ -104,21 +131,13 @@ proc modulecmd_start {command} {
 #   (same as above but no verbose output)
 
 proc modulecmd__ {command} {
-    global MODULECMD
-    global verbose
-    global shell
-    global comp_output
-    global comp_error
+	global shell
+	global no_verbose
 
-    if ![info exists command] then {
-	unresolved "internal testsuite error: no module command specified"
-    }
-
-    default_shell 
-    default_modulecmd
-
-    catch {set comp_output [eval exec $MODULECMD $shell [split $command { }]]
-	} comp_error
+	set shell "sh"
+	set no_verbose 1
+	modulecmd_xxx_ "$command"
+	unset no_verbose
 }
 
 #
@@ -131,7 +150,7 @@ proc modulecmd_version {} {
     global comp_output
     global comp_error
 
-    default_shell 
+    set shell "sh"
     default_modulecmd
 
     modulecmd_start help

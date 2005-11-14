@@ -43,10 +43,22 @@ The ./doc directory contains both the paper and man pages describing the
 user's and the module writer's usage.
 Look at ChangeLog for detailed information regarding changes.
 
+Big changes to 3.2:
+    o  Using the automake/autoconf mechanism for creating the configure script.
+
+    o  Have the configure script test and set more things with regards to
+       /bin/sh and /bin/csh characterstics.
+
+    o  Lots of code clean-up.
+
+    o  Made the tests conditional on configure options.
+
+    o  Handle the silent changes in Tcl 8.4
+
 Big changes to 3.1:
     o  Changed the license to GPL
 
-    O  Source code cross-referencing documented in ./xref/*.html files.
+    o  Source code cross-referencing documented in ./xref/*.html files.
 
 Big changes since 3.0 prior to 3.1:
     o  Ported to Linux.
@@ -244,8 +256,8 @@ particular for setting paths.  The one of interest is @VERSION@ for
 using the current module version. e.g.  --prefix=/usr/local/Modules/@VERSION@
 
 ------------------------------------------------------------------------
-    --with-etc-path=<path>      use etc path=<path>           [/etc]
-    --with-skel-path=<path>     use skel path=<path>          [/etc/skel]
+    --with-etc-path=<path>      use etc path=<path>		[/etc]
+    --with-skel-path=<path>     use skel path=<path>		[/etc/skel]
 
   o Place to find the csh.modules * profile.modules files and where
     the new user dot files are (both are needed by add.modules script).
@@ -254,48 +266,60 @@ using the current module version. e.g.  --prefix=/usr/local/Modules/@VERSION@
 
 ------------------------------------------------------------------------
     --with-force-path=<path>	With force path=<path>
-    --without-force-path	Without  - " -		[DEF]
+    --without-force-path	Without  - " -			[DEF]
 
   o The force-path option allows you to specify a path that should be kept
       at the end of the PATH environment variable.
 
 ------------------------------------------------------------------------
-    --with-split-size=<size>	With split size=<size>
-    --without-split-size	Without  - " -		[DEF]
+    --with-split-size=<size>	With split size=<size>		[TEST]
+    --without-split-size	Without  - " -
 
-  o Some C Shell implementations have a size requirement on the length of
+  o Most C Shell implementations have a size requirement on the length of
       the line which can be evaluated.  If you run into very long
-      environment changes, you may run into this problem.  Select size to be
-      something less than the size your C Shell will accept.  C Shell limits
-      are around 1024.
+      environment changes, you may run into this problem.  Select size
+      to be something less than the size your C Shell will accept.
+      The configure script will test this in your /bin/csh upto
+      10,000 characters.  If you do not specify anything configure
+      will set the split-size for you if the limit it finds is less
+      than 4000 characters.  This can be overridden by specifying
+      --with-split-size='some_value' specifying --without-split-size
+      will disable this feature.  Just specifying --with-split-size
+      without a value will default to a value of 1000.
 
 ------------------------------------------------------------------------
-    --enable-cache		With directory cache	[DEF]
-    --disable-cache		Without  - " -
-
-  o Modules will maintain a cache of the available modulefiles for each
-      directory in the modulefile search path.  The cache greatly
-      accelerates how long it takes to determine the list of available
-      modulefiles.
-
-------------------------------------------------------------------------
-    --enable-shell-funcs	With sh functions	[DEF]
+    --enable-shell-funcs	With sh functions		[TEST]
     --disable-shell-funcs	Without  - " -
 
   o Does your Bourne Shell support functions?  If so, then the modulefile
       set-alias will work properly.  If not, aliases will not be available
       when using the Bourne Shell.
+      The default is to test your /bin/sh when configuring build, but
+      specifying either option will override the tested characteristic.
 
 ------------------------------------------------------------------------
-    --enable-shell-eval		With shell alias eval
-    --disable-shell-eval	Without  - " -		[DEF]
+    --enable-shell-alias	With sh functions		[TEST]
+    --disable-shell-alias	Without  - " -
 
-  o This specifies whether aliases will be evaulated by the C Shell or
-      sourced from a temporary file.  Some C Shells can't handle the
+  o Does your Bourne Shell support aliases?  A true Bourne Shell doesn't
+      but most are just a link to some other Bourne-like shell.  If so,
+      then modules will use the alias mechanism when using set-alias.
+      If not, aliases will not be available unless sh functions are
+      supported when using the Bourne Shell.
+      The default is to test your /bin/sh when configuring build, but
+      specifying either option will override the tested characteristic.
+
+------------------------------------------------------------------------
+    --enable-shell-eval		With shell alias eval		[DEF]
+    --disable-shell-eval	Without  - " -
+
+  o This specifies whether aliases will be evaluated by the shell or
+      sourced from a temporary file.  Some shells can't handle the
       specification of aliases in the eval line very well.  To get around
       this problem, when aliases are set by a modulefile, a temporary file
-      is created and then sourced into the C Shell.  This guarentees the
-      aliases are evaluated correctly.
+      is created and then sourced into the shell.  This guarentees the
+      aliases are evaluated correctly, but may leave lots of cruft
+      in the /tmp directory, which is generally not a good idea.
  
 ------------------------------------------------------------------------
     --enable-free		With free() calls
@@ -305,6 +329,16 @@ using the current module version. e.g.  --prefix=/usr/local/Modules/@VERSION@
       some small performance enhancement since the memory usage is low and
       the program will exit rapidly.  If you want the calls to free() back
       in for some reason, set this option.
+
+------------------------------------------------------------------------
+    --enable-cache		With directory cache
+    --disable-cache		Without  - " -			[DEF]
+
+  o Modules will maintain a cache of the available modulefiles for each
+      directory in the modulefile search path.  The cache greatly
+      accelerates how long it takes to determine the list of available
+      modulefiles, but for automatic cache updates this requires a
+      world writeable file.
 
 ------------------------------------------------------------------------
     --with-cache-umask=<umask> With cache files umask=<umask>
@@ -319,7 +353,7 @@ using the current module version. e.g.  --prefix=/usr/local/Modules/@VERSION@
 
 ------------------------------------------------------------------------
      --with-static		Link static (don't use dynamic libraries)
-     --without-static		Use dynamic libraries	[DEF]
+     --without-static		Use dynamic libraries		[DEF]
 
   o A note.  I've found that at least the X11 libraries should be linked
       statically.  If you encounter problems, e.g. getting some warnings
@@ -332,7 +366,7 @@ using the current module version. e.g.  --prefix=/usr/local/Modules/@VERSION@
 
 ------------------------------------------------------------------------
      --with-tclx		With extended TCL (tclX) commands
-     --without-tclx		Without  - " -		[DEF]
+     --without-tclx		Without  - " -			[DEF]
 
   o Extended Tcl is a superset of standard Tcl and is built alongside
       the standard Tcl sources.  It adds many new commands to standard
@@ -369,22 +403,15 @@ using the current module version. e.g.  --prefix=/usr/local/Modules/@VERSION@
       The default is to use "$prefix/lib/tcl".
 
 ------------------------------------------------------------------------
-     --with-tcl=<path>                  directory where tclConfig.sh lives
-     --with-tclinclude=<path>           directory where public tcl header
-                                        files live.
-     --with_tclx_include=<path>		directory to lookup the TCLX headers
-     --with_tclx_libraries=<path>	directory to lookup the TCLX libs
+     --with-tcl=<path>		directory containting Tcl configuration
+				(tclConfig.sh)
+     --with-tclx=<path>		directory containting TclX configuration
+				(tclxConfig.sh)
 
-  o the tclConfig.sh file was created when tcl was built, and has
-  pointers to where the libraries were installed. It is usually found
-  in $prefix/lib, where $prefix is the directory you installed TCL.
- 
-  o the path to the TCL header files will be passed to the compiler
-  using the -I option.
-
-    NOTE: You will almost always need to specify both --with-tcl and
-    --with-tclinclude, because the include information is not part of
-    the tclConfig.sh file.
+  o the tclConfig.sh file was created when Tcl was built, and has pointers
+  to where the libraries and header files were installed. It is usually
+  found in $prefix/lib, where $prefix is the directory you installed Tcl.
+  (Same for TclX too.)
 
 ------------------------------------------------------------------------
      --with-debug=<level>		Set up the debug level to the
@@ -475,7 +502,7 @@ NO LONGER AVAILABLE
 
 
 
-I have provided a number of example modulefile in the example-modulefiles
+A number of example modulefiles have been provided  in the example-modulefiles
 directory.  This should help provide you with some idea on how to write
 modulefiles.
 
@@ -495,16 +522,18 @@ Finally, type 'make install' and 'modulecmd' along with the initfiles will be
 installed.
 
 
-4. modules-interest@eng.auburn.edu
-__________________________________
+4. modules-interest@lists.sourceforge.net
+_________________________________________
 
 As of release 2.0, I have worked with Richard Elling to create a
 Modules interest alias for discussion about Modules and other
 Modules-related packages such as Richard's user-setup.
 
-If you would like to be added to the modules-interest alias, mail
-majordomo@eng.auburn.edu with "subscribe modules-interest address" in the
-body of the message where "address" is your Internet e-mail address.
+The email list was moved from eng.auburn.edu to SourceForge.net with
+version 3.0.  If you would like to be added to the modules-interest alias,
+email majordomo@lists.sourceforge.net with "subscribe modules-interest
+address" in the body of the message where "address" is your Internet
+e-mail address.
 
 
 5. Miscellaneous
@@ -513,7 +542,7 @@ ________________
 tcsh(1) user might want to add the following to their tcsh startup file
 (~/.cshrc or ~/.tcshrc): 
 
-# programm tcsh's completion for module command:
+# program tcsh's completion for module command:
 complete module \
 	'n/use/d/' \
 	'n/unuse/d/' \
@@ -586,7 +615,8 @@ There are two ways to get the sources.  If you just intend to use
 modules and have no interest in modifying or improving them, then
 get them via anonymous ftp from
 
-Primary-site:   sunsite.unc.edu		/pub/Linux/utils/shell/
+Primary-site:	ftp1.sourceforge.net	/pub/sourceforge/m/mo/modules
+Alternate-site:	sunsite.unc.edu		/pub/Linux/utils/shell/
 Alternate-site: owen.sj.ca.us		/pub/rkowen/modules/
 
 However, if you have coding expertise and wish to contribute code

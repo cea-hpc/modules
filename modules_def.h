@@ -1,15 +1,15 @@
 /*****
  ** ** Module Header ******************************************************* **
  ** 									     **
- **   Modules Revision 3.0						     **
+ **   Modules Revision 3.2						     **
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		modules_def.h					     **
- **   Revision:		1.21						     **
  **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:							     **
  ** 									     **
@@ -37,9 +37,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <tcl.h>
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#endif
+#include "config.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -116,10 +114,8 @@
 extern	int	  errno;
 #endif
 
-#include "uvec.h"
-
 #ifdef MEMDEBUG
-#  include "memdebug.h"
+#  include <librko.h>
 #endif
 
 /** ************************************************************************ **/
@@ -185,7 +181,6 @@ typedef	enum	{
 	ERR_GETHOSTNAME,		/** gethostname failed		     **/
 	ERR_GETDOMAINNAME,		/** getdomainname failed	     **/
 	ERR_STRING,			/** string error		     **/
-	ERR_MODLIB,			/** Modules library error	     **/
 	ERR_DISPLAY = 90,		/** cannot open display	    	     **/
 	ERR_IN_MODULEFILE = 100,	/** modulefile related errors	     **/
 	ERR_PARSE,			/** Parse error (modulefile)	     **/
@@ -208,6 +203,7 @@ typedef	enum	{
 	ERR_CACHE_INVAL,		/** Invalid cache version	     **/
 	ERR_CACHE_LOAD,			/** Cannot load cache properly	     **/
 	ERR_BEGINENV,			/** No update if no .modulesbeginenv **/
+	ERR_BEGINENVX,			/** No MODULESBEGINENV env.var.      **/
 	ERR_INIT_TCL,			/** Cannot initialize TCL	     **/
 	ERR_INIT_TCLX,			/** Cannot initialize extended TCL   **/
 	ERR_INIT_ALPATH,		/** Cannot set up autoload path      **/
@@ -441,7 +437,7 @@ typedef	enum	{
 #endif
 
 /** 
- **  Some systems don't defined S_ISDIR and S_ISREG
+ **  Some systems don't define S_ISDIR and S_ISREG
  **/
 
 #ifdef HAVE_SYS_STAT_H
@@ -469,7 +465,6 @@ extern	char	**environ;
 extern	char	 *version_string;
 extern	char	 *g_current_module;
 extern	char	 *g_specified_module;
-extern	char	 *g_module_path;
 extern	char	 *shell_name;
 extern	char	 *shell_derelict;
 extern	char	 *shell_init;
@@ -498,7 +493,6 @@ extern	char	*updateRE;
 extern	char	*purgeRE;
 extern	char	*clearRE;
 extern	char	*whatisRE;
-extern  char    *bootstrapRE;
 extern	char	*aproposRE;
 
 extern	Tcl_HashTable	*setenvHashTable;
@@ -534,19 +528,16 @@ extern	char	*version_file;
 
 extern	char	 long_header[];
 
-extern	uvec_str	module_str_fns;
-
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
 /** ************************************************************************ **/
 
 /**  locate_module.c  **/
 extern	int	  Locate_ModuleFile( Tcl_Interp*, char*, char*, char*);
-extern	char	**SortedDirList( char*, char*, int*);
-extern	char	**SplitIntoList( char*, int*);
-extern	int	  SourceVers( Tcl_Interp *interp, char *path, char *name);
-extern	int	  SourceRC( Tcl_Interp *interp, char *path, char *name);
-extern	char	 *GetDefault( Tcl_Interp *interp, char *path);
+extern	char	**SortedDirList( Tcl_Interp*, char*, char*, int*);
+extern	char	**SplitIntoList( Tcl_Interp*, char*, int*);
+extern	int	  SourceVers( Tcl_Interp*, char*, char*);
+extern	int	  SourceRC( Tcl_Interp *interp, char *, char *);
 #ifdef USE_FREE
 extern	void	  FreeList( char**, int);
 #endif
@@ -563,7 +554,7 @@ extern	int	  check_dir( char*);
 extern	fi_ent	 *get_dir( char*, char*, int*, int*);
 extern	void	  dirlst_to_list( char**, fi_ent*, int, int*, char*, char*);
 extern	void	  delete_dirlst( fi_ent*, int);
-extern	void	  delete_cache_list( char** list, int count);
+extern	void	  delete_cache_list( char**, int);
 
 /**  ModuleCmd_Clear.c  **/
 extern	int	  ModuleCmd_Clear( Tcl_Interp*, int, char*[]);
@@ -667,8 +658,7 @@ extern	int	  CheckTracingList(Tcl_Interp*, char*, int, char**);
 /**  cmdVersion.c  **/
 extern	int	  cmdModuleVersion( ClientData, Tcl_Interp*, int, char*[]);
 extern	int	  cmdModuleAlias( ClientData, Tcl_Interp*, int, char*[]);
-extern	int	  InitVersion( void);
-extern	const char *AliasLookup( const char*);
+extern	int	  AliasLookup( char*, char**, char**);
 extern	int	  VersionLookup( char*, char**, char**);
 extern	char	 *ExpandVersions( char*);
 
@@ -708,20 +698,22 @@ extern	void	  chk4spch( char*);
 extern	void	  cleanse_path( const char*, char*, int);
 extern	char	 *xdup(char const *);
 extern	char	 *xgetenv(char const *);
-extern  int       tmpfile_mod(char** filename, FILE** file);
+extern  int       tmpfile_mod( char**, FILE**);
 extern	char	 *stringer(char *, int, ...);
 extern	void	  null_free(void **);
+extern	size_t	  countTclHash(Tcl_HashTable *);
 
 #ifndef HAVE_STRDUP
-extern	char	 * strdup( char*);
+#  undef strdup
+extern	char	 *strdup( char*);
 #endif
 
 #ifndef HAVE_STRTOK
-extern	char *strtok( char *, const char *);
+extern	char	 *strtok( char *, const char *);
 #endif
 
 /** error.c **/
-extern	char	**GetFacilityPtr( char *facility);
+extern	char	**GetFacilityPtr( char *);
 extern	int 	  Module_Error(	ErrType, char*, int, ...);
 extern	int	  CheckFacility( char*, int*, int*);
 extern	void	  Module_Tracing( int, int, char**);

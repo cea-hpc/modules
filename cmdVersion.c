@@ -5,10 +5,9 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		cmdVersion.c					     **
- **   First Edition:	1995/12/28					     **
+ **   First Edition:	95/12/28					     **
  ** 									     **
- **   Authors:	Jens Hamisch, jens@Strawberry.COM,			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
  ** 									     **
  **   Description:	The Tcl module-version routine which provides the    **
  **			definition of symbolic version names and the module- **
@@ -17,7 +16,6 @@
  ** 									     **
  **   Exports:		cmdModuleVersion				     **
  **			cmdModuleAlias					     **
- **			InitVersion					     **
  **			CleanupVersion					     **
  **			AliasLookup					     **
  **			ExpandVersions					     **
@@ -27,11 +25,17 @@
  **		syntax of the according commands is defined as:		     **
  ** 									     **
  **	    Module-Versions:						     **
- **		module-version [/]<version> <name> [ <name> ... ]	     **
+ **		module-version <module>/<version> <name> [ <name> ... ]	     **
+ **		module-version /<version> <name> [ <name> ... ]		     **
+ **		module-version <module> <name> [ <name> ... ]		     **
  **		module-version <alias> <name> [ <name> ... ]		     **
  ** 									     **
  **	    Module-Alias:						     **
- **		module-alias <alias> <string>				     **
+ **		module-alias <alias> <module>/<version>			     **
+ **		module-alias <alias> /<version>				     **
+ **		module-alias <alias> <module>				     **
+ **		module-alias <alias> <alias>				     **
+ ** 									     **
  ** 									     **
  ** ************************************************************************ **
  ****/
@@ -43,7 +47,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.6 2002/08/22 21:39:16 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.7 2005/11/14 23:51:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -51,9 +55,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 #include "modules_def.h"
-#include "avec.h"
-#include "list.h"
-#include "uvec.h"
 
 /** ************************************************************************ **/
 /** 				  LOCAL DATATYPES			     **/
@@ -65,56 +66,61 @@ static void *UseId[] = { &UseId, Id };
 /**   and name records. There are 3 types of name records: version, name     **/
 /**   and alias. 							     **/
 /**									     **/
-/**	 modlist					     aliaslist	     **/
-/**         X                                                    X	     **/
-/**     +---+---+                                            +---+---+	     **/
-/**     | module| ------------------------+                  | alias |	     **/
-/**     +---+---+ --------+               |                  +-------+	     **/
-/**         X   ^    +----+----+          X                      X	     **/
-/**         |        | version |       +--+--+               +---+---+	     **/
-/**         |        +----+----+       | name|               | alias |	     **/
-/**         |             |            +--+--+               +---+---+	     **/
-/**         |        +----+----+          X                      X	     **/
-/**         |        | version |       +--+--+               +---+---+	     **/
-/**         |        +----+----+<-+--- | name|               | alias |	     **/
-/**         |             |       |    +--+--+               +---+---+	     **/
-/**         |        +----+----+  |       X                      X	     **/
-/**         |        | version |  |    +--+--+               +---+---+	     **/
-/**         |        +----+----+  | +--| name|               | alias |	     **/
-/**         |             |       | |  +--+--+               +---+---+	     **/
-/**         |                     | |     X                      X	     **/
-/**         X                     | +->+--+--+               +---+---+	     **/
-/**     +---+---+                 +--- | name|               | alias |	     **/
-/**     | module|                      +--+--+               +---+---+	     **/
-/**     +---+---+                         X                      X	     **/
-/**         X								     **/
-/**	hash ordered	         hash ordered           hash ordered	     **/
-/**	list of module	    list of names depending    list of aliases	     **/
-/**	paths		    to a single module file			     **/
+/**         |                                                    |	     **/
+/**     +---+---+<-------------------------------+           +---+---+	     **/
+/**     | module| ------------------------+      |           | alias |	     **/
+/**     +---+---+ --------+               |      |           +-------+	     **/
+/**         |   ^    +----+----+          |      |               |	     **/
+/**         |   +--- | version |       +--+--+   |           +---+---+	     **/
+/**         |   |    +----+----+       | name|---+     <-----| alias |	     **/
+/**         |   |         |            +--+--+   |           +---+---+	     **/
+/**         |   |    +----+----+          |      |               |	     **/
+/**         |   +--- | version |------>+--+--+   |           +---+---+	     **/
+/**         |   |    +----+----+<-+--- | name|---+           | alias |	     **/
+/**         |   |         |       | +- +--+--+   |           +---+---+	     **/
+/**         |   |    +----+----+  | |     |      |               |	     **/
+/**         |   +--- | version |  | |  +--+--+   |           +---+---+	     **/
+/**         |   |    +----+----+  | |  | name|---+     <-----| alias |	     **/
+/**         |   |         |       | |  +--+--+   |           +---+---+	     **/
+/**         |                     | |     |      |               |	     **/
+/**         |                     | +->+--+--+   |           +---+---+	     **/
+/**     +---+---+                 +--- | name|---+           | alias |	     **/
+/**     | module|                      +--+--+   |           +---+---+	     **/
+/**     +---+---+                         |      |               |	     **/
+/**         |								     **/
+/**			       alphabetic ordered     alphabtic ordered	     **/
+/**			    list of names depending    list of aliases	     **/
+/**			    to a single module file			     **/
 /**									     **/
-/**X  Each module name points to a list of symbolic names and versions.	     **/
-/**X  The versions themselves can be symbolic names and therefore are of the **/
-/**X  same record type as the names.					     **/
-/**X  The name and the version list is alphabetically sorted (even the       **/
-/**X  module list is). A version record points to a related name record	     **/
-/**X  containing a symbolic name for the version. Starting at this record,   **/
-/**X  the name records built a queue of symbolic names for the version.	     **/
-/**X  Both, the version and the name record do have a backward pointer to    **/
-/**X  the module record.						     **/
+/**   Each module name points to a list of symbolic names and versions.	     **/
+/**   The versions themselfes can be symbolic names and therefore are of the **/
+/**   same record type as the names.					     **/
+/**   The name and the version list is alphabetically sorted (even the       **/
+/**   module list is). A version record points to a related name record	     **/
+/**   containing a symbolic name for the version. Starting at this record,   **/
+/**   the name records built a queue of symbolic names for the version.	     **/
+/**   Both, the version and the name record do have a backward pointer to    **/
+/**   the module record.						     **/
 /**									     **/
-/**   The alias list is an associative array where the alias is a substitute **/
-/**   string, which may contain other aliases.  An alias string	can contain  **/
-/**   a path, a module name, a version, or any sensible combination of each. **/
+/**   The alias list builds a alphabetic ordered list of defined aliases.    **/
+/**   Each alias record points to the related name record.		     **/
 /**									     **/
 /** ************************************************************************ **/
 
-/* modules - the key is the module path */
-typedef	struct	_elem_module	{
-    uvec		*versions;	/** version queue   		     **/
-    avec		*names2vers;	/** name queue      		     **/
-    char		*module;	/** the pathless name itself	     **/
-    char		*deflt;		/** if a designated default	     **/
-} ElemModule;
+typedef	struct	_mod_module	{
+    struct _mod_module	*next;		/** alphabetic queue		     **/
+    struct _mod_name	*version;	/** version queue   		     **/
+    struct _mod_name	*name;		/** name queue      		     **/
+    char		*module;	/** the name itsself		     **/
+} ModModule;
+
+typedef	struct	_mod_name	{
+    struct _mod_name	*next;		/** alphabetic queue		     **/
+    struct _mod_name	*ptr;		/** logical next    		     **/
+    struct _mod_name	*version;	/** backwards version pointer	     **/
+    struct _mod_module	*module;	/** related module  		     **/
+    char		*name;		/** the name itsself		     **/
+} ModName;
 
 /** ************************************************************************ **/
 /** 				     CONSTANTS				     **/
@@ -138,7 +144,6 @@ static	char	_proc_cmdModuleVersion[] = "cmdModuleVersion";
 static	char	_proc_cmdModuleAlias[] = "cmdModuleAlias";
 #endif
 #if WITH_DEBUGGING_UTIL_2
-static	char	_proc_InitVersion[] = "InitVersion";
 static	char	_proc_CleanupVersion[] = "CleanupVersion";
 #endif
 #if WITH_DEBUGGING_UTIL_1
@@ -152,155 +157,37 @@ static	char	_proc_FindName[] = "FindName";
  **  The module and aliases list
  **/
 
-static	avec		*modlist   = (avec *) NULL;
-static	avec		*aliaslist = (avec *) NULL;
+static	ModModule	*modlist = (ModModule *) NULL;
+static	ModName		*aliaslist = (ModName *) NULL;
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
 /** ************************************************************************ **/
 
-static	ElemModule	*FindModule(	const	char	 *pathmodule);
-
-static	char		*FindName(	ElemModule	 *modelem,
-					const	char	 *name);
-
-#if 0
 static	void		 CleanupVersionSub(	ModModule	 *ptr);
 
 static	void		 CleanupName(		ModName		 *ptr);
 
-static	ModModule	*AddModule(		const	char	 *path,
-						const	char	 *name);
+static	ModModule	*AddModule(		char		 *name);
 
-static	ModName		*AddName(		const	char	 *name,
+static	ModModule	*FindModule(		char		 *name,
+						ModModule	**prev);
+
+static	ModName		*AddName(		char		 *name,
 						ModName		**start,
 						ModModule	 *module);
 
-static	char		*CheckModuleVersion(	const	char 	 *name);
+static	ModName		*FindName(		char		 *name,
+						ModName		 *start,
+						ModName		**prev);
 
-static	char		*scan_versions(		char	 	 *buffer,
-						const	char	 *base,
+static	char		*CheckModuleVersion(	char 		 *name);
+
+static	char		*scan_versions(		char 		 *buffer,
+						char		 *base,
 						ModName 	 *ptr,
 						ModModule 	 *modptr);
-#endif
-/**
- ** these functions are only to aid in interactive debugging
- **/
-	void		dump_both();
-	void		dump_modlist();
-	void		dump_aliaslist();
 
-/*++++
- ** ** module-static functions ********************************************* **
- ** 									     **
- ** 									     **
- ** 									     **
- ** ************************************************************************ **
- ++++*/
-/* ---------------------------------------------------------------------- */
-/* wrappers for the StdC string functions - to handle names2versi
- */
-static int n2v_add (void **data, va_list ap) {
-	char const *str = va_arg(ap,char *);
-	int retval = 0;
-	if (!data) return -1;
-	if (*data) {
-		/* replace  current string */
-		null_free(data);
-		retval = 1;
-	}
-	if((*data = stringer(NULL,0,str, NULL))) {
-		return retval;
-	}
-	return -2;
-}
-
-static int n2v_rm (void **data, va_list ap) {
-	null_free((void *) data);
-	return 0;
-}
-
-static avec_fns n2v_fns = {
-	AVEC_USER,
-	n2v_add,
-	n2v_rm,
-	n2v_rm,
-};
-
-/* module related static functions */
-/* each module element is actually two lists (names & versions are only added)
- *
- * pass in the module modulepath version *names[] (NULL terminated vector)
- */
-static	int	module_element_add(void **data, va_list ap) {
-	char const *version = va_arg(ap,char *);
-	char **name;
-	ElemModule *em;
-	int retval = 0;
-
-	if (!data) return -1;	/* no module object */
-
-	if (*data) {		/* add to existing module object */
-		retval = 1;
-	} else if (!(*data = calloc(1,sizeof(ElemModule)))) {
-		return -2;	/* memory error */
-	} else {
-		em = (ElemModule *) *data;
-		if (!(em->versions = uvec_ctor(5))) {
-			return -3;	/* memory error */
-		}
-		if (!(em->names2vers = avec_ctor_(11,n2v_fns))) {
-			return -4;	/* memory error */
-		}
-	}
-	em = (ElemModule *) *data;
-	/* add on version to list */
-	if (0> uvec_push(em->versions, version)) {
-		return -5;		/* some insert error */
-	}
-	/* get list of names and add to name list mapped to the version */
-	name = va_arg(ap,char **);
-	while (*name) {
-		if (0 > avec_insert(em->names2vers, *name, version))
-			return -6;	/* some insert error */
-		name++;
-	}
-	return retval;
-}
-
-static	int	module_element_rm(void **data, va_list ap) {
-
-	if (!data) return -1;				/* no element object */
-	/* destroy element */
-	uvec_dtor(&(((ElemModule *) *data)->versions));
-	avec_dtor(&(((ElemModule *) *data)->names2vers));
-	null_free(data);
-	return 0;
-}
-
-static avec_fns elem_module_fns = {
-	AVEC_USER,
-	module_element_add,
-	module_element_rm,
-	module_element_rm
-};
-
-static	void	moduleslist_init() {
-	if (!modlist) {
-		modlist = avec_ctor_(10,elem_module_fns);
-		if (!modlist )
-			ErrorLogger( ERR_ALLOC, LOC, NULL);
-	}
-}
-
-static	void	moduleslist_final() {
-	if (modlist) {
-		if (avec_dtor(&modlist))
-			ErrorLogger( ERR_ALLOC, LOC, NULL);
-	}
-}
-
-
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
@@ -308,7 +195,7 @@ static	void	moduleslist_final() {
  ** 									     **
  **   Description:	Callback function for 'version'			     **
  ** 									     **
- **   First Edition:	1995/12/28					     **
+ **   First Edition:	95/12/28					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -322,7 +209,6 @@ static	void	moduleslist_final() {
  **   			g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
- **			g_module_path	path to the module		     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -333,6 +219,8 @@ int	cmdModuleVersion(	ClientData	 client_data,
 	      			char		*argv[])
 {
     char	*version, *module;
+    ModModule	*modptr;
+    ModName	*versptr, *nameptr, *tmp, *ptr;
     int 	 i;
 
 #if WITH_DEBUGGING_CALLBACK
@@ -349,24 +237,17 @@ int	cmdModuleVersion(	ClientData	 client_data,
     /**
      **  Parameter check
      **/
+
     if( argc < 3) {
 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], " modulename ",
 	    " symbolic-version [symbolic-version ...] ", NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
     }
 
-    if( g_flags & M_LOAD) {		/** load **/
-	moduleslist_init();
-	if (avec_insert(modlist, g_module_path, argv[1], argv+2) < 0)
-		if( OK != ErrorLogger( ERR_INTERAL, LOC, NULL))
-		    return TCL_ERROR;
-    }
-#if 0
     if((char *) NULL == (module = CheckModuleVersion( argv[1]))) {
 	ErrorLogger( ERR_BADMODNAM, LOC, argv[1], NULL);
 	return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
     }
-#endif
 
     /**
      **  Display mode?
@@ -379,7 +260,6 @@ int	cmdModuleVersion(	ClientData	 client_data,
 	fprintf( stderr, "\n");
     }
 
-#if 0
     /**
      **  get the version from the argument
      **/
@@ -392,17 +272,17 @@ int	cmdModuleVersion(	ClientData	 client_data,
 
     /**
      **  Now we have a module and a version.
-     **  Check whether it exists (cond. create them). Check both, the version
+     **  Check wheter it exists (cond. create them). Check both, the version
      **  and the name queue in order to locate the desired version ...
      **/
 
-    if((ElemModule *) NULL == (modptr = AddModule(g_module_path, module))) {
+    if((ModModule *) NULL == (modptr = AddModule( module))) {
 	ErrorLogger( ERR_BADMODNAM, LOC, argv[1], NULL);
 	return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
     }
 
-    if((ModName *) NULL == (ptr = FindName( version, modptr->version))) {
-	if((ModName *) NULL == (ptr = FindName( version, modptr->name))) 
+    if((ModName *) NULL == (ptr = FindName( version, modptr->version, &tmp))) {
+	if((ModName *) NULL == (ptr = FindName( version, modptr->name, &tmp))) 
 	    versptr = AddName( version, &modptr->version, modptr);
 	else
 	    versptr = ptr->version;
@@ -415,7 +295,7 @@ int	cmdModuleVersion(	ClientData	 client_data,
     
     for( i=2; i<argc; i++) {
 
-	if( FindName( argv[ i], modptr->name)) {
+	if( FindName( argv[ i], modptr->name, &tmp)) {
 	    if( OK != ErrorLogger( ERR_DUP_SYMVERS, LOC, argv[ i], NULL))
 		break;
 	    else
@@ -438,7 +318,6 @@ int	cmdModuleVersion(	ClientData	 client_data,
 	versptr->ptr = nameptr;
 	nameptr->version = versptr;
     }
-#endif
 
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleVersion, NULL);
@@ -455,7 +334,7 @@ int	cmdModuleVersion(	ClientData	 client_data,
  ** 									     **
  **   Description:	Callback function for 'version'			     **
  ** 									     **
- **   First Edition:	1995/12/28					     **
+ **   First Edition:	95/12/28					     **
  ** 									     **
  **   Parameters:	char	*name		Name to be expanded	     **
  ** 									     **
@@ -469,8 +348,7 @@ char	*ExpandVersions( char	*name)
 {
     char	*version, *module, *s;
     static char	 buffer[ BUFSIZ];
-#if 0
-    ElemModule	*modptr;
+    ModModule	*modptr, *tmp1;
     ModName	*ptr, *tmp2;
 
 #if WITH_DEBUGGING_CALLBACK
@@ -493,14 +371,14 @@ char	*ExpandVersions( char	*name)
 
     /**
      **  Now we have a module and a version.
-     **  Check whether it exists
+     **  Check wheter it exists
      **/
 
-    if((ElemModule *) NULL == (modptr=FindModule(g_module_path, module)))
+    if((ModModule *) NULL == (modptr = FindModule( module, &tmp1)))
 	return((char *) NULL );		/** -------- EXIT (FAILURE) -------> **/
 
-    if((ModName *) NULL == (ptr = FindName( version, modptr->version))) {
-	if((ModName *) NULL == (ptr = FindName( version, modptr->name))) 
+    if((ModName *) NULL == (ptr = FindName( version, modptr->version, &tmp2))) {
+	if((ModName *) NULL == (ptr = FindName( version, modptr->name, &tmp2))) 
 	    return((char *) NULL );	/** -------- EXIT (FAILURE) -------> **/
 	ptr = ptr->version;
     }
@@ -515,7 +393,6 @@ char	*ExpandVersions( char	*name)
     *buffer = '\0';
     if( s = scan_versions( buffer, buffer, ptr->ptr, modptr)) 
 	*--s = '\0';			/** remove trailing ':'		     **/
-#endif
 
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleVersion, NULL);
@@ -536,10 +413,9 @@ char	*ExpandVersions( char	*name)
  ** 									     **
  **   First Edition:	95/12/28					     **
  ** 									     **
- **   Parameters:	char		*buffer	Buffer for printing in	     **
- **			const	char	*base				     **
- **			ModName		*ptr	Name structure pointer	     **
- **			ElemModule	*modptr	Assigned module name	     **
+ **   Parameters:	char	*buffer		Buffer for printing in	     **
+ **			ModName	*ptr		Name structure pointer	     **
+ **			ModModule  *modptr	Assigned module name	     **
  ** 									     **
  **   Result:		char*	NULL		Nothing printed into the     **
  **						buffer			     **
@@ -549,11 +425,10 @@ char	*ExpandVersions( char	*name)
  ** ************************************************************************ **
  ++++*/
 
-#if 0
-static	char	*scan_versions( char		 	*buffer,
-				const	char		 *base,
-				ModName			 *ptr,
-				ElemModule		 *modptr)
+static	char	*scan_versions( char		 *buffer,
+				char		 *base,
+				ModName		 *ptr,
+				ModModule	 *modptr)
 {
     ModName     *tmp, *vers;
     char 	*s;
@@ -590,11 +465,12 @@ static	char	*scan_versions( char		 	*buffer,
 	buffer += strlen( buffer);
 
 	/**
-	 **  Check whether this is a version name again ...
+	 **  Check wheter this is a version name again ...
 	 **  This is a recursion, too
 	 **/
 
-	if((ModName *) NULL != (vers = FindName( ptr->name, modptr->version))) {
+	if((ModName *) NULL != (vers = FindName( ptr->name, modptr->version,
+	    &tmp))) {
 	    if( s = scan_versions( buffer, base, vers->ptr, modptr))
 		buffer = s;
 	}
@@ -610,7 +486,6 @@ static	char	*scan_versions( char		 	*buffer,
     return( buffer);
 
 } /** End of 'scan_versions' **/
-#endif
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -620,9 +495,9 @@ static	char	*scan_versions( char		 	*buffer,
  **   Description:	Reduce the passed module name into a <mod>/<vers>    **
  **			string						     **
  ** 									     **
- **   First Edition:	1995/12/28					     **
+ **   First Edition:	95/12/28					     **
  ** 									     **
- **   Parameters:	const	char	*name	name to be checked	     **
+ **   Parameters:	char	*name		name to be checked	     **
  ** 									     **
  **   Result:		char*	NULL		any error		     **
  **				Otherwise	Pointer to a <mod>/<vers>    **
@@ -636,8 +511,7 @@ static	char	*scan_versions( char		 	*buffer,
  ** ************************************************************************ **
  ++++*/
 
-#if 0
-static	char	*CheckModuleVersion(const char *name)
+static	char	*CheckModuleVersion( char *name)
 {
     static char	 buffer[ BUFSIZ];
     char	*s, *t;
@@ -680,10 +554,10 @@ static	char	*CheckModuleVersion(const char *name)
 	if( !strrchr( buffer, '/')) {
 
 	    /**
-	     **  Check whether this is an alias ...
+	     **  Check wheter this is an alias ...
 	     **/
 
-	    if( s = AliasLookup(buffer)) {
+	    if( AliasLookup( buffer, &s, &t)) {
 
 		/* sprintf( buffer, "%s/%s", s, t); */
 		strcpy( buffer, s);
@@ -711,76 +585,7 @@ static	char	*CheckModuleVersion(const char *name)
     return( buffer);
 
 } /** End of 'CheckModuleVersion' **/
-#endif
 
-/*++++
- ** ** alias-static functions ********************************************** **
- ** 									     **
- ** 									     **
- ** 									     **
- ** ************************************************************************ **
- ++++*/
-/* alias related static functions */
-/* each alias element is actually a stack of strings (uvec)
- * such that when an unload is performed the previous alias (if any)
- * can be returned.
- */
-static	int	alias_element_add(void **data, va_list ap) {
-	char const *str = va_arg(ap,char *);
-
-	if (!data) return -1;	/* no alias object */
-	if (uvec_exists((uvec *) *data)) {
-		/* got something already, push on stack */
-		if (uvec_push((uvec *) *data, str) < 0) return -2;
-		return 1;
-	}
-	/* allocate and then push onto stack */
-	if (!(*data = (void *) uvec_ctor(4))) return -3;
-	if (uvec_push((uvec *) *data, str) < 0) return -4;
-	return 0;
-}
-
-static	int	alias_element_del(void **data, va_list ap) {
-
-	if (!data) return -1;				/* no alias object */
-	if (!uvec_exists((uvec *) *data)) return -2;	/* no stack */
-	/* pop off stack */
-	if (uvec_number((uvec *) *data))		/* stack not empty */
-		if (uvec_pop((uvec *) *data) < 0) return -3;
-	return 1;
-}
-
-static	int	alias_element_rm(void **data, va_list ap) {
-
-	if (!data) return -1;				/* no alias object */
-	if (!uvec_exists((uvec *) *data)) return -2;	/* no stack */
-	/* destroy stack */
-	if (uvec_dtor((uvec **) data) < 0) return -3;	/* destroy stack */
-	return 0;
-}
-
-static avec_fns alias_fns = {
-	AVEC_USER,
-	alias_element_add,
-	alias_element_del,
-	alias_element_rm
-};
-
-static	void	alias_init() {
-	if (!aliaslist) {
-		aliaslist = avec_ctor_(10,alias_fns);
-		if (!aliaslist )
-			ErrorLogger( ERR_ALLOC, LOC, NULL);
-	}
-}
-
-static	void	alias_final() {
-	if (aliaslist) {
-		if (avec_dtor(&aliaslist))
-			ErrorLogger( ERR_ALLOC, LOC, NULL);
-	}
-}
-
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
@@ -788,7 +593,7 @@ static	void	alias_final() {
  ** 									     **
  **   Description:	Callback function for 'alias'			     **
  ** 									     **
- **   First Edition:	1995/12/28					     **
+ **   First Edition:	95/12/28					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -802,7 +607,6 @@ static	void	alias_final() {
  **   			g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
- **			g_module_path	path to the module		     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -812,7 +616,10 @@ int	cmdModuleAlias(	ClientData	 client_data,
 	      		int		 argc,
 	      		char		*argv[])
 {
+    ModName	*tmp, *ptr;
     char	*version, *module;
+    ModName	*trg_alias;
+    ModModule	*modptr;
 
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleAlias, NULL);
@@ -821,15 +628,17 @@ int	cmdModuleAlias(	ClientData	 client_data,
     /**
      **  Parameter check
      **/
+
     if( argc != 3) {
 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], " aliasname ",
-	    "string", NULL))
+	    "modulename", NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
     }
 
     /**
      **  Whatis mode?
      **/
+
     if( g_flags & M_WHATIS) 
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
 
@@ -837,15 +646,70 @@ int	cmdModuleAlias(	ClientData	 client_data,
 	fprintf( stderr, "%s\t %s %s\n", argv[ 0], argv[ 1], argv[ 2]);
     }
 	
-    if( g_flags & M_LOAD) {		/** load **/
-	alias_init();
-	if (avec_insert(aliaslist, argv[1], argv[2]) < 0)
-		if( OK != ErrorLogger( ERR_INTERAL, LOC, NULL))
-		    return TCL_ERROR;
-    } else {				/** unload **/
-	if (avec_delete(aliaslist, argv[1], argv[2]) < 0)
-		if( OK != ErrorLogger( ERR_INTERAL, LOC, NULL))
-		    return TCL_ERROR;
+    /**
+     **  Check if the target is an alias ...
+     **  Conditionally split up the passed <module>/<version> pair.
+     **/
+
+    trg_alias = FindName( argv[ 2], aliaslist, &tmp);
+    if( !trg_alias) {
+
+    	if((char *) NULL == (module = CheckModuleVersion( argv[2])))
+	    module = argv[ 2];
+
+    	if((char *) NULL != (version = strrchr( module, '/')))
+	    *version++ = '\0';
+    }
+
+    /**
+     **  Any alias record existing with this name?
+     **  If it does, we're finished ...
+     **/
+
+    if( ptr = FindName( argv[ 1], aliaslist, &tmp)) {
+
+	if( !ptr->ptr || !ptr->ptr->name ||
+	    !trg_alias && (!ptr->ptr->module || !ptr->ptr->module->module) ) {
+	    ErrorLogger( ERR_INTERAL, LOC, NULL);
+	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+	}
+
+	if( trg_alias && !strcmp( ptr->ptr->name, argv[ 2]) ||
+	    !trg_alias && !strcmp( ptr->ptr->name, version) &&
+		!strcmp( ptr->ptr->module->module, module))
+	    return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
+
+	if( OK != ErrorLogger( ERR_DUP_ALIAS, LOC, argv[1], NULL))
+	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+
+    } else {
+
+	/**
+	 **  We have to allocate a new alias entry
+	 **/
+
+	if((ModName *) NULL == (ptr = AddName( argv[ 1], &aliaslist, NULL))) {
+	    ErrorLogger( ERR_INTERAL, LOC, NULL);
+	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+	}
+    }
+
+    /**
+     **  Now ptr points to the affected module alias record ...
+     **  Conditionally we have to create the module and the version record now.
+     **/
+
+    if( trg_alias) {
+	ptr->ptr = trg_alias;
+
+    } else {
+	if((ModModule *) NULL == (modptr = AddModule( module))) {
+	    ErrorLogger( ERR_BADMODNAM, LOC, argv[2], NULL);
+	    ptr->ptr = (ModName *) NULL;
+	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+	}
+	ptr->ptr = AddName( (version ? version : _default), &modptr->version,
+	    modptr);
     }
 
 #if WITH_DEBUGGING_CALLBACK
@@ -855,51 +719,83 @@ int	cmdModuleAlias(	ClientData	 client_data,
     return( TCL_OK);
 
 } /** End of 'cmdModuleAlias' **/
-
 
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
  **   Function:		AliasLookup					     **
  ** 									     **
- **   Description:	Resolves a given alias to a  string.		     **
+ **   Description:	Resolves a given alias to a module/version string    **
  ** 									     **
- **   First Edition:	1995/12/28					     **
+ **   First Edition:	95/12/28					     **
  ** 									     **
- **   Parameters:	const char *alias	Name of the alias to be re-  **
+ **   Parameters:	char	*alias		Name of the alias to be re-  **
  **						solved			     **
+ **			char	**module	Buffer for the module name   **
+ **			char	**version	Buffer for the module version**
  ** 									     **
- **   Result:		const char *string	Success, value in the buffer **
+ **   Result:		int	1		Success, value in the buffer **
  **						is valid		     **
- **				    NULL	Any error, or not found	     **
+ **				0		Any error, or not found	     **
  ** 									     **
  **   Attached Globals:	aliaslist	List containing all alises	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
 
-const char *	AliasLookup( const char *alias )
+int	AliasLookup(	char	*alias,
+			char	**module,
+			char	**version)
 {
-	char const *retval = (char const *) NULL;
-	char const *talias = alias;
-	uvec *alias_element;
-	int cnt = 0;
+    ModName	*ptr, *tmp, *oldptr = NULL;
 
-	/* check aliases other aliases - let at most 5 levels of indirection */
-	while (talias && *talias && cnt < 5
-		&& (alias_element = (uvec *) avec_lookup(aliaslist, talias))) {
-		cnt++;
-	/* got something - return last item in stack */
-		if (uvec_exists(alias_element) && uvec_number(alias_element)) {
-		    talias = retval = (char const *)
-			    uvec_vector(alias_element)[uvec_end(alias_element)];
-		} else {
-		    talias = retval = (char const *) NULL;
-		}
+    while( 1) {
 
+	/**
+	 **  Lokate the alias entry and check intergrity
+	 **/
+
+	if((ModName *) NULL == (ptr = FindName( alias, aliaslist, &tmp)))
+	    return( 0);			/** ------- EXIT (not found) ------> **/
+
+	if( ptr == oldptr || !ptr->ptr || !ptr->ptr->name ) {
+	    ErrorLogger( ERR_INTERAL, LOC, NULL);
+	    return( 0);			/** -------- EXIT (FAILURE) -------> **/
 	}
 
-	return retval;
+	/**
+	 **  Do we have to loop? Another alias has no module reference ...
+	 **/
+
+        if( !ptr->ptr->module) {
+	    alias = ptr->ptr->name;
+	    oldptr = ptr;
+	    continue;
+	}
+
+	/**
+	 **  Got it. Get the module name and the version from the found
+	 **  entry.
+	 **  Dereference symbolic module versions
+	 **/
+
+	*module = ptr->ptr->module->module;
+	*version = ptr->ptr->name;
+
+	if((ModName *) NULL != (ptr = FindName( *version,
+	    ptr->ptr->module->name, &tmp))) {
+	    if( !ptr->version || !ptr->version->name) {
+		if( OK != ErrorLogger( ERR_INTERAL, LOC, NULL))
+		    return( 0);
+	    } else 
+		*version = ptr->version->name;
+	}
+
+	break;
+
+    } /** while **/
+
+    return( 1);
 
 } /** End of 'AliasLookup' **/
 
@@ -908,41 +804,46 @@ const char *	AliasLookup( const char *alias )
  ** 									     **
  **   Function:		VersionLookup					     **
  ** 									     **
- **   Description:	Resolves a given name to a module/version string    **
+ **   Description:	Resolves a given alias to a module/version string    **
  ** 									     **
- **   First Edition:	1995/12/28					     **
+ **   First Edition:	95/12/28					     **
  ** 									     **
- **   Parameters:	char	*alias		Name of the alias to be      **
- **						resolved		     **
+ **   Parameters:	char	*alias		Name of the alias to be re-  **
+ **						solved			     **
  **			char	**module	Buffer for the module name   **
  **			char	**version	Buffer for the module version**
  ** 									     **
  **   Result:		int	1		Success, value in the buffer **
  **						is valid		     **
  **				0		Any error, or not found	     **
- **   Attached Globals:	modlist		List containing all version names    **
- **			aliaslist	List containing all aliases	     **
+
+ **   Attached Globals:	g_current_module	The module which is handled  **
+ **						by the current command	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
 
 int	VersionLookup(	char *name, char **module, char **version)
 {
-    ElemModule	*mptr;
+    static char  buffer[ BUFSIZ];
+    ModModule	*mptr, *mtmp;
+    ModName	*vptr, *vtmp;
+    ModName	**history;
     char	*s, *t;
-    char	 buffer[BUFSIZ];
+    int		 histsize = 0, histndx = 0, i;
 
     /**
-     **  If given a path - check module list
+     **  Check whether this is an alias ...
+     **  BTW: Alias lookups return the FQMN (full qualifed module name ;-)
      **/
 
     if( '/' == *name) {
-	if((ElemModule *) NULL == (mptr = FindModule(name)))
-		return 0;
-	*module = (char *) NULL;
-	/* return default - if given */
-	if(!(*version = FindName(mptr,_default)))
-		return 0;
+	strcpy( buffer, g_current_module);
+	if( s = strrchr( buffer, '/'))
+	    *s = '\0';
+	*module = buffer;
+	*version = name + 1;
+    
     } else {
 
 	strcpy( buffer, name);
@@ -950,8 +851,7 @@ int	VersionLookup(	char *name, char **module, char **version)
 
 	if((char *) NULL == (*version = strrchr( buffer, '/'))) {
 
-	    /* see if an alias was passed */
-	    if( s = (char *) avec_lookup(aliaslist, buffer)) {
+	    if( AliasLookup( buffer, &s, &t)) {
 		*module = s; *version = t;
 
 	    } else
@@ -963,42 +863,84 @@ int	VersionLookup(	char *name, char **module, char **version)
 
     /**
      **  Look up modulename ...
-     **  We call it success, if we do not find a registered name.
+     **  We call it success, if we do not find a registerd name.
      **  In this case <module>/<version> will be returned as passed.
      **/
-    if((ElemModule *) NULL == (mptr = FindModule(g_module_path)))
+    if((ModModule *) NULL == (mptr = FindModule( *module, &mtmp))) {
 	return( 1);			/** -------- EXIT (SUCCESS) -------> **/
+    }
+
+    /**
+     **  This is for preventing from endless loops
+     **/
+    histsize = HISTTAB;
+    histndx = 0;
+
+    if((ModName **) NULL == (history = (ModName **) malloc( histsize * 
+	sizeof( ModName *)))) {
+	ErrorLogger( ERR_ALLOC, LOC, NULL);
+	return( 0);			/** -------- EXIT (FAILURE) -------> **/
+    }
+
+    /**
+     **  Now look up the version name. Check symbolic names first. If some-
+     **  thing is found, check if the related version record itsself relates
+     **  to a name record ...
+     **/
+    while( 1) {
+
+	/**
+	 **  Check the symbolic names ...
+	 **/
+	if((ModName *) NULL != (vptr = FindName( *version, mptr->name, &vtmp))){
+	    if( !vptr->version || !vptr->version->name) {
+		if( OK != ErrorLogger( ERR_INTERAL, LOC, NULL)) 
+		    *version = (char *) NULL;
+		break;
+	    }
+
+	    *version = vptr->version->name;
+
+	    /**
+	     **  Prevent from looping ...
+	     **/
+	    for( i=0; i<histndx; i++) {
+		if( history[ i] == vptr) {		/** That's the loop  **/
+		    ErrorLogger( ERR_SYMLOOP, LOC, *version, NULL);
+		    *version = (char *) NULL;
+		    break;
+		}
+	    }
+
+	    if( !*version)
+		break;
+
+	    if( histndx >= histsize) {
+		histsize += HISTTAB;
+
+		if((ModName **) NULL == (history = (ModName **) realloc(
+		    history, histsize * sizeof( ModName *)))) {
+		    ErrorLogger( ERR_ALLOC, LOC, NULL);
+		    return( 0);		/** -------- EXIT (FAILURE) -------> **/
+		}
+	    }
+
+	    history[ histndx++] = vptr;
+
+	} else {
+	    break;
+
+	} /** if( FindName) **/
+    } /** while( 1) **/
+
+    /**
+     **  Free the loop preventing list
+     **  If version is NULL now, something went wrong in the lookup loop above
+     **/
+    null_free((void *) &history);
+    return((char *) NULL != *version);
 
 } /** End of 'VersionLookup' **/
-
-/*++++
- ** ** Function-Header ***************************************************** **
- ** 									     **
- **   Function:		InitVersion					     **
- ** 									     **
- **   Description:	Initialize the version and alias structure	     **
- ** 									     **
- **   First Edition:	2002/06/23					     **
- ** 									     **
- **   Parameters:	-						     **
- ** 									     **
- **   Result:		int		returns 0 on success		     **
- ** 					else != 0 if failure		     **
- ** 									     **
- **   Attached Globals:	modlist		List containing all version names    **
- **			aliaslist	List containing all aliases	     **
- ** 									     **
- ** ************************************************************************ **
- ++++*/
-
-int	InitVersion(void)
-{
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_InitVersion, NULL);
-#endif
-
-} /** End of 'InitVersion' **/
-
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -1007,7 +949,7 @@ int	InitVersion(void)
  ** 									     **
  **   Description:	Cleanup the version structure			     **
  ** 									     **
- **   First Edition:	1995/12/28					     **
+ **   First Edition:	95/12/28					     **
  ** 									     **
  **   Parameters:	-						     **
  ** 									     **
@@ -1019,22 +961,21 @@ int	InitVersion(void)
  ** ************************************************************************ **
  ++++*/
 
-#if 0
-void	CleanupVersion(ElemModule *ptr)
+void	CleanupVersion(ModModule *ptr)
 {
 #if WITH_DEBUGGING_UTIL_2
     ErrorLogger( NO_ERR_START, LOC, _proc_CleanupVersion, NULL);
 #endif
 
     CleanupVersionSub( modlist);
-    modlist = (ElemModule *) NULL;
+    modlist = (ModModule *) NULL;
 
     CleanupName( aliaslist);
     aliaslist = (ModName *) NULL;
 
 } /** End of 'CleanupVersion' **/
 
-static void	CleanupVersionSub( ElemModule *ptr)
+static void	CleanupVersionSub( ModModule *ptr)
 {
     /**
      **  Recursion
@@ -1081,12 +1022,11 @@ static void	CleanupName( ModName *ptr)
  ** 									     **
  **   Description:	Add a new entry to the modules queue		     **
  ** 									     **
- **   First Edition:	1995/12/28					     **
+ **   First Edition:	95/12/28					     **
  ** 									     **
- **   Parameters:	const	char	*path	path to new module	     **
- **   			const	char	*name	name of the new module	     **
+ **   Parameters:	char	*name		Name of the new module	     **
  ** 									     **
- **   Result:		ElemModule*	NULL	Any error                    **
+ **   Result:		ModModule*	NULL	Any error                    **
  **					Else	Pointer to the new record    **
  ** 									     **
  **   Attached Globals:	modlist		List containing all version names    **
@@ -1094,10 +1034,9 @@ static void	CleanupName( ModName *ptr)
  ** ************************************************************************ **
  ++++*/
 
-static	ElemModule	*AddModule(	const char	*path,
-					const char	*name)
+static	ModModule	*AddModule(	char	*name)
 {
-    ElemModule	*app_ptr, *ptr;
+    ModModule	*app_ptr, *ptr;
 
 #if WITH_DEBUGGING_UTIL_1
     ErrorLogger( NO_ERR_START, LOC, _proc_AddModule, NULL);
@@ -1106,37 +1045,35 @@ static	ElemModule	*AddModule(	const char	*path,
     /**
      **  We do not trust in NULL module names
      **/
+
     if( !name || !*name)
-	return((ElemModule *) NULL);
+	return((ModModule *) NULL);
 
     /**
      **  Check if the module name already exists and save the 'prev' pointer
      **  for appending the new one.
      **/
-    if( ptr = FindModule(path))
+
+    if( ptr = FindModule( name, &app_ptr))
 	return( ptr);
 
     /**
      **  Allocate a new guy
      **/
-    if((ElemModule *) NULL == (ptr = (ElemModule *) malloc( sizeof(ElemModule)))) {
+
+    if((ModModule *) NULL == (ptr = (ModModule *) malloc( sizeof(ModModule)))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
-	return((ElemModule *) NULL);
+	return((ModModule *) NULL);
     }
 
     /**
-     **  Fill the path & name in and put it in the queue
+     **  Fill the name in and put it in the queue
      **/
-    if((char *) NULL == (ptr->path = strdup( path))) {
-	ErrorLogger( ERR_ALLOC, LOC, NULL);
-	null_free((void *) &ptr);
-	return((ElemModule *) NULL);
-    }
+
     if((char *) NULL == (ptr->module = strdup( name))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
-	null_free((void *) &(ptr->path));
 	null_free((void *) &ptr);
-	return((ElemModule *) NULL);
+	return((ModModule *) NULL);
     }
 
     if( app_ptr) {
@@ -1153,6 +1090,7 @@ static	ElemModule	*AddModule(	const char	*path,
     /**
      **  Pass back the pointer to the new entry
      **/
+
 #if WITH_DEBUGGING_UTIL_1
     ErrorLogger( NO_ERR_END, LOC, _proc_AddModule, NULL);
 #endif
@@ -1161,19 +1099,20 @@ static	ElemModule	*AddModule(	const char	*path,
 
 } /** End of 'AddModule' **/
 
-#endif
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
  **   Function:		FindModule					     **
  ** 									     **
- **   Description:	Find the modules element for the module fullpath     **
+ **   Description:	Find a new entry in the modules queue		     **
  ** 									     **
- **   First Edition:	1995/12/28					     **
+ **   First Edition:	95/12/28					     **
  ** 									     **
- **   Parameters:	const	char	*pathmodule	path to new module   **
+ **   Parameters:	char		*name	Name of be found	     **
+ **			ModModule	**prev	Buffer for the 'previous'    **
+ **						pointer			     **
  ** 									     **
- **   Result:		ElemModule*	NULL	Any error or not found       **
+ **   Result:		ModModule*	NULL	Any error or not found       **
  **					Else	Pointer to the record	     **
  ** 									     **
  **   Attached Globals:	modlist		List containing all version names    **
@@ -1181,25 +1120,29 @@ static	ElemModule	*AddModule(	const char	*path,
  ** ************************************************************************ **
  ++++*/
 
-static	ElemModule	*FindModule(	const	char	 *pathmodule)
+static	ModModule	*FindModule(	char		 *name,
+					ModModule	**prev)
 {
-    ElemModule *modelem = (ElemModule *) NULL;
+    ModModule	*ptr = modlist;
+    int		 cmp = 1;
 
 #if WITH_DEBUGGING_UTIL_1
     ErrorLogger( NO_ERR_START, LOC, _proc_FindModule, NULL);
 #endif
 
-    if (modlist && pathmodule)
-	    modelem = avec_lookup(modlist, pathmodule);
+    *prev = (ModModule *) NULL;
+    while( ptr && 0 < (cmp = strcmp( name, ptr->module))) {
+	*prev = ptr;
+	ptr = ptr->next;
+    }
 
 #if WITH_DEBUGGING_UTIL_1
     ErrorLogger( NO_ERR_END, LOC, _proc_FindModule, NULL);
 #endif
 
-    return modelem;
+    return( cmp ? (ModModule *) NULL : ptr);
 
 } /** End of 'FindModule' **/
-#if 0
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -1208,11 +1151,11 @@ static	ElemModule	*FindModule(	const	char	 *pathmodule)
  ** 									     **
  **   Description:	Add a new entry to the name queue		     **
  ** 									     **
- **   First Edition:	1995/12/28					     **
+ **   First Edition:	95/12/28					     **
  ** 									     **
- **   Parameters:	const char *name	Name of the new entry	     **
+ **   Parameters:	char	 *name		Name of the new entry	     **
  **			ModName	**start		Start of the queue	     **
- **			ElemModule *module	Parent module record pointer **
+ **			ModModule *module	Parent module record pointer **
  ** 									     **
  **   Result:		ModName*	NULL	Any error                    **
  **					Else	Pointer to the new record    **
@@ -1220,10 +1163,11 @@ static	ElemModule	*FindModule(	const	char	 *pathmodule)
  ** ************************************************************************ **
  ++++*/
 
-static	ModName	*AddName(	const	char	 *name,
-				ModName		**start,
-				ElemModule	 *module)
+static	ModName	*AddName(	char	 *name,
+				ModName	**start,
+				ModModule *module)
 {
+    ModName	*app_ptr, *ptr;
 
 #if WITH_DEBUGGING_UTIL_1
     ErrorLogger( NO_ERR_START, LOC, _proc_AddName, NULL);
@@ -1234,7 +1178,7 @@ static	ModName	*AddName(	const	char	 *name,
      **  for appending the new one.
      **/
 
-    if( ptr = FindName( name, *start))
+    if( ptr = FindName( name, *start, &app_ptr))
 	return( ptr);
 
     /**
@@ -1278,195 +1222,48 @@ static	ModName	*AddName(	const	char	 *name,
     return( ptr);
 
 } /** End of 'AddName' **/
-#endif
 
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
  **   Function:		FindName					     **
  ** 									     **
- **   Description:	Find the version associated with name for the given  **
- ** 			module element.					     **
+ **   Description:	Find a new entry in the modules queue		     **
  ** 									     **
- **   First Edition:	1995/12/28					     **
+ **   First Edition:	95/12/28					     **
  ** 									     **
- **   Parameters:	ElemModule  *modelem	module elem with name queue  **
- **   Parameters:	char	    *name	Name of be found	     **
+ **   Parameters:	char	 *name		Name of be found	     **
+ **			ModName  *start		Start of the name queue      **
+ **			ModName	**prev		Buffer for the 'previous'    **
+ **						pointer			     **
  ** 									     **
- **   Result:		char*		NULL	Any error or not found       **
- **					Else	version that name points to  **
+ **   Result:		ModName*	NULL	Any error or not found       **
+ **					Else	Pointer to the record	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
 
-static	char		*FindName(	ElemModule	 *modelem,
-					const	char	 *name)
+static	ModName	*FindName(	char	 *name,
+				ModName  *start,
+				ModName	**prev)
 {
-    char	*ver = (char *) NULL;
-    char const	*alias;
+    ModName	*ptr = start;
+    int		 cmp = 1;
 
 #if WITH_DEBUGGING_UTIL_1
     ErrorLogger( NO_ERR_START, LOC, _proc_FindName, NULL);
 #endif
 
-    /* assume name is an alias, find the actual name */
-    if (modelem) {
-        if ((alias = AliasLookup(name)))
-		name = alias;
-	ver = avec_lookup(modelem->names2vers, name);
+    *prev = (ModName *) NULL;
+    while( ptr && 0 < (cmp = strcmp( name, ptr->name))) {
+	*prev = ptr;
+	ptr = ptr->next;
     }
 
 #if WITH_DEBUGGING_UTIL_1
     ErrorLogger( NO_ERR_END, LOC, _proc_FindName, NULL);
 #endif
 
-    return ver;
+    return( cmp ? (ModName *) NULL : ptr);
 
 } /** End of 'FindName' **/
-
-/*++++
- ** ** Function-Header ***************************************************** **
- ** 									     **
- **   Function:		dump_*						     **
- ** 									     **
- **   Description:	dumps the contents of the modules & alias lists	     **
- ** 			only for interactive debugging, e.g.		     **
- ** 			 (gdb) p dump_both()				     **
- ** 									     **
- **   First Edition:	2002/06/20					     **
- ** 									     **
- ** ************************************************************************ **
- ++++*/
-
-void	dump_both() {
-	fprintf(stderr,
-	"==========================================================\n");
-	fprintf(stderr,"modlist:\n");
-	fprintf(stderr,
-	"----------------------------------------------------------\n");
-	dump_modlist();
-	fprintf(stderr,
-	"==========================================================\n");
-	fprintf(stderr,"aliaslist:\n");
-	fprintf(stderr,
-	"----------------------------------------------------------\n");
-	dump_aliaslist();
-	fprintf(stderr,
-	"==========================================================\n");
-}
-
-static void	lindent(int l) {
-	char deep[11]="\t\t\t\t\t\t\t\t\t\t";
-	l = (l > 10 ? 10 : l);
-	fprintf(stderr,"%s", deep + 10 - l);
-}
-
-#if 0
-static void	dump_version_list(int l, struct _mod_module *m) {
-	ModName *vptr;
-	int i = 1;
-	if (m) {
-		vptr = m->version;
-		lindent(l++);fprintf(stderr,"Module Versions\n");
-		while (vptr) {
-			lindent(l);fprintf(stderr,"V[%d]\n", i);
-			dump_struct_mod_name(l,vptr);
-			i++;
-			vptr = vptr->ptr;
-		}
-	}
-}
-
-static void	dump_name_list(int l, struct _mod_module *m) {
-	ModName *nptr;
-	int i = 1;
-	if (m) {
-		nptr = m->name;
-		lindent(l++);fprintf(stderr,"Module Names\n");
-		while (nptr) {
-			lindent(l);fprintf(stderr,"N[%d]\n", i);
-			dump_struct_mod_name(l,nptr);
-			i++;
-			nptr = nptr->ptr;
-		}
-	}
-}
-#endif
-
-void	dump_modlist() {
-	avec *mptr = modlist;
-	avec_element **ae = NULL;
-	avec_element **aee = NULL;
-	ElemModule *em;
-	int level = 0;
-	int entry = 1;
-	if (modlist) {
-		while(ae = avec_walk_r(modlist, ae)) {
-			em = (ElemModule *) AVEC_DATA(*ae);
-			fprintf(stderr,"module: '%s'=>\n",AVEC_KEY(*ae));
-			fprintf(stderr,"<%d> '%s'\n",
-				uvec_number(em->versions),
-				uvec2str(em->versions,":"));
-
-			entry = 1;
-			aee = NULL;
-			fprintf(stderr,"names->versions =\n");
-			while(aee = avec_walk_r(em->names2vers, aee)) {
-				fprintf(stderr,"<%d> '%s' => '%s'\n", entry,
-					AVEC_KEY(*aee),
-					AVEC_DATA(*aee));
-				entry++;
-			}
-		}
-	} else {
-		fprintf(stderr,"(NULL)\n");
-	}
-}
-
-void	dump_aliaslist() {
-	avec_element **ae = NULL;
-	int entry = 1;
-
-	if (aliaslist) {
-		while(ae = avec_walk_r(aliaslist, ae)) {
-			fprintf(stderr,"<%d> '%s' => '%s'\n", entry,
-				AVEC_KEY(*ae),
-				uvec2str(AVEC_DATA(*ae),":"));
-			entry++;
-		}
-	} else {
-		fprintf(stderr,"(NULL)\n");
-	}
-}
-
-#if 0
-void	dump_struct_mod_module(int l,struct _mod_module *m) {
-	lindent(l++); fprintf(stderr,"MODULE:%p: '%s' / '%s' \n",
-			m, m->path, m->module);
-	lindent(l); fprintf(stderr,"next   :%p",m->next);
-	if (m->next)	fprintf(stderr," <- %s / %s\n",
-			m->next->path, m->next->module);
-	else		fprintf(stderr,"\n");
-	lindent(l); fprintf(stderr,"version:%p",m->version);
-	if (m->version)	fprintf(stderr," <- %s\n", m->version->name);
-	else		fprintf(stderr,"\n");
-	lindent(l); fprintf(stderr,"name   :%p\n",m->name);
-}
-
-void	dump_struct_mod_name(int l,struct _mod_name *n) {
-	lindent(l++); fprintf(stderr,"NAME:%p: '%s' \n",n, n->name);
-	lindent(l); fprintf(stderr,"next   :%p",n->next);
-	if (n->next)	fprintf(stderr," <- %s\n", n->next->name);
-	else		fprintf(stderr,"\n");
-	lindent(l); fprintf(stderr,"ptr    :%p",n->ptr);
-	if (n->ptr)	fprintf(stderr," <- %s\n", n->ptr->name);
-	else		fprintf(stderr,"\n");
-	lindent(l); fprintf(stderr,"version:%p",n->version);
-	if (n->version)	fprintf(stderr," <- %s\n", n->version->name);
-	else		fprintf(stderr,"\n");
-	lindent(l); fprintf(stderr,"module :%p",n->module);
-	if (n->module)	fprintf(stderr," <- %s / %s\n",
-			n->module->path, n->module->module);
-	else		fprintf(stderr,"\n");
-}
-#endif

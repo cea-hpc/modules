@@ -5,11 +5,10 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		utility.c					     **
- **   First Edition:	1991/10/23					     **
+ **   First Edition:	91/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	General routines that are called throughout Modules  **
  **			which are not necessarily specific to any single     **
@@ -36,6 +35,7 @@
  **			xgetenv						     **
  **			stringer					     **
  **			null_free					     **
+ **			countTclHash					     **
  **									     **
  **			strdup		if not defined by the system libs.   **
  **			strtok		if not defined by the system libs.   **
@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.12 2002/09/16 16:49:20 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.13 2005/11/14 23:51:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -60,7 +60,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 #include "modules_def.h"
-#include "uvec.h"
 
 /** ************************************************************************ **/
 /** 				  LOCAL DATATYPES			     **/
@@ -114,7 +113,29 @@ static	char	_proc_chop[] = "chop";
 #endif
 
 static	FILE *aliasfile;		/** Temporary file to write aliases  **/
+static	char *aliasfilename;		/** Temporary file name		     **/
 static	char  alias_separator = ';';	/** Alias command separator	     **/
+static	const int   eval_alias = 	/** EVAL_ALIAS macro		     **/
+#ifdef EVAL_ALIAS
+	1
+#else
+	0
+#endif
+;
+static	const int   bourne_funcs = 	/** HAS_BOURNE_FUNCS macro	     **/
+#ifdef HAS_BOURNE_FUNCS
+	1
+#else
+	0
+#endif
+;
+static	const int   bourne_alias = 	/** HAS_BOURNE_FUNCS macro	     **/
+#ifdef HAS_BOURNE_ALIAS
+	1
+#else
+	0
+#endif
+;
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -612,6 +633,10 @@ int Unwind_Modulefile_Changes(	Tcl_Interp	 *interp,
 
 } /** End of 'Unwind_Modulefile_Changes' **/
 
+static int keycmp(const void *a, const void *b) {
+	return strcmp(*(const char **) a, *(const char **) b);
+}
+                                                                                
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
@@ -638,11 +663,13 @@ int Unwind_Modulefile_Changes(	Tcl_Interp	 *interp,
 
 int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 {
-    Tcl_HashSearch	 searchPtr;	/** Tcl hash search handle	     **/
-    Tcl_HashEntry	*hashEntry;	/** Result from Tcl hash search      **/
-    char		*val = NULL,	/** Stored value (is a pointer!)     **/
-			*key;		/** Tcl hash key		     **/
-    int			 i;		/** Loop counter		     **/
+    Tcl_HashSearch	  searchPtr;	/** Tcl hash search handle	     **/
+    Tcl_HashEntry	 *hashEntry;	/** Result from Tcl hash search      **/
+    char		 *val = NULL,	/** Stored value (is a pointer!)     **/
+			 *key,		/** Tcl hash key		     **/
+			**list;		/** list of keys		     **/
+    int			  i,k;		/** Loop counter		     **/
+    size_t		  hcnt;		/** count of hash entries	     **/
 
     /**
      **  The following hash tables do contain all changes to be made on
@@ -661,30 +688,49 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
     aliasfile = stdout;
 
     /**
-     **  Scan both table that are of interest for shell variables
+     **  Scan both tables that are of interest for shell variables
      **/
 
     for(i = 0; i < 2; i++) {
-	if( hashEntry = Tcl_FirstHashEntry( table[i], &searchPtr)) {
+	/* count hash */
+	hcnt = countTclHash(table[i]);
 
-	    do {
-		key = (char*) Tcl_GetHashKey( table[i], hashEntry);
+	/* allocate array for keys */
+	if( !(list = (char **) malloc(hcnt * sizeof(char *)))) {
+		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+	    		return(TCL_ERROR);/** ------- EXIT (FAILURE) ------> **/
+	}
 
+	/* collect keys */
+	k = 0;
+	if( hashEntry = Tcl_FirstHashEntry( table[i], &searchPtr))
+		do {
+			key = (char*) Tcl_GetHashKey( table[i], hashEntry);
+			list[k++] = strdup(key);
+		} while( hashEntry = Tcl_NextHashEntry( &searchPtr));
+	/* sort hash */
+	if (hcnt > 1)
+		qsort((void *) list, hcnt, sizeof(char *), keycmp);
+
+	/* output key/values */
+	for (k = 0; k < hcnt; ++k) {
+		key = list[k];
+    		hashEntry = Tcl_FindHashEntry( table[i], key);
 		/**
 		 **  The table list indicator is used in order to differ
 		 **  between the setenv and unsetenv operation
 		 **/
-
 		if( i == 1) {
-		    output_unset_variable( (char*) key);
+			output_unset_variable( (char*) key);
 		} else {
-		    if( val = Tcl_GetVar2( interp, "env", key, TCL_GLOBAL_ONLY))
-			output_set_variable( interp, (char*) key, val);
+			if(val=Tcl_GetVar2(interp,"env",key,TCL_GLOBAL_ONLY))
+				output_set_variable(interp, (char*) key, val);
 		}
-
-	    } while( hashEntry = Tcl_NextHashEntry( &searchPtr));
-
-	} /** if **/
+	} /** for **/
+	/* delloc list */
+	for (k = 0; k < hcnt; ++k)
+		free(list[k]);
+	free(list);
     } /** for **/
 
     if( EOF == fflush( stdout))
@@ -694,8 +740,8 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
     Output_Modulefile_Aliases( interp);
   
     /**
-     ** Delete and reset the hash tables now that the current contents have been
-     ** flushed.
+     **  Delete and reset the hash tables since the current contents have been
+     **  flushed.
      **/
 
     Clear_Global_Hash_Tables();
@@ -703,6 +749,47 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 
 } /* End of 'Output_Modulefile_Changes' */ 
 
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		Open_Aliasfile					     **
+ ** 									     **
+ **   Description:	Creates/opens or closes temporary file for sourcing  **
+ **			or aliases.					     **
+ **			Passes back the filehandle and filename in global    **
+ ** 			variables.					     **
+ ** 									     **
+ **   First Edition:	2005/09/26	R.K.Owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   Parameters:	int	action		if != 0 to open else close   **
+ ** 									     **
+ **   Result:		int	TCL_OK		Successful operation	     **
+ ** 									     **
+ **   Attached Globals: aliasfile					     **
+ **			aliasfilename					     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+static	int Open_Aliasfile(int action)
+{
+
+    if (action) {
+	/**
+	 **  Open the file ...
+	 **/
+	if( tmpfile_mod(&aliasfilename,&aliasfile))
+	    if(OK != ErrorLogger( ERR_OPEN, LOC, aliasfilename, "append", NULL))
+		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+    } else {
+	if( EOF == fclose( aliasfile))
+	    if( OK != ErrorLogger( ERR_CLOSE, LOC, aliasfile, NULL))
+		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+    }
+
+    return( TCL_OK);
+
+} /** End of 'Open_Aliasfile' **/
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
@@ -716,7 +803,7 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
  **			the /tmp dotfile and then have the shell remove the  **
  **			/tmp dotfile.					     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		The attached Tcl in- **
  **							terpreter	     **
@@ -735,7 +822,8 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
     Tcl_HashEntry	*hashEntry;	/** Result from Tcl hash search      **/
     char		*val = NULL,	/** Stored value (is a pointer!)     **/
 			*key;		/** Tcl hash key		     **/
-    int			 i;		/** Loop counter		     **/
+    int			 i,		/** Loop counter		     **/
+			 openfile = 0;	/** whether using a file or not	     **/
     char		*sourceCommand; /** Command used to source the alias **/
 
     /**
@@ -744,7 +832,8 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
      **/
     Tcl_HashTable	*table[2];
 
-#ifndef EVAL_ALIAS
+    table[0] = aliasSetHashTable;
+    table[1] = aliasUnsetHashTable;
 
     /**
      **  If configured so, all changes to aliases are written into a temporary
@@ -754,24 +843,28 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
      **  The default for aliasfile, if no shell sourcing is used, is stdout.
      **/
 
-    char* aliasfilename; /* this is malloc'ed by tmpfile_mod() below */
-
-#endif /* not EVAL_ALIAS */
-
-    table[0] = aliasSetHashTable;
-    table[1] = aliasUnsetHashTable;
-
 #if WITH_DEBUGGING_UTIL_2
     ErrorLogger( NO_ERR_START, LOC, _proc_Output_Modulefile_Aliases, NULL);
 #endif
 
-#ifndef EVAL_ALIAS
     /**
      **  We only need to output stuff into a temporary file if we're setting
      **  stuff.  We can unset variables and aliases by just using eval.
      **/
     if( hashEntry = Tcl_FirstHashEntry( aliasSetHashTable, &searchPtr)) {
 
+	/**
+	 **  We must use an aliasfile if EVAL_ALIAS is not defined
+	 **  or the sh shell does not do aliases (HAS_BOURNE_ALIAS)
+	 **  and that the sh shell does do functions (HAS_BOURNE_FUNCS)
+	 **/
+	if (!eval_alias
+	|| (!strcmp(shell_name,"sh") && !bourne_alias && bourne_funcs)) {
+	    if (OK != Open_Aliasfile(1))
+		if(OK != ErrorLogger(ERR_OPEN,LOC,aliasfilename,"append",NULL))
+		    return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+	    openfile = 1;
+	}
 	/**
 	 **  We only support sh and csh variants for aliases.  If not either
 	 **  sh or csh print warning message and return
@@ -784,16 +877,7 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
 	    return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	}
 
-	/**
-	 **  Open the file ...
-	 **/
-
-	if( tmpfile_mod(&aliasfilename,&aliasfile)) {
-	    if(OK != ErrorLogger( ERR_OPEN, LOC, aliasfilename, "append", NULL))
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-
-	} else {
-
+	if (openfile) {
 	    /**
 	     **  Only the source command has to be flushed to stdout. After
 	     **  sourcing the alias definition (temporary) file, the source
@@ -804,13 +888,9 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
 	    fprintf( stdout, sourceCommand, aliasfilename, shell_cmd_separator);
 	    fprintf( stdout, "/bin/rm -f %s%s",
 		aliasfilename, shell_cmd_separator);
-	} /** if( fopen) **/
+	} /** openfile **/
     } /** if( alias to set) **/
 
-    /* null_free((void *) &aliasfilename); *//* generally not malloc'd space */
-
-#endif /* EVAL_ALIAS */
-  
     /**
      **  Scan the hash tables involved in changing aliases
      **/
@@ -838,11 +918,14 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
 	} /** if **/
     } /** for **/
 
-#ifndef EVAL_ALIAS
-    if( EOF == fclose( aliasfile))
-	if( OK != ErrorLogger( ERR_CLOSE, LOC, aliasfile, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-#endif
+
+    if(openfile) {
+	if( OK == Open_Aliasfile(0))
+	    if( OK != ErrorLogger( ERR_CLOSE, LOC, aliasfile, NULL))
+		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+
+	null_free((void *) &aliasfilename);
+    }
 
     return( TCL_OK);
 
@@ -1104,7 +1187,7 @@ static	int	output_unset_variable( const char* var)
  **			this routine just output the alias information to be **
  **			eval'd by the shell.				     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	const char	*var	Name of the alias to be set  **
  **			const char	*val	Value to be assigned	     **
@@ -1156,7 +1239,7 @@ static	void	output_function(	const char	*var,
     /**
      **  Finally close the function
      **/
-    fprintf( aliasfile, ";%c}%c", alias_separator,alias_separator);
+    fprintf( aliasfile, "%c}%c", alias_separator,alias_separator);
 
 } /** End of 'output_function' **/
 
@@ -1168,14 +1251,14 @@ static	void	output_function(	const char	*var,
  **   Description:	Flush the commands required to set shell aliases de- **
  **			pending on the current invoking shell		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	const char	*alias		Name of the alias    **
  **			const char	*val		Value to be assigned **
  ** 									     **
  **   Result:		int	TCL_OK		Operation successfull	     **
  ** 									     **
- **   Attached Globals:	aliasfile, 	The alias command is writte out to   **
+ **   Attached Globals:	aliasfile, 	The alias command is written out to  **
  **			alias_separator Defined the command separator	     **
  **			shell_derelict	to determine the shell family	     **
  **			shell_name	to determine the real shell type     **
@@ -1186,7 +1269,7 @@ static	void	output_function(	const char	*var,
 static	int	output_set_alias(	const char	*alias,
                			  	const char	*val)
 {
-    int nobackslash = 1;		/** Controls wether backslashes are  **/
+    int nobackslash = 1;		/** Controls whether backslashes are **/
 					/** to be print			     **/
     const char *cptr = val;		/** Scan the value char by char	     **/
         
@@ -1195,7 +1278,7 @@ static	int	output_set_alias(	const char	*alias,
 #endif
 
     /**
-     **  Check fot the shell family
+     **  Check for the shell family
      **  CSHs need to switch $* to \!* and $n to \!\!:n unless the $ has a
      **  backslash before it
      **/
@@ -1241,8 +1324,8 @@ static	int	output_set_alias(	const char	*alias,
         } /** while **/
  
 	/**
-	 **  Now close up the command using the alias command terinator as
-	 **  defined in the according global variable
+	 **  Now close up the command using the alias command terminator as
+	 **  defined in the global variable
 	 **/
         fprintf( aliasfile, "'%c", alias_separator);
 
@@ -1251,26 +1334,13 @@ static	int	output_set_alias(	const char	*alias,
      **  function using the function call 'output_function'
      **/
     } else if( !strcmp(shell_derelict, "sh")) {
-
 	/**
-	 **  The bourne shell itsself
-         **  need to write a function unless this sh doesn't support
-	 **  functions
+	 **  Shells supporting extended bourne shell syntax ....
 	 **/
-        if( !strcmp( shell_name, "sh")) {
-#ifdef HAS_BOURNE_FUNCS
-            output_function(alias, val);
-#else
-	    /** ??? Print an error message ??? **/
-#endif
-
-	/**
-	 **  Shells supportig extended bourne shell syntax ....
-	 **/
-        } else if( !strcmp( shell_name, "bash") ||
-                   !strcmp( shell_name, "zsh" ) ||
-                   !strcmp( shell_name, "ksh")) {
-
+	if( (!strcmp( shell_name, "sh") && bourne_alias)
+		||  !strcmp( shell_name, "bash")
+                ||  !strcmp( shell_name, "zsh" )
+                ||  !strcmp( shell_name, "ksh")) {
 	    /**
 	     **  in this case we only have to write a function if the alias
 	     **  take arguments. This is the case if the value has somewhere
@@ -1282,10 +1352,10 @@ static	int	output_set_alias(	const char	*alias,
 			nobackslash = 0;
 		    }
 		} else {
-	    if( *cptr == '$') {
+	    	   if( *cptr == '$') {
 			if( nobackslash) {
-		output_function( alias, val);
-		return TCL_OK;
+				output_function( alias, val);
+				return TCL_OK;
 			}
 		    }
 		    nobackslash = 1;
@@ -1317,10 +1387,18 @@ static	int	output_set_alias(	const char	*alias,
 
 	    fprintf( aliasfile, "'%c", alias_separator);
 
-        } /** if( bash, zsh, ksh) **/
-	/** ??? Unknwn derelict ??? **/
+        } else if( !strcmp( shell_name, "sh")
+		&&   bourne_funcs) {
+	/**
+	 **  The bourne shell itself
+         **  need to write a function unless this sh doesn't support
+	 **  functions (then just punt)
+	 **/
+            output_function(alias, val);
+        }
+	/** ??? Unknown derelict ??? **/
 
-    } /** if( !csh ) **/
+    } /** if( sh ) **/
 
     return( TCL_OK);
 
@@ -1375,8 +1453,11 @@ static	int	output_unset_alias(	const char	*alias,
     } else if( !strcmp( shell_derelict, "sh")) {
 
         if( !strcmp( shell_name, "sh")) {
-            fprintf( aliasfile, "unset -f %s%c", alias, alias_separator);
-
+	    if (bourne_alias) {
+		fprintf(aliasfile, "unalias %s%c", alias, alias_separator);
+	    } else if (bourne_funcs) {
+        	fprintf(aliasfile,"unset -f %s%c", alias, alias_separator);
+	    } /* else do nothing */
 	/**
 	 **  BASH
 	 **/
@@ -2488,11 +2569,13 @@ char *xdup(char const *string) {
 	} else {
 	/** found something **/
 		char const *envvar;
-		char buffer[MOD_BUFSIZE];
-		char oldbuffer[MOD_BUFSIZE];
+		char  buffer[MOD_BUFSIZE];
+		char  oldbuffer[MOD_BUFSIZE];
 		size_t blen = 0;	/** running buffer length	**/
 		char *slashptr = result;/** where to continue parsing	**/
-		char  slashchr;		/** store slash char		**/ int brace;		/** flag if ${name}		**/
+		char  slashchr;		/** store slash char		**/
+		int   brace;		/** flag if ${name}		**/
+		pid_t pid;		/** the process id		**/
 
 		/** zero out buffers */
 		memset(   buffer, '\0', MOD_BUFSIZE);
@@ -2511,6 +2594,8 @@ char *xdup(char const *string) {
 			if (*(dollarptr + 1) == '{') {
 				brace = 1;
 				slashptr = strchr(dollarptr + 1, '}');
+			} else if (*(dollarptr + 1) == '$') {
+				slashptr = dollarptr + 2;
 			} else {
 				slashptr = dollarptr + 1
 					+ strcspn(dollarptr + 1,"/:$\\");
@@ -2530,13 +2615,18 @@ char *xdup(char const *string) {
 				if(brace)
 					strncat(buffer,"}",MOD_BUFSIZE-blen-1);
 			} else {
-				/** get env.var. value **/
-				envvar = getenv(dollarptr + 1 +brace);
+				if (! strcmp(dollarptr + 1 + brace, "$")) {
+					/** put in the process pid **/
+					pid = getpid();
+					sprintf(buffer + blen,"%ld",(long)pid);
+				} else {
+					/** get env.var. value **/
+					envvar = getenv(dollarptr + 1 + brace);
 
-				/** cat env.var. value to rest of string **/
-				if (envvar)
-					strncat(buffer,envvar,
-					MOD_BUFSIZE-blen-1);
+					/** cat value to rest of string **/
+					if (envvar) strncat(buffer,envvar,
+						MOD_BUFSIZE-blen-1);
+				}
 			}
 			blen = strlen(buffer);
 
@@ -2557,7 +2647,7 @@ char *xdup(char const *string) {
 			}
 		}
 		null_free((void *) &result);
-		return stringer(NULL,0,buffer,NULL);
+		return strdup(buffer);
 	}
 
 } /** End of 'xdup' **/
@@ -2828,7 +2918,7 @@ char *stringer(	char *		buffer,
  ** 									     **
  **   Description:	does a free and then nulls the pointer.		     **
  ** 									     **
- **   first edition:	2000/08/24	R.K.Owen <rk@owen.sj.ca.us>	     **
+ **   first edition:	2000/08/24	r.k.owen <rk@owen.sj.ca.us>	     **
  ** 									     **
  **   parameters:	void	**var		allocated memory	     **
  ** 									     **
@@ -2849,159 +2939,37 @@ void null_free(void ** var) {
 	*var = NULL;
 
 } /** End of 'null_free' **/
-
-/*++++
- ** ** Function-Header ***************************************************** **
- ** 									     **
- **   Function:		module_uvec_fns					     **
- ** 									     **
- **   Description:	the default string functions for uvec.		     **
- ** 									     **
- **   first edition:	2002/08/01	R.K.Owen <rk@owen.sj.ca.us>	     **
- ** 									     **
- ** ************************************************************************ **
- ++++*/
-
-static char *module_str_alloc(char const * str, size_t n) {
-    char* new;
-    if (((char *) NULL) == (new = stringer(NULL,n+1, str, NULL)))
-	if( OK != ErrorLogger( ERR_STRING, LOC, str, NULL))
-	    return( (char*) NULL);	/** -------- EXIT (FAILURE) -------> **/
-    return( new);			/** -------- EXIT (SUCCESS) -------> **/
-}
-
-static int module_str_free(char **str) {
-    null_free((void *) str);
-    return 0;
-}
-
-uvec_str module_str_fns = {
-	UVEC_USER,
-	module_str_alloc,
-	module_str_free
-};
 
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
- **   Function:		col_comp					     **
+ **   Function:		countTclHash					     **
  ** 									     **
- **   Description:	the default string functions for uvec.		     **
+ **   Description:	returns the number of hash entries in a TclHash	     **
  ** 									     **
- **   first edition:	2002/09/11	Harlan Stenn			     **
+ **   first edition:	2005/09/01	r.k.owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   Parameters:	Tcl_HashTable	*table	Hash to count		     **
+ ** 									     **
+ **   Result:		size_t			Count of Hash Entries	     **
+ ** 									     **
+ **   Attached Globals:	-						     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
 
-/* COLLATE COMPARE, COMPARES DIGITS NUMERICALLY AND OTHERS IN ASCII */
 
-/*
- * Expected collate order for numeric "pieces" is:
- * 0 - 9	followed by
- * 00 - 99	followed by
- * 000 - 999	followed by
- * ...
- */
-/* Copyright 2001, Harlan Stenn */
+size_t countTclHash(Tcl_HashTable *table) {
+	size_t result = 0;
+	Tcl_HashSearch	 searchPtr;	/** Tcl hash search handle	     **/
 
-#include <ctype.h>
+	if(Tcl_FirstHashEntry(table, &searchPtr)) {
 
-int 
-colcomp (char *s1, char *s2)
-{
-  int hilo = 0;			/* comparison value */
+	    do {
+		result++;
+	    } while(Tcl_NextHashEntry( &searchPtr));
 
-  while (*s1 && *s2)
-    {
-      if (isascii ((unsigned char) *s1) && isdigit ((unsigned char) *s1) &&
-	  isascii ((unsigned char) *s2) && isdigit ((unsigned char) *s2))
-	{
-	  hilo = (*s1 < *s2) ? -1 : (*s1 > *s2) ? 1 : 0;
-	  ++s1;
-	  ++s2;
-	  while (isascii ((unsigned char) *s1) && isdigit ((unsigned char) *s1)
-	     &&  isascii ((unsigned char) *s2) && isdigit ((unsigned char) *s2))
-	    {
-	      if (!hilo)
-		hilo = (*s1 < *s2) ? -1 : (*s1 > *s2) ? 1 : 0;
-	      ++s1;
-	      ++s2;
-	    }
-	  if (isascii ((unsigned char) *s1) && isdigit ((unsigned char) *s1))
-	    hilo = 1;		/* s2 is first */
-	  if (isascii ((unsigned char) *s2) && isdigit ((unsigned char) *s2))
-	    hilo = -1;		/* s1 is first */
-	  if (hilo)
-	    break;
-	  continue;
-	}
-      if (isascii ((unsigned char) *s1) && isdigit ((unsigned char) *s1))
-	{
-	  hilo = -1;		/* s1 must come first */
-	  break;
-	}
-      if (isascii ((unsigned char) *s2) && isdigit ((unsigned char) *s2))
-	{
-	  hilo = 1;		/* s2 must come first */
-	  break;
-	}
-      hilo = (*s1 < *s2) ? -1 : (*s1 > *s2) ? 1 : 0;
-      if (hilo)
-	break;
-      ++s1;
-      ++s2;
-    }
-  if (*s1 && *s2)
-    return (hilo);
-  if (hilo)
-    return (hilo);
-  return ((*s1 < *s2) ? -1 : (*s1 > *s2) ? 1 : 0);
-}
+	} /** if **/
 
-#if 0
-
-/* break out test code to test colcomp() */
-#include <stdlib.h>
-
-static int  qcmp(   const void      *fi1,
-                    const void      *fi2)
-{
-    return colcomp(*(char**)fi1, *(char**)fi2);
-}
-
-int main( int argc, char *argv[], char *environ[]) {
-  void *base;
-  size_t nmemb = 0;
-  size_t size = sizeof(char *);
-  char *ca[] = {
-    "999", "0", "10", "1", "01", "100", "010", "99", "00", "001", "099", "9"
-  };
-  char **cp;
-  int i;
-
-  if (argc > 1) {
-    /* Sort use-provided list */
-  } else {
-    base = (void *) ca;
-    nmemb = sizeof ca / size;
-  }
-  printf("argc is <%d>, nmemb = <%d>\n", argc, nmemb);
-
-  printf("Before:\n");
-  cp = (char **)base;
-  for (i = 0; i < nmemb; ++i) {
-    printf("%s\n", *cp++);
-  }
-
-  qsort((void *)base, nmemb, size, qcmp);
-
-  printf("After:\n");
-  cp = (char **)base;
-  for (i = 0; i < nmemb; ++i) {
-    printf("%s\n", *cp++);
-  }
-
-  exit(0);
-}
-
-#endif
+	return result;
+} /** End of 'countHashTable' **/

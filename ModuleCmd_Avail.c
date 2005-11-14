@@ -4,7 +4,7 @@
  **   Modules Revision 3.0						     **
  **   Providing a flexible user environment				     **
  ** 									     **
- **   File:		ModuleCmd_Avail.c				     **
+ **   File:		Modulate_Avail.c				     **
  **   First Edition:	91/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.8 2004/10/22 01:32:51 harlan Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.9 2005/11/14 23:51:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -90,8 +90,9 @@ typedef struct _subdir_node {
 #ifdef CACHE_AVAIL
 static	char	*namebuf = NULL;
 #endif
+static	char	 buffer[MOD_BUFSIZE];
 static	char	 buf[ LINELENGTH];
-static	char	module_name[] = "ModuleCmd_Avail.c";	/** File name of this module **/
+static	char	 module_name[] = "ModuleCmd_Avail.c";	/** File name of this module **/
 
 #if WITH_DEBUGGING_MODULECMD
 static	char	_proc_ModuleCmd_Avail[] = "ModuleCmd_Avail";
@@ -676,6 +677,9 @@ static	int	check_cache( char *dir)
 #endif
 
 
+static int	test_version_dir(	struct dirent	*dp)
+{
+}
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
@@ -683,8 +687,11 @@ static	int	check_cache( char *dir)
  ** 									     **
  **   Description:	Read in the passed directory and save every interes- **
  **			ting item in the directory list			     **
+ **			skipping known version control directories:	     **
+ **				CVS RCS .svn				     **
+ **			unless they contain .version files		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char	*dir		Directory to be read	     **
  **			char	*prefix		Directory prefix (path)	     **
@@ -750,15 +757,15 @@ fi_ent	*get_dir(	char	*dir,
     dirlst_last = dirlst_head + DIREST;
   
     /**
-     **  Read in the  contents of the directory. Ignore dotfiles.
+     **  Read in the  contents of the directory. Ignore dotfiles
+     **		and version directories.
      **/
 
     for( count = 0,  dp = readdir( dirptr); dp != NULL; dp = readdir( dirptr)) {
-        if( *dp->d_name == '.')
-	    continue;
+        if( *dp->d_name == '.') continue;
 
 	/**
-	 **  Conditionally double up the space allocated foe reading the direc-
+	 **  Conditionally double up the space allocated for reading the direc-
 	 **  tory
 	 **/
 
@@ -827,10 +834,31 @@ fi_ent	*get_dir(	char	*dir,
 	    }
 
 	    /**
+	     **  What if it's a known version control directory
+	     **  check if it has a .version file
+	     **/
+	    if (!strcmp("CVS",dp->d_name)
+	    ||  !strcmp("RCS",dp->d_name)
+	    ||  !strcmp(".svn",dp->d_name)) {
+    		FILE	*fi;
+		if( (char *) NULL == stringer(buffer, MOD_BUFSIZE,
+		    tmp, "/.version", NULL))
+		    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+			goto unwind1;
+		if( NULL == (fi = fopen( buffer, "r"))) {
+			/* does not have a .version file */
+			continue;
+		} else {
+			/* has a .version file ... assume to be module dir */
+			fclose(fi);
+		}
+	    }
+
+	    /**
 	     **  The recursion itself ...
 	     **/
 
-            dirlst_cur->fi_subdir = get_dir( ndir, np,&dirlst_cur->fi_listcount,
+            dirlst_cur->fi_subdir = get_dir( ndir,np,&dirlst_cur->fi_listcount,
 		&tmpcount);
 
             /**

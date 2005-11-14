@@ -4,7 +4,7 @@
 #
 #   File:		modules.50-cmds/%M%
 #   Revision:		%I%
-#   First Edition:	95/12/06
+#   First Edition:	1995/12/06
 #   Last Mod.:		%U%, %G%
 #
 #   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
@@ -36,7 +36,7 @@ set alias "ps -auxww | grep modulecmd"
 #
 
 set tfnam_pat "/\[a-zA-Z_0-9_/\\.\\-\]+modulesource_\[a-zA-Z_0-9\\.\\-\]+"
-set fil_cmd_sh "testsuite() {\n$alias;\n}"
+set fil_cmd_sh "testsuite() {\n$alias\n}"
 set fil_cmd_ksh "alias testsuite='$alias'"
 set fil_cmd_csh "alias testsuite '$alias'"
 
@@ -56,13 +56,21 @@ set ts_perl "$warn_msgs: Shell 'perl': cannot source alias tempfile - No aliases
 #  The tests
 #
 
-test_alias "sh" "load $module" "$lmf_sh$lm_sh$ts_sh" "$fil_cmd_sh"
-test_alias "ksh" "load $module" "$lmf_sh$lm_sh$ts_sh" "$fil_cmd_ksh"
-test_alias "zsh" "load $module" "$lmf_sh$lm_sh$ts_sh" "$fil_cmd_ksh"
-test_alias "csh" "load $module" "$lmf_csh$lm_csh$ts_csh" "$fil_cmd_csh"
-test_alias "tcsh" "load $module" "$lmf_csh$lm_csh$ts_csh" "$fil_cmd_csh"
+if { [ version_test "HAS_BOURNE_ALIAS=1" ] } {
+	test_alias "sh" "load $module" "$lm_sh$lmf_sh$ts_sh" "$fil_cmd_ksh"
+} elseif { [ version_test "HAS_BOURNE_FUNCS=1" ] } {
+	set shell "sh"
+	modulecmd_start "load $module"
+	_test_alias_fn "load $module" "$lm_sh$lmf_sh$ts_sh" "$fil_cmd_sh"
+} else {
+	send_user "skipping sh alias test\n"
+}
+test_alias "ksh" "load $module" "$lm_sh$lmf_sh$ts_sh" "$fil_cmd_ksh"
+test_alias "zsh" "load $module" "$lm_sh$lmf_sh$ts_sh" "$fil_cmd_ksh"
+test_alias "csh" "load $module" "$lm_csh$lmf_csh$ts_csh" "$fil_cmd_csh"
+test_alias "tcsh" "load $module" "$lm_csh$lmf_csh$ts_csh" "$fil_cmd_csh"
 # only available for csh/sh derivatives ... no longer warn for others
-#testerr_cmd_re "perl" "load $module" "$lmf_perl$lm_perl$ts_perl"
+#testerr_cmd_re "perl" "load $module" "$lm_perl$lmf_perl$ts_perl"
 
 #
 #  Cleanup

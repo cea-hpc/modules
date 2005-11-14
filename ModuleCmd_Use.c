@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.4 2002/06/17 05:58:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.5 2005/11/14 23:51:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -73,10 +73,8 @@ static	char	_proc_ModuleCmd_UnUse[] = "ModuleCmd_UnUse";
 /**				    PROTOTYPES				     **/
 /** ************************************************************************ **/
 
-#ifdef BEGINENV
-static	void	append_to_modulesbeginenv( Tcl_Interp*, char*);
-
 
+#ifdef BEGINENV
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
@@ -109,7 +107,11 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
     ErrorLogger( NO_ERR_START, LOC, _proc_append_to_modulesbeginenv, NULL);
 #endif
 
-    if( var) {
+    if(	var
+#if BEGINENV == 99
+	&& Tcl_GetVar2( interp,"env","MODULESBEGINENV", TCL_GLOBAL_ONLY)
+#endif
+	) {
 
 #if WITH_DEBUGGING_UTIL_1
     ErrorLogger( NO_ERR_DEBUG, LOC, "Adding '", var, "'");
@@ -139,6 +141,8 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
     } /** if( var passed) **/
 
 } /** End of 'append_to_modulesbeginenv' **/
+#else
+#  define append_to_modulesbeginenv( a, b) {}
 #endif
 
 /*++++
@@ -241,7 +245,6 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
 
     } /** for **/
   
-#ifdef BEGINENV
     /**
      **  Add the new value of MODULESPATH to the end
      **  of the beginenvcache so that update will be able to find its
@@ -249,7 +252,6 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
      **/
 
     append_to_modulesbeginenv( interp, "MODULEPATH");
-#endif
 
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Use, NULL);
@@ -317,7 +319,6 @@ int  ModuleCmd_UnUse(	Tcl_Interp	*interp,
 
     } /** for **/
   
-#ifdef BEGINENV
     /**
      **  Add the new value of MODULESPATH to the end
      **  of the beginenvcache so that update will be able to find its
@@ -325,7 +326,6 @@ int  ModuleCmd_UnUse(	Tcl_Interp	*interp,
      **/
 
     append_to_modulesbeginenv( interp, "MODULEPATH");
-#endif
 
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_UnUse, NULL);

@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.6 2002/08/02 22:11:23 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.7 2005/11/14 23:51:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -285,7 +285,6 @@ static	ErrTransTab	TransTab[] = {
     { ERR_GETHOSTNAME,	WGHT_FATAL, "'gethostname (2)' failed." },
     { ERR_GETDOMAINNAME,WGHT_FATAL, "'getdomainname (2)' failed." },
     { ERR_STRING,	WGHT_FATAL, "string error" },
-    { ERR_MODLIB,	WGHT_FATAL, "Modules library error '$1'" },
     { ERR_DISPLAY,	WGHT_ERROR, "Cannot open display" },
     { ERR_PARSE,	WGHT_ERROR, "Parse error" },
     { ERR_EXEC,		WGHT_ERROR, "Tcl command execution failed: $1" },
@@ -308,8 +307,19 @@ static	ErrTransTab	TransTab[] = {
     { ERR_DUP_ALIAS,	WGHT_WARN,  "Duplicate alias '$1' found" },
     { ERR_CACHE_INVAL,	WGHT_ERROR, "Invalid cache version '$1' found" },
     { ERR_CACHE_LOAD,	WGHT_WARN,  "Couldn't load the cache properly" },
-    { ERR_BEGINENV,	WGHT_WARN,  "Invalid update subcommand "
-	    			    "- no .modulesbeginenv" },
+    { ERR_BEGINENV,	WGHT_WARN, "Invalid update subcommand - "
+#ifdef BEGINENV
+#  if BEGINENV == 99
+	"No _MODULESBEGINENV_ file"
+#  else
+	"No .modulesbeginenv file"
+#  endif
+#else
+	".modulesbeginenv not supported"
+#endif
+	},
+    { ERR_BEGINENVX,	WGHT_WARN,
+	"Invalid update subcommand - No MODULESBEGINENV - hence not supported"},
     { ERR_INIT_TCL,	WGHT_ERROR, "Cannot initialize TCL" },
     { ERR_INIT_TCLX,	WGHT_WARN,  "Cannot initialize TCLX modules using "
 				    "extended commands might fail" },
@@ -323,7 +333,6 @@ static	ErrTransTab	TransTab[] = {
     { ERR_INVWGHT_WARN,	WGHT_WARN,  "Invalid error weight '$1' found" },
     { ERR_INVFAC_WARN,	WGHT_WARN,  "Invalid log facility '$1'" },
     { ERR_COLON,	WGHT_WARN,  "Spurious colon in pattern '$1'" },
-    { ERR_INTERNAL,	WGHT_PANIC, "Modules Internal error" },
     { ERR_INTERAL,	WGHT_PANIC, "Internal error in the alias handler" },
     { ERR_INTERRL,	WGHT_PANIC, "Internal error in the error logger" },
     { ERR_INVAL,	WGHT_PANIC, "Invalid error type '$1' found" },
@@ -1178,7 +1187,7 @@ unwind0:
  **   Description:	Scan the passed facility names table for the given   **
  **			string and pass back the assigned token		     **
  ** 									     **
- **   First Edition:	95/12/21					     **
+ **   First Edition:	1995/12/21					     **
  ** 									     **
  **   Parameters:	char		*s	String to be checked	     **
  **			FacilityNames	*table	Table of valid names and     **
@@ -1203,10 +1212,12 @@ static	int	scan_facility( char *s, FacilityNames *table, int size)
 	int x;			/** Have to use this, because strcmp will    **/
 				/** not return -1 and 1 on Solaris 2.x	     **/
 	save = mid;
-	mid = low + ((high -low) / 2);
+	mid = low + ((high - low) / 2);
 	if( save == mid)
 	    low = mid = high;			/** To prevent endless loops **/
 
+	if (mid == high)
+		return -1;
 	x = strcmp( mid->name, s);
 
 	if( x < 0 )
