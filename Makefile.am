@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.12 2005/11/14 23:51:07 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.13 2005/11/15 03:43:35 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -17,6 +17,7 @@ ACLOCAL_AMFLAGS= -I config
 man_MANS = doc/module.1 doc/modulefile.4
 SUBDIRS = . init modulefiles @EXTDIR@
 DIST_SUBDIRS = . init modulefiles etc ext
+SOURCES_H = modules_def.h getopt.h config.h
 EXTRA_DIST = modules_def.h getopt.h testsuite				\
 	init/filter init/bash.in init/sh.in init/zsh.in			\
 	init/csh.in init/ksh.in init/perl.in init/python.in
@@ -46,10 +47,10 @@ check-local:	modulecmd
 
 ctags:	CTAGS
 CTAGS:	$(modulecmd_SOURCES)
-	ctags	$(modulecmd_SOURCES)
+	ctags	$(modulecmd_SOURCES) $(SOURCES_H)
 
 cxref:
-	cxref $(SRCS)
+	cxref $(modulecmd_SOURCES) $(SOURCES_H)
 	@echo "==============================="
 	@echo "You may need to run this twice!"
 	@echo "==============================="

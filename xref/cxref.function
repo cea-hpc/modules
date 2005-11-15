@@ -14,7 +14,7 @@ error.c GetFacility 1 %GetFacility_sub
 error.c GetFacilityPtr 2 %GetFacility_sub %Module_Error null_free stringer strlen strncmp toupper
 error.c GetFacility_sub 1 %Module_Error sprintf
 error.c MeasLookup 1
-error.c Module_Error 2 %ErrorLookup %FlushError %MeasLookup %Module_Error __builtin_stdarg_start __builtin_va_arg exit malloc null_free realloc sprintf
+error.c Module_Error 2 %ErrorLookup %FlushError %MeasLookup %Module_Error __builtin_va_arg __builtin_va_start exit malloc null_free realloc sprintf
 error.c Module_Tracing 2 %FlushError %Module_Error
 error.c Module_Verbosity 2 %FlushError %Module_Error
 error.c PrintError 1 %ErrorString sprintf
@@ -40,19 +40,22 @@ utility.c ForcePath 1 cmdRemovePath cmdSetPath
 utility.c ForceSacredPath 2 %ForcePath
 utility.c IsLoaded 2 %__IsLoaded
 utility.c IsLoaded_ExactMatch 2 %__IsLoaded
-utility.c Output_Modulefile_Aliases 1 Module_Error Tcl_FirstHashEntry Tcl_NextHashEntry fclose fprintf %output_set_alias %output_unset_alias strcmp %tmpfile_mod
-utility.c Output_Modulefile_Changes 2 %Clear_Global_Hash_Tables Module_Error %Output_Modulefile_Aliases Tcl_FirstHashEntry Tcl_GetVar2 Tcl_NextHashEntry fflush %output_set_variable %output_unset_variable
+utility.c Open_Aliasfile 1 Module_Error fclose %tmpfile_mod
+utility.c Output_Modulefile_Aliases 1 Module_Error %Open_Aliasfile Tcl_FirstHashEntry Tcl_NextHashEntry fprintf %null_free %output_set_alias %output_unset_alias strcmp
+utility.c Output_Modulefile_Changes 2 %Clear_Global_Hash_Tables Module_Error %Output_Modulefile_Aliases Tcl_FirstHashEntry Tcl_GetVar2 Tcl_NextHashEntry %countTclHash fflush malloc %output_set_variable %output_unset_variable qsort strdup %&keycmp
 utility.c Unwind_Modulefile_Changes 2 %Clear_Global_Hash_Tables %Delete_Global_Hash_Tables Tcl_FirstHashEntry Tcl_NextHashEntry Tcl_SetVar2
 utility.c Update_LoadedList 2 cmdRemovePath cmdSetPath %get_module_basename %null_free strdup
 utility.c __IsLoaded 1 Module_Error Tcl_GetVar2 %getLMFILES %get_module_basename %null_free strcmp strcpy %stringer strtok
 utility.c check_magic 2 Module_Error close open read strncmp
-utility.c chk4spch 2
+utility.c chk4spch 2 __ctype_b_loc
 utility.c chk_marked_entry 2
 utility.c chop 1
 utility.c cleanse_path 2 strlen
 utility.c clear_hash_value 2 Tcl_DeleteHashEntry %null_free
+utility.c countTclHash 2 Tcl_FirstHashEntry Tcl_NextHashEntry
 utility.c getLMFILES 2 Module_Error Tcl_GetVar2 %null_free realloc sprintf strdup strlen strncpy
 utility.c get_module_basename 1 strrchr
+utility.c keycmp 1 strcmp
 utility.c null_free 2
 utility.c output_function 1 _IO_putc fprintf
 utility.c output_set_alias 1 _IO_putc fprintf %output_function strcmp
@@ -61,9 +64,9 @@ utility.c output_unset_alias 1 fprintf strcmp
 utility.c output_unset_variable 1 Module_Error %chop fprintf strcmp
 utility.c set_marked_entry 2
 utility.c store_hash_value 2 %null_free strdup
-utility.c stringer 2 Module_Error __builtin_stdarg_start __builtin_va_arg __builtin_va_end malloc strlen &strcat &strcpy
+utility.c stringer 2 Module_Error __builtin_va_arg __builtin_va_end __builtin_va_start malloc strlen &strcat &strcpy
 utility.c tmpfile_mod 2 Module_Error fdopen fprintf %null_free open sprintf %stringer strlen
-utility.c xdup 2 Module_Error getenv memset %null_free strchr strcspn strdup %stringer strlen strncat strncpy
+utility.c xdup 2 Module_Error getenv getpid memset %null_free sprintf strchr strcmp strcspn strdup %stringer strlen strncat strncpy
 utility.c xgetenv 2 getenv %xdup
 locate_module.c GetModuleName 1 %GetModuleName Module_Error %SortedDirList %SourceRC %SourceVers VersionLookup check_magic null_free stat strchr strcmp stringer strlen
 locate_module.c Locate_ModuleFile 2 %GetModuleName Module_Error %SplitIntoList VersionLookup getenv null_free strcmp stringer strlen strncpy strrchr
@@ -72,8 +75,8 @@ locate_module.c SourceRC 2 Execute_TclFile Module_Error check_magic malloc null_
 locate_module.c SourceVers 2 Execute_TclFile Module_Error Tcl_GetVar VersionLookup check_magic cmdModuleVersion null_free stat strcmp stringer
 locate_module.c SplitIntoList 2 Module_Error calloc null_free realloc stringer strtok xdup
 locate_module.c filename_compare 1 strcmp
-init.c InitializeModuleCommands 2 Module_Error Tcl_CreateCommand Tcl_Init %&Module_Tcl_ExitCmd &cmdConflict &cmdIsLoaded &cmdModule &cmdModuleAlias &cmdModuleInfo &cmdModuleLog &cmdModuleTrace &cmdModuleUser &cmdModuleVerbose &cmdModuleVersion &cmdModuleWhatis &cmdPrereq &cmdRemovePath &cmdSetAlias &cmdSetEnv &cmdSetPath &cmdSystem &cmdUname &cmdUnsetEnv &cmdXResource
-init.c Initialize_Tcl 2 %InitializeModuleCommands Module_Error Tcl_CreateInterp Tcl_InitHashTable malloc %set_shell_properties
+init.c InitializeModuleCommands 2 Module_Error Tcl_CreateCommand Tcl_Init Tclxcmd_Init %&Module_Tcl_ExitCmd &cmdConflict &cmdIsLoaded &cmdModule &cmdModuleAlias &cmdModuleInfo &cmdModuleLog &cmdModuleTrace &cmdModuleUser &cmdModuleVerbose &cmdModuleVersion &cmdModuleWhatis &cmdPrereq &cmdRemovePath &cmdSetAlias &cmdSetEnv &cmdSetPath &cmdSystem &cmdUname &cmdUnsetEnv &cmdXResource
+init.c Initialize_Tcl 2 %InitializeModuleCommands Module_Error Tcl_CreateInterp Tcl_InitHashTable fclose fopen fprintf getenv malloc moduleSetenv null_free %set_shell_properties xgetenv
 init.c Module_Tcl_ExitCmd 2 Module_Error Tcl_GetInt Tcl_SetResult sprintf stringer
 init.c SetStartupFiles 2 strcmp
 init.c Setup_Environment 2 Module_Error Tcl_SetVar Tcl_SetVar2 getLMFILES strlen
@@ -108,6 +111,17 @@ cmdTrace.c cmdModuleTrace 2 %ChangeTraceSel %GetTraceTable Module_Error fprintf 
 cmdLog.c cmdModuleLog 2 CheckFacility GetFacilityPtr Module_Error fprintf malloc null_free realloc strcmp strcpy stringer strlen strtok
 cmdUlvl.c cmdModuleUser 2 Module_Error %cmdModuleUser_sub fprintf
 cmdUlvl.c cmdModuleUser_sub 2 Module_Error strlen strncmp tolower
+cmdXResource.c addDef 1 strcat strchr
+cmdXResource.c addNum 1 %addDef sprintf
+cmdXResource.c cmdXResource 2 Module_Error Tcl_DStringAppend access fopen fprintf %getEntries getenv %initBuffers popen %readFile strcat strcmp
+cmdXResource.c doDisplayDefines 1 XDisplayName %addDef %addNum gethostname strchr strcpy
+cmdXResource.c doScreenDefines 1 %addDef %addNum
+cmdXResource.c getEntries 1 Module_Error Tcl_DeleteHashEntry Tcl_RegExpCompile Tcl_RegExpExec Tcl_RegExpRange null_free strdup
+cmdXResource.c getOld 1 Module_Error Tcl_InitHashTable XResourceManagerString malloc
+cmdXResource.c initBuffers 1 Module_Error Tcl_DStringInit Tcl_DStringSetLength XOpenDisplay %doDisplayDefines %doScreenDefines %getEntries %getOld malloc strcat strcpy strlen
+cmdXResource.c readFile 1 Module_Error Tcl_DStringAppend fclose feof fread pclose
+cmdXResource.c storeResProp 1 Tcl_DStringAppend Tcl_DStringSetLength Tcl_FirstHashEntry Tcl_NextHashEntry XChangeProperty XGrabServer XMaxRequestSize XUngrabServer
+cmdXResource.c xresourceFinish 2 Tcl_DStringFree XCloseDisplay %storeResProp
 cmdUname.c cmdUname 2 Module_Error Tcl_SetResult getdomainname strlen strncmp uname
 cmdSetenv.c cmdSetEnv 2 Module_Error fprintf %moduleSetenv strncmp
 cmdSetenv.c cmdUnsetEnv 2 Module_Error fprintf %moduleSetenv %moduleUnsetenv
@@ -119,7 +133,7 @@ cmdPath.c cmdSetPath 2 Module_Error SplitIntoList Tcl_GetVar2 Tcl_RegExpCompile 
 cmdModule.c CallModuleProcedure 2 Module_Error %Read_Modulefile Tcl_DStringAppend Tcl_DStringSetLength Tcl_Eval close dup fflush open strcat strcpy
 cmdModule.c Execute_TclFile 2 Module_Error Tcl_CommandComplete Tcl_DStringAppend Tcl_DStringFree Tcl_DStringInit Tcl_DStringSetLength Tcl_Eval Tcl_SetVar fclose fgets fopen malloc strcmp
 cmdModule.c Read_Modulefile 2 %Execute_TclFile Module_Error Tcl_RegExpCompile Tcl_RegExpExec Tcl_RegExpRange atoi check_magic null_free strcmp strdup
-cmdModule.c cmdModule 2 CheckTracingList %Execute_TclFile ModuleCmd_Apropos ModuleCmd_Avail ModuleCmd_Bootstrap ModuleCmd_Clear ModuleCmd_Display ModuleCmd_Help ModuleCmd_Init ModuleCmd_List ModuleCmd_Load ModuleCmd_Purge ModuleCmd_Switch ModuleCmd_UnUse ModuleCmd_Update ModuleCmd_Use ModuleCmd_Whatis Module_Error Module_Tracing Tcl_RegExpMatch fprintf strcmp strdup
+cmdModule.c cmdModule 2 CheckTracingList %Execute_TclFile ModuleCmd_Apropos ModuleCmd_Avail ModuleCmd_Clear ModuleCmd_Display ModuleCmd_Help ModuleCmd_Init ModuleCmd_List ModuleCmd_Load ModuleCmd_Purge ModuleCmd_Switch ModuleCmd_UnUse ModuleCmd_Update ModuleCmd_Use ModuleCmd_Whatis Module_Error Module_Tracing Tcl_RegExpMatch fprintf strcmp strdup
 cmdMisc.c cmdSystem 2 Module_Error Tcl_SetResult TieStdout UnTieStdout fprintf memcpy sprintf strlen system
 cmdInfo.c cmdModuleInfo 2 AliasLookup CheckTracing ExpandVersions GetTraceSel Module_Error Tcl_SetResult VersionLookup sprintf strcat strcmp strcpy
 cmdIsLoaded.c cmdIsLoaded 2 IsLoaded Module_Error SortedDirList SplitIntoList Tcl_SetResult getenv
@@ -132,9 +146,10 @@ ModuleCmd_Whatis.c ModuleCmd_Whatis 2 CallModuleProcedure InitializeModuleComman
 ModuleCmd_Whatis.c apropos_cache 1 getenv stringer strrchr
 ModuleCmd_Whatis.c read_cache 1 fgets fprintf strchr strncpy strstr tolower
 ModuleCmd_Whatis.c whatis_dir 1 CallModuleProcedure InitializeModuleCommands Module_Error Tcl_CreateInterp Tcl_DStringInit Tcl_DeleteInterp cmdModuleWhatisInit cmdModuleWhatisShut delete_cache_list delete_dirlst dirlst_to_list fprintf get_dir malloc stat stringer strncpy strstr tolower
-ModuleCmd_Use.c ModuleCmd_UnUse 2 Module_Error cmdRemovePath
-ModuleCmd_Use.c ModuleCmd_Use 2 %ModuleCmd_UnUse Module_Error cmdSetPath stat strcmp
-ModuleCmd_Update.c ModuleCmd_Update 2 Module_Error
+ModuleCmd_Use.c ModuleCmd_UnUse 2 Module_Error %append_to_modulesbeginenv cmdRemovePath
+ModuleCmd_Use.c ModuleCmd_Use 2 %ModuleCmd_UnUse Module_Error %append_to_modulesbeginenv cmdSetPath stat strcmp
+ModuleCmd_Use.c append_to_modulesbeginenv 1 Module_Error Tcl_GetVar2 fclose fopen fprintf
+ModuleCmd_Update.c ModuleCmd_Update 2 ModuleCmd_Load Module_Error Tcl_GetVar2 Tcl_SetVar2 fclose feof fgetc fopen getenv malloc moduleSetenv null_free realloc strchr stringer strncmp strtok
 ModuleCmd_Switch.c ModuleCmd_Switch 2 IsLoaded Locate_ModuleFile Module_Error Read_Modulefile Update_LoadedList null_free stringer strrchr
 ModuleCmd_Purge.c ModuleCmd_Purge 2 ModuleCmd_Load Module_Error Tcl_GetVar2 null_free stringer strtok
 ModuleCmd_Load.c ModuleCmd_Load 2 Copy_Hash_Tables Delete_Hash_Tables InitializeModuleCommands IsLoaded Locate_ModuleFile Module_Error Read_Modulefile Tcl_CreateInterp Tcl_DeleteInterp Unwind_Modulefile_Changes Update_LoadedList null_free stringer
@@ -145,7 +160,6 @@ ModuleCmd_Help.c ModuleCmd_Help 2 %PerModuleHelp module_usage
 ModuleCmd_Help.c PerModuleHelp 1 CallModuleProcedure InitializeModuleCommands Locate_ModuleFile Module_Error Tcl_CreateInterp Tcl_DStringFree Tcl_DStringInit Tcl_DeleteInterp fprintf strlen
 ModuleCmd_Display.c ModuleCmd_Display 2 CallModuleProcedure InitializeModuleCommands Locate_ModuleFile Module_Error Tcl_CreateInterp Tcl_DStringFree Tcl_DStringInit Tcl_DeleteInterp fprintf
 ModuleCmd_Clear.c ModuleCmd_Clear 2 cmdSetEnv fgets fprintf strcmp
-ModuleCmd_Bootstrap.c ModuleCmd_Bootstrap 2 Module_Error fprintf strcmp
 ModuleCmd_Avail.c ModuleCmd_Avail 2 Module_Error %check_dir fprintf null_free %print_dir strchr xgetenv
 ModuleCmd_Avail.c _add_file_list 1 Module_Error malloc realloc strdup
 ModuleCmd_Avail.c _get_file_list 1
@@ -156,20 +170,11 @@ ModuleCmd_Avail.c delete_cache_list 2 null_free
 ModuleCmd_Avail.c delete_dirlst 2 %delete_dirlst null_free
 ModuleCmd_Avail.c dirlst_to_list 2 Module_Error %dirlst_to_list null_free strdup stringer strlen strncmp
 ModuleCmd_Avail.c fi_ent_cmp 1 strcmp
-ModuleCmd_Avail.c get_dir 2 Module_Error calloc check_magic closedir %get_dir %mkdirnm null_free opendir qsort readdir realloc stat strdup strlen %&fi_ent_cmp
+ModuleCmd_Avail.c get_dir 2 Module_Error calloc check_magic closedir fclose fopen %get_dir %mkdirnm null_free opendir qsort readdir realloc stat strcmp strdup stringer strlen %&fi_ent_cmp
 ModuleCmd_Avail.c mkdirnm 1 Module_Error strcat strcmp strcpy strlen
 ModuleCmd_Avail.c print_aligned_files 2 ExpandVersions Locate_ModuleFile Module_Error SourceRC SourceVers %_add_file_list %_init_file_list fileno fprintf gmtime ioctl isatty null_free %print_terse_files sprintf stat strchr strdup strlen strncmp strrchr xgetenv
 ModuleCmd_Avail.c print_dir 1 Module_Error SourceRC SourceVers %delete_cache_list %delete_dirlst %dirlst_to_list fprintf %get_dir malloc memset null_free %print_aligned_files strchr stringer strlen
 ModuleCmd_Avail.c print_spaced_file 1 _IO_putc chk4spch fprintf strlen
 ModuleCmd_Avail.c print_terse_files 1 %_get_file_list %_pick_file_list fprintf %print_spaced_file strlen
-cmdXResource.c addDef 1 strcat strchr
-cmdXResource.c addNum 1 %addDef sprintf
-cmdXResource.c cmdXResource 2 Module_Error Tcl_DStringAppend access fopen fprintf %getEntries %initBuffers popen %readFile strcat strcmp
-cmdXResource.c doDisplayDefines 1 XDisplayName XmuGetHostname %addDef %addNum strchr strcpy
-cmdXResource.c doScreenDefines 1 %addDef %addNum
-cmdXResource.c getEntries 1 Module_Error Tcl_DeleteHashEntry Tcl_RegExpCompile Tcl_RegExpExec Tcl_RegExpRange strdup
-cmdXResource.c getOld 1 Module_Error Tcl_InitHashTable XResourceManagerString malloc
-cmdXResource.c initBuffers 1 Module_Error Tcl_DStringInit Tcl_DStringSetLength XOpenDisplay %doDisplayDefines %doScreenDefines %getEntries %getOld malloc strcat strcpy strlen
-cmdXResource.c readFile 1 Module_Error Tcl_DStringAppend fclose feof fread pclose
-cmdXResource.c storeResProp 1 Tcl_DStringAppend Tcl_DStringSetLength Tcl_FirstHashEntry Tcl_NextHashEntry XChangeProperty XGrabServer XMaxRequestSize XUngrabServer
-cmdXResource.c xresourceFinish 2 Tcl_DStringFree XCloseDisplay %storeResProp
+ModuleCmd_Avail.c test_version_dir 1
+ModuleCmd_Bootstrap.c ModuleCmd_Bootstrap 2 Module_Error fprintf strcmp
