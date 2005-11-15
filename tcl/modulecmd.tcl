@@ -1473,7 +1473,7 @@ proc renderSettings {} {
 			}
 		    sh {
 			    set val $g_Aliases($var)
-			    puts $f "function $var () { $val;}"
+			    puts $f "alias $var=\'$val\'"
 			}
 		    }
 		}
@@ -2750,7 +2750,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.64 $:
+                ModulesTcl 0.101/$Revision: 1.65 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
