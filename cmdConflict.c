@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.5 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.6 2005/11/21 19:32:49 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -427,11 +427,13 @@ int	cmdPrereq(	ClientData	 client_data,
     /**
      **  Allocate memory for the lists of conflict modules
      **/
-    if((char ***) NULL==(savedlists=(char***) malloc(numpaths*sizeof(char**))))
+    if((char ***) NULL==(savedlists=(char***) malloc(numpaths * (argc - 1)
+	* sizeof(char**))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind1;
 
-    if((int *) NULL == (savedlens = (int*) malloc( numpaths * sizeof( int))))
+    if((int *) NULL == (savedlens = (int*) malloc(numpaths * (argc - 1)
+	* sizeof( int))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind2;
 
