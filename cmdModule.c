@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.8 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.9 2005/11/21 20:13:21 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -170,6 +170,14 @@ int	cmdModule(	ClientData	 client_data,
 	    " [arguments ...] ", NULL);
 	(void) ModuleCmd_Help( interp, 0, modulefile_list);
 	return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+    }
+
+    /**
+     **  Non-persist mode?
+     **/
+    
+    if (g_flags & M_NONPERSIST) {
+	return (TCL_OK);
     }
 
     /**
@@ -404,6 +412,14 @@ int	cmdModule(	ClientData	 client_data,
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, unuseRE)) {
 	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
 	return_val = ModuleCmd_UnUse( interp, num_modulefiles, modulefile_list);
+
+    /**
+     **  --- module REFRESH 
+     **/
+
+    } else if(_MTCH Tcl_RegExpMatch(interp,module_command, refreshRE)) {
+	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	return_val = ModuleCmd_Refresh( interp, num_modulefiles, modulefile_list);
 
     /**
      **  --- module HELP

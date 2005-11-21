@@ -345,6 +345,7 @@ typedef	enum	{
 #define      M_PREPEND	0x0080
 #define      M_HELP	0x0100
 #define      M_WHATIS	0x0200
+#define      M_NONPERSIST	0x0400
 
 /**
  **  markers for switching 
@@ -494,6 +495,7 @@ extern	char	*purgeRE;
 extern	char	*clearRE;
 extern	char	*whatisRE;
 extern	char	*aproposRE;
+extern	char	*refreshRE;
 
 extern	Tcl_HashTable	*setenvHashTable;
 extern	Tcl_HashTable	*unsetenvHashTable;

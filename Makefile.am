@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.13 2005/11/15 03:43:35 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.14 2005/11/21 20:13:21 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -31,7 +31,7 @@ modulecmd_SOURCES = \
         ModuleCmd_Clear.c ModuleCmd_Display.c ModuleCmd_Help.c \
 	ModuleCmd_Init.c ModuleCmd_List.c ModuleCmd_Load.c ModuleCmd_Purge.c \
 	ModuleCmd_Switch.c ModuleCmd_Update.c ModuleCmd_Use.c \
-	ModuleCmd_Whatis.c \
+	ModuleCmd_Whatis.c ModuleCmd_Refresh.c \
 	cmdAlias.c cmdConflict.c cmdIsLoaded.c cmdInfo.c cmdMisc.c cmdModule.c\
 	cmdPath.c cmdSetenv.c cmdUname.c cmdXResource.c cmdUlvl.c cmdLog.c \
 	cmdTrace.c cmdVersion.c cmdVerbose.c cmdWhatis.c		\

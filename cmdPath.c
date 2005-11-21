@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.8 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.9 2005/11/21 20:13:21 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -167,6 +167,14 @@ int	cmdSetPath(	ClientData	 client_data,
     if( !( append = !!strncmp( argv[0], "pre", 3)))
 	sw_marker = PRE_SW_MARKER;
   
+    /**
+     **  Non-persist mode?
+     **/
+    
+    if (g_flags & M_NONPERSIST) {
+	return (TCL_OK);
+    }
+
     /**
      **  Display only ... ok, let's do so!
      **/
@@ -413,6 +421,15 @@ int	cmdRemovePath(	ClientData	 client_data,
 	if( OK != ErrorLogger(ERR_USAGE,LOC,argv[0],"path-variable directory",
 	    NULL))
 	    goto unwind0;
+
+  
+    /**
+     **  Non-persist mode?
+     **/
+    
+    if (g_flags & M_NONPERSIST) {
+	return (TCL_OK);
+    }
 
     /**
      **  Display only ... ok, let's do so!

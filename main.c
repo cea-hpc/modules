@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		main.c						     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.11 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.12 2005/11/21 20:13:21 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -107,7 +107,11 @@ char
     *purgeRE    = "^purge",			/** 'module purge'	     **/
     *clearRE    = "^clear",			/** 'module clear'	     **/
     *whatisRE   = "^wh",			/** 'module whatis'	     **/
-    *aproposRE  = "^(apr|key)";			/** 'module apropos'	     **/
+    *aproposRE  = "^(apr|key)",			/** 'module apropos'	     **/
+    *refreshRE  = "^refr";			/** 'module refresh'	     **/
+  
+  /**
+   **  Hash-Tables for all changes to the environment.
 
 /**
  **  Hash-Tables for all changes to the environment.
@@ -408,6 +412,7 @@ void module_usage(FILE *output)
 "	+ purge\n"
 "	+ list\n"
 "	+ clear\n"
+"   + refresh\n"
 "	+ help			[modulefile [modulefile ...]]\n"
 "	+ whatis		[modulefile [modulefile ...]]\n"
 "	+ apropos|keyword	string\n"

@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.3 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.4 2005/11/21 20:13:21 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -130,6 +130,15 @@ int	cmdModuleUser(	ClientData	 client_data,
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
     }
   
+  
+    /**
+     **  Non-persist mode?
+     **/
+    
+    if (g_flags & M_NONPERSIST) {
+	return (TCL_OK);
+    }
+
     /**
      **  Display mode?
      **/

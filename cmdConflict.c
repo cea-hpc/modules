@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.6 2005/11/21 19:32:49 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.7 2005/11/21 20:13:21 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -274,6 +274,14 @@ int	cmdConflict(	ClientData	 client_data,
         goto success1;
 
     /**
+     **  Non-persist mode?
+     **/
+    
+    if (g_flags & M_NONPERSIST) {
+	return (TCL_OK);
+    }
+
+    /**
      **  Display?
      **/
 
@@ -396,6 +404,15 @@ int	cmdPrereq(	ClientData	 client_data,
 
     if( g_flags & (M_REMOVE | M_WHATIS))
         goto success0;
+
+  
+    /**
+     **  Non-persist mode?
+     **/
+    
+    if (g_flags & M_NONPERSIST) {
+	return (TCL_OK);
+    }
 
     /**
      **  Display mode

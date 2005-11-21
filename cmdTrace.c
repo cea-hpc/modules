@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdTrace.c,v 1.5 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdTrace.c,v 1.6 2005/11/21 20:13:21 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -138,6 +138,12 @@ typedef	struct	_mod_trace	{
 #   define	MOD_TR_APROPOS	_all_off
 #endif
 
+#ifdef  WITH_TRACE_REFRESH
+#   define	MOD_TR_REFRESH	WITH_TRACE_REFRESH
+#else
+#   define	MOD_TR_REFRESH	_all_off
+#endif
+
 #ifdef  WITH_TRACE_WHATIS
 #   define	MOD_TR_WHATIS	WITH_TRACE_WHATIS
 #else
@@ -191,8 +197,10 @@ static	ModTrace	TraceSelect[] = {
     { &purgeRE,		"purge",	MOD_TR_PURGE,	0 },	/** 11 **/
     { &clearRE,		"clear",	MOD_TR_CLEAR,	0 },	/** 12 **/
     { &whatisRE,	"whatis",	MOD_TR_WHATIS,	0 },	/** 13 **/
-    { &aproposRE,	"apropos",	MOD_TR_APROPOS,	0 }	/** 14 **/
+    { &aproposRE,	"apropos",	MOD_TR_APROPOS,	0 },	/** 14 **/
+    { &refreshRE,	"refresh",	MOD_TR_REFRESH,	0 }	/** 15 **/
 };
+/** ************************************************************************ **/
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -281,6 +289,15 @@ int	cmdModuleTrace(	ClientData	 client_data,
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
     }
  
+  
+    /**
+     **  Non-persist mode?
+     **/
+    
+    if (g_flags & M_NONPERSIST) {
+	return (TCL_OK);
+    }
+
     /**
      **  Display mode?
      **/

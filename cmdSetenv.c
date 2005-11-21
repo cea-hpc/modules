@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.3 2001/07/09 18:21:36 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.4 2005/11/21 20:13:21 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -209,7 +209,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
      **  Check to see if variable is already set correctly... 
      **/
 
-    if( !(g_flags & (M_REMOVE | M_DISPLAY | M_SWITCH)) && oldval) {
+    if( !(g_flags & (M_REMOVE | M_DISPLAY | M_SWITCH | M_NONPERSIST)) && oldval) {
         if( !strcmp( value, oldval)) {
             return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
         }
@@ -256,7 +256,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
      **  the environment.
      **/
 
-    if( !(g_flags & (M_DISPLAY | M_WHATIS | M_HELP))) {
+    if( !(g_flags & (M_NONPERSIST | M_DISPLAY | M_WHATIS | M_HELP))) {
         store_hash_value( setenvHashTable, variable, value);
         clear_hash_value( unsetenvHashTable, variable);
     }
@@ -316,6 +316,15 @@ int	cmdUnsetEnv(	ClientData	 client_data,
 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "variable [value]",
 	    NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+    }
+
+  
+    /**
+     **  Non-persist mode?
+     **/
+    
+    if (g_flags & M_NONPERSIST) {
+	return (TCL_OK);
     }
 
     /**
@@ -384,7 +393,7 @@ int	moduleUnsetenv(	Tcl_Interp	*interp,
      ** If module writer *REALLY* wants it gone, use $env
      **/
 
-    if( !(g_flags & (M_DISPLAY | M_WHATIS | M_HELP))) {
+    if( !(g_flags & (M_NONPERSIST | M_DISPLAY | M_WHATIS | M_HELP))) {
         store_hash_value( unsetenvHashTable, variable, NULL);
         clear_hash_value( setenvHashTable, variable);
     }

@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdInfo.c,v 1.5 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdInfo.c,v 1.6 2005/11/21 20:13:21 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -154,6 +154,8 @@ int	cmdModuleInfo(	ClientData	 client_data,
                 Tcl_SetResult( interp, "help", TCL_STATIC);
             else if( g_flags & M_WHATIS)
                 Tcl_SetResult( interp, "whatis", TCL_STATIC);
+            else if( g_flags & M_NONPERSIST)
+                Tcl_SetResult( interp, "nonpersist", TCL_STATIC);
             else
                 Tcl_SetResult( interp, "unknown", TCL_STATIC);
             
@@ -176,6 +178,9 @@ int	cmdModuleInfo(	ClientData	 client_data,
 	    else if( !strcmp( argv[2], "display")) {
 		if( g_flags & M_DISPLAY) Tcl_SetResult( interp,"1", TCL_STATIC);
 	    }
+	    else if( !strcmp( argv[2], "nonpersist")) {
+		if( g_flags & M_NONPERSIST) Tcl_SetResult( interp,"1", TCL_STATIC);
+	    }
 	    else if( !strcmp( argv[2], "help")) {
 		if( g_flags & M_HELP) Tcl_SetResult( interp, "1", TCL_STATIC);
 	    }
@@ -195,7 +200,7 @@ int	cmdModuleInfo(	ClientData	 client_data,
 		if( g_flags & M_SWITCH) Tcl_SetResult( interp, "1", TCL_STATIC);
 	    } else {
 		ErrorLogger( ERR_USAGE, LOC, argv[0], "mode ", "[load|remove|"
-		    "display|help|whatis|switch1|switch2|switch3|switch]", NULL);
+		    "display|help|whatis|switch1|switch2|switch3|switch|nonpersist]", NULL);
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	    }
 	}
