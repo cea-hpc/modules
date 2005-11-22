@@ -29,193 +29,99 @@
 #	}
 #
 proc version_test {which} {
-    global comp_output
-    global comp_error
-    global verbose
-
-    if { $verbose > 1 } {
-	send_user "   ...  version_test($which)\n"
-    }
-    set comp_output ""
-    set comp_error ""
-
-    if { ![info exists which] } {
-	unresolved "version_test ($which) internal error"
-    }
-
-    modulecmd__ "--version"
-
-    if { ![regexp ".*$which.*" $comp_error] } {
-	if { $verbose > 1 } {
-	    send_user "version_test: 0\n"
-	}
-	return 0
-    } else {
-	if { $verbose > 1 } {
-	    send_user "version_test: 1\n"
-	}
-	return 1
-    }
-}
-
-#
-# Test subprocedure
-#
-
-proc _test_sub {test_shell cmd answer} {
-    global comp_output
-    global comp_error
-    global shell
-    global verbose
-
-    if { $verbose > 0 } {
-	send_user "   ...  Testing 'modulecmd $test_shell $cmd'\n"
-    }
-    set comp_output ""
-    set comp_error ""
-
-    if { ![info exists test_shell] || ![info exists answer] ||
-	 ![info exists cmd] } {
-	unresolved "$cmd ($test_shell) internal error"
-    }
-
-    set shell $test_shell
-    modulecmd_start "$cmd"
-
-    if { $verbose > 1 } {
-	send_user "OUT: '$comp_output'\n"
-	send_user "ERR: '$comp_error'\n"
-    }
-}
-
-#
-# Test procedure for matching with regular expressions
-#
-
-proc test_cmd_re {test_shell cmd answer} {
-    global comp_output
-    global comp_error
-    global verbose
-    
-    _test_sub $test_shell "$cmd" "$answer"
-
-    if { ![regexp $answer $comp_output] } {
-	fail "$cmd ($test_shell)"
-	if { $verbose > 0 } {
-	    send_user "OUT: '$comp_output'\n"
-	    send_user "EXP (re): '$answer'\n"
-	}
-    } else {
-	pass "$cmd ($test_shell)"
-    }
-}
-
-#
-#  Test procedure for full text matching
-#
-
-proc test_cmd {test_shell cmd answer} {
-    global comp_output
-    global comp_error
-    global verbose
-
-    _test_sub $test_shell "$cmd" "$answer"
-
-    if { $comp_output != "$answer" } {
-	fail "$cmd ($test_shell)"
-	if { $verbose > 0 } {
-	    send_user "OUT: '$comp_output'\n"
-	    send_user "EXP: '$answer'\n"
-	}
-    } else {
-	pass "$cmd ($test_shell)"
-    }
-}
-
-#
-# Test procedure for matching with regular expressions in the error output
-#
-
-proc testerr_cmd_re {test_shell cmd answer} {
-    global comp_output
-    global comp_error
-    global verbose
-    
-    _test_sub $test_shell "$cmd" "$answer"
-
-    if { ![regexp $answer $comp_error] } {
-	fail "$cmd ($test_shell)"
-	if { $verbose > 0 } {
-	    send_user "ERR: '$comp_error'\n"
-	    send_user "EXP (re): '$answer'\n"
-	}
-    } else {
-	pass "$cmd ($test_shell)"
-    }
-}
-
-#
-# Test procedure for matching with regular expressions in the stderr/stdout
-#
-
-proc testouterr_cmd_re {test_shell cmd answer anserr} {
 	global comp_output
 	global comp_error
 	global verbose
 
-	_test_sub $test_shell "$cmd" "$answer"
+	if { $verbose > 1 } {
+		send_user "   ...  version_test($which)\n"
+	}
+	set comp_output ""
+	set comp_error ""
 
-	if { ![regexp $answer $comp_output] } {
-		fail "$cmd ($test_shell)"
-		if { $verbose > 0 } {
-			send_user "OUT: '$comp_output'\n"
-			send_user "EXP (re): '$answer'\n"
-		}
+	if { ![info exists which] } {
+		unresolved "version_test ($which) internal error"
 	}
 
-	if { ![regexp $anserr $comp_error] } {
+	modulecmd__ "--version"
+
+	if { ![regexp ".*$which.*" $comp_error] } {
+		if { $verbose > 1 } {
+			send_user "version_test: 0\n"
+		}
+		return 0
+	} else {
+		if { $verbose > 1 } {
+			send_user "version_test: 1\n"
+		}
+		return 1
+	}
+}
+
+#
+# Test subprocedures
+#
+
+proc _test_sub {test_shell cmd} {
+	global comp_output
+	global comp_error
+	global shell
+	global verbose
+
+	if { $verbose > 0 } {
+		send_user "   ...  Testing 'modulecmd $test_shell $cmd'\n"
+	}
+	set comp_output ""
+	set comp_error ""
+
+	if { ![info exists test_shell] || ![info exists cmd] } {
+		unresolved "$cmd ($test_shell) internal error"
+	}
+
+	set shell $test_shell
+	modulecmd_start "$cmd"
+
+	if { $verbose > 1 } {
+		send_user "OUT: '$comp_output'\n"
+		send_user "ERR: '$comp_error'\n"
+	}
+}
+
+proc _test_err {test_shell cmd answer} {
+	global comp_error
+	global verbose
+
+	if { $comp_error != "$answer" } {
 		fail "$cmd ($test_shell)"
 		if { $verbose > 0 } {
 			send_user "ERR: '$comp_error'\n"
-			send_user "EXP (re): '$anserr'\n"
+			send_user "EXP: '$answer'\n"
 		}
+		return 0;
+	} else {
+		return 1;
 	}
-
-	pass "$cmd ($test_shell)"
 }
 
-#
-#  Test procedure for full text matching in the error output
-#
-
-proc testerr_cmd {test_shell cmd answer} {
-    global comp_output
-    global comp_error
-    global verbose
-
-    _test_sub $test_shell "$cmd" "$answer"
-
-    if { $comp_error != "$answer" } {
-	fail "$cmd ($test_shell)"
-	if { $verbose > 0 } {
-	    send_user "ERR: '$comp_error'\n"
-	    send_user "EXP: '$answer'\n"
-	}
-    } else {
-	pass "$cmd ($test_shell)"
-    }
-}
-
-#
-# Test procedure for full text matching with the stderr/stdout
-#
-
-proc testouterr_cmd {test_shell cmd answer anserr} {
-	global comp_output
+proc _test_err_re {test_shell cmd answer} {
 	global comp_error
 	global verbose
 
-	_test_sub $test_shell "$cmd" "$answer"
+	if { ![regexp $answer $comp_error] } {
+		fail "$cmd ($test_shell)"
+		if { $verbose > 0 } {
+			send_user "ERR: '$comp_error'\n"
+			send_user "EXP (re): '$answer'\n"
+		}
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+proc _test_out {test_shell cmd answer} {
+	global comp_output
+	global verbose
 
 	if { $comp_output != "$answer" } {
 		fail "$cmd ($test_shell)"
@@ -223,15 +129,102 @@ proc testouterr_cmd {test_shell cmd answer anserr} {
 			send_user "OUT: '$comp_output'\n"
 			send_user "EXP: '$answer'\n"
 		}
+		return 0;
+	} else {
+		return 1;
 	}
+}
 
-	if { $comp_error != "$anserr" } {
+proc _test_out_re {test_shell cmd answer} {
+	global comp_output
+	global verbose
+
+	if { ![regexp $answer $comp_output] } {
 		fail "$cmd ($test_shell)"
 		if { $verbose > 0 } {
-			send_user "ERR: '$comp_error'\n"
-			send_user "EXP: '$anserr'\n"
+			send_user "OUT: '$comp_output'\n"
+			send_user "EXP (re): '$answer'\n"
 		}
+		return 0;
+	} else {
+		return 1;
 	}
+}
 
+proc _test_ok {test_shell cmd} {
 	pass "$cmd ($test_shell)"
+}
+
+#
+# Test procedure for matching with regular expressions
+#
+
+proc test_cmd_re {test_shell cmd answer} {
+ 
+	_test_sub $test_shell "$cmd"
+	if { [ _test_out_re $test_shell "$cmd" "$answer" ] } {
+		_test_ok $test_shell "$cmd"
+	}
+}
+
+#
+#  Test procedure for full text matching
+#
+
+proc test_cmd {test_shell cmd answer} {
+
+	_test_sub $test_shell "$cmd"
+	if { [ _test_out $test_shell "$cmd" "$answer" ] } {
+		_test_ok $test_shell "$cmd"
+	}
+}
+
+#
+# Test procedure for matching with regular expressions in the error output
+#
+
+proc testerr_cmd_re {test_shell cmd answer} {
+    
+	_test_sub $test_shell "$cmd"
+	if { [ _test_err_re $test_shell "$cmd" "$answer" ] } {
+		_test_ok $test_shell "$cmd"
+	}
+}
+
+#
+# Test procedure for matching with regular expressions in the stderr/stdout
+#
+
+proc testouterr_cmd_re {test_shell cmd answer anserr} {
+
+	_test_sub $test_shell "$cmd"
+	if { [ _test_out_re $test_shell "$cmd" "$answer" ]
+	&&   [ _test_err_re $test_shell "$cmd" "$anserr" ] } {
+		_test_ok $test_shell "$cmd"
+	}
+}
+
+#
+#  Test procedure for full text matching in the error output
+#
+
+proc testerr_cmd {test_shell cmd answer} {
+
+	_test_sub $test_shell "$cmd"
+	if { [ _test_err $test_shell "$cmd" "$answer" ] } {
+		_test_ok $test_shell "$cmd"
+	}
+}
+
+#
+# Test procedure for full text matching with the stderr/stdout
+#
+
+proc testouterr_cmd {test_shell cmd answer anserr} {
+
+	_test_sub $test_shell "$cmd"
+	if { [ _test_out $test_shell "$cmd" "$answer" ]
+	&&   [ _test_err $test_shell "$cmd" "$anserr" ] } {
+		_test_ok $test_shell "$cmd"
+	}
 }

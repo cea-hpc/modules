@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		ModuleCmd_Refresh.c				     **
- **   First Edition:	05/06/02					     **
+ **   First Edition:	2005/06/02					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.1 2005/11/21 20:13:21 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.2 2005/11/22 06:16:55 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -80,7 +80,7 @@ static	char	_proc_ModuleCmd_Refresh[] = "ModuleCmd_Refresh";
  **			Does only the non-persistent modules settings        **
  **			(aliases)					     **
  ** 									     **
- **   First Edition:	05/06/02					     **
+ **   First Edition:	2005/06/02					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
  **			char 		*argv[]		Argument list	     **
@@ -121,26 +121,23 @@ int ModuleCmd_Refresh(	Tcl_Interp	*interp,
      **/
 
     loaded = getenv( "LOADEDMODULES" );
-    if (!loaded || !*loaded) {
-	return (TCL_OK);
-    }
+    if (!loaded || !*loaded)
+	goto success0;
+
     loaded = strdup(loaded);
     if( !loaded )
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    return( TCL_ERROR );		/** -------- EXIT (FAILURE) -------> **/
+	    goto unwind0;
 
     if (!(lmenv = getLMFILES(interp))) {
-	free(loaded);
 	if ( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-	    return (TCL_ERROR);
+	    goto unwind1;
 	else
-	    return (TCL_OK);
+	    goto success1;
     }
 
-    if (*lmenv == '\0') {
-	free(loaded);
-	return (TCL_OK);
-    }
+    if (*lmenv == '\0')
+	goto success1;
 
     count = 1;
     for( list[ 0] = strtok( loaded, ":");
@@ -153,8 +150,8 @@ int ModuleCmd_Refresh(	Tcl_Interp	*interp,
 	 count++ );
 
     /**
-     **  Initialize the command buffer and set up the modules flag to 'non-persist
-     **  only'
+     **  Initialize the command buffer and set up the modules flag
+     **  to 'non-persist only'
      **/
 
     Tcl_DStringInit( &cmdbuf);
@@ -174,7 +171,7 @@ int ModuleCmd_Refresh(	Tcl_Interp	*interp,
 	refr_interp = Tcl_CreateInterp();
 	if ( TCL_OK != (result = InitializeModuleCommands ( refr_interp ))) {
 	    Tcl_DeleteInterp( refr_interp );
-	    free(loaded);
+	    null_free(loaded);
 	    return (result);
 	}
 
@@ -203,12 +200,19 @@ int ModuleCmd_Refresh(	Tcl_Interp	*interp,
 
     Tcl_DStringFree( &cmdbuf);
 
-    free(loaded);
+success1:
+    null_free(loaded);
+
+success0:
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Refresh, NULL);
 #endif
 
-    return( TCL_OK);
+    return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
 
+unwind1:
+    null_free(loaded);
+
+unwind0:
+    return( TCL_ERROR );		/** -------- EXIT (FAILURE) -------> **/
 } /** End of 'ModuleCmd_Refresh' **/
-

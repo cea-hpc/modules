@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.12 2005/11/21 20:13:21 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.13 2005/11/22 06:16:55 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -409,10 +409,10 @@ void module_usage(FILE *output)
 #ifdef BEGINENV
 "	+ update\n"
 #endif
+"	+ refresh\n"
 "	+ purge\n"
 "	+ list\n"
 "	+ clear\n"
-"   + refresh\n"
 "	+ help			[modulefile [modulefile ...]]\n"
 "	+ whatis		[modulefile [modulefile ...]]\n"
 "	+ apropos|keyword	string\n"

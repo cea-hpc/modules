@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.4 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.5 2005/11/22 06:16:55 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -75,7 +75,7 @@ static	char	_proc_ModuleCmd_Update[] = "ModuleCmd_Update";
  ** 									     **
  **   Description:	Execution of the module-command 'update'	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
  **			int		 argc		Number of arguments  **
@@ -277,11 +277,11 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
     null_free((void *) &loaded);
     null_free((void *) &load_list);
 
+success0:
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Update, NULL);
 #endif
 
-success0:
     return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
 
 unwind1:

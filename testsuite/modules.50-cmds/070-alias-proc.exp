@@ -27,19 +27,19 @@
 #  Test procedure for alias solutions using temporary files
 #
 
-proc _test_alias_fn {cmd pattern filecmd} {
+proc _test_alias_fn {shell cmd pattern filecmd} {
     global comp_output
     global verbose
-    global shell
 
-    if { ![info exists pattern] ||
-	 ![info exists cmd] || ![info exists filecmd] } {
+    if { ![info exists shell] || ![info exists cmd]
+	 || ![info exists pattern] || ![info exists filecmd] } {
 	unresolved "Internal testsuite error in alias-checking";
     }
 
     #
-    #  There *SHOULD* be output on stdout ....
+    # run command
     #
+    _test_sub $shell "$cmd"
 
     if { [info exists comp_output] } then {
 	if { [regexp "$pattern" $comp_output tmp tempfile] } then {
@@ -85,50 +85,7 @@ proc _test_alias_fn {cmd pattern filecmd} {
     } else {
 
 	#
-	#  Nothing received on stdout. fail and report what's going on on
-	#  stderr
-	#
-
-	if { $verbose > 0 } {
-	    send_user "ERR:$comp_error\n"
-	}
-	fail "$cmd ($shell)"
-    }
-}
-
-#
-#  Test procedure for eval-solution
-#
-
-proc _test_alias_eval {cmd pattern filecmd} {
-    global comp_output
-    global verbose
-    global shell
-
-    if { ![info exists pattern] ||
-	 ![info exists cmd] || ![info exists filecmd] } {
-	unresolved "Internal testsuite error in alias-checking";
-    }
-
-    #
-    #  There *SHOULD* be output on stdout ....
-    #
-
-    if { [info exists comp_output] } then {
-	if { [regexp "$pattern$filecmd" $comp_output] } then {
-	    pass "$cmd ($shell)"
-	} else {
-	    if { $verbose > 0 } {
-		send_user "OUT:$comp_output\n"
-		send_user "EXP (re):$pattern$filecmd\n"
-	    }
-	    fail "$cmd ($shell)"
-	}
-
-    } else {
-
-	#
-	#  Nothing received on stdout. fail and report what's going on on
+	#  Nothing received on stdout. fail and report what's going on to
 	#  stderr
 	#
 
@@ -144,9 +101,41 @@ proc _test_alias_eval {cmd pattern filecmd} {
 #  check the configuration in order to select the desired alis-test-procedure
 #
 
-proc test_alias {test_shell cmd pattern filecmd} {
+proc test_alias {shell cmd pattern filecmd evalcmd} {
+    global MODULECMD
+    global config_file
+    global config_eval
+
+    #
+    #  Check parameters and set up the shell
+    #
+
+    if { ![info exists shell] || ![info exists pattern] ||
+	 ![info exists cmd] || ![info exists filecmd]
+	 || ![info exists evalcmd] } {
+	unresolved "Internal testsuite error in alias-checking";
+    }
+
+    #
+    #  Now evaluate the result of the 'modulecmd' call
+    #
+
+    if { $config_eval } {
+	test_cmd $shell $cmd "$evalcmd"
+    } else {
+	_test_alias_fn $shell $cmd $pattern $filecmd
+    }
+}
+
+#
+#  Perform the 'modulecmd $cmd' command only if the Bourne shell and
+#  using functions (based on test_alias)
+#
+
+proc test_alias_sh_fn {cmd pattern filecmd} {
     global MODULECMD
     global comp_output
+    global comp_error
     global verbose
     global shell
     global config_file
@@ -156,22 +145,22 @@ proc test_alias {test_shell cmd pattern filecmd} {
     #  Check parameters and set up the shell
     #
 
-    if { ![info exists test_shell] || ![info exists pattern] ||
+    if { ![info exists pattern] ||
 	 ![info exists cmd] || ![info exists filecmd] } {
 	unresolved "Internal testsuite error in alias-checking";
     }
 
-    set shell "$test_shell"
+    set shell "sh"
     modulecmd_start "$cmd"
 
     #
     #  Now evaluate the result of the 'modulecmd' call
     #
 
-    if { $config_eval } {
-	_test_alias_eval $cmd $pattern $filecmd
-    } else {
-	_test_alias_fn $cmd $pattern $filecmd
+    _test_alias_fn $cmd $pattern $filecmd
+    if { $verbose > 1 } {
+	send_user "OUT: '$comp_output'\n"
+	send_user "ERR: '$comp_error'\n"
     }
 }
 
@@ -185,4 +174,3 @@ if { [ version_test "EVAL_ALIAS=1" ] } {
 } else {
 	set config_eval 0
 }
-
