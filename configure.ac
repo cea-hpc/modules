@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.13 2005/11/14 23:51:07 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.14 2005/11/25 19:25:29 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -454,7 +454,7 @@ else
 fi
 AC_MSG_RESULT([$em_bourne_alias])
 AC_ARG_ENABLE(shell-alias,
-	AC_HELP_STRING([--enable-shell-alias],[use sh functions [[test]]]),
+	AC_HELP_STRING([--enable-shell-alias],[use sh aliases [[test]]]),
 	if test "$enableval" = "yes" ; then
 	    AC_DEFINE(HAS_BOURNE_ALIAS)
 	fi,
@@ -480,7 +480,7 @@ dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([USE_FREE],[
 USE_FREE:
 By default, Modules will not call free() for any dynamic data. This
-define enables these calls again.])dnl
+define enables these calls.])dnl
 AC_ARG_ENABLE(free,
 	AC_HELP_STRING([--enable-free],[use free() calls [[no]]]),
 	if test "$enableval" = "yes"; then

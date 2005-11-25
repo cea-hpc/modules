@@ -48,10 +48,6 @@ set lmf_csh "setenv _LMFILES_ $modulefile ;"
 set lm_csh "setenv LOADEDMODULES alias/2\.0 ;"
 set ts_csh "source ($tfnam_pat);/bin/rm -f $tfnam_pat;"
 
-set lmf_perl "\\\$ENV\\\{'_LMFILES_'\\\} = '\[a-zA-Z0-9_/\\.\\-\]+';"
-set lm_perl "\\\$ENV\\\{'LOADEDMODULES'\\\} = 'alias/2\.0';"
-set ts_perl "$warn_msgs: Shell 'perl': cannot source alias tempfile - No aliases set"
-
 set evl_cmd_ksh "$lm_sh$lmf_sh$fil_cmd_ksh;"
 set evl_cmd_csh "$lm_csh$lmf_csh$fil_cmd_csh;"
 
@@ -62,7 +58,7 @@ set evl_cmd_csh "$lm_csh$lmf_csh$fil_cmd_csh;"
 if { [ version_test "HAS_BOURNE_ALIAS=1" ] } {
 	test_alias "sh" "load $module" "$lm_sh$lmf_sh$ts_sh" "$fil_cmd_ksh" "$evl_cmd_ksh"
 } elseif { [ version_test "HAS_BOURNE_FUNCS=1" ] } {
-	test_alias_sh_fn "load $module" "$lm_sh$lmf_sh$ts_sh" "$fil_cmd_ksh" "$evl_cmd_ksh"
+	test_alias_sh_fn "load $module" "$lm_sh$lmf_sh$ts_sh" "$fil_cmd_sh"
 } else {
 	send_user "skipping sh alias test\n"
 }
@@ -71,7 +67,6 @@ test_alias "zsh" "load $module" "$lm_sh$lmf_sh$ts_sh" "$fil_cmd_ksh" "$evl_cmd_k
 test_alias "csh" "load $module" "$lm_csh$lmf_csh$ts_csh" "$fil_cmd_csh" "$evl_cmd_csh"
 test_alias "tcsh" "load $module" "$lm_csh$lmf_csh$ts_csh" "$fil_cmd_csh" "$evl_cmd_csh"
 # only available for csh/sh derivatives ... no longer warn for others
-#testerr_cmd_re "perl" "load $module" "$lm_perl$lmf_perl$ts_perl"
 
 #
 #  Cleanup
@@ -79,10 +74,6 @@ test_alias "tcsh" "load $module" "$lm_csh$lmf_csh$ts_csh" "$fil_cmd_csh" "$evl_c
 
 unset evl_cmd_ksh
 unset evl_cmd_csh
-
-unset lmf_perl
-unset lm_perl
-unset ts_perl
 
 unset ts_sh
 unset lm_sh
