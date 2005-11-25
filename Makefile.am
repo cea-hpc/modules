@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.14 2005/11/21 20:13:21 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.15 2005/11/25 19:40:22 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -15,8 +15,8 @@
 ACLOCAL_AMFLAGS= -I config
 
 man_MANS = doc/module.1 doc/modulefile.4
-SUBDIRS = . init modulefiles @EXTDIR@
-DIST_SUBDIRS = . init modulefiles etc ext
+SUBDIRS = . init modulefiles @EXTDIR@ doc
+DIST_SUBDIRS = . init modulefiles etc ext doc
 SOURCES_H = modules_def.h getopt.h config.h
 EXTRA_DIST = modules_def.h getopt.h testsuite				\
 	init/filter init/bash.in init/sh.in init/zsh.in			\
