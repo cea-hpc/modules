@@ -46,7 +46,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line26">26   |</a>  ** 									     ** 
 <a name="line27">27   |</a>  ** ************************************************************************ **/
 <a name="line28">28   |</a> 
-<a name="line29">29   |</a> static char Id[] = "@(#)$Id: cmdUlvl.c.src.html,v 1.1 2005/11/15 03:43:35 rkowen Exp $";
+<a name="line29">29   |</a> static char Id[] = "@(#)$Id: cmdUlvl.c.src.html,v 1.2 2005/11/25 20:09:37 rkowen Exp $";
 <a name="line30">30   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line31">31   |</a> 
 <a name="line32">32   |</a> /** ************************************************************************ **/
@@ -150,85 +150,94 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line130">130  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
 <a name="line131">131  |</a>     }
 <a name="line132">132  |</a>   
-<a name="line133">133  |</a>     /**
-<a name="line134">134  |</a>      **  Display mode?
-<a name="line135">135  |</a>      **/
-<a name="line136">136  |</a> 
-<a name="line137">137  |</a>     if( g_flags &amp; M_DISPLAY) {
-<a name="line138">138  |</a> 	fprintf( stderr, "%s\t ", argv[ 0]);
-<a name="line139">139  |</a> 	while( --argc)
-<a name="line140">140  |</a> 	    fprintf( stderr, "%s ", *++argv);
-<a name="line141">141  |</a> 	fprintf( stderr, "\n");
-<a name="line142">142  |</a>         return( TCL_OK);		/** ------- EXIT PROCEDURE -------&gt; **/
-<a name="line143">143  |</a>     }
-<a name="line144">144  |</a> 	
-<a name="line145">145  |</a>     /**
-<a name="line146">146  |</a>      **  Change the user level
-<a name="line147">147  |</a>      **/
-<a name="line148">148  |</a> 
-<a name="line149">149  |</a>     return( cmdModuleUser_sub( argv[ 1]));
-<a name="line150">150  |</a> 
-<a name="line151">151  |</a> } /** End of 'cmdModuleUser' **/
-<a name="line152">152  |</a>     
-<a name="line153">153  |</a> 
-<a name="line154">154  |</a> /*++++
-<a name="line155">155  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line156">156  |</a>  ** 									     **
-<a name="line157">157  |</a>  **   Function:		cmdModuleUser_sub				     **
-<a name="line158">158  |</a>  ** 									     **
-<a name="line159">159  |</a>  **   Description:	Check the user level passed as argument and set up   **
-<a name="line160">160  |</a>  **			the global user level flag			     **
-<a name="line161">161  |</a>  ** 									     **
-<a name="line162">162  |</a>  **   First Edition:	91/10/23					     **
-<a name="line163">163  |</a>  ** 									     **
-<a name="line164">164  |</a>  **   Parameters:	char	*user_level	User level string to be chk. **
+<a name="line133">133  |</a>   
+<a name="line134">134  |</a>     /**
+<a name="line135">135  |</a>      **  Non-persist mode?
+<a name="line136">136  |</a>      **/
+<a name="line137">137  |</a>     
+<a name="line138">138  |</a>     if (g_flags &amp; M_NONPERSIST) {
+<a name="line139">139  |</a> 	return (TCL_OK);
+<a name="line140">140  |</a>     }
+<a name="line141">141  |</a> 
+<a name="line142">142  |</a>     /**
+<a name="line143">143  |</a>      **  Display mode?
+<a name="line144">144  |</a>      **/
+<a name="line145">145  |</a> 
+<a name="line146">146  |</a>     if( g_flags &amp; M_DISPLAY) {
+<a name="line147">147  |</a> 	fprintf( stderr, "%s\t ", argv[ 0]);
+<a name="line148">148  |</a> 	while( --argc)
+<a name="line149">149  |</a> 	    fprintf( stderr, "%s ", *++argv);
+<a name="line150">150  |</a> 	fprintf( stderr, "\n");
+<a name="line151">151  |</a>         return( TCL_OK);		/** ------- EXIT PROCEDURE -------&gt; **/
+<a name="line152">152  |</a>     }
+<a name="line153">153  |</a> 	
+<a name="line154">154  |</a>     /**
+<a name="line155">155  |</a>      **  Change the user level
+<a name="line156">156  |</a>      **/
+<a name="line157">157  |</a> 
+<a name="line158">158  |</a>     return( cmdModuleUser_sub( argv[ 1]));
+<a name="line159">159  |</a> 
+<a name="line160">160  |</a> } /** End of 'cmdModuleUser' **/
+<a name="line161">161  |</a>     
+<a name="line162">162  |</a> 
+<a name="line163">163  |</a> /*++++
+<a name="line164">164  |</a>  ** ** Function-Header ***************************************************** **
 <a name="line165">165  |</a>  ** 									     **
-<a name="line166">166  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
-<a name="line167">167  |</a>  **				TCL_ERROR	Any error		     **
-<a name="line168">168  |</a>  ** 									     **
-<a name="line169">169  |</a>  **   Attached Globals:	sw_userlvl	Contains the binary coded userlevel  **
+<a name="line166">166  |</a>  **   Function:		cmdModuleUser_sub				     **
+<a name="line167">167  |</a>  ** 									     **
+<a name="line168">168  |</a>  **   Description:	Check the user level passed as argument and set up   **
+<a name="line169">169  |</a>  **			the global user level flag			     **
 <a name="line170">170  |</a>  ** 									     **
-<a name="line171">171  |</a>  ** ************************************************************************ **
-<a name="line172">172  |</a>  ++++*/
-<a name="line173">173  |</a> 
-<a name="line174">174  |</a> int	cmdModuleUser_sub(	char	*user_level)
-<a name="line175">175  |</a> {
-<a name="line176">176  |</a>     char *s;
-<a name="line177">177  |</a>     int len_arg;
-<a name="line178">178  |</a> 
-<a name="line179">179  |</a> #if WITH_DEBUGGING_CALLBACK_1
-<a name="line180">180  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleUser_sub, NULL);
-<a name="line181">181  |</a> #endif
+<a name="line171">171  |</a>  **   First Edition:	91/10/23					     **
+<a name="line172">172  |</a>  ** 									     **
+<a name="line173">173  |</a>  **   Parameters:	char	*user_level	User level string to be chk. **
+<a name="line174">174  |</a>  ** 									     **
+<a name="line175">175  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
+<a name="line176">176  |</a>  **				TCL_ERROR	Any error		     **
+<a name="line177">177  |</a>  ** 									     **
+<a name="line178">178  |</a>  **   Attached Globals:	sw_userlvl	Contains the binary coded userlevel  **
+<a name="line179">179  |</a>  ** 									     **
+<a name="line180">180  |</a>  ** ************************************************************************ **
+<a name="line181">181  |</a>  ++++*/
 <a name="line182">182  |</a> 
-<a name="line183">183  |</a>     len_arg = strlen( user_level);
-<a name="line184">184  |</a>     s = user_level;
-<a name="line185">185  |</a>     while( s &amp;&amp; *s) {
-<a name="line186">186  |</a> 	*s = tolower( *s);
-<a name="line187">187  |</a> 	s++;
-<a name="line188">188  |</a>     }
-<a name="line189">189  |</a> 
-<a name="line190">190  |</a>     if( !strncmp( user_level, _str_ul_novice, len_arg)) {
-<a name="line191">191  |</a> 	sw_userlvl = UL_NOVICE;
-<a name="line192">192  |</a>     } else if( !strncmp( user_level, _str_ul_advanced, len_arg)) {
-<a name="line193">193  |</a> 	sw_userlvl = UL_ADVANCED;
-<a name="line194">194  |</a>     } else if( !strncmp( user_level, _str_ul_expert, len_arg)) {
-<a name="line195">195  |</a> 	sw_userlvl = UL_EXPERT;
-<a name="line196">196  |</a>     } else {
-<a name="line197">197  |</a> 	if( OK != ErrorLogger( ERR_USERLVL, LOC, user_level, NULL))
-<a name="line198">198  |</a> 	    return( TCL_ERROR);			/** ---- EXIT (FAILURE) ---&gt; **/
-<a name="line199">199  |</a>     }
-<a name="line200">200  |</a> 
-<a name="line201">201  |</a>     /**
-<a name="line202">202  |</a>      **  Success
-<a name="line203">203  |</a>      **/
-<a name="line204">204  |</a> 
-<a name="line205">205  |</a> #if WITH_DEBUGGING_CALLBACK_1
-<a name="line206">206  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleUser_sub, NULL);
-<a name="line207">207  |</a> #endif
-<a name="line208">208  |</a> 
-<a name="line209">209  |</a>     return( TCL_OK);
-<a name="line210">210  |</a> 
-<a name="line211">211  |</a> } /** End of 'cmdModuleUser_sub' **/
+<a name="line183">183  |</a> int	cmdModuleUser_sub(	char	*user_level)
+<a name="line184">184  |</a> {
+<a name="line185">185  |</a>     char *s;
+<a name="line186">186  |</a>     int len_arg;
+<a name="line187">187  |</a> 
+<a name="line188">188  |</a> #if WITH_DEBUGGING_CALLBACK_1
+<a name="line189">189  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleUser_sub, NULL);
+<a name="line190">190  |</a> #endif
+<a name="line191">191  |</a> 
+<a name="line192">192  |</a>     len_arg = strlen( user_level);
+<a name="line193">193  |</a>     s = user_level;
+<a name="line194">194  |</a>     while( s &amp;&amp; *s) {
+<a name="line195">195  |</a> 	*s = tolower( *s);
+<a name="line196">196  |</a> 	s++;
+<a name="line197">197  |</a>     }
+<a name="line198">198  |</a> 
+<a name="line199">199  |</a>     if( !strncmp( user_level, _str_ul_novice, len_arg)) {
+<a name="line200">200  |</a> 	sw_userlvl = UL_NOVICE;
+<a name="line201">201  |</a>     } else if( !strncmp( user_level, _str_ul_advanced, len_arg)) {
+<a name="line202">202  |</a> 	sw_userlvl = UL_ADVANCED;
+<a name="line203">203  |</a>     } else if( !strncmp( user_level, _str_ul_expert, len_arg)) {
+<a name="line204">204  |</a> 	sw_userlvl = UL_EXPERT;
+<a name="line205">205  |</a>     } else {
+<a name="line206">206  |</a> 	if( OK != ErrorLogger( ERR_USERLVL, LOC, user_level, NULL))
+<a name="line207">207  |</a> 	    return( TCL_ERROR);			/** ---- EXIT (FAILURE) ---&gt; **/
+<a name="line208">208  |</a>     }
+<a name="line209">209  |</a> 
+<a name="line210">210  |</a>     /**
+<a name="line211">211  |</a>      **  Success
+<a name="line212">212  |</a>      **/
+<a name="line213">213  |</a> 
+<a name="line214">214  |</a> #if WITH_DEBUGGING_CALLBACK_1
+<a name="line215">215  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleUser_sub, NULL);
+<a name="line216">216  |</a> #endif
+<a name="line217">217  |</a> 
+<a name="line218">218  |</a>     return( TCL_OK);
+<a name="line219">219  |</a> 
+<a name="line220">220  |</a> } /** End of 'cmdModuleUser_sub' **/
 </pre>
 
 </BODY>

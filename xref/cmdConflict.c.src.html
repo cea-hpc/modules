@@ -47,7 +47,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line27">27   |</a>  ** 									     ** 
 <a name="line28">28   |</a>  ** ************************************************************************ **/
 <a name="line29">29   |</a> 
-<a name="line30">30   |</a> static char Id[] = "@(#)$Id: cmdConflict.c.src.html,v 1.1 2005/11/15 03:43:35 rkowen Exp $";
+<a name="line30">30   |</a> static char Id[] = "@(#)$Id: cmdConflict.c.src.html,v 1.2 2005/11/25 20:09:37 rkowen Exp $";
 <a name="line31">31   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line32">32   |</a> 
 <a name="line33">33   |</a> /** ************************************************************************ **/
@@ -294,285 +294,304 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line274">274  |</a>         goto success1;
 <a name="line275">275  |</a> 
 <a name="line276">276  |</a>     /**
-<a name="line277">277  |</a>      **  Display?
+<a name="line277">277  |</a>      **  Non-persist mode?
 <a name="line278">278  |</a>      **/
-<a name="line279">279  |</a> 
-<a name="line280">280  |</a>     if( g_flags &amp; M_DISPLAY) {
-<a name="line281">281  |</a> 	fprintf( stderr, "%s\t ", argv[ 0]);
-<a name="line282">282  |</a> 	while( --argc)
-<a name="line283">283  |</a> 	    fprintf( stderr, "%s ", *++argv);
-<a name="line284">284  |</a> 	fprintf( stderr, "\n");
-<a name="line285">285  |</a>         goto success2;
-<a name="line286">286  |</a>     }
+<a name="line279">279  |</a>     
+<a name="line280">280  |</a>     if (g_flags &amp; M_NONPERSIST) {
+<a name="line281">281  |</a> 	return (TCL_OK);
+<a name="line282">282  |</a>     }
+<a name="line283">283  |</a> 
+<a name="line284">284  |</a>     /**
+<a name="line285">285  |</a>      **  Display?
+<a name="line286">286  |</a>      **/
 <a name="line287">287  |</a> 
-<a name="line288">288  |</a>     /**
-<a name="line289">289  |</a>      **  Now check/display all passed modules ...
-<a name="line290">290  |</a>      **/
-<a name="line291">291  |</a> 
-<a name="line292">292  |</a>     for( i=1; i&lt;argc &amp;&amp; argv[i]; i++) {
-<a name="line293">293  |</a>         for( j = 0; j &lt; numpaths; j++) {
-<a name="line294">294  |</a> 
-<a name="line295">295  |</a>             if((char **)NULL == (modulelist
-<a name="line296">296  |</a> 		  = SortedDirList( interp, pathlist[j], argv[i], &amp;nummodules)))
-<a name="line297">297  |</a>                 continue;		/** not browseable		     **/
-<a name="line298">298  |</a> 
-<a name="line299">299  |</a> 	    /**
-<a name="line300">300  |</a> 	     **  Actually checking for conflicts is done here
-<a name="line301">301  |</a> 	     **/
-<a name="line302">302  |</a>             if( TCL_ERROR == checkConflict( interp, pathlist[j], modulelist,
-<a name="line303">303  |</a> 		nummodules))
-<a name="line304">304  |</a> 		if( OK != ErrorLogger( ERR_CONFLICT, LOC, g_current_module,
-<a name="line305">305  |</a> 		    error_module, NULL)) {
-<a name="line306">306  |</a> 		    FreeList( modulelist, nummodules);
-<a name="line307">307  |</a> 		    goto unwind2;
-<a name="line308">308  |</a> 		}
-<a name="line309">309  |</a> 
-<a name="line310">310  |</a> 	    /**
-<a name="line311">311  |</a> 	     **  Free the list of modules used in the loops body above.
-<a name="line312">312  |</a> 	     **/
-<a name="line313">313  |</a>             FreeList( modulelist, nummodules);
-<a name="line314">314  |</a> 
-<a name="line315">315  |</a>         } /** for( j) **/
-<a name="line316">316  |</a>     } /** for( i) **/
+<a name="line288">288  |</a>     if( g_flags &amp; M_DISPLAY) {
+<a name="line289">289  |</a> 	fprintf( stderr, "%s\t ", argv[ 0]);
+<a name="line290">290  |</a> 	while( --argc)
+<a name="line291">291  |</a> 	    fprintf( stderr, "%s ", *++argv);
+<a name="line292">292  |</a> 	fprintf( stderr, "\n");
+<a name="line293">293  |</a>         goto success2;
+<a name="line294">294  |</a>     }
+<a name="line295">295  |</a> 
+<a name="line296">296  |</a>     /**
+<a name="line297">297  |</a>      **  Now check/display all passed modules ...
+<a name="line298">298  |</a>      **/
+<a name="line299">299  |</a> 
+<a name="line300">300  |</a>     for( i=1; i&lt;argc &amp;&amp; argv[i]; i++) {
+<a name="line301">301  |</a>         for( j = 0; j &lt; numpaths; j++) {
+<a name="line302">302  |</a> 
+<a name="line303">303  |</a>             if((char **)NULL == (modulelist
+<a name="line304">304  |</a> 		  = SortedDirList( interp, pathlist[j], argv[i], &amp;nummodules)))
+<a name="line305">305  |</a>                 continue;		/** not browseable		     **/
+<a name="line306">306  |</a> 
+<a name="line307">307  |</a> 	    /**
+<a name="line308">308  |</a> 	     **  Actually checking for conflicts is done here
+<a name="line309">309  |</a> 	     **/
+<a name="line310">310  |</a>             if( TCL_ERROR == checkConflict( interp, pathlist[j], modulelist,
+<a name="line311">311  |</a> 		nummodules))
+<a name="line312">312  |</a> 		if( OK != ErrorLogger( ERR_CONFLICT, LOC, g_current_module,
+<a name="line313">313  |</a> 		    error_module, NULL)) {
+<a name="line314">314  |</a> 		    FreeList( modulelist, nummodules);
+<a name="line315">315  |</a> 		    goto unwind2;
+<a name="line316">316  |</a> 		}
 <a name="line317">317  |</a> 
-<a name="line318">318  |</a> #if WITH_DEBUGGING_CALLBACK
-<a name="line319">319  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdConflict, NULL);
-<a name="line320">320  |</a> #endif
-<a name="line321">321  |</a> 
-<a name="line322">322  |</a>     /**
-<a name="line323">323  |</a>      ** free resources
-<a name="line324">324  |</a>      **/
-<a name="line325">325  |</a> success2:
-<a name="line326">326  |</a>     FreeList( pathlist, numpaths);
-<a name="line327">327  |</a> success1:
-<a name="line328">328  |</a>     null_free((void *) &amp;modulepath);
-<a name="line329">329  |</a> success0:
-<a name="line330">330  |</a>     return( TCL_OK);			/** -------- EXIT (SUCCESS) -------&gt; **/
-<a name="line331">331  |</a> 
-<a name="line332">332  |</a> unwind2:
-<a name="line333">333  |</a>     FreeList( pathlist, numpaths);
-<a name="line334">334  |</a> unwind1:
-<a name="line335">335  |</a>     null_free((void *) &amp;modulepath);
-<a name="line336">336  |</a> unwind0:
-<a name="line337">337  |</a>     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line338">338  |</a> 
-<a name="line339">339  |</a> } /** End of 'cmdConflict' **/
-<a name="line340">340  |</a> 
-<a name="line341">341  |</a> /*++++
-<a name="line342">342  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line343">343  |</a>  ** 									     **
-<a name="line344">344  |</a>  **   Function:		cmdPrereq					     **
-<a name="line345">345  |</a>  ** 									     **
-<a name="line346">346  |</a>  **   Description:	Callback function for 'prereq'			     **
-<a name="line347">347  |</a>  ** 									     **
-<a name="line348">348  |</a>  **   First Edition:	91/10/23					     **
-<a name="line349">349  |</a>  ** 									     **
-<a name="line350">350  |</a>  **   Parameters:	ClientData	 client_data			     **
-<a name="line351">351  |</a>  **			Tcl_Interp	*interp		According Tcl interp.**
-<a name="line352">352  |</a>  **			int		 argc		Number of arguments  **
-<a name="line353">353  |</a>  **			char		*argv[]		Argument array	     **
-<a name="line354">354  |</a>  ** 									     **
-<a name="line355">355  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
-<a name="line356">356  |</a>  **				TCL_ERROR	Any error		     **
+<a name="line318">318  |</a> 	    /**
+<a name="line319">319  |</a> 	     **  Free the list of modules used in the loops body above.
+<a name="line320">320  |</a> 	     **/
+<a name="line321">321  |</a>             FreeList( modulelist, nummodules);
+<a name="line322">322  |</a> 
+<a name="line323">323  |</a>         } /** for( j) **/
+<a name="line324">324  |</a>     } /** for( i) **/
+<a name="line325">325  |</a> 
+<a name="line326">326  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line327">327  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdConflict, NULL);
+<a name="line328">328  |</a> #endif
+<a name="line329">329  |</a> 
+<a name="line330">330  |</a>     /**
+<a name="line331">331  |</a>      ** free resources
+<a name="line332">332  |</a>      **/
+<a name="line333">333  |</a> success2:
+<a name="line334">334  |</a>     FreeList( pathlist, numpaths);
+<a name="line335">335  |</a> success1:
+<a name="line336">336  |</a>     null_free((void *) &amp;modulepath);
+<a name="line337">337  |</a> success0:
+<a name="line338">338  |</a>     return( TCL_OK);			/** -------- EXIT (SUCCESS) -------&gt; **/
+<a name="line339">339  |</a> 
+<a name="line340">340  |</a> unwind2:
+<a name="line341">341  |</a>     FreeList( pathlist, numpaths);
+<a name="line342">342  |</a> unwind1:
+<a name="line343">343  |</a>     null_free((void *) &amp;modulepath);
+<a name="line344">344  |</a> unwind0:
+<a name="line345">345  |</a>     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line346">346  |</a> 
+<a name="line347">347  |</a> } /** End of 'cmdConflict' **/
+<a name="line348">348  |</a> 
+<a name="line349">349  |</a> /*++++
+<a name="line350">350  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line351">351  |</a>  ** 									     **
+<a name="line352">352  |</a>  **   Function:		cmdPrereq					     **
+<a name="line353">353  |</a>  ** 									     **
+<a name="line354">354  |</a>  **   Description:	Callback function for 'prereq'			     **
+<a name="line355">355  |</a>  ** 									     **
+<a name="line356">356  |</a>  **   First Edition:	91/10/23					     **
 <a name="line357">357  |</a>  ** 									     **
-<a name="line358">358  |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
-<a name="line359">359  |</a>  **					this function is called in order to  **
-<a name="line360">360  |</a>  **					control everything		     **
-<a name="line361">361  |</a>  ** 									     **
-<a name="line362">362  |</a>  ** ************************************************************************ **
-<a name="line363">363  |</a>  ++++*/
-<a name="line364">364  |</a> 
-<a name="line365">365  |</a> int	cmdPrereq(	ClientData	 client_data,
-<a name="line366">366  |</a> 	    		Tcl_Interp	*interp,
-<a name="line367">367  |</a> 	    		int		 argc,
-<a name="line368">368  |</a> 	    		char		*argv[])
-<a name="line369">369  |</a> {
-<a name="line370">370  |</a>     char	***savedlists = (char ***) NULL;
-<a name="line371">371  |</a>     int		  *savedlens = (int *) NULL;
-<a name="line372">372  |</a>     char	 **pathlist,
-<a name="line373">373  |</a> 		 **modulelist,
-<a name="line374">374  |</a> 		  *modulepath,
-<a name="line375">375  |</a> 		  *notloaded_flag = argv[1];
-<a name="line376">376  |</a>     int     	   i, j, k, numpaths, nummodules, listcnt = 0,
-<a name="line377">377  |</a> 		   Result = TCL_OK;
-<a name="line378">378  |</a>     char	   buffer[ MOD_BUFSIZE];
-<a name="line379">379  |</a> 	
-<a name="line380">380  |</a> #if WITH_DEBUGGING_CALLBACK
-<a name="line381">381  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_cmdPrereq, NULL);
-<a name="line382">382  |</a> #endif
-<a name="line383">383  |</a> 
-<a name="line384">384  |</a>     /** 
-<a name="line385">385  |</a>      **  Parameter check. Usage is 'prereq &lt;module&gt; [&lt;module&gt; ...]'
-<a name="line386">386  |</a>      **/
-<a name="line387">387  |</a> 
-<a name="line388">388  |</a>     if( argc &lt; 2)
-<a name="line389">389  |</a> 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0],
-<a name="line390">390  |</a> 	    "prerequsite-modules", NULL))
-<a name="line391">391  |</a> 	    goto unwind0;
-<a name="line392">392  |</a> 
-<a name="line393">393  |</a>     /**
-<a name="line394">394  |</a>      **  There's no prerequisite check in case of removal
-<a name="line395">395  |</a>      **/
-<a name="line396">396  |</a> 
-<a name="line397">397  |</a>     if( g_flags &amp; (M_REMOVE | M_WHATIS))
-<a name="line398">398  |</a>         goto success0;
-<a name="line399">399  |</a> 
-<a name="line400">400  |</a>     /**
-<a name="line401">401  |</a>      **  Display mode
-<a name="line402">402  |</a>      **/
-<a name="line403">403  |</a> 
-<a name="line404">404  |</a>     if( g_flags &amp; M_DISPLAY) {
-<a name="line405">405  |</a> 	fprintf( stderr, "%s\t ", argv[ 0]);
-<a name="line406">406  |</a> 	while( --argc)
-<a name="line407">407  |</a> 	    fprintf( stderr, "%s ", *++argv);
-<a name="line408">408  |</a> 	fprintf( stderr, "\n");
-<a name="line409">409  |</a>         goto success0;
-<a name="line410">410  |</a>     }
-<a name="line411">411  |</a> 
-<a name="line412">412  |</a>     /**
-<a name="line413">413  |</a>      **  Load the MODULEPATH and split it into a list of paths. Assume success
-<a name="line414">414  |</a>      **  if no list to be built...
-<a name="line415">415  |</a>      **/
-<a name="line416">416  |</a>     if((char *) NULL == (modulepath = xgetenv( "MODULEPATH")))
-<a name="line417">417  |</a> 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-<a name="line418">418  |</a> 	    goto unwind0;
-<a name="line419">419  |</a> 
-<a name="line420">420  |</a> #if WITH_DEBUGGING_CALLBACK_1
-<a name="line421">421  |</a>     ErrorLogger( NO_ERR_DEBUG, LOC, "Got modulepath: '", modulepath, "'", NULL);
-<a name="line422">422  |</a> #endif
-<a name="line423">423  |</a> 
-<a name="line424">424  |</a>     if((char **) NULL==(pathlist=SplitIntoList(interp, modulepath, &amp;numpaths)))
-<a name="line425">425  |</a>         goto success1;
-<a name="line426">426  |</a> 
-<a name="line427">427  |</a>     /**
-<a name="line428">428  |</a>      **  Allocate memory for the lists of conflict modules
-<a name="line429">429  |</a>      **/
-<a name="line430">430  |</a>     if((char ***) NULL==(savedlists=(char***) malloc(numpaths*sizeof(char**))))
-<a name="line431">431  |</a> 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-<a name="line432">432  |</a> 	    goto unwind1;
-<a name="line433">433  |</a> 
-<a name="line434">434  |</a>     if((int *) NULL == (savedlens = (int*) malloc( numpaths * sizeof( int))))
-<a name="line435">435  |</a> 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-<a name="line436">436  |</a> 	    goto unwind2;
-<a name="line437">437  |</a> 
-<a name="line438">438  |</a>     /**
-<a name="line439">439  |</a>      **  Check/Display all passed modules
-<a name="line440">440  |</a>      **/
-<a name="line441">441  |</a> 
-<a name="line442">442  |</a> #if WITH_DEBUGGING_CALLBACK_1
-<a name="line443">443  |</a>     ErrorLogger( NO_ERR_DEBUG, LOC, "Scanning all ", (sprintf( buffer, "%d",
-<a name="line444">444  |</a> 	numpaths), buffer), "modulepaths", NULL);
-<a name="line445">445  |</a> #endif
-<a name="line446">446  |</a> 
-<a name="line447">447  |</a>     for( i=1; i&lt;argc &amp;&amp; argv[i] &amp;&amp; notloaded_flag; i++) {
-<a name="line448">448  |</a>         for( j = 0; j &lt; numpaths &amp;&amp; notloaded_flag; j++) {
-<a name="line449">449  |</a> 
-<a name="line450">450  |</a>             if((char **) NULL == (modulelist = SortedDirList(interp,pathlist[j],
-<a name="line451">451  |</a> 	        argv[i], &amp;nummodules)))
-<a name="line452">452  |</a>                 continue;
-<a name="line453">453  |</a> 
-<a name="line454">454  |</a> 	    /**
-<a name="line455">455  |</a> 	     **  save the list of file to be printed in case of missing pre-
-<a name="line456">456  |</a> 	     **  requisites or 
-<a name="line457">457  |</a> 	     **/
-<a name="line458">458  |</a> 
-<a name="line459">459  |</a> #if WITH_DEBUGGING_CALLBACK_1
-<a name="line460">460  |</a> 	    ErrorLogger( NO_ERR_DEBUG, LOC, "Save directory list. # = ",
-<a name="line461">461  |</a> 		(sprintf( buffer, "%d", listcnt), buffer), NULL);
-<a name="line462">462  |</a> #endif
-<a name="line463">463  |</a> 
-<a name="line464">464  |</a> 	    savedlens[ listcnt]    = nummodules;
-<a name="line465">465  |</a> 	    savedlists[ listcnt++] = modulelist;
-<a name="line466">466  |</a> 
-<a name="line467">467  |</a> 	    /**
-<a name="line468">468  |</a> 	     **  Now actually check if the prerequisites are fullfilled
-<a name="line469">469  |</a> 	     **  The notloaded_flag controls the exit from both loops in case
-<a name="line470">470  |</a> 	     **  a prerequisite is missing.
-<a name="line471">471  |</a> 	     **/
+<a name="line358">358  |</a>  **   Parameters:	ClientData	 client_data			     **
+<a name="line359">359  |</a>  **			Tcl_Interp	*interp		According Tcl interp.**
+<a name="line360">360  |</a>  **			int		 argc		Number of arguments  **
+<a name="line361">361  |</a>  **			char		*argv[]		Argument array	     **
+<a name="line362">362  |</a>  ** 									     **
+<a name="line363">363  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
+<a name="line364">364  |</a>  **				TCL_ERROR	Any error		     **
+<a name="line365">365  |</a>  ** 									     **
+<a name="line366">366  |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
+<a name="line367">367  |</a>  **					this function is called in order to  **
+<a name="line368">368  |</a>  **					control everything		     **
+<a name="line369">369  |</a>  ** 									     **
+<a name="line370">370  |</a>  ** ************************************************************************ **
+<a name="line371">371  |</a>  ++++*/
+<a name="line372">372  |</a> 
+<a name="line373">373  |</a> int	cmdPrereq(	ClientData	 client_data,
+<a name="line374">374  |</a> 	    		Tcl_Interp	*interp,
+<a name="line375">375  |</a> 	    		int		 argc,
+<a name="line376">376  |</a> 	    		char		*argv[])
+<a name="line377">377  |</a> {
+<a name="line378">378  |</a>     char	***savedlists = (char ***) NULL;
+<a name="line379">379  |</a>     int		  *savedlens = (int *) NULL;
+<a name="line380">380  |</a>     char	 **pathlist,
+<a name="line381">381  |</a> 		 **modulelist,
+<a name="line382">382  |</a> 		  *modulepath,
+<a name="line383">383  |</a> 		  *notloaded_flag = argv[1];
+<a name="line384">384  |</a>     int     	   i, j, k, numpaths, nummodules, listcnt = 0,
+<a name="line385">385  |</a> 		   Result = TCL_OK;
+<a name="line386">386  |</a>     char	   buffer[ MOD_BUFSIZE];
+<a name="line387">387  |</a> 	
+<a name="line388">388  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line389">389  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_cmdPrereq, NULL);
+<a name="line390">390  |</a> #endif
+<a name="line391">391  |</a> 
+<a name="line392">392  |</a>     /** 
+<a name="line393">393  |</a>      **  Parameter check. Usage is 'prereq &lt;module&gt; [&lt;module&gt; ...]'
+<a name="line394">394  |</a>      **/
+<a name="line395">395  |</a> 
+<a name="line396">396  |</a>     if( argc &lt; 2)
+<a name="line397">397  |</a> 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0],
+<a name="line398">398  |</a> 	    "prerequsite-modules", NULL))
+<a name="line399">399  |</a> 	    goto unwind0;
+<a name="line400">400  |</a> 
+<a name="line401">401  |</a>     /**
+<a name="line402">402  |</a>      **  There's no prerequisite check in case of removal
+<a name="line403">403  |</a>      **/
+<a name="line404">404  |</a> 
+<a name="line405">405  |</a>     if( g_flags &amp; (M_REMOVE | M_WHATIS))
+<a name="line406">406  |</a>         goto success0;
+<a name="line407">407  |</a> 
+<a name="line408">408  |</a>   
+<a name="line409">409  |</a>     /**
+<a name="line410">410  |</a>      **  Non-persist mode?
+<a name="line411">411  |</a>      **/
+<a name="line412">412  |</a>     
+<a name="line413">413  |</a>     if (g_flags &amp; M_NONPERSIST) {
+<a name="line414">414  |</a> 	return (TCL_OK);
+<a name="line415">415  |</a>     }
+<a name="line416">416  |</a> 
+<a name="line417">417  |</a>     /**
+<a name="line418">418  |</a>      **  Display mode
+<a name="line419">419  |</a>      **/
+<a name="line420">420  |</a> 
+<a name="line421">421  |</a>     if( g_flags &amp; M_DISPLAY) {
+<a name="line422">422  |</a> 	fprintf( stderr, "%s\t ", argv[ 0]);
+<a name="line423">423  |</a> 	while( --argc)
+<a name="line424">424  |</a> 	    fprintf( stderr, "%s ", *++argv);
+<a name="line425">425  |</a> 	fprintf( stderr, "\n");
+<a name="line426">426  |</a>         goto success0;
+<a name="line427">427  |</a>     }
+<a name="line428">428  |</a> 
+<a name="line429">429  |</a>     /**
+<a name="line430">430  |</a>      **  Load the MODULEPATH and split it into a list of paths. Assume success
+<a name="line431">431  |</a>      **  if no list to be built...
+<a name="line432">432  |</a>      **/
+<a name="line433">433  |</a>     if((char *) NULL == (modulepath = xgetenv( "MODULEPATH")))
+<a name="line434">434  |</a> 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
+<a name="line435">435  |</a> 	    goto unwind0;
+<a name="line436">436  |</a> 
+<a name="line437">437  |</a> #if WITH_DEBUGGING_CALLBACK_1
+<a name="line438">438  |</a>     ErrorLogger( NO_ERR_DEBUG, LOC, "Got modulepath: '", modulepath, "'", NULL);
+<a name="line439">439  |</a> #endif
+<a name="line440">440  |</a> 
+<a name="line441">441  |</a>     if((char **) NULL==(pathlist=SplitIntoList(interp, modulepath, &amp;numpaths)))
+<a name="line442">442  |</a>         goto success1;
+<a name="line443">443  |</a> 
+<a name="line444">444  |</a>     /**
+<a name="line445">445  |</a>      **  Allocate memory for the lists of conflict modules
+<a name="line446">446  |</a>      **/
+<a name="line447">447  |</a>     if((char ***) NULL==(savedlists=(char***) malloc(numpaths * (argc - 1)
+<a name="line448">448  |</a> 	* sizeof(char**))))
+<a name="line449">449  |</a> 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+<a name="line450">450  |</a> 	    goto unwind1;
+<a name="line451">451  |</a> 
+<a name="line452">452  |</a>     if((int *) NULL == (savedlens = (int*) malloc(numpaths * (argc - 1)
+<a name="line453">453  |</a> 	* sizeof( int))))
+<a name="line454">454  |</a> 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+<a name="line455">455  |</a> 	    goto unwind2;
+<a name="line456">456  |</a> 
+<a name="line457">457  |</a>     /**
+<a name="line458">458  |</a>      **  Check/Display all passed modules
+<a name="line459">459  |</a>      **/
+<a name="line460">460  |</a> 
+<a name="line461">461  |</a> #if WITH_DEBUGGING_CALLBACK_1
+<a name="line462">462  |</a>     ErrorLogger( NO_ERR_DEBUG, LOC, "Scanning all ", (sprintf( buffer, "%d",
+<a name="line463">463  |</a> 	numpaths), buffer), "modulepaths", NULL);
+<a name="line464">464  |</a> #endif
+<a name="line465">465  |</a> 
+<a name="line466">466  |</a>     for( i=1; i&lt;argc &amp;&amp; argv[i] &amp;&amp; notloaded_flag; i++) {
+<a name="line467">467  |</a>         for( j = 0; j &lt; numpaths &amp;&amp; notloaded_flag; j++) {
+<a name="line468">468  |</a> 
+<a name="line469">469  |</a>             if((char **) NULL == (modulelist = SortedDirList(interp,pathlist[j],
+<a name="line470">470  |</a> 	        argv[i], &amp;nummodules)))
+<a name="line471">471  |</a>                 continue;
 <a name="line472">472  |</a> 
-<a name="line473">473  |</a>             for( k=0; k &lt; nummodules &amp;&amp; notloaded_flag; k++) {
-<a name="line474">474  |</a>                 if( !IsLoaded( interp, modulelist[k], NULL, NULL)) {
-<a name="line475">475  |</a>                     notloaded_flag = argv[i];
-<a name="line476">476  |</a>                 } else {
-<a name="line477">477  |</a>                     notloaded_flag = NULL;
-<a name="line478">478  |</a>                 }
-<a name="line479">479  |</a>             }
-<a name="line480">480  |</a>         } /** for( j) **/
-<a name="line481">481  |</a>     } /** for( i) **/
+<a name="line473">473  |</a> 	    /**
+<a name="line474">474  |</a> 	     **  save the list of file to be printed in case of missing pre-
+<a name="line475">475  |</a> 	     **  requisites or 
+<a name="line476">476  |</a> 	     **/
+<a name="line477">477  |</a> 
+<a name="line478">478  |</a> #if WITH_DEBUGGING_CALLBACK_1
+<a name="line479">479  |</a> 	    ErrorLogger( NO_ERR_DEBUG, LOC, "Save directory list. # = ",
+<a name="line480">480  |</a> 		(sprintf( buffer, "%d", listcnt), buffer), NULL);
+<a name="line481">481  |</a> #endif
 <a name="line482">482  |</a> 
-<a name="line483">483  |</a> #if WITH_DEBUGGING_CALLBACK_1
-<a name="line484">484  |</a>     ErrorLogger( NO_ERR_DEBUG, LOC, "Done. Missing prerequisite: '",
-<a name="line485">485  |</a> 	(notloaded_flag ? notloaded_flag : "none"), "'", NULL);
-<a name="line486">486  |</a> #endif
-<a name="line487">487  |</a> 
-<a name="line488">488  |</a>     /**
-<a name="line489">489  |</a>      **  Display an error message if this was *NOT* display mode and a
-<a name="line490">490  |</a>      **  missing prerequisite has been found
-<a name="line491">491  |</a>      **/
-<a name="line492">492  |</a>     if( notloaded_flag) {
-<a name="line493">493  |</a> 
-<a name="line494">494  |</a> 	/**
-<a name="line495">495  |</a> 	 **  Add the whole list of prerequired module files to the Tcl result
-<a name="line496">496  |</a> 	 **  string
-<a name="line497">497  |</a> 	 **/
-<a name="line498">498  |</a> 	for( k=0; k&lt;listcnt; k++) {
-<a name="line499">499  |</a> 	    char **listptr = savedlists[k];
-<a name="line500">500  |</a> 
-<a name="line501">501  |</a> 	    *buffer = '\0';
-<a name="line502">502  |</a> 	    for( i=0; listptr &amp;&amp; i&lt;savedlens[k]; i++, listptr++) {
-<a name="line503">503  |</a> 		if ((char *) NULL == stringer(
-<a name="line504">504  |</a> 			buffer + strlen(buffer), MOD_BUFSIZE-strlen(buffer),
-<a name="line505">505  |</a> 			*listptr, " ", NULL))
-<a name="line506">506  |</a> 		    if( OK != ErrorLogger( ERR_STRING, LOC,NULL)) {
-<a name="line507">507  |</a> 	    		FreeList( savedlists[k], savedlens[k]);
-<a name="line508">508  |</a> 			goto unwind2;
-<a name="line509">509  |</a> 		    }
-<a name="line510">510  |</a> 	    }
-<a name="line511">511  |</a> 
-<a name="line512">512  |</a> 	    FreeList( savedlists[k], savedlens[k]);
-<a name="line513">513  |</a> 	}
-<a name="line514">514  |</a> 
-<a name="line515">515  |</a> 	buffer[strlen(buffer)-1] = '\0';	/* remove last blank */
-<a name="line516">516  |</a> 
-<a name="line517">517  |</a> 	if( OK != ErrorLogger( ERR_PREREQ, LOC, g_current_module, buffer, NULL))
-<a name="line518">518  |</a> 	    Result = TCL_ERROR;	
+<a name="line483">483  |</a> 	    savedlens[ listcnt]    = nummodules;
+<a name="line484">484  |</a> 	    savedlists[ listcnt++] = modulelist;
+<a name="line485">485  |</a> 
+<a name="line486">486  |</a> 	    /**
+<a name="line487">487  |</a> 	     **  Now actually check if the prerequisites are fullfilled
+<a name="line488">488  |</a> 	     **  The notloaded_flag controls the exit from both loops in case
+<a name="line489">489  |</a> 	     **  a prerequisite is missing.
+<a name="line490">490  |</a> 	     **/
+<a name="line491">491  |</a> 
+<a name="line492">492  |</a>             for( k=0; k &lt; nummodules &amp;&amp; notloaded_flag; k++) {
+<a name="line493">493  |</a>                 if( !IsLoaded( interp, modulelist[k], NULL, NULL)) {
+<a name="line494">494  |</a>                     notloaded_flag = argv[i];
+<a name="line495">495  |</a>                 } else {
+<a name="line496">496  |</a>                     notloaded_flag = NULL;
+<a name="line497">497  |</a>                 }
+<a name="line498">498  |</a>             }
+<a name="line499">499  |</a>         } /** for( j) **/
+<a name="line500">500  |</a>     } /** for( i) **/
+<a name="line501">501  |</a> 
+<a name="line502">502  |</a> #if WITH_DEBUGGING_CALLBACK_1
+<a name="line503">503  |</a>     ErrorLogger( NO_ERR_DEBUG, LOC, "Done. Missing prerequisite: '",
+<a name="line504">504  |</a> 	(notloaded_flag ? notloaded_flag : "none"), "'", NULL);
+<a name="line505">505  |</a> #endif
+<a name="line506">506  |</a> 
+<a name="line507">507  |</a>     /**
+<a name="line508">508  |</a>      **  Display an error message if this was *NOT* display mode and a
+<a name="line509">509  |</a>      **  missing prerequisite has been found
+<a name="line510">510  |</a>      **/
+<a name="line511">511  |</a>     if( notloaded_flag) {
+<a name="line512">512  |</a> 
+<a name="line513">513  |</a> 	/**
+<a name="line514">514  |</a> 	 **  Add the whole list of prerequired module files to the Tcl result
+<a name="line515">515  |</a> 	 **  string
+<a name="line516">516  |</a> 	 **/
+<a name="line517">517  |</a> 	for( k=0; k&lt;listcnt; k++) {
+<a name="line518">518  |</a> 	    char **listptr = savedlists[k];
 <a name="line519">519  |</a> 
-<a name="line520">520  |</a>     } else {
-<a name="line521">521  |</a> 
-<a name="line522">522  |</a> 	/**
-<a name="line523">523  |</a> 	 **  We have to free the saved module names again
-<a name="line524">524  |</a> 	 **/
-<a name="line525">525  |</a> 
-<a name="line526">526  |</a> 	for( k=0; k&lt;listcnt; k++)
-<a name="line527">527  |</a> 	    FreeList( savedlists[k], savedlens[k]);
-<a name="line528">528  |</a> 
-<a name="line529">529  |</a>     }
+<a name="line520">520  |</a> 	    *buffer = '\0';
+<a name="line521">521  |</a> 	    for( i=0; listptr &amp;&amp; i&lt;savedlens[k]; i++, listptr++) {
+<a name="line522">522  |</a> 		if ((char *) NULL == stringer(
+<a name="line523">523  |</a> 			buffer + strlen(buffer), MOD_BUFSIZE-strlen(buffer),
+<a name="line524">524  |</a> 			*listptr, " ", NULL))
+<a name="line525">525  |</a> 		    if( OK != ErrorLogger( ERR_STRING, LOC,NULL)) {
+<a name="line526">526  |</a> 	    		FreeList( savedlists[k], savedlens[k]);
+<a name="line527">527  |</a> 			goto unwind2;
+<a name="line528">528  |</a> 		    }
+<a name="line529">529  |</a> 	    }
 <a name="line530">530  |</a> 
-<a name="line531">531  |</a>     /**
-<a name="line532">532  |</a>      **  Free up the list of prerequisites and return ...
-<a name="line533">533  |</a>      **/
-<a name="line534">534  |</a> 
-<a name="line535">535  |</a>     null_free((void *) &amp;savedlens);
-<a name="line536">536  |</a>     null_free((void *) &amp;savedlists);
-<a name="line537">537  |</a> 
-<a name="line538">538  |</a> #if WITH_DEBUGGING_CALLBACK
-<a name="line539">539  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdPrereq, NULL);
-<a name="line540">540  |</a> #endif
-<a name="line541">541  |</a> 
-<a name="line542">542  |</a> success1:
-<a name="line543">543  |</a>     null_free((void *) &amp;modulepath);
-<a name="line544">544  |</a> success0:
-<a name="line545">545  |</a>     return( Result);			/** -------- EXIT (Result)  -------&gt; **/
-<a name="line546">546  |</a> 
-<a name="line547">547  |</a> unwind3:
-<a name="line548">548  |</a>     null_free((void *) &amp;savedlens);
-<a name="line549">549  |</a> unwind2:
-<a name="line550">550  |</a>     null_free((void *) &amp;savedlists);
-<a name="line551">551  |</a> unwind1:
-<a name="line552">552  |</a>     null_free((void *) &amp;modulepath);
-<a name="line553">553  |</a> unwind0:
-<a name="line554">554  |</a>     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line555">555  |</a> } /** End of 'cmdPrereq' **/
+<a name="line531">531  |</a> 	    FreeList( savedlists[k], savedlens[k]);
+<a name="line532">532  |</a> 	}
+<a name="line533">533  |</a> 
+<a name="line534">534  |</a> 	buffer[strlen(buffer)-1] = '\0';	/* remove last blank */
+<a name="line535">535  |</a> 
+<a name="line536">536  |</a> 	if( OK != ErrorLogger( ERR_PREREQ, LOC, g_current_module, buffer, NULL))
+<a name="line537">537  |</a> 	    Result = TCL_ERROR;	
+<a name="line538">538  |</a> 
+<a name="line539">539  |</a>     } else {
+<a name="line540">540  |</a> 
+<a name="line541">541  |</a> 	/**
+<a name="line542">542  |</a> 	 **  We have to free the saved module names again
+<a name="line543">543  |</a> 	 **/
+<a name="line544">544  |</a> 
+<a name="line545">545  |</a> 	for( k=0; k&lt;listcnt; k++)
+<a name="line546">546  |</a> 	    FreeList( savedlists[k], savedlens[k]);
+<a name="line547">547  |</a> 
+<a name="line548">548  |</a>     }
+<a name="line549">549  |</a> 
+<a name="line550">550  |</a>     /**
+<a name="line551">551  |</a>      **  Free up the list of prerequisites and return ...
+<a name="line552">552  |</a>      **/
+<a name="line553">553  |</a> 
+<a name="line554">554  |</a>     null_free((void *) &amp;savedlens);
+<a name="line555">555  |</a>     null_free((void *) &amp;savedlists);
+<a name="line556">556  |</a> 
+<a name="line557">557  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line558">558  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdPrereq, NULL);
+<a name="line559">559  |</a> #endif
+<a name="line560">560  |</a> 
+<a name="line561">561  |</a> success1:
+<a name="line562">562  |</a>     null_free((void *) &amp;modulepath);
+<a name="line563">563  |</a> success0:
+<a name="line564">564  |</a>     return( Result);			/** -------- EXIT (Result)  -------&gt; **/
+<a name="line565">565  |</a> 
+<a name="line566">566  |</a> unwind3:
+<a name="line567">567  |</a>     null_free((void *) &amp;savedlens);
+<a name="line568">568  |</a> unwind2:
+<a name="line569">569  |</a>     null_free((void *) &amp;savedlists);
+<a name="line570">570  |</a> unwind1:
+<a name="line571">571  |</a>     null_free((void *) &amp;modulepath);
+<a name="line572">572  |</a> unwind0:
+<a name="line573">573  |</a>     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line574">574  |</a> } /** End of 'cmdPrereq' **/
 </pre>
 
 </BODY>

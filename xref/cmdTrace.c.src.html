@@ -49,7 +49,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line29">29   |</a>  ** 									     ** 
 <a name="line30">30   |</a>  ** ************************************************************************ **/
 <a name="line31">31   |</a> 
-<a name="line32">32   |</a> static char Id[] = "@(#)$Id: cmdTrace.c.src.html,v 1.1 2005/11/15 03:43:35 rkowen Exp $";
+<a name="line32">32   |</a> static char Id[] = "@(#)$Id: cmdTrace.c.src.html,v 1.2 2005/11/25 20:09:37 rkowen Exp $";
 <a name="line33">33   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line34">34   |</a> 
 <a name="line35">35   |</a> /** ************************************************************************ **/
@@ -158,577 +158,594 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line138">138  |</a> #   define	MOD_TR_APROPOS	_all_off
 <a name="line139">139  |</a> #endif
 <a name="line140">140  |</a> 
-<a name="line141">141  |</a> #ifdef  WITH_TRACE_WHATIS
-<a name="line142">142  |</a> #   define	MOD_TR_WHATIS	WITH_TRACE_WHATIS
+<a name="line141">141  |</a> #ifdef  WITH_TRACE_REFRESH
+<a name="line142">142  |</a> #   define	MOD_TR_REFRESH	WITH_TRACE_REFRESH
 <a name="line143">143  |</a> #else
-<a name="line144">144  |</a> #   define	MOD_TR_WHATIS	_all_off
+<a name="line144">144  |</a> #   define	MOD_TR_REFRESH	_all_off
 <a name="line145">145  |</a> #endif
 <a name="line146">146  |</a> 
-<a name="line147">147  |</a> /** ************************************************************************ **/
-<a name="line148">148  |</a> /**				      MACROS				     **/
-<a name="line149">149  |</a> /** ************************************************************************ **/
-<a name="line150">150  |</a> 
-<a name="line151">151  |</a> /** not applicable **/
+<a name="line147">147  |</a> #ifdef  WITH_TRACE_WHATIS
+<a name="line148">148  |</a> #   define	MOD_TR_WHATIS	WITH_TRACE_WHATIS
+<a name="line149">149  |</a> #else
+<a name="line150">150  |</a> #   define	MOD_TR_WHATIS	_all_off
+<a name="line151">151  |</a> #endif
 <a name="line152">152  |</a> 
 <a name="line153">153  |</a> /** ************************************************************************ **/
-<a name="line154">154  |</a> /** 				    LOCAL DATA				     **/
+<a name="line154">154  |</a> /**				      MACROS				     **/
 <a name="line155">155  |</a> /** ************************************************************************ **/
 <a name="line156">156  |</a> 
-<a name="line157">157  |</a> static	char	module_name[] = "cmdTrace.c";	/** File name of this module **/
-<a name="line158">158  |</a> #if WITH_DEBUGGING_CALLBACK
-<a name="line159">159  |</a> static	char	_proc_cmdModuleTrace[] = "cmdModuleTrace";
-<a name="line160">160  |</a> #endif
-<a name="line161">161  |</a> 
-<a name="line162">162  |</a> /**
-<a name="line163">163  |</a>  **  Tracing strings
-<a name="line164">164  |</a>  **  contain a colon separated list of 'switch on/switch off' selector for
-<a name="line165">165  |</a>  **  module files. Each selector beginning with a '+' means 'tracing on', '-'
-<a name="line166">166  |</a>  **  means 'tracing off'.
-<a name="line167">167  |</a>  **  The +/- switch is followed by the name of the modulefile to which it
-<a name="line168">168  |</a>  **  belongs. All valif TCL regexps may be specified here.
-<a name="line169">169  |</a>  **/
-<a name="line170">170  |</a> 
-<a name="line171">171  |</a> static	char	_all[] = ".*";
-<a name="line172">172  |</a> static	char	_all_on[] = "+.*";
-<a name="line173">173  |</a> static	char	_all_off[] = "-.*";
-<a name="line174">174  |</a> 
-<a name="line175">175  |</a> /** 
-<a name="line176">176  |</a>  **  The tracing selection table
-<a name="line177">177  |</a>  **/
-<a name="line178">178  |</a> 
-<a name="line179">179  |</a> static	ModTrace	TraceSelect[] = {
-<a name="line180">180  |</a>     { &amp;addRE,		"load",		MOD_TR_LOAD,	0 },	/**  0 **/
-<a name="line181">181  |</a>     { &amp;rmRE,		"unload",	MOD_TR_UNLOAD,	0 },	/**  1 **/
-<a name="line182">182  |</a>     { &amp;swRE,		"switch",	MOD_TR_SWITCH,	0 },	/**  2 **/
-<a name="line183">183  |</a>     { &amp;dispRE,		"display",	MOD_TR_DISP,	0 },	/**  3 **/
-<a name="line184">184  |</a>     { &amp;listRE,		"list",		MOD_TR_LIST,	0 },	/**  4 **/
-<a name="line185">185  |</a>     { &amp;availRE,		"avail",	MOD_TR_AVAIL,	0 },	/**  5 **/
-<a name="line186">186  |</a>     { &amp;helpRE,		"help",		MOD_TR_HELP,	0 },	/**  6 **/
-<a name="line187">187  |</a>     { &amp;initRE,		"init",		MOD_TR_INIT,	0 },	/**  7 **/
-<a name="line188">188  |</a>     { &amp;useRE,		"use",		MOD_TR_USE,	0 },	/**  8 **/
-<a name="line189">189  |</a>     { &amp;unuseRE,		"unuse",	MOD_TR_UNUSE,	0 },	/**  9 **/
-<a name="line190">190  |</a>     { &amp;updateRE,	"update",	MOD_TR_UPDATE,	0 },	/** 10 **/
-<a name="line191">191  |</a>     { &amp;purgeRE,		"purge",	MOD_TR_PURGE,	0 },	/** 11 **/
-<a name="line192">192  |</a>     { &amp;clearRE,		"clear",	MOD_TR_CLEAR,	0 },	/** 12 **/
-<a name="line193">193  |</a>     { &amp;whatisRE,	"whatis",	MOD_TR_WHATIS,	0 },	/** 13 **/
-<a name="line194">194  |</a>     { &amp;aproposRE,	"apropos",	MOD_TR_APROPOS,	0 }	/** 14 **/
-<a name="line195">195  |</a> };
-<a name="line196">196  |</a> 
-<a name="line197">197  |</a> /** ************************************************************************ **/
-<a name="line198">198  |</a> /**				    PROTOTYPES				     **/
-<a name="line199">199  |</a> /** ************************************************************************ **/
-<a name="line200">200  |</a> 
-<a name="line201">201  |</a> static	int	GetTraceTable(	Tcl_Interp *interp,
-<a name="line202">202  |</a> 				char *cmd,
-<a name="line203">203  |</a> 				int num);
+<a name="line157">157  |</a> /** not applicable **/
+<a name="line158">158  |</a> 
+<a name="line159">159  |</a> /** ************************************************************************ **/
+<a name="line160">160  |</a> /** 				    LOCAL DATA				     **/
+<a name="line161">161  |</a> /** ************************************************************************ **/
+<a name="line162">162  |</a> 
+<a name="line163">163  |</a> static	char	module_name[] = "cmdTrace.c";	/** File name of this module **/
+<a name="line164">164  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line165">165  |</a> static	char	_proc_cmdModuleTrace[] = "cmdModuleTrace";
+<a name="line166">166  |</a> #endif
+<a name="line167">167  |</a> 
+<a name="line168">168  |</a> /**
+<a name="line169">169  |</a>  **  Tracing strings
+<a name="line170">170  |</a>  **  contain a colon separated list of 'switch on/switch off' selector for
+<a name="line171">171  |</a>  **  module files. Each selector beginning with a '+' means 'tracing on', '-'
+<a name="line172">172  |</a>  **  means 'tracing off'.
+<a name="line173">173  |</a>  **  The +/- switch is followed by the name of the modulefile to which it
+<a name="line174">174  |</a>  **  belongs. All valif TCL regexps may be specified here.
+<a name="line175">175  |</a>  **/
+<a name="line176">176  |</a> 
+<a name="line177">177  |</a> static	char	_all[] = ".*";
+<a name="line178">178  |</a> static	char	_all_on[] = "+.*";
+<a name="line179">179  |</a> static	char	_all_off[] = "-.*";
+<a name="line180">180  |</a> 
+<a name="line181">181  |</a> /** 
+<a name="line182">182  |</a>  **  The tracing selection table
+<a name="line183">183  |</a>  **/
+<a name="line184">184  |</a> 
+<a name="line185">185  |</a> static	ModTrace	TraceSelect[] = {
+<a name="line186">186  |</a>     { &amp;addRE,		"load",		MOD_TR_LOAD,	0 },	/**  0 **/
+<a name="line187">187  |</a>     { &amp;rmRE,		"unload",	MOD_TR_UNLOAD,	0 },	/**  1 **/
+<a name="line188">188  |</a>     { &amp;swRE,		"switch",	MOD_TR_SWITCH,	0 },	/**  2 **/
+<a name="line189">189  |</a>     { &amp;dispRE,		"display",	MOD_TR_DISP,	0 },	/**  3 **/
+<a name="line190">190  |</a>     { &amp;listRE,		"list",		MOD_TR_LIST,	0 },	/**  4 **/
+<a name="line191">191  |</a>     { &amp;availRE,		"avail",	MOD_TR_AVAIL,	0 },	/**  5 **/
+<a name="line192">192  |</a>     { &amp;helpRE,		"help",		MOD_TR_HELP,	0 },	/**  6 **/
+<a name="line193">193  |</a>     { &amp;initRE,		"init",		MOD_TR_INIT,	0 },	/**  7 **/
+<a name="line194">194  |</a>     { &amp;useRE,		"use",		MOD_TR_USE,	0 },	/**  8 **/
+<a name="line195">195  |</a>     { &amp;unuseRE,		"unuse",	MOD_TR_UNUSE,	0 },	/**  9 **/
+<a name="line196">196  |</a>     { &amp;updateRE,	"update",	MOD_TR_UPDATE,	0 },	/** 10 **/
+<a name="line197">197  |</a>     { &amp;purgeRE,		"purge",	MOD_TR_PURGE,	0 },	/** 11 **/
+<a name="line198">198  |</a>     { &amp;clearRE,		"clear",	MOD_TR_CLEAR,	0 },	/** 12 **/
+<a name="line199">199  |</a>     { &amp;whatisRE,	"whatis",	MOD_TR_WHATIS,	0 },	/** 13 **/
+<a name="line200">200  |</a>     { &amp;aproposRE,	"apropos",	MOD_TR_APROPOS,	0 },	/** 14 **/
+<a name="line201">201  |</a>     { &amp;refreshRE,	"refresh",	MOD_TR_REFRESH,	0 }	/** 15 **/
+<a name="line202">202  |</a> };
+<a name="line203">203  |</a> /** ************************************************************************ **/
 <a name="line204">204  |</a> 
-<a name="line205">205  |</a> static	int	ChangeTraceSel(	Tcl_Interp *interp,
-<a name="line206">206  |</a> 				char	*cmd_tab,
-<a name="line207">207  |</a> 				int	 cmd_tab_size,
-<a name="line208">208  |</a> 				char	 on_off,
-<a name="line209">209  |</a> 				char	*module_pat);
-<a name="line210">210  |</a> 
-<a name="line211">211  |</a> static	int	CheckTracingPat(	Tcl_Interp *interp,
-<a name="line212">212  |</a> 					char	*pattern,
-<a name="line213">213  |</a> 					char	*modulefile);
-<a name="line214">214  |</a> 
-<a name="line215">215  |</a> /*++++
-<a name="line216">216  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line217">217  |</a>  ** 									     **
-<a name="line218">218  |</a>  **   Function:		cmdModuleTrace					     **
-<a name="line219">219  |</a>  ** 									     **
-<a name="line220">220  |</a>  **   Description:	Callback function for 'trace'			     **
-<a name="line221">221  |</a>  ** 									     **
-<a name="line222">222  |</a>  **   First Edition:	95/12/26					     **
-<a name="line223">223  |</a>  ** 									     **
-<a name="line224">224  |</a>  **   Parameters:	ClientData	 client_data			     **
-<a name="line225">225  |</a>  **			Tcl_Interp	*interp		According Tcl interp.**
-<a name="line226">226  |</a>  **			int		 argc		Number of arguments  **
-<a name="line227">227  |</a>  **			char		*argv[]		Argument array	     **
-<a name="line228">228  |</a>  ** 									     **
-<a name="line229">229  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
-<a name="line230">230  |</a>  **				TCL_ERROR	Any error		     **
+<a name="line205">205  |</a> /** ************************************************************************ **/
+<a name="line206">206  |</a> /**				    PROTOTYPES				     **/
+<a name="line207">207  |</a> /** ************************************************************************ **/
+<a name="line208">208  |</a> 
+<a name="line209">209  |</a> static	int	GetTraceTable(	Tcl_Interp *interp,
+<a name="line210">210  |</a> 				char *cmd,
+<a name="line211">211  |</a> 				int num);
+<a name="line212">212  |</a> 
+<a name="line213">213  |</a> static	int	ChangeTraceSel(	Tcl_Interp *interp,
+<a name="line214">214  |</a> 				char	*cmd_tab,
+<a name="line215">215  |</a> 				int	 cmd_tab_size,
+<a name="line216">216  |</a> 				char	 on_off,
+<a name="line217">217  |</a> 				char	*module_pat);
+<a name="line218">218  |</a> 
+<a name="line219">219  |</a> static	int	CheckTracingPat(	Tcl_Interp *interp,
+<a name="line220">220  |</a> 					char	*pattern,
+<a name="line221">221  |</a> 					char	*modulefile);
+<a name="line222">222  |</a> 
+<a name="line223">223  |</a> /*++++
+<a name="line224">224  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line225">225  |</a>  ** 									     **
+<a name="line226">226  |</a>  **   Function:		cmdModuleTrace					     **
+<a name="line227">227  |</a>  ** 									     **
+<a name="line228">228  |</a>  **   Description:	Callback function for 'trace'			     **
+<a name="line229">229  |</a>  ** 									     **
+<a name="line230">230  |</a>  **   First Edition:	95/12/26					     **
 <a name="line231">231  |</a>  ** 									     **
-<a name="line232">232  |</a>  **   Attached Globals:	TraceSelect	List containing all tracing settings **
-<a name="line233">233  |</a>  **   			g_flags		These are set up accordingly before  **
-<a name="line234">234  |</a>  **					this function is called in order to  **
-<a name="line235">235  |</a>  **					control everything		     **
+<a name="line232">232  |</a>  **   Parameters:	ClientData	 client_data			     **
+<a name="line233">233  |</a>  **			Tcl_Interp	*interp		According Tcl interp.**
+<a name="line234">234  |</a>  **			int		 argc		Number of arguments  **
+<a name="line235">235  |</a>  **			char		*argv[]		Argument array	     **
 <a name="line236">236  |</a>  ** 									     **
-<a name="line237">237  |</a>  ** ************************************************************************ **
-<a name="line238">238  |</a>  ++++*/
-<a name="line239">239  |</a> 
-<a name="line240">240  |</a> int	cmdModuleTrace(	ClientData	 client_data,
-<a name="line241">241  |</a> 	      		Tcl_Interp	*interp,
-<a name="line242">242  |</a> 	      		int		 argc,
-<a name="line243">243  |</a> 	      		char		*argv[])
-<a name="line244">244  |</a> {
-<a name="line245">245  |</a>     char 	  on_off = '+';		/** The first argument		     **/
-<a name="line246">246  |</a>     char	**args;			/** Argument pointer for scanning    **/
-<a name="line247">247  |</a>     int 	  i, k;			/** Loop counter		     **/
-<a name="line248">248  |</a>     int		  cmd_tab_size;
-<a name="line249">249  |</a>     char	 *cmd_table;		/** Command table		     **/
-<a name="line250">250  |</a>     int		  ret = TCL_OK;
-<a name="line251">251  |</a> 
-<a name="line252">252  |</a> #if WITH_DEBUGGING_CALLBACK
-<a name="line253">253  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleTrace, NULL);
-<a name="line254">254  |</a> #endif
-<a name="line255">255  |</a> 
-<a name="line256">256  |</a>     /**
-<a name="line257">257  |</a>      **  Whatis mode?
-<a name="line258">258  |</a>      **/
-<a name="line259">259  |</a>     if( g_flags &amp; (M_WHATIS | M_HELP))
-<a name="line260">260  |</a>         return( TCL_OK);		/** ------- EXIT PROCEDURE -------&gt; **/
-<a name="line261">261  |</a> 	
-<a name="line262">262  |</a>     /**
-<a name="line263">263  |</a>      **  Parameter check
-<a name="line264">264  |</a>      **/
-<a name="line265">265  |</a>     if( argc &lt; 2) {
-<a name="line266">266  |</a> 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "on|off",
-<a name="line267">267  |</a> 	    "[cmd [cmd ...]]", "[ -module module [module ...]]", NULL))
-<a name="line268">268  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line269">269  |</a>     }
-<a name="line270">270  |</a> 
-<a name="line271">271  |</a>     /**
-<a name="line272">272  |</a>      **  On or off?
-<a name="line273">273  |</a>      **/
-<a name="line274">274  |</a>     if( !strcmp( argv[ 1], "on"))
-<a name="line275">275  |</a> 	on_off = '+';
-<a name="line276">276  |</a>     else if( !strcmp( argv[ 1], "off"))
-<a name="line277">277  |</a> 	on_off = '-';
-<a name="line278">278  |</a>     else {
-<a name="line279">279  |</a> 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "on|off",
-<a name="line280">280  |</a> 	    "[cmd [cmd ...]]", "[ -module module [module ...]]", NULL))
-<a name="line281">281  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line282">282  |</a>     }
-<a name="line283">283  |</a>  
-<a name="line284">284  |</a>     /**
-<a name="line285">285  |</a>      **  Display mode?
-<a name="line286">286  |</a>      **/
-<a name="line287">287  |</a>     if( g_flags &amp; M_DISPLAY) {
-<a name="line288">288  |</a> 	fprintf( stderr, "%s\t ", argv[ 0]);
-<a name="line289">289  |</a> 	for( i=1; i&lt;argc; i++)
-<a name="line290">290  |</a> 	    fprintf( stderr, "%s ", argv[ i]);
-<a name="line291">291  |</a> 	fprintf( stderr, "\n");
-<a name="line292">292  |</a>         return( TCL_OK);		/** ------- EXIT PROCEDURE -------&gt; **/
-<a name="line293">293  |</a>     }
-<a name="line294">294  |</a> 
-<a name="line295">295  |</a>     /**
-<a name="line296">296  |</a>      **  We need a table of module command involved in this trace selection.
-<a name="line297">297  |</a>      **  Allocate one and initialize it.
-<a name="line298">298  |</a>      **/
-<a name="line299">299  |</a>     cmd_tab_size = sizeof( TraceSelect) / sizeof( TraceSelect[ 0]);
-<a name="line300">300  |</a>     if((char *) NULL == (cmd_table = (char *) malloc( cmd_tab_size)))
-<a name="line301">301  |</a> 	return((OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) ? TCL_OK : TCL_ERROR);
-<a name="line302">302  |</a> 
-<a name="line303">303  |</a>     /**
-<a name="line304">304  |</a>      **  Scan all commands specified as options. The last option to be scanned
-<a name="line305">305  |</a>      **  is either the real last one, or the '-module' one
-<a name="line306">306  |</a>      **/
-<a name="line307">307  |</a>     args = argv + 2; i = argc - 2;
-<a name="line308">308  |</a>     memset( cmd_table, !i, cmd_tab_size);
-<a name="line309">309  |</a> 
-<a name="line310">310  |</a>     while( i--) {
-<a name="line311">311  |</a> 	char *tmp = *args++;
-<a name="line312">312  |</a> 
-<a name="line313">313  |</a> 	/**
-<a name="line314">314  |</a> 	 **  Check for '-module'
-<a name="line315">315  |</a> 	 **/
-<a name="line316">316  |</a> 	if( !strncmp( tmp, "-module", strlen( tmp)))
-<a name="line317">317  |</a> 	    break;
-<a name="line318">318  |</a> 
-<a name="line319">319  |</a> 	/**
-<a name="line320">320  |</a> 	 **  This should be a module command.
-<a name="line321">321  |</a> 	 **  Check it against the TraceSelect table
-<a name="line322">322  |</a> 	 **/
-<a name="line323">323  |</a> 	if( -1 != (k = GetTraceTable(interp, tmp, cmd_tab_size))) {
-<a name="line324">324  |</a> 	    cmd_table[ k] = 1;
-<a name="line325">325  |</a> 	} else {
-<a name="line326">326  |</a> 	    if( OK != ErrorLogger( ERR_COMMAND, LOC, tmp, NULL)) {
-<a name="line327">327  |</a> 		null_free((void *) &amp;cmd_table);
-<a name="line328">328  |</a> 		return( TCL_ERROR);
-<a name="line329">329  |</a> 	    }
-<a name="line330">330  |</a> 	}
-<a name="line331">331  |</a> 
-<a name="line332">332  |</a>     } /** while( i--) **/
-<a name="line333">333  |</a> 
-<a name="line334">334  |</a>     /**
-<a name="line335">335  |</a>      **  Now scan all Modulefiles concerned in the current command
-<a name="line336">336  |</a>      **  If we ran to the end of the argument list (i==0), ALL files are
-<a name="line337">337  |</a>      **  concerned in this ...
-<a name="line338">338  |</a>      **/
-<a name="line339">339  |</a>     if( 0 &gt;= i) {	
-<a name="line340">340  |</a> 	ret = ChangeTraceSel(interp, cmd_table, cmd_tab_size, on_off, _all);
-<a name="line341">341  |</a>     } else {
-<a name="line342">342  |</a> 	while( i-- &amp;&amp; TCL_OK == ret) 
-<a name="line343">343  |</a> 	    ret = ChangeTraceSel(interp, cmd_table, cmd_tab_size,
-<a name="line344">344  |</a> 		on_off, *args++);
-<a name="line345">345  |</a>     }
-<a name="line346">346  |</a> 
-<a name="line347">347  |</a>     /**
-<a name="line348">348  |</a>      **  Cleanup finally and return
-<a name="line349">349  |</a>      **/
-<a name="line350">350  |</a>     null_free((void *) &amp;cmd_table);
-<a name="line351">351  |</a> 
-<a name="line352">352  |</a> #if WITH_DEBUGGING_CALLBACK
-<a name="line353">353  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleTrace, NULL);
-<a name="line354">354  |</a> #endif
-<a name="line355">355  |</a> 
-<a name="line356">356  |</a>     return( ret);
-<a name="line357">357  |</a> 
-<a name="line358">358  |</a> } /** End of 'cmdModuleTrace' **/
-<a name="line359">359  |</a> 
-<a name="line360">360  |</a> /*++++
-<a name="line361">361  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line362">362  |</a>  ** 									     **
-<a name="line363">363  |</a>  **   Function:		GetTraceTable					     **
-<a name="line364">364  |</a>  ** 									     **
-<a name="line365">365  |</a>  **   Description:	Returns the TraceSelect index for the passed module  **
-<a name="line366">366  |</a>  **			subcommand					     **
-<a name="line367">367  |</a>  ** 									     **
-<a name="line368">368  |</a>  **   First Edition:	95/12/26					     **
-<a name="line369">369  |</a>  ** 									     **
-<a name="line370">370  |</a>  **   Parameters:	char	*cmd		Subcommand to be checked     **
-<a name="line371">371  |</a>  **			int	 num		Number of commands to be chk **
-<a name="line372">372  |</a>  ** 									     **
-<a name="line373">373  |</a>  **   Result:		int	&gt;= 0		Successfull completion	     **
-<a name="line374">374  |</a>  **				-1		Any error		     **
-<a name="line375">375  |</a>  ** 									     **
-<a name="line376">376  |</a>  ** ************************************************************************ **
-<a name="line377">377  |</a>  ++++*/
-<a name="line378">378  |</a> 
-<a name="line379">379  |</a> static	int	GetTraceTable(Tcl_Interp *interp, char *cmd, int num)
-<a name="line380">380  |</a> {
-<a name="line381">381  |</a>     int k;
-<a name="line382">382  |</a> 
-<a name="line383">383  |</a>     for( k=0; k &lt; num; k++) {
-<a name="line384">384  |</a> 	if( Tcl_RegExpMatch(interp, cmd, *(TraceSelect[k].re_ptr))) 
-<a name="line385">385  |</a> 	    return( k);			/** ----------- Got it ------------&gt; **/
-<a name="line386">386  |</a>     } /** for( k) **/
-<a name="line387">387  |</a> 
-<a name="line388">388  |</a>     /**
-<a name="line389">389  |</a>      **  Not found ..
-<a name="line390">390  |</a>      **/
-<a name="line391">391  |</a>     return( -1);
-<a name="line392">392  |</a> 
-<a name="line393">393  |</a> } /** End of 'GetTraceTable' **/
-<a name="line394">394  |</a> 
-<a name="line395">395  |</a> /*++++
-<a name="line396">396  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line397">397  |</a>  ** 									     **
-<a name="line398">398  |</a>  **   Function:		GetTraceSel					     **
-<a name="line399">399  |</a>  ** 									     **
-<a name="line400">400  |</a>  **   Description:	Retrieve the trace selection pattern for the passed  **
-<a name="line401">401  |</a>  **			module command					     **
-<a name="line402">402  |</a>  ** 									     **
-<a name="line403">403  |</a>  **   First Edition:	95/12/26					     **
-<a name="line404">404  |</a>  ** 									     **
-<a name="line405">405  |</a>  **   Parameters:	char	*cmd		Subcommand to be checked     **
-<a name="line406">406  |</a>  ** 									     **
-<a name="line407">407  |</a>  **   Result:		char *	NULL		Module subcommand not found  **
-<a name="line408">408  |</a>  **				Otherwise	Assigned trace pattern	     **
-<a name="line409">409  |</a>  ** 									     **
-<a name="line410">410  |</a>  ** ************************************************************************ **
-<a name="line411">411  |</a>  ++++*/
-<a name="line412">412  |</a> 
-<a name="line413">413  |</a> char	*GetTraceSel(	Tcl_Interp *interp,
-<a name="line414">414  |</a> 			char	*cmd)
-<a name="line415">415  |</a> {
-<a name="line416">416  |</a>     int k;
-<a name="line417">417  |</a> 
-<a name="line418">418  |</a>     if( -1 == (k = GetTraceTable(interp, cmd,
-<a name="line419">419  |</a> 	(sizeof( TraceSelect) / sizeof( TraceSelect[ 0]) ))))
-<a name="line420">420  |</a> 	return((char *) NULL);
-<a name="line421">421  |</a> 
-<a name="line422">422  |</a>     return( TraceSelect[ k].tracing);
-<a name="line423">423  |</a> 
-<a name="line424">424  |</a> } /** End of 'GetTraceSel' **/
-<a name="line425">425  |</a> 
-<a name="line426">426  |</a> /*++++
-<a name="line427">427  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line428">428  |</a>  ** 									     **
-<a name="line429">429  |</a>  **   Function:		ChangeTraceSel					     **
-<a name="line430">430  |</a>  ** 									     **
-<a name="line431">431  |</a>  **   Description:	Change the trace selection for all commands speci-   **
-<a name="line432">432  |</a>  **			fied in the passed 'cmd_table'. The passed module-   **
-<a name="line433">433  |</a>  **			name has to be changed according 'on_off'	     **
-<a name="line434">434  |</a>  ** 									     **
-<a name="line435">435  |</a>  **   First Edition:	95/12/26					     **
-<a name="line436">436  |</a>  ** 									     **
-<a name="line437">437  |</a>  **   Parameters:	char	*cmd_table	Boolean array indicating all **
-<a name="line438">438  |</a>  **						commands in the TraceSelect  **
-<a name="line439">439  |</a>  **						table to be changed	     **
-<a name="line440">440  |</a>  **			int	 cmd_tab_size	Size of this array	     **
-<a name="line441">441  |</a>  **			char	 on_off		'+' switch tracing on	     **
-<a name="line442">442  |</a>  **						'-' switch tracing off       **
-<a name="line443">443  |</a>  **			char	*module_pat	Pattern for the affected     **
-<a name="line444">444  |</a>  **						module files		     **
+<a name="line237">237  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
+<a name="line238">238  |</a>  **				TCL_ERROR	Any error		     **
+<a name="line239">239  |</a>  ** 									     **
+<a name="line240">240  |</a>  **   Attached Globals:	TraceSelect	List containing all tracing settings **
+<a name="line241">241  |</a>  **   			g_flags		These are set up accordingly before  **
+<a name="line242">242  |</a>  **					this function is called in order to  **
+<a name="line243">243  |</a>  **					control everything		     **
+<a name="line244">244  |</a>  ** 									     **
+<a name="line245">245  |</a>  ** ************************************************************************ **
+<a name="line246">246  |</a>  ++++*/
+<a name="line247">247  |</a> 
+<a name="line248">248  |</a> int	cmdModuleTrace(	ClientData	 client_data,
+<a name="line249">249  |</a> 	      		Tcl_Interp	*interp,
+<a name="line250">250  |</a> 	      		int		 argc,
+<a name="line251">251  |</a> 	      		char		*argv[])
+<a name="line252">252  |</a> {
+<a name="line253">253  |</a>     char 	  on_off = '+';		/** The first argument		     **/
+<a name="line254">254  |</a>     char	**args;			/** Argument pointer for scanning    **/
+<a name="line255">255  |</a>     int 	  i, k;			/** Loop counter		     **/
+<a name="line256">256  |</a>     int		  cmd_tab_size;
+<a name="line257">257  |</a>     char	 *cmd_table;		/** Command table		     **/
+<a name="line258">258  |</a>     int		  ret = TCL_OK;
+<a name="line259">259  |</a> 
+<a name="line260">260  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line261">261  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleTrace, NULL);
+<a name="line262">262  |</a> #endif
+<a name="line263">263  |</a> 
+<a name="line264">264  |</a>     /**
+<a name="line265">265  |</a>      **  Whatis mode?
+<a name="line266">266  |</a>      **/
+<a name="line267">267  |</a>     if( g_flags &amp; (M_WHATIS | M_HELP))
+<a name="line268">268  |</a>         return( TCL_OK);		/** ------- EXIT PROCEDURE -------&gt; **/
+<a name="line269">269  |</a> 	
+<a name="line270">270  |</a>     /**
+<a name="line271">271  |</a>      **  Parameter check
+<a name="line272">272  |</a>      **/
+<a name="line273">273  |</a>     if( argc &lt; 2) {
+<a name="line274">274  |</a> 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "on|off",
+<a name="line275">275  |</a> 	    "[cmd [cmd ...]]", "[ -module module [module ...]]", NULL))
+<a name="line276">276  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line277">277  |</a>     }
+<a name="line278">278  |</a> 
+<a name="line279">279  |</a>     /**
+<a name="line280">280  |</a>      **  On or off?
+<a name="line281">281  |</a>      **/
+<a name="line282">282  |</a>     if( !strcmp( argv[ 1], "on"))
+<a name="line283">283  |</a> 	on_off = '+';
+<a name="line284">284  |</a>     else if( !strcmp( argv[ 1], "off"))
+<a name="line285">285  |</a> 	on_off = '-';
+<a name="line286">286  |</a>     else {
+<a name="line287">287  |</a> 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "on|off",
+<a name="line288">288  |</a> 	    "[cmd [cmd ...]]", "[ -module module [module ...]]", NULL))
+<a name="line289">289  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line290">290  |</a>     }
+<a name="line291">291  |</a>  
+<a name="line292">292  |</a>   
+<a name="line293">293  |</a>     /**
+<a name="line294">294  |</a>      **  Non-persist mode?
+<a name="line295">295  |</a>      **/
+<a name="line296">296  |</a>     
+<a name="line297">297  |</a>     if (g_flags &amp; M_NONPERSIST) {
+<a name="line298">298  |</a> 	return (TCL_OK);
+<a name="line299">299  |</a>     }
+<a name="line300">300  |</a> 
+<a name="line301">301  |</a>     /**
+<a name="line302">302  |</a>      **  Display mode?
+<a name="line303">303  |</a>      **/
+<a name="line304">304  |</a>     if( g_flags &amp; M_DISPLAY) {
+<a name="line305">305  |</a> 	fprintf( stderr, "%s\t ", argv[ 0]);
+<a name="line306">306  |</a> 	for( i=1; i&lt;argc; i++)
+<a name="line307">307  |</a> 	    fprintf( stderr, "%s ", argv[ i]);
+<a name="line308">308  |</a> 	fprintf( stderr, "\n");
+<a name="line309">309  |</a>         return( TCL_OK);		/** ------- EXIT PROCEDURE -------&gt; **/
+<a name="line310">310  |</a>     }
+<a name="line311">311  |</a> 
+<a name="line312">312  |</a>     /**
+<a name="line313">313  |</a>      **  We need a table of module command involved in this trace selection.
+<a name="line314">314  |</a>      **  Allocate one and initialize it.
+<a name="line315">315  |</a>      **/
+<a name="line316">316  |</a>     cmd_tab_size = sizeof( TraceSelect) / sizeof( TraceSelect[ 0]);
+<a name="line317">317  |</a>     if((char *) NULL == (cmd_table = (char *) malloc( cmd_tab_size)))
+<a name="line318">318  |</a> 	return((OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) ? TCL_OK : TCL_ERROR);
+<a name="line319">319  |</a> 
+<a name="line320">320  |</a>     /**
+<a name="line321">321  |</a>      **  Scan all commands specified as options. The last option to be scanned
+<a name="line322">322  |</a>      **  is either the real last one, or the '-module' one
+<a name="line323">323  |</a>      **/
+<a name="line324">324  |</a>     args = argv + 2; i = argc - 2;
+<a name="line325">325  |</a>     memset( cmd_table, !i, cmd_tab_size);
+<a name="line326">326  |</a> 
+<a name="line327">327  |</a>     while( i--) {
+<a name="line328">328  |</a> 	char *tmp = *args++;
+<a name="line329">329  |</a> 
+<a name="line330">330  |</a> 	/**
+<a name="line331">331  |</a> 	 **  Check for '-module'
+<a name="line332">332  |</a> 	 **/
+<a name="line333">333  |</a> 	if( !strncmp( tmp, "-module", strlen( tmp)))
+<a name="line334">334  |</a> 	    break;
+<a name="line335">335  |</a> 
+<a name="line336">336  |</a> 	/**
+<a name="line337">337  |</a> 	 **  This should be a module command.
+<a name="line338">338  |</a> 	 **  Check it against the TraceSelect table
+<a name="line339">339  |</a> 	 **/
+<a name="line340">340  |</a> 	if( -1 != (k = GetTraceTable(interp, tmp, cmd_tab_size))) {
+<a name="line341">341  |</a> 	    cmd_table[ k] = 1;
+<a name="line342">342  |</a> 	} else {
+<a name="line343">343  |</a> 	    if( OK != ErrorLogger( ERR_COMMAND, LOC, tmp, NULL)) {
+<a name="line344">344  |</a> 		null_free((void *) &amp;cmd_table);
+<a name="line345">345  |</a> 		return( TCL_ERROR);
+<a name="line346">346  |</a> 	    }
+<a name="line347">347  |</a> 	}
+<a name="line348">348  |</a> 
+<a name="line349">349  |</a>     } /** while( i--) **/
+<a name="line350">350  |</a> 
+<a name="line351">351  |</a>     /**
+<a name="line352">352  |</a>      **  Now scan all Modulefiles concerned in the current command
+<a name="line353">353  |</a>      **  If we ran to the end of the argument list (i==0), ALL files are
+<a name="line354">354  |</a>      **  concerned in this ...
+<a name="line355">355  |</a>      **/
+<a name="line356">356  |</a>     if( 0 &gt;= i) {	
+<a name="line357">357  |</a> 	ret = ChangeTraceSel(interp, cmd_table, cmd_tab_size, on_off, _all);
+<a name="line358">358  |</a>     } else {
+<a name="line359">359  |</a> 	while( i-- &amp;&amp; TCL_OK == ret) 
+<a name="line360">360  |</a> 	    ret = ChangeTraceSel(interp, cmd_table, cmd_tab_size,
+<a name="line361">361  |</a> 		on_off, *args++);
+<a name="line362">362  |</a>     }
+<a name="line363">363  |</a> 
+<a name="line364">364  |</a>     /**
+<a name="line365">365  |</a>      **  Cleanup finally and return
+<a name="line366">366  |</a>      **/
+<a name="line367">367  |</a>     null_free((void *) &amp;cmd_table);
+<a name="line368">368  |</a> 
+<a name="line369">369  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line370">370  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleTrace, NULL);
+<a name="line371">371  |</a> #endif
+<a name="line372">372  |</a> 
+<a name="line373">373  |</a>     return( ret);
+<a name="line374">374  |</a> 
+<a name="line375">375  |</a> } /** End of 'cmdModuleTrace' **/
+<a name="line376">376  |</a> 
+<a name="line377">377  |</a> /*++++
+<a name="line378">378  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line379">379  |</a>  ** 									     **
+<a name="line380">380  |</a>  **   Function:		GetTraceTable					     **
+<a name="line381">381  |</a>  ** 									     **
+<a name="line382">382  |</a>  **   Description:	Returns the TraceSelect index for the passed module  **
+<a name="line383">383  |</a>  **			subcommand					     **
+<a name="line384">384  |</a>  ** 									     **
+<a name="line385">385  |</a>  **   First Edition:	95/12/26					     **
+<a name="line386">386  |</a>  ** 									     **
+<a name="line387">387  |</a>  **   Parameters:	char	*cmd		Subcommand to be checked     **
+<a name="line388">388  |</a>  **			int	 num		Number of commands to be chk **
+<a name="line389">389  |</a>  ** 									     **
+<a name="line390">390  |</a>  **   Result:		int	&gt;= 0		Successfull completion	     **
+<a name="line391">391  |</a>  **				-1		Any error		     **
+<a name="line392">392  |</a>  ** 									     **
+<a name="line393">393  |</a>  ** ************************************************************************ **
+<a name="line394">394  |</a>  ++++*/
+<a name="line395">395  |</a> 
+<a name="line396">396  |</a> static	int	GetTraceTable(Tcl_Interp *interp, char *cmd, int num)
+<a name="line397">397  |</a> {
+<a name="line398">398  |</a>     int k;
+<a name="line399">399  |</a> 
+<a name="line400">400  |</a>     for( k=0; k &lt; num; k++) {
+<a name="line401">401  |</a> 	if( Tcl_RegExpMatch(interp, cmd, *(TraceSelect[k].re_ptr))) 
+<a name="line402">402  |</a> 	    return( k);			/** ----------- Got it ------------&gt; **/
+<a name="line403">403  |</a>     } /** for( k) **/
+<a name="line404">404  |</a> 
+<a name="line405">405  |</a>     /**
+<a name="line406">406  |</a>      **  Not found ..
+<a name="line407">407  |</a>      **/
+<a name="line408">408  |</a>     return( -1);
+<a name="line409">409  |</a> 
+<a name="line410">410  |</a> } /** End of 'GetTraceTable' **/
+<a name="line411">411  |</a> 
+<a name="line412">412  |</a> /*++++
+<a name="line413">413  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line414">414  |</a>  ** 									     **
+<a name="line415">415  |</a>  **   Function:		GetTraceSel					     **
+<a name="line416">416  |</a>  ** 									     **
+<a name="line417">417  |</a>  **   Description:	Retrieve the trace selection pattern for the passed  **
+<a name="line418">418  |</a>  **			module command					     **
+<a name="line419">419  |</a>  ** 									     **
+<a name="line420">420  |</a>  **   First Edition:	95/12/26					     **
+<a name="line421">421  |</a>  ** 									     **
+<a name="line422">422  |</a>  **   Parameters:	char	*cmd		Subcommand to be checked     **
+<a name="line423">423  |</a>  ** 									     **
+<a name="line424">424  |</a>  **   Result:		char *	NULL		Module subcommand not found  **
+<a name="line425">425  |</a>  **				Otherwise	Assigned trace pattern	     **
+<a name="line426">426  |</a>  ** 									     **
+<a name="line427">427  |</a>  ** ************************************************************************ **
+<a name="line428">428  |</a>  ++++*/
+<a name="line429">429  |</a> 
+<a name="line430">430  |</a> char	*GetTraceSel(	Tcl_Interp *interp,
+<a name="line431">431  |</a> 			char	*cmd)
+<a name="line432">432  |</a> {
+<a name="line433">433  |</a>     int k;
+<a name="line434">434  |</a> 
+<a name="line435">435  |</a>     if( -1 == (k = GetTraceTable(interp, cmd,
+<a name="line436">436  |</a> 	(sizeof( TraceSelect) / sizeof( TraceSelect[ 0]) ))))
+<a name="line437">437  |</a> 	return((char *) NULL);
+<a name="line438">438  |</a> 
+<a name="line439">439  |</a>     return( TraceSelect[ k].tracing);
+<a name="line440">440  |</a> 
+<a name="line441">441  |</a> } /** End of 'GetTraceSel' **/
+<a name="line442">442  |</a> 
+<a name="line443">443  |</a> /*++++
+<a name="line444">444  |</a>  ** ** Function-Header ***************************************************** **
 <a name="line445">445  |</a>  ** 									     **
-<a name="line446">446  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
-<a name="line447">447  |</a>  **				TCL_ERROR	Any error		     **
-<a name="line448">448  |</a>  ** 									     **
-<a name="line449">449  |</a>  ** ************************************************************************ **
-<a name="line450">450  |</a>  ++++*/
-<a name="line451">451  |</a> 
-<a name="line452">452  |</a> static	int	ChangeTraceSel(	Tcl_Interp *interp,
-<a name="line453">453  |</a> 				char	*cmd_table,
-<a name="line454">454  |</a> 				int	 cmd_tab_size,
-<a name="line455">455  |</a> 				char	 on_off,
-<a name="line456">456  |</a> 				char	*module_pat)
-<a name="line457">457  |</a> {
-<a name="line458">458  |</a>     char	*pattern, *s, *t, *tmp;
-<a name="line459">459  |</a>     int		 len = strlen( module_pat);
-<a name="line460">460  |</a>     int 	 i;
-<a name="line461">461  |</a>     int		 ret = TCL_OK;
-<a name="line462">462  |</a> 
-<a name="line463">463  |</a>     /**
-<a name="line464">464  |</a>      **  Need a buffer for to build the complete pattern
-<a name="line465">465  |</a>      **/
-<a name="line466">466  |</a>     if((char *) NULL == (pattern = (char *) malloc( len + 2))) {
-<a name="line467">467  |</a> 	ErrorLogger( ERR_ALLOC, LOC, NULL);
-<a name="line468">468  |</a> 	return( TCL_ERROR);
-<a name="line469">469  |</a>     }
-<a name="line470">470  |</a> 
-<a name="line471">471  |</a>     /**
-<a name="line472">472  |</a>      **  Check if this is the ALL pattern. If it is, replace all affected
-<a name="line473">473  |</a>      **  entries with '_all_on' or '_all_off'
-<a name="line474">474  |</a>      **/
-<a name="line475">475  |</a>     if( !strcmp( module_pat, _all)) {
-<a name="line476">476  |</a> 
-<a name="line477">477  |</a> 	for( i=0; i &lt; cmd_tab_size; i++) {
-<a name="line478">478  |</a> 	    if( cmd_table[ i]) {
+<a name="line446">446  |</a>  **   Function:		ChangeTraceSel					     **
+<a name="line447">447  |</a>  ** 									     **
+<a name="line448">448  |</a>  **   Description:	Change the trace selection for all commands speci-   **
+<a name="line449">449  |</a>  **			fied in the passed 'cmd_table'. The passed module-   **
+<a name="line450">450  |</a>  **			name has to be changed according 'on_off'	     **
+<a name="line451">451  |</a>  ** 									     **
+<a name="line452">452  |</a>  **   First Edition:	95/12/26					     **
+<a name="line453">453  |</a>  ** 									     **
+<a name="line454">454  |</a>  **   Parameters:	char	*cmd_table	Boolean array indicating all **
+<a name="line455">455  |</a>  **						commands in the TraceSelect  **
+<a name="line456">456  |</a>  **						table to be changed	     **
+<a name="line457">457  |</a>  **			int	 cmd_tab_size	Size of this array	     **
+<a name="line458">458  |</a>  **			char	 on_off		'+' switch tracing on	     **
+<a name="line459">459  |</a>  **						'-' switch tracing off       **
+<a name="line460">460  |</a>  **			char	*module_pat	Pattern for the affected     **
+<a name="line461">461  |</a>  **						module files		     **
+<a name="line462">462  |</a>  ** 									     **
+<a name="line463">463  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
+<a name="line464">464  |</a>  **				TCL_ERROR	Any error		     **
+<a name="line465">465  |</a>  ** 									     **
+<a name="line466">466  |</a>  ** ************************************************************************ **
+<a name="line467">467  |</a>  ++++*/
+<a name="line468">468  |</a> 
+<a name="line469">469  |</a> static	int	ChangeTraceSel(	Tcl_Interp *interp,
+<a name="line470">470  |</a> 				char	*cmd_table,
+<a name="line471">471  |</a> 				int	 cmd_tab_size,
+<a name="line472">472  |</a> 				char	 on_off,
+<a name="line473">473  |</a> 				char	*module_pat)
+<a name="line474">474  |</a> {
+<a name="line475">475  |</a>     char	*pattern, *s, *t, *tmp;
+<a name="line476">476  |</a>     int		 len = strlen( module_pat);
+<a name="line477">477  |</a>     int 	 i;
+<a name="line478">478  |</a>     int		 ret = TCL_OK;
 <a name="line479">479  |</a> 
-<a name="line480">480  |</a> 		if( TraceSelect[ i].alloc)
-<a name="line481">481  |</a> 		    null_free((void *) &amp;(TraceSelect[ i].tracing));
-<a name="line482">482  |</a> 		TraceSelect[ i].alloc = 0;
-<a name="line483">483  |</a> 
-<a name="line484">484  |</a> 		TraceSelect[ i].tracing = ('+' == on_off) ?
-<a name="line485">485  |</a> 		    _all_on : _all_off;
-<a name="line486">486  |</a> 	    }
-<a name="line487">487  |</a> 	}
-<a name="line488">488  |</a> 
-<a name="line489">489  |</a>     } else { /** if( ALL pattern) **/
-<a name="line490">490  |</a> 
-<a name="line491">491  |</a> 	/**
-<a name="line492">492  |</a> 	 **  Check the pattern for colons ...
-<a name="line493">493  |</a> 	 **/
-<a name="line494">494  |</a> 	if( strchr( module_pat, ':')) 
-<a name="line495">495  |</a> 	    if( OK != ErrorLogger( ERR_COLON, LOC, module_pat, NULL))
-<a name="line496">496  |</a> 		ret = TCL_ERROR;
-<a name="line497">497  |</a> 
-<a name="line498">498  |</a> 	if( TCL_OK == ret) {
-<a name="line499">499  |</a> 
-<a name="line500">500  |</a> 	    /**
-<a name="line501">501  |</a> 	     **  Build the complete pattern
-<a name="line502">502  |</a> 	     **/
-<a name="line503">503  |</a> 	    *pattern = on_off;
-<a name="line504">504  |</a> 	    strcpy( pattern + 1, module_pat);
-<a name="line505">505  |</a> 	    len += 1;
-<a name="line506">506  |</a> 
-<a name="line507">507  |</a> 	    /**
-<a name="line508">508  |</a> 	     **  Loop for all entries to be changed
-<a name="line509">509  |</a> 	     **/
-<a name="line510">510  |</a> 	    for( i=0; i &lt; cmd_tab_size; i++) {
-<a name="line511">511  |</a> 		if( cmd_table[ i]) {
-<a name="line512">512  |</a> 
-<a name="line513">513  |</a> 		    /**
-<a name="line514">514  |</a> 		     **  allocate a buffer for the new pattern
-<a name="line515">515  |</a> 		     **/
-<a name="line516">516  |</a> 		    if((char *) NULL == (tmp = (char *) malloc( len + 2 +
-<a name="line517">517  |</a> 			strlen( TraceSelect[ i].tracing)))) {
-<a name="line518">518  |</a> 			if( OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-<a name="line519">519  |</a> 			    continue;
-<a name="line520">520  |</a> 			} else {
-<a name="line521">521  |</a> 			    ret = TCL_ERROR;
-<a name="line522">522  |</a> 			    break;
-<a name="line523">523  |</a> 			}
-<a name="line524">524  |</a> 		    }
-<a name="line525">525  |</a> 
-<a name="line526">526  |</a> 		    /**
-<a name="line527">527  |</a> 		     **  Copy the new pattern to the buffer at first
-<a name="line528">528  |</a> 		     **/
-<a name="line529">529  |</a> 		    strcpy( tmp, pattern);
-<a name="line530">530  |</a> 		    t = tmp + len;
-<a name="line531">531  |</a> 
-<a name="line532">532  |</a> 		    /**
-<a name="line533">533  |</a> 		     **  Tokenize the old pattern and remove duplicates
-<a name="line534">534  |</a> 		     **/
-<a name="line535">535  |</a> 		    for( s = strtok( TraceSelect[ i].tracing, ":");
-<a name="line536">536  |</a> 			 s;
-<a name="line537">537  |</a> 			 s = strtok( NULL, ":") ) {
-<a name="line538">538  |</a> 
-<a name="line539">539  |</a> 			if( strcmp( (s+1), module_pat)) {
-<a name="line540">540  |</a> 			    *t++ = ':';
-<a name="line541">541  |</a> 			    while( *t++ = *s++);
-<a name="line542">542  |</a> 			    t--;
-<a name="line543">543  |</a> 			}
-<a name="line544">544  |</a> 
-<a name="line545">545  |</a> 		    } /** for **/
-<a name="line546">546  |</a> 
-<a name="line547">547  |</a> 		    /**
-<a name="line548">548  |</a> 		     **  Finally check if we have to dealloc and set up the
-<a name="line549">549  |</a> 		     **  new pattern
-<a name="line550">550  |</a> 		     **/
-<a name="line551">551  |</a> 
-<a name="line552">552  |</a> 		    if( TraceSelect[ i].alloc)
-<a name="line553">553  |</a> 			null_free((void *) &amp;(TraceSelect[ i].tracing));
-<a name="line554">554  |</a> 
-<a name="line555">555  |</a> 		    TraceSelect[ i].tracing = tmp;
-<a name="line556">556  |</a> 		    TraceSelect[ i].alloc = 1;
-<a name="line557">557  |</a> 
-<a name="line558">558  |</a> 		} /** if **/
-<a name="line559">559  |</a> 	    } /** for **/
-<a name="line560">560  |</a> 
-<a name="line561">561  |</a> 	} /** if( ret) **/
-<a name="line562">562  |</a>     } /** if( ALL pattern) **/
-<a name="line563">563  |</a> 	
-<a name="line564">564  |</a>     /**
-<a name="line565">565  |</a>      **  Free what has been allocated an return 
-<a name="line566">566  |</a>      **/
-<a name="line567">567  |</a>     null_free((void *) &amp;pattern);
-<a name="line568">568  |</a>     return( ret);
-<a name="line569">569  |</a> 
-<a name="line570">570  |</a> } /** End of 'ChangeTraceSel' **/
+<a name="line480">480  |</a>     /**
+<a name="line481">481  |</a>      **  Need a buffer for to build the complete pattern
+<a name="line482">482  |</a>      **/
+<a name="line483">483  |</a>     if((char *) NULL == (pattern = (char *) malloc( len + 2))) {
+<a name="line484">484  |</a> 	ErrorLogger( ERR_ALLOC, LOC, NULL);
+<a name="line485">485  |</a> 	return( TCL_ERROR);
+<a name="line486">486  |</a>     }
+<a name="line487">487  |</a> 
+<a name="line488">488  |</a>     /**
+<a name="line489">489  |</a>      **  Check if this is the ALL pattern. If it is, replace all affected
+<a name="line490">490  |</a>      **  entries with '_all_on' or '_all_off'
+<a name="line491">491  |</a>      **/
+<a name="line492">492  |</a>     if( !strcmp( module_pat, _all)) {
+<a name="line493">493  |</a> 
+<a name="line494">494  |</a> 	for( i=0; i &lt; cmd_tab_size; i++) {
+<a name="line495">495  |</a> 	    if( cmd_table[ i]) {
+<a name="line496">496  |</a> 
+<a name="line497">497  |</a> 		if( TraceSelect[ i].alloc)
+<a name="line498">498  |</a> 		    null_free((void *) &amp;(TraceSelect[ i].tracing));
+<a name="line499">499  |</a> 		TraceSelect[ i].alloc = 0;
+<a name="line500">500  |</a> 
+<a name="line501">501  |</a> 		TraceSelect[ i].tracing = ('+' == on_off) ?
+<a name="line502">502  |</a> 		    _all_on : _all_off;
+<a name="line503">503  |</a> 	    }
+<a name="line504">504  |</a> 	}
+<a name="line505">505  |</a> 
+<a name="line506">506  |</a>     } else { /** if( ALL pattern) **/
+<a name="line507">507  |</a> 
+<a name="line508">508  |</a> 	/**
+<a name="line509">509  |</a> 	 **  Check the pattern for colons ...
+<a name="line510">510  |</a> 	 **/
+<a name="line511">511  |</a> 	if( strchr( module_pat, ':')) 
+<a name="line512">512  |</a> 	    if( OK != ErrorLogger( ERR_COLON, LOC, module_pat, NULL))
+<a name="line513">513  |</a> 		ret = TCL_ERROR;
+<a name="line514">514  |</a> 
+<a name="line515">515  |</a> 	if( TCL_OK == ret) {
+<a name="line516">516  |</a> 
+<a name="line517">517  |</a> 	    /**
+<a name="line518">518  |</a> 	     **  Build the complete pattern
+<a name="line519">519  |</a> 	     **/
+<a name="line520">520  |</a> 	    *pattern = on_off;
+<a name="line521">521  |</a> 	    strcpy( pattern + 1, module_pat);
+<a name="line522">522  |</a> 	    len += 1;
+<a name="line523">523  |</a> 
+<a name="line524">524  |</a> 	    /**
+<a name="line525">525  |</a> 	     **  Loop for all entries to be changed
+<a name="line526">526  |</a> 	     **/
+<a name="line527">527  |</a> 	    for( i=0; i &lt; cmd_tab_size; i++) {
+<a name="line528">528  |</a> 		if( cmd_table[ i]) {
+<a name="line529">529  |</a> 
+<a name="line530">530  |</a> 		    /**
+<a name="line531">531  |</a> 		     **  allocate a buffer for the new pattern
+<a name="line532">532  |</a> 		     **/
+<a name="line533">533  |</a> 		    if((char *) NULL == (tmp = (char *) malloc( len + 2 +
+<a name="line534">534  |</a> 			strlen( TraceSelect[ i].tracing)))) {
+<a name="line535">535  |</a> 			if( OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) {
+<a name="line536">536  |</a> 			    continue;
+<a name="line537">537  |</a> 			} else {
+<a name="line538">538  |</a> 			    ret = TCL_ERROR;
+<a name="line539">539  |</a> 			    break;
+<a name="line540">540  |</a> 			}
+<a name="line541">541  |</a> 		    }
+<a name="line542">542  |</a> 
+<a name="line543">543  |</a> 		    /**
+<a name="line544">544  |</a> 		     **  Copy the new pattern to the buffer at first
+<a name="line545">545  |</a> 		     **/
+<a name="line546">546  |</a> 		    strcpy( tmp, pattern);
+<a name="line547">547  |</a> 		    t = tmp + len;
+<a name="line548">548  |</a> 
+<a name="line549">549  |</a> 		    /**
+<a name="line550">550  |</a> 		     **  Tokenize the old pattern and remove duplicates
+<a name="line551">551  |</a> 		     **/
+<a name="line552">552  |</a> 		    for( s = strtok( TraceSelect[ i].tracing, ":");
+<a name="line553">553  |</a> 			 s;
+<a name="line554">554  |</a> 			 s = strtok( NULL, ":") ) {
+<a name="line555">555  |</a> 
+<a name="line556">556  |</a> 			if( strcmp( (s+1), module_pat)) {
+<a name="line557">557  |</a> 			    *t++ = ':';
+<a name="line558">558  |</a> 			    while( *t++ = *s++);
+<a name="line559">559  |</a> 			    t--;
+<a name="line560">560  |</a> 			}
+<a name="line561">561  |</a> 
+<a name="line562">562  |</a> 		    } /** for **/
+<a name="line563">563  |</a> 
+<a name="line564">564  |</a> 		    /**
+<a name="line565">565  |</a> 		     **  Finally check if we have to dealloc and set up the
+<a name="line566">566  |</a> 		     **  new pattern
+<a name="line567">567  |</a> 		     **/
+<a name="line568">568  |</a> 
+<a name="line569">569  |</a> 		    if( TraceSelect[ i].alloc)
+<a name="line570">570  |</a> 			null_free((void *) &amp;(TraceSelect[ i].tracing));
 <a name="line571">571  |</a> 
-<a name="line572">572  |</a> /*++++
-<a name="line573">573  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line574">574  |</a>  ** 									     **
-<a name="line575">575  |</a>  **   Function:		CheckTracing					     **
-<a name="line576">576  |</a>  ** 									     **
-<a name="line577">577  |</a>  **   Description:	Check wheter thracing is turned on for the passed    **
-<a name="line578">578  |</a>  **			command and modulefile				     **
-<a name="line579">579  |</a>  ** 									     **
-<a name="line580">580  |</a>  **   First Edition:	95/12/26					     **
-<a name="line581">581  |</a>  ** 									     **
-<a name="line582">582  |</a>  **   Parameters:	char	*cmd		Subcommand to be checked     **
-<a name="line583">583  |</a>  **			char	*modulefile	Modulefile to be checked     **
-<a name="line584">584  |</a>  ** 									     **
-<a name="line585">585  |</a>  **   Result:		int	0		No tracing		     **
-<a name="line586">586  |</a>  **				1		Tracing enabled		     **
-<a name="line587">587  |</a>  ** 									     **
-<a name="line588">588  |</a>  ** ************************************************************************ **
-<a name="line589">589  |</a>  ++++*/
-<a name="line590">590  |</a> 
-<a name="line591">591  |</a> int	CheckTracing(	Tcl_Interp *interp,
-<a name="line592">592  |</a> 			char	*cmd,
-<a name="line593">593  |</a> 			char	*modulefile)
-<a name="line594">594  |</a> {
-<a name="line595">595  |</a>     int 	 k;
-<a name="line596">596  |</a> 
-<a name="line597">597  |</a>     /**
-<a name="line598">598  |</a>      **  Get the TraceSelect table index
-<a name="line599">599  |</a>      **/
-<a name="line600">600  |</a> 
-<a name="line601">601  |</a>     if( -1 == (k = GetTraceTable(interp, cmd,
-<a name="line602">602  |</a> 	(sizeof( TraceSelect) / sizeof( TraceSelect[0]) )))) {
-<a name="line603">603  |</a> 	ErrorLogger( ERR_COMMAND, LOC, cmd, NULL);
-<a name="line604">604  |</a> 	return( 0);
-<a name="line605">605  |</a>     }
-<a name="line606">606  |</a> 
-<a name="line607">607  |</a>     /**
-<a name="line608">608  |</a>      **  Now check this guy ...
-<a name="line609">609  |</a>      **/
-<a name="line610">610  |</a> 
-<a name="line611">611  |</a>     return( CheckTracingPat(interp, TraceSelect[ k].tracing, modulefile));
-<a name="line612">612  |</a> 
-<a name="line613">613  |</a> } /** End of 'CheckTracing' **/
-<a name="line614">614  |</a> 
-<a name="line615">615  |</a> /*++++
-<a name="line616">616  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line617">617  |</a>  ** 									     **
-<a name="line618">618  |</a>  **   Function:		CheckTracingPat					     **
-<a name="line619">619  |</a>  ** 									     **
-<a name="line620">620  |</a>  **   Description:	Check the passed pattern if it enables tracing for   **
-<a name="line621">621  |</a>  **			the passed module file				     **
-<a name="line622">622  |</a>  ** 									     **
-<a name="line623">623  |</a>  **   First Edition:	95/12/26					     **
-<a name="line624">624  |</a>  ** 									     **
-<a name="line625">625  |</a>  **   Parameters:	char	*pattern	Pattern to be checked	     **
-<a name="line626">626  |</a>  **			char	*modulefile	Modulefile to be checked     **
-<a name="line627">627  |</a>  ** 									     **
-<a name="line628">628  |</a>  **   Result:		int	0		No tracing		     **
-<a name="line629">629  |</a>  **				1		Tracing enabled		     **
-<a name="line630">630  |</a>  ** 									     **
-<a name="line631">631  |</a>  ** ************************************************************************ **
-<a name="line632">632  |</a>  ++++*/
-<a name="line633">633  |</a> 
-<a name="line634">634  |</a> static	int	CheckTracingPat(	Tcl_Interp *interp,
-<a name="line635">635  |</a> 					char	*pattern,
-<a name="line636">636  |</a> 					char	*modulefile)
-<a name="line637">637  |</a> {
-<a name="line638">638  |</a>     char	*s;
-<a name="line639">639  |</a>     int		 ret;
-<a name="line640">640  |</a> 
-<a name="line641">641  |</a>     /**
-<a name="line642">642  |</a>      **  Tokenize the pattern and check if it matches ...
-<a name="line643">643  |</a>      **/
-<a name="line644">644  |</a> 
-<a name="line645">645  |</a>     for( s = strtok( pattern, ":");
-<a name="line646">646  |</a> 	 s;
-<a name="line647">647  |</a> 	 s = strtok( NULL, ":") ) {
-<a name="line648">648  |</a> 
-<a name="line649">649  |</a> 	ret = ('+' == *s++);
-<a name="line650">650  |</a> 	if( Tcl_RegExpMatch(interp, modulefile, s))
-<a name="line651">651  |</a> 	    return( ret);
-<a name="line652">652  |</a> 
-<a name="line653">653  |</a>     } /** for **/
-<a name="line654">654  |</a> 
-<a name="line655">655  |</a>     /**
-<a name="line656">656  |</a>      **  No pattern matched the module file name ...
-<a name="line657">657  |</a>      **/
-<a name="line658">658  |</a> 
-<a name="line659">659  |</a>     return( 0);
-<a name="line660">660  |</a> 
-<a name="line661">661  |</a> } /** End of 'CheckTracingPat' **/
-<a name="line662">662  |</a> 
-<a name="line663">663  |</a> /*++++
-<a name="line664">664  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line665">665  |</a>  ** 									     **
-<a name="line666">666  |</a>  **   Function:		CheckTracingList				     **
-<a name="line667">667  |</a>  ** 									     **
-<a name="line668">668  |</a>  **   Description:	Check wheter tracing is turned on for the passed     **
-<a name="line669">669  |</a>  **			command and at least one of the passed modulefiles   **
-<a name="line670">670  |</a>  ** 									     **
-<a name="line671">671  |</a>  **   First Edition:	95/12/26					     **
-<a name="line672">672  |</a>  ** 									     **
-<a name="line673">673  |</a>  **   Parameters:	char	*cmd		Subcommand to be checked     **
-<a name="line674">674  |</a>  **			int	 count		Number of passed modulefiles **
-<a name="line675">675  |</a>  **			char	**modules	Modulefiles to be checked    **
-<a name="line676">676  |</a>  ** 									     **
-<a name="line677">677  |</a>  **   Result:		int	0		No tracing		     **
-<a name="line678">678  |</a>  **				1		Tracing enabled		     **
-<a name="line679">679  |</a>  ** 									     **
-<a name="line680">680  |</a>  ** ************************************************************************ **
-<a name="line681">681  |</a>  ++++*/
-<a name="line682">682  |</a> 
-<a name="line683">683  |</a> int	CheckTracingList(	Tcl_Interp *interp,
-<a name="line684">684  |</a> 				char	 *cmd,
-<a name="line685">685  |</a> 				int	  count,
-<a name="line686">686  |</a> 				char	**modules)
-<a name="line687">687  |</a> {
-<a name="line688">688  |</a>     int 	 k;
-<a name="line689">689  |</a> 
-<a name="line690">690  |</a>     /**
-<a name="line691">691  |</a>      **  Get the TraceSelect table index
-<a name="line692">692  |</a>      **/
-<a name="line693">693  |</a> 
-<a name="line694">694  |</a>     if( -1 == (k = GetTraceTable(interp, cmd,
-<a name="line695">695  |</a> 	(sizeof( TraceSelect) / sizeof( TraceSelect[0]) )))) {
-<a name="line696">696  |</a> 	ErrorLogger( ERR_COMMAND, LOC, cmd, NULL);
-<a name="line697">697  |</a> 	return( 0);
-<a name="line698">698  |</a>     }
+<a name="line572">572  |</a> 		    TraceSelect[ i].tracing = tmp;
+<a name="line573">573  |</a> 		    TraceSelect[ i].alloc = 1;
+<a name="line574">574  |</a> 
+<a name="line575">575  |</a> 		} /** if **/
+<a name="line576">576  |</a> 	    } /** for **/
+<a name="line577">577  |</a> 
+<a name="line578">578  |</a> 	} /** if( ret) **/
+<a name="line579">579  |</a>     } /** if( ALL pattern) **/
+<a name="line580">580  |</a> 	
+<a name="line581">581  |</a>     /**
+<a name="line582">582  |</a>      **  Free what has been allocated an return 
+<a name="line583">583  |</a>      **/
+<a name="line584">584  |</a>     null_free((void *) &amp;pattern);
+<a name="line585">585  |</a>     return( ret);
+<a name="line586">586  |</a> 
+<a name="line587">587  |</a> } /** End of 'ChangeTraceSel' **/
+<a name="line588">588  |</a> 
+<a name="line589">589  |</a> /*++++
+<a name="line590">590  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line591">591  |</a>  ** 									     **
+<a name="line592">592  |</a>  **   Function:		CheckTracing					     **
+<a name="line593">593  |</a>  ** 									     **
+<a name="line594">594  |</a>  **   Description:	Check wheter thracing is turned on for the passed    **
+<a name="line595">595  |</a>  **			command and modulefile				     **
+<a name="line596">596  |</a>  ** 									     **
+<a name="line597">597  |</a>  **   First Edition:	95/12/26					     **
+<a name="line598">598  |</a>  ** 									     **
+<a name="line599">599  |</a>  **   Parameters:	char	*cmd		Subcommand to be checked     **
+<a name="line600">600  |</a>  **			char	*modulefile	Modulefile to be checked     **
+<a name="line601">601  |</a>  ** 									     **
+<a name="line602">602  |</a>  **   Result:		int	0		No tracing		     **
+<a name="line603">603  |</a>  **				1		Tracing enabled		     **
+<a name="line604">604  |</a>  ** 									     **
+<a name="line605">605  |</a>  ** ************************************************************************ **
+<a name="line606">606  |</a>  ++++*/
+<a name="line607">607  |</a> 
+<a name="line608">608  |</a> int	CheckTracing(	Tcl_Interp *interp,
+<a name="line609">609  |</a> 			char	*cmd,
+<a name="line610">610  |</a> 			char	*modulefile)
+<a name="line611">611  |</a> {
+<a name="line612">612  |</a>     int 	 k;
+<a name="line613">613  |</a> 
+<a name="line614">614  |</a>     /**
+<a name="line615">615  |</a>      **  Get the TraceSelect table index
+<a name="line616">616  |</a>      **/
+<a name="line617">617  |</a> 
+<a name="line618">618  |</a>     if( -1 == (k = GetTraceTable(interp, cmd,
+<a name="line619">619  |</a> 	(sizeof( TraceSelect) / sizeof( TraceSelect[0]) )))) {
+<a name="line620">620  |</a> 	ErrorLogger( ERR_COMMAND, LOC, cmd, NULL);
+<a name="line621">621  |</a> 	return( 0);
+<a name="line622">622  |</a>     }
+<a name="line623">623  |</a> 
+<a name="line624">624  |</a>     /**
+<a name="line625">625  |</a>      **  Now check this guy ...
+<a name="line626">626  |</a>      **/
+<a name="line627">627  |</a> 
+<a name="line628">628  |</a>     return( CheckTracingPat(interp, TraceSelect[ k].tracing, modulefile));
+<a name="line629">629  |</a> 
+<a name="line630">630  |</a> } /** End of 'CheckTracing' **/
+<a name="line631">631  |</a> 
+<a name="line632">632  |</a> /*++++
+<a name="line633">633  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line634">634  |</a>  ** 									     **
+<a name="line635">635  |</a>  **   Function:		CheckTracingPat					     **
+<a name="line636">636  |</a>  ** 									     **
+<a name="line637">637  |</a>  **   Description:	Check the passed pattern if it enables tracing for   **
+<a name="line638">638  |</a>  **			the passed module file				     **
+<a name="line639">639  |</a>  ** 									     **
+<a name="line640">640  |</a>  **   First Edition:	95/12/26					     **
+<a name="line641">641  |</a>  ** 									     **
+<a name="line642">642  |</a>  **   Parameters:	char	*pattern	Pattern to be checked	     **
+<a name="line643">643  |</a>  **			char	*modulefile	Modulefile to be checked     **
+<a name="line644">644  |</a>  ** 									     **
+<a name="line645">645  |</a>  **   Result:		int	0		No tracing		     **
+<a name="line646">646  |</a>  **				1		Tracing enabled		     **
+<a name="line647">647  |</a>  ** 									     **
+<a name="line648">648  |</a>  ** ************************************************************************ **
+<a name="line649">649  |</a>  ++++*/
+<a name="line650">650  |</a> 
+<a name="line651">651  |</a> static	int	CheckTracingPat(	Tcl_Interp *interp,
+<a name="line652">652  |</a> 					char	*pattern,
+<a name="line653">653  |</a> 					char	*modulefile)
+<a name="line654">654  |</a> {
+<a name="line655">655  |</a>     char	*s;
+<a name="line656">656  |</a>     int		 ret;
+<a name="line657">657  |</a> 
+<a name="line658">658  |</a>     /**
+<a name="line659">659  |</a>      **  Tokenize the pattern and check if it matches ...
+<a name="line660">660  |</a>      **/
+<a name="line661">661  |</a> 
+<a name="line662">662  |</a>     for( s = strtok( pattern, ":");
+<a name="line663">663  |</a> 	 s;
+<a name="line664">664  |</a> 	 s = strtok( NULL, ":") ) {
+<a name="line665">665  |</a> 
+<a name="line666">666  |</a> 	ret = ('+' == *s++);
+<a name="line667">667  |</a> 	if( Tcl_RegExpMatch(interp, modulefile, s))
+<a name="line668">668  |</a> 	    return( ret);
+<a name="line669">669  |</a> 
+<a name="line670">670  |</a>     } /** for **/
+<a name="line671">671  |</a> 
+<a name="line672">672  |</a>     /**
+<a name="line673">673  |</a>      **  No pattern matched the module file name ...
+<a name="line674">674  |</a>      **/
+<a name="line675">675  |</a> 
+<a name="line676">676  |</a>     return( 0);
+<a name="line677">677  |</a> 
+<a name="line678">678  |</a> } /** End of 'CheckTracingPat' **/
+<a name="line679">679  |</a> 
+<a name="line680">680  |</a> /*++++
+<a name="line681">681  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line682">682  |</a>  ** 									     **
+<a name="line683">683  |</a>  **   Function:		CheckTracingList				     **
+<a name="line684">684  |</a>  ** 									     **
+<a name="line685">685  |</a>  **   Description:	Check wheter tracing is turned on for the passed     **
+<a name="line686">686  |</a>  **			command and at least one of the passed modulefiles   **
+<a name="line687">687  |</a>  ** 									     **
+<a name="line688">688  |</a>  **   First Edition:	95/12/26					     **
+<a name="line689">689  |</a>  ** 									     **
+<a name="line690">690  |</a>  **   Parameters:	char	*cmd		Subcommand to be checked     **
+<a name="line691">691  |</a>  **			int	 count		Number of passed modulefiles **
+<a name="line692">692  |</a>  **			char	**modules	Modulefiles to be checked    **
+<a name="line693">693  |</a>  ** 									     **
+<a name="line694">694  |</a>  **   Result:		int	0		No tracing		     **
+<a name="line695">695  |</a>  **				1		Tracing enabled		     **
+<a name="line696">696  |</a>  ** 									     **
+<a name="line697">697  |</a>  ** ************************************************************************ **
+<a name="line698">698  |</a>  ++++*/
 <a name="line699">699  |</a> 
-<a name="line700">700  |</a>     /**
-<a name="line701">701  |</a>      **  Now check whether one of them requires tracing
-<a name="line702">702  |</a>      **/
-<a name="line703">703  |</a> 
-<a name="line704">704  |</a>     while( count--)
-<a name="line705">705  |</a>         if( CheckTracingPat(interp, TraceSelect[ k].tracing, *modules++))
-<a name="line706">706  |</a> 	    return( 1);
-<a name="line707">707  |</a> 
-<a name="line708">708  |</a>     return( 0);
-<a name="line709">709  |</a> 
-<a name="line710">710  |</a> } /** End of 'CheckTracingList' **/
-<a name="line711">711  |</a> 
+<a name="line700">700  |</a> int	CheckTracingList(	Tcl_Interp *interp,
+<a name="line701">701  |</a> 				char	 *cmd,
+<a name="line702">702  |</a> 				int	  count,
+<a name="line703">703  |</a> 				char	**modules)
+<a name="line704">704  |</a> {
+<a name="line705">705  |</a>     int 	 k;
+<a name="line706">706  |</a> 
+<a name="line707">707  |</a>     /**
+<a name="line708">708  |</a>      **  Get the TraceSelect table index
+<a name="line709">709  |</a>      **/
+<a name="line710">710  |</a> 
+<a name="line711">711  |</a>     if( -1 == (k = GetTraceTable(interp, cmd,
+<a name="line712">712  |</a> 	(sizeof( TraceSelect) / sizeof( TraceSelect[0]) )))) {
+<a name="line713">713  |</a> 	ErrorLogger( ERR_COMMAND, LOC, cmd, NULL);
+<a name="line714">714  |</a> 	return( 0);
+<a name="line715">715  |</a>     }
+<a name="line716">716  |</a> 
+<a name="line717">717  |</a>     /**
+<a name="line718">718  |</a>      **  Now check whether one of them requires tracing
+<a name="line719">719  |</a>      **/
+<a name="line720">720  |</a> 
+<a name="line721">721  |</a>     while( count--)
+<a name="line722">722  |</a>         if( CheckTracingPat(interp, TraceSelect[ k].tracing, *modules++))
+<a name="line723">723  |</a> 	    return( 1);
+<a name="line724">724  |</a> 
+<a name="line725">725  |</a>     return( 0);
+<a name="line726">726  |</a> 
+<a name="line727">727  |</a> } /** End of 'CheckTracingList' **/
+<a name="line728">728  |</a> 
 </pre>
 
 </BODY>

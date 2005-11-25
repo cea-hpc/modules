@@ -4,34 +4,37 @@
 <!-- cxref program (c) Andrew M. Bishop 1995,96,97,98,99,2000,01,02,03,04,05. -->
 
 <!--
-Cxref: cxref -block-comments -verbatim-comments -xref-all -index-all -html-src -Oxref ModuleCmd_Update.c
+Cxref: cxref -block-comments -verbatim-comments -xref-all -index-all -html-src -Oxref ModuleCmd_Refresh.c
 CPP  : cxref-cpp -lang-c -C -dD -dI
 -->
 
 <HTML>
 
 <HEAD>
-<TITLE>Cross reference for ModuleCmd_Update.c of cxref.</TITLE>
+<TITLE>Cross reference for ModuleCmd_Refresh.c of cxref.</TITLE>
 <LINK rel="stylesheet" href="cxref.css" type="text/css">
 </HEAD>
 
 <BODY>
 
-<h1><a name="file" href="ModuleCmd_Update.c.src.html">File ModuleCmd_Update.c</a></h1>
+<h1><a name="file" href="ModuleCmd_Refresh.c.src.html">File ModuleCmd_Refresh.c</a></h1>
 <pre>
  ** ** Module Header ******************************************************* **
  ** 									     **
  **   Modules Revision 3.0						     **
  **   Providing a flexible user environment				     **
  ** 									     **
- **   File:		ModuleCmd_Update.c				     **
- **   First Edition:	1991/10/23					     **
+ **   File:		ModuleCmd_Refresh.c				     **
+ **   First Edition:	2005/06/02					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ ** 		Andrew Ruder, aer@absoft.com 				     **
  ** 									     **
- **   Description: 	Uses the beginning environment stored the first time **
- **			each login session to reload all of the currently    **
+ **   Description:	Similar to a 'update' command but only refreshes     **
+ **			the non-persistent elements			     **
+ ** 									     **
+ **   Exports:		ModuleCmd_Refresh				     **
  ** 									     **
  **   Notes:								     **
  ** 									     **
@@ -41,8 +44,8 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <table>
   <tr>
     <td>References Variables:
-    <td><a href="ModuleCmd_Update.c.html#var-Id">Id</a>
-    <td><a href="ModuleCmd_Update.c.html#var-Id">ModuleCmd_Update.c</a>
+    <td><a href="ModuleCmd_Refresh.c.html#var-Id">Id</a>
+    <td><a href="ModuleCmd_Refresh.c.html#var-Id">ModuleCmd_Refresh.c</a>
   </tr>
 </table>
 
@@ -71,68 +74,70 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 </ul>
 
 <hr>
-<h2>Preprocessor definitions</h2>
-
-<tt><span class="cxref-define"><a href="ModuleCmd_Update.c.src.html#line47">#define UPD_BUFSIZE</a> 1024</span></tt><br>
-
-<hr>
 <h2>Local Variables</h2>
 
 <b><a name="var-Id">Id</a></b><br>
-<tt><span class="cxref-variable"><a href="ModuleCmd_Update.c.src.html#line28">static char Id[]</a></span></tt><br>
+<tt><span class="cxref-variable"><a href="ModuleCmd_Refresh.c.src.html#line31">static char Id[]</a></span></tt><br>
 <table>
   <tr>
     <td>Used in:
-    <td>&nbsp;    <td><span class="cxref-reference-local"><a href="ModuleCmd_Update.c.html#file">ModuleCmd_Update.c</a></span>
+    <td>&nbsp;    <td><span class="cxref-reference-local"><a href="ModuleCmd_Refresh.c.html#file">ModuleCmd_Refresh.c</a></span>
   </tr>
 </table>
 <p>
 <b><a name="var-UseId">UseId</a></b><br>
-<tt><span class="cxref-variable"><a href="ModuleCmd_Update.c.src.html#line29">static void* UseId[]</a></span></tt><br>
+<tt><span class="cxref-variable"><a href="ModuleCmd_Refresh.c.src.html#line32">static void* UseId[]</a></span></tt><br>
 <p>
 <b><a name="var-module_name">module_name</a></b><br>
-<tt><span class="cxref-variable"><a href="ModuleCmd_Update.c.src.html#line59">static char module_name[]</a></span></tt><br>
+<tt><span class="cxref-variable"><a href="ModuleCmd_Refresh.c.src.html#line62">static char module_name[]</a></span></tt><br>
 <table>
   <tr>
     <td>Used in:
-    <td><a href="#func-ModuleCmd_Update">ModuleCmd_Update()</a>
+    <td><a href="#func-ModuleCmd_Refresh">ModuleCmd_Refresh()</a>
     <td>&nbsp;
   </tr>
 </table>
 
 <hr>
-<h2><a name="func-ModuleCmd_Update">Global Function ModuleCmd_Update()</a></h2>
+<h2><a name="func-ModuleCmd_Refresh">Global Function ModuleCmd_Refresh()</a></h2>
 <pre>
  ** ** Function-Header ***************************************************** **
  ** 									     **
- **   Function:		ModuleCmd_Update				     **
+ **   Function:		ModuleCmd_Refresh				     **
  ** 									     **
- **   Description:	Execution of the module-command 'update'	     **
+ **   Description:	Execution of the module-command 'refresh'	     **
+ **			Does only the non-persistent modules settings        **
+ **			(aliases)					     **
  ** 									     **
- **   First Edition:	1991/10/23					     **
+ **   First Edition:	2005/06/02					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
- **			int		 argc		Number of arguments  **
  **			char 		*argv[]		Argument list	     **
  ** 									     **
  **   Result:		int	TCL_ERROR	Failure			     **
  **				TCL_OK		Successfull operation	     **
  ** 									     **
- **   Attached Globals:	flags		Controllig the callback functions    **
+ **   Attached Globals:	specified_module	The module name
+ **   			g_flags		These are set up accordingly before  **
+ **					this function is called in order to  **
+ **					control everything		     **
+ **			g_current_module	The module which is handled  **
+ **						by the current command	     **
  ** 									     **
  ** ************************************************************************ **
 </pre>
 
-<tt><span class="cxref-function"><a href="ModuleCmd_Update.c.src.html#line92">int ModuleCmd_Update ( Tcl_Interp* interp, int count, char* module_list[] )</a></span></tt><br>
+<tt><span class="cxref-function"><a href="ModuleCmd_Refresh.c.src.html#line101">int ModuleCmd_Refresh ( Tcl_Interp* interp, int argc, char* argv[] )</a></span></tt><br>
 <table>
   <tr>
-    <td>Prototyped in:
-    <td colspan=2><span class="cxref-reference-local"><a href="modules_def.h.html#file">modules_def.h</a></span>
+    <td>Calls:
+    <td><span class="cxref-reference-local"><a href="cmdModule.c.html#func-CallModuleProcedure">CallModuleProcedure()</a></span>
+    <td><span class="cxref-reference-local"><a href="cmdModule.c.html#func-CallModuleProcedure">cmdModule.c</a></span>
   </tr>
   <tr>
-    <td>Calls:
-    <td><span class="cxref-reference-local"><a href="ModuleCmd_Load.c.html#func-ModuleCmd_Load">ModuleCmd_Load()</a></span>
-    <td><span class="cxref-reference-local"><a href="ModuleCmd_Load.c.html#func-ModuleCmd_Load">ModuleCmd_Load.c</a></span>
+    <td>&nbsp;
+    <td><span class="cxref-reference-local"><a href="init.c.html#func-InitializeModuleCommands">InitializeModuleCommands()</a></span>
+    <td><span class="cxref-reference-local"><a href="init.c.html#func-InitializeModuleCommands">init.c</a></span>
   </tr>
   <tr>
     <td>&nbsp;
@@ -141,8 +146,8 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
   </tr>
   <tr>
     <td>&nbsp;
-    <td><span class="cxref-reference-local"><a href="cmdSetenv.c.html#func-moduleSetenv">moduleSetenv()</a></span>
-    <td><span class="cxref-reference-local"><a href="cmdSetenv.c.html#func-moduleSetenv">cmdSetenv.c</a></span>
+    <td><span class="cxref-reference-local"><a href="utility.c.html#func-getLMFILES">getLMFILES()</a></span>
+    <td><span class="cxref-reference-local"><a href="utility.c.html#func-getLMFILES">utility.c</a></span>
   </tr>
   <tr>
     <td>&nbsp;
@@ -151,12 +156,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
   </tr>
   <tr>
     <td>&nbsp;
-    <td><span class="cxref-reference-local"><a href="utility.c.html#func-stringer">stringer()</a></span>
-    <td><span class="cxref-reference-local"><a href="utility.c.html#func-stringer">utility.c</a></span>
-  </tr>
-  <tr>
-    <td>&nbsp;
-    <td colspan=2><span class="cxref-reference-system">Tcl_GetVar2(), Tcl_SetVar2(), fclose(), feof(), fgetc(), fopen(), getenv(), malloc(), realloc(), strchr(), strncmp(), strtok()</span>
+    <td colspan=2><span class="cxref-reference-system">Tcl_CreateInterp(), Tcl_DStringFree(), Tcl_DStringInit(), Tcl_DeleteInterp(), getenv(), strdup(), strtok()</span>
   </tr>
   <tr>
     <td>Called by:
@@ -165,8 +165,23 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
   </tr>
   <tr>
     <td>References Variables:
-    <td><span class="cxref-reference-local"><a href="ModuleCmd_Update.c.html#var-module_name">module_name</a></span>
-    <td><span class="cxref-reference-local"><a href="ModuleCmd_Update.c.html#var-module_name">ModuleCmd_Update.c</a></span>
+    <td><span class="cxref-reference-local"><a href="main.c.html#var-g_current_module">g_current_module</a></span>
+    <td><span class="cxref-reference-local"><a href="main.c.html#var-g_current_module">main.c</a></span>
+  </tr>
+  <tr>
+    <td>&nbsp;
+    <td><span class="cxref-reference-local"><a href="main.c.html#var-g_flags">g_flags</a></span>
+    <td><span class="cxref-reference-local"><a href="main.c.html#var-g_flags">main.c</a></span>
+  </tr>
+  <tr>
+    <td>&nbsp;
+    <td><span class="cxref-reference-local"><a href="main.c.html#var-g_specified_module">g_specified_module</a></span>
+    <td><span class="cxref-reference-local"><a href="main.c.html#var-g_specified_module">main.c</a></span>
+  </tr>
+  <tr>
+    <td>&nbsp;
+    <td><span class="cxref-reference-local"><a href="ModuleCmd_Refresh.c.html#var-module_name">module_name</a></span>
+    <td><span class="cxref-reference-local"><a href="ModuleCmd_Refresh.c.html#var-module_name">ModuleCmd_Refresh.c</a></span>
   </tr>
 </table>
 
