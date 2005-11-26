@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.15 2005/11/25 19:40:22 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.16 2005/11/26 04:40:16 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -130,7 +130,6 @@ help:
 	@echo "make check     - runs test suite - needs dejagnu runtest"
 	@echo "make install   - copy program & man pages to destination"
 	@echo "make clean     - cleans out most useless files"
-	@echo "make distclean - cleans & removes most made files"
 	@echo "make disthelp  - extra help for developers"
 	@echo ""
 
@@ -140,6 +139,8 @@ disthelp:
 	@echo "================ requires CVS access ======================="
 	@echo "make tag       - does a CVS rtag"
 	@echo "make dist      - creates a distribution tarball"
+	@echo "make distclean - cleans & removes most made files"
+	@echo "make maintainer-clean	- cleans even more"
 	@echo "make patch     - creates a patch file after tagging"
 	@echo "================ maintainers only =========================="
 	@echo "make lsm       - send off to the Linux Software Map"
