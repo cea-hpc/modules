@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.17 2005/11/26 17:30:00 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.18 2005/11/26 18:11:47 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -129,7 +129,7 @@ ftp-sourceforge: dist
 	-@XXX=modules-`${SED} -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`${SED} -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`.diff."*" ; \
 	echo "placing modules.lsm $$XXX $(DISTNAME).tar."*""; \
 	scp modules.lsm $$XXX $(DISTNAME).tar.* rkowen@shell.sourceforge.net:ftp
-	./.ftp ftp1.sourceforge.net /pub/sourceforge/m/mo/modules \
+	./.ftp upload.sourceforge.net /incoming \
 		modules.lsm $$XXX $(DISTNAME).tar.*;
 
 help:
