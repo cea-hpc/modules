@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.16 2005/11/26 04:40:16 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.17 2005/11/26 17:30:00 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -55,6 +55,9 @@ cxref:
 	@echo "You may need to run this twice!"
 	@echo "==============================="
 
+SED=sed
+CVS=cvs
+
 patch: $(srcdir)/configure
 	@echo "Creating patch file -- do this after CVS tagging"
 	${CVS} rdiff -c \
@@ -80,7 +83,9 @@ lsm:
 # this should be done by the maintainer (R.K.Owen) only!
 	mail -s add modules@kooz.sj.ca.us,lsm@execpc.com < modules.lsm
 
-ftp-local:
+DISTNAME=$(distdir)
+
+ftp-local: dist
 # this should be done by the maintainer (R.K.Owen) only!
 	@echo "placing $(DISTNAME).tar.{gz|bz2}"
 	-@if [ -e $(DISTNAME).tar.gz ]; then \
@@ -104,9 +109,13 @@ ftp-local:
 		cp modules.lsm /u/ftp/pub/rkowen/modules; \
 	else echo "Can't find modules.lsm"; fi
 
+dist-hook:
+	-rm -rf `find $(distdir) -name CVS`
+	-touch $(distdir)/testsuite/modulefiles/trace/CVS
+
 ftp: ftp-sunsite ftp-sourceforge
 
-ftp-sunsite:
+ftp-sunsite: dist
 # do local files first ... mostly to verify their existence
 # this should be done by the maintainer (R.K.Owen) only!
 	@echo "placing sunsite.unc.edu files";
@@ -115,12 +124,12 @@ ftp-sunsite:
 	./.ftp metalab.unc.edu /incoming/Linux \
 		modules.lsm $$XXX $(DISTNAME).tar.*;
 
-ftp-sourceforge:
+ftp-sourceforge: dist
 	@echo "placing modules.sourceforge.net files";
 	-@XXX=modules-`${SED} -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`${SED} -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`.diff."*" ; \
 	echo "placing modules.lsm $$XXX $(DISTNAME).tar."*""; \
 	scp modules.lsm $$XXX $(DISTNAME).tar.* rkowen@shell.sourceforge.net:ftp
-	./.ftp upload.sourceforge.net /incoming \
+	./.ftp ftp1.sourceforge.net /pub/sourceforge/m/mo/modules \
 		modules.lsm $$XXX $(DISTNAME).tar.*;
 
 help:
@@ -138,7 +147,7 @@ disthelp:
 	@echo "make cxref     - makes the xref HTML files - needs cxref"
 	@echo "================ requires CVS access ======================="
 	@echo "make tag       - does a CVS rtag"
-	@echo "make dist      - creates a distribution tarball"
+	@echo "make dist      - creates a distribution tarballs"
 	@echo "make distclean - cleans & removes most made files"
 	@echo "make maintainer-clean	- cleans even more"
 	@echo "make patch     - creates a patch file after tagging"
