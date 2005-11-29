@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		ModuleCmd_Purge.c				     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Purge.c,v 1.2 2002/04/29 21:16:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Purge.c,v 1.3 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -73,7 +73,7 @@ static	char	module_name[] = "ModuleCmd_Purge.c";	/** File name of this module **
  ** 									     **
  **   Description:	Execution of the module-command 'purge'		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
  **			int		 argc		Number of arguments  **
@@ -106,7 +106,8 @@ int	ModuleCmd_Purge(	Tcl_Interp	*interp,
      **  Get the list of currently loaded modules from the environment variable
      **  LOADEDMODULES
      **/
-    if( NULL == (loaded_modules = Tcl_GetVar2( interp, "env", "LOADEDMODULES",
+    if( NULL == (loaded_modules =
+	(char *) Tcl_GetVar2( interp, "env", "LOADEDMODULES",
 	TCL_GLOBAL_ONLY))) {
 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------- **/

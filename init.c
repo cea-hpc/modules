@@ -36,7 +36,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.7 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.8 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -175,7 +175,7 @@ static char	*set_shell_properties(	const char	*name);
  ** 									     **
  **   Description:	Error (???) exit routine			     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	ClientData	client_data			     **
  **			Tcl_Interp*	interp		The attached Tcl     **
@@ -194,7 +194,7 @@ static char	*set_shell_properties(	const char	*name);
 int Module_Tcl_ExitCmd(	ClientData	  client_data,
 		   	Tcl_Interp	 *interp,
 		   	int 		  argc,
-		   	char	  	 *argv[])
+		   	CONST84 char 	 *argv[])
 {
     char *buffer;			/** Buffer for sprintf		     **/
     int  value;				/** Return value from exit command   **/
@@ -256,7 +256,7 @@ unwind0:
  **			tialize the whole thing. The arguments specified on  **
  **			the invoking command line are passed to here.	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	**interp	Buffer to store the  **
  **							Tcl interpr. handle  **
@@ -451,7 +451,7 @@ unwind0:
  **			alization is called. Thereafter all module commands  **
  **			callback function are defined.			     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	 *interp	The Tcl Interpreter  **
  **							to be initilized     **
@@ -584,7 +584,7 @@ unwind0:
  **			Tcl interpreter.				     **
  **			Assign as value 0 to all of them. ??? Why ???	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	 *interp	Attched Tcl interpr. **
  ** 									     **
@@ -667,7 +667,7 @@ unwind0:
  **			UnTieStdout reverts this by reopening 'stdout' as the**
  **			handle passed as parameter			     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	int	saved_stdout	Handle to be used for rein-  **
  **						stalling stdout		     **
@@ -739,7 +739,7 @@ unwind0:
  **			in the array 'shell_startups'. This function does not**
  **			care if the startup file do not exist!		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	shell_name	the shell being used		     **
  **   Result:		shell_startups	NULL terminated list of startup files**

@@ -47,7 +47,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.7 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.8 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -216,7 +216,7 @@ static	char		*scan_versions(		char 		 *buffer,
 int	cmdModuleVersion(	ClientData	 client_data,
 	      			Tcl_Interp	*interp,
 	      			int		 argc,
-	      			char		*argv[])
+	      			CONST84 char	*argv[])
 {
     char	*version, *module;
     ModModule	*modptr;
@@ -244,7 +244,7 @@ int	cmdModuleVersion(	ClientData	 client_data,
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
     }
 
-    if((char *) NULL == (module = CheckModuleVersion( argv[1]))) {
+    if((char *) NULL == (module = CheckModuleVersion( (char *) argv[1]))) {
 	ErrorLogger( ERR_BADMODNAM, LOC, argv[1], NULL);
 	return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
     }
@@ -295,14 +295,14 @@ int	cmdModuleVersion(	ClientData	 client_data,
     
     for( i=2; i<argc; i++) {
 
-	if( FindName( argv[ i], modptr->name, &tmp)) {
+	if( FindName( (char *) argv[ i], modptr->name, &tmp)) {
 	    if( OK != ErrorLogger( ERR_DUP_SYMVERS, LOC, argv[ i], NULL))
 		break;
 	    else
 		continue;
 	}
 
-	if((ModName *) NULL == (nameptr = AddName( argv[ i], &modptr->name,
+	if((ModName *)NULL == (nameptr = AddName((char *)argv[ i],&modptr->name,
 	    modptr))) {
 	    if( OK != ErrorLogger( ERR_INTERAL, LOC, NULL))
 		break;
@@ -614,7 +614,7 @@ static	char	*CheckModuleVersion( char *name)
 int	cmdModuleAlias(	ClientData	 client_data,
 	      		Tcl_Interp	*interp,
 	      		int		 argc,
-	      		char		*argv[])
+	      		CONST84 char	*argv[])
 {
     ModName	*tmp, *ptr;
     char	*version, *module;
@@ -651,11 +651,11 @@ int	cmdModuleAlias(	ClientData	 client_data,
      **  Conditionally split up the passed <module>/<version> pair.
      **/
 
-    trg_alias = FindName( argv[ 2], aliaslist, &tmp);
+    trg_alias = FindName( (char *) argv[ 2], aliaslist, &tmp);
     if( !trg_alias) {
 
-    	if((char *) NULL == (module = CheckModuleVersion( argv[2])))
-	    module = argv[ 2];
+    	if((char *) NULL == (module = CheckModuleVersion( (char *) argv[2])))
+	    module = (char *) argv[ 2];
 
     	if((char *) NULL != (version = strrchr( module, '/')))
 	    *version++ = '\0';
@@ -666,7 +666,7 @@ int	cmdModuleAlias(	ClientData	 client_data,
      **  If it does, we're finished ...
      **/
 
-    if( ptr = FindName( argv[ 1], aliaslist, &tmp)) {
+    if( ptr = FindName( (char *) argv[ 1], aliaslist, &tmp)) {
 
 	if( !ptr->ptr || !ptr->ptr->name ||
 	    !trg_alias && (!ptr->ptr->module || !ptr->ptr->module->module) ) {
@@ -688,7 +688,8 @@ int	cmdModuleAlias(	ClientData	 client_data,
 	 **  We have to allocate a new alias entry
 	 **/
 
-	if((ModName *) NULL == (ptr = AddName( argv[ 1], &aliaslist, NULL))) {
+	if((ModName *) NULL == (ptr = AddName((char *) argv[ 1],
+		&aliaslist,NULL))) {
 	    ErrorLogger( ERR_INTERAL, LOC, NULL);
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
 	}

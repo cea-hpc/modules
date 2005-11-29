@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		cmdXResource.c					     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Leif Hedstrom<hedstrom"@boot.org>			     **
@@ -40,7 +40,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdXResource.c,v 1.5 2002/04/29 21:16:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdXResource.c,v 1.6 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -145,7 +145,7 @@ static	ErrType	initBuffers(Tcl_Interp*, register int );
  **   Description:	Adds DEFINES to the define buffer. This code is main-**
  **			ly the same as in the original xrdb.c		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char	*title		Name of the resource	     **
  **			char	*value		and its value		     **
@@ -216,7 +216,7 @@ static	void	addNum(	char	*title,
  **   Description:	Put the client and server specific defines on the    **
  **			define buffer					     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	-						     **
  ** 									     **
@@ -274,7 +274,7 @@ static	void	doDisplayDefines()
  ** 									     **
  **   Description:	Put the screen specific defines on the define buffer **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	int	scrno	Screen number			     **
  ** 									     **
@@ -356,7 +356,7 @@ static	void	 doScreenDefines( int	scrno)
  **   Note:		This routine uses the global variable 'line', declar-**
  **			ed in another file!!!				     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	register FILE	*input	The stream to be read from   **
  **			int		 do_cpp	Differs betweem a pipe or a  **
@@ -406,7 +406,7 @@ static	int	readFile(	register FILE	*input,
  **			table) with the resources passed in the buffer. The **
  **			buffer contains a X resource lookalike text image.  **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **			Tcl_HashTable	*data	The hash tables holding the  **
@@ -491,11 +491,14 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
 	     **/
 
 	    char *startp, *endp;
-	    Tcl_RegExpRange(res_exp, 0, &startp, &endp);
+	    Tcl_RegExpRange(res_exp, 0,
+		(CONST84 char **) &startp, (CONST84 char **) &endp);
 	    buf = endp + 1;
-	    Tcl_RegExpRange(res_exp, 1, &startp, &endp);
+	    Tcl_RegExpRange(res_exp, 1,
+		(CONST84 char **) &startp, (CONST84 char **) &endp);
 	    *endp = '\0';
-	    Tcl_RegExpRange(res_exp, 2, &startp, &endp);
+	    Tcl_RegExpRange(res_exp, 2,
+		(CONST84 char **) &startp, (CONST84 char **) &endp);
 	    *endp = '\0';
 
 	    /**
@@ -503,17 +506,20 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
 	     **/
 
 	    if( remove) {
-	        Tcl_RegExpRange(res_exp, 1, &startp, &endp);
+	        Tcl_RegExpRange(res_exp, 1,
+			(CONST84 char **) &startp, (CONST84 char **) &endp);
 		if( entry = Tcl_FindHashEntry( data, startp)) {
 		    null_free((void *) &( Tcl_GetHashValue( entry)));
 		    Tcl_DeleteHashEntry( entry);
 		}
 	    } else {
-	        Tcl_RegExpRange(res_exp, 1, &startp, &endp);
+	        Tcl_RegExpRange(res_exp, 1,
+			(CONST84 char **) &startp, (CONST84 char **) &endp);
 		entry = Tcl_CreateHashEntry( data, startp, &new_res);
 		if( !new_res)
 		    null_free((void *) &( Tcl_GetHashValue( entry)));
-	        Tcl_RegExpRange(res_exp, 2, &startp, &endp);
+	        Tcl_RegExpRange(res_exp, 2,
+			(CONST84 char **) &startp, (CONST84 char **) &endp);
 		Tcl_SetHashValue( entry, strdup( startp));
 	    }
 
@@ -536,7 +542,7 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
  **   Description:	Update the X11 resource property, adding new resour- **
  **			ces.						     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	register ResourceDB *rdb	Resource database   **
  ** 									     **
@@ -617,7 +623,7 @@ static	void	storeResProp(	register ResourceDB *rdb)
  **			the DISPLAY. This routine should only be called if   **
  **			resDB.data is NULL.				     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	register char	**buf	Buffer for the old resource **
  **						database		     **
@@ -677,7 +683,7 @@ static	ErrType getOld( register char **buf)
  **   Description:	Initilize buffers if not already done, or reinitia-  **
  **			lize some variables if buffers already exists.	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **   			register int is_file	Differs between a single X   **
@@ -784,7 +790,7 @@ static	ErrType	initBuffers(	Tcl_Interp *interp,
  **			always will be called, even if there was no 	     **
  **			"x-resource" command in the module!		     **
  ** 									     **
- **   First Edition:    91/10/23                                             **
+ **   First Edition:    1991/10/23                                             **
  **                                                                          **
  **   Parameters:                                                            **
  **                                                                          **
@@ -836,7 +842,7 @@ void xresourceFinish(register int no_errors)
  **			flushed whenever the function xresourceFinish is cal-**
  **			led.						     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -856,7 +862,7 @@ void xresourceFinish(register int no_errors)
 int	cmdXResource(	ClientData	 client_data,
 			Tcl_Interp	*interp,
 			int		 argc,
-			char		*argv[])
+			CONST84 char	*argv[])
 {
     register FILE	*inp;
     int			 is_file, i,

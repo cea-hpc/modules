@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		cmdPath.c					     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.9 2005/11/21 20:13:21 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.10 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -98,7 +98,7 @@ static int	Remove_Path( Tcl_Interp	*interp, char *variable, char *item,
  **			the path is checked to see whether it is already     **
  **			in the path.  If so it is not added.		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -118,7 +118,7 @@ static int	Remove_Path( Tcl_Interp	*interp, char *variable, char *item,
 int	cmdSetPath(	ClientData	 client_data,
 	       		Tcl_Interp	*interp,
 	       		int		 argc,
-	       		char		*argv[])
+	       		CONST84 char	*argv[])
 {
     Tcl_RegExp	chkexpPtr;			/** Regular expression for   **/
 						/** marker checking	     **/
@@ -191,7 +191,7 @@ int	cmdSetPath(	ClientData	 client_data,
      **  Put a \ in front of each '.' and '+'.
      **  (this is an intentional memory leak)
      **/
-    oldpath = Tcl_GetVar2( interp, "env", argv[1], TCL_GLOBAL_ONLY);
+    oldpath = (char *) Tcl_GetVar2( interp, "env", argv[1], TCL_GLOBAL_ONLY);
     _TCLCHK(interp)
 
     if( oldpath == NULL)
@@ -202,7 +202,7 @@ int	cmdSetPath(	ClientData	 client_data,
      **  directory can be checked to see whether it is already in the 
      **  existing path.
      **/
-    if( !( pathlist = SplitIntoList( interp, argv[2], &numpaths)))
+    if( !( pathlist = SplitIntoList( interp, (char *) argv[2], &numpaths)))
 	goto unwind0;
 
     /**
@@ -295,7 +295,8 @@ int	cmdSetPath(	ClientData	 client_data,
 
 	if( Tcl_RegExpExec(interp, markexpPtr, oldpath, oldpath)) {
 	    _TCLCHK(interp)
-	    Tcl_RegExpRange(markexpPtr, 0, &startp, &endp);
+	    Tcl_RegExpRange(markexpPtr, 0,
+		(CONST84 char **) &startp, (CONST84 char **) &endp);
 
 	    /**
 	     **  Append/Prepend marker found
@@ -342,7 +343,7 @@ int	cmdSetPath(	ClientData	 client_data,
     /**
      **  Now the new value to be set resides in 'newpath'. Set it up.
      **/
-    moduleSetenv( interp, argv[1], newpath, 1);
+    moduleSetenv( interp, (char *) argv[1], newpath, 1);
     _TCLCHK(interp)
 
 #if WITH_DEBUGGING_CALLBACK
@@ -379,7 +380,7 @@ unwind0:
  **			specifies, if the append- or prepend-marker is af-   **
  **			fected						     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -399,7 +400,7 @@ unwind0:
 int	cmdRemovePath(	ClientData	 client_data,
 	       		Tcl_Interp	*interp,
 	       		int		 argc,
-	       		char		*argv[])
+	       		CONST84 char	*argv[])
 {
     char	*sw_marker = APP_SW_MARKER;	/** arbitrary default	     **/
     char	**pathlist;			/** List of dirs	     **/
@@ -458,14 +459,14 @@ int	cmdRemovePath(	ClientData	 client_data,
      **  Split the path into its components so each item can be removed
      **  individually from the variable.
      **/
-    if( !( pathlist = SplitIntoList( interp, argv[2], &numpaths)))
+    if( !( pathlist = SplitIntoList( interp, (char *) argv[2], &numpaths)))
 	goto unwind0;
 
     /**
      ** Remove each item individually
      **/
     for( x = 0; x < numpaths; x++)
-	if( TCL_OK != Remove_Path( interp, argv[1], pathlist[x], sw_marker))
+	if(TCL_OK != Remove_Path(interp,(char *) argv[1],pathlist[x],sw_marker))
 	    goto unwind1;
 
 #if WITH_DEBUGGING_CALLBACK
@@ -541,7 +542,7 @@ static int	Remove_Path(	Tcl_Interp	*interp,
     /**
      **  Get the current value of the "PATH" environment variable
      **/
-    if( NULL == (tmppath = Tcl_GetVar2( interp, "env", variable,
+    if( NULL == (tmppath = (char *) Tcl_GetVar2( interp, "env", variable,
 	TCL_GLOBAL_ONLY))) {
 	_TCLCHK(interp)
 	return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
@@ -593,7 +594,8 @@ static int	Remove_Path(	Tcl_Interp	*interp,
 	 **  character before endp
 	 **/
 
-	Tcl_RegExpRange(begexpPtr, 0, &startp, &endp);
+	Tcl_RegExpRange(begexpPtr, 0,
+		(CONST84 char **) &startp, (CONST84 char **) &endp);
 	start_offset = 0; end_offset = -1;
 	path_len -= (endp - startp - 1);
 
@@ -612,7 +614,8 @@ static int	Remove_Path(	Tcl_Interp	*interp,
 	     **  character before endp[0]
 	     **/
 
-	    Tcl_RegExpRange(midexpPtr, 0, &startp, &endp);
+	    Tcl_RegExpRange(midexpPtr, 0,
+		(CONST84 char **) &startp, (CONST84 char **) &endp);
 	    start_offset = 1; end_offset = -1;
 	    path_len -= (endp - startp - 2);
 
@@ -631,7 +634,8 @@ static int	Remove_Path(	Tcl_Interp	*interp,
 		 **  through endp[0]
 		 **/
 
-		Tcl_RegExpRange(endexpPtr, 0, &startp, &endp);
+		Tcl_RegExpRange(endexpPtr, 0,
+			(CONST84 char **) &startp, (CONST84 char **) &endp);
 		start_offset = 0; end_offset = 0;
 		path_len -= (endp - startp - 1);
 

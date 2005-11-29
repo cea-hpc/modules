@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdAlias.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdAlias.c,v 1.3 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -96,7 +96,7 @@ static	char	_proc_cmdSetAlias[] = "cmdSetAlias";
 int cmdSetAlias( ClientData	 client_data,
 	  	 Tcl_Interp	*interp,
 	  	 int 		 argc,
-	  	 char		*argv[])
+	  	 CONST84 char	*argv[])
 {
 
 #if WITH_DEBUGGING_CALLBACK
@@ -140,15 +140,15 @@ int cmdSetAlias( ClientData	 client_data,
      **/
 
     if( g_flags & M_SWSTATE1) {
-        set_marked_entry( markAliasHashTable, argv[1], M_SWSTATE1);
+        set_marked_entry(markAliasHashTable, (char *) argv[1], M_SWSTATE1);
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
     } else if( g_flags & M_SWSTATE2) {
-        set_marked_entry( markAliasHashTable, argv[1], M_SWSTATE2);
+        set_marked_entry(markAliasHashTable, (char *) argv[1], M_SWSTATE2);
     } else if( g_flags & M_SWSTATE3) {
         int marked_val;
-        if( marked_val = chk_marked_entry( markAliasHashTable, argv[1])) {
+        if(marked_val = chk_marked_entry(markAliasHashTable,(char *) argv[1])) {
             if( marked_val == M_SWSTATE1)
-                store_hash_value( aliasUnsetHashTable, argv[1], argv[2]);
+                store_hash_value(aliasUnsetHashTable, argv[1], argv[2]);
             else
 		return( TCL_OK);	/** ------- EXIT PROCEDURE -------> **/
       }

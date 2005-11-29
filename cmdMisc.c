@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdMisc.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdMisc.c,v 1.3 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -78,7 +78,7 @@ static	char	_proc_cmdSystem[] = "cmdSystem";
  ** 									     **
  **   Description:	Callback function for 'system'			     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -98,7 +98,7 @@ static	char	_proc_cmdSystem[] = "cmdSystem";
 int	cmdSystem(	ClientData	 clientData, 
 	  		Tcl_Interp	*interp, 
 	  		int		 argc, 
-	  		char		*argv[])
+	  		CONST84 char	*argv[])
 {
     int		 i;
     int		 saved_stdout;

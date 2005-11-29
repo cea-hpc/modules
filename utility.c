@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.13 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.14 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -723,7 +723,8 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 		if( i == 1) {
 			output_unset_variable( (char*) key);
 		} else {
-			if(val=Tcl_GetVar2(interp,"env",key,TCL_GLOBAL_ONLY))
+			if(val=(char *) Tcl_GetVar2(interp,"env",
+			key,TCL_GLOBAL_ONLY))
 				output_set_variable(interp, (char*) key, val);
 		}
 	} /** for **/
@@ -1568,7 +1569,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
     if( lmfiles)
         null_free((void *) &lmfiles);
 
-    lmfiles = Tcl_GetVar2( interp, "env", "_LMFILES_", TCL_GLOBAL_ONLY);
+    lmfiles = (char *) Tcl_GetVar2( interp, "env","_LMFILES_",TCL_GLOBAL_ONLY);
 
     /**
      **  Now the pointer is NULL in case of the variable has not been defined.
@@ -1589,7 +1590,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	 **  in
 	 **/
         sprintf( buffer, "_LMFILES_%03d", count++);
-        cptr = Tcl_GetVar2( interp, "env", buffer, TCL_GLOBAL_ONLY);
+        cptr = (char *) Tcl_GetVar2( interp, "env", buffer, TCL_GLOBAL_ONLY);
 
         while( cptr) {			/** Something available		     **/
 
@@ -1617,8 +1618,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	     **  Read the next split part variable
 	     **/
             sprintf( buffer, "_LMFILES_%03d", count++);
-            cptr = Tcl_GetVar2( interp, "env", buffer, TCL_GLOBAL_ONLY);
-
+            cptr = (char *) Tcl_GetVar2( interp,"env",buffer, TCL_GLOBAL_ONLY);
         }
 
     } else {  /** if( lmfiles) **/
@@ -1737,8 +1737,8 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
      **  Get a list of loaded modules (environment variable 'LOADEDMODULES')
      **  and the list of loaded module-files (env. var. __LMFILES__)
      **/
-    char	*loaded_modules = Tcl_GetVar2( interp, "env", "LOADEDMODULES",
-				    TCL_GLOBAL_ONLY);
+    char	*loaded_modules = (char *) Tcl_GetVar2( interp, "env",
+			"LOADEDMODULES", TCL_GLOBAL_ONLY);
     char	*loaded_modulefiles = getLMFILES( interp);
     
 #if WITH_DEBUGGING_UTIL_2
@@ -2063,10 +2063,10 @@ int Update_LoadedList(	Tcl_Interp	*interp,
     
     if(g_flags & M_REMOVE) {
 	argv[0] = "remove-path";
-	cmdRemovePath( 0, interp, 3, argv);
+	cmdRemovePath( 0, interp, 3, (CONST84 char **) argv);
     } else {
 	argv[0] = "append-path";
-	cmdSetPath( 0, interp, 3, argv);
+	cmdSetPath( 0, interp, 3, (CONST84 char **) argv);
     }
  
     /**
@@ -2078,10 +2078,10 @@ int Update_LoadedList(	Tcl_Interp	*interp,
 
     if(g_flags & M_REMOVE) {
 	argv[0] = "remove-path";
-	cmdRemovePath( 0, interp, 3, argv);
+	cmdRemovePath( 0, interp, 3, (CONST84 char **) argv);
     } else {
 	argv[0] = "append-path";
-	cmdSetPath( 0, interp, 3, argv);
+	cmdSetPath( 0, interp, 3, (CONST84 char **) argv);
     }
 
     /**
@@ -2095,7 +2095,7 @@ int Update_LoadedList(	Tcl_Interp	*interp,
 	if( basename = get_module_basename( basename)) {
 	argv[2] = basename;
 	argv[0] = "remove-path";
-	cmdRemovePath( 0, interp, 3, argv);
+	cmdRemovePath( 0, interp, 3, (CONST84 char **) argv);
 	}
 	null_free((void *) &module);
     }
@@ -2174,13 +2174,13 @@ static int ForcePath(	Tcl_Interp	*interp,
      **  First remove the pathname that we're forcing...
      **/
     argv[0] = "remove-path";
-    cmdRemovePath( 0, interp, 3, argv);
+    cmdRemovePath( 0, interp, 3, (CONST84 char **) argv);
 
     /**
      **  Next, add it back to the very end of the list
      **/
     argv[0] = append ? "append-path" : "prepend-path";
-    cmdSetPath( 0, interp, 3, argv);
+    cmdSetPath( 0, interp, 3, (CONST84 char **) argv);
 
     /**
      **  Return on success 

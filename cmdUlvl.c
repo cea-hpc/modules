@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.4 2005/11/21 20:13:21 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.5 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -107,7 +107,7 @@ static	char	_str_ul_expert[] = "expert";
 int	cmdModuleUser(	ClientData	 client_data,
 	      		Tcl_Interp	*interp,
 	      		int		 argc,
-	      		char		*argv[])
+	      		CONST84 char	*argv[])
 {
 
 #if WITH_DEBUGGING_CALLBACK
@@ -155,7 +155,7 @@ int	cmdModuleUser(	ClientData	 client_data,
      **  Change the user level
      **/
 
-    return( cmdModuleUser_sub( argv[ 1]));
+    return( cmdModuleUser_sub( (char *) argv[ 1]));
 
 } /** End of 'cmdModuleUser' **/
     

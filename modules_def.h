@@ -39,6 +39,10 @@
 #include <tcl.h>
 #include "config.h"
 
+#if ! defined CONST84
+#  define CONST84	/* const */
+#endif
+
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -112,10 +116,6 @@
 #include <errno.h>
 #else
 extern	int	  errno;
-#endif
-
-#ifdef MEMDEBUG
-#  include <librko.h>
 #endif
 
 /** ************************************************************************ **/
@@ -594,72 +594,72 @@ extern	int	  ModuleCmd_Use( Tcl_Interp*, int, char*[]);
 extern	int	  ModuleCmd_UnUse( Tcl_Interp*, int, char*[]);
 
 /**  cmdAlias.c  **/
-extern	int	  cmdSetAlias( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdSetAlias( ClientData, Tcl_Interp*, int, CONST84 char*[]);
 
 /**  cmdConflict.c  **/
-extern	int	  cmdConflict( ClientData, Tcl_Interp*, int, char*[]);
-extern	int	  cmdPrereq( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdConflict( ClientData, Tcl_Interp*, int, CONST84 char*[]);
+extern	int	  cmdPrereq( ClientData, Tcl_Interp*, int, CONST84 char*[]);
 
 /**  cmdIsLoaded.c  **/
-extern        int       cmdIsLoaded(ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdIsLoaded(ClientData, Tcl_Interp*, int, CONST84 char*[]);
 
 /**  cmdVerbose.c  **/
-extern	int	  cmdModuleVerbose( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdModuleVerbose(ClientData,Tcl_Interp*,int,CONST84 char*[]);
 
 /**  cmdWhatis.c  **/
 extern	char	**whatis;
 extern	void	  cmdModuleWhatisInit(void);
 extern	void	  cmdModuleWhatisShut(void);
-extern	int	  cmdModuleWhatis( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdModuleWhatis(ClientData,Tcl_Interp*,int,CONST84 char*[]);
 
 /**  cmdInfo.c  **/
-extern	int	  cmdModuleInfo( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdModuleInfo(ClientData, Tcl_Interp*, int, CONST84 char*[]);
 extern	char	 *module_command;
 
 /**  cmdMisc.c  **/
-extern	int	  cmdSystem( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdSystem( ClientData, Tcl_Interp*, int, CONST84 char*[]);
 
 /**  cmdModule.c  **/
-extern	int	  cmdModule( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdModule( ClientData, Tcl_Interp*, int, CONST84 char*[]);
 extern	int	  Read_Modulefile( Tcl_Interp*, char*);
 extern	int	  Execute_TclFile( Tcl_Interp*, char*);
 extern	int	  CallModuleProcedure( Tcl_Interp*, Tcl_DString*, char*, char*,
 			int);
 
 /**  cmdPath.c  **/
-extern	int	  cmdSetPath( ClientData, Tcl_Interp*, int, char*[]);
-extern	int	  cmdRemovePath( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdSetPath( ClientData, Tcl_Interp*, int, CONST84 char*[]);
+extern	int	  cmdRemovePath( ClientData, Tcl_Interp*, int, CONST84 char*[]);
 extern	char	 *chk_nullvars( char*);
 
 /**  cmdSetenv.c  **/
-extern	int	  cmdSetEnv( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdSetEnv( ClientData, Tcl_Interp*, int, CONST84 char*[]);
 extern	int	  moduleSetenv( Tcl_Interp*, char	 *, char*, int);
-extern	int	  cmdUnsetEnv( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdUnsetEnv( ClientData, Tcl_Interp*, int, CONST84 char*[]);
 extern	int	  moduleUnsetenv( Tcl_Interp*, char	 *);
 
 /**  cmdUname.c  **/
-extern	int	  cmdUname( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdUname( ClientData, Tcl_Interp*, int, CONST84 char*[]);
 
 /**  cmdXResource.c  **/
-extern	int	  cmdXResource( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdXResource( ClientData, Tcl_Interp*, int, CONST84 char*[]);
 extern	void	  xresourceFinish( int);
 
 /**  cmdUlvl.c  **/
-extern	int	  cmdModuleUser( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdModuleUser(ClientData, Tcl_Interp*, int, CONST84 char*[]);
 extern	int	  cmdModuleUser_sub( char *user_level);
 
 /**  cmdLog.c  **/
-extern	int	  cmdModuleLog( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdModuleLog( ClientData, Tcl_Interp*, int, CONST84 char*[]);
 
 /**  cmdTrace.c  **/
-extern	int	  cmdModuleTrace( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdModuleTrace(ClientData,Tcl_Interp*, int, CONST84 char*[]);
 extern	char	 *GetTraceSel(Tcl_Interp*, char*);
 extern	int	  CheckTracing(Tcl_Interp*, char*, char*);
 extern	int	  CheckTracingList(Tcl_Interp*, char*, int, char**);
 
 /**  cmdVersion.c  **/
-extern	int	  cmdModuleVersion( ClientData, Tcl_Interp*, int, char*[]);
-extern	int	  cmdModuleAlias( ClientData, Tcl_Interp*, int, char*[]);
+extern	int	  cmdModuleVersion(ClientData,Tcl_Interp*,int,CONST84 char*[]);
+extern	int	  cmdModuleAlias(ClientData,Tcl_Interp*, int, CONST84 char*[]);
 extern	int	  AliasLookup( char*, char**, char**);
 extern	int	  VersionLookup( char*, char**, char**);
 extern	char	 *ExpandVersions( char*);

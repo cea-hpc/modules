@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdUname.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: cmdUname.c,v 1.2 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -125,7 +125,7 @@ static	int	namestruct_init = 0;
 int	cmdUname(	ClientData	 client_data,
 	  		Tcl_Interp	*interp,
 	  		int		 argc,
-	  		char		*argv[])
+	  		CONST84 char	*argv[])
 {
     int  length;
 #ifdef PHOSTNAME

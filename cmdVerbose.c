@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVerbose.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVerbose.c,v 1.3 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -97,11 +97,12 @@ static	char	_proc_cmdModuleVerbose[] = "cmdModuleVerbose";
 int	cmdModuleVerbose(	ClientData	 client_data,
 		      		Tcl_Interp	*interp,
 		      		int		 argc,
-		      		char		*argv[])
+		      		CONST84 char	*argv[])
 {
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleVerbose, NULL);
 #endif
+    char **argptr = (char **) argv;
 
     /**
      **  Whatis mode?
@@ -115,7 +116,7 @@ int	cmdModuleVerbose(	ClientData	 client_data,
      **/
 
     if( argc < 2) {
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], " on|off|fmt [args]",
+	if( OK != ErrorLogger( ERR_USAGE, LOC, argptr[0], " on|off|fmt [args]",
 	    NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
     }
@@ -125,9 +126,9 @@ int	cmdModuleVerbose(	ClientData	 client_data,
      **/
 
     if( g_flags & M_DISPLAY) {
-	fprintf( stderr, "%s ", argv[ 0]);
+	fprintf( stderr, "%s ", argptr[ 0]);
 	while( --argc)
-	    fprintf( stderr, "%s ", *++argv);
+	    fprintf( stderr, "%s ", *++argptr);
 	fprintf( stderr, "\n");
         return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
     }
@@ -136,12 +137,12 @@ int	cmdModuleVerbose(	ClientData	 client_data,
      **  on or off
      **/
 
-    if( !strcmp( argv[1], "on"))
+    if( !strcmp( argptr[1], "on"))
 	sw_verbose = 1;
-    else if( !strcmp( argv[1], "off"))
+    else if( !strcmp( argptr[1], "off"))
 	sw_verbose = 0;
     else
-	Module_Verbosity( --argc, ++argv);
+	Module_Verbosity( --argc, ++argptr);
 
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleVerbose, NULL);

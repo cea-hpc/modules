@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.7 2005/11/21 20:13:21 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.8 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -227,7 +227,7 @@ unwind0:
 int	cmdConflict(	ClientData	 client_data,
 	    		Tcl_Interp	*interp,
 	    		int		 argc,
-	    		char	 	*argv[])
+	    		CONST84 char 	*argv[])
 {
     char	 **pathlist,		/** List of module-pathes	     **/
     		 **modulelist;		/** List of modules		     **/
@@ -300,8 +300,8 @@ int	cmdConflict(	ClientData	 client_data,
     for( i=1; i<argc && argv[i]; i++) {
         for( j = 0; j < numpaths; j++) {
 
-            if((char **)NULL == (modulelist
-		  = SortedDirList( interp, pathlist[j], argv[i], &nummodules)))
+            if((char **)NULL == (modulelist = SortedDirList(interp,
+			pathlist[j], (char *) argv[i], &nummodules)))
                 continue;		/** not browseable		     **/
 
 	    /**
@@ -373,14 +373,14 @@ unwind0:
 int	cmdPrereq(	ClientData	 client_data,
 	    		Tcl_Interp	*interp,
 	    		int		 argc,
-	    		char		*argv[])
+	    		CONST84 char	*argv[])
 {
     char	***savedlists = (char ***) NULL;
     int		  *savedlens = (int *) NULL;
     char	 **pathlist,
 		 **modulelist,
 		  *modulepath,
-		  *notloaded_flag = argv[1];
+		  *notloaded_flag = (char *) argv[1];
     int     	   i, j, k, numpaths, nummodules, listcnt = 0,
 		   Result = TCL_OK;
     char	   buffer[ MOD_BUFSIZE];
@@ -467,7 +467,7 @@ int	cmdPrereq(	ClientData	 client_data,
         for( j = 0; j < numpaths && notloaded_flag; j++) {
 
             if((char **) NULL == (modulelist = SortedDirList(interp,pathlist[j],
-	        argv[i], &nummodules)))
+	        (char *) argv[i], &nummodules)))
                 continue;
 
 	    /**
@@ -491,7 +491,7 @@ int	cmdPrereq(	ClientData	 client_data,
 
             for( k=0; k < nummodules && notloaded_flag; k++) {
                 if( !IsLoaded( interp, modulelist[k], NULL, NULL)) {
-                    notloaded_flag = argv[i];
+                    notloaded_flag = (char *) argv[i];
                 } else {
                     notloaded_flag = NULL;
                 }

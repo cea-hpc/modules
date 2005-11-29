@@ -23,7 +23,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.4 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.5 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -70,7 +70,7 @@ static	char	_proc_cmdIsLoaded[] = "cmdIsLoaded";
  ** 									     **
  **   Description:	Callback function for 'is-loaded'		     **
  ** 									     **
- **   First Edition:	00/04/12					     **
+ **   First Edition:	2000/04/12					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -90,12 +90,12 @@ static	char	_proc_cmdIsLoaded[] = "cmdIsLoaded";
 int	cmdIsLoaded(	ClientData	 client_data,
 	    		Tcl_Interp	*interp,
 	    		int		 argc,
-	    		char		*argv[])
+	    		CONST84 char	*argv[])
 {
     char	 **pathlist;
     char	 **modulelist;
     char	  *modulepath;
-    char	  *notloaded_flag = argv[1];
+    char	  *notloaded_flag = (char *) argv[1];
     int     	   i, j, k, numpaths, nummodules;
 	
 #if WITH_DEBUGGING_CALLBACK
@@ -142,7 +142,7 @@ int	cmdIsLoaded(	ClientData	 client_data,
         for( j = 0; j < numpaths && notloaded_flag; j++) {
 
             if( NULL == (modulelist = SortedDirList( interp, pathlist[j], 
-	        argv[i], &nummodules)))
+	        (char *) argv[i], &nummodules)))
                 continue;
 
 	    /**
@@ -153,7 +153,7 @@ int	cmdIsLoaded(	ClientData	 client_data,
 
             for( k=0; k < nummodules && notloaded_flag; k++) {
                 if( !IsLoaded( interp, modulelist[k], NULL, NULL)) {
-                    notloaded_flag = argv[i];
+                    notloaded_flag = (char *) argv[i];
                 } else {
                     notloaded_flag = NULL;
                 }

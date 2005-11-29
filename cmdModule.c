@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		cmdModule.c					     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.9 2005/11/21 20:13:21 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.10 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -99,7 +99,7 @@ char	 *module_command;
  **   Description:	Evaluation of the module command line and callup of  **
  **			the according subroutine			     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -121,7 +121,7 @@ char	 *module_command;
 int	cmdModule(	ClientData	 client_data,
 	       		Tcl_Interp	*interp,
 	       		int		 argc,
-	       		char		*argv[])
+	       		CONST84 char	*argv[])
 {
     int		  return_val = -1, i;
     int		  store_flags = g_flags;
@@ -138,7 +138,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     int		  num_modulefiles = argc - 2;
-    char	**modulefile_list = argv + 2;
+    char	**modulefile_list = (char **) argv + 2;
 
 #if 0
 	int x=0;
@@ -436,7 +436,7 @@ int	cmdModule(	ClientData	 client_data,
 
     if( CheckTracingList(interp,  module_command,
 	num_modulefiles, modulefile_list))
-	Module_Tracing( return_val, argc, argv);
+	Module_Tracing( return_val, argc, (char **) argv);
 
     /**
      **  Evaluate the subcommands return value in order to get rid of unrecog-
@@ -477,7 +477,7 @@ int	cmdModule(	ClientData	 client_data,
  **   Description:	Check the passed filename for to be a valid module   **
  **			and execute the according command file		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **		 	char		*filename			     **
@@ -539,7 +539,8 @@ int   Read_Modulefile( Tcl_Interp	*interp,
 	    tstr = strdup(interp->result);
 	    retexpPtr = Tcl_RegExpCompile(interp, "^EXIT ([0-9]*)");
 	    if( Tcl_RegExpExec(interp, retexpPtr, tstr, tstr)) {
-		Tcl_RegExpRange(retexpPtr, 1, &startp, &endp);
+		Tcl_RegExpRange(retexpPtr, 1,
+			(CONST84 char **) &startp, (CONST84 char **) &endp);
 		if( startp != '\0')
 		    result = atoi( startp );
 	    }
@@ -568,7 +569,7 @@ int   Read_Modulefile( Tcl_Interp	*interp,
  **   Description:	Read in and execute all commands concerning the Tcl  **
  **			file passed as parameter			     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **		 	char		*filename			     **
@@ -734,7 +735,7 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
  **			Executes the passed modulefile (conditionally hidden)**
  **			and then evaluates the passed Tcl procedure	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **			Tcl_DString	*cmdptr		Buffer fot the Tcl   **

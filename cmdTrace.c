@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdTrace.c,v 1.6 2005/11/21 20:13:21 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdTrace.c,v 1.7 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -248,7 +248,7 @@ static	int	CheckTracingPat(	Tcl_Interp *interp,
 int	cmdModuleTrace(	ClientData	 client_data,
 	      		Tcl_Interp	*interp,
 	      		int		 argc,
-	      		char		*argv[])
+	      		CONST84 char	*argv[])
 {
     char 	  on_off = '+';		/** The first argument		     **/
     char	**args;			/** Argument pointer for scanning    **/
@@ -321,7 +321,7 @@ int	cmdModuleTrace(	ClientData	 client_data,
      **  Scan all commands specified as options. The last option to be scanned
      **  is either the real last one, or the '-module' one
      **/
-    args = argv + 2; i = argc - 2;
+    args = (char **) argv + 2; i = argc - 2;
     memset( cmd_table, !i, cmd_tab_size);
 
     while( i--) {

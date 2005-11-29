@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdLog.c,v 1.3 2002/04/29 21:16:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdLog.c,v 1.4 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -103,7 +103,7 @@ static	char	_none[] = "none";
 int	cmdModuleLog(	ClientData	 client_data,
 	      		Tcl_Interp	*interp,
 	      		int		 argc,
-	      		char		*argv[])
+	      		CONST84 char	*argv[])
 {
     char	**facptr;
     int		  i, len = 0, alc_len = PART_LEN, save_len;
@@ -142,9 +142,9 @@ int	cmdModuleLog(	ClientData	 client_data,
     /**
      **  Get the current facility pointer.
      **/
-    if((char **) NULL == (facptr = GetFacilityPtr( argv[1]))) 
-	return(( OK == ErrorLogger( ERR_INVWGHT_WARN, LOC, argv[1], NULL)) ?
-	    TCL_OK : TCL_ERROR);
+    if((char **) NULL == (facptr = GetFacilityPtr( (char *) argv[1]))) 
+	return(( OK == ErrorLogger(ERR_INVWGHT_WARN,LOC, argv[1],NULL))
+	    ? TCL_OK : TCL_ERROR);
 
     /**
      **  Allocate memory for the facility list

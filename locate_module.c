@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.12 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.13 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -1167,7 +1167,7 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
 	    g_flags = M_LOAD;
 
 	    if( TCL_ERROR != (Result = Execute_TclFile( interp, buffer)) && 
-		(version = Tcl_GetVar( interp, "ModulesVersion", 0))) {
+		(version = (char *) Tcl_GetVar(interp, "ModulesVersion", 0))) {
 		/**
 		 **  The version has been specified in the
 		 **  '.version' file. Set up the result code
@@ -1185,7 +1185,7 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
 		 **  Define the default version
 		 **/
 		if( TCL_OK != cmdModuleVersion( (ClientData) 0,
-		    (Tcl_Interp *) NULL, 3, new_argv)) {
+		    (Tcl_Interp *) NULL, 3, (CONST84 char **) new_argv)) {
 			Result = TCL_ERROR;
 		}
 	    } /** if( Execute...) **/

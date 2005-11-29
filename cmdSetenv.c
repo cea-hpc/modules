@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		cmdSetenv.c					     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.4 2005/11/21 20:13:21 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.5 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -86,7 +86,7 @@ static	char	_proc_moduleUnsetenv[] = "moduleUnsetenv";
  ** 									     **
  **   Description:	Callback function for the 'setenv' command	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -106,7 +106,7 @@ static	char	_proc_moduleUnsetenv[] = "moduleUnsetenv";
 int	cmdSetEnv(	ClientData	 client_data,
 	  		Tcl_Interp	*interp,
 	  		int		 argc,
-	  		char		*argv[])
+	  		CONST84 char	*argv[])
 {
     int		 force;			/** Force removale of variables	     **/
     char	*var;			/** Varibales name		     **/
@@ -133,8 +133,8 @@ int	cmdSetEnv(	ClientData	 client_data,
     if( *argv[1] == '-') {
         if( !strncmp( argv[1], "-force", 6)) {
             force = 1;
-            var = argv[2];
-            val = argv[3];
+            var = (char *) argv[2];
+            val = (char *) argv[3];
         } else {
 	    if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "[-force] variable value",
 		NULL))
@@ -142,8 +142,8 @@ int	cmdSetEnv(	ClientData	 client_data,
         }            
     } else  {
         force = 0;
-        var = argv[1];
-        val = argv[2];
+        var = (char *) argv[1];
+        val = (char *) argv[2];
     }
 
     moduleSetenv( interp, var, val, force);
@@ -175,7 +175,7 @@ int	cmdSetEnv(	ClientData	 client_data,
  ** 									     **
  **   Description:	Set or unset environment variables		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **			char		*variable	Name of the variable **
@@ -203,7 +203,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
     ErrorLogger( NO_ERR_START, LOC, _proc_moduleSetenv, NULL);
 #endif
 
-    oldval = Tcl_GetVar2( interp, "env", variable, TCL_GLOBAL_ONLY);
+    oldval = (char *) Tcl_GetVar2( interp, "env", variable, TCL_GLOBAL_ONLY);
   
     /**
      **  Check to see if variable is already set correctly... 
@@ -282,7 +282,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
  ** 									     **
  **   Description:	Callback function for the 'unset' command	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -302,7 +302,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
 int	cmdUnsetEnv(	ClientData	 client_data,
 	  		Tcl_Interp	*interp,
 	  		int		 argc,
-	  		char		*argv[])
+	  		CONST84 char	*argv[])
 {
     /**
      **  Parameter check. The name of the variable has to be specified
@@ -340,10 +340,10 @@ int	cmdUnsetEnv(	ClientData	 client_data,
 	int save_flags = g_flags;
 	/** allow an optional 3rd argument to set the env.var. to on removal **/
 	g_flags = (g_flags & ~M_REMOVE) | M_LOAD;
-	moduleSetenv( interp, argv[1], argv[2], 0);
+	moduleSetenv( interp, (char *) argv[1], (char *) argv[2], 0);
 	g_flags = save_flags;
     } else {
-	moduleUnsetenv( interp, argv[1]);
+	moduleUnsetenv( interp, (char *) argv[1]);
     }
 
     /**
@@ -365,7 +365,7 @@ int	cmdUnsetEnv(	ClientData	 client_data,
  ** 									     **
  **   Description:	Unset environment variables			     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **			char		*variable	Name of the variable **

@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.13 2005/11/22 06:16:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.14 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -294,7 +294,8 @@ int	main( int argc, char *argv[], char *environ[]) {
      **/
 
     g_flags = 0;
-    return_val = cmdModule((ClientData) 0, interp, (argc - 1), (argv + 1));
+    return_val = cmdModule((ClientData) 0,interp,(argc-1),
+	(CONST84 char **) (argv + 1));
 
     /**
      **  If we were doing some operation that has already flushed its output,

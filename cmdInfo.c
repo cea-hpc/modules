@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdInfo.c,v 1.6 2005/11/21 20:13:21 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdInfo.c,v 1.7 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -103,7 +103,7 @@ static	char	_proc_cmdModuleInfo[] = "cmdModuleInfo";
 int	cmdModuleInfo(	ClientData	 client_data,
 	      		Tcl_Interp	*interp,
 	      		int		 argc,
-	      		char		*argv[])
+	      		CONST84 char	*argv[])
 {
     char *s, *t, buf[ BUFSIZ];
 
@@ -292,12 +292,12 @@ int	cmdModuleInfo(	ClientData	 client_data,
 	char *cmd, *module;
 
 	if( argc > 2) 
-	    cmd = argv[ 2];
+	    cmd = (char *) argv[ 2];
 	else
 	    cmd = module_command;
 
 	if( argc > 3) 
-	    module = argv[ 3];
+	    module = (char *) argv[ 3];
 	else
 	    module = g_current_module;
 
@@ -310,7 +310,7 @@ int	cmdModuleInfo(	ClientData	 client_data,
 	char *cmd, *pattern;
 
 	if( argc > 2) 
-	    cmd = argv[ 2];
+	    cmd = (char *) argv[ 2];
 	else
 	    cmd = module_command;
 
@@ -332,7 +332,7 @@ int	cmdModuleInfo(	ClientData	 client_data,
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	}
       
-	if( AliasLookup( argv[2], &s, &t)) {
+	if( AliasLookup( (char *) argv[2], &s, &t)) {
 	    /* sprintf( buf, "%s/%s", s, t); */
 	    strcpy( buf, s);
 	    strcat( buf, "/");
@@ -350,7 +350,7 @@ int	cmdModuleInfo(	ClientData	 client_data,
     } else if( !strcmp(argv[1], "symbols")) {
 	char *name;
 
-	name = (argc < 3) ? g_current_module : argv[2];
+	name = (argc < 3) ? g_current_module : (char *) argv[2];
 
 	if((char *) NULL == (s = ExpandVersions( name)))
 	    Tcl_SetResult( interp, "*undef*", TCL_STATIC);
@@ -364,7 +364,7 @@ int	cmdModuleInfo(	ClientData	 client_data,
      **/
 
     } else if( !strcmp(argv[1], "version")) {
-	if( VersionLookup( argv[2], &s, &t)) {
+	if( VersionLookup( (char *) argv[2], &s, &t)) {
 	    if( t) {
 		/* sprintf( buf, "%s/%s", s, t); */
 		strcpy( buf, s);

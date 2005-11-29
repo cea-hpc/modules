@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		ModuleCmd_Init.c				     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.5 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.6 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -99,7 +99,7 @@ static int out_substr(FILE *stream, char *start, char *end) {
  ** 									     **
  **   Description:	Execution of the module-command 'init'		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
  **			int		 argc		Number of arguments  **
@@ -270,17 +270,20 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	found_modload_flag = 0;
 
 	/* print out the "module" part */
-	(void) Tcl_RegExpRange(modcmdPtr, 1, &startp, &endp);
+	(void) Tcl_RegExpRange(modcmdPtr, 1,
+		(CONST84 char **) &startp, (CONST84 char **) &endp);
 	if (!(g_flags & M_DISPLAY)) (void) out_substr(newfileptr, startp, endp);
 
 	/* print out the "add/load" part */
-	(void) Tcl_RegExpRange(modcmdPtr, 2, &startp, &endp);
+	(void) Tcl_RegExpRange(modcmdPtr, 2,
+		(CONST84 char **) &startp, (CONST84 char **) &endp);
 	if (!(g_flags & M_DISPLAY)) (void) out_substr(newfileptr, startp, endp);
 
 	if( !(g_flags & M_CLEAR)) {
 	
 	    /* look at the "module list" part */
-	    (void) Tcl_RegExpRange(modcmdPtr, 3, &startp, &endp);
+	    (void) Tcl_RegExpRange(modcmdPtr, 3,
+		(CONST84 char **) &startp, (CONST84 char **) &endp);
 	    /* save the end character & set to 0 */
 	    if(endp) {
 		ch = *endp;
@@ -391,7 +394,8 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	/**
 	 **  Restore any comments at the end of the line...
 	 **/
-	(void) Tcl_RegExpRange(modcmdPtr, 4, &startp, &endp);
+	(void) Tcl_RegExpRange(modcmdPtr, 4,
+		(CONST84 char **) &startp, (CONST84 char **) &endp);
 	(void) out_substr(newfileptr, startp, endp);
 
 	/**

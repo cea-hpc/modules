@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		ModuleCmd_Use.c					     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.5 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.6 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -83,7 +83,7 @@ static	char	_proc_ModuleCmd_UnUse[] = "ModuleCmd_UnUse";
  **   Description:	Append the passed variable (with value) to the begin-**
  **			ning environment				     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
  **			char 		*var		Name of the variable **
@@ -121,9 +121,9 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
 	 **  Get filename and the value of the passed variable
 	 **/
 
-	if( filename = Tcl_GetVar2( interp, "env", "_MODULESBEGINENV_",
+	if( filename = (char *) Tcl_GetVar2( interp, "env","_MODULESBEGINENV_",
 	    TCL_GLOBAL_ONLY)) {
-	    val = Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY);
+	    val = (char *) Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY);
 
 	    /**
 	     **  Append the string <var>=<value>
@@ -152,7 +152,7 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
  ** 									     **
  **   Description:	Execution of the module-command 'use'		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
  **			int		 argc		Number of arguments  **
@@ -240,7 +240,8 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
 
 	pathargv[2] = argv[i];
 
-	if( cmdSetPath((ClientData) 0, interp, 3, pathargv) == TCL_ERROR)
+	if( cmdSetPath((ClientData) 0, interp, 3, (CONST84 char **) pathargv)
+	== TCL_ERROR)
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
 
     } /** for **/
@@ -268,7 +269,7 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
  ** 									     **
  **   Description:	Execution of the module-command 'unuse'		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
  **			int		 argc		Number of arguments  **
@@ -312,11 +313,10 @@ int  ModuleCmd_UnUse(	Tcl_Interp	*interp,
     pathargv[3] = NULL;
 
     for(i = 0; i < argc; i++) {
-
 	pathargv[2] = argv[i];
-	if( cmdRemovePath((ClientData) 0, interp, 3, pathargv) == TCL_ERROR)
+	if(cmdRemovePath((ClientData) 0, interp, 3, (CONST84 char **) pathargv)
+	== TCL_ERROR)
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-
     } /** for **/
   
     /**

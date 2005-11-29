@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Clear.c,v 1.1 2000/06/28 00:17:32 rk Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Clear.c,v 1.2 2005/11/29 04:16:07 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -97,8 +97,8 @@ int ModuleCmd_Clear(	Tcl_Interp	*interp,
 		    	int         	 argc,
 		    	char		*argv[])
 {
-    char         buf[10];
-    char*        clearargv[4];
+    char		buf[10];
+    char*		clearargv[4];
     
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Clear, NULL);
@@ -126,13 +126,13 @@ int ModuleCmd_Clear(	Tcl_Interp	*interp,
         clearargv[1] = "LOADEDMODULES";
         clearargv[2] = "";
         clearargv[3] = NULL;
-        cmdSetEnv( (ClientData) 0, interp, 3, clearargv);
+        cmdSetEnv( (ClientData) 0, interp, 3, (CONST84 char **) clearargv);
 
         clearargv[0] = "setenv";
         clearargv[1] = "_LMFILES_";
         clearargv[2] = "";
         clearargv[3] = NULL;
-        cmdSetEnv( (ClientData) 0, interp, 3, clearargv);
+        cmdSetEnv( (ClientData) 0, interp, 3, (CONST84 char **) clearargv);
 
     } else {
         fprintf( stderr, "\nLOADEDMODULES was NOT cleared.\n");
