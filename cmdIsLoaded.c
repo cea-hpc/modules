@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		cmdIsLoaded.c					     **
- **   First Edition:	00/04/12					     **
+ **   First Edition:	2000/04/12					     **
  ** 									     **
  **   Description:	The Tcl conflict and prereq commands.		     **
  ** 									     **
@@ -23,7 +23,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.5 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.6 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/

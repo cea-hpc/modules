@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		cmdConflict.c					     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.8 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.9 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -83,7 +83,7 @@ static	char	_proc_cmdPrereq[] = "cmdPrereq";
  **   Description:	Check whether the 'g_current_module' is in the list  **
  **			of passed modules				     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **			char		*path		Modulepath to be chk.**
@@ -207,7 +207,7 @@ unwind0:
  ** 									     **
  **   Description:	Callback function for 'confilct'		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -353,7 +353,7 @@ unwind0:
  ** 									     **
  **   Description:	Callback function for 'prereq'			     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**

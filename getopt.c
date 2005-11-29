@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		getopt.c					     **
- **   First Edition:	95/12/20					     **
+ **   First Edition:	1995/12/20					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
  ** 									     **
@@ -51,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: getopt.c,v 1.2 2001/06/09 09:48:46 rkowen Exp $";
+static char Id[] = "@(#)$Id: getopt.c,v 1.3 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -408,7 +408,7 @@ static	int _getopt_internal(	int			 argc,
  **			that they describe the new indices of the non-options**
  **			in ARGV after they are moved. 			     **
  ** 									     **
- **   First Edition:	95/12/20					     **
+ **   First Edition:	1995/12/20					     **
  ** 									     **
  **   Parameters:	char	**argv		Command line arguments	     **
  ** 									     **
@@ -521,7 +521,7 @@ static void exchange( char **argv)
  **			tions are mixed up. See definition of the enum       **
  **			'ordering' for further explanation.		     **
  ** 									     **
- **   First Edition:	95/12/20					     **
+ **   First Edition:	1995/12/20					     **
  ** 									     **
  **   Parameters:	char	*optstring	Options string		     **
  ** 									     **
@@ -594,7 +594,7 @@ static const char *_getopt_initialize( const char *optstring)
  **			option characters given in OPTSTRING.	  	     **
  **			or long-options specified in the longopt array	     **
  ** 									     **
- **   First Edition:	95/12/20					     **
+ **   First Edition:	1995/12/20					     **
  ** 									     **
  **   Parameters:	int		  argc,		# of arguments	     **
  **			char		**argv,		ARGV array	     **
@@ -1192,7 +1192,7 @@ static	int _getopt_internal(	int			 argc,
  **   Description:	Calls _getopt_internal in order to provide a normal  **
  **			getopt call.					     **
  ** 									     **
- **   First Edition:	95/12/20					     **
+ **   First Edition:	1995/12/20					     **
  ** 									     **
  **   Parameters:	int	  argc,		# of arguments		     **
  **			char	**argv,		ARGV array		     **
@@ -1268,7 +1268,7 @@ int getopt_long_only( int argc, char *const *argv, const char *optstring,
  **			Compile with -DTEST to make an executable for use in **
  **			testing the above definition of `getopt'	     **
  ** 									     **
- **   First Edition:	95/12/20					     **
+ **   First Edition:	1995/12/20					     **
  ** 									     **
  **   Parameters:	int	  argc,		# of arguments		     **
  **			char	**argv,		ARGV array		     **

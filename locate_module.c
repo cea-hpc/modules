@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.13 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.14 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -99,7 +99,7 @@ static	char	 *GetModuleName( Tcl_Interp*, char*, char*, char*);
  **			filename list. The function is used as compare func- **
  **			tion for qsort.					     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	const void	*fi1	First filename to compare    **
  **			const void	*fi2	Second filename to compare   **
@@ -131,7 +131,7 @@ static int  filename_compare(	const void	*fi1,
  **			environment variable are searched to find a match    **
  **			for the given name.				     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl interpr.**
  **			char		*modulename	Name of the module to**
@@ -342,7 +342,7 @@ unwind0:
  ** 									     **
  **   Notes:		This function is RECURSIVE			     **
  **									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		According Tcl Interp.**
  **			char		*path		Path to start seeking**
@@ -837,7 +837,7 @@ unwind0:
  **   Description: 	Splits a path-type environment variable into an array**
  **			of char* list.					     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		According Tcl Interp.**
  **			char		*pathenv	Path to split 	     **
@@ -946,7 +946,7 @@ unwind0:
  ** 									     **
  **   Description:	Frees a char* array type list.			     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char	**list		Pointer to the list	     **
  **			int	  numelem	Number of elements in the    **
@@ -993,7 +993,7 @@ void FreeList(	char	**list,
  ** 									     **
  **   Description:	Source the passed global RC file		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Tcl interpreter	     **
  **			char		*path		Path to be used      **
@@ -1105,7 +1105,7 @@ unwind0:
  ** 									     **
  **   Description:	Source the '.version' file			     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Tcl interpreter	     **
  **			char		*path		Path to be used      **

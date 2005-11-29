@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		cmdVerbose.c					     **
- **   First Edition:	95/12/31					     **
+ **   First Edition:	1995/12/31					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
  ** 									     **
@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVerbose.c,v 1.3 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVerbose.c,v 1.4 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -76,7 +76,7 @@ static	char	_proc_cmdModuleVerbose[] = "cmdModuleVerbose";
  ** 									     **
  **   Description:	Callback function for 'verbose'			     **
  ** 									     **
- **   First Edition:	95/12/31					     **
+ **   First Edition:	1995/12/31					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**

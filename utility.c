@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		utility.c					     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.14 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.15 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -172,7 +172,7 @@ static  void     EscapePerlString(const char* in,
  ** 									     **
  **			This is the same for unset_shell_variable()	     **
  ** 									     **
- **   First Edition:	92/10/14					     **
+ **   First Edition:	1992/10/14					     **
  ** 									     **
  **   Parameters:	Tcl_HashTable	*htable		Hash table to be used**
  **			const char	*key		Attached key	     **
@@ -233,7 +233,7 @@ int store_hash_value(	Tcl_HashTable* htable,
  **   Description:	Remove the specified shell variable from the passed  **
  **			hash table					     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_HashTable	*htable		Hash table to be used**
  **			const char	*key		Attached key	     **
@@ -281,7 +281,7 @@ int clear_hash_value(	Tcl_HashTable	*htable,
  ** 									     **
  **   Description: 	Deletes and reinitializes our env. hash tables.	     **
  ** 									     **
- **   First Edition:	92/10/14					     **
+ **   First Edition:	1992/10/14					     **
  ** 									     **
  **   Parameters:	-						     **
  **   Result:		-						     **
@@ -357,7 +357,7 @@ static	void	Clear_Global_Hash_Tables( void)
  ** 									     **
  **   Description: 	Deletes our environment hash tables.		     **
  ** 									     **
- **   First Edition:	92/10/14					     **
+ **   First Edition:	1992/10/14					     **
  ** 									     **
  **   Parameters:	Tcl_HashTable	**table_ptr	NULL-Terminated list **
  **							of hash tables to be **
@@ -447,7 +447,7 @@ void Delete_Hash_Tables( Tcl_HashTable	**table_ptr)
  **			initialize them and copy the contents of the current **
  **			tables into them.				     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	-						     **
  **   Result:		Tcl_HashTable**		Pointer to the new list of   **
@@ -557,7 +557,7 @@ unwind0:
  **			function is responsible for unwinding any changes a  **
  **			modulefile has made.				     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	 *interp	According TCL interp.**
  **			Tcl_HashTable	**oldTables	Hash tables storing  **
@@ -646,7 +646,7 @@ static int keycmp(const void *a, const void *b) {
  **			modulefile in a manner depending upon whether the    **
  **			modulefile was successfull or unsuccessfull.	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		The attached Tcl in- **
  **							terpreter	     **
@@ -940,7 +940,7 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
  **   Description:	Outputs the command required to set a shell variable **
  **			according to the current shell			     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp	The attached Tcl interpreter **
  **   			const char	*var	Name of the variable to be   **
@@ -1128,7 +1128,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
  **   Description:	Outputs the command required to unset a shell        **
  **			variable according to the current shell		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	const char	*var	Name of the variable to be   **
  **						unset			     **
@@ -1413,7 +1413,7 @@ static	int	output_set_alias(	const char	*alias,
  **   Description:	Flush the commands required to reset shell aliases   **
  **			depending on the current invoking shell		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	const char	*alias		Name of the alias    **
  **			const char	*val		Value which has been **
@@ -1543,7 +1543,7 @@ static	int	output_unset_alias(	const char	*alias,
  **			may be split into several variables cause by limited **
  **			variable space of some shells (esp. the SUN csh)     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp    *interp	Attached Tcl interpreter     **
  ** 									     **
@@ -1657,7 +1657,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
  **   Description:	Check wether the passed modulefile is cirrently      **
  **			loaded						     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp       *interp	According Tcl interp.**
  **			char             *modulename	Name of the module to**
@@ -1923,7 +1923,7 @@ success0:
  **			in the second modulefile. If it was not, then the    **
  **			variable is unset.				     **
  ** 									     **
- **   First Edition:	92/10/25					     **
+ **   First Edition:	1992/10/25					     **
  ** 									     **
  **   Parameters:	Tcl_HashTable   *table	Attached hash table	     **
  **			char            *var	According variable name	     **
@@ -1981,7 +1981,7 @@ void set_marked_entry(	Tcl_HashTable	*table,
  **   Description:	Get the name of a module without its version.	     **
  **			This function modifies the string passed in.	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char	*modulename		Full module name     **
  ** 									     **
@@ -2025,7 +2025,7 @@ static	char	*get_module_basename(	char	*modulename)
  **   Description:	Add or remove the passed modulename and filename to/ **
  **			from LOADEDMODULES and _LMFILES_		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp      *interp		Attached Tcl Interp. **
  **			char            *modulename	Name of the module   **
@@ -2118,7 +2118,7 @@ int Update_LoadedList(	Tcl_Interp	*interp,
  **			has been called and PREPENDED if it was 	     **
  **			'ForceSacredPath'				     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp      *interp		Attached Tcl interpr.**
  **			char            *variable_name	Attached variable    **
@@ -2199,7 +2199,7 @@ static int ForcePath(	Tcl_Interp	*interp,
  **			Based on check_magic in Richard Elling's	     **
  **			find_by_magic <Richard.Elling"@eng.auburn.edu>	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char   *filename	Name of the file to check    **
  **			char   *magic_name	Magic cookie		     **
@@ -2266,7 +2266,7 @@ int check_magic( char	*filename,
  **   Description:	Copy the passed path into the new path buffer and    **
  **			devalue '.' and '+'				     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	const char   *path	Original path		     **
  **			      char   *newpath	Buffer for to copy the new   **
@@ -2328,7 +2328,7 @@ void cleanse_path( const char	*path,
  ** 									     **
  **   Description:	Remove '\n' characters from the passed string	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char   *string	String to be chopped		     **
  **									     **
@@ -2378,7 +2378,7 @@ static	char *chop( const char	*string)
  **			into and then copies the string into the new space.  **
  **			Just like the "standard" strdup(3).		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:							     **
  **   Result:								     **
@@ -2412,7 +2412,7 @@ char	*strdup( char *str)
  **   Note:		This function is from the Berkeley BSD distribution. **
  **			It was modified to fit our needs!		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:							     **
  **   Result:								     **
@@ -2513,7 +2513,7 @@ cont:
  **   Description:	goes through the given string and changes any non-   **
  **			printable characters to question marks.		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char	*s		String to be checke	     **
  ** 									     **

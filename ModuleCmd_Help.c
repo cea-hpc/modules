@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		ModuleCmd_Help.c				     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.5 2002/06/13 22:54:48 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.6 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -86,7 +86,7 @@ static	int	PerModuleHelp(	Tcl_Interp*, int, char*[]);
  **			able commands. If it is called with a parameter it   **
  **			will print module specific help.		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
  **			int		 argc		Number of arguments  **
@@ -138,7 +138,7 @@ int  ModuleCmd_Help(	Tcl_Interp	*interp,
  ** 									     **
  **   Description:	Print module specific help			     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
  **			int		 argc		Number of arguments  **

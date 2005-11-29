@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		cmdTrace.c					     **
- **   First Edition:	95/12/26					     **
+ **   First Edition:	1995/12/26					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
  ** 									     **
@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdTrace.c,v 1.7 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdTrace.c,v 1.8 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -227,7 +227,7 @@ static	int	CheckTracingPat(	Tcl_Interp *interp,
  ** 									     **
  **   Description:	Callback function for 'trace'			     **
  ** 									     **
- **   First Edition:	95/12/26					     **
+ **   First Edition:	1995/12/26					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -382,7 +382,7 @@ int	cmdModuleTrace(	ClientData	 client_data,
  **   Description:	Returns the TraceSelect index for the passed module  **
  **			subcommand					     **
  ** 									     **
- **   First Edition:	95/12/26					     **
+ **   First Edition:	1995/12/26					     **
  ** 									     **
  **   Parameters:	char	*cmd		Subcommand to be checked     **
  **			int	 num		Number of commands to be chk **
@@ -417,7 +417,7 @@ static	int	GetTraceTable(Tcl_Interp *interp, char *cmd, int num)
  **   Description:	Retrieve the trace selection pattern for the passed  **
  **			module command					     **
  ** 									     **
- **   First Edition:	95/12/26					     **
+ **   First Edition:	1995/12/26					     **
  ** 									     **
  **   Parameters:	char	*cmd		Subcommand to be checked     **
  ** 									     **
@@ -449,7 +449,7 @@ char	*GetTraceSel(	Tcl_Interp *interp,
  **			fied in the passed 'cmd_table'. The passed module-   **
  **			name has to be changed according 'on_off'	     **
  ** 									     **
- **   First Edition:	95/12/26					     **
+ **   First Edition:	1995/12/26					     **
  ** 									     **
  **   Parameters:	char	*cmd_table	Boolean array indicating all **
  **						commands in the TraceSelect  **
@@ -594,7 +594,7 @@ static	int	ChangeTraceSel(	Tcl_Interp *interp,
  **   Description:	Check wheter thracing is turned on for the passed    **
  **			command and modulefile				     **
  ** 									     **
- **   First Edition:	95/12/26					     **
+ **   First Edition:	1995/12/26					     **
  ** 									     **
  **   Parameters:	char	*cmd		Subcommand to be checked     **
  **			char	*modulefile	Modulefile to be checked     **
@@ -637,7 +637,7 @@ int	CheckTracing(	Tcl_Interp *interp,
  **   Description:	Check the passed pattern if it enables tracing for   **
  **			the passed module file				     **
  ** 									     **
- **   First Edition:	95/12/26					     **
+ **   First Edition:	1995/12/26					     **
  ** 									     **
  **   Parameters:	char	*pattern	Pattern to be checked	     **
  **			char	*modulefile	Modulefile to be checked     **
@@ -685,7 +685,7 @@ static	int	CheckTracingPat(	Tcl_Interp *interp,
  **   Description:	Check wheter tracing is turned on for the passed     **
  **			command and at least one of the passed modulefiles   **
  ** 									     **
- **   First Edition:	95/12/26					     **
+ **   First Edition:	1995/12/26					     **
  ** 									     **
  **   Parameters:	char	*cmd		Subcommand to be checked     **
  **			int	 count		Number of passed modulefiles **

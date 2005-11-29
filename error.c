@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		error.c						     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
  ** 									     **
@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.7 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.8 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -399,7 +399,7 @@ static	void Print_Tracing(	char	 *buffer,
  ** 									     **
  **   Description:	Display a tracing or verbose message		     **
  ** 									     **
- **   First Edition:	95/12/27					     **
+ **   First Edition:	1995/12/27					     **
  ** 									     **
  **   Parameters:	int	result	Result code of th module command     **
  **			int	argc	Number od arguments to the module    **
@@ -560,7 +560,7 @@ void Restore_Error(void) {
  ** 									     **
  **   Description:	Error handling for the modules package		     **
  ** 									     **
- **   First Edition:	95/08/06					     **
+ **   First Edition:	1995/08/06					     **
  ** 									     **
  **   Parameters:	ErrType		 error_type	Type of the error    **
  **			char		*module		Affected module	     **
@@ -712,7 +712,7 @@ int Module_Error(	ErrType		  error_type,
  ** 									     **
  **   Description:	Look up the passed error type in the translation tab.**
  ** 									     **
- **   First Edition:	95/08/06					     **
+ **   First Edition:	1995/08/06					     **
  ** 									     **
  **   Parameters:	ErrType		 error_type	Type of the error    **
  ** 									     **
@@ -780,7 +780,7 @@ static	ErrTransTab	*ErrorLookup(	ErrType error_type )
  **   Description:	Look up the passed error weight in the measurement   **
  **			table						     **
  ** 									     **
- **   First Edition:	95/08/06					     **
+ **   First Edition:	1995/08/06					     **
  ** 									     **
  **   Parameters:	ErrWeights	weigth	Weight of the error	     **
  ** 									     **
@@ -849,7 +849,7 @@ static	ErrMeasr	*MeasLookup(	ErrWeights weigth )
  **   Description:	Print the error message. Decide which facility to    **
  **			use and schedule the according logger routine	     **
  ** 									     **
- **   First Edition:	95/12/21					     **
+ **   First Edition:	1995/12/21					     **
  ** 									     **
  **   Parameters:	ErrType		  Type		Error type as passed **
  **			char		 *module	Module name	     **
@@ -1037,7 +1037,7 @@ unwind0:
  **   Description:	Get the log facility according to the passed error   **
  **			weight						     **
  ** 									     **
- **   First Edition:	95/12/21					     **
+ **   First Edition:	1995/12/21					     **
  ** 									     **
  **   Parameters:	ErrWeights	  Weight	Error Weight	     **
  ** 									     **
@@ -1117,7 +1117,7 @@ static	ErrFacilities	*GetFacility_sub(	ErrWeights	  Weight)
  **   Description:	Check the passwd string to be a valid combination    **
  **			of       <syslog_facility>.<syslog_level>	     **
  ** 									     **
- **   First Edition:	95/12/21					     **
+ **   First Edition:	1995/12/21					     **
  ** 									     **
  **   Parameters:	char	*string		Input facility string	     **
  **			int	*facility	Buffer for the real facility **
@@ -1241,7 +1241,7 @@ static	int	scan_facility( char *s, FacilityNames *table, int size)
  **   Description:	Scan the passed facility names table for the given   **
  **			string and pass back the assigned token		     **
  ** 									     **
- **   First Edition:	95/12/21					     **
+ **   First Edition:	1995/12/21					     **
  ** 									     **
  **   Parameters:	char	*facility	Name of the facility	     **
  ** 									     **
@@ -1315,7 +1315,7 @@ unwind0:
  ** 									     **
  **   Description:	Print the error message				     **
  ** 									     **
- **   First Edition:	95/08/06					     **
+ **   First Edition:	1995/08/06					     **
  ** 									     **
  **   Parameters:	char             *errbuffer	Buffer to hold the   **
  **							error messge	     **
@@ -1392,7 +1392,7 @@ static	int	PrintError(	char 		 *errbuffer,
  ** 									     **
  **   Description:	Print the error message				     **
  ** 									     **
- **   First Edition:	95/08/06					     **
+ **   First Edition:	1995/08/06					     **
  ** 									     **
  **   Parameters:	char		 *ErrMsgs	Error message	     **
  **			int		  argc		Number of arguments  **
@@ -1486,7 +1486,7 @@ static	char	*ErrorString(	char		 *ErrMsgs,
  ** 									     **
  **   Description:	Put an argument to the error string		     **
  ** 									     **
- **   First Edition:	95/08/06					     **
+ **   First Edition:	1995/08/06					     **
  ** 									     **
  **   Parameters:	char		**Control	Parameter control    **
  **			char		**Target	Target to print to   **

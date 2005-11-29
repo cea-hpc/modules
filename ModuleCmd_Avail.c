@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		Modulate_Avail.c				     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.9 2005/11/14 23:51:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.10 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -172,7 +172,7 @@ static	char	**create_cache_list( FILE*, int*, char* );
  ** 									     **
  **   Description:	Execution of the 'module avail' command		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Current Tcl Interpr. **
  **			char		*argv[]		Arguments to the     **
@@ -352,7 +352,7 @@ unwind0:
  **   Description:	Open and close the passed directory in order to check**
  **			if it does exist and is readable		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char	*dirname	Name of the directory to be  **
  **						checked			     **
@@ -391,7 +391,7 @@ int check_dir(	char	*dirname)
  ** 									     **
  **   Description:	Print all files beyond the passed directory	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char	*dir		Directory to be scanned	     **
  **			char	*module		A selcted module name or NULL**
@@ -601,7 +601,7 @@ unwind0:
  **   Description:	Check whether an avail cache exists and is not out   **
  **			of date						     **
  ** 									     **
- **   First Edition:	96/01/03					     **
+ **   First Edition:	1996/01/03					     **
  ** 									     **
  **   Parameters:	char	*dir		Directory to be checked	     **
  ** 									     **
@@ -946,7 +946,7 @@ unwind0:
  **   Description:	Transform the passed nested directory list into a    **
  **			flat list of strings				     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char	**list		List to be created	     **
  **			fi_ent	 *dirlst_head	Head of the directory list   **
@@ -1061,7 +1061,7 @@ void	dirlst_to_list(	char	**list,
  **   Description:	Delete an entire directory list including all sub-   **
  **			directory lists					     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	fi_ent	*dirlst_head	Head of the list to be re-   **
  **						moved			     **
@@ -1121,7 +1121,7 @@ void	delete_dirlst(	fi_ent	*dirlst_head,
  ** 									     **
  **   Description:	Write a cache file using the given directory list    **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters: 	fi_ent	*dirlist_head	List of files to be printed  **
  **			int	 count		Number of entries in the pas-**
@@ -1201,7 +1201,7 @@ static	void	store_files(	fi_ent	*dirlst_head,
  ** 									     **
  **   Description:	Write the contents of a cache file		     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	FILE	*cacheoutput	Output stream to be used     **
  **			FILE	*cacheinfo	Cache log file to be written **
@@ -1281,7 +1281,7 @@ static	void	store_dirlst(	FILE	*cacheinfo,
  **   Description:	Store the name of the file passed as 'file entry' to **
  **			the specified output stream if it isn't a temp file  **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	FILE	*cacheoutput	Output stream to be used     **
  **			char	*dir		The current directory	     **
@@ -1340,7 +1340,7 @@ static	void	store_file(	FILE	*cacheoutput,
  **   Description:	Read the passed cache-file and create a list of file-**
  **			names out of it					     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	FILE	*cacheinput	Opened cache file	     **
  **			int	*count		Buffer to save the number of **
@@ -1465,7 +1465,7 @@ static	char	**create_cache_list(	FILE	*cacheinput,
  **   Description:	Remove an entire list of allocated strings and free  **
  **			up the used memory				     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char	**list		List of filenames to be print**
  **			int	  tcount	Size ofd the list in elements**
@@ -1502,7 +1502,7 @@ void delete_cache_list(	char	**list,
  **			column by column taking care of the order being re-  **
  **			flected to the single columns			     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char	**list		List of filenames to print   **
  **			char	 *path		common path		     **
@@ -1763,7 +1763,7 @@ void print_aligned_files(	Tcl_Interp	 *interp,
  **   Description:	Print out the filenames in the _file_list array in   **
  **			case of terse output 				     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	int	  terminal_width	Terminal size	     **
  **			int	  len			max. filename length **
@@ -1869,7 +1869,7 @@ static	void	print_terse_files(  int terminal_width,
  ** 									     **
  **   Description:	File list functions for terse module display mode    **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char	*name		Name to be stored	     **
  ** 									     **
@@ -1949,7 +1949,7 @@ static	char *_pick_file_list( int ndx)
  **   Description:	Print out the passed filename and fill the output    **
  **			area up to the passed number of characters	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char	*name		Name to be printed	     **
  **			int	 maxwidth	With of the output field to  **
@@ -2012,7 +2012,7 @@ static	void print_spaced_file(	char	*name,
  **   Description:	Build a full pathname out of the passed directory    **
  **			and file					     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	char	*dir		The directory to be used     **
  **			char	*file		The filename w/o path	     **
@@ -2077,7 +2077,7 @@ static	char *mkdirnm(	char	*dir,
  **   Notes:		This procedure is used as comparison function for    **
  **			qsort()					 	     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	const void *fi1		First file entry	     **
  **			const void *fi2		Second one to compare	     **

@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  **									     **
  **   File:		ModuleCmd_Whatis.c				     **
- **   First Edition:	95/12/31					     **
+ **   First Edition:	1995/12/31					     **
  **									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
  **									     **
@@ -23,7 +23,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.4 2002/06/13 16:16:03 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.5 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -84,7 +84,7 @@ static	char	*apropos_cache(void);
  **									     **
  **   Description:	Display the passed modules 'whatis' information	     **
  **									     **
- **   First Edition:	95/12/31					     **
+ **   First Edition:	1995/12/31					     **
  **									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
  **			int		 argc		Number of arguments  **
@@ -304,7 +304,7 @@ unwind0:
  **   Description:	Scan the whatis database in order to find something  **
  **			matching the passed strings			     **
  **									     **
- **   First Edition:	95/12/31					     **
+ **   First Edition:	1995/12/31					     **
  **									     **
  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
  **			int		 argc		Number of arguments  **
@@ -440,7 +440,7 @@ unwind0:
  **									     **
  **   Description:	Print all files beyond the passed directory	     **
  **									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  **									     **
  **   Parameters:	char	*dir		Directory to be scanned	     **
  **			int	 argc		Number of tokens	     **
@@ -612,7 +612,7 @@ unwind0:
  **									     **
  **   Description:	Grep in the cache file for the passed tokens         **
  **									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  **									     **
  **   Parameters:	int	 argc		Number of tokens	     **
  **			char   **argv		List of tokens to check	     **
@@ -682,7 +682,7 @@ static	int	read_cache( int argc, char **argv, FILE *cfp, int whatis_list)
  **									     **
  **   Description:	Figure out, what's the name of the apropos cache file**
  **									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  **									     **
  **   Parameters:	-						     **
  **									     **

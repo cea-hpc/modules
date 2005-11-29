@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		cmdWhatis.c					     **
- **   First Edition:	95/12/31					     **
+ **   First Edition:	1995/12/31					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
  ** 									     **
@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.3 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.4 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -85,7 +85,7 @@ static	int	  whatis_size = 0, whatis_ndx = 0;
  ** 									     **
  **   Description:	Callback function for 'verbose'			     **
  ** 									     **
- **   First Edition:	95/12/31					     **
+ **   First Edition:	1995/12/31					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -210,7 +210,7 @@ int	cmdModuleWhatis(	ClientData	 client_data,
  **   Description:	Initialization of internat data structures for the   **
  **			Module whatis command				     **
  ** 									     **
- **   First Edition:	95/12/31					     **
+ **   First Edition:	1995/12/31					     **
  ** 									     **
  **   Parameters:	-						     **
  ** 									     **

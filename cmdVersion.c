@@ -5,7 +5,7 @@
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		cmdVersion.c					     **
- **   First Edition:	95/12/28					     **
+ **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
  ** 									     **
@@ -47,7 +47,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.8 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.9 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -195,7 +195,7 @@ static	char		*scan_versions(		char 		 *buffer,
  ** 									     **
  **   Description:	Callback function for 'version'			     **
  ** 									     **
- **   First Edition:	95/12/28					     **
+ **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -334,7 +334,7 @@ int	cmdModuleVersion(	ClientData	 client_data,
  ** 									     **
  **   Description:	Callback function for 'version'			     **
  ** 									     **
- **   First Edition:	95/12/28					     **
+ **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Parameters:	char	*name		Name to be expanded	     **
  ** 									     **
@@ -411,7 +411,7 @@ char	*ExpandVersions( char	*name)
  **			ModName pointer and print them as a list into the    **
  **			passed buffer.					     **
  ** 									     **
- **   First Edition:	95/12/28					     **
+ **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Parameters:	char	*buffer		Buffer for printing in	     **
  **			ModName	*ptr		Name structure pointer	     **
@@ -495,7 +495,7 @@ static	char	*scan_versions( char		 *buffer,
  **   Description:	Reduce the passed module name into a <mod>/<vers>    **
  **			string						     **
  ** 									     **
- **   First Edition:	95/12/28					     **
+ **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Parameters:	char	*name		name to be checked	     **
  ** 									     **
@@ -593,7 +593,7 @@ static	char	*CheckModuleVersion( char *name)
  ** 									     **
  **   Description:	Callback function for 'alias'			     **
  ** 									     **
- **   First Edition:	95/12/28					     **
+ **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -728,7 +728,7 @@ int	cmdModuleAlias(	ClientData	 client_data,
  ** 									     **
  **   Description:	Resolves a given alias to a module/version string    **
  ** 									     **
- **   First Edition:	95/12/28					     **
+ **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Parameters:	char	*alias		Name of the alias to be re-  **
  **						solved			     **
@@ -807,7 +807,7 @@ int	AliasLookup(	char	*alias,
  ** 									     **
  **   Description:	Resolves a given alias to a module/version string    **
  ** 									     **
- **   First Edition:	95/12/28					     **
+ **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Parameters:	char	*alias		Name of the alias to be re-  **
  **						solved			     **
@@ -950,7 +950,7 @@ int	VersionLookup(	char *name, char **module, char **version)
  ** 									     **
  **   Description:	Cleanup the version structure			     **
  ** 									     **
- **   First Edition:	95/12/28					     **
+ **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Parameters:	-						     **
  ** 									     **
@@ -1023,7 +1023,7 @@ static void	CleanupName( ModName *ptr)
  ** 									     **
  **   Description:	Add a new entry to the modules queue		     **
  ** 									     **
- **   First Edition:	95/12/28					     **
+ **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Parameters:	char	*name		Name of the new module	     **
  ** 									     **
@@ -1107,7 +1107,7 @@ static	ModModule	*AddModule(	char	*name)
  ** 									     **
  **   Description:	Find a new entry in the modules queue		     **
  ** 									     **
- **   First Edition:	95/12/28					     **
+ **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Parameters:	char		*name	Name of be found	     **
  **			ModModule	**prev	Buffer for the 'previous'    **
@@ -1152,7 +1152,7 @@ static	ModModule	*FindModule(	char		 *name,
  ** 									     **
  **   Description:	Add a new entry to the name queue		     **
  ** 									     **
- **   First Edition:	95/12/28					     **
+ **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Parameters:	char	 *name		Name of the new entry	     **
  **			ModName	**start		Start of the queue	     **
@@ -1231,7 +1231,7 @@ static	ModName	*AddName(	char	 *name,
  ** 									     **
  **   Description:	Find a new entry in the modules queue		     **
  ** 									     **
- **   First Edition:	95/12/28					     **
+ **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Parameters:	char	 *name		Name of be found	     **
  **			ModName  *start		Start of the name queue      **

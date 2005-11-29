@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.14 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.15 2005/11/29 04:26:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -171,7 +171,7 @@ static void	version (FILE *output);
  ** 									     **
  **   Description:	Main program					     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	int	argc		Number of parameters	     **
  **			char	*argv[]		Command line arguments	     **
@@ -435,7 +435,7 @@ void module_usage(FILE *output)
  **			It won't be called, but the linker complains if it   **
  **		   	doesn't exist.					     **
  ** 									     **
- **   First Edition:	91/10/23					     **
+ **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Tcl interpreter to   **
  **							be initialized	     **
@@ -705,7 +705,7 @@ static int	Check_Switches( int *argc, char *argv[])
  ** 									     **
  **   Description:	Duplicate file descriptor			     **
  ** 									     **
- **   First Edition:	96/02/08					     **
+ **   First Edition:	1996/02/08					     **
  ** 									     **
  **   Parameters:	int	old		Old file descriptor	     **
  **			int	new		New file descriptor	     **
