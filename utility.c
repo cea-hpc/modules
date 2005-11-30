@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.15 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.16 2005/11/30 18:53:22 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -248,7 +248,7 @@ int store_hash_value(	Tcl_HashTable* htable,
 int clear_hash_value(	Tcl_HashTable	*htable,
                        	const char	*key)
 {
-    char		*tmp;		/** Temp pointer used for disalloc.  **/
+    char		*tmp;		/** Temp pointer used for dealloc.   **/
     Tcl_HashEntry	*hentry;	/** Hash entry reference	     **/
 
 #if WITH_DEBUGGING_UTIL_2
@@ -338,7 +338,7 @@ static	void	Clear_Global_Hash_Tables( void)
 	} while( hashEntry = Tcl_NextHashEntry( &searchPtr));
 
 	/**
-	 **  Reinitialize the hash table by unlonking it from memory and 
+	 **  Reinitialize the hash table by unlocking it from memory and 
 	 **  thereafter initializing it again.
 	 **/
 
@@ -1938,8 +1938,8 @@ success0:
  ** ************************************************************************ **
  ++++*/
 
-int chk_marked_entry(	Tcl_HashTable	*table,
-			char		*var)
+intptr_t chk_marked_entry(	Tcl_HashTable	*table,
+				char		*var)
 {
     Tcl_HashEntry 	*hentry;
 
@@ -1948,14 +1948,14 @@ int chk_marked_entry(	Tcl_HashTable	*table,
 #endif
 
     if( hentry = Tcl_FindHashEntry( table, var))
-        return((int) Tcl_GetHashValue( hentry));
+        return((intptr_t) Tcl_GetHashValue( hentry));
     else
         return 0;
 }
 
 void set_marked_entry(	Tcl_HashTable	*table,
 			char		*var,
-			int 		 val)
+			intptr_t 	 val)
 {
     Tcl_HashEntry	*hentry;
     int    		 new;
@@ -2947,7 +2947,7 @@ void null_free(void ** var) {
  ** 									     **
  **   Description:	returns the number of hash entries in a TclHash	     **
  ** 									     **
- **   first edition:	2005/09/01	r.k.owen <rk@owen.sj.ca.us>	     **
+ **   first edition:	2005/09/01	R.K.Owen <rk@owen.sj.ca.us>	     **
  ** 									     **
  **   Parameters:	Tcl_HashTable	*table	Hash to count		     **
  ** 									     **

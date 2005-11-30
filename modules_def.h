@@ -39,36 +39,41 @@
 #include <tcl.h>
 #include "config.h"
 
-#if ! defined CONST84
+#ifndef CONST84
 #  define CONST84	/* const */
 #endif
 
+#ifndef HAVE_STDINT_H
+/* assume 32 bit - hope for the best */
+typedef	int	intptr_h
+#endif
+
 #ifdef HAVE_STDLIB_H
-#include <stdlib.h>
+#  include <stdlib.h>
 #endif
 
 #if STDC_HEADERS || HAVE_STRING_H
-#include <string.h>
+#  include <string.h>
 /**
  **  An ANSI string.h and pre-ANSI memory.h might conflict.
  **/
-#if !STDC_HEADERS && HAVE_MEMORY_H
-#include <memory.h>
-#endif /** not STDC_HEADERS and HAVE_MEMORY_H **/
+#  if !STDC_HEADERS && HAVE_MEMORY_H
+#    include <memory.h>
+#  endif /** not STDC_HEADERS and HAVE_MEMORY_H **/
 #else /** not STDC_HEADERS and not HAVE_STRING_H **/
-#include <strings.h>
+#  include <strings.h>
 /**
  **  memory.h and strings.h conflict on some systems.
  **/
 #endif /** not STDC_HEADERS and not HAVE_STRING_H  **/
 
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#include <sys/types.h>
+#  include <unistd.h>
+#  include <sys/types.h>
 #endif
 
 #ifdef HAVE_CTYPE_H
-#include <ctype.h>
+#  include <ctype.h>
 #endif
 
 #ifdef HAVE_SYS_MODE_H
@@ -76,44 +81,44 @@
 #endif
 
 #ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
+#  include <sys/stat.h>
 #endif
 
 #ifdef HAVE_SYS_TERMIOS_H
-#include <sys/termios.h>
+#  include <sys/termios.h>
 #else
-#ifdef HAVE_TERMIO_H
-#include <termio.h>
-#endif
+#  ifdef HAVE_TERMIO_H
+#    include <termio.h>
+#  endif
 #endif
 
 #ifdef HAVE_FCNTL_H
-#include <fcntl.h>
+#  include <fcntl.h>
 #endif
 
 #if !defined(TIOCGWINSZ) && defined(HAVE_SYS_IOCTL_H)
-#include <sys/ioctl.h>
+#  include <sys/ioctl.h>
 #endif
 
 #if defined(DIRENT) || defined(_POSIX_VERSION)
-#include <dirent.h>
-#define NLENGTH(dirent) (strlen((dirent)->d_name))
+#  include <dirent.h>
+#  define NLENGTH(dirent) (strlen((dirent)->d_name))
 #else /** not (DIRENT or _POSIX_VERSION) **/
-#define dirent direct
-#define NLENGTH(dirent) ((dirent)->d_namlen)
-#ifdef SYSNDIR
-#include <sys/ndir.h>
-#endif /** SYSNDIR **/
-#ifdef SYSDIR
-#include <sys/dir.h>
-#endif /** SYSDIR **/
-#ifdef NDIR
-#include <ndir.h>
-#endif /** NDIR **/
+#  define dirent direct
+#  define NLENGTH(dirent) ((dirent)->d_namlen)
+#  ifdef SYSNDIR
+#    include <sys/ndir.h>
+#  endif /** SYSNDIR **/
+#  ifdef SYSDIR
+#    include <sys/dir.h>
+#  endif /** SYSDIR **/
+#  ifdef NDIR
+#    include <ndir.h>
+#  endif /** NDIR **/
 #endif /** not (DIRENT or _POSIX_VERSION) **/
 
 #ifdef HAVE_ERRNO_H
-#include <errno.h>
+#  include <errno.h>
 #else
 extern	int	  errno;
 #endif
@@ -219,7 +224,7 @@ typedef	enum	{
 	ERR_INVAL,			/** Invalid parameter to the error   **/
 	ERR_INVWGHT,			/** logger			     **/
 	ERR_INVFAC,			/** Invalid error facility	     **/
-        ERR_ENVVAR,                     /** environment variables are inconsistent **/ 
+        ERR_ENVVAR,                     /** env. variables are inconsistent  **/
 } ErrType;
 
 /**
@@ -366,27 +371,27 @@ typedef	enum	{
  **/
 
 #ifndef UNAME_SYSNAME
-#define UNAME_SYSNAME	"unknown"
+#  define UNAME_SYSNAME		"unknown"
 #endif
 
 #ifndef UNAME_NODENAME
-#define UNAME_NODENAME	"unknown"
+#  define UNAME_NODENAME	"unknown"
 #endif
 
 #ifndef UNAME_RELEASE
-#define UNAME_RELEASE	"unknown"
+#  define UNAME_RELEASE		"unknown"
 #endif
 
 #ifndef UNAME_VERSION
-#define UNAME_VERSION	"unknown"
+#  define UNAME_VERSION		"unknown"
 #endif
 
 #ifndef UNAME_MACHINE
-#define UNAME_MACHINE	"unknown"
+#  define UNAME_MACHINE		"unknown"
 #endif
 
 #ifndef UNAME_DOMAIN
-#define UNAME_DOMAIN	"unknown"
+#  define UNAME_DOMAIN		"unknown"
 #endif
 
 /**
@@ -394,19 +399,19 @@ typedef	enum	{
  **/
 
 #ifndef	RCFILE
-#define	RCFILE		"rc"
+#  define	RCFILE		"rc"
 #endif
 
 #ifndef	MODULERCFILE
-#define	MODULERCFILE	".modulerc"
+#  define	MODULERCFILE	".modulerc"
 #endif
 
 #ifndef	VERSIONFILE
-#define	VERSIONFILE	".version"
+#  define	VERSIONFILE	".version"
 #endif
 
 #ifndef	APR_CACHE
-#define	APR_CACHE	"apropos.cache"
+#  define	APR_CACHE	"apropos.cache"
 #endif
 
 /**
@@ -442,12 +447,12 @@ typedef	enum	{
  **/
 
 #ifdef HAVE_SYS_STAT_H
-#ifndef S_ISDIR
-#define S_ISDIR( m) (((m) & S_IFMT) == S_IFDIR)
-#endif
-#ifndef S_ISREG
-#define S_ISREG( m) (((m) & S_IFMT) == S_IFREG)
-#endif
+#  ifndef S_ISDIR
+#    define S_ISDIR( m) (((m) & S_IFMT) == S_IFDIR)
+#  endif
+#  ifndef S_ISREG
+#    define S_ISREG( m) (((m) & S_IFMT) == S_IFREG)
+#  endif
 #endif
 
 /**
@@ -686,8 +691,8 @@ extern	int	  Unwind_Modulefile_Changes( Tcl_Interp*, Tcl_HashTable**);
 extern	int	  Output_Modulefile_Changes( Tcl_Interp*);
 extern	int	  store_env( void);
 extern	int	  free_stored_env( void);
-extern	void	  set_marked_entry( Tcl_HashTable*, char*, int);
-extern	int	  chk_marked_entry( Tcl_HashTable*, char*);
+extern	void	  set_marked_entry( Tcl_HashTable*, char*, intptr_t);
+extern	intptr_t  chk_marked_entry( Tcl_HashTable*, char*);
 extern	Tcl_HashTable*  environ_changes;
 extern	Tcl_HashTable*  alias_changes;
 extern	int	  IsLoaded( Tcl_Interp*, char*, char**, char*);

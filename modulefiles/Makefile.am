@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        modulefiles/Makefile.am
-## Versions:    $Id: Makefile.am,v 1.2 2005/11/26 04:40:17 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.3 2005/11/30 18:53:44 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -16,7 +16,8 @@ EXTRA_SCRIPTS= ${BASEMODULES} version
 
 all:	${EXTRA_SCRIPTS}
 
-install-data-local : install-basemodules install-version
+@VERSIONING@ install-data-local : install-basemodules install-version
+@NOTVERSIONING@ install-data-local : install-basemodules
 
 install-basemodules : $(BASEMODULES)
 	@$(NORMAL_INSTALL)
@@ -37,7 +38,8 @@ install-version : version
 	  $(INSTALL_DATA_ENV) $(INSTALL_DATA) version $(DESTDIR)$(VERSIONPATH)/$(VERSION) ; \
 	fi
 
-uninstall-local : uninstall-basemodules uninstall-version
+@VERSIONING@ uninstall-local : uninstall-basemodules uninstall-version
+@NOTVERSIONING@ uninstall-local : uninstall-basemodules
 
 uninstall-basemodules :
 	@$(NORMAL_UNINSTALL)

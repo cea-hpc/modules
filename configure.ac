@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.15 2005/11/26 17:30:00 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.16 2005/11/30 18:53:22 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -192,7 +192,7 @@ dnl ---------------------------------------------------------------------------
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS(string.h memory.h stdlib.h unistd.h termio.h fcntl.h ctype.h \
-	stdarg.h varargs.h syslog.h)dnl
+	stdarg.h varargs.h syslog.h stdint.h)dnl
 AC_CHECK_HEADERS(errno.h sys/ioctl.h sys/termios.h sys/mode.h sys/stat.h      \
 	sys/param.h)dnl
 dnl ---------------------------------------------------------------------------
@@ -436,7 +436,7 @@ when cross compiling ... configure can not guess whether the target system
 Bourne shell can handle shell aliases or not.])
 elif (
 	cat <<_EMEOF | /bin/sh 2> /dev/null
-if (xxx() { ls; }) > /dev/null 2>&1; then
+if (alias xxx='ls') > /dev/null 2>&1; then
 	(exit 0); exit 0
 else
 	(exit 42); exit 42
@@ -519,9 +519,8 @@ AC_ARG_WITH(debug,
 dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([VERSION_MAGIC],[
 VERSION_MAGIC:
-By default, .version files will require to have the modulefile
-magic cookie to be valid, else an error message will be printed out.
-Set to 0 to disable.])dnl
+By default, .version files will be required to have the modulefile
+magic cookie to be valid, else an error message will be printed out.])dnl
 AC_ARG_ENABLE(version-magic,
 	AC_HELP_STRING([--enable-version-magic],[set .version magic requirement  [[yes]]]),
 	if test "$enableval" != "no"; then
@@ -832,7 +831,7 @@ dnl MODULEPATH		The modulepath we want
 dnl
 AC_SUBST(MODULEPATH)dnl
 AH_TEMPLATE([MODULEPATH],[
-MODULEPATH: Directory that contains all the module files])dnl
+MODULEPATH: Directory that contains all the system module files])dnl
 AC_ARG_WITH(module-path,
 	AC_HELP_STRING([--with-module-path=<path>],[use module path=<path> [[PREFIX/Modules/modulefiles]]]),
 	MODULEPATH="$withval"

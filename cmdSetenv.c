@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.5 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.6 2005/11/30 18:53:22 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -209,7 +209,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
      **  Check to see if variable is already set correctly... 
      **/
 
-    if( !(g_flags & (M_REMOVE | M_DISPLAY | M_SWITCH | M_NONPERSIST)) && oldval) {
+    if( !(g_flags & (M_REMOVE|M_DISPLAY|M_SWITCH|M_NONPERSIST)) && oldval) {
         if( !strcmp( value, oldval)) {
             return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
         }
@@ -239,7 +239,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
     } else if( g_flags & M_SWSTATE2) {
         set_marked_entry( markVariableHashTable, variable, M_SWSTATE2);
     } else if( g_flags & M_SWSTATE3) {
-        int marked_val;
+        intptr_t marked_val;
         marked_val = chk_marked_entry( markVariableHashTable, variable);
         if( marked_val) {
             if( marked_val == M_SWSTATE1)
