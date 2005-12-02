@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        init/Makefile.am
-## Versions:    $Id: Makefile.am,v 1.1 2002/06/14 21:57:03 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.2 2005/12/02 07:07:42 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -24,16 +24,16 @@ MAKEDIRS= $(initdir)
 all:
 	rm -f $(INIT_FILES)
 
-install-data-local : install-inits
+install-exec-local : install-inits
 
 install-inits : $(INIT_FILES)
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(prefix)/init
+	$(mkinstalldirs) $(DESTDIR)$(exec_prefix)/init
 	@list='$(INIT_FILES)'; for p in $$list; do \
 	  if test -f $$p \
 	  ; then \
-	   echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(prefix)/init/$$p"; \
-	   $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(prefix)/init/$$p; \
+	   echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(exec_prefix)/init/$$p"; \
+	   $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(exec_prefix)/init/$$p; \
 	  else :; fi; \
 	done
 	rm -f $(INIT_FILES)
@@ -43,8 +43,8 @@ uninstall-local : uninstall-inits
 uninstall-inits :
 	@$(NORMAL_UNINSTALL)
 	@list='$(INIT_FILES)'; for p in $$list; do \
-	  echo " rm -f $(DESTDIR)$(prefix)/init/$$p"; \
-	  rm -f $(DESTDIR)$(prefix)/init/$$p; \
+	  echo " rm -f $(DESTDIR)$(exec_prefix)/init/$$p"; \
+	  rm -f $(DESTDIR)$(exec_prefix)/init/$$p; \
 	done
 
 #

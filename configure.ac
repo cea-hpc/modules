@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.16 2005/11/30 18:53:22 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.17 2005/12/02 07:07:39 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -108,7 +108,7 @@ AH_TEMPLATE([MODULES_INIT_DIR],[
 MODULES_INIT_DIR: Directory that contains the modules init files.])dnl
 
 if test "$exec_prefix" != "NONE" ; then
-  EPREFIX=$exec_prefix
+  EXECPREFIX=$exec_prefix
 # can not have versioning if specifying exec-prefix
   if test "$WANTS_VERSIONING" -eq 1 ; then
      AC_MSG_ERROR([You can not have versioning if --exec-prefix is specified
@@ -130,7 +130,6 @@ if test "$prefix" != "NONE" ; then
     export prefix
   fi
   PREFIX=$prefix
-  MODULES_INIT_DIR=$prefix/init
 else
   if test "$WANTS_VERSIONING" -eq 1 ; then
     DEFAULTPATH=$ac_default_prefix/Modules/default
@@ -145,14 +144,14 @@ else
     ac_default_prefix=$BASEPREFIX/Modules
     export ac_default_prefix
   fi
-  MODULES_INIT_DIR=$ac_default_prefix/init
   PREFIX=$ac_default_prefix
 fi
 if test "$exec_prefix" != "NONE" ; then
-  EPREFIX=$exec_prefix
+  EXECPREFIX=$exec_prefix
 else
-  EPREFIX=$PREFIX
+  EXECPREFIX=$PREFIX
 fi
+MODULES_INIT_DIR=$EXECPREFIX/init
 dnl ---------------------------------------------------------------------------
 dnl --enable-use-default        Use PREFIX/default/ in init scripts [DEF]
 dnl --disable-use-default       Use PREFIX/VERSION/ in init scripts
@@ -166,7 +165,7 @@ AC_ARG_ENABLE(use-default,
 AC_MSG_RESULT([DEFAULTPATH = $DEFAULTPATH])
 AC_MSG_RESULT([BASEPREFIX = $BASEPREFIX])
 AC_MSG_RESULT([PREFIX = $PREFIX])
-AC_MSG_RESULT([EPREFIX = $EPREFIX])
+AC_MSG_RESULT([EXECPREFIX = $EXECPREFIX])
 AC_DEFINE_UNQUOTED(BASEPREFIX, "$BASEPREFIX")dnl
 AC_DEFINE_UNQUOTED(PREFIX, "$PREFIX")dnl
 export DEFAULTPATH

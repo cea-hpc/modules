@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        modulefiles/Makefile.am
-## Versions:    $Id: Makefile.am,v 1.3 2005/11/30 18:53:44 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.4 2005/12/02 07:07:42 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -16,8 +16,7 @@ EXTRA_SCRIPTS= ${BASEMODULES} version
 
 all:	${EXTRA_SCRIPTS}
 
-@VERSIONING@ install-data-local : install-basemodules install-version
-@NOTVERSIONING@ install-data-local : install-basemodules
+install-data-local : install-basemodules install-version
 
 install-basemodules : $(BASEMODULES)
 	@$(NORMAL_INSTALL)
@@ -30,7 +29,12 @@ install-basemodules : $(BASEMODULES)
 	  else :; fi; \
 	done
 
-install-version : version
+@NOTVERSIONING@install-version : version
+@VERSIONING@install-version-not :
+	@echo Not installing version file
+
+@VERSIONING@install-version : version
+@NOTVERSIONING@install-version-not :
 	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(DESTDIR)$(VERSIONPATH)
 	@if test x$(WANTS_VERSIONING) = x1 ; then \
@@ -38,8 +42,7 @@ install-version : version
 	  $(INSTALL_DATA_ENV) $(INSTALL_DATA) version $(DESTDIR)$(VERSIONPATH)/$(VERSION) ; \
 	fi
 
-@VERSIONING@ uninstall-local : uninstall-basemodules uninstall-version
-@NOTVERSIONING@ uninstall-local : uninstall-basemodules
+uninstall-local : uninstall-basemodules uninstall-version
 
 uninstall-basemodules :
 	@$(NORMAL_UNINSTALL)
@@ -53,7 +56,10 @@ uninstall-basemodules :
 	  echo "*** Do This Yourself If you really want to ***"; \
 	fi
 
-uninstall-version :
+@NOTVERSIONING@uninstall-version :
+
+@VERSIONING@uninstall-version :
+@NOTVERSIONING@uninstall-version-not :
 	@$(NORMAL_UNINSTALL)
 	@if test x$(WANTS_VERSIONING) = x1 ; then \
 	    echo " rm -f $(DESTDIR)$(VERSIONPATH)/$(VERSION)" ; \
