@@ -9,8 +9,8 @@ exec perl -w -x $0 ${1+"$@"} # -*- mode: perl; perl-indent-level: 2; -*-
 ###                                                        ###
 ##############################################################
 
-## $Revision: 1.1 $
-## $Date: 2005/12/05 18:48:39 $
+## $Revision: 1.2 $
+## $Date: 2005/12/05 23:09:20 $
 ## $Author: rkowen $
 ##
 ##   (C) 2001,2002,2003 Martyn J. Pearce <fluffy@cpan.org>, under the GNU GPL.
@@ -82,7 +82,7 @@ use constant MAILNAME => "/etc/mailname";
 my $Log_Source_Command = "cvs log";
 
 # In case we have to print it out:
-my $VERSION = '$Revision: 1.1 $';
+my $VERSION = '$Revision: 1.2 $';
 $VERSION =~ s/\S+\s+(\S+)\s+\S+/$1/;
 
 ## Vars set by options:
@@ -768,12 +768,16 @@ sub derive_change_log ()
       # (We use many spoonfuls of autovivication magic. Hashes and arrays
       # will spring into existence if they aren't there already.)
 
-      &debug ("(pushing log msg for ${dir_key}$qunk{'filename'})\n");
+      # However, do not collect any info regarding the ChangeLog itself
+
+      if ($qunk{'filename'} ne $Log_File_Name) {
+        &debug ("(pushing log msg for ${dir_key}$qunk{'filename'})\n");
 
       # Store with the files in this commit.  Later we'll loop through
       # again, making sure that revisions with the same log message
       # and nearby commit times are grouped together as one commit.
-      push (@{$grand_poobah{$dir_key}{$author}{$time}{$msg_txt}}, \%qunk);
+        push (@{$grand_poobah{$dir_key}{$author}{$time}{$msg_txt}}, \%qunk);
+      }
     }
 
   CLEAR:
