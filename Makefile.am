@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.18 2005/11/26 18:11:47 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.19 2005/12/05 18:48:39 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -74,9 +74,17 @@ patch: $(srcdir)/configure
 tag:
 	@echo "CVS tagging - TAG = "\
 	  `${SED} -n -e 's/^.*NEW TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c`
-	${CVS} rtag -F \
+	${CVS} rtag -b -F \
 	  `${SED} -n -e 's/^.*NEW TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c` \
 	  modules
+
+ChangeLog: rmChangeLog
+	@echo "Updating ChangeLog"
+	-@./cvs2cl.pl
+
+rmChangeLog:
+	-@rm -f ChangeLog
+
 
 lsm:
 # sends off the modules.lsm file to update the Linux Software Map
@@ -145,11 +153,12 @@ help:
 disthelp:
 	@echo "make ctags     - creates the vi ctags file"
 	@echo "make cxref     - makes the xref HTML files - needs cxref"
-	@echo "================ requires CVS access ======================="
-	@echo "make tag       - does a CVS rtag"
 	@echo "make dist      - creates a distribution tarballs"
 	@echo "make distclean - cleans & removes most made files"
-	@echo "make maintainer-clean	- cleans even more"
+	@echo "make maintainer-clean - cleans even more"
+	@echo "================ requires CVS access ======================="
+	@echo "make tag       - does a CVS rtag"
+	@echo "make ChangeLog - remakes the ChangeLog from the CVS commits"
 	@echo "make patch     - creates a patch file after tagging"
 	@echo "================ maintainers only =========================="
 	@echo "make lsm       - send off to the Linux Software Map"
