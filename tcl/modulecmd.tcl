@@ -55,7 +55,7 @@ proc execute-modulefile-help {modfile} {
     if {$g_debug} {
 	puts stderr "Starting $modfile"
     }
-    set slave [currentModuleName]
+    set slave __[currentModuleName]
     if {![interp exists $slave]} {
 	interp create $slave
 	interp alias $slave setenv {} setenv
@@ -117,7 +117,7 @@ proc execute-modulefile {modfile} {
     global ModulesCurrentModulefile
     set ModulesCurrentModulefile $modfile
 
-    set slave [currentModuleName]
+    set slave __[currentModuleName]
     if {![interp exists $slave]} {
 	interp create $slave
 	interp alias $slave setenv {} setenv
@@ -198,7 +198,7 @@ proc execute-modulerc {modfile} {
 	if {$g_debug} {
 	    puts stderr "DEBUG execute-modulerc: sourcing rc $modfile"
 	}
-	set slave .modulerc
+	set slave __.modulerc
 	if {![interp exists $slave]} {
 	    interp create $slave
 	    interp alias $slave uname {} uname
@@ -247,7 +247,7 @@ proc execute-version {modfile} {
 
     set modparent [file dirname $modfile]
 
-    set slave .version
+    set slave __.version
     if {![interp exists $slave]} {
 	interp create $slave
 	interp alias $slave uname {} uname
@@ -2747,7 +2747,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.66 $:
+                ModulesTcl 0.101/$Revision: 1.67 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
