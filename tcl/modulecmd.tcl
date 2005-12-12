@@ -2184,7 +2184,6 @@ proc cmdModulePaths {mod} {
 		}
 	    }
 	}
-	set junk ""
     } errMsg
     if {$errMsg != ""} {
 	reportWarning "ERROR: module paths $mod failed. $errMsg"
@@ -2387,7 +2386,6 @@ proc cmdModuleUnload {args} {
 		    unset g_loadedModulesGeneric([file dirname $mod])
 		}
 	    }
-	    set junk ""
 	} errMsg
 	if {$errMsg != ""} {
 	    reportWarning "ERROR: module: module unload $mod failed.\n$errMsg"
@@ -2540,7 +2538,6 @@ proc cmdModuleUnuse {args} {
 		pushMode "unload"
 		catch {
 		    unload-path MODULEPATH $path
-		    set junk ""
 		}
 		popMode
 		if {[info exists env(MODULEPATH)] && $oldMODULEPATH ==\
@@ -2750,7 +2747,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.65 $:
+                ModulesTcl 0.101/$Revision: 1.66 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
