@@ -2362,18 +2362,19 @@ proc cmdModuleUnload {args} {
 		    saveSettings
 		    if [execute-modulefile $modfile] {
 			restoreSettings
-		    }
+		    } {
+		        unload-path LOADEDMODULES $currentModule
+		        unset g_loadedModules($currentModule)
+		        if [info exists g_loadedModulesGeneric([file dirname\
+		          $currentModule])] {
+			    unset g_loadedModulesGeneric([file dirname\
+			      $currentModule])
+		        }
+                    }
+
 		    popMode
 		    popModuleName
-
-		    unload-path LOADEDMODULES $currentModule
-		    unset g_loadedModules($currentModule)
-		    if [info exists g_loadedModulesGeneric([file dirname\
-		      $currentModule])] {
-			unset g_loadedModulesGeneric([file dirname\
-			  $currentModule])
-		    }
-		}
+                }
 	    } {
 		if [info exists g_loadedModulesGeneric($mod)] {
 		    set mod "$mod/$g_loadedModulesGeneric($mod)"
@@ -2747,7 +2748,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.67 $:
+                ModulesTcl 0.101/$Revision: 1.68 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
