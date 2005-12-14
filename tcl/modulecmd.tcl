@@ -60,6 +60,7 @@ proc execute-modulefile-help {modfile} {
 	interp create $slave
 	interp alias $slave setenv {} setenv
 	interp alias $slave unsetenv {} unsetenv
+	interp alias $slave system {} system
 	interp alias $slave append-path {} append-path
 	interp alias $slave prepend-path {} prepend-path
 	interp alias $slave remove-path {} remove-path
@@ -122,6 +123,7 @@ proc execute-modulefile {modfile} {
 	interp create $slave
 	interp alias $slave setenv {} setenv
 	interp alias $slave unsetenv {} unsetenv
+	interp alias $slave system {} system
 	interp alias $slave append-path {} append-path
 	interp alias $slave prepend-path {} prepend-path
 	interp alias $slave remove-path {} remove-path
@@ -202,6 +204,7 @@ proc execute-modulerc {modfile} {
 	if {![interp exists $slave]} {
 	    interp create $slave
 	    interp alias $slave uname {} uname
+	    interp alias $slave system {} system
 	    interp alias $slave module-version {} module-version
 	    interp alias $slave module-alias {} module-alias
 	    interp alias $slave module {} module
@@ -251,6 +254,7 @@ proc execute-version {modfile} {
     if {![interp exists $slave]} {
 	interp create $slave
 	interp alias $slave uname {} uname
+	interp alias $slave system {} system
 	interp alias $slave module-version {} module-version
 	interp alias $slave module-alias {} module-alias
 	interp eval $slave [list global ModulesCurrentModulefile]
@@ -1274,7 +1278,7 @@ proc renderSettings {} {
     global env g_Aliases g_shellType g_shell
     global g_stateEnvVars g_stateAliases
     global g_newXResources g_delXResources
-    global g_pathList error_count
+    global g_pathList g_systemList error_count
     global g_autoInit CSH_LIMIT
 
     set iattempt 0
@@ -1592,6 +1596,7 @@ proc renderSettings {} {
 		}
 	    }
 	}
+
 	if {[array size g_delXResources] > 0} {
 	    set xrdb [findExecutable xrdb]
 	    foreach var [array names g_delXResources] {
@@ -1604,6 +1609,12 @@ proc renderSettings {} {
 		}
 	    }
 	}
+
+	if [info exists g_systemList] {
+	    foreach var $g_systemList {
+                puts $f "$var"
+            }
+        }
 
 	# module path{s,} output
 	if [info exists g_pathList] {
@@ -2420,6 +2431,23 @@ proc cmdModuleReload {} {
     }
 }
 
+proc system {mycmd args} {
+    global g_systemList
+
+    set mode [currentMode]
+    set mycmd [join [concat $mycmd $args] " "]
+
+    if {$mode == "load"} {
+        lappend g_systemList $mycmd
+    }\
+    elseif {$mode == "unload"} {
+        # No operation here unable to undo a syscall.
+    }\
+    elseif {$mode == "display"} {
+        report "system\t$mycmd"
+    }
+    return {}
+}
 
 proc cmdModuleAvail {{mod {*}}} {
     global env ignoreDir DEF_COLUMNS flag_default_mf flag_default_dir
@@ -2748,7 +2776,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.68 $:
+                ModulesTcl 0.101/$Revision: 1.69 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
