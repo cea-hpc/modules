@@ -1,9 +1,10 @@
 
                              The Modules Package
-                                Version 3.1
+                                Version 3.2
                                 
                                 4 July 1999
-			   (updated Mar 8 2002)
+			   (updated Mar  8 2002)
+			   (updated Dec 15 2005)
                            
 
                                INSTALL guide
@@ -84,26 +85,10 @@ If the executable 'tclsh' is on your path, all information regarding how it
 was installed should be automatically configured for you using the
 modules configure script.
 
-
 If the configure script doesn't do the right thing, you will
-need to set --with-tcl-include, --with-tcl-libraries and/or
---with-tcl-library. The configure script tries its best to derive the later
-two settings from the --with-tcl-include setting, so you might need to just
-specify the first one, if at all.
-
-TCL configuration parameters:
-
-  --with-tcl-include=<path> points to the directory containing the TCL
-header files, such as tcl.h.
-
-  --with-tcl-libraries=<path> points to the directory containing TCL binary
-object libraries, such as libtcl.a or libtcl.so.8.3. This is usually
-/usr/local/lib .
-
-  --with-tcl-library=<path> points to the directory containing TCL
-support files (namely init.tcl) that are part of the TCL package. This is
-usually /usr/local/lib/tcl8.3 . 
-
+need to set --with-tcl pointing to the location of the tclConfig.sh
+script, which contains several environment variables detailing where
+the header and library files can be found.
 
 2.1.2 A location for the "modulefile" Files
 
@@ -112,7 +97,10 @@ for the module package.  It should be a file system separate from
 your system root, else it may get wiped out with every OS upgrade.
 The default is /usr/local/Modules/modulefiles/. You will use the
 --with-module-path=<path> option to the configure script to set this
-directory.  After the initial hardwork of getting the module command
+directory.  The default is $prefix/Modules/modulefiles, where
+$prefix is set by the the --prefix configure option.  (The default
+is /usr/local.)
+After the initial hardwork of getting the module command
 working, all of your future effort will be in maintaining the modulefiles
 themselves. 
 
@@ -157,13 +145,10 @@ options you must specify for configure are --with-module-path and
  ./configure --with-module-path=/your/path/to/module/files \
              --prefix=/alternate/usr/local/or/equivalent/1.0/eg
 
-The default for --prefix is /usr/local.
-The default for --with-module-path is "", so you should define it.
+The default for --prefix is /usr/local ($prefix).
+The default for --with-module-path is "$prefix/Modules/modulefiles".
 
-If you have trouble with the configuration, then you might consider
-editing RKOConfigure and running that instead. Look at this file if
-you have TCL or X installed in a non-standard place.
-
+If you have trouble with the configuration, then consider
 Run "./configure --help" to view some of the other options.
 
 After the sources are configured then:
@@ -190,6 +175,9 @@ the binaries.
 
 	make install
 
+However, if you want further assurances then run the full test suite
+(see 2.2.1 below)
+
 Each successive step depends on successfully completing the previous steps.
 However, don't expect everything to work once it's installed,
 because the system rc files and the user rc `dot' files need to be
@@ -202,9 +190,10 @@ it.
 
 2.2.1 Running the test suite
 
-If you are a developer or overly paranoid, you can run the test suite
-to make sure that a minimal set of functionality is working. You must
-have 'dejagnu' installed before you run configure. To run the tests, do
+If you are a developer or overly paranoid, you can run the test suite,
+of over 500 tests, to make sure that a minimal set of functionality is
+working. You must have 'dejagnu' installed before you run configure. To
+run the tests, do
 
   make check
 
