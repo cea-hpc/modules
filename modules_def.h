@@ -469,6 +469,7 @@ typedef	enum	{
 extern	char	**environ;
 
 extern	char	 *version_string;
+extern	char	 *date_string;
 extern	char	 *g_current_module;
 extern	char	 *g_specified_module;
 extern	char	 *shell_name;

@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.15 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.16 2006/01/12 20:31:31 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -367,6 +367,7 @@ unwind0:
  ** 									     **
  **   Attached Globals:							     **
  ** 			version_string		Current module version	     **
+ ** 			date_string		Current module date	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -382,8 +383,8 @@ void module_usage(FILE *output)
 #endif
 
 	fprintf(output,
-		"\n  Modules Release %s (Copyright GNU GPL v2 1991):\n\n",
-                version_string);
+		"\n  Modules Release %s %s (Copyright GNU GPL v2 1991):\n\n",
+                version_string,date_string);
 	
 	fprintf(output,
 "  Usage: module [ switches ] [ subcommand ] [subcommand-args ]\n\n"
@@ -744,10 +745,13 @@ int dup2( int old, int new)
  ** 									     **
  **   Parameters:	FILE *	output		All input is from defined    **
  **						macros			     **
- **									     **
  **   Result:		void			no return value		     **
  **						All output is to output	     **
  ** 									     **
+ **   Attached Globals:							     **
+ ** 			version_string		Current module version	     **
+ ** 			date_string		Current module date	     **
+ **									     **
  ** ************************************************************************ **
  ++++*/
 
@@ -760,6 +764,7 @@ static void version (FILE *output) {
 		*format = "%s=%s\n";
 
 	fprintf(output, format, "VERSION", version_string);
+	fprintf(output, format, "DATE", date_string);
 	fprintf(output, "\n");
 	isdefined(AUTOLOADPATH,str(AUTOLOADPATH));
 	isdefined(BEGINENV,str(BEGINENV));
