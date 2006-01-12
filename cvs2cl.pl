@@ -9,8 +9,8 @@ exec perl -w -x $0 ${1+"$@"} # -*- mode: perl; perl-indent-level: 2; -*-
 ###                                                        ###
 ##############################################################
 
-## $Revision: 1.2 $
-## $Date: 2005/12/05 23:09:20 $
+## $Revision: 1.3 $
+## $Date: 2006/01/12 21:15:09 $
 ## $Author: rkowen $
 ##
 ##   (C) 2001,2002,2003 Martyn J. Pearce <fluffy@cpan.org>, under the GNU GPL.
@@ -82,7 +82,7 @@ use constant MAILNAME => "/etc/mailname";
 my $Log_Source_Command = "cvs log";
 
 # In case we have to print it out:
-my $VERSION = '$Revision: 1.2 $';
+my $VERSION = '$Revision: 1.3 $';
 $VERSION =~ s/\S+\s+(\S+)\s+\S+/$1/;
 
 ## Vars set by options:
@@ -769,8 +769,10 @@ sub derive_change_log ()
       # will spring into existence if they aren't there already.)
 
       # However, do not collect any info regarding the ChangeLog itself
+      #  and any changes in the xref/ doc files
 
-      if ($qunk{'filename'} ne $Log_File_Name) {
+      if ($qunk{'filename'} ne $Log_File_Name
+      &&  $qunk{'filename'} !~ /xref\//) {
         &debug ("(pushing log msg for ${dir_key}$qunk{'filename'})\n");
 
       # Store with the files in this commit.  Later we'll loop through
