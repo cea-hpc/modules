@@ -45,7 +45,7 @@
 
 #ifndef HAVE_STDINT_H
 /* assume 32 bit - hope for the best */
-typedef	int	intptr_h
+typedef	int	intptr_h;
 #endif
 
 #ifdef HAVE_STDLIB_H
@@ -234,13 +234,13 @@ typedef	enum	{
  **/
 
 typedef	enum	{
-	OK = 0,				/** Everything's up and running	     **/
-	WARN = 2,			/** A warning (mapped to OK by the   **/
+	OK	= 0,			/** Everything's up and running	     **/
+	WARN	= 2,			/** A warning (mapped to OK by the   **/
 					/** Errorlogger			     **/
-	PROBLEM = 5,			/** Problem ... program might cont.  **/
-	ERROR = 7,			/** Error .. try gracefull aborting  **/
-	FATAL = 10,			/** The following will lead to the   **/
-	PANIC = 20			/** progrm being aborted by the er-  **/
+	PROBLEM	= 5,			/** Problem ... program might cont.  **/
+	ERROR	= 7,			/** Error .. try gracefull aborting  **/
+	FATAL	= 10,			/** The following will lead to the   **/
+	PANIC	= 20			/** progrm being aborted by the er-  **/
 					/** ror logger immediatelly	     **/
 } ErrCode;
 
