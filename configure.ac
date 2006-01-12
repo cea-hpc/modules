@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.17 2005/12/02 07:07:39 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.18 2006/01/12 19:09:55 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -802,6 +802,8 @@ dnl--------------------------------------------------------------------
 
 SC_PATH_TCLCONFIG
 SC_LOAD_TCLCONFIG
+EM_SET_TCL
+EM_CHECK_TCL
 
 dnl--------------------------------------------------------------------
 dnl Load the tclxConfig.sh file
