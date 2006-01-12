@@ -1,0 +1,40 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.60-initx/%M%
+#   Revision:		%I%
+#   First Edition:	2006/01/12
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen, rk@owen.sj.ca.us
+#
+#   Description:	Testuite testsequence
+#   Command:		initadd, initrm
+#   Modulefiles:	
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check the init* sub-commands working on the
+#			2nd module load line
+#		}C%
+#
+##############################################################################
+
+testerr_cmd sh "initrm modules" "Removed modules"
+_test_modules sh "initrm" "$modload null$line2x"
+
+testerr_cmd sh "initadd modules" ""
+_test_modules sh "initrm" "$modload null modules$line2x"
+
+testerr_cmd sh "initadd dot" "Moving dot to end"
+_test_modules sh "initadd" "$modload null modules dot\n$modload module-cvs module-info use.own"
+
+testerr_cmd sh "initpre use.own" "Moving use.own to beginning"
+_test_modules sh "initprepend" "$modload use.own null modules dot\n$modload module-cvs module-info"
+
+testerr_cmd sh "initswitch module-info info-module" "Switching module-info to info-module"
+_test_modules sh "initswitch" "$modload use.own null modules dot\n$modload module-cvs info-module"
+
+testerr_cmd sh "initclear" ""
+_test_modules sh "initclear" "$modload null\n$modload null"

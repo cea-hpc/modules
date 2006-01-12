@@ -1,0 +1,68 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.60-initx/%M%
+#   Revision:		%I%
+#   First Edition:	2005/12/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen, rk@owen.sj.ca.us
+#
+#   Description:	Testuite testsequence
+#   Command:		initadd, initrm
+#   Modulefiles:	
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check the init* sub-commands
+#		}C%
+#
+##############################################################################
+
+set modload "module load"
+set line2 "\n$modload dot module-cvs module-info modules use.own"
+set line2x "\n$modload dot module-cvs module-info use.own"
+
+#
+#  Save the former HOME file setup
+#
+
+if { [info exists env(HOME) ] } {
+    set save_home $env(HOME)
+}
+set env(HOME) "$env(TESTSUITEDIR)/home"
+
+#
+# restore the .modules file
+#
+file copy -force "$env(HOME)/.modules.save"  "$env(HOME)/.modules" 
+
+#
+# Test procedure that reads the .modules file
+#
+proc _test_modules {shell cmd output} {
+	global verbose
+	global env
+
+	set tmp [exec cat "$env(HOME)/.modules" ]
+
+	if { $verbose > 0 } {
+		send_user "Checking \"$shell\" $cmd -> \$HOME/.modules\n"
+	}
+
+	#
+	# do the contents of .modules match with output?
+	#
+
+	if { $tmp == $output } {
+		_test_ok $shell "$cmd"
+#		return 1
+	} else {
+		fail "$cmd ($shell)"
+		if { $verbose > 0 } {
+			send_user ".modules content: $tmp\n";
+			send_user "expected: $output\n";
+		}
+	}
+}

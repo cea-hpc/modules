@@ -1,0 +1,40 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.60-initx/%M%
+#   Revision:		%I%
+#   First Edition:	2005/12/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen, rk@owen.sj.ca.us
+#
+#   Description:	Testuite testsequence
+#   Command:		initadd, initrm
+#   Modulefiles:	
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check the initrm sub-command
+#		}C%
+#
+##############################################################################
+
+testerr_cmd sh "initrm foobar" "Removed foobar"
+_test_modules sh "initrm" "$modload poo/2.0 foo bar null$line2"
+
+testerr_cmd ksh "initrm foo bar" "Removed foo\nRemoved bar"
+_test_modules ksh "initrm" "$modload poo/2.0 null$line2"
+
+testerr_cmd zsh "initrm poo/2.0" "Removed poo/2.0"
+_test_modules zsh "initrm" "$modload null$line2"
+
+# not there
+testerr_cmd csh "initrm foobar" ""
+_test_modules csh "initrm" "$modload null$line2"
+
+# go too far
+
+testerr_cmd tcsh "initrm null" "Removed null"
+_test_modules tcsh "initrm" "$modload null$line2"
+

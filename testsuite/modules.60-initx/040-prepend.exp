@@ -1,0 +1,39 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.60-initx/%M%
+#   Revision:		%I%
+#   First Edition:	2005/12/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen, rk@owen.sj.ca.us
+#
+#   Description:	Testuite testsequence
+#   Command:		initadd, initrm
+#   Modulefiles:	
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check the initprepend sub-commands
+#		}C%
+#
+##############################################################################
+
+#
+# restore the .modules file (again)
+#
+file copy -force "$env(HOME)/.modules.save"  "$env(HOME)/.modules"
+
+testerr_cmd sh "initprepend foobar" ""
+_test_modules sh "initprepend" "$modload foobar null$line2"
+
+testerr_cmd ksh "initpre foo bar" ""
+_test_modules ksh "initprepend" "$modload foo bar foobar null$line2"
+
+testerr_cmd zsh "initpr poo/2.0" ""
+_test_modules zsh "initprepend" "$modload poo/2.0 foo bar foobar null$line2"
+
+testerr_cmd csh "initp foobar" "Moving foobar to beginning"
+_test_modules csh "initprepend" "$modload foobar poo/2.0 foo bar null$line2"
+
