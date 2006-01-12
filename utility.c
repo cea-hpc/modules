@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.16 2005/11/30 18:53:22 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.17 2006/01/12 18:46:33 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -2864,11 +2864,11 @@ char *stringer(	char *		buffer,
 		int		len,
 		... )
 {
-	va_list argptr;		/** stdarg argument ptr			**/
-	char *ptr;		/** argument string ptr			**/
-	char *tbuf = buffer;	/** tempory buffer  ptr			**/
-	int sumlen = 0;		/** length of all the concat strings	**/
-	char *(*strfn)(char*,const char*) = strcpy;
+	va_list	 argptr;	/** stdarg argument ptr			**/
+	char	*ptr;		/** argument string ptr			**/
+	char	*tbuf = buffer;	/** tempory buffer  ptr			**/
+	int	 sumlen = 0;	/** length of all the concat strings	**/
+	char	*(*strfn)(char*,const char*) = strcpy;
 				/** ptr to 1st string function		**/
 
 #if WITH_DEBUGGING_UTIL_2
@@ -2877,7 +2877,7 @@ char *stringer(	char *		buffer,
 
 	/* get start of optional arguments and sum string lengths */
 	va_start(argptr, len);
-	while (ptr = va_arg(argptr, char *)) {
+	while ((ptr = va_arg(argptr, char *))) {
 		sumlen += strlen(ptr);
 	}
 	va_end(argptr);
@@ -2900,7 +2900,7 @@ char *stringer(	char *		buffer,
 
 	/* concat all the strings to buffer */
 	va_start(argptr, len);
-	while (ptr = va_arg(argptr, char *)) {
+	while ((ptr = va_arg(argptr, char *))) {
 		strfn(tbuf, ptr);
 		strfn = strcat;
 	}
