@@ -25,7 +25,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line5">5    |</a>  **   Providing a flexible user environment				     **
 <a name="line6">6    |</a>  ** 									     **
 <a name="line7">7    |</a>  **   File:		ModuleCmd_Init.c				     **
-<a name="line8">8    |</a>  **   First Edition:	91/10/23					     **
+<a name="line8">8    |</a>  **   First Edition:	1991/10/23					     **
 <a name="line9">9    |</a>  ** 									     **
 <a name="line10">10   |</a>  **   Authors:	John Furlan, jlf@behere.com				     **
 <a name="line11">11   |</a>  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -48,7 +48,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line28">28   |</a>  ** 									     ** 
 <a name="line29">29   |</a>  ** ************************************************************************ **/
 <a name="line30">30   |</a> 
-<a name="line31">31   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Init.c.src.html,v 1.2 2005/11/25 20:09:37 rkowen Exp $";
+<a name="line31">31   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Init.c.src.html,v 1.6 2006/01/18 05:35:11 rkowen Exp $";
 <a name="line32">32   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line33">33   |</a> 
 <a name="line34">34   |</a> /** ************************************************************************ **/
@@ -119,7 +119,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line99">99   |</a>  ** 									     **
 <a name="line100">100  |</a>  **   Description:	Execution of the module-command 'init'		     **
 <a name="line101">101  |</a>  ** 									     **
-<a name="line102">102  |</a>  **   First Edition:	91/10/23					     **
+<a name="line102">102  |</a>  **   First Edition:	1991/10/23					     **
 <a name="line103">103  |</a>  ** 									     **
 <a name="line104">104  |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
 <a name="line105">105  |</a>  **			int		 argc		Number of arguments  **
@@ -155,391 +155,401 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line135">135  |</a> 		  found_module_command = 0,
 <a name="line136">136  |</a> 		  found_modload_flag = 0,
 <a name="line137">137  |</a> 		  shell_num = 0,
-<a name="line138">138  |</a> 		  nummods, bufsiz = 8192,
-<a name="line139">139  |</a> 		  homelen, home_end, path_end,
-<a name="line140">140  |</a> 		  sw_found = 0, rm_found = 0;
-<a name="line141">141  |</a> 
-<a name="line142">142  |</a> #if WITH_DEBUGGING_MODULECMD
-<a name="line143">143  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Init, NULL);
-<a name="line144">144  |</a> #endif
-<a name="line145">145  |</a> 
-<a name="line146">146  |</a>     /**
-<a name="line147">147  |</a>      **  If called with no arguments and the flags don't say that there's some-
-<a name="line148">148  |</a>      **  thing to do - exit now!
-<a name="line149">149  |</a>      **/
-<a name="line150">150  |</a>     if( argc &lt; 1 &amp;&amp; !(g_flags &amp; (M_DISPLAY | M_CLEAR)))
-<a name="line151">151  |</a> 	goto success0;
-<a name="line152">152  |</a>   
-<a name="line153">153  |</a>     /**
-<a name="line154">154  |</a>      **  Parameter check for the initswitch command
-<a name="line155">155  |</a>      **/
-<a name="line156">156  |</a>     if(g_flags &amp; M_SWITCH) {
-<a name="line157">157  |</a> 	argc--;
-<a name="line158">158  |</a> 	if(argc != 1)
-<a name="line159">159  |</a> 	    if( OK != ErrorLogger( ERR_USAGE, LOC,
-<a name="line160">160  |</a> 		"initswitch oldmodule newmodule", NULL))
-<a name="line161">161  |</a> 		goto unwind0;
-<a name="line162">162  |</a>     }
-<a name="line163">163  |</a>   
-<a name="line164">164  |</a>     /**
-<a name="line165">165  |</a>      **  Where's my HOME?
-<a name="line166">166  |</a>      **/
-<a name="line167">167  |</a>     if((char *) NULL == (home = (char *) getenv("HOME")))
-<a name="line168">168  |</a> 	if( OK != ErrorLogger( ERR_HOME, LOC, NULL))
-<a name="line169">169  |</a> 	    goto unwind1;
-<a name="line170">170  |</a>       
-<a name="line171">171  |</a>     /**
-<a name="line172">172  |</a>      **  Put HOME into a buffer and store a slash where the end of HOME is
-<a name="line173">173  |</a>      **  for quick concatination of the shell startup files.
-<a name="line174">174  |</a>      **/
-<a name="line175">175  |</a>     homelen = strlen(home) + 40;
-<a name="line176">176  |</a>     if ((char *) NULL ==
-<a name="line177">177  |</a> 	(home_pathname = stringer( NULL, homelen, home,"/", NULL)))
-<a name="line178">178  |</a> 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line179">179  |</a> 	    goto unwind0;
-<a name="line180">180  |</a> 
-<a name="line181">181  |</a>     if ((char *) NULL ==
-<a name="line182">182  |</a> 	(home_pathname2 = stringer( NULL, homelen, NULL)))
-<a name="line183">183  |</a> 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+<a name="line138">138  |</a> 		  final_list_num = 0,
+<a name="line139">139  |</a> 		  nummods, bufsiz = 8192,
+<a name="line140">140  |</a> 		  new_file,
+<a name="line141">141  |</a> 		  homelen, home_end, path_end;
+<a name="line142">142  |</a> 
+<a name="line143">143  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line144">144  |</a>     ErrorLogger(NO_ERR_START, LOC, _proc_ModuleCmd_Init, NULL);
+<a name="line145">145  |</a> #endif
+<a name="line146">146  |</a> 
+<a name="line147">147  |</a>     /**
+<a name="line148">148  |</a>      **  If called with no arguments and the flags don't say that there's some-
+<a name="line149">149  |</a>      **  thing to do - exit now!
+<a name="line150">150  |</a>      **/
+<a name="line151">151  |</a>     if (argc &lt; 1 &amp;&amp; !(g_flags &amp; (M_DISPLAY | M_CLEAR)))
+<a name="line152">152  |</a> 	goto success0;
+<a name="line153">153  |</a> 
+<a name="line154">154  |</a>     /**
+<a name="line155">155  |</a>      **  Parameter check for the initswitch command
+<a name="line156">156  |</a>      **/
+<a name="line157">157  |</a>     if (g_flags &amp; M_SWITCH) {
+<a name="line158">158  |</a> 	argc--;
+<a name="line159">159  |</a> 	if (argc != 1)
+<a name="line160">160  |</a> 	    if (OK != ErrorLogger(ERR_USAGE, LOC,
+<a name="line161">161  |</a> 				  "initswitch oldmodule newmodule", NULL))
+<a name="line162">162  |</a> 		goto unwind0;
+<a name="line163">163  |</a>     }
+<a name="line164">164  |</a> 
+<a name="line165">165  |</a>     /**
+<a name="line166">166  |</a>      **  Where's my HOME?
+<a name="line167">167  |</a>      **/
+<a name="line168">168  |</a>     if ((char *) NULL == (home = (char *) getenv("HOME")))
+<a name="line169">169  |</a> 	if (OK != ErrorLogger(ERR_HOME, LOC, NULL))
+<a name="line170">170  |</a> 	    goto unwind1;
+<a name="line171">171  |</a> 
+<a name="line172">172  |</a>     /**
+<a name="line173">173  |</a>      **  Put HOME into a buffer and store a slash where the end of HOME is
+<a name="line174">174  |</a>      **  for quick concatination of the shell startup files.
+<a name="line175">175  |</a>      **/
+<a name="line176">176  |</a>     homelen = strlen(home) + 40;
+<a name="line177">177  |</a>     if ((char *) NULL ==
+<a name="line178">178  |</a> 	(home_pathname = stringer(NULL, homelen, home, "/", NULL)))
+<a name="line179">179  |</a> 	if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
+<a name="line180">180  |</a> 	    goto unwind0;
+<a name="line181">181  |</a> 
+<a name="line182">182  |</a>     if ((char *) NULL == (home_pathname2 = stringer(NULL, homelen, NULL)))
+<a name="line183">183  |</a> 	if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 <a name="line184">184  |</a> 	    goto unwind1;
 <a name="line185">185  |</a> 
 <a name="line186">186  |</a>     home_end = strlen(home_pathname);
-<a name="line187">187  |</a>   
+<a name="line187">187  |</a> 
 <a name="line188">188  |</a>     /**
 <a name="line189">189  |</a>      **  Allocate a buffer for fgets ...
 <a name="line190">190  |</a>      **/
-<a name="line191">191  |</a>     if( NULL == (buffer = stringer(NULL, bufsiz ,NULL)))
-<a name="line192">192  |</a> 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+<a name="line191">191  |</a>     if (NULL == (buffer = stringer(NULL, bufsiz, NULL)))
+<a name="line192">192  |</a> 	if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 <a name="line193">193  |</a> 	    goto unwind2;
 <a name="line194">194  |</a> 
 <a name="line195">195  |</a>     /**
 <a name="line196">196  |</a>      **  Scan all startup files related to the current invoking shell
 <a name="line197">197  |</a>      **/
-<a name="line198">198  |</a>     if((char **) NULL == (shell_startups = SetStartupFiles(shell_name)))
+<a name="line198">198  |</a>     if ((char **) NULL == (shell_startups = SetStartupFiles(shell_name)))
 <a name="line199">199  |</a> 	goto unwind3;
 <a name="line200">200  |</a> 
-<a name="line201">201  |</a>     while( shell_startups[ shell_num]) {
-<a name="line202">202  |</a> 
-<a name="line203">203  |</a> 	if ((char *) NULL == stringer( home_pathname + home_end , 40,
-<a name="line204">204  |</a> 		shell_startups[ shell_num]))
-<a name="line205">205  |</a> 		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line206">206  |</a> 			goto unwind3;
-<a name="line207">207  |</a> 
-<a name="line208">208  |</a> 	if( NULL == (fileptr = fopen(home_pathname, "r"))) {
-<a name="line209">209  |</a> 	    shell_num++;
-<a name="line210">210  |</a> 	    continue;			/** while( shell_startups) ...	     **/
-<a name="line211">211  |</a> 	}
-<a name="line212">212  |</a>  
+<a name="line201">201  |</a>     while (shell_startups[shell_num]) {
+<a name="line202">202  |</a> 	new_file = 1;
+<a name="line203">203  |</a> 	found_modload_flag = 0;
+<a name="line204">204  |</a> 
+<a name="line205">205  |</a> 	if ((char *) NULL == stringer(home_pathname + home_end, 40,
+<a name="line206">206  |</a> 				      shell_startups[shell_num], NULL))
+<a name="line207">207  |</a> 	    if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
+<a name="line208">208  |</a> 		goto unwind3;
+<a name="line209">209  |</a> 
+<a name="line210">210  |</a> 	if (NULL == (fileptr = fopen(home_pathname, "r")))
+<a name="line211">211  |</a> 	    goto unwhile0; 	/** while( shell_startups) ...	     **/
+<a name="line212">212  |</a> 
 <a name="line213">213  |</a> 	/**
 <a name="line214">214  |</a> 	 **  ... when the startup file exists ...
 <a name="line215">215  |</a> 	 **  open a new startupfile with the extension -NEW for output
 <a name="line216">216  |</a> 	 **/
-<a name="line217">217  |</a> 	path_end = strlen( home_pathname );
-<a name="line218">218  |</a> 	if ((char *) NULL == stringer( home_pathname + path_end,
-<a name="line219">219  |</a> 		homelen - path_end, "-NEW", NULL))
-<a name="line220">220  |</a> 	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+<a name="line217">217  |</a> 	path_end = strlen(home_pathname);
+<a name="line218">218  |</a> 	if ((char *) NULL == stringer(home_pathname + path_end,
+<a name="line219">219  |</a> 				      homelen - path_end, "-NEW", NULL))
+<a name="line220">220  |</a> 	    if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 <a name="line221">221  |</a> 		goto unwind3;
 <a name="line222">222  |</a> 
-<a name="line223">223  |</a> 	shell_num++;
-<a name="line224">224  |</a> 
-<a name="line225">225  |</a> 	if( !(g_flags &amp; M_DISPLAY) &amp;&amp;
-<a name="line226">226  |</a> 	((FILE *) NULL == (newfileptr = fopen( home_pathname, "w")))) {
-<a name="line227">227  |</a> 	    (void) ErrorLogger(ERR_OPEN,LOC,home_pathname,"init",NULL);
-<a name="line228">228  |</a> 	    continue;			/** while( shell_startups) ...	     **/
-<a name="line229">229  |</a> 	}
-<a name="line230">230  |</a>     
-<a name="line231">231  |</a> 	/**
-<a name="line232">232  |</a> 	 **  Seek for a modules load|add command within the shell startup file
-<a name="line233">233  |</a> 	 **  Copy the shell input file to the new one until the magic cookie
-<a name="line234">234  |</a> 	 **  is found.
-<a name="line235">235  |</a> 	 **/
-<a name="line236">236  |</a> 	while( fgets( buffer, bufsiz, fileptr)) {
-<a name="line237">237  |</a> 	    if( Tcl_RegExpExec(interp, modcmdPtr, buffer, buffer)) {
-<a name="line238">238  |</a> 		found_modload_flag = 1;
-<a name="line239">239  |</a> 		break;
-<a name="line240">240  |</a> 	    }
-<a name="line241">241  |</a> 	    if (!(g_flags &amp; M_DISPLAY)) fputs( buffer, newfileptr);
-<a name="line242">242  |</a> 	}
-<a name="line243">243  |</a> 
-<a name="line244">244  |</a> 	/**
-<a name="line245">245  |</a> 	 **  If not found...
-<a name="line246">246  |</a> 	 **/
-<a name="line247">247  |</a> 	if( !found_modload_flag) {
+<a name="line223">223  |</a> 	if (!(g_flags &amp; M_DISPLAY) &amp;&amp;
+<a name="line224">224  |</a> 	    ((FILE *) NULL == (newfileptr = fopen(home_pathname, "w")))) {
+<a name="line225">225  |</a> 	    (void) ErrorLogger(ERR_OPEN, LOC, home_pathname, "init", NULL);
+<a name="line226">226  |</a> 	    goto unwhile0; 	/** while( shell_startups) ...	     **/
+<a name="line227">227  |</a> 	}
+<a name="line228">228  |</a> 
+<a name="line229">229  |</a> 	/**
+<a name="line230">230  |</a> 	 **  Seek for a modules load|add command within the shell startup file
+<a name="line231">231  |</a> 	 **  Copy the shell input file to the new one until the magic cookie
+<a name="line232">232  |</a> 	 **  is found.
+<a name="line233">233  |</a> 	 **/
+<a name="line234">234  |</a> 	while (fgets(buffer, bufsiz, fileptr)) {
+<a name="line235">235  |</a> 	    if (Tcl_RegExpExec(interp, modcmdPtr, buffer, buffer)) {
+<a name="line236">236  |</a> 		found_modload_flag = 1;
+<a name="line237">237  |</a> 		/**
+<a name="line238">238  |</a> 		 **  ... module load|add found ...
+<a name="line239">239  |</a> 		 **/
+<a name="line240">240  |</a> 		found_module_command = 1;
+<a name="line241">241  |</a> 
+<a name="line242">242  |</a> 		/* print out the "module" part */
+<a name="line243">243  |</a> 		(void) Tcl_RegExpRange(modcmdPtr, 1,
+<a name="line244">244  |</a> 				       (CONST84 char **) &amp;startp,
+<a name="line245">245  |</a> 				       (CONST84 char **) &amp;endp);
+<a name="line246">246  |</a> 		if (!(g_flags &amp; M_DISPLAY))
+<a name="line247">247  |</a> 		    (void) out_substr(newfileptr, startp, endp);
 <a name="line248">248  |</a> 
-<a name="line249">249  |</a> 	    if( EOF == fclose( fileptr))
-<a name="line250">250  |</a> 		if( OK != ErrorLogger( ERR_CLOSE, LOC, home_pathname, NULL))
-<a name="line251">251  |</a> 		    goto unwind3;
-<a name="line252">252  |</a> 
-<a name="line253">253  |</a> 	    if (!(g_flags &amp; M_DISPLAY)) {
-<a name="line254">254  |</a> 		if( EOF == fclose( newfileptr))
-<a name="line255">255  |</a> 		    if( OK != ErrorLogger(ERR_CLOSE,LOC,home_pathname,NULL))
-<a name="line256">256  |</a> 			goto unwind3;
-<a name="line257">257  |</a> 
-<a name="line258">258  |</a> 		if( 0 &gt; unlink( home_pathname))
-<a name="line259">259  |</a> 		    if( OK != ErrorLogger(ERR_UNLINK,LOC,home_pathname,NULL))
-<a name="line260">260  |</a> 			goto unwind3;
-<a name="line261">261  |</a> 	    }
-<a name="line262">262  |</a> 
-<a name="line263">263  |</a> 	    continue;			/** while( shell_startups) ...	     **/
-<a name="line264">264  |</a> 	}
-<a name="line265">265  |</a>  
-<a name="line266">266  |</a> 	/**
-<a name="line267">267  |</a> 	 **  ... module load|add found ...
-<a name="line268">268  |</a> 	 **/
-<a name="line269">269  |</a> 	found_module_command = 1;
-<a name="line270">270  |</a> 	found_modload_flag = 0;
-<a name="line271">271  |</a> 
-<a name="line272">272  |</a> 	/* print out the "module" part */
-<a name="line273">273  |</a> 	(void) Tcl_RegExpRange(modcmdPtr, 1, &amp;startp, &amp;endp);
-<a name="line274">274  |</a> 	if (!(g_flags &amp; M_DISPLAY)) (void) out_substr(newfileptr, startp, endp);
-<a name="line275">275  |</a> 
-<a name="line276">276  |</a> 	/* print out the "add/load" part */
-<a name="line277">277  |</a> 	(void) Tcl_RegExpRange(modcmdPtr, 2, &amp;startp, &amp;endp);
-<a name="line278">278  |</a> 	if (!(g_flags &amp; M_DISPLAY)) (void) out_substr(newfileptr, startp, endp);
-<a name="line279">279  |</a> 
-<a name="line280">280  |</a> 	if( !(g_flags &amp; M_CLEAR)) {
-<a name="line281">281  |</a> 	
-<a name="line282">282  |</a> 	    /* look at the "module list" part */
-<a name="line283">283  |</a> 	    (void) Tcl_RegExpRange(modcmdPtr, 3, &amp;startp, &amp;endp);
-<a name="line284">284  |</a> 	    /* save the end character &amp; set to 0 */
-<a name="line285">285  |</a> 	    if(endp) {
-<a name="line286">286  |</a> 		ch = *endp;
-<a name="line287">287  |</a> 		*endp = '\0';
-<a name="line288">288  |</a> 	    }
-<a name="line289">289  |</a> 	
-<a name="line290">290  |</a> 	    if((char **) NULL==(modlist=SplitIntoList(interp,startp,&amp;nummods)))
-<a name="line291">291  |</a> 		continue;
-<a name="line292">292  |</a> 	    /* restore the list end character */
-<a name="line293">293  |</a> 	    if(endp)
-<a name="line294">294  |</a> 		*endp = ch;
+<a name="line249">249  |</a> 		/* print out the "add/load" part */
+<a name="line250">250  |</a> 		(void) Tcl_RegExpRange(modcmdPtr, 2,
+<a name="line251">251  |</a> 				       (CONST84 char **) &amp;startp,
+<a name="line252">252  |</a> 				       (CONST84 char **) &amp;endp);
+<a name="line253">253  |</a> 		if (!(g_flags &amp; M_DISPLAY))
+<a name="line254">254  |</a> 		    (void) out_substr(newfileptr, startp, endp);
+<a name="line255">255  |</a> 
+<a name="line256">256  |</a> 		if (!(g_flags &amp; M_CLEAR)) {
+<a name="line257">257  |</a> 		    /* look at the "module list" part */
+<a name="line258">258  |</a> 		    (void) Tcl_RegExpRange(modcmdPtr, 3,
+<a name="line259">259  |</a> 					   (CONST84 char **) &amp;startp,
+<a name="line260">260  |</a> 					   (CONST84 char **) &amp;endp);
+<a name="line261">261  |</a> 		    /* save the end character &amp; set to 0 */
+<a name="line262">262  |</a> 		    if (endp) {
+<a name="line263">263  |</a> 			ch = *endp;
+<a name="line264">264  |</a> 			*endp = '\0';
+<a name="line265">265  |</a> 		    }
+<a name="line266">266  |</a> 
+<a name="line267">267  |</a> 		    if ((char **) NULL ==
+<a name="line268">268  |</a> 			(modlist = SplitIntoList(interp, startp, &amp;nummods)))
+<a name="line269">269  |</a> 			continue; /** while(fgets) **/
+<a name="line270">270  |</a> 
+<a name="line271">271  |</a> 		    /* restore the list end character */
+<a name="line272">272  |</a> 		    if (endp)
+<a name="line273">273  |</a> 			*endp = ch;
+<a name="line274">274  |</a> 
+<a name="line275">275  |</a> 		    if (g_flags &amp; M_DISPLAY) {
+<a name="line276">276  |</a> 			if (modlist[0] == NULL) {
+<a name="line277">277  |</a> 			    fprintf(stderr,
+<a name="line278">278  |</a> 	    "\nNo modules are loaded in %s's initialization file "
+<a name="line279">279  |</a> 				    "$HOME/%s\n", shell_name,
+<a name="line280">280  |</a> 				    shell_startups[shell_num]);
+<a name="line281">281  |</a> 			} else {
+<a name="line282">282  |</a> 			    if (new_file) {
+<a name="line283">283  |</a> 				fprintf(stderr,
+<a name="line284">284  |</a> 	    "\n%s initialization file $HOME/%s loads modules:\n\t",
+<a name="line285">285  |</a> 				    shell_name, shell_startups[shell_num]);
+<a name="line286">286  |</a> 		    		(void) out_substr(stderr, startp, endp);
+<a name="line287">287  |</a> 				fputs("\n",stderr);
+<a name="line288">288  |</a> 				new_file = 0;
+<a name="line289">289  |</a> 			    } else {
+<a name="line290">290  |</a> 				fputs("\t",stderr);
+<a name="line291">291  |</a> 		    		(void) out_substr(stderr, startp, endp);
+<a name="line292">292  |</a> 				fputs("\n",stderr);
+<a name="line293">293  |</a> 			    }
+<a name="line294">294  |</a> 			}
 <a name="line295">295  |</a> 
-<a name="line296">296  |</a> 	    if( g_flags &amp; M_DISPLAY) {
-<a name="line297">297  |</a> 		if( modlist[0] == NULL) {
-<a name="line298">298  |</a> 		    fprintf( stderr,
-<a name="line299">299  |</a> 			"\nNo modules are loaded in %s's initialization file "
-<a name="line300">300  |</a> 			"$HOME/%s\n\n",shell_name,shell_startups[shell_num-1]);
-<a name="line301">301  |</a> 		} else {
-<a name="line302">302  |</a> 		    fprintf( stderr, 
-<a name="line303">303  |</a> 		   "\n%s initialization file $HOME/%s loads modules:\n\t%s\n\n",
-<a name="line304">304  |</a> 			shell_name, shell_startups[shell_num - 1], startp);
-<a name="line305">305  |</a> 		}
-<a name="line306">306  |</a> 
-<a name="line307">307  |</a> 		FreeList( modlist, nummods);
-<a name="line308">308  |</a> 
-<a name="line309">309  |</a> 		continue;
-<a name="line310">310  |</a> 	    }
-<a name="line311">311  |</a> 	
-<a name="line312">312  |</a> 	    for(i = 0; i &lt; argc; i++) {
-<a name="line313">313  |</a> 		/**
-<a name="line314">314  |</a> 		 **  Search through the modlist of modules that are currently
-<a name="line315">315  |</a> 		 **  in the ~/.startup.  If one is found, it handles removing
-<a name="line316">316  |</a> 		 **  it, switching it, etc.
-<a name="line317">317  |</a> 		 **/
-<a name="line318">318  |</a> 		for( j=0; j &lt; nummods; j++) {
-<a name="line319">319  |</a> 		    if( !strcmp( modlist[j], argv[i])) {
-<a name="line320">320  |</a> 			if( g_flags &amp; (M_LOAD | M_PREPEND | M_REMOVE)) {
-<a name="line321">321  |</a> 			    /**
-<a name="line322">322  |</a> 			     **  If removing, adding, prepending it,
-<a name="line323">323  |</a> 			     **  NULL it off the list.
-<a name="line324">324  |</a> 			     **/
-<a name="line325">325  |</a> 			    if ( g_flags &amp; M_REMOVE )
-<a name="line326">326  |</a> 				fprintf( stderr, "Removed %s\n", modlist[j]);
-<a name="line327">327  |</a> 			    else if ( (g_flags &amp; M_LOAD)
-<a name="line328">328  |</a> 				&amp;&amp; !(g_flags &amp; M_PREPEND))
-<a name="line329">329  |</a> 				fprintf(stderr,"Moving %s to end\n",modlist[j]);
-<a name="line330">330  |</a> 			    else if ( g_flags &amp; M_PREPEND )
-<a name="line331">331  |</a> 				fprintf(stderr,"Moving %s to beginning\n",
-<a name="line332">332  |</a> 				modlist[j]);
-<a name="line333">333  |</a> 			    null_free((void *) modlist + j);
-<a name="line334">334  |</a> 			    rm_found = 1;
-<a name="line335">335  |</a> 
-<a name="line336">336  |</a> 			} else if( g_flags &amp; M_SWITCH) {
-<a name="line337">337  |</a> 
-<a name="line338">338  |</a> 			    /**
-<a name="line339">339  |</a> 			     **  If switching it, swap the old string with
-<a name="line340">340  |</a> 			     **  the new string in the list.
-<a name="line341">341  |</a> 			     **/
-<a name="line342">342  |</a> 
-<a name="line343">343  |</a> 			    fprintf( stderr, "Switching %s to %s\n", modlist[j],
-<a name="line344">344  |</a> 				argv[i+1]);
-<a name="line345">345  |</a> 			    sw_found = 1;
-<a name="line346">346  |</a> 			    null_free((void *) modlist + j);
-<a name="line347">347  |</a> 			    modlist[j] = strdup( argv[i+1]);
-<a name="line348">348  |</a> 			}
-<a name="line349">349  |</a> 
-<a name="line350">350  |</a> 		    } /** if **/
-<a name="line351">351  |</a> 		} /** for(j) **/
-<a name="line352">352  |</a> 	    } /** for(i) **/
-<a name="line353">353  |</a> 	
-<a name="line354">354  |</a> 	    /**
-<a name="line355">355  |</a> 	     **  Ok, if we're removing it, prepending it, or switching it, 
-<a name="line356">356  |</a> 	     **  the modlist contains what needs to be put where...
-<a name="line357">357  |</a> 	     **/
-<a name="line358">358  |</a> 	    if( g_flags &amp; M_PREPEND) {
-<a name="line359">359  |</a> 		/**
-<a name="line360">360  |</a> 		 **  PREPENDING
-<a name="line361">361  |</a> 		 **/
-<a name="line362">362  |</a> 		for(i = 0; i &lt; argc; i++)
-<a name="line363">363  |</a> 		    fprintf( newfileptr, " %s", argv[i]);
-<a name="line364">364  |</a> 	    }
-<a name="line365">365  |</a> 
-<a name="line366">366  |</a> 	    if( (g_flags &amp; (M_LOAD | M_PREPEND | M_REMOVE | M_SWITCH )) )
-<a name="line367">367  |</a> 		/**
-<a name="line368">368  |</a> 		 **  DUMP LIST
-<a name="line369">369  |</a> 		 **/
-<a name="line370">370  |</a> 		for(j = 0; j &lt; nummods; j++) {
-<a name="line371">371  |</a> 		    if( modlist[j])
-<a name="line372">372  |</a> 			fprintf( newfileptr, " %s", modlist[j]);
-<a name="line373">373  |</a> 		}
-<a name="line374">374  |</a> 	    if( (g_flags &amp; M_LOAD) &amp;&amp; !(g_flags &amp; M_PREPEND)) {
-<a name="line375">375  |</a> 		/**
-<a name="line376">376  |</a> 		 **  ADDING
-<a name="line377">377  |</a> 		 **/
-<a name="line378">378  |</a> 		for(i = 0; i &lt; argc; i++)
-<a name="line379">379  |</a> 		    fprintf( newfileptr, " %s", argv[i]);
-<a name="line380">380  |</a> 	    }
-<a name="line381">381  |</a> 	
-<a name="line382">382  |</a> 	    FreeList( modlist, nummods);
-<a name="line383">383  |</a> 
-<a name="line384">384  |</a> 	} else { /** if( M_CLEAR) **/
-<a name="line385">385  |</a> 	    /**
-<a name="line386">386  |</a> 	     ** Clear out the list, but leave a "null"
-<a name="line387">387  |</a> 	     **/
-<a name="line388">388  |</a> 	    fprintf( newfileptr, " %s", "null");
-<a name="line389">389  |</a> 	}
-<a name="line390">390  |</a> 	
-<a name="line391">391  |</a> 	/**
-<a name="line392">392  |</a> 	 **  Restore any comments at the end of the line...
-<a name="line393">393  |</a> 	 **/
-<a name="line394">394  |</a> 	(void) Tcl_RegExpRange(modcmdPtr, 4, &amp;startp, &amp;endp);
-<a name="line395">395  |</a> 	(void) out_substr(newfileptr, startp, endp);
-<a name="line396">396  |</a> 
-<a name="line397">397  |</a> 	/**
-<a name="line398">398  |</a> 	 ** Complete copying the rest of the file...
-<a name="line399">399  |</a> 	 **/
-<a name="line400">400  |</a> 
-<a name="line401">401  |</a> 	while( fgets( buffer, bufsiz, fileptr))
-<a name="line402">402  |</a> 	    fputs( buffer, newfileptr);
-<a name="line403">403  |</a> 
-<a name="line404">404  |</a> 	/**
-<a name="line405">405  |</a> 	 **  Don't need these any more
-<a name="line406">406  |</a> 	 **/
-<a name="line407">407  |</a> 
-<a name="line408">408  |</a> 	if( EOF == fclose( fileptr))
-<a name="line409">409  |</a> 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, home_pathname, NULL))
-<a name="line410">410  |</a> 		goto unwind3;
-<a name="line411">411  |</a> 
-<a name="line412">412  |</a> 	if( EOF == fclose( newfileptr))
-<a name="line413">413  |</a> 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, home_pathname, NULL))
-<a name="line414">414  |</a> 		goto unwind3;
+<a name="line296">296  |</a> 			FreeList(modlist, nummods);
+<a name="line297">297  |</a> 			continue; /** while(fgets) **/
+<a name="line298">298  |</a> 		    }
+<a name="line299">299  |</a> 
+<a name="line300">300  |</a> 		    for (i = 0; i &lt; argc; i++) {
+<a name="line301">301  |</a> 		    /**
+<a name="line302">302  |</a> 		     ** Search through the modlist of modules that are currently
+<a name="line303">303  |</a> 		     ** in the ~/.startup.  If one is found, it handles removing
+<a name="line304">304  |</a> 		     ** it, switching it, etc.
+<a name="line305">305  |</a> 		     **/
+<a name="line306">306  |</a> 			for (j = 0; j &lt; nummods; j++) {
+<a name="line307">307  |</a> 			    if (modlist[j] &amp;&amp; !strcmp(modlist[j], argv[i])) {
+<a name="line308">308  |</a> 				if (g_flags &amp; (M_LOAD | M_REMOVE)) {
+<a name="line309">309  |</a> 				/**
+<a name="line310">310  |</a> 				 **  If removing, adding, prepending it,
+<a name="line311">311  |</a> 				 **  NULL it off the list.
+<a name="line312">312  |</a> 				 **/
+<a name="line313">313  |</a> 				    if (g_flags &amp; M_REMOVE)
+<a name="line314">314  |</a> 					fprintf(stderr, "Removed %s\n",
+<a name="line315">315  |</a> 						modlist[j]);
+<a name="line316">316  |</a> 				    else if ((g_flags &amp; M_LOAD)
+<a name="line317">317  |</a> 					     &amp;&amp; !(g_flags &amp; M_PREPEND))
+<a name="line318">318  |</a> 					fprintf(stderr, "Moving %s to end\n",
+<a name="line319">319  |</a> 						modlist[j]);
+<a name="line320">320  |</a> 				    else if (g_flags &amp; M_PREPEND)
+<a name="line321">321  |</a> 					fprintf(stderr,
+<a name="line322">322  |</a> 						"Moving %s to beginning\n",
+<a name="line323">323  |</a> 						modlist[j]);
+<a name="line324">324  |</a> 				    null_free((void *) (modlist + j));
+<a name="line325">325  |</a> 
+<a name="line326">326  |</a> 				} else if (g_flags &amp; M_SWITCH) {
+<a name="line327">327  |</a> 				/**
+<a name="line328">328  |</a> 				 **  If switching it, swap the old string with
+<a name="line329">329  |</a> 				 **  the new string in the list.
+<a name="line330">330  |</a> 				 **/
+<a name="line331">331  |</a> 				    fprintf(stderr, "Switching %s to %s\n",
+<a name="line332">332  |</a> 					    modlist[j], argv[i + 1]);
+<a name="line333">333  |</a> 				    null_free((void *) (modlist + j));
+<a name="line334">334  |</a> 				    modlist[j] = strdup(argv[i + 1]);
+<a name="line335">335  |</a> 				}
+<a name="line336">336  |</a> 			    } /** if **/
+<a name="line337">337  |</a> 			} /** for(j) **/
+<a name="line338">338  |</a> 		    } /** for(i) **/
+<a name="line339">339  |</a> 		/**
+<a name="line340">340  |</a> 		 **  Ok, if we're removing it, prepending it, or switching it, 
+<a name="line341">341  |</a> 		 **  the modlist contains what needs to be put where...
+<a name="line342">342  |</a> 		 **/
+<a name="line343">343  |</a> 		    if ((new_file) &amp;&amp; (g_flags &amp; M_PREPEND)) {
+<a name="line344">344  |</a> 		    /**
+<a name="line345">345  |</a> 		     **  PREPENDING
+<a name="line346">346  |</a> 		     **/
+<a name="line347">347  |</a> 			for (i = 0; i &lt; argc; i++) {
+<a name="line348">348  |</a> 			    fprintf(newfileptr, " %s", argv[i]);
+<a name="line349">349  |</a> 			    final_list_num++;
+<a name="line350">350  |</a> 			}
+<a name="line351">351  |</a> 		    }
+<a name="line352">352  |</a> 
+<a name="line353">353  |</a> 		    if ((g_flags &amp; (M_LOAD | M_REMOVE | M_SWITCH))) {
+<a name="line354">354  |</a> 		    /**
+<a name="line355">355  |</a> 		     **  DUMP LIST
+<a name="line356">356  |</a> 		     **/
+<a name="line357">357  |</a> 			for (j = 0; j &lt; nummods; j++) {
+<a name="line358">358  |</a> 			    if (modlist[j]) {
+<a name="line359">359  |</a> 				fprintf(newfileptr, " %s", modlist[j]);
+<a name="line360">360  |</a> 				final_list_num++;
+<a name="line361">361  |</a> 			    }
+<a name="line362">362  |</a> 			}
+<a name="line363">363  |</a> 		    }
+<a name="line364">364  |</a> 		    if ((new_file) &amp;&amp; (g_flags &amp; M_LOAD)
+<a name="line365">365  |</a> 		    &amp;&amp; !(g_flags &amp; M_PREPEND)) {
+<a name="line366">366  |</a> 		    /**
+<a name="line367">367  |</a> 		     **  ADDING
+<a name="line368">368  |</a> 		     **/
+<a name="line369">369  |</a> 			for (i = 0; i &lt; argc; i++) {
+<a name="line370">370  |</a> 			    fprintf(newfileptr, " %s", argv[i]);
+<a name="line371">371  |</a> 			    final_list_num++;
+<a name="line372">372  |</a> 			}
+<a name="line373">373  |</a> 		    }
+<a name="line374">374  |</a> 		    /* always place a null if an empty list */
+<a name="line375">375  |</a> 		    if (!final_list_num)
+<a name="line376">376  |</a> 			fprintf(newfileptr, " %s", "null");
+<a name="line377">377  |</a> 
+<a name="line378">378  |</a> 		    FreeList(modlist, nummods);
+<a name="line379">379  |</a> 
+<a name="line380">380  |</a> 		} else { /** if( M_CLEAR) **/
+<a name="line381">381  |</a> 		/**
+<a name="line382">382  |</a> 		 ** Clear out the list, but leave a "null"
+<a name="line383">383  |</a> 		 **/
+<a name="line384">384  |</a> 		    fprintf(newfileptr, " %s", "null");
+<a name="line385">385  |</a> 		}
+<a name="line386">386  |</a> 	/**
+<a name="line387">387  |</a> 	 **  Restore any comments at the end of the line...
+<a name="line388">388  |</a> 	 **/
+<a name="line389">389  |</a> 		(void) Tcl_RegExpRange(modcmdPtr, 4,
+<a name="line390">390  |</a> 				       (CONST84 char **) &amp;startp,
+<a name="line391">391  |</a> 				       (CONST84 char **) &amp;endp);
+<a name="line392">392  |</a> 		(void) out_substr(newfileptr, startp, endp);
+<a name="line393">393  |</a> 		new_file = 0;
+<a name="line394">394  |</a> 	    } else {		/* not module load line */
+<a name="line395">395  |</a> 		if (!(g_flags &amp; M_DISPLAY))
+<a name="line396">396  |</a> 		    fputs(buffer, newfileptr);
+<a name="line397">397  |</a> 	    }
+<a name="line398">398  |</a> 	} /** while (fgets) **/
+<a name="line399">399  |</a> 	if (g_flags &amp; M_DISPLAY) {
+<a name="line400">400  |</a> 	    fputs("\n",stderr);
+<a name="line401">401  |</a> 	}
+<a name="line402">402  |</a> 
+<a name="line403">403  |</a> 	if (!found_modload_flag) {
+<a name="line404">404  |</a> 	    /**
+<a name="line405">405  |</a> 	     **  If not found...
+<a name="line406">406  |</a> 	     **/
+<a name="line407">407  |</a> 	    if (EOF == fclose(fileptr))
+<a name="line408">408  |</a> 		if (OK != ErrorLogger(ERR_CLOSE, LOC, home_pathname, NULL))
+<a name="line409">409  |</a> 		    goto unwind3;
+<a name="line410">410  |</a> 
+<a name="line411">411  |</a> 	    if (!(g_flags &amp; M_DISPLAY)) {
+<a name="line412">412  |</a> 		if (EOF == fclose(newfileptr))
+<a name="line413">413  |</a> 		    if (OK != ErrorLogger(ERR_CLOSE, LOC, home_pathname, NULL))
+<a name="line414">414  |</a> 			goto unwind3;
 <a name="line415">415  |</a> 
-<a name="line416">416  |</a> 	/**
-<a name="line417">417  |</a> 	 **  Truncate -NEW from home_pathname and Create a -OLD name
-<a name="line418">418  |</a> 	 **  Move ~/.startup to ~/.startup-OLD
-<a name="line419">419  |</a> 	 **/
-<a name="line420">420  |</a> 	home_pathname[ path_end] = '\0';
-<a name="line421">421  |</a> 
-<a name="line422">422  |</a> 	if ((char *) NULL == stringer( home_pathname2,homelen,
-<a name="line423">423  |</a> 		home_pathname, "-OLD", NULL))
-<a name="line424">424  |</a> 		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line425">425  |</a> 		    goto unwind3;
-<a name="line426">426  |</a> 
-<a name="line427">427  |</a> 	if( 0 &gt; rename( home_pathname, home_pathname2))
-<a name="line428">428  |</a> 	    if( OK != ErrorLogger(ERR_RENAME,LOC,home_pathname,home_pathname2,
-<a name="line429">429  |</a> 		    NULL))
-<a name="line430">430  |</a> 		goto unwind3;
-<a name="line431">431  |</a> 
-<a name="line432">432  |</a> 	/**
-<a name="line433">433  |</a> 	 **  Create a -NEW name
-<a name="line434">434  |</a> 	 **  Move ~/.startup-NEW to ~/.startup
-<a name="line435">435  |</a> 	 **/
-<a name="line436">436  |</a> 	if ((char *) NULL == stringer( home_pathname2,homelen,
-<a name="line437">437  |</a> 		home_pathname, "-NEW", NULL))
-<a name="line438">438  |</a> 		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line439">439  |</a> 		    goto unwind3;
+<a name="line416">416  |</a> 		if (0 &gt; unlink(home_pathname))
+<a name="line417">417  |</a> 		    if (OK != ErrorLogger(ERR_UNLINK, LOC, home_pathname, NULL))
+<a name="line418">418  |</a> 			goto unwind3;
+<a name="line419">419  |</a> 	    }
+<a name="line420">420  |</a> 	} else {		/* found_modload_flag */
+<a name="line421">421  |</a> 	    /**
+<a name="line422">422  |</a> 	     **  Don't need these any more
+<a name="line423">423  |</a> 	     **/
+<a name="line424">424  |</a> 	    if (EOF == fclose(fileptr))
+<a name="line425">425  |</a> 		if (OK != ErrorLogger(ERR_CLOSE, LOC, home_pathname, NULL))
+<a name="line426">426  |</a> 		    goto unwind3;
+<a name="line427">427  |</a> 
+<a name="line428">428  |</a> 	    if (g_flags &amp; M_DISPLAY)
+<a name="line429">429  |</a> 	        goto unwhile0; 	/** while( shell_startups) ...	     **/
+<a name="line430">430  |</a> 
+<a name="line431">431  |</a> 	    if (EOF == fclose(newfileptr))
+<a name="line432">432  |</a> 		if (OK != ErrorLogger(ERR_CLOSE, LOC, home_pathname, NULL))
+<a name="line433">433  |</a> 		    goto unwind3;
+<a name="line434">434  |</a> 
+<a name="line435">435  |</a> 	    /**
+<a name="line436">436  |</a> 	     **  Truncate -NEW from home_pathname and Create a -OLD name
+<a name="line437">437  |</a> 	     **  Move ~/.startup to ~/.startup-OLD
+<a name="line438">438  |</a> 	     **/
+<a name="line439">439  |</a> 	    home_pathname[path_end] = '\0';
 <a name="line440">440  |</a> 
-<a name="line441">441  |</a> 	if( 0 &gt; rename( home_pathname2, home_pathname))
-<a name="line442">442  |</a> 	    if( OK != ErrorLogger(ERR_RENAME,LOC,home_pathname2,home_pathname,
-<a name="line443">443  |</a> 		NULL)) {
-<a name="line444">444  |</a> 
-<a name="line445">445  |</a> 		/**
-<a name="line446">446  |</a> 		 **  Put the -OLD one back if I can't rename it
-<a name="line447">447  |</a> 		 **/
-<a name="line448">448  |</a> 		if ((char *) NULL == stringer( home_pathname2,homelen,
-<a name="line449">449  |</a> 			home_pathname, "-OLD", NULL))
-<a name="line450">450  |</a> 			if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line451">451  |</a> 			    goto unwind3;
-<a name="line452">452  |</a> 
-<a name="line453">453  |</a> 		if( 0 &gt; rename( home_pathname2, home_pathname)) 
-<a name="line454">454  |</a> 		    ErrorLogger(ERR_RENAME,LOC,home_pathname2,home_pathname,
-<a name="line455">455  |</a> 		    NULL);
-<a name="line456">456  |</a> 
-<a name="line457">457  |</a> 		goto unwind3;
-<a name="line458">458  |</a> 	    }
-<a name="line459">459  |</a> 
-<a name="line460">460  |</a>     } /** while( shell_startups) **/
-<a name="line461">461  |</a>   
-<a name="line462">462  |</a>     /**
-<a name="line463">463  |</a>      **  Free up internal I/O buffers
-<a name="line464">464  |</a>      **/
-<a name="line465">465  |</a>     null_free((void *) &amp;buffer);
-<a name="line466">466  |</a> 
-<a name="line467">467  |</a>     /**
-<a name="line468">468  |</a>      **  Create a -NEW name. This may conditionally be used for removing the
-<a name="line469">469  |</a>      **  new files if the operation wasn't a success
-<a name="line470">470  |</a>      **  Check the SWITCH command
-<a name="line471">471  |</a>      **/
-<a name="line472">472  |</a>     if ((char *) NULL == stringer( home_pathname2,homelen,
-<a name="line473">473  |</a> 	home_pathname, "-NEW", NULL))
-<a name="line474">474  |</a> 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line475">475  |</a> 	    goto unwind2;
+<a name="line441">441  |</a> 	    if ((char *) NULL == stringer(home_pathname2, homelen,
+<a name="line442">442  |</a> 					  home_pathname, "-OLD", NULL))
+<a name="line443">443  |</a> 		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
+<a name="line444">444  |</a> 		    goto unwind3;
+<a name="line445">445  |</a> 
+<a name="line446">446  |</a> 	    if (0 &gt; rename(home_pathname, home_pathname2))
+<a name="line447">447  |</a> 		if (OK !=
+<a name="line448">448  |</a> 		    ErrorLogger(ERR_RENAME, LOC, home_pathname, home_pathname2,
+<a name="line449">449  |</a> 				NULL))
+<a name="line450">450  |</a> 		    goto unwind3;
+<a name="line451">451  |</a> 
+<a name="line452">452  |</a> 	    /**
+<a name="line453">453  |</a> 	     **  Create a -NEW name
+<a name="line454">454  |</a> 	     **  Move ~/.startup-NEW to ~/.startup
+<a name="line455">455  |</a> 	     **/
+<a name="line456">456  |</a> 	    if ((char *) NULL == stringer(home_pathname2, homelen,
+<a name="line457">457  |</a> 					  home_pathname, "-NEW", NULL))
+<a name="line458">458  |</a> 		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
+<a name="line459">459  |</a> 		    goto unwind3;
+<a name="line460">460  |</a> 
+<a name="line461">461  |</a> 	    if (0 &gt; rename(home_pathname2, home_pathname)) {
+<a name="line462">462  |</a> 		if (OK !=
+<a name="line463">463  |</a> 		    ErrorLogger(ERR_RENAME, LOC, home_pathname2, home_pathname,
+<a name="line464">464  |</a> 				NULL)) {
+<a name="line465">465  |</a> 		    /**
+<a name="line466">466  |</a> 		     **  Put the -OLD one back if I can't rename it
+<a name="line467">467  |</a> 		     **/
+<a name="line468">468  |</a> 		    if ((char *) NULL == stringer(home_pathname2, homelen,
+<a name="line469">469  |</a> 						  home_pathname, "-OLD", NULL))
+<a name="line470">470  |</a> 			if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
+<a name="line471">471  |</a> 			    goto unwind3;
+<a name="line472">472  |</a> 
+<a name="line473">473  |</a> 		    if (0 &gt; rename(home_pathname2, home_pathname))
+<a name="line474">474  |</a> 			ErrorLogger(ERR_RENAME, LOC, home_pathname2,
+<a name="line475">475  |</a> 				    home_pathname, NULL);
 <a name="line476">476  |</a> 
-<a name="line477">477  |</a> 
-<a name="line478">478  |</a>     if((g_flags &amp; M_SWITCH) &amp;&amp; !sw_found)
-<a name="line479">479  |</a> 	if( OK != ErrorLogger( ERR_LOCATE, LOC, argv[0], NULL)) {
-<a name="line480">480  |</a> 	    if( 0 &gt; unlink( home_pathname2))
-<a name="line481">481  |</a> 		ErrorLogger( ERR_UNLINK, LOC, home_pathname2, NULL);
-<a name="line482">482  |</a> 	    goto unwind2;
-<a name="line483">483  |</a> 	}
-<a name="line484">484  |</a> 	
-<a name="line485">485  |</a>     /**
-<a name="line486">486  |</a>      **  Check the REMOVE command
-<a name="line487">487  |</a>      **/
-<a name="line488">488  |</a> 
-<a name="line489">489  |</a>     if((g_flags &amp; M_REMOVE) &amp;&amp; !rm_found)
-<a name="line490">490  |</a> 	if( OK != ErrorLogger( ERR_LOCATE, LOC, NULL)) {
-<a name="line491">491  |</a> 	    if( 0 &gt; unlink( home_pathname2))
-<a name="line492">492  |</a> 		ErrorLogger( ERR_UNLINK, LOC, home_pathname2, NULL);
-<a name="line493">493  |</a> 	    goto unwind2;
-<a name="line494">494  |</a> 	}
-<a name="line495">495  |</a>     
-<a name="line496">496  |</a>     if( !found_module_command)
-<a name="line497">497  |</a> 	if( OK != ErrorLogger( ERR_INIT_STUP, LOC, shell_name, NULL)) 
-<a name="line498">498  |</a> 	    goto unwind2;
-<a name="line499">499  |</a> 
-<a name="line500">500  |</a> #if WITH_DEBUGGING_MODULECMD
-<a name="line501">501  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Init, NULL);
-<a name="line502">502  |</a> #endif
-<a name="line503">503  |</a> 
-<a name="line504">504  |</a>     /**
-<a name="line505">505  |</a>      **  Free up memory
-<a name="line506">506  |</a>      **/
-<a name="line507">507  |</a>     null_free((void *) &amp;home_pathname2);
-<a name="line508">508  |</a>     null_free((void *) &amp;home_pathname);
+<a name="line477">477  |</a> 		    goto unwind3;
+<a name="line478">478  |</a> 		}
+<a name="line479">479  |</a> 	    }
+<a name="line480">480  |</a> 
+<a name="line481">481  |</a> 	    /**
+<a name="line482">482  |</a> 	     **  So far we're successful so
+<a name="line483">483  |</a> 	     **  Create a -OLD name
+<a name="line484">484  |</a> 	     **  Unlink ~/.startup-OLD
+<a name="line485">485  |</a> 	     **/
+<a name="line486">486  |</a> 	    if ((char *) NULL == stringer(home_pathname2, homelen,
+<a name="line487">487  |</a> 					  home_pathname, "-OLD", NULL))
+<a name="line488">488  |</a> 		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
+<a name="line489">489  |</a> 		    goto unwind3;
+<a name="line490">490  |</a> 
+<a name="line491">491  |</a> 	    if ((g_flags &amp; (M_CLEAR | M_LOAD | M_REMOVE | M_SWITCH)))
+<a name="line492">492  |</a> 		if (0 &gt; unlink(home_pathname2)) {
+<a name="line493">493  |</a> 		    ErrorLogger(ERR_UNLINK, LOC, home_pathname2, NULL);
+<a name="line494">494  |</a> 		    goto unwind3;
+<a name="line495">495  |</a> 		}
+<a name="line496">496  |</a> 	}
+<a name="line497">497  |</a>     unwhile0:
+<a name="line498">498  |</a> 	shell_num++;
+<a name="line499">499  |</a>     } /** while( shell_startups) **/
+<a name="line500">500  |</a> 
+<a name="line501">501  |</a>     /**
+<a name="line502">502  |</a>      **  Free up internal I/O buffers
+<a name="line503">503  |</a>      **/
+<a name="line504">504  |</a>     null_free((void *) &amp;buffer);
+<a name="line505">505  |</a> 
+<a name="line506">506  |</a>     if (!found_module_command)
+<a name="line507">507  |</a> 	if (OK != ErrorLogger(ERR_INIT_STUP, LOC, shell_name, NULL))
+<a name="line508">508  |</a> 	    goto unwind2;
 <a name="line509">509  |</a> 
-<a name="line510">510  |</a> success0:
-<a name="line511">511  |</a>     return( TCL_OK);			/** -------- EXIT (SUCCESS) -------&gt; **/
-<a name="line512">512  |</a> 
-<a name="line513">513  |</a> unwind3:
-<a name="line514">514  |</a>     null_free((void *) &amp;buffer);
-<a name="line515">515  |</a> unwind2:
-<a name="line516">516  |</a>     null_free((void *) &amp;home_pathname2);
-<a name="line517">517  |</a> unwind1:
+<a name="line510">510  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line511">511  |</a>     ErrorLogger(NO_ERR_END, LOC, _proc_ModuleCmd_Init, NULL);
+<a name="line512">512  |</a> #endif
+<a name="line513">513  |</a> 
+<a name="line514">514  |</a>     /**
+<a name="line515">515  |</a>      **  Free up memory
+<a name="line516">516  |</a>      **/
+<a name="line517">517  |</a>     null_free((void *) &amp;home_pathname2);
 <a name="line518">518  |</a>     null_free((void *) &amp;home_pathname);
-<a name="line519">519  |</a> unwind0:
-<a name="line520">520  |</a>     return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line521">521  |</a> 
-<a name="line522">522  |</a> } /** end of 'ModuleCmd_Init' **/
+<a name="line519">519  |</a> 
+<a name="line520">520  |</a> success0:
+<a name="line521">521  |</a>     return (TCL_OK);			/** -------- EXIT (SUCCESS) -------&gt; **/
+<a name="line522">522  |</a> 
+<a name="line523">523  |</a> unwind3:
+<a name="line524">524  |</a>     null_free((void *) &amp;buffer);
+<a name="line525">525  |</a> unwind2:
+<a name="line526">526  |</a>     null_free((void *) &amp;home_pathname2);
+<a name="line527">527  |</a> unwind1:
+<a name="line528">528  |</a>     null_free((void *) &amp;home_pathname);
+<a name="line529">529  |</a> unwind0:
+<a name="line530">530  |</a>     return (TCL_ERROR);			/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line531">531  |</a> 
+<a name="line532">532  |</a> } /** end of 'ModuleCmd_Init' **/
 </pre>
 
 </BODY>

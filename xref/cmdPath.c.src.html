@@ -25,7 +25,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line5">5    |</a>  **   Providing a flexible user environment				     **
 <a name="line6">6    |</a>  ** 									     **
 <a name="line7">7    |</a>  **   File:		cmdPath.c					     **
-<a name="line8">8    |</a>  **   First Edition:	91/10/23					     **
+<a name="line8">8    |</a>  **   First Edition:	1991/10/23					     **
 <a name="line9">9    |</a>  ** 									     **
 <a name="line10">10   |</a>  **   Authors:	John Furlan, jlf@behere.com				     **
 <a name="line11">11   |</a>  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -50,7 +50,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line30">30   |</a>  ** 									     ** 
 <a name="line31">31   |</a>  ** ************************************************************************ **/
 <a name="line32">32   |</a> 
-<a name="line33">33   |</a> static char Id[] = "@(#)$Id: cmdPath.c.src.html,v 1.2 2005/11/25 20:09:37 rkowen Exp $";
+<a name="line33">33   |</a> static char Id[] = "@(#)$Id: cmdPath.c.src.html,v 1.6 2006/01/18 05:35:11 rkowen Exp $";
 <a name="line34">34   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line35">35   |</a> 
 <a name="line36">36   |</a> /** ************************************************************************ **/
@@ -118,7 +118,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line98">98   |</a>  **			the path is checked to see whether it is already     **
 <a name="line99">99   |</a>  **			in the path.  If so it is not added.		     **
 <a name="line100">100  |</a>  ** 									     **
-<a name="line101">101  |</a>  **   First Edition:	91/10/23					     **
+<a name="line101">101  |</a>  **   First Edition:	1991/10/23					     **
 <a name="line102">102  |</a>  ** 									     **
 <a name="line103">103  |</a>  **   Parameters:	ClientData	 client_data			     **
 <a name="line104">104  |</a>  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -138,7 +138,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line118">118  |</a> int	cmdSetPath(	ClientData	 client_data,
 <a name="line119">119  |</a> 	       		Tcl_Interp	*interp,
 <a name="line120">120  |</a> 	       		int		 argc,
-<a name="line121">121  |</a> 	       		char		*argv[])
+<a name="line121">121  |</a> 	       		CONST84 char	*argv[])
 <a name="line122">122  |</a> {
 <a name="line123">123  |</a>     Tcl_RegExp	chkexpPtr;			/** Regular expression for   **/
 <a name="line124">124  |</a> 						/** marker checking	     **/
@@ -211,7 +211,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line191">191  |</a>      **  Put a \ in front of each '.' and '+'.
 <a name="line192">192  |</a>      **  (this is an intentional memory leak)
 <a name="line193">193  |</a>      **/
-<a name="line194">194  |</a>     oldpath = Tcl_GetVar2( interp, "env", argv[1], TCL_GLOBAL_ONLY);
+<a name="line194">194  |</a>     oldpath = (char *) Tcl_GetVar2( interp, "env", argv[1], TCL_GLOBAL_ONLY);
 <a name="line195">195  |</a>     _TCLCHK(interp)
 <a name="line196">196  |</a> 
 <a name="line197">197  |</a>     if( oldpath == NULL)
@@ -222,7 +222,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line202">202  |</a>      **  directory can be checked to see whether it is already in the 
 <a name="line203">203  |</a>      **  existing path.
 <a name="line204">204  |</a>      **/
-<a name="line205">205  |</a>     if( !( pathlist = SplitIntoList( interp, argv[2], &amp;numpaths)))
+<a name="line205">205  |</a>     if( !( pathlist = SplitIntoList( interp, (char *) argv[2], &amp;numpaths)))
 <a name="line206">206  |</a> 	goto unwind0;
 <a name="line207">207  |</a> 
 <a name="line208">208  |</a>     /**
@@ -315,485 +315,489 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line295">295  |</a> 
 <a name="line296">296  |</a> 	if( Tcl_RegExpExec(interp, markexpPtr, oldpath, oldpath)) {
 <a name="line297">297  |</a> 	    _TCLCHK(interp)
-<a name="line298">298  |</a> 	    Tcl_RegExpRange(markexpPtr, 0, &amp;startp, &amp;endp);
-<a name="line299">299  |</a> 
-<a name="line300">300  |</a> 	    /**
-<a name="line301">301  |</a> 	     **  Append/Prepend marker found
-<a name="line302">302  |</a> 	     **/
-<a name="line303">303  |</a> 	    if( append) {
-<a name="line304">304  |</a> 		char ch = *endp;
-<a name="line305">305  |</a> 		*endp = '\0';
-<a name="line306">306  |</a> 		strcpy(newpath, oldpath);
-<a name="line307">307  |</a> 		if (newpath[strlen(newpath)-1] != ':')	strcat(newpath, ":");
-<a name="line308">308  |</a> 		strcat(newpath, qualifiedpath);
-<a name="line309">309  |</a> 		*endp = ch;
-<a name="line310">310  |</a> 		strcat(newpath, endp);
-<a name="line311">311  |</a> 	    } else {
-<a name="line312">312  |</a> 		char ch = *startp;
-<a name="line313">313  |</a> 		*startp = '\0';
-<a name="line314">314  |</a> 		strcpy(newpath, oldpath);
-<a name="line315">315  |</a> 		if (newpath[strlen(newpath)-1] != ':')	strcat(newpath, ":");
-<a name="line316">316  |</a> 		strcpy(newpath, qualifiedpath);
-<a name="line317">317  |</a> 		if (*oldpath != ':')	strcat(newpath, ":");
-<a name="line318">318  |</a> 		strcat(newpath, oldpath);
-<a name="line319">319  |</a> 		*startp = ch;
-<a name="line320">320  |</a> 		strcat(newpath, startp);
-<a name="line321">321  |</a> 	    }
-<a name="line322">322  |</a> 
-<a name="line323">323  |</a> 	} else {
-<a name="line324">324  |</a> 
-<a name="line325">325  |</a> 	    /**
-<a name="line326">326  |</a> 	     **  No marker set
-<a name="line327">327  |</a> 	     **/
-<a name="line328">328  |</a> 	    if( !append) {
-<a name="line329">329  |</a> 		strcpy(newpath, qualifiedpath);
-<a name="line330">330  |</a> 		if (*oldpath != ':')	strcat(newpath, ":");
-<a name="line331">331  |</a> 		strcat(newpath, oldpath);
-<a name="line332">332  |</a> 	    } else {
-<a name="line333">333  |</a> 		strcpy(newpath, oldpath);
-<a name="line334">334  |</a> 		if (newpath[strlen(newpath)-1] != ':')	strcat(newpath, ":");
-<a name="line335">335  |</a> 		strcat(newpath, qualifiedpath);
-<a name="line336">336  |</a> 	    }
-<a name="line337">337  |</a> 
-<a name="line338">338  |</a> 	} /** if( marker) **/
-<a name="line339">339  |</a> 
-<a name="line340">340  |</a>     } /** if( strcmp) **/
-<a name="line341">341  |</a> 
-<a name="line342">342  |</a>     /**
-<a name="line343">343  |</a>      **  Now the new value to be set resides in 'newpath'. Set it up.
-<a name="line344">344  |</a>      **/
-<a name="line345">345  |</a>     moduleSetenv( interp, argv[1], newpath, 1);
-<a name="line346">346  |</a>     _TCLCHK(interp)
-<a name="line347">347  |</a> 
-<a name="line348">348  |</a> #if WITH_DEBUGGING_CALLBACK
-<a name="line349">349  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdSetPath, NULL);
-<a name="line350">350  |</a> #endif
-<a name="line351">351  |</a> 
-<a name="line352">352  |</a>     /**
-<a name="line353">353  |</a>      ** Free resources
-<a name="line354">354  |</a>      **/
-<a name="line355">355  |</a>     null_free((void *) &amp;newpath);
-<a name="line356">356  |</a> success1:
-<a name="line357">357  |</a>     null_free((void *) &amp;qualifiedpath);
-<a name="line358">358  |</a>     FreeList( pathlist, numpaths);
-<a name="line359">359  |</a> success0:
-<a name="line360">360  |</a>     return( TCL_OK);			/** -------- EXIT (SUCCESS) -------&gt; **/
-<a name="line361">361  |</a> 
-<a name="line362">362  |</a> unwind2:
-<a name="line363">363  |</a>     null_free((void *) &amp;qualifiedpath);
-<a name="line364">364  |</a> unwind1:
-<a name="line365">365  |</a>     FreeList( pathlist, numpaths);
-<a name="line366">366  |</a> unwind0:
-<a name="line367">367  |</a>     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line368">368  |</a> 
-<a name="line369">369  |</a> } /** End of 'cmdSetPath' **/
-<a name="line370">370  |</a> 
-<a name="line371">371  |</a> /*++++
-<a name="line372">372  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line373">373  |</a>  ** 									     **
-<a name="line374">374  |</a>  **   Function:		cmdRemovePath					     **
-<a name="line375">375  |</a>  ** 									     **
-<a name="line376">376  |</a>  **   Description:	Remove the passed value (argv[2]) from the specified **
-<a name="line377">377  |</a>  **			variable (argv[1]). In case of switching this pro-   **
-<a name="line378">378  |</a>  **			cedure removes markers from the path, too. argv[0]   **
-<a name="line379">379  |</a>  **			specifies, if the append- or prepend-marker is af-   **
-<a name="line380">380  |</a>  **			fected						     **
-<a name="line381">381  |</a>  ** 									     **
-<a name="line382">382  |</a>  **   First Edition:	91/10/23					     **
-<a name="line383">383  |</a>  ** 									     **
-<a name="line384">384  |</a>  **   Parameters:	ClientData	 client_data			     **
-<a name="line385">385  |</a>  **			Tcl_Interp	*interp		According Tcl interp.**
-<a name="line386">386  |</a>  **			int		 argc		Number of arguments  **
-<a name="line387">387  |</a>  **			char		*argv[]		Argument array	     **
-<a name="line388">388  |</a>  ** 									     **
-<a name="line389">389  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
-<a name="line390">390  |</a>  **				TCL_ERROR	Any error		     **
-<a name="line391">391  |</a>  ** 									     **
-<a name="line392">392  |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
-<a name="line393">393  |</a>  **					this function is called in order to  **
-<a name="line394">394  |</a>  **					control everything		     **
-<a name="line395">395  |</a>  ** 									     **
-<a name="line396">396  |</a>  ** ************************************************************************ **
-<a name="line397">397  |</a>  ++++*/
-<a name="line398">398  |</a> 
-<a name="line399">399  |</a> int	cmdRemovePath(	ClientData	 client_data,
-<a name="line400">400  |</a> 	       		Tcl_Interp	*interp,
-<a name="line401">401  |</a> 	       		int		 argc,
-<a name="line402">402  |</a> 	       		char		*argv[])
-<a name="line403">403  |</a> {
-<a name="line404">404  |</a>     char	*sw_marker = APP_SW_MARKER;	/** arbitrary default	     **/
-<a name="line405">405  |</a>     char	**pathlist;			/** List of dirs	     **/
-<a name="line406">406  |</a>     int		 numpaths;			/** number of dirs in path   **/
-<a name="line407">407  |</a>     int		 x;				/** loop index		     **/
-<a name="line408">408  |</a> 
+<a name="line298">298  |</a> 	    Tcl_RegExpRange(markexpPtr, 0,
+<a name="line299">299  |</a> 		(CONST84 char **) &amp;startp, (CONST84 char **) &amp;endp);
+<a name="line300">300  |</a> 
+<a name="line301">301  |</a> 	    /**
+<a name="line302">302  |</a> 	     **  Append/Prepend marker found
+<a name="line303">303  |</a> 	     **/
+<a name="line304">304  |</a> 	    if( append) {
+<a name="line305">305  |</a> 		char ch = *endp;
+<a name="line306">306  |</a> 		*endp = '\0';
+<a name="line307">307  |</a> 		strcpy(newpath, oldpath);
+<a name="line308">308  |</a> 		if (newpath[strlen(newpath)-1] != ':')	strcat(newpath, ":");
+<a name="line309">309  |</a> 		strcat(newpath, qualifiedpath);
+<a name="line310">310  |</a> 		*endp = ch;
+<a name="line311">311  |</a> 		strcat(newpath, endp);
+<a name="line312">312  |</a> 	    } else {
+<a name="line313">313  |</a> 		char ch = *startp;
+<a name="line314">314  |</a> 		*startp = '\0';
+<a name="line315">315  |</a> 		strcpy(newpath, oldpath);
+<a name="line316">316  |</a> 		if (newpath[strlen(newpath)-1] != ':')	strcat(newpath, ":");
+<a name="line317">317  |</a> 		strcpy(newpath, qualifiedpath);
+<a name="line318">318  |</a> 		if (*oldpath != ':')	strcat(newpath, ":");
+<a name="line319">319  |</a> 		strcat(newpath, oldpath);
+<a name="line320">320  |</a> 		*startp = ch;
+<a name="line321">321  |</a> 		strcat(newpath, startp);
+<a name="line322">322  |</a> 	    }
+<a name="line323">323  |</a> 
+<a name="line324">324  |</a> 	} else {
+<a name="line325">325  |</a> 
+<a name="line326">326  |</a> 	    /**
+<a name="line327">327  |</a> 	     **  No marker set
+<a name="line328">328  |</a> 	     **/
+<a name="line329">329  |</a> 	    if( !append) {
+<a name="line330">330  |</a> 		strcpy(newpath, qualifiedpath);
+<a name="line331">331  |</a> 		if (*oldpath != ':')	strcat(newpath, ":");
+<a name="line332">332  |</a> 		strcat(newpath, oldpath);
+<a name="line333">333  |</a> 	    } else {
+<a name="line334">334  |</a> 		strcpy(newpath, oldpath);
+<a name="line335">335  |</a> 		if (newpath[strlen(newpath)-1] != ':')	strcat(newpath, ":");
+<a name="line336">336  |</a> 		strcat(newpath, qualifiedpath);
+<a name="line337">337  |</a> 	    }
+<a name="line338">338  |</a> 
+<a name="line339">339  |</a> 	} /** if( marker) **/
+<a name="line340">340  |</a> 
+<a name="line341">341  |</a>     } /** if( strcmp) **/
+<a name="line342">342  |</a> 
+<a name="line343">343  |</a>     /**
+<a name="line344">344  |</a>      **  Now the new value to be set resides in 'newpath'. Set it up.
+<a name="line345">345  |</a>      **/
+<a name="line346">346  |</a>     moduleSetenv( interp, (char *) argv[1], newpath, 1);
+<a name="line347">347  |</a>     _TCLCHK(interp)
+<a name="line348">348  |</a> 
+<a name="line349">349  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line350">350  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdSetPath, NULL);
+<a name="line351">351  |</a> #endif
+<a name="line352">352  |</a> 
+<a name="line353">353  |</a>     /**
+<a name="line354">354  |</a>      ** Free resources
+<a name="line355">355  |</a>      **/
+<a name="line356">356  |</a>     null_free((void *) &amp;newpath);
+<a name="line357">357  |</a> success1:
+<a name="line358">358  |</a>     null_free((void *) &amp;qualifiedpath);
+<a name="line359">359  |</a>     FreeList( pathlist, numpaths);
+<a name="line360">360  |</a> success0:
+<a name="line361">361  |</a>     return( TCL_OK);			/** -------- EXIT (SUCCESS) -------&gt; **/
+<a name="line362">362  |</a> 
+<a name="line363">363  |</a> unwind2:
+<a name="line364">364  |</a>     null_free((void *) &amp;qualifiedpath);
+<a name="line365">365  |</a> unwind1:
+<a name="line366">366  |</a>     FreeList( pathlist, numpaths);
+<a name="line367">367  |</a> unwind0:
+<a name="line368">368  |</a>     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line369">369  |</a> 
+<a name="line370">370  |</a> } /** End of 'cmdSetPath' **/
+<a name="line371">371  |</a> 
+<a name="line372">372  |</a> /*++++
+<a name="line373">373  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line374">374  |</a>  ** 									     **
+<a name="line375">375  |</a>  **   Function:		cmdRemovePath					     **
+<a name="line376">376  |</a>  ** 									     **
+<a name="line377">377  |</a>  **   Description:	Remove the passed value (argv[2]) from the specified **
+<a name="line378">378  |</a>  **			variable (argv[1]). In case of switching this pro-   **
+<a name="line379">379  |</a>  **			cedure removes markers from the path, too. argv[0]   **
+<a name="line380">380  |</a>  **			specifies, if the append- or prepend-marker is af-   **
+<a name="line381">381  |</a>  **			fected						     **
+<a name="line382">382  |</a>  ** 									     **
+<a name="line383">383  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line384">384  |</a>  ** 									     **
+<a name="line385">385  |</a>  **   Parameters:	ClientData	 client_data			     **
+<a name="line386">386  |</a>  **			Tcl_Interp	*interp		According Tcl interp.**
+<a name="line387">387  |</a>  **			int		 argc		Number of arguments  **
+<a name="line388">388  |</a>  **			char		*argv[]		Argument array	     **
+<a name="line389">389  |</a>  ** 									     **
+<a name="line390">390  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
+<a name="line391">391  |</a>  **				TCL_ERROR	Any error		     **
+<a name="line392">392  |</a>  ** 									     **
+<a name="line393">393  |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
+<a name="line394">394  |</a>  **					this function is called in order to  **
+<a name="line395">395  |</a>  **					control everything		     **
+<a name="line396">396  |</a>  ** 									     **
+<a name="line397">397  |</a>  ** ************************************************************************ **
+<a name="line398">398  |</a>  ++++*/
+<a name="line399">399  |</a> 
+<a name="line400">400  |</a> int	cmdRemovePath(	ClientData	 client_data,
+<a name="line401">401  |</a> 	       		Tcl_Interp	*interp,
+<a name="line402">402  |</a> 	       		int		 argc,
+<a name="line403">403  |</a> 	       		CONST84 char	*argv[])
+<a name="line404">404  |</a> {
+<a name="line405">405  |</a>     char	*sw_marker = APP_SW_MARKER;	/** arbitrary default	     **/
+<a name="line406">406  |</a>     char	**pathlist;			/** List of dirs	     **/
+<a name="line407">407  |</a>     int		 numpaths;			/** number of dirs in path   **/
+<a name="line408">408  |</a>     int		 x;				/** loop index		     **/
 <a name="line409">409  |</a> 
-<a name="line410">410  |</a> #if WITH_DEBUGGING_CALLBACK
-<a name="line411">411  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_cmdRemovePath, NULL);
-<a name="line412">412  |</a> #endif
-<a name="line413">413  |</a> 
-<a name="line414">414  |</a>     /**
-<a name="line415">415  |</a>      **   Check arguments. There should be give 3 args:
-<a name="line416">416  |</a>      **     argv[0]  -  prepend/append/remove-path
-<a name="line417">417  |</a>      **     argv[1]  -  varname
-<a name="line418">418  |</a>      **     argv[2]  -  value
-<a name="line419">419  |</a>      **/
-<a name="line420">420  |</a>     if(argc != 3)
-<a name="line421">421  |</a> 	if( OK != ErrorLogger(ERR_USAGE,LOC,argv[0],"path-variable directory",
-<a name="line422">422  |</a> 	    NULL))
-<a name="line423">423  |</a> 	    goto unwind0;
-<a name="line424">424  |</a> 
-<a name="line425">425  |</a>   
-<a name="line426">426  |</a>     /**
-<a name="line427">427  |</a>      **  Non-persist mode?
-<a name="line428">428  |</a>      **/
-<a name="line429">429  |</a>     
-<a name="line430">430  |</a>     if (g_flags &amp; M_NONPERSIST) {
-<a name="line431">431  |</a> 	return (TCL_OK);
-<a name="line432">432  |</a>     }
-<a name="line433">433  |</a> 
-<a name="line434">434  |</a>     /**
-<a name="line435">435  |</a>      **  Display only ... ok, let's do so!
-<a name="line436">436  |</a>      **/
-<a name="line437">437  |</a>     if(g_flags &amp; M_DISPLAY) {
-<a name="line438">438  |</a> 	fprintf( stderr, "%s\t ", argv[ 0]);
-<a name="line439">439  |</a> 	while( --argc)
-<a name="line440">440  |</a> 	    fprintf( stderr, "%s ", *++argv);
-<a name="line441">441  |</a> 	fprintf( stderr, "\n");
-<a name="line442">442  |</a>         goto success0;
-<a name="line443">443  |</a>     }
-<a name="line444">444  |</a>   
-<a name="line445">445  |</a>     /**
-<a name="line446">446  |</a>      **  prepend or append. The default is append.
-<a name="line447">447  |</a>      **/
-<a name="line448">448  |</a>     if( ! strncmp( argv[0], "pre", 3))
-<a name="line449">449  |</a> 	sw_marker = PRE_SW_MARKER;
-<a name="line450">450  |</a>   
-<a name="line451">451  |</a>     /**
-<a name="line452">452  |</a>      ** For switch state3, we're looking to remove the markers.
-<a name="line453">453  |</a>      **/
-<a name="line454">454  |</a>     if( g_flags &amp; M_SWSTATE3) 
-<a name="line455">455  |</a> 	argv[2] = sw_marker;
-<a name="line456">456  |</a> 
-<a name="line457">457  |</a>     /**
-<a name="line458">458  |</a>      **  Split the path into its components so each item can be removed
-<a name="line459">459  |</a>      **  individually from the variable.
-<a name="line460">460  |</a>      **/
-<a name="line461">461  |</a>     if( !( pathlist = SplitIntoList( interp, argv[2], &amp;numpaths)))
-<a name="line462">462  |</a> 	goto unwind0;
-<a name="line463">463  |</a> 
-<a name="line464">464  |</a>     /**
-<a name="line465">465  |</a>      ** Remove each item individually
-<a name="line466">466  |</a>      **/
-<a name="line467">467  |</a>     for( x = 0; x &lt; numpaths; x++)
-<a name="line468">468  |</a> 	if( TCL_OK != Remove_Path( interp, argv[1], pathlist[x], sw_marker))
-<a name="line469">469  |</a> 	    goto unwind1;
-<a name="line470">470  |</a> 
-<a name="line471">471  |</a> #if WITH_DEBUGGING_CALLBACK
-<a name="line472">472  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdRemovePath, NULL);
-<a name="line473">473  |</a> #endif
-<a name="line474">474  |</a> 
-<a name="line475">475  |</a>     /**
-<a name="line476">476  |</a>      ** Free resources
-<a name="line477">477  |</a>      **/
-<a name="line478">478  |</a>     FreeList(pathlist, numpaths);
-<a name="line479">479  |</a> 
-<a name="line480">480  |</a> success0:
-<a name="line481">481  |</a>     return( TCL_OK);			/** -------- EXIT (SUCCESS) -------&gt; **/
-<a name="line482">482  |</a> 
-<a name="line483">483  |</a> unwind1:
-<a name="line484">484  |</a>     FreeList(pathlist, numpaths);
-<a name="line485">485  |</a> unwind0:
-<a name="line486">486  |</a>     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line487">487  |</a> 
-<a name="line488">488  |</a> } /** End of 'cmdRemovePath' **/
-<a name="line489">489  |</a> 
-<a name="line490">490  |</a> /*++++
-<a name="line491">491  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line492">492  |</a>  ** 									     **
-<a name="line493">493  |</a>  **   Function:		Remove_Path					     **
-<a name="line494">494  |</a>  ** 									     **
-<a name="line495">495  |</a>  **   Description:	This function actually does the work of removing     **
-<a name="line496">496  |</a>  **			the item from the path.  It is done this way to      **
-<a name="line497">497  |</a>  **			support multiple items (often directories)	     **
-<a name="line498">498  |</a>  **			separated by colons in the variable value.	     **
-<a name="line499">499  |</a>  ** 									     **
-<a name="line500">500  |</a>  **   First Edition:	2001/08/08					     **
-<a name="line501">501  |</a>  ** 									     **
-<a name="line502">502  |</a>  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
-<a name="line503">503  |</a>  **			char		*variable	Variable from which  **
-<a name="line504">504  |</a>  **							to remove item	     **
-<a name="line505">505  |</a>  **			char		*item		Item to remove	     **
-<a name="line506">506  |</a>  **			char		*sw_marker	Switch marker	     **
-<a name="line507">507  |</a>  ** 									     **
-<a name="line508">508  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
-<a name="line509">509  |</a>  **				TCL_ERROR	Any error		     **
-<a name="line510">510  |</a>  ** 									     **
-<a name="line511">511  |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
-<a name="line512">512  |</a>  **					this function is called in order to  **
-<a name="line513">513  |</a>  **					control everything		     **
-<a name="line514">514  |</a>  ** 									     **
-<a name="line515">515  |</a>  ** ************************************************************************ **
-<a name="line516">516  |</a>  ++++*/
-<a name="line517">517  |</a> 
-<a name="line518">518  |</a> static int	Remove_Path(	Tcl_Interp	*interp,
-<a name="line519">519  |</a> 	       			char		*variable,
-<a name="line520">520  |</a> 	       			char		*item,
-<a name="line521">521  |</a> 				char		*sw_marker)
-<a name="line522">522  |</a> {
-<a name="line523">523  |</a>     char	*oldpath,			/** Old value of 'var'	     **/
-<a name="line524">524  |</a>     		*tmppath,			/** Temp. buffer for 'var'   **/
-<a name="line525">525  |</a>     		*searchpath,
-<a name="line526">526  |</a> 		*startp=NULL, *endp=NULL;	/** regexp match endpts	     **/
-<a name="line527">527  |</a>     int  	 start_offset = 0,		/** match offsets	     **/
-<a name="line528">528  |</a>     		 end_offset = 0,
-<a name="line529">529  |</a> 		 path_len = 0;			/** length of unmatched path **/
-<a name="line530">530  |</a>     Tcl_RegExp	regexpPtr  = (Tcl_RegExp) NULL,
-<a name="line531">531  |</a>     		begexpPtr  = (Tcl_RegExp) NULL,
-<a name="line532">532  |</a>     		midexpPtr  = (Tcl_RegExp) NULL,
-<a name="line533">533  |</a>     		endexpPtr  = (Tcl_RegExp) NULL,
-<a name="line534">534  |</a>     		onlyexpPtr = (Tcl_RegExp) NULL,
-<a name="line535">535  |</a>     		markexpPtr = (Tcl_RegExp) NULL;
-<a name="line536">536  |</a> 
-<a name="line537">537  |</a> #if WITH_DEBUGGING_CALLBACK
-<a name="line538">538  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_Remove_Path, NULL);
-<a name="line539">539  |</a> #endif
-<a name="line540">540  |</a> 
-<a name="line541">541  |</a>     /**
-<a name="line542">542  |</a>      **  Get the current value of the "PATH" environment variable
-<a name="line543">543  |</a>      **/
-<a name="line544">544  |</a>     if( NULL == (tmppath = Tcl_GetVar2( interp, "env", variable,
-<a name="line545">545  |</a> 	TCL_GLOBAL_ONLY))) {
-<a name="line546">546  |</a> 	_TCLCHK(interp)
-<a name="line547">547  |</a> 	return( TCL_OK);		/** -------- EXIT (SUCCESS) -------&gt; **/
-<a name="line548">548  |</a>     }    
-<a name="line549">549  |</a> 
-<a name="line550">550  |</a>     /**
-<a name="line551">551  |</a>      **  We want to make a local copy of old path because we're going
-<a name="line552">552  |</a>      **  to be butchering it and the environ one doesn't need to be
-<a name="line553">553  |</a>      **  changed in this manner.
-<a name="line554">554  |</a>      **  Put a \ in front of each . and + in the passed value to remove.
-<a name="line555">555  |</a>      **/
-<a name="line556">556  |</a>     if((char *) NULL == (oldpath = stringer(NULL,0, tmppath, NULL)))
-<a name="line557">557  |</a> 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line558">558  |</a> 	    goto unwind0;
-<a name="line559">559  |</a>     path_len = strlen(oldpath);
-<a name="line560">560  |</a>     cleanse_path( item, buffer, PATH_BUFLEN);
-<a name="line561">561  |</a> 
-<a name="line562">562  |</a>     /**
-<a name="line563">563  |</a>      **  Now we need to find it in the path variable.  So, we create
-<a name="line564">564  |</a>      **  space enough to build search expressions.
-<a name="line565">565  |</a>      **/
-<a name="line566">566  |</a>     if((char *) NULL == (searchpath = stringer(NULL,0,"^", buffer, ":", NULL)))
-<a name="line567">567  |</a> 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line568">568  |</a> 	    goto unwind1;
-<a name="line569">569  |</a> 
-<a name="line570">570  |</a>     /**
-<a name="line571">571  |</a>      **  This section searches for the oldpath in the PATH variable.
-<a name="line572">572  |</a>      **  There are four cases because the colons must be used as markers
-<a name="line573">573  |</a>      **  in order to guarantee that a partial match isn't being found.
-<a name="line574">574  |</a>      ** 
-<a name="line575">575  |</a>      **  The start_offset and end_offset variables indicate how much to 
-<a name="line576">576  |</a>      **  cut or not to cut off of each end of the located
-<a name="line577">577  |</a>      **  string.  They differ for each case...beginning of
-<a name="line578">578  |</a>      **  the path, middle of the path, end of the path, 
-<a name="line579">579  |</a>      **  and for the only path.
-<a name="line580">580  |</a>      ** 
-<a name="line581">581  |</a>      **  This is to ensure the colons get cut off properly.
-<a name="line582">582  |</a>      **/
-<a name="line583">583  |</a> 
-<a name="line584">584  |</a>     begexpPtr = Tcl_RegExpCompile(interp,  searchpath);
-<a name="line585">585  |</a>     _TCLCHK(interp)
-<a name="line586">586  |</a> 
-<a name="line587">587  |</a>     if( Tcl_RegExpExec(interp, begexpPtr, oldpath, oldpath) &gt; 0) {
-<a name="line588">588  |</a> 	_TCLCHK(interp)
-<a name="line589">589  |</a> 	regexpPtr = begexpPtr;
-<a name="line590">590  |</a> 
-<a name="line591">591  |</a> 	/**
-<a name="line592">592  |</a> 	 **  Copy from the beginning of the startp to one
-<a name="line593">593  |</a> 	 **  character before endp
-<a name="line594">594  |</a> 	 **/
-<a name="line595">595  |</a> 
-<a name="line596">596  |</a> 	Tcl_RegExpRange(begexpPtr, 0, &amp;startp, &amp;endp);
-<a name="line597">597  |</a> 	start_offset = 0; end_offset = -1;
-<a name="line598">598  |</a> 	path_len -= (endp - startp - 1);
-<a name="line599">599  |</a> 
-<a name="line600">600  |</a>     } else {
+<a name="line410">410  |</a> 
+<a name="line411">411  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line412">412  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_cmdRemovePath, NULL);
+<a name="line413">413  |</a> #endif
+<a name="line414">414  |</a> 
+<a name="line415">415  |</a>     /**
+<a name="line416">416  |</a>      **   Check arguments. There should be give 3 args:
+<a name="line417">417  |</a>      **     argv[0]  -  prepend/append/remove-path
+<a name="line418">418  |</a>      **     argv[1]  -  varname
+<a name="line419">419  |</a>      **     argv[2]  -  value
+<a name="line420">420  |</a>      **/
+<a name="line421">421  |</a>     if(argc != 3)
+<a name="line422">422  |</a> 	if( OK != ErrorLogger(ERR_USAGE,LOC,argv[0],"path-variable directory",
+<a name="line423">423  |</a> 	    NULL))
+<a name="line424">424  |</a> 	    goto unwind0;
+<a name="line425">425  |</a> 
+<a name="line426">426  |</a>   
+<a name="line427">427  |</a>     /**
+<a name="line428">428  |</a>      **  Non-persist mode?
+<a name="line429">429  |</a>      **/
+<a name="line430">430  |</a>     
+<a name="line431">431  |</a>     if (g_flags &amp; M_NONPERSIST) {
+<a name="line432">432  |</a> 	return (TCL_OK);
+<a name="line433">433  |</a>     }
+<a name="line434">434  |</a> 
+<a name="line435">435  |</a>     /**
+<a name="line436">436  |</a>      **  Display only ... ok, let's do so!
+<a name="line437">437  |</a>      **/
+<a name="line438">438  |</a>     if(g_flags &amp; M_DISPLAY) {
+<a name="line439">439  |</a> 	fprintf( stderr, "%s\t ", argv[ 0]);
+<a name="line440">440  |</a> 	while( --argc)
+<a name="line441">441  |</a> 	    fprintf( stderr, "%s ", *++argv);
+<a name="line442">442  |</a> 	fprintf( stderr, "\n");
+<a name="line443">443  |</a>         goto success0;
+<a name="line444">444  |</a>     }
+<a name="line445">445  |</a>   
+<a name="line446">446  |</a>     /**
+<a name="line447">447  |</a>      **  prepend or append. The default is append.
+<a name="line448">448  |</a>      **/
+<a name="line449">449  |</a>     if( ! strncmp( argv[0], "pre", 3))
+<a name="line450">450  |</a> 	sw_marker = PRE_SW_MARKER;
+<a name="line451">451  |</a>   
+<a name="line452">452  |</a>     /**
+<a name="line453">453  |</a>      ** For switch state3, we're looking to remove the markers.
+<a name="line454">454  |</a>      **/
+<a name="line455">455  |</a>     if( g_flags &amp; M_SWSTATE3) 
+<a name="line456">456  |</a> 	argv[2] = sw_marker;
+<a name="line457">457  |</a> 
+<a name="line458">458  |</a>     /**
+<a name="line459">459  |</a>      **  Split the path into its components so each item can be removed
+<a name="line460">460  |</a>      **  individually from the variable.
+<a name="line461">461  |</a>      **/
+<a name="line462">462  |</a>     if( !( pathlist = SplitIntoList( interp, (char *) argv[2], &amp;numpaths)))
+<a name="line463">463  |</a> 	goto unwind0;
+<a name="line464">464  |</a> 
+<a name="line465">465  |</a>     /**
+<a name="line466">466  |</a>      ** Remove each item individually
+<a name="line467">467  |</a>      **/
+<a name="line468">468  |</a>     for( x = 0; x &lt; numpaths; x++)
+<a name="line469">469  |</a> 	if(TCL_OK != Remove_Path(interp,(char *) argv[1],pathlist[x],sw_marker))
+<a name="line470">470  |</a> 	    goto unwind1;
+<a name="line471">471  |</a> 
+<a name="line472">472  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line473">473  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdRemovePath, NULL);
+<a name="line474">474  |</a> #endif
+<a name="line475">475  |</a> 
+<a name="line476">476  |</a>     /**
+<a name="line477">477  |</a>      ** Free resources
+<a name="line478">478  |</a>      **/
+<a name="line479">479  |</a>     FreeList(pathlist, numpaths);
+<a name="line480">480  |</a> 
+<a name="line481">481  |</a> success0:
+<a name="line482">482  |</a>     return( TCL_OK);			/** -------- EXIT (SUCCESS) -------&gt; **/
+<a name="line483">483  |</a> 
+<a name="line484">484  |</a> unwind1:
+<a name="line485">485  |</a>     FreeList(pathlist, numpaths);
+<a name="line486">486  |</a> unwind0:
+<a name="line487">487  |</a>     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line488">488  |</a> 
+<a name="line489">489  |</a> } /** End of 'cmdRemovePath' **/
+<a name="line490">490  |</a> 
+<a name="line491">491  |</a> /*++++
+<a name="line492">492  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line493">493  |</a>  ** 									     **
+<a name="line494">494  |</a>  **   Function:		Remove_Path					     **
+<a name="line495">495  |</a>  ** 									     **
+<a name="line496">496  |</a>  **   Description:	This function actually does the work of removing     **
+<a name="line497">497  |</a>  **			the item from the path.  It is done this way to      **
+<a name="line498">498  |</a>  **			support multiple items (often directories)	     **
+<a name="line499">499  |</a>  **			separated by colons in the variable value.	     **
+<a name="line500">500  |</a>  ** 									     **
+<a name="line501">501  |</a>  **   First Edition:	2001/08/08					     **
+<a name="line502">502  |</a>  ** 									     **
+<a name="line503">503  |</a>  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
+<a name="line504">504  |</a>  **			char		*variable	Variable from which  **
+<a name="line505">505  |</a>  **							to remove item	     **
+<a name="line506">506  |</a>  **			char		*item		Item to remove	     **
+<a name="line507">507  |</a>  **			char		*sw_marker	Switch marker	     **
+<a name="line508">508  |</a>  ** 									     **
+<a name="line509">509  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
+<a name="line510">510  |</a>  **				TCL_ERROR	Any error		     **
+<a name="line511">511  |</a>  ** 									     **
+<a name="line512">512  |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
+<a name="line513">513  |</a>  **					this function is called in order to  **
+<a name="line514">514  |</a>  **					control everything		     **
+<a name="line515">515  |</a>  ** 									     **
+<a name="line516">516  |</a>  ** ************************************************************************ **
+<a name="line517">517  |</a>  ++++*/
+<a name="line518">518  |</a> 
+<a name="line519">519  |</a> static int	Remove_Path(	Tcl_Interp	*interp,
+<a name="line520">520  |</a> 	       			char		*variable,
+<a name="line521">521  |</a> 	       			char		*item,
+<a name="line522">522  |</a> 				char		*sw_marker)
+<a name="line523">523  |</a> {
+<a name="line524">524  |</a>     char	*oldpath,			/** Old value of 'var'	     **/
+<a name="line525">525  |</a>     		*tmppath,			/** Temp. buffer for 'var'   **/
+<a name="line526">526  |</a>     		*searchpath,
+<a name="line527">527  |</a> 		*startp=NULL, *endp=NULL;	/** regexp match endpts	     **/
+<a name="line528">528  |</a>     int  	 start_offset = 0,		/** match offsets	     **/
+<a name="line529">529  |</a>     		 end_offset = 0,
+<a name="line530">530  |</a> 		 path_len = 0;			/** length of unmatched path **/
+<a name="line531">531  |</a>     Tcl_RegExp	regexpPtr  = (Tcl_RegExp) NULL,
+<a name="line532">532  |</a>     		begexpPtr  = (Tcl_RegExp) NULL,
+<a name="line533">533  |</a>     		midexpPtr  = (Tcl_RegExp) NULL,
+<a name="line534">534  |</a>     		endexpPtr  = (Tcl_RegExp) NULL,
+<a name="line535">535  |</a>     		onlyexpPtr = (Tcl_RegExp) NULL,
+<a name="line536">536  |</a>     		markexpPtr = (Tcl_RegExp) NULL;
+<a name="line537">537  |</a> 
+<a name="line538">538  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line539">539  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_Remove_Path, NULL);
+<a name="line540">540  |</a> #endif
+<a name="line541">541  |</a> 
+<a name="line542">542  |</a>     /**
+<a name="line543">543  |</a>      **  Get the current value of the "PATH" environment variable
+<a name="line544">544  |</a>      **/
+<a name="line545">545  |</a>     if( NULL == (tmppath = (char *) Tcl_GetVar2( interp, "env", variable,
+<a name="line546">546  |</a> 	TCL_GLOBAL_ONLY))) {
+<a name="line547">547  |</a> 	_TCLCHK(interp)
+<a name="line548">548  |</a> 	return( TCL_OK);		/** -------- EXIT (SUCCESS) -------&gt; **/
+<a name="line549">549  |</a>     }    
+<a name="line550">550  |</a> 
+<a name="line551">551  |</a>     /**
+<a name="line552">552  |</a>      **  We want to make a local copy of old path because we're going
+<a name="line553">553  |</a>      **  to be butchering it and the environ one doesn't need to be
+<a name="line554">554  |</a>      **  changed in this manner.
+<a name="line555">555  |</a>      **  Put a \ in front of each . and + in the passed value to remove.
+<a name="line556">556  |</a>      **/
+<a name="line557">557  |</a>     if((char *) NULL == (oldpath = stringer(NULL,0, tmppath, NULL)))
+<a name="line558">558  |</a> 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+<a name="line559">559  |</a> 	    goto unwind0;
+<a name="line560">560  |</a>     path_len = strlen(oldpath);
+<a name="line561">561  |</a>     cleanse_path( item, buffer, PATH_BUFLEN);
+<a name="line562">562  |</a> 
+<a name="line563">563  |</a>     /**
+<a name="line564">564  |</a>      **  Now we need to find it in the path variable.  So, we create
+<a name="line565">565  |</a>      **  space enough to build search expressions.
+<a name="line566">566  |</a>      **/
+<a name="line567">567  |</a>     if((char *) NULL == (searchpath = stringer(NULL,0,"^", buffer, ":", NULL)))
+<a name="line568">568  |</a> 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+<a name="line569">569  |</a> 	    goto unwind1;
+<a name="line570">570  |</a> 
+<a name="line571">571  |</a>     /**
+<a name="line572">572  |</a>      **  This section searches for the oldpath in the PATH variable.
+<a name="line573">573  |</a>      **  There are four cases because the colons must be used as markers
+<a name="line574">574  |</a>      **  in order to guarantee that a partial match isn't being found.
+<a name="line575">575  |</a>      ** 
+<a name="line576">576  |</a>      **  The start_offset and end_offset variables indicate how much to 
+<a name="line577">577  |</a>      **  cut or not to cut off of each end of the located
+<a name="line578">578  |</a>      **  string.  They differ for each case...beginning of
+<a name="line579">579  |</a>      **  the path, middle of the path, end of the path, 
+<a name="line580">580  |</a>      **  and for the only path.
+<a name="line581">581  |</a>      ** 
+<a name="line582">582  |</a>      **  This is to ensure the colons get cut off properly.
+<a name="line583">583  |</a>      **/
+<a name="line584">584  |</a> 
+<a name="line585">585  |</a>     begexpPtr = Tcl_RegExpCompile(interp,  searchpath);
+<a name="line586">586  |</a>     _TCLCHK(interp)
+<a name="line587">587  |</a> 
+<a name="line588">588  |</a>     if( Tcl_RegExpExec(interp, begexpPtr, oldpath, oldpath) &gt; 0) {
+<a name="line589">589  |</a> 	_TCLCHK(interp)
+<a name="line590">590  |</a> 	regexpPtr = begexpPtr;
+<a name="line591">591  |</a> 
+<a name="line592">592  |</a> 	/**
+<a name="line593">593  |</a> 	 **  Copy from the beginning of the startp to one
+<a name="line594">594  |</a> 	 **  character before endp
+<a name="line595">595  |</a> 	 **/
+<a name="line596">596  |</a> 
+<a name="line597">597  |</a> 	Tcl_RegExpRange(begexpPtr, 0,
+<a name="line598">598  |</a> 		(CONST84 char **) &amp;startp, (CONST84 char **) &amp;endp);
+<a name="line599">599  |</a> 	start_offset = 0; end_offset = -1;
+<a name="line600">600  |</a> 	path_len -= (endp - startp - 1);
 <a name="line601">601  |</a> 
-<a name="line602">602  |</a> 	*searchpath = ':';	/* :buffer: */
-<a name="line603">603  |</a> 	midexpPtr = Tcl_RegExpCompile(interp, searchpath);
-<a name="line604">604  |</a> 	_TCLCHK(interp)
-<a name="line605">605  |</a> 
-<a name="line606">606  |</a> 	if( Tcl_RegExpExec(interp, midexpPtr, oldpath, oldpath) &gt; 0) {
-<a name="line607">607  |</a> 	    _TCLCHK(interp)
-<a name="line608">608  |</a> 	    regexpPtr = midexpPtr;
-<a name="line609">609  |</a> 
-<a name="line610">610  |</a> 	    /**
-<a name="line611">611  |</a> 	     **  Copy from one character after stringp[0] to one
-<a name="line612">612  |</a> 	     **  character before endp[0]
-<a name="line613">613  |</a> 	     **/
-<a name="line614">614  |</a> 
-<a name="line615">615  |</a> 	    Tcl_RegExpRange(midexpPtr, 0, &amp;startp, &amp;endp);
-<a name="line616">616  |</a> 	    start_offset = 1; end_offset = -1;
-<a name="line617">617  |</a> 	    path_len -= (endp - startp - 2);
-<a name="line618">618  |</a> 
-<a name="line619">619  |</a> 	} else {
-<a name="line620">620  |</a> 
-<a name="line621">621  |</a> 	    searchpath[strlen(searchpath)-1] = '$';	/* :buffer$ */
-<a name="line622">622  |</a> 	    endexpPtr = Tcl_RegExpCompile(interp, searchpath);
-<a name="line623">623  |</a> 	    _TCLCHK(interp)
-<a name="line624">624  |</a> 
-<a name="line625">625  |</a> 	    if( Tcl_RegExpExec(interp, endexpPtr, oldpath, oldpath) &gt; 0) {
-<a name="line626">626  |</a> 		_TCLCHK(interp)
-<a name="line627">627  |</a> 		regexpPtr = endexpPtr;
-<a name="line628">628  |</a> 
-<a name="line629">629  |</a> 		/**
-<a name="line630">630  |</a> 		 **  Copy from one character after stringp[0] 
-<a name="line631">631  |</a> 		 **  through endp[0]
-<a name="line632">632  |</a> 		 **/
-<a name="line633">633  |</a> 
-<a name="line634">634  |</a> 		Tcl_RegExpRange(endexpPtr, 0, &amp;startp, &amp;endp);
-<a name="line635">635  |</a> 		start_offset = 0; end_offset = 0;
-<a name="line636">636  |</a> 		path_len -= (endp - startp - 1);
-<a name="line637">637  |</a> 
-<a name="line638">638  |</a> 	    } else {
-<a name="line639">639  |</a> 
-<a name="line640">640  |</a> 		*searchpath = '^';	/* ^buffer$ */
-<a name="line641">641  |</a> 		onlyexpPtr = Tcl_RegExpCompile(interp, searchpath);
-<a name="line642">642  |</a> 		_TCLCHK(interp)
+<a name="line602">602  |</a>     } else {
+<a name="line603">603  |</a> 
+<a name="line604">604  |</a> 	*searchpath = ':';	/* :buffer: */
+<a name="line605">605  |</a> 	midexpPtr = Tcl_RegExpCompile(interp, searchpath);
+<a name="line606">606  |</a> 	_TCLCHK(interp)
+<a name="line607">607  |</a> 
+<a name="line608">608  |</a> 	if( Tcl_RegExpExec(interp, midexpPtr, oldpath, oldpath) &gt; 0) {
+<a name="line609">609  |</a> 	    _TCLCHK(interp)
+<a name="line610">610  |</a> 	    regexpPtr = midexpPtr;
+<a name="line611">611  |</a> 
+<a name="line612">612  |</a> 	    /**
+<a name="line613">613  |</a> 	     **  Copy from one character after stringp[0] to one
+<a name="line614">614  |</a> 	     **  character before endp[0]
+<a name="line615">615  |</a> 	     **/
+<a name="line616">616  |</a> 
+<a name="line617">617  |</a> 	    Tcl_RegExpRange(midexpPtr, 0,
+<a name="line618">618  |</a> 		(CONST84 char **) &amp;startp, (CONST84 char **) &amp;endp);
+<a name="line619">619  |</a> 	    start_offset = 1; end_offset = -1;
+<a name="line620">620  |</a> 	    path_len -= (endp - startp - 2);
+<a name="line621">621  |</a> 
+<a name="line622">622  |</a> 	} else {
+<a name="line623">623  |</a> 
+<a name="line624">624  |</a> 	    searchpath[strlen(searchpath)-1] = '$';	/* :buffer$ */
+<a name="line625">625  |</a> 	    endexpPtr = Tcl_RegExpCompile(interp, searchpath);
+<a name="line626">626  |</a> 	    _TCLCHK(interp)
+<a name="line627">627  |</a> 
+<a name="line628">628  |</a> 	    if( Tcl_RegExpExec(interp, endexpPtr, oldpath, oldpath) &gt; 0) {
+<a name="line629">629  |</a> 		_TCLCHK(interp)
+<a name="line630">630  |</a> 		regexpPtr = endexpPtr;
+<a name="line631">631  |</a> 
+<a name="line632">632  |</a> 		/**
+<a name="line633">633  |</a> 		 **  Copy from one character after stringp[0] 
+<a name="line634">634  |</a> 		 **  through endp[0]
+<a name="line635">635  |</a> 		 **/
+<a name="line636">636  |</a> 
+<a name="line637">637  |</a> 		Tcl_RegExpRange(endexpPtr, 0,
+<a name="line638">638  |</a> 			(CONST84 char **) &amp;startp, (CONST84 char **) &amp;endp);
+<a name="line639">639  |</a> 		start_offset = 0; end_offset = 0;
+<a name="line640">640  |</a> 		path_len -= (endp - startp - 1);
+<a name="line641">641  |</a> 
+<a name="line642">642  |</a> 	    } else {
 <a name="line643">643  |</a> 
-<a name="line644">644  |</a> 		if(Tcl_RegExpExec(interp, onlyexpPtr, oldpath, oldpath) &gt; 0) {
-<a name="line645">645  |</a> 		    _TCLCHK(interp)
-<a name="line646">646  |</a> 
-<a name="line647">647  |</a> 		    /**
-<a name="line648">648  |</a> 		     **  In this case, I should go ahead and unset the variable
-<a name="line649">649  |</a> 		     **  from the environment because I'm removing the very last
-<a name="line650">650  |</a> 		     **  path.
-<a name="line651">651  |</a> 		     **
-<a name="line652">652  |</a> 		     **  First I'm going to clear the variable from the
-<a name="line653">653  |</a> 		     **  setenvHashTable just in case its already been altered
-<a name="line654">654  |</a> 		     **  and had a significant value at the time. It's very
-<a name="line655">655  |</a> 		     **  possible that I'm removing the only two or three paths
-<a name="line656">656  |</a> 		     **  from this variable. If that's the case, then all the
-<a name="line657">657  |</a> 		     **  earlier paths were marked for output in this hashTable.
-<a name="line658">658  |</a> 		     **
-<a name="line659">659  |</a> 		     **  Secondly, I actually mark the the environment variable
-<a name="line660">660  |</a> 		     **  to be unset when output.
-<a name="line661">661  |</a> 		     **/
-<a name="line662">662  |</a> 		    clear_hash_value( setenvHashTable, variable);
-<a name="line663">663  |</a> 		    moduleUnsetenv( interp, variable);
-<a name="line664">664  |</a> 
-<a name="line665">665  |</a> 		    /**
-<a name="line666">666  |</a> 		     **  moduleUnsetenv doesn't unset the variable in the Tcl
-<a name="line667">667  |</a> 		     **  space because the $env variable might need to be
-<a name="line668">668  |</a> 		     **  used again in the modulefile for locating other
-<a name="line669">669  |</a> 		     **  paths.  BUT, since this was a path-type environment
-<a name="line670">670  |</a> 		     **  variable, the user is expecting this to be empty
-<a name="line671">671  |</a> 		     **  after removing the only remaining path.  So, I set
-<a name="line672">672  |</a> 		     **  the variable empty here.
-<a name="line673">673  |</a> 		     **/
-<a name="line674">674  |</a> 		    (void) Tcl_SetVar2( interp, "env", variable, "",
-<a name="line675">675  |</a> 			TCL_GLOBAL_ONLY);
-<a name="line676">676  |</a> 		    _TCLCHK(interp)
-<a name="line677">677  |</a> 		    null_free((void *) &amp;searchpath);
-<a name="line678">678  |</a> 		    goto success1;
-<a name="line679">679  |</a> 		}
-<a name="line680">680  |</a> 	    }
-<a name="line681">681  |</a> 	}
-<a name="line682">682  |</a>     }
-<a name="line683">683  |</a>     null_free((void *) &amp;searchpath);
-<a name="line684">684  |</a> 
-<a name="line685">685  |</a>     /**
-<a name="line686">686  |</a>      **  If I couldn't find it assume it wasn't there
-<a name="line687">687  |</a>      **  and return.
-<a name="line688">688  |</a>      **/
-<a name="line689">689  |</a>     if( !regexpPtr)
-<a name="line690">690  |</a> 	goto success1;
-<a name="line691">691  |</a> 
-<a name="line692">692  |</a>     markexpPtr = Tcl_RegExpCompile(interp, sw_marker);
-<a name="line693">693  |</a>     _TCLCHK(interp)
-<a name="line694">694  |</a> 
-<a name="line695">695  |</a>     /**
-<a name="line696">696  |</a>      **  In state1, we're actually replacing old paths with
-<a name="line697">697  |</a>      **  the markers for future appends and prepends.
-<a name="line698">698  |</a>      **  
-<a name="line699">699  |</a>      **  We only want to do this once to mark the location
-<a name="line700">700  |</a>      **  the module was formed around.
-<a name="line701">701  |</a>      **/
-<a name="line702">702  |</a>     if((g_flags &amp; M_SWSTATE1) &amp;&amp; ! (Tcl_RegExpExec(interp,
-<a name="line703">703  |</a> 	 markexpPtr, oldpath, oldpath) &gt; 0)) {
-<a name="line704">704  |</a> 
-<a name="line705">705  |</a> 	/**
-<a name="line706">706  |</a> 	 **  If I don't have enough space to replace the oldpath with the
-<a name="line707">707  |</a> 	 **  marker, then I must create space for the marker and thus
-<a name="line708">708  |</a> 	 **  recreate the PATH variable.
-<a name="line709">709  |</a> 	 **/
-<a name="line710">710  |</a> 	char* newenv;
-<a name="line711">711  |</a> 	int newlen = path_len + strlen(sw_marker) + 1;
-<a name="line712">712  |</a>       
-<a name="line713">713  |</a> 	if((char *) NULL==(newenv = stringer(NULL, newlen ,NULL) ))
-<a name="line714">714  |</a> 	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line715">715  |</a> 		goto unwind1;
-<a name="line716">716  |</a> 
-<a name="line717">717  |</a> 	*(startp + start_offset) = '\0';
-<a name="line718">718  |</a> 
-<a name="line719">719  |</a> 	if(*(endp + end_offset) == '\0') {
-<a name="line720">720  |</a> 	    (void) stringer(newenv, newlen, oldpath,":",sw_marker,NULL);
-<a name="line721">721  |</a> 	} else {
-<a name="line722">722  |</a> 	    (void) stringer(newenv, newlen, oldpath,sw_marker,
-<a name="line723">723  |</a> 		endp + end_offset, NULL);
-<a name="line724">724  |</a> 	}
-<a name="line725">725  |</a> 
-<a name="line726">726  |</a> 	/**
-<a name="line727">727  |</a> 	 **  Just store the value with the marker into the environment.  I'm not
-<a name="line728">728  |</a> 	 **  checking if it changed because the only case that a PATH-type
-<a name="line729">729  |</a> 	 **  variable will be unset is when I remove the only path remaining in
-<a name="line730">730  |</a> 	 **  the variable.  So, using moduleSetenv is not necessary here.
-<a name="line731">731  |</a> 	 **/
-<a name="line732">732  |</a> 	Tcl_SetVar2( interp, "env", variable, newenv, TCL_GLOBAL_ONLY);
-<a name="line733">733  |</a> 	_TCLCHK(interp)
-<a name="line734">734  |</a> 	null_free((void *) &amp;newenv);
-<a name="line735">735  |</a> 
-<a name="line736">736  |</a>     } else {  /** SW_STATE1 **/
-<a name="line737">737  |</a> 
-<a name="line738">738  |</a> 	/**
-<a name="line739">739  |</a> 	 **  We must be in SW_STATE3 or not in SW_STATE at all.
-<a name="line740">740  |</a> 	 **  Removing the marker should be just like removing any other path.
-<a name="line741">741  |</a> 	 **/
-<a name="line742">742  |</a> 	strcpy( startp + start_offset, endp);
-<a name="line743">743  |</a> 
-<a name="line744">744  |</a> 	/**
-<a name="line745">745  |</a> 	 **  Cache the set.  Clear the variable from the unset table just
-<a name="line746">746  |</a> 	 **  in case it was previously unset.
-<a name="line747">747  |</a> 	 **/
-<a name="line748">748  |</a> 	store_hash_value( setenvHashTable, variable, oldpath);
-<a name="line749">749  |</a> 	clear_hash_value( unsetenvHashTable, variable);
-<a name="line750">750  |</a> 
-<a name="line751">751  |</a> 	/**
-<a name="line752">752  |</a> 	 **  Store the new PATH value into the environment.
-<a name="line753">753  |</a> 	 **/
-<a name="line754">754  |</a> 	Tcl_SetVar2( interp, "env", variable, oldpath, TCL_GLOBAL_ONLY);
-<a name="line755">755  |</a> 	_TCLCHK(interp)
-<a name="line756">756  |</a> 
-<a name="line757">757  |</a>     }  /** ! SW_STATE1 **/
-<a name="line758">758  |</a> 
-<a name="line759">759  |</a> #if WITH_DEBUGGING_CALLBACK
-<a name="line760">760  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdRemovePath, NULL);
-<a name="line761">761  |</a> #endif
+<a name="line644">644  |</a> 		*searchpath = '^';	/* ^buffer$ */
+<a name="line645">645  |</a> 		onlyexpPtr = Tcl_RegExpCompile(interp, searchpath);
+<a name="line646">646  |</a> 		_TCLCHK(interp)
+<a name="line647">647  |</a> 
+<a name="line648">648  |</a> 		if(Tcl_RegExpExec(interp, onlyexpPtr, oldpath, oldpath) &gt; 0) {
+<a name="line649">649  |</a> 		    _TCLCHK(interp)
+<a name="line650">650  |</a> 
+<a name="line651">651  |</a> 		    /**
+<a name="line652">652  |</a> 		     **  In this case, I should go ahead and unset the variable
+<a name="line653">653  |</a> 		     **  from the environment because I'm removing the very last
+<a name="line654">654  |</a> 		     **  path.
+<a name="line655">655  |</a> 		     **
+<a name="line656">656  |</a> 		     **  First I'm going to clear the variable from the
+<a name="line657">657  |</a> 		     **  setenvHashTable just in case its already been altered
+<a name="line658">658  |</a> 		     **  and had a significant value at the time. It's very
+<a name="line659">659  |</a> 		     **  possible that I'm removing the only two or three paths
+<a name="line660">660  |</a> 		     **  from this variable. If that's the case, then all the
+<a name="line661">661  |</a> 		     **  earlier paths were marked for output in this hashTable.
+<a name="line662">662  |</a> 		     **
+<a name="line663">663  |</a> 		     **  Secondly, I actually mark the the environment variable
+<a name="line664">664  |</a> 		     **  to be unset when output.
+<a name="line665">665  |</a> 		     **/
+<a name="line666">666  |</a> 		    clear_hash_value( setenvHashTable, variable);
+<a name="line667">667  |</a> 		    moduleUnsetenv( interp, variable);
+<a name="line668">668  |</a> 
+<a name="line669">669  |</a> 		    /**
+<a name="line670">670  |</a> 		     **  moduleUnsetenv doesn't unset the variable in the Tcl
+<a name="line671">671  |</a> 		     **  space because the $env variable might need to be
+<a name="line672">672  |</a> 		     **  used again in the modulefile for locating other
+<a name="line673">673  |</a> 		     **  paths.  BUT, since this was a path-type environment
+<a name="line674">674  |</a> 		     **  variable, the user is expecting this to be empty
+<a name="line675">675  |</a> 		     **  after removing the only remaining path.  So, I set
+<a name="line676">676  |</a> 		     **  the variable empty here.
+<a name="line677">677  |</a> 		     **/
+<a name="line678">678  |</a> 		    (void) Tcl_SetVar2( interp, "env", variable, "",
+<a name="line679">679  |</a> 			TCL_GLOBAL_ONLY);
+<a name="line680">680  |</a> 		    _TCLCHK(interp)
+<a name="line681">681  |</a> 		    null_free((void *) &amp;searchpath);
+<a name="line682">682  |</a> 		    goto success1;
+<a name="line683">683  |</a> 		}
+<a name="line684">684  |</a> 	    }
+<a name="line685">685  |</a> 	}
+<a name="line686">686  |</a>     }
+<a name="line687">687  |</a>     null_free((void *) &amp;searchpath);
+<a name="line688">688  |</a> 
+<a name="line689">689  |</a>     /**
+<a name="line690">690  |</a>      **  If I couldn't find it assume it wasn't there
+<a name="line691">691  |</a>      **  and return.
+<a name="line692">692  |</a>      **/
+<a name="line693">693  |</a>     if( !regexpPtr)
+<a name="line694">694  |</a> 	goto success1;
+<a name="line695">695  |</a> 
+<a name="line696">696  |</a>     markexpPtr = Tcl_RegExpCompile(interp, sw_marker);
+<a name="line697">697  |</a>     _TCLCHK(interp)
+<a name="line698">698  |</a> 
+<a name="line699">699  |</a>     /**
+<a name="line700">700  |</a>      **  In state1, we're actually replacing old paths with
+<a name="line701">701  |</a>      **  the markers for future appends and prepends.
+<a name="line702">702  |</a>      **  
+<a name="line703">703  |</a>      **  We only want to do this once to mark the location
+<a name="line704">704  |</a>      **  the module was formed around.
+<a name="line705">705  |</a>      **/
+<a name="line706">706  |</a>     if((g_flags &amp; M_SWSTATE1) &amp;&amp; ! (Tcl_RegExpExec(interp,
+<a name="line707">707  |</a> 	 markexpPtr, oldpath, oldpath) &gt; 0)) {
+<a name="line708">708  |</a> 
+<a name="line709">709  |</a> 	/**
+<a name="line710">710  |</a> 	 **  If I don't have enough space to replace the oldpath with the
+<a name="line711">711  |</a> 	 **  marker, then I must create space for the marker and thus
+<a name="line712">712  |</a> 	 **  recreate the PATH variable.
+<a name="line713">713  |</a> 	 **/
+<a name="line714">714  |</a> 	char* newenv;
+<a name="line715">715  |</a> 	int newlen = path_len + strlen(sw_marker) + 1;
+<a name="line716">716  |</a>       
+<a name="line717">717  |</a> 	if((char *) NULL==(newenv = stringer(NULL, newlen ,NULL) ))
+<a name="line718">718  |</a> 	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+<a name="line719">719  |</a> 		goto unwind1;
+<a name="line720">720  |</a> 
+<a name="line721">721  |</a> 	*(startp + start_offset) = '\0';
+<a name="line722">722  |</a> 
+<a name="line723">723  |</a> 	if(*(endp + end_offset) == '\0') {
+<a name="line724">724  |</a> 	    (void) stringer(newenv, newlen, oldpath,":",sw_marker,NULL);
+<a name="line725">725  |</a> 	} else {
+<a name="line726">726  |</a> 	    (void) stringer(newenv, newlen, oldpath,sw_marker,
+<a name="line727">727  |</a> 		endp + end_offset, NULL);
+<a name="line728">728  |</a> 	}
+<a name="line729">729  |</a> 
+<a name="line730">730  |</a> 	/**
+<a name="line731">731  |</a> 	 **  Just store the value with the marker into the environment.  I'm not
+<a name="line732">732  |</a> 	 **  checking if it changed because the only case that a PATH-type
+<a name="line733">733  |</a> 	 **  variable will be unset is when I remove the only path remaining in
+<a name="line734">734  |</a> 	 **  the variable.  So, using moduleSetenv is not necessary here.
+<a name="line735">735  |</a> 	 **/
+<a name="line736">736  |</a> 	Tcl_SetVar2( interp, "env", variable, newenv, TCL_GLOBAL_ONLY);
+<a name="line737">737  |</a> 	_TCLCHK(interp)
+<a name="line738">738  |</a> 	null_free((void *) &amp;newenv);
+<a name="line739">739  |</a> 
+<a name="line740">740  |</a>     } else {  /** SW_STATE1 **/
+<a name="line741">741  |</a> 
+<a name="line742">742  |</a> 	/**
+<a name="line743">743  |</a> 	 **  We must be in SW_STATE3 or not in SW_STATE at all.
+<a name="line744">744  |</a> 	 **  Removing the marker should be just like removing any other path.
+<a name="line745">745  |</a> 	 **/
+<a name="line746">746  |</a> 	strcpy( startp + start_offset, endp);
+<a name="line747">747  |</a> 
+<a name="line748">748  |</a> 	/**
+<a name="line749">749  |</a> 	 **  Cache the set.  Clear the variable from the unset table just
+<a name="line750">750  |</a> 	 **  in case it was previously unset.
+<a name="line751">751  |</a> 	 **/
+<a name="line752">752  |</a> 	store_hash_value( setenvHashTable, variable, oldpath);
+<a name="line753">753  |</a> 	clear_hash_value( unsetenvHashTable, variable);
+<a name="line754">754  |</a> 
+<a name="line755">755  |</a> 	/**
+<a name="line756">756  |</a> 	 **  Store the new PATH value into the environment.
+<a name="line757">757  |</a> 	 **/
+<a name="line758">758  |</a> 	Tcl_SetVar2( interp, "env", variable, oldpath, TCL_GLOBAL_ONLY);
+<a name="line759">759  |</a> 	_TCLCHK(interp)
+<a name="line760">760  |</a> 
+<a name="line761">761  |</a>     }  /** ! SW_STATE1 **/
 <a name="line762">762  |</a> 
-<a name="line763">763  |</a>     /**
-<a name="line764">764  |</a>      **  Free what has been used and return on success
-<a name="line765">765  |</a>      **/
-<a name="line766">766  |</a> success1:
-<a name="line767">767  |</a>     null_free((void *) &amp;oldpath);
-<a name="line768">768  |</a> success0:
-<a name="line769">769  |</a>     return( TCL_OK);		/** -------- EXIT (SUCCESS) -------&gt; **/
-<a name="line770">770  |</a> 
-<a name="line771">771  |</a> unwind1:
-<a name="line772">772  |</a>     null_free((void *) &amp;oldpath);
-<a name="line773">773  |</a> unwind0:
-<a name="line774">774  |</a>     return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line775">775  |</a> 
-<a name="line776">776  |</a> } /** End of 'Remove_Path' **/
+<a name="line763">763  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line764">764  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdRemovePath, NULL);
+<a name="line765">765  |</a> #endif
+<a name="line766">766  |</a> 
+<a name="line767">767  |</a>     /**
+<a name="line768">768  |</a>      **  Free what has been used and return on success
+<a name="line769">769  |</a>      **/
+<a name="line770">770  |</a> success1:
+<a name="line771">771  |</a>     null_free((void *) &amp;oldpath);
+<a name="line772">772  |</a> success0:
+<a name="line773">773  |</a>     return( TCL_OK);		/** -------- EXIT (SUCCESS) -------&gt; **/
+<a name="line774">774  |</a> 
+<a name="line775">775  |</a> unwind1:
+<a name="line776">776  |</a>     null_free((void *) &amp;oldpath);
+<a name="line777">777  |</a> unwind0:
+<a name="line778">778  |</a>     return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line779">779  |</a> 
+<a name="line780">780  |</a> } /** End of 'Remove_Path' **/
 </pre>
 
 </BODY>

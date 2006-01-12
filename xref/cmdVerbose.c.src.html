@@ -25,7 +25,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line5">5    |</a>  **   Providing a flexible user environment				     **
 <a name="line6">6    |</a>  ** 									     **
 <a name="line7">7    |</a>  **   File:		cmdVerbose.c					     **
-<a name="line8">8    |</a>  **   First Edition:	95/12/31					     **
+<a name="line8">8    |</a>  **   First Edition:	1995/12/31					     **
 <a name="line9">9    |</a>  ** 									     **
 <a name="line10">10   |</a>  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
 <a name="line11">11   |</a>  ** 									     **
@@ -46,7 +46,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line26">26   |</a>  ** 									     ** 
 <a name="line27">27   |</a>  ** ************************************************************************ **/
 <a name="line28">28   |</a> 
-<a name="line29">29   |</a> static char Id[] = "@(#)$Id: cmdVerbose.c.src.html,v 1.2 2005/11/25 20:09:37 rkowen Exp $";
+<a name="line29">29   |</a> static char Id[] = "@(#)$Id: cmdVerbose.c.src.html,v 1.6 2006/01/18 05:35:11 rkowen Exp $";
 <a name="line30">30   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line31">31   |</a> 
 <a name="line32">32   |</a> /** ************************************************************************ **/
@@ -96,7 +96,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line76">76   |</a>  ** 									     **
 <a name="line77">77   |</a>  **   Description:	Callback function for 'verbose'			     **
 <a name="line78">78   |</a>  ** 									     **
-<a name="line79">79   |</a>  **   First Edition:	95/12/31					     **
+<a name="line79">79   |</a>  **   First Edition:	1995/12/31					     **
 <a name="line80">80   |</a>  ** 									     **
 <a name="line81">81   |</a>  **   Parameters:	ClientData	 client_data			     **
 <a name="line82">82   |</a>  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -117,60 +117,61 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line97">97   |</a> int	cmdModuleVerbose(	ClientData	 client_data,
 <a name="line98">98   |</a> 		      		Tcl_Interp	*interp,
 <a name="line99">99   |</a> 		      		int		 argc,
-<a name="line100">100  |</a> 		      		char		*argv[])
+<a name="line100">100  |</a> 		      		CONST84 char	*argv[])
 <a name="line101">101  |</a> {
 <a name="line102">102  |</a> #if WITH_DEBUGGING_CALLBACK
 <a name="line103">103  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleVerbose, NULL);
 <a name="line104">104  |</a> #endif
-<a name="line105">105  |</a> 
-<a name="line106">106  |</a>     /**
-<a name="line107">107  |</a>      **  Whatis mode?
-<a name="line108">108  |</a>      **/
-<a name="line109">109  |</a> 
-<a name="line110">110  |</a>     if( g_flags &amp; (M_WHATIS | M_HELP))
-<a name="line111">111  |</a>         return( TCL_OK);		/** ------- EXIT PROCEDURE -------&gt; **/
-<a name="line112">112  |</a> 	
-<a name="line113">113  |</a>     /**
-<a name="line114">114  |</a>      **  Parameter check
-<a name="line115">115  |</a>      **/
-<a name="line116">116  |</a> 
-<a name="line117">117  |</a>     if( argc &lt; 2) {
-<a name="line118">118  |</a> 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], " on|off|fmt [args]",
-<a name="line119">119  |</a> 	    NULL))
-<a name="line120">120  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line121">121  |</a>     }
-<a name="line122">122  |</a>   
-<a name="line123">123  |</a>     /**
-<a name="line124">124  |</a>      **  Display mode?
-<a name="line125">125  |</a>      **/
-<a name="line126">126  |</a> 
-<a name="line127">127  |</a>     if( g_flags &amp; M_DISPLAY) {
-<a name="line128">128  |</a> 	fprintf( stderr, "%s ", argv[ 0]);
-<a name="line129">129  |</a> 	while( --argc)
-<a name="line130">130  |</a> 	    fprintf( stderr, "%s ", *++argv);
-<a name="line131">131  |</a> 	fprintf( stderr, "\n");
-<a name="line132">132  |</a>         return( TCL_OK);		/** ------- EXIT PROCEDURE -------&gt; **/
-<a name="line133">133  |</a>     }
-<a name="line134">134  |</a> 
-<a name="line135">135  |</a>     /**
-<a name="line136">136  |</a>      **  on or off
-<a name="line137">137  |</a>      **/
-<a name="line138">138  |</a> 
-<a name="line139">139  |</a>     if( !strcmp( argv[1], "on"))
-<a name="line140">140  |</a> 	sw_verbose = 1;
-<a name="line141">141  |</a>     else if( !strcmp( argv[1], "off"))
-<a name="line142">142  |</a> 	sw_verbose = 0;
-<a name="line143">143  |</a>     else
-<a name="line144">144  |</a> 	Module_Verbosity( --argc, ++argv);
-<a name="line145">145  |</a> 
-<a name="line146">146  |</a> #if WITH_DEBUGGING_CALLBACK
-<a name="line147">147  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleVerbose, NULL);
-<a name="line148">148  |</a> #endif
-<a name="line149">149  |</a> 
-<a name="line150">150  |</a>     return( TCL_OK);
-<a name="line151">151  |</a> 
-<a name="line152">152  |</a> } /** End of 'cmdModuleVerbose' **/
-<a name="line153">153  |</a>     
+<a name="line105">105  |</a>     char **argptr = (char **) argv;
+<a name="line106">106  |</a> 
+<a name="line107">107  |</a>     /**
+<a name="line108">108  |</a>      **  Whatis mode?
+<a name="line109">109  |</a>      **/
+<a name="line110">110  |</a> 
+<a name="line111">111  |</a>     if( g_flags &amp; (M_WHATIS | M_HELP))
+<a name="line112">112  |</a>         return( TCL_OK);		/** ------- EXIT PROCEDURE -------&gt; **/
+<a name="line113">113  |</a> 	
+<a name="line114">114  |</a>     /**
+<a name="line115">115  |</a>      **  Parameter check
+<a name="line116">116  |</a>      **/
+<a name="line117">117  |</a> 
+<a name="line118">118  |</a>     if( argc &lt; 2) {
+<a name="line119">119  |</a> 	if( OK != ErrorLogger( ERR_USAGE, LOC, argptr[0], " on|off|fmt [args]",
+<a name="line120">120  |</a> 	    NULL))
+<a name="line121">121  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line122">122  |</a>     }
+<a name="line123">123  |</a>   
+<a name="line124">124  |</a>     /**
+<a name="line125">125  |</a>      **  Display mode?
+<a name="line126">126  |</a>      **/
+<a name="line127">127  |</a> 
+<a name="line128">128  |</a>     if( g_flags &amp; M_DISPLAY) {
+<a name="line129">129  |</a> 	fprintf( stderr, "%s ", argptr[ 0]);
+<a name="line130">130  |</a> 	while( --argc)
+<a name="line131">131  |</a> 	    fprintf( stderr, "%s ", *++argptr);
+<a name="line132">132  |</a> 	fprintf( stderr, "\n");
+<a name="line133">133  |</a>         return( TCL_OK);		/** ------- EXIT PROCEDURE -------&gt; **/
+<a name="line134">134  |</a>     }
+<a name="line135">135  |</a> 
+<a name="line136">136  |</a>     /**
+<a name="line137">137  |</a>      **  on or off
+<a name="line138">138  |</a>      **/
+<a name="line139">139  |</a> 
+<a name="line140">140  |</a>     if( !strcmp( argptr[1], "on"))
+<a name="line141">141  |</a> 	sw_verbose = 1;
+<a name="line142">142  |</a>     else if( !strcmp( argptr[1], "off"))
+<a name="line143">143  |</a> 	sw_verbose = 0;
+<a name="line144">144  |</a>     else
+<a name="line145">145  |</a> 	Module_Verbosity( --argc, ++argptr);
+<a name="line146">146  |</a> 
+<a name="line147">147  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line148">148  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleVerbose, NULL);
+<a name="line149">149  |</a> #endif
+<a name="line150">150  |</a> 
+<a name="line151">151  |</a>     return( TCL_OK);
+<a name="line152">152  |</a> 
+<a name="line153">153  |</a> } /** End of 'cmdModuleVerbose' **/
+<a name="line154">154  |</a>     
 </pre>
 
 </BODY>

@@ -25,7 +25,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line5">5    |</a>  **   Providing a flexible user environment				     **
 <a name="line6">6    |</a>  ** 									     **
 <a name="line7">7    |</a>  **   File:		ModuleCmd_Use.c					     **
-<a name="line8">8    |</a>  **   First Edition:	91/10/23					     **
+<a name="line8">8    |</a>  **   First Edition:	1991/10/23					     **
 <a name="line9">9    |</a>  ** 									     **
 <a name="line10">10   |</a>  **   Authors:	John Furlan, jlf@behere.com				     **
 <a name="line11">11   |</a>  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -49,7 +49,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line29">29   |</a>  ** 									     ** 
 <a name="line30">30   |</a>  ** ************************************************************************ **/
 <a name="line31">31   |</a> 
-<a name="line32">32   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Use.c.src.html,v 1.2 2005/11/25 20:09:37 rkowen Exp $";
+<a name="line32">32   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Use.c.src.html,v 1.6 2006/01/18 05:35:11 rkowen Exp $";
 <a name="line33">33   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line34">34   |</a> 
 <a name="line35">35   |</a> /** ************************************************************************ **/
@@ -103,7 +103,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line83">83   |</a>  **   Description:	Append the passed variable (with value) to the begin-**
 <a name="line84">84   |</a>  **			ning environment				     **
 <a name="line85">85   |</a>  ** 									     **
-<a name="line86">86   |</a>  **   First Edition:	91/10/23					     **
+<a name="line86">86   |</a>  **   First Edition:	1991/10/23					     **
 <a name="line87">87   |</a>  ** 									     **
 <a name="line88">88   |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
 <a name="line89">89   |</a>  **			char 		*var		Name of the variable **
@@ -141,9 +141,9 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line121">121  |</a> 	 **  Get filename and the value of the passed variable
 <a name="line122">122  |</a> 	 **/
 <a name="line123">123  |</a> 
-<a name="line124">124  |</a> 	if( filename = Tcl_GetVar2( interp, "env", "_MODULESBEGINENV_",
+<a name="line124">124  |</a> 	if( filename = (char *) Tcl_GetVar2( interp, "env","_MODULESBEGINENV_",
 <a name="line125">125  |</a> 	    TCL_GLOBAL_ONLY)) {
-<a name="line126">126  |</a> 	    val = Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY);
+<a name="line126">126  |</a> 	    val = (char *) Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY);
 <a name="line127">127  |</a> 
 <a name="line128">128  |</a> 	    /**
 <a name="line129">129  |</a> 	     **  Append the string &lt;var&gt;=&lt;value&gt;
@@ -172,7 +172,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line152">152  |</a>  ** 									     **
 <a name="line153">153  |</a>  **   Description:	Execution of the module-command 'use'		     **
 <a name="line154">154  |</a>  ** 									     **
-<a name="line155">155  |</a>  **   First Edition:	91/10/23					     **
+<a name="line155">155  |</a>  **   First Edition:	1991/10/23					     **
 <a name="line156">156  |</a>  ** 									     **
 <a name="line157">157  |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
 <a name="line158">158  |</a>  **			int		 argc		Number of arguments  **
@@ -260,83 +260,83 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line240">240  |</a> 
 <a name="line241">241  |</a> 	pathargv[2] = argv[i];
 <a name="line242">242  |</a> 
-<a name="line243">243  |</a> 	if( cmdSetPath((ClientData) 0, interp, 3, pathargv) == TCL_ERROR)
-<a name="line244">244  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line245">245  |</a> 
-<a name="line246">246  |</a>     } /** for **/
-<a name="line247">247  |</a>   
-<a name="line248">248  |</a>     /**
-<a name="line249">249  |</a>      **  Add the new value of MODULESPATH to the end
-<a name="line250">250  |</a>      **  of the beginenvcache so that update will be able to find its
-<a name="line251">251  |</a>      **  modulefiles.
-<a name="line252">252  |</a>      **/
-<a name="line253">253  |</a> 
-<a name="line254">254  |</a>     append_to_modulesbeginenv( interp, "MODULEPATH");
-<a name="line255">255  |</a> 
-<a name="line256">256  |</a> #if WITH_DEBUGGING_MODULECMD
-<a name="line257">257  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Use, NULL);
-<a name="line258">258  |</a> #endif
-<a name="line259">259  |</a> 
-<a name="line260">260  |</a>     return( TCL_OK);
-<a name="line261">261  |</a> 
-<a name="line262">262  |</a> } /** End of 'ModuleCmd_Use' **/
-<a name="line263">263  |</a> 
-<a name="line264">264  |</a> /*++++
-<a name="line265">265  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line266">266  |</a>  ** 									     **
-<a name="line267">267  |</a>  **   Function:		ModuleCmd_UnUse					     **
-<a name="line268">268  |</a>  ** 									     **
-<a name="line269">269  |</a>  **   Description:	Execution of the module-command 'unuse'		     **
-<a name="line270">270  |</a>  ** 									     **
-<a name="line271">271  |</a>  **   First Edition:	91/10/23					     **
-<a name="line272">272  |</a>  ** 									     **
-<a name="line273">273  |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
-<a name="line274">274  |</a>  **			int		 argc		Number of arguments  **
-<a name="line275">275  |</a>  **			char 		*argv[]		Argument list	     **
-<a name="line276">276  |</a>  ** 									     **
-<a name="line277">277  |</a>  **   Result:		int	TCL_ERROR	Failure			     **
-<a name="line278">278  |</a>  **				TCL_OK		Successfull operation	     **
-<a name="line279">279  |</a>  ** 									     **
-<a name="line280">280  |</a>  **   Attached Globals:	-						     **
-<a name="line281">281  |</a>  ** 									     **
-<a name="line282">282  |</a>  ** ************************************************************************ **
-<a name="line283">283  |</a>  ++++*/
-<a name="line284">284  |</a> 
-<a name="line285">285  |</a> int  ModuleCmd_UnUse(	Tcl_Interp	*interp,
-<a name="line286">286  |</a> 		     	int		 argc,
-<a name="line287">287  |</a> 		     	char		*argv[])
-<a name="line288">288  |</a> {
-<a name="line289">289  |</a>     char	*pathargv[4];
-<a name="line290">290  |</a>     int		 i = 0;
-<a name="line291">291  |</a>   
-<a name="line292">292  |</a> #if WITH_DEBUGGING_MODULECMD
-<a name="line293">293  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_UnUse, NULL);
-<a name="line294">294  |</a> #endif
-<a name="line295">295  |</a> 
-<a name="line296">296  |</a>     /**
-<a name="line297">297  |</a>      **  Parameter check. Usage is 'module use &lt;path&gt; [ &lt;path&gt; ... ]'
-<a name="line298">298  |</a>      **/
-<a name="line299">299  |</a> 
-<a name="line300">300  |</a>     if( argc &lt; 1) {
-<a name="line301">301  |</a> 	if( OK != ErrorLogger( ERR_USAGE, LOC, "unuse dir [dir ...]", NULL))
-<a name="line302">302  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line303">303  |</a>     }
-<a name="line304">304  |</a>   
-<a name="line305">305  |</a>     /**
-<a name="line306">306  |</a>      **  Remove all passed paths from MODULEPATH
-<a name="line307">307  |</a>      **	 Use the 'cmdSetPath' callback function to modify the MODULEPATH
-<a name="line308">308  |</a>      **/
-<a name="line309">309  |</a> 
-<a name="line310">310  |</a>     pathargv[0] = "remove-path";
-<a name="line311">311  |</a>     pathargv[1] = "MODULEPATH";
-<a name="line312">312  |</a>     pathargv[3] = NULL;
-<a name="line313">313  |</a> 
-<a name="line314">314  |</a>     for(i = 0; i &lt; argc; i++) {
-<a name="line315">315  |</a> 
+<a name="line243">243  |</a> 	if( cmdSetPath((ClientData) 0, interp, 3, (CONST84 char **) pathargv)
+<a name="line244">244  |</a> 	== TCL_ERROR)
+<a name="line245">245  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line246">246  |</a> 
+<a name="line247">247  |</a>     } /** for **/
+<a name="line248">248  |</a>   
+<a name="line249">249  |</a>     /**
+<a name="line250">250  |</a>      **  Add the new value of MODULESPATH to the end
+<a name="line251">251  |</a>      **  of the beginenvcache so that update will be able to find its
+<a name="line252">252  |</a>      **  modulefiles.
+<a name="line253">253  |</a>      **/
+<a name="line254">254  |</a> 
+<a name="line255">255  |</a>     append_to_modulesbeginenv( interp, "MODULEPATH");
+<a name="line256">256  |</a> 
+<a name="line257">257  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line258">258  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Use, NULL);
+<a name="line259">259  |</a> #endif
+<a name="line260">260  |</a> 
+<a name="line261">261  |</a>     return( TCL_OK);
+<a name="line262">262  |</a> 
+<a name="line263">263  |</a> } /** End of 'ModuleCmd_Use' **/
+<a name="line264">264  |</a> 
+<a name="line265">265  |</a> /*++++
+<a name="line266">266  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line267">267  |</a>  ** 									     **
+<a name="line268">268  |</a>  **   Function:		ModuleCmd_UnUse					     **
+<a name="line269">269  |</a>  ** 									     **
+<a name="line270">270  |</a>  **   Description:	Execution of the module-command 'unuse'		     **
+<a name="line271">271  |</a>  ** 									     **
+<a name="line272">272  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line273">273  |</a>  ** 									     **
+<a name="line274">274  |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
+<a name="line275">275  |</a>  **			int		 argc		Number of arguments  **
+<a name="line276">276  |</a>  **			char 		*argv[]		Argument list	     **
+<a name="line277">277  |</a>  ** 									     **
+<a name="line278">278  |</a>  **   Result:		int	TCL_ERROR	Failure			     **
+<a name="line279">279  |</a>  **				TCL_OK		Successfull operation	     **
+<a name="line280">280  |</a>  ** 									     **
+<a name="line281">281  |</a>  **   Attached Globals:	-						     **
+<a name="line282">282  |</a>  ** 									     **
+<a name="line283">283  |</a>  ** ************************************************************************ **
+<a name="line284">284  |</a>  ++++*/
+<a name="line285">285  |</a> 
+<a name="line286">286  |</a> int  ModuleCmd_UnUse(	Tcl_Interp	*interp,
+<a name="line287">287  |</a> 		     	int		 argc,
+<a name="line288">288  |</a> 		     	char		*argv[])
+<a name="line289">289  |</a> {
+<a name="line290">290  |</a>     char	*pathargv[4];
+<a name="line291">291  |</a>     int		 i = 0;
+<a name="line292">292  |</a>   
+<a name="line293">293  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line294">294  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_UnUse, NULL);
+<a name="line295">295  |</a> #endif
+<a name="line296">296  |</a> 
+<a name="line297">297  |</a>     /**
+<a name="line298">298  |</a>      **  Parameter check. Usage is 'module use &lt;path&gt; [ &lt;path&gt; ... ]'
+<a name="line299">299  |</a>      **/
+<a name="line300">300  |</a> 
+<a name="line301">301  |</a>     if( argc &lt; 1) {
+<a name="line302">302  |</a> 	if( OK != ErrorLogger( ERR_USAGE, LOC, "unuse dir [dir ...]", NULL))
+<a name="line303">303  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line304">304  |</a>     }
+<a name="line305">305  |</a>   
+<a name="line306">306  |</a>     /**
+<a name="line307">307  |</a>      **  Remove all passed paths from MODULEPATH
+<a name="line308">308  |</a>      **	 Use the 'cmdSetPath' callback function to modify the MODULEPATH
+<a name="line309">309  |</a>      **/
+<a name="line310">310  |</a> 
+<a name="line311">311  |</a>     pathargv[0] = "remove-path";
+<a name="line312">312  |</a>     pathargv[1] = "MODULEPATH";
+<a name="line313">313  |</a>     pathargv[3] = NULL;
+<a name="line314">314  |</a> 
+<a name="line315">315  |</a>     for(i = 0; i &lt; argc; i++) {
 <a name="line316">316  |</a> 	pathargv[2] = argv[i];
-<a name="line317">317  |</a> 	if( cmdRemovePath((ClientData) 0, interp, 3, pathargv) == TCL_ERROR)
-<a name="line318">318  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line319">319  |</a> 
+<a name="line317">317  |</a> 	if(cmdRemovePath((ClientData) 0, interp, 3, (CONST84 char **) pathargv)
+<a name="line318">318  |</a> 	== TCL_ERROR)
+<a name="line319">319  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
 <a name="line320">320  |</a>     } /** for **/
 <a name="line321">321  |</a>   
 <a name="line322">322  |</a>     /**

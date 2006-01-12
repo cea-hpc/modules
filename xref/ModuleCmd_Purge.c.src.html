@@ -25,7 +25,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line5">5    |</a>  **   Providing a flexible user environment				     **
 <a name="line6">6    |</a>  ** 									     **
 <a name="line7">7    |</a>  **   File:		ModuleCmd_Purge.c				     **
-<a name="line8">8    |</a>  **   First Edition:	91/10/23					     **
+<a name="line8">8    |</a>  **   First Edition:	1991/10/23					     **
 <a name="line9">9    |</a>  ** 									     **
 <a name="line10">10   |</a>  **   Authors:	John Furlan, jlf@behere.com				     **
 <a name="line11">11   |</a>  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -46,7 +46,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line26">26   |</a>  ** 									     ** 
 <a name="line27">27   |</a>  ** ************************************************************************ **/
 <a name="line28">28   |</a> 
-<a name="line29">29   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Purge.c.src.html,v 1.2 2005/11/25 20:09:37 rkowen Exp $";
+<a name="line29">29   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Purge.c.src.html,v 1.6 2006/01/18 05:35:11 rkowen Exp $";
 <a name="line30">30   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line31">31   |</a> 
 <a name="line32">32   |</a> /** ************************************************************************ **/
@@ -93,7 +93,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line73">73   |</a>  ** 									     **
 <a name="line74">74   |</a>  **   Description:	Execution of the module-command 'purge'		     **
 <a name="line75">75   |</a>  ** 									     **
-<a name="line76">76   |</a>  **   First Edition:	91/10/23					     **
+<a name="line76">76   |</a>  **   First Edition:	1991/10/23					     **
 <a name="line77">77   |</a>  ** 									     **
 <a name="line78">78   |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
 <a name="line79">79   |</a>  **			int		 argc		Number of arguments  **
@@ -126,48 +126,49 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line106">106  |</a>      **  Get the list of currently loaded modules from the environment variable
 <a name="line107">107  |</a>      **  LOADEDMODULES
 <a name="line108">108  |</a>      **/
-<a name="line109">109  |</a>     if( NULL == (loaded_modules = Tcl_GetVar2( interp, "env", "LOADEDMODULES",
-<a name="line110">110  |</a> 	TCL_GLOBAL_ONLY))) {
-<a name="line111">111  |</a> 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-<a name="line112">112  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------- **/
-<a name="line113">113  |</a> 	else
-<a name="line114">114  |</a> 	    return( TCL_OK);		/** ---- EXIT (Nothing to list) ---- **/
-<a name="line115">115  |</a>     }
-<a name="line116">116  |</a> 
-<a name="line117">117  |</a>     if((char *) NULL == (lmodules = stringer(NULL,0, loaded_modules, NULL))) 
-<a name="line118">118  |</a> 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line119">119  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------- **/
-<a name="line120">120  |</a> 
-<a name="line121">121  |</a>     /**
-<a name="line122">122  |</a>      **  Build a NULL terminated list of loaded modules
-<a name="line123">123  |</a>      **/
-<a name="line124">124  |</a>     for( cur_module = strtok( lmodules, ":");
-<a name="line125">125  |</a>          cur_module &amp;&amp; unload_argc &lt; MOD_BUFSIZE-1;
-<a name="line126">126  |</a>          cur_module = strtok( NULL, ":"))
-<a name="line127">127  |</a>         unload_argv[ unload_argc++] = cur_module;
-<a name="line128">128  |</a>     
-<a name="line129">129  |</a>     unload_argv[ unload_argc] = NULL;
-<a name="line130">130  |</a>     
-<a name="line131">131  |</a>     /**
-<a name="line132">132  |</a>      **  Unload 'em all
-<a name="line133">133  |</a>      **  We always say the load succeeded.  ModuleCmd_Load will
-<a name="line134">134  |</a>      **  output any necessary error messages.
-<a name="line135">135  |</a>      **/
-<a name="line136">136  |</a>     ModuleCmd_Load( interp, 0, unload_argc, unload_argv);
-<a name="line137">137  |</a>     status = TCL_OK;
-<a name="line138">138  |</a> 
-<a name="line139">139  |</a>     /**
-<a name="line140">140  |</a>      **  Free, what has been allocated and pass the load's result to the caller
-<a name="line141">141  |</a>      **/
-<a name="line142">142  |</a>     null_free((void *) &amp;lmodules);
-<a name="line143">143  |</a> 
-<a name="line144">144  |</a> #if WITH_DEBUGGING_MODULECMD
-<a name="line145">145  |</a>     fprintf( stderr, "ModuleCmd_Purge(%d):DEBUG: End\n", __LINE__);
-<a name="line146">146  |</a> #endif
-<a name="line147">147  |</a> 
-<a name="line148">148  |</a>     return( status);
-<a name="line149">149  |</a> 
-<a name="line150">150  |</a> } /** End of 'ModuleCmd_Purge' **/
+<a name="line109">109  |</a>     if( NULL == (loaded_modules =
+<a name="line110">110  |</a> 	(char *) Tcl_GetVar2( interp, "env", "LOADEDMODULES",
+<a name="line111">111  |</a> 	TCL_GLOBAL_ONLY))) {
+<a name="line112">112  |</a> 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
+<a name="line113">113  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------- **/
+<a name="line114">114  |</a> 	else
+<a name="line115">115  |</a> 	    return( TCL_OK);		/** ---- EXIT (Nothing to list) ---- **/
+<a name="line116">116  |</a>     }
+<a name="line117">117  |</a> 
+<a name="line118">118  |</a>     if((char *) NULL == (lmodules = stringer(NULL,0, loaded_modules, NULL))) 
+<a name="line119">119  |</a> 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+<a name="line120">120  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------- **/
+<a name="line121">121  |</a> 
+<a name="line122">122  |</a>     /**
+<a name="line123">123  |</a>      **  Build a NULL terminated list of loaded modules
+<a name="line124">124  |</a>      **/
+<a name="line125">125  |</a>     for( cur_module = strtok( lmodules, ":");
+<a name="line126">126  |</a>          cur_module &amp;&amp; unload_argc &lt; MOD_BUFSIZE-1;
+<a name="line127">127  |</a>          cur_module = strtok( NULL, ":"))
+<a name="line128">128  |</a>         unload_argv[ unload_argc++] = cur_module;
+<a name="line129">129  |</a>     
+<a name="line130">130  |</a>     unload_argv[ unload_argc] = NULL;
+<a name="line131">131  |</a>     
+<a name="line132">132  |</a>     /**
+<a name="line133">133  |</a>      **  Unload 'em all
+<a name="line134">134  |</a>      **  We always say the load succeeded.  ModuleCmd_Load will
+<a name="line135">135  |</a>      **  output any necessary error messages.
+<a name="line136">136  |</a>      **/
+<a name="line137">137  |</a>     ModuleCmd_Load( interp, 0, unload_argc, unload_argv);
+<a name="line138">138  |</a>     status = TCL_OK;
+<a name="line139">139  |</a> 
+<a name="line140">140  |</a>     /**
+<a name="line141">141  |</a>      **  Free, what has been allocated and pass the load's result to the caller
+<a name="line142">142  |</a>      **/
+<a name="line143">143  |</a>     null_free((void *) &amp;lmodules);
+<a name="line144">144  |</a> 
+<a name="line145">145  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line146">146  |</a>     fprintf( stderr, "ModuleCmd_Purge(%d):DEBUG: End\n", __LINE__);
+<a name="line147">147  |</a> #endif
+<a name="line148">148  |</a> 
+<a name="line149">149  |</a>     return( status);
+<a name="line150">150  |</a> 
+<a name="line151">151  |</a> } /** End of 'ModuleCmd_Purge' **/
 </pre>
 
 </BODY>

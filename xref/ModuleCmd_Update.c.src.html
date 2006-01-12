@@ -45,7 +45,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line25">25   |</a>  ** 									     ** 
 <a name="line26">26   |</a>  ** ************************************************************************ **/
 <a name="line27">27   |</a> 
-<a name="line28">28   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Update.c.src.html,v 1.2 2005/11/25 20:09:37 rkowen Exp $";
+<a name="line28">28   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Update.c.src.html,v 1.6 2006/01/18 05:35:11 rkowen Exp $";
 <a name="line29">29   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line30">30   |</a> 
 <a name="line31">31   |</a> /** ************************************************************************ **/
@@ -153,166 +153,167 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line133">133  |</a>     /**
 <a name="line134">134  |</a>      **  First I'll update the environment with what's in _MODULESBEGINENV_
 <a name="line135">135  |</a>      **/
-<a name="line136">136  |</a>     filename = Tcl_GetVar2( interp,"env","_MODULESBEGINENV_", TCL_GLOBAL_ONLY);
-<a name="line137">137  |</a>     if( filename) {
-<a name="line138">138  |</a> 
-<a name="line139">139  |</a> 	/**
-<a name="line140">140  |</a> 	 **  Read the beginning environment
-<a name="line141">141  |</a> 	 **/
-<a name="line142">142  |</a> 	if( NULL != (file = fopen( filename, "r"))) {
-<a name="line143">143  |</a> 
-<a name="line144">144  |</a> 	    if((char *) NULL == (buf = stringer(NULL, buffer_size, NULL )))
-<a name="line145">145  |</a> 		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line146">146  |</a> 		    goto unwind0;
-<a name="line147">147  |</a> 
-<a name="line148">148  |</a> 	    while( !feof( file)) {
-<a name="line149">149  |</a> 
-<a name="line150">150  |</a> 		/**
-<a name="line151">151  |</a> 		 **  Trigger to entries of the type
-<a name="line152">152  |</a> 		 **    &lt;variable&gt; = &lt;value&gt;
-<a name="line153">153  |</a> 		 **/
-<a name="line154">154  |</a> 
-<a name="line155">155  |</a> 		ptr = buf;
-<a name="line156">156  |</a> 		while( !feof( file)) {
-<a name="line157">157  |</a> 		    
-<a name="line158">158  |</a> 		    if((ptr-buf) &gt;= buffer_size-10) {	/** 10 bytes safety  **/
-<a name="line159">159  |</a> 			null_free((void *) &amp;buf);
-<a name="line160">160  |</a> 			if((char *) NULL == (buf = stringer(NULL,
-<a name="line161">161  |</a> 				buffer_size += UPD_BUFSIZE, NULL )))
-<a name="line162">162  |</a> 			    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line163">163  |</a> 				goto unwind0;
-<a name="line164">164  |</a> 		    }
-<a name="line165">165  |</a> 
-<a name="line166">166  |</a> 		    /**
-<a name="line167">167  |</a> 		     **  Read a character and put it into the read buffer. Check
-<a name="line168">168  |</a> 		     **  for the lines (CR) or a terminator character ...
-<a name="line169">169  |</a> 		     **/
-<a name="line170">170  |</a> 		    if( '\n' == (*ptr++ = c = fgetc( file))) {
-<a name="line171">171  |</a> 			*ptr++ = c = '\0';
-<a name="line172">172  |</a> 			break;
-<a name="line173">173  |</a> 		    }
-<a name="line174">174  |</a> 
-<a name="line175">175  |</a> 		    if( !c)
-<a name="line176">176  |</a> 			break;
-<a name="line177">177  |</a> 
-<a name="line178">178  |</a> 		} /** while **/
-<a name="line179">179  |</a> 
-<a name="line180">180  |</a> 		/**
-<a name="line181">181  |</a> 		 **  If there hasn't been a terminator so far, put it at the
-<a name="line182">182  |</a> 		 **  end of the line. Therefor we've left a safety space at the
-<a name="line183">183  |</a> 		 **  buffers end ;-)
-<a name="line184">184  |</a> 		 **/
-<a name="line185">185  |</a> 		if( c)
-<a name="line186">186  |</a> 		    *ptr++ = '\0';
-<a name="line187">187  |</a> 		 
-<a name="line188">188  |</a> 		/**
-<a name="line189">189  |</a> 		 **  Now let's evaluate the read line
-<a name="line190">190  |</a> 		 **/
-<a name="line191">191  |</a> 		if( var_ptr = strchr( buf, '=')) {
-<a name="line192">192  |</a> 		
-<a name="line193">193  |</a> 		    *var_ptr = '\0';
-<a name="line194">194  |</a> 		    val_ptr = var_ptr+1;
-<a name="line195">195  |</a> 		    var_ptr = buf;
-<a name="line196">196  |</a> 
-<a name="line197">197  |</a> 		    /**
-<a name="line198">198  |</a> 		     **  Reset the environment to the values derivered from the
-<a name="line199">199  |</a> 		     **  _MODULESBEGINENV_.
-<a name="line200">200  |</a> 		     **  Do not change the LOADEDMODULES variable ;-)
-<a name="line201">201  |</a> 		     **  Do not change the TCL_LIBRARY and TK_LIBRARY also.
-<a name="line202">202  |</a> 		     **/
-<a name="line203">203  |</a> 		    if( strncmp( var_ptr, "LOADEDMODULES", 12) &amp;&amp;
-<a name="line204">204  |</a> 			strncmp( var_ptr, "TCL_LIBRARY", 10 ) &amp;&amp;
-<a name="line205">205  |</a> 			strncmp( var_ptr, "TK_LIBRARY", 9 ))
-<a name="line206">206  |</a> 			if( !strncmp( var_ptr, "MODULEPATH", 10))
-<a name="line207">207  |</a> 			    moduleSetenv( interp, var_ptr, val_ptr, 1);
-<a name="line208">208  |</a> 			else
-<a name="line209">209  |</a> 			    Tcl_SetVar2( interp, "env", var_ptr, val_ptr,
-<a name="line210">210  |</a> 					 TCL_GLOBAL_ONLY);
-<a name="line211">211  |</a> 		} /** if( var_ptr) **/
-<a name="line212">212  |</a> 	    } /** while **/
-<a name="line213">213  |</a> 
-<a name="line214">214  |</a> 	    /**
-<a name="line215">215  |</a> 	     **  Close the _MODULESBEGINENV_ file anf free up the read buffer.
-<a name="line216">216  |</a> 	     **/
-<a name="line217">217  |</a> 	    null_free((void *) &amp;buf);
-<a name="line218">218  |</a> 
-<a name="line219">219  |</a> 	    if( EOF == fclose( file))
-<a name="line220">220  |</a> 		if( OK != ErrorLogger( ERR_CLOSE, LOC, filename, NULL))
-<a name="line221">221  |</a> 		    goto unwind0;
-<a name="line222">222  |</a> 
-<a name="line223">223  |</a> 	} else { /** if( fopen) **/
-<a name="line224">224  |</a> 
-<a name="line225">225  |</a> 	    if( OK != ErrorLogger( ERR_OPEN, LOC, filename, "reading", NULL))
-<a name="line226">226  |</a> 		goto unwind0;
-<a name="line227">227  |</a> 
-<a name="line228">228  |</a> 	} /** if( fopen) **/
-<a name="line229">229  |</a>     } /** if( filename) **/
-<a name="line230">230  |</a> 
-<a name="line231">231  |</a>     /**
-<a name="line232">232  |</a>      **  Allocate memory for a buffer to tokenize the list of loaded modules
-<a name="line233">233  |</a>      **  and a list buffer
-<a name="line234">234  |</a>      **/
-<a name="line235">235  |</a>     if( NULL == (load_list = (char**) malloc( maxlist*sizeof(char**))))
-<a name="line236">236  |</a> 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-<a name="line237">237  |</a> 	    goto unwind0;
-<a name="line238">238  |</a>     
-<a name="line239">239  |</a>     if( NULL == (loaded = stringer(NULL, 0, tmpload, NULL)))
-<a name="line240">240  |</a> 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line241">241  |</a> 	    goto unwind1;
-<a name="line242">242  |</a>     
-<a name="line243">243  |</a>     /**
-<a name="line244">244  |</a>      **  Tokenize and build the list
-<a name="line245">245  |</a>      **/
-<a name="line246">246  |</a>     if( *loaded) {
-<a name="line247">247  |</a> 
-<a name="line248">248  |</a> 	for( load_list[ list_count++] = strtok( loaded, ":");
-<a name="line249">249  |</a> 	     load_list[ list_count-1];
-<a name="line250">250  |</a>              load_list[ list_count++] = strtok( NULL, ":") ) {
-<a name="line251">251  |</a> 
-<a name="line252">252  |</a> 	    /**
-<a name="line253">253  |</a> 	     **  Conditionally we have to double the space, we've allocated for
-<a name="line254">254  |</a> 	     **  the list
-<a name="line255">255  |</a> 	     **/
-<a name="line256">256  |</a> 
-<a name="line257">257  |</a>             if( list_count &gt;= maxlist) {
-<a name="line258">258  |</a>                 maxlist = maxlist&lt;&lt;1;
-<a name="line259">259  |</a>             
-<a name="line260">260  |</a>                 if( NULL == (load_list = (char**) realloc((char *) load_list,
-<a name="line261">261  |</a> 		    maxlist*sizeof(char**))))
-<a name="line262">262  |</a> 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-<a name="line263">263  |</a> 			goto unwind1;
-<a name="line264">264  |</a> 
-<a name="line265">265  |</a>             } /** if( maxlist) **/
-<a name="line266">266  |</a> 	} /** for **/
-<a name="line267">267  |</a> 
-<a name="line268">268  |</a> 	/**
-<a name="line269">269  |</a> 	 **  Load all the modules in the list
-<a name="line270">270  |</a> 	 **/
-<a name="line271">271  |</a>         ModuleCmd_Load( interp, 1, list_count, load_list);
-<a name="line272">272  |</a>     }
-<a name="line273">273  |</a> 
-<a name="line274">274  |</a>     /**
-<a name="line275">275  |</a>      **  Free up what has been allocated and return on success
-<a name="line276">276  |</a>      **/
-<a name="line277">277  |</a>     null_free((void *) &amp;loaded);
-<a name="line278">278  |</a>     null_free((void *) &amp;load_list);
-<a name="line279">279  |</a> 
-<a name="line280">280  |</a> success0:
-<a name="line281">281  |</a> #if WITH_DEBUGGING_MODULECMD
-<a name="line282">282  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Update, NULL);
-<a name="line283">283  |</a> #endif
-<a name="line284">284  |</a> 
-<a name="line285">285  |</a>     return( TCL_OK);			/** -------- EXIT (SUCCESS) -------&gt; **/
-<a name="line286">286  |</a> 
-<a name="line287">287  |</a> unwind1:
-<a name="line288">288  |</a>     null_free((void *) &amp;load_list);
-<a name="line289">289  |</a> unwind0:
-<a name="line290">290  |</a> #else	/* BEGINENV */
-<a name="line291">291  |</a> 	ErrorLogger( ERR_BEGINENV, LOC, NULL);
-<a name="line292">292  |</a> #endif	/* BEGINENV */
-<a name="line293">293  |</a>     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line294">294  |</a> 
-<a name="line295">295  |</a> } /** End of 'ModuleCmd_Update' **/
+<a name="line136">136  |</a>     filename = (char *) Tcl_GetVar2( interp,"env","_MODULESBEGINENV_",
+<a name="line137">137  |</a> 	TCL_GLOBAL_ONLY);
+<a name="line138">138  |</a>     if( filename) {
+<a name="line139">139  |</a> 
+<a name="line140">140  |</a> 	/**
+<a name="line141">141  |</a> 	 **  Read the beginning environment
+<a name="line142">142  |</a> 	 **/
+<a name="line143">143  |</a> 	if( NULL != (file = fopen( filename, "r"))) {
+<a name="line144">144  |</a> 
+<a name="line145">145  |</a> 	    if((char *) NULL == (buf = stringer(NULL, buffer_size, NULL )))
+<a name="line146">146  |</a> 		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+<a name="line147">147  |</a> 		    goto unwind0;
+<a name="line148">148  |</a> 
+<a name="line149">149  |</a> 	    while( !feof( file)) {
+<a name="line150">150  |</a> 
+<a name="line151">151  |</a> 		/**
+<a name="line152">152  |</a> 		 **  Trigger to entries of the type
+<a name="line153">153  |</a> 		 **    &lt;variable&gt; = &lt;value&gt;
+<a name="line154">154  |</a> 		 **/
+<a name="line155">155  |</a> 
+<a name="line156">156  |</a> 		ptr = buf;
+<a name="line157">157  |</a> 		while( !feof( file)) {
+<a name="line158">158  |</a> 		    
+<a name="line159">159  |</a> 		    if((ptr-buf) &gt;= buffer_size-10) {	/** 10 bytes safety  **/
+<a name="line160">160  |</a> 			null_free((void *) &amp;buf);
+<a name="line161">161  |</a> 			if((char *) NULL == (buf = stringer(NULL,
+<a name="line162">162  |</a> 				buffer_size += UPD_BUFSIZE, NULL )))
+<a name="line163">163  |</a> 			    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+<a name="line164">164  |</a> 				goto unwind0;
+<a name="line165">165  |</a> 		    }
+<a name="line166">166  |</a> 
+<a name="line167">167  |</a> 		    /**
+<a name="line168">168  |</a> 		     **  Read a character and put it into the read buffer. Check
+<a name="line169">169  |</a> 		     **  for the lines (CR) or a terminator character ...
+<a name="line170">170  |</a> 		     **/
+<a name="line171">171  |</a> 		    if( '\n' == (*ptr++ = c = fgetc( file))) {
+<a name="line172">172  |</a> 			*ptr++ = c = '\0';
+<a name="line173">173  |</a> 			break;
+<a name="line174">174  |</a> 		    }
+<a name="line175">175  |</a> 
+<a name="line176">176  |</a> 		    if( !c)
+<a name="line177">177  |</a> 			break;
+<a name="line178">178  |</a> 
+<a name="line179">179  |</a> 		} /** while **/
+<a name="line180">180  |</a> 
+<a name="line181">181  |</a> 		/**
+<a name="line182">182  |</a> 		 **  If there hasn't been a terminator so far, put it at the
+<a name="line183">183  |</a> 		 **  end of the line. Therefor we've left a safety space at the
+<a name="line184">184  |</a> 		 **  buffers end ;-)
+<a name="line185">185  |</a> 		 **/
+<a name="line186">186  |</a> 		if( c)
+<a name="line187">187  |</a> 		    *ptr++ = '\0';
+<a name="line188">188  |</a> 		 
+<a name="line189">189  |</a> 		/**
+<a name="line190">190  |</a> 		 **  Now let's evaluate the read line
+<a name="line191">191  |</a> 		 **/
+<a name="line192">192  |</a> 		if( var_ptr = strchr( buf, '=')) {
+<a name="line193">193  |</a> 		
+<a name="line194">194  |</a> 		    *var_ptr = '\0';
+<a name="line195">195  |</a> 		    val_ptr = var_ptr+1;
+<a name="line196">196  |</a> 		    var_ptr = buf;
+<a name="line197">197  |</a> 
+<a name="line198">198  |</a> 		    /**
+<a name="line199">199  |</a> 		     **  Reset the environment to the values derivered from the
+<a name="line200">200  |</a> 		     **  _MODULESBEGINENV_.
+<a name="line201">201  |</a> 		     **  Do not change the LOADEDMODULES variable ;-)
+<a name="line202">202  |</a> 		     **  Do not change the TCL_LIBRARY and TK_LIBRARY also.
+<a name="line203">203  |</a> 		     **/
+<a name="line204">204  |</a> 		    if( strncmp( var_ptr, "LOADEDMODULES", 12) &amp;&amp;
+<a name="line205">205  |</a> 			strncmp( var_ptr, "TCL_LIBRARY", 10 ) &amp;&amp;
+<a name="line206">206  |</a> 			strncmp( var_ptr, "TK_LIBRARY", 9 ))
+<a name="line207">207  |</a> 			if( !strncmp( var_ptr, "MODULEPATH", 10))
+<a name="line208">208  |</a> 			    moduleSetenv( interp, var_ptr, val_ptr, 1);
+<a name="line209">209  |</a> 			else
+<a name="line210">210  |</a> 			    Tcl_SetVar2( interp, "env", var_ptr, val_ptr,
+<a name="line211">211  |</a> 					 TCL_GLOBAL_ONLY);
+<a name="line212">212  |</a> 		} /** if( var_ptr) **/
+<a name="line213">213  |</a> 	    } /** while **/
+<a name="line214">214  |</a> 
+<a name="line215">215  |</a> 	    /**
+<a name="line216">216  |</a> 	     **  Close the _MODULESBEGINENV_ file anf free up the read buffer.
+<a name="line217">217  |</a> 	     **/
+<a name="line218">218  |</a> 	    null_free((void *) &amp;buf);
+<a name="line219">219  |</a> 
+<a name="line220">220  |</a> 	    if( EOF == fclose( file))
+<a name="line221">221  |</a> 		if( OK != ErrorLogger( ERR_CLOSE, LOC, filename, NULL))
+<a name="line222">222  |</a> 		    goto unwind0;
+<a name="line223">223  |</a> 
+<a name="line224">224  |</a> 	} else { /** if( fopen) **/
+<a name="line225">225  |</a> 
+<a name="line226">226  |</a> 	    if( OK != ErrorLogger( ERR_OPEN, LOC, filename, "reading", NULL))
+<a name="line227">227  |</a> 		goto unwind0;
+<a name="line228">228  |</a> 
+<a name="line229">229  |</a> 	} /** if( fopen) **/
+<a name="line230">230  |</a>     } /** if( filename) **/
+<a name="line231">231  |</a> 
+<a name="line232">232  |</a>     /**
+<a name="line233">233  |</a>      **  Allocate memory for a buffer to tokenize the list of loaded modules
+<a name="line234">234  |</a>      **  and a list buffer
+<a name="line235">235  |</a>      **/
+<a name="line236">236  |</a>     if( NULL == (load_list = (char**) malloc( maxlist*sizeof(char**))))
+<a name="line237">237  |</a> 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+<a name="line238">238  |</a> 	    goto unwind0;
+<a name="line239">239  |</a>     
+<a name="line240">240  |</a>     if( NULL == (loaded = stringer(NULL, 0, tmpload, NULL)))
+<a name="line241">241  |</a> 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+<a name="line242">242  |</a> 	    goto unwind1;
+<a name="line243">243  |</a>     
+<a name="line244">244  |</a>     /**
+<a name="line245">245  |</a>      **  Tokenize and build the list
+<a name="line246">246  |</a>      **/
+<a name="line247">247  |</a>     if( *loaded) {
+<a name="line248">248  |</a> 
+<a name="line249">249  |</a> 	for( load_list[ list_count++] = strtok( loaded, ":");
+<a name="line250">250  |</a> 	     load_list[ list_count-1];
+<a name="line251">251  |</a>              load_list[ list_count++] = strtok( NULL, ":") ) {
+<a name="line252">252  |</a> 
+<a name="line253">253  |</a> 	    /**
+<a name="line254">254  |</a> 	     **  Conditionally we have to double the space, we've allocated for
+<a name="line255">255  |</a> 	     **  the list
+<a name="line256">256  |</a> 	     **/
+<a name="line257">257  |</a> 
+<a name="line258">258  |</a>             if( list_count &gt;= maxlist) {
+<a name="line259">259  |</a>                 maxlist = maxlist&lt;&lt;1;
+<a name="line260">260  |</a>             
+<a name="line261">261  |</a>                 if( NULL == (load_list = (char**) realloc((char *) load_list,
+<a name="line262">262  |</a> 		    maxlist*sizeof(char**))))
+<a name="line263">263  |</a> 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+<a name="line264">264  |</a> 			goto unwind1;
+<a name="line265">265  |</a> 
+<a name="line266">266  |</a>             } /** if( maxlist) **/
+<a name="line267">267  |</a> 	} /** for **/
+<a name="line268">268  |</a> 
+<a name="line269">269  |</a> 	/**
+<a name="line270">270  |</a> 	 **  Load all the modules in the list
+<a name="line271">271  |</a> 	 **/
+<a name="line272">272  |</a>         ModuleCmd_Load( interp, 1, list_count, load_list);
+<a name="line273">273  |</a>     }
+<a name="line274">274  |</a> 
+<a name="line275">275  |</a>     /**
+<a name="line276">276  |</a>      **  Free up what has been allocated and return on success
+<a name="line277">277  |</a>      **/
+<a name="line278">278  |</a>     null_free((void *) &amp;loaded);
+<a name="line279">279  |</a>     null_free((void *) &amp;load_list);
+<a name="line280">280  |</a> 
+<a name="line281">281  |</a> success0:
+<a name="line282">282  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line283">283  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Update, NULL);
+<a name="line284">284  |</a> #endif
+<a name="line285">285  |</a> 
+<a name="line286">286  |</a>     return( TCL_OK);			/** -------- EXIT (SUCCESS) -------&gt; **/
+<a name="line287">287  |</a> 
+<a name="line288">288  |</a> unwind1:
+<a name="line289">289  |</a>     null_free((void *) &amp;load_list);
+<a name="line290">290  |</a> unwind0:
+<a name="line291">291  |</a> #else	/* BEGINENV */
+<a name="line292">292  |</a> 	ErrorLogger( ERR_BEGINENV, LOC, NULL);
+<a name="line293">293  |</a> #endif	/* BEGINENV */
+<a name="line294">294  |</a>     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line295">295  |</a> 
+<a name="line296">296  |</a> } /** End of 'ModuleCmd_Update' **/
 </pre>
 
 </BODY>

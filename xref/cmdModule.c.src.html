@@ -25,7 +25,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line5">5    |</a>  **   Providing a flexible user environment				     **
 <a name="line6">6    |</a>  ** 									     **
 <a name="line7">7    |</a>  **   File:		cmdModule.c					     **
-<a name="line8">8    |</a>  **   First Edition:	91/10/23					     **
+<a name="line8">8    |</a>  **   First Edition:	1991/10/23					     **
 <a name="line9">9    |</a>  ** 									     **
 <a name="line10">10   |</a>  **   Authors:	John Furlan, jlf@behere.com				     **
 <a name="line11">11   |</a>  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -51,7 +51,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line31">31   |</a>  ** 									     ** 
 <a name="line32">32   |</a>  ** ************************************************************************ **/
 <a name="line33">33   |</a> 
-<a name="line34">34   |</a> static char Id[] = "@(#)$Id: cmdModule.c.src.html,v 1.2 2005/11/25 20:09:37 rkowen Exp $";
+<a name="line34">34   |</a> static char Id[] = "@(#)$Id: cmdModule.c.src.html,v 1.4 2006/01/12 20:43:31 rkowen Exp $";
 <a name="line35">35   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line36">36   |</a> 
 <a name="line37">37   |</a> /** ************************************************************************ **/
@@ -119,7 +119,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line99">99   |</a>  **   Description:	Evaluation of the module command line and callup of  **
 <a name="line100">100  |</a>  **			the according subroutine			     **
 <a name="line101">101  |</a>  ** 									     **
-<a name="line102">102  |</a>  **   First Edition:	91/10/23					     **
+<a name="line102">102  |</a>  **   First Edition:	1991/10/23					     **
 <a name="line103">103  |</a>  ** 									     **
 <a name="line104">104  |</a>  **   Parameters:	ClientData	 client_data			     **
 <a name="line105">105  |</a>  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -141,7 +141,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line121">121  |</a> int	cmdModule(	ClientData	 client_data,
 <a name="line122">122  |</a> 	       		Tcl_Interp	*interp,
 <a name="line123">123  |</a> 	       		int		 argc,
-<a name="line124">124  |</a> 	       		char		*argv[])
+<a name="line124">124  |</a> 	       		CONST84 char	*argv[])
 <a name="line125">125  |</a> {
 <a name="line126">126  |</a>     int		  return_val = -1, i;
 <a name="line127">127  |</a>     int		  store_flags = g_flags;
@@ -158,7 +158,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line138">138  |</a>      **/
 <a name="line139">139  |</a> 
 <a name="line140">140  |</a>     int		  num_modulefiles = argc - 2;
-<a name="line141">141  |</a>     char	**modulefile_list = argv + 2;
+<a name="line141">141  |</a>     char	**modulefile_list = (char **) argv + 2;
 <a name="line142">142  |</a> 
 <a name="line143">143  |</a> #if 0
 <a name="line144">144  |</a> 	int x=0;
@@ -456,7 +456,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line436">436  |</a> 
 <a name="line437">437  |</a>     if( CheckTracingList(interp,  module_command,
 <a name="line438">438  |</a> 	num_modulefiles, modulefile_list))
-<a name="line439">439  |</a> 	Module_Tracing( return_val, argc, argv);
+<a name="line439">439  |</a> 	Module_Tracing( return_val, argc, (char **) argv);
 <a name="line440">440  |</a> 
 <a name="line441">441  |</a>     /**
 <a name="line442">442  |</a>      **  Evaluate the subcommands return value in order to get rid of unrecog-
@@ -497,7 +497,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line477">477  |</a>  **   Description:	Check the passed filename for to be a valid module   **
 <a name="line478">478  |</a>  **			and execute the according command file		     **
 <a name="line479">479  |</a>  ** 									     **
-<a name="line480">480  |</a>  **   First Edition:	91/10/23					     **
+<a name="line480">480  |</a>  **   First Edition:	1991/10/23					     **
 <a name="line481">481  |</a>  ** 									     **
 <a name="line482">482  |</a>  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
 <a name="line483">483  |</a>  **		 	char		*filename			     **
@@ -559,342 +559,343 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line539">539  |</a> 	    tstr = strdup(interp-&gt;result);
 <a name="line540">540  |</a> 	    retexpPtr = Tcl_RegExpCompile(interp, "^EXIT ([0-9]*)");
 <a name="line541">541  |</a> 	    if( Tcl_RegExpExec(interp, retexpPtr, tstr, tstr)) {
-<a name="line542">542  |</a> 		Tcl_RegExpRange(retexpPtr, 1, &amp;startp, &amp;endp);
-<a name="line543">543  |</a> 		if( startp != '\0')
-<a name="line544">544  |</a> 		    result = atoi( startp );
-<a name="line545">545  |</a> 	    }
-<a name="line546">546  |</a> 	    if (tstr)
-<a name="line547">547  |</a> 		null_free((void *) &amp;tstr);
-<a name="line548">548  |</a> 	}
-<a name="line549">549  |</a>     }
-<a name="line550">550  |</a> 
-<a name="line551">551  |</a>     /**
-<a name="line552">552  |</a>      **  Return the result as derivered from the module file execution
-<a name="line553">553  |</a>      **/
-<a name="line554">554  |</a> 
-<a name="line555">555  |</a> #if WITH_DEBUGGING_UTIL
-<a name="line556">556  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_Read_Modulefile, NULL);
-<a name="line557">557  |</a> #endif
-<a name="line558">558  |</a> 
-<a name="line559">559  |</a>     return( result);
-<a name="line560">560  |</a> 
-<a name="line561">561  |</a> } /** End of 'Read_Modulefile' **/
-<a name="line562">562  |</a> 
-<a name="line563">563  |</a> /*++++
-<a name="line564">564  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line565">565  |</a>  ** 									     **
-<a name="line566">566  |</a>  **   Function:		Execute_TclFile					     **
-<a name="line567">567  |</a>  ** 									     **
-<a name="line568">568  |</a>  **   Description:	Read in and execute all commands concerning the Tcl  **
-<a name="line569">569  |</a>  **			file passed as parameter			     **
-<a name="line570">570  |</a>  ** 									     **
-<a name="line571">571  |</a>  **   First Edition:	91/10/23					     **
-<a name="line572">572  |</a>  ** 									     **
-<a name="line573">573  |</a>  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
-<a name="line574">574  |</a>  **		 	char		*filename			     **
-<a name="line575">575  |</a>  ** 									     **
-<a name="line576">576  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
-<a name="line577">577  |</a>  **				TCL_ERROR	Any error		     **
-<a name="line578">578  |</a>  ** 									     **
-<a name="line579">579  |</a>  **   Attached Globals:	line		Input read buffer		     **
-<a name="line580">580  |</a>  ** 									     **
-<a name="line581">581  |</a>  ** ************************************************************************ **
-<a name="line582">582  |</a>  ++++*/
-<a name="line583">583  |</a> 
-<a name="line584">584  |</a> int	 Execute_TclFile(	Tcl_Interp	*interp,
-<a name="line585">585  |</a> 		     		char		*filename)
-<a name="line586">586  |</a> {
-<a name="line587">587  |</a>     FILE	*infile;
-<a name="line588">588  |</a>     int		 gotPartial = 0;
-<a name="line589">589  |</a>     int		 result = 0;
-<a name="line590">590  |</a>     char	*cmd;
-<a name="line591">591  |</a>     Tcl_DString	 cmdbuf;
-<a name="line592">592  |</a> 
-<a name="line593">593  |</a> #if WITH_DEBUGGING_UTIL_1
-<a name="line594">594  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_Execute_TclFile, NULL);
-<a name="line595">595  |</a> #endif
-<a name="line596">596  |</a> 
-<a name="line597">597  |</a>     /**
-<a name="line598">598  |</a>      **  If there isn't a line buffer allocated so far, do it now
-<a name="line599">599  |</a>      **/
-<a name="line600">600  |</a> 
-<a name="line601">601  |</a>     if( line == NULL) {
-<a name="line602">602  |</a>         if( NULL == (line = (char*) malloc( LINELENGTH * sizeof( char)))) {
-<a name="line603">603  |</a> 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-<a name="line604">604  |</a> 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line605">605  |</a>         }
-<a name="line606">606  |</a>     }
-<a name="line607">607  |</a> 
-<a name="line608">608  |</a>     /**
-<a name="line609">609  |</a>      **  If we're supposed to be interpreting from stdin, set infile 
-<a name="line610">610  |</a>      **  equal to stdin, otherwise, open the file and interpret
-<a name="line611">611  |</a>      **/
-<a name="line612">612  |</a> 
-<a name="line613">613  |</a>     if( !strcmp( filename, _fil_stdin)) {
-<a name="line614">614  |</a> 	infile = stdin;
-<a name="line615">615  |</a>     } else {
-<a name="line616">616  |</a> 	if( NULL == (infile = fopen( filename, "r"))) {
-<a name="line617">617  |</a> 	    if( OK != ErrorLogger( ERR_OPEN, LOC, filename, "reading", NULL))
-<a name="line618">618  |</a> 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line619">619  |</a> 	}
-<a name="line620">620  |</a>     }
-<a name="line621">621  |</a>     
-<a name="line622">622  |</a>     /**
-<a name="line623">623  |</a>      **  Allow access to which file is being loaded.
-<a name="line624">624  |</a>      **/
-<a name="line625">625  |</a> 
-<a name="line626">626  |</a>     linenum = 0;
-<a name="line627">627  |</a>     Tcl_SetVar( interp, "ModulesCurrentModulefile", filename, 0);
-<a name="line628">628  |</a>     Tcl_DStringInit( &amp;cmdbuf);
-<a name="line629">629  |</a>     
-<a name="line630">630  |</a>     while( 1) {
-<a name="line631">631  |</a> 
-<a name="line632">632  |</a>         linenum++;
-<a name="line633">633  |</a> 	if( fgets(line, LINELENGTH, infile) == NULL) {
-<a name="line634">634  |</a> 	    if( !gotPartial) {
-<a name="line635">635  |</a> 		break;	/** while **/
-<a name="line636">636  |</a> 	    }
-<a name="line637">637  |</a> 	    line[0] = '\0';
-<a name="line638">638  |</a> 	}
-<a name="line639">639  |</a> 	
-<a name="line640">640  |</a> 	/**
-<a name="line641">641  |</a> 	 **  Put the whole command on the command buffer
-<a name="line642">642  |</a> 	 **/
-<a name="line643">643  |</a> 
-<a name="line644">644  |</a> 	cmd = Tcl_DStringAppend( &amp;cmdbuf, line, (-1));
-<a name="line645">645  |</a> 	
-<a name="line646">646  |</a> 	if( line[0] != 0  &amp;&amp; !Tcl_CommandComplete(cmd)) {
-<a name="line647">647  |</a> 	    gotPartial++;
-<a name="line648">648  |</a> 	    continue;
-<a name="line649">649  |</a> 	}
-<a name="line650">650  |</a> 	
-<a name="line651">651  |</a> 	/**
-<a name="line652">652  |</a> 	 **  Now evaluate the command and react on its result
-<a name="line653">653  |</a> 	 **  Reinitialize the command buffer
-<a name="line654">654  |</a> 	 **/
-<a name="line655">655  |</a> 
-<a name="line656">656  |</a> #if WITH_DEBUGGING_UTIL_1
-<a name="line657">657  |</a> 	ErrorLogger( NO_ERR_DEBUG, LOC, " Evaluating '", cmd, "'", NULL);
-<a name="line658">658  |</a> #endif
-<a name="line659">659  |</a> 
-<a name="line660">660  |</a>         result = Tcl_Eval( interp, cmd);
-<a name="line661">661  |</a> 
-<a name="line662">662  |</a> 	if( TCL_ERROR == result) {
-<a name="line663">663  |</a> 	    ErrorLogger( ERR_EXEC, LOC, cmd, NULL);
-<a name="line664">664  |</a> 	}
-<a name="line665">665  |</a> 
-<a name="line666">666  |</a> 	Tcl_DStringTrunc( &amp;cmdbuf, 0);
-<a name="line667">667  |</a> 
-<a name="line668">668  |</a> #if WITH_DEBUGGING_UTIL_1
-<a name="line669">669  |</a> 	{
-<a name="line670">670  |</a> 	    char buffer[ 80];
-<a name="line671">671  |</a> 
-<a name="line672">672  |</a> 	    switch( result) {
-<a name="line673">673  |</a> 		case TCL_OK:	    strcpy( buffer, "TCL_OK");
-<a name="line674">674  |</a> 				    break;
-<a name="line675">675  |</a> 		
-<a name="line676">676  |</a> 		case TCL_ERROR:	    strcpy( buffer, "TCL_ERROR");
-<a name="line677">677  |</a> 				    break;
-<a name="line678">678  |</a> 
-<a name="line679">679  |</a> 		case TCL_LEVEL0_RETURN:
-<a name="line680">680  |</a> 				    strcpy( buffer, "TCL_LEVEL0_RETURN");
-<a name="line681">681  |</a> 				    break;
-<a name="line682">682  |</a> 	    }
-<a name="line683">683  |</a> 
-<a name="line684">684  |</a> 	    ErrorLogger( NO_ERR_DEBUG, LOC, " Result: '", buffer, "'", NULL);
-<a name="line685">685  |</a> 	}
-<a name="line686">686  |</a> #endif
-<a name="line687">687  |</a> 
-<a name="line688">688  |</a>         switch( result) {
-<a name="line689">689  |</a> 
-<a name="line690">690  |</a>             case TCL_OK:	gotPartial = 0;
-<a name="line691">691  |</a> 			        continue;	/** while **/
-<a name="line692">692  |</a> 	    
-<a name="line693">693  |</a>             case TCL_ERROR:	interp-&gt;errorLine = ((linenum-1)-gotPartial) +
-<a name="line694">694  |</a> 				    interp-&gt;errorLine;
-<a name="line695">695  |</a> 	    			/* FALLTHROUGH */
-<a name="line696">696  |</a> 
-<a name="line697">697  |</a>             case TCL_LEVEL0_RETURN:
-<a name="line698">698  |</a> 	    			break;	/** switch **/
-<a name="line699">699  |</a> 	}
-<a name="line700">700  |</a> 
-<a name="line701">701  |</a> 	/**
-<a name="line702">702  |</a> 	 **  If the while loop hasn't been continued so far, it is to be broken
-<a name="line703">703  |</a> 	 **  now
-<a name="line704">704  |</a> 	 **/
-<a name="line705">705  |</a> 
-<a name="line706">706  |</a> 	break;	/** while **/
-<a name="line707">707  |</a> 
-<a name="line708">708  |</a>     } /** while **/
-<a name="line709">709  |</a> 
-<a name="line710">710  |</a>     /**
-<a name="line711">711  |</a>      **  Free up what has been used, close the input file and return the result
-<a name="line712">712  |</a>      **  of the last command to the caller
-<a name="line713">713  |</a>      **/
-<a name="line714">714  |</a> 
-<a name="line715">715  |</a>     Tcl_DStringFree( &amp;cmdbuf);
-<a name="line716">716  |</a>     if( EOF == fclose( infile))
-<a name="line717">717  |</a> 	if( OK != ErrorLogger( ERR_CLOSE, LOC, filename, NULL))
-<a name="line718">718  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line719">719  |</a> 
-<a name="line720">720  |</a> #if WITH_DEBUGGING_UTIL_1
-<a name="line721">721  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_Execute_TclFile, NULL);
-<a name="line722">722  |</a> #endif
-<a name="line723">723  |</a> 
-<a name="line724">724  |</a>     return( result);
-<a name="line725">725  |</a> 
-<a name="line726">726  |</a> } /** End of 'Execute_TclFile' **/
-<a name="line727">727  |</a> 
-<a name="line728">728  |</a> /*++++
-<a name="line729">729  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line730">730  |</a>  ** 									     **
-<a name="line731">731  |</a>  **   Function:		CallModuleProcedure				     **
-<a name="line732">732  |</a>  ** 									     **
-<a name="line733">733  |</a>  **   Description:	Call a Tcl Procedure				     **
-<a name="line734">734  |</a>  **			Executes the passed modulefile (conditionally hidden)**
-<a name="line735">735  |</a>  **			and then evaluates the passed Tcl procedure	     **
-<a name="line736">736  |</a>  ** 									     **
-<a name="line737">737  |</a>  **   First Edition:	91/10/23					     **
-<a name="line738">738  |</a>  ** 									     **
-<a name="line739">739  |</a>  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
-<a name="line740">740  |</a>  **			Tcl_DString	*cmdptr		Buffer fot the Tcl   **
-<a name="line741">741  |</a>  **							command		     **
-<a name="line742">742  |</a>  **			char		*modulefile	According module file**
-<a name="line743">743  |</a>  **			char		*procname	Name of the Tcl Proc.**
-<a name="line744">744  |</a>  **			int		 suppress_output  Controlls redirect.**
-<a name="line745">745  |</a>  **							of stdout and stderr **
-<a name="line746">746  |</a>  ** 									     **
-<a name="line747">747  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
-<a name="line748">748  |</a>  **				TCL_ERROR	Any error		     **
-<a name="line749">749  |</a>  ** 									     **
-<a name="line750">750  |</a>  **   Attached Globals:	-						     **
-<a name="line751">751  |</a>  ** 									     **
-<a name="line752">752  |</a>  ** ************************************************************************ **
-<a name="line753">753  |</a>  ++++*/
-<a name="line754">754  |</a> 
-<a name="line755">755  |</a> int  CallModuleProcedure(	Tcl_Interp	*interp,
-<a name="line756">756  |</a> 			 	Tcl_DString	*cmdptr,
-<a name="line757">757  |</a> 			 	char		*modulefile,
-<a name="line758">758  |</a> 			 	char		*procname,
-<a name="line759">759  |</a> 			 	int		 suppress_output)
-<a name="line760">760  |</a> {
-<a name="line761">761  |</a>     char 	 cmdline[ LINELENGTH];
-<a name="line762">762  |</a>     char	*cmd;
-<a name="line763">763  |</a>     int          result;
-<a name="line764">764  |</a>     int          saved_stdout = 0, saved_stderr = 0, devnull;
-<a name="line765">765  |</a> 
-<a name="line766">766  |</a> #if WITH_DEBUGGING_UTIL_1
-<a name="line767">767  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_CallModuleProcedure, NULL);
-<a name="line768">768  |</a> #endif
-<a name="line769">769  |</a> 
-<a name="line770">770  |</a>     /**
-<a name="line771">771  |</a>      **  Must send stdout and stderr to /dev/null until the 
-<a name="line772">772  |</a>      **  ModulesHelp procedure is called.
-<a name="line773">773  |</a>      **/
-<a name="line774">774  |</a> 
-<a name="line775">775  |</a>     if( suppress_output) {
-<a name="line776">776  |</a> 	if( 0 &gt; (devnull = open( _fil_devnull, O_RDWR))) {
-<a name="line777">777  |</a> 	    if( OK != ErrorLogger( ERR_OPEN, LOC, _fil_devnull, "changing", NULL))
-<a name="line778">778  |</a> 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line779">779  |</a> 	}
-<a name="line780">780  |</a> 	
-<a name="line781">781  |</a> 	/**
-<a name="line782">782  |</a> 	 **  Close STDOUT and reopen it as /dev/null
-<a name="line783">783  |</a> 	 **/
-<a name="line784">784  |</a> 
-<a name="line785">785  |</a> 	if( -1 == ( saved_stdout = dup( 1)))
-<a name="line786">786  |</a> 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stdout, NULL))
-<a name="line787">787  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line788">788  |</a> 	
-<a name="line789">789  |</a> 	if( -1 == close( 1))
-<a name="line790">790  |</a> 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stdout, NULL))
-<a name="line791">791  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line792">792  |</a> 
-<a name="line793">793  |</a> 	if( -1 == dup( devnull))
-<a name="line794">794  |</a> 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_devnull, NULL))
-<a name="line795">795  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line796">796  |</a> 	
-<a name="line797">797  |</a> 	/**
-<a name="line798">798  |</a> 	 **  Close STDERR and reopen it as /dev/null
-<a name="line799">799  |</a> 	 **/
-<a name="line800">800  |</a> 
-<a name="line801">801  |</a> 	if( -1 == ( saved_stdout = dup( 2)))
-<a name="line802">802  |</a> 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stderr, NULL))
-<a name="line803">803  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line804">804  |</a> 	
-<a name="line805">805  |</a> 	if( -1 == close( 2))
-<a name="line806">806  |</a> 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stderr, NULL))
-<a name="line807">807  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line808">808  |</a> 
-<a name="line809">809  |</a> 	if( -1 == dup( devnull))
-<a name="line810">810  |</a> 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_devnull, NULL))
-<a name="line811">811  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line812">812  |</a>     }
-<a name="line813">813  |</a> 
-<a name="line814">814  |</a>     /**
-<a name="line815">815  |</a>      **  Read the passed module file
-<a name="line816">816  |</a>      **/
-<a name="line817">817  |</a> 
-<a name="line818">818  |</a>     Read_Modulefile( interp, modulefile);
-<a name="line819">819  |</a> 
-<a name="line820">820  |</a>     /**
-<a name="line821">821  |</a>      **  Reinstall stdout and stderr
-<a name="line822">822  |</a>      **/
-<a name="line823">823  |</a> 
-<a name="line824">824  |</a>     if( suppress_output) {
-<a name="line825">825  |</a> 
-<a name="line826">826  |</a> 	/**
-<a name="line827">827  |</a> 	 **  Reinstall STDOUT
-<a name="line828">828  |</a> 	 **/
-<a name="line829">829  |</a> 
-<a name="line830">830  |</a> 	if( EOF == fflush( stdout))
-<a name="line831">831  |</a> 	    if( OK != ErrorLogger( ERR_FLUSH, LOC, _fil_stdout, NULL))
-<a name="line832">832  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line833">833  |</a> 
-<a name="line834">834  |</a> 	if( EOF == fflush( stderr))
-<a name="line835">835  |</a> 	    if( OK != ErrorLogger( ERR_FLUSH, LOC, _fil_stderr, NULL))
-<a name="line836">836  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line837">837  |</a> 	
-<a name="line838">838  |</a> 	if( -1 == close( 1))
-<a name="line839">839  |</a> 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stdout, NULL))
-<a name="line840">840  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line841">841  |</a> 
-<a name="line842">842  |</a> 	/**
-<a name="line843">843  |</a> 	 **  Reinstall STDERR
-<a name="line844">844  |</a> 	 **/
-<a name="line845">845  |</a> 
-<a name="line846">846  |</a> 	if( -1 == dup( saved_stdout))
-<a name="line847">847  |</a> 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stdout, NULL))
-<a name="line848">848  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line849">849  |</a> 	
-<a name="line850">850  |</a> 	if( -1 == close( 2))
-<a name="line851">851  |</a> 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stderr, NULL))
-<a name="line852">852  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line853">853  |</a> 	
-<a name="line854">854  |</a> 	if( -1 == dup( saved_stderr))
-<a name="line855">855  |</a> 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stderr, NULL))
-<a name="line856">856  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line857">857  |</a>     }	
-<a name="line858">858  |</a> 
-<a name="line859">859  |</a>     /**
-<a name="line860">860  |</a>      **  Now evaluate the Tcl Procedure
-<a name="line861">861  |</a>      **/
-<a name="line862">862  |</a> 
-<a name="line863">863  |</a>     /* sprintf( cmdline, "%s\n", procname); */
-<a name="line864">864  |</a>     strcpy( cmdline, procname);
-<a name="line865">865  |</a>     strcat( cmdline, "\n");
-<a name="line866">866  |</a>     cmd = Tcl_DStringAppend( cmdptr, cmdline, (-1));
-<a name="line867">867  |</a> 
-<a name="line868">868  |</a>     result = Tcl_Eval( interp, cmd);
-<a name="line869">869  |</a>     Tcl_DStringTrunc( cmdptr, 0);
-<a name="line870">870  |</a> 
-<a name="line871">871  |</a> #if WITH_DEBUGGING_UTIL_1
-<a name="line872">872  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_CallModuleProcedure, NULL);
-<a name="line873">873  |</a> #endif
-<a name="line874">874  |</a> 
-<a name="line875">875  |</a>     return( result);
-<a name="line876">876  |</a> 
-<a name="line877">877  |</a> } /** End of 'CallModuleProcedure' **/
+<a name="line542">542  |</a> 		Tcl_RegExpRange(retexpPtr, 1,
+<a name="line543">543  |</a> 			(CONST84 char **) &amp;startp, (CONST84 char **) &amp;endp);
+<a name="line544">544  |</a> 		if( startp != '\0')
+<a name="line545">545  |</a> 		    result = atoi( startp );
+<a name="line546">546  |</a> 	    }
+<a name="line547">547  |</a> 	    if (tstr)
+<a name="line548">548  |</a> 		null_free((void *) &amp;tstr);
+<a name="line549">549  |</a> 	}
+<a name="line550">550  |</a>     }
+<a name="line551">551  |</a> 
+<a name="line552">552  |</a>     /**
+<a name="line553">553  |</a>      **  Return the result as derivered from the module file execution
+<a name="line554">554  |</a>      **/
+<a name="line555">555  |</a> 
+<a name="line556">556  |</a> #if WITH_DEBUGGING_UTIL
+<a name="line557">557  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_Read_Modulefile, NULL);
+<a name="line558">558  |</a> #endif
+<a name="line559">559  |</a> 
+<a name="line560">560  |</a>     return( result);
+<a name="line561">561  |</a> 
+<a name="line562">562  |</a> } /** End of 'Read_Modulefile' **/
+<a name="line563">563  |</a> 
+<a name="line564">564  |</a> /*++++
+<a name="line565">565  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line566">566  |</a>  ** 									     **
+<a name="line567">567  |</a>  **   Function:		Execute_TclFile					     **
+<a name="line568">568  |</a>  ** 									     **
+<a name="line569">569  |</a>  **   Description:	Read in and execute all commands concerning the Tcl  **
+<a name="line570">570  |</a>  **			file passed as parameter			     **
+<a name="line571">571  |</a>  ** 									     **
+<a name="line572">572  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line573">573  |</a>  ** 									     **
+<a name="line574">574  |</a>  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
+<a name="line575">575  |</a>  **		 	char		*filename			     **
+<a name="line576">576  |</a>  ** 									     **
+<a name="line577">577  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
+<a name="line578">578  |</a>  **				TCL_ERROR	Any error		     **
+<a name="line579">579  |</a>  ** 									     **
+<a name="line580">580  |</a>  **   Attached Globals:	line		Input read buffer		     **
+<a name="line581">581  |</a>  ** 									     **
+<a name="line582">582  |</a>  ** ************************************************************************ **
+<a name="line583">583  |</a>  ++++*/
+<a name="line584">584  |</a> 
+<a name="line585">585  |</a> int	 Execute_TclFile(	Tcl_Interp	*interp,
+<a name="line586">586  |</a> 		     		char		*filename)
+<a name="line587">587  |</a> {
+<a name="line588">588  |</a>     FILE	*infile;
+<a name="line589">589  |</a>     int		 gotPartial = 0;
+<a name="line590">590  |</a>     int		 result = 0;
+<a name="line591">591  |</a>     char	*cmd;
+<a name="line592">592  |</a>     Tcl_DString	 cmdbuf;
+<a name="line593">593  |</a> 
+<a name="line594">594  |</a> #if WITH_DEBUGGING_UTIL_1
+<a name="line595">595  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_Execute_TclFile, NULL);
+<a name="line596">596  |</a> #endif
+<a name="line597">597  |</a> 
+<a name="line598">598  |</a>     /**
+<a name="line599">599  |</a>      **  If there isn't a line buffer allocated so far, do it now
+<a name="line600">600  |</a>      **/
+<a name="line601">601  |</a> 
+<a name="line602">602  |</a>     if( line == NULL) {
+<a name="line603">603  |</a>         if( NULL == (line = (char*) malloc( LINELENGTH * sizeof( char)))) {
+<a name="line604">604  |</a> 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+<a name="line605">605  |</a> 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line606">606  |</a>         }
+<a name="line607">607  |</a>     }
+<a name="line608">608  |</a> 
+<a name="line609">609  |</a>     /**
+<a name="line610">610  |</a>      **  If we're supposed to be interpreting from stdin, set infile 
+<a name="line611">611  |</a>      **  equal to stdin, otherwise, open the file and interpret
+<a name="line612">612  |</a>      **/
+<a name="line613">613  |</a> 
+<a name="line614">614  |</a>     if( !strcmp( filename, _fil_stdin)) {
+<a name="line615">615  |</a> 	infile = stdin;
+<a name="line616">616  |</a>     } else {
+<a name="line617">617  |</a> 	if( NULL == (infile = fopen( filename, "r"))) {
+<a name="line618">618  |</a> 	    if( OK != ErrorLogger( ERR_OPEN, LOC, filename, "reading", NULL))
+<a name="line619">619  |</a> 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line620">620  |</a> 	}
+<a name="line621">621  |</a>     }
+<a name="line622">622  |</a>     
+<a name="line623">623  |</a>     /**
+<a name="line624">624  |</a>      **  Allow access to which file is being loaded.
+<a name="line625">625  |</a>      **/
+<a name="line626">626  |</a> 
+<a name="line627">627  |</a>     linenum = 0;
+<a name="line628">628  |</a>     Tcl_SetVar( interp, "ModulesCurrentModulefile", filename, 0);
+<a name="line629">629  |</a>     Tcl_DStringInit( &amp;cmdbuf);
+<a name="line630">630  |</a>     
+<a name="line631">631  |</a>     while( 1) {
+<a name="line632">632  |</a> 
+<a name="line633">633  |</a>         linenum++;
+<a name="line634">634  |</a> 	if( fgets(line, LINELENGTH, infile) == NULL) {
+<a name="line635">635  |</a> 	    if( !gotPartial) {
+<a name="line636">636  |</a> 		break;	/** while **/
+<a name="line637">637  |</a> 	    }
+<a name="line638">638  |</a> 	    line[0] = '\0';
+<a name="line639">639  |</a> 	}
+<a name="line640">640  |</a> 	
+<a name="line641">641  |</a> 	/**
+<a name="line642">642  |</a> 	 **  Put the whole command on the command buffer
+<a name="line643">643  |</a> 	 **/
+<a name="line644">644  |</a> 
+<a name="line645">645  |</a> 	cmd = Tcl_DStringAppend( &amp;cmdbuf, line, (-1));
+<a name="line646">646  |</a> 	
+<a name="line647">647  |</a> 	if( line[0] != 0  &amp;&amp; !Tcl_CommandComplete(cmd)) {
+<a name="line648">648  |</a> 	    gotPartial++;
+<a name="line649">649  |</a> 	    continue;
+<a name="line650">650  |</a> 	}
+<a name="line651">651  |</a> 	
+<a name="line652">652  |</a> 	/**
+<a name="line653">653  |</a> 	 **  Now evaluate the command and react on its result
+<a name="line654">654  |</a> 	 **  Reinitialize the command buffer
+<a name="line655">655  |</a> 	 **/
+<a name="line656">656  |</a> 
+<a name="line657">657  |</a> #if WITH_DEBUGGING_UTIL_1
+<a name="line658">658  |</a> 	ErrorLogger( NO_ERR_DEBUG, LOC, " Evaluating '", cmd, "'", NULL);
+<a name="line659">659  |</a> #endif
+<a name="line660">660  |</a> 
+<a name="line661">661  |</a>         result = Tcl_Eval( interp, cmd);
+<a name="line662">662  |</a> 
+<a name="line663">663  |</a> 	if( TCL_ERROR == result) {
+<a name="line664">664  |</a> 	    ErrorLogger( ERR_EXEC, LOC, cmd, NULL);
+<a name="line665">665  |</a> 	}
+<a name="line666">666  |</a> 
+<a name="line667">667  |</a> 	Tcl_DStringTrunc( &amp;cmdbuf, 0);
+<a name="line668">668  |</a> 
+<a name="line669">669  |</a> #if WITH_DEBUGGING_UTIL_1
+<a name="line670">670  |</a> 	{
+<a name="line671">671  |</a> 	    char buffer[ 80];
+<a name="line672">672  |</a> 
+<a name="line673">673  |</a> 	    switch( result) {
+<a name="line674">674  |</a> 		case TCL_OK:	    strcpy( buffer, "TCL_OK");
+<a name="line675">675  |</a> 				    break;
+<a name="line676">676  |</a> 		
+<a name="line677">677  |</a> 		case TCL_ERROR:	    strcpy( buffer, "TCL_ERROR");
+<a name="line678">678  |</a> 				    break;
+<a name="line679">679  |</a> 
+<a name="line680">680  |</a> 		case TCL_LEVEL0_RETURN:
+<a name="line681">681  |</a> 				    strcpy( buffer, "TCL_LEVEL0_RETURN");
+<a name="line682">682  |</a> 				    break;
+<a name="line683">683  |</a> 	    }
+<a name="line684">684  |</a> 
+<a name="line685">685  |</a> 	    ErrorLogger( NO_ERR_DEBUG, LOC, " Result: '", buffer, "'", NULL);
+<a name="line686">686  |</a> 	}
+<a name="line687">687  |</a> #endif
+<a name="line688">688  |</a> 
+<a name="line689">689  |</a>         switch( result) {
+<a name="line690">690  |</a> 
+<a name="line691">691  |</a>             case TCL_OK:	gotPartial = 0;
+<a name="line692">692  |</a> 			        continue;	/** while **/
+<a name="line693">693  |</a> 	    
+<a name="line694">694  |</a>             case TCL_ERROR:	interp-&gt;errorLine = ((linenum-1)-gotPartial) +
+<a name="line695">695  |</a> 				    interp-&gt;errorLine;
+<a name="line696">696  |</a> 	    			/* FALLTHROUGH */
+<a name="line697">697  |</a> 
+<a name="line698">698  |</a>             case TCL_LEVEL0_RETURN:
+<a name="line699">699  |</a> 	    			break;	/** switch **/
+<a name="line700">700  |</a> 	}
+<a name="line701">701  |</a> 
+<a name="line702">702  |</a> 	/**
+<a name="line703">703  |</a> 	 **  If the while loop hasn't been continued so far, it is to be broken
+<a name="line704">704  |</a> 	 **  now
+<a name="line705">705  |</a> 	 **/
+<a name="line706">706  |</a> 
+<a name="line707">707  |</a> 	break;	/** while **/
+<a name="line708">708  |</a> 
+<a name="line709">709  |</a>     } /** while **/
+<a name="line710">710  |</a> 
+<a name="line711">711  |</a>     /**
+<a name="line712">712  |</a>      **  Free up what has been used, close the input file and return the result
+<a name="line713">713  |</a>      **  of the last command to the caller
+<a name="line714">714  |</a>      **/
+<a name="line715">715  |</a> 
+<a name="line716">716  |</a>     Tcl_DStringFree( &amp;cmdbuf);
+<a name="line717">717  |</a>     if( EOF == fclose( infile))
+<a name="line718">718  |</a> 	if( OK != ErrorLogger( ERR_CLOSE, LOC, filename, NULL))
+<a name="line719">719  |</a> 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line720">720  |</a> 
+<a name="line721">721  |</a> #if WITH_DEBUGGING_UTIL_1
+<a name="line722">722  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_Execute_TclFile, NULL);
+<a name="line723">723  |</a> #endif
+<a name="line724">724  |</a> 
+<a name="line725">725  |</a>     return( result);
+<a name="line726">726  |</a> 
+<a name="line727">727  |</a> } /** End of 'Execute_TclFile' **/
+<a name="line728">728  |</a> 
+<a name="line729">729  |</a> /*++++
+<a name="line730">730  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line731">731  |</a>  ** 									     **
+<a name="line732">732  |</a>  **   Function:		CallModuleProcedure				     **
+<a name="line733">733  |</a>  ** 									     **
+<a name="line734">734  |</a>  **   Description:	Call a Tcl Procedure				     **
+<a name="line735">735  |</a>  **			Executes the passed modulefile (conditionally hidden)**
+<a name="line736">736  |</a>  **			and then evaluates the passed Tcl procedure	     **
+<a name="line737">737  |</a>  ** 									     **
+<a name="line738">738  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line739">739  |</a>  ** 									     **
+<a name="line740">740  |</a>  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
+<a name="line741">741  |</a>  **			Tcl_DString	*cmdptr		Buffer fot the Tcl   **
+<a name="line742">742  |</a>  **							command		     **
+<a name="line743">743  |</a>  **			char		*modulefile	According module file**
+<a name="line744">744  |</a>  **			char		*procname	Name of the Tcl Proc.**
+<a name="line745">745  |</a>  **			int		 suppress_output  Controlls redirect.**
+<a name="line746">746  |</a>  **							of stdout and stderr **
+<a name="line747">747  |</a>  ** 									     **
+<a name="line748">748  |</a>  **   Result:		int	TCL_OK		Successfull completion	     **
+<a name="line749">749  |</a>  **				TCL_ERROR	Any error		     **
+<a name="line750">750  |</a>  ** 									     **
+<a name="line751">751  |</a>  **   Attached Globals:	-						     **
+<a name="line752">752  |</a>  ** 									     **
+<a name="line753">753  |</a>  ** ************************************************************************ **
+<a name="line754">754  |</a>  ++++*/
+<a name="line755">755  |</a> 
+<a name="line756">756  |</a> int  CallModuleProcedure(	Tcl_Interp	*interp,
+<a name="line757">757  |</a> 			 	Tcl_DString	*cmdptr,
+<a name="line758">758  |</a> 			 	char		*modulefile,
+<a name="line759">759  |</a> 			 	char		*procname,
+<a name="line760">760  |</a> 			 	int		 suppress_output)
+<a name="line761">761  |</a> {
+<a name="line762">762  |</a>     char 	 cmdline[ LINELENGTH];
+<a name="line763">763  |</a>     char	*cmd;
+<a name="line764">764  |</a>     int          result;
+<a name="line765">765  |</a>     int          saved_stdout = 0, saved_stderr = 0, devnull;
+<a name="line766">766  |</a> 
+<a name="line767">767  |</a> #if WITH_DEBUGGING_UTIL_1
+<a name="line768">768  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_CallModuleProcedure, NULL);
+<a name="line769">769  |</a> #endif
+<a name="line770">770  |</a> 
+<a name="line771">771  |</a>     /**
+<a name="line772">772  |</a>      **  Must send stdout and stderr to /dev/null until the 
+<a name="line773">773  |</a>      **  ModulesHelp procedure is called.
+<a name="line774">774  |</a>      **/
+<a name="line775">775  |</a> 
+<a name="line776">776  |</a>     if( suppress_output) {
+<a name="line777">777  |</a> 	if( 0 &gt; (devnull = open( _fil_devnull, O_RDWR))) {
+<a name="line778">778  |</a> 	    if( OK != ErrorLogger( ERR_OPEN, LOC, _fil_devnull, "changing", NULL))
+<a name="line779">779  |</a> 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line780">780  |</a> 	}
+<a name="line781">781  |</a> 	
+<a name="line782">782  |</a> 	/**
+<a name="line783">783  |</a> 	 **  Close STDOUT and reopen it as /dev/null
+<a name="line784">784  |</a> 	 **/
+<a name="line785">785  |</a> 
+<a name="line786">786  |</a> 	if( -1 == ( saved_stdout = dup( 1)))
+<a name="line787">787  |</a> 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stdout, NULL))
+<a name="line788">788  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line789">789  |</a> 	
+<a name="line790">790  |</a> 	if( -1 == close( 1))
+<a name="line791">791  |</a> 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stdout, NULL))
+<a name="line792">792  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line793">793  |</a> 
+<a name="line794">794  |</a> 	if( -1 == dup( devnull))
+<a name="line795">795  |</a> 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_devnull, NULL))
+<a name="line796">796  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line797">797  |</a> 	
+<a name="line798">798  |</a> 	/**
+<a name="line799">799  |</a> 	 **  Close STDERR and reopen it as /dev/null
+<a name="line800">800  |</a> 	 **/
+<a name="line801">801  |</a> 
+<a name="line802">802  |</a> 	if( -1 == ( saved_stdout = dup( 2)))
+<a name="line803">803  |</a> 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stderr, NULL))
+<a name="line804">804  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line805">805  |</a> 	
+<a name="line806">806  |</a> 	if( -1 == close( 2))
+<a name="line807">807  |</a> 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stderr, NULL))
+<a name="line808">808  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line809">809  |</a> 
+<a name="line810">810  |</a> 	if( -1 == dup( devnull))
+<a name="line811">811  |</a> 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_devnull, NULL))
+<a name="line812">812  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line813">813  |</a>     }
+<a name="line814">814  |</a> 
+<a name="line815">815  |</a>     /**
+<a name="line816">816  |</a>      **  Read the passed module file
+<a name="line817">817  |</a>      **/
+<a name="line818">818  |</a> 
+<a name="line819">819  |</a>     Read_Modulefile( interp, modulefile);
+<a name="line820">820  |</a> 
+<a name="line821">821  |</a>     /**
+<a name="line822">822  |</a>      **  Reinstall stdout and stderr
+<a name="line823">823  |</a>      **/
+<a name="line824">824  |</a> 
+<a name="line825">825  |</a>     if( suppress_output) {
+<a name="line826">826  |</a> 
+<a name="line827">827  |</a> 	/**
+<a name="line828">828  |</a> 	 **  Reinstall STDOUT
+<a name="line829">829  |</a> 	 **/
+<a name="line830">830  |</a> 
+<a name="line831">831  |</a> 	if( EOF == fflush( stdout))
+<a name="line832">832  |</a> 	    if( OK != ErrorLogger( ERR_FLUSH, LOC, _fil_stdout, NULL))
+<a name="line833">833  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line834">834  |</a> 
+<a name="line835">835  |</a> 	if( EOF == fflush( stderr))
+<a name="line836">836  |</a> 	    if( OK != ErrorLogger( ERR_FLUSH, LOC, _fil_stderr, NULL))
+<a name="line837">837  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line838">838  |</a> 	
+<a name="line839">839  |</a> 	if( -1 == close( 1))
+<a name="line840">840  |</a> 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stdout, NULL))
+<a name="line841">841  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line842">842  |</a> 
+<a name="line843">843  |</a> 	/**
+<a name="line844">844  |</a> 	 **  Reinstall STDERR
+<a name="line845">845  |</a> 	 **/
+<a name="line846">846  |</a> 
+<a name="line847">847  |</a> 	if( -1 == dup( saved_stdout))
+<a name="line848">848  |</a> 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stdout, NULL))
+<a name="line849">849  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line850">850  |</a> 	
+<a name="line851">851  |</a> 	if( -1 == close( 2))
+<a name="line852">852  |</a> 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stderr, NULL))
+<a name="line853">853  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line854">854  |</a> 	
+<a name="line855">855  |</a> 	if( -1 == dup( saved_stderr))
+<a name="line856">856  |</a> 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stderr, NULL))
+<a name="line857">857  |</a> 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line858">858  |</a>     }	
+<a name="line859">859  |</a> 
+<a name="line860">860  |</a>     /**
+<a name="line861">861  |</a>      **  Now evaluate the Tcl Procedure
+<a name="line862">862  |</a>      **/
+<a name="line863">863  |</a> 
+<a name="line864">864  |</a>     /* sprintf( cmdline, "%s\n", procname); */
+<a name="line865">865  |</a>     strcpy( cmdline, procname);
+<a name="line866">866  |</a>     strcat( cmdline, "\n");
+<a name="line867">867  |</a>     cmd = Tcl_DStringAppend( cmdptr, cmdline, (-1));
+<a name="line868">868  |</a> 
+<a name="line869">869  |</a>     result = Tcl_Eval( interp, cmd);
+<a name="line870">870  |</a>     Tcl_DStringTrunc( cmdptr, 0);
+<a name="line871">871  |</a> 
+<a name="line872">872  |</a> #if WITH_DEBUGGING_UTIL_1
+<a name="line873">873  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_CallModuleProcedure, NULL);
+<a name="line874">874  |</a> #endif
+<a name="line875">875  |</a> 
+<a name="line876">876  |</a>     return( result);
+<a name="line877">877  |</a> 
+<a name="line878">878  |</a> } /** End of 'CallModuleProcedure' **/
 </pre>
 
 </BODY>

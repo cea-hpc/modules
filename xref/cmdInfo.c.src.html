@@ -25,7 +25,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line5">5    |</a>  **   Providing a flexible user environment				     **
 <a name="line6">6    |</a>  ** 									     **
 <a name="line7">7    |</a>  **   File:		cmdInfo.c					     **
-<a name="line8">8    |</a>  **   First Edition:	91/10/23					     **
+<a name="line8">8    |</a>  **   First Edition:	1991/10/23					     **
 <a name="line9">9    |</a>  ** 									     **
 <a name="line10">10   |</a>  **   Authors:	John Furlan, jlf@behere.com				     **
 <a name="line11">11   |</a>  **		Jens Hamisch, jens@Strawberry.COM			     **
@@ -48,7 +48,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line28">28   |</a>  ** 									     ** 
 <a name="line29">29   |</a>  ** ************************************************************************ **/
 <a name="line30">30   |</a> 
-<a name="line31">31   |</a> static char Id[] = "@(#)$Id: cmdInfo.c.src.html,v 1.2 2005/11/25 20:09:37 rkowen Exp $";
+<a name="line31">31   |</a> static char Id[] = "@(#)$Id: cmdInfo.c.src.html,v 1.6 2006/01/18 05:35:11 rkowen Exp $";
 <a name="line32">32   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line33">33   |</a> 
 <a name="line34">34   |</a> /** ************************************************************************ **/
@@ -98,7 +98,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line78">78   |</a>  ** 									     **
 <a name="line79">79   |</a>  **   Description:	Callback function for 'module-info'		     **
 <a name="line80">80   |</a>  ** 									     **
-<a name="line81">81   |</a>  **   First Edition:	91/10/23					     **
+<a name="line81">81   |</a>  **   First Edition:	1991/10/23					     **
 <a name="line82">82   |</a>  ** 									     **
 <a name="line83">83   |</a>  **   Parameters:	ClientData	 client_data			     **
 <a name="line84">84   |</a>  **			Tcl_Interp	*interp		According Tcl interp.**
@@ -123,7 +123,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line103">103  |</a> int	cmdModuleInfo(	ClientData	 client_data,
 <a name="line104">104  |</a> 	      		Tcl_Interp	*interp,
 <a name="line105">105  |</a> 	      		int		 argc,
-<a name="line106">106  |</a> 	      		char		*argv[])
+<a name="line106">106  |</a> 	      		CONST84 char	*argv[])
 <a name="line107">107  |</a> {
 <a name="line108">108  |</a>     char *s, *t, buf[ BUFSIZ];
 <a name="line109">109  |</a> 
@@ -312,12 +312,12 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line292">292  |</a> 	char *cmd, *module;
 <a name="line293">293  |</a> 
 <a name="line294">294  |</a> 	if( argc &gt; 2) 
-<a name="line295">295  |</a> 	    cmd = argv[ 2];
+<a name="line295">295  |</a> 	    cmd = (char *) argv[ 2];
 <a name="line296">296  |</a> 	else
 <a name="line297">297  |</a> 	    cmd = module_command;
 <a name="line298">298  |</a> 
 <a name="line299">299  |</a> 	if( argc &gt; 3) 
-<a name="line300">300  |</a> 	    module = argv[ 3];
+<a name="line300">300  |</a> 	    module = (char *) argv[ 3];
 <a name="line301">301  |</a> 	else
 <a name="line302">302  |</a> 	    module = g_current_module;
 <a name="line303">303  |</a> 
@@ -330,7 +330,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line310">310  |</a> 	char *cmd, *pattern;
 <a name="line311">311  |</a> 
 <a name="line312">312  |</a> 	if( argc &gt; 2) 
-<a name="line313">313  |</a> 	    cmd = argv[ 2];
+<a name="line313">313  |</a> 	    cmd = (char *) argv[ 2];
 <a name="line314">314  |</a> 	else
 <a name="line315">315  |</a> 	    cmd = module_command;
 <a name="line316">316  |</a> 
@@ -352,7 +352,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line332">332  |</a> 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------&gt; **/
 <a name="line333">333  |</a> 	}
 <a name="line334">334  |</a>       
-<a name="line335">335  |</a> 	if( AliasLookup( argv[2], &amp;s, &amp;t)) {
+<a name="line335">335  |</a> 	if( AliasLookup( (char *) argv[2], &amp;s, &amp;t)) {
 <a name="line336">336  |</a> 	    /* sprintf( buf, "%s/%s", s, t); */
 <a name="line337">337  |</a> 	    strcpy( buf, s);
 <a name="line338">338  |</a> 	    strcat( buf, "/");
@@ -370,7 +370,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line350">350  |</a>     } else if( !strcmp(argv[1], "symbols")) {
 <a name="line351">351  |</a> 	char *name;
 <a name="line352">352  |</a> 
-<a name="line353">353  |</a> 	name = (argc &lt; 3) ? g_current_module : argv[2];
+<a name="line353">353  |</a> 	name = (argc &lt; 3) ? g_current_module : (char *) argv[2];
 <a name="line354">354  |</a> 
 <a name="line355">355  |</a> 	if((char *) NULL == (s = ExpandVersions( name)))
 <a name="line356">356  |</a> 	    Tcl_SetResult( interp, "*undef*", TCL_STATIC);
@@ -384,7 +384,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI
 <a name="line364">364  |</a>      **/
 <a name="line365">365  |</a> 
 <a name="line366">366  |</a>     } else if( !strcmp(argv[1], "version")) {
-<a name="line367">367  |</a> 	if( VersionLookup( argv[2], &amp;s, &amp;t)) {
+<a name="line367">367  |</a> 	if( VersionLookup( (char *) argv[2], &amp;s, &amp;t)) {
 <a name="line368">368  |</a> 	    if( t) {
 <a name="line369">369  |</a> 		/* sprintf( buf, "%s/%s", s, t); */
 <a name="line370">370  |</a> 		strcpy( buf, s);
