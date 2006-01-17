@@ -26,8 +26,6 @@
  **			chk_marked_entry				     **
  **			set_marked_entry				     **
  **			Update_LoadedList				     **
- **			ForceBasePath					     **
- **			ForceSacredPath					     **
  **			check_magic					     **
  **			cleanse_path					     **
  **			chk4spch					     **
@@ -52,7 +50,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.18 2006/01/17 20:57:41 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.19 2006/01/17 22:58:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -106,7 +104,6 @@ static	char	_proc_chk_marked_entry[] = "chk_marked_entry";
 static	char	_proc_set_marked_entry[] = "set_marked_entry";
 static	char	_proc_get_module_basename[] = "get_module_basename";
 static	char	_proc_Update_LoadedList[] = "Update_LoadedList";
-static	char	_proc_ForcePath[] = "ForcePath";
 static	char	_proc_check_magic[] = "check_magic";
 static	char	_proc_cleanse_path[] = "cleanse_path";
 static	char	_proc_chop[] = "chop";
@@ -151,7 +148,6 @@ static	int	 output_set_alias( const char*, const char*);
 static	int	 output_unset_alias( const char*, const char*);
 static	int	 __IsLoaded( Tcl_Interp*, char*, char**, char*, int);
 static	char	*get_module_basename( char*);
-static	int	 ForcePath( Tcl_Interp*, char*, char*, int);
 static	char	*chop( const char*);
 static  void     EscapeCshString(const char* in,
 				 char* out);
@@ -2106,88 +2102,6 @@ int Update_LoadedList(	Tcl_Interp	*interp,
     return( 1);
 
 } /** End of 'Update_LoadedList' **/
-
-/*++++
- ** ** Function-Header ***************************************************** **
- ** 									     **
- **   Function:		ForceBasePath					     **
- ** 									     **
- **   Description:	Remove and than add the passed value from/to the     **
- **			passed variable. After removal, the module-path is   **
- **			APPENDED to the passed variable if 'ForceBasePath'   **
- **			has been called and PREPENDED if it was 	     **
- **			'ForceSacredPath'				     **
- ** 									     **
- **   First Edition:	1991/10/23					     **
- ** 									     **
- **   Parameters:	Tcl_Interp      *interp		Attached Tcl interpr.**
- **			char            *variable_name	Attached variable    **
- **			char            *force_pathname Name of the path to  **
- **							be removed/added     **
- **									     **
- **   Result:		int	1	Successfull operation		     **
- **									     **
- **   Attached Globals:	-						     **
- ** 									     **
- ** ************************************************************************ **
- ++++*/
-
-int ForceSacredPath(	Tcl_Interp	*interp, 
-                  	char		*variable_name, 
-                  	char		*force_pathname)
-{
-    return( ForcePath( interp, variable_name, force_pathname, 0));
-}
-
-int ForceBasePath(	Tcl_Interp	*interp, 
-                  	char		*variable_name, 
-                  	char		*force_pathname)
-{
-    return( ForcePath( interp, variable_name, force_pathname, 1));
-}
-
-static int ForcePath(	Tcl_Interp	*interp, 
-                  	char		*variable_name, 
-                  	char		*force_pathname,
-			int		 append)
-{
-    char	*argv[4];
-    
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_ForcePath, NULL);
-#endif
-
-    /**
-     **  If no pathname to be forced is specified, success is suggested
-     **/
-    if(	force_pathname == NULL)
-	return( 1);
-
-    /**
-     **  Set up an according environment and call the command functions
-     **/
-    argv[1] = variable_name;
-    argv[2] = force_pathname;
-    argv[3] = NULL;
-
-    /**
-     **  First remove the pathname that we're forcing...
-     **/
-    argv[0] = "remove-path";
-    cmdRemovePath( 0, interp, 3, (CONST84 char **) argv);
-
-    /**
-     **  Next, add it back to the very end of the list
-     **/
-    argv[0] = append ? "append-path" : "prepend-path";
-    cmdSetPath( 0, interp, 3, (CONST84 char **) argv);
-
-    /**
-     **  Return on success 
-     **/
-    return( 1);
-
-} /** End of 'ForcePath' **/
 
 /*++++
  ** ** Function-Header ***************************************************** **

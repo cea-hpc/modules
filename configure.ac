@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.19 2006/01/17 20:58:31 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.20 2006/01/17 22:58:29 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -266,9 +266,6 @@ want to run the testsuite"
 dnl
 dnl Here we define some --with & --enable things:
 dnl
-dnl --with-force-path=<path>	With force path=<path>
-dnl --without-force-path	Without  - " -			[DEF]
-dnl
 dnl --with-split-size[=<size>]	With split size=<size>		[TEST]
 dnl --without-split-size	Without  - " -
 dnl
@@ -296,21 +293,6 @@ dnl
 dnl --enable-beginenv		Use .modulesbeginenv for initial env.	[TEST]
 dnl --disable-beginenv		Do not use .modulesbeginenv
 dnl
-dnl ---------------------------------------------------------------------------
-AH_VERBATIM([FORCE_PATH],[
-/* FORCE_PATH:
- *     This symbol, if defined, is the "default" path built-in to the
- *     modulecmd app. Note: There is no longer a FORCE_PATH_BASE!
-#undef FORCE_PATH
-#define FORCE_PATH_SACRED  NULL
-#define FORCE_LD_LIBRARY_PATH_SACRED NULL
-])dnl
-AC_ARG_WITH(force-path,
-	AC_HELP_STRING([--with-force-path=<path>],[use force path=<path> [[no]]]),
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval="/usr/bin"
-		AC_DEFINE_UNQUOTED(FORCE_PATH, "$withval")
-	fi)dnl
 dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([LMSPLIT_SIZE],[
 LMSPLIT_SIZE:

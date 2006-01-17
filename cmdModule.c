@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.10 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.11 2006/01/17 22:58:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -127,10 +127,6 @@ int	cmdModule(	ClientData	 client_data,
     int		  store_flags = g_flags;
     char	 *store_curmodule = NULL;
     char	 *save_module_command = NULL;
-#ifdef FORCE_PATH
-    char	 *base_path = NULL;
-    char	 *sacred_path = NULL;
-#endif
     int 	  match = 0;
 
     /**
@@ -218,39 +214,6 @@ int	cmdModule(	ClientData	 client_data,
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, addRE)) {
 	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
 	return_val = ModuleCmd_Load( interp, 1,num_modulefiles,modulefile_list);
-
-#ifdef FORCE_PATH
-        if( return_val) {
-
-           /**
-            **  return_val now indicates whether ANY modulefile was loaded
-            **  Only if any modulefile was loaded do we need to worry
-            **  about forcing paths.
-            **/
-
-            if( base_path = (char *) getenv( "MODULES_PATH_BASE") ||
-                base_path = (char *) getenv( "BASE_PATH")) {
-                ForceBasePath( interp, "PATH", base_path);
-            } else {
-                ForceBasePath( interp, "PATH", FORCE_PATH);
-            }
-
-            if( sacred_path = (char *) getenv( "MODULES_PATH_SACRED") ||
-                sacred_path = (char *) getenv( "SACRED_PATH")) {
-                ForceSacredPath( interp, "PATH", sacred_path);
-            } else {
-                ForceSacredPath( interp, "PATH", FORCE_PATH_SACRED);
-            }
-
-            if(sacred_path = (char *) getenv("MODULES_LD_LIBRARY_PATH_SACRED")){
-                ForceSacredPath( interp, "LD_LIBRARY_PATH", sacred_path);
-            } else {
-                ForceSacredPath( interp, "LD_LIBRARY_PATH", 
-		    FORCE_LD_LIBRARY_PATH_SACRED);
-            }
-
-        } /** if( return_val) **/
-#endif
 
        /**
         **  We always say the load succeeded.  ModuleCmd_Load will
