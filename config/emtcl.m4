@@ -14,9 +14,9 @@
 # Results:
 #
 #	Adds the following arguments to configure:
-#		--with-tcl-version=...
+#		--with-tcl-ver=...
 #		--with-tcl-lib=...
-#		--with-tcl-include=...
+#		--with-tcl-inc=...
 #
 #	Defines the following vars:
 #		TCL_VERSION		Tcl version (X.Y)
@@ -25,13 +25,13 @@
 #------------------------------------------------------------------------
 
 AC_DEFUN([EM_SET_TCL], [
-	AC_ARG_WITH(tcl-version,
-	AC_HELP_STRING([--with-tcl-version=X.Y],
-	[Tcl version to use [[search]]]), with_tclversion=${withval},
+	AC_ARG_WITH(tcl-ver,
+	AC_HELP_STRING([--with-tcl-ver=X.Y],
+	[Tcl version to use [[search]]]), with_tclver=${withval},
 	)
 	AC_MSG_CHECKING([for Tcl version])
 	AC_CACHE_VAL(em_cv_tclver,[
-	    # First check to see if --with-tcl-version was specified.
+	    # First check to see if --with-tcl-ver was specified.
 	    if test x"${with_tclver}" = x ; then
 		em_cv_tclver=`echo 'puts [[info tclversion]]' | tclsh 2>/dev/null`
 	    else
