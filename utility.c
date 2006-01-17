@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.17 2006/01/12 18:46:33 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.18 2006/01/17 20:57:41 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -1038,13 +1038,13 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	     **/
 	    do {
 		sprintf( formatted, "_LMFILES_%03d", count++);
-		cptr = Tcl_GetVar2( interp, "env", formatted, TCL_GLOBAL_ONLY);
+		cptr = (char *) Tcl_GetVar2( interp, "env", formatted, TCL_GLOBAL_ONLY);
 		if( cptr) {
 		    fprintf(stdout, "unsetenv %s%s", formatted, shell_cmd_separator);
 		}
 	    } while( cptr);
 	
-	  null_free(&escaped);
+	  null_free((void *) &escaped);
 
 	} else {	/** if( var == "_LMFILES_") **/
 
