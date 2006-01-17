@@ -40,7 +40,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdXResource.c,v 1.6 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdXResource.c,v 1.7 2006/01/17 22:51:34 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -52,7 +52,6 @@ static void *UseId[] = { &UseId, Id };
 #ifdef HAS_X11LIBS
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
-// #include <X11/Xmu/SysUtil.h>
 #endif
 
 /** ************************************************************************ **/
@@ -244,7 +243,6 @@ static	void	doDisplayDefines()
      **  faults to the client.
      **/
 
-    //    XmuGetHostname( client, MAXHOSTNAME);
     gethostname(client,MAXHOSTNAME);
     strcpy( server, XDisplayName( NULL));
 
