@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.18 2006/01/12 19:09:55 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.19 2006/01/17 20:58:31 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -348,6 +348,9 @@ elif test $em_split_size_total -gt 4000 ; then
 else
 	# set split-size a little less
 	em_split_size=`expr $em_split_size_total - 20`
+	if test $em_split_size -lt 0 ; then
+		em_split_size=1000
+	fi
 	AC_MSG_RESULT([no - $em_split_size_total < 4000 - splitting at $em_split_size])
 fi
 AC_ARG_WITH(split-size,
