@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.21 2006/01/19 21:29:44 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.22 2006/01/23 21:33:55 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -129,7 +129,7 @@ ftp-ibiblio: dist
 	@echo "placing ftp.ibiblio.org files";
 	-@XXX=modules-`${SED} -n -e 's/^.*OLD TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`-`${SED} -n -e 's/^.*NEW TAG.*"modules-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)".*$$/\1.\2.\3/p' ${srcdir}/version.c`.diff."*" ; \
 	echo "placing modules.lsm $$XXX $(DISTNAME).tar.*"; \
-	./.ftp metalab.unc.edu /incoming/linux \
+	./.ftp ftp.ibiblio.org /incoming/linux \
 		modules.lsm $$XXX $(DISTNAME).tar.*;
 
 ftp-sourceforge: dist
