@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.20 2006/01/17 22:58:29 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.21 2006/01/26 18:07:57 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -16,9 +16,12 @@ AC_CONFIG_AUX_DIR(config)dnl
 AM_INIT_AUTOMAKE(1.9.6 foreign dejagnu no-installinfo dist-bzip2)dnl
 AC_CONFIG_SRCDIR([version.c])dnl
 AM_CONFIG_HEADER(config.h)dnl
+AC_AIX
 AM_PROG_CC_C_O
 AC_PROG_MAKE_SET
 AC_PREREQ(2.59)dnl
+dnl I18N support
+AM_GNU_GETTEXT
 
 dnl ---------------------------------------------------------------------------
 dnl Autoheader "templates" (was acconfig.h)
@@ -181,7 +184,6 @@ AC_PROG_CPP
 AC_PROG_GCC_TRADITIONAL
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
-AC_AIX
 AC_ISC_POSIX
 AC_PATH_PROG([UNAME],[uname],[""])dnl
 dnl ---------------------------------------------------------------------------
