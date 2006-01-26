@@ -123,6 +123,17 @@ typedef	int	intptr_h;
 extern	int	  errno;
 #endif
 
+#ifdef HAVE_LOCALE_H
+#  include <locale.h>
+#endif
+
+#if ENABLE_NLS
+#  include <libintl.h>
+#  define _(String) gettext(String)
+#else
+#  define _(String) (String)
+#endif
+
 /** ************************************************************************ **/
 /** 				  LOCAL DATATYPES			     **/
 /** ************************************************************************ **/

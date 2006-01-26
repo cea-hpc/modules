@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.22 2006/01/23 21:33:55 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.23 2006/01/26 19:55:16 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -15,8 +15,8 @@
 ACLOCAL_AMFLAGS= -I config
 
 man_MANS = doc/module.1 doc/modulefile.4
-SUBDIRS = . init modulefiles @EXTDIR@ doc
-DIST_SUBDIRS = . init modulefiles etc ext doc
+SUBDIRS = . init modulefiles @EXTDIR@ doc po
+DIST_SUBDIRS = . init modulefiles etc ext doc po
 SOURCES_H = modules_def.h getopt.h config.h
 EXTRA_DIST = modules_def.h getopt.h testsuite INSTALL.RH7x		\
 	init/filter init/bash.in init/sh.in init/zsh.in			\
@@ -36,6 +36,10 @@ modulecmd_SOURCES = \
 	cmdPath.c cmdSetenv.c cmdUname.c cmdXResource.c cmdUlvl.c cmdLog.c \
 	cmdTrace.c cmdVersion.c cmdVerbose.c cmdWhatis.c		\
 	init.c locate_module.c utility.c main.c error.c getopt.c version.c
+
+localedir = $(datadir)/locale
+
+DEFS = -DLOCALEDIR=\"$(localedir)\" @DEFS@
 
 test: check-local
 

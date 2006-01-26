@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.16 2006/01/12 20:31:31 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.17 2006/01/26 19:55:16 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -198,6 +198,18 @@ int	main( int argc, char *argv[], char *environ[]) {
 #if WITH_DEBUGGING
     ErrorLogger( NO_ERR_START, LOC, _proc_main, NULL);
 #endif
+
+#ifdef HAVE_SETLOCALE
+	/* set local via LC_ALL */
+	setlocale(LC_ALL,"");
+#endif
+
+#if ENABLE_NLS
+	/* the text message domain. */
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+#endif
+
     /**
      ** check if first argument is --version or -V then output the
      ** version to stdout.  This is a special circumstance handled
