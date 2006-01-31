@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.6 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.7 2006/01/31 04:16:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -134,7 +134,7 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
                 if( EOF == fclose( file))
 		    ErrorLogger( ERR_CLOSE, LOC, filename, NULL);
             } else {
-		ErrorLogger( ERR_OPEN, LOC, filename, "appending", NULL);
+		ErrorLogger( ERR_OPEN, LOC, filename, _(em_appending), NULL);
 	    }
 
         } /** if( get filename) **/

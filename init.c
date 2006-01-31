@@ -36,7 +36,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.9 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.10 2006/01/31 04:16:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -378,7 +378,7 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
 			fclose( file);
 		} else
 			if( OK != ErrorLogger( ERR_OPEN, LOC,(*interp)->result,
-			    "append", NULL))
+			    _(em_appending), NULL))
 			    goto unwind0;
 
 		null_free((void *) &tmp);
@@ -423,7 +423,7 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
                 fclose( file);
             } else
 		if( OK != ErrorLogger( ERR_OPEN, LOC, (*interp)->result,
-		    "append", NULL))
+		    _(em_appending), NULL))
 		    goto unwind0;
 
 	    null_free((void *) &buffer);

@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.6 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.7 2006/01/31 04:16:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -223,7 +223,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 
 	} else { /** if( fopen) **/
 
-	    if( OK != ErrorLogger( ERR_OPEN, LOC, filename, "reading", NULL))
+	    if( OK != ErrorLogger( ERR_OPEN, LOC, filename,_(em_reading),NULL))
 		goto unwind0;
 
 	} /** if( fopen) **/

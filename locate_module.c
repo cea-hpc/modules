@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.14 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.15 2006/01/31 04:16:52 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -409,7 +409,7 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 	path,"/",mod, NULL))
 	    goto unwind1;
     }
-    is_def = !strcmp( mod, _default);
+    is_def = !strcmp( mod, _(em_default));
 
     if( is_def || !stat( fullpath, &stats)) {
 	/**
@@ -1144,7 +1144,7 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
      **  No default version defined so far?
      **/
     if( VersionLookup( name, &mod, &ver) &&
-	strcmp( ver, _default))
+	strcmp( ver, _(em_default)))
 	return( TCL_OK);
     /**
      **  Build the full name of the RC file and check whether it exists and
@@ -1180,7 +1180,7 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
 
 		new_argv[0] = "module-version";
 		new_argv[1] = buffer;
-		new_argv[2] = _default;
+		new_argv[2] = _(em_default);
 		/**
 		 **  Define the default version
 		 **/

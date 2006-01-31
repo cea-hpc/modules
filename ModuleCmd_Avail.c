@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.10 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.11 2006/01/31 04:16:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -247,7 +247,7 @@ int ModuleCmd_Avail(	Tcl_Interp	*interp,
 	 **/
 
 	if( sw_format & SW_LONG)
-	    fprintf( stderr, long_header);
+	    fprintf( stderr, _(long_header));
 
 	/**
 	 **  If a module category is specified check whether it is part
@@ -485,7 +485,8 @@ static	int	print_dir(	Tcl_Interp	*interp,
 		    goto unwind1;
 
 	    if( NULL == (fi = fopen( namebuf, "r"))) {
-		if( OK != ErrorLogger( ERR_OPEN, LOC, namebuf, "reading", NULL))
+		if( OK != ErrorLogger( ERR_OPEN, LOC, namebuf,
+		    _(em_reading), NULL))
 		    goto unwind1;
 
 	    } else {

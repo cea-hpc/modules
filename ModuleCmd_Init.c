@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.7 2006/01/12 19:15:54 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.8 2006/01/31 04:16:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -222,7 +222,8 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 
 	if (!(g_flags & M_DISPLAY) &&
 	    ((FILE *) NULL == (newfileptr = fopen(home_pathname, "w")))) {
-	    (void) ErrorLogger(ERR_OPEN, LOC, home_pathname, "init", NULL);
+	    (void) ErrorLogger(ERR_OPEN, LOC, home_pathname,
+		_(em_writing), NULL);
 	    goto unwhile0; 	/** while( shell_startups) ...	     **/
 	}
 
@@ -275,13 +276,14 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		    if (g_flags & M_DISPLAY) {
 			if (modlist[0] == NULL) {
 			    fprintf(stderr,
-	    "\nNo modules are loaded in %s's initialization file "
-				    "$HOME/%s\n", shell_name,
-				    shell_startups[shell_num]);
+/* TRANSLATORS: don't rearrange the arguments */
+	_("\nNo modules are loaded in %s's initialization file $HOME/%s\n"),
+				    shell_name,shell_startups[shell_num]);
 			} else {
 			    if (new_file) {
 				fprintf(stderr,
-	    "\n%s initialization file $HOME/%s loads modules:\n\t",
+/* TRANSLATORS: don't rearrange the arguments */
+	_("\n%s initialization file $HOME/%s loads modules:\n\t"),
 				    shell_name, shell_startups[shell_num]);
 		    		(void) out_substr(stderr, startp, endp);
 				fputs("\n",stderr);
@@ -311,15 +313,15 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 				 **  NULL it off the list.
 				 **/
 				    if (g_flags & M_REMOVE)
-					fprintf(stderr, "Removed %s\n",
+					fprintf(stderr, _("Removed %s\n"),
 						modlist[j]);
 				    else if ((g_flags & M_LOAD)
 					     && !(g_flags & M_PREPEND))
-					fprintf(stderr, "Moving %s to end\n",
+					fprintf(stderr, _("Moving %s to end\n"),
 						modlist[j]);
 				    else if (g_flags & M_PREPEND)
 					fprintf(stderr,
-						"Moving %s to beginning\n",
+						_("Moving %s to beginning\n"),
 						modlist[j]);
 				    null_free((void *) (modlist + j));
 
@@ -328,7 +330,8 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 				 **  If switching it, swap the old string with
 				 **  the new string in the list.
 				 **/
-				    fprintf(stderr, "Switching %s to %s\n",
+				/* TRANSLATORS: don't rearrange the arguments */
+				    fprintf(stderr, _("Switching %s to %s\n"),
 					    modlist[j], argv[i + 1]);
 				    null_free((void *) (modlist + j));
 				    modlist[j] = strdup(argv[i + 1]);

@@ -133,6 +133,8 @@ extern	int	  errno;
 #else
 #  define _(String) (String)
 #endif
+/* gettext_noop() equivalent */
+#define N_(String) (String)
 
 /** ************************************************************************ **/
 /** 				  LOCAL DATATYPES			     **/
@@ -378,34 +380,6 @@ typedef	enum	{
 #define TCL_LEVEL0_RETURN    11
 
 /**
- **  uname defaults when uname can't be found 
- **/
-
-#ifndef UNAME_SYSNAME
-#  define UNAME_SYSNAME		"unknown"
-#endif
-
-#ifndef UNAME_NODENAME
-#  define UNAME_NODENAME	"unknown"
-#endif
-
-#ifndef UNAME_RELEASE
-#  define UNAME_RELEASE		"unknown"
-#endif
-
-#ifndef UNAME_VERSION
-#  define UNAME_VERSION		"unknown"
-#endif
-
-#ifndef UNAME_MACHINE
-#  define UNAME_MACHINE		"unknown"
-#endif
-
-#ifndef UNAME_DOMAIN
-#  define UNAME_DOMAIN		"unknown"
-#endif
-
-/**
  **  RC files
  **/
 
@@ -474,6 +448,17 @@ typedef	enum	{
 #define	LOC		module_name, __LINE__
 
 /** ************************************************************************ **/
+/** 				    COMMON STRINGS			     **/
+/** ************************************************************************ **/
+
+extern char	em_reading[];
+extern char	em_writing[];
+extern char	em_appending[];
+extern char	em_read_write[];
+extern char	em_unknown[];
+extern char	em_default[];
+
+/** ************************************************************************ **/
 /** 				    GLOBAL DATA				     **/
 /** ************************************************************************ **/
 
@@ -492,7 +477,6 @@ extern	int	  append_flag;
 extern	char	 *line;
 extern	char	 *error_line;
 extern	char	  local_line[];
-extern	char	  _default[];
 
 extern	int	  linenum;
 

@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.22 2006/01/26 19:55:16 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.23 2006/01/31 04:16:51 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -22,6 +22,8 @@ AC_PROG_MAKE_SET
 AC_PREREQ(2.59)dnl
 dnl I18N support
 AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION(0.14.5)
+AM_PO_SUBDIRS
 
 dnl ---------------------------------------------------------------------------
 dnl Autoheader "templates" (was acconfig.h)

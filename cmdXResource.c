@@ -40,7 +40,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdXResource.c,v 1.7 2006/01/17 22:51:34 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdXResource.c,v 1.8 2006/01/31 04:16:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -935,7 +935,7 @@ int	cmdXResource(	ClientData	 client_data,
 		    popen( strcat( defines, argv[ opt_ind]), "r") : 
 		    fopen( argv[ opt_ind], "r")) ) )
 		    if( OK != ErrorLogger( (do_cpp ? ERR_POPEN : ERR_OPEN), LOC,
-			"argv[ opt_ind]", "reading" ))
+			"argv[ opt_ind]", _(em_reading) ))
 			return( TCL_ERROR);     /** ---- EXIT (FAILURE) ---> **/
 
 		if( TCL_ERROR == readFile( inp, do_cpp))

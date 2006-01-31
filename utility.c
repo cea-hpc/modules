@@ -50,7 +50,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.19 2006/01/17 22:58:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.20 2006/01/31 04:16:52 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -776,7 +776,8 @@ static	int Open_Aliasfile(int action)
 	 **  Open the file ...
 	 **/
 	if( tmpfile_mod(&aliasfilename,&aliasfile))
-	    if(OK != ErrorLogger( ERR_OPEN, LOC, aliasfilename, "append", NULL))
+	    if(OK != ErrorLogger( ERR_OPEN, LOC, aliasfilename,
+		_(em_appending), NULL))
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
     } else {
 	if( EOF == fclose( aliasfile))
@@ -858,7 +859,8 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
 	if (!eval_alias
 	|| (!strcmp(shell_name,"sh") && !bourne_alias && bourne_funcs)) {
 	    if (OK != Open_Aliasfile(1))
-		if(OK != ErrorLogger(ERR_OPEN,LOC,aliasfilename,"append",NULL))
+		if(OK != ErrorLogger(ERR_OPEN,LOC,aliasfilename,
+		    _(em_appending),NULL))
 		    return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	    openfile = 1;
 	}
@@ -2153,7 +2155,7 @@ int check_magic( char	*filename,
      **  less than magic_len have been read) return on failure.
      **/
     if( 0 > (fd = open( filename, O_RDONLY)))
-	if( OK != ErrorLogger( ERR_OPEN, LOC, filename, "reading", NULL))
+	if( OK != ErrorLogger( ERR_OPEN, LOC, filename, _(em_reading), NULL))
 	    return( 0);			/** -------- EXIT (FAILURE) -------> **/
 
     read_len = read( fd, buf, magic_len);
@@ -2733,7 +2735,7 @@ int tmpfile_mod(char** filename, FILE** file) {
 
   null_free((void *) &filename2);
   fprintf(stderr,
-	"FATAL: could not get a temp file! at %s(%d)",__FILE__,__LINE__);
+	_("FATAL: could not get a temp file! at %s(%d)"),__FILE__,__LINE__);
   
   return 1;
 }

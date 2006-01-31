@@ -47,7 +47,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.9 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.10 2006/01/31 04:16:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -573,7 +573,7 @@ static	char	*CheckModuleVersion( char *name)
 		t = buffer + strlen( buffer);
 		if( '/' != *t)
 		    *t++ = '/';
-		strcpy( t, _default);
+		strcpy( t, _(em_default));
 	    }
 	}
     }
@@ -709,8 +709,8 @@ int	cmdModuleAlias(	ClientData	 client_data,
 	    ptr->ptr = (ModName *) NULL;
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
 	}
-	ptr->ptr = AddName( (version ? version : _default), &modptr->version,
-	    modptr);
+	ptr->ptr = AddName( (version ? version : _(em_default)),
+	    &modptr->version, modptr);
     }
 
 #if WITH_DEBUGGING_CALLBACK
@@ -856,7 +856,7 @@ int	VersionLookup(	char *name, char **module, char **version)
 		*module = s; *version = t;
 
 	    } else
-		*version = _default;
+		*version = _(em_default);
 
 	} else 
 	    *(*version)++ = '\0';

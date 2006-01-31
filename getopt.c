@@ -51,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: getopt.c,v 1.3 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: getopt.c,v 1.4 2006/01/31 04:16:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -124,6 +124,7 @@ static void *UseId[] = { &UseId, Id };
  **  When compiling libc, the _ macro is predefined. 
  **/
 
+/*
 #  ifndef _
 #    ifdef HAVE_LIBINTL_H
 #     include <libintl.h>
@@ -132,6 +133,7 @@ static void *UseId[] = { &UseId, Id };
 #     define _(msgid)	(msgid)
 #    endif
 #  endif
+*/
 
 /**
  **  This version of `getopt' appears to the caller like standard Unix `getopt'

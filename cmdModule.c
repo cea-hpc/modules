@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.11 2006/01/17 22:58:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.12 2006/01/31 04:16:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -578,7 +578,8 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
 	infile = stdin;
     } else {
 	if( NULL == (infile = fopen( filename, "r"))) {
-	    if( OK != ErrorLogger( ERR_OPEN, LOC, filename, "reading", NULL))
+	    if( OK != ErrorLogger( ERR_OPEN, LOC, filename,
+		_(em_reading), NULL))
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	}
     }
@@ -738,7 +739,8 @@ int  CallModuleProcedure(	Tcl_Interp	*interp,
 
     if( suppress_output) {
 	if( 0 > (devnull = open( _fil_devnull, O_RDWR))) {
-	    if( OK != ErrorLogger( ERR_OPEN, LOC, _fil_devnull, "changing", NULL))
+	    if( OK != ErrorLogger( ERR_OPEN, LOC, _fil_devnull,
+		_(em_read_write), NULL))
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	}
 	

@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdUname.c,v 1.3 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdUname.c,v 1.4 2006/01/31 04:16:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -39,15 +39,11 @@ static void *UseId[] = { &UseId, Id };
 #include "modules_def.h"
 
 #ifdef HAVE_UNAME
-#include <sys/utsname.h>
-#endif
-
+#  include <sys/utsname.h>
+#else
 /** ************************************************************************ **/
 /** 				  LOCAL DATATYPES			     **/
 /** ************************************************************************ **/
-
-#ifndef HAVE_UNAME
-
 typedef	struct	utsname {
 	char	sysname[ NAMELEN];	/** System name			     **/
 	char	nodename[ NAMELEN];	/** Node name			     **/
@@ -55,7 +51,6 @@ typedef	struct	utsname {
 	char	version[ NAMELEN];	/** OS Version			     **/
 	char	machine[ NAMELEN];	/** Machine type		     **/
 } UTS_NAME;
-
 #endif
 
 /** ************************************************************************ **/
@@ -80,15 +75,6 @@ static	char	module_name[] = "cmdUname.c";	/** File name of this module **/
 #if WITH_DEBUGGING_CALLBACK
 static	char	_proc_cmdUname[] = "cmdUname";
 #endif
-
-static	struct	utsname	 namestruct = {
-	UNAME_SYSNAME, UNAME_NODENAME, UNAME_RELEASE, UNAME_VERSION,
-	UNAME_MACHINE
-};
-
-static	char	domain[ DOMAINLEN] = UNAME_DOMAIN;
-
-static	int	namestruct_init = 0;
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -129,9 +115,21 @@ int	cmdUname(	ClientData	 client_data,
 {
     int  length;
 #ifdef PHOSTNAME
-#ifndef HAVE_GETHOSTNAME
+#  ifndef HAVE_GETHOSTNAME
     FILE* hname;
+#  endif
 #endif
+    char	domain[ DOMAINLEN];
+    int		namestruct_init = 0;
+#ifdef HAVE_UNAME
+    struct utsname	namestruct;
+#else
+    UTS_NAME		namestruct;
+    strncat(namestruct.sysname ,_(em_unknown),NAMELEN);
+    strncat(namestruct.nodename,_(em_unknown),NAMELEN);
+    strncat(namestruct.release ,_(em_unknown),NAMELEN);
+    strncat(namestruct.version ,_(em_unknown),NAMELEN);
+    strncat(namestruct.machine ,_(em_unknown),NAMELEN);
 #endif
 
 #if WITH_DEBUGGING_CALLBACK
@@ -149,11 +147,9 @@ int	cmdUname(	ClientData	 client_data,
     }
 
 #ifdef HAVE_UNAME
-
     /**
-     **  Proceed the system call
+     **  Process the system call
      **/
-
     if( !namestruct_init && uname( &namestruct) < 0) {
 	if( OK != ErrorLogger( ERR_UNAME, LOC, NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
@@ -168,18 +164,19 @@ int	cmdUname(	ClientData	 client_data,
      **  PHOSTNAME file.
      **/
 
-#ifdef HAVE_GETHOSTNAME
+#  ifdef HAVE_GETHOSTNAME
 
     if( -1 == gethostname( namestruct.nodename, NAMELEN)) 
 	if( OK != ErrorLogger( ERR_GETHOSTNAME, LOC, NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
 
-#else /* not HAVE_GETHOSTNAME */
+#  else /* not HAVE_GETHOSTNAME */
 
-#ifdef PHOSTNAME
+#    ifdef PHOSTNAME
 
     if( NULL == (hname = popen( PHOSTNAME, "r"))) {
-	if( OK != ErrorLogger( ERR_POPEN, LOC, PHOSTNAME, "reading", NULL))
+	if( OK != ErrorLogger( ERR_POPEN, LOC, PHOSTNAME,
+	    _(em_reading), NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
     }
 
@@ -190,20 +187,21 @@ int	cmdUname(	ClientData	 client_data,
 	if( OK != ErrorLogger( ERR_PCLOSE, LOC, PHOSTNAME, NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
 
-#endif /* not PHOSTNAME */
-#endif /* not HAVE_GETHOSTNAME */
+#    endif /* not PHOSTNAME */
+#  endif /* not HAVE_GETHOSTNAME */
 
 #endif /* not HAVE_UNAME */
  
     /**
      **  Set up the domain name
      **/
-
 #ifdef HAVE_GETDOMAINNAME
     if( !namestruct_init)
         if( -1 == getdomainname( domain, DOMAINLEN))
 	    if( OK != ErrorLogger( ERR_GETDOMAINNAME, LOC, NULL))
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+#else
+    strncat(domain, _(em_unknown), DOMAINLEN);
 #endif
 
     /**

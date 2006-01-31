@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.17 2006/01/26 19:55:16 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.18 2006/01/31 04:16:52 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -52,10 +52,16 @@ static void *UseId[] = { &UseId, Id };
 /** not applicable **/
 
 /** ************************************************************************ **/
-/**				      MACROS				     **/
+/** 				    COMMON STRINGS			     **/
 /** ************************************************************************ **/
 
-/** not applicable **/
+char	em_reading[]	= N_("reading");
+char	em_writing[]	= N_("writing");
+char	em_appending[]	= N_("appending");
+char	em_read_write[]	= N_("read/write");
+char	em_unknown[]	= N_("unknown");
+/* TRANSLATORS: id string for default versions */
+char	em_default[]	= N_("default"); 
 
 /** ************************************************************************ **/
 /** 				    GLOBAL DATA				     **/
@@ -75,8 +81,6 @@ int	  g_flags = 0,			/** Control what to do at the moment **/
 					/** The posible values are defined in**/
 					/** module_def.h		     **/
 	  append_flag = 0;		/** only used by the 'use' command   **/
-
-char	  _default[] = "default";	/** id string for default versions   **/
 
 /**
  **  Name of the rc files
@@ -110,9 +114,6 @@ char
     *aproposRE  = "^(apr|key)",			/** 'module apropos'	     **/
     *refreshRE  = "^refr";			/** 'module refresh'	     **/
   
-  /**
-   **  Hash-Tables for all changes to the environment.
-
 /**
  **  Hash-Tables for all changes to the environment.
  **  ??? What do we save here, the old or the new setup ???
@@ -395,10 +396,12 @@ void module_usage(FILE *output)
 #endif
 
 	fprintf(output,
-		"\n  Modules Release %s %s (Copyright GNU GPL v2 1991):\n\n",
+		_("\n  Modules Release %s %s (Copyright GNU GPL v2 1991):\n\n"),
                 version_string,date_string);
 	
-	fprintf(output,
+/* TRANSLATORS: keep the options and formatting the same
+ */
+	fprintf(output,_(
 "  Usage: module [ switches ] [ subcommand ] [subcommand-args ]\n\n"
 "Switches:\n"
 "	-H|--help		this usage info\n"
@@ -420,9 +423,7 @@ void module_usage(FILE *output)
 "	+ avail			[modulefile [modulefile ...]]\n"
 "	+ use [-a|--append]	dir [dir ...]\n"
 "	+ unuse			dir [dir ...]\n"
-#ifdef BEGINENV
 "	+ update\n"
-#endif
 "	+ refresh\n"
 "	+ purge\n"
 "	+ list\n"
@@ -435,7 +436,7 @@ void module_usage(FILE *output)
 "	+ initrm		modulefile [modulefile ...]\n"
 "	+ initswitch		modulefile1 modulefile2\n"
 "	+ initlist\n"
-"	+ initclear\n\n");
+"	+ initclear\n\n"));
 
 } /** End of 'module_usage' **/
 
@@ -775,17 +776,18 @@ static void version (FILE *output) {
 	char	*x,
 		*format = "%s=%s\n";
 
-	fprintf(output, format, "VERSION", version_string);
-	fprintf(output, format, "DATE", date_string);
+	fprintf(output, format, _("VERSION"), version_string);
+	fprintf(output, format, _("DATE"), date_string);
 	fprintf(output, "\n");
 	isdefined(AUTOLOADPATH,str(AUTOLOADPATH));
 	isdefined(BEGINENV,str(BEGINENV));
 	isdefined(CACHE_AVAIL,str(CACHE_AVAIL));
 	isdefined(DEF_COLLATE_BY_NUMBER,str(DEF_COLLATE_BY_NUMBER));
 	isdefined(DOT_EXT,str(DOT_EXT));
-	isdefined(HAS_BOURNE_FUNCS,str(HAS_BOURNE_FUNCS));
-	isdefined(HAS_BOURNE_ALIAS,str(HAS_BOURNE_ALIAS));
+	isdefined(ENABLE_NLS,str(ENABLE_NLS));
 	isdefined(EVAL_ALIAS,str(EVAL_ALIAS));
+	isdefined(HAS_BOURNE_ALIAS,str(HAS_BOURNE_ALIAS));
+	isdefined(HAS_BOURNE_FUNCS,str(HAS_BOURNE_FUNCS));
 	isdefined(LMSPLIT_SIZE,str(LMSPLIT_SIZE));
 	isdefined(MODULEPATH,str(MODULEPATH));
 	isdefined(MODULES_INIT_DIR,str(MODULES_INIT_DIR));

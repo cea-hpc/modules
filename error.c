@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.8 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.9 2006/01/31 04:16:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -139,8 +139,6 @@ static	int	quiet_on_error = 0;
  **  Local strings
  **/
 
-static	char	unknown[] = "unknown";		/** If something's unknown   **/
-
 static	char	 buffer[ ERR_LINELEN];		/** Internal string buffer   **/
 	char	*error_line = NULL;
 static	int	 strsize = 0;
@@ -153,7 +151,6 @@ static	char	_stderr[] = "stderr";
 static	char	_stdout[] = "stdout";
 static	char	_null[] = "null";
 static	char	_none[] = "none";
-static	char	_unknown[] = "unknown";
 
 static	ErrFacilities	Facilities[] = {
     { WGHT_NONE,	NULL,	NULL },
@@ -244,101 +241,115 @@ static	ErrMeasr	Measurements[] = {
 
 static	ErrTransTab	TransTab[] = {
     { NO_ERR,		WGHT_NONE,  NULL },
-    { NO_ERR_DEBUG,	WGHT_DEBUG, "$*" },
-    { NO_ERR_START,	WGHT_DEBUG, "Starting $*" },
-    { NO_ERR_END,	WGHT_DEBUG, "Exit $*" },
+    { NO_ERR_DEBUG,	WGHT_DEBUG, N_("$*") },
+    { NO_ERR_START,	WGHT_DEBUG, N_("Starting $*") },
+    { NO_ERR_END,	WGHT_DEBUG, N_("Exit $*") },
     { NO_ERR_VERBOSE,	WGHT_VERBOSE,  NULL },
-    { ERR_PARAM,	WGHT_ERROR, "Paramter error concerning '$1'" },
-    { ERR_USAGE,	WGHT_ERROR, "Usage is '$*'" },
-    { ERR_ARGSTOLONG,	WGHT_ERROR, "'$1': Arguments to long. Max. is '$2'" },
-    { ERR_OPT_AMBIG,	WGHT_ERROR, "Option '$1' is ambiguous" },
-    { ERR_OPT_NOARG,	WGHT_ERROR, "Option '$1' allows no argument" },
-    { ERR_OPT_REQARG,	WGHT_ERROR, "Option '$1' requires an argument" },
-    { ERR_OPT_UNKNOWN,	WGHT_ERROR, "Unrecognized option '$1'" },
-    { ERR_OPT_ILL,	WGHT_ERROR, "Illegal option '$1'" },
-    { ERR_OPT_INV,	WGHT_ERROR, "Invalid option '$1'" },
-    { ERR_USERLVL,	WGHT_ERROR, "Undefined userlevel '$1'" },
-    { ERR_GETOPT,	WGHT_FATAL, "getopt() failed" },
-    { ERR_OPEN,		WGHT_ERROR, "Cannot open file '$1' for '$2'" },
-    { ERR_POPEN,	WGHT_ERROR, "Cannot open pipe '$1' for '$2'" },
-    { ERR_OPENDIR,	WGHT_ERROR, "Cannot open directory '$1' for reading" },
-    { ERR_CLOSE,	WGHT_WARN,  "Cannot close file '$1'" },
-    { ERR_PCLOSE,	WGHT_WARN,  "Cannot close pipe '$1'" },
-    { ERR_CLOSEDIR,	WGHT_WARN,  "Cannot close directory '$1'" },
-    { ERR_READ,		WGHT_ERROR, "Error while reading file '$1'" },
-    { ERR_READDIR,	WGHT_ERROR, "Error while reading directory '$1'" },
-    { ERR_WRITE,	WGHT_ERROR, "Error while writing file '$1'" },
-    { ERR_SEEK,		WGHT_ERROR, "Seek error on file '$1'" },
-    { ERR_FLUSH,	WGHT_WARN,  "Flush error on file '$1'" },
-    { ERR_DUP,		WGHT_WARN,  "Cannot duplicate handle of file '$1'" },
-    { ERR_DIRNAME,	WGHT_ERROR, "Cannot build directory name" },
-    { ERR_NAMETOLONG,	WGHT_ERROR, "Requested directory name to long: "
-				    "dir='$1',file='$2'" },
-    { ERR_DIRNOTFOUND,	WGHT_ERROR, "Directory '$1' not found" },
-    { ERR_FILEINDIR,	WGHT_ERROR, "File '$1' not found in directory '$2'" },
-    { ERR_NODIR,	WGHT_ERROR, "'$1' is not a directory" },
-    { ERR_UNLINK,	WGHT_WARN,  "Cannot unlink '$1'" },
-    { ERR_RENAME,	WGHT_PROB,  "Cannot rename '$1' to '$2'" },
-    { ERR_ALLOC,	WGHT_FATAL, "Out of memory." },
-    { ERR_SOURCE,	WGHT_WARN,  "Error sourcing file '$1'" },
-    { ERR_UNAME,	WGHT_FATAL, "'uname (2)' failed." },
-    { ERR_GETHOSTNAME,	WGHT_FATAL, "'gethostname (2)' failed." },
-    { ERR_GETDOMAINNAME,WGHT_FATAL, "'getdomainname (2)' failed." },
-    { ERR_STRING,	WGHT_FATAL, "string error" },
-    { ERR_DISPLAY,	WGHT_ERROR, "Cannot open display" },
-    { ERR_PARSE,	WGHT_ERROR, "Parse error" },
-    { ERR_EXEC,		WGHT_ERROR, "Tcl command execution failed: $1" },
-    { ERR_EXTRACT,	WGHT_ERROR, "Cannot extract X11 resources" },
-    { ERR_COMMAND,	WGHT_ERROR, "'$1' is an unrecognized subcommand" },
-    { ERR_LOCATE,	WGHT_ERROR, "Unable to locate a modulefile for '$1'" },
-    { ERR_MAGIC,	WGHT_ERROR, "Magic cookie '#%Module' missing in '$1'" },
-    { ERR_MODULE_PATH,	WGHT_ERROR, "'MODULEPATH' not set" },
-    { ERR_HOME,		WGHT_ERROR, "'HOME' not set" },
-    { ERR_SHELL,	WGHT_ERROR, "Unknown shell type '$1'" },
-    { ERR_DERELICT,	WGHT_ERROR, "Unknown shell derelict '$1'" },
-    { ERR_CONFLICT,	WGHT_ERROR, "Module '$1' conflicts with the currently "
-				    "loaded module(s) '$2*'" },
-    { ERR_PREREQ,	WGHT_ERROR, "Module '$1' depends on one of the "
-				    "module(s) '$2*'" },
-    { ERR_NOTLOADED,	WGHT_ERROR, "Module '$1' is currently not loaded" },
-    { ERR_DUP_SYMVERS,	WGHT_PROB,  "Duplicate version symbol '$1' found" },
-    { ERR_SYMLOOP,	WGHT_ERROR, "Version symbol '$1' loops" },
-    { ERR_BADMODNAM,	WGHT_PROB,  "Invalid modulename '$1' found" },
-    { ERR_DUP_ALIAS,	WGHT_WARN,  "Duplicate alias '$1' found" },
-    { ERR_CACHE_INVAL,	WGHT_ERROR, "Invalid cache version '$1' found" },
-    { ERR_CACHE_LOAD,	WGHT_WARN,  "Couldn't load the cache properly" },
-    { ERR_BEGINENV,	WGHT_WARN, "Invalid update subcommand - "
+    { ERR_PARAM,	WGHT_ERROR, N_("Paramter error concerning '$1'") },
+    { ERR_USAGE,	WGHT_ERROR, N_("Usage is '$*'") },
+/* TRANSLATORS: do not exchange order of arguments */
+    { ERR_ARGSTOLONG,	WGHT_ERROR,
+	N_("'$1': Arguments to long. Max. is '$2'") },
+    { ERR_OPT_AMBIG,	WGHT_ERROR, N_("Option '$1' is ambiguous") },
+    { ERR_OPT_NOARG,	WGHT_ERROR, N_("Option '$1' allows no argument") },
+    { ERR_OPT_REQARG,	WGHT_ERROR, N_("Option '$1' requires an argument") },
+    { ERR_OPT_UNKNOWN,	WGHT_ERROR, N_("Unrecognized option '$1'") },
+    { ERR_OPT_ILL,	WGHT_ERROR, N_("Illegal option '$1'") },
+    { ERR_OPT_INV,	WGHT_ERROR, N_("Invalid option '$1'") },
+    { ERR_USERLVL,	WGHT_ERROR, N_("Undefined userlevel '$1'") },
+    { ERR_GETOPT,	WGHT_FATAL, N_("getopt() failed") },
+/* TRANSLATORS: do not exchange order of arguments */
+    { ERR_OPEN,		WGHT_ERROR, N_("Cannot open file '$1' for '$2'") },
+/* TRANSLATORS: do not exchange order of arguments */
+    { ERR_POPEN,	WGHT_ERROR, N_("Cannot open pipe '$1' for '$2'") },
+    { ERR_OPENDIR,	WGHT_ERROR,
+	N_("Cannot open directory '$1' for reading") },
+    { ERR_CLOSE,	WGHT_WARN,  N_("Cannot close file '$1'") },
+    { ERR_PCLOSE,	WGHT_WARN,  N_("Cannot close pipe '$1'") },
+    { ERR_CLOSEDIR,	WGHT_WARN,  N_("Cannot close directory '$1'") },
+    { ERR_READ,		WGHT_ERROR, N_("Error while reading file '$1'") },
+    { ERR_READDIR,	WGHT_ERROR, N_("Error while reading directory '$1'") },
+    { ERR_WRITE,	WGHT_ERROR, N_("Error while writing file '$1'") },
+    { ERR_SEEK,		WGHT_ERROR, N_("Seek error on file '$1'") },
+    { ERR_FLUSH,	WGHT_WARN,  N_("Flush error on file '$1'") },
+    { ERR_DUP,		WGHT_WARN,  N_("Cannot duplicate handle of file '$1'")},
+    { ERR_DIRNAME,	WGHT_ERROR, N_("Cannot build directory name") },
+/* TRANSLATORS: do not exchange order of arguments */
+    { ERR_NAMETOLONG,	WGHT_ERROR,
+	N_("Requested directory name to long: dir='$1',file='$2'") },
+    { ERR_DIRNOTFOUND,	WGHT_ERROR, N_("Directory '$1' not found") },
+/* TRANSLATORS: do not exchange order of arguments */
+    { ERR_FILEINDIR,	WGHT_ERROR,
+	N_("File '$1' not found in directory '$2'") },
+    { ERR_NODIR,	WGHT_ERROR, N_("'$1' is not a directory") },
+    { ERR_UNLINK,	WGHT_WARN,  N_("Cannot unlink '$1'") },
+/* TRANSLATORS: do not exchange order of arguments */
+    { ERR_RENAME,	WGHT_PROB,  N_("Cannot rename '$1' to '$2'") },
+    { ERR_ALLOC,	WGHT_FATAL, N_("Out of memory.") },
+    { ERR_SOURCE,	WGHT_WARN,  N_("Error sourcing file '$1'") },
+    { ERR_UNAME,	WGHT_FATAL, N_("'uname (2)' failed.") },
+    { ERR_GETHOSTNAME,	WGHT_FATAL, N_("'gethostname (2)' failed.") },
+    { ERR_GETDOMAINNAME,WGHT_FATAL, N_("'getdomainname (2)' failed.") },
+    { ERR_STRING,	WGHT_FATAL, N_("string error") },
+    { ERR_DISPLAY,	WGHT_ERROR, N_("Cannot open display") },
+    { ERR_PARSE,	WGHT_ERROR, N_("Parse error") },
+    { ERR_EXEC,		WGHT_ERROR, N_("Tcl command execution failed: $1") },
+    { ERR_EXTRACT,	WGHT_ERROR, N_("Cannot extract X11 resources") },
+    { ERR_COMMAND,	WGHT_ERROR, N_("'$1' is an unrecognized subcommand") },
+    { ERR_LOCATE,	WGHT_ERROR,
+	N_("Unable to locate a modulefile for '$1'") },
+    { ERR_MAGIC,	WGHT_ERROR,
+	N_("Magic cookie '#%Module' missing in '$1'") },
+    { ERR_MODULE_PATH,	WGHT_ERROR, N_("'MODULEPATH' not set") },
+    { ERR_HOME,		WGHT_ERROR, N_("'HOME' not set") },
+    { ERR_SHELL,	WGHT_ERROR, N_("Unknown shell type '$1'") },
+    { ERR_DERELICT,	WGHT_ERROR, N_("Unknown shell derelict '$1'") },
+/* TRANSLATORS: do not exchange order of arguments */
+    { ERR_CONFLICT,	WGHT_ERROR,
+	N_("Module '$1' conflicts with the currently loaded module(s) '$2*'")},
+/* TRANSLATORS: do not exchange order of arguments */
+    { ERR_PREREQ,	WGHT_ERROR,
+	N_("Module '$1' depends on one of the module(s) '$2*'") },
+    { ERR_NOTLOADED,	WGHT_ERROR, N_("Module '$1' is currently not loaded") },
+    { ERR_DUP_SYMVERS,	WGHT_PROB,  N_("Duplicate version symbol '$1' found") },
+    { ERR_SYMLOOP,	WGHT_ERROR, N_("Version symbol '$1' loops") },
+    { ERR_BADMODNAM,	WGHT_PROB,  N_("Invalid modulename '$1' found") },
+    { ERR_DUP_ALIAS,	WGHT_WARN,  N_("Duplicate alias '$1' found") },
+    { ERR_CACHE_INVAL,	WGHT_ERROR, N_("Invalid cache version '$1' found") },
+    { ERR_CACHE_LOAD,	WGHT_WARN,  N_("Couldn't load the cache properly") },
+    { ERR_BEGINENV,	WGHT_WARN,
 #ifdef BEGINENV
 #  if BEGINENV == 99
-	"No _MODULESBEGINENV_ file"
+	N_("Invalid update subcommand - No _MODULESBEGINENV_ file")
 #  else
-	"No .modulesbeginenv file"
+	N_("Invalid update subcommand - No .modulesbeginenv file")
 #  endif
 #else
-	".modulesbeginenv not supported"
+	N_("Invalid update subcommand - .modulesbeginenv not supported")
 #endif
 	},
     { ERR_BEGINENVX,	WGHT_WARN,
-	"Invalid update subcommand - No MODULESBEGINENV - hence not supported"},
-    { ERR_INIT_TCL,	WGHT_ERROR, "Cannot initialize TCL" },
-    { ERR_INIT_TCLX,	WGHT_WARN,  "Cannot initialize TCLX modules using "
-				    "extended commands might fail" },
-    { ERR_INIT_ALPATH,	WGHT_WARN,  "Could not extend auto_path variable. "
-				    "Module using autoloadable functions might "
-				    "fail" },
-    { ERR_INIT_STUP,	WGHT_WARN,  "Cannot find a 'module load' command in "
-				    "any of the '$1' startup files" },
-    { ERR_SET_VAR,	WGHT_WARN,  "Cannot set TCL variable '$1'" },
-    { ERR_INFO_DESCR,	WGHT_ERROR, "Unrecognized module info descriptor '$1'" },
-    { ERR_INVWGHT_WARN,	WGHT_WARN,  "Invalid error weight '$1' found" },
-    { ERR_INVFAC_WARN,	WGHT_WARN,  "Invalid log facility '$1'" },
-    { ERR_COLON,	WGHT_WARN,  "Spurious colon in pattern '$1'" },
-    { ERR_INTERAL,	WGHT_PANIC, "Internal error in the alias handler" },
-    { ERR_INTERRL,	WGHT_PANIC, "Internal error in the error logger" },
-    { ERR_INVAL,	WGHT_PANIC, "Invalid error type '$1' found" },
-    { ERR_INVWGHT,	WGHT_PANIC, "Invalid error weight '$1' found" },
-    { ERR_INVFAC,	WGHT_PANIC, "Invalid log facility '$1'" },
-    { ERR_ENVVAR,       WGHT_FATAL, "The environment variables LOADMODULES and _LMFILES_ have inconsistent lengths." }
+N_("Invalid update subcommand - No MODULESBEGINENV - hence not supported")},
+    { ERR_INIT_TCL,	WGHT_ERROR, N_("Cannot initialize TCL") },
+    { ERR_INIT_TCLX,	WGHT_WARN,
+N_("Cannot initialize TCLX modules using extended commands might fail") },
+    { ERR_INIT_ALPATH,	WGHT_WARN,
+N_("Could not extend auto_path variable. Module using autoloadable functions might fail") },
+    { ERR_INIT_STUP,	WGHT_WARN,
+N_("Cannot find a 'module load' command in any of the '$1' startup files") },
+    { ERR_SET_VAR,	WGHT_WARN,  N_("Cannot set TCL variable '$1'") },
+    { ERR_INFO_DESCR,	WGHT_ERROR,
+	N_("Unrecognized module info descriptor '$1'") },
+    { ERR_INVWGHT_WARN,	WGHT_WARN,  N_("Invalid error weight '$1' found") },
+    { ERR_INVFAC_WARN,	WGHT_WARN,  N_("Invalid log facility '$1'") },
+    { ERR_COLON,	WGHT_WARN,  N_("Spurious colon in pattern '$1'") },
+    { ERR_INTERAL,	WGHT_PANIC, N_("Internal error in the alias handler") },
+    { ERR_INTERRL,	WGHT_PANIC, N_("Internal error in the error logger") },
+    { ERR_INVAL,	WGHT_PANIC, N_("Invalid error type '$1' found") },
+    { ERR_INVWGHT,	WGHT_PANIC, N_("Invalid error weight '$1' found") },
+    { ERR_INVFAC,	WGHT_PANIC, N_("Invalid log facility '$1'") },
+    { ERR_ENVVAR,       WGHT_FATAL,
+N_("The environment variables LOADMODULES and _LMFILES_ have inconsistent lengths.") }
 };
 
 /** ************************************************************************ **/
@@ -464,17 +475,17 @@ static	void Print_Tracing(	char	 *buffer,
      **/
 
     pwent = getpwuid( uid = getuid());
-    sprintf( s, " [%s(%d)", (pwent ? pwent->pw_name : _unknown), uid);
+    sprintf( s, " [%s(%d)", (pwent ? pwent->pw_name : _(em_unknown)), uid);
     s += strlen( s);
     grpent = getgrgid( gid = getgid());
-    sprintf( s, ".%s(%d)]", (grpent ? grpent->gr_name : _unknown), gid);
+    sprintf( s, ".%s(%d)]", (grpent ? grpent->gr_name : _(em_unknown)), gid);
     s += strlen( s);
 
     pwent = getpwuid( uid = geteuid());
-    sprintf( s, " [%s(%d)", (pwent ? pwent->pw_name : _unknown), uid);
+    sprintf( s, " [%s(%d)", (pwent ? pwent->pw_name : _(em_unknown)), uid);
     s += strlen( s);
     grpent = getgrgid( gid = getegid());
-    sprintf( s, ".%s(%d)] = ", (grpent ? grpent->gr_name : _unknown), gid);
+    sprintf( s, ".%s(%d)] = ", (grpent ? grpent->gr_name : _(em_unknown)), gid);
     s += strlen( s);
 
     /**
@@ -498,7 +509,7 @@ static	void Print_Tracing(	char	 *buffer,
 	    strcpy( s, "TCL_CONTINUE");
 	    break;
 	default:
-	    strcpy( s, "UNKNOWN");
+	    strcpy( s, _(em_unknown));
 	    break;
     }
 
@@ -603,7 +614,7 @@ int Module_Error(	ErrType		  error_type,
 	return( OK);
 
     if( !module)
-	module = unknown;
+	module = _(em_unknown);
 
     /**
      **  Build the argument array at first
@@ -1390,7 +1401,7 @@ static	int	PrintError(	char 		 *errbuffer,
  ** 									     **
  **   Function:		ErrorString					     **
  ** 									     **
- **   Description:	Print the error message				     **
+ **   Description:	Format the error message			     **
  ** 									     **
  **   First Edition:	1995/08/06					     **
  ** 									     **
@@ -1411,6 +1422,7 @@ static	char	*ErrorString(	char		 *ErrMsgs,
 				char		**argv)
 {
     char	*s;			/** Insertion pointer		     **/
+    char	*X,*XErrMsgs;		/** gettext string pointer	     **/
     int		len = 0;		/** Current length		     **/
     int		backslash = 0;		/** backslash found ?		     **/
 
@@ -1428,26 +1440,27 @@ static	char	*ErrorString(	char		 *ErrMsgs,
 	}
 
     s = error_line;
+    X = XErrMsgs = _(ErrMsgs);
 
     /**
      **  Scan the error strings to be printed
      **/
-    while( *ErrMsgs) {
+    while( *X ) {
 
 	/**
 	 **  Check for special characters
 	 **/
-	switch( *ErrMsgs) {
+	switch( *X) {
 	    case '\\':	if( !backslash) {
 				backslash = 1;
-				ErrMsgs++;
+				X++;
 				continue;	/** while( *ErrMsgs) **/
 			    }
 			    break;	/** switch **/
 
 	    case '$':	if( !backslash) {
-				ErrMsgs++;
-				add_param( &ErrMsgs, &s, &len, argc, argv);
+				X++;
+				add_param( &X, &s, &len, argc, argv);
 				error_line = s - len;
 				continue;	/** while( *ErrMsgs) **/
 			    }
@@ -1466,7 +1479,7 @@ static	char	*ErrorString(	char		 *ErrMsgs,
 	    s = error_line + len - 1;
 	}
 
-	*s++ = *ErrMsgs++;
+	*s++ = *X++;
 	backslash = 0;
 				
     } /** while( *ErrMsgs) **/
@@ -1508,7 +1521,7 @@ static	void	add_param(	char		**Control,
 				int		  argc,
 				char		**argv)
 {
-    char	*s;			/** Scan pointer fot the ctrl field  **/
+    char	*s;			/** Scan pointer for the ctrl field  **/
     int		index, last = 0;	/** parameter index		     **/
     int		len = 0;		/** Parameter string length	     **/
 

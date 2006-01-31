@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.6 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.7 2006/01/31 04:16:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -207,7 +207,8 @@ static	int	PerModuleHelp(	Tcl_Interp	*interp,
 
         g_current_module = modulename;
 	fprintf( stderr,
-		 "\n----------- Module Specific Help for '%s' %.*s-------\n\n", 
+		 "\n----------- %s '%s' %.*s-------\n\n", 
+		 _("Module Specific Help for"),
 		 g_current_module, (int)(20-strlen( g_current_module)),
 		 "--------------------");
 	result = CallModuleProcedure( help_interp, &cmdbuf, modulefile,
@@ -218,7 +219,8 @@ static	int	PerModuleHelp(	Tcl_Interp	*interp,
 	 **/
 
 	if( result == TCL_ERROR)
-	    fprintf( stderr, "\t*** No Module Specific Help for %s ***\n", 
+	    fprintf( stderr, "\t*** %s %s ***\n", 
+		_("No Module Specific Help for"), 
 		g_current_module);
 
 	/**

@@ -23,7 +23,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.5 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.6 2006/01/31 04:16:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -209,7 +209,8 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
 	     **	 Open the cache file
 	     **/
 	    if((FILE *) NULL == (cachefp = fopen( cache_file, "r"))) {
-		if( OK != ErrorLogger( ERR_OPEN, LOC, cache_file, NULL))
+		if( OK != ErrorLogger( ERR_OPEN, LOC, cache_file,
+		    _(em_reading), NULL))
 		    goto unwind1;
 	
 	    } else {
@@ -237,7 +238,8 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
 	      **/
 	     if( sw_create && cache_file)
 		 if((FILE *) NULL == (cachefp = fopen( cache_file, "w")))
-		     if( OK != ErrorLogger( ERR_OPEN, LOC, cache_file, NULL))
+		     if( OK != ErrorLogger( ERR_OPEN, LOC, cache_file,
+			_(em_writing), NULL))
 			 goto unwind1;
 		
 	     /**
@@ -361,7 +363,8 @@ int ModuleCmd_Apropos(	Tcl_Interp	*interp,
 	 **  Open the cache file
 	 **/
 	if((FILE *) NULL == (cachefp = fopen( cache_file, "r"))) {
-	    if( OK != ErrorLogger( ERR_OPEN, LOC, cache_file, NULL))
+	    if( OK != ErrorLogger( ERR_OPEN, LOC, cache_file,
+		_(em_reading), NULL))
 		goto unwind1;
 	
 	} else {
@@ -389,7 +392,8 @@ int ModuleCmd_Apropos(	Tcl_Interp	*interp,
 	 **/
 	if( sw_create && cache_file)
 	    if((FILE *) NULL == (cachefp = fopen( cache_file, "w")))
-		if( OK != ErrorLogger( ERR_OPEN, LOC, cache_file, NULL))
+		if( OK != ErrorLogger( ERR_OPEN, LOC, cache_file,
+		    _(em_writing), NULL))
 		    goto unwind1;
 
 	/**
