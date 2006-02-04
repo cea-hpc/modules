@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.10 2006/01/31 04:16:51 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.11 2006/02/04 01:12:52 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -459,8 +459,7 @@ int	cmdPrereq(	ClientData	 client_data,
      **/
 
 #if WITH_DEBUGGING_CALLBACK_1
-/* TRANSLATORS: debugging messages */
-    ErrorLogger( NO_ERR_DEBUG, LOC, _("Scanning all "), (sprintf( buffer, "%d",
+    ErrorLogger( NO_ERR_DEBUG, LOC, "Scanning all ", (sprintf( buffer, "%d",
 	numpaths), buffer), "modulepaths", NULL);
 #endif
 
@@ -477,8 +476,7 @@ int	cmdPrereq(	ClientData	 client_data,
 	     **/
 
 #if WITH_DEBUGGING_CALLBACK_1
-/* TRANSLATORS: debugging messages */
-	    ErrorLogger( NO_ERR_DEBUG, LOC, _("Save directory list. # = "),
+	    ErrorLogger( NO_ERR_DEBUG, LOC, "Save directory list. # = ",
 		(sprintf( buffer, "%d", listcnt), buffer), NULL);
 #endif
 
