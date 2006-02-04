@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.18 2006/01/31 04:16:52 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.19 2006/02/04 21:53:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -55,6 +55,7 @@ static void *UseId[] = { &UseId, Id };
 /** 				    COMMON STRINGS			     **/
 /** ************************************************************************ **/
 
+/* TRANSLATORS: The next five are the common strings */
 char	em_reading[]	= N_("reading");
 char	em_writing[]	= N_("writing");
 char	em_appending[]	= N_("appending");
@@ -399,9 +400,9 @@ void module_usage(FILE *output)
 		_("\n  Modules Release %s %s (Copyright GNU GPL v2 1991):\n\n"),
                 version_string,date_string);
 	
-/* TRANSLATORS: keep the options and formatting the same
- */
-	fprintf(output,_(
+	fprintf(output,
+/* TRANSLATORS: keep the options and formatting the same */
+_(
 "  Usage: module [ switches ] [ subcommand ] [subcommand-args ]\n\n"
 "Switches:\n"
 "	-H|--help		this usage info\n"
@@ -779,6 +780,7 @@ static void version (FILE *output) {
 	fprintf(output, format, _("VERSION"), version_string);
 	fprintf(output, format, _("DATE"), date_string);
 	fprintf(output, "\n");
+
 	isdefined(AUTOLOADPATH,str(AUTOLOADPATH));
 	isdefined(BEGINENV,str(BEGINENV));
 	isdefined(CACHE_AVAIL,str(CACHE_AVAIL));
