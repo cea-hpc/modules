@@ -50,7 +50,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.21 2006/02/04 01:10:59 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.22 2006/02/04 17:04:48 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -2218,6 +2218,7 @@ void cleanse_path( const char	*path,
         switch(*path) {
             case '.':
             case '+':
+            case '$':
 		*newpath++ = '\\';		/** devalue '.' and '+'	    **/
 		j++;
 		break;
