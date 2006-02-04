@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.23 2006/01/26 19:55:16 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.24 2006/02/04 01:10:59 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -20,7 +20,8 @@ DIST_SUBDIRS = . init modulefiles etc ext doc po
 SOURCES_H = modules_def.h getopt.h config.h
 EXTRA_DIST = modules_def.h getopt.h testsuite INSTALL.RH7x		\
 	init/filter init/bash.in init/sh.in init/zsh.in			\
-	init/csh.in init/ksh.in init/perl.in init/python.in
+	init/csh.in init/ksh.in init/perl.in init/python.in		\
+	LICENSE.GPL
 
 bin_PROGRAMS = modulecmd
 # bin_SCRIPTS = etc/mkroot etc/add.modules ext/add.ext
@@ -61,6 +62,8 @@ cxref:
 
 SED=sed
 CVS=cvs
+GZIP=gzip
+BZIP2=bzip2
 
 patch: $(srcdir)/configure
 	@echo "Creating patch file -- do this after CVS tagging"

@@ -50,7 +50,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.20 2006/01/31 04:16:52 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.21 2006/02/04 01:10:59 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -1213,7 +1213,7 @@ static	void	output_function(	const char	*var,
     /**
      **  This opens a function ...
      **/
-    fprintf( aliasfile, "%s() {%c", var, alias_separator);
+    fprintf( aliasfile, "%s() { ", var);
 
     /**
      **  ... now print the value. Print it as a single line and remove any
@@ -1342,8 +1342,8 @@ static	int	output_set_alias(	const char	*alias,
                 ||  !strcmp( shell_name, "ksh")) {
 	    /**
 	     **  in this case we only have to write a function if the alias
-	     **  take arguments. This is the case if the value has somewhere
-	     **  a '$' in it without a '\' infront.
+	     **  takes arguments. This is the case if the value has '$'
+	     **  somewhere in it without a '\' in front.
 	     **/
 	    while( *cptr) {
 		if( *cptr == '\\') {
@@ -2628,6 +2628,7 @@ void EscapeCshString(const char* in,
 	*in == '<' ||
 	*in == '>' ||
 	*in == '!' ||
+	*in == ';' ||
 	*in == '#' ||
 	*in == '$' ||
 	*in == '^' ||
@@ -2657,6 +2658,7 @@ void EscapeShString(const char* in,
 	*in == '<' ||
 	*in == '>' ||
 	*in == '!' ||
+	*in == ';' ||
 	*in == '#' ||
 	*in == '$' ||
 	*in == '^' ||
@@ -2678,6 +2680,7 @@ void EscapePerlString(const char* in,
   
   for(;*in;in++) {
     if (*in == '\\'||
+	*in == ';' ||
 	*in == '\'') {
       *out++ = '\\';
     }
