@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.23 2006/01/31 04:16:51 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.24 2006/02/05 05:08:55 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -12,7 +12,7 @@ dnl You need autoconf 2.52 or better!
 dnl
 dnl ---------------------------------------------------------------------------
 AC_INIT(modules,3.2)dnl
-AC_CONFIG_AUX_DIR(config)dnl
+AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE(1.9.6 foreign dejagnu no-installinfo dist-bzip2)dnl
 AC_CONFIG_SRCDIR([version.c])dnl
 AM_CONFIG_HEADER(config.h)dnl
@@ -22,7 +22,7 @@ AC_PROG_MAKE_SET
 AC_PREREQ(2.59)dnl
 dnl I18N support
 AM_GNU_GETTEXT([external])
-AM_GNU_GETTEXT_VERSION(0.14.5)
+AM_GNU_GETTEXT_VERSION([0.14.5])
 AM_PO_SUBDIRS
 
 dnl ---------------------------------------------------------------------------
@@ -968,7 +968,7 @@ PREFIX/Modules/modulefiles
 dnl ---------------------------------------------------------------------------
 dnl Now put it all out!
 dnl ---------------------------------------------------------------------------
-AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile
+AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile po/Makefile.in
 	init/Makefile init/.modulespath
 	doc/module.1 doc/modulefile.4
 	etc/Makefile etc/add.modules etc/mkroot
