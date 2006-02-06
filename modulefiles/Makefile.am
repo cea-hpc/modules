@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        modulefiles/Makefile.am
-## Versions:    $Id: Makefile.am,v 1.4 2005/12/02 07:07:42 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.5 2006/02/06 17:30:50 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -12,16 +12,28 @@ AUTOMAKE_OPTIONS=foreign no-installinfo
 BASEMODULES= \
 	dot module-cvs module-info modules null use.own
 
-EXTRA_SCRIPTS= ${BASEMODULES} version
+# add any new languages for the lang/ modulefiles here
+# and in the lang/.mklang script
+LANGUAGES= \
+	lang/de lang/en lang/es lang/fi lang/fr lang/gr			\
+	lang/it lang/ja lang/no lang/ru lang/us lang/zh
+
+ALLMODULES=${BASEMODULES} ${LANGUAGES} lang/.mklang
+
+EXTRA_SCRIPTS= ${ALLMODULES} version
 
 all:	${EXTRA_SCRIPTS}
 
+${LANGUAGES} : lang/.mklang
+	-(cd lang; ./.mklang)
+
 install-data-local : install-basemodules install-version
 
-install-basemodules : $(BASEMODULES)
+install-basemodules : $(ALLMODULES)
 	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(DESTDIR)$(prefix)/modulefiles
-	@list='$(BASEMODULES)'; for p in $$list; do \
+	$(mkinstalldirs) $(DESTDIR)$(prefix)/modulefiles/lang
+	@list='$(ALLMODULES)'; for p in $$list; do \
 	  if test -f $$p \
 	  ; then \
 	   echo " $(INSTALL_DATA_ENV) $(INSTALL_DATA) $$p $(DESTDIR)$(prefix)/modulefiles/$$p"; \
@@ -47,7 +59,7 @@ uninstall-local : uninstall-basemodules uninstall-version
 uninstall-basemodules :
 	@$(NORMAL_UNINSTALL)
 	@if test x$(WANTS_VERSIONING) = x1 ; then \
-	  list='$(BASEMODULES)'; for p in $$list; do \
+	  list='$(ALLMODULES)'; for p in $$list; do \
 	    echo " rm -f $(DESTDIR)$(prefix)/modulefiles/$$p"; \
 	    rm -f $(DESTDIR)$(prefix)/modulefiles/$$p; \
 	  done; \
@@ -93,4 +105,5 @@ uninstall-basemodules :
 check :
 
 clean :
-	rm -f ${BASEMODULES}
+	-rm -f ${BASEMODULES}
+	-(cd lang; ./.mklang clean)

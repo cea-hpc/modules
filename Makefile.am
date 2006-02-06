@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.25 2006/02/05 05:11:14 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.26 2006/02/06 17:30:49 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -22,7 +22,8 @@ EXTRA_DIST = config/config.rpath config/mkinstalldirs			\
 	modules_def.h getopt.h testsuite INSTALL.RH7x			\
 	init/filter init/bash.in init/sh.in init/zsh.in			\
 	init/csh.in init/ksh.in init/perl.in init/python.in		\
-	LICENSE.GPL
+	modulefiles/lang/.mklang					\
+	LICENSE.GPL ABOUT-NLS
 
 bin_PROGRAMS = modulecmd
 # bin_SCRIPTS = etc/mkroot etc/add.modules ext/add.ext
@@ -86,7 +87,7 @@ tag:
 	  `${SED} -n -e 's/^.*NEW TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c` \
 	  modules
 
-ChangeLog: rmChangeLog
+CL: rmChangeLog
 	@echo "Updating ChangeLog"
 	-@./cvs2cl.pl
 
@@ -166,7 +167,7 @@ disthelp:
 	@echo "make maintainer-clean - cleans even more"
 	@echo "================ requires CVS access ======================="
 	@echo "make tag       - does a CVS rtag"
-	@echo "make ChangeLog - remakes the ChangeLog from the CVS commits"
+	@echo "make CL        - remakes the ChangeLog from the CVS commits"
 	@echo "make patch     - creates a patch file after tagging"
 	@echo "================ maintainers only =========================="
 	@echo "make lsm       - send off to the Linux Software Map"
