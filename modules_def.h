@@ -43,6 +43,12 @@
 #  define CONST84	/* const */
 #endif
 
+#if (TCL_MAJOR_VERSION < 8)
+#  define TCL_RESULT(interp) ((interp)->result)
+#else
+#  define TCL_RESULT(interp) Tcl_GetStringResult(interp)
+#endif
+
 #ifndef HAVE_STDINT_H
 /* assume 32 bit - hope for the best */
 typedef	int	intptr_h;

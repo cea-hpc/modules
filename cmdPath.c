@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.10 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.11 2006/02/06 22:03:31 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -63,7 +63,7 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 #define _TCLCHK(a)	\
-	{if (*(a)->result) ErrorLogger(ERR_EXEC,LOC,(a)->result,NULL);}
+	{if (*(TCL_RESULT(a))) ErrorLogger(ERR_EXEC,LOC,TCL_RESULT(a),NULL);}
 
 /** ************************************************************************ **/
 /** 				    LOCAL DATA				     **/
