@@ -80,42 +80,54 @@ proc modulecmd_exit {} {
 #
 
 proc modulecmd_xxx_ {command} {
-    global MODULECMD
-    global verbose
-    global shell
-    global comp_output
-    global comp_error
-    global no_verbose
+	global MODULECMD
+	global verbose
+	global shell
+	global comp_output
+	global comp_error
+	global comp_exit
+	global errorCode
+	global no_verbose
 
-    if ![info exists command] then {
-	unresolved "internal testsuite error: no module command specified"
-    }
+	if ![info exists command] then {
+	  unresolved "internal testsuite error: no module command specified"
+	}
 
-    default_shell 
-    default_modulecmd
+	default_shell 
+	default_modulecmd
 
-    if { ! $no_verbose && $verbose > 1 } {
-	send_user "starting $MODULECMD $shell $command\n"
-    }
+	if { ! $no_verbose && $verbose > 1 } {
+		send_user "starting $MODULECMD $shell $command\n"
+	}
 
 # this is why I hate Tcl ... you can never count on anything to act
 # in a consistent fashion from one version to the next.
 # This used to work until 8.4
 #   catch {set comp_output [eval exec $MODULECMD $shell [split $command { }]]
 #	} comp_error
-    catch {set comp_output [eval exec $MODULECMD $shell [split $command { }] 2> test.err ]
-    } comp_error
+#
+# now need to capture the exit return code.
+	if [catch {
+		set comp_output [eval exec $MODULECMD $shell [split $command { }] 2> test321.err > test321.out ]
+	} ] {
+		set comp_exit [lindex $errorCode 2]
+	} else {
+		set comp_exit 0
+	}
                                                                                 
-    catch {
-        set errfile [ open test.err ]
-        read -nonewline $errfile
-    } comp_error
-    file delete test.err
+	catch {
+		set errfile [ open test321.err ]
+		read -nonewline $errfile
+	} comp_error
+	catch { close $errfile }
+	catch { file delete test321.err }
 
-#   if { $verbose > 1 } {
-#	send_user "got STDOUT = $comp_output \n"
-#	send_user "got STDERR = $comp_error \n"
-#   }
+	catch {
+		set outfile [ open test321.out ]
+		read -nonewline $outfile
+	} comp_output
+	catch { close $outfile }
+	catch { file delete test321.out }
 }
 
 proc modulecmd_start {command} {

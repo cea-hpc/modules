@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.13 2006/02/06 22:03:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.14 2006/03/07 19:43:16 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -447,6 +447,7 @@ int	cmdModule(	ClientData	 client_data,
  **		 	char		*filename			     **
  ** 									     **
  **   Result:		int	TCL_OK		Successfull completion	     **
+ **				TCL_BREAK	break command		     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:							     **
@@ -489,34 +490,17 @@ int   Read_Modulefile( Tcl_Interp	*interp,
      **  latest executed command
      **/
 
-    if( TCL_ERROR == (result = Execute_TclFile(interp, filename))) {
+    result = Execute_TclFile(interp, filename);
 
 #if WITH_DEBUGGING_UTIL
+    if(EM_ERROR == ReturnValue(interp, result))
 	ErrorLogger( NO_ERR_DEBUG, LOC, "Execution of '",
 		filename, "' failed", NULL);
 #endif
 
-	if( *TCL_RESULT(interp)) {
-	    char *tstr = NULL;
-	    Tcl_RegExp retexpPtr;
-
-	    tstr = strdup(TCL_RESULT(interp));
-	    retexpPtr = Tcl_RegExpCompile(interp, "^EXIT ([0-9]*)");
-	    if( Tcl_RegExpExec(interp, retexpPtr, tstr, tstr)) {
-		Tcl_RegExpRange(retexpPtr, 1,
-			(CONST84 char **) &startp, (CONST84 char **) &endp);
-		if( startp != '\0')
-		    result = atoi( startp );
-	    }
-	    if (tstr)
-		null_free((void *) &tstr);
-	}
-    }
-
     /**
      **  Return the result as derivered from the module file execution
      **/
-
 #if WITH_DEBUGGING_UTIL
     ErrorLogger( NO_ERR_END, LOC, _proc_Read_Modulefile, NULL);
 #endif
@@ -552,6 +536,7 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
     FILE	*infile;
     int		 gotPartial = 0;
     int		 result = 0;
+    EM_RetVal	 em_result = EM_OK;
     char	*cmd;
     Tcl_DString	 cmdbuf;
 
@@ -625,7 +610,7 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
 
         result = Tcl_Eval( interp, cmd);
 
-	if( TCL_ERROR == result) {
+	if( EM_ERROR == (em_result = ReturnValue(interp, result))) {
 	    ErrorLogger( ERR_EXEC, LOC, cmd, NULL);
 	}
 

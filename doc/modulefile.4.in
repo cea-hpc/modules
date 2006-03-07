@@ -71,10 +71,21 @@ The command descriptions assume the \fImodulefile\fP is being loaded.
 .PP
 .B break
 .RS
-This is not a modules specific command, it's actually part of Tcl.
-However, it will have the effect of causing the module not to be listed
+This is not a modules specific command, it's actually part of Tcl,
+which has been overloaded similar to the
+.I continue
+and
+.I exit
+commands to have the 
+effect of causing the module not to be listed
 as loaded and not affect other modules being loaded concurrently.
-All commands within the module will be performed though.
+All non-environment commands within the module will be performed
+up to this point and processing will continue on to the
+next module on the command line.
+The
+.I break
+command will only have this effect if not used within a Tcl loop though.
+
 An example: Suppose that a full selection of modulefiles are needed
 for various different architectures, but some of the modulefiles
 are not needed and the user should be alerted.  Having the unnecessary
@@ -100,6 +111,61 @@ break
 
 .fi
 .RE
+
+.PP
+.B continue
+.RS
+This is not a modules specific command but another overloaded Tcl
+command
+and is similar to the
+.I break
+or
+.I exit
+commands
+except the module will be listed as loaded as well as performing
+any environment or Tcl commands up to this point
+and then continuing on to the next module on the command line.
+The
+.I continue
+command will only have this effect if not used within a Tcl loop though.
+.RE
+
+.PP
+.B exit [N]
+.RS
+This is not a modules specific command but another overloaded Tcl
+command
+and is similar to the
+.I break
+or
+.I continue
+commands.
+However, this command will cause the immediate cessation
+of this module and any additional ones on the command line.
+This module and the subsequent modules will not be listed 
+as loaded.  No environment commands will be performed in
+the current module.
+
+The integer value
+.I N
+after the
+.I exit
+command will be used as an command exit value; however, some shells
+.RI ( bash
+being one of them)
+do not carry this value through an
+.I eval
+though. For
+.I bash
+and those Bourne shells
+.RI ( /bin/sh )
+being emulated by the
+.I bash
+will have return a non-zero value as a result of
+.I test 0 = 1
+being appended to the evaluate string.
+.RE
+
 .PP
 .B setenv
 .I variable

@@ -65,6 +65,7 @@ proc version_test {which} {
 proc _test_sub {test_shell cmd} {
 	global comp_output
 	global comp_error
+	global comp_exit
 	global shell
 	global verbose
 
@@ -73,6 +74,7 @@ proc _test_sub {test_shell cmd} {
 	}
 	set comp_output ""
 	set comp_error ""
+	set comp_exit ""
 
 	if { ![info exists test_shell] || ![info exists cmd] } {
 		unresolved "$cmd ($test_shell) internal error"
@@ -84,6 +86,7 @@ proc _test_sub {test_shell cmd} {
 	if { $verbose > 1 } {
 		send_user "OUT: '$comp_output'\n"
 		send_user "ERR: '$comp_error'\n"
+		send_user "EXIT: '$comp_exit'\n"
 	}
 }
 
@@ -151,6 +154,22 @@ proc _test_out_re {test_shell cmd answer} {
 	}
 }
 
+proc _test_exit {test_shell cmd exitval} {
+	global comp_exit
+	global verbose
+
+	if { $comp_exit != "$exitval" } {
+		fail "$cmd ($test_shell)"
+		if { $verbose > 0 } {
+			send_user "EXIT: '$comp_exit'\n"
+			send_user "EXP: '$exitval'\n"
+		}
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
 proc _test_ok {test_shell cmd} {
 	pass "$cmd ($test_shell)"
 }
@@ -171,10 +190,11 @@ proc test_cmd_re {test_shell cmd answer} {
 #  Test procedure for full text matching
 #
 
-proc test_cmd {test_shell cmd answer} {
+proc test_cmd {test_shell cmd answer {exitval 0}} {
 
 	_test_sub $test_shell "$cmd"
-	if { [ _test_out $test_shell "$cmd" "$answer" ] } {
+	if { [ _test_out $test_shell "$cmd" "$answer" ]
+	&&   [ _test_exit $test_shell "$cmd" "$exitval" ] } {
 		_test_ok $test_shell "$cmd"
 	}
 }
