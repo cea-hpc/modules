@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        init/Makefile.am
-## Versions:    $Id: Makefile.am,v 1.3 2006/02/09 21:33:20 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.4 2006/04/10 20:03:53 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -48,7 +48,7 @@ uninstall-inits :
 	done
 
 #
-# we need to filter the *.inp files to produce the init scripts
+# we need to filter the *.in files to produce the init scripts
 #   since we don't know the value of @prefix@ until Make time
 #   therefore, we can not rely on configure to give us correct values.
 # Cobbled together filter to substitute the configure macros
@@ -60,41 +60,41 @@ uninstall-inits :
 #		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 #		< .modulespath.in > .modulespath
 
-#.modulespath : .modulespath.in ../config.status
-#	(cd ..; config.status init/.modulespath)
+#.modulespath : .modulespath.in $(top_srcdir)/config.status
+#	(cd $(top_srcdir); config.status init/.modulespath)
 
-bash : bash.in ../config.status
-	${SHELL} ./filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
+bash : bash.in $(top_srcdir)/config.status
+	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< bash.in > bash
 
-csh : csh.in ../config.status
-	${SHELL} filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
+csh : csh.in $(top_srcdir)/config.status
+	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< csh.in > csh
 
-ksh : ksh.in ../config.status
-	${SHELL} filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
+ksh : ksh.in $(top_srcdir)/config.status
+	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< ksh.in > ksh
 
-perl : perl.in ../config.status
-	${SHELL} filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
+perl : perl.in $(top_srcdir)/config.status
+	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< perl.in > perl
 
-python : python.in ../config.status
-	${SHELL} filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
+python : python.in $(top_srcdir)/config.status
+	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< python.in > python
 
-sh : sh.in ../config.status
-	${SHELL} filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
+sh : sh.in $(top_srcdir)/config.status
+	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< sh.in > sh
 
-zsh : zsh.in ../config.status
-	${SHELL} filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
+zsh : zsh.in $(top_srcdir)/config.status
+	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< zsh.in > zsh
 
