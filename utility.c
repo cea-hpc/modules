@@ -28,6 +28,8 @@
  **			Update_LoadedList				     **
  **			check_magic					     **
  **			cleanse_path					     **
+ **			xstrtok						     **
+ **			xstrtok_r					     **
  **			chk4spch					     **
  **			xdup						     **
  **			xgetenv						     **
@@ -36,7 +38,6 @@
  **			countTclHash					     **
  **									     **
  **			strdup		if not defined by the system libs.   **
- **			strtok		if not defined by the system libs.   **
  ** 									     **
  **   Notes:								     **
  ** 									     **
@@ -50,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.23 2006/03/07 19:43:16 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.24 2006/05/01 14:52:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -1788,7 +1789,7 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
 	 **  following:
 	 **                gnu/2.0:openwin/3.0
 	 **/
-	loadedmodule_path = strtok( l_modules, ":");
+	loadedmodule_path = xstrtok( l_modules, ":");
 	while( loadedmodule_path) {
 
 	    if((char *) NULL == (loaded = stringer(NULL,0,
@@ -1838,7 +1839,7 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
 	    /**
 	     **  Get the next entry from the loaded modules list
 	     **/
-	    loadedmodule_path = strtok( NULL, ":");
+	    loadedmodule_path = xstrtok( NULL, ":");
             count++;
 
 	    null_free ((void *) &loaded); /** Free what has been alloc. **/
@@ -1859,10 +1860,10 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
 	     **  list of modulefiles by the colon until the wanted position
 	     **  is reached.
 	     **/
-            char* modulefile_path = strtok(l_modulefiles, ":");
+            char* modulefile_path = xstrtok(l_modulefiles, ":");
 	
             while( count) {
-                if( !( modulefile_path = strtok( NULL, ":"))) {
+                if( !( modulefile_path = xstrtok( NULL, ":"))) {
 
 		    /**
 		     **  Oops! Fewer entries in the list of loaded modulefiles
@@ -2316,22 +2317,22 @@ char	*strdup( char *str)
 }
 #endif /* HAVE_STRDUP  */
 
-#ifndef HAVE_STRTOK
 
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
- **   Function:		strtok						     **
+ **   Function:		xstrtok_r,xstrtok				     **
  ** 									     **
- **   Description: 	Considers the string s1 to consist of a sequence of  **
+ **   Description: 	Considers the string s to consist of a sequence of   **
  **			zero or more text tokens separated by spans of one   **
- **			or more characters from the separator string  s2.    **
- **			Just like the "standard" strtok(3).		     **
+ **			or more characters from the separator string  delim. **
+ **			Just like the "standard" strtok(3), and the
+ **			reentrant version strtok_r(3).			     **
+ **			Except this tokenizer will return "empty" tokens too.**
+ **			Providing our own strtok() eliminates the various    **
+ **			nuances of different implementations.		     **
  **									     **
- **   Note:		This function is from the Berkeley BSD distribution. **
- **			It was modified to fit our needs!		     **
- ** 									     **
- **   First Edition:	1991/10/23					     **
+ **   First Edition:	2006/04/17	R.K.Owen <rk@owen.sj.ca.us>	     **
  ** 									     **
  **   Parameters:							     **
  **   Result:								     **
@@ -2340,88 +2341,72 @@ char	*strdup( char *str)
  ** ************************************************************************ **
  ++++*/
 
-/*
- * Copyright (c) 1988 Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
- * 4. Neither the name of the University nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
+char *xstrtok_r(char *s, const char *delim, char **ptrptr) {
+	register char	*ptr, *lptr;
+	register int	 c,sc;
+	const char	*tok;
 
-char *strtok(	char		*s,
-		const char	*delim)
-{
-	register char *spanp;
-	register int c, sc;
-	char *tok;
-	static char *last;
-
-
-	if( s == NULL && (s = last) == NULL)
+	/* return NULL if NULL string and at end of the line */
+	if (s == NULL && *ptrptr == NULL)
 		return (NULL);
 
-	/*
-	 * Skip (span) leading delimiters (s += strspn(s, delim), sort of).
-	 */
-cont:
-	c = *s++;
-	for( spanp = (char *)delim; (sc = *spanp++) != 0;) {
-		if (c == sc)
-			goto cont;
-	}
+	/* do not skip leading (or trailing) delimiters ... */
 
-	if( !c) {		/* no non-delimiter characters */
-		last = NULL;
-		return (NULL);
-	}
-	tok = s - 1;
+	/* if non-NULL string then at beginning of token parsing */
+	if (s != NULL)	*ptrptr = s;
 
-	/*
-	 * Scan token (scan for delimiters: s += strcspn(s, delim), sort of).
-	 * Note that delim must have one NUL; we stop if we see that, too.
-	 */
-	for (;;) {
-		c = *s++;
-		spanp = (char *)delim;
-		do {
-			if ((sc = *spanp++) == c) {
-				if (c == 0)
-					s = NULL;
-				else
-					s[-1] = 0;
-				last = s;
-				return (tok);
+	ptr = *ptrptr;
+	while (ptr && *ptr) {
+		/* cycle through delimiters */
+		tok = delim;
+		while (tok && *tok) {
+			if (*ptr == *tok) {	/* match */
+				*ptr = '\0';	/* null terminate */
+				lptr = *ptrptr;
+				*ptrptr = ++ptr;	/* set for next time */
+				return  lptr;
 			}
-		} while (sc != 0);
+			tok++;
+		}
+		ptr++;
 	}
-	/* NOTREACHED */
+	/* didn't find delimiter */
+	lptr = *ptrptr;
+	*ptrptr = NULL;
+	return lptr;
+} /** End of 'xstrtok_r' **/
 
-} /** End of 'strtok' **/
+char *xstrtok(char *s, const char *delim) {
+	static char	*last;
+	return	xstrtok_r(s,delim,&last);
+} /** End of 'xstrtok' **/
+
+#if 0
+void tryxstrtok (char *string, char *delim) {
+	char *start, *str;
+	char *token;
+	int n = 1;
+
+	start = str = strdup(string);
+	printf("string: %s\n", str);
+	printf("delim : %s\n", delim);
+	
+	token = xstrtok(str,delim);
+	printf("\t%d = %s\n", n, token);
+	while (token = xstrtok(NULL, delim)) {
+		printf("\t%d = %s\n", ++n, token);
+	}
+	free(start);
+}
+int main () {
+	tryxstrtok("abc:def;ghi,jkl", ":;,");
+	tryxstrtok(":abc:def;ghi,jkl", ":;,");
+	tryxstrtok("::abc:def;ghi,jkl", ":;,");
+	tryxstrtok("abc:def;ghi,jkl:", ":;,");
+	tryxstrtok("abc:def;ghi,jkl::", ":;,");
+	tryxstrtok("abc", ":;,");
+	tryxstrtok("", ":;,");
+}
 #endif
 
 /*++++

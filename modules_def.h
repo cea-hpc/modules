@@ -716,6 +716,8 @@ extern	int	  IsLoaded( Tcl_Interp*, char*, char**, char*);
 extern	int	  IsLoaded_ExactMatch( Tcl_Interp*, char*, char	**, char*);
 extern	int	  Update_LoadedList( Tcl_Interp*, char*, char*);
 extern	int	  check_magic( char*, char*, int);
+extern	char	 *xstrtok_r(char *, const char *, char **);
+extern	char	 *xstrtok(char *, const char *);
 extern	void	  chk4spch( char*);
 extern	void	  cleanse_path( const char*, char*, int);
 extern	char	 *xdup(char const *);

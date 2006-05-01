@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.15 2006/01/31 04:16:52 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.16 2006/05/01 14:52:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -897,9 +897,9 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
     /**
      **  Split the given path environment variable into its components.
      **/
-    for( i=0, dirname = strtok( givenpath, ": ");
+    for( i=0, dirname = xstrtok( givenpath, ": ");
          dirname;
-	 dirname = strtok( NULL, ": ")) {
+	 dirname = xstrtok( NULL, ": ")) {
 	/**
 	 **  Oops! The number of tokens exceed my array - reallocate it
 	 **  and double its size!

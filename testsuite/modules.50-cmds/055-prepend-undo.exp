@@ -70,6 +70,96 @@ test_cmd "tcsh" "unload $module" "$ts_csh$lm_csh$lmf_csh"
 test_cmd "perl" "unload $module" "$ts_perl$lm_perl$lmf_perl"
 
 #
+# Try the empty string
+#
+
+set module "prepend/0.1"
+set modulefile "$env(MODULEPATH)/$module"
+
+set ts_path ""
+set new_path "$ts_path:$old_path"
+
+#
+#  Set up the environment for reversal ...
+#
+
+set env(PATH) "$new_path"
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  For the different shells ...
+#
+
+set lmf_sh "unset _LMFILES_;"
+set lm_sh "unset LOADEDMODULES;"
+set ts_sh "PATH=$old_path ;export PATH;"
+
+set lmf_csh "unsetenv _LMFILES_;"
+set lm_csh "unsetenv LOADEDMODULES;"
+set ts_csh "setenv PATH $old_path ;"
+
+set lmf_perl "delete \$ENV{'_LMFILES_'};"
+set lm_perl "delete \$ENV{'LOADEDMODULES'};"
+set ts_perl "\$ENV{'PATH'} = '$old_path';"
+
+#
+#  The tests
+#
+
+test_cmd "sh" "unload $module" "$ts_sh$lm_sh$lmf_sh"
+test_cmd "ksh" "unload $module" "$ts_sh$lm_sh$lmf_sh"
+test_cmd "zsh" "unload $module" "$ts_sh$lm_sh$lmf_sh"
+test_cmd "csh" "unload $module" "$ts_csh$lm_csh$lmf_csh"
+test_cmd "tcsh" "unload $module" "$ts_csh$lm_csh$lmf_csh"
+test_cmd "perl" "unload $module" "$ts_perl$lm_perl$lmf_perl"
+
+#
+# Try just the colon
+#
+
+set module "prepend/0.2"
+set modulefile "$env(MODULEPATH)/$module"
+
+set ts_path ":"
+set new_path "$ts_path:$old_path"
+
+#
+#  Set up the environment for reversal ...
+#
+
+set env(PATH) "$new_path"
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  For the different shells ...
+#
+
+set lmf_sh "unset _LMFILES_;"
+set lm_sh "unset LOADEDMODULES;"
+set ts_sh "PATH=$old_path ;export PATH;"
+
+set lmf_csh "unsetenv _LMFILES_;"
+set lm_csh "unsetenv LOADEDMODULES;"
+set ts_csh "setenv PATH $old_path ;"
+
+set lmf_perl "delete \$ENV{'_LMFILES_'};"
+set lm_perl "delete \$ENV{'LOADEDMODULES'};"
+set ts_perl "\$ENV{'PATH'} = '$old_path';"
+
+#
+#  The tests
+#
+
+test_cmd "sh" "unload $module" "$ts_sh$lm_sh$lmf_sh"
+test_cmd "ksh" "unload $module" "$ts_sh$lm_sh$lmf_sh"
+test_cmd "zsh" "unload $module" "$ts_sh$lm_sh$lmf_sh"
+test_cmd "csh" "unload $module" "$ts_csh$lm_csh$lmf_csh"
+test_cmd "tcsh" "unload $module" "$ts_csh$lm_csh$lmf_csh"
+test_cmd "perl" "unload $module" "$ts_perl$lm_perl$lmf_perl"
+
+#
 #  Clen up the environment
 #
 

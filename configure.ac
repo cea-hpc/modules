@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.24 2006/02/05 05:08:55 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.25 2006/05/01 14:52:18 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -208,7 +208,7 @@ AC_STRUCT_TM
 dnl ---------------------------------------------------------------------------
 dnl Checks for library functions.
 dnl ---------------------------------------------------------------------------
-AC_CHECK_FUNCS([strdup strtok uname gethostname getdomainname \
+AC_CHECK_FUNCS([strdup uname gethostname getdomainname \
 	mktemp tmpnam tempnam \
 	syslog dup2])dnl
 dnl ---------------------------------------------------------------------------

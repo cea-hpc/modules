@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.3 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.4 2006/05/01 14:52:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -140,13 +140,13 @@ int ModuleCmd_Refresh(	Tcl_Interp	*interp,
 	goto success1;
 
     count = 1;
-    for( list[ 0] = strtok( loaded, ":");
-	 list[ count] = strtok( NULL, ":");
+    for( list[ 0] = xstrtok( loaded, ":");
+	 list[ count] = xstrtok( NULL, ":");
 	 count++ );
 
     count = 1;
-    for( files[ 0] = strtok( lmenv, ":");
-	 files[ count] = strtok( NULL, ":");
+    for( files[ 0] = xstrtok( lmenv, ":");
+	 files[ count] = xstrtok( NULL, ":");
 	 count++ );
 
     /**
