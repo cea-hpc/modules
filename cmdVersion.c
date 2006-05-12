@@ -47,7 +47,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.10 2006/01/31 04:16:51 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.11 2006/05/12 22:28:23 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -432,6 +432,7 @@ static	char	*scan_versions( char		 *buffer,
 {
     ModName     *tmp, *vers;
     char 	*s;
+    char 	*mayloop;
 
     /**
      **  Recursively print the queue of names
@@ -448,11 +449,17 @@ static	char	*scan_versions( char		 *buffer,
 
 	/**
 	 **  Prevent endless loops
+	 **  To allow for version names that are substrings of other
+	 **  version names, match against "(^|:)name:" not just "name"... 
 	 **/
-
-	if( strstr( base, ptr->name)) {
-	    ErrorLogger( ERR_SYMLOOP, LOC, ptr->name, NULL);
-	    return((char *) NULL);		/** ---- EXIT (FAILURE) ---> **/
+	mayloop = strstr( base, ptr->name);
+	if( mayloop != NULL ) {
+	    if( mayloop == base || *(mayloop-1) == ':' ) {
+		if( *(mayloop + strlen(ptr->name)) == ':' ) {
+	    	    ErrorLogger( ERR_SYMLOOP, LOC, ptr->name, NULL);
+		    return((char *) NULL);	/** ---- EXIT (FAILURE) ---> **/
+		}
+	    }
 	}
 
 	/**
@@ -461,6 +468,7 @@ static	char	*scan_versions( char		 *buffer,
 
 	/* sprintf( buffer, "%s:", ptr->name); */
 	strcpy( buffer, ptr->name);
+	/* if you change this, may affect the loop checker above */
 	strcat( buffer, ":");
 	buffer += strlen( buffer);
 
