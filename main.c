@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.21 2006/05/04 16:55:44 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.22 2006/05/15 21:11:20 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -155,6 +155,9 @@ static	char	module_name[] = "main.c";	/** File name of this module **/
 
 #if WITH_DEBUGGING
 static	char	_proc_main[] = "main";
+#endif
+#if WITH_DEBUGGING_MODULECMD
+static	char	_proc_Module_Usage[] = "Module_Usage";
 #endif
 #if WITH_DEBUGGING_INIT
 static	char	_proc_Check_Switches[] = "Check_Switches";
@@ -398,7 +401,7 @@ void module_usage(FILE *output)
      **/
 
 #if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Help, NULL);
+    ErrorLogger( NO_ERR_START, LOC, _proc_Module_Usage, NULL);
 #endif
 
 	fprintf(output,
