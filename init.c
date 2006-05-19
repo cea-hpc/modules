@@ -36,7 +36,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.12 2006/02/06 22:03:31 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.13 2006/05/19 15:53:09 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -46,7 +46,7 @@ static void *UseId[] = { &UseId, Id };
 #include "modules_def.h"
 
 #ifdef	HAS_TCLXLIBS
-#include "tclExtend.h"
+#  include "tclExtend.h"
 #endif	/* HAS_TCLXLIBS */
 
 /** ************************************************************************ **/
@@ -484,7 +484,9 @@ int InitializeModuleCommands( Tcl_Interp* interp)
      **  Extended Tcl initialization if configured so ...
      **/
 
-#if (TCL_MAJOR_VERSION > 7 || TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION > 5)
+#if (TCL_MAJOR_VERSION > 8 || TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION > 3)
+    if( Tclx_Init( interp) == TCL_ERROR)
+#elif (TCL_MAJOR_VERSION > 7 || TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION > 5)
     if( Tclxcmd_Init( interp) == TCL_ERROR)
 #else
     if( TclXCmd_Init( interp) == TCL_ERROR)

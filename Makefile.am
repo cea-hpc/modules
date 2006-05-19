@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.26 2006/02/06 17:30:49 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.27 2006/05/19 15:53:09 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -27,8 +27,8 @@ EXTRA_DIST = config/config.rpath config/mkinstalldirs			\
 
 bin_PROGRAMS = modulecmd
 # bin_SCRIPTS = etc/mkroot etc/add.modules ext/add.ext
-modulecmd_CFLAGS= @TCL_INCLUDE_SPEC@ @X_CFLAGS@
-modulecmd_LDFLAGS= @TCL_LIB_SPEC@ @TCLX_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@ @LIBS@
+modulecmd_CFLAGS=@TCLX_INCLUDE_SPEC@  @TCL_INCLUDE_SPEC@ @X_CFLAGS@
+modulecmd_LDFLAGS= @TCLX_LIB_SPEC@ @TCL_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@ @LIBS@
 modulecmd_SOURCES = \
 	ModuleCmd_Avail.c \
         ModuleCmd_Clear.c ModuleCmd_Display.c ModuleCmd_Help.c \
