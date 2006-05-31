@@ -92,7 +92,7 @@ proc execute-modulefile-help {modfile} {
 		return 1
 	    } {
 		global errorInfo
-		set errorMsg "ERROR occured in file $ModulesCurrentModulefile."
+		set errorMsg "ERROR occurred in file $ModulesCurrentModulefile."
 		set errorMsg "$errorMsg\nContact your local modulefile\
 		  maintainer."
 		set errorMsg\
@@ -160,7 +160,7 @@ proc execute-modulefile {modfile} {
 		return 1
 	    } {
 		global errorInfo
-		set errorMsg "ERROR occured in file $ModulesCurrentModulefile."
+		set errorMsg "ERROR occurred in file $ModulesCurrentModulefile."
 		set errorMsg "$errorMsg\nContact your local modulefile\
 		  maintainer."
 		set errorMsg\
@@ -220,7 +220,7 @@ proc execute-modulerc {modfile} {
 	}
 	set ModulesVersion [interp eval $slave {
 	    if [catch {source $ModulesCurrentModulefile} errorMsg] {
-		set errorMsg "ERROR occured in file $ModulesCurrentModulefile."
+		set errorMsg "ERROR occurred in file $ModulesCurrentModulefile."
 		global errorInfo
 		set errorMsg "$errorMsg\nContact your local modulefile\
 		  maintainer."
@@ -264,7 +264,7 @@ proc execute-version {modfile} {
     }
     set ModulesVersion [interp eval $slave {
 	if [catch {source $ModulesCurrentModulefile} errorMsg] {
-	    set errorMsg "ERROR occured in file $ModulesCurrentModulefile."
+	    set errorMsg "ERROR occurred in file $ModulesCurrentModulefile."
 	    global errorInfo
 	    set errorMsg "$errorMsg\nContact your local modulefile maintainer."
 	    set errorMsg "$errorMsg\n----------errorInfo----------\n$errorInfo"
@@ -299,8 +299,7 @@ proc module-log {weight facility} {
 
 proc module-verbosity {mode} {
     global ModulesCurrentModulefile
-    #    report "$ModulesCurrentModulefile: module-verbosity not yet\
-      implemented"
+    #    report "$ModulesCurrentModulefile: module-verbosity not yet implemented"
 }
 
 proc module-user {level} {
@@ -2270,9 +2269,24 @@ proc cmdModuleSwitch {old {new {}}} {
     }
 
     set loadedlist [split $env(LOADEDMODULES) ":"]
+    set exceptionlist ""
+    catch { set exceptionlist [split $env(MODULE_NORELOAD) ":"] }
     set x [lsearch $loadedlist $old]
     if {$x >= 0} {
 	set updatelist [lrange $loadedlist $x end]
+#LRZ: do not reload certain modules
+#     needed for the switch between site-local and DEISA and possibly
+#     other grid settings.
+        if { $exceptionlist != "" } {
+            foreach exception [lrange $exceptionlist 0 end] {
+                if { $exception != $old } {
+                    set i_exception [lsearch $updatelist $exception]
+                    set updatelist [lreplace $updatelist $i_exception $i_exception]
+#                    puts stderr "Exception $exception is in $i_exception"
+                }
+            }
+	}
+#LRZ end exceptions to reload
 	set revupdatelist [reverseList $updatelist]
 
 	# Unload $old and everything after it
@@ -2542,8 +2556,7 @@ proc cmdModuleUse {args} {
 		eval $stuff_path MODULEPATH $path
 		popMode
 	    } {
-		#		reportWarning "WARNING: Directory \"$path\" does not exist,\
-		  not added to module search path."
+		#		reportWarning "WARNING: Directory \"$path\" does not exist, not added to module search path."
 		puts stderr "+(0):WARN:0: Directory '$path' not found"
 	    }
 	}
@@ -2776,7 +2789,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.69 $:
+                ModulesTcl 0.101/$Revision: 1.70 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
