@@ -560,7 +560,7 @@ extern	char	 long_header[];
 /**  locate_module.c  **/
 extern	int	  Locate_ModuleFile( Tcl_Interp*, char*, char*, char*);
 extern	char	**SortedDirList( Tcl_Interp*, char*, char*, int*);
-extern	char	**SplitIntoList( Tcl_Interp*, char*, int*, char*);
+extern	char	**SplitIntoList( Tcl_Interp*, char*, int*, const char*);
 extern	int	  SourceVers( Tcl_Interp*, char*, char*);
 extern	int	  SourceRC( Tcl_Interp *interp, char *, char *);
 #ifdef USE_FREE
