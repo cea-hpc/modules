@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.22 2006/05/15 21:11:20 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.23 2006/06/01 14:54:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -77,7 +77,8 @@ char	 *g_current_module = NULL,	/** The module which is handled by   **/
 					/** (first parameter to modulcmd)    **/
 	 *shell_derelict,		/** Shell family (sh, csh, etc)	     **/
 	 *shell_init,			/** Shell init script name	     **/
-	 *shell_cmd_separator;		/** Shell command separator char     **/
+	 *shell_cmd_separator,		/** Shell command separator char     **/
+	  _colon[] = ":";		/** directory separator		     **/
 int	  g_flags = 0,			/** Control what to do at the moment **/
 					/** The posible values are defined in**/
 					/** module_def.h		     **/

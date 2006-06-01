@@ -498,6 +498,7 @@ extern	int	  append_flag;
 extern	char	 *line;
 extern	char	 *error_line;
 extern	char	  local_line[];
+extern	char	  _colon[];
 
 extern	int	  linenum;
 
@@ -559,7 +560,7 @@ extern	char	 long_header[];
 /**  locate_module.c  **/
 extern	int	  Locate_ModuleFile( Tcl_Interp*, char*, char*, char*);
 extern	char	**SortedDirList( Tcl_Interp*, char*, char*, int*);
-extern	char	**SplitIntoList( Tcl_Interp*, char*, int*);
+extern	char	**SplitIntoList( Tcl_Interp*, char*, int*, char*);
 extern	int	  SourceVers( Tcl_Interp*, char*, char*);
 extern	int	  SourceRC( Tcl_Interp *interp, char *, char *);
 #ifdef USE_FREE

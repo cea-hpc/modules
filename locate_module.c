@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.16 2006/05/01 14:52:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.17 2006/06/01 14:54:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -266,7 +266,8 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 	/**
 	 **  Split up the MODULEPATH values into multiple directories
 	 **/
-	if( NULL == (pathlist = SplitIntoList(interp, modulespath, &numpaths)))
+	if( NULL == (pathlist = SplitIntoList(interp, modulespath, &numpaths,
+	_colon)))
 	    goto unwind0;
 	/**
 	 **  Check each directory to see if it contains the module
@@ -859,7 +860,8 @@ unwind0:
 
 char	**SplitIntoList(	Tcl_Interp	*interp,
 		     		char		*pathenv, 
-		     		int		*numpaths) 
+		     		int		*numpaths,
+				char		*delim) 
 {
     char	**pathlist = NULL;	/** Temporary base pointer for the   **/
 					/** array to be created		     **/
@@ -897,9 +899,9 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
     /**
      **  Split the given path environment variable into its components.
      **/
-    for( i=0, dirname = xstrtok( givenpath, ": ");
+    for( i=0, dirname = xstrtok( givenpath, delim);
          dirname;
-	 dirname = xstrtok( NULL, ": ")) {
+	 dirname = xstrtok( NULL, delim)) {
 	/**
 	 **  Oops! The number of tokens exceed my array - reallocate it
 	 **  and double its size!

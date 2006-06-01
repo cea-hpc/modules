@@ -23,7 +23,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.6 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.7 2006/06/01 14:54:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -131,7 +131,7 @@ int	cmdIsLoaded(	ClientData	 client_data,
     ErrorLogger( NO_ERR_DEBUG, LOC, "Got modulepath: '", modulepath, "'", NULL);
 #endif
 
-    if( !(pathlist = SplitIntoList( interp, modulepath, &numpaths)))
+    if( !(pathlist = SplitIntoList( interp, modulepath, &numpaths, _colon)))
         return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
 
     /**

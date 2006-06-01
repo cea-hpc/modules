@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.8 2006/01/31 04:16:51 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.9 2006/06/01 14:54:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -266,7 +266,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		    }
 
 		    if ((char **) NULL ==
-			(modlist = SplitIntoList(interp, startp, &nummods)))
+		    (modlist = SplitIntoList(interp, startp, &nummods," \t")))
 			continue; /** while(fgets) **/
 
 		    /* restore the list end character */

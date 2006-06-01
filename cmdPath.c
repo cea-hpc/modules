@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.11 2006/02/06 22:03:31 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.12 2006/06/01 14:54:30 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -202,7 +202,8 @@ int	cmdSetPath(	ClientData	 client_data,
      **  directory can be checked to see whether it is already in the 
      **  existing path.
      **/
-    if( !( pathlist = SplitIntoList( interp, (char *) argv[2], &numpaths)))
+    if( !( pathlist = SplitIntoList( interp, (char *) argv[2], &numpaths,
+	_colon)))
 	goto unwind0;
 
     /**
@@ -459,7 +460,8 @@ int	cmdRemovePath(	ClientData	 client_data,
      **  Split the path into its components so each item can be removed
      **  individually from the variable.
      **/
-    if( !( pathlist = SplitIntoList( interp, (char *) argv[2], &numpaths)))
+    if( !( pathlist = SplitIntoList( interp, (char *) argv[2], &numpaths,
+	_colon)))
 	goto unwind0;
 
     /**
