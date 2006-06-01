@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        init/Makefile.am
-## Versions:    $Id: Makefile.am,v 1.4 2006/04/10 20:03:53 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.5 2006/06/01 21:20:10 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -60,40 +60,40 @@ uninstall-inits :
 #		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 #		< .modulespath.in > .modulespath
 
-#.modulespath : .modulespath.in $(top_srcdir)/config.status
-#	(cd $(top_srcdir); config.status init/.modulespath)
+#.modulespath : .modulespath.in $(top_builddir)/config.status
+#	(cd $(top_builddir); config.status init/.modulespath)
 
-bash : bash.in $(top_srcdir)/config.status
+bash : bash.in $(top_builddir)/config.status
 	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< bash.in > bash
 
-csh : csh.in $(top_srcdir)/config.status
+csh : csh.in $(top_builddir)/config.status
 	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< csh.in > csh
 
-ksh : ksh.in $(top_srcdir)/config.status
+ksh : ksh.in $(top_builddir)/config.status
 	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< ksh.in > ksh
 
-perl : perl.in $(top_srcdir)/config.status
+perl : perl.in $(top_builddir)/config.status
 	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< perl.in > perl
 
-python : python.in $(top_srcdir)/config.status
+python : python.in $(top_builddir)/config.status
 	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< python.in > python
 
-sh : sh.in $(top_srcdir)/config.status
+sh : sh.in $(top_builddir)/config.status
 	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< sh.in > sh
 
-zsh : zsh.in $(top_srcdir)/config.status
+zsh : zsh.in $(top_builddir)/config.status
 	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
 		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
 		< zsh.in > zsh
