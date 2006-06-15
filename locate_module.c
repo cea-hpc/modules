@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.18 2006/06/01 19:56:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.19 2006/06/15 20:58:23 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -273,8 +273,9 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 	 **  Check each directory to see if it contains the module
 	 **/
 	for(i=0; i<numpaths; i++) {
-	    if( NULL != (result = GetModuleName( interp, pathlist[i], NULL,
-		modulename))) {
+	    /* skip empty paths */
+	    if(*pathlist[i] && (NULL != (result =
+		GetModuleName( interp, pathlist[i], NULL, modulename)))) {
 
 		if( strlen( pathlist[i]) + 2 + strlen( result) > MOD_BUFSIZE) {
 		    if ((char *) NULL == stringer( filename, MOD_BUFSIZE,
