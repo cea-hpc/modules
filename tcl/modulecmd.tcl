@@ -64,8 +64,10 @@ proc unset-env {var} {
     }
 }
 
-proc execute-modulefile-help {modfile} {
+proc execute-modulefile {modfile {help ""}} {
     global env g_stateEnvVars g_debug
+    global ModulesCurrentModulefile
+    set ModulesCurrentModulefile $modfile
 
     if {$g_debug} {
 	report "DEBUG Starting $modfile"
@@ -97,24 +99,26 @@ proc execute-modulefile-help {modfile} {
 	interp eval $slave [list global ModulesCurrentModulefile g_debug]
 	interp eval $slave [list set ModulesCurrentModulefile $modfile]
 	interp eval $slave [list set g_debug $g_debug]
+	interp eval $slave [list set help $help]
+
     }
     set errorVal [interp eval $slave {
 	if [catch {source $ModulesCurrentModulefile} errorMsg] {
 	    if {$errorMsg == "" && $errorInfo == ""} {
 		unset errorMsg
 		return 1
-	    }\
-	    elseif [regexp "^WARNING" $errorMsg] {
-		reportWarning $errorMsg
-		return 1
-	    } else {
-		global errorInfo
-		reportInternalBug "ERROR occurred in file\
-		  $ModulesCurrentModulefile:$errorInfo"
-		exit 1
-	    }
+	    } else elsif
 	} else {
-	    if {[info procs "ModulesHelp"] == "ModulesHelp"} {ModulesHelp}
+	    if {$help != ""} {
+                if {[info procs "ModulesHelp"] == "ModulesHelp" } {
+		   ModulesHelp
+                } else {
+                   reportWarning "Unable to find ModulesHelp in $ModulesCurrentModulefile."
+                }
+	    } else {
+		if {[module-info mode "display"] && [info procs\
+		  "ModulesDisplay"] == "ModulesDisplay"} {ModulesDisplay}
+	    }
 	    unset errorMsg
 	    return 0
 	}
@@ -123,66 +127,6 @@ proc execute-modulefile-help {modfile} {
     if {$g_debug} {
 	report "DEBUG Exiting $modfile"
     }
-    return $errorVal
-}
-
-proc execute-modulefile {modfile} {
-    global env g_stateEnvVars g_debug
-    global ModulesCurrentModulefile
-    set ModulesCurrentModulefile $modfile
-
-    set slave __[currentModuleName]
-    if {![interp exists $slave]} {
-	interp create $slave
-	interp alias $slave setenv {} setenv
-	interp alias $slave unsetenv {} unsetenv
-	interp alias $slave system {} system
-	interp alias $slave append-path {} append-path
-	interp alias $slave prepend-path {} prepend-path
-	interp alias $slave remove-path {} remove-path
-	interp alias $slave prereq {} prereq
-	interp alias $slave conflict {} conflict
-	interp alias $slave is-loaded {} is-loaded
-	interp alias $slave module {} module
-	interp alias $slave module-info {} module-info
-	interp alias $slave module-whatis {} module-whatis
-	interp alias $slave set-alias {} set-alias
-	interp alias $slave unset-alias {} unset-alias
-	interp alias $slave uname {} uname
-	interp alias $slave x-resource {} x-resource
-	interp alias $slave module-version {} module-version
-	interp alias $slave module-alias {} module-alias
-	interp alias $slave reportInternalBug {} reportInternalBug
-	interp alias $slave reportWarning {} reportWarning
-
-	interp eval $slave [list global ModulesCurrentModulefile g_debug]
-	interp eval $slave [list set ModulesCurrentModulefile $modfile]
-	interp eval $slave [list set g_debug $g_debug]
-
-    }
-    set errorVal [interp eval $slave {
-	if [catch {source $ModulesCurrentModulefile} errorMsg] {
-	    if {$errorMsg == "" && $errorInfo == ""} {
-		unset errorMsg
-		return 1
-	    }\
-	    elseif [regexp "^WARNING" $errorMsg] {
-		reportWarning $errorMsg
-		return 1
-	    } else {
-		global errorInfo
-		reportInternalBug "occurred in file $ModulesCurrentModulefile:\
-		  $errorInfo"
-		exit 1
-	    }
-	} else {
-	    if {[module-info mode "display"] && [info procs\
-	      "ModulesDisplay"] == "ModulesDisplay"} {ModulesDisplay}
-	    unset errorMsg
-	    return 0
-	}
-    }]
-    interp delete $slave
     return $errorVal
 }
 
@@ -2730,7 +2674,7 @@ proc cmdModuleHelp {args} {
 		  "-------------------------------------------------------------------"
 		report "Module Specific Help for $modfile:\n"
 		set mode "Help"
-		execute-modulefile-help $modfile
+		execute-modulefile $modfile 1
 		popMode
 		popModuleName
 		report\
@@ -2741,7 +2685,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.79 $:
+                ModulesTcl 0.101/$Revision: 1.80 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
