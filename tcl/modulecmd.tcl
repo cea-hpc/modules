@@ -1,16 +1,3 @@
-#!/bin/sh
-# \
-type tclsh 1>/dev/null 2>&1 && exec tclsh "$0" "$@"
-# \
-[ -x /usr/local/bin/tclsh ] && exec /usr/local/bin/tclsh "$0" "$@"
-# \
-[ -x /usr/bin/tclsh ] && exec /usr/bin/tclsh "$0" "$@"
-# \
-[ -x /bin/tclsh ] && exec /bin/tclsh "$0" "$@"
-# \
-echo "FATAL: module: Could not find tclsh in \$PATH or in standard\
-  directories" >&2; exit 1
-
 ########################################################################
 # This is a pure TCL implementation of the module command
 #
@@ -2761,7 +2748,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.74 $:
+                ModulesTcl 0.101/$Revision: 1.75 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
