@@ -100,6 +100,8 @@ proc execute-modulefile-help {modfile} {
 	interp alias $slave x-resource {} x-resource
 	interp alias $slave module-version {} module-version
 	interp alias $slave module-alias {} module-alias
+	interp alias $slave reportInternalBug {} reportInternalBug
+	interp alias $slave reportWarning {} reportWarning
 
 	interp eval $slave [list global ModulesCurrentModulefile g_debug]
 	interp eval $slave [list set ModulesCurrentModulefile $modfile]
@@ -162,6 +164,8 @@ proc execute-modulefile {modfile} {
 	interp alias $slave module-verbosity {} module-verbosity
 	interp alias $slave module-user {} module-user
 	interp alias $slave module-log {} module-log
+	interp alias $slave reportInternalBug {} reportInternalBug
+	interp alias $slave reportWarning {} reportWarning
 
 	interp eval $slave [list global ModulesCurrentModulefile g_debug]
 	interp eval $slave [list set ModulesCurrentModulefile $modfile]
@@ -225,6 +229,7 @@ proc execute-modulerc {modfile} {
 	    interp alias $slave module-verbosity {} module-verbosity
 	    interp alias $slave module-user {} module-user
 	    interp alias $slave module-log {} module-log
+	    interp alias $slave reportInternalBug {} reportInternalBug
 
             interp eval $slave [list global ModulesCurrentModulefile g_debug]
             interp eval $slave [list set ModulesCurrentModulefile $modfile]
@@ -264,6 +269,8 @@ proc execute-version {modfile} {
 	interp alias $slave system {} system
 	interp alias $slave module-version {} module-version
 	interp alias $slave module-alias {} module-alias
+	interp alias $slave reportInternalBug {} reportInternalBug
+
 	interp eval $slave [list global ModulesCurrentModulefile]
 	interp eval $slave [list set ModulesCurrentModulefile $modfile]
 	interp eval $slave [list global ModulesVersion]
@@ -2754,7 +2761,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.73 $:
+                ModulesTcl 0.101/$Revision: 1.74 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
