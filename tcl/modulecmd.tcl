@@ -170,7 +170,7 @@ proc execute-modulefile {modfile} {
 		return 1
 	    } {
 		global errorInfo
-		reportInternalBug "occurred in file ModulesCurrentModulefile: $errorInfo"
+		reportInternalBug "occurred in file $ModulesCurrentModulefile: $errorInfo"
 		exit 1
 	    }
 	} {
@@ -2748,7 +2748,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.75 $:
+                ModulesTcl 0.101/$Revision: 1.76 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
