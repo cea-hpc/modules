@@ -53,7 +53,7 @@ proc execute-modulefile-help {modfile} {
     global env g_stateEnvVars g_debug
 
     if {$g_debug} {
-	puts stderr "Starting $modfile"
+	report "DEBUG: Starting $modfile"
     }
     set slave __[currentModuleName]
     if {![interp exists $slave]} {
@@ -88,16 +88,11 @@ proc execute-modulefile-help {modfile} {
 		return 1
 	    }\
 	    elseif [regexp "^WARNING" $errorMsg] {
-		puts stderr $errorMsg
+		reportWarning $errorMsg
 		return 1
 	    } {
 		global errorInfo
-		set errorMsg "ERROR occurred in file $ModulesCurrentModulefile."
-		set errorMsg "$errorMsg\nContact your local modulefile\
-		  maintainer."
-		set errorMsg\
-		  "$errorMsg\n----------errorInfo----------\n$errorInfo"
-		puts stderr $errorMsg
+		reportInternalBug "ERROR occurred in file $ModulesCurrentModulefile:$errorInfo"
 		exit 1
 	    }
 	} {
@@ -108,7 +103,7 @@ proc execute-modulefile-help {modfile} {
     }]
     interp delete $slave
     if {$g_debug} {
-	puts stderr "Exiting $modfile"
+	report "DEBUG: Exiting $modfile"
     }
     return $errorVal
 }
@@ -156,16 +151,11 @@ proc execute-modulefile {modfile} {
 		return 1
 	    }\
 	    elseif [regexp "^WARNING" $errorMsg] {
-		puts stderr $errorMsg
+		reportWarning $errorMsg
 		return 1
 	    } {
 		global errorInfo
-		set errorMsg "ERROR occurred in file $ModulesCurrentModulefile."
-		set errorMsg "$errorMsg\nContact your local modulefile\
-		  maintainer."
-		set errorMsg\
-		  "$errorMsg\n----------errorInfo----------\n$errorInfo"
-		puts stderr $errorMsg
+		rportInternalBug "occurred in file $ModulesCurrentmodulefile: $errorInfo"
 		exit 1
 	    }
 	} {
@@ -189,8 +179,7 @@ proc execute-modulerc {modfile} {
     set ModulesCurrentModulefile $modfile
 
     if {![checkValidModule $modfile]} {
-	puts stderr "+(0):ERROR:0: Magic cookie '#%Module' missing in\
-	  '$modfile'"
+	reportInternalBug "+(0):ERROR:0: Magic cookie '#%Module' missing in '$modfile'"
 	return ""
     }
 
@@ -198,7 +187,7 @@ proc execute-modulerc {modfile} {
       want this to add to execute-version
     if {![info exists g_rcfilesSourced($modfile)]} {
 	if {$g_debug} {
-	    puts stderr "DEBUG execute-modulerc: sourcing rc $modfile"
+	    report "DEBUG execute-modulerc: sourcing rc $modfile"
 	}
 	set slave __.modulerc
 	if {![interp exists $slave]} {
@@ -220,13 +209,8 @@ proc execute-modulerc {modfile} {
 	}
 	set ModulesVersion [interp eval $slave {
 	    if [catch {source $ModulesCurrentModulefile} errorMsg] {
-		set errorMsg "ERROR occurred in file $ModulesCurrentModulefile."
 		global errorInfo
-		set errorMsg "$errorMsg\nContact your local modulefile\
-		  maintainer."
-		set errorMsg\
-		  "$errorMsg\n----------errorInfo----------\n$errorInfo"
-		puts stderr $errorMsg
+		reportInternalBug "occurred in file $ModulesCurrentModulefile:$errorInfo"
 		exit 1
 	    }
 	}]
@@ -243,8 +227,7 @@ proc execute-version {modfile} {
     global g_moduleDefault g_debug
 
     if {![checkValidModule $modfile]} {
-	puts stderr "+(0):ERROR:0: Magic cookie '#%Module' missing in\
-	  '$modfile'"
+	reportInternalBug "+(0):ERROR:0: Magic cookie '#%Module' missing in '$modfile'"
 	return ""
     }
 
@@ -264,11 +247,8 @@ proc execute-version {modfile} {
     }
     set ModulesVersion [interp eval $slave {
 	if [catch {source $ModulesCurrentModulefile} errorMsg] {
-	    set errorMsg "ERROR occurred in file $ModulesCurrentModulefile."
 	    global errorInfo
-	    set errorMsg "$errorMsg\nContact your local modulefile maintainer."
-	    set errorMsg "$errorMsg\n----------errorInfo----------\n$errorInfo"
-	    puts stderr $errorMsg
+	    reportInternalBug "occurred in file $ModulesCurrentModulefile:$errorInfo"
 	    exit 1
 	}\
 	elseif [info exists ModulesVersion] {
@@ -280,8 +260,7 @@ proc execute-version {modfile} {
     interp delete $slave
     set g_moduleDefault($modparent) $ModulesVersion
     if {$g_debug} {
-	puts stderr "DEBUG execute-version: Setting\
-	  g_moduleDefault($modparent) $ModulesVersion"
+	report "DEBUG execute-version: Setting g_moduleDefault($modparent) $ModulesVersion"
     }
     return $ModulesVersion
 }
@@ -398,7 +377,7 @@ proc module-version {args} {
     global ModulesCurrentModulefile
 
     if {$g_debug} {
-	puts stderr "DEBUG module-version: executing module-version $args"
+	report "DEBUG module-version: executing module-version $args"
     }
     set module_name [lindex $args 0]
 
@@ -421,15 +400,13 @@ proc module-version {args} {
 		if {![info exists g_moduleDefault($module_name)]} {
 		    set g_moduleDefault($base) $aliasversion
 		    if {$g_debug} {
-			puts stderr "DEBUG module-version: default $base =\
-			  $aliasversion"
+			report "DEBUG module-version: default $base =$aliasversion"
 		    }
 		}
 	    } {
 		set aliasversion "$base/$version"
 		if {$g_debug} {
-		    puts stderr "DEBUG module-version: alias $aliasversion =\
-		      $module_name"
+		    report "DEBUG module-version: alias $aliasversion = $module_name"
 		}
 		set g_moduleVersion($aliasversion) $module_name
 
@@ -448,8 +425,7 @@ proc module-version {args} {
 
 
 	    if {$g_debug} {
-		puts stderr "DEBUG module-version: $aliasversion  =\
-		  $module_name"
+		report "DEBUG module-version: $aliasversion  = $module_name"
 	    }
 	} {
 	    error "module-version: module argument for default must not be\
@@ -472,7 +448,7 @@ proc module-alias {args} {
     set module_file [lindex $args 1]
 
     if {$g_debug} {
-	puts stderr "DEBUG module-alias: $alias  = $module_file"
+	report "DEBUG module-alias: $alias  = $module_file"
     }
 
     set g_moduleAlias($alias) $module_file
@@ -500,11 +476,11 @@ proc module {command args} {
 
     # Resolve any module aliases
     if {$g_debug} {
-	puts stderr "DEBUG module: Resolving $args"
+	report "DEBUG module: Resolving $args"
     }
     set args [resolveModuleVersionOrAlias $args]
     if {$g_debug} {
-	puts stderr "DEBUG module: Resolved to $args"
+	report "DEBUG module: Resolved to $args"
     }
 
     switch -- $command {
@@ -702,7 +678,7 @@ proc getReferenceCountArray {var} {
 			  Note that this may mean that module unloading may\
 			  not work correctly."
 			foreach dir [array names fixers] {
-			    report " $dir" -nonewline
+			    reportWarning " $dir" -nonewline
 			}
 			reportWarning ""
 		    }
@@ -714,8 +690,7 @@ proc getReferenceCountArray {var} {
 	    }
 	} {
 	    #	    reportWarning "WARNING: module: $sharevar exists (\
-	      $env($sharevar) ), but $var doesn't. Environment is corrupted.\
-	      Contact lakata@mips.com for help."
+	      $env($sharevar) ), but $var doesn't. Environment is corrupted."
 	    set modshareok 0
 	}
     } {
@@ -1093,7 +1068,7 @@ proc getPathToModule {mod} {
     }
 
     if {$g_debug} {
-	puts stderr "DEBUG getPathToModule: Finding $mod"
+	report "DEBUG getPathToModule: Finding $mod"
     }
 
     # Check for aliases
@@ -1114,8 +1089,7 @@ proc getPathToModule {mod} {
 		    if {[checkValidModule $mod]} {
 			return [list $mod $mod]
 		    } {
-			puts stderr "+(0):ERROR:0: Unable to locate a\
-			  modulefile for '$mod'"
+			report "+(0):ERROR:0: Unable to locate a modulefile for '$mod'"
 			return ""
 		    }
 		}
@@ -1144,8 +1118,7 @@ proc getPathToModule {mod} {
 		# Execute any modulerc for this module
 		if [file exists "$modparentpath/.modulerc"] {
 		    if {$g_debug} {
-			puts stderr "DEBUG getPathToModule: Found\
-			  $modparentpath/.modulerc"
+			report "DEBUG getPathToModule: Found $modparentpath/.modulerc"
 		    }
 		    execute-modulerc $modparentpath/.modulerc
 		}
@@ -1173,8 +1146,7 @@ proc getPathToModule {mod} {
 		      "$path/.modulerc"]} {
 			# .version files aren't read if .modulerc present
 			if {$g_debug} {
-			    puts stderr "DEBUG getPathToModule: Found\
-			      $path/.version"
+			    report "DEBUG getPathToModule: Found $path/.version"
 			}
 			set ModulesVersion [execute-version "$path/.version"]
 		    }
@@ -1185,8 +1157,7 @@ proc getPathToModule {mod} {
 			set ModulesVersion [lindex [listModules $path "" 0\
 			  $flag_default_mf $flag_default_dir] end]
 			if {$g_debug} {
-			    puts stderr "DEBUG getPathToModule: Found\
-			      $ModulesVersion in $path"
+			    report "DEBUG getPathToModule: Found $ModulesVersion in $path"
 			}
 		    }
 
@@ -1221,7 +1192,7 @@ proc getPathToModule {mod} {
 	    # File wasn't readable, go to next path
 	}
 	# End of of foreach loop
-	puts stderr "+(0):ERROR:0: Unable to locate a modulefile for '$mod'"
+	report "+(0):ERROR:0: Unable to locate a modulefile for '$mod'"
 	return ""
     } {
 	error "\$MODULEPATH not defined"
@@ -1236,7 +1207,7 @@ proc runModulerc {} {
     if {[info exists env(MODULERCFILE)]} {
 	if {[file readable $env(MODULERCFILE)]} {
 	    if {$g_debug} {
-		puts stderr "DEBUG runModulerc: Executing $env(MODULERCFILE)"
+		report "DEBUG runModulerc: Executing $env(MODULERCFILE)"
 	    }
 	    execute-modulerc $env(MODULERCFILE)
 	}
@@ -1244,8 +1215,7 @@ proc runModulerc {} {
     if {[info exists env(MODULESHOME)]} {
 	if {[file readable "$env(MODULESHOME)/etc/rc"]} {
 	    if {$g_debug} {
-		puts stderr "DEBUG runModulerc: Executing\
-		  $env(MODULESHOME)/etc/rc"
+		report "DEBUG runModulerc: Executing $env(MODULESHOME)/etc/rc"
 	    }
 	    execute-modulerc "$env(MODULESHOME)/etc/rc"
 	}
@@ -1371,8 +1341,7 @@ proc renderSettings {} {
 		    if [file exists $modulerc_init_file] {
 			puts $f "source $modulerc_init_file"
 		    } {
-			reportWarning "WARNING: $modulerc_init_file does not\
-			  exist"
+			reportWarning "WARNING: $modulerc_init_file does not exist"
 		    }
 		}
 	    sh {
@@ -1380,8 +1349,7 @@ proc renderSettings {} {
 		    if [file exists $modulerc_init_file] {
 			puts $f ". $modulerc_init_file"
 		    } {
-			reportWarning "WARNING: $modulerc_init_file does not\
-			  exist"
+			reportWarning "WARNING: $modulerc_init_file does not exist"
 		    }
 		}
 	    perl {
@@ -1740,7 +1708,7 @@ proc resolveModuleVersionOrAlias {names} {
     global g_moduleVersion g_moduleDefault g_moduleAlias g_debug
 
     if {$g_debug} {
-	puts stderr "DEBUG resolveModuleVersionOrAlias: Resolving $names"
+	report "DEBUG resolveModuleVersionOrAlias: Resolving $names"
     }
     set ret_list {}
 
@@ -1750,15 +1718,13 @@ proc resolveModuleVersionOrAlias {names} {
 	if {($x > 0) &&([string range $name $x end] == "\(default\)")} {
 	    set name [string range $name 0 [expr $x -1]]
 	    if {$g_debug} {
-		puts stderr "DEBUG resolveModuleVersionOrAlias: trimming name\
-		  = \"$name\""
+		report "DEBUG resolveModuleVersionOrAlias: trimming name = \"$name\""
 	    }
 	}
 	if {[info exists g_moduleAlias($name)]} {
 	    # if the alias is another alias, we need to resolve it
 	    if {$g_debug} {
-		puts stderr "DEBUG resolveModuleVersionOrAlias: $name is an\
-		  alias"
+		report "DEBUG resolveModuleVersionOrAlias: $name is an alias"
 	    }
 	    set ret_list [linsert $ret_list end\
 	      [resolveModuleVersionOrAlias $g_moduleAlias($name)]]
@@ -1766,7 +1732,7 @@ proc resolveModuleVersionOrAlias {names} {
 	elseif {[info exists g_moduleVersion($name)]} {
 	    # if the pseudo version is an alias, we need to resolve it
 	    if {$g_debug} {
-		puts stderr "DEBUG resolveModuleVersionOrAlias: $name is a\
+		report "DEBUG resolveModuleVersionOrAlias: $name is a\
 		  version alias"
 	    }
 	    set ret_list [linsert $ret_list end\
@@ -1775,21 +1741,21 @@ proc resolveModuleVersionOrAlias {names} {
 	elseif {[info exists g_moduleDefault($name)]} {
 	    # if the default is an alias, we need to resolve it
 	    if {$g_debug} {
-		puts stderr "DEBUG resolveModuleVersionOrAlias: found a\
+		report "DEBUG resolveModuleVersionOrAlias: found a\
 		  default for $name"
 	    }
 	    set ret_list [linsert $ret_list end [resolveModuleVersionOrAlias\
 	      "$name/$g_moduleDefault($name)"]]
 	} {
 	    if {$g_debug} {
-		puts stderr "DEBUG resolveModuleVersionOrAlias: $name is\
+		report "DEBUG resolveModuleVersionOrAlias: $name is\
 		  nothing special"
 	    }
 	    set ret_list [linsert $ret_list end $name]
 	}
     }
     if {$g_debug} {
-	puts stderr "DEBUG resolveModuleVersionOrAlias: Resolved to $ret_list"
+	report "DEBUG resolveModuleVersionOrAlias: Resolved to $ret_list"
     }
     return $ret_list
 }
@@ -1975,7 +1941,7 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 	    }
 	} {
 	    if {$g_debug} {
-		puts stderr "DEGUG listModules: checking $element\
+		report "DEGUG listModules: checking $element\
 		  ($modulename) dir=$flag_default_dir mf=$flag_default_mf"
 	    }
 	    switch -glob -- $tail {
@@ -1992,8 +1958,7 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 			execute-version "$element"
 
 			if {$g_debug} {
-			    puts stderr "DEGUG listModules: checking default\
-			      $element"
+			    report "DEGUG listModules: checking default $element"
 			}
 		    }
 		}
@@ -2032,7 +1997,7 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 	set clean_list [lsort -dictionary $clean_list]
     }
     if {$g_debug} {
-	puts stderr "DEGUG listModules: Returning $clean_list"
+	report "DEGUG listModules: Returning $clean_list"
     }
 
     return $clean_list
@@ -2789,7 +2754,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.70 $:
+                ModulesTcl 0.101/$Revision: 1.71 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
