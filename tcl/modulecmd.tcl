@@ -30,8 +30,12 @@ set show_modtimes 0
 #
 # Info, Warnings and Error message handling.
 #
-proc reportWarning {message} {
-    puts stderr $message
+proc reportWarning {message {nonewline ""}} {
+    if {$nonewline != ""} {
+        puts -nonewline stderr "$message"
+    } else {
+        puts stderr "$message"
+    }
 }
 
 proc reportInternalBug {message} {
@@ -43,7 +47,7 @@ proc reportInternalBug {message} {
 proc report {message {nonewline ""}} {
     if {$nonewline != ""} {
         puts -nonewline stderr "$message"
-    } {
+    } else {
         puts stderr "$message"
     }
 }
@@ -55,7 +59,7 @@ proc report {message {nonewline ""}} {
 proc unset-env {var} {
     global env
 
-    if [info exists env($var)] {
+    if {[info exists env($var)]} {
 	unset env($var)
     }
 }
@@ -319,10 +323,10 @@ proc module-info {what {more {}}} {
 	    if {$more != ""} {
 		if {$mode == $more} {
 		    return 1
-		} {
+		} else {
 		    return 0
 		}
-	    } {
+	    } else {
 		return $mode
 	    }
 	}
@@ -339,26 +343,26 @@ proc module-info {what {more {}}} {
 	    return $g_moduleAlias($more)
 	}
     "symbols" {
-	    if [regexp {^\/} $more] {
+	    if {[regexp {^\/} $more]} {
 		set tmp [currentModuleName]
 		set tmp [file dirname $tmp]
 		set more "${tmp}$more"
 	    }
 	    if {[info exists g_symbolHash($more)]} {
 		return $g_symbolHash($more)
-	    } {
+	    } else {
 		return {}
 	    }
 	}
     "version" {
-	    if [regexp {^\/} $more] {
+	    if {[regexp {^\/} $more]} {
 		set tmp [currentModuleName]
 		set tmp [file dirname $tmp]
 		set more "${tmp}$more"
 	    }
 	    if {[info exists g_versionHash($more)]} {
 		return $g_versionHash($more)
-	    } {
+	    } else {
 		return {}
 	    }
 	}
@@ -421,7 +425,7 @@ proc module-version {args} {
 			report "DEBUG module-version: default $base =$aliasversion"
 		    }
 		}
-	    } {
+	    } else {
 		set aliasversion "$base/$version"
 		if {$g_debug} {
 		    report "DEBUG module-version: alias $aliasversion = $module_name"
@@ -436,7 +440,7 @@ proc module-version {args} {
 			set tmplist [linsert $tmplist end $aliasversion]
 			set g_versionHash($module_name) $tmplist
 		    }
-		} {
+		} else {
 		    set g_versionHash($module_name) $aliasversion
 		}
 	    }
@@ -445,7 +449,7 @@ proc module-version {args} {
 	    if {$g_debug} {
 		report "DEBUG module-version: $aliasversion  = $module_name"
 	    }
-	} {
+	} else {
 	    error "module-version: module argument for default must not be\
 	      fully version qualified"
 	}
@@ -475,7 +479,7 @@ proc module-alias {args} {
 	set tmplist $g_aliasHash($module_file)
 	set tmplist [linsert $tmplist end $alias]
 	set g_aliasHash($module_file) $tmplist
-    } {
+    } else {
 	set g_aliasHash($module_file) $alias
     }
 
@@ -555,7 +559,7 @@ proc module {command args} {
 		foreach arg $args {
 		    cmdModuleAvail $arg
 		}
-	    } {
+	    } else {
 		cmdModuleAvail
 	    }
 	}
@@ -573,7 +577,7 @@ proc module {command args} {
 		foreach arg $args {
 		    cmdModuleWhatIs $arg
 		}
-	    } {
+	    } else {
 		cmdModuleWhatIs
 	    }
 	}
@@ -637,7 +641,7 @@ proc unsetenv {var {val {}}} {
     set mode [currentMode]
 
     if {$mode == "load"} {
-	if [info exists env($var)] {
+	if {[info exists env($var)]} {
 	    unset-env $var
 	}
 	set g_stateEnvVars($var) "del"
@@ -662,10 +666,10 @@ proc getReferenceCountArray {var} {
 
     set sharevar "${var}_modshare"
     set modshareok 1
-    if [info exists env($sharevar)] {
-	if [info exists env($var)] {
+    if {[info exists env($sharevar)]} {
+	if {[info exists env($var)]} {
 	    set modsharelist [split $env($sharevar) ":"]
-	    if {[expr [llength $modsharelist] % 2] == 0} {
+	    if {[expr {[llength $modsharelist] % 2}] == 0} {
 		array set countarr $modsharelist
 
 		# sanity check the modshare list
@@ -689,7 +693,7 @@ proc getReferenceCountArray {var} {
 		}
 
 		if {! $g_force} {
-		    if [array size fixers] {
+		    if {[array size fixers]} {
 			reportWarning "WARNING: \$$var does not agree with\
 			  \$${var}_modshare counter. The following\
 			  directories' usage counters were adjusted to match.\
@@ -702,16 +706,16 @@ proc getReferenceCountArray {var} {
 		    }
 		}
 
-	    } {
+	    } else {
 		#		sharevar was corrupted, odd number of elements.
 		set modshareok 0
 	    }
-	} {
+	} else {
 	    #	    reportWarning "WARNING: module: $sharevar exists (\
 	      $env($sharevar) ), but $var doesn't. Environment is corrupted."
 	    set modshareok 0
 	}
-    } {
+    } else {
 	set modshareok 0
     }
 
@@ -739,18 +743,18 @@ proc unload-path {var path} {
     set doit 0
 
     foreach dir [split $path ":"] {
-	if [info exists countarr($dir)] {
+	if {[info exists countarr($dir)]} {
 	    incr countarr($dir) -1
 	    if {$countarr($dir) <= 0} {
 		set doit 1
 		unset countarr($dir)
 	    }
-	} {
+	} else {
 	    set doit 1
 	}
 
 	if {$doit || $g_force} {
-	    if [info exists env($var)] {
+	    if {[info exists env($var)]} {
 		set dirs [split $env($var) ":"]
 		set newpath ""
 		foreach elem $dirs {
@@ -761,7 +765,7 @@ proc unload-path {var path} {
 		if {$newpath == ""} {
 		    unset-env $var
 		    set g_stateEnvVars($var) "del"
-		} {
+		} else {
 		    set env($var) [join $newpath ":"]
 		    set g_stateEnvVars($var) "new"
 		}
@@ -773,7 +777,7 @@ proc unload-path {var path} {
     if {[array size countarr] > 0} {
 	set env($sharevar) [join [array get countarr] ":"]
 	set g_stateEnvVars($sharevar) "new"
-    } {
+    } else {
 	unset-env $sharevar
 	set g_stateEnvVars($sharevar) "del"
     }
@@ -788,24 +792,24 @@ proc add-path {var path pos} {
 
     if {$pos == "prepend"} {
 	set pathelems [reverseList [split $path ":"]]
-    } {
+    } else {
 	set pathelems [split $path ":"]
     }
     foreach dir $pathelems {
-	if [info exists countarr($dir)] {
+	if {[info exists countarr($dir)]} {
 	    #	    already see $dir in $var"
 	    incr countarr($dir)
-	} {
-	    if [info exists env($var)] {
+	} else {
+	    if {[info exists env($var)]} {
 		if {$pos == "prepend"} {
 		    set env($var) "$dir:$env($var)"
 		}\
 		elseif {$pos == "append"} {
 		    set env($var) "$env($var):$dir"
-		} {
+		} else {
 		    error "add-path doesn't support $pos"
 		}
-	    } {
+	    } else {
 		set env($var) "$dir"
 	    }
 	    set countarr($dir) 1
@@ -899,7 +903,7 @@ proc is-loaded {modulelist} {
     global env
 
     if {[llength $modulelist] > 0} {
-	if [info exists env(LOADEDMODULES)] {
+	if {[info exists env(LOADEDMODULES)]} {
 	    foreach arg $modulelist {
 		set arg "$arg/"
 		set arg_found 0
@@ -913,7 +917,7 @@ proc is-loaded {modulelist} {
 		    return 0
 		}
 	    }
-	} {
+	} else {
 	    return 0
 	}
     }
@@ -932,7 +936,7 @@ proc conflict {args} {
 	    # If the current module is already loaded, we can proceed
 	    if {![is-loaded $currentModule]} {
 		# otherwise if the conflict module is loaded, we cannot
-		if [is-loaded $mod] {
+		if {[is-loaded $mod]} {
 		    set errMsg "WARNING: $currentModule cannot be loaded due\
 		      to a conflict."
 		    set errMsg "$errMsg\nHINT: Might try \"module unload\
@@ -1041,7 +1045,7 @@ proc popMode {} {
     global g_modeStack
 
     set len [llength $g_modeStack]
-    set len [expr $len - 2]
+    set len [expr {$len - 2}]
     set g_modeStack [lrange $g_modeStack 0 $len]
 }
 
@@ -1065,7 +1069,7 @@ proc popModuleName {} {
     global g_moduleNameStack
 
     set len [llength $g_moduleNameStack]
-    set len [expr $len - 2]
+    set len [expr {$len - 2}]
     set g_moduleNameStack [lrange $g_moduleNameStack 0 $len]
 }
 
@@ -1098,23 +1102,22 @@ proc getPathToModule {mod} {
     }
 
     # Check for $mod specified as a full pathname
-    if [string match {/*} $mod] {
-	if [file exists $mod] {
-	    if [file readable $mod] {
-		if [file isfile $mod] {
+    if {[string match {/*} $mod]} {
+	if {[file exists $mod]} {
+	    if {[file readable $mod]} {
+		if {[file isfile $mod]} {
 		    # note that a raw filename as an argment returns the full\
 		      path as the module name
 		    if {[checkValidModule $mod]} {
 			return [list $mod $mod]
-		    } {
+		    } else {
 			report "+(0):ERROR:0: Unable to locate a modulefile for '$mod'"
 			return ""
 		    }
 		}
 	    }
 	}
-    }\
-    elseif [info exists env(MODULEPATH)] {
+    } elseif {[info exists env(MODULEPATH)]} {
 	# Now search for $mod in MODULEPATH
 	foreach dir [split $env(MODULEPATH) ":"] {
 	    set path "$dir/$mod"
@@ -1132,9 +1135,9 @@ proc getPathToModule {mod} {
 
 	    # Search the modparent directory for .modulerc files in case we\
 	      need to translate an alias
-	    if [file isdirectory $modparentpath] {
+	    if {[file isdirectory $modparentpath]} {
 		# Execute any modulerc for this module
-		if [file exists "$modparentpath/.modulerc"] {
+		if {[file exists "$modparentpath/.modulerc"]} {
 		    if {$g_debug} {
 			report "DEBUG getPathToModule: Found $modparentpath/.modulerc"
 		    }
@@ -1149,15 +1152,15 @@ proc getPathToModule {mod} {
 	    }
 
 	    # Now check if the mod specified is a file or a directory
-	    if [file readable $path] {
+	    if {[file readable $path]} {
 		# If a directory, return the defailt if a .version file is\
 		  present or return the last file
 		# in the dir
-		if [file isdirectory $path] {
+		if {[file isdirectory $path]} {
 		    set ModulesVersion ""
 		    # Not an alias or version alias - check for a .version\
 		      file or find the default file
-		    if [info exists g_loadedModulesGeneric($mod)] {
+		    if {[info exists g_loadedModulesGeneric($mod)]} {
 			set ModulesVersion $g_loadedModulesGeneric($mod)
 		    }\
 		    elseif {[file exists "$path/.version"] && ![file readable\
@@ -1187,7 +1190,7 @@ proc getPathToModule {mod} {
 			set versmod "$mod/$ModulesVersion"
 			set retlist [list $verspath $versmod]
 		    }
-		} {
+		} else {
 		    # If mod was a file in this path, try and return that file
 		    set retlist [list $path $mod]
 		}
@@ -1202,7 +1205,7 @@ proc getPathToModule {mod} {
 
 		    if {! [checkValidModule [lindex $retlist 0]]} {
 			set path [lindex $retlist 0]
-		    } {
+		    } else {
 			return $retlist
 		    }
 		}
@@ -1212,7 +1215,7 @@ proc getPathToModule {mod} {
 	# End of of foreach loop
 	report "+(0):ERROR:0: Unable to locate a modulefile for '$mod'"
 	return ""
-    } {
+    } else {
 	error "\$MODULEPATH not defined"
 	return ""
     }
@@ -1279,7 +1282,7 @@ proc renderSettings {} {
 
     if {$f == ""} {
 	error "Could not open a temporary file in $tmpfile !"
-    } {
+    } else {
 
 	# required to work on cygwin, shouldn't hurt real linux
 	fconfigure $f -translation lf
@@ -1321,7 +1324,7 @@ proc renderSettings {} {
 		global tcl_platform
 		if {$tcl_platform(platform) == "windows"} {
 		    set pwd [exec pwd]
-		} {
+		} else {
 		    set pwd [pwd]
 		}
 		set argv0 "$pwd/$argv0"
@@ -1356,17 +1359,17 @@ proc renderSettings {} {
 		    puts $f "  endif"
 		    puts $f "endif"
 
-		    if [file exists $modulerc_init_file] {
+		    if {[file exists $modulerc_init_file]} {
 			puts $f "source $modulerc_init_file"
-		    } {
+		    } else {
 			reportWarning "WARNING: $modulerc_init_file does not exist"
 		    }
 		}
 	    sh {
 		    puts $f "module () { eval `'$argv0' '$g_shell' \$*`; }"
-		    if [file exists $modulerc_init_file] {
+		    if {[file exists $modulerc_init_file]} {
 			puts $f ". $modulerc_init_file"
-		    } {
+		    } else {
 			reportWarning "WARNING: $modulerc_init_file does not exist"
 		    }
 		}
@@ -1391,10 +1394,10 @@ proc renderSettings {} {
 		}
 	    }
 
-	    if [file exists "$env(MODULESHOME)/modulerc"] {
+	    if {[file exists "$env(MODULESHOME)/modulerc"]} {
 		cmdModuleSource "$env(MODULESHOME)/modulerc"
 	    }
-	    if [file exists "$env(MODULESHOME)/init/modulerc"] {
+	    if {[file exists "$env(MODULESHOME)/init/modulerc"]} {
 		cmdModuleSource "$env(MODULESHOME)/init/modulerc"
 	    }
 	}
@@ -1413,13 +1416,13 @@ proc renderSettings {} {
 				reportWarning "WARNING: module: PATH exceeds\
 				  $CSH_LIMIT characters, truncating to 900 and\
 				  appending /usr/bin:/bin ..."
-				set val [string range $val 0 [expr $CSH_LIMIT\
-				  - 1]]:/usr/bin:/bin
-			    } {
+				set val [string range $val 0 [expr {$CSH_LIMIT\
+				  - 1}]]:/usr/bin:/bin
+			    } else {
 				reportWarning "WARNING: module: $var exceeds\
 				  $CSH_LIMIT characters, truncating..."
-				set val [string range $val 0 [expr $CSH_LIMIT\
-				  - 1]]
+				set val [string range $val 0 [expr {$CSH_LIMIT\
+				  - 1}]]
 			    }
 			}
 			puts $f "setenv $var \"$val\""
@@ -1511,24 +1514,24 @@ proc renderSettings {} {
 
 	# new x resources
 	if {[array size g_newXResources] > 0} {
-	    set xrdb [findExecutable xrdb]
+	    set xrdb [findExecutable "xrdb"]
 	    foreach var [array names g_newXResources] {
 		set val $g_newXResources($var)
 		if {$val == ""} {
 		    switch -regexp -- $g_shellType {
 		    {^(csh|sh)$} {
-			    if [file exists $var] {
+			    if {[file exists $var]} {
 				puts $f "$xrdb -merge $var"
-			    } {
+			    } else {
 				puts $f "$xrdb -merge <<EOF"
 				puts $f "$var"
 				puts $f "EOF"
 			    }
 			}
 		    perl {
-			    if [file isfile $var] {
+			    if {[file isfile $var]} {
 				puts $f "system(\"$xrdb -merge $var\");"
-			    } {
+			    } else {
 				puts $f "open(XRDB,\"|$xrdb -merge\");"
 				set var [doubleQuoteEscaped $var]
 				puts $f "print XRDB \"$var\\n\";"
@@ -1536,24 +1539,24 @@ proc renderSettings {} {
 			    }
 			}
 		    python {
-			    if [file isfile $var] {
+			    if {[file isfile $var]} {
 				puts $f "os.popen('$xrdb -merge $var');"
-			    } {
+			    } else {
 				set var [singleQuoteEscaped $var]
 				puts $f "os.popen('$xrdb -merge').write('$var')"
 			    }
 			}
 		    lisp {
-			    if [file exists $var] {
+			    if {[file exists $var]} {
 				puts $f "(shell-command-to-string \"$xrdb\
 				  -merge $var\")"
-			    } {
+			    } else {
 				puts $f "(shell-command-to-string \"echo $var\
 				  | $xrdb -merge\")"
 			    }
 			}
 		    }
-		} {
+		} else {
 		    switch -regexp -- $g_shellType {
 		    {^(csh|sh)$} {
 			    puts $f "$xrdb -merge <<EOF"
@@ -1583,11 +1586,11 @@ proc renderSettings {} {
 	}
 
 	if {[array size g_delXResources] > 0} {
-	    set xrdb [findExecutable xrdb]
+	    set xrdb [findExecutable "xrdb"]
 	    foreach var [array names g_delXResources] {
 		if {$val == ""} {
 		    # do nothing
-		} {
+		} else {
 		    puts $f "xrdb -remove <<EOF"
 		    puts $f "$var:"
 		    puts $f "EOF"
@@ -1595,14 +1598,14 @@ proc renderSettings {} {
 	    }
 	}
 
-	if [info exists g_systemList] {
+	if {[info exists g_systemList]} {
 	    foreach var $g_systemList {
                 puts $f "$var"
             }
         }
 
 	# module path{s,} output
-	if [info exists g_pathList] {
+	if {[info exists g_pathList]} {
 	    foreach var $g_pathList {
 		switch -- $g_shellType {
 		csh {
@@ -1652,7 +1655,7 @@ proc renderSettings {} {
 		}
 	    }
 	    set nop 0
-	} {
+	} else {
 	    switch -- $g_shellType {
 	    perl {
 		    puts $f "1;"
@@ -1684,7 +1687,7 @@ proc renderSettings {} {
 		    puts "t"
 		}
 	    }
-	} {
+	} else {
 	    switch -- $g_shellType {
 	    csh {
 		    puts "source $tmpfile"
@@ -1712,7 +1715,7 @@ proc cacheCurrentModules {} {
     global g_loadedModules g_loadedModulesGeneric env
 
     # mark specific as well as generic modules as loaded
-    if [info exists env(LOADEDMODULES)] {
+    if {[info exists env(LOADEDMODULES)]} {
 	foreach mod [split $env(LOADEDMODULES) ":"] {
 	    set g_loadedModules($mod) 1
 	    set g_loadedModulesGeneric([file dirname $mod]) [file tail $mod]
@@ -1732,9 +1735,9 @@ proc resolveModuleVersionOrAlias {names} {
 
     foreach name $names {
 	# Chop off (default) if it exists
-	set x [expr [string length $name] - 9]
+	set x [expr {[string length $name] - 9}]
 	if {($x > 0) &&([string range $name $x end] == "\(default\)")} {
-	    set name [string range $name 0 [expr $x -1]]
+	    set name [string range $name 0 [expr {$x -1}]]
 	    if {$g_debug} {
 		report "DEBUG resolveModuleVersionOrAlias: trimming name = \"$name\""
 	    }
@@ -1764,7 +1767,7 @@ proc resolveModuleVersionOrAlias {names} {
 	    }
 	    set ret_list [linsert $ret_list end [resolveModuleVersionOrAlias\
 	      "$name/$g_moduleDefault($name)"]]
-	} {
+	} else {
 	    if {$g_debug} {
 		report "DEBUG resolveModuleVersionOrAlias: $name is\
 		  nothing special"
@@ -1806,7 +1809,7 @@ proc singleQuoteEscaped {text} {
 
 proc findExecutable {cmd} {
     foreach dir {/usr/X11R6/bin /usr/openwin/bin /usr/bin/X11} {
-	if [file executable "$dir/$cmd"] {
+	if {[file executable "$dir/$cmd"]} {
 	    return "$dir/$cmd"
 	}
     }
@@ -1839,7 +1842,7 @@ proc replaceFromList {list1 olditem newitem} {
     foreach x $list2 {
 	if {$x == $olditem} {
 	    lappend list1 $newitem
-	} {
+	} else {
 	    lappend list1 $x
 	}
     }
@@ -1915,18 +1918,18 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 	set tail [file tail $element]
 	set direlem [file dirname $element]
 
-	set sstart [expr [string length $dir] +1]
+	set sstart [expr {[string length $dir] +1}]
 	set modulename [string range $element $sstart end]
 
 
-	if [file isdirectory $element] {
+	if {[file isdirectory $element]} {
 	    set ModulesVersion ""
 	    if {![info exists ignoreDir($tail)]} {
 		# include .modulerc or if not present .version file
-		if [file readable $element/.modulerc] {
+		if {[file readable $element/.modulerc]} {
 		    lappend full_list $element/.modulerc
 		}\
-		elseif [file readable $element/.version] {
+		elseif {[file readable $element/.version]} {
 		    lappend full_list $element/.version
 		}
 		# Add each element in the current directory to the list
@@ -1939,25 +1942,25 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 		set tag_list [getVersAliasList $element]
 
 		set tag {}
-		if [llength $tag_list] {
+		if {[llength $tag_list]} {
 		    append tag "(" [join $tag_list ":"] ")"
 		    if {$full_path} {
 			if {$flag_default_mf} {
 			    lappend clean_list "${element}$tag"
-			} {
+			} else {
 			    lappend clean_list ${element}
 			}
-		    } {
+		    } else {
 			if {$flag_default_mf} {
 			    lappend clean_list "${modulename}$tag"
-			} {
+			} else {
 			    lappend clean_list $modulename
 			}
 		    }
 		}
 
 	    }
-	} {
+	} else {
 	    if {$g_debug} {
 		report "DEGUG listModules: checking $element\
 		  ($modulename) dir=$flag_default_dir mf=$flag_default_mf"
@@ -1990,19 +1993,19 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 			set tag_list [getVersAliasList $element]
 
 			set tag {}
-			if [llength $tag_list] {
+			if {[llength $tag_list]} {
 			    append tag "(" [join $tag_list ":"] ")"
 			}
 			if {$full_path} {
 			    if {$flag_default_mf} {
 				lappend clean_list "${element}$tag"
-			    } {
+			    } else {
 				lappend clean_list ${element}
 			    }
-			} {
+			} else {
 			    if {$flag_default_mf} {
 				lappend clean_list "${modulename}$tag"
-			    } {
+			    } else {
 				lappend clean_list $modulename
 			    }
 			}
@@ -2024,13 +2027,13 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 
 proc showModulePath {} {
     global env
-    if [info exists env(MODULEPATH)] {
+    if {[info exists env(MODULEPATH)]} {
 	report "Search path for module files (in search order):"
 	foreach path [split $env(MODULEPATH) ":"] {
 	    report "  $path"
 
 	}
-    } {
+    } else {
 	reportWarning "WARNING: no directories on module search path"
     }
 
@@ -2044,18 +2047,18 @@ proc cmdModuleList {} {
 
     set list {}
     report "Currently Loaded Modulefiles:"
-    if [info exists env(LOADEDMODULES)] {
+    if {[info exists env(LOADEDMODULES)]} {
 	set max 0
 	foreach mod [split $env(LOADEDMODULES) ":"] {
 	    if {$show_oneperline} {
 		report $mod
 	    }\
 	    elseif {$show_modtimes} {
-		set col [expr $DEF_COLUMNS - 10]
+		set col [expr {$DEF_COLUMNS - 10}]
 		set filetime [clock format [file mtime [lindex\
 		  [getPathToModule $mod] 0]]]
 		report [format "%-50s%10s" $mod $filetime]
-	    } {
+	    } else {
 		set len [string length $mod]
 		if {$len > $max} {
 		    set max $len
@@ -2067,7 +2070,7 @@ proc cmdModuleList {} {
 		    getPathToModule $mod
 		    set tag_list [getVersAliasList $mod]
 
-		    if [llength $tag_list] {
+		    if {[llength $tag_list]} {
 			append mod "(" [join $tag_list ":"] ")"
 			# expand string length to include version alises
 			set len [string length $mod]
@@ -2082,11 +2085,11 @@ proc cmdModuleList {} {
 	}
 	if {$show_oneperline ==0 && $show_modtimes == 0} {
 	    # save room for numbers and spacing: 2 digits + ) + space + space
-	    set col_width [expr $max +5]
-	    if [info exist env(COLUMNS)] {
-		set cols [expr int($env(COLUMNS)/$col_width)]
-	    } {
-		set cols [expr int($DEF_COLUMNS/$col_width)]
+	    set col_width [expr {$max +5}]
+	    if {[info exists env(COLUMNS)]} {
+		set cols [expr {int($env(COLUMNS)/$col_width)}]
+	    } else {
+		set cols [expr {int($DEF_COLUMNS/$col_width)}]
 	    }
 	    # safety check to prevent divide by zero error below
 	    if {$cols <= 0} {
@@ -2094,8 +2097,8 @@ proc cmdModuleList {} {
 	    }
 
 	    set item_cnt [llength $list]
-	    set rows [expr int($item_cnt / $cols)]
-	    set lastrow_item_cnt [expr int($item_cnt % $cols)]
+	    set rows [expr {int($item_cnt / $cols)}]
+	    set lastrow_item_cnt [expr {int($item_cnt % $cols)}]
 	    if {$lastrow_item_cnt > 0} {
 		incr rows
 	    }
@@ -2107,11 +2110,11 @@ proc cmdModuleList {} {
 	    }
 	    for {set row 0} {$row < $rows} {incr row} {
 		for {set col 0} {$col < $cols} {incr col} {
-		    set index [expr $col * $rows + $row]
+		    set index [expr {$col * $rows + $row}]
 		    set mod [lindex $list $index]
 
 		    if {$mod != ""} {
-			set n [expr $index +1]
+			set n [expr {$index +1}]
 			set mod [format "%2d) %-${max}s " $n $mod]
 			report $mod -nonewline
 		    }
@@ -2146,7 +2149,7 @@ proc cmdModulePaths {mod} {
 
     catch {
 	foreach dir [split $env(MODULEPATH) ":"] {
-	    if [file isdirectory $dir] {
+	    if {[file isdirectory $dir]} {
 		foreach mod2 [listModules $dir $mod 0 "" $flag_default_mf\
 		  $flag_default_dir] {
 		    lappend g_pathList $mod2
@@ -2187,7 +2190,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 	set mod "*"
     }
     foreach dir [split $env(MODULEPATH) ":"] {
-	if [file isdirectory $dir] {
+	if {[file isdirectory $dir]} {
 	    report "----------- $dir ------------- "
 	    set modlist [listModules $dir $mod 0 "" 0 0]
 	    foreach mod2 $modlist {
@@ -2217,8 +2220,8 @@ proc cmdModuleSwitch {old {new {}}} {
     }
 
     if {[info exists g_loadedModules($old)]} {
-    } {
-	if [info exists g_loadedModulesGeneric($old)] {
+    } else {
+	if {[info exists g_loadedModulesGeneric($old)]} {
 	    set old "$old/$g_loadedModulesGeneric($old)"
 	}
     }
@@ -2259,11 +2262,11 @@ proc cmdModuleSwitch {old {new {}}} {
 	foreach mod $updatelist {
 	    if {$mod == $old} {
 		cmdModuleLoad $new
-	    } {
+	    } else {
 		cmdModuleLoad $mod
 	    }
 	}
-    } {
+    } else {
 	report "Unable to find module $old in loaded list"
     }
 }
@@ -2272,13 +2275,13 @@ proc cmdModuleSource {args} {
     global env tcl_version g_loadedModules g_loadedModulesGeneric g_force
 
     foreach file $args {
-	if [file exists $file] {
+	if {[file exists $file]} {
 	    pushMode "load"
 	    pushModuleName $file
 	    execute-modulefile $file
 	    popModuleName
 	    popMode
-	} {
+	} else {
 	    error "File $file does not exist"
 	}
     }
@@ -2305,9 +2308,9 @@ proc cmdModuleLoad {args} {
 		pushModuleName $currentModule
 
 		saveSettings
-		if [execute-modulefile $modfile] {
+		if {[execute-modulefile $modfile]} {
 		    restoreSettings
-		} {
+		} else {
 		    append-path LOADEDMODULES $currentModule
 		    set g_loadedModules($currentModule) 1
 		    set genericModName [file dirname $mod]
@@ -2342,17 +2345,17 @@ proc cmdModuleUnload {args} {
 		set modfile [lindex $modfile 0]
 		set ModulesCurrentModulefile $modfile
 
-		if [info exists g_loadedModules($currentModule)] {
+		if {[info exists g_loadedModules($currentModule)]} {
 		    pushMode "unload"
 		    pushModuleName $currentModule
 		    saveSettings
-		    if [execute-modulefile $modfile] {
+		    if {[execute-modulefile $modfile]} {
 			restoreSettings
-		    } {
+		    } else {
 		        unload-path LOADEDMODULES $currentModule
 		        unset g_loadedModules($currentModule)
-		        if [info exists g_loadedModulesGeneric([file dirname\
-		          $currentModule])] {
+		        if {[info exists g_loadedModulesGeneric([file dirname\
+		          $currentModule])]} {
 			    unset g_loadedModulesGeneric([file dirname\
 			      $currentModule])
 		        }
@@ -2361,15 +2364,15 @@ proc cmdModuleUnload {args} {
 		    popMode
 		    popModuleName
                 }
-	    } {
-		if [info exists g_loadedModulesGeneric($mod)] {
+	    } else {
+		if {[info exists g_loadedModulesGeneric($mod)]} {
 		    set mod "$mod/$g_loadedModulesGeneric($mod)"
 		}
 		unload-path LOADEDMODULES $mod
-		if [info exists g_loadedModules($mod)] {
+		if {[info exists g_loadedModules($mod)]} {
 		    unset g_loadedModules($mod)
 		}
-		if [info exists g_loadedModulesGeneric([file dirname $mod])] {
+		if {[info exists g_loadedModulesGeneric([file dirname $mod])]} {
 		    unset g_loadedModulesGeneric([file dirname $mod])
 		}
 	    }
@@ -2384,7 +2387,7 @@ proc cmdModuleUnload {args} {
 proc cmdModulePurge {} {
     global env
 
-    if [info exists env(LOADEDMODULES)] {
+    if {[info exists env(LOADEDMODULES)]} {
 	set list [split $env(LOADEDMODULES) ":"]
 	eval cmdModuleUnload $list
     }
@@ -2394,7 +2397,7 @@ proc cmdModulePurge {} {
 proc cmdModuleReload {} {
     global env
 
-    if [info exists env(LOADEDMODULES)] {
+    if {[info exists env(LOADEDMODULES)]} {
 	set list [split $env(LOADEDMODULES) ":"]
 	set rlist [reverseList $list]
 	foreach mod $rlist {
@@ -2434,13 +2437,13 @@ proc cmdModuleAvail {{mod {*}}} {
     }
 
     foreach dir [split $env(MODULEPATH) ":"] {
-	if [file isdirectory $dir] {
+	if {[file isdirectory $dir]} {
 	    report "------------ $dir ------------ "
 	    set list [listModules $dir $mod 0 "" $flag_default_mf\
 	      $flag_default_dir]
 	    if {$show_modtimes} {
 		foreach i $list {
-		    set col [expr $DEF_COLUMNS - 10]
+		    set col [expr {$DEF_COLUMNS - 10}]
 		    set filetime [clock format [file mtime [lindex\
 		      [getPathToModule $i] 0]]]
 		    report [format "%-50s%10s" $i $filetime]
@@ -2450,7 +2453,7 @@ proc cmdModuleAvail {{mod {*}}} {
 		foreach i $list {
 		    report "$i"
 		}
-	    } {
+	    } else {
 		set max 0
 		foreach mod2 $list {
 		    if {[string length $mod2] > $max} {
@@ -2458,10 +2461,10 @@ proc cmdModuleAvail {{mod {*}}} {
 		    }
 		}
 		incr max 1
-		if [info exist env(COLUMNS)] {
-		    set cols [expr int($env(COLUMNS)/($max))]
-		} {
-		    set cols [expr int($DEF_COLUMNS/($max))]
+		if {[info exists env(COLUMNS)]} {
+		    set cols [expr {int($env(COLUMNS)/($max))}]
+		} else {
+		    set cols [expr {int($DEF_COLUMNS/($max))}]
 		}
 		# safety check to prevent divide by zero error below
 		if {$cols <= 0} {
@@ -2471,15 +2474,15 @@ proc cmdModuleAvail {{mod {*}}} {
 		# There is no '{}' at the begining of this 'list' as there is\
 		  in cmd 
 		#               ModuleList - ?
-		set item_cnt [expr [llength $list] - 0]
-		set rows [expr int($item_cnt / $cols)]
-		set lastrow_item_cnt [expr int($item_cnt % $cols)]
+		set item_cnt [expr {[llength $list] - 0}]
+		set rows [expr {int($item_cnt / $cols)}]
+		set lastrow_item_cnt [expr {int($item_cnt % $cols)}]
 		if {$lastrow_item_cnt > 0} {
 		    incr rows
 		}
 		for {set row 0} {$row < $rows} {incr row} {
 		    for {set col 0} {$col < $cols} {incr col} {
-			set index [expr $col * $rows + $row]
+			set index [expr {$col * $rows + $row}]
 			set mod2 [lindex $list $index]
 			if {$mod2 != ""} {
 			    set mod2 [format "%-${max}s" $mod2]
@@ -2498,7 +2501,7 @@ proc cmdModuleUse {args} {
 
     if {$args == ""} {
 	showModulePath
-    } {
+    } else {
 	set stuff_path "prepend-path"
 	foreach path $args {
 	    if {$path == ""} {
@@ -2512,11 +2515,11 @@ proc cmdModuleUse {args} {
 	      "-prepend")} {
 		set stuff_path "prepend-path"
 	    }\
-	    elseif [file isdirectory $path] {
+	    elseif {[file isdirectory $path]} {
 		pushMode "load"
 		eval $stuff_path MODULEPATH $path
 		popMode
-	    } {
+	    } else {
 		report "+(0):WARN:0: Directory '$path' not found"
 	    }
 	}
@@ -2528,7 +2531,7 @@ proc cmdModuleUnuse {args} {
 
     if {$args == ""} {
 	showModulePath
-    } {
+    } else {
 	global env
 	foreach path $args {
 	    regsub -all {\/} $path {\/} escpath
@@ -2566,7 +2569,7 @@ proc cmdModuleDebug {} {
     }
     foreach dir [split $env(PATH) ":"] {
 	foreach file [glob -nocomplain -- "$dir/*"] {
-	    if [file executable $file] {
+	    if {[file executable $file]} {
 		set exec [file tail $file]
 		lappend execcount($exec) $file
 	    }
@@ -2627,7 +2630,7 @@ proc cmdModuleInit {args} {
 	    if {[file readable $filepath] && [file isfile $filepath]} {
 		set fid [open $filepath r]
 
-		if {[expr [llength $args] -1] != $nargs($moduleinit_cmd)} {
+		if {[expr {[llength $args] -1}] != $nargs($moduleinit_cmd)} {
 		    error "'module init$moduleinit_cmd' requires exactly\
 		      $nargs($moduleinit_cmd) arg(s)."
 		    #	       cmdModuleHelp
@@ -2696,7 +2699,7 @@ proc cmdModuleInit {args} {
 				  recognized"
 			    }
 			}
-		    } {
+		    } else {
 			# copy the line from the old file to the new
 			if {[info exists newfid]} {
 			    puts $newfid $curline
@@ -2706,12 +2709,12 @@ proc cmdModuleInit {args} {
 		close $fid
 		if {[info exists newfid]} {
 		    close $newfid
-		    if {[catch "file copy -force $filepath $filepath-OLD"] !=\
+		    if {[catch {file copy -force $filepath $filepath-OLD}] !=\
 		      0} {
 			report "Failed to back up original $filepath...exiting"
 			exit -1
 		    }
-		    if {[catch "file copy -force $newfilepath $filepath"] !=\
+		    if {[catch {file copy -force $newfilepath $filepath}] !=\
 		      0} {
 			report "Failed to write $filepath...exiting"
 			exit -1
@@ -2748,7 +2751,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.76 $:
+                ModulesTcl 0.101/$Revision: 1.77 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
@@ -2767,7 +2770,7 @@ reload       |  switch|swap        [oldmodulefile] newmodulefile
 initlist     |  initadd             modulefile
 initclear    |  initprepend         modulefile
 	     |  initrm              modulefile
-            }
+        }
     }
 }
 
@@ -2905,7 +2908,7 @@ catch {
 		foreach arg $argv {
 		    cmdModuleAvail $arg
 		}
-	    } {
+	    } else {
 		cmdModuleAvail
 	    }
 	}
@@ -2960,7 +2963,7 @@ catch {
 		foreach arg $argv {
 		    cmdModuleWhatIs $arg
 		}
-	    } {
+	    } else {
 		cmdModuleWhatIs
 	    }
 	}
