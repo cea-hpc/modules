@@ -25,6 +25,9 @@ set MODULES_CURRENT_VERSION 3.1.6
 set flag_default_dir 1 ;# Report default directories
 set flag_default_mf 1 ;# Report default modulefiles and version alias
 
+# Change this to your support email address...
+set contact "root@localhost"
+
 # Set some directories to ignore when looking for modules.
 set ignoreDir(CVS) 1
 set ignoreDir(RCS) 1
@@ -2026,11 +2029,9 @@ proc reportWarning {message} {
 }
 
 proc reportInternalBug {message} {
-    puts stderr "ERROR: $message\nPlease contact your local friendly\
-      maintainer of the module command."
-    #
-    # future: send email to maintainer
-    #
+    global contact
+
+    puts stderr "Module ERROR: $message\nPlease contact: $contact"
 }
 
 proc report {message {nonewline ""}} {
@@ -2040,7 +2041,6 @@ proc report {message {nonewline ""}} {
 	puts stderr "$message"
     }
 }
-
 
 ########################################################################
 # command line commands
@@ -2754,7 +2754,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.71 $:
+                ModulesTcl 0.101/$Revision: 1.72 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
