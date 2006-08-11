@@ -152,10 +152,6 @@ proc execute-modulefile {modfile} {
 	interp alias $slave x-resource {} x-resource
 	interp alias $slave module-version {} module-version
 	interp alias $slave module-alias {} module-alias
-	interp alias $slave module-trace {} module-trace
-	interp alias $slave module-verbosity {} module-verbosity
-	interp alias $slave module-user {} module-user
-	interp alias $slave module-log {} module-log
 	interp alias $slave reportInternalBug {} reportInternalBug
 	interp alias $slave reportWarning {} reportWarning
 
@@ -219,10 +215,6 @@ proc execute-modulerc {modfile} {
 	    interp alias $slave module-version {} module-version
 	    interp alias $slave module-alias {} module-alias
 	    interp alias $slave module {} module
-	    interp alias $slave module-trace {} module-trace
-	    interp alias $slave module-verbosity {} module-verbosity
-	    interp alias $slave module-user {} module-user
-	    interp alias $slave module-log {} module-log
 	    interp alias $slave reportInternalBug {} reportInternalBug
 
 	    interp eval $slave [list global ModulesCurrentModulefile g_debug]
@@ -299,27 +291,6 @@ proc execute-version {modfile} {
 # commands run from inside a module file
 #
 set ModulesCurrentModulefile {}
-
-proc module-log {weight facility} {
-    global ModulesCurrentModulefile
-    #    report "$ModulesCurrentModulefile: module-log not yet implemented"
-}
-
-proc module-verbosity {mode} {
-    global ModulesCurrentModulefile
-    #    report "$ModulesCurrentModulefile: module-verbosity not yet\
-      implemented"
-}
-
-proc module-user {level} {
-    global ModulesCurrentModulefile
-    #    report "$ModulesCurrentModulefile: module-user not yet implemented"
-}
-
-proc module-trace {mode args} {
-    global ModulesCurrentModulefile
-    #    report "$ModulesCurrentModulefile: module-trace not yet implemented"
-}
 
 proc module-info {what {more {}}} {
     global g_shellType g_shell
@@ -2770,7 +2741,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.78 $:
+                ModulesTcl 0.101/$Revision: 1.79 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
