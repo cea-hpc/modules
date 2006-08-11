@@ -40,6 +40,27 @@ set show_oneperline 0
 set show_modtimes 0
 # Gets set if you do module list/avail -l
 
+#
+# Info, Warnings and Error message handling.
+#
+proc reportWarning {message} {
+    puts stderr $message
+}
+
+proc reportInternalBug {message} {
+    global contact
+
+    puts stderr "Module ERROR: $message\nPlease contact: $contact"
+}
+
+proc report {message {nonewline ""}} {
+    if {$nonewline != ""} {
+        puts -nonewline stderr "$message"
+    } {
+        puts stderr "$message"
+    }
+}
+
 ########################################################################
 # Use a slave TCL interpreter to execute modulefiles
 #
@@ -56,7 +77,7 @@ proc execute-modulefile-help {modfile} {
     global env g_stateEnvVars g_debug
 
     if {$g_debug} {
-	report "DEBUG: Starting $modfile"
+	report "DEBUG Starting $modfile"
     }
     set slave __[currentModuleName]
     if {![interp exists $slave]} {
@@ -106,7 +127,7 @@ proc execute-modulefile-help {modfile} {
     }]
     interp delete $slave
     if {$g_debug} {
-	report "DEBUG: Exiting $modfile"
+	report "DEBUG Exiting $modfile"
     }
     return $errorVal
 }
@@ -158,7 +179,7 @@ proc execute-modulefile {modfile} {
 		return 1
 	    } {
 		global errorInfo
-		rportInternalBug "occurred in file $ModulesCurrentmodulefile: $errorInfo"
+		reportInternalBug "occurred in file ModulesCurrentModulefile: $errorInfo"
 		exit 1
 	    }
 	} {
@@ -2021,27 +2042,6 @@ proc showModulePath {} {
 
 }
 
-#
-# Info, Warnings and Error message handling.
-#
-proc reportWarning {message} {
-    puts stderr $message
-}
-
-proc reportInternalBug {message} {
-    global contact
-
-    puts stderr "Module ERROR: $message\nPlease contact: $contact"
-}
-
-proc report {message {nonewline ""}} {
-    if {$nonewline != ""} {
-	puts -nonewline stderr "$message"
-    } {
-	puts stderr "$message"
-    }
-}
-
 ########################################################################
 # command line commands
 
@@ -2230,7 +2230,7 @@ proc cmdModuleSwitch {old {new {}}} {
     }
 
     if {$g_debug} {
-	puts stderr "new=\"$new\" old=\"$old\""
+	report "new=\"$new\" old=\"$old\""
     }
 
     set loadedlist [split $env(LOADEDMODULES) ":"]
@@ -2247,7 +2247,9 @@ proc cmdModuleSwitch {old {new {}}} {
                 if { $exception != $old } {
                     set i_exception [lsearch $updatelist $exception]
                     set updatelist [lreplace $updatelist $i_exception $i_exception]
-#                    puts stderr "Exception $exception is in $i_exception"
+                    if {$g_debug} {
+                       report "DEBUG Exception $exception is in $i_exception"
+                    }
                 }
             }
 	}
@@ -2268,7 +2270,7 @@ proc cmdModuleSwitch {old {new {}}} {
 	    }
 	}
     } {
-	puts stderr "Unable to find module $old in loaded list"
+	report "Unable to find module $old in loaded list"
     }
 }
 
@@ -2294,7 +2296,7 @@ proc cmdModuleLoad {args} {
     global g_debug
 
     if {$g_debug} {
-	puts stderr "DEBUG cmdModuleLoad: loading $args"
+	report "DEBUG cmdModuleLoad: loading $args"
     }
 
     foreach mod $args {
@@ -2335,7 +2337,7 @@ proc cmdModuleUnload {args} {
     global ModulesCurrentModulefile g_debug
 
     if {$g_debug} {
-	puts stderr "DEBUG cmdModuleUnload: unloading $args"
+	report "DEBUG cmdModuleUnload: unloading $args"
     }
 
     foreach mod $args {
@@ -2521,8 +2523,7 @@ proc cmdModuleUse {args} {
 		eval $stuff_path MODULEPATH $path
 		popMode
 	    } {
-		#		reportWarning "WARNING: Directory \"$path\" does not exist, not added to module search path."
-		puts stderr "+(0):WARN:0: Directory '$path' not found"
+		report "+(0):WARN:0: Directory '$path' not found"
 	    }
 	}
     }
@@ -2627,7 +2628,7 @@ proc cmdModuleInit {args} {
 	    set newfilepath "$filepath-NEW"
 
 	    if {$g_debug} {
-		puts stderr "DEBUG: Looking at: $filepath"
+		report "DEBUG Looking at: $filepath"
 	    }
 	    if {[file readable $filepath] && [file isfile $filepath]} {
 		set fid [open $filepath r]
@@ -2657,7 +2658,7 @@ proc cmdModuleInit {args} {
 			  command
 			switch $moduleinit_cmd {
 			list {
-				puts stderr "$g_shell initialization file\
+				report "$g_shell initialization file\
 				  $filepath loads modules: $modules"
 			    }
 			add {
@@ -2697,7 +2698,7 @@ proc cmdModuleInit {args} {
 				set notclear 0
 			    }
 			default {
-				puts stderr "Command init$moduleinit_cmd not\
+				report "Command init$moduleinit_cmd not\
 				  recognized"
 			    }
 			}
@@ -2713,13 +2714,12 @@ proc cmdModuleInit {args} {
 		    close $newfid
 		    if {[catch "file copy -force $filepath $filepath-OLD"] !=\
 		      0} {
-			puts stderr "Failed to back up original\
-			  $filepath...exiting"
+			report "Failed to back up original $filepath...exiting"
 			exit -1
 		    }
 		    if {[catch "file copy -force $newfilepath $filepath"] !=\
 		      0} {
-			puts stderr "Failed to write $filepath...exiting"
+			report "Failed to write $filepath...exiting"
 			exit -1
 		    }
 		}
@@ -2754,7 +2754,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.72 $:
+                ModulesTcl 0.101/$Revision: 1.73 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
@@ -2790,7 +2790,7 @@ set opt [lindex $argv 1]
 switch -regexp -- $opt {
 {^-deb} {
 	set g_debug 1
-	puts stderr "DEBUG : debug enabled"
+	report "DEBUG debug enabled"
 
 	# only remove options here.  Some module commands have options also,\
 	  which should
@@ -2847,11 +2847,11 @@ switch -regexp -- $opt {
 	set argv [removeFromList $argv $opt]
     }
 {^--ver} {
-	puts stderr "$MODULES_CURRENT_VERSION"
+	report "$MODULES_CURRENT_VERSION"
 	exit 0
     }
 {^--} {
-	puts stderr "+(0):ERROR:0: Unrecognized option '$opt'"
+	report "+(0):ERROR:0: Unrecognized option '$opt'"
 	exit -1
     }
 }
@@ -2888,7 +2888,7 @@ cacheCurrentModules
 runModulerc
 # Resolve any aliased module names - safe to run nonmodule arguments
 if {$g_debug} {
-    puts stderr "DEBUG: Resolving $argv"
+    report "DEBUG Resolving $argv"
 }
 
 if {[lsearch $argv "-t"] >= 0} {
@@ -2901,7 +2901,7 @@ if {[lsearch $argv "-l"] >= 0} {
 }
 set argv [resolveModuleVersionOrAlias $argv]
 if {$g_debug} {
-    puts stderr "DEBUG: Resolved $argv"
+    report "DEBUG Resolved $argv"
 }
 
 catch {
