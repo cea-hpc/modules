@@ -130,11 +130,10 @@ proc execute-modulefile {modfile {help ""}} {
     return $errorVal
 }
 
+# Smaller subset than main module load... This function runs modulerc and .version files
 proc execute-modulerc {modfile} {
-    # BOZO - ajb: I'm not sure what functions should be supported in a\
-      .modulerc file.  For now it's a small subset
     global env g_stateEnvVars g_rcfilesSourced
-    global g_debug
+    global g_debug g_moduleDefault
     global ModulesCurrentModulefile
 
     set ModulesCurrentModulefile $modfile
@@ -145,8 +144,8 @@ proc execute-modulerc {modfile} {
 	return ""
     }
 
-    # If we have already loaded an RC file, don't load it again - BOZO may\
-      want this to add to execute-version
+    set modparent [file dirname $modfile]
+
     if {![info exists g_rcfilesSourced($modfile)]} {
 	if {$g_debug} {
 	    report "DEBUG execute-modulerc: sourcing rc $modfile"
@@ -163,8 +162,9 @@ proc execute-modulerc {modfile} {
 
 	    interp eval $slave [list global ModulesCurrentModulefile g_debug]
 	    interp eval $slave [list set ModulesCurrentModulefile $modfile]
+            interp eval $slave [list global ModulesVersion]
+            interp eval $slave [list set ModulesVersion {}]
 	    interp eval $slave [list set g_debug $g_debug]
-
 	}
 	set ModulesVersion [interp eval $slave {
 	    if [catch {source $ModulesCurrentModulefile} errorMsg] {
@@ -172,62 +172,28 @@ proc execute-modulerc {modfile} {
 		reportInternalBug "occurred in file\
 		  $ModulesCurrentModulefile:$errorInfo"
 		exit 1
-	    }
+	    } \
+            elseif [info exists ModulesVersion] {
+                return $ModulesVersion
+            } else {
+                return {}
+            }
 	}]
 	interp delete $slave
+
+        set g_moduleDefault($modparent) $ModulesVersion
+
+        if {$g_debug} {
+            report "DEBUG execute-version: Setting g_moduleDefault($modparent)\
+              $ModulesVersion"
+        }
+
 	# Keep track of rc files that we already source so we don't run them\
 	  again
 	set g_rcfilesSourced($modfile) 1
+
+        return $ModulesVersion
     }
-}
-
-
-proc execute-version {modfile} {
-    global env g_stateEnvVars
-    global g_moduleDefault g_debug
-
-    if {![checkValidModule $modfile]} {
-	reportInternalBug "+(0):ERROR:0: Magic cookie '#%Module' missing in\
-	  '$modfile'"
-	return ""
-    }
-
-    set modparent [file dirname $modfile]
-
-    set slave __.version
-    if {![interp exists $slave]} {
-	interp create $slave
-	interp alias $slave uname {} uname
-	interp alias $slave system {} system
-	interp alias $slave module-version {} module-version
-	interp alias $slave module-alias {} module-alias
-	interp alias $slave reportInternalBug {} reportInternalBug
-
-	interp eval $slave [list global ModulesCurrentModulefile]
-	interp eval $slave [list set ModulesCurrentModulefile $modfile]
-	interp eval $slave [list global ModulesVersion]
-	interp eval $slave [list set ModulesVersion {}]
-    }
-    set ModulesVersion [interp eval $slave {
-	if [catch {source $ModulesCurrentModulefile} errorMsg] {
-	    global errorInfo
-	    reportInternalBug "occurred in file\
-	      $ModulesCurrentModulefile:$errorInfo"
-	    exit 1
-	}\
-	elseif [info exists ModulesVersion] {
-	    return $ModulesVersion
-	} else {
-	    return {}
-	}
-    }]
-    interp delete $slave
-    set g_moduleDefault($modparent) $ModulesVersion
-    if {$g_debug} {
-	report "DEBUG execute-version: Setting g_moduleDefault($modparent)\
-	  $ModulesVersion"
-    }
-    return $ModulesVersion
 }
 
 
@@ -1097,7 +1063,7 @@ proc getPathToModule {mod} {
 			if {$g_debug} {
 			    report "DEBUG getPathToModule: Found $path/.version"
 			}
-			set ModulesVersion [execute-version "$path/.version"]
+			set ModulesVersion [execute-modulerc "$path/.version"]
 		    }
 
 
@@ -1906,9 +1872,9 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 	    {.version} {
 		    if {$flag_default_dir || $flag_default_mf} {
 			# set ModulesCurrentModulefile so it is available to\
-			  execute-version
+			  execute-modulerc
 			set ModulesCurrentModulefile $element
-			execute-version "$element"
+			execute-modulerc "$element"
 
 			if {$g_debug} {
 			    report "DEGUG listModules: checking default\
@@ -2685,7 +2651,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.80 $:
+                ModulesTcl 0.101/$Revision: 1.81 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
