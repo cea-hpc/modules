@@ -991,7 +991,7 @@ proc getPathToModule {mod} {
 
     set retlist ""
 
-    if {$mod == "null"} {
+    if {$mod == ""} {
 	return ""
     }
 
@@ -1742,7 +1742,7 @@ proc removeFromList {list1 item} {
     eval set list2 \[list $list1 \]
     set list1 {}
     foreach x $list2 {
-	if {$x != $item && $x != "null"} {
+	if {$x != $item && $x != ""} {
 	    lappend list1 $x
 	}
     }
@@ -1968,7 +1968,6 @@ proc cmdModuleList {} {
 		report $mod
 	    }\
 	    elseif {$show_modtimes} {
-		set col [expr {$DEF_COLUMNS - 10}]
 		set filetime [clock format [file mtime [lindex\
 		  [getPathToModule $mod] 0]]]
 		report [format "%-50s%10s" $mod $filetime]
@@ -2352,15 +2351,14 @@ proc cmdModuleAvail {{mod {*}}} {
     }
 
     foreach dir [split $env(MODULEPATH) ":"] {
-	if {[file isdirectory $dir]} {
+	if {[file isdirectory "$dir"]} {
 	    report "------------ $dir ------------ "
-	    set list [listModules $dir $mod 0 "" $flag_default_mf\
+	    set list [listModules "$dir" "$mod" 0 "" $flag_default_mf\
 	      $flag_default_dir]
 	    if {$show_modtimes} {
 		foreach i $list {
-		    set col [expr {$DEF_COLUMNS - 10}]
 		    set filetime [clock format [file mtime [lindex\
-		      [getPathToModule $i] 0]]]
+		      [getPathToModule "$i"] 0]]]
 		    report [format "%-50s%10s" $i $filetime]
 		}
 	    }\
@@ -2591,7 +2589,7 @@ proc cmdModuleInit {args} {
 				set oldmodule [lindex $args 1]
 				set modules [removeFromList $modules $oldmodule]
 				if {[llength $modules] == 0} {
-				    set modules "null"
+				    set modules ""
 				}
 				puts $newfid "$cmd$modules$comments"
 				set notdone 0
@@ -2605,7 +2603,7 @@ proc cmdModuleInit {args} {
 				set notdone 0
 			    }
 			clear {
-				set modules "null"
+				set modules ""
 				puts $newfid "$cmd$modules$comments"
 				set notclear 0
 			    }
