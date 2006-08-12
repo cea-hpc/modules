@@ -11,6 +11,9 @@ set DEF_COLUMNS 80 ;# Default size of columns for formating
 set MODULES_CURRENT_VERSION 3.1.6
 set flag_default_dir 1 ;# Report default directories
 set flag_default_mf 1 ;# Report default modulefiles and version alias
+set g_user "advanced";# username were running as....
+set g_trace 0 ;# not implemented yet
+set g_tracepat "-.*" ;# not implemented yet
 
 # Change this to your support email address...
 set contact "root@localhost"
@@ -203,7 +206,7 @@ proc execute-modulerc {modfile} {
 set ModulesCurrentModulefile {}
 
 proc module-info {what {more {}}} {
-    global g_shellType g_shell
+    global g_shellType g_shell g_user g_trace g_tracepat
     global g_moduleAlias g_symbolHash g_versionHash
 
     set mode [currentMode]
@@ -219,12 +222,24 @@ proc module-info {what {more {}}} {
 		return $mode
 	    }
 	}
-    "name" {
+    "name" - "specified" {
 	    return [currentModuleName]
 	}
     "shell" {
 	    return $g_shell
 	}
+    "flags" {
+        return 0
+    }
+    "user" {
+        return $g_user
+    }
+    "trace" {
+       return $g_trace
+    }
+    "tracepat" {
+        return $g_tracepat
+    }
     "shelltype" {
 	    return $g_shellType
 	}
@@ -2651,7 +2666,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report {
-                ModulesTcl 0.101/$Revision: 1.81 $:
+                ModulesTcl 0.101/$Revision: 1.82 $:
                 Available Commands and Usage:
 list         |  add|load            modulefile [modulefile ...]
 purge        |  rm|unload           modulefile [modulefile ...]
