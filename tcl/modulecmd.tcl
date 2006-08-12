@@ -10,7 +10,7 @@ set CSH_LIMIT 1000 ;# Workaround for commandline limits in csh
 set DEF_COLUMNS 80 ;# Default size of columns for formating
 set MODULES_CURRENT_VERSION 3.1.6
 set flag_default_dir 1 ;# Report default directories
-set flag_default_mf 1 ;# Report default modulefiles and version alias
+set flag_default_mf 0 ;# Report default modulefiles and version alias
 set g_user "advanced";# username were running as....
 set g_trace 0 ;# not implemented yet
 set g_tracepat "-.*" ;# not implemented yet
@@ -1857,19 +1857,21 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 		set tag {}
 		if {[llength $tag_list]} {
 		    append tag "(" [join $tag_list ":"] ")"
-		    if {$full_path} {
-			if {$flag_default_mf} {
-			    lappend clean_list "${element}$tag"
-			} else {
-			    lappend clean_list ${element}
-			}
-		    } else {
-			if {$flag_default_mf} {
-			    lappend clean_list "${modulename}$tag"
-			} else {
-			    lappend clean_list $modulename
-			}
-		    }
+
+                    if {$full_path} {
+                        set mystr ${element}
+                    } else {
+                        set mystr ${modulename}
+                    }
+                    if {[file isdirectory ${element}]} {
+                        if {$flag_default_dir} {
+                            set mystr "$mystr$tag"
+                        }
+                    } elseif {$flag_default_mf} {
+                        set mystr "$mystr$tag"
+                    }
+                    lappend clean_list $mystr
+
 		}
 
 	    }
@@ -1911,18 +1913,18 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 			    append tag "(" [join $tag_list ":"] ")"
 			}
 			if {$full_path} {
-			    if {$flag_default_mf} {
-				lappend clean_list "${element}$tag"
-			    } else {
-				lappend clean_list ${element}
-			    }
-			} else {
-			    if {$flag_default_mf} {
-				lappend clean_list "${modulename}$tag"
-			    } else {
-				lappend clean_list $modulename
-			    }
-			}
+                            set mystr ${element}
+                        } else {
+                            set mystr ${modulename}
+                        }
+                        if {[file isdirectory ${element}]} {
+                            if {$flag_default_dir} {
+                                set mystr "$mystr$tag"
+                            }
+                        } elseif {$flag_default_mf} {
+                            set mystr "$mystr$tag"
+                        }
+			lappend clean_list $mystr
 		    }
 		}
 	    }
