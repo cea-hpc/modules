@@ -10,7 +10,7 @@ set CSH_LIMIT 1000 ;# Workaround for commandline limits in csh
 set DEF_COLUMNS 80 ;# Default size of columns for formating
 set MODULES_CURRENT_VERSION 3.1.6
 set flag_default_dir 1 ;# Report default directories
-set flag_default_mf 0 ;# Report default modulefiles and version alias
+set flag_default_mf 1 ;# Report default modulefiles and version alias
 set g_user "advanced";# username were running as....
 set g_trace 0 ;# not implemented yet
 set g_tracepat "-.*" ;# not implemented yet
