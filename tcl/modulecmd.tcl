@@ -2641,7 +2641,7 @@ proc cmdModuleInit {args} {
 }
 
 proc cmdModuleHelp {args} {
-    global done
+    global done MODULES_CURRENT_VERSION
 
     set done 0
     foreach arg $args {
@@ -2665,27 +2665,30 @@ proc cmdModuleHelp {args} {
 	}
     }
     if {$done == 0} {
-	report {
-                ModulesTcl 0.101/$Revision: 1.82 $:
-                Available Commands and Usage:
-list         |  add|load            modulefile [modulefile ...]
-purge        |  rm|unload           modulefile [modulefile ...]
-reload       |  switch|swap        [oldmodulefile] newmodulefile
-             |  display|show        modulefile [modulefile ...]
-             |  avail              [modulefile [modulefile ...]]
-             |  whatis             [modulefile [modulefile ...]]
-             |  help               [modulefile [modulefile ...]]
-             |  path                modulefile
-             |  paths               modulefile
-             |  use                 dir [dir ...]
-             |  unuse               dir [dir ...]
-             |  source              scriptfile
-             |  apropos|keyword     string
-             |
-initlist     |  initadd             modulefile
-initclear    |  initprepend         modulefile
-	     |  initrm              modulefile
-        }
+        report "Modules Release Tcl $MODULES_CURRENT_VERSION (Copyright GNU GPL v2 1991):"
+        report {Usage: module [ switches ] [ command ]}
+
+        report {Switches:}
+        report {	-t		terse format avail and list}
+        report {	-l		long format avail and list}
+        report {Commands:}
+        report {	list         |  add|load            modulefile [modulefile ...]}
+        report {	purge        |  rm|unload           modulefile [modulefile ...]}
+        report {	reload       |  switch|swap        [oldmodulefile] newmodulefile}
+        report {	             |  display|show        modulefile [modulefile ...]}
+        report {	             |  avail              [modulefile [modulefile ...]]}
+        report {	             |  whatis             [modulefile [modulefile ...]]}
+        report {	             |  help               [modulefile [modulefile ...]]}
+        report {	             |  path                modulefile}
+        report {	             |  paths               modulefile}
+        report {	             |  use                 dir [dir ...]}
+        report {	             |  unuse               dir [dir ...]}
+        report {	             |  source              scriptfile}
+        report {	             |  apropos|keyword     string}
+        report {	             |}
+        report {	initlist     |  initadd             modulefile}
+        report {	initclear    |  initprepend         modulefile}
+        report {		     |  initrm              modulefile}
     }
 }
 
