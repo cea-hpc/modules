@@ -448,15 +448,11 @@ proc module {command args} {
     source {
 	    eval cmdModuleSource $args
 	}
-    switch {
-	    eval cmdModuleSwitch $args
-	}
+    switch -
     swap {
 	    eval cmdModuleSwitch $args
 	}
-    display {
-	    eval cmdModuleDisplay $args
-	}
+    display -
     show {
 	    eval cmdModuleDisplay $args
 	}
@@ -487,9 +483,7 @@ proc module {command args} {
 		cmdModuleWhatIs
 	    }
 	}
-    apropos {
-	    eval cmdModuleApropos $args
-	}
+    apropos -
     keyword {
 	    eval cmdModuleApropos $args
 	}
