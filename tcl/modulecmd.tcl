@@ -567,21 +567,21 @@ proc unsetenv {var {val {}}} {
 ########################################################################
 # path fiddling
 
-proc getReferenceCountArray {var} {
+proc getReferenceCountArray {var seperator} {
     global env g_force
 
     set sharevar "${var}_modshare"
     set modshareok 1
     if {[info exists env($sharevar)]} {
 	if {[info exists env($var)]} {
-	    set modsharelist [split $env($sharevar) ":"]
+	    set modsharelist [split $env($sharevar) $seperator]
 	    if {[expr {[llength $modsharelist] % 2}] == 0} {
 		array set countarr $modsharelist
 
 		# sanity check the modshare list
 		array set fixers {}
 		array set usagearr {}
-		foreach dir [split $env($var) ":"] {
+		foreach dir [split $env($var) $seperator] {
 		    set usagearr($dir) 1
 		}
 		foreach path [array names countarr] {
@@ -627,7 +627,7 @@ proc getReferenceCountArray {var} {
 
     if {$modshareok == 0 && [info exists env($var)]} {
 	array set countarr {}
-	foreach dir [split $env($var) ":"] {
+	foreach dir [split $env($var) $seperator] {
 	    set countarr($dir) 1
 	}
     }
@@ -635,10 +635,10 @@ proc getReferenceCountArray {var} {
 }
 
 
-proc unload-path {var path} {
+proc unload-path {var path {seperator {:}}} {
     global g_stateEnvVars env g_force
 
-    array set countarr [getReferenceCountArray $var]
+    array set countarr [getReferenceCountArray $var $seperator]
 
     # Don't worry about dealing with this variable if it is already scheduled\
       for deletion
@@ -648,7 +648,7 @@ proc unload-path {var path} {
 
     set doit 0
 
-    foreach dir [split $path ":"] {
+    foreach dir [split $path $seperator] {
 	if {[info exists countarr($dir)]} {
 	    incr countarr($dir) -1
 	    if {$countarr($dir) <= 0} {
@@ -661,7 +661,7 @@ proc unload-path {var path} {
 
 	if {$doit || $g_force} {
 	    if {[info exists env($var)]} {
-		set dirs [split $env($var) ":"]
+		set dirs [split $env($var) $seperator]
 		set newpath ""
 		foreach elem $dirs {
 		    if {$elem != $dir} {
@@ -672,7 +672,7 @@ proc unload-path {var path} {
 		    unset-env $var
 		    set g_stateEnvVars($var) "del"
 		} else {
-		    set env($var) [join $newpath ":"]
+		    set env($var) [join $newpath $seperator]
 		    set g_stateEnvVars($var) "new"
 		}
 	    }
@@ -681,7 +681,7 @@ proc unload-path {var path} {
 
     set sharevar "${var}_modshare"
     if {[array size countarr] > 0} {
-	set env($sharevar) [join [array get countarr] ":"]
+	set env($sharevar) [join [array get countarr] $seperator]
 	set g_stateEnvVars($sharevar) "new"
     } else {
 	unset-env $sharevar
@@ -690,16 +690,16 @@ proc unload-path {var path} {
     return {}
 }
 
-proc add-path {var path pos} {
+proc add-path {var path pos {seperator {:}}} {
     global env g_stateEnvVars
 
     set sharevar "${var}_modshare"
-    array set countarr [getReferenceCountArray $var]
+    array set countarr [getReferenceCountArray $var $seperator]
 
     if {$pos == "prepend"} {
-	set pathelems [reverseList [split $path ":"]]
+	set pathelems [reverseList [split $path $seperator]]
     } else {
-	set pathelems [split $path ":"]
+	set pathelems [split $path $seperator]
     }
     foreach dir $pathelems {
 	if {[info exists countarr($dir)]} {
@@ -723,51 +723,51 @@ proc add-path {var path pos} {
     }
 
 
-    set env($sharevar) [join [array get countarr] ":"]
+    set env($sharevar) [join [array get countarr] $seperator]
     set g_stateEnvVars($var) "new"
     set g_stateEnvVars($sharevar) "new"
     return {}
 }
 
-proc prepend-path {var path} {
+proc prepend-path {var path {seperator {:}}} {
     set mode [currentMode]
 
     if {$mode == "load"} {
-	add-path $var $path "prepend"
+	add-path $var $path "prepend" $seperator
     }\
     elseif {$mode == "unload"} {
 	unload-path $var $path
     }\
     elseif {$mode == "display"} {
-	report "prepend-path\t$var\t$path"
+	report "prepend-path\t$var\t$path\t$seperator"
     }
     return {}
 }
 
 
-proc append-path {var path} {
+proc append-path {var path {seperator {:}}} {
     set mode [currentMode]
 
     if {$mode == "load"} {
-	add-path $var $path "append"
+	add-path $var $path "append" $seperator
     }\
     elseif {$mode == "unload"} {
 	unload-path $var $path
     }\
     elseif {$mode == "display"} {
-	report "append-path\t$var\t$path"
+	report "append-path\t$var\t$path\t$seperator"
     }
     return {}
 }
 
-proc remove-path {var path} {
+proc remove-path {var path {seperator {:}}} {
     set mode [currentMode]
 
     if {$mode == "load"} {
-	unload-path $var $path
+	unload-path $var $path $seperator
     }\
     elseif {$mode == "display"} {
-	report "remove-path\t$var\t$path"
+	report "remove-path\t$var\t$path\t$seperator"
     }
     return {}
 }
@@ -2432,12 +2432,12 @@ proc cmdModuleUnuse {args} {
 }
 
 
-proc cmdModuleDebug {} {
+proc cmdModuleDebug {{seperator {:}}} {
     global env
 
     foreach var [array names env] {
 	set sharevar "${var}_modshare"
-	array set countarr [getReferenceCountArray $var]
+	array set countarr [getReferenceCountArray $var $seperator]
 
 	foreach path [array names countarr] {
 	    report "$var\t$path\t$countarr($path)"
