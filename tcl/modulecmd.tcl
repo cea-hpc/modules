@@ -977,7 +977,7 @@ proc popModuleName {} {
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions the module name is something like 
 # "name/version" or just name (find default version)
-proc getPathToModule {mod} {
+proc getPathToModule {mod {seperator {:}}} {
     global env g_loadedModulesGeneric
     global g_moduleAlias g_moduleVersion
     global g_debug
@@ -1021,7 +1021,7 @@ proc getPathToModule {mod} {
     }\
     elseif {[info exists env(MODULEPATH)]} {
 	# Now search for $mod in MODULEPATH
-	foreach dir [split $env(MODULEPATH) ":"] {
+	foreach dir [split $env(MODULEPATH) $seperator] {
 	    set path "$dir/$mod"
 
 	    # modparent is the the modulename minus the module version.  
@@ -1617,12 +1617,12 @@ proc renderSettings {} {
     }
 }
 
-proc cacheCurrentModules {} {
+proc cacheCurrentModules {{seperator {:}}} {
     global g_loadedModules g_loadedModulesGeneric env
 
     # mark specific as well as generic modules as loaded
     if {[info exists env(LOADEDMODULES)]} {
-	foreach mod [split $env(LOADEDMODULES) ":"] {
+	foreach mod [split $env(LOADEDMODULES) $seperator] {
 	    set g_loadedModules($mod) 1
 	    set g_loadedModulesGeneric([file dirname $mod]) [file tail $mod]
 	}
@@ -1935,11 +1935,11 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 }
 
 
-proc showModulePath {} {
+proc showModulePath {{seperator {:}}} {
     global env
     if {[info exists env(MODULEPATH)]} {
 	report "Search path for module files (in search order):"
-	foreach path [split $env(MODULEPATH) ":"] {
+	foreach path [split $env(MODULEPATH) $seperator] {
 	    report "  $path"
 
 	}
@@ -1952,14 +1952,14 @@ proc showModulePath {} {
 ########################################################################
 # command line commands
 
-proc cmdModuleList {} {
+proc cmdModuleList {{seperator {:}}} {
     global env DEF_COLUMNS show_oneperline show_modtimes g_debug
 
     set list {}
     report "Currently Loaded Modulefiles:"
     if {[info exists env(LOADEDMODULES)]} {
 	set max 0
-	foreach mod [split $env(LOADEDMODULES) ":"] {
+	foreach mod [split $env(LOADEDMODULES) $seperator] {
 	    if {$show_oneperline} {
 		report $mod
 	    }\
@@ -1980,7 +1980,7 @@ proc cmdModuleList {} {
 		    set tag_list [getVersAliasList $mod]
 
 		    if {[llength $tag_list]} {
-			append mod "(" [join $tag_list ":"] ")"
+			append mod "(" [join $tag_list $seperator] ")"
 			# expand string length to include version alises
 			set len [string length $mod]
 			if {$len > $max} {
@@ -2053,11 +2053,11 @@ proc cmdModuleDisplay {mod} {
     }
 }
 
-proc cmdModulePaths {mod} {
+proc cmdModulePaths {mod {seperator {:}}} {
     global env g_pathList flag_default_mf flag_default_dir
 
     catch {
-	foreach dir [split $env(MODULEPATH) ":"] {
+	foreach dir [split $env(MODULEPATH) $seperator] {
 	    if {[file isdirectory $dir]} {
 		foreach mod2 [listModules $dir $mod 0 "" $flag_default_mf\
 		  $flag_default_dir] {
@@ -2256,21 +2256,21 @@ proc cmdModuleUnload {args} {
 }
 
 
-proc cmdModulePurge {} {
+proc cmdModulePurge {{seperator {:}}} {
     global env
 
     if {[info exists env(LOADEDMODULES)]} {
-	set list [split $env(LOADEDMODULES) ":"]
+	set list [split $env(LOADEDMODULES) $seperator]
 	eval cmdModuleUnload $list
     }
 }
 
 
-proc cmdModuleReload {} {
+proc cmdModuleReload {{seperator {:}}} {
     global env
 
     if {[info exists env(LOADEDMODULES)]} {
-	set list [split $env(LOADEDMODULES) ":"]
+	set list [split $env(LOADEDMODULES) $seperator]
 	set rlist [reverseList $list]
 	foreach mod $rlist {
 	    cmdModuleUnload $mod
@@ -2438,7 +2438,7 @@ proc cmdModuleDebug {{seperator {:}}} {
 	}
 	unset countarr
     }
-    foreach dir [split $env(PATH) ":"] {
+    foreach dir [split $env(PATH) $seperator] {
 	foreach file [glob -nocomplain -- "$dir/*"] {
 	    if {[file executable $file]} {
 		set exec [file tail $file]
