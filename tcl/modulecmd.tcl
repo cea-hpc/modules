@@ -2145,46 +2145,8 @@ proc cmdModuleSwitch {old {new {}}} {
 	report "new=\"$new\" old=\"$old\""
     }
 
-    set loadedlist [split $env(LOADEDMODULES) ":"]
-    set exceptionlist ""
-    catch {set exceptionlist [split $env(MODULE_NORELOAD) ":"]}
-    set x [lsearch $loadedlist $old]
-    if {$x >= 0} {
-	set updatelist [lrange $loadedlist $x end]
-	#LRZ: do not reload certain modules
-	#     needed for the switch between site-local and DEISA and possibly
-	#     other grid settings.
-	if {$exceptionlist != ""} {
-	    foreach exception [lrange $exceptionlist 0 end] {
-		if {$exception != $old} {
-		    set i_exception [lsearch $updatelist $exception]
-		    set updatelist [lreplace $updatelist $i_exception\
-		      $i_exception]
-		    if {$g_debug} {
-			report "DEBUG Exception $exception is in $i_exception"
-		    }
-		}
-	    }
-	}
-	#LRZ end exceptions to reload
-	set revupdatelist [reverseList $updatelist]
-
-	# Unload $old and everything after it
-	foreach mod $revupdatelist {
-	    cmdModuleUnload $mod
-	}
-
-	# Reload $old and everything after it
-	foreach mod $updatelist {
-	    if {$mod == $old} {
-		cmdModuleLoad $new
-	    } else {
-		cmdModuleLoad $mod
-	    }
-	}
-    } else {
-	report "Unable to find module $old in loaded list"
-    }
+    cmdModuleUnload $old
+    cmdModuleLoad $new
 }
 
 proc cmdModuleSource {args} {
