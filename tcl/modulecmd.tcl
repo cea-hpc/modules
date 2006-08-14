@@ -2070,7 +2070,7 @@ proc cmdModuleDisplay {mod} {
 proc cmdModulePaths {mod {seperator {:}}} {
     global env g_pathList flag_default_mf flag_default_dir
 
-    catch {
+    if {[catch {
 	foreach dir [split $env(MODULEPATH) $seperator] {
 	    if {[file isdirectory $dir]} {
 		foreach mod2 [listModules $dir $mod 0 "" $flag_default_mf\
@@ -2079,8 +2079,7 @@ proc cmdModulePaths {mod {seperator {:}}} {
 		}
 	    }
 	}
-    } errMsg
-    if {$errMsg != ""} {
+    } errMsg]} {
 	reportWarning "ERROR: module paths $mod failed. $errMsg"
     }
 }
@@ -2224,7 +2223,7 @@ proc cmdModuleUnload {args} {
     }
 
     foreach mod $args {
-	catch {
+	if {[catch {
 	    set modfile [getPathToModule $mod]
 	    if {$modfile != ""} {
 		set currentModule [lindex $modfile 1]
@@ -2262,8 +2261,7 @@ proc cmdModuleUnload {args} {
 		    unset g_loadedModulesGeneric([file dirname $mod])
 		}
 	    }
-	} errMsg
-	if {$errMsg != ""} {
+	} errMsg ]} {
 	    reportWarning "ERROR: module: module unload $mod failed.\n$errMsg"
 	}
     }
@@ -2797,7 +2795,7 @@ if {$g_debug} {
     report "DEBUG Resolved $argv"
 }
 
-catch {
+if {[catch {
     switch -regexp -- $command {
     {^av} {
 	    if {$argv != ""} {
@@ -2903,9 +2901,7 @@ catch {
 	    cmdModuleHelp $argv
 	}
     }
-} errMsg
-
-if {$errMsg != ""} {
+} errMsg ]} {
     reportWarning "ERROR: $errMsg"
 }
 
