@@ -11,7 +11,7 @@ set DEF_COLUMNS 80 ;# Default size of columns for formating
 set MODULES_CURRENT_VERSION 3.1.6
 set flag_default_dir 1 ;# Report default directories
 set flag_default_mf 1 ;# Report default modulefiles and version alias
-set g_user "advanced";# username were running as....
+set g_user "advanced" ;# username were running as....
 set g_trace 0 ;# not implemented yet
 set g_tracepat "-.*" ;# not implemented yet
 
@@ -110,14 +110,24 @@ proc execute-modulefile {modfile {help ""}} {
 	    if {$errorMsg == "" && $errorInfo == ""} {
 		unset errorMsg
 		return 1
-	    } else elsif
+	    }\
+	    elseif [regexp "^WARNING" $errorMsg] {
+		reportWarning $errorMsg
+		return 1
+	    } else {
+		global errorInfo
+		reportInternalBug "ERROR occurred in file\
+		  $ModulesCurrentModulefile:$errorInfo"
+		exit 1
+	    }
 	} else {
 	    if {$help != ""} {
-                if {[info procs "ModulesHelp"] == "ModulesHelp" } {
-		   ModulesHelp
-                } else {
-                   reportWarning "Unable to find ModulesHelp in $ModulesCurrentModulefile."
-                }
+		if {[info procs "ModulesHelp"] == "ModulesHelp"} {
+		    ModulesHelp
+		} else {
+		    reportWarning "Unable to find ModulesHelp in\
+		      $ModulesCurrentModulefile."
+		}
 	    } else {
 		if {[module-info mode "display"] && [info procs\
 		  "ModulesDisplay"] == "ModulesDisplay"} {ModulesDisplay}
@@ -133,7 +143,8 @@ proc execute-modulefile {modfile {help ""}} {
     return $errorVal
 }
 
-# Smaller subset than main module load... This function runs modulerc and .version files
+# Smaller subset than main module load... This function runs modulerc and\
+  .version files
 proc execute-modulerc {modfile} {
     global env g_stateEnvVars g_rcfilesSourced
     global g_debug g_moduleDefault
@@ -165,8 +176,8 @@ proc execute-modulerc {modfile} {
 
 	    interp eval $slave [list global ModulesCurrentModulefile g_debug]
 	    interp eval $slave [list set ModulesCurrentModulefile $modfile]
-            interp eval $slave [list global ModulesVersion]
-            interp eval $slave [list set ModulesVersion {}]
+	    interp eval $slave [list global ModulesVersion]
+	    interp eval $slave [list set ModulesVersion {}]
 	    interp eval $slave [list set g_debug $g_debug]
 	}
 	set ModulesVersion [interp eval $slave {
@@ -175,27 +186,27 @@ proc execute-modulerc {modfile} {
 		reportInternalBug "occurred in file\
 		  $ModulesCurrentModulefile:$errorInfo"
 		exit 1
-	    } \
-            elseif [info exists ModulesVersion] {
-                return $ModulesVersion
-            } else {
-                return {}
-            }
+	    }\
+	    elseif [info exists ModulesVersion] {
+		return $ModulesVersion
+	    } else {
+		return {}
+	    }
 	}]
 	interp delete $slave
 
-        set g_moduleDefault($modparent) $ModulesVersion
+	set g_moduleDefault($modparent) $ModulesVersion
 
-        if {$g_debug} {
-            report "DEBUG execute-version: Setting g_moduleDefault($modparent)\
-              $ModulesVersion"
-        }
+	if {$g_debug} {
+	    report "DEBUG execute-version: Setting g_moduleDefault($modparent)\
+	      $ModulesVersion"
+	}
 
 	# Keep track of rc files that we already source so we don't run them\
 	  again
 	set g_rcfilesSourced($modfile) 1
 
-        return $ModulesVersion
+	return $ModulesVersion
     }
 }
 
@@ -222,24 +233,25 @@ proc module-info {what {more {}}} {
 		return $mode
 	    }
 	}
-    "name" - "specified" {
+    "name" -
+    "specified" {
 	    return [currentModuleName]
 	}
     "shell" {
 	    return $g_shell
 	}
     "flags" {
-        return 0
-    }
+	    return 0
+	}
     "user" {
-        return $g_user
-    }
+	    return $g_user
+	}
     "trace" {
-       return $g_trace
-    }
+	    return $g_trace
+	}
     "tracepat" {
-        return $g_tracepat
-    }
+	    return $g_tracepat
+	}
     "shelltype" {
 	    return $g_shellType
 	}
@@ -1852,19 +1864,20 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 		if {[llength $tag_list]} {
 		    append tag "(" [join $tag_list ":"] ")"
 
-                    if {$full_path} {
-                        set mystr ${element}
-                    } else {
-                        set mystr ${modulename}
-                    }
-                    if {[file isdirectory ${element}]} {
-                        if {$flag_default_dir} {
-                            set mystr "$mystr$tag"
-                        }
-                    } elseif {$flag_default_mf} {
-                        set mystr "$mystr$tag"
-                    }
-                    lappend clean_list $mystr
+		    if {$full_path} {
+			set mystr ${element}
+		    } else {
+			set mystr ${modulename}
+		    }
+		    if {[file isdirectory ${element}]} {
+			if {$flag_default_dir} {
+			    set mystr "$mystr$tag"
+			}
+		    }\
+		    elseif {$flag_default_mf} {
+			set mystr "$mystr$tag"
+		    }
+		    lappend clean_list $mystr
 
 		}
 
@@ -1907,17 +1920,18 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 			    append tag "(" [join $tag_list ":"] ")"
 			}
 			if {$full_path} {
-                            set mystr ${element}
-                        } else {
-                            set mystr ${modulename}
-                        }
-                        if {[file isdirectory ${element}]} {
-                            if {$flag_default_dir} {
-                                set mystr "$mystr$tag"
-                            }
-                        } elseif {$flag_default_mf} {
-                            set mystr "$mystr$tag"
-                        }
+			    set mystr ${element}
+			} else {
+			    set mystr ${modulename}
+			}
+			if {[file isdirectory ${element}]} {
+			    if {$flag_default_dir} {
+				set mystr "$mystr$tag"
+			    }
+			}\
+			elseif {$flag_default_mf} {
+			    set mystr "$mystr$tag"
+			}
 			lappend clean_list $mystr
 		    }
 		}
@@ -2621,30 +2635,38 @@ proc cmdModuleHelp {args} {
 	}
     }
     if {$done == 0} {
-        report "Modules Release Tcl $MODULES_CURRENT_VERSION (Copyright GNU GPL v2 1991):"
-        report {Usage: module [ switches ] [ command ]}
+	report "Modules Release Tcl $MODULES_CURRENT_VERSION (Copyright GNU\
+	  GPL v2 1991):"
+	report {Usage: module [ switches ] [ command ]}
 
-        report {Switches:}
-        report {	-t		terse format avail and list}
-        report {	-l		long format avail and list}
-        report {Commands:}
-        report {	list         |  add|load            modulefile [modulefile ...]}
-        report {	purge        |  rm|unload           modulefile [modulefile ...]}
-        report {	reload       |  switch|swap        [oldmodulefile] newmodulefile}
-        report {	             |  display|show        modulefile [modulefile ...]}
-        report {	             |  avail              [modulefile [modulefile ...]]}
-        report {	             |  whatis             [modulefile [modulefile ...]]}
-        report {	             |  help               [modulefile [modulefile ...]]}
-        report {	             |  path                modulefile}
-        report {	             |  paths               modulefile}
-        report {	             |  use                 dir [dir ...]}
-        report {	             |  unuse               dir [dir ...]}
-        report {	             |  source              scriptfile}
-        report {	             |  apropos|keyword     string}
-        report {	             |}
-        report {	initlist     |  initadd             modulefile}
-        report {	initclear    |  initprepend         modulefile}
-        report {		     |  initrm              modulefile}
+	report {Switches:}
+	report {	-t		terse format avail and list}
+	report {	-l		long format avail and list}
+	report {Commands:}
+	report {	list         |  add|load            modulefile\
+	  [modulefile ...]}
+	report {	purge        |  rm|unload           modulefile\
+	  [modulefile ...]}
+	report {	reload       |  switch|swap       \
+	  [oldmodulefile] newmodulefile}
+	report {	             |  display|show        modulefile\
+	  [modulefile ...]}
+	report {	             |  avail              [modulefile\
+	  [modulefile ...]]}
+	report {	             |  whatis             [modulefile\
+	  [modulefile ...]]}
+	report {	             |  help               [modulefile\
+	  [modulefile ...]]}
+	report {	             |  path                modulefile}
+	report {	             |  paths               modulefile}
+	report {	             |  use                 dir [dir ...]}
+	report {	             |  unuse               dir [dir ...]}
+	report {	             |  source              scriptfile}
+	report {	             |  apropos|keyword     string}
+	report {	             |}
+	report {	initlist     |  initadd             modulefile}
+	report {	initclear    |  initprepend         modulefile}
+	report {		     |  initrm              modulefile}
     }
 }
 
