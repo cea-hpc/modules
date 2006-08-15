@@ -98,10 +98,10 @@ proc execute-modulefile {modfile {help ""}} {
 	interp alias $slave reportInternalBug {} reportInternalBug
 	interp alias $slave reportWarning {} reportWarning
 
-	interp eval $slave [list global ModulesCurrentModulefile g_debug]
-	interp eval $slave [list set ModulesCurrentModulefile $modfile]
-	interp eval $slave [list set g_debug $g_debug]
-	interp eval $slave [list set help $help]
+	interp eval $slave {global ModulesCurrentModulefile g_debug}
+	interp eval $slave [list "set" "ModulesCurrentModulefile" $modfile]
+	interp eval $slave [list "set" "g_debug" $g_debug]
+	interp eval $slave [list "set" "help" $help]
 
     }
     set errorVal [interp eval $slave {
@@ -173,11 +173,11 @@ proc execute-modulerc {modfile} {
 	    interp alias $slave module {} module
 	    interp alias $slave reportInternalBug {} reportInternalBug
 
-	    interp eval $slave [list global ModulesCurrentModulefile g_debug]
-	    interp eval $slave [list set ModulesCurrentModulefile $modfile]
-	    interp eval $slave [list global ModulesVersion]
-	    interp eval $slave [list set ModulesVersion {}]
-	    interp eval $slave [list set g_debug $g_debug]
+	    interp eval $slave {global ModulesCurrentModulefile g_debug}
+	    interp eval $slave [list "global" "ModulesVersion"]
+	    interp eval $slave [list "set" "ModulesCurrentModulefile" $modfile]
+	    interp eval $slave [list "set" "g_debug" $g_debug]
+	    interp eval $slave {set ModulesVersion {}}
 	}
 	set ModulesVersion [interp eval $slave {
 	    if [catch {source $ModulesCurrentModulefile} errorMsg] {
@@ -1775,28 +1775,16 @@ proc reverseList {list} {
     return $newlist
 }
 
-proc removeFromList {list1 item} {
-    eval set list2 \[list $list1 \]
-    set list1 {}
-    foreach x $list2 {
-	if {$x != $item && $x != ""} {
-	    lappend list1 $x
-	}
-    }
-    return [join $list1 " "]
-}
+proc replaceFromList {list1 item {item2 {}}} {
+     set xi [lsearch -exact $list1 $item]
 
-proc replaceFromList {list1 olditem newitem} {
-    eval set list2 \[list $list1 \]
-    set list1 {}
-    foreach x $list2 {
-	if {$x == $olditem} {
-	    lappend list1 $newitem
-	} else {
-	    lappend list1 $x
-	}
-    }
-    return [join $list1 " "]
+     while {$xi >= 0} {
+         set list1 [lreplace $list1 $xi $xi $item2]
+         set xi [lsearch -exact $list1 $item]
+     }
+
+     return $list1
+    
 }
 
 proc checkValidModule {modfile} {
@@ -2241,6 +2229,7 @@ proc cmdModuleLoad {args} {
 		    restoreSettings
 		} else {
 		    append-path LOADEDMODULES $currentModule
+		    append-path _LMFILES_ $ModulesCurrentModulefile
 		    set g_loadedModules($currentModule) 1
 		    set genericModName [file dirname $mod]
 
@@ -2282,6 +2271,7 @@ proc cmdModuleUnload {args} {
 			restoreSettings
 		    } else {
 			unload-path LOADEDMODULES $currentModule
+			unload-path _LMFILES_ $ModulesCurrentModulefile
 			unset g_loadedModules($currentModule)
 			if {[info exists g_loadedModulesGeneric([file dirname\
 			  $currentModule])]} {
@@ -2298,6 +2288,7 @@ proc cmdModuleUnload {args} {
 		    set mod "$mod/$g_loadedModulesGeneric($mod)"
 		}
 		unload-path LOADEDMODULES $mod
+		unload-path _LMFILES_ $modfile
 		if {[info exists g_loadedModules($mod)]} {
 		    unset g_loadedModules($mod)
 		}
@@ -2599,21 +2590,21 @@ proc cmdModuleInit {args} {
 			    }
 			add {
 				set newmodule [lindex $args 1]
-				set modules [removeFromList $modules $newmodule]
+				set modules [replaceFromList $modules $newmodule]
 				append modules " $newmodule"
 				puts $newfid "$cmd$modules$comments"
 				set notdone 0
 			    }
 			prepend {
 				set newmodule [lindex $args 1]
-				set modules [removeFromList $modules $newmodule]
+				set modules [replaceFromList $modules $newmodule]
 				set modules "$newmodule $modules"
 				puts $newfid "$cmd$modules$comments"
 				set notdone 0
 			    }
 			rm {
 				set oldmodule [lindex $args 1]
-				set modules [removeFromList $modules $oldmodule]
+				set modules [replaceFromList $modules $oldmodule]
 				if {[llength $modules] == 0} {
 				    set modules ""
 				}
@@ -2742,56 +2733,56 @@ switch -regexp -- $opt {
 	# only remove options here.  Some module commands have options also,\
 	  which should
 	# be preserved
-	set argv [removeFromList $argv $opt]
+	set argv [replaceFromList $argv $opt]
     }
 {^--verb} {
 	# BOZO nothing to do with --verbose yet
 	# only remove options here.  Some module commands have options also,\
 	  which should
 	# be preserved
-	set argv [removeFromList $argv $opt]
+	set argv [replaceFromList $argv $opt]
     }
 {^--for} {
 	# BOZO nothing to do with --verbose yet
 	# only remove options here.  Some module commands have options also,\
 	  which should
 	# be preserved
-	set argv [removeFromList $argv $opt]
+	set argv [replaceFromList $argv $opt]
     }
 {^--ter} {
 	# BOZO nothing to do with --verbose yet
 	# only remove options here.  Some module commands have options also,\
 	  which should
 	# be preserved
-	set argv [removeFromList $argv $opt]
+	set argv [replaceFromList $argv $opt]
     }
 {^--lon} {
 	# BOZO nothing to do with --verbose yet
 	# only remove options here.  Some module commands have options also,\
 	  which should
 	# be preserved
-	set argv [removeFromList $argv $opt]
+	set argv [replaceFromList $argv $opt]
     }
 {^--cre} {
 	# BOZO nothing to do with --verbose yet
 	# only remove options here.  Some module commands have options also,\
 	  which should
 	# be preserved
-	set argv [removeFromList $argv $opt]
+	set argv [replaceFromList $argv $opt]
     }
 {^--us} {
 	# BOZO nothing to do with --verbose yet
 	# only remove options here.  Some module commands have options also,\
 	  which should
 	# be preserved
-	set argv [removeFromList $argv $opt]
+	set argv [replaceFromList $argv $opt]
     }
 {^--ica} {
 	# BOZO nothing to do with --verbose yet
 	# only remove options here.  Some module commands have options also,\
 	  which should
 	# be preserved
-	set argv [removeFromList $argv $opt]
+	set argv [replaceFromList $argv $opt]
     }
 {^--ver} {
 	report "$MODULES_CURRENT_VERSION"
@@ -2840,11 +2831,11 @@ if {$g_debug} {
 
 if {[lsearch $argv "-t"] >= 0} {
     set show_oneperline 1
-    set argv [removeFromList $argv "-t"]
+    set argv [replaceFromList $argv "-t"]
 }
 if {[lsearch $argv "-l"] >= 0} {
     set show_modtimes 1
-    set argv [removeFromList $argv "-l"]
+    set argv [replaceFromList $argv "-l"]
 }
 set argv [resolveModuleVersionOrAlias $argv]
 if {$g_debug} {
