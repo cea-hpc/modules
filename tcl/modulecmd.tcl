@@ -14,6 +14,7 @@ set flag_default_mf 1 ;# Report default modulefiles and version alias
 set g_user "advanced" ;# username were running as....
 set g_trace 0 ;# not implemented yet
 set g_tracepat "-.*" ;# not implemented yet
+set g_def_seperator ":" ;# Default path seperator
 
 # Change this to your support email address...
 set contact "root@localhost"
@@ -25,10 +26,8 @@ set ignoreDir(SCCS) 1
 
 global g_shellType
 global g_shell
-set show_oneperline 0
-# Gets set if you do module list/avail -t
-set show_modtimes 0
-# Gets set if you do module list/avail -l
+set show_oneperline 0 ;# Gets set if you do module list/avail -t
+set show_modtimes 0 ;# Gets set if you do module list/avail -l
 
 #
 # Info, Warnings and Error message handling.
@@ -641,9 +640,12 @@ proc getReferenceCountArray {var seperator} {
 }
 
 
-proc unload-path {var path {seperator {:}}} {
-    global g_stateEnvVars env g_force
+proc unload-path {var path {seperator {}}} {
+    global g_stateEnvVars env g_force g_def_seperator
 
+    if {$seperator == ""} {
+	set seperator $g_def_seperator
+    }
     array set countarr [getReferenceCountArray $var $seperator]
 
     # Don't worry about dealing with this variable if it is already scheduled\
@@ -696,9 +698,12 @@ proc unload-path {var path {seperator {:}}} {
     return {}
 }
 
-proc add-path {var path pos {seperator {:}}} {
-    global env g_stateEnvVars
+proc add-path {var path pos {seperator {}}} {
+    global env g_stateEnvVars g_def_seperator
 
+    if {$seperator == ""} {
+	set seperator $g_def_seperator
+    }
     set sharevar "${var}_modshare"
     array set countarr [getReferenceCountArray $var $seperator]
 
@@ -735,8 +740,14 @@ proc add-path {var path pos {seperator {:}}} {
     return {}
 }
 
-proc prepend-path {var path {seperator {:}}} {
+proc prepend-path {var path {seperator {}}} {
+    global g_def_seperator
+
     set mode [currentMode]
+
+    if {$seperator == ""} {
+	set seperator $g_def_seperator
+    }
 
     if {$mode == "load"} {
 	add-path $var $path "prepend" $seperator
@@ -751,8 +762,14 @@ proc prepend-path {var path {seperator {:}}} {
 }
 
 
-proc append-path {var path {seperator {:}}} {
+proc append-path {var path {seperator {}}} {
+    global g_def_seperator
+
     set mode [currentMode]
+
+    if {$seperator == "" } {
+        set seperator $g_def_seperator
+    }
 
     if {$mode == "load"} {
 	add-path $var $path "append" $seperator
@@ -766,8 +783,14 @@ proc append-path {var path {seperator {:}}} {
     return {}
 }
 
-proc remove-path {var path {seperator {:}}} {
+proc remove-path {var path {seperator {}}} {
+    global g_def_seperator
+
     set mode [currentMode]
+
+    if {$seperator == "" } {
+        set seperator $g_def_seperator
+    }
 
     if {$mode == "load"} {
 	unload-path $var $path $seperator
@@ -989,16 +1012,20 @@ proc popModuleName {} {
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions the module name is something like 
 # "name/version" or just name (find default version)
-proc getPathToModule {mod {seperator {:}}} {
+proc getPathToModule {mod {seperator {}}} {
     global env g_loadedModulesGeneric
     global g_moduleAlias g_moduleVersion
-    global g_debug
+    global g_debug g_def_seperator
     global ModulesCurrentModulefile flag_default_mf flag_default_dir
 
     set retlist ""
 
     if {$mod == ""} {
 	return ""
+    }
+
+    if {$seperator == "" } {
+        set seperator $g_def_seperator
     }
 
     if {$g_debug} {
@@ -1629,8 +1656,12 @@ proc renderSettings {} {
     }
 }
 
-proc cacheCurrentModules {{seperator {:}}} {
-    global g_loadedModules g_loadedModulesGeneric env
+proc cacheCurrentModules {{seperator {}}} {
+    global g_loadedModules g_loadedModulesGeneric env g_def_seperator
+
+    if {$seperator == "" } {
+        set seperator $g_def_seperator
+    }
 
     # mark specific as well as generic modules as loaded
     if {[info exists env(LOADEDMODULES)]} {
@@ -1949,8 +1980,12 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 }
 
 
-proc showModulePath {{seperator {:}}} {
-    global env
+proc showModulePath {{seperator $g_def_seperator}} {
+    global env g_def_seperator
+
+    if {$seperator == "" } {
+        set seperator $g_def_seperator
+    }
     if {[info exists env(MODULEPATH)]} {
 	report "Search path for module files (in search order):"
 	foreach path [split $env(MODULEPATH) $seperator] {
@@ -1966,8 +2001,13 @@ proc showModulePath {{seperator {:}}} {
 ########################################################################
 # command line commands
 
-proc cmdModuleList {{seperator {:}}} {
+proc cmdModuleList {{seperator {}}} {
     global env DEF_COLUMNS show_oneperline show_modtimes g_debug
+    global g_def_seperator
+
+    if {$seperator == "" } {
+        set seperator $g_def_seperator
+    }
 
     set list {}
     report "Currently Loaded Modulefiles:"
@@ -2067,8 +2107,12 @@ proc cmdModuleDisplay {mod} {
     }
 }
 
-proc cmdModulePaths {mod {seperator {:}}} {
-    global env g_pathList flag_default_mf flag_default_dir
+proc cmdModulePaths {mod {seperator {}}} {
+    global env g_pathList flag_default_mf flag_default_dir g_def_seperator
+
+    if {$seperator == "" } {
+        set seperator $g_def_seperator
+    }
 
     if {[catch {
 	foreach dir [split $env(MODULEPATH) $seperator] {
@@ -2268,8 +2312,12 @@ proc cmdModuleUnload {args} {
 }
 
 
-proc cmdModulePurge {{seperator {:}}} {
-    global env
+proc cmdModulePurge {{seperator {}}} {
+    global env g_def_seperator
+
+    if {$seperator == "" } {
+        set seperator $g_def_seperator
+    }
 
     if {[info exists env(LOADEDMODULES)]} {
 	set list [split $env(LOADEDMODULES) $seperator]
@@ -2278,8 +2326,12 @@ proc cmdModulePurge {{seperator {:}}} {
 }
 
 
-proc cmdModuleReload {{seperator {:}}} {
-    global env
+proc cmdModuleReload {{seperator {}}} {
+    global env g_def_seperator
+
+    if {$seperator == "" } {
+        set seperator $g_def_seperator
+    }
 
     if {[info exists env(LOADEDMODULES)]} {
 	set list [split $env(LOADEDMODULES) $seperator]
@@ -2438,8 +2490,12 @@ proc cmdModuleUnuse {args} {
 }
 
 
-proc cmdModuleDebug {{seperator {:}}} {
-    global env
+proc cmdModuleDebug {{seperator {}}} {
+    global env g_def_seperator
+
+    if {$seperator == "" } {
+        set seperator $g_def_seperator
+    }
 
     foreach var [array names env] {
 	set sharevar "${var}_modshare"
