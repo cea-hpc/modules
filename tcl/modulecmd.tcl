@@ -1968,7 +1968,7 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 }
 
 
-proc showModulePath {{seperator $g_def_seperator}} {
+proc showModulePath {{seperator {}}} {
     global env g_def_seperator
 
     if {$seperator == "" } {
@@ -2681,7 +2681,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.97 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.98 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
