@@ -2680,8 +2680,9 @@ proc cmdModuleHelp {args} {
 	}
     }
     if {$done == 0} {
-	report "Modules Release Tcl $MODULES_CURRENT_VERSION ($RCSfile: modulecmd.tcl,v $ $Revision: 1.96 $ Copyright GNU\
-	  GPL v2 1991):"
+	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.97 $)} 
+        report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
 	report {Switches:}
