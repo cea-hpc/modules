@@ -640,12 +640,17 @@ proc getReferenceCountArray {var seperator} {
 }
 
 
-proc unload-path {var path {seperator {}}} {
+proc unload-path {var path args} {
     global g_stateEnvVars env g_force g_def_seperator
 
-    if {$seperator == ""} {
-	set seperator $g_def_seperator
+    if {[string match $var "-delim"]} {
+        set seperator $path
+        set var [lindex $args 0]
+        set path [lindex $args 1]
+    } else {
+        set seperator $g_def_seperator
     }
+
     array set countarr [getReferenceCountArray $var $seperator]
 
     # Don't worry about dealing with this variable if it is already scheduled\
@@ -698,12 +703,9 @@ proc unload-path {var path {seperator {}}} {
     return {}
 }
 
-proc add-path {var path pos {seperator {}}} {
+proc add-path {var path pos seperator} {
     global env g_stateEnvVars g_def_seperator
 
-    if {$seperator == ""} {
-	set seperator $g_def_seperator
-    }
     set sharevar "${var}_modshare"
     array set countarr [getReferenceCountArray $var $seperator]
 
@@ -719,10 +721,10 @@ proc add-path {var path pos {seperator {}}} {
 	} else {
 	    if {[info exists env($var)]} {
 		if {$pos == "prepend"} {
-		    set env($var) "$dir:$env($var)"
+		    set env($var) "$dir$seperator$env($var)"
 		}\
 		elseif {$pos == "append"} {
-		    set env($var) "$env($var):$dir"
+		    set env($var) "$env($var)$seperator$dir"
 		} else {
 		    error "add-path doesn't support $pos"
 		}
@@ -740,13 +742,17 @@ proc add-path {var path pos {seperator {}}} {
     return {}
 }
 
-proc prepend-path {var path {seperator {}}} {
+proc prepend-path {var path args} {
     global g_def_seperator
 
     set mode [currentMode]
 
-    if {$seperator == ""} {
-	set seperator $g_def_seperator
+    if {[string match $var "-delim"]} {
+        set seperator $path
+        set var [lindex $args 0]
+        set path [lindex $args 1]
+    } else {
+        set seperator $g_def_seperator
     }
 
     if {$mode == "load"} {
@@ -762,12 +768,16 @@ proc prepend-path {var path {seperator {}}} {
 }
 
 
-proc append-path {var path {seperator {}}} {
+proc append-path {var path args} {
     global g_def_seperator
 
     set mode [currentMode]
 
-    if {$seperator == "" } {
+    if {[string match $var "-delim"]} {
+        set seperator $path
+        set var [lindex $args 0]
+        set path [lindex $args 1]
+    } else {
         set seperator $g_def_seperator
     }
 
@@ -783,12 +793,16 @@ proc append-path {var path {seperator {}}} {
     return {}
 }
 
-proc remove-path {var path {seperator {}}} {
+proc remove-path {var path args} {
     global g_def_seperator
 
     set mode [currentMode]
 
-    if {$seperator == "" } {
+    if {[string match $var "-delim"]} {
+        set seperator $path
+        set var [lindex $args 0]
+        set path [lindex $args 1]
+    } else {
         set seperator $g_def_seperator
     }
 
@@ -835,14 +849,14 @@ proc unset-alias {alias} {
 }
 
 proc is-loaded {modulelist} {
-    global env
+    global env g_def_seperator
 
     if {[llength $modulelist] > 0} {
 	if {[info exists env(LOADEDMODULES)]} {
 	    foreach arg $modulelist {
 		set arg "$arg/"
 		set arg_found 0
-		foreach mod [split $env(LOADEDMODULES) ":"] {
+		foreach mod [split $env(LOADEDMODULES) $g_def_seperator] {
 		    set mod "$mod/"
 		    if {[string first $arg $mod] == 0} {
 			set arg_found 1
@@ -2138,12 +2152,12 @@ proc cmdModuleApropos {{search {}}} {
 
 proc cmdModuleSearch {{mod {}} {search {}}} {
     global env tcl_version ModulesCurrentModulefile
-    global g_whatis
+    global g_whatis g_def_seperator
 
     if {$mod == ""} {
 	set mod "*"
     }
-    foreach dir [split $env(MODULEPATH) ":"] {
+    foreach dir [split $env(MODULEPATH) $g_def_seperator] {
 	if {[file isdirectory $dir]} {
 	    report "----------- $dir ------------- "
 	    set modlist [listModules $dir $mod 0 "" 0 0]
@@ -2356,14 +2370,14 @@ proc system {mycmd args} {
 
 proc cmdModuleAvail {{mod {*}}} {
     global env ignoreDir DEF_COLUMNS flag_default_mf flag_default_dir
-    global show_oneperline show_modtimes
+    global show_oneperline show_modtimes g_def_seperator
 
     if {$show_modtimes} {
 	report "- Package -----------------------------+- Versions -+- Last\
 	  mod. ------"
     }
 
-    foreach dir [split $env(MODULEPATH) ":"] {
+    foreach dir [split $env(MODULEPATH) $g_def_seperator] {
 	if {[file isdirectory "$dir"]} {
 	    report "------------ $dir ------------ "
 	    set list [listModules "$dir" "$mod" 0 "" $flag_default_mf\
@@ -2681,7 +2695,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.98 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.99 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
