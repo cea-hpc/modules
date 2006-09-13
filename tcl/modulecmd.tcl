@@ -573,13 +573,13 @@ proc unsetenv {var {val {}}} {
 # path fiddling
 
 proc getReferenceCountArray {var seperator} {
-    global env g_force
+    global env g_force g_def_seperator
 
     set sharevar "${var}_modshare"
     set modshareok 1
     if {[info exists env($sharevar)]} {
 	if {[info exists env($var)]} {
-	    set modsharelist [split $env($sharevar) $seperator]
+	    set modsharelist [split $env($sharevar) $g_def_seperator]
 	    if {[expr {[llength $modsharelist] % 2}] == 0} {
 		array set countarr $modsharelist
 
@@ -640,16 +640,8 @@ proc getReferenceCountArray {var seperator} {
 }
 
 
-proc unload-path {var path args} {
+proc unload-path {var path seperator} {
     global g_stateEnvVars env g_force g_def_seperator
-
-    if {[string match $var "-delim"]} {
-        set seperator $path
-        set var [lindex $args 0]
-        set path [lindex $args 1]
-    } else {
-        set seperator $g_def_seperator
-    }
 
     array set countarr [getReferenceCountArray $var $seperator]
 
@@ -662,6 +654,7 @@ proc unload-path {var path args} {
     set doit 0
 
     foreach dir [split $path $seperator] {
+
 	if {[info exists countarr($dir)]} {
 	    incr countarr($dir) -1
 	    if {$countarr($dir) <= 0} {
@@ -694,7 +687,7 @@ proc unload-path {var path args} {
 
     set sharevar "${var}_modshare"
     if {[array size countarr] > 0} {
-	set env($sharevar) [join [array get countarr] $seperator]
+	set env($sharevar) [join [array get countarr] $g_def_seperator]
 	set g_stateEnvVars($sharevar) "new"
     } else {
 	unset-env $sharevar
@@ -736,7 +729,7 @@ proc add-path {var path pos seperator} {
     }
 
 
-    set env($sharevar) [join [array get countarr] $seperator]
+    set env($sharevar) [join [array get countarr] $g_def_seperator]
     set g_stateEnvVars($var) "new"
     set g_stateEnvVars($sharevar) "new"
     return {}
@@ -759,7 +752,7 @@ proc prepend-path {var path args} {
 	add-path $var $path "prepend" $seperator
     }\
     elseif {$mode == "unload"} {
-	unload-path $var $path
+	unload-path $var $path $seperator
     }\
     elseif {$mode == "display"} {
 	report "prepend-path\t$var\t$path\t$seperator"
@@ -785,7 +778,7 @@ proc append-path {var path args} {
 	add-path $var $path "append" $seperator
     }\
     elseif {$mode == "unload"} {
-	unload-path $var $path
+	unload-path $var $path $seperator
     }\
     elseif {$mode == "display"} {
 	report "append-path\t$var\t$path\t$seperator"
@@ -2263,7 +2256,7 @@ proc cmdModuleLoad {args} {
 
 proc cmdModuleUnload {args} {
     global env tcl_version g_loadedModules g_loadedModulesGeneric
-    global ModulesCurrentModulefile g_debug
+    global ModulesCurrentModulefile g_debug g_def_seperator
 
     if {$g_debug} {
 	report "DEBUG cmdModuleUnload: unloading $args"
@@ -2284,8 +2277,8 @@ proc cmdModuleUnload {args} {
 		    if {[execute-modulefile $modfile]} {
 			restoreSettings
 		    } else {
-			unload-path LOADEDMODULES $currentModule
-			unload-path _LMFILES_ $ModulesCurrentModulefile
+			unload-path LOADEDMODULES $currentModule $g_def_seperator
+			unload-path _LMFILES_ $ModulesCurrentModulefile $g_def_seperator
 			unset g_loadedModules($currentModule)
 			if {[info exists g_loadedModulesGeneric([file dirname\
 			  $currentModule])]} {
@@ -2301,8 +2294,8 @@ proc cmdModuleUnload {args} {
 		if {[info exists g_loadedModulesGeneric($mod)]} {
 		    set mod "$mod/$g_loadedModulesGeneric($mod)"
 		}
-		unload-path LOADEDMODULES $mod
-		unload-path _LMFILES_ $modfile
+		unload-path LOADEDMODULES $mod $g_def_seperator
+		unload-path _LMFILES_ $modfile $g_def_seperator
 		if {[info exists g_loadedModules($mod)]} {
 		    unset g_loadedModules($mod)
 		}
@@ -2468,6 +2461,7 @@ proc cmdModuleUse {args} {
 
 
 proc cmdModuleUnuse {args} {
+    global g_def_seperator
 
     if {$args == ""} {
 	showModulePath
@@ -2482,7 +2476,7 @@ proc cmdModuleUnuse {args} {
 		set oldMODULEPATH $env(MODULEPATH)
 		pushMode "unload"
 		catch {
-		    unload-path MODULEPATH $path
+		    unload-path MODULEPATH $path $g_def_seperator
 		}
 		popMode
 		if {[info exists env(MODULEPATH)] && $oldMODULEPATH ==\
@@ -2503,7 +2497,6 @@ proc cmdModuleDebug {{seperator {}}} {
     }
 
     foreach var [array names env] {
-	set sharevar "${var}_modshare"
 	array set countarr [getReferenceCountArray $var $seperator]
 
 	foreach path [array names countarr] {
@@ -2695,7 +2688,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.99 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.100 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
