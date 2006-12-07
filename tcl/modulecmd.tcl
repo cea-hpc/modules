@@ -1,17 +1,10 @@
-#!/bin/sh
-# \
-type tclsh 1>/dev/null 2>&1 && exec tclsh "$0" "$@"
-# \
-[ -x /usr/local/bin/tclsh ] && exec /usr/local/bin/tclsh "$0" "$@"
-# \
-[ -x /usr/bin/tclsh ] && exec /usr/bin/tclsh "$0" "$@"
-# \
-[ -x /bin/tclsh ] && exec /bin/tclsh "$0" "$@"
-# \
-echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" >&2; exit 1
-
 ########################################################################
 # This is a pure TCL implementation of the module command
+# to initialize the module environment, either
+# - one of the scripts from the init directory should be sourced, or just
+# - eval `/some-path/tclsh modulecmd.tcl MYSHELL autoinit`
+# in both cases the path to tclsh is remembered and used furtheron
+########################################################################
 #
 # Some Global Variables.....
 set g_debug 0 ;# Set to 1 to enable debugging
@@ -1281,6 +1274,9 @@ proc renderSettings {} {
 	if {$g_autoInit} {
 	    global argv0
 
+            # automatically detect which tclsh should be used for future module commands
+            set tclshbin [info nameofexecutable]
+
 	    # add cwd if not absolute script path
 	    if {! [regexp {^/} $argv0]} {
 		global tcl_platform
@@ -1304,20 +1300,20 @@ proc renderSettings {} {
 		    puts $f "  set _histchars = \$histchars"
 		    puts $f "  if (\$?prompt) then"
 		    puts $f "  alias module 'unset histchars;set\
-		      _prompt=\"\$prompt\";eval `'$argv0' '$g_shell' \\!*`;set\
+		      _prompt=\"\$prompt\";eval `'$tclshbin' '$argv0' '$g_shell' \\!*`;set\
 		      histchars = \$_histchars; set prompt=\"\$_prompt\";unset\
 		      _prompt'"
 		    puts $f "  else"
-		    puts $f "    alias module 'unset histchars;eval `'$argv0'\
+		    puts $f "    alias module 'unset histchars;eval `'$tclshbin' '$argv0'\
 		      '$g_shell' \\!*`;set histchars = \$_histchars'"
 		    puts $f "  endif"
 		    puts $f "else"
 		    puts $f "  if (\$?prompt) then"
 		    puts $f "    alias module 'set _prompt=\"\$prompt\";set\
-		      prompt=\"\";eval `'$argv0' '$g_shell' \\!*`;set\
+		      prompt=\"\";eval `'$tclshbin' '$argv0' '$g_shell' \\!*`;set\
 		      prompt=\"\$_prompt\";unset _prompt'"
 		    puts $f "  else"
-		    puts $f "    alias module 'eval `'$argv0' '$g_shell' \\!*`'"
+		    puts $f "    alias module 'eval `'$tclshbin' '$argv0' '$g_shell' \\!*`'"
 		    puts $f "  endif"
 		    puts $f "endif"
 
@@ -1329,7 +1325,7 @@ proc renderSettings {} {
 		    }
 		}
 	    sh {
-		    puts $f "module () { eval `'$argv0' '$g_shell' \$*`; }"
+		    puts $f "module () { eval `'$tclshbin' '$argv0' '$g_shell' \$*`; }"
 		    if {[file exists $modulerc_init_file]} {
 			puts $f ". $modulerc_init_file"
 		    } else {
@@ -1349,7 +1345,7 @@ proc renderSettings {} {
 		}
 	    python {
 		    puts $f "def module(command, *arguments):"
-		    puts $f "        commands = os.popen('$argv0 python %s %s'\
+		    puts $f "        commands = os.popen('$tclshbin' '$argv0 python %s %s'\
 		      % (command, string.join(arguments))).read()"
 		    puts $f "        exec commands"
 		}
@@ -2387,6 +2383,9 @@ proc cmdModuleAvail {{mod {*}}} {
 	    report "------------ $dir ------------ "
 	    set list [listModules "$dir" "$mod" 0 "" $flag_default_mf\
 	      $flag_default_dir]
+            # sort names (sometimes? they are returned in the order as they were
+            # created on disk :-)
+            set list [lsort $list]
 	    if {$show_modtimes} {
 		foreach i $list {
 		    set filetime [clock format [file mtime [lindex\
@@ -2700,7 +2699,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.101 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.102 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
