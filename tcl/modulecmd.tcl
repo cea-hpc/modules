@@ -853,17 +853,14 @@ proc is-loaded {modulelist} {
 	if {[info exists env(LOADEDMODULES)]} {
 	    foreach arg $modulelist {
 		set arg "$arg/"
-		set arg_found 0
 		foreach mod [split $env(LOADEDMODULES) $g_def_seperator] {
 		    set mod "$mod/"
 		    if {[string first $arg $mod] == 0} {
-			set arg_found 1
+			return 1
 		    }
 		}
-		if {$arg_found == 0} {
-		    return 0
-		}
 	    }
+	    return 0
 	} else {
 	    return 0
 	}
@@ -2699,7 +2696,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.102 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.103 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
