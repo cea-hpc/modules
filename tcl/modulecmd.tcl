@@ -656,9 +656,8 @@ proc unload-path {var path seperator} {
 	return {}
     }
 
-    set doit 0
-
     foreach dir [split $path $seperator] {
+        set doit 0
 
 	if {[info exists countarr($dir)]} {
 	    incr countarr($dir) -1
@@ -2696,7 +2695,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.103 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.104 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
