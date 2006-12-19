@@ -2013,19 +2013,21 @@ proc cmdModuleList {{seperator {}}} {
     if {[info exists env(LOADEDMODULES)]} {
 	set max 0
 	foreach mod [split $env(LOADEDMODULES) $seperator] {
-	    if {$show_oneperline} {
-		report $mod
-	    }\
-	    elseif {$show_modtimes} {
-		set filetime [clock format [file mtime [lindex\
-		  [getPathToModule $mod] 0]]]
-		report [format "%-50s%10s" $mod $filetime]
-	    } else {
-		set len [string length $mod]
-		if {$len > $max} {
-		    set max $len
-		}
-		if {$len > 0} {
+            set len [string length $mod]
+
+            if {$len > 0} {
+	
+	        if {$show_oneperline} {
+	    	    report $mod
+	        }\
+	        elseif {$show_modtimes} {
+		    set filetime [clock format [file mtime [lindex\
+		      [getPathToModule $mod] 0]]]
+		    report [format "%-50s%10s" $mod $filetime]
+	        } else {
+		    if {$len > $max} {
+		        set max $len
+		    }
 		    # skip zero length module names
 		    # call getPathToModule to find and execute .version and\
 		      .modulerc files for this module
@@ -2042,7 +2044,7 @@ proc cmdModuleList {{seperator {}}} {
 		    }
 
 		    lappend list $mod
-		}
+                }
 	    }
 	}
 	if {$show_oneperline ==0 && $show_modtimes == 0} {
@@ -2695,7 +2697,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.104 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.105 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
