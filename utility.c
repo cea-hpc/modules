@@ -31,6 +31,7 @@
  **			xstrtok						     **
  **			xstrtok_r					     **
  **			chk4spch					     **
+ **			module_malloc					     **
  **			xdup						     **
  **			xgetenv						     **
  **			stringer					     **
@@ -51,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.25 2006/05/25 21:09:53 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.26 2007/02/14 06:21:50 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -484,7 +485,7 @@ Tcl_HashTable	**Copy_Hash_Tables( void)
     /**
      **  Allocate storage for the new list of hash tables
      **/
-    if( !(newTable = (Tcl_HashTable**) malloc( sizeof( oldTable))))
+    if( !(newTable = (Tcl_HashTable**) module_malloc( sizeof( oldTable))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind0;
 
@@ -496,7 +497,7 @@ Tcl_HashTable	**Copy_Hash_Tables( void)
 	/**
 	 **  Allocate memory for a single hash table
 	 **/
-	if( !(*n_ptr = (Tcl_HashTable*) malloc( sizeof( Tcl_HashTable))))
+	if( !(*n_ptr = (Tcl_HashTable*) module_malloc( sizeof( Tcl_HashTable))))
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 		goto unwind1;
 
@@ -693,7 +694,7 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 	hcnt = countTclHash(table[i]);
 
 	/* allocate array for keys */
-	if( !(list = (char **) malloc(hcnt * sizeof(char *)))) {
+	if( !(list = (char **) module_malloc(hcnt * sizeof(char *)))) {
 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    		return(TCL_ERROR);/** ------- EXIT (FAILURE) ------> **/
 	}
@@ -1061,7 +1062,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
      **/
     } else if( !strcmp((char*) shell_derelict, "sh")) {
 
-      char* escaped = (char*)malloc(strlen(val)*2+1);
+      char* escaped = (char*)module_malloc(strlen(val)*2+1);
       EscapeShString(val,escaped);
 
       fprintf( stdout, "%s=%s %sexport %s%s", var, escaped, shell_cmd_separator,
@@ -2443,6 +2444,31 @@ void chk4spch(char* s)
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
+ **   Function:		module_malloc					     **
+ ** 									     **
+ **   Description:	A wrapper for the system malloc() function,	     **
+ ** 			so the argument can be tested and set to a positive  **
+ ** 			value.						     **
+ ** 									     **
+ **   First Edition:	2007/02/14	R.K.Owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   Parameters:	size_t	size		Number of bytes to allocate  **
+ ** 									     **
+ **   Result:		void    *		An allocated memory pointer  **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+
+void *module_malloc(size_t size) {
+
+	return malloc(size > 0 ? size : 1);
+
+} /** End of 'module_malloc' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
  **   Function:		xdup						     **
  ** 									     **
  **   Description:	will return a string with 1 level of environment     **
@@ -2804,7 +2830,7 @@ char *stringer(	char *		buffer,
 		if (len == 0) {
 			len = sumlen + 1;
 		}
-		if ((char *) NULL == (tbuf = (char*) malloc(len))) {
+		if ((char *) NULL == (tbuf = (char*) module_malloc(len))) {
 			if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 				return (char *) NULL;
 		}

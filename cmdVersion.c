@@ -47,7 +47,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.11 2006/05/12 22:28:23 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.12 2007/02/14 06:21:50 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -885,7 +885,7 @@ int	VersionLookup(	char *name, char **module, char **version)
     histsize = HISTTAB;
     histndx = 0;
 
-    if((ModName **) NULL == (history = (ModName **) malloc( histsize * 
+    if((ModName **) NULL == (history = (ModName **) module_malloc( histsize * 
 	sizeof( ModName *)))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
 	return( 0);			/** -------- EXIT (FAILURE) -------> **/
@@ -1070,7 +1070,8 @@ static	ModModule	*AddModule(	char	*name)
      **  Allocate a new guy
      **/
 
-    if((ModModule *) NULL == (ptr = (ModModule *) malloc( sizeof(ModModule)))) {
+    if((ModModule *) NULL ==
+		(ptr = (ModModule *) module_malloc( sizeof(ModModule)))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
 	return((ModModule *) NULL);
     }
@@ -1194,7 +1195,7 @@ static	ModName	*AddName(	char	 *name,
      **  Allocate a new guy
      **/
 
-    if((ModName *) NULL == (ptr = (ModName *) malloc( sizeof(ModName)))) {
+    if((ModName *) NULL == (ptr = (ModName *) module_malloc(sizeof(ModName)))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
 	return((ModName *) NULL);
     }

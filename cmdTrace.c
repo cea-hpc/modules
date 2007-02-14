@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdTrace.c,v 1.8 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdTrace.c,v 1.9 2007/02/14 06:21:50 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -314,7 +314,7 @@ int	cmdModuleTrace(	ClientData	 client_data,
      **  Allocate one and initialize it.
      **/
     cmd_tab_size = sizeof( TraceSelect) / sizeof( TraceSelect[ 0]);
-    if((char *) NULL == (cmd_table = (char *) malloc( cmd_tab_size)))
+    if((char *) NULL == (cmd_table = (char *) module_malloc( cmd_tab_size)))
 	return((OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) ? TCL_OK : TCL_ERROR);
 
     /**
@@ -480,7 +480,7 @@ static	int	ChangeTraceSel(	Tcl_Interp *interp,
     /**
      **  Need a buffer for to build the complete pattern
      **/
-    if((char *) NULL == (pattern = (char *) malloc( len + 2))) {
+    if((char *) NULL == (pattern = (char *) module_malloc(len + 2))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
 	return( TCL_ERROR);
     }
@@ -530,7 +530,7 @@ static	int	ChangeTraceSel(	Tcl_Interp *interp,
 		    /**
 		     **  allocate a buffer for the new pattern
 		     **/
-		    if((char *) NULL == (tmp = (char *) malloc( len + 2 +
+		    if((char *) NULL == (tmp = (char *) module_malloc(len + 2 +
 			strlen( TraceSelect[ i].tracing)))) {
 			if( OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) {
 			    continue;

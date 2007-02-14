@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.4 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.5 2007/02/14 06:21:50 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -136,7 +136,8 @@ int	cmdModuleWhatis(	ClientData	 client_data,
 
     if( !whatis) {
 	whatis_size = WHATIS_FRAG;
-	if((char **) NULL == (whatis = malloc(whatis_size * sizeof(char *)))){
+	if((char **) NULL
+		== (whatis = module_malloc(whatis_size * sizeof(char *)))){
 	    ErrorLogger( ERR_ALLOC, LOC, NULL);
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
 	}

@@ -23,7 +23,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.7 2006/05/01 14:52:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.8 2007/02/14 06:21:50 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -490,7 +490,7 @@ static	int	whatis_dir( char *dir, int argc, char **argv, FILE *cfp,
 	if( OK != ErrorLogger( ERR_READDIR, LOC, dir, NULL))
 	    goto unwind0;
 
-    if( NULL == (list = (char**) malloc( tcount * sizeof( char**))))
+    if( NULL == (list = (char**) module_malloc( tcount * sizeof( char**))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind1;
 

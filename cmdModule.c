@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.14 2006/03/07 19:43:16 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.15 2007/02/14 06:21:50 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -549,7 +549,7 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
      **/
 
     if( line == NULL) {
-        if( NULL == (line = (char*) malloc( LINELENGTH * sizeof( char)))) {
+        if( NULL == (line = (char*) module_malloc(LINELENGTH * sizeof(char)))) {
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
         }

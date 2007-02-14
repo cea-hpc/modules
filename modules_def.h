@@ -721,6 +721,7 @@ extern	char	 *xstrtok_r(char *, const char *, char **);
 extern	char	 *xstrtok(char *, const char *);
 extern	void	  chk4spch( char*);
 extern	void	  cleanse_path( const char*, char*, int);
+extern	void	 *module_malloc(size_t);
 extern	char	 *xdup(char const *);
 extern	char	 *xgetenv(char const *);
 extern  int       tmpfile_mod( char**, FILE**);

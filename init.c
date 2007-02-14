@@ -36,7 +36,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.13 2006/05/19 15:53:09 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.14 2007/02/14 06:21:50 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -324,17 +324,17 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
      **  initialized. Exit from the whole program in case allocation fails.
      **/
     if( ( ! ( setenvHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( unsetenvHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( aliasSetHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( aliasUnsetHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( markVariableHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( markAliasHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ) {
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ) {
 
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind0;
