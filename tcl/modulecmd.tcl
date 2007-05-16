@@ -1227,7 +1227,7 @@ proc renderSettings {} {
     set tmpfile ""
     while {$iattempt < 100 && $f == ""} {
 	set tmpfile [format "/tmp/modulescript_%d_%d" [pid] $iattempt]
-	catch {set f [open $tmpfile "w"]}
+	catch {set f [open $tmpfile "w" 0600]}
 	incr iattempt
     }
 
@@ -2697,7 +2697,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.105 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.106 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
