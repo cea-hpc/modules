@@ -2697,7 +2697,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.106 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.107 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
@@ -2957,7 +2957,7 @@ if {[catch {
 	    cmdModuleAutoinit
 	    renderSettings
 	}
-    help {
+    {^($|help)} {
 	    cmdModuleHelp $argv
 	}
     . {
