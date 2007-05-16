@@ -428,7 +428,7 @@ proc module {command args} {
     }
 
     switch -- $command {
-    add -
+    add - lo -
     load {
 	    if {$mode == "load"} {
 		eval cmdModuleLoad $args
@@ -440,7 +440,7 @@ proc module {command args} {
 		report "module load $args"
 	    }
 	}
-    rm -
+    rm - unlo -
     unload {
 	    if {$mode == "load"} {
 		eval cmdModuleUnload $args
@@ -468,11 +468,11 @@ proc module {command args} {
     swap {
 	    eval cmdModuleSwitch $args
 	}
-    display -
+    display - dis -
     show {
 	    eval cmdModuleDisplay $args
 	}
-    avail {
+    avail - av {
 	    if {$args != ""} {
 		foreach arg $args {
 		    cmdModuleAvail $arg
@@ -2697,7 +2697,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.107 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.108 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
@@ -2878,7 +2878,7 @@ if {[catch {
 		cmdModuleDisplay $arg
 	    }
 	}
-    {^(add|load)} {
+    {^(add|lo)} {
 	    eval cmdModuleLoad $argv
 	    renderSettings
 	}
@@ -2904,7 +2904,7 @@ if {[catch {
 	    eval cmdModuleSwitch $argv
 	    renderSettings
 	}
-    {^(rm|unload)} {
+    {^(rm|unlo)} {
 	    eval cmdModuleUnload $argv
 	    renderSettings
 	}
@@ -2935,7 +2935,7 @@ if {[catch {
 	    cmdModuleReload
 	    renderSettings
 	}
-    {^init(add|load)$} {
+    {^init(add|lo)$} {
 	    eval cmdModuleInit add $argv
 	}
     {^initprepend$} {
@@ -2944,7 +2944,7 @@ if {[catch {
     {^initswitch$} {
 	    eval cmdModuleInit switch $argv
 	}
-    {^init(rm|unload)$} {
+    {^init(rm|unlo)$} {
 	    eval cmdModuleInit rm $argv
 	}
     {^initlist$} {
