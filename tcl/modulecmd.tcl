@@ -1789,12 +1789,15 @@ proc replaceFromList {list1 item {item2 {}}} {
      set xi [lsearch -exact $list1 $item]
 
      while {$xi >= 0} {
-         set list1 [lreplace $list1 $xi $xi $item2]
+	if {[string length $item2] == 0} {
+             set list1 [lreplace $list1 $xi $xi]
+         } else {
+             set list1 [lreplace $list1 $xi $xi $item2]
+         }
          set xi [lsearch -exact $list1 $item]
      }
 
      return $list1
-    
 }
 
 proc checkValidModule {modfile} {
@@ -2696,7 +2699,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.109 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.110 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
