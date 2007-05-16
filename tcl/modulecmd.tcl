@@ -110,7 +110,17 @@ proc execute-modulefile {modfile {help ""}} {
 
     }
     set errorVal [interp eval $slave {
-	if [catch {source $ModulesCurrentModulefile} errorMsg] {
+	set sourceFailed [catch {source $ModulesCurrentModulefile} errorMsg]
+	if {$help != ""} {
+	    if {[info procs "ModulesHelp"] == "ModulesHelp"} {
+		ModulesHelp
+	    } else {
+		reportWarning "Unable to find ModulesHelp in\
+		  $ModulesCurrentModulefile."
+	    }
+	    set sourceFailed 0
+	}
+	if {$sourceFailed} {
 	    if {$errorMsg == "" && $errorInfo == ""} {
 		unset errorMsg
 		return 1
@@ -125,17 +135,6 @@ proc execute-modulefile {modfile {help ""}} {
 		exit 1
 	    }
 	} else {
-	    if {$help != ""} {
-		if {[info procs "ModulesHelp"] == "ModulesHelp"} {
-		    ModulesHelp
-		} else {
-		    reportWarning "Unable to find ModulesHelp in\
-		      $ModulesCurrentModulefile."
-		}
-	    } else {
-		if {[module-info mode "display"] && [info procs\
-		  "ModulesDisplay"] == "ModulesDisplay"} {ModulesDisplay}
-	    }
 	    unset errorMsg
 	    return 0
 	}
@@ -2697,7 +2696,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.108 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.109 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
