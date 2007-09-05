@@ -2442,26 +2442,33 @@ proc cmdModuleAvail {{mod {*}}} {
 
 
 proc cmdModuleUse {args} {
+	global g_debug g_def_seperator
 
     if {$args == ""} {
 	showModulePath
     } else {
-	set stuff_path "prepend-path"
+	set stuff_path "prepend"
 	foreach path $args {
 	    if {$path == ""} {
 		# Skip "holes"
 	    }\
 	    elseif {($path == "--append") ||($path == "-a") ||($path ==\
 	      "-append")} {
-		set stuff_path "append-path"
+		set stuff_path "append"
 	    }\
 	    elseif {($path == "--prepend") ||($path == "-p") ||($path ==\
 	      "-prepend")} {
-		set stuff_path "prepend-path"
+		set stuff_path "prepend"
 	    }\
 	    elseif {[file isdirectory $path]} {
+		if {$g_debug} {
+			report "calling add-path MODULEPATH $path $stuff_path $g_def_seperator"
+		}
+
 		pushMode "load"
-		eval $stuff_path MODULEPATH $path
+		catch {
+			add-path MODULEPATH $path $stuff_path $g_def_seperator
+		}
 		popMode
 	    } else {
 		report "+(0):WARN:0: Directory '$path' not found"
@@ -2472,7 +2479,7 @@ proc cmdModuleUse {args} {
 
 
 proc cmdModuleUnuse {args} {
-    global g_def_seperator
+    global g_def_seperator g_debug
 
     if {$args == ""} {
 	showModulePath
@@ -2485,6 +2492,11 @@ proc cmdModuleUnuse {args} {
 	      $env(MODULEPATH)]} {
 
 		set oldMODULEPATH $env(MODULEPATH)
+
+		if {$g_debug} {
+			report "calling unload-path MODULEPATH $path $g_def_seperator"
+		}
+
 		pushMode "unload"
 		catch {
 		    unload-path MODULEPATH $path $g_def_seperator
@@ -2699,7 +2711,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.110 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.111 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
