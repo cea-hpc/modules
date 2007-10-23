@@ -28,6 +28,8 @@ set contact "root@localhost"
 set ignoreDir(CVS) 1
 set ignoreDir(RCS) 1
 set ignoreDir(SCCS) 1
+set ignoreDir(.svn) 1
+set ignoreDir(.git) 1
 
 global g_shellType
 global g_shell
@@ -2711,7 +2713,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.111 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.112 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
