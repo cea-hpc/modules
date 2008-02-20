@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.13 2006/06/01 19:56:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.14 2008/02/20 06:21:36 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -324,7 +324,22 @@ int	cmdSetPath(	ClientData	 client_data,
 	     **  Append/Prepend marker found
 	     **/
 	    if( append) {
-		char ch = *endp;
+		char ch = *startp;
+		*startp = '\0';
+		strcpy(newpath, oldpath);
+                /**
+                 ** check that newpath has a value before adding delim
+                 **/
+		if (strlen(newpath) > 0 && newpath[strlen(newpath)-1] != *delim)
+			strcat(newpath, delim);
+		strcat(newpath, qualifiedpath);
+		if (newpath[strlen(newpath)-1] != *delim)
+			strcat(newpath, delim);
+		*startp = ch;
+		strcat(newpath, startp);
+               
+	    } else {
+                char ch = *endp;
 		*endp = '\0';
 		strcpy(newpath, oldpath);
 		if (newpath[strlen(newpath)-1] != *delim)
@@ -332,17 +347,6 @@ int	cmdSetPath(	ClientData	 client_data,
 		strcat(newpath, qualifiedpath);
 		*endp = ch;
 		strcat(newpath, endp);
-	    } else {
-		char ch = *startp;
-		*startp = '\0';
-		strcpy(newpath, oldpath);
-		if (newpath[strlen(newpath)-1] != *delim)
-			strcat(newpath, delim);
-		strcpy(newpath, qualifiedpath);
-		if (*oldpath != *delim)	strcat(newpath, delim);
-		strcat(newpath, oldpath);
-		*startp = ch;
-		strcat(newpath, startp);
 	    }
 
 	} else {

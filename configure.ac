@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.26 2006/05/04 16:55:44 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.27 2008/02/20 06:21:36 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -180,6 +180,7 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_GCC_TRADITIONAL
 AC_PROG_INSTALL
+AM_PROG_CC_C_O
 AC_PROG_MAKE_SET
 AC_ISC_POSIX
 AC_PATH_PROG([UNAME],[uname],[""])dnl
