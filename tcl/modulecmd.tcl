@@ -1855,6 +1855,10 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 
     set dir [glob $dir]
     set full_list [glob -nocomplain "$dir/$mod"]
+
+    # remove trailing / needed on some platforms
+    regsub {\/$} $full_list {} full_list
+	
     set clean_list {}
     set ModulesVersion {}
     for {set i 0} {$i < [llength $full_list]} {incr i 1} {
@@ -2713,7 +2717,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.112 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.113 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
