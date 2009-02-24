@@ -488,7 +488,7 @@ proc module {command args} {
 		cmdModuleWhatIs
 	    }
 	}
-    apropos -
+    apropos - search -
     keyword {
 	    eval cmdModuleApropos $args
 	}
@@ -2693,7 +2693,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.117 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.118 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ command ]}
 
@@ -2726,7 +2726,7 @@ proc cmdModuleHelp {args} {
 	report {	use                                 dir [dir ...]}
 	report {	unuse                               dir [dir ...]}
 	report {	source                              scriptfile}
-	report {	apropos  |  keyword                 string}
+	report {	apropos  |  keyword  | search       string}
 	report {Switches:}
 	report {	-t		terse format avail and list}
 	report {	-l		long format avail and list}
@@ -2930,7 +2930,7 @@ if {[catch {
 		cmdModuleWhatIs
 	    }
 	}
-    {^apropos$} {
+    {^(apropos|search|keyword)$} {
 	    eval cmdModuleApropos $argv
 	}
     {^debug$} {
