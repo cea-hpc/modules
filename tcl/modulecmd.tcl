@@ -1288,9 +1288,6 @@ proc renderSettings {} {
 	    set env(MODULESHOME) [file dirname $argv0]
 	    set g_stateEnvVars(MODULESHOME) "new"
 
-	    set modulerc_init_file $env(MODULESHOME)/init/modulerc
-
-
 	    switch -- $g_shellType {
 	    csh {
 		    puts $f "if ( \$?histchars ) then"
@@ -1314,21 +1311,9 @@ proc renderSettings {} {
 		    puts $f "  endif"
 		    puts $f "endif"
 
-		    if {[file exists $modulerc_init_file]} {
-			puts $f "source $modulerc_init_file"
-		    } else {
-			reportWarning "WARNING: $modulerc_init_file does not\
-			  exist"
-		    }
 		}
 	    sh {
 		    puts $f "module () { eval `'$tclshbin' '$argv0' '$g_shell' \$*`; }"
-		    if {[file exists $modulerc_init_file]} {
-			puts $f ". $modulerc_init_file"
-		    } else {
-			reportWarning "WARNING: $modulerc_init_file does not\
-			  exist"
-		    }
 		}
 	    perl {
 		    puts $f "sub module {"
@@ -2717,7 +2702,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.113 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.114 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
@@ -2820,6 +2805,10 @@ switch -regexp -- $opt {
 	  which should
 	# be preserved
 	set argv [replaceFromList $argv $opt]
+    }
+{^(--help|-h)} {
+        cmdModuleHelp
+        exit 0
     }
 {^--ver} {
 	report "$MODULES_CURRENT_VERSION"
