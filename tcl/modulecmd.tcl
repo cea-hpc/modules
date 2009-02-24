@@ -567,7 +567,7 @@ proc unsetenv {var {val {}}} {
 # path fiddling
 
 proc getReferenceCountArray {var seperator} {
-    global env g_force g_def_seperator
+    global env g_force g_def_seperator g_debug
 
     set sharevar "${var}_modshare"
     set modshareok 1
@@ -593,7 +593,6 @@ proc getReferenceCountArray {var seperator} {
 		foreach path [array names usagearr] {
 		    if {! [info exists countarr($path)]} {
 			set countarr($path) 999999999
-			#			set fixers($path) 1
 		    }
 		}
 
@@ -616,8 +615,10 @@ proc getReferenceCountArray {var seperator} {
 		set modshareok 0
 	    }
 	} else {
-	    #	    reportWarning "WARNING: module: $sharevar exists (\
-	      $env($sharevar) ), but $var doesn't. Environment is corrupted."
+	    if {$g_debug} {	    
+		reportWarning "WARNING: module: $sharevar exists (\
+	          $env($sharevar) ), but $var doesn't. Environment is corrupted."
+            }
 	    set modshareok 0
 	}
     } else {
@@ -958,7 +959,6 @@ proc uname {what} {
 # internal module procedures
 
 set g_modeStack {}
-#set g_mode {}
 
 proc currentMode {} {
     global g_modeStack
@@ -1557,7 +1557,6 @@ proc renderSettings {} {
 	    }
 	}
 
-	###
 	set nop 0
 	if {$error_count == 0 && ! [tell $f]} {
 	    set nop 1
@@ -2693,7 +2692,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.118 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.119 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ command ]}
 
@@ -2744,73 +2743,21 @@ fconfigure stderr -translation auto
 # Parse options
 set opt [lindex $argv 1]
 switch -regexp -- $opt {
-{^-deb} {
+    {^-deb} {
 	set g_debug 1
 	report "DEBUG debug enabled"
 
-	# only remove options here.  Some module commands have options also,\
-	  which should
-	# be preserved
 	set argv [replaceFromList $argv $opt]
     }
-{^--verb} {
-	# BOZO nothing to do with --verbose yet
-	# only remove options here.  Some module commands have options also,\
-	  which should
-	# be preserved
-	set argv [replaceFromList $argv $opt]
-    }
-{^--for} {
-	# BOZO nothing to do with --verbose yet
-	# only remove options here.  Some module commands have options also,\
-	  which should
-	# be preserved
-	set argv [replaceFromList $argv $opt]
-    }
-{^--ter} {
-	# BOZO nothing to do with --verbose yet
-	# only remove options here.  Some module commands have options also,\
-	  which should
-	# be preserved
-	set argv [replaceFromList $argv $opt]
-    }
-{^--lon} {
-	# BOZO nothing to do with --verbose yet
-	# only remove options here.  Some module commands have options also,\
-	  which should
-	# be preserved
-	set argv [replaceFromList $argv $opt]
-    }
-{^--cre} {
-	# BOZO nothing to do with --verbose yet
-	# only remove options here.  Some module commands have options also,\
-	  which should
-	# be preserved
-	set argv [replaceFromList $argv $opt]
-    }
-{^--us} {
-	# BOZO nothing to do with --verbose yet
-	# only remove options here.  Some module commands have options also,\
-	  which should
-	# be preserved
-	set argv [replaceFromList $argv $opt]
-    }
-{^--ica} {
-	# BOZO nothing to do with --verbose yet
-	# only remove options here.  Some module commands have options also,\
-	  which should
-	# be preserved
-	set argv [replaceFromList $argv $opt]
-    }
-{^(--help|-h)} {
+    {^(--help|-h)} {
         cmdModuleHelp
         exit 0
     }
-{^--ver} {
+    {^--ver} {
 	report "$MODULES_CURRENT_VERSION"
 	exit 0
     }
-{^--} {
+    {^--} {
 	report "+(0):ERROR:0: Unrecognized option '$opt'"
 	exit -1
     }
@@ -2821,22 +2768,22 @@ set command [lindex $argv 1]
 set argv [lreplace $argv 0 1]
 
 switch -regexp -- $g_shell {
-^(sh|bash|ksh|zsh)$ {
+    ^(sh|bash|ksh|zsh)$ {
 	set g_shellType sh
     }
-^(csh|tcsh)$ {
+    ^(csh|tcsh)$ {
 	set g_shellType csh
     }
-^(perl)$ {
+    ^(perl)$ {
 	set g_shellType perl
     }
-^(python)$ {
+    ^(python)$ {
 	set g_shellType python
     }
-^(lisp)$ {
+    ^(lisp)$ {
 	set g_shellType lisp
     }
-. {
+    . {
 	error " +(0):ERROR:0: Unknown shell type \'($g_shell)\'"
     }
 }
