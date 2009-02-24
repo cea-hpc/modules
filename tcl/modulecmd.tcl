@@ -16,9 +16,6 @@ set DEF_COLUMNS 80 ;# Default size of columns for formating
 set MODULES_CURRENT_VERSION 3.1.6
 set flag_default_dir 1 ;# Report default directories
 set flag_default_mf 1 ;# Report default modulefiles and version alias
-set g_user "advanced" ;# usermode were running as
-set g_trace 0 ;# not implemented yet
-set g_tracepat "-.*" ;# not implemented yet
 set g_def_seperator ":" ;# Default path seperator
 
 # Change this to your support email address...
@@ -222,7 +219,7 @@ proc execute-modulerc {modfile} {
 set ModulesCurrentModulefile {}
 
 proc module-info {what {more {}}} {
-    global g_shellType g_shell g_user g_trace g_tracepat
+    global g_shellType g_shell
     global g_moduleAlias g_symbolHash g_versionHash
 
     set mode [currentMode]
@@ -247,15 +244,6 @@ proc module-info {what {more {}}} {
 	}
     "flags" {
 	    return 0
-	}
-    "user" {
-	    return $g_user
-	}
-    "trace" {
-	    return $g_trace
-	}
-    "tracepat" {
-	    return $g_tracepat
 	}
     "shelltype" {
 	    return $g_shellType
@@ -937,27 +925,27 @@ proc uname {what} {
 
     if {! [info exists unameCache($what)]} {
 	switch -- $what {
-	sysname {
-		set result $tcl_platform(os)
+	    sysname {
+    	        set result $tcl_platform(os)
 	    }
-	machine {
-		set result $tcl_platform(machine)
+	    machine {
+	        set result $tcl_platform(machine)
 	    }
-	nodename -
-	node {
-		set result [info hostname]
+	    nodename -
+	    node {
+	        set result [info hostname]
 	    }
-	release {
+	    release {
 		set result $tcl_platform(osVersion)
 	    }
-	default {
-		error "uname $what not supported"
-	    }
-	domain {
+	    domain {
 		set result [exec /bin/domainname]
 	    }
-	version {
+	    version {
 		set result [exec /bin/uname -v]
+	    }
+	    default {
+		error "uname $what not supported"
 	    }
 	}
 	set unameCache($what) $result
@@ -2705,7 +2693,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.116 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.117 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ command ]}
 
