@@ -2705,38 +2705,43 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.115 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.116 $)} 
         report {	Copyright GNU GPL v2 1991}
-	report {Usage: module [ switches ] [ command ]}
+	report {Usage: module [ command ]}
 
+	report {Commands:}
+	report {	list                     [switches] modulefile\
+	  [modulefile ...]}
+	report {	display  |  show                    modulefile\
+	  [modulefile ...]}
+        report {	add  |  load                        modulefile\
+	  [modulefile ...]}
+	report {	purge  |  rm  |  unload             modulefile\
+	  [modulefile ...]}
+	report {	reload                              modulefile\
+	  [modulefile ...]}
+        report {	switch  |  swap                    \
+	  [oldmodulefile] newmodulefile}
+	report {	avail                    [switches] [modulefile\
+	  [modulefile ...]]}
+	report {	whatis                              [modulefile\
+	  [modulefile ...]]}
+	report {	help                                [modulefile\
+	  [modulefile ...]]}
+	report {	path                                modulefile}
+	report {	paths                               modulefile}
+	report {	initlist                            modulefile}
+        report {	initadd                             modulefile}
+        report {	initrm                              modulefile}
+	report {	initclear                           modulefile}
+	report {	initprepend                         modulefile}
+	report {	use                                 dir [dir ...]}
+	report {	unuse                               dir [dir ...]}
+	report {	source                              scriptfile}
+	report {	apropos  |  keyword                 string}
 	report {Switches:}
 	report {	-t		terse format avail and list}
 	report {	-l		long format avail and list}
-	report {Commands:}
-	report {	list         |  add|load            modulefile\
-	  [modulefile ...]}
-	report {	purge        |  rm|unload           modulefile\
-	  [modulefile ...]}
-	report {	reload       |  switch|swap       \
-	  [oldmodulefile] newmodulefile}
-	report {	             |  display|show        modulefile\
-	  [modulefile ...]}
-	report {	             |  avail              [modulefile\
-	  [modulefile ...]]}
-	report {	             |  whatis             [modulefile\
-	  [modulefile ...]]}
-	report {	             |  help               [modulefile\
-	  [modulefile ...]]}
-	report {	             |  path                modulefile}
-	report {	             |  paths               modulefile}
-	report {	             |  use                 dir [dir ...]}
-	report {	             |  unuse               dir [dir ...]}
-	report {	             |  source              scriptfile}
-	report {	             |  apropos|keyword     string}
-	report {	             |}
-	report {	initlist     |  initadd             modulefile}
-	report {	initclear    |  initprepend         modulefile}
-	report {		     |  initrm              modulefile}
     }
 }
 
