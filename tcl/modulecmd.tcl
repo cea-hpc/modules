@@ -2015,7 +2015,7 @@ proc cmdModuleList {{seperator {}}} {
 	        }\
 	        elseif {$show_modtimes} {
 		    set filetime [clock format [file mtime [lindex\
-		      [getPathToModule $mod] 0]]]
+		      [getPathToModule $mod] 0]] -format "%Y/%m/%b %H:%M:%S"]
 		    report [format "%-50s%10s" $mod $filetime]
 	        } else {
 		    if {$len > $max} {
@@ -2371,22 +2371,25 @@ proc cmdModuleAvail {{mod {*}}} {
 
     foreach dir [split $env(MODULEPATH) $g_def_seperator] {
 	if {[file isdirectory "$dir"]} {
-	    report "------------ $dir ------------ "
+	    report "\n------------ $dir ------------ "
 	    set list [listModules "$dir" "$mod" 0 "" $flag_default_mf\
 	      $flag_default_dir]
-            # sort names (sometimes? they are returned in the order as they were
+            # sort names (sometimes? returned in the order as they were
             # created on disk :-)
             set list [lsort $list]
 	    if {$show_modtimes} {
 		foreach i $list {
-		    set filetime [clock format [file mtime [lindex\
-		      [getPathToModule "$i"] 0]]]
-		    report [format "%-50s%10s" $i $filetime]
+                    # don't change $i with the regsub - we need it 
+                    # to figure out the file time.
+                    regsub {\(default\)} $i "   (default)" i2 
+		    set filetime [clock format [file mtime [lindex [getPathToModule $i] 0]] -format "%Y/%m/%b %H:%M:%S" ]
+		    report [format "%-53s%10s" $i2 $filetime]
 		}
 	    }\
 	    elseif {$show_oneperline} {
 		foreach i $list {
-		    report "$i"
+                    regsub {\(default\)} $i "   (default)" i2 
+		    report "$i2"
 		}
 	    } else {
 		set max 0
@@ -2702,7 +2705,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.114 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.115 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ switches ] [ command ]}
 
