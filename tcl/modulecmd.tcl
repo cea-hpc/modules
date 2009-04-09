@@ -18,6 +18,16 @@ set flag_default_dir 1 ;# Report default directories
 set flag_default_mf 1 ;# Report default modulefiles and version alias
 set g_def_seperator ":" ;# Default path seperator
 
+# Dynamic column
+if {[info exists env(DYNAMIC_COLUMNS)]} { # do dynamic columns?
+    # yes, read the stty size size information and reset DEF_COLUMNS
+    set stty_output [exec stty size]
+    if {$stty_output != ""} {
+       set dynamic_column [lindex $stty_output 1]
+       set DEF_COLUMNS $dynamic_column
+    }
+}
+
 # Change this to your support email address...
 set contact "root@localhost"
 
@@ -2846,7 +2856,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.120 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.121 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ command ]}
 
