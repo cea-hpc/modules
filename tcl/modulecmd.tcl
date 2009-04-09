@@ -63,9 +63,12 @@ proc report {message {nonewline ""}} {
 #
 
 proc unset-env {var} {
-    global env
+    global env g_debug
 
     if {[info exists env($var)]} {
+        if {$g_debug} {
+    	    report "DEBUG unset-env:  $var"
+        }
 	unset env($var)
     }
 }
@@ -76,7 +79,7 @@ proc execute-modulefile {modfile {help ""}} {
     set ModulesCurrentModulefile $modfile
 
     if {$g_debug} {
-	report "DEBUG Starting $modfile"
+	report "DEBUG execute-modulefile:  Starting $modfile"
     }
     set slave __[currentModuleName]
     if {![interp exists $slave]} {
@@ -101,6 +104,7 @@ proc execute-modulefile {modfile {help ""}} {
 	interp alias $slave module-alias {} module-alias
 	interp alias $slave reportInternalBug {} reportInternalBug
 	interp alias $slave reportWarning {} reportWarning
+	interp alias $slave report {} report
 
 	interp eval $slave {global ModulesCurrentModulefile g_debug}
 	interp eval $slave [list "set" "ModulesCurrentModulefile" $modfile]
@@ -109,6 +113,9 @@ proc execute-modulefile {modfile {help ""}} {
 
     }
     set errorVal [interp eval $slave {
+	if {$g_debug} {
+	    report "Sourcing $ModulesCurrentModulefile"
+        }
 	set sourceFailed [catch {source $ModulesCurrentModulefile} errorMsg]
 	if {$help != ""} {
 	    if {[info procs "ModulesHelp"] == "ModulesHelp"} {
@@ -151,6 +158,11 @@ proc execute-modulerc {modfile} {
     global env g_stateEnvVars g_rcfilesSourced
     global g_debug g_moduleDefault
     global ModulesCurrentModulefile
+
+
+    if {$g_debug} {
+       report "DEBUG execute-modulerc: $modfile"
+    }
 
     set ModulesCurrentModulefile $modfile
 
@@ -219,10 +231,15 @@ proc execute-modulerc {modfile} {
 set ModulesCurrentModulefile {}
 
 proc module-info {what {more {}}} {
-    global g_shellType g_shell
+    global g_shellType g_shell g_debug
     global g_moduleAlias g_symbolHash g_versionHash
 
     set mode [currentMode]
+
+    if {$g_debug} {
+        report "DEBUG module-info: $what $more  mode=$mode"
+    }
+
     switch -- $what {
     "mode" {
 	    if {$more != ""} {
@@ -283,9 +300,13 @@ proc module-info {what {more {}}} {
 }
 
 proc module-whatis {message} {
+    global g_whatis g_debug
+
     set mode [currentMode]
 
-    global g_whatis
+    if {$g_debug} {
+        report "DEBUG module-whatis: $message  mode=$mode"
+    }
 
     if {$mode == "display"} {
 	report "module-whatis\t$message"
@@ -518,8 +539,12 @@ proc module {command args} {
 }
 
 proc setenv {var val} {
-    global g_stateEnvVars env
+    global g_stateEnvVars env g_debug
     set mode [currentMode]
+
+    if {$g_debug} {
+	report "DEBUG setenv: ($var,$val) mode = $mode"
+    }
 
     if {$mode == "load"} {
 	set env($var) $val
@@ -542,8 +567,12 @@ proc setenv {var val} {
 }
 
 proc unsetenv {var {val {}}} {
-    global g_stateEnvVars env
+    global g_stateEnvVars env g_debug
     set mode [currentMode]
+
+    if {$g_debug} {
+	report "DEBUG unsetenv: ($var,$val) mode = $mode"
+    }
 
     if {$mode == "load"} {
 	if {[info exists env($var)]} {
@@ -568,6 +597,10 @@ proc unsetenv {var {val {}}} {
 
 proc getReferenceCountArray {var seperator} {
     global env g_force g_def_seperator g_debug
+
+    if {$g_debug} {
+       report "DEBUG getReferenceCountArray: ($var, $seperator)"
+    }
 
     set sharevar "${var}_modshare"
     set modshareok 1
@@ -636,9 +669,13 @@ proc getReferenceCountArray {var seperator} {
 
 
 proc unload-path {var path seperator} {
-    global g_stateEnvVars env g_force g_def_seperator
+    global g_stateEnvVars env g_force g_def_seperator g_debug
 
     array set countarr [getReferenceCountArray $var $seperator]
+
+    if {$g_debug} {
+	report "DEBUG unload-path: ($var,$path, $seperator)"
+    }
 
     # Don't worry about dealing with this variable if it is already scheduled\
       for deletion
@@ -691,7 +728,11 @@ proc unload-path {var path seperator} {
 }
 
 proc add-path {var path pos seperator} {
-    global env g_stateEnvVars g_def_seperator
+    global env g_stateEnvVars g_def_seperator g_debug
+
+    if {$g_debug} {
+	report "DEBUG add-path: ($var,$path, $seperator)"
+    }
 
     set sharevar "${var}_modshare"
     array set countarr [getReferenceCountArray $var $seperator]
@@ -730,9 +771,13 @@ proc add-path {var path pos seperator} {
 }
 
 proc prepend-path {var path args} {
-    global g_def_seperator
+    global g_def_seperator g_debug
 
     set mode [currentMode]
+
+    if {$g_debug} {
+	report "DEBUG prepend-path: ($var,$path, $args) mode=$mode"
+    }
 
     if {[string match $var "-delim"]} {
         set seperator $path
@@ -756,9 +801,13 @@ proc prepend-path {var path args} {
 
 
 proc append-path {var path args} {
-    global g_def_seperator
+    global g_def_seperator g_debug
 
     set mode [currentMode]
+
+    if {$g_debug} {
+	report "DEBUG append-path: ($var,$path, $args) mode=$mode"
+    }
 
     if {[string match $var "-delim"]} {
         set seperator $path
@@ -781,9 +830,13 @@ proc append-path {var path args} {
 }
 
 proc remove-path {var path args} {
-    global g_def_seperator
+    global g_def_seperator g_debug
 
     set mode [currentMode]
+
+    if {$g_debug} {
+	report "DEBUG remove-path: ($var,$path, $args) mode=$mode"
+    }
 
     if {[string match $var "-delim"]} {
         set seperator $path
@@ -803,9 +856,12 @@ proc remove-path {var path args} {
 }
 
 proc set-alias {alias what} {
-    global g_Aliases g_stateAliases
+    global g_Aliases g_stateAliases g_debug
     set mode [currentMode]
 
+    if {$g_debug} {
+	report "DEBUG set-alias: ($alias, $what) mode=$mode"
+    }
     if {$mode == "load"} {
 	set g_Aliases($alias) $what
 	set g_stateAliases($alias) "new"
@@ -822,9 +878,12 @@ proc set-alias {alias what} {
 
 
 proc unset-alias {alias} {
-    global g_Aliases g_stateAliases
+    global g_Aliases g_stateAliases g_debug
     set mode [currentMode]
 
+    if {$g_debug} {
+	report "DEBUG unset-alias: ($alias) mode=$mode"
+    }
     if {$mode == "load"} {
 	set g_Aliases($alias) {}
 	set g_stateAliases($alias) "del"
@@ -836,7 +895,11 @@ proc unset-alias {alias} {
 }
 
 proc is-loaded {modulelist} {
-    global env g_def_seperator
+    global env g_def_seperator g_debug
+
+    if {$g_debug} {
+	report "DEBUG is-loaded: $modulelist"
+    }
 
     if {[llength $modulelist] > 0} {
 	if {[info exists env(LOADEDMODULES)]} {
@@ -863,6 +926,9 @@ proc conflict {args} {
     set mode [currentMode]
     set currentModule [currentModuleName]
 
+    if {$g_debug} {
+	report "DEBUG conflict: ($args) mode = $mode"
+    }
 
     if {$mode == "load"} {
 	foreach mod $args {
@@ -886,8 +952,13 @@ proc conflict {args} {
 }
 
 proc prereq {args} {
+    global g_debug
     set mode [currentMode]
     set currentModule [currentModuleName]
+
+    if {$g_debug} {
+	report "DEBUG prereq: ($args) mode = $mode"
+    }
 
     if {$mode == "load"} {
 	if {![is-loaded $args]} {
@@ -905,8 +976,12 @@ proc prereq {args} {
 }
 
 proc x-resource {resource {value {}}} {
-    global g_newXResources g_delXResources
+    global g_newXResources g_delXResources g_debug
     set mode [currentMode]
+
+    if {$g_debug} {
+       report "DEBUG x-resource: ($resource, $value)"
+    }
 
     if {$mode == "load"} {
 	set g_newXResources($resource) $value
@@ -921,8 +996,12 @@ proc x-resource {resource {value {}}} {
 }
 
 proc uname {what} {
-    global unameCache tcl_platform
+    global unameCache tcl_platform g_debug
     set result {}
+
+    if {$g_debug} {
+       report "DEBUG uname: called."
+    }
 
     if {! [info exists unameCache($what)]} {
 	switch -- $what {
@@ -1165,6 +1244,11 @@ proc runModulerc {} {
     # Runs the global RC files if they exist
     global env g_debug
 
+    if {$g_debug} {
+	report "DEBUG runModulerc: running..."
+	report "DEBUG runModulerc: env MODULESHOME = $env(MODULESHOME)"
+	report "DEBUG runModulerc: env HOME = $env(HOME)"
+    }
     if {[info exists env(MODULERCFILE)]} {
 	if {[file readable $env(MODULERCFILE)]} {
 	    if {$g_debug} {
@@ -1183,6 +1267,9 @@ proc runModulerc {} {
     }
     if {[info exists env(HOME)]} {
 	if {[file readable "$env(HOME)/.modulerc"]} {
+	    if {$g_debug} {
+		report "DEBUG runModulerc: Executing $env(HOME)/.modulerc"
+	    }
 	    execute-modulerc "$env(HOME)/.modulerc"
 	}
     }
@@ -1209,7 +1296,11 @@ proc renderSettings {} {
     global g_stateEnvVars g_stateAliases
     global g_newXResources g_delXResources
     global g_pathList g_systemList error_count
-    global g_autoInit CSH_LIMIT
+    global g_autoInit CSH_LIMIT g_debug
+
+    if {$g_debug} {
+       report "DEBUG renderSettings: called."
+    }
 
     set iattempt 0
     set f ""
@@ -1641,7 +1732,12 @@ proc renderSettings {} {
 }
 
 proc cacheCurrentModules {{seperator {}}} {
-    global g_loadedModules g_loadedModulesGeneric env g_def_seperator
+    global g_loadedModules g_loadedModulesGeneric env g_def_seperator g_debug
+
+
+    if {$g_debug} {
+	report "DEBUG resolveModuleVersionOrAlias: ($seperator)"
+    }
 
     if {$seperator == "" } {
         set seperator $g_def_seperator
@@ -1763,7 +1859,7 @@ proc replaceFromList {list1 item {item2 {}}} {
      set xi [lsearch -exact $list1 $item]
 
      while {$xi >= 0} {
-	if {[string length $item2] == 0} {
+	 if {[string length $item2] == 0} {
              set list1 [lreplace $list1 $xi $xi]
          } else {
              set list1 [lreplace $list1 $xi $xi $item2]
@@ -1775,6 +1871,12 @@ proc replaceFromList {list1 item {item2 {}}} {
 }
 
 proc checkValidModule {modfile} {
+    global g_debug
+
+    if {$g_debug} {
+	report "DEBUG checkValidModule: $modfile"
+    }
+
     # Check for valid module
     if {![catch {open $modfile r} fileId]} {
 	gets $fileId first_line
@@ -1790,7 +1892,11 @@ proc checkValidModule {modfile} {
 # those aliases is returned.  This takes the full path to a module as
 # an argument.
 proc getVersAliasList {modulename} {
-    global g_versionHash g_moduleDefault
+    global g_versionHash g_moduleDefault g_debug
+
+    if {$g_debug} {
+	report "DEBUG getVersAliasList: $modulename"
+    }
 
     set modparent [file dirname $modulename]
 
@@ -1853,6 +1959,11 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 
 	if {[file isdirectory $element]} {
 	    set ModulesVersion ""
+
+	    if {$g_debug} {
+		report "DEGUG listModules: found $element"
+	    }
+
 	    if {![info exists ignoreDir($tail)]} {
 		# include .modulerc or if not present .version file
 		if {[file readable $element/.modulerc]} {
@@ -1960,7 +2071,11 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 
 
 proc showModulePath {{seperator {}}} {
-    global env g_def_seperator
+    global env g_def_seperator g_debug
+
+    if {$g_debug} {
+	report "DEGUG showModulePath: $seperator"
+    }
 
     if {$seperator == "" } {
         set seperator $g_def_seperator
@@ -2089,7 +2204,11 @@ proc cmdModuleDisplay {mod} {
 }
 
 proc cmdModulePaths {mod {seperator {}}} {
-    global env g_pathList flag_default_mf flag_default_dir g_def_seperator
+    global env g_pathList flag_default_mf flag_default_dir g_def_seperator g_debug
+
+    if {$g_debug} {
+	report "DEBUG cmdModulePaths: ($mod, $seperator)"
+    }
 
     if {$seperator == "" } {
         set seperator $g_def_seperator
@@ -2110,8 +2229,11 @@ proc cmdModulePaths {mod {seperator {}}} {
 }
 
 proc cmdModulePath {mod} {
-    global env g_pathList ModulesCurrentModulefile
+    global env g_pathList ModulesCurrentModulefile g_debug
 
+    if {$g_debug} {
+	report "DEBUG cmdModulePath: ($mod)"
+    }
     set modfile [getPathToModule $mod]
     if {$modfile != ""} {
 	set modfile [lindex $modfile 0]
@@ -2131,8 +2253,12 @@ proc cmdModuleApropos {{search {}}} {
 
 proc cmdModuleSearch {{mod {}} {search {}}} {
     global env tcl_version ModulesCurrentModulefile
-    global g_whatis g_def_seperator
+    global g_whatis g_def_seperator g_debug
 
+
+    if {$g_debug} {
+	report "DEBUG cmdModuleSearch: ($mod, $search)"
+    }
     if {$mod == ""} {
 	set mod "*"
     }
@@ -2174,7 +2300,7 @@ proc cmdModuleSwitch {old {new {}}} {
     }
 
     if {$g_debug} {
-	report "new=\"$new\" old=\"$old\""
+	report "DEBUG cmdModuleSwitch: new=\"$new\" old=\"$old\""
     }
 
     cmdModuleUnload $old
@@ -2182,8 +2308,11 @@ proc cmdModuleSwitch {old {new {}}} {
 }
 
 proc cmdModuleSource {args} {
-    global env tcl_version g_loadedModules g_loadedModulesGeneric g_force
+    global env tcl_version g_loadedModules g_loadedModulesGeneric g_force g_debug
 
+    if {$g_debug} {
+	report "DEBUG cmdModuleSource: $args"
+    }
     foreach file $args {
 	if {[file exists $file]} {
 	    pushMode "load"
@@ -2297,8 +2426,11 @@ proc cmdModuleUnload {args} {
 
 
 proc cmdModulePurge {{seperator {}}} {
-    global env g_def_seperator
+    global env g_def_seperator g_debug
 
+    if {$g_debug} {
+	report "DEBUG cmdModulePurge: $seperator"
+    }
     if {$seperator == "" } {
         set seperator $g_def_seperator
     }
@@ -2311,7 +2443,11 @@ proc cmdModulePurge {{seperator {}}} {
 
 
 proc cmdModuleReload {{seperator {}}} {
-    global env g_def_seperator
+    global env g_def_seperator g_debug
+
+    if {$g_debug} {
+	report "DEBUG cmdModuleReload: $seperator"
+    }
 
     if {$seperator == "" } {
         set seperator $g_def_seperator
@@ -2330,8 +2466,11 @@ proc cmdModuleReload {{seperator {}}} {
 }
 
 proc system {mycmd args} {
-    global g_systemList
+    global g_systemList g_debug
 
+    if {$g_debug} {
+	report "DEBUG system: $mycmd $args"
+    }
     set mode [currentMode]
     set mycmd [join [concat $mycmd $args] " "]
 
@@ -2423,7 +2562,11 @@ proc cmdModuleAvail {{mod {*}}} {
 
 
 proc cmdModuleUse {args} {
-	global g_debug g_def_seperator
+	global g_debug g_def_seperator g_debug
+
+    if {$g_debug} {
+	report "DEBUG cmdModuleUse: $args"
+    }
 
     if {$args == ""} {
 	showModulePath
@@ -2462,6 +2605,9 @@ proc cmdModuleUse {args} {
 proc cmdModuleUnuse {args} {
     global g_def_seperator g_debug
 
+    if {$g_debug} {
+	report "DEBUG cmdModuleUnuse: $args"
+    }
     if {$args == ""} {
 	showModulePath
     } else {
@@ -2524,7 +2670,11 @@ proc cmdModuleDebug {{seperator {}}} {
 }
 
 proc cmdModuleAutoinit {} {
-    global g_autoInit
+    global g_autoInit g_debug
+
+    if {$g_debug} {
+	report "DEBUG cmdModuleAutoinit:"
+    }
     set g_autoInit 1
 }
 
@@ -2534,6 +2684,10 @@ proc cmdModuleInit {args} {
     set moduleinit_cmd [lindex $args 0]
     set notdone 1
     set notclear 1
+
+    if {$g_debug} {
+	report "DEBUG cmdModuleInit: $args"
+    }
 
     # Define startup files for each shell
     set files(csh) [list ".modules" ".cshrc" ".cshrc_variables" ".login"]
@@ -2692,7 +2846,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.119 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.120 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ command ]}
 
