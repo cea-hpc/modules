@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.27 2008/02/20 06:21:36 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.28 2009/08/03 16:23:55 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -17,7 +17,6 @@ AM_INIT_AUTOMAKE(1.9.6 foreign dejagnu no-installinfo dist-bzip2)dnl
 AC_CONFIG_SRCDIR([version.c])dnl
 AM_CONFIG_HEADER(config.h)dnl
 AC_AIX
-AM_PROG_CC_C_O
 AC_PROG_MAKE_SET
 AC_PREREQ(2.59)dnl
 dnl I18N support
@@ -136,7 +135,7 @@ else
     NODEFAULTPATH=$ac_default_prefix/Modules/$VERSION
     BASEPREFIX=$ac_default_prefix
     ac_default_prefix=$BASEPREFIX/Modules/$VERSION
-    export ax_default_prefix
+    export ac_default_prefix
   else
     DEFAULTPATH=$ac_default_prefix/Modules
     NODEFAULTPATH=$ac_default_prefix/Modules
@@ -192,8 +191,8 @@ AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS(string.h memory.h stdlib.h unistd.h termio.h fcntl.h ctype.h \
 	stdarg.h varargs.h syslog.h stdint.h)dnl
-AC_CHECK_HEADERS(errno.h sys/ioctl.h sys/termios.h sys/mode.h sys/stat.h      \
-	sys/param.h)dnl
+AC_CHECK_HEADERS([sys/ioctl.h sys/termios.h sys/mode.h sys/stat.h sys/param.h \
+		  errno.h assert.h])dnl
 dnl ---------------------------------------------------------------------------
 dnl Checks for typedefs, structures, and compiler characteristics.
 dnl ---------------------------------------------------------------------------

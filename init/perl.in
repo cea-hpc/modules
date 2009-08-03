@@ -17,7 +17,9 @@ sub module {
 $ENV{"MODULESHOME"} = "@prefix@";
 
 if (! defined $ENV{"MODULEPATH"} ) {
-  $ENV{"MODULEPATH"} = `sed 's/#.*$//' $ENV{"MODULESHOME"}/init/.modulespath | awk 'NF==1{printf("%s:",$1)}'` 
+  open(IN, "$ENV{'MODULESHOME'}/init/.modulespath") || die "cannot open '.modulespath' file: $!\n";
+  $ENV{"MODULEPATH"} = join(":", grep(/\S/, map { s/^\s*//g; s/[\s#].*$//g; $_ } <IN>));
+  close IN;
 }
 
 if (! defined $ENV{"LOADEDMODULES"} ) {

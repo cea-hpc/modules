@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.26 2007/02/14 06:21:50 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.27 2009/08/03 16:23:55 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -95,6 +95,7 @@ static	char	_proc_Copy_Hash_Tables[] = "Copy_Hash_Tables";
 static	char	_proc_Unwind_Modulefile_Changes[] = "Unwind_Modulefile_Changes";
 static	char	_proc_Output_Modulefile_Changes[] = "Output_Modulefile_Changes";
 static	char	_proc_Output_Modulefile_Aliases[] = "Output_Modulefile_Aliases";
+static	char	_proc_Output_Directory_Change[] = "Output_Directory_Change";
 static	char	_proc_output_set_variable[] = "output_set_variable";
 static	char	_proc_output_unset_variable[] = "output_unset_variable";
 static	char	_proc_output_function[] = "output_function";
@@ -142,6 +143,7 @@ static	const int   bourne_alias = 	/** HAS_BOURNE_FUNCS macro	     **/
 
 static	void	 Clear_Global_Hash_Tables( void);
 static	int	 Output_Modulefile_Aliases( Tcl_Interp *interp);
+static	int	 Output_Directory_Change(Tcl_Interp *interp);
 static	int	 output_set_variable( Tcl_Interp *interp, const char*,
 				      const char*);
 static	int	 output_unset_variable( const char* var);
@@ -176,7 +178,7 @@ static  void     EscapePerlString(const char* in,
  **			const char	*key		Attached key	     **
  **			const char	*value		Alias value	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  ** 									     **
  **   Attached Globals:	-						     **
  ** 									     **
@@ -236,7 +238,7 @@ int store_hash_value(	Tcl_HashTable* htable,
  **   Parameters:	Tcl_HashTable	*htable		Hash table to be used**
  **			const char	*key		Attached key	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  ** 									     **
  **   Attached Globals:	-						     **
  ** 									     **
@@ -642,7 +644,7 @@ static int keycmp(const void *a, const void *b) {
  ** 									     **
  **   Description:	Is used to flush out the changes of the current	     **
  **			modulefile in a manner depending upon whether the    **
- **			modulefile was successfull or unsuccessfull.	     **
+ **			modulefile was successful or unsuccessful.	     **
  ** 									     **
  **   First Edition:	1991/10/23					     **
  ** 									     **
@@ -655,6 +657,7 @@ static int keycmp(const void *a, const void *b) {
  **			unsetenvHashTable,				     **
  **			aliasSetHashTable,	via Output_Modulefile_Aliases**
  **			aliasUnsetHashTable	via Output_Modulefile_Aliases**
+ **			change_dir		for the chdir command	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -737,7 +740,8 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
 
     Output_Modulefile_Aliases( interp);
-  
+    Output_Directory_Change( interp);
+
     /**
      **  Delete and reset the hash tables since the current contents have been
      **  flushed.
@@ -869,6 +873,7 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
 	 **  We only support sh and csh variants for aliases.  If not either
 	 **  sh or csh print warning message and return
 	 **/
+	assert(shell_derelict != NULL);
 	if( !strcmp( shell_derelict, "csh")) {
 	    sourceCommand = "source %s%s";
 	} else if( !strcmp( shell_derelict, "sh")) {
@@ -930,6 +935,47 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
     return( TCL_OK);
 
 } /** End of 'Output_Modulefile_Aliases' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ **									     **
+ **   Function:		Output_Directory_Change				     **
+ **									     **
+ **   Description:	Changes the current working directory.               **
+ **									     **
+ **   Parameters:	Tcl_Interp *interp	The attached Tcl interpreter **
+ **									     **
+ **   Result:		int	TCL_OK		Successful operation	     **
+ **				TCL_ERROR	When not applicable	     **
+ **									     **
+ **   Attached Global:  change_dir					     **
+ **									     **
+ ** ************************************************************************ **
+ ++++*/
+static	int Output_Directory_Change(Tcl_Interp *interp)
+{
+	int rc = TCL_OK;
+
+	if (change_dir == NULL)
+		return rc;
+
+	assert(shell_derelict != NULL);
+	if(!strcmp(shell_derelict, "csh") || !strcmp(shell_derelict, "sh")) {
+		fprintf(stdout, "cd '%s'%s", change_dir, shell_cmd_separator);
+	} else if(!strcmp( shell_derelict, "perl")) {
+		fprintf(stdout, "chdir '%s'%s", change_dir, shell_cmd_separator);
+	} else if( !strcmp( shell_derelict, "python")) {
+		fprintf(stdout, "os.chdir('%s')\n", change_dir);
+	} else {
+		rc = TCL_ERROR;
+	}
+
+	free(change_dir);
+	change_dir = NULL;
+
+	return rc;
+}
+
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -946,7 +992,7 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
  **						set			     **
  **			const char	*val	Value to be assigned	     **
  **									     **
- **   Result:		int	TCL_OK		Finished successfull	     **
+ **   Result:		int	TCL_OK		Finished successful	     **
  **				TCL_ERROR	Unknown shell type	     **
  **									     **
  **   Attached Globals:	shell_derelict					     **
@@ -967,6 +1013,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
     chop( val);
     chop( var);
 
+    assert(shell_derelict != NULL);
 #if WITH_DEBUGGING_UTIL_2
     ErrorLogger( NO_ERR_START, LOC, _proc_output_set_variable, " var='", var,
 	"' val= '", val, "'", NULL);
@@ -1133,7 +1180,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
  **   Parameters:	const char	*var	Name of the variable to be   **
  **						unset			     **
  **									     **
- **   Result:		int	TCL_OK		Finished successfull	     **
+ **   Result:		int	TCL_OK		Finished successful	     **
  **				TCL_ERROR	Unknown shell type	     **
  **									     **
  **   Attached Globals:	shell_derelict					     **
@@ -1145,6 +1192,7 @@ static	int	output_unset_variable( const char* var)
 {
     chop( var);
 
+    assert(shell_derelict != NULL);
 #if WITH_DEBUGGING_UTIL_2
     ErrorLogger( NO_ERR_START, LOC, _proc_output_unset_variable, NULL);
 #endif
@@ -1264,7 +1312,7 @@ static	void	output_function(	const char	*var,
  **   Parameters:	const char	*alias		Name of the alias    **
  **			const char	*val		Value to be assigned **
  ** 									     **
- **   Result:		int	TCL_OK		Operation successfull	     **
+ **   Result:		int	TCL_OK		Operation successful	     **
  ** 									     **
  **   Attached Globals:	aliasfile, 	The alias command is written out to  **
  **			alias_separator Defined the command separator	     **
@@ -1280,7 +1328,8 @@ static	int	output_set_alias(	const char	*alias,
     int nobackslash = 1;		/** Controls whether backslashes are **/
 					/** to be print			     **/
     const char *cptr = val;		/** Scan the value char by char	     **/
-        
+
+    assert(shell_derelict != NULL);
 #if WITH_DEBUGGING_UTIL_2
     ErrorLogger( NO_ERR_START, LOC, _proc_output_set_alias, NULL);
 #endif
@@ -1426,7 +1475,7 @@ static	int	output_set_alias(	const char	*alias,
  **			const char	*val		Value which has been **
  **							assigned	     **
  ** 									     **
- **   Result:		int	TCL_OK		Operation successfull	     **
+ **   Result:		int	TCL_OK		Operation successful	     **
  ** 									     **
  **   Attached Globals:	aliasfile, 	The alias command is writte out to   **
  **			alias_separator Defined the command separator	     **
@@ -1443,6 +1492,7 @@ static	int	output_unset_alias(	const char	*alias,
 					/** to be print			     **/
     const char *cptr = val;	/** Need to read the value char by char      **/
 
+    assert(shell_derelict != NULL);
 #if WITH_DEBUGGING_UTIL_2
     ErrorLogger( NO_ERR_START, LOC, _proc_output_unset_alias, NULL);
 #endif
@@ -1661,7 +1711,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
  ** 									     **
  **   Function:		IsLoaded					     **
  ** 									     **
- **   Description:	Check wether the passed modulefile is cirrently      **
+ **   Description:	Check wether the passed modulefile is currently      **
  **			loaded						     **
  ** 									     **
  **   First Edition:	1991/10/23					     **
@@ -2039,7 +2089,7 @@ static	char	*get_module_basename(	char	*modulename)
  **			char            *filename	Full path name of the**
  **							related modulefile   **
  **									     **
- **   Result:		int	1	Successfull operation		     **
+ **   Result:		int	1	Successful operation		     **
  **									     **
  **   Attached Globals:	g_flags		Controls whether the modulename      **
  **					should be added (M_XXXX) or removed  **
@@ -2790,7 +2840,7 @@ int tmpfile_mod(char** filename, FILE** file) {
  **			const char	*strN	Nth string to cat  to buffer **
  **			const char	*NULL	end of arguments	     **
  ** 									     **
- **   Result:		char		*buffer	if successfull completion    **
+ **   Result:		char		*buffer	if successful completion    **
  ** 					else NULL			     **
  ** 									     **
  **   Attached Globals:	-						     **
@@ -3019,7 +3069,9 @@ EM_RetVal ReturnValue(Tcl_Interp *interp, int retval) {
  ++++*/
 void OutputExit() {
 
-	if( !strcmp( shell_derelict, "csh")) {
+	if (shell_derelict == NULL) {
+		return;
+	} else if( !strcmp( shell_derelict, "csh")) {
 		/* OK shell derelict */
 	} else if( !strcmp( shell_derelict, "sh")) {
 		/* OK shell derelict */

@@ -47,7 +47,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.12 2007/02/14 06:21:50 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.13 2009/08/03 16:23:55 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -90,16 +90,16 @@ static void *UseId[] = { &UseId, Id };
 /**         |								     **/
 /**			       alphabetic ordered     alphabtic ordered	     **/
 /**			    list of names depending    list of aliases	     **/
-/**			    to a single module file			     **/
+/**			    on a single module file			     **/
 /**									     **/
 /**   Each module name points to a list of symbolic names and versions.	     **/
-/**   The versions themselfes can be symbolic names and therefore are of the **/
+/**   The versions themselves can be symbolic names and therefore are of the **/
 /**   same record type as the names.					     **/
-/**   The name and the version list is alphabetically sorted (even the       **/
+/**   The name and the version list are alphabetically sorted (even the      **/
 /**   module list is). A version record points to a related name record	     **/
 /**   containing a symbolic name for the version. Starting at this record,   **/
-/**   the name records built a queue of symbolic names for the version.	     **/
-/**   Both, the version and the name record do have a backward pointer to    **/
+/**   the name records build a queue of symbolic names for the version.	     **/
+/**   Both, the version and the name record, do have a backward pointer to   **/
 /**   the module record.						     **/
 /**									     **/
 /**   The alias list builds a alphabetic ordered list of defined aliases.    **/
@@ -111,7 +111,7 @@ typedef	struct	_mod_module	{
     struct _mod_module	*next;		/** alphabetic queue		     **/
     struct _mod_name	*version;	/** version queue   		     **/
     struct _mod_name	*name;		/** name queue      		     **/
-    char		*module;	/** the name itsself		     **/
+    char		*module;	/** the name itself		     **/
 } ModModule;
 
 typedef	struct	_mod_name	{
@@ -119,7 +119,7 @@ typedef	struct	_mod_name	{
     struct _mod_name	*ptr;		/** logical next    		     **/
     struct _mod_name	*version;	/** backwards version pointer	     **/
     struct _mod_module	*module;	/** related module  		     **/
-    char		*name;		/** the name itsself		     **/
+    char		*name;		/** the name itself		     **/
 } ModName;
 
 /** ************************************************************************ **/
@@ -202,7 +202,7 @@ static	char		*scan_versions(		char 		 *buffer,
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	modlist		List containing all version names    **
@@ -608,7 +608,7 @@ static	char	*CheckModuleVersion( char *name)
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	aliaslist	List containing all alises	     **
@@ -872,7 +872,7 @@ int	VersionLookup(	char *name, char **module, char **version)
 
     /**
      **  Look up modulename ...
-     **  We call it success, if we do not find a registerd name.
+     **  We call it success, if we do not find a registered name.
      **  In this case <module>/<version> will be returned as passed.
      **/
     if((ModModule *) NULL == (mptr = FindModule( *module, &mtmp))) {
@@ -893,7 +893,7 @@ int	VersionLookup(	char *name, char **module, char **version)
 
     /**
      **  Now look up the version name. Check symbolic names first. If some-
-     **  thing is found, check if the related version record itsself relates
+     **  thing is found, check if the related version record itself relates
      **  to a name record ...
      **/
     while( 1) {

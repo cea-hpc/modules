@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.5 2007/02/14 06:21:50 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.6 2009/08/03 16:23:55 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -92,7 +92,7 @@ static	int	  whatis_size = 0, whatis_ndx = 0;
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	sw_verbose	The verbose level selector	     **

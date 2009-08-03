@@ -36,7 +36,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.14 2007/02/14 06:21:50 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.15 2009/08/03 16:23:55 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -563,6 +563,9 @@ int InitializeModuleCommands( Tcl_Interp* interp)
 		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
 
     Tcl_CreateCommand( interp, "is-loaded", cmdIsLoaded, 
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
+
+    Tcl_CreateCommand( interp, "chdir", cmdChDir,
 		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "system", cmdSystem, 
 		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);

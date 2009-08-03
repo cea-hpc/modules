@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.21 2007/02/22 23:30:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.22 2009/08/03 16:23:55 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -513,7 +513,7 @@ unwindt:
 	} else {     /** if( $path/$prefix/$mod is a directory) **/
 	    /**
 	     **  Now 'mod' should be either a file or the word 'default'
-	     **  In case of default get the file with the highest verion number
+	     **  In case of default get the file with the highest version number
 	     **  in the current directory
 	     **/
 	    if( is_def) {
@@ -534,7 +534,7 @@ unwindt:
 		for( i=0; i<numlist && Result==NULL; i++) {
 		    /**
 		     **  Build the full path name and check if it is a
-		     **  directory. If it is, recursivly try to find there what
+		     **  directory. If it is, recursively try to find there what
 		     **  we're seeking for
 		     **/
 		    if ((char *)NULL == stringer(fullpath, MOD_BUFSIZE,
@@ -1205,7 +1205,7 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
      **/
     null_free((void *) &buffer);
     /**
-     **  Result determines if this was successfull
+     **  Result determines if this was successful
      **/
 
     return( Result);

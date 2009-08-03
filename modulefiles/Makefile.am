@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        modulefiles/Makefile.am
-## Versions:    $Id: Makefile.am,v 1.5 2006/02/06 17:30:50 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.6 2009/08/03 16:23:58 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -74,8 +74,8 @@ uninstall-basemodules :
 @NOTVERSIONING@uninstall-version-not :
 	@$(NORMAL_UNINSTALL)
 	@if test x$(WANTS_VERSIONING) = x1 ; then \
-	    echo " rm -f $(DESTDIR)$(VERSIONPATH)/$(VERSION)" ; \
-	    rm -f $(DESTDIR)$(VERSIONPATH)/$(VERSION) ; \
+	    echo " rm -rf $(DESTDIR)$(VERSIONPATH)/$(VERSION)" ; \
+	    rm -rf $(DESTDIR)$(VERSIONPATH)/$(VERSION) ; \
 	else \
 	  echo "*** VERSION modulefile $(DESTDIR)$(VERSIONPATH)/$(VERSION) not uninstalled ***"; \
 	  echo "*** Do This Yourself If you really want to ***"; \

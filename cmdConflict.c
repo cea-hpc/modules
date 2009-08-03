@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.13 2007/02/14 06:21:50 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.14 2009/08/03 16:23:55 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -90,7 +90,7 @@ static	char	_proc_cmdPrereq[] = "cmdPrereq";
  **			char		**modulelist	List of loaded mod.  **
  **			int		 nummodules	Number of loaded mod.**
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -141,7 +141,7 @@ static	int	checkConflict(	Tcl_Interp	*interp,
 
 	/**
 	 **  Is it a directory what has been passed? If it is, list the
-	 **  according directory and call myself recursivly in order to 
+	 **  according directory and call myself recursively in order to
 	 **/
 
         if( S_ISDIR( stat_info.st_mode)) {
@@ -214,7 +214,7 @@ unwind0:
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -361,7 +361,7 @@ unwind0:
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **

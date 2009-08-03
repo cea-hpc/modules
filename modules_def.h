@@ -142,6 +142,13 @@ extern	int	  errno;
 /* gettext_noop() equivalent */
 #define N_(String) (String)
 
+#ifdef HAVE_ASSERT_H
+#  include <assert.h>
+#else
+#warning "not able to test code assertions"
+#define assert(condition)
+#endif
+
 /** ************************************************************************ **/
 /** 				  LOCAL DATATYPES			     **/
 /** ************************************************************************ **/
@@ -550,6 +557,7 @@ extern	char	*instpath;
 extern	char	*rc_file;
 extern	char	*modulerc_file;
 extern	char	*version_file;
+extern	char	*change_dir;
 
 extern	char	 long_header[];
 
@@ -670,6 +678,9 @@ extern	void	  xresourceFinish( int);
 /**  cmdUlvl.c  **/
 extern	int	  cmdModuleUser(ClientData, Tcl_Interp*, int, CONST84 char*[]);
 extern	int	  cmdModuleUser_sub( char *user_level);
+
+/**  cmdChdir.c **/
+extern	int	  cmdChDir(ClientData, Tcl_Interp*, int, CONST84 char*[]);
 
 /**  cmdLog.c  **/
 extern	int	  cmdModuleLog( ClientData, Tcl_Interp*, int, CONST84 char*[]);

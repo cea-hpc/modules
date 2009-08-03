@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        init/Makefile.am
-## Versions:    $Id: Makefile.am,v 1.5 2006/06/01 21:20:10 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.6 2009/08/03 16:23:58 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -10,7 +10,7 @@
 AUTOMAKE_OPTIONS=foreign no-installinfo
 
 EXTRA_SCRIPTS= \
-	bash csh ksh perl python sh tcsh zsh ksh .modulespath
+	bash bash_completion csh ksh perl python sh tcsh zsh ksh .modulespath
 
 INIT_FILES=${EXTRA_SCRIPTS}
 
@@ -32,8 +32,8 @@ install-inits : $(INIT_FILES)
 	@list='$(INIT_FILES)'; for p in $$list; do \
 	  if test -f $$p \
 	  ; then \
-	   echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(exec_prefix)/init/$$p"; \
-	   $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(exec_prefix)/init/$$p; \
+	   echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_DATA) $$p $(DESTDIR)$(exec_prefix)/init/$$p"; \
+	   $(INSTALL_PROGRAM_ENV) $(INSTALL_DATA) $$p $(DESTDIR)$(exec_prefix)/init/$$p; \
 	  else :; fi; \
 	done
 	rm -f $(INIT_FILES)
@@ -47,56 +47,16 @@ uninstall-inits :
 	  rm -f $(DESTDIR)$(exec_prefix)/init/$$p; \
 	done
 
-#
-# we need to filter the *.in files to produce the init scripts
-#   since we don't know the value of @prefix@ until Make time
-#   therefore, we can not rely on configure to give us correct values.
-# Cobbled together filter to substitute the configure macros
-#   which are expanded and passed on the filter commandline.
-#
-
-#.modulespath : .modulespath.in
-#	${SHELL} filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
-#		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
-#		< .modulespath.in > .modulespath
-
-#.modulespath : .modulespath.in $(top_builddir)/config.status
-#	(cd $(top_builddir); config.status init/.modulespath)
-
-bash : bash.in $(top_builddir)/config.status
-	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
-		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
-		< bash.in > bash
-
-csh : csh.in $(top_builddir)/config.status
-	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
-		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
-		< csh.in > csh
-
-ksh : ksh.in $(top_builddir)/config.status
-	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
-		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
-		< ksh.in > ksh
-
-perl : perl.in $(top_builddir)/config.status
-	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
-		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
-		< perl.in > perl
-
-python : python.in $(top_builddir)/config.status
-	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
-		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
-		< python.in > python
-
-sh : sh.in $(top_builddir)/config.status
-	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
-		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
-		< sh.in > sh
-
-zsh : zsh.in $(top_builddir)/config.status
-	${SHELL} $(srcdir)/filter "@prefix@" "@bindir@" "@BASEPREFIX@" \
-		"@VERSION@" "@VERSIONING@" "@NOTVERSIONING@" \
-		< zsh.in > zsh
+# We need to filter the *.in files to produce the init scripts
+# since we don't know the value of '@prefix@' until Make time.
+# (We can not rely on configure to give us correct values.)
+% : %.in $(top_builddir)/config.status
+	sed -e "/@$(if $(subst 0,,$(WANTS_VERSIONING)),NOT,)VERSIONING\@/d; \
+	s,@$(if $(subst 0,,$(WANTS_VERSIONING)),,NOT)VERSIONING\@,,g; \
+	s,@prefix\@,${prefix},g; \
+	s,@bindir\@,${exec_prefix}/bin,g; \
+	s,@VERSION\@,3.2.6,g; \
+	s,@BASEPREFIX\@,/usr/share,g;" < $< > $@
 
 tcsh : csh
 	cp csh $@

@@ -8,7 +8,7 @@ import os, string
 @VERSIONING@os.environ['MODULESHOME'] = '@prefix@'
 
 if not os.environ.has_key('MODULEPATH'):
-        os.environ['MODULEPATH'] = os.popen("""sed 's/#.*$//' ${MODULESHOME}/init/.modulespath | awk 'NF==1{printf("%s:",$1)}'""").readline()
+        os.environ['MODULEPATH'] = os.popen("""sed -n 's/[ \t#].*$//; /./H; $ { x; s/^\\n//; s/\\n/:/g; p }' ${MODULESHOME}/init/.modulespath""").readline()
 
 if not os.environ.has_key('LOADEDMODULES'):
         os.environ['LOADEDMODULES'] = '';

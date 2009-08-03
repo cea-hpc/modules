@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.15 2007/02/14 06:21:50 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.16 2009/08/03 16:23:55 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -106,7 +106,7 @@ char	 *module_command;
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -446,7 +446,7 @@ int	cmdModule(	ClientData	 client_data,
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **		 	char		*filename			     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_BREAK	break command		     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
@@ -522,7 +522,7 @@ int   Read_Modulefile( Tcl_Interp	*interp,
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **		 	char		*filename			     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	line		Input read buffer		     **
@@ -695,7 +695,7 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
  **			int		 suppress_output  Controlls redirect.**
  **							of stdout and stderr **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	-						     **
