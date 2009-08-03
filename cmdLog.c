@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdLog.c,v 1.8 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdLog.c,v 1.9 2009/08/03 21:04:10 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -92,8 +92,7 @@ static	char	_none[] = "none";
  **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
- **   Attached Globals:	tracelist	List containing all tracing settings **
- **   			g_flags		These are set up accordingly before  **
+ **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
  ** 									     **
@@ -208,9 +207,9 @@ int	cmdModuleLog(	ClientData	 client_data,
     } /** for **/
 
     /**
-     **  Now, 'tmp' should contain the new list of facilities. Check wheter
+     **  Now, 'tmp' should contain the new list of facilities. Check whether
      **  there has been one allocated so far ...
-     **  We do not need the orginal faclist any more.
+     **  We do not need the original faclist any more.
      **/
 
     null_free((void *) &faclist);

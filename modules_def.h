@@ -686,10 +686,12 @@ extern	int	  cmdChDir(ClientData, Tcl_Interp*, int, CONST84 char*[]);
 extern	int	  cmdModuleLog( ClientData, Tcl_Interp*, int, CONST84 char*[]);
 
 /**  cmdTrace.c  **/
+/*
 extern	int	  cmdModuleTrace(ClientData,Tcl_Interp*, int, CONST84 char*[]);
 extern	char	 *GetTraceSel(Tcl_Interp*, char*);
 extern	int	  CheckTracing(Tcl_Interp*, char*, char*);
 extern	int	  CheckTracingList(Tcl_Interp*, char*, int, char**);
+*/
 
 /**  cmdVersion.c  **/
 extern	int	  cmdModuleVersion(ClientData,Tcl_Interp*,int,CONST84 char*[]);

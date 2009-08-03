@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdInfo.c,v 1.9 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdInfo.c,v 1.10 2009/08/03 21:04:10 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -282,47 +282,6 @@ int	cmdModuleInfo(	ClientData	 client_data,
 	    else
 		Tcl_SetResult( interp, "0", TCL_STATIC);
 	}
-
-    /**
-     **  'module-info trace'
-     **  Check whether tracing is turned on
-     **/
-
-    } else if( !strcmp(argv[1], "trace")) {
-	char *cmd, *module;
-
-	if( argc > 2) 
-	    cmd = (char *) argv[ 2];
-	else
-	    cmd = module_command;
-
-	if( argc > 3) 
-	    module = (char *) argv[ 3];
-	else
-	    module = g_current_module;
-
-	if( CheckTracing(interp, cmd, module))
-	    Tcl_SetResult( interp, "1", TCL_STATIC);
-	else
-	    Tcl_SetResult( interp, "0", TCL_STATIC);
-
-    } else if( !strcmp(argv[1], "tracepat")) {
-	char *cmd, *pattern;
-
-	if( argc > 2) 
-	    cmd = (char *) argv[ 2];
-	else
-	    cmd = module_command;
-
-	if((char *) NULL == (pattern = GetTraceSel(interp, cmd)))
-	    Tcl_SetResult( interp, "*undef*", TCL_STATIC);
-	else
-	    Tcl_SetResult( interp, pattern, TCL_VOLATILE);
-
-    /**
-     **  'module-info alias'
-     **  Print the value of the passed alias
-     **/
 
     } else if( !strcmp(argv[1], "alias")) {
 

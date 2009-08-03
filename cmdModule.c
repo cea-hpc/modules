@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.16 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.17 2009/08/03 21:04:10 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -394,14 +394,6 @@ int	cmdModule(	ClientData	 client_data,
 	return_val = ModuleCmd_Help( interp, num_modulefiles, modulefile_list);
     }
     
-    /**
-     **  Tracing
-     **/
-
-    if( CheckTracingList(interp,  module_command,
-	num_modulefiles, modulefile_list))
-	Module_Tracing( return_val, argc, (char **) argv);
-
     /**
      **  Evaluate the subcommands return value in order to get rid of unrecog-
      **  nized commands
