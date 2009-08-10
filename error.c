@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.14 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.15 2009/08/10 19:28:00 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -64,7 +64,6 @@ typedef enum _err_weights	{
     WGHT_VERBOSE,			/** Verbose messages		     **/
     WGHT_INFO=3,			/** Informal message	 	     **/
     WGHT_DEBUG=5,			/** Debugger output		     **/
-    WGHT_TRACE,				/** Tracing output		     **/
     WGHT_WARN=10,			/** Warning: Prog. flow not affected **/
     WGHT_PROB=20,			/** Problem: Prog. flow cond. aff.   **/
     WGHT_ERROR=25,			/** Error and Fatal: Prog. flow aff. **/
@@ -157,7 +156,6 @@ static	ErrFacilities	Facilities[] = {
     { WGHT_VERBOSE,	NULL,	DEF_FACILITY_VERBOSE },
     { WGHT_INFO,	NULL,	DEF_FACILITY_INFO },
     { WGHT_DEBUG,	NULL,	DEF_FACILITY_DEBUG },
-    { WGHT_TRACE,	NULL,	DEF_FACILITY_TRACE },
     { WGHT_WARN,	NULL,	DEF_FACILITY_WARN },
     { WGHT_PROB,	NULL,	DEF_FACILITY_PROB },
     { WGHT_ERROR,	NULL,	DEF_FACILITY_ERROR },
@@ -169,27 +167,29 @@ static	ErrFacilities	Facilities[] = {
  **  Syslog facility names
  **/
 
+/* must be in alphabetic order */
 static	FacilityNames	facility_names[] = {
 #if defined(HAVE_SYSLOG) && defined(WITH_LOGGING)
-    { "auth", LOG_AUTH },
-    { "cron", LOG_CRON },
-    { "daemon", LOG_DAEMON },
-    { "kern", LOG_KERN },
-    { "local0", LOG_LOCAL0 },
-    { "local1", LOG_LOCAL1 },
-    { "local2", LOG_LOCAL2 },
-    { "local3", LOG_LOCAL3 },
-    { "local4", LOG_LOCAL4 },
-    { "local5", LOG_LOCAL5 },
-    { "local6", LOG_LOCAL6 },
-    { "local7", LOG_LOCAL7 },
-    { "lpr", LOG_LPR },
-    { "mail", LOG_MAIL },
-    { "news", LOG_NEWS },
-    { "user", LOG_USER },
-    { "uucp", LOG_UUCP }
+    { "auth",		LOG_AUTHPRIV },
+    { "cron",		LOG_CRON },
+    { "daemon",		LOG_DAEMON },
+    { "ftp",		LOG_FTP },
+    { "kern",		LOG_KERN },
+    { "local0",		LOG_LOCAL0 },
+    { "local1",		LOG_LOCAL1 },
+    { "local2",		LOG_LOCAL2 },
+    { "local3",		LOG_LOCAL3 },
+    { "local4",		LOG_LOCAL4 },
+    { "local5",		LOG_LOCAL5 },
+    { "local6",		LOG_LOCAL6 },
+    { "local7",		LOG_LOCAL7 },
+    { "lpr",		LOG_LPR },
+    { "mail",		LOG_MAIL },
+    { "news",		LOG_NEWS },
+    { "user",		LOG_USER },
+    { "uucp",		LOG_UUCP }
 #else
-    { "none", 0 }
+    { "none",		0 }
 #endif
 };
 
@@ -197,18 +197,19 @@ static	FacilityNames	facility_names[] = {
  **  Syslog level names
  **/
 
+/* must be in alphabetic order */
 static	FacilityNames	level_names[] = {
 #if defined(HAVE_SYSLOG) && defined(WITH_LOGGING)
-    { "alert", LOG_ALERT },
-    { "crit", LOG_CRIT },
-    { "debug", LOG_DEBUG },
-    { "emerg", LOG_EMERG },
-    { "err", LOG_ERR },
-    { "info", LOG_INFO },
-    { "notice", LOG_NOTICE },
-    { "warning", LOG_WARNING }
+    { "alert",		LOG_ALERT },
+    { "crit",		LOG_CRIT },
+    { "debug",		LOG_DEBUG },
+    { "emerg",		LOG_EMERG },
+    { "err",		LOG_ERR },
+    { "info",		LOG_INFO },
+    { "notice",		LOG_NOTICE },
+    { "warning",	LOG_WARNING },
 #else
-    { "none", 0 }
+    { "none",		0 }
 #endif
 };
 
@@ -220,23 +221,29 @@ static	FacilityNames	level_names[] = {
 
 #define	MEAS_VERB_NDX	1	/** Index of the 'VERBOSE' entry	    **/
 
+/*					novice		advanced	expert*/
 static	ErrMeasr	Measurements[] = {
-    { WGHT_NONE,   ""	  , OK,      OK,      OK },	
-    { WGHT_VERBOSE,"VERB" , OK,      OK,      OK },
-    { WGHT_INFO,   "INFO" , OK,      OK,      OK },
-    { WGHT_DEBUG,  "DEBUG", OK,      OK,      OK },
-    { WGHT_TRACE,  "TRACE", OK,      OK,      OK },
-    { WGHT_WARN,   "WARN" , PROBLEM, WARN,    OK },
-    { WGHT_PROB,   "PROB" , ERROR,   PROBLEM, OK },
-    { WGHT_ERROR,  "ERROR", ERROR,   ERROR,   ERROR },
-    { WGHT_FATAL,  "FATAL", FATAL,   FATAL,   FATAL },
-    { WGHT_PANIC,  "PANIC", PANIC,   PANIC,   PANIC },
+	{ WGHT_NONE,	"",		OK,		OK,		OK },	
+	{ WGHT_VERBOSE,	"VERB",		OK,		OK,		OK },
+	{ WGHT_INFO,	"INFO",		OK,		OK,		OK },
+	{ WGHT_DEBUG,	"DEBUG",	OK,		OK,		OK },
+	{ WGHT_WARN,	"WARN",		PROBLEM,	WARN,		OK },
+	{ WGHT_PROB,	"PROB",		ERROR,		PROBLEM,	OK },
+	{ WGHT_ERROR,	"ERROR",	ERROR,		ERROR,		ERROR },
+	{ WGHT_FATAL,	"FATAL",	FATAL,		FATAL,		FATAL },
+	{ WGHT_PANIC,	"PANIC",	PANIC,		PANIC,		PANIC },
 };
 
 /**
  **  Error code translation table
  **  Take care that this list is sorted in ascending order concerning the error
- **  types
+ **  types.
+ **  Error weights (WGHT_*)
+ **	WARN	- warnings
+ **	PROB	- problems (normally the modulecmd may be completed)
+ **	ERROR	- errors (which normally leads to an unsuccessful end)
+ **	FATAL	- fatal system errors
+ **	PANIC	- very fatal system errors (internal program inconsistencies)
  **/
 
 static	ErrTransTab	TransTab[] = {
@@ -332,9 +339,9 @@ static	ErrTransTab	TransTab[] = {
 N_("Invalid update subcommand - No MODULESBEGINENV - hence not supported")},
     { ERR_INIT_TCL,	WGHT_ERROR, N_("Cannot initialize TCL") },
     { ERR_INIT_TCLX,	WGHT_WARN,
-N_("Cannot initialize TCLX modules using extended commands might fail") },
+N_("Cannot initialize TCLX - modules using extended commands might fail") },
     { ERR_INIT_ALPATH,	WGHT_WARN,
-N_("Could not extend auto_path variable. Module using autoloadable functions might fail") },
+N_("Could not extend auto_path variable - modules using autoloadable functions might fail") },
     { ERR_INIT_STUP,	WGHT_WARN,
 N_("Cannot find a 'module load' command in any of the '$1' startup files") },
     { ERR_SET_VAR,	WGHT_WARN,  N_("Cannot set TCL variable '$1'") },
@@ -342,7 +349,6 @@ N_("Cannot find a 'module load' command in any of the '$1' startup files") },
 	N_("Unrecognized module info descriptor '$1'") },
     { ERR_INVWGHT_WARN,	WGHT_WARN,  N_("Invalid error weight '$1' found") },
     { ERR_INVFAC_WARN,	WGHT_WARN,  N_("Invalid log facility '$1'") },
-    { ERR_COLON,	WGHT_WARN,  N_("Spurious colon in pattern '$1'") },
     { ERR_INTERAL,	WGHT_PANIC, N_("Internal error in the alias handler") },
     { ERR_INTERRL,	WGHT_PANIC, N_("Internal error in the error logger") },
     { ERR_INVAL,	WGHT_PANIC, N_("Invalid error type '$1' found") },
@@ -396,24 +402,18 @@ static	int	scan_facility(	char		 *s,
 static	char	*GetFacility(	ErrWeights	  Weight);
 static	ErrFacilities	*GetFacility_sub( ErrWeights Weight);
 
-static	void Print_Tracing(	char	 *buffer,
-				int	  result,
-			   	int	  argc,
-			   	char	**argv);
 
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
- **   Function:		Module_Tracing					     **
- **			Print_Tracing					     **
- **			Module_Verbosity				     **
+ **   Function:		Module_Verbosity				     **
  ** 									     **
- **   Description:	Display a tracing or verbose message		     **
+ **   Description:	Display a verbose message			     **
  ** 									     **
  **   First Edition:	1995/12/27					     **
  ** 									     **
- **   Parameters:	int	result	Result code of th module command     **
- **			int	argc	Number od arguments to the module    **
+ **   Parameters:	int	result	Result code of the module command    **
+ **			int	argc	Number of arguments to the module    **
  **					command				     **
  **			char	**argv	Argument array			     **
  **			char	*buffer	Print buffer			     **
@@ -426,17 +426,6 @@ static	void Print_Tracing(	char	 *buffer,
  ** ************************************************************************ **
  ++++*/
 
-void Module_Tracing(	int	result,
-		   	int	argc,
-		   	char	**argv)
-{
-    if( !FlushError( NO_ERR, (char *) NULL, result, WGHT_TRACE, (char *) NULL,
-	(char *) NULL, argc, argv)) {
-	ErrorLogger( ERR_INTERRL, LOC, NULL);
-    }
-
-} /** End of 'Module_Tracing' **/
-
 void Module_Verbosity(	int	argc,
 		   	char	**argv)
 {
@@ -448,75 +437,6 @@ void Module_Verbosity(	int	argc,
 
 } /** End of 'Module_Verbosity' **/
 
-static	void Print_Tracing(	char	 *buffer,
-				int	  result,
-			   	int	  argc,
-			   	char	**argv)
-{
-    char 		*s = buffer;
-    struct passwd 	*pwent;
-    struct group 	*grpent;
-    uid_t 		 uid;
-    gid_t 		 gid;
-
-    /**
-     **  Print the arguments
-     **/
-
-    while( argc--) {
-	/* sprintf( s, "%s ", *argv++); */
-	strcpy( s, *argv++);
-	strcat( s, " ");
-	s += strlen( s);
-    }
-
-    /**
-     **  Add the real and effective user- and group-id
-     **/
-
-    pwent = getpwuid( uid = getuid());
-    sprintf( s, " [%s(%d)", (pwent ? pwent->pw_name : _(em_unknown)), uid);
-    s += strlen( s);
-    grpent = getgrgid( gid = getgid());
-    sprintf( s, ".%s(%d)]", (grpent ? grpent->gr_name : _(em_unknown)), gid);
-    s += strlen( s);
-
-    pwent = getpwuid( uid = geteuid());
-    sprintf( s, " [%s(%d)", (pwent ? pwent->pw_name : _(em_unknown)), uid);
-    s += strlen( s);
-    grpent = getgrgid( gid = getegid());
-    sprintf( s, ".%s(%d)] = ", (grpent ? grpent->gr_name : _(em_unknown)), gid);
-    s += strlen( s);
-
-    /**
-     **  Add the commands result
-     **/
-
-    switch( result) {
-	case TCL_OK:
-	    strcpy( s, "TCL_OK");
-	    break;
-	case TCL_ERROR:
-	    strcpy( s, "TCL_ERROR");
-	    break;
-	case TCL_RETURN:
-	    strcpy( s, "TCL_RETURN");
-	    break;
-	case TCL_BREAK:
-	    strcpy( s, "TCL_BREAK");
-	    break;
-	case TCL_CONTINUE:
-	    strcpy( s, "TCL_CONTINUE");
-	    break;
-	default:
-	    strcpy( s, _(em_unknown));
-	    break;
-    }
-
-    s += strlen( s);
-    sprintf( s, "(%d)", result);
-
-} /** End of 'Module_Tracing' **/
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -691,7 +611,7 @@ int Module_Error(	ErrType		  error_type,
     /**
      **  Print the error message
      **/
-    if( TransPtr->error_weight <= WGHT_TRACE || ret_code != OK)
+    if( TransPtr->error_weight <= WGHT_DEBUG || ret_code != OK)
 	if( !FlushError( error_type, module, lineno, TransPtr->error_weight,
 	    MeasPtr->message, TransPtr->messages, argc, argv)) {
 	    if( argv)
@@ -889,8 +809,7 @@ static	int	FlushError(	ErrType		  Type,
     char	*facilities, *buffer;
     char 	*fac;
     FILE	*facfp;
-    char	*errmsg_buffer;
-    int		 fac_alloc = 0;
+    char	*errmsg_buffer, *fac_buffer;
 
     /**
      **  get the error facilities at first. If there isn't any, we may
@@ -900,20 +819,12 @@ static	int	FlushError(	ErrType		  Type,
 	goto success0;
 
     /**
-     **  PANIC and FATAL error messages ought to be on stderr at least!
+     **  copy the facilities string so we can do some changes in it
      **/
-    if( WGHT_FATAL == Weight || WGHT_PANIC == Weight)
-	if( !strstr( facilities, _stderr)) {
-
-	    if((char *) NULL == (buffer = stringer(NULL,0,
-		    _stderr,":", facilities, NULL))) {
-		ErrorLogger( ERR_STRING, LOC, NULL);
-		goto unwind0;
-	    }
-
-	    facilities = buffer;
-	    fac_alloc = 1;
-	}
+    if((char *) NULL == (fac_buffer = stringer(NULL, 0, facilities, NULL))) {
+	ErrorLogger( ERR_ALLOC, LOC, NULL);
+	goto unwind0;
+    }
 
     /**
      **  Print the error message into the buffer
@@ -931,17 +842,15 @@ static	int	FlushError(	ErrType		  Type,
 	--argc;
     }
 
-    if( WGHT_TRACE == Weight)
-	Print_Tracing( errmsg_buffer, lineno, argc, argv);
-    else if( !PrintError( errmsg_buffer, Type, module, lineno, Weight,
+    if( !PrintError( errmsg_buffer, Type, module, lineno, Weight,
 	WeightMsg, ErrMsgs, argc, argv))
 	    goto unwind2;
 
     /**
-     **  Now tokenize the facilities string and schedule the error messge
+     **  Now tokenize the facilities string and schedule the error message
      **  for every single facility
      **/
-    for( fac = xstrtok( facilities, ":");
+    for( fac = xstrtok( fac_buffer, ":");
 	 fac;
 	 fac = xstrtok( (char *) NULL, ":") ) {
 
@@ -968,10 +877,6 @@ static	int	FlushError(	ErrType		  Type,
 #if defined(HAVE_SYSLOG) && defined(WITH_LOGGING)
 	    int syslog_fac, syslog_lvl;
 
-	/* error output to stderr too if an error or verbose */
-	    if (Type >= NO_ERR_VERBOSE)
-		fprintf( stderr, "%s", errmsg_buffer);
-
 	/* now send to syslog */
 	    if( CheckFacility( fac, &syslog_fac, &syslog_lvl)) {
 		openlog( "modulecmd", LOG_PID, syslog_fac);
@@ -986,13 +891,6 @@ static	int	FlushError(	ErrType		  Type,
 	    } else if( Type == ERR_INVFAC ||
 	               OK == ErrorLogger( ERR_INVFAC, LOC, fac, NULL)) 
 		continue;
-
-#else
-#  ifdef	SYSLOG_DIR
-	    /* this is an intentional memory leak */
-	    buffer = stringer(NULL,0, SYSLOG_DIR, "/", fac);
-	    fac = buffer;
-#  endif
 #endif
 	}
 
@@ -1030,16 +928,14 @@ static	int	FlushError(	ErrType		  Type,
      **  Return on success
      **/
     null_free((void *) &errmsg_buffer);
-    if( fac_alloc)
-	null_free((void *) &facilities);
+    null_free((void *) &fac_buffer);
 success0:
     return( 1);				/** -------- EXIT (SUCCESS) -------> **/
 
 unwind2:
     null_free((void *) &errmsg_buffer);
 unwind1:
-    if( fac_alloc)
-	null_free((void *) &facilities);
+    null_free((void *) &fac_buffer);
 unwind0:
     return( 0);				/** -------- EXIT (FAILURE) -------> **/
 
@@ -1130,7 +1026,7 @@ static	ErrFacilities	*GetFacility_sub(	ErrWeights	  Weight)
  ** 									     **
  **   Function:		CheckFacility					     **
  ** 									     **
- **   Description:	Check the passwd string to be a valid combination    **
+ **   Description:	Check the passed string to be a valid combination    **
  **			of       <syslog_facility>.<syslog_level>	     **
  ** 									     **
  **   First Edition:	1995/12/21					     **

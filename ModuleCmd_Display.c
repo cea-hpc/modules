@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Display.c,v 1.5 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Display.c,v 1.6 2009/08/10 19:28:00 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -59,7 +59,7 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 char local_line[] =
-    "-------------------------------------------------------------------\n";
+    "-------------------------------------------------------------------";
 static	char	module_name[] = "ModuleCmd_Display.c";	/** File name of this module **/
 #if WITH_DEBUGGING_MODULECMD
 static	char	_proc_ModuleCmd_Display[] = "ModuleCmd_Display";
@@ -161,13 +161,13 @@ int ModuleCmd_Display(	Tcl_Interp	*interp,
 
         g_current_module = modulename;
 
-        fprintf( stderr, local_line);
+        fprintf( stderr, "%s\n",local_line);
 	fprintf( stderr, "%s:\n\n", modulefile);
 
 	result = CallModuleProcedure( disp_interp, &cmdbuf, modulefile, 
 	    "ModulesDisplay", 0);
 
-        fprintf( stderr, local_line);
+        fprintf( stderr, "%s\n",local_line);
 
 	/**
 	 **  Remove the Tcl interpreter that has been used for printing ...

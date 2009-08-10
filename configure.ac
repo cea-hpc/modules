@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.29 2009/08/03 21:04:10 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.30 2009/08/10 19:28:00 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -536,82 +536,20 @@ dnl WITH_LOGGING	Whether syslogging is enabled
 dnl
 AC_SUBST(WITH_LOGGING)dnl
 AH_TEMPLATE([WITH_LOGGING],[WITH_LOGGING: Syslog logging and facilities])dnl
-AH_TEMPLATE([WITH_LOG_DIR],[])dnl
-AH_TEMPLATE([WITH_LOG_FACILITY_VERBOSE],[])dnl
-AH_TEMPLATE([WITH_LOG_FACILITY_INFO],[])dnl
-AH_TEMPLATE([WITH_LOG_FACILITY_DEBUG],[])dnl
-AH_TEMPLATE([WITH_LOG_FACILITY_TRACE],[])dnl
-AH_TEMPLATE([WITH_LOG_FACILITY_WARN],[])dnl
-AH_TEMPLATE([WITH_LOG_FACILITY_PROB],[])dnl
-AH_TEMPLATE([WITH_LOG_FACILITY_ERROR],[])dnl
-AH_TEMPLATE([WITH_LOG_FACILITY_FATAL],[])dnl
-AH_TEMPLATE([WITH_LOG_FACILITY_PANIC],[])dnl
+AH_TEMPLATE([WITH_LOG_FACILITY],[WITH_LOG_FACILITY: Syslog facility (usualy local7)])dnl
 WITH_LOGGING=0
 AC_ARG_ENABLE(logging,
-	AC_HELP_STRING([--enable-logging],[turn logging on                 [[no]]]),
+	AC_HELP_STRING([--enable-logging],[turn syslogging on [[no]]]),
 	if test "$enableval" = "yes"; then
 		AC_DEFINE(WITH_LOGGING)
 		WITH_LOGGING=1
 	fi)dnl
-AC_ARG_WITH(log-dir,
-	AC_HELP_STRING([--with-log-dir=<value>],[select an alternate log dir.  [[no]]]),
+AC_ARG_WITH(log-facility,
+	AC_HELP_STRING([--with-log-facility[=<facility>]],
+		[Log facility [[local7]]]),
 	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval="/tmp"
-		AC_DEFINE_UNQUOTED(WITH_LOG_DIR, "$withval")
-	fi)dnl
-AC_ARG_WITH(log-facility-verbose,
-	AC_HELP_STRING([--with-log-facility-verbose[=<facility>]],[Log facility    [[stderr]]]),
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval="stderr"
-		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_VERBOSE, "$withval")
-	fi)dnl
-AC_ARG_WITH(log-facility-info,
-	AC_HELP_STRING([--with-log-facility-info[=<facility>]],[Log facility    [[local7.notice]]]),
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval="local7.notice"
-		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_INFO, "$withval")
-	fi)dnl
-AC_ARG_WITH(log-facility-debug,
-	AC_HELP_STRING([--with-log-facility-debug[=<facility>]],[Log facility    [[local7.notice]]]),
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval="local7.notice"
-		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_DEBUG, "$withval")
-	fi)dnl
-AC_ARG_WITH(log-facility-trace,
-	AC_HELP_STRING([--with-log-facility-trace[=<facility>]],[Log facility    [[local7.notice]]]),
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval="local7.notice"
-		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_TRACE, "$withval")
-	fi)dnl
-AC_ARG_WITH(log-facility-warn,
-	AC_HELP_STRING([--with-log-facility-warn[=<facility>]],[Log facility    [[local7.warning]]]),
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval="local7.warning"
-		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_WARN, "$withval")
-	fi)dnl
-AC_ARG_WITH(log-facility-problem,
-	AC_HELP_STRING([--with-log-facility-problem[=<facility>]],[Log facility    [[local7.error]]]),
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval="local7.error"
-		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_PROB, "$withval")
-	fi)dnl
-AC_ARG_WITH(log-facility-error,
-	AC_HELP_STRING([--with-log-facility-error[=<facility>]],[Log facility    [[local7.error]]]),
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval="local7.error"
-		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_ERROR, "$withval")
-	fi)dnl
-AC_ARG_WITH(log-facility-fatal,
-	AC_HELP_STRING([--with-log-facility-fatal[=<facility>]],[Log facility    [[local7.error]]]),
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval="local7.error"
-		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_FATAL, "$withval")
-	fi)dnl
-AC_ARG_WITH(log-facility-panic,
-	AC_HELP_STRING([--with-log-facility-panic[=<facility>]],[Log facility    [[local7.error]]]),
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval="local7.error"
-		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY_PANIC, "$withval")
+		test "$withval" = "yes" && withval="local7"
+		AC_DEFINE_UNQUOTED(WITH_LOG_FACILITY, "$withval")
 	fi)dnl
 dnl ---------------------------------------------------------------------------
 dnl Find libraries, functions and special programs

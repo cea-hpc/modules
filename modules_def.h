@@ -167,7 +167,7 @@ typedef struct _file_entry {
 } fi_ent;
 
 /**
- **  Error handling
+ **  Error handling (see error.c for weight and message)
  **/
 
 typedef	enum	{
@@ -243,7 +243,6 @@ typedef	enum	{
 	ERR_INFO_DESCR,			/** Unrecognized module info descr.  **/
 	ERR_INVWGHT_WARN,		/** Invalid error weight	     **/
 	ERR_INVFAC_WARN,		/** Invalid error facility	     **/
-	ERR_COLON,			/** Colon in tracing pattern	     **/
 	ERR_INTERNAL = 990,		/** Error logger internal error	     **/
 	ERR_INTERAL,			/** Alias module internal error	     **/
 	ERR_INTERRL,			/** Error logger internal error	     **/
@@ -266,8 +265,8 @@ typedef	enum	{
 	PROBLEM	= 5,			/** Problem ... program might cont.  **/
 	ERROR	= 7,			/** Error .. try gracefull aborting  **/
 	FATAL	= 10,			/** The following will lead to the   **/
-	PANIC	= 20			/** progrm being aborted by the er-  **/
-					/** ror logger immediatelly	     **/
+	PANIC	= 20			/** program being aborted by the     **/
+					/** error logger immediatelly	     **/
 } ErrCode;
 
 /**
@@ -302,7 +301,6 @@ typedef enum	{
  **  Debugging
  **/
 
-#define	WITHOUT_DEBUGGING		!defined( WITH_DEBUG_INFO)
 #define	WITH_DEBUGGING			defined( WITH_DEBUG_INFO)
 #define	WITH_DEBUGGING_MODULECMD	(WITH_DEBUGGING && WITH_DEBUG_INFO > 0)
 #define	WITH_DEBUGGING_MODULECMD_1	(WITH_DEBUGGING && WITH_DEBUG_INFO > 1)
@@ -320,59 +318,20 @@ typedef enum	{
  **  Default error log facilities
  **/
 
-#ifdef	WITH_LOG_FACILITY_VERBOSE
-#   define	DEF_FACILITY_VERBOSE		WITH_LOG_FACILITY_VERBOSE
+#ifdef	WITH_LOG_FACILITY
+#   define	DEF_FACILITY			WITH_LOG_FACILITY
 #else
-#   define	DEF_FACILITY_VERBOSE		_stderr
+#   define	DEF_FACILITY			"local7"
 #endif
 
-#ifdef	WITH_LOG_FACILITY_INFO
-#   define	DEF_FACILITY_INFO		WITH_LOG_FACILITY_INFO
-#else
-#   define	DEF_FACILITY_INFO		_stderr
-#endif
-
-#ifdef	WITH_LOG_FACILITY_DEBUG
-#   define	DEF_FACILITY_DEBUG		WITH_LOG_FACILITY_DEBUG
-#else
-#   define	DEF_FACILITY_DEBUG		NULL
-#endif
-
-#ifdef	WITH_LOG_FACILITY_TRACE
-#   define	DEF_FACILITY_TRACE		WITH_LOG_FACILITY_TRACE
-#else
-#   define	DEF_FACILITY_TRACE		NULL
-#endif
-
-#ifdef	WITH_LOG_FACILITY_WARN
-#   define	DEF_FACILITY_WARN		WITH_LOG_FACILITY_WARN
-#else
-#   define	DEF_FACILITY_WARN		_stderr
-#endif
-
-#ifdef	WITH_LOG_FACILITY_PROB
-#   define	DEF_FACILITY_PROB		WITH_LOG_FACILITY_PROB
-#else
-#   define	DEF_FACILITY_PROB		_stderr
-#endif
-
-#ifdef	WITH_LOG_FACILITY_ERROR
-#   define	DEF_FACILITY_ERROR		WITH_LOG_FACILITY_ERROR
-#else
-#   define	DEF_FACILITY_ERROR		_stderr
-#endif
-
-#ifdef	WITH_LOG_FACILITY_FATAL
-#   define	DEF_FACILITY_FATAL		WITH_LOG_FACILITY_FATAL
-#else
-#   define	DEF_FACILITY_FATAL		_stderr
-#endif
-
-#ifdef	WITH_LOG_FACILITY_PANIC
-#   define	DEF_FACILITY_PANIC		WITH_LOG_FACILITY_PANIC
-#else
-#   define	DEF_FACILITY_PANIC		_stderr
-#endif
+#define	DEF_FACILITY_VERBOSE		"stderr:" DEF_FACILITY ".info"
+#define	DEF_FACILITY_INFO		"stderr:" DEF_FACILITY ".notice"
+#define	DEF_FACILITY_DEBUG		DEF_FACILITY ".debug"
+#define	DEF_FACILITY_WARN		"stderr:" DEF_FACILITY ".warning"
+#define	DEF_FACILITY_PROB		"stderr:" DEF_FACILITY ".warning"
+#define	DEF_FACILITY_ERROR		"stderr:" DEF_FACILITY ".err"
+#define	DEF_FACILITY_FATAL		"stderr:" DEF_FACILITY ".crit"
+#define	DEF_FACILITY_PANIC		"stderr:" DEF_FACILITY ".crit"
 
 /**
  **  g_flags values
@@ -685,14 +644,6 @@ extern	int	  cmdChDir(ClientData, Tcl_Interp*, int, CONST84 char*[]);
 /**  cmdLog.c  **/
 extern	int	  cmdModuleLog( ClientData, Tcl_Interp*, int, CONST84 char*[]);
 
-/**  cmdTrace.c  **/
-/*
-extern	int	  cmdModuleTrace(ClientData,Tcl_Interp*, int, CONST84 char*[]);
-extern	char	 *GetTraceSel(Tcl_Interp*, char*);
-extern	int	  CheckTracing(Tcl_Interp*, char*, char*);
-extern	int	  CheckTracingList(Tcl_Interp*, char*, int, char**);
-*/
-
 /**  cmdVersion.c  **/
 extern	int	  cmdModuleVersion(ClientData,Tcl_Interp*,int,CONST84 char*[]);
 extern	int	  cmdModuleAlias(ClientData,Tcl_Interp*, int, CONST84 char*[]);
@@ -757,7 +708,6 @@ extern	char	 *strtok( char *, const char *);
 extern	char	**GetFacilityPtr( char *);
 extern	int 	  Module_Error(	ErrType, char*, int, ...);
 extern	int	  CheckFacility( char*, int*, int*);
-extern	void	  Module_Tracing( int, int, char**);
 extern	void	  Module_Verbosity( int, char**);
 
 #endif  /**  _MODULES_DEF_H  **/

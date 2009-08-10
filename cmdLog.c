@@ -9,8 +9,8 @@
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
  ** 									     **
- **   Description:	The Tcl module-trace routine which provides a con-   **
- **			trolling interface to the modulecmd tracing feature  **
+ **   Description:	The Tcl module-log routine which provides an	     **
+ **			interface to the modulecmd syslog/stderr output.     **
  ** 									     **
  **   Exports:		cmdModuleLog					     **
  ** 									     **
@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdLog.c,v 1.9 2009/08/03 21:04:10 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdLog.c,v 1.10 2009/08/10 19:28:00 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -80,7 +80,7 @@ static	char	_none[] = "none";
  ** 									     **
  **   Function:		cmdModuleLog					     **
  ** 									     **
- **   Description:	Callback function for 'log'			     **
+ **   Description:	Callback function for 'module-log'		     **
  ** 									     **
  **   First Edition:	1991/10/23					     **
  ** 									     **
@@ -226,4 +226,3 @@ int	cmdModuleLog(	ClientData	 client_data,
     return( TCL_OK);
 
 } /** End of 'cmdModuleLog' **/
-    
