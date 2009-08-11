@@ -40,7 +40,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdXResource.c,v 1.10 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdXResource.c,v 1.11 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -90,7 +90,7 @@ typedef struct _ResourceDB {
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-static	char	module_name[] = "cmdXResource.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 
 #if WITH_DEBUGGING_UTIL_2
 static	char	_proc_addDef[] = "addDef";
@@ -246,7 +246,7 @@ static	void	doDisplayDefines()
     gethostname(client,MAXHOSTNAME);
     strcpy( server, XDisplayName( NULL));
 
-    if( colon = strchr( server, ':'))
+    if( (colon = strchr( server, ':')) )
 	*colon = '\0';
     if( !*server)
 	strcpy( server, client);
@@ -506,7 +506,7 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
 	    if( remove) {
 	        Tcl_RegExpRange(res_exp, 1,
 			(CONST84 char **) &startp, (CONST84 char **) &endp);
-		if( entry = Tcl_FindHashEntry( data, startp)) {
+		if( (entry = Tcl_FindHashEntry( data, startp)) ) {
 		    null_free((void *) &( Tcl_GetHashValue( entry)));
 		    Tcl_DeleteHashEntry( entry);
 		}

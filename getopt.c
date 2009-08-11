@@ -51,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: getopt.c,v 1.4 2006/01/31 04:16:51 rkowen Exp $";
+static char Id[] = "@(#)$Id: getopt.c,v 1.5 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -298,7 +298,7 @@ int optopt = '?';
  **  Runtime information for the modules package
  **/
 
-static	char	module_name[] = "getopt.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 
 #ifdef _MODULES_DEF_H
 #  if WITH_DEBUGGING_INIT
@@ -917,7 +917,7 @@ static	int _getopt_internal(	int			 argc,
 
 		else {
 		    	  
-		    if( opterr)
+		    if( opterr) {
 
 			/**
 			 **  ERROR: --option w/o argument
@@ -936,7 +936,7 @@ static	int _getopt_internal(	int			 argc,
 			 **  ERROR: +option or -option w/o argument
 			 **/
 
-			else {
+			} else {
 #ifdef	_MODULES_DEF_H
 			    char buffer[ BUFSIZ];
 			    sprintf( buffer, "%c%s", argv[optind - 1][0], pfound->name);

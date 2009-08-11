@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.22 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.23 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -64,7 +64,7 @@ static void *UseId[] = { &UseId, Id };
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-static	char	module_name[] = "locate_module.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 
 #if WITH_DEBUGGING_LOCATE
 static	char	_proc_Locate_ModuleFile[] = "Locate_ModuleFile";
@@ -389,7 +389,7 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
     }
     slen = strlen( s) + 1;
     mod = s;
-    if( ver = strchr( mod, '/'))
+    if( (ver = strchr( mod, '/')) )
 	*ver++ = '\0';
     /**
      **  Allocate a buffer for full pathname building
@@ -465,7 +465,7 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		    goto unwind2;
 		}
 		mod = s;
-		if( ver = strchr( s, '/'))
+		if( (ver = strchr( s, '/')) )
 		    *ver++ = '\0';
 	    }
 	    /**

@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.10 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.11 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -56,7 +56,7 @@ static void *UseId[] = { &UseId, Id };
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-static	char	module_name[] = "ModuleCmd_Update.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 #if WITH_DEBUGGING_MODULECMD
 static	char	_proc_ModuleCmd_Update[] = "ModuleCmd_Update";
 #endif
@@ -189,7 +189,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 		/**
 		 **  Now let's evaluate the read line
 		 **/
-		if( var_ptr = strchr( buf, '=')) {
+		if( (var_ptr = strchr( buf, '=')) ) {
 		
 		    *var_ptr = '\0';
 		    val_ptr = var_ptr+1;
@@ -203,12 +203,13 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 		     **/
 		    if( strncmp( var_ptr, "LOADEDMODULES", 12) &&
 			strncmp( var_ptr, "TCL_LIBRARY", 10 ) &&
-			strncmp( var_ptr, "TK_LIBRARY", 9 ))
+			strncmp( var_ptr, "TK_LIBRARY", 9 )) {
 			if( !strncmp( var_ptr, "MODULEPATH", 10))
 			    moduleSetenv( interp, var_ptr, val_ptr, 1);
 			else
 			    Tcl_SetVar2( interp, "env", var_ptr, val_ptr,
 					 TCL_GLOBAL_ONLY);
+		    }
 		} /** if( var_ptr) **/
 	    } /** while **/
 

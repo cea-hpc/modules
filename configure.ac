@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.30 2009/08/10 19:28:00 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.31 2009/08/11 22:01:29 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -268,9 +268,6 @@ dnl
 dnl --with-split-size[=<size>]	With split size=<size>		[TEST]
 dnl --without-split-size	Without  - " -
 dnl
-dnl --enable-cache		With directory cache
-dnl --disable-cache		Without  - " -			[DEF]
-dnl
 dnl --enable-shell-funcs	With sh functions		[TEST]
 dnl --disable-shell-funcs	Without  - " -
 dnl
@@ -471,26 +468,6 @@ AC_ARG_ENABLE(free,
 	    AC_DEFINE(USE_FREE)
 	fi)dnl
 dnl ---------------------------------------------------------------------------
-AH_TEMPLATE([CACHE_AVAIL],[
-CACHE_AVAIL:
-This symbol, if defined, indicates that Modules should cache the
-directories in MODULEPATH when doing an avail.])dnl
-AC_ARG_ENABLE(cache,
-	AC_HELP_STRING([--enable-cache],[use directory cache [[no]]]),
-	if test "$enableval" = "yes"; then
-	    AC_DEFINE(CACHE_AVAIL)
-	fi)dnl
-dnl ---------------------------------------------------------------------------
-AH_TEMPLATE([CACHE_UMASK],[
-CACHE_UMASK:
-This symbol, if defined, is used as the umask for creating
-cachefiles for the module avail command.])dnl
-AC_ARG_WITH(cache-umask,
-	AC_HELP_STRING([--with-cache-umask=<umask>],[use cache files umask=<umask> [[000]]]),
-	if test "$withval" != "no"; then
-	    test "$withval" = "yes" && withval=0
-	    AC_DEFINE_UNQUOTED(CACHE_UMASK, ${withval})
-	fi)dnl
 dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([WITH_DEBUG_INFO],[WITH_DEBUG_INFO: Debug info level if defined])dnl
 AC_ARG_WITH(debug,
@@ -726,7 +703,7 @@ dnl helpful configure --help comments
 m4_divert_once([HELP_WITH],[[
 
 The default value or disposition is listed in the square brackets above.
-Beware of new defaults for use-cache, beginenv.
+Beware of new defaults for beginenv.
 
 Depending on the above configuration options  the files are approximately
 placed in the following directory structure :

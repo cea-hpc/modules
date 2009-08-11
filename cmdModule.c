@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.17 2009/08/03 21:04:10 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.18 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -69,7 +69,7 @@ char	_fil_devnull[] = "/dev/null";
 
 int	linenum = 0;
 
-static	char	module_name[] = "cmdModule.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 
 #if WITH_DEBUGGING_CALLBACK
 static	char	_proc_cmdModule[] = "cmdModule";
@@ -212,7 +212,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module LOAD|ADD
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command, addRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, addRE)) ) {
 	_TCLCHK(interp);
 	return_val = ModuleCmd_Load( interp, 1,num_modulefiles,modulefile_list);
 
@@ -227,7 +227,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module UNLOAD
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command, rmRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, rmRE)) ) {
 	_TCLCHK(interp);
         ModuleCmd_Load( interp, 0, num_modulefiles, modulefile_list);
 	return_val = TCL_OK;
@@ -236,7 +236,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module SWITCH
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command, swRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, swRE)) ) {
 	_TCLCHK(interp);
 	return_val = ModuleCmd_Switch( interp, num_modulefiles,modulefile_list);
 
@@ -244,7 +244,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module DISPLAY
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command, dispRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, dispRE)) ) {
 	_TCLCHK(interp);
 	return_val = ModuleCmd_Display( interp,num_modulefiles,modulefile_list);
 
@@ -252,7 +252,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module LIST
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command, listRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, listRE)) ) {
 	_TCLCHK(interp);
 	if (! (sw_format & SW_SET) ) {	/* default format options */
 		sw_format |= (SW_HUMAN | SW_TERSE );
@@ -266,7 +266,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module AVAIL
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command,availRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,availRE)) ) {
 	_TCLCHK(interp);
 	if (! (sw_format & SW_SET) ) {	/* default format options */
 		sw_format |= (SW_HUMAN | SW_TERSE);
@@ -280,11 +280,11 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module WHATIS and APROPOS
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command,whatisRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,whatisRE)) ) {
 	_TCLCHK(interp);
 	return_val = ModuleCmd_Whatis(interp, num_modulefiles, modulefile_list);
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command,aproposRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,aproposRE)) ) {
 	_TCLCHK(interp);
 	return_val = ModuleCmd_Apropos(interp, num_modulefiles,modulefile_list);
 
@@ -292,7 +292,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module CLEAR
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command,clearRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,clearRE)) ) {
 	_TCLCHK(interp);
 	return_val = ModuleCmd_Clear( interp, num_modulefiles, modulefile_list);
 
@@ -300,7 +300,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module UPDATE
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command,updateRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,updateRE)) ) {
 	_TCLCHK(interp);
 	return_val = ModuleCmd_Update(interp, num_modulefiles, modulefile_list);
 
@@ -308,7 +308,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module PURGE
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command,purgeRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,purgeRE)) ) {
 	_TCLCHK(interp);
 	return_val = ModuleCmd_Purge( interp, num_modulefiles, modulefile_list);
 
@@ -316,7 +316,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module INIT
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command,initRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,initRE)) ) {
 	_TCLCHK(interp);
 	
         if( Tcl_RegExpMatch(interp,module_command, "^inita|^ia")){/* initadd */
@@ -365,7 +365,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module USE
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command, useRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, useRE)) ) {
 	_TCLCHK(interp);
 	return_val = ModuleCmd_Use( interp, num_modulefiles, modulefile_list);
 
@@ -373,7 +373,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module UNUSE
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command, unuseRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, unuseRE)) ) {
 	_TCLCHK(interp);
 	return_val = ModuleCmd_UnUse( interp, num_modulefiles, modulefile_list);
 
@@ -381,7 +381,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module REFRESH 
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command, refreshRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, refreshRE)) ) {
 	_TCLCHK(interp);
 	return_val = ModuleCmd_Refresh( interp, num_modulefiles, modulefile_list);
 
@@ -389,7 +389,7 @@ int	cmdModule(	ClientData	 client_data,
      **  --- module HELP
      **/
 
-    } else if(_MTCH Tcl_RegExpMatch(interp,module_command, helpRE)) {
+    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, helpRE)) ) {
 	_TCLCHK(interp);
 	return_val = ModuleCmd_Help( interp, num_modulefiles, modulefile_list);
     }
@@ -451,7 +451,6 @@ int   Read_Modulefile( Tcl_Interp	*interp,
 		       char		*filename)
 {
     int    result;
-    char   *startp, *endp;
 
 #if WITH_DEBUGGING_UTIL
     ErrorLogger( NO_ERR_START, LOC, _proc_Read_Modulefile, NULL);

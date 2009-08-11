@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Clear.c,v 1.4 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Clear.c,v 1.5 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -59,7 +59,7 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 #if WITH_DEBUGGING_MODULECMD
-static	char	module_name[] = "ModuleCmd_Clear.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 static	char	_proc_ModuleCmd_Clear[] = "ModuleCmd_Clear";
 #endif
 

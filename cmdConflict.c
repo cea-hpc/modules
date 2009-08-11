@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.14 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.15 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -59,7 +59,7 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static char error_module[ MOD_BUFSIZE];
-static	char	module_name[] = "cmdConflict.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 #if WITH_DEBUGGING_UTIL
 static	char	_proc_checkConflict[] = "checkConflict";
 #endif

@@ -47,7 +47,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.13 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.14 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -138,7 +138,7 @@ typedef	struct	_mod_name	{
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-static	char	module_name[] = "cmdVersion.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 #if WITH_DEBUGGING_CALLBACK
 static	char	_proc_cmdModuleVersion[] = "cmdModuleVersion";
 static	char	_proc_cmdModuleAlias[] = "cmdModuleAlias";
@@ -391,7 +391,7 @@ char	*ExpandVersions( char	*name)
      **/
  
     *buffer = '\0';
-    if( s = scan_versions( buffer, buffer, ptr->ptr, modptr)) 
+    if( (s = scan_versions( buffer, buffer, ptr->ptr, modptr)) ) 
 	*--s = '\0';			/** remove trailing ':'		     **/
 
 #if WITH_DEBUGGING_CALLBACK
@@ -479,7 +479,7 @@ static	char	*scan_versions( char		 *buffer,
 
 	if((ModName *) NULL != (vers = FindName( ptr->name, modptr->version,
 	    &tmp))) {
-	    if( s = scan_versions( buffer, base, vers->ptr, modptr))
+	    if( (s = scan_versions( buffer, base, vers->ptr, modptr)) )
 		buffer = s;
 	}
     }
@@ -488,7 +488,7 @@ static	char	*scan_versions( char		 *buffer,
      **  This is the recursion. Preserve the buffer end pointer
      **/
 
-    if( s = scan_versions( buffer, base, ptr->ptr, modptr))
+    if( (s = scan_versions( buffer, base, ptr->ptr, modptr)) )
 	buffer = s;
 
     return( buffer);
@@ -547,7 +547,7 @@ static	char	*CheckModuleVersion( char *name)
 	 **  The version has been specified as a parameter
 	 **/
 
-	if( s = strrchr( name, '/')) {
+	if( (s = strrchr( name, '/')) ) {
 	    s++;
 	} else {
 	    ErrorLogger( ERR_INTERAL, LOC, NULL);
@@ -674,17 +674,17 @@ int	cmdModuleAlias(	ClientData	 client_data,
      **  If it does, we're finished ...
      **/
 
-    if( ptr = FindName( (char *) argv[ 1], aliaslist, &tmp)) {
+    if( (ptr = FindName( (char *) argv[ 1], aliaslist, &tmp)) ) {
 
 	if( !ptr->ptr || !ptr->ptr->name ||
-	    !trg_alias && (!ptr->ptr->module || !ptr->ptr->module->module) ) {
+	   (!trg_alias && (!ptr->ptr->module || !ptr->ptr->module->module)) ) {
 	    ErrorLogger( ERR_INTERAL, LOC, NULL);
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
 	}
 
 	if( trg_alias && !strcmp( ptr->ptr->name, argv[ 2]) ||
-	    !trg_alias && !strcmp( ptr->ptr->name, version) &&
-		!strcmp( ptr->ptr->module->module, module))
+	   (!trg_alias && !strcmp( ptr->ptr->name, version) &&
+		!strcmp( ptr->ptr->module->module, module)) )
 	    return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
 
 	if( OK != ErrorLogger( ERR_DUP_ALIAS, LOC, argv[1], NULL))
@@ -848,7 +848,7 @@ int	VersionLookup(	char *name, char **module, char **version)
 
     if( '/' == *name) {
 	strcpy( buffer, g_current_module);
-	if( s = strrchr( buffer, '/'))
+	if( (s = strrchr( buffer, '/')) )
 	    *s = '\0';
 	*module = buffer;
 	*version = name + 1;
@@ -1063,7 +1063,7 @@ static	ModModule	*AddModule(	char	*name)
      **  for appending the new one.
      **/
 
-    if( ptr = FindModule( name, &app_ptr))
+    if( (ptr = FindModule( name, &app_ptr)) )
 	return( ptr);
 
     /**
@@ -1188,7 +1188,7 @@ static	ModName	*AddName(	char	 *name,
      **  for appending the new one.
      **/
 
-    if( ptr = FindName( name, *start, &app_ptr))
+    if( (ptr = FindName( name, *start, &app_ptr)) )
 	return( ptr);
 
     /**

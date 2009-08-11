@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Display.c,v 1.6 2009/08/10 19:28:00 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Display.c,v 1.7 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -60,7 +60,7 @@ static void *UseId[] = { &UseId, Id };
 
 char local_line[] =
     "-------------------------------------------------------------------";
-static	char	module_name[] = "ModuleCmd_Display.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 #if WITH_DEBUGGING_MODULECMD
 static	char	_proc_ModuleCmd_Display[] = "ModuleCmd_Display";
 #endif

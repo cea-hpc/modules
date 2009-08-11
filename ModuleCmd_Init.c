@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.10 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.11 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -59,7 +59,7 @@ static void *UseId[] = { &UseId, Id };
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-static	char	module_name[] = "ModuleCmd_Init.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 
 #if WITH_DEBUGGING_MODULECMD
 static	char	_proc_ModuleCmd_Init[] = "ModuleCmd_Init";
@@ -122,7 +122,6 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
     char	 *home_pathname,
 		 *home_pathname2,
 		 **shell_startups;	/** A list off all startup files our **/                                        /** invoking shell will source       **/
-    int		  max_home_path = MOD_BUFSIZE + 40;
     Tcl_RegExp	 modcmdPtr = Tcl_RegExpCompile(interp,
 	"^([ \t]*module[ \t]+)(load|add)[ \t]+([^#\n]*)([#.\n]*)");
     char	**modlist,

@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.23 2006/06/01 14:54:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.24 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -144,7 +144,6 @@ int	sw_force = 0,
 	sw_detach = 0,
 	sw_format = 0,
 	sw_verbose = 0,
-	sw_create = 0,
 	sw_userlvl = UL_ADVANCED,
 	sw_icase = 0;
 
@@ -152,7 +151,7 @@ int	sw_force = 0,
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-static	char	module_name[] = "main.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 
 #if WITH_DEBUGGING
 static	char	_proc_main[] = "main";
@@ -422,7 +421,6 @@ _(
 "	-h|--human		readable format avail and list format\n"
 "	-v|--verbose		enable  verbose messages\n"
 "	-s|--silent		disable verbose messages\n"
-"	-c|--create		create caches for avail and apropos\n"
 "	-i|--icase		case insensitive\n"
 "	-u|--userlvl <lvl>	set user level to (nov[ice],exp[ert],adv[anced])\n"
 "  Available SubCommands and Args:\n"
@@ -499,8 +497,6 @@ int Tcl_AppInit(Tcl_Interp *interp)
  **			    --long, -l		Long messages		     **
  **			    --verbose, -v	Verbose mode on		     **
  **			    --silent, -s	Verbose mode off	     **
- **			    --create, -c	Create a cache while execu-  **
- **						ting the command	     **
  **			    --userlvl, -u	Change the user level	     **
  **			    --icase, -i		Ignore case of modulefile    **
  **						names			     **
@@ -520,7 +516,6 @@ int Tcl_AppInit(Tcl_Interp *interp)
  **   Attached Globals:	sw_force		--force, -f		     **
  **			sw_format		-t, -l, -h, -p               **
  **			sw_verbose		--verbose, -v, --silent, -s  **
- **			sw_create		--create, -c		     **
  **			sw_userlvl		--userlvl, -u		     **
  **			sw_icase		--icase, -i		     **
  ** 									     **
@@ -545,7 +540,6 @@ static int	Check_Switches( int *argc, char *argv[])
 	{ "parse", no_argument, NULL, 'p' },
 	{ "verbose", no_argument, NULL, 'v' },
 	{ "silent", no_argument, NULL, 's' },
-	{ "create", no_argument, NULL, 'c' },
 	{ "icase", no_argument, NULL, 'i' },
 	{ "userlvl", required_argument, NULL, 'u'},
 	{ "append", no_argument, NULL, 'a' },
@@ -612,14 +606,6 @@ static int	Check_Switches( int *argc, char *argv[])
 
 		case 's':			/* silent */
 		    sw_detach = 1;
-		    break;
-
-		/**
-		 **  Caching control
-		 **/
-
-		case 'c':			/* create */
-		    sw_create = 1;
 		    break;
 
 		/**
@@ -793,7 +779,6 @@ static void version (FILE *output) {
 	isdefined(AUTOLOADPATH,str(AUTOLOADPATH));
 	isdefined(BASEPREFIX,str(BASEPREFIX));
 	isdefined(BEGINENV,str(BEGINENV));
-	isdefined(CACHE_AVAIL,str(CACHE_AVAIL));
 	isdefined(DEF_COLLATE_BY_NUMBER,str(DEF_COLLATE_BY_NUMBER));
 	isdefined(DOT_EXT,str(DOT_EXT));
 	isdefined(ENABLE_NLS,str(ENABLE_NLS));

@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdUname.c,v 1.5 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdUname.c,v 1.6 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -70,7 +70,7 @@ typedef	struct	utsname {
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-static	char	module_name[] = "cmdUname.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 
 #if WITH_DEBUGGING_CALLBACK
 static	char	_proc_cmdUname[] = "cmdUname";

@@ -231,8 +231,6 @@ typedef	enum	{
 	ERR_SYMLOOP,			/** Loop in symbol version def.	     **/
 	ERR_BADMODNAM,			/** Bad modulename in version, alias **/
 	ERR_DUP_ALIAS,			/** Duplicate alias		     **/
-	ERR_CACHE_INVAL,		/** Invalid cache version	     **/
-	ERR_CACHE_LOAD,			/** Cannot load cache properly	     **/
 	ERR_BEGINENV,			/** No update if no .modulesbeginenv **/
 	ERR_BEGINENVX,			/** No MODULESBEGINENV env.var.      **/
 	ERR_INIT_TCL,			/** Cannot initialize TCL	     **/
@@ -380,10 +378,6 @@ typedef enum	{
 #  define	VERSIONFILE	".version"
 #endif
 
-#ifndef	APR_CACHE
-#  define	APR_CACHE	"apropos.cache"
-#endif
-
 /**
  **  Buffer sizes
  **/
@@ -507,7 +501,6 @@ extern	int	sw_format;
 #define	SW_TERSE	0x08
 #define	SW_LONG		0x10
 #define	SW_LIST		0x20
-extern	int	sw_create;
 extern	int	sw_verbose;
 extern	int	sw_userlvl;
 extern	int	sw_icase;
@@ -568,6 +561,9 @@ extern	int	  ModuleCmd_Load( Tcl_Interp*, int, int, char*[]);
 
 /**  ModuleCmd_Purge.c  **/
 extern	int	  ModuleCmd_Purge( Tcl_Interp*, int, char*[]);
+
+/**  ModuleCmd_Refresh.c  **/
+extern	int	  ModuleCmd_Refresh( Tcl_Interp*, int, char*[]);
 
 /**  ModuleCmd_Switch.c  **/
 extern	int	  ModuleCmd_Switch( Tcl_Interp*, int, char*[]);

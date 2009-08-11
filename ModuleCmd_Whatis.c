@@ -10,6 +10,7 @@
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
  **									     **
  **			ModuleCmd_Apropos				     **
+ **			ModuleCmd_Whatis				     **
  **									     **
  **   Notes:								     **
  **									     **
@@ -23,7 +24,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.9 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.10 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -55,7 +56,7 @@ static void *UseId[] = { &UseId, Id };
 /**				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-static	char	module_name[] = "ModuleCmd_Whatis.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 
 #if WITH_DEBUGGING_MODULECMD
 static	char	_proc_ModuleCmd_Whatis[] = "ModuleCmd_Whatis";
@@ -63,19 +64,13 @@ static	char	_proc_ModuleCmd_Apropos[] = "ModuleCmd_Apropos";
 #endif
 #if WITH_DEBUGGING_UTIL_1
 static	char	_proc_whatis_dir[] = "whatis_dir";
-static	char	_proc_read_cache[] = "read_cache";
-static	char	_proc_apropos_cache[] = "apropos_cache";
 #endif
-
-static	char	cache_name[] = APR_CACHE;
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
 /** ************************************************************************ **/
 
-static	int	 read_cache( int, char**, FILE*, int);
-static	int	 whatis_dir( char*, int, char**, FILE*, int);
-static	char	*apropos_cache(void);
+static	int	 whatis_dir( char*, int, char**, int);
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -106,18 +101,15 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
 			int		 argc,
 			char		*argv[])
 {
-    struct stat	 stats;
     Tcl_Interp	*whatis_interp;
     Tcl_DString	 cmdbuf;
-    int		 i, result = TCL_OK, done = 0;
+    int		 i, result = TCL_OK;
     char	 modulefile[ MOD_BUFSIZE],
 		 modulename[ MOD_BUFSIZE],
 		*modpath,		/** Buffer for the contents of the   **/
 					/** environment variable MODULEPATH  **/
 		**wptr,
-		*dirname,
-		*cache_file = (char *) NULL;	/** Name of the cache file   **/
-    FILE	*cachefp = (FILE *) NULL;	/** Cache file pointer	     **/
+		*dirname;
 
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Whatis, NULL);
@@ -199,49 +191,8 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
 		goto unwind0;
 
 	/**
-	 **  Check whether a cache file exists then list all the ``whatis'' info
-	 **  Otherwise read all module files ...
+	 **  Scan all the files
 	 **/
-	cache_file = apropos_cache();
-	if( !sw_create && cache_file && !stat( cache_file, &stats)) {
-
-	    /**
-	     **	 Open the cache file
-	     **/
-	    if((FILE *) NULL == (cachefp = fopen( cache_file, "r"))) {
-		if( OK != ErrorLogger( ERR_OPEN, LOC, cache_file,
-		    _(em_reading), NULL))
-		    goto unwind1;
-	
-	    } else {
-		
-		/**
-		 **  Read the cache and close the file
-		 **/
-		result = read_cache( argc, argv, cachefp, WHATIS_ALL);
-
-		if( EOF == fclose( cachefp))
-		    if( OK != ErrorLogger( ERR_CLOSE, LOC, cache_file, NULL))
-			goto unwind1;
-
-		done = 1;
-	    }
-	}
-
-	/**
-	 **  If we're not done now, we have to scan the files
-	 **/
-	 if( !done) {
-
-	     /**
-	      **  Open the cache file if neccessary
-	      **/
-	     if( sw_create && cache_file)
-		 if((FILE *) NULL == (cachefp = fopen( cache_file, "w")))
-		     if( OK != ErrorLogger( ERR_OPEN, LOC, cache_file,
-			_(em_writing), NULL))
-			 goto unwind1;
-		
 	     /**
 	      **  Tokenize the module path string and check all dirs
 	      **/
@@ -252,18 +203,9 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
 		 if( !check_dir( dirname))
 		     continue;
 	
-		 whatis_dir( dirname, argc, argv, cachefp, WHATIS_ALL);
+		 whatis_dir( dirname, argc, argv, WHATIS_ALL);
 
 	     } /** for **/
-
-	     /**
-	      **  Close the cache file
-	      **/
-	     if( cachefp)
-		 if( EOF == fclose( cachefp))
-		     if( OK != ErrorLogger( ERR_CLOSE, LOC, cache_file, NULL))
-			 goto unwind1;
-	 }
     }
 
     /**
@@ -277,7 +219,6 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
     /**
      **	 Free up allocated resources
      **/
-    null_free((void *) &cache_file);
     null_free((void *) &modpath);
 
     /**
@@ -291,7 +232,6 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
     return( result);			/** --- EXIT PROCEDURE (result)  --> **/
 
 unwind1:
-    null_free((void *) &cache_file);
     null_free((void *) &modpath);
 unwind0:
     return( TCL_ERROR);			/** --- EXIT PROCEDURE (FAILURE) --> **/
@@ -324,14 +264,11 @@ int ModuleCmd_Apropos(	Tcl_Interp	*interp,
 			int		 argc,
 			char		*argv[])
 {
-    struct stat	 stats;
     char	*dirname;
     char	*modpath;		/** Buffer for the contents of the   **/
 					/** environment variable MODULEPATH  **/
-    int		 i, done = 0;
+    int		 i;
     char	*c;
-    char	*cache_file;		/** Name of the cache file	     **/
-    FILE	*cachefp = (FILE *) NULL;	/** Cache file pointer	     **/
 
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Apropos, NULL);
@@ -352,50 +289,6 @@ int ModuleCmd_Apropos(	Tcl_Interp	*interp,
 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
 	    goto unwind0;
 
-    /**
-     **	 Check whether	there's a cache file. If it is, grep for the tokens
-     **	 in this file. Otherwise read all module files ...
-     **/
-    cache_file = apropos_cache();
-    if( !sw_create && cache_file && !stat( cache_file, &stats)) {
-
-	/**
-	 **  Open the cache file
-	 **/
-	if((FILE *) NULL == (cachefp = fopen( cache_file, "r"))) {
-	    if( OK != ErrorLogger( ERR_OPEN, LOC, cache_file,
-		_(em_reading), NULL))
-		goto unwind1;
-	
-	} else {
-		
-	    /**
-	     **	 Read the cache and close the file
-	     **/
-	    read_cache( argc, argv, cachefp, WHATIS_SOME);
-
-	    if( EOF == fclose( cachefp))
-		if( OK != ErrorLogger( ERR_CLOSE, LOC, cache_file, NULL))
-		    goto unwind1;
-
-	    done = 1;
-	}
-    }
-
-    /**
-     **	 If we're not done now, we have to scan the files
-     **/
-    if( !done) {
-
-	/**
-	 **  Open the cache file if neccessary
-	 **/
-	if( sw_create && cache_file)
-	    if((FILE *) NULL == (cachefp = fopen( cache_file, "w")))
-		if( OK != ErrorLogger( ERR_OPEN, LOC, cache_file,
-		    _(em_writing), NULL))
-		    goto unwind1;
-
 	/**
 	 **  Tokenize the module path string and check all dirs
 	 **/
@@ -406,18 +299,9 @@ int ModuleCmd_Apropos(	Tcl_Interp	*interp,
 	    if( !check_dir( dirname))
 		continue;
 	
-	    whatis_dir( dirname, argc, argv, cachefp, WHATIS_SOME);
+	    whatis_dir( dirname, argc, argv, WHATIS_SOME);
 
 	} /** for **/
-
-	/**
-	 **  Close the cache file
-	 **/
-	if( cachefp)
-	    if( EOF == fclose( cachefp))
-		if( OK != ErrorLogger( ERR_CLOSE, LOC, cache_file, NULL))
-		    goto unwind1;
-    }
 
     /**
      **	 Free up what has been allocated and exit from this procedure
@@ -449,7 +333,6 @@ unwind0:
  **   Parameters:	char	*dir		Directory to be scanned	     **
  **			int	 argc		Number of tokens	     **
  **			char   **argv		List of tokens to check	     **
- **			FILE	*cfp		Cache file pointer	     **
  **									     **
  **   Result:		int	TCL_OK		Successful operation	     **
  **									     **
@@ -462,7 +345,7 @@ unwind0:
  ** ************************************************************************ **
  ++++*/
 
-static	int	whatis_dir( char *dir, int argc, char **argv, FILE *cfp,
+static	int	whatis_dir( char *dir, int argc, char **argv,
 			    int whatis_list)
 {
     fi_ent	 *dirlst_head = NULL;	/** Directory list base pointer	     **/
@@ -545,13 +428,6 @@ static	int	whatis_dir( char *dir, int argc, char **argv, FILE *cfp,
 	    while( *wptr) {
 
 		/**
-		 **  Cache output enabled?
-		 **/
-
-		if( cfp)
-		    fprintf( cfp, "%-21s: %s\n", list[i], *wptr);
-
-		/**
 		 **  Ignore case?
 		 **/
 
@@ -608,157 +484,3 @@ unwind0:
     return( TCL_ERROR);			/** ------- EXIT (FAILURE) --------> **/
 
 } /** End of 'whatis_dir' **/
-
-/*++++
- ** ** Function-Header ***************************************************** **
- **									     **
- **   Function:		read_cache					     **
- **									     **
- **   Description:	Grep in the cache file for the passed tokens         **
- **									     **
- **   First Edition:	1991/10/23					     **
- **									     **
- **   Parameters:	int	 argc		Number of tokens	     **
- **			char   **argv		List of tokens to check	     **
- **			FILE	*cfp		Cache file pointer	     **
- **									     **
- **   Result:		int	TCL_OK		Successful operation	     **
- **									     **
- **   Attached Globals: -						     **
- **									     **
- ** ************************************************************************ **
- ++++*/
-
-static	int	read_cache( int argc, char **argv, FILE *cfp, int whatis_list)
-{
-    char	*wptr, *c;
-    char	 modulefile[ MOD_BUFSIZE];
-    char	 buffer[ MOD_BUFSIZE];
-    int		 k;
-
-#if WITH_DEBUGGING_UTIL_1
-/*
-    ErrorLogger( NO_ERR_START, LOC, _proc_read_cache, "dir='", dir, NULL);
-*/
-#endif
-
-    while( wptr = fgets( buffer, MOD_BUFSIZE, cfp)) {
-
-	/**
-	 **  Ingnore case?
-	 **/
-
-	if( sw_icase) {
-	    strncpy( modulefile, wptr, MOD_BUFSIZE);
-	    for( c = modulefile; c && *c; c++)
-		*c = tolower( *c);
-	    c = modulefile;
-	} else
-	    c = wptr;
-
-	c = strchr( c, ':');
-	c++;
-
-	/**
-	 **  Seek for the passed tokens
-	 **/
-
-	if ( whatis_list)
-	    fprintf( stderr, "%s", wptr);
-	else
-	    for( k=0; k<argc; k++)
-		if( strstr( c, argv[ k]))
-		    fprintf( stderr, "%s", wptr);
-    }
-
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_END, LOC, _proc_read_cache, NULL);
-#endif
-
-    return( TCL_OK);
-
-} /** End of 'read_cache' **/
-
-/*++++
- ** ** Function-Header ***************************************************** **
- **									     **
- **   Function:		apropos_cache					     **
- **									     **
- **   Description:	Figure out, what's the name of the apropos cache file**
- **									     **
- **   First Edition:	1991/10/23					     **
- **									     **
- **   Parameters:	-						     **
- **									     **
- **   Result:		char*	NULL		No cache file configured     **
- **				Otherwise	Pointer to the file name     **
- **									     **
- **   Attached Globals: -						     **
- **									     **
- ** ************************************************************************ **
- ++++*/
-
-static	char	*apropos_cache()
-{
-    char	*buffer, *env, *env_file, *env_path;
-
-#if WITH_DEBUGGING_UTIL_1
-/*
-    ErrorLogger( NO_ERR_START, LOC, _proc_apropos_cache, "dir='", dir, NULL);
-*/
-#endif
-
-    /**
-     **	 Figure out, what out global RC file is. This depends on the environ-
-     **	 ment variable 'MODULEWHATISCACHE', which can be set to one of the
-     **	 following:
-     **
-     **		<filename>	-->	PREFIX/etc/<filename>
-     **		<dir>/		-->	<dir>/RC_FILE
-     **		<dir>/<file>	-->	<dir>/<file>
-     **/
-
-    if( env = getenv( "MODULEWHATISCACHE")) {
-
-	if((char *) NULL == (env_file = strrchr( env, '/'))) {
-	    env_file = env;
-	    env_path = instpath;
-
-	} else {
-	    *env_file++ = '\0';
-	    env_path = env;
-	}
-	
-	if( !*env_file)
-	    env_file = cache_name;
-
-    } else {
-	env_path = instpath;
-	env_file = cache_name;
-    }
-
-    /**
-     **	 Finaly we have to change PREFIX -> PREFIX/etc
-     **/
-    if( env_path == instpath) {
-	if((char *) NULL == (buffer = stringer(NULL,0,
-		env_path,"/etc/",env_file,NULL)))
-	    goto unwind0;
-    } else {
-	if((char *) NULL == (buffer = stringer(NULL,0,
-		env_path,"/",env_file,NULL)))
-	    goto unwind0;
-    }
-
-    /**
-     **	 Return the name of the cache file
-     **/
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_END, LOC, _proc_apropos_cache, NULL);
-#endif
-
-    return( buffer);
-
-unwind0:
-    return (char *) NULL;
-} /** End of 'apropos_cache' **/

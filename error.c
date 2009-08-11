@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.15 2009/08/10 19:28:00 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.16 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -127,7 +127,7 @@ typedef struct  {
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-static	char	module_name[] = "error.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 
 /**
  **  Local flags
@@ -322,8 +322,6 @@ static	ErrTransTab	TransTab[] = {
     { ERR_SYMLOOP,	WGHT_ERROR, N_("Version symbol '$1' loops") },
     { ERR_BADMODNAM,	WGHT_PROB,  N_("Invalid modulename '$1' found") },
     { ERR_DUP_ALIAS,	WGHT_WARN,  N_("Duplicate alias '$1' found") },
-    { ERR_CACHE_INVAL,	WGHT_ERROR, N_("Invalid cache version '$1' found") },
-    { ERR_CACHE_LOAD,	WGHT_WARN,  N_("Couldn't load the cache properly") },
     { ERR_BEGINENV,	WGHT_WARN,
 #ifdef BEGINENV
 #  if BEGINENV == 99
@@ -806,7 +804,7 @@ static	int	FlushError(	ErrType		  Type,
 				int		  argc,
 				char		**argv)
 {
-    char	*facilities, *buffer;
+    char	*facilities;
     char 	*fac;
     FILE	*facfp;
     char	*errmsg_buffer, *fac_buffer;
@@ -1168,7 +1166,7 @@ char	**GetFacilityPtr( char *facility)
 {
     int		 	 i, len;
     ErrMeasr		*measptr;
-    char		*buf, *s, *t;
+    char		*buf, *t;
     ErrFacilities	*facptr;
 
     /**

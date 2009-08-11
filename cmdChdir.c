@@ -18,7 +18,7 @@
  ****/
 #include "modules_def.h"
 
-static	char	module_name[]	= __FILE__;
+static	char	module_name[] = __FILE__;
 char		*change_dir	= NULL;
 
 int cmdChDir(ClientData	client_data, Tcl_Interp	*interp,

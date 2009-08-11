@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVerbose.c,v 1.5 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVerbose.c,v 1.6 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -57,7 +57,7 @@ static void *UseId[] = { &UseId, Id };
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-static	char	module_name[] = "cmdVerbose.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 #if WITH_DEBUGGING_CALLBACK
 static	char	_proc_cmdModuleVerbose[] = "cmdModuleVerbose";
 #endif

@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_List.c,v 1.8 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_List.c,v 1.9 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -57,8 +57,10 @@ static void *UseId[] = { &UseId, Id };
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-static	char	module_name[] = "ModuleCmd_List.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
+#if WITH_DEBUGGING_MODULECMD
 static	char	_proc_ModuleCmd_List[] = "ModuleCmd_List";
+#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -123,7 +125,7 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
 	 **/
 
 	if( sw_format & SW_LONG ) {
-	    fprintf( stderr, long_header);
+	    fprintf( stderr, _(long_header));
 	}
 	if( sw_format & (SW_TERSE | SW_LONG | SW_HUMAN) )
 	    fprintf( stderr, "%s\n",
@@ -137,12 +139,12 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
 
 	count1 = 1;
         for( list[ 0] = xstrtok( loaded, ":");
-	     list[ count1] = xstrtok( NULL, ":");
+	    (list[ count1] = xstrtok( NULL, ":"));
 	     count1++ );
 
 	count2 = 1;
         for( files[ 0] = xstrtok( lmfiles, ":");
-	     files[ count2] = xstrtok( NULL, ":");
+	    (files[ count2] = xstrtok( NULL, ":"));
 	     count2++ );
 	if (count1 != count2) {
 	  ErrorLogger( ERR_ENVVAR, LOC, NULL);
@@ -167,7 +169,7 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
 
 	    s = files[i] + len;
 	    while( s) {
-		if( s = strchr( s, '/'))
+		if( (s = strchr( s, '/')) )
 		    *s = '\0';
 
 		SourceRC( interp, files[i], modulerc_file);

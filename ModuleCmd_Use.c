@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.8 2009/08/03 16:23:55 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.9 2009/08/11 22:01:29 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -60,7 +60,7 @@ static void *UseId[] = { &UseId, Id };
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-static	char	module_name[] = "ModuleCmd_Use.c";	/** File name of this module **/
+static	char	module_name[] = __FILE__;
 #if WITH_DEBUGGING_UTIL_1
 static	char	_proc_append_to_modulesbeginenv[] = "append_to_modulesbeginenv";
 #endif
@@ -121,8 +121,8 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
 	 **  Get filename and the value of the passed variable
 	 **/
 
-	if( filename = (char *) Tcl_GetVar2( interp, "env","_MODULESBEGINENV_",
-	    TCL_GLOBAL_ONLY)) {
+	if( (filename = (char *) Tcl_GetVar2( interp, "env","_MODULESBEGINENV_",
+	    TCL_GLOBAL_ONLY)) ) {
 	    val = (char *) Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY);
 
 	    /**
