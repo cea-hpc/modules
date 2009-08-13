@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.6 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.7 2009/08/13 19:17:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -124,7 +124,7 @@ int ModuleCmd_Refresh(	Tcl_Interp	*interp,
     if (!loaded || !*loaded)
 	goto success0;
 
-    loaded = strdup(loaded);
+    loaded = stringer(NULL,0, loaded, NULL);
     if( !loaded )
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind0;

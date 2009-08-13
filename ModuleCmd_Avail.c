@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.15 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.16 2009/08/13 19:17:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -632,7 +632,7 @@ fi_ent	*get_dir(	char	*dir,
 		    goto unwind1;
 		}
 	    } else {
-		if( NULL == (np = strdup( tmp)))
+		if( NULL == (np = stringer(NULL,0, tmp, NULL)))
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 			goto unwind1;
 	    }
@@ -644,7 +644,7 @@ fi_ent	*get_dir(	char	*dir,
 		    goto unwind1;
 		}
 	    } else {
-		if( NULL == (ndir = strdup( tmp)))
+		if( NULL == (ndir = stringer(NULL,0, tmp, NULL)))
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
 			goto unwind1;
 	    }
@@ -714,7 +714,7 @@ fi_ent	*get_dir(	char	*dir,
 	 **/
 
 	dirlst_cur->fi_prefix = prefix;
-	if( NULL == (dirlst_cur->fi_name = strdup( dp->d_name)))
+	if( NULL == (dirlst_cur->fi_name = stringer(NULL,0, dp->d_name, NULL)))
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
 		goto unwind1;
 
@@ -850,7 +850,7 @@ void	dirlst_to_list(	char	**list,
 	     **  Put this guy on the list
 	     **/
 
-	    if( NULL == (list[(*beginning)++] = strdup( ptr))) {
+	    if( NULL == (list[(*beginning)++] = stringer(NULL,0, ptr, NULL))) {
 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
 		    while( i--) 
 			null_free((void *) list + (--(*beginning)));
@@ -1121,11 +1121,11 @@ void print_aligned_files(	Tcl_Interp	 *interp,
 		    }
 		}
 
-		module = strdup(*list + maxPrefixLength);
+		module = stringer(NULL,0, *list + maxPrefixLength, NULL);
 	    } else {
 		t = strlen(path);
 		if (*(*list + t) == '/') t++;
-		module = strdup(*list + t);
+		module = stringer(NULL,0, *list + t, NULL);
 	    }
 	    if((char *) NULL == module) {
 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
@@ -1401,7 +1401,7 @@ static	void _add_file_list( char *name)
 	_file_list_rd_ndx = 0;
 
     } else {
-	_file_list_ptr[ _file_list_wr_ndx++] = strdup( name);
+	_file_list_ptr[ _file_list_wr_ndx++] = stringer(NULL,0, name, NULL);
     }
 }
 

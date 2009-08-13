@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.24 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.25 2009/08/13 19:17:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -430,8 +430,12 @@ _(
 "	+ display|show		modulefile [modulefile ...]\n"
 "	+ avail			[modulefile [modulefile ...]]\n"
 "	+ use [-a|--append]	dir [dir ...]\n"
-"	+ unuse			dir [dir ...]\n"
-"	+ update\n"
+"	+ unuse			dir [dir ...]\n"));
+#ifdef BEGINENV
+	fprintf(output,_(
+"	+ update\n"));
+#endif
+	fprintf(output,_(
 "	+ refresh\n"
 "	+ purge\n"
 "	+ list\n"

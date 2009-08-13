@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.11 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.12 2009/08/13 19:17:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -109,16 +109,16 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
     					/** Current size of the input buffer **/
     char	 *ptr, c;		/** Read pointers and char buffer    **/
 
-#if WITH_DEBUGGING_MODULECMD
+#  if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Update, NULL);
-#endif
+#  endif
 
-#if BEGINENV == 99
+#  if BEGINENV == 99
     	if (!Tcl_GetVar2( interp,"env","MODULESBEGINENV", TCL_GLOBAL_ONLY)) {
 		ErrorLogger( ERR_BEGINENVX, LOC, NULL);
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	}
-#endif
+#  endif
     /**
      **  Nothing loaded so far - we're ready!
      **/
@@ -280,9 +280,9 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
     null_free((void *) &load_list);
 
 success0:
-#if WITH_DEBUGGING_MODULECMD
+#  if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Update, NULL);
-#endif
+#  endif
 
     return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
 

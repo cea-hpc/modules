@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.31 2009/08/11 22:01:29 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.32 2009/08/13 19:17:43 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -203,7 +203,7 @@ AC_STRUCT_TM
 dnl ---------------------------------------------------------------------------
 dnl Checks for library functions.
 dnl ---------------------------------------------------------------------------
-AC_CHECK_FUNCS([strdup uname gethostname getdomainname \
+AC_CHECK_FUNCS([uname gethostname getdomainname \
 	mktemp tmpnam tempnam \
 	syslog dup2])dnl
 dnl ---------------------------------------------------------------------------
@@ -286,7 +286,7 @@ dnl
 dnl --enable-version-magic      Set .version magic requirement	[DEF]
 dnl --disable-version-magic     .version need not have magic cookie
 dnl
-dnl --enable-beginenv		Use .modulesbeginenv for initial env.	[TEST]
+dnl --enable-beginenv		Use .modulesbeginenv for initial env.	[NO]
 dnl --disable-beginenv		Do not use .modulesbeginenv
 dnl
 dnl ---------------------------------------------------------------------------
@@ -498,12 +498,13 @@ this feature, but will only work if the MODULESBEGINENV env.var is
 set to a file name (e.g. '$HOME/.modulesbeginenv.$$'- modules will
 do one-level of variable expansion.)])dnl
 AC_ARG_ENABLE(beginenv,
-	AC_HELP_STRING([--enable-beginenv],[use .modulesbeginenv for initial env [[test]]]),
+	AC_HELP_STRING([--enable-beginenv],[use .modulesbeginenv for initial env [[no]]]),
 	if test "$enableval" = "yes"; then
 		AC_DEFINE(BEGINENV,1)dnl
 	elif test "$enableval" = "test"; then
 		AC_DEFINE(BEGINENV,99)dnl
-	fi, AC_DEFINE(BEGINENV,99))dnl
+	fi)dnl
+dnl	fi, AC_DEFINE(BEGINENV,99))dnl
 dnl ---------------------------------------------------------------------------
 dnl  Logging
 dnl  The following option allow switching logging on and off

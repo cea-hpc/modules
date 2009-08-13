@@ -691,15 +691,6 @@ extern	size_t	  countTclHash(Tcl_HashTable *);
 extern	EM_RetVal	ReturnValue( Tcl_Interp*, int);
 extern	void	  OutputExit();
 
-#ifndef HAVE_STRDUP
-#  undef strdup
-extern	char	 *strdup( char*);
-#endif
-
-#ifndef HAVE_STRTOK
-extern	char	 *strtok( char *, const char *);
-#endif
-
 /** error.c **/
 extern	char	**GetFacilityPtr( char *);
 extern	int 	  Module_Error(	ErrType, char*, int, ...);

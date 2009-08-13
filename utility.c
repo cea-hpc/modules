@@ -38,8 +38,6 @@
  **			null_free					     **
  **			countTclHash					     **
  **									     **
- **			strdup		if not defined by the system libs.   **
- ** 									     **
  **   Notes:								     **
  ** 									     **
  ** ************************************************************************ **
@@ -52,7 +50,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.28 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.29 2009/08/13 19:17:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -213,11 +211,11 @@ int store_hash_value(	Tcl_HashTable* htable,
     }
 
     /**
-     **  Set up the new value. strdup allocates!
+     **  Set up the new value. stringer allocates!
      **/
 
     if( value)
-        Tcl_SetHashValue( hentry, (char*) strdup((char*) value));
+        Tcl_SetHashValue( hentry, (char*) stringer(NULL,0, value,NULL));
     else
         Tcl_SetHashValue( hentry, (char*) NULL);
     
@@ -520,7 +518,7 @@ Tcl_HashTable	**Copy_Hash_Tables( void)
 		newHashEntry = Tcl_CreateHashEntry( *n_ptr, key, &new);
 
 		if(val)
-		    Tcl_SetHashValue(newHashEntry, strdup(val));
+        	    Tcl_SetHashValue(newHashEntry, stringer(NULL,0, val, NULL));
 		else
 		    Tcl_SetHashValue(newHashEntry, (char *) NULL);
 
@@ -707,7 +705,7 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 	if( (hashEntry = Tcl_FirstHashEntry( table[i], &searchPtr)) )
 		do {
 			key = (char*) Tcl_GetHashKey( table[i], hashEntry);
-			list[k++] = strdup(key);
+			list[k++] = stringer(NULL,0, key, NULL);
 		} while( (hashEntry = Tcl_NextHashEntry( &searchPtr)) );
 	/* sort hash */
 	if (hcnt > 1)
@@ -1685,7 +1683,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	 **  of the returned buffer into a free allocated one in order to
 	 **  avoid side effects.
 	 **/
-	char	*tmp = strdup(lmfiles);
+	char	*tmp = stringer(NULL,0, lmfiles, NULL);
 
 	if( !tmp)
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
@@ -2147,7 +2145,7 @@ int Update_LoadedList(	Tcl_Interp	*interp,
      **  the path too.
      **/
     if( g_flags & M_REMOVE) {
-	module = strdup( modulename);
+	module = stringer(NULL,0, modulename, NULL);
 	basename = module;
 	if( (basename = get_module_basename( basename)) ) {
 	argv[2] = basename;
@@ -2343,36 +2341,6 @@ static	char *chop( const char	*string)
 
 } /** End of 'chop' **/
 
-#ifndef HAVE_STRDUP
-
-/*++++
- ** ** Function-Header ***************************************************** **
- ** 									     **
- **   Function:		strdup						     **
- ** 									     **
- **   Description:	Makes new space to put a copy of the given string    **
- **			into and then copies the string into the new space.  **
- **			Just like the "standard" strdup(3).		     **
- ** 									     **
- **   First Edition:	1991/10/23					     **
- ** 									     **
- **   Parameters:							     **
- **   Result:								     **
- **   Attached Globals:							     **
- ** 									     **
- ** ************************************************************************ **
- ++++*/
-
-char	*strdup( char *str)
-{
-    char* new;
-    if ((char *) NULL) == (new = stringer(NULL,0, str, NULL))
-	if( OK != ErrorLogger( ERR_STRING, LOC, filename, NULL))
-	    return( (char*) NULL);	/** -------- EXIT (FAILURE) -------> **/
-    return( new);			/** -------- EXIT (SUCCESS) -------> **/
-}
-#endif /* HAVE_STRDUP  */
-
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -2547,7 +2515,7 @@ char *xdup(char const *string) {
 	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 		return( (char*) NULL);	/** -------- EXIT (FAILURE) -------> **/
 
-	/** check for '$' else just pass strdup of it **/
+	/** check for '$' else just pass copy of it **/
 	if ((dollarptr = strchr(result, '$')) == (char *) NULL) {
 		return result;
 	} else {
@@ -2631,7 +2599,7 @@ char *xdup(char const *string) {
 			}
 		}
 		null_free((void *) &result);
-		return strdup(buffer);
+		return stringer(NULL,0, buffer, NULL);
 	}
 
 } /** End of 'xdup' **/

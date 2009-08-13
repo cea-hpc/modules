@@ -46,8 +46,8 @@ int cmdChDir(ClientData	client_data, Tcl_Interp	*interp,
 
     /* The actual work happens here */
     if (change_dir != NULL)
-	    free(change_dir);
-    change_dir = strdup(argv[1]);
+	    null_free(change_dir);
+    change_dir = stringer(NULL,0,argv[1], NULL);
 
     return TCL_OK;
 }

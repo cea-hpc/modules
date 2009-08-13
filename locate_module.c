@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.23 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.24 2009/08/13 19:17:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -699,7 +699,7 @@ char	**SortedDirList(	Tcl_Interp	*interp,
      **/
     if( S_ISREG( stats.st_mode)) {
 	*listcnt = 1;
-	filelist[0] = strdup( modulename);
+	filelist[0] = stringer(NULL,0, modulename, NULL);
 
 #if WITH_DEBUGGING_UTIL_2
     ErrorLogger( NO_ERR_DEBUG, LOC, "Module '", modulename, "' found", NULL);

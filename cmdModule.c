@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.18 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.19 2009/08/13 19:17:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -194,7 +194,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     save_module_command = module_command;
-    module_command  = strdup( argv[1]);
+    module_command  = stringer(NULL,0, argv[1], NULL);
 
     if( g_current_module)
 	store_curmodule = g_current_module;

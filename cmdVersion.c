@@ -47,7 +47,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.14 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.15 2009/08/13 19:17:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -1080,7 +1080,7 @@ static	ModModule	*AddModule(	char	*name)
      **  Fill the name in and put it in the queue
      **/
 
-    if((char *) NULL == (ptr->module = strdup( name))) {
+    if((char *) NULL == (ptr->module = stringer(NULL,0, name, NULL))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
 	null_free((void *) &ptr);
 	return((ModModule *) NULL);
@@ -1204,7 +1204,7 @@ static	ModName	*AddName(	char	 *name,
      **  Fill the name in and put it in the queue
      **/
 
-    if((char *) NULL == (ptr->name = strdup( name))) {
+    if((char *) NULL == (ptr->name = stringer(NULL,0, name, NULL))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
 	null_free((void *) &ptr);
 	return((ModName *) NULL);

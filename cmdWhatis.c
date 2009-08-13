@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.7 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.8 2009/08/13 19:17:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -179,7 +179,8 @@ int	cmdModuleWhatis(	ClientData	 client_data,
 	     **  Put the string on the buffer
 	     **/
 
-	    if((char *) NULL == (whatis[ whatis_ndx++] = strdup( argv[ i++]))) {
+	    if((char *) NULL == (whatis[ whatis_ndx++]
+		= stringer(NULL,0, argv[ i++], NULL))) {
 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 		    return( TCL_ERROR);
 		whatis_ndx--;

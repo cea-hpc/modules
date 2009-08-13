@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.11 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.12 2009/08/13 19:17:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -333,7 +333,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 				    fprintf(stderr, _("Switching %s to %s\n"),
 					    modlist[j], argv[i + 1]);
 				    null_free((void *) (modlist + j));
-				    modlist[j] = strdup(argv[i + 1]);
+				    modlist[j]=stringer(NULL,0,argv[i+1],NULL);
 				}
 			    } /** if **/
 			} /** for(j) **/
