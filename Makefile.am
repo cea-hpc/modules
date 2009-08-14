@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.29 2009/08/03 21:04:10 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.30 2009/08/14 22:16:46 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -57,7 +57,7 @@ CTAGS:	$(modulecmd_SOURCES)
 	ctags	$(modulecmd_SOURCES) $(SOURCES_H)
 
 cxref:
-	cxref $(modulecmd_SOURCES) $(SOURCES_H)
+	cxref $(modulecmd_CFLAGS) $(modulecmd_SOURCES) $(SOURCES_H)
 	@echo "==============================="
 	@echo "You may need to run this twice!"
 	@echo "==============================="
