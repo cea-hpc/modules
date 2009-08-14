@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.24 2009/08/13 19:17:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.25 2009/08/14 22:16:16 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -192,11 +192,6 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 	    /**
 	     **  Reinstall the 'modulefile' which has been corrupted by
 	     **   tokenization
-	     **/
-	    *p = '/';
-	    /**
-	     **  Reinstall the 'modulefile' which has been corrupted by
-	     **  tokenization
 	     **/
 	    *p = '/';
 
@@ -1089,7 +1084,9 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
 	    ErrorLogger( ERR_MAGIC, LOC, buffer, NULL);
 	    null_free((void *) &buffer);
 	}
-    } /** if( !stat) **/
+    } else {	/** if( !stat) - presumably not found **/
+	null_free((void *) &buffer);
+    }
     /**
      **  Return our result
      **/
