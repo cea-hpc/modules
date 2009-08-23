@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdMisc.c,v 1.6 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdMisc.c,v 1.7 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -82,8 +82,8 @@ static	char	_proc_cmdSystem[] = "cmdSystem";
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
- **			int		 argc		Number of arguments  **
- **			char		*argv[]		Argument array	     **
+ **			int		 objc		Number of arguments  **
+ **			Tcl_Obj		*objv[]		Argument array	     **
  ** 									     **
  **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
@@ -95,94 +95,87 @@ static	char	_proc_cmdSystem[] = "cmdSystem";
  ** ************************************************************************ **
  ++++*/
 
-int	cmdSystem(	ClientData	 clientData, 
-	  		Tcl_Interp	*interp, 
-	  		int		 argc, 
-	  		CONST84 char	*argv[])
-{
-    int		 i;
-    int		 saved_stdout;
-    char	 buf[ MAX_ARGLIST];
-    char	*bufp = buf;
-    int		 total_len = 0,
-    		 arg_len;
+int cmdSystem(
+	ClientData clientData,
+	Tcl_Interp * interp,
+	int objc,
+	Tcl_Obj * CONST84 objv[]
+) {
+	int             saved_stdout,		/** save the stdout fd	     **/
+	                total_len = 0,		/** total string length	     **/
+			arg_len,		/** each arg string length   **/
+			i;			/** loop counter	     **/
+	char            buf[MAX_ARGLIST],	/** buffer for string to int **/
+	               *bufp = buf;		/** buffer ptr		     **/
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdSystem, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_cmdSystem, NULL);
 #endif
 
     /**
      **  Whatis mode
      **/
-
-    if( g_flags & (M_WHATIS | M_HELP))
-        return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
-
+	if (g_flags & (M_WHATIS | M_HELP))
+		return (TCL_OK);	/** -------- EXIT (SUCCESS) -------> **/
     /**
      **  Display mode?
      **/
-
-    if( g_flags & M_DISPLAY) {
-	fprintf( stderr, "%s\t\t ", argv[ 0]);
-	for( i=1; i<argc; i++)
-	    fprintf( stderr, "%s ", argv[ i]);
-	fprintf( stderr, "\n");
-        return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
-    }
+	if (g_flags & M_DISPLAY) {
+		fprintf(stderr, "%s\t\t ", Tcl_GetString(objv[0]));
+		for (i = 1; i < objc; i++)
+			fprintf(stderr, "%s ", Tcl_GetString(objv[i]));
+		fprintf(stderr, "\n");
+		return (TCL_OK);	/** -------- EXIT PROCEDURE -------> **/
+	}
 
     /**
      **  Prepare a buffer to hold the complete 'system' call
      **  Watch over the commands complete length while copying ...
      **/
-
-    for( i = 1; i<argc; i++) {
-
-        total_len += (1 + (arg_len = strlen(argv[i])));
-        if( total_len > MAX_ARGLIST) {
-	    if( OK != ErrorLogger( ERR_ARGSTOLONG, LOC, argv[0], (sprintf( buf,
-		"%d", total_len), buf), NULL))
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-        }
+	for (i = 1; i < objc; i++) {
+		total_len += (1 + (arg_len = strlen(Tcl_GetString(objv[i]))));
+		if (total_len > MAX_ARGLIST) {
+			if (OK != ErrorLogger(ERR_ARGSTOLONG, LOC,
+				Tcl_GetString(objv[0]),
+				(sprintf(buf, "%d", total_len), buf), NULL))
+				return (TCL_ERROR); /** -- EXIT (FAILURE) -> **/
+		}
 
 	/**
- 	 **  Copy the argument ov the buffer and put a space at its end
+ 	 **  Copy the argument on the buffer and put a space at the end
 	 **/
-
-        memcpy( bufp, argv[i], arg_len);
-        bufp += arg_len;
-        memcpy( bufp, " ", 1);
-        bufp += 1;
-    }
+		memcpy(bufp, Tcl_GetString(objv[i]), arg_len);
+		bufp += arg_len;
+		memcpy(bufp, " ", 1);
+		bufp += 1;
+	}
 
     /**
      **  For Modules, stdout must be directed to stderr so it
      **  isn't parsed by the evaluating shell.  We also must save it here so it
      **  can be restored after this command has been executed.
      **/
+	saved_stdout = TieStdout();
 
-    saved_stdout = TieStdout();
-
-    *(bufp-1) = '\0';
-    i = system( buf);
+	*(bufp - 1) = '\0';
+	i = system(buf);
 
     /**
      **  Following the style of Tcl_ExecCmd, we can just return the
      **  raw result (appropriately shifted and masked) to Tcl
      **/
+	sprintf(buf, "%d", (0xff & (i >> 8)));
+	Tcl_SetResult(interp, buf, TCL_VOLATILE);
 
-    sprintf( buf, "%d", (0xff & (i >> 8)));
-    Tcl_SetResult( interp, buf, TCL_VOLATILE);
+	/*
+	 *  Restore stdout.
+	 */
+	UnTieStdout(saved_stdout);
 
-    /*
-     *  Restore stdout.
-     */
-
-    UnTieStdout( saved_stdout);
-    
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdSystem, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_cmdSystem, NULL);
 #endif
 
-    return( TCL_OK);
+	return (TCL_OK);
 
 } /** End of 'cmdSystem' **/

@@ -9,6 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description: 	Contains the routines which locate the actual	     **
  **			modulefile given a modulefilename by looking in all  **
@@ -33,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.25 2009/08/14 22:16:16 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.26 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -666,7 +667,7 @@ char	**SortedDirList(	Tcl_Interp	*interp,
      **  Allocate memory for the list to be created. Suggest a list size of
      **  100 Elements. This may be changed later on.
      **/
-    if( NULL == (filelist = (char**) calloc( n = 100, sizeof(char*))))
+    if( NULL == (filelist = (char**) module_calloc( n = 100, sizeof(char*))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind0;
     /**
@@ -745,7 +746,8 @@ char	**SortedDirList(	Tcl_Interp	*interp,
 	     **/
 	    if( j == n)
 		if( NULL == (filelist =
-		    (char**) realloc((char*) filelist, (n*=2)*sizeof(char*))))
+		    (char**) module_realloc((char*) filelist,
+			(n*=2)*sizeof(char*))))
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 			goto unwindt;
 	    /**
@@ -889,7 +891,8 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
      **  the list.
      **  Copy the passed path into the new buffer.
      **/
-    if((char **) NULL == (pathlist = (char**) calloc(n = 100,sizeof( char*))))
+    if((char **) NULL ==
+	(pathlist = (char**) module_calloc(n = 100,sizeof( char*))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind1;
     /**
@@ -903,8 +906,8 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
 	 **  and double its size!
 	 **/
 	if( i == n )
-	    if((char **) NULL == (pathlist = (char**) realloc((char*) pathlist,
-		(n *= 2)*sizeof(char*))))
+	    if((char **) NULL == (pathlist = (char**) module_realloc(
+		(char*) pathlist, (n *= 2)*sizeof(char*))))
 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 		    goto unwind1;
 	/**
@@ -1069,8 +1072,8 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
 		}
 	    } else if( listndx + 1 >= listsize) {
 		listsize += SRCFRAG;
-		if((char **) NULL == (srclist = (char **) realloc( srclist, 
-		    listsize * sizeof( char **)))) {
+		if((char **) NULL == (srclist = (char **) module_realloc(
+		    srclist, listsize * sizeof( char **)))) {
 		    ErrorLogger( ERR_ALLOC, LOC, NULL);
 		    goto unwind1;
 		}
@@ -1169,6 +1172,8 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
 
 	    if( TCL_ERROR != (Result = Execute_TclFile( interp, buffer)) && 
 		(version = (char *) Tcl_GetVar(interp, "ModulesVersion", 0))) {
+		int	objc = 3;
+		Tcl_Obj **objv;
 		/**
 		 **  The version has been specified in the
 		 **  '.version' file. Set up the result code
@@ -1182,11 +1187,12 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
 		new_argv[0] = "module-version";
 		new_argv[1] = buffer;
 		new_argv[2] = _(em_default);
+		Tcl_ArgvToObjv(interp, &objc, &objv, 3, new_argv);
 		/**
 		 **  Define the default version
 		 **/
 		if( TCL_OK != cmdModuleVersion( (ClientData) 0,
-		    (Tcl_Interp *) NULL, 3, (CONST84 char **) new_argv)) {
+		    (Tcl_Interp *) NULL, 3, objv)) {
 			Result = TCL_ERROR;
 		}
 	    } /** if( Execute...) **/

@@ -9,6 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	The Tcl conflict and prereq commands.		     **
  ** 									     **
@@ -27,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.15 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.16 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -211,8 +212,8 @@ unwind0:
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
- **			int		 argc		Number of arguments  **
- **			char		*argv[]		Argument array	     **
+ **			int		 objc		Number of arguments  **
+ **			Tcl_Obj		*objv[]		Argument array	     **
  ** 									     **
  **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
@@ -224,127 +225,113 @@ unwind0:
  ** ************************************************************************ **
  ++++*/
 
-int	cmdConflict(	ClientData	 client_data,
-	    		Tcl_Interp	*interp,
-	    		int		 argc,
-	    		CONST84 char 	*argv[])
-{
-    char	 **pathlist,		/** List of module-pathes	     **/
-    		 **modulelist;		/** List of modules		     **/
-    char	  *modulepath;		/** Contents of MODULEPATH	     **/
-    int		   i, j,		/** Loop counters		     **/
-   		   numpaths, nummodules;/** Size of the according arrays     **/
+int cmdConflict(
+	ClientData client_data,
+	Tcl_Interp * interp,
+	int objc,
+	Tcl_Obj * CONST84 objv[]
+) {
+	char          **pathlist,	/** List of module-pathes	     **/
+	              **modulelist,	/** List of modules		     **/
+		       *modulepath;	/** Contents of MODULEPATH	     **/
+	int             i, j,		/** Loop counters		     **/
+	                numpaths, nummodules;
+					/** Size of the according arrays     **/
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdConflict, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_cmdConflict, NULL);
 #endif
 
     /**
      **  Whatis mode
      **/
-
-    if( g_flags & (M_WHATIS | M_HELP))
-	goto success0;
+	if (g_flags & (M_WHATIS | M_HELP))
+		goto success0;
 
     /**
      **  Check the parameters. Usage is 'conflict <module> [<module> ...]'
      **/
-
-    if( argc < 2)
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0],
-	    "conflicting-modulefiles", NULL))
-	    goto unwind0;
-
+	if (objc < 2)
+		if (OK != ErrorLogger(ERR_USAGE, LOC, Tcl_GetString(objv[0]),
+				      "conflicting-modulefiles", NULL))
+			goto unwind0;
     /**
      **  There will be no conflicts in case of switch or unload
      **/
-
-    if( g_flags & (M_REMOVE | M_SWITCH))
-        goto success0;
-
+	if (g_flags & (M_REMOVE | M_SWITCH))
+		goto success0;
     /**
      **  Load the MODULEPATH and split it into a list of paths. Assume success
      **  if no list to be built...
      **/
-    if((char *) NULL == (modulepath = xgetenv( "MODULEPATH")))
-	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-	    goto unwind0;
+	if ((char *)NULL == (modulepath = xgetenv("MODULEPATH")))
+		if (OK != ErrorLogger(ERR_MODULE_PATH, LOC, NULL))
+			goto unwind0;
 
-    if((char **) NULL==(pathlist=SplitIntoList(interp, modulepath, &numpaths,
-	_colon)))
-        goto success1;
-
+	if ((char **)NULL ==
+	    (pathlist = SplitIntoList(interp, modulepath, &numpaths, _colon)))
+		goto success1;
     /**
      **  Non-persist mode?
      **/
-    
-    if (g_flags & M_NONPERSIST) {
-	return (TCL_OK);
-    }
-
+	if (g_flags & M_NONPERSIST) {
+		return (TCL_OK);
+	}
     /**
      **  Display?
      **/
-
-    if( g_flags & M_DISPLAY) {
-	fprintf( stderr, "%s\t ", argv[ 0]);
-	while( --argc)
-	    fprintf( stderr, "%s ", *++argv);
-	fprintf( stderr, "\n");
-        goto success2;
-    }
-
+	if (g_flags & M_DISPLAY) {
+		fprintf(stderr, "%s\t ", Tcl_GetString(*objv++));
+		while (--objc)
+			fprintf(stderr, "%s ", Tcl_GetString(*objv++));
+		fprintf(stderr, "\n");
+		goto success2;
+	}
     /**
      **  Now check/display all passed modules ...
      **/
-
-    for( i=1; i<argc && argv[i]; i++) {
-        for( j = 0; j < numpaths; j++) {
-
-            if((char **)NULL == (modulelist = SortedDirList(interp,
-			pathlist[j], (char *) argv[i], &nummodules)))
-                continue;		/** not browseable		     **/
-
+	for (i = 1; i < objc && Tcl_GetString(objv[i]); i++) {
+		for (j = 0; j < numpaths; j++) {
+			if ((char **)NULL ==
+				(modulelist = SortedDirList(interp,pathlist[j],
+					Tcl_GetString(objv[i]), &nummodules)))
+				continue; /** not browseable		     **/
 	    /**
 	     **  Actually checking for conflicts is done here
 	     **/
-            if( TCL_ERROR == checkConflict( interp, pathlist[j], modulelist,
-		nummodules))
-		if( OK != ErrorLogger( ERR_CONFLICT, LOC, g_current_module,
-		    error_module, NULL)) {
-		    FreeList( modulelist, nummodules);
-		    goto unwind2;
-		}
-
+			if (TCL_ERROR ==
+			    checkConflict(interp, pathlist[j], modulelist,
+					  nummodules))
+				if (OK != ErrorLogger(ERR_CONFLICT, LOC,
+					g_current_module, error_module, NULL)) {
+					FreeList(modulelist, nummodules);
+					goto unwind2;
+				}
 	    /**
 	     **  Free the list of modules used in the loops body above.
 	     **/
-            FreeList( modulelist, nummodules);
-
-        } /** for( j) **/
-    } /** for( i) **/
+			FreeList(modulelist, nummodules);
+		} /** for( j) **/
+	} /** for( i) **/
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdConflict, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_cmdConflict, NULL);
 #endif
-
     /**
      ** free resources
      **/
 success2:
-    FreeList( pathlist, numpaths);
+	FreeList(pathlist, numpaths);
 success1:
-    null_free((void *) &modulepath);
+	null_free((void *)&modulepath);
 success0:
-    return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
-
+	return (TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
 unwind2:
-    FreeList( pathlist, numpaths);
+	FreeList(pathlist, numpaths);
 unwind1:
-    null_free((void *) &modulepath);
+	null_free((void *)&modulepath);
 unwind0:
-    return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
-
+	return (TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
 } /** End of 'cmdConflict' **/
 
 /*++++
@@ -358,8 +345,8 @@ unwind0:
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
- **			int		 argc		Number of arguments  **
- **			char		*argv[]		Argument array	     **
+ **			int		 objc		Number of arguments  **
+ **			Tcl_Obj		*objv[]		Argument array	     **
  ** 									     **
  **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
@@ -371,206 +358,196 @@ unwind0:
  ** ************************************************************************ **
  ++++*/
 
-int	cmdPrereq(	ClientData	 client_data,
-	    		Tcl_Interp	*interp,
-	    		int		 argc,
-	    		CONST84 char	*argv[])
-{
-    char	***savedlists = (char ***) NULL;
-    int		  *savedlens = (int *) NULL;
-    char	 **pathlist,
-		 **modulelist,
-		  *modulepath,
-		  *notloaded_flag = (char *) argv[1];
-    int     	   i, j, k, numpaths, nummodules, listcnt = 0,
-		   Result = TCL_OK;
-    char	   buffer[ MOD_BUFSIZE];
-	
+int cmdPrereq(
+	ClientData client_data,
+	Tcl_Interp * interp,
+	int objc,
+	Tcl_Obj * CONST84 objv[]
+) {
+	char         ***savedlists = (char ***)NULL;
+	int            *savedlens = (int *)NULL;
+	char          **pathlist,		/** module path list **/
+	              **modulelist,		/** sorted module list **/
+	               *modulepath,		/** modulepath env.var **/
+	               *notloaded_flag;		/** conflicting module **/
+	int             i, j, k, numpaths, nummodules, listcnt = 0,
+	    Result = TCL_OK;
+	char            buffer[MOD_BUFSIZE];
+
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdPrereq, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_cmdPrereq, NULL);
 #endif
 
     /** 
      **  Parameter check. Usage is 'prereq <module> [<module> ...]'
      **/
-
-    if( argc < 2)
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0],
-	    "prerequsite-modules", NULL))
-	    goto unwind0;
-
+	if (objc < 2)
+		if (OK != ErrorLogger(ERR_USAGE, LOC, Tcl_GetString(objv[0]),
+				      "prerequsite-modules", NULL))
+			goto unwind0;
     /**
      **  There's no prerequisite check in case of removal
      **/
-
-    if( g_flags & (M_REMOVE | M_WHATIS))
-        goto success0;
-
-  
+	if (g_flags & (M_REMOVE | M_WHATIS))
+		goto success0;
     /**
      **  Non-persist mode?
      **/
-    
-    if (g_flags & M_NONPERSIST) {
-	return (TCL_OK);
-    }
-
+	if (g_flags & M_NONPERSIST) {
+		return (TCL_OK);
+	}
     /**
      **  Display mode
      **/
-
-    if( g_flags & M_DISPLAY) {
-	fprintf( stderr, "%s\t ", argv[ 0]);
-	while( --argc)
-	    fprintf( stderr, "%s ", *++argv);
-	fprintf( stderr, "\n");
-        goto success0;
-    }
-
+	if (g_flags & M_DISPLAY) {
+		fprintf(stderr, "%s\t ", Tcl_GetString(*objv++));
+		while (--objc)
+			fprintf(stderr, "%s ", Tcl_GetString(*objv++));
+		fprintf(stderr, "\n");
+		goto success0;
+	}
     /**
      **  Load the MODULEPATH and split it into a list of paths. Assume success
      **  if no list to be built...
      **/
-    if((char *) NULL == (modulepath = xgetenv( "MODULEPATH")))
-	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-	    goto unwind0;
+	if ((char *)NULL == (modulepath = xgetenv("MODULEPATH")))
+		if (OK != ErrorLogger(ERR_MODULE_PATH, LOC, NULL))
+			goto unwind0;
 
 #if WITH_DEBUGGING_CALLBACK_1
-    ErrorLogger( NO_ERR_DEBUG, LOC, "Got modulepath: '", modulepath, "'", NULL);
+	ErrorLogger(NO_ERR_DEBUG, LOC, "Got modulepath: '", modulepath, "'",
+		    NULL);
 #endif
-
-    if((char **) NULL==(pathlist=SplitIntoList(interp, modulepath, &numpaths,
-	_colon)))
-        goto success1;
-
+	if ((char **)NULL ==
+	    (pathlist = SplitIntoList(interp, modulepath, &numpaths, _colon)))
+		goto success1;
     /**
      **  Allocate memory for the lists of conflict modules
      **/
-    if((char ***) NULL==(savedlists=(char***) module_malloc(numpaths * (argc-1)
-	* sizeof(char**))))
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    goto unwind1;
+	if ((char ***)NULL ==
+	    (savedlists = (char ***)module_malloc(numpaths * (objc - 1)
+						  * sizeof(char **))))
+		if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
+			goto unwind1;
 
-    if((int *) NULL == (savedlens = (int*) module_malloc(numpaths * (argc-1)
-	* sizeof( int))))
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    goto unwind2;
-
+	if ((int *)NULL ==
+	    (savedlens = (int *)module_malloc(numpaths * (objc - 1)
+					      * sizeof(int))))
+		if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
+			goto unwind2;
     /**
      **  Check/Display all passed modules
      **/
-
 #if WITH_DEBUGGING_CALLBACK_1
-    ErrorLogger( NO_ERR_DEBUG, LOC, "Scanning all ", (sprintf( buffer, "%d",
-	numpaths), buffer), "modulepaths", NULL);
+	ErrorLogger(NO_ERR_DEBUG, LOC, "Scanning all ", (sprintf(buffer, "%d",
+								 numpaths),
+							 buffer), "modulepaths",
+		    NULL);
 #endif
 
-    for( i=1; i<argc && argv[i] && notloaded_flag; i++) {
-        for( j = 0; j < numpaths && notloaded_flag; j++) {
-
-            if((char **) NULL == (modulelist = SortedDirList(interp,pathlist[j],
-	        (char *) argv[i], &nummodules)))
-                continue;
-
+	notloaded_flag = Tcl_GetString(objv[1]);
+	for (i = 1; i < objc && Tcl_GetString(objv[i]) && notloaded_flag; i++) {
+		for (j = 0; j < numpaths && notloaded_flag; j++) {
+			if ((char **)NULL ==
+			    (modulelist =
+			     SortedDirList(interp, pathlist[j],
+					   Tcl_GetString(objv[i]),
+					   &nummodules)))
+				continue;
 	    /**
 	     **  save the list of file to be printed in case of missing pre-
 	     **  requisites or 
 	     **/
-
 #if WITH_DEBUGGING_CALLBACK_1
-	    ErrorLogger( NO_ERR_DEBUG, LOC, "Save directory list. # = ",
-		(sprintf( buffer, "%d", listcnt), buffer), NULL);
+			ErrorLogger(NO_ERR_DEBUG, LOC,
+				    "Save directory list. # = ",
+				    (sprintf(buffer, "%d", listcnt), buffer),
+				    NULL);
 #endif
-
-	    savedlens[ listcnt]    = nummodules;
-	    savedlists[ listcnt++] = modulelist;
-
+			savedlens[listcnt] = nummodules;
+			savedlists[listcnt++] = modulelist;
 	    /**
 	     **  Now actually check if the prerequisites are fullfilled
 	     **  The notloaded_flag controls the exit from both loops in case
 	     **  a prerequisite is missing.
 	     **/
-
-            for( k=0; k < nummodules && notloaded_flag; k++) {
-                if( !IsLoaded( interp, modulelist[k], NULL, NULL)) {
-                    notloaded_flag = (char *) argv[i];
-                } else {
-                    notloaded_flag = NULL;
-                }
-            }
-        } /** for( j) **/
-    } /** for( i) **/
+			for (k = 0; k < nummodules && notloaded_flag; k++) {
+				if (!IsLoaded
+				    (interp, modulelist[k], NULL, NULL)) {
+					notloaded_flag = Tcl_GetString(objv[i]);
+				} else {
+					notloaded_flag = NULL;
+				}
+			}
+		} /** for( j) **/
+	} /** for( i) **/
 
 #if WITH_DEBUGGING_CALLBACK_1
-    ErrorLogger( NO_ERR_DEBUG, LOC, "Done. Missing prerequisite: '",
-	(notloaded_flag ? notloaded_flag : "none"), "'", NULL);
+	ErrorLogger(NO_ERR_DEBUG, LOC, "Done. Missing prerequisite: '",
+		    (notloaded_flag ? notloaded_flag : "none"), "'", NULL);
 #endif
-
     /**
      **  Display an error message if this was *NOT* display mode and a
      **  missing prerequisite has been found
      **/
-    if( notloaded_flag) {
-
+	if (notloaded_flag) {
 	/**
 	 **  Add the whole list of prerequired module files to the Tcl result
 	 **  string
 	 **/
-	for( k=0; k<listcnt; k++) {
-	    char **listptr = savedlists[k];
+		for (k = 0; k < listcnt; k++) {
+			char          **listptr = savedlists[k];
 
-	    *buffer = '\0';
-	    for( i=0; listptr && i<savedlens[k]; i++, listptr++) {
-		if ((char *) NULL == stringer(
-			buffer + strlen(buffer), MOD_BUFSIZE-strlen(buffer),
-			*listptr, " ", NULL))
-		    if( OK != ErrorLogger( ERR_STRING, LOC,NULL)) {
-	    		FreeList( savedlists[k], savedlens[k]);
-			goto unwind2;
-		    }
-	    }
+			*buffer = '\0';
+			for (i = 0; listptr && i < savedlens[k]; i++,listptr++){
+				if ((char *)NULL ==
+				    stringer(buffer + strlen(buffer),
+					     MOD_BUFSIZE - strlen(buffer),
+					     *listptr, " ", NULL)) {
+					if (OK != ErrorLogger(ERR_STRING, LOC,
+							NULL)) {
+						FreeList(savedlists[k],
+							 savedlens[k]);
+						goto unwind2;
+					}
+				}
+			}
+			FreeList(savedlists[k], savedlens[k]);
+		}
 
-	    FreeList( savedlists[k], savedlens[k]);
-	}
+		buffer[strlen(buffer) - 1] = '\0';	/* remove last blank */
 
-	buffer[strlen(buffer)-1] = '\0';	/* remove last blank */
-
-	if( OK != ErrorLogger( ERR_PREREQ, LOC, g_current_module, buffer, NULL))
-	    Result = TCL_ERROR;	
-
-    } else {
-
+		if (OK != ErrorLogger(ERR_PREREQ, LOC, g_current_module, buffer,
+				NULL))
+			Result = TCL_ERROR;
+	} else {
 	/**
 	 **  We have to free the saved module names again
 	 **/
-
-	for( k=0; k<listcnt; k++)
-	    FreeList( savedlists[k], savedlens[k]);
-
-    }
-
+		for (k = 0; k < listcnt; k++)
+			FreeList(savedlists[k], savedlens[k]);
+	}
     /**
      **  Free up the list of prerequisites and return ...
      **/
-
-    null_free((void *) &savedlens);
-    null_free((void *) &savedlists);
+	null_free((void *)&savedlens);
+	null_free((void *)&savedlists);
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdPrereq, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_cmdPrereq, NULL);
 #endif
 
 success1:
-    null_free((void *) &modulepath);
+	null_free((void *)&modulepath);
 success0:
-    return( Result);			/** -------- EXIT (Result)  -------> **/
+	return (Result);		/** -------- EXIT (Result)  -------> **/
 
 unwind3:
-    null_free((void *) &savedlens);
+	null_free((void *)&savedlens);
 unwind2:
-    null_free((void *) &savedlists);
+	null_free((void *)&savedlists);
 unwind1:
-    null_free((void *) &modulepath);
+	null_free((void *)&modulepath);
 unwind0:
-    return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
+	return (TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
 } /** End of 'cmdPrereq' **/

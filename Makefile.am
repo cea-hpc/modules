@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.30 2009/08/14 22:16:46 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.31 2009/08/23 06:57:17 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -29,16 +29,17 @@ bin_PROGRAMS = modulecmd
 # bin_SCRIPTS = etc/mkroot etc/add.modules ext/add.ext
 modulecmd_CFLAGS=@TCLX_INCLUDE_SPEC@  @TCL_INCLUDE_SPEC@ @X_CFLAGS@
 modulecmd_LDFLAGS= @TCLX_LIB_SPEC@ @TCL_LIB_SPEC@ @X_LIBS@ @X_EXTRA_LIBS@ @LIBS@
-modulecmd_SOURCES = \
-	ModuleCmd_Avail.c \
-        ModuleCmd_Clear.c ModuleCmd_Display.c ModuleCmd_Help.c \
-	ModuleCmd_Init.c ModuleCmd_List.c ModuleCmd_Load.c ModuleCmd_Purge.c \
-	ModuleCmd_Switch.c ModuleCmd_Update.c ModuleCmd_Use.c \
-	ModuleCmd_Whatis.c ModuleCmd_Refresh.c \
-	cmdAlias.c cmdConflict.c cmdIsLoaded.c cmdInfo.c cmdMisc.c cmdModule.c\
-	cmdPath.c cmdSetenv.c cmdUname.c cmdXResource.c cmdUlvl.c cmdLog.c \
-	cmdChdir.c cmdVersion.c cmdVerbose.c cmdWhatis.c		\
-	init.c locate_module.c utility.c main.c error.c getopt.c version.c
+modulecmd_SOURCES =							\
+	ModuleCmd_Avail.c ModuleCmd_Clear.c ModuleCmd_Display.c		\
+	ModuleCmd_Help.c ModuleCmd_Init.c ModuleCmd_List.c		\
+	ModuleCmd_Load.c ModuleCmd_Purge.c ModuleCmd_Switch.c		\
+	ModuleCmd_Update.c ModuleCmd_Use.c ModuleCmd_Whatis.c		\
+	ModuleCmd_Refresh.c cmdAlias.c cmdConflict.c			\
+	cmdIsLoaded.c cmdInfo.c cmdMisc.c cmdModule.c cmdPath.c		\
+	cmdSetenv.c cmdUname.c cmdXResource.c cmdUlvl.c cmdLog.c	\
+	cmdChdir.c cmdVersion.c cmdVerbose.c cmdWhatis.c init.c		\
+	locate_module.c utility.c utilobj.c main.c error.c		\
+	getopt.c version.c
 
 localedir = $(datadir)/locale
 

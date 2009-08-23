@@ -9,6 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	The initialization routines for Tcl Modules.	     **
  **			Primarily the setup of the different Tcl module	     **
@@ -16,9 +17,9 @@
  **			here. The initial storage of the begining	     **
  **			environment is here as well.			     **
  ** 									     **
- **   Exports:		Initialize_Tcl					     **
+ **   Exports:		Initialize_Module				     **
  **			Module_Tcl_ExitCmd				     **
- **			InitializeModuleCommands			     **
+ **			Module_Init					     **
  **			Setup_Environment				     **
  **			TieStdout					     **
  **			UnTieStdout					     **
@@ -36,7 +37,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.17 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.18 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -77,8 +78,8 @@ static	char	module_name[] = __FILE__;
 static	char	_proc_Module_Tcl_ExitCmd[] = "Module_Tcl_ExitCmd";
 #endif
 #if WITH_DEBUGGING_INIT
-static	char	_proc_InitializeModuleCommands[] = "InitializeModuleCommands";
-static	char	_proc_Initialize_Tcl[] = "Initialize_Tcl";
+static	char	_proc_Module_Init[] = "Module_Init";
+static	char	_proc_Initialize_Module[] = "Initialize_Module";
 static	char	_proc_Setup_Environment[] = "Setup_Environment";
 #endif
 #if WITH_DEBUGGING_UTIL_2
@@ -180,8 +181,8 @@ static char	*set_shell_properties(	const char	*name);
  **   Parameters:	ClientData	client_data			     **
  **			Tcl_Interp*	interp		The attached Tcl     **
  **							interpreter	     **
- **			int		argc		Number of arguments  **
- **			char		*argv[]		Array of arguments   **
+ **			int		objc		Number of arguments  **
+ **			Tcl_Obj		*objv[]		Array of arguments   **
  **							to the module command**
  ** 									     **
  **   Result:		int	TCL_ERROR		Exit on error	     **
@@ -191,16 +192,17 @@ static char	*set_shell_properties(	const char	*name);
  ** ************************************************************************ **
  ++++*/
 
-int Module_Tcl_ExitCmd(	ClientData	  client_data,
-		   	Tcl_Interp	 *interp,
-		   	int 		  argc,
-		   	CONST84 char 	 *argv[])
-{
-    char *buffer;			/** Buffer for sprintf		     **/
-    int  value;				/** Return value from exit command   **/
+int Module_Tcl_ExitCmd(
+	ClientData client_data,
+	Tcl_Interp * interp,
+	int objc,
+	Tcl_Obj * CONST84 objv[]
+) {
+	char           *buffer;		/** Buffer for sprintf		     **/
+	int             value;		/** Return value from exit command   **/
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_Module_Tcl_ExitCmd, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_Module_Tcl_ExitCmd, NULL);
 #endif
 
     /**
@@ -209,48 +211,50 @@ int Module_Tcl_ExitCmd(	ClientData	  client_data,
      **     exit;
      **     exit value;
      **/
-    if((argc != 1) && (argc != 2))
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "?returnCode?", NULL))
-	    goto unwind0;
+	if ((objc < 1) || (objc > 2))
+		if (OK != ErrorLogger(ERR_USAGE, LOC,
+			Tcl_GetString(objv[0]), "?returnCode?", NULL))
+			goto unwind0;
 
     /**
      **  If the exit command comes with an paramter, set up the TCL result.
      **  Otherwise the result is 0.
      **/
-    if( argc == 1) {
-	value = 0;
-    } else if( Tcl_GetInt( interp, argv[1], &value) != TCL_OK) {
-	if( OK != ErrorLogger( ERR_PARAM, LOC, argv[1], NULL))
-	    goto unwind0;
-    }
+	if (objc == 1) {
+		value = 0;
+	} else if (Tcl_GetIntFromObj(interp, objv[1], &value) != TCL_OK) {
+		if (OK != ErrorLogger(ERR_PARAM, LOC,
+			Tcl_GetString(objv[1]), NULL))
+			goto unwind0;
+	}
 
     /**
      **  Allocate memory
      **/
-    if((char *) NULL == (buffer = stringer(NULL,25,NULL)))
-	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-	    goto unwind0;
+	if ((char *)NULL == (buffer = stringer(NULL, 25, NULL)))
+		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
+			goto unwind0;
 
-    sprintf( buffer, "EXIT %d", value);
-    Tcl_SetResult( interp, buffer, NULL);
+	sprintf(buffer, "EXIT %d", value);
+	Tcl_SetResult(interp, buffer, NULL);
 
     /**
      **  Exit from this module command.
      **  ??? Why hardcoded on error ???
      **/
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_Module_Tcl_ExitCmd, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_Module_Tcl_ExitCmd, NULL);
 #endif
 
 unwind0:
-    return( TCL_ERROR);
+	return (TCL_ERROR);
 
 } /** End of 'Module_Tcl_ExitCmd' **/
 
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
- **   Function:		Initialize_Tcl					     **
+ **   Function:		Initialize_Module				     **
  ** 									     **
  **   Description:	This procedure is called from 'main' in order to ini-**
  **			tialize the whole thing. The arguments specified on  **
@@ -273,7 +277,7 @@ unwind0:
  ** ************************************************************************ **
  ++++*/
 
-int Initialize_Tcl(	Tcl_Interp	**interp,
+int Initialize_Module(	Tcl_Interp	**interp,
 	       		int         	  argc,
 	       		char		 *argv[],
                		char		 *environ[])
@@ -282,7 +286,7 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
     char *	tmp;
 
 #if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_START, LOC, _proc_Initialize_Tcl, NULL);
+    ErrorLogger( NO_ERR_START, LOC, _proc_Initialize_Module, NULL);
 #endif
 
     /**
@@ -305,16 +309,13 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
     /**
      **  Create a Tcl interpreter in order to proceed the command. Initialize
      **  this interpreter and set up pointers to all Tcl Module commands
-     **  (InitializeModuleCommands)
+     **  (Module_Init)
      **/
  
-#ifdef __CYGWIN__
-    /* ABr, 12/10/01: from Cygwin stuff */
     Tcl_FindExecutable( argv[0] ) ;
-#endif
 
     *interp = Tcl_CreateInterp();
-    if( TCL_OK != (Result = InitializeModuleCommands( *interp)))
+    if( TCL_OK != (Result = Module_Init( *interp)))
 	goto unwind0;
 
     /**
@@ -439,12 +440,12 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
 unwind0:
     return( Result);			/** -------- EXIT (FAILURE) -------> **/
 
-} /** End of 'Initialize_Tcl' **/
+} /** End of 'Initialize_Module' **/
 
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
- **   Function:		InitializeModuleCommands			     **
+ **   Function:		Module_Init					     **
  ** 									     **
  **   Description:	Initialization of the passed Tcl interpreter. At     **
  **			first the standard Tcl and (if required) TclX initi- **
@@ -464,19 +465,20 @@ unwind0:
  ** ************************************************************************ **
  ++++*/
 
-int InitializeModuleCommands( Tcl_Interp* interp)
-{
+int Module_Init(
+	Tcl_Interp * interp
+) {
 
 #if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_START, LOC, _proc_InitializeModuleCommands, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_Module_Init, NULL);
 #endif
 
     /**
      **  General initialization of the Tcl interpreter
      **/
-    if( Tcl_Init( interp) == TCL_ERROR)
-	if( OK != ErrorLogger( ERR_INIT_TCL, LOC, NULL))
-	    goto unwind0;
+	if (Tcl_Init(interp) == TCL_ERROR)
+		if (OK != ErrorLogger(ERR_INIT_TCL, LOC, NULL))
+			goto unwind0;
 
 #ifdef  HAS_TCLXLIBS
 
@@ -485,100 +487,122 @@ int InitializeModuleCommands( Tcl_Interp* interp)
      **/
 
 #if (TCL_MAJOR_VERSION > 8 || TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION > 3)
-    if( Tclx_Init( interp) == TCL_ERROR)
+	if (Tclx_Init(interp) == TCL_ERROR)
 #elif (TCL_MAJOR_VERSION > 7 || TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION > 5)
-    if( Tclxcmd_Init( interp) == TCL_ERROR)
+	if (Tclxcmd_Init(interp) == TCL_ERROR)
 #else
-    if( TclXCmd_Init( interp) == TCL_ERROR)
+	if (TclXCmd_Init(interp) == TCL_ERROR)
 #endif
-    {
-	if( OK != ErrorLogger( ERR_INIT_TCLX, LOC, NULL))
-	    goto unwind0;
-    }
-
-#endif  /* HAS_TCLXLIBS */
+	{
+		if (OK != ErrorLogger(ERR_INIT_TCLX, LOC, NULL))
+			goto unwind0;
+	}
+#endif				/* HAS_TCLXLIBS */
 
 #ifdef	AUTOLOADPATH
 
     /**
      ** Extend autoload path
      **/
-    if( TCL_OK != Tcl_Eval( interp,
-	"if [info exists auto_path] { "
-		"set auto_path [linsert $auto_path 0 " AUTOLOADPATH
-	"]} else {"
-		"set auto_path \"" AUTOLOADPATH "\" }"))
-	if( OK != ErrorLogger( ERR_INIT_ALPATH, LOC, NULL))
-	    goto unwind0;
+	if (TCL_OK != Tcl_Eval(interp,
+			       "if [info exists auto_path] { "
+			       "set auto_path [linsert $auto_path 0 "
+			       AUTOLOADPATH "]} else {" "set auto_path \""
+			       AUTOLOADPATH "\" }"))
+		if (OK != ErrorLogger(ERR_INIT_ALPATH, LOC, NULL))
+			goto unwind0;
 
-#endif	/* AUTOLOADPATH */
+#endif				/* AUTOLOADPATH */
 
     /**
      **   Now for each module command a callback routine has to be specified
      **/
-    Tcl_CreateCommand( interp, "exit", Module_Tcl_ExitCmd,
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
+	Tcl_CreateObjCommand(interp, "exit", Module_Tcl_ExitCmd,
+			     (ClientData) shell_derelict,
+			     (void (*)(ClientData))NULL);
 
-    Tcl_CreateCommand( interp, "setenv", cmdSetEnv, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-    Tcl_CreateCommand( interp, "unsetenv", cmdUnsetEnv, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-  
-    Tcl_CreateCommand( interp, "prepend-path", cmdSetPath, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-    Tcl_CreateCommand( interp, "append-path", cmdSetPath, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-    Tcl_CreateCommand( interp, "remove-path", cmdRemovePath, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
+	Tcl_CreateObjCommand(interp, "setenv", cmdSetEnv,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+	Tcl_CreateObjCommand(interp, "unsetenv", cmdUnsetEnv,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
 
-    Tcl_CreateCommand( interp, "module-info", cmdModuleInfo, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-    Tcl_CreateCommand( interp, "module", cmdModule, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
+	Tcl_CreateObjCommand(interp, "prepend-path", cmdSetPath,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+	Tcl_CreateObjCommand(interp, "append-path", cmdSetPath,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+	Tcl_CreateObjCommand(interp, "remove-path", cmdRemovePath,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
 
-    Tcl_CreateCommand( interp, "module-whatis", cmdModuleWhatis, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-    Tcl_CreateCommand( interp, "module-verbosity", cmdModuleVerbose, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-    Tcl_CreateCommand( interp, "module-user", cmdModuleUser, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-    Tcl_CreateCommand( interp, "module-log", cmdModuleLog, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
+	Tcl_CreateObjCommand(interp, "module-info", cmdModuleInfo,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+	Tcl_CreateObjCommand(interp, "module", cmdModule,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
 
-    Tcl_CreateCommand( interp, "module-alias", cmdModuleAlias, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-    Tcl_CreateCommand( interp, "module-version", cmdModuleVersion, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-  
-    Tcl_CreateCommand( interp, "set-alias", cmdSetAlias, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-    Tcl_CreateCommand( interp, "unset-alias", cmdSetAlias, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
+	Tcl_CreateObjCommand(interp, "module-whatis", cmdModuleWhatis,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+	Tcl_CreateObjCommand(interp, "module-verbosity", cmdModuleVerbose,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+	Tcl_CreateObjCommand(interp, "module-user", cmdModuleUser,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+	Tcl_CreateObjCommand(interp, "module-log", cmdModuleLog,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
 
-    Tcl_CreateCommand( interp, "conflict", cmdConflict, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-    Tcl_CreateCommand( interp, "prereq", cmdPrereq, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
+	Tcl_CreateObjCommand(interp, "module-alias", cmdModuleAlias,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+	Tcl_CreateObjCommand(interp, "module-version", cmdModuleVersion,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
 
-    Tcl_CreateCommand( interp, "is-loaded", cmdIsLoaded, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
+	Tcl_CreateObjCommand(interp, "set-alias", cmdSetAlias,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+	Tcl_CreateObjCommand(interp, "unset-alias", cmdSetAlias,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
 
-    Tcl_CreateCommand( interp, "chdir", cmdChDir,
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-    Tcl_CreateCommand( interp, "system", cmdSystem, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
-    Tcl_CreateCommand( interp, "uname", cmdUname, 
-		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
+	Tcl_CreateObjCommand(interp, "conflict", cmdConflict,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+	Tcl_CreateObjCommand(interp, "prereq", cmdPrereq,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
 
-    Tcl_CreateCommand( interp, "x-resource", cmdXResource,
- 		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
+	Tcl_CreateObjCommand(interp, "is-loaded", cmdIsLoaded,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
 
-    return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
+	Tcl_CreateObjCommand(interp, "chdir", cmdChDir,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+	Tcl_CreateObjCommand(interp, "system", cmdSystem,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+	Tcl_CreateObjCommand(interp, "uname", cmdUname,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+
+	Tcl_CreateObjCommand(interp, "x-resource", cmdXResource,
+			  (ClientData) shell_derelict,
+			  (void (*)(ClientData))NULL);
+
+	return (TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
 
 unwind0:
-    return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
+	return (TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
 
-} /** End of 'InitializeModuleCommands' **/
+} /** End of 'Module_Init' **/
 
 /*++++
  ** ** Function-Header ***************************************************** **

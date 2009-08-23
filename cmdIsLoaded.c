@@ -7,6 +7,9 @@
  **   File:		cmdIsLoaded.c					     **
  **   First Edition:	2000/04/12					     **
  ** 									     **
+ **   Authors:								     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
+ ** 									     **
  **   Description:	The Tcl conflict and prereq commands.		     **
  ** 									     **
  **   Exports:		cmdIsLoaded					     **
@@ -23,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.9 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.10 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -74,8 +77,8 @@ static	char	_proc_cmdIsLoaded[] = "cmdIsLoaded";
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
- **			int		 argc		Number of arguments  **
- **			char		*argv[]		Argument array	     **
+ **			int		 objc		Number of arguments  **
+ **			Tcl_Obj		*objv[]		Argument array	     **
  ** 									     **
  **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
@@ -87,98 +90,93 @@ static	char	_proc_cmdIsLoaded[] = "cmdIsLoaded";
  ** ************************************************************************ **
  ++++*/
 
-int	cmdIsLoaded(	ClientData	 client_data,
-	    		Tcl_Interp	*interp,
-	    		int		 argc,
-	    		CONST84 char	*argv[])
-{
-    char	 **pathlist;
-    char	 **modulelist;
-    char	  *modulepath;
-    char	  *notloaded_flag = (char *) argv[1];
-    int     	   i, j, k, numpaths, nummodules;
-	
-#if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdIsLoaded, NULL);
-#endif
+int cmdIsLoaded(
+	ClientData client_data,
+	Tcl_Interp * interp,
+	int objc,
+	Tcl_Obj * CONST84 objv[]
+) {
+	char          **pathlist,		/** List of module-pathes    **/
+	              **modulelist,		/** List of modules          **/
+	               *modulepath,		/** Contents of MODULEPATH   **/
+	               *notloaded_flag;		/** conflicting module	     **/
+	int             i, j, k,		/** Loop counters            **/
+	                numpaths, nummodules;
+					/** Size of the according arrays     **/
 
+#if WITH_DEBUGGING_CALLBACK
+	ErrorLogger(NO_ERR_START, LOC, _proc_cmdIsLoaded, NULL);
+#endif
     /** 
      **  Parameter check. Usage is 'is-loaded <module> [<module> ...]'
      **/
-
-    if( argc < 2) {
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "is-loaded-modules", NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
-
+	if (objc < 2) {
+		if (OK !=
+		    ErrorLogger(ERR_USAGE, LOC, Tcl_GetString(objv[0]),
+				"is-loaded-modules", NULL))
+			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
+	}
     /**
      **  There's no prerequisite check in case of whatis
      **/
-
-    if( g_flags & M_WHATIS)
-        return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
-
+	if (g_flags & M_WHATIS)
+		return (TCL_OK);	/** -------- EXIT (SUCCESS) -------> **/
     /**
      **  Load the MODULEPATH and split it into a list of paths
      **/
-
-    if( !(modulepath = (char *) getenv( "MODULEPATH"))) {
-	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
-
+	if (!(modulepath = (char *)getenv("MODULEPATH"))) {
+		if (OK != ErrorLogger(ERR_MODULE_PATH, LOC, NULL))
+			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
+	}
 #if WITH_DEBUGGING_CALLBACK_1
-    ErrorLogger( NO_ERR_DEBUG, LOC, "Got modulepath: '", modulepath, "'", NULL);
+	ErrorLogger(NO_ERR_DEBUG, LOC, "Got modulepath: '", modulepath, "'",
+		    NULL);
 #endif
 
-    if( !(pathlist = SplitIntoList( interp, modulepath, &numpaths, _colon)))
-        return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
-
+	if (!(pathlist = SplitIntoList(interp, modulepath, &numpaths, _colon)))
+		return (TCL_OK);	/** -------- EXIT (SUCCESS) -------> **/
     /**
      **  Check/Display all passed modules
      **/
-
-    for( i=1; i<argc && argv[i] && notloaded_flag; i++) {
-        for( j = 0; j < numpaths && notloaded_flag; j++) {
-
-            if( NULL == (modulelist = SortedDirList( interp, pathlist[j], 
-	        (char *) argv[i], &nummodules)))
-                continue;
-
+	notloaded_flag = Tcl_GetString(objv[1]);
+	for (i = 1; i < objc && Tcl_GetString(objv[i]) && notloaded_flag; i++) {
+		for (j = 0; j < numpaths && notloaded_flag; j++) {
+			if (NULL == (modulelist =
+			     SortedDirList(interp, pathlist[j],
+					   Tcl_GetString(objv[i]),
+					   &nummodules)))
+				continue;
 	    /**
 	     **  Now actually check if the prerequisites are fullfilled
 	     **  The notloaded_flag controls the exit from both loops in case
 	     **  a prerequisite is missing.
 	     **/
-
-            for( k=0; k < nummodules && notloaded_flag; k++) {
-                if( !IsLoaded( interp, modulelist[k], NULL, NULL)) {
-                    notloaded_flag = (char *) argv[i];
-                } else {
-                    notloaded_flag = NULL;
-                }
-            }
-
+			for (k = 0; k < nummodules && notloaded_flag; k++) {
+				if (!IsLoaded
+				    (interp, modulelist[k], NULL, NULL)) {
+					notloaded_flag = Tcl_GetString(objv[i]);
+				} else {
+					notloaded_flag = NULL;
+				}
+			}
 	    /**
 	     **  Free what has been allocted in the loop
 	     **/
 
-            FreeList( modulelist, nummodules);
+			FreeList(modulelist, nummodules);
 
-        } /** for( j) **/
-    } /** for( i) **/
-
+		} /** for( j) **/
+	} /** for( i) **/
     /**
      **  Display an error message if this was *NOT* display mode and a
      **  missing prerequisite has been found
      **/
-
-    Tcl_SetResult( interp, notloaded_flag ? "0" : "1", TCL_STATIC);
+	Tcl_SetResult(interp, notloaded_flag ? "0" : "1", TCL_STATIC);
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdIsLoaded, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_cmdIsLoaded, NULL);
 #endif
 
-    return( TCL_OK);
+	return (TCL_OK);
 
 } /** End of 'cmdIsLoaded' **/

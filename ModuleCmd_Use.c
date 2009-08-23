@@ -9,6 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	Prepends (and appends) directories to the MODULEPATH **
  **			environment variable to enable access to more	     **
@@ -29,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.9 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.10 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -166,99 +167,105 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
  ** ************************************************************************ **
  ++++*/
 
-int  ModuleCmd_Use(	Tcl_Interp	*interp,
-		   	int		 argc,
-		   	char		*argv[])
-{
-    struct stat	 stats;			/** Buffer for the stat() systemcall **/
-    char	*pathargv[4];		/** Argument buffer for Tcl calls    **/
-    int		 i;
-  
+int ModuleCmd_Use(
+	Tcl_Interp * interp,
+	int argc,
+	char *argv[]
+) {
+	struct stat     stats;		/** Buffer for the stat() systemcall **/
+	char           *pathargv[4];	/** Argument buffer for Tcl calls    **/
+	Tcl_Obj       **objv;		/** Tcl Object vector **/
+	int             objc,		/** Tcl Object vector count **/
+	                i;
+
     /**
      **  Parameter check. Usage is 'module use <path> [ <path> ... ]'
      **/
 
 #if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Use, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_ModuleCmd_Use, NULL);
 #endif
 
-    if( argc < 1) {
-	if( OK != ErrorLogger( ERR_USAGE, LOC, "use [-a|--append] dir [dir ...]", NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	if (argc < 1) {
+		if (OK !=
+		    ErrorLogger(ERR_USAGE, LOC,
+				"use [-a|--append] dir [dir ...]", NULL))
+			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
+	}
 
     /**
      **  Remove is done by another subroutine
      **/
 
-    if( g_flags & M_REMOVE) 
-	return( ModuleCmd_UnUse( interp, argc, argv));
-      
+	if (g_flags & M_REMOVE)
+		return (ModuleCmd_UnUse(interp, argc, argv));
+
     /**
      **  Append or prepend the new module path
      **/
 
-    if( append_flag ) {
-	pathargv[0] = "append-path";
-    } else {
-	pathargv[0] = "prepend-path";
-    }
+	if (append_flag) {
+		pathargv[0] = "append-path";
+	} else {
+		pathargv[0] = "prepend-path";
+	}
 
     /**
      **  Append (prepend) all passed paths to MODULEPATH in case they do exist,
      **  and are readable directories
      **/
 
-    pathargv[1] = "MODULEPATH";
-    pathargv[3] = NULL;
+	pathargv[1] = "MODULEPATH";
+	pathargv[3] = NULL;
 
-    for( i=0; i < argc; i++) {
+	for (i = 0; i < argc; i++) {
 	/**
 	 **  Check for -a|--append flag (if in modulefile - it's not parsed
 	 **	by getoptlong) (keep -append for backward compatibility)
 	 **/
-	if( (!strcmp("-a",argv[i])) || (!strcmp("--append",argv[i]))
-	|| (!strcmp("-append",argv[i]))) {
+		if ((!strcmp("-a", argv[i])) || (!strcmp("--append", argv[i]))
+		    || (!strcmp("-append", argv[i]))) {
 
-		pathargv[0] = "append-path";
-		continue;
+			pathargv[0] = "append-path";
+			continue;
 
-	} else if( stat( argv[i], &stats) < 0) {
+		} else if (stat(argv[i], &stats) < 0) {
 	/**
 	 **  Check for existing, readable directories
 	 **/
-	    if( OK != ErrorLogger( ERR_DIRNOTFOUND, LOC, argv[i], NULL))
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-	} else if( !S_ISDIR( stats.st_mode))  {
-	    if( OK != ErrorLogger( ERR_NODIR, LOC, argv[i], NULL))
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-	}
+			if (OK !=
+			    ErrorLogger(ERR_DIRNOTFOUND, LOC, argv[i], NULL))
+				return (TCL_ERROR); /** -- EXIT (FAILURE) -> **/
+		} else if (!S_ISDIR(stats.st_mode)) {
+			if (OK != ErrorLogger(ERR_NODIR, LOC, argv[i], NULL))
+				return (TCL_ERROR); /** -- EXIT (FAILURE) -> **/
+		}
 
 	/**
 	 **  Used the 'cmdSetPath' callback function to modify the MODULEPATH
 	 **/
 
-	pathargv[2] = argv[i];
+		pathargv[2] = argv[i];
 
-	if( cmdSetPath((ClientData) 0, interp, 3, (CONST84 char **) pathargv)
-	== TCL_ERROR)
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+		/* convert from argv to objv */
+		Tcl_ArgvToObjv(interp, &objc, &objv, -1, (char **) pathargv);
+		if (cmdSetPath((ClientData) 0, interp, objc, objv) == TCL_ERROR)
+			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
+	} /** for **/
 
-    } /** for **/
-  
     /**
      **  Add the new value of MODULESPATH to the end
      **  of the beginenvcache so that update will be able to find its
      **  modulefiles.
      **/
 
-    append_to_modulesbeginenv( interp, "MODULEPATH");
+	append_to_modulesbeginenv(interp, "MODULEPATH");
 
 #if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Use, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_ModuleCmd_Use, NULL);
 #endif
 
-    return( TCL_OK);
+	return (TCL_OK);
 
 } /** End of 'ModuleCmd_Use' **/
 
@@ -283,56 +290,58 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
  ** ************************************************************************ **
  ++++*/
 
-int  ModuleCmd_UnUse(	Tcl_Interp	*interp,
-		     	int		 argc,
-		     	char		*argv[])
-{
-    char	*pathargv[4];
-    int		 i = 0;
-  
+int ModuleCmd_UnUse(
+	Tcl_Interp * interp,
+	int argc,
+	char *argv[]
+) {
+	char           *pathargv[4];	/** Argument buffer for Tcl calls    **/
+	Tcl_Obj       **objv;		/** Tcl Object vector **/
+	int             objc,		/** Tcl Object vector count **/
+	                i = 0;
+
 #if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_UnUse, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_ModuleCmd_UnUse, NULL);
 #endif
 
     /**
      **  Parameter check. Usage is 'module use <path> [ <path> ... ]'
      **/
+	if (argc < 1) {
+		if (OK !=
+		    ErrorLogger(ERR_USAGE, LOC, "unuse dir [dir ...]", NULL))
+			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
+	}
 
-    if( argc < 1) {
-	if( OK != ErrorLogger( ERR_USAGE, LOC, "unuse dir [dir ...]", NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
-  
     /**
      **  Remove all passed paths from MODULEPATH
      **	 Use the 'cmdSetPath' callback function to modify the MODULEPATH
      **/
 
-    pathargv[0] = "remove-path";
-    pathargv[1] = "MODULEPATH";
-    pathargv[3] = NULL;
+	pathargv[0] = "remove-path";
+	pathargv[1] = "MODULEPATH";
+	pathargv[3] = NULL;
 
-    for(i = 0; i < argc; i++) {
-	pathargv[2] = argv[i];
-	if(cmdRemovePath((ClientData) 0, interp, 3, (CONST84 char **) pathargv)
-	== TCL_ERROR)
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    } /** for **/
-  
+	for (i = 0; i < argc; i++) {
+		pathargv[2] = argv[i];
+		/* convert from argv to objv */
+		Tcl_ArgvToObjv(interp, &objc, &objv, -1, (char **) pathargv);
+		if (cmdRemovePath((ClientData) 0, interp, objc, objv) ==
+		    TCL_ERROR)
+			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
+	} /** for **/
     /**
      **  Add the new value of MODULESPATH to the end
      **  of the beginenvcache so that update will be able to find its
      **  modulefiles.
      **/
 
-    append_to_modulesbeginenv( interp, "MODULEPATH");
+	append_to_modulesbeginenv(interp, "MODULEPATH");
 
 #if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_UnUse, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_ModuleCmd_UnUse, NULL);
 #endif
 
-    return( TCL_OK);
-  
+	return (TCL_OK);
+
 } /** End of 'ModuleCmd_UnUse' **/
-
-

@@ -8,6 +8,7 @@
  **   First Edition:	1995/12/31					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	The Tcl module-verbose routine allows switchin ver-  **
  **			bosity on and off during module file execution	     **
@@ -28,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.8 2009/08/13 19:17:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.9 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -89,8 +90,8 @@ static	int	  whatis_size = 0, whatis_ndx = 0;
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
- **			int		 argc		Number of arguments  **
- **			char		*argv[]		Argument array	     **
+ **			int		 objc		Number of arguments  **
+ **			Tcl_Obj		*objv[]		Argument array	     **
  ** 									     **
  **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
@@ -103,103 +104,96 @@ static	int	  whatis_size = 0, whatis_ndx = 0;
  ** ************************************************************************ **
  ++++*/
 
-int	cmdModuleWhatis(	ClientData	 client_data,
-		      		Tcl_Interp	*interp,
-		      		int		 argc,
-		      		CONST84 char	*argv[])
-{
-    int i = 1;
+int cmdModuleWhatis(
+	ClientData client_data,
+	Tcl_Interp * interp,
+	int objc,
+	Tcl_Obj * CONST84 objv[]
+) {
+	int             i = 1;
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleWhatis, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_cmdModuleWhatis, NULL);
 #endif
 
     /**
      **  Help mode
      **/
-
-    if( g_flags & M_HELP)
-        return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
-
+	if (g_flags & M_HELP)
+		return (TCL_OK);	/** -------- EXIT (SUCCESS) -------> **/
     /**
      **  Parameter check
      **/
-
-    if( argc < 2) {
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], " string", NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
-  
+	if (objc < 2) {
+		if (OK !=
+		    ErrorLogger(ERR_USAGE, LOC, Tcl_GetString(objv[0]),
+				" string", NULL))
+			return (TCL_ERROR);
+					/** -------- EXIT (FAILURE) -------> **/
+	}
     /**
      **  If we don't have any whatis list buffer until now, we will create one
      **/
-
-    if( !whatis) {
-	whatis_size = WHATIS_FRAG;
-	if((char **) NULL
-		== (whatis = module_malloc(whatis_size * sizeof(char *)))){
-	    ErrorLogger( ERR_ALLOC, LOC, NULL);
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+	if (!whatis) {
+		whatis_size = WHATIS_FRAG;
+		if ((char **)NULL
+		    == (whatis = module_malloc(whatis_size * sizeof(char *)))) {
+			ErrorLogger(ERR_ALLOC, LOC, NULL);
+			return (TCL_ERROR);
+					/** -------- EXIT (FAILURE) -------> **/
+		}
 	}
-    }
-
     /**
      **  Display mode?
      **/
-
-    if( g_flags & M_DISPLAY) {
-	fprintf( stderr, "%s\t ", argv[ 0]);
-	for( i=1; i<argc; i++)
-	    fprintf( stderr, "%s ", argv[ i]);
-	fprintf( stderr, "\n");
-        return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
-    }
-
+	if (g_flags & M_DISPLAY) {
+		fprintf(stderr, "%s\t ", Tcl_GetString(objv[0]));
+		for (i = 1; i < objc; i++)
+			fprintf(stderr, "%s ", Tcl_GetString(objv[i]));
+		fprintf(stderr, "\n");
+		return (TCL_OK);	/** ------- EXIT PROCEDURE -------> **/
+	}
     /**
      **  Check if printing is requested 
      **/
-
-    if( g_flags & M_WHATIS ) {
-	while( i < argc) {
-
+	if (g_flags & M_WHATIS) {
+		while (i < objc) {
 	    /**
 	     **  Conditionally we have to enlarge our buffer
 	     **/
-
-	    while( whatis_ndx + 2 >= whatis_size) {
-		whatis_size += WHATIS_FRAG;
-		if((char **) NULL == (whatis = realloc( whatis, whatis_size *
-		    sizeof( char *)))) {
-		    ErrorLogger( ERR_ALLOC, LOC, NULL);
-		    return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-		}
-	    }
+			while (whatis_ndx + 2 >= whatis_size) {
+				whatis_size += WHATIS_FRAG;
+				if ((char **)NULL ==
+				    (whatis = module_realloc(whatis,
+					     whatis_size * sizeof(char *)))) {
+					ErrorLogger(ERR_ALLOC, LOC, NULL);
+					return (TCL_ERROR);
+					/** -------- EXIT (FAILURE) -------> **/
+				}
+			}
 
 	    /**
 	     **  Put the string on the buffer
 	     **/
 
-	    if((char *) NULL == (whatis[ whatis_ndx++]
-		= stringer(NULL,0, argv[ i++], NULL))) {
-		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-		    return( TCL_ERROR);
-		whatis_ndx--;
-	    }
-
-	} /** while **/
-    } /** if **/
-
+			if ((char *)NULL == (whatis[whatis_ndx++]
+			= stringer(NULL, 0, Tcl_GetString(objv[i++]), NULL))) {
+				if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
+					return (TCL_ERROR);
+				whatis_ndx--;
+			}
+		} /** while **/
+	} /** if **/
     /**
      **  Put a trailing terminator on the buffer
      **/
-
-    whatis[ whatis_ndx] = (char *) NULL;
+	whatis[whatis_ndx] = (char *)NULL;
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleWhatis, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_cmdModuleWhatis, NULL);
 #endif
 
-    return( TCL_OK);
+	return (TCL_OK);
 
 } /** End of 'cmdModuleWhatis' **/
    
@@ -232,9 +226,8 @@ void	cmdModuleWhatisShut()
     char **ptr = whatis;
 
     if( whatis) {
-	while( *ptr) {		/** go until NULL token **/
-	    free( *ptr);
-	    *ptr = (char *) NULL;
+	while(*ptr) {		/** go until NULL token **/
+	    null_free(ptr);
 	    ptr++;
 	}
 	whatis_ndx = 0;

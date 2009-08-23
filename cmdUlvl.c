@@ -8,6 +8,7 @@
  **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	The Tcl module-user routine which changes the cur-   **
  **			rent user level					     **
@@ -26,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.8 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.9 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -91,8 +92,8 @@ static	char	_str_ul_expert[] = "expert";
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
- **			int		 argc		Number of arguments  **
- **			char		*argv[]		Argument array	     **
+ **			int		 objc		Number of arguments  **
+ **			Tcl_Obj		*objv[]		Argument array	     **
  ** 									     **
  **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
@@ -104,58 +105,52 @@ static	char	_str_ul_expert[] = "expert";
  ** ************************************************************************ **
  ++++*/
 
-int	cmdModuleUser(	ClientData	 client_data,
-	      		Tcl_Interp	*interp,
-	      		int		 argc,
-	      		CONST84 char	*argv[])
-{
+int cmdModuleUser(
+	ClientData client_data,
+	Tcl_Interp * interp,
+	int objc,
+	Tcl_Obj * CONST84 objv[]
+) {
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleUser, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_cmdModuleUser, NULL);
 #endif
 
     /**
      **  Whatis mode?
      **/
-
-    if( g_flags & (M_WHATIS | M_HELP))
-        return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
-	
+	if (g_flags & (M_WHATIS | M_HELP))
+		return (TCL_OK);	/** ------- EXIT PROCEDURE -------> **/
     /**
      **  Parameter check
      **/
-
-    if( argc < 2) {
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "level ", NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
-  
-  
+	if (objc < 2) {
+		if (OK !=
+		    ErrorLogger(ERR_USAGE, LOC, Tcl_GetString(objv[0]),
+				"level ", NULL))
+			return (TCL_ERROR);
+					/** -------- EXIT (FAILURE) -------> **/
+	}
     /**
      **  Non-persist mode?
      **/
-    
-    if (g_flags & M_NONPERSIST) {
-	return (TCL_OK);
-    }
-
+	if (g_flags & M_NONPERSIST) {
+		return (TCL_OK);
+	}
     /**
      **  Display mode?
      **/
-
-    if( g_flags & M_DISPLAY) {
-	fprintf( stderr, "%s\t ", argv[ 0]);
-	while( --argc)
-	    fprintf( stderr, "%s ", *++argv);
-	fprintf( stderr, "\n");
-        return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
-    }
-	
+	if (g_flags & M_DISPLAY) {
+		fprintf(stderr, "%s\t ", Tcl_GetString(*objv++));
+		while (--objc)
+			fprintf(stderr, "%s ", Tcl_GetString(*objv++));
+		fprintf(stderr, "\n");
+		return (TCL_OK);	/** ------- EXIT PROCEDURE -------> **/
+	}
     /**
      **  Change the user level
      **/
-
-    return( cmdModuleUser_sub( (char *) argv[ 1]));
+	return (cmdModuleUser_sub((char *)Tcl_GetString(objv[1])));
 
 } /** End of 'cmdModuleUser' **/
     

@@ -31,12 +31,15 @@
  **			xstrtok						     **
  **			xstrtok_r					     **
  **			chk4spch					     **
- **			module_malloc					     **
  **			xdup						     **
  **			xgetenv						     **
  **			stringer					     **
- **			null_free					     **
+ **			module_realloc					     **
  **			countTclHash					     **
+ **			ReturnValue					     **
+ **			OutputExit					     **
+ **			module_malloc					     **
+ **			null_free					     **
  **									     **
  **   Notes:								     **
  ** 									     **
@@ -50,7 +53,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.29 2009/08/13 19:17:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.30 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -331,7 +334,7 @@ static	void	Clear_Global_Hash_Tables( void)
 
 	do {
 	    val = (char*) Tcl_GetHashValue( hashEntry);
-	    if( val)
+	    if(val)
 		null_free((void *) &val);
 	} while( (hashEntry = Tcl_NextHashEntry( &searchPtr)) );
 
@@ -729,8 +732,8 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 	} /** for **/
 	/* delloc list */
 	for (k = 0; k < hcnt; ++k)
-		free(list[k]);
-	free(list);
+		null_free((void **) list + k);
+	null_free((void *) &list);
     } /** for **/
 
     if( EOF == fflush( stdout))
@@ -968,8 +971,7 @@ static	int Output_Directory_Change(Tcl_Interp *interp)
 		rc = TCL_ERROR;
 	}
 
-	free(change_dir);
-	change_dir = NULL;
+	null_free((void *) &change_dir);
 
 	return rc;
 }
@@ -1112,7 +1114,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 
       fprintf( stdout, "%s=%s %sexport %s%s", var, escaped, shell_cmd_separator,
 	       var, shell_cmd_separator);
-      free(escaped);
+      null_free(&escaped);
       
     /**
      **  EMACS
@@ -1661,7 +1663,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	     **  part at its end
 	     **/
             if((char *) NULL == (lmfiles =
-		(char*) realloc( lmfiles, lmsize * sizeof(char) + 1))) {
+		(char*) module_realloc( lmfiles, lmsize * sizeof(char) + 1))) {
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 			return( NULL);		/** ---- EXIT (FAILURE) ---> **/
 	    }
@@ -2097,68 +2099,82 @@ static	char	*get_module_basename(	char	*modulename)
  ** ************************************************************************ **
  ++++*/
 
-int Update_LoadedList(	Tcl_Interp	*interp,
-			char		*modulename,
-			char		*filename)
-{
-    char 	*argv[4];
-    char	*basename;
-    char	*module;
- 
+int Update_LoadedList(
+	Tcl_Interp * interp,
+	char *modulename,
+	char *filename
+) {
+	char           *argv[4],		/** temporary arg vector     **/
+	               *basename,		/** of module name	     **/
+	               *module;			/** module name		     **/
+	Tcl_Obj        **objv;			/** Tcl Object vector	     **/
+	int             objc;			/** Tcl Object vector count  **/
+
 #if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_Update_LoadedList, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_Update_LoadedList, NULL);
 #endif
 
     /**
      **  Apply changes to LOADEDMODULES first
      **/
-    argv[1] = "LOADEDMODULES";
-    argv[2] = modulename;
-    argv[3] = NULL;
-    
-    if(g_flags & M_REMOVE) {
-	argv[0] = "remove-path";
-	cmdRemovePath( 0, interp, 3, (CONST84 char **) argv);
-    } else {
-	argv[0] = "append-path";
-	cmdSetPath( 0, interp, 3, (CONST84 char **) argv);
-    }
- 
+	argv[1] = "LOADEDMODULES";
+	argv[2] = modulename;
+	argv[3] = NULL;
+
+	if (g_flags & M_REMOVE) {
+		argv[0] = "remove-path";
+	} else {
+		argv[0] = "append-path";
+	}
+	Tcl_ArgvToObjv(interp, &objc, &objv, -1, (char **) argv);
+	if (g_flags & M_REMOVE) {
+		cmdRemovePath(0, interp, objc, objv);
+	} else {
+		cmdSetPath(0, interp, objc, objv);
+	}
+
     /**
      **  Apply changes to _LMFILES_ now
      **/
-    argv[1] = "_LMFILES_";
-    argv[2] = filename;
-    argv[3] = NULL;
+	argv[1] = "_LMFILES_";
+	argv[2] = filename;
+	argv[3] = NULL;
 
-    if(g_flags & M_REMOVE) {
-	argv[0] = "remove-path";
-	cmdRemovePath( 0, interp, 3, (CONST84 char **) argv);
-    } else {
-	argv[0] = "append-path";
-	cmdSetPath( 0, interp, 3, (CONST84 char **) argv);
-    }
+	if (g_flags & M_REMOVE) {
+		argv[0] = "remove-path";
+	} else {
+		argv[0] = "append-path";
+	}
+	/* RKO: may need to clean-up objv first */
+	Tcl_ArgvToObjv(interp, &objc, &objv, -1, (char **) argv);
+	if (g_flags & M_REMOVE) {
+		cmdRemovePath(0, interp, objc, objv);
+	} else {
+		cmdSetPath(0, interp, objc, objv);
+	}
 
     /**
      **  A module with just the basename might have been added and now we're
      **  removing one of its versions. We'll want to look for the basename in
      **  the path too.
      **/
-    if( g_flags & M_REMOVE) {
-	module = stringer(NULL,0, modulename, NULL);
-	basename = module;
-	if( (basename = get_module_basename( basename)) ) {
-	argv[2] = basename;
-	argv[0] = "remove-path";
-	cmdRemovePath( 0, interp, 3, (CONST84 char **) argv);
+	if (g_flags & M_REMOVE) {
+		module = stringer(NULL, 0, modulename, NULL);
+		basename = module;
+		if ((basename = get_module_basename(basename))) {
+			argv[2] = basename;
+			argv[0] = "remove-path";
+			/* RKO: may need to clean-up objv first */
+			Tcl_ArgvToObjv(interp, &objc, &objv, -1,(char **) argv);
+			cmdRemovePath(0, interp, objc, objv);
+		}
+		null_free((void *)&module);
 	}
-	null_free((void *) &module);
-    }
 
     /**
      **  Return on success
      **/
-    return( 1);
+	return (1);
 
 } /** End of 'Update_LoadedList' **/
 
@@ -2419,7 +2435,7 @@ void tryxstrtok (char *string, char *delim) {
 	while (token = xstrtok(NULL, delim)) {
 		printf("\t%d = %s\n", ++n, token);
 	}
-	free(start);
+	null_free(&start);
 }
 int main () {
 	tryxstrtok("abc:def;ghi,jkl", ":;,");
@@ -2458,31 +2474,6 @@ void chk4spch(char* s)
 
 } /** End of 'chk4spch' **/
 
-/*++++
- ** ** Function-Header ***************************************************** **
- ** 									     **
- **   Function:		module_malloc					     **
- ** 									     **
- **   Description:	A wrapper for the system malloc() function,	     **
- ** 			so the argument can be tested and set to a positive  **
- ** 			value.						     **
- ** 									     **
- **   First Edition:	2007/02/14	R.K.Owen <rk@owen.sj.ca.us>	     **
- ** 									     **
- **   Parameters:	size_t	size		Number of bytes to allocate  **
- ** 									     **
- **   Result:		void    *		An allocated memory pointer  **
- ** 									     **
- ** ************************************************************************ **
- ++++*/
-
-
-void *module_malloc(size_t size) {
-
-	return malloc(size > 0 ? size : 1);
-
-} /** End of 'module_malloc' **/
-
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
@@ -2864,35 +2855,6 @@ char *stringer(	char *		buffer,
 	return tbuf;
 
 } /** End of 'stringer' **/
-
-/*++++
- ** ** Function-Header ***************************************************** **
- ** 									     **
- **   Function:		null_free					     **
- ** 									     **
- **   Description:	does a free and then nulls the pointer.		     **
- ** 									     **
- **   first edition:	2000/08/24	r.k.owen <rk@owen.sj.ca.us>	     **
- ** 									     **
- **   parameters:	void	**var		allocated memory	     **
- ** 									     **
- **   result:		void    		(nothing)		     **
- ** 									     **
- **   attached globals:	-						     **
- ** 									     **
- ** ************************************************************************ **
- ++++*/
-
-void null_free(void ** var) {
-
-	if (! *var) return;	/* passed in a NULL ptr */
-
-#ifdef USE_FREE
-	free( *var);
-#endif
-	*var = NULL;
-
-} /** End of 'null_free' **/
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -3048,3 +3010,119 @@ void OutputExit() {
 		fprintf( stdout, " test 0 = 1;");
 	}
 } /** End of 'OutputExit' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		module_malloc					     **
+ ** 									     **
+ **   Description:	A wrapper for the system malloc() function,	     **
+ ** 			so the argument can be tested and set to a positive  **
+ ** 			value.						     **
+ ** 									     **
+ **   First Edition:	2007/02/14	R.K.Owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   Parameters:	size_t	size		Number of bytes to allocate  **
+ ** 									     **
+ **   Result:		void    *		An allocated memory pointer  **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+void *module_malloc(size_t size) {
+
+	return ckalloc(size > 0 ? size : 1);
+
+} /** End of 'module_malloc' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		module_realloc					     **
+ ** 									     **
+ **   Description:	A wrapper for the system realloc() function,	     **
+ ** 			so the argument can be tested and set to a positive  **
+ ** 			value.						     **
+ ** 									     **
+ **   First Edition:	2009/08/22	R.K.Owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   Parameters:	char *	ptr		Memory to reallocate	     **
+ **   			size_t	size		Number of bytes to allocate  **
+ ** 									     **
+ **   Result:		void    *		An allocated memory pointer  **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+
+void *module_realloc(char *ptr, size_t size) {
+
+	return ckrealloc(ptr, size > 0 ? size : 1);
+
+} /** End of 'module_realloc' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		module_calloc					     **
+ ** 									     **
+ **   Description:	A wrapper for the system calloc() function,	     **
+ ** 			so the argument can be tested and set to a positive  **
+ ** 			value.						     **
+ ** 									     **
+ **   First Edition:	2007/02/14	R.K.Owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   Parameters:	size_t	size		Number of bytes to allocate  **
+ ** 									     **
+ **   Result:		void    *		An allocated memory pointer  **
+ **   First Edition:	2009/08/22	R.K.Owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   Parameters:	size_t	nmemb		Number of bytes of member    **
+ **   			size_t	size		Number of bytes to allocate  **
+ ** 									     **
+ **   Result:		void    *		An allocated memory pointer  **
+ ** 									     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+
+void *module_calloc(size_t nmemb, size_t size) {
+
+	void * ptr = NULL;
+
+	size = (size > 0 ? size : 1);
+	ptr = module_malloc(nmemb * size);
+
+	return memset(ptr, '\0', nmemb * size);
+
+} /** End of 'module_calloc' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		null_free					     **
+ ** 									     **
+ **   Description:	does a free and then nulls the pointer.		     **
+ ** 									     **
+ **   first edition:	2000/08/24	r.k.owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   parameters:	void	**var		allocated memory	     **
+ ** 									     **
+ **   result:		void    		(nothing)		     **
+ ** 									     **
+ **   attached globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+void null_free(void ** var) {
+
+	if (! *var) return;	/* passed in a NULL ptr */
+
+#ifdef USE_FREE
+	ckfree( *var);
+#endif
+	*var = NULL;
+
+} /** End of 'null_free' **/

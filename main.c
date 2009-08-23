@@ -9,6 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	The main routine of Tcl Modules including all of     **
  **			the global data.				     **
@@ -29,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.25 2009/08/13 19:17:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.26 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -189,8 +190,8 @@ static void	version (FILE *output);
  **				other		Return value of the module   **
  **			 			subcomand		     **
  ** 									     **
- **   Attached Globals:	*Ptr	 	by InitializeTcl		     **
- **			*HashTable	by InitializeTcl	 	     **
+ **   Attached Globals:	*Ptr	 	by Initialize_Module		     **
+ **			*HashTable	by Initialize_Module	 	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -201,6 +202,8 @@ int	main( int argc, char *argv[], char *environ[]) {
     int          return_val = 0;
     char	*rc_name;
     char	*rc_path;
+	Tcl_Obj       **objv;		/** Tcl Object vector **/
+	int             objc;		/** Tcl Object vector count **/
 
 #if WITH_DEBUGGING
     ErrorLogger( NO_ERR_START, LOC, _proc_main, NULL);
@@ -234,7 +237,7 @@ int	main( int argc, char *argv[], char *environ[]) {
      **  initialization function in case of invalid command line arguments.
      **/
 
-    if( TCL_OK != Initialize_Tcl( &interp, argc, argv, environ))
+    if( TCL_OK != Initialize_Module( &interp, argc, argv, environ))
 	goto unwind0;
 
     if( TCL_OK != Setup_Environment( interp))
@@ -313,8 +316,8 @@ int	main( int argc, char *argv[], char *environ[]) {
      **/
 
     g_flags = 0;
-    return_val = cmdModule((ClientData) 0,interp,(argc-1),
-	(CONST84 char **) (argv + 1));
+    Tcl_ArgvToObjv(interp, &objc, &objv, argc-1, argv+1);
+    return_val = cmdModule((ClientData) 0,interp,objc, objv);
 
     /**
      **  If we were doing some operation that has already flushed its output,

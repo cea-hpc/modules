@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.16 2009/08/13 19:17:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.17 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -562,7 +562,7 @@ fi_ent	*get_dir(	char	*dir,
      **  Allocate memory for reading in the directory
      **/
 
-    if( NULL == (dirlst_cur = dirlst_head = (fi_ent*) calloc( DIREST,
+    if( NULL == (dirlst_cur = dirlst_head = (fi_ent*) module_calloc( DIREST,
 	sizeof( fi_ent)))) {
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
 	    if( -1 == closedir( dirptr))
@@ -586,8 +586,8 @@ fi_ent	*get_dir(	char	*dir,
 	 **/
 
         if(dirlst_cur == dirlst_last) {
-            if( NULL == (dirlst_head = (fi_ent*) realloc( (char*) dirlst_head, 
-		(count<<1) * sizeof( fi_ent)))) 
+            if( NULL == (dirlst_head = (fi_ent*) module_realloc(
+		(char*) dirlst_head, (count<<1) * sizeof( fi_ent)))) 
 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
 		    goto unwind0;
             dirlst_cur = dirlst_head + count;
@@ -1385,7 +1385,7 @@ static	void _add_file_list( char *name)
 	    _file_list_ptr =
 		(char **) module_malloc(_file_list_cnt * sizeof(char *));
 	else
-	    _file_list_ptr = (char **) realloc( _file_list_ptr,
+	    _file_list_ptr = (char **) module_realloc( _file_list_ptr,
 		_file_list_cnt * sizeof(char *));
 
     }

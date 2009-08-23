@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.7 2009/08/13 19:17:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.8 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -169,7 +169,7 @@ int ModuleCmd_Refresh(	Tcl_Interp	*interp,
 	g_specified_module = list[i];
 
 	refr_interp = Tcl_CreateInterp();
-	if ( TCL_OK != (result = InitializeModuleCommands ( refr_interp ))) {
+	if ( TCL_OK != (result = Module_Init ( refr_interp ))) {
 	    Tcl_DeleteInterp( refr_interp );
 	    null_free((void *) &loaded);
 	    return (result);

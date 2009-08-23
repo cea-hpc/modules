@@ -8,6 +8,7 @@
  **   First Edition:	1995/12/31					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	The Tcl module-verbose routine allows switchin ver-  **
  **			bosity on and off during module file execution	     **
@@ -26,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVerbose.c,v 1.6 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVerbose.c,v 1.7 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -80,8 +81,8 @@ static	char	_proc_cmdModuleVerbose[] = "cmdModuleVerbose";
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
- **			int		 argc		Number of arguments  **
- **			char		*argv[]		Argument array	     **
+ **			int		 objc		Number of arguments  **
+ **			Tcl_Obj		*objv[]		Argument array	     **
  ** 									     **
  **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
@@ -94,61 +95,58 @@ static	char	_proc_cmdModuleVerbose[] = "cmdModuleVerbose";
  ** ************************************************************************ **
  ++++*/
 
-int	cmdModuleVerbose(	ClientData	 client_data,
-		      		Tcl_Interp	*interp,
-		      		int		 argc,
-		      		CONST84 char	*argv[])
-{
+int cmdModuleVerbose(
+	ClientData client_data,
+	Tcl_Interp * interp,
+	int objc,
+	Tcl_Obj * CONST84 objv[]
+) {
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleVerbose, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_cmdModuleVerbose, NULL);
 #endif
-    char **argptr = (char **) argv;
-
     /**
      **  Whatis mode?
      **/
-
-    if( g_flags & (M_WHATIS | M_HELP))
-        return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
-	
+	if (g_flags & (M_WHATIS | M_HELP))
+		return (TCL_OK);	/** ------- EXIT PROCEDURE -------> **/
     /**
      **  Parameter check
      **/
-
-    if( argc < 2) {
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argptr[0], " on|off|fmt [args]",
-	    NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
-  
+	if (objc < 2) {
+		if (OK !=
+		    ErrorLogger(ERR_USAGE, LOC, Tcl_GetString(objv[0]),
+				" on|off|fmt [args]", NULL))
+			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
+	}
     /**
      **  Display mode?
      **/
-
-    if( g_flags & M_DISPLAY) {
-	fprintf( stderr, "%s ", argptr[ 0]);
-	while( --argc)
-	    fprintf( stderr, "%s ", *++argptr);
-	fprintf( stderr, "\n");
-        return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
-    }
-
+	if (g_flags & M_DISPLAY) {
+		fprintf(stderr, "%s ", Tcl_GetString(*objv++));
+		while (--objc)
+			fprintf(stderr, "%s ", Tcl_GetString(*objv++));
+		fprintf(stderr, "\n");
+		return (TCL_OK);	/** ------- EXIT PROCEDURE -------> **/
+	}
     /**
      **  on or off
      **/
+	if (!strcmp(Tcl_GetString(objv[1]), "on"))
+		sw_verbose = 1;
+	else if (!strcmp(Tcl_GetString(objv[1]), "off"))
+		sw_verbose = 0;
+	else {
+		int	argc = --objc;
+		char	**argv;
 
-    if( !strcmp( argptr[1], "on"))
-	sw_verbose = 1;
-    else if( !strcmp( argptr[1], "off"))
-	sw_verbose = 0;
-    else
-	Module_Verbosity( --argc, ++argptr);
+		Tcl_ObjvToArgv(interp, &argc, &argv, argc,++objv);
+		Module_Verbosity(argc, argv);
+	}
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleVerbose, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_cmdModuleVerbose, NULL);
 #endif
 
-    return( TCL_OK);
+	return (TCL_OK);
 
 } /** End of 'cmdModuleVerbose' **/
-    

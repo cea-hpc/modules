@@ -8,6 +8,7 @@
  **   First Edition:	1995/12/26					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	The Tcl module-log routine which provides an	     **
  **			interface to the modulecmd syslog/stderr output.     **
@@ -26,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdLog.c,v 1.11 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdLog.c,v 1.12 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -86,8 +87,8 @@ static	char	_none[] = "none";
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
- **			int		 argc		Number of arguments  **
- **			char		*argv[]		Argument array	     **
+ **			int		 objc		Number of arguments  **
+ **			Tcl_Obj		*objv[]		Argument array	     **
  ** 									     **
  **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
@@ -99,130 +100,128 @@ static	char	_none[] = "none";
  ** ************************************************************************ **
  ++++*/
 
-int	cmdModuleLog(	ClientData	 client_data,
-	      		Tcl_Interp	*interp,
-	      		int		 argc,
-	      		CONST84 char	*argv[])
-{
-    char	**facptr;
-    int		  i, len = 0, alc_len = PART_LEN, save_len;
-    char	 *faclist, *s, *tmp, *t;
+int cmdModuleLog(
+	ClientData client_data,
+	Tcl_Interp * interp,
+	int objc,
+	Tcl_Obj * CONST84 objv[]
+) {
+	char          **facptr;
+	int             i, len = 0, alc_len = PART_LEN, save_len;
+	char           *faclist, *s, *tmp, *t;
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleLog, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_cmdModuleLog, NULL);
 #endif
 
     /**
      **  Whatis mode?
      **/
-    if( g_flags & (M_WHATIS | M_HELP))
-        return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
-	
+	if (g_flags & (M_WHATIS | M_HELP))
+		return (TCL_OK);	/** ------- EXIT PROCEDURE -------> **/
     /**
      **  Parameter check
      **/
-    if( argc < 3) {
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], " error-weight",
-	    " facility", NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
-  
+	if (objc < 3) {
+		if (OK != ErrorLogger(ERR_USAGE, LOC, Tcl_GetString(objv[0]),
+				" error-weight", " facility", NULL))
+			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
+	}
     /**
      **  Display mode?
      **/
-    if( g_flags & M_DISPLAY) {
-	fprintf( stderr, "%s\t ", argv[ 0]);
-	while( --argc)
-	    fprintf( stderr, "%s ", *++argv);
-	fprintf( stderr, "\n");
-        return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
-    }
-	
+	if (g_flags & M_DISPLAY) {
+		fprintf(stderr, "%s\t ", Tcl_GetString(*objv++));
+		while (--objc)
+			fprintf(stderr, "%s ", Tcl_GetString(*objv++));
+		fprintf(stderr, "\n");
+		return (TCL_OK);	/** -------- EXIT PROCEDURE -------> **/
+	}
     /**
      **  Get the current facility pointer.
      **/
-    if((char **) NULL == (facptr = GetFacilityPtr( (char *) argv[1]))) 
-	return(( OK == ErrorLogger(ERR_INVWGHT_WARN,LOC, argv[1],NULL))
-	    ? TCL_OK : TCL_ERROR);
+	if ((char **)NULL ==
+	    (facptr = GetFacilityPtr((char *)Tcl_GetString(objv[1]))))
+		return ((OK == ErrorLogger(ERR_INVWGHT_WARN, LOC,
+				     Tcl_GetString(objv[1]), NULL))
+			? TCL_OK : TCL_ERROR);
 
     /**
      **  Allocate memory for the facility list
      **/
-    if((char *) NULL == (faclist = (char *) module_malloc( alc_len)))
-	return(( OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) ?
-	    TCL_OK : TCL_ERROR);
+	if ((char *)NULL == (faclist = (char *)module_malloc(alc_len)))
+		return ((OK == ErrorLogger(ERR_ALLOC, LOC, NULL)) ?
+			TCL_OK : TCL_ERROR);
 
     /**
      **  Scan all given facilities and add them to the list
      **/
-    for( i=2; i<argc; i++) {
-	save_len = len;
-	len += strlen( argv[ i]) + 1;
+	for (i = 2; i < objc; i++) {
+		save_len = len;
+		len += strlen(Tcl_GetString(objv[i])) + 1;
 
-	while( len + 1 > alc_len) {
-	    alc_len += PART_LEN;
-	    if((char *) NULL == (faclist = (char *) realloc( faclist, alc_len)))
-		return(( OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) ?
-		    TCL_OK : TCL_ERROR);
+		while (len + 1 > alc_len) {
+			alc_len += PART_LEN;
+			if ((char *)NULL ==
+			    (faclist = (char *)module_realloc(faclist,alc_len)))
+				return ((OK == ErrorLogger(ERR_ALLOC, LOC,
+					     NULL)) ? TCL_OK : TCL_ERROR);
+		}
+
+		faclist[save_len] = ':';
+		strcpy(&faclist[save_len + 1], Tcl_GetString(objv[i]));
 	}
-
-	faclist[save_len] = ':';
-	strcpy( &faclist[save_len + 1], argv[ i]);
-    }
 
     /**
      **  Now scan the whole list and copy all valid parts into a new buffer
      **/
-    if((char *) NULL == (tmp = stringer(NULL, strlen( faclist), NULL))) {
-	null_free((void *) &faclist);
-	return(( OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) ?
-	    TCL_OK : TCL_ERROR);
-    }
+	if ((char *)NULL == (tmp = stringer(NULL, strlen(faclist), NULL))) {
+		null_free((void *)&faclist);
+		return ((OK == ErrorLogger(ERR_ALLOC, LOC, NULL)) ?
+			TCL_OK : TCL_ERROR);
+	}
 
-    for( t = tmp, s = xstrtok( faclist, ":, \t");
-	 s;
-	 s = xstrtok( NULL, ":, \t") ) {
+	for (t = tmp, s = xstrtok(faclist, ":, \t");
+	     s; s = xstrtok(NULL, ":, \t")) {
 
-	if (s && !*s) continue;		/* skip empty ones */
-	if( '.' == *s || '/' == *s ||			       /** filename  **/
-	    !strcmp( _stderr, s) || !strcmp( _stdout, s) ||    /** special   **/
-	    !strcmp( _null, s) || !strcmp( _none, s) ||        /** null	     **/
-	    CheckFacility( s, &i, &i) ) {		       /** syslog    **/
+		if (s && !*s)
+			continue;	/* skip empty ones */
+		if ('.' == *s || '/' == *s ||		       /** filename  **/
+		    !strcmp(_stderr, s) || !strcmp(_stdout, s) ||
+							       /** special   **/
+		    !strcmp(_null, s) || !strcmp(_none, s) ||  /** null	     **/
+		    CheckFacility(s, &i, &i)) {		       /** syslog    **/
 
-	    if( t != tmp) 
-		*t++ = ':';
-	    strcpy( t, s);
+			if (t != tmp)
+				*t++ = ':';
+			strcpy(t, s);
 
-	    t += strlen( s);
+			t += strlen(s);
 
-	} else {
-
+		} else {
 	    /**
 	     **  bad facility found
 	     **/
-
-	    if( OK != ErrorLogger( ERR_INVFAC_WARN, LOC, s, NULL))
-		break;  /** for **/
-	}
-    } /** for **/
-
+			if (OK != ErrorLogger(ERR_INVFAC_WARN, LOC, s, NULL))
+				break; /** for **/
+		}
+	} /** for **/
     /**
      **  Now, 'tmp' should contain the new list of facilities. Check whether
      **  there has been one allocated so far ...
      **  We do not need the original faclist any more.
      **/
+	null_free((void *)&faclist);
 
-    null_free((void *) &faclist);
+	if ((char *)NULL != *facptr)
+		null_free((void *)facptr);
 
-    if((char *) NULL != *facptr)
-	null_free((void *) facptr);
-
-    *facptr = tmp;
+	*facptr = tmp;
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleLog, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_cmdModuleLog, NULL);
 #endif
 
-    return( TCL_OK);
+	return (TCL_OK);
 
 } /** End of 'cmdModuleLog' **/

@@ -10,6 +10,7 @@
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Leif Hedstrom<hedstrom"@boot.org>			     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	Module command to merge/remove resources from the X11**
  **			resource manager. The database is update internally, **
@@ -40,7 +41,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdXResource.c,v 1.12 2009/08/13 19:17:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdXResource.c,v 1.13 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -357,7 +358,7 @@ static	void	 doScreenDefines( int	scrno)
  **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	register FILE	*input	The stream to be read from   **
- **			int		 do_cpp	Differs betweem a pipe or a  **
+ **			int		 do_cpp	Differs between a pipe or a  **
  **						file being assigned to input **
  ** 									     **
  **   Result:		-						     **
@@ -844,8 +845,8 @@ void xresourceFinish(register int no_errors)
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
- **			int		 argc		Number of arguments  **
- **			char		*argv[]		Argument array	     **
+ **			int		 objc		Number of arguments  **
+ **			Tcl_Obj		*objv[]		Argument array	     **
  ** 									     **
  **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
@@ -857,118 +858,109 @@ void xresourceFinish(register int no_errors)
  ** ************************************************************************ **
  ++++*/
 
-int	cmdXResource(	ClientData	 client_data,
-			Tcl_Interp	*interp,
-			int		 argc,
-			CONST84 char	*argv[])
-{
-    register FILE	*inp;
-    int			 is_file, i,
-			 do_cpp = 1,
-    			 opt_ind = 1;
+int cmdXResource(
+	ClientData client_data,
+	Tcl_Interp * interp,
+	int objc,
+	Tcl_Obj * CONST84 objv[]
+) {
+	register FILE  *inp;			/** input file or pipe	     **/
+	int             is_file,		/** file or not		     **/
+	                i,			/** loop counter	     **/
+	                do_cpp = 1,		/** pipe file thru cpp	     **/
+	    opt_ind = 1;			/** option index	     **/
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdXResource, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_cmdXResource, NULL);
 #endif
-
     /**
      **  Whatis mode?
      **/
+	if (g_flags & (M_WHATIS | M_HELP))
+		return (TCL_OK);	/** ------- EXIT PROCEDURE -------> **/
 
-    if( g_flags & (M_WHATIS | M_HELP))
-        return( TCL_OK);		/** ------- EXIT PROCEDURE -------> **/
-
-    if( !getenv("DISPLAY")) {
-      /* don't bother trying to set display variables, if there is no display */
-      return(TCL_OK);
-    }
-    
-	
+	if (!getenv("DISPLAY")) {
+		/* don't bother trying to set display variables, */
+		/* if there is no display */
+		return (TCL_OK);
+	}
     /**
      **  Parameter check
      **/
-
-    if( argc > 1 && !strcmp( argv[1], "-nocpp")) {
-	do_cpp = 0;
-	opt_ind++;
-    }
-
-    if( argc <= opt_ind) {
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "[ -nocpp ] strings", NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
-
+	if (objc > 1 && !strcmp(Tcl_GetString(objv[1]), "-nocpp")) {
+		do_cpp = 0;
+		opt_ind++;
+	}
+	if (objc <= opt_ind) {
+		if (OK !=
+		    ErrorLogger(ERR_USAGE, LOC, Tcl_GetString(objv[0]),
+				"[ -nocpp ] strings", NULL))
+			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
+	}
     /**
      **  Ok, now let's treat all remaining arguments as X resources or
      **  X resource files. At first let's check if it is a file ...
      **/
-
-    while( opt_ind < argc) {
-	is_file = (access( argv[ opt_ind], R_OK & F_OK) == 0);
-
+	while (opt_ind < objc) {
+		is_file =
+		    (access(Tcl_GetString(objv[opt_ind]), R_OK & F_OK) == 0);
 #ifdef HAS_X11LIBS
-
-	if( g_flags & M_DISPLAY) {
-	    fprintf( stderr, "xrdb -merge\t ");
-	    for( i=1; i<argc; i++)
-		fprintf( stderr, "%s ", argv[ i]);
-	    fprintf( stderr, "\n");
-
-	} else {
-
+		if (g_flags & M_DISPLAY) {
+			fprintf(stderr, "xrdb -merge\t ");
+			for (i = 1; i < objc; i++)
+				fprintf(stderr, "%s ", Tcl_GetString(objv[i]));
+			fprintf(stderr, "\n");
+		} else {
 	    /**
 	     **  Initialize read buffers
 	     **/
-
-	    if( NO_ERR != initBuffers(interp, is_file)) 
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-
+			if (NO_ERR != initBuffers(interp, is_file))
+				return (TCL_ERROR); /** -- EXIT (FAILURE) -> **/
 	    /**
 	     **  This puts all required resources into a text image buffer ...
 	     **/
-
-	    if( !is_file) {
-		Tcl_DStringAppend( buffer, argv[ opt_ind], -1);
-	    } else {
-
-		if( NULL == (inp = (do_cpp ?
-		    popen( strcat( defines, argv[ opt_ind]), "r") : 
-		    fopen( argv[ opt_ind], "r")) ) )
-		    if( OK != ErrorLogger( (do_cpp ? ERR_POPEN : ERR_OPEN), LOC,
-			"argv[ opt_ind]", _(em_reading) ))
-			return( TCL_ERROR);     /** ---- EXIT (FAILURE) ---> **/
-
-		if( TCL_ERROR == readFile( inp, do_cpp))
-		    return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-	    }
-
+			if (!is_file) {
+				Tcl_DStringAppend(buffer,
+					  Tcl_GetString(objv[opt_ind]), -1);
+			} else {
+				if (NULL == (inp = (do_cpp
+					? popen(strcat(defines,
+					Tcl_GetString(objv[opt_ind])), "r")
+					:fopen(Tcl_GetString(objv[opt_ind]),"r")
+					)))
+					if (OK != ErrorLogger((do_cpp
+					? ERR_POPEN : ERR_OPEN), LOC,
+					"argv[ opt_ind]", _(em_reading)))
+						return (TCL_ERROR);
+						/** ---- EXIT (FAILURE) ---> **/
+				if (TCL_ERROR == readFile(inp, do_cpp))
+					return (TCL_ERROR);
+					/** -------- EXIT (FAILURE) -------> **/
+			}
 	    /**
 	     **  ... and this transforms the text image buffer into a Tcl hash
 	     **  table
 	     **/
-
-	    if( NO_ERR != getEntries(interp, resDB.data,
-		Tcl_DStringValue( buffer), g_flags & M_REMOVE)) {
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-	    }
-	}
+			if (NO_ERR != getEntries(interp, resDB.data,
+						 Tcl_DStringValue(buffer),
+						 g_flags & M_REMOVE)) {
+				return (TCL_ERROR); /** -- EXIT (FAILURE) -> **/
+			}
+		}
 #else
-	if( g_flags & M_DISPLAY) {
-	    fprintf( stderr, "xrdb -merge\t ");
-	    for( i=1; i<argc; i++)
-		fprintf( stderr, "%s ", argv[ i]);
-	    fprintf( stderr, "*** ignored ***\n");
-	}
+		if (g_flags & M_DISPLAY) {
+			fprintf(stderr, "xrdb -merge\t ");
+			for (i = 1; i < objc; i++)
+				fprintf(stderr, "%s ", Tcl_GetString(objv[i]));
+			fprintf(stderr, "*** ignored ***\n");
+		}
 #endif
-
-	opt_ind++; 
-
-    } /** while **/
+		opt_ind++;
+	} /** while **/
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdXResource, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_cmdXResource, NULL);
 #endif
-
-    return( TCL_OK);
+	return (TCL_OK);
 
 } /** End of 'cmdXResource' **/

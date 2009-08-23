@@ -9,6 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	Clears out Modules' concept of the currently loaded  **
  **			modules.					     **
@@ -27,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Clear.c,v 1.5 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Clear.c,v 1.6 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -99,6 +100,8 @@ int ModuleCmd_Clear(	Tcl_Interp	*interp,
 {
     char		buf[10];
     char*		clearargv[4];
+	Tcl_Obj       **objv;		/** Tcl Object vector **/
+	int             objc;		/** Tcl Object vector count **/
     
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Clear, NULL);
@@ -113,7 +116,7 @@ int ModuleCmd_Clear(	Tcl_Interp	*interp,
     } else {
 	fprintf( stderr,
             "\nAre you sure you want to clear all loaded modules!? [n] ");
-	fgets( buf, 10, stdin);
+	fgets(buf, 10, stdin);
     }
 
     /**
@@ -126,13 +129,17 @@ int ModuleCmd_Clear(	Tcl_Interp	*interp,
         clearargv[1] = "LOADEDMODULES";
         clearargv[2] = "";
         clearargv[3] = NULL;
-        cmdSetEnv( (ClientData) 0, interp, 3, (CONST84 char **) clearargv);
+	/* convert fomr argv to objv */
+	Tcl_ArgvToObjv(interp, &objc, &objv, -1, (char **) clearargv);
+        cmdSetEnv( (ClientData) 0, interp, objc, objv);
 
         clearargv[0] = "setenv";
         clearargv[1] = "_LMFILES_";
         clearargv[2] = "";
         clearargv[3] = NULL;
-        cmdSetEnv( (ClientData) 0, interp, 3, (CONST84 char **) clearargv);
+	/* convert fomr argv to objv */
+	Tcl_ArgvToObjv(interp, &objc, &objv, -1, (char **) clearargv);
+        cmdSetEnv( (ClientData) 0, interp, objc, objv);
 
     } else {
         fprintf( stderr, "\nLOADEDMODULES was NOT cleared.\n");

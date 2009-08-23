@@ -8,6 +8,7 @@
  **   First Edition:	1995/12/31					     **
  **									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  **									     **
  **			ModuleCmd_Apropos				     **
  **			ModuleCmd_Whatis				     **
@@ -24,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.10 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.11 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -97,144 +98,136 @@ static	int	 whatis_dir( char*, int, char**, int);
  ** ************************************************************************ **
  ++++*/
 
-int ModuleCmd_Whatis(	Tcl_Interp	*interp,
-			int		 argc,
-			char		*argv[])
-{
-    Tcl_Interp	*whatis_interp;
-    Tcl_DString	 cmdbuf;
-    int		 i, result = TCL_OK;
-    char	 modulefile[ MOD_BUFSIZE],
-		 modulename[ MOD_BUFSIZE],
-		*modpath,		/** Buffer for the contents of the   **/
+int ModuleCmd_Whatis(
+	Tcl_Interp * interp,
+	int argc,
+	char *argv[]
+) {
+	Tcl_Interp     *whatis_interp;
+	Tcl_DString     cmdbuf;			/** dynamic string buffer    **/
+	int             i,			/** loop index		     **/
+	                result = TCL_OK;	/** result (default OK	     **/
+	char            modulefile[MOD_BUFSIZE],/** buffer for modulefile    **/
+	                modulename[MOD_BUFSIZE],/** buffer for modulename    **/
+	               *modpath,	/** Buffer for the contents of the   **/
 					/** environment variable MODULEPATH  **/
-		**wptr,
-		*dirname;
+	              **wptr,		/** whatis text line		     **/
+	               *dirname;	/** modulepath dir		     **/
 
 #if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Whatis, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_ModuleCmd_Whatis, NULL);
 #endif
 
     /**
      **	 Initialize the command buffer and set up the modules flag to
      **	 'whatisonly'
      **/
-    Tcl_DStringInit( &cmdbuf);
-    g_flags |= M_WHATIS;
+	Tcl_DStringInit(&cmdbuf);
+	g_flags |= M_WHATIS;
 
     /**
      **	 Handle each passed module file. Create a Tcl interpreter for each
      **	 module file to be handled and initialize it with custom module commands
      **/
 
-    if ( argc) {
+	if (argc) {
     /**
      **	 User provided a list of modules for ``whatis'' info
      **/
-	for(i=0; i<argc && argv[i]; i++) {
-
-	    whatis_interp = Tcl_CreateInterp();
-	    if( TCL_OK != (result = InitializeModuleCommands( whatis_interp))) {
-		Tcl_DeleteInterp( whatis_interp);
-		result = TCL_ERROR;
-		break;
-	    }
-
+		for (i = 0; i < argc && argv[i]; i++) {
+			whatis_interp = Tcl_CreateInterp();
+			if (TCL_OK != (result = Module_Init(whatis_interp))) {
+				Tcl_DeleteInterp(whatis_interp);
+				result = TCL_ERROR;
+				break;
+			}
 	    /**
 	     **	 locate the filename related to the passed module
 	     **/
-	    if( TCL_ERROR ==
-		Locate_ModuleFile(whatis_interp,argv[i],modulename,modulefile)){
-		Tcl_DeleteInterp( whatis_interp);
-		if( OK != ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL))
-		    break;
-		else
-		    continue;
-	    }
-
+			if (TCL_ERROR ==
+			    Locate_ModuleFile(whatis_interp, argv[i],
+					      modulename, modulefile)) {
+				Tcl_DeleteInterp(whatis_interp);
+				if (OK !=
+				    ErrorLogger(ERR_LOCATE, LOC, argv[i], NULL))
+					break;
+				else
+					continue;
+			}
 	    /**
 	     **	 Print out everything that would happen if the module file were
 	     **	 executed ...
 	     **/
-	    g_current_module = modulename;
+			g_current_module = modulename;
 
-	    cmdModuleWhatisInit();
-	    result = CallModuleProcedure( whatis_interp, &cmdbuf, modulefile,
-		"ModulesWhatis", 0);
-
+			cmdModuleWhatisInit();
+			result = CallModuleProcedure(whatis_interp, &cmdbuf,
+						modulefile, "ModulesWhatis", 0);
 	    /**
 	     **	 Print the result ...
 	     **/
-	    if( whatis) {
-		wptr = whatis;
-		while( *wptr)
-		    fprintf( stderr, "%-21s: %s\n", argv[i], *wptr++);
-	    }
-
+			if (whatis) {
+				wptr = whatis;
+				while (*wptr)
+					fprintf(stderr, "%-21s: %s\n", argv[i],
+						*wptr++);
+			}
 	    /**
 	     **	 Remove the Tcl interpreter that has been used for printing ...
 	     **/
-	    Tcl_DeleteInterp( whatis_interp);
-	    cmdModuleWhatisShut();
-
-	} /** for **/
-    } else {
+			Tcl_DeleteInterp(whatis_interp);
+			cmdModuleWhatisShut();
+		}
+	  /** for **/
+	} else {
        /**
 	**  User wants all module ``whatis'' info
 	**/
-
 	/**
 	 **  If no MODULEPATH defined, we can not output anything
 	 **/
-	if( !(modpath = (char *) xgetenv( "MODULEPATH")))
-	    if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-		goto unwind0;
-
+		if (!(modpath = (char *)xgetenv("MODULEPATH")))
+			if (OK != ErrorLogger(ERR_MODULE_PATH, LOC, NULL))
+				goto unwind0;
 	/**
 	 **  Scan all the files
 	 **/
 	     /**
 	      **  Tokenize the module path string and check all dirs
 	      **/
-	     for( dirname = xstrtok( modpath, ":");
-		  dirname;
-		  dirname = xstrtok( NULL, ":") ) {
-	
-		 if( !check_dir( dirname))
-		     continue;
-	
-		 whatis_dir( dirname, argc, argv, WHATIS_ALL);
+		for (dirname = xstrtok(modpath, ":");
+		     dirname; dirname = xstrtok(NULL, ":")) {
 
-	     } /** for **/
-    }
-
+			if (!check_dir(dirname))
+				continue;
+			whatis_dir(dirname, argc, argv, WHATIS_ALL);
+		} /** for **/
+	    /**
+	     **	 Free up allocated resources
+	     **/
+		null_free((void *)&modpath);
+	}
     /**
      **	 Leave the 'whatis only mode', free up what has been used and return
      **/
-    g_flags &= ~M_WHATIS;
-    fprintf( stderr, "\n");
+	g_flags &= ~M_WHATIS;
+	fprintf(stderr, "\n");
 
-    Tcl_DStringFree( &cmdbuf);
-
-    /**
-     **	 Free up allocated resources
-     **/
-    null_free((void *) &modpath);
-
+	Tcl_DStringFree(&cmdbuf);
     /**
      **	 Return on success
      **/
 
 #if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Whatis, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_ModuleCmd_Whatis, NULL);
 #endif
 
-    return( result);			/** --- EXIT PROCEDURE (result)  --> **/
+	return (result);		/** --- EXIT PROCEDURE (result)  --> **/
 
 unwind1:
-    null_free((void *) &modpath);
+	null_free((void *)&modpath);
 unwind0:
-    return( TCL_ERROR);			/** --- EXIT PROCEDURE (FAILURE) --> **/
+	return (TCL_ERROR);		/** --- EXIT PROCEDURE (FAILURE) --> **/
 
 } /** End of 'ModuleCmd_Whatis' **/
 
@@ -394,7 +387,7 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
     for( i=0; i<tcount; i++) {
 
 	whatis_interp = Tcl_CreateInterp();
-	if( TCL_OK != (result = InitializeModuleCommands( whatis_interp))) {
+	if( TCL_OK != (result = Module_Init( whatis_interp))) {
 	    Tcl_DeleteInterp( whatis_interp);
 	    result = TCL_ERROR;
 	    break; /** for( i) **/

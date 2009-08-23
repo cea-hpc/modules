@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.10 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.11 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -147,7 +147,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 	 **/
 
         tmp_interp = Tcl_CreateInterp();
-	if( TCL_OK != (return_val = InitializeModuleCommands( tmp_interp)))
+	if( TCL_OK != (return_val = Module_Init( tmp_interp)))
 	    return( return_val);	/** -------- EXIT (FAILURE) -------> **/
         filename[0] = '\0';
 

@@ -9,6 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	The actual module command from the Tcl level. This   **
  **			routines calls other ModuleCmd routines to carry out **
@@ -31,7 +32,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.19 2009/08/13 19:17:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.20 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -103,8 +104,8 @@ char	 *module_command;
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
- **			int		 argc		Number of arguments  **
- **			char		*argv[]		Argument array	     **
+ **			int		 objc		Number of arguments  **
+ **			Tcl_Obj		*objv[]		Argument array	     **
  ** 									     **
  **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
@@ -118,26 +119,28 @@ char	 *module_command;
  ** ************************************************************************ **
  ++++*/
 
-int	cmdModule(	ClientData	 client_data,
-	       		Tcl_Interp	*interp,
-	       		int		 argc,
-	       		CONST84 char	*argv[])
-{
-    int		  return_val = -1, i;
-    int		  store_flags = g_flags;
-    char	 *store_curmodule = NULL;
-    char	 *save_module_command = NULL;
-    int 	  match = 0;
-
+int cmdModule(
+	ClientData client_data,
+	Tcl_Interp * interp,
+	int objc,
+	Tcl_Obj * CONST84 objv[]
+) {
+	int             return_val = -1,	/** exit return value	     **/
+	    store_flags = g_flags,		/** local copy of flags	     **/
+	    match = 0,				/** found match		     **/
+	    i;
+	char           *store_curmodule = NULL,	/** current module name	     **/
+	    *save_module_command = NULL;	/** save module command	     **/
     /**
      **  These skip the arguments past the shell and command.
      **/
-
-    int		  num_modulefiles = argc - 2;
-    char	**modulefile_list = (char **) argv + 2;
+	int             num_modulefiles = objc - 2;
+	char          **modulefile_list;
+	int             argc;
+	char          **argv;
 
 #if 0
-	int x=0;
+	int             x = 0;
 #  define _XD	fprintf(stderr,":%d:",++x),
 #else
 #  define _XD
@@ -148,280 +151,269 @@ int	cmdModule(	ClientData	 client_data,
 #define _TCLCHK(a) {if(_ISERR) ErrorLogger(ERR_EXEC,LOC,TCL_RESULT(a),NULL);}
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdModule, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_cmdModule, NULL);
 #endif
 
     /**
      **  Help or whatis mode?
      **/
-
-    if( g_flags & (M_HELP | M_WHATIS))
-	return( TCL_OK);
-
+	if (g_flags & (M_HELP | M_WHATIS))
+		return (TCL_OK);
     /**
      **  Parameter check
      **/
-
-    if( argc < 2) {
-	(void) ErrorLogger( ERR_USAGE, LOC, "module", " command ",
-	    " [arguments ...] ", NULL);
-	(void) ModuleCmd_Help( interp, 0, modulefile_list);
-	return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
-
+	if (objc < 2) {
+		(void)ErrorLogger(ERR_USAGE, LOC, "module", " command ",
+				  " [arguments ...] ", NULL);
+		(void)ModuleCmd_Help(interp, 0, NULL);
+		return (TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
+	}
     /**
      **  Non-persist mode?
      **/
-    
-    if (g_flags & M_NONPERSIST) {
-	return (TCL_OK);
-    }
-
+	if (g_flags & M_NONPERSIST) {
+		return (TCL_OK);
+	}
     /**
      **  Display whatis mode?
      **/
-
-    if( g_flags & M_DISPLAY) {
-	fprintf( stderr, "%s\t\t ", argv[ 0]);
-	for( i=1; i<argc; i++)
-	    fprintf( stderr, "%s ", argv[ i]);
-	fprintf( stderr, "\n");
-	return( TCL_OK);
-    }
-    
+	if (g_flags & M_DISPLAY) {
+		fprintf(stderr, "%s\t\t ", Tcl_GetString(objv[0]));
+		for (i = 1; i < objc; i++)
+			fprintf(stderr, "%s ", Tcl_GetString(objv[i]));
+		fprintf(stderr, "\n");
+		return (TCL_OK);
+	}
     /**
      **  For recursion.  This can be called multiple times.
      **/
+	save_module_command = module_command;
+	module_command = stringer(NULL, 0, Tcl_GetString(objv[1]), NULL);
 
-    save_module_command = module_command;
-    module_command  = stringer(NULL,0, argv[1], NULL);
+	if (g_current_module)
+		store_curmodule = g_current_module;
 
-    if( g_current_module)
-	store_curmodule = g_current_module;
-    
+	/* convert the modulefile_list from Objv to Argv to pass along */
+	Tcl_ObjvToArgv(interp, &argc, &modulefile_list, objc - 2, objv + 2);
+
     /**
      **  If the command is '-', we want to just start 
      **    interpreting Tcl from stdin.
      **/
-
-    if(_XD !strcmp( module_command, "-")) { 
-	return_val = Execute_TclFile( interp, _fil_stdin);
-
+	if (_XD ! strcmp(module_command, "-")) {
+		return_val = Execute_TclFile(interp, _fil_stdin);
     /**
      **  Evaluate the module command and call the according subroutine
      **  --- module LOAD|ADD
      **/
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, addRE)) ) {
-	_TCLCHK(interp);
-	return_val = ModuleCmd_Load( interp, 1,num_modulefiles,modulefile_list);
-
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, addRE))) {
+		_TCLCHK(interp);
+		return_val =
+		    ModuleCmd_Load(interp, 1, num_modulefiles, modulefile_list);
        /**
         **  We always say the load succeeded.  ModuleCmd_Load will
         **  output any necessary error messages.
         **/
-
-        return_val = TCL_OK;
-
+		return_val = TCL_OK;
     /**
      **  --- module UNLOAD
      **/
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, rmRE)) ) {
-	_TCLCHK(interp);
-        ModuleCmd_Load( interp, 0, num_modulefiles, modulefile_list);
-	return_val = TCL_OK;
-
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, rmRE))) {
+		_TCLCHK(interp);
+		ModuleCmd_Load(interp, 0, num_modulefiles, modulefile_list);
+		return_val = TCL_OK;
     /**
      **  --- module SWITCH
      **/
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, swRE)) ) {
-	_TCLCHK(interp);
-	return_val = ModuleCmd_Switch( interp, num_modulefiles,modulefile_list);
-
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, swRE))) {
+		_TCLCHK(interp);
+		return_val =
+		    ModuleCmd_Switch(interp, num_modulefiles, modulefile_list);
     /**
      **  --- module DISPLAY
      **/
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, dispRE)) ) {
-	_TCLCHK(interp);
-	return_val = ModuleCmd_Display( interp,num_modulefiles,modulefile_list);
-
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, dispRE))) {
+		_TCLCHK(interp);
+		return_val =
+		    ModuleCmd_Display(interp, num_modulefiles, modulefile_list);
     /**
      **  --- module LIST
      **/
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, listRE)) ) {
-	_TCLCHK(interp);
-	if (! (sw_format & SW_SET) ) {	/* default format options */
-		sw_format |= (SW_HUMAN | SW_TERSE );
-		sw_format &= ~(SW_PARSE | SW_LONG );
-	}
-	/* use SW_LIST to indicate LIST & not AVAIL */
-	sw_format |= SW_LIST;
-	return_val = ModuleCmd_List( interp, num_modulefiles, modulefile_list);
-
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, listRE))) {
+		_TCLCHK(interp);
+		if (!(sw_format & SW_SET)) {	/* default format options */
+			sw_format |= (SW_HUMAN | SW_TERSE);
+			sw_format &= ~(SW_PARSE | SW_LONG);
+		}
+		/* use SW_LIST to indicate LIST & not AVAIL */
+		sw_format |= SW_LIST;
+		return_val =
+		    ModuleCmd_List(interp, num_modulefiles, modulefile_list);
     /**
      **  --- module AVAIL
      **/
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,availRE)) ) {
-	_TCLCHK(interp);
-	if (! (sw_format & SW_SET) ) {	/* default format options */
-		sw_format |= (SW_HUMAN | SW_TERSE);
-		sw_format &= ~(SW_PARSE | SW_LONG );
-	}
-	/* use SW_LIST to indicate LIST & not AVAIL */
-	sw_format &= ~SW_LIST;
-	return_val = ModuleCmd_Avail( interp, num_modulefiles, modulefile_list);
-
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, availRE))) {
+		_TCLCHK(interp);
+		if (!(sw_format & SW_SET)) {	/* default format options */
+			sw_format |= (SW_HUMAN | SW_TERSE);
+			sw_format &= ~(SW_PARSE | SW_LONG);
+		}
+		/* use SW_LIST to indicate LIST & not AVAIL */
+		sw_format &= ~SW_LIST;
+		return_val =
+		    ModuleCmd_Avail(interp, num_modulefiles, modulefile_list);
     /**
      **  --- module WHATIS and APROPOS
      **/
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, whatisRE))) {
+		_TCLCHK(interp);
+		return_val =
+		    ModuleCmd_Whatis(interp, num_modulefiles, modulefile_list);
 
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,whatisRE)) ) {
-	_TCLCHK(interp);
-	return_val = ModuleCmd_Whatis(interp, num_modulefiles, modulefile_list);
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,aproposRE)) ) {
-	_TCLCHK(interp);
-	return_val = ModuleCmd_Apropos(interp, num_modulefiles,modulefile_list);
-
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, aproposRE))) {
+		_TCLCHK(interp);
+		return_val =
+		    ModuleCmd_Apropos(interp, num_modulefiles, modulefile_list);
     /**
      **  --- module CLEAR
      **/
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,clearRE)) ) {
-	_TCLCHK(interp);
-	return_val = ModuleCmd_Clear( interp, num_modulefiles, modulefile_list);
-
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, clearRE))) {
+		_TCLCHK(interp);
+		return_val =
+		    ModuleCmd_Clear(interp, num_modulefiles, modulefile_list);
     /**
      **  --- module UPDATE
      **/
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,updateRE)) ) {
-	_TCLCHK(interp);
-	return_val = ModuleCmd_Update(interp, num_modulefiles, modulefile_list);
-
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, updateRE))) {
+		_TCLCHK(interp);
+		return_val =
+		    ModuleCmd_Update(interp, num_modulefiles, modulefile_list);
     /**
      **  --- module PURGE
      **/
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,purgeRE)) ) {
-	_TCLCHK(interp);
-	return_val = ModuleCmd_Purge( interp, num_modulefiles, modulefile_list);
-
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, purgeRE))) {
+		_TCLCHK(interp);
+		return_val =
+		    ModuleCmd_Purge(interp, num_modulefiles, modulefile_list);
     /**
      **  --- module INIT
      **/
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, initRE))) {
+		_TCLCHK(interp);
 
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command,initRE)) ) {
-	_TCLCHK(interp);
-	
-        if( Tcl_RegExpMatch(interp,module_command, "^inita|^ia")){/* initadd */
-	    _TCLCHK(interp);
-	    g_flags |= M_LOAD;
-	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
-	    g_flags &= ~M_LOAD;
-	}
-	
-        if( Tcl_RegExpMatch(interp,module_command, "^initr|^iw")){ /* initrm */
-	    _TCLCHK(interp);
-	    g_flags |= M_REMOVE;
-	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
-	    g_flags &= ~M_REMOVE;
-	}
-	
-        if( Tcl_RegExpMatch(interp,module_command, "^initl|^il")){/* initlist*/
-	    _TCLCHK(interp);
-	    g_flags |= M_DISPLAY;
-	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
-	    g_flags &= ~M_DISPLAY;
-	}
-	
-        if(Tcl_RegExpMatch(interp,module_command, "^inits|^is")){/* initswitch*/
-	    _TCLCHK(interp);
-	    g_flags |= M_SWITCH;
-	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
-	    g_flags &= ~M_SWITCH;
-	}
-	
-        if(Tcl_RegExpMatch(interp,module_command, "^initc|^ic")){/* initclear*/
-	    _TCLCHK(interp);
-	    g_flags |= M_CLEAR;
-	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
-	    g_flags &= ~M_CLEAR;
-	}
-	
-        if(Tcl_RegExpMatch(interp,module_command,"^initp|^ip")){/*initprepend*/
-	    _TCLCHK(interp);
-	    g_flags |= (M_PREPEND | M_LOAD);
-	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
-	    g_flags &= ~(M_PREPEND | M_LOAD);
-	}
+		if (Tcl_RegExpMatch(interp, module_command, "^inita|^ia")) {
+			/* initadd */
+			_TCLCHK(interp);
+			g_flags |= M_LOAD;
+			return_val =
+			    ModuleCmd_Init(interp, num_modulefiles,
+					   modulefile_list);
+			g_flags &= ~M_LOAD;
+		}
 
+		if (Tcl_RegExpMatch(interp, module_command, "^initr|^iw")) {
+			/* initrm */
+			_TCLCHK(interp);
+			g_flags |= M_REMOVE;
+			return_val =
+			    ModuleCmd_Init(interp, num_modulefiles,
+					   modulefile_list);
+			g_flags &= ~M_REMOVE;
+		}
+
+		if (Tcl_RegExpMatch(interp, module_command, "^initl|^il")) {
+			/* initlist */
+			_TCLCHK(interp);
+			g_flags |= M_DISPLAY;
+			return_val =
+			    ModuleCmd_Init(interp, num_modulefiles,
+					   modulefile_list);
+			g_flags &= ~M_DISPLAY;
+		}
+
+		if (Tcl_RegExpMatch(interp, module_command, "^inits|^is")) {
+			/* initswitch */
+			_TCLCHK(interp);
+			g_flags |= M_SWITCH;
+			return_val =
+			    ModuleCmd_Init(interp, num_modulefiles,
+					   modulefile_list);
+			g_flags &= ~M_SWITCH;
+		}
+
+		if (Tcl_RegExpMatch(interp, module_command, "^initc|^ic")) {
+			/* initclear */
+			_TCLCHK(interp);
+			g_flags |= M_CLEAR;
+			return_val =
+			    ModuleCmd_Init(interp, num_modulefiles,
+					   modulefile_list);
+			g_flags &= ~M_CLEAR;
+		}
+
+		if (Tcl_RegExpMatch(interp, module_command, "^initp|^ip")) {
+			/*initprepend */
+			_TCLCHK(interp);
+			g_flags |= (M_PREPEND | M_LOAD);
+			return_val =
+			    ModuleCmd_Init(interp, num_modulefiles,
+					   modulefile_list);
+			g_flags &= ~(M_PREPEND | M_LOAD);
+		}
     /**
      **  --- module USE
      **/
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, useRE)) ) {
-	_TCLCHK(interp);
-	return_val = ModuleCmd_Use( interp, num_modulefiles, modulefile_list);
-
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, useRE))) {
+		_TCLCHK(interp);
+		return_val =
+		    ModuleCmd_Use(interp, num_modulefiles, modulefile_list);
     /**
      **  --- module UNUSE
      **/
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, unuseRE)) ) {
-	_TCLCHK(interp);
-	return_val = ModuleCmd_UnUse( interp, num_modulefiles, modulefile_list);
-
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, unuseRE))) {
+		_TCLCHK(interp);
+		return_val =
+		    ModuleCmd_UnUse(interp, num_modulefiles, modulefile_list);
     /**
      **  --- module REFRESH 
      **/
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, refreshRE)) ) {
-	_TCLCHK(interp);
-	return_val = ModuleCmd_Refresh( interp, num_modulefiles, modulefile_list);
-
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, refreshRE))) {
+		_TCLCHK(interp);
+		return_val =
+		    ModuleCmd_Refresh(interp, num_modulefiles, modulefile_list);
     /**
      **  --- module HELP
      **/
-
-    } else if( (_MTCH Tcl_RegExpMatch(interp,module_command, helpRE)) ) {
-	_TCLCHK(interp);
-	return_val = ModuleCmd_Help( interp, num_modulefiles, modulefile_list);
-    }
-    
+	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, helpRE))) {
+		_TCLCHK(interp);
+		return_val =
+		    ModuleCmd_Help(interp, num_modulefiles, modulefile_list);
+	}
     /**
      **  Evaluate the subcommands return value in order to get rid of unrecog-
      **  nized commands
-     **/   
-
-    if( return_val < 0)
-	if( OK != ErrorLogger( ERR_COMMAND, LOC, module_command, NULL))
-          return (TCL_ERROR);
-    
+     **/
+	if (return_val < 0)
+		if (OK != ErrorLogger(ERR_COMMAND, LOC, module_command, NULL))
+			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
     /**
      **  Clean up from recursion
      **/
+	g_flags = store_flags;
+	if (store_curmodule)
+		g_current_module = store_curmodule;
 
-    g_flags = store_flags;
-    if( store_curmodule)
-	g_current_module = store_curmodule;
+	module_command = save_module_command;
 
-    module_command = save_module_command;
- 
     /**
      **  Return on success
      **/
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdModule, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_cmdModule, NULL);
 #endif
 
-    return( return_val);
+	return (return_val);
 
 } /** End of 'cmdModule' **/
 

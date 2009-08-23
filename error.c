@@ -8,6 +8,7 @@
  **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	The modules error logger			     **
  ** 									     **
@@ -30,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.16 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.17 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -271,6 +272,7 @@ static	ErrTransTab	TransTab[] = {
     { ERR_POPEN,	WGHT_ERROR, N_("Cannot open pipe '$1' for '$2'") },
     { ERR_OPENDIR,	WGHT_ERROR,
 	N_("Cannot open directory '$1' for reading") },
+    { ERR_CHDIR,	WGHT_WARN,  N_("Cannot chdir to '$1' for '$2'") },
     { ERR_CLOSE,	WGHT_WARN,  N_("Cannot close file '$1'") },
     { ERR_PCLOSE,	WGHT_WARN,  N_("Cannot close pipe '$1'") },
     { ERR_CLOSEDIR,	WGHT_WARN,  N_("Cannot close directory '$1'") },
@@ -424,17 +426,18 @@ static	ErrFacilities	*GetFacility_sub( ErrWeights Weight);
  ** ************************************************************************ **
  ++++*/
 
-void Module_Verbosity(	int	argc,
-		   	char	**argv)
-{
-    if( sw_verbose && argc && *argv)
-	if( !FlushError( NO_ERR_VERBOSE, g_current_module,linenum,WGHT_VERBOSE,
-	    Measurements[ MEAS_VERB_NDX].message, *argv, argc, argv)) {
-	    ErrorLogger( ERR_INTERRL, LOC, NULL);
-	}
+void Module_Verbosity(
+	int argc,
+	char **argv
+) {
+	if (sw_verbose && argc && *argv)
+		if (!FlushError
+		    (NO_ERR_VERBOSE, g_current_module, linenum, WGHT_VERBOSE,
+		     Measurements[MEAS_VERB_NDX].message, *argv, argc, argv)) {
+			ErrorLogger(ERR_INTERRL, LOC, NULL);
+		}
 
 } /** End of 'Module_Verbosity' **/
-
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -537,7 +540,6 @@ int Module_Error(	ErrType		  error_type,
     /**
      **  Build the argument array at first
      **/
-
     if( NULL == (argv = (char **) module_malloc(listsize * sizeof( char *)))) {
 	module = module_name;
 	error_type = ERR_ALLOC;
@@ -552,7 +554,7 @@ int Module_Error(	ErrType		  error_type,
 	 **/
 	while( argc >= listsize) {
 	    listsize += ARGLIST_SIZE;
-	    if( NULL == (argv = (char **) realloc( argv,
+	    if( NULL == (argv = (char **) module_realloc( argv,
 		listsize * sizeof(char *)))) {
 		module = module_name;
 		error_type = ERR_ALLOC;
@@ -1370,7 +1372,7 @@ static	char	*ErrorString(	char		 *ErrMsgs,
 	 **  Add a single character to the error string
 	 **/
 	if( ++len >= strsize - 5) {	/** 5 Bytes for safety		     **/
-	    if( NULL == (error_line = (char *) realloc( error_line,
+	    if( NULL == (error_line = (char *) module_realloc( error_line,
 		strsize += ERR_LINELEN))) {
 		ErrorLogger( ERR_ALLOC, LOC, NULL);
 		return( NULL);
@@ -1447,7 +1449,7 @@ static	void	add_param(	char		**Control,
     if( s == buffer && !last) {
 
 	if( ++(*Length) >= strsize) {
-	    if( NULL == (error_line = (char*) realloc( error_line,
+	    if( NULL == (error_line = (char*) module_realloc( error_line,
 		strsize += ERR_LINELEN))) {
 		ErrorLogger( ERR_ALLOC, LOC, NULL);
 		return;
@@ -1480,7 +1482,7 @@ static	void	add_param(	char		**Control,
 	    len = strlen( argv[ index]);
 
 	    while(( *Length + len + 1) >= strsize - 5) {
-		if( NULL == (error_line = (char*) realloc( error_line,
+		if( NULL == (error_line = (char*) module_realloc( error_line,
 		    strsize += ERR_LINELEN))) {
 		    ErrorLogger( ERR_ALLOC, LOC, NULL);
 		    return;

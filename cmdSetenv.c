@@ -9,6 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description: 	The routines for setting and unsetting environment   **
  **			variables from within modulefiles.		     **
@@ -30,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.8 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.9 2009/08/23 06:57:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -90,8 +91,8 @@ static	char	_proc_moduleUnsetenv[] = "moduleUnsetenv";
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
- **			int		 argc		Number of arguments  **
- **			char		*argv[]		Argument array	     **
+ **			int		 objc		Number of arguments  **
+ **			Tcl_Obj		*objv[]		Argument array	     **
  ** 									     **
  **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
@@ -103,68 +104,73 @@ static	char	_proc_moduleUnsetenv[] = "moduleUnsetenv";
  ** ************************************************************************ **
  ++++*/
 
-int	cmdSetEnv(	ClientData	 client_data,
-	  		Tcl_Interp	*interp,
-	  		int		 argc,
-	  		CONST84 char	*argv[])
-{
-    int		 force;			/** Force removale of variables	     **/
-    char	*var;			/** Varibales name		     **/
-    char	*val;			/** Varibales value		     **/
+int cmdSetEnv(
+	ClientData client_data,
+	Tcl_Interp * interp,
+	int objc,
+	Tcl_Obj * CONST84 objv[]
+) {
+	int             force;		/** Force removale of variables	     **/
+	char           *arg;		/** argument ptr		     **/
+	char           *var;		/** Varibales name		     **/
+	char           *val;		/** Varibales value		     **/
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdSetEnv, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_cmdSetEnv, NULL);
 #endif
 
     /**
      **  Check parameters. Usage is:  [-force] variable value
      **/
 
-    if( argc < 3 || argc > 4) {
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "[-force] variable value",
-	    NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	if (objc < 3 || objc > 4) {
+		if (OK != ErrorLogger(ERR_USAGE, LOC, Tcl_GetString(objv[0]),
+				      "[-force] variable value", NULL))
+			return (TCL_ERROR);
+					/** -------- EXIT (FAILURE) -------> **/
+	}
 
     /**
      **  Get variables name and value from the argument array
      **/
 
-    if( *argv[1] == '-') {
-        if( !strncmp( argv[1], "-force", 6)) {
-            force = 1;
-            var = (char *) argv[2];
-            val = (char *) argv[3];
-        } else {
-	    if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "[-force] variable value",
-		NULL))
-		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
-        }            
-    } else  {
-        force = 0;
-        var = (char *) argv[1];
-        val = (char *) argv[2];
-    }
+	arg = Tcl_GetString(objv[1]);
+	if (*arg == '-') {
+		if (!strncmp(arg, "-force", 6)) {
+			force = 1;
+			var = Tcl_GetString(objv[2]);
+			val = Tcl_GetString(objv[3]);
+		} else {
+			if (OK !=
+			    ErrorLogger(ERR_USAGE, LOC, Tcl_GetString(objv[0]),
+					"[-force] variable value", NULL))
+				return (TCL_ERROR);
+					/** -------- EXIT (FAILURE) -------> **/
+		}
+	} else {
+		force = 0;
+		var = Tcl_GetString(objv[1]);
+		val = Tcl_GetString(objv[2]);
+	}
 
-    moduleSetenv( interp, var, val, force);
+	moduleSetenv(interp, var, val, force);
 
     /**
      **  This has to be done after everything has been set because the
      **  variables may be needed later in the modulefile.
      **/
 
-    if( g_flags & M_DISPLAY) {
-	fprintf( stderr, "%s\t\t ", argv[ 0]);
-	while( --argc)
-	    fprintf( stderr, "%s ", *++argv);
-	fprintf( stderr, "\n");
-    }
-
+	if (g_flags & M_DISPLAY) {
+		fprintf(stderr, "%s\t\t ", Tcl_GetString(objv[0]));
+		while (--objc)
+			fprintf(stderr, "%s ", Tcl_GetString(*++objv));
+		fprintf(stderr, "\n");
+	}
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdSetEnv, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_cmdSetEnv, NULL);
 #endif
 
-    return( TCL_OK);
+	return (TCL_OK);
 
 } /** End of 'cmdSetEnv' **/
 
@@ -286,8 +292,8 @@ int	moduleSetenv(	Tcl_Interp	*interp,
  ** 									     **
  **   Parameters:	ClientData	 client_data			     **
  **			Tcl_Interp	*interp		According Tcl interp.**
- **			int		 argc		Number of arguments  **
- **			char		*argv[]		Argument array	     **
+ **			int		 objc		Number of arguments  **
+ **			Tcl_Obj		*objv[]		Argument array	     **
  ** 									     **
  **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
@@ -299,62 +305,65 @@ int	moduleSetenv(	Tcl_Interp	*interp,
  ** ************************************************************************ **
  ++++*/
 
-int	cmdUnsetEnv(	ClientData	 client_data,
-	  		Tcl_Interp	*interp,
-	  		int		 argc,
-	  		CONST84 char	*argv[])
-{
+int cmdUnsetEnv(
+	ClientData client_data,
+	Tcl_Interp * interp,
+	int objc,
+	Tcl_Obj * CONST84 objv[]
+) {
+	char           *arg;		/** argument ptr		     **/
     /**
      **  Parameter check. The name of the variable has to be specified
      **/
-    
+
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdUnsetEnv, NULL);
+	ErrorLogger(NO_ERR_START, LOC, _proc_cmdUnsetEnv, NULL);
 #endif
 
-    if( argc < 2 || argc > 3) {
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], "variable [value]",
-	    NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+	if (objc < 2 || objc > 3) {
+		if (OK !=
+		    ErrorLogger(ERR_USAGE, LOC, Tcl_GetString(objv[0]),
+				"variable [value]", NULL))
+			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
+	}
 
-  
     /**
      **  Non-persist mode?
      **/
-    
-    if (g_flags & M_NONPERSIST) {
-	return (TCL_OK);
-    }
+
+	if (g_flags & M_NONPERSIST) {
+		return (TCL_OK);
+	}
 
     /**
      **  Unset the variable or just display what to do ...
      **/
 
-    if( g_flags & M_DISPLAY) {
-	fprintf( stderr, "%s\t ", argv[ 0]);
-	while( --argc)
-	    fprintf( stderr, "%s ", *++argv);
-	fprintf( stderr, "\n");
-    } else if( g_flags & M_REMOVE && argc == 3) {
-	int save_flags = g_flags;
+	if (g_flags & M_DISPLAY) {
+		fprintf(stderr, "%s\t ", Tcl_GetString(objv[0]));
+		while (--objc)
+			fprintf(stderr, "%s ", Tcl_GetString(*++objv));
+		fprintf(stderr, "\n");
+	} else if (g_flags & M_REMOVE && objc == 3) {
+		int             save_flags = g_flags;
 	/** allow an optional 3rd argument to set the env.var. to on removal **/
-	g_flags = (g_flags & ~M_REMOVE) | M_LOAD;
-	moduleSetenv( interp, (char *) argv[1], (char *) argv[2], 0);
-	g_flags = save_flags;
-    } else {
-	moduleUnsetenv( interp, (char *) argv[1]);
-    }
+		g_flags = (g_flags & ~M_REMOVE) | M_LOAD;
+		moduleSetenv(interp, Tcl_GetString(objv[1]),
+			     Tcl_GetString(objv[2]), 0);
+		g_flags = save_flags;
+	} else {
+		moduleUnsetenv(interp, Tcl_GetString(objv[1]));
+	}
 
     /**
      **  Return on success
      **/
 
 #if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdUnsetEnv, NULL);
+	ErrorLogger(NO_ERR_END, LOC, _proc_cmdUnsetEnv, NULL);
 #endif
 
-    return( TCL_OK);
+	return (TCL_OK);
 
 } /** End of 'cmdUnsetEnv' **/
 
