@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utilobj.c,v 1.2 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: utilobj.c,v 1.3 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -60,11 +60,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-
-#if WITH_DEBUGGING_UTIL_2
-static	char	_proc_Tcl_ArgvToObjv[] = "Tcl_ArgvToObjv";
-static	char	_proc_Tcl_ObjvToArgv[] = "Tcl_ObjvToArgv";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -100,14 +95,10 @@ int Tcl_ArgvToObjv(
 	int *objc,
 	Tcl_Obj *** objv,
 	int argc,
-	const char **argv
+	char * const *argv
 ) {
-	const char    **aptr = argv;
+	char * const *aptr = argv;
 	Tcl_Obj       **optr;
-
-#if WITH_DEBUGGING_UTIL_2
-	ErrorLogger(NO_ERR_START, LOC, _proc_Tcl_ArgvToObjv, NULL);
-#endif
 
 	/** if argc < 0 then count the number of elements **/
 	if (argc < 0) {
@@ -168,12 +159,8 @@ int Tcl_ObjvToArgv(
 	int objc,
 	Tcl_Obj * CONST84 * objv
 ) {
-	Tcl_Obj		**optr = objv;
+	Tcl_Obj * CONST84 * optr = objv;
 	char    	**aptr;
-
-#if WITH_DEBUGGING_UTIL_2
-	ErrorLogger(NO_ERR_START, LOC, _proc_Tcl_ObjvToArgv, NULL);
-#endif
 
 	/** if objc < 0 then count the number of elements **/
 	if (objc < 0) {

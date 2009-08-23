@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.10 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.11 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -61,14 +61,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-
-#if WITH_DEBUGGING_MODULECMD
-static	char	_proc_ModuleCmd_Help[] = "ModuleCmd_Help";
-#endif
-
-#if WITH_DEBUGGING_MODULECMD || WITH_DEBUGGING_UTIL_1
-static	char	_proc_PerModuleHelp[] = "PerModuleHelp";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -109,11 +101,6 @@ int  ModuleCmd_Help(	Tcl_Interp	*interp,
      **  here. In case of module specific help we'll call a subroutine to do
      **  it ...
      **/
-
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Help, NULL);
-#endif
-
     if( argc > 0)
 	PerModuleHelp( interp, argc, argv);
     else
@@ -122,10 +109,6 @@ int  ModuleCmd_Help(	Tcl_Interp	*interp,
     /**
      **  Return on success
      **/
-
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Help, NULL);
-#endif
 
     return( TCL_OK);
 
@@ -167,14 +150,9 @@ static	int	PerModuleHelp(	Tcl_Interp	*interp,
     char	 modulefile[ MOD_BUFSIZE];
     char	 modulename[ MOD_BUFSIZE];
     
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_PerModuleHelp, NULL);
-#endif
-
     /**
      **  Initialize the command buffer
      **/
-
     Tcl_DStringInit( &cmdbuf);
     g_flags |= M_HELP;
 
@@ -182,7 +160,6 @@ static	int	PerModuleHelp(	Tcl_Interp	*interp,
      **  Handle each passed module file. Create a Tcl interpreter for each 
      **  module file to be handled
      **/
-
     for(i=0; i<argc; i++) {
 
 	help_interp = Tcl_CreateInterp();

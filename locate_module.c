@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.26 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.27 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -66,21 +66,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-
-#if WITH_DEBUGGING_LOCATE
-static	char	_proc_Locate_ModuleFile[] = "Locate_ModuleFile";
-#endif
-#if WITH_DEBUGGING_LOCATE_1
-static	char	_proc_GetModuleName[] = "GetModuleName";
-#endif
-#if WITH_DEBUGGING_UTIL_1
-static	char	_proc_SortedDirList[] = "SortedDirList";
-static	char	_proc_SplitIntoList[] = "SplitIntoList";
-#endif
-#if WITH_DEBUGGING_UTIL_2
-static	char	_proc_FreeList[] = "FreeList";
-#endif
-
 static	char	buf[ MOD_BUFSIZE];
 static	char	modfil_buf[ MOD_BUFSIZE];
 
@@ -169,11 +154,6 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
     /**
      **  If it is a full path name, that's the module file to load.
      **/
-#if WITH_DEBUGGING_LOCATE
-    ErrorLogger( NO_ERR_START, LOC, _proc_Locate_ModuleFile, "modulename = '",
-	modulename, "'", NULL);
-#endif
-
     if( !modulename) 
 	if( OK != ErrorLogger( ERR_PARAM, LOC, "modulename", NULL))
 	    goto unwind0;
@@ -318,10 +298,6 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 	goto unwind1;
     null_free((void *) &result);
 
-#if WITH_DEBUGGING_LOCATE
-    ErrorLogger( NO_ERR_END, LOC, _proc_Locate_ModuleFile, NULL);
-#endif
-
     return( TCL_OK);
 
 unwind1:
@@ -372,9 +348,6 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
     char	 *mod, *ver;		/** Pointer to module and version    **/
     char	 *mod1, *ver1;		/** Temp pointer		     **/
     
-#if WITH_DEBUGGING_LOCATE_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_GetModuleName, NULL);
-#endif
     /**
      **  Split the modulename into module and version. Use a private buffer
      **  for this
@@ -599,9 +572,6 @@ unwindt2:
     null_free((void*) &s);
     FreeList( filelist, numlist);
     
-#if WITH_DEBUGGING_LOCATE_1
-    ErrorLogger( NO_ERR_END, LOC, _proc_GetModuleName, NULL);
-#endif
     return( Result);			/** -------- EXIT (SUCCESS) -------> **/
 
 unwind2:
@@ -660,9 +630,6 @@ char	**SortedDirList(	Tcl_Interp	*interp,
 			 n,		/** Size of the allocated array	     **/
 			 pathlen;	/** String length of 'fullpath'	     **/
  
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_SortedDirList, NULL);
-#endif
     /**
      **  Allocate memory for the list to be created. Suggest a list size of
      **  100 Elements. This may be changed later on.
@@ -680,9 +647,6 @@ char	**SortedDirList(	Tcl_Interp	*interp,
 	    goto unwind0;
     pathlen = strlen(full_path);
     
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_DEBUG, LOC, "full_path='", full_path, "'", NULL);
-#endif
     /**
      **  Check whether this file exists. If it doesn't free up everything
      **  and return on failure
@@ -696,10 +660,6 @@ char	**SortedDirList(	Tcl_Interp	*interp,
     if( S_ISREG( stats.st_mode)) {
 	*listcnt = 1;
 	filelist[0] = stringer(NULL,0, modulename, NULL);
-
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_DEBUG, LOC, "Module '", modulename, "' found", NULL);
-#endif
 
 	null_free((void*) &full_path);
 	return( filelist);		/** --- EXIT PROCEDURE (SUCCESS) --> **/
@@ -735,9 +695,6 @@ char	**SortedDirList(	Tcl_Interp	*interp,
 	/**
 	 **  Now scan all entries of the just opened directory
 	 **/
-#if WITH_DEBUGGING_UTIL_2
-	ErrorLogger( NO_ERR_DEBUG, LOC, "Reading directory '", full_path, "'", NULL);
-#endif
 	for( file = readdir( subdirp), i = 0, j = 0;
 	     file != NULL;
 	     file = readdir( subdirp), i++) {
@@ -820,9 +777,6 @@ unwind1:
     FreeList( filelist, n);
 
 unwind0:
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_END, LOC, _proc_SortedDirList, NULL);
-#endif
 
     return( NULL);			/** --- EXIT PROCEDURE (FAILURE) --> **/
 
@@ -869,9 +823,6 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
     int     	  i, 			/** Counts the number of elements    **/
 		  n;			/** Size of the array		     **/
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_SplitIntoList, NULL);
-#endif
     /** 
      **  Paramter check
      **/
@@ -964,9 +915,6 @@ void FreeList(	char	**list,
 {
     register int j;
     
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_FreeList, NULL);
-#endif
     /**
      **  Nothing to do ?
      **/

@@ -48,7 +48,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.16 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.17 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -140,19 +140,6 @@ typedef	struct	_mod_name	{
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdModuleVersion[] = "cmdModuleVersion";
-static	char	_proc_cmdModuleAlias[] = "cmdModuleAlias";
-#endif
-#if WITH_DEBUGGING_UTIL_2
-static	char	_proc_CleanupVersion[] = "CleanupVersion";
-#endif
-#if WITH_DEBUGGING_UTIL_1
-static	char	_proc_AddModule[] = "AddModule";
-static	char	_proc_FindModule[] = "FindModule";
-static	char	_proc_AddName[] = "AddName";
-static	char	_proc_FindName[] = "FindName";
-#endif
 
 /**
  **  The module and aliases list
@@ -224,11 +211,6 @@ int cmdModuleVersion(
 	ModModule      *modptr;
 	ModName        *versptr, *nameptr, *tmp, *ptr;
 	int             i;
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdModuleVersion, NULL);
-#endif
-
     /**
      **  Whatis mode?
      **/
@@ -313,10 +295,6 @@ int cmdModuleVersion(
 		nameptr->version = versptr;
 	}
 
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdModuleVersion, NULL);
-#endif
-
 	return (TCL_OK);
 
 } /** End of 'cmdModuleVersion' **/
@@ -344,10 +322,6 @@ char	*ExpandVersions( char	*name)
     static char	 buffer[ BUFSIZ];
     ModModule	*modptr, *tmp1;
     ModName	*ptr, *tmp2;
-
-#if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleVersion, NULL);
-#endif
 
     /**
      **  Parameter check
@@ -387,10 +361,6 @@ char	*ExpandVersions( char	*name)
     *buffer = '\0';
     if( (s = scan_versions( buffer, buffer, ptr->ptr, modptr)) ) 
 	*--s = '\0';			/** remove trailing ':'		     **/
-
-#if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleVersion, NULL);
-#endif
 
     return( buffer);
 
@@ -624,10 +594,6 @@ int cmdModuleAlias(
 	ModName        *trg_alias;
 	ModModule      *modptr;
 
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdModuleAlias, NULL);
-#endif
-
     /**
      **  Parameter check
      **/
@@ -708,10 +674,6 @@ int cmdModuleAlias(
 		ptr->ptr = AddName((version ? version : _(em_default)),
 				   &modptr->version, modptr);
 	}
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdModuleAlias, NULL);
-#endif
 
 	return (TCL_OK);
 
@@ -960,9 +922,6 @@ int	VersionLookup(	char *name, char **module, char **version)
 
 void	CleanupVersion(ModModule *ptr)
 {
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_CleanupVersion, NULL);
-#endif
 
     CleanupVersionSub( modlist);
     modlist = (ModModule *) NULL;
@@ -1035,22 +994,15 @@ static	ModModule	*AddModule(	char	*name)
 {
     ModModule	*app_ptr, *ptr;
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_AddModule, NULL);
-#endif
-
     /**
      **  We do not trust in NULL module names
      **/
-
     if( !name || !*name)
 	return((ModModule *) NULL);
-
     /**
      **  Check if the module name already exists and save the 'prev' pointer
      **  for appending the new one.
      **/
-
     if( (ptr = FindModule( name, &app_ptr)) )
 	return( ptr);
 
@@ -1089,10 +1041,6 @@ static	ModModule	*AddModule(	char	*name)
      **  Pass back the pointer to the new entry
      **/
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_END, LOC, _proc_AddModule, NULL);
-#endif
-
     return( ptr);
 
 } /** End of 'AddModule' **/
@@ -1124,19 +1072,11 @@ static	ModModule	*FindModule(	char		 *name,
     ModModule	*ptr = modlist;
     int		 cmp = 1;
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_FindModule, NULL);
-#endif
-
     *prev = (ModModule *) NULL;
     while( ptr && 0 < (cmp = strcmp( name, ptr->module))) {
 	*prev = ptr;
 	ptr = ptr->next;
     }
-
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_END, LOC, _proc_FindModule, NULL);
-#endif
 
     return( cmp ? (ModModule *) NULL : ptr);
 
@@ -1166,10 +1106,6 @@ static	ModName	*AddName(	char	 *name,
 				ModModule *module)
 {
     ModName	*app_ptr, *ptr;
-
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_AddName, NULL);
-#endif
 
     /**
      **  Check if the name already exists and save the 'prev' pointer
@@ -1213,10 +1149,6 @@ static	ModName	*AddName(	char	 *name,
      **  Pass back the pointer to the new entry
      **/
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_END, LOC, _proc_AddName, NULL);
-#endif
-
     return( ptr);
 
 } /** End of 'AddName' **/
@@ -1248,19 +1180,11 @@ static	ModName	*FindName(	char	 *name,
     ModName	*ptr = start;
     int		 cmp = 1;
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_FindName, NULL);
-#endif
-
     *prev = (ModName *) NULL;
     while( ptr && 0 < (cmp = strcmp( name, ptr->name))) {
 	*prev = ptr;
 	ptr = ptr->next;
     }
-
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_END, LOC, _proc_FindName, NULL);
-#endif
 
     return( cmp ? (ModName *) NULL : ptr);
 

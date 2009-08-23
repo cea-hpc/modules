@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdInfo.c,v 1.12 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdInfo.c,v 1.13 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -61,9 +61,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdModuleInfo[] = "cmdModuleInfo";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -109,10 +106,6 @@ int cmdModuleInfo(
 ) {
 	char           *arg0, *arg1, *arg2;
 	char           *s, *t, buf[BUFSIZ];
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdModuleInfo, NULL);
-#endif
 
     /**
      **  Parameter check
@@ -330,10 +323,6 @@ int cmdModuleInfo(
 		if (OK != ErrorLogger(ERR_INFO_DESCR, LOC, arg1, NULL))
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
 	}
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdModuleInfo, NULL);
-#endif
 
 	return (TCL_OK);
 

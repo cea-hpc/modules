@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.9 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.10 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -61,9 +61,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdModuleWhatis[] = "cmdModuleWhatis";
-#endif
 
 /**
  **  The whatis array ...
@@ -111,10 +108,6 @@ int cmdModuleWhatis(
 	Tcl_Obj * CONST84 objv[]
 ) {
 	int             i = 1;
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdModuleWhatis, NULL);
-#endif
 
     /**
      **  Help mode
@@ -189,10 +182,6 @@ int cmdModuleWhatis(
      **/
 	whatis[whatis_ndx] = (char *)NULL;
 
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdModuleWhatis, NULL);
-#endif
-
 	return (TCL_OK);
 
 } /** End of 'cmdModuleWhatis' **/
@@ -227,7 +216,7 @@ void	cmdModuleWhatisShut()
 
     if( whatis) {
 	while(*ptr) {		/** go until NULL token **/
-	    null_free(ptr);
+	    null_free((void *) ptr);
 	    ptr++;
 	}
 	whatis_ndx = 0;

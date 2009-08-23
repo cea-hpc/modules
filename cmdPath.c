@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.17 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.18 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -71,13 +71,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdSetPath[] = "cmdSetPath";
-static	char	_proc_cmdRemovePath[] = "cmdRemovePath";
-static	char	_proc_Remove_Path[] = "Remove_Path";
-#endif
-
 static char buffer[ PATH_BUFLEN];
 
 /** ************************************************************************ **/
@@ -140,11 +133,6 @@ int cmdSetPath(
 	    qpathlen,				/** qualifiedpath length     **/
 	    arg1 = 1,				/** arg start		     **/
 	    x;					/** loop index		     **/
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdSetPath, NULL);
-#endif
-
     /**
      **  Whatis mode?
      **/
@@ -392,9 +380,6 @@ int cmdSetPath(
      **/
 	moduleSetenv(interp, Tcl_GetString(objv[arg1]), newpath, 1);
 	_TCLCHK(interp);
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdSetPath, NULL);
-#endif
     /**
      ** Free resources
      **/
@@ -455,11 +440,6 @@ int cmdRemovePath(
 	int             numpaths,		/** number of dirs in path   **/
 	                arg1 = 1,		/** arg start		     **/
 	    x;					/** loop index		     **/
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdRemovePath, NULL);
-#endif
-
     /**
      **   Check arguments. There should be give 3 args:
      **     argv[0]  -  prepend/append/remove-path
@@ -537,11 +517,6 @@ int cmdRemovePath(
 		    Remove_Path(interp, (char *)Tcl_GetString(objv[arg1]),
 				pathlist[x], sw_marker, delim))
 			goto unwind1;
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdRemovePath, NULL);
-#endif
-
     /**
      ** Free resources
      **/
@@ -605,11 +580,6 @@ static int	Remove_Path(	Tcl_Interp	*interp,
     		endexpPtr  = (Tcl_RegExp) NULL,
     		onlyexpPtr = (Tcl_RegExp) NULL,
     		markexpPtr = (Tcl_RegExp) NULL;
-
-#if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_Remove_Path, NULL);
-#endif
-
     /**
      **  Get the current value of the "PATH" environment variable
      **/
@@ -831,11 +801,6 @@ static int	Remove_Path(	Tcl_Interp	*interp,
 	_TCLCHK(interp);
 
     }  /** ! SW_STATE1 **/
-
-#if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdRemovePath, NULL);
-#endif
-
     /**
      **  Free what has been used and return on success
      **/

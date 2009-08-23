@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Clear.c,v 1.6 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Clear.c,v 1.7 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -59,10 +59,7 @@ static void *UseId[] = { &UseId, Id };
 /** 				    LOCAL DATA				     **/
 /** ************************************************************************ **/
 
-#if WITH_DEBUGGING_MODULECMD
-static	char	module_name[] = __FILE__;
-static	char	_proc_ModuleCmd_Clear[] = "ModuleCmd_Clear";
-#endif
+/** not applicable **/
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -98,32 +95,27 @@ int ModuleCmd_Clear(	Tcl_Interp	*interp,
 		    	int         	 argc,
 		    	char		*argv[])
 {
-    char		buf[10];
-    char*		clearargv[4];
+    char		buf[10],	/** user response input **/
+			*ptr,		/** reponse pointer **/
+    			*clearargv[4];	/** argv vector **/
 	Tcl_Obj       **objv;		/** Tcl Object vector **/
 	int             objc;		/** Tcl Object vector count **/
     
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Clear, NULL);
-#endif
-
     /**
      **  Ask the user if he's really sure about what he's doing ...
      **/
-
     if( argc == 1 && !strcmp( argv[0], "yes")) {
 	buf[0] = 'y';
     } else {
-	fprintf( stderr,
+	fprintf(stderr,
             "\nAre you sure you want to clear all loaded modules!? [n] ");
-	fgets(buf, 10, stdin);
+	 ptr = fgets(buf, 10, stdin);
     }
 
     /**
      **  Reset the shell variables 'LOADEDMODULES' and '_LMFILES_'
      **/
-	
-    if( buf[0] == 'y') {
+    if( *ptr == 'y' || *ptr == 'Y') {
 
         clearargv[0] = "setenv";
         clearargv[1] = "LOADEDMODULES";
@@ -148,10 +140,6 @@ int ModuleCmd_Clear(	Tcl_Interp	*interp,
     /**
      **  Return on success
      **/
-
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Clear, NULL);
-#endif
 
     return( TCL_OK);
 }

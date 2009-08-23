@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.11 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.12 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -58,14 +58,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-
-#if WITH_DEBUGGING_MODULECMD
-static	char	_proc_ModuleCmd_Whatis[] = "ModuleCmd_Whatis";
-static	char	_proc_ModuleCmd_Apropos[] = "ModuleCmd_Apropos";
-#endif
-#if WITH_DEBUGGING_UTIL_1
-static	char	_proc_whatis_dir[] = "whatis_dir";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -113,11 +105,6 @@ int ModuleCmd_Whatis(
 					/** environment variable MODULEPATH  **/
 	              **wptr,		/** whatis text line		     **/
 	               *dirname;	/** modulepath dir		     **/
-
-#if WITH_DEBUGGING_MODULECMD
-	ErrorLogger(NO_ERR_START, LOC, _proc_ModuleCmd_Whatis, NULL);
-#endif
-
     /**
      **	 Initialize the command buffer and set up the modules flag to
      **	 'whatisonly'
@@ -218,10 +205,6 @@ int ModuleCmd_Whatis(
      **	 Return on success
      **/
 
-#if WITH_DEBUGGING_MODULECMD
-	ErrorLogger(NO_ERR_END, LOC, _proc_ModuleCmd_Whatis, NULL);
-#endif
-
 	return (result);		/** --- EXIT PROCEDURE (result)  --> **/
 
 unwind1:
@@ -262,11 +245,6 @@ int ModuleCmd_Apropos(	Tcl_Interp	*interp,
 					/** environment variable MODULEPATH  **/
     int		 i;
     char	*c;
-
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Apropos, NULL);
-#endif
-
     /**
      **	 Ignore case ... convert all arguments to lower case
      **/
@@ -300,10 +278,6 @@ int ModuleCmd_Apropos(	Tcl_Interp	*interp,
      **	 Free up what has been allocated and exit from this procedure
      **/
     null_free((void *) &modpath);
-
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Apropos, NULL);
-#endif
 
     return( TCL_OK);
 
@@ -353,10 +327,6 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
     char	  modulefile[ MOD_BUFSIZE];
     char	**wptr, *c;
     struct stat	 stats;
-
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_whatis_dir, "dir='", dir, NULL);
-#endif
 
     /**
      **	 Normal reading of the files
@@ -462,10 +432,6 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
     g_flags &= ~M_WHATIS;
     delete_dirlst( dirlst_head, count);
     delete_cache_list( list, start);
-
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_END, LOC, _proc_whatis_dir, NULL);
-#endif
 
     return( result);			/** ------- EXIT (result) --------> **/
 

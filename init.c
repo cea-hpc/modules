@@ -37,7 +37,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.18 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.19 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -73,25 +73,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_Module_Tcl_ExitCmd[] = "Module_Tcl_ExitCmd";
-#endif
-#if WITH_DEBUGGING_INIT
-static	char	_proc_Module_Init[] = "Module_Init";
-static	char	_proc_Initialize_Module[] = "Initialize_Module";
-static	char	_proc_Setup_Environment[] = "Setup_Environment";
-#endif
-#if WITH_DEBUGGING_UTIL_2
-static	char	_proc_TieStdout[] = "TieStdout";
-static	char	_proc_UnTieStdout[] = "UnTieStdout";
-#endif
-#if WITH_DEBUGGING_UTIL
-static	char	_proc_SetStartupFiles[] = "SetStartupFiles";
-#endif
-#if WITH_DEBUGGING_UTIL_3
-static	char	_proc_set_shell_properties[] = "set_shell_properties";
-#endif
 
 /** These are the recognized startup files that the given shells
  ** use.  If your site uses a different set, make the modifications here.
@@ -200,11 +181,6 @@ int Module_Tcl_ExitCmd(
 ) {
 	char           *buffer;		/** Buffer for sprintf		     **/
 	int             value;		/** Return value from exit command   **/
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_Module_Tcl_ExitCmd, NULL);
-#endif
-
     /**
      **  Check the number of arguments. The exit command may take no or one
      **  parameter. So the following is legal:
@@ -242,9 +218,6 @@ int Module_Tcl_ExitCmd(
      **  Exit from this module command.
      **  ??? Why hardcoded on error ???
      **/
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_Module_Tcl_ExitCmd, NULL);
-#endif
 
 unwind0:
 	return (TCL_ERROR);
@@ -284,11 +257,6 @@ int Initialize_Module(	Tcl_Interp	**interp,
 {
     int 	Result = TCL_ERROR;
     char *	tmp;
-
-#if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_START, LOC, _proc_Initialize_Module, NULL);
-#endif
-
     /**
      **  Check the command syntax. Since this is already done
      **  Less than 3 parameters isn't valid. Invocation should be
@@ -468,11 +436,6 @@ unwind0:
 int Module_Init(
 	Tcl_Interp * interp
 ) {
-
-#if WITH_DEBUGGING_INIT
-	ErrorLogger(NO_ERR_START, LOC, _proc_Module_Init, NULL);
-#endif
-
     /**
      **  General initialization of the Tcl interpreter
      **/
@@ -634,11 +597,6 @@ int Setup_Environment( Tcl_Interp*	interp)
     char	*eq;			/** Temp. val. used for location the **/
 					/** Equal sign.			     **/
     char	*loaded;		/** The currently loaded modules     **/
- 
-#if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_START, LOC, _proc_Setup_Environment, NULL);
-#endif
-
     /** 
      **  Scan the whole environment value by value.
      **  Count its size
@@ -712,10 +670,6 @@ unwind0:
 int TieStdout( void) {
     int save;
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_TieStdout, NULL);
-#endif
-
     if( 0 > (save = dup(1)))
 	if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stdout, NULL))
 	    goto unwind0;
@@ -741,10 +695,6 @@ unwind0:
 int UnTieStdout( int saved_stdout) {
 
     int		retval;
-
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_UnTieStdout, NULL);
-#endif
 
     if( 0 > close( 1))
 	if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stdout, NULL))
@@ -782,11 +732,6 @@ unwind0:
 
 char **SetStartupFiles(char *shell_name)
 {
-
-#if WITH_DEBUGGING_UTIL
-    ErrorLogger( NO_ERR_START, LOC, _proc_SetStartupFiles, NULL);
-#endif
-
     /**
      ** CSH
      **/
@@ -858,11 +803,6 @@ char **SetStartupFiles(char *shell_name)
 
 static char	*set_shell_properties(	const char	*name) 
 {
-
-#if WITH_DEBUGGING_UTIL_3
-    ErrorLogger( NO_ERR_START, LOC, _proc_set_shell_properties, NULL);
-#endif
-
     /**
      ** Loop through the shell properties matrix until a match is found
      **/

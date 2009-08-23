@@ -53,7 +53,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.30 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.31 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -85,33 +85,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-
-#if WITH_DEBUGGING_UTIL_2
-static	char	_proc_store_hash_value[] = "store_hash_value";
-static	char	_proc_clear_hash_value[] = "clear_hash_value";
-static	char	_proc_Clear_Global_Hash_Tables[] = "Clear_Global_Hash_Tables";
-static	char	_proc_Delete_Global_Hash_Tables[] = "Delete_Global_Hash_Tables";
-static	char	_proc_Delete_Hash_Tables[] = "Delete_Hash_Tables";
-static	char	_proc_Copy_Hash_Tables[] = "Copy_Hash_Tables";
-static	char	_proc_Unwind_Modulefile_Changes[] = "Unwind_Modulefile_Changes";
-static	char	_proc_Output_Modulefile_Changes[] = "Output_Modulefile_Changes";
-static	char	_proc_Output_Modulefile_Aliases[] = "Output_Modulefile_Aliases";
-static	char	_proc_Output_Directory_Change[] = "Output_Directory_Change";
-static	char	_proc_output_set_variable[] = "output_set_variable";
-static	char	_proc_output_unset_variable[] = "output_unset_variable";
-static	char	_proc_output_function[] = "output_function";
-static	char	_proc_output_set_alias[] = "output_set_alias";
-static	char	_proc_output_unset_alias[] = "output_unset_alias";
-static	char	_proc_getLMFILES[] = "getLMFILES";
-static	char	_proc___IsLoaded[] = "__IsLoaded";
-static	char	_proc_chk_marked_entry[] = "chk_marked_entry";
-static	char	_proc_set_marked_entry[] = "set_marked_entry";
-static	char	_proc_get_module_basename[] = "get_module_basename";
-static	char	_proc_Update_LoadedList[] = "Update_LoadedList";
-static	char	_proc_check_magic[] = "check_magic";
-static	char	_proc_cleanse_path[] = "cleanse_path";
-static	char	_proc_chop[] = "chop";
-#endif
 
 static	FILE *aliasfile;		/** Temporary file to write aliases  **/
 static	char *aliasfilename;		/** Temporary file name		     **/
@@ -196,16 +169,11 @@ int store_hash_value(	Tcl_HashTable* htable,
     char		*tmp;		/** Temp pointer used for disalloc.  **/
     Tcl_HashEntry	*hentry;	/** Hash entry reference	     **/
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_store_hash_value, NULL);
-#endif
-
     /**
      **  Create a hash entry for the key to be stored. If there exists one
      **  so far, its value has to be unlinked.
      **  All values in this hash are pointers to allocated memory areas.
      **/
-
     hentry = Tcl_CreateHashEntry( htable, (char*) key, &new);
     if( !new) {
 	tmp = (char *) Tcl_GetHashValue( hentry);
@@ -252,16 +220,11 @@ int clear_hash_value(	Tcl_HashTable	*htable,
     char		*tmp;		/** Temp pointer used for dealloc.   **/
     Tcl_HashEntry	*hentry;	/** Hash entry reference	     **/
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_clear_hash_value, NULL);
-#endif
-
     /**
      **  If I haven't already created an entry for keeping this environment
      **  variable's value, then just leave.
      **  Otherwise, remove this entry from the hash table.
      **/
-
     if( (hentry = Tcl_FindHashEntry( htable, (char*) key)) ) {
 
         tmp = (char*) Tcl_GetHashValue( hentry);
@@ -314,15 +277,10 @@ static	void	Clear_Global_Hash_Tables( void)
     table[3] = aliasUnsetHashTable;
     table[4] = NULL;
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_Clear_Global_Hash_Tables, NULL);
-#endif
-
     /**
      **  Loop for all the hash tables named above. If there's no value stored
      **  in a hash table, skip to the next one. 
      **/
-
     for( ; *table_ptr; table_ptr++) {
 
 	if( ( hashEntry = Tcl_FirstHashEntry( *table_ptr, &searchPtr)) == NULL) 
@@ -387,10 +345,6 @@ void Delete_Global_Hash_Tables( void) {
     table[3] = aliasUnsetHashTable;
     table[4] = NULL;
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_Delete_Global_Hash_Tables, NULL);
-#endif
-
     Delete_Hash_Tables( table);
 
 } /** End of 'Delete_Global_Hash_Tables' **/
@@ -401,10 +355,6 @@ void Delete_Hash_Tables( Tcl_HashTable	**table_ptr)
     Tcl_HashSearch	 searchPtr;	/** Tcl hash search handle	     **/
     Tcl_HashEntry	*hashEntry;	/** Result from Tcl hash search      **/
     char		*val = NULL;	/** Stored value (is a pointer!)     **/
-
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_Delete_Hash_Tables, NULL);
-#endif
 
     /**
      **  Loop for all the hash tables named above. Remove all values stored in
@@ -432,11 +382,6 @@ void Delete_Hash_Tables( Tcl_HashTable	**table_ptr)
 	null_free((void *) table_ptr);
 
     } /** for **/
-
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_END, LOC, _proc_Delete_Hash_Tables, NULL);
-#endif
-
 } /** End of 'Delete_Hash_Tables' **/
 
 /*++++
@@ -480,10 +425,6 @@ Tcl_HashTable	**Copy_Hash_Tables( void)
     oldTable[2] = aliasSetHashTable;
     oldTable[3] = aliasUnsetHashTable;
     oldTable[4] = NULL;
-
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_Copy_Hash_Tables, NULL);
-#endif
 
     /**
      **  Allocate storage for the new list of hash tables
@@ -535,10 +476,6 @@ Tcl_HashTable	**Copy_Hash_Tables( void)
      **/
     *n_ptr = NULL;
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_END, LOC, _proc_Copy_Hash_Tables, NULL);
-#endif
-
     return( newTable);
 
 unwind1:
@@ -578,12 +515,7 @@ int Unwind_Modulefile_Changes(	Tcl_Interp	 *interp,
 			*key;		/** Tcl hash key		     **/
     int			 i;		/** Loop counter		     **/
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_Unwind_Modulefile_Changes, NULL);
-#endif
-
     if( oldTables) {
-
 	/**
 	 **  Use only entries 0 and 1 which do contain all changes to the 
 	 **  shell varibles (setenv and unsetenv)
@@ -682,10 +614,6 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 
     table[0] = setenvHashTable;
     table[1] = unsetenvHashTable;
-  
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_Output_Modulefile_Changes, NULL);
-#endif
 
     aliasfile = stdout;
 
@@ -845,13 +773,7 @@ static	int Output_Modulefile_Aliases( Tcl_Interp *interp)
      **  In this case a temporary filename has to be assigned for the alias
      **  source file. The file has to be opened as 'aliasfile'.
      **  The default for aliasfile, if no shell sourcing is used, is stdout.
-     **/
-
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_Output_Modulefile_Aliases, NULL);
-#endif
-
-    /**
+    **
      **  We only need to output stuff into a temporary file if we're setting
      **  stuff.  We can unset variables and aliases by just using eval.
      **/
@@ -1014,10 +936,6 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
     chop( var);
 
     assert(shell_derelict != NULL);
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_output_set_variable, " var='", var,
-	"' val= '", val, "'", NULL);
-#endif
 
     if( !strcmp((char*) shell_derelict, "csh")) {
 
@@ -1114,7 +1032,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 
       fprintf( stdout, "%s=%s %sexport %s%s", var, escaped, shell_cmd_separator,
 	       var, shell_cmd_separator);
-      null_free(&escaped);
+      null_free((void **) &escaped);
       
     /**
      **  EMACS
@@ -1193,9 +1111,6 @@ static	int	output_unset_variable( const char* var)
     chop( var);
 
     assert(shell_derelict != NULL);
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_output_unset_variable, NULL);
-#endif
 
     /**
      **  Display the 'unsetenv' command according to the current invoking shell.
@@ -1256,10 +1171,6 @@ static	void	output_function(	const char	*var,
 {
     const char *cptr = val;
     int nobackslash = 1;
-
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger(NO_ERR_START, LOC, _proc_output_function, NULL);
-#endif
 
     /**
      **  This opens a function ...
@@ -1330,9 +1241,6 @@ static	int	output_set_alias(	const char	*alias,
     const char *cptr = val;		/** Scan the value char by char	     **/
 
     assert(shell_derelict != NULL);
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_output_set_alias, NULL);
-#endif
 
     /**
      **  Check for the shell family
@@ -1493,9 +1401,6 @@ static	int	output_unset_alias(	const char	*alias,
     const char *cptr = val;	/** Need to read the value char by char      **/
 
     assert(shell_derelict != NULL);
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_output_unset_alias, NULL);
-#endif
 
     /**
      **  Check for the shell family at first
@@ -1614,10 +1519,6 @@ static	int	output_unset_alias(	const char	*alias,
 char	*getLMFILES( Tcl_Interp	*interp)
 {
     static char	*lmfiles = NULL;	/** Buffer pointer for the value     **/
-
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_getLMFILES, NULL);
-#endif
 
     /**
      **  Try to read the variable _LMFILES_. If the according buffer pointer
@@ -1798,10 +1699,6 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
 			"LOADEDMODULES", TCL_GLOBAL_ONLY);
     char	*loaded_modulefiles = getLMFILES( interp);
     
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc___IsLoaded, NULL);
-#endif
-
     /**
      **  If no module is currently loaded ... the requested module is surely
      **  not loaded, too ;-)
@@ -2000,10 +1897,6 @@ intptr_t chk_marked_entry(	Tcl_HashTable	*table,
 {
     Tcl_HashEntry 	*hentry;
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_chk_marked_entry, NULL);
-#endif
-
     if( (hentry = Tcl_FindHashEntry( table, var)) )
         return((intptr_t) Tcl_GetHashValue( hentry));
     else
@@ -2016,10 +1909,6 @@ void set_marked_entry(	Tcl_HashTable	*table,
 {
     Tcl_HashEntry	*hentry;
     int    		 new;
-
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_set_marked_entry, NULL);
-#endif
 
     if( (hentry = Tcl_CreateHashEntry( table, var, &new)) ) {
         if( val)
@@ -2052,10 +1941,6 @@ void set_marked_entry(	Tcl_HashTable	*table,
 static	char	*get_module_basename(	char	*modulename)
 {
     char *version;			/** Used to locate the version sep.  **/
-    
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_get_module_basename, NULL);
-#endif
 
     /**
      **  Use strrchr to locate the very last version string on the module
@@ -2109,10 +1994,6 @@ int Update_LoadedList(
 	               *module;			/** module name		     **/
 	Tcl_Obj        **objv;			/** Tcl Object vector	     **/
 	int             objc;			/** Tcl Object vector count  **/
-
-#if WITH_DEBUGGING_UTIL_2
-	ErrorLogger(NO_ERR_START, LOC, _proc_Update_LoadedList, NULL);
-#endif
 
     /**
      **  Apply changes to LOADEDMODULES first
@@ -2211,10 +2092,6 @@ int check_magic( char	*filename,
     int  read_len;			/** Number of bytes read	     **/
     char buf[BUFSIZ];			/** Read buffer			     **/
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_check_magic, NULL);
-#endif
-
     /**
      **  Parameter check. The length of the magic cookie shouldn't exceed the
      **  length of out read buffer
@@ -2278,10 +2155,6 @@ void cleanse_path( const char	*path,
     int 	 i,				/** Read index		     **/
     		 j;				/** Write index		     **/
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_cleanse_path, NULL);
-#endif
-
     /**
      **  Stopping at (len - 1) ensures that the newpath string can be
      **  null-terminated below.
@@ -2333,14 +2206,9 @@ static	char *chop( const char	*string)
 {
     char	*s, *t;			/** source and target pointers       **/
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_chop, NULL);
-#endif
-
     /**
      **  Remove '\n'
      **/
-
     s = t = (char *) string;
     while( *s) {
 	if( '\n' == *s)
@@ -2816,10 +2684,6 @@ char *stringer(	char *		buffer,
 	char	*(*strfn)(char*,const char*) = strcpy;
 				/** ptr to 1st string function		**/
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_stringer, NULL);
-#endif
-
 	/* get start of optional arguments and sum string lengths */
 	va_start(argptr, len);
 	while ((ptr = va_arg(argptr, char *))) {
@@ -3055,7 +2919,7 @@ void *module_malloc(size_t size) {
  ++++*/
 
 
-void *module_realloc(char *ptr, size_t size) {
+void *module_realloc(void *ptr, size_t size) {
 
 	return ckrealloc(ptr, size > 0 ? size : 1);
 

@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_List.c,v 1.9 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_List.c,v 1.10 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -58,9 +58,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-#if WITH_DEBUGGING_MODULECMD
-static	char	_proc_ModuleCmd_List[] = "ModuleCmd_List";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -106,10 +103,6 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
     char	*files[ MOD_BUFSIZE];
     char	*tmplist[ MOD_BUFSIZE], *s;
     int	  	 len;
-
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_List, NULL);
-#endif
 
     lmfiles = getLMFILES( interp);
     loaded = getenv( "LOADEDMODULES");
@@ -189,10 +182,6 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
     /**
      **  Return on success
      **/
-
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_List, NULL);
-#endif
 
     return( TCL_OK);
 

@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.9 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.10 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -59,12 +59,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdModuleUser[] = "cmdModuleUser";
-#endif
-#if WITH_DEBUGGING_CALLBACK_1
-static	char	_proc_cmdModuleUser_sub[] = "cmdModuleUser_sub";
-#endif
 
 /**
  **  names for the user level
@@ -111,11 +105,6 @@ int cmdModuleUser(
 	int objc,
 	Tcl_Obj * CONST84 objv[]
 ) {
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdModuleUser, NULL);
-#endif
-
     /**
      **  Whatis mode?
      **/
@@ -180,10 +169,6 @@ int	cmdModuleUser_sub(	char	*user_level)
     char *s;
     int len_arg;
 
-#if WITH_DEBUGGING_CALLBACK_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_cmdModuleUser_sub, NULL);
-#endif
-
     len_arg = strlen( user_level);
     s = user_level;
     while( s && *s) {
@@ -205,10 +190,6 @@ int	cmdModuleUser_sub(	char	*user_level)
     /**
      **  Success
      **/
-
-#if WITH_DEBUGGING_CALLBACK_1
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdModuleUser_sub, NULL);
-#endif
 
     return( TCL_OK);
 

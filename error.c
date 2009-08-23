@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.17 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.18 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -249,9 +249,6 @@ static	ErrMeasr	Measurements[] = {
 
 static	ErrTransTab	TransTab[] = {
     { NO_ERR,		WGHT_NONE,  NULL },
-    { NO_ERR_DEBUG,	WGHT_DEBUG, N_("$*") },
-    { NO_ERR_START,	WGHT_DEBUG, N_("Starting $*") },
-    { NO_ERR_END,	WGHT_DEBUG, N_("Exit $*") },
     { NO_ERR_VERBOSE,	WGHT_VERBOSE,  NULL },
     { ERR_PARAM,	WGHT_ERROR, N_("Parameter error concerning '$1'") },
     { ERR_USAGE,	WGHT_ERROR, N_("Usage is '$*'") },

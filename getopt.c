@@ -51,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: getopt.c,v 1.5 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: getopt.c,v 1.6 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -300,21 +300,6 @@ int optopt = '?';
 
 static	char	module_name[] = __FILE__;
 
-#ifdef _MODULES_DEF_H
-#  if WITH_DEBUGGING_INIT
-static	char	_proc_exchange[] = "exchange";
-static	char	_proc_getopt_initialize[] = "_getopt_initialize";
-static	char	_proc_getopt_internal[] = " _getopt_internal";
-static	char	_proc_getopt[] = "getopt";
-static	char	_proc_getopt_long[] = "getopt_long";
-static	char	_proc_getopt_long_only[] = "getopt_long_only";
-#  endif
-#endif
-
-#  ifdef	TEST
-static	char	_proc_main[] = "main";
-#  endif
-
 #endif /** _MODULES_DEF_H **/
 
 /**
@@ -430,19 +415,12 @@ static void exchange( char **argv)
     int top = optind;
     char *tem;
 
-#ifdef _MODULES_DEF_H
-#  if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_START, LOC, _proc_exchange, NULL);
-#  endif
-#endif
-
     /**
      **  Exchange the shorter segment with the far end of the longer segment.
      **  That puts the shorter segment into the right place.
      **  It leaves the longer segment in the right place overall,
      **  but it consists of two parts that need to be swapped next. 
      **/
-
     while( top > middle && middle > bottom) {
 	if( top - middle > middle - bottom) {
 
@@ -504,12 +482,6 @@ static void exchange( char **argv)
     first_nonopt +=( optind - last_nonopt);
     last_nonopt = optind;
 
-#ifdef _MODULES_DEF_H
-#  if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_END, LOC, _proc_exchange, NULL);
-#  endif
-#endif
-
 } /** end of 'exchange' **/
 
 /*++++
@@ -542,13 +514,6 @@ static void exchange( char **argv)
 
 static const char *_getopt_initialize( const char *optstring)
 {
-
-#ifdef _MODULES_DEF_H
-#  if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_START, LOC, _proc_getopt_initialize, NULL);
-#  endif
-#endif
-
     /**
      **  Start processing options with ARGV-element 1( since ARGV-element 0
      **  is the program name); the sequence of previously skipped
@@ -576,12 +541,6 @@ static const char *_getopt_initialize( const char *optstring)
 
     else
 	ordering = PERMUTE;
-
-#ifdef _MODULES_DEF_H
-#  if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_END, LOC, _proc_getopt_initialize, NULL);
-#  endif
-#endif
 
     return( optstring);
 
@@ -686,12 +645,6 @@ static	int _getopt_internal(	int			 argc,
 				int			 long_only)
 {
     optarg = NULL;
-
-#ifdef _MODULES_DEF_H
-#  if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_START, LOC, _proc_getopt_internal, NULL);
-#  endif
-#endif
 
     /**
      **  Initialization
@@ -1175,11 +1128,6 @@ static	int _getopt_internal(	int			 argc,
 	 **  of failure
 	 **/
 
-#ifdef _MODULES_DEF_H
-#  if WITH_DEBUGGING_INIT
-	ErrorLogger( NO_ERR_END, LOC, _proc_getopt_internal, NULL);
-#  endif
-#endif
 	return( c);
 
     } /** block **/
@@ -1216,13 +1164,6 @@ static	int _getopt_internal(	int			 argc,
 
 int getopt( int argc, char *const *argv, const char *optstring)
 {
-
-#ifdef _MODULES_DEF_H
-#  if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_START, LOC, _proc_getopt, NULL);
-#  endif
-#endif
-
     return _getopt_internal( argc, argv, optstring,
 			     ( const struct option *) 0,
 			     ( int *) 0,
@@ -1232,13 +1173,6 @@ int getopt( int argc, char *const *argv, const char *optstring)
 int getopt_long( int argc, char *const *argv, const char *optstring,
 		 const struct option *longopts, int *longind)
 {
-
-#ifdef _MODULES_DEF_H
-#  if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_START, LOC, _proc_getopt_long, NULL);
-#  endif
-#endif
-
     return _getopt_internal( argc, argv, optstring, longopts, longind, 0);
 
 } /** End of 'getopt' **/
@@ -1246,13 +1180,6 @@ int getopt_long( int argc, char *const *argv, const char *optstring,
 int getopt_long_only( int argc, char *const *argv, const char *optstring,
 		      const struct option *longopts, int *longind)
 {
-
-#ifdef _MODULES_DEF_H
-#  if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_START, LOC, _proc_getopt_long_only, NULL);
-#  endif
-#endif
-
     return _getopt_internal( argc, argv, optstring, longopts, longind, 1);
 
 } /** End of 'getopt' **/
@@ -1282,13 +1209,6 @@ int getopt_long_only( int argc, char *const *argv, const char *optstring,
 
 int main( int argc, char **argv)
 {
-
-#  ifdef _MODULES_DEF_H
-#    if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_START, LOC, _proc_main, NULL);
-#    endif
-#  endif
-
     int c;
     int digit_optind = 0;
     int longind;
@@ -1382,12 +1302,6 @@ int main( int argc, char **argv)
     /**
      **  Exit on success
      **/
-
-#  ifdef _MODULES_DEF_H
-#    if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_END, LOC, _proc_main, NULL);
-#    endif
-#  endif
 
     exit( 0);
 

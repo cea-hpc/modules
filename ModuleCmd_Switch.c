@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.9 2009/08/11 22:01:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.10 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -107,9 +107,6 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
                 *oldmodule_buffer	= (char *) NULL;
     int		 ret_val = TCL_OK;
     
-#if WITH_DEBUGGING_MODULECMD
-    fprintf( stderr, "ModuleCmd_Switch(%d):DEBUG: Starting\n", __LINE__);
-#endif
     /**
      ** allocate buffer memory
      **/
@@ -277,9 +274,6 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 
     ErrorLogger( NO_ERR_VERBOSE, LOC, "done", NULL);
 
-#if WITH_DEBUGGING_MODULECMD
-    fprintf( stderr, "ModuleCmd_Switch(%d):DEBUG: End\n", __LINE__);
-#endif
     /**
      ** free space
      **   assume don't need what's pointed to by g_current_module

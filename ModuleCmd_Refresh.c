@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.8 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.9 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -60,9 +60,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-#if WITH_DEBUGGING_MODULECMD
-static	char	_proc_ModuleCmd_Refresh[] = "ModuleCmd_Refresh";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -112,14 +109,9 @@ int ModuleCmd_Refresh(	Tcl_Interp	*interp,
     char	*lmenv;
     char	*loaded;
     
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Refresh, NULL);
-#endif
-
     /**
      ** Begin by getting the list of loaded modules.
      **/
-
     loaded = getenv( "LOADEDMODULES" );
     if (!loaded || !*loaded)
 	goto success0;
@@ -204,10 +196,6 @@ success1:
     null_free((void *) &loaded);
 
 success0:
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Refresh, NULL);
-#endif
-
     return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
 
 unwind1:

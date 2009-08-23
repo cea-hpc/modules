@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.26 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.27 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -154,17 +154,6 @@ int	sw_force = 0,
 
 static	char	module_name[] = __FILE__;
 
-#if WITH_DEBUGGING
-static	char	_proc_main[] = "main";
-#endif
-#if WITH_DEBUGGING_MODULECMD
-static	char	_proc_Module_Usage[] = "Module_Usage";
-#endif
-#if WITH_DEBUGGING_INIT
-static	char	_proc_Check_Switches[] = "Check_Switches";
-static	char	_proc_Tcl_AppInit[] = "Tcl_AppInit";
-#endif
-
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
 /** ************************************************************************ **/
@@ -204,10 +193,6 @@ int	main( int argc, char *argv[], char *environ[]) {
     char	*rc_path;
 	Tcl_Obj       **objv;		/** Tcl Object vector **/
 	int             objc;		/** Tcl Object vector count **/
-
-#if WITH_DEBUGGING
-    ErrorLogger( NO_ERR_START, LOC, _proc_main, NULL);
-#endif
 
 #ifdef HAVE_SETLOCALE
 	/* set local via LC_ALL */
@@ -356,10 +341,6 @@ int	main( int argc, char *argv[], char *environ[]) {
     /**
      **  This return value may be evaluated by the calling shell
      **/
-#if WITH_DEBUGGING
-    ErrorLogger( NO_ERR_END, LOC, _proc_main, NULL);
-#endif
-
     OutputExit();
     return ( return_val ? return_val : g_retval);
 
@@ -402,11 +383,6 @@ void module_usage(FILE *output)
     /**
      **  General help wanted.
      **/
-
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_Module_Usage, NULL);
-#endif
-
 	fprintf(output,
 		_("\n  Modules Release %s %s (Copyright GNU GPL v2 1991):\n\n"),
                 version_string,date_string);
@@ -476,11 +452,6 @@ _(
 
 int Tcl_AppInit(Tcl_Interp *interp)
 {
-
-#if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_START, LOC, _proc_Tcl_AppInit, NULL);
-#endif
-
     return( TCL_OK);
 
 } /** End of 'Tcl_AppInit' **/
@@ -555,15 +526,10 @@ static int	Check_Switches( int *argc, char *argv[])
 	{ NULL, no_argument, NULL, 0 }
     };
 
-#if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_START, LOC, _proc_Check_Switches, NULL);
-#endif
-
     /**
      **  Scan the command line for options defined in the longopt table.
      **  Skip the very first argument, which is the shell to be used
      **/
-
     if( *argc > 1) {
 
 	while( EOF != (c = getopt_long( *argc-1, &argv[1], "hpftlvsciu:aHV",
@@ -707,10 +673,6 @@ static int	Check_Switches( int *argc, char *argv[])
      **  Exit on success
      **/
 
-#if WITH_DEBUGGING_INIT
-    ErrorLogger( NO_ERR_END, LOC, _proc_Check_Switches, NULL);
-#endif
-
     return( TCL_OK);
 
 } /** End of 'Check_Switches' **/
@@ -805,7 +767,6 @@ static void version (FILE *output) {
 	isdefined(VERSION_MAGIC,str(VERSION_MAGIC));
 	isdefined(VERSIONPATH,str(VERSIONPATH));
 	isdefined(WANTS_VERSIONING,str(WANTS_VERSIONING));
-	isdefined(WITH_DEBUG_INFO,str(WITH_DEBUG_INFO));
 
   	fprintf(output, "\n");
 }

@@ -19,7 +19,7 @@
  ** ************************************************************************ **
  ****/
 
-static char Id[] = "@(#)$Id: cmdChdir.c,v 1.5 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdChdir.c,v 1.6 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -52,10 +52,6 @@ char		*change_dir	= NULL;
 
 static	char	module_name[] = __FILE__;
 
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdChDir[] = "cmdChDir";
-#endif
-
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
 /** ************************************************************************ **/
@@ -70,10 +66,6 @@ int cmdChDir(
 ) {
 	char			*dir;		/** directory name	     **/
 	struct	stat		 statinfo;	/** directory access	     **/
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdChDir, NULL);
-#endif
 
 	if (g_flags & ~(M_LOAD | M_SWSTATE2))
 		return TCL_OK;

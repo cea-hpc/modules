@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdMisc.c,v 1.7 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdMisc.c,v 1.8 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -60,9 +60,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdSystem[] = "cmdSystem";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -107,11 +104,6 @@ int cmdSystem(
 			i;			/** loop counter	     **/
 	char            buf[MAX_ARGLIST],	/** buffer for string to int **/
 	               *bufp = buf;		/** buffer ptr		     **/
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdSystem, NULL);
-#endif
-
     /**
      **  Whatis mode
      **/
@@ -171,10 +163,6 @@ int cmdSystem(
 	 *  Restore stdout.
 	 */
 	UnTieStdout(saved_stdout);
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdSystem, NULL);
-#endif
 
 	return (TCL_OK);
 

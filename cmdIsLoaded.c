@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.10 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.11 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -58,9 +58,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdIsLoaded[] = "cmdIsLoaded";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -103,10 +100,6 @@ int cmdIsLoaded(
 	int             i, j, k,		/** Loop counters            **/
 	                numpaths, nummodules;
 					/** Size of the according arrays     **/
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdIsLoaded, NULL);
-#endif
     /** 
      **  Parameter check. Usage is 'is-loaded <module> [<module> ...]'
      **/
@@ -128,11 +121,6 @@ int cmdIsLoaded(
 		if (OK != ErrorLogger(ERR_MODULE_PATH, LOC, NULL))
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
 	}
-#if WITH_DEBUGGING_CALLBACK_1
-	ErrorLogger(NO_ERR_DEBUG, LOC, "Got modulepath: '", modulepath, "'",
-		    NULL);
-#endif
-
 	if (!(pathlist = SplitIntoList(interp, modulepath, &numpaths, _colon)))
 		return (TCL_OK);	/** -------- EXIT (SUCCESS) -------> **/
     /**
@@ -172,10 +160,6 @@ int cmdIsLoaded(
      **  missing prerequisite has been found
      **/
 	Tcl_SetResult(interp, notloaded_flag ? "0" : "1", TCL_STATIC);
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdIsLoaded, NULL);
-#endif
 
 	return (TCL_OK);
 

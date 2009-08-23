@@ -172,9 +172,6 @@ typedef struct _file_entry {
 
 typedef	enum	{
 	NO_ERR = 0,			/** No error			     **/
-	NO_ERR_DEBUG,			/** Debugging			     **/
-	NO_ERR_START,			/** Start logging		     **/
-	NO_ERR_END,			/** End logging			     **/
 	NO_ERR_VERBOSE,			/** Verbose messages		     **/
 	ERR_PARAM = 10,			/** Parameter error		     **/
 	ERR_USAGE,			/** Usage information		     **/
@@ -294,23 +291,6 @@ typedef enum	{
 #define	UL_NOVICE	0
 #define	UL_ADVANCED	64
 #define	UL_EXPERT	128
-
-/**
- **  Debugging
- **/
-
-#define	WITH_DEBUGGING			defined( WITH_DEBUG_INFO)
-#define	WITH_DEBUGGING_MODULECMD	(WITH_DEBUGGING && WITH_DEBUG_INFO > 0)
-#define	WITH_DEBUGGING_MODULECMD_1	(WITH_DEBUGGING && WITH_DEBUG_INFO > 1)
-#define	WITH_DEBUGGING_INIT		(WITH_DEBUGGING && WITH_DEBUG_INFO > 10)
-#define	WITH_DEBUGGING_CALLBACK		(WITH_DEBUGGING && WITH_DEBUG_INFO > 20)
-#define	WITH_DEBUGGING_CALLBACK_1	(WITH_DEBUGGING && WITH_DEBUG_INFO > 21)
-#define	WITH_DEBUGGING_LOCATE		(WITH_DEBUGGING && WITH_DEBUG_INFO > 30)
-#define	WITH_DEBUGGING_LOCATE_1		(WITH_DEBUGGING && WITH_DEBUG_INFO > 31)
-#define	WITH_DEBUGGING_UTIL		(WITH_DEBUGGING && WITH_DEBUG_INFO > 40)
-#define	WITH_DEBUGGING_UTIL_1		(WITH_DEBUGGING && WITH_DEBUG_INFO > 41)
-#define	WITH_DEBUGGING_UTIL_2		(WITH_DEBUGGING && WITH_DEBUG_INFO > 42)
-#define	WITH_DEBUGGING_UTIL_3		(WITH_DEBUGGING && WITH_DEBUG_INFO > 43)
 
 /**
  **  Default error log facilities
@@ -710,13 +690,13 @@ extern	size_t	  countTclHash(Tcl_HashTable *);
 extern	EM_RetVal	ReturnValue( Tcl_Interp*, int);
 extern	void	  OutputExit();
 extern	void	 *module_malloc(size_t);
-extern	void	 *module_realloc(char *, size_t);
+extern	void	 *module_realloc(void *, size_t);
 extern	void	 *module_calloc(size_t,size_t);
 extern	void	  null_free(void **);
 
 /**  utilobj.c  **/
 extern int	  Tcl_ArgvToObjv(Tcl_Interp *, int *, Tcl_Obj ***,
-			int, const char **);
+			int, char * const *);
 extern int	  Tcl_ObjvToArgv(Tcl_Interp *, int *, char ***,
 			int, Tcl_Obj * CONST84 *);
 

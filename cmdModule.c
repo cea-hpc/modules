@@ -32,7 +32,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.20 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.21 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -67,22 +67,8 @@ char	_fil_stdin[] = "stdin";
 char	_fil_stdout[] = "stdout";
 char	_fil_stderr[] = "stderr";
 char	_fil_devnull[] = "/dev/null";
-
 int	linenum = 0;
-
 static	char	module_name[] = __FILE__;
-
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdModule[] = "cmdModule";
-#endif
-#if WITH_DEBUGGING_UTIL
-static	char	_proc_Read_Modulefile[] = "Read_Modulefile";
-#endif
-#if WITH_DEBUGGING_UTIL_1
-static	char	_proc_Execute_TclFile[] = "Execute_TclFile";
-static	char	_proc_CallModuleProcedure[] = "CallModuleProcedure";
-#endif
-
 char	 *module_command;
 
 /** ************************************************************************ **/
@@ -149,10 +135,6 @@ int cmdModule(
 #define	_MTCH	_XD match =
 #define	_ISERR	((match == -1) && (*TCL_RESULT(interp)))
 #define _TCLCHK(a) {if(_ISERR) ErrorLogger(ERR_EXEC,LOC,TCL_RESULT(a),NULL);}
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdModule, NULL);
-#endif
 
     /**
      **  Help or whatis mode?
@@ -408,11 +390,6 @@ int cmdModule(
     /**
      **  Return on success
      **/
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdModule, NULL);
-#endif
-
 	return (return_val);
 
 } /** End of 'cmdModule' **/
@@ -444,14 +421,9 @@ int   Read_Modulefile( Tcl_Interp	*interp,
 {
     int    result;
 
-#if WITH_DEBUGGING_UTIL
-    ErrorLogger( NO_ERR_START, LOC, _proc_Read_Modulefile, NULL);
-#endif
-
     /**
      **  Parameter check. A valid filename is to be given.
      **/
-
     if( !filename) {
 	if( OK != ErrorLogger( ERR_PARAM, LOC, "filename", NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
@@ -475,19 +447,9 @@ int   Read_Modulefile( Tcl_Interp	*interp,
 
     result = Execute_TclFile(interp, filename);
 
-#if WITH_DEBUGGING_UTIL
-    if(EM_ERROR == ReturnValue(interp, result))
-	ErrorLogger( NO_ERR_DEBUG, LOC, "Execution of '",
-		filename, "' failed", NULL);
-#endif
-
     /**
      **  Return the result as derivered from the module file execution
      **/
-#if WITH_DEBUGGING_UTIL
-    ErrorLogger( NO_ERR_END, LOC, _proc_Read_Modulefile, NULL);
-#endif
-
     return( result);
 
 } /** End of 'Read_Modulefile' **/
@@ -523,14 +485,9 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
     char	*cmd;
     Tcl_DString	 cmdbuf;
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_Execute_TclFile, NULL);
-#endif
-
     /**
      **  If there isn't a line buffer allocated so far, do it now
      **/
-
     if( line == NULL) {
         if( NULL == (line = (char*) module_malloc(LINELENGTH * sizeof(char)))) {
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
@@ -587,10 +544,6 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
 	 **  Reinitialize the command buffer
 	 **/
 
-#if WITH_DEBUGGING_UTIL_1
-	ErrorLogger( NO_ERR_DEBUG, LOC, " Evaluating '", cmd, "'", NULL);
-#endif
-
         result = Tcl_Eval( interp, cmd);
 
 	if( EM_ERROR == (em_result = ReturnValue(interp, result))) {
@@ -598,26 +551,6 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
 	}
 
 	Tcl_DStringTrunc( &cmdbuf, 0);
-
-#if WITH_DEBUGGING_UTIL_1
-	{
-	    char buffer[ 80];
-
-	    switch( result) {
-		case TCL_OK:	    strcpy( buffer, "TCL_OK");
-				    break;
-		
-		case TCL_ERROR:	    strcpy( buffer, "TCL_ERROR");
-				    break;
-
-		case TCL_LEVEL0_RETURN:
-				    strcpy( buffer, "TCL_LEVEL0_RETURN");
-				    break;
-	    }
-
-	    ErrorLogger( NO_ERR_DEBUG, LOC, " Result: '", buffer, "'", NULL);
-	}
-#endif
 
         switch( result) {
 
@@ -650,10 +583,6 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
     if( EOF == fclose( infile))
 	if( OK != ErrorLogger( ERR_CLOSE, LOC, filename, NULL))
 	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_END, LOC, _proc_Execute_TclFile, NULL);
-#endif
 
     return( result);
 
@@ -697,15 +626,10 @@ int  CallModuleProcedure(	Tcl_Interp	*interp,
     int          result;
     int          saved_stdout = 0, saved_stderr = 0, devnull;
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_CallModuleProcedure, NULL);
-#endif
-
     /**
      **  Must send stdout and stderr to /dev/null until the 
      **  ModulesHelp procedure is called.
      **/
-
     if( suppress_output) {
 	if( 0 > (devnull = open( _fil_devnull, O_RDWR))) {
 	    if( OK != ErrorLogger( ERR_OPEN, LOC, _fil_devnull,
@@ -802,10 +726,6 @@ int  CallModuleProcedure(	Tcl_Interp	*interp,
 
     result = Tcl_Eval( interp, cmd);
     Tcl_DStringTrunc( cmdptr, 0);
-
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_END, LOC, _proc_CallModuleProcedure, NULL);
-#endif
 
     return( result);
 

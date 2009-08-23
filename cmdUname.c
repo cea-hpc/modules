@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdUname.c,v 1.7 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdUname.c,v 1.8 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -72,10 +72,6 @@ typedef	struct	utsname {
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdUname[] = "cmdUname";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -136,11 +132,6 @@ int cmdUname(
 	strncat(namestruct.version, _(em_unknown), NAMELEN);
 	strncat(namestruct.machine, _(em_unknown), NAMELEN);
 #endif
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdUname, NULL);
-#endif
-
     /**
      **  Parameter check. One parameter should be given providing a selector
      **  do differ between:
@@ -228,10 +219,6 @@ int cmdUname(
 		"{sysname|nodename|release|version|machine|domain}", NULL))
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
 	}
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdUname, NULL);
-#endif
 
 	return (TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
 

@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdAlias.c,v 1.7 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdAlias.c,v 1.8 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -59,9 +59,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdSetAlias[] = "cmdSetAlias";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -102,9 +99,6 @@ int cmdSetAlias(
 ) {
 
 	char           *arg0, *arg1, *arg2;
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdSetAlias, NULL);
-#endif
 
     /**
      **  Whatis mode?
@@ -163,10 +157,6 @@ int cmdSetAlias(
 		store_hash_value(aliasUnsetHashTable, arg1, arg2);
 	else
 		store_hash_value(aliasSetHashTable, arg1, arg2);
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdSetAlias, NULL);
-#endif
 
 	return (TCL_OK);
 

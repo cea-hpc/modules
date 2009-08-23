@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdLog.c,v 1.12 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdLog.c,v 1.13 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -60,10 +60,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdModuleLog[] = "cmdModuleLog";
-#endif
-
 static	char	_stderr[] = "stderr";
 static	char	_stdout[] = "stdout";
 static	char	_null[] = "null";
@@ -109,10 +105,6 @@ int cmdModuleLog(
 	char          **facptr;
 	int             i, len = 0, alc_len = PART_LEN, save_len;
 	char           *faclist, *s, *tmp, *t;
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdModuleLog, NULL);
-#endif
 
     /**
      **  Whatis mode?
@@ -217,10 +209,6 @@ int cmdModuleLog(
 		null_free((void *)facptr);
 
 	*facptr = tmp;
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdModuleLog, NULL);
-#endif
 
 	return (TCL_OK);
 

@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.32 2009/08/13 19:17:43 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.33 2009/08/23 23:30:42 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -466,15 +466,6 @@ AC_ARG_ENABLE(free,
 	AC_HELP_STRING([--enable-free],[use free() calls [[no]]]),
 	if test "$enableval" = "yes"; then
 	    AC_DEFINE(USE_FREE)
-	fi)dnl
-dnl ---------------------------------------------------------------------------
-dnl ---------------------------------------------------------------------------
-AH_TEMPLATE([WITH_DEBUG_INFO],[WITH_DEBUG_INFO: Debug info level if defined])dnl
-AC_ARG_WITH(debug,
-	AC_HELP_STRING([--with-debug=<value>],[set debugging level <value> [[no]]]),
-	if test "$withval" != "no"; then
-		test "$withval" = "yes" && withval="1"
-		AC_DEFINE_UNQUOTED(WITH_DEBUG_INFO, ${withval})dnl
 	fi)dnl
 dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([VERSION_MAGIC],[

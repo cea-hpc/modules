@@ -41,7 +41,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdXResource.c,v 1.13 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdXResource.c,v 1.14 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -92,24 +92,6 @@ typedef struct _ResourceDB {
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-
-#if WITH_DEBUGGING_UTIL_2
-static	char	_proc_addDef[] = "addDef";
-static	char	_proc_addNum[] = "addNum";
-#endif
-#if WITH_DEBUGGING_UTIL_1
-static	char	_proc_doDisplayDefines[] = "doDisplayDefines";
-static	char	_proc_doScreenDefines[] = "doScreenDefines";
-static	char	_proc_readFile[] = "readFile";
-static	char	_proc_getEntries[] = "getEntries";
-static	char	_proc_storeResProp[] = "storeResProp";
-static	char	_proc_getOld[] = "getOld";
-static	char	_proc_initBuffers[] = "initBuffers";
-static	char	_proc_xresourceFinish[] = "xresourceFinish";
-#endif
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdXResource[] = "cmdXResource";
-#endif
 
 #ifdef HAS_X11LIBS
 static Display		*dpy		= (Display *) NULL;
@@ -164,10 +146,6 @@ static	void	addDef(	char	*title,
 {
     register int quote;
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_addDef, NULL);
-#endif
-
     /**
      **  Add '-D title' at first
      **/
@@ -198,10 +176,6 @@ static	void	addNum(	char	*title,
 			int	 value)
 {
     char num[ 20];
-
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_addNum, NULL);
-#endif
 
     sprintf( num, "%d", value);
     addDef( title, num);
@@ -234,10 +208,6 @@ static	void	doDisplayDefines()
 		 server[ MAXHOSTNAME],		/** X server name buffer     **/
 		*colon;				/** Pointer for seeking the  **/
 						/** colon in the server name **/
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_doDisplayDefines, NULL);
-#endif
-
     /**
      **  Get client and server hostname. Remove everything after the ':' from
      **  the server name. If there's no server name available, the server de-
@@ -290,10 +260,6 @@ static	void	 doScreenDefines( int	scrno)
     register Screen	*screen;
     register Visual	*visual;
     
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_doScreenDefines, NULL);
-#endif
-
     /**
      **  Get screen data at first
      **/
@@ -375,10 +341,6 @@ static	int	readFile(	register FILE	*input,
 {
     register int bytes;
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_readFile, NULL);
-#endif
-
     while( !feof( input) && (bytes = fread( line, 1, LINELENGTH, input)))
 	Tcl_DStringAppend( buffer, line, bytes);
 
@@ -432,10 +394,6 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
     register Tcl_HashEntry	*entry;
     char			*end;
     int				 new_res;
-
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_getEntries, NULL);
-#endif
 
     /**
      **  The following regular expression matches pattern like
@@ -562,10 +520,6 @@ static	void	storeResProp(	register ResourceDB *rdb)
     register Tcl_HashEntry *entry = Tcl_FirstHashEntry( rdb->data, &search);
     unsigned char	*buf;
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_storeResProp, NULL);
-#endif
-
     /**
      **	 Write all attached resources into the buffer. Follow the X 
      **  resource syntax:
@@ -641,10 +595,6 @@ static	void	storeResProp(	register ResourceDB *rdb)
 static	ErrType getOld( register char **buf)
 {
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_getOld, NULL);
-#endif
-
     /**
      **  Allocate memory for the hash table
      **/
@@ -706,10 +656,6 @@ static	ErrType	initBuffers(	Tcl_Interp *interp,
 				register int is_file)
 {
     char *tmpbuf;
-
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_initBuffers, NULL);
-#endif
 
     /**
      **  Open the display
@@ -803,10 +749,6 @@ static	ErrType	initBuffers(	Tcl_Interp *interp,
 void xresourceFinish(register int no_errors)
 {
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_xresourceFinish, NULL);
-#endif
-
 #ifdef HAS_X11LIBS
 
     /**
@@ -869,10 +811,6 @@ int cmdXResource(
 	                i,			/** loop counter	     **/
 	                do_cpp = 1,		/** pipe file thru cpp	     **/
 	    opt_ind = 1;			/** option index	     **/
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdXResource, NULL);
-#endif
     /**
      **  Whatis mode?
      **/
@@ -958,9 +896,6 @@ int cmdXResource(
 		opt_ind++;
 	} /** while **/
 
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdXResource, NULL);
-#endif
 	return (TCL_OK);
 
 } /** End of 'cmdXResource' **/

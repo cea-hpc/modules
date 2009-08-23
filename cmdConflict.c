@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.16 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.17 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -61,13 +61,6 @@ static void *UseId[] = { &UseId, Id };
 
 static char error_module[ MOD_BUFSIZE];
 static	char	module_name[] = __FILE__;
-#if WITH_DEBUGGING_UTIL
-static	char	_proc_checkConflict[] = "checkConflict";
-#endif
-#if WITH_DEBUGGING_CALLBACK
-static	char	_proc_cmdConflict[] = "cmdConflict";
-static	char	_proc_cmdPrereq[] = "cmdPrereq";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -113,10 +106,6 @@ static	int	checkConflict(	Tcl_Interp	*interp,
     struct stat	  stat_info;
     char	 *buffer;
     
-#if WITH_DEBUGGING_UTIL
-    ErrorLogger( NO_ERR_START, LOC, _proc_checkConflict, NULL);
-#endif
-
     memset( error_module, '\0', MOD_BUFSIZE);
 
     /**
@@ -183,10 +172,6 @@ static	int	checkConflict(	Tcl_Interp	*interp,
 
         } /** if( directory) **/
     } /** for **/
-
-#if WITH_DEBUGGING_UTIL
-    ErrorLogger( NO_ERR_END, LOC, _proc_checkConflict, NULL);
-#endif
     /**
      ** free resources
      **/
@@ -237,11 +222,6 @@ int cmdConflict(
 	int             i, j,		/** Loop counters		     **/
 	                numpaths, nummodules;
 					/** Size of the according arrays     **/
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdConflict, NULL);
-#endif
-
     /**
      **  Whatis mode
      **/
@@ -313,10 +293,6 @@ int cmdConflict(
 			FreeList(modulelist, nummodules);
 		} /** for( j) **/
 	} /** for( i) **/
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdConflict, NULL);
-#endif
     /**
      ** free resources
      **/
@@ -374,10 +350,6 @@ int cmdPrereq(
 	    Result = TCL_OK;
 	char            buffer[MOD_BUFSIZE];
 
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_START, LOC, _proc_cmdPrereq, NULL);
-#endif
-
     /** 
      **  Parameter check. Usage is 'prereq <module> [<module> ...]'
      **/
@@ -414,10 +386,6 @@ int cmdPrereq(
 		if (OK != ErrorLogger(ERR_MODULE_PATH, LOC, NULL))
 			goto unwind0;
 
-#if WITH_DEBUGGING_CALLBACK_1
-	ErrorLogger(NO_ERR_DEBUG, LOC, "Got modulepath: '", modulepath, "'",
-		    NULL);
-#endif
 	if ((char **)NULL ==
 	    (pathlist = SplitIntoList(interp, modulepath, &numpaths, _colon)))
 		goto success1;
@@ -438,14 +406,6 @@ int cmdPrereq(
     /**
      **  Check/Display all passed modules
      **/
-#if WITH_DEBUGGING_CALLBACK_1
-	ErrorLogger(NO_ERR_DEBUG, LOC, "Scanning all ", (sprintf(buffer, "%d",
-								 numpaths),
-							 buffer), "modulepaths",
-		    NULL);
-#endif
-
-	notloaded_flag = Tcl_GetString(objv[1]);
 	for (i = 1; i < objc && Tcl_GetString(objv[i]) && notloaded_flag; i++) {
 		for (j = 0; j < numpaths && notloaded_flag; j++) {
 			if ((char **)NULL ==
@@ -458,12 +418,6 @@ int cmdPrereq(
 	     **  save the list of file to be printed in case of missing pre-
 	     **  requisites or 
 	     **/
-#if WITH_DEBUGGING_CALLBACK_1
-			ErrorLogger(NO_ERR_DEBUG, LOC,
-				    "Save directory list. # = ",
-				    (sprintf(buffer, "%d", listcnt), buffer),
-				    NULL);
-#endif
 			savedlens[listcnt] = nummodules;
 			savedlists[listcnt++] = modulelist;
 	    /**
@@ -481,11 +435,6 @@ int cmdPrereq(
 			}
 		} /** for( j) **/
 	} /** for( i) **/
-
-#if WITH_DEBUGGING_CALLBACK_1
-	ErrorLogger(NO_ERR_DEBUG, LOC, "Done. Missing prerequisite: '",
-		    (notloaded_flag ? notloaded_flag : "none"), "'", NULL);
-#endif
     /**
      **  Display an error message if this was *NOT* display mode and a
      **  missing prerequisite has been found
@@ -532,10 +481,6 @@ int cmdPrereq(
      **/
 	null_free((void *)&savedlens);
 	null_free((void *)&savedlists);
-
-#if WITH_DEBUGGING_CALLBACK
-	ErrorLogger(NO_ERR_END, LOC, _proc_cmdPrereq, NULL);
-#endif
 
 success1:
 	null_free((void *)&modulepath);

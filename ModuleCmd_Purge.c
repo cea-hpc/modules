@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Purge.c,v 1.6 2009/08/13 19:17:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Purge.c,v 1.7 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -100,10 +100,6 @@ int	ModuleCmd_Purge(	Tcl_Interp	*interp,
     char        *unload_argv_rev[ MOD_BUFSIZE];
     int          reverse;
 
-#if WITH_DEBUGGING_MODULECMD
-    fprintf( stderr, "ModuleCmd_Purge(%d):DEBUG: Starting\n", __LINE__);
-#endif
-
     /**
      **  Get the list of currently loaded modules from the environment variable
      **  LOADEDMODULES
@@ -151,10 +147,6 @@ int	ModuleCmd_Purge(	Tcl_Interp	*interp,
      **  Free, what has been allocated and pass the load's result to the caller
      **/
     null_free((void *) &lmodules);
-
-#if WITH_DEBUGGING_MODULECMD
-    fprintf( stderr, "ModuleCmd_Purge(%d):DEBUG: End\n", __LINE__);
-#endif
 
     return( status);
 

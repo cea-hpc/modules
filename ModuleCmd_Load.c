@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.11 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.12 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -60,10 +60,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-
-#if WITH_DEBUGGING_MODULECMD
-static	char	_proc_ModuleCmd_Load[] = "ModuleCmd_Load";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -118,14 +114,9 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
     Tcl_HashTable	**oldTables = NULL;
     EM_RetVal		  em_return_val = EM_OK;
 
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Load, NULL);
-#endif
-
     /**
      **  Set up the flags controling the Tcl callback functions
      **/
-
     if( load)
         g_flags |= M_LOAD;
     else
@@ -288,10 +279,6 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
         g_flags &= ~M_LOAD;
     else
         g_flags &= ~M_REMOVE;
-
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Load, NULL);
-#endif
 
     return( a_successful_load);
 

@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.12 2009/08/13 19:17:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.13 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -60,10 +60,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-
-#if WITH_DEBUGGING_MODULECMD
-static	char	_proc_ModuleCmd_Init[] = "ModuleCmd_Init";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -138,10 +134,6 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		  nummods, bufsiz = 8192,
 		  new_file,
 		  homelen, home_end, path_end;
-
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger(NO_ERR_START, LOC, _proc_ModuleCmd_Init, NULL);
-#endif
 
     /**
      **  If called with no arguments and the flags don't say that there's some-
@@ -508,10 +500,6 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
     if (!found_module_command)
 	if (OK != ErrorLogger(ERR_INIT_STUP, LOC, shell_name, NULL))
 	    goto unwind2;
-
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger(NO_ERR_END, LOC, _proc_ModuleCmd_Init, NULL);
-#endif
 
     /**
      **  Free up memory

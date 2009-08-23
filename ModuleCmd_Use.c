@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.10 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.11 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -62,13 +62,6 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 static	char	module_name[] = __FILE__;
-#if WITH_DEBUGGING_UTIL_1
-static	char	_proc_append_to_modulesbeginenv[] = "append_to_modulesbeginenv";
-#endif
-#if WITH_DEBUGGING_MODULECMD
-static	char	_proc_ModuleCmd_Use[] = "ModuleCmd_Use";
-static	char	_proc_ModuleCmd_UnUse[] = "ModuleCmd_UnUse";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -104,24 +97,14 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
 		*val;			/** Value of the passed variable     **/
     FILE	*file;			/** File read handle		     **/
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_append_to_modulesbeginenv, NULL);
-#endif
-
     if(	var
 #if BEGINENV == 99
 	&& Tcl_GetVar2( interp,"env","MODULESBEGINENV", TCL_GLOBAL_ONLY)
 #endif
 	) {
-
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_DEBUG, LOC, "Adding '", var, "'");
-#endif
-
 	/**
 	 **  Get filename and the value of the passed variable
 	 **/
-
 	if( (filename = (char *) Tcl_GetVar2( interp, "env","_MODULESBEGINENV_",
 	    TCL_GLOBAL_ONLY)) ) {
 	    val = (char *) Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY);
@@ -181,11 +164,6 @@ int ModuleCmd_Use(
     /**
      **  Parameter check. Usage is 'module use <path> [ <path> ... ]'
      **/
-
-#if WITH_DEBUGGING_MODULECMD
-	ErrorLogger(NO_ERR_START, LOC, _proc_ModuleCmd_Use, NULL);
-#endif
-
 	if (argc < 1) {
 		if (OK !=
 		    ErrorLogger(ERR_USAGE, LOC,
@@ -261,10 +239,6 @@ int ModuleCmd_Use(
 
 	append_to_modulesbeginenv(interp, "MODULEPATH");
 
-#if WITH_DEBUGGING_MODULECMD
-	ErrorLogger(NO_ERR_END, LOC, _proc_ModuleCmd_Use, NULL);
-#endif
-
 	return (TCL_OK);
 
 } /** End of 'ModuleCmd_Use' **/
@@ -299,11 +273,6 @@ int ModuleCmd_UnUse(
 	Tcl_Obj       **objv;		/** Tcl Object vector **/
 	int             objc,		/** Tcl Object vector count **/
 	                i = 0;
-
-#if WITH_DEBUGGING_MODULECMD
-	ErrorLogger(NO_ERR_START, LOC, _proc_ModuleCmd_UnUse, NULL);
-#endif
-
     /**
      **  Parameter check. Usage is 'module use <path> [ <path> ... ]'
      **/
@@ -337,10 +306,6 @@ int ModuleCmd_UnUse(
      **/
 
 	append_to_modulesbeginenv(interp, "MODULEPATH");
-
-#if WITH_DEBUGGING_MODULECMD
-	ErrorLogger(NO_ERR_END, LOC, _proc_ModuleCmd_UnUse, NULL);
-#endif
 
 	return (TCL_OK);
 

@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.17 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.18 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -85,33 +85,11 @@ typedef struct _subdir_node {
 static	char	 buffer[MOD_BUFSIZE];
 static	char	 buf[ LINELENGTH];
 static	char	 module_name[] = __FILE__;
-
-#if WITH_DEBUGGING_MODULECMD
-static	char	_proc_ModuleCmd_Avail[] = "ModuleCmd_Avail";
-#endif
-#if WITH_DEBUGGING_UTIL_1
-static	char	_proc_print_dir[] = "print_dir";
-static	char	_proc_print_aligned_files[] = "print_aligned_files";
-#endif
-#if WITH_DEBUGGING_UTIL_2
-static	char	_proc_check_dir[] = "check_dir";
-static	char	_proc_get_dir[] = "get_dir";
-static	char	_proc_dirlst_to_list[] = "dirlst_to_list";
-static	char	_proc_delete_dirlst[] = "delete_dirlst";
-static	char	_proc_delete_cache_list[] = "delete_cache_list";
-static	char	_proc_print_spaced_file[] = "print_spaced_file";
-static	char	_proc_mkdirnm[] = "mkdirnm";
-#endif
-
-#if	WITH_DEBUGGING
-static	char	buffer1[ 80], buffer2[ 80];
-#endif
-
-static	char	short_format[] = "%s";
-static	char	short_format_part[] = "%s/%s";
-static	char	short_format_full[] = "%s/%s(%s)";
-static	char	long_format[] = "%-39.39s  %-10.10s  %17s\n";
- 	char	long_header[] = "\
+static	char	 short_format[] = "%s";
+static	char	 short_format_part[] = "%s/%s";
+static	char	 short_format_full[] = "%s/%s(%s)";
+static	char	 long_format[] = "%-39.39s  %-10.10s  %17s\n";
+ 	char	 long_header[] = "\
 - Package -----------------------------+- Versions -+- Last mod. ------\n";
 
 /**
@@ -170,15 +148,10 @@ int ModuleCmd_Avail(	Tcl_Interp	*interp,
     char	*modpath;
     int		 Result = -TCL_ERROR;
     
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Avail, NULL);
-#endif
-
     /**
      **  If there's no MODULEPATH defined, we cannot output anything
      **  We perform 1 level of env.var. expansion
      **/
-
     if( !(modpath = (char *) xgetenv( "MODULEPATH")))
 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
 	    goto unwind0;
@@ -298,10 +271,6 @@ unwind1:
     null_free((void *) &modpath);
 
 unwind0:
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Avail, NULL);
-#endif
-
     /* if Result is negative here ... must have been an unwind */
     if (Result < 0) Result = -Result;
 
@@ -333,10 +302,6 @@ unwind0:
 int check_dir(	char	*dirname)
 {
     DIR*   dirp;
-
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_check_dir, NULL);
-#endif
 
     if( !(dirp = opendir( dirname))) 
 	return( 0);
@@ -381,14 +346,9 @@ static	int	print_dir(	Tcl_Interp	*interp,
     char	**cache_list = NULL;
     char	 *selection, *s;
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_print_dir, "dir='", dir, NULL);
-#endif
-
     /**
      **  Print the directory name
      **/
-
     if( (sw_format & (SW_PARSE | SW_TERSE | SW_LONG))
     && !(sw_format & (SW_HUMAN | SW_LIST)) ) {
 	/* char *base = strrchr( dir, '/');
@@ -542,14 +502,9 @@ fi_ent	*get_dir(	char	*dir,
     char		*tmp;		
     int			 count = 0;
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_get_dir, NULL);
-#endif
-
     /**
      **  Open the desired directiory
      **/
-
     if( !(dirptr = opendir( dir))) {
 #if 0
 	/* if you can't open a directory ... is that really an error? */
@@ -806,11 +761,6 @@ void	dirlst_to_list(	char	**list,
      **  Put all files in the directory list at the end of the passed list
      **  of character arrays
      **/
-
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_dirlst_to_list, NULL);
-#endif
-
     for( i=0, dirlst_cur=dirlst_head;
 	 i<count && dirlst_cur;
          i++, dirlst_cur++) {
@@ -896,10 +846,6 @@ void	delete_dirlst(	fi_ent	*dirlst_head,
     fi_ent	*dirlst_cur;
     int 	 i;
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_delete_dirlst, NULL);
-#endif
-
     if( !dirlst_head)
 	return;
 
@@ -956,10 +902,6 @@ void delete_cache_list(	char	**list,
 {
     int i;
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_delete_cache_list, NULL);
-#endif
-
     for( i=0; i<tcount; i++)
         null_free((void *) (list + i));
     
@@ -1013,15 +955,10 @@ void print_aligned_files(	Tcl_Interp	 *interp,
     int 	 maxlen = 0;
     char	*modpath = NULL;
 
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_START, LOC, _proc_print_aligned_files, NULL);
-#endif
-
     /**
      **  In case of terse, human output we need to obtain the size of 
      **  the tty
      **/ 
-
     if( sw_format & (SW_HUMAN | SW_LONG) ) {
 	struct winsize window_size;
 	int fd_err = fileno( stderr);
@@ -1222,11 +1159,6 @@ void print_aligned_files(	Tcl_Interp	 *interp,
     if (! modpath) {
 	null_free((void *)&modpath);
     }
-
-#if WITH_DEBUGGING_UTIL_1
-    ErrorLogger( NO_ERR_END, LOC, _proc_print_aligned_files, NULL);
-#endif
-
 } /** End of 'print_aligned_files' **/
 
 /*++++
@@ -1449,10 +1381,6 @@ static	void print_spaced_file(	char	*name,
 {
     int filelen;		/** Length of the filename to print	     **/
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_print_spaced_file, NULL);
-#endif
-
     chk4spch( name);		/** turn any weird characters into ? marks   **/
 
     /**
@@ -1505,23 +1433,16 @@ static	char *mkdirnm(	char	*dir,
 {
     static char  dirbuf[ MOD_BUFSIZE];	/** Buffer for path creation	     **/
 
-#if WITH_DEBUGGING_UTIL_2
-    ErrorLogger( NO_ERR_START, LOC, _proc_mkdirnm, ", dir='", dir, ", file='",
-	file, "'", NULL);
-#endif
-
     /**
      **  If only a file is given, or the file is in the current directory
      **  return just the file.
      **/
-
     if( dir == NULL || *dir == '\0' || !strcmp(dir,"."))
 	return( strcpy( dirbuf, file));
 
     /**
      **  Check whether the full path fits into the buffer
      **/
-
     if( (int) ( strlen( dir) + 1 + strlen( file) + 1 ) > MOD_BUFSIZE) {
 	if( OK != ErrorLogger( ERR_NAMETOLONG, LOC, dir, file, NULL))
 	    return( NULL);

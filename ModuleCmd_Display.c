@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Display.c,v 1.8 2009/08/23 06:57:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Display.c,v 1.9 2009/08/23 23:30:42 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -61,9 +61,6 @@ static void *UseId[] = { &UseId, Id };
 char local_line[] =
     "-------------------------------------------------------------------";
 static	char	module_name[] = __FILE__;
-#if WITH_DEBUGGING_MODULECMD
-static	char	_proc_ModuleCmd_Display[] = "ModuleCmd_Display";
-#endif
 
 /** ************************************************************************ **/
 /**				    PROTOTYPES				     **/
@@ -111,15 +108,10 @@ int ModuleCmd_Display(	Tcl_Interp	*interp,
     char	 modulefile[ MOD_BUFSIZE];
     char	 modulename[ MOD_BUFSIZE];
     
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Display, NULL);
-#endif
-
     /**
      **  Initialize the command buffer and set up the modules flag to 'display
      **  only'
      **/
-
     Tcl_DStringInit( &cmdbuf);
     g_flags |= M_DISPLAY;
 
@@ -185,10 +177,6 @@ int ModuleCmd_Display(	Tcl_Interp	*interp,
     fprintf( stderr, "\n");
 
     Tcl_DStringFree( &cmdbuf);
-
-#if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Display, NULL);
-#endif
 
     return( TCL_OK);
 
