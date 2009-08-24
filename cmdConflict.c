@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.17 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.18 2009/08/24 16:49:24 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -406,6 +406,7 @@ int cmdPrereq(
     /**
      **  Check/Display all passed modules
      **/
+	notloaded_flag = Tcl_GetString(objv[1]);
 	for (i = 1; i < objc && Tcl_GetString(objv[i]) && notloaded_flag; i++) {
 		for (j = 0; j < numpaths && notloaded_flag; j++) {
 			if ((char **)NULL ==
