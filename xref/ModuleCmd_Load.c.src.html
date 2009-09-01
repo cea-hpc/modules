@@ -48,7 +48,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 <a name="line28">28   |</a>  ** 									     ** 
 <a name="line29">29   |</a>  ** ************************************************************************ **/
 <a name="line30">30   |</a> 
-<a name="line31">31   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Load.c.src.html,v 1.7 2009/08/14 22:16:47 rkowen Exp $";
+<a name="line31">31   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Load.c.src.html,v 1.8 2009/09/01 20:22:32 rkowen Exp $";
 <a name="line32">32   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line33">33   |</a> 
 <a name="line34">34   |</a> /** ************************************************************************ **/
@@ -81,244 +81,231 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 <a name="line61">61   |</a> 
 <a name="line62">62   |</a> static	char	module_name[] = __FILE__;
 <a name="line63">63   |</a> 
-<a name="line64">64   |</a> #if WITH_DEBUGGING_MODULECMD
-<a name="line65">65   |</a> static	char	_proc_ModuleCmd_Load[] = "ModuleCmd_Load";
-<a name="line66">66   |</a> #endif
+<a name="line64">64   |</a> /** ************************************************************************ **/
+<a name="line65">65   |</a> /**				    PROTOTYPES				     **/
+<a name="line66">66   |</a> /** ************************************************************************ **/
 <a name="line67">67   |</a> 
-<a name="line68">68   |</a> /** ************************************************************************ **/
-<a name="line69">69   |</a> /**				    PROTOTYPES				     **/
-<a name="line70">70   |</a> /** ************************************************************************ **/
-<a name="line71">71   |</a> 
-<a name="line72">72   |</a> /** not applicable **/
-<a name="line73">73   |</a> 
-<a name="line74">74   |</a> 
-<a name="line75">75   |</a> /*++++
-<a name="line76">76   |</a>  ** ** Function-Header ***************************************************** **
+<a name="line68">68   |</a> /** not applicable **/
+<a name="line69">69   |</a> 
+<a name="line70">70   |</a> 
+<a name="line71">71   |</a> /*++++
+<a name="line72">72   |</a>  ** ** Function-Header ***************************************************** **
+<a name="line73">73   |</a>  ** 									     **
+<a name="line74">74   |</a>  **   Function:		ModuleCmd_Load					     **
+<a name="line75">75   |</a>  ** 									     **
+<a name="line76">76   |</a>  **   Description:	Execution of the module-commands 'load' and 'unload' **
 <a name="line77">77   |</a>  ** 									     **
-<a name="line78">78   |</a>  **   Function:		ModuleCmd_Load					     **
+<a name="line78">78   |</a>  **   First Edition:	1991/10/23					     **
 <a name="line79">79   |</a>  ** 									     **
-<a name="line80">80   |</a>  **   Description:	Execution of the module-commands 'load' and 'unload' **
-<a name="line81">81   |</a>  ** 									     **
-<a name="line82">82   |</a>  **   First Edition:	1991/10/23					     **
-<a name="line83">83   |</a>  ** 									     **
-<a name="line84">84   |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
-<a name="line85">85   |</a>  **			int		 load		Controls 'load' or   **
-<a name="line86">86   |</a>  **							'unload' to be done  **
-<a name="line87">87   |</a>  **			int		 argc		Number of arguments  **
-<a name="line88">88   |</a>  **			char 		*argv[]		Argument list	     **
-<a name="line89">89   |</a>  ** 									     **
-<a name="line90">90   |</a>  **   Result:		int	0		None of the passed modules   **
-<a name="line91">91   |</a>  **						has been load		     **
-<a name="line92">92   |</a>  **				1		At least one module has been **
-<a name="line93">93   |</a>  **						read			     **
-<a name="line94">94   |</a>  ** 									     **
-<a name="line95">95   |</a>  **   Attached Globals:	g_specified_module	The module name from the     **
-<a name="line96">96   |</a>  **						command line		     **
-<a name="line97">97   |</a>  **   			g_flags		These are set up accordingly before  **
-<a name="line98">98   |</a>  **					this function is called in order to  **
-<a name="line99">99   |</a>  **					control everything		     **
-<a name="line100">100  |</a>  **			g_current_module	The module which is handled  **
-<a name="line101">101  |</a>  **						by the current command	     **
-<a name="line102">102  |</a>  ** 									     **
-<a name="line103">103  |</a>  ** ************************************************************************ **
-<a name="line104">104  |</a>  ++++*/
-<a name="line105">105  |</a> 
-<a name="line106">106  |</a> int	ModuleCmd_Load(	Tcl_Interp	*interp,
-<a name="line107">107  |</a>                		int		 load,
-<a name="line108">108  |</a>                		int		 argc,
-<a name="line109">109  |</a>                		char		*argv[])
-<a name="line110">110  |</a> {
-<a name="line111">111  |</a>     int			  i,
-<a name="line112">112  |</a>     			  return_val,		/** Subroutine return values **/
-<a name="line113">113  |</a>     			  a_successful_load = 0;	/** Command return   **/
-<a name="line114">114  |</a>     char		  filename[ MOD_BUFSIZE],	/** Module filename  **/
-<a name="line115">115  |</a>     			  modulename[ MOD_BUFSIZE];	/** Real module name **/
-<a name="line116">116  |</a>     Tcl_Interp		 *tmp_interp;		/** Tcl interpreter to be    **/
-<a name="line117">117  |</a> 						/** used internally	     **/
-<a name="line118">118  |</a>     Tcl_HashTable	**oldTables = NULL;
-<a name="line119">119  |</a>     EM_RetVal		  em_return_val = EM_OK;
-<a name="line120">120  |</a> 
-<a name="line121">121  |</a> #if WITH_DEBUGGING_MODULECMD
-<a name="line122">122  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Load, NULL);
-<a name="line123">123  |</a> #endif
-<a name="line124">124  |</a> 
+<a name="line80">80   |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
+<a name="line81">81   |</a>  **			int		 load		Controls 'load' or   **
+<a name="line82">82   |</a>  **							'unload' to be done  **
+<a name="line83">83   |</a>  **			int		 argc		Number of arguments  **
+<a name="line84">84   |</a>  **			char 		*argv[]		Argument list	     **
+<a name="line85">85   |</a>  ** 									     **
+<a name="line86">86   |</a>  **   Result:		int	0		None of the passed modules   **
+<a name="line87">87   |</a>  **						has been load		     **
+<a name="line88">88   |</a>  **				1		At least one module has been **
+<a name="line89">89   |</a>  **						read			     **
+<a name="line90">90   |</a>  ** 									     **
+<a name="line91">91   |</a>  **   Attached Globals:	g_specified_module	The module name from the     **
+<a name="line92">92   |</a>  **						command line		     **
+<a name="line93">93   |</a>  **   			g_flags		These are set up accordingly before  **
+<a name="line94">94   |</a>  **					this function is called in order to  **
+<a name="line95">95   |</a>  **					control everything		     **
+<a name="line96">96   |</a>  **			g_current_module	The module which is handled  **
+<a name="line97">97   |</a>  **						by the current command	     **
+<a name="line98">98   |</a>  ** 									     **
+<a name="line99">99   |</a>  ** ************************************************************************ **
+<a name="line100">100  |</a>  ++++*/
+<a name="line101">101  |</a> 
+<a name="line102">102  |</a> int	ModuleCmd_Load(	Tcl_Interp	*interp,
+<a name="line103">103  |</a>                		int		 load,
+<a name="line104">104  |</a>                		int		 argc,
+<a name="line105">105  |</a>                		char		*argv[])
+<a name="line106">106  |</a> {
+<a name="line107">107  |</a>     int			  i,
+<a name="line108">108  |</a>     			  return_val,		/** Subroutine return values **/
+<a name="line109">109  |</a>     			  a_successful_load = 0;	/** Command return   **/
+<a name="line110">110  |</a>     char		  filename[ MOD_BUFSIZE],	/** Module filename  **/
+<a name="line111">111  |</a>     			  modulename[ MOD_BUFSIZE];	/** Real module name **/
+<a name="line112">112  |</a>     Tcl_Interp		 *tmp_interp;		/** Tcl interpreter to be    **/
+<a name="line113">113  |</a> 						/** used internally	     **/
+<a name="line114">114  |</a>     MHash		**oldTables = NULL;
+<a name="line115">115  |</a>     EM_RetVal		  em_return_val = EM_OK;
+<a name="line116">116  |</a> 
+<a name="line117">117  |</a>     /**
+<a name="line118">118  |</a>      **  Set up the flags controling the Tcl callback functions
+<a name="line119">119  |</a>      **/
+<a name="line120">120  |</a>     if( load)
+<a name="line121">121  |</a>         g_flags |= M_LOAD;
+<a name="line122">122  |</a>     else
+<a name="line123">123  |</a>         g_flags |= M_REMOVE;
+<a name="line124">124  |</a>     
 <a name="line125">125  |</a>     /**
-<a name="line126">126  |</a>      **  Set up the flags controling the Tcl callback functions
+<a name="line126">126  |</a>      **  Handle all module files in the order they are passed to me
 <a name="line127">127  |</a>      **/
 <a name="line128">128  |</a> 
-<a name="line129">129  |</a>     if( load)
-<a name="line130">130  |</a>         g_flags |= M_LOAD;
-<a name="line131">131  |</a>     else
-<a name="line132">132  |</a>         g_flags |= M_REMOVE;
-<a name="line133">133  |</a>     
-<a name="line134">134  |</a>     /**
-<a name="line135">135  |</a>      **  Handle all module files in the order they are passed to me
-<a name="line136">136  |</a>      **/
-<a name="line137">137  |</a> 
-<a name="line138">138  |</a>     for( i=0; i&lt;argc &amp;&amp; argv[i]; i++) {
-<a name="line139">139  |</a> 	/**
-<a name="line140">140  |</a> 	 ** Set the name of the module specified on the command line
-<a name="line141">141  |</a> 	 **/
-<a name="line142">142  |</a> 
-<a name="line143">143  |</a> 	g_specified_module = argv[i];
+<a name="line129">129  |</a>     for( i=0; i&lt;argc &amp;&amp; argv[i]; i++) {
+<a name="line130">130  |</a> 	/**
+<a name="line131">131  |</a> 	 ** Set the name of the module specified on the command line
+<a name="line132">132  |</a> 	 **/
+<a name="line133">133  |</a> 
+<a name="line134">134  |</a> 	g_specified_module = argv[i];
+<a name="line135">135  |</a> 
+<a name="line136">136  |</a> 	/**
+<a name="line137">137  |</a> 	 **  Create a Tcl interpreter and initialize it with the module commands
+<a name="line138">138  |</a> 	 **/
+<a name="line139">139  |</a> 
+<a name="line140">140  |</a>         tmp_interp = Tcl_CreateInterp();
+<a name="line141">141  |</a> 	if( TCL_OK != (return_val = Module_Init( tmp_interp)))
+<a name="line142">142  |</a> 	    return( return_val);	/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line143">143  |</a>         filename[0] = '\0';
 <a name="line144">144  |</a> 
 <a name="line145">145  |</a> 	/**
-<a name="line146">146  |</a> 	 **  Create a Tcl interpreter and initialize it with the module commands
-<a name="line147">147  |</a> 	 **/
-<a name="line148">148  |</a> 
-<a name="line149">149  |</a>         tmp_interp = Tcl_CreateInterp();
-<a name="line150">150  |</a> 	if( TCL_OK != (return_val = InitializeModuleCommands( tmp_interp)))
-<a name="line151">151  |</a> 	    return( return_val);	/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line152">152  |</a>         filename[0] = '\0';
+<a name="line146">146  |</a> 	 **  UNLOAD to be done
+<a name="line147">147  |</a> 	 **  At first check if it is loaded ...
+<a name="line148">148  |</a> 	 **/
+<a name="line149">149  |</a> 
+<a name="line150">150  |</a>         if( !load) {
+<a name="line151">151  |</a> 
+<a name="line152">152  |</a>             char	*tmpname;
 <a name="line153">153  |</a> 
-<a name="line154">154  |</a> 	/**
-<a name="line155">155  |</a> 	 **  UNLOAD to be done
-<a name="line156">156  |</a> 	 **  At first check if it is loaded ...
-<a name="line157">157  |</a> 	 **/
-<a name="line158">158  |</a> 
-<a name="line159">159  |</a>         if( !load) {
-<a name="line160">160  |</a> 
-<a name="line161">161  |</a>             char	*tmpname;
-<a name="line162">162  |</a> 
-<a name="line163">163  |</a>             if( !IsLoaded( tmp_interp, argv[i], &amp;tmpname, filename)) {
-<a name="line164">164  |</a> #if 0
-<a name="line165">165  |</a> 		/** do we really care if it's not loaded ... **/
-<a name="line166">166  |</a> 		if( OK != ErrorLogger( ERR_NOTLOADED, LOC, argv[i], NULL))
-<a name="line167">167  |</a> #endif
-<a name="line168">168  |</a> 		    return_val = TCL_ERROR;
-<a name="line169">169  |</a>             } else {
-<a name="line170">170  |</a> 
-<a name="line171">171  |</a> 		/**
-<a name="line172">172  |</a> 		 **  So it is loaded ...
-<a name="line173">173  |</a> 		 **  Do we know the filename?
-<a name="line174">174  |</a> 		 **/
-<a name="line175">175  |</a>                 if ((char *) NULL == stringer(modulename, MOD_BUFSIZE,
-<a name="line176">176  |</a> 			tmpname, NULL))
-<a name="line177">177  |</a> 		    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line178">178  |</a> 			goto unwind0;
-<a name="line179">179  |</a>                 if( !filename[0])
-<a name="line180">180  |</a>                     if( TCL_ERROR == (return_val = Locate_ModuleFile(
-<a name="line181">181  |</a> 			tmp_interp, argv[i], tmpname, filename))) 
-<a name="line182">182  |</a> 			ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL);
+<a name="line154">154  |</a>             if( !IsLoaded( tmp_interp, argv[i], &amp;tmpname, filename)) {
+<a name="line155">155  |</a> #if 0
+<a name="line156">156  |</a> 		/** do we really care if it's not loaded ... **/
+<a name="line157">157  |</a> 		if( OK != ErrorLogger( ERR_NOTLOADED, LOC, argv[i], NULL))
+<a name="line158">158  |</a> #endif
+<a name="line159">159  |</a> 		    return_val = TCL_ERROR;
+<a name="line160">160  |</a>             } else {
+<a name="line161">161  |</a> 
+<a name="line162">162  |</a> 		/**
+<a name="line163">163  |</a> 		 **  So it is loaded ...
+<a name="line164">164  |</a> 		 **  Do we know the filename?
+<a name="line165">165  |</a> 		 **/
+<a name="line166">166  |</a>                 if ((char *) NULL == stringer(modulename, MOD_BUFSIZE,
+<a name="line167">167  |</a> 			tmpname, NULL))
+<a name="line168">168  |</a> 		    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+<a name="line169">169  |</a> 			goto unwind0;
+<a name="line170">170  |</a>                 if( !filename[0])
+<a name="line171">171  |</a>                     if( TCL_ERROR == (return_val = Locate_ModuleFile(
+<a name="line172">172  |</a> 			tmp_interp, argv[i], tmpname, filename))) 
+<a name="line173">173  |</a> 			ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL);
+<a name="line174">174  |</a> 
+<a name="line175">175  |</a>                 /**
+<a name="line176">176  |</a>                  **  If IsLoaded() created tmpname, then we must free it.
+<a name="line177">177  |</a>                  **/
+<a name="line178">178  |</a> 
+<a name="line179">179  |</a>                 if( tmpname &amp;&amp; (tmpname != argv[i]))
+<a name="line180">180  |</a>                     null_free((void *) &amp;tmpname);
+<a name="line181">181  |</a> 
+<a name="line182">182  |</a>             } /** if loaded **/
 <a name="line183">183  |</a> 
-<a name="line184">184  |</a>                 /**
-<a name="line185">185  |</a>                  **  If IsLoaded() created tmpname, then we must free it.
-<a name="line186">186  |</a>                  **/
-<a name="line187">187  |</a> 
-<a name="line188">188  |</a>                 if( tmpname &amp;&amp; (tmpname != argv[i]))
-<a name="line189">189  |</a>                     null_free((void *) &amp;tmpname);
-<a name="line190">190  |</a> 
-<a name="line191">191  |</a>             } /** if loaded **/
-<a name="line192">192  |</a> 
-<a name="line193">193  |</a> 	/**
-<a name="line194">194  |</a> 	 **  LOAD to be done
-<a name="line195">195  |</a> 	 **  Only check the filename
-<a name="line196">196  |</a> 	 **/
-<a name="line197">197  |</a>         } else {
-<a name="line198">198  |</a> 	    if( TCL_ERROR == (return_val = Locate_ModuleFile( tmp_interp,
-<a name="line199">199  |</a> 		argv[i], modulename, filename)))
-<a name="line200">200  |</a> 		ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL);
-<a name="line201">201  |</a>         }
-<a name="line202">202  |</a>         /**
-<a name="line203">203  |</a>          **  If return_val has been set to something other than TCL_OK,
-<a name="line204">204  |</a>          **  then read_status should not be set -- by the ANSI definition.
-<a name="line205">205  |</a> 	 **
-<a name="line206">206  |</a> 	 **  The functions Read_Modulefile and Update_LoadedList will take 
-<a name="line207">207  |</a> 	 **  respect to the 'flags' which are set to M_LOAD or M_REMOVE
-<a name="line208">208  |</a> 	 **  according to the intention of calling this procedure.
-<a name="line209">209  |</a>          **/
-<a name="line210">210  |</a> 
-<a name="line211">211  |</a> 	g_current_module = modulename;
-<a name="line212">212  |</a> 	if( TCL_OK == return_val) {
-<a name="line213">213  |</a> 	    return_val = Read_Modulefile(tmp_interp, filename);
-<a name="line214">214  |</a> 	    em_return_val = ReturnValue(tmp_interp, return_val);
-<a name="line215">215  |</a> 
-<a name="line216">216  |</a> 	    switch (em_return_val) {
-<a name="line217">217  |</a> 	    case EM_OK:
-<a name="line218">218  |</a> 		/**
-<a name="line219">219  |</a> 		 ** If module terminates TCL_OK, add it to the loaded list ...
-<a name="line220">220  |</a> 		 **/
-<a name="line221">221  |</a> 	    case EM_CONTINUE:
-<a name="line222">222  |</a> 		/**
-<a name="line223">223  |</a> 		 ** If module terminates TCL_CONTINUE, add it to the
-<a name="line224">224  |</a> 		 ** loaded list ... but further processing of that module
-<a name="line225">225  |</a> 		 ** has ceased
-<a name="line226">226  |</a> 		 **/
-<a name="line227">227  |</a> 		Tcl_ResetResult(tmp_interp);
-<a name="line228">228  |</a> 		Update_LoadedList( tmp_interp, modulename, filename);
-<a name="line229">229  |</a> 
-<a name="line230">230  |</a> 		/**
-<a name="line231">231  |</a> 		 **  Save the current environment setup before the next module
-<a name="line232">232  |</a> 		 **  file is (un)loaded in case something is broken ...
-<a name="line233">233  |</a> 		 **  ... for Unwind_Modulefile_Changes later on
-<a name="line234">234  |</a> 		 **/
-<a name="line235">235  |</a> 		Tcl_ResetResult(tmp_interp);
-<a name="line236">236  |</a>         	if( oldTables) {
-<a name="line237">237  |</a>                     Delete_Hash_Tables( oldTables);
-<a name="line238">238  |</a>                     null_free((void *) &amp;oldTables);
-<a name="line239">239  |</a>         	}
-<a name="line240">240  |</a>         	oldTables = Copy_Hash_Tables();
-<a name="line241">241  |</a> 		a_successful_load = 1;
-<a name="line242">242  |</a> 		break;	/* switch */
-<a name="line243">243  |</a> 
-<a name="line244">244  |</a> 	    case EM_BREAK:
-<a name="line245">245  |</a> 		/**
-<a name="line246">246  |</a> 		 ** If module terminates TCL_BREAK, don't add it to the list,
-<a name="line247">247  |</a> 		 ** but assume that everything was OK with the module anyway.
-<a name="line248">248  |</a> 		 ** (The original code wasn't correct)
-<a name="line249">249  |</a> 		 **/
-<a name="line250">250  |</a> 	    case EM_EXIT:
-<a name="line251">251  |</a> 		/**
-<a name="line252">252  |</a> 		 ** If module terminates TCL_EXIT, find the return value
-<a name="line253">253  |</a> 		 ** and exit modulecmd with that ... also none of the
-<a name="line254">254  |</a> 		 ** following modules should be loaded.
-<a name="line255">255  |</a> 		 **/
-<a name="line256">256  |</a> 	    case EM_ERROR:
-<a name="line257">257  |</a> 	    default:
-<a name="line258">258  |</a> 		/**
-<a name="line259">259  |</a> 		 **  Reset what has been changed.
-<a name="line260">260  |</a> 		 **/
-<a name="line261">261  |</a> 		Unwind_Modulefile_Changes( tmp_interp, oldTables);
-<a name="line262">262  |</a>             
-<a name="line263">263  |</a>         	oldTables = NULL;
-<a name="line264">264  |</a> 		return_val = TCL_ERROR;
-<a name="line265">265  |</a> 		break;	/* switch */
-<a name="line266">266  |</a> 	    }
-<a name="line267">267  |</a> 	}
-<a name="line268">268  |</a>         Tcl_DeleteInterp(tmp_interp);
-<a name="line269">269  |</a> 
-<a name="line270">270  |</a> 	/* do not process any further modulefiles if EM_EXIT */
-<a name="line271">271  |</a> 	if (em_return_val == EM_EXIT) break; /* for */
-<a name="line272">272  |</a> 
-<a name="line273">273  |</a>     } /** for **/
+<a name="line184">184  |</a> 	/**
+<a name="line185">185  |</a> 	 **  LOAD to be done
+<a name="line186">186  |</a> 	 **  Only check the filename
+<a name="line187">187  |</a> 	 **/
+<a name="line188">188  |</a>         } else {
+<a name="line189">189  |</a> 	    if( TCL_ERROR == (return_val = Locate_ModuleFile( tmp_interp,
+<a name="line190">190  |</a> 		argv[i], modulename, filename)))
+<a name="line191">191  |</a> 		ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL);
+<a name="line192">192  |</a>         }
+<a name="line193">193  |</a>         /**
+<a name="line194">194  |</a>          **  If return_val has been set to something other than TCL_OK,
+<a name="line195">195  |</a>          **  then read_status should not be set -- by the ANSI definition.
+<a name="line196">196  |</a> 	 **
+<a name="line197">197  |</a> 	 **  The functions Read_Modulefile and Update_LoadedList will take 
+<a name="line198">198  |</a> 	 **  respect to the 'flags' which are set to M_LOAD or M_REMOVE
+<a name="line199">199  |</a> 	 **  according to the intention of calling this procedure.
+<a name="line200">200  |</a>          **/
+<a name="line201">201  |</a> 
+<a name="line202">202  |</a> 	g_current_module = modulename;
+<a name="line203">203  |</a> 	if( TCL_OK == return_val) {
+<a name="line204">204  |</a> 	    return_val = Read_Modulefile(tmp_interp, filename);
+<a name="line205">205  |</a> 	    em_return_val = ReturnValue(tmp_interp, return_val);
+<a name="line206">206  |</a> 
+<a name="line207">207  |</a> 	    switch (em_return_val) {
+<a name="line208">208  |</a> 	    case EM_OK:
+<a name="line209">209  |</a> 		/**
+<a name="line210">210  |</a> 		 ** If module terminates TCL_OK, add it to the loaded list ...
+<a name="line211">211  |</a> 		 **/
+<a name="line212">212  |</a> 	    case EM_CONTINUE:
+<a name="line213">213  |</a> 		/**
+<a name="line214">214  |</a> 		 ** If module terminates TCL_CONTINUE, add it to the
+<a name="line215">215  |</a> 		 ** loaded list ... but further processing of that module
+<a name="line216">216  |</a> 		 ** has ceased
+<a name="line217">217  |</a> 		 **/
+<a name="line218">218  |</a> 		Tcl_ResetResult(tmp_interp);
+<a name="line219">219  |</a> 		Update_LoadedList( tmp_interp, modulename, filename);
+<a name="line220">220  |</a> 
+<a name="line221">221  |</a> 		/**
+<a name="line222">222  |</a> 		 **  Save the current environment setup before the next module
+<a name="line223">223  |</a> 		 **  file is (un)loaded in case something is broken ...
+<a name="line224">224  |</a> 		 **  ... for Unwind_Modulefile_Changes later on
+<a name="line225">225  |</a> 		 **/
+<a name="line226">226  |</a> 		Tcl_ResetResult(tmp_interp);
+<a name="line227">227  |</a>         	if( oldTables) {
+<a name="line228">228  |</a>                     Global_Hash_Tables(GHashDelete, oldTables);
+<a name="line229">229  |</a>                     null_free((void *) &amp;oldTables);
+<a name="line230">230  |</a>         	}
+<a name="line231">231  |</a>         	oldTables = Global_Hash_Tables(GHashCopy, NULL);
+<a name="line232">232  |</a> 		a_successful_load = 1;
+<a name="line233">233  |</a> 		break;	/* switch */
+<a name="line234">234  |</a> 
+<a name="line235">235  |</a> 	    case EM_BREAK:
+<a name="line236">236  |</a> 		/**
+<a name="line237">237  |</a> 		 ** If module terminates TCL_BREAK, don't add it to the list,
+<a name="line238">238  |</a> 		 ** but assume that everything was OK with the module anyway.
+<a name="line239">239  |</a> 		 ** (The original code wasn't correct)
+<a name="line240">240  |</a> 		 **/
+<a name="line241">241  |</a> 	    case EM_EXIT:
+<a name="line242">242  |</a> 		/**
+<a name="line243">243  |</a> 		 ** If module terminates TCL_EXIT, find the return value
+<a name="line244">244  |</a> 		 ** and exit modulecmd with that ... also none of the
+<a name="line245">245  |</a> 		 ** following modules should be loaded.
+<a name="line246">246  |</a> 		 **/
+<a name="line247">247  |</a> 	    case EM_ERROR:
+<a name="line248">248  |</a> 	    default:
+<a name="line249">249  |</a> 		/**
+<a name="line250">250  |</a> 		 **  Reset what has been changed.
+<a name="line251">251  |</a> 		 **/
+<a name="line252">252  |</a> 		Unwind_Modulefile_Changes( tmp_interp, oldTables);
+<a name="line253">253  |</a>             
+<a name="line254">254  |</a>         	oldTables = NULL;
+<a name="line255">255  |</a> 		return_val = TCL_ERROR;
+<a name="line256">256  |</a> 		break;	/* switch */
+<a name="line257">257  |</a> 	    }
+<a name="line258">258  |</a> 	}
+<a name="line259">259  |</a>         Tcl_DeleteInterp(tmp_interp);
+<a name="line260">260  |</a> 
+<a name="line261">261  |</a> 	/* do not process any further modulefiles if EM_EXIT */
+<a name="line262">262  |</a> 	if (em_return_val == EM_EXIT) break; /* for */
+<a name="line263">263  |</a> 
+<a name="line264">264  |</a>     } /** for **/
+<a name="line265">265  |</a> 
+<a name="line266">266  |</a>     /**
+<a name="line267">267  |</a>      **  There may only be a spare save environment left, if the final module
+<a name="line268">268  |</a>      **  has been load successfully. Remove it in this case
+<a name="line269">269  |</a>      **/
+<a name="line270">270  |</a>     if( em_return_val == EM_OK &amp;&amp; oldTables) {
+<a name="line271">271  |</a>         Global_Hash_Tables(GHashDelete, oldTables);
+<a name="line272">272  |</a>         null_free((void *) &amp;oldTables);
+<a name="line273">273  |</a>     }
 <a name="line274">274  |</a> 
 <a name="line275">275  |</a>     /**
-<a name="line276">276  |</a>      **  There may only be a spare save environment left, if the final module
-<a name="line277">277  |</a>      **  has been load successfully. Remove it in this case
-<a name="line278">278  |</a>      **/
-<a name="line279">279  |</a>     if( em_return_val == EM_OK &amp;&amp; oldTables) {
-<a name="line280">280  |</a>         Delete_Hash_Tables( oldTables);
-<a name="line281">281  |</a>         null_free((void *) &amp;oldTables);
-<a name="line282">282  |</a>     }
-<a name="line283">283  |</a> 
-<a name="line284">284  |</a>     /**
-<a name="line285">285  |</a>      **  Clean up the flags and return 
-<a name="line286">286  |</a>      **/
-<a name="line287">287  |</a>     if( load)
-<a name="line288">288  |</a>         g_flags &amp;= ~M_LOAD;
-<a name="line289">289  |</a>     else
-<a name="line290">290  |</a>         g_flags &amp;= ~M_REMOVE;
-<a name="line291">291  |</a> 
-<a name="line292">292  |</a> #if WITH_DEBUGGING_MODULECMD
-<a name="line293">293  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Load, NULL);
-<a name="line294">294  |</a> #endif
-<a name="line295">295  |</a> 
-<a name="line296">296  |</a>     return( a_successful_load);
-<a name="line297">297  |</a> 
-<a name="line298">298  |</a> unwind0:
-<a name="line299">299  |</a>     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line300">300  |</a> 
-<a name="line301">301  |</a> } /** End of 'ModuleCmd_Load' **/
+<a name="line276">276  |</a>      **  Clean up the flags and return 
+<a name="line277">277  |</a>      **/
+<a name="line278">278  |</a>     if( load)
+<a name="line279">279  |</a>         g_flags &amp;= ~M_LOAD;
+<a name="line280">280  |</a>     else
+<a name="line281">281  |</a>         g_flags &amp;= ~M_REMOVE;
+<a name="line282">282  |</a> 
+<a name="line283">283  |</a>     return( a_successful_load);
+<a name="line284">284  |</a> 
+<a name="line285">285  |</a> unwind0:
+<a name="line286">286  |</a>     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line287">287  |</a> 
+<a name="line288">288  |</a> } /** End of 'ModuleCmd_Load' **/
 </pre>
 
 </BODY>

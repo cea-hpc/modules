@@ -21,7 +21,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 <pre>
  ** ** Module Header ******************************************************* **
  ** 									     **
- **   Modules Revision 3.2						     **
+ **   Modules Revision 3.3						     **
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		modules_def.h					     **
@@ -29,7 +29,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, &lt;rk@owen.sj.ca.us&gt; or &lt;rkowen@nersc.gov&gt;	     **
  ** 									     **
  **   Description:							     **
  ** 									     **
@@ -189,6 +189,18 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
     <td>&nbsp;
     <td><a href="utility.c.html#file">utility.c</a>
   </tr>
+  <tr>
+    <td>&nbsp;
+    <td><a href="utilmem.c.html#file">utilmem.c</a>
+  </tr>
+  <tr>
+    <td>&nbsp;
+    <td><a href="utilobj.c.html#file">utilobj.c</a>
+  </tr>
+  <tr>
+    <td>&nbsp;
+    <td><a href="uvec.c.html#file">uvec.c</a>
+  </tr>
 </table>
 
 <hr>
@@ -205,6 +217,12 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 </ul>
 <ul class="cxref-include">
   <li class="cxref-include-local"><tt><span class="cxref-include-local"><a href="config.h.html#file">#include "config.h"</a></span></tt>
+</ul>
+<ul class="cxref-include">
+  <li class="cxref-include-local"><tt><span class="cxref-include-local"><a href="uvec.h.html#file">#include "uvec.h"</a></span></tt>
+  <ul class="cxref-include">
+    <li class="cxref-include-system"><tt><span class="cxref-include-system">#include &lt;stdlib.h&gt;</span></tt>
+  </ul>
 </ul>
 <ul class="cxref-include">
   <li class="cxref-include-system"><tt><span class="cxref-include-system">#include &lt;stdlib.h&gt;</span></tt>
@@ -251,131 +269,227 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 
 <tt><span class="cxref-define"><a href="modules_def.h.src.html#line31">#define _MODULES_DEF_H</a></span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line49">#define TCL_RESULT</a>( interp )</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line50">#define TCL_RESULT</a>( interp )</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line111">#define NLENGTH</a>( dirent )</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line112">#define NLENGTH</a>( dirent )</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line138">#define _</a>( String )</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line139">#define _</a>( String )</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line143">#define N_</a>( String )</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line144">#define N_</a>( String )</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line287">#define MODULES_MAGIC_COOKIE</a> "#%Module"</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line314">#define MODULES_MAGIC_COOKIE</a> "#%Module"</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line288">#define MODULES_MAGIC_COOKIE_LENGTH</a> 8</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line315">#define MODULES_MAGIC_COOKIE_LENGTH</a> 8</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line294">#define UL_NOVICE</a> 0</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line321">#define UL_NOVICE</a> 0</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line295">#define UL_ADVANCED</a> 64</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line322">#define UL_ADVANCED</a> 64</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line296">#define UL_EXPERT</a> 128</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line323">#define UL_EXPERT</a> 128</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line302">#define WITH_DEBUGGING</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line332">#define DEF_FACILITY</a> "local7"</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line303">#define WITH_DEBUGGING_MODULECMD</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line335">#define DEF_FACILITY_VERBOSE</a></span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line304">#define WITH_DEBUGGING_MODULECMD_1</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line336">#define DEF_FACILITY_INFO</a></span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line305">#define WITH_DEBUGGING_INIT</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line337">#define DEF_FACILITY_DEBUG</a></span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line306">#define WITH_DEBUGGING_CALLBACK</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line338">#define DEF_FACILITY_WARN</a></span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line307">#define WITH_DEBUGGING_CALLBACK_1</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line339">#define DEF_FACILITY_PROB</a></span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line308">#define WITH_DEBUGGING_LOCATE</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line340">#define DEF_FACILITY_ERROR</a></span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line309">#define WITH_DEBUGGING_LOCATE_1</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line341">#define DEF_FACILITY_FATAL</a></span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line310">#define WITH_DEBUGGING_UTIL</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line342">#define DEF_FACILITY_PANIC</a></span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line311">#define WITH_DEBUGGING_UTIL_1</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line348">#define M_REMOVE</a> 0x0001</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line312">#define WITH_DEBUGGING_UTIL_2</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line349">#define M_DISPLAY</a> 0x0002</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line313">#define WITH_DEBUGGING_UTIL_3</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line350">#define M_SWSTATE1</a> 0x0004</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line322">#define DEF_FACILITY</a> "local7"</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line351">#define M_SWSTATE2</a> 0x0008</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line325">#define DEF_FACILITY_VERBOSE</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line352">#define M_SWSTATE3</a> 0x0010</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line326">#define DEF_FACILITY_INFO</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line353">#define M_SWITCH</a></span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line327">#define DEF_FACILITY_DEBUG</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line354">#define M_LOAD</a> 0x0020</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line328">#define DEF_FACILITY_WARN</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line355">#define M_CLEAR</a> 0x0040</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line329">#define DEF_FACILITY_PROB</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line356">#define M_PREPEND</a> 0x0080</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line330">#define DEF_FACILITY_ERROR</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line357">#define M_HELP</a> 0x0100</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line331">#define DEF_FACILITY_FATAL</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line358">#define M_WHATIS</a> 0x0200</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line332">#define DEF_FACILITY_PANIC</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line359">#define M_NONPERSIST</a> 0x0400</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line338">#define M_REMOVE</a> 0x0001</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line365">#define SWMARKER</a> "--VARMARKER--"</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line339">#define M_DISPLAY</a> 0x0002</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line366">#define APP_SW_MARKER</a> "--APPMARKER--"</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line340">#define M_SWSTATE1</a> 0x0004</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line367">#define PRE_SW_MARKER</a> "--PREMARKER--"</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line341">#define M_SWSTATE2</a> 0x0008</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line373">#define TCL_LEVEL0_RETURN</a> 11</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line342">#define M_SWSTATE3</a> 0x0010</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line380">#define RCFILE</a> "rc"</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line343">#define M_SWITCH</a></span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line384">#define MODULERCFILE</a> ".modulerc"</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line344">#define M_LOAD</a> 0x0020</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line388">#define VERSIONFILE</a> ".version"</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line345">#define M_CLEAR</a> 0x0040</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line395">#define LINELENGTH</a> 8192</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line346">#define M_PREPEND</a> 0x0080</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line396">#define MOD_BUFSIZE</a> 1024</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line347">#define M_HELP</a> 0x0100</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line436">#define ErrorLogger</a> Module_Error</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line348">#define M_WHATIS</a> 0x0200</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line437">#define LOC</a></span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line349">#define M_NONPERSIST</a> 0x0400</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line510">#define SW_SET</a> 0x01</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line355">#define SWMARKER</a> "--VARMARKER--"</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line511">#define SW_HUMAN</a> 0x02</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line356">#define APP_SW_MARKER</a> "--APPMARKER--"</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line512">#define SW_PARSE</a> 0x04</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line357">#define PRE_SW_MARKER</a> "--PREMARKER--"</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line513">#define SW_TERSE</a> 0x08</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line363">#define TCL_LEVEL0_RETURN</a> 11</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line514">#define SW_LONG</a> 0x10</span></tt><br>
 <p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line370">#define RCFILE</a> "rc"</span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line374">#define MODULERCFILE</a> ".modulerc"</span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line378">#define VERSIONFILE</a> ".version"</span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line385">#define LINELENGTH</a> 8192</span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line386">#define MOD_BUFSIZE</a> 1024</span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line405">#define free</a>( x )</span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line406">#define FreeList</a>( x, y )</span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line426">#define ErrorLogger</a> Module_Error</span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line427">#define LOC</a></span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line498">#define SW_SET</a> 0x01</span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line499">#define SW_HUMAN</a> 0x02</span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line500">#define SW_PARSE</a> 0x04</span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line501">#define SW_TERSE</a> 0x08</span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line502">#define SW_LONG</a> 0x10</span></tt><br>
-<p>
-<tt><span class="cxref-define"><a href="modules_def.h.src.html#line503">#define SW_LIST</a> 0x20</span></tt><br>
+<tt><span class="cxref-define"><a href="modules_def.h.src.html#line515">#define SW_LIST</a> 0x20</span></tt><br>
+
+<hr>
+<h2><a name="type-MHashType">Typedef MHashType</a></h2>
+<tt><span class="cxref-type"><a href="modules_def.h.src.html#line160">typedef enum {...} MHashType</a></span></tt><br>
+<table>
+  <tr>
+    <td><tt><span class="cxref-type">enum</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;<tt><span class="cxref-type">{</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">MHashNULL;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">MHashInt;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">MHashStrings;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">MHashRefCounts;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">MHashFiles;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;<tt><span class="cxref-type">}</span></tt>
+    <td>&nbsp;
+  </tr>
+</table>
+
+<hr>
+<h2><a name="type-MHash">Typedef MHash</a></h2>
+<tt><span class="cxref-type"><a href="modules_def.h.src.html#line169">typedef struct _mhash MHash</a></span></tt><br>
+<table>
+  <tr>
+    <td><tt><span class="cxref-type">struct _mhash</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;<tt><span class="cxref-type">{</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">MHashType type;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">uvec* keys;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">Tcl_HashTable* hash;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">int (*add)(void**,va_list);</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">int (*del)(void**,va_list);</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;<tt><span class="cxref-type">}</span></tt>
+    <td>&nbsp;
+  </tr>
+</table>
+
+<hr>
+<h2><a name="type-GHashAction">Typedef GHashAction</a></h2>
+<tt><span class="cxref-type"><a href="modules_def.h.src.html#line177">typedef enum {...} GHashAction</a></span></tt><br>
+<table>
+  <tr>
+    <td><tt><span class="cxref-type">enum</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;<tt><span class="cxref-type">{</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">GHashNULL;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">GHashClear;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">GHashDelete;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">GHashCopy;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;<tt><span class="cxref-type">}</span></tt>
+    <td>&nbsp;
+  </tr>
+</table>
 
 <hr>
 <h2><a name="type-fi_ent">Typedef fi_ent</a></h2>
-<tt><span class="cxref-type"><a href="modules_def.h.src.html#line161">typedef struct _file_entry fi_ent</a></span></tt><br>
+<tt><span class="cxref-type"><a href="modules_def.h.src.html#line189">typedef struct _file_entry fi_ent</a></span></tt><br>
 <table>
   <tr>
     <td><tt><span class="cxref-type">struct _file_entry</span></tt>
@@ -418,7 +532,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 
 <hr>
 <h2><a name="type-ErrType">Typedef ErrType</a></h2>
-<tt><span class="cxref-type"><a href="modules_def.h.src.html#line173">typedef enum {...} ErrType</a></span></tt><br>
+<tt><span class="cxref-type"><a href="modules_def.h.src.html#line201">typedef enum {...} ErrType</a></span></tt><br>
 <table>
   <tr>
     <td><tt><span class="cxref-type">enum</span></tt>
@@ -431,21 +545,6 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
   <tr>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <tt><span class="cxref-type">NO_ERR;</span></tt>
-    <td>&nbsp;
-  </tr>
-  <tr>
-    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<tt><span class="cxref-type">NO_ERR_DEBUG;</span></tt>
-    <td>&nbsp;
-  </tr>
-  <tr>
-    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<tt><span class="cxref-type">NO_ERR_START;</span></tt>
-    <td>&nbsp;
-  </tr>
-  <tr>
-    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<tt><span class="cxref-type">NO_ERR_END;</span></tt>
     <td>&nbsp;
   </tr>
   <tr>
@@ -521,6 +620,11 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
   <tr>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <tt><span class="cxref-type">ERR_OPENDIR;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">ERR_CHDIR;</span></tt>
     <td>&nbsp;
   </tr>
   <tr>
@@ -606,6 +710,16 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
   <tr>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <tt><span class="cxref-type">ERR_ALLOC;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">ERR_UVEC;</span></tt>
+    <td>&nbsp;
+  </tr>
+  <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<tt><span class="cxref-type">ERR_MHASH;</span></tt>
     <td>&nbsp;
   </tr>
   <tr>
@@ -821,7 +935,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 
 <hr>
 <h2><a name="type-ErrCode">Typedef ErrCode</a></h2>
-<tt><span class="cxref-type"><a href="modules_def.h.src.html#line259">typedef enum {...} ErrCode</a></span></tt><br>
+<tt><span class="cxref-type"><a href="modules_def.h.src.html#line286">typedef enum {...} ErrCode</a></span></tt><br>
 <table>
   <tr>
     <td><tt><span class="cxref-type">enum</span></tt>
@@ -869,7 +983,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 
 <hr>
 <h2><a name="type-EM_RetVal">Typedef EM_RetVal</a></h2>
-<tt><span class="cxref-type"><a href="modules_def.h.src.html#line274">typedef enum {...} EM_RetVal</a></span></tt><br>
+<tt><span class="cxref-type"><a href="modules_def.h.src.html#line301">typedef enum {...} EM_RetVal</a></span></tt><br>
 <table>
   <tr>
     <td><tt><span class="cxref-type">enum</span></tt>
@@ -1039,6 +1153,15 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
   <tr>
     <td>Defined in:
     <td><span class="cxref-reference-local"><a href="main.c.html#var-shell_cmd_separator">main.c</a></span>
+  </tr>
+</table>
+<p>
+<b><a name="var-change_dir">change_dir</a></b><br>
+<tt><span class="cxref-variable">extern char* change_dir</span></tt><br>
+<table>
+  <tr>
+    <td>Defined in:
+    <td><span class="cxref-reference-local"><a href="cmdChdir.c.html#var-change_dir">cmdChdir.c</a></span>
   </tr>
 </table>
 <p>
@@ -1271,7 +1394,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 </table>
 <p>
 <b><a name="var-setenvHashTable">setenvHashTable</a></b><br>
-<tt><span class="cxref-variable">extern Tcl_HashTable* setenvHashTable</span></tt><br>
+<tt><span class="cxref-variable">extern MHash* setenvHashTable</span></tt><br>
 <table>
   <tr>
     <td>Defined in:
@@ -1280,7 +1403,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 </table>
 <p>
 <b><a name="var-unsetenvHashTable">unsetenvHashTable</a></b><br>
-<tt><span class="cxref-variable">extern Tcl_HashTable* unsetenvHashTable</span></tt><br>
+<tt><span class="cxref-variable">extern MHash* unsetenvHashTable</span></tt><br>
 <table>
   <tr>
     <td>Defined in:
@@ -1289,7 +1412,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 </table>
 <p>
 <b><a name="var-aliasSetHashTable">aliasSetHashTable</a></b><br>
-<tt><span class="cxref-variable">extern Tcl_HashTable* aliasSetHashTable</span></tt><br>
+<tt><span class="cxref-variable">extern MHash* aliasSetHashTable</span></tt><br>
 <table>
   <tr>
     <td>Defined in:
@@ -1298,7 +1421,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 </table>
 <p>
 <b><a name="var-aliasUnsetHashTable">aliasUnsetHashTable</a></b><br>
-<tt><span class="cxref-variable">extern Tcl_HashTable* aliasUnsetHashTable</span></tt><br>
+<tt><span class="cxref-variable">extern MHash* aliasUnsetHashTable</span></tt><br>
 <table>
   <tr>
     <td>Defined in:
@@ -1307,7 +1430,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 </table>
 <p>
 <b><a name="var-markVariableHashTable">markVariableHashTable</a></b><br>
-<tt><span class="cxref-variable">extern Tcl_HashTable* markVariableHashTable</span></tt><br>
+<tt><span class="cxref-variable">extern MHash* markVariableHashTable</span></tt><br>
 <table>
   <tr>
     <td>Defined in:
@@ -1316,11 +1439,20 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 </table>
 <p>
 <b><a name="var-markAliasHashTable">markAliasHashTable</a></b><br>
-<tt><span class="cxref-variable">extern Tcl_HashTable* markAliasHashTable</span></tt><br>
+<tt><span class="cxref-variable">extern MHash* markAliasHashTable</span></tt><br>
 <table>
   <tr>
     <td>Defined in:
     <td><span class="cxref-reference-local"><a href="main.c.html#var-markAliasHashTable">main.c</a></span>
+  </tr>
+</table>
+<p>
+<b><a name="var-GlobalHashTables">GlobalHashTables</a></b><br>
+<tt><span class="cxref-variable">extern MHash* GlobalHashTables[5]</span></tt><br>
+<table>
+  <tr>
+    <td>Defined in:
+    <td><span class="cxref-reference-local"><a href="main.c.html#var-GlobalHashTables">main.c</a></span>
   </tr>
 </table>
 <p>
@@ -1447,15 +1579,6 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
   <tr>
     <td>Defined in:
     <td><span class="cxref-reference-local"><a href="main.c.html#var-version_file">main.c</a></span>
-  </tr>
-</table>
-<p>
-<b><a name="var-change_dir">change_dir</a></b><br>
-<tt><span class="cxref-variable">extern char* change_dir</span></tt><br>
-<table>
-  <tr>
-    <td>Defined in:
-    <td><span class="cxref-reference-local"><a href="cmdChdir.c.html#var-change_dir">cmdChdir.c</a></span>
   </tr>
 </table>
 <p>

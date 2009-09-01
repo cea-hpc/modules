@@ -25,52 +25,105 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 <a name="line5">5    |</a>  **   First Edition:	2009-06-27					     **
 <a name="line6">6    |</a>  **									     **
 <a name="line7">7    |</a>  **   Authors:		Gerrit Renker					     **
-<a name="line8">8    |</a>  **   Description:	Implements a "chdir" command to set the working      **
-<a name="line9">9    |</a>  **			directory upon module load/switch.		     **
-<a name="line10">10   |</a>  **									     **
-<a name="line11">11   |</a>  **   Exports:		cmdChDir					     **
+<a name="line8">8    |</a>  **			R.K. Owen, &lt;rk@owen.sj.ca.us&gt; or &lt;rkowen@nersc.gov&gt;  **
+<a name="line9">9    |</a>  **									     **
+<a name="line10">10   |</a>  **   Description:	Implements a "chdir" command to set the working      **
+<a name="line11">11   |</a>  **			directory upon module load/switch.		     **
 <a name="line12">12   |</a>  **									     **
-<a name="line13">13   |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
-<a name="line14">14   |</a>  **					this function is called in order to  **
-<a name="line15">15   |</a>  **					control everything		     **
-<a name="line16">16   |</a>  **			change_dir	Communicates the target directory.   **
-<a name="line17">17   |</a>  ** ************************************************************************ **
-<a name="line18">18   |</a>  ****/
-<a name="line19">19   |</a> #include "modules_def.h"
-<a name="line20">20   |</a> 
-<a name="line21">21   |</a> static	char	module_name[] = __FILE__;
-<a name="line22">22   |</a> char		*change_dir	= NULL;
-<a name="line23">23   |</a> 
-<a name="line24">24   |</a> int cmdChDir(ClientData	client_data, Tcl_Interp	*interp,
-<a name="line25">25   |</a> 	     int argc, CONST84 char *argv[])
-<a name="line26">26   |</a> {
-<a name="line27">27   |</a> #if WITH_DEBUGGING_CALLBACK
-<a name="line28">28   |</a>     ErrorLogger( NO_ERR_START, LOC, __func__, NULL);
-<a name="line29">29   |</a> #endif
+<a name="line13">13   |</a>  **   Exports:		cmdChDir					     **
+<a name="line14">14   |</a>  **									     **
+<a name="line15">15   |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
+<a name="line16">16   |</a>  **					this function is called in order to  **
+<a name="line17">17   |</a>  **					control everything		     **
+<a name="line18">18   |</a>  **			change_dir	Communicates the target directory.   **
+<a name="line19">19   |</a>  ** ************************************************************************ **
+<a name="line20">20   |</a>  ****/
+<a name="line21">21   |</a> 
+<a name="line22">22   |</a> static char Id[] = "@(#)$Id: cmdChdir.c.src.html,v 1.2 2009/09/01 20:22:32 rkowen Exp $";
+<a name="line23">23   |</a> static void *UseId[] = { &amp;UseId, Id };
+<a name="line24">24   |</a> 
+<a name="line25">25   |</a> /** ************************************************************************ **/
+<a name="line26">26   |</a> /** 				      HEADERS				     **/
+<a name="line27">27   |</a> /** ************************************************************************ **/
+<a name="line28">28   |</a> 
+<a name="line29">29   |</a> #include "modules_def.h"
 <a name="line30">30   |</a> 
-<a name="line31">31   |</a>     if(g_flags &amp; ~(M_LOAD|M_SWSTATE2))
-<a name="line32">32   |</a>         return TCL_OK;
-<a name="line33">33   |</a> 
-<a name="line34">34   |</a>     if (argc != 2) {
-<a name="line35">35   |</a> 	if (OK != ErrorLogger( ERR_USAGE, LOC, argv[0], " directory", NULL))
-<a name="line36">36   |</a> 	    return TCL_ERROR;
-<a name="line37">37   |</a>     }
-<a name="line38">38   |</a> 
-<a name="line39">39   |</a>     if (g_flags &amp; M_NONPERSIST)
-<a name="line40">40   |</a> 	return TCL_OK;
-<a name="line41">41   |</a> 
-<a name="line42">42   |</a>     if(g_flags &amp; M_DISPLAY) {
-<a name="line43">43   |</a> 	fprintf(stderr, "%s\t%s\n", argv[0], argv[1]);
-<a name="line44">44   |</a>         return TCL_OK;
-<a name="line45">45   |</a>     }
+<a name="line31">31   |</a> /** ************************************************************************ **/
+<a name="line32">32   |</a> /** 				  LOCAL DATATYPES			     **/
+<a name="line33">33   |</a> /** ************************************************************************ **/
+<a name="line34">34   |</a> 
+<a name="line35">35   |</a> char		*change_dir	= NULL;
+<a name="line36">36   |</a> 
+<a name="line37">37   |</a> /** ************************************************************************ **/
+<a name="line38">38   |</a> /** 				     CONSTANTS				     **/
+<a name="line39">39   |</a> /** ************************************************************************ **/
+<a name="line40">40   |</a> 
+<a name="line41">41   |</a> /** not applicable **/
+<a name="line42">42   |</a> 
+<a name="line43">43   |</a> /** ************************************************************************ **/
+<a name="line44">44   |</a> /**				      MACROS				     **/
+<a name="line45">45   |</a> /** ************************************************************************ **/
 <a name="line46">46   |</a> 
-<a name="line47">47   |</a>     /* The actual work happens here */
-<a name="line48">48   |</a>     if (change_dir != NULL)
-<a name="line49">49   |</a> 	    null_free(change_dir);
-<a name="line50">50   |</a>     change_dir = stringer(NULL,0,argv[1], NULL);
-<a name="line51">51   |</a> 
-<a name="line52">52   |</a>     return TCL_OK;
-<a name="line53">53   |</a> }
+<a name="line47">47   |</a> /** not applicable **/
+<a name="line48">48   |</a> 
+<a name="line49">49   |</a> /** ************************************************************************ **/
+<a name="line50">50   |</a> /** 				    LOCAL DATA				     **/
+<a name="line51">51   |</a> /** ************************************************************************ **/
+<a name="line52">52   |</a> 
+<a name="line53">53   |</a> static	char	module_name[] = __FILE__;
+<a name="line54">54   |</a> 
+<a name="line55">55   |</a> /** ************************************************************************ **/
+<a name="line56">56   |</a> /**				    PROTOTYPES				     **/
+<a name="line57">57   |</a> /** ************************************************************************ **/
+<a name="line58">58   |</a> 
+<a name="line59">59   |</a> /** not applicable **/
+<a name="line60">60   |</a> 
+<a name="line61">61   |</a> int cmdChDir(
+<a name="line62">62   |</a> 	ClientData client_data,
+<a name="line63">63   |</a> 	Tcl_Interp * interp,
+<a name="line64">64   |</a> 	int objc,
+<a name="line65">65   |</a> 	Tcl_Obj * CONST84 objv[]
+<a name="line66">66   |</a> ) {
+<a name="line67">67   |</a> 	char			*dir;		/** directory name	     **/
+<a name="line68">68   |</a> 	struct	stat		 statinfo;	/** directory access	     **/
+<a name="line69">69   |</a> 
+<a name="line70">70   |</a> 	if (g_flags &amp; ~(M_LOAD | M_SWSTATE2))
+<a name="line71">71   |</a> 		return TCL_OK;
+<a name="line72">72   |</a> 
+<a name="line73">73   |</a> 	if (objc != 2) {
+<a name="line74">74   |</a> 		if (OK != ErrorLogger(ERR_USAGE, LOC, Tcl_GetString(objv[0]),
+<a name="line75">75   |</a> 				" directory", NULL))
+<a name="line76">76   |</a> 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----&gt; **/
+<a name="line77">77   |</a> 	}
+<a name="line78">78   |</a> 
+<a name="line79">79   |</a> 	if (g_flags &amp; M_NONPERSIST)
+<a name="line80">80   |</a> 		return TCL_OK;
+<a name="line81">81   |</a> 
+<a name="line82">82   |</a> 	if (g_flags &amp; M_DISPLAY) {
+<a name="line83">83   |</a> 		fprintf(stderr, "%s\t%s\n", Tcl_GetString(objv[0]),
+<a name="line84">84   |</a> 			Tcl_GetString(objv[1]));
+<a name="line85">85   |</a> 		return TCL_OK;
+<a name="line86">86   |</a> 	}
+<a name="line87">87   |</a> 
+<a name="line88">88   |</a> 	/* check for directory existence */
+<a name="line89">89   |</a> 	/* It is not an error if we can not ... */
+<a name="line90">90   |</a> 	dir = Tcl_GetString(objv[1]);
+<a name="line91">91   |</a> 	if ( stat(dir, &amp;statinfo) &lt; 0 ) {
+<a name="line92">92   |</a> 		ErrorLogger(ERR_CHDIR, LOC, dir, g_current_module, NULL);
+<a name="line93">93   |</a> 		return (TCL_OK);	    /** ------ EXIT PROCEDURE -----&gt; **/
+<a name="line94">94   |</a> 	}
+<a name="line95">95   |</a> 	if (!S_ISDIR(statinfo.st_mode)) {
+<a name="line96">96   |</a> 		ErrorLogger(ERR_CHDIR, LOC, dir, g_current_module, NULL);
+<a name="line97">97   |</a> 		return (TCL_OK);	    /** ------ EXIT PROCEDURE -----&gt; **/
+<a name="line98">98   |</a> 	}
+<a name="line99">99   |</a> 
+<a name="line100">100  |</a> 	/* The actual work happens here */
+<a name="line101">101  |</a> 	if (change_dir != NULL)
+<a name="line102">102  |</a> 		null_free((void *) &amp;change_dir);
+<a name="line103">103  |</a> 	change_dir = stringer(NULL, 0, dir, NULL);
+<a name="line104">104  |</a> 
+<a name="line105">105  |</a> 	return TCL_OK;
+<a name="line106">106  |</a> }
 </pre>
 
 </BODY>
