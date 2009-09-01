@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.33 2009/08/23 23:30:42 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.35 2009/09/02 20:37:39 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -199,6 +199,7 @@ dnl ---------------------------------------------------------------------------
 AC_C_CONST
 AC_TYPE_UID_T
 AC_TYPE_SIZE_T
+AC_TYPE_INTPTR_T
 AC_STRUCT_TM
 dnl ---------------------------------------------------------------------------
 dnl Checks for library functions.
@@ -730,6 +731,7 @@ AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile po/Makefile.in
 	modulefiles/Makefile modulefiles/modules
 	modulefiles/module-cvs modulefiles/module-info modulefiles/null
 	modulefiles/use.own modulefiles/dot modulefiles/version
+	modulefiles/HOME
 	])dnl
 dnl We want these to be recreated for each install
 dnl	init/bash init/csh init/ksh init/perl init/python init/sh init/zsh

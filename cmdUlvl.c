@@ -8,7 +8,7 @@
  **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	The Tcl module-user routine which changes the cur-   **
  **			rent user level					     **
@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.10 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.12 2009/09/02 20:37:39 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/

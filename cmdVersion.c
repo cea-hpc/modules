@@ -8,7 +8,7 @@
  **   First Edition:	1995/12/28					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	The Tcl module-version routine which provides the    **
  **			definition of symbolic version names and the module- **
@@ -48,7 +48,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.17 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.19 2009/09/02 20:37:39 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -639,7 +639,7 @@ int cmdModuleAlias(
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
 		}
 
-		if (trg_alias && !strcmp(ptr->ptr->name, Tcl_GetString(objv[2]))
+		if((trg_alias && !strcmp(ptr->ptr->name,Tcl_GetString(objv[2])))
 		    || (!trg_alias && !strcmp(ptr->ptr->name, version)
 			&& !strcmp(ptr->ptr->module->module, module)))
 			return (TCL_OK);/** -------- EXIT (SUCCESS) -------> **/

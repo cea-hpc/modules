@@ -9,7 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description: 	The routines for setting and unsetting environment   **
  **			variables from within modulefiles.		     **
@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.10 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.12 2009/09/02 20:37:39 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -214,13 +214,13 @@ int	moduleSetenv(	Tcl_Interp	*interp,
      **/
 
     if( g_flags & M_SWSTATE1) {
-        set_marked_entry( markVariableHashTable, variable, M_SWSTATE1);
+	mhash_add(markVariableHashTable, variable, M_SWSTATE1);
         return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
     } else if( g_flags & M_SWSTATE2) {
-        set_marked_entry( markVariableHashTable, variable, M_SWSTATE2);
+	mhash_add(markVariableHashTable, variable, M_SWSTATE2);
     } else if( g_flags & M_SWSTATE3) {
         intptr_t marked_val;
-        marked_val = chk_marked_entry( markVariableHashTable, variable);
+        marked_val = (intptr_t) mhash_value(markVariableHashTable, variable);
         if( marked_val) {
             if( marked_val == M_SWSTATE1)
                 return( moduleUnsetenv(interp, variable));	/** -------> **/
@@ -237,8 +237,8 @@ int	moduleSetenv(	Tcl_Interp	*interp,
      **/
 
     if( !(g_flags & (M_NONPERSIST | M_DISPLAY | M_WHATIS | M_HELP))) {
-        store_hash_value( setenvHashTable, variable, value);
-        clear_hash_value( unsetenvHashTable, variable);
+        mhash_add(setenvHashTable, variable, value);
+        mhash_del(unsetenvHashTable, variable);
     }
 
     /**
@@ -281,7 +281,6 @@ int cmdUnsetEnv(
 	int objc,
 	Tcl_Obj * CONST84 objv[]
 ) {
-	char           *arg;		/** argument ptr		     **/
     /**
      **  Parameter check. The name of the variable has to be specified
      **/
@@ -354,8 +353,8 @@ int	moduleUnsetenv(	Tcl_Interp	*interp,
      **/
 
     if( !(g_flags & (M_NONPERSIST | M_DISPLAY | M_WHATIS | M_HELP))) {
-        store_hash_value( unsetenvHashTable, variable, NULL);
-        clear_hash_value( setenvHashTable, variable);
+        mhash_add(unsetenvHashTable, variable, NULL);
+        mhash_del(setenvHashTable, variable);
     }
 
     return( TCL_OK);

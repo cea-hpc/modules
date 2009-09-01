@@ -9,7 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	The actual module command from the Tcl level. This   **
  **			routines calls other ModuleCmd routines to carry out **
@@ -32,7 +32,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.21 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.23 2009/09/02 20:37:39 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -123,7 +123,6 @@ int cmdModule(
 	int             num_modulefiles = objc - 2;
 	char          **modulefile_list;
 	int             argc;
-	char          **argv;
 
 #if 0
 	int             x = 0;
@@ -176,7 +175,7 @@ int cmdModule(
 		store_curmodule = g_current_module;
 
 	/* convert the modulefile_list from Objv to Argv to pass along */
-	Tcl_ObjvToArgv(interp, &argc, &modulefile_list, objc - 2, objv + 2);
+	Tcl_ObjvToArgv(&argc, &modulefile_list, objc - 2, objv + 2);
 
     /**
      **  If the command is '-', we want to just start 

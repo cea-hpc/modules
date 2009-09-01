@@ -8,7 +8,7 @@
  **   First Edition:	1995/12/26					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	The Tcl module-log routine which provides an	     **
  **			interface to the modulecmd syslog/stderr output.     **
@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdLog.c,v 1.13 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdLog.c,v 1.14 2009/09/01 19:16:27 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/

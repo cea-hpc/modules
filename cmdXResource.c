@@ -8,9 +8,9 @@
  **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
- **		Leif Hedstrom<hedstrom"@boot.org>			     **
+ **		Leif Hedstrom <hedstrom@boot.org>			     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	Module command to merge/remove resources from the X11**
  **			resource manager. The database is update internally, **
@@ -41,7 +41,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdXResource.c,v 1.14 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdXResource.c,v 1.16 2009/09/02 20:37:39 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/

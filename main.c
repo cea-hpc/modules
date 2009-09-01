@@ -9,7 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	The main routine of Tcl Modules including all of     **
  **			the global data.				     **
@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.27 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.29 2009/09/02 20:37:39 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -121,15 +121,16 @@ char
   
 /**
  **  Hash-Tables for all changes to the environment.
- **  ??? What do we save here, the old or the new setup ???
  **/
 
-Tcl_HashTable	*setenvHashTable,
+MHash		*setenvHashTable,
 		*unsetenvHashTable,
 		*aliasSetHashTable,
 		*aliasUnsetHashTable,
 		*markVariableHashTable,
 		*markAliasHashTable;
+
+MHash		*GlobalHashTables[5];
 
 /**
  **  A buffer for reading a single line
@@ -221,7 +222,6 @@ int	main( int argc, char *argv[], char *environ[]) {
      **  Check the command line syntax. There will be no return from the
      **  initialization function in case of invalid command line arguments.
      **/
-
     if( TCL_OK != Initialize_Module( &interp, argc, argv, environ))
 	goto unwind0;
 
@@ -301,7 +301,7 @@ int	main( int argc, char *argv[], char *environ[]) {
      **/
 
     g_flags = 0;
-    Tcl_ArgvToObjv(interp, &objc, &objv, argc-1, argv+1);
+    Tcl_ArgvToObjv(&objc, &objv, argc-1, argv+1);
     return_val = cmdModule((ClientData) 0,interp,objc, objv);
 
     /**
@@ -331,7 +331,7 @@ int	main( int argc, char *argv[], char *environ[]) {
      **  allocated areas.
      **/
 
-    Delete_Global_Hash_Tables();
+    Global_Hash_Tables(GHashDelete, NULL);
 
     if( line)
 	null_free((void *) &line);
@@ -344,8 +344,8 @@ int	main( int argc, char *argv[], char *environ[]) {
     OutputExit();
     return ( return_val ? return_val : g_retval);
 
-unwind2:
-    null_free((void *) &rc_path);
+/* unwind2:
+    null_free((void *) &rc_path); */
 unwind1:
     null_free((void *) &rc_name);
 unwind0:

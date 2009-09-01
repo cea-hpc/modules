@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.12 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.14 2009/09/02 20:37:38 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -111,7 +111,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
     			  modulename[ MOD_BUFSIZE];	/** Real module name **/
     Tcl_Interp		 *tmp_interp;		/** Tcl interpreter to be    **/
 						/** used internally	     **/
-    Tcl_HashTable	**oldTables = NULL;
+    MHash		**oldTables = NULL;
     EM_RetVal		  em_return_val = EM_OK;
 
     /**
@@ -225,10 +225,10 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 		 **/
 		Tcl_ResetResult(tmp_interp);
         	if( oldTables) {
-                    Delete_Hash_Tables( oldTables);
+                    Global_Hash_Tables(GHashDelete, oldTables);
                     null_free((void *) &oldTables);
         	}
-        	oldTables = Copy_Hash_Tables();
+        	oldTables = Global_Hash_Tables(GHashCopy, NULL);
 		a_successful_load = 1;
 		break;	/* switch */
 
@@ -268,7 +268,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
      **  has been load successfully. Remove it in this case
      **/
     if( em_return_val == EM_OK && oldTables) {
-        Delete_Hash_Tables( oldTables);
+        Global_Hash_Tables(GHashDelete, oldTables);
         null_free((void *) &oldTables);
     }
 

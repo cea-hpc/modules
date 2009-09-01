@@ -9,7 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	Clears out Modules' concept of the currently loaded  **
  **			modules.					     **
@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Clear.c,v 1.7 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Clear.c,v 1.9 2009/09/02 20:37:38 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -122,7 +122,7 @@ int ModuleCmd_Clear(	Tcl_Interp	*interp,
         clearargv[2] = "";
         clearargv[3] = NULL;
 	/* convert fomr argv to objv */
-	Tcl_ArgvToObjv(interp, &objc, &objv, -1, (char **) clearargv);
+	Tcl_ArgvToObjv(&objc, &objv, -1, (char **) clearargv);
         cmdSetEnv( (ClientData) 0, interp, objc, objv);
 
         clearargv[0] = "setenv";
@@ -130,7 +130,7 @@ int ModuleCmd_Clear(	Tcl_Interp	*interp,
         clearargv[2] = "";
         clearargv[3] = NULL;
 	/* convert fomr argv to objv */
-	Tcl_ArgvToObjv(interp, &objc, &objv, -1, (char **) clearargv);
+	Tcl_ArgvToObjv(&objc, &objv, -1, (char **) clearargv);
         cmdSetEnv( (ClientData) 0, interp, objc, objv);
 
     } else {

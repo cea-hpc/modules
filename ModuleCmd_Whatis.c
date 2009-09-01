@@ -8,7 +8,7 @@
  **   First Edition:	1995/12/31					     **
  **									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  **									     **
  **			ModuleCmd_Apropos				     **
  **			ModuleCmd_Whatis				     **
@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.12 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.14 2009/09/02 20:37:38 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -101,10 +101,9 @@ int ModuleCmd_Whatis(
 	                result = TCL_OK;	/** result (default OK	     **/
 	char            modulefile[MOD_BUFSIZE],/** buffer for modulefile    **/
 	                modulename[MOD_BUFSIZE],/** buffer for modulename    **/
-	               *modpath,	/** Buffer for the contents of the   **/
-					/** environment variable MODULEPATH  **/
 	              **wptr,		/** whatis text line		     **/
-	               *dirname;	/** modulepath dir		     **/
+	              **dirname;	/** modulepath dir		     **/
+	uvec           *modpath;	/** MODULEPATH vector list           **/
     /**
      **	 Initialize the command buffer and set up the modules flag to
      **	 'whatisonly'
@@ -149,7 +148,8 @@ int ModuleCmd_Whatis(
 
 			cmdModuleWhatisInit();
 			result = CallModuleProcedure(whatis_interp, &cmdbuf,
-						modulefile, "ModulesWhatis", 0);
+						     modulefile,
+						     "ModulesWhatis", 0);
 	    /**
 	     **	 Print the result ...
 	     **/
@@ -171,28 +171,24 @@ int ModuleCmd_Whatis(
 	**  User wants all module ``whatis'' info
 	**/
 	/**
-	 **  If no MODULEPATH defined, we can not output anything
+	 **  Load the MODULEPATH and split it into a list of paths.
+	 **  Assume success if no list is to be displayed ...
 	 **/
-		if (!(modpath = (char *)xgetenv("MODULEPATH")))
-			if (OK != ErrorLogger(ERR_MODULE_PATH, LOC, NULL))
-				goto unwind0;
+		if (!(modpath = ModulePathList()))
+			goto unwind0;
+		if (!uvec_number(modpath))
+			goto success0;
 	/**
 	 **  Scan all the files
 	 **/
-	     /**
-	      **  Tokenize the module path string and check all dirs
-	      **/
-		for (dirname = xstrtok(modpath, ":");
-		     dirname; dirname = xstrtok(NULL, ":")) {
-
-			if (!check_dir(dirname))
+		dirname = uvec_vector(modpath);
+		while (dirname && *dirname) {
+			if (!check_dir(*dirname))
 				continue;
-			whatis_dir(dirname, argc, argv, WHATIS_ALL);
-		} /** for **/
-	    /**
-	     **	 Free up allocated resources
-	     **/
-		null_free((void *)&modpath);
+			whatis_dir(*dirname, argc, argv, WHATIS_ALL);
+			dirname++;
+		}
+		FreeList(&modpath);
 	}
     /**
      **	 Leave the 'whatis only mode', free up what has been used and return
@@ -205,10 +201,9 @@ int ModuleCmd_Whatis(
      **	 Return on success
      **/
 
+success0:
 	return (result);		/** --- EXIT PROCEDURE (result)  --> **/
 
-unwind1:
-	null_free((void *)&modpath);
 unwind0:
 	return (TCL_ERROR);		/** --- EXIT PROCEDURE (FAILURE) --> **/
 
@@ -236,55 +231,50 @@ unwind0:
  ** ************************************************************************ **
  ++++*/
 
-int ModuleCmd_Apropos(	Tcl_Interp	*interp,
-			int		 argc,
-			char		*argv[])
-{
-    char	*dirname;
-    char	*modpath;		/** Buffer for the contents of the   **/
-					/** environment variable MODULEPATH  **/
-    int		 i;
-    char	*c;
+int ModuleCmd_Apropos(
+	Tcl_Interp * interp,
+	int argc,
+	char *argv[]
+) {
+	char          **dirname,	/** modulepath dir		     **/
+	               *c;
+	uvec           *modpath;	/** MODULEPATH vector list           **/
+	int             i;
     /**
      **	 Ignore case ... convert all arguments to lower case
      **/
-    if( sw_icase)
-	for( i=0; i<argc; i++)
-	    for( c=argv[ i]; c && *c; c++)
-		*c = tolower( *c);
-
-    /**
-     **	 If there's no MODULEPATH defined, we cannot output anything
-     **/
-    if((char *) NULL == (modpath =  xgetenv( "MODULEPATH")))
-	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-	    goto unwind0;
+	if (sw_icase)
+		for (i = 0; i < argc; i++)
+			for (c = argv[i]; c && *c; c++)
+				*c = tolower(*c);
 
 	/**
-	 **  Tokenize the module path string and check all dirs
+	 **  Load the MODULEPATH and split it into a list of paths.
+	 **  Assume success if no list is to be displayed ...
 	 **/
-	for( dirname = xstrtok( modpath, ":");
-	     dirname;
-	     dirname = xstrtok( NULL, ":") ) {
-	
-	    if( !check_dir( dirname))
-		continue;
-	
-	    whatis_dir( dirname, argc, argv, WHATIS_SOME);
+	if (!(modpath = ModulePathList()))
+		goto unwind0;
+	if (!uvec_number(modpath))
+		goto success0;
 
-	} /** for **/
+	dirname = uvec_vector(modpath);
+	while (dirname && *dirname) {
+		if (!check_dir(*dirname))
+			continue;
+
+		whatis_dir(*dirname++, argc, argv, WHATIS_SOME);
+	}
 
     /**
      **	 Free up what has been allocated and exit from this procedure
      **/
-    null_free((void *) &modpath);
+	FreeList(&modpath);
 
-    return( TCL_OK);
+success0:
+	return (TCL_OK);
 
-unwind1:
-    null_free((void *) &modpath);
 unwind0:
-    return( TCL_ERROR);				/** ---- EXIT (FAILURE) ---> **/
+	return (TCL_ERROR);			/** ---- EXIT (FAILURE) ---> **/
 
 } /** End of 'ModuleCmd_Apropos' **/
 
@@ -435,8 +425,8 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
 
     return( result);			/** ------- EXIT (result) --------> **/
 
-unwind2:
-    delete_cache_list( list, start);
+/* unwind2:
+    delete_cache_list( list, start); */
 unwind1:
     delete_dirlst( dirlst_head, count);
 unwind0:

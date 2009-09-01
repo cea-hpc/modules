@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_List.c,v 1.10 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_List.c,v 1.12 2009/09/02 20:37:38 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -118,7 +118,7 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
 	 **/
 
 	if( sw_format & SW_LONG ) {
-	    fprintf( stderr, _(long_header));
+	    fprintf( stderr,"%s", _(long_header));
 	}
 	if( sw_format & (SW_TERSE | SW_LONG | SW_HUMAN) )
 	    fprintf( stderr, "%s\n",

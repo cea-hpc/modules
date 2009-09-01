@@ -9,7 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	The Tcl set-alias command			     **
  ** 									     **
@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdAlias.c,v 1.8 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdAlias.c,v 1.10 2009/09/02 20:37:38 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -133,30 +133,29 @@ int cmdSetAlias(
 	arg1 = Tcl_GetString(objv[1]);
 	arg2 = Tcl_GetString(objv[2]);
 	if (g_flags & M_SWSTATE1) {
-		set_marked_entry(markAliasHashTable, arg1, M_SWSTATE1);
+		mhash_add(markAliasHashTable, arg1, M_SWSTATE1);
 		return (TCL_OK);	/** -------- EXIT PROCEDURE -------> **/
 	} else if (g_flags & M_SWSTATE2) {
-		set_marked_entry(markAliasHashTable, arg1, M_SWSTATE2);
+		mhash_add(markAliasHashTable, arg1, M_SWSTATE2);
 	} else if (g_flags & M_SWSTATE3) {
-		int             marked_val;
+		intptr_t	marked_val;
 		if ((marked_val =
-		     chk_marked_entry(markAliasHashTable, (char *)arg1))) {
+		     (intptr_t) mhash_value(markAliasHashTable, arg1))) {
 			if (marked_val == M_SWSTATE1)
-				store_hash_value(aliasUnsetHashTable,
-						 arg1, arg2);
+				mhash_add(aliasUnsetHashTable, arg1, arg2);
 			else
 				return (TCL_OK);    /** -- EXIT PROCEDURE -> **/
 		}
 	} else if (g_flags & M_REMOVE) {
-		store_hash_value(aliasUnsetHashTable, arg1, arg2);
+		mhash_add(aliasUnsetHashTable, arg1, arg2);
 	}
     /**
      **  Finally remove or set the alias
      **/
 	if (*arg0 == 'u' || (g_flags & M_REMOVE))
-		store_hash_value(aliasUnsetHashTable, arg1, arg2);
+		mhash_add(aliasUnsetHashTable, arg1, arg2);
 	else
-		store_hash_value(aliasSetHashTable, arg1, arg2);
+		mhash_add(aliasSetHashTable, arg1, arg2);
 
 	return (TCL_OK);
 

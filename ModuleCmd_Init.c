@@ -9,6 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	Routines that act on a user's "dot" startup files to **
  **			add, remove, and list modulefiles to/from/in their   **
@@ -28,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.13 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.15 2009/09/02 20:37:38 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -257,7 +258,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		    }
 
 		    if ((char **) NULL ==
-		    (modlist = SplitIntoList(interp, startp, &nummods," \t")))
+		    (modlist = uvec_vector(SplitIntoList(startp, &nummods," \t"))))
 			continue; /** while(fgets) **/
 
 		    /* restore the list end character */
@@ -286,7 +287,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 			    }
 			}
 
-			FreeList(modlist, nummods);
+			/* FreeList(modlist, nummods); */
 			continue; /** while(fgets) **/
 		    }
 
@@ -369,7 +370,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		    if (!final_list_num)
 			fprintf(newfileptr, " %s", "null");
 
-		    FreeList(modlist, nummods);
+		    /* FreeList(modlist, nummods); */
 
 		} else { /** if( M_CLEAR) **/
 		/**

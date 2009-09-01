@@ -9,7 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	Prepends (and appends) directories to the MODULEPATH **
  **			environment variable to enable access to more	     **
@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.11 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.13 2009/09/02 20:37:38 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -226,7 +226,7 @@ int ModuleCmd_Use(
 		pathargv[2] = argv[i];
 
 		/* convert from argv to objv */
-		Tcl_ArgvToObjv(interp, &objc, &objv, -1, (char **) pathargv);
+		Tcl_ArgvToObjv(&objc, &objv, -1, (char **) pathargv);
 		if (cmdSetPath((ClientData) 0, interp, objc, objv) == TCL_ERROR)
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
 	} /** for **/
@@ -294,7 +294,7 @@ int ModuleCmd_UnUse(
 	for (i = 0; i < argc; i++) {
 		pathargv[2] = argv[i];
 		/* convert from argv to objv */
-		Tcl_ArgvToObjv(interp, &objc, &objv, -1, (char **) pathargv);
+		Tcl_ArgvToObjv(&objc, &objv, -1, (char **) pathargv);
 		if (cmdRemovePath((ClientData) 0, interp, objc, objv) ==
 		    TCL_ERROR)
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/

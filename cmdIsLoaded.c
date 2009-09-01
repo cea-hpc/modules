@@ -8,7 +8,7 @@
  **   First Edition:	2000/04/12					     **
  ** 									     **
  **   Authors:								     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	The Tcl conflict and prereq commands.		     **
  ** 									     **
@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.11 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.13 2009/09/02 20:37:39 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -93,9 +93,9 @@ int cmdIsLoaded(
 	int objc,
 	Tcl_Obj * CONST84 objv[]
 ) {
-	char          **pathlist,		/** List of module-pathes    **/
-	              **modulelist,		/** List of modules          **/
-	               *modulepath,		/** Contents of MODULEPATH   **/
+	uvec           *pathlist,		/** List of module-pathes    **/
+	               *modulelist;		/** List of modules          **/
+	char           *modulepath,		/** Contents of MODULEPATH   **/
 	               *notloaded_flag;		/** conflicting module	     **/
 	int             i, j, k,		/** Loop counters            **/
 	                numpaths, nummodules;
@@ -121,7 +121,7 @@ int cmdIsLoaded(
 		if (OK != ErrorLogger(ERR_MODULE_PATH, LOC, NULL))
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
 	}
-	if (!(pathlist = SplitIntoList(interp, modulepath, &numpaths, _colon)))
+	if (!(pathlist = SplitIntoList(modulepath, &numpaths, _colon)))
 		return (TCL_OK);	/** -------- EXIT (SUCCESS) -------> **/
     /**
      **  Check/Display all passed modules
@@ -129,8 +129,8 @@ int cmdIsLoaded(
 	notloaded_flag = Tcl_GetString(objv[1]);
 	for (i = 1; i < objc && Tcl_GetString(objv[i]) && notloaded_flag; i++) {
 		for (j = 0; j < numpaths && notloaded_flag; j++) {
-			if (NULL == (modulelist =
-			     SortedDirList(interp, pathlist[j],
+			if (NULL == (modulelist = SortedDirList(
+					uvec_vector(pathlist)[j],
 					   Tcl_GetString(objv[i]),
 					   &nummodules)))
 				continue;
@@ -140,8 +140,8 @@ int cmdIsLoaded(
 	     **  a prerequisite is missing.
 	     **/
 			for (k = 0; k < nummodules && notloaded_flag; k++) {
-				if (!IsLoaded
-				    (interp, modulelist[k], NULL, NULL)) {
+				if (!IsLoaded (interp,
+				uvec_vector(modulelist)[k], NULL, NULL)) {
 					notloaded_flag = Tcl_GetString(objv[i]);
 				} else {
 					notloaded_flag = NULL;
@@ -150,9 +150,7 @@ int cmdIsLoaded(
 	    /**
 	     **  Free what has been allocted in the loop
 	     **/
-
-			FreeList(modulelist, nummodules);
-
+			FreeList(&modulelist);
 		} /** for( j) **/
 	} /** for( i) **/
     /**

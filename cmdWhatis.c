@@ -8,7 +8,7 @@
  **   First Edition:	1995/12/31					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	The Tcl module-verbose routine allows switchin ver-  **
  **			bosity on and off during module file execution	     **
@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.10 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.12 2009/09/02 20:37:39 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/

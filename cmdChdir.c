@@ -5,7 +5,7 @@
  **   First Edition:	2009-06-27					     **
  **									     **
  **   Authors:		Gerrit Renker					     **
- **			R.K. Owen, rk@owen.sj.ca.us			     **
+ **			R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>  **
  **									     **
  **   Description:	Implements a "chdir" command to set the working      **
  **			directory upon module load/switch.		     **
@@ -19,7 +19,7 @@
  ** ************************************************************************ **
  ****/
 
-static char Id[] = "@(#)$Id: cmdChdir.c,v 1.6 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdChdir.c,v 1.8 2009/09/02 20:37:38 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/

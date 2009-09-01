@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.31 2009/08/23 06:57:17 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.33 2009/09/02 20:37:38 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -19,8 +19,8 @@ SUBDIRS = . init modulefiles @EXTDIR@ doc po
 DIST_SUBDIRS = . init modulefiles etc ext doc po
 SOURCES_H = modules_def.h getopt.h config.h
 EXTRA_DIST = config/config.rpath config/mkinstalldirs			\
-	modules_def.h getopt.h testsuite INSTALL.RH7x			\
-	init/bash.in init/sh.in init/zsh.in			\
+	modules_def.h getopt.h uvec.h testsuite INSTALL.RH7x		\
+	init/bash.in init/sh.in init/zsh.in				\
 	init/csh.in init/ksh.in init/perl.in init/python.in		\
 	modulefiles/lang/.mklang					\
 	LICENSE.GPL ABOUT-NLS
@@ -38,8 +38,8 @@ modulecmd_SOURCES =							\
 	cmdIsLoaded.c cmdInfo.c cmdMisc.c cmdModule.c cmdPath.c		\
 	cmdSetenv.c cmdUname.c cmdXResource.c cmdUlvl.c cmdLog.c	\
 	cmdChdir.c cmdVersion.c cmdVerbose.c cmdWhatis.c init.c		\
-	locate_module.c utility.c utilobj.c main.c error.c		\
-	getopt.c version.c
+	locate_module.c utility.c utilobj.c utilmem.c main.c error.c	\
+	getopt.c version.c uvec.c
 
 localedir = $(datadir)/locale
 

@@ -8,7 +8,7 @@
  **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	The modules error logger			     **
  ** 									     **
@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.18 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.19 2009/09/01 19:16:27 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -292,6 +292,8 @@ static	ErrTransTab	TransTab[] = {
 /* TRANSLATORS: do not exchange order of arguments */
     { ERR_RENAME,	WGHT_PROB,  N_("Cannot rename '$1' to '$2'") },
     { ERR_ALLOC,	WGHT_FATAL, N_("Out of memory.") },
+    { ERR_UVEC,		WGHT_FATAL, N_("General uvec error.") },
+    { ERR_MHASH,	WGHT_FATAL, N_("General MHash error.") },
     { ERR_SOURCE,	WGHT_WARN,  N_("Error sourcing file '$1'") },
     { ERR_UNAME,	WGHT_FATAL, N_("'uname (2)' failed.") },
     { ERR_GETHOSTNAME,	WGHT_FATAL, N_("'gethostname (2)' failed.") },

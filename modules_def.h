@@ -1,7 +1,7 @@
 /*****
  ** ** Module Header ******************************************************* **
  ** 									     **
- **   Modules Revision 3.2						     **
+ **   Modules Revision 3.3						     **
  **   Providing a flexible user environment				     **
  ** 									     **
  **   File:		modules_def.h					     **
@@ -9,7 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
- **		R.K. Owen, rk@owen.sj.ca.us				     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:							     **
  ** 									     **
@@ -38,6 +38,7 @@
 #include <stdarg.h>
 #include <tcl.h>
 #include "config.h"
+#include "uvec.h"
 
 #ifndef CONST84
 #  define CONST84	/* const */
@@ -154,6 +155,33 @@ extern	int	  errno;
 /** ************************************************************************ **/
 
 /**
+ **  Module hash type - uses Tcl_*Hash*() underneath
+ **/
+typedef enum {
+	MHashNULL = 0,				/** invalid value	**/
+	MHashInt,				/** integer values	**/
+	MHashStrings,				/** string storage	**/
+	MHashRefCounts,				/** strings &		**/
+						/**   reference counts	**/
+	MHashFiles				/** files & dirs	**/
+} MHashType;
+
+typedef struct _mhash {
+	MHashType	type;			/** what type is this	**/
+	uvec		*keys;			/** vector of keys	**/
+	Tcl_HashTable	*hash;			/** hash container	**/
+	int		(*add)(void **,va_list);/** fn copy/create data	**/
+	int		(*del)(void **,va_list);/** fn delete data	**/
+} MHash;
+
+typedef enum {
+	GHashNULL = 0,				/** invalid value	**/
+	GHashClear,				/** Clear  global hashes**/
+	GHashDelete,				/** Delete global hashes**/
+	GHashCopy,				/** Copy   global hashes**/
+} GHashAction;
+
+/**
  **  Structure to store information about a file.  Includes its name
  **  and the structure to store information from the stat system call.
  **/
@@ -205,6 +233,8 @@ typedef	enum	{
 	ERR_UNLINK,			/** Cannot unlink file		     **/
 	ERR_RENAME,			/** Cannot rename file		     **/
 	ERR_ALLOC = 70,			/** Out of memory		     **/
+	ERR_UVEC,			/** general UVEC error		     **/
+	ERR_MHASH,			/** general MHash error		     **/
 	ERR_SOURCE,			/** Error while sourcing ...	     **/
 	ERR_UNAME,			/** Uname failed		     **/
 	ERR_GETHOSTNAME,		/** gethostname failed		     **/
@@ -245,7 +275,7 @@ typedef	enum	{
 	ERR_INVAL,			/** Invalid parameter to the error   **/
 	ERR_INVWGHT,			/** logger			     **/
 	ERR_INVFAC,			/** Invalid error facility	     **/
-        ERR_ENVVAR,                     /** env. variables are inconsistent  **/
+        ERR_ENVVAR			/** env. variables are inconsistent  **/
 } ErrType;
 
 /**
@@ -256,7 +286,7 @@ typedef	enum	{
 typedef	enum	{
 	OK	= 0,			/** Everything's up and running	     **/
 	WARN	= 2,			/** A warning (mapped to OK by the   **/
-					/** Errorlogger			     **/
+					/** Errorlogger)		     **/
 	PROBLEM	= 5,			/** Problem ... program might cont.  **/
 	ERROR	= 7,			/** Error .. try gracefull aborting  **/
 	FATAL	= 10,			/** The following will lead to the   **/
@@ -383,7 +413,7 @@ typedef enum	{
 
 #ifndef USE_FREE
 #  define  free( x)  
-#  define  FreeList( x, y)  
+#  define  FreeList( x)  
 #endif
 
 /** 
@@ -461,12 +491,13 @@ extern	char	 *whatisRE;
 extern	char	 *aproposRE;
 extern	char	 *refreshRE;
 
-extern	Tcl_HashTable	*setenvHashTable;
-extern	Tcl_HashTable	*unsetenvHashTable;
-extern	Tcl_HashTable	*aliasSetHashTable;
-extern	Tcl_HashTable	*aliasUnsetHashTable;
-extern	Tcl_HashTable	*markVariableHashTable;
-extern	Tcl_HashTable	*markAliasHashTable;
+extern	MHash	*setenvHashTable;
+extern	MHash	*unsetenvHashTable;
+extern	MHash	*aliasSetHashTable;
+extern	MHash	*aliasUnsetHashTable;
+extern	MHash	*markVariableHashTable;
+extern	MHash	*markAliasHashTable;
+extern	MHash	*GlobalHashTables[5];
 
 extern	char    _fil_stdin[];
 extern	char    _fil_stdout[];
@@ -500,13 +531,8 @@ extern	char	 long_header[];
 
 /**  locate_module.c  **/
 extern	int	  Locate_ModuleFile( Tcl_Interp*, char*, char*, char*);
-extern	char	**SortedDirList( Tcl_Interp*, char*, char*, int*);
-extern	char	**SplitIntoList( Tcl_Interp*, char*, int*, const char*);
 extern	int	  SourceVers( Tcl_Interp*, char*, char*);
 extern	int	  SourceRC( Tcl_Interp *interp, char *, char *);
-#ifdef USE_FREE
-extern	void	  FreeList( char**, int);
-#endif
 
 /**  main.c  **/
 extern  void	  module_usage(FILE *output);
@@ -657,23 +683,23 @@ extern	int	  TieStdout( void);
 extern	int	  UnTieStdout( int);
 
 /**  utility.c  **/
-extern	char	 *getLMFILES( Tcl_Interp *interp);
-extern	int	  store_hash_value( Tcl_HashTable*, const char*, const char*);
-extern	int	  clear_hash_value( Tcl_HashTable*, const char*);
+extern	uvec	 *SortedDirList(char*, char*, int*);
+extern	uvec	 *SplitIntoList(const char*, int*, const char*);
+#ifdef USE_FREE
+extern	void	  FreeList( uvec**);
+#endif
+extern	uvec	 *ModulePathList(void);
 extern	int	  store_old_shell_variable( Tcl_HashTable*, const char*,
 			const char*);
 extern	int	  clear_old_shell_variable( Tcl_HashTable*, const char*);
-extern	void	  Delete_Global_Hash_Tables( void);
-extern	void	  Delete_Hash_Tables( Tcl_HashTable**);
-extern	Tcl_HashTable** Copy_Hash_Tables( void);
-extern	int	  Unwind_Modulefile_Changes( Tcl_Interp*, Tcl_HashTable**);
+extern	MHash	**Global_Hash_Tables(GHashAction, MHash **);
+extern	int	  Unwind_Modulefile_Changes( Tcl_Interp*, MHash **);
 extern	int	  Output_Modulefile_Changes( Tcl_Interp*);
 extern	int	  store_env( void);
 extern	int	  free_stored_env( void);
-extern	void	  set_marked_entry( Tcl_HashTable*, char*, intptr_t);
-extern	intptr_t  chk_marked_entry( Tcl_HashTable*, char*);
 extern	Tcl_HashTable*  environ_changes;
 extern	Tcl_HashTable*  alias_changes;
+extern	char	 *getLMFILES( Tcl_Interp *interp);
 extern	int	  IsLoaded( Tcl_Interp*, char*, char**, char*);
 extern	int	  IsLoaded_ExactMatch( Tcl_Interp*, char*, char	**, char*);
 extern	int	  Update_LoadedList( Tcl_Interp*, char*, char*);
@@ -686,19 +712,29 @@ extern	char	 *xdup(char const *);
 extern	char	 *xgetenv(char const *);
 extern  int       tmpfile_mod( char**, FILE**);
 extern	char	 *stringer(char *, int, ...);
-extern	size_t	  countTclHash(Tcl_HashTable *);
 extern	EM_RetVal	ReturnValue( Tcl_Interp*, int);
 extern	void	  OutputExit();
+
+/** utilmem.c **/
 extern	void	 *module_malloc(size_t);
 extern	void	 *module_realloc(void *, size_t);
 extern	void	 *module_calloc(size_t,size_t);
 extern	void	  null_free(void **);
 
-/**  utilobj.c  **/
-extern int	  Tcl_ArgvToObjv(Tcl_Interp *, int *, Tcl_Obj ***,
-			int, char * const *);
-extern int	  Tcl_ObjvToArgv(Tcl_Interp *, int *, char ***,
-			int, Tcl_Obj * CONST84 *);
+/** utilobj.c **/
+extern	int	  Tcl_ArgvToObjv(int *, Tcl_Obj ***, int, char * const *);
+extern	int	  Tcl_ObjvToArgv(int *, char ***, int, Tcl_Obj * CONST84 *);
+extern	MHash	 *mhash_ctor(MHashType);
+extern	int	  mhash_dtor(MHash **);
+extern	MHash	 *mhash_copy(MHash *);
+extern	int	  mhash_del_(MHash *, const char *key, ...);
+extern	int	  mhash_del(MHash *, const char *key, ...);
+extern	int	  mhash_add(MHash *, const char *key, ...);
+extern	MHashType mhash_type(MHash *);
+extern	int	  mhash_number(MHash *);
+extern	uvec	 *mhash_keys_uvec(MHash *);
+extern	char	**mhash_keys(MHash *);
+extern	void	 *mhash_value(MHash *, const char *key);
 
 /** error.c **/
 extern	char	**GetFacilityPtr( char *);
