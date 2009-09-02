@@ -48,7 +48,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 <a name="line28">28   |</a>  ** 									     ** 
 <a name="line29">29   |</a>  ** ************************************************************************ **/
 <a name="line30">30   |</a> 
-<a name="line31">31   |</a> static char Id[] = "@(#)$Id: cmdMisc.c.src.html,v 1.8 2009/09/01 20:22:32 rkowen Exp $";
+<a name="line31">31   |</a> static char Id[] = "@(#)$Id: cmdMisc.c.src.html,v 1.9 2009/09/02 20:37:40 rkowen Exp $";
 <a name="line32">32   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line33">33   |</a> 
 <a name="line34">34   |</a> /** ************************************************************************ **/
@@ -80,113 +80,132 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 <a name="line60">60   |</a> /** ************************************************************************ **/
 <a name="line61">61   |</a> 
 <a name="line62">62   |</a> static	char	module_name[] = __FILE__;
-<a name="line63">63   |</a> 
-<a name="line64">64   |</a> /** ************************************************************************ **/
-<a name="line65">65   |</a> /**				    PROTOTYPES				     **/
-<a name="line66">66   |</a> /** ************************************************************************ **/
-<a name="line67">67   |</a> 
-<a name="line68">68   |</a> /** not applicable **/
-<a name="line69">69   |</a> 
+<a name="line63">63   |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line64">64   |</a> static	char	_proc_cmdSystem[] = "cmdSystem";
+<a name="line65">65   |</a> #endif
+<a name="line66">66   |</a> 
+<a name="line67">67   |</a> /** ************************************************************************ **/
+<a name="line68">68   |</a> /**				    PROTOTYPES				     **/
+<a name="line69">69   |</a> /** ************************************************************************ **/
 <a name="line70">70   |</a> 
-<a name="line71">71   |</a> /*++++
-<a name="line72">72   |</a>  ** ** Function-Header ***************************************************** **
-<a name="line73">73   |</a>  ** 									     **
-<a name="line74">74   |</a>  **   Function:		cmdSystem					     **
-<a name="line75">75   |</a>  ** 									     **
-<a name="line76">76   |</a>  **   Description:	Callback function for 'system'			     **
-<a name="line77">77   |</a>  ** 									     **
-<a name="line78">78   |</a>  **   First Edition:	1991/10/23					     **
-<a name="line79">79   |</a>  ** 									     **
-<a name="line80">80   |</a>  **   Parameters:	ClientData	 client_data			     **
-<a name="line81">81   |</a>  **			Tcl_Interp	*interp		According Tcl interp.**
-<a name="line82">82   |</a>  **			int		 objc		Number of arguments  **
-<a name="line83">83   |</a>  **			Tcl_Obj		*objv[]		Argument array	     **
-<a name="line84">84   |</a>  ** 									     **
-<a name="line85">85   |</a>  **   Result:		int	TCL_OK		Successful completion	     **
-<a name="line86">86   |</a>  **				TCL_ERROR	Any error		     **
+<a name="line71">71   |</a> /** not applicable **/
+<a name="line72">72   |</a> 
+<a name="line73">73   |</a> 
+<a name="line74">74   |</a> /*++++
+<a name="line75">75   |</a>  ** ** Function-Header ***************************************************** **
+<a name="line76">76   |</a>  ** 									     **
+<a name="line77">77   |</a>  **   Function:		cmdSystem					     **
+<a name="line78">78   |</a>  ** 									     **
+<a name="line79">79   |</a>  **   Description:	Callback function for 'system'			     **
+<a name="line80">80   |</a>  ** 									     **
+<a name="line81">81   |</a>  **   First Edition:	1991/10/23					     **
+<a name="line82">82   |</a>  ** 									     **
+<a name="line83">83   |</a>  **   Parameters:	ClientData	 client_data			     **
+<a name="line84">84   |</a>  **			Tcl_Interp	*interp		According Tcl interp.**
+<a name="line85">85   |</a>  **			int		 argc		Number of arguments  **
+<a name="line86">86   |</a>  **			char		*argv[]		Argument array	     **
 <a name="line87">87   |</a>  ** 									     **
-<a name="line88">88   |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
-<a name="line89">89   |</a>  **					this function is called in order to  **
-<a name="line90">90   |</a>  **					control everything		     **
-<a name="line91">91   |</a>  ** 									     **
-<a name="line92">92   |</a>  ** ************************************************************************ **
-<a name="line93">93   |</a>  ++++*/
-<a name="line94">94   |</a> 
-<a name="line95">95   |</a> int cmdSystem(
-<a name="line96">96   |</a> 	ClientData clientData,
-<a name="line97">97   |</a> 	Tcl_Interp * interp,
-<a name="line98">98   |</a> 	int objc,
-<a name="line99">99   |</a> 	Tcl_Obj * CONST84 objv[]
-<a name="line100">100  |</a> ) {
-<a name="line101">101  |</a> 	int             saved_stdout,		/** save the stdout fd	     **/
-<a name="line102">102  |</a> 	                total_len = 0,		/** total string length	     **/
-<a name="line103">103  |</a> 			arg_len,		/** each arg string length   **/
-<a name="line104">104  |</a> 			i;			/** loop counter	     **/
-<a name="line105">105  |</a> 	char            buf[MAX_ARGLIST],	/** buffer for string to int **/
-<a name="line106">106  |</a> 	               *bufp = buf;		/** buffer ptr		     **/
-<a name="line107">107  |</a>     /**
-<a name="line108">108  |</a>      **  Whatis mode
-<a name="line109">109  |</a>      **/
-<a name="line110">110  |</a> 	if (g_flags &amp; (M_WHATIS | M_HELP))
-<a name="line111">111  |</a> 		return (TCL_OK);	/** -------- EXIT (SUCCESS) -------&gt; **/
-<a name="line112">112  |</a>     /**
-<a name="line113">113  |</a>      **  Display mode?
-<a name="line114">114  |</a>      **/
-<a name="line115">115  |</a> 	if (g_flags &amp; M_DISPLAY) {
-<a name="line116">116  |</a> 		fprintf(stderr, "%s\t\t ", Tcl_GetString(objv[0]));
-<a name="line117">117  |</a> 		for (i = 1; i &lt; objc; i++)
-<a name="line118">118  |</a> 			fprintf(stderr, "%s ", Tcl_GetString(objv[i]));
-<a name="line119">119  |</a> 		fprintf(stderr, "\n");
-<a name="line120">120  |</a> 		return (TCL_OK);	/** -------- EXIT PROCEDURE -------&gt; **/
-<a name="line121">121  |</a> 	}
-<a name="line122">122  |</a> 
-<a name="line123">123  |</a>     /**
-<a name="line124">124  |</a>      **  Prepare a buffer to hold the complete 'system' call
-<a name="line125">125  |</a>      **  Watch over the commands complete length while copying ...
-<a name="line126">126  |</a>      **/
-<a name="line127">127  |</a> 	for (i = 1; i &lt; objc; i++) {
-<a name="line128">128  |</a> 		total_len += (1 + (arg_len = strlen(Tcl_GetString(objv[i]))));
-<a name="line129">129  |</a> 		if (total_len &gt; MAX_ARGLIST) {
-<a name="line130">130  |</a> 			if (OK != ErrorLogger(ERR_ARGSTOLONG, LOC,
-<a name="line131">131  |</a> 				Tcl_GetString(objv[0]),
-<a name="line132">132  |</a> 				(sprintf(buf, "%d", total_len), buf), NULL))
-<a name="line133">133  |</a> 				return (TCL_ERROR); /** -- EXIT (FAILURE) -&gt; **/
-<a name="line134">134  |</a> 		}
-<a name="line135">135  |</a> 
-<a name="line136">136  |</a> 	/**
-<a name="line137">137  |</a>  	 **  Copy the argument on the buffer and put a space at the end
-<a name="line138">138  |</a> 	 **/
-<a name="line139">139  |</a> 		memcpy(bufp, Tcl_GetString(objv[i]), arg_len);
-<a name="line140">140  |</a> 		bufp += arg_len;
-<a name="line141">141  |</a> 		memcpy(bufp, " ", 1);
-<a name="line142">142  |</a> 		bufp += 1;
-<a name="line143">143  |</a> 	}
-<a name="line144">144  |</a> 
-<a name="line145">145  |</a>     /**
-<a name="line146">146  |</a>      **  For Modules, stdout must be directed to stderr so it
-<a name="line147">147  |</a>      **  isn't parsed by the evaluating shell.  We also must save it here so it
-<a name="line148">148  |</a>      **  can be restored after this command has been executed.
-<a name="line149">149  |</a>      **/
-<a name="line150">150  |</a> 	saved_stdout = TieStdout();
-<a name="line151">151  |</a> 
-<a name="line152">152  |</a> 	*(bufp - 1) = '\0';
-<a name="line153">153  |</a> 	i = system(buf);
-<a name="line154">154  |</a> 
-<a name="line155">155  |</a>     /**
-<a name="line156">156  |</a>      **  Following the style of Tcl_ExecCmd, we can just return the
-<a name="line157">157  |</a>      **  raw result (appropriately shifted and masked) to Tcl
-<a name="line158">158  |</a>      **/
-<a name="line159">159  |</a> 	sprintf(buf, "%d", (0xff &amp; (i &gt;&gt; 8)));
-<a name="line160">160  |</a> 	Tcl_SetResult(interp, buf, TCL_VOLATILE);
-<a name="line161">161  |</a> 
-<a name="line162">162  |</a> 	/*
-<a name="line163">163  |</a> 	 *  Restore stdout.
-<a name="line164">164  |</a> 	 */
-<a name="line165">165  |</a> 	UnTieStdout(saved_stdout);
-<a name="line166">166  |</a> 
-<a name="line167">167  |</a> 	return (TCL_OK);
-<a name="line168">168  |</a> 
-<a name="line169">169  |</a> } /** End of 'cmdSystem' **/
+<a name="line88">88   |</a>  **   Result:		int	TCL_OK		Successful completion	     **
+<a name="line89">89   |</a>  **				TCL_ERROR	Any error		     **
+<a name="line90">90   |</a>  ** 									     **
+<a name="line91">91   |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
+<a name="line92">92   |</a>  **					this function is called in order to  **
+<a name="line93">93   |</a>  **					control everything		     **
+<a name="line94">94   |</a>  ** 									     **
+<a name="line95">95   |</a>  ** ************************************************************************ **
+<a name="line96">96   |</a>  ++++*/
+<a name="line97">97   |</a> 
+<a name="line98">98   |</a> int	cmdSystem(	ClientData	 clientData, 
+<a name="line99">99   |</a> 	  		Tcl_Interp	*interp, 
+<a name="line100">100  |</a> 	  		int		 argc, 
+<a name="line101">101  |</a> 	  		CONST84 char	*argv[])
+<a name="line102">102  |</a> {
+<a name="line103">103  |</a>     int		 i;
+<a name="line104">104  |</a>     int		 saved_stdout;
+<a name="line105">105  |</a>     char	 buf[ MAX_ARGLIST];
+<a name="line106">106  |</a>     char	*bufp = buf;
+<a name="line107">107  |</a>     int		 total_len = 0,
+<a name="line108">108  |</a>     		 arg_len;
+<a name="line109">109  |</a> 
+<a name="line110">110  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line111">111  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_cmdSystem, NULL);
+<a name="line112">112  |</a> #endif
+<a name="line113">113  |</a> 
+<a name="line114">114  |</a>     /**
+<a name="line115">115  |</a>      **  Whatis mode
+<a name="line116">116  |</a>      **/
+<a name="line117">117  |</a> 
+<a name="line118">118  |</a>     if( g_flags &amp; (M_WHATIS | M_HELP))
+<a name="line119">119  |</a>         return( TCL_OK);		/** -------- EXIT (SUCCESS) -------&gt; **/
+<a name="line120">120  |</a> 
+<a name="line121">121  |</a>     /**
+<a name="line122">122  |</a>      **  Display mode?
+<a name="line123">123  |</a>      **/
+<a name="line124">124  |</a> 
+<a name="line125">125  |</a>     if( g_flags &amp; M_DISPLAY) {
+<a name="line126">126  |</a> 	fprintf( stderr, "%s\t\t ", argv[ 0]);
+<a name="line127">127  |</a> 	for( i=1; i&lt;argc; i++)
+<a name="line128">128  |</a> 	    fprintf( stderr, "%s ", argv[ i]);
+<a name="line129">129  |</a> 	fprintf( stderr, "\n");
+<a name="line130">130  |</a>         return( TCL_OK);		/** ------- EXIT PROCEDURE -------&gt; **/
+<a name="line131">131  |</a>     }
+<a name="line132">132  |</a> 
+<a name="line133">133  |</a>     /**
+<a name="line134">134  |</a>      **  Prepare a buffer to hold the complete 'system' call
+<a name="line135">135  |</a>      **  Watch over the commands complete length while copying ...
+<a name="line136">136  |</a>      **/
+<a name="line137">137  |</a> 
+<a name="line138">138  |</a>     for( i = 1; i&lt;argc; i++) {
+<a name="line139">139  |</a> 
+<a name="line140">140  |</a>         total_len += (1 + (arg_len = strlen(argv[i])));
+<a name="line141">141  |</a>         if( total_len &gt; MAX_ARGLIST) {
+<a name="line142">142  |</a> 	    if( OK != ErrorLogger( ERR_ARGSTOLONG, LOC, argv[0], (sprintf( buf,
+<a name="line143">143  |</a> 		"%d", total_len), buf), NULL))
+<a name="line144">144  |</a> 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line145">145  |</a>         }
+<a name="line146">146  |</a> 
+<a name="line147">147  |</a> 	/**
+<a name="line148">148  |</a>  	 **  Copy the argument ov the buffer and put a space at its end
+<a name="line149">149  |</a> 	 **/
+<a name="line150">150  |</a> 
+<a name="line151">151  |</a>         memcpy( bufp, argv[i], arg_len);
+<a name="line152">152  |</a>         bufp += arg_len;
+<a name="line153">153  |</a>         memcpy( bufp, " ", 1);
+<a name="line154">154  |</a>         bufp += 1;
+<a name="line155">155  |</a>     }
+<a name="line156">156  |</a> 
+<a name="line157">157  |</a>     /**
+<a name="line158">158  |</a>      **  For Modules, stdout must be directed to stderr so it
+<a name="line159">159  |</a>      **  isn't parsed by the evaluating shell.  We also must save it here so it
+<a name="line160">160  |</a>      **  can be restored after this command has been executed.
+<a name="line161">161  |</a>      **/
+<a name="line162">162  |</a> 
+<a name="line163">163  |</a>     saved_stdout = TieStdout();
+<a name="line164">164  |</a> 
+<a name="line165">165  |</a>     *(bufp-1) = '\0';
+<a name="line166">166  |</a>     i = system( buf);
+<a name="line167">167  |</a> 
+<a name="line168">168  |</a>     /**
+<a name="line169">169  |</a>      **  Following the style of Tcl_ExecCmd, we can just return the
+<a name="line170">170  |</a>      **  raw result (appropriately shifted and masked) to Tcl
+<a name="line171">171  |</a>      **/
+<a name="line172">172  |</a> 
+<a name="line173">173  |</a>     sprintf( buf, "%d", (0xff &amp; (i &gt;&gt; 8)));
+<a name="line174">174  |</a>     Tcl_SetResult( interp, buf, TCL_VOLATILE);
+<a name="line175">175  |</a> 
+<a name="line176">176  |</a>     /*
+<a name="line177">177  |</a>      *  Restore stdout.
+<a name="line178">178  |</a>      */
+<a name="line179">179  |</a> 
+<a name="line180">180  |</a>     UnTieStdout( saved_stdout);
+<a name="line181">181  |</a>     
+<a name="line182">182  |</a> #if WITH_DEBUGGING_CALLBACK
+<a name="line183">183  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_cmdSystem, NULL);
+<a name="line184">184  |</a> #endif
+<a name="line185">185  |</a> 
+<a name="line186">186  |</a>     return( TCL_OK);
+<a name="line187">187  |</a> 
+<a name="line188">188  |</a> } /** End of 'cmdSystem' **/
 </pre>
 
 </BODY>

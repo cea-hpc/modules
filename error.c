@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.19 2009/09/01 19:16:27 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.20 2009/09/02 20:37:39 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -92,7 +92,7 @@ typedef struct	_facil_names	{
  **/
 
 typedef	struct	{
-    ErrWeights	 error_weight;		/** The weight itsself		     **/
+    ErrWeights	 error_weight;		/** The weight itself		     **/
     char	*message;		/** Message to be printed	     **/
     ErrCode	 ret_nov,		/** Return code			     **/
 		 ret_adv,
@@ -727,7 +727,7 @@ static	ErrMeasr	*MeasLookup(	ErrWeights weigth )
     ErrMeasr	*low, *mid, *high, *save;	/** Search pointers	     **/
 
     /**
-     **  Init serach pointers
+     **  Init search pointers
      **/
 
     low = Measurements;
@@ -1031,8 +1031,8 @@ static	ErrFacilities	*GetFacility_sub(	ErrWeights	  Weight)
  **   First Edition:	1995/12/21					     **
  ** 									     **
  **   Parameters:	char	*string		Input facility string	     **
- **			int	*facility	Buffer for the real facility **
- **			int	*level		Buffer for the real level    **
+ **			int	**facility	Buffer for the real facility **
+ **			int	**level		Buffer for the real level    **
  ** 									     **
  **   Result:		int	1		Success			     **
  **				0		Failure. String not valid    **
@@ -1040,53 +1040,49 @@ static	ErrFacilities	*GetFacility_sub(	ErrWeights	  Weight)
  ** ************************************************************************ **
  ++++*/
 
-int	CheckFacility(	char *string, int *facility, int *level)
-{
-    char *s, *buf;
-    int x;
+int CheckFacility(
+	char *string,
+	int *facility,
+	int *level
+) {
+	int             x;
+	uvec           *tmp;
 
     /**
-     **  We do not want to change the strings ... so allocate a buffer here
+     **  Create a vector of the components delimited by '.'
      **/
-    if((char *) NULL == (buf = stringer(NULL,0, string,NULL)))
-	if( OK == ErrorLogger( ERR_STRING, LOC, NULL))
-	    goto unwind0;
 
-    /** 
-     **  We cannot use strtok here, because there's one initialized in an
-     **  outer loop!
-     **/
-    for( s=buf; s && *s && *s != '.'; s++);
-    if( !s || !*s)
-	goto unwind1;
-    *s = '\0';
-	
+	if (!(tmp = str2uvec(".", string)))
+		if (OK == ErrorLogger(ERR_UVEC, LOC, NULL))
+			goto unwind0;
     /**
      **  This should be the facility
      **/
-    if( -1 == (x = scan_facility( buf, facility_names,
-	    (sizeof( facility_names) / sizeof( facility_names[0])) )))
-	goto unwind1;
-    *facility = x;
-
+	if (-1 == (x = scan_facility(uvec_vector(tmp)[0], facility_names,
+				     (sizeof(facility_names) /
+				      sizeof(facility_names[0])))))
+		goto unwind1;
+	if (facility)
+		*facility = x;
     /**
      **  This should be the level
      **/
-    if( -1 == (x = scan_facility( ++s, level_names, 
-	    (sizeof( level_names) / sizeof( level_names[0])) )))
-	goto unwind1;
-    *level = x;
-
+	if (-1 == (x = scan_facility(uvec_vector(tmp)[1], level_names,
+				     (sizeof(level_names) /
+				      sizeof(level_names[0])))))
+		goto unwind1;
+	if (level)
+		*level = x;
     /**
      **  Success
      **/
-    null_free((void *) &buf);
-    return( 1);				/** -------- EXIT (SUCCESS) -------> **/
+	uvec_dtor(&tmp);
+	return (1);			/** -------- EXIT (SUCCESS) -------> **/
 
 unwind1:
-    null_free((void *) &buf);
+	uvec_dtor(&tmp);
 unwind0:
-    return( 0);				/** -------- EXIT (FAILURE) -------> **/
+	return (0);			/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'CheckFacility' **/
 

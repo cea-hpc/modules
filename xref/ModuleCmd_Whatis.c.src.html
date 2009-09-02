@@ -28,431 +28,482 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 <a name="line8">8    |</a>  **   First Edition:	1995/12/31					     **
 <a name="line9">9    |</a>  **									     **
 <a name="line10">10   |</a>  **   Authors:	Jens Hamisch, jens@Strawberry.COM			     **
-<a name="line11">11   |</a>  **		R.K. Owen, &lt;rk@owen.sj.ca.us&gt; or &lt;rkowen@nersc.gov&gt;	     **
-<a name="line12">12   |</a>  **									     **
-<a name="line13">13   |</a>  **			ModuleCmd_Apropos				     **
-<a name="line14">14   |</a>  **			ModuleCmd_Whatis				     **
-<a name="line15">15   |</a>  **									     **
-<a name="line16">16   |</a>  **   Notes:								     **
-<a name="line17">17   |</a>  **									     **
-<a name="line18">18   |</a>  ** ************************************************************************ **
-<a name="line19">19   |</a>  ****/
-<a name="line20">20   |</a> 
-<a name="line21">21   |</a> /** ** Copyright *********************************************************** **
-<a name="line22">22   |</a>  ** 									     **
-<a name="line23">23   |</a>  ** Copyright 1991-1994 by John L. Furlan.                      	     **
-<a name="line24">24   |</a>  ** see LICENSE.GPL, which must be provided, for details		     **
-<a name="line25">25   |</a>  ** 									     ** 
-<a name="line26">26   |</a>  ** ************************************************************************ **/
-<a name="line27">27   |</a> 
-<a name="line28">28   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c.src.html,v 1.8 2009/09/01 20:22:32 rkowen Exp $";
-<a name="line29">29   |</a> static void *UseId[] = { &amp;UseId, Id };
-<a name="line30">30   |</a> 
-<a name="line31">31   |</a> /** ************************************************************************ **/
-<a name="line32">32   |</a> /**				      HEADERS				     **/
-<a name="line33">33   |</a> /** ************************************************************************ **/
-<a name="line34">34   |</a> 
-<a name="line35">35   |</a> #include "modules_def.h"
-<a name="line36">36   |</a> 
-<a name="line37">37   |</a> /** ************************************************************************ **/
-<a name="line38">38   |</a> /**				  LOCAL DATATYPES			     **/
-<a name="line39">39   |</a> /** ************************************************************************ **/
-<a name="line40">40   |</a> 
-<a name="line41">41   |</a> /** not applicable **/
-<a name="line42">42   |</a> 
-<a name="line43">43   |</a> /** ************************************************************************ **/
-<a name="line44">44   |</a> /**				     CONSTANTS				     **/
-<a name="line45">45   |</a> /** ************************************************************************ **/
-<a name="line46">46   |</a> 
-<a name="line47">47   |</a> /** not applicable **/
-<a name="line48">48   |</a> 
-<a name="line49">49   |</a> /** ************************************************************************ **/
-<a name="line50">50   |</a> /**				      MACROS				     **/
-<a name="line51">51   |</a> /** ************************************************************************ **/
-<a name="line52">52   |</a> 
-<a name="line53">53   |</a> #define WHATIS_SOME	0
-<a name="line54">54   |</a> #define WHATIS_ALL	1
-<a name="line55">55   |</a> 
-<a name="line56">56   |</a> /** ************************************************************************ **/
-<a name="line57">57   |</a> /**				    LOCAL DATA				     **/
-<a name="line58">58   |</a> /** ************************************************************************ **/
-<a name="line59">59   |</a> 
-<a name="line60">60   |</a> static	char	module_name[] = __FILE__;
-<a name="line61">61   |</a> 
-<a name="line62">62   |</a> /** ************************************************************************ **/
-<a name="line63">63   |</a> /**				    PROTOTYPES				     **/
-<a name="line64">64   |</a> /** ************************************************************************ **/
-<a name="line65">65   |</a> 
-<a name="line66">66   |</a> static	int	 whatis_dir( char*, int, char**, int);
-<a name="line67">67   |</a> 
-<a name="line68">68   |</a> /*++++
-<a name="line69">69   |</a>  ** ** Function-Header ***************************************************** **
-<a name="line70">70   |</a>  **									     **
-<a name="line71">71   |</a>  **   Function:		ModuleCmd_Whatis				     **
-<a name="line72">72   |</a>  **									     **
-<a name="line73">73   |</a>  **   Description:	Display the passed modules 'whatis' information	     **
-<a name="line74">74   |</a>  **									     **
-<a name="line75">75   |</a>  **   First Edition:	1995/12/31					     **
-<a name="line76">76   |</a>  **									     **
-<a name="line77">77   |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
-<a name="line78">78   |</a>  **			int		 argc		Number of arguments  **
-<a name="line79">79   |</a>  **			char		*argv[]		Argument list	     **
-<a name="line80">80   |</a>  **									     **
-<a name="line81">81   |</a>  **   Result:		int	TCL_ERROR	Failure			     **
-<a name="line82">82   |</a>  **				TCL_OK		Successful operation	     **
+<a name="line11">11   |</a>  **									     **
+<a name="line12">12   |</a>  **			ModuleCmd_Apropos				     **
+<a name="line13">13   |</a>  **			ModuleCmd_Whatis				     **
+<a name="line14">14   |</a>  **									     **
+<a name="line15">15   |</a>  **   Notes:								     **
+<a name="line16">16   |</a>  **									     **
+<a name="line17">17   |</a>  ** ************************************************************************ **
+<a name="line18">18   |</a>  ****/
+<a name="line19">19   |</a> 
+<a name="line20">20   |</a> /** ** Copyright *********************************************************** **
+<a name="line21">21   |</a>  ** 									     **
+<a name="line22">22   |</a>  ** Copyright 1991-1994 by John L. Furlan.                      	     **
+<a name="line23">23   |</a>  ** see LICENSE.GPL, which must be provided, for details		     **
+<a name="line24">24   |</a>  ** 									     ** 
+<a name="line25">25   |</a>  ** ************************************************************************ **/
+<a name="line26">26   |</a> 
+<a name="line27">27   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c.src.html,v 1.9 2009/09/02 20:37:40 rkowen Exp $";
+<a name="line28">28   |</a> static void *UseId[] = { &amp;UseId, Id };
+<a name="line29">29   |</a> 
+<a name="line30">30   |</a> /** ************************************************************************ **/
+<a name="line31">31   |</a> /**				      HEADERS				     **/
+<a name="line32">32   |</a> /** ************************************************************************ **/
+<a name="line33">33   |</a> 
+<a name="line34">34   |</a> #include "modules_def.h"
+<a name="line35">35   |</a> 
+<a name="line36">36   |</a> /** ************************************************************************ **/
+<a name="line37">37   |</a> /**				  LOCAL DATATYPES			     **/
+<a name="line38">38   |</a> /** ************************************************************************ **/
+<a name="line39">39   |</a> 
+<a name="line40">40   |</a> /** not applicable **/
+<a name="line41">41   |</a> 
+<a name="line42">42   |</a> /** ************************************************************************ **/
+<a name="line43">43   |</a> /**				     CONSTANTS				     **/
+<a name="line44">44   |</a> /** ************************************************************************ **/
+<a name="line45">45   |</a> 
+<a name="line46">46   |</a> /** not applicable **/
+<a name="line47">47   |</a> 
+<a name="line48">48   |</a> /** ************************************************************************ **/
+<a name="line49">49   |</a> /**				      MACROS				     **/
+<a name="line50">50   |</a> /** ************************************************************************ **/
+<a name="line51">51   |</a> 
+<a name="line52">52   |</a> #define WHATIS_SOME	0
+<a name="line53">53   |</a> #define WHATIS_ALL	1
+<a name="line54">54   |</a> 
+<a name="line55">55   |</a> /** ************************************************************************ **/
+<a name="line56">56   |</a> /**				    LOCAL DATA				     **/
+<a name="line57">57   |</a> /** ************************************************************************ **/
+<a name="line58">58   |</a> 
+<a name="line59">59   |</a> static	char	module_name[] = __FILE__;
+<a name="line60">60   |</a> 
+<a name="line61">61   |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line62">62   |</a> static	char	_proc_ModuleCmd_Whatis[] = "ModuleCmd_Whatis";
+<a name="line63">63   |</a> static	char	_proc_ModuleCmd_Apropos[] = "ModuleCmd_Apropos";
+<a name="line64">64   |</a> #endif
+<a name="line65">65   |</a> #if WITH_DEBUGGING_UTIL_1
+<a name="line66">66   |</a> static	char	_proc_whatis_dir[] = "whatis_dir";
+<a name="line67">67   |</a> #endif
+<a name="line68">68   |</a> 
+<a name="line69">69   |</a> /** ************************************************************************ **/
+<a name="line70">70   |</a> /**				    PROTOTYPES				     **/
+<a name="line71">71   |</a> /** ************************************************************************ **/
+<a name="line72">72   |</a> 
+<a name="line73">73   |</a> static	int	 whatis_dir( char*, int, char**, int);
+<a name="line74">74   |</a> 
+<a name="line75">75   |</a> /*++++
+<a name="line76">76   |</a>  ** ** Function-Header ***************************************************** **
+<a name="line77">77   |</a>  **									     **
+<a name="line78">78   |</a>  **   Function:		ModuleCmd_Whatis				     **
+<a name="line79">79   |</a>  **									     **
+<a name="line80">80   |</a>  **   Description:	Display the passed modules 'whatis' information	     **
+<a name="line81">81   |</a>  **									     **
+<a name="line82">82   |</a>  **   First Edition:	1995/12/31					     **
 <a name="line83">83   |</a>  **									     **
-<a name="line84">84   |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
-<a name="line85">85   |</a>  **					this function is called in order to  **
-<a name="line86">86   |</a>  **					control everything		     **
-<a name="line87">87   |</a>  **			g_current_module	The module which is handled  **
-<a name="line88">88   |</a>  **						by the current command	     **
-<a name="line89">89   |</a>  **									     **
-<a name="line90">90   |</a>  ** ************************************************************************ **
-<a name="line91">91   |</a>  ++++*/
-<a name="line92">92   |</a> 
-<a name="line93">93   |</a> int ModuleCmd_Whatis(
-<a name="line94">94   |</a> 	Tcl_Interp * interp,
-<a name="line95">95   |</a> 	int argc,
-<a name="line96">96   |</a> 	char *argv[]
-<a name="line97">97   |</a> ) {
-<a name="line98">98   |</a> 	Tcl_Interp     *whatis_interp;
-<a name="line99">99   |</a> 	Tcl_DString     cmdbuf;			/** dynamic string buffer    **/
-<a name="line100">100  |</a> 	int             i,			/** loop index		     **/
-<a name="line101">101  |</a> 	                result = TCL_OK;	/** result (default OK	     **/
-<a name="line102">102  |</a> 	char            modulefile[MOD_BUFSIZE],/** buffer for modulefile    **/
-<a name="line103">103  |</a> 	                modulename[MOD_BUFSIZE],/** buffer for modulename    **/
-<a name="line104">104  |</a> 	              **wptr,		/** whatis text line		     **/
-<a name="line105">105  |</a> 	              **dirname;	/** modulepath dir		     **/
-<a name="line106">106  |</a> 	uvec           *modpath;	/** MODULEPATH vector list           **/
-<a name="line107">107  |</a>     /**
-<a name="line108">108  |</a>      **	 Initialize the command buffer and set up the modules flag to
-<a name="line109">109  |</a>      **	 'whatisonly'
-<a name="line110">110  |</a>      **/
-<a name="line111">111  |</a> 	Tcl_DStringInit(&amp;cmdbuf);
-<a name="line112">112  |</a> 	g_flags |= M_WHATIS;
+<a name="line84">84   |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
+<a name="line85">85   |</a>  **			int		 argc		Number of arguments  **
+<a name="line86">86   |</a>  **			char		*argv[]		Argument list	     **
+<a name="line87">87   |</a>  **									     **
+<a name="line88">88   |</a>  **   Result:		int	TCL_ERROR	Failure			     **
+<a name="line89">89   |</a>  **				TCL_OK		Successful operation	     **
+<a name="line90">90   |</a>  **									     **
+<a name="line91">91   |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
+<a name="line92">92   |</a>  **					this function is called in order to  **
+<a name="line93">93   |</a>  **					control everything		     **
+<a name="line94">94   |</a>  **			g_current_module	The module which is handled  **
+<a name="line95">95   |</a>  **						by the current command	     **
+<a name="line96">96   |</a>  **									     **
+<a name="line97">97   |</a>  ** ************************************************************************ **
+<a name="line98">98   |</a>  ++++*/
+<a name="line99">99   |</a> 
+<a name="line100">100  |</a> int ModuleCmd_Whatis(	Tcl_Interp	*interp,
+<a name="line101">101  |</a> 			int		 argc,
+<a name="line102">102  |</a> 			char		*argv[])
+<a name="line103">103  |</a> {
+<a name="line104">104  |</a>     Tcl_Interp	*whatis_interp;
+<a name="line105">105  |</a>     Tcl_DString	 cmdbuf;
+<a name="line106">106  |</a>     int		 i, result = TCL_OK;
+<a name="line107">107  |</a>     char	 modulefile[ MOD_BUFSIZE],
+<a name="line108">108  |</a> 		 modulename[ MOD_BUFSIZE],
+<a name="line109">109  |</a> 		*modpath,		/** Buffer for the contents of the   **/
+<a name="line110">110  |</a> 					/** environment variable MODULEPATH  **/
+<a name="line111">111  |</a> 		**wptr,
+<a name="line112">112  |</a> 		*dirname;
 <a name="line113">113  |</a> 
-<a name="line114">114  |</a>     /**
-<a name="line115">115  |</a>      **	 Handle each passed module file. Create a Tcl interpreter for each
-<a name="line116">116  |</a>      **	 module file to be handled and initialize it with custom module commands
-<a name="line117">117  |</a>      **/
-<a name="line118">118  |</a> 
-<a name="line119">119  |</a> 	if (argc) {
-<a name="line120">120  |</a>     /**
-<a name="line121">121  |</a>      **	 User provided a list of modules for ``whatis'' info
-<a name="line122">122  |</a>      **/
-<a name="line123">123  |</a> 		for (i = 0; i &lt; argc &amp;&amp; argv[i]; i++) {
-<a name="line124">124  |</a> 			whatis_interp = Tcl_CreateInterp();
-<a name="line125">125  |</a> 			if (TCL_OK != (result = Module_Init(whatis_interp))) {
-<a name="line126">126  |</a> 				Tcl_DeleteInterp(whatis_interp);
-<a name="line127">127  |</a> 				result = TCL_ERROR;
-<a name="line128">128  |</a> 				break;
-<a name="line129">129  |</a> 			}
-<a name="line130">130  |</a> 	    /**
-<a name="line131">131  |</a> 	     **	 locate the filename related to the passed module
-<a name="line132">132  |</a> 	     **/
-<a name="line133">133  |</a> 			if (TCL_ERROR ==
-<a name="line134">134  |</a> 			    Locate_ModuleFile(whatis_interp, argv[i],
-<a name="line135">135  |</a> 					      modulename, modulefile)) {
-<a name="line136">136  |</a> 				Tcl_DeleteInterp(whatis_interp);
-<a name="line137">137  |</a> 				if (OK !=
-<a name="line138">138  |</a> 				    ErrorLogger(ERR_LOCATE, LOC, argv[i], NULL))
-<a name="line139">139  |</a> 					break;
-<a name="line140">140  |</a> 				else
-<a name="line141">141  |</a> 					continue;
-<a name="line142">142  |</a> 			}
+<a name="line114">114  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line115">115  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Whatis, NULL);
+<a name="line116">116  |</a> #endif
+<a name="line117">117  |</a> 
+<a name="line118">118  |</a>     /**
+<a name="line119">119  |</a>      **	 Initialize the command buffer and set up the modules flag to
+<a name="line120">120  |</a>      **	 'whatisonly'
+<a name="line121">121  |</a>      **/
+<a name="line122">122  |</a>     Tcl_DStringInit( &amp;cmdbuf);
+<a name="line123">123  |</a>     g_flags |= M_WHATIS;
+<a name="line124">124  |</a> 
+<a name="line125">125  |</a>     /**
+<a name="line126">126  |</a>      **	 Handle each passed module file. Create a Tcl interpreter for each
+<a name="line127">127  |</a>      **	 module file to be handled and initialize it with custom module commands
+<a name="line128">128  |</a>      **/
+<a name="line129">129  |</a> 
+<a name="line130">130  |</a>     if ( argc) {
+<a name="line131">131  |</a>     /**
+<a name="line132">132  |</a>      **	 User provided a list of modules for ``whatis'' info
+<a name="line133">133  |</a>      **/
+<a name="line134">134  |</a> 	for(i=0; i&lt;argc &amp;&amp; argv[i]; i++) {
+<a name="line135">135  |</a> 
+<a name="line136">136  |</a> 	    whatis_interp = Tcl_CreateInterp();
+<a name="line137">137  |</a> 	    if( TCL_OK != (result = InitializeModuleCommands( whatis_interp))) {
+<a name="line138">138  |</a> 		Tcl_DeleteInterp( whatis_interp);
+<a name="line139">139  |</a> 		result = TCL_ERROR;
+<a name="line140">140  |</a> 		break;
+<a name="line141">141  |</a> 	    }
+<a name="line142">142  |</a> 
 <a name="line143">143  |</a> 	    /**
-<a name="line144">144  |</a> 	     **	 Print out everything that would happen if the module file were
-<a name="line145">145  |</a> 	     **	 executed ...
-<a name="line146">146  |</a> 	     **/
-<a name="line147">147  |</a> 			g_current_module = modulename;
-<a name="line148">148  |</a> 
-<a name="line149">149  |</a> 			cmdModuleWhatisInit();
-<a name="line150">150  |</a> 			result = CallModuleProcedure(whatis_interp, &amp;cmdbuf,
-<a name="line151">151  |</a> 						     modulefile,
-<a name="line152">152  |</a> 						     "ModulesWhatis", 0);
-<a name="line153">153  |</a> 	    /**
-<a name="line154">154  |</a> 	     **	 Print the result ...
-<a name="line155">155  |</a> 	     **/
-<a name="line156">156  |</a> 			if (whatis) {
-<a name="line157">157  |</a> 				wptr = whatis;
-<a name="line158">158  |</a> 				while (*wptr)
-<a name="line159">159  |</a> 					fprintf(stderr, "%-21s: %s\n", argv[i],
-<a name="line160">160  |</a> 						*wptr++);
-<a name="line161">161  |</a> 			}
-<a name="line162">162  |</a> 	    /**
-<a name="line163">163  |</a> 	     **	 Remove the Tcl interpreter that has been used for printing ...
-<a name="line164">164  |</a> 	     **/
-<a name="line165">165  |</a> 			Tcl_DeleteInterp(whatis_interp);
-<a name="line166">166  |</a> 			cmdModuleWhatisShut();
-<a name="line167">167  |</a> 		}
-<a name="line168">168  |</a> 	  /** for **/
-<a name="line169">169  |</a> 	} else {
-<a name="line170">170  |</a>        /**
-<a name="line171">171  |</a> 	**  User wants all module ``whatis'' info
-<a name="line172">172  |</a> 	**/
-<a name="line173">173  |</a> 	/**
-<a name="line174">174  |</a> 	 **  Load the MODULEPATH and split it into a list of paths.
-<a name="line175">175  |</a> 	 **  Assume success if no list is to be displayed ...
-<a name="line176">176  |</a> 	 **/
-<a name="line177">177  |</a> 		if (!(modpath = ModulePathList()))
-<a name="line178">178  |</a> 			goto unwind0;
-<a name="line179">179  |</a> 		if (!uvec_number(modpath))
-<a name="line180">180  |</a> 			goto success0;
-<a name="line181">181  |</a> 	/**
-<a name="line182">182  |</a> 	 **  Scan all the files
-<a name="line183">183  |</a> 	 **/
-<a name="line184">184  |</a> 		dirname = uvec_vector(modpath);
-<a name="line185">185  |</a> 		while (dirname &amp;&amp; *dirname) {
-<a name="line186">186  |</a> 			if (!check_dir(*dirname))
-<a name="line187">187  |</a> 				continue;
-<a name="line188">188  |</a> 			whatis_dir(*dirname, argc, argv, WHATIS_ALL);
-<a name="line189">189  |</a> 			dirname++;
-<a name="line190">190  |</a> 		}
-<a name="line191">191  |</a> 		FreeList(&amp;modpath);
-<a name="line192">192  |</a> 	}
-<a name="line193">193  |</a>     /**
-<a name="line194">194  |</a>      **	 Leave the 'whatis only mode', free up what has been used and return
-<a name="line195">195  |</a>      **/
-<a name="line196">196  |</a> 	g_flags &amp;= ~M_WHATIS;
-<a name="line197">197  |</a> 	fprintf(stderr, "\n");
-<a name="line198">198  |</a> 
-<a name="line199">199  |</a> 	Tcl_DStringFree(&amp;cmdbuf);
-<a name="line200">200  |</a>     /**
-<a name="line201">201  |</a>      **	 Return on success
-<a name="line202">202  |</a>      **/
-<a name="line203">203  |</a> 
-<a name="line204">204  |</a> success0:
-<a name="line205">205  |</a> 	return (result);		/** --- EXIT PROCEDURE (result)  --&gt; **/
-<a name="line206">206  |</a> 
-<a name="line207">207  |</a> unwind0:
-<a name="line208">208  |</a> 	return (TCL_ERROR);		/** --- EXIT PROCEDURE (FAILURE) --&gt; **/
-<a name="line209">209  |</a> 
-<a name="line210">210  |</a> } /** End of 'ModuleCmd_Whatis' **/
-<a name="line211">211  |</a> 
-<a name="line212">212  |</a> /*++++
-<a name="line213">213  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line214">214  |</a>  **									     **
-<a name="line215">215  |</a>  **   Function:		ModuleCmd_Apropos				     **
-<a name="line216">216  |</a>  **									     **
-<a name="line217">217  |</a>  **   Description:	Scan the whatis database in order to find something  **
-<a name="line218">218  |</a>  **			matching the passed strings			     **
-<a name="line219">219  |</a>  **									     **
-<a name="line220">220  |</a>  **   First Edition:	1995/12/31					     **
-<a name="line221">221  |</a>  **									     **
-<a name="line222">222  |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
-<a name="line223">223  |</a>  **			int		 argc		Number of arguments  **
-<a name="line224">224  |</a>  **			char		*argv[]		Argument list	     **
-<a name="line225">225  |</a>  **									     **
-<a name="line226">226  |</a>  **   Result:		int	TCL_ERROR	Failure			     **
-<a name="line227">227  |</a>  **				TCL_OK		Successful operation	     **
-<a name="line228">228  |</a>  **									     **
-<a name="line229">229  |</a>  **   Attached Globals:							     **
-<a name="line230">230  |</a>  **									     **
-<a name="line231">231  |</a>  ** ************************************************************************ **
-<a name="line232">232  |</a>  ++++*/
+<a name="line144">144  |</a> 	     **	 locate the filename related to the passed module
+<a name="line145">145  |</a> 	     **/
+<a name="line146">146  |</a> 	    if( TCL_ERROR ==
+<a name="line147">147  |</a> 		Locate_ModuleFile(whatis_interp,argv[i],modulename,modulefile)){
+<a name="line148">148  |</a> 		Tcl_DeleteInterp( whatis_interp);
+<a name="line149">149  |</a> 		if( OK != ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL))
+<a name="line150">150  |</a> 		    break;
+<a name="line151">151  |</a> 		else
+<a name="line152">152  |</a> 		    continue;
+<a name="line153">153  |</a> 	    }
+<a name="line154">154  |</a> 
+<a name="line155">155  |</a> 	    /**
+<a name="line156">156  |</a> 	     **	 Print out everything that would happen if the module file were
+<a name="line157">157  |</a> 	     **	 executed ...
+<a name="line158">158  |</a> 	     **/
+<a name="line159">159  |</a> 	    g_current_module = modulename;
+<a name="line160">160  |</a> 
+<a name="line161">161  |</a> 	    cmdModuleWhatisInit();
+<a name="line162">162  |</a> 	    result = CallModuleProcedure( whatis_interp, &amp;cmdbuf, modulefile,
+<a name="line163">163  |</a> 		"ModulesWhatis", 0);
+<a name="line164">164  |</a> 
+<a name="line165">165  |</a> 	    /**
+<a name="line166">166  |</a> 	     **	 Print the result ...
+<a name="line167">167  |</a> 	     **/
+<a name="line168">168  |</a> 	    if( whatis) {
+<a name="line169">169  |</a> 		wptr = whatis;
+<a name="line170">170  |</a> 		while( *wptr)
+<a name="line171">171  |</a> 		    fprintf( stderr, "%-21s: %s\n", argv[i], *wptr++);
+<a name="line172">172  |</a> 	    }
+<a name="line173">173  |</a> 
+<a name="line174">174  |</a> 	    /**
+<a name="line175">175  |</a> 	     **	 Remove the Tcl interpreter that has been used for printing ...
+<a name="line176">176  |</a> 	     **/
+<a name="line177">177  |</a> 	    Tcl_DeleteInterp( whatis_interp);
+<a name="line178">178  |</a> 	    cmdModuleWhatisShut();
+<a name="line179">179  |</a> 
+<a name="line180">180  |</a> 	} /** for **/
+<a name="line181">181  |</a>     } else {
+<a name="line182">182  |</a>        /**
+<a name="line183">183  |</a> 	**  User wants all module ``whatis'' info
+<a name="line184">184  |</a> 	**/
+<a name="line185">185  |</a> 
+<a name="line186">186  |</a> 	/**
+<a name="line187">187  |</a> 	 **  If no MODULEPATH defined, we can not output anything
+<a name="line188">188  |</a> 	 **/
+<a name="line189">189  |</a> 	if( !(modpath = (char *) xgetenv( "MODULEPATH")))
+<a name="line190">190  |</a> 	    if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
+<a name="line191">191  |</a> 		goto unwind0;
+<a name="line192">192  |</a> 
+<a name="line193">193  |</a> 	/**
+<a name="line194">194  |</a> 	 **  Scan all the files
+<a name="line195">195  |</a> 	 **/
+<a name="line196">196  |</a> 	     /**
+<a name="line197">197  |</a> 	      **  Tokenize the module path string and check all dirs
+<a name="line198">198  |</a> 	      **/
+<a name="line199">199  |</a> 	     for( dirname = xstrtok( modpath, ":");
+<a name="line200">200  |</a> 		  dirname;
+<a name="line201">201  |</a> 		  dirname = xstrtok( NULL, ":") ) {
+<a name="line202">202  |</a> 	
+<a name="line203">203  |</a> 		 if( !check_dir( dirname))
+<a name="line204">204  |</a> 		     continue;
+<a name="line205">205  |</a> 	
+<a name="line206">206  |</a> 		 whatis_dir( dirname, argc, argv, WHATIS_ALL);
+<a name="line207">207  |</a> 
+<a name="line208">208  |</a> 	     } /** for **/
+<a name="line209">209  |</a>     }
+<a name="line210">210  |</a> 
+<a name="line211">211  |</a>     /**
+<a name="line212">212  |</a>      **	 Leave the 'whatis only mode', free up what has been used and return
+<a name="line213">213  |</a>      **/
+<a name="line214">214  |</a>     g_flags &amp;= ~M_WHATIS;
+<a name="line215">215  |</a>     fprintf( stderr, "\n");
+<a name="line216">216  |</a> 
+<a name="line217">217  |</a>     Tcl_DStringFree( &amp;cmdbuf);
+<a name="line218">218  |</a> 
+<a name="line219">219  |</a>     /**
+<a name="line220">220  |</a>      **	 Free up allocated resources
+<a name="line221">221  |</a>      **/
+<a name="line222">222  |</a>     null_free((void *) &amp;modpath);
+<a name="line223">223  |</a> 
+<a name="line224">224  |</a>     /**
+<a name="line225">225  |</a>      **	 Return on success
+<a name="line226">226  |</a>      **/
+<a name="line227">227  |</a> 
+<a name="line228">228  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line229">229  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Whatis, NULL);
+<a name="line230">230  |</a> #endif
+<a name="line231">231  |</a> 
+<a name="line232">232  |</a>     return( result);			/** --- EXIT PROCEDURE (result)  --&gt; **/
 <a name="line233">233  |</a> 
-<a name="line234">234  |</a> int ModuleCmd_Apropos(
-<a name="line235">235  |</a> 	Tcl_Interp * interp,
-<a name="line236">236  |</a> 	int argc,
-<a name="line237">237  |</a> 	char *argv[]
-<a name="line238">238  |</a> ) {
-<a name="line239">239  |</a> 	char          **dirname,	/** modulepath dir		     **/
-<a name="line240">240  |</a> 	               *c;
-<a name="line241">241  |</a> 	uvec           *modpath;	/** MODULEPATH vector list           **/
-<a name="line242">242  |</a> 	int             i;
-<a name="line243">243  |</a>     /**
-<a name="line244">244  |</a>      **	 Ignore case ... convert all arguments to lower case
-<a name="line245">245  |</a>      **/
-<a name="line246">246  |</a> 	if (sw_icase)
-<a name="line247">247  |</a> 		for (i = 0; i &lt; argc; i++)
-<a name="line248">248  |</a> 			for (c = argv[i]; c &amp;&amp; *c; c++)
-<a name="line249">249  |</a> 				*c = tolower(*c);
-<a name="line250">250  |</a> 
-<a name="line251">251  |</a> 	/**
-<a name="line252">252  |</a> 	 **  Load the MODULEPATH and split it into a list of paths.
-<a name="line253">253  |</a> 	 **  Assume success if no list is to be displayed ...
-<a name="line254">254  |</a> 	 **/
-<a name="line255">255  |</a> 	if (!(modpath = ModulePathList()))
-<a name="line256">256  |</a> 		goto unwind0;
-<a name="line257">257  |</a> 	if (!uvec_number(modpath))
-<a name="line258">258  |</a> 		goto success0;
-<a name="line259">259  |</a> 
-<a name="line260">260  |</a> 	dirname = uvec_vector(modpath);
-<a name="line261">261  |</a> 	while (dirname &amp;&amp; *dirname) {
-<a name="line262">262  |</a> 		if (!check_dir(*dirname))
-<a name="line263">263  |</a> 			continue;
-<a name="line264">264  |</a> 
-<a name="line265">265  |</a> 		whatis_dir(*dirname++, argc, argv, WHATIS_SOME);
-<a name="line266">266  |</a> 	}
-<a name="line267">267  |</a> 
-<a name="line268">268  |</a>     /**
-<a name="line269">269  |</a>      **	 Free up what has been allocated and exit from this procedure
-<a name="line270">270  |</a>      **/
-<a name="line271">271  |</a> 	FreeList(&amp;modpath);
+<a name="line234">234  |</a> unwind1:
+<a name="line235">235  |</a>     null_free((void *) &amp;modpath);
+<a name="line236">236  |</a> unwind0:
+<a name="line237">237  |</a>     return( TCL_ERROR);			/** --- EXIT PROCEDURE (FAILURE) --&gt; **/
+<a name="line238">238  |</a> 
+<a name="line239">239  |</a> } /** End of 'ModuleCmd_Whatis' **/
+<a name="line240">240  |</a> 
+<a name="line241">241  |</a> /*++++
+<a name="line242">242  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line243">243  |</a>  **									     **
+<a name="line244">244  |</a>  **   Function:		ModuleCmd_Apropos				     **
+<a name="line245">245  |</a>  **									     **
+<a name="line246">246  |</a>  **   Description:	Scan the whatis database in order to find something  **
+<a name="line247">247  |</a>  **			matching the passed strings			     **
+<a name="line248">248  |</a>  **									     **
+<a name="line249">249  |</a>  **   First Edition:	1995/12/31					     **
+<a name="line250">250  |</a>  **									     **
+<a name="line251">251  |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
+<a name="line252">252  |</a>  **			int		 argc		Number of arguments  **
+<a name="line253">253  |</a>  **			char		*argv[]		Argument list	     **
+<a name="line254">254  |</a>  **									     **
+<a name="line255">255  |</a>  **   Result:		int	TCL_ERROR	Failure			     **
+<a name="line256">256  |</a>  **				TCL_OK		Successful operation	     **
+<a name="line257">257  |</a>  **									     **
+<a name="line258">258  |</a>  **   Attached Globals:							     **
+<a name="line259">259  |</a>  **									     **
+<a name="line260">260  |</a>  ** ************************************************************************ **
+<a name="line261">261  |</a>  ++++*/
+<a name="line262">262  |</a> 
+<a name="line263">263  |</a> int ModuleCmd_Apropos(	Tcl_Interp	*interp,
+<a name="line264">264  |</a> 			int		 argc,
+<a name="line265">265  |</a> 			char		*argv[])
+<a name="line266">266  |</a> {
+<a name="line267">267  |</a>     char	*dirname;
+<a name="line268">268  |</a>     char	*modpath;		/** Buffer for the contents of the   **/
+<a name="line269">269  |</a> 					/** environment variable MODULEPATH  **/
+<a name="line270">270  |</a>     int		 i;
+<a name="line271">271  |</a>     char	*c;
 <a name="line272">272  |</a> 
-<a name="line273">273  |</a> success0:
-<a name="line274">274  |</a> 	return (TCL_OK);
-<a name="line275">275  |</a> 
-<a name="line276">276  |</a> unwind0:
-<a name="line277">277  |</a> 	return (TCL_ERROR);			/** ---- EXIT (FAILURE) ---&gt; **/
-<a name="line278">278  |</a> 
-<a name="line279">279  |</a> } /** End of 'ModuleCmd_Apropos' **/
-<a name="line280">280  |</a> 
-<a name="line281">281  |</a> /*++++
-<a name="line282">282  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line283">283  |</a>  **									     **
-<a name="line284">284  |</a>  **   Function:		whatis_dir					     **
-<a name="line285">285  |</a>  **									     **
-<a name="line286">286  |</a>  **   Description:	Print all files beyond the passed directory	     **
-<a name="line287">287  |</a>  **									     **
-<a name="line288">288  |</a>  **   First Edition:	1991/10/23					     **
-<a name="line289">289  |</a>  **									     **
-<a name="line290">290  |</a>  **   Parameters:	char	*dir		Directory to be scanned	     **
-<a name="line291">291  |</a>  **			int	 argc		Number of tokens	     **
-<a name="line292">292  |</a>  **			char   **argv		List of tokens to check	     **
-<a name="line293">293  |</a>  **									     **
-<a name="line294">294  |</a>  **   Result:		int	TCL_OK		Successful operation	     **
-<a name="line295">295  |</a>  **									     **
-<a name="line296">296  |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
-<a name="line297">297  |</a>  **					this function is called in order to  **
-<a name="line298">298  |</a>  **					control everything		     **
-<a name="line299">299  |</a>  **			g_current_module	The module which is handled  **
-<a name="line300">300  |</a>  **						by the current command	     **
-<a name="line301">301  |</a>  **									     **
-<a name="line302">302  |</a>  ** ************************************************************************ **
-<a name="line303">303  |</a>  ++++*/
-<a name="line304">304  |</a> 
-<a name="line305">305  |</a> static	int	whatis_dir( char *dir, int argc, char **argv,
-<a name="line306">306  |</a> 			    int whatis_list)
-<a name="line307">307  |</a> {
-<a name="line308">308  |</a>     fi_ent	 *dirlst_head = NULL;	/** Directory list base pointer	     **/
-<a name="line309">309  |</a>     int		  count = 0;		/** Number of elements in the top    **/
-<a name="line310">310  |</a> 					/** level directory list	     **/
-<a name="line311">311  |</a>     int		  tcount = 0;		/** Total number of files to print   **/
-<a name="line312">312  |</a>     char	**list;			/** flat list of module files	     **/
-<a name="line313">313  |</a>     int		  start = 0, i, k;
-<a name="line314">314  |</a>     int		  result = TCL_OK;
-<a name="line315">315  |</a>     Tcl_Interp	 *whatis_interp;
-<a name="line316">316  |</a>     Tcl_DString	  cmdbuf;
-<a name="line317">317  |</a>     char	  modulefile[ MOD_BUFSIZE];
-<a name="line318">318  |</a>     char	**wptr, *c;
-<a name="line319">319  |</a>     struct stat	 stats;
-<a name="line320">320  |</a> 
-<a name="line321">321  |</a>     /**
-<a name="line322">322  |</a>      **	 Normal reading of the files
-<a name="line323">323  |</a>      **/
-<a name="line324">324  |</a> 
-<a name="line325">325  |</a>     if( NULL == (dirlst_head = get_dir( dir, NULL, &amp;count, &amp;tcount)))
-<a name="line326">326  |</a> 	if( OK != ErrorLogger( ERR_READDIR, LOC, dir, NULL))
-<a name="line327">327  |</a> 	    goto unwind0;
-<a name="line328">328  |</a> 
-<a name="line329">329  |</a>     if( NULL == (list = (char**) module_malloc( tcount * sizeof( char**))))
-<a name="line330">330  |</a> 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-<a name="line331">331  |</a> 	    goto unwind1;
-<a name="line332">332  |</a> 
-<a name="line333">333  |</a>     dirlst_to_list( list, dirlst_head, count, &amp;start, NULL, NULL);
-<a name="line334">334  |</a> 
-<a name="line335">335  |</a>     /**
-<a name="line336">336  |</a>      **	 Initialize the command buffer and set up the modules flag to 'whatislay
-<a name="line337">337  |</a>      **	 only'
-<a name="line338">338  |</a>      **/
-<a name="line339">339  |</a> 
-<a name="line340">340  |</a>     Tcl_DStringInit( &amp;cmdbuf);
-<a name="line341">341  |</a>     g_flags |= M_WHATIS;
-<a name="line342">342  |</a> 
-<a name="line343">343  |</a>     /**
-<a name="line344">344  |</a>      **	 Check all the files in the flat list for the passed tokens
-<a name="line345">345  |</a>      **/
-<a name="line346">346  |</a> 
-<a name="line347">347  |</a>     for( i=0; i&lt;tcount; i++) {
-<a name="line348">348  |</a> 
-<a name="line349">349  |</a> 	whatis_interp = Tcl_CreateInterp();
-<a name="line350">350  |</a> 	if( TCL_OK != (result = Module_Init( whatis_interp))) {
-<a name="line351">351  |</a> 	    Tcl_DeleteInterp( whatis_interp);
-<a name="line352">352  |</a> 	    result = TCL_ERROR;
-<a name="line353">353  |</a> 	    break; /** for( i) **/
-<a name="line354">354  |</a> 	}
-<a name="line355">355  |</a> 
-<a name="line356">356  |</a> 	/**
-<a name="line357">357  |</a> 	 **  locate the filename related to the passed module
-<a name="line358">358  |</a> 	 **/
-<a name="line359">359  |</a> 
-<a name="line360">360  |</a> 	if( (char *) NULL == stringer(modulefile,MOD_BUFSIZE,
-<a name="line361">361  |</a> 		dir,"/",list[i],NULL)) {
-<a name="line362">362  |</a> 	    result = TCL_ERROR;
-<a name="line363">363  |</a> 	    break; /** for( i) **/
-<a name="line364">364  |</a> 	}
-<a name="line365">365  |</a> 	g_current_module = list[ i];
-<a name="line366">366  |</a> 
-<a name="line367">367  |</a> 	if( stat( modulefile, &amp;stats) || S_ISDIR( stats.st_mode))
-<a name="line368">368  |</a> 	    continue;
-<a name="line369">369  |</a> 
-<a name="line370">370  |</a> 	cmdModuleWhatisInit();
-<a name="line371">371  |</a> 	result = CallModuleProcedure( whatis_interp, &amp;cmdbuf, modulefile,
-<a name="line372">372  |</a> 	    "ModulesApropos", 0);
-<a name="line373">373  |</a> 
-<a name="line374">374  |</a> 	/**
-<a name="line375">375  |</a> 	 **  Check if at least one of the passed tokens is found in the
-<a name="line376">376  |</a> 	 **  retrieved whatis strings. If yes, print the string.
-<a name="line377">377  |</a> 	 **/
-<a name="line378">378  |</a> 
-<a name="line379">379  |</a> 	if( whatis) {
-<a name="line380">380  |</a> 	    wptr = whatis;
-<a name="line381">381  |</a> 	    while( *wptr) {
-<a name="line382">382  |</a> 
-<a name="line383">383  |</a> 		/**
-<a name="line384">384  |</a> 		 **  Ignore case?
-<a name="line385">385  |</a> 		 **/
+<a name="line273">273  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line274">274  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Apropos, NULL);
+<a name="line275">275  |</a> #endif
+<a name="line276">276  |</a> 
+<a name="line277">277  |</a>     /**
+<a name="line278">278  |</a>      **	 Ignore case ... convert all arguments to lower case
+<a name="line279">279  |</a>      **/
+<a name="line280">280  |</a>     if( sw_icase)
+<a name="line281">281  |</a> 	for( i=0; i&lt;argc; i++)
+<a name="line282">282  |</a> 	    for( c=argv[ i]; c &amp;&amp; *c; c++)
+<a name="line283">283  |</a> 		*c = tolower( *c);
+<a name="line284">284  |</a> 
+<a name="line285">285  |</a>     /**
+<a name="line286">286  |</a>      **	 If there's no MODULEPATH defined, we cannot output anything
+<a name="line287">287  |</a>      **/
+<a name="line288">288  |</a>     if((char *) NULL == (modpath =  xgetenv( "MODULEPATH")))
+<a name="line289">289  |</a> 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
+<a name="line290">290  |</a> 	    goto unwind0;
+<a name="line291">291  |</a> 
+<a name="line292">292  |</a> 	/**
+<a name="line293">293  |</a> 	 **  Tokenize the module path string and check all dirs
+<a name="line294">294  |</a> 	 **/
+<a name="line295">295  |</a> 	for( dirname = xstrtok( modpath, ":");
+<a name="line296">296  |</a> 	     dirname;
+<a name="line297">297  |</a> 	     dirname = xstrtok( NULL, ":") ) {
+<a name="line298">298  |</a> 	
+<a name="line299">299  |</a> 	    if( !check_dir( dirname))
+<a name="line300">300  |</a> 		continue;
+<a name="line301">301  |</a> 	
+<a name="line302">302  |</a> 	    whatis_dir( dirname, argc, argv, WHATIS_SOME);
+<a name="line303">303  |</a> 
+<a name="line304">304  |</a> 	} /** for **/
+<a name="line305">305  |</a> 
+<a name="line306">306  |</a>     /**
+<a name="line307">307  |</a>      **	 Free up what has been allocated and exit from this procedure
+<a name="line308">308  |</a>      **/
+<a name="line309">309  |</a>     null_free((void *) &amp;modpath);
+<a name="line310">310  |</a> 
+<a name="line311">311  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line312">312  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Apropos, NULL);
+<a name="line313">313  |</a> #endif
+<a name="line314">314  |</a> 
+<a name="line315">315  |</a>     return( TCL_OK);
+<a name="line316">316  |</a> 
+<a name="line317">317  |</a> unwind1:
+<a name="line318">318  |</a>     null_free((void *) &amp;modpath);
+<a name="line319">319  |</a> unwind0:
+<a name="line320">320  |</a>     return( TCL_ERROR);				/** ---- EXIT (FAILURE) ---&gt; **/
+<a name="line321">321  |</a> 
+<a name="line322">322  |</a> } /** End of 'ModuleCmd_Apropos' **/
+<a name="line323">323  |</a> 
+<a name="line324">324  |</a> /*++++
+<a name="line325">325  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line326">326  |</a>  **									     **
+<a name="line327">327  |</a>  **   Function:		whatis_dir					     **
+<a name="line328">328  |</a>  **									     **
+<a name="line329">329  |</a>  **   Description:	Print all files beyond the passed directory	     **
+<a name="line330">330  |</a>  **									     **
+<a name="line331">331  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line332">332  |</a>  **									     **
+<a name="line333">333  |</a>  **   Parameters:	char	*dir		Directory to be scanned	     **
+<a name="line334">334  |</a>  **			int	 argc		Number of tokens	     **
+<a name="line335">335  |</a>  **			char   **argv		List of tokens to check	     **
+<a name="line336">336  |</a>  **									     **
+<a name="line337">337  |</a>  **   Result:		int	TCL_OK		Successful operation	     **
+<a name="line338">338  |</a>  **									     **
+<a name="line339">339  |</a>  **   Attached Globals:	g_flags		These are set up accordingly before  **
+<a name="line340">340  |</a>  **					this function is called in order to  **
+<a name="line341">341  |</a>  **					control everything		     **
+<a name="line342">342  |</a>  **			g_current_module	The module which is handled  **
+<a name="line343">343  |</a>  **						by the current command	     **
+<a name="line344">344  |</a>  **									     **
+<a name="line345">345  |</a>  ** ************************************************************************ **
+<a name="line346">346  |</a>  ++++*/
+<a name="line347">347  |</a> 
+<a name="line348">348  |</a> static	int	whatis_dir( char *dir, int argc, char **argv,
+<a name="line349">349  |</a> 			    int whatis_list)
+<a name="line350">350  |</a> {
+<a name="line351">351  |</a>     fi_ent	 *dirlst_head = NULL;	/** Directory list base pointer	     **/
+<a name="line352">352  |</a>     int		  count = 0;		/** Number of elements in the top    **/
+<a name="line353">353  |</a> 					/** level directory list	     **/
+<a name="line354">354  |</a>     int		  tcount = 0;		/** Total number of files to print   **/
+<a name="line355">355  |</a>     char	**list;			/** flat list of module files	     **/
+<a name="line356">356  |</a>     int		  start = 0, i, k;
+<a name="line357">357  |</a>     int		  result = TCL_OK;
+<a name="line358">358  |</a>     Tcl_Interp	 *whatis_interp;
+<a name="line359">359  |</a>     Tcl_DString	  cmdbuf;
+<a name="line360">360  |</a>     char	  modulefile[ MOD_BUFSIZE];
+<a name="line361">361  |</a>     char	**wptr, *c;
+<a name="line362">362  |</a>     struct stat	 stats;
+<a name="line363">363  |</a> 
+<a name="line364">364  |</a> #if WITH_DEBUGGING_UTIL_1
+<a name="line365">365  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_whatis_dir, "dir='", dir, NULL);
+<a name="line366">366  |</a> #endif
+<a name="line367">367  |</a> 
+<a name="line368">368  |</a>     /**
+<a name="line369">369  |</a>      **	 Normal reading of the files
+<a name="line370">370  |</a>      **/
+<a name="line371">371  |</a> 
+<a name="line372">372  |</a>     if( NULL == (dirlst_head = get_dir( dir, NULL, &amp;count, &amp;tcount)))
+<a name="line373">373  |</a> 	if( OK != ErrorLogger( ERR_READDIR, LOC, dir, NULL))
+<a name="line374">374  |</a> 	    goto unwind0;
+<a name="line375">375  |</a> 
+<a name="line376">376  |</a>     if( NULL == (list = (char**) module_malloc( tcount * sizeof( char**))))
+<a name="line377">377  |</a> 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+<a name="line378">378  |</a> 	    goto unwind1;
+<a name="line379">379  |</a> 
+<a name="line380">380  |</a>     dirlst_to_list( list, dirlst_head, count, &amp;start, NULL, NULL);
+<a name="line381">381  |</a> 
+<a name="line382">382  |</a>     /**
+<a name="line383">383  |</a>      **	 Initialize the command buffer and set up the modules flag to 'whatislay
+<a name="line384">384  |</a>      **	 only'
+<a name="line385">385  |</a>      **/
 <a name="line386">386  |</a> 
-<a name="line387">387  |</a> 		if( sw_icase) {
-<a name="line388">388  |</a> 		    strncpy( modulefile, *wptr, MOD_BUFSIZE);
-<a name="line389">389  |</a> 		    for( c = modulefile; c &amp;&amp; *c; c++)
-<a name="line390">390  |</a> 			*c = tolower( *c);
-<a name="line391">391  |</a> 		    c = modulefile;
-<a name="line392">392  |</a> 		} else
-<a name="line393">393  |</a> 		    c = *wptr;
-<a name="line394">394  |</a> 
-<a name="line395">395  |</a> 		/**
-<a name="line396">396  |</a> 		 **  Seek for the passed tokens
-<a name="line397">397  |</a> 		 **/
-<a name="line398">398  |</a> 
-<a name="line399">399  |</a> 		if( whatis_list)
-<a name="line400">400  |</a> 		    fprintf( stderr, "%-21s: %s\n", list[i], *wptr);
-<a name="line401">401  |</a> 		else
-<a name="line402">402  |</a> 		    for( k=0; k&lt;argc; k++) {
-<a name="line403">403  |</a> 			if( strstr( c, argv[ k]))
-<a name="line404">404  |</a> 		    	    fprintf( stderr, "%-21s: %s\n", list[i], *wptr);
-<a name="line405">405  |</a> 		    }
-<a name="line406">406  |</a> 		wptr++;
-<a name="line407">407  |</a> 	    }
-<a name="line408">408  |</a> 	}
-<a name="line409">409  |</a> 
-<a name="line410">410  |</a> 	/**
-<a name="line411">411  |</a> 	 **  Remove the Tcl interpreter that has been used for printing ...
-<a name="line412">412  |</a> 	 **/
+<a name="line387">387  |</a>     Tcl_DStringInit( &amp;cmdbuf);
+<a name="line388">388  |</a>     g_flags |= M_WHATIS;
+<a name="line389">389  |</a> 
+<a name="line390">390  |</a>     /**
+<a name="line391">391  |</a>      **	 Check all the files in the flat list for the passed tokens
+<a name="line392">392  |</a>      **/
+<a name="line393">393  |</a> 
+<a name="line394">394  |</a>     for( i=0; i&lt;tcount; i++) {
+<a name="line395">395  |</a> 
+<a name="line396">396  |</a> 	whatis_interp = Tcl_CreateInterp();
+<a name="line397">397  |</a> 	if( TCL_OK != (result = InitializeModuleCommands( whatis_interp))) {
+<a name="line398">398  |</a> 	    Tcl_DeleteInterp( whatis_interp);
+<a name="line399">399  |</a> 	    result = TCL_ERROR;
+<a name="line400">400  |</a> 	    break; /** for( i) **/
+<a name="line401">401  |</a> 	}
+<a name="line402">402  |</a> 
+<a name="line403">403  |</a> 	/**
+<a name="line404">404  |</a> 	 **  locate the filename related to the passed module
+<a name="line405">405  |</a> 	 **/
+<a name="line406">406  |</a> 
+<a name="line407">407  |</a> 	if( (char *) NULL == stringer(modulefile,MOD_BUFSIZE,
+<a name="line408">408  |</a> 		dir,"/",list[i],NULL)) {
+<a name="line409">409  |</a> 	    result = TCL_ERROR;
+<a name="line410">410  |</a> 	    break; /** for( i) **/
+<a name="line411">411  |</a> 	}
+<a name="line412">412  |</a> 	g_current_module = list[ i];
 <a name="line413">413  |</a> 
-<a name="line414">414  |</a> 	Tcl_DeleteInterp( whatis_interp);
-<a name="line415">415  |</a> 	cmdModuleWhatisShut();
+<a name="line414">414  |</a> 	if( stat( modulefile, &amp;stats) || S_ISDIR( stats.st_mode))
+<a name="line415">415  |</a> 	    continue;
 <a name="line416">416  |</a> 
-<a name="line417">417  |</a>     } /** for( i) **/
-<a name="line418">418  |</a> 
-<a name="line419">419  |</a>     /**
-<a name="line420">420  |</a>      **	 Cleanup
-<a name="line421">421  |</a>      **/
-<a name="line422">422  |</a>     g_flags &amp;= ~M_WHATIS;
-<a name="line423">423  |</a>     delete_dirlst( dirlst_head, count);
-<a name="line424">424  |</a>     delete_cache_list( list, start);
+<a name="line417">417  |</a> 	cmdModuleWhatisInit();
+<a name="line418">418  |</a> 	result = CallModuleProcedure( whatis_interp, &amp;cmdbuf, modulefile,
+<a name="line419">419  |</a> 	    "ModulesApropos", 0);
+<a name="line420">420  |</a> 
+<a name="line421">421  |</a> 	/**
+<a name="line422">422  |</a> 	 **  Check if at least one of the passed tokens is found in the
+<a name="line423">423  |</a> 	 **  retrieved whatis strings. If yes, print the string.
+<a name="line424">424  |</a> 	 **/
 <a name="line425">425  |</a> 
-<a name="line426">426  |</a>     return( result);			/** ------- EXIT (result) --------&gt; **/
-<a name="line427">427  |</a> 
-<a name="line428">428  |</a> /* unwind2:
-<a name="line429">429  |</a>     delete_cache_list( list, start); */
-<a name="line430">430  |</a> unwind1:
-<a name="line431">431  |</a>     delete_dirlst( dirlst_head, count);
-<a name="line432">432  |</a> unwind0:
-<a name="line433">433  |</a>     return( TCL_ERROR);			/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line434">434  |</a> 
-<a name="line435">435  |</a> } /** End of 'whatis_dir' **/
+<a name="line426">426  |</a> 	if( whatis) {
+<a name="line427">427  |</a> 	    wptr = whatis;
+<a name="line428">428  |</a> 	    while( *wptr) {
+<a name="line429">429  |</a> 
+<a name="line430">430  |</a> 		/**
+<a name="line431">431  |</a> 		 **  Ignore case?
+<a name="line432">432  |</a> 		 **/
+<a name="line433">433  |</a> 
+<a name="line434">434  |</a> 		if( sw_icase) {
+<a name="line435">435  |</a> 		    strncpy( modulefile, *wptr, MOD_BUFSIZE);
+<a name="line436">436  |</a> 		    for( c = modulefile; c &amp;&amp; *c; c++)
+<a name="line437">437  |</a> 			*c = tolower( *c);
+<a name="line438">438  |</a> 		    c = modulefile;
+<a name="line439">439  |</a> 		} else
+<a name="line440">440  |</a> 		    c = *wptr;
+<a name="line441">441  |</a> 
+<a name="line442">442  |</a> 		/**
+<a name="line443">443  |</a> 		 **  Seek for the passed tokens
+<a name="line444">444  |</a> 		 **/
+<a name="line445">445  |</a> 
+<a name="line446">446  |</a> 		if( whatis_list)
+<a name="line447">447  |</a> 		    fprintf( stderr, "%-21s: %s\n", list[i], *wptr);
+<a name="line448">448  |</a> 		else
+<a name="line449">449  |</a> 		    for( k=0; k&lt;argc; k++) {
+<a name="line450">450  |</a> 			if( strstr( c, argv[ k]))
+<a name="line451">451  |</a> 		    	    fprintf( stderr, "%-21s: %s\n", list[i], *wptr);
+<a name="line452">452  |</a> 		    }
+<a name="line453">453  |</a> 		wptr++;
+<a name="line454">454  |</a> 	    }
+<a name="line455">455  |</a> 	}
+<a name="line456">456  |</a> 
+<a name="line457">457  |</a> 	/**
+<a name="line458">458  |</a> 	 **  Remove the Tcl interpreter that has been used for printing ...
+<a name="line459">459  |</a> 	 **/
+<a name="line460">460  |</a> 
+<a name="line461">461  |</a> 	Tcl_DeleteInterp( whatis_interp);
+<a name="line462">462  |</a> 	cmdModuleWhatisShut();
+<a name="line463">463  |</a> 
+<a name="line464">464  |</a>     } /** for( i) **/
+<a name="line465">465  |</a> 
+<a name="line466">466  |</a>     /**
+<a name="line467">467  |</a>      **	 Cleanup
+<a name="line468">468  |</a>      **/
+<a name="line469">469  |</a>     g_flags &amp;= ~M_WHATIS;
+<a name="line470">470  |</a>     delete_dirlst( dirlst_head, count);
+<a name="line471">471  |</a>     delete_cache_list( list, start);
+<a name="line472">472  |</a> 
+<a name="line473">473  |</a> #if WITH_DEBUGGING_UTIL_1
+<a name="line474">474  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_whatis_dir, NULL);
+<a name="line475">475  |</a> #endif
+<a name="line476">476  |</a> 
+<a name="line477">477  |</a>     return( result);			/** ------- EXIT (result) --------&gt; **/
+<a name="line478">478  |</a> 
+<a name="line479">479  |</a> unwind2:
+<a name="line480">480  |</a>     delete_cache_list( list, start);
+<a name="line481">481  |</a> unwind1:
+<a name="line482">482  |</a>     delete_dirlst( dirlst_head, count);
+<a name="line483">483  |</a> unwind0:
+<a name="line484">484  |</a>     return( TCL_ERROR);			/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line485">485  |</a> 
+<a name="line486">486  |</a> } /** End of 'whatis_dir' **/
 </pre>
 
 </BODY>

@@ -29,1420 +29,1573 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 <a name="line9">9    |</a>  ** 									     **
 <a name="line10">10   |</a>  **   Authors:	John Furlan, jlf@behere.com				     **
 <a name="line11">11   |</a>  **		Jens Hamisch, jens@Strawberry.COM			     **
-<a name="line12">12   |</a>  **		R.K. Owen, &lt;rk@owen.sj.ca.us&gt; or &lt;rkowen@nersc.gov&gt;	     **
-<a name="line13">13   |</a>  ** 									     **
-<a name="line14">14   |</a>  **   Description: 	This module command prints out the modulefiles that  **
-<a name="line15">15   |</a>  **			are available in the directories listed in the	     **
-<a name="line16">16   |</a>  **			MODULEPATH environment variable.		     **
-<a name="line17">17   |</a>  ** 									     **
-<a name="line18">18   |</a>  **   Exports:		ModuleCmd_Avail					     **
-<a name="line19">19   |</a>  **			print_aligned_files				     **
-<a name="line20">20   |</a>  **			check_dir					     **
-<a name="line21">21   |</a>  **			get_dir						     **
-<a name="line22">22   |</a>  **			dirlst_to_list					     **
-<a name="line23">23   |</a>  **			delete_dirlst					     **
-<a name="line24">24   |</a>  **			delete_cache_list				     **
-<a name="line25">25   |</a>  ** 									     **
-<a name="line26">26   |</a>  **   Notes:								     **
-<a name="line27">27   |</a>  ** 									     **
-<a name="line28">28   |</a>  ** ************************************************************************ **
-<a name="line29">29   |</a>  ****/
-<a name="line30">30   |</a> 
-<a name="line31">31   |</a> /** ** Copyright *********************************************************** **
-<a name="line32">32   |</a>  ** 									     **
-<a name="line33">33   |</a>  ** Copyright 1991-1994 by John L. Furlan.                      	     **
-<a name="line34">34   |</a>  ** see LICENSE.GPL, which must be provided, for details		     **
-<a name="line35">35   |</a>  ** 									     ** 
-<a name="line36">36   |</a>  ** ************************************************************************ **/
-<a name="line37">37   |</a> 
-<a name="line38">38   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Avail.c.src.html,v 1.8 2009/09/01 20:22:31 rkowen Exp $";
-<a name="line39">39   |</a> static void *UseId[] = { &amp;UseId, Id };
-<a name="line40">40   |</a> 
-<a name="line41">41   |</a> /** ************************************************************************ **/
-<a name="line42">42   |</a> /** 				      HEADERS				     **/
-<a name="line43">43   |</a> /** ************************************************************************ **/
-<a name="line44">44   |</a> 
-<a name="line45">45   |</a> #include &lt;time.h&gt;
-<a name="line46">46   |</a> #include "modules_def.h"
-<a name="line47">47   |</a> 
-<a name="line48">48   |</a> /** ************************************************************************ **/
-<a name="line49">49   |</a> /** 				  LOCAL DATATYPES			     **/
-<a name="line50">50   |</a> /** ************************************************************************ **/
-<a name="line51">51   |</a> 
-<a name="line52">52   |</a> /**
-<a name="line53">53   |</a>  **  Structure for a linked list that stores directories to be listed.
-<a name="line54">54   |</a>  **/
-<a name="line55">55   |</a> 
-<a name="line56">56   |</a> typedef struct _subdir_node {
-<a name="line57">57   |</a>   fi_ent*              sd_dir;
-<a name="line58">58   |</a>   struct _subdir_node* sd_next;
-<a name="line59">59   |</a> } sd_node;
-<a name="line60">60   |</a> 
-<a name="line61">61   |</a> /** ************************************************************************ **/
-<a name="line62">62   |</a> /** 				     CONSTANTS				     **/
-<a name="line63">63   |</a> /** ************************************************************************ **/
-<a name="line64">64   |</a> 
-<a name="line65">65   |</a> /**
-<a name="line66">66   |</a>  **  I tried having a test for isgraph() in the configuration file,
-<a name="line67">67   |</a>  **  but it fails on AIX. This is the best I could come up with...
-<a name="line68">68   |</a>  **/
-<a name="line69">69   |</a> 
-<a name="line70">70   |</a> #if !defined(isgraph) &amp;&amp; defined(_P) &amp;&amp; defined(_N)
-<a name="line71">71   |</a> #  define isgraph(c)	((_ctype_+1)[c]&amp;(_P|_U|_L|_N))
-<a name="line72">72   |</a> #endif
-<a name="line73">73   |</a> 
-<a name="line74">74   |</a> #define DIREST  50
-<a name="line75">75   |</a> 
-<a name="line76">76   |</a> /** ************************************************************************ **/
-<a name="line77">77   |</a> /**				      MACROS				     **/
-<a name="line78">78   |</a> /** ************************************************************************ **/
-<a name="line79">79   |</a> 
-<a name="line80">80   |</a> /** not applicable **/
-<a name="line81">81   |</a> 
-<a name="line82">82   |</a> /** ************************************************************************ **/
-<a name="line83">83   |</a> /** 				    LOCAL DATA				     **/
-<a name="line84">84   |</a> /** ************************************************************************ **/
-<a name="line85">85   |</a> 
-<a name="line86">86   |</a> static	char	 buffer[MOD_BUFSIZE];
-<a name="line87">87   |</a> static	char	 buf[ LINELENGTH];
-<a name="line88">88   |</a> static	char	 module_name[] = __FILE__;
-<a name="line89">89   |</a> static	char	 short_format[] = "%s";
-<a name="line90">90   |</a> static	char	 short_format_part[] = "%s/%s";
-<a name="line91">91   |</a> static	char	 short_format_full[] = "%s/%s(%s)";
-<a name="line92">92   |</a> static	char	 long_format[] = "%-39.39s  %-10.10s  %17s\n";
-<a name="line93">93   |</a>  	char	 long_header[] = "\
-<a name="line94">94   |</a> - Package -----------------------------+- Versions -+- Last mod. ------\n";
-<a name="line95">95   |</a> 
-<a name="line96">96   |</a> /**
-<a name="line97">97   |</a>  **  Terse file list buffer
-<a name="line98">98   |</a>  **/
-<a name="line99">99   |</a> 
-<a name="line100">100  |</a> #define	FILE_LIST_SEGM_SIZE 100
-<a name="line101">101  |</a> static	char	  _file_list_buffer[ 200];
-<a name="line102">102  |</a> static	char	**_file_list_ptr = (char **) NULL;
-<a name="line103">103  |</a> static	int	  _file_list_cnt = 0;
-<a name="line104">104  |</a> static	int	  _file_list_wr_ndx = 0;
-<a name="line105">105  |</a> static	int	  _file_list_rd_ndx = 0;
-<a name="line106">106  |</a> 
-<a name="line107">107  |</a> /** ************************************************************************ **/
-<a name="line108">108  |</a> /**				    PROTOTYPES				     **/
-<a name="line109">109  |</a> /** ************************************************************************ **/
-<a name="line110">110  |</a> 
-<a name="line111">111  |</a> static	int	  print_dir( Tcl_Interp*, char*, char*);
-<a name="line112">112  |</a> static	void	  print_spaced_file( char*, int, int, int);
-<a name="line113">113  |</a> static	char	 *mkdirnm( char*, char*);
-<a name="line114">114  |</a> static	int	  fi_ent_cmp( const void*, const void*);
-<a name="line115">115  |</a> static	void	  _init_file_list(void);
-<a name="line116">116  |</a> static	void	  _add_file_list( char *name);
-<a name="line117">117  |</a> static	char	 *_get_file_list(void);
-<a name="line118">118  |</a> static	char	 *_pick_file_list( int ndx);
-<a name="line119">119  |</a> static	void	  print_terse_files( int terminal_width, int len, char *header,
-<a name="line120">120  |</a> 			int numbered);
-<a name="line121">121  |</a> 
-<a name="line122">122  |</a> /*++++
-<a name="line123">123  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line124">124  |</a>  ** 									     **
-<a name="line125">125  |</a>  **   Function:		ModuleCmd_Avail					     **
-<a name="line126">126  |</a>  ** 									     **
-<a name="line127">127  |</a>  **   Description:	Execution of the 'module avail' command		     **
-<a name="line128">128  |</a>  ** 									     **
-<a name="line129">129  |</a>  **   First Edition:	1991/10/23					     **
-<a name="line130">130  |</a>  ** 									     **
-<a name="line131">131  |</a>  **   Parameters:	Tcl_Interp	*interp		Current Tcl Interpr. **
-<a name="line132">132  |</a>  **			char		*argv[]		Arguments to the     **
-<a name="line133">133  |</a>  **							command		     **
-<a name="line134">134  |</a>  ** 									     **
-<a name="line135">135  |</a>  **   Result:		int	TCL_OK		Successful operation	     **
-<a name="line136">136  |</a>  **				TCL_ERROR	Any failure		     **
-<a name="line137">137  |</a>  ** 									     **
-<a name="line138">138  |</a>  **   Attached Globals:	g_specified_module	The module name from the     **
-<a name="line139">139  |</a>  **						command line.		     **
-<a name="line140">140  |</a>  ** 									     **
-<a name="line141">141  |</a>  ** ************************************************************************ **
-<a name="line142">142  |</a>  ++++*/
-<a name="line143">143  |</a> 
-<a name="line144">144  |</a> int ModuleCmd_Avail(
-<a name="line145">145  |</a> 	Tcl_Interp * interp,
-<a name="line146">146  |</a> 	int argc,
-<a name="line147">147  |</a> 	char *argv[]
-<a name="line148">148  |</a> ) {
-<a name="line149">149  |</a> 	char          **dirname;
-<a name="line150">150  |</a> 	uvec           *modpath;
-<a name="line151">151  |</a> 	int             Result = -TCL_ERROR;
-<a name="line152">152  |</a> 
-<a name="line153">153  |</a>     /**
-<a name="line154">154  |</a>      **  Load the MODULEPATH and split it into a list of paths. Assume success
-<a name="line155">155  |</a>      **  if no list to output ...
-<a name="line156">156  |</a>      **/
-<a name="line157">157  |</a> 	if (!(modpath = ModulePathList()))
-<a name="line158">158  |</a> 		goto unwind0;
-<a name="line159">159  |</a> 	if (!uvec_number(modpath)) {
-<a name="line160">160  |</a> 		Result = TCL_OK;
-<a name="line161">161  |</a> 		goto success0;
-<a name="line162">162  |</a> 	}
-<a name="line163">163  |</a>     /**
-<a name="line164">164  |</a>      **  If we're given a full-path, then we'll just check that directory.
-<a name="line165">165  |</a>      **  Otherwise, we'll check every directory in MODULESPATH.
-<a name="line166">166  |</a>      **/
-<a name="line167">167  |</a> 	if (argc &gt; 0 &amp;&amp; **argv == '/') {
-<a name="line168">168  |</a> 		while (argc--) {
-<a name="line169">169  |</a> 	    /**
-<a name="line170">170  |</a> 	     ** Set the name of the module specified on the command line
-<a name="line171">171  |</a> 	     **/
-<a name="line172">172  |</a> 			g_specified_module = *argv;
-<a name="line173">173  |</a> 
-<a name="line174">174  |</a> 			if (!check_dir(*argv)) {
-<a name="line175">175  |</a> 				if (OK != ErrorLogger(ERR_PARAM, LOC, NULL)) {
-<a name="line176">176  |</a> 					Result = TCL_ERROR;
-<a name="line177">177  |</a> 					/** --- EXIT PROCEDURE (FAILURE) --&gt; **/
-<a name="line178">178  |</a> 				}
-<a name="line179">179  |</a> 			} else {
-<a name="line180">180  |</a> 				print_dir(interp, *argv, NULL);
-<a name="line181">181  |</a> 			}
-<a name="line182">182  |</a> 			argv++;
-<a name="line183">183  |</a> 		}
-<a name="line184">184  |</a> 	} else {
-<a name="line185">185  |</a> 	/**
-<a name="line186">186  |</a> 	 **  We're not given a full path. Tokenize the module path string and
-<a name="line187">187  |</a> 	 **  print the contents of each directory specified (if it exists ;-)
-<a name="line188">188  |</a> 	 **/
-<a name="line189">189  |</a> 		if (sw_format &amp; SW_LONG)
-<a name="line190">190  |</a> 			fprintf(stderr,"%s", _(long_header));
-<a name="line191">191  |</a> 
-<a name="line192">192  |</a> 	/**
-<a name="line193">193  |</a> 	 **  If a module category is specified check whether it is part
-<a name="line194">194  |</a> 	 **  of the directory we're scanning at the moment.
-<a name="line195">195  |</a> 	 **/
-<a name="line196">196  |</a> 		if (argc &gt; 0) {	/* show sub directory */
-<a name="line197">197  |</a> 			while (argc--) {
-<a name="line198">198  |</a> 		/**
-<a name="line199">199  |</a> 		 ** Set the name of the module specified on the command line
-<a name="line200">200  |</a> 		 **/
-<a name="line201">201  |</a> 				g_specified_module = *argv;
-<a name="line202">202  |</a> 
-<a name="line203">203  |</a> 				dirname = uvec_vector(modpath);
-<a name="line204">204  |</a> 				while (dirname &amp;&amp; *dirname) {
-<a name="line205">205  |</a> 		    /**
-<a name="line206">206  |</a> 		     **  Print the category
-<a name="line207">207  |</a> 		     **/
-<a name="line208">208  |</a> 					if (check_dir(*dirname))
-<a name="line209">209  |</a> 					    print_dir(interp,*dirname,*argv);
-<a name="line210">210  |</a> 					dirname++;
-<a name="line211">211  |</a> 				}
-<a name="line212">212  |</a> 				argv++;
-<a name="line213">213  |</a> 			}
-<a name="line214">214  |</a> 	/**
-<a name="line215">215  |</a> 	 **  Otherwise, if there's no category given, descend the current
-<a name="line216">216  |</a> 	 **  directory and print its contents.
-<a name="line217">217  |</a> 	 **/
-<a name="line218">218  |</a> 		} else {
-<a name="line219">219  |</a> 			dirname = uvec_vector(modpath);
-<a name="line220">220  |</a> 			while (dirname &amp;&amp; *dirname) {
-<a name="line221">221  |</a> 				if (check_dir(*dirname))
-<a name="line222">222  |</a> 					print_dir(interp, *dirname, NULL);
-<a name="line223">223  |</a> 				dirname++;
-<a name="line224">224  |</a> 			}
-<a name="line225">225  |</a> 		} /** argc **/
-<a name="line226">226  |</a> 	} /** if( no full path name given) **/
-<a name="line227">227  |</a>     /**
-<a name="line228">228  |</a>      **  Free up what has been allocated and exit from this procedure
-<a name="line229">229  |</a>      **/
-<a name="line230">230  |</a> 	/* if got here via this path ... it must have been OK */
-<a name="line231">231  |</a> 	if (Result &lt; 0)
-<a name="line232">232  |</a> 		Result = TCL_OK;
+<a name="line12">12   |</a>  ** 									     **
+<a name="line13">13   |</a>  **   Description: 	This module command prints out the modulefiles that  **
+<a name="line14">14   |</a>  **			are available in the directories listed in the	     **
+<a name="line15">15   |</a>  **			MODULEPATH environment variable.		     **
+<a name="line16">16   |</a>  ** 									     **
+<a name="line17">17   |</a>  **   Exports:		ModuleCmd_Avail					     **
+<a name="line18">18   |</a>  **			print_aligned_files				     **
+<a name="line19">19   |</a>  **			check_dir					     **
+<a name="line20">20   |</a>  **			get_dir						     **
+<a name="line21">21   |</a>  **			dirlst_to_list					     **
+<a name="line22">22   |</a>  **			delete_dirlst					     **
+<a name="line23">23   |</a>  **			delete_cache_list				     **
+<a name="line24">24   |</a>  ** 									     **
+<a name="line25">25   |</a>  **   Notes:								     **
+<a name="line26">26   |</a>  ** 									     **
+<a name="line27">27   |</a>  ** ************************************************************************ **
+<a name="line28">28   |</a>  ****/
+<a name="line29">29   |</a> 
+<a name="line30">30   |</a> /** ** Copyright *********************************************************** **
+<a name="line31">31   |</a>  ** 									     **
+<a name="line32">32   |</a>  ** Copyright 1991-1994 by John L. Furlan.                      	     **
+<a name="line33">33   |</a>  ** see LICENSE.GPL, which must be provided, for details		     **
+<a name="line34">34   |</a>  ** 									     ** 
+<a name="line35">35   |</a>  ** ************************************************************************ **/
+<a name="line36">36   |</a> 
+<a name="line37">37   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Avail.c.src.html,v 1.9 2009/09/02 20:37:39 rkowen Exp $";
+<a name="line38">38   |</a> static void *UseId[] = { &amp;UseId, Id };
+<a name="line39">39   |</a> 
+<a name="line40">40   |</a> /** ************************************************************************ **/
+<a name="line41">41   |</a> /** 				      HEADERS				     **/
+<a name="line42">42   |</a> /** ************************************************************************ **/
+<a name="line43">43   |</a> 
+<a name="line44">44   |</a> #include &lt;time.h&gt;
+<a name="line45">45   |</a> #include "modules_def.h"
+<a name="line46">46   |</a> 
+<a name="line47">47   |</a> /** ************************************************************************ **/
+<a name="line48">48   |</a> /** 				  LOCAL DATATYPES			     **/
+<a name="line49">49   |</a> /** ************************************************************************ **/
+<a name="line50">50   |</a> 
+<a name="line51">51   |</a> /**
+<a name="line52">52   |</a>  **  Structure for a linked list that stores directories to be listed.
+<a name="line53">53   |</a>  **/
+<a name="line54">54   |</a> 
+<a name="line55">55   |</a> typedef struct _subdir_node {
+<a name="line56">56   |</a>   fi_ent*              sd_dir;
+<a name="line57">57   |</a>   struct _subdir_node* sd_next;
+<a name="line58">58   |</a> } sd_node;
+<a name="line59">59   |</a> 
+<a name="line60">60   |</a> /** ************************************************************************ **/
+<a name="line61">61   |</a> /** 				     CONSTANTS				     **/
+<a name="line62">62   |</a> /** ************************************************************************ **/
+<a name="line63">63   |</a> 
+<a name="line64">64   |</a> /**
+<a name="line65">65   |</a>  **  I tried having a test for isgraph() in the configuration file,
+<a name="line66">66   |</a>  **  but it fails on AIX. This is the best I could come up with...
+<a name="line67">67   |</a>  **/
+<a name="line68">68   |</a> 
+<a name="line69">69   |</a> #if !defined(isgraph) &amp;&amp; defined(_P) &amp;&amp; defined(_N)
+<a name="line70">70   |</a> #  define isgraph(c)	((_ctype_+1)[c]&amp;(_P|_U|_L|_N))
+<a name="line71">71   |</a> #endif
+<a name="line72">72   |</a> 
+<a name="line73">73   |</a> #define DIREST  50
+<a name="line74">74   |</a> 
+<a name="line75">75   |</a> /** ************************************************************************ **/
+<a name="line76">76   |</a> /**				      MACROS				     **/
+<a name="line77">77   |</a> /** ************************************************************************ **/
+<a name="line78">78   |</a> 
+<a name="line79">79   |</a> /** not applicable **/
+<a name="line80">80   |</a> 
+<a name="line81">81   |</a> /** ************************************************************************ **/
+<a name="line82">82   |</a> /** 				    LOCAL DATA				     **/
+<a name="line83">83   |</a> /** ************************************************************************ **/
+<a name="line84">84   |</a> 
+<a name="line85">85   |</a> static	char	 buffer[MOD_BUFSIZE];
+<a name="line86">86   |</a> static	char	 buf[ LINELENGTH];
+<a name="line87">87   |</a> static	char	 module_name[] = __FILE__;
+<a name="line88">88   |</a> 
+<a name="line89">89   |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line90">90   |</a> static	char	_proc_ModuleCmd_Avail[] = "ModuleCmd_Avail";
+<a name="line91">91   |</a> #endif
+<a name="line92">92   |</a> #if WITH_DEBUGGING_UTIL_1
+<a name="line93">93   |</a> static	char	_proc_print_dir[] = "print_dir";
+<a name="line94">94   |</a> static	char	_proc_print_aligned_files[] = "print_aligned_files";
+<a name="line95">95   |</a> #endif
+<a name="line96">96   |</a> #if WITH_DEBUGGING_UTIL_2
+<a name="line97">97   |</a> static	char	_proc_check_dir[] = "check_dir";
+<a name="line98">98   |</a> static	char	_proc_get_dir[] = "get_dir";
+<a name="line99">99   |</a> static	char	_proc_dirlst_to_list[] = "dirlst_to_list";
+<a name="line100">100  |</a> static	char	_proc_delete_dirlst[] = "delete_dirlst";
+<a name="line101">101  |</a> static	char	_proc_delete_cache_list[] = "delete_cache_list";
+<a name="line102">102  |</a> static	char	_proc_print_spaced_file[] = "print_spaced_file";
+<a name="line103">103  |</a> static	char	_proc_mkdirnm[] = "mkdirnm";
+<a name="line104">104  |</a> #endif
+<a name="line105">105  |</a> 
+<a name="line106">106  |</a> #if	WITH_DEBUGGING
+<a name="line107">107  |</a> static	char	buffer1[ 80], buffer2[ 80];
+<a name="line108">108  |</a> #endif
+<a name="line109">109  |</a> 
+<a name="line110">110  |</a> static	char	short_format[] = "%s";
+<a name="line111">111  |</a> static	char	short_format_part[] = "%s/%s";
+<a name="line112">112  |</a> static	char	short_format_full[] = "%s/%s(%s)";
+<a name="line113">113  |</a> static	char	long_format[] = "%-39.39s  %-10.10s  %17s\n";
+<a name="line114">114  |</a>  	char	long_header[] = "\
+<a name="line115">115  |</a> - Package -----------------------------+- Versions -+- Last mod. ------\n";
+<a name="line116">116  |</a> 
+<a name="line117">117  |</a> /**
+<a name="line118">118  |</a>  **  Terse file list buffer
+<a name="line119">119  |</a>  **/
+<a name="line120">120  |</a> 
+<a name="line121">121  |</a> #define	FILE_LIST_SEGM_SIZE 100
+<a name="line122">122  |</a> static	char	  _file_list_buffer[ 200];
+<a name="line123">123  |</a> static	char	**_file_list_ptr = (char **) NULL;
+<a name="line124">124  |</a> static	int	  _file_list_cnt = 0;
+<a name="line125">125  |</a> static	int	  _file_list_wr_ndx = 0;
+<a name="line126">126  |</a> static	int	  _file_list_rd_ndx = 0;
+<a name="line127">127  |</a> 
+<a name="line128">128  |</a> /** ************************************************************************ **/
+<a name="line129">129  |</a> /**				    PROTOTYPES				     **/
+<a name="line130">130  |</a> /** ************************************************************************ **/
+<a name="line131">131  |</a> 
+<a name="line132">132  |</a> static	int	  print_dir( Tcl_Interp*, char*, char*);
+<a name="line133">133  |</a> static	void	  print_spaced_file( char*, int, int, int);
+<a name="line134">134  |</a> static	char	 *mkdirnm( char*, char*);
+<a name="line135">135  |</a> static	int	  fi_ent_cmp( const void*, const void*);
+<a name="line136">136  |</a> static	void	  _init_file_list(void);
+<a name="line137">137  |</a> static	void	  _add_file_list( char *name);
+<a name="line138">138  |</a> static	char	 *_get_file_list(void);
+<a name="line139">139  |</a> static	char	 *_pick_file_list( int ndx);
+<a name="line140">140  |</a> static	void	  print_terse_files( int terminal_width, int len, char *header,
+<a name="line141">141  |</a> 			int numbered);
+<a name="line142">142  |</a> 
+<a name="line143">143  |</a> /*++++
+<a name="line144">144  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line145">145  |</a>  ** 									     **
+<a name="line146">146  |</a>  **   Function:		ModuleCmd_Avail					     **
+<a name="line147">147  |</a>  ** 									     **
+<a name="line148">148  |</a>  **   Description:	Execution of the 'module avail' command		     **
+<a name="line149">149  |</a>  ** 									     **
+<a name="line150">150  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line151">151  |</a>  ** 									     **
+<a name="line152">152  |</a>  **   Parameters:	Tcl_Interp	*interp		Current Tcl Interpr. **
+<a name="line153">153  |</a>  **			char		*argv[]		Arguments to the     **
+<a name="line154">154  |</a>  **							command		     **
+<a name="line155">155  |</a>  ** 									     **
+<a name="line156">156  |</a>  **   Result:		int	TCL_OK		Successful operation	     **
+<a name="line157">157  |</a>  **				TCL_ERROR	Any failure		     **
+<a name="line158">158  |</a>  ** 									     **
+<a name="line159">159  |</a>  **   Attached Globals:	g_specified_module	The module name from the     **
+<a name="line160">160  |</a>  **						command line.		     **
+<a name="line161">161  |</a>  ** 									     **
+<a name="line162">162  |</a>  ** ************************************************************************ **
+<a name="line163">163  |</a>  ++++*/
+<a name="line164">164  |</a> 
+<a name="line165">165  |</a> int ModuleCmd_Avail(	Tcl_Interp	*interp,
+<a name="line166">166  |</a> 			int		 argc,
+<a name="line167">167  |</a>                 	char		*argv[])
+<a name="line168">168  |</a> {
+<a name="line169">169  |</a>     char	*dirname;
+<a name="line170">170  |</a>     char	*modpath;
+<a name="line171">171  |</a>     int		 Result = -TCL_ERROR;
+<a name="line172">172  |</a>     
+<a name="line173">173  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line174">174  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Avail, NULL);
+<a name="line175">175  |</a> #endif
+<a name="line176">176  |</a> 
+<a name="line177">177  |</a>     /**
+<a name="line178">178  |</a>      **  If there's no MODULEPATH defined, we cannot output anything
+<a name="line179">179  |</a>      **  We perform 1 level of env.var. expansion
+<a name="line180">180  |</a>      **/
+<a name="line181">181  |</a> 
+<a name="line182">182  |</a>     if( !(modpath = (char *) xgetenv( "MODULEPATH")))
+<a name="line183">183  |</a> 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
+<a name="line184">184  |</a> 	    goto unwind0;
+<a name="line185">185  |</a>  
+<a name="line186">186  |</a>     /**
+<a name="line187">187  |</a>      **  If we're given a full-path, then we'll just check that directory.
+<a name="line188">188  |</a>      **  Otherwise, we'll check every directory in MODULESPATH.
+<a name="line189">189  |</a>      **/
+<a name="line190">190  |</a> 
+<a name="line191">191  |</a>     if( argc &gt; 0 &amp;&amp; **argv == '/') {
+<a name="line192">192  |</a> 
+<a name="line193">193  |</a> 	while( argc--) {
+<a name="line194">194  |</a> 
+<a name="line195">195  |</a> 	    /**
+<a name="line196">196  |</a> 	     ** Set the name of the module specified on the command line
+<a name="line197">197  |</a> 	     **/
+<a name="line198">198  |</a> 
+<a name="line199">199  |</a> 	    g_specified_module = *argv;
+<a name="line200">200  |</a> 
+<a name="line201">201  |</a> 	    if( !check_dir( *argv)) {
+<a name="line202">202  |</a> 		if( OK != ErrorLogger( ERR_PARAM, LOC, NULL)) {
+<a name="line203">203  |</a> 		    Result = TCL_ERROR;	/** --- EXIT PROCEDURE (FAILURE) --&gt; **/
+<a name="line204">204  |</a> 		}
+<a name="line205">205  |</a> 	    } else {
+<a name="line206">206  |</a> 		print_dir( interp, *argv, NULL);
+<a name="line207">207  |</a> 	    }
+<a name="line208">208  |</a> 	    argv++;
+<a name="line209">209  |</a> 	}
+<a name="line210">210  |</a> 
+<a name="line211">211  |</a>     } else {
+<a name="line212">212  |</a> 
+<a name="line213">213  |</a> 	/**
+<a name="line214">214  |</a> 	 **  We're not given a full path. Tokenize the module path string and
+<a name="line215">215  |</a> 	 **  print the contents of each directory specified (if it exists ;-)
+<a name="line216">216  |</a> 	 **/
+<a name="line217">217  |</a> 
+<a name="line218">218  |</a> 	if( sw_format &amp; SW_LONG)
+<a name="line219">219  |</a> 	    fprintf( stderr, _(long_header));
+<a name="line220">220  |</a> 
+<a name="line221">221  |</a> 	/**
+<a name="line222">222  |</a> 	 **  If a module category is specified check whether it is part
+<a name="line223">223  |</a> 	 **  of the directory we're scanning at the moment.
+<a name="line224">224  |</a> 	 **/
+<a name="line225">225  |</a> 
+<a name="line226">226  |</a> 	if( argc &gt; 0) {  /* show sub directory */
+<a name="line227">227  |</a> 	    while( argc--) {
+<a name="line228">228  |</a> 		/**
+<a name="line229">229  |</a> 		 ** Set the name of the module specified on the command line
+<a name="line230">230  |</a> 		 **/
+<a name="line231">231  |</a> 
+<a name="line232">232  |</a> 		g_specified_module = *argv;
 <a name="line233">233  |</a> 
-<a name="line234">234  |</a> 	FreeList(&amp;modpath);
-<a name="line235">235  |</a> 
-<a name="line236">236  |</a> unwind0:
-<a name="line237">237  |</a> 	/* if Result is negative here ... must have been an unwind */
-<a name="line238">238  |</a> 	if (Result &lt; 0)
-<a name="line239">239  |</a> 		Result = -Result;
-<a name="line240">240  |</a> 
-<a name="line241">241  |</a> success0:
-<a name="line242">242  |</a> 	return (Result);	/** --- EXIT PROCEDURE (FAILURE/SUCCESS) --&gt; **/
-<a name="line243">243  |</a> 
-<a name="line244">244  |</a> } /** End of 'ModuleCmd_Avail' **/
-<a name="line245">245  |</a> 
-<a name="line246">246  |</a> /*++++
-<a name="line247">247  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line248">248  |</a>  ** 									     **
-<a name="line249">249  |</a>  **   Function:		check_dir					     **
-<a name="line250">250  |</a>  ** 									     **
-<a name="line251">251  |</a>  **   Description:	Open and close the passed directory in order to check**
-<a name="line252">252  |</a>  **			if it does exist and is readable		     **
-<a name="line253">253  |</a>  ** 									     **
-<a name="line254">254  |</a>  **   First Edition:	1991/10/23					     **
-<a name="line255">255  |</a>  ** 									     **
-<a name="line256">256  |</a>  **   Parameters:	char	*dirname	Name of the directory to be  **
-<a name="line257">257  |</a>  **						checked			     **
-<a name="line258">258  |</a>  ** 									     **
-<a name="line259">259  |</a>  **   Result:		int	0	Not a directory or unreadable	     **
-<a name="line260">260  |</a>  **				1	OK				     **
-<a name="line261">261  |</a>  ** 									     **
-<a name="line262">262  |</a>  **   Attached Globals:	-						     **
-<a name="line263">263  |</a>  ** 									     **
-<a name="line264">264  |</a>  ** ************************************************************************ **
-<a name="line265">265  |</a>  ++++*/
-<a name="line266">266  |</a> 
-<a name="line267">267  |</a> int check_dir(	char	*dirname)
-<a name="line268">268  |</a> {
-<a name="line269">269  |</a>     DIR*   dirp;
-<a name="line270">270  |</a> 
-<a name="line271">271  |</a>     if( !(dirp = opendir( dirname))) 
-<a name="line272">272  |</a> 	return( 0);
+<a name="line234">234  |</a> 		dirname = modpath;
+<a name="line235">235  |</a> 		while( dirname &amp;&amp; *dirname) {
+<a name="line236">236  |</a> 
+<a name="line237">237  |</a> 		    /**
+<a name="line238">238  |</a> 		     **  We cannot use strtok here, because it interfers with
+<a name="line239">239  |</a> 		     **  subsequent calls while printing the list
+<a name="line240">240  |</a> 		     **/
+<a name="line241">241  |</a> 
+<a name="line242">242  |</a> 		    char *s;
+<a name="line243">243  |</a> 		
+<a name="line244">244  |</a> 		    if( (s = strchr( dirname, ':')) )
+<a name="line245">245  |</a> 			*s++ = '\0';
+<a name="line246">246  |</a> 
+<a name="line247">247  |</a> 		    /**
+<a name="line248">248  |</a> 		     **  Print the cathegory
+<a name="line249">249  |</a> 		     **/
+<a name="line250">250  |</a> 
+<a name="line251">251  |</a> 		    if( check_dir( dirname))
+<a name="line252">252  |</a> 			print_dir( interp, dirname, *argv);
+<a name="line253">253  |</a> 		    dirname = s;
+<a name="line254">254  |</a> 		}
+<a name="line255">255  |</a> 
+<a name="line256">256  |</a> 		argv++;
+<a name="line257">257  |</a> 	    }
+<a name="line258">258  |</a> 
+<a name="line259">259  |</a> 	/**
+<a name="line260">260  |</a> 	 **  Otherwise, if there's no category given, descend the current
+<a name="line261">261  |</a> 	 **  directory and print its contents.
+<a name="line262">262  |</a> 	 **/
+<a name="line263">263  |</a> 
+<a name="line264">264  |</a> 	} else {
+<a name="line265">265  |</a> 
+<a name="line266">266  |</a> 	    dirname = modpath;
+<a name="line267">267  |</a> 	    while( dirname &amp;&amp; *dirname) {
+<a name="line268">268  |</a> 
+<a name="line269">269  |</a> 		/**
+<a name="line270">270  |</a> 		 **  We cannot use strtok here, because it interfers with
+<a name="line271">271  |</a> 		 **  subsequent calls while printing the list
+<a name="line272">272  |</a> 		 **/
 <a name="line273">273  |</a> 
-<a name="line274">274  |</a>     if( -1 == closedir( dirp))
-<a name="line275">275  |</a> 	if( OK != ErrorLogger( ERR_CLOSEDIR, LOC, dirname, NULL))
-<a name="line276">276  |</a> 	    return( 0);
-<a name="line277">277  |</a> 
-<a name="line278">278  |</a>     return( 1);
-<a name="line279">279  |</a> 
-<a name="line280">280  |</a> } /** End of 'check_dir' **/
-<a name="line281">281  |</a> 
-<a name="line282">282  |</a> /*++++
-<a name="line283">283  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line284">284  |</a>  ** 									     **
-<a name="line285">285  |</a>  **   Function:		print_dir					     **
-<a name="line286">286  |</a>  ** 									     **
-<a name="line287">287  |</a>  **   Description:	Print all files beyond the passed directory	     **
-<a name="line288">288  |</a>  ** 									     **
-<a name="line289">289  |</a>  **   First Edition:	1991/10/23					     **
-<a name="line290">290  |</a>  ** 									     **
-<a name="line291">291  |</a>  **   Parameters:	char	*dir		Directory to be scanned	     **
-<a name="line292">292  |</a>  **			char	*module		A selcted module name or NULL**
-<a name="line293">293  |</a>  ** 									     **
-<a name="line294">294  |</a>  **   Result:		int	TCL_OK		Successful operation	     **
-<a name="line295">295  |</a>  ** 									     **
-<a name="line296">296  |</a>  **   Attached Globals:	-						     **
-<a name="line297">297  |</a>  ** 									     **
-<a name="line298">298  |</a>  ** ************************************************************************ **
-<a name="line299">299  |</a>  ++++*/
-<a name="line300">300  |</a> 
-<a name="line301">301  |</a> static int print_dir(
-<a name="line302">302  |</a> 	Tcl_Interp * interp,
-<a name="line303">303  |</a> 	char *dir,
-<a name="line304">304  |</a> 	char *module
-<a name="line305">305  |</a> ) {
-<a name="line306">306  |</a> 	fi_ent         *dirlst_head = NULL;
-<a name="line307">307  |</a> 					/** Directory list base pointer	     **/
-<a name="line308">308  |</a> 	int             count = 0,	/** Number of elements in the top    **/
-<a name="line309">309  |</a> 					/** level directory list	     **/
-<a name="line310">310  |</a> 			tcount = 0,	/** Total number of files to print   **/
-<a name="line311">311  |</a> 			start = 0,
-<a name="line312">312  |</a> 			dirlen;
-<a name="line313">313  |</a> 	char          **cache_list = NULL;
-<a name="line314">314  |</a> 	char           *selection, *s;
-<a name="line315">315  |</a> 
-<a name="line316">316  |</a>     /**
-<a name="line317">317  |</a>      **  Print the directory name
-<a name="line318">318  |</a>      **/
-<a name="line319">319  |</a> 	if ((sw_format &amp; (SW_PARSE | SW_TERSE | SW_LONG))
-<a name="line320">320  |</a> 	    &amp;&amp; !(sw_format &amp; (SW_HUMAN | SW_LIST))) {
-<a name="line321">321  |</a> 		fprintf(stderr, "%s:\n", dir);
-<a name="line322">322  |</a> 	}
-<a name="line323">323  |</a> 
-<a name="line324">324  |</a> 	if (dir)
-<a name="line325">325  |</a> 		dirlen = strlen(dir) + 1;
-<a name="line326">326  |</a> 	else
-<a name="line327">327  |</a> 		dirlen = 0;
-<a name="line328">328  |</a> 
-<a name="line329">329  |</a>     /**
-<a name="line330">330  |</a>      **  If the is a module selection given, build the whole selected path
-<a name="line331">331  |</a>      **/
+<a name="line274">274  |</a> 		char *s;
+<a name="line275">275  |</a> 	    
+<a name="line276">276  |</a> 		if( (s = strchr( dirname, ':')) )
+<a name="line277">277  |</a> 		    *s++ = '\0';
+<a name="line278">278  |</a> 
+<a name="line279">279  |</a> 		/**
+<a name="line280">280  |</a> 		 **  Second part of tokenization
+<a name="line281">281  |</a> 		 **/
+<a name="line282">282  |</a> 
+<a name="line283">283  |</a> 		if( check_dir( dirname))
+<a name="line284">284  |</a> 		    print_dir( interp, dirname, NULL);
+<a name="line285">285  |</a> 		dirname = s;
+<a name="line286">286  |</a> 	    }
+<a name="line287">287  |</a> 
+<a name="line288">288  |</a>         } /** for **/
+<a name="line289">289  |</a>     } /** if( no full path name given) **/
+<a name="line290">290  |</a> 
+<a name="line291">291  |</a>     /**
+<a name="line292">292  |</a>      **  Free up what has been allocated and exit from this procedure
+<a name="line293">293  |</a>      **/
+<a name="line294">294  |</a>     /* if got here via this path ... it must have been OK */
+<a name="line295">295  |</a>     if(Result &lt; 0) Result = TCL_OK;
+<a name="line296">296  |</a> 
+<a name="line297">297  |</a> unwind1:
+<a name="line298">298  |</a>     null_free((void *) &amp;modpath);
+<a name="line299">299  |</a> 
+<a name="line300">300  |</a> unwind0:
+<a name="line301">301  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line302">302  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Avail, NULL);
+<a name="line303">303  |</a> #endif
+<a name="line304">304  |</a> 
+<a name="line305">305  |</a>     /* if Result is negative here ... must have been an unwind */
+<a name="line306">306  |</a>     if (Result &lt; 0) Result = -Result;
+<a name="line307">307  |</a> 
+<a name="line308">308  |</a>     return( Result);		/** --- EXIT PROCEDURE (FAILURE/SUCCESS) --&gt; **/
+<a name="line309">309  |</a> 
+<a name="line310">310  |</a> } /** End of 'ModuleCmd_Avail' **/
+<a name="line311">311  |</a> 
+<a name="line312">312  |</a> /*++++
+<a name="line313">313  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line314">314  |</a>  ** 									     **
+<a name="line315">315  |</a>  **   Function:		check_dir					     **
+<a name="line316">316  |</a>  ** 									     **
+<a name="line317">317  |</a>  **   Description:	Open and close the passed directory in order to check**
+<a name="line318">318  |</a>  **			if it does exist and is readable		     **
+<a name="line319">319  |</a>  ** 									     **
+<a name="line320">320  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line321">321  |</a>  ** 									     **
+<a name="line322">322  |</a>  **   Parameters:	char	*dirname	Name of the directory to be  **
+<a name="line323">323  |</a>  **						checked			     **
+<a name="line324">324  |</a>  ** 									     **
+<a name="line325">325  |</a>  **   Result:		int	0	Not a directory or unreadable	     **
+<a name="line326">326  |</a>  **				1	OK				     **
+<a name="line327">327  |</a>  ** 									     **
+<a name="line328">328  |</a>  **   Attached Globals:	-						     **
+<a name="line329">329  |</a>  ** 									     **
+<a name="line330">330  |</a>  ** ************************************************************************ **
+<a name="line331">331  |</a>  ++++*/
 <a name="line332">332  |</a> 
-<a name="line333">333  |</a> 	if (module) {
-<a name="line334">334  |</a> 		if (dir) {
-<a name="line335">335  |</a> 			if ((char *)NULL == (selection = stringer(NULL, 0,
-<a name="line336">336  |</a> 					  dir, "/", module, NULL))) {
-<a name="line337">337  |</a> 				ErrorLogger(ERR_STRING, LOC, NULL);
-<a name="line338">338  |</a> 				goto unwind0;	/** ---- EXIT (FAILURE) ---&gt; **/
-<a name="line339">339  |</a> 			}
-<a name="line340">340  |</a> 		} else
-<a name="line341">341  |</a> 			selection = module;
-<a name="line342">342  |</a> 	} else
-<a name="line343">343  |</a> 		selection = (char *)NULL;
-<a name="line344">344  |</a> 
-<a name="line345">345  |</a> 	if (!cache_list) {
-<a name="line346">346  |</a> 	/**
-<a name="line347">347  |</a> 	 **  Normal reading of the files
-<a name="line348">348  |</a> 	 **/
-<a name="line349">349  |</a> 		if (NULL == (dirlst_head = get_dir(dir, NULL, &amp;count, &amp;tcount)))
-<a name="line350">350  |</a> 			if (OK != ErrorLogger(ERR_READDIR, LOC, dir, NULL))
-<a name="line351">351  |</a> 				goto unwind1;
-<a name="line352">352  |</a> 		if (NULL == (cache_list =
-<a name="line353">353  |</a> 		     (char **)module_malloc(tcount * sizeof(char **))))
-<a name="line354">354  |</a> 			if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
-<a name="line355">355  |</a> 				goto unwind1;
-<a name="line356">356  |</a> 		(void)memset(cache_list, 0, tcount * sizeof(char **));
-<a name="line357">357  |</a> 
-<a name="line358">358  |</a> 		start = 0;
-<a name="line359">359  |</a> 		dirlst_to_list(cache_list, dirlst_head, count, &amp;start, dir,
-<a name="line360">360  |</a> 			       selection);
-<a name="line361">361  |</a> 	}
-<a name="line362">362  |</a>     /**
-<a name="line363">363  |</a>      **  In case of any selection, we have to force all .modulrc's and .versions
-<a name="line364">364  |</a>      **  on the path
-<a name="line365">365  |</a>      **/
-<a name="line366">366  |</a> 	if (dir) {
-<a name="line367">367  |</a> 		s = dir;
-<a name="line368">368  |</a> 		while (s) {
-<a name="line369">369  |</a> 			if ((s = strchr(s, '/')))
-<a name="line370">370  |</a> 				*s = '\0';
-<a name="line371">371  |</a> 			else
-<a name="line372">372  |</a> 				break;
-<a name="line373">373  |</a> 
-<a name="line374">374  |</a> 			SourceRC(interp, dir, modulerc_file);
-<a name="line375">375  |</a> 			SourceVers(interp, dir, module);
-<a name="line376">376  |</a> 
-<a name="line377">377  |</a> 			if (s)
-<a name="line378">378  |</a> 				*s++ = '/';
-<a name="line379">379  |</a> 		}
-<a name="line380">380  |</a> 	/**
-<a name="line381">381  |</a> 	 **  Finally source the rc files in the directory itself
-<a name="line382">382  |</a> 	 **/
-<a name="line383">383  |</a> 		SourceRC(interp, dir, modulerc_file);
-<a name="line384">384  |</a> 		SourceVers(interp, dir, module);
-<a name="line385">385  |</a> 	}
-<a name="line386">386  |</a> 
-<a name="line387">387  |</a> 	if (dir &amp;&amp; selection)
-<a name="line388">388  |</a> 		null_free((void *)&amp;selection);
-<a name="line389">389  |</a>     /**
-<a name="line390">390  |</a>      **  Print and remove the cache list
-<a name="line391">391  |</a>      **/
-<a name="line392">392  |</a> 	delete_dirlst(dirlst_head, count);
-<a name="line393">393  |</a> 	print_aligned_files(interp, dir, dir, cache_list, tcount,
-<a name="line394">394  |</a> 			    (sw_format &amp; SW_LIST ? 1 : -1));
-<a name="line395">395  |</a> 	delete_cache_list(cache_list, start);
-<a name="line396">396  |</a> 
-<a name="line397">397  |</a> 	if (sw_format &amp; SW_LONG)
-<a name="line398">398  |</a> 		fprintf(stderr, "\n");
-<a name="line399">399  |</a> 	return (TCL_OK);		/** ------- EXIT (SUCCESS) --------&gt; **/
-<a name="line400">400  |</a> 
-<a name="line401">401  |</a> unwind1:
-<a name="line402">402  |</a> 	if (dir &amp;&amp; selection)
-<a name="line403">403  |</a> 		null_free((void *)&amp;selection);
-<a name="line404">404  |</a> unwind0:
-<a name="line405">405  |</a> 	return (TCL_ERROR);		/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line406">406  |</a> 
-<a name="line407">407  |</a> } /** End of 'print_dir' **/
+<a name="line333">333  |</a> int check_dir(	char	*dirname)
+<a name="line334">334  |</a> {
+<a name="line335">335  |</a>     DIR*   dirp;
+<a name="line336">336  |</a> 
+<a name="line337">337  |</a> #if WITH_DEBUGGING_UTIL_2
+<a name="line338">338  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_check_dir, NULL);
+<a name="line339">339  |</a> #endif
+<a name="line340">340  |</a> 
+<a name="line341">341  |</a>     if( !(dirp = opendir( dirname))) 
+<a name="line342">342  |</a> 	return( 0);
+<a name="line343">343  |</a> 
+<a name="line344">344  |</a>     if( -1 == closedir( dirp))
+<a name="line345">345  |</a> 	if( OK != ErrorLogger( ERR_CLOSEDIR, LOC, dirname, NULL))
+<a name="line346">346  |</a> 	    return( 0);
+<a name="line347">347  |</a> 
+<a name="line348">348  |</a>     return( 1);
+<a name="line349">349  |</a> 
+<a name="line350">350  |</a> } /** End of 'check_dir' **/
+<a name="line351">351  |</a> 
+<a name="line352">352  |</a> /*++++
+<a name="line353">353  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line354">354  |</a>  ** 									     **
+<a name="line355">355  |</a>  **   Function:		print_dir					     **
+<a name="line356">356  |</a>  ** 									     **
+<a name="line357">357  |</a>  **   Description:	Print all files beyond the passed directory	     **
+<a name="line358">358  |</a>  ** 									     **
+<a name="line359">359  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line360">360  |</a>  ** 									     **
+<a name="line361">361  |</a>  **   Parameters:	char	*dir		Directory to be scanned	     **
+<a name="line362">362  |</a>  **			char	*module		A selcted module name or NULL**
+<a name="line363">363  |</a>  ** 									     **
+<a name="line364">364  |</a>  **   Result:		int	TCL_OK		Successful operation	     **
+<a name="line365">365  |</a>  ** 									     **
+<a name="line366">366  |</a>  **   Attached Globals:	-						     **
+<a name="line367">367  |</a>  ** 									     **
+<a name="line368">368  |</a>  ** ************************************************************************ **
+<a name="line369">369  |</a>  ++++*/
+<a name="line370">370  |</a> 
+<a name="line371">371  |</a> static	int	print_dir(	Tcl_Interp	*interp,
+<a name="line372">372  |</a> 				char		*dir,
+<a name="line373">373  |</a> 				char		*module)
+<a name="line374">374  |</a> {
+<a name="line375">375  |</a>     fi_ent	 *dirlst_head = NULL;	/** Directory list base pointer	     **/
+<a name="line376">376  |</a>     int		  count = 0;		/** Number of elements in the top    **/
+<a name="line377">377  |</a> 					/** level directory list	     **/
+<a name="line378">378  |</a>     int		  tcount = 0;		/** Total number of files to print   **/
+<a name="line379">379  |</a>     int	 	  start = 0;
+<a name="line380">380  |</a>     int		  dirlen;
+<a name="line381">381  |</a>     char	**cache_list = NULL;
+<a name="line382">382  |</a>     char	 *selection, *s;
+<a name="line383">383  |</a> 
+<a name="line384">384  |</a> #if WITH_DEBUGGING_UTIL_1
+<a name="line385">385  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_print_dir, "dir='", dir, NULL);
+<a name="line386">386  |</a> #endif
+<a name="line387">387  |</a> 
+<a name="line388">388  |</a>     /**
+<a name="line389">389  |</a>      **  Print the directory name
+<a name="line390">390  |</a>      **/
+<a name="line391">391  |</a> 
+<a name="line392">392  |</a>     if( (sw_format &amp; (SW_PARSE | SW_TERSE | SW_LONG))
+<a name="line393">393  |</a>     &amp;&amp; !(sw_format &amp; (SW_HUMAN | SW_LIST)) ) {
+<a name="line394">394  |</a> 	/* char *base = strrchr( dir, '/');
+<a name="line395">395  |</a> 	fprintf( stderr, "%s:\n", base ? ++base : dir);
+<a name="line396">396  |</a> 	*/
+<a name="line397">397  |</a> 	fprintf( stderr, "%s:\n", dir);
+<a name="line398">398  |</a>     }
+<a name="line399">399  |</a> 
+<a name="line400">400  |</a>     if( dir)
+<a name="line401">401  |</a> 	dirlen = strlen( dir) + 1;
+<a name="line402">402  |</a>     else
+<a name="line403">403  |</a> 	dirlen = 0;
+<a name="line404">404  |</a> 
+<a name="line405">405  |</a>     /**
+<a name="line406">406  |</a>      **  If the is a module selection given, build the whole selected path
+<a name="line407">407  |</a>      **/
 <a name="line408">408  |</a> 
-<a name="line409">409  |</a> /*++++
-<a name="line410">410  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line411">411  |</a>  ** 									     **
-<a name="line412">412  |</a>  **   Function:		get_dir						     **
-<a name="line413">413  |</a>  ** 									     **
-<a name="line414">414  |</a>  **   Description:	Read in the passed directory and save every interes- **
-<a name="line415">415  |</a>  **			ting item in the directory list			     **
-<a name="line416">416  |</a>  **			skipping known version control directories:	     **
-<a name="line417">417  |</a>  **				CVS RCS .git .svn			     **
-<a name="line418">418  |</a>  **			unless they contain .version files		     **
-<a name="line419">419  |</a>  ** 									     **
-<a name="line420">420  |</a>  **   First Edition:	1991/10/23					     **
-<a name="line421">421  |</a>  ** 									     **
-<a name="line422">422  |</a>  **   Parameters:	char	*dir		Directory to be read	     **
-<a name="line423">423  |</a>  **			char	*prefix		Directory prefix (path)	     **
-<a name="line424">424  |</a>  **			int	*listcount	Buffer to store the number of**
-<a name="line425">425  |</a>  **						elements in the current      **
-<a name="line426">426  |</a>  **						directory list		     **
-<a name="line427">427  |</a>  **			int 	*total_count	Buffer for the total number  **
-<a name="line428">428  |</a>  **						of files read		     **
-<a name="line429">429  |</a>  ** 									     **
-<a name="line430">430  |</a>  **   Result:		fi_ent*		NULL	Failure			     **
-<a name="line431">431  |</a>  **					else	Directory list base pointer  **
-<a name="line432">432  |</a>  **			*listcount		Number of elements in the    **
-<a name="line433">433  |</a>  **						top level directory list     **
-<a name="line434">434  |</a>  **			*total_count		Total number of files read   **
-<a name="line435">435  |</a>  ** 									     **
-<a name="line436">436  |</a>  **   Attached Globals:	-						     **
-<a name="line437">437  |</a>  ** 									     **
-<a name="line438">438  |</a>  ** ************************************************************************ **
-<a name="line439">439  |</a>  ++++*/
-<a name="line440">440  |</a> 
-<a name="line441">441  |</a> fi_ent	*get_dir(	char	*dir,
-<a name="line442">442  |</a> 			char	*prefix,
-<a name="line443">443  |</a> 			int	*listcount,
-<a name="line444">444  |</a> 			int	*total_count)
-<a name="line445">445  |</a> {
-<a name="line446">446  |</a>     struct dirent	*dp;		/** Directory read pointer	     **/
-<a name="line447">447  |</a>     DIR			*dirptr;	/** Directory handle		     **/
-<a name="line448">448  |</a>     fi_ent		*dirlst_head,	/** Directory list pointers. Head,   **/
-<a name="line449">449  |</a>     			*dirlst_cur,	/** current			     **/
-<a name="line450">450  |</a>     			*dirlst_last;	/** and last			     **/
-<a name="line451">451  |</a>     char		*dirname;	/** Expanded directory path name     **/
-<a name="line452">452  |</a>     char		*tmp;		
-<a name="line453">453  |</a>     int			 count = 0;
-<a name="line454">454  |</a> 
-<a name="line455">455  |</a>     /**
-<a name="line456">456  |</a>      **  Open the desired directiory
-<a name="line457">457  |</a>      **/
-<a name="line458">458  |</a>     if( !(dirptr = opendir( dir))) {
-<a name="line459">459  |</a> #if 0
-<a name="line460">460  |</a> 	/* if you can't open a directory ... is that really an error? */
-<a name="line461">461  |</a> 	if( OK != ErrorLogger( ERR_OPENDIR, LOC, dir, NULL))
-<a name="line462">462  |</a> #endif
-<a name="line463">463  |</a> 	    return( NULL);	/** ----------- EXIT (FAILURE) ------------&gt; **/
-<a name="line464">464  |</a>     }
+<a name="line409">409  |</a>     if( module) {
+<a name="line410">410  |</a> 
+<a name="line411">411  |</a> 	if( dir) {
+<a name="line412">412  |</a> 	    if((char *) NULL == (selection = stringer(NULL, 0,
+<a name="line413">413  |</a> 		dir,"/",module, NULL))) {
+<a name="line414">414  |</a> 		ErrorLogger( ERR_STRING, LOC, NULL);
+<a name="line415">415  |</a> 		return( TCL_ERROR);     /** --- EXIT (FAILURE) --------&gt; **/
+<a name="line416">416  |</a> 	    }
+<a name="line417">417  |</a> 
+<a name="line418">418  |</a> 	} else
+<a name="line419">419  |</a> 	    selection = module;
+<a name="line420">420  |</a> 
+<a name="line421">421  |</a>     } else
+<a name="line422">422  |</a> 	selection = (char *) NULL;
+<a name="line423">423  |</a> 
+<a name="line424">424  |</a>     if( !cache_list) {
+<a name="line425">425  |</a> 
+<a name="line426">426  |</a> 	/**
+<a name="line427">427  |</a> 	 **  Normal reading of the files
+<a name="line428">428  |</a> 	 **/
+<a name="line429">429  |</a> 
+<a name="line430">430  |</a> 	if( NULL == (dirlst_head = get_dir( dir, NULL, &amp;count, &amp;tcount)))
+<a name="line431">431  |</a> 	    if( OK != ErrorLogger( ERR_READDIR, LOC, dir, NULL))
+<a name="line432">432  |</a> 		goto unwind1;
+<a name="line433">433  |</a> 
+<a name="line434">434  |</a> 	if( NULL ==
+<a name="line435">435  |</a> 		(cache_list = (char**) module_malloc(tcount * sizeof(char**))))
+<a name="line436">436  |</a> 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+<a name="line437">437  |</a> 		goto unwind1;
+<a name="line438">438  |</a> 	(void) memset(cache_list, 0, tcount * sizeof( char **));
+<a name="line439">439  |</a> 
+<a name="line440">440  |</a> 	start=0;
+<a name="line441">441  |</a> 	dirlst_to_list( cache_list, dirlst_head, count, &amp;start, dir, selection);
+<a name="line442">442  |</a> 
+<a name="line443">443  |</a>     }
+<a name="line444">444  |</a> 
+<a name="line445">445  |</a>     /**
+<a name="line446">446  |</a>      **  In case of any selection, we have to force all .modulrc's and .versions
+<a name="line447">447  |</a>      **  on the path
+<a name="line448">448  |</a>      **/
+<a name="line449">449  |</a> 
+<a name="line450">450  |</a>     if( dir) {
+<a name="line451">451  |</a> 
+<a name="line452">452  |</a> 	s = dir;
+<a name="line453">453  |</a> 	while( s) {
+<a name="line454">454  |</a> 	    if( (s = strchr( s, '/')) )
+<a name="line455">455  |</a> 	    	*s = '\0';
+<a name="line456">456  |</a> 	    else
+<a name="line457">457  |</a> 		break;
+<a name="line458">458  |</a> 
+<a name="line459">459  |</a> 	    SourceRC( interp, dir, modulerc_file);
+<a name="line460">460  |</a> 	    SourceVers( interp, dir, module);
+<a name="line461">461  |</a> 
+<a name="line462">462  |</a> 	    if( s)
+<a name="line463">463  |</a> 		*s++ = '/';
+<a name="line464">464  |</a> 	}
 <a name="line465">465  |</a> 
-<a name="line466">466  |</a>     /**
-<a name="line467">467  |</a>      **  Allocate memory for reading in the directory
-<a name="line468">468  |</a>      **/
+<a name="line466">466  |</a> 	/**
+<a name="line467">467  |</a> 	 **  Finally source the rc files in the directory itself
+<a name="line468">468  |</a> 	 **/
 <a name="line469">469  |</a> 
-<a name="line470">470  |</a>     if( NULL == (dirlst_cur = dirlst_head = (fi_ent*) module_calloc( DIREST,
-<a name="line471">471  |</a> 	sizeof( fi_ent)))) {
-<a name="line472">472  |</a> 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-<a name="line473">473  |</a> 	    if( -1 == closedir( dirptr))
-<a name="line474">474  |</a> 		ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
-<a name="line475">475  |</a> 	    goto unwind0;
-<a name="line476">476  |</a> 	}
-<a name="line477">477  |</a>     }
-<a name="line478">478  |</a>     dirlst_last = dirlst_head + DIREST;
-<a name="line479">479  |</a>   
-<a name="line480">480  |</a>     /**
-<a name="line481">481  |</a>      **  Read in the  contents of the directory. Ignore dotfiles
-<a name="line482">482  |</a>      **		and version directories.
-<a name="line483">483  |</a>      **/
-<a name="line484">484  |</a> 
-<a name="line485">485  |</a>     for( count = 0,  dp = readdir( dirptr); dp != NULL; dp = readdir( dirptr)) {
-<a name="line486">486  |</a>         if( *dp-&gt;d_name == '.') continue;
-<a name="line487">487  |</a> 
-<a name="line488">488  |</a> 	/**
-<a name="line489">489  |</a> 	 **  Conditionally double up the space allocated for reading the direc-
-<a name="line490">490  |</a> 	 **  tory
-<a name="line491">491  |</a> 	 **/
-<a name="line492">492  |</a> 
-<a name="line493">493  |</a>         if(dirlst_cur == dirlst_last) {
-<a name="line494">494  |</a>             if( NULL == (dirlst_head = (fi_ent*) module_realloc(
-<a name="line495">495  |</a> 		(char*) dirlst_head, (count&lt;&lt;1) * sizeof( fi_ent)))) 
-<a name="line496">496  |</a> 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
-<a name="line497">497  |</a> 		    goto unwind0;
-<a name="line498">498  |</a>             dirlst_cur = dirlst_head + count;
-<a name="line499">499  |</a>             dirlst_last = dirlst_head + (count&lt;&lt;1);
-<a name="line500">500  |</a> 	}
-<a name="line501">501  |</a> 
-<a name="line502">502  |</a> 	/**
-<a name="line503">503  |</a> 	 **  Build the complete path name and get information about the file
-<a name="line504">504  |</a> 	 **/
-<a name="line505">505  |</a> 
-<a name="line506">506  |</a>         if( !( dirname = mkdirnm( dir, dp-&gt;d_name)))
-<a name="line507">507  |</a> 	    if( OK != ErrorLogger( ERR_DIRNAME, LOC, NULL)) {
-<a name="line508">508  |</a> 		if( -1 == closedir( dirptr))
-<a name="line509">509  |</a> 		    ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
-<a name="line510">510  |</a> 		goto unwind1;
-<a name="line511">511  |</a> 	    }
-<a name="line512">512  |</a> 
-<a name="line513">513  |</a>         if( stat( dirname, &amp;(dirlst_cur-&gt;fi_stats)) &lt; 0)
-<a name="line514">514  |</a> 	    if( OK != ErrorLogger( ERR_DIRNOTFOUND, LOC, dirname, NULL)) {
-<a name="line515">515  |</a> 		if( -1 == closedir( dirptr))
-<a name="line516">516  |</a> 		    ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
-<a name="line517">517  |</a> 		goto unwind1;
-<a name="line518">518  |</a> 	    }
-<a name="line519">519  |</a> 
-<a name="line520">520  |</a> 	/**
-<a name="line521">521  |</a> 	 **  If it is a directory, recursively delve into it ..
-<a name="line522">522  |</a> 	 **/
-<a name="line523">523  |</a> 
-<a name="line524">524  |</a>         if(dirlst_cur-&gt;fi_stats.st_mode &amp; S_IFDIR) {
-<a name="line525">525  |</a>             char* np;
-<a name="line526">526  |</a>             char* ndir;
-<a name="line527">527  |</a>             int   tmpcount = 0;
-<a name="line528">528  |</a> 
-<a name="line529">529  |</a> 	    /**
-<a name="line530">530  |</a> 	     **  Build the new base points for the recursion
-<a name="line531">531  |</a> 	     **/
-<a name="line532">532  |</a> 
-<a name="line533">533  |</a>             if( !( tmp = mkdirnm( prefix, dp-&gt;d_name))) {
-<a name="line534">534  |</a> 		if( OK != ErrorLogger( ERR_DIRNAME, LOC, NULL)) {
-<a name="line535">535  |</a> 		    if( -1 == closedir( dirptr))
-<a name="line536">536  |</a> 			ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
-<a name="line537">537  |</a> 		    goto unwind1;
-<a name="line538">538  |</a> 		}
-<a name="line539">539  |</a> 	    } else {
-<a name="line540">540  |</a> 		if( NULL == (np = stringer(NULL,0, tmp, NULL)))
-<a name="line541">541  |</a> 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-<a name="line542">542  |</a> 			goto unwind1;
-<a name="line543">543  |</a> 	    }
+<a name="line470">470  |</a> 	SourceRC( interp, dir, modulerc_file);
+<a name="line471">471  |</a> 	SourceVers( interp, dir, module);
+<a name="line472">472  |</a>     }
+<a name="line473">473  |</a> 
+<a name="line474">474  |</a>     if( dir &amp;&amp; selection)
+<a name="line475">475  |</a> 	null_free((void *) &amp;selection);
+<a name="line476">476  |</a> 
+<a name="line477">477  |</a>     /**
+<a name="line478">478  |</a>      **  Print and remove the cache list
+<a name="line479">479  |</a>      **/
+<a name="line480">480  |</a> 
+<a name="line481">481  |</a>     delete_dirlst( dirlst_head, count);
+<a name="line482">482  |</a>     print_aligned_files( interp, dir, dir, cache_list, tcount,
+<a name="line483">483  |</a> 	(sw_format &amp; SW_LIST ? 1 : -1));
+<a name="line484">484  |</a>     delete_cache_list( cache_list, start);
+<a name="line485">485  |</a> 
+<a name="line486">486  |</a>     if( sw_format &amp; SW_LONG)
+<a name="line487">487  |</a> 	fprintf( stderr, "\n");
+<a name="line488">488  |</a>     return( TCL_OK);     		/** ------- EXIT (SUCCESS) --------&gt; **/
+<a name="line489">489  |</a> 
+<a name="line490">490  |</a> unwind1:
+<a name="line491">491  |</a>     if( dir &amp;&amp; selection)
+<a name="line492">492  |</a> 	null_free((void *) &amp;selection);
+<a name="line493">493  |</a> 
+<a name="line494">494  |</a> unwind0:
+<a name="line495">495  |</a>     return( TCL_ERROR);     		/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line496">496  |</a> 
+<a name="line497">497  |</a> } /** End of 'print_dir' **/
+<a name="line498">498  |</a> 
+<a name="line499">499  |</a> /*++++
+<a name="line500">500  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line501">501  |</a>  ** 									     **
+<a name="line502">502  |</a>  **   Function:		get_dir						     **
+<a name="line503">503  |</a>  ** 									     **
+<a name="line504">504  |</a>  **   Description:	Read in the passed directory and save every interes- **
+<a name="line505">505  |</a>  **			ting item in the directory list			     **
+<a name="line506">506  |</a>  **			skipping known version control directories:	     **
+<a name="line507">507  |</a>  **				CVS RCS .git .svn			     **
+<a name="line508">508  |</a>  **			unless they contain .version files		     **
+<a name="line509">509  |</a>  ** 									     **
+<a name="line510">510  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line511">511  |</a>  ** 									     **
+<a name="line512">512  |</a>  **   Parameters:	char	*dir		Directory to be read	     **
+<a name="line513">513  |</a>  **			char	*prefix		Directory prefix (path)	     **
+<a name="line514">514  |</a>  **			int	*listcount	Buffer to store the number of**
+<a name="line515">515  |</a>  **						elements in the current      **
+<a name="line516">516  |</a>  **						directory list		     **
+<a name="line517">517  |</a>  **			int 	*total_count	Buffer for the total number  **
+<a name="line518">518  |</a>  **						of files read		     **
+<a name="line519">519  |</a>  ** 									     **
+<a name="line520">520  |</a>  **   Result:		fi_ent*		NULL	Failure			     **
+<a name="line521">521  |</a>  **					else	Directory list base pointer  **
+<a name="line522">522  |</a>  **			*listcount		Number of elements in the    **
+<a name="line523">523  |</a>  **						top level directory list     **
+<a name="line524">524  |</a>  **			*total_count		Total number of files read   **
+<a name="line525">525  |</a>  ** 									     **
+<a name="line526">526  |</a>  **   Attached Globals:	-						     **
+<a name="line527">527  |</a>  ** 									     **
+<a name="line528">528  |</a>  ** ************************************************************************ **
+<a name="line529">529  |</a>  ++++*/
+<a name="line530">530  |</a> 
+<a name="line531">531  |</a> fi_ent	*get_dir(	char	*dir,
+<a name="line532">532  |</a> 			char	*prefix,
+<a name="line533">533  |</a> 			int	*listcount,
+<a name="line534">534  |</a> 			int	*total_count)
+<a name="line535">535  |</a> {
+<a name="line536">536  |</a>     struct dirent	*dp;		/** Directory read pointer	     **/
+<a name="line537">537  |</a>     DIR			*dirptr;	/** Directory handle		     **/
+<a name="line538">538  |</a>     fi_ent		*dirlst_head,	/** Directory list pointers. Head,   **/
+<a name="line539">539  |</a>     			*dirlst_cur,	/** current			     **/
+<a name="line540">540  |</a>     			*dirlst_last;	/** and last			     **/
+<a name="line541">541  |</a>     char		*dirname;	/** Expanded directory path name     **/
+<a name="line542">542  |</a>     char		*tmp;		
+<a name="line543">543  |</a>     int			 count = 0;
 <a name="line544">544  |</a> 
-<a name="line545">545  |</a>             if( !( tmp = mkdirnm( dir, dp-&gt;d_name))) {
-<a name="line546">546  |</a> 		if( OK != ErrorLogger( ERR_DIRNAME, LOC, NULL)) {
-<a name="line547">547  |</a> 		    if( -1 == closedir( dirptr))
-<a name="line548">548  |</a> 			ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
-<a name="line549">549  |</a> 		    goto unwind1;
-<a name="line550">550  |</a> 		}
-<a name="line551">551  |</a> 	    } else {
-<a name="line552">552  |</a> 		if( NULL == (ndir = stringer(NULL,0, tmp, NULL)))
-<a name="line553">553  |</a> 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
-<a name="line554">554  |</a> 			goto unwind1;
-<a name="line555">555  |</a> 	    }
-<a name="line556">556  |</a> 
-<a name="line557">557  |</a> 	    /**
-<a name="line558">558  |</a> 	     **  What if it's a known version control directory
-<a name="line559">559  |</a> 	     **  check if it has a .version file
-<a name="line560">560  |</a> 	     **/
-<a name="line561">561  |</a> 	    if (!strcmp("CVS",dp-&gt;d_name)
-<a name="line562">562  |</a> 	    ||  !strcmp("RCS",dp-&gt;d_name)
-<a name="line563">563  |</a> 	    ||  !strcmp(".git",dp-&gt;d_name)
-<a name="line564">564  |</a> 	    ||  !strcmp(".svn",dp-&gt;d_name)) {
-<a name="line565">565  |</a>     		FILE	*fi;
-<a name="line566">566  |</a> 		if( (char *) NULL == stringer(buffer, MOD_BUFSIZE,
-<a name="line567">567  |</a> 		    tmp, "/.version", NULL))
-<a name="line568">568  |</a> 		    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-<a name="line569">569  |</a> 			goto unwind1;
-<a name="line570">570  |</a> 		if( NULL == (fi = fopen( buffer, "r"))) {
-<a name="line571">571  |</a> 			/* does not have a .version file */
-<a name="line572">572  |</a> 			continue;
-<a name="line573">573  |</a> 		} else {
-<a name="line574">574  |</a> 			/* has a .version file ... assume to be module dir */
-<a name="line575">575  |</a> 			fclose(fi);
-<a name="line576">576  |</a> 		}
-<a name="line577">577  |</a> 	    }
-<a name="line578">578  |</a> 
-<a name="line579">579  |</a> 	    /**
-<a name="line580">580  |</a> 	     **  The recursion itself ...
-<a name="line581">581  |</a> 	     **/
+<a name="line545">545  |</a> #if WITH_DEBUGGING_UTIL_2
+<a name="line546">546  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_get_dir, NULL);
+<a name="line547">547  |</a> #endif
+<a name="line548">548  |</a> 
+<a name="line549">549  |</a>     /**
+<a name="line550">550  |</a>      **  Open the desired directiory
+<a name="line551">551  |</a>      **/
+<a name="line552">552  |</a> 
+<a name="line553">553  |</a>     if( !(dirptr = opendir( dir))) {
+<a name="line554">554  |</a> #if 0
+<a name="line555">555  |</a> 	/* if you can't open a directory ... is that really an error? */
+<a name="line556">556  |</a> 	if( OK != ErrorLogger( ERR_OPENDIR, LOC, dir, NULL))
+<a name="line557">557  |</a> #endif
+<a name="line558">558  |</a> 	    return( NULL);	/** ----------- EXIT (FAILURE) ------------&gt; **/
+<a name="line559">559  |</a>     }
+<a name="line560">560  |</a> 
+<a name="line561">561  |</a>     /**
+<a name="line562">562  |</a>      **  Allocate memory for reading in the directory
+<a name="line563">563  |</a>      **/
+<a name="line564">564  |</a> 
+<a name="line565">565  |</a>     if( NULL == (dirlst_cur = dirlst_head = (fi_ent*) calloc( DIREST,
+<a name="line566">566  |</a> 	sizeof( fi_ent)))) {
+<a name="line567">567  |</a> 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
+<a name="line568">568  |</a> 	    if( -1 == closedir( dirptr))
+<a name="line569">569  |</a> 		ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
+<a name="line570">570  |</a> 	    goto unwind0;
+<a name="line571">571  |</a> 	}
+<a name="line572">572  |</a>     }
+<a name="line573">573  |</a>     dirlst_last = dirlst_head + DIREST;
+<a name="line574">574  |</a>   
+<a name="line575">575  |</a>     /**
+<a name="line576">576  |</a>      **  Read in the  contents of the directory. Ignore dotfiles
+<a name="line577">577  |</a>      **		and version directories.
+<a name="line578">578  |</a>      **/
+<a name="line579">579  |</a> 
+<a name="line580">580  |</a>     for( count = 0,  dp = readdir( dirptr); dp != NULL; dp = readdir( dirptr)) {
+<a name="line581">581  |</a>         if( *dp-&gt;d_name == '.') continue;
 <a name="line582">582  |</a> 
-<a name="line583">583  |</a>             dirlst_cur-&gt;fi_subdir = get_dir( ndir,np,&amp;dirlst_cur-&gt;fi_listcount,
-<a name="line584">584  |</a> 		&amp;tmpcount);
-<a name="line585">585  |</a> 
-<a name="line586">586  |</a>             /**
-<a name="line587">587  |</a>              **  Add the number of real modulefiles (i.e. not subdirs and 
-<a name="line588">588  |</a>              **  not non-modulefiles) to our total number of modulefiles 
-<a name="line589">589  |</a>              **  contained in the structure.
-<a name="line590">590  |</a>              **/
-<a name="line591">591  |</a> 
-<a name="line592">592  |</a>             *total_count += tmpcount;
-<a name="line593">593  |</a> 
-<a name="line594">594  |</a>             /**
-<a name="line595">595  |</a>              **  This means that it's an empty directory so the prefix is
-<a name="line596">596  |</a> 	     **  never used
-<a name="line597">597  |</a>              **/
-<a name="line598">598  |</a> 
-<a name="line599">599  |</a>             if( !dirlst_cur-&gt;fi_listcount)
-<a name="line600">600  |</a> 		null_free((void *) &amp;np);
-<a name="line601">601  |</a>             null_free((void *) &amp;ndir);
-<a name="line602">602  |</a> 
-<a name="line603">603  |</a> 	/**
-<a name="line604">604  |</a> 	 **  if it is not a directory check the magic cookie of the file. Only
-<a name="line605">605  |</a> 	 **  files with the modules magic cookie will be accepted. Also tem-
-<a name="line606">606  |</a> 	 **  porary files are to be ignored.
-<a name="line607">607  |</a> 	 **/
-<a name="line608">608  |</a> 
-<a name="line609">609  |</a>         } else if( dp-&gt;d_name[NLENGTH(dp)-1] == '~' ||
-<a name="line610">610  |</a> 	    !check_magic( dirname, MODULES_MAGIC_COOKIE,
-<a name="line611">611  |</a> 		MODULES_MAGIC_COOKIE_LENGTH)) {
-<a name="line612">612  |</a> 	    continue;
-<a name="line613">613  |</a> 	} else {
-<a name="line614">614  |</a> 	    dirlst_cur-&gt;fi_subdir = NULL;
-<a name="line615">615  |</a> 	}
-<a name="line616">616  |</a> 
-<a name="line617">617  |</a> 	/**
-<a name="line618">618  |</a> 	 **  Put the name of the file on the directory list
-<a name="line619">619  |</a> 	 **/
-<a name="line620">620  |</a> 
-<a name="line621">621  |</a> 	dirlst_cur-&gt;fi_prefix = prefix;
-<a name="line622">622  |</a> 	if( NULL == (dirlst_cur-&gt;fi_name = stringer(NULL,0, dp-&gt;d_name, NULL)))
-<a name="line623">623  |</a> 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
-<a name="line624">624  |</a> 		goto unwind1;
-<a name="line625">625  |</a> 
-<a name="line626">626  |</a> 	/**
-<a name="line627">627  |</a> 	 **  Count even the number of elements in the current list as the
-<a name="line628">628  |</a> 	 **  total number of elements read in so far.
-<a name="line629">629  |</a> 	 **  Increment the list index to be prepared for the next entry.
-<a name="line630">630  |</a> 	 **/
-<a name="line631">631  |</a> 
-<a name="line632">632  |</a> 	count++;
-<a name="line633">633  |</a> 	(*total_count)++;
-<a name="line634">634  |</a> 	dirlst_cur++;
-<a name="line635">635  |</a> 
-<a name="line636">636  |</a>     } /** for **/
-<a name="line637">637  |</a> 
-<a name="line638">638  |</a>     /**
-<a name="line639">639  |</a>      **  Now sort alphabetically what has been read
-<a name="line640">640  |</a>      **/
-<a name="line641">641  |</a> 
-<a name="line642">642  |</a>     if( count &gt; 1)
-<a name="line643">643  |</a> 	qsort( dirlst_head, count, sizeof(fi_ent), fi_ent_cmp);
-<a name="line644">644  |</a> 
-<a name="line645">645  |</a>     /**
-<a name="line646">646  |</a>      **  Close the directory, set up return values
-<a name="line647">647  |</a>      **/
-<a name="line648">648  |</a> 
-<a name="line649">649  |</a>     if( -1 == closedir( dirptr))
-<a name="line650">650  |</a> 	if( OK != ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL))
-<a name="line651">651  |</a> 	    goto unwind1;
-<a name="line652">652  |</a> 
-<a name="line653">653  |</a>     *listcount = count;
-<a name="line654">654  |</a>     return( dirlst_head); 	/** ----------- EXIT (SUCCESS) ------------&gt; **/
-<a name="line655">655  |</a> 
-<a name="line656">656  |</a> unwind1:
-<a name="line657">657  |</a>     null_free((void *) &amp;dirlst_cur);
-<a name="line658">658  |</a> 
-<a name="line659">659  |</a> unwind0:
-<a name="line660">660  |</a>     return( NULL);	 	/** ----------- EXIT (FAILURE) ------------&gt; **/
-<a name="line661">661  |</a> } /** End of 'get_dir' **/
-<a name="line662">662  |</a> 
-<a name="line663">663  |</a> /*++++
-<a name="line664">664  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line665">665  |</a>  ** 									     **
-<a name="line666">666  |</a>  **   Function:		dirlst_to_list					     **
-<a name="line667">667  |</a>  ** 									     **
-<a name="line668">668  |</a>  **   Description:	Transform the passed nested directory list into a    **
-<a name="line669">669  |</a>  **			flat list of strings				     **
-<a name="line670">670  |</a>  ** 									     **
-<a name="line671">671  |</a>  **   First Edition:	1991/10/23					     **
-<a name="line672">672  |</a>  ** 									     **
-<a name="line673">673  |</a>  **   Parameters:	char	**list		List to be created	     **
-<a name="line674">674  |</a>  **			fi_ent	 *dirlst_head	Head of the directory list   **
-<a name="line675">675  |</a>  **						to be transformed	     **
-<a name="line676">676  |</a>  **			int	  count		Number of elements in the    **
-<a name="line677">677  |</a>  **						directory list		     **
-<a name="line678">678  |</a>  **			int	 *beginning	Index of the element in List **
-<a name="line679">679  |</a>  **						to start appending the file- **
-<a name="line680">680  |</a>  **						names at.		     **
-<a name="line681">681  |</a>  **			char	 *path		prepend pathname to list     **
-<a name="line682">682  |</a>  **			char	 *module	A search pattern	     **
-<a name="line683">683  |</a>  **									     **
-<a name="line684">684  |</a>  **   Result:		-						     **
-<a name="line685">685  |</a>  ** 									     **
-<a name="line686">686  |</a>  **   Attached Globals:	-						     **
-<a name="line687">687  |</a>  ** 									     **
-<a name="line688">688  |</a>  ** ************************************************************************ **
-<a name="line689">689  |</a>  ++++*/
-<a name="line690">690  |</a> 
-<a name="line691">691  |</a> void	dirlst_to_list(	char	**list,
-<a name="line692">692  |</a> 			fi_ent	 *dirlst_head,
-<a name="line693">693  |</a> 			int	  count,
-<a name="line694">694  |</a> 			int	 *beginning,
-<a name="line695">695  |</a> 			char	 *path,
-<a name="line696">696  |</a> 			char	 *module)
-<a name="line697">697  |</a> {
-<a name="line698">698  |</a>     fi_ent	*dirlst_cur;	
-<a name="line699">699  |</a>     int 	 i;
-<a name="line700">700  |</a>     char	*ptr;
-<a name="line701">701  |</a>     int		 mlen;
-<a name="line702">702  |</a> 
-<a name="line703">703  |</a>     /**
-<a name="line704">704  |</a>      **  If there's any selection given, figure out its length
-<a name="line705">705  |</a>      **/
-<a name="line706">706  |</a> 
-<a name="line707">707  |</a>     if( module)
-<a name="line708">708  |</a> 	mlen = strlen( module);
-<a name="line709">709  |</a> 
-<a name="line710">710  |</a>     /**
-<a name="line711">711  |</a>      **  Put all files in the directory list at the end of the passed list
-<a name="line712">712  |</a>      **  of character arrays
-<a name="line713">713  |</a>      **/
-<a name="line714">714  |</a>     for( i=0, dirlst_cur=dirlst_head;
-<a name="line715">715  |</a> 	 i&lt;count &amp;&amp; dirlst_cur;
-<a name="line716">716  |</a>          i++, dirlst_cur++) {
-<a name="line717">717  |</a> 
-<a name="line718">718  |</a>         if( dirlst_cur-&gt;fi_prefix) {
-<a name="line719">719  |</a> 
-<a name="line720">720  |</a> 	    if( path) {
-<a name="line721">721  |</a> 		if( (char *) NULL == stringer(buf, MOD_BUFSIZE,
-<a name="line722">722  |</a> 		    path,"/", dirlst_cur-&gt;fi_prefix,"/", dirlst_cur-&gt;fi_name,
-<a name="line723">723  |</a> 		    NULL))
-<a name="line724">724  |</a> 			return;
-<a name="line725">725  |</a> 	    } else {
-<a name="line726">726  |</a> 		if( (char *) NULL == stringer(buf, MOD_BUFSIZE,
-<a name="line727">727  |</a> 		    dirlst_cur-&gt;fi_prefix,"/", dirlst_cur-&gt;fi_name, NULL))
-<a name="line728">728  |</a> 			return;
-<a name="line729">729  |</a> 	    }
+<a name="line583">583  |</a> 	/**
+<a name="line584">584  |</a> 	 **  Conditionally double up the space allocated for reading the direc-
+<a name="line585">585  |</a> 	 **  tory
+<a name="line586">586  |</a> 	 **/
+<a name="line587">587  |</a> 
+<a name="line588">588  |</a>         if(dirlst_cur == dirlst_last) {
+<a name="line589">589  |</a>             if( NULL == (dirlst_head = (fi_ent*) realloc( (char*) dirlst_head, 
+<a name="line590">590  |</a> 		(count&lt;&lt;1) * sizeof( fi_ent)))) 
+<a name="line591">591  |</a> 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
+<a name="line592">592  |</a> 		    goto unwind0;
+<a name="line593">593  |</a>             dirlst_cur = dirlst_head + count;
+<a name="line594">594  |</a>             dirlst_last = dirlst_head + (count&lt;&lt;1);
+<a name="line595">595  |</a> 	}
+<a name="line596">596  |</a> 
+<a name="line597">597  |</a> 	/**
+<a name="line598">598  |</a> 	 **  Build the complete path name and get information about the file
+<a name="line599">599  |</a> 	 **/
+<a name="line600">600  |</a> 
+<a name="line601">601  |</a>         if( !( dirname = mkdirnm( dir, dp-&gt;d_name)))
+<a name="line602">602  |</a> 	    if( OK != ErrorLogger( ERR_DIRNAME, LOC, NULL)) {
+<a name="line603">603  |</a> 		if( -1 == closedir( dirptr))
+<a name="line604">604  |</a> 		    ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
+<a name="line605">605  |</a> 		goto unwind1;
+<a name="line606">606  |</a> 	    }
+<a name="line607">607  |</a> 
+<a name="line608">608  |</a>         if( stat( dirname, &amp;(dirlst_cur-&gt;fi_stats)) &lt; 0)
+<a name="line609">609  |</a> 	    if( OK != ErrorLogger( ERR_DIRNOTFOUND, LOC, dirname, NULL)) {
+<a name="line610">610  |</a> 		if( -1 == closedir( dirptr))
+<a name="line611">611  |</a> 		    ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
+<a name="line612">612  |</a> 		goto unwind1;
+<a name="line613">613  |</a> 	    }
+<a name="line614">614  |</a> 
+<a name="line615">615  |</a> 	/**
+<a name="line616">616  |</a> 	 **  If it is a directory, recursively delve into it ..
+<a name="line617">617  |</a> 	 **/
+<a name="line618">618  |</a> 
+<a name="line619">619  |</a>         if(dirlst_cur-&gt;fi_stats.st_mode &amp; S_IFDIR) {
+<a name="line620">620  |</a>             char* np;
+<a name="line621">621  |</a>             char* ndir;
+<a name="line622">622  |</a>             int   tmpcount = 0;
+<a name="line623">623  |</a> 
+<a name="line624">624  |</a> 	    /**
+<a name="line625">625  |</a> 	     **  Build the new base points for the recursion
+<a name="line626">626  |</a> 	     **/
+<a name="line627">627  |</a> 
+<a name="line628">628  |</a>             if( !( tmp = mkdirnm( prefix, dp-&gt;d_name))) {
+<a name="line629">629  |</a> 		if( OK != ErrorLogger( ERR_DIRNAME, LOC, NULL)) {
+<a name="line630">630  |</a> 		    if( -1 == closedir( dirptr))
+<a name="line631">631  |</a> 			ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
+<a name="line632">632  |</a> 		    goto unwind1;
+<a name="line633">633  |</a> 		}
+<a name="line634">634  |</a> 	    } else {
+<a name="line635">635  |</a> 		if( NULL == (np = stringer(NULL,0, tmp, NULL)))
+<a name="line636">636  |</a> 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+<a name="line637">637  |</a> 			goto unwind1;
+<a name="line638">638  |</a> 	    }
+<a name="line639">639  |</a> 
+<a name="line640">640  |</a>             if( !( tmp = mkdirnm( dir, dp-&gt;d_name))) {
+<a name="line641">641  |</a> 		if( OK != ErrorLogger( ERR_DIRNAME, LOC, NULL)) {
+<a name="line642">642  |</a> 		    if( -1 == closedir( dirptr))
+<a name="line643">643  |</a> 			ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL);
+<a name="line644">644  |</a> 		    goto unwind1;
+<a name="line645">645  |</a> 		}
+<a name="line646">646  |</a> 	    } else {
+<a name="line647">647  |</a> 		if( NULL == (ndir = stringer(NULL,0, tmp, NULL)))
+<a name="line648">648  |</a> 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
+<a name="line649">649  |</a> 			goto unwind1;
+<a name="line650">650  |</a> 	    }
+<a name="line651">651  |</a> 
+<a name="line652">652  |</a> 	    /**
+<a name="line653">653  |</a> 	     **  What if it's a known version control directory
+<a name="line654">654  |</a> 	     **  check if it has a .version file
+<a name="line655">655  |</a> 	     **/
+<a name="line656">656  |</a> 	    if (!strcmp("CVS",dp-&gt;d_name)
+<a name="line657">657  |</a> 	    ||  !strcmp("RCS",dp-&gt;d_name)
+<a name="line658">658  |</a> 	    ||  !strcmp(".git",dp-&gt;d_name)
+<a name="line659">659  |</a> 	    ||  !strcmp(".svn",dp-&gt;d_name)) {
+<a name="line660">660  |</a>     		FILE	*fi;
+<a name="line661">661  |</a> 		if( (char *) NULL == stringer(buffer, MOD_BUFSIZE,
+<a name="line662">662  |</a> 		    tmp, "/.version", NULL))
+<a name="line663">663  |</a> 		    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+<a name="line664">664  |</a> 			goto unwind1;
+<a name="line665">665  |</a> 		if( NULL == (fi = fopen( buffer, "r"))) {
+<a name="line666">666  |</a> 			/* does not have a .version file */
+<a name="line667">667  |</a> 			continue;
+<a name="line668">668  |</a> 		} else {
+<a name="line669">669  |</a> 			/* has a .version file ... assume to be module dir */
+<a name="line670">670  |</a> 			fclose(fi);
+<a name="line671">671  |</a> 		}
+<a name="line672">672  |</a> 	    }
+<a name="line673">673  |</a> 
+<a name="line674">674  |</a> 	    /**
+<a name="line675">675  |</a> 	     **  The recursion itself ...
+<a name="line676">676  |</a> 	     **/
+<a name="line677">677  |</a> 
+<a name="line678">678  |</a>             dirlst_cur-&gt;fi_subdir = get_dir( ndir,np,&amp;dirlst_cur-&gt;fi_listcount,
+<a name="line679">679  |</a> 		&amp;tmpcount);
+<a name="line680">680  |</a> 
+<a name="line681">681  |</a>             /**
+<a name="line682">682  |</a>              **  Add the number of real modulefiles (i.e. not subdirs and 
+<a name="line683">683  |</a>              **  not non-modulefiles) to our total number of modulefiles 
+<a name="line684">684  |</a>              **  contained in the structure.
+<a name="line685">685  |</a>              **/
+<a name="line686">686  |</a> 
+<a name="line687">687  |</a>             *total_count += tmpcount;
+<a name="line688">688  |</a> 
+<a name="line689">689  |</a>             /**
+<a name="line690">690  |</a>              **  This means that it's an empty directory so the prefix is
+<a name="line691">691  |</a> 	     **  never used
+<a name="line692">692  |</a>              **/
+<a name="line693">693  |</a> 
+<a name="line694">694  |</a>             if( !dirlst_cur-&gt;fi_listcount)
+<a name="line695">695  |</a> 		null_free((void *) &amp;np);
+<a name="line696">696  |</a>             null_free((void *) &amp;ndir);
+<a name="line697">697  |</a> 
+<a name="line698">698  |</a> 	/**
+<a name="line699">699  |</a> 	 **  if it is not a directory check the magic cookie of the file. Only
+<a name="line700">700  |</a> 	 **  files with the modules magic cookie will be accepted. Also tem-
+<a name="line701">701  |</a> 	 **  porary files are to be ignored.
+<a name="line702">702  |</a> 	 **/
+<a name="line703">703  |</a> 
+<a name="line704">704  |</a>         } else if( dp-&gt;d_name[NLENGTH(dp)-1] == '~' ||
+<a name="line705">705  |</a> 	    !check_magic( dirname, MODULES_MAGIC_COOKIE,
+<a name="line706">706  |</a> 		MODULES_MAGIC_COOKIE_LENGTH)) {
+<a name="line707">707  |</a> 	    continue;
+<a name="line708">708  |</a> 	} else {
+<a name="line709">709  |</a> 	    dirlst_cur-&gt;fi_subdir = NULL;
+<a name="line710">710  |</a> 	}
+<a name="line711">711  |</a> 
+<a name="line712">712  |</a> 	/**
+<a name="line713">713  |</a> 	 **  Put the name of the file on the directory list
+<a name="line714">714  |</a> 	 **/
+<a name="line715">715  |</a> 
+<a name="line716">716  |</a> 	dirlst_cur-&gt;fi_prefix = prefix;
+<a name="line717">717  |</a> 	if( NULL == (dirlst_cur-&gt;fi_name = stringer(NULL,0, dp-&gt;d_name, NULL)))
+<a name="line718">718  |</a> 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
+<a name="line719">719  |</a> 		goto unwind1;
+<a name="line720">720  |</a> 
+<a name="line721">721  |</a> 	/**
+<a name="line722">722  |</a> 	 **  Count even the number of elements in the current list as the
+<a name="line723">723  |</a> 	 **  total number of elements read in so far.
+<a name="line724">724  |</a> 	 **  Increment the list index to be prepared for the next entry.
+<a name="line725">725  |</a> 	 **/
+<a name="line726">726  |</a> 
+<a name="line727">727  |</a> 	count++;
+<a name="line728">728  |</a> 	(*total_count)++;
+<a name="line729">729  |</a> 	dirlst_cur++;
 <a name="line730">730  |</a> 
-<a name="line731">731  |</a> 	    ptr = buf;
-<a name="line732">732  |</a>         } else {
-<a name="line733">733  |</a> 	    if( path) {
-<a name="line734">734  |</a> 		if( (char *) NULL == stringer(buf, MOD_BUFSIZE,
-<a name="line735">735  |</a> 		    path,"/", dirlst_cur-&gt;fi_name, NULL))
-<a name="line736">736  |</a> 			return;
-<a name="line737">737  |</a> 		ptr = buf;
-<a name="line738">738  |</a> 
-<a name="line739">739  |</a> 	    } else
-<a name="line740">740  |</a> 		ptr = dirlst_cur-&gt;fi_name;
-<a name="line741">741  |</a>         }
-<a name="line742">742  |</a> 
-<a name="line743">743  |</a> 	/**
-<a name="line744">744  |</a> 	 **  Check whether this is part of the selected modules ...
-<a name="line745">745  |</a> 	 **/
-<a name="line746">746  |</a> 
-<a name="line747">747  |</a> 	if( !module || !strncmp( module, buf, mlen)) {
-<a name="line748">748  |</a> 
-<a name="line749">749  |</a> 	    /**
-<a name="line750">750  |</a> 	     **  Put this guy on the list
-<a name="line751">751  |</a> 	     **/
-<a name="line752">752  |</a> 
-<a name="line753">753  |</a> 	    if( NULL == (list[(*beginning)++] = stringer(NULL,0, ptr, NULL))) {
-<a name="line754">754  |</a> 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
-<a name="line755">755  |</a> 		    while( i--) 
-<a name="line756">756  |</a> 			null_free((void *) list + (--(*beginning)));
-<a name="line757">757  |</a> 		    return;		/** ------- EXIT (FAILURE) --------&gt; **/
-<a name="line758">758  |</a> 		}
-<a name="line759">759  |</a> 	    }
-<a name="line760">760  |</a> 	}
-<a name="line761">761  |</a> 
-<a name="line762">762  |</a> 	/**
-<a name="line763">763  |</a> 	 **  recursively descend to subdirectories
-<a name="line764">764  |</a> 	 **/
-<a name="line765">765  |</a> 
-<a name="line766">766  |</a>         if( dirlst_cur-&gt;fi_subdir)
-<a name="line767">767  |</a>             dirlst_to_list( list, dirlst_cur-&gt;fi_subdir,
-<a name="line768">768  |</a> 		dirlst_cur-&gt;fi_listcount, beginning, path, module);
-<a name="line769">769  |</a>     } /** for **/
-<a name="line770">770  |</a> 
-<a name="line771">771  |</a> } /** end of 'dirlst_to_list' **/
-<a name="line772">772  |</a> 
-<a name="line773">773  |</a> /*++++
-<a name="line774">774  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line775">775  |</a>  ** 									     **
-<a name="line776">776  |</a>  **   Function:		delete_dirlst					     **
-<a name="line777">777  |</a>  ** 									     **
-<a name="line778">778  |</a>  **   Description:	Delete an entire directory list including all sub-   **
-<a name="line779">779  |</a>  **			directory lists					     **
+<a name="line731">731  |</a>     } /** for **/
+<a name="line732">732  |</a> 
+<a name="line733">733  |</a>     /**
+<a name="line734">734  |</a>      **  Now sort alphabetically what has been read
+<a name="line735">735  |</a>      **/
+<a name="line736">736  |</a> 
+<a name="line737">737  |</a>     if( count &gt; 1)
+<a name="line738">738  |</a> 	qsort( dirlst_head, count, sizeof(fi_ent), fi_ent_cmp);
+<a name="line739">739  |</a> 
+<a name="line740">740  |</a>     /**
+<a name="line741">741  |</a>      **  Close the directory, set up return values
+<a name="line742">742  |</a>      **/
+<a name="line743">743  |</a> 
+<a name="line744">744  |</a>     if( -1 == closedir( dirptr))
+<a name="line745">745  |</a> 	if( OK != ErrorLogger( ERR_CLOSEDIR, LOC, dir, NULL))
+<a name="line746">746  |</a> 	    goto unwind1;
+<a name="line747">747  |</a> 
+<a name="line748">748  |</a>     *listcount = count;
+<a name="line749">749  |</a>     return( dirlst_head); 	/** ----------- EXIT (SUCCESS) ------------&gt; **/
+<a name="line750">750  |</a> 
+<a name="line751">751  |</a> unwind1:
+<a name="line752">752  |</a>     null_free((void *) &amp;dirlst_cur);
+<a name="line753">753  |</a> 
+<a name="line754">754  |</a> unwind0:
+<a name="line755">755  |</a>     return( NULL);	 	/** ----------- EXIT (FAILURE) ------------&gt; **/
+<a name="line756">756  |</a> } /** End of 'get_dir' **/
+<a name="line757">757  |</a> 
+<a name="line758">758  |</a> /*++++
+<a name="line759">759  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line760">760  |</a>  ** 									     **
+<a name="line761">761  |</a>  **   Function:		dirlst_to_list					     **
+<a name="line762">762  |</a>  ** 									     **
+<a name="line763">763  |</a>  **   Description:	Transform the passed nested directory list into a    **
+<a name="line764">764  |</a>  **			flat list of strings				     **
+<a name="line765">765  |</a>  ** 									     **
+<a name="line766">766  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line767">767  |</a>  ** 									     **
+<a name="line768">768  |</a>  **   Parameters:	char	**list		List to be created	     **
+<a name="line769">769  |</a>  **			fi_ent	 *dirlst_head	Head of the directory list   **
+<a name="line770">770  |</a>  **						to be transformed	     **
+<a name="line771">771  |</a>  **			int	  count		Number of elements in the    **
+<a name="line772">772  |</a>  **						directory list		     **
+<a name="line773">773  |</a>  **			int	 *beginning	Index of the element in List **
+<a name="line774">774  |</a>  **						to start appending the file- **
+<a name="line775">775  |</a>  **						names at.		     **
+<a name="line776">776  |</a>  **			char	 *path		prepend pathname to list     **
+<a name="line777">777  |</a>  **			char	 *module	A search pattern	     **
+<a name="line778">778  |</a>  **									     **
+<a name="line779">779  |</a>  **   Result:		-						     **
 <a name="line780">780  |</a>  ** 									     **
-<a name="line781">781  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line781">781  |</a>  **   Attached Globals:	-						     **
 <a name="line782">782  |</a>  ** 									     **
-<a name="line783">783  |</a>  **   Parameters:	fi_ent	*dirlst_head	Head of the list to be re-   **
-<a name="line784">784  |</a>  **						moved			     **
-<a name="line785">785  |</a>  ** 									     **
-<a name="line786">786  |</a>  **   Result:		-						     **
-<a name="line787">787  |</a>  ** 									     **
-<a name="line788">788  |</a>  **   Attached Globals:	-						     **
-<a name="line789">789  |</a>  ** 									     **
-<a name="line790">790  |</a>  ** ************************************************************************ **
-<a name="line791">791  |</a>  ++++*/
-<a name="line792">792  |</a> 
-<a name="line793">793  |</a> void	delete_dirlst(	fi_ent	*dirlst_head,
-<a name="line794">794  |</a> 			int	 count)
-<a name="line795">795  |</a> {
-<a name="line796">796  |</a>     fi_ent	*dirlst_cur;
-<a name="line797">797  |</a>     int 	 i;
-<a name="line798">798  |</a> 
-<a name="line799">799  |</a>     if( !dirlst_head)
-<a name="line800">800  |</a> 	return;
+<a name="line783">783  |</a>  ** ************************************************************************ **
+<a name="line784">784  |</a>  ++++*/
+<a name="line785">785  |</a> 
+<a name="line786">786  |</a> void	dirlst_to_list(	char	**list,
+<a name="line787">787  |</a> 			fi_ent	 *dirlst_head,
+<a name="line788">788  |</a> 			int	  count,
+<a name="line789">789  |</a> 			int	 *beginning,
+<a name="line790">790  |</a> 			char	 *path,
+<a name="line791">791  |</a> 			char	 *module)
+<a name="line792">792  |</a> {
+<a name="line793">793  |</a>     fi_ent	*dirlst_cur;	
+<a name="line794">794  |</a>     int 	 i;
+<a name="line795">795  |</a>     char	*ptr;
+<a name="line796">796  |</a>     int		 mlen;
+<a name="line797">797  |</a> 
+<a name="line798">798  |</a>     /**
+<a name="line799">799  |</a>      **  If there's any selection given, figure out its length
+<a name="line800">800  |</a>      **/
 <a name="line801">801  |</a> 
-<a name="line802">802  |</a>     /**
-<a name="line803">803  |</a>      **  Free all filenames stored in the list
-<a name="line804">804  |</a>      **/
-<a name="line805">805  |</a> 
-<a name="line806">806  |</a>     for( i=0, dirlst_cur=dirlst_head;
-<a name="line807">807  |</a> 	 i&lt;count &amp;&amp; dirlst_cur;
-<a name="line808">808  |</a>          i++, dirlst_cur++) {
+<a name="line802">802  |</a>     if( module)
+<a name="line803">803  |</a> 	mlen = strlen( module);
+<a name="line804">804  |</a> 
+<a name="line805">805  |</a>     /**
+<a name="line806">806  |</a>      **  Put all files in the directory list at the end of the passed list
+<a name="line807">807  |</a>      **  of character arrays
+<a name="line808">808  |</a>      **/
 <a name="line809">809  |</a> 
-<a name="line810">810  |</a>         null_free((void *) &amp;(dirlst_cur-&gt;fi_name));
-<a name="line811">811  |</a> 
-<a name="line812">812  |</a> 	/**
-<a name="line813">813  |</a> 	 **  Recursivle decend to subdirectories
-<a name="line814">814  |</a> 	 **/
-<a name="line815">815  |</a> 
-<a name="line816">816  |</a>         if( dirlst_cur-&gt;fi_subdir) 
-<a name="line817">817  |</a>             delete_dirlst( dirlst_cur-&gt;fi_subdir, dirlst_cur-&gt;fi_listcount);
-<a name="line818">818  |</a>     } /** for **/
+<a name="line810">810  |</a> #if WITH_DEBUGGING_UTIL_2
+<a name="line811">811  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_dirlst_to_list, NULL);
+<a name="line812">812  |</a> #endif
+<a name="line813">813  |</a> 
+<a name="line814">814  |</a>     for( i=0, dirlst_cur=dirlst_head;
+<a name="line815">815  |</a> 	 i&lt;count &amp;&amp; dirlst_cur;
+<a name="line816">816  |</a>          i++, dirlst_cur++) {
+<a name="line817">817  |</a> 
+<a name="line818">818  |</a>         if( dirlst_cur-&gt;fi_prefix) {
 <a name="line819">819  |</a> 
-<a name="line820">820  |</a>     /**
-<a name="line821">821  |</a>      **  Remove the entire list
-<a name="line822">822  |</a>      **/
-<a name="line823">823  |</a> 
-<a name="line824">824  |</a>     if( dirlst_head-&gt;fi_prefix)
-<a name="line825">825  |</a> 	null_free((void *) &amp;(dirlst_head-&gt;fi_prefix));
-<a name="line826">826  |</a>     null_free((void *) &amp;dirlst_head);
-<a name="line827">827  |</a> 
-<a name="line828">828  |</a> } /** End of 'delete_dirlst' **/
-<a name="line829">829  |</a> 
-<a name="line830">830  |</a> /*++++
-<a name="line831">831  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line832">832  |</a>  ** 									     **
-<a name="line833">833  |</a>  **   Function:		delete_cache_list				     **
-<a name="line834">834  |</a>  ** 									     **
-<a name="line835">835  |</a>  **   Description:	Remove an entire list of allocated strings and free  **
-<a name="line836">836  |</a>  **			up the used memory				     **
-<a name="line837">837  |</a>  ** 									     **
-<a name="line838">838  |</a>  **   First Edition:	1991/10/23					     **
-<a name="line839">839  |</a>  ** 									     **
-<a name="line840">840  |</a>  **   Parameters:	char	**list		List of filenames to be print**
-<a name="line841">841  |</a>  **			int	  tcount	Size ofd the list in elements**
-<a name="line842">842  |</a>  ** 									     **
-<a name="line843">843  |</a>  **   Result:		-						     **
-<a name="line844">844  |</a>  ** 									     **
-<a name="line845">845  |</a>  **   Attached Globals:	-						     **
-<a name="line846">846  |</a>  ** 									     **
-<a name="line847">847  |</a>  ** ************************************************************************ **
-<a name="line848">848  |</a>  ++++*/
-<a name="line849">849  |</a> 
-<a name="line850">850  |</a> void delete_cache_list(	char	**list,
-<a name="line851">851  |</a> 			    int	  tcount)
-<a name="line852">852  |</a> {
-<a name="line853">853  |</a>     int i;
-<a name="line854">854  |</a> 
-<a name="line855">855  |</a>     for( i=0; i&lt;tcount; i++)
-<a name="line856">856  |</a>         null_free((void *) (list + i));
-<a name="line857">857  |</a>     
-<a name="line858">858  |</a>     null_free((void *)&amp;list);
-<a name="line859">859  |</a> 
-<a name="line860">860  |</a> } /** End of 'delete_cache_list' **/
+<a name="line820">820  |</a> 	    if( path) {
+<a name="line821">821  |</a> 		if( (char *) NULL == stringer(buf, MOD_BUFSIZE,
+<a name="line822">822  |</a> 		    path,"/", dirlst_cur-&gt;fi_prefix,"/", dirlst_cur-&gt;fi_name,
+<a name="line823">823  |</a> 		    NULL))
+<a name="line824">824  |</a> 			return;
+<a name="line825">825  |</a> 	    } else {
+<a name="line826">826  |</a> 		if( (char *) NULL == stringer(buf, MOD_BUFSIZE,
+<a name="line827">827  |</a> 		    dirlst_cur-&gt;fi_prefix,"/", dirlst_cur-&gt;fi_name, NULL))
+<a name="line828">828  |</a> 			return;
+<a name="line829">829  |</a> 	    }
+<a name="line830">830  |</a> 
+<a name="line831">831  |</a> 	    ptr = buf;
+<a name="line832">832  |</a>         } else {
+<a name="line833">833  |</a> 	    if( path) {
+<a name="line834">834  |</a> 		if( (char *) NULL == stringer(buf, MOD_BUFSIZE,
+<a name="line835">835  |</a> 		    path,"/", dirlst_cur-&gt;fi_name, NULL))
+<a name="line836">836  |</a> 			return;
+<a name="line837">837  |</a> 		ptr = buf;
+<a name="line838">838  |</a> 
+<a name="line839">839  |</a> 	    } else
+<a name="line840">840  |</a> 		ptr = dirlst_cur-&gt;fi_name;
+<a name="line841">841  |</a>         }
+<a name="line842">842  |</a> 
+<a name="line843">843  |</a> 	/**
+<a name="line844">844  |</a> 	 **  Check whether this is part of the selected modules ...
+<a name="line845">845  |</a> 	 **/
+<a name="line846">846  |</a> 
+<a name="line847">847  |</a> 	if( !module || !strncmp( module, buf, mlen)) {
+<a name="line848">848  |</a> 
+<a name="line849">849  |</a> 	    /**
+<a name="line850">850  |</a> 	     **  Put this guy on the list
+<a name="line851">851  |</a> 	     **/
+<a name="line852">852  |</a> 
+<a name="line853">853  |</a> 	    if( NULL == (list[(*beginning)++] = stringer(NULL,0, ptr, NULL))) {
+<a name="line854">854  |</a> 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
+<a name="line855">855  |</a> 		    while( i--) 
+<a name="line856">856  |</a> 			null_free((void *) list + (--(*beginning)));
+<a name="line857">857  |</a> 		    return;		/** ------- EXIT (FAILURE) --------&gt; **/
+<a name="line858">858  |</a> 		}
+<a name="line859">859  |</a> 	    }
+<a name="line860">860  |</a> 	}
 <a name="line861">861  |</a> 
-<a name="line862">862  |</a> /*++++
-<a name="line863">863  |</a>  ** ** Function-Header ***************************************************** **
-<a name="line864">864  |</a>  ** 									     **
-<a name="line865">865  |</a>  **   Function:		print_aligned_files				     **
-<a name="line866">866  |</a>  ** 									     **
-<a name="line867">867  |</a>  **   Description:	Print out the filenames passed in a sorted array     **
-<a name="line868">868  |</a>  **			column by column taking care of the order being re-  **
-<a name="line869">869  |</a>  **			flected to the single columns			     **
-<a name="line870">870  |</a>  ** 									     **
-<a name="line871">871  |</a>  **   First Edition:	1991/10/23					     **
-<a name="line872">872  |</a>  ** 									     **
-<a name="line873">873  |</a>  **   Parameters:	char	**list		List of filenames to print   **
-<a name="line874">874  |</a>  **			char	 *path		common path		     **
-<a name="line875">875  |</a>  **			char	 *header	List header		     **
-<a name="line876">876  |</a>  **			int	  tcount	Size of the list in elements **
-<a name="line877">877  |</a>  **			int	  numbered	Controls printing of numbers **
-<a name="line878">878  |</a>  ** 						set to -1 for none	     **
-<a name="line879">879  |</a>  ** 									     **
-<a name="line880">880  |</a>  **   Result:		-						     **
-<a name="line881">881  |</a>  ** 									     **
-<a name="line882">882  |</a>  **   Attached Globals:	g_current_module	The module which is handled  **
-<a name="line883">883  |</a>  **						by the current command	     **
-<a name="line884">884  |</a>  ** 									     **
-<a name="line885">885  |</a>  ** ************************************************************************ **
-<a name="line886">886  |</a>  ++++*/
-<a name="line887">887  |</a> 
-<a name="line888">888  |</a> void print_aligned_files(
-<a name="line889">889  |</a> 	Tcl_Interp * interp,
-<a name="line890">890  |</a> 	char *path,
-<a name="line891">891  |</a> 	char *header,
-<a name="line892">892  |</a> 	char **list,
-<a name="line893">893  |</a> 	int tcount,
-<a name="line894">894  |</a> 	int numbered
-<a name="line895">895  |</a> ) {
-<a name="line896">896  |</a> 	struct stat     stats;
-<a name="line897">897  |</a> 	struct tm      *tm;
-<a name="line898">898  |</a> 	char           *symbols, *module, *release;
-<a name="line899">899  |</a> 	char            buffer[20];
-<a name="line900">900  |</a> 	char            modulefile[MOD_BUFSIZE];
-<a name="line901">901  |</a> 	char            modulename[MOD_BUFSIZE];
-<a name="line902">902  |</a> 	char           *timestr;
-<a name="line903">903  |</a> 	char           *s;
-<a name="line904">904  |</a> 	int             t;
-<a name="line905">905  |</a> 	int             terminal_width = 80;
-<a name="line906">906  |</a> 	int             maxlen = 0;
-<a name="line907">907  |</a> 	uvec           *modpath;
-<a name="line908">908  |</a> 
-<a name="line909">909  |</a>     /**
-<a name="line910">910  |</a>      **  In case of terse, human output we need to obtain the size of 
-<a name="line911">911  |</a>      **  the tty
-<a name="line912">912  |</a>      **/
-<a name="line913">913  |</a> 	if (sw_format &amp; (SW_HUMAN | SW_LONG)) {
-<a name="line914">914  |</a> 		struct winsize  window_size;
-<a name="line915">915  |</a> 		int             fd_err = fileno(stderr);
-<a name="line916">916  |</a> 
-<a name="line917">917  |</a> 		if (isatty(fd_err))
-<a name="line918">918  |</a> 			if (ioctl(fd_err, TIOCGWINSZ, &amp;window_size) != -1)
-<a name="line919">919  |</a> 				terminal_width = (window_size.ws_col == 0) ?
-<a name="line920">920  |</a> 				    80 : window_size.ws_col;
-<a name="line921">921  |</a> 	}
-<a name="line922">922  |</a> 
-<a name="line923">923  |</a> 	if (!path) {
+<a name="line862">862  |</a> 	/**
+<a name="line863">863  |</a> 	 **  recursively descend to subdirectories
+<a name="line864">864  |</a> 	 **/
+<a name="line865">865  |</a> 
+<a name="line866">866  |</a>         if( dirlst_cur-&gt;fi_subdir)
+<a name="line867">867  |</a>             dirlst_to_list( list, dirlst_cur-&gt;fi_subdir,
+<a name="line868">868  |</a> 		dirlst_cur-&gt;fi_listcount, beginning, path, module);
+<a name="line869">869  |</a>     } /** for **/
+<a name="line870">870  |</a> 
+<a name="line871">871  |</a> } /** end of 'dirlst_to_list' **/
+<a name="line872">872  |</a> 
+<a name="line873">873  |</a> /*++++
+<a name="line874">874  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line875">875  |</a>  ** 									     **
+<a name="line876">876  |</a>  **   Function:		delete_dirlst					     **
+<a name="line877">877  |</a>  ** 									     **
+<a name="line878">878  |</a>  **   Description:	Delete an entire directory list including all sub-   **
+<a name="line879">879  |</a>  **			directory lists					     **
+<a name="line880">880  |</a>  ** 									     **
+<a name="line881">881  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line882">882  |</a>  ** 									     **
+<a name="line883">883  |</a>  **   Parameters:	fi_ent	*dirlst_head	Head of the list to be re-   **
+<a name="line884">884  |</a>  **						moved			     **
+<a name="line885">885  |</a>  ** 									     **
+<a name="line886">886  |</a>  **   Result:		-						     **
+<a name="line887">887  |</a>  ** 									     **
+<a name="line888">888  |</a>  **   Attached Globals:	-						     **
+<a name="line889">889  |</a>  ** 									     **
+<a name="line890">890  |</a>  ** ************************************************************************ **
+<a name="line891">891  |</a>  ++++*/
+<a name="line892">892  |</a> 
+<a name="line893">893  |</a> void	delete_dirlst(	fi_ent	*dirlst_head,
+<a name="line894">894  |</a> 			int	 count)
+<a name="line895">895  |</a> {
+<a name="line896">896  |</a>     fi_ent	*dirlst_cur;
+<a name="line897">897  |</a>     int 	 i;
+<a name="line898">898  |</a> 
+<a name="line899">899  |</a> #if WITH_DEBUGGING_UTIL_2
+<a name="line900">900  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_delete_dirlst, NULL);
+<a name="line901">901  |</a> #endif
+<a name="line902">902  |</a> 
+<a name="line903">903  |</a>     if( !dirlst_head)
+<a name="line904">904  |</a> 	return;
+<a name="line905">905  |</a> 
+<a name="line906">906  |</a>     /**
+<a name="line907">907  |</a>      **  Free all filenames stored in the list
+<a name="line908">908  |</a>      **/
+<a name="line909">909  |</a> 
+<a name="line910">910  |</a>     for( i=0, dirlst_cur=dirlst_head;
+<a name="line911">911  |</a> 	 i&lt;count &amp;&amp; dirlst_cur;
+<a name="line912">912  |</a>          i++, dirlst_cur++) {
+<a name="line913">913  |</a> 
+<a name="line914">914  |</a>         null_free((void *) &amp;(dirlst_cur-&gt;fi_name));
+<a name="line915">915  |</a> 
+<a name="line916">916  |</a> 	/**
+<a name="line917">917  |</a> 	 **  Recursivle decend to subdirectories
+<a name="line918">918  |</a> 	 **/
+<a name="line919">919  |</a> 
+<a name="line920">920  |</a>         if( dirlst_cur-&gt;fi_subdir) 
+<a name="line921">921  |</a>             delete_dirlst( dirlst_cur-&gt;fi_subdir, dirlst_cur-&gt;fi_listcount);
+<a name="line922">922  |</a>     } /** for **/
+<a name="line923">923  |</a> 
 <a name="line924">924  |</a>     /**
-<a name="line925">925  |</a>      **  For listing loaded modules ...
-<a name="line926">926  |</a>      **  Load the MODULEPATH and split it into a list of paths.
-<a name="line927">927  |</a>      **/
-<a name="line928">928  |</a> 		if (!(modpath = ModulePathList())
-<a name="line929">929  |</a> 		    &amp;&amp; (!uvec_number(modpath)))
-<a name="line930">930  |</a> 			if (OK != ErrorLogger(ERR_MODULE_PATH, LOC, NULL))
-<a name="line931">931  |</a> 				return;
-<a name="line932">932  |</a> 	}
-<a name="line933">933  |</a>     /**
-<a name="line934">934  |</a>      **  Scan all entries of the passed list
-<a name="line935">935  |</a>      **/
-<a name="line936">936  |</a> 	_init_file_list();
-<a name="line937">937  |</a> 	while (list &amp;&amp; tcount-- &amp;&amp; *list) {
-<a name="line938">938  |</a> 	/**
-<a name="line939">939  |</a> 	 ** find module[/version] in filename
-<a name="line940">940  |</a> 	 **/
-<a name="line941">941  |</a> 		if ((g_current_module = s = strrchr(*list, '/'))) {
-<a name="line942">942  |</a> 			*s = 0;
-<a name="line943">943  |</a> 			g_current_module++;
-<a name="line944">944  |</a> 			if (TCL_ERROR ==
-<a name="line945">945  |</a> 			    Locate_ModuleFile(interp, g_current_module,
-<a name="line946">946  |</a> 					      modulename, modulefile)) {
-<a name="line947">947  |</a> 				g_current_module = strrchr(*list, '/');
-<a name="line948">948  |</a> 				g_current_module++;
-<a name="line949">949  |</a> 			}
-<a name="line950">950  |</a> 			*s = '/';
-<a name="line951">951  |</a> 		}
-<a name="line952">952  |</a> 		if (!stat(*list, &amp;stats)) {
-<a name="line953">953  |</a> 	    /**
-<a name="line954">954  |</a> 	     **  If the file is a directory, try to source the .modulerc
-<a name="line955">955  |</a> 	     **  file and skip to the next file
-<a name="line956">956  |</a> 	     **/
-<a name="line957">957  |</a> 			if (S_ISDIR(stats.st_mode)) {
-<a name="line958">958  |</a> 				SourceRC(interp, *list, modulerc_file);
-<a name="line959">959  |</a> 				SourceVers(interp, *list, g_current_module);
-<a name="line960">960  |</a> 				g_current_module = (char *)NULL;
-<a name="line961">961  |</a> 				list++;
-<a name="line962">962  |</a> 				continue;
-<a name="line963">963  |</a> 			}
-<a name="line964">964  |</a> 	    /**
-<a name="line965">965  |</a> 	     **  For listing loaded modules ...
-<a name="line966">966  |</a> 	     **/
-<a name="line967">967  |</a> 			if (!path) {
-<a name="line968">968  |</a> 				size_t          pathlen, maxPrefixLength = 0;
-<a name="line969">969  |</a> 				char          **dirname = uvec_vector(modpath);
-<a name="line970">970  |</a> 		    /**
-<a name="line971">971  |</a> 		     ** try to find the longest prefix from the module path
-<a name="line972">972  |</a> 		     **/
-<a name="line973">973  |</a> 				while (dirname &amp;&amp; *dirname) {
-<a name="line974">974  |</a> 					pathlen = strlen(*dirname);
-<a name="line975">975  |</a> 					if (!strncmp(*list,*dirname,pathlen)
-<a name="line976">976  |</a> 					&amp;&amp; (pathlen &gt; maxPrefixLength)) {
-<a name="line977">977  |</a> 						/* partial match */
-<a name="line978">978  |</a> 						maxPrefixLength = pathlen;
-<a name="line979">979  |</a> 					}
-<a name="line980">980  |</a> 					dirname++;
-<a name="line981">981  |</a> 				}
-<a name="line982">982  |</a> 		    /**
-<a name="line983">983  |</a> 		     ** Skip over '/'
-<a name="line984">984  |</a> 		     **/
-<a name="line985">985  |</a> 				if (maxPrefixLength &gt; 0)
-<a name="line986">986  |</a> 					maxPrefixLength += 1;
-<a name="line987">987  |</a> 
-<a name="line988">988  |</a> 				module = stringer(NULL, 0,
-<a name="line989">989  |</a> 						*list + maxPrefixLength, NULL);
-<a name="line990">990  |</a> 			} else {
-<a name="line991">991  |</a> 				t = strlen(path);
-<a name="line992">992  |</a> 				if (*(*list + t) == '/')
-<a name="line993">993  |</a> 					t++;
-<a name="line994">994  |</a> 				module = stringer(NULL, 0, *list + t, NULL);
-<a name="line995">995  |</a> 			}
-<a name="line996">996  |</a> 			if ((char *)NULL == module) {
-<a name="line997">997  |</a> 				if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
-<a name="line998">998  |</a> 					break;
-<a name="line999">999  |</a> 				else
-<a name="line1000">1000 |</a> 					continue;
-<a name="line1001">1001 |</a> 			}
-<a name="line1002">1002 |</a> 	    /**
-<a name="line1003">1003 |</a> 	     **  Expand the symbols and get the version of the module
-<a name="line1004">1004 |</a> 	     **/
-<a name="line1005">1005 |</a> 			if ((char *)NULL == (symbols = ExpandVersions(module)))
-<a name="line1006">1006 |</a> 				symbols = "";
-<a name="line1007">1007 |</a> 
-<a name="line1008">1008 |</a> 			if ((sw_format &amp; SW_LONG)
-<a name="line1009">1009 |</a> 			    || (char *)NULL == (release = strchr(module, '/')))
-<a name="line1010">1010 |</a> 				release = "";	/* no release info */
-<a name="line1011">1011 |</a> 			else
-<a name="line1012">1012 |</a> 				*release++ = '\0';
-<a name="line1013">1013 |</a> 	    /**
-<a name="line1014">1014 |</a> 	     **  Long or short format
-<a name="line1015">1015 |</a> 	     **/
-<a name="line1016">1016 |</a> 			if (sw_format &amp; (SW_TERSE | SW_PARSE | SW_HUMAN)) {
-<a name="line1017">1017 |</a> 				/** short format **/
-<a name="line1018">1018 |</a> 				int             tmp_len;
+<a name="line925">925  |</a>      **  Remove the entire list
+<a name="line926">926  |</a>      **/
+<a name="line927">927  |</a> 
+<a name="line928">928  |</a>     if( dirlst_head-&gt;fi_prefix)
+<a name="line929">929  |</a> 	null_free((void *) &amp;(dirlst_head-&gt;fi_prefix));
+<a name="line930">930  |</a>     null_free((void *) &amp;dirlst_head);
+<a name="line931">931  |</a> 
+<a name="line932">932  |</a> } /** End of 'delete_dirlst' **/
+<a name="line933">933  |</a> 
+<a name="line934">934  |</a> /*++++
+<a name="line935">935  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line936">936  |</a>  ** 									     **
+<a name="line937">937  |</a>  **   Function:		delete_cache_list				     **
+<a name="line938">938  |</a>  ** 									     **
+<a name="line939">939  |</a>  **   Description:	Remove an entire list of allocated strings and free  **
+<a name="line940">940  |</a>  **			up the used memory				     **
+<a name="line941">941  |</a>  ** 									     **
+<a name="line942">942  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line943">943  |</a>  ** 									     **
+<a name="line944">944  |</a>  **   Parameters:	char	**list		List of filenames to be print**
+<a name="line945">945  |</a>  **			int	  tcount	Size ofd the list in elements**
+<a name="line946">946  |</a>  ** 									     **
+<a name="line947">947  |</a>  **   Result:		-						     **
+<a name="line948">948  |</a>  ** 									     **
+<a name="line949">949  |</a>  **   Attached Globals:	-						     **
+<a name="line950">950  |</a>  ** 									     **
+<a name="line951">951  |</a>  ** ************************************************************************ **
+<a name="line952">952  |</a>  ++++*/
+<a name="line953">953  |</a> 
+<a name="line954">954  |</a> void delete_cache_list(	char	**list,
+<a name="line955">955  |</a> 			    int	  tcount)
+<a name="line956">956  |</a> {
+<a name="line957">957  |</a>     int i;
+<a name="line958">958  |</a> 
+<a name="line959">959  |</a> #if WITH_DEBUGGING_UTIL_2
+<a name="line960">960  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_delete_cache_list, NULL);
+<a name="line961">961  |</a> #endif
+<a name="line962">962  |</a> 
+<a name="line963">963  |</a>     for( i=0; i&lt;tcount; i++)
+<a name="line964">964  |</a>         null_free((void *) (list + i));
+<a name="line965">965  |</a>     
+<a name="line966">966  |</a>     null_free((void *)&amp;list);
+<a name="line967">967  |</a> 
+<a name="line968">968  |</a> } /** End of 'delete_cache_list' **/
+<a name="line969">969  |</a> 
+<a name="line970">970  |</a> /*++++
+<a name="line971">971  |</a>  ** ** Function-Header ***************************************************** **
+<a name="line972">972  |</a>  ** 									     **
+<a name="line973">973  |</a>  **   Function:		print_aligned_files				     **
+<a name="line974">974  |</a>  ** 									     **
+<a name="line975">975  |</a>  **   Description:	Print out the filenames passed in a sorted array     **
+<a name="line976">976  |</a>  **			column by column taking care of the order being re-  **
+<a name="line977">977  |</a>  **			flected to the single columns			     **
+<a name="line978">978  |</a>  ** 									     **
+<a name="line979">979  |</a>  **   First Edition:	1991/10/23					     **
+<a name="line980">980  |</a>  ** 									     **
+<a name="line981">981  |</a>  **   Parameters:	char	**list		List of filenames to print   **
+<a name="line982">982  |</a>  **			char	 *path		common path		     **
+<a name="line983">983  |</a>  **			char	 *header	List header		     **
+<a name="line984">984  |</a>  **			int	  tcount	Size of the list in elements **
+<a name="line985">985  |</a>  **			int	  numbered	Controls printing of numbers **
+<a name="line986">986  |</a>  ** 						set to -1 for none	     **
+<a name="line987">987  |</a>  ** 									     **
+<a name="line988">988  |</a>  **   Result:		-						     **
+<a name="line989">989  |</a>  ** 									     **
+<a name="line990">990  |</a>  **   Attached Globals:	g_current_module	The module which is handled  **
+<a name="line991">991  |</a>  **						by the current command	     **
+<a name="line992">992  |</a>  ** 									     **
+<a name="line993">993  |</a>  ** ************************************************************************ **
+<a name="line994">994  |</a>  ++++*/
+<a name="line995">995  |</a> 
+<a name="line996">996  |</a> void print_aligned_files(	Tcl_Interp	 *interp,
+<a name="line997">997  |</a> 				char		 *path,
+<a name="line998">998  |</a> 				char		 *header,
+<a name="line999">999  |</a> 				char		**list,
+<a name="line1000">1000 |</a> 				int		  tcount,
+<a name="line1001">1001 |</a> 				int		  numbered)
+<a name="line1002">1002 |</a> {
+<a name="line1003">1003 |</a>     struct stat	 stats;
+<a name="line1004">1004 |</a>     struct tm	*tm;
+<a name="line1005">1005 |</a>     char 	*symbols, *module, *release;
+<a name="line1006">1006 |</a>     char	 buffer[ 20];
+<a name="line1007">1007 |</a>     char	 modulefile[ MOD_BUFSIZE];
+<a name="line1008">1008 |</a>     char	 modulename[ MOD_BUFSIZE];
+<a name="line1009">1009 |</a>     char	*timestr;
+<a name="line1010">1010 |</a>     char	*s;
+<a name="line1011">1011 |</a>     int		 t;
+<a name="line1012">1012 |</a>     int		 terminal_width = 80;
+<a name="line1013">1013 |</a>     int 	 maxlen = 0;
+<a name="line1014">1014 |</a>     char	*modpath = NULL;
+<a name="line1015">1015 |</a> 
+<a name="line1016">1016 |</a> #if WITH_DEBUGGING_UTIL_1
+<a name="line1017">1017 |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_print_aligned_files, NULL);
+<a name="line1018">1018 |</a> #endif
 <a name="line1019">1019 |</a> 
-<a name="line1020">1020 |</a> 				if (sw_format &amp; SW_PARSE) {
-<a name="line1021">1021 |</a> 					sprintf(_file_list_buffer,
-<a name="line1022">1022 |</a> 						short_format_full, module,
-<a name="line1023">1023 |</a> 						release, symbols);
-<a name="line1024">1024 |</a> 				} else { /* assume a human readable format */
-<a name="line1025">1025 |</a> 					if (*symbols) {
-<a name="line1026">1026 |</a> 						sprintf(_file_list_buffer,
-<a name="line1027">1027 |</a> 							short_format_full,
-<a name="line1028">1028 |</a> 							module, release,
-<a name="line1029">1029 |</a> 							symbols);
-<a name="line1030">1030 |</a> 					} else {
-<a name="line1031">1031 |</a> 						if (*release) {
-<a name="line1032">1032 |</a> 							sprintf
-<a name="line1033">1033 |</a> 							    (_file_list_buffer,
-<a name="line1034">1034 |</a> 							     short_format_part,
-<a name="line1035">1035 |</a> 							     module, release);
-<a name="line1036">1036 |</a> 						} else {
-<a name="line1037">1037 |</a> 							sprintf
-<a name="line1038">1038 |</a> 							    (_file_list_buffer,
-<a name="line1039">1039 |</a> 							     short_format,
-<a name="line1040">1040 |</a> 							     module);
-<a name="line1041">1041 |</a> 						}
-<a name="line1042">1042 |</a> 					}
-<a name="line1043">1043 |</a> 				}
-<a name="line1044">1044 |</a> 				_add_file_list(_file_list_buffer);
-<a name="line1045">1045 |</a> 
-<a name="line1046">1046 |</a> 				tmp_len = strlen(_file_list_buffer);
-<a name="line1047">1047 |</a> 				if (tmp_len &gt; maxlen)
-<a name="line1048">1048 |</a> 					maxlen = tmp_len;
-<a name="line1049">1049 |</a> 
-<a name="line1050">1050 |</a> 			} else if (sw_format &amp; SW_LONG) {
-<a name="line1051">1051 |</a> 				/** long format **/
-<a name="line1052">1052 |</a> 		/**
-<a name="line1053">1053 |</a> 		 **  Get the time of last modification
-<a name="line1054">1054 |</a> 		 **/
-<a name="line1055">1055 |</a> 				if ((struct tm *)NULL !=
-<a name="line1056">1056 |</a> 				    (tm = gmtime(&amp;stats.st_mtime))) {
-<a name="line1057">1057 |</a> 					sprintf(buffer,
-<a name="line1058">1058 |</a> 						"%04d/%02d/%02d %2d:%02d:%02d",
-<a name="line1059">1059 |</a> 						1900 + tm-&gt;tm_year,
-<a name="line1060">1060 |</a> 						tm-&gt;tm_mon + 1, tm-&gt;tm_mday,
-<a name="line1061">1061 |</a> 						tm-&gt;tm_hour, tm-&gt;tm_min,
-<a name="line1062">1062 |</a> 						tm-&gt;tm_sec);
-<a name="line1063">1063 |</a> 					timestr = buffer;
+<a name="line1020">1020 |</a>     /**
+<a name="line1021">1021 |</a>      **  In case of terse, human output we need to obtain the size of 
+<a name="line1022">1022 |</a>      **  the tty
+<a name="line1023">1023 |</a>      **/ 
+<a name="line1024">1024 |</a> 
+<a name="line1025">1025 |</a>     if( sw_format &amp; (SW_HUMAN | SW_LONG) ) {
+<a name="line1026">1026 |</a> 	struct winsize window_size;
+<a name="line1027">1027 |</a> 	int fd_err = fileno( stderr);
+<a name="line1028">1028 |</a> 
+<a name="line1029">1029 |</a> 	if( isatty( fd_err))
+<a name="line1030">1030 |</a> 	    if( ioctl( fd_err, TIOCGWINSZ, &amp;window_size) != -1)
+<a name="line1031">1031 |</a> 		terminal_width = (window_size.ws_col == 0) ?
+<a name="line1032">1032 |</a> 		    80 : window_size.ws_col;
+<a name="line1033">1033 |</a>     }
+<a name="line1034">1034 |</a> 
+<a name="line1035">1035 |</a>     if (! path) {
+<a name="line1036">1036 |</a> 	modpath = (char *) xgetenv( "MODULEPATH");
+<a name="line1037">1037 |</a> 	if (! modpath) {
+<a name="line1038">1038 |</a> 	    if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL)) {
+<a name="line1039">1039 |</a> 		return;
+<a name="line1040">1040 |</a> 	    }
+<a name="line1041">1041 |</a> 	}
+<a name="line1042">1042 |</a>     }
+<a name="line1043">1043 |</a> 
+<a name="line1044">1044 |</a>     /**
+<a name="line1045">1045 |</a>      **  Scan all entries of the passed list
+<a name="line1046">1046 |</a>      **/
+<a name="line1047">1047 |</a> 
+<a name="line1048">1048 |</a>     _init_file_list();
+<a name="line1049">1049 |</a>     while( list &amp;&amp; tcount-- &amp;&amp; *list) {
+<a name="line1050">1050 |</a> 	/**
+<a name="line1051">1051 |</a> 	 ** find module[/version] in filename
+<a name="line1052">1052 |</a> 	 **/
+<a name="line1053">1053 |</a> 	if( (g_current_module = s = strrchr( *list, '/')) ) {
+<a name="line1054">1054 |</a> 		*s = 0;
+<a name="line1055">1055 |</a> 		g_current_module++;
+<a name="line1056">1056 |</a> 		if (TCL_ERROR == Locate_ModuleFile(interp, g_current_module,
+<a name="line1057">1057 |</a> 			modulename, modulefile)) {
+<a name="line1058">1058 |</a> 			g_current_module = strrchr(*list, '/');
+<a name="line1059">1059 |</a> 			g_current_module++;
+<a name="line1060">1060 |</a> 		}
+<a name="line1061">1061 |</a> 		*s = '/';
+<a name="line1062">1062 |</a> 	}
+<a name="line1063">1063 |</a> 	if( !stat( *list, &amp;stats)) {
 <a name="line1064">1064 |</a> 
-<a name="line1065">1065 |</a> 				} else
-<a name="line1066">1066 |</a> 					timestr = "";
-<a name="line1067">1067 |</a> 		/**
-<a name="line1068">1068 |</a> 		 **  Now print and free what we've allocated
-<a name="line1069">1069 |</a> 		 **/
-<a name="line1070">1070 |</a> 				fprintf(stderr, long_format, module, symbols,
-<a name="line1071">1071 |</a> 					timestr);
-<a name="line1072">1072 |</a> 			}
-<a name="line1073">1073 |</a> 			null_free((void *)&amp;module);
-<a name="line1074">1074 |</a> 		} /** if( !stat) **/
-<a name="line1075">1075 |</a> 		list++;
-<a name="line1076">1076 |</a> 	} /** while **/
-<a name="line1077">1077 |</a>     /**
-<a name="line1078">1078 |</a>      **  In case of terse output we have to flush our buffer
-<a name="line1079">1079 |</a>      **/
-<a name="line1080">1080 |</a> 	if (!(sw_format &amp; SW_LONG)) {
-<a name="line1081">1081 |</a> 		if (_file_list_wr_ndx &gt; 0)
-<a name="line1082">1082 |</a> 			print_terse_files(terminal_width, maxlen, header,
-<a name="line1083">1083 |</a> 					  numbered);
-<a name="line1084">1084 |</a> 	}
-<a name="line1085">1085 |</a> 	if (!path)
-<a name="line1086">1086 |</a> 		FreeList(&amp;modpath);
-<a name="line1087">1087 |</a> 
-<a name="line1088">1088 |</a> } /** End of 'print_aligned_files' **/
-<a name="line1089">1089 |</a> 
-<a name="line1090">1090 |</a> /*++++
-<a name="line1091">1091 |</a>  ** ** Function-Header ***************************************************** **
-<a name="line1092">1092 |</a>  ** 									     **
-<a name="line1093">1093 |</a>  **   Function:		print_terse_files				     **
-<a name="line1094">1094 |</a>  ** 									     **
-<a name="line1095">1095 |</a>  **   Description:	Print out the filenames in the _file_list array in   **
-<a name="line1096">1096 |</a>  **			case of terse output 				     **
-<a name="line1097">1097 |</a>  ** 									     **
-<a name="line1098">1098 |</a>  **   First Edition:	1991/10/23					     **
-<a name="line1099">1099 |</a>  ** 									     **
-<a name="line1100">1100 |</a>  **   Parameters:	int	  terminal_width	Terminal size	     **
-<a name="line1101">1101 |</a>  **			int	  len			max. filename length **
-<a name="line1102">1102 |</a>  **			char	 *header		header to print	     **
-<a name="line1103">1103 |</a>  **			int	  number		value to start number**
-<a name="line1104">1104 |</a>  ** 							use -1 for none	     **
-<a name="line1105">1105 |</a>  ** 									     **
-<a name="line1106">1106 |</a>  **   Result:		-						     **
-<a name="line1107">1107 |</a>  ** 									     **
-<a name="line1108">1108 |</a>  **   Attached Globals:	-						     **
-<a name="line1109">1109 |</a>  ** 									     **
-<a name="line1110">1110 |</a>  ** ************************************************************************ **
-<a name="line1111">1111 |</a>  ++++*/
-<a name="line1112">1112 |</a> 
-<a name="line1113">1113 |</a> static	void	print_terse_files(  int terminal_width,
-<a name="line1114">1114 |</a> 				    int len,
-<a name="line1115">1115 |</a> 				    char *header,
-<a name="line1116">1116 |</a> 				    int numbered)
-<a name="line1117">1117 |</a> {
-<a name="line1118">1118 |</a>     char	*module;
-<a name="line1119">1119 |</a>     char	*moduleright;
-<a name="line1120">1120 |</a> 
-<a name="line1121">1121 |</a>     /**
-<a name="line1122">1122 |</a>      **  Print human readable lists
-<a name="line1123">1123 |</a>      **/
-<a name="line1124">1124 |</a> 
-<a name="line1125">1125 |</a>     len += (numbered != -1 ? 6 : 1);
-<a name="line1126">1126 |</a>     if( sw_format &amp; SW_HUMAN ) {
-<a name="line1127">1127 |</a> 	int columns = (terminal_width - 1) / len;
-<a name="line1128">1128 |</a> 	int col_ndx, row_ndx;
-<a name="line1129">1129 |</a> 	int rows;
-<a name="line1130">1130 |</a>         int mod_ndx;
-<a name="line1131">1131 |</a>         
-<a name="line1132">1132 |</a> 	/**
-<a name="line1133">1133 |</a> 	 **  Print the header line
-<a name="line1134">1134 |</a> 	 **/
-<a name="line1135">1135 |</a> 
-<a name="line1136">1136 |</a> 	if( header) {
-<a name="line1137">1137 |</a> 	    int lin_len = terminal_width - strlen( header) - 2;
-<a name="line1138">1138 |</a> 	    int i;
-<a name="line1139">1139 |</a> 
-<a name="line1140">1140 |</a> 	    fprintf( stderr, "\n");
-<a name="line1141">1141 |</a> 
-<a name="line1142">1142 |</a> 	    if( lin_len &gt;= 2) 
-<a name="line1143">1143 |</a> 		for( i = 0; i &lt; lin_len / 2; i++)
-<a name="line1144">1144 |</a> 		    fprintf( stderr, "-");
-<a name="line1145">1145 |</a> 
-<a name="line1146">1146 |</a> 	    fprintf( stderr, " %s ", header);
-<a name="line1147">1147 |</a> 
-<a name="line1148">1148 |</a> 	    if( lin_len &gt;= 2)
-<a name="line1149">1149 |</a> 		for( i = 0; i &lt; (lin_len+1) / 2; i++)
-<a name="line1150">1150 |</a> 		    fprintf( stderr, "-");
-<a name="line1151">1151 |</a> 
-<a name="line1152">1152 |</a> 	    fprintf( stderr, "\n");
-<a name="line1153">1153 |</a> 	}
-<a name="line1154">1154 |</a> 
-<a name="line1155">1155 |</a> 	/**
-<a name="line1156">1156 |</a> 	 **  Print the columns
-<a name="line1157">1157 |</a> 	 **/
-<a name="line1158">1158 |</a> 
-<a name="line1159">1159 |</a>         
-<a name="line1160">1160 |</a> 	if( !columns)
-<a name="line1161">1161 |</a> 	    columns = 1;
-<a name="line1162">1162 |</a> 	rows = (_file_list_wr_ndx + columns - 1) / columns;
-<a name="line1163">1163 |</a> 
-<a name="line1164">1164 |</a>         for( row_ndx = 0; row_ndx &lt; rows; row_ndx++) {
-<a name="line1165">1165 |</a>           for( col_ndx = 0; col_ndx &lt; columns; col_ndx++) { 
-<a name="line1166">1166 |</a>             
-<a name="line1167">1167 |</a>             mod_ndx = row_ndx + col_ndx * rows;
-<a name="line1168">1168 |</a>             
-<a name="line1169">1169 |</a>             if( (module = _pick_file_list( mod_ndx)) ) {
-<a name="line1170">1170 |</a>               moduleright = _pick_file_list( row_ndx + (col_ndx+1)* rows);
-<a name="line1171">1171 |</a> 
-<a name="line1172">1172 |</a>               print_spaced_file( module, len,
-<a name="line1173">1173 |</a>                                  ( (col_ndx == columns - 1)
-<a name="line1174">1174 |</a>                                    || (moduleright == (char *) NULL)
-<a name="line1175">1175 |</a>                                    ? 0 : 1 ),
-<a name="line1176">1176 |</a>                                   ( (numbered == -1) ? numbered : ++mod_ndx) );
-<a name="line1177">1177 |</a> 		}
-<a name="line1178">1178 |</a> 	    }
-<a name="line1179">1179 |</a> 	    fprintf( stderr, "\n");
-<a name="line1180">1180 |</a> 	}
-<a name="line1181">1181 |</a>     }
+<a name="line1065">1065 |</a> 	    /**
+<a name="line1066">1066 |</a> 	     **  If the file is a directory, try to source the .modulerc
+<a name="line1067">1067 |</a> 	     **  file and skip to the next file
+<a name="line1068">1068 |</a> 	     **/
+<a name="line1069">1069 |</a> 
+<a name="line1070">1070 |</a> 	    if( S_ISDIR( stats.st_mode)) {
+<a name="line1071">1071 |</a> 		SourceRC( interp, *list, modulerc_file);
+<a name="line1072">1072 |</a> 		SourceVers( interp, *list, g_current_module);
+<a name="line1073">1073 |</a> 		g_current_module = (char *) NULL;
+<a name="line1074">1074 |</a> 		list++;
+<a name="line1075">1075 |</a> 		continue;
+<a name="line1076">1076 |</a> 	    }
+<a name="line1077">1077 |</a> 
+<a name="line1078">1078 |</a> 	    /**
+<a name="line1079">1079 |</a> 	     **  get a copy of the current item to print in order not to
+<a name="line1080">1080 |</a> 	     **  change the function input
+<a name="line1081">1081 |</a> 	     **/
+<a name="line1082">1082 |</a> 
+<a name="line1083">1083 |</a> 	    if(path == (char *)NULL) {
+<a name="line1084">1084 |</a> 		int maxPrefixLength = 0;
+<a name="line1085">1085 |</a> 
+<a name="line1086">1086 |</a> 		if (modpath) {
+<a name="line1087">1087 |</a> 		    /**
+<a name="line1088">1088 |</a> 		     ** try to find the longest prefix from the module path
+<a name="line1089">1089 |</a> 		     ** Huge hack!
+<a name="line1090">1090 |</a> 		     **/
+<a name="line1091">1091 |</a> 
+<a name="line1092">1092 |</a> 		    int prefixLength;
+<a name="line1093">1093 |</a> 		    char *colon;
+<a name="line1094">1094 |</a> 		    char *prefix = modpath;
+<a name="line1095">1095 |</a> 
+<a name="line1096">1096 |</a> 		    while (prefix != (char *) NULL &amp;&amp; *prefix != '\0') {
+<a name="line1097">1097 |</a> 			colon = strchr(prefix, ':');
+<a name="line1098">1098 |</a> 			prefixLength = colon == NULL ? strlen(prefix) :
+<a name="line1099">1099 |</a> 						       colon - prefix;
+<a name="line1100">1100 |</a> 			while (prefix[prefixLength - 1] == '/') {
+<a name="line1101">1101 |</a> 			    prefixLength -= 1;
+<a name="line1102">1102 |</a> 			}
+<a name="line1103">1103 |</a> 			if (prefixLength &gt; maxPrefixLength &amp;&amp;
+<a name="line1104">1104 |</a> 			    ! strncmp(*list, prefix, prefixLength) &amp;&amp;
+<a name="line1105">1105 |</a> 			    (*list)[prefixLength] == '/')
+<a name="line1106">1106 |</a> 			{
+<a name="line1107">1107 |</a> 			    maxPrefixLength = prefixLength;
+<a name="line1108">1108 |</a> 			}
+<a name="line1109">1109 |</a> 
+<a name="line1110">1110 |</a> 			if (colon != NULL) {
+<a name="line1111">1111 |</a> 			    colon += 1;
+<a name="line1112">1112 |</a> 			}
+<a name="line1113">1113 |</a> 		        prefix = colon;
+<a name="line1114">1114 |</a> 		    }
+<a name="line1115">1115 |</a> 
+<a name="line1116">1116 |</a> 		    /**
+<a name="line1117">1117 |</a> 		     ** Skip over '/'
+<a name="line1118">1118 |</a> 		     **/
+<a name="line1119">1119 |</a> 		    if (maxPrefixLength &gt; 0) {
+<a name="line1120">1120 |</a> 			maxPrefixLength += 1;
+<a name="line1121">1121 |</a> 		    }
+<a name="line1122">1122 |</a> 		}
+<a name="line1123">1123 |</a> 
+<a name="line1124">1124 |</a> 		module = stringer(NULL,0, *list + maxPrefixLength, NULL);
+<a name="line1125">1125 |</a> 	    } else {
+<a name="line1126">1126 |</a> 		t = strlen(path);
+<a name="line1127">1127 |</a> 		if (*(*list + t) == '/') t++;
+<a name="line1128">1128 |</a> 		module = stringer(NULL,0, *list + t, NULL);
+<a name="line1129">1129 |</a> 	    }
+<a name="line1130">1130 |</a> 	    if((char *) NULL == module) {
+<a name="line1131">1131 |</a> 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
+<a name="line1132">1132 |</a> 		    break;
+<a name="line1133">1133 |</a> 		else
+<a name="line1134">1134 |</a> 		    continue;
+<a name="line1135">1135 |</a> 	    }
+<a name="line1136">1136 |</a> 
+<a name="line1137">1137 |</a> 	    /**
+<a name="line1138">1138 |</a> 	     **  Expand the symbols and get the version of the module
+<a name="line1139">1139 |</a> 	     **/
+<a name="line1140">1140 |</a> 
+<a name="line1141">1141 |</a> 	    if((char *) NULL == (symbols = ExpandVersions( module)))
+<a name="line1142">1142 |</a> 		symbols = "";
+<a name="line1143">1143 |</a> 
+<a name="line1144">1144 |</a> 	    if((sw_format &amp; SW_LONG)
+<a name="line1145">1145 |</a> 		|| (char *) NULL == (release = strchr( module, '/')))
+<a name="line1146">1146 |</a> 		release = "";		/* no release info */
+<a name="line1147">1147 |</a> 	    else
+<a name="line1148">1148 |</a> 		*release++ = '\0';
+<a name="line1149">1149 |</a> 
+<a name="line1150">1150 |</a> 	    /**
+<a name="line1151">1151 |</a> 	     **  Long or short format
+<a name="line1152">1152 |</a> 	     **/
+<a name="line1153">1153 |</a> 
+<a name="line1154">1154 |</a> 	    if(sw_format &amp; (SW_TERSE|SW_PARSE|SW_HUMAN)) {/** short format **/
+<a name="line1155">1155 |</a> 		int tmp_len;
+<a name="line1156">1156 |</a> 
+<a name="line1157">1157 |</a> 		if( sw_format &amp; SW_PARSE ) {
+<a name="line1158">1158 |</a> 			sprintf( _file_list_buffer, short_format_full,
+<a name="line1159">1159 |</a> 				module, release, symbols);
+<a name="line1160">1160 |</a> 		} else {	/* assume a human readable format */
+<a name="line1161">1161 |</a> 			if (*symbols) {
+<a name="line1162">1162 |</a> 				sprintf( _file_list_buffer, short_format_full,
+<a name="line1163">1163 |</a> 					module, release, symbols);
+<a name="line1164">1164 |</a> 			} else {
+<a name="line1165">1165 |</a> 				if (*release) {
+<a name="line1166">1166 |</a> 					sprintf( _file_list_buffer,
+<a name="line1167">1167 |</a> 						short_format_part,
+<a name="line1168">1168 |</a> 						module, release);
+<a name="line1169">1169 |</a> 				} else {
+<a name="line1170">1170 |</a> 					sprintf( _file_list_buffer,
+<a name="line1171">1171 |</a> 						short_format, module);
+<a name="line1172">1172 |</a> 				}
+<a name="line1173">1173 |</a> 			}
+<a name="line1174">1174 |</a> 		}
+<a name="line1175">1175 |</a> 		_add_file_list( _file_list_buffer);
+<a name="line1176">1176 |</a> 	
+<a name="line1177">1177 |</a> 		tmp_len = strlen( _file_list_buffer);
+<a name="line1178">1178 |</a> 		if( tmp_len &gt; maxlen) 
+<a name="line1179">1179 |</a> 		    maxlen = tmp_len;
+<a name="line1180">1180 |</a> 
+<a name="line1181">1181 |</a> 	    } else if ( sw_format &amp; SW_LONG) {		/** long format **/
 <a name="line1182">1182 |</a> 
-<a name="line1183">1183 |</a>     /**
-<a name="line1184">1184 |</a>      **  Print parseable lists
-<a name="line1185">1185 |</a>      **/
+<a name="line1183">1183 |</a> 		/**
+<a name="line1184">1184 |</a> 		 **  Get the time of last modification
+<a name="line1185">1185 |</a> 		 **/
 <a name="line1186">1186 |</a> 
-<a name="line1187">1187 |</a>     else {
-<a name="line1188">1188 |</a> 	while( (module = _get_file_list()) ) {
-<a name="line1189">1189 |</a> 	    fprintf( stderr, "%s\n", module);
-<a name="line1190">1190 |</a> 	}
-<a name="line1191">1191 |</a>     }
-<a name="line1192">1192 |</a> }
-<a name="line1193">1193 |</a> 
-<a name="line1194">1194 |</a> /*++++
-<a name="line1195">1195 |</a>  ** ** Function-Header ***************************************************** **
-<a name="line1196">1196 |</a>  ** 									     **
-<a name="line1197">1197 |</a>  **   Function:		_add_file_list   				     **
-<a name="line1198">1198 |</a>  **			_init_file_list					     **
-<a name="line1199">1199 |</a>  **			_get_file_list					     **
-<a name="line1200">1200 |</a>  **			_pick_file_list					     **
-<a name="line1201">1201 |</a>  ** 									     **
-<a name="line1202">1202 |</a>  **   Description:	File list functions for terse module display mode    **
-<a name="line1203">1203 |</a>  ** 									     **
-<a name="line1204">1204 |</a>  **   First Edition:	1991/10/23					     **
-<a name="line1205">1205 |</a>  ** 									     **
-<a name="line1206">1206 |</a>  **   Parameters:	char	*name		Name to be stored	     **
-<a name="line1207">1207 |</a>  ** 									     **
-<a name="line1208">1208 |</a>  **   Result:		-						     **
-<a name="line1209">1209 |</a>  ** 									     **
-<a name="line1210">1210 |</a>  **   Attached Globals:	-						     **
-<a name="line1211">1211 |</a>  ** 									     **
-<a name="line1212">1212 |</a>  ** ************************************************************************ **
-<a name="line1213">1213 |</a>  ++++*/
-<a name="line1214">1214 |</a> 
-<a name="line1215">1215 |</a> static	void _init_file_list()
-<a name="line1216">1216 |</a> {
-<a name="line1217">1217 |</a>     if( _file_list_ptr &amp;&amp; !_file_list_cnt) {
-<a name="line1218">1218 |</a> 	null_free((void *) &amp;_file_list_ptr);
-<a name="line1219">1219 |</a> 	_file_list_cnt = 0;
+<a name="line1187">1187 |</a> 		if((struct tm *) NULL != (tm = gmtime( &amp;stats.st_mtime))) {
+<a name="line1188">1188 |</a> 		    sprintf( buffer, "%04d/%02d/%02d %2d:%02d:%02d",
+<a name="line1189">1189 |</a> 			1900+tm-&gt;tm_year, tm-&gt;tm_mon + 1, tm-&gt;tm_mday,
+<a name="line1190">1190 |</a> 			tm-&gt;tm_hour, tm-&gt;tm_min, tm-&gt;tm_sec);
+<a name="line1191">1191 |</a> 		    timestr = buffer;
+<a name="line1192">1192 |</a> 
+<a name="line1193">1193 |</a> 		} else
+<a name="line1194">1194 |</a> 		    timestr = "";
+<a name="line1195">1195 |</a> 
+<a name="line1196">1196 |</a> 		/**
+<a name="line1197">1197 |</a> 		 **  Now print and free what we've allocated
+<a name="line1198">1198 |</a> 		 **/
+<a name="line1199">1199 |</a> 
+<a name="line1200">1200 |</a> 		fprintf( stderr, long_format, module, symbols,
+<a name="line1201">1201 |</a> 		    timestr);
+<a name="line1202">1202 |</a> 
+<a name="line1203">1203 |</a> 	    }
+<a name="line1204">1204 |</a> 
+<a name="line1205">1205 |</a> 	    null_free((void *) &amp;module);
+<a name="line1206">1206 |</a> 
+<a name="line1207">1207 |</a> 	} /** if( !stat) **/
+<a name="line1208">1208 |</a> 
+<a name="line1209">1209 |</a> 	list++;
+<a name="line1210">1210 |</a> 
+<a name="line1211">1211 |</a>     } /** while **/
+<a name="line1212">1212 |</a> 
+<a name="line1213">1213 |</a>     /**
+<a name="line1214">1214 |</a>      **  In case of terse output we have to flush our buffer
+<a name="line1215">1215 |</a>      **/
+<a name="line1216">1216 |</a> 
+<a name="line1217">1217 |</a>     if( !(sw_format &amp; SW_LONG) ) {
+<a name="line1218">1218 |</a> 	if( _file_list_wr_ndx &gt; 0) 
+<a name="line1219">1219 |</a> 	    print_terse_files( terminal_width, maxlen, header, numbered);
 <a name="line1220">1220 |</a>     }
 <a name="line1221">1221 |</a> 
-<a name="line1222">1222 |</a>     _file_list_wr_ndx = 0;
-<a name="line1223">1223 |</a>     _file_list_rd_ndx = 0;
-<a name="line1224">1224 |</a> }
+<a name="line1222">1222 |</a>     if (! modpath) {
+<a name="line1223">1223 |</a> 	null_free((void *)&amp;modpath);
+<a name="line1224">1224 |</a>     }
 <a name="line1225">1225 |</a> 
-<a name="line1226">1226 |</a> static	void _add_file_list( char *name)
-<a name="line1227">1227 |</a> {
-<a name="line1228">1228 |</a>     /**
-<a name="line1229">1229 |</a>      **  Parameter check
-<a name="line1230">1230 |</a>      **/
+<a name="line1226">1226 |</a> #if WITH_DEBUGGING_UTIL_1
+<a name="line1227">1227 |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_print_aligned_files, NULL);
+<a name="line1228">1228 |</a> #endif
+<a name="line1229">1229 |</a> 
+<a name="line1230">1230 |</a> } /** End of 'print_aligned_files' **/
 <a name="line1231">1231 |</a> 
-<a name="line1232">1232 |</a>     if( !name || !*name)
-<a name="line1233">1233 |</a> 	return;
-<a name="line1234">1234 |</a> 
-<a name="line1235">1235 |</a>     /**
-<a name="line1236">1236 |</a>      **  Reallocate if the current array is to small
-<a name="line1237">1237 |</a>      **/
-<a name="line1238">1238 |</a> 
-<a name="line1239">1239 |</a>     if( _file_list_cnt &lt;= _file_list_wr_ndx) {
-<a name="line1240">1240 |</a> 	_file_list_cnt += FILE_LIST_SEGM_SIZE;
-<a name="line1241">1241 |</a> 
-<a name="line1242">1242 |</a> 	if( !_file_list_ptr) 
-<a name="line1243">1243 |</a> 	    _file_list_ptr =
-<a name="line1244">1244 |</a> 		(char **) module_malloc(_file_list_cnt * sizeof(char *));
-<a name="line1245">1245 |</a> 	else
-<a name="line1246">1246 |</a> 	    _file_list_ptr = (char **) module_realloc( _file_list_ptr,
-<a name="line1247">1247 |</a> 		_file_list_cnt * sizeof(char *));
-<a name="line1248">1248 |</a> 
-<a name="line1249">1249 |</a>     }
-<a name="line1250">1250 |</a> 
-<a name="line1251">1251 |</a>     /**
-<a name="line1252">1252 |</a>      **  Save the passed name, if the allocation succeeded
-<a name="line1253">1253 |</a>      **/
+<a name="line1232">1232 |</a> /*++++
+<a name="line1233">1233 |</a>  ** ** Function-Header ***************************************************** **
+<a name="line1234">1234 |</a>  ** 									     **
+<a name="line1235">1235 |</a>  **   Function:		print_terse_files				     **
+<a name="line1236">1236 |</a>  ** 									     **
+<a name="line1237">1237 |</a>  **   Description:	Print out the filenames in the _file_list array in   **
+<a name="line1238">1238 |</a>  **			case of terse output 				     **
+<a name="line1239">1239 |</a>  ** 									     **
+<a name="line1240">1240 |</a>  **   First Edition:	1991/10/23					     **
+<a name="line1241">1241 |</a>  ** 									     **
+<a name="line1242">1242 |</a>  **   Parameters:	int	  terminal_width	Terminal size	     **
+<a name="line1243">1243 |</a>  **			int	  len			max. filename length **
+<a name="line1244">1244 |</a>  **			char	 *header		header to print	     **
+<a name="line1245">1245 |</a>  **			int	  number		value to start number**
+<a name="line1246">1246 |</a>  ** 							use -1 for none	     **
+<a name="line1247">1247 |</a>  ** 									     **
+<a name="line1248">1248 |</a>  **   Result:		-						     **
+<a name="line1249">1249 |</a>  ** 									     **
+<a name="line1250">1250 |</a>  **   Attached Globals:	-						     **
+<a name="line1251">1251 |</a>  ** 									     **
+<a name="line1252">1252 |</a>  ** ************************************************************************ **
+<a name="line1253">1253 |</a>  ++++*/
 <a name="line1254">1254 |</a> 
-<a name="line1255">1255 |</a>     if( !_file_list_ptr) {
-<a name="line1256">1256 |</a> 	ErrorLogger( ERR_ALLOC, LOC, NULL);
-<a name="line1257">1257 |</a> 	_file_list_cnt = 0;
-<a name="line1258">1258 |</a> 	_file_list_wr_ndx = 0;
-<a name="line1259">1259 |</a> 	_file_list_rd_ndx = 0;
-<a name="line1260">1260 |</a> 
-<a name="line1261">1261 |</a>     } else {
-<a name="line1262">1262 |</a> 	_file_list_ptr[ _file_list_wr_ndx++] = stringer(NULL,0, name, NULL);
-<a name="line1263">1263 |</a>     }
-<a name="line1264">1264 |</a> }
-<a name="line1265">1265 |</a> 
-<a name="line1266">1266 |</a> static	char *_get_file_list()
-<a name="line1267">1267 |</a> {
-<a name="line1268">1268 |</a>     return((_file_list_rd_ndx &lt; _file_list_wr_ndx) ?
-<a name="line1269">1269 |</a> 	 _file_list_ptr[ _file_list_rd_ndx++] : (char *) NULL);
-<a name="line1270">1270 |</a> }
-<a name="line1271">1271 |</a> 
-<a name="line1272">1272 |</a> static	char *_pick_file_list( int ndx)
-<a name="line1273">1273 |</a> {
-<a name="line1274">1274 |</a>     return((ndx &lt; _file_list_wr_ndx) ? _file_list_ptr[ ndx] : (char *) NULL);
-<a name="line1275">1275 |</a> }
-<a name="line1276">1276 |</a> 
-<a name="line1277">1277 |</a> /*++++
-<a name="line1278">1278 |</a>  ** ** Function-Header ***************************************************** **
-<a name="line1279">1279 |</a>  ** 									     **
-<a name="line1280">1280 |</a>  **   Function:		print_spaced_file				     **
-<a name="line1281">1281 |</a>  ** 									     **
-<a name="line1282">1282 |</a>  **   Description:	Print out the passed filename and fill the output    **
-<a name="line1283">1283 |</a>  **			area up to the passed number of characters	     **
-<a name="line1284">1284 |</a>  ** 									     **
-<a name="line1285">1285 |</a>  **   First Edition:	1991/10/23					     **
-<a name="line1286">1286 |</a>  ** 									     **
-<a name="line1287">1287 |</a>  **   Parameters:	char	*name		Name to be printed	     **
-<a name="line1288">1288 |</a>  **			int	 maxwidth	With of the output field to  **
-<a name="line1289">1289 |</a>  **						be filled up		     **
-<a name="line1290">1290 |</a>  **			int	 space		Boolean value controlling if **
-<a name="line1291">1291 |</a>  **						the output area should be    **
-<a name="line1292">1292 |</a>  **						filled up with spaces or not **
-<a name="line1293">1293 |</a>  **			int	 number		value to start number list   **
-<a name="line1294">1294 |</a>  ** 						use -1 for none		     **
-<a name="line1295">1295 |</a>  ** 									     **
-<a name="line1296">1296 |</a>  **   Result:		-						     **
-<a name="line1297">1297 |</a>  ** 									     **
-<a name="line1298">1298 |</a>  **   Attached Globals:	-						     **
-<a name="line1299">1299 |</a>  ** 									     **
-<a name="line1300">1300 |</a>  ** ************************************************************************ **
-<a name="line1301">1301 |</a>  ++++*/
-<a name="line1302">1302 |</a> 
-<a name="line1303">1303 |</a> static	void print_spaced_file(	char	*name,
-<a name="line1304">1304 |</a> 				int	 maxwidth,
-<a name="line1305">1305 |</a> 				int	 space,
-<a name="line1306">1306 |</a> 				int	 number)
-<a name="line1307">1307 |</a> {
-<a name="line1308">1308 |</a>     int filelen;		/** Length of the filename to print	     **/
-<a name="line1309">1309 |</a> 
-<a name="line1310">1310 |</a>     chk4spch( name);		/** turn any weird characters into ? marks   **/
-<a name="line1311">1311 |</a> 
-<a name="line1312">1312 |</a>     /**
-<a name="line1313">1313 |</a>      **  Print the name and calculate its length
-<a name="line1314">1314 |</a>      **/
-<a name="line1315">1315 |</a> 
-<a name="line1316">1316 |</a>     filelen = strlen( name);
-<a name="line1317">1317 |</a>     if( -1 != number) {
-<a name="line1318">1318 |</a> 	fprintf( stderr, "%3d) ", number);
-<a name="line1319">1319 |</a> 	filelen += 5;
-<a name="line1320">1320 |</a>     }
-<a name="line1321">1321 |</a> 
-<a name="line1322">1322 |</a>     fprintf(stderr, "%s",  name);
-<a name="line1323">1323 |</a> 
-<a name="line1324">1324 |</a>     /**
-<a name="line1325">1325 |</a>      **  Conditionally fill the output area with spaces
-<a name="line1326">1326 |</a>      **/
-<a name="line1327">1327 |</a> 
-<a name="line1328">1328 |</a>     if( space) {
-<a name="line1329">1329 |</a> 	putc(' ', stderr);
-<a name="line1330">1330 |</a> 	while( ++filelen &lt; maxwidth)
-<a name="line1331">1331 |</a> 	    putc(' ', stderr);
-<a name="line1332">1332 |</a>     }
-<a name="line1333">1333 |</a> 
-<a name="line1334">1334 |</a> } /** end of 'print_spaced_file' **/
+<a name="line1255">1255 |</a> static	void	print_terse_files(  int terminal_width,
+<a name="line1256">1256 |</a> 				    int len,
+<a name="line1257">1257 |</a> 				    char *header,
+<a name="line1258">1258 |</a> 				    int numbered)
+<a name="line1259">1259 |</a> {
+<a name="line1260">1260 |</a>     char	*module;
+<a name="line1261">1261 |</a>     char	*moduleright;
+<a name="line1262">1262 |</a> 
+<a name="line1263">1263 |</a>     /**
+<a name="line1264">1264 |</a>      **  Print human readable lists
+<a name="line1265">1265 |</a>      **/
+<a name="line1266">1266 |</a> 
+<a name="line1267">1267 |</a>     len += (numbered != -1 ? 6 : 1);
+<a name="line1268">1268 |</a>     if( sw_format &amp; SW_HUMAN ) {
+<a name="line1269">1269 |</a> 	int columns = (terminal_width - 1) / len;
+<a name="line1270">1270 |</a> 	int col_ndx, row_ndx;
+<a name="line1271">1271 |</a> 	int rows;
+<a name="line1272">1272 |</a>         int mod_ndx;
+<a name="line1273">1273 |</a>         
+<a name="line1274">1274 |</a> 	/**
+<a name="line1275">1275 |</a> 	 **  Print the header line
+<a name="line1276">1276 |</a> 	 **/
+<a name="line1277">1277 |</a> 
+<a name="line1278">1278 |</a> 	if( header) {
+<a name="line1279">1279 |</a> 	    int lin_len = terminal_width - strlen( header) - 2;
+<a name="line1280">1280 |</a> 	    int i;
+<a name="line1281">1281 |</a> 
+<a name="line1282">1282 |</a> 	    fprintf( stderr, "\n");
+<a name="line1283">1283 |</a> 
+<a name="line1284">1284 |</a> 	    if( lin_len &gt;= 2) 
+<a name="line1285">1285 |</a> 		for( i = 0; i &lt; lin_len / 2; i++)
+<a name="line1286">1286 |</a> 		    fprintf( stderr, "-");
+<a name="line1287">1287 |</a> 
+<a name="line1288">1288 |</a> 	    fprintf( stderr, " %s ", header);
+<a name="line1289">1289 |</a> 
+<a name="line1290">1290 |</a> 	    if( lin_len &gt;= 2)
+<a name="line1291">1291 |</a> 		for( i = 0; i &lt; (lin_len+1) / 2; i++)
+<a name="line1292">1292 |</a> 		    fprintf( stderr, "-");
+<a name="line1293">1293 |</a> 
+<a name="line1294">1294 |</a> 	    fprintf( stderr, "\n");
+<a name="line1295">1295 |</a> 	}
+<a name="line1296">1296 |</a> 
+<a name="line1297">1297 |</a> 	/**
+<a name="line1298">1298 |</a> 	 **  Print the columns
+<a name="line1299">1299 |</a> 	 **/
+<a name="line1300">1300 |</a> 
+<a name="line1301">1301 |</a>         
+<a name="line1302">1302 |</a> 	if( !columns)
+<a name="line1303">1303 |</a> 	    columns = 1;
+<a name="line1304">1304 |</a> 	rows = (_file_list_wr_ndx + columns - 1) / columns;
+<a name="line1305">1305 |</a> 
+<a name="line1306">1306 |</a>         for( row_ndx = 0; row_ndx &lt; rows; row_ndx++) {
+<a name="line1307">1307 |</a>           for( col_ndx = 0; col_ndx &lt; columns; col_ndx++) { 
+<a name="line1308">1308 |</a>             
+<a name="line1309">1309 |</a>             mod_ndx = row_ndx + col_ndx * rows;
+<a name="line1310">1310 |</a>             
+<a name="line1311">1311 |</a>             if( (module = _pick_file_list( mod_ndx)) ) {
+<a name="line1312">1312 |</a>               moduleright = _pick_file_list( row_ndx + (col_ndx+1)* rows);
+<a name="line1313">1313 |</a> 
+<a name="line1314">1314 |</a>               print_spaced_file( module, len,
+<a name="line1315">1315 |</a>                                  ( (col_ndx == columns - 1)
+<a name="line1316">1316 |</a>                                    || (moduleright == (char *) NULL)
+<a name="line1317">1317 |</a>                                    ? 0 : 1 ),
+<a name="line1318">1318 |</a>                                   ( (numbered == -1) ? numbered : ++mod_ndx) );
+<a name="line1319">1319 |</a> 		}
+<a name="line1320">1320 |</a> 	    }
+<a name="line1321">1321 |</a> 	    fprintf( stderr, "\n");
+<a name="line1322">1322 |</a> 	}
+<a name="line1323">1323 |</a>     }
+<a name="line1324">1324 |</a> 
+<a name="line1325">1325 |</a>     /**
+<a name="line1326">1326 |</a>      **  Print parseable lists
+<a name="line1327">1327 |</a>      **/
+<a name="line1328">1328 |</a> 
+<a name="line1329">1329 |</a>     else {
+<a name="line1330">1330 |</a> 	while( (module = _get_file_list()) ) {
+<a name="line1331">1331 |</a> 	    fprintf( stderr, "%s\n", module);
+<a name="line1332">1332 |</a> 	}
+<a name="line1333">1333 |</a>     }
+<a name="line1334">1334 |</a> }
 <a name="line1335">1335 |</a> 
 <a name="line1336">1336 |</a> /*++++
 <a name="line1337">1337 |</a>  ** ** Function-Header ***************************************************** **
 <a name="line1338">1338 |</a>  ** 									     **
-<a name="line1339">1339 |</a>  **   Function:		mkdirnm						     **
-<a name="line1340">1340 |</a>  ** 									     **
-<a name="line1341">1341 |</a>  **   Description:	Build a full pathname out of the passed directory    **
-<a name="line1342">1342 |</a>  **			and file					     **
+<a name="line1339">1339 |</a>  **   Function:		_add_file_list   				     **
+<a name="line1340">1340 |</a>  **			_init_file_list					     **
+<a name="line1341">1341 |</a>  **			_get_file_list					     **
+<a name="line1342">1342 |</a>  **			_pick_file_list					     **
 <a name="line1343">1343 |</a>  ** 									     **
-<a name="line1344">1344 |</a>  **   First Edition:	1991/10/23					     **
+<a name="line1344">1344 |</a>  **   Description:	File list functions for terse module display mode    **
 <a name="line1345">1345 |</a>  ** 									     **
-<a name="line1346">1346 |</a>  **   Parameters:	char	*dir		The directory to be used     **
-<a name="line1347">1347 |</a>  **			char	*file		The filename w/o path	     **
-<a name="line1348">1348 |</a>  ** 									     **
-<a name="line1349">1349 |</a>  **   Result:		char*	NULL		Compound filename to long    **
-<a name="line1350">1350 |</a>  **				else		Pointer to the full path     **
+<a name="line1346">1346 |</a>  **   First Edition:	1991/10/23					     **
+<a name="line1347">1347 |</a>  ** 									     **
+<a name="line1348">1348 |</a>  **   Parameters:	char	*name		Name to be stored	     **
+<a name="line1349">1349 |</a>  ** 									     **
+<a name="line1350">1350 |</a>  **   Result:		-						     **
 <a name="line1351">1351 |</a>  ** 									     **
 <a name="line1352">1352 |</a>  **   Attached Globals:	-						     **
 <a name="line1353">1353 |</a>  ** 									     **
 <a name="line1354">1354 |</a>  ** ************************************************************************ **
 <a name="line1355">1355 |</a>  ++++*/
 <a name="line1356">1356 |</a> 
-<a name="line1357">1357 |</a> static	char *mkdirnm(	char	*dir,
-<a name="line1358">1358 |</a> 			char	*file)
-<a name="line1359">1359 |</a> {
-<a name="line1360">1360 |</a>     static char  dirbuf[ MOD_BUFSIZE];	/** Buffer for path creation	     **/
-<a name="line1361">1361 |</a> 
-<a name="line1362">1362 |</a>     /**
-<a name="line1363">1363 |</a>      **  If only a file is given, or the file is in the current directory
-<a name="line1364">1364 |</a>      **  return just the file.
-<a name="line1365">1365 |</a>      **/
-<a name="line1366">1366 |</a>     if( dir == NULL || *dir == '\0' || !strcmp(dir,"."))
-<a name="line1367">1367 |</a> 	return( strcpy( dirbuf, file));
-<a name="line1368">1368 |</a> 
-<a name="line1369">1369 |</a>     /**
-<a name="line1370">1370 |</a>      **  Check whether the full path fits into the buffer
-<a name="line1371">1371 |</a>      **/
-<a name="line1372">1372 |</a>     if( (int) ( strlen( dir) + 1 + strlen( file) + 1 ) &gt; MOD_BUFSIZE) {
-<a name="line1373">1373 |</a> 	if( OK != ErrorLogger( ERR_NAMETOLONG, LOC, dir, file, NULL))
-<a name="line1374">1374 |</a> 	    return( NULL);
-<a name="line1375">1375 |</a>     }
+<a name="line1357">1357 |</a> static	void _init_file_list()
+<a name="line1358">1358 |</a> {
+<a name="line1359">1359 |</a>     if( _file_list_ptr &amp;&amp; !_file_list_cnt) {
+<a name="line1360">1360 |</a> 	null_free((void *) &amp;_file_list_ptr);
+<a name="line1361">1361 |</a> 	_file_list_cnt = 0;
+<a name="line1362">1362 |</a>     }
+<a name="line1363">1363 |</a> 
+<a name="line1364">1364 |</a>     _file_list_wr_ndx = 0;
+<a name="line1365">1365 |</a>     _file_list_rd_ndx = 0;
+<a name="line1366">1366 |</a> }
+<a name="line1367">1367 |</a> 
+<a name="line1368">1368 |</a> static	void _add_file_list( char *name)
+<a name="line1369">1369 |</a> {
+<a name="line1370">1370 |</a>     /**
+<a name="line1371">1371 |</a>      **  Parameter check
+<a name="line1372">1372 |</a>      **/
+<a name="line1373">1373 |</a> 
+<a name="line1374">1374 |</a>     if( !name || !*name)
+<a name="line1375">1375 |</a> 	return;
 <a name="line1376">1376 |</a> 
 <a name="line1377">1377 |</a>     /**
-<a name="line1378">1378 |</a>      **  Copy directory and file into the buffer taking care that there will
-<a name="line1379">1379 |</a>      **  be no double slash ...
-<a name="line1380">1380 |</a>      **/
-<a name="line1381">1381 |</a> 
-<a name="line1382">1382 |</a>     strcpy( dirbuf, dir);
-<a name="line1383">1383 |</a>     if( dir[ strlen( dir) - 1] != '/' &amp;&amp; file[0] != '/')
-<a name="line1384">1384 |</a> 	strcat( dirbuf, "/");
-<a name="line1385">1385 |</a>     return( strcat( dirbuf, file));
-<a name="line1386">1386 |</a> 
-<a name="line1387">1387 |</a> } /** End of 'mkdirnm' **/
-<a name="line1388">1388 |</a> 
-<a name="line1389">1389 |</a> /*++++
-<a name="line1390">1390 |</a>  ** ** Function-Header ***************************************************** **
-<a name="line1391">1391 |</a>  ** 									     **
-<a name="line1392">1392 |</a>  **   Function:		fi_ent_cmp					     **
-<a name="line1393">1393 |</a>  ** 									     **
-<a name="line1394">1394 |</a>  **   Description:	compares two file entry structures		     **
-<a name="line1395">1395 |</a>  **			Different cmdline arguments (i.e. -u, -c, -t, -z)    **
-<a name="line1396">1396 |</a>  **			will change what value is compared. As a default,    **
-<a name="line1397">1397 |</a>  **			the name is used.				     **
-<a name="line1398">1398 |</a>  **									     **
-<a name="line1399">1399 |</a>  **   Notes:		This procedure is used as comparison function for    **
-<a name="line1400">1400 |</a>  **			qsort()					 	     **
-<a name="line1401">1401 |</a>  ** 									     **
-<a name="line1402">1402 |</a>  **   First Edition:	1991/10/23					     **
-<a name="line1403">1403 |</a>  ** 									     **
-<a name="line1404">1404 |</a>  **   Parameters:	const void *fi1		First file entry	     **
-<a name="line1405">1405 |</a>  **			const void *fi2		Second one to compare	     **
-<a name="line1406">1406 |</a>  ** 									     **
-<a name="line1407">1407 |</a>  **   Result:		int	1 	fi2 &gt; fi1			     **
-<a name="line1408">1408 |</a>  **    				-1	fi2 &lt; fi1			     **
-<a name="line1409">1409 |</a>  **	  			0	fi2 == fi1			     **
-<a name="line1410">1410 |</a>  ** 									     **
-<a name="line1411">1411 |</a>  **   Attached Globals:							     **
-<a name="line1412">1412 |</a>  ** 									     **
-<a name="line1413">1413 |</a>  ** ************************************************************************ **
-<a name="line1414">1414 |</a>  ++++*/
-<a name="line1415">1415 |</a> 
-<a name="line1416">1416 |</a> static	int fi_ent_cmp(	const void	*fi1,
-<a name="line1417">1417 |</a> 			const void	*fi2)
-<a name="line1418">1418 |</a> {
-<a name="line1419">1419 |</a> 
-<a name="line1420">1420 |</a> #ifdef DEF_COLLATE_BY_NUMBER
-<a name="line1421">1421 |</a>   return colcomp( ((fi_ent*)fi1)-&gt;fi_name, ((fi_ent*)fi2)-&gt;fi_name);
-<a name="line1422">1422 |</a> #else
-<a name="line1423">1423 |</a>   return strcmp( ((fi_ent*)fi1)-&gt;fi_name, ((fi_ent*)fi2)-&gt;fi_name);
-<a name="line1424">1424 |</a> #endif
-<a name="line1425">1425 |</a> }
+<a name="line1378">1378 |</a>      **  Reallocate if the current array is to small
+<a name="line1379">1379 |</a>      **/
+<a name="line1380">1380 |</a> 
+<a name="line1381">1381 |</a>     if( _file_list_cnt &lt;= _file_list_wr_ndx) {
+<a name="line1382">1382 |</a> 	_file_list_cnt += FILE_LIST_SEGM_SIZE;
+<a name="line1383">1383 |</a> 
+<a name="line1384">1384 |</a> 	if( !_file_list_ptr) 
+<a name="line1385">1385 |</a> 	    _file_list_ptr =
+<a name="line1386">1386 |</a> 		(char **) module_malloc(_file_list_cnt * sizeof(char *));
+<a name="line1387">1387 |</a> 	else
+<a name="line1388">1388 |</a> 	    _file_list_ptr = (char **) realloc( _file_list_ptr,
+<a name="line1389">1389 |</a> 		_file_list_cnt * sizeof(char *));
+<a name="line1390">1390 |</a> 
+<a name="line1391">1391 |</a>     }
+<a name="line1392">1392 |</a> 
+<a name="line1393">1393 |</a>     /**
+<a name="line1394">1394 |</a>      **  Save the passed name, if the allocation succeeded
+<a name="line1395">1395 |</a>      **/
+<a name="line1396">1396 |</a> 
+<a name="line1397">1397 |</a>     if( !_file_list_ptr) {
+<a name="line1398">1398 |</a> 	ErrorLogger( ERR_ALLOC, LOC, NULL);
+<a name="line1399">1399 |</a> 	_file_list_cnt = 0;
+<a name="line1400">1400 |</a> 	_file_list_wr_ndx = 0;
+<a name="line1401">1401 |</a> 	_file_list_rd_ndx = 0;
+<a name="line1402">1402 |</a> 
+<a name="line1403">1403 |</a>     } else {
+<a name="line1404">1404 |</a> 	_file_list_ptr[ _file_list_wr_ndx++] = stringer(NULL,0, name, NULL);
+<a name="line1405">1405 |</a>     }
+<a name="line1406">1406 |</a> }
+<a name="line1407">1407 |</a> 
+<a name="line1408">1408 |</a> static	char *_get_file_list()
+<a name="line1409">1409 |</a> {
+<a name="line1410">1410 |</a>     return((_file_list_rd_ndx &lt; _file_list_wr_ndx) ?
+<a name="line1411">1411 |</a> 	 _file_list_ptr[ _file_list_rd_ndx++] : (char *) NULL);
+<a name="line1412">1412 |</a> }
+<a name="line1413">1413 |</a> 
+<a name="line1414">1414 |</a> static	char *_pick_file_list( int ndx)
+<a name="line1415">1415 |</a> {
+<a name="line1416">1416 |</a>     return((ndx &lt; _file_list_wr_ndx) ? _file_list_ptr[ ndx] : (char *) NULL);
+<a name="line1417">1417 |</a> }
+<a name="line1418">1418 |</a> 
+<a name="line1419">1419 |</a> /*++++
+<a name="line1420">1420 |</a>  ** ** Function-Header ***************************************************** **
+<a name="line1421">1421 |</a>  ** 									     **
+<a name="line1422">1422 |</a>  **   Function:		print_spaced_file				     **
+<a name="line1423">1423 |</a>  ** 									     **
+<a name="line1424">1424 |</a>  **   Description:	Print out the passed filename and fill the output    **
+<a name="line1425">1425 |</a>  **			area up to the passed number of characters	     **
+<a name="line1426">1426 |</a>  ** 									     **
+<a name="line1427">1427 |</a>  **   First Edition:	1991/10/23					     **
+<a name="line1428">1428 |</a>  ** 									     **
+<a name="line1429">1429 |</a>  **   Parameters:	char	*name		Name to be printed	     **
+<a name="line1430">1430 |</a>  **			int	 maxwidth	With of the output field to  **
+<a name="line1431">1431 |</a>  **						be filled up		     **
+<a name="line1432">1432 |</a>  **			int	 space		Boolean value controlling if **
+<a name="line1433">1433 |</a>  **						the output area should be    **
+<a name="line1434">1434 |</a>  **						filled up with spaces or not **
+<a name="line1435">1435 |</a>  **			int	 number		value to start number list   **
+<a name="line1436">1436 |</a>  ** 						use -1 for none		     **
+<a name="line1437">1437 |</a>  ** 									     **
+<a name="line1438">1438 |</a>  **   Result:		-						     **
+<a name="line1439">1439 |</a>  ** 									     **
+<a name="line1440">1440 |</a>  **   Attached Globals:	-						     **
+<a name="line1441">1441 |</a>  ** 									     **
+<a name="line1442">1442 |</a>  ** ************************************************************************ **
+<a name="line1443">1443 |</a>  ++++*/
+<a name="line1444">1444 |</a> 
+<a name="line1445">1445 |</a> static	void print_spaced_file(	char	*name,
+<a name="line1446">1446 |</a> 				int	 maxwidth,
+<a name="line1447">1447 |</a> 				int	 space,
+<a name="line1448">1448 |</a> 				int	 number)
+<a name="line1449">1449 |</a> {
+<a name="line1450">1450 |</a>     int filelen;		/** Length of the filename to print	     **/
+<a name="line1451">1451 |</a> 
+<a name="line1452">1452 |</a> #if WITH_DEBUGGING_UTIL_2
+<a name="line1453">1453 |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_print_spaced_file, NULL);
+<a name="line1454">1454 |</a> #endif
+<a name="line1455">1455 |</a> 
+<a name="line1456">1456 |</a>     chk4spch( name);		/** turn any weird characters into ? marks   **/
+<a name="line1457">1457 |</a> 
+<a name="line1458">1458 |</a>     /**
+<a name="line1459">1459 |</a>      **  Print the name and calculate its length
+<a name="line1460">1460 |</a>      **/
+<a name="line1461">1461 |</a> 
+<a name="line1462">1462 |</a>     filelen = strlen( name);
+<a name="line1463">1463 |</a>     if( -1 != number) {
+<a name="line1464">1464 |</a> 	fprintf( stderr, "%3d) ", number);
+<a name="line1465">1465 |</a> 	filelen += 5;
+<a name="line1466">1466 |</a>     }
+<a name="line1467">1467 |</a> 
+<a name="line1468">1468 |</a>     fprintf(stderr, "%s",  name);
+<a name="line1469">1469 |</a> 
+<a name="line1470">1470 |</a>     /**
+<a name="line1471">1471 |</a>      **  Conditionally fill the output area with spaces
+<a name="line1472">1472 |</a>      **/
+<a name="line1473">1473 |</a> 
+<a name="line1474">1474 |</a>     if( space) {
+<a name="line1475">1475 |</a> 	putc(' ', stderr);
+<a name="line1476">1476 |</a> 	while( ++filelen &lt; maxwidth)
+<a name="line1477">1477 |</a> 	    putc(' ', stderr);
+<a name="line1478">1478 |</a>     }
+<a name="line1479">1479 |</a> 
+<a name="line1480">1480 |</a> } /** end of 'print_spaced_file' **/
+<a name="line1481">1481 |</a> 
+<a name="line1482">1482 |</a> /*++++
+<a name="line1483">1483 |</a>  ** ** Function-Header ***************************************************** **
+<a name="line1484">1484 |</a>  ** 									     **
+<a name="line1485">1485 |</a>  **   Function:		mkdirnm						     **
+<a name="line1486">1486 |</a>  ** 									     **
+<a name="line1487">1487 |</a>  **   Description:	Build a full pathname out of the passed directory    **
+<a name="line1488">1488 |</a>  **			and file					     **
+<a name="line1489">1489 |</a>  ** 									     **
+<a name="line1490">1490 |</a>  **   First Edition:	1991/10/23					     **
+<a name="line1491">1491 |</a>  ** 									     **
+<a name="line1492">1492 |</a>  **   Parameters:	char	*dir		The directory to be used     **
+<a name="line1493">1493 |</a>  **			char	*file		The filename w/o path	     **
+<a name="line1494">1494 |</a>  ** 									     **
+<a name="line1495">1495 |</a>  **   Result:		char*	NULL		Compound filename to long    **
+<a name="line1496">1496 |</a>  **				else		Pointer to the full path     **
+<a name="line1497">1497 |</a>  ** 									     **
+<a name="line1498">1498 |</a>  **   Attached Globals:	-						     **
+<a name="line1499">1499 |</a>  ** 									     **
+<a name="line1500">1500 |</a>  ** ************************************************************************ **
+<a name="line1501">1501 |</a>  ++++*/
+<a name="line1502">1502 |</a> 
+<a name="line1503">1503 |</a> static	char *mkdirnm(	char	*dir,
+<a name="line1504">1504 |</a> 			char	*file)
+<a name="line1505">1505 |</a> {
+<a name="line1506">1506 |</a>     static char  dirbuf[ MOD_BUFSIZE];	/** Buffer for path creation	     **/
+<a name="line1507">1507 |</a> 
+<a name="line1508">1508 |</a> #if WITH_DEBUGGING_UTIL_2
+<a name="line1509">1509 |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_mkdirnm, ", dir='", dir, ", file='",
+<a name="line1510">1510 |</a> 	file, "'", NULL);
+<a name="line1511">1511 |</a> #endif
+<a name="line1512">1512 |</a> 
+<a name="line1513">1513 |</a>     /**
+<a name="line1514">1514 |</a>      **  If only a file is given, or the file is in the current directory
+<a name="line1515">1515 |</a>      **  return just the file.
+<a name="line1516">1516 |</a>      **/
+<a name="line1517">1517 |</a> 
+<a name="line1518">1518 |</a>     if( dir == NULL || *dir == '\0' || !strcmp(dir,"."))
+<a name="line1519">1519 |</a> 	return( strcpy( dirbuf, file));
+<a name="line1520">1520 |</a> 
+<a name="line1521">1521 |</a>     /**
+<a name="line1522">1522 |</a>      **  Check whether the full path fits into the buffer
+<a name="line1523">1523 |</a>      **/
+<a name="line1524">1524 |</a> 
+<a name="line1525">1525 |</a>     if( (int) ( strlen( dir) + 1 + strlen( file) + 1 ) &gt; MOD_BUFSIZE) {
+<a name="line1526">1526 |</a> 	if( OK != ErrorLogger( ERR_NAMETOLONG, LOC, dir, file, NULL))
+<a name="line1527">1527 |</a> 	    return( NULL);
+<a name="line1528">1528 |</a>     }
+<a name="line1529">1529 |</a> 
+<a name="line1530">1530 |</a>     /**
+<a name="line1531">1531 |</a>      **  Copy directory and file into the buffer taking care that there will
+<a name="line1532">1532 |</a>      **  be no double slash ...
+<a name="line1533">1533 |</a>      **/
+<a name="line1534">1534 |</a> 
+<a name="line1535">1535 |</a>     strcpy( dirbuf, dir);
+<a name="line1536">1536 |</a>     if( dir[ strlen( dir) - 1] != '/' &amp;&amp; file[0] != '/')
+<a name="line1537">1537 |</a> 	strcat( dirbuf, "/");
+<a name="line1538">1538 |</a>     return( strcat( dirbuf, file));
+<a name="line1539">1539 |</a> 
+<a name="line1540">1540 |</a> } /** End of 'mkdirnm' **/
+<a name="line1541">1541 |</a> 
+<a name="line1542">1542 |</a> /*++++
+<a name="line1543">1543 |</a>  ** ** Function-Header ***************************************************** **
+<a name="line1544">1544 |</a>  ** 									     **
+<a name="line1545">1545 |</a>  **   Function:		fi_ent_cmp					     **
+<a name="line1546">1546 |</a>  ** 									     **
+<a name="line1547">1547 |</a>  **   Description:	compares two file entry structures		     **
+<a name="line1548">1548 |</a>  **			Different cmdline arguments (i.e. -u, -c, -t, -z)    **
+<a name="line1549">1549 |</a>  **			will change what value is compared. As a default,    **
+<a name="line1550">1550 |</a>  **			the name is used.				     **
+<a name="line1551">1551 |</a>  **									     **
+<a name="line1552">1552 |</a>  **   Notes:		This procedure is used as comparison function for    **
+<a name="line1553">1553 |</a>  **			qsort()					 	     **
+<a name="line1554">1554 |</a>  ** 									     **
+<a name="line1555">1555 |</a>  **   First Edition:	1991/10/23					     **
+<a name="line1556">1556 |</a>  ** 									     **
+<a name="line1557">1557 |</a>  **   Parameters:	const void *fi1		First file entry	     **
+<a name="line1558">1558 |</a>  **			const void *fi2		Second one to compare	     **
+<a name="line1559">1559 |</a>  ** 									     **
+<a name="line1560">1560 |</a>  **   Result:		int	1 	fi2 &gt; fi1			     **
+<a name="line1561">1561 |</a>  **    				-1	fi2 &lt; fi1			     **
+<a name="line1562">1562 |</a>  **	  			0	fi2 == fi1			     **
+<a name="line1563">1563 |</a>  ** 									     **
+<a name="line1564">1564 |</a>  **   Attached Globals:							     **
+<a name="line1565">1565 |</a>  ** 									     **
+<a name="line1566">1566 |</a>  ** ************************************************************************ **
+<a name="line1567">1567 |</a>  ++++*/
+<a name="line1568">1568 |</a> 
+<a name="line1569">1569 |</a> static	int fi_ent_cmp(	const void	*fi1,
+<a name="line1570">1570 |</a> 			const void	*fi2)
+<a name="line1571">1571 |</a> {
+<a name="line1572">1572 |</a> 
+<a name="line1573">1573 |</a> #ifdef DEF_COLLATE_BY_NUMBER
+<a name="line1574">1574 |</a>   return colcomp( ((fi_ent*)fi1)-&gt;fi_name, ((fi_ent*)fi2)-&gt;fi_name);
+<a name="line1575">1575 |</a> #else
+<a name="line1576">1576 |</a>   return strcmp( ((fi_ent*)fi1)-&gt;fi_name, ((fi_ent*)fi2)-&gt;fi_name);
+<a name="line1577">1577 |</a> #endif
+<a name="line1578">1578 |</a> }
 </pre>
 
 </BODY>

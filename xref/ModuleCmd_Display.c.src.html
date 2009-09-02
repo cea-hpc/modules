@@ -47,7 +47,7 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 <a name="line27">27   |</a>  ** 									     ** 
 <a name="line28">28   |</a>  ** ************************************************************************ **/
 <a name="line29">29   |</a> 
-<a name="line30">30   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Display.c.src.html,v 1.8 2009/09/01 20:22:32 rkowen Exp $";
+<a name="line30">30   |</a> static char Id[] = "@(#)$Id: ModuleCmd_Display.c.src.html,v 1.9 2009/09/02 20:37:39 rkowen Exp $";
 <a name="line31">31   |</a> static void *UseId[] = { &amp;UseId, Id };
 <a name="line32">32   |</a> 
 <a name="line33">33   |</a> /** ************************************************************************ **/
@@ -81,127 +81,139 @@ CPP  : cxref-cpp -lang-c -C -dD -dI -I/usr/include/tcl8.4
 <a name="line61">61   |</a> char local_line[] =
 <a name="line62">62   |</a>     "-------------------------------------------------------------------";
 <a name="line63">63   |</a> static	char	module_name[] = __FILE__;
-<a name="line64">64   |</a> 
-<a name="line65">65   |</a> /** ************************************************************************ **/
-<a name="line66">66   |</a> /**				    PROTOTYPES				     **/
-<a name="line67">67   |</a> /** ************************************************************************ **/
-<a name="line68">68   |</a> 
-<a name="line69">69   |</a> /** not applicable **/
-<a name="line70">70   |</a> 
+<a name="line64">64   |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line65">65   |</a> static	char	_proc_ModuleCmd_Display[] = "ModuleCmd_Display";
+<a name="line66">66   |</a> #endif
+<a name="line67">67   |</a> 
+<a name="line68">68   |</a> /** ************************************************************************ **/
+<a name="line69">69   |</a> /**				    PROTOTYPES				     **/
+<a name="line70">70   |</a> /** ************************************************************************ **/
 <a name="line71">71   |</a> 
-<a name="line72">72   |</a> /*++++
-<a name="line73">73   |</a>  ** ** Function-Header ***************************************************** **
-<a name="line74">74   |</a>  ** 									     **
-<a name="line75">75   |</a>  **   Function:		ModuleCmd_Display				     **
-<a name="line76">76   |</a>  ** 									     **
-<a name="line77">77   |</a>  **   Description:	Execution of the module-command 'display'	     **
-<a name="line78">78   |</a>  **			Display every change a module 'load' would apply to  **
-<a name="line79">79   |</a>  **			the environment					     **
-<a name="line80">80   |</a>  ** 									     **
-<a name="line81">81   |</a>  **   First Edition:	1991/10/23					     **
-<a name="line82">82   |</a>  ** 									     **
-<a name="line83">83   |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
-<a name="line84">84   |</a>  **			char 		*argv[]		Argument list	     **
+<a name="line72">72   |</a> /** not applicable **/
+<a name="line73">73   |</a> 
+<a name="line74">74   |</a> 
+<a name="line75">75   |</a> /*++++
+<a name="line76">76   |</a>  ** ** Function-Header ***************************************************** **
+<a name="line77">77   |</a>  ** 									     **
+<a name="line78">78   |</a>  **   Function:		ModuleCmd_Display				     **
+<a name="line79">79   |</a>  ** 									     **
+<a name="line80">80   |</a>  **   Description:	Execution of the module-command 'display'	     **
+<a name="line81">81   |</a>  **			Display every change a module 'load' would apply to  **
+<a name="line82">82   |</a>  **			the environment					     **
+<a name="line83">83   |</a>  ** 									     **
+<a name="line84">84   |</a>  **   First Edition:	1991/10/23					     **
 <a name="line85">85   |</a>  ** 									     **
-<a name="line86">86   |</a>  **   Result:		int	TCL_ERROR	Failure			     **
-<a name="line87">87   |</a>  **				TCL_OK		Successful operation	     **
+<a name="line86">86   |</a>  **   Parameters:	Tcl_Interp	*interp		Attached Tcl Interp. **
+<a name="line87">87   |</a>  **			char 		*argv[]		Argument list	     **
 <a name="line88">88   |</a>  ** 									     **
-<a name="line89">89   |</a>  **   Attached Globals:	g_specified_module	The module name from the     **
-<a name="line90">90   |</a>  **						command line.		     **
-<a name="line91">91   |</a>  **   			g_flags		These are set up accordingly before  **
-<a name="line92">92   |</a>  **					this function is called in order to  **
-<a name="line93">93   |</a>  **					control everything		     **
-<a name="line94">94   |</a>  **			g_current_module	The module which is handled  **
-<a name="line95">95   |</a>  **						by the current command	     **
-<a name="line96">96   |</a>  ** 									     **
-<a name="line97">97   |</a>  ** ************************************************************************ **
-<a name="line98">98   |</a>  ++++*/
-<a name="line99">99   |</a> 
-<a name="line100">100  |</a> int ModuleCmd_Display(	Tcl_Interp	*interp,
-<a name="line101">101  |</a> 			int		 argc,
-<a name="line102">102  |</a>                   	char		*argv[])
-<a name="line103">103  |</a> {
-<a name="line104">104  |</a>     Tcl_Interp	*disp_interp;
-<a name="line105">105  |</a>     Tcl_DString	 cmdbuf;
-<a name="line106">106  |</a>     int		 i,
-<a name="line107">107  |</a>     		 result;
-<a name="line108">108  |</a>     char	 modulefile[ MOD_BUFSIZE];
-<a name="line109">109  |</a>     char	 modulename[ MOD_BUFSIZE];
-<a name="line110">110  |</a>     
-<a name="line111">111  |</a>     /**
-<a name="line112">112  |</a>      **  Initialize the command buffer and set up the modules flag to 'display
-<a name="line113">113  |</a>      **  only'
-<a name="line114">114  |</a>      **/
-<a name="line115">115  |</a>     Tcl_DStringInit( &amp;cmdbuf);
-<a name="line116">116  |</a>     g_flags |= M_DISPLAY;
+<a name="line89">89   |</a>  **   Result:		int	TCL_ERROR	Failure			     **
+<a name="line90">90   |</a>  **				TCL_OK		Successful operation	     **
+<a name="line91">91   |</a>  ** 									     **
+<a name="line92">92   |</a>  **   Attached Globals:	g_specified_module	The module name from the     **
+<a name="line93">93   |</a>  **						command line.		     **
+<a name="line94">94   |</a>  **   			g_flags		These are set up accordingly before  **
+<a name="line95">95   |</a>  **					this function is called in order to  **
+<a name="line96">96   |</a>  **					control everything		     **
+<a name="line97">97   |</a>  **			g_current_module	The module which is handled  **
+<a name="line98">98   |</a>  **						by the current command	     **
+<a name="line99">99   |</a>  ** 									     **
+<a name="line100">100  |</a>  ** ************************************************************************ **
+<a name="line101">101  |</a>  ++++*/
+<a name="line102">102  |</a> 
+<a name="line103">103  |</a> int ModuleCmd_Display(	Tcl_Interp	*interp,
+<a name="line104">104  |</a> 			int		 argc,
+<a name="line105">105  |</a>                   	char		*argv[])
+<a name="line106">106  |</a> {
+<a name="line107">107  |</a>     Tcl_Interp	*disp_interp;
+<a name="line108">108  |</a>     Tcl_DString	 cmdbuf;
+<a name="line109">109  |</a>     int		 i,
+<a name="line110">110  |</a>     		 result;
+<a name="line111">111  |</a>     char	 modulefile[ MOD_BUFSIZE];
+<a name="line112">112  |</a>     char	 modulename[ MOD_BUFSIZE];
+<a name="line113">113  |</a>     
+<a name="line114">114  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line115">115  |</a>     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Display, NULL);
+<a name="line116">116  |</a> #endif
 <a name="line117">117  |</a> 
 <a name="line118">118  |</a>     /**
-<a name="line119">119  |</a>      **  Handle each passed module file. Create a Tcl interpreter for each 
-<a name="line120">120  |</a>      **  module file to be handled and initialize it with custom module commands
+<a name="line119">119  |</a>      **  Initialize the command buffer and set up the modules flag to 'display
+<a name="line120">120  |</a>      **  only'
 <a name="line121">121  |</a>      **/
 <a name="line122">122  |</a> 
-<a name="line123">123  |</a>     for(i=0; i&lt;argc &amp;&amp; argv[i]; i++) {
-<a name="line124">124  |</a>         /**
-<a name="line125">125  |</a>          ** Set the name of the module specified on the command line
-<a name="line126">126  |</a>          **/
-<a name="line127">127  |</a> 
-<a name="line128">128  |</a>         g_specified_module = argv[i];
-<a name="line129">129  |</a> 
-<a name="line130">130  |</a> 	disp_interp = Tcl_CreateInterp();
-<a name="line131">131  |</a> 	if( TCL_OK != (result = Module_Init( disp_interp))) {
-<a name="line132">132  |</a> 	    Tcl_DeleteInterp( disp_interp);
-<a name="line133">133  |</a> 	    return( result);		/** -------- EXIT (FAILURE) -------&gt; **/
-<a name="line134">134  |</a> 	}
+<a name="line123">123  |</a>     Tcl_DStringInit( &amp;cmdbuf);
+<a name="line124">124  |</a>     g_flags |= M_DISPLAY;
+<a name="line125">125  |</a> 
+<a name="line126">126  |</a>     /**
+<a name="line127">127  |</a>      **  Handle each passed module file. Create a Tcl interpreter for each 
+<a name="line128">128  |</a>      **  module file to be handled and initialize it with custom module commands
+<a name="line129">129  |</a>      **/
+<a name="line130">130  |</a> 
+<a name="line131">131  |</a>     for(i=0; i&lt;argc &amp;&amp; argv[i]; i++) {
+<a name="line132">132  |</a>         /**
+<a name="line133">133  |</a>          ** Set the name of the module specified on the command line
+<a name="line134">134  |</a>          **/
 <a name="line135">135  |</a> 
-<a name="line136">136  |</a> 	/**
-<a name="line137">137  |</a> 	 **  locate the filename related to the passed module
-<a name="line138">138  |</a> 	 **/
-<a name="line139">139  |</a> 
-<a name="line140">140  |</a> 	if( Locate_ModuleFile(disp_interp, argv[i], modulename, modulefile) == 
-<a name="line141">141  |</a>             TCL_ERROR) {
-<a name="line142">142  |</a> 	    Tcl_DeleteInterp( disp_interp);
-<a name="line143">143  |</a> 	    if( OK != ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL)) 
-<a name="line144">144  |</a> 		break;
-<a name="line145">145  |</a> 	    else
-<a name="line146">146  |</a> 		continue;
-<a name="line147">147  |</a> 	}
-<a name="line148">148  |</a> 
-<a name="line149">149  |</a> 	/**
-<a name="line150">150  |</a> 	 **  Print out everything that would happen if the module file were
-<a name="line151">151  |</a> 	 **  executed ...
-<a name="line152">152  |</a> 	 **/
-<a name="line153">153  |</a> 
-<a name="line154">154  |</a>         g_current_module = modulename;
-<a name="line155">155  |</a> 
-<a name="line156">156  |</a>         fprintf( stderr, "%s\n",local_line);
-<a name="line157">157  |</a> 	fprintf( stderr, "%s:\n\n", modulefile);
-<a name="line158">158  |</a> 
-<a name="line159">159  |</a> 	result = CallModuleProcedure( disp_interp, &amp;cmdbuf, modulefile, 
-<a name="line160">160  |</a> 	    "ModulesDisplay", 0);
+<a name="line136">136  |</a>         g_specified_module = argv[i];
+<a name="line137">137  |</a> 
+<a name="line138">138  |</a> 	disp_interp = Tcl_CreateInterp();
+<a name="line139">139  |</a> 	if( TCL_OK != (result = InitializeModuleCommands( disp_interp))) {
+<a name="line140">140  |</a> 	    Tcl_DeleteInterp( disp_interp);
+<a name="line141">141  |</a> 	    return( result);		/** -------- EXIT (FAILURE) -------&gt; **/
+<a name="line142">142  |</a> 	}
+<a name="line143">143  |</a> 
+<a name="line144">144  |</a> 	/**
+<a name="line145">145  |</a> 	 **  locate the filename related to the passed module
+<a name="line146">146  |</a> 	 **/
+<a name="line147">147  |</a> 
+<a name="line148">148  |</a> 	if( Locate_ModuleFile(disp_interp, argv[i], modulename, modulefile) == 
+<a name="line149">149  |</a>             TCL_ERROR) {
+<a name="line150">150  |</a> 	    Tcl_DeleteInterp( disp_interp);
+<a name="line151">151  |</a> 	    if( OK != ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL)) 
+<a name="line152">152  |</a> 		break;
+<a name="line153">153  |</a> 	    else
+<a name="line154">154  |</a> 		continue;
+<a name="line155">155  |</a> 	}
+<a name="line156">156  |</a> 
+<a name="line157">157  |</a> 	/**
+<a name="line158">158  |</a> 	 **  Print out everything that would happen if the module file were
+<a name="line159">159  |</a> 	 **  executed ...
+<a name="line160">160  |</a> 	 **/
 <a name="line161">161  |</a> 
-<a name="line162">162  |</a>         fprintf( stderr, "%s\n",local_line);
+<a name="line162">162  |</a>         g_current_module = modulename;
 <a name="line163">163  |</a> 
-<a name="line164">164  |</a> 	/**
-<a name="line165">165  |</a> 	 **  Remove the Tcl interpreter that has been used for printing ...
-<a name="line166">166  |</a> 	 **/
-<a name="line167">167  |</a> 
-<a name="line168">168  |</a> 	Tcl_DeleteInterp( disp_interp);
+<a name="line164">164  |</a>         fprintf( stderr, "%s\n",local_line);
+<a name="line165">165  |</a> 	fprintf( stderr, "%s:\n\n", modulefile);
+<a name="line166">166  |</a> 
+<a name="line167">167  |</a> 	result = CallModuleProcedure( disp_interp, &amp;cmdbuf, modulefile, 
+<a name="line168">168  |</a> 	    "ModulesDisplay", 0);
 <a name="line169">169  |</a> 
-<a name="line170">170  |</a>     } /** for **/
+<a name="line170">170  |</a>         fprintf( stderr, "%s\n",local_line);
 <a name="line171">171  |</a> 
-<a name="line172">172  |</a>     /**
-<a name="line173">173  |</a>      **  Leave the 'display only mode', free up what has been used and return
-<a name="line174">174  |</a>      **/
+<a name="line172">172  |</a> 	/**
+<a name="line173">173  |</a> 	 **  Remove the Tcl interpreter that has been used for printing ...
+<a name="line174">174  |</a> 	 **/
 <a name="line175">175  |</a> 
-<a name="line176">176  |</a>     g_flags &amp;= ~M_DISPLAY;
-<a name="line177">177  |</a>     fprintf( stderr, "\n");
-<a name="line178">178  |</a> 
-<a name="line179">179  |</a>     Tcl_DStringFree( &amp;cmdbuf);
-<a name="line180">180  |</a> 
-<a name="line181">181  |</a>     return( TCL_OK);
-<a name="line182">182  |</a> 
-<a name="line183">183  |</a> } /** End of 'ModuleCmd_Display' **/
-<a name="line184">184  |</a> 
+<a name="line176">176  |</a> 	Tcl_DeleteInterp( disp_interp);
+<a name="line177">177  |</a> 
+<a name="line178">178  |</a>     } /** for **/
+<a name="line179">179  |</a> 
+<a name="line180">180  |</a>     /**
+<a name="line181">181  |</a>      **  Leave the 'display only mode', free up what has been used and return
+<a name="line182">182  |</a>      **/
+<a name="line183">183  |</a> 
+<a name="line184">184  |</a>     g_flags &amp;= ~M_DISPLAY;
+<a name="line185">185  |</a>     fprintf( stderr, "\n");
+<a name="line186">186  |</a> 
+<a name="line187">187  |</a>     Tcl_DStringFree( &amp;cmdbuf);
+<a name="line188">188  |</a> 
+<a name="line189">189  |</a> #if WITH_DEBUGGING_MODULECMD
+<a name="line190">190  |</a>     ErrorLogger( NO_ERR_END, LOC, _proc_ModuleCmd_Display, NULL);
+<a name="line191">191  |</a> #endif
+<a name="line192">192  |</a> 
+<a name="line193">193  |</a>     return( TCL_OK);
+<a name="line194">194  |</a> 
+<a name="line195">195  |</a> } /** End of 'ModuleCmd_Display' **/
+<a name="line196">196  |</a> 
 </pre>
 
 </BODY>

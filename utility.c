@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.32 2009/09/01 19:16:27 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.33 2009/09/02 20:37:39 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -967,22 +967,23 @@ static int Output_Directory_Change(
  ** ************************************************************************ **
  ++++*/
 
-static	int	output_set_variable(	Tcl_Interp	*interp,
-					const char	*var,
-          	          		const char	*val)
-{
+static int output_set_variable(
+	Tcl_Interp * interp,
+	const char *var,
+	const char *val
+) {
 
     /**
      **  Differ between the different kinds of shells at first
      **
      **  CSH
      **/
-    chop( val);
-    chop( var);
+	chop(val);
+	chop(var);
 
-    assert(shell_derelict != NULL);
+	assert(shell_derelict != NULL);
 
-    if( !strcmp((char*) shell_derelict, "csh")) {
+	if (!strcmp((char *)shell_derelict, "csh")) {
 
 #ifdef LMSPLIT_SIZE
 	/**
@@ -996,136 +997,148 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	 **  it should probably be <1000.  I don't count the size of
 	 **  "setenv _LMFILES_xxx" so subtract this from your limit.
 	 **/
-	if( !strcmp( var, "_LMFILES_")) {
-	    char formatted[ MOD_BUFSIZE];
-	    char *cptr;
-	    int	lmfiles_len;
-	    int	count = 0;
-	    char* escaped = stringer(NULL,strlen(val)*2+1,NULL);
-	    EscapeCshString(val,escaped);
+		if (!strcmp(var, "_LMFILES_")) {
+			char            formatted[MOD_BUFSIZE],
+				       *cptr;
+			int             lmfiles_len,
+					count = 0;
+			char *escaped = stringer(NULL, strlen(val)*2 + 1, NULL);
 
-	    if(( lmfiles_len = strlen(escaped)) > LMSPLIT_SIZE) {
+			EscapeCshString(val, escaped);
 
-	    char buffer[ LMSPLIT_SIZE + 1];
+			if ((lmfiles_len = strlen(escaped)) > LMSPLIT_SIZE) {
+
+				char            buffer[LMSPLIT_SIZE + 1];
 
 	    /**
 	     **  Break up the _LMFILES_ variable...
 	     **/
-	    while( lmfiles_len > LMSPLIT_SIZE) {
+				while (lmfiles_len > LMSPLIT_SIZE) {
 
-		    strncpy( buffer, ( escaped + count*LMSPLIT_SIZE ),
-			     LMSPLIT_SIZE);
-		buffer[ LMSPLIT_SIZE] = '\0';
+					strncpy(buffer,
+						(escaped +
+						 count * LMSPLIT_SIZE),
+						LMSPLIT_SIZE);
+					buffer[LMSPLIT_SIZE] = '\0';
 
-		fprintf( stdout, "setenv %s%03d %s%s", var, count, buffer,
-		    shell_cmd_separator);
+					fprintf(stdout, "setenv %s%03d %s%s",
+						var, count, buffer,
+						shell_cmd_separator);
 
-		lmfiles_len -= LMSPLIT_SIZE;
-		count++;
-	    }
+					lmfiles_len -= LMSPLIT_SIZE;
+					count++;
+				}
 
-		if( lmfiles_len) {
-		fprintf( stdout, "setenv %s%03d %s%s", var, count,
-		    (escaped + count*LMSPLIT_SIZE), shell_cmd_separator);
-		    count++;
-		}
+				if (lmfiles_len) {
+					fprintf(stdout, "setenv %s%03d %s%s",
+						var, count,
+						(escaped +
+						 count * LMSPLIT_SIZE),
+						shell_cmd_separator);
+					count++;
+				}
 
-	    /**
+		/**
 		 ** Unset _LMFILES_ as indicator to use the multi-variable
 		 ** _LMFILES_
-	     **/
-	    fprintf(stdout, "unsetenv %s%s", var, shell_cmd_separator);
+		 **/
+				fprintf(stdout, "unsetenv %s%s", var,
+					shell_cmd_separator);
 
-	    } else {	/** if ( lmfiles_len = strlen(val)) > LMSPLIT_SIZE) **/
+			} else {
+			/** if ( lmfiles_len = strlen(val)) > LMSPLIT_SIZE) **/
 
-		fprintf(stdout, "setenv %s %s%s", var, escaped, shell_cmd_separator);
-	    }
+				fprintf(stdout, "setenv %s %s%s", var, escaped,
+					shell_cmd_separator);
+			}
 
 	    /**
 	     ** Unset the extra _LMFILES_%03d variables that may be set
 	     **/
-	    do {
-		sprintf( formatted, "_LMFILES_%03d", count++);
-		cptr = (char *) Tcl_GetVar2( interp, "env", formatted, TCL_GLOBAL_ONLY);
-		if( cptr) {
-		    fprintf(stdout, "unsetenv %s%s", formatted, shell_cmd_separator);
-		}
-	    } while( cptr);
-	
-	  null_free((void *) &escaped);
+			do {
+				sprintf(formatted, "_LMFILES_%03d", count++);
+				cptr = (char *)Tcl_GetVar2(interp, "env",
+					formatted, TCL_GLOBAL_ONLY);
+				if (cptr) {
+					fprintf(stdout, "unsetenv %s%s",
+						formatted, shell_cmd_separator);
+				}
+			} while (cptr);
 
-	} else {	/** if( var == "_LMFILES_") **/
+			null_free((void *)&escaped);
 
-#endif /* not LMSPLIT_SIZE */
-	  
-		char* escaped = stringer(NULL,strlen(val)*2+1,NULL);
-		EscapeCshString(val,escaped);
-		fprintf(stdout, "setenv %s %s %s", var, escaped, shell_cmd_separator);
-		null_free((void *) &escaped);
+		} else {/** if( var == "_LMFILES_") **/
+#endif	/* not LMSPLIT_SIZE */
+
+			char *escaped = stringer(NULL, strlen(val)*2 + 1, NULL);
+			EscapeCshString(val, escaped);
+			fprintf(stdout, "setenv %s %s %s", var, escaped,
+				shell_cmd_separator);
+			null_free((void *)&escaped);
 #ifdef LMSPLIT_SIZE
-	}
-#endif /* not LMSPLIT_SIZE */
+		}
+#endif	/* not LMSPLIT_SIZE */
 
+	} else if (!strcmp((char *)shell_derelict, "sh")) {
     /**
      **  SH
      **/
-    } else if( !strcmp((char*) shell_derelict, "sh")) {
+		char *escaped = (char *)module_malloc(strlen(val) * 2 + 1);
+		EscapeShString(val, escaped);
 
-      char* escaped = (char*)module_malloc(strlen(val)*2+1);
-      EscapeShString(val,escaped);
+		fprintf(stdout, "%s=%s %sexport %s%s", var, escaped,
+			shell_cmd_separator, var, shell_cmd_separator);
+		null_free((void **)&escaped);
 
-      fprintf( stdout, "%s=%s %sexport %s%s", var, escaped, shell_cmd_separator,
-	       var, shell_cmd_separator);
-      null_free((void **) &escaped);
-      
+	} else if (!strcmp((char *)shell_derelict, "emacs")) {
     /**
      **  EMACS
      **/
-    } else if( !strcmp((char*) shell_derelict, "emacs")) {
-	fprintf( stdout, "(setenv \"%s\" \'%s\')\n", var, val);
+		fprintf(stdout, "(setenv \"%s\" \'%s\')\n", var, val);
 
+	} else if (!strcmp((char *)shell_derelict, "perl")) {
     /**
      **  PERL
      **/
-    } else if( !strcmp((char*) shell_derelict, "perl")) {
-		char* escaped = stringer(NULL,strlen(val)*2+1,NULL);
-		EscapePerlString(val,escaped);
+		char *escaped = stringer(NULL, strlen(val) * 2 + 1, NULL);
+		EscapePerlString(val, escaped);
 		fprintf(stdout, "$ENV{'%s'} = '%s'%s", var, escaped,
-			shell_cmd_separator);  
-		null_free((void *) &escaped);
+			shell_cmd_separator);
+		null_free((void *)&escaped);
 
+	} else if (!strcmp((char *)shell_derelict, "python")) {
     /**
      **  PYTHON
      **/
-    } else if( !strcmp((char*) shell_derelict, "python")) {
-	fprintf( stdout, "os.environ['%s'] = '%s'\n", var, val);
+		fprintf(stdout, "os.environ['%s'] = '%s'\n", var, val);
 
+	} else if (!strcmp((char *)shell_derelict, "scm")) {
     /**
      ** SCM
      **/
-    } else if ( !strcmp((char*) shell_derelict, "scm")) {
-	fprintf( stdout, "(putenv \"%s=%s\")\n", var, val);
+		fprintf(stdout, "(putenv \"%s=%s\")\n", var, val);
 
+	} else if (!strcmp((char *)shell_derelict, "mel")) {
     /**
      ** MEL (Maya Extension Language)
      **/
-    } else if ( !strcmp((char*) shell_derelict, "mel")) {
-        fprintf( stdout, "putenv \"%s\" \"%s\";", var, val);
+		fprintf(stdout, "putenv \"%s\" \"%s\";", var, val);
 
+	} else {
     /**
      **  Unknown shell type - print an error message and 
      **  return on error
      **/
-    } else {
-	if( OK != ErrorLogger( ERR_DERELICT, LOC, shell_derelict, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
-    }
+		if (OK != ErrorLogger(ERR_DERELICT, LOC, shell_derelict, NULL))
+			return (TCL_ERROR);
+					/** -------- EXIT (FAILURE) -------> **/
+	}
 
     /**
      **  Return and acknowldge success
      **/
-    g_output = 1;
-    return( TCL_OK);
+	g_output = 1;
+	return (TCL_OK);
 
 } /** End of 'output_set_variable' **/
 
@@ -1678,23 +1691,25 @@ char	*getLMFILES( Tcl_Interp	*interp)
  **  Check all possibilities of module-versions
  **/
 
-int IsLoaded(	Tcl_Interp	 *interp,
-		char		 *modulename,
-		char		**realname,
-		char		 *filename )
-{
-    return( __IsLoaded( interp, modulename, realname, filename, 0));
+int IsLoaded(
+	Tcl_Interp * interp,
+	char *modulename,
+	char **realname,
+	char *filename
+) {
+	return (__IsLoaded(interp, modulename, realname, filename, 0));
 }
 
 /**
  **  Check only an exact match of the passed module and version
  **/
-int IsLoaded_ExactMatch(	Tcl_Interp	 *interp,
-				char		 *modulename,
-				char		**realname,
-				char		 *filename )
-{
-    return( __IsLoaded( interp, modulename, realname, filename, 1));
+int IsLoaded_ExactMatch(
+	Tcl_Interp * interp,
+	char *modulename,
+	char **realname,
+	char *filename
+) {
+	return (__IsLoaded(interp, modulename, realname, filename, 1));
 }
 
 /**
@@ -2481,78 +2496,82 @@ char *xgetenv(char const * var) {
  ** ************************************************************************ **
  ++++*/
 
-void EscapeCshString(const char* in,
-		     char* out) {
-  
-  for(;*in;in++) {
-    if (*in == ' ' ||
-	*in == '\t'||
-	*in == '\\'||
-	*in == '{' ||
-	*in == '}' ||
-	*in == '|' ||
-	*in == '<' ||
-	*in == '>' ||
-	*in == '!' ||
-	*in == ';' ||
-	*in == '#' ||
-	*in == '$' ||
-	*in == '^' ||
-	*in == '&' ||
-	*in == '*' ||
-	*in == '\''||
-	*in == '"' ||
-	*in == '(' ||
-	*in == ')') {
-      *out++ = '\\';
-    }
-    *out++ = *in;
-  }
-  *out = 0;
+void EscapeCshString(
+	const char *in,
+	char *out
+) {
+	while (*in) {
+		if (*in == ' ' ||
+		    *in == '\t'||
+		    *in == '\\'||
+		    *in == '{' ||
+		    *in == '}' ||
+		    *in == '|' ||
+		    *in == '<' ||
+		    *in == '>' ||
+		    *in == '!' ||
+		    *in == ';' ||
+		    *in == '#' ||
+		    *in == '$' ||
+		    *in == '^' ||
+		    *in == '&' ||
+		    *in == '*' ||
+		    *in == '\''||
+		    *in == '"' ||
+		    *in == '(' ||
+		    *in == ')') {
+			*out++ = '\\';
+		}
+		*out++ = *in++;
+	}
+	*out = 0;
 }
 
-void EscapeShString(const char* in,
-		     char* out) {
-  
-  for(;*in;in++) {
-    if (*in == ' ' ||
-	*in == '\t'||
-	*in == '\\'||
-	*in == '{' ||
-	*in == '}' ||
-	*in == '|' ||
-	*in == '<' ||
-	*in == '>' ||
-	*in == '!' ||
-	*in == ';' ||
-	*in == '#' ||
-	*in == '$' ||
-	*in == '^' ||
-	*in == '&' ||
-	*in == '*' ||
-	*in == '\''||
-	*in == '"' ||
-	*in == '(' ||
-	*in == ')') {
-      *out++ = '\\';
-    }
-    *out++ = *in;
-  }
-  *out = 0;
+void EscapeShString(
+	const char *in,
+	char *out
+) {
+	while (*in) {
+		if (*in == ' ' ||
+		    *in == '\t'||
+		    *in == '\\'||
+		    *in == '{' ||
+		    *in == '}' ||
+		    *in == '|' ||
+		    *in == '<' ||
+		    *in == '>' ||
+		    *in == '!' ||
+		    *in == ';' ||
+		    *in == '#' ||
+		    *in == '$' ||
+		    *in == '^' ||
+		    *in == '&' ||
+		    *in == '*' ||
+		    *in == '\''||
+		    *in == '"' ||
+		    *in == '(' ||
+		    *in == ')') {
+			*out++ = '\\';
+		}
+		*out++ = *in++;
+	}
+	*out = 0;
 }
 
-void EscapePerlString(const char* in,
-		     char* out) {
-  
-  for(;*in;in++) {
-    if (*in == '\\'||
-	*in == ';' ||
-	*in == '\'') {
-      *out++ = '\\';
-    }
-    *out++ = *in;
-  }
-  *out = 0;
+void EscapePerlString(
+	const char *in,
+	char *out
+) {
+
+	while (*in) {
+		if (*in == '\\'||
+		    *in == ';' ||
+		    *in == '\'') {
+			*out++ = '\\';
+		}
+		*out++ = *in++;
+	}
+	*out = 0;
 }
 
 /*++++

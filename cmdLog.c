@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdLog.c,v 1.14 2009/09/01 19:16:27 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdLog.c,v 1.15 2009/09/02 20:37:39 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -102,9 +102,10 @@ int cmdModuleLog(
 	int objc,
 	Tcl_Obj * CONST84 objv[]
 ) {
-	char          **facptr;
-	int             i, len = 0, alc_len = PART_LEN, save_len;
-	char           *faclist, *s, *tmp, *t;
+	char          **facptr, **vptr, *s;
+	int             i;
+	uvec           *faclist,
+		       *tmpuv = NULL;
 
     /**
      **  Whatis mode?
@@ -132,83 +133,79 @@ int cmdModuleLog(
     /**
      **  Get the current facility pointer.
      **/
-	if ((char **)NULL ==
-	    (facptr = GetFacilityPtr((char *)Tcl_GetString(objv[1]))))
+	if (!(facptr = GetFacilityPtr((char *)Tcl_GetString(objv[1]))))
 		return ((OK == ErrorLogger(ERR_INVWGHT_WARN, LOC,
 				     Tcl_GetString(objv[1]), NULL))
 			? TCL_OK : TCL_ERROR);
-
     /**
      **  Allocate memory for the facility list
      **/
-	if ((char *)NULL == (faclist = (char *)module_malloc(alc_len)))
-		return ((OK == ErrorLogger(ERR_ALLOC, LOC, NULL)) ?
-			TCL_OK : TCL_ERROR);
-
+	if (!(faclist = uvec_ctor(objc)))
+		return ((OK == ErrorLogger(ERR_UVEC, LOC, NULL))
+			? TCL_OK : TCL_ERROR);
     /**
      **  Scan all given facilities and add them to the list
+     **  Which can be listed as individual arguments or joined together
+     **  with a ':' (or both)
      **/
 	for (i = 2; i < objc; i++) {
-		save_len = len;
-		len += strlen(Tcl_GetString(objv[i])) + 1;
-
-		while (len + 1 > alc_len) {
-			alc_len += PART_LEN;
-			if ((char *)NULL ==
-			    (faclist = (char *)module_realloc(faclist,alc_len)))
-				return ((OK == ErrorLogger(ERR_ALLOC, LOC,
-					     NULL)) ? TCL_OK : TCL_ERROR);
+		s = Tcl_GetString(objv[i]);
+		/* check for at least one ':' */
+		if (strchr(s, ':')) {
+			tmpuv = str2uvec(":", s);
+			vptr = uvec_vector(tmpuv);
+			while (vptr && *vptr) {
+				if(0 > uvec_add(faclist,*vptr++))
+					return ((OK == ErrorLogger(ERR_UVEC,
+					LOC, NULL)) ? TCL_OK : TCL_ERROR);
+			}
+			uvec_dtor(&tmpuv);
+		} else {
+			if(0 > uvec_add(faclist, Tcl_GetString(objv[i])))
+				return ((OK == ErrorLogger(ERR_UVEC, LOC, NULL))
+					? TCL_OK : TCL_ERROR);
 		}
-
-		faclist[save_len] = ':';
-		strcpy(&faclist[save_len + 1], Tcl_GetString(objv[i]));
 	}
-
     /**
-     **  Now scan the whole list and copy all valid parts into a new buffer
+     **  Now scan the whole list and delete the invalid ones
      **/
-	if ((char *)NULL == (tmp = stringer(NULL, strlen(faclist), NULL))) {
-		null_free((void *)&faclist);
-		return ((OK == ErrorLogger(ERR_ALLOC, LOC, NULL)) ?
-			TCL_OK : TCL_ERROR);
-	}
-
-	for (t = tmp, s = xstrtok(faclist, ":, \t");
-	     s; s = xstrtok(NULL, ":, \t")) {
+	for (i = uvec_number(faclist) - 1; i >= 0; i--) {
+		s = uvec_vector(faclist)[i];
 
 		if (s && !*s)
 			continue;	/* skip empty ones */
+
 		if ('.' == *s || '/' == *s ||		       /** filename  **/
 		    !strcmp(_stderr, s) || !strcmp(_stdout, s) ||
 							       /** special   **/
 		    !strcmp(_null, s) || !strcmp(_none, s) ||  /** null	     **/
-		    CheckFacility(s, &i, &i)) {		       /** syslog    **/
-
-			if (t != tmp)
-				*t++ = ':';
-			strcpy(t, s);
-
-			t += strlen(s);
-
+		    CheckFacility(s, NULL, NULL)) {	       /** syslog    **/
+			/* got a keeper */
 		} else {
-	    /**
-	     **  bad facility found
-	     **/
+		    /**
+		     **  bad facility found
+		     **/
 			if (OK != ErrorLogger(ERR_INVFAC_WARN, LOC, s, NULL))
 				break; /** for **/
+			if (0 > uvec_delete(faclist,i))
+				return ((OK == ErrorLogger(ERR_UVEC, LOC, NULL))
+					? TCL_OK : TCL_ERROR);
 		}
 	} /** for **/
+
+	s = uvec2str(faclist,":");
+
     /**
-     **  Now, 'tmp' should contain the new list of facilities. Check whether
+     **  Now, 's' should contain the new list of facilities. Check whether
      **  there has been one allocated so far ...
      **  We do not need the original faclist any more.
      **/
-	null_free((void *)&faclist);
+	uvec_dtor(&faclist);
 
 	if ((char *)NULL != *facptr)
 		null_free((void *)facptr);
 
-	*facptr = tmp;
+	*facptr = s;
 
 	return (TCL_OK);
 
