@@ -1,4 +1,4 @@
-import os, string
+import os, sys, string
 
 @VERSIONING@if not os.environ.has_key('MODULE_VERSION'):
 @VERSIONING@        os.environ['MODULE_VERSION_STACK'] = '@VERSION@'
@@ -8,7 +8,7 @@ import os, string
 @VERSIONING@os.environ['MODULESHOME'] = '@prefix@'
 
 if not os.environ.has_key('MODULEPATH'):
-        os.environ['MODULEPATH'] = os.popen("""sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\\n//; s/\\n/:/g; p }' ${MODULESHOME}/init/.modulespath""").readline()
+        os.environ['MODULEPATH'] = os.popen("""sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\\n//; s/\\n/:/g; p; }' ${MODULESHOME}/init/.modulespath""").readline()
 
 if not os.environ.has_key('LOADEDMODULES'):
         os.environ['LOADEDMODULES'] = '';
@@ -17,3 +17,14 @@ def module(command, *arguments):
 @VERSIONING@        commands = os.popen('@BASEPREFIX@/Modules/%s/bin/modulecmd python %s %s' % (os.environ['MODULE_VERSION'], command, string.join(arguments))).read()
 @NOTVERSIONING@        commands = os.popen('@bindir@/modulecmd python %s %s' % (command, string.join(arguments))).read()
         exec commands
+        
+        ###catch possible changes to PYTHONPATH environment variable
+        pp = ['']
+        pythonpath = os.environ['PYTHONPATH'].split(":")
+        pp.extend(pythonpath)
+        for p in sys.path:
+          if (p not in pp) and (p):
+            pp.append(p)
+
+        sys.path = pp
+        
