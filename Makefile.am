@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        ./Makefile.am
-## Versions:    $Id: Makefile.am,v 1.33 2009/09/02 20:37:38 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.34 2009/09/22 16:26:30 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -22,6 +22,7 @@ EXTRA_DIST = config/config.rpath config/mkinstalldirs			\
 	modules_def.h getopt.h uvec.h testsuite INSTALL.RH7x		\
 	init/bash.in init/sh.in init/zsh.in				\
 	init/csh.in init/ksh.in init/perl.in init/python.in		\
+	init/bash_completion.in						\
 	modulefiles/lang/.mklang					\
 	LICENSE.GPL ABOUT-NLS
 
