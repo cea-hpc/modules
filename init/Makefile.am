@@ -57,7 +57,7 @@ uninstall-inits :
 	sed -e "/@$(if $(subst 0,,$(WANTS_VERSIONING)),NOT,)VERSIONING\@/d; \
 	s,@$(if $(subst 0,,$(WANTS_VERSIONING)),,NOT)VERSIONING\@,,g; \
 	s,@prefix\@,${prefix},g; \
-	s,@bindir\@,${exec_prefix}/bin,g; \
+	s,@bindir\@,${bindir},g; \
 	s,@VERSION\@,@VERSION@,g; \
 	s,@BASEPREFIX\@,@BASEPREFIX@,g;" < $< > $@
 
