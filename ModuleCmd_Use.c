@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.13 2009/09/02 20:37:38 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.14 2009/10/12 19:41:22 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -205,6 +205,7 @@ int ModuleCmd_Use(
 		    || (!strcmp("-append", argv[i]))) {
 
 			pathargv[0] = "append-path";
+			append_flag = 1;
 			continue;
 
 		} else if (stat(argv[i], &stats) < 0) {
@@ -221,7 +222,12 @@ int ModuleCmd_Use(
 
 	/**
 	 **  Used the 'cmdSetPath' callback function to modify the MODULEPATH
+	 **  and add path to internal ModulePath vector for subsequent searches
 	 **/
+		if (append_flag)
+			uvec_unshift(ModulePathVec,argv[i]);
+		else
+			uvec_push(ModulePathVec,argv[i]);
 
 		pathargv[2] = argv[i];
 
@@ -277,14 +283,14 @@ int ModuleCmd_UnUse(
      **  Parameter check. Usage is 'module use <path> [ <path> ... ]'
      **/
 	if (argc < 1) {
-		if (OK !=
-		    ErrorLogger(ERR_USAGE, LOC, "unuse dir [dir ...]", NULL))
+		if (OK != ErrorLogger(ERR_USAGE,LOC,"unuse dir [dir ...]",NULL))
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
 	}
 
     /**
      **  Remove all passed paths from MODULEPATH
      **	 Use the 'cmdSetPath' callback function to modify the MODULEPATH
+     **  Don't bother with ModulePath vector for delayed modulefile removals
      **/
 
 	pathargv[0] = "remove-path";
@@ -295,8 +301,7 @@ int ModuleCmd_UnUse(
 		pathargv[2] = argv[i];
 		/* convert from argv to objv */
 		Tcl_ArgvToObjv(&objc, &objv, -1, (char **) pathargv);
-		if (cmdRemovePath((ClientData) 0, interp, objc, objv) ==
-		    TCL_ERROR)
+		if (cmdRemovePath((ClientData) 0,interp,objc,objv) == TCL_ERROR)
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
 	} /** for **/
     /**

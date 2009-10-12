@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.29 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.30 2009/10/12 19:41:22 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -113,12 +113,9 @@ int Locate_ModuleFile(
 ) {
 	char           *p;		/** Tokenization pointer	     **/
 	char           *result = NULL;	/** This functions result	     **/
-	uvec           *pathvec;	/** Vector of paths to scan	     **/
 	char          **pathlist;	/** List of paths to scan	     **/
 	int             numpaths,	/** Size of this list		     **/
 	                i;		/** Loop counter		     **/
-	char           *modulespath;	/** Buffer for the contents of the   **/
-					/** environment variable MODULEPATH  **/
 	char           *mod, *vers;	/** Module and version name for sym- **/
 					/** bolic name lookup		     **/
     /**
@@ -192,19 +189,11 @@ int Locate_ModuleFile(
 	/**
 	 **  If I don't find a path in MODULEPATH, there's nothing to search.
 	 **/
-		if (!(modulespath = (char *)getenv("MODULEPATH"))) {
+		if (!ModulePathVec || !uvec_number(ModulePathVec)) {
 			if (OK != ErrorLogger(ERR_MODULE_PATH, LOC, NULL)) {
 				g_current_module = NULL;
 				goto unwind0;
 			}
-		}
-	/**
-	 ** strip off any extraneous new lines
-	 **/
-		{
-			char           *end;
-			if ((char *)NULL != (end = strrchr(modulespath, '\n')))
-				*end = '\0';
 		}
 	/**
 	 **  Expand the module name (in case it is a symbolic one). This must
@@ -219,10 +208,8 @@ int Locate_ModuleFile(
 	/**
 	 **  Split up the MODULEPATH values into multiple directories
 	 **/
-		if (NULL == (pathvec = SplitIntoList(modulespath, &numpaths,
-						     _colon)))
-			goto unwind0;
-		pathlist = uvec_vector(pathvec);
+		numpaths = uvec_number(ModulePathVec);
+		pathlist = ModulePath;
 	/**
 	 **  Check each directory to see if it contains the module
 	 **/
@@ -260,10 +247,6 @@ int Locate_ModuleFile(
 			}
 		}
 	  /** for **/
-	/**
-	 **  Free the memory created from the call to SplitIntoList()
-	 **/
-		FreeList(&pathvec);
 	/**
 	 **  If result still NULL, then we really never found it and we should
 	 **  return ERROR and clear the full_path array for cleanliness.

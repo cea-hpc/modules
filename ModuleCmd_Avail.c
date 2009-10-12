@@ -35,7 +35,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.20 2009/09/02 20:37:38 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.21 2009/10/12 19:41:22 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -147,18 +147,16 @@ int ModuleCmd_Avail(
 	char *argv[]
 ) {
 	char          **dirname;
-	uvec           *modpath;
 	int             Result = -TCL_ERROR;
 
     /**
-     **  Load the MODULEPATH and split it into a list of paths. Assume success
+     **  Load the MODULEPATH and split it into a list of paths. Complain
      **  if no list to output ...
      **/
-	if (!(modpath = ModulePathList()))
+	if (!ModulePathVec || !uvec_number(ModulePathVec)) {
+		ErrorLogger(ERR_MODULE_PATH, LOC, NULL);
+		Result = TCL_ERROR;
 		goto unwind0;
-	if (!uvec_number(modpath)) {
-		Result = TCL_OK;
-		goto success0;
 	}
     /**
      **  If we're given a full-path, then we'll just check that directory.
@@ -200,7 +198,7 @@ int ModuleCmd_Avail(
 		 **/
 				g_specified_module = *argv;
 
-				dirname = uvec_vector(modpath);
+				dirname = ModulePath;
 				while (dirname && *dirname) {
 		    /**
 		     **  Print the category
@@ -216,7 +214,7 @@ int ModuleCmd_Avail(
 	 **  directory and print its contents.
 	 **/
 		} else {
-			dirname = uvec_vector(modpath);
+			dirname = ModulePath;
 			while (dirname && *dirname) {
 				if (check_dir(*dirname))
 					print_dir(interp, *dirname, NULL);
@@ -230,8 +228,6 @@ int ModuleCmd_Avail(
 	/* if got here via this path ... it must have been OK */
 	if (Result < 0)
 		Result = TCL_OK;
-
-	FreeList(&modpath);
 
 unwind0:
 	/* if Result is negative here ... must have been an unwind */
@@ -904,7 +900,6 @@ void print_aligned_files(
 	int             t;
 	int             terminal_width = 80;
 	int             maxlen = 0;
-	uvec           *modpath;
 
     /**
      **  In case of terse, human output we need to obtain the size of 
@@ -925,8 +920,7 @@ void print_aligned_files(
      **  For listing loaded modules ...
      **  Load the MODULEPATH and split it into a list of paths.
      **/
-		if (!(modpath = ModulePathList())
-		    && (!uvec_number(modpath)))
+		if (!uvec_number(ModulePathVec))
 			if (OK != ErrorLogger(ERR_MODULE_PATH, LOC, NULL))
 				return;
 	}
@@ -966,7 +960,7 @@ void print_aligned_files(
 	     **/
 			if (!path) {
 				size_t          pathlen, maxPrefixLength = 0;
-				char          **dirname = uvec_vector(modpath);
+				char          **dirname = ModulePath;
 		    /**
 		     ** try to find the longest prefix from the module path
 		     **/
@@ -1082,8 +1076,6 @@ void print_aligned_files(
 			print_terse_files(terminal_width, maxlen, header,
 					  numbered);
 	}
-	if (!path)
-		FreeList(&modpath);
 
 } /** End of 'print_aligned_files' **/
 

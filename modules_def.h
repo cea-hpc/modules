@@ -453,6 +453,8 @@ extern char	em_default[];
 
 extern	char	**environ;
 
+extern	uvec	 *ModulePathVec;
+extern	char	**ModulePath;
 extern	char	 *version_string;
 extern	char	 *date_string;
 extern	char	 *g_current_module;

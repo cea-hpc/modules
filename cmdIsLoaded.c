@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.13 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.14 2009/10/12 19:41:22 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -83,6 +83,8 @@ static	char	module_name[] = __FILE__;
  **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
+ **			ModulePathVec	MODULEPATHS uvec		     **
+ **			ModulePath	Vector of MODULEPATHS		     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -93,10 +95,8 @@ int cmdIsLoaded(
 	int objc,
 	Tcl_Obj * CONST84 objv[]
 ) {
-	uvec           *pathlist,		/** List of module-pathes    **/
-	               *modulelist;		/** List of modules          **/
-	char           *modulepath,		/** Contents of MODULEPATH   **/
-	               *notloaded_flag;		/** conflicting module	     **/
+	uvec           *modulelist;		/** List of modules          **/
+	char           *notloaded_flag;		/** conflicting module	     **/
 	int             i, j, k,		/** Loop counters            **/
 	                numpaths, nummodules;
 					/** Size of the according arrays     **/
@@ -117,11 +117,10 @@ int cmdIsLoaded(
     /**
      **  Load the MODULEPATH and split it into a list of paths
      **/
-	if (!(modulepath = (char *)getenv("MODULEPATH"))) {
+	if (!ModulePathVec)
 		if (OK != ErrorLogger(ERR_MODULE_PATH, LOC, NULL))
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
-	}
-	if (!(pathlist = SplitIntoList(modulepath, &numpaths, _colon)))
+	if (!(numpaths = uvec_number(ModulePathVec)))
 		return (TCL_OK);	/** -------- EXIT (SUCCESS) -------> **/
     /**
      **  Check/Display all passed modules
@@ -129,10 +128,8 @@ int cmdIsLoaded(
 	notloaded_flag = Tcl_GetString(objv[1]);
 	for (i = 1; i < objc && Tcl_GetString(objv[i]) && notloaded_flag; i++) {
 		for (j = 0; j < numpaths && notloaded_flag; j++) {
-			if (NULL == (modulelist = SortedDirList(
-					uvec_vector(pathlist)[j],
-					   Tcl_GetString(objv[i]),
-					   &nummodules)))
+			if (NULL == (modulelist = SortedDirList( ModulePath[j],
+				   Tcl_GetString(objv[i]),&nummodules)))
 				continue;
 	    /**
 	     **  Now actually check if the prerequisites are fullfilled

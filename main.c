@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.29 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.30 2009/10/12 19:41:22 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -69,7 +69,9 @@ char	em_default[]	= N_("default");
 /** 				    GLOBAL DATA				     **/
 /** ************************************************************************ **/
 
-char	 *g_current_module = NULL,	/** The module which is handled by   **/
+uvec	 *ModulePathVec;		/** MODULEPATH uvec object	     **/
+char	**ModulePath,			/** vector of the above		     **/
+	 *g_current_module = NULL,	/** The module which is handled by   **/
 					/** the current command		     **/
 	 *g_specified_module = NULL,	/** The module that was specified    **/
 					/** on the command line		     **/
@@ -186,18 +188,22 @@ static void	version (FILE *output);
  ** ************************************************************************ **
  ++++*/
 
-int	main( int argc, char *argv[], char *environ[]) {
+int main(
+	int argc,
+	char *argv[],
+	char *environ[]
+) {
 
-    Tcl_Interp	*interp;
-    int          return_val = 0;
-    char	*rc_name;
-    char	*rc_path;
+	Tcl_Interp     *interp;
+	int             return_val = 0;
+	char           *rc_name;
+	char           *rc_path;
 	Tcl_Obj       **objv;		/** Tcl Object vector **/
 	int             objc;		/** Tcl Object vector count **/
 
 #ifdef HAVE_SETLOCALE
 	/* set local via LC_ALL */
-	setlocale(LC_ALL,"");
+	setlocale(LC_ALL, "");
 #endif
 
 #if ENABLE_NLS
@@ -205,36 +211,42 @@ int	main( int argc, char *argv[], char *environ[]) {
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 #endif
-
     /**
      ** check if first argument is --version or -V then output the
      ** version to stdout.  This is a special circumstance handled
      ** by the regular options.
      **/
-    if (argc > 1 && *argv[1] == '-') {
-        if (!strcmp("-V", argv[1]) || !strcmp("--version", argv[1])) {
-	    version(stdout);
-	    return 0;
-        }
-    }
+	if (argc > 1 && *argv[1] == '-') {
+		if (!strcmp("-V", argv[1]) || !strcmp("--version", argv[1])) {
+			version(stdout);
+			return 0;
+		}
+	}
     /**
      **  Initialization. 
+     **/
+	if (!(ModulePathVec = ModulePathList())) {
+		ModulePath = NULL;
+		/* goto unwind0; */
+	} else {
+		ModulePath = uvec_vector(ModulePathVec);
+	}
+
+    /**
      **  Check the command line syntax. There will be no return from the
      **  initialization function in case of invalid command line arguments.
      **/
-    if( TCL_OK != Initialize_Module( &interp, argc, argv, environ))
-	goto unwind0;
+	if (TCL_OK != Initialize_Module(&interp, argc, argv, environ))
+		goto unwind1;
 
-    if( TCL_OK != Setup_Environment( interp))
-	goto unwind0;
+	if (TCL_OK != Setup_Environment(interp))
+		goto unwind1;
 
     /**
      **  Check for command line switches
      **/
-
-    if( TCL_OK != Check_Switches( &argc, argv))
-	goto unwind0;
-
+	if (TCL_OK != Check_Switches(&argc, argv))
+		goto unwind1;
     /**
      **  Figure out, which global RC file to use. This depends on the environ-
      **  ment variable 'MODULERCFILE', which can be set to one of the following:
@@ -244,66 +256,59 @@ int	main( int argc, char *argv[], char *environ[]) {
      **		<dir>/<file>	-->	<dir>/<file>
      **  Use xgetenv to expand 1 level of env.vars.
      **/
-
-    if((rc_name = xgetenv( "MODULERCFILE"))) {
-	/* found something in MODULERCFILE */
-	if((char *) NULL == (rc_path = stringer(NULL,0,rc_name,NULL))) {
-	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-		goto unwind1;
-	    else
-		null_free((void *) &rc_name);
+	if ((rc_name = xgetenv("MODULERCFILE"))) {
+		/* found something in MODULERCFILE */
+		if ((char *)NULL ==
+		    (rc_path = stringer(NULL, 0, rc_name, NULL))) {
+			if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
+				goto unwind2;
+			else
+				null_free((void *)&rc_name);
+		} else {
+			null_free((void *)&rc_name);
+			if ((char *)NULL == (rc_name = strrchr(rc_path, '/'))) {
+				rc_name = rc_path;
+				rc_path = instpath;
+			} else
+				*rc_name++ = '\0';
+			if (!*rc_name) {
+				rc_name = rc_file;
+			}
+		}
 	} else {
-	    null_free((void *) &rc_name);
-	    if((char *) NULL == (rc_name = strrchr( rc_path, '/'))) {
-		rc_name = rc_path;
 		rc_path = instpath;
-	    } else
-		*rc_name++ = '\0';
-	    if( !*rc_name) {
+		null_free((void *)&rc_name);
 		rc_name = rc_file;
-	    }
 	}
-    } else {
-	rc_path = instpath;
-	null_free((void *) &rc_name);
-	rc_name = rc_file;
-    }
-
     /**
      **  Finally we have to change PREFIX -> PREFIX/etc
      **/
-
-    if( rc_path == instpath) {
-	if((char *) NULL == (rc_path = stringer(NULL,0, instpath,"/etc",NULL))){
-	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-		goto unwind1;
-	    else
-		rc_path = NULL;
-	
+	if (rc_path == instpath) {
+		if ((char *)NULL ==
+		    (rc_path = stringer(NULL, 0, instpath, "/etc", NULL))) {
+			if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
+				goto unwind2;
+			else
+				rc_path = NULL;
+		}
 	}
-    }
-
     /**
      **  Source the global and the user defined RC file
      **/
+	g_current_module = (char *)NULL;
 
-    g_current_module = (char *) NULL;
+	if (TCL_ERROR == SourceRC(interp, rc_path, rc_name) ||
+	    TCL_ERROR == SourceRC(interp, getenv("HOME"), modulerc_file))
+		exit(1);
 
-    if( TCL_ERROR == SourceRC( interp, rc_path, rc_name) ||
-	TCL_ERROR == SourceRC( interp, getenv( "HOME"), modulerc_file))
-	exit( 1);
-
-    if( rc_path)
-	null_free((void *) &rc_path);
-
+	if (rc_path)
+		null_free((void *)&rc_path);
     /**
      **  Invocation of the module command as specified in the command line
      **/
-
-    g_flags = 0;
-    Tcl_ArgvToObjv(&objc, &objv, argc-1, argv+1);
-    return_val = cmdModule((ClientData) 0,interp,objc, objv);
-
+	g_flags = 0;
+	Tcl_ArgvToObjv(&objc, &objv, argc - 1, argv + 1);
+	return_val = cmdModule((ClientData) 0, interp, objc, objv);
     /**
      **  If we were doing some operation that has already flushed its output,
      **  then we don't need to re-flush the output here.
@@ -313,47 +318,44 @@ int	main( int argc, char *argv[], char *environ[]) {
      **  a NULL here to indicate that any error message should say that
      **  absolutely NO changes were made to the environment.
      **/
-
-    if( TCL_OK == return_val) {
-	Output_Modulefile_Changes( interp);
+	if (TCL_OK == return_val) {
+		Output_Modulefile_Changes(interp);
 #ifdef HAS_X11LIBS
-	xresourceFinish( 1);
+		xresourceFinish(1);
 #endif
-    } else {
-	Unwind_Modulefile_Changes( interp, NULL);
+	} else {
+		Unwind_Modulefile_Changes(interp, NULL);
 #ifdef HAS_X11LIBS
-	xresourceFinish( 0);
+		xresourceFinish(0);
 #endif
-    }
-
+	}
     /**
      **  Finally clean up. Delete the required hash tables and conditionally
      **  allocated areas.
      **/
+	Global_Hash_Tables(GHashDelete, NULL);
 
-    Global_Hash_Tables(GHashDelete, NULL);
-
-    if( line)
-	null_free((void *) &line);
-    if( error_line)
-	null_free((void *) &error_line);
-
+	if (line)
+		null_free((void *)&line);
+	if (error_line)
+		null_free((void *)&error_line);
     /**
      **  This return value may be evaluated by the calling shell
      **/
-    OutputExit();
-    return ( return_val ? return_val : g_retval);
+	OutputExit();
+	return (return_val ? return_val : g_retval);
 
-/* unwind2:
+/* unwind3:
     null_free((void *) &rc_path); */
+unwind2:
+	null_free((void *)&rc_name);
 unwind1:
-    null_free((void *) &rc_name);
+	FreeList(&ModulePath);
 unwind0:
-
-    /* and error occurred of some type */
-    g_retval = (g_retval ? g_retval : 1);
-    OutputExit();
-    return (g_retval);
+	/* and error occurred of some type */
+	g_retval = (g_retval ? g_retval : 1);
+	OutputExit();
+	return (g_retval);
 
 } /** End of 'main' **/
 

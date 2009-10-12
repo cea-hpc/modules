@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.20 2009/09/02 20:37:38 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.21 2009/10/12 19:41:22 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -207,6 +207,8 @@ unwind0:
  **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
+ **			ModulePathVec	MODULEPATHS uvec		     **
+ **			ModulePath	Vector of MODULEPATHS		     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -217,8 +219,7 @@ int cmdConflict(
 	int objc,
 	Tcl_Obj * CONST84 objv[]
 ) {
-	uvec           *pathlist,	/** List of module-pathes	     **/
-	               *modulelist;	/** List of modules		     **/
+	uvec           *modulelist;	/** List of modules		     **/
 	int             i, j,		/** Loop counters		     **/
 	                numpaths, nummodules;
 					/** Size of the according arrays     **/
@@ -243,11 +244,8 @@ int cmdConflict(
      **  Load the MODULEPATH and split it into a list of paths. Assume success
      **  if no list to be built...
      **/
-	if (!(pathlist = ModulePathList()))
-		goto unwind0;
-	numpaths = uvec_number(pathlist);
-	if (!numpaths)
-		goto success1;
+	if (!ModulePathVec || !(numpaths = uvec_number(ModulePathVec)))
+		goto success0;
     /**
      **  Non-persist mode?
      **/
@@ -262,14 +260,14 @@ int cmdConflict(
 		while (--objc)
 			fprintf(stderr, "%s ", Tcl_GetString(*objv++));
 		fprintf(stderr, "\n");
-		goto success1;
+		goto success0;
 	}
     /**
      **  Now check/display all passed modules ...
      **/
 	for (i = 1; i < objc && Tcl_GetString(objv[i]); i++) {
 		for (j = 0; j < numpaths; j++) {
-			modulelist = SortedDirList(uvec_vector(pathlist)[j],
+			modulelist = SortedDirList(ModulePath[j],
 				   Tcl_GetString(objv[i]), &nummodules);
 			if (modulelist && !uvec_number(modulelist)) {
 				FreeList(&modulelist);
@@ -279,12 +277,12 @@ int cmdConflict(
 	     **  Actually checking for conflicts is done here
 	     **/
 			if (TCL_ERROR ==
-			    checkConflict(interp, uvec_vector(pathlist)[j],
+			    checkConflict(interp, ModulePath[j],
 					  uvec_vector(modulelist), nummodules))
 				if (OK != ErrorLogger(ERR_CONFLICT, LOC,
 				g_current_module, error_module, NULL)) {
 					FreeList(&modulelist);
-					goto unwind1;
+					goto unwind0;
 				}
 	    /**
 	     **  Free the list of modules used in the loops body above.
@@ -295,12 +293,8 @@ int cmdConflict(
     /**
      ** free resources
      **/
-success1:
-	FreeList(&pathlist);
 success0:
 	return (TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
-unwind1:
-	FreeList(&pathlist);
 unwind0:
 	return (TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
 } /** End of 'cmdConflict' **/
@@ -325,6 +319,8 @@ unwind0:
  **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
  **					control everything		     **
+ **			ModulePathVec	MODULEPATHS uvec		     **
+ **			ModulePath	Vector of MODULEPATHS		     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
@@ -337,8 +333,7 @@ int cmdPrereq(
 ) {
 	uvec          **savedlists = (uvec **) NULL;
 	int            *savedlens = (int *)NULL;
-	uvec           *pathlist,		/** module path list **/
-	               *modulelist;		/** sorted module list **/
+	uvec           *modulelist;		/** sorted module list **/
 	char           *notloaded_flag;		/** missing module **/
 	int             i, j, k, numpaths, nummodules, listcnt = 0,
 	    Result = TCL_OK;
@@ -376,11 +371,8 @@ int cmdPrereq(
      **  Load the MODULEPATH and split it into a list of paths. Assume success
      **  if no list to be built...
      **/
-	if (!(pathlist = ModulePathList()))
-		goto unwind0;
-	numpaths = uvec_number(pathlist);
-	if (!numpaths)
-		goto success1;
+	if (!(numpaths = uvec_number(ModulePathVec)))
+		goto success0;
     /**
      **  Allocate memory for the lists of conflict modules
      **/
@@ -398,7 +390,7 @@ int cmdPrereq(
 	notloaded_flag = Tcl_GetString(objv[1]);
 	for (i = 1; i < objc && Tcl_GetString(objv[i]) && notloaded_flag; i++) {
 		for (j = 0; j < numpaths && notloaded_flag; j++) {
-			modulelist = SortedDirList(uvec_vector(pathlist)[j],
+			modulelist = SortedDirList(ModulePath[j],
 				Tcl_GetString(objv[i]), &nummodules);
 			if (modulelist && !uvec_number(modulelist)) {
 				FreeList(&modulelist);
@@ -472,8 +464,6 @@ int cmdPrereq(
 	null_free((void *)&savedlens);
 	null_free((void *)&savedlists);
 
-success1:
-	FreeList(&pathlist);
 success0:
 	return (Result);		/** -------- EXIT (Result)  -------> **/
 

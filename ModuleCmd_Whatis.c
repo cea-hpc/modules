@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.14 2009/09/02 20:37:38 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.15 2009/10/12 19:41:22 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -103,7 +103,6 @@ int ModuleCmd_Whatis(
 	                modulename[MOD_BUFSIZE],/** buffer for modulename    **/
 	              **wptr,		/** whatis text line		     **/
 	              **dirname;	/** modulepath dir		     **/
-	uvec           *modpath;	/** MODULEPATH vector list           **/
     /**
      **	 Initialize the command buffer and set up the modules flag to
      **	 'whatisonly'
@@ -174,21 +173,18 @@ int ModuleCmd_Whatis(
 	 **  Load the MODULEPATH and split it into a list of paths.
 	 **  Assume success if no list is to be displayed ...
 	 **/
-		if (!(modpath = ModulePathList()))
-			goto unwind0;
-		if (!uvec_number(modpath))
+		if (!uvec_number(ModulePathVec))
 			goto success0;
 	/**
 	 **  Scan all the files
 	 **/
-		dirname = uvec_vector(modpath);
+		dirname = ModulePath;
 		while (dirname && *dirname) {
 			if (!check_dir(*dirname))
 				continue;
 			whatis_dir(*dirname, argc, argv, WHATIS_ALL);
 			dirname++;
 		}
-		FreeList(&modpath);
 	}
     /**
      **	 Leave the 'whatis only mode', free up what has been used and return
@@ -238,7 +234,6 @@ int ModuleCmd_Apropos(
 ) {
 	char          **dirname,	/** modulepath dir		     **/
 	               *c;
-	uvec           *modpath;	/** MODULEPATH vector list           **/
 	int             i;
     /**
      **	 Ignore case ... convert all arguments to lower case
@@ -252,23 +247,16 @@ int ModuleCmd_Apropos(
 	 **  Load the MODULEPATH and split it into a list of paths.
 	 **  Assume success if no list is to be displayed ...
 	 **/
-	if (!(modpath = ModulePathList()))
-		goto unwind0;
-	if (!uvec_number(modpath))
+	if (!uvec_number(ModulePathVec))
 		goto success0;
 
-	dirname = uvec_vector(modpath);
+	dirname = ModulePath;
 	while (dirname && *dirname) {
 		if (!check_dir(*dirname))
 			continue;
 
 		whatis_dir(*dirname++, argc, argv, WHATIS_SOME);
 	}
-
-    /**
-     **	 Free up what has been allocated and exit from this procedure
-     **/
-	FreeList(&modpath);
 
 success0:
 	return (TCL_OK);

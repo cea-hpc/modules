@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.33 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.34 2009/10/12 19:41:22 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -497,7 +497,7 @@ uvec *ModulePathList(
      **  Load the MODULEPATH and split it into a list of paths
      **/
 	if (!(modulepath = xgetenv("MODULEPATH"))) {
-		ErrorLogger(ERR_MODULE_PATH, LOC, NULL);
+		/* ErrorLogger(ERR_MODULE_PATH, LOC, NULL); */
 		return NULL;
 	}
 	modulevec = SplitIntoList(modulepath, &numpaths, _colon);
