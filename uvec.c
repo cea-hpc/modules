@@ -9,7 +9,7 @@
  ** 									     **
  ** ************************************************************************ **/
 
-static char Id[]="@(#)$Id: uvec.c,v 1.3 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[]="@(#)$Id: uvec.c,v 1.4 2009/10/15 19:09:35 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 #include <stdlib.h>
@@ -859,7 +859,7 @@ int uvec_sort(uvec *uv, enum uvec_order type) {
 	if (!uvec_exists(uv)) {
 		return -1;
 	}
-	if (uvec_number(uv) > 0) {
+	if (uvec_number(uv) > 1) {
 		switch (type) {
 		case UVEC_ASCEND:
 			cmp = uvec_sort_cmp_ascend;

@@ -9,6 +9,7 @@
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
  **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		R.K. Owen, <rk@owen.sj.ca.us> or <rkowen@nersc.gov>	     **
  ** 									     **
  **   Description:	The load and unload procedure that takes care of     **
  **			adding and removing modulefiles to and from the	     **
@@ -28,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.14 2009/09/02 20:37:38 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.15 2009/10/15 19:09:05 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -151,7 +152,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 
             char	*tmpname;
 
-            if( !IsLoaded( tmp_interp, argv[i], &tmpname, filename)) {
+            if( !IsLoaded( argv[i], &tmpname, filename)) {
 #if 0
 		/** do we really care if it's not loaded ... **/
 		if( OK != ErrorLogger( ERR_NOTLOADED, LOC, argv[i], NULL))

@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.30 2009/10/12 19:41:22 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.31 2009/10/15 19:09:34 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -81,13 +81,15 @@ char	**ModulePath,			/** vector of the above		     **/
 	 *shell_derelict,		/** Shell family (sh, csh, etc)	     **/
 	 *shell_init,			/** Shell init script name	     **/
 	 *shell_cmd_separator,		/** Shell command separator char     **/
-	  _colon[] = ":";		/** directory separator		     **/
+	  _colon[] = ":",		/** directory separator		     **/
+	 *psep;				/** path separator (default = "/")   **/
 int	  g_flags = 0,			/** Control what to do at the moment **/
 					/** The posible values are defined in**/
 					/** module_def.h		     **/
 	  g_retval = 0,			/** exit return value		     **/
 	  g_output = 0,			/** Has output been generated	     **/
 	  append_flag = 0;		/** only used by the 'use' command   **/
+Tcl_Obj	 *cwd;				/** Tcl version of cwd		     **/
 
 /**
  **  Name of the rc files
@@ -285,7 +287,7 @@ int main(
      **/
 	if (rc_path == instpath) {
 		if ((char *)NULL ==
-		    (rc_path = stringer(NULL, 0, instpath, "/etc", NULL))) {
+		    (rc_path = stringer(NULL, 0, instpath,psep,"etc", NULL))) {
 			if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
 				goto unwind2;
 			else
@@ -297,8 +299,8 @@ int main(
      **/
 	g_current_module = (char *)NULL;
 
-	if (TCL_ERROR == SourceRC(interp, rc_path, rc_name) ||
-	    TCL_ERROR == SourceRC(interp, getenv("HOME"), modulerc_file))
+	if (TCL_ERROR == SourceRC(interp, rc_path, rc_name, Mod_Load) ||
+	    TCL_ERROR == SourceRC(interp,getenv("HOME"),modulerc_file,Mod_Load))
 		exit(1);
 
 	if (rc_path)

@@ -48,7 +48,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.19 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.20 2009/10/15 19:09:24 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -63,7 +63,7 @@ static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
 /**									     **/
-/**   The whole thing is handled in memory. The structure is build of module **/
+/**   The whole thing is handled in memory. The structure is built of module **/
 /**   and name records. There are 3 types of name records: version, name     **/
 /**   and alias. 							     **/
 /**									     **/
@@ -227,8 +227,7 @@ int cmdModuleVersion(
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
 	}
 
-	if ((char *)NULL ==
-	    (module = CheckModuleVersion((char *)Tcl_GetString(objv[1])))) {
+	if (!(module = CheckModuleVersion((char *)Tcl_GetString(objv[1])))) {
 		ErrorLogger(ERR_BADMODNAM, LOC, Tcl_GetString(objv[1]), NULL);
 		return (TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	}
@@ -244,7 +243,7 @@ int cmdModuleVersion(
     /**
      **  get the version from the argument
      **/
-	if ((char *)NULL == (version = strrchr(module, '/'))) {
+	if (!(version = strrchr(module, *psep))) {
 		if (OK != ErrorLogger(ERR_INTERAL, LOC, NULL))
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
 	}
@@ -330,7 +329,7 @@ char	*ExpandVersions( char	*name)
     if((char *) NULL == (module = CheckModuleVersion( name))) 
 	return((char *) NULL );		/** -------- EXIT (FAILURE) -------> **/
 
-    if((char *) NULL == (version = strrchr( module, '/'))) {
+    if((char *) NULL == (version = strrchr( module, *psep))) {
 	if( OK != ErrorLogger( ERR_INTERAL, LOC, NULL))
 	    return((char *) NULL );	/** -------- EXIT (FAILURE) -------> **/
     }
@@ -492,7 +491,7 @@ static	char	*CheckModuleVersion( char *name)
      **  Check the first parameter and extract modulename and version
      **/
 
-    if( '/' == *name) {			/** only the version specified	     **/
+    if( *psep == *name) {			/** only the version specified	     **/
 
 	/**
 	 **  get the module name from the current module ...
@@ -502,16 +501,16 @@ static	char	*CheckModuleVersion( char *name)
 	    return((char *) NULL);
 
 	strcpy( buffer, g_current_module);
-	if((char *) NULL == (t = strrchr( buffer, '/')))
+	if((char *) NULL == (t = strrchr( buffer, *psep)))
 	    t = buffer + strlen( buffer);
-	*t++ = '/';
+	*t++ = *psep;
 	*t = '\0';
 
 	/**
 	 **  The version has been specified as a parameter
 	 **/
 
-	if( (s = strrchr( name, '/')) ) {
+	if( (s = strrchr( name, *psep)) ) {
 	    s++;
 	} else {
 	    ErrorLogger( ERR_INTERAL, LOC, NULL);
@@ -523,7 +522,7 @@ static	char	*CheckModuleVersion( char *name)
     } else {				/** Maybe an alias or a module	     **/
 
 	strcpy( buffer, name);
-	if( !strrchr( buffer, '/')) {
+	if( !strrchr( buffer, *psep)) {
 
 	    /**
 	     **  Check wheter this is an alias ...
@@ -533,7 +532,7 @@ static	char	*CheckModuleVersion( char *name)
 
 		/* sprintf( buffer, "%s/%s", s, t); */
 		strcpy( buffer, s);
-		strcat( buffer, "/");
+		strcat( buffer, psep);
 		strcat( buffer, t);
 
 	    } else {
@@ -543,8 +542,8 @@ static	char	*CheckModuleVersion( char *name)
 		 **/
 
 		t = buffer + strlen( buffer);
-		if( '/' != *t)
-		    *t++ = '/';
+		if( *psep != *t)
+		    *t++ = *psep;
 		strcpy( t, _(em_default));
 	    }
 	}
@@ -623,7 +622,7 @@ int cmdModuleAlias(
 		    (module = CheckModuleVersion(Tcl_GetString(objv[2]))))
 			module = (char *)Tcl_GetString(objv[2]);
 
-		if ((char *)NULL != (version = strrchr(module, '/')))
+		if ((char *)NULL != (version = strrchr(module, *psep)))
 			*version++ = '\0';
 	}
     /**
@@ -775,7 +774,7 @@ int	AliasLookup(	char	*alias,
  **   Result:		int	1		Success, value in the buffer **
  **						is valid		     **
  **				0		Any error, or not found	     **
-
+ ** 									     **
  **   Attached Globals:	g_current_module	The module which is handled  **
  **						by the current command	     **
  ** 									     **
@@ -796,9 +795,9 @@ int	VersionLookup(	char *name, char **module, char **version)
      **  BTW: Alias lookups return the FQMN (full qualifed module name ;-)
      **/
 
-    if( '/' == *name) {
+    if( *psep == *name) {
 	strcpy( buffer, g_current_module);
-	if( (s = strrchr( buffer, '/')) )
+	if( (s = strrchr( buffer, *psep)) )
 	    *s = '\0';
 	*module = buffer;
 	*version = name + 1;
@@ -808,7 +807,7 @@ int	VersionLookup(	char *name, char **module, char **version)
 	strcpy( buffer, name);
 	*module = buffer;
 
-	if((char *) NULL == (*version = strrchr( buffer, '/'))) {
+	if((char *) NULL == (*version = strrchr( buffer, *psep))) {
 
 	    if( AliasLookup( buffer, &s, &t)) {
 		*module = s; *version = t;
@@ -830,7 +829,7 @@ int	VersionLookup(	char *name, char **module, char **version)
     }
 
     /**
-     **  This is for preventing from endless loops
+     **  This is for preventing endless loops
      **/
     histsize = HISTTAB;
     histndx = 0;
@@ -1020,7 +1019,7 @@ static	ModModule	*AddModule(	char	*name)
      **  Fill the name in and put it in the queue
      **/
 
-    if((char *) NULL == (ptr->module = stringer(NULL,0, name, NULL))) {
+    if(!(ptr->module = stringer(NULL,0, name, NULL))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
 	null_free((void *) &ptr);
 	return((ModModule *) NULL);
@@ -1128,7 +1127,7 @@ static	ModName	*AddName(	char	 *name,
      **  Fill the name in and put it in the queue
      **/
 
-    if((char *) NULL == (ptr->name = stringer(NULL,0, name, NULL))) {
+    if(!(ptr->name = stringer(NULL,0, name, NULL))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
 	null_free((void *) &ptr);
 	return((ModName *) NULL);

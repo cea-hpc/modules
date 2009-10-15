@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.30 2009/10/12 19:41:22 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.31 2009/10/15 19:09:34 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -125,35 +125,33 @@ int Locate_ModuleFile(
 		if (OK != ErrorLogger(ERR_PARAM, LOC, "modulename", NULL))
 			goto unwind0;
 
-	if (modulename[0] == '/' || modulename[0] == '.') {
-		p = (char *)strrchr(modulename, '/');
+	if (modulename[0] == *psep || modulename[0] == '.') {
+		p = (char *)strrchr(modulename, *psep);
 		if (p) {
 			*p = '\0';
 	    /**
 	     **  Check, if what has been specified is a valid version of
 	     **  the specified module ...
 	     **/
-			if ((char *)NULL == (result =
+			if (!(result =
 			     GetModuleName(interp, modulename, NULL, (p + 1))))
 				goto unwind0;
 	    /**
 	     **  Reinstall the 'modulefile' which has been corrupted by
 	     **   tokenization
 	     **/
-			*p = '/';
+			*p = *psep;
 	    /**
 	     **  ... Looks good! Conditionally (if there has been no version
 	     **  specified) we have to add the default version
 	     **/
 			if (!strcmp((p + 1), result)) {
-				if ((char *)NULL ==
-				    stringer(filename, MOD_BUFSIZE, modulename,
-					     NULL))
+				if (!(stringer(filename, MOD_BUFSIZE,
+					     modulename, NULL)))
 					goto unwind1;
 			} else {
-				if ((char *)NULL ==
-				    stringer(filename, MOD_BUFSIZE, modulename,
-					     "/", result, NULL))
+				if (!(stringer(filename, MOD_BUFSIZE,
+					     modulename, psep, result, NULL)))
 					goto unwind1;
 			}
 		} else {
@@ -161,48 +159,43 @@ int Locate_ModuleFile(
 	     **  Hmm! There's no backslash in 'modulename'. So it MUST begin
 	     **  on '.' and MUST be part of the current directory
 	     **/
-			if (NULL ==
-			    (result =
-			     GetModuleName(interp, modulename, NULL,
+			if (!(result = GetModuleName(interp, modulename, NULL,
 					   modulename)))
 				goto unwind0;
 
 			if (!strcmp(modulename, result) ||
 			    (strlen(modulename) + 1 + strlen(result) + 1 >
 			     MOD_BUFSIZE)) {
-				if ((char *)NULL ==
-				    stringer(filename, MOD_BUFSIZE, modulename,
-					     NULL))
+				if (!(stringer(filename, MOD_BUFSIZE,
+					     modulename, NULL)))
 					goto unwind1;
 			} else {
-				if ((char *)NULL ==
-				    stringer(filename, MOD_BUFSIZE, modulename,
-					     "/", result, NULL))
+				if (!(stringer(filename, MOD_BUFSIZE,
+					modulename, psep, result, NULL)))
 					goto unwind1;
 			}
 		}
+	} else {
     /**
      **  So it is not a full path name what has been specified. Scan the 
      **  MODULESPATH
      **/
-	} else {
 	/**
 	 **  If I don't find a path in MODULEPATH, there's nothing to search.
 	 **/
-		if (!ModulePathVec || !uvec_number(ModulePathVec)) {
+		if (!ModulePathVec || !uvec_number(ModulePathVec))
 			if (OK != ErrorLogger(ERR_MODULE_PATH, LOC, NULL)) {
 				g_current_module = NULL;
 				goto unwind0;
 			}
-		}
 	/**
 	 **  Expand the module name (in case it is a symbolic one). This must
 	 **  be done once here in order to expand any aliases
 	 **/
 		if (VersionLookup(modulename, &mod, &vers)) {
-			if ((char *)NULL == stringer(strbuffer, MOD_BUFSIZE,
-						     mod, "/", vers, NULL))
-				goto unwind0;
+			if (!(stringer(strbuffer, MOD_BUFSIZE,
+						     mod, psep, vers, NULL)))
+				goto unwindp;
 			modulename = strbuffer;
 		}
 	/**
@@ -213,40 +206,39 @@ int Locate_ModuleFile(
 	/**
 	 **  Check each directory to see if it contains the module
 	 **/
-		for (i = 0; i < numpaths; i++) {
+		while (pathlist && *pathlist && **pathlist) {
 			/* skip empty paths */
-			if (*pathlist[i] && (NULL != (result =
-				GetModuleName(interp, pathlist[i],
-				    NULL, modulename)))) {
+			if ((result = GetModuleName(interp,
+				    *pathlist, NULL, modulename))) {
 
-				if (strlen(pathlist[i]) + 2 + strlen(result) >
+				if (strlen(*pathlist) + 2 + strlen(result) >
 				    MOD_BUFSIZE) {
-					if ((char *)NULL ==
-					    stringer(filename, MOD_BUFSIZE,
-						     pathlist[i], NULL))
-						goto unwind1;
+					if (!(stringer(filename, MOD_BUFSIZE,
+						     *pathlist, NULL)))
+						goto unwindp;
 				} else {
-					if ((char *)NULL ==
-					    stringer(filename, MOD_BUFSIZE,
-						     pathlist[i], "/", result,
-						     NULL))
-						goto unwind1;
+					if (!(stringer(filename, MOD_BUFSIZE,
+						     *pathlist, psep, result,
+						     NULL)))
+						goto unwindp;
 				}
 				break;
 			}
+#if 0
 	    /**
 	     **  If we havn't found it, we should try to re-expand the module
 	     **  name, because some rc file have been sourced
 	     **/
 			if (VersionLookup(modulename, &mod, &vers)) {
 				if ((char *)NULL ==
-				    stringer(strbuffer, MOD_BUFSIZE, mod, "/",
+				    stringer(strbuffer, MOD_BUFSIZE, mod, psep,
 					     vers, NULL))
-					goto unwind1;
+					goto unwindp;
 				modulename = strbuffer;
 			}
-		}
-	  /** for **/
+#endif
+			pathlist++;
+		} /** for **/
 	/**
 	 **  If result still NULL, then we really never found it and we should
 	 **  return ERROR and clear the full_path array for cleanliness.
@@ -255,15 +247,18 @@ int Locate_ModuleFile(
 			filename[0] = '\0';
 			goto unwind0;
 		}
-	}
-      /** not a full path name **/
+		if (0) {
+unwindp:
+			goto unwind1;
+		}
+	} /** not a full path name **/
     /**
      **  Free up what has been allocated and pass the result back to
      **  the caller and save the real module file name returned by
      **  GetModuleName
      **/
 	strncpy(realname, result, MOD_BUFSIZE);
-	if ((char *)NULL == stringer(realname, MOD_BUFSIZE, result, NULL))
+	if (!(stringer(realname, MOD_BUFSIZE, result, NULL)))
 		goto unwind1;
 	null_free((void *)&result);
 
@@ -321,18 +316,18 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
      **  Split the modulename into module and version. Use a private buffer
      **  for this
      **/
-    if((char *) NULL == (s = stringer(NULL, 0,  modulename, NULL))) {
+    if(!(s = stringer(NULL, 0,  modulename, NULL))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
 	goto unwind0;
     }
     slen = strlen( s) + 1;
     mod = s;
-    if( (ver = strchr( mod, '/')) )
+    if( (ver = strchr( mod, *psep)) )
 	*ver++ = '\0';
     /**
      **  Allocate a buffer for full pathname building
      **/
-    if((char *) NULL == (fullpath = stringer(NULL, MOD_BUFSIZE, NULL))) {
+    if(!(fullpath = stringer(NULL, MOD_BUFSIZE, NULL))) {
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL)) {
 	    goto unwind1;
 	}
@@ -342,11 +337,11 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
      **/
     if( prefix) {
 	if((char *) NULL == stringer(fullpath, MOD_BUFSIZE,
-	path,"/",prefix,"/",mod, NULL))
+	path,psep,prefix,psep,mod, NULL))
 	    goto unwind1;
     } else {
 	if((char *) NULL == stringer(fullpath, MOD_BUFSIZE,
-	path,"/",mod, NULL))
+	path,psep,mod, NULL))
 	    goto unwind1;
     }
     is_def = !strcmp( mod, _(em_default));
@@ -362,7 +357,7 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 	     **/
 	    if( prefix) {
 		if((char *) NULL == stringer(modfil_buf, MOD_BUFSIZE,
-		path,"/",mod, NULL))
+		path,psep,mod, NULL))
 		    goto unwind2;
 	    } else {
 		if((char *) NULL == stringer(modfil_buf, MOD_BUFSIZE,mod, NULL))
@@ -370,12 +365,12 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 	    }
 
 	    if((char *) NULL == stringer(fullpath, MOD_BUFSIZE,
-	    path,"/",modfil_buf, NULL))
+	    path,psep,modfil_buf, NULL))
 		goto unwind2;
 	    g_current_module = modfil_buf;
 
-	    if( TCL_ERROR == SourceRC( interp, fullpath, modulerc_file) ||
-		TCL_ERROR == SourceVers( interp, fullpath, modfil_buf)) {
+	    if( TCL_ERROR == SourceRC(interp,fullpath,modulerc_file,Mod_Load) ||
+		TCL_ERROR == SourceVers(interp,fullpath,modfil_buf,Mod_Load)) {
 		/* flags = save_flags; */
 		    goto unwind2;
 	    }
@@ -398,12 +393,12 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		/**
 		 **  Print the new module/version in the buffer
 		 **/
-		if((char *) NULL == stringer( s, len, mod1,"/", ver1, NULL)) {
+		if((char *) NULL == stringer( s, len, mod1,psep, ver1, NULL)) {
 		    ErrorLogger( ERR_STRING, LOC, NULL);
 		    goto unwind2;
 		}
 		mod = s;
-		if( (ver = strchr( s, '/')) )
+		if( (ver = strchr( s, *psep)) )
 		    *ver++ = '\0';
 	    }
 	    /**
@@ -423,7 +418,7 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		}
 
 		if( prefix) {
-		    if((char *) NULL == stringer(t, len, prefix,"/",mod, NULL)){
+		    if((char *) NULL == stringer(t,len,prefix,psep,mod, NULL)){
 			ErrorLogger( ERR_STRING, LOC, NULL);
 			goto unwindt;
 		    }
@@ -469,7 +464,7 @@ unwindt:
 		 **  If it's a directory, we delve into it.
 		 **/
 		for( i=0; i<numlist && Result==NULL; i++) {
-	char	 *filename;
+			char	 *filename;
 		    /**
 		     **  Build the full path name and check if it is a
 		     **  directory. If it is, recursively try to find there what
@@ -477,7 +472,7 @@ unwindt:
 		     **/
 			filename = uvec_vector(filelist)[i];
 		    if ((char *)NULL == stringer(fullpath, MOD_BUFSIZE,
-			path, "/", filename, NULL))
+			path, psep, filename, NULL))
 			    goto unwind2;
 
 		    if( !stat( fullpath, &stats) && S_ISDIR( stats.st_mode)) {
@@ -519,7 +514,7 @@ unwindt:
 		   goto unwind2;
 		}
 		if( prefix) {
-		    if((char *) NULL == stringer(t,len, prefix,"/",Result,NULL))
+		    if((char *) NULL == stringer(t,len, prefix,psep,Result,NULL))
 			goto unwindt2;
 		} else {
 		    if((char *) NULL == stringer(t,len, Result,NULL))
@@ -557,13 +552,14 @@ unwind0:
  ** 									     **
  **   Function:		SourceRC					     **
  ** 									     **
- **   Description:	Source the passed global RC file		     **
+ **   Description:	Source the passed RC file			     **
  ** 									     **
  **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Parameters:	Tcl_Interp	*interp		Tcl interpreter	     **
  **			char		*path		Path to be used      **
  **			char		*name		Name of the RC file  **
+ **			Mod_Act		action		Load or Unload	     **
  **									     **
  **   Result:		int		TCL_OK		Success		     **
  **					TCL_ERROR	Failure		     **
@@ -575,95 +571,80 @@ unwind0:
  ** ************************************************************************ **
  ++++*/
 
-int SourceRC( Tcl_Interp *interp, char *path, char *name)
-{
-    struct stat	  stats;		/** Buffer for the stat() systemcall **/
-    int 	  save_flags, i;
-    char	 *buffer;
-    int		  Result = TCL_OK;
-    static char	**srclist = (char **) NULL;
-    static int	  listsize = 0, listndx = 0;
+int SourceRC(
+	Tcl_Interp * interp,
+	char *path,
+	char *name,
+	Mod_Act action
+) {
+	struct stat     stats;		/** Buffer for the stat() systemcall **/
+	char           *buffer;		/** for full path/name		     **/
+	int             save_flags,	/** cache g_flags		     **/
+	                Result = TCL_OK;
 
     /**
      **  If there's a problem with the input parameters it means, that
      **  we do not have to source anything
      **  Only a valid TCL interpreter should be there
      **/
-    if( !path || !name)
-	return( TCL_OK);
+	if (!path || !name)
+		return (TCL_OK);
 
-    if( !interp)
-	return( TCL_ERROR);
+	if (!interp)
+		return (TCL_ERROR);
+
+	if (action != Mod_Load && action != Mod_Unload)
+		return (TCL_ERROR);
+
     /**
      **  Build the full name of the RC file
-     **  Avoid duplicate sourcing
      **/
-    if ((char *) NULL == (buffer = stringer(NULL, 0, path,"/",name, NULL)))
-	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-	    goto unwind0;
-    for( i=0; i<listndx; i++)
-	if( !strcmp( srclist[ i], buffer))
-	    goto unwind1;
+	if ((char *)NULL ==
+	    (buffer = stringer(NULL, 0, path, psep, name, NULL)))
+		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
+			goto unwind0;
     /**
      **  Check whether the RC file exists and has the magic cookie inside
      **/
-    if( !stat( buffer, &stats)) {
-	if( check_magic( buffer, MODULES_MAGIC_COOKIE, 
-	    MODULES_MAGIC_COOKIE_LENGTH)) {
+	if (!stat(buffer, &stats)) {
+		if (check_magic(buffer, MODULES_MAGIC_COOKIE,
+				MODULES_MAGIC_COOKIE_LENGTH)) {
 	    /**
-	     **  Set the flags to 'load only'. This prevents from accidently
-	     **  printing something
+	     **  Set the flags to '(un)load only'. This prevents from
+	     **  accidentally printing something
 	     **/
-	    save_flags = g_flags;
-	    g_flags = M_LOAD;
+			save_flags = g_flags;
+			if (action == Mod_Load)
+				g_flags = M_LOAD;
+			else
+				g_flags = M_REMOVE;
 	    /**
 	     **  Source now
 	     **/
-	    if( TCL_ERROR == Execute_TclFile( interp, buffer)) 
-		if( OK != ErrorLogger( ERR_SOURCE, LOC, buffer, NULL)) 
-		    Result = TCL_ERROR;
-	    g_flags = save_flags;
-	    /**
-	     **  Save the currently sourced file in the list
-	     **  Check whether the list is big enough to fit in a new entry
-	     **/
-	    if( !listsize) {
-		listsize = SRCFRAG;
-		if((char **) NULL
-			== (srclist = (char **) module_malloc( listsize *
-		    sizeof( char **)))) {
-		    ErrorLogger( ERR_ALLOC, LOC, NULL);
-		    goto unwind1;
-		}
-	    } else if( listndx + 1 >= listsize) {
-		listsize += SRCFRAG;
-		if((char **) NULL == (srclist = (char **) module_realloc(
-		    srclist, listsize * sizeof( char **)))) {
-		    ErrorLogger( ERR_ALLOC, LOC, NULL);
-		    goto unwind1;
-		}
-	    }
-	    /**
-	     **  Put the current RC files name on the list
-	     **/
-	    srclist[ listndx++] = buffer;
+			if (TCL_ERROR == Execute_TclFile(interp, buffer))
+				if (OK !=
+				    ErrorLogger(ERR_SOURCE, LOC, buffer, NULL))
+					Result = TCL_ERROR;
 
-	} else {
-	    ErrorLogger( ERR_MAGIC, LOC, buffer, NULL);
-	    null_free((void *) &buffer);
+			g_flags = save_flags;
+
+		} else {
+			/* Not an error ... just warn of invalid magic cookie */
+			ErrorLogger(ERR_MAGIC, LOC, buffer, NULL);
+		}
 	}
-    } else {	/** if( !stat) - presumably not found **/
-	null_free((void *) &buffer);
-    }
+	    /** if( !stat) - presumably not found **/
     /**
-     **  Return our result
+     **  Free resources and return result
      **/
-    return( Result);
+	null_free((void *)&buffer);
+
+	return (Result);
 
 unwind1:
-    null_free((void *) &buffer);
+	null_free((void *)&buffer);
 unwind0:
-    return( TCL_ERROR);
+	return (TCL_ERROR);
 
 } /** End of 'SourceRC' **/
 
@@ -679,6 +660,7 @@ unwind0:
  **   Parameters:	Tcl_Interp	*interp		Tcl interpreter	     **
  **			char		*path		Path to be used      **
  **			char		*name		Name of the module   **
+ **			Mod_Act		action		Load or Unload	     **
  **									     **
  **   Result:		int		TCL_OK		Success		     **
  **					TCL_ERROR	Failure		     **
@@ -690,93 +672,105 @@ unwind0:
  ** ************************************************************************ **
  ++++*/
 
-int SourceVers( Tcl_Interp *interp, char *path, char *name)
-{
-    struct stat	  stats;		/** Buffer for the stat() systemcall **/
-    int save_flags;
-    char *buffer;
-    int Result = TCL_OK;
-    char *version;
-    char *new_argv[3];
-    char *mod, *ver;
+int SourceVers(
+	Tcl_Interp * interp,
+	char *path,
+	char *name,
+	Mod_Act action
+) {
+	struct stat     stats;		/** Buffer for the stat() systemcall **/
+	char           *buffer,		/** for full path/name		     **/
+		       *version,	/** default version		     **/
+		       *mod, *ver;	/** module & version		     **/
+	int             save_flags,	/** cache g_flags		     **/
+	                Result = TCL_OK;
 
     /**
      **  If there's a problem with the input parameters it means, that
      **  we do not have to source anything
-     **  Only a valid TCL interpreter should be there
+     **  Only a valid TCL interpreter should be here
      **/
-    if( !path || !name)
-	return( TCL_OK);
-    if( !interp)
-	return( TCL_ERROR);
+	if (!path || !name)
+		return (TCL_OK);
+	if (!interp)
+		return (TCL_ERROR);
     /**
      **  No default version defined so far?
      **/
-    if( VersionLookup( name, &mod, &ver) &&
-	strcmp( ver, _(em_default)))
-	return( TCL_OK);
+	if (VersionLookup(name, &mod, &ver) && strcmp(ver, _(em_default)))
+		return (TCL_OK);
     /**
      **  Build the full name of the RC file and check whether it exists and
      **  has the magic cookie inside
      **/
-    if ((char *) NULL == (buffer = stringer(NULL, 0, path,"/",version_file,
-	NULL)))
-	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-	    return( TCL_ERROR);
-    if( !stat( buffer, &stats)) {
-	if(
+	if ((char *)NULL ==
+	    (buffer = stringer(NULL, 0, path, psep, version_file, NULL)))
+		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
+			return (TCL_ERROR);
+	if (!stat(buffer, &stats)) {
+		if (
 #if VERSION_MAGIC != 0
-	    check_magic( buffer, MODULES_MAGIC_COOKIE, 
-	    MODULES_MAGIC_COOKIE_LENGTH)
+			   check_magic(buffer, MODULES_MAGIC_COOKIE,
+				       MODULES_MAGIC_COOKIE_LENGTH)
 #else
-	1
+			   1
 #endif
-	) {
-	    save_flags = g_flags;
-	    g_flags = M_LOAD;
+		    ) {
+			save_flags = g_flags;
+			if (action == Mod_Load)
+				g_flags = M_LOAD;
+			else
+				g_flags = M_REMOVE;
 
-	    if( TCL_ERROR != (Result = Execute_TclFile( interp, buffer)) && 
-		(version = (char *) Tcl_GetVar(interp, "ModulesVersion", 0))) {
-		int	objc = 3;
-		Tcl_Obj **objv;
+			if (TCL_ERROR !=
+			    (Result = Execute_TclFile(interp, buffer))
+			    && (version =
+				(char *)Tcl_GetVar(interp, "ModulesVersion",
+						   0))) {
+				char	       *new_argv[4];
+				int             objc = 3;
+				Tcl_Obj       **objv;
 		/**
-		 **  The version has been specified in the
-		 **  '.version' file. Set up the result code
+		 **  The version has been specified within the
+		 **  '.version' file via the ModulesVersion variable
 		 **/
-		null_free((void *) &buffer);
-		if ((char *) NULL == (buffer = stringer(NULL, 0,
-		name,"/",version, NULL)))
-		    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-			return( TCL_ERROR);
+				null_free((void *)&buffer);
+				if ((char *)NULL == (buffer = stringer(NULL, 0,
+					name, psep, version, NULL)))
+					if (OK !=
+					    ErrorLogger(ERR_STRING, LOC, NULL))
+						return (TCL_ERROR);
 
-		new_argv[0] = "module-version";
-		new_argv[1] = buffer;
-		new_argv[2] = _(em_default);
-		Tcl_ArgvToObjv(&objc, &objv, 3, new_argv);
+				new_argv[0] = "module-version";
+				new_argv[1] = buffer;
+				new_argv[2] = _(em_default);
+				new_argv[3] = NULL;
+				Tcl_ArgvToObjv(&objc, &objv, 3, new_argv);
 		/**
 		 **  Define the default version
 		 **/
-		if( TCL_OK != cmdModuleVersion( (ClientData) 0,
-		    (Tcl_Interp *) NULL, 3, objv)) {
-			Result = TCL_ERROR;
-		}
-	    } /** if( Execute...) **/
-
-	    g_flags = save_flags;
-
-	} else
-	    ErrorLogger( ERR_MAGIC, LOC, buffer, NULL);
-
-    } /** if( !stat) **/
+				if (TCL_OK != cmdModuleVersion((ClientData) 0,
+				    (Tcl_Interp *) NULL, objc, objv))
+					Result = TCL_ERROR;
+				Tcl_FreeObjv(&objv);
+		/**
+		 **  No need for the set variable (only accepted here)
+		 **/
+				(void) Tcl_UnsetVar(interp,"ModulesVersion",
+					NULL);
+			} /** if( Execute...) **/
+			g_flags = save_flags;
+		} else
+			ErrorLogger(ERR_MAGIC, LOC, buffer, NULL);
+	} /** if( !stat) **/
     /**
      ** free buffer memory
      **/
-    null_free((void *) &buffer);
+	null_free((void *)&buffer);
     /**
      **  Result determines if this was successful
      **/
-
-    return( Result);
+	return (Result);
 
 } /** End of 'SourceVers' **/
 

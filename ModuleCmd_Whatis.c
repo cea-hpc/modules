@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.15 2009/10/12 19:41:22 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.16 2009/10/15 19:09:12 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -346,7 +346,7 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
 	 **/
 
 	if( (char *) NULL == stringer(modulefile,MOD_BUFSIZE,
-		dir,"/",list[i],NULL)) {
+		dir,psep,list[i],NULL)) {
 	    result = TCL_ERROR;
 	    break; /** for( i) **/
 	}

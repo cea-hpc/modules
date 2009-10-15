@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdLog.c,v 1.15 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdLog.c,v 1.16 2009/10/15 19:09:24 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -175,7 +175,7 @@ int cmdModuleLog(
 		if (s && !*s)
 			continue;	/* skip empty ones */
 
-		if ('.' == *s || '/' == *s ||		       /** filename  **/
+		if ('.' == *s || *psep == *s ||		       /** filename  **/
 		    !strcmp(_stderr, s) || !strcmp(_stdout, s) ||
 							       /** special   **/
 		    !strcmp(_null, s) || !strcmp(_none, s) ||  /** null	     **/

@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.15 2009/09/02 20:37:38 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.16 2009/10/15 19:09:01 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -167,7 +167,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
      **/
     homelen = strlen(home) + 40;
     if ((char *) NULL ==
-	(home_pathname = stringer(NULL, homelen, home, "/", NULL)))
+	(home_pathname = stringer(NULL, homelen, home, psep, NULL)))
 	if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 	    goto unwind0;
 
@@ -257,8 +257,8 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 			*endp = '\0';
 		    }
 
-		    if ((char **) NULL ==
-		    (modlist = uvec_vector(SplitIntoList(startp, &nummods," \t"))))
+		    if ((char **) NULL == (modlist
+			= uvec_vector(SplitIntoList(startp, &nummods," \t"))))
 			continue; /** while(fgets) **/
 
 		    /* restore the list end character */

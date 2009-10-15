@@ -15,6 +15,7 @@
  ** 									     **
  **   Exports:		Tcl_ArgvToObjv					     **
  **			Tcl_ObjvToArgv					     **
+ **			Tcl_ObjvToUvec					     **
  **			mhash_*	(see below)				     **
  **									     **
  **   Notes:								     **
@@ -29,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utilobj.c,v 1.5 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: utilobj.c,v 1.6 2009/10/15 19:09:35 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -48,7 +49,7 @@ static void *UseId[] = { &UseId, Id };
 /** 				     CONSTANTS				     **/
 /** ************************************************************************ **/
 
-/** not applicable **/
+char mhash_TAG[6] = "MHASH";
 
 /** ************************************************************************ **/
 /**				      MACROS				     **/
@@ -133,8 +134,8 @@ int Tcl_ArgvToObjv(
  ** 									     **
  **   Function:		Tcl_ObjvToArgv					     **
  ** 									     **
- **   Description:	Take a Unix NULL terminated vector of char strings   **
- **			and create a Tcl_Obj vector.			     **
+ **   Description:	Take a vector of Tcl_Obj pointers and create	     **
+ **			a NULL terminated Unix vector.			     **
  ** 									     **
  **   First Edition:	2009/08/23					     **
  ** 									     **
@@ -185,6 +186,96 @@ int Tcl_ObjvToArgv(
 	return (TCL_OK);		      /** ----- EXIT (SUCCESS) ----> **/
 
 } /** End of 'Tcl_ObjvToArgv' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		Tcl_ObjvToUvec					     **
+ ** 									     **
+ **   Description:	Take a vector of Tcl_Obj pointers and create	     **
+ **			a uvec object.					     **
+ ** 									     **
+ **   First Edition:	2009/09/03					     **
+ ** 									     **
+ **   Parameters:	uvec		**uvp		uvec object pointer  **
+ **			int		objc		objv element count   **
+ **			Tcl_Obj 	*objv[]		objv vector	     **
+ ** 									     **
+ **   Result:		int	TCL_OK		Successful completion	     **
+ ** 									     **
+ **   Attached Globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+int Tcl_ObjvToUvec(
+	uvec **uvp,
+	int objc,
+	Tcl_Obj * CONST84 * objv
+) {
+	Tcl_Obj * CONST84 * optr = objv;
+
+	/** if objc < 0 then count the number of elements **/
+	if (objc < 0) {
+		objc = 0;
+		while (optr && *optr) {
+			optr++;
+			objc++;
+		}
+	}
+
+	/** allocate the necessary memory **/
+	if (!(*uvp = uvec_ctor(objc + 1)))
+		if (OK != ErrorLogger(ERR_UVEC, LOC, NULL))
+			return (TCL_ERROR);   /** ----- EXIT (FAILURE) ----> **/
+
+	/** create the list of strings **/
+	while (objc--) {
+		if (0 > uvec_add(*uvp,Tcl_GetString(*objv++)))
+			if (OK != ErrorLogger(ERR_UVEC, LOC, NULL))
+				return (TCL_ERROR); /** -- EXIT (FAILURE) -> **/
+	}
+
+	return (TCL_OK);		      /** ----- EXIT (SUCCESS) ----> **/
+
+} /** End of 'Tcl_ObjvToArgv' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		Tcl_FreeObjv					     **
+ ** 									     **
+ **   Description:	Take a Tcl_Obj vector and free the storage	     **
+ ** 									     **
+ **   First Edition:	2009/09/15					     **
+ ** 									     **
+ **   Parameters:	Tcl_Obj 	**objv[]	objv vector	     **
+ ** 									     **
+ **   Result:		int	TCL_OK		Successful completion	     **
+ ** 									     **
+ **   Attached Globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+int Tcl_FreeObjv(
+	Tcl_Obj *** objv
+) {
+	Tcl_Obj       **optr = *objv;
+	
+	while (optr && *optr) {
+		/* just decrement count ... when zero Tcl will garbage collect*/
+		Tcl_DecrRefCount(*optr);
+		*optr = (Tcl_Obj *) NULL;
+		optr++;
+	}
+	
+	/** free vector memory **/
+	null_free((void *) objv);
+
+	return (TCL_OK);		      /** ----- EXIT (SUCCESS) ----> **/
+
+} /** End of 'Tcl_FreeObjv' **/
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -267,6 +358,7 @@ MHash *mhash_ctor(MHashType type) {
 			return (MHash *) NULL; 	/** ---- EXIT (FAILURE) ---> **/
 
 	/* set some struct elements */
+	(void) strcpy(mhp->tag, mhash_TAG);
 	mhp->type = type;
 	if (!(mhp->hash =(Tcl_HashTable *)module_malloc(sizeof(Tcl_HashTable))))
 		if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
@@ -320,6 +412,10 @@ int mhash_dtor(MHash **mhp) {
 
 	Tcl_DeleteHashTable(mh->hash);
 	null_free((void *) &(mh->hash));
+
+	/* set some values */
+	mh->type = MHashNULL;
+	*(mh->tag) = '\0';
 
 	/* dealloc struct */
 	null_free((void *) mhp);
@@ -438,6 +534,11 @@ int mhash_add(MHash *mh, const char *key, ...) {
 /*
  * accessor methods
  */
+/* mhash_exists - tests whether struct is valid (1 = OK, 0 = otherwise) */
+int mhash_exists(MHash *mh) {
+	return ((mh && !strncmp(mh->tag, mhash_TAG, 6)) ? 1 : 0);
+}
+
 /* mhash_type - return the type of MHash this is */
 MHashType mhash_type(MHash *mh) {
 	return mh->type;

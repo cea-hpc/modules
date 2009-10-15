@@ -39,6 +39,7 @@
 #include <tcl.h>
 #include "config.h"
 #include "uvec.h"
+#include "ovec.h"
 
 #ifndef CONST84
 #  define CONST84	/* const */
@@ -167,6 +168,7 @@ typedef enum {
 } MHashType;
 
 typedef struct _mhash {
+	char		tag[6];			/** name tag for this	**/
 	MHashType	type;			/** what type is this	**/
 	uvec		*keys;			/** vector of keys	**/
 	Tcl_HashTable	*hash;			/** hash container	**/
@@ -307,6 +309,15 @@ typedef enum	{
 	EM_ERROR			/** abnormal return	**/
 } EM_RetVal;
 
+/**
+ **  Internal switch for toggling between 'load' and 'unload'
+ **/
+typedef enum	{
+	Mod_Null	=0,		/** Invalid module action	**/
+	Mod_Load,			/** load the given module	**/
+	Mod_Unload			/** unload the same		**/
+} Mod_Act;
+
 /** ************************************************************************ **/
 /** 				     CONSTANTS				     **/
 /** ************************************************************************ **/
@@ -377,7 +388,7 @@ typedef enum	{
  **/
 
 #ifndef	RCFILE
-#  define	RCFILE		"rc"
+#  define	RCFILE		"modulerc"
 #endif
 
 #ifndef	MODULERCFILE
@@ -472,6 +483,8 @@ extern	char	 *line;
 extern	char	 *error_line;
 extern	char	  local_line[];
 extern	char	  _colon[];
+extern	char	 *psep;
+extern	Tcl_Obj	 *cwd;
 
 extern	int	  linenum;
 
@@ -533,8 +546,8 @@ extern	char	 long_header[];
 
 /**  locate_module.c  **/
 extern	int	  Locate_ModuleFile( Tcl_Interp*, char*, char*, char*);
-extern	int	  SourceVers( Tcl_Interp*, char*, char*);
-extern	int	  SourceRC( Tcl_Interp *interp, char *, char *);
+extern	int	  SourceVers( Tcl_Interp*, char*, char*, Mod_Act);
+extern	int	  SourceRC( Tcl_Interp*, char*, char*, Mod_Act);
 
 /**  main.c  **/
 extern  void	  module_usage(FILE *output);
@@ -701,9 +714,9 @@ extern	int	  store_env( void);
 extern	int	  free_stored_env( void);
 extern	Tcl_HashTable*  environ_changes;
 extern	Tcl_HashTable*  alias_changes;
-extern	char	 *getLMFILES( Tcl_Interp *interp);
-extern	int	  IsLoaded( Tcl_Interp*, char*, char**, char*);
-extern	int	  IsLoaded_ExactMatch( Tcl_Interp*, char*, char	**, char*);
+extern	char	 *getLMFILES(void);
+extern	int	  IsLoaded( char*, char**, char*);
+extern	int	  IsLoaded_ExactMatch( char*, char	**, char*);
 extern	int	  Update_LoadedList( Tcl_Interp*, char*, char*);
 extern	int	  check_magic( char*, char*, int);
 extern	char	 *xstrtok_r(char *, const char *, char **);
@@ -716,6 +729,7 @@ extern  int       tmpfile_mod( char**, FILE**);
 extern	char	 *stringer(char *, int, ...);
 extern	EM_RetVal	ReturnValue( Tcl_Interp*, int);
 extern	void	  OutputExit();
+extern	int	  module_setenv(const char *var, const char *val);
 
 /** utilmem.c **/
 extern	void	 *module_malloc(size_t);
@@ -726,12 +740,16 @@ extern	void	  null_free(void **);
 /** utilobj.c **/
 extern	int	  Tcl_ArgvToObjv(int *, Tcl_Obj ***, int, char * const *);
 extern	int	  Tcl_ObjvToArgv(int *, char ***, int, Tcl_Obj * CONST84 *);
+extern	int	  Tcl_ObjvToUvec(uvec **, int, Tcl_Obj * CONST84 *);
+extern	int	  Tcl_FreeObjv(Tcl_Obj ***);
+
 extern	MHash	 *mhash_ctor(MHashType);
 extern	int	  mhash_dtor(MHash **);
 extern	MHash	 *mhash_copy(MHash *);
 extern	int	  mhash_del_(MHash *, const char *key, ...);
 extern	int	  mhash_del(MHash *, const char *key, ...);
 extern	int	  mhash_add(MHash *, const char *key, ...);
+extern	int	  mhash_exists(MHash *);
 extern	MHashType mhash_type(MHash *);
 extern	int	  mhash_number(MHash *);
 extern	uvec	 *mhash_keys_uvec(MHash *);

@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.9 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.10 2009/10/15 19:09:06 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -121,7 +121,7 @@ int ModuleCmd_Refresh(	Tcl_Interp	*interp,
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind0;
 
-    if (!(lmenv = getLMFILES(interp))) {
+    if (!(lmenv = getLMFILES())) {
 	if ( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
 	    goto unwind1;
 	else

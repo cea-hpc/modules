@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.10 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.11 2009/10/15 19:09:09 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -141,7 +141,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
       /* starting from the end of the module name, find the first
        * forward slash and replace with null 
        */
-      if ((oldmodule = strrchr(oldmodule_buffer, '/'))) {
+      if ((oldmodule = strrchr(oldmodule_buffer, *psep))) {
 	  *oldmodule = 0;
       }
       oldmodule = oldmodule_buffer;
@@ -165,7 +165,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
      **  First try to find a match for the modulefile out of the LOADEDMODULES.
      **/
 
-    if( !IsLoaded( interp, oldmodule, &realname, oldfile)) 
+    if( !IsLoaded( oldmodule, &realname, oldfile)) 
 	if( OK != ErrorLogger( ERR_NOTLOADED, LOC, oldmodule, NULL))
 	    goto unwind4;
     
@@ -192,7 +192,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 	 **  OK, this one is known. Is it loaded, too?
 	 **/
 
-        if( !IsLoaded( interp, oldname, NULL, oldfile)) 
+        if( !IsLoaded( oldname, NULL, oldfile)) 
 	    if( OK != ErrorLogger( ERR_NOTLOADED, LOC, oldmodule, NULL))
 		goto unwind4;
     }

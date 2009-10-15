@@ -37,7 +37,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.21 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.22 2009/10/15 19:09:32 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -246,62 +246,67 @@ unwind0:
  ** 									     **
  **   Attached Globals:	*Ptr		will be initialized		     **
  **			*HashTable	will be allocated and initialized    **
+ **			*psep		path separator determined	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
 
-int Initialize_Module(	Tcl_Interp	**interp,
-	       		int         	  argc,
-	       		char		 *argv[],
-               		char		 *environ[])
-{
-    int 	Result = TCL_ERROR;
-    char *	tmp;
+int Initialize_Module(
+	Tcl_Interp ** interp,
+	int argc,
+	char *argv[],
+	char *environ[]
+) {
+	int             Result = TCL_ERROR;
+	char           *tmp;
     /**
      **  Check the command syntax. Since this is already done
      **  Less than 3 parameters isn't valid. Invocation should be
      **   'modulecmd <shell> <command>'
      **/
-    if(argc < 2) 
-	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0], " shellname", NULL))
-	    goto unwind0;
-
+	if (argc < 2)
+		if (OK != ErrorLogger(ERR_USAGE,LOC,argv[0]," shellname", NULL))
+			goto unwind0;
     /**
      **  Check the first parameter to modulcmd for a known shell type
      **  and set the shell properties
      **/
-    if( !set_shell_properties( argv[1]))
-	if( OK != ErrorLogger( ERR_SHELL, LOC, argv[1], NULL))
-	    goto unwind0;
-
+	if (!set_shell_properties(argv[1]))
+		if (OK != ErrorLogger(ERR_SHELL, LOC, argv[1], NULL))
+			goto unwind0;
     /**
      **  Create a Tcl interpreter in order to proceed the command. Initialize
      **  this interpreter and set up pointers to all Tcl Module commands
      **  (Module_Init)
      **/
- 
-    Tcl_FindExecutable( argv[0] ) ;
+	Tcl_FindExecutable(argv[0]);
 
-    *interp = Tcl_CreateInterp();
-    if( TCL_OK != (Result = Module_Init( *interp)))
-	goto unwind0;
-
+	*interp = Tcl_CreateInterp();
+	if (TCL_OK != (Result = Module_Init(*interp)))
+		goto unwind0;
+    /**
+     **  Determine the path separator from the cwd
+     **/
+	cwd = Tcl_FSGetCwd(interp);
+	psep = Tcl_GetString(Tcl_FSPathSeparator(cwd));
+	if (!psep)
+		psep = "/";
     /**
      **  Now set up the hash-tables for shell environment modifications.
      **  For a description of these tables have a look at main.c, where
      **  they're defined.
      **  Exit from the whole program in case allocation fails.
      **/
-    if( ( !(setenvHashTable		= mhash_ctor(MHashStrings)))
-    ||  ( !(unsetenvHashTable		= mhash_ctor(MHashStrings)))
-    ||  ( !(aliasSetHashTable		= mhash_ctor(MHashStrings)))
-    ||  ( !(aliasUnsetHashTable		= mhash_ctor(MHashStrings)))
-    ||  ( !(markVariableHashTable	= mhash_ctor(MHashInt)))
-    ||  ( !(markAliasHashTable		= mhash_ctor(MHashInt))) ) {
+	if (   (!(setenvHashTable	= mhash_ctor(MHashStrings)))
+	    || (!(unsetenvHashTable	= mhash_ctor(MHashStrings)))
+	    || (!(aliasSetHashTable	= mhash_ctor(MHashStrings)))
+	    || (!(aliasUnsetHashTable	= mhash_ctor(MHashStrings)))
+	    || (!(markVariableHashTable	= mhash_ctor(MHashInt)))
+	    || (!(markAliasHashTable	= mhash_ctor(MHashInt)))) {
 
-	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
-	    goto unwind0;
-    }
+		if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
+			goto unwind0;
+	}
 
 	GlobalHashTables[0] = setenvHashTable;
 	GlobalHashTables[1] = unsetenvHashTable;
@@ -326,26 +331,26 @@ int Initialize_Module(	Tcl_Interp	**interp,
      **  environment and then reload every modulefile that has been loaded
      **  since as stored in the LOADEDMODULES environment variable in order.
      **/
-    if( (tmp = xgetenv( "MODULESBEGINENV")) ) {
-	/* MODULESBEGINENV is set ... use it */
+	if ((tmp = xgetenv("MODULESBEGINENV"))) {
+		/* MODULESBEGINENV is set ... use it */
 
-	if( !getenv( "_MODULESBEGINENV_") ) {
-		FILE*  file;
-		if( (file = fopen(tmp, "w+")) ) {
-			int i=0;
-			while( environ[i]) {
-				fprintf( file, "%s\n", environ[i++]);
-			}
-			moduleSetenv( *interp, "_MODULESBEGINENV_", tmp, 1);
-			fclose( file);
-		} else
-			if( OK != ErrorLogger( ERR_OPEN, LOC,
-			    TCL_RESULT(*interp),_(em_appending), NULL))
-			    goto unwind0;
+		if (!getenv("_MODULESBEGINENV_")) {
+			FILE           *file;
+			if ((file = fopen(tmp, "w+"))) {
+				int             i = 0;
+				while (environ[i]) {
+					fprintf(file, "%s\n", environ[i++]);
+				}
+				moduleSetenv(*interp,"_MODULESBEGINENV_",tmp,1);
+				fclose(file);
+			} else
+			    if (OK != ErrorLogger(ERR_OPEN, LOC,
+				    TCL_RESULT(*interp), _(em_appending), NULL))
+				goto unwind0;
 
-		null_free((void *) &tmp);
+			null_free((void *)&tmp);
+		}
 	}
-    }
 #  else
     /**
      **  Check for the existence of the
@@ -359,47 +364,42 @@ int Initialize_Module(	Tcl_Interp	**interp,
      **  environment and then reload every modulefile that has been loaded
      **  since as stored in the LOADEDMODULES environment variable in order.
      **/
-    if( !getenv( "_MODULESBEGINENV_") ) {
-	/* use .modulesbeginenv */
+	if (!getenv("_MODULESBEGINENV_")) {
+		/* use .modulesbeginenv */
+		FILE           *file;
+		char            savefile[] = "/.modulesbeginenv";
+		char           *buffer;
 
-        FILE*  file;
-	
-        char savefile[] = "/.modulesbeginenv";
-	char *buffer;
+		tmp = getenv("HOME");
+		if (!(tmp = getenv("HOME")))
+			if (OK != ErrorLogger(ERR_HOME, LOC, NULL))
+				goto unwind0;
+		if (!(buffer = stringer(NULL, 0, tmp, savefile, NULL)))
+			if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
+				goto unwind0;
+		if ((file = fopen(buffer, "w+"))) {
+			int             i = 0;
+			while (environ[i]) {
+				fprintf(file, "%s\n", environ[i++]);
+			}
+			moduleSetenv(*interp, "_MODULESBEGINENV_", buffer, 1);
+			fclose(file);
+		} else
+		    if (OK != ErrorLogger(ERR_OPEN, LOC,
+				TCL_RESULT(*interp), _(em_appending), NULL))
+			goto unwind0;
 
-	tmp = getenv("HOME");
-	if((char *) NULL == (tmp = getenv("HOME")))
-	    if( OK != ErrorLogger( ERR_HOME, LOC, NULL))
-		goto unwind0;
-
-	if((char *) NULL == (buffer = stringer(NULL,0,tmp,savefile,NULL)))
-	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-		goto unwind0;
-
-            if( (file = fopen(buffer, "w+")) ) {
-                int i=0;
-                while( environ[i]) {
-                    fprintf( file, "%s\n", environ[i++]);
-                }
-                moduleSetenv( *interp, "_MODULESBEGINENV_", buffer, 1);
-                fclose( file);
-            } else
-		if( OK != ErrorLogger( ERR_OPEN, LOC,
-		    TCL_RESULT(*interp),_(em_appending), NULL))
-		    goto unwind0;
-
-	    null_free((void *) &buffer);
-    }
+		null_free((void *)&buffer);
+	}
 #  endif
 #endif
-
     /**
      **  Exit to the main program
      **/
-    return( TCL_OK);			/** -------- EXIT (SUCCESS) -------> **/
+	return (TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
 
 unwind0:
-    return( Result);			/** -------- EXIT (FAILURE) -------> **/
+	return (Result);		/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'Initialize_Module' **/
 
@@ -435,13 +435,10 @@ int Module_Init(
 	if (Tcl_Init(interp) == TCL_ERROR)
 		if (OK != ErrorLogger(ERR_INIT_TCL, LOC, NULL))
 			goto unwind0;
-
 #ifdef  HAS_TCLXLIBS
-
     /**
      **  Extended Tcl initialization if configured so ...
      **/
-
 #if (TCL_MAJOR_VERSION > 8 || TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION > 3)
 	if (Tclx_Init(interp) == TCL_ERROR)
 #elif (TCL_MAJOR_VERSION > 7 || TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION > 5)
@@ -456,7 +453,6 @@ int Module_Init(
 #endif				/* HAS_TCLXLIBS */
 
 #ifdef	AUTOLOADPATH
-
     /**
      ** Extend autoload path
      **/
@@ -469,7 +465,6 @@ int Module_Init(
 			goto unwind0;
 
 #endif				/* AUTOLOADPATH */
-
     /**
      **   Now for each module command a callback routine has to be specified
      **/
@@ -623,7 +618,7 @@ int Setup_Environment( Tcl_Interp*	interp)
     /**
      ** Reconstruct the _LMFILES_ environment variable
      **/
-    loaded = getLMFILES( interp);
+    loaded = getLMFILES();
     if( loaded)
 	if( Tcl_SetVar2( interp, "env", "_LMFILES_", loaded,
 			 TCL_GLOBAL_ONLY) == (char *) NULL)
