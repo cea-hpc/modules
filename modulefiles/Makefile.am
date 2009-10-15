@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        modulefiles/Makefile.am
-## Versions:    $Id: Makefile.am,v 1.8 2009/09/02 20:37:39 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.9 2009/10/15 22:32:58 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -10,7 +10,7 @@
 AUTOMAKE_OPTIONS=foreign no-installinfo
 
 BASEMODULES= \
-	HOME dot module-cvs module-info modules null use.own
+	HOME dot module-cvs module-info modules null use.own notavail
 
 # add any new languages for the lang/ modulefiles here
 # and in the lang/.mklang script
