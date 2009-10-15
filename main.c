@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.31 2009/10/15 19:09:34 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.32 2009/10/15 20:33:01 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -352,7 +352,7 @@ int main(
 unwind2:
 	null_free((void *)&rc_name);
 unwind1:
-	FreeList(&ModulePath);
+	FreeList(&ModulePathVec);
 unwind0:
 	/* and error occurred of some type */
 	g_retval = (g_retval ? g_retval : 1);

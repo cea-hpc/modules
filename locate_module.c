@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.31 2009/10/15 19:09:34 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.32 2009/10/15 20:32:56 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -756,8 +756,7 @@ int SourceVers(
 		/**
 		 **  No need for the set variable (only accepted here)
 		 **/
-				(void) Tcl_UnsetVar(interp,"ModulesVersion",
-					NULL);
+				(void) Tcl_UnsetVar(interp,"ModulesVersion",0);
 			} /** if( Execute...) **/
 			g_flags = save_flags;
 		} else

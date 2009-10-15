@@ -37,7 +37,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.22 2009/10/15 19:09:32 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.23 2009/10/15 20:32:51 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -287,7 +287,7 @@ int Initialize_Module(
     /**
      **  Determine the path separator from the cwd
      **/
-	cwd = Tcl_FSGetCwd(interp);
+	cwd = Tcl_FSGetCwd(*interp);
 	psep = Tcl_GetString(Tcl_FSPathSeparator(cwd));
 	if (!psep)
 		psep = "/";
