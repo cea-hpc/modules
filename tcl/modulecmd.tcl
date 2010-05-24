@@ -2361,7 +2361,7 @@ proc cmdModuleLoad {args} {
 		    restoreSettings
 		} else {
 		    append-path LOADEDMODULES $currentModule
-		    append-path _LMFILES_ $ModulesCurrentModulefile
+		    append-path _LMFILES_ $modfile
 		    set g_loadedModules($currentModule) 1
 		    set genericModName [file dirname $mod]
 
@@ -2403,7 +2403,7 @@ proc cmdModuleUnload {args} {
 			restoreSettings
 		    } else {
 			unload-path LOADEDMODULES $currentModule $g_def_seperator
-			unload-path _LMFILES_ $ModulesCurrentModulefile $g_def_seperator
+			unload-path _LMFILES_ $modfile $g_def_seperator
 			unset g_loadedModules($currentModule)
 			if {[info exists g_loadedModulesGeneric([file dirname\
 			  $currentModule])]} {
@@ -2856,7 +2856,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.121 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.122 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ command ]}
 
