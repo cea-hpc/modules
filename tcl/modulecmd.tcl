@@ -226,12 +226,10 @@ proc execute-modulerc {modfile} {
 	      $ModulesVersion"
 	}
 
-	# Keep track of rc files that we already source so we don't run them\
-	  again
-	set g_rcfilesSourced($modfile) 1
-
-	return $ModulesVersion
+	# Keep track of rc files we already sourced so we don't run them again
+	set g_rcfilesSourced($modfile) $ModulesVersion
     }
+    return g_rcfilesSourced($modfile)
 }
 
 
@@ -1203,8 +1201,8 @@ proc getPathToModule {mod {seperator {}}} {
 
 		    # Try for the last file in directory if no luck so far
 		    if {$ModulesVersion == ""} {
-			set ModulesVersion [lindex [listModules $path "" 0\
-			  $flag_default_mf $flag_default_dir] end]
+			set modlist [listModules $path "" 0 "-dictionary" 0 0]
+			set ModulesVersion [lindex $modlist end]
 			if {$g_debug} {
 			    report "DEBUG getPathToModule: Found\
 			      $ModulesVersion in $path"
@@ -1928,8 +1926,8 @@ proc getVersAliasList {modulename} {
 }
 
 # Finds all module versions for mod in the module path dir
-proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
-  {1}} {flag_default_dir {1}}} {
+proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
+		  {flag_default_mf {1}} {flag_default_dir {1}}} {
     global ignoreDir
     global ModulesCurrentModulefile
     global g_debug
@@ -2069,8 +2067,8 @@ proc listModules {dir mod {full_path 1} {how {-dictionary}} {flag_default_mf\
 	    }
 	}
     }
-    if {$how != {}} {
-	set clean_list [lsort -dictionary $clean_list]
+    if {$sort_order != {}} {
+	set clean_list [lsort $sort_order $clean_list]
     }
     if {$g_debug} {
 	report "DEGUG listModules: Returning $clean_list"
@@ -2856,7 +2854,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.122 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.123 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ command ]}
 
