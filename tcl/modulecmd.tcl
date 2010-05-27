@@ -229,7 +229,7 @@ proc execute-modulerc {modfile} {
 	# Keep track of rc files we already sourced so we don't run them again
 	set g_rcfilesSourced($modfile) $ModulesVersion
     }
-    return g_rcfilesSourced($modfile)
+    return $g_rcfilesSourced($modfile)
 }
 
 
@@ -2853,7 +2853,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.124 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.125 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ command ]}
 
