@@ -9,7 +9,7 @@
 # Some Global Variables.....
 #
 set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.129 $} {\1}]
+					{$Revision: 1.130 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -452,7 +452,7 @@ proc module {command args} {
 		eval cmdModuleUnload $args
 	    }\
 	    elseif {$mode == "display"} {
-		report "module load $args"
+		report "module load\t$args"
 	    }
 	}
     rm - unlo -
@@ -464,7 +464,7 @@ proc module {command args} {
 		eval cmdModuleUnload $args
 	    }\
 	    elseif {$mode == "display"} {
-		report "module unload $args"
+		report "module unload\t$args"
 	    }
 	}
     reload {
@@ -566,7 +566,7 @@ proc setenv {var val} {
 	# but don't commit it to the env
 	set env($var) $val
 	set g_stateEnvVars($var) "nop"
-	report "setenv\t$var\t$val"
+	report "setenv\t\t$var\t$val"
     }
     return {}
 }
@@ -592,7 +592,7 @@ proc unsetenv {var {val {}}} {
 	}
     }\
     elseif {$mode == "display"} {
-	report "unsetenv\t$var"
+	report "unsetenv\t\t$var"
     }
     return {}
 }
@@ -799,7 +799,7 @@ proc prepend-path {var path args} {
 	unload-path $var $path $separator
     }\
     elseif {$mode == "display"} {
-	report "prepend-path\t$var\t$path\t$separator"
+	report "prepend-path\t$var\t$path"
     }
     return {}
 }
@@ -829,7 +829,7 @@ proc append-path {var path args} {
 	unload-path $var $path $separator
     }\
     elseif {$mode == "display"} {
-	report "append-path\t$var\t$path\t$separator"
+	report "append-path\t$var\t$path"
     }
     return {}
 }
@@ -855,7 +855,7 @@ proc remove-path {var path args} {
 	unload-path $var $path $separator
     }\
     elseif {$mode == "display"} {
-	report "remove-path\t$var\t$path\t$separator"
+	report "remove-path\t$var\t$path"
     }
     return {}
 }
@@ -894,7 +894,7 @@ proc unset-alias {alias} {
 	set g_stateAliases($alias) "del"
     }\
     elseif {$mode == "display"} {
-	report "unset-alias\t$alias\t"
+	report "unset-alias\t$alias"
     }
     return {}
 }
@@ -975,7 +975,7 @@ proc prereq {args} {
 	}
     }\
     elseif {$mode == "display"} {
-	report "prereq\t$args"
+	report "prereq\t\t$args"
     }
     return {}
 }
@@ -2473,7 +2473,7 @@ proc system {mycmd args} {
 	# No operation here unable to undo a syscall.
     }\
     elseif {$mode == "display"} {
-	report "system\t$mycmd"
+	report "system\t\t$mycmd"
     }
     return {}
 }
