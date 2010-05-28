@@ -12,20 +12,15 @@ set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
 set g_force 1 ;# Path element reference counting if == 0
 set CSH_LIMIT 1000 ;# Workaround for commandline limits in csh
-set DEF_COLUMNS 80 ;# Default size of columns for formating
 set MODULES_CURRENT_VERSION 3.1.6
 set flag_default_dir 1 ;# Report default directories
 set flag_default_mf 1 ;# Report default modulefiles and version alias
 set g_def_separator ":" ;# Default path separator
 
-# Dynamic column
-if {[info exists env(DYNAMIC_COLUMNS)]} { # do dynamic columns?
-    # yes, read the stty size size information and reset DEF_COLUMNS
-    set stty_output [exec stty size]
-    if {$stty_output != ""} {
-       set dynamic_column [lindex $stty_output 1]
-       set DEF_COLUMNS $dynamic_column
-    }
+# Dynamic columns
+set DEF_COLUMNS 80 ;# Default size of columns for formatting
+if {[catch {exec stty size} stty_size] == 0 && $stty_size != ""} {
+    set DEF_COLUMNS [lindex $stty_size 1]
 }
 
 # Change this to your support email address...
@@ -2151,12 +2146,7 @@ proc cmdModuleList {{separator {}}} {
 	}
 	if {$show_oneperline ==0 && $show_modtimes == 0} {
 	    # save room for numbers and spacing: 2 digits + ) + space + space
-	    set col_width [expr {$max +5}]
-	    if {[info exists env(COLUMNS)]} {
-		set cols [expr {int($env(COLUMNS)/$col_width)}]
-	    } else {
-		set cols [expr {int($DEF_COLUMNS/$col_width)}]
-	    }
+	    set cols [expr {int($DEF_COLUMNS/($max + 5))}]
 	    # safety check to prevent divide by zero error below
 	    if {$cols <= 0} {
 		set cols 1
@@ -2504,7 +2494,10 @@ proc cmdModuleAvail {{mod {*}}} {
 
     foreach dir [split $env(MODULEPATH) $g_def_separator] {
 	if {[file isdirectory "$dir"]} {
-	    report "\n------------ $dir ------------ "
+	    set len  [string length $dir]
+	    set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
+	    set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
+	    report "[string repeat {-} $lrep] $dir [string repeat {-} $rrep]"
 	    set list [listModules "$dir" "$mod" 0 "" $flag_default_mf\
 	      $flag_default_dir]
             # sort names (sometimes? returned in the order as they were
@@ -2532,11 +2525,7 @@ proc cmdModuleAvail {{mod {*}}} {
 		    }
 		}
 		incr max 1
-		if {[info exists env(COLUMNS)]} {
-		    set cols [expr {int($env(COLUMNS)/($max))}]
-		} else {
-		    set cols [expr {int($DEF_COLUMNS/($max))}]
-		}
+		set cols [expr {int($DEF_COLUMNS / $max)}]
 		# safety check to prevent divide by zero error below
 		if {$cols <= 0} {
 		    set cols 1
@@ -2853,7 +2842,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.125 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.126 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ command ]}
 
