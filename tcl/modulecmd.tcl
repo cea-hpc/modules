@@ -9,7 +9,7 @@
 # Some Global Variables.....
 #
 set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.130 $} {\1}]
+					{$Revision: 1.131 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2282,13 +2282,15 @@ proc cmdModuleSwitch {old {new {}}} {
 
     if {$new == ""} {
 	set new $old
+    } elseif {[info exists g_loadedModules($new)]} {
+	set tmp $new
+	set new $old
+	set old $tmp
     }
 
-    if {[info exists g_loadedModules($old)]} {
-    } else {
-	if {[info exists g_loadedModulesGeneric($old)]} {
-	    set old "$old/$g_loadedModulesGeneric($old)"
-	}
+    if {![info exists g_loadedModules($old)] &&
+	 [info exists g_loadedModulesGeneric($old)]} {
+	set old "$old/$g_loadedModulesGeneric($old)"
     }
 
     if {$g_debug} {
