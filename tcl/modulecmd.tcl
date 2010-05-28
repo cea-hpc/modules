@@ -11,7 +11,7 @@ set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
 set g_force 1 ;# Path element reference counting if == 0
-set CSH_LIMIT 1000 ;# Workaround for commandline limits in csh
+set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 set MODULES_CURRENT_VERSION 3.1.6
 set flag_default_dir 1 ;# Report default directories
 set flag_default_mf 1 ;# Report default modulefiles and version alias
@@ -1437,7 +1437,7 @@ proc renderSettings {} {
 			  $CSH_LIMIT} {
 			    if {$var == "PATH"} {
 				reportWarning "WARNING: module: PATH exceeds\
-				  $CSH_LIMIT characters, truncating to 900 and\
+				  $CSH_LIMIT characters, truncating and\
 				  appending /usr/bin:/bin ..."
 				set val [string range $val 0 [expr {$CSH_LIMIT\
 				  - 1}]]:/usr/bin:/bin
@@ -2835,7 +2835,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.127 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.128 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ command ]}
 
