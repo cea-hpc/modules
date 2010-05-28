@@ -7,12 +7,14 @@
 ########################################################################
 #
 # Some Global Variables.....
+#
+set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
+					{$Revision: 1.129 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
 set g_force 1 ;# Path element reference counting if == 0
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
-set MODULES_CURRENT_VERSION 3.1.6
 set flag_default_dir 1 ;# Report default directories
 set flag_default_mf 1 ;# Report default modulefiles and version alias
 set g_def_separator ":" ;# Default path separator
@@ -1256,7 +1258,7 @@ proc runModulerc {} {
 	    if {$g_debug} {
 		report "DEBUG runModulerc: Executing $env(MODULERCFILE)"
 	    }
-	    execute-modulerc $env(MODULERCFILE)
+	    cmdModuleSource $env(MODULERCFILE)
 	}
     }
     if {[info exists env(MODULESHOME)]} {
@@ -1264,7 +1266,7 @@ proc runModulerc {} {
 	    if {$g_debug} {
 		report "DEBUG runModulerc: Executing $env(MODULESHOME)/etc/rc"
 	    }
-	    execute-modulerc "$env(MODULESHOME)/etc/rc"
+	    cmdModuleSource "$env(MODULESHOME)/etc/rc"
 	}
     }
     if {[info exists env(HOME)]} {
@@ -1272,7 +1274,7 @@ proc runModulerc {} {
 	    if {$g_debug} {
 		report "DEBUG runModulerc: Executing $env(HOME)/.modulerc"
 	    }
-	    execute-modulerc "$env(HOME)/.modulerc"
+	    cmdModuleSource "$env(HOME)/.modulerc"
 	}
     }
 }
@@ -2835,7 +2837,6 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.128 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ command ]}
 
@@ -2896,8 +2897,8 @@ switch -regexp -- $opt {
         cmdModuleHelp
         exit 0
     }
-    {^--ver} {
-	report "$MODULES_CURRENT_VERSION"
+    {^(-V|--ver)} {
+	report "Modules Release Tcl $MODULES_CURRENT_VERSION"
 	exit 0
     }
     {^--} {
