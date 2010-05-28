@@ -1431,7 +1431,7 @@ proc renderSettings {} {
 	    if {$g_stateEnvVars($var) == "new"} {
 		switch -- $g_shellType {
 		csh {
-			set val [doubleQuoteEscaped $env($var)]
+			set val [multiEscaped $env($var)]
 			# csh barfs on long env vars
 			if {$g_shell == "csh" && [string length $val] >\
 			  $CSH_LIMIT} {
@@ -1448,11 +1448,10 @@ proc renderSettings {} {
 				  - 1}]]
 			    }
 			}
-			puts $f "setenv $var \"$val\""
+			puts $f "setenv $var $val"
 		    }
 		sh {
-			set val [doubleQuoteEscaped $env($var)]
-			puts $f "$var=\"$val\"; export $var"
+			puts $f "$var=[multiEscaped $env($var)]; export $var"
 		    }
 		perl {
 			set val [doubleQuoteEscaped $env($var)]
@@ -1814,29 +1813,23 @@ proc resolveModuleVersionOrAlias {names} {
 }
 
 proc spaceEscaped {text} {
-    regsub -all " " $text "\\ " text
-    return $text
+    regsub -all " " $text "\\ "
 }
 
 proc multiEscaped {text} {
-    regsub -all {["'; ]} $text {\\\0} text
-    #"
-    return $text
+    regsub -all {([ \\\t\{\}|<>!;#^$&*"'`()])} $text {\\\1}
 }
 
 proc doubleQuoteEscaped {text} {
-    regsub -all "\"" $text "\\\"" text
-    return $text
+    regsub -all "\"" $text "\\\""
 }
 
 proc atSymbolEscaped {text} {
-    regsub -all "@" $text "\\@" text
-    return $text
+    regsub -all "@" $text "\\@"
 }
 
 proc singleQuoteEscaped {text} {
-    regsub -all "\'" $text "\\\'" text
-    return $text
+    regsub -all "\'" $text "\\\'"
 }
 
 proc findExecutable {cmd} {
@@ -2842,7 +2835,7 @@ proc cmdModuleHelp {args} {
     }
     if {$done == 0} {
 	report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.126 $)} 
+        report {($RCSfile: modulecmd.tcl,v $ $Revision: 1.127 $)} 
         report {	Copyright GNU GPL v2 1991}
 	report {Usage: module [ command ]}
 
