@@ -9,7 +9,7 @@
 # Some Global Variables.....
 #
 set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.131 $} {\1}]
+					{$Revision: 1.132 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -216,7 +216,12 @@ proc execute-modulerc {modfile} {
 	}]
 	interp delete $slave
 
-	set g_moduleDefault($modparent) $ModulesVersion
+	if {[file tail $modfile] == ".version"} {
+	    # only set g_moduleDefault if .version file,
+	    # otherwise any modulerc settings ala "module-version /xxx default"
+	    #  would get overwritten
+	    set g_moduleDefault($modparent) $ModulesVersion
+	}
 
 	if {$g_debug} {
 	    report "DEBUG execute-version: Setting g_moduleDefault($modparent)\
@@ -341,20 +346,20 @@ proc module-version {args} {
     # Check for shorthand notation of just a version "/version".  Base is 
     # implied by current dir prepend the current directory to module_name
     if {[regexp {^\/} $module_name]} {
-	set base [file tail [file dirname $ModulesCurrentModulefile]]
+	set base [file dirname $ModulesCurrentModulefile]
 	set module_name "${base}$module_name"
     }
 
     foreach version [lrange $args 1 end] {
 
-	set base [file tail [file dirname $module_name]]
+	set base [file dirname $module_name]
 	set aliasversion [file tail $module_name]
 
 	if {$base != ""} {
 	    if {[string match $version "default"]} {
 		# If we see more than one default for the same module, just\
 		  keep the first
-		if {![info exists g_moduleDefault($module_name)]} {
+		if {![info exists g_moduleDefault($base)]} {
 		    set g_moduleDefault($base) $aliasversion
 		    if {$g_debug} {
 			report "DEBUG module-version: default $base\
@@ -1400,7 +1405,7 @@ proc renderSettings {} {
 		}
 	    perl {
 		    puts $f "sub module {"
-		    puts $f "  eval `\$ENV{MODULESHOME}/modulecmd.tcl perl @_`;"
+		    puts $f "  eval `$tclshbin \$ENV{MODULESHOME}/modulecmd.tcl perl @_`;"
 		    puts $f "  if(\$@) {"
 		    puts $f "    use Carp;"
 		    puts $f "    confess \"module-error: \$@\n\";"
@@ -2008,13 +2013,14 @@ proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
 	    switch -glob -- $tail {
 	    {.modulerc} {
 		    if {$flag_default_dir || $flag_default_mf} {
+			# set is needed for execute-modulerc
+			set ModulesCurrentModulefile $element
 			execute-modulerc $element
 		    }
 		}
 	    {.version} {
 		    if {$flag_default_dir || $flag_default_mf} {
-			# set ModulesCurrentModulefile so it is available to\
-			  execute-modulerc
+			# set is needed for execute-modulerc
 			set ModulesCurrentModulefile $element
 			execute-modulerc "$element"
 
