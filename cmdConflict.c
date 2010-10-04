@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.22 2009/10/15 19:09:16 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.23 2010/10/04 22:06:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -268,6 +268,8 @@ int cmdConflict(
 		for (j = 0; j < numpaths; j++) {
 			modulelist = SortedDirList(ModulePath[j],
 				   Tcl_GetString(objv[i]), &nummodules);
+			if (!modulelist)
+				continue; /** no list to browse		     **/
 			if (modulelist && !uvec_number(modulelist)) {
 				FreeList(&modulelist);
 				continue; /** not browseable		     **/

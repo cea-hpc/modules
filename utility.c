@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.35 2009/10/15 19:09:35 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.36 2010/10/04 22:06:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -129,6 +129,8 @@ static  void     EscapeCshString(const char* in,
 static  void     EscapeShString(const char* in,
 				 char* out);
 static  void     EscapePerlString(const char* in,
+				 char* out);
+static  void     EscapeCmakeString(const char* in,
 				 char* out);
 
 
@@ -1108,6 +1110,16 @@ static int output_set_variable(
 			shell_cmd_separator);
 		null_free((void *)&escaped);
 
+	} else if( !strcmp((char*) shell_derelict, "cmake")) {
+    /**
+     **  CMAKE
+     **/
+		char* escaped = stringer(NULL, strlen(val)*2+1,NULL);
+		EscapeCmakeString(val,escaped);
+		fprintf(stdout, "set(ENV{%s} \"%s\")%s", var, escaped,
+			shell_cmd_separator);
+		null_free((void *) &escaped);
+
 	} else if (!strcmp((char *)shell_derelict, "python")) {
     /**
      **  PYTHON
@@ -1186,6 +1198,8 @@ static int output_unset_variable(
 	} else if (!strcmp(shell_derelict, "python")) {
 		fprintf(stdout, "os.environ['%s'] = ''\ndel os.environ['%s']\n",
 			var, var);
+	} else if( !strcmp( shell_derelict, "cmake")) {
+		fprintf( stdout, "unset(ENV{%s})%s", var, shell_cmd_separator);
 	} else if (!strcmp(shell_derelict, "scm")) {
 		fprintf(stdout, "(putenv \"%s\")\n", var);
 	} else if (!strcmp(shell_derelict, "mel")) {
@@ -2578,6 +2592,19 @@ void EscapePerlString(
 		*out++ = *in++;
 	}
 	*out = 0;
+}
+
+/* I think this needs a bunch of work --NJW */
+void EscapeCmakeString(const char* in,
+		     char* out) {
+  for(;*in;in++) {
+    if (*in == '\\'||
+	*in == '"') {
+      *out++ = '\\';
+    }
+    *out++ = *in;
+  }
+  *out = 0;
 }
 
 /*++++
