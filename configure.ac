@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.37 2009/10/15 22:32:46 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.38 2010/10/05 04:06:16 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -617,6 +617,23 @@ AC_ARG_WITH(tmp-dir,
         fi
 	)dnl
 dnl ---------------------------------------------------------------------------
+AH_TEMPLATE([DEFAULTMANPATH],[DEFAULTMANPATH: default man path])dnl
+AC_ARG_WITH(man-path,
+	AC_HELP_STRING([--with-man-path=<dir>],[use <dir> for the default MANPATH [[/usr/man:/usr/share/man]]]),
+	AC_DEFINE_UNQUOTED(DEFAULTMANPATH, "$withval")dnl
+	AC_MSG_RESULT([DEFAULTMANPATH = $withval]),
+        if test -d "/usr/man" ; then
+           withval="/usr/man"
+           if test -d "/usr/share/man" ; then
+               withval="$withval:/usr/share/man"
+	   fi
+        elif test -d "/usr/share/man" ; then
+           withval="/usr/share/man"
+        fi
+        AC_DEFINE_UNQUOTED(DEFAULTMANPATH, "$withval")dnl
+	)dnl
+	AC_MSG_RESULT([DEFAULTMANPATH = $withval])dnl
+dnl ---------------------------------------------------------------------------
 dnl AUTOLOADPATH	directories where Tcl will search for libraries to load
 dnl
 AC_SUBST(AUTOLOADPATH)dnl
@@ -717,7 +734,7 @@ PREFIX/Modules/modulefiles
 dnl ---------------------------------------------------------------------------
 dnl Now put it all out!
 dnl ---------------------------------------------------------------------------
-AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile po/Makefile.in
+AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile po/Makefile
 	init/Makefile init/.modulespath
 	doc/module.1 doc/modulefile.4
 	etc/Makefile etc/add.modules etc/mkroot
@@ -733,8 +750,7 @@ AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile po/Makefile.in
 	modulefiles/use.own modulefiles/dot modulefiles/version
 	modulefiles/HOME modulefiles/notavail
 	])dnl
-dnl We want these to be recreated for each install
-dnl	init/bash init/csh init/ksh init/perl init/python init/sh init/zsh
+dnl We want the init/ scripts to be recreated for each install
 AC_CONFIG_COMMANDS([default],[[date > stamp-h]],[[]])dnl
 AC_OUTPUT
 dnl
