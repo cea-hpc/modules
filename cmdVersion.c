@@ -48,7 +48,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.20 2009/10/15 19:09:24 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.21 2010/10/07 22:08:04 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -271,21 +271,22 @@ int cmdModuleVersion(
      **  Check all symbolic names now and allocate a name record for them
      **/
 	for (i = 2; i < objc; i++) {
-		if (FindName(Tcl_GetString(objv[i]), modptr->name, &tmp)) {
+		if (	strcmp(Tcl_GetString(objv[i]), _(em_default))
+		&&	FindName(Tcl_GetString(objv[i]), modptr->name, &tmp)) {
 			if (OK != ErrorLogger(ERR_DUP_SYMVERS, LOC,
 					      Tcl_GetString(objv[i]), NULL))
 				break;
 			else
 				continue;
 		}
-		if ((ModName *) NULL == (nameptr =
-					 AddName((char *)Tcl_GetString(objv[i]),
+		if (!(nameptr = AddName((char *)Tcl_GetString(objv[i]),
 						 &modptr->name, modptr))) {
 			if (OK != ErrorLogger(ERR_INTERAL, LOC, NULL))
 				break;
 			else
 				continue;
 		}
+
 	/**
 	 **  Concat the new element at the beginning of the name queue ...
 	 **/
@@ -419,7 +420,8 @@ static	char	*scan_versions( char		 *buffer,
 	if( mayloop != NULL ) {
 	    if( mayloop == base || *(mayloop-1) == ':' ) {
 		if( *(mayloop + strlen(ptr->name)) == ':' ) {
-	    	    ErrorLogger( ERR_SYMLOOP, LOC, ptr->name, NULL);
+		    if (strcmp(ptr->name,_(em_default)))
+	    		ErrorLogger( ERR_SYMLOOP, LOC, ptr->name, NULL);
 		    return((char *) NULL);	/** ---- EXIT (FAILURE) ---> **/
 		}
 	    }
