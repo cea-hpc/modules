@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.16 2009/10/15 19:09:12 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.17 2010/10/08 19:52:09 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -304,7 +304,6 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
     Tcl_DString	  cmdbuf;
     char	  modulefile[ MOD_BUFSIZE];
     char	**wptr, *c;
-    struct stat	 stats;
 
     /**
      **	 Normal reading of the files
@@ -352,7 +351,7 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
 	}
 	g_current_module = list[ i];
 
-	if( stat( modulefile, &stats) || S_ISDIR( stats.st_mode))
+	if(is_("dir", modulefile))
 	    continue;
 
 	cmdModuleWhatisInit();

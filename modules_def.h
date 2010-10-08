@@ -197,6 +197,16 @@ typedef struct _file_entry {
 } fi_ent;
 
 /**
+ **  file stat as given by is_()
+ **/
+typedef	enum	{
+	IS_NOT		= 0,		/** file is not as described	     **/
+	IS_SO		= 1,		/** file is as described	     **/
+	IS_FILE		= 1,		/** "what" yields a file 	     **/
+	IS_DIR		= 2		/** "what" yields a file 	     **/
+} is_Result;
+
+/**
  **  Error handling (see error.c for weight and message)
  **/
 
@@ -730,6 +740,7 @@ extern	char	 *stringer(char *, int, ...);
 extern	EM_RetVal	ReturnValue( Tcl_Interp*, int);
 extern	void	  OutputExit();
 extern	int	  module_setenv(const char *var, const char *val);
+extern	is_Result	is_(const char *type, const char *path);
 
 /** utilmem.c **/
 extern	void	 *module_malloc(size_t);

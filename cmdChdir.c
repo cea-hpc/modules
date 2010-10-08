@@ -19,7 +19,7 @@
  ** ************************************************************************ **
  ****/
 
-static char Id[] = "@(#)$Id: cmdChdir.c,v 1.8 2009/09/02 20:37:38 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdChdir.c,v 1.9 2010/10/08 19:52:09 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -65,7 +65,6 @@ int cmdChDir(
 	Tcl_Obj * CONST84 objv[]
 ) {
 	char			*dir;		/** directory name	     **/
-	struct	stat		 statinfo;	/** directory access	     **/
 
 	if (g_flags & ~(M_LOAD | M_SWSTATE2))
 		return TCL_OK;
@@ -88,11 +87,7 @@ int cmdChDir(
 	/* check for directory existence */
 	/* It is not an error if we can not ... */
 	dir = Tcl_GetString(objv[1]);
-	if ( stat(dir, &statinfo) < 0 ) {
-		ErrorLogger(ERR_CHDIR, LOC, dir, g_current_module, NULL);
-		return (TCL_OK);	    /** ------ EXIT PROCEDURE -----> **/
-	}
-	if (!S_ISDIR(statinfo.st_mode)) {
+	if (!is_("dir",dir)) {
 		ErrorLogger(ERR_CHDIR, LOC, dir, g_current_module, NULL);
 		return (TCL_OK);	    /** ------ EXIT PROCEDURE -----> **/
 	}

@@ -39,6 +39,8 @@
  **			countTclHash					     **
  **			ReturnValue					     **
  **			OutputExit					     **
+ **			module_setenv					     **
+ **			is_						     **
  **									     **
  **   Notes:								     **
  ** 									     **
@@ -52,7 +54,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.36 2010/10/04 22:06:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.37 2010/10/08 19:52:09 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -202,11 +204,11 @@ uvec           *SortedDirList(
 	int *listcnt
 ) {
 	struct dirent  *file;		/** Directory entry		     **/
-	struct stat     stats;		/** Stat buffer			     **/
 	DIR            *subdirp;	/** Subdirectoy handle		     **/
 	char           *full_path;	/** Sugg. full path (path + module)  **/
 	uvec           *filelist;	/** Temp. uvec list		     **/
 	int		pathlen;	/** String length of 'fullpath'	     **/
+	is_Result	fstate;		/** file stat			     **/
 
     /**
      **  Allocate memory for the list to be created. Suggest a list size of
@@ -228,13 +230,13 @@ uvec           *SortedDirList(
      **  Check whether this file exists. If it doesn't free up everything
      **  and return on failure
      **/
-	if (stat(full_path, &stats))
+	if (!(fstate = is_("what",full_path)))
 		goto unwind2;
     /**
      **  If the suggested module file is a regular one, we've found what we've
      **  seeked for. Put it on the top of the list and return.
      **/
-	if (S_ISREG(stats.st_mode)) {
+	if (fstate == IS_FILE) {
 		if (uvec_add(filelist, modulename))
 			if (OK != ErrorLogger(ERR_UVEC, LOC, NULL))
 				goto unwind2;
@@ -244,7 +246,7 @@ uvec           *SortedDirList(
     /**
      **  What we've found is a directory
      **/
-	if (S_ISDIR(stats.st_mode)) {
+	if (fstate == IS_DIR) {
 		char           *tbuf;
 				/** Buffer for the whole filename for each   **/
 				/** content of the directory		     **/
@@ -294,7 +296,7 @@ uvec           *SortedDirList(
 				strcpy(mpath, file->d_name);
 				if (check_magic(tbuf, MODULES_MAGIC_COOKIE,
 						MODULES_MAGIC_COOKIE_LENGTH) ||
-				    !stat(tbuf, &stats)) {
+						is_("what",tbuf) ) {
 		    /**
 		     **  Yep! Found! Put it on the list
 		     **/
@@ -2833,3 +2835,57 @@ int module_setenv(
 	}
 #endif
 } /** End of 'module_setenv' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		is_					     	     **
+ ** 									     **
+ **   Description:	Does a stat on the path and returns 0 if not X	     **
+ **			else 1 if X, where X is <f>ile, or <d>ir, etc.	     **
+ **			or returns -1 if the path does not exist.	     **
+ **			If X is <w>hat, then return 1 if file, 2 if dir	     **
+ ** 									     **
+ **   First Edition:	2009/09/21					     **
+ ** 									     **
+ **   Parameters:	char	*path		Name of the object to be     **
+ **						checked			     **
+ ** 									     **
+ **   Result:		int	 0	Not an X			     **
+ **				 1	OK	if X			     **
+ ** 									     **
+ **				 0	does not exist if "what"	     **
+ **				 1	file	if "what"		     **
+ **				 2	dir	if "what"		     **
+ ** 									     **
+ **   Attached Globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+is_Result is_(
+	const char *type,
+	const char *path
+) {
+	struct stat	stats;		/** stat() system call buffer	     **/
+
+	/* stat path */
+	if (stat(path, &stats)) {
+		if (*type == 'w' || *type == 'W')
+			return IS_NOT;		/** does not exist even	     **/
+	} else {
+		if (*type == 'f' || *type == 'F') {
+			if (S_ISREG(stats.st_mode))
+				return IS_SO;
+		} else if (*type == 'd' || *type == 'D') {
+			if (S_ISDIR(stats.st_mode))
+				return IS_SO;
+		} else if (*type == 'w' || *type == 'W') {
+			if (S_ISREG(stats.st_mode))
+				return IS_FILE;
+			if (S_ISDIR(stats.st_mode))
+				return IS_DIR;
+		}
+	}
+	return IS_NOT;
+} /** is_ **/

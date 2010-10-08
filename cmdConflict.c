@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.23 2010/10/04 22:06:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.24 2010/10/08 19:52:09 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -104,24 +104,23 @@ static int checkConflict(
 ) {
 	uvec           *new_modulelist;
 	int             new_nummodules, k;
-	struct stat     stat_info;
+	is_Result       fstate;
 	char           *buffer;
 
 	memset(error_module, '\0', MOD_BUFSIZE);
 
     /**
      **  Check all modules passed to me as parameter
-     **  At first clarify if they really so exist ...
+     **  At first clarify if they really do exist ...
      **/
 	for (k = 0; k < nummodules; k++) {
 		if ((char *)NULL == (buffer = stringer(NULL, 0,
 		path, psep, modulelist[k], NULL)))
 			if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 				goto unwind0;
-		if (stat(buffer, &stat_info) < 0) {
-			if (OK !=
-			    ErrorLogger(ERR_FILEINDIR, LOC, modulelist[k], path,
-					NULL))
+		if (!(fstate = is_("what", buffer))) {
+			if (OK != ErrorLogger(ERR_FILEINDIR, LOC,
+				modulelist[k], path, NULL))
 				if ((char *)NULL ==
 				    stringer(error_module, MOD_BUFSIZE,
 					     modulelist[k], NULL))
@@ -130,14 +129,11 @@ static int checkConflict(
 						goto unwind1;
 			goto unwind1;
 		}
-
 	/**
 	 **  Is it a directory what has been passed? If it is, list the
 	 **  according directory and call myself recursively in order to
 	 **/
-
-		if (S_ISDIR(stat_info.st_mode)) {
-
+		if (fstate == IS_DIR) {
 			if (NULL == (new_modulelist = SortedDirList(path,
 			modulelist[k], &new_nummodules)))
 				continue;

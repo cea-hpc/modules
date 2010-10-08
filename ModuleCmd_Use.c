@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.14 2009/10/12 19:41:22 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.15 2010/10/08 19:52:09 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -155,7 +155,6 @@ int ModuleCmd_Use(
 	int argc,
 	char *argv[]
 ) {
-	struct stat     stats;		/** Buffer for the stat() systemcall **/
 	char           *pathargv[4];	/** Argument buffer for Tcl calls    **/
 	Tcl_Obj       **objv;		/** Tcl Object vector **/
 	int             objc,		/** Tcl Object vector count **/
@@ -208,15 +207,12 @@ int ModuleCmd_Use(
 			append_flag = 1;
 			continue;
 
-		} else if (stat(argv[i], &stats) < 0) {
+		} else if (!is_("dir", argv[i])) {
 	/**
 	 **  Check for existing, readable directories
 	 **/
 			if (OK !=
 			    ErrorLogger(ERR_DIRNOTFOUND, LOC, argv[i], NULL))
-				return (TCL_ERROR); /** -- EXIT (FAILURE) -> **/
-		} else if (!S_ISDIR(stats.st_mode)) {
-			if (OK != ErrorLogger(ERR_NODIR, LOC, argv[i], NULL))
 				return (TCL_ERROR); /** -- EXIT (FAILURE) -> **/
 		}
 

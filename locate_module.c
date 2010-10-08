@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.33 2010/10/07 22:08:04 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.34 2010/10/08 19:52:09 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -301,13 +301,13 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 				char		*prefix,
 			     	char		*modulename)
 {
-    struct stat	  stats;		/** Buffer for the stat() systemcall **/
     char	 *fullpath = NULL;	/** Buffer for creating path names   **/
     char	 *Result = NULL;	/** Our return value		     **/
     uvec	 *filelist = NULL;	/** Buffer for a list of possible    **/
 					/** module files		     **/
-    int		  numlist;		/** Size of this list		     **/
-    int		  i, slen, is_def;
+    int		  numlist,		/** Size of this list		     **/
+		  i, slen, is_def;
+    is_Result	  fstate;		/** file stat			     **/
     char	 *s, *t;		/** Private string buffer	     **/
     char	 *mod, *ver;		/** Pointer to module and version    **/
     char	 *mod1, *ver1;		/** Temp pointer		     **/
@@ -344,7 +344,7 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 	path,psep,modulename, NULL))
 	    goto unwind1;
     }
-    if( !stat( fullpath, &stats) && S_ISDIR( stats.st_mode)) {
+    if(is_("dir", fullpath)) {
 	/**
 	 ** So the full modulename is $modulename/default.  Recurse on that.
 	 **/
@@ -372,11 +372,11 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
     }
     is_def = !strcmp( mod, _(em_default));
 
-    if( is_def || !stat( fullpath, &stats)) {
+    if(is_def || (fstate = is_("what",fullpath))) {
 	/**
 	 **  If it is a directory
 	 **/
-    	if( !is_def && S_ISDIR( stats.st_mode)) {
+    	if(!is_def && (fstate == IS_DIR)) {
 	    /**
 	     **  Source the ".modulerc" file if it exists
 	     **  For compatibility source the .version file, too
@@ -501,7 +501,7 @@ unwindt:
 			path, psep, filename, NULL))
 			    goto unwind2;
 
-		    if( !stat( fullpath, &stats) && S_ISDIR( stats.st_mode)) {
+		    if(is_("dir",fullpath)) {
 			Result = GetModuleName( interp, path, prefix, filename);
 		    } else {
 			/**
@@ -603,7 +603,6 @@ int SourceRC(
 	char *name,
 	Mod_Act action
 ) {
-	struct stat     stats;		/** Buffer for the stat() systemcall **/
 	char           *buffer;		/** for full path/name		     **/
 	int             save_flags,	/** cache g_flags		     **/
 	                Result = TCL_OK;
@@ -632,7 +631,7 @@ int SourceRC(
     /**
      **  Check whether the RC file exists and has the magic cookie inside
      **/
-	if (!stat(buffer, &stats)) {
+	if (is_("file",buffer)) {
 		if (check_magic(buffer, MODULES_MAGIC_COOKIE,
 				MODULES_MAGIC_COOKIE_LENGTH)) {
 	    /**
@@ -658,8 +657,7 @@ int SourceRC(
 			/* Not an error ... just warn of invalid magic cookie */
 			ErrorLogger(ERR_MAGIC, LOC, buffer, NULL);
 		}
-	}
-	    /** if( !stat) - presumably not found **/
+	} /** if( !stat) - presumably not found **/
     /**
      **  Free resources and return result
      **/
@@ -704,7 +702,6 @@ int SourceVers(
 	char *name,
 	Mod_Act action
 ) {
-	struct stat     stats;		/** Buffer for the stat() systemcall **/
 	char           *buffer,		/** for full path/name		     **/
 		       *version,	/** default version		     **/
 		       *modname,	/** ptr module part of name	     **/
@@ -729,7 +726,7 @@ int SourceVers(
 	    (buffer = stringer(NULL, 0, path, psep, version_file, NULL)))
 		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 			return (TCL_ERROR);
-	if (!stat(buffer, &stats)) {
+	if (is_("file",buffer)) {
 		if (
 #if VERSION_MAGIC != 0
 			   check_magic(buffer, MODULES_MAGIC_COOKIE,
