@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdInfo.c,v 1.16 2009/10/15 19:09:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdInfo.c,v 1.17 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -285,7 +285,7 @@ int cmdModuleInfo(
 
 		name = (objc < 3) ? g_current_module : (char *)arg2;
 
-		if ((char *)NULL == (s = ExpandVersions(name)))
+		if (!(s = ExpandVersions(name)))
 			Tcl_SetResult(interp, "*undef*", TCL_STATIC);
 		else
 			Tcl_SetResult(interp, (char *)s, TCL_VOLATILE);

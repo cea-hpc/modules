@@ -48,7 +48,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.21 2010/10/07 22:08:04 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.22 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -253,15 +253,13 @@ int cmdModuleVersion(
      **  Check whether it exists (cond. create them). Check both, the version
      **  and the name queue in order to locate the desired version ...
      **/
-	if ((ModModule *) NULL == (modptr = AddModule(module))) {
+	if (!(modptr = AddModule(module))) {
 		ErrorLogger(ERR_BADMODNAM, LOC,Tcl_GetString(objv[1]), NULL);
 		return (TCL_ERROR);	    /** ------ EXIT (FAILURE) -----> **/
 	}
 
-	if ((ModName *) NULL ==
-	    (ptr = FindName(version, modptr->version, &tmp))) {
-		if ((ModName *) NULL ==
-		    (ptr = FindName(version, modptr->name, &tmp)))
+	if (!(ptr = FindName(version, modptr->version, &tmp))) {
+		if (!(ptr = FindName(version, modptr->name, &tmp)))
 			versptr = AddName(version, &modptr->version, modptr);
 		else
 			versptr = ptr->version;
@@ -327,10 +325,10 @@ char	*ExpandVersions( char	*name)
      **  Parameter check
      **/
 
-    if((char *) NULL == (module = CheckModuleVersion( name))) 
+    if(!(module = CheckModuleVersion( name))) 
 	return((char *) NULL );		/** -------- EXIT (FAILURE) -------> **/
 
-    if((char *) NULL == (version = strrchr( module, *psep))) {
+    if(!(version = strrchr( module, *psep))) {
 	if( OK != ErrorLogger( ERR_INTERAL, LOC, NULL))
 	    return((char *) NULL );	/** -------- EXIT (FAILURE) -------> **/
     }
@@ -342,11 +340,11 @@ char	*ExpandVersions( char	*name)
      **  Check wheter it exists
      **/
 
-    if((ModModule *) NULL == (modptr = FindModule( module, &tmp1)))
+    if(!(modptr = FindModule( module, &tmp1)))
 	return((char *) NULL );		/** -------- EXIT (FAILURE) -------> **/
 
-    if((ModName *) NULL == (ptr = FindName( version, modptr->version, &tmp2))) {
-	if((ModName *) NULL == (ptr = FindName( version, modptr->name, &tmp2))) 
+    if(!(ptr = FindName( version, modptr->version, &tmp2))) {
+	if(!(ptr = FindName( version, modptr->name, &tmp2))) 
 	    return((char *) NULL );	/** -------- EXIT (FAILURE) -------> **/
 	ptr = ptr->version;
     }
@@ -503,7 +501,7 @@ static	char	*CheckModuleVersion( char *name)
 	    return((char *) NULL);
 
 	strcpy( buffer, g_current_module);
-	if((char *) NULL == (t = strrchr( buffer, *psep)))
+	if(!(t = strrchr( buffer, *psep)))
 	    t = buffer + strlen( buffer);
 	*t++ = *psep;
 	*t = '\0';
@@ -620,11 +618,10 @@ int cmdModuleAlias(
      **/
 	trg_alias = FindName((char *)Tcl_GetString(objv[2]), aliaslist, &tmp);
 	if (!trg_alias) {
-		if ((char *)NULL ==
-		    (module = CheckModuleVersion(Tcl_GetString(objv[2]))))
+		if (!(module = CheckModuleVersion(Tcl_GetString(objv[2]))))
 			module = (char *)Tcl_GetString(objv[2]);
 
-		if ((char *)NULL != (version = strrchr(module, *psep)))
+		if ((version = strrchr(module, *psep)))
 			*version++ = '\0';
 	}
     /**
@@ -652,8 +649,7 @@ int cmdModuleAlias(
 	/**
 	 **  We have to allocate a new alias entry
 	 **/
-		if ((ModName *) NULL ==
-		    (ptr = AddName((char *)Tcl_GetString(objv[1]), &aliaslist,
+		if (!(ptr = AddName((char *)Tcl_GetString(objv[1]), &aliaslist,
 			     NULL))) {
 			ErrorLogger(ERR_INTERAL, LOC, NULL);
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
@@ -666,7 +662,7 @@ int cmdModuleAlias(
 	if (trg_alias) {
 		ptr->ptr = trg_alias;
 	} else {
-		if ((ModModule *) NULL == (modptr = AddModule(module))) {
+		if (!(modptr = AddModule(module))) {
 			ErrorLogger(ERR_BADMODNAM, LOC, Tcl_GetString(objv[2]),
 				    NULL);
 			ptr->ptr = (ModName *) NULL;
@@ -715,7 +711,7 @@ int	AliasLookup(	char	*alias,
 	 **  Lokate the alias entry and check intergrity
 	 **/
 
-	if((ModName *) NULL == (ptr = FindName( alias, aliaslist, &tmp)))
+	if(!(ptr = FindName( alias, aliaslist, &tmp)))
 	    return( 0);			/** ------- EXIT (not found) ------> **/
 
 	if( ptr == oldptr || !ptr->ptr || !ptr->ptr->name ) {
@@ -809,7 +805,7 @@ int	VersionLookup(	char *name, char **module, char **version)
 	strcpy( buffer, name);
 	*module = buffer;
 
-	if((char *) NULL == (*version = strrchr( buffer, *psep))) {
+	if(!(*version = strrchr( buffer, *psep))) {
 
 	    if( AliasLookup( buffer, &s, &t)) {
 		*module = s; *version = t;
@@ -826,7 +822,7 @@ int	VersionLookup(	char *name, char **module, char **version)
      **  We call it success, if we do not find a registered name.
      **  In this case <module>/<version> will be returned as passed.
      **/
-    if((ModModule *) NULL == (mptr = FindModule( *module, &mtmp))) {
+    if(!(mptr = FindModule( *module, &mtmp))) {
 	return( 1);			/** -------- EXIT (SUCCESS) -------> **/
     }
 
@@ -836,7 +832,7 @@ int	VersionLookup(	char *name, char **module, char **version)
     histsize = HISTTAB;
     histndx = 0;
 
-    if((ModName **) NULL == (history = (ModName **) module_malloc( histsize * 
+    if(!(history = (ModName **) module_malloc( histsize * 
 	sizeof( ModName *)))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
 	return( 0);			/** -------- EXIT (FAILURE) -------> **/
@@ -878,7 +874,7 @@ int	VersionLookup(	char *name, char **module, char **version)
 	    if( histndx >= histsize) {
 		histsize += HISTTAB;
 
-		if((ModName **) NULL == (history = (ModName **) module_realloc(
+		if(!(history = (ModName **) module_realloc(
 		    history, histsize * sizeof( ModName *)))) {
 		    ErrorLogger( ERR_ALLOC, LOC, NULL);
 		    return( 0);		/** -------- EXIT (FAILURE) -------> **/
@@ -1011,8 +1007,7 @@ static	ModModule	*AddModule(	char	*name)
      **  Allocate a new guy
      **/
 
-    if((ModModule *) NULL ==
-		(ptr = (ModModule *) module_malloc( sizeof(ModModule)))) {
+    if(!(ptr = (ModModule *) module_malloc( sizeof(ModModule)))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
 	return((ModModule *) NULL);
     }
@@ -1120,7 +1115,7 @@ static	ModName	*AddName(	char	 *name,
      **  Allocate a new guy
      **/
 
-    if((ModName *) NULL == (ptr = (ModName *) module_malloc(sizeof(ModName)))) {
+    if(!(ptr = (ModName *) module_malloc(sizeof(ModName)))) {
 	ErrorLogger( ERR_ALLOC, LOC, NULL);
 	return((ModName *) NULL);
     }

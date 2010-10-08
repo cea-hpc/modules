@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.20 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.21 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -212,11 +212,11 @@ int cmdSetPath(
 	_TCLCHK(interp);
 
 #if 0
-	    if (oldpath == NULL)
+	    if (!oldpath)
 		oldpath = !strcmp(Tcl_GetString(objv[arg1]),
-			    "MANPATH") ? "/usr/man" : "";
+			    "MANPATH") ? DEFAULTMANPATH : "";
 #else
-	    if (oldpath == NULL)
+	    if (!oldpath)
 		oldpath	= "";
 #endif
 
@@ -233,7 +233,7 @@ int cmdSetPath(
      **  Some space for the list of paths which
      **  are not already in the existing path.
      **/
-	if ((char *)NULL == (qualifiedpath =
+	if (!(qualifiedpath =
 	     stringer(NULL, 0, Tcl_GetString(objv[arg1 + 1]), delim, NULL)))
 		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 			goto unwind1;
@@ -253,7 +253,7 @@ int cmdSetPath(
 	 **     end       ... :path$
 	 **     only one  ... ^path$
 	 **/
-		if ((char *)NULL == (newpath = stringer(NULL, 0,
+		if (!(newpath = stringer(NULL, 0,
 			"(^", buffer, delim, ")|(", delim, buffer,
 			delim, ")|(", delim, buffer, "$)|(^", buffer,
 			"$)", NULL)))
@@ -269,8 +269,7 @@ int cmdSetPath(
 	 **  add it to the qualified path.
 	 **/
 		if (!Tcl_RegExpExec(interp, chkexpPtr, oldpath, oldpath))
-			if ((char *)NULL ==
-			    stringer(qualifiedpath + strlen(qualifiedpath),
+			if (!stringer(qualifiedpath + strlen(qualifiedpath),
 				     qpathlen - strlen(qualifiedpath),
 				     pathlist[x], delim, NULL))
 				if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
@@ -293,9 +292,8 @@ int cmdSetPath(
      **  Some space for our newly created path.
      **  We size at the oldpath plus the addition.
      **/
-	if ((char *)NULL == (newpath = stringer(NULL, strlen(oldpath) +
-						strlen(qualifiedpath) + 2,
-						NULL)))
+	if (!(newpath = stringer(NULL, strlen(oldpath) +
+		strlen(qualifiedpath) + 2, NULL)))
 		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 			goto unwind2;
 	*newpath = '\0';
@@ -583,8 +581,7 @@ static int	Remove_Path(	Tcl_Interp	*interp,
     /**
      **  Get the current value of the "PATH" environment variable
      **/
-    if( NULL == (tmppath = (char *) Tcl_GetVar2( interp, "env", variable,
-	TCL_GLOBAL_ONLY))) {
+    if(!(tmppath=(char *)Tcl_GetVar2(interp,"env",variable,TCL_GLOBAL_ONLY))) {
 	_TCLCHK(interp);
 	goto success0;			/** -------- EXIT (SUCCESS) -------> **/
     }    
@@ -595,7 +592,7 @@ static int	Remove_Path(	Tcl_Interp	*interp,
      **  changed in this manner.
      **  Put a \ in front of each . and + in the passed value to remove.
      **/
-    if((char *) NULL == (oldpath = stringer(NULL,0, tmppath, NULL)))
+    if(!(oldpath = stringer(NULL,0, tmppath, NULL)))
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	    goto unwind0;
     path_len = strlen(oldpath);
@@ -605,7 +602,7 @@ static int	Remove_Path(	Tcl_Interp	*interp,
      **  Now we need to find it in the path variable.  So, we create
      **  space enough to build search expressions.
      **/
-    if((char *) NULL == (searchpath = stringer(NULL,0,"^", buffer,
+    if(!(searchpath = stringer(NULL,0,"^", buffer,
 	delim, NULL)))
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	    goto unwind1;
@@ -756,7 +753,7 @@ static int	Remove_Path(	Tcl_Interp	*interp,
 	char* newenv;
 	int newlen = path_len + strlen(sw_marker) + 1;
       
-	if((char *) NULL==(newenv = stringer(NULL, newlen ,NULL) ))
+	if(!(newenv = stringer(NULL, newlen ,NULL) ))
 	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 		goto unwind1;
 

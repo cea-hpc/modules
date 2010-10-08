@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.12 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdWhatis.c,v 1.13 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -156,8 +156,7 @@ int cmdModuleWhatis(
 	     **/
 			while (whatis_ndx + 2 >= whatis_size) {
 				whatis_size += WHATIS_FRAG;
-				if ((char **)NULL ==
-				    (whatis = module_realloc(whatis,
+				if (!(whatis = module_realloc(whatis,
 					     whatis_size * sizeof(char *)))) {
 					ErrorLogger(ERR_ALLOC, LOC, NULL);
 					return (TCL_ERROR);
@@ -169,7 +168,7 @@ int cmdModuleWhatis(
 	     **  Put the string on the buffer
 	     **/
 
-			if ((char *)NULL == (whatis[whatis_ndx++]
+			if (!(whatis[whatis_ndx++]
 			= stringer(NULL, 0, Tcl_GetString(objv[i++]), NULL))) {
 				if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
 					return (TCL_ERROR);

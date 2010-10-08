@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.15 2009/10/15 19:09:05 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.16 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -164,7 +164,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 		 **  So it is loaded ...
 		 **  Do we know the filename?
 		 **/
-                if ((char *) NULL == stringer(modulename, MOD_BUFSIZE,
+                if (!stringer(modulename, MOD_BUFSIZE,
 			tmpname, NULL))
 		    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 			goto unwind0;

@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.17 2010/10/08 19:52:09 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.18 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -309,11 +309,11 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
      **	 Normal reading of the files
      **/
 
-    if( NULL == (dirlst_head = get_dir( dir, NULL, &count, &tcount)))
+    if(!(dirlst_head = get_dir( dir, NULL, &count, &tcount)))
 	if( OK != ErrorLogger( ERR_READDIR, LOC, dir, NULL))
 	    goto unwind0;
 
-    if( NULL == (list = (char**) module_malloc( tcount * sizeof( char**))))
+    if(!(list = (char**) module_malloc( tcount * sizeof( char**))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind1;
 
@@ -344,8 +344,7 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
 	 **  locate the filename related to the passed module
 	 **/
 
-	if( (char *) NULL == stringer(modulefile,MOD_BUFSIZE,
-		dir,psep,list[i],NULL)) {
+	if(!stringer(modulefile,MOD_BUFSIZE, dir,psep,list[i],NULL)) {
 	    result = TCL_ERROR;
 	    break; /** for( i) **/
 	}

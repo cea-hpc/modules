@@ -32,7 +32,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.23 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.24 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -487,8 +487,8 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
     /**
      **  If there isn't a line buffer allocated so far, do it now
      **/
-    if( line == NULL) {
-        if( NULL == (line = (char*) module_malloc(LINELENGTH * sizeof(char)))) {
+    if( !line ) {
+        if(!(line = (char*) module_malloc(LINELENGTH * sizeof(char)))) {
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
         }
@@ -502,7 +502,7 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
     if( !strcmp( filename, _fil_stdin)) {
 	infile = stdin;
     } else {
-	if( NULL == (infile = fopen( filename, "r"))) {
+	if(!(infile = fopen( filename, "r"))) {
 	    if( OK != ErrorLogger( ERR_OPEN, LOC, filename,
 		_(em_reading), NULL))
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
@@ -520,7 +520,7 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
     while( 1) {
 
         linenum++;
-	if( fgets(line, LINELENGTH, infile) == NULL) {
+	if(!fgets(line, LINELENGTH, infile)) {
 	    if( !gotPartial) {
 		break;	/** while **/
 	    }

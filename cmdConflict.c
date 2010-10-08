@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.24 2010/10/08 19:52:09 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.25 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -114,15 +114,13 @@ static int checkConflict(
      **  At first clarify if they really do exist ...
      **/
 	for (k = 0; k < nummodules; k++) {
-		if ((char *)NULL == (buffer = stringer(NULL, 0,
-		path, psep, modulelist[k], NULL)))
+		if (!(buffer = stringer(NULL,0,path,psep,modulelist[k],NULL)))
 			if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 				goto unwind0;
 		if (!(fstate = is_("what", buffer))) {
 			if (OK != ErrorLogger(ERR_FILEINDIR, LOC,
 				modulelist[k], path, NULL))
-				if ((char *)NULL ==
-				    stringer(error_module, MOD_BUFSIZE,
+				if (!stringer(error_module, MOD_BUFSIZE,
 					     modulelist[k], NULL))
 					if (OK !=
 					    ErrorLogger(ERR_STRING, LOC, NULL))
@@ -134,8 +132,8 @@ static int checkConflict(
 	 **  according directory and call myself recursively in order to
 	 **/
 		if (fstate == IS_DIR) {
-			if (NULL == (new_modulelist = SortedDirList(path,
-			modulelist[k], &new_nummodules)))
+			if (!(new_modulelist = SortedDirList(path,
+				modulelist[k], &new_nummodules)))
 				continue;
 
 			if (TCL_ERROR == checkConflict(interp, path,
@@ -157,8 +155,7 @@ static int checkConflict(
                  **  for reporting purposes when we get back to the top.
                  **/
 
-				if ((char *)NULL ==
-				    stringer(error_module, MOD_BUFSIZE,
+				if (!stringer(error_module, MOD_BUFSIZE,
 					     modulelist[k], NULL))
 					if (OK !=
 					    ErrorLogger(ERR_STRING, LOC, NULL))

@@ -54,7 +54,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.37 2010/10/08 19:52:09 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.38 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -214,14 +214,14 @@ uvec           *SortedDirList(
      **  Allocate memory for the list to be created. Suggest a list size of
      **  20 Elements. This may be changed later on.
      **/
-	if (NULL == (filelist = uvec_ctor(20)))
+	if (!(filelist = uvec_ctor(20)))
 		if (OK != ErrorLogger(ERR_UVEC, LOC, NULL))
 			goto unwind0;
     /**
      **  Form the suggested module file name out of the passed path and 
      **  the name of the module. Alloc memory in order to do this.
      **/
-	if ((char *)NULL == (full_path = stringer(NULL, 0,
+	if (!(full_path = stringer(NULL, 0,
 				  path, psep, modulename, NULL)))
 		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 			goto unwind1;
@@ -256,7 +256,7 @@ uvec           *SortedDirList(
 	/**
 	 **  Open the directory for reading
 	 **/
-		if (NULL == (subdirp = opendir(full_path))) {
+		if (!(subdirp = opendir(full_path))) {
 #if 0
 	/* if you can't open the directory ... is that really an error? */
 			if (OK !=
@@ -268,8 +268,7 @@ uvec           *SortedDirList(
 	 **  Allocate a buffer for constructing complete file names
 	 **  and initialize it with the directory part we do already know.
 	 **/
-		if (NULL ==
-		    (tbuf = stringer(NULL, MOD_BUFSIZE, full_path, psep, NULL)))
+		if (!(tbuf = stringer(NULL,MOD_BUFSIZE, full_path, psep, NULL)))
 			if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 				goto unwind3;
 
@@ -936,7 +935,7 @@ static int Output_Directory_Change(
 ) {
 	int             retval = TCL_OK;
 
-	if (change_dir == NULL)
+	if (!change_dir)
 		return retval;
 
 	assert(shell_derelict != NULL);
@@ -1624,11 +1623,8 @@ char           *getLMFILES(
 	     **  Reallocate the value's buffer and copy the current split
 	     **  part at its end
 	     **/
-			if ((char *)NULL == (lmfiles =
-					     (char *)module_realloc(lmfiles,
-								    lmsize *
-								    sizeof(char)
-								    + 1))) {
+			if (!(lmfiles = (char *) module_realloc(lmfiles,
+						lmsize * sizeof(char) + 1))) {
 				if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
 					return (NULL);
 						/** ---- EXIT (FAILURE) ---> **/
@@ -1772,7 +1768,7 @@ static int __IsLoaded(
      **  for further handling. If this fails it will be assumed, that the 
      **  module is *NOT* loaded.
      **/
-    if((char *) NULL == (l_modules = stringer(NULL,0,loaded_modules,NULL)))
+    if(!(l_modules = stringer(NULL,0,loaded_modules,NULL)))
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	    goto unwind0;
 
@@ -1782,8 +1778,7 @@ static int __IsLoaded(
      **  the module is *NOT* loaded.
      **/
     if(loaded_modulefiles)
-	if((char *) NULL == (l_modulefiles = stringer(NULL,0,
-		loaded_modulefiles,NULL)))
+	if(!(l_modulefiles = stringer(NULL,0, loaded_modulefiles,NULL)))
 	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 		goto unwind1;
 
@@ -1806,8 +1801,7 @@ static int __IsLoaded(
 	loadedmodule_path = xstrtok( l_modules, ":");
 	while( loadedmodule_path) {
 
-	    if((char *) NULL == (loaded = stringer(NULL,0,
-		    loadedmodule_path,NULL)))
+	    if(!(loaded = stringer(NULL,0, loadedmodule_path,NULL)))
 		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 		    goto unwind2;
 
@@ -1840,8 +1834,7 @@ static int __IsLoaded(
                 if( basename) {
 		    null_free ((void *) &loaded);
                     if( realname)
-			if((char *) NULL == (*realname = stringer(NULL,0,
-				loadedmodule_path,NULL)))
+			if(!(*realname=stringer(NULL,0,loadedmodule_path,NULL)))
 			    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 				goto unwind2;
 
@@ -2262,7 +2255,7 @@ char *xstrtok_r(char *s, const char *delim, char **ptrptr) {
 	const char	*tok;
 
 	/* return NULL if NULL string and at end of the line */
-	if (s == NULL && *ptrptr == NULL)
+	if ((!s) && (!*ptrptr))
 		return (NULL);
 
 	/* do not skip leading (or trailing) delimiters ... */
@@ -2375,15 +2368,15 @@ char *xdup(char const *string) {
 	char *result = NULL;
 	char *dollarptr;
 
-	if (string == (char *)NULL) return result;
+	if (!string) return result;
 
 	/** need to work from copy of string **/
-	if (((char *) NULL) == (result = stringer(NULL,0, string, NULL)))
+	if (!(result = stringer(NULL,0, string, NULL)))
 	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 		return( (char*) NULL);	/** -------- EXIT (FAILURE) -------> **/
 
 	/** check for '$' else just pass copy of it **/
-	if ((dollarptr = strchr(result, '$')) == (char *) NULL) {
+	if (!(dollarptr = strchr(result, '$'))) {
 		return result;
 	} else {
 	/** found something **/
@@ -2494,7 +2487,7 @@ char *xdup(char const *string) {
 char *xgetenv(char const * var) {
 	char *result = NULL;
 
-	if (var == (char *)NULL) return result;
+	if (!var) return result;
 
 	return xdup(getenv(var));
 
@@ -2634,7 +2627,7 @@ int tmpfile_mod(char** filename, FILE** file) {
   char* filename2;
   int trial = 0;
 
-  if ((char *) NULL == (filename2 =
+  if (!(filename2 =
 	 stringer(NULL, strlen(TMP_DIR)+strlen("modulesource")+20, NULL)))
      if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	 return 1;
@@ -2772,7 +2765,7 @@ EM_RetVal ReturnValue(Tcl_Interp *interp, int retval) {
  ++++*/
 void OutputExit() {
 
-	if (shell_derelict == NULL) {
+	if (!shell_derelict) {
 		return;
 	} else if( !strcmp( shell_derelict, "csh")) {
 		/* OK shell derelict */

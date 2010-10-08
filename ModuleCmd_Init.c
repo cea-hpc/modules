@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.16 2009/10/15 19:09:01 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.17 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -157,7 +157,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
     /**
      **  Where's my HOME?
      **/
-    if ((char *) NULL == (home = (char *) getenv("HOME")))
+    if (!(home = (char *) getenv("HOME")))
 	if (OK != ErrorLogger(ERR_HOME, LOC, NULL))
 	    goto unwind1;
 
@@ -166,12 +166,11 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
      **  for quick concatination of the shell startup files.
      **/
     homelen = strlen(home) + 40;
-    if ((char *) NULL ==
-	(home_pathname = stringer(NULL, homelen, home, psep, NULL)))
+    if (!(home_pathname = stringer(NULL, homelen, home, psep, NULL)))
 	if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 	    goto unwind0;
 
-    if ((char *) NULL == (home_pathname2 = stringer(NULL, homelen, NULL)))
+    if (!(home_pathname2 = stringer(NULL, homelen, NULL)))
 	if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 	    goto unwind1;
 
@@ -180,26 +179,26 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
     /**
      **  Allocate a buffer for fgets ...
      **/
-    if (NULL == (buffer = stringer(NULL, bufsiz, NULL)))
+    if (!(buffer = stringer(NULL, bufsiz, NULL)))
 	if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 	    goto unwind2;
 
     /**
      **  Scan all startup files related to the current invoking shell
      **/
-    if ((char **) NULL == (shell_startups = SetStartupFiles(shell_name)))
+    if (!(shell_startups = SetStartupFiles(shell_name)))
 	goto unwind3;
 
     while (shell_startups[shell_num]) {
 	new_file = 1;
 	found_modload_flag = 0;
 
-	if ((char *) NULL == stringer(home_pathname + home_end, 40,
+	if (!stringer(home_pathname + home_end, 40,
 				      shell_startups[shell_num], NULL))
 	    if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 		goto unwind3;
 
-	if (NULL == (fileptr = fopen(home_pathname, "r")))
+	if (!(fileptr = fopen(home_pathname, "r")))
 	    goto unwhile0; 	/** while( shell_startups) ...	     **/
 
 	/**
@@ -207,13 +206,13 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	 **  open a new startupfile with the extension -NEW for output
 	 **/
 	path_end = strlen(home_pathname);
-	if ((char *) NULL == stringer(home_pathname + path_end,
+	if (!stringer(home_pathname + path_end,
 				      homelen - path_end, "-NEW", NULL))
 	    if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 		goto unwind3;
 
 	if (!(g_flags & M_DISPLAY) &&
-	    ((FILE *) NULL == (newfileptr = fopen(home_pathname, "w")))) {
+	    (!(newfileptr = fopen(home_pathname, "w")))) {
 	    (void) ErrorLogger(ERR_OPEN, LOC, home_pathname,
 		_(em_writing), NULL);
 	    goto unwhile0; 	/** while( shell_startups) ...	     **/
@@ -257,7 +256,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 			*endp = '\0';
 		    }
 
-		    if ((char **) NULL == (modlist
+		    if (!(modlist
 			= uvec_vector(SplitIntoList(startp, &nummods," \t"))))
 			continue; /** while(fgets) **/
 
@@ -266,7 +265,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 			*endp = ch;
 
 		    if (g_flags & M_DISPLAY) {
-			if (modlist[0] == NULL) {
+			if (!modlist[0]) {
 			    fprintf(stderr,
 /* TRANSLATORS: don't rearrange the arguments */
 	_("\nNo modules are loaded in %s's initialization file $HOME/%s\n"),
@@ -433,7 +432,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	     **/
 	    home_pathname[path_end] = '\0';
 
-	    if ((char *) NULL == stringer(home_pathname2, homelen,
+	    if (!stringer(home_pathname2, homelen,
 					  home_pathname, "-OLD", NULL))
 		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 		    goto unwind3;
@@ -448,7 +447,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	     **  Create a -NEW name
 	     **  Move ~/.startup-NEW to ~/.startup
 	     **/
-	    if ((char *) NULL == stringer(home_pathname2, homelen,
+	    if (!stringer(home_pathname2, homelen,
 					  home_pathname, "-NEW", NULL))
 		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 		    goto unwind3;
@@ -460,7 +459,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		    /**
 		     **  Put the -OLD one back if I can't rename it
 		     **/
-		    if ((char *) NULL == stringer(home_pathname2, homelen,
+		    if (!stringer(home_pathname2, homelen,
 						  home_pathname, "-OLD", NULL))
 			if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 			    goto unwind3;
@@ -478,7 +477,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 	     **  Create a -OLD name
 	     **  Unlink ~/.startup-OLD
 	     **/
-	    if ((char *) NULL == stringer(home_pathname2, homelen,
+	    if (!stringer(home_pathname2, homelen,
 					  home_pathname, "-OLD", NULL))
 		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 		    goto unwind3;

@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.34 2010/10/08 19:52:09 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.35 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -230,8 +230,7 @@ int Locate_ModuleFile(
 	     **  name, because some rc file have been sourced
 	     **/
 			if (VersionLookup(modulename, &mod, &vers)) {
-				if ((char *)NULL ==
-				    stringer(strbuffer, MOD_BUFSIZE, mod, psep,
+				if (!stringer(strbuffer, MOD_BUFSIZE, mod, psep,
 					     vers, NULL))
 					goto unwindp;
 				modulename = strbuffer;
@@ -336,20 +335,18 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
      **  Check whether $path/$prefix/$modulename is a directory.
      **/
     if( prefix) {
-	if((char *) NULL == stringer(fullpath, MOD_BUFSIZE,
+	if(!stringer(fullpath, MOD_BUFSIZE,
 	path,psep,prefix,psep,modulename, NULL))
 	    goto unwind1;
     } else {
-	if((char *) NULL == stringer(fullpath, MOD_BUFSIZE,
-	path,psep,modulename, NULL))
+	if(!stringer(fullpath, MOD_BUFSIZE, path,psep,modulename, NULL))
 	    goto unwind1;
     }
     if(is_("dir", fullpath)) {
 	/**
 	 ** So the full modulename is $modulename/default.  Recurse on that.
 	 **/
-	if((char *) NULL == (t = stringer(NULL, 0, modulename, psep,
-					  _(em_default), NULL)))
+	if(!(t = stringer(NULL, 0, modulename, psep, _(em_default), NULL)))
 	    goto unwind1;
 	Result = GetModuleName( interp, path, prefix, t);
 	null_free((void *) &t);
@@ -362,12 +359,10 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
      **  Check whether $path/$prefix/$mod is a directory
      **/
     if( prefix) {
-	if((char *) NULL == stringer(fullpath, MOD_BUFSIZE,
-	path,psep,prefix,psep,mod, NULL))
+	if(!stringer(fullpath, MOD_BUFSIZE, path,psep,prefix,psep,mod, NULL))
 	    goto unwind1;
     } else {
-	if((char *) NULL == stringer(fullpath, MOD_BUFSIZE,
-	path,psep,mod, NULL))
+	if(!stringer(fullpath, MOD_BUFSIZE, path,psep,mod, NULL))
 	    goto unwind1;
     }
     is_def = !strcmp( mod, _(em_default));
@@ -382,16 +377,14 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 	     **  For compatibility source the .version file, too
 	     **/
 	    if( prefix) {
-		if((char *) NULL == stringer(modfil_buf, MOD_BUFSIZE,
-		prefix,psep,mod, NULL))
+		if(!stringer(modfil_buf, MOD_BUFSIZE, prefix,psep,mod, NULL))
 		    goto unwind2;
 	    } else {
-		if((char *) NULL == stringer(modfil_buf, MOD_BUFSIZE,mod, NULL))
+		if(!stringer(modfil_buf, MOD_BUFSIZE,mod, NULL))
 		    goto unwind2;
 	    }
 
-	    if((char *) NULL == stringer(fullpath, MOD_BUFSIZE,
-	    path,psep,modfil_buf, NULL))
+	    if(!stringer(fullpath, MOD_BUFSIZE, path,psep,modfil_buf, NULL))
 		goto unwind2;
 	    g_current_module = modfil_buf;
 
@@ -410,7 +403,7 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		 **/
 		if( len > slen) {
 		    null_free((void *) &s);
-		    if((char *) NULL == (s = stringer( NULL, len, NULL))) {
+		    if(!(s = stringer( NULL, len, NULL))) {
 			ErrorLogger( ERR_STRING, LOC, NULL);
 			goto unwind2;
 		    }
@@ -419,7 +412,7 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		/**
 		 **  Print the new module/version in the buffer
 		 **/
-		if((char *) NULL == stringer( s, len, mod1,psep, ver1, NULL)) {
+		if(!stringer( s, len, mod1,psep, ver1, NULL)) {
 		    ErrorLogger( ERR_STRING, LOC, NULL);
 		    goto unwind2;
 		}
@@ -438,18 +431,18 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		/**
 		 **  Build the new prefix
 		 **/
-		if((char *) NULL == (t = stringer(NULL, len, NULL))) {
+		if(!(t = stringer(NULL, len, NULL))) {
 		    ErrorLogger( ERR_STRING, LOC, NULL);
 		    goto unwind2;
 		}
 
 		if( prefix) {
-		    if((char *) NULL == stringer(t,len,prefix,psep,mod, NULL)){
+		    if(!stringer(t,len,prefix,psep,mod, NULL)){
 			ErrorLogger( ERR_STRING, LOC, NULL);
 			goto unwindt;
 		    }
 		} else {
-		    if((char *) NULL == stringer(t, len, mod, NULL)){
+		    if(!stringer(t, len, mod, NULL)){
 			ErrorLogger( ERR_STRING, LOC, NULL);
 			goto unwindt;
 		    }
@@ -478,7 +471,7 @@ unwindt:
 	    if( is_def) {
 		if( !prefix)
 		    prefix = ".";
-		if( NULL == (filelist = SortedDirList( path, prefix,&numlist)))
+		if(!(filelist = SortedDirList( path, prefix,&numlist)))
 		    goto unwind1;
 
 		prefix = (char *) NULL;
@@ -489,7 +482,7 @@ unwindt:
 		 **  is reverse sorted.
 		 **  If it's a directory, we delve into it.
 		 **/
-		for( i=0; i<numlist && Result==NULL; i++) {
+		for( i=0; i<numlist && Result == NULL; i++) {
 			char	 *filename;
 		    /**
 		     **  Build the full path name and check if it is a
@@ -497,8 +490,7 @@ unwindt:
 		     **  we're seeking for
 		     **/
 			filename = uvec_vector(filelist)[i];
-		    if ((char *)NULL == stringer(fullpath, MOD_BUFSIZE,
-			path, psep, filename, NULL))
+		    if(!stringer(fullpath,MOD_BUFSIZE,path,psep,filename,NULL))
 			    goto unwind2;
 
 		    if(is_("dir",fullpath)) {
@@ -535,15 +527,15 @@ unwindt:
 		if( prefix)
 		    len += strlen( prefix) + 1;
 
-		if((char *) NULL == (t = stringer(NULL, len, NULL))) {
+		if(!(t = stringer(NULL, len, NULL))) {
 		   ErrorLogger( ERR_STRING, LOC, NULL);
 		   goto unwind2;
 		}
 		if( prefix) {
-		    if((char *) NULL == stringer(t,len, prefix,psep,Result,NULL))
+		    if(!stringer(t,len, prefix,psep,Result,NULL))
 			goto unwindt2;
 		} else {
-		    if((char *) NULL == stringer(t,len, Result,NULL))
+		    if(!stringer(t,len, Result,NULL))
 			goto unwindt2;
 		}
 		Result = t;
@@ -624,8 +616,7 @@ int SourceRC(
     /**
      **  Build the full name of the RC file
      **/
-	if ((char *)NULL ==
-	    (buffer = stringer(NULL, 0, path, psep, name, NULL)))
+	if (!(buffer = stringer(NULL, 0, path, psep, name, NULL)))
 		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 			goto unwind0;
     /**
@@ -722,8 +713,7 @@ int SourceVers(
      **  Build the full name of the RC file and check whether it exists and
      **  has the magic cookie inside
      **/
-	if ((char *)NULL ==
-	    (buffer = stringer(NULL, 0, path, psep, version_file, NULL)))
+	if (!(buffer = stringer(NULL, 0, path, psep, version_file, NULL)))
 		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 			return (TCL_ERROR);
 	if (is_("file",buffer)) {
@@ -760,7 +750,7 @@ int SourceVers(
 					modname++;
 				}
 				null_free((void *)&buffer);
-				if ((char *)NULL == (buffer = stringer(NULL, 0,
+				if (!(buffer = stringer(NULL, 0,
 					modname, psep, version, NULL)))
 					if (OK !=
 					    ErrorLogger(ERR_STRING, LOC, NULL))

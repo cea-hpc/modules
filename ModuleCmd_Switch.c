@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.11 2009/10/15 19:09:09 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.12 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -110,19 +110,19 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
     /**
      ** allocate buffer memory
      **/
-    if ((char *) NULL == (oldfile = stringer(NULL, MOD_BUFSIZE, NULL)))
+    if (!(oldfile = stringer(NULL, MOD_BUFSIZE, NULL)))
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	    goto unwind0;
 
-    if ((char *) NULL == (newfile = stringer(NULL, MOD_BUFSIZE, NULL)))
+    if (!(newfile = stringer(NULL, MOD_BUFSIZE, NULL)))
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	    goto unwind1;
 
-    if ((char *) NULL == (oldname = stringer(NULL, MOD_BUFSIZE, NULL)))
+    if (!(oldname = stringer(NULL, MOD_BUFSIZE, NULL)))
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	    goto unwind2;
 
-    if ((char *) NULL == (newname = stringer(NULL, MOD_BUFSIZE, NULL)))
+    if (!(newname = stringer(NULL, MOD_BUFSIZE, NULL)))
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	    goto unwind3;
 
@@ -134,7 +134,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 
     if( argc == 1) {
       newmodule = argv[0];
-      if((char *) NULL == (oldmodule_buffer = stringer(NULL,0,newmodule,NULL)))
+      if(!(oldmodule_buffer = stringer(NULL,0,newmodule,NULL)))
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
           goto unwind4;
 

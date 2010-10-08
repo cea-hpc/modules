@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdUname.c,v 1.10 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdUname.c,v 1.11 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -164,7 +164,7 @@ int cmdUname(
 
 #  else				/* not HAVE_GETHOSTNAME */
 #    ifdef PHOSTNAME
-	if (NULL == (hname = popen(PHOSTNAME, "r"))) {
+	if (!(hname = popen(PHOSTNAME, "r"))) {
 		if (OK != ErrorLogger(ERR_POPEN, LOC, PHOSTNAME,
 				      _(em_reading), NULL))
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/

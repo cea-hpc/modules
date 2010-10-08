@@ -41,7 +41,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdXResource.c,v 1.16 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdXResource.c,v 1.17 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -861,8 +861,7 @@ int cmdXResource(
 				Tcl_DStringAppend(buffer,
 					  Tcl_GetString(objv[opt_ind]), -1);
 			} else {
-				if (NULL == (inp = (do_cpp
-					? popen(strcat(defines,
+				if (!(inp = (do_cpp ? popen(strcat(defines,
 					Tcl_GetString(objv[opt_ind])), "r")
 					:fopen(Tcl_GetString(objv[opt_ind]),"r")
 					)))

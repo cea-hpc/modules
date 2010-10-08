@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.15 2009/10/15 19:09:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdIsLoaded.c,v 1.16 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -128,7 +128,7 @@ int cmdIsLoaded(
 	notloaded_flag = Tcl_GetString(objv[1]);
 	for (i = 1; i < objc && Tcl_GetString(objv[i]) && notloaded_flag; i++) {
 		for (j = 0; j < numpaths && notloaded_flag; j++) {
-			if (NULL == (modulelist = SortedDirList( ModulePath[j],
+			if (!(modulelist = SortedDirList( ModulePath[j],
 				   Tcl_GetString(objv[i]),&nummodules)))
 				continue;
 	    /**

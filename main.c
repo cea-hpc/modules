@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.32 2009/10/15 20:33:01 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.33 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -260,15 +260,14 @@ int main(
      **/
 	if ((rc_name = xgetenv("MODULERCFILE"))) {
 		/* found something in MODULERCFILE */
-		if ((char *)NULL ==
-		    (rc_path = stringer(NULL, 0, rc_name, NULL))) {
+		if (!(rc_path = stringer(NULL, 0, rc_name, NULL))) {
 			if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 				goto unwind2;
 			else
 				null_free((void *)&rc_name);
 		} else {
 			null_free((void *)&rc_name);
-			if ((char *)NULL == (rc_name = strrchr(rc_path, '/'))) {
+			if (!(rc_name = strrchr(rc_path, *psep))) {
 				rc_name = rc_path;
 				rc_path = instpath;
 			} else
@@ -286,8 +285,7 @@ int main(
      **  Finally we have to change PREFIX -> PREFIX/etc
      **/
 	if (rc_path == instpath) {
-		if ((char *)NULL ==
-		    (rc_path = stringer(NULL, 0, instpath,psep,"etc", NULL))) {
+		if (!(rc_path = stringer(NULL, 0, instpath,psep,"etc", NULL))) {
 			if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
 				goto unwind2;
 			else

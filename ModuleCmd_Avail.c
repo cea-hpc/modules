@@ -35,7 +35,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.22 2009/10/15 19:08:59 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.23 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -328,7 +328,7 @@ static int print_dir(
 
 	if (module) {
 		if (dir) {
-			if ((char *)NULL == (selection = stringer(NULL, 0,
+			if (!(selection = stringer(NULL, 0,
 					  dir, psep, module, NULL))) {
 				ErrorLogger(ERR_STRING, LOC, NULL);
 				goto unwind0;	/** ---- EXIT (FAILURE) ---> **/
@@ -342,10 +342,10 @@ static int print_dir(
 	/**
 	 **  Normal reading of the files
 	 **/
-		if (NULL == (dirlst_head = get_dir(dir, NULL, &count, &tcount)))
+		if (!(dirlst_head = get_dir(dir, NULL, &count, &tcount)))
 			if (OK != ErrorLogger(ERR_READDIR, LOC, dir, NULL))
 				goto unwind1;
-		if (NULL == (cache_list =
+		if (!(cache_list =
 		     (char **)module_malloc(tcount * sizeof(char **))))
 			if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
 				goto unwind1;
@@ -463,7 +463,7 @@ fi_ent	*get_dir(	char	*dir,
      **  Allocate memory for reading in the directory
      **/
 
-    if( NULL == (dirlst_cur = dirlst_head = (fi_ent*) module_calloc( DIREST,
+    if(!(dirlst_cur = dirlst_head = (fi_ent*) module_calloc( DIREST,
 	sizeof( fi_ent)))) {
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
 	    if( -1 == closedir( dirptr))
@@ -487,7 +487,7 @@ fi_ent	*get_dir(	char	*dir,
 	 **/
 
         if(dirlst_cur == dirlst_last) {
-            if( NULL == (dirlst_head = (fi_ent*) module_realloc(
+            if(!(dirlst_head = (fi_ent*) module_realloc(
 		(char*) dirlst_head, (count<<1) * sizeof( fi_ent)))) 
 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
 		    goto unwind0;
@@ -533,7 +533,7 @@ fi_ent	*get_dir(	char	*dir,
 		    goto unwind1;
 		}
 	    } else {
-		if( NULL == (np = stringer(NULL,0, tmp, NULL)))
+		if(!(np = stringer(NULL,0, tmp, NULL)))
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 			goto unwind1;
 	    }
@@ -545,7 +545,7 @@ fi_ent	*get_dir(	char	*dir,
 		    goto unwind1;
 		}
 	    } else {
-		if( NULL == (ndir = stringer(NULL,0, tmp, NULL)))
+		if(!(ndir = stringer(NULL,0, tmp, NULL)))
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
 			goto unwind1;
 	    }
@@ -559,11 +559,10 @@ fi_ent	*get_dir(	char	*dir,
 	    ||  !strcmp(".git",dp->d_name)
 	    ||  !strcmp(".svn",dp->d_name)) {
     		FILE	*fi;
-		if( (char *) NULL == stringer(buffer, MOD_BUFSIZE,
-		    tmp, "/.version", NULL))
+		if(!stringer(buffer, MOD_BUFSIZE, tmp, psep, VERSIONFILE, NULL))
 		    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 			goto unwind1;
-		if( NULL == (fi = fopen( buffer, "r"))) {
+		if(!(fi = fopen( buffer, "r"))) {
 			/* does not have a .version file */
 			continue;
 		} else {
@@ -615,7 +614,7 @@ fi_ent	*get_dir(	char	*dir,
 	 **/
 
 	dirlst_cur->fi_prefix = prefix;
-	if( NULL == (dirlst_cur->fi_name = stringer(NULL,0, dp->d_name, NULL)))
+	if(!(dirlst_cur->fi_name = stringer(NULL,0, dp->d_name, NULL)))
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) 
 		goto unwind1;
 
@@ -714,21 +713,20 @@ void	dirlst_to_list(	char	**list,
         if( dirlst_cur->fi_prefix) {
 
 	    if( path) {
-		if( (char *) NULL == stringer(buf, MOD_BUFSIZE,
-		    path,psep, dirlst_cur->fi_prefix,psep, dirlst_cur->fi_name,
-		    NULL))
+		if(!stringer(buf, MOD_BUFSIZE, path,psep,
+			dirlst_cur->fi_prefix,psep, dirlst_cur->fi_name, NULL))
 			return;
 	    } else {
-		if( (char *) NULL == stringer(buf, MOD_BUFSIZE,
-		    dirlst_cur->fi_prefix,psep, dirlst_cur->fi_name, NULL))
+		if(!stringer(buf, MOD_BUFSIZE, dirlst_cur->fi_prefix,psep,
+			dirlst_cur->fi_name, NULL))
 			return;
 	    }
 
 	    ptr = buf;
         } else {
 	    if( path) {
-		if( (char *) NULL == stringer(buf, MOD_BUFSIZE,
-		    path,psep, dirlst_cur->fi_name, NULL))
+		if(!stringer(buf, MOD_BUFSIZE, path,psep,
+			dirlst_cur->fi_name, NULL))
 			return;
 		ptr = buf;
 
@@ -746,7 +744,7 @@ void	dirlst_to_list(	char	**list,
 	     **  Put this guy on the list
 	     **/
 
-	    if( NULL == (list[(*beginning)++] = stringer(NULL,0, ptr, NULL))) {
+	    if(!(list[(*beginning)++] = stringer(NULL,0, ptr, NULL))) {
 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL)) {
 		    while( i--) 
 			null_free((void *) list + (--(*beginning)));
@@ -988,7 +986,7 @@ void print_aligned_files(
 					t++;
 				module = stringer(NULL, 0, *list + t, NULL);
 			}
-			if ((char *)NULL == module) {
+			if (!module) {
 				if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
 					break;
 				else
@@ -997,11 +995,11 @@ void print_aligned_files(
 	    /**
 	     **  Expand the symbols and get the version of the module
 	     **/
-			if ((char *)NULL == (symbols = ExpandVersions(module)))
+			if (!(symbols = ExpandVersions(module)))
 				symbols = "";
 
 			if ((sw_format & SW_LONG)
-			    || (char *)NULL == (release = strchr(module, *psep)))
+			    || !(release = strchr(module, *psep)))
 				release = "";	/* no release info */
 			else
 				*release++ = '\0';
@@ -1163,13 +1161,11 @@ static	void	print_terse_files(  int terminal_width,
               moduleright = _pick_file_list( row_ndx + (col_ndx+1)* rows);
 
               print_spaced_file( module, len,
-                                 ( (col_ndx == columns - 1)
-                                   || (moduleright == (char *) NULL)
-                                   ? 0 : 1 ),
-                                  ( (numbered == -1) ? numbered : ++mod_ndx) );
-		}
+		((col_ndx == columns - 1) || !moduleright ? 0 : 1 ),
+		( (numbered == -1) ? numbered : ++mod_ndx) );
 	    }
 	    fprintf( stderr, "\n");
+	  }
 	}
     }
 
@@ -1356,7 +1352,7 @@ static	char *mkdirnm(	char	*dir,
      **  If only a file is given, or the file is in the current directory
      **  return just the file.
      **/
-    if( dir == NULL || *dir == '\0' || !strcmp(dir,"."))
+    if( !dir || !*dir || !strcmp(dir,"."))
 	return( strcpy( dirbuf, file));
 
     /**

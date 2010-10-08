@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utilmem.c,v 1.3 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: utilmem.c,v 1.4 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -224,11 +224,11 @@ char *stringer(	char *		buffer,
 	}
 
 	/* do we need to allocate memory? */
-	if (tbuf == (char *) NULL) {
+	if (!tbuf) {
 		if (len == 0) {
 			len = sumlen + 1;
 		}
-		if ((char *) NULL == (tbuf = (char*) module_malloc(len))) {
+		if (!(tbuf = (char*) module_malloc(len))) {
 			return (char *) NULL;
 		}
 	}

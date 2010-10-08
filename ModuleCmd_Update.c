@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.14 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.15 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -135,7 +135,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 	 **/
 	if( NULL != (file = fopen( filename, "r"))) {
 
-	    if((char *) NULL == (buf = stringer(NULL, buffer_size, NULL )))
+	    if(!(buf = stringer(NULL, buffer_size, NULL )))
 		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 		    goto unwind0;
 
@@ -151,7 +151,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 		    
 		    if((ptr-buf) >= buffer_size-10) {	/** 10 bytes safety  **/
 			null_free((void *) &buf);
-			if((char *) NULL == (buf = stringer(NULL,
+			if(!(buf = stringer(NULL,
 				buffer_size += UPD_BUFSIZE, NULL )))
 			    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 				goto unwind0;
@@ -227,11 +227,11 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
      **  Allocate memory for a buffer to tokenize the list of loaded modules
      **  and a list buffer
      **/
-    if( NULL == (load_list = (char**) module_malloc( maxlist*sizeof(char**))))
+    if(!(load_list = (char**) module_malloc( maxlist*sizeof(char**))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind0;
     
-    if( NULL == (loaded = stringer(NULL, 0, tmpload, NULL)))
+    if(!(loaded = stringer(NULL, 0, tmpload, NULL)))
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	    goto unwind1;
     
@@ -252,7 +252,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
             if( list_count >= maxlist) {
                 maxlist = maxlist<<1;
             
-                if( NULL == (load_list = (char**) module_realloc(
+                if(!(load_list = (char**) module_realloc(
 		    (char *) load_list, maxlist*sizeof(char**))))
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 			goto unwind1;

@@ -37,7 +37,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.24 2010/10/04 22:06:43 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.25 2010/10/08 21:40:19 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -208,7 +208,7 @@ int Module_Tcl_ExitCmd(
     /**
      **  Allocate memory
      **/
-	if ((char *)NULL == (buffer = stringer(NULL, 25, NULL)))
+	if (!(buffer = stringer(NULL, 25, NULL)))
 		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
 			goto unwind0;
 
