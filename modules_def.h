@@ -556,8 +556,8 @@ extern	char	 long_header[];
 
 /**  locate_module.c  **/
 extern	int	  Locate_ModuleFile( Tcl_Interp*, char*, char*, char*);
-extern	int	  SourceVers( Tcl_Interp*, char*, char*, Mod_Act);
-extern	int	  SourceRC( Tcl_Interp*, char*, char*, Mod_Act);
+extern	int	  SourceVers(Tcl_Interp*,const char*,const char*,const Mod_Act);
+extern	int	  SourceRC(Tcl_Interp*,const char*,const char*,const Mod_Act);
 
 /**  main.c  **/
 extern  void	  module_usage(FILE *output);

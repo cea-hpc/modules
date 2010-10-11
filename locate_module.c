@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.35 2010/10/08 21:40:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.36 2010/10/11 20:45:44 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -591,9 +591,9 @@ unwind0:
 
 int SourceRC(
 	Tcl_Interp * interp,
-	char *path,
-	char *name,
-	Mod_Act action
+	const char *path,
+	const char *name,
+	const Mod_Act action
 ) {
 	char           *buffer;		/** for full path/name		     **/
 	int             save_flags,	/** cache g_flags		     **/
@@ -648,7 +648,7 @@ int SourceRC(
 			/* Not an error ... just warn of invalid magic cookie */
 			ErrorLogger(ERR_MAGIC, LOC, buffer, NULL);
 		}
-	} /** if( !stat) - presumably not found **/
+	} /** file presumably not found **/
     /**
      **  Free resources and return result
      **/
@@ -689,9 +689,9 @@ unwind0:
 
 int SourceVers(
 	Tcl_Interp * interp,
-	char *path,
-	char *name,
-	Mod_Act action
+	const char *path,
+	const char *name,
+	const Mod_Act action
 ) {
 	char           *buffer,		/** for full path/name		     **/
 		       *version,	/** default version		     **/
@@ -776,7 +776,7 @@ int SourceVers(
 			g_flags = save_flags;
 		} else
 			ErrorLogger(ERR_MAGIC, LOC, buffer, NULL);
-	} /** if( !stat) **/
+	} /** if( is_ file ) **/
     /**
      ** free buffer memory
      **/
