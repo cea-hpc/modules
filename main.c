@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.33 2010/10/08 21:40:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.34 2010/10/14 21:31:01 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -90,6 +90,7 @@ int	  g_flags = 0,			/** Control what to do at the moment **/
 	  g_output = 0,			/** Has output been generated	     **/
 	  append_flag = 0;		/** only used by the 'use' command   **/
 Tcl_Obj	 *cwd;				/** Tcl version of cwd		     **/
+MHash	 *skipdirs;			/** directories to skip		     **/
 
 /**
  **  Name of the rc files

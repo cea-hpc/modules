@@ -35,7 +35,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.23 2010/10/08 21:40:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.24 2010/10/14 21:31:01 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -409,9 +409,8 @@ unwind0:
  ** 									     **
  **   Description:	Read in the passed directory and save every interes- **
  **			ting item in the directory list			     **
- **			skipping known version control directories:	     **
- **				CVS RCS .git .svn			     **
- **			unless they contain .version files		     **
+ **			skipping known version control directories	     **
+ **			unless they contain module 'dot' files		     **
  ** 									     **
  **   First Edition:	1991/10/23					     **
  ** 									     **
@@ -554,21 +553,22 @@ fi_ent	*get_dir(	char	*dir,
 	     **  What if it's a known version control directory
 	     **  check if it has a .version file
 	     **/
-	    if (!strcmp("CVS",dp->d_name)
-	    ||  !strcmp("RCS",dp->d_name)
-	    ||  !strcmp(".git",dp->d_name)
-	    ||  !strcmp(".svn",dp->d_name)) {
-    		FILE	*fi;
-		if(!stringer(buffer, MOD_BUFSIZE, tmp, psep, VERSIONFILE, NULL))
+	    if(uvec_find(mhash_keys_uvec(skipdirs),dp->d_name,
+		UVEC_ASCEND) >= 0) {
+		int found_dot = 0;
+		if(!stringer(buffer, MOD_BUFSIZE, tmp,psep,version_file,NULL))
 		    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 			goto unwind1;
-		if(!(fi = fopen( buffer, "r"))) {
-			/* does not have a .version file */
-			continue;
-		} else {
-			/* has a .version file ... assume to be module dir */
-			fclose(fi);
-		}
+		if(is_("file",buffer))
+			found_dot++;
+		if(!stringer(buffer, MOD_BUFSIZE, tmp,psep,modulerc_file,NULL))
+		    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
+			goto unwind1;
+		if(is_("file",buffer))
+			found_dot++;
+	
+		if (!found_dot)
+			continue;	/* does not have a module dot file */
 	    }
 
 	    /**

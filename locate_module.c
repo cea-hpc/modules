@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.36 2010/10/11 20:45:44 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.37 2010/10/14 21:31:01 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -237,7 +237,7 @@ int Locate_ModuleFile(
 			}
 #endif
 			pathlist++;
-		} /** for **/
+		} /** while **/
 	/**
 	 **  If result still NULL, then we really never found it and we should
 	 **  return ERROR and clear the full_path array for cleanliness.

@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.38 2010/10/05 04:06:16 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.39 2010/10/14 21:31:01 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -734,7 +734,7 @@ PREFIX/Modules/modulefiles
 dnl ---------------------------------------------------------------------------
 dnl Now put it all out!
 dnl ---------------------------------------------------------------------------
-AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile po/Makefile
+AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile po/Makefile.in
 	init/Makefile init/.modulespath
 	doc/module.1 doc/modulefile.4
 	etc/Makefile etc/add.modules etc/mkroot

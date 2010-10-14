@@ -495,6 +495,7 @@ extern	char	  local_line[];
 extern	char	  _colon[];
 extern	char	 *psep;
 extern	Tcl_Obj	 *cwd;
+extern	MHash	 *skipdirs;
 
 extern	int	  linenum;
 
@@ -698,6 +699,7 @@ extern	int	  cmdModuleAlias(ClientData,Tcl_Interp*,
 extern	int	  AliasLookup( char*, char**, char**);
 extern	int	  VersionLookup( char*, char**, char**);
 extern	char	 *ExpandVersions( char*);
+void		  DumpX(char *);
 
 /**  init.c  **/
 extern	int	  Initialize_Module( Tcl_Interp**, int, char*[], char*[]);
