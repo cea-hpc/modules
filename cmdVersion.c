@@ -27,6 +27,7 @@
  ** 									     **
  **	    Module-Versions:						     **
  **		module-version <module>/<version> <name> [ <name> ... ]	     **
+ **		module-version ./<version> <name> [ <name> ... ]	     **
  **		module-version /<version> <name> [ <name> ... ]		     **
  **		module-version <module> <name> [ <name> ... ]		     **
  **		module-version <alias> <name> [ <name> ... ]		     **
@@ -48,7 +49,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.23 2010/10/11 20:45:44 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.24 2010/10/18 22:36:58 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -490,13 +491,10 @@ static	char	*CheckModuleVersion( char *name)
     /**
      **  Check the first parameter and extract modulename and version
      **/
-
-    if( *psep == *name) {			/** only the version specified	     **/
-
+    if( *psep == *name) { /** only the version specified (top level only)    **/
 	/**
 	 **  get the module name from the current module ...
 	 **/
-
 	if( !g_current_module)
 	    return((char *) NULL);
 
@@ -509,7 +507,6 @@ static	char	*CheckModuleVersion( char *name)
 	/**
 	 **  The version has been specified as a parameter
 	 **/
-
 	if( (s = strrchr( name, *psep)) ) {
 	    s++;
 	} else {
@@ -519,28 +516,44 @@ static	char	*CheckModuleVersion( char *name)
 
 	strcpy( t, s);
 
-    } else {				/** Maybe an alias or a module	     **/
+    } else if( '.' == *name) { /** . = current directory or version    **/
+	/**
+	 **  get the module name from the current module ...
+	 **/
+	if( !g_current_module)
+	    return((char *) NULL);
 
+	if( (t = strrchr( g_current_module, *psep)))
+	    t++;
+	else
+	    t = g_current_module;	/* at top level */
+	
+	strcpy(buffer, t);
+
+	/**
+	 **  The version has been specified as a parameter
+	 **/
+	if(!(s = strrchr( name, *psep)) ) {
+	    ErrorLogger( ERR_INTERAL, LOC, NULL);
+	    return((char *) NULL);
+	}
+	/* keep / */
+	strcat( buffer, s);		/** directory / version		     **/
+
+    } else {				/** Maybe an alias or a module	     **/
 	strcpy( buffer, name);
 	if( !strrchr( buffer, *psep)) {
-
 	    /**
 	     **  Check wheter this is an alias ...
 	     **/
-
 	    if( AliasLookup( buffer, &s, &t)) {
-
-		/* sprintf( buffer, "%s/%s", s, t); */
 		strcpy( buffer, s);
 		strcat( buffer, psep);
 		strcat( buffer, t);
-
 	    } else {
-
 		/**
 		 **  The default version is being selected
 		 **/
-
 		t = buffer + strlen( buffer);
 		if( *psep != *t)
 		    *t++ = *psep;
@@ -548,11 +561,9 @@ static	char	*CheckModuleVersion( char *name)
 	    }
 	}
     }
-
     /**
      **  Pass the buffer reference to the caller
      **/
-
     return( buffer);
 
 } /** End of 'CheckModuleVersion' **/
