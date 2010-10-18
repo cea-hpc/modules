@@ -9,7 +9,7 @@
 # Some Global Variables.....
 #
 set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.132 $} {\1}]
+					{$Revision: 1.133 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -241,7 +241,7 @@ proc execute-modulerc {modfile} {
 set ModulesCurrentModulefile {}
 
 proc module-info {what {more {}}} {
-    global g_shellType g_shell g_debug
+    global g_shellType g_shell g_debug tcl_platform
     global g_moduleAlias g_symbolHash g_versionHash
 
     set mode [currentMode]
@@ -275,9 +275,22 @@ proc module-info {what {more {}}} {
     "shelltype" {
 	    return $g_shellType
 	}
+    "user" {
+    	        return $tcl_platform(user)
+        }
     "alias" {
-	    return $g_moduleAlias($more)
+	    if {[info exists g_moduleAlias($more)]} {
+	        return $g_moduleAlias($more)
+	    } else {
+		return {}
+	    }
 	}
+    "trace" {
+		return {}
+        }
+    "tracepat" {
+		return {}
+        }
     "symbols" {
 	    if {[regexp {^\/} $more]} {
 		set tmp [currentModuleName]
@@ -404,7 +417,7 @@ proc module-version {args} {
 
 
 proc module-alias {args} {
-    global g_moduleAlias g_symbolHash
+    global g_moduleAlias
     global ModulesCurrentModulefile
     global g_debug
 
