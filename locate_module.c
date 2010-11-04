@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.37 2010/10/14 21:31:01 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.38 2010/11/04 22:02:13 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -695,8 +695,8 @@ int SourceVers(
 ) {
 	char           *buffer,		/** for full path/name		     **/
 		       *version,	/** default version		     **/
-		       *modname,	/** ptr module part of name	     **/
 		       *mod, *ver;	/** module & version		     **/
+	const char     *modname;	/** ptr module part of name	     **/
 	int             save_flags,	/** cache g_flags		     **/
 	                Result = TCL_OK;
 
