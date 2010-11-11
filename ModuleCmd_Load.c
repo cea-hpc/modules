@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.16 2010/10/08 21:40:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.17 2010/11/11 19:07:24 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -118,11 +118,14 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
     /**
      **  Set up the flags controling the Tcl callback functions
      **/
-    if( load)
-        g_flags |= M_LOAD;
-    else
-        g_flags |= M_REMOVE;
-    
+    if( load) {
+	g_flags |= M_LOAD;
+	g_flags &= ~M_REMOVE;
+    } else {
+	g_flags |= M_REMOVE;
+	g_flags &= ~M_LOAD;
+    }
+     
     /**
      **  Handle all module files in the order they are passed to me
      **/
@@ -277,9 +280,9 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
      **  Clean up the flags and return 
      **/
     if( load)
-        g_flags &= ~M_LOAD;
+	g_flags &= ~M_LOAD;
     else
-        g_flags &= ~M_REMOVE;
+	g_flags &= ~M_REMOVE;
 
     return( a_successful_load);
 
