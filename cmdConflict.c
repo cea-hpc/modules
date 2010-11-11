@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.9 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.9.20.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -90,7 +90,7 @@ static	char	_proc_cmdPrereq[] = "cmdPrereq";
  **			char		**modulelist	List of loaded mod.  **
  **			int		 nummodules	Number of loaded mod.**
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -141,7 +141,7 @@ static	int	checkConflict(	Tcl_Interp	*interp,
 
 	/**
 	 **  Is it a directory what has been passed? If it is, list the
-	 **  according directory and call myself recursivly in order to 
+	 **  according directory and call myself recursively in order to
 	 **/
 
         if( S_ISDIR( stat_info.st_mode)) {
@@ -214,7 +214,7 @@ unwind0:
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -270,7 +270,8 @@ int	cmdConflict(	ClientData	 client_data,
 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
 	    goto unwind0;
 
-    if((char **) NULL==(pathlist=SplitIntoList(interp, modulepath, &numpaths)))
+    if((char **) NULL==(pathlist=SplitIntoList(interp, modulepath, &numpaths,
+	_colon)))
         goto success1;
 
     /**
@@ -360,7 +361,7 @@ unwind0:
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -438,18 +439,19 @@ int	cmdPrereq(	ClientData	 client_data,
     ErrorLogger( NO_ERR_DEBUG, LOC, "Got modulepath: '", modulepath, "'", NULL);
 #endif
 
-    if((char **) NULL==(pathlist=SplitIntoList(interp, modulepath, &numpaths)))
+    if((char **) NULL==(pathlist=SplitIntoList(interp, modulepath, &numpaths,
+	_colon)))
         goto success1;
 
     /**
      **  Allocate memory for the lists of conflict modules
      **/
-    if((char ***) NULL==(savedlists=(char***) malloc(numpaths * (argc - 1)
+    if((char ***) NULL==(savedlists=(char***) module_malloc(numpaths * (argc-1)
 	* sizeof(char**))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind1;
 
-    if((int *) NULL == (savedlens = (int*) malloc(numpaths * (argc - 1)
+    if((int *) NULL == (savedlens = (int*) module_malloc(numpaths * (argc-1)
 	* sizeof( int))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind2;

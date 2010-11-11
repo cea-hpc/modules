@@ -1,0 +1,34 @@
+@VERSIONING@if(NOT ENV{MODULE_VERSION})
+@VERSIONING@	set(ENV{MODULE_VERSION_STACK} "@VERSION@")
+@VERSIONING@	set(ENV{MODULE_VERSION} "@VERSION@")
+@VERSIONING@else()
+@VERSIONING@	set(ENV{MODULE_VERSION_STACK} $ENV{MODULE_VERSION})
+@VERSIONING@endif()
+
+function(module ARGS)
+@VERSIONING@  set(exec_prefix "@BASEPREFIX@/Modules/$ENV{MODULE_VERSION}/bin")
+
+@NOTVERSIONING@  set(exec_prefix "@bindir@")
+
+  execute_process(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
+		  OUTPUT_VARIABLE tempfile_name)
+  execute_process(COMMAND ${exec_prefix}/modulecmd cmake ${ARGV}
+		  OUTPUT_FILE ${tempfile_name})
+  include(${tempfile_name})
+endfunction(module)
+
+set(ENV{MODULESHOME} "@prefix@")
+
+if(NOT ENV{MODULEPATH})
+  file(STRINGS "$ENV{MODULESHOME}/init/.modulespath" cmi_mp1)
+  string(REGEX REPLACE ";[ \n]+" ";" cmi_mp2 "${cmi_mp1}")
+  string(REGEX REPLACE " *#[^;]*;" ";" cmi_mp3 "${cmi_mp2}")
+  string(REGEX REPLACE " *#[^;]*$" "" cmi_mp4 "${cmi_mp3}")
+  string(REPLACE ";;" ";" cmi_mp5 "${cmi_mp4}")
+  string(STRIP "${cmi_mp5}" cmi_mp6)
+  string(REPLACE ";" ":" ENV{MODULEPATH} "${cmi_mp6}")
+endif()
+
+if(NOT ENV{LOADEDMODULES})
+  set(ENV{LOADEDMODULES} "")
+endif()

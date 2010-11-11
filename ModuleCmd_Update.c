@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.6 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.6.18.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -82,7 +82,7 @@ static	char	_proc_ModuleCmd_Update[] = "ModuleCmd_Update";
  **			char 		*argv[]		Argument list	     **
  ** 									     **
  **   Result:		int	TCL_ERROR	Failure			     **
- **				TCL_OK		Successfull operation	     **
+ **				TCL_OK		Successful operation	     **
  ** 									     **
  **   Attached Globals:	flags		Controllig the callback functions    **
  ** 									     **
@@ -233,7 +233,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
      **  Allocate memory for a buffer to tokenize the list of loaded modules
      **  and a list buffer
      **/
-    if( NULL == (load_list = (char**) malloc( maxlist*sizeof(char**))))
+    if( NULL == (load_list = (char**) module_malloc( maxlist*sizeof(char**))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind0;
     
@@ -246,9 +246,9 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
      **/
     if( *loaded) {
 
-	for( load_list[ list_count++] = strtok( loaded, ":");
+	for( load_list[ list_count++] = xstrtok( loaded, ":");
 	     load_list[ list_count-1];
-             load_list[ list_count++] = strtok( NULL, ":") ) {
+             load_list[ list_count++] = xstrtok( NULL, ":") ) {
 
 	    /**
 	     **  Conditionally we have to double the space, we've allocated for

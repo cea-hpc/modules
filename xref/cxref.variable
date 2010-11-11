@@ -1,66 +1,3 @@
-getopt.h optarg 4
-getopt.h optind 4
-getopt.h opterr 4
-getopt.h optopt 4
-modules_def.h environ 4
-modules_def.h version_string 4
-modules_def.h date_string 4
-modules_def.h g_current_module 4
-modules_def.h g_specified_module 4
-modules_def.h shell_name 4
-modules_def.h shell_derelict 4
-modules_def.h shell_init 4
-modules_def.h shell_cmd_separator 4
-modules_def.h g_flags 4
-modules_def.h append_flag 4
-modules_def.h line 4
-modules_def.h error_line 4
-modules_def.h local_line 4
-modules_def.h _default 4
-modules_def.h linenum 4
-modules_def.h addRE 4
-modules_def.h rmRE 4
-modules_def.h swRE 4
-modules_def.h dispRE 4
-modules_def.h listRE 4
-modules_def.h availRE 4
-modules_def.h helpRE 4
-modules_def.h initRE 4
-modules_def.h initxRE 4
-modules_def.h useRE 4
-modules_def.h unuseRE 4
-modules_def.h updateRE 4
-modules_def.h purgeRE 4
-modules_def.h clearRE 4
-modules_def.h whatisRE 4
-modules_def.h aproposRE 4
-modules_def.h refreshRE 4
-modules_def.h setenvHashTable 4
-modules_def.h unsetenvHashTable 4
-modules_def.h aliasSetHashTable 4
-modules_def.h aliasUnsetHashTable 4
-modules_def.h markVariableHashTable 4
-modules_def.h markAliasHashTable 4
-modules_def.h _fil_stdin 4
-modules_def.h _fil_stdout 4
-modules_def.h _fil_stderr 4
-modules_def.h _fil_devnull 4
-modules_def.h sw_detach 4
-modules_def.h sw_force 4
-modules_def.h sw_format 4
-modules_def.h sw_create 4
-modules_def.h sw_verbose 4
-modules_def.h sw_userlvl 4
-modules_def.h sw_icase 4
-modules_def.h instpath 4
-modules_def.h rc_file 4
-modules_def.h modulerc_file 4
-modules_def.h version_file 4
-modules_def.h long_header 4
-modules_def.h whatis 4
-modules_def.h module_command 4
-modules_def.h environ_changes 4
-modules_def.h alias_changes 4
 version.c version_string 2
 version.c date_string 2
 getopt.c Id 1 $
@@ -79,11 +16,14 @@ getopt.c shell_derelict 8
 getopt.c shell_init 8
 getopt.c shell_cmd_separator 8
 getopt.c g_flags 8
+getopt.c g_retval 8
+getopt.c g_output 8
 getopt.c append_flag 8
 getopt.c line 8
 getopt.c error_line 8
 getopt.c local_line 8
 getopt.c _default 8
+getopt.c _colon 8
 getopt.c linenum 8
 getopt.c addRE 8
 getopt.c rmRE 8
@@ -123,6 +63,7 @@ getopt.c instpath 8
 getopt.c rc_file 8
 getopt.c modulerc_file 8
 getopt.c version_file 8
+getopt.c change_dir 8
 getopt.c long_header 8
 getopt.c whatis 8
 getopt.c module_command 8
@@ -146,11 +87,14 @@ error.c shell_derelict 8
 error.c shell_init 8
 error.c shell_cmd_separator 8
 error.c g_flags 8
+error.c g_retval 8
+error.c g_output 8
 error.c append_flag 8
 error.c line 8
 error.c error_line 10 %ErrorString %add_param
 error.c local_line 8
 error.c _default 8
+error.c _colon 8
 error.c linenum 8 Module_Verbosity %PrintError
 error.c addRE 8
 error.c rmRE 8
@@ -190,6 +134,7 @@ error.c instpath 8
 error.c rc_file 8
 error.c modulerc_file 8
 error.c version_file 8
+error.c change_dir 8
 error.c long_header 8
 error.c whatis 8
 error.c module_command 8
@@ -222,11 +167,14 @@ main.c shell_derelict 10
 main.c shell_init 10
 main.c shell_cmd_separator 10
 main.c g_flags 10 main
+main.c g_retval 10 main
+main.c g_output 10
 main.c append_flag 10 %Check_Switches
 main.c line 10 main
 main.c error_line 8 main
 main.c local_line 8
 main.c _default 10
+main.c _colon 10
 main.c linenum 8
 main.c addRE 10
 main.c rmRE 10
@@ -266,15 +214,12 @@ main.c instpath 10 main
 main.c rc_file 10 main
 main.c modulerc_file 10 main
 main.c version_file 10
+main.c change_dir 8
 main.c long_header 8
 main.c whatis 8
 main.c module_command 8
 main.c environ_changes 8
 main.c alias_changes 8
-main.c optarg 8 %Check_Switches
-main.c optind 8 %Check_Switches
-main.c opterr 8
-main.c optopt 8
 main.c g_module_path 2
 main.c module_name 1 %Check_Switches main
 utility.c Id 1 $
@@ -285,15 +230,18 @@ utility.c date_string 8
 utility.c g_current_module 8
 utility.c g_specified_module 8
 utility.c shell_name 8 %Output_Modulefile_Aliases %output_set_alias %output_unset_alias
-utility.c shell_derelict 8 %Output_Modulefile_Aliases %output_set_alias %output_set_variable %output_unset_alias %output_unset_variable
+utility.c shell_derelict 8 OutputExit %Output_Directory_Change %Output_Modulefile_Aliases %output_set_alias %output_set_variable %output_unset_alias %output_unset_variable
 utility.c shell_init 8
-utility.c shell_cmd_separator 8 %Output_Modulefile_Aliases %output_set_variable %output_unset_variable
+utility.c shell_cmd_separator 8 %Output_Directory_Change %Output_Modulefile_Aliases %output_set_variable %output_unset_variable
 utility.c g_flags 8 Update_LoadedList
+utility.c g_retval 8 OutputExit ReturnValue
+utility.c g_output 8 %output_set_variable %output_unset_variable
 utility.c append_flag 8
 utility.c line 8
 utility.c error_line 8
 utility.c local_line 8
 utility.c _default 8
+utility.c _colon 8
 utility.c linenum 8
 utility.c addRE 8
 utility.c rmRE 8
@@ -333,13 +281,14 @@ utility.c instpath 8
 utility.c rc_file 8
 utility.c modulerc_file 8
 utility.c version_file 8
+utility.c change_dir 8 %Output_Directory_Change
 utility.c long_header 8
 utility.c whatis 8
 utility.c module_command 8
 utility.c environ_changes 8
 utility.c alias_changes 8
 utility.c module_name 1 Copy_Hash_Tables %Open_Aliasfile %Output_Modulefile_Aliases Output_Modulefile_Changes %__IsLoaded check_magic getLMFILES %output_set_variable %output_unset_variable stringer tmpfile_mod xdup
-utility.c aliasfile 1 %Open_Aliasfile %Output_Modulefile_Aliases Output_Modulefile_Changes %output_function %output_set_alias %output_unset_alias
+utility.c aliasfile 1 %Open_Aliasfile Output_Modulefile_Changes %output_function %output_set_alias %output_unset_alias
 utility.c aliasfilename 1 %Open_Aliasfile %Output_Modulefile_Aliases
 utility.c alias_separator 1 %Output_Modulefile_Aliases %output_function %output_set_alias %output_unset_alias
 utility.c eval_alias 1 %Output_Modulefile_Aliases
@@ -357,11 +306,14 @@ locate_module.c shell_derelict 8
 locate_module.c shell_init 8
 locate_module.c shell_cmd_separator 8
 locate_module.c g_flags 8 SourceRC SourceVers
+locate_module.c g_retval 8
+locate_module.c g_output 8
 locate_module.c append_flag 8
 locate_module.c line 8
 locate_module.c error_line 8
 locate_module.c local_line 8
 locate_module.c _default 8 %GetModuleName SourceVers
+locate_module.c _colon 8 Locate_ModuleFile
 locate_module.c linenum 8
 locate_module.c addRE 8
 locate_module.c rmRE 8
@@ -401,6 +353,7 @@ locate_module.c instpath 8
 locate_module.c rc_file 8
 locate_module.c modulerc_file 8 %GetModuleName
 locate_module.c version_file 8 SourceVers
+locate_module.c change_dir 8
 locate_module.c long_header 8
 locate_module.c whatis 8
 locate_module.c module_command 8
@@ -421,11 +374,14 @@ init.c shell_derelict 8 InitializeModuleCommands %set_shell_properties
 init.c shell_init 8 %set_shell_properties
 init.c shell_cmd_separator 8 %set_shell_properties
 init.c g_flags 8
+init.c g_retval 8
+init.c g_output 8
 init.c append_flag 8
 init.c line 8
 init.c error_line 8
 init.c local_line 8
 init.c _default 8
+init.c _colon 8
 init.c linenum 8
 init.c addRE 8
 init.c rmRE 8
@@ -465,6 +421,7 @@ init.c instpath 8
 init.c rc_file 8
 init.c modulerc_file 8
 init.c version_file 8
+init.c change_dir 8
 init.c long_header 8
 init.c whatis 8
 init.c module_command 8
@@ -490,11 +447,14 @@ cmdWhatis.c shell_derelict 8
 cmdWhatis.c shell_init 8
 cmdWhatis.c shell_cmd_separator 8
 cmdWhatis.c g_flags 8 cmdModuleWhatis
+cmdWhatis.c g_retval 8
+cmdWhatis.c g_output 8
 cmdWhatis.c append_flag 8
 cmdWhatis.c line 8
 cmdWhatis.c error_line 8
 cmdWhatis.c local_line 8
 cmdWhatis.c _default 8
+cmdWhatis.c _colon 8
 cmdWhatis.c linenum 8
 cmdWhatis.c addRE 8
 cmdWhatis.c rmRE 8
@@ -534,6 +494,7 @@ cmdWhatis.c instpath 8
 cmdWhatis.c rc_file 8
 cmdWhatis.c modulerc_file 8
 cmdWhatis.c version_file 8
+cmdWhatis.c change_dir 8
 cmdWhatis.c long_header 8
 cmdWhatis.c whatis 10 cmdModuleWhatis cmdModuleWhatisShut
 cmdWhatis.c module_command 8
@@ -554,11 +515,14 @@ cmdVerbose.c shell_derelict 8
 cmdVerbose.c shell_init 8
 cmdVerbose.c shell_cmd_separator 8
 cmdVerbose.c g_flags 8 cmdModuleVerbose
+cmdVerbose.c g_retval 8
+cmdVerbose.c g_output 8
 cmdVerbose.c append_flag 8
 cmdVerbose.c line 8
 cmdVerbose.c error_line 8
 cmdVerbose.c local_line 8
 cmdVerbose.c _default 8
+cmdVerbose.c _colon 8
 cmdVerbose.c linenum 8
 cmdVerbose.c addRE 8
 cmdVerbose.c rmRE 8
@@ -598,6 +562,7 @@ cmdVerbose.c instpath 8
 cmdVerbose.c rc_file 8
 cmdVerbose.c modulerc_file 8
 cmdVerbose.c version_file 8
+cmdVerbose.c change_dir 8
 cmdVerbose.c long_header 8
 cmdVerbose.c whatis 8
 cmdVerbose.c module_command 8
@@ -616,11 +581,14 @@ cmdVersion.c shell_derelict 8
 cmdVersion.c shell_init 8
 cmdVersion.c shell_cmd_separator 8
 cmdVersion.c g_flags 8 cmdModuleAlias cmdModuleVersion
+cmdVersion.c g_retval 8
+cmdVersion.c g_output 8
 cmdVersion.c append_flag 8
 cmdVersion.c line 8
 cmdVersion.c error_line 8
 cmdVersion.c local_line 8
-cmdVersion.c _default 8 %CheckModuleVersion VersionLookup cmdModuleAlias
+cmdVersion.c _default 8 %CheckModuleVersion VersionLookup cmdModuleAlias cmdModuleVersion
+cmdVersion.c _colon 8
 cmdVersion.c linenum 8
 cmdVersion.c addRE 8
 cmdVersion.c rmRE 8
@@ -660,6 +628,7 @@ cmdVersion.c instpath 8
 cmdVersion.c rc_file 8
 cmdVersion.c modulerc_file 8
 cmdVersion.c version_file 8
+cmdVersion.c change_dir 8
 cmdVersion.c long_header 8
 cmdVersion.c whatis 8
 cmdVersion.c module_command 8
@@ -680,11 +649,14 @@ cmdTrace.c shell_derelict 8
 cmdTrace.c shell_init 8
 cmdTrace.c shell_cmd_separator 8
 cmdTrace.c g_flags 8 cmdModuleTrace
+cmdTrace.c g_retval 8
+cmdTrace.c g_output 8
 cmdTrace.c append_flag 8
 cmdTrace.c line 8
 cmdTrace.c error_line 8
 cmdTrace.c local_line 8
 cmdTrace.c _default 8
+cmdTrace.c _colon 8
 cmdTrace.c linenum 8
 cmdTrace.c addRE 8 $
 cmdTrace.c rmRE 8 $
@@ -724,6 +696,7 @@ cmdTrace.c instpath 8
 cmdTrace.c rc_file 8
 cmdTrace.c modulerc_file 8
 cmdTrace.c version_file 8
+cmdTrace.c change_dir 8
 cmdTrace.c long_header 8
 cmdTrace.c whatis 8
 cmdTrace.c module_command 8
@@ -734,6 +707,70 @@ cmdTrace.c _all 1 %ChangeTraceSel cmdModuleTrace
 cmdTrace.c _all_on 1 %ChangeTraceSel
 cmdTrace.c _all_off 1 $ %ChangeTraceSel
 cmdTrace.c TraceSelect 1 %ChangeTraceSel CheckTracing CheckTracingList GetTraceSel %GetTraceTable cmdModuleTrace
+cmdChdir.c environ 8
+cmdChdir.c version_string 8
+cmdChdir.c date_string 8
+cmdChdir.c g_current_module 8
+cmdChdir.c g_specified_module 8
+cmdChdir.c shell_name 8
+cmdChdir.c shell_derelict 8
+cmdChdir.c shell_init 8
+cmdChdir.c shell_cmd_separator 8
+cmdChdir.c g_flags 8 cmdChDir
+cmdChdir.c g_retval 8
+cmdChdir.c g_output 8
+cmdChdir.c append_flag 8
+cmdChdir.c line 8
+cmdChdir.c error_line 8
+cmdChdir.c local_line 8
+cmdChdir.c _default 8
+cmdChdir.c _colon 8
+cmdChdir.c linenum 8
+cmdChdir.c addRE 8
+cmdChdir.c rmRE 8
+cmdChdir.c swRE 8
+cmdChdir.c dispRE 8
+cmdChdir.c listRE 8
+cmdChdir.c availRE 8
+cmdChdir.c helpRE 8
+cmdChdir.c initRE 8
+cmdChdir.c initxRE 8
+cmdChdir.c useRE 8
+cmdChdir.c unuseRE 8
+cmdChdir.c updateRE 8
+cmdChdir.c purgeRE 8
+cmdChdir.c clearRE 8
+cmdChdir.c whatisRE 8
+cmdChdir.c aproposRE 8
+cmdChdir.c refreshRE 8
+cmdChdir.c setenvHashTable 8
+cmdChdir.c unsetenvHashTable 8
+cmdChdir.c aliasSetHashTable 8
+cmdChdir.c aliasUnsetHashTable 8
+cmdChdir.c markVariableHashTable 8
+cmdChdir.c markAliasHashTable 8
+cmdChdir.c _fil_stdin 8
+cmdChdir.c _fil_stdout 8
+cmdChdir.c _fil_stderr 8
+cmdChdir.c _fil_devnull 8
+cmdChdir.c sw_detach 8
+cmdChdir.c sw_force 8
+cmdChdir.c sw_format 8
+cmdChdir.c sw_create 8
+cmdChdir.c sw_verbose 8
+cmdChdir.c sw_userlvl 8
+cmdChdir.c sw_icase 8
+cmdChdir.c instpath 8
+cmdChdir.c rc_file 8
+cmdChdir.c modulerc_file 8
+cmdChdir.c version_file 8
+cmdChdir.c change_dir 10 cmdChDir
+cmdChdir.c long_header 8
+cmdChdir.c whatis 8
+cmdChdir.c module_command 8
+cmdChdir.c environ_changes 8
+cmdChdir.c alias_changes 8
+cmdChdir.c module_name 1 cmdChDir
 cmdLog.c Id 1 $
 cmdLog.c UseId 1
 cmdLog.c environ 8
@@ -746,11 +783,14 @@ cmdLog.c shell_derelict 8
 cmdLog.c shell_init 8
 cmdLog.c shell_cmd_separator 8
 cmdLog.c g_flags 8 cmdModuleLog
+cmdLog.c g_retval 8
+cmdLog.c g_output 8
 cmdLog.c append_flag 8
 cmdLog.c line 8
 cmdLog.c error_line 8
 cmdLog.c local_line 8
 cmdLog.c _default 8
+cmdLog.c _colon 8
 cmdLog.c linenum 8
 cmdLog.c addRE 8
 cmdLog.c rmRE 8
@@ -790,6 +830,7 @@ cmdLog.c instpath 8
 cmdLog.c rc_file 8
 cmdLog.c modulerc_file 8
 cmdLog.c version_file 8
+cmdLog.c change_dir 8
 cmdLog.c long_header 8
 cmdLog.c whatis 8
 cmdLog.c module_command 8
@@ -812,11 +853,14 @@ cmdUlvl.c shell_derelict 8
 cmdUlvl.c shell_init 8
 cmdUlvl.c shell_cmd_separator 8
 cmdUlvl.c g_flags 8 cmdModuleUser
+cmdUlvl.c g_retval 8
+cmdUlvl.c g_output 8
 cmdUlvl.c append_flag 8
 cmdUlvl.c line 8
 cmdUlvl.c error_line 8
 cmdUlvl.c local_line 8
 cmdUlvl.c _default 8
+cmdUlvl.c _colon 8
 cmdUlvl.c linenum 8
 cmdUlvl.c addRE 8
 cmdUlvl.c rmRE 8
@@ -856,6 +900,7 @@ cmdUlvl.c instpath 8
 cmdUlvl.c rc_file 8
 cmdUlvl.c modulerc_file 8
 cmdUlvl.c version_file 8
+cmdUlvl.c change_dir 8
 cmdUlvl.c long_header 8
 cmdUlvl.c whatis 8
 cmdUlvl.c module_command 8
@@ -877,11 +922,14 @@ cmdXResource.c shell_derelict 8
 cmdXResource.c shell_init 8
 cmdXResource.c shell_cmd_separator 8
 cmdXResource.c g_flags 8 cmdXResource
+cmdXResource.c g_retval 8
+cmdXResource.c g_output 8
 cmdXResource.c append_flag 8
 cmdXResource.c line 8 %readFile
 cmdXResource.c error_line 8
 cmdXResource.c local_line 8
 cmdXResource.c _default 8
+cmdXResource.c _colon 8
 cmdXResource.c linenum 8
 cmdXResource.c addRE 8
 cmdXResource.c rmRE 8
@@ -921,6 +969,7 @@ cmdXResource.c instpath 8
 cmdXResource.c rc_file 8
 cmdXResource.c modulerc_file 8
 cmdXResource.c version_file 8
+cmdXResource.c change_dir 8
 cmdXResource.c long_header 8
 cmdXResource.c whatis 8
 cmdXResource.c module_command 8
@@ -944,11 +993,14 @@ cmdUname.c shell_derelict 8
 cmdUname.c shell_init 8
 cmdUname.c shell_cmd_separator 8
 cmdUname.c g_flags 8
+cmdUname.c g_retval 8
+cmdUname.c g_output 8
 cmdUname.c append_flag 8
 cmdUname.c line 8
 cmdUname.c error_line 8
 cmdUname.c local_line 8
 cmdUname.c _default 8
+cmdUname.c _colon 8
 cmdUname.c linenum 8
 cmdUname.c addRE 8
 cmdUname.c rmRE 8
@@ -988,6 +1040,7 @@ cmdUname.c instpath 8
 cmdUname.c rc_file 8
 cmdUname.c modulerc_file 8
 cmdUname.c version_file 8
+cmdUname.c change_dir 8
 cmdUname.c long_header 8
 cmdUname.c whatis 8
 cmdUname.c module_command 8
@@ -1009,11 +1062,14 @@ cmdSetenv.c shell_derelict 8
 cmdSetenv.c shell_init 8
 cmdSetenv.c shell_cmd_separator 8
 cmdSetenv.c g_flags 8 cmdSetEnv cmdUnsetEnv moduleSetenv moduleUnsetenv
+cmdSetenv.c g_retval 8
+cmdSetenv.c g_output 8
 cmdSetenv.c append_flag 8
 cmdSetenv.c line 8
 cmdSetenv.c error_line 8
 cmdSetenv.c local_line 8
 cmdSetenv.c _default 8
+cmdSetenv.c _colon 8
 cmdSetenv.c linenum 8
 cmdSetenv.c addRE 8
 cmdSetenv.c rmRE 8
@@ -1053,6 +1109,7 @@ cmdSetenv.c instpath 8
 cmdSetenv.c rc_file 8
 cmdSetenv.c modulerc_file 8
 cmdSetenv.c version_file 8
+cmdSetenv.c change_dir 8
 cmdSetenv.c long_header 8
 cmdSetenv.c whatis 8
 cmdSetenv.c module_command 8
@@ -1071,11 +1128,14 @@ cmdPath.c shell_derelict 8
 cmdPath.c shell_init 8
 cmdPath.c shell_cmd_separator 8
 cmdPath.c g_flags 8 %Remove_Path cmdRemovePath cmdSetPath
+cmdPath.c g_retval 8
+cmdPath.c g_output 8
 cmdPath.c append_flag 8
 cmdPath.c line 8
 cmdPath.c error_line 8
 cmdPath.c local_line 8
 cmdPath.c _default 8
+cmdPath.c _colon 8 cmdRemovePath cmdSetPath
 cmdPath.c linenum 8
 cmdPath.c addRE 8
 cmdPath.c rmRE 8
@@ -1115,6 +1175,7 @@ cmdPath.c instpath 8
 cmdPath.c rc_file 8
 cmdPath.c modulerc_file 8
 cmdPath.c version_file 8
+cmdPath.c change_dir 8
 cmdPath.c long_header 8
 cmdPath.c whatis 8
 cmdPath.c module_command 8
@@ -1134,11 +1195,14 @@ cmdModule.c shell_derelict 8
 cmdModule.c shell_init 8
 cmdModule.c shell_cmd_separator 8
 cmdModule.c g_flags 8 cmdModule
+cmdModule.c g_retval 8
+cmdModule.c g_output 8
 cmdModule.c append_flag 8
 cmdModule.c line 8 Execute_TclFile
 cmdModule.c error_line 8
 cmdModule.c local_line 8
 cmdModule.c _default 8
+cmdModule.c _colon 8
 cmdModule.c linenum 10 Execute_TclFile
 cmdModule.c addRE 8 cmdModule
 cmdModule.c rmRE 8 cmdModule
@@ -1178,6 +1242,7 @@ cmdModule.c instpath 8
 cmdModule.c rc_file 8
 cmdModule.c modulerc_file 8
 cmdModule.c version_file 8
+cmdModule.c change_dir 8
 cmdModule.c long_header 8
 cmdModule.c whatis 8
 cmdModule.c module_command 10 cmdModule
@@ -1196,11 +1261,14 @@ cmdMisc.c shell_derelict 8
 cmdMisc.c shell_init 8
 cmdMisc.c shell_cmd_separator 8
 cmdMisc.c g_flags 8 cmdSystem
+cmdMisc.c g_retval 8
+cmdMisc.c g_output 8
 cmdMisc.c append_flag 8
 cmdMisc.c line 8
 cmdMisc.c error_line 8
 cmdMisc.c local_line 8
 cmdMisc.c _default 8
+cmdMisc.c _colon 8
 cmdMisc.c linenum 8
 cmdMisc.c addRE 8
 cmdMisc.c rmRE 8
@@ -1240,6 +1308,7 @@ cmdMisc.c instpath 8
 cmdMisc.c rc_file 8
 cmdMisc.c modulerc_file 8
 cmdMisc.c version_file 8
+cmdMisc.c change_dir 8
 cmdMisc.c long_header 8
 cmdMisc.c whatis 8
 cmdMisc.c module_command 8
@@ -1258,11 +1327,14 @@ cmdInfo.c shell_derelict 8 cmdModuleInfo
 cmdInfo.c shell_init 8
 cmdInfo.c shell_cmd_separator 8
 cmdInfo.c g_flags 8 cmdModuleInfo
+cmdInfo.c g_retval 8
+cmdInfo.c g_output 8
 cmdInfo.c append_flag 8
 cmdInfo.c line 8
 cmdInfo.c error_line 8
 cmdInfo.c local_line 8
 cmdInfo.c _default 8
+cmdInfo.c _colon 8
 cmdInfo.c linenum 8
 cmdInfo.c addRE 8
 cmdInfo.c rmRE 8
@@ -1302,6 +1374,7 @@ cmdInfo.c instpath 8
 cmdInfo.c rc_file 8
 cmdInfo.c modulerc_file 8
 cmdInfo.c version_file 8
+cmdInfo.c change_dir 8
 cmdInfo.c long_header 8
 cmdInfo.c whatis 8
 cmdInfo.c module_command 8 cmdModuleInfo
@@ -1320,11 +1393,14 @@ cmdIsLoaded.c shell_derelict 8
 cmdIsLoaded.c shell_init 8
 cmdIsLoaded.c shell_cmd_separator 8
 cmdIsLoaded.c g_flags 8 cmdIsLoaded
+cmdIsLoaded.c g_retval 8
+cmdIsLoaded.c g_output 8
 cmdIsLoaded.c append_flag 8
 cmdIsLoaded.c line 8
 cmdIsLoaded.c error_line 8
 cmdIsLoaded.c local_line 8
 cmdIsLoaded.c _default 8
+cmdIsLoaded.c _colon 8 cmdIsLoaded
 cmdIsLoaded.c linenum 8
 cmdIsLoaded.c addRE 8
 cmdIsLoaded.c rmRE 8
@@ -1364,6 +1440,7 @@ cmdIsLoaded.c instpath 8
 cmdIsLoaded.c rc_file 8
 cmdIsLoaded.c modulerc_file 8
 cmdIsLoaded.c version_file 8
+cmdIsLoaded.c change_dir 8
 cmdIsLoaded.c long_header 8
 cmdIsLoaded.c whatis 8
 cmdIsLoaded.c module_command 8
@@ -1382,11 +1459,14 @@ cmdConflict.c shell_derelict 8
 cmdConflict.c shell_init 8
 cmdConflict.c shell_cmd_separator 8
 cmdConflict.c g_flags 8 cmdConflict cmdPrereq
+cmdConflict.c g_retval 8
+cmdConflict.c g_output 8
 cmdConflict.c append_flag 8
 cmdConflict.c line 8
 cmdConflict.c error_line 8
 cmdConflict.c local_line 8
 cmdConflict.c _default 8
+cmdConflict.c _colon 8 cmdConflict cmdPrereq
 cmdConflict.c linenum 8
 cmdConflict.c addRE 8
 cmdConflict.c rmRE 8
@@ -1426,6 +1506,7 @@ cmdConflict.c instpath 8
 cmdConflict.c rc_file 8
 cmdConflict.c modulerc_file 8
 cmdConflict.c version_file 8
+cmdConflict.c change_dir 8
 cmdConflict.c long_header 8
 cmdConflict.c whatis 8
 cmdConflict.c module_command 8
@@ -1445,11 +1526,14 @@ cmdAlias.c shell_derelict 8
 cmdAlias.c shell_init 8
 cmdAlias.c shell_cmd_separator 8
 cmdAlias.c g_flags 8 cmdSetAlias
+cmdAlias.c g_retval 8
+cmdAlias.c g_output 8
 cmdAlias.c append_flag 8
 cmdAlias.c line 8
 cmdAlias.c error_line 8
 cmdAlias.c local_line 8
 cmdAlias.c _default 8
+cmdAlias.c _colon 8
 cmdAlias.c linenum 8
 cmdAlias.c addRE 8
 cmdAlias.c rmRE 8
@@ -1489,6 +1573,7 @@ cmdAlias.c instpath 8
 cmdAlias.c rc_file 8
 cmdAlias.c modulerc_file 8
 cmdAlias.c version_file 8
+cmdAlias.c change_dir 8
 cmdAlias.c long_header 8
 cmdAlias.c whatis 8
 cmdAlias.c module_command 8
@@ -1507,11 +1592,14 @@ ModuleCmd_Refresh.c shell_derelict 8
 ModuleCmd_Refresh.c shell_init 8
 ModuleCmd_Refresh.c shell_cmd_separator 8
 ModuleCmd_Refresh.c g_flags 8 ModuleCmd_Refresh
+ModuleCmd_Refresh.c g_retval 8
+ModuleCmd_Refresh.c g_output 8
 ModuleCmd_Refresh.c append_flag 8
 ModuleCmd_Refresh.c line 8
 ModuleCmd_Refresh.c error_line 8
 ModuleCmd_Refresh.c local_line 8
 ModuleCmd_Refresh.c _default 8
+ModuleCmd_Refresh.c _colon 8
 ModuleCmd_Refresh.c linenum 8
 ModuleCmd_Refresh.c addRE 8
 ModuleCmd_Refresh.c rmRE 8
@@ -1551,6 +1639,7 @@ ModuleCmd_Refresh.c instpath 8
 ModuleCmd_Refresh.c rc_file 8
 ModuleCmd_Refresh.c modulerc_file 8
 ModuleCmd_Refresh.c version_file 8
+ModuleCmd_Refresh.c change_dir 8
 ModuleCmd_Refresh.c long_header 8
 ModuleCmd_Refresh.c whatis 8
 ModuleCmd_Refresh.c module_command 8
@@ -1569,11 +1658,14 @@ ModuleCmd_Whatis.c shell_derelict 8
 ModuleCmd_Whatis.c shell_init 8
 ModuleCmd_Whatis.c shell_cmd_separator 8
 ModuleCmd_Whatis.c g_flags 8 ModuleCmd_Whatis %whatis_dir
+ModuleCmd_Whatis.c g_retval 8
+ModuleCmd_Whatis.c g_output 8
 ModuleCmd_Whatis.c append_flag 8
 ModuleCmd_Whatis.c line 8
 ModuleCmd_Whatis.c error_line 8
 ModuleCmd_Whatis.c local_line 8
 ModuleCmd_Whatis.c _default 8
+ModuleCmd_Whatis.c _colon 8
 ModuleCmd_Whatis.c linenum 8
 ModuleCmd_Whatis.c addRE 8
 ModuleCmd_Whatis.c rmRE 8
@@ -1613,6 +1705,7 @@ ModuleCmd_Whatis.c instpath 8 %apropos_cache
 ModuleCmd_Whatis.c rc_file 8
 ModuleCmd_Whatis.c modulerc_file 8
 ModuleCmd_Whatis.c version_file 8
+ModuleCmd_Whatis.c change_dir 8
 ModuleCmd_Whatis.c long_header 8
 ModuleCmd_Whatis.c whatis 8 ModuleCmd_Whatis %whatis_dir
 ModuleCmd_Whatis.c module_command 8
@@ -1632,11 +1725,14 @@ ModuleCmd_Use.c shell_derelict 8
 ModuleCmd_Use.c shell_init 8
 ModuleCmd_Use.c shell_cmd_separator 8
 ModuleCmd_Use.c g_flags 8 ModuleCmd_Use
+ModuleCmd_Use.c g_retval 8
+ModuleCmd_Use.c g_output 8
 ModuleCmd_Use.c append_flag 8 ModuleCmd_Use
 ModuleCmd_Use.c line 8
 ModuleCmd_Use.c error_line 8
 ModuleCmd_Use.c local_line 8
 ModuleCmd_Use.c _default 8
+ModuleCmd_Use.c _colon 8
 ModuleCmd_Use.c linenum 8
 ModuleCmd_Use.c addRE 8
 ModuleCmd_Use.c rmRE 8
@@ -1676,6 +1772,7 @@ ModuleCmd_Use.c instpath 8
 ModuleCmd_Use.c rc_file 8
 ModuleCmd_Use.c modulerc_file 8
 ModuleCmd_Use.c version_file 8
+ModuleCmd_Use.c change_dir 8
 ModuleCmd_Use.c long_header 8
 ModuleCmd_Use.c whatis 8
 ModuleCmd_Use.c module_command 8
@@ -1694,11 +1791,14 @@ ModuleCmd_Update.c shell_derelict 8
 ModuleCmd_Update.c shell_init 8
 ModuleCmd_Update.c shell_cmd_separator 8
 ModuleCmd_Update.c g_flags 8
+ModuleCmd_Update.c g_retval 8
+ModuleCmd_Update.c g_output 8
 ModuleCmd_Update.c append_flag 8
 ModuleCmd_Update.c line 8
 ModuleCmd_Update.c error_line 8
 ModuleCmd_Update.c local_line 8
 ModuleCmd_Update.c _default 8
+ModuleCmd_Update.c _colon 8
 ModuleCmd_Update.c linenum 8
 ModuleCmd_Update.c addRE 8
 ModuleCmd_Update.c rmRE 8
@@ -1738,6 +1838,7 @@ ModuleCmd_Update.c instpath 8
 ModuleCmd_Update.c rc_file 8
 ModuleCmd_Update.c modulerc_file 8
 ModuleCmd_Update.c version_file 8
+ModuleCmd_Update.c change_dir 8
 ModuleCmd_Update.c long_header 8
 ModuleCmd_Update.c whatis 8
 ModuleCmd_Update.c module_command 8
@@ -1756,11 +1857,14 @@ ModuleCmd_Switch.c shell_derelict 8
 ModuleCmd_Switch.c shell_init 8
 ModuleCmd_Switch.c shell_cmd_separator 8
 ModuleCmd_Switch.c g_flags 8 ModuleCmd_Switch
+ModuleCmd_Switch.c g_retval 8
+ModuleCmd_Switch.c g_output 8
 ModuleCmd_Switch.c append_flag 8
 ModuleCmd_Switch.c line 8
 ModuleCmd_Switch.c error_line 8
 ModuleCmd_Switch.c local_line 8
 ModuleCmd_Switch.c _default 8
+ModuleCmd_Switch.c _colon 8
 ModuleCmd_Switch.c linenum 8
 ModuleCmd_Switch.c addRE 8
 ModuleCmd_Switch.c rmRE 8
@@ -1800,6 +1904,7 @@ ModuleCmd_Switch.c instpath 8
 ModuleCmd_Switch.c rc_file 8
 ModuleCmd_Switch.c modulerc_file 8
 ModuleCmd_Switch.c version_file 8
+ModuleCmd_Switch.c change_dir 8
 ModuleCmd_Switch.c long_header 8
 ModuleCmd_Switch.c whatis 8
 ModuleCmd_Switch.c module_command 8
@@ -1818,11 +1923,14 @@ ModuleCmd_Purge.c shell_derelict 8
 ModuleCmd_Purge.c shell_init 8
 ModuleCmd_Purge.c shell_cmd_separator 8
 ModuleCmd_Purge.c g_flags 8
+ModuleCmd_Purge.c g_retval 8
+ModuleCmd_Purge.c g_output 8
 ModuleCmd_Purge.c append_flag 8
 ModuleCmd_Purge.c line 8
 ModuleCmd_Purge.c error_line 8
 ModuleCmd_Purge.c local_line 8
 ModuleCmd_Purge.c _default 8
+ModuleCmd_Purge.c _colon 8
 ModuleCmd_Purge.c linenum 8
 ModuleCmd_Purge.c addRE 8
 ModuleCmd_Purge.c rmRE 8
@@ -1862,6 +1970,7 @@ ModuleCmd_Purge.c instpath 8
 ModuleCmd_Purge.c rc_file 8
 ModuleCmd_Purge.c modulerc_file 8
 ModuleCmd_Purge.c version_file 8
+ModuleCmd_Purge.c change_dir 8
 ModuleCmd_Purge.c long_header 8
 ModuleCmd_Purge.c whatis 8
 ModuleCmd_Purge.c module_command 8
@@ -1880,11 +1989,14 @@ ModuleCmd_Load.c shell_derelict 8
 ModuleCmd_Load.c shell_init 8
 ModuleCmd_Load.c shell_cmd_separator 8
 ModuleCmd_Load.c g_flags 8 ModuleCmd_Load
+ModuleCmd_Load.c g_retval 8
+ModuleCmd_Load.c g_output 8
 ModuleCmd_Load.c append_flag 8
 ModuleCmd_Load.c line 8
 ModuleCmd_Load.c error_line 8
 ModuleCmd_Load.c local_line 8
 ModuleCmd_Load.c _default 8
+ModuleCmd_Load.c _colon 8
 ModuleCmd_Load.c linenum 8
 ModuleCmd_Load.c addRE 8
 ModuleCmd_Load.c rmRE 8
@@ -1924,6 +2036,7 @@ ModuleCmd_Load.c instpath 8
 ModuleCmd_Load.c rc_file 8
 ModuleCmd_Load.c modulerc_file 8
 ModuleCmd_Load.c version_file 8
+ModuleCmd_Load.c change_dir 8
 ModuleCmd_Load.c long_header 8
 ModuleCmd_Load.c whatis 8
 ModuleCmd_Load.c module_command 8
@@ -1942,11 +2055,14 @@ ModuleCmd_List.c shell_derelict 8
 ModuleCmd_List.c shell_init 8
 ModuleCmd_List.c shell_cmd_separator 8
 ModuleCmd_List.c g_flags 8
+ModuleCmd_List.c g_retval 8
+ModuleCmd_List.c g_output 8
 ModuleCmd_List.c append_flag 8
 ModuleCmd_List.c line 8
 ModuleCmd_List.c error_line 8
 ModuleCmd_List.c local_line 8
 ModuleCmd_List.c _default 8
+ModuleCmd_List.c _colon 8
 ModuleCmd_List.c linenum 8
 ModuleCmd_List.c addRE 8
 ModuleCmd_List.c rmRE 8
@@ -1986,6 +2102,7 @@ ModuleCmd_List.c instpath 8
 ModuleCmd_List.c rc_file 8
 ModuleCmd_List.c modulerc_file 8 ModuleCmd_List
 ModuleCmd_List.c version_file 8
+ModuleCmd_List.c change_dir 8
 ModuleCmd_List.c long_header 8 ModuleCmd_List
 ModuleCmd_List.c whatis 8
 ModuleCmd_List.c module_command 8
@@ -2005,11 +2122,14 @@ ModuleCmd_Init.c shell_derelict 8
 ModuleCmd_Init.c shell_init 8
 ModuleCmd_Init.c shell_cmd_separator 8
 ModuleCmd_Init.c g_flags 8 ModuleCmd_Init
+ModuleCmd_Init.c g_retval 8
+ModuleCmd_Init.c g_output 8
 ModuleCmd_Init.c append_flag 8
 ModuleCmd_Init.c line 8
 ModuleCmd_Init.c error_line 8
 ModuleCmd_Init.c local_line 8
 ModuleCmd_Init.c _default 8
+ModuleCmd_Init.c _colon 8
 ModuleCmd_Init.c linenum 8
 ModuleCmd_Init.c addRE 8
 ModuleCmd_Init.c rmRE 8
@@ -2049,6 +2169,7 @@ ModuleCmd_Init.c instpath 8
 ModuleCmd_Init.c rc_file 8
 ModuleCmd_Init.c modulerc_file 8
 ModuleCmd_Init.c version_file 8
+ModuleCmd_Init.c change_dir 8
 ModuleCmd_Init.c long_header 8
 ModuleCmd_Init.c whatis 8
 ModuleCmd_Init.c module_command 8
@@ -2067,11 +2188,14 @@ ModuleCmd_Help.c shell_derelict 8
 ModuleCmd_Help.c shell_init 8
 ModuleCmd_Help.c shell_cmd_separator 8
 ModuleCmd_Help.c g_flags 8 %PerModuleHelp
+ModuleCmd_Help.c g_retval 8
+ModuleCmd_Help.c g_output 8
 ModuleCmd_Help.c append_flag 8
 ModuleCmd_Help.c line 8
 ModuleCmd_Help.c error_line 8
 ModuleCmd_Help.c local_line 8
 ModuleCmd_Help.c _default 8
+ModuleCmd_Help.c _colon 8
 ModuleCmd_Help.c linenum 8
 ModuleCmd_Help.c addRE 8
 ModuleCmd_Help.c rmRE 8
@@ -2111,6 +2235,7 @@ ModuleCmd_Help.c instpath 8
 ModuleCmd_Help.c rc_file 8
 ModuleCmd_Help.c modulerc_file 8
 ModuleCmd_Help.c version_file 8
+ModuleCmd_Help.c change_dir 8
 ModuleCmd_Help.c long_header 8
 ModuleCmd_Help.c whatis 8
 ModuleCmd_Help.c module_command 8
@@ -2129,11 +2254,14 @@ ModuleCmd_Display.c shell_derelict 8
 ModuleCmd_Display.c shell_init 8
 ModuleCmd_Display.c shell_cmd_separator 8
 ModuleCmd_Display.c g_flags 8 ModuleCmd_Display
+ModuleCmd_Display.c g_retval 8
+ModuleCmd_Display.c g_output 8
 ModuleCmd_Display.c append_flag 8
 ModuleCmd_Display.c line 8
 ModuleCmd_Display.c error_line 8
 ModuleCmd_Display.c local_line 10 ModuleCmd_Display
 ModuleCmd_Display.c _default 8
+ModuleCmd_Display.c _colon 8
 ModuleCmd_Display.c linenum 8
 ModuleCmd_Display.c addRE 8
 ModuleCmd_Display.c rmRE 8
@@ -2173,6 +2301,7 @@ ModuleCmd_Display.c instpath 8
 ModuleCmd_Display.c rc_file 8
 ModuleCmd_Display.c modulerc_file 8
 ModuleCmd_Display.c version_file 8
+ModuleCmd_Display.c change_dir 8
 ModuleCmd_Display.c long_header 8
 ModuleCmd_Display.c whatis 8
 ModuleCmd_Display.c module_command 8
@@ -2191,11 +2320,14 @@ ModuleCmd_Clear.c shell_derelict 8
 ModuleCmd_Clear.c shell_init 8
 ModuleCmd_Clear.c shell_cmd_separator 8
 ModuleCmd_Clear.c g_flags 8
+ModuleCmd_Clear.c g_retval 8
+ModuleCmd_Clear.c g_output 8
 ModuleCmd_Clear.c append_flag 8
 ModuleCmd_Clear.c line 8
 ModuleCmd_Clear.c error_line 8
 ModuleCmd_Clear.c local_line 8
 ModuleCmd_Clear.c _default 8
+ModuleCmd_Clear.c _colon 8
 ModuleCmd_Clear.c linenum 8
 ModuleCmd_Clear.c addRE 8
 ModuleCmd_Clear.c rmRE 8
@@ -2235,6 +2367,7 @@ ModuleCmd_Clear.c instpath 8
 ModuleCmd_Clear.c rc_file 8
 ModuleCmd_Clear.c modulerc_file 8
 ModuleCmd_Clear.c version_file 8
+ModuleCmd_Clear.c change_dir 8
 ModuleCmd_Clear.c long_header 8
 ModuleCmd_Clear.c whatis 8
 ModuleCmd_Clear.c module_command 8
@@ -2252,11 +2385,14 @@ ModuleCmd_Avail.c shell_derelict 8
 ModuleCmd_Avail.c shell_init 8
 ModuleCmd_Avail.c shell_cmd_separator 8
 ModuleCmd_Avail.c g_flags 8
+ModuleCmd_Avail.c g_retval 8
+ModuleCmd_Avail.c g_output 8
 ModuleCmd_Avail.c append_flag 8
 ModuleCmd_Avail.c line 8
 ModuleCmd_Avail.c error_line 8
 ModuleCmd_Avail.c local_line 8
 ModuleCmd_Avail.c _default 8
+ModuleCmd_Avail.c _colon 8
 ModuleCmd_Avail.c linenum 8
 ModuleCmd_Avail.c addRE 8
 ModuleCmd_Avail.c rmRE 8
@@ -2296,6 +2432,7 @@ ModuleCmd_Avail.c instpath 8
 ModuleCmd_Avail.c rc_file 8
 ModuleCmd_Avail.c modulerc_file 8 print_aligned_files %print_dir
 ModuleCmd_Avail.c version_file 8
+ModuleCmd_Avail.c change_dir 8
 ModuleCmd_Avail.c long_header 10 ModuleCmd_Avail
 ModuleCmd_Avail.c whatis 8
 ModuleCmd_Avail.c module_command 8
@@ -2313,64 +2450,3 @@ ModuleCmd_Avail.c _file_list_ptr 1 %_add_file_list %_get_file_list %_init_file_l
 ModuleCmd_Avail.c _file_list_cnt 1 %_add_file_list %_init_file_list
 ModuleCmd_Avail.c _file_list_wr_ndx 1 %_add_file_list %_get_file_list %_init_file_list %_pick_file_list print_aligned_files %print_terse_files
 ModuleCmd_Avail.c _file_list_rd_ndx 1 %_add_file_list %_get_file_list %_init_file_list
-ModuleCmd_Bootstrap.c Id 1 $
-ModuleCmd_Bootstrap.c UseId 1
-ModuleCmd_Bootstrap.c environ 8
-ModuleCmd_Bootstrap.c version_string 8
-ModuleCmd_Bootstrap.c g_current_module 8
-ModuleCmd_Bootstrap.c specified_module 8
-ModuleCmd_Bootstrap.c shell_name 8 ModuleCmd_Bootstrap
-ModuleCmd_Bootstrap.c shell_derelict 8 ModuleCmd_Bootstrap
-ModuleCmd_Bootstrap.c shell_init 8 ModuleCmd_Bootstrap
-ModuleCmd_Bootstrap.c shell_cmd_separator 8 ModuleCmd_Bootstrap
-ModuleCmd_Bootstrap.c g_flags 8
-ModuleCmd_Bootstrap.c append_flag 8
-ModuleCmd_Bootstrap.c line 8
-ModuleCmd_Bootstrap.c error_line 8
-ModuleCmd_Bootstrap.c local_line 8
-ModuleCmd_Bootstrap.c _default 8
-ModuleCmd_Bootstrap.c linenum 8
-ModuleCmd_Bootstrap.c addRE 8
-ModuleCmd_Bootstrap.c rmRE 8
-ModuleCmd_Bootstrap.c swRE 8
-ModuleCmd_Bootstrap.c dispRE 8
-ModuleCmd_Bootstrap.c listRE 8
-ModuleCmd_Bootstrap.c availRE 8
-ModuleCmd_Bootstrap.c helpRE 8
-ModuleCmd_Bootstrap.c initRE 8
-ModuleCmd_Bootstrap.c initxRE 8
-ModuleCmd_Bootstrap.c useRE 8
-ModuleCmd_Bootstrap.c unuseRE 8
-ModuleCmd_Bootstrap.c updateRE 8
-ModuleCmd_Bootstrap.c purgeRE 8
-ModuleCmd_Bootstrap.c clearRE 8
-ModuleCmd_Bootstrap.c whatisRE 8
-ModuleCmd_Bootstrap.c bootstrapRE 8
-ModuleCmd_Bootstrap.c aproposRE 8
-ModuleCmd_Bootstrap.c setenvHashTable 8
-ModuleCmd_Bootstrap.c unsetenvHashTable 8
-ModuleCmd_Bootstrap.c aliasSetHashTable 8
-ModuleCmd_Bootstrap.c aliasUnsetHashTable 8
-ModuleCmd_Bootstrap.c markVariableHashTable 8
-ModuleCmd_Bootstrap.c markAliasHashTable 8
-ModuleCmd_Bootstrap.c _fil_stdin 8
-ModuleCmd_Bootstrap.c _fil_stdout 8
-ModuleCmd_Bootstrap.c _fil_stderr 8
-ModuleCmd_Bootstrap.c _fil_devnull 8
-ModuleCmd_Bootstrap.c sw_detach 8
-ModuleCmd_Bootstrap.c sw_force 8
-ModuleCmd_Bootstrap.c sw_format 8
-ModuleCmd_Bootstrap.c sw_create 8
-ModuleCmd_Bootstrap.c sw_verbose 8
-ModuleCmd_Bootstrap.c sw_userlvl 8
-ModuleCmd_Bootstrap.c sw_icase 8
-ModuleCmd_Bootstrap.c instpath 8
-ModuleCmd_Bootstrap.c rc_file 8
-ModuleCmd_Bootstrap.c modulerc_file 8
-ModuleCmd_Bootstrap.c version_file 8
-ModuleCmd_Bootstrap.c long_header 8
-ModuleCmd_Bootstrap.c whatis 8
-ModuleCmd_Bootstrap.c module_command 8
-ModuleCmd_Bootstrap.c environ_changes 8
-ModuleCmd_Bootstrap.c alias_changes 8
-ModuleCmd_Bootstrap.c module_name 1 ModuleCmd_Bootstrap

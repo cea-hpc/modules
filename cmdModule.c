@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdModule.c,v 1.11 2006/01/17 22:58:29 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdModule.c,v 1.11.6.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -106,7 +106,7 @@ char	 *module_command;
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -144,7 +144,8 @@ int	cmdModule(	ClientData	 client_data,
 #endif
 
 #define	_MTCH	_XD match =
-#define	_ISERR	((match == -1) && (*interp->result))
+#define	_ISERR	((match == -1) && (*TCL_RESULT(interp)))
+#define _TCLCHK(a) {if(_ISERR) ErrorLogger(ERR_EXEC,LOC,TCL_RESULT(a),NULL);}
 
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_START, LOC, _proc_cmdModule, NULL);
@@ -212,7 +213,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, addRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	return_val = ModuleCmd_Load( interp, 1,num_modulefiles,modulefile_list);
 
        /**
@@ -227,7 +228,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, rmRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
         ModuleCmd_Load( interp, 0, num_modulefiles, modulefile_list);
 	return_val = TCL_OK;
 
@@ -236,7 +237,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, swRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	return_val = ModuleCmd_Switch( interp, num_modulefiles,modulefile_list);
 
     /**
@@ -244,7 +245,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, dispRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	return_val = ModuleCmd_Display( interp,num_modulefiles,modulefile_list);
 
     /**
@@ -252,7 +253,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, listRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	if (! (sw_format & SW_SET) ) {	/* default format options */
 		sw_format |= (SW_HUMAN | SW_TERSE );
 		sw_format &= ~(SW_PARSE | SW_LONG );
@@ -266,7 +267,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command,availRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	if (! (sw_format & SW_SET) ) {	/* default format options */
 		sw_format |= (SW_HUMAN | SW_TERSE);
 		sw_format &= ~(SW_PARSE | SW_LONG );
@@ -280,11 +281,11 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command,whatisRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	return_val = ModuleCmd_Whatis(interp, num_modulefiles, modulefile_list);
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command,aproposRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	return_val = ModuleCmd_Apropos(interp, num_modulefiles,modulefile_list);
 
     /**
@@ -292,7 +293,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command,clearRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	return_val = ModuleCmd_Clear( interp, num_modulefiles, modulefile_list);
 
     /**
@@ -300,7 +301,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command,updateRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	return_val = ModuleCmd_Update(interp, num_modulefiles, modulefile_list);
 
     /**
@@ -308,7 +309,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command,purgeRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	return_val = ModuleCmd_Purge( interp, num_modulefiles, modulefile_list);
 
     /**
@@ -316,45 +317,45 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command,initRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	
         if( Tcl_RegExpMatch(interp,module_command, "^inita|^ia")){/* initadd */
-	    if (_ISERR) ErrorLogger(ERR_EXEC,LOC,interp->result,NULL);
+	    _TCLCHK(interp);
 	    g_flags |= M_LOAD;
 	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
 	    g_flags &= ~M_LOAD;
 	}
 	
         if( Tcl_RegExpMatch(interp,module_command, "^initr|^iw")){ /* initrm */
-	    if (_ISERR) ErrorLogger(ERR_EXEC,LOC,interp->result,NULL);
+	    _TCLCHK(interp);
 	    g_flags |= M_REMOVE;
 	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
 	    g_flags &= ~M_REMOVE;
 	}
 	
         if( Tcl_RegExpMatch(interp,module_command, "^initl|^il")){/* initlist*/
-	    if (_ISERR) ErrorLogger(ERR_EXEC,LOC,interp->result,NULL);
+	    _TCLCHK(interp);
 	    g_flags |= M_DISPLAY;
 	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
 	    g_flags &= ~M_DISPLAY;
 	}
 	
         if(Tcl_RegExpMatch(interp,module_command, "^inits|^is")){/* initswitch*/
-	    if (_ISERR) ErrorLogger(ERR_EXEC,LOC,interp->result,NULL);
+	    _TCLCHK(interp);
 	    g_flags |= M_SWITCH;
 	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
 	    g_flags &= ~M_SWITCH;
 	}
 	
         if(Tcl_RegExpMatch(interp,module_command, "^initc|^ic")){/* initclear*/
-	    if (_ISERR) ErrorLogger(ERR_EXEC,LOC,interp->result,NULL);
+	    _TCLCHK(interp);
 	    g_flags |= M_CLEAR;
 	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
 	    g_flags &= ~M_CLEAR;
 	}
 	
         if(Tcl_RegExpMatch(interp,module_command,"^initp|^ip")){/*initprepend*/
-	    if (_ISERR) ErrorLogger(ERR_EXEC,LOC,interp->result,NULL);
+	    _TCLCHK(interp);
 	    g_flags |= (M_PREPEND | M_LOAD);
 	    return_val = ModuleCmd_Init(interp,num_modulefiles,modulefile_list);
 	    g_flags &= ~(M_PREPEND | M_LOAD);
@@ -365,7 +366,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, useRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	return_val = ModuleCmd_Use( interp, num_modulefiles, modulefile_list);
 
     /**
@@ -373,7 +374,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, unuseRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	return_val = ModuleCmd_UnUse( interp, num_modulefiles, modulefile_list);
 
     /**
@@ -381,7 +382,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, refreshRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	return_val = ModuleCmd_Refresh( interp, num_modulefiles, modulefile_list);
 
     /**
@@ -389,7 +390,7 @@ int	cmdModule(	ClientData	 client_data,
      **/
 
     } else if(_MTCH Tcl_RegExpMatch(interp,module_command, helpRE)) {
-	if (_ISERR) ErrorLogger( ERR_EXEC, LOC, interp->result, NULL);
+	_TCLCHK(interp);
 	return_val = ModuleCmd_Help( interp, num_modulefiles, modulefile_list);
     }
     
@@ -445,7 +446,8 @@ int	cmdModule(	ClientData	 client_data,
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **		 	char		*filename			     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
+ **				TCL_BREAK	break command		     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:							     **
@@ -488,34 +490,17 @@ int   Read_Modulefile( Tcl_Interp	*interp,
      **  latest executed command
      **/
 
-    if( TCL_ERROR == (result = Execute_TclFile(interp, filename))) {
+    result = Execute_TclFile(interp, filename);
 
 #if WITH_DEBUGGING_UTIL
+    if(EM_ERROR == ReturnValue(interp, result))
 	ErrorLogger( NO_ERR_DEBUG, LOC, "Execution of '",
 		filename, "' failed", NULL);
 #endif
 
-	if( *interp->result) {
-	    char *tstr = NULL;
-	    Tcl_RegExp retexpPtr;
-
-	    tstr = strdup(interp->result);
-	    retexpPtr = Tcl_RegExpCompile(interp, "^EXIT ([0-9]*)");
-	    if( Tcl_RegExpExec(interp, retexpPtr, tstr, tstr)) {
-		Tcl_RegExpRange(retexpPtr, 1,
-			(CONST84 char **) &startp, (CONST84 char **) &endp);
-		if( startp != '\0')
-		    result = atoi( startp );
-	    }
-	    if (tstr)
-		null_free((void *) &tstr);
-	}
-    }
-
     /**
      **  Return the result as derivered from the module file execution
      **/
-
 #if WITH_DEBUGGING_UTIL
     ErrorLogger( NO_ERR_END, LOC, _proc_Read_Modulefile, NULL);
 #endif
@@ -537,7 +522,7 @@ int   Read_Modulefile( Tcl_Interp	*interp,
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **		 	char		*filename			     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	line		Input read buffer		     **
@@ -551,6 +536,7 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
     FILE	*infile;
     int		 gotPartial = 0;
     int		 result = 0;
+    EM_RetVal	 em_result = EM_OK;
     char	*cmd;
     Tcl_DString	 cmdbuf;
 
@@ -563,7 +549,7 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
      **/
 
     if( line == NULL) {
-        if( NULL == (line = (char*) malloc( LINELENGTH * sizeof( char)))) {
+        if( NULL == (line = (char*) module_malloc(LINELENGTH * sizeof(char)))) {
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
         }
@@ -623,7 +609,7 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
 
         result = Tcl_Eval( interp, cmd);
 
-	if( TCL_ERROR == result) {
+	if( EM_ERROR == (em_result = ReturnValue(interp, result))) {
 	    ErrorLogger( ERR_EXEC, LOC, cmd, NULL);
 	}
 
@@ -708,7 +694,7 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
  **			int		 suppress_output  Controlls redirect.**
  **							of stdout and stderr **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	-						     **

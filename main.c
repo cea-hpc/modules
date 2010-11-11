@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.16 2006/01/12 20:31:31 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.16.6.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -74,9 +74,12 @@ char	 *g_current_module = NULL,	/** The module which is handled by   **/
 int	  g_flags = 0,			/** Control what to do at the moment **/
 					/** The posible values are defined in**/
 					/** module_def.h		     **/
+	  g_retval = 0,			/** exit return value		     **/
+	  g_output = 0,			/** Has output been generated	     **/
 	  append_flag = 0;		/** only used by the 'use' command   **/
 
 char	  _default[] = "default";	/** id string for default versions   **/
+char	  _colon[]   = ":";		/** directory separator		     **/
 
 /**
  **  Name of the rc files
@@ -151,6 +154,9 @@ static	char	module_name[] = "main.c";	/** File name of this module **/
 
 #if WITH_DEBUGGING
 static	char	_proc_main[] = "main";
+#endif
+#if WITH_DEBUGGING_MODULECMD
+static	char	_proc_Module_Usage[] = "Module_Usage";
 #endif
 #if WITH_DEBUGGING_INIT
 static	char	_proc_Check_Switches[] = "Check_Switches";
@@ -338,7 +344,8 @@ int	main( int argc, char *argv[], char *environ[]) {
     ErrorLogger( NO_ERR_END, LOC, _proc_main, NULL);
 #endif
 
-    return ( return_val);
+    OutputExit();
+    return ( return_val ? return_val : g_retval);
 
 unwind2:
     null_free((void *) &rc_path);
@@ -346,8 +353,10 @@ unwind1:
     null_free((void *) &rc_name);
 unwind0:
 
-    /* and error occurred of some type */
-    return( 1);
+    /* an error occurred of some type */
+    g_retval = (g_retval ? g_retval : 1);
+    OutputExit();
+    return (g_retval);
 
 } /** End of 'main' **/
 
@@ -379,7 +388,7 @@ void module_usage(FILE *output)
      **/
 
 #if WITH_DEBUGGING_MODULECMD
-    ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Help, NULL);
+    ErrorLogger( NO_ERR_START, LOC, _proc_Module_Usage, NULL);
 #endif
 
 	fprintf(output,
@@ -767,23 +776,30 @@ static void version (FILE *output) {
 	fprintf(output, format, "DATE", date_string);
 	fprintf(output, "\n");
 	isdefined(AUTOLOADPATH,str(AUTOLOADPATH));
+	isdefined(BASEPREFIX,str(BASEPREFIX));
 	isdefined(BEGINENV,str(BEGINENV));
 	isdefined(CACHE_AVAIL,str(CACHE_AVAIL));
 	isdefined(DEF_COLLATE_BY_NUMBER,str(DEF_COLLATE_BY_NUMBER));
 	isdefined(DOT_EXT,str(DOT_EXT));
+	isdefined(EVAL_ALIAS,str(EVAL_ALIAS));
 	isdefined(HAS_BOURNE_FUNCS,str(HAS_BOURNE_FUNCS));
 	isdefined(HAS_BOURNE_ALIAS,str(HAS_BOURNE_ALIAS));
-	isdefined(EVAL_ALIAS,str(EVAL_ALIAS));
+	isdefined(HAS_TCLXLIBS,str(HAS_TCLXLIBS));
+	isdefined(HAS_X11LIBS,str(HAS_X11LIBS));
 	isdefined(LMSPLIT_SIZE,str(LMSPLIT_SIZE));
 	isdefined(MODULEPATH,str(MODULEPATH));
 	isdefined(MODULES_INIT_DIR,str(MODULES_INIT_DIR));
 	isdefined(PREFIX,str(PREFIX));
+	isdefined(TCL_VERSION,str(TCL_VERSION));
+	isdefined(TCL_PATCH_LEVEL,str(TCL_PATCH_LEVEL));
 	isdefined(TMP_DIR,str(TMP_DIR));
 	isdefined(USE_FREE,str(USE_FREE));
 	isdefined(VERSION_MAGIC,str(VERSION_MAGIC));
 	isdefined(VERSIONPATH,str(VERSIONPATH));
 	isdefined(WANTS_VERSIONING,str(WANTS_VERSIONING));
 	isdefined(WITH_DEBUG_INFO,str(WITH_DEBUG_INFO));
+
+	fprintf(output, "\n");
 }
 
 #undef str

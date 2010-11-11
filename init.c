@@ -36,7 +36,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.9 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.9.4.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -46,7 +46,7 @@ static void *UseId[] = { &UseId, Id };
 #include "modules_def.h"
 
 #ifdef	HAS_TCLXLIBS
-#include "tclExtend.h"
+#  include "tclExtend.h"
 #endif	/* HAS_TCLXLIBS */
 
 /** ************************************************************************ **/
@@ -158,6 +158,7 @@ static char *shellprops [][4] = {
 	{"scheme",	"scm",		NULL,		"\n"},
 	{"guile",	"scm",		NULL,		"\n"},
 	{"mel",		"mel",		NULL,		";"},
+	{"cmake",	"cmake",	"cmake",	"\n"},
 	{NULL,		NULL,		NULL,		NULL},
 };
 
@@ -324,17 +325,17 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
      **  initialized. Exit from the whole program in case allocation fails.
      **/
     if( ( ! ( setenvHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( unsetenvHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( aliasSetHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( aliasUnsetHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( markVariableHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( markAliasHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ) {
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ) {
 
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind0;
@@ -377,8 +378,8 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
 			moduleSetenv( *interp, "_MODULESBEGINENV_", tmp, 1);
 			fclose( file);
 		} else
-			if( OK != ErrorLogger( ERR_OPEN, LOC,(*interp)->result,
-			    "append", NULL))
+			if( OK != ErrorLogger( ERR_OPEN, LOC,
+			    TCL_RESULT(*interp), "append", NULL))
 			    goto unwind0;
 
 		null_free((void *) &tmp);
@@ -422,8 +423,8 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
                 moduleSetenv( *interp, "_MODULESBEGINENV_", buffer, 1);
                 fclose( file);
             } else
-		if( OK != ErrorLogger( ERR_OPEN, LOC, (*interp)->result,
-		    "append", NULL))
+		if( OK != ErrorLogger( ERR_OPEN, LOC,
+		    TCL_RESULT(*interp), "append", NULL))
 		    goto unwind0;
 
 	    null_free((void *) &buffer);
@@ -484,7 +485,9 @@ int InitializeModuleCommands( Tcl_Interp* interp)
      **  Extended Tcl initialization if configured so ...
      **/
 
-#if (TCL_MAJOR_VERSION > 7 || TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION > 5)
+#if (TCL_MAJOR_VERSION > 8 || TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION > 3)
+    if( Tclx_Init( interp) == TCL_ERROR)
+#elif (TCL_MAJOR_VERSION > 7 || TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION > 5)
     if( Tclxcmd_Init( interp) == TCL_ERROR)
 #else
     if( TclXCmd_Init( interp) == TCL_ERROR)
@@ -501,8 +504,11 @@ int InitializeModuleCommands( Tcl_Interp* interp)
     /**
      ** Extend autoload path
      **/
-    if( TCL_OK != Tcl_VarEval( interp, "set auto_path [linsert $auto_path 0 ",
-	AUTOLOADPATH, "]", (char *) NULL))
+    if( TCL_OK != Tcl_Eval( interp,
+	"if [info exists auto_path] { "
+		"set auto_path [linsert $auto_path 0 " AUTOLOADPATH
+	"]} else {"
+		"set auto_path \"" AUTOLOADPATH "\" }"))
 	if( OK != ErrorLogger( ERR_INIT_ALPATH, LOC, NULL))
 	    goto unwind0;
 
@@ -558,6 +564,9 @@ int InitializeModuleCommands( Tcl_Interp* interp)
 		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
 
     Tcl_CreateCommand( interp, "is-loaded", cmdIsLoaded, 
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
+
+    Tcl_CreateCommand( interp, "chdir", cmdChDir,
 		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "system", cmdSystem, 
 		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);

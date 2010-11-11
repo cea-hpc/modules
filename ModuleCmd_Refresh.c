@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.3 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.3.18.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -86,7 +86,7 @@ static	char	_proc_ModuleCmd_Refresh[] = "ModuleCmd_Refresh";
  **			char 		*argv[]		Argument list	     **
  ** 									     **
  **   Result:		int	TCL_ERROR	Failure			     **
- **				TCL_OK		Successfull operation	     **
+ **				TCL_OK		Successful operation	     **
  ** 									     **
  **   Attached Globals:	specified_module	The module name
  **   			g_flags		These are set up accordingly before  **
@@ -140,13 +140,13 @@ int ModuleCmd_Refresh(	Tcl_Interp	*interp,
 	goto success1;
 
     count = 1;
-    for( list[ 0] = strtok( loaded, ":");
-	 list[ count] = strtok( NULL, ":");
+    for( list[ 0] = xstrtok( loaded, ":");
+	 list[ count] = xstrtok( NULL, ":");
 	 count++ );
 
     count = 1;
-    for( files[ 0] = strtok( lmenv, ":");
-	 files[ count] = strtok( NULL, ":");
+    for( files[ 0] = xstrtok( lmenv, ":");
+	 files[ count] = xstrtok( NULL, ":");
 	 count++ );
 
     /**

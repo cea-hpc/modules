@@ -1,0 +1,31 @@
+import os, re, subprocess
+
+@VERSIONING@if not os.environ.has_key('MODULE_VERSION'):
+@VERSIONING@	os.environ['MODULE_VERSION_STACK'] = '@VERSION@'
+@VERSIONING@	os.environ['MODULE_VERSION'] = '@VERSION@'
+@VERSIONING@else:
+@VERSIONING@	os.environ['MODULE_VERSION_STACK'] = os.environ['MODULE_VERSION']
+@VERSIONING@os.environ['MODULESHOME'] = '@prefix@'
+
+if not os.environ.has_key('MODULEPATH'):
+	f = open(os.environ['MODULESHOME'] + "/init/.modulespath", "r")
+	path = []
+	for line in f.readlines():
+		line = re.sub("#.*$", '', line)
+		if line is not '':
+			path.append(line)
+	os.environ['MODULEPATH'] = ':'.join(path)
+
+if not os.environ.has_key('LOADEDMODULES'):
+	os.environ['LOADEDMODULES'] = ''
+	
+def module(*args):
+	if type(args[0]) == type([]):
+		args = args[0]
+	else:
+		args = list(args)
+@VERSIONING@	(output, error) = subprocess.Popen(['@BASEPREFIX@/Modules/%s/bin/modulecmd' % os.environ['MODULE_VERSION'], 'python'] + 
+@NOTVERSIONING@	(output, error) = subprocess.Popen(['@bindir@/modulecmd', 'python'] + 
+			args, stdout=subprocess.PIPE).communicate()
+	exec output
+

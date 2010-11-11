@@ -1,0 +1,29 @@
+@VERSIONING@if (! defined $ENV{MODULE_VERSION} ) {
+@VERSIONING@	$ENV{"MODULE_VERSION_STACK"}="@VERSION@";
+@VERSIONING@	$ENV{"MODULE_VERSION"}="@VERSION@";
+@VERSIONING@} else {
+@VERSIONING@	$ENV{"MODULE_VERSION_STACK"}=$ENV{"$MODULE_VERSION"};
+@VERSIONING@}
+
+sub module {
+	local ($exec_prefix);
+@VERSIONING@	$exec_prefix = "@BASEPREFIX@/Modules/".$ENV{"MODULE_VERSION"};
+@VERSIONING@	eval `$exec_prefix/bin/modulecmd perl @_`;
+
+@NOTVERSIONING@	$exec_prefix = "@bindir@";
+@NOTVERSIONING@	eval `$exec_prefix/modulecmd perl @_`;
+}
+
+$ENV{"MODULESHOME"} = "@prefix@";
+
+if (! defined $ENV{"MODULEPATH"} ) {
+	open(IN, "$ENV{'MODULESHOME'}/init/.modulespath") || die "cannot open '.modulespath' file: $!\n";
+	$ENV{"MODULEPATH"} = join(":", grep(/\S/, map { s/^\s*//g; s/[\s#].*$//g; $_ } <IN>));
+	close IN;
+}
+
+if (! defined $ENV{"LOADEDMODULES"} ) {
+	$ENV{"LOADEDMODULES"} = "";
+}
+
+1;

@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.8 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.8.4.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -116,6 +116,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
     Tcl_Interp		 *tmp_interp;		/** Tcl interpreter to be    **/
 						/** used internally	     **/
     Tcl_HashTable	**oldTables = NULL;
+    EM_RetVal		  em_return_val = EM_OK;
 
 #if WITH_DEBUGGING_MODULECMD
     ErrorLogger( NO_ERR_START, LOC, _proc_ModuleCmd_Load, NULL);
@@ -193,14 +194,11 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 	 **  LOAD to be done
 	 **  Only check the filename
 	 **/
-
         } else {
-
 	    if( TCL_ERROR == (return_val = Locate_ModuleFile( tmp_interp,
 		argv[i], modulename, filename)))
 		ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL);
         }
-
         /**
          **  If return_val has been set to something other than TCL_OK,
          **  then read_status should not be set -- by the ANSI definition.
@@ -212,25 +210,29 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 
 	g_current_module = modulename;
 	if( TCL_OK == return_val) {
-	    return_val = Read_Modulefile( tmp_interp, filename);
+	    return_val = Read_Modulefile(tmp_interp, filename);
+	    em_return_val = ReturnValue(tmp_interp, return_val);
 
-	    switch (return_val) {
-	    case TCL_OK:
+	    switch (em_return_val) {
+	    case EM_OK:
 		/**
-		 ** If module terminates TCL_OK, add it to the loaded list...
+		 ** If module terminates TCL_OK, add it to the loaded list ...
 		 **/
+	    case EM_CONTINUE:
+		/**
+		 ** If module terminates TCL_CONTINUE, add it to the
+		 ** loaded list ... but further processing of that module
+		 ** has ceased
+		 **/
+		Tcl_ResetResult(tmp_interp);
 		Update_LoadedList( tmp_interp, modulename, filename);
 
-	    case TCL_BREAK:
-		/**
-		 ** If module terminates TCL_BREAK, don't add it to the list,
-		 ** but assume that everything was OK with the module anyway.
-		 **/
 		/**
 		 **  Save the current environment setup before the next module
 		 **  file is (un)loaded in case something is broken ...
 		 **  ... for Unwind_Modulefile_Changes later on
 		 **/
+		Tcl_ResetResult(tmp_interp);
         	if( oldTables) {
                     Delete_Hash_Tables( oldTables);
                     null_free((void *) &oldTables);
@@ -239,12 +241,23 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 		a_successful_load = 1;
 		break;	/* switch */
 
-	    case TCL_ERROR:
+	    case EM_BREAK:
+		/**
+		 ** If module terminates TCL_BREAK, don't add it to the list,
+		 ** but assume that everything was OK with the module anyway.
+		 ** (The original code wasn't correct)
+		 **/
+	    case EM_EXIT:
+		/**
+		 ** If module terminates TCL_EXIT, find the return value
+		 ** and exit modulecmd with that ... also none of the
+		 ** following modules should be loaded.
+		 **/
+	    case EM_ERROR:
 	    default:
 		/**
 		 **  Reset what has been changed.
 		 **/
-
 		Unwind_Modulefile_Changes( tmp_interp, oldTables);
             
         	oldTables = NULL;
@@ -253,13 +266,17 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 	    }
 	}
         Tcl_DeleteInterp(tmp_interp);
+
+	/* do not process any further modulefiles if EM_EXIT */
+	if (em_return_val == EM_EXIT) break; /* for */
+
     } /** for **/
-    
+
     /**
      **  There may only be a spare save environment left, if the final module
      **  has been load successfully. Remove it in this case
      **/
-    if( return_val == TCL_OK && oldTables) {
+    if( em_return_val == EM_OK && oldTables) {
         Delete_Hash_Tables( oldTables);
         null_free((void *) &oldTables);
     }

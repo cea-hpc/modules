@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdLog.c,v 1.5 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdLog.c,v 1.5.18.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -89,7 +89,7 @@ static	char	_none[] = "none";
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	tracelist	List containing all tracing settings **
@@ -149,7 +149,7 @@ int	cmdModuleLog(	ClientData	 client_data,
     /**
      **  Allocate memory for the facility list
      **/
-    if((char *) NULL == (faclist = (char *) malloc( alc_len)))
+    if((char *) NULL == (faclist = (char *) module_malloc( alc_len)))
 	return(( OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) ?
 	    TCL_OK : TCL_ERROR);
 
@@ -180,10 +180,11 @@ int	cmdModuleLog(	ClientData	 client_data,
 	    TCL_OK : TCL_ERROR);
     }
 
-    for( t = tmp, s = strtok( faclist, ":, \t");
+    for( t = tmp, s = xstrtok( faclist, ":, \t");
 	 s;
-	 s = strtok( NULL, ":, \t") ) {
+	 s = xstrtok( NULL, ":, \t") ) {
 
+	if (s && !*s) continue;		/* skip empty ones */
 	if( '.' == *s || '/' == *s ||			       /** filename  **/
 	    !strcmp( _stderr, s) || !strcmp( _stdout, s) ||    /** special   **/
 	    !strcmp( _null, s) || !strcmp( _none, s) ||        /** null	     **/

@@ -49,6 +49,11 @@ set mv_perl "\$ENV{'MODULE_VERSION'} = '$version2';"
 set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile1:$modulefile2';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$module1:$module2';"
 
+set mvs_cmake "set(ENV{MODULE_VERSION_STACK} \"$module_version_stack2\")"
+set mv_cmake "set(ENV{MODULE_VERSION} \"$version2\")"
+set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile1:$modulefile2\")"
+set lm_cmake "set(ENV{LOADEDMODULES} \"$module1:$module2\")"
+
 #
 #  The tests
 #
@@ -59,6 +64,7 @@ test_cmd "zsh" "unload $module3" "$lm_sh$mv_sh$mvs_sh$lmf_sh"
 test_cmd "csh" "unload $module3" "$lm_csh$mv_csh$mvs_csh$lmf_csh"
 test_cmd "tcsh" "unload $module3" "$lm_csh$mv_csh$mvs_csh$lmf_csh"
 test_cmd "perl" "unload $module3" "$lm_perl$mv_perl$mvs_perl$lmf_perl"
+test_cmd "cmake" "unload $module3" "$lm_cmake\n$mv_cmake\n$mvs_cmake\n$lmf_cmake"
 
 #
 # Remove a version that is not on top of the stack
@@ -78,6 +84,10 @@ set mvs_perl "\$ENV{'MODULE_VERSION_STACK'} = '$version3:$version1';"
 set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile1:$modulefile3';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$module1:$module3';"
 
+set mvs_cmake "set(ENV{MODULE_VERSION_STACK} \"$version3:$version1\")"
+set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile1:$modulefile3\")"
+set lm_cmake "set(ENV{LOADEDMODULES} \"$module1:$module3\")"
+
 #
 #  The tests
 #
@@ -88,6 +98,7 @@ test_cmd "zsh" "unload $module2" "$lm_sh$mvs_sh$lmf_sh"
 test_cmd "csh" "unload $module2" "$lm_csh$mvs_csh$lmf_csh"
 test_cmd "tcsh" "unload $module2" "$lm_csh$mvs_csh$lmf_csh"
 test_cmd "perl" "unload $module2" "$lm_perl$mvs_perl$lmf_perl"
+test_cmd "cmake" "unload $module2" "$lm_cmake\n$mvs_cmake\n$lmf_cmake"
 
 #
 #  Cleanup
@@ -107,6 +118,11 @@ unset lm_perl
 unset lmf_perl
 unset mv_perl
 unset mvs_perl
+
+unset lm_cmake
+unset lmf_cmake
+unset mv_cmake
+unset mvs_cmake
 
 #
 #  Clean up the environment, too

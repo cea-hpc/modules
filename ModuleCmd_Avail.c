@@ -34,7 +34,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.10 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Avail.c,v 1.10.20.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -178,7 +178,7 @@ static	char	**create_cache_list( FILE*, int*, char* );
  **			char		*argv[]		Arguments to the     **
  **							command		     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull operation	     **
+ **   Result:		int	TCL_OK		Successful operation	     **
  **				TCL_ERROR	Any failure		     **
  ** 									     **
  **   Attached Globals:	g_specified_module	The module name from the     **
@@ -396,7 +396,7 @@ int check_dir(	char	*dirname)
  **   Parameters:	char	*dir		Directory to be scanned	     **
  **			char	*module		A selcted module name or NULL**
  ** 									     **
- **   Result:		int	TCL_OK		Successfull operation	     **
+ **   Result:		int	TCL_OK		Successful operation	     **
  ** 									     **
  **   Attached Globals:	-						     **
  ** 									     **
@@ -519,7 +519,8 @@ static	int	print_dir(	Tcl_Interp	*interp,
 	    if( OK != ErrorLogger( ERR_READDIR, LOC, dir, NULL))
 		goto unwind1;
 
-	if( NULL == (cache_list = (char**) malloc( tcount * sizeof( char**))))
+	if( NULL ==
+		(cache_list = (char**) module_malloc(tcount * sizeof(char**))))
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 		goto unwind1;
 	(void) memset(cache_list, 0, tcount * sizeof( char **));
@@ -1391,7 +1392,7 @@ static	char	**create_cache_list(	FILE	*cacheinput,
         if( OK != ErrorLogger( ERR_READ, LOC, "cache", NULL))
 	    return( NULL);	/** ----------- EXIT (I/O error) ----------> **/
 
-    if( NULL == (list = (char**) malloc( *count * sizeof(char**)))) 
+    if( NULL == (list = (char**) module_malloc( *count * sizeof(char**)))) 
         if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    return( NULL);	/** ------------ EXIT (FAILURE) -----------> **/
 
@@ -1908,7 +1909,8 @@ static	void _add_file_list( char *name)
 	_file_list_cnt += FILE_LIST_SEGM_SIZE;
 
 	if( !_file_list_ptr) 
-	    _file_list_ptr = (char **) malloc(_file_list_cnt * sizeof(char *));
+	    _file_list_ptr =
+		(char **) module_malloc(_file_list_cnt * sizeof(char *));
 	else
 	    _file_list_ptr = (char **) realloc( _file_list_ptr,
 		_file_list_cnt * sizeof(char *));

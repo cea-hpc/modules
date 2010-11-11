@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Purge.c,v 1.3 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Purge.c,v 1.3.22.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -80,7 +80,7 @@ static	char	module_name[] = "ModuleCmd_Purge.c";	/** File name of this module **
  **			char 		*argv[]		Argument list	     **
  ** 									     **
  **   Result:		int	TCL_ERROR	Failure			     **
- **				TCL_OK		Successfull operation	     **
+ **				TCL_OK		Successful operation	     **
  ** 									     **
  **   Attached Globals:							     **
  ** 									     **
@@ -97,6 +97,8 @@ int	ModuleCmd_Purge(	Tcl_Interp	*interp,
 		*unload_argv[ MOD_BUFSIZE];
     int		 unload_argc = 0,
     		 status;
+    char        *unload_argv_rev[ MOD_BUFSIZE];
+    int          reverse;
 
 #if WITH_DEBUGGING_MODULECMD
     fprintf( stderr, "ModuleCmd_Purge(%d):DEBUG: Starting\n", __LINE__);
@@ -109,9 +111,7 @@ int	ModuleCmd_Purge(	Tcl_Interp	*interp,
     if( NULL == (loaded_modules =
 	(char *) Tcl_GetVar2( interp, "env", "LOADEDMODULES",
 	TCL_GLOBAL_ONLY))) {
-	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
-	    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------- **/
-	else
+	    /* nothing to do */
 	    return( TCL_OK);		/** ---- EXIT (Nothing to list) ---- **/
     }
 
@@ -129,12 +129,20 @@ int	ModuleCmd_Purge(	Tcl_Interp	*interp,
     
     unload_argv[ unload_argc] = NULL;
     
+    for( reverse=0; reverse<unload_argc; reverse++ ) {
+        unload_argv_rev[unload_argc - (reverse + 1)] = unload_argv[reverse]; 
+    }   
+
+    unload_argv_rev[ unload_argc] = NULL;
+ 
     /**
      **  Unload 'em all
      **  We always say the load succeeded.  ModuleCmd_Load will
      **  output any necessary error messages.
      **/
-    ModuleCmd_Load( interp, 0, unload_argc, unload_argv);
+/*  ModuleCmd_Load( interp, 0, unload_argc, unload_argv); */
+    ModuleCmd_Load( interp, 0, unload_argc, unload_argv_rev);
+
     status = TCL_OK;
 
     /**
