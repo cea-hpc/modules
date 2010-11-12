@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.39 2010/10/14 21:31:01 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.40 2010/11/12 16:54:54 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -12,6 +12,7 @@ dnl You need autoconf 2.52 or better!
 dnl
 dnl ---------------------------------------------------------------------------
 AC_INIT(modules,3.2)dnl
+AC_PREFIX_DEFAULT([/usr/local/Modules])dnl
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE(1.9.6 foreign dejagnu no-installinfo dist-bzip2)dnl
 AC_CONFIG_SRCDIR([version.c])dnl
@@ -23,6 +24,23 @@ dnl I18N support
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION([0.14.5])
 AM_PO_SUBDIRS
+
+dnl ---------------------------------------------------------------------------
+dnl Get Modules version & date
+dnl ---------------------------------------------------------------------------
+dnl DATE		Module package date
+dnl VERSION		Module package version
+dnl
+AC_SUBST(VERSION)dnl
+AC_SUBST(DATE)dnl
+VERSION='(unknown)'
+VERSION=`sed -n -e 's/^.*version_string.*"\(.*\)";$/\1/p' ${srcdir}/version.c`
+DATE='(DDMmmYYYY)'
+DATE=`sed -n -e 's/^.*date_string.*"\(.*\)";$/\1/p' ${srcdir}/version.c`
+echo "configuring for Modules $VERSION		$DATE"
+dnl
+AC_MSG_RESULT([VERSION = $VERSION])
+AC_MSG_RESULT([DATE = $DATE])
 
 dnl ---------------------------------------------------------------------------
 dnl Autoheader "templates" (was acconfig.h)
@@ -78,84 +96,62 @@ AC_ARG_ENABLE(versioning,
 	    VERSIONING=""
 	    NOTVERSIONING="#"
 )dnl
-dnl
-dnl ---------------------------------------------------------------------------
-dnl Get Modules version & date
-dnl ---------------------------------------------------------------------------
-dnl DATE		Module package date
-dnl VERSION		Module package version
-dnl
-AC_SUBST(VERSION)dnl
-AC_SUBST(DATE)dnl
-VERSION='(unknown)'
-VERSION=`sed -n -e 's/^.*version_string.*"\(.*\)";$/\1/p' ${srcdir}/version.c`
-AC_MSG_RESULT([VERSION = $VERSION])
-DATE='(DDMmmYYYY)'
-DATE=`sed -n -e 's/^.*date_string.*"\(.*\)";$/\1/p' ${srcdir}/version.c`
-AC_MSG_RESULT([DATE = $DATE])
-echo "configuring for Modules $VERSION		$DATE"
 dnl ---------------------------------------------------------------------------
 dnl Set PREFIX and related based on WANTS_VERSIONING
 dnl ---------------------------------------------------------------------------
-AC_SUBST(DEFAULTPATH)dnl
+AC_SUBST(PREFIX)dnl
 AC_SUBST(BASEPREFIX)dnl
 DEFAULTPATH=default
-AH_TEMPLATE([BASEPREFIX],[ BASEPREFIX: Usually equivalent to /usr/local])dnl
-AH_TEMPLATE([PREFIX],[
-PREFIX: Usually equivalent to /usr/local/Modules[/version_number]])dnl
-AH_TEMPLATE([MODULES_INIT_DIR],[
-MODULES_INIT_DIR: Directory that contains the modules init files.])dnl
+dnl PREFIX: Usually equivalent to /usr/local/Modules[/version_number]])dnl
 
-if test "$exec_prefix" != "NONE" ; then
+if test "$exec_prefix" != "NONE" ; then #{
   EXECPREFIX=$exec_prefix
 # can not have versioning if specifying exec-prefix
   if test "$WANTS_VERSIONING" -eq 1 ; then
      AC_MSG_ERROR([You can not have versioning if --exec-prefix is specified
 must disable with --disable-versioning ])
   fi
-fi
-if test "$prefix" != "NONE" ; then
-  if test "$WANTS_VERSIONING" -eq 1 ; then
-    DEFAULTPATH=$prefix/Modules/default
-    NODEFAULTPATH=$prefix/Modules/$VERSION
+fi #}
+if test "$prefix" != "NONE" ; then #{{
+  if test "$WANTS_VERSIONING" -eq 1 ; then #{{
+    DEFAULTPATH=$prefix/default
+    NODEFAULTPATH=$prefix/$VERSION
     BASEPREFIX=$prefix
-    prefix=$BASEPREFIX/Modules/$VERSION
+    prefix=$BASEPREFIX/$VERSION
     export prefix
-  else
-    DEFAULTPATH=$prefix/Modules
-    NODEFAULTPATH=$prefix/Modules
+  else #}{
+    DEFAULTPATH=$prefix
+    NODEFAULTPATH=$prefix
     BASEPREFIX=$prefix
-    prefix=$BASEPREFIX/Modules
+    prefix=$BASEPREFIX
     export prefix
-  fi
+  fi #}}
   PREFIX=$prefix
-else
-  if test "$WANTS_VERSIONING" -eq 1 ; then
-    DEFAULTPATH=$ac_default_prefix/Modules/default
-    NODEFAULTPATH=$ac_default_prefix/Modules/$VERSION
+else #}{
+  if test "$WANTS_VERSIONING" -eq 1 ; then #{{
+    DEFAULTPATH=$ac_default_prefix/default
+    NODEFAULTPATH=$ac_default_prefix/$VERSION
     BASEPREFIX=$ac_default_prefix
-    ac_default_prefix=$BASEPREFIX/Modules/$VERSION
+    ac_default_prefix=$BASEPREFIX/$VERSION
     export ac_default_prefix
-  else
-    DEFAULTPATH=$ac_default_prefix/Modules
-    NODEFAULTPATH=$ac_default_prefix/Modules
+  else #}{
+    DEFAULTPATH=$ac_default_prefix
+    NODEFAULTPATH=$ac_default_prefix
     BASEPREFIX=$ac_default_prefix
-    ac_default_prefix=$BASEPREFIX/Modules
+    ac_default_prefix=$BASEPREFIX
     export ac_default_prefix
-  fi
+  fi #}}
   PREFIX=$ac_default_prefix
-fi
-if test "$exec_prefix" != "NONE" ; then
+fi #}}
+if test "$exec_prefix" != "NONE" ; then #{
   EXECPREFIX=$exec_prefix
 else
   EXECPREFIX=$PREFIX
-fi
-MODULES_INIT_DIR=$EXECPREFIX/init
+fi #}
 dnl ---------------------------------------------------------------------------
 dnl --enable-use-default        Use PREFIX/default/ in init scripts [DEF]
 dnl --disable-use-default       Use PREFIX/VERSION/ in init scripts
 dnl ---------------------------------------------------------------------------
-AC_DEFINE_UNQUOTED(MODULES_INIT_DIR, "$MODULES_INIT_DIR")dnl
 AC_ARG_ENABLE(use-default,
 	AC_HELP_STRING([--enable-use-default],[use DEFAULTPATH in init scripts [[yes]]]),
 	if test "$enableval" = "no" -o $WANTS_VERSIONING -eq 0; then
@@ -165,12 +161,6 @@ AC_MSG_RESULT([DEFAULTPATH = $DEFAULTPATH])
 AC_MSG_RESULT([BASEPREFIX = $BASEPREFIX])
 AC_MSG_RESULT([PREFIX = $PREFIX])
 AC_MSG_RESULT([EXECPREFIX = $EXECPREFIX])
-AC_DEFINE_UNQUOTED(BASEPREFIX, "$BASEPREFIX")dnl
-AC_DEFINE_UNQUOTED(PREFIX, "$PREFIX")dnl
-export DEFAULTPATH
-export NODEFAULTPATH
-export BASEPREFIX
-export MODULES_INIT_DIR
 dnl ---------------------------------------------------------------------------
 dnl Some standard autoconfig stuff
 dnl Checks for programs
@@ -569,38 +559,41 @@ dnl ---------------------------------------------------------------------------
 dnl MODULEPATH		The modulepath we want
 dnl
 AC_SUBST(MODULEPATH)dnl
-AH_TEMPLATE([MODULEPATH],[
-MODULEPATH: Directory that contains all the system module files])dnl
 AC_ARG_WITH(module-path,
-	AC_HELP_STRING([--with-module-path=<path>],[use module path=<path> [[PREFIX/Modules/modulefiles]]]),
+	AC_HELP_STRING([--with-module-path=<path>],[use module path=<path> [[PREFIX/modulefiles]]]),
 	MODULEPATH="$withval"
 	AC_MSG_RESULT([MODULEPATH = $with_module_path])
-	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval")dnl
 	,
-dnl 	AC_MSG_WARN([if using '--with-module-path': need to specify a path!])
-	withval="$BASEPREFIX/Modules/modulefiles"
+	withval="$BASEPREFIX/modulefiles"
 	AC_MSG_WARN([will use MODULEPATH=$withval : rerun configure using --with-module-path to override default])
 	MODULEPATH="$withval"
-	AC_DEFINE_UNQUOTED(MODULEPATH, "$withval"))dnl
+)dnl
 dnl ---------------------------------------------------------------------------
 dnl VERSIONPATH		The modulepath different versions of modules
 dnl
 AC_SUBST(VERSIONPATH)dnl
-AH_TEMPLATE([VERSIONPATH],[
-VERSIONPATH: Directory that contains the env.modules version files.])dnl
 AC_ARG_WITH(version-path,
-	AC_HELP_STRING([--with-version-path=<path>],[use version path=<path> [[PREFIX/Modules/versions]]]),
+	AC_HELP_STRING([--with-version-path=<path>],[use version path=<path> [[PREFIX/versions]]]),
 	VERSIONPATH="$withval"
 	AC_MSG_RESULT([VERSIONPATH = $with_version_path])
-	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval")
 	,
-if test "$WANTS_VERSIONING" -eq 1 ; then
-dnl AC_MSG_WARN([if using '--with-version-path': need to specify a path!])
-	withval="$BASEPREFIX/Modules/versions"
+	withval="$BASEPREFIX/versions"
 	AC_MSG_WARN([will use VERSIONPATH=$withval : rerun configure using --with-version-path to override default])
 	VERSIONPATH="$withval"
-	AC_DEFINE_UNQUOTED(VERSIONPATH, "$withval")
-fi)dnl
+)dnl
+dnl ---------------------------------------------------------------------------
+dnl INITPATH		Init script location
+dnl
+AC_SUBST(INITPATH)dnl
+AC_ARG_WITH(init-path,
+	AC_HELP_STRING([--with-init-path=<path>],[use init path=<path> [[PREFIX/init]]]),
+	INITPATH="$withval"
+	AC_MSG_RESULT([INITPATH = $with_init_path])
+	,
+	withval="$PREFIX/init"
+	AC_MSG_WARN([will use INITPATH=$withval : rerun configure using --with-init-path to override default])
+	INITPATH="$withval"
+)dnl
 dnl ---------------------------------------------------------------------------
 AH_TEMPLATE([TMP_DIR],[TMP_DIR: tmp directory name])dnl
 AC_ARG_WITH(tmp-dir,
@@ -651,7 +644,8 @@ AC_ARG_WITH(autoload-path,
 		fi
 	fi
 	AUTOLOADPATH="$withval"
-	AC_DEFINE_UNQUOTED(AUTOLOADPATH, "$withval"))dnl
+	AC_DEFINE_UNQUOTED(AUTOLOADPATH, "$withval")
+)dnl
 dnl ---------------------------------------------------------------------------
 dnl   --with-etc-path
 dnl   --with-skel-path
@@ -720,11 +714,9 @@ placed in the following directory structure :
 PREFIX/Modules/($MODULES_VERSION/ if modules-versioning)
 	bin/
 	init/
-	man/
+	share/man/
 		man1/
 		man4/
-	modulefiles/
-PREFIX/Modules/
 	modulefiles/
 	(versions/ if modules-versioning)
 

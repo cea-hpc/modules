@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.34 2010/10/14 21:31:01 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.35 2010/11/12 16:54:54 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -254,7 +254,7 @@ int main(
      **  Figure out, which global RC file to use. This depends on the environ-
      **  ment variable 'MODULERCFILE', which can be set to one of the following:
      **
-     **		<filename>	-->	PREFIX/etc/<filename>
+     **		<filename>	-->	SYSCONFDIR/<filename>
      **		<dir>/		-->	<dir>/RC_FILE
      **		<dir>/<file>	-->	<dir>/<file>
      **  Use xgetenv to expand 1 level of env.vars.
@@ -749,8 +749,8 @@ static void version (FILE *output) {
 	fprintf(output, "\n");
 
 	isdefined(AUTOLOADPATH,str(AUTOLOADPATH));
-	isdefined(BASEPREFIX,str(BASEPREFIX));
 	isdefined(BEGINENV,str(BEGINENV));
+	isdefined(DEFAULTPATH,str(DEFAULTPATH));
 	isdefined(DEF_COLLATE_BY_NUMBER,str(DEF_COLLATE_BY_NUMBER));
 	isdefined(DOT_EXT,str(DOT_EXT));
 	isdefined(ENABLE_NLS,str(ENABLE_NLS));
@@ -759,12 +759,12 @@ static void version (FILE *output) {
 	isdefined(HAS_BOURNE_FUNCS,str(HAS_BOURNE_FUNCS));
 	isdefined(HAS_TCLXLIBS,str(HAS_TCLXLIBS));
 	isdefined(HAS_X11LIBS,str(HAS_X11LIBS));
+	isdefined(INITPATH,str(INITPATH));
 	isdefined(LMSPLIT_SIZE,str(LMSPLIT_SIZE));
-	isdefined(MODULEPATH,str(MODULEPATH));
-	isdefined(MODULES_INIT_DIR,str(MODULES_INIT_DIR));
 	isdefined(PREFIX,str(PREFIX));
-	isdefined(TCL_VERSION,str(TCL_VERSION));
+	isdefined(SYSCONFDIR,str(SYSCONFDIR));
 	isdefined(TCL_PATCH_LEVEL,str(TCL_PATCH_LEVEL));
+	isdefined(TCL_VERSION,str(TCL_VERSION));
 	isdefined(TMP_DIR,str(TMP_DIR));
 	isdefined(USE_FREE,str(USE_FREE));
 	isdefined(VERSION_MAGIC,str(VERSION_MAGIC));

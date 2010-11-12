@@ -1,7 +1,7 @@
 ###########################################################################
 ##
 ## File:        modulefiles/Makefile.am
-## Versions:    $Id: Makefile.am,v 1.9 2009/10/15 22:32:58 rkowen Exp $
+## Versions:    $Id: Makefile.am,v 1.10 2010/11/12 16:54:54 rkowen Exp $
 ## Created:     2002/06/14
 ##
 ###########################################################################
@@ -31,13 +31,13 @@ install-data-local : install-basemodules install-version
 
 install-basemodules : $(ALLMODULES)
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(prefix)/modulefiles
-	$(mkinstalldirs) $(DESTDIR)$(prefix)/modulefiles/lang
+	$(mkinstalldirs) $(DESTDIR)$(datarootdir)/modulefiles
+	$(mkinstalldirs) $(DESTDIR)$(datarootdir)/modulefiles/lang
 	@list='$(ALLMODULES)'; for p in $$list; do \
 	  if test -f $$p \
 	  ; then \
-	   echo " $(INSTALL_DATA_ENV) $(INSTALL_DATA) $$p $(DESTDIR)$(prefix)/modulefiles/$$p"; \
-	   $(INSTALL_DATA_ENV) $(INSTALL_DATA) $$p $(DESTDIR)$(prefix)/modulefiles/$$p; \
+	   echo " $(INSTALL_DATA_ENV) $(INSTALL_DATA) $$p $(DESTDIR)$(datarootdir)/modulefiles/$$p"; \
+	   $(INSTALL_DATA_ENV) $(INSTALL_DATA) $$p $(DESTDIR)$(datarootdir)/modulefiles/$$p; \
 	  else :; fi; \
 	done
 
@@ -60,11 +60,11 @@ uninstall-basemodules :
 	@$(NORMAL_UNINSTALL)
 	@if test x$(WANTS_VERSIONING) = x1 ; then \
 	  list='$(ALLMODULES)'; for p in $$list; do \
-	    echo " rm -f $(DESTDIR)$(prefix)/modulefiles/$$p"; \
-	    rm -f $(DESTDIR)$(prefix)/modulefiles/$$p; \
+	    echo " rm -f $(DESTDIR)$(datarootdir)/modulefiles/$$p"; \
+	    rm -f $(DESTDIR)$(datarootdir)/modulefiles/$$p; \
 	  done; \
 	else \
-	  echo "*** BASE MODULES are not uninstalled from $(DESTDIR)$(prefix)/modulefiles ***"; \
+	  echo "*** BASE MODULES are not uninstalled from $(DESTDIR)$(datarootdir)/modulefiles ***"; \
 	  echo "*** Do This Yourself If you really want to ***"; \
 	fi
 

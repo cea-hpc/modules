@@ -7,7 +7,7 @@
 @VERSIONING@fi
 @VERSIONING@export MODULE_VERSION_STACK
 
-@VERSIONING@module() { eval `@BASEPREFIX@/Modules/$MODULE_VERSION/bin/modulecmd bash $*`; }
+@VERSIONING@module() { eval `@BASEPREFIX@/$MODULE_VERSION/bin/modulecmd bash $*`; }
 @NOTVERSIONING@module() { eval `@bindir@/modulecmd bash $*`; }
 export -f module
 
@@ -20,10 +20,10 @@ if [ "${LOADEDMODULES:-}" = "" ]; then
 fi
 
 if [ "${MODULEPATH:-}" = "" ]; then
-  MODULEPATH=`sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' ${MODULESHOME}/init/.modulespath`
+  MODULEPATH=`sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' @INITPATH@/.modulespath`
   export MODULEPATH
 fi
 
-if [ ${BASH_VERSINFO:-0} -ge 3 ] && [ -r ${MODULESHOME}/init/bash_completion ]; then
- . ${MODULESHOME}/init/bash_completion
+if [ ${BASH_VERSINFO:-0} -ge 3 ] && [ -r @INITPATH@/bash_completion ]; then
+ . @INITPATH@/bash_completion
 fi
