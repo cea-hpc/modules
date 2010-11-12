@@ -424,7 +424,6 @@ used for module commands, if no specific version is given. This replaces the
 definitions made in the \fI.version\fP file in former \fBmodulecmd\fP releases.
 .LP
 The parameter \fImodule-file\fP may be either
-.PP
 .RS
 .I a fully or partially qualified modulefile
 with \fI name / version\fP.  If name is '.' then the current directory name
@@ -448,7 +447,6 @@ in order to provide shorthand invocations of frequently used module file
 names.
 .LP
 The parameter \fImodule-file\fP may be either
-.PP
 .RS
 .I a fully qualified modulefile
 with name and version
@@ -464,7 +462,7 @@ with name and version
 .B module-user
 .I level
 .RS
-Defines the user level under wich \fImodule-cmd\fP runs. This takes effect
+Defines the user level under which \fImodule-cmd\fP runs. This takes effect
 on the error messages being produced and on the behavior of \fImodulecmd\fP
 in case of detecting an outage.
 .LP
@@ -496,7 +494,7 @@ Switches verbose \fImodulecmd\fP message display on or off.
 .I log-facility
 .RS
 Defines whether error messages of the specified weight should be logged
-and conditionally assignes a log-facility.
+and conditionally assigns a log-facility.
 .LP
 The \fIerror-weight\fP parameter specifies the error level to be logged.
 It may be one of the following values:
@@ -718,23 +716,30 @@ the directory is opened and a search begins for an actual \fImodulefile\fP.
 First, \fBmodulecmd\fP looks for a file with the name \fI.modulerc\fP in the
 directory. If this file exists, its contents will be evaluated as if it was
 a module file to be loaded. You may place \fImodule-version\fP and
-\fImodule-alias\fP commands inside this file. Additionally, before seeking
-for \fI.modulerc\fP files in the module directory, the global \fI.modulerc\fP
+\fImodule-alias\fP commands inside this file.
+.LP
+Additionally, before seeking
+for \fI.modulerc\fP files in the module directory, the global \fImodulerc\fP
 file is sourced, too. If a named version \fIdefault\fP now exists for the
-module file to be loaded, the assigned modulefile now will be sourced. Otherwise
-the file \fI.version\fP is looked up in the directory.
+module file to be loaded, the assigned modulefile now will be sourced.
+Otherwise the file \fI.version\fP is looked up in the directory.
+.LP
 If the \fI.version\fP file exists, it is opened and interpreted as Tcl code
 and takes precedence over a \fI.modulerc\fP file in the same directory.
 If the Tcl variable \fBModulesVersion\fP is set by the \fI.version\fP file,
 \fBmodulecmd\fP will use the name as if it specifies a \fImodulefile\fP in the
 directory. This will become the \fIdefault\fP module file in this case.
+.LP
 If \fBModulesVersion\fP is a directory, the search begins anew down that
 directory. If the name does not match any files located in the current
 directory, the search continues through the remaining directories in
 \s-1MODULEPATH\s0.
 .LP
 Every \fI.version\fP  and \fI.modulerc\fP file found is Tcl interpreted.
-So, changes made in these file will affect the subsequently
+The difference is that \fI.version\fP only applies to the current directory,
+and the \fI.modulerc\fP applies to the current directory and all
+subdirectories.
+Changes made in these file will affect the subsequently
 interpreted \fImodulefile\fP.
 .LP
 If no \fIdefault\fP version may be figured out, then the highest
@@ -752,6 +757,17 @@ Such a file would look like:
 ##  The desired version of \fIX11\fP
 ##
 set ModulesVersion "R4"
+
+.fi
+.RE
+The equivalent \fI.modulerc\fP would look like:
+.RS
+.nf
+#%Module1.0
+##
+##  The desired version of \fIX11\fP
+##
+module-version "./R4" default
 .fi
 .RE
 .LP
@@ -772,7 +788,7 @@ The \fBModulesDisplay\fP subroutine is a good place to put additional descriptiv
 information about the \fImodulefile\fP.
 .SH ENVIRONMENT
 .TP
-.B ${\s-1MODULEPATH\s0}
+.B $\s-1MODULEPATH\s0
 Path of directories containing \fImodulefiles\fP.
 .SH VERSION
 @VERSION@

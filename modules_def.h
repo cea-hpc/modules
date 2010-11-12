@@ -543,7 +543,6 @@ extern	int	sw_verbose;
 extern	int	sw_userlvl;
 extern	int	sw_icase;
 
-extern	char	*instpath;
 extern	char	*rc_file;
 extern	char	*modulerc_file;
 extern	char	*version_file;

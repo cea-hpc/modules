@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.35 2010/11/12 16:54:54 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.36 2010/11/12 20:16:36 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -98,7 +98,7 @@ MHash	 *skipdirs;			/** directories to skip		     **/
  **  It comes from the Makefile
  **/
 
-char	*instpath = PREFIX,
+char	*etcpath = SYSCONFDIR,
 	*rc_file = RCFILE,
 	*modulerc_file = MODULERCFILE,
 	*version_file = VERSIONFILE;
@@ -270,7 +270,7 @@ int main(
 			null_free((void *)&rc_name);
 			if (!(rc_name = strrchr(rc_path, *psep))) {
 				rc_name = rc_path;
-				rc_path = instpath;
+				rc_path = etcpath;
 			} else
 				*rc_name++ = '\0';
 			if (!*rc_name) {
@@ -278,20 +278,9 @@ int main(
 			}
 		}
 	} else {
-		rc_path = instpath;
+		rc_path = etcpath;
 		null_free((void *)&rc_name);
 		rc_name = rc_file;
-	}
-    /**
-     **  Finally we have to change PREFIX -> PREFIX/etc
-     **/
-	if (rc_path == instpath) {
-		if (!(rc_path = stringer(NULL, 0, instpath,psep,"etc", NULL))) {
-			if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
-				goto unwind2;
-			else
-				rc_path = NULL;
-		}
 	}
     /**
      **  Source the global and the user defined RC file

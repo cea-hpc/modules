@@ -87,7 +87,7 @@ the command's output.  The first argument to
 specifies the type of shell.
 .LP
 The initialization scripts are kept in
-.I $MODULESHOME/init/<shell>
+.I @INITPATH@/<shell>
 where
 .I <shell>
 is the name of the sourcing shell.
@@ -100,7 +100,7 @@ The perl
 .I module
 command is set up with:
 
-  use lib $ENV{'MODULESHOME'}."/init";
+  use lib "@INITPATH@";
   use perl;
 
 And the python
@@ -109,9 +109,9 @@ command is defined with:
 
   import os;
   if os.environ.has_key('PYTHONPATH'):
-  	os.environ['PYTHONPATH'] +=':'+os.environ['MODULESHOME']+"/init";
+  	os.environ['PYTHONPATH'] += ':@INITPATH@';
   else:
-  	os.environ['PYTHONPATH'] = os.environ['MODULESHOME']+"/init";
+  	os.environ['PYTHONPATH'] = '@INITPATH@';
 
   from python import module;
 
@@ -127,7 +127,7 @@ Upon invocation of modulecmd module run-command files are sourced in
 the following order:
 .nf
 
-	Global RC file as specified by ${\s-1@sysconfdir@\s0}/${\s-1MODULERCFILE\s0}
+	Global RC file as specified by \s-1@sysconfdir@\s0/${\s-1MODULERCFILE\s0}
 	If ${\s-1MODULERCFILE\s0} is not defined then the global RC
 	file is assumed to be "modulerc"
 
@@ -393,14 +393,6 @@ prior state.
 .LP
 .SH ENVIRONMENT
 .TP
-.SB \s-1MODULESHOME\s0
-The location of the master Modules package file directory containing
-.B module
-command initialization scripts, the executable program
-.B modulecmd,
-and a directory containing a collection of master
-.I modulefiles.
-.TP
 .SB \s-1MODULEPATH\s0
 The path that the
 .B module
@@ -435,37 +427,36 @@ is invoked.
 The filename of the file containing the initialization environment snapshot.
 
 .SH FILES
+Use following values if specified: ${exec_prefix} = @exec_prefix@ and
+${prefix} = @prefix@ if present.
 .TP
-.B @prefix@
-The \s-1MODULESHOME\s0 directory.
-.TP
-.B ${\s-1MODULESHOME\s0}/etc/rc
+.B @sysconfdir@/modulerc
 The system-wide
 .I modules rc file.
-The location of this file can be changed using
+The location or name of this file can be changed using
 the \s-1MODULERCFILE\s0 environment variable as described above.
 .TP
-.B ${\s-1HOME\s0}/.modulerc
+.B $\s-1HOME\s0/.modulerc
 The user specific 
 .I modules rc file.
 .TP
-.B ${\s-1MODULESHOME\s0}/modulefiles
+.B @MODULEPATH@
 The directory for system-wide
 .I modulefiles.
 The location of the directory can be changed using
 the \s-1MODULEPATH\s0 environment variable as described above.
 .TP
-.B ${\s-1MODULESHOME\s0}/bin/modulecmd
+.B @bindir@/modulecmd
 The 
 .I modulefile
 interpreter that gets executed upon each invocation of
 .B module.
 .TP
-.B ${\s-1MODULESHOME\s0}/init/\fI<shell>\fP
+.B @INITPATH@/\fI<shell>\fP
 The Modules package initialization file sourced into the user's
 environment.
 .TP
-.B ${\s-1HOME\s0}/.modulesbeginenv
+.B $\s-1HOME\s0/.modulesbeginenv
 A snapshot of the user's environment taken at Module initialization.
 This information is used by the
 .B module update
