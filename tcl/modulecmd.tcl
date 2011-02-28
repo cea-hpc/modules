@@ -9,7 +9,7 @@
 # Some Global Variables.....
 #
 set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.133 $} {\1}]
+					{$Revision: 1.134 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -81,7 +81,7 @@ proc unset-env {var} {
 }
 
 proc execute-modulefile {modfile {help ""}} {
-    global env g_stateEnvVars g_debug
+    global g_debug
     global ModulesCurrentModulefile
     set ModulesCurrentModulefile $modfile
 
@@ -162,7 +162,7 @@ proc execute-modulefile {modfile {help ""}} {
 # Smaller subset than main module load... This function runs modulerc and\
   .version files
 proc execute-modulerc {modfile} {
-    global env g_stateEnvVars g_rcfilesSourced
+    global g_rcfilesSourced
     global g_debug g_moduleDefault
     global ModulesCurrentModulefile
 
@@ -697,7 +697,7 @@ proc unload-path {var path separator} {
     array set countarr [getReferenceCountArray $var $separator]
 
     if {$g_debug} {
-	report "DEBUG unload-path: ($var,$path, $separator)"
+	report "DEBUG unload-path: ($var, $path, $separator)"
     }
 
     # Don't worry about dealing with this variable if it is already scheduled\
@@ -754,7 +754,7 @@ proc add-path {var path pos separator} {
     global env g_stateEnvVars g_def_separator g_debug
 
     if {$g_debug} {
-	report "DEBUG add-path: ($var,$path, $separator)"
+	report "DEBUG add-path: ($var, $path, $separator)"
     }
 
     set sharevar "${var}_modshare"
@@ -784,6 +784,9 @@ proc add-path {var path pos separator} {
 	    }
 	    set countarr($dir) 1
 	}
+        if {$g_debug} {
+    	   report "DEBUG add-path: env($var) = $env($var)"
+        }
     }
 
 
@@ -799,7 +802,7 @@ proc prepend-path {var path args} {
     set mode [currentMode]
 
     if {$g_debug} {
-	report "DEBUG prepend-path: ($var,$path, $args) mode=$mode"
+	report "DEBUG prepend-path: ($var, $path, $args) mode=$mode"
     }
 
     if {[string match $var "-delim"]} {
@@ -829,7 +832,7 @@ proc append-path {var path args} {
     set mode [currentMode]
 
     if {$g_debug} {
-	report "DEBUG append-path: ($var,$path, $args) mode=$mode"
+	report "DEBUG append-path: ($var, $path, $args) mode=$mode"
     }
 
     if {[string match $var "-delim"]} {
@@ -858,7 +861,7 @@ proc remove-path {var path args} {
     set mode [currentMode]
 
     if {$g_debug} {
-	report "DEBUG remove-path: ($var,$path, $args) mode=$mode"
+	report "DEBUG remove-path: ($var, $path, $args) mode=$mode"
     }
 
     if {[string match $var "-delim"]} {
@@ -1023,7 +1026,7 @@ proc uname {what} {
     set result {}
 
     if {$g_debug} {
-       report "DEBUG uname: called."
+       report "DEBUG uname: called: $what"
     }
 
     if {! [info exists unameCache($what)]} {
@@ -1039,7 +1042,15 @@ proc uname {what} {
 	        set result [info hostname]
 	    }
 	    release {
-		set result $tcl_platform(osVersion)
+		# on ubuntu get the CODENAME of the Distribution
+		if { [file isfile /etc/lsb-release]} {
+                        set fd [open "/etc/lsb-release" "r"]
+                        set a [read $fd]
+                        regexp -nocase {DISTRIB_CODENAME=(\S+)(.*)} $a matched res end
+                        set result $res
+                } else {
+			set result $tcl_platform(osVersion)
+		}
 	    }
 	    domain {
 		set result [exec /bin/domainname]
@@ -1132,12 +1143,12 @@ proc getPathToModule {mod {separator {}}} {
     }
 
     # Check for aliases
-
-    set newmod [resolveModuleVersionOrAlias $mod]
-    if {$newmod != $mod} {
-	# Alias before ModulesVersion
-	return [getPathToModule $newmod]
-    }
+# This is already done at the root level so why do it again?
+#    set newmod [resolveModuleVersionOrAlias $mod]
+#    if {$newmod != $mod} {
+#	# Alias before ModulesVersion
+#	return [getPathToModule $newmod]
+#    }
 
     # Check for $mod specified as a full pathname
     if {[string match {/*} $mod]} {
@@ -1757,7 +1768,7 @@ proc cacheCurrentModules {{separator {}}} {
 
 
     if {$g_debug} {
-	report "DEBUG resolveModuleVersionOrAlias: ($separator)"
+	report "DEBUG cacheCurrentModules: ($separator)"
     }
 
     if {$separator == "" } {
@@ -2340,7 +2351,7 @@ proc cmdModuleSource {args} {
 }
 
 proc cmdModuleLoad {args} {
-    global env tcl_version g_loadedModules g_loadedModulesGeneric g_force
+    global env g_loadedModules g_loadedModulesGeneric g_force
     global ModulesCurrentModulefile
     global g_debug
 
@@ -2383,7 +2394,7 @@ proc cmdModuleLoad {args} {
 }
 
 proc cmdModuleUnload {args} {
-    global env tcl_version g_loadedModules g_loadedModulesGeneric
+    global tcl_version g_loadedModules g_loadedModulesGeneric
     global ModulesCurrentModulefile g_debug g_def_separator
 
     if {$g_debug} {
@@ -2574,7 +2585,7 @@ proc cmdModuleAvail {{mod {*}}} {
 
 
 proc cmdModuleUse {args} {
-	global g_debug g_def_separator g_debug
+	global env g_debug g_def_separator g_debug
 
     if {$g_debug} {
 	report "DEBUG cmdModuleUse: $args"
@@ -2598,7 +2609,8 @@ proc cmdModuleUse {args} {
 	    }\
 	    elseif {[file isdirectory $path]} {
 		if {$g_debug} {
-			report "calling add-path MODULEPATH $path $stuff_path $g_def_separator"
+			report "DEBUG cmdModuleUse: calling add-path \
+				MODULEPATH $path $stuff_path $g_def_separator"
 		}
 
 		pushMode "load"
@@ -2652,7 +2664,11 @@ proc cmdModuleUnuse {args} {
 
 
 proc cmdModuleDebug {{separator {}}} {
-    global env g_def_separator
+    global env g_def_separator g_debug
+
+    if {$g_debug} {
+	report "DEBUG cmdModuleDebug: $separator"
+    }
 
     if {$separator == "" } {
         set separator $g_def_separator
@@ -2905,10 +2921,19 @@ proc cmdModuleHelp {args} {
 # supposed to be the default behavior
 fconfigure stderr -translation auto
 
+if {$g_debug} {
+	report "CALLING $argv0 $argv"
+}
+
 # Parse options
 set opt [lindex $argv 1]
 switch -regexp -- $opt {
-    {^-deb} {
+    {^(-deb|--deb)} {
+
+        if {!$g_debug} {
+		report "CALLING $argv0 $argv"
+	}
+
 	set g_debug 1
 	report "DEBUG debug enabled"
 
