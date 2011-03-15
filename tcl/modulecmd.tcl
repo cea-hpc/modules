@@ -1,3 +1,15 @@
+#!/bin/sh
+# \
+type tclsh 1>/dev/null 2>&1 && exec tclsh "$0" "$@"
+# \
+[ -x /usr/local/bin/tclsh ] && exec /usr/local/bin/tclsh "$0" "$@"
+# \
+[ -x /usr/bin/tclsh ] && exec /usr/bin/tclsh "$0" "$@"
+# \
+[ -x /bin/tclsh ] && exec /bin/tclsh "$0" "$@"
+# \
+echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" >&2; exit 1
+	
 ########################################################################
 # This is a pure TCL implementation of the module command
 # to initialize the module environment, either
@@ -9,7 +21,7 @@
 # Some Global Variables.....
 #
 set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.134 $} {\1}]
+					{$Revision: 1.135 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1336,46 +1348,15 @@ proc renderSettings {} {
     }
 
     set iattempt 0
-    set f ""
-    set tmpfile ""
-    while {$iattempt < 100 && $f == ""} {
-	set tmpfile [format "/tmp/modulescript_%d_%d" [pid] $iattempt]
-	catch {set f [open $tmpfile "w" 0600]}
-	incr iattempt
-    }
 
-    if {$f == ""} {
-	error "Could not open a temporary file in $tmpfile !"
-    } else {
-
-	# required to work on cygwin, shouldn't hurt real linux
-	fconfigure $f -translation lf
+    # required to work on cygwin, shouldn't hurt real linux
+    fconfigure stdout -translation lf
 
 	# preliminaries
 
-	# Do this first so if there is a problem while running the script
-	# we won't leave a "turd".
-	switch -- $g_shellType {
-	csh {
-		puts $f "/bin/rm -f $tmpfile"
-	    }
-	sh {
-		puts $f "/bin/rm -f $tmpfile"
-	    }
-	perl {
-		puts $f "unlink(\"$tmpfile\");"
-	    }
-	python {
-		puts $f "os.unlink('$tmpfile')"
-	    }
-	lisp {
-		puts $f "(delete-file \"$tmpfile\")"
-	    }
-	}
-
 	switch -- $g_shellType {
 	python {
-		puts $f "import os"
+		puts stdout "import os"
 
 	    }
 	}
@@ -1402,46 +1383,46 @@ proc renderSettings {} {
 
 	    switch -- $g_shellType {
 	    csh {
-		    puts $f "if ( \$?histchars ) then"
-		    puts $f "  set _histchars = \$histchars"
-		    puts $f "  if (\$?prompt) then"
-		    puts $f "  alias module 'unset histchars;set\
+		    puts stdout "if ( \$?histchars ) then"
+		    puts stdout "  set _histchars = \$histchars"
+		    puts stdout "  if (\$?prompt) then"
+		    puts stdout "  alias module 'unset histchars;set\
 		      _prompt=\"\$prompt\";eval `'$tclshbin' '$argv0' '$g_shell' \\!*`;set\
 		      histchars = \$_histchars; set prompt=\"\$_prompt\";unset\
 		      _prompt'"
-		    puts $f "  else"
-		    puts $f "    alias module 'unset histchars;eval `'$tclshbin' '$argv0'\
+		    puts stdout "  else"
+		    puts stdout "    alias module 'unset histchars;eval `'$tclshbin' '$argv0'\
 		      '$g_shell' \\!*`;set histchars = \$_histchars'"
-		    puts $f "  endif"
-		    puts $f "else"
-		    puts $f "  if (\$?prompt) then"
-		    puts $f "    alias module 'set _prompt=\"\$prompt\";set\
+		    puts stdout "  endif"
+		    puts stdout "else"
+		    puts stdout "  if (\$?prompt) then"
+		    puts stdout "    alias module 'set _prompt=\"\$prompt\";set\
 		      prompt=\"\";eval `'$tclshbin' '$argv0' '$g_shell' \\!*`;set\
 		      prompt=\"\$_prompt\";unset _prompt'"
-		    puts $f "  else"
-		    puts $f "    alias module 'eval `'$tclshbin' '$argv0' '$g_shell' \\!*`'"
-		    puts $f "  endif"
-		    puts $f "endif"
+		    puts stdout "  else"
+		    puts stdout "    alias module 'eval `'$tclshbin' '$argv0' '$g_shell' \\!*`'"
+		    puts stdout "  endif"
+		    puts stdout "endif"
 
 		}
 	    sh {
-		    puts $f "module () { eval `'$tclshbin' '$argv0' '$g_shell' \$*`; }"
+		    puts stdout "module () { eval `'$tclshbin' '$argv0' '$g_shell' \$*`; }"
 		}
 	    perl {
-		    puts $f "sub module {"
-		    puts $f "  eval `$tclshbin \$ENV{MODULESHOME}/modulecmd.tcl perl @_`;"
-		    puts $f "  if(\$@) {"
-		    puts $f "    use Carp;"
-		    puts $f "    confess \"module-error: \$@\n\";"
-		    puts $f "  }"
-		    puts $f "  return 1;"
-		    puts $f "}"
+		    puts stdout "sub module {"
+		    puts stdout "  eval `$tclshbin \$ENV{\'MODULESHOME\'}/modulecmd.tcl perl @_`;"
+		    puts stdout "  if(\$@) {"
+		    puts stdout "    use Carp;"
+		    puts stdout "    confess \"module-error: \$@\n\";"
+		    puts stdout "  }"
+		    puts stdout "  return 1;"
+		    puts stdout "}"
 		}
 	    python {
-		    puts $f "def module(command, *arguments):"
-		    puts $f "        commands = os.popen('$tclshbin' '$argv0 python %s %s'\
+		    puts stdout "def module(command, *arguments):"
+		    puts stdout "        commands = os.popen('$tclshbin' '$argv0 python %s %s'\
 		      % (command, string.join(arguments))).read()"
-		    puts $f "        exec commands"
+		    puts stdout "        exec commands"
 		}
 	    lisp {
 		    error "ERROR: XXX lisp mode autoinit not yet implemented"
@@ -1479,23 +1460,23 @@ proc renderSettings {} {
 				  - 1}]]
 			    }
 			}
-			puts $f "setenv $var $val"
+			puts stdout "setenv $var $val;"
 		    }
 		sh {
-			puts $f "$var=[multiEscaped $env($var)]; export $var"
+			puts stdout "$var=[multiEscaped $env($var)]; export $var;"
 		    }
 		perl {
 			set val [doubleQuoteEscaped $env($var)]
 			set val [atSymbolEscaped $env($var)]
-			puts $f "\$ENV{$var}=\"$val\";"
+			puts stdout "\$ENV{\'$var\'} = \'$val\';"
 		    }
 		python {
 			set val [singleQuoteEscaped $env($var)]
-			puts $f "os.environ\['$var'\] = '$val'"
+			puts stdout "os.environ\['$var'\] = '$val'"
 		    }
 		lisp {
 			set val [doubleQuoteEscaped $env($var)]
-			puts $f "(setenv \"$var\" \"$val\")"
+			puts stdout "(setenv \"$var\" \"$val\")"
 		    }
 		}
 
@@ -1514,11 +1495,11 @@ proc renderSettings {} {
 			    regsub -all {\$([0-9]+)} $val {\\!\\!:\1} val
 			    # Convert $* -> \!*
 			    regsub -all {\$\*} $val {\\!*} val
-			    puts $f "alias $var '$val'"
+			    puts stdout "alias $var '$val';"
 			}
 		    sh {
 			    set val $g_Aliases($var)
-			    puts $f "alias $var=\'$val\'"
+			    puts stdout "alias $var=\'$val\';"
 			}
 		    }
 		}
@@ -1530,20 +1511,20 @@ proc renderSettings {} {
 	    if {$g_stateEnvVars($var) == "del"} {
 		switch -- $g_shellType {
 		csh {
-			puts $f "unsetenv $var"
+			puts stdout "unsetenv $var;"
 		    }
 		sh {
-			puts $f "unset $var"
+			puts stdout "unset $var;"
 		    }
 		perl {
-			puts $f "delete \$ENV{$var};"
+			puts stdout "delete \$ENV{\'$var\'};"
 		    }
 		python {
-			puts $f "os.environ\['$var'\] = ''"
-			puts $f "del os.environ\['$var'\]"
+			puts stdout "os.environ\['$var'\] = ''"
+			puts stdout "del os.environ\['$var'\]"
 		    }
 		lisp {
-			puts $f "(setenv \"$var\" nil)"
+			puts stdout "(setenv \"$var\" nil)"
 		    }
 		}
 	    }
@@ -1555,10 +1536,10 @@ proc renderSettings {} {
 		if {$g_stateAliases($var) == "del"} {
 		    switch -- $g_shellType {
 		    csh {
-			    puts $f "unalias $var"
+			    puts stdout "unalias $var;"
 			}
 		    sh {
-			    puts $f "unset -f $var"
+			    puts stdout "unset -f $var;"
 			}
 		    }
 		}
@@ -1574,37 +1555,37 @@ proc renderSettings {} {
 		    switch -regexp -- $g_shellType {
 		    {^(csh|sh)$} {
 			    if {[file exists $var]} {
-				puts $f "$xrdb -merge $var"
+				puts stdout "$xrdb -merge $var;"
 			    } else {
-				puts $f "$xrdb -merge <<EOF"
-				puts $f "$var"
-				puts $f "EOF"
+				puts stdout "$xrdb -merge <<EOF"
+				puts stdout "$var"
+				puts stdout "EOF;"
 			    }
 			}
 		    perl {
 			    if {[file isfile $var]} {
-				puts $f "system(\"$xrdb -merge $var\");"
+				puts stdout "system(\"$xrdb -merge $var\");"
 			    } else {
-				puts $f "open(XRDB,\"|$xrdb -merge\");"
+				puts stdout "open(XRDB,\"|$xrdb -merge\");"
 				set var [doubleQuoteEscaped $var]
-				puts $f "print XRDB \"$var\\n\";"
-				puts $f "close XRDB;"
+				puts stdout "print XRDB \"$var\\n\";"
+				puts stdout "close XRDB;"
 			    }
 			}
 		    python {
 			    if {[file isfile $var]} {
-				puts $f "os.popen('$xrdb -merge $var');"
+				puts stdout "os.popen('$xrdb -merge $var');"
 			    } else {
 				set var [singleQuoteEscaped $var]
-				puts $f "os.popen('$xrdb -merge').write('$var')"
+				puts stdout "os.popen('$xrdb -merge').write('$var')"
 			    }
 			}
 		    lisp {
 			    if {[file exists $var]} {
-				puts $f "(shell-command-to-string \"$xrdb\
+				puts stdout "(shell-command-to-string \"$xrdb\
 				  -merge $var\")"
 			    } else {
-				puts $f "(shell-command-to-string \"echo $var\
+				puts stdout "(shell-command-to-string \"echo $var\
 				  | $xrdb -merge\")"
 			    }
 			}
@@ -1612,25 +1593,25 @@ proc renderSettings {} {
 		} else {
 		    switch -regexp -- $g_shellType {
 		    {^(csh|sh)$} {
-			    puts $f "$xrdb -merge <<EOF"
-			    puts $f "$var: $val"
-			    puts $f "EOF"
+			    puts stdout "$xrdb -merge <<EOF"
+			    puts stdout "$var: $val"
+			    puts stdout "EOF;"
 			}
 		    perl {
-			    puts $f "open(XRDB,\"|$xrdb -merge\");"
+			    puts stdout "open(XRDB,\"|$xrdb -merge\");"
 			    set var [doubleQuoteEscaped $var]
 			    set val [doubleQuoteEscaped $val]
-			    puts $f "print XRDB \"$var: $val\\n\";"
-			    puts $f "close XRDB;"
+			    puts stdout "print XRDB \"$var: $val\\n\";"
+			    puts stdout "close XRDB;"
 			}
 		    python {
 			    set var [singleQuoteEscaped $var]
 			    set val [singleQuoteEscaped $val]
-			    puts $f "os.popen('$xrdb\
+			    puts stdout "os.popen('$xrdb\
 			      -merge').write('$var: $val')"
 			}
 		    lisp {
-			    puts $f "(shell-command-to-string \"echo $var:\
+			    puts stdout "(shell-command-to-string \"echo $var:\
 			      $val | $xrdb -merge\")"
 			}
 		    }
@@ -1644,16 +1625,16 @@ proc renderSettings {} {
 		if {$val == ""} {
 		    # do nothing
 		} else {
-		    puts $f "xrdb -remove <<EOF"
-		    puts $f "$var:"
-		    puts $f "EOF"
+		    puts stdout "xrdb -remove <<EOF"
+		    puts stdout "$var:"
+		    puts stdout "EOF;"
 		}
 	    }
 	}
 
 	if {[info exists g_systemList]} {
 	    foreach var $g_systemList {
-		puts $f "$var"
+		puts stdout "$var;"
 	    }
 	}
 
@@ -1662,26 +1643,26 @@ proc renderSettings {} {
 	    foreach var $g_pathList {
 		switch -- $g_shellType {
 		csh {
-			puts $f "echo '$var'"
+			puts stdout "echo '$var';"
 		    }
 		sh {
-			puts $f "echo '$var'"
+			puts stdout "echo '$var';"
 		    }
 		perl {
-			puts $f "print '$var'.\"\\n\";"
+			puts stdout "print '$var'.\"\\n\";"
 		    }
 		python {
 			# I'm not a python programmer
 		    }
 		lisp {
-			puts $f "(message \"$var\")"
+			puts stdout "(message \"$var\")"
 		    }
 		}
 	    }
 	}
 
 	set nop 0
-	if {$error_count == 0 && ! [tell $f]} {
+	if {$error_count == 0 && ! [tell stdout]} {
 	    set nop 1
 	}
 
@@ -1689,20 +1670,20 @@ proc renderSettings {} {
 	    reportWarning "ERROR: $error_count error(s) detected."
 	    switch -- $g_shellType {
 	    csh {
-		    puts $f "/bin/false"
+		    puts stdout "/bin/false;"
 		}
 	    sh {
-		    puts $f "/bin/false"
+		    puts stdout "/bin/false;"
 		}
 	    perl {
-		    puts $f "die \"modulefile.tcl: $error_count error(s)\
+		    puts stdout "die \"modulefile.tcl: $error_count error(s)\
 		      detected!\\n\""
 		}
 	    python {
 		    # I am not a python programmer...
 		}
 	    lisp {
-		    puts $f "(error \"modulefile.tcl: $error_count error(s)\
+		    puts stdout "(error \"modulefile.tcl: $error_count error(s)\
 		      detected!\")"
 		}
 	    }
@@ -1710,23 +1691,20 @@ proc renderSettings {} {
 	} else {
 	    switch -- $g_shellType {
 	    perl {
-		    puts $f "1;"
+		    puts stdout "1;"
 		}
 	    }
 	}
-	close $f
 
-	fconfigure stdout -translation lf
 
 	if {$nop} {
 	    #	    nothing written!
-	    file delete $tmpfile
 	    switch -- $g_shellType {
 	    csh {
-		    puts "/bin/true"
+		    puts "/bin/true;"
 		}
 	    sh {
-		    puts "/bin/true"
+		    puts "/bin/true;"
 		}
 	    perl {
 		    puts "1;"
@@ -1740,27 +1718,7 @@ proc renderSettings {} {
 		}
 	    }
 	} else {
-	    switch -- $g_shellType {
-	    csh {
-		    puts "source $tmpfile"
-		}
-	    sh {
-		    puts ". $tmpfile"
-		}
-	    perl {
-		    puts "require \"$tmpfile\";"
-		}
-	    python {
-		    # this is not correct
-		    puts "exec '$tmpfile'"
-		}
-	    lisp {
-		    # the module defun() expects just a pathname here
-		    puts "$tmpfile"
-		}
-	    }
 	}
-    }
 }
 
 proc cacheCurrentModules {{separator {}}} {
@@ -2515,7 +2473,7 @@ proc cmdModuleAvail {{mod {*}}} {
     global show_oneperline show_modtimes g_def_separator
 
     if {$show_modtimes} {
-	report "- Package -----------------------------+- Versions -+- Last\
+	report "- Package -----------------------------.- Versions -.- Last\
 	  mod. ------"
     }
 
