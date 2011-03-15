@@ -1,0 +1,183 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		config/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite initialization
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Initialization of the testsuite. Definition of
+#			globally used start procedures for the test
+#			target.
+#		}C%
+#
+##############################################################################
+
+#
+# default shell is the bourne shell
+#
+
+proc default_shell {} {
+    global shell
+
+    if ![info exists shell] then {
+	set shell "sh"
+    }
+}
+
+#
+# the default for the modulecmd binary is the one in the upper directory
+# if it doesn't exist, look up the search path in order to locate one.
+#
+
+proc default_modulecmd {} {
+    global MODULECMD
+    global verbose
+
+    if ![info exists MODULECMD] then {
+	if [file exists ../modulecmd] then {
+	    set MODULECMD "../modulecmd"
+	} elseif [file exists ./modulecmd] then {
+	    set MODULECMD "./modulecmd"
+	} else {
+	    set MODULECMD [which modulecmd]
+	    if { $verbose > 1 } {
+		send_user "using 'modulecmd' from search path"
+	    }
+	}
+    }
+
+    if ![file exists $MODULECMD] then {
+	if [file exists "./modulecmd.tcl"] then {
+	  set MODULECMD "./modulecmd.tcl"
+	} elseif [file exists "../tcl/modulecmd.tcl"] then {
+	  set MODULECMD "../tcl/modulecmd.tcl"
+	} else {
+	  fail "No 'modulecmd' found"
+	  exit -1
+	}
+    }
+}
+
+#
+# modulecmd_exit -- cleanup
+#
+
+proc modulecmd_exit {} {
+#not applicable
+}
+
+#
+# modulecmd_start -- start modulecmd running
+# Since modulecmd writes to both streams, stdout and stderr, a catcher
+# has to be installed in order to scan both 
+#
+
+proc modulecmd_xxx_ {command} {
+	global MODULECMD
+	global verbose
+	global shell
+	global comp_output
+	global comp_error
+	global comp_exit
+	global errorCode
+	global no_verbose
+
+	if ![info exists command] then {
+	  unresolved "internal testsuite error: no module command specified"
+	}
+
+	default_shell 
+	default_modulecmd
+
+	if { ! $no_verbose && $verbose > 1 } {
+		send_user "starting $MODULECMD $shell $command\n"
+	}
+
+# this is why I hate Tcl ... you can never count on anything to act
+# in a consistent fashion from one version to the next.
+# This used to work until 8.4
+#   catch {set comp_output [eval exec $MODULECMD $shell [split $command { }]]
+#	} comp_error
+#
+# now need to capture the exit return code.
+	if [catch {
+		set comp_output [eval exec $MODULECMD $shell [split $command { }] 2> test321.err > test321.out ]
+	} ] {
+		set comp_exit [lindex $errorCode 2]
+	} else {
+		set comp_exit 0
+	}
+                                                                                
+	catch {
+		set errfile [ open test321.err ]
+		read -nonewline $errfile
+	} comp_error
+	catch { close $errfile }
+	catch { file delete test321.err }
+
+	catch {
+		set outfile [ open test321.out ]
+		read -nonewline $outfile
+	} comp_output
+	catch { close $outfile }
+	catch { file delete test321.out }
+}
+
+proc modulecmd_start {command} {
+	global no_verbose
+
+	set no_verbose 0
+	modulecmd_xxx_ "$command"
+	unset no_verbose
+}
+
+#
+# modulecmd__ -- start modulecmd running
+#   (same as above but no verbose output)
+
+proc modulecmd__ {command} {
+	global shell
+	global no_verbose
+
+	set shell "sh"
+	set no_verbose 1
+	modulecmd_xxx_ "$command"
+	unset no_verbose
+}
+
+#
+# modulecmd_version -- extract and print the version number of modulecmd
+#
+
+proc modulecmd_version {} {
+    global MODULECMD
+    global shell
+    global comp_output
+    global comp_error
+
+    set shell "sh"
+    default_modulecmd
+
+    modulecmd_start help
+    regexp {Modules Release (Tcl [0-9a-zA-Z\.]+)(.*)} \
+	$comp_error version rest
+
+    set comp_output "$version"
+}
+
+#
+# modulecmd_load -- loads the program
+#
+
+proc modulecmd_load { arg } {
+#   not applicable
+}

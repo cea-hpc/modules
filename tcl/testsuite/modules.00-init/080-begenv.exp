@@ -1,0 +1,95 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Checks the uninitialized modulecmd. This should
+#			result in the setup of the starting-environment
+#			$env(HOME)/.modulesbeginenv
+#		}C%
+#
+##############################################################################
+
+#
+# The following answers are to be expected in this testcase ...
+#
+
+set not_load "No Modulefiles Currently Loaded."
+set beg_env "$env(TESTSUITEDIR)/.modulesbeginenv"
+set beg_envx "$env(TESTSUITEDIR)/.modulesbeginenv.xxx"
+set env(HOME) $env(TESTSUITEDIR)
+
+#
+# The tests ...
+#
+
+if { [ version_test "BEGINENV=1" ] } {
+
+testouterr_cmd "sh" "--long list" \
+		"_MODULESBEGINENV_=$beg_env ;export _MODULESBEGINENV_;" "$not_load"
+testouterr_cmd "ksh" "--long list" \
+		"_MODULESBEGINENV_=$beg_env ;export _MODULESBEGINENV_;" "$not_load"
+testouterr_cmd "zsh" "--long list" \
+		"_MODULESBEGINENV_=$beg_env ;export _MODULESBEGINENV_;" "$not_load"
+testouterr_cmd "csh" "--long list" \
+    "setenv _MODULESBEGINENV_ $beg_env ;" "$not_load"
+testouterr_cmd "tcsh" "--long list" \
+    "setenv _MODULESBEGINENV_ $beg_env ;" "$not_load"
+testouterr_cmd "perl" "--long list" \
+		"\$ENV{'_MODULESBEGINENV_'} = '$beg_env';" "$not_load"
+testouterr_cmd "cmake" "--long list" \
+		"set(ENV{_MODULESBEGINENV_} \"$beg_env\")\n" "$not_load"
+} elseif { [ version_test "BEGINENV=99" ] } {
+testerr_cmd_re "sh" "update" \
+		".*Invalid update subcommand - No MODULESBEGINENV.*"
+
+# set this here
+	set env(MODULESBEGINENV) $beg_envx
+
+testouterr_cmd "sh" "--long list" \
+		"_MODULESBEGINENV_=$beg_envx ;export _MODULESBEGINENV_;" "$not_load"
+testouterr_cmd "ksh" "--long list" \
+		"_MODULESBEGINENV_=$beg_envx ;export _MODULESBEGINENV_;" "$not_load"
+testouterr_cmd "zsh" "--long list" \
+		"_MODULESBEGINENV_=$beg_envx ;export _MODULESBEGINENV_;" "$not_load"
+testouterr_cmd "csh" "--long list" \
+    "setenv _MODULESBEGINENV_ $beg_envx ;" "$not_load"
+testouterr_cmd "tcsh" "--long list" \
+    "setenv _MODULESBEGINENV_ $beg_envx ;" "$not_load"
+testouterr_cmd "perl" "--long list" \
+		"\$ENV{'_MODULESBEGINENV_'} = '$beg_envx';" "$not_load"
+testouterr_cmd "cmake" "--long list" \
+		"set(ENV{_MODULESBEGINENV_} \"$beg_envx\")" "$not_load"
+} else {
+	send_user "skipping .modulesbeginenv tests\n"
+}
+
+#
+# Finally set up the _MODULESBEGINENV_ environment variable for all
+# further tests
+#
+
+if { [ version_test "BEGINENV=99" ] } {
+	set env(_MODULESBEGINENV_) $beg_envx
+} elseif { [ version_test "BEGINENV=1" ] } {
+	set env(_MODULESBEGINENV_) $beg_env
+}
+
+#
+# Cleanup
+#
+
+unset not_load
+unset beg_env
+unset beg_envx

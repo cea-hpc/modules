@@ -1,0 +1,105 @@
+#%Module1.0
+
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		info/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite modulefile
+#   Command:
+#   Sub-Command:	module-info mode
+#
+#   Invocation:		load @M@/@V@, unload @M@/@V@, display @M@/@V@
+#   Invocation:		switch @M@/mode3 @M@/mode4, help @M@/@V@
+#   Result:	%R(load){
+#			load
+#			setenv	_LMFILES_ 	${_LMFILES_}:@M@/@V@
+#			setenv	LOADEDMODULES	${LOADEDMODULES}:@P@/@M@/@V@
+#		}R%
+#		%R(unload){
+#			remove
+#			unsetenv _LMFILES_
+#			unsetenv LOADEDMODULES
+#		}R%
+#		%R(display){
+#			-------------------------------------------------------------------
+#			@P@/@M@/@V@:
+#
+#			display
+#			-------------------------------------------------------------------
+#		}R%
+#		%R(switch){
+#			remove
+#			switch1
+#			switch
+#			switch2
+#			switch
+#			remove
+#			switch3
+#			switch
+#			setenv	_LMFILES_ 	${_LMFILES_}:@M@/mode2
+#			setenv	LOADEDMODULES	${LOADEDMODULES}:@P@/@M@/mode2
+#		}R%
+#		%R(help){
+#			----------- Module Specific Help for '@M@/@V@' -----------------
+#	
+#			help
+#		}R%
+#   Comment:	%C{
+#			This modulefile checks the probing for the current
+#			modulecmd runmode
+#		}C%
+#			
+##############################################################################
+
+proc ModulesHelp { } {
+    if { [module-info mode help] } {
+	puts stdout "help"
+    } 
+}
+
+if { ![module-info mode whatis] } {
+
+    #
+    #  module-info mode  is called here explicitely in order to check if it works!
+    #
+
+    if { [module-info mode load] } {
+	puts stdout "load"
+    } 
+    if { [module-info mode remove] } {
+	puts stdout "remove"
+    } 
+    if { [module-info mode display] } {
+	puts stdout "display"
+    } 
+    if { [module-info mode help] } {
+	puts stdout "help"
+    } 
+    if { [module-info mode switch1] } {
+	puts stdout "switch1"
+    } 
+    if { [module-info mode switch2] } {
+	puts stdout "switch2"
+    } 
+    if { [module-info mode switch3] } {
+	puts stdout "switch3"
+    } 
+    if { [module-info mode whatis] } {
+	puts stdout "whatis"
+    } 
+
+    #
+    #  module-info mode switch  overlays switch?
+    #
+
+    if { [module-info mode switch] } {
+	puts stdout "switch"
+    }
+}

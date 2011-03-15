@@ -1,0 +1,44 @@
+#%Module1.0
+
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		loc_sym/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite modulefile
+#   Command:
+#   Sub-Command:	module-alias, module-version, setenv, module-info symbols
+#
+#   Invocation:		load @M@/@V@
+#   Result:	%R{
+#			setenv	_LMFILES_ 	${_LMFILES_}:@M@/@V@
+#			setenv	LOADEDMODULES	${LOADEDMODULES}:@P@/@M@/@V@
+#			setenv	testsuite	2.0:default:cur:best:abc:xyz:blah:bar:foo
+#		}R%
+#   Comment:	%C{
+#			Looks up symbolic version names for a given module
+#			file. In this case the real version name is specified
+#			on lookup invocation.
+#			The symbolic versions are defined using combinations
+#			module-versions and module-aliases.
+#		}C%
+#			
+##############################################################################
+
+# This should result in 
+#     'setenv testuite 2.0:default:cur:best:abc:xyz:blah:bar:foo'
+
+module-alias	myone		loc_sym
+module-version	loc_sym/1.0	foo bar blah
+module-version	loc_sym/2.0	xyz abc best
+module-version	myone 		cur
+module-version	/1.0		2.0
+module-version	/2.0		default
+
+setenv testsuite	[module-info symbols loc_sym/1.0]
