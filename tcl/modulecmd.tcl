@@ -21,7 +21,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 # Some Global Variables.....
 #
 set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.135 $} {\1}]
+					{$Revision: 1.136 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1357,7 +1357,6 @@ proc renderSettings {} {
 	switch -- $g_shellType {
 	python {
 		puts stdout "import os"
-
 	    }
 	}
 
@@ -1419,10 +1418,10 @@ proc renderSettings {} {
 		    puts stdout "}"
 		}
 	    python {
+		    puts stdout "import subprocess"
 		    puts stdout "def module(command, *arguments):"
-		    puts stdout "        commands = os.popen('$tclshbin' '$argv0 python %s %s'\
-		      % (command, string.join(arguments))).read()"
-		    puts stdout "        exec commands"
+		    puts stdout "        exec subprocess.Popen(\['$tclshbin', '$argv0', 'python', command\] " \
+                       list(arguments), stdout=subprcess.PIPE).communicate()\[0\]"
 		}
 	    lisp {
 		    error "ERROR: XXX lisp mode autoinit not yet implemented"
@@ -1652,7 +1651,7 @@ proc renderSettings {} {
 			puts stdout "print '$var'.\"\\n\";"
 		    }
 		python {
-			# I'm not a python programmer
+			puts stdout "print '$var'"
 		    }
 		lisp {
 			puts stdout "(message \"$var\")"
@@ -1680,7 +1679,7 @@ proc renderSettings {} {
 		      detected!\\n\""
 		}
 	    python {
-		    # I am not a python programmer...
+		    puts stdout "raise RuntimeError, 'modulefile.tcl: $error_count error(s) detected!'"
 		}
 	    lisp {
 		    puts stdout "(error \"modulefile.tcl: $error_count error(s)\
