@@ -21,7 +21,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 # Some Global Variables.....
 #
 set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.136 $} {\1}]
+					{$Revision: 1.137 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -29,7 +29,26 @@ set g_force 1 ;# Path element reference counting if == 0
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 set flag_default_dir 1 ;# Report default directories
 set flag_default_mf 1 ;# Report default modulefiles and version alias
-set g_def_separator ":" ;# Default path separator
+
+# Used to tell if a machine is running Windows or not
+proc isWin {} {
+    global tcl_platform
+
+    if { $tcl_platform(platform) == "windows" } {
+        return 1
+    } else {
+        return 0
+    }
+}
+
+#
+# Set Default Path separator
+#
+if { [isWin] } {
+	set g_def_separator "\;"
+} else {
+	set g_def_separator ":"
+}
 
 # Dynamic columns
 set DEF_COLUMNS 80 ;# Default size of columns for formatting
@@ -124,6 +143,7 @@ proc execute-modulefile {modfile {help ""}} {
 	interp alias $slave reportInternalBug {} reportInternalBug
 	interp alias $slave reportWarning {} reportWarning
 	interp alias $slave report {} report
+	interp alias $slave isWin {} isWin
 
 	interp eval $slave {global ModulesCurrentModulefile g_debug}
 	interp eval $slave [list "set" "ModulesCurrentModulefile" $modfile]
@@ -1368,12 +1388,7 @@ proc renderSettings {} {
 
 	    # add cwd if not absolute script path
 	    if {! [regexp {^/} $argv0]} {
-		global tcl_platform
-		if {$tcl_platform(platform) == "windows"} {
-		    set pwd [exec pwd]
-		} else {
-		    set pwd [pwd]
-		}
+		set pwd [exec pwd]
 		set argv0 "$pwd/$argv0"
 	    }
 
@@ -1407,6 +1422,9 @@ proc renderSettings {} {
 	    sh {
 		    puts stdout "module () { eval `'$tclshbin' '$argv0' '$g_shell' \$*`; }"
 		}
+	    cmd {
+	            puts stdout "start /b \%MODULESHOME\%/init/module.cmd %*"
+	        }
 	    perl {
 		    puts stdout "sub module {"
 		    puts stdout "  eval `$tclshbin \$ENV{\'MODULESHOME\'}/modulecmd.tcl perl @_`;"
@@ -1477,8 +1495,11 @@ proc renderSettings {} {
 			set val [doubleQuoteEscaped $env($var)]
 			puts stdout "(setenv \"$var\" \"$val\")"
 		    }
+	        cmd {
+	                set val $env($var)
+	                puts stdout "set $var=$val"
+	            }
 		}
-
 	    }
 	}
 
@@ -1515,6 +1536,9 @@ proc renderSettings {} {
 		sh {
 			puts stdout "unset $var;"
 		    }
+	        cmd {
+	                puts stdout "set $var="
+	             }
 		perl {
 			puts stdout "delete \$ENV{\'$var\'};"
 		    }
@@ -1647,6 +1671,9 @@ proc renderSettings {} {
 		sh {
 			puts stdout "echo '$var';"
 		    }
+        cmd {
+            puts stdout "echo '$var'"
+            }
 		perl {
 			puts stdout "print '$var'.\"\\n\";"
 		    }
@@ -1674,6 +1701,9 @@ proc renderSettings {} {
 	    sh {
 		    puts stdout "/bin/false;"
 		}
+	    cmd {
+	            # nothing needed, reserve for future cygwin, MKS, etc
+	        }
 	    perl {
 		    puts stdout "die \"modulefile.tcl: $error_count error(s)\
 		      detected!\\n\""
@@ -1705,6 +1735,9 @@ proc renderSettings {} {
 	    sh {
 		    puts "/bin/true;"
 		}
+	    cmd {
+	            # nothing needed, reserve for future cygwin, MKS, etc
+	        }
 	    perl {
 		    puts "1;"
 		}
@@ -1929,7 +1962,7 @@ proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
 	# Cygwin TCL likes to append ".lnk" to the end of symbolic links.
 	# This is not necessary and pollutes the module names, so let's
 	# trim it off.
-	if {$tcl_platform(platform) == "windows"} {
+	if { [isWin] } {
 	    regsub {\.lnk$} $element {} element
 	}
 
@@ -2917,6 +2950,9 @@ set argv [lreplace $argv 0 1]
 switch -regexp -- $g_shell {
     ^(sh|bash|ksh|zsh)$ {
 	set g_shellType sh
+    }
+    ^(cmd)$ {
+        set g_shellType cmd
     }
     ^(csh|tcsh)$ {
 	set g_shellType csh
