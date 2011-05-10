@@ -21,7 +21,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 # Some Global Variables.....
 #
 set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.137 $} {\1}]
+					{$Revision: 1.138 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1438,7 +1438,7 @@ proc renderSettings {} {
 	    python {
 		    puts stdout "import subprocess"
 		    puts stdout "def module(command, *arguments):"
-		    puts stdout "        exec subprocess.Popen(\['$tclshbin', '$argv0', 'python', command\] " \
+		    puts stdout "        exec subprocess.Popen(\['$tclshbin', '$argv0', 'python', command\] \
                        list(arguments), stdout=subprcess.PIPE).communicate()\[0\]"
 		}
 	    lisp {
@@ -1500,35 +1500,7 @@ proc renderSettings {} {
 	                puts stdout "set $var=$val"
 	            }
 		}
-	    }
-	}
-
-	# new aliases
-	if {$g_shell != "sh"} {
-	    foreach var [array names g_stateAliases] {
-		if {$g_stateAliases($var) == "new"} {
-		    switch -- $g_shellType {
-		    csh {
-			    # set val [multiEscaped $g_Aliases($var)]
-			    set val $g_Aliases($var)
-			    # Convert $n -> \!\!:n
-			    regsub -all {\$([0-9]+)} $val {\\!\\!:\1} val
-			    # Convert $* -> \!*
-			    regsub -all {\$\*} $val {\\!*} val
-			    puts stdout "alias $var '$val';"
-			}
-		    sh {
-			    set val $g_Aliases($var)
-			    puts stdout "alias $var=\'$val\';"
-			}
-		    }
-		}
-	    }
-	}
-
-	# obsolete (deleted) env vars
-	foreach var [array names g_stateEnvVars] {
-	    if {$g_stateEnvVars($var) == "del"} {
+	    } elseif {$g_stateEnvVars($var) == "del"} {
 		switch -- $g_shellType {
 		csh {
 			puts stdout "unsetenv $var;"
@@ -1553,10 +1525,28 @@ proc renderSettings {} {
 	    }
 	}
 
-	# obsolete aliases
-	if {$g_shell != "sh"} {
+	# XXX need to do other shells as well
+	if {$g_shell == "sh" || $g_shell == "csh"} {
 	    foreach var [array names g_stateAliases] {
-		if {$g_stateAliases($var) == "del"} {
+
+		# new aliases
+		if {$g_stateAliases($var) == "new"} {
+		    switch -- $g_shellType {
+		    csh {
+			    # set val [multiEscaped $g_Aliases($var)]
+			    set val $g_Aliases($var)
+			    # Convert $n -> \!\!:n
+			    regsub -all {\$([0-9]+)} $val {\\!\\!:\1} val
+			    # Convert $* -> \!*
+			    regsub -all {\$\*} $val {\\!*} val
+			    puts stdout "alias $var '$val';"
+			}
+		    sh {
+			    set val $g_Aliases($var)
+			    puts stdout "alias $var=\'$val\';"
+			}
+		    }
+	        } elseif {$g_stateAliases($var) == "del"} {
 		    switch -- $g_shellType {
 		    csh {
 			    puts stdout "unalias $var;"
@@ -1566,7 +1556,7 @@ proc renderSettings {} {
 			}
 		    }
 		}
-	    }
+            }
 	}
 
 	# new x resources
