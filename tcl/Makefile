@@ -1,9 +1,11 @@
-all: initdir
+export MODULESHOME = $(shell pwd)
 
-distclean: clean
+all: initdir
 
 initdir:
 	make -C init all
+
+distclean: clean
 
 clean: 
 	rm -f *.log *.sum
