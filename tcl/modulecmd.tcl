@@ -21,7 +21,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 # Some Global Variables.....
 #
 set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.138 $} {\1}]
+					{$Revision: 1.139 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -544,8 +544,13 @@ proc module {command args} {
 		}
 	    } else {
 		cmdModuleAvail
+		# Not sure if this should be a part of cmdModuleAvail or not
+		cmdModuleAliases
 	    }
 	}
+    aliases - al {
+        cmdModuleAliases
+    }
     path {
 	    eval cmdModulePath $args
 	}
@@ -2469,6 +2474,34 @@ proc cmdModuleReload {{separator {}}} {
     }
 }
 
+proc cmdModuleAliases {} {
+
+    global DEF_COLUMNS g_moduleAlias g_moduleVersion g_debug
+
+    set label "aliases -> aliases"
+    set len  [string length $label]
+    set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
+    set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
+
+    report "[string repeat {-} $lrep] $label [string repeat {-} $rrep]"
+
+    foreach name [array names g_moduleAlias] {
+       report "$name -> $g_moduleAlias($name)"
+    }
+
+    set label "aliases -> versions"
+    set len  [string length $label]
+    set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
+    set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
+
+    report "[string repeat {-} $lrep] $label [string repeat {-} $rrep]"
+
+    foreach name [array names g_moduleVersion] {
+        report "$name -> $g_moduleVersion($name)"
+    }
+}
+
+
 proc system {mycmd args} {
     global g_systemList g_debug
 
@@ -2872,6 +2905,7 @@ proc cmdModuleHelp {args} {
 	  [oldmodulefile] newmodulefile}
 	report {	avail                    [switches] [modulefile\
 	  [modulefile ...]]}
+        report {	aliases}
 	report {	whatis                              [modulefile\
 	  [modulefile ...]]}
 	report {	help                                [modulefile\
@@ -2993,8 +3027,12 @@ if {[catch {
 		}
 	    } else {
 		cmdModuleAvail
+		cmdModuleAliases
 	    }
 	}
+    {^al} {
+            cmdModuleAliases
+        }
     {^li} {
 	    cmdModuleList
 	}
