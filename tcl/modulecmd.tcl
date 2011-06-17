@@ -21,7 +21,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 # Some Global Variables.....
 #
 set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.139 $} {\1}]
+					{$Revision: 1.140 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -544,8 +544,8 @@ proc module {command args} {
 		}
 	    } else {
 		cmdModuleAvail
-		# Not sure if this should be a part of cmdModuleAvail or not
-		cmdModuleAliases
+ 	        # Not sure if this should be a part of cmdModuleAvail or not
+	        cmdModuleAliases
 	    }
 	}
     aliases - al {
@@ -2115,11 +2115,20 @@ proc cmdModuleList {{separator {}}} {
         set separator $g_def_separator
     }
 
-    set list {}
-    report "Currently Loaded Modulefiles:"
     if {[info exists env(LOADEDMODULES)]} {
-	set max 0
-	foreach mod [split $env(LOADEDMODULES) $separator] {
+        set loaded $env(LOADEDMODULES)
+    } else {
+        set loaded ""
+    }
+
+    if { [string length $loaded] == 0} { 
+        report "No Modulefiles Currently Loaded."
+    } else {
+        set list {}
+        report "Currently Loaded Modulefiles:"
+        set max 0
+
+        foreach mod [split $loaded $separator] {
             set len [string length $mod]
 
             if {$len > 0} {
@@ -2478,29 +2487,28 @@ proc cmdModuleAliases {} {
 
     global DEF_COLUMNS g_moduleAlias g_moduleVersion g_debug
 
-    set label "aliases -> aliases"
+    set label "Aliases"
     set len  [string length $label]
     set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
     set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
 
     report "[string repeat {-} $lrep] $label [string repeat {-} $rrep]"
 
-    foreach name [array names g_moduleAlias] {
+    foreach name [lsort -dictionary [array names g_moduleAlias]] {
        report "$name -> $g_moduleAlias($name)"
     }
 
-    set label "aliases -> versions"
+    set label "Versions"
     set len  [string length $label]
     set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
     set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
 
     report "[string repeat {-} $lrep] $label [string repeat {-} $rrep]"
 
-    foreach name [array names g_moduleVersion] {
+    foreach name [lsort -dictionary [array names g_moduleVersion]] {
         report "$name -> $g_moduleVersion($name)"
     }
 }
-
 
 proc system {mycmd args} {
     global g_systemList g_debug
@@ -2596,7 +2604,6 @@ proc cmdModuleAvail {{mod {*}}} {
     }
 }
 
-
 proc cmdModuleUse {args} {
 	global env g_debug g_def_separator g_debug
 
@@ -2638,7 +2645,6 @@ proc cmdModuleUse {args} {
     }
 }
 
-
 proc cmdModuleUnuse {args} {
     global g_def_separator g_debug
 
@@ -2674,7 +2680,6 @@ proc cmdModuleUnuse {args} {
 	}
     }
 }
-
 
 proc cmdModuleDebug {{separator {}}} {
     global env g_def_separator g_debug
@@ -3027,7 +3032,7 @@ if {[catch {
 		}
 	    } else {
 		cmdModuleAvail
-		cmdModuleAliases
+   	        cmdModuleAliases
 	    }
 	}
     {^al} {
