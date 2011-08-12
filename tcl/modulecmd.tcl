@@ -21,7 +21,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 # Some Global Variables.....
 #
 set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.140 $} {\1}]
+					{$Revision: 1.141 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1425,7 +1425,7 @@ proc renderSettings {} {
 
 		}
 	    sh {
-		    puts stdout "module () { eval `'$tclshbin' '$argv0' '$g_shell' \$*`; }"
+		    puts stdout "module () { eval `'$tclshbin' '$argv0' '$g_shell' \$*`; } ;"
 		}
 	    cmd {
 	            puts stdout "start /b \%MODULESHOME\%/init/module.cmd %*"
