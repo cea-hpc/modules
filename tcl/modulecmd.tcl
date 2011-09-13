@@ -21,7 +21,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 # Some Global Variables.....
 #
 set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.141 $} {\1}]
+					{$Revision: 1.142 $} {\1}]
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1531,7 +1531,7 @@ proc renderSettings {} {
 	}
 
 	# XXX need to do other shells as well
-	if {$g_shell == "sh" || $g_shell == "csh"} {
+	if {$g_shellType == "sh" || $g_shellType == "csh"} {
 	    foreach var [array names g_stateAliases] {
 
 		# new aliases
@@ -1666,9 +1666,9 @@ proc renderSettings {} {
 		sh {
 			puts stdout "echo '$var';"
 		    }
-        cmd {
-            puts stdout "echo '$var'"
-            }
+		cmd {
+			puts stdout "echo '$var'"
+		    }
 		perl {
 			puts stdout "print '$var'.\"\\n\";"
 		    }
