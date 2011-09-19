@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.40 2010/11/12 16:54:54 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.41 2011/09/19 20:45:46 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -23,7 +23,6 @@ AC_PREREQ(2.59)dnl
 dnl I18N support
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION([0.14.5])
-AM_PO_SUBDIRS
 
 dnl ---------------------------------------------------------------------------
 dnl Get Modules version & date
