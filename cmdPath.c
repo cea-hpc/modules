@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.21 2010/10/08 21:40:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.22 2011/09/29 17:55:41 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -782,7 +782,7 @@ static int	Remove_Path(	Tcl_Interp	*interp,
 	 **  We must be in SW_STATE3 or not in SW_STATE at all.
 	 **  Removing the marker should be just like removing any other path.
 	 **/
-	strcpy( startp + start_offset, endp);
+	memmove(startp + start_offset, endp, strlen(endp) + 1);
 
 	/**
 	 **  Cache the set.  Clear the variable from the unset table just
