@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.14.18.1 2010/11/11 18:23:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.14.18.2 2011/10/03 20:25:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -697,7 +697,7 @@ char	**SortedDirList(	Tcl_Interp	*interp,
      **  Allocate memory for the list to be created. Suggest a list size of
      **  100 Elements. This may be changed later on.
      **/
-    if( NULL == (filelist = (char**) calloc( n = 100, sizeof(char*))))
+    if(!(filelist = (char**) module_malloc((n = 100)*sizeof(char*))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind0;
     /**
@@ -775,8 +775,8 @@ char	**SortedDirList(	Tcl_Interp	*interp,
 	     **  Oops! This one exceeds our array. Enlarge it.
 	     **/
 	    if( j == n)
-		if( NULL == (filelist =
-		    (char**) realloc((char*) filelist, (n*=2)*sizeof(char*))))
+		if(!(filelist = (char**)
+			module_realloc((char*) filelist, (n*=2)*sizeof(char*))))
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 			goto unwindt;
 	    /**
@@ -920,7 +920,7 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
      **  the list.
      **  Copy the passed path into the new buffer.
      **/
-    if((char **) NULL == (pathlist = (char**) calloc(n = 100,sizeof( char*))))
+    if(!(pathlist = (char**) module_malloc((n = 100)*sizeof( char*))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind1;
     /**
@@ -934,7 +934,7 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
 	 **  and double its size!
 	 **/
 	if( i == n )
-	    if((char **) NULL == (pathlist = (char**) realloc((char*) pathlist,
+	    if(!(pathlist = (char**) module_realloc((char*) pathlist,
 		(n *= 2)*sizeof(char*))))
 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 		    goto unwind1;
@@ -1097,7 +1097,7 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
 		}
 	    } else if( listndx + 1 >= listsize) {
 		listsize += SRCFRAG;
-		if((char **) NULL == (srclist = (char **) realloc( srclist, 
+		if(!(srclist = (char **) module_realloc( srclist, 
 		    listsize * sizeof( char **)))) {
 		    ErrorLogger( ERR_ALLOC, LOC, NULL);
 		    goto unwind1;

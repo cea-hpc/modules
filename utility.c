@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.19.6.2 2011/10/03 19:31:52 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.19.6.3 2011/10/03 20:25:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -1673,8 +1673,8 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	     **  Reallocate the value's buffer and copy the current split
 	     **  part at its end
 	     **/
-            if((char *) NULL == (lmfiles =
-		(char*) realloc( lmfiles, lmsize * sizeof(char) + 1))) {
+            if(!(lmfiles =
+		(char*) module_realloc( lmfiles, lmsize * sizeof(char) + 1))) {
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 			return( NULL);		/** ---- EXIT (FAILURE) ---> **/
 	    }
@@ -2505,8 +2505,9 @@ void chk4spch(char* s)
  ** ** Function-Header ***************************************************** **
  ** 									     **
  **   Function:		module_malloc					     **
+ **   			module_realloc					     **
  ** 									     **
- **   Description:	A wrapper for the system malloc() function,	     **
+ **   Description:	A wrapper for the system malloc(),realloc() function **
  ** 			so the argument can be tested and set to a positive  **
  ** 			value.						     **
  ** 									     **
@@ -2533,6 +2534,18 @@ void *module_malloc(size_t size) {
 
 	return ret;
 } /** End of 'module_malloc' **/
+
+void *module_realloc(void * ptr, size_t size) {
+	void *ret;
+
+#ifdef TCL_MEM_DEBUG
+	ret = ckrealloc(ptr, size);
+#else
+	ret = realloc(ptr, size);
+#endif
+
+	return ret;
+} /** End of 'module_realloc' **/
 
 /*++++
  ** ** Function-Header ***************************************************** **

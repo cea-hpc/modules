@@ -47,7 +47,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVersion.c,v 1.9.20.1 2010/11/11 18:23:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVersion.c,v 1.9.20.2 2011/10/03 20:25:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -929,7 +929,7 @@ int	VersionLookup(	char *name, char **module, char **version)
 	    if( histndx >= histsize) {
 		histsize += HISTTAB;
 
-		if((ModName **) NULL == (history = (ModName **) realloc(
+		if(!(history = (ModName **) module_realloc(
 		    history, histsize * sizeof( ModName *)))) {
 		    ErrorLogger( ERR_ALLOC, LOC, NULL);
 		    return( 0);		/** -------- EXIT (FAILURE) -------> **/

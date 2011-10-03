@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdLog.c,v 1.5.18.1 2010/11/11 18:23:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdLog.c,v 1.5.18.2 2011/10/03 20:25:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -162,7 +162,7 @@ int	cmdModuleLog(	ClientData	 client_data,
 
 	while( len + 1 > alc_len) {
 	    alc_len += PART_LEN;
-	    if((char *) NULL == (faclist = (char *) realloc( faclist, alc_len)))
+	    if(!(faclist = (char *) module_realloc( faclist, alc_len)))
 		return(( OK == ErrorLogger( ERR_ALLOC, LOC, NULL)) ?
 		    TCL_OK : TCL_ERROR);
 	}

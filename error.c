@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.8.4.1 2010/11/11 18:23:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.8.4.2 2011/10/03 20:25:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -623,7 +623,7 @@ int Module_Error(	ErrType		  error_type,
 	 **/
 	while( argc >= listsize) {
 	    listsize += ARGLIST_SIZE;
-	    if( NULL == (argv = (char **) realloc( argv,
+	    if(!(argv = (char **) module_realloc( argv,
 		listsize * sizeof(char *)))) {
 		module = module_name;
 		error_type = ERR_ALLOC;
@@ -1463,7 +1463,7 @@ static	char	*ErrorString(	char		 *ErrMsgs,
 	 **  Add a single character to the error string
 	 **/
 	if( ++len >= strsize - 5) {	/** 5 Bytes for safety		     **/
-	    if( NULL == (error_line = (char *) realloc( error_line,
+	    if(!(error_line = (char *) module_realloc( error_line,
 		strsize += ERR_LINELEN))) {
 		ErrorLogger( ERR_ALLOC, LOC, NULL);
 		return( NULL);
@@ -1540,7 +1540,7 @@ static	void	add_param(	char		**Control,
     if( s == buffer && !last) {
 
 	if( ++(*Length) >= strsize) {
-	    if( NULL == (error_line = (char*) realloc( error_line,
+	    if(!(error_line = (char*) module_realloc( error_line,
 		strsize += ERR_LINELEN))) {
 		ErrorLogger( ERR_ALLOC, LOC, NULL);
 		return;
@@ -1573,7 +1573,7 @@ static	void	add_param(	char		**Control,
 	    len = strlen( argv[ index]);
 
 	    while(( *Length + len + 1) >= strsize - 5) {
-		if( NULL == (error_line = (char*) realloc( error_line,
+		if(!(error_line = (char*) module_realloc( error_line,
 		    strsize += ERR_LINELEN))) {
 		    ErrorLogger( ERR_ALLOC, LOC, NULL);
 		    return;

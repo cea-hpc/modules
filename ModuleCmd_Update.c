@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.6.18.2 2011/10/03 19:31:52 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.6.18.3 2011/10/03 20:25:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -256,7 +256,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
             if( list_count >= maxlist) {
                 maxlist = maxlist<<1;
             
-                if( NULL == (load_list = (char**) realloc((char *) load_list,
+                if(!(load_list = (char**) module_realloc((char *) load_list,
 		    maxlist*sizeof(char**))))
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 			goto unwind1;
