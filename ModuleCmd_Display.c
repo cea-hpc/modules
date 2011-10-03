@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Display.c,v 1.4.22.1 2010/11/11 18:23:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Display.c,v 1.4.22.2 2011/10/03 19:31:52 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -135,9 +135,9 @@ int ModuleCmd_Display(	Tcl_Interp	*interp,
 
         g_specified_module = argv[i];
 
-	disp_interp = Tcl_CreateInterp();
+	disp_interp = EM_CreateInterp();
 	if( TCL_OK != (result = InitializeModuleCommands( disp_interp))) {
-	    Tcl_DeleteInterp( disp_interp);
+	    EM_DeleteInterp( disp_interp);
 	    return( result);		/** -------- EXIT (FAILURE) -------> **/
 	}
 
@@ -147,7 +147,7 @@ int ModuleCmd_Display(	Tcl_Interp	*interp,
 
 	if( Locate_ModuleFile(disp_interp, argv[i], modulename, modulefile) == 
             TCL_ERROR) {
-	    Tcl_DeleteInterp( disp_interp);
+	    EM_DeleteInterp( disp_interp);
 	    if( OK != ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL)) 
 		break;
 	    else
@@ -173,7 +173,7 @@ int ModuleCmd_Display(	Tcl_Interp	*interp,
 	 **  Remove the Tcl interpreter that has been used for printing ...
 	 **/
 
-	Tcl_DeleteInterp( disp_interp);
+	EM_DeleteInterp( disp_interp);
 
     } /** for **/
 

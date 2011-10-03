@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.6.18.1 2010/11/11 18:23:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.6.18.2 2011/10/03 19:31:52 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -133,8 +133,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
     /**
      **  First I'll update the environment with what's in _MODULESBEGINENV_
      **/
-    filename = (char *) Tcl_GetVar2( interp,"env","_MODULESBEGINENV_",
-	TCL_GLOBAL_ONLY);
+    filename = TclGetEnv( interp,"_MODULESBEGINENV_");
     if( filename) {
 
 	/**
@@ -207,8 +206,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 			if( !strncmp( var_ptr, "MODULEPATH", 10))
 			    moduleSetenv( interp, var_ptr, val_ptr, 1);
 			else
-			    Tcl_SetVar2( interp, "env", var_ptr, val_ptr,
-					 TCL_GLOBAL_ONLY);
+			    TclSetEnv( interp, var_ptr, val_ptr);
 		} /** if( var_ptr) **/
 	    } /** while **/
 

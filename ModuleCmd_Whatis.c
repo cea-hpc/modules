@@ -23,7 +23,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.5.18.1 2010/11/11 18:23:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.5.18.2 2011/10/03 19:31:52 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -141,9 +141,9 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
      **/
 	for(i=0; i<argc && argv[i]; i++) {
 
-	    whatis_interp = Tcl_CreateInterp();
+	    whatis_interp = EM_CreateInterp();
 	    if( TCL_OK != (result = InitializeModuleCommands( whatis_interp))) {
-		Tcl_DeleteInterp( whatis_interp);
+		EM_DeleteInterp( whatis_interp);
 		result = TCL_ERROR;
 		break;
 	    }
@@ -153,7 +153,7 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
 	     **/
 	    if( TCL_ERROR ==
 		Locate_ModuleFile(whatis_interp,argv[i],modulename,modulefile)){
-		Tcl_DeleteInterp( whatis_interp);
+		EM_DeleteInterp( whatis_interp);
 		if( OK != ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL))
 		    break;
 		else
@@ -182,7 +182,7 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
 	    /**
 	     **	 Remove the Tcl interpreter that has been used for printing ...
 	     **/
-	    Tcl_DeleteInterp( whatis_interp);
+	    EM_DeleteInterp( whatis_interp);
 	    cmdModuleWhatisShut();
 
 	} /** for **/
@@ -506,9 +506,9 @@ static	int	whatis_dir( char *dir, int argc, char **argv, FILE *cfp,
 
     for( i=0; i<tcount; i++) {
 
-	whatis_interp = Tcl_CreateInterp();
+	whatis_interp = EM_CreateInterp();
 	if( TCL_OK != (result = InitializeModuleCommands( whatis_interp))) {
-	    Tcl_DeleteInterp( whatis_interp);
+	    EM_DeleteInterp( whatis_interp);
 	    result = TCL_ERROR;
 	    break; /** for( i) **/
 	}
@@ -578,7 +578,7 @@ static	int	whatis_dir( char *dir, int argc, char **argv, FILE *cfp,
 	 **  Remove the Tcl interpreter that has been used for printing ...
 	 **/
 
-	Tcl_DeleteInterp( whatis_interp);
+	EM_DeleteInterp( whatis_interp);
 	cmdModuleWhatisShut();
 
     } /** for( i) **/

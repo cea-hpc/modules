@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.19.6.1 2010/11/11 18:23:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.19.6.2 2011/10/03 19:31:52 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -606,7 +606,7 @@ int Unwind_Modulefile_Changes(	Tcl_Interp	 *interp,
 
 		    val = (char*) Tcl_GetHashValue( hashEntry);
 		    if( val)
-			Tcl_SetVar2( interp, "env", key, val, TCL_GLOBAL_ONLY);
+			TclSetEnv( interp, key, val);
 
 		} while( hashEntry = Tcl_NextHashEntry( &searchPtr) );
 
@@ -726,8 +726,7 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 		if( i == 1) {
 			output_unset_variable( (char*) key);
 		} else {
-			if(val=(char *) Tcl_GetVar2(interp,"env",
-			key,TCL_GLOBAL_ONLY))
+			if((val = TclGetEnv(interp, key)))
 				output_set_variable(interp, (char*) key, val);
 		}
 	} /** for **/
@@ -1084,7 +1083,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	     **/
 	    do {
 		sprintf( formatted, "_LMFILES_%03d", count++);
-		cptr = (char *) Tcl_GetVar2( interp, "env", formatted, TCL_GLOBAL_ONLY);
+		cptr = TclGetEnv( interp, formatted);
 		if( cptr) {
 		    fprintf(stdout, "unsetenv %s%s", formatted, shell_cmd_separator);
 		}
@@ -1638,7 +1637,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
     if( lmfiles)
         null_free((void *) &lmfiles);
 
-    lmfiles = (char *) Tcl_GetVar2( interp, "env","_LMFILES_",TCL_GLOBAL_ONLY);
+    lmfiles = TclGetEnv( interp, "_LMFILES_");
 
     /**
      **  Now the pointer is NULL in case of the variable has not been defined.
@@ -1659,7 +1658,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	 **  in
 	 **/
         sprintf( buffer, "_LMFILES_%03d", count++);
-        cptr = (char *) Tcl_GetVar2( interp, "env", buffer, TCL_GLOBAL_ONLY);
+        cptr = TclGetEnv( interp, buffer);
 
         while( cptr) {			/** Something available		     **/
 
@@ -1687,7 +1686,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	     **  Read the next split part variable
 	     **/
             sprintf( buffer, "_LMFILES_%03d", count++);
-            cptr = (char *) Tcl_GetVar2( interp,"env",buffer, TCL_GLOBAL_ONLY);
+            cptr = TclGetEnv( interp,buffer);
         }
 
     } else {  /** if( lmfiles) **/
@@ -1723,7 +1722,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
  ** 									     **
  **   Function:		IsLoaded					     **
  ** 									     **
- **   Description:	Check wether the passed modulefile is currently      **
+ **   Description:	Check whether the passed modulefile is currently     **
  **			loaded						     **
  ** 									     **
  **   First Edition:	1991/10/23					     **
@@ -1806,8 +1805,7 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
      **  Get a list of loaded modules (environment variable 'LOADEDMODULES')
      **  and the list of loaded module-files (env. var. __LMFILES__)
      **/
-    char	*loaded_modules = (char *) Tcl_GetVar2( interp, "env",
-			"LOADEDMODULES", TCL_GLOBAL_ONLY);
+    char	*loaded_modules = TclGetEnv( interp, "LOADEDMODULES");
     char	*loaded_modulefiles = getLMFILES( interp);
     
 #if WITH_DEBUGGING_UTIL_2
@@ -2523,9 +2521,17 @@ void chk4spch(char* s)
 
 
 void *module_malloc(size_t size) {
+	void *ret;
 
-	return malloc(size > 0 ? size : 1);
+	if (size == 0)	size = 1;
+#ifdef TCL_MEM_DEBUG
+	ret = ckalloc(size);
+#else
+	ret = malloc(size);
+#endif
+	ret = memset(ret,'\0',size);
 
+	return ret;
 } /** End of 'module_malloc' **/
 
 /*++++
@@ -2947,7 +2953,11 @@ void null_free(void ** var) {
 	if (! *var) return;	/* passed in a NULL ptr */
 
 #ifdef USE_FREE
+#  ifdef TCL_MEM_DEBUG
+	ckfree( *var);
+#  else
 	free( *var);
+#  endif
 #endif
 	*var = NULL;
 
@@ -3107,3 +3117,70 @@ void OutputExit() {
 		fprintf( stdout, " test 0 = 1;");
 	}
 } /** End of 'OutputExit' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		TclGetEnv					     **
+ ** 									     **
+ **   Description:	Wrap the Tcl_GetVar2() call and return an allocated  **
+ ** 			string						     **
+ ** 									     **
+ **   first edition:	2011/08/15	R.K.Owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   Parameters:	Tcl_Interp	 *interp	 TCL interp.	     **
+ **   			char	*var		Environment variable	     **
+ ** 									     **
+ **   Result:		char    *		An allocated string	     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+char * TclGetEnv(	Tcl_Interp	 *interp, 
+			char const	 *var) {
+
+	char *value, *string;
+
+	Tcl_Preserve(interp);
+	value = Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY);
+	Tcl_Release(interp);
+	string = stringer(NULL, 0, value, NULL);
+
+/*	return stringer(NULL, 0,
+		Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY), NULL); */
+	return string;
+
+} /** End of 'TclGetEnv' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		TclSetEnv					     **
+ ** 									     **
+ **   Description:	Wrap the Tcl_SetVar2() call and return an allocated  **
+ ** 			string						     **
+ ** 									     **
+ **   first edition:	2011/09/26	R.K.Owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   Parameters:	Tcl_Interp	 *interp	 TCL interp.	     **
+ **   			char	*var		Environment variable	     **
+ **   			char	*val		New value		     **
+ ** 									     **
+ **   Result:		char    *		current value string	     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+char * TclSetEnv(	Tcl_Interp	 *interp, 
+			char const	 *var,
+			char const	 *val) {
+
+	char *value;
+
+	Tcl_Preserve(interp);
+	value = Tcl_SetVar2( interp, "env", var, val, TCL_GLOBAL_ONLY);
+	Tcl_Release(interp);
+
+/*	return stringer(NULL, 0,
+		Tcl_SetVar2( interp, "env", var, val, TCL_GLOBAL_ONLY), NULL);*/
+	return value;
+
+} /** End of 'TclSetEnv' **/

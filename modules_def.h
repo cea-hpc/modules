@@ -704,6 +704,8 @@ extern	int	  VersionLookup( char*, char**, char**);
 extern	char	 *ExpandVersions( char*);
 
 /**  init.c  **/
+extern	Tcl_Interp	 *EM_CreateInterp(void);
+extern	void	  EM_DeleteInterp(Tcl_Interp*);
 extern	int	  Initialize_Tcl( Tcl_Interp**, int, char*[], char*[]);
 extern	int	  InitializeModuleCommands( Tcl_Interp*);
 extern	int	  Setup_Environment( Tcl_Interp*);
@@ -746,6 +748,8 @@ extern	void	  null_free(void **);
 extern	size_t	  countTclHash(Tcl_HashTable *);
 extern	EM_RetVal	ReturnValue( Tcl_Interp*, int);
 extern	void	  OutputExit();
+extern	char 	 *TclGetEnv(Tcl_Interp *, char const *);
+extern	char 	 *TclSetEnv(Tcl_Interp *, char const *, char const *);
 
 #ifndef HAVE_STRDUP
 #  undef strdup

@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.10.4.1 2010/11/11 18:23:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.10.4.2 2011/10/03 19:31:52 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -212,7 +212,7 @@ int	cmdSetPath(	ClientData	 client_data,
      **  Put a \ in front of each '.' and '+'.
      **  (this is an intentional memory leak)
      **/
-    oldpath = (char *) Tcl_GetVar2( interp, "env", argv[arg1], TCL_GLOBAL_ONLY);
+    oldpath =  TclGetEnv( interp, argv[arg1]);
     _TCLCHK(interp)
 
     if( oldpath == NULL)
@@ -595,8 +595,7 @@ static int	Remove_Path(	Tcl_Interp	*interp,
     /**
      **  Get the current value of the "PATH" environment variable
      **/
-    if( NULL == (tmppath = (char *) Tcl_GetVar2( interp, "env", variable,
-	TCL_GLOBAL_ONLY))) {
+    if( !(tmppath = TclGetEnv( interp, variable))) {
 	_TCLCHK(interp)
 	return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
     }    
@@ -729,8 +728,7 @@ static int	Remove_Path(	Tcl_Interp	*interp,
 		     **  after removing the only remaining path.  So, I set
 		     **  the variable empty here.
 		     **/
-		    (void) Tcl_SetVar2( interp, "env", variable, "",
-			TCL_GLOBAL_ONLY);
+		    (void) TclSetEnv( interp, variable, "");
 		    _TCLCHK(interp)
 		    null_free((void *) &searchpath);
 		    goto success1;
@@ -787,7 +785,7 @@ static int	Remove_Path(	Tcl_Interp	*interp,
 	 **  variable will be unset is when I remove the only path remaining in
 	 **  the variable.  So, using moduleSetenv is not necessary here.
 	 **/
-	Tcl_SetVar2( interp, "env", variable, newenv, TCL_GLOBAL_ONLY);
+	TclSetEnv( interp, variable, newenv);
 	_TCLCHK(interp)
 	null_free((void *) &newenv);
 
@@ -797,7 +795,7 @@ static int	Remove_Path(	Tcl_Interp	*interp,
 	 **  We must be in SW_STATE3 or not in SW_STATE at all.
 	 **  Removing the marker should be just like removing any other path.
 	 **/
-	strcpy( startp + start_offset, endp);
+	memmove(startp + start_offset, endp, strlen(endp) + 1);
 
 	/**
 	 **  Cache the set.  Clear the variable from the unset table just
@@ -809,7 +807,7 @@ static int	Remove_Path(	Tcl_Interp	*interp,
 	/**
 	 **  Store the new PATH value into the environment.
 	 **/
-	Tcl_SetVar2( interp, "env", variable, oldpath, TCL_GLOBAL_ONLY);
+	TclSetEnv( interp, variable, oldpath);
 	_TCLCHK(interp)
 
     }  /** ! SW_STATE1 **/
