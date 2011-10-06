@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.9.20.1 2010/11/11 18:23:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.9.20.2 2011/10/06 21:33:39 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -396,7 +396,7 @@ int	cmdPrereq(	ClientData	 client_data,
 
     if( argc < 2)
 	if( OK != ErrorLogger( ERR_USAGE, LOC, argv[0],
-	    "prerequsite-modules", NULL))
+	    " prerequisite-modules", NULL))
 	    goto unwind0;
 
     /**
