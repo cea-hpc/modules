@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utilmem.c,v 1.4 2010/10/08 21:40:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: utilmem.c,v 1.5 2011/10/06 19:19:03 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -58,14 +58,19 @@ static void *UseId[] = { &UseId, Id };
 #define USE_CKALLOC
 
 void *module_malloc(size_t size) {
+	void *ret;
 
+	size = (size > 0 ? size : 1);
 #ifdef USE_CKALLOC
 	Tcl_ValidateAllMemory(__FILE__,__LINE__);
-	return ckalloc(size > 0 ? size : 1);
+	ret = ckalloc(size);
 #else
-	return malloc(size > 0 ? size : 1);
+	ret = malloc(size);
 #endif
+	/* clear memory anyways */
+	ret = memset(ret,'\0', size);
 
+	return ret;
 } /** End of 'module_malloc' **/
 
 /*++++
@@ -88,13 +93,16 @@ void *module_malloc(size_t size) {
  ++++*/
 
 void *module_realloc(void *ptr, size_t size) {
+	void *ret;
 
+	size = (size > 0 ? size : 1);
 #ifdef USE_CKALLOC
-	return ckrealloc(ptr, size > 0 ? size : 1);
+	ret = ckrealloc(ptr, size);
 #else
-	return realloc(ptr, size > 0 ? size : 1);
+	ret = realloc(ptr, size);
 #endif
 
+	return ret;
 } /** End of 'module_realloc' **/
 
 /*++++
@@ -123,12 +131,8 @@ void *module_realloc(void *ptr, size_t size) {
 
 void *module_calloc(size_t nmemb, size_t size) {
 
-	void * ptr = NULL;
-
 	size = (size > 0 ? size : 1);
-	ptr = module_malloc(nmemb * size);
-
-	return memset(ptr, '\0', nmemb * size);
+	return module_malloc(nmemb * size);
 
 } /** End of 'module_calloc' **/
 

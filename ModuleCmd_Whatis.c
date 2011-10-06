@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.18 2010/10/08 21:40:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.19 2011/10/06 19:19:03 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -120,9 +120,9 @@ int ModuleCmd_Whatis(
      **	 User provided a list of modules for ``whatis'' info
      **/
 		for (i = 0; i < argc && argv[i]; i++) {
-			whatis_interp = Tcl_CreateInterp();
+			whatis_interp = EM_CreateInterp();
 			if (TCL_OK != (result = Module_Init(whatis_interp))) {
-				Tcl_DeleteInterp(whatis_interp);
+				EM_DeleteInterp(whatis_interp);
 				result = TCL_ERROR;
 				break;
 			}
@@ -132,7 +132,7 @@ int ModuleCmd_Whatis(
 			if (TCL_ERROR ==
 			    Locate_ModuleFile(whatis_interp, argv[i],
 					      modulename, modulefile)) {
-				Tcl_DeleteInterp(whatis_interp);
+				EM_DeleteInterp(whatis_interp);
 				if (OK !=
 				    ErrorLogger(ERR_LOCATE, LOC, argv[i], NULL))
 					break;
@@ -161,7 +161,7 @@ int ModuleCmd_Whatis(
 	    /**
 	     **	 Remove the Tcl interpreter that has been used for printing ...
 	     **/
-			Tcl_DeleteInterp(whatis_interp);
+			EM_DeleteInterp(whatis_interp);
 			cmdModuleWhatisShut();
 		}
 	  /** for **/
@@ -333,9 +333,9 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
 
     for( i=0; i<tcount; i++) {
 
-	whatis_interp = Tcl_CreateInterp();
+	whatis_interp = EM_CreateInterp();
 	if( TCL_OK != (result = Module_Init( whatis_interp))) {
-	    Tcl_DeleteInterp( whatis_interp);
+	    EM_DeleteInterp( whatis_interp);
 	    result = TCL_ERROR;
 	    break; /** for( i) **/
 	}
@@ -397,7 +397,7 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
 	 **  Remove the Tcl interpreter that has been used for printing ...
 	 **/
 
-	Tcl_DeleteInterp( whatis_interp);
+	EM_DeleteInterp( whatis_interp);
 	cmdModuleWhatisShut();
 
     } /** for( i) **/

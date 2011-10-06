@@ -701,6 +701,8 @@ extern	char	 *ExpandVersions( char*);
 void		  DumpX(char *);
 
 /**  init.c  **/
+extern	Tcl_Interp	 *EM_CreateInterp(void);
+extern	void	  EM_DeleteInterp(Tcl_Interp*);
 extern	int	  Initialize_Module( Tcl_Interp**, int, char*[], char*[]);
 extern	int	  Module_Init( Tcl_Interp*);
 extern	int	  Setup_Environment( Tcl_Interp*);
@@ -734,12 +736,15 @@ extern	char	 *xstrtok_r(char *, const char *, char **);
 extern	char	 *xstrtok(char *, const char *);
 extern	void	  chk4spch( char*);
 extern	void	  cleanse_path( const char*, char*, int);
+extern	void	 *module_malloc(size_t);
+extern	void	 *module_realloc(void *,size_t);
 extern	char	 *xdup(char const *);
 extern	char	 *xgetenv(char const *);
 extern  int       tmpfile_mod( char**, FILE**);
-extern	char	 *stringer(char *, int, ...);
 extern	EM_RetVal	ReturnValue( Tcl_Interp*, int);
 extern	void	  OutputExit();
+extern	char	 *TclGetEnv(Tcl_Interp *, char const *);
+extern	char const	 *TclSetEnv(Tcl_Interp *, char const *, char const *);
 extern	int	  module_setenv(const char *var, const char *val);
 extern	is_Result	is_(const char *type, const char *path);
 
@@ -748,6 +753,7 @@ extern	void	 *module_malloc(size_t);
 extern	void	 *module_realloc(void *, size_t);
 extern	void	 *module_calloc(size_t,size_t);
 extern	void	  null_free(void **);
+extern	char	 *stringer(char *, int, ...);
 
 /** utilobj.c **/
 extern	int	  Tcl_ArgvToObjv(int *, Tcl_Obj ***, int, char * const *);

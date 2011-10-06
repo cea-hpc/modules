@@ -17,7 +17,9 @@
  **			here. The initial storage of the begining	     **
  **			environment is here as well.			     **
  ** 									     **
- **   Exports:		Initialize_Module				     **
+ **   Exports:		EM_CreateInterp					     **
+ **   			EM_DeleteInterp					     **
+ **   			Initialize_Module				     **
  **			Module_Tcl_ExitCmd				     **
  **			Module_Init					     **
  **			Setup_Environment				     **
@@ -37,7 +39,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.26 2010/10/14 21:31:01 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.27 2011/10/06 19:19:03 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -224,6 +226,77 @@ unwind0:
 	return (TCL_ERROR);
 
 } /** End of 'Module_Tcl_ExitCmd' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		EM_CreateInterp					     **
+ ** 									     **
+ **   Description:	Create a Tcl interpreter and set some default	     **
+ **			attributes for each interpreter.		     **
+ ** 									     **
+ **   First Edition:	2011/09/26					     **
+ ** 									     **
+ **   Parameters:	-						     **
+ ** 									     **
+ **   Result:		Tcl_Interp	**interp	New Tcl interpr.     **
+ ** 									     **
+ **   Attached Globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+Tcl_Interp *EM_CreateInterp(void) {
+	Tcl_Interp	*interp;
+
+#if WITH_DEBUGGING_INIT
+    ErrorLogger( NO_ERR_START, LOC, _proc_EM_CreateInterp, NULL);
+#endif
+
+    interp = Tcl_CreateInterp();
+    /*
+     * avoid freeing storage when in use
+     */
+    Tcl_Preserve(interp);
+
+    return interp;
+
+} /** End of 'EM_CreateInterp' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		EM_DeleteInterp					     **
+ ** 									     **
+ **   Description:	Delete a Tcl interpreter and set some default	     **
+ **			attributes for each interpreter.		     **
+ ** 									     **
+ **   First Edition:	2011/09/26					     **
+ ** 									     **
+ **   Parameters:	Tcl_Interp	**interp	Tcl interpr to	     **
+ ** 							delete		     **
+ ** 									     **
+ **   Result	:	-						     **
+ ** 									     **
+ **   Attached Globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+void EM_DeleteInterp(Tcl_Interp *interp) {
+
+#if WITH_DEBUGGING_INIT
+    ErrorLogger( NO_ERR_START, LOC, _proc_EM_DeleteInterp, NULL);
+#endif
+
+    /*
+     * avoid freeing storage when in use, now release
+     */
+    Tcl_Release(interp);
+
+    Tcl_DeleteInterp(interp);
+
+} /** End of 'EM_DeleteInterp' **/
 
 /*++++
  ** ** Function-Header ***************************************************** **
@@ -619,7 +692,7 @@ int Setup_Environment( Tcl_Interp*	interp)
 	 **  Now set up a Tcl variable of the same name and value as the
 	 **  environment variable
 	 **/
-	if( Tcl_SetVar( interp, environ[i], eq, 0) == (char *) NULL)
+	if( ! Tcl_SetVar( interp, environ[i], eq, 0))
 	    if( OK != ErrorLogger( ERR_SET_VAR, LOC, environ[i], NULL))
 		goto unwind0;
 
@@ -635,8 +708,7 @@ int Setup_Environment( Tcl_Interp*	interp)
      **/
     loaded = getLMFILES();
     if( loaded)
-	if( Tcl_SetVar2( interp, "env", "_LMFILES_", loaded,
-			 TCL_GLOBAL_ONLY) == (char *) NULL)
+	if( !(TclSetEnv( interp, "_LMFILES_", loaded)))
 	    if( OK != ErrorLogger( ERR_SET_VAR, LOC, environ[i], NULL))
 		goto unwind0;
 

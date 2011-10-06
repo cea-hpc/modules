@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.17 2010/11/11 19:07:24 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.18 2011/10/06 19:19:03 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -141,7 +141,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 	 **  Create a Tcl interpreter and initialize it with the module commands
 	 **/
 
-        tmp_interp = Tcl_CreateInterp();
+        tmp_interp = EM_CreateInterp();
 	if( TCL_OK != (return_val = Module_Init( tmp_interp)))
 	    return( return_val);	/** -------- EXIT (FAILURE) -------> **/
         filename[0] = '\0';
@@ -260,7 +260,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 		break;	/* switch */
 	    }
 	}
-        Tcl_DeleteInterp(tmp_interp);
+        EM_DeleteInterp(tmp_interp);
 
 	/* do not process any further modulefiles if EM_EXIT */
 	if (em_return_val == EM_EXIT) break; /* for */

@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.15 2010/10/08 21:40:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.16 2011/10/06 19:19:03 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -107,7 +107,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
     char	 *ptr, c;		/** Read pointers and char buffer    **/
 
 #  if BEGINENV == 99
-    	if (!Tcl_GetVar2( interp,"env","MODULESBEGINENV", TCL_GLOBAL_ONLY)) {
+    	if (!TclGetEnv( interp,"MODULESBEGINENV")) {
 		ErrorLogger( ERR_BEGINENVX, LOC, NULL);
 		return( TCL_ERROR);	/** -------- EXIT (FAILURE) -------> **/
 	}
@@ -126,8 +126,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
     /**
      **  First I'll update the environment with what's in _MODULESBEGINENV_
      **/
-    filename = (char *) Tcl_GetVar2( interp,"env","_MODULESBEGINENV_",
-	TCL_GLOBAL_ONLY);
+    filename = TclGetEnv( interp,"_MODULESBEGINENV_");
     if( filename) {
 
 	/**
@@ -200,8 +199,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 			if( !strncmp( var_ptr, "MODULEPATH", 10))
 			    moduleSetenv( interp, var_ptr, val_ptr, 1);
 			else
-			    Tcl_SetVar2( interp, "env", var_ptr, val_ptr,
-					 TCL_GLOBAL_ONLY);
+			    TclSetEnv( interp, var_ptr, val_ptr);
 		    }
 		} /** if( var_ptr) **/
 	    } /** while **/

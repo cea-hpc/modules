@@ -34,12 +34,9 @@
  **			chk4spch					     **
  **			xdup						     **
  **			xgetenv						     **
- **			stringer					     **
- **			module_realloc					     **
  **			countTclHash					     **
  **			ReturnValue					     **
  **			OutputExit					     **
- **			module_setenv					     **
  **			is_						     **
  **									     **
  **   Notes:								     **
@@ -54,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.39 2011/10/06 17:10:14 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.40 2011/10/06 19:19:03 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -632,7 +629,7 @@ int Unwind_Modulefile_Changes(
 			while (keys && *keys) {
 				val = mhash_value(oldTables[i], *keys);
 				if (val)
-					(void) module_setenv(*keys, val);
+					(void) TclSetEnv(interp, *keys, val);
 				keys++;
 			}
 		} /** for **/
@@ -1672,7 +1669,7 @@ char           *getLMFILES(
  ** 									     **
  **   Function:		IsLoaded					     **
  ** 									     **
- **   Description:	Check wether the passed modulefile is currently      **
+ **   Description:	Check whether the passed modulefile is currently     **
  **			loaded						     **
  ** 									     **
  **   First Edition:	1991/10/23					     **
@@ -2363,7 +2360,6 @@ void chk4spch(char* s)
  ** ************************************************************************ **
  ++++*/
 
-
 char *xdup(char const *string) {
 	char *result = NULL;
 	char *dollarptr;
@@ -2782,52 +2778,65 @@ void OutputExit() {
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
- **   Function:		module_setenv					     **
+ **   Function:		TclGetEnv					     **
  ** 									     **
- **   Description:	Sets the global environment variables.  See the      **
- ** 			Posix description.				     **
+ **   Description:	Wrap the Tcl_GetVar2() call and return an allocated  **
+ ** 			string						     **
  ** 									     **
- **   first edition:	2009/09/09	R.K.Owen <rk@owen.sj.ca.us>	     **
+ **   first edition:	2011/08/15	R.K.Owen <rk@owen.sj.ca.us>	     **
  ** 									     **
- **   Parameters:	char	*var		variable name		     **
- **			char	*val		value for variable	     **
+ **   Parameters:	Tcl_Interp	 *interp	 TCL interp.	     **
+ **   			char	*var		Environment variable	     **
  ** 									     **
- **   result:		int	    		result = 0 if success	     **
+ **   Result:		char    *		An allocated string	     **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
-int module_setenv(
-	const char *var,
-	const char *val
-) {
+char * TclGetEnv(	Tcl_Interp	 *interp, 
+			char const	 *var) {
 
-#ifdef HAVE_SETENV
-	/* overwrite any current values */
-	return setenv(var, val, 1);
+	char const *value, *string;
 
-#elif HAVE_PUTENV
-	{
-		int             ret;
-		char           *tmp;
-		if (!(tmp = stringer(NULL, 0, var, "=", val, NULL)))
-			return -1;
-		ret = putenv(tmp);
-		null_free(&tmp);
-		return ret;
-	}
-#else
-/* use Tcl version ... must create an interpretor */
-	{
-		Tcl_Interp     *interp;
+	Tcl_Preserve(interp);
+	value = Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY);
+	Tcl_Release(interp);
+	string = stringer(NULL, 0, (char *) value, NULL);
 
-		interp = Tcl_CreateInterp();
-		Tcl_SetVar2(interp, "env", var, val, TCL_GLOBAL_ONLY);
-		Tcl_DeleteInterp(interp);
+	return (char *) string;
 
-		return 0;
-	}
-#endif
-} /** End of 'module_setenv' **/
+} /** End of 'TclGetEnv' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		TclSetEnv					     **
+ ** 									     **
+ **   Description:	Wrap the Tcl_SetVar2() call and return an allocated  **
+ ** 			string						     **
+ ** 									     **
+ **   first edition:	2011/09/26	R.K.Owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   Parameters:	Tcl_Interp	 *interp	 TCL interp.	     **
+ **   			char	*var		Environment variable	     **
+ **   			char	*val		New value		     **
+ ** 									     **
+ **   Result:		char    *		current value string	     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+char const * TclSetEnv(	Tcl_Interp	 *interp, 
+			char const	 *var,
+			char const	 *val) {
+
+	char const *value;
+
+	Tcl_Preserve(interp);
+	value = Tcl_SetVar2( interp, "env", var, val, TCL_GLOBAL_ONLY);
+	Tcl_Release(interp);
+
+	return value;
+
+} /** End of 'TclSetEnv' **/
 
 /*++++
  ** ** Function-Header ***************************************************** **

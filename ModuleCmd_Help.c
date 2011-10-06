@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.11 2009/08/23 23:30:42 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Help.c,v 1.12 2011/10/06 19:19:03 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -162,9 +162,9 @@ static	int	PerModuleHelp(	Tcl_Interp	*interp,
      **/
     for(i=0; i<argc; i++) {
 
-	help_interp = Tcl_CreateInterp();
+	help_interp = EM_CreateInterp();
 	if( TCL_OK != (result = Module_Init( help_interp))) {
-	    Tcl_DeleteInterp( help_interp);
+	    EM_DeleteInterp( help_interp);
 	    result = TCL_ERROR;
 	    break;
 	}
@@ -204,7 +204,7 @@ static	int	PerModuleHelp(	Tcl_Interp	*interp,
 	 **  Finally clear up the Tcl interpreter and handle the next module
 	 **/
 
-	Tcl_DeleteInterp( help_interp);
+	EM_DeleteInterp( help_interp);
     }
 
     /**

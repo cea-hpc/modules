@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.12 2009/09/02 20:37:39 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.13 2011/10/06 19:19:03 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -184,7 +184,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
 {
     char	*oldval;			/** Old value of 'variable'  **/
 
-    oldval = (char *) Tcl_GetVar2( interp, "env", variable, TCL_GLOBAL_ONLY);
+    oldval = TclGetEnv( interp, variable);
   
     /**
      **  Check to see if variable is already set correctly... 
@@ -245,7 +245,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
      **  Store the value into the environment
      **/
 
-    Tcl_SetVar2( interp, "env", variable, value, TCL_GLOBAL_ONLY);
+    TclSetEnv( interp, variable, value);
 
     return( TCL_OK);
 
