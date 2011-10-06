@@ -28,7 +28,7 @@
  **			set_marked_entry				     **
  **			Update_LoadedList				     **
  **			check_magic					     **
- **			cleanse_path					     **
+ **			regex_quote					     **
  **			xstrtok						     **
  **			xstrtok_r					     **
  **			chk4spch					     **
@@ -54,7 +54,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.38 2010/10/08 21:40:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.39 2011/10/06 17:10:14 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -2128,7 +2128,7 @@ int check_magic( char	*filename,
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
- **   Function:		cleanse_path					     **
+ **   Function:		regex_quote					     **
  ** 									     **
  **   Description:	Copy the passed path into the new path buffer and    **
  **			devalue '.' and '+'				     **
@@ -2148,7 +2148,7 @@ int check_magic( char	*filename,
  ** ************************************************************************ **
  ++++*/
 
-void cleanse_path( const char	*path,
+void regex_quote( const char	*path,
 		         char	*newpath,
 			 int	 len)
 {
