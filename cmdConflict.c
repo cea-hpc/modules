@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.25 2010/10/08 21:40:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.26 2011/10/06 21:34:06 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -338,7 +338,7 @@ int cmdPrereq(
      **/
 	if (objc < 2)
 		if (OK != ErrorLogger(ERR_USAGE, LOC, Tcl_GetString(objv[0]),
-				      "prerequisite-modules", NULL))
+				      " prerequisite-modules", NULL))
 			goto unwind0;
     /**
      **  There's no prerequisite check in case of removal
