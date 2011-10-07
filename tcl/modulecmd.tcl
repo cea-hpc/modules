@@ -20,8 +20,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION [regsub	{\$[^:]+:\s*(\S+)\s*\$}\
-					{$Revision: 1.142 $} {\1}]
+regsub {\$[^:]+:\s*(\S+)\s*\$} {$Revision: 1.143 $} {\1}\
+	 MODULES_CURRENT_VERSION
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -667,7 +667,8 @@ proc getReferenceCountArray {var separator} {
     if {[info exists env($sharevar)]} {
 	if {[info exists env($var)]} {
 	    set modsharelist [split $env($sharevar) $g_def_separator]
-	    if {[expr {[llength $modsharelist] % 2}] == 0} {
+	    set temp [expr {[llength $modsharelist] % 2}]
+	    if {$temp == 0} {
 		array set countarr $modsharelist
 
 		# sanity check the modshare list
@@ -1829,23 +1830,28 @@ proc resolveModuleVersionOrAlias {names} {
 }
 
 proc spaceEscaped {text} {
-    regsub -all " " $text "\\ "
+    regsub -all " " $text "\\ " regsub_tmpstrg
+    return $regsub_tmpstrg
 }
 
 proc multiEscaped {text} {
-    regsub -all {([ \\\t\{\}|<>!;#^$&*"'`()])} $text {\\\1}
+    regsub -all {([ \\\t\{\}|<>!;#^$&*"'`()])} $text {\\\1} regsub_tmpstrg
+    return $regsub_tmpstrg
 }
 
 proc doubleQuoteEscaped {text} {
-    regsub -all "\"" $text "\\\""
+    regsub -all "\"" $text "\\\"" regsub_tmpstrg
+    return $regsub_tmpstrg
 }
 
 proc atSymbolEscaped {text} {
-    regsub -all "@" $text "\\@"
+    regsub -all "@" $text "\\@" regsub_tmpstrg
+    return $regsub_tmpstrg
 }
 
 proc singleQuoteEscaped {text} {
-    regsub -all "\'" $text "\\\'"
+    regsub -all "\'" $text "\\\'" regsub_tmpstrg
+    return $regsub_tmpstrg
 }
 
 proc findExecutable {cmd} {
@@ -2771,7 +2777,8 @@ proc cmdModuleInit {args} {
 	    if {[file readable $filepath] && [file isfile $filepath]} {
 		set fid [open $filepath r]
 
-		if {[expr {[llength $args] -1}] != $nargs($moduleinit_cmd)} {
+		set temp [expr {[llength $args] -1}]
+		if {$temp != $nargs($moduleinit_cmd)} {
 		    error "'module init$moduleinit_cmd' requires exactly\
 		      $nargs($moduleinit_cmd) arg(s)."
 		    #	       cmdModuleHelp
