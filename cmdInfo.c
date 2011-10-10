@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdInfo.c,v 1.17 2010/10/08 21:40:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdInfo.c,v 1.18 2011/10/10 21:53:44 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -263,6 +263,12 @@ int cmdModuleInfo(
 			else
 				Tcl_SetResult(interp, "0", TCL_STATIC);
 		}
+	/**
+	 ** 'module-info trace' -- no longer used so return *undef
+	 **/
+	} else if (!strncmp(arg1, "trace", 5)) {
+		/* trace or tracepat */
+		Tcl_SetResult(interp, "*undef*", TCL_STATIC);
 	} else if (!strcmp(arg1, "alias")) {
 		if (objc < 3) {
 			if (OK != ErrorLogger(ERR_USAGE, LOC, arg0, "alias ",
