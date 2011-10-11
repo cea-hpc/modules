@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-regsub {\$[^:]+:\s*(\S+)\s*\$} {$Revision: 1.143 $} {\1}\
+regsub {\$[^:]+:\s*(\S+)\s*\$} {$Revision: 1.144 $} {\1}\
 	 MODULES_CURRENT_VERSION
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -1531,39 +1531,34 @@ proc renderSettings {} {
 	    }
 	}
 
-	# XXX need to do other shells as well
-	if {$g_shellType == "sh" || $g_shellType == "csh"} {
-	    foreach var [array names g_stateAliases] {
-
-		# new aliases
-		if {$g_stateAliases($var) == "new"} {
-		    switch -- $g_shellType {
-		    csh {
-			    # set val [multiEscaped $g_Aliases($var)]
-			    set val $g_Aliases($var)
-			    # Convert $n -> \!\!:n
-			    regsub -all {\$([0-9]+)} $val {\\!\\!:\1} val
-			    # Convert $* -> \!*
-			    regsub -all {\$\*} $val {\\!*} val
-			    puts stdout "alias $var '$val';"
-			}
-		    sh {
-			    set val $g_Aliases($var)
-			    puts stdout "alias $var=\'$val\';"
-			}
-		    }
-	        } elseif {$g_stateAliases($var) == "del"} {
-		    switch -- $g_shellType {
-		    csh {
-			    puts stdout "unalias $var;"
-			}
-		    sh {
-			    puts stdout "unset -f $var;"
-			}
-		    }
-		}
-            }
-	}
+        foreach var [array names g_stateAliases] {
+           if {$g_stateAliases($var) == "new"} {
+              switch -- $g_shellType {
+                 csh {
+                    # set val [multiEscaped $g_Aliases($var)]
+                    set val $g_Aliases($var)
+                    # Convert $n -> \!\!:n
+                    regsub -all {\$([0-9]+)} $val {\\!\\!:\1} val
+                    # Convert $* -> \!*
+                    regsub -all {\$\*} $val {\\!*} val
+                    puts stdout "alias $var '$val';"
+                 }
+                 sh {
+                    set val $g_Aliases($var)
+                    puts stdout "alias $var=\'$val\';"
+                 }
+              }
+           } elseif {$g_stateAliases($var) == "del"} {
+              switch -- $g_shellType {
+                 csh {
+                    puts stdout "unalias $var;"
+                 }
+                 sh {
+                    puts stdout "unalias $var;"
+                 }
+              }
+	   }
+        }
 
 	# new x resources
 	if {[array size g_newXResources] > 0} {
