@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.12 2010/10/08 21:40:19 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Switch.c,v 1.13 2011/10/13 20:31:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -165,7 +165,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
      **  First try to find a match for the modulefile out of the LOADEDMODULES.
      **/
 
-    if( !IsLoaded( oldmodule, &realname, oldfile)) 
+    if( !IsLoaded( interp, oldmodule, &realname, oldfile)) 
 	if( OK != ErrorLogger( ERR_NOTLOADED, LOC, oldmodule, NULL))
 	    goto unwind4;
     
@@ -192,7 +192,7 @@ int	ModuleCmd_Switch(	Tcl_Interp	*interp,
 	 **  OK, this one is known. Is it loaded, too?
 	 **/
 
-        if( !IsLoaded( oldname, NULL, oldfile)) 
+        if( !IsLoaded( interp, oldname, NULL, oldfile)) 
 	    if( OK != ErrorLogger( ERR_NOTLOADED, LOC, oldmodule, NULL))
 		goto unwind4;
     }

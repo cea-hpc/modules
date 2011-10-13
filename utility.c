@@ -51,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.40 2011/10/06 19:19:03 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.41 2011/10/13 20:31:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -120,7 +120,7 @@ static	int	 output_unset_variable( const char* var);
 static	void	 output_function( const char*, const char*);
 static	int	 output_set_alias( const char*, const char*);
 static	int	 output_unset_alias( const char*, const char*);
-static	int	 __IsLoaded( char*, char**, char*, int);
+static	int	 __IsLoaded( Tcl_Interp*, char*, char**, char*, int);
 static	char	*get_module_basename( char*);
 static	char	*chop( const char*);
 static  void     EscapeCshString(const char* in,
@@ -712,7 +712,7 @@ int Output_Modulefile_Changes(
 			if (i == 1) {
 				output_unset_variable(*keys);
 			} else {
-				if ((val = getenv(*keys)))
+				if ((val = TclGetEnv(interp, *keys)))
 					output_set_variable(*keys, val);
 			}
 			keys++;
@@ -1062,7 +1062,7 @@ static int output_set_variable(
 	     **/
 			do {
 				sprintf(formatted, "_LMFILES_%03d", count++);
-				if ((cptr = getenv(formatted)))
+				if ((cptr = TclGetEnv(interp, formatted)))
 					fprintf(stdout, "unsetenv %s%s",
 						formatted, shell_cmd_separator);
 			} while (cptr);
@@ -1568,7 +1568,7 @@ static int output_unset_alias(
  ++++*/
 
 char           *getLMFILES(
-	void
+	Tcl_Interp	*interp
 ) {
 	static char    *lmfiles = NULL;	/** Buffer pointer for the value     **/
 
@@ -1579,7 +1579,7 @@ char           *getLMFILES(
 	if (lmfiles)
 		null_free((void *)&lmfiles);
 
-	lmfiles = getenv("_LMFILES_");
+	lmfiles = TclGetEnv(interp, "_LMFILES_");
 
     /**
      **  Now the pointer is NULL in case of the variable has not been defined.
@@ -1605,7 +1605,7 @@ char           *getLMFILES(
 	 **  in
 	 **/
 		sprintf(buffer, "_LMFILES_%03d", count++);
-		cptr = getenv(buffer);
+		cptr = TclGetEnv(interp, buffer);
 
 		while (cptr) {		/** Something available		     **/
 
@@ -1634,7 +1634,7 @@ char           *getLMFILES(
 	     **  Read the next split part variable
 	     **/
 			sprintf(buffer, "_LMFILES_%03d", count++);
-			cptr = getenv(buffer);
+			cptr = TclGetEnv(interp, buffer);
 		}
 
 	} else { /** if( lmfiles) **/
@@ -1710,22 +1710,24 @@ char           *getLMFILES(
  **  Check all possibilities of module-versions
  **/
 int IsLoaded(
-	char *modulename,
-	char **realname,
-	char *filename
+	Tcl_Interp	 *interp,
+	char		 *modulename,
+	char		**realname,
+	char		 *filename
 ) {
-	return (__IsLoaded(modulename, realname, filename, 0));
+	return (__IsLoaded(interp, modulename, realname, filename, 0));
 }
 
 /**
  **  Check only an exact match of the passed module and version
  **/
 int IsLoaded_ExactMatch(
-	char *modulename,
-	char **realname,
-	char *filename
+	Tcl_Interp	 *interp,
+	char		 *modulename,
+	char		**realname,
+	char		 *filename
 ) {
-	return (__IsLoaded(modulename, realname, filename, 1));
+	return (__IsLoaded(interp, modulename, realname, filename, 1));
 }
 
 /**
@@ -1733,6 +1735,7 @@ int IsLoaded_ExactMatch(
  **  loaded or not.
  **/
 static int __IsLoaded(
+			Tcl_Interp	 *interp,
 			char		 *modulename,
 			char		**realname,
 			char		 *filename,
@@ -1750,8 +1753,8 @@ static int __IsLoaded(
      **  Get a list of loaded modules (environment variable 'LOADEDMODULES')
      **  and the list of loaded module-files (env. var. __LMFILES__)
      **/
-    char	*loaded_modules = getenv("LOADEDMODULES");
-    char	*loaded_modulefiles = getLMFILES();
+    char	*loaded_modules = TclGetEnv(interp, "LOADEDMODULES");
+    char	*loaded_modulefiles = getLMFILES(interp);
     
     /**
      **  If no module is currently loaded ... the requested module is surely

@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdConflict.c,v 1.26 2011/10/06 21:34:06 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdConflict.c,v 1.27 2011/10/13 20:31:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -147,7 +147,7 @@ static int checkConflict(
 	 **  required module file
 	 **/
 		} else {
-			if (IsLoaded_ExactMatch (modulelist[k], NULL, NULL)
+			if (IsLoaded_ExactMatch (interp,modulelist[k],NULL,NULL)
 			    && strcmp(g_current_module, modulelist[k])) {
 
 		/**
@@ -402,8 +402,8 @@ int cmdPrereq(
 	     **  a prerequisite is missing.
 	     **/
 			for (k = 0; k < nummodules && notloaded_flag; k++) {
-				if (!IsLoaded(uvec_vector(modulelist)[k], NULL,
-				     NULL)) {
+				if (!IsLoaded(interp,
+				uvec_vector(modulelist)[k], NULL, NULL)) {
 					notloaded_flag = Tcl_GetString(objv[i]);
 				} else {
 					notloaded_flag = NULL;

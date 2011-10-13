@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.18 2011/10/06 19:19:03 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Load.c,v 1.19 2011/10/13 20:31:17 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -155,7 +155,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 
             char	*tmpname;
 
-            if( !IsLoaded( argv[i], &tmpname, filename)) {
+            if( !IsLoaded(interp, argv[i], &tmpname, filename)) {
 #if 0
 		/** do we really care if it's not loaded ... **/
 		if( OK != ErrorLogger( ERR_NOTLOADED, LOC, argv[i], NULL))

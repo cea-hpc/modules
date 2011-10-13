@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.13 2011/10/06 19:19:03 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.14 2011/10/13 20:31:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -191,6 +191,8 @@ int	moduleSetenv(	Tcl_Interp	*interp,
      **/
     if( !(g_flags & (M_REMOVE|M_DISPLAY|M_SWITCH|M_NONPERSIST)) && oldval) {
         if( !strcmp( value, oldval)) {
+	    /* don't need to unset it if we're to set it again */
+            mhash_del(unsetenvHashTable, variable);
             return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
         }
     }
