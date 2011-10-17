@@ -51,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.41 2011/10/13 20:31:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.42 2011/10/17 18:11:34 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -943,6 +943,8 @@ static int Output_Directory_Change(
 			shell_cmd_separator);
 	} else if (!strcmp(shell_derelict, "python")) {
 		fprintf(stdout, "os.chdir('%s')\n", change_dir);
+	} else if( !strcmp( shell_derelict, "ruby")) {
+		fprintf(stdout, "Dir.chdir('%s')\n", change_dir);
 	} else {
 		retval = TCL_ERROR;
 	}
@@ -1081,24 +1083,24 @@ static int output_set_variable(
 		}
 #endif	/* not LMSPLIT_SIZE */
 
-	} else if (!strcmp((char *)shell_derelict, "sh")) {
+	} else if (!strcmp((char *) shell_derelict, "sh")) {
     /**
      **  SH
      **/
-		char *escaped = (char *)module_malloc(strlen(val) * 2 + 1);
+		char *escaped = (char *) module_malloc(strlen(val) * 2 + 1);
 		EscapeShString(val, escaped);
 
 		fprintf(stdout, "%s=%s %sexport %s%s", var, escaped,
 			shell_cmd_separator, var, shell_cmd_separator);
 		null_free((void **)&escaped);
 
-	} else if (!strcmp((char *)shell_derelict, "emacs")) {
+	} else if (!strcmp((char *) shell_derelict, "emacs")) {
     /**
      **  EMACS
      **/
 		fprintf(stdout, "(setenv \"%s\" \'%s\')\n", var, val);
 
-	} else if (!strcmp((char *)shell_derelict, "perl")) {
+	} else if (!strcmp((char *) shell_derelict, "perl")) {
     /**
      **  PERL
      **/
@@ -1107,6 +1109,18 @@ static int output_set_variable(
 		fprintf(stdout, "$ENV{'%s'} = '%s'%s", var, escaped,
 			shell_cmd_separator);
 		null_free((void *)&escaped);
+
+	} else if (!strcmp((char *) shell_derelict, "python")) {
+    /**
+     **  PYTHON
+     **/
+		fprintf(stdout, "os.environ['%s'] = '%s'\n", var, val);
+
+	} else if( !strcmp((char*) shell_derelict, "ruby")) {
+    /**
+     **  RUBY
+     **/
+	fprintf( stdout, "ENV['%s'] = '%s'\n", var, val);
 
 	} else if( !strcmp((char*) shell_derelict, "cmake")) {
     /**
@@ -1118,19 +1132,13 @@ static int output_set_variable(
 			shell_cmd_separator);
 		null_free((void *) &escaped);
 
-	} else if (!strcmp((char *)shell_derelict, "python")) {
-    /**
-     **  PYTHON
-     **/
-		fprintf(stdout, "os.environ['%s'] = '%s'\n", var, val);
-
-	} else if (!strcmp((char *)shell_derelict, "scm")) {
+	} else if (!strcmp((char *) shell_derelict, "scm")) {
     /**
      ** SCM
      **/
 		fprintf(stdout, "(putenv \"%s=%s\")\n", var, val);
 
-	} else if (!strcmp((char *)shell_derelict, "mel")) {
+	} else if (!strcmp((char *) shell_derelict, "mel")) {
     /**
      ** MEL (Maya Extension Language)
      **/
@@ -1196,6 +1204,8 @@ static int output_unset_variable(
 	} else if (!strcmp(shell_derelict, "python")) {
 		fprintf(stdout, "os.environ['%s'] = ''\ndel os.environ['%s']\n",
 			var, var);
+	} else if (!strcmp(shell_derelict, "ruby")) {
+		fprintf(stdout, "ENV['%s'] = nil\n", var);
 	} else if( !strcmp( shell_derelict, "cmake")) {
 		fprintf( stdout, "unset(ENV{%s})%s", var, shell_cmd_separator);
 	} else if (!strcmp(shell_derelict, "scm")) {

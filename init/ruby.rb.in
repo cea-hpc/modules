@@ -1,0 +1,52 @@
+@VERSIONING@if !ENV.has_key?('MODULE_VERSION') then
+@VERSIONING@  ENV['MODULE_VERSION_STACK'] = "@VERSION@"
+@VERSIONING@  ENV['MODULE_VERSION']       = "@VERSION@"
+@VERSIONING@else
+@VERSIONING@  ENV['MODULE_VERSION_STACK'] = ENV['MODULE_VERSION']
+@VERSIONING@end
+@VERSIONING@ENV['MODULESHOME'] = "@prefix@"
+
+if !ENV.has_key?('MODULEPATH') then
+  ENV['MODULEPATH'] = File.open("#{ENV['MODULESHOME']}/init/.modulespath","r").readlines.reject {|e| e =~ /^(\s*#|$)/}.join(":") 
+end
+
+
+if !ENV.has_key?('LOADEDMODULES') then
+	ENV['LOADEDMODULES'] = ''
+end
+
+class ENVModule
+  def ENVModule.module(*args)
+    if args[0].kind_of?(Array) then
+      args = args[0].join(" ")
+    else
+      args = args.join(" ")
+    end
+@VERSIONING@    exec_prefix = "@BASEPREFIX@/Modules/#{ENV['MODULE_VERSION']}"
+@VERSIONING@    eval  `#{exec_prefix}/bin/modulecmd ruby #{args}`
+
+@NOTVERSIONING@    exec_prefix = "@bindir@"
+@NOTVERSIONING@    eval  `#{exec_prefix}/modulecmd ruby #{args}`
+
+  end
+  
+  def ENVModule.load(args)
+     ENVModule.module "load #{self.get_args(args)}"
+  end
+  
+  def ENVModule.unload(args)
+     ENVModule.module "unload #{self.get_args(args)}"
+  end
+  def ENVModule.list
+    ENVModule.module 'list'
+  end
+  private
+  def ENVModule.get_args(args)
+    if args.kind_of?(Array) then
+      arg = args.join(" ")
+    else
+      arg = args
+    end
+    return arg
+  end
+end

@@ -39,7 +39,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.28 2011/10/13 20:31:18 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.29 2011/10/17 18:11:34 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -138,6 +138,7 @@ static char *shellprops [][4] = {
 	{"zsh",		"sh",		"zsh",		";"},
 	{"perl",	"perl",		"perl",		";"},
 	{"python",	"python",	"python",	"\n"},
+	{"ruby",	"ruby", 	"ruby", 	"\n"},
 	{"scm",		"scm",		NULL,		"\n"},
 	{"scheme",	"scm",		NULL,		"\n"},
 	{"guile",	"scm",		NULL,		"\n"},
