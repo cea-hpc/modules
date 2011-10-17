@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.19.6.4 2011/10/03 21:36:59 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.19.6.5 2011/10/17 17:16:50 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -965,6 +965,8 @@ static	int Output_Directory_Change(Tcl_Interp *interp)
 		fprintf(stdout, "chdir '%s'%s", change_dir, shell_cmd_separator);
 	} else if( !strcmp( shell_derelict, "python")) {
 		fprintf(stdout, "os.chdir('%s')\n", change_dir);
+	} else if( !strcmp( shell_derelict, "ruby")) {
+		fprintf(stdout, "Dir.chdir('%s')\n", change_dir);
 	} else {
 		rc = TCL_ERROR;
 	}
@@ -1132,6 +1134,18 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 		null_free((void *) &escaped);
 
     /**
+     **  PYTHON
+     **/
+    } else if( !strcmp((char*) shell_derelict, "python")) {
+	fprintf( stdout, "os.environ['%s'] = '%s'\n", var, val);
+
+    /**
+     **  RUBY
+     **/
+    } else if( !strcmp((char*) shell_derelict, "ruby")) {
+	fprintf( stdout, "ENV['%s'] = '%s'\n", var, val);
+
+    /**
      **  CMAKE
      **/
     } else if( !strcmp((char*) shell_derelict, "cmake")) {
@@ -1140,12 +1154,6 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 		fprintf(stdout, "set(ENV{%s} \"%s\")%s", var, escaped,
 			shell_cmd_separator);
 		null_free((void *) &escaped);
-
-    /**
-     **  PYTHON
-     **/
-    } else if( !strcmp((char*) shell_derelict, "python")) {
-	fprintf( stdout, "os.environ['%s'] = '%s'\n", var, val);
 
     /**
      ** SCM
@@ -1221,6 +1229,8 @@ static	int	output_unset_variable( const char* var)
 	fprintf( stdout, "unset(ENV{%s})%s", var, shell_cmd_separator);  
     } else if( !strcmp( shell_derelict, "python")) {
       fprintf( stdout, "os.environ['%s'] = ''\ndel os.environ['%s']\n",var,var);
+    } else if( !strcmp( shell_derelict, "ruby")) {
+      fprintf( stdout, "ENV['%s'] = nil\n",var);
     } else if( !strcmp( shell_derelict, "scm")) {
 	fprintf( stdout, "(putenv \"%s\")\n", var);
     } else if( !strcmp( shell_derelict, "mel")) {
