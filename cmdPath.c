@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.24 2011/10/06 19:19:03 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.25 2011/10/24 20:44:31 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -116,23 +116,30 @@ int cmdSetPath(
 	int objc,
 	Tcl_Obj * CONST84 objv[]
 ) {
-	Tcl_RegExp      chkexpPtr;		/** Regular expression for   **/
-						/** marker checking	     **/
-	char           *oldpath,		/** Old value of 'var'	     **/
-	               *newpath,		/** New value of 'var'	     **/
-	               *sw_marker = APP_SW_MARKER,
-						/** arbitrary default	     **/
-	    *startp = NULL, *endp = NULL,	/** regexp match endpts	     **/
-	    *qualifiedpath,			/** List of dirs which 
-						    aren't already in path   **/
-	    **pathlist,				/** List of dirs	     **/
-	    *arg;				/** argument ptr	     **/
-	const char     *delim = _colon;		/** path delimiter	     **/
-	int             append = 1,		/** append or prepend	     **/
-	    numpaths,				/** number of dirs in path   **/
-	    qpathlen,				/** qualifiedpath length     **/
-	    arg1 = 1,				/** arg start		     **/
-	    x;					/** loop index		     **/
+	char		*pathlist,	   /** path to add **/ 
+			*oldpath,	   /** old value of 'var'   **/
+			*sw_marker = APP_SW_MARKER,
+			*arg,		   /** argument ptr	    **/
+			tmpchar,	   /** tmp holder for displaced char**/
+			*marked = NULL,    /** flag path contains sw_marker **/
+			*item;		   /** item from path **/
+	const char	*delim = _colon;   /** path delimiter	    **/
+	int		append = 1,	   /** append or prepend    **/
+			i,		   /** loop counter, etc.   **/
+			oldpathlen = 0,
+			arg1 = 1;	   /** arg start	    **/
+	Tcl_DString _qualifiedpath;
+	Tcl_DString *qualifiedpath = &_qualifiedpath;
+	Tcl_DStringInit(qualifiedpath);
+	Tcl_DString _newpath;
+	Tcl_DString *newpath = &_newpath;
+	Tcl_DStringInit(newpath);
+	Tcl_HashTable _oldpathhash;	   /** hash table for old path **/
+	Tcl_HashTable *oldpathhash = &_oldpathhash;
+	Tcl_InitHashTable(oldpathhash , TCL_STRING_KEYS);
+	Tcl_HashEntry *hentry;
+
+
     /**
      **  Whatis mode?
      **/
@@ -215,179 +222,119 @@ int cmdSetPath(
 		oldpath = !strcmp(Tcl_GetString(objv[arg1]),
 			    "MANPATH") ? DEFAULTMANPATH : "";
 #else
-	    if (!oldpath)
-		oldpath	= "";
+	    if (oldpath) {
+		if(!(oldpath = strdup(oldpath)))
+			if( OK != ErrorLogger( ERR_STRING ,LOC ,NULL) )
+				goto unwind0;
+	    } else {
+		oldpath = "";
+	    }
 #endif
 
-    /**
-     **  Split the new path into its components directories so each
-     **  directory can be checked to see whether it is already in the 
-     **  existing path.
-     **/
-	if (!(pathlist = uvec_vector(SplitIntoList(
-			Tcl_GetString(objv[arg1 + 1]), &numpaths, delim))))
-		goto unwind0;
+	/* determine if sw_marker is in the path */
+	item = xstrtok(oldpath ,delim);
+	while (item) {
+		/* put the delimiter removed by xstrtok back in place */
+		if (item > oldpath) {;
+			*(item - 1) = *delim;
+		}
+		if (strcmp(item ,sw_marker)) {
+			/* this function uses the key, not the value */
+			hentry = Tcl_CreateHashEntry(oldpathhash ,item ,&i);
+			if (i) {
+				Tcl_SetHashValue(hentry, item);
+			}
+		} else { /* found sw_marker */
+			/* we want the first occurrence */
+			if (!marked) {
+				marked = item;
+			}
+		}
+		item = xstrtok(NULL ,delim);
+	}
 
-    /**
-     **  Some space for the list of paths which
-     **  are not already in the existing path.
-     **/
-	if (!(qualifiedpath =
-	     stringer(NULL, 0, Tcl_GetString(objv[arg1 + 1]), delim, NULL)))
-		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
-			goto unwind1;
+	/* only include new paths that are not already in the existing path */
+	pathlist = Tcl_GetString(objv[arg1+1]);
+	item = xstrtok(pathlist ,delim);
+	i = 0;
+	while (item) {
+		if (!Tcl_FindHashEntry(oldpathhash ,item)) {
+			if (i) {
+				Tcl_DStringAppend(qualifiedpath ,delim ,-1);
+			}
+			Tcl_DStringAppend(qualifiedpath ,item ,-1);
+			i++;
+		}
+		item = xstrtok(NULL ,delim);
+	}
 
-	qpathlen = strlen(qualifiedpath) + 1;
-	*qualifiedpath = '\0';		/** make sure null for later	     **/
-
-	for (x = 0; x < numpaths; x++) {
-
-		regex_quote(pathlist[x], buffer, PATH_BUFLEN);
-
-	/**
-	 **  Check to see if path is already in this path variable.
-	 **  It could be at the 
-	 **     beginning ... ^path:
-	 **     middle    ... :path:
-	 **     end       ... :path$
-	 **     only one  ... ^path$
-	 **/
-		if (!(newpath = stringer(NULL, 0,
-			"(^", buffer, delim, ")|(", delim, buffer,
-			delim, ")|(", delim, buffer, "$)|(^", buffer,
-			"$)", NULL)))
-			if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
-				goto unwind2;
-
-		chkexpPtr = Tcl_RegExpCompile(interp, newpath);
-		_TCLCHK(interp);
-		null_free((void *)&newpath);
-
-	/**
-	 **  If the directory is not already in the path, 
-	 **  add it to the qualified path.
-	 **/
-		if (!Tcl_RegExpExec(interp, chkexpPtr, oldpath, oldpath))
-			if (!stringer(qualifiedpath + strlen(qualifiedpath),
-				     qpathlen - strlen(qualifiedpath),
-				     pathlist[x], delim, NULL))
-				if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
-					goto unwind2;
-
-	}				/** End of loop that checks for 
-					 ** already existent path
-					 **/
     /**
      **  If all of the directories in the new path already exist,
      **  exit doing nothing.
      **/
-	if (!*qualifiedpath)
+	if (!Tcl_DStringValue(qualifiedpath))
 		goto success1;
 
-	/* remove trailing delimiter */
-	qualifiedpath[strlen(qualifiedpath) - 1] = '\0';
-
-    /**
-     **  Some space for our newly created path.
-     **  We size at the oldpath plus the addition.
-     **/
-	if (!(newpath = stringer(NULL, strlen(oldpath) +
-		strlen(qualifiedpath) + 2, NULL)))
-		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
-			goto unwind2;
-	*newpath = '\0';
-
-    /**
-     **  Easy job to do, if the old path has not been set up so far ...
-     **/
-	if (!strcmp(oldpath, "")) {
-		strcpy(newpath, qualifiedpath);
-
-    /**
-     **  Otherwise we have to take care on prepending vs. appending ...
-     **  If there is a append or prepend marker within the variable (see
-     **  modules_def.h) the changes are made according to this markers. Other-
-     **  wise append and prepend will be relative to the strings begin or end.
-     **/
-
+	if (!strlen(oldpath)) {
+		Tcl_DStringAppend(newpath ,Tcl_DStringValue(qualifiedpath) ,-1);
+	} else if (marked) {
+		if (!append) {
+		/* +1 to pick up delimiter, should be present via oldpath */
+			marked+= strlen(sw_marker) + 1;
+		}
+		tmpchar = *marked;
+		/* marked is a pointer into oldpath */
+		*marked = '\0';
+		Tcl_DStringAppend(newpath ,oldpath ,-1);
+		*marked = tmpchar;
+		/* delimiter should be in place in newpath (via oldpath) */
+		Tcl_DStringAppend(newpath ,Tcl_DStringValue(qualifiedpath) ,-1);
+		if (strlen(marked)) {
+			Tcl_DStringAppend(newpath ,delim ,-1);
+			Tcl_DStringAppend(newpath ,marked ,-1);
+		}
 	} else {
+		if (append) {
+			Tcl_DStringAppend(newpath ,oldpath ,-1);
+		/* add a delimiter whether or not one is already there this
+		**preserves POSIX semantics of delimiter at end meaning
+		**"current directory"
+		*/
 
-		Tcl_RegExp      markexpPtr =
-		    Tcl_RegExpCompile(interp, sw_marker);
-		_TCLCHK(interp);
-
-		    strcpy(newpath, oldpath);
-
-		if (Tcl_RegExpExec(interp, markexpPtr, oldpath, oldpath)) {
-			_TCLCHK(interp);
-			Tcl_RegExpRange(markexpPtr, 0,
-			    (CONST84 char **)&startp,
-			    (CONST84 char **)&endp);
-
-	    /**
-	     **  Append/Prepend marker found
-	     **/
-			if (append) {
-				char            ch = *startp;
-				*startp = '\0';
-				strcpy(newpath, oldpath);
-		/**
-                 ** check that newpath has a value before adding delim
-                 **/
-				if (strlen(newpath) > 0
-				    && newpath[strlen(newpath) - 1] != *delim)
-					strcat(newpath, delim);
-				strcat(newpath, qualifiedpath);
-				if (newpath[strlen(newpath) - 1] != *delim)
-					strcat(newpath, delim);
-				*startp = ch;
-				strcat(newpath, startp);
-
-			} else {
-				char            ch = *endp;
-				*endp = '\0';
-				strcpy(newpath, oldpath);
-				if (newpath[strlen(newpath) - 1] != *delim)
-					strcat(newpath, delim);
-				strcat(newpath, qualifiedpath);
-				*endp = ch;
-				strcat(newpath, endp);
-			}
-
+		/* TODO: should trailing signifying "current directory" always
+		** float to the end of the path?
+		*/
+			Tcl_DStringAppend(newpath , delim ,-1);
+			Tcl_DStringAppend(newpath ,
+				Tcl_DStringValue(qualifiedpath) ,-1);
 		} else {
+			Tcl_DStringAppend(newpath ,
+				Tcl_DStringValue(qualifiedpath) ,-1);
+			Tcl_DStringAppend(newpath ,delim ,-1);
+			Tcl_DStringAppend(newpath ,oldpath ,-1);
+		}
+	}
 
-	    /**
-	     **  No marker set
-	     **/
-			if (append) {
-				strcpy(newpath, oldpath);
-				if (newpath[strlen(newpath) - 1] != *delim)
-					strcat(newpath, delim);
-				strcat(newpath, qualifiedpath);
-			} else {
-				strcpy(newpath, qualifiedpath);
-				if (*oldpath != *delim)
-					strcat(newpath, delim);
-				strcat(newpath, oldpath);
-			}
-		} /** if( marker) **/
-	} /** if( strcmp) **/
     /**
      **  Now the new value to be set resides in 'newpath'. Set it up.
      **/
-	moduleSetenv(interp, Tcl_GetString(objv[arg1]), newpath, 1);
+	moduleSetenv(interp, Tcl_GetString(objv[arg1]),
+		Tcl_DStringValue(newpath), 1);
 	_TCLCHK(interp);
     /**
      ** Free resources
      **/
-	null_free((void *)&newpath);
 success1:
-	null_free((void *)&qualifiedpath);
+	Tcl_DStringFree(newpath);
+	Tcl_DStringFree(qualifiedpath);
+	Tcl_DeleteHashTable(oldpathhash);
 	/* FreeList(pathlist, numpaths); */
 success0:
 	return (TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
 unwind2:
-	null_free((void *)&qualifiedpath);
+	Tcl_DStringFree(newpath);
+	Tcl_DStringFree(qualifiedpath);
+	Tcl_DeleteHashTable(oldpathhash);
 unwind1:
 	/* FreeList(pathlist, numpaths); */
 unwind0:
