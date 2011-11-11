@@ -743,8 +743,8 @@ extern	char	 *xgetenv(char const *);
 extern  int       tmpfile_mod( char**, FILE**);
 extern	EM_RetVal	ReturnValue( Tcl_Interp*, int);
 extern	void	  OutputExit();
-extern	char	 *TclGetEnv(Tcl_Interp *, char const *);
-extern	char const	 *TclSetEnv(Tcl_Interp *, char const *, char const *);
+extern	char	 *EMGetEnv(Tcl_Interp *, char const *);
+extern	char const	 *EMSetEnv(Tcl_Interp *, char const *, char const *);
 extern	int	  module_setenv(const char *var, const char *val);
 extern	is_Result	is_(const char *type, const char *path);
 

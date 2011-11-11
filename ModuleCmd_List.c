@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_List.c,v 1.14 2011/10/13 20:31:16 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_List.c,v 1.15 2011/11/11 15:32:54 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -105,7 +105,7 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
     int	  	 len;
 
     lmfiles = getLMFILES(interp);
-    loaded = TclGetEnv(interp, "LOADEDMODULES");
+    loaded = EMGetEnv(interp, "LOADEDMODULES");
     
     if( !loaded || !*loaded) {
 	if( sw_format & (SW_TERSE | SW_LONG | SW_HUMAN) )

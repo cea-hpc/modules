@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.16 2011/10/06 19:19:03 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.17 2011/11/11 15:32:54 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -99,14 +99,14 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
 
     if(	var
 #if BEGINENV == 99
-	&& TclGetEnv( interp,"MODULESBEGINENV")
+	&& EMGetEnv( interp,"MODULESBEGINENV")
 #endif
 	) {
 	/**
 	 **  Get filename and the value of the passed variable
 	 **/
-	if( (filename = (char *) TclGetEnv( interp, "_MODULESBEGINENV_")) ) {
-	    val = (char *) TclGetEnv( interp, var);
+	if( (filename = (char *) EMGetEnv( interp, "_MODULESBEGINENV_")) ) {
+	    val = (char *) EMGetEnv( interp, var);
 
 	    /**
 	     **  Append the string <var>=<value>

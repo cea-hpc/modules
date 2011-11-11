@@ -51,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.42 2011/10/17 18:11:34 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.43 2011/11/11 15:32:54 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -629,7 +629,7 @@ int Unwind_Modulefile_Changes(
 			while (keys && *keys) {
 				val = mhash_value(oldTables[i], *keys);
 				if (val)
-					(void) TclSetEnv(interp, *keys, val);
+					(void) EMSetEnv(interp, *keys, val);
 				keys++;
 			}
 		} /** for **/
@@ -712,7 +712,7 @@ int Output_Modulefile_Changes(
 			if (i == 1) {
 				output_unset_variable(*keys);
 			} else {
-				if ((val = TclGetEnv(interp, *keys)))
+				if ((val = EMGetEnv(interp, *keys)))
 					output_set_variable(*keys, val);
 			}
 			keys++;
@@ -1064,7 +1064,7 @@ static int output_set_variable(
 	     **/
 			do {
 				sprintf(formatted, "_LMFILES_%03d", count++);
-				if ((cptr = TclGetEnv(interp, formatted)))
+				if ((cptr = EMGetEnv(interp, formatted)))
 					fprintf(stdout, "unsetenv %s%s",
 						formatted, shell_cmd_separator);
 			} while (cptr);
@@ -1589,7 +1589,7 @@ char           *getLMFILES(
 	if (lmfiles)
 		null_free((void *)&lmfiles);
 
-	lmfiles = TclGetEnv(interp, "_LMFILES_");
+	lmfiles = EMGetEnv(interp, "_LMFILES_");
 
     /**
      **  Now the pointer is NULL in case of the variable has not been defined.
@@ -1615,7 +1615,7 @@ char           *getLMFILES(
 	 **  in
 	 **/
 		sprintf(buffer, "_LMFILES_%03d", count++);
-		cptr = TclGetEnv(interp, buffer);
+		cptr = EMGetEnv(interp, buffer);
 
 		while (cptr) {		/** Something available		     **/
 
@@ -1644,7 +1644,7 @@ char           *getLMFILES(
 	     **  Read the next split part variable
 	     **/
 			sprintf(buffer, "_LMFILES_%03d", count++);
-			cptr = TclGetEnv(interp, buffer);
+			cptr = EMGetEnv(interp, buffer);
 		}
 
 	} else { /** if( lmfiles) **/
@@ -1763,7 +1763,7 @@ static int __IsLoaded(
      **  Get a list of loaded modules (environment variable 'LOADEDMODULES')
      **  and the list of loaded module-files (env. var. __LMFILES__)
      **/
-    char	*loaded_modules = TclGetEnv(interp, "LOADEDMODULES");
+    char	*loaded_modules = EMGetEnv(interp, "LOADEDMODULES");
     char	*loaded_modulefiles = getLMFILES(interp);
     
     /**
@@ -2791,7 +2791,7 @@ void OutputExit() {
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
- **   Function:		TclGetEnv					     **
+ **   Function:		EMGetEnv					     **
  ** 									     **
  **   Description:	Wrap the Tcl_GetVar2() call and return an allocated  **
  ** 			string						     **
@@ -2805,7 +2805,7 @@ void OutputExit() {
  ** 									     **
  ** ************************************************************************ **
  ++++*/
-char * TclGetEnv(	Tcl_Interp	 *interp, 
+char * EMGetEnv(	Tcl_Interp	 *interp, 
 			char const	 *var) {
 
 	char const *value, *string;
@@ -2817,12 +2817,12 @@ char * TclGetEnv(	Tcl_Interp	 *interp,
 
 	return (char *) string;
 
-} /** End of 'TclGetEnv' **/
+} /** End of 'EMGetEnv' **/
 
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
- **   Function:		TclSetEnv					     **
+ **   Function:		EMSetEnv					     **
  ** 									     **
  **   Description:	Wrap the Tcl_SetVar2() call and return an allocated  **
  ** 			string						     **
@@ -2837,7 +2837,7 @@ char * TclGetEnv(	Tcl_Interp	 *interp,
  ** 									     **
  ** ************************************************************************ **
  ++++*/
-char const * TclSetEnv(	Tcl_Interp	 *interp, 
+char const * EMSetEnv(	Tcl_Interp	 *interp, 
 			char const	 *var,
 			char const	 *val) {
 
@@ -2849,7 +2849,7 @@ char const * TclSetEnv(	Tcl_Interp	 *interp,
 
 	return value;
 
-} /** End of 'TclSetEnv' **/
+} /** End of 'EMSetEnv' **/
 
 /*++++
  ** ** Function-Header ***************************************************** **

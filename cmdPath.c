@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.25 2011/10/24 20:44:31 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.26 2011/11/11 15:32:54 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -214,7 +214,7 @@ int cmdSetPath(
      **  (this is an intentional memory leak)
      **/
 	oldpath =
-	    (char *) TclGetEnv(interp, Tcl_GetString(objv[arg1]));
+	    (char *) EMGetEnv(interp, Tcl_GetString(objv[arg1]));
 	_TCLCHK(interp);
 
 #if 0
@@ -526,7 +526,7 @@ static int Remove_Path(
     /**
      **  Get the current value of the "PATH" environment variable
      **/
-	if(!(oldpath=(char *) TclGetEnv( interp, variable ))) {
+	if(!(oldpath=(char *) EMGetEnv( interp, variable ))) {
 		_TCLCHK(interp);
 		goto success0;		/** -------- EXIT (SUCCESS) -------> **/
 	}
@@ -612,7 +612,7 @@ static int Remove_Path(
 		/**
 		**  Store the new PATH value into the environment.
 		**/
-		(void) TclSetEnv( interp, variable, Tcl_DStringValue(newpath));
+		(void) EMSetEnv( interp, variable, Tcl_DStringValue(newpath));
 
 		_TCLCHK(interp);
 	} else {
@@ -643,7 +643,7 @@ static int Remove_Path(
 		 **  after removing the only remaining path.  So, I set
 		 **  the variable empty here.
 		 **/
-		(void) TclSetEnv(interp, variable, "");
+		(void) EMSetEnv(interp, variable, "");
 		_TCLCHK(interp);
 	}
 

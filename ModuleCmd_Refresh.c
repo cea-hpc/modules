@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.12 2011/10/13 20:31:17 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Refresh.c,v 1.13 2011/11/11 15:32:54 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -112,7 +112,7 @@ int ModuleCmd_Refresh(	Tcl_Interp	*interp,
     /**
      ** Begin by getting the list of loaded modules.
      **/
-    loaded = TclGetEnv(interp, "LOADEDMODULES" );
+    loaded = EMGetEnv(interp, "LOADEDMODULES" );
     if (!loaded || !*loaded)
 	goto success0;
 
