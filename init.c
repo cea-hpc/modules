@@ -38,7 +38,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.9.4.3 2011/10/17 17:16:50 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.9.4.4 2011/11/11 15:04:03 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -730,7 +730,7 @@ int Setup_Environment( Tcl_Interp*	interp)
      **/
     loaded = getLMFILES( interp);
     if( loaded)
-	if( !(TclSetEnv( interp, "_LMFILES_", loaded)))
+	if( !(EMSetEnv( interp, "_LMFILES_", loaded)))
 	    if( OK != ErrorLogger( ERR_SET_VAR, LOC, environ[i], NULL))
 		goto unwind0;
 

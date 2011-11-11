@@ -749,8 +749,8 @@ extern	void	  null_free(void **);
 extern	size_t	  countTclHash(Tcl_HashTable *);
 extern	EM_RetVal	ReturnValue( Tcl_Interp*, int);
 extern	void	  OutputExit();
-extern	char 	 *TclGetEnv(Tcl_Interp *, char const *);
-extern	char 	 *TclSetEnv(Tcl_Interp *, char const *, char const *);
+extern	char 	 *EMGetEnv(Tcl_Interp *, char const *);
+extern	char 	 *EMSetEnv(Tcl_Interp *, char const *, char const *);
 
 #ifndef HAVE_STRDUP
 #  undef strdup
