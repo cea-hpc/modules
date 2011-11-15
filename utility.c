@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.19.6.6 2011/11/11 15:04:03 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.19.6.7 2011/11/15 18:18:21 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -219,7 +219,7 @@ int store_hash_value(	Tcl_HashTable* htable,
      **/
 
     if( value)
-        Tcl_SetHashValue( hentry, (char*) strdup((char*) value));
+        Tcl_SetHashValue( hentry, (char*) stringer(NULL,0, (char *)value,NULL));
     else
         Tcl_SetHashValue( hentry, (char*) NULL);
     
@@ -522,7 +522,7 @@ Tcl_HashTable	**Copy_Hash_Tables( void)
 		newHashEntry = Tcl_CreateHashEntry( *n_ptr, key, &new);
 
 		if(val)
-		    Tcl_SetHashValue(newHashEntry, strdup(val));
+		    Tcl_SetHashValue(newHashEntry, stringer(NULL,0, val, NULL));
 		else
 		    Tcl_SetHashValue(newHashEntry, (char *) NULL);
 
@@ -709,7 +709,7 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 	if( hashEntry = Tcl_FirstHashEntry( table[i], &searchPtr))
 		do {
 			key = (char*) Tcl_GetHashKey( table[i], hashEntry);
-			list[k++] = strdup(key);
+			list[k++] = stringer(NULL,0, key, NULL);
 		} while( hashEntry = Tcl_NextHashEntry( &searchPtr));
 	/* sort hash */
 	if (hcnt > 1)
@@ -1056,7 +1056,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 			     LMSPLIT_SIZE);
 		buffer[ LMSPLIT_SIZE] = '\0';
 
-		fprintf( stdout, "setenv %s%03d %s%s", var, count, buffer,
+		fprintf( stdout, "setenv %s%03d %s %s", var, count, buffer,
 		    shell_cmd_separator);
 
 		lmfiles_len -= LMSPLIT_SIZE;
@@ -1064,7 +1064,7 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	    }
 
 		if( lmfiles_len) {
-		fprintf( stdout, "setenv %s%03d %s%s", var, count,
+		fprintf( stdout, "setenv %s%03d %s %s", var, count,
 		    (escaped + count*LMSPLIT_SIZE), shell_cmd_separator);
 		    count++;
 		}
@@ -1073,11 +1073,11 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 		 ** Unset _LMFILES_ as indicator to use the multi-variable
 		 ** _LMFILES_
 	     **/
-	    fprintf(stdout, "unsetenv %s%s", var, shell_cmd_separator);
+	    fprintf(stdout, "unsetenv %s %s", var, shell_cmd_separator);
 
 	    } else {	/** if ( lmfiles_len = strlen(val)) > LMSPLIT_SIZE) **/
 
-		fprintf(stdout, "setenv %s %s%s", var, escaped, shell_cmd_separator);
+		fprintf(stdout, "setenv %s %s %s", var, escaped, shell_cmd_separator);
 	    }
 
 	    /**
@@ -1086,10 +1086,10 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	    do {
 		sprintf( formatted, "_LMFILES_%03d", count++);
 		cptr = EMGetEnv( interp, formatted);
-		if( cptr) {
-		    fprintf(stdout, "unsetenv %s%s", formatted, shell_cmd_separator);
+		if( cptr && *cptr) {
+		    fprintf(stdout, "unsetenv %s %s", formatted, shell_cmd_separator);
 		}
-	    } while( cptr);
+	    } while( cptr && *cptr);
 	
 	  null_free((void *) &escaped);
 
@@ -1653,7 +1653,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
      **  Now the pointer is NULL in case of the variable has not been defined.
      **  In this case try to read in the splitted variable from _LMFILES_xxx
      **/
-    if( !lmfiles) {
+    if( !lmfiles || !*lmfiles) {
 
         char	buffer[ MOD_BUFSIZE];	/** Used to set up the split variab- **/
 					/** les name			     **/
@@ -1706,7 +1706,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
 	 **  of the returned buffer into a free allocated one in order to
 	 **  avoid side effects.
 	 **/
-	char	*tmp = strdup(lmfiles);
+	char	*tmp = stringer(NULL,0, lmfiles, NULL);
 
 	if( !tmp)
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
@@ -2167,7 +2167,7 @@ int Update_LoadedList(	Tcl_Interp	*interp,
      **  the path too.
      **/
     if( g_flags & M_REMOVE) {
-	module = strdup( modulename);
+	module = stringer(NULL,0, modulename, NULL);
 	basename = module;
 	if( basename = get_module_basename( basename)) {
 	argv[2] = basename;
@@ -2673,7 +2673,7 @@ char *xdup(char const *string) {
 			}
 		}
 		null_free((void *) &result);
-		return strdup(buffer);
+		return stringer(NULL,0, buffer, NULL);
 	}
 
 } /** End of 'xdup' **/
@@ -3168,8 +3168,12 @@ char * EMGetEnv(	Tcl_Interp	 *interp,
 	Tcl_Release(interp);
 	string = stringer(NULL, 0, value, NULL);
 
-/*	return stringer(NULL, 0,
-		Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY), NULL); */
+	if(!string)
+		if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
+			return (NULL);		/** ---- EXIT (FAILURE) ---> **/
+	if (!*string)
+		null_free((void *)&string);
+
 	return string;
 
 } /** End of 'EMGetEnv' **/
