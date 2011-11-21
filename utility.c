@@ -51,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.43 2011/11/11 15:32:54 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.44 2011/11/21 22:57:28 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -115,7 +115,7 @@ static	const int   bourne_alias = 	/** HAS_BOURNE_FUNCS macro	     **/
 
 static	int	 Output_Modulefile_Aliases( void);
 static	int	 Output_Directory_Change( void);
-static	int	 output_set_variable( const char*, const char*);
+static	int	 output_set_variable( Tcl_Interp *, const char*, const char*);
 static	int	 output_unset_variable( const char* var);
 static	void	 output_function( const char*, const char*);
 static	int	 output_set_alias( const char*, const char*);
@@ -713,7 +713,7 @@ int Output_Modulefile_Changes(
 				output_unset_variable(*keys);
 			} else {
 				if ((val = EMGetEnv(interp, *keys)))
-					output_set_variable(*keys, val);
+					output_set_variable(interp, *keys, val);
 			}
 			keys++;
 		}
@@ -965,7 +965,8 @@ static int Output_Directory_Change(
  ** 									     **
  **   First Edition:	1991/10/23					     **
  ** 									     **
- **   Parameters:	const char	*var	Name of the variable to be   **
+ **   Parameters:	Tcl_Interp	*interp	The attached Tcl interpreter **
+ **			const char	*var	Name of the variable to be   **
  **						set			     **
  **			const char	*val	Value to be assigned	     **
  **									     **
@@ -977,10 +978,9 @@ static int Output_Directory_Change(
  ** ************************************************************************ **
  ++++*/
 
-static int output_set_variable(
-	const char *var,
-	const char *val
-) {
+static int output_set_variable(	Tcl_Interp	*interp,
+				const char *var,
+				const char *val) {
 
     /**
      **  Differ between the different kinds of shells at first
@@ -1030,7 +1030,7 @@ static int output_set_variable(
 						LMSPLIT_SIZE);
 					buffer[LMSPLIT_SIZE] = '\0';
 
-					fprintf(stdout, "setenv %s%03d %s%s",
+					fprintf(stdout, "setenv %s%03d %s %s",
 						var, count, buffer,
 						shell_cmd_separator);
 
@@ -1039,7 +1039,7 @@ static int output_set_variable(
 				}
 
 				if (lmfiles_len) {
-					fprintf(stdout, "setenv %s%03d %s%s",
+					fprintf(stdout, "setenv %s%03d %s %s",
 						var, count,
 						(escaped +
 						 count * LMSPLIT_SIZE),
@@ -1050,25 +1050,27 @@ static int output_set_variable(
 		 ** Unset _LMFILES_ as indicator to use the multi-variable
 		 ** _LMFILES_
 		 **/
-				fprintf(stdout, "unsetenv %s%s", var,
+				fprintf(stdout, "unsetenv %s %s", var,
 					shell_cmd_separator);
 
 			} else {
 			/** if ( lmfiles_len = strlen(val)) > LMSPLIT_SIZE) **/
 
-				fprintf(stdout, "setenv %s %s%s", var, escaped,
+				fprintf(stdout, "setenv %s %s %s", var, escaped,
 					shell_cmd_separator);
 			}
 	    /**
 	     ** Unset the extra _LMFILES_%03d variables that may be set
 	     **/
 			do {
+				if (cptr)	null_free((void *) &cptr);
 				sprintf(formatted, "_LMFILES_%03d", count++);
 				if ((cptr = EMGetEnv(interp, formatted)))
-					fprintf(stdout, "unsetenv %s%s",
+					fprintf(stdout, "unsetenv %s %s",
 						formatted, shell_cmd_separator);
-			} while (cptr);
+			} while (cptr && *cptr);
 
+			null_free((void *)&cptr);
 			null_free((void *)&escaped);
 
 		} else {/** if( var == "_LMFILES_") **/
@@ -1586,8 +1588,7 @@ char           *getLMFILES(
      **  Try to read the variable _LMFILES_. If the according buffer pointer
      **  contains a value, disallocate it before.
      **/
-	if (lmfiles)
-		null_free((void *)&lmfiles);
+	if (lmfiles)	null_free((void *)&lmfiles);
 
 	lmfiles = EMGetEnv(interp, "_LMFILES_");
 
@@ -1617,7 +1618,7 @@ char           *getLMFILES(
 		sprintf(buffer, "_LMFILES_%03d", count++);
 		cptr = EMGetEnv(interp, buffer);
 
-		while (cptr) {		/** Something available		     **/
+		while (cptr && *cptr) {	/** Something available		     **/
 
 	    /**
 	     **  Count up the variables length
@@ -1643,9 +1644,11 @@ char           *getLMFILES(
 	    /**
 	     **  Read the next split part variable
 	     **/
+			if (cptr)	null_free((void *) &cptr);
 			sprintf(buffer, "_LMFILES_%03d", count++);
 			cptr = EMGetEnv(interp, buffer);
 		}
+		if (cptr)	null_free((void *) &cptr);
 
 	} else { /** if( lmfiles) **/
 	/**
@@ -2814,6 +2817,10 @@ char * EMGetEnv(	Tcl_Interp	 *interp,
 	value = Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY);
 	Tcl_Release(interp);
 	string = stringer(NULL, 0, (char *) value, NULL);
+
+	if (!string)
+		if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
+			return (NULL);		/** ---- EXIT (FAILURE) ---> **/
 
 	return (char *) string;
 
