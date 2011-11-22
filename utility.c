@@ -51,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.44 2011/11/21 22:57:28 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.45 2011/11/22 17:41:02 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -1024,8 +1024,7 @@ static int output_set_variable(	Tcl_Interp	*interp,
 	     **/
 				while (lmfiles_len > LMSPLIT_SIZE) {
 
-					strncpy(buffer,
-						(escaped +
+					strncpy(buffer, (escaped +
 						 count * LMSPLIT_SIZE),
 						LMSPLIT_SIZE);
 					buffer[LMSPLIT_SIZE] = '\0';
@@ -1040,8 +1039,7 @@ static int output_set_variable(	Tcl_Interp	*interp,
 
 				if (lmfiles_len) {
 					fprintf(stdout, "setenv %s%03d %s %s",
-						var, count,
-						(escaped +
+						var, count, (escaped +
 						 count * LMSPLIT_SIZE),
 						shell_cmd_separator);
 					count++;
@@ -1065,15 +1063,16 @@ static int output_set_variable(	Tcl_Interp	*interp,
 			do {
 				if (cptr)	null_free((void *) &cptr);
 				sprintf(formatted, "_LMFILES_%03d", count++);
-				if ((cptr = EMGetEnv(interp, formatted)))
+				cptr = EMGetEnv(interp, formatted);
+				if (cptr && *cptr)
 					fprintf(stdout, "unsetenv %s %s",
 						formatted, shell_cmd_separator);
 			} while (cptr && *cptr);
 
-			null_free((void *)&cptr);
-			null_free((void *)&escaped);
+			null_free((void *) &cptr);
+			null_free((void *) &escaped);
 
-		} else {/** if( var == "_LMFILES_") **/
+		} else {	/** if( var == "_LMFILES_") **/
 #endif	/* not LMSPLIT_SIZE */
 
 			char *escaped = stringer(NULL, strlen(val)*2 + 1, NULL);
@@ -1152,8 +1151,7 @@ static int output_set_variable(	Tcl_Interp	*interp,
      **  return on error
      **/
 		if (OK != ErrorLogger(ERR_DERELICT, LOC, shell_derelict, NULL))
-			return (TCL_ERROR);
-					/** -------- EXIT (FAILURE) -------> **/
+			return (TCL_ERROR);	/** ---- EXIT (FAILURE) ---> **/
 	}
 
     /**
