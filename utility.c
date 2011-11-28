@@ -52,7 +52,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.19.6.7 2011/11/15 18:18:21 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.19.6.8 2011/11/28 21:13:15 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -726,8 +726,10 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 		if( i == 1) {
 			output_unset_variable( (char*) key);
 		} else {
-			if((val = EMGetEnv(interp, key)))
+			val = EMGetEnv(interp, key);
+			if(val && *val)
 				output_set_variable(interp, (char*) key, val);
+			null_free((void *)&val);
 		}
 	} /** for **/
 	/* delloc list */
@@ -1084,22 +1086,26 @@ static	int	output_set_variable(	Tcl_Interp	*interp,
 	     ** Unset the extra _LMFILES_%03d variables that may be set
 	     **/
 	    do {
+		if (cptr) null_free((void *) &cptr);
 		sprintf( formatted, "_LMFILES_%03d", count++);
 		cptr = EMGetEnv( interp, formatted);
-		if( cptr && *cptr) {
-		    fprintf(stdout, "unsetenv %s %s", formatted, shell_cmd_separator);
+		if(cptr && *cptr) {
+		    fprintf(stdout, "unsetenv %s %s", formatted,
+			shell_cmd_separator);
 		}
 	    } while( cptr && *cptr);
-	
-	  null_free((void *) &escaped);
+
+	    null_free((void *) &cptr);
+	    null_free((void *) &escaped);
 
 	} else {	/** if( var == "_LMFILES_") **/
 
 #endif /* not LMSPLIT_SIZE */
-	  
+
 		char* escaped = stringer(NULL,strlen(val)*2+1,NULL);
 		EscapeCshString(val,escaped);
-		fprintf(stdout, "setenv %s %s %s", var, escaped, shell_cmd_separator);
+		fprintf(stdout, "setenv %s %s %s", var, escaped,
+			shell_cmd_separator);
 		null_free((void *) &escaped);
 #ifdef LMSPLIT_SIZE
 	}
@@ -1670,7 +1676,7 @@ char	*getLMFILES( Tcl_Interp	*interp)
         sprintf( buffer, "_LMFILES_%03d", count++);
         cptr = EMGetEnv( interp, buffer);
 
-        while( cptr) {			/** Something available		     **/
+	while(cptr && *cptr) {		/** Something available		     **/
 
 	    /**
 	     **  Count up the variables length
@@ -1826,8 +1832,9 @@ static int __IsLoaded(	Tcl_Interp	 *interp,
      **  If no module is currently loaded ... the requested module is surely
      **  not loaded, too ;-)
      **/
-    if( !loaded_modules) 
+    if( !loaded_modules || !*loaded_modules) {
 	goto unwind0;
+    }
     
     /**
      **  Copy the list of currently loaded modules into a new allocated array
@@ -1980,6 +1987,7 @@ unwind2:
 unwind1:
     null_free((void *) &l_modules);
 unwind0:
+    null_free((void *)&loaded_modules);
     return( 0);				/** -------- EXIT (FAILURE) -------> **/
 
 success0:
@@ -3164,15 +3172,13 @@ char * EMGetEnv(	Tcl_Interp	 *interp,
 	char *value, *string;
 
 	Tcl_Preserve(interp);
-	value = Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY);
+	value = (char *) Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY);
 	Tcl_Release(interp);
 	string = stringer(NULL, 0, value, NULL);
 
 	if(!string)
 		if (OK != ErrorLogger(ERR_ALLOC, LOC, NULL))
 			return (NULL);		/** ---- EXIT (FAILURE) ---> **/
-	if (!*string)
-		null_free((void *)&string);
 
 	return string;
 
@@ -3203,11 +3209,9 @@ char * EMSetEnv(	Tcl_Interp	 *interp,
 	char *value;
 
 	Tcl_Preserve(interp);
-	value = Tcl_SetVar2( interp, "env", var, val, TCL_GLOBAL_ONLY);
+	value = (char *) Tcl_SetVar2( interp, "env", var, val, TCL_GLOBAL_ONLY);
 	Tcl_Release(interp);
 
-/*	return stringer(NULL, 0,
-		Tcl_SetVar2( interp, "env", var, val, TCL_GLOBAL_ONLY), NULL);*/
 	return value;
 
 } /** End of 'EMSetEnv' **/

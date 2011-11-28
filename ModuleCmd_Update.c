@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.6.18.4 2011/11/11 15:04:03 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.6.18.5 2011/11/28 21:13:15 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -134,10 +134,10 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
      **  First I'll update the environment with what's in _MODULESBEGINENV_
      **/
     filename = EMGetEnv( interp,"_MODULESBEGINENV_");
-    if( filename) {
+    if(filename && *filename) {
 
 	/**
-	 **  Read the beginning environment
+	 **  Read the begining environment
 	 **/
 	if( NULL != (file = fopen( filename, "r"))) {
 
@@ -286,6 +286,7 @@ success0:
 unwind1:
     null_free((void *) &load_list);
 unwind0:
+    null_free((void *) &filename);
 #else	/* BEGINENV */
 	ErrorLogger( ERR_BEGINENV, LOC, NULL);
 #endif	/* BEGINENV */

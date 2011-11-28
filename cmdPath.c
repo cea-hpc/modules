@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.10.4.4 2011/11/11 15:04:03 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.10.4.5 2011/11/28 21:13:15 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -215,8 +215,12 @@ int	cmdSetPath(	ClientData	 client_data,
     oldpath =  EMGetEnv( interp, argv[arg1]);
     _TCLCHK(interp)
 
-    if( oldpath == NULL)
-	oldpath = !strcmp( argv[arg1], "MANPATH") ? DEFAULTMANPATH : "";
+    if(!oldpath || !*oldpath) {
+	null_free((void *) &oldpath);
+	oldpath = !strcmp( argv[arg1], "MANPATH")
+		? stringer(NULL,0,DEFAULTMANPATH,NULL)
+		: stringer(NULL,0,"",NULL);
+    }
 
     /**
      **  Split the new path into its components directories so each
@@ -266,8 +270,7 @@ int	cmdSetPath(	ClientData	 client_data,
 	 **  add it to the qualified path.
 	 **/
 	if( !Tcl_RegExpExec(interp, chkexpPtr, oldpath, oldpath))
-	    if ((char *) NULL ==
-		    stringer(qualifiedpath + strlen(qualifiedpath),
+	    if (!stringer(qualifiedpath + strlen(qualifiedpath),
 		    qpathlen - strlen(qualifiedpath),
 		    pathlist[x], delim, NULL))
 		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
@@ -290,7 +293,7 @@ int	cmdSetPath(	ClientData	 client_data,
      **  Some space for our newly created path.
      **  We size at the oldpath plus the addition.
      **/
-    if((char *)NULL == (newpath = stringer(NULL, strlen( oldpath) +
+    if(!(newpath = stringer(NULL, strlen( oldpath) +
 	strlen(qualifiedpath) + 2,NULL)))
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	    goto unwind2;
@@ -385,6 +388,7 @@ int	cmdSetPath(	ClientData	 client_data,
      **/
     null_free((void *) &newpath);
 success1:
+    null_free((void *) &oldpath);
     null_free((void *) &qualifiedpath);
     FreeList( pathlist, numpaths);
 success0:
@@ -395,6 +399,7 @@ unwind2:
 unwind1:
     FreeList( pathlist, numpaths);
 unwind0:
+    null_free((void *) &oldpath);
     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'cmdSetPath' **/
@@ -589,7 +594,9 @@ static int Remove_Path(
     /**
      **  Get the current value of the "PATH" environment variable
      **/
-	if(!(oldpath=(char *)EMGetEnv(interp, variable))) {
+	oldpath = (char *) EMGetEnv(interp, variable);
+	if (!oldpath || !*oldpath) {
+		null_free((void *) &oldpath);
 		_TCLCHK(interp);
 		goto success0;		/** -------- EXIT (SUCCESS) -------> **/
 	}

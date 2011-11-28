@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.6.20.3 2011/11/11 15:04:03 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.6.20.4 2011/11/28 21:13:15 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -121,7 +121,8 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
 	 **  Get filename and the value of the passed variable
 	 **/
 
-	if( filename = EMGetEnv( interp, "_MODULESBEGINENV_")) {
+	filename = EMGetEnv( interp, "_MODULESBEGINENV_");
+	if(filename && *filename) {
 	    val = EMGetEnv( interp, var);
 
 	    /**
@@ -136,7 +137,8 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
 		ErrorLogger( ERR_OPEN, LOC, filename, "appending", NULL);
 	    }
 
-        } /** if( get filename) **/
+	} /** if( get filename) **/
+	null_free((void *)&filename);
     } /** if( var passed) **/
 
 } /** End of 'append_to_modulesbeginenv' **/
