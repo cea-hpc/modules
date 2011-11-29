@@ -23,7 +23,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.5.18.2 2011/10/03 19:31:52 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.5.18.3 2011/11/29 15:48:58 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -112,10 +112,10 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
     int		 i, result = TCL_OK, done = 0;
     char	 modulefile[ MOD_BUFSIZE],
 		 modulename[ MOD_BUFSIZE],
-		*modpath,		/** Buffer for the contents of the   **/
+		*modpath = (char *)NULL,/** Buffer for the contents of the   **/
 					/** environment variable MODULEPATH  **/
 		**wptr,
-		*dirname,
+		*dirname = (char *)NULL,
 		*cache_file = (char *) NULL;	/** Name of the cache file   **/
     FILE	*cachefp = (FILE *) NULL;	/** Cache file pointer	     **/
 
