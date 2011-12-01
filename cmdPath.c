@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.26 2011/11/11 15:32:54 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.27 2011/12/01 19:34:28 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -213,23 +213,15 @@ int cmdSetPath(
      **  Put a \ in front of each '.' and '+'.
      **  (this is an intentional memory leak)
      **/
-	oldpath =
-	    (char *) EMGetEnv(interp, Tcl_GetString(objv[arg1]));
+	oldpath = (char *) EMGetEnv(interp, Tcl_GetString(objv[arg1]));
 	_TCLCHK(interp);
 
-#if 0
-	    if (!oldpath)
-		oldpath = !strcmp(Tcl_GetString(objv[arg1]),
-			    "MANPATH") ? DEFAULTMANPATH : "";
-#else
-	    if (oldpath) {
-		if(!(oldpath = strdup(oldpath)))
-			if( OK != ErrorLogger( ERR_STRING ,LOC ,NULL) )
-				goto unwind0;
-	    } else {
-		oldpath = "";
-	    }
-#endif
+	if(!oldpath || !*oldpath) {
+		null_free((void *) &oldpath);
+		oldpath = !strcmp( Tcl_GetString(objv[arg1]), "MANPATH")
+			? stringer(NULL,0,DEFAULTMANPATH,NULL)
+			: stringer(NULL,0,"",NULL);
+	}
 
 	/* determine if sw_marker is in the path */
 	item = xstrtok(oldpath ,delim);
@@ -325,6 +317,7 @@ int cmdSetPath(
      ** Free resources
      **/
 success1:
+	null_free((void *) &oldpath);
 	Tcl_DStringFree(newpath);
 	Tcl_DStringFree(qualifiedpath);
 	Tcl_DeleteHashTable(oldpathhash);
@@ -332,6 +325,7 @@ success1:
 success0:
 	return (TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
 unwind2:
+	null_free((void *) &oldpath);
 	Tcl_DStringFree(newpath);
 	Tcl_DStringFree(qualifiedpath);
 	Tcl_DeleteHashTable(oldpathhash);
@@ -526,7 +520,8 @@ static int Remove_Path(
     /**
      **  Get the current value of the "PATH" environment variable
      **/
-	if(!(oldpath=(char *) EMGetEnv( interp, variable ))) {
+	oldpath= EMGetEnv( interp, variable );
+	if(!oldpath && !*oldpath) {
 		_TCLCHK(interp);
 		goto success0;		/** -------- EXIT (SUCCESS) -------> **/
 	}

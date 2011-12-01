@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.17 2011/11/11 15:32:54 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.18 2011/12/01 19:34:28 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -96,16 +96,20 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
 					/** ning environment resides	     **/
 		*val;			/** Value of the passed variable     **/
     FILE	*file;			/** File read handle		     **/
+#if BEGINENV == 99
+    char	*mbegenv = EMGetEnv( interp,"MODULESBEGINENV");
+#endif
 
     if(	var
 #if BEGINENV == 99
-	&& EMGetEnv( interp,"MODULESBEGINENV")
+	&& (mbegenv && *mbegenv)
 #endif
 	) {
 	/**
 	 **  Get filename and the value of the passed variable
 	 **/
-	if( (filename = (char *) EMGetEnv( interp, "_MODULESBEGINENV_")) ) {
+	filename = (char *) EMGetEnv( interp, "_MODULESBEGINENV_");
+	if(filename && *filename) {
 	    val = (char *) EMGetEnv( interp, var);
 
 	    /**
@@ -120,8 +124,14 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
 		ErrorLogger( ERR_OPEN, LOC, filename, _(em_appending), NULL);
 	    }
 
-        } /** if( get filename) **/
+	    null_free((void *)&val);
+
+	} /** if( get filename) **/
+	null_free((void *)&filename);
     } /** if( var passed) **/
+#if BEGINENV == 99
+    null_free((void *)&mbegenv);
+#endif
 
 } /** End of 'append_to_modulesbeginenv' **/
 #else

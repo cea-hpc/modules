@@ -31,7 +31,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.15 2011/11/11 15:32:54 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.16 2011/12/01 19:34:28 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -185,6 +185,8 @@ int	moduleSetenv(	Tcl_Interp	*interp,
     char	*oldval;			/** Old value of 'variable'  **/
 
     oldval = EMGetEnv( interp, variable);
+    if (!oldval || !*oldval)
+	null_free((void *)&oldval);
   
     /**
      **  Check to see if variable is already set correctly... 

@@ -51,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.45 2011/11/22 17:41:02 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.46 2011/12/01 19:34:28 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -712,8 +712,10 @@ int Output_Modulefile_Changes(
 			if (i == 1) {
 				output_unset_variable(*keys);
 			} else {
-				if ((val = EMGetEnv(interp, *keys)))
+				val = EMGetEnv(interp, *keys);
+				if (val && *val)
 					output_set_variable(interp, *keys, val);
+				null_free((void *) &val);
 			}
 			keys++;
 		}
@@ -1586,7 +1588,7 @@ char           *getLMFILES(
      **  Try to read the variable _LMFILES_. If the according buffer pointer
      **  contains a value, disallocate it before.
      **/
-	if (lmfiles)	null_free((void *)&lmfiles);
+	if (lmfiles)	null_free((void *) &lmfiles);
 
 	lmfiles = EMGetEnv(interp, "_LMFILES_");
 
@@ -1594,20 +1596,15 @@ char           *getLMFILES(
      **  Now the pointer is NULL in case of the variable has not been defined.
      **  In this case try to read in the splitted variable from _LMFILES_xxx
      **/
-	if (!lmfiles) {
+	if (!lmfiles || !*lmfiles) {
 
-		char            buffer[MOD_BUFSIZE];
-					/** Used to set up the split variab- **/
-					/** les name			     **/
-		int             count = 0;
-					/** Split part count		     **/
-		int             lmsize = 0;
-					/** Total size of _LMFILES_ content  **/
-		int             old_lmsize;
-					/** Size save buffer		     **/
-		int             cptr_len;
-					/** Size of the current split part   **/
-		char           *cptr;	/** Split part read pointer	     **/
+		char	 buffer[MOD_BUFSIZE];
+				/** Used to set up the split variables name  **/
+		int	 count = 0;	/** Split part count		     **/
+		int	 lmsize = 0;	/** Total size of _LMFILES_ content  **/
+		int	 old_lmsize;	/** Size save buffer		     **/
+		int	 cptr_len;	/** Size of the current split part   **/
+		char	*cptr;		/** Split part read pointer	     **/
 
 	/**
 	 **  Set up the split part environment variable name and try to read it
@@ -1642,7 +1639,6 @@ char           *getLMFILES(
 	    /**
 	     **  Read the next split part variable
 	     **/
-			if (cptr)	null_free((void *) &cptr);
 			sprintf(buffer, "_LMFILES_%03d", count++);
 			cptr = EMGetEnv(interp, buffer);
 		}
@@ -1771,8 +1767,9 @@ static int __IsLoaded(
      **  If no module is currently loaded ... the requested module is surely
      **  not loaded, too ;-)
      **/
-    if( !loaded_modules) 
+    if( !loaded_modules || !*loaded_modules) {
 	goto unwind0;
+    }
     
     /**
      **  Copy the list of currently loaded modules into a new allocated array
@@ -1922,6 +1919,7 @@ unwind2:
 unwind1:
     null_free((void *) &l_modules);
 unwind0:
+    null_free((void *)&loaded_modules);
     return( 0);				/** -------- EXIT (FAILURE) -------> **/
 
 success0:
