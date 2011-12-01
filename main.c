@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: main.c,v 1.36 2010/11/12 20:16:36 rkowen Exp $";
+static char Id[] = "@(#)$Id: main.c,v 1.37 2011/12/01 20:49:57 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -278,7 +278,7 @@ int main(
 			}
 		}
 	} else {
-		rc_path = etcpath;
+		rc_path = stringer(NULL,0, etcpath, NULL);
 		null_free((void *)&rc_name);
 		rc_name = rc_file;
 	}

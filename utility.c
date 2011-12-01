@@ -51,7 +51,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: utility.c,v 1.46 2011/12/01 19:34:28 rkowen Exp $";
+static char Id[] = "@(#)$Id: utility.c,v 1.47 2011/12/01 20:49:57 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -1010,7 +1010,7 @@ static int output_set_variable(	Tcl_Interp	*interp,
 	 **/
 		if (!strcmp(var, "_LMFILES_")) {
 			char            formatted[MOD_BUFSIZE],
-				       *cptr;
+				       *cptr = (char *) NULL;
 			int             lmfiles_len,
 					count = 0;
 			char *escaped = stringer(NULL, strlen(val)*2 + 1, NULL);
