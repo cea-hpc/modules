@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.18 2011/12/01 19:34:28 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.19 2011/12/13 17:51:15 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -116,7 +116,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
      **  Nothing loaded so far - we're ready!
      **/
 
-    if( !( tmpload = (char *) getenv("LOADEDMODULES"))) {
+    if(!(tmpload = (char *) getenv("LOADEDMODULES"))) {
 	if( OK != ErrorLogger( ERR_MODULE_PATH, LOC, NULL))
 	    goto unwind0;
 	else
@@ -124,7 +124,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
     }
 
     /**
-     **  First I'll update the environment with what's in _MODULESBEGINENV_
+     **  First I'll update the environment with whatever in _MODULESBEGINENV_
      **/
     filename = EMGetEnv( interp,"_MODULESBEGINENV_");
     if(filename && *filename) {
@@ -132,7 +132,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 	/**
 	 **  Read the begining environment
 	 **/
-	if( NULL != (file = fopen( filename, "r"))) {
+	if((file = fopen( filename, "r"))) {
 
 	    if(!(buf = stringer(NULL, buffer_size, NULL )))
 		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
@@ -141,13 +141,11 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 	    while( !feof( file)) {
 
 		/**
-		 **  Trigger to entries of the type
+		 **  Trigger on entries of the type
 		 **    <variable> = <value>
 		 **/
-
 		ptr = buf;
 		while( !feof( file)) {
-		    
 		    if((ptr-buf) >= buffer_size-10) {	/** 10 bytes safety  **/
 			null_free((void *) &buf);
 			if(!(buf = stringer(NULL,
@@ -155,7 +153,6 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 			    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 				goto unwind0;
 		    }
-
 		    /**
 		     **  Read a character and put it into the read buffer. Check
 		     **  for the lines (CR) or a terminator character ...
@@ -182,7 +179,6 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 		 **  Now let's evaluate the read line
 		 **/
 		if( (var_ptr = strchr( buf, '=')) ) {
-		
 		    *var_ptr = '\0';
 		    val_ptr = var_ptr+1;
 		    var_ptr = buf;
@@ -220,6 +216,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 
 	} /** if( fopen) **/
     } /** if( filename) **/
+    null_free((void *) &filename);
 
     /**
      **  Allocate memory for a buffer to tokenize the list of loaded modules
@@ -279,7 +276,7 @@ unwind0:
     null_free((void *) &filename);
 #else	/* BEGINENV */
 	ErrorLogger( ERR_BEGINENV, LOC, NULL);
-#endif	/* BEGINENV */
+#endif	/* !BEGINENV */
     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'ModuleCmd_Update' **/
