@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-regsub {\$[^:]+:\s*(\S+)\s*\$} {$Revision: 1.144 $} {\1}\
+regsub {\$[^:]+:\s*(\S+)\s*\$} {$Revision: 1.145 $} {\1}\
 	 MODULES_CURRENT_VERSION
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -124,6 +124,7 @@ proc execute-modulefile {modfile {help ""}} {
 	interp create $slave
 	interp alias $slave setenv {} setenv
 	interp alias $slave unsetenv {} unsetenv
+	interp alias $slave getenv {} getenv
 	interp alias $slave system {} system
 	interp alias $slave append-path {} append-path
 	interp alias $slave prepend-path {} prepend-path
@@ -624,6 +625,23 @@ proc setenv {var val} {
 	report "setenv\t\t$var\t$val"
     }
     return {}
+}
+
+proc getenv {var} {
+     global g_debug
+     set mode [currentMode]
+
+     if {$g_debug} {
+         report "DEBUG getenv: ($var) mode = $mode"
+     }
+
+     if {$mode == "load" || $mode == "unload"} {
+         return $::env($var)
+     }\
+     elseif {$mode == "display"} {
+         return "\[getenv \$$var\]"
+     }
+     return {}
 }
 
 proc unsetenv {var {val {}}} {
@@ -1406,7 +1424,7 @@ proc renderSettings {} {
 		    puts stdout "if ( \$?histchars ) then"
 		    puts stdout "  set _histchars = \$histchars"
 		    puts stdout "  if (\$?prompt) then"
-		    puts stdout "  alias module 'unset histchars;set\
+		    puts stdout "    alias module 'unset histchars;set\
 		      _prompt=\"\$prompt\";eval `'$tclshbin' '$argv0' '$g_shell' \\!*`;set\
 		      histchars = \$_histchars; set prompt=\"\$_prompt\";unset\
 		      _prompt'"
@@ -1423,7 +1441,6 @@ proc renderSettings {} {
 		    puts stdout "    alias module 'eval `'$tclshbin' '$argv0' '$g_shell' \\!*`'"
 		    puts stdout "  endif"
 		    puts stdout "endif"
-
 		}
 	    sh {
 		    puts stdout "module () { eval `'$tclshbin' '$argv0' '$g_shell' \$*`; } ;"
