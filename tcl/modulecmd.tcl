@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-regsub {\$[^:]+:\s*(\S+)\s*\$} {$Revision: 1.145 $} {\1}\
+regsub {\$[^:]+:\s*(\S+)\s*\$} {$Revision: 1.146 $} {\1}\
 	 MODULES_CURRENT_VERSION
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -636,10 +636,14 @@ proc getenv {var} {
      }
 
      if {$mode == "load" || $mode == "unload"} {
-         return $::env($var)
+	 if {[info exists env($var)]} {
+             return $::env($var)
+         } else {
+             return "_UNDEFINED_"
+         }
      }\
      elseif {$mode == "display"} {
-         return "\[getenv \$$var\]"
+         return "\$$var"
      }
      return {}
 }
