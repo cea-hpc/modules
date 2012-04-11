@@ -1,6 +1,6 @@
 dnl
 dnl File:        configure.in
-dnl Revision:    $Id: configure.ac,v 1.20.18.1 2010/11/11 18:23:18 rkowen Exp $
+dnl Revision:    $Id: configure.ac,v 1.20.18.2 2012/04/11 16:54:30 rkowen Exp $
 dnl Created:     1994/06/18
 dnl Author:      Leif Hedstrom<hedstrom@inf.ethz.ch>
 dnl		 Martin S. Utesch <wstd@hl.siemens.de>
@@ -308,7 +308,7 @@ while ( $num < 10000 )
 	echo $num
 	@ num++
 end
-'!'
+!
 _EMEOF
 em_split_size_total=`/bin/sh _EMEOF.$$`
 rm _EMEOF.$$
