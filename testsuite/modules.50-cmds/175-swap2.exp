@@ -1,0 +1,175 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   First Edition:	2008/02/19
+#
+#   Authors:		R.K. Owen, <rk@owen.sj.ca.us>
+#
+#   Description:	Testuite testsequence
+#   Command:		swap
+#
+#   Comment:	%C{
+#			Tests the 'swap' module subcommand where there are
+#			double prepends or appends.
+#		}C%
+#
+##############################################################################
+
+set path21   "/modules/testsuite2.1"
+set path2121 "/modules/testsuite2.1/2.1"
+set path22   "/modules/testsuite2.2"
+set path2222 "/modules/testsuite2.2/2.2"
+set pathpre  "/test/pre"
+set pathpost "/test/post"
+
+#
+# Prepend test
+#
+set mod21 "prepend/2.1"
+set mod22 "prepend/2.2"
+
+set mod21p "$env(MODULEPATH)/$mod21"
+set mod22p "$env(MODULEPATH)/$mod22"
+
+set module "$mod21"
+set modulefile "$mod21p"
+
+#
+# set up the environment
+#
+
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+set old_path $env(PATH)
+set env(PATH) "$pathpre:$path21:$path2121:$pathpost"
+
+#
+#  For the different shells ...
+#
+
+set module "$mod22"
+set modulefile "$mod22p"
+
+set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
+set p_sh "PATH=$pathpre:$path22:$path2222:$pathpost ;export PATH;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile ;"
+set lm_csh "setenv LOADEDMODULES $module ;"
+set p_csh "setenv PATH $pathpre:$path22:$path2222:$pathpost ;"
+
+set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
+set p_perl "\$ENV{'PATH'} = '$pathpre:$path22:$path2222:$pathpost';"
+
+set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
+set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
+set p_cmake "set(ENV{PATH} \"$pathpre:$path22:$path2222:$pathpost\")"
+
+#
+#  The tests
+#
+
+test_cmd "sh"  "swap $mod21 $mod22" "$lm_sh$p_sh$lmf_sh"
+test_cmd "ksh" "swap $mod21 $mod22" "$lm_sh$p_sh$lmf_sh"
+test_cmd "zsh" "swap $mod21 $mod22" "$lm_sh$p_sh$lmf_sh"
+test_cmd "csh"  "swap $mod21 $mod22" "$lm_csh$p_csh$lmf_csh"
+test_cmd "tcsh" "swap $mod21 $mod22" "$lm_csh$p_csh$lmf_csh"
+test_cmd "perl" "swap $mod21 $mod22" "$lm_perl$p_perl$lmf_perl"
+test_cmd "cmake" "swap $mod21 $mod22" "$lm_cmake\n$p_cmake\n$lmf_cmake"
+
+#
+# Append test
+#
+set mod21 "append/2.1"
+set mod22 "append/2.2"
+
+set mod21p "$env(MODULEPATH)/$mod21"
+set mod22p "$env(MODULEPATH)/$mod22"
+
+set module "$mod21"
+set modulefile "$mod21p"
+
+#
+# set up the environment
+#
+
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+set env(PATH) "$pathpre:$path21:$path2121:$pathpost"
+
+#
+#  For the different shells ...
+#
+
+set module "$mod22"
+set modulefile "$mod22p"
+
+set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
+set p_sh "PATH=$pathpre:$path22:$path2222:$pathpost ;export PATH;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile ;"
+set lm_csh "setenv LOADEDMODULES $module ;"
+set p_csh "setenv PATH $pathpre:$path22:$path2222:$pathpost ;"
+
+set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
+set p_perl "\$ENV{'PATH'} = '$pathpre:$path22:$path2222:$pathpost';"
+
+set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
+set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
+set p_cmake "set(ENV{PATH} \"$pathpre:$path22:$path2222:$pathpost\")"
+
+#
+#  The tests
+#
+
+test_cmd "sh"  "swap $mod21 $mod22" "$lm_sh$p_sh$lmf_sh"
+test_cmd "ksh" "swap $mod21 $mod22" "$lm_sh$p_sh$lmf_sh"
+test_cmd "zsh" "swap $mod21 $mod22" "$lm_sh$p_sh$lmf_sh"
+test_cmd "csh"  "swap $mod21 $mod22" "$lm_csh$p_csh$lmf_csh"
+test_cmd "tcsh" "swap $mod21 $mod22" "$lm_csh$p_csh$lmf_csh"
+test_cmd "perl" "swap $mod21 $mod22" "$lm_perl$p_perl$lmf_perl"
+test_cmd "cmake" "swap $mod21 $mod22" "$lm_cmake\n$p_cmake\n$lmf_cmake"
+
+#
+# clean up
+#
+set env(PATH) "$old_path"
+unset old_path
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+
+unset lm_sh
+unset lmf_sh
+unset p_sh
+
+unset lm_csh
+unset lmf_csh
+unset p_csh
+
+unset lm_perl
+unset lmf_perl
+unset p_perl
+
+unset lm_cmake
+unset lmf_cmake
+unset p_cmake
+
+unset modulefile
+unset module
+
+unset mod21
+unset mod22
+unset mod21p
+unset mod22p
+unset path21
+unset path2121
+unset path22
+unset path2222
+unset pathpre
+unset pathpost
+

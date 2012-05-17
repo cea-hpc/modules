@@ -1,0 +1,108 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2006/06/01
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen, <rk@owen.sj.ca.us>
+#
+#   Description:	Testuite testsequence
+#   Command:		unload
+#   Modulefiles:	prepend/1.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the reverse 'prepend-path' module subcommand with
+#			an arbitrary delimiter
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set ts_1 "http://foobar.org"
+set ts_2 "http://foobar.net"
+set ts_3 "http://foobar.com"
+set ts_new "$ts_1\\ $ts_2"
+set ts_perl "$ts_1 $ts_2"
+set module "prepend/1.0"
+set modulefile "$env(MODULEPATH)/$module"
+
+#
+# Set up the environment for reversal ...
+#
+
+set env(testsuite) "$ts_3 $ts_1 $ts_2"
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  For the different shells ...
+#
+
+set lmf_sh "unset _LMFILES_;"
+set lm_sh "unset LOADEDMODULES;"
+set ts_sh "testsuite=$ts_new ;export testsuite;"
+
+set lmf_csh "unsetenv _LMFILES_;"
+set lm_csh "unsetenv LOADEDMODULES;"
+set ts_csh "setenv testsuite $ts_new ;"
+
+set lmf_perl "delete \$ENV{'_LMFILES_'};"
+set lm_perl "delete \$ENV{'LOADEDMODULES'};"
+set ts_perl "\$ENV{'testsuite'} = '$ts_perl';"
+
+set lmf_cmake "unset(ENV{_LMFILES_})"
+set lm_cmake "unset(ENV{LOADEDMODULES})"
+set ts_cmake "set(ENV{testsuite} \"$ts_1 $ts_2\")"
+
+#
+#  The tests
+#
+
+test_cmd "sh" "unload $module" "$ts_sh$lm_sh$lmf_sh"
+test_cmd "ksh" "unload $module" "$ts_sh$lm_sh$lmf_sh"
+test_cmd "zsh" "unload $module" "$ts_sh$lm_sh$lmf_sh"
+test_cmd "csh" "unload $module" "$ts_csh$lm_csh$lmf_csh"
+test_cmd "tcsh" "unload $module" "$ts_csh$lm_csh$lmf_csh"
+test_cmd "perl" "unload $module" "$ts_perl$lm_perl$lmf_perl"
+test_cmd "cmake" "unload $module" "$ts_cmake\n$lm_cmake\n$lmf_cmake"
+
+#
+#  Cleanup
+#
+
+unset env(testsuite)
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+
+unset ts_new
+unset ts_3
+unset ts_2
+unset ts_1
+
+unset ts_sh
+unset lm_sh
+unset lmf_sh
+
+unset ts_csh
+unset lm_csh
+unset lmf_csh
+
+unset ts_perl
+unset lm_perl
+unset lmf_perl
+
+unset ts_cmake
+unset lm_cmake
+unset lmf_cmake
+
+unset modulefile
+unset module

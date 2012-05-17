@@ -1,0 +1,125 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2006/02/21
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen, <rk@owen.sj.ca.us>
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	continue/1.0,
+#   			continue/2.0,
+#   			continue/3.0,
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tries the Tcl "continue" to skip further
+#			processing of a module,
+#			but not affecting the other loaded modules.
+#		}C%
+#
+##############################################################################
+
+set mod1 "continue/1.0"
+set mod2 "continue/2.0"
+set mod3 "continue/3.0"
+
+set mod1p "$env(MODULEPATH)/$mod1"
+set mod2p "$env(MODULEPATH)/$mod2"
+set mod3p "$env(MODULEPATH)/$mod3"
+
+#
+# set up an empty environment
+#
+set module ""
+set modulefile ""
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  load
+#  For the different shells ...
+#
+set module "$mod1:$mod2:$mod3"
+set modulefile "$mod1p:$mod2p:$mod3p"
+
+set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
+set ts_sh1 "testsuite1=yes ;export testsuite1;"
+set ts_sh2 "testsuite2=yes ;export testsuite2;"
+set ts_sh3 "testsuite3=yes ;export testsuite3;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile ;"
+set lm_csh "setenv LOADEDMODULES $module ;"
+set ts_csh1 "setenv testsuite1 yes ;"
+set ts_csh2 "setenv testsuite2 yes ;"
+set ts_csh3 "setenv testsuite3 yes ;"
+
+set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
+set ts_perl1 "\$ENV{'testsuite1'} = 'yes';"
+set ts_perl2 "\$ENV{'testsuite2'} = 'yes';"
+set ts_perl3 "\$ENV{'testsuite3'} = 'yes';"
+
+set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
+set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
+set ts_cmake1 "set(ENV{testsuite1} \"yes\")"
+set ts_cmake2 "set(ENV{testsuite2} \"yes\")"
+set ts_cmake3 "set(ENV{testsuite3} \"yes\")"
+
+#
+#  The tests
+#
+test_cmd "sh" "load $mod1 $mod2 $mod3" "$lm_sh$lmf_sh$ts_sh1$ts_sh2$ts_sh3"
+test_cmd "ksh" "load $mod1 $mod2 $mod3" "$lm_sh$lmf_sh$ts_sh1$ts_sh2$ts_sh3"
+test_cmd "zsh" "load $mod1 $mod2 $mod3" "$lm_sh$lmf_sh$ts_sh1$ts_sh2$ts_sh3"
+test_cmd "csh" "load $mod1 $mod2 $mod3" "$lm_csh$lmf_csh$ts_csh1$ts_csh2$ts_csh3"
+test_cmd "tcsh" "load $mod1 $mod2 $mod3" "$lm_csh$lmf_csh$ts_csh1$ts_csh2$ts_csh3"
+test_cmd "perl" "load $mod1 $mod2 $mod3" "$lm_perl$lmf_perl$ts_perl1$ts_perl2$ts_perl3"
+test_cmd "cmake" "load $mod1 $mod2 $mod3" "$lm_cmake\n$lmf_cmake\n$ts_cmake1\n$ts_cmake2\n$ts_cmake3"
+
+#
+#  Cleanup
+#
+
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+
+unset lm_sh
+unset lmf_sh
+unset ts_sh1
+unset ts_sh2
+unset ts_sh3
+
+unset lm_csh
+unset lmf_csh
+unset ts_csh1
+unset ts_csh2
+unset ts_csh3
+
+unset lm_perl
+unset lmf_perl
+unset ts_perl1
+unset ts_perl2
+unset ts_perl3
+
+unset lm_cmake
+unset lmf_cmake
+unset ts_cmake1
+unset ts_cmake2
+unset ts_cmake3
+
+unset modulefile
+unset module
+
+unset mod1
+unset mod2
+unset mod3
+unset mod1p
+unset mod2p
+unset mod3p
+

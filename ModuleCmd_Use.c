@@ -29,7 +29,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.6 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Use.c,v 1.6.20.4 2011/11/28 21:13:15 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -121,9 +121,9 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
 	 **  Get filename and the value of the passed variable
 	 **/
 
-	if( filename = (char *) Tcl_GetVar2( interp, "env","_MODULESBEGINENV_",
-	    TCL_GLOBAL_ONLY)) {
-	    val = (char *) Tcl_GetVar2( interp, "env", var, TCL_GLOBAL_ONLY);
+	filename = EMGetEnv( interp, "_MODULESBEGINENV_");
+	if(filename && *filename) {
+	    val = EMGetEnv( interp, var);
 
 	    /**
 	     **  Append the string <var>=<value>
@@ -137,7 +137,8 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
 		ErrorLogger( ERR_OPEN, LOC, filename, "appending", NULL);
 	    }
 
-        } /** if( get filename) **/
+	} /** if( get filename) **/
+	null_free((void *)&filename);
     } /** if( var passed) **/
 
 } /** End of 'append_to_modulesbeginenv' **/
@@ -159,7 +160,7 @@ static	void	append_to_modulesbeginenv(	Tcl_Interp	*interp,
  **			char 		*argv[]		Argument list	     **
  ** 									     **
  **   Result:		int	TCL_ERROR	Failure			     **
- **				TCL_OK		Successfull operation	     **
+ **				TCL_OK		Successful operation	     **
  ** 									     **
  **   Attached Globals:	g_flags		Controllig the callback functions    **
  ** 									     **
@@ -276,7 +277,7 @@ int  ModuleCmd_Use(	Tcl_Interp	*interp,
  **			char 		*argv[]		Argument list	     **
  ** 									     **
  **   Result:		int	TCL_ERROR	Failure			     **
- **				TCL_OK		Successfull operation	     **
+ **				TCL_OK		Successful operation	     **
  ** 									     **
  **   Attached Globals:	-						     **
  ** 									     **

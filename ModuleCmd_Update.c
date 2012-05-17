@@ -25,7 +25,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.6 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Update.c,v 1.6.18.5 2011/11/28 21:13:15 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -82,7 +82,7 @@ static	char	_proc_ModuleCmd_Update[] = "ModuleCmd_Update";
  **			char 		*argv[]		Argument list	     **
  ** 									     **
  **   Result:		int	TCL_ERROR	Failure			     **
- **				TCL_OK		Successfull operation	     **
+ **				TCL_OK		Successful operation	     **
  ** 									     **
  **   Attached Globals:	flags		Controllig the callback functions    **
  ** 									     **
@@ -133,12 +133,11 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
     /**
      **  First I'll update the environment with what's in _MODULESBEGINENV_
      **/
-    filename = (char *) Tcl_GetVar2( interp,"env","_MODULESBEGINENV_",
-	TCL_GLOBAL_ONLY);
-    if( filename) {
+    filename = EMGetEnv( interp,"_MODULESBEGINENV_");
+    if(filename && *filename) {
 
 	/**
-	 **  Read the beginning environment
+	 **  Read the begining environment
 	 **/
 	if( NULL != (file = fopen( filename, "r"))) {
 
@@ -207,8 +206,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
 			if( !strncmp( var_ptr, "MODULEPATH", 10))
 			    moduleSetenv( interp, var_ptr, val_ptr, 1);
 			else
-			    Tcl_SetVar2( interp, "env", var_ptr, val_ptr,
-					 TCL_GLOBAL_ONLY);
+			    EMSetEnv( interp, var_ptr, val_ptr);
 		} /** if( var_ptr) **/
 	    } /** while **/
 
@@ -233,7 +231,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
      **  Allocate memory for a buffer to tokenize the list of loaded modules
      **  and a list buffer
      **/
-    if( NULL == (load_list = (char**) malloc( maxlist*sizeof(char**))))
+    if( NULL == (load_list = (char**) module_malloc( maxlist*sizeof(char**))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind0;
     
@@ -246,9 +244,9 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
      **/
     if( *loaded) {
 
-	for( load_list[ list_count++] = strtok( loaded, ":");
+	for( load_list[ list_count++] = xstrtok( loaded, ":");
 	     load_list[ list_count-1];
-             load_list[ list_count++] = strtok( NULL, ":") ) {
+             load_list[ list_count++] = xstrtok( NULL, ":") ) {
 
 	    /**
 	     **  Conditionally we have to double the space, we've allocated for
@@ -258,7 +256,7 @@ int	ModuleCmd_Update(	Tcl_Interp	*interp,
             if( list_count >= maxlist) {
                 maxlist = maxlist<<1;
             
-                if( NULL == (load_list = (char**) realloc((char *) load_list,
+                if(!(load_list = (char**) module_realloc((char *) load_list,
 		    maxlist*sizeof(char**))))
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 			goto unwind1;
@@ -288,6 +286,7 @@ success0:
 unwind1:
     null_free((void *) &load_list);
 unwind0:
+    null_free((void *) &filename);
 #else	/* BEGINENV */
 	ErrorLogger( ERR_BEGINENV, LOC, NULL);
 #endif	/* BEGINENV */

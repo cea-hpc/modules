@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdPath.c,v 1.10 2005/11/29 04:16:07 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdPath.c,v 1.10.4.5 2011/11/28 21:13:15 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -63,7 +63,7 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 #define _TCLCHK(a)	\
-	{if (*(a)->result) ErrorLogger(ERR_EXEC,LOC,(a)->result,NULL);}
+	{if (*(TCL_RESULT(a))) ErrorLogger(ERR_EXEC,LOC,TCL_RESULT(a),NULL);}
 
 /** ************************************************************************ **/
 /** 				    LOCAL DATA				     **/
@@ -84,7 +84,7 @@ static char buffer[ PATH_BUFLEN];
 /** ************************************************************************ **/
 
 static int	Remove_Path( Tcl_Interp	*interp, char *variable, char *item, 
-			char *sw_marker);
+			char *sw_marker, const char *delim);
 
 
 /*++++
@@ -97,6 +97,7 @@ static int	Remove_Path( Tcl_Interp	*interp, char *variable, char *item,
  **			is to be appended or prepended.  Each directory in   **
  **			the path is checked to see whether it is already     **
  **			in the path.  If so it is not added.		     **
+ **			(Handles options -d C, or --delim[=]C )		     **
  ** 									     **
  **   First Edition:	1991/10/23					     **
  ** 									     **
@@ -105,7 +106,7 @@ static int	Remove_Path( Tcl_Interp	*interp, char *variable, char *item,
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -122,17 +123,19 @@ int	cmdSetPath(	ClientData	 client_data,
 {
     Tcl_RegExp	chkexpPtr;			/** Regular expression for   **/
 						/** marker checking	     **/
-    char	*oldpath,			/** Old value of 'var'	     **/
-		*newpath,			/** New value of 'var'	     **/
-		*sw_marker = APP_SW_MARKER,	/** arbitrary default	     **/
-		*startp=NULL, *endp=NULL,	/** regexp match endpts	     **/
-		*qualifiedpath,			/** List of dirs which 
+    char	 *oldpath,			/** Old value of 'var'	     **/
+		 *newpath,			/** New value of 'var'	     **/
+		 *sw_marker = APP_SW_MARKER,	/** arbitrary default	     **/
+		 *startp=NULL, *endp=NULL,	/** regexp match endpts	     **/
+		 *qualifiedpath,		/** List of dirs which 
 						    aren't already in path   **/
 		**pathlist;			/** List of dirs	     **/
-    int		 append = 1,			/** append or prepend	     **/
-		 numpaths,			/** number of dirs in path   **/
-		 qpathlen,			/** qualifiedpath length     **/
-		 x;				/** loop index		     **/
+    const char	 *delim = _colon;		/** path delimiter	     **/
+    int		  append = 1,			/** append or prepend	     **/
+		  numpaths,			/** number of dirs in path   **/
+		  qpathlen,			/** qualifiedpath length     **/
+		  arg1 = 1,			/** arg start		     **/
+		  x;				/** loop index		     **/
 
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_START, LOC, _proc_cmdSetPath, NULL);
@@ -145,14 +148,15 @@ int	cmdSetPath(	ClientData	 client_data,
         goto success0;
 	
     /**
-     **   Check arguments. There should be give 3 args:
+     **   Check arguments. There should be at least 3 args:
      **     argv[0]  -  prepend/append
-     **     argv[1]  -  varname
-     **     argv[2]  -  value
+     **     ...
+     **     argv[n-1]-  varname
+     **     argv[n]  -  value
      **/
-    if(argc != 3)
-	if( OK != ErrorLogger(ERR_USAGE, LOC, argv[0],"path-variable directory",
-	    NULL))
+    if(argc < 3)
+	if( OK != ErrorLogger(ERR_USAGE, LOC, argv[0],
+	    " path-variable directory", NULL))
 	    goto unwind0;
 
     /**
@@ -185,31 +189,54 @@ int	cmdSetPath(	ClientData	 client_data,
 	fprintf( stderr, "\n");
         goto success0;
     }
-  
+
     /**
-     **  Get the old value of the variable. MANPATH defaults to "/usr/man".
+     **  Check for the delimiter option
+     **/
+    if(*(argv[arg1]) == '-') {
+	if (!strcmp(argv[arg1], "-d")) {
+		delim = argv[arg1+1];
+		arg1 += 2;
+	} else if (!strcmp(argv[arg1], "--delim")) {
+		delim = argv[arg1+1];
+		arg1 += 2;
+	} else if (!strncmp(argv[arg1], "--delim=", 8)) {
+		delim = argv[arg1]+8;
+		arg1++;
+	}
+    }
+
+    /**
+     **  Get the old value of the variable. MANPATH defaults to a configure
+     **  generated value.
      **  Put a \ in front of each '.' and '+'.
      **  (this is an intentional memory leak)
      **/
-    oldpath = (char *) Tcl_GetVar2( interp, "env", argv[1], TCL_GLOBAL_ONLY);
+    oldpath =  EMGetEnv( interp, argv[arg1]);
     _TCLCHK(interp)
 
-    if( oldpath == NULL)
-	oldpath = !strcmp( argv[1], "MANPATH") ? "/usr/man" : "";
+    if(!oldpath || !*oldpath) {
+	null_free((void *) &oldpath);
+	oldpath = !strcmp( argv[arg1], "MANPATH")
+		? stringer(NULL,0,DEFAULTMANPATH,NULL)
+		: stringer(NULL,0,"",NULL);
+    }
 
     /**
      **  Split the new path into its components directories so each
      **  directory can be checked to see whether it is already in the 
      **  existing path.
      **/
-    if( !( pathlist = SplitIntoList( interp, (char *) argv[2], &numpaths)))
+    if( !( pathlist = SplitIntoList( interp, (char *) argv[arg1+1], &numpaths,
+	delim)))
 	goto unwind0;
 
     /**
      **  Some space for the list of paths which
      **  are not already in the existing path.
      **/
-    if((char *) NULL == (qualifiedpath = stringer(NULL,0, argv[2], ":", NULL)))
+    if((char *) NULL == (qualifiedpath = stringer(NULL,0, argv[arg1+1],
+	delim, NULL)))
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	    goto unwind1;
 
@@ -218,7 +245,7 @@ int	cmdSetPath(	ClientData	 client_data,
 
     for( x = 0; x < numpaths; x++) {
 
-	cleanse_path( pathlist[x], buffer, PATH_BUFLEN);
+	regex_quote( pathlist[x], buffer, PATH_BUFLEN);
 
 	/**
 	 **  Check to see if path is already in this path variable.
@@ -229,7 +256,7 @@ int	cmdSetPath(	ClientData	 client_data,
 	 **     only one  ... ^path$
 	 **/
 	if((char *) NULL == (newpath = stringer(NULL,0,
-		"(^", buffer, ":)|(:", buffer, ":)|(:",
+		"(^", buffer, delim, ")|(",delim, buffer, delim,")|(",delim,
 		buffer, "$)|(^", buffer, "$)",NULL)))
 	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 		goto unwind2;
@@ -243,10 +270,9 @@ int	cmdSetPath(	ClientData	 client_data,
 	 **  add it to the qualified path.
 	 **/
 	if( !Tcl_RegExpExec(interp, chkexpPtr, oldpath, oldpath))
-	    if ((char *) NULL ==
-		    stringer(qualifiedpath + strlen(qualifiedpath),
+	    if (!stringer(qualifiedpath + strlen(qualifiedpath),
 		    qpathlen - strlen(qualifiedpath),
-		    pathlist[x], ":", NULL))
+		    pathlist[x], delim, NULL))
 		if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 		    goto unwind2;
 
@@ -260,14 +286,14 @@ int	cmdSetPath(	ClientData	 client_data,
     if( ! *qualifiedpath)
 	goto success1;
 
-    /* remove trailing ':' */
+    /* remove trailing delimiter */
     qualifiedpath[strlen(qualifiedpath) - 1] = '\0';
 
     /**
      **  Some space for our newly created path.
      **  We size at the oldpath plus the addition.
      **/
-    if((char *)NULL == (newpath = stringer(NULL, strlen( oldpath) +
+    if(!(newpath = stringer(NULL, strlen( oldpath) +
 	strlen(qualifiedpath) + 2,NULL)))
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	    goto unwind2;
@@ -302,23 +328,29 @@ int	cmdSetPath(	ClientData	 client_data,
 	     **  Append/Prepend marker found
 	     **/
 	    if( append) {
-		char ch = *endp;
-		*endp = '\0';
-		strcpy(newpath, oldpath);
-		if (newpath[strlen(newpath)-1] != ':')	strcat(newpath, ":");
-		strcat(newpath, qualifiedpath);
-		*endp = ch;
-		strcat(newpath, endp);
-	    } else {
 		char ch = *startp;
 		*startp = '\0';
 		strcpy(newpath, oldpath);
-		if (newpath[strlen(newpath)-1] != ':')	strcat(newpath, ":");
-		strcpy(newpath, qualifiedpath);
-		if (*oldpath != ':')	strcat(newpath, ":");
-		strcat(newpath, oldpath);
+                /**
+                 ** check that newpath has a value before adding delim
+                 **/
+		if (strlen(newpath) > 0 && newpath[strlen(newpath)-1] != *delim)
+			strcat(newpath, delim);
+		strcat(newpath, qualifiedpath);
+		if (newpath[strlen(newpath)-1] != *delim)
+			strcat(newpath, delim);
 		*startp = ch;
 		strcat(newpath, startp);
+               
+	    } else {
+                char ch = *endp;
+		*endp = '\0';
+		strcpy(newpath, oldpath);
+		if (newpath[strlen(newpath)-1] != *delim)
+			strcat(newpath, delim);
+		strcat(newpath, qualifiedpath);
+		*endp = ch;
+		strcat(newpath, endp);
 	    }
 
 	} else {
@@ -326,14 +358,15 @@ int	cmdSetPath(	ClientData	 client_data,
 	    /**
 	     **  No marker set
 	     **/
-	    if( !append) {
-		strcpy(newpath, qualifiedpath);
-		if (*oldpath != ':')	strcat(newpath, ":");
-		strcat(newpath, oldpath);
-	    } else {
+	    if(append) {
 		strcpy(newpath, oldpath);
-		if (newpath[strlen(newpath)-1] != ':')	strcat(newpath, ":");
+		if (newpath[strlen(newpath)-1] != *delim)
+			strcat(newpath, delim);
 		strcat(newpath, qualifiedpath);
+	    } else {
+		strcpy(newpath, qualifiedpath);
+		if (*oldpath != *delim)	strcat(newpath, delim);
+		strcat(newpath, oldpath);
 	    }
 
 	} /** if( marker) **/
@@ -343,7 +376,7 @@ int	cmdSetPath(	ClientData	 client_data,
     /**
      **  Now the new value to be set resides in 'newpath'. Set it up.
      **/
-    moduleSetenv( interp, (char *) argv[1], newpath, 1);
+    moduleSetenv( interp, (char *) argv[arg1], newpath, 1);
     _TCLCHK(interp)
 
 #if WITH_DEBUGGING_CALLBACK
@@ -355,6 +388,7 @@ int	cmdSetPath(	ClientData	 client_data,
      **/
     null_free((void *) &newpath);
 success1:
+    null_free((void *) &oldpath);
     null_free((void *) &qualifiedpath);
     FreeList( pathlist, numpaths);
 success0:
@@ -365,6 +399,7 @@ unwind2:
 unwind1:
     FreeList( pathlist, numpaths);
 unwind0:
+    null_free((void *) &oldpath);
     return( TCL_ERROR);			/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'cmdSetPath' **/
@@ -372,7 +407,7 @@ unwind0:
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
- **   Function:		cmdRemovePath					     **
+ **   Function:cmdRemovePath					     **
  ** 									     **
  **   Description:	Remove the passed value (argv[2]) from the specified **
  **			variable (argv[1]). In case of switching this pro-   **
@@ -387,7 +422,7 @@ unwind0:
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -402,10 +437,12 @@ int	cmdRemovePath(	ClientData	 client_data,
 	       		int		 argc,
 	       		CONST84 char	*argv[])
 {
-    char	*sw_marker = APP_SW_MARKER;	/** arbitrary default	     **/
-    char	**pathlist;			/** List of dirs	     **/
-    int		 numpaths;			/** number of dirs in path   **/
-    int		 x;				/** loop index		     **/
+    char	 *sw_marker = APP_SW_MARKER,	/** arbitrary default	     **/
+		**pathlist;			/** List of dirs	     **/
+    const char	 *delim = _colon;		/** path delimiter	     **/
+    int		  numpaths,			/** number of dirs in path   **/
+		  arg1 = 1,			/** arg start		     **/
+		  x;				/** loop index		     **/
 
 
 #if WITH_DEBUGGING_CALLBACK
@@ -415,10 +452,11 @@ int	cmdRemovePath(	ClientData	 client_data,
     /**
      **   Check arguments. There should be give 3 args:
      **     argv[0]  -  prepend/append/remove-path
-     **     argv[1]  -  varname
-     **     argv[2]  -  value
+     **     ...
+     **     argv[n-1]-  varname
+     **     argv[n]  -  value
      **/
-    if(argc != 3)
+    if(argc < 3)
 	if( OK != ErrorLogger(ERR_USAGE,LOC,argv[0],"path-variable directory",
 	    NULL))
 	    goto unwind0;
@@ -453,20 +491,38 @@ int	cmdRemovePath(	ClientData	 client_data,
      ** For switch state3, we're looking to remove the markers.
      **/
     if( g_flags & M_SWSTATE3) 
-	argv[2] = sw_marker;
+	argv[arg1+1] = sw_marker;
+
+    /**
+     **  Check for the delimiter option
+     **/
+    if(*(argv[arg1]) == '-') {
+	if (!strcmp(argv[arg1], "-d")) {
+		delim = argv[arg1+1];
+		arg1 += 2;
+	} else if (!strcmp(argv[arg1], "--delim")) {
+		delim = argv[arg1+1];
+		arg1 += 2;
+	} else if (!strncmp(argv[arg1], "--delim=", 8)) {
+		delim = argv[arg1]+8;
+		arg1++;
+	}
+    }
 
     /**
      **  Split the path into its components so each item can be removed
      **  individually from the variable.
      **/
-    if( !( pathlist = SplitIntoList( interp, (char *) argv[2], &numpaths)))
+    if( !( pathlist = SplitIntoList( interp, (char *) argv[arg1+1], &numpaths,
+	delim)))
 	goto unwind0;
 
     /**
      ** Remove each item individually
      **/
     for( x = 0; x < numpaths; x++)
-	if(TCL_OK != Remove_Path(interp,(char *) argv[1],pathlist[x],sw_marker))
+	if(TCL_OK != Remove_Path(interp,(char *) argv[arg1],pathlist[x],
+	sw_marker, delim))
 	    goto unwind1;
 
 #if WITH_DEBUGGING_CALLBACK
@@ -505,8 +561,9 @@ unwind0:
  **							to remove item	     **
  **			char		*item		Item to remove	     **
  **			char		*sw_marker	Switch marker	     **
+ **			const char	*delim		path delimiter	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -516,265 +573,164 @@ unwind0:
  ** ************************************************************************ **
  ++++*/
 
-static int	Remove_Path(	Tcl_Interp	*interp,
-	       			char		*variable,
-	       			char		*item,
-				char		*sw_marker)
-{
-    char	*oldpath,			/** Old value of 'var'	     **/
-    		*tmppath,			/** Temp. buffer for 'var'   **/
-    		*searchpath,
-		*startp=NULL, *endp=NULL;	/** regexp match endpts	     **/
-    int  	 start_offset = 0,		/** match offsets	     **/
-    		 end_offset = 0,
-		 path_len = 0;			/** length of unmatched path **/
-    Tcl_RegExp	regexpPtr  = (Tcl_RegExp) NULL,
-    		begexpPtr  = (Tcl_RegExp) NULL,
-    		midexpPtr  = (Tcl_RegExp) NULL,
-    		endexpPtr  = (Tcl_RegExp) NULL,
-    		onlyexpPtr = (Tcl_RegExp) NULL,
-    		markexpPtr = (Tcl_RegExp) NULL;
-
-#if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_START, LOC, _proc_Remove_Path, NULL);
-#endif
-
+static int Remove_Path(
+	Tcl_Interp * interp,
+	char *variable,
+	char *item,
+	char *sw_marker,
+	const char *delim
+) {
+	char           *oldpath,	/** current path  **/
+	               *olditem;	/** item from path **/
+	int             i,		/** counter **/
+	                found = 0,	/** flag to indicate item was found **/
+			pcount = 0,	/** count of items in path **/
+			addsep = 0,	/** flag to add separator **/
+			marked = 0,	/** flag path contains sw_marker **/
+			oldpathlen = 0;
+	Tcl_DString     _newpath;
+	Tcl_DString    *newpath = &_newpath;
+	Tcl_DStringInit(newpath);
     /**
      **  Get the current value of the "PATH" environment variable
      **/
-    if( NULL == (tmppath = (char *) Tcl_GetVar2( interp, "env", variable,
-	TCL_GLOBAL_ONLY))) {
-	_TCLCHK(interp)
-	return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
-    }    
+	oldpath = (char *) EMGetEnv(interp, variable);
+	if (!oldpath || !*oldpath) {
+		null_free((void *) &oldpath);
+		_TCLCHK(interp);
+		goto success0;		/** -------- EXIT (SUCCESS) -------> **/
+	}
+	/* copy oldpath to not mess with the TCL value of env(PATH) */
+	if (!(oldpath = stringer(NULL,0, oldpath, NULL)))
+		if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
+			goto unwind0;
 
-    /**
-     **  We want to make a local copy of old path because we're going
-     **  to be butchering it and the environ one doesn't need to be
-     **  changed in this manner.
-     **  Put a \ in front of each . and + in the passed value to remove.
-     **/
-    if((char *) NULL == (oldpath = stringer(NULL,0, tmppath, NULL)))
-	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-	    goto unwind0;
-    path_len = strlen(oldpath);
-    cleanse_path( item, buffer, PATH_BUFLEN);
+	/* get length of oldpath before it gets modified by xstrtok */
+	oldpathlen = strlen(oldpath);
 
-    /**
-     **  Now we need to find it in the path variable.  So, we create
-     **  space enough to build search expressions.
-     **/
-    if((char *) NULL == (searchpath = stringer(NULL,0,"^", buffer, ":", NULL)))
-	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-	    goto unwind1;
+	/* determine if sw_marker is in the path */
+	olditem = xstrtok(oldpath, delim);
+	while (olditem) {
+		if (!strcmp(olditem, sw_marker)) {
+			marked = 1;
+		}
+		pcount++;
+		olditem = xstrtok(NULL, delim);
+	}
 
-    /**
-     **  This section searches for the oldpath in the PATH variable.
-     **  There are four cases because the colons must be used as markers
-     **  in order to guarantee that a partial match isn't being found.
-     ** 
-     **  The start_offset and end_offset variables indicate how much to 
-     **  cut or not to cut off of each end of the located
-     **  string.  They differ for each case...beginning of
-     **  the path, middle of the path, end of the path, 
-     **  and for the only path.
-     ** 
-     **  This is to ensure the colons get cut off properly.
-     **/
+	/** pointer arithmetic on oldpath
+	 ** if olditem starts at terminating null string of oldpath,
+	 ** it means the last character in oldpath was ":", meaning
+	 ** the last element was the empty string.  use <= to catch
+	 **  this case and process the last empty element
+	 */
+	for (olditem = oldpath; olditem <= oldpath + oldpathlen;
+	     olditem += strlen(olditem) + 1) {
 
-    begexpPtr = Tcl_RegExpCompile(interp,  searchpath);
-    _TCLCHK(interp)
+		if (strcmp(olditem, item)) {
+			/* not the droids we're looking for */
+			if (Tcl_DStringLength(newpath)) {
+				if (!Tcl_DStringAppend(newpath, delim, 1))
+					if (OK !=
+					    ErrorLogger(ERR_STRING, LOC, NULL))
+						goto unwind1;
+			}
+			if (!Tcl_DStringAppend(newpath, olditem, -1))
+				if (OK != ErrorLogger(ERR_STRING, LOC, NULL))
+					goto unwind1;
+		} else {
+			/* bingo! Don't add it to new path  */
+			found++;
 
-    if( Tcl_RegExpExec(interp, begexpPtr, oldpath, oldpath) > 0) {
-	_TCLCHK(interp)
-	regexpPtr = begexpPtr;
+			if ((g_flags & M_SWSTATE1) && !marked) {
+			/**
+			 **  In state1, we're actually replacing old paths with
+			 **  the markers for future appends and prepends.
+			 **  
+			 **  We only want to do this once to mark the location
+			 **  the module was formed around.
+			 **/
+				marked = 1;
+				if (Tcl_DStringLength(newpath)) {
+					if (!Tcl_DStringAppend
+					    (newpath, delim, 1))
+						if (OK !=
+						    ErrorLogger(ERR_STRING, LOC,
+								NULL))
+							goto unwind1;
+				}
+				if (!Tcl_DStringAppend(newpath, sw_marker, -1))
+					if (OK !=
+					    ErrorLogger(ERR_STRING, LOC, NULL))
+						goto unwind1;
+			}
+		}
+	}
 
-	/**
-	 **  Copy from the beginning of the startp to one
-	 **  character before endp
-	 **/
+	if (!found) {
+		goto success1;
+	}
 
-	Tcl_RegExpRange(begexpPtr, 0,
-		(CONST84 char **) &startp, (CONST84 char **) &endp);
-	start_offset = 0; end_offset = -1;
-	path_len -= (endp - startp - 1);
-
-    } else {
-
-	*searchpath = ':';	/* :buffer: */
-	midexpPtr = Tcl_RegExpCompile(interp, searchpath);
-	_TCLCHK(interp)
-
-	if( Tcl_RegExpExec(interp, midexpPtr, oldpath, oldpath) > 0) {
-	    _TCLCHK(interp)
-	    regexpPtr = midexpPtr;
-
-	    /**
-	     **  Copy from one character after stringp[0] to one
-	     **  character before endp[0]
-	     **/
-
-	    Tcl_RegExpRange(midexpPtr, 0,
-		(CONST84 char **) &startp, (CONST84 char **) &endp);
-	    start_offset = 1; end_offset = -1;
-	    path_len -= (endp - startp - 2);
-
-	} else {
-
-	    searchpath[strlen(searchpath)-1] = '$';	/* :buffer$ */
-	    endexpPtr = Tcl_RegExpCompile(interp, searchpath);
-	    _TCLCHK(interp)
-
-	    if( Tcl_RegExpExec(interp, endexpPtr, oldpath, oldpath) > 0) {
-		_TCLCHK(interp)
-		regexpPtr = endexpPtr;
+	if (Tcl_DStringLength(newpath)) {
+		/**
+		**  Cache the set.  Clear the variable from the unset table just
+		**  in case it was previously unset.
+		**/
+		store_hash_value(setenvHashTable, variable,
+			Tcl_DStringValue(newpath));
+		clear_hash_value(unsetenvHashTable, variable);
 
 		/**
-		 **  Copy from one character after stringp[0] 
-		 **  through endp[0]
-		 **/
+		**  Store the new PATH value into the environment.
+		**/
+		(void) EMSetEnv( interp, variable, Tcl_DStringValue(newpath));
 
-		Tcl_RegExpRange(endexpPtr, 0,
-			(CONST84 char **) &startp, (CONST84 char **) &endp);
-		start_offset = 0; end_offset = 0;
-		path_len -= (endp - startp - 1);
-
-	    } else {
-
-		*searchpath = '^';	/* ^buffer$ */
-		onlyexpPtr = Tcl_RegExpCompile(interp, searchpath);
-		_TCLCHK(interp)
-
-		if(Tcl_RegExpExec(interp, onlyexpPtr, oldpath, oldpath) > 0) {
-		    _TCLCHK(interp)
-
-		    /**
-		     **  In this case, I should go ahead and unset the variable
-		     **  from the environment because I'm removing the very last
-		     **  path.
-		     **
-		     **  First I'm going to clear the variable from the
-		     **  setenvHashTable just in case its already been altered
-		     **  and had a significant value at the time. It's very
-		     **  possible that I'm removing the only two or three paths
-		     **  from this variable. If that's the case, then all the
-		     **  earlier paths were marked for output in this hashTable.
-		     **
-		     **  Secondly, I actually mark the the environment variable
-		     **  to be unset when output.
-		     **/
-		    clear_hash_value( setenvHashTable, variable);
-		    moduleUnsetenv( interp, variable);
-
-		    /**
-		     **  moduleUnsetenv doesn't unset the variable in the Tcl
-		     **  space because the $env variable might need to be
-		     **  used again in the modulefile for locating other
-		     **  paths.  BUT, since this was a path-type environment
-		     **  variable, the user is expecting this to be empty
-		     **  after removing the only remaining path.  So, I set
-		     **  the variable empty here.
-		     **/
-		    (void) Tcl_SetVar2( interp, "env", variable, "",
-			TCL_GLOBAL_ONLY);
-		    _TCLCHK(interp)
-		    null_free((void *) &searchpath);
-		    goto success1;
-		}
-	    }
-	}
-    }
-    null_free((void *) &searchpath);
-
-    /**
-     **  If I couldn't find it assume it wasn't there
-     **  and return.
-     **/
-    if( !regexpPtr)
-	goto success1;
-
-    markexpPtr = Tcl_RegExpCompile(interp, sw_marker);
-    _TCLCHK(interp)
-
-    /**
-     **  In state1, we're actually replacing old paths with
-     **  the markers for future appends and prepends.
-     **  
-     **  We only want to do this once to mark the location
-     **  the module was formed around.
-     **/
-    if((g_flags & M_SWSTATE1) && ! (Tcl_RegExpExec(interp,
-	 markexpPtr, oldpath, oldpath) > 0)) {
-
-	/**
-	 **  If I don't have enough space to replace the oldpath with the
-	 **  marker, then I must create space for the marker and thus
-	 **  recreate the PATH variable.
-	 **/
-	char* newenv;
-	int newlen = path_len + strlen(sw_marker) + 1;
-      
-	if((char *) NULL==(newenv = stringer(NULL, newlen ,NULL) ))
-	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
-		goto unwind1;
-
-	*(startp + start_offset) = '\0';
-
-	if(*(endp + end_offset) == '\0') {
-	    (void) stringer(newenv, newlen, oldpath,":",sw_marker,NULL);
+		_TCLCHK(interp);
 	} else {
-	    (void) stringer(newenv, newlen, oldpath,sw_marker,
-		endp + end_offset, NULL);
+		/**
+		 **  In this case, I should go ahead and unset the variable
+		 **  from the environment because I'm removing the very last
+		 **  path.
+		 **
+		 **  First I'm going to clear the variable from the
+		 **  setenvHashTable just in case its already been altered
+		 **  and had a significant value at the time. It's very
+		 **  possible that I'm removing the only two or three paths
+		 **  from this variable. If that's the case, then all the
+		 **  earlier paths were marked for output in this hashTable.
+		 **
+		 **  Secondly, I actually mark the the environment variable
+		 **  to be unset when output.
+		 **/
+		clear_hash_value(setenvHashTable, variable);
+		moduleUnsetenv(interp, variable);
+
+		/**
+		 **  moduleUnsetenv doesn't unset the variable in the Tcl
+		 **  space because the $env variable might need to be
+		 **  used again in the modulefile for locating other
+		 **  paths.  BUT, since this was a path-type environment
+		 **  variable, the user is expecting this to be empty
+		 **  after removing the only remaining path.  So, I set
+		 **  the variable empty here.
+		 **/
+		(void) EMSetEnv( interp, variable, "");
+		_TCLCHK(interp);
 	}
 
-	/**
-	 **  Just store the value with the marker into the environment.  I'm not
-	 **  checking if it changed because the only case that a PATH-type
-	 **  variable will be unset is when I remove the only path remaining in
-	 **  the variable.  So, using moduleSetenv is not necessary here.
-	 **/
-	Tcl_SetVar2( interp, "env", variable, newenv, TCL_GLOBAL_ONLY);
-	_TCLCHK(interp)
-	null_free((void *) &newenv);
-
-    } else {  /** SW_STATE1 **/
-
-	/**
-	 **  We must be in SW_STATE3 or not in SW_STATE at all.
-	 **  Removing the marker should be just like removing any other path.
-	 **/
-	strcpy( startp + start_offset, endp);
-
-	/**
-	 **  Cache the set.  Clear the variable from the unset table just
-	 **  in case it was previously unset.
-	 **/
-	store_hash_value( setenvHashTable, variable, oldpath);
-	clear_hash_value( unsetenvHashTable, variable);
-
-	/**
-	 **  Store the new PATH value into the environment.
-	 **/
-	Tcl_SetVar2( interp, "env", variable, oldpath, TCL_GLOBAL_ONLY);
-	_TCLCHK(interp)
-
-    }  /** ! SW_STATE1 **/
-
-#if WITH_DEBUGGING_CALLBACK
-    ErrorLogger( NO_ERR_END, LOC, _proc_cmdRemovePath, NULL);
-#endif
-
-    /**
-     **  Free what has been used and return on success
-     **/
+/**
+ **  Free what has been used and return on success
+ **/
 success1:
-    null_free((void *) &oldpath);
+	null_free((void *)&oldpath);
 success0:
-    return( TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
+	Tcl_DStringFree(newpath);
+	return (TCL_OK);		/** -------- EXIT (SUCCESS) -------> **/
 
 unwind1:
-    null_free((void *) &oldpath);
+	null_free((void *)&oldpath);
 unwind0:
-    return( TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
+	Tcl_DStringFree(newpath);
+	return (TCL_ERROR);		/** -------- EXIT (FAILURE) -------> **/
 
 } /** End of 'Remove_Path' **/

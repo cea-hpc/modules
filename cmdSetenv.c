@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.6 2005/11/30 18:53:22 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdSetenv.c,v 1.6.22.4 2011/11/28 21:13:15 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -93,7 +93,7 @@ static	char	_proc_moduleUnsetenv[] = "moduleUnsetenv";
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -182,7 +182,7 @@ int	cmdSetEnv(	ClientData	 client_data,
  **			char		*value		Value to be set	     **
  **			int		 force		Force removal	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -203,7 +203,9 @@ int	moduleSetenv(	Tcl_Interp	*interp,
     ErrorLogger( NO_ERR_START, LOC, _proc_moduleSetenv, NULL);
 #endif
 
-    oldval = (char *) Tcl_GetVar2( interp, "env", variable, TCL_GLOBAL_ONLY);
+    oldval = EMGetEnv( interp, variable);
+    if (!oldval || !*oldval)
+	null_free((void *)&oldval);
   
     /**
      **  Check to see if variable is already set correctly... 
@@ -265,7 +267,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
      **  Store the value into the environment
      **/
 
-    Tcl_SetVar2( interp, "env", variable, value, TCL_GLOBAL_ONLY);
+    EMSetEnv( interp, variable, value);
 
 #if WITH_DEBUGGING_UTIL_1
     ErrorLogger( NO_ERR_END, LOC, _proc_moduleSetenv, NULL);
@@ -289,7 +291,7 @@ int	moduleSetenv(	Tcl_Interp	*interp,
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -370,7 +372,7 @@ int	cmdUnsetEnv(	ClientData	 client_data,
  **   Parameters:	Tcl_Interp	*interp		According Tcl interp.**
  **			char		*variable	Name of the variable **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **

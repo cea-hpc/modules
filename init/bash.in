@@ -1,4 +1,3 @@
-
 @VERSIONING@if [ "${MODULE_VERSION:-}" = "" ]; then
 @VERSIONING@	MODULE_VERSION_STACK="@VERSION@"
 @VERSIONING@	MODULE_VERSION="@VERSION@"
@@ -10,6 +9,7 @@
 
 @VERSIONING@module() { eval `@BASEPREFIX@/Modules/$MODULE_VERSION/bin/modulecmd bash $*`; }
 @NOTVERSIONING@module() { eval `@bindir@/modulecmd bash $*`; }
+export -f module
 
 MODULESHOME=@prefix@
 export MODULESHOME
@@ -20,6 +20,10 @@ if [ "${LOADEDMODULES:-}" = "" ]; then
 fi
 
 if [ "${MODULEPATH:-}" = "" ]; then
-  MODULEPATH=`sed 's/#.*$//' ${MODULESHOME}/init/.modulespath | awk 'NF==1{printf("%s:",$1)}'`
+  MODULEPATH=`sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' ${MODULESHOME}/init/.modulespath`
   export MODULEPATH
+fi
+
+if [ ${BASH_VERSINFO:-0} -ge 3 ] && [ -r ${MODULESHOME}/init/bash_completion ]; then
+ . ${MODULESHOME}/init/bash_completion
 fi

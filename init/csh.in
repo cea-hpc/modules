@@ -34,6 +34,7 @@ if ($?noglob) then
   set prefix  = "$prefix""set noglob;"
   set postfix = "$postfix""unset noglob;"
 endif
+set postfix = "set _exit="'$status'"; $postfix; test 0 = "'$_exit;'
 
 @VERSIONING@alias module $prefix'eval `'$exec_prefix'/bin/modulecmd '$modules_shell' '$histchar'*`; '$postfix
 @NOTVERSIONING@alias module $prefix'eval `'$exec_prefix'/modulecmd '$modules_shell' '$histchar'*`; '$postfix
@@ -41,11 +42,10 @@ unset exec_prefix
 unset prefix
 unset postfix
 
-
 setenv MODULESHOME @prefix@
 
 if (! $?MODULEPATH ) then
-  setenv MODULEPATH `sed 's/#.*$//' ${MODULESHOME}/init/.modulespath | awk 'NF==1{printf("%s:",$1)}'`
+  setenv MODULEPATH `sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' ${MODULESHOME}/init/.modulespath`
 endif
 
 if (! $?LOADEDMODULES ) then

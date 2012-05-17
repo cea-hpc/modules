@@ -33,7 +33,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: locate_module.c,v 1.14 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: locate_module.c,v 1.14.18.2 2011/10/03 20:25:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -266,14 +266,16 @@ int Locate_ModuleFile(	Tcl_Interp	*interp,
 	/**
 	 **  Split up the MODULEPATH values into multiple directories
 	 **/
-	if( NULL == (pathlist = SplitIntoList(interp, modulespath, &numpaths)))
+	if( NULL == (pathlist = SplitIntoList(interp, modulespath, &numpaths,
+	_colon)))
 	    goto unwind0;
 	/**
 	 **  Check each directory to see if it contains the module
 	 **/
 	for(i=0; i<numpaths; i++) {
-	    if( NULL != (result = GetModuleName( interp, pathlist[i], NULL,
-		modulename))) {
+	    /* skip empty paths */
+	    if(*pathlist[i] && (NULL != (result =
+		GetModuleName( interp, pathlist[i], NULL, modulename)))) {
 
 		if( strlen( pathlist[i]) + 2 + strlen( result) > MOD_BUFSIZE) {
 		    if ((char *) NULL == stringer( filename, MOD_BUFSIZE,
@@ -387,7 +389,7 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
     }
     slen = strlen( s) + 1;
     mod = s;
-    if( ver = strchr( mod, '/'))
+    if( ver = strrchr( mod, '/'))
 	*ver++ = '\0';
     /**
      **  Allocate a buffer for full pathname building
@@ -397,6 +399,32 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 	    goto unwind1;
 	}
     }
+    /**
+     **  Check whether $path/$prefix/$modulename is a directory.
+     **/
+    if( prefix) {
+	if((char *) NULL == stringer(fullpath, MOD_BUFSIZE,
+	path,"/",prefix,"/",modulename, NULL))
+	    goto unwind1;
+    } else {
+	if((char *) NULL == stringer(fullpath, MOD_BUFSIZE,
+	path,"/",modulename, NULL))
+	    goto unwind1;
+    }
+    if( !stat( fullpath, &stats) && S_ISDIR( stats.st_mode)) {
+	/**
+	 ** So the full modulename is $modulename/default.  Recurse on that.
+	 **/
+	if((char *) NULL == (t = stringer(NULL, 0, modulename, "/",
+					  _default, NULL)))
+	    goto unwind1;
+	Result = GetModuleName( interp, path, prefix, t);
+	null_free((void *) &t);
+	null_free((void *) &fullpath);
+	null_free((void *) &s);
+	return( Result);
+    }
+
     /**
      **  Check whether $path/$prefix/$mod is a directory
      **/
@@ -422,7 +450,7 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 	     **/
 	    if( prefix) {
 		if((char *) NULL == stringer(modfil_buf, MOD_BUFSIZE,
-		path,"/",mod, NULL))
+		prefix,"/",mod, NULL))
 		    goto unwind2;
 	    } else {
 		if((char *) NULL == stringer(modfil_buf, MOD_BUFSIZE,mod, NULL))
@@ -434,7 +462,7 @@ static	char	*GetModuleName(	Tcl_Interp	*interp,
 		goto unwind2;
 	    g_current_module = modfil_buf;
 
-	    if( TCL_ERROR == SourceRC( interp, fullpath, modulerc_file) ||
+	    if(	TCL_ERROR == SourceRC( interp, fullpath, modulerc_file) ||
 		TCL_ERROR == SourceVers( interp, fullpath, modfil_buf)) {
 		/* flags = save_flags; */
 		    goto unwind2;
@@ -511,7 +539,7 @@ unwindt:
 	} else {     /** if( $path/$prefix/$mod is a directory) **/
 	    /**
 	     **  Now 'mod' should be either a file or the word 'default'
-	     **  In case of default get the file with the highest verion number
+	     **  In case of default get the file with the highest version number
 	     **  in the current directory
 	     **/
 	    if( is_def) {
@@ -532,7 +560,7 @@ unwindt:
 		for( i=0; i<numlist && Result==NULL; i++) {
 		    /**
 		     **  Build the full path name and check if it is a
-		     **  directory. If it is, recursivly try to find there what
+		     **  directory. If it is, recursively try to find there what
 		     **  we're seeking for
 		     **/
 		    if ((char *)NULL == stringer(fullpath, MOD_BUFSIZE,
@@ -669,7 +697,7 @@ char	**SortedDirList(	Tcl_Interp	*interp,
      **  Allocate memory for the list to be created. Suggest a list size of
      **  100 Elements. This may be changed later on.
      **/
-    if( NULL == (filelist = (char**) calloc( n = 100, sizeof(char*))))
+    if(!(filelist = (char**) module_malloc((n = 100)*sizeof(char*))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind0;
     /**
@@ -747,8 +775,8 @@ char	**SortedDirList(	Tcl_Interp	*interp,
 	     **  Oops! This one exceeds our array. Enlarge it.
 	     **/
 	    if( j == n)
-		if( NULL == (filelist =
-		    (char**) realloc((char*) filelist, n *= 2)))
+		if(!(filelist = (char**)
+			module_realloc((char*) filelist, (n*=2)*sizeof(char*))))
 		    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 			goto unwindt;
 	    /**
@@ -859,7 +887,8 @@ unwind0:
 
 char	**SplitIntoList(	Tcl_Interp	*interp,
 		     		char		*pathenv, 
-		     		int		*numpaths) 
+		     		int		*numpaths,
+				const char	*delim) 
 {
     char	**pathlist = NULL;	/** Temporary base pointer for the   **/
 					/** array to be created		     **/
@@ -891,22 +920,22 @@ char	**SplitIntoList(	Tcl_Interp	*interp,
      **  the list.
      **  Copy the passed path into the new buffer.
      **/
-    if((char **) NULL == (pathlist = (char**) calloc( n = 100, sizeof( char*))))
+    if(!(pathlist = (char**) module_malloc((n = 100)*sizeof( char*))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind1;
     /**
      **  Split the given path environment variable into its components.
      **/
-    for( i=0, dirname = strtok( givenpath, ": ");
+    for( i=0, dirname = xstrtok( givenpath, delim);
          dirname;
-	 dirname = strtok( NULL, ": ")) {
+	 dirname = xstrtok( NULL, delim)) {
 	/**
 	 **  Oops! The number of tokens exceed my array - reallocate it
 	 **  and double its size!
 	 **/
 	if( i == n )
-	    if((char **) NULL == (pathlist = (char**) realloc((char*) pathlist,
-		n *= 2)))
+	    if(!(pathlist = (char**) module_realloc((char*) pathlist,
+		(n *= 2)*sizeof(char*))))
 		if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 		    goto unwind1;
 	/**
@@ -1035,9 +1064,6 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
     if ((char *) NULL == (buffer = stringer(NULL, 0, path,"/",name, NULL)))
 	if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	    goto unwind0;
-    for( i=0; i<listndx; i++)
-	if( !strcmp( srclist[ i], buffer))
-	    goto unwind1;
     /**
      **  Check whether the RC file exists and has the magic cookie inside
      **/
@@ -1063,14 +1089,15 @@ int SourceRC( Tcl_Interp *interp, char *path, char *name)
 	     **/
 	    if( !listsize) {
 		listsize = SRCFRAG;
-		if((char **) NULL == (srclist = (char **) malloc( listsize *
+		if((char **) NULL
+			== (srclist = (char **) module_malloc( listsize *
 		    sizeof( char **)))) {
 		    ErrorLogger( ERR_ALLOC, LOC, NULL);
 		    goto unwind1;
 		}
 	    } else if( listndx + 1 >= listsize) {
 		listsize += SRCFRAG;
-		if((char **) NULL == (srclist = (char **) realloc( srclist, 
+		if(!(srclist = (char **) module_realloc( srclist, 
 		    listsize * sizeof( char **)))) {
 		    ErrorLogger( ERR_ALLOC, LOC, NULL);
 		    goto unwind1;
@@ -1126,6 +1153,7 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
     struct stat	  stats;		/** Buffer for the stat() systemcall **/
     int save_flags;
     char *buffer;
+    char *modname;			/** ptr to module part of name	     **/
     int Result = TCL_OK;
     char *version;
     char *new_argv[3];
@@ -1140,12 +1168,6 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
 	return( TCL_OK);
     if( !interp)
 	return( TCL_ERROR);
-    /**
-     **  No default version defined so far?
-     **/
-    if( VersionLookup( name, &mod, &ver) &&
-	strcmp( ver, _default))
-	return( TCL_OK);
     /**
      **  Build the full name of the RC file and check whether it exists and
      **  has the magic cookie inside
@@ -1172,9 +1194,15 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
 		 **  The version has been specified in the
 		 **  '.version' file. Set up the result code
 		 **/
+		/* for deep modulefile dirs ... just use lowest part */
+		if (!(modname = (char*) strrchr( name, '/'))) {
+			modname = name;
+		} else {
+			modname++;
+		}
 		null_free((void *) &buffer);
 		if ((char *) NULL == (buffer = stringer(NULL, 0,
-		name,"/",version, NULL)))
+		modname,"/",version, NULL)))
 		    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 			return( TCL_ERROR);
 
@@ -1201,7 +1229,7 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
      **/
     null_free((void *) &buffer);
     /**
-     **  Result determines if this was successfull
+     **  Result determines if this was successful
      **/
 
     return( Result);

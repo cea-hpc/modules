@@ -8,7 +8,8 @@
  **   First Edition:	1991/10/23					     **
  ** 									     **
  **   Authors:	John Furlan, jlf@behere.com				     **
- **		Jens Hamisch, jens@Strawberry.COM			     **
+ **		Jens Hamisch, jens@strawberry.com			     **
+ **		R.K. Owen, rk@owen.sj.ca.us				     **
  ** 									     **
  **   Description:	The initialization routines for Tcl Modules.	     **
  **			Primarily the setup of the different Tcl module	     **
@@ -16,7 +17,8 @@
  **			here. The initial storage of the begining	     **
  **			environment is here as well.			     **
  ** 									     **
- **   Exports:		Initialize_Tcl					     **
+ **   Exports:		EM_CreateInterp					     **
+ **   			Initialize_Tcl					     **
  **			Module_Tcl_ExitCmd				     **
  **			InitializeModuleCommands			     **
  **			Setup_Environment				     **
@@ -36,7 +38,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: init.c,v 1.9 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: init.c,v 1.9.4.4 2011/11/11 15:04:03 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -46,7 +48,7 @@ static void *UseId[] = { &UseId, Id };
 #include "modules_def.h"
 
 #ifdef	HAS_TCLXLIBS
-#include "tclExtend.h"
+#  include "tclExtend.h"
 #endif	/* HAS_TCLXLIBS */
 
 /** ************************************************************************ **/
@@ -78,6 +80,8 @@ static	char	_proc_Module_Tcl_ExitCmd[] = "Module_Tcl_ExitCmd";
 #endif
 #if WITH_DEBUGGING_INIT
 static	char	_proc_InitializeModuleCommands[] = "InitializeModuleCommands";
+static	char	_proc_EM_CreateInterp[] = "EM_CreateInterp";
+static	char	_proc_EM_DeleteInterp[] = "EM_DeleteInterp";
 static	char	_proc_Initialize_Tcl[] = "Initialize_Tcl";
 static	char	_proc_Setup_Environment[] = "Setup_Environment";
 #endif
@@ -154,10 +158,12 @@ static char *shellprops [][4] = {
 	{"zsh",		"sh",		"zsh",		";"},
 	{"perl",	"perl",		"perl",		";"},
 	{"python",	"python",	"python",	"\n"},
+	{"ruby",	"ruby", 	"ruby", 	"\n"},
 	{"scm",		"scm",		NULL,		"\n"},
 	{"scheme",	"scm",		NULL,		"\n"},
 	{"guile",	"scm",		NULL,		"\n"},
 	{"mel",		"mel",		NULL,		";"},
+	{"cmake",	"cmake",	"cmake",	"\n"},
 	{NULL,		NULL,		NULL,		NULL},
 };
 
@@ -250,6 +256,77 @@ unwind0:
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
+ **   Function:		EM_CreateInterp					     **
+ ** 									     **
+ **   Description:	Create a Tcl interpreter and set some default	     **
+ **			attributes for each interpreter.		     **
+ ** 									     **
+ **   First Edition:	2011/09/26					     **
+ ** 									     **
+ **   Parameters:	-						     **
+ ** 									     **
+ **   Result:		Tcl_Interp	**interp	New Tcl interpr.     **
+ ** 									     **
+ **   Attached Globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+Tcl_Interp *EM_CreateInterp(void) {
+	Tcl_Interp	*interp;
+
+#if WITH_DEBUGGING_INIT
+    ErrorLogger( NO_ERR_START, LOC, _proc_EM_CreateInterp, NULL);
+#endif
+
+    interp = Tcl_CreateInterp();
+    /*
+     * avoid freeing storage when in use
+     */
+    Tcl_Preserve(interp);
+
+    return interp;
+
+} /** End of 'EM_CreateInterp' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		EM_DeleteInterp					     **
+ ** 									     **
+ **   Description:	Delete a Tcl interpreter and set some default	     **
+ **			attributes for each interpreter.		     **
+ ** 									     **
+ **   First Edition:	2011/09/26					     **
+ ** 									     **
+ **   Parameters:	Tcl_Interp	**interp	Tcl interpr to	     **
+ ** 							delete		     **
+ ** 									     **
+ **   Result	:	-						     **
+ ** 									     **
+ **   Attached Globals:	-						     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+
+void EM_DeleteInterp(Tcl_Interp *interp) {
+
+#if WITH_DEBUGGING_INIT
+    ErrorLogger( NO_ERR_START, LOC, _proc_EM_DeleteInterp, NULL);
+#endif
+
+    /*
+     * avoid freeing storage when in use, now release
+     */
+    Tcl_Release(interp);
+
+    Tcl_DeleteInterp(interp);
+
+} /** End of 'EM_DeleteInterp' **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
  **   Function:		Initialize_Tcl					     **
  ** 									     **
  **   Description:	This procedure is called from 'main' in order to ini-**
@@ -313,7 +390,8 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
     Tcl_FindExecutable( argv[0] ) ;
 #endif
 
-    *interp = Tcl_CreateInterp();
+    *interp = EM_CreateInterp();
+
     if( TCL_OK != (Result = InitializeModuleCommands( *interp)))
 	goto unwind0;
 
@@ -324,17 +402,17 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
      **  initialized. Exit from the whole program in case allocation fails.
      **/
     if( ( ! ( setenvHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( unsetenvHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( aliasSetHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( aliasUnsetHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( markVariableHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ||
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ||
         ( ! ( markAliasHashTable = 
-	    (Tcl_HashTable*) malloc( sizeof(Tcl_HashTable))) ) ) {
+	    (Tcl_HashTable*) module_malloc( sizeof(Tcl_HashTable))) ) ) {
 
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind0;
@@ -377,8 +455,8 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
 			moduleSetenv( *interp, "_MODULESBEGINENV_", tmp, 1);
 			fclose( file);
 		} else
-			if( OK != ErrorLogger( ERR_OPEN, LOC,(*interp)->result,
-			    "append", NULL))
+			if( OK != ErrorLogger( ERR_OPEN, LOC,
+			    TCL_RESULT(*interp), "append", NULL))
 			    goto unwind0;
 
 		null_free((void *) &tmp);
@@ -422,8 +500,8 @@ int Initialize_Tcl(	Tcl_Interp	**interp,
                 moduleSetenv( *interp, "_MODULESBEGINENV_", buffer, 1);
                 fclose( file);
             } else
-		if( OK != ErrorLogger( ERR_OPEN, LOC, (*interp)->result,
-		    "append", NULL))
+		if( OK != ErrorLogger( ERR_OPEN, LOC,
+		    TCL_RESULT(*interp), "append", NULL))
 		    goto unwind0;
 
 	    null_free((void *) &buffer);
@@ -484,7 +562,9 @@ int InitializeModuleCommands( Tcl_Interp* interp)
      **  Extended Tcl initialization if configured so ...
      **/
 
-#if (TCL_MAJOR_VERSION > 7 || TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION > 5)
+#if (TCL_MAJOR_VERSION > 8 || TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION > 3)
+    if( Tclx_Init( interp) == TCL_ERROR)
+#elif (TCL_MAJOR_VERSION > 7 || TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION > 5)
     if( Tclxcmd_Init( interp) == TCL_ERROR)
 #else
     if( TclXCmd_Init( interp) == TCL_ERROR)
@@ -501,8 +581,11 @@ int InitializeModuleCommands( Tcl_Interp* interp)
     /**
      ** Extend autoload path
      **/
-    if( TCL_OK != Tcl_VarEval( interp, "set auto_path [linsert $auto_path 0 ",
-	AUTOLOADPATH, "]", (char *) NULL))
+    if( TCL_OK != Tcl_Eval( interp,
+	"if [info exists auto_path] { "
+		"set auto_path [linsert $auto_path 0 " AUTOLOADPATH
+	"]} else {"
+		"set auto_path \"" AUTOLOADPATH "\" }"))
 	if( OK != ErrorLogger( ERR_INIT_ALPATH, LOC, NULL))
 	    goto unwind0;
 
@@ -558,6 +641,9 @@ int InitializeModuleCommands( Tcl_Interp* interp)
 		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
 
     Tcl_CreateCommand( interp, "is-loaded", cmdIsLoaded, 
+		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
+
+    Tcl_CreateCommand( interp, "chdir", cmdChDir,
 		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
     Tcl_CreateCommand( interp, "system", cmdSystem, 
 		       (ClientData) shell_derelict,(void (*)(ClientData)) NULL);
@@ -644,8 +730,7 @@ int Setup_Environment( Tcl_Interp*	interp)
      **/
     loaded = getLMFILES( interp);
     if( loaded)
-	if( Tcl_SetVar2( interp, "env", "_LMFILES_", loaded,
-			 TCL_GLOBAL_ONLY) == (char *) NULL)
+	if( !(EMSetEnv( interp, "_LMFILES_", loaded)))
 	    if( OK != ErrorLogger( ERR_SET_VAR, LOC, environ[i], NULL))
 		goto unwind0;
 

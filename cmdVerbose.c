@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdVerbose.c,v 1.4 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdVerbose.c,v 1.4.22.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -83,7 +83,7 @@ static	char	_proc_cmdModuleVerbose[] = "cmdModuleVerbose";
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	sw_verbose	The verbose level selector	     **

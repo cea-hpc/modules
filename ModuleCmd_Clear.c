@@ -27,7 +27,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Clear.c,v 1.3 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Clear.c,v 1.3.22.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -86,7 +86,7 @@ static	char	_proc_ModuleCmd_Clear[] = "ModuleCmd_Clear";
  **			char 		*argv[]		Argument list	     **
  ** 									     **
  **   Result:		int	TCL_ERROR	Failure			     **
- **				TCL_OK		Successfull operation	     **
+ **				TCL_OK		Successful operation	     **
  ** 									     **
  **   Attached Globals:							     **
  ** 									     **

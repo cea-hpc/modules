@@ -28,7 +28,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.7 2006/01/12 19:15:54 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Init.c,v 1.7.20.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -106,7 +106,7 @@ static int out_substr(FILE *stream, char *start, char *end) {
  **			char 		*argv[]		Argument list	     **
  ** 									     **
  **   Result:		int	TCL_ERROR	Failure			     **
- **				TCL_OK		Successfull operation	     **
+ **				TCL_OK		Successful operation	     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
@@ -265,7 +265,7 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 		    }
 
 		    if ((char **) NULL ==
-			(modlist = SplitIntoList(interp, startp, &nummods)))
+		    (modlist = SplitIntoList(interp, startp, &nummods," \t")))
 			continue; /** while(fgets) **/
 
 		    /* restore the list end character */

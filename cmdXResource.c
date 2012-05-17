@@ -40,7 +40,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdXResource.c,v 1.7 2006/01/17 22:51:34 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdXResource.c,v 1.7.20.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -652,7 +652,7 @@ static	ErrType getOld( register char **buf)
 	if( OK != ErrorLogger( ERR_PARAM, LOC, "Resource database", NULL))
 	    return( ERR_PARAM);		/** ------- EXIT (PARAMETER) -----> **/
 
-    if( !(resDB.data = (Tcl_HashTable *) malloc( sizeof( Tcl_HashTable))))
+    if( !(resDB.data = (Tcl_HashTable *) module_malloc(sizeof(Tcl_HashTable))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    return( ERR_ALLOC);		/** ----- EXIT (OUT OF MEMORY) ----> **/
 
@@ -738,7 +738,7 @@ static	ErrType	initBuffers(	Tcl_Interp *interp,
      **/
 
     if( !buffer) {
-	if( !(buffer = (Tcl_DString *) malloc( sizeof( Tcl_DString)))) {
+	if( !(buffer = (Tcl_DString *) module_malloc(sizeof(Tcl_DString)))) {
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 		return( ERR_ALLOC);	/** ----- EXIT (OUT OF MEMORY) ----> **/
 	} else 
@@ -754,7 +754,7 @@ static	ErrType	initBuffers(	Tcl_Interp *interp,
 	defines[ def_base] = '\0';
     else if( is_file) {
 
-	if( !(defines = (char *) malloc( BUFSIZ * sizeof( char))))
+	if( !(defines = (char *) module_malloc(BUFSIZ * sizeof( char))))
 	    if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 		return( ERR_ALLOC);	/** ----- EXIT (OUT OF MEMORY) ----> **/
 
@@ -847,7 +847,7 @@ void xresourceFinish(register int no_errors)
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **

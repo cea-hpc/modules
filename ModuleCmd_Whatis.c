@@ -23,7 +23,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.5 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: ModuleCmd_Whatis.c,v 1.5.18.3 2011/11/29 15:48:58 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -91,7 +91,7 @@ static	char	*apropos_cache(void);
  **			char		*argv[]		Argument list	     **
  **									     **
  **   Result:		int	TCL_ERROR	Failure			     **
- **				TCL_OK		Successfull operation	     **
+ **				TCL_OK		Successful operation	     **
  **									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
@@ -112,10 +112,10 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
     int		 i, result = TCL_OK, done = 0;
     char	 modulefile[ MOD_BUFSIZE],
 		 modulename[ MOD_BUFSIZE],
-		*modpath,		/** Buffer for the contents of the   **/
+		*modpath = (char *)NULL,/** Buffer for the contents of the   **/
 					/** environment variable MODULEPATH  **/
 		**wptr,
-		*dirname,
+		*dirname = (char *)NULL,
 		*cache_file = (char *) NULL;	/** Name of the cache file   **/
     FILE	*cachefp = (FILE *) NULL;	/** Cache file pointer	     **/
 
@@ -141,9 +141,9 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
      **/
 	for(i=0; i<argc && argv[i]; i++) {
 
-	    whatis_interp = Tcl_CreateInterp();
+	    whatis_interp = EM_CreateInterp();
 	    if( TCL_OK != (result = InitializeModuleCommands( whatis_interp))) {
-		Tcl_DeleteInterp( whatis_interp);
+		EM_DeleteInterp( whatis_interp);
 		result = TCL_ERROR;
 		break;
 	    }
@@ -153,7 +153,7 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
 	     **/
 	    if( TCL_ERROR ==
 		Locate_ModuleFile(whatis_interp,argv[i],modulename,modulefile)){
-		Tcl_DeleteInterp( whatis_interp);
+		EM_DeleteInterp( whatis_interp);
 		if( OK != ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL))
 		    break;
 		else
@@ -182,7 +182,7 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
 	    /**
 	     **	 Remove the Tcl interpreter that has been used for printing ...
 	     **/
-	    Tcl_DeleteInterp( whatis_interp);
+	    EM_DeleteInterp( whatis_interp);
 	    cmdModuleWhatisShut();
 
 	} /** for **/
@@ -243,9 +243,9 @@ int ModuleCmd_Whatis(	Tcl_Interp	*interp,
 	     /**
 	      **  Tokenize the module path string and check all dirs
 	      **/
-	     for( dirname = strtok( modpath, ":");
+	     for( dirname = xstrtok( modpath, ":");
 		  dirname;
-		  dirname = strtok( NULL, ":") ) {
+		  dirname = xstrtok( NULL, ":") ) {
 	
 		 if( !check_dir( dirname))
 		     continue;
@@ -311,7 +311,7 @@ unwind0:
  **			char		*argv[]		Argument list	     **
  **									     **
  **   Result:		int	TCL_ERROR	Failure			     **
- **				TCL_OK		Successfull operation	     **
+ **				TCL_OK		Successful operation	     **
  **									     **
  **   Attached Globals:							     **
  **									     **
@@ -395,9 +395,9 @@ int ModuleCmd_Apropos(	Tcl_Interp	*interp,
 	/**
 	 **  Tokenize the module path string and check all dirs
 	 **/
-	for( dirname = strtok( modpath, ":");
+	for( dirname = xstrtok( modpath, ":");
 	     dirname;
-	     dirname = strtok( NULL, ":") ) {
+	     dirname = xstrtok( NULL, ":") ) {
 	
 	    if( !check_dir( dirname))
 		continue;
@@ -447,7 +447,7 @@ unwind0:
  **			char   **argv		List of tokens to check	     **
  **			FILE	*cfp		Cache file pointer	     **
  **									     **
- **   Result:		int	TCL_OK		Successfull operation	     **
+ **   Result:		int	TCL_OK		Successful operation	     **
  **									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
  **					this function is called in order to  **
@@ -486,7 +486,7 @@ static	int	whatis_dir( char *dir, int argc, char **argv, FILE *cfp,
 	if( OK != ErrorLogger( ERR_READDIR, LOC, dir, NULL))
 	    goto unwind0;
 
-    if( NULL == (list = (char**) malloc( tcount * sizeof( char**))))
+    if( NULL == (list = (char**) module_malloc( tcount * sizeof( char**))))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind1;
 
@@ -506,9 +506,9 @@ static	int	whatis_dir( char *dir, int argc, char **argv, FILE *cfp,
 
     for( i=0; i<tcount; i++) {
 
-	whatis_interp = Tcl_CreateInterp();
+	whatis_interp = EM_CreateInterp();
 	if( TCL_OK != (result = InitializeModuleCommands( whatis_interp))) {
-	    Tcl_DeleteInterp( whatis_interp);
+	    EM_DeleteInterp( whatis_interp);
 	    result = TCL_ERROR;
 	    break; /** for( i) **/
 	}
@@ -578,7 +578,7 @@ static	int	whatis_dir( char *dir, int argc, char **argv, FILE *cfp,
 	 **  Remove the Tcl interpreter that has been used for printing ...
 	 **/
 
-	Tcl_DeleteInterp( whatis_interp);
+	EM_DeleteInterp( whatis_interp);
 	cmdModuleWhatisShut();
 
     } /** for( i) **/
@@ -618,7 +618,7 @@ unwind0:
  **			char   **argv		List of tokens to check	     **
  **			FILE	*cfp		Cache file pointer	     **
  **									     **
- **   Result:		int	TCL_OK		Successfull operation	     **
+ **   Result:		int	TCL_OK		Successful operation	     **
  **									     **
  **   Attached Globals: -						     **
  **									     **

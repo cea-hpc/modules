@@ -1,4 +1,6 @@
-.TH MODULE 1 "10 October 2005
+.\" .TH MODULE 1 "10 October 2005
+.\"  minor editorial edits grenker 20090711
+.TH MODULE 1 "July 2009" "Modules version @VERSION@" "Modules package"
 .nh
 .SH NAME
 module \- command interface to the Modules package
@@ -68,7 +70,7 @@ The script creates the
 .B module
 command, either as an alias or shell function,
 creates Modules environment variables,
-and if enabled to do so, a snapshow of the environment is saved as either
+and if enabled to do so, a snapshot of the environment is saved as either
 (if BEGINENV=1)
 .I $HOME/.modulesbeginenv
 or (if BEGINENV=99) whatever
@@ -91,26 +93,45 @@ where
 is the name of the sourcing shell.
 The sh, csh, tcsh, bash, ksh, and zsh shells are supported by
 .B modulecmd.
-In addition, python and perl "shells" are supported, which writes
-the environment changes to stdout as python or perl code.
+In addition, python, perl, and cmake "shells" are supported, which writes
+the environment changes to stdout as python, perl, or cmake code.
+
+The perl
+.I module
+command is set up with:
+
+  use lib $ENV{'MODULESHOME'}."/init";
+  use perl;
+
+And the python
+.I module
+command is defined with:
+
+  import os;
+  if os.environ.has_key('PYTHONPATH'):
+  	os.environ['PYTHONPATH'] +=':'+os.environ['MODULESHOME']+"/init";
+  else:
+  	os.environ['PYTHONPATH'] = os.environ['MODULESHOME']+"/init";
+
+  from python import module;
 
 .SS Modulecmd startup
 .LP
 Upon invocation \fImodulecmd\fP sources rc files which contain global, user
 and modulefile specific setups. These files are interpreted as modulefiles.
-See \fBmodulefile(4)\fP for detailed information.
+See
+.BR modulefile (4)
+for detailed information.
 .LP
 Upon invocation of modulecmd module RC files are sourced in the following
 order:
 .nf
-	
-	Global RC file as specified by ${\s-1MODULERCFILE\s0} or 
-	    ${\s-1MODULESHOME\s0}/etc/rc
+
+	Global RC file as specified by ${\s-1MODULERCFILE\s0} or ${\s-1MODULESHOME\s0}/etc/rc
 
 	User specific module RC file ${\s-1HOME\s0}/.modulerc
 
-	All .modulerc and .version files found during modulefile
-	    seeking.
+	All .modulerc and .version files found during modulefile seeking.
 
 .fi
 .SS Command line switches
@@ -201,54 +222,47 @@ Advanced module user
 .SS Module Sub-Commands
 .RS
 .TP 15
-.B help [modulefile...]
+.B help\ \  [modulefile...]
 Print the usage of each sub-command.
-If an argument is given, print the Module specific help information for the
-.I modulefile.
+If an argument is given, print the Module-specific help information for the
+\fImodulefile\fP(s).
 .TP 15
-.B load modulefile [modulefile...]
+.B add\ \ \  modulefile...
 .PD 0
 .TP 15
-.B add modulefile [modulefile...]
+.B load\ \  modulefile...
 .PD
 Load
-.I modulefile
+.IR modulefile (s)
 into the shell environment.
 .TP 15
-.B unload modulefile [modulefile...]
+.B rm\ \ \ \  modulefile...
 .PD 0
 .TP 15
-.B rm modulefile [modulefile...]
+.B unload modulefile...
 .PD
 Remove
-.I modulefile
+.IR modulefile (s)
 from the shell environment.
 .TP 15
-.B switch [ modulefile1 ] modulefile2
+.B swap\ \  [modulefile1] modulefile2
 .PD 0
 .TP 15
-.B swap [ modulefile1 ] modulefile2
+.B switch [modulefile1] modulefile2
 .PD
-Switch loaded
-.I modulefile1
-with
-.I modulefile2.
-If 
-.I modulefile1
-is not specified, then it is assumed to be the currently loaded module
-with the same root name as modulefile2.
+Switch loaded \fImodulefile1\fP with \fImodulefile2\fP.
+If \fI modulefile1\fP is not specified, then it is assumed to be the currently loaded module
+with the same root name as \fImodulefile2\fP.
 .TP 15
-.B display modulefile [modulefile...]
+.B show\ \ \  modulefile...
 .PD 0
 .TP 15
-.B show modulefile [modulefile...]
+.B display modulefile...
 .PD
-Display information about a
-.I modulefile.
-The display sub-command will list the full path of the
-.I modulefile
-and all (or most) of the environment changes the
-.I modulefile
+Display information about one or more
+.IR modulefile s.
+The display sub-command will list the full path of the \fImodulefile\fP(s)
+and all (or most) of the environment changes the modulefile(s)
 will make if loaded.  (It will not display any
 environment changes found within conditional statements.)
 .TP 15
@@ -256,37 +270,25 @@ environment changes found within conditional statements.)
 List loaded modules.
 .TP 15
 .B avail [path...]
-List all available
-.I modulefiles
-.hy 0
-in the current \s-1MODULEPATH\s0.
+List all available modulefiles in the current \s-1MODULEPATH\s0.
 All directories in the \s-1MODULEPATH\s0 are recursively searched for
-files containing the
-.I modulefile
-magic cookie.
+files containing the \fImodulefile\fP magic cookie.
 If an argument is given, then each directory in the \s-1MODULEPATH\s0 is
-searched for 
-.I modulefiles
-whose pathname match the argument.
+searched for modulefiles whose pathname match the argument.
 Multiple versions of an application can be supported by creating a
-subdirectory for the application containing
-.I modulefiles
-for each version.
-.TP 15
-.B use directory [directory...]
-.PD 0
-.TP 15
-.B use [-a|--append] directory [directory...]
+subdirectory for the application containing modulefiles for each version.
 .PD
-Prepend directory to the \s-1MODULEPATH\s0 environment variable.
+.TP 15
+.B use [-a|--append] directory...
+.PD
+Prepend one or more directories to the \s-1MODULEPATH\s0 environment variable.
 The --append flag will append the directory to \s-1MODULEPATH\s0.
 .TP 15
-.B unuse directory [directory...]
-Remove directory from the \s-1MODULEPATH\s0 environment variable.
+.B unuse directory...
+Remove one or more directories from the \s-1MODULEPATH\s0 environment variable.
 .TP 15
 .B update
-Attempt to reload all loaded
-.I modulefiles.
+Attempt to reload all loaded modulefiles.
 The environment will be reconfigured to match the environment saved in
 .I ${\s-1HOME\s0}/.modulesbeginenv
 (if BEGINENV=1)
@@ -294,21 +296,18 @@ or the file pointed at by
 .I $MODULESBEGINEV
 (if BEGINENV=99)
 and the modulefiles will be reloaded.
-
 This is only valid if modules was configured with --enable-beginenv
-(which defines BEGINENV)
-else this will cause a warning.
+(which defines BEGINENV), otherwise this will cause a warning.
 .B update
 will only change the environment variables that the
-.I modulefiles
+.IR modulefile s
 set.
 .TP 15
 .B clear
-Force the Modules Package to believe that no modules are currently loaded.
+Force the Modules package to believe that no modules are currently loaded.
 .TP 15
 .B purge
-Unload all loaded
-.I modulefiles.
+Unload all loaded modulefiles.
 .TP 15
 .B refresh
 Force a refresh of all non-persistent components of currently loaded modules.
@@ -316,21 +315,22 @@ This should be used on derived shells where aliases need to be reinitialized
 but the environment variables have already been set by the currently loaded
 modules.
 .TP 15
-.B whatis [modulefile [modulefile...]]
-Display the modulefile information set up by the \fImodule-whatis\fP commands
-inside the specified modulefiles. If no modulefiles are specified all whatis
-information lines will be shown.
+.B whatis [modulefile...]
+Display the information set up by the \fImodule-whatis\fP commands
+inside the specified modulefile(s). If no \fImodulefile\fP is specified,
+all 'whatis' lines will be shown.
 .TP 15
 .B apropos string
 .PD 0
 .TP 15
 .B keyword string
-Seeks thru the whatis informations of all modulefiles for the specified string.
-All module whatis informations matching the string search will be displayed.
+Seeks through the 'whatis' informations of all modulefiles for the specified string.
+All \fImodule-whatis\fP informations matching the \fIstring\fP will be displayed.
+.PD
 .TP 15
-.B initadd modulefile [modulefile...]
+.B initadd modulefile...
 Add
-.I modulefile
+.IR modulefile (s)
 to the shell's initialization file in the user's home directory.
 The startup files checked (in order) are:
 .br
@@ -345,9 +345,8 @@ bash - .modules, .bash_profile, .bash_login, .profile(.ext), and .bashrc(.ext)
 zsh - .modules, .zcshrc(.ext), .zshenv(.ext), and .zlogin(.ext)
 
 If a 'module load' line is found in any of these files, the
-.I modulefile(s)
-is(are) appended to any existing list of 
-.I modulefiles.
+\fImodulefile\fP(s) is(are) appended to any existing list of
+modulefiles.
 The 'module load' line must be located in at least one of the
 files listed above for any of the 'init' sub-commands to work properly.
 If the 'module load' line is found in multiple shell initialization files,
@@ -358,10 +357,8 @@ Does the same as
 .B initadd
 but prepends the given modules to the beginning of the list.
 .TP 15
-.B initrm modulefile [modulefile...]
-Remove
-.I modulefile
-from the shell's initialization files.
+.B initrm modulefile...
+Remove \fImodulefile\fP(s) from the shell's initialization files.
 .TP 15
 .B initswitch modulefile1 modulefile2
 Switch
@@ -371,21 +368,17 @@ with
 in the shell's initialization files.
 .TP 15
 .B initlist
-List all of the
-.I modulefiles
-loaded from the shell's initialization file.
+List all of the modulefiles loaded from the shell's initialization file.
 .TP 15
 .B initclear
-Clear all of the 
-.I modulefiles
-from the shell's initialization files.
+Clear all of the modulefiles from the shell's initialization files.
 .RE
 .SS Modulefiles
 .LP
-.I modulefiles
+.IR modulefile s
 are written in the Tool Command Language (Tcl) and are interpreted by
 .B modulecmd.
-.I modulefiles
+.IR modulefile s
 can use conditional statements.
 Thus the effect a 
 .I modulefile
@@ -495,7 +488,9 @@ This information is used by the
 sub-command (if BEGINENV=1), else
 .TP
 .B $MODULESBEGINENV
-If this defines a valid filename, this serves the same purpose as above
+If this defines a valid filename, it serves the same purpose as above
 (if BEGINENV=99).
+.SH VERSION
+@VERSION@
 .SH SEE ALSO
-.BR modulefile(4)
+.BR modulefile (4)

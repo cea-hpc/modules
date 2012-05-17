@@ -43,6 +43,12 @@
 #  define CONST84	/* const */
 #endif
 
+#if (TCL_MAJOR_VERSION < 8)
+#  define TCL_RESULT(interp) ((interp)->result)
+#else
+#  define TCL_RESULT(interp) Tcl_GetStringResult(interp)
+#endif
+
 #ifndef HAVE_STDINT_H
 /* assume 32 bit - hope for the best */
 typedef	int	intptr_h;
@@ -121,6 +127,13 @@ typedef	int	intptr_h;
 #  include <errno.h>
 #else
 extern	int	  errno;
+#endif
+
+#ifdef HAVE_ASSERT_H
+#  include <assert.h>
+#else
+#  warning "not able to test code assertions"
+#  define assert(condition)
 #endif
 
 /** ************************************************************************ **/
@@ -244,6 +257,19 @@ typedef	enum	{
 					/** ror logger immediatelly	     **/
 } ErrCode;
 
+/**
+ **  Internal return value to handle the various ways a module load
+ **	could end.
+ **/
+typedef enum	{
+	EM_OK		= 0,		/** normal return	**/
+	EM_EXIT,			/** cmd: exit N		**/
+					/** (set g_retval = N)	**/
+	EM_BREAK,			/** cmd: break		**/
+	EM_CONTINUE,			/** cmd: continue	**/
+	EM_ERROR			/** abnormal return	**/
+} EM_RetVal;
+
 /** ************************************************************************ **/
 /** 				     CONSTANTS				     **/
 /** ************************************************************************ **/
@@ -351,6 +377,7 @@ typedef	enum	{
 #define      M_HELP	0x0100
 #define      M_WHATIS	0x0200
 #define      M_NONPERSIST	0x0400
+#define      M_SUBCMD	0x8000
 
 /**
  **  markers for switching 
@@ -477,11 +504,14 @@ extern	char	 *shell_derelict;
 extern	char	 *shell_init;
 extern	char	 *shell_cmd_separator;
 extern	int	  g_flags;
+extern	int	  g_retval;
+extern	int	  g_output;
 extern	int	  append_flag;
 extern	char	 *line;
 extern	char	 *error_line;
 extern	char	  local_line[];
 extern	char	  _default[];
+extern	char	  _colon[];
 
 extern	int	  linenum;
 
@@ -533,6 +563,7 @@ extern	char	*instpath;
 extern	char	*rc_file;
 extern	char	*modulerc_file;
 extern	char	*version_file;
+extern	char	*change_dir;
 
 extern	char	 long_header[];
 
@@ -543,7 +574,7 @@ extern	char	 long_header[];
 /**  locate_module.c  **/
 extern	int	  Locate_ModuleFile( Tcl_Interp*, char*, char*, char*);
 extern	char	**SortedDirList( Tcl_Interp*, char*, char*, int*);
-extern	char	**SplitIntoList( Tcl_Interp*, char*, int*);
+extern	char	**SplitIntoList( Tcl_Interp*, char*, int*, const char*);
 extern	int	  SourceVers( Tcl_Interp*, char*, char*);
 extern	int	  SourceRC( Tcl_Interp *interp, char *, char *);
 #ifdef USE_FREE
@@ -654,6 +685,9 @@ extern	void	  xresourceFinish( int);
 extern	int	  cmdModuleUser(ClientData, Tcl_Interp*, int, CONST84 char*[]);
 extern	int	  cmdModuleUser_sub( char *user_level);
 
+/**  cmdChdir.c **/
+extern	int	  cmdChDir(ClientData, Tcl_Interp*, int, CONST84 char*[]);
+
 /**  cmdLog.c  **/
 extern	int	  cmdModuleLog( ClientData, Tcl_Interp*, int, CONST84 char*[]);
 
@@ -671,6 +705,8 @@ extern	int	  VersionLookup( char*, char**, char**);
 extern	char	 *ExpandVersions( char*);
 
 /**  init.c  **/
+extern	Tcl_Interp	 *EM_CreateInterp(void);
+extern	void	  EM_DeleteInterp(Tcl_Interp*);
 extern	int	  Initialize_Tcl( Tcl_Interp**, int, char*[], char*[]);
 extern	int	  InitializeModuleCommands( Tcl_Interp*);
 extern	int	  Setup_Environment( Tcl_Interp*);
@@ -700,14 +736,22 @@ extern	int	  IsLoaded( Tcl_Interp*, char*, char**, char*);
 extern	int	  IsLoaded_ExactMatch( Tcl_Interp*, char*, char	**, char*);
 extern	int	  Update_LoadedList( Tcl_Interp*, char*, char*);
 extern	int	  check_magic( char*, char*, int);
+extern	char	 *xstrtok_r(char *, const char *, char **);
+extern	char	 *xstrtok(char *, const char *);
 extern	void	  chk4spch( char*);
 extern	void	  cleanse_path( const char*, char*, int);
+extern	void	 *module_malloc(size_t);
+extern	void	 *module_realloc(void *,size_t);
 extern	char	 *xdup(char const *);
 extern	char	 *xgetenv(char const *);
 extern  int       tmpfile_mod( char**, FILE**);
 extern	char	 *stringer(char *, int, ...);
 extern	void	  null_free(void **);
 extern	size_t	  countTclHash(Tcl_HashTable *);
+extern	EM_RetVal	ReturnValue( Tcl_Interp*, int);
+extern	void	  OutputExit();
+extern	char 	 *EMGetEnv(Tcl_Interp *, char const *);
+extern	char 	 *EMSetEnv(Tcl_Interp *, char const *, char const *);
 
 #ifndef HAVE_STRDUP
 #  undef strdup

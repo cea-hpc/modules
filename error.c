@@ -30,7 +30,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: error.c,v 1.8 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: error.c,v 1.8.4.2 2011/10/03 20:25:43 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -248,9 +248,9 @@ static	ErrTransTab	TransTab[] = {
     { NO_ERR_START,	WGHT_DEBUG, "Starting $*" },
     { NO_ERR_END,	WGHT_DEBUG, "Exit $*" },
     { NO_ERR_VERBOSE,	WGHT_VERBOSE,  NULL },
-    { ERR_PARAM,	WGHT_ERROR, "Paramter error concerning '$1'" },
+    { ERR_PARAM,	WGHT_ERROR, "Parameter error concerning '$1'" },
     { ERR_USAGE,	WGHT_ERROR, "Usage is '$*'" },
-    { ERR_ARGSTOLONG,	WGHT_ERROR, "'$1': Arguments to long. Max. is '$2'" },
+    { ERR_ARGSTOLONG,	WGHT_ERROR, "'$1': Arguments too long. Max. is '$2'" },
     { ERR_OPT_AMBIG,	WGHT_ERROR, "Option '$1' is ambiguous" },
     { ERR_OPT_NOARG,	WGHT_ERROR, "Option '$1' allows no argument" },
     { ERR_OPT_REQARG,	WGHT_ERROR, "Option '$1' requires an argument" },
@@ -338,7 +338,7 @@ static	ErrTransTab	TransTab[] = {
     { ERR_INVAL,	WGHT_PANIC, "Invalid error type '$1' found" },
     { ERR_INVWGHT,	WGHT_PANIC, "Invalid error weight '$1' found" },
     { ERR_INVFAC,	WGHT_PANIC, "Invalid log facility '$1'" },
-    { ERR_ENVVAR,       WGHT_FATAL, "The environment variables LOADMODULES and _LMFILES_ have inconsistent lengths." }
+    { ERR_ENVVAR,       WGHT_FATAL, "The environment variables LOADEDMODULES and _LMFILES_ have inconsistent lengths." }
 };
 
 /** ************************************************************************ **/
@@ -609,7 +609,7 @@ int Module_Error(	ErrType		  error_type,
      **  Build the argument array at first
      **/
 
-    if( NULL == (argv = (char **) malloc( listsize * sizeof( char *)))) {
+    if( NULL == (argv = (char **) module_malloc(listsize * sizeof( char *)))) {
 	module = module_name;
 	error_type = ERR_ALLOC;
 	NoArgs = 1;
@@ -623,7 +623,7 @@ int Module_Error(	ErrType		  error_type,
 	 **/
 	while( argc >= listsize) {
 	    listsize += ARGLIST_SIZE;
-	    if( NULL == (argv = (char **) realloc( argv,
+	    if(!(argv = (char **) module_realloc( argv,
 		listsize * sizeof(char *)))) {
 		module = module_name;
 		error_type = ERR_ALLOC;
@@ -930,9 +930,9 @@ static	int	FlushError(	ErrType		  Type,
      **  Now tokenize the facilities string and schedule the error messge
      **  for every single facility
      **/
-    for( fac = strtok( facilities, ":");
+    for( fac = xstrtok( facilities, ":");
 	 fac;
-	 fac = strtok( (char *) NULL, ":") ) {
+	 fac = xstrtok( (char *) NULL, ":") ) {
 
 	/**
 	 **  Check for filenames. Two specials are defined: stderr and stdout
@@ -957,6 +957,11 @@ static	int	FlushError(	ErrType		  Type,
 #if defined(HAVE_SYSLOG) && defined(WITH_LOGGING)
 	    int syslog_fac, syslog_lvl;
 
+	/* error output to stderr too if an error or verbose */
+	    if (Type >= NO_ERR_VERBOSE)
+		fprintf( stderr, "%s", errmsg_buffer);
+
+	/* now send to syslog */
 	    if( CheckFacility( fac, &syslog_fac, &syslog_lvl)) {
 		openlog( "modulecmd", LOG_PID, syslog_fac);
 		setlogmask( LOG_UPTO( syslog_lvl));
@@ -973,7 +978,7 @@ static	int	FlushError(	ErrType		  Type,
 
 #else
 #  ifdef	SYSLOG_DIR
-	    /* this is an intential memory leak */
+	    /* this is an intentional memory leak */
 	    buffer = stringer(NULL,0, SYSLOG_DIR, "/", fac);
 	    fac = buffer;
 #  endif
@@ -1143,7 +1148,7 @@ int	CheckFacility(	char *string, int *facility, int *level)
 
     /** 
      **  We cannot use strtok here, because there's one initialized in an
-     **  outter loop!
+     **  outer loop!
      **/
     for( s=buf; s && *s && *s != '.'; s++);
     if( !s || !*s)
@@ -1458,7 +1463,7 @@ static	char	*ErrorString(	char		 *ErrMsgs,
 	 **  Add a single character to the error string
 	 **/
 	if( ++len >= strsize - 5) {	/** 5 Bytes for safety		     **/
-	    if( NULL == (error_line = (char *) realloc( error_line,
+	    if(!(error_line = (char *) module_realloc( error_line,
 		strsize += ERR_LINELEN))) {
 		ErrorLogger( ERR_ALLOC, LOC, NULL);
 		return( NULL);
@@ -1535,7 +1540,7 @@ static	void	add_param(	char		**Control,
     if( s == buffer && !last) {
 
 	if( ++(*Length) >= strsize) {
-	    if( NULL == (error_line = (char*) realloc( error_line,
+	    if(!(error_line = (char*) module_realloc( error_line,
 		strsize += ERR_LINELEN))) {
 		ErrorLogger( ERR_ALLOC, LOC, NULL);
 		return;
@@ -1568,7 +1573,7 @@ static	void	add_param(	char		**Control,
 	    len = strlen( argv[ index]);
 
 	    while(( *Length + len + 1) >= strsize - 5) {
-		if( NULL == (error_line = (char*) realloc( error_line,
+		if(!(error_line = (char*) module_realloc( error_line,
 		    strsize += ERR_LINELEN))) {
 		    ErrorLogger( ERR_ALLOC, LOC, NULL);
 		    return;

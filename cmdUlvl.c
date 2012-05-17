@@ -26,7 +26,7 @@
  ** 									     ** 
  ** ************************************************************************ **/
 
-static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.6 2005/11/29 04:26:30 rkowen Exp $";
+static char Id[] = "@(#)$Id: cmdUlvl.c,v 1.6.22.1 2010/11/11 18:23:18 rkowen Exp $";
 static void *UseId[] = { &UseId, Id };
 
 /** ************************************************************************ **/
@@ -94,7 +94,7 @@ static	char	_str_ul_expert[] = "expert";
  **			int		 argc		Number of arguments  **
  **			char		*argv[]		Argument array	     **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	g_flags		These are set up accordingly before  **
@@ -172,7 +172,7 @@ int	cmdModuleUser(	ClientData	 client_data,
  ** 									     **
  **   Parameters:	char	*user_level	User level string to be chk. **
  ** 									     **
- **   Result:		int	TCL_OK		Successfull completion	     **
+ **   Result:		int	TCL_OK		Successful completion	     **
  **				TCL_ERROR	Any error		     **
  ** 									     **
  **   Attached Globals:	sw_userlvl	Contains the binary coded userlevel  **
