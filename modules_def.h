@@ -377,6 +377,7 @@ typedef enum	{
 #define      M_HELP	0x0100
 #define      M_WHATIS	0x0200
 #define      M_NONPERSIST	0x0400
+#define      M_SUBCMD	0x8000
 
 /**
  **  markers for switching 
