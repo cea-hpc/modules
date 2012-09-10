@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-regsub {\$[^:]+:\s*(\S+)\s*\$} {$Revision: 1.146 $} {\1}\
+regsub {\$[^:]+:\s*(\S+)\s*\$} {$Revision: 1.147 $} {\1}\
 	 MODULES_CURRENT_VERSION
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -1990,7 +1990,7 @@ proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
 	set modulename [string range $element $sstart end]
 
 
-	if {[file isdirectory $element]} {
+	if {[file isdirectory $element] && [file readable $element]} {
 	    set ModulesVersion ""
 
 	    if {$g_debug} {
@@ -2477,7 +2477,7 @@ proc cmdModulePurge {{separator {}}} {
 
     if {[info exists env(LOADEDMODULES)]} {
 	set list [split $env(LOADEDMODULES) $separator]
-	eval cmdModuleUnload $list
+	eval cmdModuleUnload [reverseList $list]
     }
 }
 
@@ -2563,7 +2563,7 @@ proc cmdModuleAvail {{mod {*}}} {
     }
 
     foreach dir [split $env(MODULEPATH) $g_def_separator] {
-	if {[file isdirectory "$dir"]} {
+	if {[file isdirectory "$dir"] && [file readable $dir]} {
 	    set len  [string length $dir]
 	    set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
 	    set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
