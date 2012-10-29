@@ -488,12 +488,6 @@ int	cmdRemovePath(	ClientData	 client_data,
 	sw_marker = PRE_SW_MARKER;
   
     /**
-     ** For switch state3, we're looking to remove the markers.
-     **/
-    if( g_flags & M_SWSTATE3) 
-	argv[arg1+1] = sw_marker;
-
-    /**
      **  Check for the delimiter option
      **/
     if(*(argv[arg1]) == '-') {
@@ -508,6 +502,12 @@ int	cmdRemovePath(	ClientData	 client_data,
 		arg1++;
 	}
     }
+
+    /**
+     ** For switch state3, we're looking to remove the markers.
+     **/
+    if( g_flags & M_SWSTATE3) 
+	argv[arg1+1] = sw_marker;
 
     /**
      **  Split the path into its components so each item can be removed
