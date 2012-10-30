@@ -1,0 +1,152 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2012/05/17
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen, <rk@owen.sj.ca.us>
+#
+#   Description:	recursive load/unload test
+#   Command:		load
+#   Modulefiles:	recurs/modA
+#   			recurs/modA
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Recursive load a modulefile
+#		}C%
+#
+##############################################################################
+
+set modA "recurs/modA"
+set modB "recurs/modB"
+
+set modAp "$env(MODULEPATH)/$modA"
+set modBp "$env(MODULEPATH)/$modB"
+
+#
+# set up an empty environment
+#
+set module ""
+set modulefile ""
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  load
+#  For the different shells ...
+#
+set module "$modB:$modA"
+set modulefile "$modBp:$modAp"
+set moderr "modA load\nmodB load";
+
+set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
+set tsA_sh "MODA_LOADED=1 ;export MODA_LOADED;"
+set tsB_sh "MODB_LOADED=1 ;export MODB_LOADED;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile ;"
+set lm_csh "setenv LOADEDMODULES $module ;"
+set tsA_csh "setenv MODA_LOADED 1 ;"
+set tsB_csh "setenv MODB_LOADED 1 ;"
+
+set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
+set tsA_perl "\$ENV{'MODA_LOADED'} = '1';"
+set tsB_perl "\$ENV{'MODB_LOADED'} = '1';"
+
+set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
+set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
+set tsA_cmake "set(ENV{MODA_LOADED} \"1\")"
+set tsB_cmake "set(ENV{MODB_LOADED} \"1\")"
+
+#
+#  The load tests
+#
+testouterr_cmd "sh" "load $modA" "$lm_sh$tsA_sh$tsB_sh$lmf_sh" "$moderr"
+testouterr_cmd "ksh" "load $modA" "$lm_sh$tsA_sh$tsB_sh$lmf_sh" "$moderr"
+testouterr_cmd "zsh" "load $modA" "$lm_sh$tsA_sh$tsB_sh$lmf_sh" "$moderr"
+testouterr_cmd "csh" "load $modA" "$lm_csh$tsA_csh$tsB_csh$lmf_csh" "$moderr"
+testouterr_cmd "tcsh" "load $modA" "$lm_csh$tsA_csh$tsB_csh$lmf_csh" "$moderr"
+testouterr_cmd "perl" "load $modA" "$lm_perl$tsA_perl$tsB_perl$lmf_perl" "$moderr"
+testouterr_cmd "cmake" "load $modA" "$lm_cmake\n$tsA_cmake\n$tsB_cmake\n$lmf_cmake" "$moderr"
+
+#
+# set-up a loaded environment
+#
+set env(_LMFILES_) "/some/path/foobar/1.0:$modulefile"
+set env(LOADEDMODULES) "foobar/1.0:$module"
+set module "foobar/1.0"
+set modulefile "/some/path/foobar/1.0"
+set moderr "modA remove\nmodB remove";
+
+set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
+set tsA_sh "unset MODA_LOADED;"
+set tsB_sh "unset MODB_LOADED;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile ;"
+set lm_csh "setenv LOADEDMODULES $module ;"
+set tsA_csh "unsetenv MODA_LOADED;"
+set tsB_csh "unsetenv MODB_LOADED;"
+
+set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
+set tsA_perl "delete \$ENV{'MODA_LOADED'};"
+set tsB_perl "delete \$ENV{'MODB_LOADED'};"
+
+set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
+set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
+set tsA_cmake "unset(ENV{MODA_LOADED})"
+set tsB_cmake "unset(ENV{MODB_LOADED})"
+
+#
+#  The unload tests
+#
+testouterr_cmd "sh" "unload $modA" "$lm_sh$lmf_sh$tsA_sh$tsB_sh" "$moderr"
+testouterr_cmd "ksh" "unload $modA" "$lm_sh$lmf_sh$tsA_sh$tsB_sh" "$moderr"
+testouterr_cmd "zsh" "unload $modA" "$lm_sh$lmf_sh$tsA_sh$tsB_sh" "$moderr"
+testouterr_cmd "csh" "unload $modA" "$lm_csh$lmf_csh$tsA_csh$tsB_csh" "$moderr"
+testouterr_cmd "tcsh" "unload $modA" "$lm_csh$lmf_csh$tsA_csh$tsB_csh" "$moderr"
+testouterr_cmd "perl" "unload $modA" "$lm_perl$lmf_perl$tsA_perl$tsB_perl" "$moderr"
+testouterr_cmd "cmake" "unload $modA" "$lm_cmake\n$lmf_cmake\n$tsA_cmake\n$tsB_cmake" "$moderr"
+
+#
+#  Cleanup
+#
+
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+unset moderr
+
+unset lm_sh
+unset lmf_sh
+unset tsA_sh
+unset tsB_sh
+
+unset lm_csh
+unset lmf_csh
+unset tsA_csh
+unset tsB_csh
+
+unset lm_perl
+unset lmf_perl
+unset tsA_perl
+unset tsB_perl
+
+unset lm_cmake
+unset lmf_cmake
+unset tsA_cmake
+unset tsB_cmake
+
+unset modulefile
+unset module
+
+unset modA
+unset modB
+unset modAp
+unset modBp
+

@@ -416,12 +416,6 @@ int cmdRemovePath(
 		sw_marker = PRE_SW_MARKER;
 
     /**
-     ** For switch state3, we're looking to remove the markers.
-     **/
-	if (g_flags & M_SWSTATE3)
-		Tcl_SetStringObj(objv[arg1 + 1], sw_marker, -1);
-
-    /**
      **  Check for the delimiter option
      **/
 	arg = Tcl_GetString(objv[arg1]);
@@ -437,6 +431,12 @@ int cmdRemovePath(
 			arg1++;
 		}
 	}
+
+    /**
+     ** For switch state3, we're looking to remove the markers.
+     **/
+	if (g_flags & M_SWSTATE3)
+		Tcl_SetStringObj(objv[arg1 + 1], sw_marker, -1);
 
     /**
      **  Split the path into its components so each item can be removed
