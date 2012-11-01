@@ -752,6 +752,7 @@ extern	EM_RetVal	ReturnValue( Tcl_Interp*, int);
 extern	void	  OutputExit();
 extern	char 	 *EMGetEnv(Tcl_Interp *, char const *);
 extern	char 	 *EMSetEnv(Tcl_Interp *, char const *, char const *);
+extern	int	  is_interactive(void);
 
 #ifndef HAVE_STRDUP
 #  undef strdup
