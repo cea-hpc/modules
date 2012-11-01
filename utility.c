@@ -38,6 +38,7 @@
  **			ReturnValue					     **
  **			OutputExit					     **
  **			is_						     **
+ **			is_interactive					     **
  **									     **
  **   Notes:								     **
  ** 									     **
@@ -1378,7 +1379,7 @@ static int output_set_alias(
 	 **  Shells supporting extended bourne shell syntax ....
 	 **/
 		if ((!strcmp(shell_name, "sh") && bourne_alias)
-		    || !strcmp(shell_name, "bash")
+		    || (!strcmp(shell_name, "bash") && is_interactive())
 		    || !strcmp(shell_name, "zsh")
 		    || !strcmp(shell_name, "ksh")) {
 	    /**
@@ -1424,7 +1425,8 @@ static int output_set_alias(
 
 			fprintf(aliasfile, "'%c", alias_separator);
 
-		} else if (!strcmp(shell_name, "sh") && bourne_funcs) {
+		} else if ( (!strcmp(shell_name, "sh") && bourne_funcs)
+		|| (!strcmp( shell_name, "bash") && !is_interactive())) {
 	/**
 	 **  The bourne shell itself
          **  need to write a function unless this sh doesn't support
@@ -2907,3 +2909,42 @@ is_Result is_(
 	}
 	return IS_NOT;
 } /** is_ **/
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 									     **
+ **   Function:		is_interactive					     **
+ ** 									     **
+ **   Description:	Test whether an interactive shell or not	     **
+ ** 			(for bash)					     **
+ ** 									     **
+ **   first edition:	2012/05/21	R.K.Owen <rk@owen.sj.ca.us>	     **
+ ** 									     **
+ **   Parameters:	none						     **
+ ** 									     **
+ **   Result:		int    			return 1 if true, else 0     **
+ ** 									     **
+ ** ************************************************************************ **
+ ++++*/
+int is_interactive(void) {
+
+	static int saved = -1;
+	FILE *tty = (FILE *) NULL;
+
+	if (saved < 0) {
+		/* try /dev/tty */
+		if (!(tty = fopen("/dev/tty","w"))) {
+			saved = 0;	/* no tty - hence non-interactive */
+		} else if (isatty(fileno(stdin)) || isatty(fileno(stdout))
+		|| isatty(fileno(stderr))) {
+			/* at least one of stdin/out/err is a tty */
+			saved = 1;
+		} else {
+			saved = 0;
+		}
+		if (tty)	fclose(tty);
+	}
+
+	return saved;
+
+} /** End of 'is_interactive' **/
