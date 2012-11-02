@@ -1,8 +1,5 @@
 #ifndef _UVEC_H_
 #  define _UVEC_H_
-/* 
- * RCSID @(#)$Id: uvec.h,v 1.3 2009/09/02 20:37:39 rkowen Exp $
- */
 /** ** Copyright *********************************************************** **
  ** 									     **
  ** Copyright 2001,2009 by R.K.Owen,Ph.D.	                      	     **

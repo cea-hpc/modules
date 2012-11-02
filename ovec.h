@@ -1,8 +1,5 @@
 #ifndef _OVEC_H_
 #  define _OVEC_H_
-/* 
- * RCSID @(#)$Id: ovec.h,v 1.2 2009/10/15 19:09:35 rkowen Exp $
- */
 /** ** Copyright *********************************************************** **
  ** 									     **
  ** Copyright 2009 by R.K.Owen,Ph.D.		                      	     **
