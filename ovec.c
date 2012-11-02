@@ -10,7 +10,7 @@
  ** 									     **
  ** ************************************************************************ **/
 
-static char Id[]="@(#)$Id: ovec.c,v 1.2 2009/10/15 19:09:35 rkowen Exp $";
+static char Id[]="@(#)$Id$";
 static void *UseId[] = { &UseId, Id };
 
 #include <stdlib.h>
