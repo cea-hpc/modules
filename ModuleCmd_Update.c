@@ -44,7 +44,7 @@ static void *UseId[] = { &UseId, Id };
 /** 				     CONSTANTS				     **/
 /** ************************************************************************ **/
 
-#define	UPD_BUFSIZE	1024
+#define	UPD_BUFSIZE	2048
 
 /** ************************************************************************ **/
 /**				      MACROS				     **/
@@ -84,7 +84,7 @@ static	char	_proc_ModuleCmd_Update[] = "ModuleCmd_Update";
  **   Result:		int	TCL_ERROR	Failure			     **
  **				TCL_OK		Successful operation	     **
  ** 									     **
- **   Attached Globals:	flags		Controllig the callback functions    **
+ **   Attached Globals:	flags		Controls the callback functions      **
  ** 									     **
  ** ************************************************************************ **
  ++++*/
