@@ -181,7 +181,7 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS(string.h memory.h stdlib.h unistd.h termio.h fcntl.h ctype.h \
 	stdarg.h varargs.h syslog.h stdint.h)dnl
 AC_CHECK_HEADERS([sys/ioctl.h sys/termios.h sys/mode.h sys/stat.h sys/param.h \
-		  errno.h assert.h])dnl
+		  errno.h assert.h locale.h])dnl
 dnl ---------------------------------------------------------------------------
 dnl Checks for typedefs, structures, and compiler characteristics.
 dnl ---------------------------------------------------------------------------
@@ -193,9 +193,10 @@ AC_STRUCT_TM
 dnl ---------------------------------------------------------------------------
 dnl Checks for library functions.
 dnl ---------------------------------------------------------------------------
+AC_FUNC_STRCOLL
 AC_CHECK_FUNCS([uname gethostname getdomainname \
 	mktemp tmpnam tempnam \
-	syslog dup2 setenv putenv])dnl
+	syslog dup2 setenv putenv setlocale])dnl
 dnl ---------------------------------------------------------------------------
 dnl Checks for libraries
 dnl ---------------------------------------------------------------------------
