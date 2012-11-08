@@ -43,6 +43,9 @@ static void *UseId[] = { &UseId, Id };
 
 #include <time.h>
 #include "modules_def.h"
+#if defined HAVE_STRCOLL && defined HAVE_LOCALE_H && defined HAVE_SETLOCALE
+#  include <locale.h>
+#endif
 
 /** ************************************************************************ **/
 /** 				  LOCAL DATATYPES			     **/
@@ -212,6 +215,13 @@ int ModuleCmd_Avail(	Tcl_Interp	*interp,
     if( (char *) NULL == (namebuf = stringer(NULL, MOD_BUFSIZE, NULL)))
 	if( OK != ErrorLogger( ERR_ALLOC, LOC, NULL))
 	    goto unwind1;
+#endif
+
+#if defined HAVE_STRCOLL && defined HAVE_SETLOCALE
+    /**
+     ** define the collation order using the locale
+     **/
+    (void) setlocale(LC_COLLATE,"");
 #endif
 
     /**
@@ -2098,8 +2108,12 @@ static	int fi_ent_cmp(	const void	*fi1,
 {
 
 #ifdef DEF_COLLATE_BY_NUMBER
-  return colcomp( ((fi_ent*)fi1)->fi_name, ((fi_ent*)fi2)->fi_name);
+	return colcomp( ((fi_ent*)fi1)->fi_name, ((fi_ent*)fi2)->fi_name);
 #else
-  return strcmp( ((fi_ent*)fi1)->fi_name, ((fi_ent*)fi2)->fi_name);
+#  ifdef HAVE_STRCOLL
+	return strcoll( ((fi_ent*)fi1)->fi_name, ((fi_ent*)fi2)->fi_name);
+#  else
+	return strcmp( ((fi_ent*)fi1)->fi_name, ((fi_ent*)fi2)->fi_name);
+#  endif
 #endif
 }
