@@ -121,15 +121,18 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
 {
     char	 *home_pathname,
 		 *home_pathname2,
-		 **shell_startups;	/** A list off all startup files our **/                                        /** invoking shell will source       **/
+		 **shell_startups;	/** A list of all startup files our **/
+					/** invoking shell will source       **/
     int		  max_home_path = MOD_BUFSIZE + 40;
-    Tcl_RegExp	 modcmdPtr = Tcl_RegExpCompile(interp,
-	"^([ \t]*module[ \t]+)(load|add)[ \t]+([^#\n]*)([#.\n]*)");
     char	**modlist,
 		 *home,
 		 *buffer,
 		  ch,
-		 *startp, *endp;
+		 *startp, *endp,
+		 *Modcmd =
+	"^([ \t]*module[ \t]+)(load|add)[ \t]+([^#\n]*)([#.\n]*)";
+    static Tcl_Obj	 *modcmdObj;
+    static Tcl_RegExp	  modcmdPtr;
     FILE	 *fileptr, *newfileptr;
     int		  i, j,
 		  found_module_command = 0,
@@ -151,6 +154,10 @@ int	ModuleCmd_Init(	Tcl_Interp	*interp,
     if (argc < 1 && !(g_flags & (M_DISPLAY | M_CLEAR)))
 	goto success0;
 
+    if (!modcmdObj)
+	modcmdObj = Tcl_NewStringObj(Modcmd,strlen(Modcmd));
+    if (!modcmdPtr)
+	modcmdPtr = Tcl_GetRegExpFromObj(interp,modcmdObj,TCL_REG_ADVANCED);
     /**
      **  Parameter check for the initswitch command
      **/

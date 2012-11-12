@@ -3054,23 +3054,38 @@ EM_RetVal ReturnValue(Tcl_Interp *interp, int retval) {
 			*endp		= (char *) NULL;
 	const char 	*tstr;
 	int		 result;
-	static Tcl_RegExp	exit__expPtr,
-				break_expPtr,
-				continue_expPtr;
+	static char	*Exit_	= "^EXIT ([0-9]*)",
+			*Break	= ".*\"break\".*",
+			*Cont	= ".*\"continue\".*";
+	static Tcl_Obj	*exit_Ptr	= (Tcl_Obj *) NULL,
+			*break_Ptr	= (Tcl_Obj *) NULL,
+			*cont_Ptr	= (Tcl_Obj *) NULL;
+	static Tcl_RegExp	exit__expPtr	= (Tcl_RegExp) NULL,
+				break_expPtr	= (Tcl_RegExp) NULL,
+				cont_expPtr	= (Tcl_RegExp) NULL;
 
 	tstr = (const char *) TCL_RESULT(interp);
 
 	/* compile regular expression the first time through */
+	if (!exit_Ptr)
+		exit_Ptr	= Tcl_NewStringObj(Exit_,strlen(Exit_));
 	if (!exit__expPtr)
-		exit__expPtr = Tcl_RegExpCompile(interp, "^EXIT ([0-9]*)");
+		exit__expPtr = Tcl_GetRegExpFromObj(interp,
+			exit_Ptr,TCL_REG_ADVANCED);
 
 	/*  result = "invoked \"break\" outside of a loop" */
+	if (!break_Ptr)
+		break_Ptr	= Tcl_NewStringObj(Break,strlen(Break));
 	if (!break_expPtr)
-		break_expPtr = Tcl_RegExpCompile(interp, ".*\"break\".*");
+		break_expPtr = Tcl_GetRegExpFromObj(interp,
+			break_Ptr,TCL_REG_ADVANCED);
 
 	/*  result = "invoked \"continue\" outside of a loop" */
-	if (!continue_expPtr)
-		continue_expPtr = Tcl_RegExpCompile(interp, ".*\"continue\".*");
+	if (!cont_Ptr)
+		cont_Ptr	= Tcl_NewStringObj(Cont,strlen(Cont));
+	if (!cont_expPtr)
+		cont_expPtr = Tcl_GetRegExpFromObj(interp,
+			cont_Ptr,TCL_REG_ADVANCED);
 
 	/* intercept any "EXIT N" first */
 	if(tstr && *tstr && 0 < Tcl_RegExpExec(interp, exit__expPtr,
@@ -3090,7 +3105,7 @@ EM_RetVal ReturnValue(Tcl_Interp *interp, int retval) {
 		em_result = EM_BREAK;
 
 	/* check for a continue not within loop */
-	} else if(tstr && *tstr && 0 < Tcl_RegExpExec(interp, continue_expPtr,
+	} else if(tstr && *tstr && 0 < Tcl_RegExpExec(interp, cont_expPtr,
 		(CONST84 char *) tstr, (CONST84 char *) tstr)){
 		em_result = EM_CONTINUE;
 

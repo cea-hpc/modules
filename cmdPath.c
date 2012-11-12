@@ -136,6 +136,7 @@ int	cmdSetPath(	ClientData	 client_data,
 		  qpathlen,			/** qualifiedpath length     **/
 		  arg1 = 1,			/** arg start		     **/
 		  x;				/** loop index		     **/
+    Tcl_Obj	 *np_obj;			/** new path Tcl Obj	     **/
 
 #if WITH_DEBUGGING_CALLBACK
     ErrorLogger( NO_ERR_START, LOC, _proc_cmdSetPath, NULL);
@@ -261,7 +262,8 @@ int	cmdSetPath(	ClientData	 client_data,
 	    if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 		goto unwind2;
 
-	chkexpPtr = Tcl_RegExpCompile(interp, newpath);
+	np_obj = Tcl_NewStringObj(newpath,strlen(newpath));
+	chkexpPtr = Tcl_GetRegExpFromObj(interp, np_obj, TCL_REG_ADVANCED);
 	_TCLCHK(interp)
 	null_free((void *) &newpath);
 
@@ -314,7 +316,10 @@ int	cmdSetPath(	ClientData	 client_data,
 
     } else {
 
-	Tcl_RegExp	markexpPtr = Tcl_RegExpCompile(interp, sw_marker);
+	Tcl_Obj		*sw_obj =
+		Tcl_NewStringObj(sw_marker,strlen(sw_marker));
+	Tcl_RegExp	 markexpPtr = Tcl_GetRegExpFromObj(interp,
+		sw_obj,TCL_REG_ADVANCED);
 	_TCLCHK(interp)
 
 	strcpy( newpath, oldpath);
