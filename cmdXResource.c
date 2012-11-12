@@ -390,9 +390,11 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
 				register char	*buf,
 				int		 remove)
 {
-    Tcl_RegExp		res_exp = (Tcl_RegExp) NULL;
     register Tcl_HashEntry	*entry;
-    char			*end;
+    char			*end,
+				 Res="^[ \t]*([^ \t]*)[ \t]*:[ \t]*(.*)[ \t]*$";
+    static Tcl_Obj		*res_obj = (Tcl_Obj *) NULL;
+    static Tcl_RegExp		 res_exp = (Tcl_RegExp) NULL;
     int				 new_res;
 
     /**
@@ -405,9 +407,10 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
      **  is a constant regexp!
      **/
 
-    if( !res_exp)
-	res_exp  = Tcl_RegExpCompile(interp,
-		 "^[ \t]*([^ \t]*)[ \t]*:[ \t]*(.*)[ \t]*$");
+    if(!res_obj)
+	res_obj = Tcl_NewStringObj(Res,strlen(Res));
+    if(!res_exp)
+	res_exp  = Tcl_GetRegExpFromObj(interp, res_obj,TCL_REG_ADVANCED);
 
     /**
      **  Seek for the lines (buffers) end. Put a terminator there. Take care of
