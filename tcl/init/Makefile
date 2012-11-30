@@ -5,13 +5,10 @@ D =  $(shell pwd)
 
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
-all: .cvsignore $(ALL_SHELLS) modulerc
+all: $(ALL_SHELLS) modulerc
 
 %: %.in Makefile
 	perl -MCwd -MFile::Basename -pe 'BEGIN {$$d=dirname(cwd)} s|\$$MODULESHOME|$$d|g' $< > $@
-
-.cvsignore:
-	for x in $(ALL_SHELLS); do echo $$x >> $@ ; done
 
 clean:
 	rm -f $(ALL_SHELLS) modulerc
