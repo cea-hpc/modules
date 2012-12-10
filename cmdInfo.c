@@ -116,22 +116,31 @@ int cmdModuleInfo(
 				      "descriptor-args", NULL))
 			return (TCL_ERROR);	/** ---- EXIT (FAILURE) ---> **/
 	}
-    /**
-     **  'module-info flags' ?
-     **/
 	arg1 = Tcl_GetString(objv[1]);
 	if (objc > 2)
 		arg2 = Tcl_GetString(objv[2]);
-	if (!strcmp(arg1, "flags")) {
+	if (!strcmp(arg1, "type")) {
+    /**
+     **  'module-info type'
+     **   returns 'C' to refer to the C-version of modules
+     **   (the Tcl-only version returns 'Tcl')
+     **/
+		Tcl_SetResult(interp, "C", TCL_STATIC);
+
+	} else if (!strcmp(arg1, "flags")) {
+    /**
+     **  'module-info flags'
+     **  returns the current flag value
+     **/
 		char            tmpbuf[6];
 		sprintf(tmpbuf, "%d", g_flags);
 		Tcl_SetResult(interp, tmpbuf, TCL_VOLATILE);
+
+	} else if (!strcmp(arg1, "mode")) {
     /**
      **  'module-info mode'
      **  without suggestion this will return the name of the state we're in.
      **/
-	} else if (!strcmp(arg1, "mode")) {
-
 		if (objc < 3) {
 			if (g_flags & M_SWSTATE1)
 				Tcl_SetResult(interp, "switch1", TCL_STATIC);
@@ -198,11 +207,12 @@ int cmdModuleInfo(
 				return (TCL_ERROR); /** -- EXIT (FAILURE) -> **/
 			}
 		}
+
+	} else if (!strcmp(arg1, "user")) {
     /**
      **  'module-info user'
      **  without suggestion this will return the current user level
      **/
-	} else if (!strcmp(arg1, "user")) {
 		if (objc < 3) {
 			if (UL_NOVICE == sw_userlvl)
 				Tcl_SetResult(interp, "novice", TCL_STATIC);
@@ -235,17 +245,19 @@ int cmdModuleInfo(
 				return (TCL_ERROR); /** -- EXIT (FAILURE) -> **/
 			}
 		}
+
+	} else if (!strcmp(arg1, "name")) {
     /**
      **  'module-info name'
      **  returns the name of the current module
      **/
-	} else if (!strcmp(arg1, "name")) {
 		Tcl_SetResult(interp, g_current_module, TCL_VOLATILE);
+
+	} else if (!strcmp(arg1, "shell")) {
     /**
      **  'module-info shell'
      **  returns the name of the current user shell
      **/
-	} else if (!strcmp(arg1, "shell")) {
 		if (objc < 3) {
 			Tcl_SetResult(interp, shell_name, TCL_VOLATILE);
 		} else {
@@ -254,7 +266,12 @@ int cmdModuleInfo(
 			else
 				Tcl_SetResult(interp, "0", TCL_STATIC);
 		}
+
 	} else if (!strcmp(arg1, "shelltype")) {
+    /**
+     **  'module-info shelltype'
+     **  returns the name of the current user shelltype family
+     **/
 		if (objc < 3) {
 			Tcl_SetResult(interp, shell_derelict, TCL_VOLATILE);
 		} else {
@@ -263,13 +280,19 @@ int cmdModuleInfo(
 			else
 				Tcl_SetResult(interp, "0", TCL_STATIC);
 		}
+
+	} else if (!strncmp(arg1, "trace", 5)) {
 	/**
 	 ** 'module-info trace' -- no longer used so return *undef
 	 **/
-	} else if (!strncmp(arg1, "trace", 5)) {
 		/* trace or tracepat */
 		Tcl_SetResult(interp, "*undef*", TCL_STATIC);
+
 	} else if (!strcmp(arg1, "alias")) {
+    /**
+     **  'module-info alias'
+     **  returns the value of the passed alias
+     **/
 		if (objc < 3) {
 			if (OK != ErrorLogger(ERR_USAGE, LOC, arg0, "alias ",
 					      "name", NULL))
@@ -282,11 +305,12 @@ int cmdModuleInfo(
 		} else {
 			Tcl_SetResult(interp, "*undef*", TCL_STATIC);
 		}
+
+	} else if (!strcmp(arg1, "symbols")) {
     /**
      **  'module-info symbols'
      **  List all symbolic names of the passed or current module file
      **/
-	} else if (!strcmp(arg1, "symbols")) {
 		char           *name;
 
 		name = (objc < 3) ? g_current_module : (char *)arg2;
@@ -295,12 +319,13 @@ int cmdModuleInfo(
 			Tcl_SetResult(interp, "*undef*", TCL_STATIC);
 		else
 			Tcl_SetResult(interp, (char *)s, TCL_VOLATILE);
+
+	} else if (!strcmp(arg1, "version")) {
     /**
      **  'module-info version'
      **  Returns the full qualified module name and version of the passed
      **  symbolic version specifier
      **/
-	} else if (!strcmp(arg1, "version")) {
 		if (VersionLookup((char *)arg2, &s, &t)) {
 			if (t) {
 				stringer(buf, BUFSIZ, s, psep, t, NULL);
@@ -311,21 +336,23 @@ int cmdModuleInfo(
 		} else {
 			Tcl_SetResult(interp, "*undef*", TCL_STATIC);
 		}
+
+	} else if (!strcmp(arg1, "specified")) {
     /**
      **  'module-info specified'
      **   gives the module name as specified on the command line
      **/
-	} else if (!strcmp(arg1, "specified")) {
 		if (g_specified_module) {
 			/* TCL_STATIC because it comes from the command line */
 			Tcl_SetResult(interp, g_specified_module, TCL_STATIC);
 		} else {
 			Tcl_SetResult(interp, "*undef*", TCL_STATIC);
 		}
+
+	} else {
     /**
      **  unknown command ....
      **/
-	} else {
 		if (OK != ErrorLogger(ERR_INFO_DESCR, LOC, arg1, NULL))
 			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
 	}

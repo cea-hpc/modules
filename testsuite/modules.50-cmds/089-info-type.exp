@@ -1,0 +1,94 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2012/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen, rk@owen.sj.ca.us
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	info/type
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'info type' module subcommand for all
+#			allowed shell types.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set modulex "info/type"
+set modulefilex "$env(MODULEPATH)/$modulex"
+
+#
+# Test which version of the modulecmd executable
+#
+
+#
+# set up the environment
+#
+
+#
+#  For the different shells ...
+#
+
+set lmf_sh "_LMFILES_=$modulefilex ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$modulex ;export LOADEDMODULES;"
+set ts_sh "testsuite=C ;export testsuite;"
+
+set lmf_csh "setenv _LMFILES_ $modulefilex ;"
+set lm_csh "setenv LOADEDMODULES $modulex ;"
+set ts_csh "setenv testsuite C ;"
+
+set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefilex';"
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$modulex';"
+set ts_perl "\$ENV{'testsuite'} = 'C';"
+
+set lmf_cmake "set(ENV{_LMFILES_} \"$modulefilex\")"
+set lm_cmake "set(ENV{LOADEDMODULES} \"$modulex\")"
+set ts_cmake "set(ENV{testsuite} \"C\")"
+
+#
+#  The tests
+#
+
+test_cmd "sh" "load $modulex" "$lm_sh$lmf_sh$ts_sh"
+test_cmd "ksh" "load $modulex" "$lm_sh$lmf_sh$ts_sh"
+test_cmd "zsh" "load $modulex" "$lm_sh$lmf_sh$ts_sh"
+test_cmd "csh" "load $modulex" "$lm_csh$lmf_csh$ts_csh"
+test_cmd "tcsh" "load $modulex" "$lm_csh$lmf_csh$ts_csh"
+test_cmd "perl" "load $modulex" "$lm_perl$lmf_perl$ts_perl"
+test_cmd "cmake" "load $modulex" "$lm_cmake\n$lmf_cmake\n$ts_cmake"
+
+#
+#  Cleanup
+#
+
+unset ts_sh
+unset lm_sh
+unset lmf_sh
+
+unset ts_csh
+unset lm_csh
+unset lmf_csh
+
+unset ts_perl
+unset lm_perl
+unset lmf_perl
+
+unset ts_cmake
+unset lm_cmake
+unset lmf_cmake
+
+unset modulefilex
+unset modulex
