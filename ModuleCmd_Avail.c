@@ -1129,7 +1129,7 @@ static	void	print_terse_files(  int terminal_width,
 	int col_ndx, row_ndx;
 	int rows;
         int mod_ndx;
-        
+ 
 	/**
 	 **  Print the header line
 	 **/
@@ -1157,7 +1157,6 @@ static	void	print_terse_files(  int terminal_width,
 	 **  Print the columns
 	 **/
 
-        
 	if( !columns)
 	    columns = 1;
 	rows = (_file_list_wr_ndx + columns - 1) / columns;
@@ -1174,8 +1173,8 @@ static	void	print_terse_files(  int terminal_width,
 		((col_ndx == columns - 1) || !moduleright ? 0 : 1 ),
 		( (numbered == -1) ? numbered : ++mod_ndx) );
 	    }
-	    fprintf( stderr, "\n");
 	  }
+	  fprintf( stderr, "\n");
 	}
     }
 
