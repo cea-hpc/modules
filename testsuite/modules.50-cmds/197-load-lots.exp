@@ -1,0 +1,142 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2012/12/17
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen, <rk@owen.sj.ca.us>
+#
+#   Description:	recursive load/unload test - lots of modulefiles
+#   Command:		load
+#   Modulefiles:	recurs/modA
+#   			recurs/modA
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Recursive load a lot of modulefiles
+#		}C%
+#
+##############################################################################
+set tm00  "load/00"
+set tp00  "$env(MODULEPATH)/$tm00"
+set tmall "$tm00"
+set tpall "$tp00"
+set tsall ""
+set tcall ""
+set usall ""
+set ucall ""
+set env(mload) "foobar"
+
+for {set t 10} {$t <= 30} {incr t} {
+        set "t$t" "t$t"
+        set "m$t" "load/$t"
+	set "p$t" "$env(MODULEPATH)/[set m$t]"
+
+	set tsall "${tsall}[set t$t]=[set t$t] ;export [set t$t];"
+	set tcall "${tcall}setenv [set t$t] [set t$t] ;"
+	set tmall "$tmall:[set m$t]"
+	set tpall "$tpall:[set p$t]"
+
+	set usall "${usall}unset [set t$t];"
+	set ucall "${ucall}unsetenv [set t$t];"
+}
+set tsall [string trimleft $tsall ";"]
+set tcall [string trimleft $tcall ";"]
+set usall [string trimleft $usall ";"]
+set ucall [string trimleft $ucall ";"]
+
+set mall "load/all"
+set pall "$env(MODULEPATH)/$mall"
+set xsload "unset mload;"
+set xcload "unsetenv mload;"
+
+set tmall "$tmall:$mall"
+set tpall "$tpall:$pall"
+
+#
+# set up a limited environment
+#
+set env(_LMFILES_) "$tp00"
+set env(LOADEDMODULES) "$tm00"
+
+#
+#  load
+#  For the different shells ...
+#
+
+set lmf_sh "_LMFILES_=$tpall ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$tmall ;export LOADEDMODULES;"
+set ts_sh "$tsall"
+
+set lmf_csh "setenv _LMFILES_ $tpall ;"
+set lm_csh "setenv LOADEDMODULES $tmall ;"
+set ts_csh "$tcall"
+
+#
+#  The load tests
+#
+test_cmd "sh" "load $mall" "$lm_sh$lmf_sh$ts_sh$xsload"
+test_cmd "ksh" "load $mall" "$lm_sh$lmf_sh$ts_sh$xsload"
+test_cmd "zsh" "load $mall" "$lm_sh$lmf_sh$ts_sh$xsload"
+test_cmd "csh" "load $mall" "$lm_csh$lmf_csh$ts_csh$xcload"
+test_cmd "tcsh" "load $mall" "$lm_csh$lmf_csh$ts_csh$xcload"
+
+#
+# set-up a loaded environment
+#
+set env(_LMFILES_) "$tpall"
+set env(LOADEDMODULES) "$tmall"
+
+set lmf_sh "_LMFILES_=$tp00 ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$tm00 ;export LOADEDMODULES;"
+set ts_sh "$usall"
+
+set lmf_csh "setenv _LMFILES_ $tp00 ;"
+set lm_csh "setenv LOADEDMODULES $tm00 ;"
+set ts_csh "$ucall"
+
+set xsload "mload=t30 ;export mload;"
+set xcload "setenv mload t30 ;"
+#
+#  The unload tests
+#
+test_cmd "sh" "unload $mall" "$lm_sh$lmf_sh$xsload$ts_sh"
+test_cmd "ksh" "unload $mall" "$lm_sh$lmf_sh$xsload$ts_sh"
+test_cmd "zsh" "unload $mall" "$lm_sh$lmf_sh$xsload$ts_sh"
+test_cmd "csh" "unload $mall" "$lm_csh$lmf_csh$xcload$ts_csh"
+test_cmd "tcsh" "unload $mall" "$lm_csh$lmf_csh$xcload$ts_csh"
+
+#
+#  Cleanup
+#
+
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+
+unset lm_sh
+unset lmf_sh
+unset ts_sh
+
+unset lm_csh
+unset lmf_csh
+unset ts_csh
+
+unset tm00
+unset tp00
+unset tmall
+unset tpall
+unset tsall
+unset tcall
+unset usall
+unset ucall
+unset env(mload)
+
+for {set t 30} {$t >= 10} {incr t -1} {
+        unset "t$t"
+        unset "m$t"
+	unset "p$t"
+}
+unset t
