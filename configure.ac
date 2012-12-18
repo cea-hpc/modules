@@ -990,7 +990,7 @@ AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile
 	ext/common/.cshrc ext/common/.login 
 	ext/common/.kshenv ext/common/.profile 
 	modulefiles/Makefile modulefiles/modules
-	modulefiles/module-cvs modulefiles/module-info modulefiles/null
+	modulefiles/module-git modulefiles/module-info modulefiles/null
 	modulefiles/use.own modulefiles/dot modulefiles/version
 	])dnl
 dnl We want these to be recreated for each install

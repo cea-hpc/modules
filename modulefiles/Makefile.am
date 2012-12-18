@@ -10,7 +10,7 @@
 AUTOMAKE_OPTIONS=foreign no-installinfo
 
 BASEMODULES= \
-	dot module-cvs module-info modules null use.own
+	dot module-git module-info modules null use.own
 
 EXTRA_SCRIPTS= ${BASEMODULES} version
 
@@ -72,8 +72,8 @@ uninstall-basemodules :
 ##dot : dot.in ../config.status
 ##	(cd ..; config.status modulefiles/dot)
 ##
-##module-cvs : module-cvs.in ../config.status
-##	(cd ..; config.status modulefiles/module-cvs)
+##module-git : module-git.in ../config.status
+##	(cd ..; config.status modulefiles/module-git)
 ##
 ##module-info : module-info.in ../config.status
 ##	(cd ..; config.status modulefiles/module-info)
