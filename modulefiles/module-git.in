@@ -1,0 +1,27 @@
+#%Module1.0#####################################################################
+##
+## module-cvs modulefile
+##
+## @configure_input@
+##
+proc ModulesHelp { } {
+	global version
+
+	puts stderr "\tThis module will set up an alias"
+	puts stderr "\tfor easy anonymous check-out of this version of the"
+	puts stderr "\tenvironment modules package."
+	puts stderr "\get-modules	- retrieve modules sources for this version"
+	puts stderr "\n\tVersion $version\n"
+}
+
+# for Tcl script use only
+set	 version		@VERSION@
+set	_version_		[ string map {. -} $version ]
+
+module-whatis	"get this version of the module sources from SourceForge.net"
+
+set-alias get-modules "git clone git://git.code.sf.net/p/modules/git modules-$_version_ && cd modules-$_version_ && git checkout modules-$_version_"
+
+if [ module-info mode load ] {
+	ModulesHelp
+}

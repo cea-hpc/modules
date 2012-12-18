@@ -738,7 +738,7 @@ AC_CONFIG_FILES([Makefile modules.lsm .spec doc/Makefile po/Makefile.in
 	ext/common/.cshrc ext/common/.login 
 	ext/common/.kshenv ext/common/.profile 
 	modulefiles/Makefile modulefiles/modules
-	modulefiles/module-cvs modulefiles/module-info modulefiles/null
+	modulefiles/module-git modulefiles/module-info modulefiles/null
 	modulefiles/use.own modulefiles/dot modulefiles/version
 	modulefiles/HOME modulefiles/notavail
 	])dnl

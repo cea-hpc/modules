@@ -10,7 +10,7 @@
 AUTOMAKE_OPTIONS=foreign no-installinfo
 
 BASEMODULES= \
-	HOME dot module-cvs module-info modules null use.own notavail
+	HOME dot module-git module-info modules null use.own notavail
 
 # add any new languages for the lang/ modulefiles here
 # and in the lang/.mklang script
@@ -84,8 +84,8 @@ uninstall-basemodules :
 ##dot : dot.in ../config.status
 ##	(cd ..; config.status modulefiles/dot)
 ##
-##module-cvs : module-cvs.in ../config.status
-##	(cd ..; config.status modulefiles/module-cvs)
+##module-git : module-git.in ../config.status
+##	(cd ..; config.status modulefiles/module-git)
 ##
 ##module-info : module-info.in ../config.status
 ##	(cd ..; config.status modulefiles/module-info)
