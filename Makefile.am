@@ -24,7 +24,7 @@ EXTRA_DIST = config/config.rpath config/mkinstalldirs			\
 	init/csh.in init/ksh.in init/perl.pm.in init/python.py.in	\
 	init/ruby.rb.in init/cmake.in init/bash_completion.in		\
 	modulefiles/lang/.mklang					\
-	LICENSE.GPL ABOUT-NLS
+	LICENSE.GPL ChangeLog ABOUT-NLS
 
 bin_PROGRAMS = modulecmd
 # bin_SCRIPTS = etc/mkroot etc/add.modules ext/add.ext
@@ -100,9 +100,11 @@ tag:
 	  `${SED} -n -e 's/^.*NEW TAG.*"\(.*\)".*$$/\1/p' ${srcdir}/version.c` \
 	  modules
 
+ChangeLog: CL
+
 CL: rmChangeLog
 	@echo "Updating ChangeLog"
-	-@./cvs2cl.pl
+	-@./gitlog2changelog.py
 
 rmChangeLog:
 	-@rm -f ChangeLog
@@ -139,9 +141,8 @@ ftp-local: dist
 		cp modules.lsm /u/ftp/pub/rkowen/modules; \
 	else echo "Can't find modules.lsm"; fi
 
-dist-hook:
+dist-hook: CL
 	-rm -rf `find $(distdir) -name CVS`
-	-touch $(distdir)/testsuite/modulefiles/trace/CVS
 
 ftp: ftp-ibiblio ftp-sourceforge
 
@@ -178,10 +179,10 @@ disthelp:
 	@echo "make dist      - creates a distribution tarballs"
 	@echo "make distclean - cleans & removes most made files"
 	@echo "make maintainer-clean - cleans even more"
-	@echo "================ requires CVS access ======================="
-	@echo "make tag       - does a CVS rtag"
-	@echo "make CL        - remakes the ChangeLog from the CVS commits"
-	@echo "make patch     - creates a patch file after tagging"
+	@echo "================ requires git access ======================="
+#	@echo "make tag       - does a git rtag"
+	@echo "make CL        - remakes the ChangeLog from the git commits"
+#	@echo "make patch     - creates a patch file after tagging"
 	@echo "================ maintainers only =========================="
 	@echo "make lsm       - send off to the Linux Software Map"
 	@echo "make ftp-local - upload tarball (good test)"
