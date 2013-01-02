@@ -66,7 +66,7 @@ int cmdChDir(
 ) {
 	char			*dir;		/** directory name	     **/
 
-	if (g_flags & ~(M_LOAD | M_SWSTATE2))
+	if (g_flags & ~(M_LOAD | M_SWSTATE2 | M_SUBCMD))
 		return TCL_OK;
 
 	if (objc != 2) {

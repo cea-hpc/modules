@@ -118,13 +118,18 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
     /**
      **  Set up the flags controling the Tcl callback functions
      **/
-    if( load) {
-	g_flags |= M_LOAD;
-	g_flags &= ~M_REMOVE;
-    } else {
-	g_flags |= M_REMOVE;
-	g_flags &= ~M_LOAD;
-    }
+
+	/* avoid changes when invoked as a subcommand */
+	if (!(g_flags & M_SUBCMD)) {
+	    if( load) {
+		g_flags |= M_LOAD;
+		g_flags &= ~M_REMOVE;
+	    } else {
+		g_flags |= M_REMOVE;
+		g_flags &= ~M_LOAD;
+	    }
+	    g_flags |= M_SUBCMD;
+	}
      
     /**
      **  Handle all module files in the order they are passed to me
