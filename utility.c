@@ -727,7 +727,7 @@ int Output_Modulefile_Changes(	Tcl_Interp	*interp)
 			output_unset_variable( (char*) key);
 		} else {
 			val = EMGetEnv(interp, key);
-			if(val && *val)
+			if(val)
 				output_set_variable(interp, (char*) key, val);
 			null_free((void *)&val);
 		}
