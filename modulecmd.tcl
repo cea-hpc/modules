@@ -2393,7 +2393,11 @@ proc cmdModuleLoad {args} {
 		    append-path LOADEDMODULES $currentModule
 		    append-path _LMFILES_ $modfile
 		    set g_loadedModules($currentModule) 1
-		    set genericModName [file dirname $mod]
+		    set genericModName [file dirname $currentModule]
+
+                    if {$g_debug} {
+                       report "DEBUG cmdModuleLoad: genericModName = $genericModName"
+                    }
 
 		    if {![info exists\
 		      g_loadedModulesGeneric($genericModName)]} {
