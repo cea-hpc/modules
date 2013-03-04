@@ -324,6 +324,9 @@ proc module-info {what {more {}}} {
     "tracepat" {
 		return {}
         }
+    "type" {
+		return "Tcl"
+        }
     "symbols" {
 	    if {[regexp {^\/} $more]} {
 		set tmp [currentModuleName]
