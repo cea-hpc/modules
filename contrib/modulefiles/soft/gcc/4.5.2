@@ -1,0 +1,42 @@
+#%Module######################################################################
+##
+##      GNU Module
+##
+proc ModulesHelp { } {
+  puts stderr "\tThe GCC module contains gcc, g++, and f77, popular compilers for C, C++, and Fortran.\n"
+  puts stderr "\tVersion 4.5.2"
+  puts stderr "\tWebsite: http://gcc.gnu.org/"
+
+}
+
+set sys        [uname sysname]
+set os         [uname release]
+set arch       [uname machine]
+
+append-path MANPATH /soft/gcc-4.5.2/man
+
+switch -glob $sys {
+   SunOS* {
+	switch -glob $os {
+	    5.10 {	
+		if { [string compare $arch "i86pc"] == 0} {
+            		append-path PATH	/soft/gcc-4.5.2/SunOS5.10x86/bin
+		} else {
+            		append-path PATH	/soft/gcc-4.5.2/SunOS5.10/bin
+		}
+	    }
+	    default {	
+            	append-path PATH	/soft/gcc-4.5.2/SunOS5.8/bin
+	    }
+	}
+   }
+   Linux* {
+
+	if { [string compare $arch "x86_64"] == 0} {
+                prepend-path PATH       /soft/gcc-4.5.2/ubuntuamd1/bin
+		prepend-path LIBRARY_PATH /usr/lib/x86_64-linux-gnu
+	} else {
+                prepend-path PATH       /soft/gcc-4.5.2/ubuntu1/bin
+        }
+   }
+}

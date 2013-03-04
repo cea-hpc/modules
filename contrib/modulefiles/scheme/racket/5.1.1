@@ -1,0 +1,42 @@
+#%Module######################################################################
+##
+##      GNU Module
+##
+proc ModulesHelp { } {
+  puts stderr "\tRacket (formerly Dr Scheme) is an interactive, integrated,\n"
+  puts stderr "\t graphical programming environment for Scheme.\n"
+  puts stderr "\tIt is available on all machines in CS and IT. To use it,\n"
+  puts stderr "\tload this module and type: drracket\n"
+  puts stderr "\tmore info can be found at http://www.drscheme.org/\n"
+  puts stderr "\tVersion: 5.1.1\n"
+
+}
+
+set sys        [uname sysname]
+set os         [uname release]
+set arch       [uname machine]
+
+append-path MANPATH /soft/racket-5.0.2/ubuntu1/share/man/man1
+switch -glob $sys {
+   SunOS* {
+	   switch -glob $os {
+            5.10 {      
+		if { [string compare $arch "i86pc"] == 0} {
+         	   append-path PATH	/soft/racket-5.1.1/SunOS5.10X86/bin
+                } else {
+         	   append-path PATH	/soft/racket-5.1.1/SunOS5.10/bin
+                }
+            }
+            default {   
+            append-path PATH	/soft/racket-5.1.1/SunOS5.8/bin
+            }
+	}
+   }
+   Linux {
+	if { [string compare $arch "x86_64"] == 0} {
+		append-path PATH       /soft/racket-5.1.1/ubuntuamd1/bin
+	} else {
+		append-path PATH       /soft/racket-5.1.1/ubuntu1/bin
+	}
+   }
+}

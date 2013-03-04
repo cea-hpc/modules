@@ -1,0 +1,469 @@
+.TH MODULE 1 "1 July 1994"
+.nh
+.SH NAME
+module \- command interface to the Modules package
+.SH SYNOPSIS
+.B module
+[
+.I switches
+]
+[
+.I sub-command
+]
+.I [ sub-command-args ]
+.SH DESCRIPTION
+.LP
+.B module
+is a user interface to the Modules package.
+The Modules package provides for the dynamic modification of the user's
+environment via
+.I modulefiles.
+.LP
+Each
+.I modulefile
+contains the information needed to configure the shell for an application.
+Once the Modules package is initialized, the environment can be modified
+on a per-module basis using the 
+.B module
+command which interprets
+.I modulefiles.
+Typically
+.I modulefiles
+instruct the
+.B module
+command to alter or set shell environment variables such as PATH, MANPATH,
+etc.
+.I modulefiles
+may be shared by many users on a system and users may have their own
+collection to supplement or replace the shared
+.I modulefiles.
+.LP
+The
+.I modulefiles
+are added to and removed from the current
+environment by the user.
+The environment changes contained in a
+.I modulefile
+can be summarized through the
+.B module
+command as well.
+If no arguments are given, a summary of the
+.B module
+usage and
+.I sub-commands
+are shown.
+.LP
+The action for the
+.B module
+command to take is described by the
+.I sub-command
+and its associated arguments.
+.SS Package Initialization
+.LP
+The Modules package and the
+.B module
+command are initialized when a shell-specific initialization script is
+sourced into the shell.
+The script creates the
+.B module
+command as either an alias or function, creates Modules environment variables,
+and a snapshot of the environment is saved in ${\s-1HOME\s0}/\fI.modulesbeginenv\fP.
+The
+.B module
+alias or function executes the
+.B modulecmd
+program located in ${\s-1MODULESHOME\s0}/bin and has the shell evaluate
+the command's output.  The first argument to
+.B modulecmd
+specifies the type of shell.
+.LP
+The initialization scripts are kept in ${\s-1MODULESHOME\s0}/init/\fIshellname\fP 
+where \fIshellname\fP 
+is the name of the sourcing shell.
+For example, a C Shell user sources the ${\s-1MODULESHOME\s0}/init/\fIcsh\fP
+script.  The sh, csh, tcsh, bash, ksh, and zsh shells are supported by
+.B modulecmd.
+In addition, python and perl "shells" are supported which writes
+the environment changes to stdout as python or perl code.
+.SS Examples of initialization
+In the following examples, replace ${\s-1MODULESHOME\s0} with the actual
+directory name.
+.LP
+C Shell initialization (and derivatives):
+.nf
+
+	source ${\s-1MODULESHOME\s0}/init/csh
+	module load modulefile modulefile ...
+
+.fi
+Bourne Shell (sh) (and derivatives):
+.nf
+
+	. ${\s-1MODULESHOME\s0}/init/sh
+	module load modulefile modulefile ...
+
+.fi
+Perl:
+.nf
+
+	require "${\s-1MODULESHOME\s0}/init/perl";
+	&module("load modulefile modulefile ...");
+
+.fi
+.SS Modulecmd startup
+.LP
+Upon invocation \fImodulecmd\fP sources rc files which contain global, user
+and modulefile specific setups. These files are interpreted as modulefiles.
+See \fBmodulefile(4)\fP for detailed information.
+.LP
+Upon invocation of modulecmd module RC files are sourced in the following
+order:
+.nf
+	
+	Global RC file as specified by ${\s-1MODULERCFILE\s0} or 
+	    ${\s-1MODULESHOME\s0}/etc/rc
+
+	User specific module RC file ${\s-1HOME\s0}/.modulerc
+
+	All .modulerc and .version files found during modulefile
+	    seeking.
+
+.fi
+.SS Command line switches
+.LP
+The module command accepts command line switches as its first parameter. These
+may be used to control output format of all information displayed and the 
+\fImodule\fP behavior in case of locating and interpreting module files.
+.LP
+All switches may be entered either in short or long notation. The following
+switches are accepted:
+.PP
+.TP
+.I --force, -f
+Force active dependency resolution. This will result in modules found on a
+\fIprereq\fP command inside a module file being load automatically.
+Unloading module files using this switch will result in all required modules
+which have been loaded automatically using the \fI-f\fP switch being unload.
+This switch is experimental at the moment.
+.RS
+.RE
+.TP
+.I --terse, -t
+Display \fIavail\fP and \fIlist\fP output in short format.
+.RS
+.RE
+.TP
+.I --long, -l
+Display \fIavail\fP and \fIlist\fP output in long format.
+.RS
+.RE
+.TP
+.I --human, -h
+Display short output of the \fIavail\fP and \fIlist\fP commands in human
+readable format. 
+.RS
+.RE
+.TP
+.I --verbose, -v
+Enable verbose messages during module command execution.
+.RS
+.RE
+.TP
+.I --silent, -s
+Disable verbose messages. Redirect \fIstderr\fP to \fI/dev/null\fP if 
+\fIstderr\fP is found not to be a tty. This is a useful option for module
+commands being written into \fI.cshrc\fP, \fI.login\fP or \fI.profile\fP
+files, because some remote shells (as \fIrsh\fP(1)) and remote execution
+commands (like \fIrdist\fP) get confused if there is output on stderr.
+.RS
+.RE
+.TP
+.I --create, -c
+Create caches for \fImodule avail\fP and \fImodule apropos\fP. You must 
+be granted write access to the ${\s-1MODULEHOME\s0}/modulefiles/ directory
+if you try to invoke \fImodule\fP with the \fI-c\fP option.
+.RS
+.RE
+.TP
+.I --icase, -i
+Case insensitive module parameter evaluation. Currently only implemented for
+the \fImodule apropos\fP command.
+.RS
+.RE
+.TP
+.I --userlvl <lvl>, -u <lvl>
+Set the user level to the specified value. The argument of this option may
+be one of:
+.LP
+.I novice, nov
+Novice
+.LP
+.I expert, exp
+Experienced module user
+.LP
+.I advanced, adv
+Advanced module user
+.SS Module Sub-Commands
+.RS
+.TP 15
+.B help [modulefile...]
+Print the usage of each sub-command.
+If an argument is given, print the Module specific help information for the
+.I modulefile.
+.TP 15
+.B load modulefile [modulefile...]
+.PD 0
+.TP 15
+.B add modulefile [modulefile...]
+.PD
+Load
+.I modulefile
+into the shell environment.
+.TP 15
+.B unload modulefile [modulefile...]
+.PD 0
+.TP 15
+.B rm modulefile [modulefile...]
+.PD
+Remove
+.I modulefile
+from the shell environment.
+.TP 15
+.B switch modulefile1 modulefile2
+.PD 0
+.TP 15
+.B swap modulefile1 modulefile2
+.PD
+Switch loaded
+.I modulefile1
+with
+.I modulefile2.
+.TP 15
+.B display modulefile [modulefile...]
+.PD 0
+.TP 15
+.B show modulefile [modulefile...]
+.PD
+Display information about a
+.I modulefile.
+The display sub-command will list the full path of the
+.I modulefile
+and all (or most) of the environment changes the
+.I modulefile
+will make if loaded.  (It will not display any
+environment changes found within conditional statements.)
+.TP 15
+.B list
+List loaded modules.
+.TP 15
+.B avail [path...]
+List all available
+.I modulefiles
+.hy 0
+in the current \s-1MODULEPATH\s0.
+All directories in the \s-1MODULEPATH\s0 are recursively searched for
+files containing the
+.I modulefile
+magic cookie.
+If an argument is given, then each directory in the \s-1MODULEPATH\s0 is
+searched for 
+.I modulefiles
+whose pathname match the argument.
+Multiple versions of an application can be supported by creating a
+subdirectory for the application containing
+.I modulefiles
+for each version.
+.TP 15
+.B use directory [directory...]
+.PD 0
+.TP 15
+.B use [-a|--append] directory [directory...]
+.PD
+Prepend directory to the \s-1MODULEPATH\s0 environment variable.
+The --append flag will append the directory to \s-1MODULEPATH\s0.
+.TP 15
+.B unuse directory [directory...]
+Remove directory from the \s-1MODULEPATH\s0 environment variable.
+.TP 15
+.B update
+Attempt to reload all loaded
+.I modulefiles.
+The environment will be reconfigured to match the saved
+.I ${\s-1HOME\s0}/.modulesbeginenv
+and the modulefiles will be reloaded.
+.B update
+will only change the environment variables that the
+.I modulefiles
+set.
+.TP 15
+.B clear
+Force the Modules Package to believe that no modules are currently loaded.
+.TP 15
+.B purge
+Unload all loaded
+.I modulefiles.
+.TP 15
+.B whatis [modulefile [modulefile...]]
+Display the modulefile information set up by the \fImodule-whatis\fP commands
+inside the specified modulefiles. If no modulefiles are specified all whatis
+information lines will be shown.
+.TP 15
+.B apropos string
+.PD 0
+.TP 15
+.B keyword string
+Seeks thru the whatis informations of all modulefiles for the specified string.
+All module whatis informations matching the string search will be displayed.
+.TP 15
+.B initadd modulefile [modulefile...]
+Add
+.I modulefile
+to the shell's initialization file in the user's home directory.
+The startup files checked are .cshrc, .login, and .csh_variables for the
+C Shell; .profile for the Bourne and Korn Shells; .bashrc, .bash_env, 
+and .bash_profile for the GNU Bourne Again Shell; .zshrc, .zshenv, and .zlogin
+for zsh. The .modules file is checked for all shells.
+If a 'module load' line is found in any of these files, the
+.I modulefile(s)
+is(are) appended to any existing list of 
+.I modulefiles.
+The 'module load' line must be located in at least one of the
+files listed above for any of the 'init' sub-commands to work properly.
+If the 'module load' line is found in multiple shell initialization files,
+all of the lines are changed.
+.TP 15
+.B initprepend modulefile [modulefile...]
+Does the same as
+.B initadd
+but prepends the given modules to the beginning of the list.
+.B initrm modulefile [modulefile...]
+Remove
+.I modulefile
+from the shell's initialization files.
+.TP 15
+.B initswitch modulefile1 modulefile2
+Switch
+.I modulefile1
+with
+.I modulefile2
+in the shell's initialization files.
+.TP 15
+.B initlist
+List all of the
+.I modulefiles
+loaded from the shell's initialization file.
+.TP 15
+.B initclear
+Clear all of the 
+.I modulefiles
+from the shell's initialization files.
+.RE
+.SS Modulefiles
+.LP
+.I modulefiles
+are written in the Tool Command Language (tcl) and are interpreted by
+.B modulecmd.
+.I modulefiles
+can use conditional statements.
+Thus the effect a 
+.I modulefile
+will have on the environment may change depending upon the current state of
+the environment.
+.LP
+Environment variables are unset when unloading a
+.I modulefile.
+Thus, it is possible to
+.B load
+a 
+.I modulefile
+and then
+.B unload
+it without having the environment variables return to their
+prior state.
+.LP
+.SH ENVIRONMENT
+.TP
+.SB \s-1MODULESHOME\s0
+The location of the master Modules package file directory containing
+.B module
+command initialization scripts, the executable program
+.B modulecmd,
+and a directory containing a collection of master
+.I modulefiles.
+.TP
+.SB \s-1MODULEPATH\s0
+The path that the
+.B module
+command searches when looking for
+.I modulefiles.
+Typically, it is set to the master modulefiles directory,
+.I ${\s-1MODULESHOME\s0}/modulefiles,
+by the initialization script.
+\s-1MODULEPATH\s0 can be set using 'module use' or by the module
+initialization script to search group or personal
+.I modulefile
+directories before or after the master
+.I modulefile
+directory.
+.TP
+.SB \s-1LOADEDMODULES\s0
+A colon separated list of all loaded
+.I modulefiles.
+.TP
+.SB \s-1_LOADED_MODULEFILES_\s0
+A colon separated list of the full pathname for all loaded
+.I modulefiles.
+.TP
+.SB \s-1_MODULESBEGINENV_\s0
+The filename of the file containing the initialization environment snapshot.
+.SH FILES
+.TP
+.B /soft/rko-modules/3.1.6
+The \s-1MODULESHOME\s0 directory.
+.TP
+.B ${\s-1MODULESHOME\s0}/etc/rc
+The system-wide
+.I modules rc file.
+The location of this file can be changed using
+the \s-1MODULERCFILE\s0 environment variable as described above.
+.TP
+.B ${\s-1HOME\s0}/.modulerc
+The user specific 
+.I modules rc file.
+.TP
+.B ${\s-1MODULESHOME\s0}/modulefiles
+The directory for system-wide
+.I modulefiles.
+The location of the directory can be changed using
+the \s-1MODULEPATH\s0 environment variable as described above.
+.TP
+.B ${\s-1MODULESHOME\s0}/bin/modulecmd
+The 
+.I modulefile
+interpreter that gets executed upon each invocation of
+.B module.
+.TP
+.B ${\s-1MODULESHOME\s0}/init/\fIshellname\fP
+The Modules package initialization file sourced into the user's
+environment.
+.TP
+.B ${\s-1MODULESHOME\s0}/init/.modulespath
+The initial search path setup for module files. This file is read
+by all shell init files.
+.TP
+.B ${\s-1MODULEPATH\s0}/.moduleavailcache
+File containing the cached list of all
+.I modulefiles
+for each directory in the \s-1MODULEPATH\s0 (only when the avail cache is enabled).
+.TP
+.B ${\s-1MODULEPATH\s0}/.moduleavailcachedir
+File containing the names and modification times for all sub-directories with
+an avail cache.
+.TP
+.B ${\s-1HOME\s0}/.modulesbeginenv
+A snapshot of the user's environment taken at Module initialization.
+This information is used by the
+.B module update
+sub-command.
+.SH SEE ALSO
+.BR modulefile(4)

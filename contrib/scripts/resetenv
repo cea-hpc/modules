@@ -1,0 +1,188 @@
+#!/usr/bin/bin/perl -w
+#
+# resetenv.pl  v1.0
+#
+#       (C)1998 University of Minnesota, Department of Computer Science
+#
+#       Authors:  Mark A. Bentley <bentlema@cs.umn.edu>
+#                 Kent Mein <mein@cs.umn.edu>
+#                 Scott M. Dier <sdier@cs.umn.edu>
+#
+#       Description:  resetenv is a simple perl script to restore a set of
+#       default dotfiles to users home directory.  The dotfiles are stored
+#       in a ~template account, and when resetenv is envoked, it copies
+#       those dotfiles, as specified in the resetenv.conf, to the user's 
+#       home directory (who executed resetenv), saving the old dotfiles to 
+#       a unique directory. The user should use .resetenvrc for their
+#       configuration options.
+#
+#       A sample resetenv.conf is as follows:
+#
+#          .aliases            N   600
+#          .cshrc              Y   600
+#          .fvwm2rc            Y   600
+#          .login              Y   600
+#          .logout             Y   600
+#          .xinitrc            Y   755
+#          README.dotfiles     Y   600
+#          .mailcap            N   600
+#          .mime.types         N   600
+#
+#       The first field is the filename to move into the users home directory
+#       when resetenv is envoked.  The second field is the "replace me?" field.
+#       This is a "Y" (Yes)or "N" (No) answering the question of weather to 
+#       replace a particular dotfile that already exists in the users home
+#       directory.  This is most useful to the user who creates their own
+#       config file (~/.resetenv) so that they have direct control over which
+#       dotfiles are replaced with defaults, and which ones are not touched.
+#       The third field is the permissions to apply to a newly copied dotfile.
+#
+################################################################################
+#
+# Modifications History:
+#
+# 10/30/1998 -- PATH is now set in case user's PATH doesn't have needed commands
+#            -- Now root can't run me
+# 08/04/2009 -- Works with directories now
+#
+################################################################################
+#
+# Configuration 
+#
+#
+# This is the directory where old dotfiles will be saved
+
+use Sys::Hostname;
+
+$backupdir = "old-dotfiles";
+
+# This is the path that is set so that the commands that resetenv uses
+# (such as cp and mv) can be found even if the users PATH is foobared.
+
+$ENV{PATH} = '/opt/gnu/bin:/opt/local/bin:/usr/bin:/bin';
+print "PATH = ", $ENV{PATH}, "\n";
+
+# find ~template
+#
+# Currently the default dotfiles are in a homedir.  They can be located
+# anywhere that is convenient really, however we use a cross-mounted home
+# directory for ease of maintenance.  Perhaps it might be nice to have
+# different sets of dotfiles for different clusters, but this works 
+# fine for now. --Mark
+#
+# Note:  getpw functions return ($name, $passwd, $uid, $gid, $quota, 
+#        $comment, $gcos, $homedir, $shell)
+
+@template = getpwnam("template");
+$templatedir = $template[7];
+unless ( -d $templatedir) { die "Can't find templatedir $templatedir: $!";}
+print "Template dotfiles location: $templatedir\n\n";
+
+unless ( -f "$templatedir/resetenv.conf" ) {
+   die "$templatedir/resetenv.conf does not exist: $!";
+} 
+
+$configfile = "$templatedir/resetenv.conf";
+
+# Find the homedir of the user
+#
+# Notes:  $< is a special variable for the UID of the user running
+#         this process.
+
+($name, $tmp, $uid, $gid, $tmp, $tmp, $gcos, $userdir, $tmp) = getpwuid($<);
+
+print "Username:  $name      UID: $uid      GID: $gid\n";
+print "    Name:  $gcos      Homedir:  $userdir\n\n";
+
+if ( $name eq "root" ) {
+   print "Idiot!  Don't run resetenv as root!  Bailing out!\n\n";
+   exit;
+}
+
+if (!($userdir =~ /\/home\/(.*)/)) {
+        print "resetenv can not be run on an account that has a " .
+                "homedir that is not in /home\n";
+        exit;
+}
+
+#
+# Make a subdirectory in the user's home dir to keep old dotfiles
+#
+
+if ( ! -d "$userdir/$backupdir" ) {
+   print "Creating $userdir/$backupdir\n";
+   mkdir ("$userdir/$backupdir",477) or die "mkdir: $!\n";
+}
+
+($tmp,$tmp,$tmp,$dd,$mm,$yy,$tmp,$tmp,$tmp) = localtime(time);
+
+#
+# Create a directory to store old dotfiles
+#
+
+#$oldfilesdir = "$userdir/$backupdir/$mm-$dd-$yy";
+my $mmddyyyy = sprintf '%02d-%02d-%04d', $mm + 1, $dd, $yy + 1900;
+$oldfilesdir = "$userdir/$backupdir/$mmddyyyy";
+
+$x=1;
+$foo = "$oldfilesdir-$x";
+while (-d $foo ) {
+   $x++;
+   $foo = "$oldfilesdir-$x";
+}
+$oldfilesdir = "$oldfilesdir-$x";
+print "Creating $oldfilesdir\n\n";
+mkdir ("$oldfilesdir",477);
+
+#
+# Determine which config file to use
+#
+
+if ( -f "$userdir/.resetenvrc" ) {
+   $configfile = "$userdir/.resetenvrc";
+}
+
+#
+# okay, now do the actual copying and such...
+#
+
+print "Using config file:  $configfile\n\n";
+
+# added Wed, 19 Dec 2001 17:02:16 -0600
+#  -sdier
+
+open  LOG, ">$oldfilesdir/log";
+print LOG "#resetenv log, ".`date`."#ran by euid:egid:uid:gid:ppid:host\n$>:$):$<:$(:".getppid().":".hostname()."\n";
+close LOG;
+
+open ( CONF, "$configfile" );
+while ( <CONF> ) {
+   ( $dotfile, $replace, $mode ) = split;
+   print "$dotfile:  ";
+
+   # if the file exists in the default directory
+   if ((-f "$templatedir/$dotfile")||(-d "$templatedir/$dotfile")){
+
+	   if (( -e "$userdir/$dotfile" ) && ( "$replace" eq "N" )) {
+		   print "keeping current.\n";
+	   } elsif ( -e "$userdir/$dotfile") {
+		   print "installing default.\n";
+		   system ("mv -f $userdir/$dotfile $oldfilesdir/$dotfile");
+		   system ("cp -r $templatedir/$dotfile $userdir/$dotfile");
+		   system ("chmod $mode $userdir/$dotfile");
+	   } else {
+		   system ("cp -r $templatedir/$dotfile $userdir/$dotfile");
+		   system ("chmod $mode $userdir/$dotfile");
+	   }
+
+   } else { 
+
+	   if (($dotfile ne ".") && ($dotfile ne "..")){
+		   print "\nAlert! $dotfile not found in $templatedir\n\n"; 
+	   }
+   }
+}
+close ( CONF );
+
+print "\nYour old dotfiles can be found in:\n\t$oldfilesdir\n";
+

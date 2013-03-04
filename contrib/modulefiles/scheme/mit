@@ -1,0 +1,46 @@
+#%Module######################################################################
+##
+##      scheme Module
+##
+proc ModulesHelp { } {
+ puts stderr "\tThe MIT/GNU Scheme\n"
+ puts stderr "\tThis module load the MIT Scheme interpreter on all CS and IT\n"
+ puts stderr "\tmachines. To use it, load this module and type: scheme\n"
+ puts stderr "\tMore info on MIT Scheme can be found here: http://www.gnu.org/software/mit-scheme/\n"
+}
+
+
+set sys        [uname sysname]
+set os         [uname release]
+set arch        [uname machine]
+
+switch -glob $sys {
+
+  SunO* {
+    if  { [string compare $arch "i86pc"] == 0} {
+       prepend-path PATH /soft/scheme-7.7.1/SunOS5.10x86/bin
+    } else {
+       prepend-path PATH /soft/scheme-7.7.1/SunOS5.8/bin
+    }
+  }
+
+   Linux* {
+        switch -glob $os {
+	   hardy {
+	        append-path PATH        /soft/scheme-7.7.1/ubuntu1/bin
+       		 if  { [string compare $arch "x86_64"] == 0} {
+               		 append-path LD_LIBRARY_PATH /soft/scheme-7.7.1/ubuntu1/lib
+        	 } 
+	   }
+           default {
+               if { [string compare $arch "x86_64"] == 0} {
+                  prepend-path PATH       /soft/scheme-7.7.1/jaunty64/bin
+                  prepend-path LD_LIBRARY_PATH          /soft/scheme-7.7.1/jaunty64/lib
+              } else {
+                  prepend-path PATH       /soft/scheme-7.7.1/jaunty32/bin
+                  prepend-path LD_LIBRARY_PATH          /soft/scheme-7.7.1/jaunty32/lib
+              }
+           }
+        }
+   }
+}

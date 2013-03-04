@@ -1,0 +1,60 @@
+#%Module######################################################################
+##
+##      User's home directory paths Module
+##
+proc ModulesHelp { } {
+  puts stderr "\tThis module adds paths that are off the users home directory."
+  puts stderr "If subdirectories are in place based upon the current operating"
+  puts stderr "system, those subdirectories will be included in the paths.\n"
+  puts stderr "Supported OS types:\tsunos5\tiris4d\tlinux"
+  puts stderr "It also adds ~/.modules to your modules paths if you have it"
+}
+
+set home       $env(HOME)
+set sys        [uname sysname]
+set os         [uname release]
+
+if { [file isdirectory $home/.modules] } {
+   module use $home/.modules
+}
+
+# Binaries
+if { [file isdirectory $home/bin] } {
+	append-path	PATH	$home/bin
+}
+
+if { [file isdirectory $home/bin.${sys}_${os}] } { 
+	append-path       PATH    $home/bin.${sys}_${os}
+}
+
+switch -glob $sys {
+	SunOS {
+		set b_os	sunos5
+	}
+
+	IRIX* {
+		set b_os	iris4d
+	}
+  
+        Linux {
+        	set b_os	linux
+        } 
+	Darwin {
+		set b_os 	darwin
+	}
+	default {
+		set b_os 	unknown
+	}
+
+}
+
+if { [file isdirectory $home/bin/$b_os] } { 
+	append-path	PATH	$home/bin/$b_os
+}
+
+
+# puts stderr "MANPATH: $env(MANPATH)\n"
+# Manuals
+if { [file isdirectory $home/man] } {
+	append-path	MANPATH		$home/man
+}

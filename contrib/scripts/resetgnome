@@ -1,0 +1,22 @@
+#!/bin/bash
+gnome_files=(.config .evolution .gconf .gconfd .gnome-desktop .gnome .gnome2 .gnome2_private .gnome_private .gtkrc-1.2-gnome2 .metacity .nautilus .recently-used .recently-used.xbel .ICEauthority .gtk-bookmarks .xsession-errors .pulse .pulse-cookie .cache .compiz .compiz-1)
+if [ ! -e ~/old-gnome-files ]
+then
+   mkdir ~/old-gnome-files
+fi
+
+if [ ! -d ~/old-gnome-files ]
+then
+   echo old-gnome-files is not a directory
+   exit
+fi
+
+date_string=`eval date +%m-%d-%YT%H.%M.%S`
+mkdir ~/old-gnome-files/$date_string
+
+for i in `seq 0 $((${#gnome_files[*]} - 1))`; do
+   if [ -e ~/${gnome_files[$i]} ] 
+   then
+	mv ~/${gnome_files[$i]} ~/old-gnome-files/$date_string/${gnome_files[$i]}
+   fi
+done
