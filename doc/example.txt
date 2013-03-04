@@ -1,0 +1,77 @@
+There are lots of extra things to think about and setup when creating
+a successful environment using modules, besides just installing the software.
+
+This document will explain how we have things setup at the University of
+Minnesota's Computer Science Department, where we have have been using 
+modules for over 20 years.  It may not be the best setup but it will 
+give you an idea of what you need to think about when creating your 
+environment.
+
+Topics covered in this document:
+	01. Template User
+	02. Resetenv
+	03. Sample modulefiles (our default modules)
+	04. Creating and testing new modules
+	05. Distributing Modules/Revision control
+	06. Testing new version of modules command
+	07. Retiring old modules
+
+01. Template User
+We have a default user "template" that has all of the current
+defaults for new users.  So if people need a copy of the defaults they
+can just look at ~template to get a copy of them.  A slightly simplified 
+version of our template user is in modules/contrib/template
+
+When we create a new user on our systems they get ~template copied over to
+their home directory, so they have the standard configuration files.
+
+Part of creating ~template is deciding what modules to load by default for
+the average user.  You want to only load the modules that everyone is going to
+use, but at the same time, if you can please 80-90% of your users with the
+defaults, then they will not need to make many changes to their account.
+It's a balancing act that you will have to learn over time.
+
+
+02. Resetenv
+Users will eventually mess up their environment.  It's good to have a
+way to get back to a known starting point.  In modules/contrib/scripts/
+we have a script we use "resetenv" which will allow users to backup
+their current '.*' files and then copy over the defaults from ~template.
+So that they can hopefully get back to a known working state.
+We also have provided another script resetgnome which will clear out a
+users config files for gnome and reset them to our default new user.
+
+
+03. Sample modulefiles (our default modules)
+The modules provided in modules/modulefiles are very bare bones and just
+show you the basics.  You can find all of our default modules that are
+loaded by our template user in modules/contrib/modulefiles
+
+
+04. Creating and testing new modules
+
+
+
+05. Distributing Modules/Revision control
+
+
+06. Testing a new version of modules command
+
+
+07. Retiring old modules
+After you have been using modules for awhile your going to get some modules
+that are no longer valid.  An example would be we have installed a new version
+of perl and we are getting rid of one of the really old versions.  For this
+example, I'm going to pretend we are getting rid of the "perl/5.8" module. 
+At this point in time perl/5.8 is no longer the default version of the 
+perl module and very few users are hopefully using it.
+The way that we retire an old module file is we add lines that print a 
+warning to all users still using the module:
+
+   puts stderr "The perl/5.8 module is outdated and will be going away"
+   puts stderr "please update your . files to use the perl module instead. "
+
+We push this out to all of the systems after we have tested it.  Then
+we wait a month to see if any of our users complain or have an issue with
+the problem.  If there are no complaints then we remove the module and
+make sure it's removed on all of the systems.

@@ -22,7 +22,7 @@ Getting things running:
 	(http://www.gnu.org/software/dejagnu/)
 	The unix makefiles require: make and perl
 
-	Once you have all of the prerequisits you can "INSTALL modules"
+	Once you have all of the prerequisits you can "install modules"
 	
 To learn how to install modules see one of the following docs:
 	For unix: doc/install
@@ -30,7 +30,7 @@ To learn how to install modules see one of the following docs:
 
 To have things running efficently you will need a lot of additional setup.
 For an example take a look at doc/example.txt which will explain how
-we have things setup at the University of Minnesota.
+we have things setup at the University of Minnesota computer science department.
 
 For futher help check out the website:
 	http://sourceforge.net/projects/modules/
