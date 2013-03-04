@@ -5,16 +5,19 @@ This document will explain how we have things setup at the University of
 Minnesota's Computer Science Department, where we have have been using 
 modules for over 20 years.  It may not be the best setup but it will 
 give you an idea of what you need to think about when creating your 
-environment.
+environment.  Note many of these things are interdependant.  How
+you setup your template user (Section 1) will depend on your 
+Layout (Section 05).
 
 Topics covered in this document:
 	01. Template User
 	02. Resetenv
 	03. Sample modulefiles (our default modules)
 	04. Creating and testing new modules
-	05. Distributing Modules/Revision control
+	05. Layout: Distributing Modules/Revision control
 	06. Testing new version of modules command
 	07. Retiring old modules
+
 
 01. Template User
 We have a default user "template" that has all of the current
@@ -49,13 +52,79 @@ loaded by our template user in modules/contrib/modulefiles
 
 
 04. Creating and testing new modules
+In general your modules should be as simple as possible.  In theory all
+modules should just be adding a path to your environment and maybe a couple
+of other things.  A great example is modules/contrib/modulefiles/perl/5.14.1
+Lots of times you need more complicated logic.  Something like:
+modules/contrib/modulefiles/soft/gcc/4.7.2  If you need to do something
+like this, its important that you various platforms into groups.  In general
+we break things down first by OS, then by arch, and then sysname if needed.
 
+When adding a path to an environment variable use append-path
+only use prepend-path when absolutely needed.  If all of your modules work
+the same way it will be much easier for users to figure things out.
+On our linux systems we use prepend-path for the gcc module so that we can
+override the system default version of gcc, otherwise we would use append-path.
+
+Avoid setting LD_LIBRARY_PATH unless absolutly needed.  If your setting it
+you'll probably wind up with problems in the future.
+
+First setup a user modules directory, mkdir ~/.modules for example.
+In your .cshrc or .bashrc file after your source your modules init file add
+the following line to start using your local directory: 
+   module use ~/.modules
+
+It's a good idea to make a subdirectory for your module and use a .version
+file, just like we did for the above two.  In general as time moves on
+you will have different versions of the software and if you name them
+you will be able to retire old versions without bothering the users.
+
+The best way is to use one of your existing modules and modify it to
+work for your new needs.  Once you have your module created it's important
+to test it on all of the distinct types of platforms you have.  After
+thats done you can copy the new module over to the systemwide modulefiles
+directory.
 
 
 05. Distributing Modules/Revision control
+We use the following setup:
+GLOBALMODULESINSTALL 	/soft/rko-modules/tcl
+GLOBALMODULEFILES	/soft/rko-modules/modulefiles
+PERSONALMODULEFILES	~/.modules
+PERSONALMODULESINSTALL	~/modules
+REPOSOFMODULEFILES	/project/rdist/conf/opt/modules/modulefiles
+
+GLOBALMODULESINSTALL is where we have modules installed.  This is the live
+site for all of our users so we are very careful about making changes to this
+directory.  This directory is nfs shared to all of our client machines.
+
+GLOBALMODULEFILES is where we have our live modules that the users use.  Again
+we are very careful about applying changes to this directory, and it is
+nfs shared to all of our clients.
+
+PERSONALMODULEFILES is where I store modules I am working on or testing.
+That way I can play with them and know that I'm not affecting users.
+
+PERSONALMODULESINSTALL is a seperate install of modules that I can use to
+test the latest version of modules and make sure things are working before
+upgrading our GLOBALMODULESINSTALL.
+
+REPOSOFMODULEFILES is a git controlled directory that contains all of our
+modulefiles.  When we are done testing a new module we check it in to
+the repository and update it here.  Then it gets pushed to all of our
+clients through rsync.
 
 
 06. Testing a new version of modules command
+If you use a scheme similar to the above testing a new version of modules
+is really easy.  All you need to do is edit your .cshrc or .bashrc or
+whatever other file your using to initalize your modules environment.
+and point it at PERSONALMODULESINSTALL instead of GLOBALMODULESINSTALL.
+In general what I do is do a "make test" with the global setup and
+then switch things to my PERSONALMODULESINSTALL and rerun the "make test"
+and compaire the results.  I usually leave my account on the PERSONAL
+version for a week or to to make sure there aren't any hidden bugs.
+Once the week is up, if there are no problems, I update the GLOBAL version.
 
 
 07. Retiring old modules
