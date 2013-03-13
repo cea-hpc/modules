@@ -1,0 +1,98 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2006/05/18
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen <rk@owen.sj.ca.us>
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	alias/1.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'set-alias' substition of $1 and $*
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "alias/1.0"
+set modulefile "$env(MODULEPATH)/$module"
+set alias_sh {ls $1 $2 | grep ${1+"$@"}}
+set alias_csh {ls \!\!:1 \!\!:2 | grep \!*}
+
+#
+#  For the different shells ...
+#
+
+set tfnam_pat "/\[a-zA-Z_0-9_/\\.\\-\]+modulesource_\[a-zA-Z_0-9\\.\\-\]+"
+set fil_cmd_sh "testsuite() { $alias_sh\n}"
+set lin_cmd_sh "testsuite() { $alias_sh;}"
+set fil_cmd_ksh "alias testsuite='$alias_sh'"
+set fil_cmd_csh "alias testsuite '$alias_csh'"
+
+set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=alias/1\.0 ;export LOADEDMODULES;"
+set ts_sh "\\. ($tfnam_pat);/bin/rm -f $tfnam_pat;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile ;"
+set lm_csh "setenv LOADEDMODULES alias/1\.0 ;"
+set ts_csh "source ($tfnam_pat);/bin/rm -f $tfnam_pat;"
+
+set evl_cmd_sh "$lm_sh$lmf_sh$lin_cmd_sh;"
+set evl_cmd_ksh "$lm_sh$lmf_sh$fil_cmd_ksh;"
+set evl_cmd_csh "$lm_csh$lmf_csh$fil_cmd_csh;"
+
+#
+#  The tests
+#
+
+if { [ version_test "HAS_BOURNE_ALIAS=1" ] } {
+	test_alias "sh" "load $module" "$lm_sh$lmf_sh$ts_sh" "$fil_cmd_sh" "$evl_cmd_sh"
+} elseif { [ version_test "HAS_BOURNE_FUNCS=1" ] } {
+	test_alias_sh_fn "load $module" "$lm_sh$lmf_sh$ts_sh" "$fil_cmd_sh"
+} else {
+	send_user "skipping sh alias test\n"
+}
+test_alias "ksh" "load $module" "$lm_sh$lmf_sh$ts_sh" "$fil_cmd_ksh" "$evl_cmd_sh"
+test_alias "zsh" "load $module" "$lm_sh$lmf_sh$ts_sh" "$fil_cmd_ksh" "$evl_cmd_sh"
+test_alias "csh" "load $module" "$lm_csh$lmf_csh$ts_csh" "$fil_cmd_csh" "$evl_cmd_csh"
+test_alias "tcsh" "load $module" "$lm_csh$lmf_csh$ts_csh" "$fil_cmd_csh" "$evl_cmd_csh"
+# only available for csh/sh derivatives ... no longer warn for others
+
+#
+#  Cleanup
+#
+
+unset evl_cmd_sh
+unset evl_cmd_ksh
+unset evl_cmd_csh
+
+unset ts_sh
+unset lm_sh
+unset lmf_sh
+
+unset ts_csh
+unset lm_csh
+unset lmf_csh
+
+unset modulefile
+unset module
+unset alias_sh
+unset alias_csh
+
+unset fil_cmd_sh
+unset lin_cmd_sh
+unset fil_cmd_csh
+unset tfnam_pat
+

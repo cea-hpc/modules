@@ -1,0 +1,58 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	log/badfac
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'log-facility' module command. This
+#			testcase concerns bad log facilities being configured
+#			using the 'log-facility' command.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module1 "log/badfac"
+set modulefile1 "$env(MODULEPATH)/$module1"
+set bad_fac "$warn_msgs: Invalid log facility 'xyz.info'"
+
+#
+#  Check only for the csh
+#
+
+set lmf1 "setenv _LMFILES_ $modulefile1 ;"
+set lm1 "setenv LOADEDMODULES $module1 ;"
+
+#
+#  The tests
+#
+
+testouterr_cmd_re "csh" "load $module1" "$lm1$lmf1" "$bad_fac"
+
+#
+#  Cleanup
+#
+
+unset bad_fac
+
+unset lm1
+unset lmf1
+
+unset modulefile1
+unset module1

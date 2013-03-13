@@ -1,0 +1,84 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display
+#   Modulefiles:	loc_sym/1.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check the evaluation of the per user modulcmd RC
+#			file
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module_1 "loc_sym/1.0"
+set modulefile_1 "$env(MODULEPATH)/$module_1"
+
+#
+#  Save the former rc file setup
+#
+
+if { [info exists env(HOME) ] } {
+    set save_home $env(HOME)
+}
+set env(HOME) "$env(TESTSUITEDIR)/home"
+
+#
+#  Only checked for the csh
+#
+
+set lmf_csh_1 "setenv _LMFILES_ $modulefile_1 ;"
+set lm_csh_1 "setenv LOADEDMODULES $module_1 ;"
+set ts_csh_1 "setenv testsuite yes ;"
+
+
+
+set disp_csh "setenv\t\t testsuite yes "
+set disp_1 "$modlin$modulefile_1:\n\n$disp_csh\n$modlin"
+
+#
+#  The tests
+#
+
+test_cmd "csh" "load loc_sym/sym_home" "$lm_csh_1$lmf_csh_1$ts_csh_1"
+testerr_cmd "sh" "display loc_sym/sym_home" "$disp_1"
+
+#
+#  Restore the former rc file setup
+#
+
+if { [info exists save_home ] } {
+    set env(HOME) $save_home
+} else {
+    unset env(HOME)
+}
+
+#
+#  Cleanup
+#
+
+unset lm_csh_1
+unset lmf_csh_1
+unset ts_csh_1
+
+unset disp_csh
+unset disp_1
+
+unset modulefile_1
+unset module_1

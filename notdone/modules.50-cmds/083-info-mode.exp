@@ -1,0 +1,103 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display, unload, switch, help
+#   Modulefiles:	info/mode1, info/mode2
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'module-info mode' module subcommand with-
+#			out own suggestion.
+#			This command does not change behaviour depending on
+#			the user shell. Tests are made for the bourne shell
+#			here.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "info/mode1"
+set modulefile "$env(MODULEPATH)/$module"
+
+set module2 "info/mode2"
+set modulefile2 "$env(MODULEPATH)/$module2"
+
+#
+#  The _LMFILES_ and the LOADEDMODULES will be affected
+#
+
+set lmf_sh_ld "_LMFILES_=$modulefile ;export _LMFILES_;"
+set lm_sh_ld "LOADEDMODULES=$module ;export LOADEDMODULES;"
+
+set lmf_sh_rm "unset _LMFILES_;"
+set lm_sh_rm "unset LOADEDMODULES;"
+
+set lmf_sh_sw "_LMFILES_=$modulefile2 ;export _LMFILES_;"
+set lm_sh_sw "LOADEDMODULES=$module2 ;export LOADEDMODULES;"
+set switches "switch1\nswitch2\nswitch3\n"
+
+set lin_help "\n----------- Module Specific Help for '$module' -----------------\n"
+
+#
+#  The tests
+#
+
+# test loading
+test_cmd "sh" "load $module" "load\n$lm_sh_ld$lmf_sh_ld"
+
+# test displaying
+testouterr_cmd "sh" "display $module" "display" "$modlin$modulefile:\n\n$modlin"
+
+# Set up the environment for test that require the module to be loaded
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+# test unloading
+test_cmd "sh" "unload $module" "remove\n$lm_sh_rm$lmf_sh_rm"
+
+# test switching
+testouterr_cmd "sh" "switch $module $module2" "$switches$lm_sh_sw$lmf_sh_sw" ""
+
+# Clean up the just changed environment
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+# Clean up the just changed environment
+# test help
+testerr_cmd "sh" "help $module" "$lin_help\nhelp"
+
+#
+#  Cleanup
+#
+
+unset lin_help
+
+unset lm_sh_sw
+unset lmf_sh_sw
+unset switches
+
+unset lm_sh_rm
+unset lmf_sh_rm
+
+unset lm_sh_ld
+unset lmf_sh_ld
+
+unset modulefile2
+unset module2
+
+unset modulefile
+unset module

@@ -1,0 +1,108 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display
+#   Modulefiles:	loc_rc1/1.0, loc_rc2/1.0, loc_rc3/1.0, loc_rc4/1.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check the modulecmd rc file execution
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module_1 "loc_rc1/1.0"
+set modulefile_1 "$env(MODULEPATH)/$module_1"
+
+set module_2 "loc_rc2/1.0"
+set modulefile_2 "$env(MODULEPATH)/$module_2"
+
+set module_3 "loc_rc3/1.0"
+set modulefile_3 "$env(MODULEPATH)/$module_3"
+
+set module_4 "loc_rc4/2.0"
+set modulefile_4 "$env(MODULEPATH)/$module_4"
+
+#
+#  Only checked for the csh
+#
+
+set lmf_csh_1 "setenv _LMFILES_ $modulefile_1 ;"
+set lm_csh_1 "setenv LOADEDMODULES $module_1 ;"
+set lmf_csh_2 "setenv _LMFILES_ $modulefile_2 ;"
+set lm_csh_2 "setenv LOADEDMODULES $module_2 ;"
+set lmf_csh_3 "setenv _LMFILES_ $modulefile_3 ;"
+set lm_csh_3 "setenv LOADEDMODULES $module_3 ;"
+set lmf_csh_4 "setenv _LMFILES_ $modulefile_4 ;"
+set lm_csh_4 "setenv LOADEDMODULES $module_4 ;"
+set ts_csh_1 "setenv testsuite yes ;"
+
+
+set disp_csh "setenv\t\t testsuite yes "
+set disp_1 "$modlin$modulefile_1:\n\n$disp_csh\n$modlin"
+set disp_2 "$modlin$modulefile_2:\n\n$disp_csh\n$modlin"
+set disp_3 "$modlin$modulefile_3:\n\n$disp_csh\n$modlin"
+set disp_4 "$modlin$modulefile_4:\n\n$disp_csh\n$modlin"
+
+#
+#  The tests
+#
+
+test_cmd "csh" "load loc_rc1/foo" "$lm_csh_1$lmf_csh_1$ts_csh_1"
+testerr_cmd "sh" "display loc_rc1/foo" "$disp_1"
+
+test_cmd "csh" "load loc_rc2/foo" "$lm_csh_2$lmf_csh_2$ts_csh_1"
+testerr_cmd "sh" "display loc_rc2/foo" "$disp_2"
+
+test_cmd "csh" "load loc_rc3" "$lm_csh_3$lmf_csh_3$ts_csh_1"
+testerr_cmd "sh" "display loc_rc3" "$disp_3"
+
+test_cmd "csh" "load loc_rc4" "$lm_csh_4$lmf_csh_4$ts_csh_1"
+testerr_cmd "sh" "display loc_rc4" "$disp_4"
+
+#
+#  Cleanup
+#
+
+unset lm_csh_1
+unset lmf_csh_1
+unset lm_csh_2
+unset lmf_csh_2
+unset lm_csh_3
+unset lmf_csh_3
+unset lm_csh_4
+unset lmf_csh_4
+unset ts_csh_1
+
+unset disp_csh
+unset disp_1
+unset disp_2
+unset disp_3
+unset disp_4
+
+unset modulefile_1
+unset module_1
+
+unset modulefile_2
+unset module_2
+
+unset modulefile_3
+unset module_3
+
+unset modulefile_4
+unset module_4

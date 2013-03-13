@@ -1,0 +1,86 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	prereq/full, trace/all_on, trace/all_off
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'prereq' command using a full qualified
+#			module name. This tests the reactions of modulecmd
+#			if the prerequired module is load or not and if
+#			another module of the same category is load.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "prereq/full"
+set modulefile "$env(MODULEPATH)/$module"
+
+set module_tron "trace/all_on"
+set modulefile_tron "$env(MODULEPATH)/$module_tron"
+
+set module_troff "trace/all_off"
+set modulefile_troff "$env(MODULEPATH)/$module_troff"
+
+#
+#  Only for the csh
+#
+
+set lmf_csh_tron "setenv _LMFILES_ $modulefile_tron:$modulefile ;"
+set lm_csh_tron "setenv LOADEDMODULES $module_tron:$module ;"
+set lmf_csh_troff "setenv _LMFILES_ $modulefile_troff ;"
+set lm_csh_troff "setenv LOADEDMODULES $module_troff ;"
+
+set ts_csh "setenv testsuite yes ;"
+
+#
+#  Error messages
+#
+
+set err_prereq "$error_msgs: Module '$module' depends on one of the module\\(s\\) 'trace/all_on'\n"
+set err_exec "$error_msgs: Tcl command execution failed: prereq\ttrace/all_on\n"
+
+#
+#  The tests
+#
+
+testouterr_cmd_re "csh" "load $module" "" "$err_prereq$err_exec"
+testouterr_cmd_re "csh" "load $module_troff $module" "$lm_csh_troff$lmf_csh_troff" "$err_prereq$err_exec"
+test_cmd "csh" "load $module_tron $module" "$lm_csh_tron$lmf_csh_tron$ts_csh"
+
+#
+#  Cleanup
+#
+
+unset err_prereq
+unset err_exec
+
+unset ts_csh
+
+unset lm_csh_troff
+unset lmf_csh_troff
+unset lm_csh_tron
+unset lmf_csh_tron
+
+unset modulefile
+unset module
+unset modulefile_tron
+unset module_tron
+unset modulefile_troff
+unset module_troff

@@ -1,0 +1,65 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	info/user
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'module-info user' module subcommand with-
+#			out own suggestion.
+#			This command does not change behaviour depending on
+#			the user shell. Tests are made for the bourne shell
+#			here.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "info/user"
+set modulefile "$env(MODULEPATH)/$module"
+
+#
+#  The _LMFILES_ and the LOADEDMODULES will be affected
+#
+
+set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
+set ts_sh_n "testsuite=novice ;export testsuite;"
+set ts_sh_a "testsuite=advanced ;export testsuite;"
+set ts_sh_e "testsuite=expert ;export testsuite;"
+
+#
+#  The tests
+#
+
+test_cmd "sh" "load --userlvl=novice $module" "$lm_sh$lmf_sh$ts_sh_n"
+test_cmd "sh" "load --userlvl=advanced $module" "$lm_sh$lmf_sh$ts_sh_a"
+test_cmd "sh" "load --userlvl=expert $module" "$lm_sh$lmf_sh$ts_sh_e"
+
+#
+#  Cleanup
+#
+
+unset lm_sh
+unset lmf_sh
+unset ts_sh_n
+unset ts_sh_a
+unset ts_sh_e
+
+unset modulefile
+unset module

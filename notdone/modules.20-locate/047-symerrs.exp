@@ -1,0 +1,102 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	loc_sym/version13, loc_sym/version14, loc_sym/getvers8
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests error conditions with the module version command
+#			depending on different user levels.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module_1 "loc_sym/version13"
+set modulefile_1 "$env(MODULEPATH)/$module_1"
+
+set module_2 "loc_sym/version14"
+set modulefile_2 "$env(MODULEPATH)/$module_2"
+
+set module_3 "loc_sym/getvers8"
+set modulefile_3 "$env(MODULEPATH)/$module_3"
+
+#
+#  The warning messages
+#
+
+set prob_dup "$prob_msgs: Duplicate version symbol 'foo' found"
+set err_loop "$error_msgs: Version symbol '1.0' loops"
+
+#
+#  Only checked for the csh
+#
+
+set lmf_csh_1 "setenv _LMFILES_ $modulefile_1 ;"
+set lm_csh_1 "setenv LOADEDMODULES $module_1 ;"
+set ts_csh_1 "setenv testsuite blah:bar:foo ;"
+
+set lmf_csh_2 "setenv _LMFILES_ $modulefile_2 ;"
+set lm_csh_2 "setenv LOADEDMODULES $module_2 ;"
+set ts_csh_2 "setenv testsuite 1.0:bar:foo ;"
+
+set lmf_csh_3 "setenv _LMFILES_ $modulefile_3 ;"
+set lm_csh_3 "setenv LOADEDMODULES $module_3 ;"
+set ts_csh_3 "setenv testsuite .*undef.* ;"
+
+
+#
+#  The tests
+#
+
+testouterr_cmd_re "csh" "--us=nov load $module_1" "$lm_csh_1$lmf_csh_1$ts_csh_1" "$prob_dup"
+testouterr_cmd_re "csh" "--us=adv load $module_1" "$lm_csh_1$lmf_csh_1$ts_csh_1" "$prob_dup"
+test_cmd "csh" "--us=exp load $module_1" "$lm_csh_1$lmf_csh_1$ts_csh_1"
+
+testouterr_cmd_re "csh" "--us=nov load $module_2" "$lm_csh_2$lmf_csh_2$ts_csh_2" "$err_loop"
+testouterr_cmd_re "csh" "--us=adv load $module_2" "$lm_csh_2$lmf_csh_2$ts_csh_2" "$err_loop"
+testouterr_cmd_re "csh" "--us=exp load $module_2" "$lm_csh_2$lmf_csh_2$ts_csh_2" "$err_loop"
+
+testouterr_cmd_re "csh" "--us=nov load $module_3" "$lm_csh_3$lmf_csh_3$ts_csh_3" "$err_loop"
+testouterr_cmd_re "csh" "--us=adv load $module_3" "$lm_csh_3$lmf_csh_3$ts_csh_3" "$err_loop"
+testouterr_cmd_re "csh" "--us=exp load $module_3" "$lm_csh_3$lmf_csh_3$ts_csh_3" "$err_loop"
+
+#
+#  Cleanup
+#
+
+unset ts_csh_1
+unset lm_csh_1
+unset lmf_csh_1
+
+unset ts_csh_2
+unset lm_csh_2
+unset lmf_csh_2
+
+unset ts_csh_3
+unset lm_csh_3
+unset lmf_csh_3
+
+unset modulefile_1
+unset module_1
+
+unset modulefile_2
+unset module_2
+
+unset modulefile_3
+unset module_3

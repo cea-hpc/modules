@@ -1,0 +1,63 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	verbose/msg
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the module verbosity command. This will turn
+#			verbosity on and issue a message without parameter
+#			and another one with parameters.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module_1 "verbose/msg"
+set modulefile_1 "$env(MODULEPATH)/$module_1"
+
+#
+#  'undef' will result a verbose message
+#
+
+set ts_csh_1 "$verb_msgs: This is a verbose message"
+set ts_csh_2 "$verb_msgs: This is a verbose message with param 'test'"
+
+#
+#  Only checked for the csh
+#
+
+set lmf_csh_1 "setenv _LMFILES_ $modulefile_1 ;"
+set lm_csh_1 "setenv LOADEDMODULES $module_1 ;"
+
+#
+#  The tests
+#
+
+testouterr_cmd_re "csh" "load $module_1" "$lm_csh_1$lmf_csh_1" "$ts_csh_1\n$ts_csh_2"
+
+#
+#  Cleanup
+#
+
+unset module_1
+unset modulefile_1
+
+unset lmf_csh_1
+unset lm_csh_1
+unset ts_csh_1

@@ -1,0 +1,78 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		display
+#   Modulefiles:	loc_dv1, loc_dv2, loc_dv3, loc_dv4, loc_dv5, loc_dv6
+#   Modulefiles:	loc_dv7, loc_dv8, loc_dv_xx
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Localization of the modulefile default versions
+#
+#			     dv1	Select version 2.0 by filename
+#					(2.0 < 1.0)
+#			     dv2	Select version 1.0 by using
+#					'.version' file
+#			     dv3	'.version' file pointing to a non
+#					existant modulefile
+#			     dv4	'.version' file pointing to a illegal
+#					modulefile
+#			     dv5	empty directory
+#			     dv6	Select 2.0 by filename. 2.0 is a
+#					directory with 1.0 inside
+#			     dv7	Select 2.0 by .version. 2.0 is a
+#					directory with 1.0 inside
+#			     dv8	Select 2.0 by file because the magic
+#					cookie is missing in .version
+#			     dv_xx	non existant directory
+#
+#		}C%
+#
+##############################################################################
+
+#
+# Variables for this test
+#
+
+set module_3 "$modpath/loc_dv3/3.0"
+set module_4 "$modpath/loc_dv4/2.0"
+set version_8 "$modpath/loc_dv8/.version"
+
+set err_mag_3 "$err_magic'$module_3'"
+set err_mag_4 "$err_magic'$module_4'"
+set err_mag_8 "$err_magic'$version_8'"
+
+#
+# The tests ...
+#
+
+testerr_cmd "sh" "display loc_dv1" "$modlin$modpath/loc_dv1/2.0:\n\n$modlin"
+testerr_cmd "sh" "display loc_dv2" "$modlin$modpath/loc_dv2/1.0:\n\n$modlin"
+testerr_cmd_re "sh" "display loc_dv3" "$err_path'loc_dv3'"
+testerr_cmd_re "sh" "display loc_dv4" "$err_mag_4\n$err_path'loc_dv4'"
+testerr_cmd_re "sh" "display loc_dv5" "$err_path'loc_dv5'"
+testerr_cmd "sh" "display loc_dv6" "$modlin$modpath/loc_dv6/2.0/1.0:\n\n$modlin"
+testerr_cmd "sh" "display loc_dv7" "$modlin$modpath/loc_dv7/2.0/1.0:\n\n$modlin"
+testerr_cmd_re "sh" "display loc_dv8" "$err_mag_8\n$modlin$modpath/loc_dv8/2.0:\n\n$modlin"
+testerr_cmd_re "sh" "display loc_dv_xx" "$err_path'loc_dv_xx'"
+
+#
+# Cleanup
+#
+
+unset err_mag_3
+unset err_mag_4
+unset err_mag_8
+
+unset version_8
+unset module_4
+unset module_3

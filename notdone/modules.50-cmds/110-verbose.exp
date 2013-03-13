@@ -1,0 +1,87 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	verbose/on, verbose/off, verbose/undef
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the module verbosity command. This testcase
+#			concerns switching verbosity on and off. It also
+#			checks bad arguments to the 'module-verbosity'
+#			command.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module_1 "verbose/on"
+set modulefile_1 "$env(MODULEPATH)/$module_1"
+
+set module_2 "verbose/off"
+set modulefile_2 "$env(MODULEPATH)/$module_2"
+
+set module_3 "verbose/undef"
+set modulefile_3 "$env(MODULEPATH)/$module_3"
+
+#
+#  'undef' will result in 2 error messages ...
+#
+
+set err_use "$error_msgs: Usage is 'module-verbosity on\\|off\\|fmt \\\[args\\\]'"
+set err_exec "$error_msgs: Tcl command execution failed: module-verbosity"
+
+#
+#  Only checked for the csh
+#
+
+set lmf_csh_1 "setenv _LMFILES_ $modulefile_1 ;"
+set lm_csh_1 "setenv LOADEDMODULES $module_1 ;"
+
+set lmf_csh_2 "setenv _LMFILES_ $modulefile_2 ;"
+set lm_csh_2 "setenv LOADEDMODULES $module_2 ;"
+
+set ts_csh_3 "$err_use$err_exec"
+
+#
+#  The tests
+#
+
+test_cmd "csh" "load $module_1" "$lm_csh_1$lmf_csh_1"
+test_cmd "csh" "load $module_2" "$lm_csh_2$lmf_csh_2"
+testerr_cmd_re "csh" "load $module_3" "$ts_csh_3"
+
+#
+#  Cleanup
+#
+
+unset err_use
+unset err_exec
+
+unset lm_csh_1
+unset lmf_csh_1
+unset lm_csh_2
+unset lmf_csh_2
+
+unset ts_csh_3
+
+unset modulefile_1
+unset module_1
+unset modulefile_2
+unset module_2
+unset modulefile_3
+unset module_3

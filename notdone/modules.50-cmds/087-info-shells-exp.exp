@@ -1,0 +1,98 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	info/shellsexp
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'module-info shell' and the 'module-info
+#			shelltype' module subcommands without own suggestion.
+#			This command does not change behaviour depending on
+#			the user shell. Tests are made for the bourne shell
+#			here.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "info/shellsexp"
+set modulefile "$env(MODULEPATH)/$module"
+
+#
+#  For the different shells ...
+#
+
+set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
+set ts_sh "testsuite=sh/sh ;export testsuite;"
+set ts_ksh "testsuite=ksh/sh ;export testsuite;"
+set ts_zsh "testsuite=zsh/sh ;export testsuite;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile ;"
+set lm_csh "setenv LOADEDMODULES $module ;"
+set ts_csh "setenv testsuite csh/csh ;"
+set ts_tcsh "setenv testsuite tcsh/csh ;"
+
+set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
+set ts_perl "\$ENV{'testsuite'} = 'perl/perl';"
+
+set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
+set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
+set ts_cmake "set(ENV{testsuite} \"cmake/cmake\")"
+
+#
+#  The tests
+#
+
+test_cmd "sh" "load $module" "$lm_sh$lmf_sh$ts_sh"
+test_cmd "bash" "load $module" "$lm_sh$lmf_sh$ts_sh"
+test_cmd "ksh" "load $module" "$lm_sh$lmf_sh$ts_ksh"
+test_cmd "zsh" "load $module" "$lm_sh$lmf_sh$ts_zsh"
+test_cmd "csh" "load $module" "$lm_csh$lmf_csh$ts_csh"
+test_cmd "tcsh" "load $module" "$lm_csh$lmf_csh$ts_tcsh"
+test_cmd "perl" "load $module" "$lm_perl$lmf_perl$ts_perl"
+#test_cmd "cmake" "load $module" "$lm_cmake\n$lmf_cmake\n$ts_cmake"
+test_cmd "python" "load $module" "$lm_cmake\n$lmf_cmake\n$ts_cmake"
+test_cmd "lisp" "load $module" "$lm_cmake\n$lmf_cmake\n$ts_cmake"
+
+#
+#  Cleanup
+#
+
+unset ts_ksh
+unset ts_zsh
+unset ts_sh
+unset lm_sh
+unset lmf_sh
+
+unset ts_csh
+unset ts_tcsh
+unset lm_csh
+unset lmf_csh
+
+unset ts_perl
+unset lm_perl
+unset lmf_perl
+
+unset ts_cmake
+unset lm_cmake
+unset lmf_cmake
+
+unset modulefile
+unset module

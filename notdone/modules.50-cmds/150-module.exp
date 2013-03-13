@@ -1,0 +1,60 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	setenv/1.0, module/2.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'module load' subcommand
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "setenv/1.0"
+set modulefile "$env(MODULEPATH)/$module"
+
+set module_1 "module/2.0"
+set modulefile_1 "$env(MODULEPATH)/$module_1"
+
+#
+#  For the different shells ...
+#
+
+set lmf_csh "setenv _LMFILES_ $modulefile:$modulefile_1 ;"
+set lm_csh "setenv LOADEDMODULES $module:$module_1 ;"
+set ts_csh "setenv testsuite yes ;"
+
+#
+#  The tests
+#
+
+test_cmd "csh" "load $module_1" "$lm_csh$lmf_csh$ts_csh"
+
+#
+#  Cleanup
+#
+
+unset ts_csh
+unset lm_csh
+unset lmf_csh
+
+unset modulefile
+unset module
+unset modulefile_1
+unset module_1

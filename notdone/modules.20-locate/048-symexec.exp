@@ -1,0 +1,91 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display
+#   Modulefiles:	loc_sym/1.0, loc_sym/exec1, loc_sym/exec2
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the execution of symbolic moduleversions and
+#			module aliases
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "loc_sym/1.0"
+set modulefile "$env(MODULEPATH)/$module"
+
+set module_1 "loc_sym/exec1"
+set modulefile_1 "$env(MODULEPATH)/$module_1"
+
+set module_2 "loc_sym/exec2"
+set modulefile_2 "$env(MODULEPATH)/$module_2"
+
+#
+#  Only checked for the csh
+#
+
+set lmf_csh_1 "setenv _LMFILES_ $modulefile_1:$modulefile ;"
+set lm_csh_1 "setenv LOADEDMODULES $module_1:$module ;"
+set lmf_csh_2 "setenv _LMFILES_ $modulefile_2:$modulefile ;"
+set lm_csh_2 "setenv LOADEDMODULES $module_2:$module ;"
+set ts_csh_1 "setenv testsuite yes ;"
+
+
+set disp_csh_1 "module-alias\t foo loc_sym/1.0"
+set disp_csh_2 "module-version\t loc_sym/1.0 foo "
+set disp_csh "setenv\t\t testsuite yes "
+set disp_1 "$modlin$modulefile_1:\n\n$disp_csh_1\n$modlin"
+set disp_2 "$modlin$modulefile_2:\n\n$disp_csh_2\n$modlin"
+set disp "$modlin$modulefile:\n\n$disp_csh\n$modlin"
+
+#
+#  The tests
+#
+
+test_cmd "csh" "load $module_1 foo" "$lm_csh_1$lmf_csh_1$ts_csh_1"
+testerr_cmd "sh" "display $module_1 foo" "$disp_1$disp"
+
+test_cmd "csh" "load $module_2 loc_sym/foo" "$lm_csh_2$lmf_csh_2$ts_csh_1"
+testerr_cmd "sh" "display $module_2 loc_sym/foo" "$disp_2$disp"
+
+#
+#  Cleanup
+#
+
+unset disp_csh
+unset disp_csh_1
+unset disp_csh_2
+unset disp
+unset disp_1
+unset disp_2
+
+unset lm_csh_1
+unset lmf_csh_1
+unset lm_csh_2
+unset lmf_csh_2
+unset ts_csh_1
+
+unset modulefile_1
+unset module_1
+
+unset modulefile_2
+unset module_2
+
+unset modulefile
+unset module

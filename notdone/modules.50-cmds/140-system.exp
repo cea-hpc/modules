@@ -1,0 +1,55 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	system/2.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'system' module subcommand
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "system/2.0"
+set modulefile "$env(MODULEPATH)/$module"
+
+#
+#  Only for the csh
+#
+
+set lmf_csh "setenv _LMFILES_ $modulefile ;"
+set lm_csh "setenv LOADEDMODULES $module ;"
+set ts_csh "setenv testsuite 123 ;"
+
+#
+#  The tests
+#
+
+test_cmd "csh" "load $module" "$lm_csh$lmf_csh$ts_csh"
+
+#
+#  Cleanup
+#
+
+unset ts_csh
+unset lm_csh
+unset lmf_csh
+
+unset modulefile
+unset module

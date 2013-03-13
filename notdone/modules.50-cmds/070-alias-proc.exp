@@ -1,0 +1,137 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Defines the test procedures for the alias commands.
+#			Depending on the 'module' setup, this checks
+#			if direct eval of aliases or sourcing of tempfiles
+#			is configured.
+#		}C%
+#
+##############################################################################
+
+#
+#  Test procedure for alias solutions using temporary files
+#
+proc _test_tempfile {shell cmd tempfile filecmd} {
+	global verbose
+
+	set tmp [exec cat $tempfile]
+
+	if { $verbose > 0 } {
+		send_user "Checking \"$shell\" temp alias file '$tempfile'\n"
+	}
+
+	#
+	#  Remove the temporary file written by modulecmd
+	#
+	file delete -force $tempfile
+
+	#
+	#  The contents of the temporary file do match?
+	#
+
+	if { $tmp == $filecmd } {
+		return 1
+	} else {
+		fail "$cmd ($shell)"
+		if { $verbose > 0 } {
+			send_user "File content:\n$tmp\n"
+			send_user "Expected:\n$filecmd\n"
+		}
+		return 0;
+	}
+}
+
+proc _test_alias_fn {shell cmd pattern filecmd} {
+	global comp_output
+
+	if { ![info exists shell] || ![info exists cmd]
+	|| ![info exists pattern] || ![info exists filecmd] } {
+		unresolved "Internal testsuite error in alias-checking";
+	}
+
+	_test_sub $shell "$cmd"
+	regexp "$pattern" $comp_output tmp tempfile
+
+	if { [ _test_out_re $shell "$cmd" $pattern ]
+	&&   [ _test_tempfile $shell "$cmd" $tempfile $filecmd ] } {
+		_test_ok $shell "$cmd"
+	}
+}
+
+#
+#  Perform the 'modulecmd $cmd' command and
+#  check the configuration in order to select the desired alias-test-procedure
+#
+
+proc test_alias {shell cmd pattern filecmd evalcmd} {
+    global config_eval
+
+    #
+    #  Check parameters and set up the shell
+    #
+
+    if { ![info exists shell] || ![info exists pattern] ||
+	 ![info exists cmd] || ![info exists filecmd]
+	 || ![info exists evalcmd] } {
+	unresolved "Internal testsuite error in alias-checking";
+    }
+
+    #
+    #  Now evaluate the result of the 'modulecmd' call
+    #
+
+    if { $config_eval } {
+	test_cmd $shell $cmd "$evalcmd"
+    } else {
+	_test_alias_fn $shell $cmd $pattern $filecmd
+    }
+}
+
+#
+#  Perform the 'modulecmd $cmd' command only if the Bourne shell and
+#  using functions (based on test_alias)
+#
+
+proc test_alias_sh_fn {cmd pattern filecmd} {
+	global comp_output
+	global verbose
+
+	if { ![info exists cmd]
+	|| ![info exists pattern] || ![info exists filecmd] } {
+		unresolved "Internal testsuite error in alias-checking";
+	}
+
+	_test_sub "sh" "$cmd"
+	regexp "$pattern" $comp_output tmp tempfile
+
+	if { [ _test_out_re "sh" "$cmd" $pattern ]
+	&&   [ _test_tempfile "sh" "$cmd" $tempfile $filecmd ] } {
+		_test_ok "sh" "$cmd"
+	}
+}
+
+#
+#  Grab the config-file for the EVAL setup. If there's no config-file
+#  found, the tempfile-solution is assumed to be configured
+#
+
+if { [ version_test "EVAL_ALIAS=1" ] } {
+	set config_eval 1
+} else {
+	set config_eval 0
+}

@@ -1,0 +1,65 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the reaction to invalid entries in the global
+#			modulecmd RC file
+#		}C%
+#
+##############################################################################
+
+#
+#  We do expect 4 error messages
+#
+
+set prob_name "$prob_msgs: Invalid modulename '/1.0' found\n"
+set err_exec "$error_msgs: Tcl command execution failed: module-version\t/1.0\tfoobar\n"
+set warn_src "$warn_msgs: Error sourcing file '$env(TESTSUITEDIR)/etc/bad'\n"
+set err_loc "$error_msgs: Unable to locate a modulefile for 'loc_sym/foobar'"
+
+#
+#  Save the former rc file setup
+#
+
+if { [info exists env(MODULERCFILE) ] } {
+    set save_rc $env(MODULERCFILE)
+}
+
+#
+#  The tests
+#
+
+set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/bad"
+testerr_cmd_re "csh" "load loc_sym/foobar" "$prob_name$err_exec\n$warn_src$err_loc"
+
+#
+#  Restore the former rc file setup
+#
+
+if { [info exists save_rc ] } {
+    set env(MODULERCFILE) $save_rc
+} else {
+    unset env(MODULERCFILE)
+}
+
+#
+#  Cleanup
+#
+
+unset prob_name
+unset err_exec
+unset warn_src
+unset err_loc
