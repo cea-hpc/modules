@@ -2932,10 +2932,10 @@ proc cmdModuleHelp {args} {
 	  [modulefile ...]}
         report {	add  |  load                        modulefile\
 	  [modulefile ...]}
-	report {	purge  |  rm  |  unload             modulefile\
+	report {	rm  |  unload                       modulefile\
 	  [modulefile ...]}
-	report {	reload                              modulefile\
-	  [modulefile ...]}
+	report {	purge}
+	report {	reload}
         report {	switch  |  swap                    \
 	  [oldmodulefile] newmodulefile}
 	report {	avail                    [switches] [modulefile\
