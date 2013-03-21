@@ -192,8 +192,8 @@ proc execute-modulefile {modfile {help ""}} {
     return $errorVal
 }
 
-# Smaller subset than main module load... This function runs modulerc and\
-  .version files
+# Smaller subset than main module load... This function runs modulerc and
+# .version files
 proc execute-modulerc {modfile} {
     global g_rcfilesSourced
     global g_debug g_moduleDefault
@@ -406,8 +406,8 @@ proc module-version {args} {
 
 	if {$base != ""} {
 	    if {[string match $version "default"]} {
-		# If we see more than one default for the same module, just\
-		  keep the first
+		# If we see more than one default for the same module, just
+		# keep the first
 		if {![info exists g_moduleDefault($base)]} {
 		    set g_moduleDefault($base) $aliasversion
 		    if {$g_debug} {
@@ -679,7 +679,7 @@ proc unsetenv {var {val {}}} {
 
 ########################################################################
 # path fiddling
-
+#
 proc getReferenceCountArray {var separator} {
     global env g_force g_def_separator g_debug
 
@@ -730,13 +730,14 @@ proc getReferenceCountArray {var separator} {
 		}
 
 	    } else {
-		#		sharevar was corrupted, odd number of elements.
+		# sharevar was corrupted, odd number of elements.
 		set modshareok 0
 	    }
 	} else {
 	    if {$g_debug} {	    
 		reportWarning "WARNING: module: $sharevar exists (\
-	          $env($sharevar) ), but $var doesn't. Environment is corrupted."
+	          $env($sharevar) ), but $var doesn't.\
+                  Environment is corrupted."
             }
 	    set modshareok 0
 	}
@@ -763,8 +764,8 @@ proc unload-path {var path separator} {
 	report "DEBUG unload-path: ($var, $path, $separator)"
     }
 
-    # Don't worry about dealing with this variable if it is already scheduled\
-      for deletion
+    # Don't worry about dealing with this variable if it is already scheduled
+    #  for deletion
     if {[info exists g_stateEnvVars($var)] && $g_stateEnvVars($var) == "del"} {
 	return {}
     }
@@ -830,7 +831,7 @@ proc add-path {var path pos separator} {
     }
     foreach dir $pathelems {
 	if {[info exists countarr($dir)]} {
-	    #	    already see $dir in $var"
+	    # already see $dir in $var"
 	    incr countarr($dir)
 	} else {
 	    if {[info exists env($var)]} {
@@ -965,7 +966,6 @@ proc set-alias {alias what} {
     return {}
 }
 
-
 proc unset-alias {alias} {
     global g_Aliases g_stateAliases g_debug
     set mode [currentMode]
@@ -1008,7 +1008,6 @@ proc is-loaded {modulelist} {
     }
     return 1
 }
-
 
 proc conflict {args} {
     global ModulesCurrentModulefile g_debug
@@ -1109,7 +1108,8 @@ proc uname {what} {
 		if { [file isfile /etc/lsb-release]} {
                         set fd [open "/etc/lsb-release" "r"]
                         set a [read $fd]
-                        regexp -nocase {DISTRIB_CODENAME=(\S+)(.*)} $a matched res end
+                        regexp -nocase {DISTRIB_CODENAME=(\S+)(.*)}\
+                           $a matched res end
                         set result $res
                 } else {
 			set result $tcl_platform(osVersion)
@@ -1133,7 +1133,7 @@ proc uname {what} {
 
 ########################################################################
 # internal module procedures
-
+#
 set g_modeStack {}
 
 proc currentMode {} {
@@ -1156,7 +1156,6 @@ proc popMode {} {
     set len [expr {$len - 2}]
     set g_modeStack [lrange $g_modeStack 0 $len]
 }
-
 
 set g_moduleNameStack {}
 
@@ -1181,7 +1180,6 @@ proc popModuleName {} {
     set g_moduleNameStack [lrange $g_moduleNameStack 0 $len]
 }
 
-
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
@@ -1205,21 +1203,13 @@ proc getPathToModule {mod {separator {}}} {
 	report "DEBUG getPathToModule: Finding $mod"
     }
 
-    # Check for aliases
-# This is already done at the root level so why do it again?
-#    set newmod [resolveModuleVersionOrAlias $mod]
-#    if {$newmod != $mod} {
-#	# Alias before ModulesVersion
-#	return [getPathToModule $newmod]
-#    }
-
     # Check for $mod specified as a full pathname
     if {[string match {/*} $mod]} {
 	if {[file exists $mod]} {
 	    if {[file readable $mod]} {
 		if {[file isfile $mod]} {
-		    # note that a raw filename as an argument returns the full\
-		      path as the module name
+		    # note that a raw filename as an argument returns the full
+		    # path as the module name
 		    if {[checkValidModule $mod]} {
 			return [list $mod $mod]
 		    } else {
@@ -1239,16 +1229,16 @@ proc getPathToModule {mod {separator {}}} {
 	    # modparent is the the modulename minus the module version.  
 	    set modparent [file dirname $mod]
 	    set modversion [file tail $mod]
-	    # If $mod was specified without a version (no "/") then mod is\
-	      really modparent
+	    # If $mod was specified without a version (no "/") then mod is
+	    # really modparent
 	    if {$modparent == "."} {
 		set modparent $mod
 	    }
 	    set modparentpath "$dir/$modparent"
 
 
-	    # Search the modparent directory for .modulerc files in case we\
-	      need to translate an alias
+	    # Search the modparent directory for .modulerc files in case we
+	    # need to translate an alias
 	    if {[file isdirectory $modparentpath]} {
 		# Execute any modulerc for this module
 		if {[file exists "$modparentpath/.modulerc"]} {
@@ -1272,8 +1262,8 @@ proc getPathToModule {mod {separator {}}} {
 		# present or return the last file within the dir
 		if {[file isdirectory $path]} {
 		    set ModulesVersion ""
-		    # Not an alias or version alias - check for a .version\
-		      file or find the default file
+		    # Not an alias or version alias - check for a .version
+		    # file or find the default file
 		    if {[info exists g_loadedModulesGeneric($mod)]} {
 			set ModulesVersion $g_loadedModulesGeneric($mod)
 		    }\
@@ -1312,8 +1302,8 @@ proc getPathToModule {mod {separator {}}} {
 
 		# We may have a winner, check validity of result
 		if {[llength $retlist] == 2} {
-		    # Check to see if we've found only a directory.  If so,\
-		      keep looking
+		    # Check to see if we've found only a directory.  If so,
+		    # keep looking
 		    if {[file isdirectory [lindex $retlist 0]]} {
 			set retlist [getPathToModule [lindex $retlist 1]]
 		    }
@@ -1414,7 +1404,8 @@ proc renderSettings {} {
 	if {$g_autoInit} {
 	    global argv0
 
-            # automatically detect which tclsh should be used for future module commands
+            # automatically detect which tclsh should be used for 
+            # future module commands
             set tclshbin [info nameofexecutable]
 
 	    # add cwd if not absolute script path
@@ -1431,33 +1422,39 @@ proc renderSettings {} {
 		    puts stdout "if ( \$?histchars ) then"
 		    puts stdout "  set _histchars = \$histchars"
 		    puts stdout "  if (\$?prompt) then"
-		    puts stdout "    alias module 'unset histchars;set\
-		      _prompt=\"\$prompt\";eval `'$tclshbin' '$argv0' '$g_shell' \\!*`;set\
-		      histchars = \$_histchars; set prompt=\"\$_prompt\";unset\
-		      _prompt'"
+		    puts stdout "    alias module 'unset histchars;\
+                       set _prompt=\"\$prompt\";\
+                       eval `'$tclshbin' '$argv0' '$g_shell' \\!*`;\
+                       set histchars = \$_histchars;\
+                       set prompt=\"\$_prompt\";unset _prompt'"
 		    puts stdout "  else"
-		    puts stdout "    alias module 'unset histchars;eval `'$tclshbin' '$argv0'\
-		      '$g_shell' \\!*`;set histchars = \$_histchars'"
+		    puts stdout "    alias module 'unset histchars;\
+                       eval `'$tclshbin' '$argv0' '$g_shell' \\!*`;\
+                       set histchars = \$_histchars'"
 		    puts stdout "  endif"
 		    puts stdout "else"
 		    puts stdout "  if (\$?prompt) then"
-		    puts stdout "    alias module 'set _prompt=\"\$prompt\";set\
-		      prompt=\"\";eval `'$tclshbin' '$argv0' '$g_shell' \\!*`;set\
-		      prompt=\"\$_prompt\";unset _prompt'"
+		    puts stdout "    alias module 'set _prompt=\"\$prompt\";\
+                       set prompt=\"\";\
+                       eval `'$tclshbin' '$argv0' '$g_shell' \\!*`;\
+                       set prompt=\"\$_prompt\";unset _prompt'"
 		    puts stdout "  else"
-		    puts stdout "    alias module 'eval `'$tclshbin' '$argv0' '$g_shell' \\!*`'"
+		    puts stdout "    alias module 'eval \
+                        `'$tclshbin' '$argv0' '$g_shell' \\!*`'"
 		    puts stdout "  endif"
 		    puts stdout "endif"
 		}
 	    sh {
-		    puts stdout "module () { eval `'$tclshbin' '$argv0' '$g_shell' \$*`; } ;"
+		    puts stdout "module () { eval \
+                       `'$tclshbin' '$argv0' '$g_shell' \$*`; } ;"
 		}
 	    cmd {
 	            puts stdout "start /b \%MODULESHOME\%/init/module.cmd %*"
 	        }
 	    perl {
 		    puts stdout "sub module {"
-		    puts stdout "  eval `$tclshbin \$ENV{\'MODULESHOME\'}/modulecmd.tcl perl @_`;"
+		    puts stdout "  eval `$tclshbin\
+                       \$ENV{\'MODULESHOME\'}/modulecmd.tcl perl @_`;"
 		    puts stdout "  if(\$@) {"
 		    puts stdout "    use Carp;"
 		    puts stdout "    confess \"module-error: \$@\n\";"
@@ -1468,8 +1465,10 @@ proc renderSettings {} {
 	    python {
 		    puts stdout "import subprocess"
 		    puts stdout "def module(command, *arguments):"
-		    puts stdout "        exec subprocess.Popen(\['$tclshbin', '$argv0', 'python', command\] \
-                       list(arguments), stdout=subprcess.PIPE).communicate()\[0\]"
+		    puts stdout "        exec subprocess.Popen(\['$tclshbin',\
+                       '$argv0', 'python', command\] \
+                       list(arguments),\
+                       stdout=subprcess.PIPE).communicate()\[0\]"
 		}
 	    lisp {
 		    error "ERROR: XXX lisp mode autoinit not yet implemented"
@@ -1483,7 +1482,6 @@ proc renderSettings {} {
 		cmdModuleSource "$env(MODULESHOME)/init/modulerc"
 	    }
 	}
-
 
 	# new environment variables
 	foreach var [array names g_stateEnvVars] {
@@ -1510,7 +1508,8 @@ proc renderSettings {} {
 			puts stdout "setenv $var $val;"
 		    }
 		sh {
-			puts stdout "$var=[multiEscaped $env($var)]; export $var;"
+			puts stdout "$var=[multiEscaped $env($var)];\
+                           export $var;"
 		    }
 		perl {
 			set val [doubleQuoteEscaped $env($var)]
@@ -1621,10 +1620,10 @@ proc renderSettings {} {
 		    lisp {
 			    if {[file exists $var]} {
 				puts stdout "(shell-command-to-string \"$xrdb\
-				  -merge $var\")"
+				   -merge $var\")"
 			    } else {
-				puts stdout "(shell-command-to-string \"echo $var\
-				  | $xrdb -merge\")"
+				puts stdout "(shell-command-to-string \
+                                   \"echo $var | $xrdb -merge\")"
 			    }
 			}
 		    }
@@ -1650,7 +1649,7 @@ proc renderSettings {} {
 			}
 		    lisp {
 			    puts stdout "(shell-command-to-string \"echo $var:\
-			      $val | $xrdb -merge\")"
+			       $val | $xrdb -merge\")"
 			}
 		    }
 		}
@@ -1724,11 +1723,12 @@ proc renderSettings {} {
 		      detected!\\n\""
 		}
 	    python {
-		    puts stdout "raise RuntimeError, 'modulefile.tcl: $error_count error(s) detected!'"
+		    puts stdout "raise RuntimeError, \
+                       'modulefile.tcl: $error_count error(s) detected!'"
 		}
 	    lisp {
-		    puts stdout "(error \"modulefile.tcl: $error_count error(s)\
-		      detected!\")"
+		    puts stdout "(error \"modulefile.tcl: \
+                       $error_count error(s) detected!\")"
 		}
 	    }
 	    set nop 0
@@ -1789,8 +1789,8 @@ proc cacheCurrentModules {{separator {}}} {
     }
 }
 
-# This proc resolves module aliases or version aliases to the real module name\
-  and version
+# This proc resolves module aliases or version aliases to the real module name
+#  and version
 proc resolveModuleVersionOrAlias {names} {
     global g_moduleVersion g_moduleDefault g_moduleAlias g_debug
 
@@ -2013,8 +2013,8 @@ proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
 		    lappend full_list $f
 		}
 
-		# if element is directory AND default or a version alias, add\
-		  it to the list
+		# if element is directory AND default or a version alias, add
+		# it to the list
 		set tag_list [getVersAliasList $element]
 
 		set tag {}
@@ -2106,7 +2106,6 @@ proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
     return $clean_list
 }
 
-
 proc showModulePath {{separator {}}} {
     global env g_def_separator g_debug
 
@@ -2131,7 +2130,7 @@ proc showModulePath {{separator {}}} {
 
 ########################################################################
 # command line commands
-
+#
 proc cmdModuleList {{separator {}}} {
     global env DEF_COLUMNS show_oneperline show_modtimes g_debug
     global g_def_separator
@@ -2170,8 +2169,8 @@ proc cmdModuleList {{separator {}}} {
 		        set max $len
 		    }
 		    # skip zero length module names
-		    # call getPathToModule to find and execute .version and\
-		      .modulerc files for this module
+		    # call getPathToModule to find and execute .version and
+		    # .modulerc files for this module
 		    getPathToModule $mod
 		    set tag_list [getVersAliasList $mod]
 
@@ -2296,7 +2295,6 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
     global env tcl_version ModulesCurrentModulefile
     global g_whatis g_def_separator g_debug
 
-
     if {$g_debug} {
 	report "DEBUG cmdModuleSearch: ($mod, $search)"
     }
@@ -2351,7 +2349,8 @@ proc cmdModuleSwitch {old {new {}}} {
 }
 
 proc cmdModuleSource {args} {
-    global env tcl_version g_loadedModules g_loadedModulesGeneric g_force g_debug
+    global env tcl_version g_loadedModules g_loadedModulesGeneric g_force 
+    global g_debug
 
     if {$g_debug} {
 	report "DEBUG cmdModuleSource: $args"
@@ -2399,7 +2398,8 @@ proc cmdModuleLoad {args} {
 		    set genericModName [file dirname $currentModule]
 
                     if {$g_debug} {
-                       report "DEBUG cmdModuleLoad: genericModName = $genericModName"
+                       report "DEBUG cmdModuleLoad: genericModName =\
+                          $genericModName"
                     }
 
 		    if {![info exists\
@@ -2439,7 +2439,8 @@ proc cmdModuleUnload {args} {
 		    if {[execute-modulefile $modfile]} {
 			restoreSettings
 		    } else {
-			unload-path LOADEDMODULES $currentModule $g_def_separator
+			unload-path LOADEDMODULES $currentModule\
+                           $g_def_separator
 			unload-path _LMFILES_ $modfile $g_def_separator
 			unset g_loadedModules($currentModule)
 			if {[info exists g_loadedModulesGeneric([file dirname\
@@ -2471,7 +2472,6 @@ proc cmdModuleUnload {args} {
     }
 }
 
-
 proc cmdModulePurge {{separator {}}} {
     global env g_def_separator g_debug
 
@@ -2487,7 +2487,6 @@ proc cmdModulePurge {{separator {}}} {
 	eval cmdModuleUnload [reverseList $list]
     }
 }
-
 
 proc cmdModuleReload {{separator {}}} {
     global env g_def_separator g_debug
@@ -2585,7 +2584,8 @@ proc cmdModuleAvail {{mod {*}}} {
                     # don't change $i with the regsub - we need it 
                     # to figure out the file time.
                     regsub {\(default\)} $i "   (default)" i2 
-		    set filetime [clock format [file mtime [lindex [getPathToModule $i] 0]] -format "%Y/%m/%b %H:%M:%S" ]
+		    set filetime [clock format [file mtime [lindex\
+                       [getPathToModule $i] 0]] -format "%Y/%m/%b %H:%M:%S" ]
 		    report [format "%-53s%10s" $i2 $filetime]
 		}
 	    }\
@@ -2608,9 +2608,8 @@ proc cmdModuleAvail {{mod {*}}} {
 		    set cols 1
 		}
 
-		# There is no '{}' at the begining of this 'list' as there is\
-		  in cmd 
-		#               ModuleList - ?
+		# There is no '{}' at the begining of this 'list' as there is
+		# in cmd ModuleList - ?
 		set item_cnt [expr {[llength $list] - 0}]
 		set rows [expr {int($item_cnt / $cols)}]
 		set lastrow_item_cnt [expr {int($item_cnt % $cols)}]
@@ -2693,7 +2692,8 @@ proc cmdModuleUnuse {args} {
 		set oldMODULEPATH $env(MODULEPATH)
 
 		if {$g_debug} {
-			report "calling unload-path MODULEPATH $path $g_def_separator"
+			report "calling unload-path MODULEPATH $path\
+                           $g_def_separator"
 		}
 
 		pushMode "unload"
@@ -2820,10 +2820,10 @@ proc cmdModuleInit {args} {
 		      \t]+)(.*)} $curline match cmd subcmd modules]} {
 			regexp {([ \t]*\#.+)} $modules match comments
 			regsub {\#.+} $modules {} modules
-			# remove existing references to the named module from\
-			  the list
-			# Change the module command line to reflect the given\
-			  command
+			# remove existing references to the named module from
+			# the list 
+                        # Change the module command line to reflect the given
+			# command
 			switch $moduleinit_cmd {
 			list {
 				report "$g_shell initialization file $filepath\
@@ -3032,9 +3032,10 @@ switch -regexp -- $g_shell {
 
 cacheCurrentModules
 
-# Find and execute any .modulerc file found in the module directories defined\
-  in env(MODULESPATH)
+# Find and execute any .modulerc file found in the module directories defined
+#  in env(MODULESPATH)
 runModulerc
+
 # Resolve any aliased module names - safe to run nonmodule arguments
 if {$g_debug} {
     report "DEBUG Resolving $argv"
