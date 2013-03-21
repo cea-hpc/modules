@@ -1,0 +1,81 @@
+#
+# Bash commandline completion (bash 3.0 and above)
+#
+_module_avail() {
+    module avail -t 2>&1 | sed '
+        /^-\+/d; /^\s*$/d;
+        /->.*$/d;
+        /:$/d;
+        /:ERROR:/d;
+        s#^\(.*\)/\(.\+\)(default)#\1\n\1\/\2#;
+        s#/(default)##g;
+        s#/*$##g;'
+}
+
+_module_not_yet_loaded() {
+    comm -23  <(_module_avail|sort)  <(tr : '\n' <<<${LOADEDMODULES}|sort)
+}
+
+_module_long_arg_list() {
+    local cur="$1" i
+
+    if [[ ${COMP_WORDS[COMP_CWORD-2]} == sw* ]]
+    then
+        COMPREPLY=( $(compgen -W "$(_module_not_yet_loaded)" -- "$cur") )
+        return
+    fi
+    for ((i = COMP_CWORD - 1; i > 0; i--))
+        do case ${COMP_WORDS[$i]} in
+        add|load)
+            COMPREPLY=( $(compgen -W "$(_module_not_yet_loaded)" -- "$cur") )
+            break;;
+        rm|remove|unload|switch|swap)
+            COMPREPLY=( $(IFS=: compgen -W "${LOADEDMODULES}" -- "$cur") )
+            break;;
+        esac
+    done
+}
+
+_module() {
+    local cur="$2" prev="$3" cmds opts
+
+    COMPREPLY=()
+
+    cmds="add apropos aliases avail display help\
+        initadd initclear initlist initprepend initrm\
+        keyword list load path paths purge reload rm search\
+        show source swap switch unload unuse use whatis"
+
+    opts="-h -V --debug --help --version"
+    switch_opts="-l -t"
+
+    case "$prev" in
+    add|load)       COMPREPLY=( $(compgen -W "$(_module_not_yet_loaded)" -- "$cur") );;
+    avail)          COMPREPLY=( $(compgen -W "$switch_opts $(_module_avail)" -- "$cur") );;
+    list)           COMPREPLY=( $(compgen -W "$switch_opts" -- "$cur") );;
+    rm|remove|unload|switch|swap)
+                    COMPREPLY=( $(IFS=: compgen -W "${LOADEDMODULES}" -- "$cur") );;
+    unuse)          COMPREPLY=( $(IFS=: compgen -W "${MODULEPATH}" -- "$cur") );;
+    use|*-a*)   ;;                      # let readline handle the completion
+    display|help|show|whatis)
+                    COMPREPLY=( $(compgen -W "$(_module_avail)" -- "$cur") );;
+    -h|--help|-V|--version|aliases|apropos|keyword|purge|reload|search|source)
+                    ;;
+    initadd|initclear|initlist|initprepend|initrm)
+                    ;;
+    *)  if test $COMP_CWORD -gt 2
+        then
+            _module_long_arg_list "$cur"
+        else
+            case "$cur" in
+            # The mappings below are optional abbreviations for convenience
+            ls)     COMPREPLY="list";;      # map ls -> list
+            sw*)    COMPREPLY="switch";;
+
+            -*)     COMPREPLY=( $(compgen -W "$opts" -- "$cur") );;
+            *)      COMPREPLY=( $(compgen -W "$opts $cmds" -- "$cur") );;
+            esac
+        fi;;
+    esac
+}
+complete -o default -F _module module
