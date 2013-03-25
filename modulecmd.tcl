@@ -56,8 +56,13 @@ if {[catch {exec stty size} stty_size] == 0 && $stty_size != ""} {
     set DEF_COLUMNS [lindex $stty_size 1]
 }
 
-# Change this to your support email address...
-set contact "root@localhost"
+# Use MODULECONTACT variable to set your support email address
+if {[info exists env(MODULECONTACT)]} {
+    set contact $env(MODULECONTACT)
+} else {
+    # Or change this to your support email address...
+    set contact "root@localhost"
+}
 
 # Set some directories to ignore when looking for modules.
 set ignoreDir(CVS) 1
