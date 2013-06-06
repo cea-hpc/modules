@@ -76,6 +76,45 @@ global g_shell
 set show_oneperline 0 ;# Gets set if you do module list/avail -t
 set show_modtimes 0 ;# Gets set if you do module list/avail -l
 
+proc raiseErrorCount {} {
+   global error_count
+   incr error_count
+}
+
+proc renderError {} {
+   global g_shellType error_count g_debug
+
+   if {$g_debug} {
+      report "Error: $error_count error(s) detected."
+   }
+
+   if {[info exists g_shellType]} {
+      switch -- $g_shellType {
+      csh {
+         puts stdout "/bin/false;"
+      }
+      sh {
+         puts stdout "/bin/false;"
+      }
+      cmd {
+         # nothing needed, reserved for future cygwin, MKS, etc
+      }
+      perl {
+         puts stdout "die \"modulefile.tcl: $error_count error(s)\
+            detected!\\n\""
+      }
+      python {
+         puts stdout "raise RuntimeError, \
+            'modulefile.tcl: $error_count error(s) detected!'"
+      }
+      lisp {
+         puts stdout "(error \"modulefile.tcl:\
+            $error_count error(s) detected!\")"
+      }
+      }
+   }
+}
+
 #
 # Info, Warnings and Error message handling.
 #
@@ -87,10 +126,22 @@ proc reportWarning {message {nonewline ""}} {
     }
 }
 
-proc reportInternalBug {message} {
-    global contact
+proc reportError {message {nonewline ""}} {
+   raiseErrorCount
+   report "$message" "$nonewline"
+}
 
-    puts stderr "Module ERROR: $message\nPlease contact: $contact"
+proc reportErrorAndExit {message} {
+   raiseErrorCount
+   renderError
+   error "$message"
+}
+
+proc reportInternalBug {message} {
+   global contact
+
+   raiseErrorCount
+   puts stderr "Module ERROR: $message\nPlease contact: $contact"
 }
 
 proc report {message {nonewline ""}} {
@@ -148,6 +199,8 @@ proc execute-modulefile {modfile {help ""}} {
 	interp alias $slave module-alias {} module-alias
 	interp alias $slave reportInternalBug {} reportInternalBug
 	interp alias $slave reportWarning {} reportWarning
+	interp alias $slave reportError {} reportError
+	interp alias $slave raiseErrorCount {} raiseErrorCount
 	interp alias $slave report {} report
 	interp alias $slave isWin {} isWin
 
@@ -173,11 +226,12 @@ proc execute-modulefile {modfile {help ""}} {
 	}
 	if {$sourceFailed} {
 	    if {$errorMsg == "" && $errorInfo == ""} {
+                raiseErrorCount
 		unset errorMsg
 		return 1
 	    }\
 	    elseif [regexp "^WARNING" $errorMsg] {
-		reportWarning $errorMsg
+		reportError $errorMsg
 		return 1
 	    } else {
 		global errorInfo
@@ -740,7 +794,7 @@ proc getReferenceCountArray {var separator} {
 	    }
 	} else {
 	    if {$g_debug} {	    
-		reportWarning "WARNING: module: $sharevar exists (\
+		reportError "WARNING: module: $sharevar exists (\
 	          $env($sharevar) ), but $var doesn't.\
                   Environment is corrupted."
             }
@@ -1218,8 +1272,8 @@ proc getPathToModule {mod {separator {}}} {
 		    if {[checkValidModule $mod]} {
 			return [list $mod $mod]
 		    } else {
-			report "+(0):ERROR:0: Unable to locate a modulefile\
-			  for '$mod'"
+			reportError "+(0):ERROR:0: Unable to locate a\
+                           modulefile for '$mod'"
 			return ""
 		    }
 		}
@@ -1323,10 +1377,10 @@ proc getPathToModule {mod {separator {}}} {
 	    # File wasn't readable, go to next path
 	}
 	# End of of foreach loop
-	report "+(0):ERROR:0: Unable to locate a modulefile for '$mod'"
+	reportError "+(0):ERROR:0: Unable to locate a modulefile for '$mod'"
 	return ""
     } else {
-	error "\$MODULEPATH not defined"
+	reportErrorAndExit "\$MODULEPATH not defined"
 	return ""
     }
 }
@@ -1476,7 +1530,8 @@ proc renderSettings {} {
                        stdout=subprcess.PIPE).communicate()\[0\]"
 		}
 	    lisp {
-		    error "ERROR: XXX lisp mode autoinit not yet implemented"
+		    reportErrorAndExit "ERROR: XXX lisp mode autoinit not yet\
+                       implemented"
 		}
 	    }
 
@@ -1712,30 +1767,7 @@ proc renderSettings {} {
 	}
 
 	if {$error_count > 0} {
-	    reportWarning "ERROR: $error_count error(s) detected."
-	    switch -- $g_shellType {
-	    csh {
-		    puts stdout "/bin/false;"
-		}
-	    sh {
-		    puts stdout "/bin/false;"
-		}
-	    cmd {
-	            # nothing needed, reserve for future cygwin, MKS, etc
-	        }
-	    perl {
-		    puts stdout "die \"modulefile.tcl: $error_count error(s)\
-		      detected!\\n\""
-		}
-	    python {
-		    puts stdout "raise RuntimeError, \
-                       'modulefile.tcl: $error_count error(s) detected!'"
-		}
-	    lisp {
-		    puts stdout "(error \"modulefile.tcl: \
-                       $error_count error(s) detected!\")"
-		}
-	    }
+            renderError
 	    set nop 0
 	} else {
 	    switch -- $g_shellType {
@@ -2269,7 +2301,7 @@ proc cmdModulePaths {mod {separator {}}} {
 	    }
 	}
     } errMsg]} {
-	reportWarning "ERROR: module paths $mod failed. $errMsg"
+	reportError "ERROR: module paths $mod failed. $errMsg"
     }
 }
 
@@ -2368,7 +2400,7 @@ proc cmdModuleSource {args} {
 	    popModuleName
 	    popMode
 	} else {
-	    error "File $file does not exist"
+	    reportErrorAndExit "File $file does not exist"
 	}
     }
 }
@@ -2472,7 +2504,7 @@ proc cmdModuleUnload {args} {
 		}
 	    }
 	} errMsg ]} {
-	    reportWarning "ERROR: module: module unload $mod failed.\n$errMsg"
+	    reportError "ERROR: module: module unload $mod failed.\n$errMsg"
 	}
     }
 }
@@ -2672,7 +2704,7 @@ proc cmdModuleUse {args} {
 		}
 		popMode
 	    } else {
-		report "+(0):WARN:0: Directory '$path' not found"
+		reportError "+(0):WARN:0: Directory '$path' not found"
 	    }
 	}
     }
@@ -2708,7 +2740,7 @@ proc cmdModuleUnuse {args} {
 		popMode
 		if {[info exists env(MODULEPATH)] && $oldMODULEPATH ==\
 		  $env(MODULEPATH)} {
-		    reportWarning "WARNING: Did not unuse $path"
+		    reportError "WARNING: Did not unuse $path"
 		}
 	    }
 	}
@@ -2807,8 +2839,8 @@ proc cmdModuleInit {args} {
 
 		set temp [expr {[llength $args] -1}]
 		if {$temp != $nargs($moduleinit_cmd)} {
-		    error "'module init$moduleinit_cmd' requires exactly\
-		      $nargs($moduleinit_cmd) arg(s)."
+		    reportErrorAndExit "'module init$moduleinit_cmd' requires\
+                       exactly $nargs($moduleinit_cmd) arg(s)."
 		    #	       cmdModuleHelp
 		    exit -1
 		}
@@ -2887,12 +2919,13 @@ proc cmdModuleInit {args} {
 		    close $newfid
 		    if {[catch {file copy -force $filepath $filepath-OLD}] !=\
 		      0} {
-			report "Failed to back up original $filepath...exiting"
+			reportError "Failed to back up original\
+                           $filepath...exiting"
 			exit -1
 		    }
 		    if {[catch {file copy -force $newfilepath $filepath}] !=\
 		      0} {
-			report "Failed to write $filepath...exiting"
+			reportError "Failed to write $filepath...exiting"
 			exit -1
 		    }
 		}
@@ -3002,7 +3035,7 @@ switch -regexp -- $opt {
 	exit 0
     }
     {^--} {
-	report "+(0):ERROR:0: Unrecognized option '$opt'"
+	reportError "+(0):ERROR:0: Unrecognized option '$opt'"
 	exit -1
     }
 }
@@ -3031,7 +3064,7 @@ switch -regexp -- $g_shell {
 	set g_shellType lisp
     }
     . {
-	error " +(0):ERROR:0: Unknown shell type \'($g_shell)\'"
+	reportErrorAndExit " +(0):ERROR:0: Unknown shell type \'($g_shell)\'"
     }
 }
 
@@ -3165,12 +3198,12 @@ if {[catch {
 	    cmdModuleHelp $argv
 	}
     . {
-	    reportWarning "ERROR: command '$command' not recognized"
+	    reportError "ERROR: command '$command' not recognized"
 	    cmdModuleHelp $argv
 	}
     }
 } errMsg ]} {
-    reportWarning "ERROR: $errMsg"
+    reportError "ERROR: $errMsg"
 }
 
 # ;;; Local Variables: ***
