@@ -1478,30 +1478,8 @@ proc renderSettings {} {
 
 	    switch -- $g_shellType {
 	    csh {
-		    puts stdout "if ( \$?histchars ) then"
-		    puts stdout "  set _histchars = \$histchars"
-		    puts stdout "  if (\$?prompt) then"
-		    puts stdout "    alias module 'unset histchars;\
-                       set _prompt=\"\$prompt\";\
-                       eval `'$tclshbin' '$argv0' '$g_shell' \\!*`;\
-                       set histchars = \$_histchars;\
-                       set prompt=\"\$_prompt\";unset _prompt'"
-		    puts stdout "  else"
-		    puts stdout "    alias module 'unset histchars;\
-                       eval `'$tclshbin' '$argv0' '$g_shell' \\!*`;\
-                       set histchars = \$_histchars'"
-		    puts stdout "  endif"
-		    puts stdout "else"
-		    puts stdout "  if (\$?prompt) then"
-		    puts stdout "    alias module 'set _prompt=\"\$prompt\";\
-                       set prompt=\"\";\
-                       eval `'$tclshbin' '$argv0' '$g_shell' \\!*`;\
-                       set prompt=\"\$_prompt\";unset _prompt'"
-		    puts stdout "  else"
 		    puts stdout "    alias module 'eval \
-                        `'$tclshbin' '$argv0' '$g_shell' \\!*`'"
-		    puts stdout "  endif"
-		    puts stdout "endif"
+                        `'$tclshbin' '$argv0' '$g_shell' \\!*`';"
 		}
 	    sh {
 		    puts stdout "module () { eval \
