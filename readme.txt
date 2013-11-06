@@ -25,7 +25,7 @@ Getting things running:
 	Once you have all of the prerequisits you can "install modules"
 	
 To learn how to install modules see one of the following docs:
-	For unix: doc/install
+	For unix: doc/install.txt
         For windows: doc/installwin.txt
 
 To have things running efficently you will need a lot of additional setup.
