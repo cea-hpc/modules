@@ -1212,6 +1212,7 @@ static	int	scan_facility( char *s, FacilityNames *table, int size)
     low = table;
     high = table + size;
     save = (FacilityNames *) NULL;
+    mid = (FacilityNames *) NULL;
 
     while( low < high) {
 	int x;			/** Have to use this, because strcmp will    **/

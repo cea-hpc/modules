@@ -2049,7 +2049,7 @@ void set_marked_entry(	Tcl_HashTable	*table,
     ErrorLogger( NO_ERR_START, LOC, _proc_set_marked_entry, NULL);
 #endif
 
-    if( hentry = Tcl_CreateHashEntry( table, var, &new)) {
+    if( (hentry = Tcl_CreateHashEntry( table, var, &new))) {
         if( val)
             Tcl_SetHashValue( hentry, val);
     }
@@ -2624,6 +2624,7 @@ char *xdup(char const *string) {
 			if (*oldbuffer) strncpy(buffer, oldbuffer, MOD_BUFSIZE);
 			blen = strlen(buffer);
 
+                        brace = 0;
 			/** get the env.var. name **/
 			if (*(dollarptr + 1) == '{') {
 				brace = 1;
