@@ -161,13 +161,13 @@ int ModuleCmd_Display(	Tcl_Interp	*interp,
 
         g_current_module = modulename;
 
-        fprintf( stderr, local_line);
+        fprintf( stderr, "%s", local_line);
 	fprintf( stderr, "%s:\n\n", modulefile);
 
 	result = CallModuleProcedure( disp_interp, &cmdbuf, modulefile, 
 	    "ModulesDisplay", 0);
 
-        fprintf( stderr, local_line);
+        fprintf( stderr, "%s", local_line);
 
 	/**
 	 **  Remove the Tcl interpreter that has been used for printing ...

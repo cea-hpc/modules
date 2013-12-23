@@ -122,7 +122,7 @@ int	ModuleCmd_List(	Tcl_Interp	*interp,
 	 **/
 
 	if( sw_format & SW_LONG ) {
-	    fprintf( stderr, long_header);
+	    fprintf( stderr, "%s", long_header);
 	}
 	if( sw_format & (SW_TERSE | SW_LONG | SW_HUMAN) )
 	    fprintf( stderr, "Currently Loaded Modulefiles:\n");

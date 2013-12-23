@@ -257,7 +257,7 @@ int ModuleCmd_Avail(	Tcl_Interp	*interp,
 	 **/
 
 	if( sw_format & SW_LONG)
-	    fprintf( stderr, long_header);
+	    fprintf( stderr, "%s", long_header);
 
 	/**
 	 **  If a module category is specified check whether it is part
