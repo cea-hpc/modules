@@ -75,6 +75,7 @@ global g_shellType
 global g_shell
 set show_oneperline 0 ;# Gets set if you do module list/avail -t
 set show_modtimes 0 ;# Gets set if you do module list/avail -l
+set show_filter "" ;# Gets set if you do module avail -d or -L
 
 proc raiseErrorCount {} {
    global error_count
@@ -1342,7 +1343,7 @@ proc getPathToModule {mod {separator {}}} {
 
 		    # Try for the last file in directory if no luck so far
 		    if {$ModulesVersion == ""} {
-			set modlist [listModules $path "" 0 "-dictionary" 0 0]
+			set modlist [listModules $path "" 0 "-dictionary" 0 0 ""]
 			set ModulesVersion [lindex $modlist end]
 			if {$g_debug} {
 			    report "DEBUG getPathToModule: Found\
@@ -1974,7 +1975,7 @@ proc getVersAliasList {modulename} {
 
 # Finds all module versions for mod in the module path dir
 proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
-		  {flag_default_mf {1}} {flag_default_dir {1}}} {
+		  {flag_default_mf {1}} {flag_default_dir {1}} {filter ""}} {
     global ignoreDir
     global ModulesCurrentModulefile
     global g_debug
@@ -1992,6 +1993,12 @@ proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
     # remove trailing / needed on some platforms
     regsub {\/$} $full_list {} full_list
 	
+    if {$filter == "onlydefaults"} {
+        # init a control list to correctly set implicit
+        # or defined module default version
+        set clean_defdefault {}
+    }
+
     set clean_list {}
     set ModulesVersion {}
     for {set i 0} {$i < [llength $full_list]} {incr i 1} {
@@ -2045,15 +2052,22 @@ proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
 		    } else {
 			set mystr ${modulename}
 		    }
-		    if {[file isdirectory ${element}]} {
-			if {$flag_default_dir} {
-			    set mystr "$mystr$tag"
-			}
-		    }\
-		    elseif {$flag_default_mf} {
-			set mystr "$mystr$tag"
+		    # add to list only if it is the default set
+		    if {$filter == "onlydefaults"} {
+		        if {[lsearch $tag_list "default"] >= 0} {
+		            lappend clean_list $mystr
+		        }
+		    } else {
+		        if {[file isdirectory ${element}]} {
+		            if {$flag_default_dir} {
+		                set mystr "$mystr$tag"
+		            }
+		        }\
+		        elseif {$flag_default_mf} {
+		            set mystr "$mystr$tag"
+		        }
+		        lappend clean_list $mystr
 		    }
-		    lappend clean_list $mystr
 
 		}
 
@@ -2101,15 +2115,58 @@ proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
 			} else {
 			    set mystr ${modulename}
 			}
-			if {[file isdirectory ${element}]} {
-			    if {$flag_default_dir} {
-				set mystr "$mystr$tag"
+			# add to list only if it is the default set
+			# or if it is an implicit default when no default is set
+			if {$filter == "onlydefaults"} {
+			    set moduleelem [string range $direlem $sstart end]
+			    # do not add element if a default has already
+			    # been added for this module
+			    if {[lsearch -exact $clean_defdefault $moduleelem] == -1} {
+			        set clean_mystr_idx [lsearch $clean_list "$moduleelem/*"]
+			        # only one element has to be set for this module
+			        # so replace previously existing element
+			        if {$clean_mystr_idx >= 0} {
+			            # only replace if new occurency is greater than
+			            # existing one or if new occurency is the default set
+			            if {[string compare $mystr [lindex $clean_list \
+			              $clean_mystr_idx]] == 1 \
+			              || [lsearch $tag_list "default"] >= 0} {
+			                set clean_list [lreplace $clean_list \
+			                  $clean_mystr_idx $clean_mystr_idx $mystr]
+			            }
+			        } else {
+			            lappend clean_list $mystr
+			        }
+			        # if default is defined add to control list
+			        if {[lsearch $tag_list "default"] >= 0} {
+			            lappend clean_defdefault $moduleelem
+			        }
 			    }
-			}\
-			elseif {$flag_default_mf} {
-			    set mystr "$mystr$tag"
+			# add latest version to list only
+			} elseif {$filter == "onlylatest"} {
+			    set moduleelem [string range $direlem $sstart end]
+			    set clean_mystr_idx [lsearch $clean_list "$moduleelem/*"]
+			    # only one element has to be set for this module
+			    # so replace previously existing element and only
+			    # if new occurency is greater than existing one
+			    if {$clean_mystr_idx >= 0 && [string compare $mystr \
+			      [lindex $clean_list $clean_mystr_idx]] == 1} {
+			        set clean_list [lreplace $clean_list \
+			          $clean_mystr_idx $clean_mystr_idx $mystr]
+			    } elseif {$clean_mystr_idx == -1} {
+			        lappend clean_list $mystr
+			    }
+			} else {
+			    if {[file isdirectory ${element}]} {
+			        if {$flag_default_dir} {
+			            set mystr "$mystr$tag"
+			        }
+			    }\
+			    elseif {$flag_default_mf} {
+			        set mystr "$mystr$tag"
+			    }
+			    lappend clean_list $mystr
 			}
-			lappend clean_list $mystr
 		    }
 		}
 	    }
@@ -2277,7 +2334,7 @@ proc cmdModulePaths {mod {separator {}}} {
 	foreach dir [split $env(MODULEPATH) $separator] {
 	    if {[file isdirectory $dir]} {
 		foreach mod2 [listModules $dir $mod 0 "" $flag_default_mf\
-		  $flag_default_dir] {
+		  $flag_default_dir ""] {
 		    lappend g_pathList $mod2
 		}
 	    }
@@ -2591,7 +2648,7 @@ proc system {mycmd args} {
 
 proc cmdModuleAvail {{mod {*}}} {
     global env ignoreDir DEF_COLUMNS flag_default_mf flag_default_dir
-    global show_oneperline show_modtimes g_def_separator
+    global show_oneperline show_modtimes show_filter g_def_separator
 
     if {$show_modtimes} {
 	report "- Package -----------------------------.- Versions -.- Last\
@@ -2605,7 +2662,7 @@ proc cmdModuleAvail {{mod {*}}} {
 	    set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
 	    report "[string repeat {-} $lrep] $dir [string repeat {-} $rrep]"
 	    set list [listModules "$dir" "$mod" 0 "" $flag_default_mf\
-	      $flag_default_dir]
+	      $flag_default_dir $show_filter]
             # sort names (sometimes? returned in the order as they were
             # created on disk :-)
             set list [lsort $list]
@@ -2992,7 +3049,9 @@ proc cmdModuleHelp {args} {
 	report {	-V | --version	module version}
 	report {	-t | --terse	terse format avail and list}
 	report {	-l | --long	long format avail and list}
-	report {	--debug		enable debug messages}
+	report {	-d | --default	only show default avail}
+	report {	-L | --latest	only show latest avail}
+	report {	-D | --debug	enable debug messages}
     }
 }
 
@@ -3011,7 +3070,7 @@ if {$g_debug} {
 # Parse options
 set opt [lindex $argv 1]
 switch -regexp -- $opt {
-    {^(-deb|--deb)} {
+    {^(-deb|--deb|-D)} {
 
         if {!$g_debug} {
 		report "CALLING $argv0 $argv"
@@ -3090,6 +3149,22 @@ if {[lsearch $argv "-l"] >= 0} {
 if {[lsearch $argv "--long"] >= 0} {
     set show_modtimes 1
     set argv [replaceFromList $argv "--long"]
+}
+if {[lsearch $argv "-d"] >= 0} {
+    set show_filter "onlydefaults"
+    set argv [replaceFromList $argv "-d"]
+}
+if {[lsearch $argv "--default"] >= 0} {
+    set show_filter "onlydefaults"
+    set argv [replaceFromList $argv "--default"]
+}
+if {[lsearch $argv "-L"] >= 0} {
+    set show_filter "onlylatest"
+    set argv [replaceFromList $argv "-L"]
+}
+if {[lsearch $argv "--latest"] >= 0} {
+    set show_filter "onlylatest"
+    set argv [replaceFromList $argv "--latest"]
 }
 set argv [resolveModuleVersionOrAlias $argv]
 if {$g_debug} {
