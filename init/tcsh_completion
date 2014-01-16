@@ -1,0 +1,78 @@
+#
+# Tcsh commandline completion
+#
+
+alias _module_avail '\\
+    tclsh ${MODULESHOME}/bin/modulecmd.tcl tcsh avail -t |& sed '"'"'\\
+        /^-\+/d; /^\s*$/d; \\
+        /->.*$/d; \\
+        /:$/d; \\
+        /:ERROR:/d; \\
+        s#^\(.*\)/\(.\+\)(default)#\1\n\1\/\2#; \\
+        s#/(default)##g; \\
+        s#\s*$##g; \\
+        s#/*$##g; '"'"
+
+alias _module_loaded '\\
+    tclsh ${MODULESHOME}/bin/modulecmd.tcl tcsh list -t |& sed '"'"'\\
+        /^-\+/d; /^\s*$/d; \\
+        /->.*$/d; \\
+        /:$/d; \\
+        /:ERROR:/d; \\
+        s#^\(.*\)/\(.\+\)(default)#\1\n\1\/\2#; \\
+        s#/(default)##g; \\
+        s#/*$##g; '"'"
+
+alias _module_not_yet_loaded '\\
+        mkfifo /tmp/modules_tcsh_completion.$$.p1 /tmp/modules_tcsh_completion.$$.p2 && \\
+        ( _module_avail | sort > /tmp/modules_tcsh_completion.$$.p1 & ); \\
+        ( _module_loaded | sort > /tmp/modules_tcsh_completion.$$.p2 & ); \\
+        comm -23 /tmp/modules_tcsh_completion.$$.p1 /tmp/modules_tcsh_completion.$$.p2; \\
+        rm /tmp/modules_tcsh_completion.$$.p1 /tmp/modules_tcsh_completion.$$.p2'
+
+alias _module_modulepath 'echo ${MODULEPATH} | sed '"'"'s/:/\n/g;'"'"' '
+
+set module_cmds = "add apropos aliases avail display help initadd initclear initlist initprepend initrm keyword list load path paths purge reload rm search show source swap switch unload unuse use whatis"
+
+set module_opts = "-D -h -V --debug --help --version"
+set module_list_opts = "-l -t --long --terse"
+set module_avail_opts = "-d -L -l -t --default --latest --long --terse"
+
+complete module 'n/help/`_module_avail`/' \
+        'n/add/`_module_not_yet_loaded`/' \
+        'n/load/`_module_not_yet_loaded`/' \
+        'n/rm/`_module_loaded`/' \
+        'n/remove/`_module_loaded`/' \
+        'n/unload/`_module_loaded`/' \
+        'n/swap/`_module_loaded`/' \
+        'N/swap/`_module_not_yet_loaded`/' \
+        'n/switch/`_module_loaded`/' \
+        'N/switch/`_module_not_yet_loaded`/' \
+        'n/show/`_module_avail`/' \
+        'n/display/`_module_avail`/' \
+        "n/list/(${module_list_opts})/" \
+        'n/avail/`_module_avail; echo ${module_avail_opts}`/' \
+        'n/aliases/n/' \
+        'n/use/d/' \
+        'N/use/d/' \
+        'n/unuse/`_module_modulepath`/' \
+        'n/purge/n/' \
+        'n/reload/n/' \
+        'n/whatis/`_module_avail`/' \
+        'n/apropos/n/' \
+        'n/search/n/' \
+        'n/keyword/n/' \
+        'n/source/n/' \
+        'n/initadd/n/' \
+        'n/initprepend/n/' \
+        'n/initrm/n/' \
+        'n/initlist/n/' \
+        'n/initclear/n/' \
+        'n/-h/n/' \
+        'n/--help/n/' \
+        'n/-V/n/' \
+        'n/--version/n/' \
+        'C/sw*/(switch)/' \
+        "p/1/(${module_cmds} ${module_opts})/" \
+        "n/-*/(${module_cmds})/" 
+
