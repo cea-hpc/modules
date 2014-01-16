@@ -10,8 +10,14 @@ if [ -z $TCLSH ]; then
    fi
 fi
 
-moduleraw() { eval `$TCLSH $MODULESHOME/modulecmd.tcl sh $*`; }
-module() { moduleraw $* 2>&1 ; }
+# only redirect module from stderr to stdout in interactive mode
+# to avoid breaking non interactive session (scp, sftp, etc)
+if [[ $- =~ i ]]; then
+   moduleraw() { eval `$TCLSH $MODULESHOME/modulecmd.tcl sh $*`; }
+   module() { moduleraw $* 2>&1 ; }
+else
+   module() { eval `$TCLSH $MODULESHOME/modulecmd.tcl sh $*`; }
+fi
 
 . $MODULESHOME/init/modulerc
 

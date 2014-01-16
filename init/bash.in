@@ -10,12 +10,18 @@ if [ -z $TCLSH ]; then
    fi
 fi
 
-if [ ${BASH_VERSINFO:-0} -ge 3 ] && 
+if [ ${BASH_VERSINFO:-0} -ge 3 ] && [[ $- =~ i ]] &&
    [ -r ${MODULESHOME}/init/bash_completion ]; then
    . ${MODULESHOME}/init/bash_completion
 fi
 
-moduleraw() { eval `$TCLSH $MODULESHOME/modulecmd.tcl bash $*`; }
-module() { moduleraw $* 2>&1 ; }
+# only redirect module from stderr to stdout in interactive mode
+# to avoid breaking non interactive session (scp, sftp, etc)
+if [[ $- =~ i ]]; then
+   moduleraw() { eval `$TCLSH $MODULESHOME/modulecmd.tcl bash $*`; }
+   module() { moduleraw $* 2>&1 ; }
+else
+   module() { eval `$TCLSH $MODULESHOME/modulecmd.tcl bash $*`; }
+fi
 
 . $MODULESHOME/init/modulerc
