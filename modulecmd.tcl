@@ -224,6 +224,10 @@ proc execute-modulefile {modfile {help ""}} {
 	    }
 	    set sourceFailed 0
 	}
+	    if {[module-info mode "display"] \
+	    && [info procs "ModulesDisplay"] == "ModulesDisplay"} {
+		ModulesDisplay
+	    }
 	if {$sourceFailed} {
 	    if {$errorMsg == "" && $errorInfo == ""} {
                 raiseErrorCount
@@ -2529,6 +2533,17 @@ proc cmdModuleReload {{separator {}}} {
 proc cmdModuleAliases {} {
 
     global DEF_COLUMNS g_moduleAlias g_moduleVersion g_debug
+    global env g_def_separator
+
+    # parse paths to fill g_moduleAlias and g_moduleVersion if empty
+    if {[array size g_moduleAlias] == 0 \
+      && [array size g_moduleVersion] == 0 } {
+        foreach dir [split $env(MODULEPATH) $g_def_separator] {
+            if {[file isdirectory "$dir"] && [file readable $dir]} {
+                listModules "$dir" "" 0
+            }
+        }
+    }
 
     set label "Aliases"
     set len  [string length $label]
@@ -2973,8 +2988,11 @@ proc cmdModuleHelp {args} {
 	report {	source                              scriptfile}
 	report {	apropos  |  keyword  | search       string}
 	report {Switches:}
-	report {	-t		terse format avail and list}
-	report {	-l		long format avail and list}
+	report {	-h | --help	this usage info}
+	report {	-V | --version	module version}
+	report {	-t | --terse	terse format avail and list}
+	report {	-l | --long	long format avail and list}
+	report {	--debug		enable debug messages}
     }
 }
 
@@ -3061,9 +3079,17 @@ if {[lsearch $argv "-t"] >= 0} {
     set show_oneperline 1
     set argv [replaceFromList $argv "-t"]
 }
+if {[lsearch $argv "--terse"] >= 0} {
+    set show_oneperline 1
+    set argv [replaceFromList $argv "--terse"]
+}
 if {[lsearch $argv "-l"] >= 0} {
     set show_modtimes 1
     set argv [replaceFromList $argv "-l"]
+}
+if {[lsearch $argv "--long"] >= 0} {
+    set show_modtimes 1
+    set argv [replaceFromList $argv "--long"]
 }
 set argv [resolveModuleVersionOrAlias $argv]
 if {$g_debug} {
