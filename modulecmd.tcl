@@ -897,7 +897,7 @@ proc add-path {var path pos separator} {
          # already see $dir in $var"
          incr countarr($dir)
       } else {
-         if {[info exists env($var)]} {
+         if {[info exists env($var)] && $env($var)!=""} {
             if {$pos == "prepend"} {
                set env($var) "$dir$separator$env($var)"
             }\
