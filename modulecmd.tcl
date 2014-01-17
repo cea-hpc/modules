@@ -2331,7 +2331,7 @@ proc cmdModuleDisplay {mod} {
 }
 
 proc cmdModulePaths {mod {separator {}}} {
-   global env g_pathList flag_default_mf flag_default_dir]
+   global env g_pathList flag_default_mf flag_default_dir
    global g_def_separator g_debug
 
    if {$g_debug} {
