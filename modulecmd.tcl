@@ -3069,12 +3069,12 @@ proc cmdModuleHelp {args} {
       report {        apropos  |  keyword  | search       string}
       report {Switches:}
       report {        -h | --help        this usage info}
-      report {        -V | --version        module version}
-      report {        -t | --terse        terse format avail and list}
+      report {        -V | --version     module version}
+      report {        -t | --terse       terse format avail and list}
       report {        -l | --long        long format avail and list}
-      report {        -d | --default        only show default avail}
-      report {        -L | --latest        only show latest avail}
-      report {        -D | --debug        enable debug messages}
+      report {        -d | --default     only show default avail}
+      report {        -L | --latest      only show latest avail}
+      report {        -D | --debug       enable debug messages}
    }
 }
 
