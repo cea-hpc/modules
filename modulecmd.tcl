@@ -638,6 +638,15 @@ proc module {command args} {
       purge {
          eval cmdModulePurge
       }
+      save {
+         eval cmdModuleSave $args
+      }
+      restore {
+         eval cmdModuleRestore $args
+      }
+      savelist {
+         cmdModuleSavelist
+      }
       initadd {
          eval cmdModuleInit add $args
       }
@@ -2441,6 +2450,176 @@ proc cmdModuleSwitch {old {new {}}} {
    cmdModuleLoad $new
 }
 
+proc cmdModuleSave {{coll {}}} {
+   global env g_debug
+   global g_def_separator
+
+   # default collection used if no name provided
+   if {$coll == ""} {
+      set coll "default"
+   }
+   if {$g_debug} {
+      report "DEBUG cmdModuleSave: $coll"
+   }
+
+   # build collection content with used modulepaths
+   if {[info exists env(MODULEPATH)]} {
+      foreach path [split $env(MODULEPATH) $g_def_separator] {
+         append save "module use $path" "\n"
+      }
+   }
+   # then add loaded modules
+   if {[info exists env(LOADEDMODULES)]} {
+      set loaded $env(LOADEDMODULES)
+      if { [string length $loaded] != 0} {
+         foreach mod [split $loaded $g_def_separator] {
+            if {[string length $mod] > 0} {
+                append save "module load $mod" "\n"
+            }
+         }
+      }
+   }
+
+   if { [string length $save] > 0} {
+      if {[info exists env(HOME)]} {
+         set colldir "$env(HOME)/.module"
+         if {![file exists $colldir]} {
+            if {$g_debug} {
+               report "DEBUG cmdModuleSave: Creating $colldir"
+            }
+            file mkdir $env(HOME)/.module
+         } elseif {![file isdirectory $colldir]} {
+            reportErrorAndExit "$colldir exists but is not a directory"
+         }
+
+         set collfile "$colldir/$coll"
+         if {$g_debug} {
+            report "DEBUG cmdModuleSave: Saving $collfile"
+         }
+
+         if {[catch {
+            set fid [open $collfile w]
+            puts $fid $save
+            close $fid
+         } errMsg ]} {
+            reportErrorAndExit "Collection $coll cannot be saved.\n$errMsg"
+         }
+      } else {
+         reportErrorAndExit "HOME not defined"
+      }
+   }
+}
+
+proc cmdModuleRestore {{coll {}}} {
+   global env g_debug
+   global g_def_separator
+
+   # default collection used if no name provided
+   if {$coll == ""} {
+      set coll "default"
+   }
+   if {$g_debug} {
+      report "DEBUG cmdModuleRestore: $coll"
+   }
+
+   if {[info exists env(HOME)]} {
+      set collfile "$env(HOME)/.module/$coll"
+      if {[file readable "$collfile"]} {
+         # purge all loaded modules
+         cmdModulePurge
+         # remove defined modulepaths
+         if {[info exists env(MODULEPATH)]} {
+            foreach path [split $env(MODULEPATH) $g_def_separator] {
+               cmdModuleUnuse $path
+            }
+         }
+         # then source saved collection
+         cmdModuleSource $collfile
+      } else {
+         reportErrorAndExit "Collection $coll does not exist or is not readable"
+      }
+   } else {
+      reportErrorAndExit "HOME not defined"
+   }
+}
+
+proc cmdModuleSavelist {} {
+   global env DEF_COLUMNS show_oneperline show_modtimes g_debug
+
+   # list saved collections
+   set coll_list [glob -nocomplain -- "$env(HOME)/.module/*"]
+
+   if { [llength $coll_list] == 0} {
+      report "No named collection."
+   } else {
+      set list {}
+      if {$show_modtimes} {
+         report "- Collection ---------------------------------------.- Last\
+            mod. ------"
+      }
+      report "Named collection list:"
+      set max 0
+
+      foreach coll [lsort $coll_list] {
+         set mod [file tail $coll]
+         set len [string length $mod]
+
+         if {$len > 0} {
+            if {$show_modtimes} {
+               set filetime [clock format [file mtime $coll]\
+                  -format "%Y/%m/%d %H:%M:%S"]
+               report [format "%-53s%10s" $mod $filetime]
+            }\
+            elseif {$show_oneperline} {
+               report $mod
+            } else {
+               if {$len > $max} {
+                  set max $len
+               }
+
+               lappend list $mod
+            }
+         }
+      }
+      if {$show_oneperline ==0 && $show_modtimes == 0} {
+         # save room for numbers and spacing: 2 digits + ) + space + space
+         set cols [expr {int($DEF_COLUMNS/($max + 5))}]
+         # safety check to prevent divide by zero error below
+         if {$cols <= 0} {
+            set cols 1
+         }
+
+         set item_cnt [llength $list]
+         set rows [expr {int($item_cnt / $cols)}]
+         set lastrow_item_cnt [expr {int($item_cnt % $cols)}]
+
+         if {$lastrow_item_cnt > 0} {
+            incr rows
+         }
+         if {$g_debug} {
+            report "list = $list"
+            report "rows/cols = $rows/$cols,   max = $max"
+            report "item_cnt = $item_cnt,  lastrow_item_cnt =\
+               $lastrow_item_cnt"
+         }
+         for {set row 0} {$row < $rows} {incr row} {
+            for {set col 0} {$col < $cols} {incr col} {
+               set index [expr {$col * $rows + $row}]
+               set mod [lindex $list $index]
+
+               if {$mod != ""} {
+                  set n [expr {$index +1}]
+                  set mod [format "%2d) %-${max}s " $n $mod]
+                  report $mod -nonewline
+               }
+            }
+            report ""
+         }
+      }
+   }
+}
+
+
 proc cmdModuleSource {args} {
    global env tcl_version g_loadedModules g_loadedModulesGeneric g_force 
    global g_debug
@@ -3040,8 +3219,7 @@ proc cmdModuleHelp {args} {
       report {Usage: module [ command ]}
 
       report {Commands:}
-      report {        list                     [switches] modulefile\
-         [modulefile ...]}
+      report {        list                     [switches]}
       report {        display  |  show                    modulefile\
          [modulefile ...]}
       report {        add  |  load                        modulefile\
@@ -3061,6 +3239,9 @@ proc cmdModuleHelp {args} {
          [modulefile ...]]}
       report {        path                                modulefile}
       report {        paths                               modulefile}
+      report {        save                                collection}
+      report {        restore                             collection}
+      report {        savelist                 [switches]}
       report {        initlist                            modulefile}
       report {        initadd                             modulefile}
       report {        initrm                              modulefile}
@@ -3241,6 +3422,16 @@ if {[catch {
       {^pu} {
          cmdModulePurge
          renderSettings
+      }
+      {^save$} {
+         eval cmdModuleSave $argv
+      }
+      {^restore} {
+         eval cmdModuleRestore $argv
+         renderSettings
+      }
+      {^savelist} {
+         cmdModuleSavelist
       }
       {^sw} {
          eval cmdModuleSwitch $argv

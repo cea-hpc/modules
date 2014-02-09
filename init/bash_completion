@@ -13,6 +13,13 @@ _module_avail() {
         s#/*$##g;'
 }
 
+_module_savelist() {
+    module savelist -t 2>&1 | sed '
+        /Named collection list$/d;
+        /:$/d;
+        /:ERROR:/d;'
+}
+
 _module_not_yet_loaded() {
     comm -23  <(_module_avail|sort)  <(tr : '\n' <<<${LOADEDMODULES}|sort)
 }
@@ -44,8 +51,9 @@ _module() {
 
     cmds="add apropos aliases avail display help\
         initadd initclear initlist initprepend initrm\
-        keyword list load path paths purge reload rm search\
-        show source swap switch unload unuse use whatis"
+        keyword list load path paths purge reload restore rm\
+        save savelist search show source swap switch unload\
+        unuse use whatis"
 
     opts="-D -h -V --debug --help --version"
     list_opts="-l -t --long --terse"
@@ -54,7 +62,8 @@ _module() {
     case "$prev" in
     add|load)       COMPREPLY=( $(compgen -W "$(_module_not_yet_loaded)" -- "$cur") );;
     avail)          COMPREPLY=( $(compgen -W "$avail_opts $(_module_avail)" -- "$cur") );;
-    list)           COMPREPLY=( $(compgen -W "$list_opts" -- "$cur") );;
+    list|savelist)  COMPREPLY=( $(compgen -W "$list_opts" -- "$cur") );;
+    restore|save)   COMPREPLY=( $(compgen -W "$(_module_savelist)" -- "$cur") );;
     rm|remove|unload|switch|swap)
                     COMPREPLY=( $(IFS=: compgen -W "${LOADEDMODULES}" -- "$cur") );;
     unuse)          COMPREPLY=( $(IFS=: compgen -W "${MODULEPATH}" -- "$cur") );;

@@ -23,6 +23,12 @@ alias _module_loaded '\\
         s#/(default)##g; \\
         s#/*$##g; '"'"
 
+alias _module_savelist '\\
+    tclsh ${MODULESHOME}/bin/modulecmd.tcl tcsh savelist -t |& sed '"'"'\\
+        /Named collection list$/d; \\
+        /:$/d; \\
+        /:ERROR:/d; '"'"
+
 alias _module_not_yet_loaded '\\
         mkfifo /tmp/modules_tcsh_completion.$$.p1 /tmp/modules_tcsh_completion.$$.p2 && \\
         ( _module_avail | sort > /tmp/modules_tcsh_completion.$$.p1 & ); \\
@@ -32,7 +38,7 @@ alias _module_not_yet_loaded '\\
 
 alias _module_modulepath 'echo ${MODULEPATH} | sed '"'"'s/:/\n/g;'"'"' '
 
-set module_cmds = "add apropos aliases avail display help initadd initclear initlist initprepend initrm keyword list load path paths purge reload rm search show source swap switch unload unuse use whatis"
+set module_cmds = "add apropos aliases avail display help initadd initclear initlist initprepend initrm keyword list load path paths purge reload restore rm save savelist search show source swap switch unload unuse use whatis"
 
 set module_opts = "-D -h -V --debug --help --version"
 set module_list_opts = "-l -t --long --terse"
@@ -52,6 +58,9 @@ complete module 'n/help/`_module_avail`/' \
         'n/display/`_module_avail`/' \
         "n/list/(${module_list_opts})/" \
         'n/avail/`_module_avail; echo ${module_avail_opts}`/' \
+        'n/restore/`_module_savelist`/' \
+        "n/savelist/(${module_list_opts})/" \
+        'n/save/`_module_savelist`/' \
         'n/aliases/n/' \
         'n/use/d/' \
         'N/use/d/' \
