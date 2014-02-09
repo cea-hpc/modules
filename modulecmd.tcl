@@ -2245,7 +2245,7 @@ proc cmdModuleList {{separator {}}} {
             }\
             elseif {$show_modtimes} {
                set filetime [clock format [file mtime [lindex\
-                  [getPathToModule $mod] 0]] -format "%Y/%m/%b %H:%M:%S"]
+                  [getPathToModule $mod] 0]] -format "%Y/%m/%d %H:%M:%S"]
                report [format "%-50s%10s" $mod $filetime]
             } else {
                if {$len > $max} {
@@ -2689,7 +2689,7 @@ proc cmdModuleAvail {{mod {*}}} {
                # to figure out the file time.
                regsub {\(default\)} $i "   (default)" i2 
                set filetime [clock format [file mtime [lindex\
-                  [getPathToModule $i] 0]] -format "%Y/%m/%b %H:%M:%S" ]
+                  [getPathToModule $i] 0]] -format "%Y/%m/%d %H:%M:%S" ]
                report [format "%-53s%10s" $i2 $filetime]
             }
          }\
