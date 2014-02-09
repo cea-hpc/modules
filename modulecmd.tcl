@@ -2233,6 +2233,10 @@ proc cmdModuleList {{separator {}}} {
       report "No Modulefiles Currently Loaded."
    } else {
       set list {}
+      if {$show_modtimes} {
+         report "- Package -----------------------------.- Versions -.- Last\
+            mod. ------"
+      }
       report "Currently Loaded Modulefiles:"
       set max 0
 
@@ -2240,13 +2244,13 @@ proc cmdModuleList {{separator {}}} {
          set len [string length $mod]
 
          if {$len > 0} {
-            if {$show_oneperline} {
-               report $mod
-            }\
-            elseif {$show_modtimes} {
+            if {$show_modtimes} {
                set filetime [clock format [file mtime [lindex\
                   [getPathToModule $mod] 0]] -format "%Y/%m/%d %H:%M:%S"]
-               report [format "%-50s%10s" $mod $filetime]
+               report [format "%-53s%10s" $mod $filetime]
+            }\
+            elseif {$show_oneperline} {
+               report $mod
             } else {
                if {$len > $max} {
                   set max $len
