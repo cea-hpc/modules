@@ -1,0 +1,44 @@
+#%Module1.0#####################################################################
+##
+## HOME modulefile
+##
+proc ModulesHelp { } {
+        global homeversion
+
+        puts stderr "\tAdd the user's HOME directory hierarchy for your"
+        puts stderr "\n\tvarious *PATH environment variables, similar to /usr"
+        puts stderr "\tor /usr/local, but only does so if the appropriate"
+        puts stderr "\tdirectories exists."
+
+        puts stderr "\n\tVersion $homeversion\n"
+}
+
+module-whatis   "add the user's HOME directory hierarchy"
+
+eval set [ array get env HOME ]
+
+if [ file isdirectory $HOME/sbin ] {
+        prepend-path    PATH                    $HOME/sbin
+}
+if [ file isdirectory $HOME/bin ] {
+        prepend-path    PATH                    $HOME/bin
+}
+if [ file isdirectory $HOME/man ] {
+        prepend-path    MANPATH                 $HOME/man
+}
+if [ file isdirectory $HOME/info ] {
+        prepend-path    INFOPATH                $HOME/info
+}
+if [ file isdirectory $HOME/include ] {
+        prepend-path    C_INCLUDE_PATH          $HOME/include
+        prepend-path    CPLUS_INCLUDE_PATH      $HOME/include
+}
+if [ file isdirectory $HOME/lib ] {
+        prepend-path    LIBRARY_PATH            $HOME/lib
+        prepend-path    LD_LIBRARY_PATH         $HOME/lib
+        prepend-path    LD_RUN_PATH             $HOME/lib
+}
+if [ file isdirectory $HOME/app-defaults ] {
+        prepend-path    XAPPLRESDIR             $HOME/app-defaults
+}
+
