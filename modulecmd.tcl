@@ -20,8 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-regsub {\$[^:]+:\s*(\S+)\s*\$} {$Revision: 1.147 $} {\1}\
-   MODULES_CURRENT_VERSION
+set MODULES_CURRENT_VERSION 1.559
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
