@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.563
+set MODULES_CURRENT_VERSION 1.564
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2220,6 +2220,43 @@ proc showModulePath {{separator {}}} {
    }
 }
 
+# build list of what to undo then do to move
+# from an initial list to a target list
+proc getMovementBetweenList {from to} {
+   global g_debug
+
+   if {$g_debug} {
+      report "DEBUG getMovementBetweenList: from($from) to($to)"
+   }
+
+   set undo {}
+   set do {}
+
+   # determine what element to undo then do
+   # to restore a target list from a current list
+   # with preservation of the element order
+   set imax [expr {max([llength $to], [llength $from])}]
+   set list_equal 1
+   for {set i 0} {$i < $imax} {incr i} {
+      set to_obj [lindex $to $i]
+      set from_obj [lindex $from $i]
+
+      if {$to_obj != $from_obj} {
+         set list_equal 0
+      }
+      if {$list_equal == 0} {
+         if {$to_obj != ""} {
+            lappend do $to_obj
+         }
+         if {$from_obj != ""} {
+            lappend undo $from_obj
+         }
+      }
+   }
+
+   return [list $undo $do]
+}
+
 ########################################################################
 # command line commands
 #
@@ -2525,16 +2562,82 @@ proc cmdModuleRestore {{coll {}}} {
    if {[info exists env(HOME)]} {
       set collfile "$env(HOME)/.module/$coll"
       if {[file readable "$collfile"]} {
-         # purge all loaded modules
-         cmdModulePurge
-         # remove defined modulepaths
-         if {[info exists env(MODULEPATH)]} {
-            foreach path [split $env(MODULEPATH) $g_def_separator] {
-               cmdModuleUnuse $path
+         # analyze collection file
+         set fid [open $collfile r]
+         set fdata [split [read $fid] "\n"]
+         close $fid
+         foreach fline $fdata {
+            if {[regexp {module use (.*)$} $fline match path] == 1} {
+               lappend coll_path_list $path
+            } elseif {[regexp {module load (.*)$} $fline match mod] == 1} {
+               lappend coll_mod_list $mod
             }
          }
-         # then source saved collection
-         cmdModuleSource $collfile
+
+         # fetch what is currently loaded
+         if {[info exists env(MODULEPATH)]} {
+            set curr_path_list [split $env(MODULEPATH) $g_def_separator]
+         } else {
+            set curr_path_list {}
+         }
+         if {[info exists env(LOADEDMODULES)]} {
+            set curr_mod_list [split $env(LOADEDMODULES) $g_def_separator]
+         } else {
+            set curr_mod_list {}
+         }
+
+         # determine what module to unload to restore collection
+         # from current situation with preservation of the load order
+         set mod_move [getMovementBetweenList $curr_mod_list $coll_mod_list]
+         set mod_to_unload [lindex $mod_move 0]
+
+         # proceed as well for modulepath
+         set path_move [getMovementBetweenList $curr_path_list \
+            $coll_path_list]
+         set path_to_unuse [lindex $path_move 0]
+
+         # unload modules
+         if {[llength $mod_to_unload] > 0} {
+            eval cmdModuleUnload [reverseList $mod_to_unload]
+         }
+         # unuse paths
+         if {[llength $path_to_unuse] > 0} {
+            eval cmdModuleUnuse [reverseList $path_to_unuse]
+         }
+
+         # since unloading a module may unload other modules or
+         # paths, what to load/use has to be determined after
+         # the undo phase, so current situation is fetched again
+         if {[info exists env(MODULEPATH)]} {
+            set curr_path_list [split $env(MODULEPATH) $g_def_separator]
+         } else {
+            set curr_path_list {}
+         }
+         if {[info exists env(LOADEDMODULES)]} {
+            set curr_mod_list [split $env(LOADEDMODULES) $g_def_separator]
+         } else {
+            set curr_mod_list {}
+         }
+
+         # determine what module to load to restore collection
+         # from current situation with preservation of the load order
+         set mod_move [getMovementBetweenList $curr_mod_list $coll_mod_list]
+         set mod_to_load [lindex $mod_move 1]
+
+         # proceed as well for modulepath
+         set path_move [getMovementBetweenList $curr_path_list \
+            $coll_path_list]
+         set path_to_use [lindex $path_move 1]
+
+         # use paths
+         if {[llength $path_to_use] > 0} {
+            eval cmdModuleUse $path_to_use
+         }
+
+         # load modules
+         if {[llength $mod_to_load] > 0} {
+            eval cmdModuleLoad $mod_to_load
+         }
       } else {
          reportErrorAndExit "Collection $coll does not exist or is not readable"
       }
