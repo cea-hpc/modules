@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.562
+set MODULES_CURRENT_VERSION 1.563
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3216,49 +3216,76 @@ proc cmdModuleHelp {args} {
    if {$done == 0} {
       report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
       report {        Copyright GNU GPL v2 1991}
-      report {Usage: module [ command ]}
+      report {Usage: module [options] [command] [args ...]}
 
-      report {Commands:}
-      report {        list                     [switches]}
-      report {        display  |  show                    modulefile\
-         [modulefile ...]}
-      report {        add  |  load                        modulefile\
-         [modulefile ...]}
-      report {        rm  |  unload                       modulefile\
-         [modulefile ...]}
-      report {        purge}
-      report {        reload}
-      report {        switch  |  swap                    \
-         [oldmodulefile] newmodulefile}
-      report {        avail                    [switches] [modulefile\
-         [modulefile ...]]}
-      report {        aliases}
-      report {        whatis                              [modulefile\
-         [modulefile ...]]}
-      report {        help                                [modulefile\
-         [modulefile ...]]}
-      report {        path                                modulefile}
-      report {        paths                               modulefile}
-      report {        save                                collection}
-      report {        restore                             collection}
-      report {        savelist                 [switches]}
-      report {        initlist                            modulefile}
-      report {        initadd                             modulefile}
-      report {        initrm                              modulefile}
-      report {        initclear                           modulefile}
-      report {        initprepend                         modulefile}
-      report {        use                                 dir [dir ...]}
-      report {        unuse                               dir [dir ...]}
-      report {        source                              scriptfile}
-      report {        apropos  |  keyword  | search       string}
+      report {}
+      report {Loading / Unloading commands:}
+      report {  add | load      modulefile [...]  Load modulefile(s)}
+      report {  rm | unload     modulefile [...]  Remove modulefile(s)}
+      report {  purge                             Unload all loaded\
+         modulefiles}
+      report {  reload                            Unload then load all\
+         loaded modulefiles}
+      report {  switch | swap   [mod1] mod2       Unload mod1 and load mod2}
+      report {}
+      report {Listing / Searching commands:}
+      report {  list            [-t|-l]           List loaded modules}
+      report {  avail   [-d|-L] [-t|-l] [mod ...] List all or matching\
+         available modules}
+      report {  aliases                           List all module aliases}
+      report {  whatis          [modulefile ...]  Print whatis\
+         information of modulefile(s)}
+      report {  apropos | keyword | search  str   Search all name and\
+         whatis containing str}
+      report {}
+      report {Collection of modules handling commands:}
+      report {  save            [collection]      Save current module\
+         list to collection}
+      report {  restore         [collection]      Restore module list\
+         from collection}
+      report {  savelist        [-t|-l]           List all saved\
+         collections}
+      report {}
+      report {Shell's initialization files handling commands:}
+      report {  initlist                          List all modules\
+         loaded from init file}
+      report {  initadd         modulefile        Add modulefile to\
+         shell init file}
+      report {  initrm          modulefile        Remove modulefile\
+         from shell init file}
+      report {  initprepend     modulefile        Add to beginning of\
+         list in init file}
+      report {  initswitch      mod1 mod2         Switch mod1 with mod2\
+         from init file}
+      report {  initclear                         Clear all modulefiles\
+         from init file}
+      report {}
+      report {Other commands:}
+      report {  help            [modulefile ...]  Print this or\
+         modulefile(s) help info}
+      report {  display | show  modulefile [...]  Display information\
+         about modulefile(s)}
+      report {  use     [-a|-p] dir [...]         Add dir(s) to\
+         MODULEPATH variable}
+      report {  unuse           dir [...]         Remove dir(s) from\
+         MODULEPATH variable}
+      report {  path            modulefile        Print modulefile path}
+      report {  paths           modulefile        Print path of\
+         matching available modules}
+      report {  source          scriptfile [...]  Execute scriptfile(s)}
+      report {}
       report {Switches:}
-      report {        -h | --help        this usage info}
-      report {        -V | --version     module version}
-      report {        -t | --terse       terse format avail and list}
-      report {        -l | --long        long format avail and list}
-      report {        -d | --default     only show default avail}
-      report {        -L | --latest      only show latest avail}
-      report {        -D | --debug       enable debug messages}
+      report {  -t | --terse    Display output in terse format}
+      report {  -l | --long     Display output in long format}
+      report {  -d | --default  Only show default versions available}
+      report {  -L | --latest   Only show latest versions available}
+      report {  -a | --append   Append directory to MODULEPATH}
+      report {  -p | --prepend  Prepend directory to MODULEPATH}
+      report {}
+      report {Options:}
+      report {  -h | --help     This usage info}
+      report {  -V | --version  Module version}
+      report {  -D | --debug    Enable debug messages}
    }
 }
 
