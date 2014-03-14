@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.565
+set MODULES_CURRENT_VERSION 1.566
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2261,6 +2261,56 @@ proc getMovementBetweenList {from to} {
    return [list $undo $do]
 }
 
+# build list of currently loaded modules where modulename
+# is registered minus module version if loaded version is
+# the default one
+proc getSimplifiedLoadedModuleList {} {
+   global env g_def_separator g_debug
+
+   if {$g_debug} {
+      report "DEBUG getSimplifiedLoadedModuleList"
+   }
+
+   set curr_mod_list {}
+   if {[info exists env(LOADEDMODULES)]} {
+      foreach mod [split $env(LOADEDMODULES) $g_def_separator] {
+         if {[string length $mod] > 0} {
+            set modparent [file dirname $mod]
+            if {$modparent == "."} {
+               lappend curr_mod_list $mod
+            } else {
+               # fetch all module version available
+               set modlist {}
+               foreach dir [split $env(MODULEPATH) $g_def_separator] {
+                  if {[file isdirectory $dir]} {
+                     set modlist [concat $modlist \
+                        [listModules $dir $modparent 0]]
+                  }
+               }
+
+               # check if loaded version is default
+               set dflpos [lsearch $modlist "*(default)"]
+               if {$dflpos == -1} {
+                  if {$mod == [lindex $modlist end]} {
+                     lappend curr_mod_list $modparent
+                  } else {
+                     lappend curr_mod_list $mod
+                  }
+               } else {
+                  if {"$mod\(default\)" == [lindex $modlist $dflpos]} {
+                     lappend curr_mod_list $modparent
+                  } else {
+                     lappend curr_mod_list $mod
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   return $curr_mod_list
+}
+
 ########################################################################
 # command line commands
 #
@@ -2510,15 +2560,8 @@ proc cmdModuleSave {{coll {}}} {
       }
    }
    # then add loaded modules
-   if {[info exists env(LOADEDMODULES)]} {
-      set loaded $env(LOADEDMODULES)
-      if { [string length $loaded] != 0} {
-         foreach mod [split $loaded $g_def_separator] {
-            if {[string length $mod] > 0} {
-                append save "module load $mod" "\n"
-            }
-         }
-      }
+   foreach mod [getSimplifiedLoadedModuleList] {
+      append save "module load $mod" "\n"
    }
 
    if { [string length $save] > 0} {
@@ -2584,11 +2627,7 @@ proc cmdModuleRestore {{coll {}}} {
          } else {
             set curr_path_list {}
          }
-         if {[info exists env(LOADEDMODULES)]} {
-            set curr_mod_list [split $env(LOADEDMODULES) $g_def_separator]
-         } else {
-            set curr_mod_list {}
-         }
+         set curr_mod_list [getSimplifiedLoadedModuleList]
 
          # determine what module to unload to restore collection
          # from current situation with preservation of the load order
@@ -2617,11 +2656,7 @@ proc cmdModuleRestore {{coll {}}} {
          } else {
             set curr_path_list {}
          }
-         if {[info exists env(LOADEDMODULES)]} {
-            set curr_mod_list [split $env(LOADEDMODULES) $g_def_separator]
-         } else {
-            set curr_mod_list {}
-         }
+         set curr_mod_list [getSimplifiedLoadedModuleList]
 
          # determine what module to load to restore collection
          # from current situation with preservation of the load order
