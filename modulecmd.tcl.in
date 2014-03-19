@@ -58,6 +58,9 @@ proc getPathSeparator {} {
    return $::g_def_separator
 }
 
+# second level separator, used to serialize conflict info
+set g_def_separator_lvl2 "&"
+
 # Detect if terminal is attached to stderr message channel
 proc isStderrTty {} {
    if {![info exists ::g_is_stderr_tty]} {
@@ -101,6 +104,10 @@ if {[info exists env(MODULECONTACT)]} {
    # Or change this to your support email address...
    set contact "root@localhost"
 }
+
+# Set to 1 to preserve original load control behavior
+# (original conflict and prereq management)
+set g_orig_load_control 1
 
 # Set some directories to ignore when looking for modules.
 set ignoreDir(CVS) 1
@@ -582,7 +589,7 @@ proc initModfileModeAliases {mode aliasesVN aliasesPassArgVN tracesVN} {
          reportCmdTrace reportInternalBug reportInternalBug reportWarning\
          reportWarning reportError reportError raiseErrorCount\
          raiseErrorCount report report isWin isWin puts putsModfileCmd\
-         readModuleContent readModuleContent]
+         readModuleContent readModuleContent is-loading is-loading]
 
       # list of alias commands whose target procedure is adapted according to
       # the evaluation mode
@@ -2294,11 +2301,51 @@ proc is-loaded {args} {
    return [expr {[llength $args] == 0 && [llength [getLoadedModuleList]] > 0}]
 }
 
+proc is-loading {modulelist} {
+   global g_modeStack g_moduleNameStack g_debug
+
+   if {$g_debug} {
+      report "DEBUG is-loading: $modulelist"
+   }
+
+   if {[llength $modulelist] > 0} {
+      if {[info exists g_modeStack] && [info exists g_moduleNameStack]} {
+         foreach arg $modulelist {
+            set arg "$arg/"
+            # skip current moduleName by avoiding last
+            for {set i 0} {$i < [expr {[llength $g_moduleNameStack] - 1}]} \
+               {incr i 1} {
+               set modname "[lindex $g_moduleNameStack $i]/"
+               set modmode [lindex $g_modeStack $i]
+               if {[string first $arg $modname] == 0 && $modmode == "load"} {
+                  return 1
+               }
+            }
+         }
+         return 0
+      } else {
+         return 0
+      }
+   }
+   return 1
+}
+
 proc conflict {args} {
+   global ModulesCurrentConflict g_orig_load_control
    reportDebug "$args"
    set currentModule [currentModuleName]
 
    foreach mod $args {
+      if {$g_orig_load_control == 0} {
+         # build conflict list to register in _LMCONFLICT_ after
+         # successful module load
+         if { ![info exists ModulesCurrentConflict($currentModule)]\
+            || [lsearch -exact $ModulesCurrentConflict($currentModule) \
+            $mod] == -1} {
+            lappend ModulesCurrentConflict($currentModule) $mod
+         }
+      }
+
       # If the current module is already loaded, we can proceed
       if {![is-loaded $currentModule]} {
          # otherwise if the conflict module is loaded, we cannot
@@ -2307,6 +2354,13 @@ proc conflict {args} {
                conflict."
             set errMsg "$errMsg\nHINT: Might try \"module unload $mod\"\
                first."
+            error $errMsg
+         # if the conflict module is loading, we cannot proceed either
+         } elseif {$g_orig_load_control == 0 && [is-loading $mod]} {
+            set errMsg "WARNING: $currentModule cannot be loaded due\
+               to a conflict."
+            set errMsg "$errMsg\nHINT: Conflict with $mod\
+               is set in $currentModule."
             error $errMsg
          }
       }
@@ -3813,6 +3867,9 @@ endfunction(module)}
 }
 
 proc cacheCurrentModules {} {
+   global g_orig_load_control g_def_separator_lvl2 g_lmConflict
+   global env
+
    # parse loaded modules information only once, global arrays are updated
    # afterwards when module commands update loaded modules state
    if {![info exists ::g_lm_info_cached]} {
@@ -3832,6 +3889,19 @@ proc cacheCurrentModules {} {
       } else {
          reportErrorAndExit "Loaded environment state is inconsistent\n \
             LOADEDMODULES=$modlist\n  _LMFILES_=$modfilelist"
+      }
+   }
+
+   if {$g_orig_load_control == 0} {
+      # cache declared conflict of loaded modules
+      if {[info exists env(_LMCONFLICT_)]} {
+         foreach modconflict [split $env(_LMCONFLICT_) [getPathSeparator]] {
+            set modlist [split $modconflict $g_def_separator_lvl2]
+            # test that conflict module list is correct
+            if {[llength $modlist] >= 2} {
+               set g_lmConflict([lindex $modlist 0]) [lrange $modlist 1 end]
+            }
+         }
       }
    }
 }
@@ -5714,6 +5784,8 @@ proc cmdModuleUnsource {args} {
 }
 
 proc cmdModuleLoad {args} {
+   global g_def_separator_lvl2 g_lmConflict ModulesCurrentConflict
+   global env g_orig_load_control
    reportDebug "loading $args"
 
    set ret 0
@@ -5731,20 +5803,88 @@ proc cmdModuleLoad {args} {
          set currentModule $modname
 
          if {$::g_force || ![isModuleLoaded $currentModule]} {
-            pushSettings
 
-            if {[execute-modulefile $modfile $currentModule $mod]} {
-               restoreSettings
-               set ret 1
-            } else {
-               add-path "append" LOADEDMODULES $currentModule
-               # allow duplicate modfile entries for virtual modules
-               add-path "append" --duplicates _LMFILES_ $modfile
-               # update cache arrays
-               setLoadedModule $currentModule $modfile
+            set conflict_list {}
+            set loading_conflict_list {}
+            if {$g_orig_load_control == 0} {
+               # check if any loaded module has declared a conflict
+               foreach conflictmod [array names g_lmConflict] {
+                  # skip currentModule own auto-conflict if
+                  # already loaded and g_force is enabled
+                  if {$conflictmod != $currentModule} {
+                     set isconflict 0
+                     set imax [llength $g_lmConflict($conflictmod)]
+                     for {set i 0} {$i<$imax && $isconflict==0} {incr i 1} {
+                        set withmod [lindex $g_lmConflict($conflictmod) $i]
+                        if {[string first "$withmod/" \
+                           "$currentModule/"] == 0} {
+                           set isconflict 1
+                           lappend conflict_list $conflictmod
+                        }
+                     }
+                  }
+               }
+               # also check if any loading module has declared a conflict
+               foreach conflictmod [array names ModulesCurrentConflict] {
+                  # skip currentModule own auto-conflict if
+                  # already loaded and g_force is enabled
+                  if {$conflictmod != $currentModule} {
+                     set isconflict 0
+                     set imax [llength $ModulesCurrentConflict($conflictmod)]
+                     for {set i 0} {$i<$imax && $isconflict==0} {incr i 1} {
+                        set withmod [lindex \
+                           $ModulesCurrentConflict($conflictmod) $i]
+                        if {[string first "$withmod/" \
+                           "$currentModule/"] == 0} {
+                           set isconflict 1
+                           lappend loading_conflict_list $conflictmod
+                        }
+                     }
+                  }
+               }
             }
 
-            popSettings
+            if {[llength $conflict_list] > 0} {
+               # report an error instead of loading module
+               # if a conflict has been detected
+               reportError "WARNING: $currentModule cannot be loaded due\
+                  to a conflict.\nHINT: Might try \"module unload\
+                  [join $conflict_list]\" first."
+            } elseif {[llength $loading_conflict_list] > 0} {
+               # also report an error instead of loading module
+               # if a conflict among loading modules has been detected
+               reportError "WARNING: $currentModule cannot be loaded due\
+                  to a conflict.\nHINT: Conflict with $currentModule is\
+                  set in [join $loading_conflict_list]."
+            } else {
+               pushSettings
+
+               if {[execute-modulefile $modfile $currentModule $mod]} {
+                  restoreSettings
+                  set ret 1
+               } else {
+                  add-path "append" LOADEDMODULES $currentModule
+                  # allow duplicate modfile entries for virtual modules
+                  add-path "append" --duplicates _LMFILES_ $modfile
+                  # update cache arrays
+                  setLoadedModule $currentModule $modfile
+
+                  if {$g_orig_load_control == 0} {
+                     # declare the conflict of this module
+                     if {[info exists \
+                        ModulesCurrentConflict($currentModule)]} {
+                        add-path "append" _LMCONFLICT_ \
+                           "$currentModule$g_def_separator_lvl2[join \
+                           $ModulesCurrentConflict($currentModule) \
+                           $g_def_separator_lvl2]"
+                        set g_lmConflict($currentModule) \
+                           $ModulesCurrentConflict($currentModule)
+                     }
+                  }
+               }
+
+               popSettings
+            }
          } else {
             reportDebug "$modname ($modfile) already loaded"
          }
@@ -5758,6 +5898,7 @@ proc cmdModuleLoad {args} {
 }
 
 proc cmdModuleUnload {match args} {
+   global g_orig_load_control g_def_separator_lvl2 g_lmConflict
    reportDebug "unloading $args (match=$match)"
 
    set ret 0
@@ -5784,6 +5925,17 @@ proc cmdModuleUnload {match args} {
                unload-path --index _LMFILES_ $lmidx
                # update cache arrays
                unsetLoadedModule $currentModule $modfile
+
+               if {$g_orig_load_control == 0} {
+                  # unset conflict declared for this module
+                  if {[info exists g_lmConflict($currentModule)]} {
+                     unload-path _LMCONFLICT_ \
+                        "$currentModule$g_def_separator_lvl2[join \
+                        $g_lmConflict($currentModule) \
+                        $g_def_separator_lvl2]"
+                     unset g_lmConflict($currentModule)
+                  }
+               }
             }
 
             popSettings
