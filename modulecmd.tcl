@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.566
+set MODULES_CURRENT_VERSION 1.567
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1457,6 +1457,10 @@ proc restoreSettings {} {
    foreach var {env g_Aliases g_stateEnvVars g_stateAliases g_newXResource\
       g_delXResource} {
       eval "global g_SAVE_$var $var"
+      # clear current $var arrays
+      if {[info exists $var]} {
+         eval "unset $var; array set $var {}"
+      }
       eval "array set $var \[array get g_SAVE_$var\]"
    }
 }
