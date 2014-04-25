@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.567
+set MODULES_CURRENT_VERSION 1.568
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1441,15 +1441,24 @@ proc runModulerc {} {
    }
 }
 
-proc saveSettings {} {
+# manage settings to save as a stack to have a separate set of settings
+# for each module loaded or unloaded in order to be able to restore the
+# correct set in case of failure
+proc pushSettings {} {
    foreach var {env g_Aliases g_stateEnvVars g_stateAliases g_newXResource\
       g_delXResource} {
       eval "global g_SAVE_$var $var"
-      # clear pre-existing g_SAVE_$var arrays
-      if {[info exists g_SAVE_$var]} {
-         eval "unset g_SAVE_$var; array set g_SAVE_$var {}"
-      }
-      eval "array set g_SAVE_$var \[array get $var\]"
+      eval "lappend g_SAVE_$var \[array get $var\]"
+   }
+}
+
+proc popSettings {} {
+   foreach var {env g_Aliases g_stateEnvVars g_stateAliases g_newXResource\
+      g_delXResource} {
+      eval "global g_SAVE_$var"
+      eval "set len \[llength \$g_SAVE_$var\]"
+      eval "set len \[expr {$len - 2}\]"
+      eval "set g_SAVE_$var \[lrange \$g_SAVE_$var 0 $len\]"
    }
 }
 
@@ -1461,7 +1470,7 @@ proc restoreSettings {} {
       if {[info exists $var]} {
          eval "unset $var; array set $var {}"
       }
-      eval "array set $var \[array get g_SAVE_$var\]"
+      eval "array set $var \[lindex \$g_SAVE_$var end\]"
    }
 }
 
@@ -2804,8 +2813,8 @@ proc cmdModuleLoad {args} {
          if {$g_force || ! [info exists g_loadedModules($currentModule)]} {
             pushMode "load"
             pushModuleName $currentModule
+            pushSettings
 
-            saveSettings
             if {[execute-modulefile $modfile]} {
                restoreSettings
             } else {
@@ -2827,6 +2836,7 @@ proc cmdModuleLoad {args} {
                }
             }
 
+            popSettings
             popMode
             popModuleName
          }
@@ -2853,7 +2863,7 @@ proc cmdModuleUnload {args} {
             if {[info exists g_loadedModules($currentModule)]} {
                pushMode "unload"
                pushModuleName $currentModule
-               saveSettings
+               pushSettings
 
                if {[execute-modulefile $modfile]} {
                   restoreSettings
@@ -2870,6 +2880,7 @@ proc cmdModuleUnload {args} {
                   }
                }
 
+               popSettings
                popMode
                popModuleName
             }
