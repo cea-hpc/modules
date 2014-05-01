@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.568
+set MODULES_CURRENT_VERSION 1.569
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1130,8 +1130,14 @@ proc prereq {args} {
       if {![is-loaded $args]} {
          set errMsg "WARNING: $currentModule cannot be loaded due to\
              missing prereq."
-         set errMsg "$errMsg\nHINT: the following modules must be loaded\
-             first: $args"
+         # adapt error message when multiple modules are specified
+         if {[llength $args] > 1} {
+            set errMsg "$errMsg\nHINT: at least one of the following\
+               modules must be loaded first: $args"
+         } else {
+            set errMsg "$errMsg\nHINT: the following module must be\
+               loaded first: $args"
+         }
          error $errMsg
       }
    }\
