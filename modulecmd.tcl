@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.570
+set MODULES_CURRENT_VERSION 1.571
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1465,9 +1465,7 @@ proc popSettings {} {
    foreach var {env g_Aliases g_stateEnvVars g_stateAliases g_newXResource\
       g_delXResource} {
       eval "global g_SAVE_$var"
-      eval "set len \[llength \$g_SAVE_$var\]"
-      eval "set len \[expr {$len - 2}\]"
-      eval "set g_SAVE_$var \[lrange \$g_SAVE_$var 0 $len\]"
+      eval "set g_SAVE_$var \[lrange \$g_SAVE_$var 0 end-2\]"
    }
 }
 
@@ -1714,21 +1712,21 @@ proc renderSettings {} {
                   if {[file exists $var]} {
                      puts stdout "exec $xrdb -merge $var;"
                   } else {
-                     puts stdout "set fl \[open \"|$xrdb -merge\" r+\]"
+                     puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\]"
                      set var [doubleQuoteEscaped $var]
-                     puts stdout "puts $fl \"$var\""
-                     puts stdout "close $fl"
-                     puts stdout "unset fl"
+                     puts stdout "puts $XRDBPIPE \"$var\""
+                     puts stdout "close $XRDBPIPE"
+                     puts stdout "unset $XRDBPIPE"
                   }
                }
                perl {
                   if {[file isfile $var]} {
                      puts stdout "system(\"$xrdb -merge $var\");"
                   } else {
-                     puts stdout "open(XRDB,\"|$xrdb -merge\");"
+                     puts stdout "open(XRDBPIPE,\"|$xrdb -merge\");"
                      set var [doubleQuoteEscaped $var]
-                     puts stdout "print XRDB \"$var\\n\";"
-                     puts stdout "close XRDB;"
+                     puts stdout "print XRDBPIPE \"$var\\n\";"
+                     puts stdout "close XRDBPIPE;"
                   }
                }
                python {
@@ -1757,17 +1755,17 @@ proc renderSettings {} {
                   puts stdout "EOF;"
                }
                tcl {
-                  puts stdout "set fl \[open \"|$xrdb -merge\" r+\]"
-                  puts stdout "puts $fl $var: $val"
-                  puts stdout "close $fl"
-                  puts stdout "unset fl"
+                  puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\]"
+                  puts stdout "puts $XRDBPIPE $var: $val"
+                  puts stdout "close $XRDBPIPE"
+                  puts stdout "unset XRDBPIPE"
                }
                perl {
-                  puts stdout "open(XRDB,\"|$xrdb -merge\");"
+                  puts stdout "open(XRDBPIPE, \"|$xrdb -merge\");"
                   set var [doubleQuoteEscaped $var]
                   set val [doubleQuoteEscaped $val]
-                  puts stdout "print XRDB \"$var: $val\\n\";"
-                  puts stdout "close XRDB;"
+                  puts stdout "print XRDBPIPE \"$var: $val\\n\";"
+                  puts stdout "close XRDBPIPE;"
                }
                python {
                   set var [singleQuoteEscaped $var]
