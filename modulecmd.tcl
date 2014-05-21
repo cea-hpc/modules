@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.569
+set MODULES_CURRENT_VERSION 1.570
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -96,6 +96,9 @@ proc renderError {} {
          }
          sh {
             puts stdout "/bin/false;"
+         }
+         tcl {
+            puts stdout "exec /bin/false;"
          }
          cmd {
             # nothing needed, reserved for future cygwin, MKS, etc
@@ -1529,6 +1532,18 @@ proc renderSettings {} {
             puts stdout "module () { eval \
                `'$tclshbin' '$argv0' '$g_shell' \$*`; } ;"
          }
+         tcl {
+            puts stdout "proc module {args}  {"
+            puts stdout "    global env;"
+            puts stdout "    set script {};"
+            puts stdout "    if {\[catch { set script \[eval exec\
+                \"$tclshbin\" \"$argv0\" \"$g_shell\" \$args] } msg]} {"
+            puts stdout "        puts \$msg"
+            puts stdout "    };"
+            puts stdout "    uplevel \$script;"
+            puts stdout "}"
+
+         }
          cmd {
             puts stdout "start /b \%MODULESHOME\%/init/module.cmd %*"
          }
@@ -1593,6 +1608,10 @@ proc renderSettings {} {
                puts stdout "$var=[multiEscaped $env($var)];\
                   export $var;"
             }
+            tcl {
+               set val [doubleQuoteEscaped $env($var)]
+               puts stdout "set env($var) $val;"
+            }
             perl {
                set val [doubleQuoteEscaped $env($var)]
                set val [atSymbolEscaped $env($var)]
@@ -1618,6 +1637,9 @@ proc renderSettings {} {
             }
             sh {
                puts stdout "unset $var;"
+            }
+            tcl {
+               puts stdout "unset env($var);"
             }
             cmd {
                puts stdout "set $var="
@@ -1652,6 +1674,10 @@ proc renderSettings {} {
                set val $g_Aliases($var)
                puts stdout "alias $var=\'$val\';"
             }
+            tcl {
+               set val $g_Aliases($var)
+               puts stdout "alias $var \"$val\";"
+            }
          }
       } elseif {$g_stateAliases($var) == "del"} {
          switch -- $g_shellType {
@@ -1659,6 +1685,9 @@ proc renderSettings {} {
                puts stdout "unalias $var;"
             }
             sh {
+               puts stdout "unalias $var;"
+            }
+            tcl {
                puts stdout "unalias $var;"
             }
          }
@@ -1679,6 +1708,17 @@ proc renderSettings {} {
                      puts stdout "$xrdb -merge <<EOF"
                      puts stdout "$var"
                      puts stdout "EOF;"
+                  }
+               }
+               tcl {
+                  if {[file exists $var]} {
+                     puts stdout "exec $xrdb -merge $var;"
+                  } else {
+                     puts stdout "set fl \[open \"|$xrdb -merge\" r+\]"
+                     set var [doubleQuoteEscaped $var]
+                     puts stdout "puts $fl \"$var\""
+                     puts stdout "close $fl"
+                     puts stdout "unset fl"
                   }
                }
                perl {
@@ -1715,6 +1755,12 @@ proc renderSettings {} {
                   puts stdout "$xrdb -merge <<EOF"
                   puts stdout "$var: $val"
                   puts stdout "EOF;"
+               }
+               tcl {
+                  puts stdout "set fl \[open \"|$xrdb -merge\" r+\]"
+                  puts stdout "puts $fl $var: $val"
+                  puts stdout "close $fl"
+                  puts stdout "unset fl"
                }
                perl {
                   puts stdout "open(XRDB,\"|$xrdb -merge\");"
@@ -1767,6 +1813,9 @@ proc renderSettings {} {
             sh {
                puts stdout "echo '$var';"
             }
+            tcl {
+               puts stdout "puts \"$var\";"
+            }
             cmd {
                puts stdout "echo '$var'"
             }
@@ -1807,6 +1856,9 @@ proc renderSettings {} {
          }
          sh {
             puts "/bin/true;"
+         }
+         tcl {
+            puts "exec /bin/true;"
          }
          cmd {
             # nothing needed, reserve for future cygwin, MKS, etc
@@ -3505,6 +3557,9 @@ switch -regexp -- $g_shell {
    }
    ^(csh|tcsh)$ {
        set g_shellType csh
+   }
+   ^(tcl)$ {
+      set g_shellType tcl
    }
    ^(perl)$ {
        set g_shellType perl

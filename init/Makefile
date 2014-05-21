@@ -1,6 +1,6 @@
 SH_LIKE  = sh ksh bash zsh
 CSH_LIKE = csh tcsh
-OTHER    = perl python lisp
+OTHER    = perl python lisp tcl
 D =  $(shell pwd)
 
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
