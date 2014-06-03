@@ -1,0 +1,456 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>module - command interface to the Modules package</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:operator@cs.umn.edu" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<ul>
+
+		<li><a href="#package_initialization">Package Initialization</a></li>
+		<li><a href="#examples_of_initialization">Examples of initialization</a></li>
+		<li><a href="#modulecmd_startup">Modulecmd startup</a></li>
+		<li><a href="#command_line_switches">Command line switches</a></li>
+		<ul>
+
+			<li><a href="#__force___f">-force, -f</a></li>
+			<li><a href="#__terse___t">-terse, -t</a></li>
+			<li><a href="#__long___l">-long, -l</a></li>
+			<li><a href="#__human___h">-human, -h</a></li>
+			<li><a href="#__verbose___v">-verbose, -v</a></li>
+			<li><a href="#__silent___s">-silent, -s</a></li>
+			<li><a href="#__create___c">-create, -c</a></li>
+			<li><a href="#__icase___i">-icase, -i</a></li>
+			<li><a href="#__userlvl__lvl____u__lvl_">-userlvl &lt;lvl&gt;, -u &lt;lvl&gt;</a></li>
+		</ul>
+
+		<li><a href="#module_sub_commands">Module Sub-Commands</a></li>
+		<ul>
+
+			<li><a href="#help__modulefile____">help [modulefile...]</a></li>
+			<li><a href="#load_modulefile__modulefile____">load modulefile [modulefile...]</a></li>
+			<li><a href="#add_modulefile__modulefile____">add modulefile [modulefile...]</a></li>
+			<li><a href="#unload_modulefile__modulefile____">unload modulefile [modulefile...]</a></li>
+			<li><a href="#rm_modulefile__modulefile____">rm modulefile [modulefile...]</a></li>
+			<li><a href="#switch_modulefile1_modulefile2">switch modulefile1 modulefile2</a></li>
+			<li><a href="#swap_modulefile1_modulefile2">swap modulefile1 modulefile2</a></li>
+			<li><a href="#display_modulefile__modulefile____">display modulefile [modulefile...]</a></li>
+			<li><a href="#show_modulefile__modulefile____">show modulefile [modulefile...]</a></li>
+			<li><a href="#list">list</a></li>
+			<li><a href="#avail__path____">avail [path...]</a></li>
+			<li><a href="#use_directory__directory____">use directory [directory...]</a></li>
+			<li><a href="#use___a___append__directory__directory____">use [-a|-append] directory [directory...]</a></li>
+			<li><a href="#unuse_directory__directory____">unuse directory [directory...]</a></li>
+			<li><a href="#update">update</a></li>
+			<li><a href="#clear">clear</a></li>
+			<li><a href="#purge">purge</a></li>
+			<li><a href="#whatis__modulefile__modulefile_____">whatis [modulefile [modulefile...]]</a></li>
+			<li><a href="#apropos_string">apropos string</a></li>
+			<li><a href="#keyword_string">keyword string</a></li>
+			<li><a href="#initadd_modulefile__modulefile____">initadd modulefile [modulefile...]</a></li>
+			<li><a href="#initprepend_modulefile__modulefile____">initprepend modulefile [modulefile...]</a></li>
+			<li><a href="#initrm_modulefile__modulefile____">initrm modulefile [modulefile...]</a></li>
+			<li><a href="#initswitch_modulefile1_modulefile2">initswitch modulefile1 modulefile2</a></li>
+			<li><a href="#initlist">initlist</a></li>
+			<li><a href="#initclear">initclear</a></li>
+		</ul>
+
+	</ul>
+
+	<li><a href="#modulefiles">Modulefiles</a></li>
+	<li><a href="#environment">ENVIRONMENT</a></li>
+	<ul>
+
+		<li><a href="#moduleshome">MODULESHOME</a></li>
+		<li><a href="#modulepath">MODULEPATH</a></li>
+		<li><a href="#loadedmodules">LOADEDMODULES</a></li>
+		<li><a href="#_loaded_modulefiles_">_LOADED_MODULEFILES_</a></li>
+		<li><a href="#_modulesbeginenv_">_MODULESBEGINENV_</a></li>
+	</ul>
+
+	<li><a href="#files">FILES</a></li>
+	<ul>
+
+		<li><a href="#_soft_rko_modules_3_1_6">/soft/rko-modules/3.1.6</a></li>
+		<li><a href="#__moduleshome__etc_rc">${MODULESHOME}/etc/rc</a></li>
+		<li><a href="#__home___modulerc">${HOME}/.modulerc</a></li>
+		<li><a href="#__moduleshome__modulefiles">${MODULESHOME}/modulefiles</a></li>
+		<li><a href="#__moduleshome__bin_modulecmd">${MODULESHOME}/bin/modulecmd</a></li>
+		<li><a href="#__moduleshome__init_shellname">${MODULESHOME}/init/shellname</a></li>
+	</ul>
+
+	<li><a href="#see_also">SEE ALSO</a></li>
+</ul>
+
+<hr name="index" />
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>module - command interface to the Modules package</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>module [switches] [[sub-command] [sub-command-args]]</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p><strong>module</strong> is a user interface to the Modules package.  The Modules package 
+provides for the dynamic modification of the user's environment via <em>modulefiles</em>.</p>
+<p>Each <em>modulefile</em> contains the information needed to configure the shell for
+an application.  Once the Modules package is initialized, the environment can
+be modified on a per-module basis using the <strong>module</strong> command which interprets
+<em>modulefiles</em>.  Typically <em>modulefiles</em> instruct the <strong>module</strong> command to
+alter or set shell environment variables such as PATH, MANPATH, etc.
+<em>Modulefiles</em> may be shared by many users on a system and users may have
+their own collection to supplement or replace the shared <em>modulefiles</em>.</p>
+<p>The <em>modulefiles</em> are added to and removed from the current environment by 
+the user.  The environment changes contained in a <em>modulefile</em> can be 
+summarized through the <strong>module</strong> command as well.
+If no arguments are given, a summary of the <strong>module</strong> usage and <em>sub-commands</em>
+are shown.</p>
+<p>The action for the <strong>module</strong> command to take is described by the <em>sub-command</em>
+and its associated arguments.</p>
+<p>
+</p>
+<h2><a name="package_initialization">Package Initialization</a></h2>
+<p>The Modules package and the <strong>module</strong> command are initialized when a 
+shell-specific initialization script is sourced into the shell.
+The script creates the <strong>module</strong> command as either an alias or function,
+creates Modules environment variables, and a snapshot of the environment
+is saved in ${HOME}/.modulesbeginenv.  The <strong>module</strong> alias or function
+executes the <strong>modulecmd.tcl</strong> program located in ${MODULESHOME}/ and has the
+shell evaluate the command's output.  The first argument to <strong>modulecmd.tcl</strong>
+specifies the type of shell.</p>
+<p>The initialization scripts are kept in ${MODULESHOME}/init/[shellname]
+where [shellname] is the name of the sourcing shell.  For example, a C Shell
+user sources the ${MODULESHOME}/init/csh script.  The sh, csh, tcsh, bash,
+ksh, and zsh shells are supported by <strong>modulecmd.tcl</strong>.  In addition, python and
+perl &quot;shells&quot; are supported which writes the environment changes to stdout
+as python or perl code.</p>
+<p>
+</p>
+<h2><a name="examples_of_initialization">Examples of initialization</a></h2>
+<p>In the following examples, replace ${MODULESHOME} with the actual directory
+name.</p>
+<p>C Shell initialization (and derivatives):
+        source ${MODULESHOME}/init/csh
+        module load modulefile modulefile ...</p>
+<p>Bourne Shell (sh) (and derivatives):
+        . ${MODULESHOME}/init/sh
+        module load modulefile modulefile ...</p>
+<p>Perl:
+        require &quot;${MODULESHOME}/init/perl&quot;;
+        &amp;module(&quot;load modulefile modulefile ...&quot;);</p>
+<p>
+</p>
+<h2><a name="modulecmd_startup">Modulecmd startup</a></h2>
+<p>Upon invocation <strong>modulecmd.tcl</strong> sources rc files which contain global, user
+and <em>modulefile</em> specific setups. These files are interpreted as 
+<em>modulefiles</em>.  See <em>modulefile(4)</em> for detailed information.</p>
+<p>Upon invocation of <strong>modulecmd.tcl</strong> module RC files are sourced in the
+following order:</p>
+<pre>
+        Global RC file as specified by ${MODULERCFILE} or 
+                ${MODULESHOME}/etc/rc</pre>
+<pre>
+        User specific module RC file ${HOME}/.modulerc</pre>
+<pre>
+        All .modulerc and .version files found during I&lt;modulefile&gt;
+                seeking.</pre>
+<p>
+</p>
+<h2><a name="command_line_switches">Command line switches</a></h2>
+<p>The <strong>module</strong> command accepts command line switches as its first parameter.
+These may be used to control output format of all information displayed and
+the <strong>module</strong> behavior in case of locating and interpreting <em>modulefiles</em>.</p>
+<p>All switches may be entered either in short or long notation. The following
+switches are accepted:</p>
+<p>
+</p>
+<h3><a name="__force___f">--force, -f</a></h3>
+<p>Force active dependency resolution. This will result in modules found on a
+<strong>prereq</strong> command inside a <em>modulefile</em> being load automatically.
+Unloading <em>modulefiles</em> using this switch will result in all required modules
+which have been loaded automatically using the <strong>-f</strong> switch being unload.</p>
+<p>
+</p>
+<h3><a name="__terse___t">--terse, -t</a></h3>
+<p>Display <strong>avail</strong> and <strong>list</strong> output in short format.</p>
+<p>
+</p>
+<h3><a name="__long___l">--long, -l</a></h3>
+<p>Display <strong>avail</strong> and <strong>list</strong> output in long format.</p>
+<p>
+</p>
+<h3><a name="__human___h">--human, -h</a></h3>
+<p>Display short output of the <strong>avail</strong> and <strong>list</strong> commands in human
+readable format.</p>
+<p>
+</p>
+<h3><a name="__verbose___v">--verbose, -v</a></h3>
+<p>Enable verbose messages during module command execution.</p>
+<p>
+</p>
+<h3><a name="__silent___s">--silent, -s</a></h3>
+<p>Disable verbose messages. Redirect <em>stderr</em> to <em>/dev/null</em> if 
+<em>stderr</em> is found not to be a tty. This is a useful option for module
+commands being written into <em>.cshrc</em>, <em>.login</em> or <em>.profile</em>
+files, because some remote shells (as <em>rsh</em>(1)) and remote execution
+commands (like <em>rdist</em>) get confused if there is output on stderr.</p>
+<p>
+</p>
+<h3><a name="__create___c">--create, -c</a></h3>
+<p>Create caches for <strong>module avail</strong> and <strong>module apropos</strong>. You must 
+be granted write access to the ${MODULEHOME}/modulefiles/ directory
+if you try to invoke <strong>module</strong> with the -c option.</p>
+<p>
+</p>
+<h3><a name="__icase___i">--icase, -i</a></h3>
+<p>Case insensitive module parameter evaluation. Currently only implemented for
+the <strong>module apropos</strong> command.</p>
+<p>
+</p>
+<h3><a name="__userlvl__lvl____u__lvl_">--userlvl &lt;lvl&gt;, -u &lt;lvl&gt;</a></h3>
+<p>Set the user level to the specified value. The argument of this option may
+be one of:</p>
+<p><table cellspacing="0" cellpadding="0"><tr><td>novice, nov
+<tr><td><td>Novice</table></p>
+<p><table cellspacing="0" cellpadding="0"><tr><td>expert, exp
+<tr><td><td>Experienced module user</table></p>
+<p><table cellspacing="0" cellpadding="0"><tr><td>advanced, adv
+<tr><td><td>Advanced module user</table></p>
+<p>
+</p>
+<h2><a name="module_sub_commands">Module Sub-Commands</a></h2>
+<p>
+</p>
+<h3><a name="help__modulefile____">help [modulefile...]</a></h3>
+<p>Print the usage of each sub-command.
+If an argument is given, print the Module specific help information for the
+modulefile.</p>
+<p>
+</p>
+<h3><a name="load_modulefile__modulefile____">load modulefile [modulefile...]</a></h3>
+<p>
+</p>
+<h3><a name="add_modulefile__modulefile____">add modulefile [modulefile...]</a></h3>
+<p>Load modulefile into the shell environment.</p>
+<p>
+</p>
+<h3><a name="unload_modulefile__modulefile____">unload modulefile [modulefile...]</a></h3>
+<p>
+</p>
+<h3><a name="rm_modulefile__modulefile____">rm modulefile [modulefile...]</a></h3>
+<p>Remove modulefile from the shell environment.</p>
+<p>
+</p>
+<h3><a name="switch_modulefile1_modulefile2">switch modulefile1 modulefile2</a></h3>
+<p>
+</p>
+<h3><a name="swap_modulefile1_modulefile2">swap modulefile1 modulefile2</a></h3>
+<p>Switch loaded modulefile1 with modulefile2</p>
+<p>
+</p>
+<h3><a name="display_modulefile__modulefile____">display modulefile [modulefile...]</a></h3>
+<p>
+</p>
+<h3><a name="show_modulefile__modulefile____">show modulefile [modulefile...]</a></h3>
+<p>Display information about a modulefile.
+The display sub-command will list the full path of the modulefile
+and all (or most) of the environment changes the modulefile
+will make if loaded.  (It will not display any
+environment changes found within conditional statements.)</p>
+<p>
+</p>
+<h3><a name="list">list</a></h3>
+<p>List loaded modules.</p>
+<p>
+</p>
+<h3><a name="avail__path____">avail [path...]</a></h3>
+<p>List all available modulefiles in the current \s-1MODULEPATH\s0.
+All directories in the \s-1MODULEPATH\s0 are recursively searched for
+files containing the modulefile magic cookie.  If an argument is
+given, then each directory in the \s-1MODULEPATH\s0 is searched for 
+modulefiles whose pathname match the argument.
+Multiple versions of an application can be supported by creating a
+subdirectory for the application containing modulefiles for each
+version.</p>
+<p>
+</p>
+<h3><a name="use_directory__directory____">use directory [directory...]</a></h3>
+<p>
+</p>
+<h3><a name="use___a___append__directory__directory____">use [-a|--append] directory [directory...]</a></h3>
+<p>Prepend directory to the \s-1MODULEPATH\s0 environment variable.
+The --append flag will append the directory to \s-1MODULEPATH\s0.</p>
+<p>
+</p>
+<h3><a name="unuse_directory__directory____">unuse directory [directory...]</a></h3>
+<p>Remove directory from the \s-1MODULEPATH\s0 environment variable.</p>
+<p>
+</p>
+<h3><a name="update">update</a></h3>
+<p>Attempt to reload all loaded modulefiles.  The environment will be
+reconfigured to match the saved .I ${\s-1HOME\s0}/.modulesbeginenv
+and the modulefiles will be reloaded.  update will only change the
+environment variables that the modulefiles set.</p>
+<p>
+</p>
+<h3><a name="clear">clear</a></h3>
+<p>Force the Modules Package to believe that no modules are currently loaded.</p>
+<p>
+</p>
+<h3><a name="purge">purge</a></h3>
+<p>Unload all loaded modulefiles.</p>
+<p>
+</p>
+<h3><a name="whatis__modulefile__modulefile_____">whatis [modulefile [modulefile...]]</a></h3>
+<p>Display the modulefile information set up by the \fImodule-whatis\fP
+commands inside the specified modulefiles. If no modulefiles are
+specified all whatis information lines will be shown.</p>
+<p>
+</p>
+<h3><a name="apropos_string">apropos string</a></h3>
+<p>
+</p>
+<h3><a name="keyword_string">keyword string</a></h3>
+<p>Seeks thru the whatis informations of all modulefiles for the
+specified string.  All module whatis informations matching the
+string search will be displayed.</p>
+<p>
+</p>
+<h3><a name="initadd_modulefile__modulefile____">initadd modulefile [modulefile...]</a></h3>
+<p>Add modulefile to the shell's initialization file in the user's
+home directory.  The startup files checked are .cshrc, .login,
+and .csh_variables for the C Shell;
+.profile for the Bourne and Korn Shells; .bashrc, .bash_env, 
+and .bash_profile for the GNU Bourne Again Shell;
+.zshrc, .zshenv, and .zlogin for zsh. The .modules file is checked
+for all shells.</p>
+<p>If a 'module load' line is found in any of these files, the
+modulefile(s) is(are) appended to any existing list of modulefiles.
+The 'module load' line must be located in at least one of the
+files listed above for any of the 'init' sub-commands to work properly.
+If the 'module load' line is found in multiple shell initialization
+files, all of the lines are changed.</p>
+<p>
+</p>
+<h3><a name="initprepend_modulefile__modulefile____">initprepend modulefile [modulefile...]</a></h3>
+<p>Does the same as initadd but prepends the given modules to the
+beginning of the list.</p>
+<p>
+</p>
+<h3><a name="initrm_modulefile__modulefile____">initrm modulefile [modulefile...]</a></h3>
+<p>Remove modulefile from the shell's initialization files.</p>
+<p>
+</p>
+<h3><a name="initswitch_modulefile1_modulefile2">initswitch modulefile1 modulefile2</a></h3>
+<p>Switch modulefile1 with modulefile2 in the shell's initialization files.</p>
+<p>
+</p>
+<h3><a name="initlist">initlist</a></h3>
+<p>List all of the modulefiles loaded from the shell's initialization file.</p>
+<p>
+</p>
+<h3><a name="initclear">initclear</a></h3>
+<p>Clear all of the modulefiles from the shell's initialization files.</p>
+<p>
+</p>
+<hr />
+<h1><a name="modulefiles">Modulefiles</a></h1>
+<p>modulefiles are written in the Tool Command Language (tcl) and are
+interpreted by modulecmd. modulefiles can use conditional statements.
+Thus the effect a modulefile will have on the environment may change depending
+upon the current state of the environment.</p>
+<p>Environment variables are unset when unloading a modulefile.  Thus, it is
+possible to load a modulefile and then unload it without having the
+environment variables return to their prior state.</p>
+<p>
+</p>
+<hr />
+<h1><a name="environment">ENVIRONMENT</a></h1>
+<p>
+</p>
+<h2><a name="moduleshome">MODULESHOME</a></h2>
+<p>The location of the master Modules package file directory containing
+module command initialization scripts, the executable program modulecmd,
+and a directory containing a collection of master modulefiles.</p>
+<p>
+</p>
+<h2><a name="modulepath">MODULEPATH</a></h2>
+<p>The path that the module command searches when looking for modulefiles.
+Typically, it is set to the master modulefiles directory,
+${MODULESHOME}/modulefiles, by the initialization script.
+MODULEPATH can be set using 'module use' or by the module
+initialization script to search group or personal modulefile
+directories before or after the master modulefile directory.</p>
+<p>
+</p>
+<h2><a name="loadedmodules">LOADEDMODULES</a></h2>
+<p>A colon separated list of all loaded modulefiles.</p>
+<p>
+</p>
+<h2><a name="_loaded_modulefiles_">_LOADED_MODULEFILES_</a></h2>
+<p>A colon separated list of the full pathname for all loaded modulefiles.</p>
+<p>
+</p>
+<h2><a name="_modulesbeginenv_">_MODULESBEGINENV_</a></h2>
+<p>The filename of the file containing the initialization environment snapshot.</p>
+<p>
+</p>
+<hr />
+<h1><a name="files">FILES</a></h1>
+<p>
+</p>
+<h2><a name="_soft_rko_modules_3_1_6">/soft/rko-modules/3.1.6</a></h2>
+<p>The MODULESHOME directory.</p>
+<p>
+</p>
+<h2><a name="__moduleshome__etc_rc">${MODULESHOME}/etc/rc</a></h2>
+<p>The system-wide modules rc file.  The location of this file can be changed
+using the MODULERCFILE environment variable as described above.</p>
+<p>
+</p>
+<h2><a name="__home___modulerc">${HOME}/.modulerc</a></h2>
+<p>The user specific modules rc file.</p>
+<p>
+</p>
+<h2><a name="__moduleshome__modulefiles">${MODULESHOME}/modulefiles</a></h2>
+<p>The directory for system-wide modulefiles.  The location of the directory
+can be changed using the MODULEPATH environment variable as described above.</p>
+<p>
+</p>
+<h2><a name="__moduleshome__bin_modulecmd">${MODULESHOME}/bin/modulecmd</a></h2>
+<p>The modulefile interpreter that gets executed upon each invocation of module.</p>
+<p>
+</p>
+<h2><a name="__moduleshome__init_shellname">${MODULESHOME}/init/shellname</a></h2>
+<p>The Modules package initialization file sourced into the user's environment.</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>modulefile(4)</em></p>
+
+</body>
+
+</html>

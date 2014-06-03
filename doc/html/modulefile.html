@@ -1,0 +1,569 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>modulefile - files containing Tcl code for the Modules package</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:operator@cs.umn.edu" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+
+<ul>
+
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#modules_specific_tcl_commands">Modules Specific Tcl Commands</a></li>
+	<ul>
+
+		<li><a href="#break">break</a></li>
+		<li><a href="#setenv_variable_value">setenv variable value</a></li>
+		<li><a href="#unsetenv_variable__value_">unsetenv variable [value]</a></li>
+		<li><a href="#append_path_variable_value">append-path variable value</a></li>
+		<li><a href="#prepend_path_variable_value">prepend-path variable value</a></li>
+		<li><a href="#remove_path_variable_value">remove-path variable value</a></li>
+		<li><a href="#prereq_modulefile___modulefile______">prereq modulefile [ modulefile ...  ]</a></li>
+		<li><a href="#conflict_modulefile___modulefile______">conflict modulefile [ modulefile ...  ]</a></li>
+		<li><a href="#is_loaded_modulefile___modulefile______">is-loaded modulefile [ modulefile ...  ]</a></li>
+		<li><a href="#module___sub_command_____sub_command_args__">module [ sub-command ] [ sub-command-args ]</a></li>
+		<li><a href="#module_info_option___info_args__">module-info option [ info-args ]</a></li>
+		<ul>
+
+			<li><a href="#module_info_flags">module-info flags</a></li>
+			<li><a href="#module_info_mode__modetype_">module-info mode [modetype]</a></li>
+			<li><a href="#module_info_name">module-info name</a></li>
+			<li><a href="#module_info_specified">module-info specified</a></li>
+			<li><a href="#module_info_shell">module-info shell</a></li>
+			<li><a href="#module_info_shelltype">module-info shelltype</a></li>
+			<li><a href="#module_info_alias_name">module-info alias name</a></li>
+			<li><a href="#module_info_version_module_file">module-info version module-file</a></li>
+		</ul>
+
+		<li><a href="#module_version_module_file_version_name__version_name_____">module-version module-file version-name [version-name ...]</a></li>
+		<li><a href="#module_alias_name_module_file">module-alias name module-file</a></li>
+		<li><a href="#module_trace__on_off___command__command_________module_modulefile">module-trace  {on|off}  [command  [command  ...]]   [-module modulefile</a></li>
+		<li><a href="#module_user_level">module-user level</a></li>
+		<li><a href="#module_verbosity__on_off_">module-verbosity {on|off}</a></li>
+		<li><a href="#module_log_error_weight_log_facility">module-log error-weight log-facility</a></li>
+		<li><a href="#module_whatis_string">module-whatis string</a></li>
+		<li><a href="#set_alias_alias_name_alias_string">set-alias alias-name alias-string</a></li>
+		<li><a href="#unset_alias_alias_name">unset-alias alias-name</a></li>
+		<li><a href="#system_string">system string</a></li>
+		<li><a href="#uname_field">uname field</a></li>
+		<li><a href="#x_resource_resource_string">x-resource resource-string</a></li>
+		<li><a href="#x_resource_filename">x-resource filename</a></li>
+		<ul>
+
+			<li><a href="#x_resource__u2_staff_leif__xres_ileaf">x-resource /u2/staff/leif/.xres/Ileaf</a></li>
+			<li><a href="#x_resource__glob____xres_ileaf_">x-resource [glob ~/.xres/ileaf]</a></li>
+			<li><a href="#x_resource__ileaf_popup_saveunder__true_">x-resource {Ileaf.popup.saveUnder: True}</a></li>
+		</ul>
+
+	</ul>
+
+	<li><a href="#modules_variables">Modules Variables</a></li>
+	<li><a href="#locating_modulefiles">Locating Modulefiles</a></li>
+	<li><a href="#modulefile_specific_help">Modulefile Specific Help</a></li>
+	<li><a href="#modulefile_display">Modulefile Display</a></li>
+	<li><a href="#environment">ENVIRONMENT</a></li>
+	<ul>
+
+		<li><a href="#__modulepath_">${MODULEPATH}</a></li>
+	</ul>
+
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#notes">NOTES</a></li>
+</ul>
+
+<hr name="index" />
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="description">DESCRIPTION</a></h1>
+<p><em>modulefiles</em> are written in the Tool Command Language, <code>Tcl(3)</code> and are
+interpreted by the modulecmd program via the <strong>module(1)</strong> user interface.
+<em>modulefiles</em> can be loaded, unloaded, or switched on-the-fly while the
+user is working.</p>
+<p>A <em>modulefile</em> begins with the magic cookie, '#%Module'.  A version number may
+be placed after this string.  The version number is useful as the format of
+<em>modulefiles</em> may change.  If a version number doesn't exist, then 
+<strong>modulecmd.tcl</strong> will assume the <em>modulefile</em> is compatible with the latest
+version.  The current version for <em>modulefiles</em> is 1.0.  Files without the
+magic cookie will not be interpreted by <strong>modulecmd.tcl</strong>.</p>
+<p>Each modulefile contains the changes to a user's environment needed to
+access an application.  Tcl is a simple programming language which
+permits modulefiles to be arbitrarily complex, depending upon the
+application's and the modulefile writer's needs.  If support for
+extended tcl (tclX) has been configured for your installation of
+modules, you may use all the extended commands provided by tclX, too.
+modulefiles can be used to implement site policies regarding the access
+and use of applications.</p>
+<p>A typical modulefiles is a simple bit of code that set or add entries
+to the PATH, MANPATH, or other environment variables.  Tcl has
+conditional statements that are evaluated when the modulefile is
+loaded.  This is very effective for managing path or environment
+changes due to different OS releases or architectures.  The user
+environment information is encapsulated into a single modulefile kept
+in a central location.  The same modulefile is used by every user on
+any machine.  So, from the user's perspective, starting an application
+is exactly the same irregardless of the machine or platform they are on.
+modulefiles also hide the notion of different types of shells.  From
+the user's perspective, changing the environment for one shell looks
+exactly the same as changing the environment for another shell.  This
+is useful for new or novice users and eliminates the need for
+statements such as &quot;if you're using the C Shell do this ..., otherwise
+if you're using the Bourne shell do this ...&quot;.  Announcing and accessing
+new software is uniform and independent of the user's shell.  From the
+modulefile writer's perspective, this means one set of information will
+take care of every type of shell.</p>
+<p>
+</p>
+<hr />
+<h1><a name="modules_specific_tcl_commands">Modules Specific Tcl Commands</a></h1>
+<p>The Modules Package uses commands which are extensions to the
+&quot;standard&quot; Tool Command Language <code>Tcl(3)</code> package.  Unless otherwise
+specified, the Module commands return the empty string.  Some commands
+behave differently when a modulefile is loaded or unloaded.  The command
+descriptions assume the modulefile is being loaded.</p>
+<p>
+</p>
+<h2><a name="break">break</a></h2>
+<p>This is not a modules specific command, it's actually part of Tcl.  However,
+it will have the effect of causing the module not to be listed as loaded and
+not affect other modules being loaded concurrently.  All commands within the
+module will be performed though.  An example: Suppose that a full
+selection of modulefiles are needed for various different architectures, but
+some of the modulefiles are not needed and the user should be alerted.  Having
+the unnecessary modulefile be a link to the following notavail modulefile
+will perform the task as required.</p>
+<pre>
+        #%Module1.0
+        ## notavail modulefile
+        ##
+        proc ModulesHelp { } {
+              puts stderr &quot;This module does nothing but alert the user&quot;
+              puts stderr &quot;that the [module-info name] module is not available&quot;
+        }</pre>
+<pre>
+        module-whatis  &quot;Notifies user that module is not available.&quot;
+        set curMod [module-info name]
+        if { [ module-info mode load ] } {
+                puts stderr &quot;Note: '$curMod' is not available for [uname sysname].&quot;
+        }
+        break</pre>
+<p>
+</p>
+<h2><a name="setenv_variable_value">setenv variable value</a></h2>
+<p>Set environment variable to value.  The setenv command will also change the
+process' environment.  A reference using Tcl's env associative array will 
+reference changes made with the setenv command.  Changes made using Tcl's env
+associative array will NOT change the user's environment variable like the
+setenv command.  An environment change made this way will only affect the
+module parsing process. The setenv command is also useful for changing the
+environment prior to the exec or system command.  When a modulefile is 
+unloaded, setenv becomes unsetenv.  If the environment variable had been
+defined it will be overwritten while loading the modulefile.   A subsequent
+unload will unset the environment variable - the previous value cannot be
+restored!   (Unless you handle it explicitly ... see below.)</p>
+<p>
+</p>
+<h2><a name="unsetenv_variable__value_">unsetenv variable [value]</a></h2>
+<p>Unsets environment variable.  However, if there is an optional value, then
+when unloading a module, it will set variable to value.  The unsetenv command
+changes the process' environment like setenv.</p>
+<p>
+</p>
+<h2><a name="append_path_variable_value">append-path variable value</a></h2>
+<p>
+</p>
+<h2><a name="prepend_path_variable_value">prepend-path variable value</a></h2>
+<p>Append or prepend value to environment variable.  The variable is a colon
+separated list such as &quot;PATH=directory:directory:directory&quot;.  If the variable
+is not set, it is created.  When a modulefile is unloaded,  append-path
+and prepend-path become remove-path.</p>
+<p>
+</p>
+<h2><a name="remove_path_variable_value">remove-path variable value</a></h2>
+<p>Remove value from the colon separated list in variable.  Every string between
+colons in variable is compared to value.  If the two match, value is removed
+from variable.</p>
+<p>
+</p>
+<h2><a name="prereq_modulefile___modulefile______">prereq modulefile [ modulefile ...  ]</a></h2>
+<p>
+</p>
+<h2><a name="conflict_modulefile___modulefile______">conflict modulefile [ modulefile ...  ]</a></h2>
+<p>prereq and conflict control whether or not the modulefile will be loaded.  The
+prereq command lists modulefiles which must have been previously loaded 
+before the current modulefile will be loaded.  Similarly, the conflict command
+lists modulefiles which conflict with the current modulefile.  If a list
+contains more than one modulefile, then each member of the list acts as a
+Boolean OR operation.  Multiple prereq and conflict commands may be used to
+create a Boolean AND operation.  If one of the requirements have not been
+satisfied, an error is reported and the current modulefile makes no changes
+to the user's environment.</p>
+<p>If an argument for prereq is a directory and any modulefile from the directory
+has been loaded, then the prerequisite is met. For example, specifying X11 as
+a prereq means that any version of X11, X11/R4 or X11/R5, must be loaded
+before proceeding.</p>
+<p>If an argument for conflict is a directory and any other modulefile from that
+directory has been loaded, then a conflict will occur.  For example,
+specifying X11 as a conflict will stop X11/R4 and X11/R5 from being loaded at the same time.</p>
+<p>
+</p>
+<h2><a name="is_loaded_modulefile___modulefile______">is-loaded modulefile [ modulefile ...  ]</a></h2>
+<p>The is-loaded command returns a true value if any of the listed modulefiles
+has been loaded.  If a list contains more than one modulefile, then each
+member acts as a boolean OR operation.  If an argument for is-loaded is a
+directory and any modulefile from the directory has been loaded is-loaded
+would return a true value.</p>
+<p>
+</p>
+<h2><a name="module___sub_command_____sub_command_args__">module [ sub-command ] [ sub-command-args ]</a></h2>
+<p>Contains the same sub-commands as described in the <code>module(1)</code> man page in the
+Module Sub-Commands section.  This command permits a modulefile to load or
+remove other modulefiles.  No checks are made to ensure that the modulefile
+does not try to load itself.  Often it is useful to have a single modulefile
+that performs a number of module load commands.  For example, if every user on
+the system requires a basic set of applications loaded, then a core
+modulefile would contain the necessary module load commands.</p>
+<p>
+</p>
+<h2><a name="module_info_option___info_args__">module-info option [ info-args ]</a></h2>
+<p>Provide information about the modulecmd program's state.  Some of the
+information is specific to the internals of modulecmd.  Option is the type
+of information to be provided, and info-args are any arguments needed.</p>
+<p>
+</p>
+<h3><a name="module_info_flags">module-info flags</a></h3>
+<p>Returns the integer value of modulecmd's flags state.</p>
+<p>
+</p>
+<h3><a name="module_info_mode__modetype_">module-info mode [modetype]</a></h3>
+<p>Returns the current modulecmd's mode as a string if no modetype is given.  
+Returns 1 if modulecmd's mode is modetype. modetype can be: load, remove,
+display, help, whatis, switch, switch1, switch2, or switch3.</p>
+<p>
+</p>
+<h3><a name="module_info_name">module-info name</a></h3>
+<p>Return the name of the modulefile. This is not the full pathname for
+modulefile.  See the Modules Variables section for information on the full
+pathname.</p>
+<p>
+</p>
+<h3><a name="module_info_specified">module-info specified</a></h3>
+<p>Return the name of the modulefile specified on the command line.</p>
+<p>
+</p>
+<h3><a name="module_info_shell">module-info shell</a></h3>
+<p>Return the current shell under which modulecmd was invoked.  This is
+the first parameter of modulecmd, which is normally hidden by the module alias.</p>
+<p>
+</p>
+<h3><a name="module_info_shelltype">module-info shelltype</a></h3>
+<p>Return the family of the shell under which modulefile was invoked.  As of
+module-info shell this depends on the first parameter of modulecmd. The
+output reflects a shell type determining the shell syntax of the commands
+produced by modulecmd.</p>
+<p>
+</p>
+<h3><a name="module_info_alias_name">module-info alias name</a></h3>
+<p>Returns the full module file name to which the module file alias name is
+assigned</p>
+<p>
+</p>
+<h3><a name="module_info_version_module_file">module-info version module-file</a></h3>
+<p>Returns a list of all symbolic versions assigned to the passed module-file.  
+The paremeter module-file might either be a full qualified module file with
+name and version, another symbolic module file name or a module file alias.</p>
+<p>
+</p>
+<h2><a name="module_version_module_file_version_name__version_name_____">module-version module-file version-name [version-name ...]</a></h2>
+<p>Assignes the symbolic version-name to the module file module-file This
+command should be placed in one of the modulecmd rc files in order to provide
+shorthand invocations of frequently used module file names.</p>
+<p>The special version-name default specifies the default version to be used for
+module commands, if no specific verion is given.  This replaces the 
+definitions made in the .version file in former modulecmd releases.</p>
+<p>The parameter module-file may be either</p>
+<pre>
+        a fully qualified modulefile with name and version
+        a symbolic module file name
+        another module file alias</pre>
+<p>
+</p>
+<h2><a name="module_alias_name_module_file">module-alias name module-file</a></h2>
+<p>Assignes the module file module-file to the alias name.  This command should
+be placed in one of the modulecmd rc files in order to provide shorthand
+invocations of frequently used module file names.</p>
+<p>The parameter module-file may be either</p>
+<pre>
+        a fully qualified modulefile with name and version
+        a symbolic module file name
+        another module file alias</pre>
+<p>
+</p>
+<h2><a name="module_trace__on_off___command__command_________module_modulefile__modulefile______">module-trace  {on|off}  [command  [command  ...]]   [-module modulefile
+       [modulefile ...]]</a></h2>
+<p>Switches tracing on or off. Without parameters this command will affect
+globally all tracing setups for all commands and modulefiles.  The command
+parameter may be used to affect tracing of specified module commands only and
+the switch -module finally limits the affect of the module-trace command to a
+well defined set of module files.</p>
+<p>The command may be one of the following</p>
+<pre>
+        avail - 'module avail' command
+        clear - 'module clear' command
+        display - 'module display' command
+        init - 'module init' command
+        help - 'module help' command
+        list - 'module list' command
+        load - 'module load' command
+        purge - 'module purge' command
+        switch - 'module switch' command
+        unuse - 'module unuse' command
+        unload - 'module unload' command
+        update - 'module update' command
+        use - 'module use' command</pre>
+<p>The module parameter specifies a set of module files using TCL regular
+expressions. For example:</p>
+<pre>
+        .*  will affect all module files
+        */2.0 affects all module files at version 2.0
+        gnu/.*  affects all versions of the gnu modulefile
+        gnu/2.0 affects only version 2.0 of the gnu modulefile</pre>
+<p>The module parameter is prepended to the current tracing pattern list for the
+specified module command.  It is evaluated from the left to the right.  The
+first matching pattern defines the tracing parameter.</p>
+<p>The internal trace pattern list is stored as a colon separated list.  In
+advanced user level only, colons may be specified on the module parameter of
+the module-trace command. This will directly take effect in the internal trace
+pattern list.  In novice or expert user level a warning messge will be
+generated.</p>
+<p>
+</p>
+<h2><a name="module_user_level">module-user level</a></h2>
+<p>Defines the user level under wich module-cmd runs. This takes effect on the
+error messages being produced and on the behavior of modulecmd in case of
+detecting an outage.</p>
+<p>The level parameter specifies the user level and may be one of the following
+values:</p>
+<pre>
+        advanced, adv - advanced user level
+        expert, exp - expert user level
+        novice, nov - novice user level</pre>
+<p>
+</p>
+<h2><a name="module_verbosity__on_off_">module-verbosity {on|off}</a></h2>
+<p>Switches verbose modulecmd message display on or off.</p>
+<p>
+</p>
+<h2><a name="module_log_error_weight_log_facility">module-log error-weight log-facility</a></h2>
+<p>Defines whether error messages of the specified weight should be logged and
+conditionally assignes a log-facility. alias-name</p>
+<p>The error-weight parameter specifies the error level to be logged.  It may be
+one of the following values:</p>
+<pre>
+        verb - verbose messages
+        info - informal messages
+        debug - debugging messages
+        trace - tracing output
+        warn - warnings
+        prob - problems (normally the modulecmd may be completed)
+        error - errors (which normally leads to unsuccessful  end
+                of the modulecmd)
+        fatal - fatal system errors
+        panic  -  very fatal system errors, e.g. internal program
+                inconsistencies.</pre>
+<p>The log-facility parameter specifies the log destination.  This may either
+switch off logging for the specified error-weight, direct log messages to a
+special stream or a file or specify a syslog facility for logging. The
+following values are allowed:</p>
+<pre>
+        stderr, stdout - predefined output streams for normal and
+        error outputs. Note, that stdout  is  normally  used  for
+        passing parameters to the invoking shell. Directing error
+        output to  this  stream  might  screw  up  the  modulecmd
+        integration to your shell.
+        a  syslog  facility  - directs logging to the syslog. See
+        syslog.conf(4) for  detailed  description  of  the  valid
+        syslog facilities.
+        null,  none  -  will  suppress  logging  of the specified
+        error-weight.
+        a filename - is recognized by the first  character  being
+        either  a '.' or a '/'. You must have write permission to
+        the file you specify.</pre>
+<p>
+</p>
+<h2><a name="module_whatis_string">module-whatis string</a></h2>
+<p>Defines a string which is displayed in case of the invocation of the 'module
+whatis' command.  There may be more than one module-whatis line in a
+modulefile.  This command takes no actions in case of load, display, etc.
+invocations of modulecmd.</p>
+<p>The string parameter has to be enclosed in double-quotes if there's more than
+one word specified.  Words are defined to be separated by whitespace
+characters (space, tab, cr).</p>
+<p>
+</p>
+<h2><a name="set_alias_alias_name_alias_string">set-alias alias-name alias-string</a></h2>
+<p>Sets an alias or function with the name alias-name in the user's environment 
+to the string alias-string.  Arguments can be specified using the Bourne Shell
+style of function arguments.</p>
+<p>If the string contains &quot;$1&quot;, then this will become the first argument when the
+alias is interpreted by the shell.  The string &quot;$*&quot; corresponds to all of the
+arguments given to the alias.  The character '$' may be escaped using the '\'
+character.</p>
+<p>For some shells, aliases are not possible and the command has no effect.  
+For Bourne shell derivatives, a shell function will be written (if supported)
+to give the impression of an alias.  When a modulefile is unloaded, set-alias
+becomes unset-alias.</p>
+<p>
+</p>
+<h2><a name="unset_alias_alias_name">unset-alias alias-name</a></h2>
+<p>Unsets an alias with the name alias-name in the user's environment.  If the
+shell supports functions then the shell is instructed to unset function
+alias-name.</p>
+<p>
+</p>
+<h2><a name="system_string">system string</a></h2>
+<p>Pass string to the C library routine <code>system(3)</code>.  For the <code>system(3)</code> call
+modulecmd redirects stdout to stderr since stdout would be parsed by the
+evaluating shell.  The exit status of the executed command is returned.</p>
+<p>
+</p>
+<h2><a name="uname_field">uname field</a></h2>
+<p>Provide fast lookup of system information on systems that support <code>uname(3)</code>.
+uname is significantly faster than using system to execute a program to
+return host information.  If <code>uname(3)</code> is not available, <code>gethostname(3)</code> or
+some program will make the nodename available.  Uname will return the string
+&quot;unknown&quot; if information is unavailable for the field.</p>
+<p>Uname will invoke getdomainname in order to figure out the name of the domain.
+Field values are:</p>
+<pre>
+        sysname - the operating system name
+        nodename - the hostname
+        domain - the name of the domain
+        release - the operating system release
+        version - the operating system version
+        machine  -  a  standard name that identifies the system's hardware</pre>
+<p>
+</p>
+<h2><a name="x_resource_resource_string">x-resource resource-string</a></h2>
+<p>
+</p>
+<h2><a name="x_resource_filename">x-resource filename</a></h2>
+<p>Merge resources into the X11 resource database.  The resources are used to 
+control look and behavior of X11 applications.  The command will attempt to
+read resources from filename.  If the argument isn't a valid file name, then
+string will be interpreted as a resource.  If a file is found, it will be
+filtered through the <code>cpp(1)</code> preprocessor, just as <code>xrdb(1)</code> would do.</p>
+<p>modulefiles that use this command, should in most cases contain one or more
+x-resource lines, each defining one X11 resource.  Reading resources from
+filename is much slower, due to the preprocessing.  The DISPLAY environment
+variable should be properly set and the X11 server should be accessible.  
+If x-resource can't manipulate the X11 resource database, the modulefile
+will exit with an error message.  Examples:</p>
+<p>
+</p>
+<h3><a name="x_resource__u2_staff_leif__xres_ileaf">x-resource /u2/staff/leif/.xres/Ileaf</a></h3>
+<p>The file Ileaf is preprocessed by <code>cpp(1)</code> and the result is merged into the
+X11 resource database.</p>
+<p>
+</p>
+<h3><a name="x_resource__glob____xres_ileaf_">x-resource [glob ~/.xres/ileaf]</a></h3>
+<p>The Tcl glob function is used to have the modulefile read different resource
+files for different users.</p>
+<p>
+</p>
+<h3><a name="x_resource__ileaf_popup_saveunder__true_">x-resource {Ileaf.popup.saveUnder: True}</a></h3>
+<p>Merge the Ileaf resource into the X11 resource database.</p>
+<p>
+</p>
+<hr />
+<h1><a name="modules_variables">Modules Variables</a></h1>
+<p>The ModulesCurrentModulefile variable contains the full pathname of the
+modulefile being interpreted.</p>
+<p>
+</p>
+<hr />
+<h1><a name="locating_modulefiles">Locating Modulefiles</a></h1>
+<p>Every directory in MODULEPATH is searched to find the modulefile.  A directory
+in MODULEPATH can have an arbitrary number of sub-directories.  If the user 
+names a modulefile to be loaded which is actually a directory, the directory
+is opened and a search begins for an actual modulefile.  First, modulecmd
+looks for a file with the name .modulerc in the directory.  If this file
+exists, its contents will be evaluated as if it was a module file to be load.
+You may place module-version and module-alias commands inside this file.
+Additionally, before seeking for .modulerc files in the module directory, the
+global .modulerc file is sourced, too.  If a named version default now exists
+for the module file to be load, the assigned modulefile now will be sourced.
+Otherwise the file .version is looked up in the directory.  If the .version
+file exists, it is opened and interpreted as Tcl code.  If the Tcl variable
+ModulesVersion is set by the .version file, modulecmd will use the name as if
+it specifies a modulefile in the directory.  This will become the default
+module file in this case.  If ModulesVersion is a directory, the search
+begins anew down that directory.  If the name does not match any files located
+in the current directory, the search continues through the remaining
+directories in MODULEPATH.</p>
+<p>Every .version and .modulerc file found is Tcl interpreted.  So, changes made
+in these file will affect the subsequently interpreted modulefile.</p>
+<p>If no default version may be figured out, then the highest lexicographically
+sorted modulefile under the directory will be used.</p>
+<p>For example, it is possible for a user to have a directory named X11 which
+simply contains a .version file specifying which version of X11 is to be
+loaded.  Such a file would look like:</p>
+<pre>
+        #%Module1.0
+        ##
+        ##  The desired version of X11
+        ##
+        set ModulesVersion &quot;R4&quot;</pre>
+<p>
+</p>
+<hr />
+<h1><a name="modulefile_specific_help">Modulefile Specific Help</a></h1>
+<p>Users can request help about a specific <em>modulefile</em> through the
+<code>module(1)</code> command.  The modulefile can print helpful information or
+start help oriented programs by defining a <em>ModulesHelp</em> subroutine.  The
+subroutine will be called when the 'module help <em>modulefile</em>' command is
+used.</p>
+<p>
+</p>
+<hr />
+<h1><a name="modulefile_display">Modulefile Display</a></h1>
+<p>The 'module display <em>modulefile</em>' command will detail all changes that
+will be made to the environment.  After displaying all of the environment
+ changes <em>modulecmd.tcl</em> will call the ModulesDisplay subroutine.
+The ModulesDisplay subroutine is a good place to put additional
+descriptive information about the <em>modulefile</em>.</p>
+<p>
+</p>
+<hr />
+<h1><a name="environment">ENVIRONMENT</a></h1>
+<p>
+</p>
+<h2><a name="__modulepath_">${MODULEPATH}</a></h2>
+<p>Path of directories containing <em>modulefiles</em>.</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>module(1)</em>, <em>Tcl(3)</em>, <em>TclX(3)</em>, <em>xrdb(1)</em>, <em>cpp(1)</em>, <em>system(3)</em>,
+<em>uname(3)</em>, <em>gethostname(3)</em>, <em>getdomainname(3)</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="notes">NOTES</a></h1>
+<p>Tcl was developed by John Ousterhout at the University of California at
+Berkeley.</p>
+<p>TclX was developed by Karl Lehenbauer and Mark Diekhans.</p>
+
+</body>
+
+</html>
