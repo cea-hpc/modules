@@ -96,13 +96,6 @@ the B<module> behavior in case of locating and interpreting I<modulefiles>.
 All switches may be entered either in short or long notation. The following
 switches are accepted:
 
-=head3 --force, -f
-
-Force active dependency resolution. This will result in modules found on a
-B<prereq> command inside a I<modulefile> being load automatically.
-Unloading I<modulefiles> using this switch will result in all required modules
-which have been loaded automatically using the B<-f> switch being unload.
-
 =head3 --terse, -t
 
 Display B<avail> and B<list> output in short format.
@@ -110,48 +103,6 @@ Display B<avail> and B<list> output in short format.
 =head3 --long, -l
 
 Display B<avail> and B<list> output in long format.
-
-=head3 --human, -h
-
-Display short output of the B<avail> and B<list> commands in human
-readable format. 
-
-=head3 --verbose, -v
-
-Enable verbose messages during module command execution.
-
-=head3 --silent, -s
-
-Disable verbose messages. Redirect I<stderr> to I</dev/null> if 
-I<stderr> is found not to be a tty. This is a useful option for module
-commands being written into I<.cshrc>, I<.login> or I<.profile>
-files, because some remote shells (as I<rsh>(1)) and remote execution
-commands (like I<rdist>) get confused if there is output on stderr.
-
-=head3 --create, -c
-
-Create caches for B<module avail> and B<module apropos>. You must 
-be granted write access to the ${MODULEHOME}/modulefiles/ directory
-if you try to invoke B<module> with the -c option.
-
-=head3 --icase, -i
-
-Case insensitive module parameter evaluation. Currently only implemented for
-the B<module apropos> command.
-
-=head3 --userlvl <lvl>, -u <lvl>
-
-Set the user level to the specified value. The argument of this option may
-be one of:
-
-novice, nov
-	Novice
-
-expert, exp
-	Experienced module user
-
-advanced, adv
-	Advanced module user
 
 =head2 Module Sub-Commands
 
