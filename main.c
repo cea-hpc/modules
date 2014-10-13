@@ -221,7 +221,7 @@ int main(
      **/
 	if (argc > 1 && *argv[1] == '-') {
 		if (!strcmp("-V", argv[1]) || !strcmp("--version", argv[1])) {
-			version(stdout);
+			version(stderr);
 			return 0;
 		}
 	}
@@ -248,8 +248,13 @@ int main(
     /**
      **  Check for command line switches
      **/
-	if (TCL_OK != Check_Switches(&argc, argv))
-		goto unwind1;
+	return_val = Check_Switches(&argc, argv);
+	/* deal with help and version special case */
+	if (return_val != TCL_OK) {
+	  if(return_val == ~TCL_OK)
+	    g_retval = return_val;
+	  goto unwind1;
+	}
     /**
      **  Figure out, which global RC file to use. This depends on the environ-
      **  ment variable 'MODULERCFILE', which can be set to one of the following:
@@ -343,7 +348,10 @@ unwind1:
 	FreeList(&ModulePathVec);
 unwind0:
 	/* and error occurred of some type */
-	g_retval = (g_retval ? g_retval : 1);
+	if (g_retval ==  ~TCL_OK)  /* deal with help and version special case */
+	  g_retval = 0;
+	else
+	  g_retval = (g_retval ? g_retval : 1);
 	OutputExit();
 	return (g_retval);
 
