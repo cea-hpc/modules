@@ -181,9 +181,8 @@ int ModuleCmd_Whatis(
 	 **/
 		dirname = ModulePath;
 		while (dirname && *dirname) {
-			if (!check_dir(*dirname))
-				continue;
-			whatis_dir(*dirname, argc, argv, WHATIS_ALL);
+			if (check_dir(*dirname))
+                          whatis_dir(*dirname, argc, argv, WHATIS_ALL);
 			dirname++;
 		}
 	}

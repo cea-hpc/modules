@@ -1,0 +1,45 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2014/10/14
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Eric Deveaud edeveaud@pasteur.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		whatis no arguments
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'module whatis' command
+#			when "empty value" in MODULEPATH
+#			egg MODULEPATH=foo::bar
+#			was causing infinite loop when whatis invoqued
+#			without arguments
+#		}C%
+#
+##############################################################################
+
+# save original MODULEPATH value
+set ORIG $::env(MODULEPATH) 
+
+# force MODULEPATH with "empty" value.
+set ::env(MODULEPATH) "foo::bar"
+
+#  Test only for the csh
+
+set ts_csh_1 ""
+
+#  The tests
+testerr_cmd "csh" "whatis" "$ts_csh_1"
+
+# restore environnement
+set ::env(MODULEPATH) $ORIG
+
+#  Cleanup
+unset ts_csh_1
+unset ORIG
+
