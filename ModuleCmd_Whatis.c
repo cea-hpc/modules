@@ -24,6 +24,7 @@
  ** see LICENSE.GPL, which must be provided, for details		     **
  ** 									     ** 
  ** ************************************************************************ **/
+#define _GNU_SOURCE 1
 
 static char Id[] = "@(#)$Id$";
 static void *UseId[] = { &UseId, Id };
@@ -235,13 +236,6 @@ int ModuleCmd_Apropos(
 	char          **dirname,	/** modulepath dir		     **/
 	               *c;
 	int             i;
-    /**
-     **	 Ignore case ... convert all arguments to lower case
-     **/
-	if (sw_icase)
-		for (i = 0; i < argc; i++)
-			for (c = argv[i]; c && *c; c++)
-				*c = tolower(*c);
 
 	/**
 	 **  Load the MODULEPATH and split it into a list of paths.
@@ -304,6 +298,14 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
     Tcl_DString	  cmdbuf;
     char	  modulefile[ MOD_BUFSIZE];
     char	**wptr, *c;
+    char          (*str_cmp) (const char *, const char *);
+
+    /**
+     ** Ignore case ?
+     **/
+
+    if (sw_icase) str_cmp = &strcasestr;
+    else str_cmp = &strstr;
 
     /**
      **	 Normal reading of the files
@@ -366,17 +368,7 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
 	    wptr = whatis;
 	    while( *wptr) {
 
-		/**
-		 **  Ignore case?
-		 **/
-
-		if( sw_icase) {
-		    strncpy( modulefile, *wptr, MOD_BUFSIZE);
-		    for( c = modulefile; c && *c; c++)
-			*c = tolower( *c);
-		    c = modulefile;
-		} else
-		    c = *wptr;
+		c = *wptr;
 
 		/**
 		 **  Seek for the passed tokens
@@ -386,13 +378,12 @@ static	int	whatis_dir( char *dir, int argc, char **argv,
 		    fprintf( stderr, "%-21s: %s\n", list[i], *wptr);
 		else
 		    for( k=0; k<argc; k++) {
-			if( strstr( c, argv[ k]))
+			if( str_cmp( c, argv[ k]))
 		    	    fprintf( stderr, "%-21s: %s\n", list[i], *wptr);
 		    }
 		wptr++;
 	    }
 	}
-
 	/**
 	 **  Remove the Tcl interpreter that has been used for printing ...
 	 **/

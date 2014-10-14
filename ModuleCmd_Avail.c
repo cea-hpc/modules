@@ -704,6 +704,7 @@ void	dirlst_to_list(	char	**list,
     int 	 i;
     char	*ptr;
     int		 mlen;
+    int         (*str_comp) (const char *, const char *, size_t);
 
     /**
      **  If there's any selection given, figure out its length
@@ -711,6 +712,13 @@ void	dirlst_to_list(	char	**list,
 
     if( module)
 	mlen = strlen( module);
+
+    /**
+     ** string comparaison ignore case?
+     ** based on sw_icase value
+     **/
+    if (sw_icase) str_comp = &strncasecmp;
+    else str_comp = &strncmp;
 
     /**
      **  Put all files in the directory list at the end of the passed list
@@ -748,7 +756,7 @@ void	dirlst_to_list(	char	**list,
 	 **  Check whether this is part of the selected modules ...
 	 **/
 
-	if( !module || !strncmp( module, buf, mlen)) {
+	if( !module || !str_comp( module, buf, mlen)) {
 
 	    /**
 	     **  Put this guy on the list
