@@ -142,6 +142,12 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 
 	g_specified_module = argv[i];
 
+        /**
+         ** unset g_current_module that may have been set by previous
+         ** iterations
+         **/
+        g_current_module = NULL;
+
 	/**
 	 **  Create a Tcl interpreter and initialize it with the module commands
 	 **/
@@ -178,7 +184,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 			goto unwind0;
                 if( !filename[0])
                     if( TCL_ERROR == (return_val = Locate_ModuleFile(
-			tmp_interp, argv[i], tmpname, filename))) 
+			tmp_interp, argv[i], tmpname, filename)))
 			ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL);
 
                 /**
@@ -197,7 +203,13 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
         } else {
 	    if( TCL_ERROR == (return_val = Locate_ModuleFile( tmp_interp,
 		argv[i], modulename, filename)))
+              {
+                /* delete current interpreter */
+                /* continue to deal with other modulesfiles */
 		ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL);
+                EM_DeleteInterp(tmp_interp);
+                continue;
+              }
         }
         /**
          **  If return_val has been set to something other than TCL_OK,
@@ -238,7 +250,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
                     null_free((void *) &oldTables);
         	}
         	oldTables = Global_Hash_Tables(GHashCopy, NULL);
-		a_successful_load = 1;
+		a_successful_load += 1;
 		break;	/* switch */
 
 	    case EM_BREAK:
@@ -246,7 +258,9 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 		 ** If module terminates TCL_BREAK, don't add it to the list,
 		 ** but assume that everything was OK with the module anyway.
 		 ** (The original code wasn't correct)
+                 ** count it as corectly processed even if not loaded
 		 **/
+		a_successful_load += 1;
 	    case EM_EXIT:
 		/**
 		 ** If module terminates TCL_EXIT, find the return value

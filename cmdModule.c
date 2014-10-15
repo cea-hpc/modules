@@ -191,11 +191,21 @@ int cmdModule(
 		_TCLCHK(interp);
 		return_val =
 		    ModuleCmd_Load(interp, 1, num_modulefiles, modulefile_list);
+
+       /**
+        ** keep track of the number of modulefiles that did not load. for any reason
+        **/
+                g_retval = num_modulefiles - return_val;
+
        /**
         **  We always say the load succeeded.  ModuleCmd_Load will
         **  output any necessary error messages.
         **/
-		return_val = TCL_OK;
+
+                return_val = TCL_OK;
+
+
+
     /**
      **  --- module UNLOAD
      **/
