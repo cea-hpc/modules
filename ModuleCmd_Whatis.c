@@ -203,7 +203,7 @@ int ModuleCmd_Whatis(
      **/
 
 success0:
-	return (!result);		/** --- EXIT PROCEDURE (result)  --> **/
+        return (TCL_OK);		/** --- EXIT PROCEDURE (result)  --> **/
 
 unwind0:
 	return (TCL_ERROR);		/** --- EXIT PROCEDURE (FAILURE) --> **/
