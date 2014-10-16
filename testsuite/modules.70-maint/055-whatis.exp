@@ -16,7 +16,8 @@
 #   Sub-Command:
 #
 #   Comment:	%C{
-#			Tests the 'module whatis' command
+#			Tests the 'module whatis' command for success
+#			Tests the 'module whatis' command for failure
 #		}C%
 #
 ##############################################################################
@@ -48,6 +49,8 @@ set ts_csh_3 "$whatis_3: Testsuite\n$whatis_3: Whatis\n$whatis_3: Modulefile\n"
 set ts_csh_4 "$whatis_4: Testsuite Whatis Modulefile\n"
 set ts_csh_5 "$whatis_5: Testsuite Whatis Modulefile\n$whatis_5: Second line of whatis tokens\n"
 
+set test01 " test 0 = 1;"
+
 #
 #  The tests
 #
@@ -57,6 +60,14 @@ testerr_cmd "csh" "--terse whatis $module_2" "$ts_csh_2"
 testerr_cmd "csh" "--terse whatis $module_3" "$ts_csh_3"
 testerr_cmd "csh" "--terse whatis $module_4" "$ts_csh_4"
 testerr_cmd "csh" "--terse whatis $module_5" "$ts_csh_5"
+
+
+#
+# the fail case, return value 1
+#
+test_cmd "csh" "whatis NonExistant" "$test01" 1
+
+
 
 #
 #  Cleanup

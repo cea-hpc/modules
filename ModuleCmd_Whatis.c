@@ -104,6 +104,7 @@ int ModuleCmd_Whatis(
 	                modulename[MOD_BUFSIZE],/** buffer for modulename    **/
 	              **wptr,		/** whatis text line		     **/
 	              **dirname;	/** modulepath dir		     **/
+        int z =0;
     /**
      **	 Initialize the command buffer and set up the modules flag to
      **	 'whatisonly'
@@ -134,6 +135,7 @@ int ModuleCmd_Whatis(
 			    Locate_ModuleFile(whatis_interp, argv[i],
 					      modulename, modulefile)) {
 				EM_DeleteInterp(whatis_interp);
+                                g_retval =1;
 				if (OK !=
 				    ErrorLogger(ERR_LOCATE, LOC, argv[i], NULL))
 					break;
@@ -146,13 +148,16 @@ int ModuleCmd_Whatis(
 	     **/
 			g_current_module = modulename;
 
-			cmdModuleWhatisInit();
+                        cmdModuleWhatisInit();
 			result = CallModuleProcedure(whatis_interp, &cmdbuf,
 						     modulefile,
 						     "ModulesWhatis", 0);
+                        
+                        
 	    /**
 	     **	 Print the result ...
 	     **/
+
 			if (whatis) {
 				wptr = whatis;
 				while (*wptr)
@@ -198,7 +203,7 @@ int ModuleCmd_Whatis(
      **/
 
 success0:
-	return (result);		/** --- EXIT PROCEDURE (result)  --> **/
+	return (!result);		/** --- EXIT PROCEDURE (result)  --> **/
 
 unwind0:
 	return (TCL_ERROR);		/** --- EXIT PROCEDURE (FAILURE) --> **/
