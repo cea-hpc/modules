@@ -139,6 +139,7 @@ int ModuleCmd_Display(	Tcl_Interp	*interp,
 
 	if( Locate_ModuleFile(disp_interp, argv[i], modulename, modulefile) == 
             TCL_ERROR) {
+	    g_retval = 1;          
 	    EM_DeleteInterp( disp_interp);
 	    if( OK != ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL)) 
 		break;
