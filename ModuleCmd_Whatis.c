@@ -104,7 +104,6 @@ int ModuleCmd_Whatis(
 	                modulename[MOD_BUFSIZE],/** buffer for modulename    **/
 	              **wptr,		/** whatis text line		     **/
 	              **dirname;	/** modulepath dir		     **/
-        int z =0;
     /**
      **	 Initialize the command buffer and set up the modules flag to
      **	 'whatisonly'
@@ -237,9 +236,7 @@ int ModuleCmd_Apropos(
 	int argc,
 	char *argv[]
 ) {
-	char          **dirname,	/** modulepath dir		     **/
-	               *c;
-	int             i;
+  char          **dirname;	/** modulepath dir		     **/
 
 	/**
 	 **  Load the MODULEPATH and split it into a list of paths.

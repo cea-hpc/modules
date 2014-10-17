@@ -43,6 +43,7 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 #include <time.h>
+#include <sys/ioctl.h>
 #include "modules_def.h"
 #if defined HAVE_STRCOLL && defined HAVE_LOCALE_H && defined HAVE_SETLOCALE
 #  include <locale.h>
