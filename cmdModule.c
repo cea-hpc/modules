@@ -650,11 +650,11 @@ int  CallModuleProcedure(	Tcl_Interp	*interp,
 	 **  Close STDOUT and reopen it as /dev/null
 	 **/
 
-	if( -1 == ( saved_stdout = dup( 1)))
+	if( -1 == ( saved_stdout = dup( fileno(stdout))))
 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stdout, NULL))
 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------> **/
 	
-	if( -1 == close( 1))
+	if( -1 == close( fileno(stdout)))
 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stdout, NULL))
 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------> **/
 
@@ -666,11 +666,11 @@ int  CallModuleProcedure(	Tcl_Interp	*interp,
 	 **  Close STDERR and reopen it as /dev/null
 	 **/
 
-	if( -1 == ( saved_stdout = dup( 2)))
+	if( -1 == ( saved_stderr = dup( fileno(stderr))))
 	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stderr, NULL))
 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------> **/
 	
-	if( -1 == close( 2))
+	if( -1 == close( fileno(stderr)))
 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stderr, NULL))
 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------> **/
 
@@ -691,10 +691,6 @@ int  CallModuleProcedure(	Tcl_Interp	*interp,
 
     if( suppress_output) {
 
-	/**
-	 **  Reinstall STDOUT
-	 **/
-
 	if( EOF == fflush( stdout))
 	    if( OK != ErrorLogger( ERR_FLUSH, LOC, _fil_stdout, NULL))
 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------> **/
@@ -703,19 +699,23 @@ int  CallModuleProcedure(	Tcl_Interp	*interp,
 	    if( OK != ErrorLogger( ERR_FLUSH, LOC, _fil_stderr, NULL))
 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------> **/
 	
-	if( -1 == close( 1))
+	/**
+	 **  Reinstall STDOUT with merging it to SDTDERR
+	 **/
+
+	if( -1 == close( fileno(stdout)))
 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stdout, NULL))
 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------> **/
 
+	if( -1 == dup( saved_stderr))
+	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stdout, NULL))
+		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------> **/
+	
 	/**
 	 **  Reinstall STDERR
 	 **/
 
-	if( -1 == dup( saved_stdout))
-	    if( OK != ErrorLogger( ERR_DUP, LOC, _fil_stdout, NULL))
-		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------> **/
-	
-	if( -1 == close( 2))
+	if( -1 == close( fileno(stderr)))
 	    if( OK != ErrorLogger( ERR_CLOSE, LOC, _fil_stderr, NULL))
 		return( TCL_ERROR);	/** ------- EXIT (FAILURE) --------> **/
 	

@@ -19,6 +19,10 @@
 #			Help w/o arguments is checked during the testsuites
 #			initialization phase, when probing the release of
 #			modulecmd.
+#			add test regarding the redirection of stdout 
+#			help/2.0 => puts stdout
+#			help/3.0 => puts stderr
+#			both should provide the same stderr outpout
 #		}C%
 #
 ##############################################################################
@@ -29,16 +33,21 @@
 
 set module "help/2.0"
 set lin_help "\n----------- Module Specific Help for '$module' -------------------\n"
-
+set out_help ""
 #
 #  The tests
 #
 
-testerr_cmd "sh" "help $module" "$lin_help\nHelp"
+# test stderr output
+testerr_cmd "sh" "help $module" "$lin_help1\nHelp-out\nHelp-err"
+
+# test stdout output: MUST be empty
+test_cmd "sh" "help $module" "$out_help"
 
 #
 #  Cleanup
 #
 
-unset module
+unset module 
 unset lin_help
+unset out_help
