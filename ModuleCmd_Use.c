@@ -224,6 +224,15 @@ int ModuleCmd_Use(
 			    ErrorLogger(ERR_DIRNOTFOUND, LOC, argv[i], NULL))
 				return (TCL_ERROR); /** -- EXIT (FAILURE) -> **/
 		}
+	/**
+	 ** indirect check if MODULEPATH exist 
+	 ** it may makes sense to have module use abble to deal with initial empty MODULEPATH
+	 ** value
+	 **/ 
+	if (!ModulePathVec) {
+		int n;
+		ModulePathVec = SplitIntoList("", &n, _colon);
+	}
 
 	/**
 	 **  Used the 'cmdSetPath' callback function to modify the MODULEPATH

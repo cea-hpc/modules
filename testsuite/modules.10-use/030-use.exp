@@ -29,6 +29,7 @@ set path "$env(TESTSUITEDIR)/modulefiles.other"
 set badpath "$env(TESTSUITEDIR)/modulefiles.bad"
 set mod_path "$path:$env(MODULEPATH)"
 set bad_use "$error_msgs: Directory '$badpath' not found"
+set emptypath ""
 
 set use	"use"
 
@@ -57,6 +58,15 @@ testerr_cmd_re "perl" "$use $badpath" "$bad_use"
 testerr_cmd_re "cmake" "$use $badpath" "$bad_use"
 
 #
+# test with uninitialized MODULEPATH
+# was causing a segfault
+#
+set ORIG $::env(MODULEPATH)
+set ::env(MODULEPATH) ""
+test_cmd "sh" "$use $path" "MODULEPATH=$path ;export MODULEPATH;"
+set ::env(MODULEPATH) $ORIG
+
+#
 # Cleanup
 #
 
@@ -65,3 +75,4 @@ unset mod_path
 unset use
 unset badpath
 unset bad_use
+unset ORIG
