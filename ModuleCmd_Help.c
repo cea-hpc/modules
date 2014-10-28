@@ -174,8 +174,10 @@ static	int	PerModuleHelp(	Tcl_Interp	*interp,
 	 **/
 
 	if( Locate_ModuleFile( help_interp, argv[i], modulename, modulefile)) {
-	    if( OK != ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL))
+	    if( OK != ErrorLogger( ERR_LOCATE, LOC, argv[i], NULL)) {
+		g_retval = 1;  
 		continue;
+	}
 	    EM_DeleteInterp( help_interp);
 	}
 
