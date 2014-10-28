@@ -224,9 +224,17 @@ int ModuleCmd_Use(
 			    ErrorLogger(ERR_DIRNOTFOUND, LOC, argv[i], NULL))
 				return (TCL_ERROR); /** -- EXIT (FAILURE) -> **/
 		}
+
+	/**
+	 ** check if given dir is not already present in MODULEPATH
+	 **/
+	if (ModulePathVec && (uvec_find(ModulePathVec, argv[i], UVEC_ASCEND) >= 0)) {
+		continue;
+	}	
 	/**
 	 ** indirect check if MODULEPATH exist 
-	 ** it may makes sense to have module use abble to deal with initial empty MODULEPATH
+	 ** it may makes sense to have module use abble to deal
+	 **  with initial empty MODULEPATH
 	 ** value
 	 **/ 
 	if (!ModulePathVec) {
@@ -238,17 +246,23 @@ int ModuleCmd_Use(
 	 **  Used the 'cmdSetPath' callback function to modify the MODULEPATH
 	 **  and add path to internal ModulePath vector for subsequent searches
 	 **/
-		if (append_flag)
-			uvec_unshift(ModulePathVec,argv[i]);
-		else
-			uvec_push(ModulePathVec,argv[i]);
+	if (append_flag)
+		uvec_unshift(ModulePathVec,argv[i]);
+	else
+		uvec_push(ModulePathVec,argv[i]);
 
-		pathargv[2] = argv[i];
+         /**
+	  ** set ModulePath accordingly to the modification
+	  ** it is used by Locate_Module
+	  **/
+	 ModulePath = uvec_vector(ModulePathVec);
 
-		/* convert from argv to objv */
-		Tcl_ArgvToObjv(&objc, &objv, -1, (char **) pathargv);
-		if (cmdSetPath((ClientData) 0, interp, objc, objv) == TCL_ERROR)
-			return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
+	pathargv[2] = argv[i];
+
+	/* convert from argv to objv */
+	Tcl_ArgvToObjv(&objc, &objv, -1, (char **) pathargv);
+	if (cmdSetPath((ClientData) 0, interp, objc, objv) == TCL_ERROR)
+		return (TCL_ERROR); /** ------ EXIT (FAILURE) -----> **/
 	} /** for **/
 
     /**
