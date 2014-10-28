@@ -110,6 +110,8 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
     			  a_successful_load = 0;	/** Command return   **/
     char		  filename[ MOD_BUFSIZE],	/** Module filename  **/
     			  modulename[ MOD_BUFSIZE];	/** Real module name **/
+    char		  *tmpname;
+    int		  	  loaded = 0;		/** is modulefile already loaded **/
     Tcl_Interp		 *tmp_interp;		/** Tcl interpreter to be    **/
 						/** used internally	     **/
     MHash		**oldTables = NULL;
@@ -158,22 +160,37 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
         filename[0] = '\0';
 
 	/**
-	 **  UNLOAD to be done
 	 **  At first check if it is loaded ...
 	 **/
 
-        if( !load) {
-
-            char	*tmpname;
-
-            if( !IsLoaded(interp, argv[i], &tmpname, filename)) {
+         loaded = IsLoaded(interp, argv[i], &tmpname, filename);
+	if ((!loaded && !load) || (loaded && load)) {
 #if 0
-		/** do we really care if it's not loaded ... **/
-		if( OK != ErrorLogger( ERR_NOTLOADED, LOC, argv[i], NULL))
-#endif
-		    return_val = TCL_ERROR;
-            } else {
 
+	/**
+	 ** Silently ignore non loaded modules requested to unload 
+	 **/
+          if (!load) {
+            ErrorLogger(ERR_NOTLOADED, LOC, argv[i], NULL);
+          }
+          else {
+	/**
+	 ** Silently ignore already loaded modules 
+	 **/
+            ErrorLogger(ERR_ALREADYLOADED, LOC, argv[i], NULL);
+          }
+			
+#endif
+		/* silently ignore it */
+		a_successful_load += 1;
+        	EM_DeleteInterp(tmp_interp);
+		continue;
+	}
+
+	/**
+	 **  UNLOAD to be done
+	 **/
+        if( !load) {
 		/**
 		 **  So it is loaded ...
 		 **  Do we know the filename?
@@ -194,13 +211,13 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
                 if( tmpname && (tmpname != argv[i]))
                     null_free((void *) &tmpname);
 
-            } /** if loaded **/
+            } /** if not load **/
 
 	/**
 	 **  LOAD to be done
 	 **  Only check the filename
 	 **/
-        } else {
+        else {
 	    if( TCL_ERROR == (return_val = Locate_ModuleFile( tmp_interp,
 		argv[i], modulename, filename)))
               {

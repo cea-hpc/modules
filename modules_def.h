@@ -267,6 +267,7 @@ typedef	enum	{
 	ERR_CONFLICT = 150,		/** Module file conflicts	     **/
 	ERR_PREREQ,			/** Module file prerequirements	     **/
 	ERR_NOTLOADED,			/** Module file is currently not l.  **/
+	ERR_ALREADYLOADED,		/** Module file is currently loaded. **/
 	ERR_DUP_SYMVERS,		/** Duplicate symbolic version	     **/
 	ERR_SYMLOOP,			/** Loop in symbol version def.	     **/
 	ERR_BADMODNAM,			/** Bad modulename in version, alias **/

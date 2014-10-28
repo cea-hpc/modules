@@ -318,6 +318,7 @@ static	ErrTransTab	TransTab[] = {
     { ERR_PREREQ,	WGHT_ERROR,
 	N_("Module '$1' depends on one of the module(s) '$2+'") },
     { ERR_NOTLOADED,	WGHT_ERROR, N_("Module '$1' is currently not loaded") },
+    { ERR_ALREADYLOADED,WGHT_ERROR, N_("Module '$1' is currently loaded") },
     { ERR_DUP_SYMVERS,	WGHT_PROB,  N_("Duplicate version symbol '$1' found") },
     { ERR_SYMLOOP,	WGHT_ERROR, N_("Version symbol '$1' loops") },
     { ERR_BADMODNAM,	WGHT_PROB,  N_("Invalid modulename '$1' found") },
