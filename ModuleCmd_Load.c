@@ -116,33 +116,36 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 						/** used internally	     **/
     MHash		**oldTables = NULL;
     EM_RetVal		  em_return_val = EM_OK;
-
+    int recurs;
     /**
      **  Set up the flags controling the Tcl callback functions
      **/
+    
+    recurs = g_flags;
 
-	/* avoid changes when invoked as a subcommand */
-	if (!(g_flags & M_SUBCMD)) {
-	    if( load) {
-		g_flags |= M_LOAD;
-		g_flags &= ~M_REMOVE;
-	    } else {
-		g_flags |= M_REMOVE;
-		g_flags &= ~M_LOAD;
-	    }
-	    g_flags |= M_SUBCMD;
-	}
-     
+    /* avoid changes when invoked as a subcommand */
+    if (!(g_flags & M_SUBCMD)) {
+      if( load) {
+        g_flags |= M_LOAD;
+        g_flags &= ~M_REMOVE;
+      } else {
+        g_flags |= M_REMOVE;
+        g_flags &= ~M_LOAD;
+      }
+      g_flags |= M_SUBCMD;
+    }
+
+
     /**
      **  Handle all module files in the order they are passed to me
      **/
-
+    
     for( i=0; i<argc && argv[i]; i++) {
 	/**
 	 ** Set the name of the module specified on the command line
 	 **/
 
-	g_specified_module = argv[i];
+      g_specified_module = argv[i];
 
         /**
          ** unset g_current_module that may have been set by previous
@@ -162,30 +165,34 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 	/**
 	 **  At first check if it is loaded ...
 	 **/
+        
+        loaded = IsLoaded(interp, argv[i], &tmpname, filename);
+        
+        if (!recurs) {
 
-         loaded = IsLoaded(interp, argv[i], &tmpname, filename);
-	if ((!loaded && !load) || (loaded && load)) {
-#if 0
+          if ((!loaded && !load) || (loaded && load)) {
+#if 0            
+            /**
+             ** Silently ignore non loaded modules requested to unload
+             **/
+            if (!load) {
+              ErrorLogger(ERR_NOTLOADED, LOC, argv[i], NULL);
+            }
+            else {
+              /**
+               ** Silently ignore already loaded modules
+               **/
+              ErrorLogger(ERR_ALREADYLOADED, LOC, argv[i], NULL);
+            }
+#endif            
+            
+            /* silently ignore it */
+            //a_successful_load += 1;
+            EM_DeleteInterp(tmp_interp);
+            continue;
+          }
+        }
 
-	/**
-	 ** Silently ignore non loaded modules requested to unload 
-	 **/
-          if (!load) {
-            ErrorLogger(ERR_NOTLOADED, LOC, argv[i], NULL);
-          }
-          else {
-	/**
-	 ** Silently ignore already loaded modules 
-	 **/
-            ErrorLogger(ERR_ALREADYLOADED, LOC, argv[i], NULL);
-          }
-			
-#endif
-		/* silently ignore it */
-		a_successful_load += 1;
-        	EM_DeleteInterp(tmp_interp);
-		continue;
-	}
 
 	/**
 	 **  UNLOAD to be done
@@ -319,7 +326,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 	g_flags &= ~M_LOAD;
     else
 	g_flags &= ~M_REMOVE;
-
+    //fprintf(stderr," exit val : %d\n", a_successful_load);
     return( a_successful_load);
 
 unwind0:
