@@ -362,6 +362,7 @@ int cmdModule(
 		_TCLCHK(interp);
 		return_val =
 		    ModuleCmd_Use(interp, num_modulefiles, modulefile_list);
+                g_retval = return_val;
     /**
      **  --- module UNUSE
      **/
