@@ -187,7 +187,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 #endif            
             
             /* silently ignore it */
-            //a_successful_load += 1;
+            a_successful_load += 1;
             EM_DeleteInterp(tmp_interp);
             continue;
           }
