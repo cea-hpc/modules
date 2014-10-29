@@ -211,8 +211,12 @@ int cmdModule(
      **/
 	} else if ((_MTCH Tcl_RegExpMatch(interp, module_command, rmRE))) {
 		_TCLCHK(interp);
-		ModuleCmd_Load(interp, 0, num_modulefiles, modulefile_list);
-		return_val = TCL_OK;
+		return_val = ModuleCmd_Load(interp, 0, num_modulefiles, modulefile_list);
+        /**
+        ** keep track of the number of modulefiles that did not load. for any reason
+        **/
+                g_retval = num_modulefiles - return_val;
+                return_val = TCL_OK;
     /**
      **  --- module SWITCH
      **/
