@@ -326,7 +326,7 @@ int	ModuleCmd_Load(	Tcl_Interp	*interp,
 	g_flags &= ~M_LOAD;
     else
 	g_flags &= ~M_REMOVE;
-    //fprintf(stderr," exit val : %d\n", a_successful_load);
+
     return( a_successful_load);
 
 unwind0:
