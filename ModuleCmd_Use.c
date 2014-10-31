@@ -326,6 +326,15 @@ int ModuleCmd_UnUse(
 	pathargv[3] = NULL;
 
 	for (i = 0; i < argc; i++) {
+          /**
+           ** check for existance of the given path in MODULEPATH
+           **/
+          if (ModulePathVec && (uvec_find(ModulePathVec, argv[i], UVEC_ASCEND) == -1)) {
+            g_retval +=1;
+            continue;
+          }
+
+          if (NULL == argv[i]) continue;
 		pathargv[2] = argv[i];
 		/* convert from argv to objv */
 		Tcl_ArgvToObjv(&objc, &objv, -1, (char **) pathargv);
@@ -339,6 +348,12 @@ int ModuleCmd_UnUse(
      **/
 
 	append_to_modulesbeginenv(interp, "MODULEPATH");
+
+
+        /**
+	  ** update ModulePath accordingly to the modification
+	  **/
+	 ModulePath = uvec_vector(ModulePathVec);
 
 	return (TCL_OK);
 
