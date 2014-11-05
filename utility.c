@@ -1097,13 +1097,13 @@ static int output_set_variable(	Tcl_Interp	*interp,
 		fprintf(stdout, "%s=%s %sexport %s%s", var, escaped,
 			shell_cmd_separator, var, shell_cmd_separator);
 		null_free((void **)&escaped);
-
+#if 0 // emacs is not on the supported shells
 	} else if (!strcmp((char *) shell_derelict, "emacs")) {
     /**
      **  EMACS
      **/
 		fprintf(stdout, "(setenv \"%s\" \'%s\')\n", var, val);
-
+#endif 
 	} else if (!strcmp((char *) shell_derelict, "perl")) {
     /**
      **  PERL
@@ -1199,14 +1199,15 @@ static int output_unset_variable(
 		fprintf(stdout, "unsetenv %s%s", var, shell_cmd_separator);
 	} else if (!strcmp(shell_derelict, "sh")) {
 		fprintf(stdout, "unset %s%s", var, shell_cmd_separator);
+#if 0 // emacs not on the supported shells 
 	} else if (!strcmp(shell_derelict, "emacs")) {
 		fprintf(stdout, "(setenv \"%s\" nil)\n", var);
+#endif 
 	} else if (!strcmp(shell_derelict, "perl")) {
 		fprintf(stdout, "delete $ENV{'%s'}%s", var,
 			shell_cmd_separator);
 	} else if (!strcmp(shell_derelict, "python")) {
-		fprintf(stdout, "os.environ['%s'] = ''\ndel os.environ['%s']\n",
-			var, var);
+		fprintf(stdout, "del os.environ['%s']\n", var);
 	} else if (!strcmp(shell_derelict, "ruby")) {
 		fprintf(stdout, "ENV['%s'] = nil\n", var);
 	} else if( !strcmp( shell_derelict, "cmake")) {
