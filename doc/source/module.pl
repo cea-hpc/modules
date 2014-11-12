@@ -74,7 +74,7 @@ Perl:
 
 Upon invocation B<modulecmd.tcl> sources rc files which contain global, user
 and I<modulefile> specific setups. These files are interpreted as 
-I<modulefiles>.  See I<modulefile(4)> for detailed information.
+I<modulefiles>.  See I<modulefile> for detailed information.
 
 Upon invocation of B<modulecmd.tcl> module RC files are sourced in the
 following order:
@@ -112,33 +112,25 @@ Print the usage of each sub-command.
 If an argument is given, print the Module specific help information for the
 modulefile.
 
-=head3 load modulefile [modulefile...]
-
-=head3 add modulefile [modulefile...]
+=head3 [load | add] modulefile [modulefile...]
 
 Load modulefile into the shell environment.
 
-=head3 unload modulefile [modulefile...]
-
-=head3 rm modulefile [modulefile...]
+=head3 [unload | rm] modulefile [modulefile...]
 
 Remove modulefile from the shell environment.
 
-=head3 switch modulefile1 modulefile2
-
-=head3 swap modulefile1 modulefile2
+=head3 [switch | swap] modulefile1 modulefile2
 
 Switch loaded modulefile1 with modulefile2
 
-=head3 display modulefile [modulefile...]
-
-=head3 show modulefile [modulefile...]
+=head3 [display | show] modulefile [modulefile...]
 
 Display information about a modulefile.
 The display sub-command will list the full path of the modulefile
-and all (or most) of the environment changes the modulefile
-will make if loaded.  (It will not display any
-environment changes found within conditional statements.)
+and the environment changes the modulefile will make if loaded.  
+(Note: It will not display any environment changes found within conditional
+statements.)
 
 =head3 list
 
@@ -155,9 +147,7 @@ Multiple versions of an application can be supported by creating a
 subdirectory for the application containing modulefiles for each
 version.
 
-=head3 use directory [directory...]
-
-=head3 use [-a|--append] directory [directory...]
+=head3 use [-a | --append] directory [directory...]
 
 Prepend directory to the \s-1MODULEPATH\s0 environment variable.
 The --append flag will append the directory to \s-1MODULEPATH\s0.
@@ -187,9 +177,7 @@ Display the modulefile information set up by the \fImodule-whatis\fP
 commands inside the specified modulefiles. If no modulefiles are
 specified all whatis information lines will be shown.
 
-=head3 apropos string
-
-=head3 keyword string
+=head3 [apropos | keyword] string
 
 Seeks thru the whatis informations of all modulefiles for the
 specified string.  All module whatis informations matching the
@@ -206,7 +194,7 @@ and .bash_profile for the GNU Bourne Again Shell;
 for all shells.
 
 If a 'module load' line is found in any of these files, the
-modulefile(s) is(are) appended to any existing list of modulefiles.
+modulefile(s) are appended to any existing list of modulefiles.
 The 'module load' line must be located in at least one of the
 files listed above for any of the 'init' sub-commands to work properly.
 If the 'module load' line is found in multiple shell initialization
@@ -275,7 +263,7 @@ The filename of the file containing the initialization environment snapshot.
 
 =head1 FILES
 
-=head2 /soft/rko-modules/3.1.6
+=head2 ${MODULESHOME}
 
 The MODULESHOME directory.
 
@@ -303,4 +291,4 @@ The Modules package initialization file sourced into the user's environment.
 
 =head1 SEE ALSO
 
-L<modulefile(4)>
+L<modulefile>

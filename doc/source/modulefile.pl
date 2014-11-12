@@ -10,8 +10,8 @@ modulefile - files containing Tcl code for the Modules package
 
 =head1 DESCRIPTION
 
-I<modulefiles> are written in the Tool Command Language, Tcl(3) and are
-interpreted by the modulecmd program via the B<module(1)> user interface.
+I<modulefiles> are written in the Tool Command Language, Tcl and are
+interpreted by the modulecmd program via the B<module> user interface.
 I<modulefiles> can be loaded, unloaded, or switched on-the-fly while the
 user is working.
 
@@ -53,7 +53,7 @@ take care of every type of shell.
 =head1 Modules Specific Tcl Commands
 
 The Modules Package uses commands which are extensions to the
-"standard" Tool Command Language Tcl(3) package.  Unless otherwise
+"standard" Tool Command Language Tcl package.  Unless otherwise
 specified, the Module commands return the empty string.  Some commands
 behave differently when a modulefile is loaded or unloaded.  The command
 descriptions assume the modulefile is being loaded.
@@ -106,12 +106,17 @@ changes the process' environment like setenv.
 
 =head2 append-path variable value
 
-=head2 prepend-path variable value
-
-Append or prepend value to environment variable.  The variable is a colon
+Append value to the end of environment variable.  The variable is a colon
 separated list such as "PATH=directory:directory:directory".  If the variable
 is not set, it is created.  When a modulefile is unloaded,  append-path
-and prepend-path become remove-path.
+becomes remove-path.
+
+=head2 prepend-path variable value
+
+Append value to the front of environment variable.  The variable is a colon
+separated list such as "PATH=directory:directory:directory".  If the variable
+is not set, it is created.  When a modulefile is unloaded, prepend-path 
+becomes remove-path.
 
 =head2 remove-path variable value
 
@@ -121,26 +126,29 @@ from variable.
 
 =head2 prereq modulefile [ modulefile ...  ]
 
-=head2 conflict modulefile [ modulefile ...  ]
-
-prereq and conflict control whether or not the modulefile will be loaded.  The
+Prereq and conflict control whether or not the modulefile will be loaded.  The
 prereq command lists modulefiles which must have been previously loaded 
-before the current modulefile will be loaded.  Similarly, the conflict command
-lists modulefiles which conflict with the current modulefile.  If a list
-contains more than one modulefile, then each member of the list acts as a
-Boolean OR operation.  Multiple prereq and conflict commands may be used to
-create a Boolean AND operation.  If one of the requirements have not been
-satisfied, an error is reported and the current modulefile makes no changes
-to the user's environment.
+before the current modulefile will be loaded.  If any of the modules
+in the prereq list have not been loaded an error is reported and the current
+modulefile makes no changes to the user's environment.
 
 If an argument for prereq is a directory and any modulefile from the directory
 has been loaded, then the prerequisite is met. For example, specifying X11 as
 a prereq means that any version of X11, X11/R4 or X11/R5, must be loaded
 before proceeding.
 
+=head2 conflict modulefile [ modulefile ...  ]
+
+Prereq and conflict control whether or not the modulefile will be loaded.  
+The conflict command lists modulefiles which conflict with the current
+modulefile.  If any of the modules in the conflict list have been loaded
+an error is reported and the current modulefile makes no changes to the
+user's environment.
+
 If an argument for conflict is a directory and any other modulefile from that
 directory has been loaded, then a conflict will occur.  For example,
-specifying X11 as a conflict will stop X11/R4 and X11/R5 from being loaded at the same time.
+specifying X11 as a conflict will stop X11/R4 and X11/R5 from being loaded 
+at the same time.
 
 =head2 is-loaded modulefile [ modulefile ...  ]
 
@@ -152,7 +160,7 @@ would return a true value.
 
 =head2 module [ sub-command ] [ sub-command-args ]
 
-Contains the same sub-commands as described in the module(1) man page in the
+Contains the same sub-commands as described in the module man page in the
 Module Sub-Commands section.  This command permits a modulefile to load or
 remove other modulefiles.  No checks are made to ensure that the modulefile
 does not try to load itself.  Often it is useful to have a single modulefile
@@ -206,17 +214,17 @@ assigned
 =head3 module-info version module-file
 
 Returns a list of all symbolic versions assigned to the passed module-file.  
-The paremeter module-file might either be a full qualified module file with
+The parameter module-file might either be a full qualified module file with
 name and version, another symbolic module file name or a module file alias.
 
 =head2 module-version module-file version-name [version-name ...]
 
-Assignes the symbolic version-name to the module file module-file This
+Assigns the symbolic version-name to the module file module-file This
 command should be placed in one of the modulecmd rc files in order to provide
 shorthand invocations of frequently used module file names.
 
 The special version-name default specifies the default version to be used for
-module commands, if no specific verion is given.  This replaces the 
+module commands, if no specific version is given.  This replaces the 
 definitions made in the .version file in former modulecmd releases.
 
 The parameter module-file may be either
@@ -227,7 +235,7 @@ The parameter module-file may be either
 
 =head2 module-alias name module-file
 
-Assignes the module file module-file to the alias name.  This command should
+Assigns the module file module-file to the alias name.  This command should
 be placed in one of the modulecmd rc files in order to provide shorthand
 invocations of frequently used module file names.
 
@@ -237,7 +245,7 @@ The parameter module-file may be either
 	a symbolic module file name
 	another module file alias
 
-=head2 module-trace  {on|off}  [command  [command  ...]]   [-module modulefile
+=head2 module-trace  {on | off}  [command  [command  ...]]   [-module modulefile
        [modulefile ...]]
 
 Switches tracing on or off. Without parameters this command will affect
@@ -277,12 +285,12 @@ first matching pattern defines the tracing parameter.
 The internal trace pattern list is stored as a colon separated list.  In
 advanced user level only, colons may be specified on the module parameter of
 the module-trace command. This will directly take effect in the internal trace
-pattern list.  In novice or expert user level a warning messge will be
+pattern list.  In novice or expert user level a warning message will be
 generated.
 
 =head2 module-user level
 
-Defines the user level under wich module-cmd runs. This takes effect on the
+Defines the user level under which module-cmd runs. This takes effect on the
 error messages being produced and on the behavior of modulecmd in case of
 detecting an outage.
 
@@ -293,14 +301,14 @@ values:
 	expert, exp - expert user level
 	novice, nov - novice user level
 
-=head2 module-verbosity {on|off}
+=head2 module-verbosity {on | off}
 
 Switches verbose modulecmd message display on or off.
 
 =head2 module-log error-weight log-facility
 
 Defines whether error messages of the specified weight should be logged and
-conditionally assignes a log-facility. alias-name
+conditionally assigns a log-facility. alias-name
 
 The error-weight parameter specifies the error level to be logged.  It may be
 one of the following values:
@@ -328,7 +336,7 @@ following values are allowed:
 	output to  this  stream  might  screw  up  the  modulecmd
 	integration to your shell.
 	a  syslog  facility  - directs logging to the syslog. See
-	syslog.conf(4) for  detailed  description  of  the  valid
+	syslog.conf for  detailed  description  of  the  valid
 	syslog facilities.
 	null,  none  -  will  suppress  logging  of the specified
 	error-weight.
@@ -371,15 +379,15 @@ alias-name.
 
 =head2 system string
 
-Pass string to the C library routine system(3).  For the system(3) call
+Pass string to the C library routine system.  For the system call
 modulecmd redirects stdout to stderr since stdout would be parsed by the
 evaluating shell.  The exit status of the executed command is returned.
 
 =head2 uname field
 
-Provide fast lookup of system information on systems that support uname(3).
+Provide fast lookup of system information on systems that support uname.
 uname is significantly faster than using system to execute a program to
-return host information.  If uname(3) is not available, gethostname(3) or
+return host information.  If uname is not available, gethostname or
 some program will make the nodename available.  Uname will return the string
 "unknown" if information is unavailable for the field.
 
@@ -393,15 +401,13 @@ Field values are:
 	version - the operating system version
 	machine  -  a  standard name that identifies the system's hardware
 
-=head2 x-resource resource-string
-
-=head2 x-resource filename
+=head2 x-resource [resource-string | filename ]
 
 Merge resources into the X11 resource database.  The resources are used to 
 control look and behavior of X11 applications.  The command will attempt to
 read resources from filename.  If the argument isn't a valid file name, then
 string will be interpreted as a resource.  If a file is found, it will be
-filtered through the cpp(1) preprocessor, just as xrdb(1) would do.
+filtered through the cpp preprocessor, just as xrdb would do.
 
 modulefiles that use this command, should in most cases contain one or more
 x-resource lines, each defining one X11 resource.  Reading resources from
@@ -412,7 +418,7 @@ will exit with an error message.  Examples:
 
 =head3 x-resource /u2/staff/leif/.xres/Ileaf
 
-The file Ileaf is preprocessed by cpp(1) and the result is merged into the
+The file Ileaf is preprocessed by cpp and the result is merged into the
 X11 resource database.
 
 =head3 x-resource [glob ~/.xres/ileaf]
@@ -469,7 +475,7 @@ loaded.  Such a file would look like:
 =head1 Modulefile Specific Help
 
 Users can request help about a specific I<modulefile> through the
-module(1) command.  The modulefile can print helpful information or
+module command.  The modulefile can print helpful information or
 start help oriented programs by defining a I<ModulesHelp> subroutine.  The
 subroutine will be called when the 'module help I<modulefile>' command is
 used.
@@ -490,8 +496,8 @@ Path of directories containing I<modulefiles>.
 
 =head1 SEE ALSO
 
-L<module(1)>, L<Tcl(3)>, L<TclX(3)>, L<xrdb(1)>, L<cpp(1)>, L<system(3)>,
-L<uname(3)>, L<gethostname(3)>, L<getdomainname(3)>
+L<module>, L<Tcl>, L<TclX>, L<xrdb>, L<cpp>, L<system>,
+L<uname>, L<gethostname>, L<getdomainname>
 
 =head1 NOTES
 

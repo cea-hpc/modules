@@ -124,7 +124,7 @@
 .\" ========================================================================
 .\"
 .IX Title "MODULEFILE 1"
-.TH MODULEFILE 1 "2014-06-03" "modules-tcl" "Environment Modules"
+.TH MODULEFILE 1 "2014-11-12" "modules-tcl" "Environment Modules"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -133,8 +133,8 @@
 modulefile \- files containing Tcl code for the Modules package
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
-\&\fImodulefiles\fR are written in the Tool Command Language, \fITcl\fR\|(3) and are
-interpreted by the modulecmd program via the \fB\f(BImodule\fB\|(1)\fR user interface.
+\&\fImodulefiles\fR are written in the Tool Command Language, Tcl and are
+interpreted by the modulecmd program via the \fBmodule\fR user interface.
 \&\fImodulefiles\fR can be loaded, unloaded, or switched on-the-fly while the
 user is working.
 .PP
@@ -175,7 +175,7 @@ take care of every type of shell.
 .SH "Modules Specific Tcl Commands"
 .IX Header "Modules Specific Tcl Commands"
 The Modules Package uses commands which are extensions to the
-\&\*(L"standard\*(R" Tool Command Language \fITcl\fR\|(3) package.  Unless otherwise
+\&\*(L"standard\*(R" Tool Command Language Tcl package.  Unless otherwise
 specified, the Module commands return the empty string.  Some commands
 behave differently when a modulefile is loaded or unloaded.  The command
 descriptions assume the modulefile is being loaded.
@@ -226,12 +226,16 @@ when unloading a module, it will set variable to value.  The unsetenv command
 changes the process' environment like setenv.
 .SS "append-path variable value"
 .IX Subsection "append-path variable value"
-.SS "prepend-path variable value"
-.IX Subsection "prepend-path variable value"
-Append or prepend value to environment variable.  The variable is a colon
+Append value to the end of environment variable.  The variable is a colon
 separated list such as \*(L"PATH=directory:directory:directory\*(R".  If the variable
 is not set, it is created.  When a modulefile is unloaded,  append-path
-and prepend-path become remove-path.
+becomes remove-path.
+.SS "prepend-path variable value"
+.IX Subsection "prepend-path variable value"
+Append value to the front of environment variable.  The variable is a colon
+separated list such as \*(L"PATH=directory:directory:directory\*(R".  If the variable
+is not set, it is created.  When a modulefile is unloaded, prepend-path 
+becomes remove-path.
 .SS "remove-path variable value"
 .IX Subsection "remove-path variable value"
 Remove value from the colon separated list in variable.  Every string between
@@ -239,26 +243,28 @@ colons in variable is compared to value.  If the two match, value is removed
 from variable.
 .SS "prereq modulefile [ modulefile ...  ]"
 .IX Subsection "prereq modulefile [ modulefile ...  ]"
-.SS "conflict modulefile [ modulefile ...  ]"
-.IX Subsection "conflict modulefile [ modulefile ...  ]"
-prereq and conflict control whether or not the modulefile will be loaded.  The
+Prereq and conflict control whether or not the modulefile will be loaded.  The
 prereq command lists modulefiles which must have been previously loaded 
-before the current modulefile will be loaded.  Similarly, the conflict command
-lists modulefiles which conflict with the current modulefile.  If a list
-contains more than one modulefile, then each member of the list acts as a
-Boolean \s-1OR\s0 operation.  Multiple prereq and conflict commands may be used to
-create a Boolean \s-1AND\s0 operation.  If one of the requirements have not been
-satisfied, an error is reported and the current modulefile makes no changes
-to the user's environment.
+before the current modulefile will be loaded.  If any of the modules
+in the prereq list have not been loaded an error is reported and the current
+modulefile makes no changes to the user's environment.
 .PP
 If an argument for prereq is a directory and any modulefile from the directory
 has been loaded, then the prerequisite is met. For example, specifying X11 as
 a prereq means that any version of X11, X11/R4 or X11/R5, must be loaded
 before proceeding.
+.SS "conflict modulefile [ modulefile ...  ]"
+.IX Subsection "conflict modulefile [ modulefile ...  ]"
+Prereq and conflict control whether or not the modulefile will be loaded.  
+The conflict command lists modulefiles which conflict with the current
+modulefile.  If any of the modules in the conflict list have been loaded
+an error is reported and the current modulefile makes no changes to the
+user's environment.
 .PP
 If an argument for conflict is a directory and any other modulefile from that
 directory has been loaded, then a conflict will occur.  For example,
-specifying X11 as a conflict will stop X11/R4 and X11/R5 from being loaded at the same time.
+specifying X11 as a conflict will stop X11/R4 and X11/R5 from being loaded 
+at the same time.
 .SS "is-loaded modulefile [ modulefile ...  ]"
 .IX Subsection "is-loaded modulefile [ modulefile ...  ]"
 The is-loaded command returns a true value if any of the listed modulefiles
@@ -268,7 +274,7 @@ directory and any modulefile from the directory has been loaded is-loaded
 would return a true value.
 .SS "module [ sub-command ] [ sub-command-args ]"
 .IX Subsection "module [ sub-command ] [ sub-command-args ]"
-Contains the same sub-commands as described in the \fImodule\fR\|(1) man page in the
+Contains the same sub-commands as described in the module man page in the
 Module Sub-Commands section.  This command permits a modulefile to load or
 remove other modulefiles.  No checks are made to ensure that the modulefile
 does not try to load itself.  Often it is useful to have a single modulefile
@@ -329,16 +335,16 @@ assigned
 .IX Subsection "module-info version module-file"
 .PP
 Returns a list of all symbolic versions assigned to the passed module-file.  
-The paremeter module-file might either be a full qualified module file with
+The parameter module-file might either be a full qualified module file with
 name and version, another symbolic module file name or a module file alias.
 .SS "module-version module-file version-name [version\-name ...]"
 .IX Subsection "module-version module-file version-name [version-name ...]"
-Assignes the symbolic version-name to the module file module-file This
+Assigns the symbolic version-name to the module file module-file This
 command should be placed in one of the modulecmd rc files in order to provide
 shorthand invocations of frequently used module file names.
 .PP
 The special version-name default specifies the default version to be used for
-module commands, if no specific verion is given.  This replaces the 
+module commands, if no specific version is given.  This replaces the 
 definitions made in the .version file in former modulecmd releases.
 .PP
 The parameter module-file may be either
@@ -350,7 +356,7 @@ The parameter module-file may be either
 .Ve
 .SS "module-alias name module-file"
 .IX Subsection "module-alias name module-file"
-Assignes the module file module-file to the alias name.  This command should
+Assigns the module file module-file to the alias name.  This command should
 be placed in one of the modulecmd rc files in order to provide shorthand
 invocations of frequently used module file names.
 .PP
@@ -361,8 +367,8 @@ The parameter module-file may be either
 \&        a symbolic module file name
 \&        another module file alias
 .Ve
-.SS "module-trace  {on|off}  [command  [command  ...]]   [\-module modulefile [modulefile ...]]"
-.IX Subsection "module-trace  {on|off}  [command  [command  ...]]   [-module modulefile [modulefile ...]]"
+.SS "module-trace  {on | off}  [command  [command  ...]]   [\-module modulefile [modulefile ...]]"
+.IX Subsection "module-trace  {on | off}  [command  [command  ...]]   [-module modulefile [modulefile ...]]"
 Switches tracing on or off. Without parameters this command will affect
 globally all tracing setups for all commands and modulefiles.  The command
 parameter may be used to affect tracing of specified module commands only and
@@ -404,11 +410,11 @@ first matching pattern defines the tracing parameter.
 The internal trace pattern list is stored as a colon separated list.  In
 advanced user level only, colons may be specified on the module parameter of
 the module-trace command. This will directly take effect in the internal trace
-pattern list.  In novice or expert user level a warning messge will be
+pattern list.  In novice or expert user level a warning message will be
 generated.
 .SS "module-user level"
 .IX Subsection "module-user level"
-Defines the user level under wich module-cmd runs. This takes effect on the
+Defines the user level under which module-cmd runs. This takes effect on the
 error messages being produced and on the behavior of modulecmd in case of
 detecting an outage.
 .PP
@@ -420,13 +426,13 @@ values:
 \&        expert, exp \- expert user level
 \&        novice, nov \- novice user level
 .Ve
-.SS "module-verbosity {on|off}"
-.IX Subsection "module-verbosity {on|off}"
+.SS "module-verbosity {on | off}"
+.IX Subsection "module-verbosity {on | off}"
 Switches verbose modulecmd message display on or off.
 .SS "module-log error-weight log-facility"
 .IX Subsection "module-log error-weight log-facility"
 Defines whether error messages of the specified weight should be logged and
-conditionally assignes a log-facility. alias-name
+conditionally assigns a log-facility. alias-name
 .PP
 The error-weight parameter specifies the error level to be logged.  It may be
 one of the following values:
@@ -457,7 +463,7 @@ following values are allowed:
 \&        output to  this  stream  might  screw  up  the  modulecmd
 \&        integration to your shell.
 \&        a  syslog  facility  \- directs logging to the syslog. See
-\&        syslog.conf(4) for  detailed  description  of  the  valid
+\&        syslog.conf for  detailed  description  of  the  valid
 \&        syslog facilities.
 \&        null,  none  \-  will  suppress  logging  of the specified
 \&        error\-weight.
@@ -497,14 +503,14 @@ shell supports functions then the shell is instructed to unset function
 alias-name.
 .SS "system string"
 .IX Subsection "system string"
-Pass string to the C library routine \fIsystem\fR\|(3).  For the \fIsystem\fR\|(3) call
+Pass string to the C library routine system.  For the system call
 modulecmd redirects stdout to stderr since stdout would be parsed by the
 evaluating shell.  The exit status of the executed command is returned.
 .SS "uname field"
 .IX Subsection "uname field"
-Provide fast lookup of system information on systems that support \fIuname\fR\|(3).
+Provide fast lookup of system information on systems that support uname.
 uname is significantly faster than using system to execute a program to
-return host information.  If \fIuname\fR\|(3) is not available, \fIgethostname\fR\|(3) or
+return host information.  If uname is not available, gethostname or
 some program will make the nodename available.  Uname will return the string
 \&\*(L"unknown\*(R" if information is unavailable for the field.
 .PP
@@ -519,15 +525,13 @@ Field values are:
 \&        version \- the operating system version
 \&        machine  \-  a  standard name that identifies the system\*(Aqs hardware
 .Ve
-.SS "x\-resource resource-string"
-.IX Subsection "x-resource resource-string"
-.SS "x\-resource filename"
-.IX Subsection "x-resource filename"
+.SS "x\-resource [resource\-string | filename ]"
+.IX Subsection "x-resource [resource-string | filename ]"
 Merge resources into the X11 resource database.  The resources are used to 
 control look and behavior of X11 applications.  The command will attempt to
 read resources from filename.  If the argument isn't a valid file name, then
 string will be interpreted as a resource.  If a file is found, it will be
-filtered through the \fIcpp\fR\|(1) preprocessor, just as \fIxrdb\fR\|(1) would do.
+filtered through the cpp preprocessor, just as xrdb would do.
 .PP
 modulefiles that use this command, should in most cases contain one or more
 x\-resource lines, each defining one X11 resource.  Reading resources from
@@ -539,7 +543,7 @@ will exit with an error message.  Examples:
 \fIx\-resource /u2/staff/leif/.xres/Ileaf\fR
 .IX Subsection "x-resource /u2/staff/leif/.xres/Ileaf"
 .PP
-The file Ileaf is preprocessed by \fIcpp\fR\|(1) and the result is merged into the
+The file Ileaf is preprocessed by cpp and the result is merged into the
 X11 resource database.
 .PP
 \fIx\-resource [glob ~/.xres/ileaf]\fR
@@ -597,7 +601,7 @@ loaded.  Such a file would look like:
 .SH "Modulefile Specific Help"
 .IX Header "Modulefile Specific Help"
 Users can request help about a specific \fImodulefile\fR through the
-\&\fImodule\fR\|(1) command.  The modulefile can print helpful information or
+module command.  The modulefile can print helpful information or
 start help oriented programs by defining a \fIModulesHelp\fR subroutine.  The
 subroutine will be called when the 'module help \fImodulefile\fR' command is
 used.
@@ -615,8 +619,8 @@ descriptive information about the \fImodulefile\fR.
 Path of directories containing \fImodulefiles\fR.
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
-\&\fImodule\fR\|(1), \fITcl\fR\|(3), \fITclX\fR\|(3), \fIxrdb\fR\|(1), \fIcpp\fR\|(1), \fIsystem\fR\|(3),
-\&\fIuname\fR\|(3), \fIgethostname\fR\|(3), \fIgetdomainname\fR\|(3)
+module, Tcl, TclX, xrdb, cpp, system,
+uname, gethostname, getdomainname
 .SH "NOTES"
 .IX Header "NOTES"
 Tcl was developed by John Ousterhout at the University of California at
