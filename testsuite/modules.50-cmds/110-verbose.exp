@@ -44,26 +44,41 @@ set modulefile_3 "$env(MODULEPATH)/$module_3"
 
 set err_use "$error_msgs: Usage is 'module-verbosity on\\|off\\|fmt \\\[args\\\]'"
 set err_exec "$error_msgs: Tcl command execution failed: module-verbosity"
-
+set ts_err "$err_use$err_exec"
 #
-#  Only checked for the csh
+#  For the different shells ...
 #
 
 set lmf_csh_1 "setenv _LMFILES_ $modulefile_1 ;"
 set lm_csh_1 "setenv LOADEDMODULES $module_1 ;"
-
 set lmf_csh_2 "setenv _LMFILES_ $modulefile_2 ;"
 set lm_csh_2 "setenv LOADEDMODULES $module_2 ;"
 
-set ts_csh_3 "$err_use$err_exec"
+set lmf_pl_1 "\$ENV{'_LMFILES_'} = '$modulefile_1';"
+set lm_pl_1  "\$ENV{'LOADEDMODULES'} = '$module_1';"
+set lmf_pl_2 "\$ENV{'_LMFILES_'} = '$modulefile_2';"
+set lm_pl_2  "\$ENV{'LOADEDMODULES'} = '$module_2';"
+
+set lmf_py_1 "os.environ\['_LMFILES_'\] = '$modulefile_1'"
+set lm_py_1  "os.environ\['LOADEDMODULES'\] = '$module_1'"
+set lmf_py_2 "os.environ\['_LMFILES_'\] = '$modulefile_2'"
+set lm_py_2  "os.environ\['LOADEDMODULES'\] = '$module_2'"
 
 #
 #  The tests
 #
 
-test_cmd "csh" "load $module_1" "$lm_csh_1$lmf_csh_1$splitunset"
-test_cmd "csh" "load $module_2" "$lm_csh_2$lmf_csh_2$splitunset"
-testerr_cmd_re "csh" "load $module_3" "$ts_csh_3"
+test_cmd "csh" "load $module_1" "$lm_csh_1$lmf_csh_1"
+test_cmd "csh" "load $module_2" "$lm_csh_2$lmf_csh_2"
+testerr_cmd_re "csh" "load $module_3" "$ts_err"
+
+test_cmd "python" "load $module_1" "$lm_py_1\n$lmf_py_1"
+test_cmd "python" "load $module_2" "$lm_py_2\n$lmf_py_2"
+testerr_cmd_re "python" "load $module_3" "$ts_err"
+
+test_cmd "perl" "load $module_1" "$lm_pl_1$lmf_pl_1"
+test_cmd "perl" "load $module_2" "$lm_pl_2$lmf_pl_2"
+testerr_cmd_re "perl" "load $module_3" "$ts_err"
 
 #
 #  Cleanup
@@ -71,13 +86,22 @@ testerr_cmd_re "csh" "load $module_3" "$ts_csh_3"
 
 unset err_use
 unset err_exec
+unset ts_err 
 
 unset lm_csh_1
 unset lmf_csh_1
 unset lm_csh_2
 unset lmf_csh_2
 
-unset ts_csh_3
+unset lm_pl_1
+unset lmf_pl_1
+unset lm_pl_2
+unset lmf_pl_2
+
+unset lm_py_1
+unset lmf_py_1
+unset lm_py_2
+unset lmf_py_2
 
 unset modulefile_1
 unset module_1

@@ -32,6 +32,7 @@ set mod31p "$env(MODULEPATH)/$mod31"
 
 set oth11 "version"
 set oth11p "$env(MODULEPATH).other/1.1/version"
+set vnum "1.1"
 
 #
 # set up an empty environment
@@ -54,15 +55,19 @@ set ts_sh "TESTSUITE=1.1 ;export TESTSUITE;"
 
 set lmf_csh "setenv _LMFILES_ $modulefile ;"
 set lm_csh "setenv LOADEDMODULES $module ;"
-set ts_csh "setenv TESTSUITE 1.1 ;"
+set ts_csh "setenv TESTSUITE $vnum ;"
 
 set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
-set ts_perl "\$ENV{'TESTSUITE'} = '1.1';"
+set ts_perl "\$ENV{'TESTSUITE'} = '$vnum';"
 
 set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
 set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
-set ts_cmake "set(ENV{TESTSUITE} \"1.1\")"
+set ts_cmake "set(ENV{TESTSUITE} \"$vnum\")"
+
+set lmf_python "os.environ\['_LMFILES_'\] = '$modulefile'"
+set lm_python  "os.environ\['LOADEDMODULES'\] = '$module'"
+set ts_python  "os.environ\['TESTSUITE'\] = '$vnum'"
 
 #
 #  The tests
@@ -74,6 +79,7 @@ test_cmd "csh" "load $mod31" "$lm_csh$lmf_csh$splitunset"
 test_cmd "tcsh" "load $mod31" "$lm_csh$lmf_csh$splitunset"
 test_cmd "perl" "load $mod31" "$lm_perl$lmf_perl"
 test_cmd "cmake" "load $mod31" "$lm_cmake\n$lmf_cmake"
+test_cmd "python" "load $mod31" "$lm_python\n$lmf_python"
 
 #
 # set up a single environment
@@ -102,6 +108,9 @@ set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
 set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
 set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
 
+set lmf_python "os.environ\['_LMFILES_'\] = '$modulefile'"
+set lm_python  "os.environ\['LOADEDMODULES'\] = '$module'"
+
 #
 #  The tests
 #
@@ -112,6 +121,7 @@ test_cmd "csh" "load $mod31" "$lm_csh$lmf_csh$splitunset"
 test_cmd "tcsh" "load $mod31" "$lm_csh$lmf_csh$splitunset"
 test_cmd "perl" "load $mod31" "$lm_perl$lmf_perl"
 test_cmd "cmake" "load $mod31" "$lm_cmake\n$lmf_cmake"
+test_cmd "python" "load $mod31" "$lm_python\n$lmf_python"
 
 #
 # set up a double environment
@@ -140,6 +150,9 @@ set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
 set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
 set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
 
+set lmf_python "os.environ\['_LMFILES_'\] = '$modulefile'"
+set lm_python  "os.environ\['LOADEDMODULES'\] = '$module'"
+
 #
 #  The tests
 #
@@ -150,6 +163,22 @@ test_cmd "csh" "load $mod31" "$lm_csh$lmf_csh$splitunset"
 test_cmd "tcsh" "load $mod31" "$lm_csh$lmf_csh$splitunset"
 test_cmd "perl" "load $mod31" "$lm_perl$lmf_perl"
 test_cmd "cmake" "load $mod31" "$lm_cmake\n$lmf_cmake"
+test_cmd "python" "load $mod31" "$lm_python\n$lmf_python"
+
+#
+# load already loaded module
+# no environement modification, exit 1
+#
+
+set test01 " test 0 = 1;"
+test_cmd "sh" "load $mod11" "$test01" 1
+test_cmd "ksh" "load $mod11" "$test01" 1
+test_cmd "zsh" "load $mod11" "$test01" 1
+test_cmd "csh" "load $mod11" "$test01" 1
+test_cmd "tcsh" "load $mod11" "$test01" 1
+test_cmd "cmake" "load $mod11" "" 1
+test_cmd "perl" "load $mod11" "" 1
+test_cmd "python" "load $mod11" "" 1
 
 #
 # reference a module not in the path
@@ -178,6 +207,9 @@ set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
 set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
 set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
 
+set lmf_python "os.environ\['_LMFILES_'\] = '$modulefile'"
+set lm_python  "os.environ\['LOADEDMODULES'\] = '$module'"
+set ts_python  "os.environ\['TESTSUITE'\] = '$vnum'"
 #
 #  The tests
 #
@@ -188,6 +220,35 @@ test_cmd "csh" "load $oth11p" "$lm_csh$ts_csh$lmf_csh$splitunset"
 test_cmd "tcsh" "load $oth11p" "$lm_csh$ts_csh$lmf_csh$splitunset"
 test_cmd "perl" "load $oth11p" "$lm_perl$ts_perl$lmf_perl"
 test_cmd "cmake" "load $oth11p" "$lm_cmake\n$ts_cmake\n$lmf_cmake"
+test_cmd "python" "load $oth11p" "$lm_python\n$ts_python\n$lmf_python"
+
+#
+# error when loading non existent module
+#
+set unknonw "XYZ"
+set err_load "$error_msgs: Unable to locate a modulefile for "
+test_cmd "sh" "load $unknonw" "$test01" 1
+testerr_cmd_re "sh" "load $unknonw" "$err_load\'$unknonw\'"
+test_cmd "ksh" "load $unknonw" "$test01" 1
+testerr_cmd_re "ksh" "load $unknonw" "$err_load\'$unknonw\'"
+test_cmd "zsh" "load $unknonw" "$test01" 1
+testerr_cmd_re "zsh" "load $unknonw" "$err_load\'$unknonw\'"
+test_cmd "csh" "load $unknonw" "$test01" 1
+testerr_cmd_re "csh" "load $unknonw" "$err_load\'$unknonw\'"
+test_cmd "tcsh" "load $unknonw" "$test01" 1
+testerr_cmd_re "tcsh" "load $unknonw" "$err_load\'$unknonw\'"
+test_cmd "tcsh" "cmake $unknonw" "" 1
+testerr_cmd_re "cmake" "load $unknonw" "$err_load\'$unknonw\'"
+test_cmd "perl" "load $unknonw" "" 1
+testerr_cmd_re "perl" "load $unknonw" "$err_load\'$unknonw\'"
+test_cmd "python" "load $unknonw" "" 1
+testerr_cmd_re "python" "load $unknonw" "$err_load\'$unknonw\'"
+
+
+#
+#
+#
+
 
 #
 #  Cleanup
@@ -212,6 +273,10 @@ unset lm_cmake
 unset lmf_cmake
 unset ts_cmake
 
+unset lm_python
+unset lmf_python
+unset ts_python
+
 unset modulefile
 unset module
 
@@ -222,3 +287,6 @@ unset mod11p
 unset mod21p
 unset mod31p
 
+unset test01
+unset vnum
+unset unknonw

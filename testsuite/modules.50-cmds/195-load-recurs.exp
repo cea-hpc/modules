@@ -53,6 +53,11 @@ set lm_csh "setenv LOADEDMODULES $module ;"
 set tsA_csh "setenv MODA_LOADED 1 ;"
 set tsB_csh "setenv MODB_LOADED 1 ;"
 
+set lmf_python "os.environ\['_LMFILES_'\] = '$modulefile'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$module'"
+set tsA_python "os.environ\['MODA_LOADED'\] = '1'"
+set tsB_python "os.environ\['MODB_LOADED'\] = '1'"
+
 set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
 set tsA_perl "\$ENV{'MODA_LOADED'} = '1';"
@@ -71,6 +76,7 @@ testouterr_cmd "ksh" "load $modA" "$lm_sh$tsA_sh$tsB_sh$lmf_sh" "$moderr"
 testouterr_cmd "zsh" "load $modA" "$lm_sh$tsA_sh$tsB_sh$lmf_sh" "$moderr"
 testouterr_cmd "csh" "load $modA" "$lm_csh$tsA_csh$tsB_csh$lmf_csh" "$moderr"
 testouterr_cmd "tcsh" "load $modA" "$lm_csh$tsA_csh$tsB_csh$lmf_csh" "$moderr"
+testouterr_cmd "python" "load $modA" "$lm_python\n$tsA_python\n$tsB_python\n$lmf_python" "$moderr"
 testouterr_cmd "perl" "load $modA" "$lm_perl$tsA_perl$tsB_perl$lmf_perl" "$moderr"
 testouterr_cmd "cmake" "load $modA" "$lm_cmake\n$tsA_cmake\n$tsB_cmake\n$lmf_cmake" "$moderr"
 
@@ -93,6 +99,11 @@ set lm_csh "setenv LOADEDMODULES $module ;"
 set tsA_csh "unsetenv MODA_LOADED;"
 set tsB_csh "unsetenv MODB_LOADED;"
 
+set lmf_python "os.environ\['_LMFILES_'\] = '$modulefile'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$module'"
+set tsA_python "del os.environ\['MODA_LOADED'\]"
+set tsB_python "del os.environ\['MODB_LOADED'\]"
+
 set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
 set tsA_perl "delete \$ENV{'MODA_LOADED'};"
@@ -111,6 +122,7 @@ testouterr_cmd "ksh" "unload $modA" "$lm_sh$lmf_sh$tsA_sh$tsB_sh" "$moderr"
 testouterr_cmd "zsh" "unload $modA" "$lm_sh$lmf_sh$tsA_sh$tsB_sh" "$moderr"
 testouterr_cmd "csh" "unload $modA" "$lm_csh$lmf_csh$tsA_csh$tsB_csh" "$moderr"
 testouterr_cmd "tcsh" "unload $modA" "$lm_csh$lmf_csh$tsA_csh$tsB_csh" "$moderr"
+testouterr_cmd "python" "unload $modA" "$lm_python\n$lmf_python\n$tsA_python\n$tsB_python" "$moderr"
 testouterr_cmd "perl" "unload $modA" "$lm_perl$lmf_perl$tsA_perl$tsB_perl" "$moderr"
 testouterr_cmd "cmake" "unload $modA" "$lm_cmake\n$lmf_cmake\n$tsA_cmake\n$tsB_cmake" "$moderr"
 
@@ -131,6 +143,11 @@ unset lm_csh
 unset lmf_csh
 unset tsA_csh
 unset tsB_csh
+
+unset lm_python
+unset lmf_python
+unset tsA_python
+unset tsB_python
 
 unset lm_perl
 unset lmf_perl

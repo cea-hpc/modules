@@ -49,24 +49,22 @@ set modulefile "$mod1p"
 set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
 set ts_sh1 "testsuite1=yes ;export testsuite1;"
-set ts_sh2 "testsuite2=yes ;export testsuite2;"
-set ts_sh3 "testsuite3=yes ;export testsuite3;"
 
 set lmf_csh "setenv _LMFILES_ $modulefile ;"
 set lm_csh "setenv LOADEDMODULES $module ;"
 set ts_csh1 "setenv testsuite1 yes ;"
-set ts_csh2 "setenv testsuite2 yes ;"
-set ts_csh3 "setenv testsuite3 yes ;"
+
+set lmf_python "os.environ\['_LMFILES_'\] = '$modulefile'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$module'"
+set ts_python1 "os.environ\['testsuite1'\] = 'yes'"
 
 set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
 set ts_perl1 "\$ENV{'testsuite1'} = 'yes';"
-set ts_perl3 "\$ENV{'testsuite3'} = 'yes';"
 
 set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
 set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
 set ts_cmake1 "set(ENV{testsuite1} \"yes\")"
-set ts_cmake3 "set(ENV{testsuite3} \"yes\")"
 
 set test01 " test 0 = 1;"
 
@@ -82,6 +80,7 @@ test_cmd "ksh" "load $mod1 $mod2 $mod3" "$lm_sh$lmf_sh$ts_sh1$test01" $fail_load
 test_cmd "zsh" "load $mod1 $mod2 $mod3" "$lm_sh$lmf_sh$ts_sh1$test01" $fail_load
 test_cmd "csh" "load $mod1 $mod2 $mod3" "$lm_csh$lmf_csh$splitunset$ts_csh1$test01" $fail_load
 test_cmd "tcsh" "load $mod1 $mod2 $mod3" "$lm_csh$lmf_csh$splitunset$ts_csh1$test01" $fail_load
+test_cmd "python" "load $mod1 $mod2 $mod3" "$lm_python\n$lmf_python\n$ts_python1" $fail_load
 test_cmd "perl" "load $mod1 $mod2 $mod3" "$lm_perl$lmf_perl$ts_perl1" $fail_load
 test_cmd "cmake" "load $mod1 $mod2 $mod3" "$lm_cmake\n$lmf_cmake\n$ts_cmake1" $fail_load
 
@@ -90,6 +89,7 @@ test_cmd "ksh" "load $mod1 $mod3 $mod2" "$lm_sh$lmf_sh$ts_sh1$test01" $fail_load
 test_cmd "zsh" "load $mod1 $mod3 $mod2" "$lm_sh$lmf_sh$ts_sh1$test01" $fail_load
 test_cmd "csh" "load $mod1 $mod3 $mod2" "$lm_csh$lmf_csh$splitunset$ts_csh1$test01" $fail_load
 test_cmd "tcsh" "load $mod1 $mod3 $mod2" "$lm_csh$lmf_csh$splitunset$ts_csh1$test01" $fail_load
+test_cmd "python" "load $mod1 $mod3 $mod2" "$lm_python\n$lmf_python\n$ts_python1" $fail_load
 test_cmd "perl" "load $mod1 $mod3 $mod2" "$lm_perl$lmf_perl$ts_perl1" $fail_load
 test_cmd "cmake" "load $mod1 $mod3 $mod2" "$lm_cmake\n$lmf_cmake\n$ts_cmake1" $fail_load
 
@@ -103,24 +103,18 @@ unset env(LOADEDMODULES)
 unset lm_sh
 unset lmf_sh
 unset ts_sh1
-unset ts_sh2
-unset ts_sh3
 
 unset lm_csh
 unset lmf_csh
 unset ts_csh1
-unset ts_csh2
-unset ts_csh3
 
 unset lm_perl
 unset lmf_perl
 unset ts_perl1
-unset ts_perl3
 
 unset lm_cmake
 unset lmf_cmake
 unset ts_cmake1
-unset ts_cmake3
 
 unset test01
 unset fail_load

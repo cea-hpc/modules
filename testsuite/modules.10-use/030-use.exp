@@ -29,6 +29,7 @@ set path "$env(TESTSUITEDIR)/modulefiles.other"
 set badpath "$env(TESTSUITEDIR)/modulefiles.bad"
 set mod_path "$path:$env(MODULEPATH)"
 set bad_use "$error_msgs: Directory '$badpath' not found"
+set loaded_path "$env(TESTSUITEDIR)/modulefiles"
 set emptypath ""
 
 set use	"use"
@@ -43,28 +44,59 @@ test_cmd "zsh" "$use $path" "MODULEPATH=$mod_path ;export MODULEPATH;"
 test_cmd "csh" "$use $path" "setenv MODULEPATH $mod_path ;"
 test_cmd "tcsh" "$use $path" "setenv MODULEPATH $mod_path ;"
 test_cmd "perl" "$use $path" "\$ENV{'MODULEPATH'} = '$mod_path';"
+test_cmd "python" "$use $path" "os.environ\['MODULEPATH'\] = '$mod_path'"
 test_cmd "cmake" "$use $path" "set(ENV{MODULEPATH} \"$mod_path\")"
 
 #
 # test if use non-existent modulefile directory
+# and exit value 1
 #
 
-testerr_cmd_re "sh" "$use $badpath" "$bad_use"
+testerr_cmd_re "sh" "$use $badpath" "$bad_use" 
 testerr_cmd_re "ksh" "$use $badpath" "$bad_use"
 testerr_cmd_re "zsh" "$use $badpath" "$bad_use"
 testerr_cmd_re "csh" "$use $badpath" "$bad_use"
 testerr_cmd_re "tcsh" "$use $badpath" "$bad_use"
 testerr_cmd_re "perl" "$use $badpath" "$bad_use"
 testerr_cmd_re "cmake" "$use $badpath" "$bad_use"
+testerr_cmd_re "cmake" "$use $badpath" "$bad_use"
 
 #
 # test with uninitialized MODULEPATH
 # was causing a segfault
 #
+
+if { $verbose > 0 } {
+    send_user "Setup MODULEPATH = ''\n"
+}
+
 set ORIG $::env(MODULEPATH)
-set ::env(MODULEPATH) ""
+set ::env(MODULEPATH) "" 
+
 test_cmd "sh" "$use $path" "MODULEPATH=$path ;export MODULEPATH;"
+test_cmd "ksh" "$use $path" "MODULEPATH=$path ;export MODULEPATH;"
+test_cmd "zsh" "$use $path" "MODULEPATH=$path ;export MODULEPATH;"
+test_cmd "tcsh" "$use $path" "setenv MODULEPATH $path ;"
+test_cmd "perl" "$use $path" "\$ENV{'MODULEPATH'} = '$path';"
+test_cmd "python" "$use $path" "os.environ\['MODULEPATH'\] = '$path'"
+test_cmd "cmake" "$use $path" "set(ENV{MODULEPATH} \"$path\")"
+
+if { $verbose > 0 } {
+    send_user "Restore MODULEPATH = $ORIG\n"
+}
 set ::env(MODULEPATH) $ORIG
+
+#
+# test with already loaded path
+# no modification and exit value 0
+#
+test_cmd "sh" "$use $loaded_path" ""
+test_cmd "ksh" "$use $loaded_path" ""
+test_cmd "zsh" "$use $loaded_path" ""
+test_cmd "tcsh" "$use $loaded_path" ""
+test_cmd "perl" "$use $loaded_path" ""
+test_cmd "python" "$use $loaded_path" ""
+test_cmd "cmake" "$use $loaded_path" ""
 
 #
 # Cleanup

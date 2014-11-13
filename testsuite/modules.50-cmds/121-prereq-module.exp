@@ -11,14 +11,14 @@
 #
 #   Description:	Testuite testsequence
 #   Command:		load
-#   Modulefiles:	prereq/module, trace/all_on, trace/all_off
+#   Modulefiles:	prereq/full, trace/all_on, trace/all_off
 #   Sub-Command:
 #
 #   Comment:	%C{
-#			Tests the 'prereq' command using a category
+#			Tests the 'prereq' command using a full qualified
 #			module name. This tests the reactions of modulecmd
-#			if the prerequired module is not load and if one
-#			of the modules of the required category is load.
+#			if the prerequired module is load or not and if
+#			another module of the same category is load.
 #		}C%
 #
 ##############################################################################
@@ -38,16 +38,7 @@ set modulefile_tron "$env(MODULEPATH)/$module_tron"
 set module_troff "trace/all_off"
 set modulefile_troff "$env(MODULEPATH)/$module_troff"
 
-#
-#  Only for the csh
-#
-
-set lmf_csh_tron "setenv _LMFILES_ $modulefile_tron:$modulefile ;"
-set lm_csh_tron "setenv LOADEDMODULES $module_tron:$module ;"
-set lmf_csh_troff "setenv _LMFILES_ $modulefile_troff:$modulefile ;"
-set lm_csh_troff "setenv LOADEDMODULES $module_troff:$module ;"
-
-set ts_csh "setenv testsuite yes ;"
+set test01 " test 0 = 1;"
 
 #
 #  Error messages
@@ -55,14 +46,66 @@ set ts_csh "setenv testsuite yes ;"
 
 set err_prereq "$error_msgs: Module '$module' depends on one of the module\\(s\\) 'trace/all_on trace/all_off'\n"
 set err_exec "$error_msgs: Tcl command execution failed: prereq\ttrace\n"
+set err "$err_prereq$err_exec"
+#
+#  expected outputs for cshells, bourne shells, python, perl and cmake
+#
+
+set lmf_csh_tron "setenv _LMFILES_ $modulefile_tron:$modulefile ;"
+set lm_csh_tron "setenv LOADEDMODULES $module_tron:$module ;"
+set lmf_csh_troff "setenv _LMFILES_ $modulefile_troff:$modulefile ;"
+set lm_csh_troff "setenv LOADEDMODULES $module_troff:$module ;"
+set ts_csh "setenv testsuite yes ;"
+
+set lmf_sh_tron "_LMFILES_=$modulefile_tron:$modulefile ;export _LMFILES_;"
+set lm_sh_tron "LOADEDMODULES=$module_tron:$module ;export LOADEDMODULES;"
+set lmf_sh_troff "_LMFILES_=$modulefile_troff:$modulefile ;export _LMFILES_;"
+set lm_sh_troff "LOADEDMODULES=$module_troff:$module ;export LOADEDMODULES;"
+set ts_sh "testsuite=yes ;export testsuite;"
+
+set lmf_tron_py "os.environ\['_LMFILES_'\] = '$modulefile_tron:$modulefile'"
+set lm_tron_py "os.environ\['LOADEDMODULES'\] = '$module_tron:$module'"
+set lmf_troff_py "os.environ\['_LMFILES_'\] = '$modulefile_troff:$modulefile'"
+set lm_troff_py "os.environ\['LOADEDMODULES'\] = '$module_troff:$module'"
+set ts_py "os.environ\['testsuite'\] = 'yes'"
+
+set lmf_tron_pl "\$ENV{'_LMFILES_'} = '$modulefile_tron:$modulefile';"
+set lm_tron_pl "\$ENV{'LOADEDMODULES'} = '$module_tron:$module';"
+set lmf_troff_pl "\$ENV{'_LMFILES_'} = '$modulefile_troff:$modulefile';"
+set lm_troff_pl "\$ENV{'LOADEDMODULES'} = '$module_troff:$module';"
+set ts_pl "\$ENV{'testsuite'} = 'yes';"
+
+set lmf_tron_cm "set(ENV{_LMFILES_} \"$modulefile_tron:$modulefile\")"
+set lm_tron_cm "set(ENV{LOADEDMODULES} \"$module_tron:$module\")"
+set lmf_troff_cm "set(ENV{_LMFILES_} \"$modulefile_troff:$modulefile\")"
+set lm_troff_cm "set(ENV{LOADEDMODULES} \"$module_troff:$module\")"
+set ts_cm "set(ENV{testsuite} \"yes\")"
 
 #
 #  The tests
 #
 
-testerr_cmd_re "csh" "load $module" "$err_prereq$err_exec"
-test_cmd "csh" "load $module_troff $module" "$lm_csh_troff$lmf_csh_troff$splitunset$ts_csh"
+testouterr_cmd_re "csh" "load $module" "$test01" "$err"
+test_cmd "csh" "load $module_troff $module" "$lm_csh_troff$lmf_csh_troff$ts_csh" 
 test_cmd "csh" "load $module_tron $module" "$lm_csh_tron$lmf_csh_tron$splitunset$ts_csh"
+
+testouterr_cmd_re "sh" "load $module" "$test01" "$err"
+test_cmd "sh" "load $module_troff $module" "$lm_sh_troff$lmf_sh_troff$ts_sh" 
+test_cmd "sh" "load $module_tron $module" "$lm_sh_tron$lmf_sh_tron$splitunset$ts_sh"
+
+testouterr_cmd_re "python" "load $module"  "" "$err"
+test_cmd "python" "load $module_troff $module" "$lm_troff_py\n$lmf_troff_py\n$ts_py" 
+test_cmd "python" "load $module_tron $module" "$lm_tron_py\n$lmf_tron_py\n$ts_py" 
+
+testouterr_cmd_re "perl" "load $module"  "" "$err"
+test_cmd "perl" "load $module_troff $module" "$lm_troff_pl$lmf_troff_pl$ts_pl" 
+test_cmd "perl" "load $module_tron $module" "$lm_tron_pl$lmf_tron_pl$ts_pl" 
+
+
+testouterr_cmd_re "cmake" "load $module"  "" "$err"
+test_cmd "cmake" "load $module_troff $module" "$lm_troff_cm\n$lmf_troff_cm\n$ts_cm" 
+test_cmd "cmake" "load $module_tron $module" "$lm_tron_cm\n$lmf_tron_cm\n$ts_cm" 
+
 
 #
 #  Cleanup
@@ -70,13 +113,37 @@ test_cmd "csh" "load $module_tron $module" "$lm_csh_tron$lmf_csh_tron$splitunset
 
 unset err_prereq
 unset err_exec
-
-unset ts_csh
+unset err
 
 unset lm_csh_troff
 unset lmf_csh_troff
 unset lm_csh_tron
 unset lmf_csh_tron
+unset ts_csh
+
+unset lm_sh_troff
+unset lmf_sh_troff
+unset lm_sh_tron
+unset lmf_sh_tron
+unset ts_sh
+
+unset lm_troff_py
+unset lmf_troff_py
+unset lm_tron_py
+unset lmf_tron_py
+unset ts_py
+
+unset lm_troff_pl
+unset lmf_troff_pl
+unset lm_tron_pl
+unset lmf_tron_pl
+unset ts_pl
+
+unset lm_troff_cm
+unset lmf_troff_cm
+unset lm_tron_cm
+unset lmf_tron_cm
+unset ts_cm
 
 unset modulefile
 unset module

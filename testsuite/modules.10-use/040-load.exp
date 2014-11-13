@@ -26,19 +26,40 @@
 
 set oldpath	"$env(TESTSUITEDIR)/modulefiles"
 set newpath	"$env(TESTSUITEDIR)/modulefiles.other"
+
 set xxx		"$newpath:$oldpath"
 set modpathsh	"MODULEPATH=$xxx ;export MODULEPATH;"
 set modpathcsh	"setenv MODULEPATH $xxx ;"
+set modpathpy   "os.environ\['MODULEPATH'\] = \'$xxx\'"
+set modpathpl   "\$ENV\{'MODULEPATH'\} = '$xxx';"
+set modpathcm   "set(ENV\{MODULEPATH\} \"$xxx\")"
+
 set xxx		"use/1.0:1.1/version"
 set loadmodsh	"LOADEDMODULES=$xxx ;export LOADEDMODULES;"
 set loadmodcsh	"setenv LOADEDMODULES $xxx ;"
+set loadmodpy	"os.environ\['LOADEDMODULES'\] = '$xxx'"
+set loadmodpl	"\$ENV\{'LOADEDMODULES'\} = '$xxx';"
+set loadmodcm	"set(ENV\{LOADEDMODULES\} \"$xxx\")"
+
 set xxx		"$oldpath/use/1.0:$newpath/1.1/version"
 set lmsh	"_LMFILES_=$xxx ;export _LMFILES_;"
 set lmcsh	"setenv _LMFILES_ $xxx ;"
+set lmfpy	"os.environ\['_LMFILES_'\] = '$xxx'"
+set lmfpl	"\$ENV\{'_LMFILES_'\} = '$xxx';"
+set lmfcm	"set(ENV\{_LMFILES_\} \"$xxx\")"
+
+
 set testsh	"TESTSUITE=1.1 ;export TESTSUITE;"
 set testcsh	"setenv TESTSUITE 1.1 ;"
+set testpy	"os.environ\['TESTSUITE'\] = \'1.1\'"
+set testpl	"\$ENV\{'TESTSUITE'\} = \'1.1\';"
+set testcm	"set(ENV\{TESTSUITE\} \"1.1\")"
+
 set sh		"$loadmodsh$modpathsh$testsh$lmsh"
 set csh		"$loadmodcsh$modpathcsh$testcsh$lmcsh$splitunset"
+set pyout	"$loadmodpy\n$modpathpy\n$testpy\n$lmfpy"
+set plout	"$loadmodpl$modpathpl$testpl$lmfpl"
+set cmout	"$loadmodcm\n$modpathcm\n$testcm\n$lmfcm"
 
 set use	"load use 1.1/version"
 
@@ -51,6 +72,9 @@ test_cmd "ksh" "$use" "$sh"
 test_cmd "zsh" "$use" "$sh"
 test_cmd "csh" "$use" "$csh"
 test_cmd "tcsh" "$use" "$csh"
+test_cmd "python" "$use" "$pyout"
+test_cmd "perl" "$use" "$plout"
+test_cmd "cmake" "$use" "$cmout"
 
 #
 # Cleanup
@@ -59,14 +83,29 @@ test_cmd "tcsh" "$use" "$csh"
 unset xxx
 unset oldpath
 unset newpath
-unset use
 unset modpathsh
 unset modpathcsh
+unset modpathpy
+unset modpathpl
+unset modpathcm
 unset loadmodsh
 unset loadmodcsh
+unset loadmodpy
+unset loadmodpl
+unset loadmodcm
 unset lmsh
 unset lmcsh
+unset lmfpy
+unset lmfpl
+unset lmfcm
 unset testsh
 unset testcsh
+unset testpy
+unset testpl
+unset testcm
 unset sh
 unset csh
+unset pyout
+unset plout
+unset cmout
+unset use

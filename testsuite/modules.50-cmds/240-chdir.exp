@@ -55,6 +55,10 @@ set ts_csh2 "$ts_sh2"
 set ts_csh3 "$ts_csh1"
 set ts_csh4 "$ts_sh4"
 
+set ts_python1 "os.chdir('/tmp')"
+set ts_python3 "$ts_python1"
+set ts_python4 "os.chdir('/')"
+
 set ts_perl1 "chdir '/tmp';"
 set ts_perl2 ""
 set ts_perl3 "$ts_perl1"
@@ -68,8 +72,13 @@ set test01 " test 0 = 1;"
 # test 1	(/tmp)
 set lmf_sh "_LMFILES_=$mod1p ;export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$mod1 ;export LOADEDMODULES;"
+
 set lmf_csh "setenv _LMFILES_ $mod1p ;"
 set lm_csh "setenv LOADEDMODULES $mod1 ;"
+
+set lmf_python "os.environ\['_LMFILES_'\] = '$mod1p'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$mod1'"
+
 set lmf_perl "\$ENV{'_LMFILES_'} = '$mod1p';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$mod1';"
 
@@ -78,13 +87,19 @@ test_cmd "ksh" "load $mod1" "$lm_sh$lmf_sh$ts_sh1"
 test_cmd "zsh" "load $mod1" "$lm_sh$lmf_sh$ts_sh1"
 test_cmd "csh" "load $mod1" "$lm_csh$lmf_csh$splitunset$ts_csh1"
 test_cmd "tcsh" "load $mod1" "$lm_csh$lmf_csh$splitunset$ts_csh1"
+test_cmd "python" "load $mod1" "$lm_python\n$lmf_python\n$ts_python1"
 test_cmd "perl" "load $mod1" "$lm_perl$lmf_perl$ts_perl1"
 
 # test 2	(/foo/bar/baz)
 set lmf_sh "_LMFILES_=$mod2p ;export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$mod2 ;export LOADEDMODULES;"
+
 set lmf_csh "setenv _LMFILES_ $mod2p ;"
 set lm_csh "setenv LOADEDMODULES $mod2 ;"
+
+set lmf_python "os.environ\['_LMFILES_'\] = '$mod2p'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$mod2'"
+
 set lmf_perl "\$ENV{'_LMFILES_'} = '$mod2p';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$mod2';"
 
@@ -93,28 +108,44 @@ testouterr_cmd_re "ksh" "load $mod2" "$lm_sh$lmf_sh$ts_sh2"	"$err_chdir"
 testouterr_cmd_re "zsh" "load $mod2" "$lm_sh$lmf_sh$ts_sh2"	"$err_chdir"
 testouterr_cmd_re "csh" "load $mod2" "$lm_csh$lmf_csh$splitunset$ts_csh2"	"$err_chdir"
 testouterr_cmd_re "tcsh" "load $mod2" "$lm_csh$lmf_csh$splitunset$ts_csh2"	"$err_chdir"
+
+#testouterr_cmd_re seems broken by $ [] and {} 
+testerr_cmd_re "python" "load $mod2" "$err_chdir"
+test_cmd "python" "load $mod2" "$lm_python\n$lmf_python"
+testerr_cmd_re "perl" "load $mod2" "$err_chdir"
 test_cmd "perl" "load $mod2" "$lm_perl$lmf_perl$ts_perl2"
 
 # test 3	(/ & /tmp)
 set lmf_sh "_LMFILES_=$mod3p ;export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$mod3 ;export LOADEDMODULES;"
+
 set lmf_csh "setenv _LMFILES_ $mod3p ;"
 set lm_csh "setenv LOADEDMODULES $mod3 ;"
+
 set lmf_perl "\$ENV{'_LMFILES_'} = '$mod3p';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$mod3';"
+
+set lmf_python "os.environ\['_LMFILES_'\] = '$mod3p'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$mod3'"
 
 test_cmd "sh" "load $mod3" "$lm_sh$lmf_sh$ts_sh3"
 test_cmd "ksh" "load $mod3" "$lm_sh$lmf_sh$ts_sh3"
 test_cmd "zsh" "load $mod3" "$lm_sh$lmf_sh$ts_sh3"
 test_cmd "csh" "load $mod3" "$lm_csh$lmf_csh$splitunset$ts_csh3"
 test_cmd "tcsh" "load $mod3" "$lm_csh$lmf_csh$splitunset$ts_csh3"
+test_cmd "python" "load $mod3" "$lm_python\n$lmf_python\n$ts_python3"
 test_cmd "perl" "load $mod3" "$lm_perl$lmf_perl$ts_perl3"
 
 # test 4	(/tmp, /)
 set lmf_sh "_LMFILES_=$mod1p:$mod4p ;export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$mod1:$mod4 ;export LOADEDMODULES;"
+
 set lmf_csh "setenv _LMFILES_ $mod1p:$mod4p ;"
 set lm_csh "setenv LOADEDMODULES $mod1:$mod4 ;"
+
+set lmf_python "os.environ\['_LMFILES_'\] = '$mod1p:$mod4p'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$mod1:$mod4'"
+
 set lmf_perl "\$ENV{'_LMFILES_'} = '$mod1p:$mod4p';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$mod1:$mod4';"
 
@@ -123,13 +154,19 @@ test_cmd "ksh" "load $mod1 $mod4" "$lm_sh$lmf_sh$ts_sh4"
 test_cmd "zsh" "load $mod1 $mod4" "$lm_sh$lmf_sh$ts_sh4"
 test_cmd "csh" "load $mod1 $mod4" "$lm_csh$lmf_csh$splitunset$ts_csh4"
 test_cmd "tcsh" "load $mod1 $mod4" "$lm_csh$lmf_csh$splitunset$ts_csh4"
+test_cmd "python" "load $mod1 $mod4" "$lm_python\n$lmf_python\n$ts_python4"
 test_cmd "perl" "load $mod1 $mod4" "$lm_perl$lmf_perl$ts_perl4"
 
 # test 5	(/ /tmp)
 set lmf_sh "_LMFILES_=$mod4p:$mod1p ;export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$mod4:$mod1 ;export LOADEDMODULES;"
+
 set lmf_csh "setenv _LMFILES_ $mod4p:$mod1p ;"
 set lm_csh "setenv LOADEDMODULES $mod4:$mod1 ;"
+
+set lmf_python "os.environ\['_LMFILES_'\] = '$mod4p:$mod1p'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$mod4:$mod1'"
+
 set lmf_perl "\$ENV{'_LMFILES_'} = '$mod4p:$mod1p';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$mod4:$mod1';"
 
@@ -138,13 +175,19 @@ test_cmd "ksh" "load $mod4 $mod1" "$lm_sh$lmf_sh$ts_sh1"
 test_cmd "zsh" "load $mod4 $mod1" "$lm_sh$lmf_sh$ts_sh1"
 test_cmd "csh" "load $mod4 $mod1" "$lm_csh$lmf_csh$splitunset$ts_csh1"
 test_cmd "tcsh" "load $mod4 $mod1" "$lm_csh$lmf_csh$splitunset$ts_csh1"
+test_cmd "python" "load $mod4 $mod1" "$lm_python\n$lmf_python\n$ts_python1"
 test_cmd "perl" "load $mod4 $mod1" "$lm_perl$lmf_perl$ts_perl1"
 
 # test 6	(/tmp, /foo/bar/baz)
 set lmf_sh "_LMFILES_=$mod1p:$mod2p ;export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$mod1:$mod2 ;export LOADEDMODULES;"
+
 set lmf_csh "setenv _LMFILES_ $mod1p:$mod2p ;"
 set lm_csh "setenv LOADEDMODULES $mod1:$mod2 ;"
+
+set lmf_python "os.environ\['_LMFILES_'\] = '$mod1p:$mod2p'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$mod1:$mod2'"
+
 set lmf_perl "\$ENV{'_LMFILES_'} = '$mod1p:$mod2p';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$mod1:$mod2';"
 
@@ -153,13 +196,19 @@ testouterr_cmd_re "ksh" "load $mod1 $mod2" "$lm_sh$lmf_sh$ts_sh1" "$err_chdir"
 testouterr_cmd_re "zsh" "load $mod1 $mod2" "$lm_sh$lmf_sh$ts_sh1" "$err_chdir"
 testouterr_cmd_re "csh" "load $mod1 $mod2" "$lm_csh$lmf_csh$splitunset$ts_csh1" "$err_chdir"
 testouterr_cmd_re "tcsh" "load $mod1 $mod2" "$lm_csh$lmf_csh$splitunset$ts_csh1" "$err_chdir"
+test_cmd "python" "load $mod1 $mod2" "$lm_python\n$lmf_python\n$ts_python1"
 test_cmd "perl" "load $mod1 $mod2" "$lm_perl$lmf_perl$ts_perl1"
 
 # test 7	(/tmp, /foo/bar/baz)
 set lmf_sh "_LMFILES_=$mod2p:$mod1p ;export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$mod2:$mod1 ;export LOADEDMODULES;"
+
 set lmf_csh "setenv _LMFILES_ $mod2p:$mod1p ;"
 set lm_csh "setenv LOADEDMODULES $mod2:$mod1 ;"
+
+set lmf_python "os.environ\['_LMFILES_'\] = '$mod2p:$mod1p'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$mod2:$mod1'"
+
 set lmf_perl "\$ENV{'_LMFILES_'} = '$mod2p:$mod1p';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$mod2:$mod1';"
 
@@ -168,6 +217,13 @@ testouterr_cmd_re "ksh" "load $mod2 $mod1" "$lm_sh$lmf_sh$ts_sh1" "$err_chdir"
 testouterr_cmd_re "zsh" "load $mod2 $mod1" "$lm_sh$lmf_sh$ts_sh1" "$err_chdir"
 testouterr_cmd_re "csh" "load $mod2 $mod1" "$lm_csh$lmf_csh$splitunset$ts_csh1" "$err_chdir"
 testouterr_cmd_re "tcsh" "load $mod2 $mod1" "$lm_csh$lmf_csh$splitunset$ts_csh1" "$err_chdir"
+
+#testouterr_cmd_re seems broken by $ [] and {} 
+
+testerr_cmd_re "python" "load $mod2 $mod1" "$err_chdir"
+test_cmd "python" "load $mod2 $mod1" "$lm_python\n$lmf_python\n$ts_python1"
+
+testerr_cmd_re "perl" "load $mod2 $mod1" "$err_chdir"
 test_cmd "perl" "load $mod2 $mod1" "$lm_perl$lmf_perl$ts_perl1"
 
 #
@@ -188,6 +244,11 @@ unset lmf_csh
 unset ts_csh1
 unset ts_csh2
 unset ts_csh3
+
+unset lm_python
+unset lmf_python
+unset ts_python1
+unset ts_python3
 
 unset lm_perl
 unset lmf_perl

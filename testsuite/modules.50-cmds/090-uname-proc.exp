@@ -26,24 +26,26 @@
 #  Check the configuration
 #
 
+# assume default and overwrite if necessary
+set config_uname  0
+set config_domainname  0
+set u_sysname "unknown"
+set u_nodename "unknown"
+set u_release "unknown"
+set u_version "unknown"
+set u_machine "unknown"
+set u_domainname "unknown"
+
+
 if { [info exists config_file] } {
 
     if { ![catch { exec grep "#define HAVE_UNAME" $config_file } ] } {
 	set config_uname 1
-    } else {
-	set config_uname  0
     }
-
     if { ![catch { exec grep "#define HAVE_GETDOMAINNAME" $config_file } ] } {
 	set config_domainname 1
-    } else {
-	set config_domainname  0
     }
-
-} else {
-    set config_uname  0
-    set config_domainname  0
-}
+} 
 
 #
 #  if UNAME is configured, check where to find the 'uname' and the 'domainname'
@@ -108,22 +110,9 @@ if { $config_uname } {
 	set u_release [exec $uname -r]
 	set u_version [exec $uname -v]
 	set u_machine [exec $uname -m]
-    } else {
-	set u_sysname "unknown"
-	set u_nodename "unknown"
-	set u_release "unknown"
-	set u_version "unknown"
-	set u_machine "unknown"
     }
+} 
 
-} else {
-
-    set u_sysname "unknown"
-    set u_nodename "unknown"
-    set u_release "unknown"
-    set u_version "unknown"
-    set u_machine "unknown"
-}
 
 #
 #  set up variables for domainname checking
@@ -133,13 +122,11 @@ if { $config_domainname } {
 
     if { [info exists domainname] } {
 	set u_domainname [exec $domainname]
-    } else {
-	set u_domainname "unknown"
-    }
-
-} else {
-
-    set u_domainname "unknown"
+	# some OSes return empty string if NIS is not configured
+	if { $u_domainname == "" } {
+	   set u_domainname "unknown"
+	}
+    } 
 }
 
 #

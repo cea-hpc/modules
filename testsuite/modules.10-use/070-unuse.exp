@@ -16,7 +16,7 @@
 #   Comment:	%C{
 #			Check removing a path for the list of modulefile
 #			paths in $MODULEPATH
-#			Also it's not an error to unload a bad dir.
+#			Also it' is an error to unload a bad dir.
 #		}C%
 #
 ##############################################################################
@@ -29,7 +29,7 @@ set path "$env(TESTSUITEDIR)/modulefiles.other"
 set badpath "$env(TESTSUITEDIR)/modulefiles.bad"
 set mod_path "$env(MODULEPATH)"
 set bad_use ""
-
+set test01 " test 0 = 1;"
 set use	"unuse"
 
 #
@@ -52,7 +52,21 @@ testerr_cmd "zsh" "$use $badpath" "$bad_use"
 testerr_cmd "csh" "$use $badpath" "$bad_use"
 testerr_cmd "tcsh" "$use $badpath" "$bad_use"
 testerr_cmd "perl" "$use $badpath" "$bad_use"
+testerr_cmd "python" "$use $badpath" "$bad_use"
 testerr_cmd "cmake" "$use $badpath" "$bad_use"
+
+#
+# test exit value 
+#
+
+test_cmd "sh" "$use $badpath" "$test01" 1
+test_cmd "ksh" "$use $badpath" "$test01" 1
+test_cmd "zsh" "$use $badpath" "$test01" 1
+test_cmd "csh" "$use $badpath" "$test01" 1
+test_cmd "tcsh" "$use $badpath" "$test01" 1
+test_cmd "perl" "$use $badpath" "" 1
+test_cmd "python" "$use $badpath" "" 1
+test_cmd "cmake" "$use $badpath" "" 1
 
 #
 # The tests ...
@@ -80,3 +94,4 @@ unset mod_path
 unset use
 unset badpath
 unset bad_use
+unset test01

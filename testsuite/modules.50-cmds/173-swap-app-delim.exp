@@ -32,8 +32,8 @@ set ts_1 "http://foobar.org"
 set ts_2 "http://foobar.net"
 set ts_3 "http://foobar.com"
 set ts_4 "http://foobar.us"
-set ts_new "$ts_1\\ $ts_4\\ $ts_2"
-set ts_perl "$ts_1 $ts_4 $ts_2"
+set ts_escape "$ts_1\\ $ts_4\\ $ts_2"
+set ts_space "$ts_1 $ts_4 $ts_2"
 set env(testsuite)	"$ts_1 $ts_3 $ts_2"
 set module "append/1.0"
 set module_new "append/1.1"
@@ -49,15 +49,19 @@ set env(LOADEDMODULES) "$module"
 
 set lmf_sh "_LMFILES_=$modulefile_new ;export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$module_new ;export LOADEDMODULES;"
-set ts_sh "testsuite=$ts_new ;export testsuite;"
+set ts_sh "testsuite=$ts_escape ;export testsuite;"
 
 set lmf_csh "setenv _LMFILES_ $modulefile_new ;"
 set lm_csh "setenv LOADEDMODULES $module_new ;"
-set ts_csh "setenv testsuite $ts_new ;"
+set ts_csh "setenv testsuite $ts_escape ;"
+
+set lmf_python "os.environ\['_LMFILES_'\] = '$modulefile_new'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$module_new'"
+set ts_python "os.environ\['testsuite'\] = '$ts_space'"
 
 set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile_new';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$module_new';"
-set ts_perl "\$ENV{'testsuite'} = '$ts_perl';"
+set ts_perl "\$ENV{'testsuite'} = '$ts_space';"
 
 set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile_new\")"
 set lm_cmake "set(ENV{LOADEDMODULES} \"$module_new\")"
@@ -72,6 +76,7 @@ test_cmd "ksh" "swap $module_new" "$lm_sh$lmf_sh$ts_sh"
 test_cmd "zsh" "swap $module_new" "$lm_sh$lmf_sh$ts_sh"
 test_cmd "csh" "swap $module_new" "$lm_csh$lmf_csh$ts_csh"
 test_cmd "tcsh" "swap $module_new" "$lm_csh$lmf_csh$ts_csh"
+test_cmd "python" "swap $module_new" "$lm_python\n$lmf_python\n$ts_python"
 test_cmd "perl" "swap $module_new" "$lm_perl$lmf_perl$ts_perl"
 test_cmd "cmake" "swap $module_new" "$lm_cmake\n$lmf_cmake\n$ts_cmake"
 
@@ -83,7 +88,9 @@ unset env(testsuite)
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 
-unset ts_new
+unset ts_escape
+unset ts_space
+
 unset ts_4
 unset ts_3
 unset ts_2
@@ -96,6 +103,10 @@ unset lmf_sh
 unset ts_csh
 unset lm_csh
 unset lmf_csh
+
+unset ts_python
+unset lm_python
+unset lmf_python
 
 unset ts_perl
 unset lm_perl

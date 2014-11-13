@@ -39,7 +39,7 @@ set module_troff "trace/all_off"
 set modulefile_troff "$env(MODULEPATH)/$module_troff"
 
 #
-#  Only for the csh
+#  For the different shells ...
 #
 
 set lmf_csh_troff "setenv _LMFILES_ $modulefile_troff ;"
@@ -48,9 +48,41 @@ set lmf_csh_tron "setenv _LMFILES_ $modulefile_tron ;"
 set lm_csh_tron "setenv LOADEDMODULES $module_tron ;"
 set lmf_csh "setenv _LMFILES_ $modulefile ;"
 set lm_csh "setenv LOADEDMODULES $module ;"
-
 set ts_csh "setenv testsuite yes ;"
 
+set lmf_sh_troff "_LMFILES_=$modulefile_troff ;export _LMFILES_;"
+set lm_sh_troff "LOADEDMODULES=$module_troff ;export LOADEDMODULES;"
+set lmf_sh_tron "_LMFILES_=$modulefile_tron ;export _LMFILES_;"
+set lm_sh_tron "LOADEDMODULES=$module_tron ;export LOADEDMODULES;"
+set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
+set ts_sh "testsuite=yes ;export testsuite;"
+
+set lmf_py_troff "os.environ\['_LMFILES_'\] = '$modulefile_troff'"
+set lm_py_troff "os.environ\['LOADEDMODULES'\] = '$module_troff'"
+set lmf_py_tron "os.environ\['_LMFILES_'\] = '$modulefile_tron'"
+set lm_py_tron "os.environ\['LOADEDMODULES'\] = '$module_tron'"
+set lmf_py "os.environ\['_LMFILES_'\] = '$modulefile'"
+set lm_py "os.environ\['LOADEDMODULES'\] = '$module'"
+set ts_py "os.environ\['testsuite'\] = 'yes'"
+
+set lmf_pl_troff "\$ENV{'_LMFILES_'} = '$modulefile_troff';"
+set lm_pl_troff "\$ENV{'LOADEDMODULES'} = '$module_troff';"
+set lmf_pl_tron "\$ENV{'_LMFILES_'} = '$modulefile_tron';"
+set lm_pl_tron "\$ENV{'LOADEDMODULES'} = '$module_tron';"
+set lmf_pl "\$ENV{'_LMFILES_'} = '$modulefile';"
+set lm_pl "\$ENV{'LOADEDMODULES'} = '$module';"
+set ts_pl "\$ENV{'testsuite'} = 'yes';"
+
+set lmf_cm_troff "set(ENV{_LMFILES_} \"$modulefile_troff\")"
+set lm_cm_troff "set(ENV{LOADEDMODULES} \"$module_troff\")"
+set lmf_cm_tron "set(ENV{_LMFILES_} \"$modulefile_tron\")"
+set lm_cm_tron "set(ENV{LOADEDMODULES} \"$module_tron\")"
+set lmf_cm "set(ENV{_LMFILES_} \"$modulefile\")"
+set lm_cm "set(ENV{LOADEDMODULES} \"$module\")"
+set ts_cm "set(ENV{testsuite} \"yes\")"
+
+#
 #
 #  Error messages
 #
@@ -59,13 +91,37 @@ set err_tron "$error_msgs: Module '$module' conflicts with the currently loaded 
 set err_troff "$error_msgs: Module '$module' conflicts with the currently loaded module\\(s\\) 'trace/all_off'\n"
 set err_exec "$error_msgs: Tcl command execution failed: conflict\ttrace\n"
 
+set test01 " test 0 = 1;"
+
 #
 #  The tests
 #
 
-testouterr_cmd_re "csh" "load $module_tron $module" "$lm_csh_tron$lmf_csh_tron" "$err_tron$err_exec"
+testouterr_cmd_re "csh" "load $module_tron $module" "$lm_csh_tron$lmf_csh_tron$test01" "$err_tron$err_exec"
 testouterr_cmd_re "csh" "load $module_troff $module" "$lm_csh_troff$lmf_csh_troff" "$err_troff$err_exec"
 test_cmd "csh" "load $module" "$lm_csh$lmf_csh$splitunset$ts_csh"
+
+testouterr_cmd_re "sh" "load $module_tron $module" "$lm_sh_tron$lmf_sh_tron$test01" "$err_tron$err_exec"
+testouterr_cmd_re "sh" "load $module_troff $module" "$lm_sh_troff$lmf_sh_troff" "$err_troff$err_exec"
+test_cmd "sh" "load $module" "$lm_sh$lmf_sh$splitunset$ts_sh"
+
+testerr_cmd_re "python" "load $module_tron $module" "$err_tron$err_exec"
+test_cmd "python" "load $module_tron $module" "$lm_py_tron\n$lmf_py_tron" 1
+testerr_cmd_re "python" "load $module_troff $module" "$err_troff$err_exec"
+test_cmd "python" "load $module_troff $module" "$lm_py_troff\n$lmf_py_troff" 1
+test_cmd "python" "load $module" "$lm_py\n$lmf_py\n$ts_py"
+
+testerr_cmd_re "perl" "load $module_tron $module" "$err_tron$err_exec"
+test_cmd "perl" "load $module_tron $module" "$lm_pl_tron$lmf_pl_tron" 1
+testerr_cmd_re "perl" "load $module_troff $module" "$err_troff$err_exec"
+test_cmd "perl" "load $module_troff $module" "$lm_pl_troff$lmf_pl_troff" 1
+test_cmd "perl" "load $module" "$lm_pl$lmf_pl$ts_pl"
+
+testerr_cmd_re "cmake" "load $module_tron $module" "$err_tron$err_exec"
+test_cmd "cmake" "load $module_tron $module" "$lm_cm_tron\n$lmf_cm_tron" 1
+testerr_cmd_re "cmake" "load $module_troff $module" "$err_troff$err_exec"
+test_cmd "cmake" "load $module_troff $module" "$lm_cm_troff\n$lmf_cm_troff" 1
+test_cmd "cmake" "load $module" "$lm_cm\n$lmf_cm\n$ts_cm"
 
 #
 #  Cleanup
@@ -75,7 +131,6 @@ unset err_troff
 unset err_tron
 unset err_exec
 
-unset ts_csh
 
 unset lm_csh_tron
 unset lmf_csh_tron
@@ -83,6 +138,39 @@ unset lm_csh_troff
 unset lmf_csh_troff
 unset lm_csh
 unset lmf_csh
+unset ts_csh
+
+unset lm_sh_tron
+unset lmf_sh_tron
+unset lm_sh_troff
+unset lmf_sh_troff
+unset lm_sh
+unset lmf_sh
+unset ts_sh
+
+unset lm_py_tron
+unset lmf_py_tron
+unset lm_py_troff
+unset lmf_py_troff
+unset lm_py
+unset lmf_py
+unset ts_py
+
+unset lm_pl_tron
+unset lmf_pl_tron
+unset lm_pl_troff
+unset lmf_pl_troff
+unset lm_pl
+unset lmf_pl
+unset ts_pl
+
+unset lm_cm_tron
+unset lmf_cm_tron
+unset lm_cm_troff
+unset lmf_cm_troff
+unset lm_cm
+unset lmf_cm
+unset ts_cm
 
 unset modulefile
 unset module

@@ -37,11 +37,33 @@ set lmf_csh "setenv _LMFILES_ $modulefile ;"
 set lm_csh "setenv LOADEDMODULES $module ;"
 set ts_csh "setenv testsuite 123 ;"
 
+set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
+set ts_sh "testsuite=123 ;export testsuite;"
+
+set lmf_py "os.environ\['_LMFILES_'\] = '$modulefile'"
+set lm_py "os.environ\['LOADEDMODULES'\] = '$module'"
+set ts_py "os.environ\['testsuite'\] = '123'"
+
+set lmf_pl "\$ENV{'_LMFILES_'} = '$modulefile';"
+set lm_pl "\$ENV{'LOADEDMODULES'} = '$module';"
+set ts_pl "\$ENV{'testsuite'} = '123';"
+
+set lmf_cm "set(ENV{_LMFILES_} \"$modulefile\")"
+set lm_cm "set(ENV{LOADEDMODULES} \"$module\")"
+set ts_cm "set(ENV{testsuite} \"123\")"
+
 #
 #  The tests
 #
 
 test_cmd "csh" "load $module" "$lm_csh$lmf_csh$splitunset$ts_csh"
+test_cmd "sh" "load $module" "$lm_sh$lmf_sh$splitunset$ts_sh"
+test_cmd "python" "load $module" "$lm_py\n$lmf_py\n$ts_py"
+test_cmd "perl" "load $module" "$lm_pl$lmf_pl$ts_pl"
+test_cmd "cmake" "load $module" "$lm_cm\n$lmf_cm\n$ts_cm"
+
+
 
 #
 #  Cleanup
@@ -50,6 +72,22 @@ test_cmd "csh" "load $module" "$lm_csh$lmf_csh$splitunset$ts_csh"
 unset ts_csh
 unset lm_csh
 unset lmf_csh
+
+unset ts_sh
+unset lm_sh
+unset lmf_sh
+
+unset ts_py
+unset lm_py
+unset lmf_py
+
+unset ts_pl
+unset lm_pl
+unset lmf_pl
+
+unset ts_cm
+unset lm_cm
+unset lmf_cm
 
 unset modulefile
 unset module

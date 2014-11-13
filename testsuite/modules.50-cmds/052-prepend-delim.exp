@@ -31,7 +31,7 @@ set ts_1 "http://foobar.org"
 set ts_2 "http://foobar.net"
 set ts_3 "http://foobar.com"
 set ts_new "$ts_3\\ $ts_1\\ $ts_2"
-set ts_perl "$ts_3 $ts_1 $ts_2"
+set ts_space "$ts_3 $ts_1 $ts_2"
 set env(testsuite)	"$ts_1 $ts_2"
 set module "prepend/1.0"
 set modulefile "$env(MODULEPATH)/$module"
@@ -50,7 +50,11 @@ set ts_csh "setenv testsuite $ts_new ;"
 
 set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
-set ts_perl "\$ENV{'testsuite'} = '$ts_perl';"
+set ts_perl "\$ENV{'testsuite'} = '$ts_space';"
+
+set lmf_python "os.environ\['_LMFILES_'\] = '$modulefile'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$module'"
+set ts_python "os.environ\['testsuite'\] = '$ts_space'"
 
 set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
 set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
@@ -66,6 +70,7 @@ test_cmd "zsh" "load $module" "$lm_sh$lmf_sh$ts_sh"
 test_cmd "csh" "load $module" "$lm_csh$lmf_csh$splitunset$ts_csh"
 test_cmd "tcsh" "load $module" "$lm_csh$lmf_csh$splitunset$ts_csh"
 test_cmd "perl" "load $module" "$lm_perl$lmf_perl$ts_perl"
+test_cmd "python" "load $module" "$lm_python\n$lmf_python\n$ts_python"
 test_cmd "cmake" "load $module" "$lm_cmake\n$lmf_cmake\n$ts_cmake"
 
 #
@@ -90,6 +95,10 @@ unset lmf_csh
 unset ts_perl
 unset lm_perl
 unset lmf_perl
+
+unset ts_python
+unset lm_python
+unset lmf_python
 
 unset ts_cmake
 unset lm_cmake

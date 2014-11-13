@@ -28,36 +28,77 @@
 #    be set up
 #
 
-set module_1 "verbose/msg"
-set modulefile_1 "$env(MODULEPATH)/$module_1"
+set module "verbose/msg"
+set modulefile "$env(MODULEPATH)/$module"
 
 #
 #  'undef' will result a verbose message
 #
 
-set ts_csh_1 "$verb_msgs: This is a verbose message"
-set ts_csh_2 "$verb_msgs: This is a verbose message with param 'test'"
+set err_1 "$verb_msgs: This is a verbose message"
+set err_2 "$verb_msgs: This is a verbose message with param 'test'"
+set ts_err "$err_1\n$err_2"
 
 #
-#  Only checked for the csh
+#  For the different shells ...
 #
 
-set lmf_csh_1 "setenv _LMFILES_ $modulefile_1 ;"
-set lm_csh_1 "setenv LOADEDMODULES $module_1 ;"
+set lmf_csh "setenv _LMFILES_ $modulefile ;"
+set lm_csh "setenv LOADEDMODULES $module ;"
+
+set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
+
+set lm_python "os.environ\['LOADEDMODULES'\] = '$module'"
+set lmf_python "os.environ\['_LMFILES_'\] = '$modulefile'"
+
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
+set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
+
+set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
+set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
+
 
 #
 #  The tests
 #
 
-testouterr_cmd_re "csh" "load $module_1" "$lm_csh_1$lmf_csh_1" "$ts_csh_1\n$ts_csh_2"
+testouterr_cmd_re "csh" "load $module" "$lm_csh$lmf_csh" "$ts_err"
+testouterr_cmd_re "sh" "load $module" "$lm_sh$lmf_sh" "$ts_err"
+
+#testouterr_cmd_re seems broken by $ [] and {} 
+
+test_cmd "python" "load $module" "$lm_python\n$lmf_python"
+testerr_cmd_re "python" "load $module" "$ts_err"
+
+test_cmd "perl" "load $module" "$lm_perl$lmf_perl"
+testerr_cmd_re "perl" "load $module" "$ts_err"
+
+test_cmd "cmake" "load $module" "$lm_cmake\n$lmf_cmake"
+testerr_cmd_re "cmake" "load $module" "$ts_err"
 
 #
 #  Cleanup
 #
 
-unset module_1
-unset modulefile_1
+unset module
+unset modulefile
 
-unset lmf_csh_1
-unset lm_csh_1
-unset ts_csh_1
+unset err_1
+unset err_2
+unset ts_err
+
+unset lmf_csh
+unset lm_csh
+
+unset lmf_sh
+unset lm_sh
+
+unset lmf_python
+unset lm_python
+
+unset lmf_perl
+unset lm_perl
+
+unset lmf_cmake
+unset lm_cmake

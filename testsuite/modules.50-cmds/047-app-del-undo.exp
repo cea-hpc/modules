@@ -31,7 +31,7 @@ set ts_1 "http://foobar.org"
 set ts_2 "http://foobar.net"
 set ts_3 "http://foobar.com"
 set ts_new "$ts_1\\ $ts_2"
-set ts_perl "$ts_1 $ts_2"
+set ts_space "$ts_1 $ts_2"
 set module "append/1.0"
 set modulefile "$env(MODULEPATH)/$module"
 
@@ -57,7 +57,11 @@ set ts_csh "setenv testsuite $ts_new ;"
 
 set lmf_perl "delete \$ENV{'_LMFILES_'};"
 set lm_perl "delete \$ENV{'LOADEDMODULES'};"
-set ts_perl "\$ENV{'testsuite'} = '$ts_perl';"
+set ts_perl "\$ENV{'testsuite'} = '$ts_space';"
+
+set lmf_python "del os.environ\['_LMFILES_'\]"
+set lm_python "del os.environ\['LOADEDMODULES'\]"
+set ts_python "os.environ\['testsuite'\] = '$ts_space'"
 
 set lmf_cmake "unset(ENV{_LMFILES_})"
 set lm_cmake "unset(ENV{LOADEDMODULES})"
@@ -73,6 +77,7 @@ test_cmd "zsh" "unload $module" "$ts_sh$lm_sh$lmf_sh"
 test_cmd "csh" "unload $module" "$ts_csh$lm_csh$lmf_csh"
 test_cmd "tcsh" "unload $module" "$ts_csh$lm_csh$lmf_csh"
 test_cmd "perl" "unload $module" "$ts_perl$lm_perl$lmf_perl"
+test_cmd "python" "unload $module" "$ts_python\n$lm_python\n$lmf_python"
 test_cmd "cmake" "unload $module" "$ts_cmake\n$lm_cmake\n$lmf_cmake"
 
 #
@@ -84,6 +89,7 @@ unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 
 unset ts_new
+unset ts_space
 unset ts_3
 unset ts_2
 unset ts_1
@@ -99,6 +105,10 @@ unset lmf_csh
 unset ts_perl
 unset lm_perl
 unset lmf_perl
+
+unset ts_python
+unset lm_python
+unset lmf_python
 
 unset ts_cmake
 unset lm_cmake

@@ -37,11 +37,30 @@ set modulefile "$env(MODULEPATH)/$module"
 #  The _LMFILES_ and the LOADEDMODULES will be affected
 #
 
+
 set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
 set ts_sh_n "testsuite=novice ;export testsuite;"
 set ts_sh_a "testsuite=advanced ;export testsuite;"
 set ts_sh_e "testsuite=expert ;export testsuite;"
+
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
+set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
+set ts_perl_n "\$ENV{'testsuite'} = 'novice';"
+set ts_perl_a "\$ENV{'testsuite'} = 'advanced';"
+set ts_perl_e "\$ENV{'testsuite'} = 'expert';"
+
+set lm_py "os.environ\['LOADEDMODULES'\] = '$module'"
+set lmf_py "os.environ\['_LMFILES_'\] = '$modulefile'"
+set ts_py_n "os.environ\['testsuite'\] = 'novice'"
+set ts_py_a "os.environ\['testsuite'\] = 'advanced'"
+set ts_py_e "os.environ\['testsuite'\] = 'expert'"
+
+set lm_cm "set(ENV{LOADEDMODULES} \"$module\")"
+set lmf_cm "set(ENV{_LMFILES_} \"$modulefile\")"
+set ts_cm_n "set(ENV{testsuite} \"novice\")"
+set ts_cm_a "set(ENV{testsuite} \"advanced\")"
+set ts_cm_e "set(ENV{testsuite} \"expert\")"
 
 #
 #  The tests
@@ -50,6 +69,18 @@ set ts_sh_e "testsuite=expert ;export testsuite;"
 test_cmd "sh" "load --userlvl=novice $module" "$lm_sh$lmf_sh$ts_sh_n"
 test_cmd "sh" "load --userlvl=advanced $module" "$lm_sh$lmf_sh$ts_sh_a"
 test_cmd "sh" "load --userlvl=expert $module" "$lm_sh$lmf_sh$ts_sh_e"
+
+test_cmd "perl" "load --userlvl=novice $module" "$lm_perl$lmf_perl$ts_perl_n"
+test_cmd "perl" "load --userlvl=advanced $module" "$lm_perl$lmf_perl$ts_perl_a"
+test_cmd "perl" "load --userlvl=expert $module" "$lm_perl$lmf_perl$ts_perl_e"
+
+test_cmd "python" "load --userlvl=novice $module" "$lm_py\n$lmf_py\n$ts_py_n"
+test_cmd "python" "load --userlvl=advanced $module" "$lm_py\n$lmf_py\n$ts_py_a"
+test_cmd "python" "load --userlvl=expert $module" "$lm_py\n$lmf_py\n$ts_py_e"
+
+test_cmd "cmake" "load --userlvl=novice $module" "$lm_cm\n$lmf_cm\n$ts_cm_n"
+test_cmd "cmake" "load --userlvl=advanced $module" "$lm_cm\n$lmf_cm\n$ts_cm_a"
+test_cmd "cmake" "load --userlvl=expert $module" "$lm_cm\n$lmf_cm\n$ts_cm_e"
 
 #
 #  Cleanup
@@ -60,6 +91,24 @@ unset lmf_sh
 unset ts_sh_n
 unset ts_sh_a
 unset ts_sh_e
+
+unset lm_perl
+unset lmf_perl
+unset ts_perl_n
+unset ts_perl_a
+unset ts_perl_e
+
+unset lm_py
+unset lmf_py
+unset ts_py_n
+unset ts_py_a
+unset ts_py_e
+
+unset lm_cm
+unset lmf_cm
+unset ts_cm_n
+unset ts_cm_a
+unset ts_cm_e
 
 unset modulefile
 unset module

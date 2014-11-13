@@ -26,8 +26,15 @@ set tmall "$tm00"
 set tpall "$tp00"
 set tsall ""
 set tcall ""
+set tcall_py ""
+set tcall_pl ""
+set tcall_cm ""
 set usall ""
 set ucall ""
+set ucall_py ""
+set ucall_pl ""
+set ucall_cm ""
+
 set env(mload) "foobar"
 
 for {set t 10} {$t <= 30} {incr t} {
@@ -39,17 +46,30 @@ for {set t 10} {$t <= 30} {incr t} {
 	set tcall "${tcall}setenv [set t$t] [set t$t] ;"
 	set tmall "$tmall:[set m$t]"
 	set tpall "$tpall:[set p$t]"
+	set tcall_py "${tcall_py}\nos.environ\['[set t$t]'\] = '[set t$t]'"
+	set tcall_pl "${tcall_pl};\$ENV{'[set t$t]'} = '[set t$t]'"
+	set tcall_cm "${tcall_cm}\nset(ENV{[set t$t]} \"[set t$t]\")"
 
 	set usall "${usall}unset [set t$t];"
 	set ucall "${ucall}unsetenv [set t$t];"
+	set ucall_py "${ucall_py}\ndel os.environ\['[set t$t]'\]"
+	set ucall_pl "${ucall_pl};delete \$ENV{'[set t$t]'}"
+	set ucall_cm "${ucall_cm}\nunset(ENV{[set t$t]})"
 }
 set tsall [string trimleft $tsall ";"]
 set tcall [string trimleft $tcall ";"]
 set usall [string trimleft $usall ";"]
 set ucall [string trimleft $ucall ";"]
+set tcall_py [string trimleft $tcall_py "\n"] 
+set ucall_py [string trimleft $ucall_py "\n"] 
+set tcall_pl [string trimleft $tcall_pl ";"] 
+set ucall_pl [string trimleft $ucall_pl ";"] 
+set tcall_cm [string trimleft $tcall_cm "\n"] 
+set ucall_cm [string trimleft $ucall_cm "\n"] 
 
 set mall "load/all"
 set pall "$env(MODULEPATH)/$mall"
+
 set xsload "unset mload;"
 set xcload "unsetenv mload;"
 
@@ -75,6 +95,21 @@ set lmf_csh "setenv _LMFILES_ $tpall ;"
 set lm_csh "setenv LOADEDMODULES $tmall ;"
 set ts_csh "$tcall"
 
+set lmf_python "os.environ\['_LMFILES_'\] = '$tpall'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$tmall'"
+set ts_python "$tcall_py"
+set ds_python "del os.environ\['mload'\]"
+
+set lmf_perl "\$ENV{'_LMFILES_'} = '$tpall';"
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$tmall';"
+set ts_perl "$tcall_pl;"
+set ds_perl "delete \$ENV{'mload'};"
+
+set lmf_cmake "set(ENV{_LMFILES_} \"$tpall\")"
+set lm_cmake "set(ENV{LOADEDMODULES} \"$tmall\")"
+set ts_cmake "$tcall_cm"
+set ds_cmake "unset(ENV{mload})"
+
 #
 #  The load tests
 #
@@ -83,6 +118,9 @@ test_cmd "ksh" "load $mall" "$lm_sh$lmf_sh$ts_sh$xsload"
 test_cmd "zsh" "load $mall" "$lm_sh$lmf_sh$ts_sh$xsload"
 test_cmd "csh" "load $mall" "$lm_csh$lmf_csh$ts_csh$xcload"
 test_cmd "tcsh" "load $mall" "$lm_csh$lmf_csh$ts_csh$xcload"
+test_cmd "python" "load $mall" "$lm_python\n$lmf_python\n$ts_python\n$ds_python"
+test_cmd "perl" "load $mall" "$lm_perl$lmf_perl$ts_perl$ds_perl"
+test_cmd "cmake" "load $mall" "$lm_cmake\n$lmf_cmake\n$ts_cmake\n$ds_cmake"
 
 #
 # set-up a loaded environment
@@ -98,8 +136,23 @@ set lmf_csh "setenv _LMFILES_ $tp00 ;"
 set lm_csh "setenv LOADEDMODULES $tm00 ;"
 set ts_csh "$ucall"
 
+set lmf_python "os.environ\['_LMFILES_'\] = '$tp00'"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$tm00'"
+set ts_python "$ucall_py"
+
+set lmf_perl "\$ENV{'_LMFILES_'} = '$tp00';"
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$tm00';"
+set ts_perl "$ucall_pl;"
+
+set lmf_cmake "set(ENV{_LMFILES_} \"$tp00\")"
+set lm_cmake "set(ENV{LOADEDMODULES} \"$tm00\")"
+set ts_cmake "$ucall_cm"
+
 set xsload "mload=t30 ;export mload;"
 set xcload "setenv mload t30 ;"
+set xcload_py "os.environ\['mload'\] = 't30'"
+set xcload_pl "\$ENV{'mload'} = 't30';"
+set xcload_cm "set(ENV{mload} \"t30\")"
 #
 #  The unload tests
 #
@@ -108,6 +161,9 @@ test_cmd "ksh" "unload $mall" "$lm_sh$lmf_sh$xsload$ts_sh"
 test_cmd "zsh" "unload $mall" "$lm_sh$lmf_sh$xsload$ts_sh"
 test_cmd "csh" "unload $mall" "$lm_csh$lmf_csh$xcload$ts_csh"
 test_cmd "tcsh" "unload $mall" "$lm_csh$lmf_csh$xcload$ts_csh"
+test_cmd "python" "unload $mall" "$lm_python\n$lmf_python\n$xcload_py\n$ts_python"
+test_cmd "perl" "unload $mall" "$lm_perl$lmf_perl$xcload_pl$ts_perl"
+test_cmd "cmake" "unload $mall" "$lm_cmake\n$lmf_cmake\n$xcload_cm\n$ts_cmake"
 
 #
 #  Cleanup
@@ -124,14 +180,43 @@ unset lm_csh
 unset lmf_csh
 unset ts_csh
 
+unset lm_python
+unset lmf_python
+unset ts_python
+unset ds_python
+
+unset lm_perl
+unset lmf_perl
+unset ts_perl
+unset ds_perl
+
+unset lm_cmake
+unset lmf_cmake
+unset ts_cmake
+unset ds_cmake
+
+unset xsload 
+unset xcload
+unset xcload_py
+unset xcload_pl
+unset xcload_cm
+
 unset tm00
 unset tp00
+unset mall
 unset tmall
 unset tpall
 unset tsall
 unset tcall
+unset tcall_py
+unset tcall_pl
+unset tcall_cm
 unset usall
 unset ucall
+unset ucall_py
+unset ucall_pl
+unset ucall_cm
+
 unset env(mload)
 
 for {set t 30} {$t >= 10} {incr t -1} {
