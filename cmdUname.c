@@ -38,6 +38,7 @@ static void *UseId[] = { &UseId, Id };
 /** ************************************************************************ **/
 
 #include "modules_def.h"
+#include <sys/param.h>
 
 #ifdef HAVE_UNAME
 #  include <sys/utsname.h>
@@ -65,7 +66,7 @@ typedef	struct	utsname {
 /** ************************************************************************ **/
 
 #define	NAMELEN		(8 + 1)		/** 8 chars + 1 terminator	     **/
-#define	DOMAINLEN	(64 + 1)	/** 64 chars + 1 terminator	     **/
+#define	DOMAINLEN	(MAXHOSTNAMELEN + 1)	/** from from <sys/param.h>  **/
 
 /** ************************************************************************ **/
 /** 				    LOCAL DATA				     **/
@@ -122,6 +123,8 @@ int cmdUname(
 	int             length,		/** argument string length	     **/
 	                namestruct_init = 0;
 					/** namestruct init flag	     **/
+	*domain ='\0';
+
 #ifdef HAVE_UNAME
 	struct utsname  namestruct;
 #else
@@ -188,9 +191,13 @@ int cmdUname(
 		if (-1 == getdomainname(domain, DOMAINLEN))
 			if (OK != ErrorLogger(ERR_GETDOMAINNAME, LOC, NULL))
 				return (TCL_ERROR); /** -- EXIT (FAILURE) -> **/
-#else
-	strncat(domain, _(em_unknown), DOMAINLEN);
 #endif
+
+    /**
+     **  some oses (BSD) return empty domain
+     **/
+	if (! *domain)
+		strncat(domain, _(em_unknown), DOMAINLEN);
     /**
      **  Now the name structure surely IS initialized
      **/
