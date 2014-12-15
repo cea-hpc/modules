@@ -49,7 +49,7 @@
  ** 									     **
  ** Copyright 1991-1994 by John L. Furlan.                      	     **
  ** see LICENSE.GPL, which must be provided, for details		     **
- ** 									     ** 
+ ** 									     **
  ** ************************************************************************ **/
 
 static char Id[] = "@(#)$Id$";
@@ -132,7 +132,8 @@ static  void     EscapePerlString(const char* in,
 				 char* out);
 static  void     EscapeCmakeString(const char* in,
 				 char* out);
-
+static int is_interactive(void) ;
+static int alias_is_func(const char *val) ;
 
 
 /*++++
@@ -216,7 +217,7 @@ uvec           *SortedDirList(
 		if (OK != ErrorLogger(ERR_UVEC, LOC, NULL))
 			goto unwind0;
     /**
-     **  Form the suggested module file name out of the passed path and 
+     **  Form the suggested module file name out of the passed path and
      **  the name of the module. Alloc memory in order to do this.
      **/
 	if (!(full_path = stringer(NULL, 0,
@@ -388,13 +389,13 @@ uvec *SplitIntoList(
 	char		*givenpath = NULL,	/** modifiable buffer	     **/
 			*dirname = NULL,	/** Token ptr		     **/
 			*tpath = NULL;		/** temp xdup string	     **/
-    /** 
+    /**
      **  Parameter check
      **/
 	if (!pathenv)
 		if (OK != ErrorLogger(ERR_PARAM, LOC, "pathenv", NULL))
 			goto unwind0;
-    /** 
+    /**
      **  Need a copy of pathenv for tokenization
      **/
 	if (!(givenpath = stringer(NULL,0,pathenv,NULL)))
@@ -544,7 +545,7 @@ MHash **Global_Hash_Tables(
 
     /**
      **  Loop for all the global hash tables. If there's no value stored
-     **  in a hash table, skip to the next one. 
+     **  in a hash table, skip to the next one.
      **/
 	if (!globalhashtables)
 		t_ptr = GlobalHashTables;
@@ -613,7 +614,7 @@ int Unwind_Modulefile_Changes(
 
 	if (oldTables) {
 	/**
-	 **  Entries 0 and 1 which contain all changes to the 
+	 **  Entries 0 and 1 which contain all changes to the
 	 **  shell variables (setenv and unsetenv)
 	 **  Entries 2 and 3 which contain the aliase/unalias setting
 	 **/
@@ -655,7 +656,7 @@ int Unwind_Modulefile_Changes(
 static int keycmp(const void *a, const void *b) {
 	return strcmp(*(const char **) a, *(const char **) b);
 }
-                                                                                
+
 /*++++
  ** ** Function-Header ***************************************************** **
  ** 									     **
@@ -1150,7 +1151,7 @@ static int output_set_variable(	Tcl_Interp	*interp,
 
 	} else {
     /**
-     **  Unknown shell type - print an error message and 
+     **  Unknown shell type - print an error message and
      **  return on error
      **/
 		if (OK != ErrorLogger(ERR_DERELICT, LOC, shell_derelict, NULL))
@@ -1378,64 +1379,42 @@ static int output_set_alias(
 	} else if (!strcmp(shell_derelict, "sh")) {
 	/**
 	 **  Shells supporting extended bourne shell syntax ....
+	 **  in this case we only have to write a function if the alias
+	 **  takes arguments. This is the case if the value has '$'
+	 **  somewhere in it without a '\' in front.
 	 **/
-		if ((!strcmp(shell_name, "sh") && bourne_alias)
-		    || (!strcmp(shell_name, "bash") && is_interactive())
-		    || !strcmp(shell_name, "zsh")
-		    || !strcmp(shell_name, "ksh")) {
-	    /**
-	     **  in this case we only have to write a function if the alias
-	     **  takes arguments. This is the case if the value has '$'
-	     **  somewhere in it without a '\' in front.
-	     **/
-			while (*cptr) {
-				if (*cptr == '\\') {
-					if (nobackslash)
-						nobackslash = 0;
-				} else {
-					if (*cptr == '$') {
-						if (nobackslash) {
-							output_function(alias,
-									val);
-							return TCL_OK;
-						}
-					}
-					nobackslash = 1;
-				}
-				cptr++;
-			}
+	  if (alias_is_func(val)) {
+	    if ((!strcmp(shell_name, "sh") && (bourne_alias || bourne_funcs ))) {
+	      output_function(alias,val);
+	      return TCL_OK;
+	    }
+	    output_function(alias,val);
+	    return TCL_OK;
+	  }
+
 	    /**
              **  So, we can just output an alias with '\$' translated to '$'...
              **/
-			fprintf(aliasfile, "alias %s='", alias);
+	  fprintf(aliasfile, "alias %s='", alias);
 
-			nobackslash = 1;
-			cptr = val;
+	  nobackslash = 1;
+	  cptr = val;
 
-			while (*cptr) {
-				if (*cptr == '\\') {
-					if (nobackslash) {
-						nobackslash = 0;
-						cptr++;
-						continue;
-					}
-				}
-				nobackslash = 1;
-				putc(*cptr++, aliasfile);
-			} /** while **/
+	  while (*cptr) {
+	    if (*cptr == '\\') {
+	      if (nobackslash) {
+		nobackslash = 0;
+		cptr++;
+		continue;
+	      }
+	    }
+	    nobackslash = 1;
+	    putc(*cptr++, aliasfile);
+	  } /** while **/
 
-			fprintf(aliasfile, "'%c", alias_separator);
+	  fprintf(aliasfile, "'%c", alias_separator);
 
-		} else if ( (!strcmp(shell_name, "sh") && bourne_funcs)
-		|| (!strcmp( shell_name, "bash") && !is_interactive())) {
-	/**
-	 **  The bourne shell itself
-         **  need to write a function unless this sh doesn't support
-	 **  functions (then just punt)
-	 **/
-			output_function(alias, val);
-		} /** ??? Unknown derelict ??? **/
-	} /** if( sh ) **/
+	}  /** ??? Unknown derelict ??? **/
 	return (TCL_OK);
 
 } /** End of 'output_set_alias' **/
@@ -1468,14 +1447,9 @@ static int output_unset_alias(
 	const char *alias,
 	const char *val
 ) {
-	int             nobackslash = 1;/** Controls wether backslashes are  **/
-					/** to be print			     **/
-	const char     *cptr = val;	/** read the value char by char      **/
-
 	assert(shell_derelict != NULL);
     /**
      **  Check for the shell family at first
-     **  Ahh! CSHs ... ;-)
      **/
 	if (!strcmp(shell_derelict, "csh")) {
 
@@ -1483,83 +1457,29 @@ static int output_unset_alias(
 
 	} else if (!strcmp(shell_derelict, "sh")) {
     /**
-     **  Hmmm ... bourne shell types ;-(
+     **  bourne shell types ;-(
      **  Need to unset a function in case of sh or if the alias took parameters
      **/
 
-		if (!strcmp(shell_name, "sh")) {
-			if (bourne_alias) {
-				fprintf(aliasfile, "unalias %s%c", alias,
-					alias_separator);
-			} else if (bourne_funcs) {
-				fprintf(aliasfile, "unset -f %s%c", alias,
-					alias_separator);
-			} /* else do nothing */
-		} else if (!strcmp(shell_name, "bash")) {
-	/**
-	 **  BASH
-	 **/
-	    /**
-             **  If we have what the old value should have been, then look to
-             **  see if it was a function or an alias because bash spits out an
-             **  error if you try to unalias a non-existent alias.
-             **/
-			if (val) {
-		/**
-                 **  Was it a function?
-                 **  Yes, if it has arguments...
-                 **/
-				while (*cptr) {
-					if (*cptr == '\\') {
-						if (nobackslash) {
-							nobackslash = 0;
-						}
-					} else {
-						if (*cptr == '$') {
-							if (nobackslash) {
-		fprintf(aliasfile,"unset -f %s%c",alias,alias_separator);
-								return TCL_OK;
-							}
-						}
-						nobackslash = 1;
-					}
-					cptr++;
-				}
-		/**
-                 **  Well, it wasn't a function, so we'll put out an unalias...
-                 **/
-				fprintf(aliasfile, "unalias %s%c", alias,
-					alias_separator);
-
-			} else { /** No value known (any more?) **/
-		/**
-                 **  We'll assume it was a function because the unalias command
-                 **  in bash produces an error.  It's possible that the alias
-                 **  will not be cleared properly here because it was an
-                 **  unset-alias command.
-                 **/
-				fprintf(aliasfile, "unset -f %s%c", alias,
-					alias_separator);
-			}
-	/**
-	 **  ZSH or KSH
-	 **  Put out both because we it could be either a function or an
-	 **  alias.  This will catch both.
-	 **/
-		} else if (!strcmp(shell_name, "zsh")) {
-			fprintf(aliasfile, "unalias %s%c", alias,
-				alias_separator);
-		} else if (!strcmp(shell_name, "ksh")) {
-			fprintf(aliasfile, "unalias %s%c", alias,
-				alias_separator);
-			fprintf(aliasfile, "unset -f %s%c", alias,
-				alias_separator);
-		} /** if( bash, zsh, ksh) **/
-	 /** ??? Unknown derelict ??? **/
+	  /* check appart sh for bourne_func ability */
+	  if (!strcmp(shell_name, "sh")) {
+	    if(bourne_funcs && alias_is_func(val)) {
+	      fprintf(aliasfile, "unset -f %s%c", alias, alias_separator);
+	    }  else if (bourne_alias ) {
+	      fprintf(aliasfile, "unalias %s%c", alias, alias_separator);
+	    }  /* else do nothing */
+	  } // end sh
+	  /* other bourne shells bash, zsh, ksh */
+	  else if (alias_is_func(val)) {
+	      fprintf(aliasfile,"unset -f %s%c",alias,alias_separator);
+	  }  else if (!is_interactive()) {
+	    /* on ssh non interactive shells, alias are exported as function */
+	    fprintf(aliasfile,"unset -f %s%c",alias,alias_separator);
+	  }  else {
+	    fprintf(aliasfile, "unalias %s%c", alias, alias_separator);
+	  }
 	}
-	  /** if( sh-family) **/
 	return (TCL_OK);
-
 } /** End of 'output_unset_alias' **/
 
 /*++++
@@ -1660,7 +1580,7 @@ char           *getLMFILES(
 				return (NULL);
 					/** -------- EXIT (FAILURE) -------> **/
 
-	/** 
+	/**
 	 **  Set up lmfiles pointing to the new buffer in order to be able to
 	 **  disallocate when invoked next time.
 	 **/
@@ -1765,7 +1685,7 @@ static int __IsLoaded(
      **/
     char	*loaded_modules = EMGetEnv(interp, "LOADEDMODULES");
     char	*loaded_modulefiles = getLMFILES(interp);
-    
+
     /**
      **  If no module is currently loaded ... the requested module is surely
      **  not loaded, too ;-)
@@ -1773,10 +1693,10 @@ static int __IsLoaded(
     if( !loaded_modules || !*loaded_modules) {
 	goto unwind0;
     }
-    
+
     /**
      **  Copy the list of currently loaded modules into a new allocated array
-     **  for further handling. If this fails it will be assumed, that the 
+     **  for further handling. If this fails it will be assumed, that the
      **  module is *NOT* loaded.
      **/
     if(!(l_modules = stringer(NULL,0,loaded_modules,NULL)))
@@ -1873,13 +1793,13 @@ static int __IsLoaded(
 
 	    /**
 	     **  The position of the loaded module within the list of loaded
-	     **  modules has been counted in 'count'. The position of the 
+	     **  modules has been counted in 'count'. The position of the
 	     **  associated modulefile should be the same. So tokenize the
 	     **  list of modulefiles by the colon until the wanted position
 	     **  is reached.
 	     **/
             char* modulefile_path = xstrtok(l_modulefiles, ":");
-	
+
             while( count) {
                 if( !( modulefile_path = xstrtok( NULL, ":"))) {
 
@@ -1890,7 +1810,7 @@ static int __IsLoaded(
 		     **  but it may just mean we're working intermittantly with
 		     **  an old version.  So, I'll just not touch filename which
 		     **  means the search will continue using the old method of
-		     **  looking through MODULEPATH.  
+		     **  looking through MODULEPATH.
                      */
 		    goto success0;
                 }
@@ -2122,7 +2042,7 @@ int check_magic( char	*filename,
 	    return( 0);			/** -------- EXIT (FAILURE) -------> **/
 
     read_len = read( fd, buf, magic_len);
-    
+
     if( 0 > close(fd))
 	if( OK != ErrorLogger( ERR_CLOSE, LOC, filename, NULL))
 	    return( 0);			/** -------- EXIT (FAILURE) -------> **/
@@ -2310,7 +2230,7 @@ void tryxstrtok (char *string, char *delim) {
 	start = str = strdup(string);
 	printf("string: %s\n", str);
 	printf("delim : %s\n", delim);
-	
+
 	token = xstrtok(str,delim);
 	printf("\t%d = %s\n", n, token);
 	while (token = xstrtok(NULL, delim)) {
@@ -2642,7 +2562,7 @@ int tmpfile_mod(char** filename, FILE** file) {
 	 stringer(NULL, strlen(TMP_DIR)+strlen("modulesource")+20, NULL)))
      if( OK != ErrorLogger( ERR_STRING, LOC, NULL))
 	 return 1;
-  
+
   do {
     int fildes;
 
@@ -2662,7 +2582,7 @@ int tmpfile_mod(char** filename, FILE** file) {
   null_free((void *) &filename2);
   fprintf(stderr,
 	_("FATAL: could not get a temp file! at %s(%d)"),__FILE__,__LINE__);
-  
+
   return 1;
 }
 
@@ -2819,7 +2739,7 @@ void OutputExit() {
  ** 									     **
  ** ************************************************************************ **
  ++++*/
-char * EMGetEnv(	Tcl_Interp	 *interp, 
+char * EMGetEnv(	Tcl_Interp	 *interp,
 			char const	 *var) {
 
 	char const *value, *string;
@@ -2855,7 +2775,7 @@ char * EMGetEnv(	Tcl_Interp	 *interp,
  ** 									     **
  ** ************************************************************************ **
  ++++*/
-char const * EMSetEnv(	Tcl_Interp	 *interp, 
+char const * EMSetEnv(	Tcl_Interp	 *interp,
 			char const	 *var,
 			char const	 *val) {
 
@@ -2939,7 +2859,7 @@ is_Result is_(
  ** 									     **
  ** ************************************************************************ **
  ++++*/
-int is_interactive(void) {
+static int is_interactive(void) {
 
 	static int saved = -1;
 	FILE *tty = (FILE *) NULL;
@@ -2961,3 +2881,34 @@ int is_interactive(void) {
 	return saved;
 
 } /** End of 'is_interactive' **/
+
+
+
+/*++++
+ ** ** Function-Header ***************************************************** **
+ ** 	                                 								     **
+ **   Function:		alias_is_function               					     **
+ ** 									                                     **
+ **   Description:	Test whether  or not alias is a function	             **
+ **                 function is defined by the existence of $ without        **
+ **                 backslash in front.                                      **
+ ** 									                                     **
+ **   Parameters:	alias value definition                                   **
+ **                                                                          **
+ **   Result:		int    			return 1 if true, else 0                 **
+ **                                                                          **
+ ** ************************************************************************ **
+ ++++*/
+static int alias_is_func(const char *val) {
+  char const *p = val;
+
+  while (*p) {
+    if (*p == '$') { // OK $ seen, is a \ in front of it ?
+      if (p-1 != val && *(p-1) != '\\') {
+	return TCL_ERROR;
+      }
+    }
+    p++;
+  }
+  return TCL_OK;
+}
