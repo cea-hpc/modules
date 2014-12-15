@@ -1376,7 +1376,7 @@ static	char *mkdirnm(	char	*dir,
     /**
      **  Check whether the full path fits into the buffer
      **/
-    if( (int) ( strlen( dir) + 1 + strlen( file) + 1 ) > MOD_BUFSIZE) {
+    if( (int) ( strlen( dir) + strlen(psep) + strlen( file) + 1 ) > MOD_BUFSIZE) {
 	if( OK != ErrorLogger( ERR_NAMETOLONG, LOC, dir, file, NULL))
 	    return( NULL);
     }
