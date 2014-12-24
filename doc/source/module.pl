@@ -11,7 +11,7 @@ module - command interface to the Modules package
 
 =head1 SYNOPSIS
 
-module [switches] [[sub-command] [sub-command-args]]
+module [switches] [sub-command [sub-command-args]]
 
 =head1 DESCRIPTION
 
@@ -291,4 +291,4 @@ The Modules package initialization file sourced into the user's environment.
 
 =head1 SEE ALSO
 
-L<modulefile>
+B<modulefile>

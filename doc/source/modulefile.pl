@@ -496,8 +496,8 @@ Path of directories containing I<modulefiles>.
 
 =head1 SEE ALSO
 
-L<module>, L<Tcl>, L<TclX>, L<xrdb>, L<cpp>, L<system>,
-L<uname>, L<gethostname>, L<getdomainname>
+B<module>, B<Tcl>, B<TclX>, B<xrdb>, B<cpp>, B<system>,
+B<uname>, B<gethostname>, B<getdomainname>
 
 =head1 NOTES
 

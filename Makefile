@@ -8,17 +8,19 @@ initdir:
 
 doc:
 	rm -f ./doc/html/module.html
-	pod2html ./doc/source/module.pl > ./doc/html/module.html
+	pod2html --noindex --infile=./doc/source/module.pl \
+		--outfile=./doc/html/module.html
 	rm -f ./doc/html/modulefile.html
-	pod2html ./doc/source/modulefile.pl > ./doc/html/modulefile.html
+	pod2html --noindex --infile=./doc/source/modulefile.pl \
+		--outfile=./doc/html/modulefile.html
 	rm -f ./doc/man/man1/module.1
 	pod2man -c "Environment Modules" -r "modules-tcl" \
 		./doc/source/module.pl \
-		> ./doc/man/man1/module.1
+		./doc/man/man1/module.1
 	rm -f ./doc/man/man4/modulefile.4
 	pod2man -c "Environment Modules" -r "modules-tcl" \
 		./doc/source/modulefile.pl \
-		> ./doc/man/man4/modulefile.4
+		./doc/man/man4/modulefile.4
 	rm -f pod*.tmp
 
 distclean: clean
