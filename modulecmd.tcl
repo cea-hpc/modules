@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.571
+set MODULES_CURRENT_VERSION 1.578
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1208,7 +1208,11 @@ proc uname {what} {
             set result [exec /bin/domainname]
          }
          version {
-            set result [exec /bin/uname -v]
+            if { [file isfile /bin/uname]} {
+               set result [exec /bin/uname -v]
+            } else {
+               set result [exec /usr/bin/uname -v]
+            }
          }
          default {
             error "uname $what not supported"
