@@ -249,7 +249,7 @@ Last resort to get the hostname, if uname() and gethostname()
 are not available.])
 AC_PATH_PROG([_PHOST],[hostname],[""])
 test "$_PHOST" != ""  && AC_DEFINE_UNQUOTED(PHOSTNAME, "$_PHOST")
-AC_PATH_PROG(RUNTEST, runtest, "./not_installed")
+AC_PATH_PROG(RUNTEST, runtest, "./testsuite/not_installed")
 test "$RUNTEST" = "" && echo "Install DEJAGNU and rerun configure if you \
 want to run the testsuite"
 
