@@ -571,8 +571,8 @@ int	 Execute_TclFile(	Tcl_Interp	*interp,
             case TCL_OK:	gotPartial = 0;
 			        continue;	/** while **/
 	    
-            case TCL_ERROR:	interp->errorLine = ((linenum-1)-gotPartial) +
-				    interp->errorLine;
+            case TCL_ERROR:	Tcl_SetErrorLine(interp,linenum - 1 - gotPartial
+					+ Tcl_GetErrorLine(interp));
 	    			/* FALLTHROUGH */
 
             case TCL_LEVEL0_RETURN:
