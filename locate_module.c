@@ -1194,6 +1194,11 @@ int SourceVers( Tcl_Interp *interp, char *path, char *name)
 		 **  The version has been specified in the
 		 **  '.version' file. Set up the result code
 		 **/
+		/* version can be only located in the current directory */
+		if (strrchr(version, '/')) {
+			ErrorLogger( ERR_BADMODNAM, LOC, version, NULL);
+			return( TCL_ERROR);
+		}
 		/* for deep modulefile dirs ... just use lowest part */
 		if (!(modname = (char*) strrchr( name, '/'))) {
 			modname = name;
