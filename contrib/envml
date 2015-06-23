@@ -1,0 +1,131 @@
+#! /bin/bash
+#
+# ENVML, setup environment with module then run specified command 
+# Copyright (C) 2015 CEA/DAM
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+
+typeset progpath=$0
+typeset prog=${progpath##*/}
+typeset arg
+typeset subarg
+typeset kind_of_arg='mod'
+typeset -a modarglist=()
+typeset -a maymodarglist=()
+typeset -a maycmdarglist=()
+typeset -a cmdarglist=()
+
+
+# print message on stderr then exit
+echo_error() {
+    echo "$prog: $1" >&2
+    exit 1
+}
+
+arg_into_modaction() {
+    # split module action from its argument
+    local action="${1/=/ }"
+    # split multiple arguments
+    action="${action//&/ }"
+
+    case "$action" in
+        purge*|restore*|unload*|switch*|load*) echo "$action"  ;;
+        *) echo "load $action" ;;        
+    esac
+}
+
+# print usage message
+echo_usage() {
+    echo "Usage: $progpath [MODULE_ACTION]... [--] COMMAND [ARG]...
+Run MODULE_ACTION(s) to setup environment then run COMMAND.
+
+Syntax of supported MODULE_ACTIONs:
+  purge                  unload all loaded modulefiles
+  restore[=coll]         restore module list from collection named coll or
+                         default collection if no collection name provided
+  unload=mod1[&mod2...]  remove modulefile(s) mod1, (mod2...)
+  switch=mod1&mod2       unload modulefile mod1 and load mod2
+  [load=]mod1[&mod2...]  load modulefile(s) mod1, (mod2...)
+
+Multiple MODULE_ACTION arguments can be specified as one argument by
+separating them with a colon character (:).
+
+To clearly separate command-line arguments from the module action arguments
+a '--' argument can be used. Without this '--' separator, first argument is
+considered module action and following arguments are part of command-line.
+
+Examples:
+  $progpath restore command arg1 arg2
+  $progpath purge:mod1:mod2 command arg1 arg2
+  $progpath restore load=mod1&mod2 -- command arg1 arg2"
+}
+
+# command help is asked
+if [ $# -eq 0 -o "$1" == '-h' -o "$1" == '--help' ]; then
+    echo_usage
+    exit 0
+fi
+
+# parse arguments
+for arg in ${@}; do
+    # reach separator, everything after is part of cmd
+    if [ "$arg" == '--' ]; then
+        kind_of_arg='cmd'
+    else
+        if [ "$kind_of_arg" == 'cmd' ]; then
+            cmdarglist+=("$arg")
+        else
+            for subarg in ${arg//:/ }; do
+                if [ "$kind_of_arg" == 'mod' ]; then
+                    modarglist+=("$(arg_into_modaction ${subarg})")
+                else
+                    maymodarglist+=("$(arg_into_modaction ${subarg})")
+                    maycmdarglist+=("$subarg")
+                fi
+            done
+
+            # after first arg, we are not sure
+            # following args are about module env
+            if [ "$kind_of_arg" == 'mod' ]; then
+                kind_of_arg='maymod'
+            fi
+        fi
+    fi
+done
+
+# if a cmd separator has been found what we thought
+# to be module-related is really module-related
+if [ "$kind_of_arg" == 'cmd' ]; then
+    modarglist+=("${maymodarglist[@]}")
+# elsewhere what we thought to be module-related
+# is in fact command-line related
+else
+    cmdarglist=("${maycmdarglist[@]}" "${cmdarglist[@]}")
+fi
+
+
+# check module function is defined
+if ! typeset -F module >/dev/null; then
+    echo_error "module command not found..."
+fi
+
+for arg in "${modarglist[@]}"; do
+    module ${arg}
+done
+
+# now execute the real command with its interpreter
+exec ${cmdarglist[*]}
