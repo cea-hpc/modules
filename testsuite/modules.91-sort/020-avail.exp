@@ -1,0 +1,52 @@
+##############################################################################
+#   Modules Release Tcl
+#   Providing a flexible user environment
+#
+#   File:		modules.91-sort/%M%
+#   Revision:		%I%
+#   First Edition:	2016/02/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail
+#   Modulefiles:	verssort/1, verssort/1.2.1, verssort/1.2.4,
+#                   verssort/1.8-2015-12-01, verssort/1.8-2016-02-01,
+#                   verssort/1.10
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check the module 'avail' command in terse output mode
+#           for a module with multiple versions to check these
+#           versions are correctly sorted.
+#		}C%
+#
+##############################################################################
+
+set header "\[-\]+ $MODULEPATH \[-\]+\n"
+
+#
+#  Check this only for the /bin/sh
+#
+
+set ts_sh "$header$module/$version1\n$module/$version2\n$module/$version3\n$module/$version4\n$module/$version5\n$module/$version6"
+set ts_implicit_default_sh "$header$module/$version6"
+set ts_latest_sh "$header$module/$version6"
+
+#
+#  The tests
+#
+
+testerr_cmd_re "sh" "avail -t $module" "$ts_sh\$"
+testerr_cmd_re "sh" "avail -t -d $module" "$ts_implicit_default_sh\$"
+testerr_cmd_re "sh" "avail -t -L $module" "$ts_latest_sh\$"
+
+#
+#  Cleanup
+#
+
+unset ts_sh
+unset ts_implicit_default_sh
+unset ts_latest_sh
+unset header

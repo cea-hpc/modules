@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.578
+set MODULES_CURRENT_VERSION 1.584
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1373,7 +1373,7 @@ proc getPathToModule {mod {separator {}}} {
 
                # Try for the last file in directory if no luck so far
                if {$ModulesVersion == ""} {
-                  set modlist [listModules $path "" 0 "-dictionary" 0 0 ""]
+                  set modlist [listModules $path "" 0 0 0 ""]
                   set ModulesVersion [lindex $modlist end]
                   if {$g_debug} {
                      report "DEBUG getPathToModule: Found\
@@ -1989,6 +1989,21 @@ proc findExecutable {cmd} {
    return $cmd
 }
 
+# Dictionary-style string comparison
+# Use dictionary sort of lsort proc to compare two strings in the "string
+# compare" fashion (returning -1, 0 or 1). Tcl dictionary-style comparison
+# enables to compare software versions (ex: "1.10" is greater than "1.8")
+proc stringDictionaryCompare {str1 str2} {
+    if {$str1 == $str2} {
+        return 0
+    # put both strings in a list, then lsort it and get last element
+    } elseif {[lindex [lsort -dictionary [list $str1 $str2]] end] == $str2} {
+        return -1
+    } else {
+        return 1
+    }
+}
+
 proc reverseList {list} {
    set newlist {}
 
@@ -2064,8 +2079,8 @@ proc getVersAliasList {modulename} {
 }
 
 # Finds all module versions for mod in the module path dir
-proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
-   {flag_default_mf {1}} {flag_default_dir {1}} {filter ""}} {
+proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
+   {flag_default_dir {1}} {filter ""}} {
    global ignoreDir ModulesCurrentModulefile
    global g_debug tcl_platform g_versionHash
 
@@ -2212,8 +2227,8 @@ proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
                         if {$clean_mystr_idx >= 0} {
                            # only replace if new occurency is greater than
                            # existing one or if new occurency is the default set
-                           if {[string compare $mystr [lindex $clean_list \
-                              $clean_mystr_idx]] == 1 \
+                           if {[stringDictionaryCompare $mystr \
+                              [lindex $clean_list $clean_mystr_idx]] == 1 \
                               || [lsearch $tag_list "default"] >= 0} {
                               set clean_list [lreplace $clean_list \
                                  $clean_mystr_idx $clean_mystr_idx $mystr]
@@ -2237,7 +2252,7 @@ proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
                      # so replace previously existing element and only
                      # if new occurency is greater than existing one
                      if {$clean_mystr_idx >= 0 && \
-                        [string compare $mystr \
+                        [stringDictionaryCompare $mystr \
                         [lindex $clean_list $clean_mystr_idx]] == 1} {
                         set clean_list [lreplace $clean_list \
                            $clean_mystr_idx $clean_mystr_idx $mystr]
@@ -2261,9 +2276,8 @@ proc listModules {dir mod {full_path 1} {sort_order {-dictionary}}\
          }
       }
    }
-   if {$sort_order != {}} {
-      set clean_list [lsort $sort_order $clean_list]
-   }
+   # always dictionary-sort results
+   set clean_list [lsort -dictionary $clean_list]
    if {$g_debug} {
       report "DEBUG listModules: Returning $clean_list"
    }
@@ -2515,7 +2529,7 @@ proc cmdModulePaths {mod {separator {}}} {
    if {[catch {
       foreach dir [split $env(MODULEPATH) $separator] {
          if {[file isdirectory $dir]} {
-            foreach mod2 [listModules $dir $mod 0 "" $flag_default_mf\
+            foreach mod2 [listModules $dir $mod 0 $flag_default_mf \
                $flag_default_dir ""] {
                lappend g_pathList $mod2
             }
@@ -2562,7 +2576,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    foreach dir [split $env(MODULEPATH) $g_def_separator] {
       if {[file isdirectory $dir]} {
          report "----------- $dir ------------- "
-         set modlist [listModules $dir $mod 0 "" 0 0]
+         set modlist [listModules $dir $mod 0 0 0]
          foreach mod2 $modlist {
             set g_whatis ""
             set modfile [getPathToModule $mod2]
@@ -2769,7 +2783,7 @@ proc cmdModuleSavelist {} {
       report "Named collection list:"
       set max 0
 
-      foreach coll [lsort $coll_list] {
+      foreach coll [lsort -dictionary $coll_list] {
          set mod [file tail $coll]
          set len [string length $mod]
 
@@ -3071,11 +3085,8 @@ proc cmdModuleAvail {{mod {*}}} {
          set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
          set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
          report "[string repeat {-} $lrep] $dir [string repeat {-} $rrep]"
-         set list [listModules "$dir" "$mod" 0 "" $flag_default_mf\
+         set list [listModules "$dir" "$mod" 0 $flag_default_mf\
             $flag_default_dir $show_filter]
-         # sort names (sometimes? returned in the order as they were
-         # created on disk :-)
-         set list [lsort $list]
          if {$show_modtimes} {
             foreach i $list {
                # don't change $i with the regsub - we need it 

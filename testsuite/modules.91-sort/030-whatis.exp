@@ -1,0 +1,50 @@
+##############################################################################
+#   Modules Release Tcl
+#   Providing a flexible user environment
+#
+#   File:		modules.91-sort/%M%
+#   Revision:		%I%
+#   First Edition:	2016/02/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		whatis
+#   Modulefiles:	verssort/1, verssort/1.2.1, verssort/1.2.4,
+#                   verssort/1.8-2015-12-01, verssort/1.8-2016-02-01,
+#                   verssort/1.10
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check the module 'whatis' command for a module with
+#           multiple versions to check these versions are
+#           correctly sorted.
+#		}C%
+#
+##############################################################################
+
+set wissep ": (.*)"
+# module path header is a bit specific for whatis command
+# compared to avail command (extra space added after dashed)
+set header "\[-\]+ $MODULEPATH \[-\]+ \n"
+
+#
+#  Check this only for the /bin/sh
+#
+
+set ts_sh "$header\\s*$module/$version1$wissep\n\\s*$module/$version2$wissep\n\\s*$module/$version3$wissep\n\\s*$module/$version4$wissep\n\\s*$module/$version5$wissep\n\\s*$module/$version6$wissep"
+
+#
+#  The tests
+#
+
+testerr_cmd_re "sh" "whatis $module" "$ts_sh\$"
+
+#
+#  Cleanup
+#
+
+unset ts_sh
+unset header
+unset wissep

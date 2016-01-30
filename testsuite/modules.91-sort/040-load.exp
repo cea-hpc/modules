@@ -1,0 +1,120 @@
+##############################################################################
+#   Modules Release Tcl
+#   Providing a flexible user environment
+#
+#   File:		modules.91-sort/%M%
+#   Revision:		%I%
+#   First Edition:	2016/02/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load
+#   Modulefiles:	verssort/1, verssort/1.2.1, verssort/1.2.4,
+#                   verssort/1.8-2015-12-01, verssort/1.8-2016-02-01,
+#                   verssort/1.10
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check multiple versions of a module are correctly
+#           sorted when loading default version (greatest) of
+#           this module.
+#		}C%
+#
+##############################################################################
+
+#
+#  For the different shells ...
+#
+set mv_sh "MODULE_VERSION=$version6; export MODULE_VERSION;"
+set lmf_sh "_LMFILES_=$modulefile6; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module6; export LOADEDMODULES;"
+set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
+
+set mv_csh "setenv MODULE_VERSION $version6;"
+set lmf_csh "setenv _LMFILES_ $modulefile6;"
+set lm_csh "setenv LOADEDMODULES $module6;"
+set lmfmod_csh "setenv _LMFILES__modshare (.*);"
+set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
+
+set mv_perl "\\\$ENV{\'MODULE_VERSION\'} = \'$version6\';"
+set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile6\';"
+set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module6\';"
+set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
+set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
+
+set mv_cmake "set(ENV{MODULE_VERSION} \"$version6\")"
+set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile6\")"
+set lm_cmake "set(ENV{LOADEDMODULES} \"$module6\")"
+set lmfmod_cmake "set(ENV{'_LMFILES__modshare'} = \'(.*)\')"
+set lmmod_cmake "set(ENV{'LOADEDMODULES_modshare'} = \'(.*)\')"
+
+set mv_python "os.environ\\\[\'MODULE_VERSION\'\\\] = \'$version6\'"
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile6\'"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module6\'"
+set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
+set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
+
+set mv_lisp "\\\(setenv \"MODULE_VERSION\" \"$version6\"\\\)"
+set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile6\"\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module6\"\\\)"
+set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
+set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
+
+#
+#  The tests
+#
+# load
+
+test_cmd_re "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$mv_sh\$"
+test_cmd_re "bash" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$mv_sh\$"
+test_cmd_re "ksh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$mv_sh\$"
+test_cmd_re "zsh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$mv_sh\$"
+test_cmd_re "csh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$mv_csh\$"
+test_cmd_re "tcsh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$mv_csh\$"
+test_cmd_re "perl" "load $module" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n$mv_perl\n1;\$"
+#test_cmd_re "cmake" "load $module\$"
+test_cmd_re "python" "load $module" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$mv_python\$"
+test_cmd_re "lisp" "load $module" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$mv_lisp\$"
+
+#
+#  Cleanup
+#
+
+unset lm_sh
+unset lmf_sh
+unset mv_sh
+unset lmfmod_sh
+unset lmmod_sh
+
+unset lm_csh
+unset lmf_csh
+unset mv_csh
+unset lmfmod_csh
+unset lmmod_csh
+
+unset lm_perl
+unset lmf_perl
+unset mv_perl
+unset lmfmod_perl
+unset lmmod_perl
+
+unset lm_cmake
+unset lmf_cmake
+unset mv_cmake
+unset lmfmod_cmake
+unset lmmod_cmake
+
+unset lm_python
+unset lmf_python
+unset mv_python
+unset lmfmod_python
+unset lmmod_python
+
+unset lm_lisp
+unset lmf_lisp
+unset mv_lisp
+unset lmfmod_lisp
+unset lmmod_lisp
