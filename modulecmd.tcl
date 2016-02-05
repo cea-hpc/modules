@@ -1616,7 +1616,6 @@ proc renderSettings {} {
             }
             perl {
                set val [doubleQuoteEscaped $env($var)]
-               set val [atSymbolEscaped $env($var)]
                puts stdout "\$ENV{\'$var\'} = \'$val\';"
             }
             python {
@@ -1972,11 +1971,6 @@ proc multiEscaped {text} {
 
 proc doubleQuoteEscaped {text} {
    regsub -all "\"" $text "\\\"" regsub_tmpstrg
-   return $regsub_tmpstrg
-}
-
-proc atSymbolEscaped {text} {
-   regsub -all "@" $text "\\@" regsub_tmpstrg
    return $regsub_tmpstrg
 }
 
