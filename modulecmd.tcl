@@ -3757,3 +3757,4 @@ if {[catch {
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
 # ;;; End: ***
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
