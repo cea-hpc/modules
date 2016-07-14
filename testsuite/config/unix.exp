@@ -47,24 +47,24 @@ proc default_modulecmd {} {
 	    set MODULECMD "../modulecmd"
 	} elseif [file exists ./modulecmd] then {
 	    set MODULECMD "./modulecmd"
+	# check for modulecmd.tcl before guessing from path
+	# to give this flavor a chance to be found when modulecmd
+	# binary is also installed in system default paths
+	} elseif [file exists "../modulecmd.tcl"] then {
+	  set MODULECMD "../modulecmd.tcl"
+	} elseif [file exists "./modulecmd.tcl"] then {
+	  set MODULECMD "./modulecmd.tcl"
 	} else {
 	    set MODULECMD [which modulecmd]
-	    if { $verbose > 1 } {
+	    if ![file exists $MODULECMD] then {
+		fail "No 'modulecmd' found"
+		exit -1
+	    } elseif { $verbose > 1 } {
 		send_user "using 'modulecmd' from search path"
 	    }
 	}
     }
 
-    if ![file exists $MODULECMD] then {
-	if [file exists "./modulecmd.tcl"] then {
-	  set MODULECMD "./modulecmd.tcl"
-	} elseif [file exists "../tcl/modulecmd.tcl"] then {
-	  set MODULECMD "../tcl/modulecmd.tcl"
-	} else {
-	  fail "No 'modulecmd' found"
-	  exit -1
-	}
-    }
 }
 
 #
