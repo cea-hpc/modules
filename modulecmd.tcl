@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.589
+set MODULES_CURRENT_VERSION 1.590
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -512,14 +512,6 @@ proc module-alias {args} {
    reportDebug "module-alias: $alias  = $module_file"
 
    set g_moduleAlias($alias) $module_file
-
-   if {[info exists g_aliasHash($module_file)]} {
-      set tmplist $g_aliasHash($module_file)
-      set tmplist [linsert $tmplist end $alias]
-      set g_aliasHash($module_file) $tmplist
-   } else {
-      set g_aliasHash($module_file) $alias
-   }
 
    if {[string match [currentMode] "display"]} {
       report "module-alias\t$args"
