@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.590
+set MODULES_CURRENT_VERSION 1.591
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -33,7 +33,7 @@ set flag_default_mf 1 ;# Report default modulefiles and version alias
 proc isWin {} {
    global tcl_platform
 
-   if { $tcl_platform(platform) == "windows" } {
+   if { $tcl_platform(platform) eq "windows" } {
       return 1
    } else {
       return 0
@@ -51,7 +51,7 @@ if { [isWin] } {
 
 # Dynamic columns
 set DEF_COLUMNS 80 ;# Default size of columns for formatting
-if {[catch {exec stty size} stty_size] == 0 && $stty_size != ""} {
+if {[catch {exec stty size} stty_size] == 0 && $stty_size ne ""} {
    set DEF_COLUMNS [lindex $stty_size 1]
 }
 
@@ -131,7 +131,7 @@ proc reportDebug {message {nonewline ""}} {
 }
 
 proc reportWarning {message {nonewline ""}} {
-   if {$nonewline != ""} {
+   if {$nonewline ne ""} {
       puts -nonewline stderr "$message"
    } else {
       puts stderr "$message"
@@ -157,7 +157,7 @@ proc reportInternalBug {message} {
 }
 
 proc report {message {nonewline ""}} {
-   if {$nonewline != ""} {
+   if {$nonewline ne ""} {
       puts -nonewline stderr "$message"
    } else {
       puts stderr "$message"
@@ -224,7 +224,7 @@ proc execute-modulefile {modfile {help ""}} {
          report "Sourcing $ModulesCurrentModulefile"
       }
       set sourceFailed [catch {source $ModulesCurrentModulefile} errorMsg]
-      if {$help != ""} {
+      if {$help ne ""} {
          if {[info procs "ModulesHelp"] == "ModulesHelp"} {
             ModulesHelp
          } else {
@@ -318,7 +318,7 @@ proc execute-modulerc {modfile} {
 
       interp delete $slave
 
-      if {[file tail $modfile] == ".version"} {
+      if {[file tail $modfile] eq ".version"} {
          # only set g_moduleDefault if .version file,
          # otherwise any modulerc settings ala "module-version /xxx default"
          #  would get overwritten
@@ -350,8 +350,8 @@ proc module-info {what {more {}}} {
 
    switch -- $what {
       "mode" {
-         if {$more != ""} {
-            if {$mode == $more} {
+         if {$more ne ""} {
+            if {$mode eq $more} {
                return 1
             } else {
                return 0
@@ -430,10 +430,10 @@ proc module-whatis {message} {
 
    reportDebug "module-whatis: $message  mode=$mode"
 
-   if {$mode == "display"} {
+   if {$mode eq "display"} {
       report "module-whatis\t$message"
    }\
-   elseif {$mode == "whatis"} {
+   elseif {$mode eq "whatis"} {
       set g_whatis $message
    }
    return {}
@@ -463,7 +463,7 @@ proc module-version {args} {
       set base [file dirname $module_name]
       set aliasversion [file tail $module_name]
 
-      if {$base != ""} {
+      if {$base ne ""} {
          if {[string match $version "default"]} {
             # If we see more than one default for the same module, just
             # keep the first
@@ -530,24 +530,24 @@ proc module {command args} {
 
    switch -- $command {
       add - lo - load {
-         if {$mode == "load"} {
+         if {$mode eq "load"} {
             eval cmdModuleLoad $args
          }\
-         elseif {$mode == "unload"} {
+         elseif {$mode eq "unload"} {
             eval cmdModuleUnload $args
          }\
-         elseif {$mode == "display"} {
+         elseif {$mode eq "display"} {
             report "module load\t$args"
          }
       }
       rm - unlo - unload {
-         if {$mode == "load"} {
+         if {$mode eq "load"} {
             eval cmdModuleUnload $args
          }\
-         elseif {$mode == "unload"} {
+         elseif {$mode eq "unload"} {
             eval cmdModuleUnload $args
          }\
-         elseif {$mode == "display"} {
+         elseif {$mode eq "display"} {
             report "module unload\t$args"
          }
       }
@@ -570,7 +570,7 @@ proc module {command args} {
          eval cmdModuleDisplay $args
       }
       avail - av {
-         if {$args != ""} {
+         if {$args ne ""} {
             foreach arg $args {
                cmdModuleAvail $arg
             }
@@ -594,7 +594,7 @@ proc module {command args} {
          cmdModuleList
       }
       whatis {
-         if {$args != ""} {
+         if {$args ne ""} {
             foreach arg $args {
                cmdModuleWhatIs $arg
             }
@@ -646,17 +646,17 @@ proc setenv {var val} {
 
    reportDebug "setenv: ($var,$val) mode = $mode"
 
-   if {$mode == "load"} {
+   if {$mode eq "load"} {
       set env($var) $val
       set g_stateEnvVars($var) "new"
    }\
-   elseif {$mode == "unload"} {
+   elseif {$mode eq "unload"} {
       # Don't unset-env here ... it breaks modulefiles
       # that use env(var) is later in the modulefile
       #unset-env $var
       set g_stateEnvVars($var) "del"
    }\
-   elseif {$mode == "display"} {
+   elseif {$mode eq "display"} {
       # Let display set the variable for later use in the display
       # but don't commit it to the env
       set env($var) $val
@@ -671,14 +671,14 @@ proc getenv {var} {
 
    reportDebug "getenv: ($var) mode = $mode"
 
-   if {$mode == "load" || $mode == "unload"} {
+   if {$mode eq "load" || $mode eq "unload"} {
       if {[info exists env($var)]} {
          return $::env($var)
       } else {
          return "_UNDEFINED_"
       }
    }\
-   elseif {$mode == "display"} {
+   elseif {$mode eq "display"} {
       return "\$$var"
    }
    return {}
@@ -691,19 +691,19 @@ proc unsetenv {var {val {}}} {
 
    reportDebug "unsetenv: ($var,$val) mode = $mode"
 
-   if {$mode == "load"} {
+   if {$mode eq "load"} {
       if {[info exists env($var)]} {
          unset-env $var
       }
       set g_stateEnvVars($var) "del"
    }\
-   elseif {$mode == "unload"} {
-      if {$val != ""} {
+   elseif {$mode eq "unload"} {
+      if {$val ne ""} {
          set env($var) $val
          set g_stateEnvVars($var) "new"
       }
    }\
-   elseif {$mode == "display"} {
+   elseif {$mode eq "display"} {
       report "unsetenv\t\t$var"
    }
    return {}
@@ -795,7 +795,7 @@ proc unload-path {var path separator} {
 
    # Don't worry about dealing with this variable if it is already scheduled
    #  for deletion
-   if {[info exists g_stateEnvVars($var)] && $g_stateEnvVars($var) == "del"} {
+   if {[info exists g_stateEnvVars($var)] && $g_stateEnvVars($var) eq "del"} {
       return {}
    }
 
@@ -817,11 +817,11 @@ proc unload-path {var path separator} {
             set dirs [split $env($var) $separator]
             set newpath ""
             foreach elem $dirs {
-               if {$elem != $dir} {
+               if {$elem ne $dir} {
                   lappend newpath $elem
                }
             }
-            if {$newpath == ""} {
+            if {$newpath eq ""} {
                unset-env $var
                set g_stateEnvVars($var) "del"
             } else {
@@ -851,7 +851,7 @@ proc add-path {var path pos separator} {
    set sharevar "${var}_modshare"
    array set countarr [getReferenceCountArray $var $separator]
 
-   if {$pos == "prepend"} {
+   if {$pos eq "prepend"} {
       set pathelems [reverseList [split $path $separator]]
    } else {
       set pathelems [split $path $separator]
@@ -861,11 +861,11 @@ proc add-path {var path pos separator} {
          # already see $dir in $var"
          incr countarr($dir)
       } else {
-         if {[info exists env($var)] && $env($var)!=""} {
-            if {$pos == "prepend"} {
+         if {[info exists env($var)] && $env($var) ne ""} {
+            if {$pos eq "prepend"} {
                set env($var) "$dir$separator$env($var)"
             }\
-            elseif {$pos == "append"} {
+            elseif {$pos eq "append"} {
                set env($var) "$env($var)$separator$dir"
             } else {
                error "add-path doesn't support $pos"
@@ -899,13 +899,13 @@ proc prepend-path {var path args} {
       set separator $g_def_separator
    }
 
-   if {$mode == "load"} {
+   if {$mode eq "load"} {
       add-path $var $path "prepend" $separator
    }\
-   elseif {$mode == "unload"} {
+   elseif {$mode eq "unload"} {
       unload-path $var $path $separator
    }\
-   elseif {$mode == "display"} {
+   elseif {$mode eq "display"} {
       report "prepend-path\t$var\t$path"
    }
 
@@ -928,13 +928,13 @@ proc append-path {var path args} {
       set separator $g_def_separator
    }
 
-   if {$mode == "load"} {
+   if {$mode eq "load"} {
       add-path $var $path "append" $separator
    }\
-   elseif {$mode == "unload"} {
+   elseif {$mode eq "unload"} {
       unload-path $var $path $separator
    }\
-   elseif {$mode == "display"} {
+   elseif {$mode eq "display"} {
       report "append-path\t$var\t$path"
    }
 
@@ -956,10 +956,10 @@ proc remove-path {var path args} {
       set separator $g_def_separator
    }
 
-   if {$mode == "load"} {
+   if {$mode eq "load"} {
       unload-path $var $path $separator
    }\
-   elseif {$mode == "display"} {
+   elseif {$mode eq "display"} {
       report "remove-path\t$var\t$path"
    }
    return {}
@@ -970,15 +970,15 @@ proc set-alias {alias what} {
    set mode [currentMode]
 
    reportDebug "set-alias: ($alias, $what) mode=$mode"
-   if {$mode == "load"} {
+   if {$mode eq "load"} {
       set g_Aliases($alias) $what
       set g_stateAliases($alias) "new"
    }\
-   elseif {$mode == "unload"} {
+   elseif {$mode eq "unload"} {
       set g_Aliases($alias) {}
       set g_stateAliases($alias) "del"
    }\
-   elseif {$mode == "display"} {
+   elseif {$mode eq "display"} {
       report "set-alias\t$alias\t$what"
    }
 
@@ -991,11 +991,11 @@ proc unset-alias {alias} {
    set mode [currentMode]
 
    reportDebug "unset-alias: ($alias) mode=$mode"
-   if {$mode == "load"} {
+   if {$mode eq "load"} {
       set g_Aliases($alias) {}
       set g_stateAliases($alias) "del"
    }\
-   elseif {$mode == "display"} {
+   elseif {$mode eq "display"} {
       report "unset-alias\t$alias"
    }
 
@@ -1034,7 +1034,7 @@ proc conflict {args} {
 
    reportDebug "conflict: ($args) mode = $mode"
 
-   if {$mode == "load"} {
+   if {$mode eq "load"} {
       foreach mod $args {
          # If the current module is already loaded, we can proceed
          if {![is-loaded $currentModule]} {
@@ -1049,7 +1049,7 @@ proc conflict {args} {
          }
       }
    }\
-   elseif {$mode == "display"} {
+   elseif {$mode eq "display"} {
       report "conflict\t$args"
    }
 
@@ -1062,7 +1062,7 @@ proc prereq {args} {
 
    reportDebug "prereq: ($args) mode = $mode"
 
-   if {$mode == "load"} {
+   if {$mode eq "load"} {
       if {![is-loaded $args]} {
          set errMsg "WARNING: $currentModule cannot be loaded due to\
              missing prereq."
@@ -1077,7 +1077,7 @@ proc prereq {args} {
          error $errMsg
       }
    }\
-   elseif {$mode == "display"} {
+   elseif {$mode eq "display"} {
       report "prereq\t\t$args"
    }
 
@@ -1091,13 +1091,13 @@ proc x-resource {resource {value {}}} {
 
    reportDebug "x-resource: ($resource, $value)"
 
-   if {$mode == "load"} {
+   if {$mode eq "load"} {
       set g_newXResources($resource) $value
    }\
-   elseif {$mode =="unload"} {
+   elseif {$mode eq "unload"} {
       set g_delXResources($resource) 1
    }\
-   elseif {$mode == "display"} {
+   elseif {$mode eq "display"} {
       report "x-resource\t$resource\t$value"
    }
 
@@ -1214,11 +1214,11 @@ proc getPathToModule {mod {separator {}}} {
 
    set retlist ""
 
-   if {$mod == ""} {
+   if {$mod eq ""} {
       return ""
    }
 
-   if {$separator == "" } {
+   if {$separator eq "" } {
       set separator $g_def_separator
    }
 
@@ -1253,7 +1253,7 @@ proc getPathToModule {mod {separator {}}} {
 
          # If $mod was specified without a version (no "/") then mod is
          # really modparent
-         if {$modparent == "."} {
+         if {$modparent eq "."} {
             set modparent $mod
          }
          set modparentpath "$dir/$modparent"
@@ -1269,7 +1269,7 @@ proc getPathToModule {mod {separator {}}} {
             }
             # Check for an alias
             set newmod [resolveModuleVersionOrAlias $mod]
-            if {$newmod != $mod} {
+            if {$newmod ne $mod} {
                # Alias before ModulesVersion
                return [getPathToModule $newmod]
             }
@@ -1295,14 +1295,14 @@ proc getPathToModule {mod {separator {}}} {
                }
 
                # Try for the last file in directory if no luck so far
-               if {$ModulesVersion == ""} {
+               if {$ModulesVersion eq ""} {
                   set modlist [listModules $path "" 0 0 0 ""]
                   set ModulesVersion [lindex $modlist end]
                   reportDebug "getPathToModule: Found\
                      $ModulesVersion in $path"
                }
 
-               if {$ModulesVersion != ""} {
+               if {$ModulesVersion ne ""} {
                   # The path to the module file
                   set verspath "$path/$ModulesVersion"
                   # The modulename (name + version)
@@ -1495,14 +1495,14 @@ proc renderSettings {} {
 
    # new environment variables
    foreach var [array names g_stateEnvVars] {
-      if {$g_stateEnvVars($var) == "new"} {
+      if {$g_stateEnvVars($var) eq "new"} {
          switch -- $g_shellType {
             csh {
                set val [multiEscaped $env($var)]
                # csh barfs on long env vars
-               if {$g_shell == "csh" && [string length $val] >\
+               if {$g_shell eq "csh" && [string length $val] >\
                   $CSH_LIMIT} {
-                  if {$var == "PATH"} {
+                  if {$var eq "PATH"} {
                      reportWarning "WARNING: module: PATH exceeds\
                         $CSH_LIMIT characters, truncating and\
                         appending /usr/bin:/bin ..."
@@ -1542,7 +1542,7 @@ proc renderSettings {} {
                puts stdout "set $var=$val"
             }
          }
-      } elseif {$g_stateEnvVars($var) == "del"} {
+      } elseif {$g_stateEnvVars($var) eq "del"} {
          switch -- $g_shellType {
             csh {
                puts stdout "unsetenv $var;"
@@ -1571,7 +1571,7 @@ proc renderSettings {} {
    }
 
    foreach var [array names g_stateAliases] {
-      if {$g_stateAliases($var) == "new"} {
+      if {$g_stateAliases($var) eq "new"} {
          switch -- $g_shellType {
             csh {
                # set val [multiEscaped $g_Aliases($var)]
@@ -1591,7 +1591,7 @@ proc renderSettings {} {
                puts stdout "alias $var \"$val\";"
             }
          }
-      } elseif {$g_stateAliases($var) == "del"} {
+      } elseif {$g_stateAliases($var) eq "del"} {
          switch -- $g_shellType {
             csh {
                puts stdout "unalias $var;"
@@ -1611,7 +1611,7 @@ proc renderSettings {} {
       set xrdb [findExecutable "xrdb"]
       foreach var [array names g_newXResources] {
          set val $g_newXResources($var)
-         if {$val == ""} {
+         if {$val eq ""} {
             switch -regexp -- $g_shellType {
                {^(csh|sh)$} {
                   if {[file exists $var]} {
@@ -1699,7 +1699,7 @@ proc renderSettings {} {
    if {[array size g_delXResources] > 0} {
       set xrdb [findExecutable "xrdb"]
       foreach var [array names g_delXResources] {
-         if {$val == ""} {
+         if {$val eq ""} {
             # do nothing
          } else {
             puts stdout "xrdb -remove <<EOF"
@@ -1794,7 +1794,7 @@ proc cacheCurrentModules {{separator {}}} {
 
    reportDebug "cacheCurrentModules: ($separator)"
 
-   if {$separator == "" } {
+   if {$separator eq "" } {
       set separator $g_def_separator
    }
 
@@ -1818,7 +1818,7 @@ proc resolveModuleVersionOrAlias {names} {
    foreach name $names {
       # Chop off (default) if it exists
       set x [expr {[string length $name] - 9}]
-      if {($x > 0) &&([string range $name $x end] == "\(default\)")} {
+      if {($x > 0) &&([string range $name $x end] eq "\(default\)")} {
          set name [string range $name 0 [expr {$x -1}]]
          reportDebug "resolveModuleVersionOrAlias: trimming name = \"$name\""
       }
@@ -1880,10 +1880,10 @@ proc findExecutable {cmd} {
 # compare" fashion (returning -1, 0 or 1). Tcl dictionary-style comparison
 # enables to compare software versions (ex: "1.10" is greater than "1.8")
 proc stringDictionaryCompare {str1 str2} {
-    if {$str1 == $str2} {
+    if {$str1 eq $str2} {
         return 0
     # put both strings in a list, then lsort it and get last element
-    } elseif {[lindex [lsort -dictionary [list $str1 $str2]] end] == $str2} {
+    } elseif {[lindex [lsort -dictionary [list $str1 $str2]] end] eq $str2} {
         return -1
     } else {
         return 1
@@ -1950,7 +1950,7 @@ proc getVersAliasList {modulename} {
    }
    if {[info exists g_moduleDefault($modparent)]} {
       set tmp_name "$modparent/$g_moduleDefault($modparent)"
-      if {$tmp_name == $modulename} {
+      if {$tmp_name eq $modulename} {
          set tag_list [linsert $tag_list end "default"]
       }
    }
@@ -1975,7 +1975,7 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
    # remove trailing / needed on some platforms
    regsub {\/$} $full_list {} full_list
         
-   if {$filter == "onlydefaults"} {
+   if {$filter eq "onlydefaults"} {
        # init a control list to correctly set implicit
        # or defined module default version
        set clean_defdefault {}
@@ -2034,7 +2034,7 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
                }
 
                # add to list only if it is the default set
-               if {$filter == "onlydefaults"} {
+               if {$filter eq "onlydefaults"} {
                   if {[lsearch $tag_list "default"] >= 0} {
                      lappend clean_list $mystr
                   }
@@ -2088,7 +2088,7 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
 
                   # add to list only if it is the default set
                   # or if it is an implicit default when no default is set
-                  if {$filter == "onlydefaults"} {
+                  if {$filter eq "onlydefaults"} {
                      set moduleelem [string range $direlem $sstart end]
 
                      # do not add element if a default has already
@@ -2117,7 +2117,7 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
                      }
 
                      # add latest version to list only
-                     } elseif {$filter == "onlylatest"} {
+                     } elseif {$filter eq "onlylatest"} {
                      set moduleelem [string range $direlem $sstart end]
                      set clean_mystr_idx [lsearch $clean_list "$moduleelem/*"]
 
@@ -2161,7 +2161,7 @@ proc showModulePath {{separator {}}} {
 
    reportDebug "showModulePath: $separator"
 
-   if {$separator == "" } {
+   if {$separator eq "" } {
       set separator $g_def_separator
    }
    if {[info exists env(MODULEPATH)]} {
@@ -2191,14 +2191,14 @@ proc getMovementBetweenList {from to} {
       set to_obj [lindex $to $i]
       set from_obj [lindex $from $i]
 
-      if {$to_obj != $from_obj} {
+      if {$to_obj ne $from_obj} {
          set list_equal 0
       }
       if {$list_equal == 0} {
-         if {$to_obj != ""} {
+         if {$to_obj ne ""} {
             lappend do $to_obj
          }
-         if {$from_obj != ""} {
+         if {$from_obj ne ""} {
             lappend undo $from_obj
          }
       }
@@ -2220,7 +2220,7 @@ proc getSimplifiedLoadedModuleList {} {
       foreach mod [split $env(LOADEDMODULES) $g_def_separator] {
          if {[string length $mod] > 0} {
             set modparent [file dirname $mod]
-            if {$modparent == "."} {
+            if {$modparent eq "."} {
                lappend curr_mod_list $mod
             } else {
                # fetch all module version available
@@ -2235,13 +2235,13 @@ proc getSimplifiedLoadedModuleList {} {
                # check if loaded version is default
                set dflpos [lsearch $modlist "*(default)"]
                if {$dflpos == -1} {
-                  if {$mod == [lindex $modlist end]} {
+                  if {$mod eq [lindex $modlist end]} {
                      lappend curr_mod_list $modparent
                   } else {
                      lappend curr_mod_list $mod
                   }
                } else {
-                  if {"$mod\(default\)" == [lindex $modlist $dflpos]} {
+                  if {"$mod\(default\)" eq [lindex $modlist $dflpos]} {
                      lappend curr_mod_list $modparent
                   } else {
                      lappend curr_mod_list $mod
@@ -2262,7 +2262,7 @@ proc cmdModuleList {{separator {}}} {
    global env DEF_COLUMNS show_oneperline show_modtimes g_debug
    global g_def_separator
 
-   if {$separator == "" } {
+   if {$separator eq "" } {
       set separator $g_def_separator
    }
 
@@ -2346,7 +2346,7 @@ proc cmdModuleList {{separator {}}} {
                set index [expr {$col * $rows + $row}]
                set mod [lindex $list $index]
 
-               if {$mod != ""} {
+               if {$mod ne ""} {
                   set n [expr {$index +1}]
                   set mod [format "%2d) %-${max}s " $n $mod]
                   report $mod -nonewline
@@ -2362,7 +2362,7 @@ proc cmdModuleDisplay {mod} {
    global env tcl_version ModulesCurrentModulefile
 
    set modfile [getPathToModule $mod]
-   if {$modfile != ""} {
+   if {$modfile ne ""} {
       pushModuleName [lindex $modfile 1]
       set modfile [lindex $modfile 0]
       report\
@@ -2383,7 +2383,7 @@ proc cmdModulePaths {mod {separator {}}} {
 
    reportDebug "cmdModulePaths: ($mod, $separator)"
 
-   if {$separator == "" } {
+   if {$separator eq "" } {
       set separator $g_def_separator
    }
 
@@ -2406,7 +2406,7 @@ proc cmdModulePath {mod} {
 
    reportDebug "cmdModulePath: ($mod)"
    set modfile [getPathToModule $mod]
-   if {$modfile != ""} {
+   if {$modfile ne ""} {
       set modfile [lindex $modfile 0]
       set ModulesCurrentModulefile $modfile
 
@@ -2427,7 +2427,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    global g_whatis g_def_separator
 
    reportDebug "cmdModuleSearch: ($mod, $search)"
-   if {$mod == ""} {
+   if {$mod eq ""} {
       set mod "*"
    }
    foreach dir [split $env(MODULEPATH) $g_def_separator] {
@@ -2438,7 +2438,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             set g_whatis ""
             set modfile [getPathToModule $mod2]
 
-            if {$modfile != ""} {
+            if {$modfile ne ""} {
                pushMode "whatis"
                pushModuleName [lindex $modfile 1]
                set modfile [lindex $modfile 0]
@@ -2446,7 +2446,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                popMode
                popModuleName
 
-               if {$search =="" || [regexp -nocase $search $g_whatis]} {
+               if {$search eq "" || [regexp -nocase $search $g_whatis]} {
                   report [format "%20s: %s" $mod2 $g_whatis]
                }
             }
@@ -2458,7 +2458,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 proc cmdModuleSwitch {old {new {}}} {
    global env g_loadedModulesGeneric g_loadedModules
 
-   if {$new == ""} {
+   if {$new eq ""} {
       set new $old
    } elseif {[info exists g_loadedModules($new)]} {
       set tmp $new
@@ -2482,7 +2482,7 @@ proc cmdModuleSave {{coll {}}} {
    global g_def_separator
 
    # default collection used if no name provided
-   if {$coll == ""} {
+   if {$coll eq ""} {
       set coll "default"
    }
    reportDebug "cmdModuleSave: $coll"
@@ -2529,7 +2529,7 @@ proc cmdModuleRestore {{coll {}}} {
    global g_def_separator
 
    # default collection used if no name provided
-   if {$coll == ""} {
+   if {$coll eq ""} {
       set coll "default"
    }
    reportDebug "cmdModuleRestore: $coll"
@@ -2677,7 +2677,7 @@ proc cmdModuleSavelist {} {
                set index [expr {$col * $rows + $row}]
                set mod [lindex $list $index]
 
-               if {$mod != ""} {
+               if {$mod ne ""} {
                   set n [expr {$index +1}]
                   set mod [format "%2d) %-${max}s " $n $mod]
                   report $mod -nonewline
@@ -2715,7 +2715,7 @@ proc cmdModuleLoad {args} {
 
    foreach mod $args {
       set modfile [getPathToModule $mod]
-      if {$modfile != ""} {
+      if {$modfile ne ""} {
          set currentModule [lindex $modfile 1]
          set modfile [lindex $modfile 0]
          set ModulesCurrentModulefile $modfile
@@ -2760,7 +2760,7 @@ proc cmdModuleUnload {args} {
    foreach mod $args {
       if {[catch {
          set modfile [getPathToModule $mod]
-         if {$modfile != ""} {
+         if {$modfile ne ""} {
             set currentModule [lindex $modfile 1]
             set modfile [lindex $modfile 0]
             set ModulesCurrentModulefile $modfile
@@ -2813,7 +2813,7 @@ proc cmdModulePurge {{separator {}}} {
    global env g_def_separator
 
    reportDebug "cmdModulePurge: $separator"
-   if {$separator == "" } {
+   if {$separator eq "" } {
       set separator $g_def_separator
    }
 
@@ -2828,7 +2828,7 @@ proc cmdModuleReload {{separator {}}} {
 
    reportDebug "cmdModuleReload: $separator"
 
-   if {$separator == "" } {
+   if {$separator eq "" } {
       set separator $g_def_separator
    }
 
@@ -2888,13 +2888,13 @@ proc system {mycmd args} {
    set mode [currentMode]
    set mycmd [join [concat $mycmd $args] " "]
 
-   if {$mode == "load"} {
+   if {$mode eq "load"} {
       lappend g_systemList $mycmd
    }\
-   elseif {$mode == "unload"} {
+   elseif {$mode eq "unload"} {
       # No operation here unable to undo a syscall.
    }\
-   elseif {$mode == "display"} {
+   elseif {$mode eq "display"} {
       report "system\t\t$mycmd"
    }
 
@@ -2961,7 +2961,7 @@ proc cmdModuleAvail {{mod {*}}} {
                for {set col 0} {$col < $cols} {incr col} {
                   set index [expr {$col * $rows + $row}]
                   set mod2 [lindex $list $index]
-                  if {$mod2 != ""} {
+                  if {$mod2 ne ""} {
                      set mod2 [format "%-${max}s" $mod2]
                      report $mod2 -nonewline
                   }
@@ -2979,19 +2979,19 @@ proc cmdModuleUse {args} {
 
    reportDebug "cmdModuleUse: $args"
 
-   if {$args == ""} {
+   if {$args eq ""} {
       showModulePath
    } else {
       set stuff_path "prepend"
       foreach path $args {
-         if {$path == ""} {
+         if {$path eq ""} {
             # Skip "holes"
          }\
-         elseif {($path == "--append") ||($path == "-a") ||($path ==\
+         elseif {($path eq "--append") ||($path eq "-a") ||($path eq\
             "-append")} {
             set stuff_path "append"
          }\
-         elseif {($path == "--prepend") ||($path == "-p") ||($path ==\
+         elseif {($path eq "--prepend") ||($path eq "-p") ||($path eq\
             "-prepend")} {
             set stuff_path "prepend"
          }\
@@ -3016,7 +3016,7 @@ proc cmdModuleUnuse {args} {
    global g_def_separator
 
    reportDebug "cmdModuleUnuse: $args"
-   if {$args == ""} {
+   if {$args eq ""} {
       showModulePath
    } else {
       global env
@@ -3039,7 +3039,7 @@ proc cmdModuleUnuse {args} {
             }
             popMode
 
-            if {[info exists env(MODULEPATH)] && $oldMODULEPATH ==\
+            if {[info exists env(MODULEPATH)] && $oldMODULEPATH eq\
                $env(MODULEPATH)} {
                reportError "WARNING: Did not unuse $path"
             }
@@ -3053,7 +3053,7 @@ proc cmdModuleDebug {{separator {}}} {
 
    reportDebug "cmdModuleDebug: $separator"
 
-   if {$separator == "" } {
+   if {$separator eq "" } {
       set separator $g_def_separator
    }
 
@@ -3231,10 +3231,10 @@ proc cmdModuleHelp {args} {
 
    set done 0
    foreach arg $args {
-      if {$arg != ""} {
+      if {$arg ne ""} {
          set modfile [getPathToModule $arg]
 
-         if {$modfile != ""} {
+         if {$modfile ne ""} {
             pushModuleName [lindex $modfile 1]
             set modfile [lindex $modfile 0]
             report\
@@ -3442,7 +3442,7 @@ reportDebug "Resolved $argv"
 if {[catch {
    switch -regexp -- $command {
       {^av} {
-         if {$argv != ""} {
+         if {$argv ne ""} {
             foreach arg $argv {
                cmdModuleAvail $arg
             }
@@ -3511,7 +3511,7 @@ if {[catch {
          renderSettings
       }
       {^wh} {
-         if {$argv != ""} {
+         if {$argv ne ""} {
             foreach arg $argv {
                cmdModuleWhatIs $arg
             }
