@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.593
+set MODULES_CURRENT_VERSION 1.594
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -852,7 +852,7 @@ proc add-path {var path pos separator} {
    array set countarr [getReferenceCountArray $var $separator]
 
    if {$pos eq "prepend"} {
-      set pathelems [reverseList [split $path $separator]]
+      set pathelems [lreverse [split $path $separator]]
    } else {
       set pathelems [split $path $separator]
    }
@@ -1890,14 +1890,14 @@ proc stringDictionaryCompare {str1 str2} {
     }
 }
 
-proc reverseList {list} {
-   set newlist {}
-
-   foreach item $list {
-      set newlist [linsert $newlist 0 $item]
-   }
-
-   return $newlist
+# provide a lreverse proc for Tcl8.4 and earlier
+if {[info command lreverse] eq ""} {
+    proc lreverse l {
+        set r {}
+        set i [llength $l]
+        while {[incr i -1]} {lappend r [lindex $l $i]}
+        lappend r [lindex $l 0]
+    }
 }
 
 proc replaceFromList {list1 item {item2 {}}} {
@@ -2569,11 +2569,11 @@ proc cmdModuleRestore {{coll {}}} {
 
          # unload modules
          if {[llength $mod_to_unload] > 0} {
-            eval cmdModuleUnload [reverseList $mod_to_unload]
+            eval cmdModuleUnload [lreverse $mod_to_unload]
          }
          # unuse paths
          if {[llength $path_to_unuse] > 0} {
-            eval cmdModuleUnuse [reverseList $path_to_unuse]
+            eval cmdModuleUnuse [lreverse $path_to_unuse]
          }
 
          # since unloading a module may unload other modules or
@@ -2819,7 +2819,7 @@ proc cmdModulePurge {{separator {}}} {
 
    if {[info exists env(LOADEDMODULES)]} {
       set list [split $env(LOADEDMODULES) $separator]
-      eval cmdModuleUnload [reverseList $list]
+      eval cmdModuleUnload [lreverse $list]
    }
 }
 
@@ -2834,7 +2834,7 @@ proc cmdModuleReload {{separator {}}} {
 
    if {[info exists env(LOADEDMODULES)]} {
       set list [split $env(LOADEDMODULES) $separator]
-      set rlist [reverseList $list]
+      set rlist [lreverse $list]
       foreach mod $rlist {
          cmdModuleUnload $mod
       }
