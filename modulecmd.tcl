@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.595
+set MODULES_CURRENT_VERSION 1.596
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1091,11 +1091,36 @@ proc x-resource {resource {value {}}} {
 
    reportDebug "x-resource: ($resource, $value)"
 
+   # sometimes x-resource value may be provided within resource name
+   # as the "x-resource {Ileaf.popup.saveUnder: True}" example provided
+   # in manpage. so here is an attempt to extract real resource name and
+   # value from resource argument
+   if {[string length $value] == 0 && ![file exists $resource]} {
+      # look first for a space character as delimiter, then for a colon
+      set sepapos [string first " " $resource]
+      if { $sepapos == -1 } {
+         set sepapos [string first ":" $resource]
+      }
+
+      if { $sepapos > -1 } {
+         set value [string range $resource [expr {$sepapos + 1}] end]
+         set resource [string range $resource 0 [expr {$sepapos - 1}]]
+         reportDebug "x-resource: corrected ($resource, $value)"
+      } else {
+         # if not a file and no value provided x-resource cannot be
+         # recorded as it will produce an error when passed to xrdb
+         reportWarning "WARNING x-resource $resource is not a valid string or file"
+         return {}
+      }
+   }
+
+   # if a resource does hold an empty value in g_newXResources or
+   # g_delXResources arrays, it means this is a resource file to parse
    if {$mode eq "load"} {
       set g_newXResources($resource) $value
    }\
    elseif {$mode eq "unload"} {
-      set g_delXResources($resource) 1
+      set g_delXResources($resource) $value
    }\
    elseif {$mode eq "display"} {
       report "x-resource\t$resource\t$value"
@@ -1616,71 +1641,42 @@ proc renderSettings {} {
       }
       foreach var [array names g_newXResources] {
          set val $g_newXResources($var)
+         # empty val means that var is a file to parse
          if {$val eq ""} {
             switch -regexp -- $g_shellType {
                {^(csh|sh)$} {
-                  if {[file exists $var]} {
-                     puts stdout "$xrdb -merge $var;"
-                  } else {
-                     puts stdout "$xrdb -merge <<EOF"
-                     puts stdout "$var"
-                     puts stdout "EOF;"
-                  }
+                  puts stdout "$xrdb -merge $var;"
                }
                tcl {
-                  if {[file exists $var]} {
-                     puts stdout "exec $xrdb -merge $var;"
-                  } else {
-                     puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\]"
-                     set var [doubleQuoteEscaped $var]
-                     puts stdout "puts \$XRDBPIPE \"$var\""
-                     puts stdout "close \$XRDBPIPE"
-                     puts stdout "unset XRDBPIPE"
-                  }
+                  puts stdout "exec $xrdb -merge $var;"
                }
                perl {
-                  if {[file isfile $var]} {
-                     puts stdout "system(\"$xrdb -merge $var\");"
-                  } else {
-                     puts stdout "open(XRDBPIPE,\"|$xrdb -merge\");"
-                     set var [doubleQuoteEscaped $var]
-                     puts stdout "print XRDBPIPE \"$var\\n\";"
-                     puts stdout "close XRDBPIPE;"
-                  }
+                  puts stdout "system(\"$xrdb -merge $var\");"
                }
                python {
-                  if {[file isfile $var]} {
-                     puts stdout "subprocess.Popen(\['$xrdb',\
-                        '-merge', '$var'\])"
-                  } else {
-                     set var [singleQuoteEscaped $var]
-                     puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
-                        stdin=subprocess.PIPE).communicate(input='$var\\n')"
-
-                  }
+                  set var [singleQuoteEscaped $var]
+                  puts stdout "subprocess.Popen(\['$xrdb',\
+                     '-merge', '$var'\])"
                }
                lisp {
-                  if {[file exists $var]} {
-                     puts stdout "(shell-command-to-string \"$xrdb\
-                        -merge $var\")"
-                  } else {
-                     puts stdout "(shell-command-to-string \
-                        \"echo $var | $xrdb -merge\")"
-                  }
+                  puts stdout "(shell-command-to-string \"$xrdb\
+                     -merge $var\")"
                }
             }
          } else {
             switch -regexp -- $g_shellType {
                {^(csh|sh)$} {
-                  puts stdout "$xrdb -merge <<EOF"
-                  puts stdout "$var: $val"
-                  puts stdout "EOF;"
+                  set var [doubleQuoteEscaped $var]
+                  set val [doubleQuoteEscaped $val]
+                  puts stdout "echo \"$var: $val\" | $xrdb -merge;"
                }
                tcl {
-                  puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\]"
-                  puts stdout "puts \$XRDBPIPE $var: $val"
-                  puts stdout "close \$XRDBPIPE"
-                  puts stdout "unset XRDBPIPE"
+                  puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\];"
+                  set var [doubleQuoteEscaped $var]
+                  set val [doubleQuoteEscaped $val]
+                  puts stdout "puts \$XRDBPIPE \"$var: $val\";"
+                  puts stdout "close \$XRDBPIPE;"
+                  puts stdout "unset XRDBPIPE;"
                }
                perl {
                   puts stdout "open(XRDBPIPE, \"|$xrdb -merge\");"
@@ -1706,13 +1702,58 @@ proc renderSettings {} {
 
    if {[array size g_delXResources] > 0} {
       set xrdb [findExecutable "xrdb"]
+      set xres_to_del {}
       foreach var [array names g_delXResources] {
-         if {$val eq ""} {
-            # do nothing
+         # empty val means that var is a file to parse
+         if {$g_delXResources($var) eq ""} {
+            # xresource file has to be parsed to find what resources
+            # are declared there and need to be unset
+            foreach fline [split [exec xrdb -n load $var] "\n"] {
+               lappend xres_to_del [lindex [split $fline ":"] 0]
+            }
          } else {
-            puts stdout "xrdb -remove <<EOF"
-            puts stdout "$var:"
-            puts stdout "EOF;"
+            lappend xres_to_del $var
+         }
+      }
+
+      # xresource strings are unset by emptying their value since there
+      # is no command of xrdb that can properly remove one property
+      switch -regexp -- $g_shellType {
+         {^(csh|sh)$} {
+            foreach var $xres_to_del {
+               puts stdout "echo \"$var:\" | $xrdb -merge;"
+            }
+         }
+         tcl {
+            foreach var $xres_to_del {
+               puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\];"
+               set var [doubleQuoteEscaped $var]
+               puts stdout "puts \$XRDBPIPE \"$var:\";"
+               puts stdout "close \$XRDBPIPE;"
+               puts stdout "unset XRDBPIPE;"
+            }
+         }
+         perl {
+            foreach var $xres_to_del {
+               puts stdout "open(XRDBPIPE, \"|$xrdb -merge\");"
+               set var [doubleQuoteEscaped $var]
+               puts stdout "print XRDBPIPE \"$var:\\n\";"
+               puts stdout "close XRDBPIPE;"
+            }
+         }
+         python {
+            puts stdout "import subprocess"
+            foreach var $xres_to_del {
+               set var [singleQuoteEscaped $var]
+               puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
+                  stdin=subprocess.PIPE).communicate(input='$var:\\n')"
+            }
+         }
+         lisp {
+            foreach var $xres_to_del {
+               puts stdout "(shell-command-to-string \"echo $var: |\
+                  $xrdb -merge\")"
+            }
          }
       }
    }
