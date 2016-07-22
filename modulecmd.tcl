@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.594
+set MODULES_CURRENT_VERSION 1.595
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -108,8 +108,8 @@ proc renderError {} {
                detected!\\n\""
          }
          python {
-            puts stdout "raise RuntimeError, \
-               'modulefile.tcl: $error_count error(s) detected!'"
+            puts stdout "raise RuntimeError(\
+               'modulefile.tcl: $error_count error(s) detected!')"
          }
          lisp {
             puts stdout "(error \"modulefile.tcl:\
@@ -1474,10 +1474,10 @@ proc renderSettings {} {
          python {
             puts stdout "import subprocess"
             puts stdout "def module(command, *arguments):"
-            puts stdout "        exec subprocess.Popen(\['$tclshbin',\
-               '$argv0', 'python', command\] \
+            puts stdout "        exec(subprocess.Popen(\['$tclshbin',\
+               '$argv0', 'python', command\] +\
                list(arguments),\
-               stdout=subprcess.PIPE).communicate()\[0\]"
+               stdout=subprocess.PIPE).communicate()\[0\])"
          }
          lisp {
             reportErrorAndExit "ERROR: XXX lisp mode autoinit not yet\
@@ -1609,6 +1609,11 @@ proc renderSettings {} {
    # new x resources
    if {[array size g_newXResources] > 0} {
       set xrdb [findExecutable "xrdb"]
+      switch -- $g_shellType {
+         python {
+            puts stdout "import subprocess"
+         }
+      }
       foreach var [array names g_newXResources] {
          set val $g_newXResources($var)
          if {$val eq ""} {
@@ -1645,10 +1650,13 @@ proc renderSettings {} {
                }
                python {
                   if {[file isfile $var]} {
-                     puts stdout "os.popen('$xrdb -merge $var');"
+                     puts stdout "subprocess.Popen(\['$xrdb',\
+                        '-merge', '$var'\])"
                   } else {
                      set var [singleQuoteEscaped $var]
-                     puts stdout "os.popen('$xrdb -merge').write('$var')"
+                     puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
+                        stdin=subprocess.PIPE).communicate(input='$var\\n')"
+
                   }
                }
                lisp {
@@ -1684,8 +1692,8 @@ proc renderSettings {} {
                python {
                   set var [singleQuoteEscaped $var]
                   set val [singleQuoteEscaped $val]
-                  puts stdout "os.popen('$xrdb\
-                     -merge').write('$var: $val')"
+                  puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
+                     stdin=subprocess.PIPE).communicate(input='$var: $val\\n')"
                }
                lisp {
                   puts stdout "(shell-command-to-string \"echo $var:\

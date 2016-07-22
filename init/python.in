@@ -1,4 +1,4 @@
-import os, string
+import os, subprocess
 
 os.environ['MODULESHOME'] = '$MODULESHOME'
 
@@ -20,5 +20,4 @@ if not 'LOADEDMODULES' in os.environ:
         os.environ['LOADEDMODULES'] = '';
 
 def module(command, *arguments):
-        commands = os.popen('$TCLSH $MODULESHOME/modulecmd.tcl python %s %s' % (command, string.join(arguments))).read()
-        exec(commands)
+        exec(subprocess.Popen(['$TCLSH', '$MODULESHOME/modulecmd.tcl', 'python', command] + list(arguments), stdout=subprocess.PIPE).communicate()[0])
