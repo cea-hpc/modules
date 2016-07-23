@@ -35,6 +35,9 @@ set bash_modpath "MODULEPATH=$mod_path; export MODULEPATH;"
 set csh_modshare "setenv MODULEPATH_modshare (.*);"
 set csh_modshare_ref2 "setenv MODULEPATH_modshare (.*):2;"
 set csh_modpath "setenv MODULEPATH $mod_path;"
+set fish_modshare "set -xg MODULEPATH_modshare (.*);"
+set fish_modshare_ref2 "set -xg MODULEPATH_modshare (.*):2;"
+set fish_modpath "set -xg MODULEPATH $mod_path;"
 set tcl_modshare "set env\\\(MODULEPATH_modshare\\\) (.*);"
 set tcl_modshare_ref2 "set env\\\(MODULEPATH_modshare\\\) (.*):2;"
 set tcl_modpath "set env\\\(MODULEPATH\\\) $mod_path;"
@@ -62,6 +65,7 @@ test_cmd_re "ksh" "$use $path" "$bash_modshare\n$bash_modpath\$"
 test_cmd_re "zsh" "$use $path" "$bash_modshare\n$bash_modpath\$"
 test_cmd_re "csh" "$use $path" "$csh_modshare\n$csh_modpath\$"
 test_cmd_re "tcsh" "$use $path" "$csh_modshare\n$csh_modpath\$"
+test_cmd_re "fish" "$use $path" "$fish_modshare\n$fish_modpath\$"
 test_cmd_re "tcl" "$use $path" "$tcl_modshare\n$tcl_modpath\$"
 test_cmd_re "perl" "$use $path" "$perl_modshare\n$perl_modpath\n1;\$"
 #test_cmd_re "cmake" "$use $path" "$cmake_modshare\n$cmake_modpath\$"
@@ -78,6 +82,7 @@ testerr_cmd_re "ksh" "$use $badpath" "$bad_use\$"
 testerr_cmd_re "zsh" "$use $badpath" "$bad_use\$"
 testerr_cmd_re "csh" "$use $badpath" "$bad_use\$"
 testerr_cmd_re "tcsh" "$use $badpath" "$bad_use\$"
+testerr_cmd_re "fish" "$use $badpath" "$bad_use\$"
 testerr_cmd_re "tcl" "$use $badpath" "$bad_use\$"
 testerr_cmd_re "perl" "$use $badpath" "$bad_use\$"
 #testerr_cmd_re "cmake" "$use $badpath" "$bad_use\$"
@@ -99,6 +104,7 @@ test_cmd_re "ksh" "$use $path" "$bash_modshare\nMODULEPATH=$path; export MODULEP
 test_cmd_re "zsh" "$use $path" "$bash_modshare\nMODULEPATH=$path; export MODULEPATH;"
 test_cmd_re "csh" "$use $path" "$csh_modshare\nsetenv MODULEPATH $path;"
 test_cmd_re "tcsh" "$use $path" "$csh_modshare\nsetenv MODULEPATH $path;"
+test_cmd_re "fish" "$use $path" "$fish_modshare\nset -xg MODULEPATH $path;"
 test_cmd_re "tcl" "$use $path" "$tcl_modshare\nset env\\\(MODULEPATH\\\) $path;"
 test_cmd_re "perl" "$use $path" "$perl_modshare\n\\\$ENV{\'MODULEPATH\'} = \'$path\';"
 test_cmd_re "python" "$use $path" "$python_modshare\nos.environ\\\['MODULEPATH'\\\] = \'$path\'"
@@ -118,6 +124,7 @@ test_cmd_re "ksh" "$use $loaded_path" "$bash_modshare_ref2\nMODULEPATH=$loaded_p
 test_cmd_re "zsh" "$use $loaded_path" "$bash_modshare_ref2\nMODULEPATH=$loaded_path; export MODULEPATH;"
 test_cmd_re "csh" "$use $loaded_path" "$csh_modshare_ref2\nsetenv MODULEPATH $loaded_path;"
 test_cmd_re "tcsh" "$use $loaded_path" "$csh_modshare_ref2\nsetenv MODULEPATH $loaded_path;"
+test_cmd_re "fish" "$use $loaded_path" "$fish_modshare_ref2\nset -xg MODULEPATH $loaded_path;"
 test_cmd_re "tcl" "$use $loaded_path" "$tcl_modshare_ref2\nset env\\\(MODULEPATH\\\) $loaded_path;"
 test_cmd_re "perl" "$use $loaded_path" "$perl_modshare_ref2\n\\\$ENV{\'MODULEPATH\'} = \'$loaded_path\';"
 test_cmd_re "python" "$use $loaded_path" "$python_modshare_ref2\nos.environ\\\['MODULEPATH'\\\] = \'$loaded_path\'"
@@ -140,6 +147,9 @@ unset bash_modshare_ref2
 unset csh_modpath
 unset csh_modshare
 unset csh_modshare_ref2
+unset fish_modpath
+unset fish_modshare
+unset fish_modshare_ref2
 unset tcl_modpath
 unset tcl_modshare
 unset tcl_modshare_ref2
