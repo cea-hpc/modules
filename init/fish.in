@@ -1,0 +1,34 @@
+set -gx MODULESHOME $MODULESHOME
+
+if [ -z $TCLSH ]
+   if [ -f /usr/bin/tclsh ]
+      set TCLSH "/usr/bin/tclsh"
+   else if [ -f /bin/tclsh ]
+      set TCLSH "/bin/tclsh"
+   else
+      set TCLSH ""
+   end
+end
+
+if status -i
+   if [ -r $MODULESHOME/init/fish_completion ]
+      source $MODULESHOME/init/fish_completion
+   end
+
+   # only redirect module from stderr to stdout in interactive mode
+   # to avoid breaking non interactive session (scp, sftp, etc)
+   function moduleraw
+      # use "| source -" rather than "eval" to be able
+      # to redirect stderr after stdout being evaluated
+      eval $TCLSH $MODULESHOME/modulecmd.tcl fish $argv | source -
+   end
+   function module
+      moduleraw $argv ^&1
+   end
+else
+   function module
+      eval $TCLSH $MODULESHOME/modulecmd.tcl fish $argv | source -
+   end
+end
+
+source $MODULESHOME/init/modulerc

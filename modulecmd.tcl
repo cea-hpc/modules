@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.598
+set MODULES_CURRENT_VERSION 1.602
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -95,6 +95,9 @@ proc renderError {} {
             puts stdout "/bin/false;"
          }
          sh {
+            puts stdout "/bin/false;"
+         }
+         fish {
             puts stdout "/bin/false;"
          }
          tcl {
@@ -1470,6 +1473,11 @@ proc renderSettings {} {
             puts stdout "module () { eval \
                `'$tclshbin' '$argv0' '$g_shell' \$*`; } ;"
          }
+         fish {
+            puts stdout "function module"
+            puts stdout "    eval '$tclshbin' '$argv0' '$g_shell' \$argv | source -"
+            puts stdout "end"
+         }
          tcl {
             puts stdout "proc module {args}  {"
             puts stdout "    global env;"
@@ -1546,6 +1554,16 @@ proc renderSettings {} {
                puts stdout "$var=[multiEscaped $env($var)];\
                   export $var;"
             }
+            fish {
+               set val [multiEscaped $env($var)]
+               # fish shell has special treatment for PATH variable
+               # so its value should be provided as a list separated
+               # by spaces not by semi-colons
+               if {$var eq "PATH"} {
+                  regsub -all ":" $val " " val
+               }
+               puts stdout "set -xg $var $val;"
+            }
             tcl {
                set val [doubleQuoteEscaped $env($var)]
                puts stdout "set env($var) $val;"
@@ -1574,6 +1592,9 @@ proc renderSettings {} {
             }
             sh {
                puts stdout "unset $var;"
+            }
+            fish {
+               puts stdout "set -e $var;"
             }
             tcl {
                puts stdout "unset env($var);"
@@ -1611,6 +1632,10 @@ proc renderSettings {} {
                set val $g_Aliases($var)
                puts stdout "alias $var=\'$val\';"
             }
+            fish {
+               set val $g_Aliases($var)
+               puts stdout "alias $var '$val';"
+            }
             tcl {
                set val $g_Aliases($var)
                puts stdout "alias $var \"$val\";"
@@ -1623,6 +1648,9 @@ proc renderSettings {} {
             }
             sh {
                puts stdout "unalias $var;"
+            }
+            fish {
+               puts stdout "functions -e $var;"
             }
             tcl {
                puts stdout "unalias $var;"
@@ -1644,7 +1672,7 @@ proc renderSettings {} {
          # empty val means that var is a file to parse
          if {$val eq ""} {
             switch -regexp -- $g_shellType {
-               {^(csh|sh)$} {
+               {^(csh|fish|sh)$} {
                   puts stdout "$xrdb -merge $var;"
                }
                tcl {
@@ -1665,7 +1693,7 @@ proc renderSettings {} {
             }
          } else {
             switch -regexp -- $g_shellType {
-               {^(csh|sh)$} {
+               {^(csh|fish|sh)$} {
                   set var [doubleQuoteEscaped $var]
                   set val [doubleQuoteEscaped $val]
                   puts stdout "echo \"$var: $val\" | $xrdb -merge;"
@@ -1719,7 +1747,7 @@ proc renderSettings {} {
       # xresource strings are unset by emptying their value since there
       # is no command of xrdb that can properly remove one property
       switch -regexp -- $g_shellType {
-         {^(csh|sh)$} {
+         {^(csh|fish|sh)$} {
             foreach var $xres_to_del {
                puts stdout "echo \"$var:\" | $xrdb -merge;"
             }
@@ -1774,6 +1802,9 @@ proc renderSettings {} {
             sh {
                puts stdout "echo '$var';"
             }
+            fish {
+               puts stdout "echo '$var';"
+            }
             tcl {
                puts stdout "puts \"$var\";"
             }
@@ -1816,6 +1847,9 @@ proc renderSettings {} {
             puts "/bin/true;"
          }
          sh {
+            puts "/bin/true;"
+         }
+         fish {
             puts "/bin/true;"
          }
          tcl {
@@ -3153,6 +3187,7 @@ proc cmdModuleInit {args} {
       ".bashrc"]
    set files(bash) $files(sh)
    set files(ksh) $files(sh)
+   set files(fish) [list ".modules" ".config/fish/config.fish"]
    set files(zsh) [list ".modules" ".zshrc" ".zshenv" ".zlogin"]
 
    array set nargs {
@@ -3420,6 +3455,9 @@ set argv [lreplace $argv 0 1]
 switch -regexp -- $g_shell {
    ^(sh|bash|ksh|zsh)$ {
        set g_shellType sh
+   }
+   ^(fish)$ {
+       set g_shellType fish
    }
    ^(cmd)$ {
        set g_shellType cmd
