@@ -1,0 +1,55 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	info/shellsexp
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'module-info shell' and the 'module-info
+#			shelltype' module subcommands without own suggestion.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "info/shellsexp"
+set modulefile "$env(MODULEPATH)/$module"
+
+#
+#  The tests
+#
+
+# Tcl version does not allow to pass an argument to 'module-info shell'
+# and 'module-info shelltype' module subcommands
+test_cmd "sh" "load $module" "" 1
+test_cmd "ksh" "load $module" "" 1
+test_cmd "zsh" "load $module" "" 1
+test_cmd "csh" "load $module" "" 1
+test_cmd "tcsh" "load $module" "" 1
+test_cmd "tcl" "load $module" "" 1
+test_cmd "perl" "load $module" "" 1
+#test_cmd "cmake" "load $module" "" 1
+test_cmd "python" "load $module" "" 1
+test_cmd "lisp" "load $module" "" 1
+
+#
+#  Cleanup
+#
+
+unset modulefile
+unset module
