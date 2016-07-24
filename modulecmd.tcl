@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.596
+set MODULES_CURRENT_VERSION 1.598
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -920,7 +920,7 @@ proc append-path {var path args} {
 
    reportDebug "append-path: ($var, $path, $args) mode=$mode"
 
-   if {[string match $var "-delim"]} {
+   if {($var eq "--delim") || ($var eq "-d") || ($var eq "-delim")} {
       set separator $path
       set var [lindex $args 0]
       set path [lindex $args 1]
@@ -948,7 +948,7 @@ proc remove-path {var path args} {
 
    reportDebug "remove-path: ($var, $path, $args) mode=$mode"
 
-   if {[string match $var "-delim"]} {
+   if {($var eq "--delim") || ($var eq "-d") || ($var eq "-delim")} {
       set separator $path
       set var [lindex $args 0]
       set path [lindex $args 1]
