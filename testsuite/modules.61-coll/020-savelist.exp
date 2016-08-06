@@ -1,0 +1,63 @@
+##############################################################################
+#   Modules Release Tcl
+#   Providing a flexible user environment
+#
+#   File:		modules.61-coll/%M%
+#   Revision:		%I%
+#   First Edition:	2016/08/02
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Test the module 'savelist' command
+#		}C%
+#
+##############################################################################
+
+set header_no_coll "No named collection."
+set header_coll "Named collection list:"
+set coll_list "$coll1\n$coll2\n$colld"
+
+
+#
+# test HOME with no collection
+#
+
+# testsuite home does not contain collection
+testerr_cmd "sh" "savelist -t" "$header_no_coll"
+
+
+#
+# test HOME containing collections
+#
+
+# set HOME to location containing collections
+set ORIG_HOME $env(HOME)
+if { $verbose > 0 } {
+    send_user "\tSetup HOME = $homewithcoll\n"
+}
+set env(HOME) "$homewithcoll"
+
+testerr_cmd "sh" "savelist -t" "$header_coll\n$coll_list"
+
+# restore default testsuite home
+if { $verbose > 0 } {
+    send_user "\tRestore HOME = $ORIG_HOME\n"
+}
+set env(HOME) $ORIG_HOME
+
+#
+# Cleanup
+#
+
+unset header_no_coll
+unset header_coll
+unset coll_list
+
+unset ORIG_HOME

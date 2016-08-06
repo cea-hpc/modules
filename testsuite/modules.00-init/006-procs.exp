@@ -164,6 +164,29 @@ proc _test_out_re {test_shell cmd answer} {
 	}
 }
 
+proc _test_file {test_shell cmd filepath answer} {
+	global verbose
+
+    catch {
+        set fd [open $filepath]
+        read -nonewline $fd
+    } comp_file
+    catch { close $fd }
+
+	if { $comp_file != "$answer" } {
+		fail "$cmd ($test_shell)"
+		if { $verbose > 0 } {
+			set ol [string length $comp_file]
+			set oe [string length $answer]
+			send_user "FILE\[$ol\]: '$comp_file'\n"
+			send_user "EXP\[$oe\]: '$answer'\n"
+		}
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
 proc _test_exit {test_shell cmd exitval} {
 	global comp_exit
 	global verbose
@@ -255,6 +278,19 @@ proc testouterr_cmd {test_shell cmd answer anserr} {
 	_test_sub $test_shell "$cmd"
 	if { [ _test_out $test_shell "$cmd" "$answer" ]
 	&&   [ _test_err $test_shell "$cmd" "$anserr" ] } {
+		_test_ok $test_shell "$cmd"
+	}
+}
+
+#
+# Test procedure for full text matching with stdout and specified file
+#
+
+proc testoutfile_cmd {test_shell cmd answer filepath ansfile} {
+
+	_test_sub $test_shell "$cmd"
+	if { [ _test_out $test_shell "$cmd" "$answer" ]
+	&&   [ _test_file $test_shell "$cmd" "$filepath" "$ansfile" ] } {
 		_test_ok $test_shell "$cmd"
 	}
 }

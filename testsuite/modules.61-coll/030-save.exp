@@ -1,0 +1,172 @@
+##############################################################################
+#   Modules Release Tcl
+#   Providing a flexible user environment
+#
+#   File:		modules.61-coll/%M%
+#   Revision:		%I%
+#   First Edition:	2016/08/02
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Test the module 'save' command
+#		}C%
+#
+##############################################################################
+
+
+set baddotmod "$env(HOME)/.module"
+set baddotmoderrmsg "ERROR: $baddotmod exists but is not a directory"
+
+set err_sh "/bin/false;"
+set err_csh "$err_sh"
+set err_fish "$err_sh"
+set err_tcl "exec /bin/false;"
+set err_perl "die \"modulefile.tcl: 1 error(s) detected!\\n\""
+set err_python "raise RuntimeError( 'modulefile.tcl: 1 error(s) detected!')"
+set err_lisp "(error \"modulefile.tcl: 1 error(s) detected!\")"
+
+set mlu "module use"
+set mll "module load"
+set cdcont "$mlu $cdmodpath1\n$mll $cdmod1\n$mll $cdmod2\n$mll $cdmod3n\n$mll $cdmod4\n"
+set c1cont1 "$mlu $c1modpath1\n$mll $cdmod1\n$mll $cdmod2\n$mll $cdmod3n\n$mll $cdmod4\n$mll $c1mod5\n$mll $c1mod6\n"
+set c1cont2 "$mlu $c2modpath1\n$mll $cdmod1\n$mll $cdmod2\n$mll $cdmod3n\n$mll $c2mod4\n$mll $c2mod5\n$mll $c2mod6\n"
+
+#
+# test saving when HOME/.module is not directory
+#
+
+# create HOME/.module as empty file
+if { $verbose > 0 } {
+    send_user "\tCreate $baddotmod as an empty file\n"
+}
+set baddotmodfd [open $baddotmod w]
+close $baddotmodfd
+
+testouterr_cmd "sh" "save" "$err_sh" "$baddotmoderrmsg"
+testouterr_cmd "bash" "save" "$err_sh" "$baddotmoderrmsg"
+testouterr_cmd "ksh" "save" "$err_sh" "$baddotmoderrmsg"
+testouterr_cmd "zsh" "save" "$err_sh" "$baddotmoderrmsg"
+testouterr_cmd "csh" "save" "$err_csh" "$baddotmoderrmsg"
+testouterr_cmd "tcsh" "save" "$err_csh" "$baddotmoderrmsg"
+testouterr_cmd "fish" "save" "$err_fish" "$baddotmoderrmsg"
+testouterr_cmd "tcl" "save" "$err_tcl" "$baddotmoderrmsg"
+testouterr_cmd "perl" "save" "$err_perl" "$baddotmoderrmsg"
+testouterr_cmd "python" "save" "$err_python" "$baddotmoderrmsg"
+testouterr_cmd "lisp" "save" "$err_lisp" "$baddotmoderrmsg"
+
+# delete created HOME/.module empty file
+if { $verbose > 0 } {
+    send_user "\tDelete $baddotmod\n"
+}
+file delete $baddotmod
+
+
+#
+# test saving default collection
+#
+
+# set home to unexistent directory for tests
+# will automatically be created by save command
+set ORIG_HOME $env(HOME)
+if { $verbose > 0 } {
+    send_user "\tSetup HOME = $hometestcoll\n"
+}
+set env(HOME) "$hometestcoll"
+
+# setup environment state
+set ORIG_MODULEPATH "$env(MODULEPATH)"
+if { $verbose > 0 } {
+    send_user "\tSetup _LMFILES_ = $cdlmf\n"
+    send_user "\tSetup LOADEDMODULES = $cdlm\n"
+    send_user "\tSetup MODULEPATH = $cdmodpath\n"
+}
+set env(_LMFILES_) "$cdlmf"
+set env(LOADEDMODULES) "$cdlm"
+set env(MODULEPATH) "$cdmodpath"
+
+
+# test only sh shell as this test does not produce shell output
+testoutfile_cmd "sh" "save" "" "$hometestdotmod/default" "$cdcont"
+
+
+#
+# test saving named collection
+#
+
+# setup environment state
+if { $verbose > 0 } {
+    send_user "\tSetup _LMFILES_ = $c1lmf\n"
+    send_user "\tSetup LOADEDMODULES = $c1lm\n"
+    send_user "\tSetup MODULEPATH = $c1modpath\n"
+}
+set env(_LMFILES_) "$c1lmf"
+set env(LOADEDMODULES) "$c1lm"
+set env(MODULEPATH) "$c1modpath"
+
+# test only sh shell as this test does not produce shell output
+testoutfile_cmd "sh" "save $coll1" "" "$hometestdotmod/$coll1" "$c1cont1"
+
+
+#
+# test saving to an already existing collection
+#
+
+# setup environment state
+if { $verbose > 0 } {
+    send_user "\tSetup _LMFILES_ = $c2lmf\n"
+    send_user "\tSetup LOADEDMODULES = $c2lm\n"
+    send_user "\tSetup MODULEPATH = $c2modpath\n"
+}
+set env(_LMFILES_) "$c2lmf"
+set env(LOADEDMODULES) "$c2lm"
+set env(MODULEPATH) "$c2modpath"
+
+# test only sh shell as this test does not produce shell output
+testoutfile_cmd "sh" "save $coll1" "" "$hometestdotmod/$coll1" "$c1cont2"
+
+
+#
+# Cleanup
+#
+
+# restore default testsuite home
+if { $verbose > 0 } {
+    send_user "\tRestore HOME = $ORIG_HOME\n"
+}
+set env(HOME) $ORIG_HOME
+unset ORIG_HOME
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tRestore _LMFILES_ = ''\n"
+    send_user "\tRestore LOADEDMODULES = ''\n"
+    send_user "\tRestore MODULEPATH = $ORIG_MODULEPATH\n"
+}
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+set env(MODULEPATH) "$ORIG_MODULEPATH"
+unset ORIG_MODULEPATH
+
+unset mlu
+unset mll
+unset cdcont
+unset c1cont1
+unset c1cont2
+
+unset err_sh
+unset err_csh
+unset err_fish
+unset err_tcl
+unset err_perl
+unset err_python
+unset err_lisp
+
+unset baddotmod
+unset baddotmodfd
