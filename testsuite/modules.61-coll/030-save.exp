@@ -23,6 +23,7 @@
 
 set baddotmod "$env(HOME)/.module"
 set baddotmoderrmsg "ERROR: $baddotmod exists but is not a directory"
+set emptyenverrmsg "ERROR: Nothing to save in a collection"
 
 set err_sh "/bin/false;"
 set err_csh "$err_sh"
@@ -69,7 +70,7 @@ file delete $baddotmod
 
 
 #
-# test saving default collection
+# test saving empty collection
 #
 
 # set home to unexistent directory for tests
@@ -80,8 +81,31 @@ if { $verbose > 0 } {
 }
 set env(HOME) "$hometestcoll"
 
-# setup environment state
+# setup an empty environment state
 set ORIG_MODULEPATH "$env(MODULEPATH)"
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = ''\n"
+}
+unset env(MODULEPATH)
+
+testouterr_cmd "sh" "save" "$err_sh" "$emptyenverrmsg"
+testouterr_cmd "bash" "save" "$err_sh" "$emptyenverrmsg"
+testouterr_cmd "ksh" "save" "$err_sh" "$emptyenverrmsg"
+testouterr_cmd "zsh" "save" "$err_sh" "$emptyenverrmsg"
+testouterr_cmd "csh" "save" "$err_csh" "$emptyenverrmsg"
+testouterr_cmd "tcsh" "save" "$err_csh" "$emptyenverrmsg"
+testouterr_cmd "fish" "save" "$err_fish" "$emptyenverrmsg"
+testouterr_cmd "tcl" "save" "$err_tcl" "$emptyenverrmsg"
+testouterr_cmd "perl" "save" "$err_perl" "$emptyenverrmsg"
+testouterr_cmd "python" "save" "$err_python" "$emptyenverrmsg"
+testouterr_cmd "lisp" "save" "$err_lisp" "$emptyenverrmsg"
+
+
+#
+# test saving default collection
+#
+
+# setup environment state
 if { $verbose > 0 } {
     send_user "\tSetup _LMFILES_ = $cdlmf\n"
     send_user "\tSetup LOADEDMODULES = $cdlm\n"
@@ -90,7 +114,6 @@ if { $verbose > 0 } {
 set env(_LMFILES_) "$cdlmf"
 set env(LOADEDMODULES) "$cdlm"
 set env(MODULEPATH) "$cdmodpath"
-
 
 # test only sh shell as this test does not produce shell output
 testoutfile_cmd "sh" "save" "" "$hometestdotmod/default" "$cdcont"

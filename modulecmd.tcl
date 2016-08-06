@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.602
+set MODULES_CURRENT_VERSION 1.605
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2570,6 +2570,9 @@ proc cmdModuleSave {{coll {}}} {
    }
    reportDebug "cmdModuleSave: $coll"
 
+   # init collection content
+   set save ""
+
    # build collection content with used modulepaths
    if {[info exists env(MODULEPATH)]} {
       foreach path [split $env(MODULEPATH) $g_def_separator] {
@@ -2604,6 +2607,8 @@ proc cmdModuleSave {{coll {}}} {
       } else {
          reportErrorAndExit "HOME not defined"
       }
+   } else {
+      reportErrorAndExit "Nothing to save in a collection"
    }
 }
 
