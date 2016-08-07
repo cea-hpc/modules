@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.606
+set MODULES_CURRENT_VERSION 1.607
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2292,8 +2292,10 @@ proc getMovementBetweenList {from to} {
 
 # build list of currently loaded modules where modulename
 # is registered minus module version if loaded version is
-# the default one
-proc getSimplifiedLoadedModuleList {} {
+# the default one. a helper list may be provided and looked
+# at if no MODULEPATH is set
+proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
+   {helper_list {}}} {
    global env g_def_separator
 
    reportDebug "getSimplifiedLoadedModuleList"
@@ -2305,7 +2307,7 @@ proc getSimplifiedLoadedModuleList {} {
             set modparent [file dirname $mod]
             if {$modparent eq "."} {
                lappend curr_mod_list $mod
-            } else {
+            } elseif {[info exists env(MODULEPATH)]} {
                # fetch all module version available
                set modlist {}
                foreach dir [split $env(MODULEPATH) $g_def_separator] {
@@ -2329,6 +2331,18 @@ proc getSimplifiedLoadedModuleList {} {
                   } else {
                      lappend curr_mod_list $mod
                   }
+               }
+            } else {
+               # if no path set currently, cannot search for all
+               # available version so use helper lists if provided
+               set helper_idx [lsearch -exact $helper_raw_list $mod]
+               if {$helper_idx == -1} {
+                  lappend curr_mod_list $mod
+               } else {
+                  # if mod found in a previous LOADEDMODULES list use
+                  # simplified version of this module found in relative
+                  # helper list (previously computed simplified list)
+                  lappend curr_mod_list [lindex $helper_list $helper_idx]
                }
             }
          }
@@ -2666,7 +2680,15 @@ proc cmdModuleRestore {{coll {}}} {
          } else {
             set curr_path_list {}
          }
-         set curr_mod_list [getSimplifiedLoadedModuleList]
+         # get current loaded module list in simplified and raw versions
+         # these lists may be used later on, see below
+         if {[info exists env(LOADEDMODULES)]} {
+            set curr_mod_list_raw [split $env(LOADEDMODULES) $g_def_separator]
+            set curr_mod_list [getSimplifiedLoadedModuleList]
+         } else {
+            set curr_mod_list_raw {}
+            set curr_mod_list {}
+         }
 
          # determine what module to unload to restore collection
          # from current situation with preservation of the load order
@@ -2695,7 +2717,16 @@ proc cmdModuleRestore {{coll {}}} {
          } else {
             set curr_path_list {}
          }
-         set curr_mod_list [getSimplifiedLoadedModuleList]
+
+         # here we may be in a situation were no more path is left
+         # in MODULEPATH, so we cannot easily compute the simplified loaded
+         # module list. so we provide two helper lists: simplified and raw
+         # versions of the loaded module list computed before starting to
+         # unload modules. these helper lists may help to learn the
+         # simplified counterpart of a loaded module if it was already loaded
+         # before starting to unload modules
+         set curr_mod_list [getSimplifiedLoadedModuleList\
+            $curr_mod_list_raw $curr_mod_list]
 
          # determine what module to load to restore collection
          # from current situation with preservation of the load order

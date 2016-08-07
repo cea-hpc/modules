@@ -24,6 +24,7 @@ set cbadnerrmsg "ERROR: Collection $collbadn does not exist or is not readable"
 set cderrmsg "load $cdmod4"
 set c1errmsg "load $c1mod5\nload $c1mod6"
 set c2errmsg "unload $c1mod6\nunload $c1mod5\nunload $cdmod4\nload $c2mod4\nload $c2mod5\nload $c2mod6"
+set c3errmsg ""
 
 set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
 set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
@@ -285,6 +286,56 @@ testouterr_cmd_re "lisp" "restore $coll2" "$ts_lisp" "$c2errmsg"
 
 
 #
+# test restoring collection that reorder used paths
+# no change on loaded modules
+#
+
+# fake environment state: $coll2 collection restored
+if { $verbose > 0 } {
+    send_user "\tSetup _LMFILES_ = $c2lmf\n"
+    send_user "\tSetup LOADEDMODULES = $c2lm\n"
+    send_user "\tSetup MODULEPATH = $c2modpath\n"
+}
+set env(_LMFILES_) "$c2lmf"
+set env(LOADEDMODULES) "$c2lm"
+set env(MODULEPATH) "$c2modpath"
+
+set modpath_sh "MODULEPATH=$c3modpath; export MODULEPATH;"
+set ts_sh "$modpathmod_sh\n$modpath_sh\$"
+
+set modpath_csh "setenv MODULEPATH $c3modpath;"
+set ts_csh "$modpathmod_csh\n$modpath_csh\$"
+
+set modpath_fish "set -xg MODULEPATH $c3modpath;"
+set ts_fish "$modpathmod_fish\n$modpath_fish\$"
+
+set modpath_tcl "set env\\\(MODULEPATH\\\) $c3modpath;"
+set ts_tcl "$modpathmod_tcl\n$modpath_tcl\$"
+
+set modpath_perl "\\\$ENV{\'MODULEPATH\'} = \'$c3modpath\';"
+set ts_perl "$modpathmod_perl\n$modpath_perl\n1;\$"
+
+set modpath_python "os.environ\\\[\'MODULEPATH\'\\\] = \'$c3modpath\'"
+set ts_python "import os\n$modpathmod_python\n$modpath_python\$"
+
+set modpath_lisp "\\\(setenv \"MODULEPATH\" \"$c3modpath\"\\\)"
+set ts_lisp "$modpathmod_lisp\n$modpath_lisp\$"
+
+
+testouterr_cmd_re "sh" "restore $coll3" "$ts_sh" "$c3errmsg"
+testouterr_cmd_re "bash" "restore $coll3" "$ts_sh" "$c3errmsg"
+testouterr_cmd_re "ksh" "restore $coll3" "$ts_sh" "$c3errmsg"
+testouterr_cmd_re "zsh" "restore $coll3" "$ts_sh" "$c3errmsg"
+testouterr_cmd_re "csh" "restore $coll3" "$ts_csh" "$c3errmsg"
+testouterr_cmd_re "tcsh" "restore $coll3" "$ts_csh" "$c3errmsg"
+testouterr_cmd_re "fish" "restore $coll3" "$ts_fish" "$c3errmsg"
+testouterr_cmd_re "tcl" "restore $coll3" "$ts_tcl" "$c3errmsg"
+testouterr_cmd_re "perl" "restore $coll3" "$ts_perl" "$c3errmsg"
+testouterr_cmd_re "python" "restore $coll3" "$ts_python" "$c3errmsg"
+testouterr_cmd_re "lisp" "restore $coll3" "$ts_lisp" "$c3errmsg"
+
+
+#
 # Cleanup
 #
 
@@ -380,4 +431,5 @@ unset cbadnerrmsg
 unset cderrmsg
 unset c1errmsg
 unset c2errmsg
+unset c3errmsg
 
