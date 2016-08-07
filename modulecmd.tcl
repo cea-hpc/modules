@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.605
+set MODULES_CURRENT_VERSION 1.606
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2576,7 +2576,9 @@ proc cmdModuleSave {{coll {}}} {
    # build collection content with used modulepaths
    if {[info exists env(MODULEPATH)]} {
       foreach path [split $env(MODULEPATH) $g_def_separator] {
-         append save "module use $path" "\n"
+         # 'module use' prepends paths by default so we clarify
+         # path order here with --append flag
+         append save "module use --append $path" "\n"
       }
    }
    # then add loaded modules
@@ -2630,8 +2632,29 @@ proc cmdModuleRestore {{coll {}}} {
          set fdata [split [read $fid] "\n"]
          close $fid
          foreach fline $fdata {
-            if {[regexp {module use (.*)$} $fline match path] == 1} {
-               lappend coll_path_list $path
+            if {[regexp {module use (.*)$} $fline match patharg] == 1} {
+               # paths are appended by default
+               set stuff_path "append"
+               foreach path [split $patharg] {
+                  # following path is asked to be appended
+                  if {($path eq "--append") || ($path eq "-a")\
+                     || ($path eq "-append")} {
+                     set stuff_path "append"
+                  # following path is asked to be prepended
+                  # collection generated with 'save' does not prepend
+                  } elseif {($path eq "--prepend") || ($path eq "-p")\
+                     || ($path eq "-prepend")} {
+                     set stuff_path "prepend"
+                  } else {
+                     # add path to end of list
+                     if {$stuff_path eq "append"} {
+                        lappend coll_path_list $path
+                     # insert path to first position
+                     } else {
+                        set coll_path_list [linsert $coll_path_list 0 $path]
+                     }
+                  }
+               }
             } elseif {[regexp {module load (.*)$} $fline match mod] == 1} {
                lappend coll_mod_list $mod
             }
@@ -2686,7 +2709,9 @@ proc cmdModuleRestore {{coll {}}} {
 
          # use paths
          if {[llength $path_to_use] > 0} {
-            eval cmdModuleUse $path_to_use
+            # always append path here to guaranty the order
+            # computed above in the movement lists
+            eval cmdModuleUse --append $path_to_use
          }
 
          # load modules

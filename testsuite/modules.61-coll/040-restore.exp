@@ -147,7 +147,7 @@ testouterr_cmd_re "lisp" "restore" "$ts_lisp" "$cderrmsg"
 
 
 #
-# test restoring collection that only adds modules to load
+# test restoring collection that only adds path to use and mods to load
 #
 
 # fake environment state: default collection restored
@@ -163,31 +163,38 @@ set env(MODULEPATH) "$cdmodpath"
 
 set lmf_sh "_LMFILES_=$c1lmf; export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$c1lm; export LOADEDMODULES;"
-set ts_sh "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+set modpath_sh "MODULEPATH=$c1modpath; export MODULEPATH;"
+set ts_sh "$lmfmod_sh\n$lmmod_sh\n$modpathmod_sh\n$lmf_sh\n$lm_sh\n$modpath_sh\$"
 
 set lmf_csh "setenv _LMFILES_ $c1lmf;"
 set lm_csh "setenv LOADEDMODULES $c1lm;"
-set ts_csh "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
+set modpath_csh "setenv MODULEPATH $c1modpath;"
+set ts_csh "$lmfmod_csh\n$lmmod_csh\n$modpathmod_csh\n$lmf_csh\n$lm_csh\n$modpath_csh\$"
 
 set lmf_fish "set -xg _LMFILES_ $c1lmf;"
 set lm_fish "set -xg LOADEDMODULES $c1lm;"
-set ts_fish "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$"
+set modpath_fish "set -xg MODULEPATH $c1modpath;"
+set ts_fish "$lmfmod_fish\n$lmmod_fish\n$modpathmod_fish\n$lmf_fish\n$lm_fish\n$modpath_fish\$"
 
 set lmf_tcl "set env\\\(_LMFILES_\\) $c1lmf;"
 set lm_tcl "set env\\\(LOADEDMODULES\\\) $c1lm;"
-set ts_tcl "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$"
+set modpath_tcl "set env\\\(MODULEPATH\\\) $c1modpath;"
+set ts_tcl "$lmfmod_tcl\n$lmmod_tcl\n$modpathmod_tcl\n$lmf_tcl\n$lm_tcl\n$modpath_tcl\$"
 
 set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$c1lmf\';"
 set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$c1lm\';"
-set ts_perl "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$"
+set modpath_perl "\\\$ENV{\'MODULEPATH\'} = \'$c1modpath\';"
+set ts_perl "$lmfmod_perl\n$lmmod_perl\n$modpathmod_perl\n$lmf_perl\n$lm_perl\n$modpath_perl\n1;\$"
 
 set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$c1lmf\'"
 set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$c1lm\'"
-set ts_python "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$"
+set modpath_python "os.environ\\\[\'MODULEPATH\'\\\] = \'$c1modpath\'"
+set ts_python "import os\n$lmfmod_python\n$lmmod_python\n$modpathmod_python\n$lmf_python\n$lm_python\n$modpath_python\$"
 
 set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$c1lmf\"\\\)"
 set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$c1lm\"\\\)"
-set ts_lisp "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$"
+set modpath_lisp "\\\(setenv \"MODULEPATH\" \"$c1modpath\"\\\)"
+set ts_lisp "$lmfmod_lisp\n$lmmod_lisp\n$modpathmod_lisp\n$lmf_lisp\n$lm_lisp\n$modpath_lisp\$"
 
 
 testouterr_cmd_re "sh" "restore $coll1" "$ts_sh" "$c1errmsg"
