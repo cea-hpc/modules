@@ -38,6 +38,7 @@ set mll "module load"
 set cdcont "$mlu $cdmodpath1\n$mll $cdmod1\n$mll $cdmod2\n$mll $cdmod3n\n$mll $cdmod4\n"
 set c1cont1 "$mlu $c1modpath1\n$mlu $c1modpath2\n$mll $cdmod1\n$mll $cdmod2\n$mll $cdmod3n\n$mll $cdmod4\n$mll $c1mod5\n$mll $c1mod6\n"
 set c1cont2 "$mlu $c2modpath1\n$mlu $c1modpath2\n$mll $cdmod1\n$mll $cdmod2\n$mll $cdmod3n\n$mll $c2mod4\n$mll $c2mod5\n$mll $c2mod6\n"
+set c4cont "$mlu $c4modpath1\n$mlu $c4modpath2\n"
 
 #
 # test saving when HOME/.module is not directory
@@ -156,6 +157,24 @@ testoutfile_cmd "sh" "save $coll1" "" "$hometestdotmod/$coll1" "$c1cont2"
 
 
 #
+# test saving collection with no module loaded (only paths set)
+#
+
+# setup environment state
+if { $verbose > 0 } {
+    send_user "\tRestore _LMFILES_ = ''\n"
+    send_user "\tRestore LOADEDMODULES = ''\n"
+    send_user "\tSetup MODULEPATH = $c4modpath\n"
+}
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+set env(MODULEPATH) "$c4modpath"
+
+# test only sh shell as this test does not produce shell output
+testoutfile_cmd "sh" "save $coll4" "" "$hometestdotmod/$coll4" "$c4cont"
+
+
+#
 # Cleanup
 #
 
@@ -167,13 +186,10 @@ set env(HOME) $ORIG_HOME
 unset ORIG_HOME
 
 # restore environment
+# _LMFILES_ and LOADEDMODULES already restored during last test
 if { $verbose > 0 } {
-    send_user "\tRestore _LMFILES_ = ''\n"
-    send_user "\tRestore LOADEDMODULES = ''\n"
     send_user "\tRestore MODULEPATH = $ORIG_MODULEPATH\n"
 }
-unset env(_LMFILES_)
-unset env(LOADEDMODULES)
 set env(MODULEPATH) "$ORIG_MODULEPATH"
 unset ORIG_MODULEPATH
 
@@ -182,6 +198,7 @@ unset mll
 unset cdcont
 unset c1cont1
 unset c1cont2
+unset c4cont
 
 unset err_sh
 unset err_csh

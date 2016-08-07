@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.607
+set MODULES_CURRENT_VERSION 1.608
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2641,6 +2641,9 @@ proc cmdModuleRestore {{coll {}}} {
    if {[info exists env(HOME)]} {
       set collfile "$env(HOME)/.module/$coll"
       if {[file readable "$collfile"]} {
+         # init lists (maybe coll does not set mod to load)
+         set coll_path_list {}
+         set coll_mod_list {}
          # analyze collection file
          set fid [open $collfile r]
          set fdata [split [read $fid] "\n"]
