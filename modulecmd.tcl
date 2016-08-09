@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.611
+set MODULES_CURRENT_VERSION 1.612
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -616,6 +616,9 @@ proc module {command args} {
       }
       restore {
          eval cmdModuleRestore $args
+      }
+      saverm {
+         eval cmdModuleSaverm $args
       }
       savelist {
          cmdModuleSavelist
@@ -2806,6 +2809,28 @@ proc cmdModuleRestore {{coll {}}} {
    }
 }
 
+proc cmdModuleSaverm {{coll {}}} {
+   # default collection used if no name provided
+   if {$coll eq ""} {
+      set coll "default"
+   }
+   reportDebug "cmdModuleSaverm: $coll"
+
+   # get coresponding filename
+   set collfile [getCollectionFilename $coll]
+
+   if {![file exists $collfile]} {
+      reportErrorAndExit "Collection $coll does not exist"
+   }
+
+   # attempt to delete specified colletion
+   if {[catch {
+      file delete $collfile
+   } errMsg ]} {
+      reportErrorAndExit "Collection $coll cannot be removed.\n$errMsg"
+   }
+}
+
 proc cmdModuleSavelist {} {
    global env DEF_COLUMNS show_oneperline show_modtimes g_debug
 
@@ -3471,6 +3496,7 @@ proc cmdModuleHelp {args} {
          list to collection}
       report {  restore         [collection]      Restore module list\
          from collection}
+      report {  saverm          [collection]      Remove saved collection}
       report {  savelist        [-t|-l]           List all saved\
          collections}
       report {}
@@ -3684,6 +3710,9 @@ if {[catch {
       {^restore} {
          eval cmdModuleRestore $argv
          renderSettings
+      }
+      {^saverm} {
+         eval cmdModuleSaverm $argv
       }
       {^savelist} {
          cmdModuleSavelist

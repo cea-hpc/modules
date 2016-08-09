@@ -52,8 +52,8 @@ _module() {
     cmds="add apropos aliases avail display help\
         initadd initclear initlist initprepend initrm\
         keyword list load path paths purge reload restore rm\
-        save savelist search show source swap switch unload\
-        unuse use whatis"
+        save savelist saverm search show source swap switch\
+        unload unuse use whatis"
 
     opts="-D -h -V --debug --help --version"
     list_opts="-l -t --long --terse"
@@ -63,7 +63,8 @@ _module() {
     add|load)       COMPREPLY=( $(compgen -W "$(_module_not_yet_loaded)" -- "$cur") );;
     avail)          COMPREPLY=( $(compgen -W "$avail_opts $(_module_avail)" -- "$cur") );;
     list|savelist)  COMPREPLY=( $(compgen -W "$list_opts" -- "$cur") );;
-    restore|save)   COMPREPLY=( $(compgen -W "$(_module_savelist)" -- "$cur") );;
+    restore|save|saverm)
+                    COMPREPLY=( $(compgen -W "$(_module_savelist)" -- "$cur") );;
     rm|remove|unload|switch|swap)
                     COMPREPLY=( $(IFS=: compgen -W "${LOADEDMODULES}" -- "$cur") );;
     unuse)          COMPREPLY=( $(IFS=: compgen -W "${MODULEPATH}" -- "$cur") );;
