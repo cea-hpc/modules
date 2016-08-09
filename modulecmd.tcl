@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.608
+set MODULES_CURRENT_VERSION 1.609
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2652,6 +2652,9 @@ proc cmdModuleRestore {{coll {}}} {
             if {[regexp {module use (.*)$} $fline match patharg] == 1} {
                # paths are appended by default
                set stuff_path "append"
+               # manage with "split" multiple paths and path options
+               # specified on single line, for instance:
+               # module use --append path1 path2 path3
                foreach path [split $patharg] {
                   # following path is asked to be appended
                   if {($path eq "--append") || ($path eq "-a")\
@@ -2672,8 +2675,11 @@ proc cmdModuleRestore {{coll {}}} {
                      }
                   }
                }
-            } elseif {[regexp {module load (.*)$} $fline match mod] == 1} {
-               lappend coll_mod_list $mod
+            } elseif {[regexp {module load (.*)$} $fline match modarg] == 1} {
+               # manage multiple modules specified on a
+               # single line with "split", for instance:
+               # module load mod1 mod2 mod3
+               set coll_mod_list [concat $coll_mod_list [split $modarg]]
             }
          }
 
