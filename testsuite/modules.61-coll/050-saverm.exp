@@ -30,6 +30,7 @@ set err_python "raise RuntimeError( 'modulefile.tcl: 1 error(s) detected!')"
 set err_lisp "(error \"modulefile.tcl: 1 error(s) detected!\")"
 
 set cbadnerrmsg "ERROR: Collection $collbadn does not exist"
+set c1fperrmsg "ERROR: Command does not remove collection specified as filepath"
 set rmcderrmsg "couldn't open \"$hometestdotmod/default\": no such file or directory"
 set rmc1errmsg "couldn't open \"$hometestdotmod/$coll1\": no such file or directory"
 
@@ -76,6 +77,24 @@ testoutfile_cmd "sh" "saverm $coll1" "" "$hometestdotmod/$coll1" "$rmc1errmsg"
 
 
 #
+# test removing collection specified as filepath
+# should raise an error, saverm is not made to delete filepath
+#
+
+testouterr_cmd "sh" "saverm $coll1fp" "$err_sh" "$c1fperrmsg"
+testouterr_cmd "bash" "saverm $coll1fp" "$err_sh" "$c1fperrmsg"
+testouterr_cmd "ksh" "saverm $coll1fp" "$err_sh" "$c1fperrmsg"
+testouterr_cmd "zsh" "saverm $coll1fp" "$err_sh" "$c1fperrmsg"
+testouterr_cmd "csh" "saverm $coll1fp" "$err_csh" "$c1fperrmsg"
+testouterr_cmd "tcsh" "saverm $coll1fp" "$err_csh" "$c1fperrmsg"
+testouterr_cmd "fish" "saverm $coll1fp" "$err_fish" "$c1fperrmsg"
+testouterr_cmd "tcl" "saverm $coll1fp" "$err_tcl" "$c1fperrmsg"
+testouterr_cmd "perl" "saverm $coll1fp" "$err_perl" "$c1fperrmsg"
+testouterr_cmd "python" "saverm $coll1fp" "$err_python" "$c1fperrmsg"
+testouterr_cmd "lisp" "saverm $coll1fp" "$err_lisp" "$c1fperrmsg"
+
+
+#
 # Cleanup
 #
 
@@ -87,6 +106,7 @@ set env(HOME) $ORIG_HOME
 unset ORIG_HOME
 
 unset cbadnerrmsg
+unset c1fperrmsg
 unset rmcderrmsg
 unset rmc1errmsg
 

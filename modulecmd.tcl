@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.612
+set MODULES_CURRENT_VERSION 1.613
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2364,10 +2364,15 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
 }
 
 # get filename corresponding to collection name provided as argument.
+# name provided may already be a file name.
 proc getCollectionFilename {coll} {
    global env
 
-   if {[info exists env(HOME)]} {
+   # is collection a filepath
+   if {[string first "/" $coll] > -1} {
+      set collfile "$coll"
+   # elsewhere collection is a name
+   } elseif {[info exists env(HOME)]} {
       set collfile "$env(HOME)/.module/$coll"
    } else {
       reportErrorAndExit "HOME not defined"
@@ -2734,6 +2739,11 @@ proc cmdModuleRestore {{coll {}}} {
    # read collection
    lassign [readCollectionContent $collfile] coll_path_list coll_mod_list
 
+   # collection should at least define a path
+   if {[llength $coll_path_list] == 0} {
+      reportErrorAndExit "$coll is not a valid collection"
+   }
+
    # fetch what is currently loaded
    if {[info exists env(MODULEPATH)]} {
       set curr_path_list [split $env(MODULEPATH) $g_def_separator]
@@ -2815,6 +2825,12 @@ proc cmdModuleSaverm {{coll {}}} {
       set coll "default"
    }
    reportDebug "cmdModuleSaverm: $coll"
+
+   # avoid to remove any kind of file with this command
+   if {[string first "/" $coll] > -1} {
+      reportErrorAndExit "Command does not remove collection specified as\
+         filepath"
+   }
 
    # get coresponding filename
    set collfile [getCollectionFilename $coll]
@@ -3492,10 +3508,10 @@ proc cmdModuleHelp {args} {
          whatis containing str}
       report {}
       report {Collection of modules handling commands:}
-      report {  save            [collection]      Save current module\
+      report {  save            [collection|file] Save current module\
          list to collection}
-      report {  restore         [collection]      Restore module list\
-         from collection}
+      report {  restore         [collection|file] Restore module list\
+         from collection or file}
       report {  saverm          [collection]      Remove saved collection}
       report {  savelist        [-t|-l]           List all saved\
          collections}

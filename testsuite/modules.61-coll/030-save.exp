@@ -22,6 +22,7 @@
 
 
 set baddotmod "$env(HOME)/.module"
+set baddotmodfp "$baddotmod/$collbadn"
 set baddotmoderrmsg "ERROR: $baddotmod exists but is not a directory"
 set emptyenverrmsg "ERROR: Nothing to save in a collection"
 
@@ -62,6 +63,23 @@ testouterr_cmd "tcl" "save" "$err_tcl" "$baddotmoderrmsg"
 testouterr_cmd "perl" "save" "$err_perl" "$baddotmoderrmsg"
 testouterr_cmd "python" "save" "$err_python" "$baddotmoderrmsg"
 testouterr_cmd "lisp" "save" "$err_lisp" "$baddotmoderrmsg"
+
+
+#
+# test saving to an impossible filepath
+#
+
+testouterr_cmd "sh" "save $baddotmodfp" "$err_sh" "$baddotmoderrmsg"
+testouterr_cmd "bash" "save $baddotmodfp" "$err_sh" "$baddotmoderrmsg"
+testouterr_cmd "ksh" "save $baddotmodfp" "$err_sh" "$baddotmoderrmsg"
+testouterr_cmd "zsh" "save $baddotmodfp" "$err_sh" "$baddotmoderrmsg"
+testouterr_cmd "csh" "save $baddotmodfp" "$err_csh" "$baddotmoderrmsg"
+testouterr_cmd "tcsh" "save $baddotmodfp" "$err_csh" "$baddotmoderrmsg"
+testouterr_cmd "fish" "save $baddotmodfp" "$err_fish" "$baddotmoderrmsg"
+testouterr_cmd "tcl" "save $baddotmodfp" "$err_tcl" "$baddotmoderrmsg"
+testouterr_cmd "perl" "save $baddotmodfp" "$err_perl" "$baddotmoderrmsg"
+testouterr_cmd "python" "save $baddotmodfp" "$err_python" "$baddotmoderrmsg"
+testouterr_cmd "lisp" "save $baddotmodfp" "$err_lisp" "$baddotmoderrmsg"
 
 # delete created HOME/.module empty file
 if { $verbose > 0 } {
@@ -157,6 +175,14 @@ testoutfile_cmd "sh" "save $coll1" "" "$hometestdotmod/$coll1" "$c1cont2"
 
 
 #
+# test saving to a given filepath
+#
+
+# test only sh shell as this test does not produce shell output
+testoutfile_cmd "sh" "save $hometestdotmod/$coll2" "" "$hometestdotmod/$coll2" "$c1cont2"
+
+
+#
 # test saving collection with no module loaded (only paths set)
 #
 
@@ -209,4 +235,5 @@ unset err_python
 unset err_lisp
 
 unset baddotmod
+unset baddotmodfp
 unset baddotmodfd

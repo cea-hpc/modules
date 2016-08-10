@@ -21,6 +21,7 @@
 ##############################################################################
 
 set cbadnerrmsg "ERROR: Collection $collbadn does not exist or is not readable"
+set cbadfperrmsg "ERROR: Collection $collbadfp does not exist or is not readable"
 set cderrmsg "load $cdmod4"
 set c1errmsg "load $c1mod5\nload $c1mod6"
 set c2errmsg "unload $c1mod6\nunload $c1mod5\nunload $cdmod4\nload $c2mod4\nload $c2mod5\nload $c2mod6"
@@ -93,6 +94,23 @@ testouterr_cmd "tcl" "restore $collbadn" "$err_tcl" "$cbadnerrmsg"
 testouterr_cmd "perl" "restore $collbadn" "$err_perl" "$cbadnerrmsg"
 testouterr_cmd "python" "restore $collbadn" "$err_python" "$cbadnerrmsg"
 testouterr_cmd "lisp" "restore $collbadn" "$err_lisp" "$cbadnerrmsg"
+
+
+#
+# test restoring nonexistent collection specified as a filepath
+#
+
+testouterr_cmd "sh" "restore $collbadfp" "$err_sh" "$cbadfperrmsg"
+testouterr_cmd "bash" "restore $collbadfp" "$err_sh" "$cbadfperrmsg"
+testouterr_cmd "ksh" "restore $collbadfp" "$err_sh" "$cbadfperrmsg"
+testouterr_cmd "zsh" "restore $collbadfp" "$err_sh" "$cbadfperrmsg"
+testouterr_cmd "csh" "restore $collbadfp" "$err_csh" "$cbadfperrmsg"
+testouterr_cmd "tcsh" "restore $collbadfp" "$err_csh" "$cbadfperrmsg"
+testouterr_cmd "fish" "restore $collbadfp" "$err_fish" "$cbadfperrmsg"
+testouterr_cmd "tcl" "restore $collbadfp" "$err_tcl" "$cbadfperrmsg"
+testouterr_cmd "perl" "restore $collbadfp" "$err_perl" "$cbadfperrmsg"
+testouterr_cmd "python" "restore $collbadfp" "$err_python" "$cbadfperrmsg"
+testouterr_cmd "lisp" "restore $collbadfp" "$err_lisp" "$cbadfperrmsg"
 
 
 #
@@ -337,6 +355,52 @@ testouterr_cmd_re "lisp" "restore $coll3" "$ts_lisp" "$c3errmsg"
 
 
 #
+# test restoring collection specified as filepath
+#
+
+set lmf_sh "_LMFILES_=$c1lmf; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$c1lm; export LOADEDMODULES;"
+set ts_sh "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+
+set lmf_csh "setenv _LMFILES_ $c1lmf;"
+set lm_csh "setenv LOADEDMODULES $c1lm;"
+set ts_csh "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
+
+set lmf_fish "set -xg _LMFILES_ $c1lmf;"
+set lm_fish "set -xg LOADEDMODULES $c1lm;"
+set ts_fish "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$"
+
+set lmf_tcl "set env\\\(_LMFILES_\\) $c1lmf;"
+set lm_tcl "set env\\\(LOADEDMODULES\\\) $c1lm;"
+set ts_tcl "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$"
+
+set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$c1lmf\';"
+set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$c1lm\';"
+set ts_perl "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$"
+
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$c1lmf\'"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$c1lm\'"
+set ts_python "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$"
+
+set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$c1lmf\"\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$c1lm\"\\\)"
+set ts_lisp "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$"
+
+
+testouterr_cmd_re "sh" "restore $coll1fp" "$ts_sh" "$c1errmsg"
+testouterr_cmd_re "bash" "restore $coll1fp" "$ts_sh" "$c1errmsg"
+testouterr_cmd_re "ksh" "restore $coll1fp" "$ts_sh" "$c1errmsg"
+testouterr_cmd_re "zsh" "restore $coll1fp" "$ts_sh" "$c1errmsg"
+testouterr_cmd_re "csh" "restore $coll1fp" "$ts_csh" "$c1errmsg"
+testouterr_cmd_re "tcsh" "restore $coll1fp" "$ts_csh" "$c1errmsg"
+testouterr_cmd_re "fish" "restore $coll1fp" "$ts_fish" "$c1errmsg"
+testouterr_cmd_re "tcl" "restore $coll1fp" "$ts_tcl" "$c1errmsg"
+testouterr_cmd_re "perl" "restore $coll1fp" "$ts_perl" "$c1errmsg"
+testouterr_cmd_re "python" "restore $coll1fp" "$ts_python" "$c1errmsg"
+testouterr_cmd_re "lisp" "restore $coll1fp" "$ts_lisp" "$c1errmsg"
+
+
+#
 # test restoring collection not mentionning module to load
 #
 
@@ -493,6 +557,7 @@ unset lmmod_lisp
 unset lmfmod_lisp
 
 unset cbadnerrmsg
+unset cbadfperrmsg
 unset cderrmsg
 unset c1errmsg
 unset c2errmsg
