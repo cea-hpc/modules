@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.610
+set MODULES_CURRENT_VERSION 1.611
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2360,6 +2360,93 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
    return $curr_mod_list
 }
 
+# get filename corresponding to collection name provided as argument.
+proc getCollectionFilename {coll} {
+   global env
+
+   if {[info exists env(HOME)]} {
+      set collfile "$env(HOME)/.module/$coll"
+   } else {
+      reportErrorAndExit "HOME not defined"
+   }
+
+   return $collfile
+}
+
+# generate collection content based on provided path and module lists
+proc formatCollectionContent {path_list mod_list} {
+   set content ""
+
+   # start collection content with modulepaths
+   foreach path $path_list {
+      # 'module use' prepends paths by default so we clarify
+      # path order here with --append flag
+      append content "module use --append $path" "\n"
+   }
+
+   # then add modules
+   foreach mod $mod_list {
+      append content "module load $mod" "\n"
+   }
+
+   return $content
+}
+
+# read given collection file and return the path and module lists it defines
+proc readCollectionContent {collfile} {
+   # init lists (maybe coll does not set mod to load)
+   set path_list {}
+   set mod_list {}
+
+   # read file
+   if {[catch {
+      set fid [open $collfile r]
+      set fdata [split [read $fid] "\n"]
+      close $fid
+   } errMsg ]} {
+      reportErrorAndExit "Collection $collfile cannot be read.\n$errMsg"
+   }
+
+   # analyze collection content
+   foreach fline $fdata {
+      if {[regexp {module use (.*)$} $fline match patharg] == 1} {
+         # paths are appended by default
+         set stuff_path "append"
+         # manage with "split" multiple paths and path options
+         # specified on single line, for instance:
+         # module use --append path1 path2 path3
+         foreach path [split $patharg] {
+            # following path is asked to be appended
+            if {($path eq "--append") || ($path eq "-a")\
+               || ($path eq "-append")} {
+               set stuff_path "append"
+            # following path is asked to be prepended
+            # collection generated with 'save' does not prepend
+            } elseif {($path eq "--prepend") || ($path eq "-p")\
+               || ($path eq "-prepend")} {
+               set stuff_path "prepend"
+            } else {
+               # add path to end of list
+               if {$stuff_path eq "append"} {
+                  lappend path_list $path
+               # insert path to first position
+               } else {
+                  set path_list [linsert $path_list 0 $path]
+               }
+            }
+         }
+      } elseif {[regexp {module load (.*)$} $fline match modarg] == 1} {
+         # manage multiple modules specified on a
+         # single line with "split", for instance:
+         # module load mod1 mod2 mod3
+         set mod_list [concat $mod_list [split $modarg]]
+      }
+   }
+
+   return [list $path_list $mod_list]
+}
+
+
 ########################################################################
 # command line commands
 #
@@ -2589,47 +2676,38 @@ proc cmdModuleSave {{coll {}}} {
    }
    reportDebug "cmdModuleSave: $coll"
 
-   # init collection content
-   set save ""
-
-   # build collection content with used modulepaths
+   # format collection content
    if {[info exists env(MODULEPATH)]} {
-      foreach path [split $env(MODULEPATH) $g_def_separator] {
-         # 'module use' prepends paths by default so we clarify
-         # path order here with --append flag
-         append save "module use --append $path" "\n"
-      }
-   }
-   # then add loaded modules
-   foreach mod [getSimplifiedLoadedModuleList] {
-      append save "module load $mod" "\n"
-   }
-
-   if { [string length $save] > 0} {
-      if {[info exists env(HOME)]} {
-         set colldir "$env(HOME)/.module"
-         if {![file exists $colldir]} {
-            reportDebug "cmdModuleSave: Creating $colldir"
-            file mkdir $env(HOME)/.module
-         } elseif {![file isdirectory $colldir]} {
-            reportErrorAndExit "$colldir exists but is not a directory"
-         }
-
-         set collfile "$colldir/$coll"
-         reportDebug "cmdModuleSave: Saving $collfile"
-
-         if {[catch {
-            set fid [open $collfile w]
-            puts $fid $save
-            close $fid
-         } errMsg ]} {
-            reportErrorAndExit "Collection $coll cannot be saved.\n$errMsg"
-         }
-      } else {
-         reportErrorAndExit "HOME not defined"
-      }
+      set path_list [split $env(MODULEPATH) $g_def_separator]
    } else {
+      set path_list {}
+   }
+   set save [formatCollectionContent $path_list \
+      [getSimplifiedLoadedModuleList]]
+
+   if { [string length $save] == 0} {
       reportErrorAndExit "Nothing to save in a collection"
+   }
+
+   # get coresponding filename and its directory
+   set collfile [getCollectionFilename $coll]
+   set colldir [file dirname $collfile]
+
+   if {![file exists $colldir]} {
+      reportDebug "cmdModuleSave: Creating $colldir"
+      file mkdir $colldir
+   } elseif {![file isdirectory $colldir]} {
+      reportErrorAndExit "$colldir exists but is not a directory"
+   }
+
+   reportDebug "cmdModuleSave: Saving $collfile"
+
+   if {[catch {
+      set fid [open $collfile w]
+      puts $fid $save
+      close $fid
+   } errMsg ]} {
+      reportErrorAndExit "Collection $coll cannot be saved.\n$errMsg"
    }
 }
 
@@ -2643,129 +2721,88 @@ proc cmdModuleRestore {{coll {}}} {
    }
    reportDebug "cmdModuleRestore: $coll"
 
-   if {[info exists env(HOME)]} {
-      set collfile "$env(HOME)/.module/$coll"
-      if {[file readable "$collfile"]} {
-         # init lists (maybe coll does not set mod to load)
-         set coll_path_list {}
-         set coll_mod_list {}
-         # analyze collection file
-         set fid [open $collfile r]
-         set fdata [split [read $fid] "\n"]
-         close $fid
-         foreach fline $fdata {
-            if {[regexp {module use (.*)$} $fline match patharg] == 1} {
-               # paths are appended by default
-               set stuff_path "append"
-               # manage with "split" multiple paths and path options
-               # specified on single line, for instance:
-               # module use --append path1 path2 path3
-               foreach path [split $patharg] {
-                  # following path is asked to be appended
-                  if {($path eq "--append") || ($path eq "-a")\
-                     || ($path eq "-append")} {
-                     set stuff_path "append"
-                  # following path is asked to be prepended
-                  # collection generated with 'save' does not prepend
-                  } elseif {($path eq "--prepend") || ($path eq "-p")\
-                     || ($path eq "-prepend")} {
-                     set stuff_path "prepend"
-                  } else {
-                     # add path to end of list
-                     if {$stuff_path eq "append"} {
-                        lappend coll_path_list $path
-                     # insert path to first position
-                     } else {
-                        set coll_path_list [linsert $coll_path_list 0 $path]
-                     }
-                  }
-               }
-            } elseif {[regexp {module load (.*)$} $fline match modarg] == 1} {
-               # manage multiple modules specified on a
-               # single line with "split", for instance:
-               # module load mod1 mod2 mod3
-               set coll_mod_list [concat $coll_mod_list [split $modarg]]
-            }
-         }
+   # get coresponding filename
+   set collfile [getCollectionFilename $coll]
 
-         # fetch what is currently loaded
-         if {[info exists env(MODULEPATH)]} {
-            set curr_path_list [split $env(MODULEPATH) $g_def_separator]
-         } else {
-            set curr_path_list {}
-         }
-         # get current loaded module list in simplified and raw versions
-         # these lists may be used later on, see below
-         if {[info exists env(LOADEDMODULES)]} {
-            set curr_mod_list_raw [split $env(LOADEDMODULES) $g_def_separator]
-            set curr_mod_list [getSimplifiedLoadedModuleList]
-         } else {
-            set curr_mod_list_raw {}
-            set curr_mod_list {}
-         }
+   if {![file readable $collfile]} {
+      reportErrorAndExit "Collection $coll does not exist or is not readable"
+   }
 
-         # determine what module to unload to restore collection
-         # from current situation with preservation of the load order
-         lassign [getMovementBetweenList $curr_mod_list $coll_mod_list] \
-            mod_to_unload mod_to_load
+   # read collection
+   lassign [readCollectionContent $collfile] coll_path_list coll_mod_list
 
-         # proceed as well for modulepath
-         lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
-            path_to_unuse path_to_use
-
-         # unload modules
-         if {[llength $mod_to_unload] > 0} {
-            eval cmdModuleUnload [lreverse $mod_to_unload]
-         }
-         # unuse paths
-         if {[llength $path_to_unuse] > 0} {
-            eval cmdModuleUnuse [lreverse $path_to_unuse]
-         }
-
-         # since unloading a module may unload other modules or
-         # paths, what to load/use has to be determined after
-         # the undo phase, so current situation is fetched again
-         if {[info exists env(MODULEPATH)]} {
-            set curr_path_list [split $env(MODULEPATH) $g_def_separator]
-         } else {
-            set curr_path_list {}
-         }
-
-         # here we may be in a situation were no more path is left
-         # in MODULEPATH, so we cannot easily compute the simplified loaded
-         # module list. so we provide two helper lists: simplified and raw
-         # versions of the loaded module list computed before starting to
-         # unload modules. these helper lists may help to learn the
-         # simplified counterpart of a loaded module if it was already loaded
-         # before starting to unload modules
-         set curr_mod_list [getSimplifiedLoadedModuleList\
-            $curr_mod_list_raw $curr_mod_list]
-
-         # determine what module to load to restore collection
-         # from current situation with preservation of the load order
-         lassign [getMovementBetweenList $curr_mod_list $coll_mod_list] \
-            mod_to_unload mod_to_load
-
-         # proceed as well for modulepath
-         lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
-            path_to_unuse path_to_use
-
-         # use paths
-         if {[llength $path_to_use] > 0} {
-            # always append path here to guaranty the order
-            # computed above in the movement lists
-            eval cmdModuleUse --append $path_to_use
-         }
-
-         # load modules
-         if {[llength $mod_to_load] > 0} {
-            eval cmdModuleLoad $mod_to_load
-         }
-      } else {
-         reportErrorAndExit "Collection $coll does not exist or is not readable"
-      }
+   # fetch what is currently loaded
+   if {[info exists env(MODULEPATH)]} {
+      set curr_path_list [split $env(MODULEPATH) $g_def_separator]
    } else {
-      reportErrorAndExit "HOME not defined"
+      set curr_path_list {}
+   }
+   # get current loaded module list in simplified and raw versions
+   # these lists may be used later on, see below
+   if {[info exists env(LOADEDMODULES)]} {
+      set curr_mod_list_raw [split $env(LOADEDMODULES) $g_def_separator]
+      set curr_mod_list [getSimplifiedLoadedModuleList]
+   } else {
+      set curr_mod_list_raw {}
+      set curr_mod_list {}
+   }
+
+   # determine what module to unload to restore collection
+   # from current situation with preservation of the load order
+   lassign [getMovementBetweenList $curr_mod_list $coll_mod_list] \
+      mod_to_unload mod_to_load
+
+   # proceed as well for modulepath
+   lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
+      path_to_unuse path_to_use
+
+   # unload modules
+   if {[llength $mod_to_unload] > 0} {
+      eval cmdModuleUnload [lreverse $mod_to_unload]
+   }
+   # unuse paths
+   if {[llength $path_to_unuse] > 0} {
+      eval cmdModuleUnuse [lreverse $path_to_unuse]
+   }
+
+   # since unloading a module may unload other modules or
+   # paths, what to load/use has to be determined after
+   # the undo phase, so current situation is fetched again
+   if {[info exists env(MODULEPATH)]} {
+      set curr_path_list [split $env(MODULEPATH) $g_def_separator]
+   } else {
+      set curr_path_list {}
+   }
+
+   # here we may be in a situation were no more path is left
+   # in MODULEPATH, so we cannot easily compute the simplified loaded
+   # module list. so we provide two helper lists: simplified and raw
+   # versions of the loaded module list computed before starting to
+   # unload modules. these helper lists may help to learn the
+   # simplified counterpart of a loaded module if it was already loaded
+   # before starting to unload modules
+   set curr_mod_list [getSimplifiedLoadedModuleList\
+      $curr_mod_list_raw $curr_mod_list]
+
+   # determine what module to load to restore collection
+   # from current situation with preservation of the load order
+   lassign [getMovementBetweenList $curr_mod_list $coll_mod_list] \
+      mod_to_unload mod_to_load
+
+   # proceed as well for modulepath
+   lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
+      path_to_unuse path_to_use
+
+   # use paths
+   if {[llength $path_to_use] > 0} {
+      # always append path here to guaranty the order
+      # computed above in the movement lists
+      eval cmdModuleUse --append $path_to_use
+   }
+
+   # load modules
+   if {[llength $mod_to_load] > 0} {
+      eval cmdModuleLoad $mod_to_load
    }
 }
 
