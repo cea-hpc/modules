@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.609
+set MODULES_CURRENT_VERSION 1.610
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1974,13 +1974,21 @@ proc stringDictionaryCompare {str1 str2} {
 }
 
 # provide a lreverse proc for Tcl8.4 and earlier
-if {[info command lreverse] eq ""} {
+if {[info commands lreverse] eq ""} {
     proc lreverse l {
         set r {}
         set i [llength $l]
         while {[incr i -1]} {lappend r [lindex $l $i]}
         lappend r [lindex $l 0]
     }
+}
+
+# provide a lassign proc for Tcl8.4 and earlier
+if {[info commands lassign] eq ""} {
+   proc lassign {values args} {
+      uplevel 1 [list foreach $args [linsert $values end {}] break]
+      lrange $values [llength $args] end
+   }
 }
 
 proc replaceFromList {list1 item {item2 {}}} {
@@ -2458,10 +2466,9 @@ proc cmdModuleList {{separator {}}} {
 proc cmdModuleDisplay {mod} {
    global env tcl_version ModulesCurrentModulefile
 
-   set modfile [getPathToModule $mod]
+   lassign [getPathToModule $mod] modfile modname
    if {$modfile ne ""} {
-      pushModuleName [lindex $modfile 1]
-      set modfile [lindex $modfile 0]
+      pushModuleName $modname
       report\
          "-------------------------------------------------------------------"
       report "$modfile:\n"
@@ -2502,9 +2509,8 @@ proc cmdModulePath {mod} {
    global env g_pathList ModulesCurrentModulefile
 
    reportDebug "cmdModulePath: ($mod)"
-   set modfile [getPathToModule $mod]
+   lassign [getPathToModule $mod] modfile modname
    if {$modfile ne ""} {
-      set modfile [lindex $modfile 0]
       set ModulesCurrentModulefile $modfile
 
       set g_pathList $modfile
@@ -2533,12 +2539,11 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          set modlist [listModules $dir $mod 0 0 0]
          foreach mod2 $modlist {
             set g_whatis ""
-            set modfile [getPathToModule $mod2]
+            lassign [getPathToModule $mod2] modfile modname
 
             if {$modfile ne ""} {
                pushMode "whatis"
-               pushModuleName [lindex $modfile 1]
-               set modfile [lindex $modfile 0]
+               pushModuleName $modname
                execute-modulefile $modfile
                popMode
                popModuleName
@@ -2701,13 +2706,12 @@ proc cmdModuleRestore {{coll {}}} {
 
          # determine what module to unload to restore collection
          # from current situation with preservation of the load order
-         set mod_move [getMovementBetweenList $curr_mod_list $coll_mod_list]
-         set mod_to_unload [lindex $mod_move 0]
+         lassign [getMovementBetweenList $curr_mod_list $coll_mod_list] \
+            mod_to_unload mod_to_load
 
          # proceed as well for modulepath
-         set path_move [getMovementBetweenList $curr_path_list \
-            $coll_path_list]
-         set path_to_unuse [lindex $path_move 0]
+         lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
+            path_to_unuse path_to_use
 
          # unload modules
          if {[llength $mod_to_unload] > 0} {
@@ -2739,13 +2743,12 @@ proc cmdModuleRestore {{coll {}}} {
 
          # determine what module to load to restore collection
          # from current situation with preservation of the load order
-         set mod_move [getMovementBetweenList $curr_mod_list $coll_mod_list]
-         set mod_to_load [lindex $mod_move 1]
+         lassign [getMovementBetweenList $curr_mod_list $coll_mod_list] \
+            mod_to_unload mod_to_load
 
          # proceed as well for modulepath
-         set path_move [getMovementBetweenList $curr_path_list \
-            $coll_path_list]
-         set path_to_use [lindex $path_move 1]
+         lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
+            path_to_unuse path_to_use
 
          # use paths
          if {[llength $path_to_use] > 0} {
@@ -2867,10 +2870,9 @@ proc cmdModuleLoad {args} {
    reportDebug "cmdModuleLoad: loading $args"
 
    foreach mod $args {
-      set modfile [getPathToModule $mod]
+      lassign [getPathToModule $mod] modfile modname
       if {$modfile ne ""} {
-         set currentModule [lindex $modfile 1]
-         set modfile [lindex $modfile 0]
+         set currentModule $modname
          set ModulesCurrentModulefile $modfile
 
          if {$g_force || ! [info exists g_loadedModules($currentModule)]} {
@@ -2912,10 +2914,9 @@ proc cmdModuleUnload {args} {
 
    foreach mod $args {
       if {[catch {
-         set modfile [getPathToModule $mod]
+         lassign [getPathToModule $mod] modfile modname
          if {$modfile ne ""} {
-            set currentModule [lindex $modfile 1]
-            set modfile [lindex $modfile 0]
+            set currentModule $modname
             set ModulesCurrentModulefile $modfile
 
             if {[info exists g_loadedModules($currentModule)]} {
@@ -3386,11 +3387,10 @@ proc cmdModuleHelp {args} {
    set done 0
    foreach arg $args {
       if {$arg ne ""} {
-         set modfile [getPathToModule $arg]
+         lassign [getPathToModule $arg] modfile modname
 
          if {$modfile ne ""} {
-            pushModuleName [lindex $modfile 1]
-            set modfile [lindex $modfile 0]
+            pushModuleName $modname
             report\
                "-------------------------------------------------------------------"
             report "Module Specific Help for $modfile:\n"
