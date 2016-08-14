@@ -1,0 +1,144 @@
+##############################################################################
+#   Modules Release Tcl
+#   Providing a flexible user environment
+#
+#   File:		modules.61-coll/%M%
+#   Revision:		%I%
+#   First Edition:	2016/08/16
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Test the module 'saveshow' command
+#		}C%
+#
+##############################################################################
+
+set cbadnerrmsg "ERROR: Collection $collbadn does not exist or is not readable"
+set cbadfperrmsg "ERROR: Collection $collbadfp does not exist or is not readable"
+set badcontfp "$homewithcoll/.Xresources"
+set badcontfperrmsg "ERROR: $badcontfp is not a valid collection"
+
+set err_sh "/bin/false;"
+set err_csh "$err_sh"
+set err_fish "$err_sh"
+set err_tcl "exec /bin/false;"
+set err_perl "die \"modulefile.tcl: 1 error(s) detected!\\n\""
+set err_python "raise RuntimeError( 'modulefile.tcl: 1 error(s) detected!')"
+set err_lisp "(error \"modulefile.tcl: 1 error(s) detected!\")"
+
+
+# set HOME to location containing collections
+set ORIG_HOME $env(HOME)
+if { $verbose > 0 } {
+    send_user "\tSetup HOME = $homewithcoll\n"
+}
+set env(HOME) "$homewithcoll"
+
+
+#
+# test showing nonexistent collection
+#
+
+testouterr_cmd "sh" "saveshow $collbadn" "$err_sh" "$cbadnerrmsg"
+testouterr_cmd "bash" "saveshow $collbadn" "$err_sh" "$cbadnerrmsg"
+testouterr_cmd "ksh" "saveshow $collbadn" "$err_sh" "$cbadnerrmsg"
+testouterr_cmd "zsh" "saveshow $collbadn" "$err_sh" "$cbadnerrmsg"
+testouterr_cmd "csh" "saveshow $collbadn" "$err_csh" "$cbadnerrmsg"
+testouterr_cmd "tcsh" "saveshow $collbadn" "$err_csh" "$cbadnerrmsg"
+testouterr_cmd "fish" "saveshow $collbadn" "$err_fish" "$cbadnerrmsg"
+testouterr_cmd "tcl" "saveshow $collbadn" "$err_tcl" "$cbadnerrmsg"
+testouterr_cmd "perl" "saveshow $collbadn" "$err_perl" "$cbadnerrmsg"
+testouterr_cmd "python" "saveshow $collbadn" "$err_python" "$cbadnerrmsg"
+testouterr_cmd "lisp" "saveshow $collbadn" "$err_lisp" "$cbadnerrmsg"
+
+
+#
+# test showing nonexistent collection specified as a filepath
+#
+
+testouterr_cmd "sh" "saveshow $collbadfp" "$err_sh" "$cbadfperrmsg"
+testouterr_cmd "bash" "saveshow $collbadfp" "$err_sh" "$cbadfperrmsg"
+testouterr_cmd "ksh" "saveshow $collbadfp" "$err_sh" "$cbadfperrmsg"
+testouterr_cmd "zsh" "saveshow $collbadfp" "$err_sh" "$cbadfperrmsg"
+testouterr_cmd "csh" "saveshow $collbadfp" "$err_csh" "$cbadfperrmsg"
+testouterr_cmd "tcsh" "saveshow $collbadfp" "$err_csh" "$cbadfperrmsg"
+testouterr_cmd "fish" "saveshow $collbadfp" "$err_fish" "$cbadfperrmsg"
+testouterr_cmd "tcl" "saveshow $collbadfp" "$err_tcl" "$cbadfperrmsg"
+testouterr_cmd "perl" "saveshow $collbadfp" "$err_perl" "$cbadfperrmsg"
+testouterr_cmd "python" "saveshow $collbadfp" "$err_python" "$cbadfperrmsg"
+testouterr_cmd "lisp" "saveshow $collbadfp" "$err_lisp" "$cbadfperrmsg"
+
+
+#
+# test showing existent file which is not a collection
+#
+
+testouterr_cmd "sh" "saveshow $badcontfp" "$err_sh" "$badcontfperrmsg"
+testouterr_cmd "bash" "saveshow $badcontfp" "$err_sh" "$badcontfperrmsg"
+testouterr_cmd "ksh" "saveshow $badcontfp" "$err_sh" "$badcontfperrmsg"
+testouterr_cmd "zsh" "saveshow $badcontfp" "$err_sh" "$badcontfperrmsg"
+testouterr_cmd "csh" "saveshow $badcontfp" "$err_csh" "$badcontfperrmsg"
+testouterr_cmd "tcsh" "saveshow $badcontfp" "$err_csh" "$badcontfperrmsg"
+testouterr_cmd "fish" "saveshow $badcontfp" "$err_fish" "$badcontfperrmsg"
+testouterr_cmd "tcl" "saveshow $badcontfp" "$err_tcl" "$badcontfperrmsg"
+testouterr_cmd "perl" "saveshow $badcontfp" "$err_perl" "$badcontfperrmsg"
+testouterr_cmd "python" "saveshow $badcontfp" "$err_python" "$badcontfperrmsg"
+testouterr_cmd "lisp" "saveshow $badcontfp" "$err_lisp" "$badcontfperrmsg"
+
+
+#
+# test showing default collection
+#
+
+# test only sh shell as this test does not produce shell output
+testouterr_cmd_re "sh" "saveshow" "" "\[-\]+\n$homewithcolldotmod/$colld:\n\n$cdcont\n\[-\]+$"
+
+
+#
+# test showing named collection
+# using old fashioned way to define paths (no --append property)
+#
+
+# test only sh shell as this test does not produce shell output
+testouterr_cmd_re "sh" "saveshow $coll1" "" "\[-\]+\n$homewithcolldotmod/$coll1:\n\n$c1cont1\n\[-\]+$"
+
+
+#
+# test showing collection not mentionning module to load
+#
+
+# test only sh shell as this test does not produce shell output
+testouterr_cmd_re "sh" "saveshow $coll4" "" "\[-\]+\n$homewithcolldotmod/$coll4:\n\n$c4cont\n\[-\]+$"
+
+
+#
+# Cleanup
+#
+
+# restore default testsuite home
+if { $verbose > 0 } {
+    send_user "\tRestore HOME = $ORIG_HOME\n"
+}
+set env(HOME) $ORIG_HOME
+unset ORIG_HOME
+
+unset err_sh
+unset err_csh
+unset err_fish
+unset err_tcl
+unset err_perl
+unset err_python
+unset err_lisp
+
+unset cbadnerrmsg
+unset cbadfperrmsg
+unset badcontfp
+unset badcontfperrmsg
+

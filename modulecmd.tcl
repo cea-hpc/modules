@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.613
+set MODULES_CURRENT_VERSION 1.614
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -619,6 +619,9 @@ proc module {command args} {
       }
       saverm {
          eval cmdModuleSaverm $args
+      }
+      saveshow {
+         eval cmdModuleSaveshow $args
       }
       savelist {
          cmdModuleSavelist
@@ -2847,6 +2850,36 @@ proc cmdModuleSaverm {{coll {}}} {
    }
 }
 
+proc cmdModuleSaveshow {{coll {}}} {
+   # default collection used if no name provided
+   if {$coll eq ""} {
+      set coll "default"
+   }
+   reportDebug "cmdModuleSaveshow: $coll"
+
+   # get coresponding filename
+   set collfile [getCollectionFilename $coll]
+
+   if {![file readable $collfile]} {
+      reportErrorAndExit "Collection $coll does not exist or is not readable"
+   }
+
+   # read collection
+   lassign [readCollectionContent $collfile] coll_path_list coll_mod_list
+
+   # collection should at least define a path
+   if {[llength $coll_path_list] == 0} {
+      reportErrorAndExit "$coll is not a valid collection"
+   }
+
+   report\
+      "-------------------------------------------------------------------"
+   report "$collfile:\n"
+   report [formatCollectionContent $coll_path_list $coll_mod_list]
+   report\
+      "-------------------------------------------------------------------"
+}
+
 proc cmdModuleSavelist {} {
    global env DEF_COLUMNS show_oneperline show_modtimes g_debug
 
@@ -3513,6 +3546,8 @@ proc cmdModuleHelp {args} {
       report {  restore         [collection|file] Restore module list\
          from collection or file}
       report {  saverm          [collection]      Remove saved collection}
+      report {  saveshow        [collection|file] Display information\
+         about collection}
       report {  savelist        [-t|-l]           List all saved\
          collections}
       report {}
@@ -3726,6 +3761,9 @@ if {[catch {
       {^restore} {
          eval cmdModuleRestore $argv
          renderSettings
+      }
+      {^saveshow} {
+         eval cmdModuleSaveshow $argv
       }
       {^saverm} {
          eval cmdModuleSaverm $argv
