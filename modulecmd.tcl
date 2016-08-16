@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.614
+set MODULES_CURRENT_VERSION 1.615
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2366,17 +2366,51 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
    return $curr_mod_list
 }
 
-# get filename corresponding to collection name provided as argument.
-# name provided may already be a file name.
-proc getCollectionFilename {coll} {
+# get collection target currently set if any.
+# a target is a domain on which a collection is only valid.
+# when a target is set, only the collections made for that target
+# will be available to list and restore, and saving will register
+# the target footprint
+proc getCollectionTarget {} {
    global env
+
+   if {[info exists env(MODULES_COLLECTION_TARGET)]} {
+      return $env(MODULES_COLLECTION_TARGET)
+   } else {
+      return ""
+   }
+}
+
+# get filename corresponding to collection name provided as argument.
+# name provided may already be a file name. a variable name may also be
+# provided to get back collection description (with target info if any)
+proc getCollectionFilename {coll {descvar}} {
+   global env
+
+   # initialize description with collection name
+   # if description variable is set
+   if {[info exists descvar]} {
+      uplevel 1 set $descvar $coll
+   }
 
    # is collection a filepath
    if {[string first "/" $coll] > -1} {
+      # collection target has no influence when
+      # collection is specified as a filepath
       set collfile "$coll"
    # elsewhere collection is a name
    } elseif {[info exists env(HOME)]} {
       set collfile "$env(HOME)/.module/$coll"
+      # if a target is set, append the suffix corresponding
+      # to this target to the collection file name
+      set colltarget [getCollectionTarget]
+      if {$colltarget ne ""} {
+         append collfile ".$colltarget"
+         # add knowledge of collection target on description
+         if {[info exists descvar]} {
+            uplevel 1 append $descvar \" (for target \\"$colltarget\\")\"
+         }
+      }
    } else {
       reportErrorAndExit "HOME not defined"
    }
@@ -2701,7 +2735,7 @@ proc cmdModuleSave {{coll {}}} {
    }
 
    # get coresponding filename and its directory
-   set collfile [getCollectionFilename $coll]
+   set collfile [getCollectionFilename $coll colldesc]
    set colldir [file dirname $collfile]
 
    if {![file exists $colldir]} {
@@ -2718,7 +2752,7 @@ proc cmdModuleSave {{coll {}}} {
       puts $fid $save
       close $fid
    } errMsg ]} {
-      reportErrorAndExit "Collection $coll cannot be saved.\n$errMsg"
+      reportErrorAndExit "Collection $colldesc cannot be saved.\n$errMsg"
    }
 }
 
@@ -2733,10 +2767,11 @@ proc cmdModuleRestore {{coll {}}} {
    reportDebug "cmdModuleRestore: $coll"
 
    # get coresponding filename
-   set collfile [getCollectionFilename $coll]
+   set collfile [getCollectionFilename $coll colldesc]
 
    if {![file readable $collfile]} {
-      reportErrorAndExit "Collection $coll does not exist or is not readable"
+      reportErrorAndExit "Collection $colldesc does not exist or is not\
+         readable"
    }
 
    # read collection
@@ -2744,7 +2779,7 @@ proc cmdModuleRestore {{coll {}}} {
 
    # collection should at least define a path
    if {[llength $coll_path_list] == 0} {
-      reportErrorAndExit "$coll is not a valid collection"
+      reportErrorAndExit "$colldesc is not a valid collection"
    }
 
    # fetch what is currently loaded
@@ -2836,17 +2871,17 @@ proc cmdModuleSaverm {{coll {}}} {
    }
 
    # get coresponding filename
-   set collfile [getCollectionFilename $coll]
+   set collfile [getCollectionFilename $coll colldesc]
 
    if {![file exists $collfile]} {
-      reportErrorAndExit "Collection $coll does not exist"
+      reportErrorAndExit "Collection $colldesc does not exist"
    }
 
    # attempt to delete specified colletion
    if {[catch {
       file delete $collfile
    } errMsg ]} {
-      reportErrorAndExit "Collection $coll cannot be removed.\n$errMsg"
+      reportErrorAndExit "Collection $colldesc cannot be removed.\n$errMsg"
    }
 }
 
@@ -2858,10 +2893,11 @@ proc cmdModuleSaveshow {{coll {}}} {
    reportDebug "cmdModuleSaveshow: $coll"
 
    # get coresponding filename
-   set collfile [getCollectionFilename $coll]
+   set collfile [getCollectionFilename $coll colldesc]
 
    if {![file readable $collfile]} {
-      reportErrorAndExit "Collection $coll does not exist or is not readable"
+      reportErrorAndExit "Collection $colldesc does not exist or is not\
+         readable"
    }
 
    # read collection
@@ -2869,7 +2905,7 @@ proc cmdModuleSaveshow {{coll {}}} {
 
    # collection should at least define a path
    if {[llength $coll_path_list] == 0} {
-      reportErrorAndExit "$coll is not a valid collection"
+      reportErrorAndExit "$colldesc is not a valid collection"
    }
 
    report\
@@ -2883,22 +2919,37 @@ proc cmdModuleSaveshow {{coll {}}} {
 proc cmdModuleSavelist {} {
    global env DEF_COLUMNS show_oneperline show_modtimes g_debug
 
-   # list saved collections
-   set coll_list [glob -nocomplain -- "$env(HOME)/.module/*"]
+   # if a target is set, only list collection matching this
+   # target (means having target as suffix in their name)
+   set colltarget [getCollectionTarget]
+   if {$colltarget ne ""} {
+      set suffix ".$colltarget"
+      set targetdesc " (for target \"$colltarget\")"
+   } else {
+      set suffix ""
+      set targetdesc ""
+   }
+
+   reportDebug "cmdModuleSavelist: list collections for target\
+      \"$colltarget\""
+
+   # list saved collections (matching target suffix)
+   set coll_list [glob -nocomplain -- "$env(HOME)/.module/*$suffix"]
 
    if { [llength $coll_list] == 0} {
-      report "No named collection."
+      report "No named collection$targetdesc."
    } else {
       set list {}
       if {$show_modtimes} {
          report "- Collection ---------------------------------------.- Last\
             mod. ------"
       }
-      report "Named collection list:"
+      report "Named collection list$targetdesc:"
       set max 0
 
       foreach coll [lsort -dictionary $coll_list] {
-         set mod [file tail $coll]
+         # remove target suffix from names to display
+         regsub "$suffix$" [file tail $coll] {} mod
          set len [string length $mod]
 
          if {$len > 0} {

@@ -30,9 +30,11 @@ set err_python "raise RuntimeError( 'modulefile.tcl: 1 error(s) detected!')"
 set err_lisp "(error \"modulefile.tcl: 1 error(s) detected!\")"
 
 set cbadnerrmsg "ERROR: Collection $collbadn does not exist"
+set cbadterrmsg "ERROR: Collection $colld (for target \"$colltarget\") does not exist"
 set c1fperrmsg "ERROR: Command does not remove collection specified as filepath"
 set rmcderrmsg "couldn't open \"$hometestdotmod/default\": no such file or directory"
 set rmc1errmsg "couldn't open \"$hometestdotmod/$coll1\": no such file or directory"
+set rmc4ferrmsg "couldn't open \"$hometestdotmod/$coll4f\": no such file or directory"
 
 #
 # test removing nonexistent collection
@@ -95,6 +97,38 @@ testouterr_cmd "lisp" "saverm $coll1fp" "$err_lisp" "$c1fperrmsg"
 
 
 #
+# test removing named collection when MODULES_COLLECTION_TARGET is set
+#
+
+# setup environment state
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_COLLECTION_TARGET = $colltarget\n"
+}
+set env(MODULES_COLLECTION_TARGET) "$colltarget"
+
+# test only sh shell as this test does not produce shell output
+testoutfile_cmd "sh" "saverm $coll4" "" "$hometestdotmod/$coll4f" "$rmc4ferrmsg"
+
+
+#
+# test removing nonexistent default collection when
+# MODULES_COLLECTION_TARGET is set
+#
+
+testouterr_cmd "sh" "saverm" "$err_sh" "$cbadterrmsg"
+testouterr_cmd "bash" "saverm" "$err_sh" "$cbadterrmsg"
+testouterr_cmd "ksh" "saverm" "$err_sh" "$cbadterrmsg"
+testouterr_cmd "zsh" "saverm" "$err_sh" "$cbadterrmsg"
+testouterr_cmd "csh" "saverm" "$err_csh" "$cbadterrmsg"
+testouterr_cmd "tcsh" "saverm" "$err_csh" "$cbadterrmsg"
+testouterr_cmd "fish" "saverm" "$err_fish" "$cbadterrmsg"
+testouterr_cmd "tcl" "saverm" "$err_tcl" "$cbadterrmsg"
+testouterr_cmd "perl" "saverm" "$err_perl" "$cbadterrmsg"
+testouterr_cmd "python" "saverm" "$err_python" "$cbadterrmsg"
+testouterr_cmd "lisp" "saverm" "$err_lisp" "$cbadterrmsg"
+
+
+#
 # Cleanup
 #
 
@@ -105,10 +139,18 @@ if { $verbose > 0 } {
 set env(HOME) $ORIG_HOME
 unset ORIG_HOME
 
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tRestore MODULES_COLLECTION_TARGET = ''\n"
+}
+unset env(MODULES_COLLECTION_TARGET)
+
 unset cbadnerrmsg
+unset cbadterrmsg
 unset c1fperrmsg
 unset rmcderrmsg
 unset rmc1errmsg
+unset rmc4ferrmsg
 
 unset err_sh
 unset err_csh

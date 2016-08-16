@@ -22,6 +22,7 @@
 
 set cbadnerrmsg "ERROR: Collection $collbadn does not exist or is not readable"
 set cbadfperrmsg "ERROR: Collection $collbadfp does not exist or is not readable"
+set cbadterrmsg "ERROR: Collection $colld (for target \"$colltarget\") does not exist or is not readable"
 set cderrmsg "load $cdmod4"
 set c1errmsg "load $c1mod5\nload $c1mod6"
 set c2errmsg "unload $c1mod6\nunload $c1mod5\nunload $cdmod4\nload $c2mod4\nload $c2mod5\nload $c2mod6"
@@ -401,7 +402,32 @@ testouterr_cmd_re "lisp" "restore $coll1fp" "$ts_lisp" "$c1errmsg"
 
 
 #
+# test restoring collection specified as filepath when
+# MODULES_COLLECTION_TARGET is set. target should be ignored
+#
+
+# setup environment state
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_COLLECTION_TARGET = $colltarget\n"
+}
+set env(MODULES_COLLECTION_TARGET) "$colltarget"
+
+testouterr_cmd_re "sh" "restore $coll1fp" "$ts_sh" "$c1errmsg"
+testouterr_cmd_re "bash" "restore $coll1fp" "$ts_sh" "$c1errmsg"
+testouterr_cmd_re "ksh" "restore $coll1fp" "$ts_sh" "$c1errmsg"
+testouterr_cmd_re "zsh" "restore $coll1fp" "$ts_sh" "$c1errmsg"
+testouterr_cmd_re "csh" "restore $coll1fp" "$ts_csh" "$c1errmsg"
+testouterr_cmd_re "tcsh" "restore $coll1fp" "$ts_csh" "$c1errmsg"
+testouterr_cmd_re "fish" "restore $coll1fp" "$ts_fish" "$c1errmsg"
+testouterr_cmd_re "tcl" "restore $coll1fp" "$ts_tcl" "$c1errmsg"
+testouterr_cmd_re "perl" "restore $coll1fp" "$ts_perl" "$c1errmsg"
+testouterr_cmd_re "python" "restore $coll1fp" "$ts_python" "$c1errmsg"
+testouterr_cmd_re "lisp" "restore $coll1fp" "$ts_lisp" "$c1errmsg"
+
+
+#
 # test restoring collection not mentionning module to load
+# when MODULES_COLLECTION_TARGET set
 #
 
 set lmf_sh "unset _LMFILES_;"
@@ -465,6 +491,24 @@ testouterr_cmd_re "lisp" "restore $coll4" "$ts_lisp" "$c4errmsg"
 
 
 #
+# test restoring nonexistent default collection when
+# MODULES_COLLECTION_TARGET is set
+#
+
+testouterr_cmd "sh" "restore" "$err_sh" "$cbadterrmsg"
+testouterr_cmd "bash" "restore" "$err_sh" "$cbadterrmsg"
+testouterr_cmd "ksh" "restore" "$err_sh" "$cbadterrmsg"
+testouterr_cmd "zsh" "restore" "$err_sh" "$cbadterrmsg"
+testouterr_cmd "csh" "restore" "$err_csh" "$cbadterrmsg"
+testouterr_cmd "tcsh" "restore" "$err_csh" "$cbadterrmsg"
+testouterr_cmd "fish" "restore" "$err_fish" "$cbadterrmsg"
+testouterr_cmd "tcl" "restore" "$err_tcl" "$cbadterrmsg"
+testouterr_cmd "perl" "restore" "$err_perl" "$cbadterrmsg"
+testouterr_cmd "python" "restore" "$err_python" "$cbadterrmsg"
+testouterr_cmd "lisp" "restore" "$err_lisp" "$cbadterrmsg"
+
+
+#
 # Cleanup
 #
 
@@ -480,11 +524,13 @@ if { $verbose > 0 } {
     send_user "\tRestore _LMFILES_ = ''\n"
     send_user "\tRestore LOADEDMODULES = ''\n"
     send_user "\tRestore MODULEPATH = $ORIG_MODULEPATH\n"
+    send_user "\tRestore MODULES_COLLECTION_TARGET = ''\n"
 }
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 set env(MODULEPATH) "$ORIG_MODULEPATH"
 unset ORIG_MODULEPATH
+unset env(MODULES_COLLECTION_TARGET)
 
 unset ts_sh
 unset modpath_sh
@@ -558,6 +604,7 @@ unset lmfmod_lisp
 
 unset cbadnerrmsg
 unset cbadfperrmsg
+unset cbadterrmsg
 unset cderrmsg
 unset c1errmsg
 unset c2errmsg

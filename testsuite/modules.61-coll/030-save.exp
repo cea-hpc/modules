@@ -176,7 +176,23 @@ testoutfile_cmd "sh" "save $hometestdotmod/$coll2" "" "$hometestdotmod/$coll2" "
 
 
 #
+# test saving to a given filepath when MODULES_COLLECTION_TARGET
+# is set. target should be ignored
+#
+
+# setup environment state
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_COLLECTION_TARGET = $colltarget\n"
+}
+set env(MODULES_COLLECTION_TARGET) "$colltarget"
+
+# test only sh shell as this test does not produce shell output
+testoutfile_cmd "sh" "save $hometestdotmod/$coll3" "" "$hometestdotmod/$coll3" "$c1cont2"
+
+
+#
 # test saving collection with no module loaded (only paths set)
+# and with a MODULES_COLLECTION_TARGET set
 #
 
 # setup environment state
@@ -190,7 +206,7 @@ unset env(LOADEDMODULES)
 set env(MODULEPATH) "$c4modpath"
 
 # test only sh shell as this test does not produce shell output
-testoutfile_cmd "sh" "save $coll4" "" "$hometestdotmod/$coll4" "$c4cont"
+testoutfile_cmd "sh" "save $coll4" "" "$hometestdotmod/$coll4f" "$c4cont"
 
 
 #
@@ -208,9 +224,11 @@ unset ORIG_HOME
 # _LMFILES_ and LOADEDMODULES already restored during last test
 if { $verbose > 0 } {
     send_user "\tRestore MODULEPATH = $ORIG_MODULEPATH\n"
+    send_user "\tRestore MODULES_COLLECTION_TARGET = ''\n"
 }
 set env(MODULEPATH) "$ORIG_MODULEPATH"
 unset ORIG_MODULEPATH
+unset env(MODULES_COLLECTION_TARGET)
 
 unset err_sh
 unset err_csh

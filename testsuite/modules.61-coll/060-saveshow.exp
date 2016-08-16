@@ -22,6 +22,7 @@
 
 set cbadnerrmsg "ERROR: Collection $collbadn does not exist or is not readable"
 set cbadfperrmsg "ERROR: Collection $collbadfp does not exist or is not readable"
+set cbadterrmsg "ERROR: Collection $colld (for target \"$colltarget\") does not exist or is not readable"
 set badcontfp "$homewithcoll/.Xresources"
 set badcontfperrmsg "ERROR: $badcontfp is not a valid collection"
 
@@ -111,11 +112,45 @@ testouterr_cmd_re "sh" "saveshow $coll1" "" "\[-\]+\n$homewithcolldotmod/$coll1:
 
 
 #
+# test showing collection specified as a filepath when
+# MODULES_COLLECTION_TARGET is set. target should be ignored
+#
+
+# setup environment state
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_COLLECTION_TARGET = $colltarget\n"
+}
+set env(MODULES_COLLECTION_TARGET) "$colltarget"
+
+# test only sh shell as this test does not produce shell output
+testouterr_cmd_re "sh" "saveshow $homewithcolldotmod/$coll1" "" "\[-\]+\n$homewithcolldotmod/$coll1:\n\n$c1cont1\n\[-\]+$"
+
+
+#
 # test showing collection not mentionning module to load
+# when MODULES_COLLECTION_TARGET is set
 #
 
 # test only sh shell as this test does not produce shell output
-testouterr_cmd_re "sh" "saveshow $coll4" "" "\[-\]+\n$homewithcolldotmod/$coll4:\n\n$c4cont\n\[-\]+$"
+testouterr_cmd_re "sh" "saveshow $coll4" "" "\[-\]+\n$homewithcolldotmod/$coll4f:\n\n$c4cont\n\[-\]+$"
+
+
+#
+# test showing nonexistent default collection when
+# MODULES_COLLECTION_TARGET is set
+#
+
+testouterr_cmd "sh" "saveshow" "$err_sh" "$cbadterrmsg"
+testouterr_cmd "bash" "saveshow" "$err_sh" "$cbadterrmsg"
+testouterr_cmd "ksh" "saveshow" "$err_sh" "$cbadterrmsg"
+testouterr_cmd "zsh" "saveshow" "$err_sh" "$cbadterrmsg"
+testouterr_cmd "csh" "saveshow" "$err_csh" "$cbadterrmsg"
+testouterr_cmd "tcsh" "saveshow" "$err_csh" "$cbadterrmsg"
+testouterr_cmd "fish" "saveshow" "$err_fish" "$cbadterrmsg"
+testouterr_cmd "tcl" "saveshow" "$err_tcl" "$cbadterrmsg"
+testouterr_cmd "perl" "saveshow" "$err_perl" "$cbadterrmsg"
+testouterr_cmd "python" "saveshow" "$err_python" "$cbadterrmsg"
+testouterr_cmd "lisp" "saveshow" "$err_lisp" "$cbadterrmsg"
 
 
 #
@@ -129,6 +164,12 @@ if { $verbose > 0 } {
 set env(HOME) $ORIG_HOME
 unset ORIG_HOME
 
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tRestore MODULES_COLLECTION_TARGET = ''\n"
+}
+unset env(MODULES_COLLECTION_TARGET)
+
 unset err_sh
 unset err_csh
 unset err_fish
@@ -139,6 +180,7 @@ unset err_lisp
 
 unset cbadnerrmsg
 unset cbadfperrmsg
+unset cbadterrmsg
 unset badcontfp
 unset badcontfperrmsg
 

@@ -21,8 +21,11 @@
 ##############################################################################
 
 set header_no_coll "No named collection."
+set header_target_no_coll "No named collection (for target \"$collemptytarget\")."
 set header_coll "Named collection list:"
-set coll_list "$coll1\n$coll2\n$coll3\n$coll4\n$colld"
+set header_target_coll "Named collection list (for target \"$colltarget\"):"
+set coll_list "$coll1\n$coll2\n$coll3\n$coll4f\n$colld"
+set coll_target_list "$coll4"
 
 
 #
@@ -46,18 +49,53 @@ set env(HOME) "$homewithcoll"
 
 testerr_cmd "sh" "savelist -t" "$header_coll\n$coll_list"
 
+#
+# test MODULES_COLLECTION_TARGET not matching collections
+#
+
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_COLLECTION_TARGET = $collemptytarget\n"
+}
+set env(MODULES_COLLECTION_TARGET) "$collemptytarget"
+
+# target does not contain collection
+testerr_cmd "sh" "savelist -t" "$header_target_no_coll"
+
+
+#
+# test MODULES_COLLECTION_TARGET matching collections
+#
+
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_COLLECTION_TARGET = $colltarget\n"
+}
+set env(MODULES_COLLECTION_TARGET) "$colltarget"
+
+# target has matching collection
+testerr_cmd "sh" "savelist -t" "$header_target_coll\n$coll_target_list"
+
+
+#
+# Cleanup
+#
+
 # restore default testsuite home
 if { $verbose > 0 } {
     send_user "\tRestore HOME = $ORIG_HOME\n"
 }
 set env(HOME) $ORIG_HOME
 
-#
-# Cleanup
-#
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tRestore MODULES_COLLECTION_TARGET = ''\n"
+}
+unset env(MODULES_COLLECTION_TARGET)
 
 unset header_no_coll
+unset header_target_no_coll
 unset header_coll
+unset header_target_coll
 unset coll_list
+unset coll_target_list
 
 unset ORIG_HOME
