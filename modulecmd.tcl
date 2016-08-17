@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.616
+set MODULES_CURRENT_VERSION 1.617
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1012,15 +1012,14 @@ proc unset-alias {alias} {
 }
 
 proc is-loaded {modulelist} {
-   global env g_def_separator
-
    reportDebug "is-loaded: $modulelist"
 
    if {[llength $modulelist] > 0} {
-      if {[info exists env(LOADEDMODULES)]} {
+      set loadedmodlist [getLoadedModuleList]
+      if {[llength $loadedmodlist] > 0} {
          foreach arg $modulelist {
             set arg "$arg/"
-            foreach mod [split $env(LOADEDMODULES) $g_def_separator] {
+            foreach mod $loadedmodlist {
                set mod "$mod/"
                if {[string first $arg $mod] == 0} {
                   return 1
@@ -1235,6 +1234,17 @@ proc popModuleName {} {
    set len [llength $g_moduleNameStack]
    set len [expr {$len - 2}]
    set g_moduleNameStack [lrange $g_moduleNameStack 0 $len]
+}
+
+# return list of loaded modules by parsing LOADEDMODULES env variable
+proc getLoadedModuleList {} {
+   global env g_def_separator
+
+   if {[info exists env(LOADEDMODULES)]} {
+      return [split $env(LOADEDMODULES) $g_def_separator]
+   } else {
+      return {}
+   }
 }
 
 # Return the full pathname and modulename to the module.  
@@ -1875,16 +1885,14 @@ proc renderSettings {} {
 }
 
 proc cacheCurrentModules {} {
-   global g_loadedModules g_loadedModulesGeneric env g_def_separator
+   global g_loadedModules g_loadedModulesGeneric
 
    reportDebug "cacheCurrentModules"
 
    # mark specific as well as generic modules as loaded
-   if {[info exists env(LOADEDMODULES)]} {
-      foreach mod [split $env(LOADEDMODULES) $g_def_separator] {
-         set g_loadedModules($mod) 1
-         set g_loadedModulesGeneric([file dirname $mod]) [file tail $mod]
-      }
+   foreach mod [getLoadedModuleList] {
+      set g_loadedModules($mod) 1
+      set g_loadedModulesGeneric([file dirname $mod]) [file tail $mod]
    }
 }
 
@@ -2304,49 +2312,47 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
    reportDebug "getSimplifiedLoadedModuleList"
 
    set curr_mod_list {}
-   if {[info exists env(LOADEDMODULES)]} {
-      foreach mod [split $env(LOADEDMODULES) $g_def_separator] {
-         if {[string length $mod] > 0} {
-            set modparent [file dirname $mod]
-            if {$modparent eq "."} {
-               lappend curr_mod_list $mod
-            } elseif {[info exists env(MODULEPATH)]} {
-               # fetch all module version available
-               set modlist {}
-               foreach dir [split $env(MODULEPATH) $g_def_separator] {
-                  if {[file isdirectory $dir]} {
-                     set modlist [concat $modlist \
-                        [listModules $dir $modparent 0]]
-                  }
+   foreach mod [getLoadedModuleList] {
+      if {[string length $mod] > 0} {
+         set modparent [file dirname $mod]
+         if {$modparent eq "."} {
+            lappend curr_mod_list $mod
+         } elseif {[info exists env(MODULEPATH)]} {
+            # fetch all module version available
+            set modlist {}
+            foreach dir [split $env(MODULEPATH) $g_def_separator] {
+               if {[file isdirectory $dir]} {
+                  set modlist [concat $modlist \
+                     [listModules $dir $modparent 0]]
                }
+            }
 
-               # check if loaded version is default
-               set dflpos [lsearch $modlist "*(default)"]
-               if {$dflpos == -1} {
-                  if {$mod eq [lindex $modlist end]} {
-                     lappend curr_mod_list $modparent
-                  } else {
-                     lappend curr_mod_list $mod
-                  }
+            # check if loaded version is default
+            set dflpos [lsearch $modlist "*(default)"]
+            if {$dflpos == -1} {
+               if {$mod eq [lindex $modlist end]} {
+                  lappend curr_mod_list $modparent
                } else {
-                  if {"$mod\(default\)" eq [lindex $modlist $dflpos]} {
-                     lappend curr_mod_list $modparent
-                  } else {
-                     lappend curr_mod_list $mod
-                  }
+                  lappend curr_mod_list $mod
                }
             } else {
-               # if no path set currently, cannot search for all
-               # available version so use helper lists if provided
-               set helper_idx [lsearch -exact $helper_raw_list $mod]
-               if {$helper_idx == -1} {
-                  lappend curr_mod_list $mod
+               if {"$mod\(default\)" eq [lindex $modlist $dflpos]} {
+                  lappend curr_mod_list $modparent
                } else {
-                  # if mod found in a previous LOADEDMODULES list use
-                  # simplified version of this module found in relative
-                  # helper list (previously computed simplified list)
-                  lappend curr_mod_list [lindex $helper_list $helper_idx]
+                  lappend curr_mod_list $mod
                }
+            }
+         } else {
+            # if no path set currently, cannot search for all
+            # available version so use helper lists if provided
+            set helper_idx [lsearch -exact $helper_raw_list $mod]
+            if {$helper_idx == -1} {
+               lappend curr_mod_list $mod
+            } else {
+               # if mod found in a previous LOADEDMODULES list use
+               # simplified version of this module found in relative
+               # helper list (previously computed simplified list)
+               lappend curr_mod_list [lindex $helper_list $helper_idx]
             }
          }
       }
@@ -2485,16 +2491,12 @@ proc readCollectionContent {collfile} {
 # command line commands
 #
 proc cmdModuleList {} {
-   global env DEF_COLUMNS show_oneperline show_modtimes g_debug
+   global DEF_COLUMNS show_oneperline show_modtimes g_debug
    global g_def_separator
 
-   if {[info exists env(LOADEDMODULES)]} {
-      set loaded $env(LOADEDMODULES)
-   } else {
-      set loaded ""
-   }
+   set loadedmodlist [getLoadedModuleList]
 
-   if { [string length $loaded] == 0} { 
+   if {[llength $loadedmodlist] == 0} {
       report "No Modulefiles Currently Loaded."
    } else {
       set list {}
@@ -2505,7 +2507,7 @@ proc cmdModuleList {} {
       report "Currently Loaded Modulefiles:"
       set max 0
 
-      foreach mod [split $loaded $g_def_separator] {
+      foreach mod $loadedmodlist {
          set len [string length $mod]
 
          if {$len > 0} {
@@ -2771,13 +2773,8 @@ proc cmdModuleRestore {{coll {}}} {
    }
    # get current loaded module list in simplified and raw versions
    # these lists may be used later on, see below
-   if {[info exists env(LOADEDMODULES)]} {
-      set curr_mod_list_raw [split $env(LOADEDMODULES) $g_def_separator]
-      set curr_mod_list [getSimplifiedLoadedModuleList]
-   } else {
-      set curr_mod_list_raw {}
-      set curr_mod_list {}
-   }
+   set curr_mod_list_raw [getLoadedModuleList]
+   set curr_mod_list [getSimplifiedLoadedModuleList]
 
    # determine what module to unload to restore collection
    # from current situation with preservation of the load order
@@ -3107,30 +3104,21 @@ proc cmdModuleUnload {args} {
 }
 
 proc cmdModulePurge {} {
-   global env g_def_separator
-
    reportDebug "cmdModulePurge"
 
-   if {[info exists env(LOADEDMODULES)]} {
-      set list [split $env(LOADEDMODULES) $g_def_separator]
-      eval cmdModuleUnload [lreverse $list]
-   }
+   eval cmdModuleUnload [lreverse [getLoadedModuleList]]
 }
 
 proc cmdModuleReload {} {
-   global env g_def_separator
-
    reportDebug "cmdModuleReload"
 
-   if {[info exists env(LOADEDMODULES)]} {
-      set list [split $env(LOADEDMODULES) $g_def_separator]
-      set rlist [lreverse $list]
-      foreach mod $rlist {
-         cmdModuleUnload $mod
-      }
-      foreach mod $list {
-         cmdModuleLoad $mod
-      }
+   set list [getLoadedModuleList]
+   set rlist [lreverse $list]
+   foreach mod $rlist {
+      cmdModuleUnload $mod
+   }
+   foreach mod $list {
+      cmdModuleLoad $mod
    }
 }
 
