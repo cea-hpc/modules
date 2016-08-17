@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.617
+set MODULES_CURRENT_VERSION 1.618
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1247,13 +1247,27 @@ proc getLoadedModuleList {} {
    }
 }
 
+# return list of module paths by parsing MODULEPATH env variable
+# behavior param enables to exit in error when no MODULEPATH env variable
+# is set. by default an empty list is returned if no MODULEPATH set
+proc getModulePathList {{behavior "returnempty"}} {
+   global env g_def_separator
+
+   if {[info exists env(MODULEPATH)]} {
+      return [split $env(MODULEPATH) $g_def_separator]
+   } elseif {$behavior eq "exiterronundef"} {
+      reportErrorAndExit "No module path defined"
+   } else {
+      return {}
+   }
+}
+
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
 proc getPathToModule {mod} {
-   global env g_loadedModulesGeneric
+   global g_loadedModulesGeneric
    global g_moduleAlias g_moduleVersion
-   global g_def_separator
    global ModulesCurrentModulefile flag_default_mf flag_default_dir
 
    set retlist ""
@@ -1281,10 +1295,9 @@ proc getPathToModule {mod} {
             }
          }
       }
-   }\
-   elseif {[info exists env(MODULEPATH)]} {
-      # Now search for $mod in MODULEPATH
-      foreach dir [split $env(MODULEPATH) $g_def_separator] {
+   } else {
+      # Now search for $mod in module paths
+      foreach dir [getModulePathList "exiterronundef"] {
          set path "$dir/$mod"
 
          # modparent is the the modulename minus the module version.  
@@ -1373,9 +1386,6 @@ proc getPathToModule {mod} {
       }
       # End of of foreach loop
       reportError "+(0):ERROR:0: Unable to locate a modulefile for '$mod'"
-      return ""
-   } else {
-      reportErrorAndExit "\$MODULEPATH not defined"
       return ""
    }
 }
@@ -2254,13 +2264,12 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
 }
 
 proc showModulePath {} {
-   global env g_def_separator
-
    reportDebug "showModulePath"
 
-   if {[info exists env(MODULEPATH)]} {
+   set modpathlist [getModulePathList]
+   if {[llength $modpathlist] > 0} {
       report "Search path for module files (in search order):"
-      foreach path [split $env(MODULEPATH) $g_def_separator] {
+      foreach path $modpathlist {
          report "  $path"
       }
    } else {
@@ -2304,23 +2313,22 @@ proc getMovementBetweenList {from to} {
 # build list of currently loaded modules where modulename
 # is registered minus module version if loaded version is
 # the default one. a helper list may be provided and looked
-# at if no MODULEPATH is set
+# at if no module path is set
 proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
    {helper_list {}}} {
-   global env g_def_separator
-
    reportDebug "getSimplifiedLoadedModuleList"
 
    set curr_mod_list {}
+   set modpathlist [getModulePathList]
    foreach mod [getLoadedModuleList] {
       if {[string length $mod] > 0} {
          set modparent [file dirname $mod]
          if {$modparent eq "."} {
             lappend curr_mod_list $mod
-         } elseif {[info exists env(MODULEPATH)]} {
+         } elseif {[llength $modpathlist] > 0} {
             # fetch all module version available
             set modlist {}
-            foreach dir [split $env(MODULEPATH) $g_def_separator] {
+            foreach dir $modpathlist {
                if {[file isdirectory $dir]} {
                   set modlist [concat $modlist \
                      [listModules $dir $modparent 0]]
@@ -2601,22 +2609,17 @@ proc cmdModuleDisplay {mod} {
 }
 
 proc cmdModulePaths {mod} {
-   global env g_pathList flag_default_mf flag_default_dir
-   global g_def_separator
+   global g_pathList flag_default_mf flag_default_dir
 
    reportDebug "cmdModulePaths: ($mod)"
 
-   if {[catch {
-      foreach dir [split $env(MODULEPATH) $g_def_separator] {
-         if {[file isdirectory $dir]} {
-            foreach mod2 [listModules $dir $mod 0 $flag_default_mf \
-               $flag_default_dir ""] {
-               lappend g_pathList $mod2
-            }
+   foreach dir [getModulePathList "exiterronundef"] {
+      if {[file isdirectory $dir]} {
+         foreach mod2 [listModules $dir $mod 0 $flag_default_mf \
+            $flag_default_dir ""] {
+            lappend g_pathList $mod2
          }
       }
-   } errMsg]} {
-      reportError "ERROR: module paths $mod failed. $errMsg"
    }
 }
 
@@ -2641,14 +2644,14 @@ proc cmdModuleApropos {{search {}}} {
 }
 
 proc cmdModuleSearch {{mod {}} {search {}}} {
-   global env tcl_version ModulesCurrentModulefile
-   global g_whatis g_def_separator
+   global tcl_version ModulesCurrentModulefile
+   global g_whatis
 
    reportDebug "cmdModuleSearch: ($mod, $search)"
    if {$mod eq ""} {
       set mod "*"
    }
-   foreach dir [split $env(MODULEPATH) $g_def_separator] {
+   foreach dir [getModulePathList "exiterronundef"] {
       if {[file isdirectory $dir]} {
          report "----------- $dir ------------- "
          set modlist [listModules $dir $mod 0 0 0]
@@ -2695,9 +2698,6 @@ proc cmdModuleSwitch {old {new {}}} {
 }
 
 proc cmdModuleSave {{coll {}}} {
-   global env
-   global g_def_separator
-
    # default collection used if no name provided
    if {$coll eq ""} {
       set coll "default"
@@ -2705,12 +2705,7 @@ proc cmdModuleSave {{coll {}}} {
    reportDebug "cmdModuleSave: $coll"
 
    # format collection content
-   if {[info exists env(MODULEPATH)]} {
-      set path_list [split $env(MODULEPATH) $g_def_separator]
-   } else {
-      set path_list {}
-   }
-   set save [formatCollectionContent $path_list \
+   set save [formatCollectionContent [getModulePathList] \
       [getSimplifiedLoadedModuleList]]
 
    if { [string length $save] == 0} {
@@ -2740,9 +2735,6 @@ proc cmdModuleSave {{coll {}}} {
 }
 
 proc cmdModuleRestore {{coll {}}} {
-   global env
-   global g_def_separator
-
    # default collection used if no name provided
    if {$coll eq ""} {
       set coll "default"
@@ -2766,11 +2758,7 @@ proc cmdModuleRestore {{coll {}}} {
    }
 
    # fetch what is currently loaded
-   if {[info exists env(MODULEPATH)]} {
-      set curr_path_list [split $env(MODULEPATH) $g_def_separator]
-   } else {
-      set curr_path_list {}
-   }
+   set curr_path_list [getModulePathList]
    # get current loaded module list in simplified and raw versions
    # these lists may be used later on, see below
    set curr_mod_list_raw [getLoadedModuleList]
@@ -2797,14 +2785,10 @@ proc cmdModuleRestore {{coll {}}} {
    # since unloading a module may unload other modules or
    # paths, what to load/use has to be determined after
    # the undo phase, so current situation is fetched again
-   if {[info exists env(MODULEPATH)]} {
-      set curr_path_list [split $env(MODULEPATH) $g_def_separator]
-   } else {
-      set curr_path_list {}
-   }
+   set curr_path_list [getModulePathList]
 
    # here we may be in a situation were no more path is left
-   # in MODULEPATH, so we cannot easily compute the simplified loaded
+   # in module path, so we cannot easily compute the simplified loaded
    # module list. so we provide two helper lists: simplified and raw
    # versions of the loaded module list computed before starting to
    # unload modules. these helper lists may help to learn the
@@ -3124,12 +3108,11 @@ proc cmdModuleReload {} {
 
 proc cmdModuleAliases {} {
    global DEF_COLUMNS g_moduleAlias g_moduleVersion
-   global env g_def_separator
 
    # parse paths to fill g_moduleAlias and g_moduleVersion if empty
    if {[array size g_moduleAlias] == 0 \
       && [array size g_moduleVersion] == 0 } {
-      foreach dir [split $env(MODULEPATH) $g_def_separator] {
+      foreach dir [getModulePathList "exiterronundef"] {
          if {[file isdirectory "$dir"] && [file readable $dir]} {
             listModules "$dir" "" 0
          }
@@ -3180,15 +3163,15 @@ proc system {mycmd args} {
 }
 
 proc cmdModuleAvail {{mod {*}}} {
-   global env ignoreDir DEF_COLUMNS flag_default_mf flag_default_dir
-   global show_oneperline show_modtimes show_filter g_def_separator
+   global ignoreDir DEF_COLUMNS flag_default_mf flag_default_dir
+   global show_oneperline show_modtimes show_filter
 
    if {$show_modtimes} {
       report "- Package -----------------------------.- Versions -.- Last\
          mod. ------"
    }
 
-   foreach dir [split $env(MODULEPATH) $g_def_separator] {
+   foreach dir [getModulePathList "exiterronundef"] {
       if {[file isdirectory "$dir"] && [file readable $dir]} {
          set len  [string length $dir]
          set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
@@ -3297,16 +3280,12 @@ proc cmdModuleUnuse {args} {
    if {$args eq ""} {
       showModulePath
    } else {
-      global env
-
       foreach path $args {
-         regsub -all {\/} $path {\/} escpath
-         set regexp [subst {(^|\:)${escpath}(\:|$)}]
-         if {[info exists env(MODULEPATH)] && [regexp $regexp\
-            $env(MODULEPATH)]} {
-
-            set oldMODULEPATH $env(MODULEPATH)
-
+         # get current module path list
+         if {![info exists modpathlist]} {
+            set modpathlist [getModulePathList]
+         }
+         if {[lsearch -exact $modpathlist $path] >= 0} {
             reportDebug "calling unload-path MODULEPATH $path\
                $g_def_separator"
 
@@ -3317,8 +3296,9 @@ proc cmdModuleUnuse {args} {
             }
             popMode
 
-            if {[info exists env(MODULEPATH)] && $oldMODULEPATH eq\
-               $env(MODULEPATH)} {
+            # refresh path list after unload
+            set modpathlist [getModulePathList]
+            if {[lsearch -exact $modpathlist $path] >= 0} {
                reportError "WARNING: Did not unuse $path"
             }
          }
