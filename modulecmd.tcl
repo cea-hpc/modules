@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.615
+set MODULES_CURRENT_VERSION 1.616
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1240,7 +1240,7 @@ proc popModuleName {} {
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
-proc getPathToModule {mod {separator {}}} {
+proc getPathToModule {mod} {
    global env g_loadedModulesGeneric
    global g_moduleAlias g_moduleVersion
    global g_def_separator
@@ -1250,10 +1250,6 @@ proc getPathToModule {mod {separator {}}} {
 
    if {$mod eq ""} {
       return ""
-   }
-
-   if {$separator eq "" } {
-      set separator $g_def_separator
    }
 
    reportDebug "getPathToModule: Finding $mod"
@@ -1278,7 +1274,7 @@ proc getPathToModule {mod {separator {}}} {
    }\
    elseif {[info exists env(MODULEPATH)]} {
       # Now search for $mod in MODULEPATH
-      foreach dir [split $env(MODULEPATH) $separator] {
+      foreach dir [split $env(MODULEPATH) $g_def_separator] {
          set path "$dir/$mod"
 
          # modparent is the the modulename minus the module version.  
@@ -1878,18 +1874,14 @@ proc renderSettings {} {
    }
 }
 
-proc cacheCurrentModules {{separator {}}} {
+proc cacheCurrentModules {} {
    global g_loadedModules g_loadedModulesGeneric env g_def_separator
 
-   reportDebug "cacheCurrentModules: ($separator)"
-
-   if {$separator eq "" } {
-      set separator $g_def_separator
-   }
+   reportDebug "cacheCurrentModules"
 
    # mark specific as well as generic modules as loaded
    if {[info exists env(LOADEDMODULES)]} {
-      foreach mod [split $env(LOADEDMODULES) $separator] {
+      foreach mod [split $env(LOADEDMODULES) $g_def_separator] {
          set g_loadedModules($mod) 1
          set g_loadedModulesGeneric([file dirname $mod]) [file tail $mod]
       }
@@ -2253,17 +2245,14 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
    return $clean_list
 }
 
-proc showModulePath {{separator {}}} {
+proc showModulePath {} {
    global env g_def_separator
 
-   reportDebug "showModulePath: $separator"
+   reportDebug "showModulePath"
 
-   if {$separator eq "" } {
-      set separator $g_def_separator
-   }
    if {[info exists env(MODULEPATH)]} {
       report "Search path for module files (in search order):"
-      foreach path [split $env(MODULEPATH) $separator] {
+      foreach path [split $env(MODULEPATH) $g_def_separator] {
          report "  $path"
       }
    } else {
@@ -2495,13 +2484,9 @@ proc readCollectionContent {collfile} {
 ########################################################################
 # command line commands
 #
-proc cmdModuleList {{separator {}}} {
+proc cmdModuleList {} {
    global env DEF_COLUMNS show_oneperline show_modtimes g_debug
    global g_def_separator
-
-   if {$separator eq "" } {
-      set separator $g_def_separator
-   }
 
    if {[info exists env(LOADEDMODULES)]} {
       set loaded $env(LOADEDMODULES)
@@ -2520,7 +2505,7 @@ proc cmdModuleList {{separator {}}} {
       report "Currently Loaded Modulefiles:"
       set max 0
 
-      foreach mod [split $loaded $separator] {
+      foreach mod [split $loaded $g_def_separator] {
          set len [string length $mod]
 
          if {$len > 0} {
@@ -2543,7 +2528,7 @@ proc cmdModuleList {{separator {}}} {
                set tag_list [getVersAliasList $mod]
 
                if {[llength $tag_list]} {
-                  append mod "(" [join $tag_list $separator] ")"
+                  append mod "(" [join $tag_list $g_def_separator] ")"
 
                   # expand string length to include version alises
                   set len [string length $mod]
@@ -2613,18 +2598,14 @@ proc cmdModuleDisplay {mod} {
    }
 }
 
-proc cmdModulePaths {mod {separator {}}} {
+proc cmdModulePaths {mod} {
    global env g_pathList flag_default_mf flag_default_dir
    global g_def_separator
 
-   reportDebug "cmdModulePaths: ($mod, $separator)"
-
-   if {$separator eq "" } {
-      set separator $g_def_separator
-   }
+   reportDebug "cmdModulePaths: ($mod)"
 
    if {[catch {
-      foreach dir [split $env(MODULEPATH) $separator] {
+      foreach dir [split $env(MODULEPATH) $g_def_separator] {
          if {[file isdirectory $dir]} {
             foreach mod2 [listModules $dir $mod 0 $flag_default_mf \
                $flag_default_dir ""] {
@@ -3125,31 +3106,24 @@ proc cmdModuleUnload {args} {
    }
 }
 
-proc cmdModulePurge {{separator {}}} {
+proc cmdModulePurge {} {
    global env g_def_separator
 
-   reportDebug "cmdModulePurge: $separator"
-   if {$separator eq "" } {
-      set separator $g_def_separator
-   }
+   reportDebug "cmdModulePurge"
 
    if {[info exists env(LOADEDMODULES)]} {
-      set list [split $env(LOADEDMODULES) $separator]
+      set list [split $env(LOADEDMODULES) $g_def_separator]
       eval cmdModuleUnload [lreverse $list]
    }
 }
 
-proc cmdModuleReload {{separator {}}} {
+proc cmdModuleReload {} {
    global env g_def_separator
 
-   reportDebug "cmdModuleReload: $separator"
-
-   if {$separator eq "" } {
-      set separator $g_def_separator
-   }
+   reportDebug "cmdModuleReload"
 
    if {[info exists env(LOADEDMODULES)]} {
-      set list [split $env(LOADEDMODULES) $separator]
+      set list [split $env(LOADEDMODULES) $g_def_separator]
       set rlist [lreverse $list]
       foreach mod $rlist {
          cmdModuleUnload $mod
@@ -3364,24 +3338,20 @@ proc cmdModuleUnuse {args} {
    }
 }
 
-proc cmdModuleDebug {{separator {}}} {
+proc cmdModuleDebug {} {
    global env g_def_separator
 
-   reportDebug "cmdModuleDebug: $separator"
-
-   if {$separator eq "" } {
-      set separator $g_def_separator
-   }
+   reportDebug "cmdModuleDebug"
 
    foreach var [array names env] {
-      array set countarr [getReferenceCountArray $var $separator]
+      array set countarr [getReferenceCountArray $var $g_def_separator]
 
       foreach path [array names countarr] {
          report "$var\t$path\t$countarr($path)"
       }
       unset countarr
    }
-   foreach dir [split $env(PATH) $separator] {
+   foreach dir [split $env(PATH) $g_def_separator] {
       foreach file [glob -nocomplain -- "$dir/*"] {
          if {[file executable $file]} {
             set exec [file tail $file]
