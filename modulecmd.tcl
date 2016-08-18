@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.622
+set MODULES_CURRENT_VERSION 1.623
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -152,7 +152,7 @@ proc reportInternalBug {message} {
    global contact
 
    raiseErrorCount
-   puts stderr "Module ERROR: $message\nPlease contact: $contact"
+   report "Module ERROR: $message\nPlease contact: $contact"
 }
 
 proc report {message {nonewline ""}} {
@@ -249,7 +249,7 @@ proc execute-modulefile {modfile {help ""}} {
          } else {
             global errorInfo
 
-            reportInternalBug "ERROR occurred in file\
+            reportInternalBug "Occurred in file\
                $ModulesCurrentModulefile:$errorInfo"
             exit 1
          }
@@ -276,8 +276,7 @@ proc execute-modulerc {modfile} {
    set ModulesCurrentModulefile $modfile
 
    if {![checkValidModule $modfile]} {
-      reportInternalBug "+(0):ERROR:0: Magic cookie '#%Module' missing in\
-         '$modfile'"
+      reportInternalBug "Magic cookie '#%Module' missing in '$modfile'"
       return ""
    }
 
@@ -305,7 +304,7 @@ proc execute-modulerc {modfile} {
          if [catch {source $ModulesCurrentModulefile} errorMsg] {
             global errorInfo
 
-            reportInternalBug "occurred in file\
+            reportInternalBug "Occurred in file\
                $ModulesCurrentModulefile:$errorInfo"
             exit 1
          }\
