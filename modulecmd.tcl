@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.621
+set MODULES_CURRENT_VERSION 1.622
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -139,7 +139,7 @@ proc reportWarning {message {nonewline ""}} {
 
 proc reportError {message {nonewline ""}} {
    raiseErrorCount
-   report "$message" "$nonewline"
+   report "ERROR: $message" "$nonewline"
 }
 
 proc reportErrorAndExit {message} {
@@ -243,7 +243,8 @@ proc execute-modulefile {modfile {help ""}} {
             return 1
          }\
          elseif [regexp "^WARNING" $errorMsg] {
-            reportError $errorMsg
+            raiseErrorCount
+            report $errorMsg
             return 1
          } else {
             global errorInfo
@@ -1277,8 +1278,7 @@ proc getPathToModule {mod} {
                if {[checkValidModule $mod]} {
                   return [list $mod $mod]
                } else {
-                  reportError "+(0):ERROR:0: Unable to locate a\
-                     modulefile for '$mod'"
+                  reportError "Unable to locate a modulefile for '$mod'"
                   return ""
                }
             }
@@ -1374,7 +1374,7 @@ proc getPathToModule {mod} {
          # File wasn't readable, go to next path
       }
       # End of of foreach loop
-      reportError "+(0):ERROR:0: Unable to locate a modulefile for '$mod'"
+      reportError "Unable to locate a modulefile for '$mod'"
       return ""
    }
 }
@@ -3064,7 +3064,7 @@ proc cmdModuleUnload {args} {
             }
          }
       } errMsg ]} {
-         reportError "ERROR: module: module unload $mod failed.\n$errMsg"
+         reportError "module unload $mod failed.\n$errMsg"
       }
    }
 }
@@ -3249,7 +3249,7 @@ proc cmdModuleUse {args} {
 
             popMode
          } else {
-            reportError "+(0):WARN:0: Directory '$path' not found"
+            reportError "Directory '$path' not found"
          }
       }
    }
@@ -3598,7 +3598,7 @@ switch -regexp -- $opt {
        exit 0
    }
    {^--} {
-       reportError "+(0):ERROR:0: Unrecognized option '$opt'"
+       reportError "Unrecognized option '$opt'"
        exit -1
    }
 }
@@ -3803,12 +3803,12 @@ if {[catch {
          cmdModuleHelp $argv
       }
       . {
-         reportError "ERROR: command '$command' not recognized"
+         reportError "Command '$command' not recognized"
          cmdModuleHelp $argv
       }
    }
 } errMsg ]} {
-   reportError "ERROR: $errMsg"
+   reportError "$errMsg"
 }
 
 # ;;; Local Variables: ***
