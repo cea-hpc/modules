@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.619
+set MODULES_CURRENT_VERSION 1.620
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -507,7 +507,7 @@ proc module-version {args} {
 }
 
 proc module-alias {args} {
-   global g_moduleAlias ModulesCurrentModulefile
+   global g_moduleAlias
 
    set alias [lindex $args 0]
    set module_file [lindex $args 1]
@@ -1035,8 +1035,6 @@ proc is-loaded {modulelist} {
 }
 
 proc conflict {args} {
-   global ModulesCurrentModulefile
-
    set mode [currentMode]
    set currentModule [currentModuleName]
 
@@ -1267,8 +1265,6 @@ proc getModulePathList {{behavior "returnempty"}} {
 # "name/version" or just "name" (find default version).
 proc getPathToModule {mod} {
    global g_loadedModulesGeneric
-   global g_moduleAlias g_moduleVersion
-   global ModulesCurrentModulefile flag_default_mf flag_default_dir
 
    set retlist ""
 
@@ -2069,7 +2065,6 @@ proc getVersAliasList {modulename} {
 proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
    {flag_default_dir {1}} {filter ""}} {
    global ignoreDir ModulesCurrentModulefile
-   global tcl_platform g_versionHash
 
    # On Cygwin, glob may change the $dir path if there are symlinks involved
    # So it is safest to reglob the $dir.
@@ -2591,8 +2586,6 @@ proc cmdModuleList {} {
 }
 
 proc cmdModuleDisplay {mod} {
-   global env tcl_version ModulesCurrentModulefile
-
    lassign [getPathToModule $mod] modfile modname
    if {$modfile ne ""} {
       pushModuleName $modname
@@ -2624,7 +2617,7 @@ proc cmdModulePaths {mod} {
 }
 
 proc cmdModulePath {mod} {
-   global env g_pathList ModulesCurrentModulefile
+   global g_pathList ModulesCurrentModulefile
 
    reportDebug "cmdModulePath: ($mod)"
    lassign [getPathToModule $mod] modfile modname
@@ -2644,7 +2637,6 @@ proc cmdModuleApropos {{search {}}} {
 }
 
 proc cmdModuleSearch {{mod {}} {search {}}} {
-   global tcl_version ModulesCurrentModulefile
    global g_whatis
 
    reportDebug "cmdModuleSearch: ($mod, $search)"
@@ -2676,7 +2668,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 }
 
 proc cmdModuleSwitch {old {new {}}} {
-   global env g_loadedModulesGeneric g_loadedModules
+   global g_loadedModulesGeneric g_loadedModules
 
    if {$new eq ""} {
       set new $old
@@ -2971,8 +2963,6 @@ proc cmdModuleSavelist {} {
 
 
 proc cmdModuleSource {args} {
-   global env tcl_version g_loadedModules g_loadedModulesGeneric g_force 
-
    reportDebug "cmdModuleSource: $args"
    foreach file $args {
       if {[file exists $file]} {
@@ -2988,7 +2978,7 @@ proc cmdModuleSource {args} {
 }
 
 proc cmdModuleLoad {args} {
-   global env g_loadedModules g_loadedModulesGeneric g_force
+   global g_loadedModules g_loadedModulesGeneric g_force
    global ModulesCurrentModulefile
 
    reportDebug "cmdModuleLoad: loading $args"
@@ -3031,7 +3021,7 @@ proc cmdModuleLoad {args} {
 }
 
 proc cmdModuleUnload {args} {
-   global tcl_version g_loadedModules g_loadedModulesGeneric
+   global g_loadedModules g_loadedModulesGeneric
    global ModulesCurrentModulefile g_def_separator
 
    reportDebug "cmdModuleUnload: unloading $args"
@@ -3163,7 +3153,7 @@ proc system {mycmd args} {
 }
 
 proc cmdModuleAvail {{mod {*}}} {
-   global ignoreDir DEF_COLUMNS flag_default_mf flag_default_dir
+   global DEF_COLUMNS flag_default_mf flag_default_dir
    global show_oneperline show_modtimes show_filter
 
    if {$show_modtimes} {
@@ -3236,7 +3226,7 @@ proc cmdModuleAvail {{mod {*}}} {
 }
 
 proc cmdModuleUse {args} {
-   global env g_def_separator
+   global g_def_separator
 
    reportDebug "cmdModuleUse: $args"
 
@@ -3482,7 +3472,7 @@ proc cmdModuleInit {args} {
 }
 
 proc cmdModuleHelp {args} {
-   global done MODULES_CURRENT_VERSION
+   global MODULES_CURRENT_VERSION
 
    set done 0
    foreach arg $args {
