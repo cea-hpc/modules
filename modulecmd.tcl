@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.620
+set MODULES_CURRENT_VERSION 1.621
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -134,11 +134,7 @@ proc reportDebug {message {nonewline ""}} {
 }
 
 proc reportWarning {message {nonewline ""}} {
-   if {$nonewline ne ""} {
-      puts -nonewline stderr "$message"
-   } else {
-      puts stderr "$message"
-   }
+   report "WARNING: $message" "$nonewline"
 }
 
 proc reportError {message {nonewline ""}} {
@@ -758,15 +754,15 @@ proc getReferenceCountArray {var separator} {
 
             if {! $g_force} {
                if {[array size fixers]} {
-                  reportWarning "WARNING: \$$var does not agree with\
+                  reportWarning "\$$var does not agree with\
                      \$${var}_modshare counter. The following\
                      directories' usage counters were adjusted to match.\
                      Note that this may mean that module unloading may\
                      not work correctly."
                   foreach dir [array names fixers] {
-                     reportWarning " $dir" -nonewline
+                     report " $dir" -nonewline
                   }
-                  reportWarning ""
+                  report ""
                }
             }
          } else {
@@ -774,11 +770,8 @@ proc getReferenceCountArray {var separator} {
             set modshareok 0
          }
       } else {
-         if {$g_debug} {            
-            reportError "WARNING: module: $sharevar exists (\
-               $env($sharevar) ), but $var doesn't.\
-               Environment is corrupted."
-         }
+         reportWarning "$sharevar exists ( $env($sharevar) ), but $var\
+            doesn't. Environment is corrupted."
          set modshareok 0
       }
    } else {
@@ -1115,7 +1108,7 @@ proc x-resource {resource {value {}}} {
       } else {
          # if not a file and no value provided x-resource cannot be
          # recorded as it will produce an error when passed to xrdb
-         reportWarning "WARNING x-resource $resource is not a valid string or file"
+         reportWarning "x-resource $resource is not a valid string or file"
          return {}
       }
    }
@@ -1554,14 +1547,13 @@ proc renderSettings {} {
                if {$g_shell eq "csh" && [string length $val] >\
                   $CSH_LIMIT} {
                   if {$var eq "PATH"} {
-                     reportWarning "WARNING: module: PATH exceeds\
-                        $CSH_LIMIT characters, truncating and\
-                        appending /usr/bin:/bin ..."
+                     reportWarning "PATH exceeds $CSH_LIMIT characters,\
+                        truncating and appending /usr/bin:/bin ..."
                      set val [string range $val 0 [expr {$CSH_LIMIT\
                         - 1}]]:/usr/bin:/bin
                   } else {
-                      reportWarning "WARNING: module: $var exceeds\
-                         $CSH_LIMIT characters, truncating..."
+                      reportWarning "$var exceeds $CSH_LIMIT characters,\
+                         truncating..."
                       set val [string range $val 0 [expr {$CSH_LIMIT\
                          - 1}]]
                   }
@@ -2268,7 +2260,7 @@ proc showModulePath {} {
          report "  $path"
       }
    } else {
-      reportWarning "WARNING: no directories on module search path"
+      reportWarning "No directories on module search path"
    }
 }
 
@@ -3289,7 +3281,7 @@ proc cmdModuleUnuse {args} {
             # refresh path list after unload
             set modpathlist [getModulePathList]
             if {[lsearch -exact $modpathlist $path] >= 0} {
-               reportError "WARNING: Did not unuse $path"
+               reportWarning "Did not unuse $path"
             }
          }
       }
