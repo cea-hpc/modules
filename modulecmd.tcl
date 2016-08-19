@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.625
+set MODULES_CURRENT_VERSION 1.626
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3641,39 +3641,29 @@ runModulerc
 # Resolve any aliased module names - safe to run nonmodule arguments
 reportDebug "Resolving $argv"
 
-if {[lsearch $argv "-t"] >= 0} {
-   set show_oneperline 1
-   set argv [replaceFromList $argv "-t"]
+# extract command switches from other args
+set otherargv {}
+foreach arg $argv {
+   switch -- $arg {
+      "-t" - "--terse" {
+         set show_oneperline 1
+      }
+      "-l" - "--long" {
+         set show_modtimes 1
+      }
+      "-d" - "--default" {
+         set show_filter "onlydefaults"
+      }
+      "-L" - "--latest" {
+         set show_filter "onlylatest"
+      }
+      default {
+         lappend otherargv $arg
+      }
+   }
 }
-if {[lsearch $argv "--terse"] >= 0} {
-   set show_oneperline 1
-   set argv [replaceFromList $argv "--terse"]
-}
-if {[lsearch $argv "-l"] >= 0} {
-   set show_modtimes 1
-   set argv [replaceFromList $argv "-l"]
-}
-if {[lsearch $argv "--long"] >= 0} {
-   set show_modtimes 1
-   set argv [replaceFromList $argv "--long"]
-}
-if {[lsearch $argv "-d"] >= 0} {
-   set show_filter "onlydefaults"
-   set argv [replaceFromList $argv "-d"]
-}
-if {[lsearch $argv "--default"] >= 0} {
-   set show_filter "onlydefaults"
-   set argv [replaceFromList $argv "--default"]
-}
-if {[lsearch $argv "-L"] >= 0} {
-   set show_filter "onlylatest"
-   set argv [replaceFromList $argv "-L"]
-}
-if {[lsearch $argv "--latest"] >= 0} {
-   set show_filter "onlylatest"
-   set argv [replaceFromList $argv "--latest"]
-}
-set argv [resolveModuleVersionOrAlias $argv]
+
+set argv [resolveModuleVersionOrAlias $otherargv]
 reportDebug "Resolved $argv"
 
 if {[catch {
