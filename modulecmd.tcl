@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.623
+set MODULES_CURRENT_VERSION 1.624
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1523,8 +1523,7 @@ proc renderSettings {} {
                stdout=subprocess.PIPE).communicate()\[0\])"
          }
          lisp {
-            reportErrorAndExit "ERROR: XXX lisp mode autoinit not yet\
-               implemented"
+            reportErrorAndExit "lisp mode autoinit not yet implemented"
          }
       }
 
@@ -3632,7 +3631,7 @@ switch -regexp -- $g_shell {
        set g_shellType lisp
    }
    . {
-       reportErrorAndExit " +(0):ERROR:0: Unknown shell type \'($g_shell)\'"
+       reportErrorAndExit "Unknown shell type \'($g_shell)\'"
    }
 }
 
