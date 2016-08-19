@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.626
+set MODULES_CURRENT_VERSION 1.627
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -522,14 +522,22 @@ proc module-alias {args} {
 proc module {command args} {
    set mode [currentMode]
 
-   # Resolve any module aliases
-   reportDebug "module: Resolving $args"
-   set args [resolveModuleVersionOrAlias $args]
-   reportDebug "module: Resolved to $args"
+   # guess if called from top level
+   set topcall [expr {[info level] == 1}]
+   if {$topcall} {
+      set msgprefix ""
+   } else {
+      set msgprefix "module: "
+   }
 
-   switch -- $command {
-      add - lo - load {
-         if {$mode eq "load"} {
+   # Resolve any module aliases
+   reportDebug "${msgprefix}Resolving $args"
+   set args [resolveModuleVersionOrAlias $args]
+   reportDebug "${msgprefix}Resolved to $args"
+
+   switch -regexp -- $command {
+      {^(add|lo)} {
+         if {$topcall || $mode eq "load"} {
             eval cmdModuleLoad $args
          }\
          elseif {$mode eq "unload"} {
@@ -538,9 +546,10 @@ proc module {command args} {
          elseif {$mode eq "display"} {
             report "module load\t$args"
          }
+         set needrender 1
       }
-      rm - unlo - unload {
-         if {$mode eq "load"} {
+      {^(rm|unlo)} {
+         if {$topcall || $mode eq "load"} {
             eval cmdModuleUnload $args
          }\
          elseif {$mode eq "unload"} {
@@ -549,26 +558,34 @@ proc module {command args} {
          elseif {$mode eq "display"} {
             report "module unload\t$args"
          }
+         set needrender 1
       }
-      reload {
+      {^rel} {
          cmdModuleReload
+         set needrender 1
       }
-      use {
+      {^use$} {
          eval cmdModuleUse $args
+         set needrender 1
       }
-      unuse {
+      {^unuse$} {
          eval cmdModuleUnuse $args
+         set needrender 1
       }
-      source {
+      {^source$} {
          eval cmdModuleSource $args
+         set needrender 1
       }
-      switch - swap {
+      {^sw} {
          eval cmdModuleSwitch $args
+         set needrender 1
       }
-      display - dis - show {
-         eval cmdModuleDisplay $args
+      {^(di|show)} {
+         foreach arg $args {
+            eval cmdModuleDisplay $arg
+         }
       }
-      avail - av {
+      {^av} {
          if {$args ne ""} {
             foreach arg $args {
                cmdModuleAvail $arg
@@ -580,19 +597,21 @@ proc module {command args} {
             cmdModuleAliases
          }
       }
-      aliases - al {
+      {^al} {
          cmdModuleAliases
       }
-      path {
+      {^path$} {
          eval cmdModulePath $args
+         set needrender 1
       }
-      paths {
+      {^paths$} {
          eval cmdModulePaths $args
+         set needrender 1
       }
-      list {
+      {^li} {
          cmdModuleList
       }
-      whatis {
+      {^wh} {
          if {$args ne ""} {
             foreach arg $args {
                cmdModuleWhatIs $arg
@@ -601,46 +620,95 @@ proc module {command args} {
             cmdModuleWhatIs
          }
       }
-      apropos - search - keyword {
+      {^(apropos|search|keyword)$} {
          eval cmdModuleApropos $args
       }
-      purge {
+      {^pu} {
          eval cmdModulePurge
+         set needrender 1
       }
-      save {
+      {^save$} {
          eval cmdModuleSave $args
       }
-      restore {
+      {^restore$} {
          eval cmdModuleRestore $args
+         set needrender 1
       }
-      saverm {
+      {^saverm$} {
          eval cmdModuleSaverm $args
       }
-      saveshow {
+      {^saveshow$} {
          eval cmdModuleSaveshow $args
       }
-      savelist {
+      {^savelist$} {
          cmdModuleSavelist
       }
-      initadd {
+      {^init(add|lo)$} {
          eval cmdModuleInit add $args
       }
-      initprepend {
+      {^initprepend$} {
          eval cmdModuleInit prepend $args
       }
-      initrm {
+      {^initswitch$} {
+         eval cmdModuleInit switch $args
+      }
+      {^init(rm|unlo)$} {
          eval cmdModuleInit rm $args
       }
-      initlist {
+      {^initlist$} {
          eval cmdModuleInit list $args
       }
-      initclear {
+      {^initclear$} {
          eval cmdModuleInit clear $args
       }
-      default {
-         error "module $command not understood"
+      {^debug$} {
+         if {$topcall} {
+            eval cmdModuleDebug
+         } else {
+            # debug cannot be called elsewhere than from top level
+            set errormsg "${msgprefix}Command '$command' not supported"
+         }
+      }
+      {^autoinit$} {
+         if {$topcall} {
+            cmdModuleAutoinit
+            set needrender 1
+         } else {
+            # autoinit cannot be called elsewhere than from top level
+            set errormsg "${msgprefix}Command '$command' not supported"
+         }
+      }
+      {^($|help)} {
+         if {$topcall} {
+            eval cmdModuleHelp $args
+         } else {
+            # help cannot be called elsewhere than from top level
+            set errormsg "${msgprefix}Command '$command' not supported"
+         }
+      }
+      . {
+         set errormsg "${msgprefix}Invalid command '$command'"
+         if {$topcall} {
+            append errormsg "\nTry 'module --help' for more information."
+         }
       }
    }
+
+   # if an error need to be raised, proceed differently depending of
+   # call level: if called from top level render errors then raise error
+   # elsewhere call is made from a modulefile or modulerc and error
+   # will be managed from execute-modulefile or execute-modulerc
+   if {[info exists errormsg]} {
+      if {$topcall} {
+         reportErrorAndExit "$errormsg"
+      } else {
+         error "$errormsg"
+      }
+   # if called from top level render settings if any
+   } elseif {$topcall && [info exists needrender]} {
+      renderSettings
+   }
+
    return {}
 }
 
@@ -3600,6 +3668,10 @@ switch -regexp -- $opt {
 
 set g_shell [lindex $argv 0]
 set command [lindex $argv 1]
+# default command is help if none supplied
+if {$command eq ""} {
+	set command "help"
+}
 set argv [lreplace $argv 0 1]
 
 switch -regexp -- $g_shell {
@@ -3638,9 +3710,6 @@ cacheCurrentModules
 #  in env(MODULESPATH)
 runModulerc
 
-# Resolve any aliased module names - safe to run nonmodule arguments
-reportDebug "Resolving $argv"
-
 # extract command switches from other args
 set otherargv {}
 foreach arg $argv {
@@ -3663,135 +3732,9 @@ foreach arg $argv {
    }
 }
 
-set argv [resolveModuleVersionOrAlias $otherargv]
-reportDebug "Resolved $argv"
-
 if {[catch {
-   switch -regexp -- $command {
-      {^av} {
-         if {$argv ne ""} {
-            foreach arg $argv {
-               cmdModuleAvail $arg
-            }
-         } else {
-            cmdModuleAvail
-            cmdModuleAliases
-         }
-      }
-      {^al} {
-         cmdModuleAliases
-      }
-      {^li} {
-         cmdModuleList
-      }
-      {^(di|show)} {
-         foreach arg $argv {
-            cmdModuleDisplay $arg
-         }
-      }
-      {^(add|lo)} {
-         eval cmdModuleLoad $argv
-         renderSettings
-      }
-      {^source} {
-         eval cmdModuleSource $argv
-         renderSettings
-      }
-      {^paths} {
-         # HMS: We probably don't need the eval
-         eval cmdModulePaths $argv
-         renderSettings
-      }
-      {^path} {
-         # HMS: We probably don't need the eval
-         eval cmdModulePath $argv
-         renderSettings
-      }
-      {^pu} {
-         cmdModulePurge
-         renderSettings
-      }
-      {^save$} {
-         eval cmdModuleSave $argv
-      }
-      {^restore} {
-         eval cmdModuleRestore $argv
-         renderSettings
-      }
-      {^saveshow} {
-         eval cmdModuleSaveshow $argv
-      }
-      {^saverm} {
-         eval cmdModuleSaverm $argv
-      }
-      {^savelist} {
-         cmdModuleSavelist
-      }
-      {^sw} {
-         eval cmdModuleSwitch $argv
-         renderSettings
-      }
-      {^(rm|unlo)} {
-         eval cmdModuleUnload $argv
-         renderSettings
-      }
-      {^use$} {
-         eval cmdModuleUse $argv
-         renderSettings
-      }
-      {^unuse$} {
-         eval cmdModuleUnuse $argv
-         renderSettings
-      }
-      {^wh} {
-         if {$argv ne ""} {
-            foreach arg $argv {
-               cmdModuleWhatIs $arg
-            }
-         } else {
-            cmdModuleWhatIs
-         }
-      }
-      {^(apropos|search|keyword)$} {
-         eval cmdModuleApropos $argv
-      }
-      {^debug$} {
-         eval cmdModuleDebug
-      }
-      {^rel} {
-         cmdModuleReload
-         renderSettings
-      }
-      {^init(add|lo)$} {
-         eval cmdModuleInit add $argv
-      }
-      {^initprepend$} {
-         eval cmdModuleInit prepend $argv
-      }
-      {^initswitch$} {
-         eval cmdModuleInit switch $argv
-      }
-      {^init(rm|unlo)$} {
-         eval cmdModuleInit rm $argv
-      }
-      {^initlist$} {
-         eval cmdModuleInit list $argv
-      }
-      {^initclear$} {
-         eval cmdModuleInit clear $argv
-      }
-      {^autoinit$} {
-         cmdModuleAutoinit
-         renderSettings
-      }
-      {^($|help)} {
-         cmdModuleHelp $argv
-      }
-      . {
-         reportError "Command '$command' not recognized"
-         cmdModuleHelp $argv
-      }
-   }
+   # eval needed to pass otherargv as list to module proc
+   eval module $command $otherargv
 } errMsg ]} {
    reportError "$errMsg"
    exit 1

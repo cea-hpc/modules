@@ -1,0 +1,72 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	2016/08/20
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check command line commands with a bad command name.
+#		}C%
+#
+##############################################################################
+
+#
+# The following answers are to be expected in this testcase ...
+#
+
+set bad_arg "$error_msgs: Invalid command 'foobar'"
+set type_help "Try 'module --help' for more information."
+
+set err_sh "/bin/false;"
+set err_csh "$err_sh"
+set err_fish "$err_sh"
+set err_tcl "exec /bin/false;"
+set err_perl "die \"modulefile.tcl: 1 error(s) detected!\\n\""
+set err_python "raise RuntimeError( 'modulefile.tcl: 1 error(s) detected!')"
+set err_lisp "(error \"modulefile.tcl: 1 error(s) detected!\")"
+
+
+#
+# The tests
+#
+
+if { $verbose > 0 } {
+    send_user "\tChecking command line commands ...\n"
+}
+
+# invalid command leads to error code
+testouterr_cmd "sh" "foobar" "$err_sh" "$bad_arg\n$type_help"
+testouterr_cmd "bash" "foobar" "$err_sh" "$bad_arg\n$type_help"
+testouterr_cmd "ksh" "foobar" "$err_sh" "$bad_arg\n$type_help"
+testouterr_cmd "zsh" "foobar" "$err_sh" "$bad_arg\n$type_help"
+testouterr_cmd "csh" "foobar" "$err_csh" "$bad_arg\n$type_help"
+testouterr_cmd "tcsh" "foobar" "$err_csh" "$bad_arg\n$type_help"
+testouterr_cmd "fish" "foobar" "$err_fish" "$bad_arg\n$type_help"
+testouterr_cmd "tcl" "foobar" "$err_tcl" "$bad_arg\n$type_help"
+testouterr_cmd "perl" "foobar" "$err_perl" "$bad_arg\n$type_help"
+testouterr_cmd "python" "foobar" "$err_python" "$bad_arg\n$type_help"
+testouterr_cmd "lisp" "foobar" "$err_lisp" "$bad_arg\n$type_help"
+
+#
+#  Clean up variables used in this test case
+#
+
+unset bad_arg
+unset type_help
+
+unset err_sh
+unset err_csh
+unset err_fish
+unset err_tcl
+unset err_perl
+unset err_python
+unset err_lisp
