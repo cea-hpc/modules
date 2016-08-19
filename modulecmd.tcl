@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.624
+set MODULES_CURRENT_VERSION 1.625
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3370,7 +3370,6 @@ proc cmdModuleInit {args} {
                reportErrorAndExit "'module init$moduleinit_cmd' requires\
                   exactly $nargs($moduleinit_cmd) arg(s)."
                #               cmdModuleHelp
-               exit -1
             }
 
             # Only open the new file if we are not doing "initlist"
@@ -3447,13 +3446,11 @@ proc cmdModuleInit {args} {
             if {[info exists newfid]} {
                close $newfid
                if {[catch {file copy -force $filepath $filepath-OLD}] != 0} {
-                  reportError "Failed to back up original\
+                  reportErrorAndExit "Failed to back up original\
                      $filepath...exiting"
-                  exit -1
                }
                if {[catch {file copy -force $newfilepath $filepath}] != 0} {
-                  reportError "Failed to write $filepath...exiting"
-                  exit -1
+                  reportErrorAndExit "Failed to write $filepath...exiting"
                }
             }
          }
@@ -3597,7 +3594,7 @@ switch -regexp -- $opt {
    }
    {^--} {
        reportError "Unrecognized option '$opt'"
-       exit -1
+       exit 1
    }
 }
 
@@ -3807,7 +3804,10 @@ if {[catch {
    }
 } errMsg ]} {
    reportError "$errMsg"
+   exit 1
 }
+
+exit 0
 
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***
