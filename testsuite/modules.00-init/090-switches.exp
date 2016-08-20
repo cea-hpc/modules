@@ -26,8 +26,18 @@
 
 set modpath $env(MODULEPATH)
 
-set bad_arg	"$error_msgs: Unrecognized option '--foobar'"
+set bad_longarg "$error_msgs: Invalid option '--foobar'"
+set bad_shortarg "$error_msgs: Invalid option '-f'"
+set type_help "Try 'module --help' for more information."
 set pos_ans	"Modules Release(.*)Usage: module(.*)Loading \/(.*)Switches:(.*)"
+
+set err_sh "/bin/false;"
+set err_csh "$err_sh"
+set err_fish "$err_sh"
+set err_tcl "exec /bin/false;"
+set err_perl "die \"modulefile.tcl: 1 error(s) detected!\\n\""
+set err_python "raise RuntimeError( 'modulefile.tcl: 1 error(s) detected!')"
+set err_lisp "(error \"modulefile.tcl: 1 error(s) detected!\")"
 
 #
 # The tests
@@ -39,13 +49,50 @@ if { $verbose > 0 } {
 
 #testerr_cmd_re "sh" "avail -t" "$pos_ans"
 #testerr_cmd_re "sh" "avail -l" "$pos_ans"
-testerr_cmd_re "sh" "--help" "$pos_ans"
-testerr_cmd_re "sh" "" "$pos_ans"
-testerr_cmd_re "sh" "--foobar display loc_fq/2.0" "$bad_arg"
+
+# no error when help asked
+testouterr_cmd_re "sh" "--help" "^$" "$pos_ans"
+testouterr_cmd_re "sh" "-h" "^$" "$pos_ans"
+# no command means help
+testouterr_cmd_re "sh" "" "^$" "$pos_ans"
+
+# invalid option leads to error code
+testouterr_cmd "sh" "--foobar display loc_fq/2.0" "$err_sh" "$bad_longarg\n$type_help"
+testouterr_cmd "bash" "--foobar display loc_fq/2.0" "$err_sh" "$bad_longarg\n$type_help"
+testouterr_cmd "ksh" "--foobar display loc_fq/2.0" "$err_sh" "$bad_longarg\n$type_help"
+testouterr_cmd "zsh" "--foobar display loc_fq/2.0" "$err_sh" "$bad_longarg\n$type_help"
+testouterr_cmd "csh" "--foobar display loc_fq/2.0" "$err_csh" "$bad_longarg\n$type_help"
+testouterr_cmd "tcsh" "--foobar display loc_fq/2.0" "$err_csh" "$bad_longarg\n$type_help"
+testouterr_cmd "fish" "--foobar display loc_fq/2.0" "$err_fish" "$bad_longarg\n$type_help"
+testouterr_cmd "tcl" "--foobar display loc_fq/2.0" "$err_tcl" "$bad_longarg\n$type_help"
+testouterr_cmd "perl" "--foobar display loc_fq/2.0" "$err_perl" "$bad_longarg\n$type_help"
+testouterr_cmd "python" "--foobar display loc_fq/2.0" "$err_python" "$bad_longarg\n$type_help"
+testouterr_cmd "lisp" "--foobar display loc_fq/2.0" "$err_lisp" "$bad_longarg\n$type_help"
+testouterr_cmd "sh" "-f display loc_fq/2.0" "$err_sh" "$bad_shortarg\n$type_help"
+testouterr_cmd "bash" "-f display loc_fq/2.0" "$err_sh" "$bad_shortarg\n$type_help"
+testouterr_cmd "ksh" "-f display loc_fq/2.0" "$err_sh" "$bad_shortarg\n$type_help"
+testouterr_cmd "zsh" "-f display loc_fq/2.0" "$err_sh" "$bad_shortarg\n$type_help"
+testouterr_cmd "csh" "-f display loc_fq/2.0" "$err_csh" "$bad_shortarg\n$type_help"
+testouterr_cmd "tcsh" "-f display loc_fq/2.0" "$err_csh" "$bad_shortarg\n$type_help"
+testouterr_cmd "fish" "-f display loc_fq/2.0" "$err_fish" "$bad_shortarg\n$type_help"
+testouterr_cmd "tcl" "-f display loc_fq/2.0" "$err_tcl" "$bad_shortarg\n$type_help"
+testouterr_cmd "perl" "-f display loc_fq/2.0" "$err_perl" "$bad_shortarg\n$type_help"
+testouterr_cmd "python" "-f display loc_fq/2.0" "$err_python" "$bad_shortarg\n$type_help"
+testouterr_cmd "lisp" "-f display loc_fq/2.0" "$err_lisp" "$bad_shortarg\n$type_help"
 
 #
 #  Clean up variables used in this test case
 #
 
-unset bad_arg
+unset bad_longarg
+unset bad_shortarg
 unset pos_ans
+unset type_help
+
+unset err_sh
+unset err_csh
+unset err_fish
+unset err_tcl
+unset err_perl
+unset err_python
+unset err_lisp

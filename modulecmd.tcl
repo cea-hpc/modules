@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.627
+set MODULES_CURRENT_VERSION 1.628
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3638,101 +3638,101 @@ fconfigure stderr -translation auto
 
 reportDebug "CALLING $argv0 $argv"
 
-# Parse options
-set opt [lindex $argv 1]
-
-switch -regexp -- $opt {
-   {^(-deb|--deb|-D)} {
-      if {!$g_debug} {
-         report "CALLING $argv0 $argv"
-      }
-
-      set g_debug 1
-      reportDebug "debug enabled"
-
-      set argv [replaceFromList $argv $opt]
-   }
-   {^(--help|-h)} {
-       cmdModuleHelp
-       exit 0
-   }
-   {^(-V|--ver)} {
-       report "Modules Release Tcl $MODULES_CURRENT_VERSION"
-       exit 0
-   }
-   {^--} {
-       reportError "Unrecognized option '$opt'"
-       exit 1
-   }
-}
-
-set g_shell [lindex $argv 0]
-set command [lindex $argv 1]
-# default command is help if none supplied
-if {$command eq ""} {
-	set command "help"
-}
-set argv [lreplace $argv 0 1]
-
-switch -regexp -- $g_shell {
-   ^(sh|bash|ksh|zsh)$ {
-       set g_shellType sh
-   }
-   ^(fish)$ {
-       set g_shellType fish
-   }
-   ^(cmd)$ {
-       set g_shellType cmd
-   }
-   ^(csh|tcsh)$ {
-       set g_shellType csh
-   }
-   ^(tcl)$ {
-      set g_shellType tcl
-   }
-   ^(perl)$ {
-       set g_shellType perl
-   }
-   ^(python)$ {
-       set g_shellType python
-   }
-   ^(lisp)$ {
-       set g_shellType lisp
-   }
-   . {
-       reportErrorAndExit "Unknown shell type \'($g_shell)\'"
-   }
-}
-
-cacheCurrentModules
-
-# Find and execute any .modulerc file found in the module directories defined
-#  in env(MODULESPATH)
-runModulerc
-
-# extract command switches from other args
-set otherargv {}
-foreach arg $argv {
-   switch -- $arg {
-      "-t" - "--terse" {
-         set show_oneperline 1
-      }
-      "-l" - "--long" {
-         set show_modtimes 1
-      }
-      "-d" - "--default" {
-         set show_filter "onlydefaults"
-      }
-      "-L" - "--latest" {
-         set show_filter "onlylatest"
-      }
-      default {
-         lappend otherargv $arg
-      }
-   }
-}
-
 if {[catch {
+   # Parse shell
+   set g_shell [lindex $argv 0]
+   switch -regexp -- $g_shell {
+      ^(sh|bash|ksh|zsh)$ {
+          set g_shellType sh
+      }
+      ^(fish)$ {
+          set g_shellType fish
+      }
+      ^(cmd)$ {
+          set g_shellType cmd
+      }
+      ^(csh|tcsh)$ {
+          set g_shellType csh
+      }
+      ^(tcl)$ {
+         set g_shellType tcl
+      }
+      ^(perl)$ {
+          set g_shellType perl
+      }
+      ^(python)$ {
+          set g_shellType python
+      }
+      ^(lisp)$ {
+          set g_shellType lisp
+      }
+      . {
+          reportErrorAndExit "Unknown shell type \'($g_shell)\'"
+      }
+   }
+
+   # Parse options
+   set opt [lindex $argv 1]
+   switch -regexp -- $opt {
+      {^(-deb|--deb|-D)} {
+         if {!$g_debug} {
+            report "CALLING $argv0 $argv"
+         }
+
+         set g_debug 1
+         reportDebug "debug enabled"
+
+         set argv [lreplace $argv 1 1]
+      }
+      {^(--help|-h)} {
+          cmdModuleHelp
+          exit 0
+      }
+      {^(-V|--ver)} {
+          report "Modules Release Tcl $MODULES_CURRENT_VERSION"
+          exit 0
+      }
+      {^-} {
+          reportErrorAndExit "Invalid option '$opt'\nTry\
+            'module --help' for more information."
+      }
+   }
+
+   set command [lindex $argv 1]
+   # default command is help if none supplied
+   if {$command eq ""} {
+      set command "help"
+   }
+   set argv [lreplace $argv 0 1]
+
+   cacheCurrentModules
+
+   # Find and execute any .modulerc file found in the module directories
+   # defined in env(MODULESPATH)
+   runModulerc
+
+   # extract command switches from other args
+   set otherargv {}
+   foreach arg $argv {
+      switch -- $arg {
+         "-t" - "--terse" {
+            set show_oneperline 1
+         }
+         "-l" - "--long" {
+            set show_modtimes 1
+         }
+         "-d" - "--default" {
+            set show_filter "onlydefaults"
+         }
+         "-L" - "--latest" {
+            set show_filter "onlylatest"
+         }
+         default {
+            lappend otherargv $arg
+         }
+      }
+   }
+
    # eval needed to pass otherargv as list to module proc
    eval module $command $otherargv
 } errMsg ]} {
