@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.628
+set MODULES_CURRENT_VERSION 1.629
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2330,6 +2330,79 @@ proc showModulePath {} {
    }
 }
 
+# get a list of elements and print them in a column or in a
+# one-per-line fashion
+proc displayElementList {header max_elt_len display_idx args} {
+   global DEF_COLUMNS
+
+   set elt_cnt [llength $args]
+   reportDebug "displayElementList: header=$header, elt_cnt=$elt_cnt,\
+      max_elt_len=$max_elt_len, display_idx=$display_idx"
+
+   # display header if any provided
+   if {$header ne "" && $header ne "noheader"} {
+      set len  [string length $header]
+      set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
+      set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
+      report "[string repeat {-} $lrep] $header [string repeat {-} $rrep]"
+   }
+
+   # a max element size of 0 means to display one element per line
+   if {$max_elt_len == 0} {
+      if {$display_idx} {
+         set idx 1
+         foreach elt $args {
+            report [format "%2d) %s " $idx $elt]
+            incr idx
+         }
+      } else {
+         foreach elt $args {
+            report $elt
+         }
+      }
+   # elsewhere display elements in columns
+   } else {
+      if {$display_idx} {
+         # save room for numbers and spacing: 2 digits + ) + space + space
+         set cols [expr {int($DEF_COLUMNS/($max_elt_len + 5))}]
+      } else {
+         incr max_elt_len 1
+         set cols [expr {int($DEF_COLUMNS / $max_elt_len)}]
+      }
+      # safety check to prevent divide by zero error below
+      if {$cols <= 0} {
+         set cols 1
+      }
+
+      set rows [expr {int($elt_cnt / $cols)}]
+      set lastrow_item_cnt [expr {int($elt_cnt % $cols)}]
+      if {$lastrow_item_cnt > 0} {
+          incr rows
+      }
+      reportDebug "displayElementList: list=$args"
+      reportDebug "displayElementList: rows/cols=$rows/$cols,\
+         lastrow_item_cnt=$lastrow_item_cnt"
+
+      for {set row 0} {$row < $rows} {incr row} {
+         for {set col 0} {$col < $cols} {incr col} {
+            set index [expr {$col * $rows + $row}]
+            set elt [lindex $args $index]
+            if {$elt ne ""} {
+               if {$display_idx} {
+                  set elt [format "%2d) %-${max_elt_len}s "\
+                     [expr {$index +1}] $elt]
+               } else {
+                  set elt [format "%-${max_elt_len}s" $elt]
+               }
+               report $elt -nonewline
+            }
+         }
+
+         report ""
+      }
+   }
+}
+
 # build list of what to undo then do to move
 # from an initial list to a target list
 proc getMovementBetweenList {from to} {
@@ -2552,7 +2625,7 @@ proc readCollectionContent {collfile} {
 # command line commands
 #
 proc cmdModuleList {} {
-   global DEF_COLUMNS show_oneperline show_modtimes g_debug
+   global show_oneperline show_modtimes
    global g_def_separator
 
    set loadedmodlist [getLoadedModuleList]
@@ -2566,7 +2639,13 @@ proc cmdModuleList {} {
             mod. ------"
       }
       report "Currently Loaded Modulefiles:"
+      set display_list {}
       set max 0
+      if {$show_modtimes || $show_oneperline} {
+         set display_idx 0
+      } else {
+         set display_idx 1
+      }
 
       foreach mod $loadedmodlist {
          set len [string length $mod]
@@ -2575,10 +2654,10 @@ proc cmdModuleList {} {
             if {$show_modtimes} {
                set filetime [clock format [file mtime [lindex\
                   [getPathToModule $mod] 0]] -format "%Y/%m/%d %H:%M:%S"]
-               report [format "%-53s%10s" $mod $filetime]
+               lappend display_list [format "%-53s%10s" $mod $filetime]
             }\
             elseif {$show_oneperline} {
-               report $mod
+               lappend display_list $mod
             } else {
                if {$len > $max} {
                   set max $len
@@ -2601,45 +2680,12 @@ proc cmdModuleList {} {
                   }
                }
 
-               lappend list $mod
+               lappend display_list $mod
             }
          }
       }
-      if {$show_oneperline ==0 && $show_modtimes == 0} {
-         # save room for numbers and spacing: 2 digits + ) + space + space
-         set cols [expr {int($DEF_COLUMNS/($max + 5))}]
-         # safety check to prevent divide by zero error below
-         if {$cols <= 0} {
-            set cols 1
-         }
 
-         set item_cnt [llength $list]
-         set rows [expr {int($item_cnt / $cols)}]
-         set lastrow_item_cnt [expr {int($item_cnt % $cols)}]
-
-         if {$lastrow_item_cnt > 0} {
-            incr rows
-         }
-         if {$g_debug} {
-            report "list = $list"
-            report "rows/cols = $rows/$cols,   max = $max"
-            report "item_cnt = $item_cnt,  lastrow_item_cnt =\
-               $lastrow_item_cnt"
-         }
-         for {set row 0} {$row < $rows} {incr row} {
-            for {set col 0} {$col < $cols} {incr col} {
-               set index [expr {$col * $rows + $row}]
-               set mod [lindex $list $index]
-
-               if {$mod ne ""} {
-                  set n [expr {$index +1}]
-                  set mod [format "%2d) %-${max}s " $n $mod]
-                  report $mod -nonewline
-               }
-            }
-            report ""
-         }
-      }
+      eval displayElementList "noheader" $max $display_idx $display_list
    }
 }
 
@@ -2703,7 +2749,8 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    }
    foreach dir [getModulePathList "exiterronundef"] {
       if {[file isdirectory $dir]} {
-         report "----------- $dir ------------- "
+         set display_list {}
+
          set modlist [listModules $dir $mod 0 0 0]
          foreach mod2 $modlist {
             set g_whatis ""
@@ -2717,10 +2764,12 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                popModuleName
 
                if {$search eq "" || [regexp -nocase $search $g_whatis]} {
-                  report [format "%20s: %s" $mod2 $g_whatis]
+                  lappend display_list [format "%20s: %s" $mod2 $g_whatis]
                }
             }
          }
+
+         eval displayElementList $dir 0 0 $display_list
       }
    }
 }
@@ -2929,7 +2978,7 @@ proc cmdModuleSaveshow {{coll {}}} {
 }
 
 proc cmdModuleSavelist {} {
-   global env DEF_COLUMNS show_oneperline show_modtimes g_debug
+   global env show_oneperline show_modtimes
 
    # if a target is set, only list collection matching this
    # target (means having target as suffix in their name)
@@ -2957,7 +3006,13 @@ proc cmdModuleSavelist {} {
             mod. ------"
       }
       report "Named collection list$targetdesc:"
+      set display_list {}
       set max 0
+      if {$show_modtimes || $show_oneperline} {
+         set display_idx 0
+      } else {
+         set display_idx 1
+      }
 
       foreach coll [lsort -dictionary $coll_list] {
          # remove target suffix from names to display
@@ -2968,54 +3023,21 @@ proc cmdModuleSavelist {} {
             if {$show_modtimes} {
                set filetime [clock format [file mtime $coll]\
                   -format "%Y/%m/%d %H:%M:%S"]
-               report [format "%-53s%10s" $mod $filetime]
+               lappend display_list [format "%-53s%10s" $mod $filetime]
             }\
             elseif {$show_oneperline} {
-               report $mod
+               lappend display_list $mod
             } else {
                if {$len > $max} {
                   set max $len
                }
 
-               lappend list $mod
+               lappend display_list $mod
             }
          }
       }
-      if {$show_oneperline ==0 && $show_modtimes == 0} {
-         # save room for numbers and spacing: 2 digits + ) + space + space
-         set cols [expr {int($DEF_COLUMNS/($max + 5))}]
-         # safety check to prevent divide by zero error below
-         if {$cols <= 0} {
-            set cols 1
-         }
 
-         set item_cnt [llength $list]
-         set rows [expr {int($item_cnt / $cols)}]
-         set lastrow_item_cnt [expr {int($item_cnt % $cols)}]
-
-         if {$lastrow_item_cnt > 0} {
-            incr rows
-         }
-         if {$g_debug} {
-            report "list = $list"
-            report "rows/cols = $rows/$cols,   max = $max"
-            report "item_cnt = $item_cnt,  lastrow_item_cnt =\
-               $lastrow_item_cnt"
-         }
-         for {set row 0} {$row < $rows} {incr row} {
-            for {set col 0} {$col < $cols} {incr col} {
-               set index [expr {$col * $rows + $row}]
-               set mod [lindex $list $index]
-
-               if {$mod ne ""} {
-                  set n [expr {$index +1}]
-                  set mod [format "%2d) %-${max}s " $n $mod]
-                  report $mod -nonewline
-               }
-            }
-            report ""
-         }
-      }
+      eval displayElementList "noheader" $max $display_idx $display_list
    }
 }
 
@@ -3155,7 +3177,7 @@ proc cmdModuleReload {} {
 }
 
 proc cmdModuleAliases {} {
-   global DEF_COLUMNS g_moduleAlias g_moduleVersion
+   global g_moduleAlias g_moduleVersion
 
    # parse paths to fill g_moduleAlias and g_moduleVersion if empty
    if {[array size g_moduleAlias] == 0 \
@@ -3167,27 +3189,17 @@ proc cmdModuleAliases {} {
       }
    }
 
-   set label "Aliases"
-   set len  [string length $label]
-   set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
-   set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
-
-   report "[string repeat {-} $lrep] $label [string repeat {-} $rrep]"
-
+   set display_list {}
    foreach name [lsort -dictionary [array names g_moduleAlias]] {
-      report "$name -> $g_moduleAlias($name)"
+      lappend display_list "$name -> $g_moduleAlias($name)"
    }
+   eval displayElementList "Aliases" 0 0 $display_list
 
-   set label "Versions"
-   set len  [string length $label]
-   set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
-   set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
-
-   report "[string repeat {-} $lrep] $label [string repeat {-} $rrep]"
-
+   set display_list {}
    foreach name [lsort -dictionary [array names g_moduleVersion]] {
-      report "$name -> $g_moduleVersion($name)"
+      lappend display_list "$name -> $g_moduleVersion($name)"
    }
+   eval displayElementList "Versions" 0 0 $display_list
 }
 
 proc system {mycmd args} {
@@ -3211,7 +3223,7 @@ proc system {mycmd args} {
 }
 
 proc cmdModuleAvail {{mod {*}}} {
-   global DEF_COLUMNS flag_default_mf flag_default_dir
+   global flag_default_mf flag_default_dir
    global show_oneperline show_modtimes show_filter
 
    if {$show_modtimes} {
@@ -3221,10 +3233,9 @@ proc cmdModuleAvail {{mod {*}}} {
 
    foreach dir [getModulePathList "exiterronundef"] {
       if {[file isdirectory "$dir"] && [file readable $dir]} {
-         set len  [string length $dir]
-         set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
-         set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
-         report "[string repeat {-} $lrep] $dir [string repeat {-} $rrep]"
+         set display_list {}
+         set max 0
+
          set list [listModules "$dir" "$mod" 0 $flag_default_mf\
             $flag_default_dir $show_filter]
          if {$show_modtimes} {
@@ -3234,13 +3245,13 @@ proc cmdModuleAvail {{mod {*}}} {
                regsub {\(default\)} $i "   (default)" i2 
                set filetime [clock format [file mtime [lindex\
                   [getPathToModule $i] 0]] -format "%Y/%m/%d %H:%M:%S" ]
-               report [format "%-53s%10s" $i2 $filetime]
+               lappend display_list [format "%-53s%10s" $i2 $filetime]
             }
          }\
          elseif {$show_oneperline} {
             foreach i $list {
                regsub {\(default\)} $i "   (default)" i2 
-                  report "$i2"
+               lappend display_list $i2
             }
          } else {
             set max 0
@@ -3248,37 +3259,11 @@ proc cmdModuleAvail {{mod {*}}} {
                if {[string length $mod2] > $max} {
                   set max [string length $mod2]
                }
-            }
-
-            incr max 1
-            set cols [expr {int($DEF_COLUMNS / $max)}]
-            # safety check to prevent divide by zero error below
-            if {$cols <= 0} {
-               set cols 1
-            }
-
-            # There is no '{}' at the begining of this 'list' as there is
-            # in cmd ModuleList - ?
-            set item_cnt [expr {[llength $list] - 0}]
-            set rows [expr {int($item_cnt / $cols)}]
-            set lastrow_item_cnt [expr {int($item_cnt % $cols)}]
-            if {$lastrow_item_cnt > 0} {
-                incr rows
-            }
-
-            for {set row 0} {$row < $rows} {incr row} {
-               for {set col 0} {$col < $cols} {incr col} {
-                  set index [expr {$col * $rows + $row}]
-                  set mod2 [lindex $list $index]
-                  if {$mod2 ne ""} {
-                     set mod2 [format "%-${max}s" $mod2]
-                     report $mod2 -nonewline
-                  }
-               }
-
-               report ""
+               lappend display_list $mod2
             }
          }
+
+         eval displayElementList $dir $max 0 $display_list
       }
    }
 }
