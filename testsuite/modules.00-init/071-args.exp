@@ -1,0 +1,111 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	2016/08/28
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check module commands against wrong argument number.
+#		}C%
+#
+##############################################################################
+
+#
+# The following answers are to be expected in this testcase ...
+#
+
+set bad_arg1 "$error_msgs: Unexpected number of args for '"
+set bad_arg2 "' command"
+set type_help "Try 'module --help' for more information."
+
+set err_sh "/bin/false;"
+set err_csh "$err_sh"
+set err_fish "$err_sh"
+set err_tcl "exec /bin/false;"
+set err_perl "die \"modulefile.tcl: 1 error(s) detected!\\n\""
+set err_python "raise RuntimeError( 'modulefile.tcl: 1 error(s) detected!')"
+set err_lisp "(error \"modulefile.tcl: 1 error(s) detected!\")"
+
+
+#
+# The tests
+#
+
+if { $verbose > 0 } {
+    send_user "\tChecking commands against wrong argument number...\n"
+}
+
+# unexpected number of arguments leads to error code
+testouterr_cmd "sh" "load" "$err_sh" "${bad_arg1}load${bad_arg2}\n$type_help"
+testouterr_cmd "bash" "load" "$err_sh" "${bad_arg1}load${bad_arg2}\n$type_help"
+testouterr_cmd "ksh" "load" "$err_sh" "${bad_arg1}load${bad_arg2}\n$type_help"
+testouterr_cmd "zsh" "load" "$err_sh" "${bad_arg1}load${bad_arg2}\n$type_help"
+testouterr_cmd "csh" "load" "$err_csh" "${bad_arg1}load${bad_arg2}\n$type_help"
+testouterr_cmd "tcsh" "load" "$err_csh" "${bad_arg1}load${bad_arg2}\n$type_help"
+testouterr_cmd "fish" "load" "$err_fish" "${bad_arg1}load${bad_arg2}\n$type_help"
+testouterr_cmd "tcl" "load" "$err_tcl" "${bad_arg1}load${bad_arg2}\n$type_help"
+testouterr_cmd "perl" "load" "$err_perl" "${bad_arg1}load${bad_arg2}\n$type_help"
+testouterr_cmd "python" "load" "$err_python" "${bad_arg1}load${bad_arg2}\n$type_help"
+testouterr_cmd "lisp" "load" "$err_lisp" "${bad_arg1}load${bad_arg2}\n$type_help"
+
+# only check sh shell for the remaining test, as we already test above
+# that every supported shells respond correctly to error raise
+
+testouterr_cmd "sh" "unload" "$err_sh" "${bad_arg1}unload${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "reload foo" "$err_sh" "${bad_arg1}reload${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "source" "$err_sh" "${bad_arg1}source${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "switch" "$err_sh" "${bad_arg1}switch${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "switch foo1 bar foo2" "$err_sh" "${bad_arg1}switch${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "show" "$err_sh" "${bad_arg1}show${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "aliases foo" "$err_sh" "${bad_arg1}aliases${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "path" "$err_sh" "${bad_arg1}path${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "path foo bar" "$err_sh" "${bad_arg1}path${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "paths" "$err_sh" "${bad_arg1}paths${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "paths foo bar" "$err_sh" "${bad_arg1}paths${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "list foo" "$err_sh" "${bad_arg1}list${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "search foo bar" "$err_sh" "${bad_arg1}search${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "purge foo" "$err_sh" "${bad_arg1}purge${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "save foo bar" "$err_sh" "${bad_arg1}save${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "restore foo bar" "$err_sh" "${bad_arg1}restore${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "saverm foo bar" "$err_sh" "${bad_arg1}saverm${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "saveshow foo bar" "$err_sh" "${bad_arg1}saveshow${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "savelist foo" "$err_sh" "${bad_arg1}savelist${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "initadd" "$err_sh" "${bad_arg1}initadd${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "initadd foo bar" "$err_sh" "${bad_arg1}initadd${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "initprepend" "$err_sh" "${bad_arg1}initprepend${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "initprepend foo bar" "$err_sh" "${bad_arg1}initprepend${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "initswitch" "$err_sh" "${bad_arg1}initswitch${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "initswitch foo1 bar foo2" "$err_sh" "${bad_arg1}initswitch${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "initrm" "$err_sh" "${bad_arg1}initrm${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "initrm foo bar" "$err_sh" "${bad_arg1}initrm${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "initrm" "$err_sh" "${bad_arg1}initrm${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "initlist foo" "$err_sh" "${bad_arg1}initlist${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "initclear foo" "$err_sh" "${bad_arg1}initclear${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "debug foo" "$err_sh" "${bad_arg1}debug${bad_arg2}\n$type_help"
+testouterr_cmd "sh" "autoinit foo" "$err_sh" "${bad_arg1}autoinit${bad_arg2}\n$type_help"
+
+
+#
+#  Clean up variables used in this test case
+#
+
+unset bad_arg1
+unset bad_arg2
+unset type_help
+
+unset err_sh
+unset err_csh
+unset err_fish
+unset err_tcl
+unset err_perl
+unset err_python
+unset err_lisp
