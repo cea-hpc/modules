@@ -40,41 +40,33 @@ set modulefile_3 "$env(MODULEPATH)/$module_3"
 #  The warning messages
 #
 
-set prob_dup "$prob_msgs: Duplicate version symbol 'foo' found"
+set prob_dup "$warn_msgs: Duplicate version symbol 'foo' found"
 set err_loop "$error_msgs: Version symbol '1.0' loops"
 
 #
 #  Only checked for the csh
 #
 
-set lmf_csh_1 "setenv _LMFILES_ $modulefile_1 ;"
-set lm_csh_1 "setenv LOADEDMODULES $module_1 ;"
-set ts_csh_1 "setenv testsuite blah:bar:foo ;"
+set lmf_csh_1 "setenv _LMFILES_ $modulefile_1;"
+set lm_csh_1 "setenv LOADEDMODULES $module_1;"
+set ts_csh_1 "setenv testsuite bar:blah:foo;"
 
-set lmf_csh_2 "setenv _LMFILES_ $modulefile_2 ;"
-set lm_csh_2 "setenv LOADEDMODULES $module_2 ;"
-set ts_csh_2 "setenv testsuite 1.0:bar:foo ;"
+set lmf_csh_2 "setenv _LMFILES_ $modulefile_2;"
+set lm_csh_2 "setenv LOADEDMODULES $module_2;"
+set ts_csh_2 "setenv testsuite 1.0:bar:foo;"
 
-set lmf_csh_3 "setenv _LMFILES_ $modulefile_3 ;"
-set lm_csh_3 "setenv LOADEDMODULES $module_3 ;"
-set ts_csh_3 "setenv testsuite .*undef.* ;"
+set lmf_csh_3 "setenv _LMFILES_ $modulefile_3;"
+set lm_csh_3 "setenv LOADEDMODULES $module_3;"
+set ts_csh_3 "setenv testsuite .*undef.*;"
 
 
 #
 #  The tests
 #
 
-testouterr_cmd_re "csh" "--us=nov load $module_1" "$lm_csh_1$lmf_csh_1$ts_csh_1" "$prob_dup"
-testouterr_cmd_re "csh" "--us=adv load $module_1" "$lm_csh_1$lmf_csh_1$ts_csh_1" "$prob_dup"
-test_cmd "csh" "--us=exp load $module_1" "$lm_csh_1$lmf_csh_1$ts_csh_1"
-
-testouterr_cmd_re "csh" "--us=nov load $module_2" "$lm_csh_2$lmf_csh_2$ts_csh_2" "$err_loop"
-testouterr_cmd_re "csh" "--us=adv load $module_2" "$lm_csh_2$lmf_csh_2$ts_csh_2" "$err_loop"
-testouterr_cmd_re "csh" "--us=exp load $module_2" "$lm_csh_2$lmf_csh_2$ts_csh_2" "$err_loop"
-
-testouterr_cmd_re "csh" "--us=nov load $module_3" "$lm_csh_3$lmf_csh_3$ts_csh_3" "$err_loop"
-testouterr_cmd_re "csh" "--us=adv load $module_3" "$lm_csh_3$lmf_csh_3$ts_csh_3" "$err_loop"
-testouterr_cmd_re "csh" "--us=exp load $module_3" "$lm_csh_3$lmf_csh_3$ts_csh_3" "$err_loop"
+testouterr_cmd_re "csh" "load $module_1" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_1\n$lm_csh_1\n$ts_csh_1" "$prob_dup"
+testouterr_cmd_re "csh" "load $module_2" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_2\n$lm_csh_2\n$ts_csh_2" "$err_loop"
+testouterr_cmd_re "csh" "load $module_3" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_3\n$lm_csh_3\n$ts_csh_3" "$err_loop"
 
 #
 #  Cleanup
