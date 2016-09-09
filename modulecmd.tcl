@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.640
+set MODULES_CURRENT_VERSION 1.641
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -340,7 +340,7 @@ set ModulesCurrentModulefile {}
 
 proc module-info {what {more {}}} {
    global g_shellType g_shell tcl_platform
-   global g_moduleAlias g_symbolHash g_versionHash
+   global g_symbolHash g_versionHash
 
    set mode [currentMode]
 
@@ -375,8 +375,9 @@ proc module-info {what {more {}}} {
          return $tcl_platform(user)
       }
       "alias" {
-         if {[info exists g_moduleAlias($more)]} {
-            return $g_moduleAlias($more)
+         set ret [resolveModuleVersionOrAlias $more "alias"]
+         if {$ret ne $more} {
+            return $ret
          } else {
             return {}
          }
@@ -534,14 +535,15 @@ proc module-version {args} {
 }
 
 proc module-alias {args} {
-   global g_moduleAlias
+   global g_moduleAlias g_aliasHash
 
-   set alias [lindex $args 0]
+   lassign [getModuleNameVersion [lindex $args 0]] alias
    lassign [getModuleNameVersion [lindex $args 1]] mod
 
    reportDebug "module-alias: $alias = $mod"
 
    set g_moduleAlias($alias) $mod
+   set g_aliasHash($mod) $alias
 
    if {[string match [currentMode] "display"]} {
       report "module-alias\t$args"
@@ -2098,12 +2100,13 @@ proc cacheCurrentModules {} {
 
 # This proc resolves module aliases or version aliases to the real module name
 # and version. A list of already resolved aliases and version is set to detect
-# infinite resolution loop.
-proc resolveModuleVersionOrAlias {name args} {
-   global g_moduleVersion g_moduleDefault g_moduleAlias
+# infinite resolution loop. Search may be limited to alias or alias hash, all
+# kind of version/alias is looked for by default.
+proc resolveModuleVersionOrAlias {name {search "all"} args} {
+   global g_moduleVersion g_moduleDefault g_moduleAlias g_aliasHash
 
    reportDebug "resolveModuleVersionOrAlias: Resolving $name\
-      (previously: $args)"
+      (previously: $args), search for $search"
 
    # Chop off (default) if it exists
    set x [expr {[string length $name] - 9}]
@@ -2112,15 +2115,22 @@ proc resolveModuleVersionOrAlias {name args} {
       reportDebug "resolveModuleVersionOrAlias: trimming name = \"$name\""
    }
 
-   if {[info exists g_moduleAlias($name)]} {
+   if {$search ne "aliashash" && [info exists g_moduleAlias($name)]} {
       reportDebug "resolveModuleVersionOrAlias: $name is an alias"
       set ret $g_moduleAlias($name)
-   }\
-   elseif {[info exists g_moduleVersion($name)]} {
+   # if we only look for an alias, try to look in hash if not found above
+   # and if recursive call to this proc has not been ignited yet
+   } elseif {(([llength $args] == 0 && $search eq "alias")\
+      || $search eq "aliashash") && [info exists g_aliasHash($name)]} {
+      reportDebug "resolveModuleVersionOrAlias: $name is an alias"
+      set ret $g_aliasHash($name)
+      set search "aliashash"
+   # do not look for version resolution if we only look for alias
+   } elseif {$search eq "all" && [info exists g_moduleVersion($name)]} {
       reportDebug "resolveModuleVersionOrAlias: $name is a version alias"
       set ret $g_moduleVersion($name)
-   }\
-   elseif {[info exists g_moduleDefault($name)]} {
+   # do not look for default resolution if we only look for alias
+   } elseif {$search eq "all" && [info exists g_moduleDefault($name)]} {
       reportDebug "resolveModuleVersionOrAlias: found a default for $name"
       set ret "$name/$g_moduleDefault($name)"
    } else {
@@ -2135,7 +2145,7 @@ proc resolveModuleVersionOrAlias {name args} {
          lappend args $ret
          # if the alias, pseudo version or default is an alias, we need to
          # resolve it
-         set ret [eval resolveModuleVersionOrAlias $ret $args]
+         set ret [eval resolveModuleVersionOrAlias $ret $search $args]
       } else {
          # resolution loop is detected, set return value to "*undef*" as
          # C-version does
