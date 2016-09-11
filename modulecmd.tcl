@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.641
+set MODULES_CURRENT_VERSION 1.642
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -340,7 +340,7 @@ set ModulesCurrentModulefile {}
 
 proc module-info {what {more {}}} {
    global g_shellType g_shell tcl_platform
-   global g_symbolHash g_versionHash
+   global g_symbolHash
 
    set mode [currentMode]
 
@@ -404,16 +404,8 @@ proc module-info {what {more {}}} {
          }
       }
       "version" {
-         if {[regexp {^\/} $more]} {
-            set tmp [currentModuleName]
-            set tmp [file dirname $tmp]
-            set more "${tmp}$more"
-         }
-         if {[info exists g_versionHash($more)]} {
-            return $g_versionHash($more)
-         } else {
-            return {}
-         }
+         lassign [getModuleNameVersion $more] mod
+         return [resolveModuleVersionOrAlias $mod]
       }
       default {
          error "module-info $what not supported"
@@ -513,17 +505,17 @@ proc module-version {args} {
       } else {
          set aliasversion "$modname/$version"
          reportDebug "module-version: alias $aliasversion = $mod"
-         set g_moduleVersion($aliasversion) $mod
 
-         if {[info exists g_versionHash($mod)]} {
+         if {![info exists g_moduleVersion($aliasversion)]} {
+            set g_moduleVersion($aliasversion) $mod
+
             # don't add duplicates
-            if {[lsearch -exact $g_versionHash($mod) $aliasversion] < 0} {
-               set tmplist $g_versionHash($mod)
-               set tmplist [linsert $tmplist end $aliasversion]
-               set g_versionHash($mod) $tmplist
+            if {![info exists g_versionHash($mod)] ||\
+               [lsearch -exact $g_versionHash($mod) $version] < 0} {
+               lappend g_versionHash($mod) $version
             }
          } else {
-            set g_versionHash($mod) $aliasversion
+            reportWarning "Duplicate version symbol '$version' found"
          }
       }
    }
