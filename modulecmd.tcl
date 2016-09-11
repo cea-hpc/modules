@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.639
+set MODULES_CURRENT_VERSION 1.640
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -280,7 +280,7 @@ proc execute-modulerc {modfile} {
       return ""
    }
 
-   set modparent [file dirname $modfile]
+   set modname [file dirname [currentModuleName]]
 
    if {![info exists g_rcfilesSourced($modfile)]} {
       reportDebug "execute-modulerc: sourcing rc $modfile"
@@ -317,15 +317,14 @@ proc execute-modulerc {modfile} {
 
       interp delete $slave
 
-      if {[file tail $modfile] eq ".version"} {
+      if {[file tail $modfile] eq ".version" && $ModulesVersion ne ""} {
          # only set g_moduleDefault if .version file,
          # otherwise any modulerc settings ala "module-version /xxx default"
          #  would get overwritten
-         set g_moduleDefault($modparent) $ModulesVersion
+         set g_moduleDefault($modname) $ModulesVersion
+         reportDebug "execute-version: Setting g_moduleDefault($modname)\
+            $ModulesVersion"
       }
-
-      reportDebug "execute-version: Setting g_moduleDefault($modparent)\
-         $ModulesVersion"
 
       # Keep track of rc files we already sourced so we don't run them again
       set g_rcfilesSourced($modfile) $ModulesVersion
@@ -438,64 +437,96 @@ proc module-whatis {message} {
    return {}
 }
 
+# Determine with a name provided as argument the corresponding module name,
+# version and name/version. Module name is guessed from current module name
+# when shorthand version notation is used. Both name and version are guessed
+# from current module if name provided is empty
+proc getModuleNameVersion {{name {}}} {
+   set curmod [currentModuleName]
+   set curmodname [file dirname $curmod]
+   set curmodversion [file tail $curmod]
+
+   if {$name eq ""} {
+      set name $curmodname
+      set version $curmodversion
+   # check for shorthand version notation like "/version" or "./version"
+   } elseif {[regexp {^\.?\/(.*)$} $name match version]} {
+      # if we cannot distinguish a module name, raise error when
+      # shorthand version notation is used
+      global ModulesCurrentModulefile
+      if {$ModulesCurrentModulefile ne $curmod} {
+         # name is the name of current module directory
+         set name $curmodname
+      } else {
+         reportError "Invalid modulename '$name' found"
+         return {}
+      }
+   } else {
+      set version [file tail $name]
+      if {$name eq $version} {
+         set version ""
+      } else {
+         set name [file dirname $name]
+         # clear version if default
+         if {$version eq "default"} {
+            set version ""
+         }
+      }
+      # name may correspond to last part of current module
+      # if so name is replaced by current module name
+      if {[file tail $curmodname] eq $name} {
+         set name $curmodname
+      }
+   }
+
+   if {$version eq ""} {
+      set mod $name
+   } else {
+      set mod $name/$version
+   }
+
+   return [list $mod $name $version]
+}
+
 # Specifies a default or alias version for a module that points to an 
-# existing module version Note that the C version stores aliases and 
-# defaults by the short module name (not the full path) so aliases and 
-# defaults from one directory will apply to modules of the same name found 
-# in other directories.
+# existing module version Note that aliases defaults are stored by the
+# short module name (not the full path) so aliases and defaults from one
+# directory will apply to modules of the same name found in other
+# directories.
 proc module-version {args} {
    global g_moduleVersion g_versionHash
    global g_moduleDefault
    global ModulesCurrentModulefile
 
    reportDebug "module-version: executing module-version $args"
-   set module_name [lindex $args 0]
-
-   # Check for shorthand notation of just a version "/version".  Base is 
-   # implied by current dir prepend the current directory to module_name
-   if {[regexp {^\/} $module_name]} {
-      set base [file dirname $ModulesCurrentModulefile]
-      set module_name "${base}$module_name"
-   }
+   lassign [getModuleNameVersion [lindex $args 0]] mod modname modversion
 
    foreach version [lrange $args 1 end] {
-      set base [file dirname $module_name]
-      set aliasversion [file tail $module_name]
+      if {[string match $version "default"]} {
+         # If we see more than one default for the same module, just
+         # keep the first
+         if {![info exists g_moduleDefault($modname)]} {
+            set g_moduleDefault($modname) $modversion
+            reportDebug "module-version: default $modname = $modversion"
+         }
+      } else {
+         set aliasversion "$modname/$version"
+         reportDebug "module-version: alias $aliasversion = $mod"
+         set g_moduleVersion($aliasversion) $mod
 
-      if {$base ne ""} {
-         if {[string match $version "default"]} {
-            # If we see more than one default for the same module, just
-            # keep the first
-            if {![info exists g_moduleDefault($base)]} {
-               set g_moduleDefault($base) $aliasversion
-               reportDebug "module-version: default $base\
-                  =$aliasversion"
+         if {[info exists g_versionHash($mod)]} {
+            # don't add duplicates
+            if {[lsearch -exact $g_versionHash($mod) $aliasversion] < 0} {
+               set tmplist $g_versionHash($mod)
+               set tmplist [linsert $tmplist end $aliasversion]
+               set g_versionHash($mod) $tmplist
             }
          } else {
-            set aliasversion "$base/$version"
-            reportDebug "module-version: alias $aliasversion =\
-               $module_name"
-            set g_moduleVersion($aliasversion) $module_name
-
-            if {[info exists g_versionHash($module_name)]} {
-               # don't add duplicates
-               if {[lsearch -exact $g_versionHash($module_name)\
-                  $aliasversion] < 0} {
-                  set tmplist $g_versionHash($module_name)
-                  set tmplist [linsert $tmplist end $aliasversion]
-                  set g_versionHash($module_name) $tmplist
-               }
-            } else {
-               set g_versionHash($module_name) $aliasversion
-            }
+            set g_versionHash($mod) $aliasversion
          }
-
-         reportDebug "module-version: $aliasversion  = $module_name"
-      } else {
-         error "module-version: module argument for default must not be\
-            fully version qualified"
       }
    }
+
    if {[string match [currentMode] "display"]} {
       report "module-version\t$args"
    }
@@ -506,11 +537,11 @@ proc module-alias {args} {
    global g_moduleAlias
 
    set alias [lindex $args 0]
-   set module_file [lindex $args 1]
+   lassign [getModuleNameVersion [lindex $args 1]] mod
 
-   reportDebug "module-alias: $alias  = $module_file"
+   reportDebug "module-alias: $alias = $mod"
 
-   set g_moduleAlias($alias) $module_file
+   set g_moduleAlias($alias) $mod
 
    if {[string match [currentMode] "display"]} {
       report "module-alias\t$args"
@@ -1467,7 +1498,10 @@ proc getPathToModule {mod} {
             if {[file exists "$modparentpath/.modulerc"]} {
                reportDebug "getPathToModule: Found\
                   $modparentpath/.modulerc"
+               # push name to be found by module-alias and version
+               pushModuleName $modparent/.modulerc
                execute-modulerc $modparentpath/.modulerc
+               popModuleName
             }
             # Check for an alias
             set newmod [resolveModuleVersionOrAlias $mod]
@@ -1493,7 +1527,10 @@ proc getPathToModule {mod} {
                   "$path/.modulerc"]} {
                   # .version files aren't read if .modulerc present
                   reportDebug "getPathToModule: Found $path/.version"
+                  # push name to be found by module-alias and version
+                  pushModuleName $modparent/.version
                   set ModulesVersion [execute-modulerc "$path/.version"]
+                  popModuleName
                }
 
                # Try for the last file in directory if no luck so far
@@ -2328,16 +2365,22 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
          switch -glob -- $tail {
             {.modulerc} {
                if {$flag_default_dir || $flag_default_mf} {
+                  # push name to be found by module-alias and version
+                  pushModuleName $modulename
                   # set is needed for execute-modulerc
                   set ModulesCurrentModulefile $element
                   execute-modulerc $element
+                  popModuleName
                }
             }
             {.version} {
                if {$flag_default_dir || $flag_default_mf} {
+                  # push name to be found by module-alias and version
+                  pushModuleName $modulename
                   # set is needed for execute-modulerc
                   set ModulesCurrentModulefile $element
                   execute-modulerc "$element"
+                  popModuleName
 
                   reportDebug "listModules: checking default $element"
                }
