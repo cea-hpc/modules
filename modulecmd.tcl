@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.642
+set MODULES_CURRENT_VERSION 1.643
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1470,95 +1470,136 @@ proc getPathToModule {mod} {
          }
       }
    } else {
+      # modparent is the the modulename minus the module version.
+      lassign [getModuleNameVersion $mod] mod modparent modversion
+
       # Now search for $mod in module paths
       foreach dir [getModulePathList "exiterronundef"] {
          set path "$dir/$mod"
-
-         # modparent is the the modulename minus the module version.  
-         set modparent [file dirname $mod]
-         set modversion [file tail $mod]
-
-         # If $mod was specified without a version (no "/") then mod is
-         # really modparent
-         if {$modparent eq "."} {
-            set modparent $mod
-         }
          set modparentpath "$dir/$modparent"
 
-         # Search the modparent directory for .modulerc files in case we
-         # need to translate an alias
-         if {[file isdirectory $modparentpath]} {
-            # Execute any modulerc for this module
-            if {[file exists "$modparentpath/.modulerc"]} {
+         # Search all parent directories (between modulepath dir and mod)
+         # for .modulerc files in case we need to translate an alias
+         set parentlist [split $mod "/"]
+         set parentname [lindex $parentlist 0]
+         set parentpath $dir/$parentname
+         set i 1
+         while {[file isdirectory $parentpath] && $parentpath ne $path} {
+            # Execute any modulerc found on path toward modparent
+            if {[file exists "$parentpath/.modulerc"]} {
                reportDebug "getPathToModule: Found\
-                  $modparentpath/.modulerc"
+                  $parentpath/.modulerc"
                # push name to be found by module-alias and version
-               pushModuleName $modparent/.modulerc
-               execute-modulerc $modparentpath/.modulerc
+               pushModuleName $parentname/.modulerc
+               execute-modulerc $parentpath/.modulerc
                popModuleName
             }
-            # Check for an alias
-            set newmod [resolveModuleVersionOrAlias $mod]
-            if {$newmod ne $mod} {
-               # Alias before ModulesVersion
-               return [getPathToModule $newmod]
-            }
+            append parentname "/[lindex $parentlist $i]"
+            append parentpath "/[lindex $parentlist $i]"
+            incr i
          }
 
-         # Now check if the mod specified is a file or a directory
+         # Check for an alias set by .modulerc found on parent path
+         # or by a previously looked modulefile/modulerc
+         set newmod [resolveModuleVersionOrAlias $mod]
+         if {$newmod ne $mod} {
+            return [getPathToModule $newmod]
+         }
+
+         # look if we can find mod in dir
          if {[file readable $path]} {
-            # If a directory, return the default if a .version file is
-            # present or return the last file within the dir
-            if {[file isdirectory $path]} {
-               set ModulesVersion ""
+            set prevpath ""
+            # loop to resolve correct modulefile in case specified mod is a
+            # directory that should be analyzed to get default mod in it
+            while {$prevpath ne $path} {
+               set prevpath $path
 
-               # Not an alias or version alias - check for a .version
-               # file or find the default file
-               if {[info exists g_loadedModulesGeneric($mod)]} {
-                  set ModulesVersion $g_loadedModulesGeneric($mod)
-               }\
-               elseif {[file exists "$path/.version"] && ![file readable\
-                  "$path/.modulerc"]} {
-                  # .version files aren't read if .modulerc present
-                  reportDebug "getPathToModule: Found $path/.version"
-                  # push name to be found by module-alias and version
-                  pushModuleName $modparent/.version
-                  set ModulesVersion [execute-modulerc "$path/.version"]
-                  popModuleName
-               }
+               # If a directory, check for .modulerc then .version and if no
+               # default found at this stage select last file within the dir
+               if {[file isdirectory $path]} {
+                  if {[info exists g_loadedModulesGeneric($mod)]} {
+                     set ModulesVersion $g_loadedModulesGeneric($mod)
+                  } else {
+                     set ModulesVersion ""
+                     # Execute any modulerc for this module
+                     if {[file exists "$path/.modulerc"]} {
+                        reportDebug "getPathToModule: Found $path/.modulerc"
+                        # push name to be found by module-alias and version
+                        pushModuleName $mod/.modulerc
+                        execute-modulerc $path/.modulerc
+                        popModuleName
+                     }
+                     # Check for an alias that may have been set by modulerc
+                     lassign [getModuleNameVersion\
+                        [resolveModuleVersionOrAlias $mod]]\
+                        newmod newparent newversion
+                     if {$newmod ne $mod} {
+                        # if alias resolve to a different modulename then
+                        # restart search on this new modulename
+                        if {$modparent ne $newparent} {
+                           return [getPathToModule $newmod]
+                        # elsewhere set version to the alias found
+                        } else {
+                           set ModulesVersion $newversion
+                        }
+                     }
 
-               # Try for the last file in directory if no luck so far
-               if {$ModulesVersion eq ""} {
-                  set modlist [listModules $path "" 0 0 0 ""]
-                  set ModulesVersion [lindex $modlist end]
-                  reportDebug "getPathToModule: Found\
-                     $ModulesVersion in $path"
-               }
+                     # now look at .version file that can superseed version
+                     # set by modulerc
+                     if {[file exists "$path/.version"]} {
+                        reportDebug "getPathToModule: Found $path/.version"
+                        # push name to be found by module-alias and version
+                        pushModuleName $mod/.version
+                        set ModulesVersion [execute-modulerc\
+                           "$path/.version"]
+                        popModuleName
+                     }
+                  }
 
-               if {$ModulesVersion ne ""} {
-                  # The path to the module file
-                  set verspath "$path/$ModulesVersion"
-                  # The modulename (name + version)
-                  set versmod "$mod/$ModulesVersion"
-                  set retlist [list $verspath $versmod]
-               }
-            } else {
-               # If mod was a file in this path, try and return that file
-               set retlist [list $path $mod]
-            }
+                  # Try for the last file in directory if no luck so far
+                  if {$ModulesVersion eq ""} {
+                     # ask for module element at first path level only
+                     set modlist [listModules $path "" 0 0 0 "" "no_depth"]
+                     set ModulesVersion [lindex $modlist end]
+                     reportDebug "getPathToModule: Found\
+                        $ModulesVersion in $path"
+                  }
 
-            # We may have a winner, check validity of result
-            if {[llength $retlist] == 2} {
-               # Check to see if we've found only a directory.  If so,
-               # keep looking
-               if {[file isdirectory [lindex $retlist 0]]} {
-                  set retlist [getPathToModule [lindex $retlist 1]]
-               }
-
-               if {! [checkValidModule [lindex $retlist 0]]} {
-                  set path [lindex $retlist 0]
+                  if {$ModulesVersion ne ""} {
+                     set modparent $mod
+                     # The path to the module file
+                     set path "$path/$ModulesVersion"
+                     # The modulename (name + version)
+                     set mod "$mod/$ModulesVersion"
+                     # if ModulesVersion is a directory keep looking in it
+                     # elsewhere we have found a module to return
+                     if {![file isdirectory $path]} {
+                        if {[file readable $path]} {
+                           set retlist [list $path $mod]
+                        } else {
+                           # if we found a ModulesVersion in this dir but it
+                           # points to a non-existent file, raise error and
+                           # return
+                           reportError "Unable to locate a modulefile for\
+                              '$mod'"
+                           return ""
+                        }
+                     }
+                  }
                } else {
-                  return $retlist
+                  # If mod was a file in this path, try and return that file
+                  set retlist [list $path $mod]
+               }
+
+               # if we have result, check its validity or raise error
+               if {[llength $retlist] == 2} {
+                  if {![checkValidModule [lindex $retlist 0]]} {
+                     reportInternalBug "Magic cookie '#%Module' missing in\
+                        '[lindex $retlist 0]'"
+                     return ""
+                  } else {
+                     return $retlist
+                  }
                }
             }
          }
@@ -2271,7 +2312,7 @@ proc getVersAliasList {modulename} {
 
 # Finds all module versions for mod in the module path dir
 proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
-   {flag_default_dir {1}} {filter ""}} {
+   {flag_default_dir {1}} {filter ""} {search "in_depth"}} {
    global ignoreDir ModulesCurrentModulefile
 
    # On Cygwin, glob may change the $dir path if there are symlinks involved
@@ -2291,6 +2332,7 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
        set clean_defdefault {}
    }
 
+   set dirlevel 0
    set clean_list {}
    set ModulesVersion {}
    for {set i 0} {$i < [llength $full_list]} {incr i 1} {
@@ -2316,49 +2358,64 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
          reportDebug "listModules: found $element"
 
          if {![info exists ignoreDir($tail)]} {
-            # include .modulerc or if not present .version file
-            if {[file readable $element/.modulerc]} {
-               lappend full_list $element/.modulerc
-            }\
-            elseif {[file readable $element/.version]} {
-               lappend full_list $element/.version
+            # in depth module listing includes .modulerc and .version file
+            if {$search eq "in_depth"} {
+               if {[file readable $element/.modulerc]} {
+                  lappend full_list $element/.modulerc
+               }
+               if {[file readable $element/.version]} {
+                  lappend full_list $element/.version
+               }
             }
 
-            # Add each element in the current directory to the list
-            foreach f [glob -nocomplain "$element/*"] {
-               lappend full_list $f
-            }
+            # not in depth module listing stops at first directory level
+            if {$search eq "in_depth" || $dirlevel == 0} {
+               # Add each element in the current directory to the list
+               foreach f [glob -nocomplain "$element/*"] {
+                  lappend full_list $f
+               }
+               incr dirlevel
 
-            # if element is directory AND default or a version alias, add
-            # it to the list
-            set tag_list [getVersAliasList $element]
+               # if element is directory AND default or a version alias, add
+               # it to the list
+               set tag_list [getVersAliasList $element]
 
-            set tag {}
-            if {[llength $tag_list]} {
-               append tag "(" [join $tag_list ":"] ")"
+               set tag {}
+               if {[llength $tag_list]} {
+                  append tag "(" [join $tag_list ":"] ")"
 
+                  if {$full_path} {
+                     set mystr ${element}
+                  } else {
+                     set mystr ${modulename}
+                  }
+
+                  # add to list only if it is the default set
+                  if {$filter eq "onlydefaults"} {
+                     if {[lsearch $tag_list "default"] >= 0} {
+                        lappend clean_list $mystr
+                     }
+                  } else {
+                     if {[file isdirectory ${element}]} {
+                        if {$flag_default_dir} {
+                           set mystr "$mystr$tag"
+                        }
+                     }\
+                     elseif {$flag_default_mf} {
+                        set mystr "$mystr$tag"
+                     }
+                     lappend clean_list $mystr
+                  }
+               }
+            # not in depth module listing do not process sub-directories
+            # content but add them to the result list
+            } else {
                if {$full_path} {
                   set mystr ${element}
                } else {
                   set mystr ${modulename}
                }
-
-               # add to list only if it is the default set
-               if {$filter eq "onlydefaults"} {
-                  if {[lsearch $tag_list "default"] >= 0} {
-                     lappend clean_list $mystr
-                  }
-               } else {
-                  if {[file isdirectory ${element}]} {
-                     if {$flag_default_dir} {
-                        set mystr "$mystr$tag"
-                     }
-                  }\
-                  elseif {$flag_default_mf} {
-                     set mystr "$mystr$tag"
-                  }
-                  lappend clean_list $mystr
-               }
+               lappend clean_list $mystr
             }
          }
       } else {
@@ -2366,26 +2423,22 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
             dir=$flag_default_dir mf=$flag_default_mf"
          switch -glob -- $tail {
             {.modulerc} {
-               if {$flag_default_dir || $flag_default_mf} {
-                  # push name to be found by module-alias and version
-                  pushModuleName $modulename
-                  # set is needed for execute-modulerc
-                  set ModulesCurrentModulefile $element
-                  execute-modulerc $element
-                  popModuleName
-               }
+               # push name to be found by module-alias and version
+               pushModuleName $modulename
+               # set is needed for execute-modulerc
+               set ModulesCurrentModulefile $element
+               execute-modulerc $element
+               popModuleName
             }
             {.version} {
-               if {$flag_default_dir || $flag_default_mf} {
-                  # push name to be found by module-alias and version
-                  pushModuleName $modulename
-                  # set is needed for execute-modulerc
-                  set ModulesCurrentModulefile $element
-                  execute-modulerc "$element"
-                  popModuleName
+               # push name to be found by module-alias and version
+               pushModuleName $modulename
+               # set is needed for execute-modulerc
+               set ModulesCurrentModulefile $element
+               execute-modulerc "$element"
+               popModuleName
 
-                  reportDebug "listModules: checking default $element"
-               }
+               reportDebug "listModules: checking default $element"
             }
             {.*} - {*~} - {*,v} - {\#*\#} { }
             default {
