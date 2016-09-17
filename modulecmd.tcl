@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.634
+set MODULES_CURRENT_VERSION 1.637
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1547,26 +1547,32 @@ proc getPathToModule {mod} {
 proc runModulerc {} {
    # Runs the global RC files if they exist
    global env
+   set rclist {}
 
    reportDebug "runModulerc: running..."
    reportDebug "runModulerc: env MODULESHOME = $env(MODULESHOME)"
    reportDebug "runModulerc: env HOME = $env(HOME)"
    if {[info exists env(MODULERCFILE)]} {
-      if {[file readable $env(MODULERCFILE)]} {
-         reportDebug "runModulerc: Executing $env(MODULERCFILE)"
-         cmdModuleSource $env(MODULERCFILE)
+      # if MODULERCFILE is a dir, look at a modulerc file in it
+      if {[file isdirectory $env(MODULERCFILE)]\
+         && [file isfile "$env(MODULERCFILE)/modulerc"]} {
+         lappend rclist "$env(MODULERCFILE)/modulerc"
+      } elseif {[file isfile $env(MODULERCFILE)]} {
+         lappend rclist $env(MODULERCFILE)
       }
    }
-   if {[info exists env(MODULESHOME)]} {
-      if {[file readable "$env(MODULESHOME)/etc/rc"]} {
-         reportDebug "runModulerc: Executing $env(MODULESHOME)/etc/rc"
-         cmdModuleSource "$env(MODULESHOME)/etc/rc"
-      }
+   if {[info exists env(MODULESHOME)]\
+      && [file isfile "$env(MODULESHOME)/etc/rc"]} {
+      lappend rclist "$env(MODULESHOME)/etc/rc"
    }
-   if {[info exists env(HOME)]} {
-      if {[file readable "$env(HOME)/.modulerc"]} {
-         reportDebug "runModulerc: Executing $env(HOME)/.modulerc"
-         cmdModuleSource "$env(HOME)/.modulerc"
+   if {[info exists env(HOME)] && [file isfile "$env(HOME)/.modulerc"]} {
+      lappend rclist "$env(HOME)/.modulerc"
+   }
+
+   foreach rc $rclist {
+      if {[file readable $rc]} {
+         reportDebug "runModulerc: Executing $rc"
+         cmdModuleSource "$rc"
       }
    }
 }
