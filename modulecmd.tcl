@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.637
+set MODULES_CURRENT_VERSION 1.638
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -529,11 +529,6 @@ proc module {command args} {
    } else {
       set msgprefix "module: "
    }
-
-   # Resolve any module aliases
-   reportDebug "${msgprefix}Resolving $args"
-   set args [resolveModuleVersionOrAlias $args]
-   reportDebug "${msgprefix}Resolved to $args"
 
    switch -regexp -- $command {
       {^(add|lo)} {
