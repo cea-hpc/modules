@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.643
+set MODULES_CURRENT_VERSION 1.644
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -340,7 +340,6 @@ set ModulesCurrentModulefile {}
 
 proc module-info {what {more {}}} {
    global g_shellType g_shell tcl_platform
-   global g_symbolHash
 
    set mode [currentMode]
 
@@ -392,16 +391,7 @@ proc module-info {what {more {}}} {
          return "Tcl"
       }
       "symbols" {
-         if {[regexp {^\/} $more]} {
-            set tmp [currentModuleName]
-            set tmp [file dirname $tmp]
-            set more "${tmp}$more"
-         }
-         if {[info exists g_symbolHash($more)]} {
-            return $g_symbolHash($more)
-         } else {
-            return {}
-         }
+         return [join [getVersAliasList $more] ":"]
       }
       "version" {
          lassign [getModuleNameVersion $more] mod
@@ -2283,31 +2273,52 @@ proc checkValidModule {modfile} {
 }
 
 # If given module maps to default or other version aliases, a list of 
-# those aliases is returned.  This takes the full path to a module as
-# an argument.
-proc getVersAliasList {modulename} {
+# those aliases is returned. This takes module/version as an argument.
+# A list of already resolved aliases and default is set to detect
+# infinite resolution loop.
+proc getVersAliasList {mod args} {
    global g_versionHash g_moduleDefault
 
-   reportDebug "getVersAliasList: $modulename"
+   reportDebug "getVersAliasList: $mod (previously: $args)"
 
-   set modparent [file dirname $modulename]
+   # get module name and version after alias resolution attempt
+   lassign [getModuleNameVersion $mod] mod
+   lassign [getModuleNameVersion [resolveModuleVersionOrAlias $mod "alias"]]\
+      mod modname modversion
 
    set tag_list {}
-   if {[info exists g_versionHash($modulename)]} {
-      # remove module basenames to get just version names
-      foreach version $g_versionHash($modulename) {
-         set alias_tag [file tail $version]
-         set tag_list [linsert $tag_list end $alias_tag]
+   if {[info exists g_versionHash($mod)]} {
+      foreach version $g_versionHash($mod) {
+         if {[lsearch -exact $tag_list $version] == -1} {
+            if {[lsearch -exact $args $modname/$version] == -1} {
+               # add pseudo version to the list of already resolved element
+               # in order to detect infinite resolution loop
+               lappend args $modname/$version
+               # concat with any other tag found for modname/version
+               set tag_list [concat $tag_list $version\
+                  [eval getVersAliasList $modname/$version $args]]
+            } else {
+               reportError "Version symbol '$modversion' loops"
+            }
+         }
       }
    }
-   if {[info exists g_moduleDefault($modparent)]} {
-      set tmp_name "$modparent/$g_moduleDefault($modparent)"
-      if {$tmp_name eq $modulename} {
-         set tag_list [linsert $tag_list end "default"]
+   if {[info exists g_moduleDefault($modname)]\
+      && "$modname/$g_moduleDefault($modname)" eq $mod} {
+      if {[lsearch -exact $args $modname] == -1} {
+         # add default to the list of already resolved element in order to
+         # detect infinite resolution loop
+         lappend args $modname
+         # concat with any other tag found for modname
+         set tag_list [concat $tag_list "default"\
+            [eval getVersAliasList $modname $args]]
+      } else {
+         reportError "Version symbol '$modversion' loops"
       }
    }
 
-   return $tag_list
+   # always dictionary-sort results and remove duplicates
+   return [lsort -dictionary -unique $tag_list]
 }
 
 # Finds all module versions for mod in the module path dir
@@ -2378,7 +2389,7 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
 
                # if element is directory AND default or a version alias, add
                # it to the list
-               set tag_list [getVersAliasList $element]
+               set tag_list [getVersAliasList $modulename]
 
                set tag {}
                if {[llength $tag_list]} {
@@ -2443,7 +2454,7 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
             {.*} - {*~} - {*,v} - {\#*\#} { }
             default {
                if {[checkValidModule $element]} {
-                  set tag_list [getVersAliasList $element]
+                  set tag_list [getVersAliasList $modulename]
                   set tag {}
 
                   if {[llength $tag_list]} {
