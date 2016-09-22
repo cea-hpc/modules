@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.638
+set MODULES_CURRENT_VERSION 1.639
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2060,46 +2060,58 @@ proc cacheCurrentModules {} {
 }
 
 # This proc resolves module aliases or version aliases to the real module name
-#  and version
-proc resolveModuleVersionOrAlias {names} {
+# and version. A list of already resolved aliases and version is set to detect
+# infinite resolution loop.
+proc resolveModuleVersionOrAlias {name args} {
    global g_moduleVersion g_moduleDefault g_moduleAlias
 
-   reportDebug "resolveModuleVersionOrAlias: Resolving $names"
-   set ret_list {}
+   reportDebug "resolveModuleVersionOrAlias: Resolving $name\
+      (previously: $args)"
 
-   foreach name $names {
-      # Chop off (default) if it exists
-      set x [expr {[string length $name] - 9}]
-      if {($x > 0) &&([string range $name $x end] eq "\(default\)")} {
-         set name [string range $name 0 [expr {$x -1}]]
-         reportDebug "resolveModuleVersionOrAlias: trimming name = \"$name\""
-      }
+   # Chop off (default) if it exists
+   set x [expr {[string length $name] - 9}]
+   if {($x > 0) &&([string range $name $x end] eq "\(default\)")} {
+      set name [string range $name 0 [expr {$x -1}]]
+      reportDebug "resolveModuleVersionOrAlias: trimming name = \"$name\""
+   }
 
-      if {[info exists g_moduleAlias($name)]} {
-         # if the alias is another alias, we need to resolve it
-         reportDebug "resolveModuleVersionOrAlias: $name is an alias"
-         set ret_list [linsert $ret_list end\
-            [resolveModuleVersionOrAlias $g_moduleAlias($name)]]
-      }\
-      elseif {[info exists g_moduleVersion($name)]} {
-         # if the pseudo version is an alias, we need to resolve it
-         reportDebug "resolveModuleVersionOrAlias: $name is a version alias"
-         set ret_list [linsert $ret_list end\
-            [resolveModuleVersionOrAlias $g_moduleVersion($name)]]
-      }\
-      elseif {[info exists g_moduleDefault($name)]} {
-         # if the default is an alias, we need to resolve it
-         reportDebug "resolveModuleVersionOrAlias: found a default for $name"
-         set ret_list [linsert $ret_list end [resolveModuleVersionOrAlias\
-            "$name/$g_moduleDefault($name)"]]
+   if {[info exists g_moduleAlias($name)]} {
+      reportDebug "resolveModuleVersionOrAlias: $name is an alias"
+      set ret $g_moduleAlias($name)
+   }\
+   elseif {[info exists g_moduleVersion($name)]} {
+      reportDebug "resolveModuleVersionOrAlias: $name is a version alias"
+      set ret $g_moduleVersion($name)
+   }\
+   elseif {[info exists g_moduleDefault($name)]} {
+      reportDebug "resolveModuleVersionOrAlias: found a default for $name"
+      set ret "$name/$g_moduleDefault($name)"
+   } else {
+      reportDebug "resolveModuleVersionOrAlias: $name is nothing special"
+      set ret $name
+   }
+
+   if {$ret ne $name} {
+      if {[lsearch -exact $args $ret] == -1} {
+         # add the alias, pseudo version or default to the list of already
+         # resolved element in order to detect infinite resolution loop
+         lappend args $ret
+         # if the alias, pseudo version or default is an alias, we need to
+         # resolve it
+         set ret [eval resolveModuleVersionOrAlias $ret $args]
       } else {
-          reportDebug "resolveModuleVersionOrAlias: $name is nothing special"
-          set ret_list [linsert $ret_list end $name]
+         # resolution loop is detected, set return value to "*undef*" as
+         # C-version does
+         set ret "*undef*"
+         # get version name and report loop error
+         lassign [getModuleNameVersion $name] name modname modversion
+         reportError "Version symbol '$modversion' loops"
       }
    }
-   reportDebug "resolveModuleVersionOrAlias: Resolved to $ret_list"
 
-   return $ret_list
+   reportDebug "resolveModuleVersionOrAlias: Resolved to $ret"
+
+   return $ret
 }
 
 proc multiEscaped {text} {
