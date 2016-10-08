@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.644
+set MODULES_CURRENT_VERSION 1.645
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -617,6 +617,7 @@ proc module {command args} {
             foreach arg $args {
                eval cmdModuleDisplay $arg
             }
+            set needrender 1
          }
       }
       {^av} {
@@ -791,6 +792,9 @@ proc module {command args} {
       {^($|help)} {
          if {$topcall} {
             eval cmdModuleHelp $args
+            if {[llength $args] != 0} {
+               set needrender 1
+            }
          } else {
             # help cannot be called elsewhere than from top level
             set errormsg "${msgprefix}Command '$command' not supported"
