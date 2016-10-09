@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.645
+set MODULES_CURRENT_VERSION 1.646
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1553,7 +1553,7 @@ proc getPathToModule {mod} {
                   # Try for the last file in directory if no luck so far
                   if {$ModulesVersion eq ""} {
                      # ask for module element at first path level only
-                     set modlist [listModules $path "" 0 0 0 "" "no_depth"]
+                     set modlist [listModules $path "" 0 0 "" "no_depth"]
                      set ModulesVersion [lindex $modlist end]
                      reportDebug "getPathToModule: Found\
                         $ModulesVersion in $path"
@@ -2326,8 +2326,8 @@ proc getVersAliasList {mod args} {
 }
 
 # Finds all module versions for mod in the module path dir
-proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
-   {flag_default_dir {1}} {filter ""} {search "in_depth"}} {
+proc listModules {dir mod {flag_default_mf {1}} {flag_default_dir {1}}\
+   {filter ""} {search "in_depth"}} {
    global ignoreDir ModulesCurrentModulefile
 
    # On Cygwin, glob may change the $dir path if there are symlinks involved
@@ -2398,12 +2398,7 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
                set tag {}
                if {[llength $tag_list]} {
                   append tag "(" [join $tag_list ":"] ")"
-
-                  if {$full_path} {
-                     set mystr ${element}
-                  } else {
-                     set mystr ${modulename}
-                  }
+                  set mystr $modulename
 
                   # add to list only if it is the default set
                   if {$filter eq "onlydefaults"} {
@@ -2425,12 +2420,7 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
             # not in depth module listing do not process sub-directories
             # content but add them to the result list
             } else {
-               if {$full_path} {
-                  set mystr ${element}
-               } else {
-                  set mystr ${modulename}
-               }
-               lappend clean_list $mystr
+               lappend clean_list $modulename
             }
          }
       } else {
@@ -2464,11 +2454,7 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
                   if {[llength $tag_list]} {
                      append tag "(" [join $tag_list ":"] ")"
                   }
-                  if {$full_path} {
-                     set mystr ${element}
-                  } else {
-                     set mystr ${modulename}
-                  }
+                  set mystr $modulename
 
                   # add to list only if it is the default set
                   # or if it is an implicit default when no default is set
@@ -2718,8 +2704,7 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
             set modlist {}
             foreach dir $modpathlist {
                if {[file isdirectory $dir]} {
-                  set modlist [concat $modlist \
-                     [listModules $dir $modparent 0]]
+                  set modlist [concat $modlist [listModules $dir $modparent]]
                }
             }
 
@@ -2963,7 +2948,7 @@ proc cmdModulePaths {mod} {
 
    foreach dir [getModulePathList "exiterronundef"] {
       if {[file isdirectory $dir]} {
-         foreach mod2 [listModules $dir $mod 0 $flag_default_mf \
+         foreach mod2 [listModules $dir $mod $flag_default_mf \
             $flag_default_dir ""] {
             lappend g_pathList $mod2
          }
@@ -3002,7 +2987,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
       if {[file isdirectory $dir]} {
          set display_list {}
 
-         set modlist [listModules $dir $mod 0 0 0]
+         set modlist [listModules $dir $mod 0 0]
          foreach mod2 $modlist {
             set g_whatis ""
             lassign [getPathToModule $mod2] modfile modname
@@ -3429,7 +3414,7 @@ proc cmdModuleAliases {} {
       && [array size g_moduleVersion] == 0 } {
       foreach dir [getModulePathList "exiterronundef"] {
          if {[file isdirectory "$dir"] && [file readable $dir]} {
-            listModules "$dir" "" 0
+            listModules "$dir" ""
          }
       }
    }
@@ -3480,7 +3465,7 @@ proc cmdModuleAvail {{mod {*}}} {
       if {[file isdirectory "$dir"] && [file readable $dir]} {
          set display_list {}
 
-         set list [listModules "$dir" "$mod" 0 $flag_default_mf\
+         set list [listModules "$dir" "$mod" $flag_default_mf\
             $flag_default_dir $show_filter]
          if {$show_modtimes} {
             set one_per_line 1
