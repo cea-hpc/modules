@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.646
+set MODULES_CURRENT_VERSION 1.647
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1553,7 +1553,7 @@ proc getPathToModule {mod} {
                   # Try for the last file in directory if no luck so far
                   if {$ModulesVersion eq ""} {
                      # ask for module element at first path level only
-                     set modlist [listModules $path "" 0 0 "" "no_depth"]
+                     set modlist [listModules $path "" 0 "" "no_depth"]
                      set ModulesVersion [lindex $modlist end]
                      reportDebug "getPathToModule: Found\
                         $ModulesVersion in $path"
@@ -2326,9 +2326,22 @@ proc getVersAliasList {mod args} {
 }
 
 # Finds all module versions for mod in the module path dir
-proc listModules {dir mod {flag_default_mf {1}} {flag_default_dir {1}}\
-   {filter ""} {search "in_depth"}} {
+proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
    global ignoreDir ModulesCurrentModulefile
+   global flag_default_mf flag_default_dir
+
+   # report flags for directories and modulefiles depending on show_flags
+   # procedure argument and global variables
+   if {$show_flags && $flag_default_mf} {
+      set show_flags_mf 1
+   } else {
+      set show_flags_mf 0
+   }
+   if {$show_flags && $flag_default_dir} {
+      set show_flags_dir 1
+   } else {
+      set show_flags_dir 0
+   }
 
    # On Cygwin, glob may change the $dir path if there are symlinks involved
    # So it is safest to reglob the $dir.
@@ -2406,13 +2419,8 @@ proc listModules {dir mod {flag_default_mf {1}} {flag_default_dir {1}}\
                         lappend clean_list $mystr
                      }
                   } else {
-                     if {[file isdirectory ${element}]} {
-                        if {$flag_default_dir} {
-                           set mystr "$mystr$tag"
-                        }
-                     }\
-                     elseif {$flag_default_mf} {
-                        set mystr "$mystr$tag"
+                     if {$show_flags_dir} {
+                        append mystr $tag
                      }
                      lappend clean_list $mystr
                   }
@@ -2425,7 +2433,7 @@ proc listModules {dir mod {flag_default_mf {1}} {flag_default_dir {1}}\
          }
       } else {
          reportDebug "listModules: checking $element ($modulename)\
-            dir=$flag_default_dir mf=$flag_default_mf"
+            show_flags_dir=$show_flags_dir show_flags_mf=$show_flags_mf"
          switch -glob -- $tail {
             {.modulerc} {
                # push name to be found by module-alias and version
@@ -2503,13 +2511,8 @@ proc listModules {dir mod {flag_default_mf {1}} {flag_default_dir {1}}\
                         lappend clean_list $mystr
                      }
                   } else {
-                     if {[file isdirectory ${element}]} {
-                        if {$flag_default_dir} {
-                           set mystr "$mystr$tag"
-                        }
-                     }\
-                     elseif {$flag_default_mf} {
-                        set mystr "$mystr$tag"
+                     if {$show_flags_mf} {
+                        append mystr $tag
                      }
 
                      lappend clean_list $mystr
@@ -2942,14 +2945,13 @@ proc cmdModuleDisplay {mod} {
 }
 
 proc cmdModulePaths {mod} {
-   global g_pathList flag_default_mf flag_default_dir
+   global g_pathList
 
    reportDebug "cmdModulePaths: ($mod)"
 
    foreach dir [getModulePathList "exiterronundef"] {
       if {[file isdirectory $dir]} {
-         foreach mod2 [listModules $dir $mod $flag_default_mf \
-            $flag_default_dir ""] {
+         foreach mod2 [listModules $dir $mod] {
             lappend g_pathList $mod2
          }
       }
@@ -2987,7 +2989,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
       if {[file isdirectory $dir]} {
          set display_list {}
 
-         set modlist [listModules $dir $mod 0 0]
+         set modlist [listModules $dir $mod 0]
          foreach mod2 $modlist {
             set g_whatis ""
             lassign [getPathToModule $mod2] modfile modname
@@ -3453,7 +3455,6 @@ proc system {mycmd args} {
 }
 
 proc cmdModuleAvail {{mod {*}}} {
-   global flag_default_mf flag_default_dir
    global show_oneperline show_modtimes show_filter
 
    if {$show_modtimes} {
@@ -3465,8 +3466,7 @@ proc cmdModuleAvail {{mod {*}}} {
       if {[file isdirectory "$dir"] && [file readable $dir]} {
          set display_list {}
 
-         set list [listModules "$dir" "$mod" $flag_default_mf\
-            $flag_default_dir $show_filter]
+         set list [listModules "$dir" "$mod" 1 $show_filter]
          if {$show_modtimes} {
             set one_per_line 1
             foreach i $list {
