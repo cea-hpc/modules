@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.647
+set MODULES_CURRENT_VERSION 1.648
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2408,19 +2408,14 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
                # it to the list
                set tag_list [getVersAliasList $modulename]
 
-               set tag {}
                if {[llength $tag_list]} {
-                  append tag "(" [join $tag_list ":"] ")"
                   set mystr $modulename
 
-                  # add to list only if it is the default set
-                  if {$filter eq "onlydefaults"} {
-                     if {[lsearch $tag_list "default"] >= 0} {
-                        lappend clean_list $mystr
-                     }
-                  } else {
+                  # add to list (only if default when onlydefaults set)
+                  if {$filter ne "onlydefaults"\
+                     || [lsearch $tag_list "default"] >= 0} {
                      if {$show_flags_dir} {
-                        append mystr $tag
+                        append mystr "(" [join $tag_list ":"] ")"
                      }
                      lappend clean_list $mystr
                   }
@@ -2457,13 +2452,10 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
             default {
                if {[checkValidModule $element]} {
                   set tag_list [getVersAliasList $modulename]
-                  set tag {}
 
-                  if {[llength $tag_list]} {
-                     append tag "(" [join $tag_list ":"] ")"
-                  }
                   set mystr $modulename
 
+                  set add_to_clean_list 1
                   # add to list only if it is the default set
                   # or if it is an implicit default when no default is set
                   if {$filter eq "onlydefaults"} {
@@ -2482,20 +2474,22 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
                               [lindex $clean_list $clean_mystr_idx]] == 1 \
                               || [lsearch $tag_list "default"] >= 0} {
                               set clean_list [lreplace $clean_list \
-                                 $clean_mystr_idx $clean_mystr_idx $mystr]
+                                 $clean_mystr_idx $clean_mystr_idx]
+                           } else {
+                              set add_to_clean_list 0
                            }
-                        } else {
-                           lappend clean_list $mystr
                         }
 
                         # if default is defined add to control list
                         if {[lsearch $tag_list "default"] >= 0} {
                            lappend clean_defdefault $moduleelem
                         }
+                     } else {
+                        set add_to_clean_list 0
                      }
 
-                     # add latest version to list only
-                     } elseif {$filter eq "onlylatest"} {
+                  # add latest version to list only
+                  } elseif {$filter eq "onlylatest"} {
                      set moduleelem [string range $direlem $sstart end]
                      set clean_mystr_idx [lsearch $clean_list "$moduleelem/*"]
 
@@ -2506,13 +2500,15 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
                         [stringDictionaryCompare $mystr \
                         [lindex $clean_list $clean_mystr_idx]] == 1} {
                         set clean_list [lreplace $clean_list \
-                           $clean_mystr_idx $clean_mystr_idx $mystr]
-                     } elseif {$clean_mystr_idx == -1} {
-                        lappend clean_list $mystr
+                           $clean_mystr_idx $clean_mystr_idx]
+                     } elseif {$clean_mystr_idx != -1} {
+                        set add_to_clean_list 0
                      }
-                  } else {
-                     if {$show_flags_mf} {
-                        append mystr $tag
+                  }
+
+                  if {$add_to_clean_list} {
+                     if {$show_flags_mf && [llength $tag_list] > 0} {
+                        append mystr "(" [join $tag_list ":"] ")"
                      }
 
                      lappend clean_list $mystr
