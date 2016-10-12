@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.649
+set MODULES_CURRENT_VERSION 1.650
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2135,13 +2135,6 @@ proc resolveModuleVersionOrAlias {name {search "all"} args} {
    reportDebug "resolveModuleVersionOrAlias: Resolving $name\
       (previously: $args), search for $search"
 
-   # Chop off (default) if it exists
-   set x [expr {[string length $name] - 9}]
-   if {($x > 0) &&([string range $name $x end] eq "\(default\)")} {
-      set name [string range $name 0 [expr {$x -1}]]
-      reportDebug "resolveModuleVersionOrAlias: trimming name = \"$name\""
-   }
-
    if {$search ne "aliashash" && [info exists g_moduleAlias($name)]} {
       reportDebug "resolveModuleVersionOrAlias: $name is an alias"
       set ret $g_moduleAlias($name)
@@ -2721,24 +2714,18 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
             set modlist {}
             foreach dir $modpathlist {
                if {[file isdirectory $dir]} {
-                  set modlist [concat $modlist [listModules $dir $modparent]]
+                  set modlist [listModules $dir $modparent 0 "onlydefaults"]
+                  # quit loop if result found
+                  if {[llength $modlist] > 0} {
+                     break
+                  }
                }
             }
-
             # check if loaded version is default
-            set dflpos [lsearch $modlist "*(default)"]
-            if {$dflpos == -1} {
-               if {$mod eq [lindex $modlist end]} {
-                  lappend curr_mod_list $modparent
-               } else {
-                  lappend curr_mod_list $mod
-               }
+            if {[lsearch -exact $modlist $mod] >-1 } {
+               lappend curr_mod_list $modparent
             } else {
-               if {"$mod\(default\)" eq [lindex $modlist $dflpos]} {
-                  lappend curr_mod_list $modparent
-               } else {
-                  lappend curr_mod_list $mod
-               }
+               lappend curr_mod_list $mod
             }
          } else {
             # if no path set currently, cannot search for all
