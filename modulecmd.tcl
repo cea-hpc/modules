@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.648
+set MODULES_CURRENT_VERSION 1.649
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2328,7 +2328,7 @@ proc getVersAliasList {mod args} {
 # Finds all module versions for mod in the module path dir
 proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
    global ignoreDir ModulesCurrentModulefile
-   global flag_default_mf flag_default_dir
+   global flag_default_mf flag_default_dir show_modtimes
 
    # report flags for directories and modulefiles depending on show_flags
    # procedure argument and global variables
@@ -2341,6 +2341,11 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
       set show_flags_dir 1
    } else {
       set show_flags_dir 0
+   }
+   if {$show_flags && $show_modtimes} {
+      set show_mtime 1
+   } else {
+      set show_mtime 0
    }
 
    # On Cygwin, glob may change the $dir path if there are symlinks involved
@@ -2415,7 +2420,12 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
                   if {$filter ne "onlydefaults"\
                      || [lsearch $tag_list "default"] >= 0} {
                      if {$show_flags_dir} {
-                        append mystr "(" [join $tag_list ":"] ")"
+                        if {$show_mtime} {
+                           set mystr [format "%-40s%-20s" $mystr\
+                              [join $tag_list ":"]]
+                        } else {
+                           append mystr "(" [join $tag_list ":"] ")"
+                        }
                      }
                      lappend clean_list $mystr
                   }
@@ -2428,7 +2438,8 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
          }
       } else {
          reportDebug "listModules: checking $element ($modulename)\
-            show_flags_dir=$show_flags_dir show_flags_mf=$show_flags_mf"
+            show_flags_dir=$show_flags_dir show_flags_mf=$show_flags_mf\
+            show_mtime=$show_mtime"
          switch -glob -- $tail {
             {.modulerc} {
                # push name to be found by module-alias and version
@@ -2507,7 +2518,14 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
                   }
 
                   if {$add_to_clean_list} {
-                     if {$show_flags_mf && [llength $tag_list] > 0} {
+                     if {$show_mtime} {
+                        # add to display file modification time in addition
+                        # to potential tags
+                        set mystr [format "%-40s%-20s%10s" $mystr\
+                           [join $tag_list ":"]\
+                           [clock format [file mtime $element]\
+                           -format "%Y/%m/%d %H:%M:%S"]]
+                     } elseif {$show_flags_mf && [llength $tag_list] > 0} {
                         append mystr "(" [join $tag_list ":"] ")"
                      }
 
@@ -2881,8 +2899,8 @@ proc cmdModuleList {} {
    } else {
       set list {}
       if {$show_modtimes} {
-         report "- Package -----------------------------.- Versions -.- Last\
-            mod. ------"
+         report "- Package -----------------------------.- Versions\
+            --------.- Last mod. -------"
       }
       report "Currently Loaded Modulefiles:"
       set display_list {}
@@ -2899,7 +2917,7 @@ proc cmdModuleList {} {
             if {$show_modtimes} {
                set filetime [clock format [file mtime [lindex\
                   [getPathToModule $mod] 0]] -format "%Y/%m/%d %H:%M:%S"]
-               lappend display_list [format "%-53s%10s" $mod $filetime]
+               lappend display_list [format "%-60s%10s" $mod $filetime]
             }\
             elseif {$show_oneperline} {
                lappend display_list $mod
@@ -3236,8 +3254,8 @@ proc cmdModuleSavelist {} {
    } else {
       set list {}
       if {$show_modtimes} {
-         report "- Collection ---------------------------------------.- Last\
-            mod. ------"
+         report "- Collection\
+            ----------------------------------------------.- Last mod. ------"
       }
       report "Named collection list$targetdesc:"
       set display_list {}
@@ -3257,7 +3275,7 @@ proc cmdModuleSavelist {} {
             if {$show_modtimes} {
                set filetime [clock format [file mtime $coll]\
                   -format "%Y/%m/%d %H:%M:%S"]
-               lappend display_list [format "%-53s%10s" $mod $filetime]
+               lappend display_list [format "%-60s%10s" $mod $filetime]
             } else {
                lappend display_list $mod
             }
@@ -3453,40 +3471,20 @@ proc system {mycmd args} {
 proc cmdModuleAvail {{mod {*}}} {
    global show_oneperline show_modtimes show_filter
 
+   if {$show_modtimes || $show_oneperline} {
+      set one_per_line 1
+   } else {
+      set one_per_line 0
+   }
+
    if {$show_modtimes} {
-      report "- Package -----------------------------.- Versions -.- Last\
-         mod. ------"
+      report "- Package -----------------------------.- Versions --------.-\
+         Last mod. -------"
    }
 
    foreach dir [getModulePathList "exiterronundef"] {
       if {[file isdirectory "$dir"] && [file readable $dir]} {
-         set display_list {}
-
-         set list [listModules "$dir" "$mod" 1 $show_filter]
-         if {$show_modtimes} {
-            set one_per_line 1
-            foreach i $list {
-               # don't change $i with the regsub - we need it 
-               # to figure out the file time.
-               regsub {\(default\)} $i "   (default)" i2 
-               set filetime [clock format [file mtime [lindex\
-                  [getPathToModule $i] 0]] -format "%Y/%m/%d %H:%M:%S" ]
-               lappend display_list [format "%-53s%10s" $i2 $filetime]
-            }
-         }\
-         elseif {$show_oneperline} {
-            set one_per_line 1
-            foreach i $list {
-               regsub {\(default\)} $i "   (default)" i2 
-               lappend display_list $i2
-            }
-         } else {
-            set one_per_line 0
-            foreach mod2 $list {
-               lappend display_list $mod2
-            }
-         }
-
+         set display_list [listModules "$dir" "$mod" 1 $show_filter]
          eval displayElementList $dir $one_per_line 0 $display_list
       }
    }
