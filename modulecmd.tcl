@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.650
+set MODULES_CURRENT_VERSION 1.651
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -518,6 +518,7 @@ proc module-version {args} {
 
 proc module-alias {args} {
    global g_moduleAlias g_aliasHash
+   global g_sourceAlias ModulesCurrentModulefile
 
    lassign [getModuleNameVersion [lindex $args 0]] alias
    lassign [getModuleNameVersion [lindex $args 1]] mod
@@ -526,6 +527,7 @@ proc module-alias {args} {
 
    set g_moduleAlias($alias) $mod
    set g_aliasHash($mod) $alias
+   set g_sourceAlias($alias) $ModulesCurrentModulefile
 
    if {[string match [currentMode] "display"]} {
       report "module-alias\t$args"
@@ -2322,6 +2324,7 @@ proc getVersAliasList {mod args} {
 proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
    global ignoreDir ModulesCurrentModulefile
    global flag_default_mf flag_default_dir show_modtimes
+   global g_moduleAlias g_sourceAlias
 
    # report flags for directories and modulefiles depending on show_flags
    # procedure argument and global variables
@@ -2529,6 +2532,87 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
          }
       }
    }
+
+   if {$search ne "no_depth"} {
+      # add aliases found when parsing .version or .modulerc files in this
+      # directory (skip aliases not registered from this directory) if they
+      # match passed $mod (as for regular modulefiles)
+      foreach alias [array names g_moduleAlias -glob $mod*] {
+         if {[string first $dir $g_sourceAlias($alias)] == 0} {
+            set tag_list [getVersAliasList $alias]
+            set mystr $alias
+
+            set add_to_clean_list 1
+            # add to list only if it is the default set
+            # or if it is an implicit default when no default is set
+            if {$filter eq "onlydefaults"} {
+               set aliasname [file dirname $alias]
+               if {$aliasname eq "."} {
+                  set aliasname $alias
+               }
+
+               # do not add element if a default has already
+               # been added for this module
+               if {[lsearch -exact $clean_defdefault $aliasname] == -1} {
+                  set clean_mystr_idx [lsearch $clean_list "$aliasname/*"]
+                  # only one element has to be set for this module
+                  # so replace previously existing element
+                  if {$clean_mystr_idx >= 0} {
+                     # only replace if new occurency is greater than
+                     # existing one or if new occurency is the default set
+                     if {[stringDictionaryCompare $mystr \
+                        [lindex $clean_list $clean_mystr_idx]] == 1 \
+                        || [lsearch $tag_list "default"] >= 0} {
+                        set clean_list [lreplace $clean_list \
+                           $clean_mystr_idx $clean_mystr_idx]
+                     } else {
+                        set add_to_clean_list 0
+                     }
+                  }
+
+                  # if default is defined add to control list
+                  if {[lsearch $tag_list "default"] >= 0} {
+                     lappend clean_defdefault $aliasname
+                  }
+               } else {
+                  set add_to_clean_list 0
+               }
+
+            # add latest version to list only
+            } elseif {$filter eq "onlylatest"} {
+               set aliasname [file dirname $alias]
+               if {$aliasname eq "."} {
+                  set aliasname $alias
+               }
+               set clean_mystr_idx [lsearch $clean_list "$aliasname/*"]
+
+               # only one element has to be set for this module
+               # so replace previously existing element and only
+               # if new occurency is greater than existing one
+               if {$clean_mystr_idx >= 0 && \
+                  [stringDictionaryCompare $mystr \
+                  [lindex $clean_list $clean_mystr_idx]] == 1} {
+                  set clean_list [lreplace $clean_list \
+                     $clean_mystr_idx $clean_mystr_idx]
+               } elseif {$clean_mystr_idx != -1} {
+                  set add_to_clean_list 0
+               }
+            }
+
+            if {$add_to_clean_list} {
+               if {$show_mtime} {
+                  set mystr [format "%-40s%-20s"\
+                     "$mystr -> $g_moduleAlias($alias)" [join $tag_list ":"]]
+               } elseif {$show_flags_mf} {
+                  lappend tag_list "@"
+                  append mystr "(" [join $tag_list ":"] ")"
+               }
+               lappend clean_list $mystr
+            }
+         }
+      }
+   }
+
    # always dictionary-sort results
    set clean_list [lsort -dictionary $clean_list]
    reportDebug "listModules: Returning $clean_list"
@@ -3465,7 +3549,7 @@ proc cmdModuleAvail {{mod {*}}} {
    }
 
    if {$show_modtimes} {
-      report "- Package -----------------------------.- Versions --------.-\
+      report "- Package/Alias -----------------------.- Versions --------.-\
          Last mod. -------"
    }
 
