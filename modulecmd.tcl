@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.651
+set MODULES_CURRENT_VERSION 1.652
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1610,6 +1610,7 @@ proc getPathToModule {mod} {
 proc runModulerc {} {
    # Runs the global RC files if they exist
    global env
+   global g_moduleAlias g_rcAlias
    set rclist {}
 
    reportDebug "runModulerc: running..."
@@ -1638,6 +1639,10 @@ proc runModulerc {} {
          cmdModuleSource "$rc"
       }
    }
+
+   # identify alias set in these global RC files to be able to display
+   # them in a specific category on avail output
+   array set g_rcAlias [array get g_moduleAlias]
 }
 
 # manage settings to save as a stack to have a separate set of settings
@@ -2324,7 +2329,7 @@ proc getVersAliasList {mod args} {
 proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
    global ignoreDir ModulesCurrentModulefile
    global flag_default_mf flag_default_dir show_modtimes
-   global g_moduleAlias g_sourceAlias
+   global g_sourceAlias
 
    # report flags for directories and modulefiles depending on show_flags
    # procedure argument and global variables
@@ -2344,17 +2349,27 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
       set show_mtime 0
    }
 
-   # On Cygwin, glob may change the $dir path if there are symlinks involved
-   # So it is safest to reglob the $dir.
-   # example:
-   # [glob /home/stuff] -> "//homeserver/users0/stuff"
+   # if search for global or user rc alias only, no dir lookup is performed
+   # and aliases are looked from g_rcAlias array rather than g_moduleAlias
+   if {$search eq "rc_alias_only"} {
+      global g_rcAlias
+      array set g_moduleAlias [array get g_rcAlias]
+      set full_list {}
+   } else {
+      global g_moduleAlias
 
-   set dir [glob $dir]
-   set full_list [glob -nocomplain "$dir/$mod*"]
+      # On Cygwin, glob may change the $dir path if there are symlinks
+      # involved. So it is safest to reglob the $dir.
+      # example:
+      # [glob /home/stuff] -> "//homeserver/users0/stuff"
 
-   # remove trailing / needed on some platforms
-   regsub {\/$} $full_list {} full_list
-        
+      set dir [glob $dir]
+      set full_list [glob -nocomplain "$dir/$mod*"]
+
+      # remove trailing / needed on some platforms
+      regsub {\/$} $full_list {} full_list
+   }
+
    if {$filter eq "onlydefaults"} {
        # init a control list to correctly set implicit
        # or defined module default version
@@ -2532,16 +2547,14 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
          }
       }
    }
-
    if {$search ne "no_depth"} {
       # add aliases found when parsing .version or .modulerc files in this
       # directory (skip aliases not registered from this directory) if they
       # match passed $mod (as for regular modulefiles)
       foreach alias [array names g_moduleAlias -glob $mod*] {
-         if {[string first $dir $g_sourceAlias($alias)] == 0} {
+         if {$dir eq "" || [string first $dir $g_sourceAlias($alias)] == 0} {
             set tag_list [getVersAliasList $alias]
             set mystr $alias
-
             set add_to_clean_list 1
             # add to list only if it is the default set
             # or if it is an implicit default when no default is set
@@ -3551,6 +3564,14 @@ proc cmdModuleAvail {{mod {*}}} {
    if {$show_modtimes} {
       report "- Package/Alias -----------------------.- Versions --------.-\
          Last mod. -------"
+   }
+
+   # look if aliases have been defined in the global or user-specific
+   # modulerc and display them if any in a dedicated list
+   set display_list [listModules "" "$mod" 1 $show_filter "rc_alias_only"]
+   if {[llength $display_list] > 0} {
+      eval displayElementList "{global/user modulerc}" $one_per_line 0\
+         $display_list
    }
 
    foreach dir [getModulePathList "exiterronundef"] {
