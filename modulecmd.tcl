@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.633
+set MODULES_CURRENT_VERSION 1.634
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2228,7 +2228,7 @@ proc listModules {dir mod {full_path 1} {flag_default_mf {1}}\
    # [glob /home/stuff] -> "//homeserver/users0/stuff"
 
    set dir [glob $dir]
-   set full_list [glob -nocomplain "$dir/$mod"]
+   set full_list [glob -nocomplain "$dir/$mod*"]
 
    # remove trailing / needed on some platforms
    regsub {\/$} $full_list {} full_list
