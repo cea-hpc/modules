@@ -11,7 +11,7 @@
 #
 #   Description:	Testuite testsequence
 #   Command:		avail
-#   Modulefiles:	setenv/1.0
+#   Modulefiles:	setenv/1.0, averssort, sym_foo
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -27,27 +27,75 @@
 
 set module "setenv"
 set version "1.0"
+set alias1 "averssort"
+set alias1target "verssort"
+set a1vers1 "1"
+set a1vers2 "1.2.4"
+set a1vers3 "1.10"
+set alias2 "sym_foo"
+set alias2target "loc_rc1/foo"
 eval set  [ array get env MODULEPATH ]
 
-#
-#  Check this only for the /bin/csh
-#
+set header "- Package/Alias \[-\]+.- Versions \[-\]+.- Last mod. \[-\]+\n"
+set header1 "$header\[-\]+ $MODULEPATH \[-\]+\n"
+set header2 "$header\[-\]+ global/user modulerc \[-\]+\n"
+set ts_csh "$header1$module\/$version                                                  \[0-9\/]{10} \[0-9:]{8}"
+set tsa1_csh "$header1$alias1/$a1vers1 -> $alias1target/$a1vers1\\s+\n$alias1/$a1vers2 -> $alias1target/$a1vers2\\s+\n$alias1/$a1vers3 -> $alias1target/$a1vers3\\s+"
+set tsa2_csh "$header2$alias2 -> $alias2target\\s+"
 
-set header "- Package/Alias \[-\]+.- Versions \[-\]+.- Last mod. \[-\]+\n\[-\]+ $MODULEPATH \[-\]+\n"
-set ts_csh "$header$module\/$version                                           \[0-9:\/A-Za-z ]*"
+# save the former rc file setup
+if {[info exists env(MODULERCFILE)]} {
+    set save_rc $env(MODULERCFILE)
+}
+
 
 #
-#  The tests
+#  test on regular modulefile
 #
 
 testerr_cmd_re "csh" "avail -l $module" "$ts_csh\$"
+
+
+#
+#  test on module alias
+#
+
+testerr_cmd_re "csh" "avail -l $alias1" "$tsa1_csh\$"
+
+
+#
+#  test on module alias set from global modulerc
+#
+
+set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
+testerr_cmd_re "csh" "avail -l $alias2" "$tsa2_csh\$"
+
 
 #
 #  Cleanup
 #
 
+# restore the former rc file setup
+if {[info exists save_rc]} {
+    set env(MODULERCFILE) $save_rc
+    unset save_rc
+} else {
+    unset env(MODULERCFILE)
+}
+
 unset header
+unset header1
+unset header2
 unset ts_csh
+unset tsa1_csh
+unset tsa2_csh
 unset MODULEPATH
 unset version
 unset module
+unset alias1
+unset alias1target
+unset a1vers1
+unset a1vers2
+unset a1vers3
+unset alias2
+unset alias2target

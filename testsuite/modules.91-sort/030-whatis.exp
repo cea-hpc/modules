@@ -13,7 +13,7 @@
 #   Command:		whatis
 #   Modulefiles:	verssort/1, verssort/1.2.1, verssort/1.2.4,
 #                   verssort/1.8-2015-12-01, verssort/1.8-2016-02-01,
-#                   verssort/1.10
+#                   verssort/1.10, averssort
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -28,16 +28,20 @@ set wissep ": (.*)"
 set header "\[-\]+ $MODULEPATH \[-\]+\n"
 
 #
-#  Check this only for the /bin/sh
+#  tests on regular modulefiles
 #
 
 set ts_sh "$header\\s*$module/$version1$wissep\n\\s*$module/$version2$wissep\n\\s*$module/$version3$wissep\n\\s*$module/$version4$wissep\n\\s*$module/$version5$wissep\n\\s*$module/$version6$wissep"
 
+testerr_cmd_re "sh" "whatis $module" "$ts_sh\$"
+
 #
-#  The tests
+#  tests on module aliases
 #
 
-testerr_cmd_re "sh" "whatis $module" "$ts_sh\$"
+set ts_sh "$header\\s*$aliasmod/$version1$wissep\n\\s*$aliasmod/$version3$wissep\n\\s*$aliasmod/$version6$wissep"
+
+testerr_cmd_re "sh" "whatis $aliasmod" "$ts_sh\$"
 
 #
 #  Cleanup

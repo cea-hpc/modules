@@ -13,7 +13,7 @@
 #   Command:		avail
 #   Modulefiles:	verssort/1, verssort/1.2.1, verssort/1.2.4,
 #                   verssort/1.8-2015-12-01, verssort/1.8-2016-02-01,
-#                   verssort/1.10
+#                   verssort/1.10, averssort
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -27,20 +27,28 @@
 set header "\[-\]+ $MODULEPATH \[-\]+\n"
 
 #
-#  Check this only for the /bin/sh
+#  tests on regular modulefiles
 #
 
 set ts_sh "$header$module/$version1\n$module/$version2\n$module/$version3\n$module/$version4\n$module/$version5\n$module/$version6"
 set ts_implicit_default_sh "$header$module/$version6"
 set ts_latest_sh "$header$module/$version6"
 
-#
-#  The tests
-#
-
 testerr_cmd_re "sh" "avail -t $module" "$ts_sh\$"
 testerr_cmd_re "sh" "avail -t -d $module" "$ts_implicit_default_sh\$"
 testerr_cmd_re "sh" "avail -t -L $module" "$ts_latest_sh\$"
+
+#
+#  tests on module aliases
+#
+
+set ts_sh "$header$aliasmod/$version1\\(@\\)\n$aliasmod/$version3\\(@\\)\n$aliasmod/$version6\\(@\\)"
+set ts_implicit_default_sh "$header$aliasmod/$version6\\(@\\)"
+set ts_latest_sh "$header$aliasmod/$version6\\(@\\)"
+
+testerr_cmd_re "sh" "avail -t $aliasmod" "$ts_sh\$"
+testerr_cmd_re "sh" "avail -t -d $aliasmod" "$ts_implicit_default_sh\$"
+testerr_cmd_re "sh" "avail -t -L $aliasmod" "$ts_latest_sh\$"
 
 #
 #  Cleanup

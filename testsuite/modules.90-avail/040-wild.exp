@@ -13,7 +13,7 @@
 #   Command:		avail
 #   Modulefiles:	uname/domain, uname/machine, uname/nodename
 #   Modulefiles:	uname/release, uname/sysnae, uname/version
-#   Modulefiles:	unsetenv/0.9, unsetenv/1.0
+#   Modulefiles:	unsetenv/0.9, unsetenv/1.0, averssort, sym_foo
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -29,6 +29,7 @@
 
 eval set  [ array get env MODULEPATH ]
 set header "\[-\]+ $MODULEPATH \[-\]+"
+set header2 "\[-\]+ global/user modulerc \[-\]+"
 
 set ts_csh1 "uname/domain"
 set ts_csh2 "uname/machine"
@@ -39,17 +40,53 @@ set ts_csh6 "uname/version"
 set ts_csh7 "unsetenv/0.9"
 set ts_csh8 "unsetenv/1.0"
 
+set tsa1_csh1 "averssort/1"
+set tsa1_csh2 "averssort/1.2.4"
+set tsa1_csh3 "averssort/1.10"
+
+set tsa2_csh1 "sym_foo"
+
+# save the former rc file setup
+if {[info exists env(MODULERCFILE)]} {
+    set save_rc $env(MODULERCFILE)
+}
+
+
 #
-#  The tests
+#  test on regular modulefiles
 #
 
 testerr_cmd_re "csh" "avail -t un" "$header\n$ts_csh1\n$ts_csh2\n$ts_csh3\n$ts_csh4\n$ts_csh5\n$ts_csh6\n$ts_csh7\n$ts_csh8\$"
 
 #
+#  test on module alias
+#
+
+testerr_cmd_re "csh" "avail -t avers" "$header\n$tsa1_csh1\\(@\\)\n$tsa1_csh2\\(@\\)\n$tsa1_csh3\\(@\\)\$"
+
+
+#
+#  test on module alias set from global modulerc
+#
+
+set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
+testerr_cmd_re "csh" "avail -t sym" "$header2\n$tsa2_csh1\\(@\\)\$"
+
+
+#
 #  Cleanup
 #
 
+# restore the former rc file setup
+if {[info exists save_rc]} {
+    set env(MODULERCFILE) $save_rc
+    unset save_rc
+} else {
+    unset env(MODULERCFILE)
+}
+
 unset header
+unset header2
 unset MODULEPATH
 unset ts_csh1
 unset ts_csh2
@@ -59,3 +96,7 @@ unset ts_csh5
 unset ts_csh6
 unset ts_csh7
 unset ts_csh8
+unset tsa1_csh1
+unset tsa1_csh2
+unset tsa1_csh3
+unset tsa2_csh1

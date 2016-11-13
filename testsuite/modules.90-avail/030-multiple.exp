@@ -11,7 +11,8 @@
 #
 #   Description:	Testuite testsequence
 #   Command:		avail
-#   Modulefiles:	loc_rc1/1.0, loc_rc1/2.0
+#   Modulefiles:	loc_rc1/1.0, loc_rc1/2.0, loc_rc3/1.0,
+#                   loc_rc3/2.0, loc_rc3/3.0, averssort, sym_foo
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -21,35 +22,104 @@
 #
 ##############################################################################
 
-set module "loc_rc1"
-set version1 "1.0"
-set version2 "2.0"
-set sym "foo"
+set module1 "loc_rc1"
+set mod1vers1 "1.0"
+set mod1vers2 "2.0"
+set mod1sym "foo"
+set module2 "loc_rc3"
+set mod2vers1 "1.0"
+set mod2vers2 "2.0"
+set mod2vers3 "3.0"
+set mod2sym1 "default"
+set mod2sym2 "cur:stable"
+set mod2sym3 "chk:exp:new:test"
+set module3 "averssort"
+set mod3vers1 "1"
+set mod3vers2 "1.2.4"
+set mod3vers3 "1.10"
+set module4 "sym_foo"
 eval set  [ array get env MODULEPATH ]
 set header "\[-\]+ $MODULEPATH \[-\]+\n"
+set header2 "\[-\]+ global/user modulerc \[-\]+\n"
+
+# save the former rc file setup
+if {[info exists env(MODULERCFILE)]} {
+    set save_rc $env(MODULERCFILE)
+}
+
 
 #
-#  Check this only fo the /bin/csh
+#  tests on a module with single symbol
 #
 
-set ts_csh "$header$module/$version1\\($sym\\)\\s+$module/$version2\\s+"
+# Check this only fo the /bin/csh
+set ts_csh "$header$module1/$mod1vers1\\($mod1sym\\)\\s+$module1/$mod1vers2\\s+"
+
+testerr_cmd_re "csh" "avail $module1" "$ts_csh\$"
+testerr_cmd_re "csh" "avail $module1 $module1" "$ts_csh\n$ts_csh\$"
+
 
 #
-#  The tests
+#  tests on a module with multiple symbols
 #
 
-testerr_cmd_re "csh" "avail $module" "$ts_csh\$"
-testerr_cmd_re "csh" "avail $module $module" "$ts_csh\n$ts_csh\$"
+set ts_csh "$header$module2/$mod2vers1\\($mod2sym1\\)\\s+$module2/$mod2vers2\\($mod2sym2\\)\\s+$module2/$mod2vers3\\($mod2sym3\\)\\s+"
+
+testerr_cmd_re "csh" "avail $module2" "$ts_csh\$"
+testerr_cmd_re "csh" "avail $module2 $module2" "$ts_csh\n$ts_csh\$"
+
+
+#
+#  tests on a module alias
+#
+
+set ts_csh "$header$module3/$mod3vers1\\(@\\)\\s+$module3/$mod3vers2\\(@\\)\\s+$module3/$mod3vers3\\(@\\)\\s+"
+
+testerr_cmd_re "csh" "avail $module3" "$ts_csh\$"
+testerr_cmd_re "csh" "avail $module3 $module3" "$ts_csh\n$ts_csh\$"
+
+
+#
+#  tests on a module alias set from a global modulerc
+#
+
+set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
+set ts_csh "$header2$module4\\(@\\)\\s+"
+
+testerr_cmd_re "csh" "avail $module4" "$ts_csh\$"
+testerr_cmd_re "csh" "avail $module4 $module4" "$ts_csh\n$ts_csh\$"
+
 
 #
 #  Cleanup
 #
 
+# restore the former rc file setup
+if {[info exists save_rc]} {
+    set env(MODULERCFILE) $save_rc
+    unset save_rc
+} else {
+    unset env(MODULERCFILE)
+}
+
 unset ts_csh
 
-unset version1
-unset version2
-unset sym
+unset module4
+unset mod3vers1
+unset mod3vers2
+unset mod3vers3
+unset module3
+unset mod2sym1
+unset mod2sym2
+unset mod2sym3
+unset mod2vers1
+unset mod2vers2
+unset mod2vers3
+unset module2
+unset mod1vers1
+unset mod1vers2
+unset mod1sym
 unset header
+unset header2
 unset MODULEPATH
-unset module
+unset module1
