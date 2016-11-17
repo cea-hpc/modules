@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.653
+set MODULES_CURRENT_VERSION 1.654
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3102,7 +3102,9 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             }
          }
 
-         eval displayElementList $dir 1 0 $display_list
+         if {[llength $display_list] > 0} {
+            eval displayElementList $dir 1 0 $display_list
+         }
       }
    }
 }
@@ -3520,13 +3522,17 @@ proc cmdModuleAliases {} {
    foreach name [lsort -dictionary [array names g_moduleAlias]] {
       lappend display_list "$name -> $g_moduleAlias($name)"
    }
-   eval displayElementList "Aliases" 1 0 $display_list
+   if {[llength $display_list] > 0} {
+      eval displayElementList "Aliases" 1 0 $display_list
+   }
 
    set display_list {}
    foreach name [lsort -dictionary [array names g_moduleVersion]] {
       lappend display_list "$name -> $g_moduleVersion($name)"
    }
-   eval displayElementList "Versions" 1 0 $display_list
+   if {[llength $display_list] > 0} {
+      eval displayElementList "Versions" 1 0 $display_list
+   }
 }
 
 proc system {mycmd args} {
@@ -3574,7 +3580,9 @@ proc cmdModuleAvail {{mod {*}}} {
    foreach dir [getModulePathList "exiterronundef"] {
       if {[file isdirectory "$dir"] && [file readable $dir]} {
          set display_list [listModules "$dir" "$mod" 1 $show_filter]
-         eval displayElementList $dir $one_per_line 0 $display_list
+         if {[llength $display_list] > 0} {
+            eval displayElementList $dir $one_per_line 0 $display_list
+         }
       }
    }
 }
