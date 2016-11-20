@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.656
+set MODULES_CURRENT_VERSION 1.657
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -190,6 +190,7 @@ proc execute-modulefile {modfile {help ""}} {
       interp alias $slave unsetenv {} unsetenv
       interp alias $slave getenv {} getenv
       interp alias $slave system {} system
+      interp alias $slave chdir {} chdir
       interp alias $slave append-path {} append-path
       interp alias $slave prepend-path {} prepend-path
       interp alias $slave remove-path {} remove-path
@@ -289,6 +290,7 @@ proc execute-modulerc {modfile} {
          interp create $slave
          interp alias $slave uname {} uname
          interp alias $slave system {} system
+         interp alias $slave chdir {} chdir
          interp alias $slave module-version {} module-version
          interp alias $slave module-alias {} module-alias
          interp alias $slave module {} module
@@ -890,6 +892,30 @@ proc unsetenv {var {val {}}} {
    elseif {$mode eq "display"} {
       report "unsetenv\t\t$var"
    }
+   return {}
+}
+
+proc chdir {dir} {
+   global g_changeDir
+   set mode [currentMode]
+   set currentModule [currentModuleName]
+
+   reportDebug "chdir: ($dir) mode = $mode"
+
+   if {$mode eq "load"} {
+      if {[file exists $dir] && [file isdirectory $dir]} {
+         set g_changeDir $dir
+      } else {
+         # report issue but does not treat it as an error to have the
+         # same behavior as C-version
+         reportWarning "Cannot chdir to '$dir' for '$currentModule'"
+      }
+   } elseif {$mode eq "unload"} {
+      # No operation here unable to undo a syscall.
+   } elseif {$mode eq "display"} {
+      report "chdir\t\t$dir"
+   }
+
    return {}
 }
 
@@ -1677,7 +1703,7 @@ proc renderSettings {} {
    global env g_Aliases g_shellType g_shell
    global g_stateEnvVars g_stateAliases
    global g_newXResources g_delXResources
-   global g_pathList g_systemList error_count
+   global g_pathList g_systemList g_changeDir error_count
    global g_autoInit CSH_LIMIT
 
    reportDebug "renderSettings: called."
@@ -2034,6 +2060,26 @@ proc renderSettings {} {
    if {[info exists g_systemList]} {
       foreach var $g_systemList {
          puts stdout "$var;"
+      }
+   }
+
+   if {[info exists g_changeDir]} {
+      switch -regexp -- $g_shellType {
+         {^(csh|fish|sh)$} {
+            puts stdout "cd '$g_changeDir';"
+         }
+         tcl {
+            puts stdout "cd \"$g_changeDir\";"
+         }
+         perl {
+            puts stdout "chdir '$g_changeDir';"
+         }
+         python {
+            puts stdout "os.chdir('$g_changeDir')"
+         }
+         lisp {
+            puts stdout "(shell-command-to-string \"cd '$g_changeDir'\")"
+         }
       }
    }
 
