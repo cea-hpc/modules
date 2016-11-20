@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.657
+set MODULES_CURRENT_VERSION 1.658
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -239,7 +239,11 @@ proc execute-modulefile {modfile {help ""}} {
          }
       if {$sourceFailed} {
          global errorInfo
-         if {$errorMsg eq "" && (![info exists errorInfo]\
+         # no error in case of "continue" command
+         if {$sourceFailed == 4} {
+            unset errorMsg
+            return 0
+         } elseif {$errorMsg eq "" && (![info exists errorInfo]\
             || $errorInfo eq "")} {
             raiseErrorCount
             unset errorMsg

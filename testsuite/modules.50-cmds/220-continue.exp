@@ -1,0 +1,193 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2006/02/21
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen, <rk@owen.sj.ca.us>
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	continue/1.0,
+#   			continue/2.0,
+#   			continue/3.0,
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tries the Tcl "continue" to skip further
+#			processing of a module,
+#			but not affecting the other loaded modules.
+#		}C%
+#
+##############################################################################
+
+set mod1 "continue/1.0"
+set mod2 "continue/2.0"
+set mod3 "continue/3.0"
+
+set mod1p "$env(MODULEPATH)/$mod1"
+set mod2p "$env(MODULEPATH)/$mod2"
+set mod3p "$env(MODULEPATH)/$mod3"
+
+#
+# set up an empty environment
+#
+set module ""
+set modulefile ""
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  load
+#  For the different shells ...
+#
+set module "$mod1:$mod2:$mod3"
+set modulefile "$mod1p:$mod2p:$mod3p"
+
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
+set ts_sh1 "testsuite1=yes; export testsuite1;"
+set ts_sh2 "testsuite2=yes; export testsuite2;"
+set ts_sh3 "testsuite3=yes; export testsuite3;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lm_csh "setenv LOADEDMODULES $module;"
+set lmfmod_csh "setenv _LMFILES__modshare (.*);"
+set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
+set ts_csh1 "setenv testsuite1 yes;"
+set ts_csh2 "setenv testsuite2 yes;"
+set ts_csh3 "setenv testsuite3 yes;"
+
+set lmf_fish "set -xg _LMFILES_ $modulefile;"
+set lm_fish "set -xg LOADEDMODULES $module;"
+set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
+set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
+set ts_fish1 "set -xg testsuite1 yes;"
+set ts_fish2 "set -xg testsuite2 yes;"
+set ts_fish3 "set -xg testsuite3 yes;"
+
+set lmf_tcl "set env\\\(_LMFILES_\\) $modulefile;"
+set lm_tcl "set env\\\(LOADEDMODULES\\\) $module;"
+set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) (.*);"
+set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) (.*);"
+set ts_tcl1 "set env\\\(testsuite1\\\) yes;"
+set ts_tcl2 "set env\\\(testsuite2\\\) yes;"
+set ts_tcl3 "set env\\\(testsuite3\\\) yes;"
+
+set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
+set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
+set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
+set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
+set ts_perl1 "\\\$ENV{\'testsuite1\'} = \'yes\';"
+set ts_perl2 "\\\$ENV{\'testsuite2\'} = \'yes\';"
+set ts_perl3 "\\\$ENV{\'testsuite3\'} = \'yes\';"
+
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
+set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
+set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
+set ts_python1 "os.environ\\\[\'testsuite1\'\\\] = \'yes\'"
+set ts_python2 "os.environ\\\[\'testsuite2\'\\\] = \'yes\'"
+set ts_python3 "os.environ\\\[\'testsuite3\'\\\] = \'yes\'"
+
+set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
+set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
+set ts_lisp1 "\\\(setenv \"testsuite1\" \"yes\"\\\)"
+set ts_lisp2 "\\\(setenv \"testsuite2\" \"yes\"\\\)"
+set ts_lisp3 "\\\(setenv \"testsuite3\" \"yes\"\\\)"
+
+#
+#  The tests
+#
+test_cmd_re "sh" "load $mod1 $mod2 $mod3" "$ts_sh2\n$lmfmod_sh\n$lmmod_sh\n$ts_sh3\n$lmf_sh\n$lm_sh\n$ts_sh1\$"
+test_cmd_re "bash" "load $mod1 $mod2 $mod3" "$ts_sh2\n$lmfmod_sh\n$lmmod_sh\n$ts_sh3\n$lmf_sh\n$lm_sh\n$ts_sh1\$"
+test_cmd_re "ksh" "load $mod1 $mod2 $mod3" "$ts_sh2\n$lmfmod_sh\n$lmmod_sh\n$ts_sh3\n$lmf_sh\n$lm_sh\n$ts_sh1\$"
+test_cmd_re "zsh" "load $mod1 $mod2 $mod3" "$ts_sh2\n$lmfmod_sh\n$lmmod_sh\n$ts_sh3\n$lmf_sh\n$lm_sh\n$ts_sh1\$"
+test_cmd_re "csh" "load $mod1 $mod2 $mod3" "$ts_csh2\n$lmfmod_csh\n$lmmod_csh\n$ts_csh3\n$lmf_csh\n$lm_csh\n$ts_csh1\$"
+test_cmd_re "tcsh" "load $mod1 $mod2 $mod3" "$ts_csh2\n$lmfmod_csh\n$lmmod_csh\n$ts_csh3\n$lmf_csh\n$lm_csh\n$ts_csh1\$"
+test_cmd_re "fish" "load $mod1 $mod2 $mod3" "$ts_fish2\n$lmfmod_fish\n$lmmod_fish\n$ts_fish3\n$lmf_fish\n$lm_fish\n$ts_fish1\$"
+test_cmd_re "tcl" "load $mod1 $mod2 $mod3" "$ts_tcl2\n$lmfmod_tcl\n$lmmod_tcl\n$ts_tcl3\n$lmf_tcl\n$lm_tcl\n$ts_tcl1\$"
+test_cmd_re "perl" "load $mod1 $mod2 $mod3" "$ts_perl2\n$lmfmod_perl\n$lmmod_perl\n$ts_perl3\n$lmf_perl\n$lm_perl\n$ts_perl1\n1;\$"
+test_cmd_re "python" "load $mod1 $mod2 $mod3" "import os\n$ts_python2\n$lmfmod_python\n$lmmod_python\n$ts_python3\n$lmf_python\n$lm_python\n$ts_python1\$"
+test_cmd_re "lisp" "load $mod1 $mod2 $mod3" "$ts_lisp2\n$lmfmod_lisp\n$lmmod_lisp\n$ts_lisp3\n$lmf_lisp\n$lm_lisp\n$ts_lisp1\$"
+
+#
+#  Cleanup
+#
+
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+
+unset lm_sh
+unset lmf_sh
+unset lmmod_sh
+unset lmfmod_sh
+unset ts_sh1
+unset ts_sh2
+unset ts_sh3
+
+unset lm_csh
+unset lmf_csh
+unset lmmod_csh
+unset lmfmod_csh
+unset ts_csh1
+unset ts_csh2
+unset ts_csh3
+
+unset lm_fish
+unset lmf_fish
+unset lmmod_fish
+unset lmfmod_fish
+unset ts_fish1
+unset ts_fish2
+unset ts_fish3
+
+unset lm_tcl
+unset lmf_tcl
+unset lmmod_tcl
+unset lmfmod_tcl
+unset ts_tcl1
+unset ts_tcl2
+unset ts_tcl3
+
+unset lm_perl
+unset lmf_perl
+unset lmmod_perl
+unset lmfmod_perl
+unset ts_perl1
+unset ts_perl2
+unset ts_perl3
+
+unset lm_python
+unset lmf_python
+unset lmmod_python
+unset lmfmod_python
+unset ts_python1
+unset ts_python2
+unset ts_python3
+
+unset lm_lisp
+unset lmf_lisp
+unset lmmod_lisp
+unset lmfmod_lisp
+unset ts_lisp1
+unset ts_lisp2
+unset ts_lisp3
+
+unset modulefile
+unset module
+
+unset mod1
+unset mod2
+unset mod3
+unset mod1p
+unset mod2p
+unset mod3p
+

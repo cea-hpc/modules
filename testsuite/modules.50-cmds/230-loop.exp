@@ -1,0 +1,210 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2006/02/21
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen, <rk@owen.sj.ca.us>
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	break/4.0,
+#   			continue/4.0,
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tries the Tcl "break" and "continue" used in
+#			a valid loop
+#		}C%
+#
+##############################################################################
+
+set break4 "break/4.0"
+set cont4 "continue/4.0"
+
+set break4p "$env(MODULEPATH)/$break4"
+set cont4p "$env(MODULEPATH)/$cont4"
+
+#
+# set up an empty environment
+#
+set module ""
+set modulefile ""
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  load (break)
+#  For the different shells ...
+#
+set module "$break4"
+set modulefile "$break4p"
+
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
+set ts_sh4 "testsuite4=9; export testsuite4;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lm_csh "setenv LOADEDMODULES $module;"
+set lmfmod_csh "setenv _LMFILES__modshare (.*);"
+set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
+set ts_csh4 "setenv testsuite4 9;"
+
+set lmf_fish "set -xg _LMFILES_ $modulefile;"
+set lm_fish "set -xg LOADEDMODULES $module;"
+set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
+set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
+set ts_fish4 "set -xg testsuite4 9;"
+
+set lmf_tcl "set env\\\(_LMFILES_\\) $modulefile;"
+set lm_tcl "set env\\\(LOADEDMODULES\\\) $module;"
+set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) (.*);"
+set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) (.*);"
+set ts_tcl4 "set env\\\(testsuite4\\\) 9;"
+
+set lmf_perl "\\\$ENV{'_LMFILES_'} = \'$modulefile\';"
+set lm_perl "\\\$ENV{'LOADEDMODULES'} = \'$module\';"
+set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
+set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
+set ts_perl4 "\\\$ENV{'testsuite4'} = \'9\';"
+
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
+set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
+set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
+set ts_python4 "os.environ\\\[\'testsuite4\'\\\] = \'9\'"
+
+set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
+set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
+set ts_lisp4 "\\\(setenv \"testsuite4\" \"9\"\\\)"
+
+#
+#  The tests
+#
+test_cmd_re "sh" "load $break4" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh4\$"
+test_cmd_re "bash" "load $break4" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh4\$"
+test_cmd_re "ksh" "load $break4" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh4\$"
+test_cmd_re "zsh" "load $break4" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh4\$"
+test_cmd_re "csh" "load $break4" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh4\$"
+test_cmd_re "tcsh" "load $break4" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh4\$"
+test_cmd_re "fish" "load $break4" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish4\$"
+test_cmd_re "tcl" "load $break4" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl4\$"
+test_cmd_re "perl" "load $break4" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n$ts_perl4\n1;\$"
+test_cmd_re "python" "load $break4" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$ts_python4\$"
+test_cmd_re "lisp" "load $break4" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp4\$"
+
+#
+#  load (continue)
+#  For the different shells ...
+#
+set module "$cont4"
+set modulefile "$cont4p"
+
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+set ts_sh4 "testsuite4=9; export testsuite4;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lm_csh "setenv LOADEDMODULES $module;"
+set ts_csh4 "setenv testsuite4 9;"
+
+set lmf_fish "set -xg _LMFILES_ $modulefile;"
+set lm_fish "set -xg LOADEDMODULES $module;"
+set ts_fish4 "set -xg testsuite4 9;"
+
+set lmf_tcl "set env\\\(_LMFILES_\\) $modulefile;"
+set lm_tcl "set env\\\(LOADEDMODULES\\\) $module;"
+set ts_tcl4 "set env\\\(testsuite4\\\) 9;"
+
+set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
+set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
+set ts_perl4 "\\\$ENV{\'testsuite4\'} = \'9\';"
+
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
+set ts_python4 "os.environ\\\[\'testsuite4\'\\\] = \'9\'"
+
+set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+set ts_lisp4 "\\\(setenv \"testsuite4\" \"9\"\\\)"
+
+
+#
+#  The tests
+#
+test_cmd_re "sh" "load $cont4" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh4\$"
+test_cmd_re "bash" "load $cont4" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh4\$"
+test_cmd_re "ksh" "load $cont4" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh4\$"
+test_cmd_re "zsh" "load $cont4" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh4\$"
+test_cmd_re "csh" "load $cont4" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh4\$"
+test_cmd_re "tcsh" "load $cont4" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh4\$"
+test_cmd_re "fish" "load $cont4" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish4\$"
+test_cmd_re "tcl" "load $cont4" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl4\$"
+test_cmd_re "perl" "load $cont4" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n$ts_perl4\n1;\$"
+test_cmd_re "python" "load $cont4" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$ts_python4\$"
+test_cmd_re "lisp" "load $cont4" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp4\$"
+
+#
+#  Cleanup
+#
+
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+
+unset lm_sh
+unset lmf_sh
+unset lmmod_sh
+unset lmfmod_sh
+unset ts_sh4
+
+unset lm_csh
+unset lmf_csh
+unset lmmod_csh
+unset lmfmod_csh
+unset ts_csh4
+
+unset lm_fish
+unset lmf_fish
+unset lmmod_fish
+unset lmfmod_fish
+unset ts_fish4
+
+unset lm_tcl
+unset lmf_tcl
+unset lmmod_tcl
+unset lmfmod_tcl
+unset ts_tcl4
+
+unset lm_perl
+unset lmf_perl
+unset lmmod_perl
+unset lmfmod_perl
+unset ts_perl4
+
+unset lm_python
+unset lmf_python
+unset lmmod_python
+unset lmfmod_python
+unset ts_python4
+
+unset lm_lisp
+unset lmf_lisp
+unset lmmod_lisp
+unset lmfmod_lisp
+unset ts_lisp4
+
+unset modulefile
+unset module
+
+unset break4
+unset cont4
+unset break4p
+unset cont4p
+
