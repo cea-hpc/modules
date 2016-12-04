@@ -616,6 +616,9 @@ extern	int	  ModuleCmd_Load( Tcl_Interp*, int, int, char*[]);
 /**  ModuleCmd_Purge.c  **/
 extern	int	  ModuleCmd_Purge( Tcl_Interp*, int, char*[]);
 
+/**  ModuleCmd_Refresh.c  **/
+extern	int	  ModuleCmd_Refresh( Tcl_Interp*, int, char*[]);
+
 /**  ModuleCmd_Switch.c  **/
 extern	int	  ModuleCmd_Switch( Tcl_Interp*, int, char*[]);
 
@@ -736,6 +739,7 @@ extern	int	  IsLoaded( Tcl_Interp*, char*, char**, char*);
 extern	int	  IsLoaded_ExactMatch( Tcl_Interp*, char*, char	**, char*);
 extern	int	  Update_LoadedList( Tcl_Interp*, char*, char*);
 extern	int	  check_magic( char*, char*, int);
+extern	void	  regex_quote( const char*, char*, int);
 extern	char	 *xstrtok_r(char *, const char *, char **);
 extern	char	 *xstrtok(char *, const char *);
 extern	void	  chk4spch( char*);
