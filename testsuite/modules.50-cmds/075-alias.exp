@@ -1,0 +1,107 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	alias/2.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'set-alias' module subcommand for all allowed
+#			shell types.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "alias/2.0"
+set modulefile "$env(MODULEPATH)/$module"
+set alias "ps -auxww \| grep modulecmd"
+
+#
+#  For the different shells ...
+#
+
+set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+set ts_sh "alias testsuite=\'$alias\';"
+
+set lmfmod_csh "setenv _LMFILES__modshare (.*);"
+set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lm_csh "setenv LOADEDMODULES $module;"
+set ts_csh "alias testsuite \'$alias\';"
+
+set lmf_fish "set -xg _LMFILES_ $modulefile;"
+set lm_fish "set -xg LOADEDMODULES $module;"
+set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
+set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
+set ts_fish "alias testsuite \'$alias\';"
+
+set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) (.*);"
+set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) (.*);"
+set lmf_tcl "set env\\\(_LMFILES\\\)_ $modulefile;"
+set lm_tcl "set env\\\(LOADEDMODULES\\\) $module;"
+set ts_tcl "alias testsuite \"$alias\";"
+
+#
+#  The tests
+#
+
+test_cmd_re "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
+test_cmd_re "bash" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
+test_cmd_re "ksh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
+test_cmd_re "zsh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
+test_cmd_re "csh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
+test_cmd_re "tcsh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
+test_cmd_re "fish" "load $module" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish\$"
+test_cmd_re "tcl" "load $module" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl\$"
+# only available for csh/sh/fish/tcl derivatives ... no longer warn for others
+
+#
+#  Cleanup
+#
+
+unset ts_sh
+unset lm_sh
+unset lmf_sh
+unset lmmod_sh
+unset lmfmod_sh
+
+unset ts_csh
+unset lm_csh
+unset lmf_csh
+unset lmmod_csh
+unset lmfmod_csh
+
+unset ts_fish
+unset lm_fish
+unset lmf_fish
+unset lmmod_fish
+unset lmfmod_fish
+
+unset ts_tcl
+unset lm_tcl
+unset lmf_tcl
+unset lmmod_tcl
+unset lmfmod_tcl
+
+unset modulefile
+unset module
+unset alias
+
