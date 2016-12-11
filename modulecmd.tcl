@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.658
+set MODULES_CURRENT_VERSION 1.661
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -595,11 +595,21 @@ proc module {command args} {
          }
       }
       {^use$} {
-         eval cmdModuleUse $args
+         if {$topcall || $mode eq "load"} {
+            eval cmdModuleUse $args
+         } elseif {$mode eq "unload"} {
+            eval cmdModuleUnuse $args
+         } elseif {$mode eq "display"} {
+            report "module use\t$args"
+         }
          set needrender 1
       }
       {^unuse$} {
-         eval cmdModuleUnuse $args
+         if {$topcall || $mode eq "load" || $mode eq "unload"} {
+            eval cmdModuleUnuse $args
+         } elseif {$mode eq "display"} {
+            report "module unuse\t$args"
+         }
          set needrender 1
       }
       {^source$} {
