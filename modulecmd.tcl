@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.662
+set MODULES_CURRENT_VERSION 1.663
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1851,7 +1851,7 @@ proc renderSettings {} {
             }
             tcl {
                set val [doubleQuoteEscaped $env($var)]
-               puts stdout "set env($var) $val;"
+               puts stdout "set env($var) \"$val\";"
             }
             perl {
                set val [singleQuoteEscaped $env($var)]
