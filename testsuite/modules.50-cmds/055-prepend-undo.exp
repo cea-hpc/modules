@@ -1,0 +1,265 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	1995/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		unload
+#   Modulefiles:	prepend/1.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the reverse 'prepend-path' module subcommand for
+#			all allowed shell types.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module unload command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "PATH" to
+#    be set up
+#
+
+set module "prepend/2.0"
+set modulefile "$env(MODULEPATH)/$module"
+
+set old_path $env(PATH)
+regsub -all ":" $old_path " " old_fish_path
+set ts_path "/this/is/the/modules/testsuite"
+set new_path "$ts_path:$old_path"
+
+#
+#  Set up the environment for reversal ...
+#
+
+set env(PATH) "$new_path"
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  For the different shells ...
+#
+
+set lmfmod_sh "unset _LMFILES__modshare;"
+set lmmod_sh "unset LOADEDMODULES_modshare;"
+set tsmod_sh "PATH_modshare=(.*); export PATH_modshare;"
+set lmf_sh "unset _LMFILES_;"
+set lm_sh "unset LOADEDMODULES;"
+set ts_sh "PATH=$old_path; export PATH;"
+
+set lmfmod_csh "unsetenv _LMFILES__modshare;"
+set lmmod_csh "unsetenv LOADEDMODULES_modshare;"
+set tsmod_csh "setenv PATH_modshare (.*);"
+set lmf_csh "unsetenv _LMFILES_;"
+set lm_csh "unsetenv LOADEDMODULES;"
+set ts_csh "setenv PATH $old_path;"
+
+set lmfmod_fish "set -e _LMFILES__modshare;"
+set lmmod_fish "set -e LOADEDMODULES_modshare;"
+set tsmod_fish "set -xg PATH_modshare (.*);"
+set lmf_fish "set -e _LMFILES_;"
+set lm_fish "set -e LOADEDMODULES;"
+set ts_fish "set -xg PATH $old_fish_path;"
+
+set lmfmod_tcl "unset env\\\(_LMFILES__modshare\\\);"
+set lmmod_tcl "unset env\\\(LOADEDMODULES_modshare\\\);"
+set tsmod_tcl "set env\\\(PATH_modshare\\\) \"(.*)\";"
+set lmf_tcl "unset env\\\(_LMFILES_\\\);"
+set lm_tcl "unset env\\\(LOADEDMODULES\\\);"
+set ts_tcl "set env\\\(PATH\\\) \"$old_path\";"
+
+set lmfmod_perl "delete \\\$ENV{\'_LMFILES__modshare\'};"
+set lmmod_perl "delete \\\$ENV{\'LOADEDMODULES_modshare\'};"
+set tsmod_perl "\\\$ENV{\'PATH_modshare\'} = \'(.*)\';"
+set lmf_perl "delete \\\$ENV{\'_LMFILES_\'};"
+set lm_perl "delete \\\$ENV{\'LOADEDMODULES\'};"
+set ts_perl "\\\$ENV{\'PATH\'} = \'$old_path\';"
+
+set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'\'\ndel os.environ\\\[\'_LMFILES__modshare\'\\\]"
+set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'\'\ndel os.environ\\\[\'LOADEDMODULES_modshare\'\\\]"
+set tsmod_python "os.environ\\\[\'PATH_modshare\'\\\] = \'(.*)\'"
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'\'\ndel os.environ\\\[\'_LMFILES_\'\\\]"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'\'\ndel os.environ\\\[\'LOADEDMODULES\'\\\]"
+set ts_python "os.environ\\\[\'PATH\'\\\] = \'$old_path\'"
+
+set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" nil\\\)"
+set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" nil\\\)"
+set tsmod_lisp "\\\(setenv \"PATH_modshare\" \"(.*)\"\\\)"
+set lmf_lisp "\\\(setenv \"_LMFILES_\" nil\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" nil\\\)"
+set ts_lisp "\\\(setenv \"PATH\" \"$old_path\"\\\)"
+
+#
+#  The tests
+#
+
+test_cmd_re "sh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
+test_cmd_re "bash" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
+test_cmd_re "ksh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
+test_cmd_re "zsh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
+test_cmd_re "csh" "unload $module" "$lmfmod_csh\n$lmmod_csh\n$ts_csh\n$lmf_csh\n$lm_csh\n$tsmod_csh\$"
+test_cmd_re "tcsh" "unload $module" "$lmfmod_csh\n$lmmod_csh\n$ts_csh\n$lmf_csh\n$lm_csh\n$tsmod_csh\$"
+test_cmd_re "fish" "unload $module" "$lmfmod_fish\n$lmmod_fish\n$ts_fish\n$lmf_fish\n$lm_fish\n$tsmod_fish\$"
+test_cmd_re "tcl" "unload $module" "$lmfmod_tcl\n$lmmod_tcl\n$ts_tcl\n$lmf_tcl\n$lm_tcl\n$tsmod_tcl\$"
+test_cmd_re "perl" "unload $module" "$lmfmod_perl\n$lmmod_perl\n$ts_perl\n$lmf_perl\n$lm_perl\n$tsmod_perl\n1;\$"
+test_cmd_re "python" "unload $module" "import os\n$lmfmod_python\n$lmmod_python\n$ts_python\n$lmf_python\n$lm_python\n$tsmod_python\$"
+test_cmd_re "lisp" "unload $module" "$lmfmod_lisp\n$lmmod_lisp\n$ts_lisp\n$lmf_lisp\n$lm_lisp\n$tsmod_lisp\$"
+
+#
+# Try the empty string
+#
+
+set module "prepend/0.1"
+set modulefile "$env(MODULEPATH)/$module"
+
+set ts_path ""
+set new_path "$ts_path:$old_path"
+
+#
+#  Set up the environment for reversal ...
+#
+
+set env(PATH) "$new_path"
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  For the different shells ...
+#
+
+# same result content as above
+
+#
+#  The tests
+#
+
+test_cmd_re "sh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
+test_cmd_re "bash" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
+test_cmd_re "ksh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
+test_cmd_re "zsh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
+test_cmd_re "csh" "unload $module" "$lmfmod_csh\n$lmmod_csh\n$ts_csh\n$lmf_csh\n$lm_csh\n$tsmod_csh\$"
+test_cmd_re "tcsh" "unload $module" "$lmfmod_csh\n$lmmod_csh\n$ts_csh\n$lmf_csh\n$lm_csh\n$tsmod_csh\$"
+test_cmd_re "fish" "unload $module" "$lmfmod_fish\n$lmmod_fish\n$ts_fish\n$lmf_fish\n$lm_fish\n$tsmod_fish\$"
+test_cmd_re "tcl" "unload $module" "$lmfmod_tcl\n$lmmod_tcl\n$ts_tcl\n$lmf_tcl\n$lm_tcl\n$tsmod_tcl\$"
+test_cmd_re "perl" "unload $module" "$lmfmod_perl\n$lmmod_perl\n$ts_perl\n$lmf_perl\n$lm_perl\n$tsmod_perl\n1;\$"
+test_cmd_re "python" "unload $module" "import os\n$lmfmod_python\n$lmmod_python\n$ts_python\n$lmf_python\n$lm_python\n$tsmod_python\$"
+test_cmd_re "lisp" "unload $module" "$lmfmod_lisp\n$lmmod_lisp\n$ts_lisp\n$lmf_lisp\n$lm_lisp\n$tsmod_lisp\$"
+
+#
+# Try just the colon
+#
+
+set module "prepend/0.2"
+set modulefile "$env(MODULEPATH)/$module"
+
+# different behavior than C-version: on Tcl-version removing a bare colon
+# to a path produces an error since this colon cannot be distinguished
+# from the colon used for path separator
+set ts_err "Module ERROR: Occurred in file $modulefile:unload-path cannot handle path equals to separator string.*"
+
+set ts_path ":"
+set new_path "$ts_path:$old_path"
+
+#
+#  Set up the environment for reversal ...
+#
+
+# as adding bare colon leads to error, this module can never be loaded
+# but anyway here we test that the unloading part of "append-path" also
+# leads to error
+set env(PATH) "$new_path"
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  The tests
+#
+
+testouterr_cmd_re "sh" "unload $module" "" "$ts_err"
+testouterr_cmd_re "bash" "unload $module" "" "$ts_err"
+testouterr_cmd_re "ksh" "unload $module" "" "$ts_err"
+testouterr_cmd_re "zsh" "unload $module" "" "$ts_err"
+testouterr_cmd_re "csh" "unload $module" "" "$ts_err"
+testouterr_cmd_re "tcsh" "unload $module" "" "$ts_err"
+testouterr_cmd_re "fish" "unload $module" "" "$ts_err"
+testouterr_cmd_re "tcl" "unload $module" "" "$ts_err"
+testouterr_cmd_re "perl" "unload $module" "" "$ts_err"
+testouterr_cmd_re "python" "unload $module" "" "$ts_err"
+testouterr_cmd_re "lisp" "unload $module" "" "$ts_err"
+
+#
+#  Clean up the environment
+#
+
+set env(PATH) "$old_path"
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+
+#
+#  Cleanup
+#
+
+unset new_path
+unset ts_path
+unset old_path
+unset old_fish_path
+unset ts_err
+
+unset ts_sh
+unset lm_sh
+unset lmf_sh
+unset tsmod_sh
+unset lmmod_sh
+unset lmfmod_sh
+
+unset ts_csh
+unset lm_csh
+unset lmf_csh
+unset tsmod_csh
+unset lmmod_csh
+unset lmfmod_csh
+
+unset ts_fish
+unset lm_fish
+unset lmf_fish
+unset tsmod_fish
+unset lmmod_fish
+unset lmfmod_fish
+
+unset ts_tcl
+unset lm_tcl
+unset lmf_tcl
+unset tsmod_tcl
+unset lmmod_tcl
+unset lmfmod_tcl
+
+unset ts_perl
+unset lm_perl
+unset lmf_perl
+unset tsmod_perl
+unset lmmod_perl
+unset lmfmod_perl
+
+unset ts_python
+unset lm_python
+unset lmf_python
+unset tsmod_python
+unset lmmod_python
+unset lmfmod_python
+
+unset ts_lisp
+unset lm_lisp
+unset lmf_lisp
+unset tsmod_lisp
+unset lmmod_lisp
+unset lmfmod_lisp
+
+unset modulefile
+unset module

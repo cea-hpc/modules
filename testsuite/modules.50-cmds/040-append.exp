@@ -112,7 +112,7 @@ set modulefile "$env(MODULEPATH)/$module"
 
 set old_path $env(PATH)
 set ts_path ""
-set new_path "$old_path"
+set new_path "$old_path:$ts_path"
 regsub -all ":" $new_path " " new_path_fish
 
 #
@@ -165,63 +165,36 @@ test_cmd_re "lisp" "load $module" "$lmmodsharelisp\n$loadmodsharelisp\n$ts_lisp\
 set module "append/0.2"
 set modulefile "$env(MODULEPATH)/$module"
 
-set old_path $env(PATH)
-# a bare colon added to path does not produce
-# an empty path entry on modules-tcl
-set ts_path ""
-set new_path "$old_path:$ts_path"
-regsub -all ":" $new_path " " new_path_fish
-
-#
-#  For the different shells ...
-#
-set lmsh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lmcsh "setenv _LMFILES_ $modulefile;"
-set lmfish "set -xg _LMFILES_ $modulefile;"
-set lmtcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
-set lmperl "\\\$ENV{'_LMFILES_'} = '$modulefile';"
-set lmpython "os.environ\\\['_LMFILES_'\\\] = '$modulefile'"
-set lmlisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
-
-set loadmodsh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set loadmodcsh "setenv LOADEDMODULES $module;"
-set loadmodfish "set -xg LOADEDMODULES $module;"
-set loadmodtcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-set loadmodperl "\\\$ENV{'LOADEDMODULES'} = '$module';"
-set loadmodpython "os.environ\\\['LOADEDMODULES'\\\] = '$module'"
-set loadmodlisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
-
-set ts_sh "PATH=$new_path; export PATH;"
-set ts_csh "setenv PATH $new_path;"
-set ts_fish "set -xg PATH $new_path_fish;"
-set ts_tcl "set env\\\(PATH\\\) \"$new_path\";"
-set ts_perl "\\\$ENV{'PATH'} = '$new_path';"
-set ts_python "os.environ\\\['PATH'\\\] = '$new_path'"
-set ts_lisp "\\\(setenv \"PATH\" \"$new_path\"\\\)"
+# different behavior than C-version: on Tcl-version adding a bare colon
+# to a path produces an error since this colon cannot be distinguished
+# from the colon used for path separator
+set ts_err "Module ERROR: Occurred in file $modulefile:add-path cannot handle path equals to separator string.*"
 
 #
 #  The tests
 #
-test_cmd_re "sh" "load $module" "$lmmodsharesh\n$loadmodsharesh\n$ts_sh\n$lmsh\n$loadmodsh\n$modpathsharesh\$"
-test_cmd_re "bash" "load $module" "$lmmodsharesh\n$loadmodsharesh\n$ts_sh\n$lmsh\n$loadmodsh\n$modpathsharesh\$"
-test_cmd_re "ksh" "load $module" "$lmmodsharesh\n$loadmodsharesh\n$ts_sh\n$lmsh\n$loadmodsh\n$modpathsharesh\$"
-test_cmd_re "zsh" "load $module" "$lmmodsharesh\n$loadmodsharesh\n$ts_sh\n$lmsh\n$loadmodsh\n$modpathsharesh\$"
-test_cmd_re "csh" "load $module" "$lmmodsharecsh\n$loadmodsharecsh\n$ts_csh\n$lmcsh\n$loadmodcsh\n$modpathsharecsh\$"
-test_cmd_re "tcsh" "load $module" "$lmmodsharecsh\n$loadmodsharecsh\n$ts_csh\n$lmcsh\n$loadmodcsh\n$modpathsharecsh\$"
-test_cmd_re "fish" "load $module" "$lmmodsharefish\n$loadmodsharefish\n$ts_fish\n$lmfish\n$loadmodfish\n$modpathsharefish\$"
-test_cmd_re "tcl" "load $module" "$lmmodsharetcl\n$loadmodsharetcl\n$ts_tcl\n$lmtcl\n$loadmodtcl\n$modpathsharetcl\$"
-test_cmd_re "perl" "load $module" "$lmmodshareperl\n$loadmodshareperl\n$ts_perl\n$lmperl\n$loadmodperl\n$modpathshareperl\n1;\$"
-#test_cmd_re "cmake" "load $module" "$lm_cmake\n$lmf_cmake\n$ts_cmake\$"
-test_cmd_re "python" "load $module" "import os\n$lmmodsharepython\n$loadmodsharepython\n$ts_python\n$lmpython\n$loadmodpython\n$modpathsharepython\$"
-test_cmd_re "lisp" "load $module" "$lmmodsharelisp\n$loadmodsharelisp\n$ts_lisp\n$lmlisp\n$loadmodlisp\n$modpathsharelisp\$"
+
+testouterr_cmd_re "sh" "load $module" "" "$ts_err"
+testouterr_cmd_re "bash" "load $module" "" "$ts_err"
+testouterr_cmd_re "ksh" "load $module" "" "$ts_err"
+testouterr_cmd_re "zsh" "load $module" "" "$ts_err"
+testouterr_cmd_re "csh" "load $module" "" "$ts_err"
+testouterr_cmd_re "tcsh" "load $module" "" "$ts_err"
+testouterr_cmd_re "fish" "load $module" "" "$ts_err"
+testouterr_cmd_re "tcl" "load $module" "" "$ts_err"
+testouterr_cmd_re "perl" "load $module" "" "$ts_err"
+testouterr_cmd_re "python" "load $module" "" "$ts_err"
+testouterr_cmd_re "lisp" "load $module" "" "$ts_err"
 
 #
 #  Cleanup
 #
 
 unset new_path
+unset new_path_fish
 unset ts_path
 unset old_path
+unset ts_err
 
 unset lmsh
 unset lmcsh

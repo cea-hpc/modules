@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.664
+set MODULES_CURRENT_VERSION 1.665
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1026,6 +1026,14 @@ proc unload-path {var path separator} {
       return {}
    }
 
+   # enable removal of an empty path
+   if {$path eq ""} {
+      set path $separator
+   # raise error on removal attempt of a path equals to separator
+   } elseif {$path eq $separator} {
+      error "unload-path cannot handle path equals to separator string"
+   }
+
    foreach dir [split $path $separator] {
       set doit 0
 
@@ -1077,6 +1085,14 @@ proc add-path {var path pos separator} {
 
    set sharevar "${var}_modshare"
    array set countarr [getReferenceCountArray $var $separator]
+
+   # enable add of an empty path
+   if {$path eq ""} {
+      set path $separator
+   # raise error on removal attempt of a path equals to separator
+   } elseif {$path eq $separator} {
+      error "add-path cannot handle path equals to separator string"
+   }
 
    if {$pos eq "prepend"} {
       set pathelems [lreverse [split $path $separator]]
