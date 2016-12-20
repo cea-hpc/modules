@@ -11,12 +11,12 @@
 #
 #   Description:	Testuite testsequence
 #   Command:		load
-#   Modulefiles:	info/userexp
+#   Modulefiles:	info/user
 #   Sub-Command:
 #
 #   Comment:	%C{
-#			Tests the 'module-info user' module subcommand with
-#			own suggestion.
+#			Tests the 'module-info user' module subcommand with-
+#			out own suggestion.
 #			This command does not change behaviour depending on
 #			the user shell. Tests are made for the bourne shell
 #			here.
@@ -30,36 +30,37 @@
 #    be set up
 #
 
-set module "info/userexp"
+set module "info/user"
 set modulefile "$env(MODULEPATH)/$module"
 
 #
 #  The _LMFILES_ and the LOADEDMODULES will be affected
 #
 
-set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
-set ts_sh_n "testsuite=novice ;export testsuite;"
-set ts_sh_a "testsuite=advanced ;export testsuite;"
-set ts_sh_e "testsuite=expert ;export testsuite;"
+set lmfmod_sh "_LMFILES__modshare=$modulefile:1; export _LMFILES__modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=$module:1; export LOADEDMODULES_modshare;"
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+set ts_sh "testsuite=; export testsuite;"
 
 #
 #  The tests
 #
 
-test_cmd "sh" "load --userlvl=novice $module" "$lm_sh$lmf_sh$ts_sh_n"
-test_cmd "sh" "load --userlvl=advanced $module" "$lm_sh$lmf_sh$ts_sh_a"
-test_cmd "sh" "load --userlvl=expert $module" "$lm_sh$lmf_sh$ts_sh_e"
+# different behavior than C-version: on Tcl-version userlvl is not handled and
+# [module-info user] will always return an empty string.
+
+test_cmd "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh"
 
 #
 #  Cleanup
 #
 
+unset lmmod_sh
+unset lmfmod_sh
 unset lm_sh
 unset lmf_sh
-unset ts_sh_n
-unset ts_sh_a
-unset ts_sh_e
+unset ts_sh
 
 unset modulefile
 unset module

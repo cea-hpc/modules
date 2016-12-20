@@ -39,44 +39,53 @@ set modulefile2 "$env(MODULEPATH)/$module2"
 #  The _LMFILES_ and the LOADEDMODULES will be affected
 #
 
-set lmf_sh_ld "_LMFILES_=$modulefile ;export _LMFILES_;"
-set lm_sh_ld "LOADEDMODULES=$module ;export LOADEDMODULES;"
+set lmfmod_sh_ld "_LMFILES__modshare=$modulefile:1; export _LMFILES__modshare;"
+set lmmod_sh_ld "LOADEDMODULES_modshare=$module:1; export LOADEDMODULES_modshare;"
+set lmf_sh_ld "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh_ld "LOADEDMODULES=$module; export LOADEDMODULES;"
 
+set lmfmod_sh_rm "unset _LMFILES__modshare;"
+set lmmod_sh_rm "unset LOADEDMODULES_modshare;"
 set lmf_sh_rm "unset _LMFILES_;"
 set lm_sh_rm "unset LOADEDMODULES;"
 
-set lmf_sh_sw "_LMFILES_=$modulefile2 ;export _LMFILES_;"
-set lm_sh_sw "LOADEDMODULES=$module2 ;export LOADEDMODULES;"
-set switches "5\n8\n17\n"
+set lmfmod_sh_sw "_LMFILES__modshare=$modulefile2:1; export _LMFILES__modshare;"
+set lmmod_sh_sw "LOADEDMODULES_modshare=$module2:1; export LOADEDMODULES_modshare;"
+set lmf_sh_sw "_LMFILES_=$modulefile2; export _LMFILES_;"
+set lm_sh_sw "LOADEDMODULES=$module2; export LOADEDMODULES;"
+set switches "0\n0\n"
 
-set lin_help "\n----------- Module Specific Help for '$module' -----------------\n"
+set lin_help "Module Specific Help for $modulefile:"
 
 #
 #  The tests
 #
 
+# different behavior than C-version: on Tcl-version flags is not handled and
+# [module-info flags] will always return "0".
+
 # test loading
-test_cmd "sh" "load $module" "32\n$lm_sh_ld$lmf_sh_ld"
+test_cmd "sh" "load $module" "0\n$lmfmod_sh_ld\n$lmmod_sh_ld\n$lmf_sh_ld\n$lm_sh_ld"
 
 # test displaying
-testouterr_cmd "sh" "display $module" "2" "$modlin$modulefile:\n\n$modlin"
+testouterr_cmd_re "sh" "display $module" "0" "$modlin\n$modulefile:\n\n$modlin"
 
 # Set up the environment for test that require the moduel to be loaded
 set env(_LMFILES_) "$modulefile"
 set env(LOADEDMODULES) "$module"
 
 # test unloading
-test_cmd "sh" "unload $module" "1\n$lm_sh_rm$lmf_sh_rm"
+test_cmd "sh" "unload $module" "0\n$lmfmod_sh_rm\n$lmmod_sh_rm\n$lmf_sh_rm\n$lm_sh_rm"
 
 # test switching
-test_cmd "sh" "switch $module $module2" "$switches$lm_sh_sw$lmf_sh_sw"
+test_cmd "sh" "switch $module $module2" "$switches$lmfmod_sh_sw\n$lmmod_sh_sw\n$lmf_sh_sw\n$lm_sh_sw"
 
 # Clean up the just changed environment
 unset env(LOADEDMODULES)
 unset env(_LMFILES_)
 
 # test help
-testerr_cmd "sh" "help $module" "$lin_help\n256"
+testerr_cmd_re "sh" "help $module" "$modlin\n$lin_help\n\n0\n$modlin"
 
 #
 #  Cleanup
@@ -84,13 +93,19 @@ testerr_cmd "sh" "help $module" "$lin_help\n256"
 
 unset lin_help
 
+unset lmmod_sh_sw
+unset lmfmod_sh_sw
 unset lm_sh_sw
 unset lmf_sh_sw
 unset switches
 
+unset lmmod_sh_rm
+unset lmfmod_sh_rm
 unset lm_sh_rm
 unset lmf_sh_rm
 
+unset lmmod_sh_ld
+unset lmfmod_sh_ld
 unset lm_sh_ld
 unset lmf_sh_ld
 
