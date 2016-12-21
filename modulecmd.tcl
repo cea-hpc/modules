@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.666
+set MODULES_CURRENT_VERSION 1.667
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3933,7 +3933,7 @@ proc cmdModuleHelp {args} {
             report\
                "-------------------------------------------------------------------"
             report "Module Specific Help for $modfile:\n"
-            set mode "Help"
+            pushMode "help"
             execute-modulefile $modfile 1
             popMode
             popModuleName
