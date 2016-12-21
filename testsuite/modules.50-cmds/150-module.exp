@@ -36,15 +36,17 @@ set modulefile_1 "$env(MODULEPATH)/$module_1"
 #  For the different shells ...
 #
 
-set lmf_csh "setenv _LMFILES_ $modulefile:$modulefile_1 ;"
-set lm_csh "setenv LOADEDMODULES $module:$module_1 ;"
-set ts_csh "setenv testsuite yes ;"
+set lmfmod_csh "setenv _LMFILES__modshare $modulefile_1:1:$modulefile:1;"
+set lmmod_csh "setenv LOADEDMODULES_modshare $module_1:1:$module:1;"
+set lmf_csh "setenv _LMFILES_ $modulefile:$modulefile_1;"
+set lm_csh "setenv LOADEDMODULES $module:$module_1;"
+set ts_csh "setenv testsuite yes;"
 
 #
 #  The tests
 #
 
-test_cmd "csh" "load $module_1" "$lm_csh$lmf_csh$ts_csh"
+test_cmd "csh" "load $module_1" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh"
 
 #
 #  Cleanup
@@ -53,6 +55,8 @@ test_cmd "csh" "load $module_1" "$lm_csh$lmf_csh$ts_csh"
 unset ts_csh
 unset lm_csh
 unset lmf_csh
+unset lmmod_csh
+unset lmfmod_csh
 
 unset modulefile
 unset module

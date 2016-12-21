@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.669
+set MODULES_CURRENT_VERSION 1.670
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -447,7 +447,8 @@ proc getModuleNameVersion {{name {}}} {
       set name $curmodname
       set version $curmodversion
    # check for shorthand version notation like "/version" or "./version"
-   } elseif {[regexp {^\.?\/(.*)$} $name match version]} {
+   # only if we are currently interpreting a modulefile or modulerc
+   } elseif {$curmod ne "" && [regexp {^\.?\/(.*)$} $name match version]} {
       # if we cannot distinguish a module name, raise error when
       # shorthand version notation is used
       global ModulesCurrentModulefile

@@ -1,0 +1,360 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2001/11/05
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		R.K. Owen, <rk@owen.sj.ca.us>
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	loc_dv1/1.0,
+#   			loc_dv2/1.0,
+#   			loc_dv3/1.0,
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Load a modulefile giving the full path.
+#		}C%
+#
+##############################################################################
+
+set mod11 "loc_dv1/1.0"
+set mod21 "loc_dv2/1.0"
+set mod31 "loc_dv3/1.0"
+
+set mod11p "$env(MODULEPATH)/$mod11"
+set mod21p "$env(MODULEPATH)/$mod21"
+set mod31p "$env(MODULEPATH)/$mod31"
+
+set oth11 "version"
+set oth11p "$env(MODULEPATH).other/1.1/version"
+
+#
+# set up an empty environment
+#
+set module ""
+set modulefile ""
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  load
+#  For the different shells ...
+#
+set module "$mod31"
+set modulefile "$mod31p"
+
+set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+set ts_sh "TESTSUITE=1.1; export TESTSUITE;"
+
+set lmfmod_csh "setenv _LMFILES__modshare (.*);"
+set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lm_csh "setenv LOADEDMODULES $module;"
+set ts_csh "setenv TESTSUITE 1.1;"
+
+set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
+set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
+set lmf_fish "set -xg _LMFILES_ $modulefile;"
+set lm_fish "set -xg LOADEDMODULES $module;"
+set ts_fish "set -xg TESTSUITE 1.1;"
+
+set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
+set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
+set lmf_tcl "set env\\\(_LMFILES_\\\) \"$modulefile\";"
+set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
+set ts_tcl "set env\\\(TESTSUITE\\\) \"1.1\";"
+
+set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
+set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
+set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
+set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
+set ts_perl "\\\$ENV{\'TESTSUITE\'} = \'1.1\';"
+
+set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
+set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
+set ts_python "os.environ\\\[\'TESTSUITE\'\\\] = \'1.1\'"
+
+set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
+set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
+set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+set ts_lisp "\\\(setenv \"TESTSUITE\" \"1.1\"\\\)"
+
+#
+#  The tests
+#
+test_cmd_re "sh" "load $mod31" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "bash" "load $mod31" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "ksh" "load $mod31" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "zsh" "load $mod31" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "csh" "load $mod31" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
+test_cmd_re "tcsh" "load $mod31" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
+test_cmd_re "fish" "load $mod31" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$"
+test_cmd_re "tcl" "load $mod31" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$"
+test_cmd_re "perl" "load $mod31" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$"
+test_cmd_re "python" "load $mod31" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$"
+test_cmd_re "lisp" "load $mod31" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$"
+
+#
+# set up a single environment
+#
+set module "$mod11"
+set modulefile "$mod11p"
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  load
+#  For the different shells ...
+#
+set module "$mod11:$mod31"
+set modulefile "$mod11p:$mod31p"
+
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lm_csh "setenv LOADEDMODULES $module;"
+
+set lmf_fish "set -xg _LMFILES_ $modulefile;"
+set lm_fish "set -xg LOADEDMODULES $module;"
+
+set lmf_tcl "set env\\\(_LMFILES_\\\) \"$modulefile\";"
+set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
+
+set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
+set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
+
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
+
+set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+
+#
+#  The tests
+#
+test_cmd_re "sh" "load $mod31" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "bash" "load $mod31" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "ksh" "load $mod31" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "zsh" "load $mod31" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "csh" "load $mod31" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
+test_cmd_re "tcsh" "load $mod31" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
+test_cmd_re "fish" "load $mod31" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$"
+test_cmd_re "tcl" "load $mod31" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$"
+test_cmd_re "perl" "load $mod31" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$"
+test_cmd_re "python" "load $mod31" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$"
+test_cmd_re "lisp" "load $mod31" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$"
+
+#
+# set up a double environment
+#
+set module "$mod11:$mod21"
+set modulefile "$mod11p:$mod21p"
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  load
+#  For the different shells ...
+#
+set module "$mod11:$mod21:$mod31"
+set modulefile "$mod11p:$mod21p:$mod31p"
+
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lm_csh "setenv LOADEDMODULES $module;"
+
+set lmf_fish "set -xg _LMFILES_ $modulefile;"
+set lm_fish "set -xg LOADEDMODULES $module;"
+
+set lmf_tcl "set env\\\(_LMFILES_\\\) \"$modulefile\";"
+set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
+
+set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
+set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
+
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
+
+set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+
+#
+#  The tests
+#
+test_cmd_re "sh" "load $mod31" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "bash" "load $mod31" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "ksh" "load $mod31" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "zsh" "load $mod31" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "csh" "load $mod31" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
+test_cmd_re "tcsh" "load $mod31" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
+test_cmd_re "fish" "load $mod31" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$"
+test_cmd_re "tcl" "load $mod31" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$"
+test_cmd_re "perl" "load $mod31" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$"
+test_cmd_re "python" "load $mod31" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$"
+test_cmd_re "lisp" "load $mod31" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$"
+
+#
+# load already loaded module
+# no environement modification, exit 0
+#
+
+test_cmd "sh" "load $mod11" "/bin/true;"
+test_cmd "bash" "load $mod11" "/bin/true;"
+test_cmd "ksh" "load $mod11" "/bin/true;"
+test_cmd "zsh" "load $mod11" "/bin/true;"
+test_cmd "csh" "load $mod11" "/bin/true;"
+test_cmd "tcsh" "load $mod11" "/bin/true;"
+test_cmd "fish" "load $mod11" "/bin/true;"
+test_cmd "tcl" "load $mod11" "exec /bin/true;"
+test_cmd "perl" "load $mod11" "1;\n1;"
+test_cmd "python" "load $mod11" "import os"
+test_cmd "lisp" "load $mod11" "t"
+
+#
+# reference a module not in the path
+#
+set module "$mod11:$mod21"
+set modulefile "$mod11p:$mod21p"
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+#
+#  load
+#  For the different shells ...
+#
+# different behavior than C-version: on Tcl-version when a module not in the
+# path is loaded, its module name is equal to its modulefile path since in
+# this case module name and version cannot be distinguished from the path
+set module "$mod11:$mod21:$oth11p"
+set modulefile "$mod11p:$mod21p:$oth11p"
+
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lm_csh "setenv LOADEDMODULES $module;"
+
+set lmf_fish "set -xg _LMFILES_ $modulefile;"
+set lm_fish "set -xg LOADEDMODULES $module;"
+
+set lmf_tcl "set env\\\(_LMFILES_\\\) \"$modulefile\";"
+set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
+
+set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
+set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
+
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
+
+set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+
+#
+#  The tests
+#
+test_cmd_re "sh" "load $oth11p" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
+test_cmd_re "bash" "load $oth11p" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
+test_cmd_re "ksh" "load $oth11p" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
+test_cmd_re "zsh" "load $oth11p" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
+test_cmd_re "csh" "load $oth11p" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
+test_cmd_re "tcsh" "load $oth11p" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
+test_cmd_re "fish" "load $oth11p" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish\$"
+test_cmd_re "tcl" "load $oth11p" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl\$"
+test_cmd_re "perl" "load $oth11p" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n$ts_perl\n1;\$"
+test_cmd_re "python" "load $oth11p" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$ts_python\$"
+test_cmd_re "lisp" "load $oth11p" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp\$"
+
+#
+# error when loading non existent module
+#
+set unknonw "XYZ"
+set err_load "$error_msgs: Unable to locate a modulefile for "
+
+testouterr_cmd_re "sh" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "bash" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "ksh" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "zsh" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "csh" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "tcsh" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "fish" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "tcl" "load $unknonw" "exec /bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "perl" "load $unknonw" "die \"modulefile.tcl: 1 error\\\(s\\\) detected!\\\\n\"" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "python" "load $unknonw" "raise RuntimeError\\\( 'modulefile.tcl: 1 error\\\(s\\\) detected!'\\\)" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "lisp" "load $unknonw" "\\\(error \"modulefile.tcl: 1 error\\\(s\\\) detected!\"\\\)" "$err_load\'$unknonw\'\$"
+
+#
+#  Cleanup
+#
+
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+
+unset ts_sh
+unset lm_sh
+unset lmf_sh
+unset lmmod_sh
+unset lmfmod_sh
+
+unset ts_csh
+unset lm_csh
+unset lmf_csh
+unset lmmod_csh
+unset lmfmod_csh
+
+unset ts_fish
+unset lm_fish
+unset lmf_fish
+unset lmmod_fish
+unset lmfmod_fish
+
+unset ts_tcl
+unset lm_tcl
+unset lmf_tcl
+unset lmmod_tcl
+unset lmfmod_tcl
+
+unset ts_perl
+unset lm_perl
+unset lmf_perl
+unset lmmod_perl
+unset lmfmod_perl
+
+unset ts_python
+unset lm_python
+unset lmf_python
+unset lmmod_python
+unset lmfmod_python
+
+unset ts_lisp
+unset lm_lisp
+unset lmf_lisp
+unset lmmod_lisp
+unset lmfmod_lisp
+
+unset unknonw
+unset err_load
+
+unset modulefile
+unset module
+
+unset mod11
+unset mod21
+unset mod31
+unset mod11p
+unset mod21p
+unset mod31p
+
