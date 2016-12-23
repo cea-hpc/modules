@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.670
+set MODULES_CURRENT_VERSION 1.672
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1427,6 +1427,27 @@ proc uname {what} {
    return $unameCache($what)
 }
 
+proc system {mycmd args} {
+   reportDebug "system: $mycmd $args"
+
+   set mode [currentMode]
+   set status {}
+
+   if {$mode eq "load" || $mode eq "unload"} {
+      if {[catch {exec >&@stderr $mycmd $args}]} {
+          # non-zero exit status, get it:
+          set status [lindex $::errorCode 2]
+      } else {
+          # exit status was 0
+          set status 0
+      }
+   } elseif {$mode eq "display"} {
+      report "system\t\t$mycmd $args"
+   }
+
+   return $status
+}
+
 ########################################################################
 # internal module procedures
 #
@@ -1748,7 +1769,7 @@ proc renderSettings {} {
    global env g_Aliases g_shellType g_shell
    global g_stateEnvVars g_stateAliases
    global g_newXResources g_delXResources
-   global g_pathList g_systemList g_changeDir error_count
+   global g_pathList g_changeDir error_count
    global g_autoInit CSH_LIMIT
 
    reportDebug "renderSettings: called."
@@ -2099,12 +2120,6 @@ proc renderSettings {} {
                   $xrdb -merge\")"
             }
          }
-      }
-   }
-
-   if {[info exists g_systemList]} {
-      foreach var $g_systemList {
-         puts stdout "$var;"
       }
    }
 
@@ -3624,26 +3639,6 @@ proc cmdModuleAliases {} {
    if {[llength $display_list] > 0} {
       eval displayElementList "Versions" 1 0 $display_list
    }
-}
-
-proc system {mycmd args} {
-   global g_systemList
-
-   reportDebug "system: $mycmd $args"
-   set mode [currentMode]
-   set mycmd [join [concat $mycmd $args] " "]
-
-   if {$mode eq "load"} {
-      lappend g_systemList $mycmd
-   }\
-   elseif {$mode eq "unload"} {
-      # No operation here unable to undo a syscall.
-   }\
-   elseif {$mode eq "display"} {
-      report "system\t\t$mycmd"
-   }
-
-   return {}
 }
 
 proc cmdModuleAvail {{mod {*}}} {
