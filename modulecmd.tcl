@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.672
+set MODULES_CURRENT_VERSION 1.673
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -206,6 +206,10 @@ proc execute-modulefile {modfile {help ""}} {
       interp alias $slave x-resource {} x-resource
       interp alias $slave module-version {} module-version
       interp alias $slave module-alias {} module-alias
+      interp alias $slave module-trace {} module-trace
+      interp alias $slave module-verbosity {} module-verbosity
+      interp alias $slave module-user {} module-user
+      interp alias $slave module-log {} module-log
       interp alias $slave reportInternalBug {} reportInternalBug
       interp alias $slave reportWarning {} reportWarning
       interp alias $slave reportError {} reportError
@@ -298,6 +302,10 @@ proc execute-modulerc {modfile} {
          interp alias $slave module-version {} module-version
          interp alias $slave module-alias {} module-alias
          interp alias $slave module {} module
+         interp alias $slave module-trace {} module-trace
+         interp alias $slave module-verbosity {} module-verbosity
+         interp alias $slave module-user {} module-user
+         interp alias $slave module-log {} module-log
          interp alias $slave reportInternalBug {} reportInternalBug
 
          interp eval $slave {global ModulesCurrentModulefile g_debug}
@@ -343,6 +351,26 @@ proc execute-modulerc {modfile} {
 # commands run from inside a module file
 #
 set ModulesCurrentModulefile {}
+
+# Dummy procedures for commands available on C-version but not
+# implemented here. These dummy procedures enables support for
+# modulefiles using these commands while warning users these
+# commands have no effect.
+proc module-log {args} {
+   reportWarning "'module-log' command not implemented"
+}
+
+proc module-verbosity {args} {
+   reportWarning "'module-verbosity' command not implemented"
+}
+
+proc module-user {args} {
+   reportWarning "'module-user' command not implemented"
+}
+
+proc module-trace {args} {
+   reportWarning "'module-trace' command not implemented"
+}
 
 proc module-info {what {more {}}} {
    global g_shellType g_shell tcl_platform

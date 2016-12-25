@@ -46,47 +46,59 @@ set modulefile4 "$env(MODULEPATH)/$module4"
 #  Check only for the csh
 #
 
-set lmf1 "setenv _LMFILES_ $modulefile1 ;"
-set lm1 "setenv LOADEDMODULES $module1 ;"
+set err_log "$warn_msgs: 'module-log' command not implemented"
 
-set lmf2 "setenv _LMFILES_ $modulefile2 ;"
-set lm2 "setenv LOADEDMODULES $module2 ;"
+set lmfmod1 "setenv _LMFILES__modshare $modulefile1:1;"
+set lmmod1 "setenv LOADEDMODULES_modshare $module1:1;"
+set lmf1 "setenv _LMFILES_ $modulefile1;"
+set lm1 "setenv LOADEDMODULES $module1;"
 
-set lmf3 "setenv _LMFILES_ $modulefile3 ;"
-set lm3 "setenv LOADEDMODULES $module3 ;"
+set lmfmod2 "setenv _LMFILES__modshare $modulefile2:1;"
+set lmmod2 "setenv LOADEDMODULES_modshare $module2:1;"
+set lmf2 "setenv _LMFILES_ $modulefile2;"
+set lm2 "setenv LOADEDMODULES $module2;"
 
-set lmf4 "setenv _LMFILES_ $modulefile4 ;"
-set lm4 "setenv LOADEDMODULES $module4 ;"
+set lmfmod3 "setenv _LMFILES__modshare $modulefile3:1;"
+set lmmod3 "setenv LOADEDMODULES_modshare $module3:1;"
+set lmf3 "setenv _LMFILES_ $modulefile3;"
+set lm3 "setenv LOADEDMODULES $module3;"
+
+set lmfmod4 "setenv _LMFILES__modshare $modulefile4:1;"
+set lmmod4 "setenv LOADEDMODULES_modshare $module4:1;"
+set lmf4 "setenv _LMFILES_ $modulefile4;"
+set lm4 "setenv LOADEDMODULES $module4;"
 
 #
 #  The tests
 #
 
-if { [info exists config_file] } {
-    if { ![catch { exec grep "#define WITH_LOGGING" $config_file } ] } {
-	
-	testouterr_cmd "csh" "load $module1" "$lm1$lmf1" ""
-	testouterr_cmd "csh" "load $module2" "$lm2$lmf2" ""
-	testouterr_cmd "csh" "load $module3" "$lm3$lmf3" ""
-	testouterr_cmd "csh" "load $module4" "$lm4$lmf4" ""
-	
-    } else {
-	send_user "Skipping Syslog tests, since they were not compiled\n"
-    }
-} else {
-    send_user "ERROR: config_file wasn't set"
-}
+# different behavior than C-version: on Tcl-version 'module-log' command is
+# not handled and will always return a warning message to inform the user.
+testouterr_cmd "csh" "load $module1" "$lmfmod1\n$lmmod1\n$lmf1\n$lm1" "$err_log"
+testouterr_cmd "csh" "load $module2" "$lmfmod2\n$lmmod2\n$lmf2\n$lm2" "$err_log"
+testouterr_cmd "csh" "load $module3" "$lmfmod3\n$lmmod3\n$lmf3\n$lm3" "$err_log"
+testouterr_cmd "csh" "load $module4" "$lmfmod4\n$lmmod4\n$lmf4\n$lm4" "$err_log"
 
 #
 #  Cleanup
 #
 
+unset err_log
+
+unset lmmod1
+unset lmfmod1
 unset lm1
 unset lmf1
+unset lmmod2
+unset lmfmod2
 unset lm2
 unset lmf2
+unset lmmod3
+unset lmfmod3
 unset lm3
 unset lmf3
+unset lmmod4
+unset lmfmod4
 unset lm4
 unset lmf4
 

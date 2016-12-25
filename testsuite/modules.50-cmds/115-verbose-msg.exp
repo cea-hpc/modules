@@ -31,25 +31,24 @@
 set module_1 "verbose/msg"
 set modulefile_1 "$env(MODULEPATH)/$module_1"
 
-#
-#  'undef' will result a verbose message
-#
-
-set ts_csh_1 "$verb_msgs: This is a verbose message"
-set ts_csh_2 "$verb_msgs: This is a verbose message with param 'test'"
+set err_verb "$warn_msgs: 'module-verbosity' command not implemented"
 
 #
 #  Only checked for the csh
 #
 
-set lmf_csh_1 "setenv _LMFILES_ $modulefile_1 ;"
-set lm_csh_1 "setenv LOADEDMODULES $module_1 ;"
+set lmfmod_csh_1 "setenv _LMFILES__modshare $modulefile_1:1;"
+set lmmod_csh_1 "setenv LOADEDMODULES_modshare $module_1:1;"
+set lmf_csh_1 "setenv _LMFILES_ $modulefile_1;"
+set lm_csh_1 "setenv LOADEDMODULES $module_1;"
 
 #
 #  The tests
 #
 
-testouterr_cmd_re "csh" "load $module_1" "$lm_csh_1$lmf_csh_1" "$ts_csh_1\n$ts_csh_2"
+# different behavior than C-version: on Tcl-version 'module-verbosity' command is
+# not handled and will always return a warning message to inform the user.
+testouterr_cmd "csh" "load $module_1" "$lmfmod_csh_1\n$lmmod_csh_1\n$lmf_csh_1\n$lm_csh_1" "$err_verb\n$err_verb\n$err_verb"
 
 #
 #  Cleanup
@@ -58,6 +57,9 @@ testouterr_cmd_re "csh" "load $module_1" "$lm_csh_1$lmf_csh_1" "$ts_csh_1\n$ts_c
 unset module_1
 unset modulefile_1
 
+unset err_verb
+
+unset lmfmod_csh_1
+unset lmmod_csh_1
 unset lmf_csh_1
 unset lm_csh_1
-unset ts_csh_1

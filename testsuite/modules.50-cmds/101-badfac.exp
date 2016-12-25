@@ -31,24 +31,30 @@
 set module1 "log/badfac"
 set modulefile1 "$env(MODULEPATH)/$module1"
 set bad_fac "$warn_msgs: Invalid log facility 'xyz.info'"
+set err_log "$warn_msgs: 'module-log' command not implemented"
 
 #
 #  Check only for the csh
 #
 
-set lmf1 "setenv _LMFILES_ $modulefile1 ;"
-set lm1 "setenv LOADEDMODULES $module1 ;"
+set lmfmod1 "setenv _LMFILES__modshare $modulefile1:1;"
+set lmmod1 "setenv LOADEDMODULES_modshare $module1:1;"
+set lmf1 "setenv _LMFILES_ $modulefile1;"
+set lm1 "setenv LOADEDMODULES $module1;"
 
 #
 #  The tests
 #
 
-testouterr_cmd_re "csh" "load $module1" "$lm1$lmf1" "$bad_fac"
+# different behavior than C-version: on Tcl-version 'module-log' command is
+# not handled and will always return a warning message to inform the user.
+testouterr_cmd_re "csh" "load $module1" "$lmfmod1\n$lmmod1\n$lmf1\n$lm1" "$err_log"
 
 #
 #  Cleanup
 #
 
+unset err_log
 unset bad_fac
 
 unset lm1
