@@ -20,10 +20,11 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.674
+set MODULES_CURRENT_VERSION 1.675
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
+set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_force 0 ;# Path element reference counting if == 0
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 set flag_default_dir 1 ;# Report default directories
@@ -177,10 +178,16 @@ proc unset-env {var} {
 }
 
 proc execute-modulefile {modfile {help ""}} {
-   global g_debug
+   global g_debug g_inhibit_interp
    global ModulesCurrentModulefile
 
    set ModulesCurrentModulefile $modfile
+
+   # skip modulefile if interpretation has been inhibited
+   if {$g_inhibit_interp} {
+      reportDebug "execute-modulefile: Skipping $modfile"
+      return 1
+   }
 
    reportDebug "execute-modulefile:  Starting $modfile"
    set slave __[currentModuleName]
@@ -204,6 +211,7 @@ proc execute-modulefile {modfile {help ""}} {
       interp alias $slave unset-alias {} unset-alias
       interp alias $slave uname {} uname
       interp alias $slave x-resource {} x-resource
+      interp alias $slave exit {} exitModfileCmd
       interp alias $slave module-version {} module-version
       interp alias $slave module-alias {} module-alias
       interp alias $slave module-trace {} module-trace
@@ -217,9 +225,11 @@ proc execute-modulefile {modfile {help ""}} {
       interp alias $slave report {} report
       interp alias $slave isWin {} isWin
 
-      interp eval $slave {global ModulesCurrentModulefile g_debug}
+      interp eval $slave {global ModulesCurrentModulefile g_debug\
+         g_inhibit_interp}
       interp eval $slave [list "set" "ModulesCurrentModulefile" $modfile]
       interp eval $slave [list "set" "g_debug" $g_debug]
+      interp eval $slave [list "set" "g_inhibit_interp" $g_inhibit_interp]
       interp eval $slave [list "set" "help" $help]
 
    }
@@ -237,10 +247,10 @@ proc execute-modulefile {modfile {help ""}} {
          }
          set sourceFailed 0
       }
-         if {[module-info mode "display"] \
+      if {[module-info mode "display"] \
          && [info procs "ModulesDisplay"] eq "ModulesDisplay"} {
-            ModulesDisplay
-         }
+         ModulesDisplay
+      }
       if {$sourceFailed} {
          global errorInfo
          # no error in case of "continue" command
@@ -260,7 +270,10 @@ proc execute-modulefile {modfile {help ""}} {
          } else {
             reportInternalBug "Occurred in file\
                $ModulesCurrentModulefile:$errorInfo"
-            exit 1
+            # return a specific value to provoke an exit after end
+            # of slave evaluation since here 'exit' procedure has
+            # been superseeded for modulefile interpretation
+            return 2
          }
       } else {
          unset errorMsg
@@ -270,7 +283,13 @@ proc execute-modulefile {modfile {help ""}} {
 
    interp delete $slave
    reportDebug "Exiting $modfile"
-   return $errorVal
+
+   # exits rather returns if a critical error has been raised
+   if {$errorVal == 2} {
+      exit 1
+   } else {
+      return $errorVal
+   }
 }
 
 # Smaller subset than main module load... This function runs modulerc and
@@ -974,6 +993,20 @@ proc chdir {dir} {
    }
 
    return {}
+}
+
+# superseed exit command to handle it if called within a modulefile
+# rather than exiting the whole process
+proc exitModfileCmd {{code 0}} {
+   global g_inhibit_interp
+
+   reportDebug "exit: ($code)"
+
+   # inhibit next modulefile interpretations
+   set g_inhibit_interp 1
+
+   # break to gently end interpretation of current modulefile
+   return -code break
 }
 
 ########################################################################
