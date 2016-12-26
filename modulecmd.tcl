@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.673
+set MODULES_CURRENT_VERSION 1.674
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -623,7 +623,7 @@ proc module {command args} {
             set needrender 1
          }
       }
-      {^rel} {
+      {^(ref|rel)} {
          if {[llength $args] != 0} {
             set errormsg "Unexpected number of args for 'reload' command"
          } else {
@@ -3978,7 +3978,7 @@ proc cmdModuleHelp {args} {
       report {  rm | unload     modulefile [...]  Remove modulefile(s)}
       report {  purge                             Unload all loaded\
          modulefiles}
-      report {  reload                            Unload then load all\
+      report {  reload | refresh                  Unload then load all\
          loaded modulefiles}
       report {  switch | swap   [mod1] mod2       Unload mod1 and load mod2}
       report {}

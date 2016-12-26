@@ -1,0 +1,113 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2005/11/21
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#			R.K.Owen, rk@owen.sj.ca.us
+#
+#   Description:	Testuite testsequence
+#   Command:		refresh
+#   Modulefiles:	alias/2.0,setenv/1.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'refresh' module subcommand for all allowed
+#			shell types.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables.
+#
+
+set module1 "alias/2.0"
+set modulefile1 "$env(MODULEPATH)/$module1"
+set module2 "setenv/1.0"
+set modulefile2 "$env(MODULEPATH)/$module2"
+set alias "ps -auxww | grep modulecmd"
+
+#
+#  Set up the environment for refresh ...
+#
+
+set env(_LMFILES_) "$modulefile1"
+set env(LOADEDMODULES) "$module1"
+
+#
+#  For the different shells ...
+#
+
+set lmfmod_sh "_LMFILES__modshare=$modulefile1:1; export _LMFILES__modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=$module1:1; export LOADEDMODULES_modshare;"
+set lmf_sh "_LMFILES_=$modulefile1; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module1; export LOADEDMODULES;"
+set ts_sh "alias testsuite='$alias';"
+
+set lmfmod_csh "setenv _LMFILES__modshare $modulefile1:1;"
+set lmmod_csh "setenv LOADEDMODULES_modshare $module1:1;"
+set lmf_csh "setenv _LMFILES_ $modulefile1;"
+set lm_csh "setenv LOADEDMODULES $module1;"
+set ts_csh "alias testsuite '$alias';"
+
+set lmf_fish "set -xg _LMFILES_ $modulefile1;"
+set lm_fish "set -xg LOADEDMODULES $module1;"
+set lmfmod_fish "set -xg _LMFILES__modshare $modulefile1:1;"
+set lmmod_fish "set -xg LOADEDMODULES_modshare $module1:1;"
+set ts_fish "alias testsuite '$alias';"
+
+#
+#  The tests
+#
+
+# different behavior than C-version: on Tcl-version 'refresh' command is an
+# alias on the 'reload' command, thus it unloads then reloads every modules
+# currently loaded whereas on C-version, only the volatile components (ie.
+# shell aliases) are reloaded.
+test_cmd "sh" "refresh" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh"
+test_cmd "bash" "refresh" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh"
+test_cmd "ksh" "refresh" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh"
+test_cmd "zsh" "refresh" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh"
+test_cmd "csh" "refresh" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh"
+test_cmd "tcsh" "refresh" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh"
+test_cmd "fish" "refresh" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish"
+# only available for csh/sh/fish derivatives ... no longer warn for others
+
+#
+#  Cleanup
+#
+
+unset ts_sh
+unset lm_sh
+unset lmf_sh
+unset lmmod_sh
+unset lmfmod_sh
+
+unset ts_csh
+unset lm_csh
+unset lmf_csh
+unset lmmod_csh
+unset lmfmod_csh
+
+unset ts_fish
+unset lm_fish
+unset lmf_fish
+unset lmmod_fish
+unset lmfmod_fish
+
+unset modulefile2
+unset module2
+unset modulefile1
+unset module1
+
+#
+#  Clean up the environment, too
+#
+
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
