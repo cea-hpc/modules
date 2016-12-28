@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.676
+set MODULES_CURRENT_VERSION 1.677
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1757,6 +1757,37 @@ proc getPathToModule {mod} {
    }
 }
 
+# return the currently loaded module whose name is the closest to the
+# name passed as argument. if no loaded module match at least one part
+# of the passed name, an empty string is returned.
+proc getLoadedWithClosestName {name} {
+   set ret ""
+   set retmax 0
+   set namesplit [split $name "/"]
+
+   # compare name to each currently loaded module name
+   foreach mod [getLoadedModuleList] {
+      set modsplit [split $mod "/"]
+      set imax [expr {min([llength $namesplit], [llength $modsplit])}]
+
+      # compare each element of the name to find closest answer
+      # in case of equality, last loaded module will be returned as it
+      # overwrites previously found value
+      for {set i 0} {$i < $imax} {incr i} {
+         if {[lindex $modsplit $i] eq [lindex $namesplit $i]} {
+            if {$i >= $retmax} {
+               set retmax $i
+               set ret $mod
+            }
+         }
+      }
+   }
+
+   reportDebug "getLoadedWithClosestName: \"$ret\" closest to \"$name\""
+
+   return $ret
+}
+
 proc runModulerc {} {
    # Runs the global RC files if they exist
    global env
@@ -3281,6 +3312,8 @@ proc cmdModuleSwitch {old {new {}}} {
 
    if {$new eq ""} {
       set new $old
+      # find closest module to unload if any
+      set old [getLoadedWithClosestName [resolveModuleVersionOrAlias $old]]
    }
 
    if {![info exists g_loadedModules($old)] &&
