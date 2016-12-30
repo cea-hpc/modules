@@ -193,10 +193,6 @@ Returns either "C" or "Tcl" to indicate which module command is being
 executed, either the "C" version or the Tcl-only version, to allow the
 modulefile writer to handle any differences between the two.
 
-=head3 module-info flags
-
-Returns the integer value of B<modulecmd.tcl>'s flags state.
-
 =head3 module-info mode [modetype]
 
 Returns the current B<modulecmd.tcl>'s mode as a string if no modetype is given.
@@ -264,105 +260,6 @@ The parameter modulefile may be either
     a fully qualified modulefile with name and version
     a symbolic modulefile name
     another modulefile alias
-
-=head2 module-trace  {on | off}  [command  [command  ...]]   [-module modulefile
-       [modulefile ...]]
-
-Switches tracing on or off. Without parameters this command will affect
-globally all tracing setups for all commands and modulefiles.  The command
-parameter may be used to affect tracing of specified module commands only and
-the switch -module finally limits the affect of the module-trace command to a
-well defined set of module files.
-
-The command may be one of the following
-
-	avail - 'module avail' command
-	clear - 'module clear' command
-	display - 'module display' command
-	init - 'module init' command
-	help - 'module help' command
-	list - 'module list' command
-	load - 'module load' command
-	purge - 'module purge' command
-	switch - 'module switch' command
-	unuse - 'module unuse' command
-	unload - 'module unload' command
-	update - 'module update' command
-	use - 'module use' command
-
-The module parameter specifies a set of module files using TCL regular
-expressions. For example:
-
-	.*  will affect all module files
-	*/2.0 affects all module files at version 2.0
-	gnu/.*  affects all versions of the gnu modulefile
-	gnu/2.0 affects only version 2.0 of the gnu modulefile
-
-The module parameter is prepended to the current tracing pattern list for the
-specified module command.  It is evaluated from the left to the right.  The
-first matching pattern defines the tracing parameter.
-
-The internal trace pattern list is stored as a colon separated list.  In
-advanced user level only, colons may be specified on the module parameter of
-the module-trace command. This will directly take effect in the internal trace
-pattern list.  In novice or expert user level a warning message will be
-generated.
-
-=head2 module-user level
-
-Defines the user level under which module-cmd runs. This takes effect on the
-error messages being produced and on the behavior of B<modulecmd.tcl> in case of
-detecting an outage.
-
-The level parameter specifies the user level and may be one of the following
-values:
-
-	advanced, adv - advanced user level
-	expert, exp - expert user level
-	novice, nov - novice user level
-
-=head2 module-verbosity {on | off}
-
-Switches verbose B<modulecmd.tcl> message display on or off.
-
-=head2 module-log error-weight log-facility
-
-Defines whether error messages of the specified weight should be logged and
-conditionally assigns a log-facility. alias-name
-
-The error-weight parameter specifies the error level to be logged.  It may be
-one of the following values:
-
-	verb - verbose messages
-	info - informal messages
-	debug - debugging messages
-	trace - tracing output
-	warn - warnings
-	prob - problems (normally the B<modulecmd.tcl> may be completed)
-	error - errors (which normally leads to unsuccessful  end
-		of the B<modulecmd.tcl>)
-	fatal - fatal system errors
-	panic  -  very fatal system errors, e.g. internal program
-		inconsistencies.
-
-The log-facility parameter specifies the log destination.  This may either
-switch off logging for the specified error-weight, direct log messages to a
-special stream or a file or specify a syslog facility for logging. The
-following values are allowed:
-
-	stderr, stdout - predefined output streams for normal and
-	error outputs. Note, that stdout  is  normally  used  for
-	passing parameters to the invoking shell. Directing error
-	output to  this  stream  might  screw  up  the  B<modulecmd.tcl>
-	integration to your shell.
-	a  syslog  facility  - directs logging to the syslog. See
-	syslog.conf for  detailed  description  of  the  valid
-	syslog facilities.
-	null,  none  -  will  suppress  logging  of the specified
-	error-weight.
-	a filename - is recognized by the first  character  being
-	either  a '.' or a '/'. You must have write permission to
-	the file you specify.
 
 =head2 module-whatis string
 
