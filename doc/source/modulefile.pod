@@ -4,26 +4,25 @@ modulefile - files containing Tcl code for the Modules package
 
 =head1 DESCRIPTION
 
-I<modulefiles> are written in the Tool Command Language, Tcl and are
-interpreted by the modulecmd program via the B<module> user interface.
+I<modulefiles> are written in the Tool Command Language, Tcl(3) and are
+interpreted by the B<modulecmd.tcl> program via the B<module>(1) user interface.
 I<modulefiles> can be loaded, unloaded, or switched on-the-fly while the
-user is working.
+user is working; and can be used to implement site policies regarding the
+access and use of applications.
 
 A I<modulefile> begins with the magic cookie, '#%Module'.  A version number may
-be placed after this string.  The version number is useful as the format of
-I<modulefiles> may change.  If a version number doesn't exist, then 
-B<modulecmd.tcl> will assume the I<modulefile> is compatible with the latest
-version.  The current version for I<modulefiles> is 1.0.  Files without the
-magic cookie will not be interpreted by B<modulecmd.tcl>.
+be placed after this string.  The version number is useful as the I<modulefile>
+format may change.  If a version number doesn't exist, then B<modulecmd.tcl> 
+will assume the I<modulefile> is compatible with the latest version. The
+current I<modulefile> version is 1.0.  Files without the magic cookie will
+not be interpreted by B<modulecmd.tcl>.
 
 Each modulefile contains the changes to a user's environment needed to
 access an application.  Tcl is a simple programming language which
 permits modulefiles to be arbitrarily complex, depending upon the
 application's and the modulefile writer's needs.  If support for
-extended tcl (tclX) has been configured for your installation of
-modules, you may use all the extended commands provided by tclX, too.
-modulefiles can be used to implement site policies regarding the access
-and use of applications.
+extended tcl (tclX) has been configured for your installation of the Modules
+package, you may use all the extended commands provided by tclX, too.
 
 A typical modulefiles is a simple bit of code that set or add entries
 to the PATH, MANPATH, or other environment variables.  Tcl has
@@ -33,7 +32,8 @@ changes due to different OS releases or architectures.  The user
 environment information is encapsulated into a single modulefile kept
 in a central location.  The same modulefile is used by every user on
 any machine.  So, from the user's perspective, starting an application
-is exactly the same irregardless of the machine or platform they are on.
+is exactly the same irrespective of the machine or platform they are on.
+
 modulefiles also hide the notion of different types of shells.  From
 the user's perspective, changing the environment for one shell looks
 exactly the same as changing the environment for another shell.  This
@@ -47,36 +47,60 @@ take care of every type of shell.
 =head1 Modules Specific Tcl Commands
 
 The Modules Package uses commands which are extensions to the
-"standard" Tool Command Language Tcl package.  Unless otherwise
+"standard" Tool Command Language Tcl(3) package.  Unless otherwise
 specified, the Module commands return the empty string.  Some commands
 behave differently when a modulefile is loaded or unloaded.  The command
 descriptions assume the modulefile is being loaded.
 
 =head2 break
 
-This is not a modules specific command, it's actually part of Tcl.  However,
-it will have the effect of causing the module not to be listed as loaded and
-not affect other modules being loaded concurrently.  All commands within the
-module will be performed though.  An example: Suppose that a full
-selection of modulefiles are needed for various different architectures, but
-some of the modulefiles are not needed and the user should be alerted.  Having
-the unnecessary modulefile be a link to the following notavail modulefile
-will perform the task as required.
+This is not a Modules-specific command, it's actually part of Tcl, which has
+been overloaded similar to the continue and exit commands to have the effect
+of causing the module not to be listed as loaded and not affect other modules
+being loaded concurrently. All non-environment commands within the module will
+be performed up to this point and processing will continue on to the next
+module on the command line. The break command will only have this effect if
+not used within a Tcl loop though.
 
-	#%Module1.0
-	## notavail modulefile
-	##
-	proc ModulesHelp { } {
-              puts stderr "This module does nothing but alert the user"
-              puts stderr "that the [module-info name] module is not available"
-	}
+An example: Suppose that a full selection of modulefiles are needed for various
+different architectures, but some of the modulefiles are not needed and the
+user should be alerted. Having the unnecessary modulefile be a link to the
+following notavail modulefile will perform the task as required.
 
-	module-whatis  "Notifies user that module is not available."
-	set curMod [module-info name]
-	if { [ module-info mode load ] } {
-		puts stderr "Note: '$curMod' is not available for [uname sysname]."
-	}
-	break
+    #%Module1.0
+    ## notavail modulefile
+    ##
+    proc ModulesHelp { } {
+        puts stderr "This module does nothing but alert the user"
+        puts stderr "that the [module-info name] module is not available"
+    }
+
+    module-whatis "Notifies user that module is not available."
+    set curMod [module-info name]
+    if { [ module-info mode load ] } {
+        puts stderr "Note: '$curMod' is not available for [uname sysname]."
+    }
+    break
+
+=head2 chdir directory
+
+Set the current working directory to directory.
+
+=head2 continue
+
+This is not a modules specific command but another overloaded Tcl command and
+is similar to the break or exit commands except the module will be listed as
+loaded as well as performing any environment or Tcl commands up to this point
+and then continuing on to the next module on the command line. The continue
+command will only have this effect if not used within a Tcl loop though.
+
+=head2 exit [N]
+
+This is not a modules specific command but another overloaded Tcl command and
+is similar to the break or continue commands. However, this command will cause
+the immediate cessation of this module and any additional ones on the command
+line. This module and the subsequent modules will not be listed as loaded. No
+environment commands will be performed in the current module.
 
 =head2 setenv variable value
 
@@ -98,46 +122,41 @@ Unsets environment variable.  However, if there is an optional value, then
 when unloading a module, it will set variable to value.  The unsetenv command
 changes the process' environment like setenv.
 
-=head2 append-path variable value
+=head2 [append-path | prepend-path] [ -d C | --delim C | --delim=C ] variable value
 
-Append value to the end of environment variable.  The variable is a colon
-separated list such as "PATH=directory:directory:directory".  If the variable
-is not set, it is created.  When a modulefile is unloaded,  append-path
-becomes remove-path.
+Append or prepend value to environment variable. The variable is a colon, or
+delimiter, separated list such as "PATH=directory:directory:directory". The
+default delimiter is a colon ':', but an arbitrary one can be given by the
+--delim option. For example a space can be used instead (which will need to be
+handled in the Tcl specially by enclosing it in " " or { }). A space, however,
+can not be specified by the --delim=C form.
 
-=head2 prepend-path variable value
+If the variable is not set, it is created. When a modulefile is unloaded,
+append-path and prepend-path become remove-path.
 
-Append value to the front of environment variable.  The variable is a colon
-separated list such as "PATH=directory:directory:directory".  If the variable
-is not set, it is created.  When a modulefile is unloaded, prepend-path 
-becomes remove-path.
+=head2 remove-path [ -d C | --delim C | --delim=C ] variable value
 
-=head2 remove-path variable value
+Remove value from the colon, or delimiter, separated list in variable. See
+prepend-path or append-path for further explanation of using an arbitrary
+delimiter. Every string between colons, or delimiters, in variable is compared
+to value. If the two match, value is removed from variable.
 
-Remove value from the colon separated list in variable.  Every string between
-colons in variable is compared to value.  If the two match, value is removed
-from variable.
+=head2 [prereq | conflict] modulefile [ modulefile ...  ]
 
-=head2 prereq modulefile [ modulefile ...  ]
-
-Prereq and conflict control whether or not the modulefile will be loaded.  The
-prereq command lists modulefiles which must have been previously loaded 
-before the current modulefile will be loaded.  If any of the modules
-in the prereq list have not been loaded an error is reported and the current
-modulefile makes no changes to the user's environment.
+prereq and conflict control whether or not the modulefile will be loaded. The
+prereq command lists modulefiles which must have been previously loaded
+before the current modulefile will be loaded. Similarly, the conflict command
+lists modulefiles which conflict with the current modulefile. If a list
+contains more than one modulefile, then each member of the list acts as a
+Boolean OR operation. Multiple prereq and conflict commands may be used to
+create a Boolean AND operation. If one of the requirements have not been
+satisfied, an error is reported and the current modulefile makes no changes
+to the user's environment.
 
 If an argument for prereq is a directory and any modulefile from the directory
 has been loaded, then the prerequisite is met. For example, specifying X11 as
 a prereq means that any version of X11, X11/R4 or X11/R5, must be loaded
 before proceeding.
-
-=head2 conflict modulefile [ modulefile ...  ]
-
-Prereq and conflict control whether or not the modulefile will be loaded.  
-The conflict command lists modulefiles which conflict with the current
-modulefile.  If any of the modules in the conflict list have been loaded
-an error is reported and the current modulefile makes no changes to the
-user's environment.
 
 If an argument for conflict is a directory and any other modulefile from that
 directory has been loaded, then a conflict will occur.  For example,
@@ -154,7 +173,7 @@ would return a true value.
 
 =head2 module [ sub-command ] [ sub-command-args ]
 
-Contains the same sub-commands as described in the module man page in the
+Contains the same sub-commands as described in the module(1) man page in the
 Module Sub-Commands section.  This command permits a modulefile to load or
 remove other modulefiles.  No checks are made to ensure that the modulefile
 does not try to load itself.  Often it is useful to have a single modulefile
@@ -164,18 +183,25 @@ modulefile would contain the necessary module load commands.
 
 =head2 module-info option [ info-args ]
 
-Provide information about the modulecmd program's state.  Some of the
-information is specific to the internals of modulecmd.  Option is the type
+Provide information about the B<modulecmd.tcl> program's state.  Some of the
+information is specific to the internals of B<modulecmd.tcl>.  option is the type
 of information to be provided, and info-args are any arguments needed.
+
+=head3 module-info type
+
+Returns either "C" or "Tcl" to indicate which module command is being
+executed, either the "C" version or the Tcl-only version, to allow the
+modulefile writer to handle any differences between the two.
 
 =head3 module-info flags
 
-Returns the integer value of modulecmd's flags state.
+Returns the integer value of B<modulecmd.tcl>'s flags state.
 
 =head3 module-info mode [modetype]
 
-Returns the current modulecmd's mode as a string if no modetype is given.  
-Returns 1 if modulecmd's mode is modetype. modetype can be: load, remove,
+Returns the current B<modulecmd.tcl>'s mode as a string if no modetype is given.
+
+Returns 1 if B<modulecmd.tcl>'s mode is modetype. modetype can be: load, remove,
 display, help, whatis, switch, switch1, switch2, or switch3.
 
 =head3 module-info name
@@ -190,54 +216,54 @@ Return the name of the modulefile specified on the command line.
 
 =head3 module-info shell
 
-Return the current shell under which modulecmd was invoked.  This is
-the first parameter of modulecmd, which is normally hidden by the module alias.
+Return the current shell under which B<modulecmd.tcl> was invoked.  This is
+the first parameter of B<modulecmd.tcl>, which is normally hidden by the module alias.
 
 =head3 module-info shelltype
 
 Return the family of the shell under which modulefile was invoked.  As of
-module-info shell this depends on the first parameter of modulecmd. The
+module-info shell this depends on the first parameter of B<modulecmd.tcl>. The
 output reflects a shell type determining the shell syntax of the commands
-produced by modulecmd.
+produced by B<modulecmd.tcl>.
 
 =head3 module-info alias name
 
-Returns the full module file name to which the module file alias name is
+Returns the full modulefile name to which the modulefile alias name is
 assigned
 
-=head3 module-info version module-file
+=head3 module-info version modulefile
 
-Returns a list of all symbolic versions assigned to the passed module-file.  
-The parameter module-file might either be a full qualified module file with
-name and version, another symbolic module file name or a module file alias.
+Returns a list of all symbolic versions assigned to the passed modulefile.  
+The parameter modulefile might either be a full qualified modulefile with
+name and version, another symbolic modulefile name or a modulefile alias.
 
-=head2 module-version module-file version-name [version-name ...]
+=head2 module-version modulefile version-name [version-name ...]
 
-Assigns the symbolic version-name to the module file module-file This
-command should be placed in one of the modulecmd rc files in order to provide
-shorthand invocations of frequently used module file names.
+Assigns the symbolic version-name to the modulefile. This
+command should be placed in one of the B<modulecmd.tcl> rc files in order to provide
+shorthand invocations of frequently used modulefile names.
 
 The special version-name default specifies the default version to be used for
 module commands, if no specific version is given.  This replaces the 
-definitions made in the .version file in former modulecmd releases.
+definitions made in the .version file in former B<modulecmd.tcl> releases.
 
-The parameter module-file may be either
+The parameter modulefile may be either
 
-	a fully qualified modulefile with name and version
-	a symbolic module file name
-	another module file alias
+    a fully or partially qualified modulefile with name / version. If name is '.' then the current directory name is assumed to be the module name. (Use this for deep modulefile directories.)
+    a symbolic modulefile name
+    another modulefile alias
 
-=head2 module-alias name module-file
+=head2 module-alias name modulefile
 
-Assigns the module file module-file to the alias name.  This command should
-be placed in one of the modulecmd rc files in order to provide shorthand
-invocations of frequently used module file names.
+Assigns the modulefile to the alias name.  This command should
+be placed in one of the B<modulecmd.tcl> rc files in order to provide shorthand
+invocations of frequently used modulefile names.
 
-The parameter module-file may be either
+The parameter modulefile may be either
 
-	a fully qualified modulefile with name and version
-	a symbolic module file name
-	another module file alias
+    a fully qualified modulefile with name and version
+    a symbolic modulefile name
+    another modulefile alias
 
 =head2 module-trace  {on | off}  [command  [command  ...]]   [-module modulefile
        [modulefile ...]]
@@ -285,7 +311,7 @@ generated.
 =head2 module-user level
 
 Defines the user level under which module-cmd runs. This takes effect on the
-error messages being produced and on the behavior of modulecmd in case of
+error messages being produced and on the behavior of B<modulecmd.tcl> in case of
 detecting an outage.
 
 The level parameter specifies the user level and may be one of the following
@@ -297,7 +323,7 @@ values:
 
 =head2 module-verbosity {on | off}
 
-Switches verbose modulecmd message display on or off.
+Switches verbose B<modulecmd.tcl> message display on or off.
 
 =head2 module-log error-weight log-facility
 
@@ -312,9 +338,9 @@ one of the following values:
 	debug - debugging messages
 	trace - tracing output
 	warn - warnings
-	prob - problems (normally the modulecmd may be completed)
+	prob - problems (normally the B<modulecmd.tcl> may be completed)
 	error - errors (which normally leads to unsuccessful  end
-		of the modulecmd)
+		of the B<modulecmd.tcl>)
 	fatal - fatal system errors
 	panic  -  very fatal system errors, e.g. internal program
 		inconsistencies.
@@ -327,7 +353,7 @@ following values are allowed:
 	stderr, stdout - predefined output streams for normal and
 	error outputs. Note, that stdout  is  normally  used  for
 	passing parameters to the invoking shell. Directing error
-	output to  this  stream  might  screw  up  the  modulecmd
+	output to  this  stream  might  screw  up  the  B<modulecmd.tcl>
 	integration to your shell.
 	a  syslog  facility  - directs logging to the syslog. See
 	syslog.conf for  detailed  description  of  the  valid
@@ -343,7 +369,7 @@ following values are allowed:
 Defines a string which is displayed in case of the invocation of the 'module
 whatis' command.  There may be more than one module-whatis line in a
 modulefile.  This command takes no actions in case of load, display, etc.
-invocations of modulecmd.
+invocations of B<modulecmd.tcl>.
 
 The string parameter has to be enclosed in double-quotes if there's more than
 one word specified.  Words are defined to be separated by whitespace
@@ -360,40 +386,37 @@ alias is interpreted by the shell.  The string "$*" corresponds to all of the
 arguments given to the alias.  The character '$' may be escaped using the '\'
 character.
 
-For some shells, aliases are not possible and the command has no effect.  
-For Bourne shell derivatives, a shell function will be written (if supported)
-to give the impression of an alias.  When a modulefile is unloaded, set-alias
-becomes unset-alias.
+For some shells, aliases are not possible and the command has no effect. When
+a modulefile is unloaded, set-alias becomes unset-alias.
 
 =head2 unset-alias alias-name
 
-Unsets an alias with the name alias-name in the user's environment.  If the
-shell supports functions then the shell is instructed to unset function
-alias-name.
+Unsets an alias with the name alias-name in the user's environment.
 
 =head2 system string
 
-Pass string to the C library routine system.  For the system call
-modulecmd redirects stdout to stderr since stdout would be parsed by the
+Pass string to the C library routine system(3).  For the system(3) call
+B<modulecmd.tcl> redirects stdout to stderr since stdout would be parsed by the
 evaluating shell.  The exit status of the executed command is returned.
 
 =head2 uname field
 
-Provide fast lookup of system information on systems that support uname.
+Provide fast lookup of system information on systems that support uname(3).
 uname is significantly faster than using system to execute a program to
-return host information.  If uname is not available, gethostname or
+return host information.  If uname(3) is not available, gethostname(3) or
 some program will make the nodename available.  Uname will return the string
 "unknown" if information is unavailable for the field.
 
-Uname will invoke getdomainname in order to figure out the name of the domain.
-Field values are:
+uname will invoke getdomainname in order to figure out the name of the domain.
 
-	sysname - the operating system name
-	nodename - the hostname
-	domain - the name of the domain
-	release - the operating system release
-	version - the operating system version
-	machine  -  a  standard name that identifies the system's hardware
+field values are:
+
+    sysname - the operating system name
+    nodename - the hostname
+    domain - the name of the domain
+    release - the operating system release
+    version - the operating system version
+    machine - a standard name that identifies the system's hardware
 
 =head2 x-resource [resource-string | filename ]
 
@@ -401,18 +424,20 @@ Merge resources into the X11 resource database.  The resources are used to
 control look and behavior of X11 applications.  The command will attempt to
 read resources from filename.  If the argument isn't a valid file name, then
 string will be interpreted as a resource.  If a file is found, it will be
-filtered through the cpp preprocessor, just as xrdb would do.
+filtered through the cpp(1) preprocessor, just as xrdb(1) would do.
 
 modulefiles that use this command, should in most cases contain one or more
 x-resource lines, each defining one X11 resource.  Reading resources from
 filename is much slower, due to the preprocessing.  The DISPLAY environment
 variable should be properly set and the X11 server should be accessible.  
 If x-resource can't manipulate the X11 resource database, the modulefile
-will exit with an error message.  Examples:
+will exit with an error message.
+
+Examples:
 
 =head3 x-resource /u2/staff/leif/.xres/Ileaf
 
-The file Ileaf is preprocessed by cpp and the result is merged into the
+The file Ileaf is preprocessed by cpp(1) and the result is merged into the
 X11 resource database.
 
 =head3 x-resource [glob ~/.xres/ileaf]
@@ -434,24 +459,30 @@ modulefile being interpreted.
 Every directory in MODULEPATH is searched to find the modulefile.  A directory
 in MODULEPATH can have an arbitrary number of sub-directories.  If the user 
 names a modulefile to be loaded which is actually a directory, the directory
-is opened and a search begins for an actual modulefile.  First, modulecmd
+is opened and a search begins for an actual modulefile.  First, B<modulecmd.tcl>
 looks for a file with the name .modulerc in the directory.  If this file
-exists, its contents will be evaluated as if it was a module file to be load.
+exists, its contents will be evaluated as if it was a modulefile to be load.
 You may place module-version and module-alias commands inside this file.
-Additionally, before seeking for .modulerc files in the module directory, the
-global .modulerc file is sourced, too.  If a named version default now exists
-for the module file to be load, the assigned modulefile now will be sourced.
-Otherwise the file .version is looked up in the directory.  If the .version
-file exists, it is opened and interpreted as Tcl code.  If the Tcl variable
-ModulesVersion is set by the .version file, modulecmd will use the name as if
-it specifies a modulefile in the directory.  This will become the default
-module file in this case.  If ModulesVersion is a directory, the search
-begins anew down that directory.  If the name does not match any files located
-in the current directory, the search continues through the remaining
-directories in MODULEPATH.
 
-Every .version and .modulerc file found is Tcl interpreted.  So, changes made
-in these file will affect the subsequently interpreted modulefile.
+Additionally, before seeking for .modulerc files in the module directory, the
+global modulerc file is sourced, too.  If a named version default now exists
+for the modulefile to be loaded, the assigned modulefile now will be sourced.
+Otherwise the file .version is looked up in the directory.
+
+If the .version file exists, it is opened and interpreted as Tcl code and takes
+precedence over a .modulerc file in the same directory.  If the
+Tcl variable ModulesVersion is set by the .version file, B<modulecmd.tcl> will
+use the name as if it specifies a modulefile in the directory.  This will
+become the default modulefile in this case.
+
+If ModulesVersion is a directory, the search begins anew down that directory.
+If the name does not match any files located in the current directory, the
+search continues through the remaining directories in MODULEPATH.
+
+Every .version and .modulerc file found is Tcl interpreted. The  difference is
+that .version only applies to the current directory, and the .modulerc applies
+to the current directory and all subdirectories. Changes made in these files
+will affect the subsequently interpreted modulefile.
 
 If no default version may be figured out, then the highest lexicographically
 sorted modulefile under the directory will be used.
@@ -460,16 +491,24 @@ For example, it is possible for a user to have a directory named X11 which
 simply contains a .version file specifying which version of X11 is to be
 loaded.  Such a file would look like:
 
-	#%Module1.0
-	##
-	##  The desired version of X11
-	##
-	set ModulesVersion "R4"
+    #%Module1.0
+    ##
+    ##  The desired version of X11
+    ##
+    set ModulesVersion "R4"
+
+The equivalent .modulerc would look like:
+
+    #%Module1.0
+    ##
+    ##  The desired version of X11
+    ##
+    module-version "./R4" default
 
 =head1 Modulefile Specific Help
 
 Users can request help about a specific I<modulefile> through the
-module command.  The modulefile can print helpful information or
+module(1) command.  The modulefile can print helpful information or
 start help oriented programs by defining a I<ModulesHelp> subroutine.  The
 subroutine will be called when the 'module help I<modulefile>' command is
 used.
@@ -478,9 +517,9 @@ used.
 
 The 'module display I<modulefile>' command will detail all changes that
 will be made to the environment.  After displaying all of the environment
- changes I<modulecmd.tcl> will call the ModulesDisplay subroutine.
-The ModulesDisplay subroutine is a good place to put additional
-descriptive information about the I<modulefile>.
+changes B<modulecmd.tcl> will call the ModulesDisplay subroutine. The
+ModulesDisplay subroutine is a good place to put additional descriptive
+information about the I<modulefile>.
 
 =head1 ENVIRONMENT
 
@@ -490,8 +529,8 @@ Path of directories containing I<modulefiles>.
 
 =head1 SEE ALSO
 
-B<module>, B<Tcl>, B<TclX>, B<xrdb>, B<cpp>, B<system>,
-B<uname>, B<gethostname>, B<getdomainname>
+B<module>(1), B<Tcl>(3), B<TclX>(3), B<xrdb>(1), B<cpp>(1), B<system>(3),
+B<uname>(3), B<gethostname>(3), B<getdomainname>(3)
 
 =head1 NOTES
 

@@ -4,7 +4,7 @@ module - command interface to the Modules package
 
 =head1 SYNOPSIS
 
-module [switches] [sub-command [sub-command-args]]
+B<module> [I<switches>] [I<sub-command> [I<sub-command-args>]]
 
 =head1 DESCRIPTION
 
@@ -34,13 +34,14 @@ The Modules package and the B<module> command are initialized when a
 shell-specific initialization script is sourced into the shell.
 The script creates the B<module> command as either an alias or function,
 creates Modules environment variables, and a snapshot of the environment
-is saved in ${HOME}/.modulesbeginenv.  The B<module> alias or function
-executes the B<modulecmd.tcl> program located in ${MODULESHOME}/ and has the
-shell evaluate the command's output.  The first argument to B<modulecmd.tcl>
-specifies the type of shell.
+is saved in ${HOME}/.modulesbeginenv.
 
-The initialization scripts are kept in ${MODULESHOME}/init/[shellname]
-where [shellname] is the name of the sourcing shell.  For example, a C Shell
+The B<module> alias or function executes the B<modulecmd.tcl> program located
+in ${MODULESHOME}/ and has the shell evaluate the command's output.  The first
+argument to B<modulecmd.tcl> specifies the type of shell.
+
+The initialization scripts are kept in I<${MODULESHOME}/init/[shellname]>
+where I<[shellname]> is the name of the sourcing shell.  For example, a C Shell
 user sources the ${MODULESHOME}/init/csh script.  The sh, csh, tcsh, bash,
 ksh, and zsh shells are supported by B<modulecmd.tcl>.  In addition, python and
 perl "shells" are supported which writes the environment changes to stdout
@@ -52,33 +53,35 @@ In the following examples, replace ${MODULESHOME} with the actual directory
 name.
 
 C Shell initialization (and derivatives):
-        source ${MODULESHOME}/init/csh
-        module load modulefile modulefile ...
+
+    source ${MODULESHOME}/init/csh
+    module load modulefile modulefile ...
 
 Bourne Shell (sh) (and derivatives):
-        . ${MODULESHOME}/init/sh
-        module load modulefile modulefile ...
+
+    . ${MODULESHOME}/init/sh
+    module load modulefile modulefile ...
 
 Perl:
-        require "${MODULESHOME}/init/perl";
-        &module("load modulefile modulefile ...");
+
+    require "${MODULESHOME}/init/perl";
+    &module("load modulefile modulefile ...");
 
 =head2 Modulecmd startup
 
 Upon invocation B<modulecmd.tcl> sources rc files which contain global, user
 and I<modulefile> specific setups. These files are interpreted as 
-I<modulefiles>.  See I<modulefile> for detailed information.
+I<modulefiles>.  See B<modulefile>(4) for detailed information.
 
-Upon invocation of B<modulecmd.tcl> module RC files are sourced in the
+Upon invocation of B<modulecmd.tcl> module run-command files are sourced in the
 following order:
 
-        Global RC file as specified by ${MODULERCFILE} or 
-		${MODULESHOME}/etc/rc
+    Global RC file as specified by ${MODULERCFILE} or 
+    {MODULESHOME}/etc/rc
 
-        User specific module RC file ${HOME}/.modulerc
+    User specific module RC file ${HOME}/.modulerc
 
-        All .modulerc and .version files found during I<modulefile>
-		seeking.
+    All .modulerc and .version files found during modulefile seeking.
 
 =head2 Command line switches
 
@@ -102,7 +105,7 @@ Display B<avail> and B<list> output in long format.
 =head3 help [modulefile...]
 
 Print the usage of each sub-command.
-If an argument is given, print the Module specific help information for the
+If an argument is given, print the Module-specific help information for the
 modulefile.
 
 =head3 [load | add] modulefile [modulefile...]
@@ -119,7 +122,7 @@ Switch loaded modulefile1 with modulefile2
 
 =head3 [display | show] modulefile [modulefile...]
 
-Display information about a modulefile.
+Display information about one or more modulefiles.
 The display sub-command will list the full path of the modulefile
 and the environment changes the modulefile will make if loaded.  
 (Note: It will not display any environment changes found within conditional
@@ -131,10 +134,10 @@ List loaded modules.
 
 =head3 avail [path...]
 
-List all available modulefiles in the current \s-1MODULEPATH\s0.
-All directories in the \s-1MODULEPATH\s0 are recursively searched for
+List all available modulefiles in the current MODULEPATH.
+All directories in the MODULEPATH are recursively searched for
 files containing the modulefile magic cookie.  If an argument is
-given, then each directory in the \s-1MODULEPATH\s0 is searched for 
+given, then each directory in the MODULEPATH is searched for 
 modulefiles whose pathname match the argument.
 Multiple versions of an application can be supported by creating a
 subdirectory for the application containing modulefiles for each
@@ -142,17 +145,17 @@ version.
 
 =head3 use [-a | --append] directory [directory...]
 
-Prepend directory to the \s-1MODULEPATH\s0 environment variable.
-The --append flag will append the directory to \s-1MODULEPATH\s0.
+Prepend one or more directories to the MODULEPATH environment variable.
+The --append flag will append the directory to MODULEPATH.
 
 =head3 unuse directory [directory...]
 
-Remove directory from the \s-1MODULEPATH\s0 environment variable.
+Remove one or more directories from the MODULEPATH environment variable.
 
 =head3 update
 
 Attempt to reload all loaded modulefiles.  The environment will be
-reconfigured to match the saved .I ${\s-1HOME\s0}/.modulesbeginenv
+reconfigured to match the saved .I ${HOME}/.modulesbeginenv
 and the modulefiles will be reloaded.  update will only change the
 environment variables that the modulefiles set.
 
@@ -166,15 +169,15 @@ Unload all loaded modulefiles.
 
 =head3 whatis [modulefile [modulefile...]]
 
-Display the modulefile information set up by the \fImodule-whatis\fP
-commands inside the specified modulefiles. If no modulefiles are
-specified all whatis information lines will be shown.
+Display the information set up by the I<module-whatis>
+commands inside the specified modulefiles. If no modulefile is
+specified, all 'whatis' lines will be shown.
 
 =head3 [apropos | keyword] string
 
-Seeks thru the whatis informations of all modulefiles for the
-specified string.  All module whatis informations matching the
-string search will be displayed.
+Seeks through the 'whatis' informations of all modulefiles for the
+specified string.  All I<module-whatis> informations matching the
+string will be displayed.
 
 =head3 initadd modulefile [modulefile...]
 
@@ -195,7 +198,7 @@ files, all of the lines are changed.
 
 =head3 initprepend modulefile [modulefile...]
 
-Does the same as initadd but prepends the given modules to the
+Does the same as B<initadd> but prepends the given modules to the
 beginning of the list.
 
 =head3 initrm modulefile [modulefile...]
@@ -214,15 +217,15 @@ List all of the modulefiles loaded from the shell's initialization file.
 
 Clear all of the modulefiles from the shell's initialization files.
 
-=head1 Modulefiles
+=head2 Modulefiles
 
-modulefiles are written in the Tool Command Language (tcl) and are
-interpreted by modulecmd. modulefiles can use conditional statements.
+modulefiles are written in the Tool Command Language (Tcl) and are
+interpreted by B<modulecmd.tcl>. modulefiles can use conditional statements.
 Thus the effect a modulefile will have on the environment may change depending
 upon the current state of the environment.
 
 Environment variables are unset when unloading a modulefile.  Thus, it is
-possible to load a modulefile and then unload it without having the
+possible to B<load> a modulefile and then B<unload> it without having the
 environment variables return to their prior state.
 
 =head1 ENVIRONMENT
@@ -235,7 +238,7 @@ and a directory containing a collection of master modulefiles.
 
 =head2 MODULEPATH
 
-The path that the module command searches when looking for modulefiles.
+The path that the B<module> command searches when looking for modulefiles.
 Typically, it is set to the master modulefiles directory,
 ${MODULESHOME}/modulefiles, by the initialization script.
 MODULEPATH can be set using 'module use' or by the module
@@ -246,7 +249,7 @@ directories before or after the master modulefile directory.
 
 A colon separated list of all loaded modulefiles.
 
-=head2 _LOADED_MODULEFILES_
+=head2 _LMFILES_
 
 A colon separated list of the full pathname for all loaded modulefiles.
 
@@ -274,9 +277,9 @@ The user specific modules rc file.
 The directory for system-wide modulefiles.  The location of the directory
 can be changed using the MODULEPATH environment variable as described above.
 
-=head2 ${MODULESHOME}/bin/modulecmd
+=head2 ${MODULESHOME}/bin/modulecmd.tcl
 
-The modulefile interpreter that gets executed upon each invocation of module.
+The modulefile interpreter that gets executed upon each invocation of B<module>.
 
 =head2 ${MODULESHOME}/init/shellname
 
@@ -284,4 +287,4 @@ The Modules package initialization file sourced into the user's environment.
 
 =head1 SEE ALSO
 
-B<modulefile>
+B<modulefile>(4)
