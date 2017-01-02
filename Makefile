@@ -1,33 +1,20 @@
 export MODULESHOME = $(shell pwd)
-.PHONY: doc
+.PHONY: doc initdir clean
 
-all: initdir
+all: initdir doc
 
 initdir:
 	make -C init all
 
 doc:
-	rm -f ./doc/html/module.html
-	pod2html --noindex --infile=./doc/source/module.pl \
-		--outfile=./doc/html/module.html
-	rm -f ./doc/html/modulefile.html
-	pod2html --noindex --infile=./doc/source/modulefile.pl \
-		--outfile=./doc/html/modulefile.html
-	rm -f ./doc/man/man1/module.1
-	pod2man -c "Environment Modules" -r "modules-tcl" \
-		./doc/source/module.pl \
-		./doc/man/man1/module.1
-	rm -f ./doc/man/man4/modulefile.4
-	pod2man -c "Environment Modules" -r "modules-tcl" \
-		./doc/source/modulefile.pl \
-		./doc/man/man4/modulefile.4
-	rm -f pod*.tmp
+	make -C doc all
 
 distclean: clean
 
 clean: 
 	rm -f *.log *.sum
 	make -C init clean
+	make -C doc clean
 
 test:
 	MODULEVERSION=Tcl; export MODULEVERSION; \
