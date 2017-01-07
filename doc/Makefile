@@ -14,16 +14,16 @@ SOURCE_DIR := source
 all: $(HTML_DIR)/module.html $(HTML_DIR)/modulefile.html \
 	$(MAN1_DIR)/module.1 $(MAN4_DIR)/modulefile.4
 
-$(HTML_DIR)/%.html: $(SOURCE_DIR)/%.pl $(VERSION_FILE)
+$(HTML_DIR)/%.html: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
 	mkdir -p $(HTML_DIR)
 	pod2html --noindex --infile=$< --outfile=$@
 	rm -f pod2htmd.tmp
 
-$(MAN1_DIR)/%.1: $(SOURCE_DIR)/%.pl $(VERSION_FILE)
+$(MAN1_DIR)/%.1: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
 	mkdir -p $(MAN1_DIR)
 	pod2man -c $(MAN_HEADER) -r $(MAN_VERSION) -s 1 $< $@
 
-$(MAN4_DIR)/%.4: $(SOURCE_DIR)/%.pl $(VERSION_FILE)
+$(MAN4_DIR)/%.4: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
 	mkdir -p $(MAN4_DIR)
 	pod2man -c $(MAN_HEADER) -r $(MAN_VERSION) -s 4 $< $@
 
