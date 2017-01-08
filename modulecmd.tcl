@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.677
+set MODULES_CURRENT_VERSION 1.694
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1961,7 +1961,7 @@ proc renderSettings {} {
       if {$g_stateEnvVars($var) eq "new"} {
          switch -- $g_shellType {
             csh {
-               set val [multiEscaped $env($var)]
+               set val [charEscaped $env($var)]
                # csh barfs on long env vars
                if {$g_shell eq "csh" && [string length $val] >\
                   $CSH_LIMIT} {
@@ -1980,11 +1980,11 @@ proc renderSettings {} {
                puts stdout "setenv $var $val;"
             }
             sh {
-               puts stdout "$var=[multiEscaped $env($var)];\
+               puts stdout "$var=[charEscaped $env($var)];\
                   export $var;"
             }
             fish {
-               set val [multiEscaped $env($var)]
+               set val [charEscaped $env($var)]
                # fish shell has special treatment for PATH variable
                # so its value should be provided as a list separated
                # by spaces not by semi-colons
@@ -1994,19 +1994,19 @@ proc renderSettings {} {
                puts stdout "set -xg $var $val;"
             }
             tcl {
-               set val [doubleQuoteEscaped $env($var)]
+               set val [charEscaped $env($var) \"]
                puts stdout "set env($var) \"$val\";"
             }
             perl {
-               set val [singleQuoteEscaped $env($var)]
+               set val [charEscaped $env($var) \']
                puts stdout "\$ENV{\'$var\'} = \'$val\';"
             }
             python {
-               set val [singleQuoteEscaped $env($var)]
+               set val [charEscaped $env($var) \']
                puts stdout "os.environ\['$var'\] = '$val'"
             }
             lisp {
-               set val [doubleQuoteEscaped $env($var)]
+               set val [charEscaped $env($var) \"]
                puts stdout "(setenv \"$var\" \"$val\")"
             }
             cmd {
@@ -2049,7 +2049,7 @@ proc renderSettings {} {
       if {$g_stateAliases($var) eq "new"} {
          switch -- $g_shellType {
             csh {
-               # set val [multiEscaped $g_Aliases($var)]
+               # set val [charEscaped $g_Aliases($var)]
                set val $g_Aliases($var)
                # Convert $n -> \!\!:n
                regsub -all {\$([0-9]+)} $val {\\!\\!:\1} val
@@ -2111,7 +2111,7 @@ proc renderSettings {} {
                   puts stdout "system(\"$xrdb -merge $var\");"
                }
                python {
-                  set var [singleQuoteEscaped $var]
+                  set var [charEscaped $var \']
                   puts stdout "subprocess.Popen(\['$xrdb',\
                      '-merge', '$var'\])"
                }
@@ -2123,28 +2123,28 @@ proc renderSettings {} {
          } else {
             switch -regexp -- $g_shellType {
                {^(csh|fish|sh)$} {
-                  set var [doubleQuoteEscaped $var]
-                  set val [doubleQuoteEscaped $val]
+                  set var [charEscaped $var \"]
+                  set val [charEscaped $val \"]
                   puts stdout "echo \"$var: $val\" | $xrdb -merge;"
                }
                tcl {
                   puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\];"
-                  set var [doubleQuoteEscaped $var]
-                  set val [doubleQuoteEscaped $val]
+                  set var [charEscaped $var \"]
+                  set val [charEscaped $val \"]
                   puts stdout "puts \$XRDBPIPE \"$var: $val\";"
                   puts stdout "close \$XRDBPIPE;"
                   puts stdout "unset XRDBPIPE;"
                }
                perl {
                   puts stdout "open(XRDBPIPE, \"|$xrdb -merge\");"
-                  set var [doubleQuoteEscaped $var]
-                  set val [doubleQuoteEscaped $val]
+                  set var [charEscaped $var \"]
+                  set val [charEscaped $val \"]
                   puts stdout "print XRDBPIPE \"$var: $val\\n\";"
                   puts stdout "close XRDBPIPE;"
                }
                python {
-                  set var [singleQuoteEscaped $var]
-                  set val [singleQuoteEscaped $val]
+                  set var [charEscaped $var \']
+                  set val [charEscaped $val \']
                   puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
                      stdin=subprocess.PIPE).communicate(input='$var: $val\\n')"
                }
@@ -2184,7 +2184,7 @@ proc renderSettings {} {
          tcl {
             foreach var $xres_to_del {
                puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\];"
-               set var [doubleQuoteEscaped $var]
+               set var [charEscaped $var \"]
                puts stdout "puts \$XRDBPIPE \"$var:\";"
                puts stdout "close \$XRDBPIPE;"
                puts stdout "unset XRDBPIPE;"
@@ -2193,7 +2193,7 @@ proc renderSettings {} {
          perl {
             foreach var $xres_to_del {
                puts stdout "open(XRDBPIPE, \"|$xrdb -merge\");"
-               set var [doubleQuoteEscaped $var]
+               set var [charEscaped $var \"]
                puts stdout "print XRDBPIPE \"$var:\\n\";"
                puts stdout "close XRDBPIPE;"
             }
@@ -2201,7 +2201,7 @@ proc renderSettings {} {
          python {
             puts stdout "import subprocess"
             foreach var $xres_to_del {
-               set var [singleQuoteEscaped $var]
+               set var [charEscaped $var \']
                puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
                   stdin=subprocess.PIPE).communicate(input='$var:\\n')"
             }
@@ -2383,19 +2383,8 @@ proc resolveModuleVersionOrAlias {name {search "all"} args} {
    return $ret
 }
 
-proc multiEscaped {text} {
-   regsub -all {([ \\\t\{\}|<>!;#^$&*"'`()])} $text {\\\1} regsub_tmpstrg
-   return $regsub_tmpstrg
-}
-
-proc doubleQuoteEscaped {text} {
-   regsub -all "\"" $text "\\\"" regsub_tmpstrg
-   return $regsub_tmpstrg
-}
-
-proc singleQuoteEscaped {text} {
-   regsub -all "\'" $text "\\\'" regsub_tmpstrg
-   return $regsub_tmpstrg
+proc charEscaped {str {charlist { \\\t\{\}|<>!;#^$&*"'`()}}} {
+   return [regsub -all "\(\[$charlist\]\)" $str {\\\1}]
 }
 
 proc findExecutable {cmd} {
