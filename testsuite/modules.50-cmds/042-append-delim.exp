@@ -32,7 +32,11 @@ set ts_2 "http://foobar.net"
 set ts_3 "http://foobar.com"
 set ts_new "$ts_1\\\\ $ts_2\\\\ $ts_3"
 set ts_new2 "$ts_1 $ts_2 $ts_3"
+# test colon char is correctly escaped in _modshare var
+set tsmod_new "http\\\\\\\\://foobar.com:1:http\\\\\\\\://foobar.net:1:http\\\\\\\\://foobar.org:1"
+set tsmod_new2 "http\\\\://foobar.com:1:http\\\\://foobar.net:1:http\\\\://foobar.org:1"
 set env(testsuite)	"$ts_1 $ts_2"
+set env(testsuite_modshare)	"http\\://foobar.org:1:http\\://foobar.net:1"
 set module "append/1.0"
 set modulefile "$env(MODULEPATH)/$module"
 
@@ -42,49 +46,49 @@ set modulefile "$env(MODULEPATH)/$module"
 
 set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
 set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set tsmod_sh "testsuite_modshare=(.*); export testsuite_modshare;"
+set tsmod_sh "testsuite_modshare=$tsmod_new; export testsuite_modshare;"
 set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
 set ts_sh "testsuite=$ts_new; export testsuite;"
 
 set lmfmod_csh "setenv _LMFILES__modshare (.*);"
 set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set tsmod_csh "setenv testsuite_modshare (.*);"
+set tsmod_csh "setenv testsuite_modshare $tsmod_new;"
 set lmf_csh "setenv _LMFILES_ $modulefile;"
 set lm_csh "setenv LOADEDMODULES $module;"
 set ts_csh "setenv testsuite $ts_new;"
 
 set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
 set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
-set tsmod_fish "set -xg testsuite_modshare (.*);"
+set tsmod_fish "set -xg testsuite_modshare $tsmod_new;"
 set lmf_fish "set -xg _LMFILES_ $modulefile;"
 set lm_fish "set -xg LOADEDMODULES $module;"
 set ts_fish "set -xg testsuite $ts_new;"
 
 set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
 set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
-set tsmod_tcl "set env\\\(testsuite_modshare\\\) \"(.*)\";"
+set tsmod_tcl "set env\\\(testsuite_modshare\\\) \"$tsmod_new2\";"
 set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
 set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
 set ts_tcl "set env\\\(testsuite\\\) \"$ts_new2\";"
 
 set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
 set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
-set tsmod_perl "\\\$ENV{\'testsuite_modshare\'} = \'(.*)\';"
+set tsmod_perl "\\\$ENV{\'testsuite_modshare\'} = \'$tsmod_new2\';"
 set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
 set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
 set ts_perl "\\\$ENV{\'testsuite\'} = \'$ts_new2\';"
 
 set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
 set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
-set tsmod_python "os.environ\\\[\'testsuite_modshare\'\\\] = \'(.*)\'"
+set tsmod_python "os.environ\\\[\'testsuite_modshare\'\\\] = \'$tsmod_new2\'"
 set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
 set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
 set ts_python "os.environ\\\[\'testsuite\'\\\] = \'$ts_new2\'"
 
 set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
 set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
-set tsmod_lisp "\\\(setenv \"testsuite_modshare\" \"(.*)\"\\\)"
+set tsmod_lisp "\\\(setenv \"testsuite_modshare\" \"$tsmod_new2\"\\\)"
 set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
 set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
 set ts_lisp "\\\(setenv \"testsuite\" \"$ts_new2\"\\\)"
@@ -110,9 +114,12 @@ test_cmd_re "lisp" "load $module" "$lmfmod_lisp\n$lmmod_lisp\n$tsmod_lisp\n$lmf_
 #
 
 unset env(testsuite)
+unset env(testsuite_modshare)
 
 unset ts_new
 unset ts_new2
+unset tsmod_new
+unset tsmod_new2
 unset ts_3
 unset ts_2
 unset ts_1

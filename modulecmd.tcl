@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.694
+set MODULES_CURRENT_VERSION 1.695
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1021,7 +1021,7 @@ proc getReferenceCountArray {var separator} {
    set modshareok 1
    if {[info exists env($sharevar)]} {
       if {[info exists env($var)]} {
-         set modsharelist [split $env($sharevar) $g_def_separator]
+         set modsharelist [psplit $env($sharevar) $g_def_separator]
          set temp [expr {[llength $modsharelist] % 2}]
 
          if {$temp == 0} {
@@ -1139,7 +1139,7 @@ proc unload-path {var path separator} {
 
    set sharevar "${var}_modshare"
    if {[array size countarr] > 0} {
-      set env($sharevar) [join [array get countarr] $g_def_separator]
+      set env($sharevar) [pjoin [array get countarr] $g_def_separator]
       set g_stateEnvVars($sharevar) "new"
    } else {
       unset-env $sharevar
@@ -1191,7 +1191,7 @@ proc add-path {var path pos separator} {
       reportDebug "add-path: env($var) = $env($var)"
    }
 
-   set env($sharevar) [join [array get countarr] $g_def_separator]
+   set env($sharevar) [pjoin [array get countarr] $g_def_separator]
    set g_stateEnvVars($var) "new"
    set g_stateEnvVars($sharevar) "new"
    return {}
@@ -2387,6 +2387,10 @@ proc charEscaped {str {charlist { \\\t\{\}|<>!;#^$&*"'`()}}} {
    return [regsub -all "\(\[$charlist\]\)" $str {\\\1}]
 }
 
+proc charUnescaped {str {charlist { \\\t\{\}|<>!;#^$&*"'`()}}} {
+   return [regsub -all "\\\\\(\[$charlist\]\)" $str {\1}]
+}
+
 proc findExecutable {cmd} {
    foreach dir {/usr/X11R6/bin /usr/openwin/bin /usr/bin/X11} {
       if {[file executable "$dir/$cmd"]} {
@@ -2395,6 +2399,42 @@ proc findExecutable {cmd} {
    }
 
    return $cmd
+}
+
+# split string while ignore any separator character that is espaced
+proc psplit {str sep} {
+   set previdx -1
+   set idx [string first $sep $str]
+   while {$idx != -1} {
+      # look ahead if found separator is escaped
+      if {[string index $str [expr {$idx-1}]] ne "\\"} {
+         # unescape any separator character when adding to list
+         lappend res [charUnescaped [string range $str [expr {$previdx+1}]\
+            [expr {$idx-1}]] $sep]
+         set previdx $idx
+      }
+      set idx [string first $sep $str [expr {$idx+1}]]
+   }
+
+   lappend res [charUnescaped [string range $str [expr {$previdx+1}] end]\
+      $sep]
+
+   return $res
+}
+
+# join list while escape any character equal to separator
+proc pjoin {lst sep} {
+   set res ""
+
+   foreach elt $lst {
+      if {$res ne ""} {
+         append res $sep
+      }
+      # escape any separator character when adding to string
+      append res [charEscaped $elt $sep]
+   }
+
+   return $res
 }
 
 # Dictionary-style string comparison
