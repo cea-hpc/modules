@@ -1,0 +1,111 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	2017/01/10
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display, whatis, avail
+#   Modulefiles:	loc_def
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Localization of the modulefile when a 'default' version-name
+#           exists
+#		}C%
+#
+##############################################################################
+
+#
+# Variables for this test
+#
+
+set module "loc_def"
+set module_1 "$module/default"
+set module_2 "$module/truedef"
+set modulefile_1 "$env(MODULEPATH)/$module_1"
+set modulefile_2 "$env(MODULEPATH)/$module_2"
+set modwhatis "module named default test"
+set modpathheader "$modlin $env(MODULEPATH) $modlin"
+
+#
+# Test load of true default version
+#
+
+set lmfmod_sh "_LMFILES__modshare=$modulefile_2:1; export _LMFILES__modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=$module_2:1; export LOADEDMODULES_modshare;"
+set lmf_sh "_LMFILES_=$modulefile_2; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module_2; export LOADEDMODULES;"
+
+test_cmd "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh"
+
+#
+# Test load of version-name 'default'
+#
+
+set lmfmod_sh "_LMFILES__modshare=$modulefile_1:1; export _LMFILES__modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=$module_1:1; export LOADEDMODULES_modshare;"
+set lmf_sh "_LMFILES_=$modulefile_1; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module_1; export LOADEDMODULES;"
+
+test_cmd "sh" "load $module_1" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh"
+
+#
+# Test display of true default version
+#
+
+testerr_cmd_re "sh" "display $module" "$modlin\n$modulefile_2:\n\nmodule-whatis\t$modwhatis\n$modlin"
+
+#
+# Test display of version-name 'default'
+#
+
+testerr_cmd_re "sh" "display $module_1" "$modlin\n$modulefile_1:\n\nmodule-whatis\t$modwhatis\n$modlin"
+
+#
+# Test whatis of generic module name
+#
+
+testerr_cmd_re "sh" "whatis $module" "$modpathheader\n\\s+$module_1: $modwhatis\n\\s+$module_2: $modwhatis"
+
+#
+# Test whatis of version-name 'default'
+#
+
+testerr_cmd_re "sh" "whatis $module_1" "$modpathheader\n\\s+$module_1: $modwhatis"
+
+#
+# Test avail of generic module name
+#
+
+testerr_cmd_re "sh" "avail -t $module" "$modpathheader\n$module_1\n$module_2"
+
+#
+# Test avail of version-name 'default'
+#
+
+testerr_cmd_re "sh" "avail -t $module" "$modpathheader\n$module_1"
+
+
+#
+# Cleanup
+#
+
+unset lmfmod_sh
+unset lmmod_sh
+unset lmf_sh
+unset lm_sh
+
+unset modwhatis
+unset modpathheader
+
+unset modulefile_2
+unset module_2
+unset modulefile_1
+unset module_1
+unset module

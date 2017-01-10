@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.695
+set MODULES_CURRENT_VERSION 1.696
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -455,7 +455,7 @@ proc module-info {what {more {}}} {
          return [join [getVersAliasList $more] ":"]
       }
       "version" {
-         lassign [getModuleNameVersion $more] mod
+         lassign [getModuleNameVersion $more 1] mod
          return [resolveModuleVersionOrAlias $mod]
       }
       default {
@@ -484,8 +484,10 @@ proc module-whatis {message} {
 # Determine with a name provided as argument the corresponding module name,
 # version and name/version. Module name is guessed from current module name
 # when shorthand version notation is used. Both name and version are guessed
-# from current module if name provided is empty
-proc getModuleNameVersion {{name {}}} {
+# from current module if name provided is empty. If 'default_is_special'
+# argument is enabled then a 'default' version name is considered as a
+# symbol not a filename (useful for module-version proc for instance)
+proc getModuleNameVersion {{name {}} {default_is_special 0}} {
    set curmod [currentModuleName]
    set curmodname [file dirname $curmod]
    set curmodversion [file tail $curmod]
@@ -513,7 +515,7 @@ proc getModuleNameVersion {{name {}}} {
       } else {
          set name [file dirname $name]
          # clear version if default
-         if {$version eq "default"} {
+         if {$version eq "default" && $default_is_special} {
             set version ""
          }
       }
@@ -544,7 +546,7 @@ proc module-version {args} {
    global ModulesCurrentModulefile
 
    reportDebug "module-version: executing module-version $args"
-   lassign [getModuleNameVersion [lindex $args 0]] mod modname modversion
+   lassign [getModuleNameVersion [lindex $args 0] 1] mod modname modversion
 
    foreach version [lrange $args 1 end] {
       if {[string match $version "default"]} {
@@ -2510,7 +2512,7 @@ proc getVersAliasList {mod args} {
    reportDebug "getVersAliasList: $mod (previously: $args)"
 
    # get module name and version after alias resolution attempt
-   lassign [getModuleNameVersion $mod] mod
+   lassign [getModuleNameVersion $mod 1] mod
    lassign [getModuleNameVersion [resolveModuleVersionOrAlias $mod "alias"]]\
       mod modname modversion
 
