@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.698
+set MODULES_CURRENT_VERSION 1.699
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1017,11 +1017,14 @@ proc chdir {dir} {
 # rather than exiting the whole process
 proc exitModfileCmd {{code 0}} {
    global g_inhibit_interp
+   set mode [currentMode]
 
    reportDebug "exit: ($code)"
 
-   # inhibit next modulefile interpretations
-   set g_inhibit_interp 1
+   if {$mode eq "load"} {
+      reportDebug "exit: Inhibit next modulefile interpretations"
+      set g_inhibit_interp 1
+   }
 
    # break to gently end interpretation of current modulefile
    return -code break

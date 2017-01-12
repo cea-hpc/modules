@@ -13,7 +13,7 @@
 #   Command:		load
 #   Modulefiles:	exit/1.0,
 #   			exit/2.0,
-#   			exit/3.0,
+#   			exit/3.0, loc_def/truedef
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -30,6 +30,13 @@ set mod3 "exit/3.0"
 set mod1p "$env(MODULEPATH)/$mod1"
 set mod2p "$env(MODULEPATH)/$mod2"
 set mod3p "$env(MODULEPATH)/$mod3"
+
+set introhelp "Module Specific Help for"
+set warnnohelp "WARNING: Unable to find ModulesHelp in"
+set modpathheader "$modlin $env(MODULEPATH) $modlin"
+set modnext "loc_def/truedef"
+set modnextp "$env(MODULEPATH)/$modnext"
+set modnextwhatis "module named default test"
 
 #
 # set up an empty environment
@@ -126,6 +133,12 @@ test_cmd_re "perl" "load $mod1 $mod3 $mod2" "$lmfmod_perl\n$lmmod_perl\n$lmf_per
 test_cmd_re "python" "load $mod1 $mod3 $mod2" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$ts_python1\n$err_python\$"
 test_cmd_re "lisp" "load $mod1 $mod3 $mod2" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp1\n$err_lisp\$"
 
+# tests that 'exit' does not inhibit next modulefile interpretations on non-load mode
+testerr_cmd_re "sh" "display $mod3 $modnext" "$modlin\n$mod3p:\n\nsetenv\t\ttestsuite3\tno\n$modlin\n$modlin\n$modnextp:\n\nmodule-whatis\t$modnextwhatis\n$modlin\$"
+testerr_cmd_re "sh" "whatis $mod3 $modnext" "$modpathheader\n\\s+$mod3: \n$modpathheader\n\\s+$modnext: $modnextwhatis\$"
+testerr_cmd_re "sh" "help $mod3 $modnext" "$modlin\n$introhelp $mod3p:\n\n$warnnohelp $mod3p.\n$modlin\n$modlin\n$introhelp $modnextp:\n\n$warnnohelp $modnextp.\n$modlin\$"
+
+
 #
 #  Cleanup
 #
@@ -193,3 +206,9 @@ unset mod1p
 unset mod2p
 unset mod3p
 
+unset introhelp
+unset warnnohelp
+unset modpathheader
+unset modnextwhatis
+unset modnext
+unset modnextp
