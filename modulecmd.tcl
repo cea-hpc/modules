@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.696
+set MODULES_CURRENT_VERSION 1.698
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -415,7 +415,15 @@ proc module-info {what {more {}}} {
          return [currentModuleName]
       }
       "shell" {
-         return $g_shell
+         if {$more ne ""} {
+            if {$g_shell eq $more} {
+               return 1
+            } else {
+               return 0
+            }
+         } else {
+            return $g_shell
+         }
       }
       "flags" {
          # C-version specific option, not relevant for Tcl-version but return
@@ -423,7 +431,15 @@ proc module-info {what {more {}}} {
          return 0
       }
       "shelltype" {
-         return $g_shellType
+         if {$more ne ""} {
+            if {$g_shellType eq $more} {
+               return 1
+            } else {
+               return 0
+            }
+         } else {
+            return $g_shellType
+         }
       }
       "user" {
          # C-version specific option, not relevant for Tcl-version but return

@@ -31,26 +31,120 @@ set module "info/shellsexp"
 set modulefile "$env(MODULEPATH)/$module"
 
 #
+#  For the different shells ...
+#
+
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
+set ts_sh "testsuite=sh/sh; export testsuite;"
+set ts_bash "testsuite=bash/sh; export testsuite;"
+set ts_ksh "testsuite=ksh/sh; export testsuite;"
+set ts_zsh "testsuite=zsh/sh; export testsuite;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lm_csh "setenv LOADEDMODULES $module;"
+set lmfmod_csh "setenv _LMFILES__modshare (.*);"
+set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
+set ts_csh "setenv testsuite csh/csh;"
+set ts_tcsh "setenv testsuite tcsh/csh;"
+
+set lmf_fish "set -xg _LMFILES_ $modulefile;"
+set lm_fish "set -xg LOADEDMODULES $module;"
+set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
+set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
+set ts_fish "set -xg testsuite fish/fish;"
+
+set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
+set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
+set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
+set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
+set ts_tcl "set env\\\(testsuite\\\) \"tcl/tcl\";"
+
+set lmf_perl "\\\$ENV{'_LMFILES_'} = \'$modulefile\';"
+set lm_perl "\\\$ENV{'LOADEDMODULES'} = \'$module\';"
+set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
+set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
+set ts_perl "\\\$ENV{'testsuite'} = \'perl/perl\';"
+
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
+set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
+set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
+set ts_python "os.environ\\\[\'testsuite\'\\\] = \'python/python\'"
+
+set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
+set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
+set ts_lisp "\\\(setenv \"testsuite\" \"lisp/lisp\"\\\)"
+
+#
 #  The tests
 #
 
-# Tcl version does not allow to pass an argument to 'module-info shell'
-# and 'module-info shelltype' module subcommands
-test_cmd "sh" "load $module" "" 1
-test_cmd "ksh" "load $module" "" 1
-test_cmd "zsh" "load $module" "" 1
-test_cmd "csh" "load $module" "" 1
-test_cmd "tcsh" "load $module" "" 1
-test_cmd "fish" "load $module" "" 1
-test_cmd "tcl" "load $module" "" 1
-test_cmd "perl" "load $module" "" 1
-#test_cmd "cmake" "load $module" "" 1
-test_cmd "python" "load $module" "" 1
-test_cmd "lisp" "load $module" "" 1
+test_cmd_re "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
+test_cmd_re "bash" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_bash\$"
+test_cmd_re "ksh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_ksh\$"
+test_cmd_re "zsh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_zsh\$"
+test_cmd_re "csh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
+test_cmd_re "tcsh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_tcsh\$"
+test_cmd_re "fish" "load $module" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish\$"
+test_cmd_re "tcl" "load $module" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl\$"
+test_cmd_re "perl" "load $module" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n$ts_perl\n1;\$"
+test_cmd_re "python" "load $module" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$ts_python\$"
+test_cmd_re "lisp" "load $module" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp\$"
 
 #
 #  Cleanup
 #
+
+unset lm_sh
+unset lmf_sh
+unset lmmod_sh
+unset lmfmod_sh
+unset ts_sh
+unset ts_bash
+unset ts_ksh
+unset ts_zsh
+
+unset lm_csh
+unset lmf_csh
+unset lmmod_csh
+unset lmfmod_csh
+unset ts_csh
+unset ts_tcsh
+
+unset lm_fish
+unset lmf_fish
+unset lmmod_fish
+unset lmfmod_fish
+unset ts_fish
+
+unset lm_tcl
+unset lmf_tcl
+unset lmmod_tcl
+unset lmfmod_tcl
+unset ts_tcl
+
+unset lm_perl
+unset lmf_perl
+unset lmmod_perl
+unset lmfmod_perl
+unset ts_perl
+
+unset lm_python
+unset lmf_python
+unset lmmod_python
+unset lmfmod_python
+unset ts_python
+
+unset lm_lisp
+unset lmf_lisp
+unset lmmod_lisp
+unset lmfmod_lisp
+unset ts_lisp
 
 unset modulefile
 unset module
