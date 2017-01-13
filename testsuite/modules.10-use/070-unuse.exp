@@ -26,6 +26,9 @@
 #
 
 set path "$env(TESTSUITEDIR)/modulefiles.other"
+set tsdirname [file tail $env(TESTSUITEDIR)]
+regsub "^.*/$tsdirname" $path "$tsdirname" relpath
+regsub "$tsdirname" $relpath "$tsdirname/../$tsdirname/./" relpath_wdot
 set badpath "$env(TESTSUITEDIR)/modulefiles.bad"
 set mod_path "$env(MODULEPATH)"
 set bad_use ""
@@ -95,6 +98,40 @@ test_cmd_re "python" "$use $path" "import os\n$python_modshare\n$python_modpath\
 test_cmd_re "lisp" "$use $path" "$lisp_modshare\n$lisp_modpath\$"
 
 #
+# test with relative-path directory
+# should end with same result as above
+#
+
+test_cmd_re "sh" "$use $relpath" "$bash_modshare\n$bash_modpath\$"
+test_cmd_re "bash" "$use $relpath" "$bash_modshare\n$bash_modpath\$"
+test_cmd_re "ksh" "$use $relpath" "$bash_modshare\n$bash_modpath\$"
+test_cmd_re "zsh" "$use $relpath" "$bash_modshare\n$bash_modpath\$"
+test_cmd_re "csh" "$use $relpath" "$csh_modshare\n$csh_modpath\$"
+test_cmd_re "tcsh" "$use $relpath" "$csh_modshare\n$csh_modpath\$"
+test_cmd_re "fish" "$use $relpath" "$fish_modshare\n$fish_modpath\$"
+test_cmd_re "tcl" "$use $relpath" "$tcl_modshare\n$tcl_modpath\$"
+test_cmd_re "perl" "$use $relpath" "$perl_modshare\n$perl_modpath\n1;\$"
+test_cmd_re "python" "$use $relpath" "import os\n$python_modshare\n$python_modpath\$"
+test_cmd_re "lisp" "$use $relpath" "$lisp_modshare\n$lisp_modpath\$"
+
+#
+# test with relative-path containing useless "." and ".." components
+# should end with same result as above
+#
+
+test_cmd_re "sh" "$use $relpath_wdot" "$bash_modshare\n$bash_modpath\$"
+test_cmd_re "bash" "$use $relpath_wdot" "$bash_modshare\n$bash_modpath\$"
+test_cmd_re "ksh" "$use $relpath_wdot" "$bash_modshare\n$bash_modpath\$"
+test_cmd_re "zsh" "$use $relpath_wdot" "$bash_modshare\n$bash_modpath\$"
+test_cmd_re "csh" "$use $relpath_wdot" "$csh_modshare\n$csh_modpath\$"
+test_cmd_re "tcsh" "$use $relpath_wdot" "$csh_modshare\n$csh_modpath\$"
+test_cmd_re "fish" "$use $relpath_wdot" "$fish_modshare\n$fish_modpath\$"
+test_cmd_re "tcl" "$use $relpath_wdot" "$tcl_modshare\n$tcl_modpath\$"
+test_cmd_re "perl" "$use $relpath_wdot" "$perl_modshare\n$perl_modpath\n1;\$"
+test_cmd_re "python" "$use $relpath_wdot" "import os\n$python_modshare\n$python_modpath\$"
+test_cmd_re "lisp" "$use $relpath_wdot" "$lisp_modshare\n$lisp_modpath\$"
+
+#
 # Cleanup
 #
 
@@ -104,6 +141,9 @@ if { $verbose > 0 } {
 set env(MODULEPATH) "$mod_path"
 
 unset path
+unset tsdirname
+unset relpath
+unset relpath_wdot
 unset mod_path
 unset use
 unset badpath

@@ -118,6 +118,13 @@ testouterr_cmd "lisp" "restore $collbadfp" "$err_lisp" "$cbadfperrmsg"
 # test restoring default collection
 #
 
+# setup an empty environment
+set ORIG_MODULEPATH "$env(MODULEPATH)"
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = ''\n"
+}
+unset env(MODULEPATH)
+
 set lmf_sh "_LMFILES_=$cdlmf; export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$cdlm; export LOADEDMODULES;"
 set modpath_sh "MODULEPATH=$cdmodpath; export MODULEPATH;"
@@ -172,7 +179,6 @@ testouterr_cmd_re "lisp" "restore" "$ts_lisp" "$cderrmsg"
 #
 
 # fake environment state: default collection restored
-set ORIG_MODULEPATH "$env(MODULEPATH)"
 if { $verbose > 0 } {
     send_user "\tSetup _LMFILES_ = $cdlmf\n"
     send_user "\tSetup LOADEDMODULES = $cdlm\n"

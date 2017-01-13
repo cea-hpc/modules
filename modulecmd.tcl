@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.699
+set MODULES_CURRENT_VERSION 1.700
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2422,6 +2422,37 @@ proc findExecutable {cmd} {
    return $cmd
 }
 
+proc getAbsolutePath {path} {
+   global cwd
+   # register pwd at first call
+   if {![info exists cwd]} {
+      set cwd [pwd]
+   }
+
+   set abslist {}
+   # get a first version of the absolute path by joining the current working
+   # directory to the given path. if given path is already absolute
+   # 'file join' will not break it as $cwd will be ignored as soon a
+   # beginning '/' character is found on $path. this first pass also clean
+   # extra '/' character. then each element of the path is analyzed to clear
+   # "." and ".." components.
+   foreach elt [file split [file join $cwd $path]] {
+      if {$elt eq ".."} {
+         # skip ".." element if it comes after root element, remove last
+         # element elsewhere
+         if {[llength $abslist] > 1} {
+            set abslist [lreplace $abslist end end]
+         }
+      # skip any "." element
+      } elseif {$elt ne "."} {
+         lappend abslist $elt
+      }
+   }
+
+   # return cleaned absolute path
+   return [eval file join $abslist]
+}
+
 # split string while ignore any separator character that is espaced
 proc psplit {str sep} {
    set previdx -1
@@ -3193,6 +3224,9 @@ proc readCollectionContent {collfile} {
                || ($path eq "-prepend")} {
                set stuff_path "prepend"
             } else {
+               # ensure given path is absolute to be able to correctly
+               # compare with paths registered in MODULEPATH
+               set path [getAbsolutePath $path]
                # add path to end of list
                if {$stuff_path eq "append"} {
                   lappend path_list $path
@@ -3835,6 +3869,10 @@ proc cmdModuleUse {args} {
             set stuff_path "prepend"
          }\
          elseif {[file isdirectory $path]} {
+            # tranform given path in an absolute path to avoid dependency to
+            # the current work directory.
+            set path [getAbsolutePath $path]
+
             reportDebug "cmdModuleUse: calling add-path \
                MODULEPATH $path $stuff_path $g_def_separator"
 
@@ -3863,21 +3901,35 @@ proc cmdModuleUnuse {args} {
          if {![info exists modpathlist]} {
             set modpathlist [getModulePathList]
          }
+
+         # transform given path in an absolute path which should have been
+         # registered in the MODULEPATH env var. however for compatibility
+         # with previous behavior where relative paths were registered in
+         # MODULEPATH given path is first checked against current path list
+         set abspath [getAbsolutePath $path]
          if {[lsearch -exact $modpathlist $path] >= 0} {
-            reportDebug "calling unload-path MODULEPATH $path\
+            set unusepath $path
+         } elseif {[lsearch -exact $modpathlist $abspath] >= 0} {
+            set unusepath $abspath
+         } else {
+            set unusepath ""
+         }
+
+         if {$unusepath ne ""} {
+            reportDebug "calling unload-path MODULEPATH $unusepath\
                $g_def_separator"
 
             pushMode "unload"
 
             catch {
-               unload-path MODULEPATH $path $g_def_separator
+               unload-path MODULEPATH $unusepath $g_def_separator
             }
             popMode
 
             # refresh path list after unload
             set modpathlist [getModulePathList]
-            if {[lsearch -exact $modpathlist $path] >= 0} {
-               reportWarning "Did not unuse $path"
+            if {[lsearch -exact $modpathlist $unusepath] >= 0} {
+               reportWarning "Did not unuse $unusepath"
             }
          }
       }
