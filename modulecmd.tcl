@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.700
+set MODULES_CURRENT_VERSION 1.704
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1064,7 +1064,9 @@ proc getReferenceCountArray {var separator} {
 
             foreach path [array names usagearr] {
                if {! [info exists countarr($path)]} {
-                  set countarr($path) 999999999
+                  # if no ref count found for a path, assume it has a ref
+                  # count of 1 to be able to unload it easily if needed
+                  set countarr($path) 1
                }
             }
 
