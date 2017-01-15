@@ -18,6 +18,6 @@ clean:
 
 test:
 	MODULEVERSION=Tcl; export MODULEVERSION; \
-	OBJDIR=`pwd`; export OBJDIR; \
-	TESTSUITEDIR=`cd testsuite;pwd`; export TESTSUITEDIR; \
+	OBJDIR=`pwd -P`; export OBJDIR; \
+	TESTSUITEDIR=`cd testsuite;pwd -P`; export TESTSUITEDIR; \
 	runtest --srcdir $$TESTSUITEDIR --objdir $$OBJDIR --tool modules -v
