@@ -1,0 +1,106 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	95/12/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	whatis/lines, whatis/multiple, whatis/none
+#   Modulefiles:	whatis/single, whatis/string
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'module whatis' command for success
+#			Tests the 'module whatis' command for failure
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set header "\[-\]+ $env(MODULEPATH) \[-\]+"
+
+set module_1 "whatis/none"
+set module_2 "whatis/single"
+set module_3 "whatis/multiple"
+set module_4 "whatis/string"
+set module_5 "whatis/lines"
+set module_6 "NonExistant"
+
+set whatis_2 "       whatis/single"
+set whatis_3 "     whatis/multiple"
+set whatis_4 "       whatis/string"
+set whatis_5 "        whatis/lines"
+
+#
+#  Test only for the csh
+#
+
+set ts_csh_1 ""
+set ts_csh_2 "$header\n$whatis_2: Testsuite-Modulefile"
+# different behavior than C-version: on Tcl-version multiple arguments provided on a single
+# module-whatis call produce a single module-whatis line, not one line per passed argument
+set ts_csh_3 "$header\n$whatis_3: Testsuite Whatis Modulefile"
+set ts_csh_4 "$header\n$whatis_4: Testsuite Whatis Modulefile"
+set ts_csh_5 "$header\n$whatis_5: Testsuite Whatis Modulefile\n$whatis_5: Second line of whatis tokens"
+set ts_csh_6 "$error_msgs: Unable to locate a modulefile for '$module_6'"
+
+set err_csh "/bin/false;"
+
+#
+#  The tests
+#
+
+# different behavior than C-version: on Tcl-version sub-command switches
+# must be provided after sub-command and --terse switch is not authorized
+# on a "whatis" sub-command
+testerr_cmd_re "csh" "whatis $module_1" "$ts_csh_1\$"
+testerr_cmd_re "csh" "whatis $module_2" "$ts_csh_2\$"
+testerr_cmd_re "csh" "whatis $module_3" "$ts_csh_3\$"
+testerr_cmd_re "csh" "whatis $module_4" "$ts_csh_4\$"
+testerr_cmd_re "csh" "whatis $module_5" "$ts_csh_5\$"
+
+
+#
+# the fail case, return value false
+#
+testouterr_cmd "csh" "whatis $module_6" "$err_csh" "$ts_csh_6"
+
+
+
+#
+#  Cleanup
+#
+
+unset header
+
+unset ts_csh_1
+unset ts_csh_2
+unset ts_csh_3
+unset ts_csh_4
+unset ts_csh_5
+unset ts_csh_6
+
+unset err_csh
+
+unset whatis_2
+unset whatis_3
+unset whatis_4
+unset whatis_5
+
+unset module_1
+unset module_2
+unset module_3
+unset module_4
+unset module_5
+unset module_6
