@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.707
+set MODULES_CURRENT_VERSION 1.708
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -492,7 +492,7 @@ proc module-whatis {args} {
       report "module-whatis\t$message"
    }\
    elseif {$mode eq "whatis"} {
-      set g_whatis $message
+      lappend g_whatis $message
    }
    return {}
 }
@@ -3375,7 +3375,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 
          set modlist [listModules $dir $mod 0]
          foreach mod2 $modlist {
-            set g_whatis ""
+            set g_whatis {}
             lassign [getPathToModule $mod2] modfile modname
 
             if {$modfile ne ""} {
@@ -3385,8 +3385,11 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                popMode
                popModuleName
 
-               if {$search eq "" || [regexp -nocase $search $g_whatis]} {
-                  lappend display_list [format "%20s: %s" $mod2 $g_whatis]
+               # treat whatis as a multi-line text
+               foreach line $g_whatis {
+                  if {$search eq "" || [regexp -nocase $search $line]} {
+                     lappend display_list [format "%20s: %s" $mod2 $line]
+                  }
                }
 
                set foundmod 1
