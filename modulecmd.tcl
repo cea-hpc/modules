@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.704
+set MODULES_CURRENT_VERSION 1.706
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -756,6 +756,7 @@ proc module {command args} {
             foreach arg $args {
                cmdModuleWhatIs $arg
             }
+            set needrender 1
          } else {
             cmdModuleWhatIs
          }
@@ -3363,7 +3364,11 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    reportDebug "cmdModuleSearch: ($mod, $search)"
    if {$mod eq ""} {
       set mod "*"
+      set searchmod 0
+   } else {
+      set searchmod 1
    }
+   set foundmod 0
    foreach dir [getModulePathList "exiterronundef"] {
       if {[file isdirectory $dir]} {
          set display_list {}
@@ -3383,6 +3388,8 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                if {$search eq "" || [regexp -nocase $search $g_whatis]} {
                   lappend display_list [format "%20s: %s" $mod2 $g_whatis]
                }
+
+               set foundmod 1
             }
          }
 
@@ -3390,6 +3397,11 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             eval displayElementList $dir 1 0 $display_list
          }
       }
+   }
+
+   # report error if a modulefile was searched but not found
+   if {$searchmod && !$foundmod} {
+      reportError "Unable to locate a modulefile for '$mod'"
    }
 }
 
