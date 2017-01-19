@@ -20,11 +20,12 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.708
+set MODULES_CURRENT_VERSION 1.709
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
+set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
 set g_force 0 ;# Path element reference counting if == 0
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 set flag_default_dir 1 ;# Report default directories
@@ -135,12 +136,22 @@ proc reportDebug {message {nonewline ""}} {
 }
 
 proc reportWarning {message {nonewline ""}} {
-   report "WARNING: $message" "$nonewline"
+   global g_inhibit_errreport
+
+   if {!$g_inhibit_errreport} {
+      report "WARNING: $message" "$nonewline"
+   }
 }
 
 proc reportError {message {nonewline ""}} {
-   raiseErrorCount
-   report "ERROR: $message" "$nonewline"
+   global g_inhibit_errreport
+
+   # if report disabled, also disable error raise to get a coherent
+   # behavior (if no message printed, no error code change)
+   if {!$g_inhibit_errreport} {
+      raiseErrorCount
+      report "ERROR: $message" "$nonewline"
+   }
 }
 
 proc reportErrorAndExit {message} {
@@ -150,10 +161,14 @@ proc reportErrorAndExit {message} {
 }
 
 proc reportInternalBug {message} {
-   global contact
+   global contact g_inhibit_errreport
 
-   raiseErrorCount
-   report "Module ERROR: $message\nPlease contact: $contact"
+   # if report disabled, also disable error raise to get a coherent
+   # behavior (if no message printed, no error code change)
+   if {!$g_inhibit_errreport} {
+      raiseErrorCount
+      report "Module ERROR: $message\nPlease contact: $contact"
+   }
 }
 
 proc report {message {nonewline ""}} {
@@ -162,6 +177,21 @@ proc report {message {nonewline ""}} {
    } else {
       puts stderr "$message"
    }
+}
+
+# disable error reporting (non-critical report only) unless debug enabled
+proc inhibitErrorReport {} {
+   global g_inhibit_errreport g_debug
+
+   if {!$g_debug} {
+      set g_inhibit_errreport 1
+   }
+}
+
+proc reenableErrorReport {} {
+   global g_inhibit_errreport
+
+   set g_inhibit_errreport 0
 }
 
 ########################################################################
@@ -178,7 +208,7 @@ proc unset-env {var} {
 }
 
 proc execute-modulefile {modfile {help ""}} {
-   global g_debug g_inhibit_interp
+   global g_debug g_inhibit_interp g_inhibit_errreport
    global ModulesCurrentModulefile
 
    set ModulesCurrentModulefile $modfile
@@ -226,10 +256,12 @@ proc execute-modulefile {modfile {help ""}} {
       interp alias $slave isWin {} isWin
 
       interp eval $slave {global ModulesCurrentModulefile g_debug\
-         g_inhibit_interp}
+         g_inhibit_interp g_inhibit_errreport}
       interp eval $slave [list "set" "ModulesCurrentModulefile" $modfile]
       interp eval $slave [list "set" "g_debug" $g_debug]
       interp eval $slave [list "set" "g_inhibit_interp" $g_inhibit_interp]
+      interp eval $slave [list "set" "g_inhibit_errreport"\
+         $g_inhibit_errreport]
       interp eval $slave [list "set" "help" $help]
 
    }
@@ -296,7 +328,7 @@ proc execute-modulefile {modfile {help ""}} {
 # .version files
 proc execute-modulerc {modfile} {
    global g_rcfilesSourced
-   global g_debug g_moduleDefault
+   global g_debug g_moduleDefault g_inhibit_errreport
    global ModulesCurrentModulefile
 
    reportDebug "execute-modulerc: $modfile"
@@ -327,10 +359,13 @@ proc execute-modulerc {modfile} {
          interp alias $slave module-log {} module-log
          interp alias $slave reportInternalBug {} reportInternalBug
 
-         interp eval $slave {global ModulesCurrentModulefile g_debug}
+         interp eval $slave {global ModulesCurrentModulefile g_debug\
+            g_inhibit_errreport}
          interp eval $slave [list "global" "ModulesVersion"]
          interp eval $slave [list "set" "ModulesCurrentModulefile" $modfile]
          interp eval $slave [list "set" "g_debug" $g_debug]
+         interp eval $slave [list "set" "g_inhibit_errreport"\
+            $g_inhibit_errreport]
          interp eval $slave {set ModulesVersion {}}
       }
       set ModulesVersion [interp eval $slave {
@@ -3359,9 +3394,14 @@ proc cmdModuleApropos {{search {}}} {
 }
 
 proc cmdModuleSearch {{mod {}} {search {}}} {
-   global g_whatis
+   global g_whatis g_inhibit_errreport
 
    reportDebug "cmdModuleSearch: ($mod, $search)"
+
+   # disable error reporting to avoid modulefile errors
+   # to mix with valid search results
+   inhibitErrorReport
+
    if {$mod eq ""} {
       set mod "*"
       set searchmod 0
@@ -3401,6 +3441,8 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          }
       }
    }
+
+   reenableErrorReport
 
    # report error if a modulefile was searched but not found
    if {$searchmod && !$foundmod} {
@@ -3805,6 +3847,10 @@ proc cmdModuleReload {} {
 proc cmdModuleAliases {} {
    global g_moduleAlias g_moduleVersion
 
+   # disable error reporting to avoid modulefile errors
+   # to mix with avail results
+   inhibitErrorReport
+
    # parse paths to fill g_moduleAlias and g_moduleVersion if empty
    if {[array size g_moduleAlias] == 0 \
       && [array size g_moduleVersion] == 0 } {
@@ -3814,6 +3860,8 @@ proc cmdModuleAliases {} {
          }
       }
    }
+
+   reenableErrorReport
 
    set display_list {}
    foreach name [lsort -dictionary [array names g_moduleAlias]] {
@@ -3841,6 +3889,10 @@ proc cmdModuleAvail {{mod {*}}} {
       set one_per_line 0
    }
 
+   # disable error reporting to avoid modulefile errors
+   # to mix with avail results
+   inhibitErrorReport
+
    if {$show_modtimes} {
       report "- Package/Alias -----------------------.- Versions --------.-\
          Last mod. -------"
@@ -3862,6 +3914,8 @@ proc cmdModuleAvail {{mod {*}}} {
          }
       }
    }
+
+   reenableErrorReport
 }
 
 proc cmdModuleUse {args} {
@@ -4335,7 +4389,9 @@ if {[catch {
    # eval needed to pass otherargv as list to module proc
    eval module $command $otherargv
 } errMsg ]} {
-   reportError "$errMsg"
+   # no use of reportError here to get independent from any
+   # previous error report inhibition
+   report "ERROR: $errMsg"
    exit 1
 }
 
