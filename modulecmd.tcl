@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.709
+set MODULES_CURRENT_VERSION 1.710
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -207,7 +207,7 @@ proc unset-env {var} {
    }
 }
 
-proc execute-modulefile {modfile {help ""}} {
+proc execute-modulefile {modfile} {
    global g_debug g_inhibit_interp g_inhibit_errreport
    global ModulesCurrentModulefile
 
@@ -262,7 +262,6 @@ proc execute-modulefile {modfile {help ""}} {
       interp eval $slave [list "set" "g_inhibit_interp" $g_inhibit_interp]
       interp eval $slave [list "set" "g_inhibit_errreport"\
          $g_inhibit_errreport]
-      interp eval $slave [list "set" "help" $help]
 
    }
    set errorVal [interp eval $slave {
@@ -270,7 +269,8 @@ proc execute-modulefile {modfile {help ""}} {
          report "Sourcing $ModulesCurrentModulefile"
       }
       set sourceFailed [catch {source $ModulesCurrentModulefile} errorMsg]
-      if {$help ne ""} {
+      set mode [module-info mode]
+      if {$mode eq "help"} {
          if {[info procs "ModulesHelp"] eq "ModulesHelp"} {
             ModulesHelp
          } else {
@@ -279,7 +279,7 @@ proc execute-modulefile {modfile {help ""}} {
          }
          set sourceFailed 0
       }
-      if {[module-info mode "display"] \
+      if {$mode eq "display" \
          && [info procs "ModulesDisplay"] eq "ModulesDisplay"} {
          ModulesDisplay
       }
@@ -4193,7 +4193,7 @@ proc cmdModuleHelp {args} {
                "-------------------------------------------------------------------"
             report "Module Specific Help for $modfile:\n"
             pushMode "help"
-            execute-modulefile $modfile 1
+            execute-modulefile $modfile
             popMode
             popModuleName
             report\
