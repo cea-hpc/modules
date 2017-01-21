@@ -13,7 +13,7 @@
 #   Command:		load
 #   Modulefiles:	loc_dv1/1.0,
 #   			loc_dv2/1.0,
-#   			loc_dv3/1.0,
+#   			loc_dv3/1.0, bad
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -297,6 +297,24 @@ testouterr_cmd_re "python" "load $unknonw" "raise RuntimeError\\\( 'modulefile.t
 testouterr_cmd_re "lisp" "load $unknonw" "\\\(error \"modulefile.tcl: 1 error\\\(s\\\) detected!\"\\\)" "$err_load\'$unknonw\'\$"
 
 #
+# test with erroneous modulefile
+#
+set badmod "bad"
+set out_interr "Module ERROR: Occurred in file $env(TESTSUITEDIR)/modulefiles/$badmod/.modulerc:invalid command name \"bad-command\""
+
+testouterr_cmd_re "sh" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "bash" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "ksh" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "zsh" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "csh" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "tcsh" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "fish" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "tcl" "load $badmod" "exec /bin/false;" "$out_interr.*"
+testouterr_cmd_re "perl" "load $badmod" "die \"modulefile.tcl: 1 error\\\(s\\\) detected!\\\\n\"" "$out_interr.*"
+testouterr_cmd_re "python" "load $badmod" "raise RuntimeError\\\( 'modulefile.tcl: 1 error\\\(s\\\) detected!'\\\)" "$out_interr.*"
+testouterr_cmd_re "lisp" "load $badmod" "\\\(error \"modulefile.tcl: 1 error\\\(s\\\) detected!\"\\\)" "$out_interr.*"
+
+#
 #  Cleanup
 #
 
@@ -347,6 +365,9 @@ unset lmfmod_lisp
 
 unset unknonw
 unset err_load
+
+unset badmod
+unset out_interr
 
 unset modulefile
 unset module

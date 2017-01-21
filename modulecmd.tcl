@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.711
+set MODULES_CURRENT_VERSION 1.712
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -179,6 +179,13 @@ proc report {message {nonewline ""}} {
    }
 }
 
+# raise error to top level, but no message as information have already
+# been printed by a previous report* call
+proc exitOnError {} {
+   renderError
+   error ""
+}
+
 # disable error reporting (non-critical report only) unless debug enabled
 proc inhibitErrorReport {} {
    global g_inhibit_errreport g_debug
@@ -318,7 +325,7 @@ proc execute-modulefile {modfile} {
 
    # exits rather returns if a critical error has been raised
    if {$errorVal == 2} {
-      exit 1
+      exitOnError
    } else {
       return $errorVal
    }
@@ -403,7 +410,7 @@ proc execute-modulerc {modfile} {
 
       # exits rather returns if a critical error has been raised
       if {$errorVal == 2} {
-         exit 1
+         exitOnError
       }
    }
    return $g_rcfilesSourced($modfile)
@@ -4407,7 +4414,9 @@ if {[catch {
 } errMsg ]} {
    # no use of reportError here to get independent from any
    # previous error report inhibition
-   report "ERROR: $errMsg"
+   if {$errMsg ne ""} {
+      report "ERROR: $errMsg"
+   }
    exit 1
 }
 

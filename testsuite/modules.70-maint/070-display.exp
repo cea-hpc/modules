@@ -11,7 +11,7 @@
 #
 #   Description:	Testuite testsequence
 #   Command:		display
-#   Modulefiles:	help/2.0
+#   Modulefiles:	help/2.0, bad
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -26,6 +26,7 @@
 
 set module_1 "help"
 set module_2 "NonExistant"
+set module_3 "bad"
 
 # different behavior than C-version: on Tcl-version 'module-log', 'module-verbosity'
 # and 'module-user' commandq are not handled and will always return a warning message
@@ -53,6 +54,7 @@ module-whatis\tSome checks for HELP and DISPLAY
 -------------------------------------------------------------------"
 
 set out_err "$error_msgs: Unable to locate a modulefile for '$module_2'"
+set out_interr "Module ERROR: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_3/.modulerc:invalid command name \"bad-command\""
 set err_csh "/bin/false;"
 
 #
@@ -67,11 +69,17 @@ testerr_cmd "csh" "display $module_1" "$out_pat"
 testouterr_cmd "csh" "display $module_2" "$err_csh" "$out_err"
 
 #
+# test with erroneous modulefile
+#
+testouterr_cmd_re "csh" "display $module_3" "$err_csh" "$out_interr.*"
+
+#
 #  Cleanup
 #
 
 unset err_csh
 unset out_err
+unset out_interr
 unset out_pat
 
 unset module_1

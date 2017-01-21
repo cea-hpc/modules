@@ -11,7 +11,7 @@
 #
 #   Description:	Testuite testsequence
 #   Command:		help
-#   Modulefiles:	help/2.0
+#   Modulefiles:	help/2.0, bad
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -46,6 +46,10 @@ Help_err
 -------------------------------------------------------------------"
 set out_help "/bin/true;"
 
+set module_2 "bad"
+set out_interr "Module ERROR: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_2/.modulerc:invalid command name \"bad-command\""
+set err_sh "/bin/false;"
+
 #
 #  The tests
 #
@@ -61,6 +65,9 @@ testerr_cmd "sh" "help $module" "$err_help"
 # test stdout output: MUST be empty
 test_cmd "sh" "help $module" "$out_help"
 
+# test with erroneous modulefile
+testouterr_cmd_re "sh" "help $module_2" "$err_sh" "$out_interr.*"
+
 #
 #  Cleanup
 #
@@ -68,3 +75,7 @@ test_cmd "sh" "help $module" "$out_help"
 unset module 
 unset err_help
 unset out_help
+
+unset module_2
+unset out_interr
+unset err_sh
