@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.713
+set MODULES_CURRENT_VERSION 1.714
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1035,9 +1035,9 @@ proc unsetenv {var {val {}}} {
    }\
    elseif {$mode eq "display"} {
       if {$val ne ""} {
-         report "unsetenv\t\t$var\t$val"
+         report "unsetenv\t$var\t$val"
       } else {
-         report "unsetenv\t\t$var"
+         report "unsetenv\t$var"
       }
    }
    return {}
