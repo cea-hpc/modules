@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.710
+set MODULES_CURRENT_VERSION 1.711
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -327,13 +327,14 @@ proc execute-modulefile {modfile} {
 # Smaller subset than main module load... This function runs modulerc and
 # .version files
 proc execute-modulerc {modfile} {
-   global g_rcfilesSourced
+   global g_rcfilesSourced ModulesVersion
    global g_debug g_moduleDefault g_inhibit_errreport
    global ModulesCurrentModulefile
 
    reportDebug "execute-modulerc: $modfile"
 
    set ModulesCurrentModulefile $modfile
+   set ModulesVersion {}
 
    if {![checkValidModule $modfile]} {
       reportInternalBug "Magic cookie '#%Module' missing in '$modfile'"
@@ -358,28 +359,31 @@ proc execute-modulerc {modfile} {
          interp alias $slave module-user {} module-user
          interp alias $slave module-log {} module-log
          interp alias $slave reportInternalBug {} reportInternalBug
+         interp alias $slave setModulesVersion {} setModulesVersion
 
          interp eval $slave {global ModulesCurrentModulefile g_debug\
-            g_inhibit_errreport}
-         interp eval $slave [list "global" "ModulesVersion"]
+            g_inhibit_errreport ModulesVersion}
          interp eval $slave [list "set" "ModulesCurrentModulefile" $modfile]
          interp eval $slave [list "set" "g_debug" $g_debug]
          interp eval $slave [list "set" "g_inhibit_errreport"\
             $g_inhibit_errreport]
          interp eval $slave {set ModulesVersion {}}
       }
-      set ModulesVersion [interp eval $slave {
+      set errorVal [interp eval $slave {
          if [catch {source $ModulesCurrentModulefile} errorMsg] {
             global errorInfo
 
             reportInternalBug "Occurred in file\
                $ModulesCurrentModulefile:$errorInfo"
-            exit 1
-         }\
-         elseif [info exists ModulesVersion] {
-            return $ModulesVersion
+            # return a specific value to provoke an exit after end
+            # of slave evaluation
+            return 2
          } else {
-            return {}
+            # pass ModulesVersion value to master interp
+            if {[info exists ModulesVersion]} {
+               setModulesVersion $ModulesVersion
+            }
+            return 0
          }
       }]
 
@@ -396,6 +400,11 @@ proc execute-modulerc {modfile} {
 
       # Keep track of rc files we already sourced so we don't run them again
       set g_rcfilesSourced($modfile) $ModulesVersion
+
+      # exits rather returns if a critical error has been raised
+      if {$errorVal == 2} {
+         exit 1
+      }
    }
    return $g_rcfilesSourced($modfile)
 }
@@ -1064,6 +1073,13 @@ proc exitModfileCmd {{code 0}} {
 
    # break to gently end interpretation of current modulefile
    return -code break
+}
+
+# enables slave interp to return ModulesVersion value to the master interp
+proc setModulesVersion {val} {
+   global ModulesVersion
+
+   set ModulesVersion $val
 }
 
 ########################################################################
