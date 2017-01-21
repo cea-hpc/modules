@@ -12,7 +12,7 @@
 #   Description:	Testuite testsequence
 #   Command:		avail
 #   Modulefiles:	loc_rc1/1.0, loc_rc1/2.0, loc_rc3/1.0,
-#                   loc_rc3/2.0, loc_rc3/3.0, averssort, sym_foo
+#                   loc_rc3/2.0, loc_rc3/3.0, averssort, sym_foo, bad
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -38,6 +38,10 @@ set mod3vers1 "1"
 set mod3vers2 "1.2.4"
 set mod3vers3 "1.10"
 set module4 "sym_foo"
+set module5 "bad"
+set mod5vers1 "after"
+set mod5vers2 "before"
+set mod5sym1 "good"
 eval set  [ array get env MODULEPATH ]
 set header "\[-\]+ $MODULEPATH \[-\]+\n"
 set header2 "\[-\]+ global/user modulerc \[-\]+\n"
@@ -91,6 +95,17 @@ testerr_cmd_re "csh" "avail $module4 $module4" "$ts_csh\n$ts_csh\$"
 
 
 #
+#  tests on a erroneous module with symbols
+#  no error should be displayed
+#
+
+set ts_csh "$header$module5/$mod5vers1\\($mod5sym1\\)\\s+$module5/$mod5vers2\\s+"
+
+testerr_cmd_re "csh" "avail $module5" "$ts_csh\$"
+testerr_cmd_re "csh" "avail $module5 $module5" "$ts_csh\n$ts_csh\$"
+
+
+#
 #  Cleanup
 #
 
@@ -104,6 +119,10 @@ if {[info exists save_rc]} {
 
 unset ts_csh
 
+unset mod5sym1
+unset mod5vers1
+unset mod5vers2
+unset module5
 unset module4
 unset mod3vers1
 unset mod3vers2

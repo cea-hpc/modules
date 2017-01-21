@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.712
+set MODULES_CURRENT_VERSION 1.713
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -214,7 +214,7 @@ proc unset-env {var} {
    }
 }
 
-proc execute-modulefile {modfile} {
+proc execute-modulefile {modfile {exit_on_error 1}} {
    global g_debug g_inhibit_interp g_inhibit_errreport
    global ModulesCurrentModulefile
 
@@ -324,7 +324,8 @@ proc execute-modulefile {modfile} {
    reportDebug "Exiting $modfile"
 
    # exits rather returns if a critical error has been raised
-   if {$errorVal == 2} {
+   # and if the exit_on_error behavior is set
+   if {$errorVal == 2 && $exit_on_error} {
       exitOnError
    } else {
       return $errorVal
@@ -333,7 +334,7 @@ proc execute-modulefile {modfile} {
 
 # Smaller subset than main module load... This function runs modulerc and
 # .version files
-proc execute-modulerc {modfile} {
+proc execute-modulerc {modfile {exit_on_error 1}} {
    global g_rcfilesSourced ModulesVersion
    global g_debug g_moduleDefault g_inhibit_errreport
    global ModulesCurrentModulefile
@@ -409,7 +410,8 @@ proc execute-modulerc {modfile} {
       set g_rcfilesSourced($modfile) $ModulesVersion
 
       # exits rather returns if a critical error has been raised
-      if {$errorVal == 2} {
+      # and if the exit_on_error behavior is set
+      if {$errorVal == 2 && $exit_on_error} {
          exitOnError
       }
    }
@@ -2794,7 +2796,9 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
                pushModuleName $modulename
                # set is needed for execute-modulerc
                set ModulesCurrentModulefile $element
-               execute-modulerc $element
+               # as we treat a full directory content do not exit on an error
+               # raised from one modulerc file
+               execute-modulerc $element 0
                popModuleName
             }
             {.version} {
@@ -2802,7 +2806,9 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
                pushModuleName $modulename
                # set is needed for execute-modulerc
                set ModulesCurrentModulefile $element
-               execute-modulerc "$element"
+               # as we treat a full directory content do not exit on an error
+               # raised from one version file
+               execute-modulerc $element 0
                popModuleName
 
                reportDebug "listModules: checking default $element"
@@ -3444,7 +3450,9 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             if {$modfile ne ""} {
                pushMode "whatis"
                pushModuleName $modname
-               execute-modulefile $modfile
+               # as we treat a full directory content do not exit on an error
+               # raised from one modulefile
+               execute-modulefile $modfile 0
                popMode
                popModuleName
 
