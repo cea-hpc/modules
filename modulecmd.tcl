@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.715
+set MODULES_CURRENT_VERSION 1.717
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1605,9 +1605,7 @@ set g_modeStack {}
 proc currentMode {} {
    global g_modeStack
 
-   set mode [lindex $g_modeStack end]
-
-   return $mode
+   return [lindex $g_modeStack end]
 }
 
 proc pushMode {mode} {
@@ -1619,9 +1617,7 @@ proc pushMode {mode} {
 proc popMode {} {
    global g_modeStack
 
-   set len [llength $g_modeStack]
-   set len [expr {$len - 2}]
-   set g_modeStack [lrange $g_modeStack 0 $len]
+   set g_modeStack [lrange $g_modeStack 0 end-1]
 }
 
 set g_moduleNameStack {}
@@ -1629,8 +1625,7 @@ set g_moduleNameStack {}
 proc currentModuleName {} {
    global g_moduleNameStack
 
-   set moduleName [lindex $g_moduleNameStack end]
-   return $moduleName
+   return [lindex $g_moduleNameStack end]
 }
 
 proc pushModuleName {moduleName} {
@@ -1642,9 +1637,7 @@ proc pushModuleName {moduleName} {
 proc popModuleName {} {
    global g_moduleNameStack
 
-   set len [llength $g_moduleNameStack]
-   set len [expr {$len - 2}]
-   set g_moduleNameStack [lrange $g_moduleNameStack 0 $len]
+   set g_moduleNameStack [lrange $g_moduleNameStack 0 end-1]
 }
 
 # return list of loaded modules by parsing LOADEDMODULES env variable
