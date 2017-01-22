@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.717
+set MODULES_CURRENT_VERSION 1.718
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -463,9 +463,11 @@ proc module-info {what {more {}}} {
             return $mode
          }
       }
-      "name" -
-      "specified" {
+      "name" {
          return [currentModuleName]
+      }
+      "specified" {
+         return [currentSpecifiedName]
       }
       "shell" {
          if {$more ne ""} {
@@ -1640,6 +1642,26 @@ proc popModuleName {} {
    set g_moduleNameStack [lrange $g_moduleNameStack 0 end-1]
 }
 
+set g_specifiedNameStack {}
+
+proc currentSpecifiedName {} {
+   global g_specifiedNameStack
+
+   return [lindex $g_specifiedNameStack end]
+}
+
+proc pushSpecifiedName {specifiedName} {
+   global g_specifiedNameStack
+
+   lappend g_specifiedNameStack $specifiedName
+}
+
+proc popSpecifiedName {} {
+   global g_specifiedNameStack
+
+   set g_specifiedNameStack [lrange $g_specifiedNameStack 0 end-1]
+}
+
 # return list of loaded modules by parsing LOADEDMODULES env variable
 proc getLoadedModuleList {} {
    global env g_def_separator
@@ -1717,9 +1739,11 @@ proc getPathToModule {mod} {
                reportDebug "getPathToModule: Found\
                   $parentpath/.modulerc"
                # push name to be found by module-alias and version
+               pushSpecifiedName $parentname/.modulerc
                pushModuleName $parentname/.modulerc
                execute-modulerc $parentpath/.modulerc
                popModuleName
+               popSpecifiedName
             }
             append parentname "/[lindex $parentlist $i]"
             append parentpath "/[lindex $parentlist $i]"
@@ -1752,9 +1776,11 @@ proc getPathToModule {mod} {
                      if {[file exists "$path/.modulerc"]} {
                         reportDebug "getPathToModule: Found $path/.modulerc"
                         # push name to be found by module-alias and version
+                        pushSpecifiedName $mod/.modulerc
                         pushModuleName $mod/.modulerc
                         execute-modulerc $path/.modulerc
                         popModuleName
+                        popSpecifiedName
                      }
                      # Check for an alias that may have been set by modulerc
                      lassign [getModuleNameVersion\
@@ -1776,10 +1802,12 @@ proc getPathToModule {mod} {
                      if {[file exists "$path/.version"]} {
                         reportDebug "getPathToModule: Found $path/.version"
                         # push name to be found by module-alias and version
+                        pushSpecifiedName $mod/.version
                         pushModuleName $mod/.version
                         set ModulesVersion [execute-modulerc\
                            "$path/.version"]
                         popModuleName
+                        popSpecifiedName
                      }
                   }
 
@@ -2790,6 +2818,7 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
          switch -glob -- $tail {
             {.modulerc} {
                # push name to be found by module-alias and version
+               pushSpecifiedName $modulename
                pushModuleName $modulename
                # set is needed for execute-modulerc
                set ModulesCurrentModulefile $element
@@ -2797,9 +2826,11 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
                # raised from one modulerc file
                execute-modulerc $element 0
                popModuleName
+               popSpecifiedName
             }
             {.version} {
                # push name to be found by module-alias and version
+               pushSpecifiedName $modulename
                pushModuleName $modulename
                # set is needed for execute-modulerc
                set ModulesCurrentModulefile $element
@@ -2807,6 +2838,7 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
                # raised from one version file
                execute-modulerc $element 0
                popModuleName
+               popSpecifiedName
 
                reportDebug "listModules: checking default $element"
             }
@@ -3372,6 +3404,7 @@ proc cmdModuleList {} {
 proc cmdModuleDisplay {mod} {
    lassign [getPathToModule $mod] modfile modname
    if {$modfile ne ""} {
+      pushSpecifiedName $mod
       pushModuleName $modname
       report\
          "-------------------------------------------------------------------"
@@ -3380,6 +3413,7 @@ proc cmdModuleDisplay {mod} {
       execute-modulefile $modfile
       popMode
       popModuleName
+      popSpecifiedName
       report\
          "-------------------------------------------------------------------"
    }
@@ -3446,12 +3480,14 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 
             if {$modfile ne ""} {
                pushMode "whatis"
+               pushSpecifiedName $modname
                pushModuleName $modname
                # as we treat a full directory content do not exit on an error
                # raised from one modulefile
                execute-modulefile $modfile 0
                popMode
                popModuleName
+               popSpecifiedName
 
                # treat whatis as a multi-line text
                foreach line $g_whatis {
@@ -3743,9 +3779,11 @@ proc cmdModuleSource {args} {
    foreach file $args {
       if {[file exists $file]} {
          pushMode "load"
+         pushSpecifiedName $file
          pushModuleName $file
          execute-modulefile $file
          popModuleName
+         popSpecifiedName
          popMode
       } else {
          reportErrorAndExit "File $file does not exist"
@@ -3767,6 +3805,7 @@ proc cmdModuleLoad {args} {
 
          if {$g_force || ! [info exists g_loadedModules($currentModule)]} {
             pushMode "load"
+            pushSpecifiedName $mod
             pushModuleName $currentModule
             pushSettings
 
@@ -3791,6 +3830,7 @@ proc cmdModuleLoad {args} {
             popSettings
             popMode
             popModuleName
+            popSpecifiedName
          }
       }
    }
@@ -3811,6 +3851,7 @@ proc cmdModuleUnload {args} {
 
             if {[info exists g_loadedModules($currentModule)]} {
                pushMode "unload"
+               pushSpecifiedName $mod
                pushModuleName $currentModule
                pushSettings
 
@@ -3832,6 +3873,7 @@ proc cmdModuleUnload {args} {
                popSettings
                popMode
                popModuleName
+               popSpecifiedName
             }
          } else {
             if {[info exists g_loadedModulesGeneric($mod)]} {
@@ -4216,6 +4258,7 @@ proc cmdModuleHelp {args} {
          lassign [getPathToModule $arg] modfile modname
 
          if {$modfile ne ""} {
+            pushSpecifiedName $arg
             pushModuleName $modname
             report\
                "-------------------------------------------------------------------"
@@ -4224,6 +4267,7 @@ proc cmdModuleHelp {args} {
             execute-modulefile $modfile
             popMode
             popModuleName
+            popSpecifiedName
             report\
                "-------------------------------------------------------------------"
          }

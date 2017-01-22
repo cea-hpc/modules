@@ -1,0 +1,92 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2017/01/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display, help, switch, unload
+#   Modulefiles:	info/specified
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'module-info specified' module subcommand
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "info/specified"
+set module2 "info/foo"
+set modulefile "$env(MODULEPATH)/$module"
+
+#
+#  For sh shell only (no need to check every shells)
+#
+
+set lmfmod_sh "_LMFILES__modshare=$modulefile:1; export _LMFILES__modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=$module:1; export LOADEDMODULES_modshare;"
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+
+
+#
+#  The tests
+#
+
+# test loading
+testouterr_cmd "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module"
+testouterr_cmd "sh" "load $module2" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module2"
+
+# test displaying
+testerr_cmd_re "sh" "display $module" "$modlin\n$modulefile:\n\n$module\n$modlin"
+testerr_cmd_re "sh" "display $module2" "$modlin\n$modulefile:\n\n$module2\n$modlin"
+
+# test help
+testerr_cmd_re "sh" "help $module" "$modlin\nModule Specific Help for $modulefile:\n\n$module\n$modlin"
+testerr_cmd_re "sh" "help $module2" "$modlin\nModule Specific Help for $modulefile:\n\n$module2\n$modlin"
+
+# Set up the environment for test that require the module to be loaded
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+# test switching
+testouterr_cmd "sh" "switch $module $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module\n$module"
+testouterr_cmd "sh" "switch $module $module2" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module\n$module2"
+testouterr_cmd "sh" "switch $module2 $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module2\n$module"
+
+# test unloading
+set lmfmod_sh "unset _LMFILES__modshare;"
+set lmmod_sh "unset LOADEDMODULES_modshare;"
+set lmf_sh "unset _LMFILES_;"
+set lm_sh "unset LOADEDMODULES;"
+testouterr_cmd "sh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module"
+testouterr_cmd "sh" "unload $module2" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module2"
+
+
+#
+#  Cleanup
+#
+
+# Clean up the environment
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+unset lm_sh
+unset lmf_sh
+unset lmmod_sh
+unset lmfmod_sh
+
+unset modulefile
+unset module
+unset module2
