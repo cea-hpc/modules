@@ -1,0 +1,122 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2017/01/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display, help, avail, whatis, switch, unload
+#   Modulefiles:	inforc
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Test 'module-info' commands when called from a .modulerc file
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "inforc"
+set module2 "inforc/2.0"
+set modulefile2 "$env(MODULEPATH)/$module2"
+
+#
+#  For sh shell only (no need to check every shells)
+#
+
+set lmfmod_sh "_LMFILES__modshare=$modulefile2:1; export _LMFILES__modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=$module2:1; export LOADEDMODULES_modshare;"
+set lmf_sh "_LMFILES_=$modulefile2; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module2; export LOADEDMODULES;"
+
+set out_rc "type: Tcl
+name: $module/.modulerc
+specified: $module/.modulerc
+shell: sh
+shelltype: sh
+alias $module/foo: $module/1.0
+version $module/bar: $module/2.0
+symbols $module/2.0: bar:default"
+set out_rc_load "mode: load\n$out_rc"
+set out_rc_display "mode: display\n$out_rc"
+set out_rc_help "mode: help\n$out_rc"
+set out_rc_unload "mode: unload\n$out_rc"
+
+set header "\[-\]+ $env(MODULEPATH) \[-\]+"
+
+#
+#  The tests
+#
+
+# test loading
+testouterr_cmd "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$out_rc_load"
+
+# test displaying
+testerr_cmd_re "sh" "display $module" "$out_rc_display\n$modlin\n$modulefile2:\n\n$modlin"
+
+# test help
+testerr_cmd_re "sh" "help $module" "$out_rc_help\n$modlin\nModule Specific Help for $modulefile2:\n\n$modlin"
+
+# test avail
+# no output as defined in modulerc if mode is not set
+testerr_cmd_re "sh" "avail $module" "$header\n$module/1.0\\s+$module/2.0\\(bar:default\\)\\s+$module/foo\\(@\\)\\s+"
+
+# test whatis
+# no output as defined in modulerc if mode = whatis
+testerr_cmd_re "sh" "whatis $module" ""
+
+# test apropos
+# no output as defined in modulerc if mode = whatis
+testerr_cmd_re "sh" "apropos $module" ""
+
+# Set up the environment for test that require the module to be loaded
+set env(_LMFILES_) "$modulefile2"
+set env(LOADEDMODULES) "$module2"
+
+# test switching
+# modulerc is interpreted on the first phase of switching (unload)
+testouterr_cmd "sh" "switch $module $module2" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$out_rc_unload"
+
+# test unloading
+set lmfmod_sh "unset _LMFILES__modshare;"
+set lmmod_sh "unset LOADEDMODULES_modshare;"
+set lmf_sh "unset _LMFILES_;"
+set lm_sh "unset LOADEDMODULES;"
+# modulerc is not interpreted when unloading a loaded module
+testouterr_cmd "sh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" ""
+
+
+#
+#  Cleanup
+#
+
+# Clean up the environment
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+unset lm_sh
+unset lmf_sh
+unset lmmod_sh
+unset lmfmod_sh
+
+unset header
+
+unset out_rc
+unset out_rc_load
+unset out_rc_display
+unset out_rc_help
+unset out_rc_unload
+
+unset module
+unset module2
+unset modulefile2

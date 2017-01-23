@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.718
+set MODULES_CURRENT_VERSION 1.719
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -362,6 +362,7 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
          interp alias $slave module-version {} module-version
          interp alias $slave module-alias {} module-alias
          interp alias $slave module {} module
+         interp alias $slave module-info {} module-info
          interp alias $slave module-trace {} module-trace
          interp alias $slave module-verbosity {} module-verbosity
          interp alias $slave module-user {} module-user
@@ -3402,6 +3403,7 @@ proc cmdModuleList {} {
 }
 
 proc cmdModuleDisplay {mod} {
+   pushMode "display"
    lassign [getPathToModule $mod] modfile modname
    if {$modfile ne ""} {
       pushSpecifiedName $mod
@@ -3409,14 +3411,13 @@ proc cmdModuleDisplay {mod} {
       report\
          "-------------------------------------------------------------------"
       report "$modfile:\n"
-      pushMode "display"
       execute-modulefile $modfile
-      popMode
       popModuleName
       popSpecifiedName
       report\
          "-------------------------------------------------------------------"
    }
+   popMode
 }
 
 proc cmdModulePaths {mod} {
@@ -3469,6 +3470,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
       set searchmod 1
    }
    set foundmod 0
+   pushMode "whatis"
    foreach dir [getModulePathList "exiterronundef"] {
       if {[file isdirectory $dir]} {
          set display_list {}
@@ -3479,13 +3481,11 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             lassign [getPathToModule $mod2] modfile modname
 
             if {$modfile ne ""} {
-               pushMode "whatis"
                pushSpecifiedName $modname
                pushModuleName $modname
                # as we treat a full directory content do not exit on an error
                # raised from one modulefile
                execute-modulefile $modfile 0
-               popMode
                popModuleName
                popSpecifiedName
 
@@ -3505,6 +3505,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          }
       }
    }
+   popMode
 
    reenableErrorReport
 
@@ -3797,6 +3798,7 @@ proc cmdModuleLoad {args} {
 
    reportDebug "cmdModuleLoad: loading $args"
 
+   pushMode "load"
    foreach mod $args {
       lassign [getPathToModule $mod] modfile modname
       if {$modfile ne ""} {
@@ -3804,7 +3806,6 @@ proc cmdModuleLoad {args} {
          set ModulesCurrentModulefile $modfile
 
          if {$g_force || ! [info exists g_loadedModules($currentModule)]} {
-            pushMode "load"
             pushSpecifiedName $mod
             pushModuleName $currentModule
             pushSettings
@@ -3828,12 +3829,12 @@ proc cmdModuleLoad {args} {
             }
 
             popSettings
-            popMode
             popModuleName
             popSpecifiedName
          }
       }
    }
+   popMode
 }
 
 proc cmdModuleUnload {args} {
@@ -3842,6 +3843,7 @@ proc cmdModuleUnload {args} {
 
    reportDebug "cmdModuleUnload: unloading $args"
 
+   pushMode "unload"
    foreach mod $args {
       if {[catch {
          lassign [getPathToModule $mod] modfile modname
@@ -3850,7 +3852,6 @@ proc cmdModuleUnload {args} {
             set ModulesCurrentModulefile $modfile
 
             if {[info exists g_loadedModules($currentModule)]} {
-               pushMode "unload"
                pushSpecifiedName $mod
                pushModuleName $currentModule
                pushSettings
@@ -3871,7 +3872,6 @@ proc cmdModuleUnload {args} {
                }
 
                popSettings
-               popMode
                popModuleName
                popSpecifiedName
             }
@@ -3893,6 +3893,7 @@ proc cmdModuleUnload {args} {
          reportError "module unload $mod failed.\n$errMsg"
       }
    }
+   popMode
 }
 
 proc cmdModulePurge {} {
@@ -4253,6 +4254,7 @@ proc cmdModuleHelp {args} {
    global MODULES_CURRENT_VERSION
 
    set done 0
+   pushMode "help"
    foreach arg $args {
       if {$arg ne ""} {
          lassign [getPathToModule $arg] modfile modname
@@ -4263,9 +4265,7 @@ proc cmdModuleHelp {args} {
             report\
                "-------------------------------------------------------------------"
             report "Module Specific Help for $modfile:\n"
-            pushMode "help"
             execute-modulefile $modfile
-            popMode
             popModuleName
             popSpecifiedName
             report\
@@ -4274,6 +4274,7 @@ proc cmdModuleHelp {args} {
          set done 1
       }
    }
+   popMode
    if {$done == 0} {
       report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
       report {        Copyright GNU GPL v2 1991}
