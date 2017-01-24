@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.721
+set MODULES_CURRENT_VERSION 1.722
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3079,6 +3079,19 @@ proc showModulePath {} {
    }
 }
 
+proc displaySeparatorLine {{title {}}} {
+   global DEF_COLUMNS
+
+   if {$title eq ""} {
+      report "[string repeat {-} 67]"
+   } else {
+      set len  [string length $title]
+      set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
+      set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
+      report "[string repeat {-} $lrep] $title [string repeat {-} $rrep]"
+   }
+}
+
 # get a list of elements and print them in a column or in a
 # one-per-line fashion
 proc displayElementList {header one_per_line display_idx args} {
@@ -3089,11 +3102,8 @@ proc displayElementList {header one_per_line display_idx args} {
       one_per_line=$one_per_line, display_idx=$display_idx"
 
    # display header if any provided
-   if {$header ne "" && $header ne "noheader"} {
-      set len  [string length $header]
-      set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
-      set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
-      report "[string repeat {-} $lrep] $header [string repeat {-} $rrep]"
+   if {$header ne "noheader"} {
+      displaySeparatorLine $header
    }
 
    # end proc if no element are to print
@@ -3467,14 +3477,12 @@ proc cmdModuleDisplay {mod} {
    if {$modfile ne ""} {
       pushSpecifiedName $mod
       pushModuleName $modname
-      report\
-         "-------------------------------------------------------------------"
+      displaySeparatorLine
       report "$modfile:\n"
       execute-modulefile $modfile
       popModuleName
       popSpecifiedName
-      report\
-         "-------------------------------------------------------------------"
+      displaySeparatorLine
    }
    popMode
 }
@@ -3767,12 +3775,10 @@ proc cmdModuleSaveshow {{coll {}}} {
       reportErrorAndExit "$colldesc is not a valid collection"
    }
 
-   report\
-      "-------------------------------------------------------------------"
+   displaySeparatorLine
    report "$collfile:\n"
    report [formatCollectionContent $coll_path_list $coll_mod_list]
-   report\
-      "-------------------------------------------------------------------"
+   displaySeparatorLine
 }
 
 proc cmdModuleSavelist {} {
@@ -4321,14 +4327,12 @@ proc cmdModuleHelp {args} {
          if {$modfile ne ""} {
             pushSpecifiedName $arg
             pushModuleName $modname
-            report\
-               "-------------------------------------------------------------------"
+            displaySeparatorLine
             report "Module Specific Help for $modfile:\n"
             execute-modulefile $modfile
             popModuleName
             popSpecifiedName
-            report\
-               "-------------------------------------------------------------------"
+            displaySeparatorLine
          }
          set done 1
       }
