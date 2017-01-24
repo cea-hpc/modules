@@ -1,0 +1,110 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:       modules.50-cmds/%M%
+#   Revision:       %I%
+#   First Edition:  2017/01/27
+#   Last Mod.:      %U%, %G%
+#
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:    Testuite testsequence
+#   Command:        load, display, whatis, search, source, restore
+#   Command:        unload, switch, purge, reload, help
+#   Modulefiles:    info/commandexp
+#   Sub-Command:
+#
+#   Comment:    %C{
+#           Tests the 'module-info command' module subcommand with
+#           own suggestion.
+#           This command does not change behaviour depending on
+#           the user shell. Tests are made for the bourne shell
+#           here.
+#       }C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "info/commandexp"
+set modulefile "$env(MODULEPATH)/$module"
+
+set header_help "Module Specific Help for $modulefile:"
+set header "\[-\]+ $env(MODULEPATH) \[-\]+"
+
+#
+#  The tests
+#
+
+# test loading
+testerr_cmd "sh" "load $module" "load"
+
+# test displaying
+testerr_cmd_re "sh" "display $module" "$modlin\n$modulefile:\n\ndisplay\n$modlin\$"
+
+# test whatis
+testerr_cmd_re "sh" "whatis $module" "$header\n\\s+$module: whatis"
+
+# test searching
+testerr_cmd_re "sh" "search search" "$header\n.*\n\\s+$module: search\$"
+
+# test sourcing
+testerr_cmd "sh" "source $modulefile" "source"
+
+# set HOME to location containing collections
+set ORIG_HOME $env(HOME)
+set homewithcoll "$env(HOME)/home"
+if { $verbose > 0 } {
+    send_user "\tSetup HOME = $homewithcoll\n"
+}
+set env(HOME) "$homewithcoll"
+
+# test restoring
+testerr_cmd "sh" "restore infocmdexp" "restore"
+
+# restore default testsuite home
+if { $verbose > 0 } {
+    send_user "\tRestore HOME = $ORIG_HOME\n"
+}
+set env(HOME) $ORIG_HOME
+
+# Set up the environment for test that require the module to be loaded
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+# test unloading
+testerr_cmd "sh" "unload $module" "unload"
+
+# test switching
+testerr_cmd "sh" "switch $module $module" "switch\nswitch"
+
+# test purging
+testerr_cmd "sh" "purge" "purge"
+
+# test reloading
+testerr_cmd "sh" "reload" "reload\nreload"
+
+# Clean up the just changed environment
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+# test help
+testerr_cmd_re "sh" "help $module" "$modlin\n$header_help\n\nhelp\nhelp\n$modlin\$"
+
+#
+#  Cleanup
+#
+
+unset header_help
+unset header
+
+unset modulefile
+unset module
+
+unset homewithcoll
+unset ORIG_HOME

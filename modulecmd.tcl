@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.719
+set MODULES_CURRENT_VERSION 1.721
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -464,6 +464,16 @@ proc module-info {what {more {}}} {
             return $mode
          }
       }
+      "command" {
+         set command [currentCommandName]
+         if {$more eq ""} {
+            return $command
+         } elseif {$command eq $more} {
+            return 1
+         } else {
+            return 0
+         }
+      }
       "name" {
          return [currentModuleName]
       }
@@ -688,6 +698,7 @@ proc module {command args} {
          if {[llength $args] == 0} {
             set errormsg "Unexpected number of args for 'load' command"
          } else {
+            pushCommandName "load"
             if {$topcall || $mode eq "load"} {
                eval cmdModuleLoad $args
             }\
@@ -697,6 +708,7 @@ proc module {command args} {
             elseif {$mode eq "display"} {
                report "module load\t$args"
             }
+            popCommandName
             set needrender 1
          }
       }
@@ -704,6 +716,7 @@ proc module {command args} {
          if {[llength $args] == 0} {
             set errormsg "Unexpected number of args for 'unload' command"
          } else {
+            pushCommandName "unload"
             if {$topcall || $mode eq "load"} {
                eval cmdModuleUnload $args
             }\
@@ -713,6 +726,7 @@ proc module {command args} {
             elseif {$mode eq "display"} {
                report "module unload\t$args"
             }
+            popCommandName
             set needrender 1
          }
       }
@@ -720,7 +734,9 @@ proc module {command args} {
          if {[llength $args] != 0} {
             set errormsg "Unexpected number of args for 'reload' command"
          } else {
+            pushCommandName "reload"
             cmdModuleReload
+            popCommandName
             set needrender 1
          }
       }
@@ -746,7 +762,9 @@ proc module {command args} {
          if {[llength $args] == 0} {
             set errormsg "Unexpected number of args for 'source' command"
          } else {
+            pushCommandName "source"
             eval cmdModuleSource $args
+            popCommandName
             set needrender 1
          }
       }
@@ -754,7 +772,9 @@ proc module {command args} {
          if {[llength $args] == 0 || [llength $args] > 2} {
             set errormsg "Unexpected number of args for 'switch' command"
          } else {
+            pushCommandName "switch"
             eval cmdModuleSwitch $args
+            popCommandName
             set needrender 1
          }
       }
@@ -762,13 +782,16 @@ proc module {command args} {
          if {[llength $args] == 0} {
             set errormsg "Unexpected number of args for 'show' command"
          } else {
+            pushCommandName "display"
             foreach arg $args {
                eval cmdModuleDisplay $arg
             }
+            popCommandName
             set needrender 1
          }
       }
       {^av} {
+         pushCommandName "avail"
          if {$args ne ""} {
             foreach arg $args {
                cmdModuleAvail $arg
@@ -776,12 +799,15 @@ proc module {command args} {
          } else {
             cmdModuleAvail
          }
+         popCommandName
       }
       {^al} {
          if {[llength $args] != 0} {
             set errormsg "Unexpected number of args for 'aliases' command"
          } else {
+            pushCommandName "aliases"
             cmdModuleAliases
+            popCommandName
          }
       }
       {^path$} {
@@ -804,10 +830,13 @@ proc module {command args} {
          if {[llength $args] != 0} {
             set errormsg "Unexpected number of args for 'list' command"
          } else {
+            pushCommandName "list"
             cmdModuleList
+            popCommandName
          }
       }
       {^wh} {
+         pushCommandName "whatis"
          if {$args ne ""} {
             foreach arg $args {
                cmdModuleWhatIs $arg
@@ -816,19 +845,24 @@ proc module {command args} {
          } else {
             cmdModuleWhatIs
          }
+         popCommandName
       }
       {^(apropos|search|keyword)$} {
          if {[llength $args] > 1} {
             set errormsg "Unexpected number of args for '$command' command"
          } else {
+            pushCommandName "search"
             eval cmdModuleApropos $args
+            popCommandName
          }
       }
       {^pu} {
          if {[llength $args] != 0} {
             set errormsg "Unexpected number of args for 'purge' command"
          } else {
+            pushCommandName "purge"
             eval cmdModulePurge
+            popCommandName
             set needrender 1
          }
       }
@@ -843,7 +877,9 @@ proc module {command args} {
          if {[llength $args] > 1} {
             set errormsg "Unexpected number of args for 'restore' command"
          } else {
+            pushCommandName "restore"
             eval cmdModuleRestore $args
+            popCommandName
             set needrender 1
          }
       }
@@ -937,7 +973,9 @@ proc module {command args} {
       }
       {^($|help)} {
          if {$topcall} {
+            pushCommandName "help"
             eval cmdModuleHelp $args
+            popCommandName
             if {[llength $args] != 0} {
                set needrender 1
             }
@@ -1662,6 +1700,27 @@ proc popSpecifiedName {} {
 
    set g_specifiedNameStack [lrange $g_specifiedNameStack 0 end-1]
 }
+
+set g_commandNameStack {}
+
+proc currentCommandName {} {
+   global g_commandNameStack
+
+   return [lindex $g_commandNameStack end]
+}
+
+proc pushCommandName {commandName} {
+   global g_commandNameStack
+
+   lappend g_commandNameStack $commandName
+}
+
+proc popCommandName {} {
+   global g_commandNameStack
+
+   set g_commandNameStack [lrange $g_commandNameStack 0 end-1]
+}
+
 
 # return list of loaded modules by parsing LOADEDMODULES env variable
 proc getLoadedModuleList {} {

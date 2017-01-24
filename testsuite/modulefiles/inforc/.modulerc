@@ -25,11 +25,18 @@
 ##############################################################################
 
 module-alias inforc/foo /1.0
-module-version /2.0 bar default 
+
+if { [module-info command avail] || [module-info command aliases]\
+    || [module-info command list] } {
+    module-version /2.0 bar default [module-info command]
+} else {
+    module-version /2.0 bar default
+}
 
 set mode [module-info mode]
 if { $mode ne "" && $mode ne "whatis" } {
     puts stderr "mode: $mode"
+    puts stderr "command: [module-info command]"
     puts stderr "type: [module-info type]"
     puts stderr "name: [module-info name]"
     puts stderr "specified: [module-info specified]"

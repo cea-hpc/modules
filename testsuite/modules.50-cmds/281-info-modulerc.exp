@@ -2,21 +2,22 @@
 #   Modules Revision 3.0
 #   Providing a flexible user environment
 #
-#   File:		modules.50-cmds/%M%
-#   Revision:		%I%
-#   First Edition:	2017/01/22
-#   Last Mod.:		%U%, %G%
+#   File:       modules.50-cmds/%M%
+#   Revision:       %I%
+#   First Edition:  2017/01/22
+#   Last Mod.:      %U%, %G%
 #
-#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
-#   Description:	Testuite testsequence
-#   Command:		load, display, help, avail, whatis, switch, unload
-#   Modulefiles:	inforc
+#   Description:    Testuite testsequence
+#   Command:        load, display, help, avail, aliases, whatis
+#   Command:        apropos, list, switch, unload
+#   Modulefiles:    inforc
 #   Sub-Command:
 #
-#   Comment:	%C{
-#			Test 'module-info' commands when called from a .modulerc file
-#		}C%
+#   Comment:    %C{
+#           Test 'module-info' commands when called from a .modulerc file
+#       }C%
 #
 ##############################################################################
 
@@ -47,11 +48,12 @@ shelltype: sh
 alias $module/foo: $module/1.0
 version $module/bar: $module/2.0
 symbols $module/2.0: bar:default"
-set out_rc_load "mode: load\n$out_rc"
-set out_rc_display "mode: display\n$out_rc"
-set out_rc_help "mode: help\n$out_rc"
-set out_rc_unload "mode: unload\n$out_rc"
+set out_rc_load "mode: load\ncommand: load\n$out_rc"
+set out_rc_display "mode: display\ncommand: display\n$out_rc"
+set out_rc_help "mode: help\ncommand: help\n$out_rc"
+set out_rc_switch "mode: unload\ncommand: switch\n$out_rc"
 
+set header_list "Currently Loaded Modulefiles:"
 set header "\[-\]+ $env(MODULEPATH) \[-\]+"
 
 #
@@ -69,7 +71,10 @@ testerr_cmd_re "sh" "help $module" "$out_rc_help\n$modlin\nModule Specific Help 
 
 # test avail
 # no output as defined in modulerc if mode is not set
-testerr_cmd_re "sh" "avail $module" "$header\n$module/1.0\\s+$module/2.0\\(bar:default\\)\\s+$module/foo\\(@\\)\\s+"
+testerr_cmd_re "sh" "avail $module" "$header\n$module/1.0\\s+$module/2.0\\(avail:bar:default\\)\\s+$module/foo\\(@\\)\\s+"
+
+# test aliases
+testerr_cmd_re "sh" "aliases" "$module/aliases -> $module2"
 
 # test whatis
 # no output as defined in modulerc if mode = whatis
@@ -83,9 +88,12 @@ testerr_cmd_re "sh" "apropos $module" ""
 set env(_LMFILES_) "$modulefile2"
 set env(LOADEDMODULES) "$module2"
 
+# test listing
+testerr_cmd_re "sh" "list" "$header_list\n 1\\) $module2\\(bar:default:list\\)\\s+\$"
+
 # test switching
 # modulerc is interpreted on the first phase of switching (unload)
-testouterr_cmd "sh" "switch $module $module2" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$out_rc_unload"
+testouterr_cmd "sh" "switch $module $module2" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$out_rc_switch"
 
 # test unloading
 set lmfmod_sh "unset _LMFILES__modshare;"
@@ -109,13 +117,14 @@ unset lmf_sh
 unset lmmod_sh
 unset lmfmod_sh
 
+unset header_list
 unset header
 
 unset out_rc
 unset out_rc_load
 unset out_rc_display
 unset out_rc_help
-unset out_rc_unload
+unset out_rc_switch
 
 unset module
 unset module2
