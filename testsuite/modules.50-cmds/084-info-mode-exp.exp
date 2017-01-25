@@ -53,7 +53,7 @@ set lmfmod_sh_sw "_LMFILES__modshare=$modulefile2:1; export _LMFILES__modshare;"
 set lmmod_sh_sw "LOADEDMODULES_modshare=$module2:1; export LOADEDMODULES_modshare;"
 set lmf_sh_sw "_LMFILES_=$modulefile2; export _LMFILES_;"
 set lm_sh_sw "LOADEDMODULES=$module2; export LOADEDMODULES;"
-set switches "unload\nload\n"
+set switches "unload\nremove\nswitch\nload\nswitch\n"
 
 set lin_help "Module Specific Help for $modulefile:"
 
@@ -74,14 +74,15 @@ set env(LOADEDMODULES) "$module"
 
 # test unloading
 # different behavior than C-version: on Tcl-version mode is set to 'unload'
-# instead of 'remove' when 'unload' action is called
-test_cmd "sh" "unload $module" "unload\n$lmfmod_sh_rm\n$lmmod_sh_rm\n$lmf_sh_rm\n$lm_sh_rm"
+# instead of 'remove' when 'unload' action is called. but 'module-info mode' test
+# against the 'remove' value will return true for compat with C-version
+test_cmd "sh" "unload $module" "unload\nremove\n$lmfmod_sh_rm\n$lmmod_sh_rm\n$lmf_sh_rm\n$lm_sh_rm"
 
 # test switching
 # different behavior than C-version: on Tcl-version mode is set to 'unload'
 # then 'load' instead of 'switch1', 'switch2' and 'switch3' when 'switch'
-# action is called. moreover 'module-info mode' never equals to 'switch'
-# on Tcl-version.
+# action is called. but 'module-info mode' test against the 'switch' value will
+# return true for compat with C-version
 testouterr_cmd "sh" "switch $module $module2" "$switches$lmfmod_sh_sw\n$lmmod_sh_sw\n$lmf_sh_sw\n$lm_sh_sw" ""
 
 # Clean up the just changed environment
