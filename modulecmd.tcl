@@ -1,6 +1,6 @@
 #!/bin/sh
 # \
-type tclsh 1>/dev/null 2>&1 && exec tclsh "$0" "$@"
+tclshbin=$(type -p tclsh) && exec $tclshbin "$0" "$@"
 # \
 [ -x /usr/local/bin/tclsh ] && exec /usr/local/bin/tclsh "$0" "$@"
 # \
@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.723
+set MODULES_CURRENT_VERSION 1.724
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
