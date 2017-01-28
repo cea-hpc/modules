@@ -12,7 +12,8 @@ MAN4_DIR := $(MAN_DIR)/man4
 SOURCE_DIR := source
 
 all: $(HTML_DIR)/module.html $(HTML_DIR)/modulefile.html \
-	$(MAN1_DIR)/module.1 $(MAN4_DIR)/modulefile.4
+	$(MAN1_DIR)/module.1 $(MAN4_DIR)/modulefile.4 \
+	$(HTML_DIR)/diff_with_c-version.html
 
 $(HTML_DIR)/%.html: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
 	mkdir -p $(HTML_DIR)
