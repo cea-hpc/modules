@@ -16,7 +16,7 @@ all: $(HTML_DIR)/module.html $(HTML_DIR)/modulefile.html \
 
 $(HTML_DIR)/%.html: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
 	mkdir -p $(HTML_DIR)
-	pod2html --noindex --infile=$< --outfile=$@
+	pod2html --noindex --css=common.css --infile=$< --outfile=$@
 	rm -f pod2htmd.tmp
 
 $(MAN1_DIR)/%.1: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
@@ -30,6 +30,5 @@ $(MAN4_DIR)/%.4: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
 clean:
 	rm -f $(HTML_DIR)/*.html
 	rm -f $(MAN1_DIR)/*.1 $(MAN4_DIR)/*.4
-	rmdir $(HTML_DIR)
 	rmdir $(MAN1_DIR) $(MAN4_DIR) $(MAN_DIR)
 	rm -f pod*.tmp
