@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.724
+set MODULES_CURRENT_VERSION 1.729
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2033,7 +2033,7 @@ proc renderSettings {} {
    global g_stateEnvVars g_stateAliases
    global g_newXResources g_delXResources
    global g_pathList g_changeDir error_count
-   global g_autoInit CSH_LIMIT
+   global g_autoInit CSH_LIMIT cwd
 
    reportDebug "renderSettings: called."
 
@@ -2059,8 +2059,11 @@ proc renderSettings {} {
 
       # add cwd if not absolute script path
       if {! [regexp {^/} $argv0]} {
-         set pwd [exec pwd]
-         set argv0 "$pwd/$argv0"
+         # register pwd at first call
+         if {![info exists cwd]} {
+            set cwd [pwd]
+         }
+         set argv0 "$cwd/$argv0"
       }
 
       set env(MODULESHOME) [file dirname $argv0]
