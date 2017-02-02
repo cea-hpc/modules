@@ -1,0 +1,693 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML><HEAD><TITLE>Man page of MODULE</TITLE>
+<link rel=stylesheet href="../modules.css" type="text/css">
+</HEAD><BODY>
+<H1>MODULE</H1>
+Section: Modules package (1)<BR>Updated: July 2009<BR><A HREF="#index">Index</A>
+<A HREF="../index.html">Return to Main Contents</A><HR>
+
+
+<A NAME="lbAB">&nbsp;</A>
+<H2>NAME</H2>
+
+module - command interface to the Modules package
+<A NAME="lbAC">&nbsp;</A>
+<H2>SYNOPSIS</H2>
+
+<B>module</B>
+
+[
+<I>switches</I>
+
+]
+[
+<I>sub-command</I>
+
+]
+<I>[ sub-command-args ]</I>
+
+<A NAME="lbAD">&nbsp;</A>
+<H2>DESCRIPTION</H2>
+
+<P>
+
+<B>module</B>
+
+is a user interface to the Modules package.
+The Modules package provides for the dynamic modification of the user's
+environment via
+<I>modulefiles.</I>
+
+<P>
+
+Each
+<I>modulefile</I>
+
+contains the information needed to configure the shell for an application.
+Once the Modules package is initialized, the environment can be modified
+on a per-module basis using the 
+<B>module</B>
+
+command which interprets
+<I>modulefiles.</I>
+
+Typically
+<I>modulefiles</I>
+
+instruct the
+<B>module</B>
+
+command to alter or set shell environment variables such as PATH, MANPATH,
+etc.
+<I>modulefiles</I>
+
+may be shared by many users on a system and users may have their own
+collection to supplement or replace the shared
+<I>modulefiles.</I>
+
+<P>
+
+The
+<I>modulefiles</I>
+
+are added to and removed from the current
+environment by the user.
+The environment changes contained in a
+<I>modulefile</I>
+
+can be summarized through the
+<B>module</B>
+
+command as well.
+If no arguments are given, a summary of the
+<B>module</B>
+
+usage and
+<I>sub-commands</I>
+
+are shown.
+<P>
+
+The action for the
+<B>module</B>
+
+command to take is described by the
+<I>sub-command</I>
+
+and its associated arguments.
+<A NAME="lbAE">&nbsp;</A>
+<H3>Package Initialization</H3>
+
+<P>
+
+The Modules package and the
+<B>module</B>
+
+command are initialized when a shell-specific initialization script is
+sourced into the shell.
+The script creates the
+<B>module</B>
+
+command, either as an alias or shell function,
+creates Modules environment variables,
+and if enabled to do so, a snapshot of the environment is saved as either
+(if BEGINENV=1)
+<I>$HOME/.modulesbeginenv</I>
+
+or (if BEGINENV=99) whatever
+<I>$MODULESBEGINENV</I>
+
+points to.
+<P>
+The
+<B>module</B>
+
+alias or function executes the
+<B>modulecmd</B>
+
+program and has the shell evaluate
+the command's output.  The first argument to
+<B>modulecmd</B>
+
+specifies the type of shell.
+<P>
+
+The initialization scripts are kept in
+<I>$MODULESHOME/init/&lt;shell&gt;</I>
+
+where
+<I>&lt;shell&gt;</I>
+
+is the name of the sourcing shell.
+The sh, csh, tcsh, bash, ksh, and zsh shells are supported by
+<B>modulecmd.</B>
+
+In addition, python and perl &quot;shells&quot; are supported, which writes
+the environment changes to stdout as python or perl code.
+<P>
+<A NAME="lbAF">&nbsp;</A>
+<H3>Modulecmd startup</H3>
+
+<P>
+
+Upon invocation <I>modulecmd</I> sources rc files which contain global, user
+and modulefile specific setups. These files are interpreted as modulefiles.
+See
+<B><A HREF="modulefile.html">modulefile</A></B>(4)
+
+for detailed information.
+<P>
+
+Upon invocation of modulecmd module RC files are sourced in the following
+order:
+<PRE>
+
+        Global RC file as specified by ${<FONT SIZE="-1">MODULERCFILE</FONT>} or ${<FONT SIZE="-1">MODULESHOME</FONT>}/etc/rc
+
+        User specific module RC file ${<FONT SIZE="-1">HOME</FONT>}/.modulerc
+
+        All .modulerc and .version files found during modulefile seeking.
+
+</PRE>
+
+<A NAME="lbAG">&nbsp;</A>
+<H3>Command line switches</H3>
+
+<P>
+
+The module command accepts command line switches as its first parameter. These
+may be used to control output format of all information displayed and the 
+<I>module</I> behavior in case of locating and interpreting module files.
+<P>
+
+All switches may be entered either in short or long notation. The following
+switches are accepted:
+<P>
+
+<DL COMPACT>
+<DT><I>--help, -H</I>
+
+<DD>
+Give some helpful usage information, and terminates the command.
+<DL COMPACT><DT><DD>
+</DL>
+
+<DT><I>--version, -V</I>
+
+<DD>
+Lists the current version of the module command, and some configured
+option values.  The command then terminates without further processing.
+<DL COMPACT><DT><DD>
+</DL>
+
+<DT><I>--force, -f</I>
+
+<DD>
+Force active dependency resolution. This will result in modules found on a
+<I>prereq</I> command inside a module file being load automatically.
+Unloading module files using this switch will result in all required modules
+which have been loaded automatically using the <I>-f</I> switch being unload.
+This switch is experimental at the moment.
+<DL COMPACT><DT><DD>
+</DL>
+
+<DT><I>--terse, -t</I>
+
+<DD>
+Display <I>avail</I> and <I>list</I> output in short format.
+<DL COMPACT><DT><DD>
+</DL>
+
+<DT><I>--long, -l</I>
+
+<DD>
+Display <I>avail</I> and <I>list</I> output in long format.
+<DL COMPACT><DT><DD>
+</DL>
+
+<DT><I>--human, -h</I>
+
+<DD>
+Display short output of the <I>avail</I> and <I>list</I> commands in human
+readable format. 
+<DL COMPACT><DT><DD>
+</DL>
+
+<DT><I>--verbose, -v</I>
+
+<DD>
+Enable verbose messages during module command execution.
+<DL COMPACT><DT><DD>
+</DL>
+
+<DT><I>--silent, -s</I>
+
+<DD>
+Disable verbose messages. Redirect <I>stderr</I> to <I>/dev/null</I> if 
+<I>stderr</I> is found not to be a tty. This is a useful option for module
+commands being written into <I>.cshrc</I>, <I>.login</I> or <I>.profile</I>
+files, because some remote shells (as <I>rsh</I>(1)) and remote execution
+commands (like <I>rdist</I>) get confused if there is output on stderr.
+<DL COMPACT><DT><DD>
+</DL>
+
+<DT><I>--create, -c</I>
+
+<DD>
+Create caches for <I>module avail</I> and <I>module apropos</I>. You must 
+be granted write access to the ${<FONT SIZE="-1">MODULEHOME</FONT>}/modulefiles/ directory
+if you try to invoke <I>module</I> with the <I>-c</I> option.
+<DL COMPACT><DT><DD>
+</DL>
+
+<DT><I>--icase, -i</I>
+
+<DD>
+Case insensitive module parameter evaluation. Currently only implemented for
+the <I>module apropos</I> command.
+<DL COMPACT><DT><DD>
+</DL>
+
+<DT><I>--userlvl &lt;lvl&gt;, -u &lt;lvl&gt;</I>
+
+<DD>
+Set the user level to the specified value. The argument of this option may
+be one of:
+</DL>
+<P>
+
+<I>novice, nov</I>
+
+Novice
+<P>
+
+<I>expert, exp</I>
+
+Experienced module user
+<P>
+
+<I>advanced, adv</I>
+
+Advanced module user
+<A NAME="lbAH">&nbsp;</A>
+<H3>Module Sub-Commands</H3>
+
+<DL COMPACT><DT><DD>
+<DL COMPACT>
+<DT><B>help&nbsp;&nbsp; [modulefile...]</B>
+
+<DD>
+Print the usage of each sub-command.
+If an argument is given, print the Module-specific help information for the
+<I>modulefile</I>(s).
+<DT><B>add&nbsp;&nbsp;&nbsp; modulefile...</B>
+
+<DD>
+
+<DT><B>load&nbsp;&nbsp; modulefile...</B>
+
+<DD>
+
+Load
+<I>modulefile</I>(s)
+
+into the shell environment.
+<DT><B>rm&nbsp;&nbsp;&nbsp;&nbsp; modulefile...</B>
+
+<DD>
+
+<DT><B>unload modulefile...</B>
+
+<DD>
+
+Remove
+<I>modulefile</I>(s)
+
+from the shell environment.
+<DT><B>swap&nbsp;&nbsp; [modulefile1] modulefile2</B>
+
+<DD>
+
+<DT><B>switch [modulefile1] modulefile2</B>
+
+<DD>
+
+Switch loaded <I>modulefile1</I> with <I>modulefile2</I>.
+If <I> modulefile1</I> is not specified, then it is assumed to be the currently loaded module
+with the same root name as <I>modulefile2</I>.
+<DT><B>show&nbsp;&nbsp;&nbsp; modulefile...</B>
+
+<DD>
+
+<DT><B>display modulefile...</B>
+
+<DD>
+
+Display information about one or more
+<I>modulefile</I>s.
+
+The display sub-command will list the full path of the <I>modulefile</I>(s)
+and all (or most) of the environment changes the modulefile(s)
+will make if loaded.  (It will not display any
+environment changes found within conditional statements.)
+<DT><B>list</B>
+
+<DD>
+List loaded modules.
+<DT><B>avail [path...]</B>
+
+<DD>
+List all available modulefiles in the current <FONT SIZE="-1">MODULEPATH</FONT>.
+All directories in the <FONT SIZE="-1">MODULEPATH</FONT> are recursively searched for
+files containing the <I>modulefile</I> magic cookie.
+If an argument is given, then each directory in the <FONT SIZE="-1">MODULEPATH</FONT> is
+searched for modulefiles whose pathname match the argument.
+Multiple versions of an application can be supported by creating a
+subdirectory for the application containing modulefiles for each version.
+
+<DT><B>use [-a|--append] directory...</B>
+
+<DD>
+
+Prepend one or more directories to the <FONT SIZE="-1">MODULEPATH</FONT> environment variable.
+The --append flag will append the directory to <FONT SIZE="-1">MODULEPATH</FONT>.
+<DT><B>unuse directory...</B>
+
+<DD>
+Remove one or more directories from the <FONT SIZE="-1">MODULEPATH</FONT> environment variable.
+<DT><B>update</B>
+
+<DD>
+Attempt to reload all loaded modulefiles.
+The environment will be reconfigured to match the environment saved in
+<I>${</I><FONT SIZE="-1"><I>HOME</I></FONT><I>}/.modulesbeginenv</I>
+
+(if BEGINENV=1)
+or the file pointed at by
+<I>$MODULESBEGINEV</I>
+
+(if BEGINENV=99)
+and the modulefiles will be reloaded.
+This is only valid if modules was configured with --enable-beginenv
+(which defines BEGINENV), otherwise this will cause a warning.
+<B>update</B>
+
+will only change the environment variables that the
+<I>modulefile</I>s
+
+set.
+<DT><B>clear</B>
+
+<DD>
+Force the Modules package to believe that no modules are currently loaded.
+<DT><B>purge</B>
+
+<DD>
+Unload all loaded modulefiles.
+<DT><B>refresh</B>
+
+<DD>
+Force a refresh of all non-persistent components of currently loaded modules.
+This should be used on derived shells where aliases need to be reinitialized
+but the environment variables have already been set by the currently loaded
+modules.
+<DT><B>whatis [modulefile...]</B>
+
+<DD>
+Display the information set up by the <I>module-whatis</I> commands
+inside the specified modulefile(s). If no <I>modulefile</I> is specified,
+all 'whatis' lines will be shown.
+<DT><B>apropos string</B>
+
+<DD>
+
+<DT><B>keyword string</B>
+
+<DD>
+Seeks through the 'whatis' informations of all modulefiles for the specified string.
+All <I>module-whatis</I> informations matching the <I>string</I> will be displayed.
+
+<DT><B>initadd modulefile...</B>
+
+<DD>
+Add
+<I>modulefile</I>(s)
+
+to the shell's initialization file in the user's home directory.
+The startup files checked (in order) are:
+<BR>
+
+csh - .modules, .cshrc(.ext), .csh_variables, and .login(.ext)
+<BR>
+
+tcsh - .modules, .tcshrc, .cshrc(.ext), .csh_variables, and .login(.ext)
+<BR>
+
+sh and ksh - .modules, .profile(.ext), and .kshenv(.ext)
+<BR>
+
+bash - .modules, .bash_profile, .bash_login, .profile(.ext), and .bashrc(.ext)
+<BR>
+
+zsh - .modules, .zcshrc(.ext), .zshenv(.ext), and .zlogin(.ext)
+<P>
+If a 'module load' line is found in any of these files, the
+<I>modulefile</I>(s) is(are) appended to any existing list of
+modulefiles.
+The 'module load' line must be located in at least one of the
+files listed above for any of the 'init' sub-commands to work properly.
+If the 'module load' line is found in multiple shell initialization files,
+all of the lines are changed.
+<DT><B>initprepend modulefile [modulefile...]</B>
+
+<DD>
+Does the same as
+<B>initadd</B>
+
+but prepends the given modules to the beginning of the list.
+<DT><B>initrm modulefile...</B>
+
+<DD>
+Remove <I>modulefile</I>(s) from the shell's initialization files.
+<DT><B>initswitch modulefile1 modulefile2</B>
+
+<DD>
+Switch
+<I>modulefile1</I>
+
+with
+<I>modulefile2</I>
+
+in the shell's initialization files.
+<DT><B>initlist</B>
+
+<DD>
+List all of the modulefiles loaded from the shell's initialization file.
+<DT><B>initclear</B>
+
+<DD>
+Clear all of the modulefiles from the shell's initialization files.
+</DL>
+</DL>
+
+<A NAME="lbAI">&nbsp;</A>
+<H3>Modulefiles</H3>
+
+<P>
+
+<I>modulefile</I>s
+
+are written in the Tool Command Language (Tcl) and are interpreted by
+<B>modulecmd.</B>
+
+<I>modulefile</I>s
+
+can use conditional statements.
+Thus the effect a 
+<I>modulefile</I>
+
+will have on the environment may change depending upon the current state of
+the environment.
+<P>
+
+Environment variables are unset when unloading a
+<I>modulefile.</I>
+
+Thus, it is possible to
+<B>load</B>
+
+a 
+<I>modulefile</I>
+
+and then
+<B>unload</B>
+
+it without having the environment variables return to their
+prior state.
+<P>
+
+<A NAME="lbAJ">&nbsp;</A>
+<H2>ENVIRONMENT</H2>
+
+<DL COMPACT>
+<DT><FONT SIZE="-1"><B></B></FONT><FONT SIZE="-2"><B>MODULESHOME</B></FONT><B></B>
+<DD>
+The location of the master Modules package file directory containing
+<B>module</B>
+
+command initialization scripts, the executable program
+<B>modulecmd,</B>
+
+and a directory containing a collection of master
+<I>modulefiles.</I>
+
+<DT><FONT SIZE="-1"><B></B></FONT><FONT SIZE="-2"><B>MODULEPATH</B></FONT><B></B>
+<DD>
+The path that the
+<B>module</B>
+
+command searches when looking for
+<I>modulefiles.</I>
+
+Typically, it is set to a default value by the bootstrap procedure.
+<FONT SIZE="-1">MODULEPATH</FONT> can be set using 'module use' or by the module
+initialization script to search group or personal
+<I>modulefile</I>
+
+directories before or after the master
+<I>modulefile</I>
+
+directory.
+<DT><FONT SIZE="-1"><B></B></FONT><FONT SIZE="-2"><B>LOADEDMODULES</B></FONT><B></B>
+<DD>
+A colon separated list of all loaded
+<I>modulefiles.</I>
+
+<DT><FONT SIZE="-1"><B></B></FONT><FONT SIZE="-2"><B>_LMFILES_</B></FONT><B></B>
+<DD>
+A colon separated list of the full pathname for all loaded
+<I>modulefiles.</I>
+
+<DT><FONT SIZE="-1"><B></B></FONT><FONT SIZE="-2"><B>MODULESBEGINENV</B></FONT><B></B>
+<DD>
+If modules has been configured (BEGINENV=99) to test for this environment
+variable, then if it exists, it is the name of the file to store the
+the initial shell environment.  This environment variable will have
+embedded environment variables unrolled to one level.  The contents of
+this variable is only used the first time
+<I>modules</I>
+
+is invoked.
+<DT><FONT SIZE="-1"><B></B></FONT><FONT SIZE="-2"><B>_MODULESBEGINENV_</B></FONT><B></B>
+<DD>
+The filename of the file containing the initialization environment snapshot.
+<P>
+</DL>
+<A NAME="lbAK">&nbsp;</A>
+<H2>FILES</H2>
+
+<DL COMPACT>
+<DT><B>/usr/local/Modules/3.2.7</B>
+
+<DD>
+The <FONT SIZE="-1">MODULESHOME</FONT> directory.
+<DT><B>${</B><FONT SIZE="-1"><B>MODULESHOME</B></FONT><B>}/etc/rc</B>
+
+<DD>
+The system-wide
+<I>modules rc file.</I>
+
+The location of this file can be changed using
+the <FONT SIZE="-1">MODULERCFILE</FONT> environment variable as described above.
+<DT><B>${</B><FONT SIZE="-1"><B>HOME</B></FONT><B>}/.modulerc</B>
+
+<DD>
+The user specific 
+<I>modules rc file.</I>
+
+<DT><B>${</B><FONT SIZE="-1"><B>MODULESHOME</B></FONT><B>}/modulefiles</B>
+
+<DD>
+The directory for system-wide
+<I>modulefiles.</I>
+
+The location of the directory can be changed using
+the <FONT SIZE="-1">MODULEPATH</FONT> environment variable as described above.
+<DT><B>${</B><FONT SIZE="-1"><B>MODULESHOME</B></FONT><B>}/bin/modulecmd</B>
+
+<DD>
+The 
+<I>modulefile</I>
+
+interpreter that gets executed upon each invocation of
+<B>module.</B>
+
+<DT><B>${</B><FONT SIZE="-1"><B>MODULESHOME</B></FONT><B>}/init/</B><I>&lt;shell&gt;</I>
+
+<DD>
+The Modules package initialization file sourced into the user's
+environment.
+<DT><B>${</B><FONT SIZE="-1"><B>MODULEPATH</B></FONT><B>}/.moduleavailcache</B>
+
+<DD>
+File containing the cached list of all
+<I>modulefiles</I>
+
+for each directory in the <FONT SIZE="-1">MODULEPATH</FONT>
+(only when the avail cache is enabled via the configure option --enable-cache
+which sets CACHE_AVAIL).
+<DT><B>${</B><FONT SIZE="-1"><B>MODULEPATH</B></FONT><B>}/.moduleavailcachedir</B>
+
+<DD>
+File containing the names and modification times for all sub-directories with
+an avail cache (see above).
+<DT><B>${</B><FONT SIZE="-1"><B>HOME</B></FONT><B>}/.modulesbeginenv</B>
+
+<DD>
+A snapshot of the user's environment taken at Module initialization.
+This information is used by the
+<B>module update</B>
+
+sub-command (if BEGINENV=1), else
+<DT><B>$MODULESBEGINENV</B>
+
+<DD>
+If this defines a valid filename, it serves the same purpose as above
+(if BEGINENV=99).
+</DL>
+<A NAME="lbAL">&nbsp;</A>
+<H2>VERSION</H2>
+
+3.2.7
+<A NAME="lbAM">&nbsp;</A>
+<H2>SEE ALSO</H2>
+
+<B><A HREF="modulefile.html">modulefile</A></B>(4)
+
+<P>
+
+<HR>
+<A NAME="index">&nbsp;</A><H2>Index</H2>
+<DL>
+<DT><A HREF="#lbAB">NAME</A><DD>
+<DT><A HREF="#lbAC">SYNOPSIS</A><DD>
+<DT><A HREF="#lbAD">DESCRIPTION</A><DD>
+<DL>
+<DT><A HREF="#lbAE">Package Initialization</A><DD>
+<DT><A HREF="#lbAF">Modulecmd startup</A><DD>
+<DT><A HREF="#lbAG">Command line switches</A><DD>
+<DT><A HREF="#lbAH">Module Sub-Commands</A><DD>
+<DT><A HREF="#lbAI">Modulefiles</A><DD>
+</DL>
+<DT><A HREF="#lbAJ">ENVIRONMENT</A><DD>
+<DT><A HREF="#lbAK">FILES</A><DD>
+<DT><A HREF="#lbAL">VERSION</A><DD>
+<DT><A HREF="#lbAM">SEE ALSO</A><DD>
+</DL>
+<HR>
+This document was created by
+man2html,
+using the manual pages.<BR>
+Time: 17:13:57 GMT, July 31, 2009
+</BODY>
+</HTML>

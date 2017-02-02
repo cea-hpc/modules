@@ -1,0 +1,1283 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML><HEAD><TITLE>Man page of MODULEFILE</TITLE>
+<link rel=stylesheet href="../modules.css" type="text/css">
+</HEAD><BODY>
+<H1>MODULEFILE</H1>
+Section: Modules configuration (4)<BR>Updated: July 2009<BR><A HREF="#index">Index</A>
+<A HREF="../index.html">Return to Main Contents</A><HR>
+
+
+<A NAME="lbAB">&nbsp;</A>
+<H2>NAME</H2>
+
+modulefile - files containing Tcl code for the Modules package
+<A NAME="lbAC">&nbsp;</A>
+<H2>DESCRIPTION</H2>
+
+<P>
+
+<I>modulefile</I>s are written in the Tool Command Language,
+<B>Tcl</B>(3)
+
+and are interpreted by the
+<B>modulecmd</B>
+
+program via the
+<B><A HREF="module.html">module</A></B>(1)
+
+user interface.
+modulefiles can be loaded, unloaded, or switched on-the-fly while the user is working; and can
+be used to implement site policies regarding the access and use of applications.
+<P>
+
+A <I>modulefile</I> begins with the magic cookie, '#%Module'.
+A version number may be placed after this string.
+The version number is useful as the <I>modulefile</I> format may change.
+If a version number doesn't exist, then
+<B>modulecmd</B>
+
+will assume the <I>modulefile</I> is compatible with the latest version.
+The current <I>modulefile version</I> is
+<B>1.0.</B>
+
+Files without the magic cookie will not be interpreted by
+<B>modulecmd.</B>
+
+<P>
+
+Each <I>modulefile</I> contains the changes to a user's environment needed
+to access an application.
+Tcl is a simple programming language which permits modulefiles to be
+arbitrarily complex, depending upon the application's and the modulefile
+writer's needs.
+If support for extended tcl (tclX) has been configured for your installation of
+the Modules package, you may use all the extended commands provided by tclX, too.
+<P>
+
+A typical <I>modulefile</I> is a simple bit of code that set or add entries to
+the PATH, MANPATH, or other environment variables.
+Tcl has conditional statements that are evaluated when the modulefile
+is loaded.
+This is very effective for managing path or environment changes due to different
+OS releases or architectures.
+The user environment information is encapsulated into a single <I>modulefile</I>
+kept in a central location.
+The same modulefile is used by every user on any machine.
+So, from the user's perspective, starting an application is exactly the same
+irrespective of the machine or platform they are on.
+<P>
+
+modulefiles also hide the notion of different types of shells.
+From the user's perspective, changing the environment for one shell looks exactly
+the same as changing the environment for another shell.
+This is useful for new or novice users and eliminates the need for statements such
+as &quot;if you're using the C Shell do this ..., otherwise if you're using the Bourne
+shell do this ...&quot;
+Announcing and accessing new software is uniform and independent of the user's shell.
+From the modulefile writer's perspective, this means one set of information
+will take care of every type of shell.
+<P>
+
+<A NAME="lbAD">&nbsp;</A>
+<H2>Modules Specific Tcl Commands</H2>
+
+The Modules Package uses commands which are extensions to the &quot;standard&quot;
+<I>Tool Command Language</I>
+
+<B>Tcl</B>(3)
+
+package.
+Unless otherwise specified, the Module commands return the empty string.
+Some commands behave differently when a <I>modulefile</I> is loaded or
+unloaded.
+The command descriptions assume the <I>modulefile</I> is being loaded.
+<P>
+
+<B>break</B>
+
+<DL COMPACT><DT><DD>
+This is not a Modules-specific command, it's actually part of Tcl,
+which has been overloaded similar to the
+<I>continue</I>
+
+and
+<I>exit</I>
+
+commands to have the 
+effect of causing the module not to be listed
+as loaded and not affect other modules being loaded concurrently.
+All non-environment commands within the module will be performed
+up to this point and processing will continue on to the
+next module on the command line.
+The
+<I>break</I>
+
+command will only have this effect if not used within a Tcl loop though.
+<P>
+An example: Suppose that a full selection of modulefiles are needed
+for various different architectures, but some of the modulefiles
+are not needed and the user should be alerted.  Having the unnecessary
+modulefile be a link to the following
+<I>notavail</I>
+
+modulefile will perform the task as required.
+<PRE>
+
+#%Module1.0
+## notavail modulefile
+##
+proc ModulesHelp { } {
+    puts stderr &quot;	This module does nothing but alert the user&quot;
+    puts stderr &quot;	that the [module-info name] module is not available&quot;
+}
+
+module-whatis   &quot;Notifies user that module is not available.&quot;
+set curMod [module-info name]
+if { [ module-info mode load ] } {
+    puts stderr &quot;Note: '$curMod' is not available for [uname sysname].&quot;
+}
+
+break
+</PRE>
+
+</DL>
+
+<P>
+<P>
+
+<B>chdir</B>
+
+<I>directory</I>
+
+<DL COMPACT><DT><DD>
+Set the current working directory to <I>directory</I>.
+</DL>
+
+<P>
+<P>
+
+<B>continue</B>
+
+<DL COMPACT><DT><DD>
+This is not a modules specific command but another overloaded Tcl
+command
+and is similar to the
+<I>break</I>
+
+or
+<I>exit</I>
+
+commands
+except the module will be listed as loaded as well as performing
+any environment or Tcl commands up to this point
+and then continuing on to the next module on the command line.
+The
+<I>continue</I>
+
+command will only have this effect if not used within a Tcl loop though.
+</DL>
+
+<P>
+<P>
+
+<B>exit [N]</B>
+
+<DL COMPACT><DT><DD>
+This is not a modules specific command but another overloaded Tcl
+command
+and is similar to the
+<I>break</I>
+
+or
+<I>continue</I>
+
+commands.
+However, this command will cause the immediate cessation
+of this module and any additional ones on the command line.
+This module and the subsequent modules will not be listed 
+as loaded.  No environment commands will be performed in
+the current module.
+<P>
+The integer value
+<I>N</I>
+
+after the
+<I>exit</I>
+
+command will be used as an command exit value; however, some shells
+(<I>bash</I>
+
+being one of them)
+do not carry this value through an
+<I>eval</I>
+
+though. For
+<I>bash</I>
+
+and those Bourne shells
+(<I>/bin/sh</I>)
+
+being emulated by the
+<I>bash</I>
+
+will have return a non-zero value as a result of
+<I>test 0 = 1</I>
+
+being appended to the evaluate string.
+</DL>
+
+<P>
+<P>
+
+<B>setenv</B>
+
+<I>variable</I>
+
+<I>value</I>
+
+<DL COMPACT><DT><DD>
+Set environment <I>variable</I> to <I>value</I>.
+The <B>setenv</B> command will also change the process' environment.
+A reference using Tcl's <B>env</B> associative array will reference changes
+made with the <B>setenv</B> command.
+Changes made using Tcl's <B>env</B> associative array will <B>NOT</B>
+change the user's environment variable like the <B>setenv</B> command.
+An environment change made this way will only affect the
+module parsing process.
+The <B>setenv</B> command is also useful for changing the environment prior
+to the <B>exec</B> or <B>system</B> command.
+When a <I>modulefile</I> is unloaded, <B>setenv</B> becomes <B>unsetenv</B>.
+If the environment variable had been defined it will be overwritten while
+loading the modulefile.  A subsequent unload will unset the environment
+variable - the previous value cannot be restored!  (Unless you handle
+it explicitly ... see below.)
+</DL>
+
+<P>
+
+<B>unsetenv</B>
+
+<I>variable</I>
+
+[<I>value</I>]
+
+<DL COMPACT><DT><DD>
+Unsets environment <I>variable</I>.
+However, if there is an optional <I>value</I>, then when unloading
+a module, it will set <I>variable</I> to <I>value</I>.
+The <B>unsetenv</B> command changes the process' environment like
+<B>setenv</B>.
+</DL>
+
+<P>
+
+<B>append-path</B>
+
+[
+<I>-d C</I>
+
+|
+<I>--delim C</I>
+
+|
+<I>--delim=C</I>
+
+]
+<I>variable</I>
+
+<I>value</I>
+
+<BR>
+
+<B>prepend-path</B>
+
+[
+<I>-d C</I>
+
+|
+<I>--delim C</I>
+
+|
+<I>--delim=C</I>
+
+]
+<I>variable</I>
+
+<I>value</I>
+
+<DL COMPACT><DT><DD>
+Append or prepend <I>value</I> to environment <I>variable</I>.
+The <I>variable</I> is a colon, or delimiter, separated list
+such as
+<BR>
+
+&quot;PATH=directory:directory:directory&quot;.
+The default delimiter is a colon ':', but an arbitrary one can be
+given by the
+<I>--delim</I>
+
+option.
+For example a space can be used instead
+(which will need to be handled in the Tcl
+specially by enclosing it in &quot; &quot; or { }).
+A space, however, can not be specified by the 
+<I>--delim=C</I>
+
+form.
+<P>
+If the <I>variable</I> is not set, it is created.
+When a <I>modulefile</I> is unloaded, <B>append-path</B> and
+<B>prepend-path</B> become <B>remove-path</B>.
+</DL>
+
+<P>
+
+<B>remove-path</B>
+
+[
+<I>-d C</I>
+
+|
+<I>--delim C</I>
+
+|
+<I>--delim=C</I>
+
+]
+<I>variable</I>
+
+<I>value</I>
+
+<DL COMPACT><DT><DD>
+Remove <I>value</I> from the colon, or delimiter,
+separated list in <I>variable</I>.
+See
+<I>prepend-path</I>
+
+or
+<I>append-path</I>
+
+for further explanation of using an arbitrary delimiter.
+Every string between colons, or delimiters,
+in <I>variable</I> is compared to <I>value</I>.
+If the two match, <I>value</I> is removed from <I>variable</I>.
+</DL>
+
+<P>
+
+<B>prereq</B>
+
+<I>modulefile</I>
+
+[
+<I>modulefile</I>
+
+...
+]
+<BR>
+
+<B>conflict</B>
+
+<I>modulefile</I>
+
+[
+<I>modulefile</I>
+
+...
+]
+<DL COMPACT><DT><DD>
+<B>prereq</B> and <B>conflict</B> control whether or not the <I>modulefile</I>
+will be loaded.
+The <B>prereq</B> command lists modulefiles which must have been
+previously loaded before the current <I>modulefile</I> will be loaded.
+Similarly, the <B>conflict</B> command lists modulefiles which conflict
+with the current <I>modulefile</I>.
+If a list contains more than one <I>modulefile</I>, then each member of the
+list acts as a Boolean OR operation.
+Multiple <B>prereq</B> and <B>conflict</B> commands may be used to create a 
+Boolean AND operation.
+If one of the requirements have not been satisfied, an error is reported
+and the current <I>modulefile</I> makes no changes to the user's environment.
+<P>
+
+If an argument for <B>prereq</B> is a directory and any <I>modulefile</I> from
+the directory has been loaded, then the prerequisite is met.
+For example, specifying <I>X11</I> as a prereq means that any version
+of <I>X11</I>, <I>X11/R4</I> or <I>X11/R5</I>, must be loaded before proceeding.
+<P>
+
+If an argument for <B>conflict</B> is a directory and any other <I>modulefile</I>
+from that directory has been loaded, then a conflict will occur.
+For example, specifying <I>X11</I> as a conflict will stop <I>X11/R4</I> and
+<I>X11/R5</I> from being loaded at the same time.
+</DL>
+
+<P>
+
+<B>is-loaded</B>
+
+<I>modulefile</I>
+
+[
+<I>modulefile</I>
+
+...
+]
+<DL COMPACT><DT><DD>
+The <B>is-loaded</B> command returns a true value if any of the listed
+modulefiles has been loaded.  If a list contains more than one
+<I>modulefile</I>, then each member acts as a boolean OR operation.  If an
+argument for <B>is-loaded</B> is a directory and any <I>modulefile</I> from the
+directory has been loaded <B>is-loaded</B> would return a true value.
+</DL>
+
+<P>
+
+<B>module</B>
+
+[
+<I>sub-command</I>
+
+] [
+<I>sub-command-args</I>
+
+]
+<DL COMPACT><DT><DD>
+Contains the same sub-commands as described in the
+<B><A HREF="module.html">module</A></B>(1)
+
+man page in the Module Sub-Commands section.
+This command permits a <I>modulefile</I> to load or remove other
+modulefiles.
+No checks are made to ensure that the <I>modulefile</I> does not try to
+load itself.
+Often it is useful to have a single <I>modulefile</I> that performs a 
+number of <B>module load</B> commands.
+For example, if every user on the system requires a basic set of
+applications loaded, then a <I>core</I> <I>modulefile</I> would contain the
+necessary <B>module load</B> commands.
+</DL>
+
+<P>
+
+<B>module-info</B>
+
+<I>option</I>
+
+[
+<I>info-args</I>
+
+]
+<DL COMPACT><DT><DD>
+Provide information about the <B>modulecmd</B> program's state.
+Some of the information is specific to the internals of <B>modulecmd</B>.
+<I>option</I> is the type of information to be provided, and <I>info-args</I>
+are any arguments needed.
+<DL COMPACT>
+<DT><B>module-info flags</B>
+
+<DD>
+<DL COMPACT><DT><DD>
+Returns the integer value of <B>modulecmd's</B> flags state.
+</DL>
+
+<B>module-info mode [</B><I>modetype</I>]
+
+<DL COMPACT><DT><DD>
+Returns the current <B>modulecmd's</B> mode as a string if no <I>modetype</I> is
+given.
+<P>
+
+Returns 1 if <B>modulecmd's</B> mode is <I>modetype</I>.
+<I>modetype</I> can be: <I>load, remove, display, help, whatis, 
+switch, switch1, switch2,</I> or <B>switch3.</B>
+</DL>
+
+<DT><B>module-info name</B>
+
+<DD>
+<DL COMPACT><DT><DD>
+Return the name of the <I>modulefile</I>.
+This is not the full pathname for <I>modulefile</I>.
+See the Modules Variables section for information on the full pathname.
+</DL>
+
+<DT><B>module-info specified</B>
+
+<DD>
+<DL COMPACT><DT><DD>
+Return the name of the <I>modulefile</I> specified on the command line.
+</DL>
+
+<DT><B>module-info shell</B>
+
+<DD>
+<DL COMPACT><DT><DD>
+Return the current shell under which <I>modulecmd</I> was invoked.
+This is the first parameter of <I>modulecmd</I>, which is normally hidden
+by the <I>module</I> alias.
+</DL>
+
+<DT><B>module-info shelltype</B>
+
+<DD>
+<DL COMPACT><DT><DD>
+Return the family of the shell under which <I>modulefile</I> was invoked.
+As of <I>module-info shell</I> this depends on the first parameter of
+<I>modulecmd</I>. The output reflects a shell type determining the shell
+syntax of the commands produced by <I>modulecmd</I>.
+</DL>
+
+<DT><B>module-info alias </B><I>name</I>
+
+<DD>
+<DL COMPACT><DT><DD>
+Returns the full module file name to which the module file alias <I>name</I>
+is assigned
+</DL>
+
+<DT><B>module-info version </B><I>module-file</I>
+
+<DD>
+<DL COMPACT><DT><DD>
+Returns a list of all symbolic versions assigned to the passed
+<I>module-file</I>. The paremeter <I>module-file</I> might either be a 
+full qualified module file with name and version, another symbolic
+module file name or a module file alias.
+</DL>
+
+</DL>
+</DL>
+
+<P>
+
+<B>module-version</B>
+
+<I>module-file</I>
+
+<I>version-name [version-name ...]</I>
+
+<DL COMPACT><DT><DD>
+Assignes the symbolic <I>version-name</I> to the module file <I>module-file</I>
+This command should be placed in one of the modulecmd rc files
+in order to provide shorthand invocations of frequently used module file
+names.
+<P>
+
+The special <I>version-name</I> <B>default</B> specifies the default version to be
+used for module commands, if no specific version is given. This replaces the
+definitions made in the <I>.version</I> file in former <B>modulecmd</B> releases.
+<P>
+
+The parameter <I>module-file</I> may be either
+<P>
+
+<DL COMPACT><DT><DD>
+<I>a fully qualified modulefile</I>
+
+with name and version
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>a symbolic module file name</I>
+
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>another module file alias</I>
+
+</DL>
+
+</DL>
+
+<P>
+
+<B>module-alias</B>
+
+<I>name</I>
+
+<I>module-file</I>
+
+<DL COMPACT><DT><DD>
+Assignes the module file <I>module-file</I> to the alias 
+<I>name</I>. This command should be placed in one of the modulecmd rc files
+in order to provide shorthand invocations of frequently used module file
+names.
+<P>
+
+The parameter <I>module-file</I> may be either
+<P>
+
+<DL COMPACT><DT><DD>
+<I>a fully qualified modulefile</I>
+
+with name and version
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>a symbolic module file name</I>
+
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>another module file alias</I>
+
+</DL>
+
+</DL>
+
+<P>
+
+<B>module-trace</B>
+
+<I>{on|off}</I>
+
+<I>[command [command ...]]</I>
+
+<I>[-module modulefile [modulefile ...]]</I>
+
+<DL COMPACT><DT><DD>
+Switches tracing on or off. Without parameters this command will affect
+globally all tracing setups for all commands and modulefiles. The <I>command</I>
+parameter may be used to affect tracing of specified module commands only
+and the switch <I>-module</I> finally limits the affect of the <I>module-trace</I>
+command to a well defined set of module files.
+<P>
+
+The <I>command</I> may be one of the following
+<P>
+
+<DL COMPACT><DT><DD>
+<I>avail</I>
+
+- 'module avail' command
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>clear</I>
+
+- 'module clear' command
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>display</I>
+
+- 'module display' command
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>init</I>
+
+- 'module init' command
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>help</I>
+
+- 'module help' command
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>list</I>
+
+- 'module list' command
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>load</I>
+
+- 'module load' command
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>purge</I>
+
+- 'module purge' command
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>switch</I>
+
+- 'module switch' command
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>unuse</I>
+
+- 'module unuse' command
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>unload</I>
+
+- 'module unload' command
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>update</I>
+
+- 'module update' command
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>use</I>
+
+- 'module use' command
+</DL>
+
+<P>
+
+The <I>module</I> parameter specifies a set of module files using TCL regular
+expressions. For example
+<P>
+
+<DL COMPACT><DT><DD>
+<I>.*</I>
+
+will affect all module files
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>*/2.0</I>
+
+affects all module files at version 2.0
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>gnu/.*</I>
+
+affects all versions of the gnu modulefile
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>gnu/2.0</I>
+
+affects only version 2.0 of the gnu modulefile
+</DL>
+
+<P>
+
+The <I>module</I> parameter is prepended to the current tracing pattern list
+for the specified module command.
+It is evaluated from the left to the right. The first matching
+pattern defines the tracing parameter.
+<P>
+
+The internal trace pattern list is stored as a colon separated list.
+In advanced user level only, colons may be specified on the <I>module</I>
+parameter of the <I>module-trace</I> command. This will directly take 
+effect in the internal trace pattern list. In novice or expert user level
+a warning messge will be generated.
+</DL>
+
+
+<P>
+
+<B>module-user</B>
+
+<I>level</I>
+
+<DL COMPACT><DT><DD>
+Defines the user level under wich <I>module-cmd</I> runs. This takes effect
+on the error messages being produced and on the behavior of <I>modulecmd</I>
+in case of detecting an outage.
+<P>
+
+The <I>level</I> parameter specifies the user level and may be one of the
+following values:
+<P>
+
+<DL COMPACT><DT><DD>
+<I>advanced, adv</I>
+
+- advanced user level
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>expert, exp</I>
+
+- expert user level
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>novice, nov</I>
+
+- novice user level
+</DL>
+
+</DL>
+
+<P>
+
+<B>module-verbosity</B>
+
+<I>{on|off}</I>
+
+<DL COMPACT><DT><DD>
+Switches verbose <I>modulecmd</I> message display on or off.
+</DL>
+
+<P>
+
+<B>module-log</B>
+
+<I>error-weight</I>
+
+<I>log-facility</I>
+
+<DL COMPACT><DT><DD>
+Defines whether error messages of the specified weight should be logged
+and conditionally assignes a log-facility.
+<P>
+
+The <I>error-weight</I> parameter specifies the error level to be logged.
+It may be one of the following values:
+<P>
+
+<DL COMPACT><DT><DD>
+<I>verb</I>
+
+- verbose messages
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>info</I>
+
+- informal messages
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>debug</I>
+
+- debugging messages
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>trace</I>
+
+- tracing output
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>warn</I>
+
+- warnings
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>prob</I>
+
+- problems (normally the modulecmd may be completed)
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>error</I>
+
+- errors (which normally leads to unsuccessful end of the modulecmd)
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>fatal</I>
+
+- fatal system errors
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>panic</I>
+
+- very fatal system errors, e.g. internal program inconsistencies.
+</DL>
+
+<P>
+
+The <I>log-facility</I> parameter specifies the log destination. This may
+either switch off logging for the specified <I>error-weight</I>, direct 
+log messages to a special stream or a file or specify a syslog facility
+for logging. The following values are allowed:
+<P>
+
+<DL COMPACT><DT><DD>
+<I>stderr, stdout</I>
+
+- predefined output streams for normal and error outputs. Note, that stdout
+is normally used for passing parameters to the invoking shell. Directing
+error output to this stream might screw up the <I>modulecmd</I> integration
+to your shell.
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>a syslog facility</I>
+
+- directs logging to the syslog. See <B>syslog.conf(4)</B> for detailed
+description of the valid syslog facilities.
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>null, none</I>
+
+- will suppress logging of the specified <I>error-weight</I>.
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>a filename</I>
+
+- is recognized by the first character being either a '.' or a '/'. You
+must have write permission to the file you specify.
+</DL>
+
+</DL>
+
+<P>
+
+<B>module-whatis</B>
+
+<I>string</I>
+
+<DL COMPACT><DT><DD>
+Defines a string which is displayed in case of the invocation
+of the 'module whatis' command.
+There may be more than one <I>module-whatis</I> line in a modulefile. This
+command takes no actions in case of load, display, etc. invocations of
+<I>modulecmd</I>.
+<P>
+
+The <I>string</I> parameter has to be enclosed in double-quotes if there's
+more than one word specified. Words are defined to be separated by whitespace
+characters (space, tab, cr).
+</DL>
+
+<P>
+
+<B>set-alias</B>
+
+<I>alias-name</I>
+
+<I>alias-string</I>
+
+<DL COMPACT><DT><DD>
+Sets an alias or function with the name <I>alias-name</I>
+in the user's environment to the string <I>alias-string</I>.
+Arguments can be specified using the Bourne Shell style of function arguments.
+If the string contains &quot;$1&quot;, then this will become the first argument when the
+alias is interpreted by the shell.
+The string &quot;$*&quot; corresponds to all of the arguments given to the alias.
+The character '$' may be escaped using the '\' character.
+<P>
+
+For some shells, aliases are not possible and the command has no effect.
+For Bourne shell derivatives, a shell function will be written (if supported) to
+give the impression of an alias.
+When a <I>modulefile</I> is unloaded, <B>set-alias</B> becomes <B>unset-alias</B>.
+</DL>
+
+<P>
+
+<B>unset-alias</B>
+
+<I>alias-name</I>
+
+<DL COMPACT><DT><DD>
+Unsets an alias with the name <I>alias-name</I> in the user's environment.
+If the shell supports functions then the shell is instructed to unset
+function <I>alias-name</I>.
+</DL>
+
+<P>
+
+<B>system</B>
+
+<I>string</I>
+
+<DL COMPACT><DT><DD>
+Pass <I>string</I> to the C library routine
+<B>system</B>(3).
+
+For the
+<B>system</B>(3)
+
+call <B>modulecmd</B> redirects stdout to stderr since stdout would
+be parsed by the evaluating shell.
+The exit status of the executed command is returned.
+</DL>
+
+<P>
+
+<B>uname</B>
+
+<I>field</I>
+
+<DL COMPACT><DT><DD>
+Provide fast lookup of system information on systems that support
+<B>uname</B>(3).
+
+<B>uname</B> is significantly faster than using <B>system</B> to execute a
+program to return host information.
+If
+<B>uname</B>(3)
+
+is not available,
+<B>gethostname</B>(3)
+
+or some program will make the nodename available.
+<B>uname</B> will return the string &quot;unknown&quot; if information is unavailable
+for the <I>field</I>.
+<P>
+
+<B>uname</B> will invoke <B>getdomainname</B> in order to figure out the
+name of the domain.
+<P>
+
+<I>field</I> values are:
+<P>
+
+<DL COMPACT><DT><DD>
+<I>sysname</I>
+
+- the operating system name
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>nodename</I>
+
+- the hostname
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>domain</I>
+
+- the name of the domain
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>release</I>
+
+- the operating system release
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>version</I>
+
+- the operating system version
+</DL>
+
+<DL COMPACT><DT><DD>
+<I>machine</I>
+
+- a standard name that identifies the system's hardware
+</DL>
+
+</DL>
+
+<P>
+
+<B>x-resource</B>
+
+<I>resource-string</I>
+
+<BR>
+
+<B>x-resource</B>
+
+<I>filename</I>
+
+<DL COMPACT><DT><DD>
+Merge resources into the <I>X11</I> resource database.
+The resources are used to control look and behavior of X11 applications.
+The command will attempt to read resources from <I>filename</I>.
+If the argument isn't a valid file name, then string will be interpreted
+as a resource.
+If a file is found, it will be filtered through the 
+<B>cpp</B>(1)
+
+preprocessor, just as
+<B>xrdb</B>(1)
+
+would do.
+<P>
+
+modulefiles that use this command, should in most cases contain one or more
+<I>x-resource</I> lines, each defining one X11 resource.
+Reading resources from <I>filename</I> is much slower, due to the preprocessing.
+The DISPLAY environment variable should be properly set and the X11 server should
+be accessible.
+If <B>x-resource</B> can't manipulate the X11 resource database, the
+<I>modulefile</I> will exit with an error message.
+<P>
+
+Examples:
+<DL COMPACT>
+<DT><B>x-resource /u2/staff/leif/.xres/Ileaf</B>
+
+<DD>
+<DL COMPACT><DT><DD>
+The file <I>Ileaf</I> is preprocessed by 
+<B>cpp</B>(1)
+
+and the result is merged into the X11 resource database.
+</DL>
+
+<DT><B>x-resource [glob ~/.xres/ileaf]</B>
+
+<DD>
+<DL COMPACT><DT><DD>
+The Tcl <I>glob</I> function is used to have the <I>modulefile</I> read different
+resource files for different users.
+</DL>
+
+<DT><B>x-resource {Ileaf.popup.saveUnder:  True}</B>
+
+<DD>
+<DL COMPACT><DT><DD>
+Merge the <I>Ileaf</I> resource into the X11 resource database.
+</DL>
+
+</DL>
+</DL>
+
+<A NAME="lbAE">&nbsp;</A>
+<H2>Modules Variables</H2>
+
+<P>
+
+The <B>ModulesCurrentModulefile</B> variable contains the full pathname of the
+<I>modulefile</I> being interpreted.
+<P>
+
+<A NAME="lbAF">&nbsp;</A>
+<H2>Locating Modulefiles</H2>
+
+Every directory in <FONT SIZE="-1">MODULEPATH</FONT> is searched to find the <I>modulefile</I>.
+A directory in <FONT SIZE="-1">MODULEPATH</FONT> can have an arbitrary number of sub-directories.
+If the user names a <I>modulefile</I> to be loaded which is actually a directory,
+the directory is opened and a search begins for an actual <I>modulefile</I>.
+First, <B>modulecmd</B> looks for a file with the name <I>.modulerc</I> in the
+directory. If this file exists, its contents will be evaluated as if it was
+a module file to be loaded. You may place <I>module-version</I> and
+<I>module-alias</I> commands inside this file. Additionally, before seeking
+for <I>.modulerc</I> files in the module directory, the global <I>.modulerc</I>
+file is sourced, too. If a named version <I>default</I> now exists for the
+module file to be loaded, the assigned modulefile now will be sourced. Otherwise
+the file <I>.version</I> is looked up in the directory.
+If the <I>.version</I> file exists, it is opened and interpreted as Tcl code.
+If the Tcl variable <B>ModulesVersion</B> is set by the <I>.version</I> file,
+<B>modulecmd</B> will use the name as if it specifies a <I>modulefile</I> in the
+directory. This will become the <I>default</I> module file in this case.
+If <B>ModulesVersion</B> is a directory, the search begins anew down that
+directory. If the name does not match any files located in the current
+directory, the search continues through the remaining directories in
+<FONT SIZE="-1">MODULEPATH</FONT>.
+<P>
+
+Every <I>.version</I>  and <I>.modulerc</I> file found is Tcl interpreted.
+So, changes made in these file will affect the subsequently
+interpreted <I>modulefile</I>.
+<P>
+
+If no <I>default</I> version may be figured out, then the highest
+lexicographically sorted <I>modulefile</I> under the directory will be used.
+<P>
+
+For example, it is possible for a user to have a directory named <I>X11</I> which
+simply contains a <I>.version</I> file specifying which version of X11 is to be loaded.
+Such a file would look like:
+<P>
+
+<DL COMPACT><DT><DD>
+<PRE>
+#%Module1.0
+##
+##  The desired version of X11
+##
+set ModulesVersion &quot;R4&quot;
+</PRE>
+
+</DL>
+
+<P>
+
+<A NAME="lbAG">&nbsp;</A>
+<H2>Modulefile Specific Help</H2>
+
+Users can request help about a specific <I>modulefile</I> through the
+<B><A HREF="module.html">module</A></B>(1)
+
+command.
+The <I>modulefile</I> can print helpful information or start help oriented
+programs by defining a <B>ModulesHelp</B> subroutine.
+The subroutine will be called when the 'module help <I>modulefile</I>' command
+is used.
+<A NAME="lbAH">&nbsp;</A>
+<H2>Modulefile Display</H2>
+
+The 'module display <I>modulefile</I>' command will detail all changes that will
+be made to the environment.
+After displaying all of the environment changes <B>modulecmd</B> will call the
+<B>ModulesDisplay</B> subroutine.
+The <B>ModulesDisplay</B> subroutine is a good place to put additional descriptive
+information about the <I>modulefile</I>.
+<A NAME="lbAI">&nbsp;</A>
+<H2>ENVIRONMENT</H2>
+
+<DL COMPACT>
+<DT><B>${</B><FONT SIZE="-1"><B>MODULEPATH</B></FONT><B>}</B>
+
+<DD>
+Path of directories containing <I>modulefiles</I>.
+</DL>
+<A NAME="lbAJ">&nbsp;</A>
+<H2>VERSION</H2>
+
+3.2.7
+<A NAME="lbAK">&nbsp;</A>
+<H2>SEE ALSO</H2>
+
+<B><A HREF="module.html">module</A></B>(1),
+
+<B>Tcl</B>(3),
+
+<B>TclX</B>(3),
+
+<B>xrdb</B>(1),
+
+<B>cpp</B>(1),
+
+<B>system</B>(3),
+
+<B>uname</B>(3),
+
+<B>gethostname</B>(3)
+
+<B>getdomainname</B>(3)
+
+<A NAME="lbAL">&nbsp;</A>
+<H2>NOTES</H2>
+
+Tcl was developed by John Ousterhout at the University of California
+at Berkeley.
+<P>
+
+TclX was developed by Karl Lehenbauer and Mark Diekhans.
+<P>
+
+<HR>
+<A NAME="index">&nbsp;</A><H2>Index</H2>
+<DL>
+<DT><A HREF="#lbAB">NAME</A><DD>
+<DT><A HREF="#lbAC">DESCRIPTION</A><DD>
+<DT><A HREF="#lbAD">Modules Specific Tcl Commands</A><DD>
+<DT><A HREF="#lbAE">Modules Variables</A><DD>
+<DT><A HREF="#lbAF">Locating Modulefiles</A><DD>
+<DT><A HREF="#lbAG">Modulefile Specific Help</A><DD>
+<DT><A HREF="#lbAH">Modulefile Display</A><DD>
+<DT><A HREF="#lbAI">ENVIRONMENT</A><DD>
+<DT><A HREF="#lbAJ">VERSION</A><DD>
+<DT><A HREF="#lbAK">SEE ALSO</A><DD>
+<DT><A HREF="#lbAL">NOTES</A><DD>
+</DL>
+<HR>
+This document was created by
+man2html,
+using the manual pages.<BR>
+Time: 17:14:13 GMT, July 31, 2009
+</BODY>
+</HTML>
