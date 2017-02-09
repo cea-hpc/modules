@@ -133,7 +133,7 @@ specifies the type of shell.
 <P>
 
 The initialization scripts are kept in
-<I>$MODULESHOME/init/&lt;shell&gt;</I>
+<I>/usr/local/Modules/3.2.10/init/&lt;shell&gt;</I>
 
 where
 <I>&lt;shell&gt;</I>
@@ -142,8 +142,29 @@ is the name of the sourcing shell.
 The sh, csh, tcsh, bash, ksh, and zsh shells are supported by
 <B>modulecmd.</B>
 
-In addition, python and perl &quot;shells&quot; are supported, which writes
-the environment changes to stdout as python or perl code.
+In addition, python, perl, and cmake &quot;shells&quot; are supported, which writes
+the environment changes to stdout as python, perl, or cmake code.
+<P>
+The perl
+<I>module</I>
+
+command is set up with:
+<P>
+<BR>&nbsp;&nbsp;use&nbsp;lib&nbsp;&quot;/usr/local/Modules/3.2.10/init&quot;;
+<BR>&nbsp;&nbsp;use&nbsp;perl;
+<P>
+And the python
+<I>module</I>
+
+command is defined with:
+<P>
+<BR>&nbsp;&nbsp;import&nbsp;os;
+<BR>&nbsp;&nbsp;if&nbsp;os.environ.has_key('PYTHONPATH'):
+<BR>&nbsp;&nbsp;<TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TT>os.environ['PYTHONPATH']&nbsp;+=&nbsp;':/usr/local/Modules/3.2.10/init';<BR>
+<BR>&nbsp;&nbsp;else:
+<BR>&nbsp;&nbsp;<TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TT>os.environ['PYTHONPATH']&nbsp;=&nbsp;'/usr/local/Modules/3.2.10/init';<BR>
+<P>
+<BR>&nbsp;&nbsp;from&nbsp;python&nbsp;import&nbsp;module;
 <P>
 <A NAME="lbAF">&nbsp;</A>
 <H3>Modulecmd startup</H3>
@@ -158,11 +179,13 @@ See
 for detailed information.
 <P>
 
-Upon invocation of modulecmd module RC files are sourced in the following
-order:
+Upon invocation of modulecmd module run-command files are sourced in
+the following order:
 <PRE>
 
-        Global RC file as specified by ${<FONT SIZE="-1">MODULERCFILE</FONT>} or ${<FONT SIZE="-1">MODULESHOME</FONT>}/etc/rc
+        Global RC file as specified by <FONT SIZE="-1">${prefix}/etc</FONT>/${<FONT SIZE="-1">MODULERCFILE</FONT>}
+        If ${<FONT SIZE="-1">MODULERCFILE</FONT>} is not defined then the global RC
+        file is assumed to be &quot;modulerc&quot;
 
         User specific module RC file ${<FONT SIZE="-1">HOME</FONT>}/.modulerc
 
@@ -189,17 +212,11 @@ switches are accepted:
 
 <DD>
 Give some helpful usage information, and terminates the command.
-<DL COMPACT><DT><DD>
-</DL>
-
 <DT><I>--version, -V</I>
 
 <DD>
 Lists the current version of the module command, and some configured
 option values.  The command then terminates without further processing.
-<DL COMPACT><DT><DD>
-</DL>
-
 <DT><I>--force, -f</I>
 
 <DD>
@@ -208,38 +225,23 @@ Force active dependency resolution. This will result in modules found on a
 Unloading module files using this switch will result in all required modules
 which have been loaded automatically using the <I>-f</I> switch being unload.
 This switch is experimental at the moment.
-<DL COMPACT><DT><DD>
-</DL>
-
 <DT><I>--terse, -t</I>
 
 <DD>
 Display <I>avail</I> and <I>list</I> output in short format.
-<DL COMPACT><DT><DD>
-</DL>
-
 <DT><I>--long, -l</I>
 
 <DD>
 Display <I>avail</I> and <I>list</I> output in long format.
-<DL COMPACT><DT><DD>
-</DL>
-
 <DT><I>--human, -h</I>
 
 <DD>
 Display short output of the <I>avail</I> and <I>list</I> commands in human
 readable format. 
-<DL COMPACT><DT><DD>
-</DL>
-
 <DT><I>--verbose, -v</I>
 
 <DD>
 Enable verbose messages during module command execution.
-<DL COMPACT><DT><DD>
-</DL>
-
 <DT><I>--silent, -s</I>
 
 <DD>
@@ -248,26 +250,11 @@ Disable verbose messages. Redirect <I>stderr</I> to <I>/dev/null</I> if
 commands being written into <I>.cshrc</I>, <I>.login</I> or <I>.profile</I>
 files, because some remote shells (as <I>rsh</I>(1)) and remote execution
 commands (like <I>rdist</I>) get confused if there is output on stderr.
-<DL COMPACT><DT><DD>
-</DL>
-
-<DT><I>--create, -c</I>
-
-<DD>
-Create caches for <I>module avail</I> and <I>module apropos</I>. You must 
-be granted write access to the ${<FONT SIZE="-1">MODULEHOME</FONT>}/modulefiles/ directory
-if you try to invoke <I>module</I> with the <I>-c</I> option.
-<DL COMPACT><DT><DD>
-</DL>
-
 <DT><I>--icase, -i</I>
 
 <DD>
 Case insensitive module parameter evaluation. Currently only implemented for
 the <I>module apropos</I> command.
-<DL COMPACT><DT><DD>
-</DL>
-
 <DT><I>--userlvl &lt;lvl&gt;, -u &lt;lvl&gt;</I>
 
 <DD>
@@ -292,7 +279,6 @@ Advanced module user
 <A NAME="lbAH">&nbsp;</A>
 <H3>Module Sub-Commands</H3>
 
-<DL COMPACT><DT><DD>
 <DL COMPACT>
 <DT><B>help&nbsp;&nbsp; [modulefile...]</B>
 
@@ -357,7 +343,9 @@ List loaded modules.
 <DT><B>avail [path...]</B>
 
 <DD>
-List all available modulefiles in the current <FONT SIZE="-1">MODULEPATH</FONT>.
+List all available modulefiles in the current <FONT SIZE="-1">MODULEPATH</FONT>, where
+the sorting order is given by the <FONT SIZE="-1">LC_COLLATE</FONT> locale environment
+variable.
 All directories in the <FONT SIZE="-1">MODULEPATH</FONT> are recursively searched for
 files containing the <I>modulefile</I> magic cookie.
 If an argument is given, then each directory in the <FONT SIZE="-1">MODULEPATH</FONT> is
@@ -488,8 +476,6 @@ List all of the modulefiles loaded from the shell's initialization file.
 <DD>
 Clear all of the modulefiles from the shell's initialization files.
 </DL>
-</DL>
-
 <A NAME="lbAI">&nbsp;</A>
 <H3>Modulefiles</H3>
 
@@ -530,17 +516,6 @@ prior state.
 <H2>ENVIRONMENT</H2>
 
 <DL COMPACT>
-<DT><FONT SIZE="-1"><B></B></FONT><FONT SIZE="-2"><B>MODULESHOME</B></FONT><B></B>
-<DD>
-The location of the master Modules package file directory containing
-<B>module</B>
-
-command initialization scripts, the executable program
-<B>modulecmd,</B>
-
-and a directory containing a collection of master
-<I>modulefiles.</I>
-
 <DT><FONT SIZE="-1"><B></B></FONT><FONT SIZE="-2"><B>MODULEPATH</B></FONT><B></B>
 <DD>
 The path that the
@@ -586,34 +561,46 @@ The filename of the file containing the initialization environment snapshot.
 <A NAME="lbAK">&nbsp;</A>
 <H2>FILES</H2>
 
+Use following values if specified: ${exec_prefix} = ${prefix} and
+${prefix} = /usr/local/Modules/3.2.10 if present.
 <DL COMPACT>
-<DT><B>/usr/local/Modules/3.2.7</B>
-
-<DD>
-The <FONT SIZE="-1">MODULESHOME</FONT> directory.
-<DT><B>${</B><FONT SIZE="-1"><B>MODULESHOME</B></FONT><B>}/etc/rc</B>
+<DT><B>${prefix}/etc/modulerc</B>
 
 <DD>
 The system-wide
 <I>modules rc file.</I>
 
-The location of this file can be changed using
+The location or name of this file can be changed using
 the <FONT SIZE="-1">MODULERCFILE</FONT> environment variable as described above.
-<DT><B>${</B><FONT SIZE="-1"><B>HOME</B></FONT><B>}/.modulerc</B>
+<DT><B>$</B><FONT SIZE="-1"><B>HOME</B></FONT><B>/.modulerc</B>
 
 <DD>
 The user specific 
 <I>modules rc file.</I>
 
-<DT><B>${</B><FONT SIZE="-1"><B>MODULESHOME</B></FONT><B>}/modulefiles</B>
+<DT><B>/usr/local/Modules/modulefiles</B>
 
 <DD>
 The directory for system-wide
 <I>modulefiles.</I>
 
-The location of the directory can be changed using
+The location of this directory and those below can be changed using
 the <FONT SIZE="-1">MODULEPATH</FONT> environment variable as described above.
-<DT><B>${</B><FONT SIZE="-1"><B>MODULESHOME</B></FONT><B>}/bin/modulecmd</B>
+<DT><B>/usr/local/Modules/3.2.10 and /usr/local/Modules/versions</B>
+
+<DD>
+If module versioning is enabled these directories provide
+<I>modulefiles</I>
+
+distributed by the module package.
+<DT><B>${prefix}/share/modulefiles</B>
+
+<DD>
+If module versioning is disabled then the module package
+<I>modulefiles</I>
+
+are provided here.
+<DT><B>${exec_prefix}/bin/modulecmd</B>
 
 <DD>
 The 
@@ -622,26 +609,12 @@ The
 interpreter that gets executed upon each invocation of
 <B>module.</B>
 
-<DT><B>${</B><FONT SIZE="-1"><B>MODULESHOME</B></FONT><B>}/init/</B><I>&lt;shell&gt;</I>
+<DT><B>/usr/local/Modules/3.2.10/init/</B><I>&lt;shell&gt;</I>
 
 <DD>
 The Modules package initialization file sourced into the user's
 environment.
-<DT><B>${</B><FONT SIZE="-1"><B>MODULEPATH</B></FONT><B>}/.moduleavailcache</B>
-
-<DD>
-File containing the cached list of all
-<I>modulefiles</I>
-
-for each directory in the <FONT SIZE="-1">MODULEPATH</FONT>
-(only when the avail cache is enabled via the configure option --enable-cache
-which sets CACHE_AVAIL).
-<DT><B>${</B><FONT SIZE="-1"><B>MODULEPATH</B></FONT><B>}/.moduleavailcachedir</B>
-
-<DD>
-File containing the names and modification times for all sub-directories with
-an avail cache (see above).
-<DT><B>${</B><FONT SIZE="-1"><B>HOME</B></FONT><B>}/.modulesbeginenv</B>
+<DT><B>$</B><FONT SIZE="-1"><B>HOME</B></FONT><B>/.modulesbeginenv</B>
 
 <DD>
 A snapshot of the user's environment taken at Module initialization.
@@ -658,7 +631,7 @@ If this defines a valid filename, it serves the same purpose as above
 <A NAME="lbAL">&nbsp;</A>
 <H2>VERSION</H2>
 
-3.2.7
+3.2.10
 <A NAME="lbAM">&nbsp;</A>
 <H2>SEE ALSO</H2>
 
@@ -688,6 +661,6 @@ If this defines a valid filename, it serves the same purpose as above
 This document was created by
 man2html,
 using the manual pages.<BR>
-Time: 17:13:57 GMT, July 31, 2009
+Time: 20:06:42 GMT, February 02, 2017
 </BODY>
 </HTML>

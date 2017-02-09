@@ -474,6 +474,15 @@ Some of the information is specific to the internals of <B>modulecmd</B>.
 <I>option</I> is the type of information to be provided, and <I>info-args</I>
 are any arguments needed.
 <DL COMPACT>
+<DT><B>module-info type</B>
+
+<DD>
+<DL COMPACT><DT><DD>
+Returns either &quot;C&quot; or &quot;Tcl&quot; to indicate which module command is being
+executed, either the &quot;C&quot; version or the Tcl-only version, to allow the
+modulefile writer to handle any differences between the two.
+</DL>
+
 <DT><B>module-info flags</B>
 
 <DD>
@@ -481,8 +490,9 @@ are any arguments needed.
 Returns the integer value of <B>modulecmd's</B> flags state.
 </DL>
 
-<B>module-info mode [</B><I>modetype</I>]
+<DT><B>module-info mode [</B><I>modetype</I>]
 
+<DD>
 <DL COMPACT><DT><DD>
 Returns the current <B>modulecmd's</B> mode as a string if no <I>modetype</I> is
 given.
@@ -558,7 +568,7 @@ module file name or a module file alias.
 <I>version-name [version-name ...]</I>
 
 <DL COMPACT><DT><DD>
-Assignes the symbolic <I>version-name</I> to the module file <I>module-file</I>
+Assigns the symbolic <I>version-name</I> to the module file <I>module-file</I>
 This command should be placed in one of the modulecmd rc files
 in order to provide shorthand invocations of frequently used module file
 names.
@@ -570,12 +580,11 @@ definitions made in the <I>.version</I> file in former <B>modulecmd</B> releases
 <P>
 
 The parameter <I>module-file</I> may be either
-<P>
-
 <DL COMPACT><DT><DD>
-<I>a fully qualified modulefile</I>
+<I>a fully or partially qualified modulefile</I>
 
-with name and version
+with <I> name / version</I>.  If name is '.' then the current directory name
+is assumed to be the module name.  (Use this for deep modulefile directories.)
 </DL>
 
 <DL COMPACT><DT><DD>
@@ -599,15 +608,13 @@ with name and version
 <I>module-file</I>
 
 <DL COMPACT><DT><DD>
-Assignes the module file <I>module-file</I> to the alias 
+Assigns the module file <I>module-file</I> to the alias 
 <I>name</I>. This command should be placed in one of the modulecmd rc files
 in order to provide shorthand invocations of frequently used module file
 names.
 <P>
 
 The parameter <I>module-file</I> may be either
-<P>
-
 <DL COMPACT><DT><DD>
 <I>a fully qualified modulefile</I>
 
@@ -628,157 +635,12 @@ with name and version
 
 <P>
 
-<B>module-trace</B>
-
-<I>{on|off}</I>
-
-<I>[command [command ...]]</I>
-
-<I>[-module modulefile [modulefile ...]]</I>
-
-<DL COMPACT><DT><DD>
-Switches tracing on or off. Without parameters this command will affect
-globally all tracing setups for all commands and modulefiles. The <I>command</I>
-parameter may be used to affect tracing of specified module commands only
-and the switch <I>-module</I> finally limits the affect of the <I>module-trace</I>
-command to a well defined set of module files.
-<P>
-
-The <I>command</I> may be one of the following
-<P>
-
-<DL COMPACT><DT><DD>
-<I>avail</I>
-
-- 'module avail' command
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>clear</I>
-
-- 'module clear' command
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>display</I>
-
-- 'module display' command
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>init</I>
-
-- 'module init' command
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>help</I>
-
-- 'module help' command
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>list</I>
-
-- 'module list' command
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>load</I>
-
-- 'module load' command
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>purge</I>
-
-- 'module purge' command
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>switch</I>
-
-- 'module switch' command
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>unuse</I>
-
-- 'module unuse' command
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>unload</I>
-
-- 'module unload' command
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>update</I>
-
-- 'module update' command
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>use</I>
-
-- 'module use' command
-</DL>
-
-<P>
-
-The <I>module</I> parameter specifies a set of module files using TCL regular
-expressions. For example
-<P>
-
-<DL COMPACT><DT><DD>
-<I>.*</I>
-
-will affect all module files
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>*/2.0</I>
-
-affects all module files at version 2.0
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>gnu/.*</I>
-
-affects all versions of the gnu modulefile
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>gnu/2.0</I>
-
-affects only version 2.0 of the gnu modulefile
-</DL>
-
-<P>
-
-The <I>module</I> parameter is prepended to the current tracing pattern list
-for the specified module command.
-It is evaluated from the left to the right. The first matching
-pattern defines the tracing parameter.
-<P>
-
-The internal trace pattern list is stored as a colon separated list.
-In advanced user level only, colons may be specified on the <I>module</I>
-parameter of the <I>module-trace</I> command. This will directly take 
-effect in the internal trace pattern list. In novice or expert user level
-a warning messge will be generated.
-</DL>
-
-
-<P>
-
 <B>module-user</B>
 
 <I>level</I>
 
 <DL COMPACT><DT><DD>
-Defines the user level under wich <I>module-cmd</I> runs. This takes effect
+Defines the user level under which <I>module-cmd</I> runs. This takes effect
 on the error messages being produced and on the behavior of <I>modulecmd</I>
 in case of detecting an outage.
 <P>
@@ -827,7 +689,7 @@ Switches verbose <I>modulecmd</I> message display on or off.
 
 <DL COMPACT><DT><DD>
 Defines whether error messages of the specified weight should be logged
-and conditionally assignes a log-facility.
+and conditionally assigns a log-facility.
 <P>
 
 The <I>error-weight</I> parameter specifies the error level to be logged.
@@ -850,12 +712,6 @@ It may be one of the following values:
 <I>debug</I>
 
 - debugging messages
-</DL>
-
-<DL COMPACT><DT><DD>
-<I>trace</I>
-
-- tracing output
 </DL>
 
 <DL COMPACT><DT><DD>
@@ -1082,7 +938,7 @@ name of the domain.
 
 <DL COMPACT><DT><DD>
 Merge resources into the <I>X11</I> resource database.
-The resources are used to control look and behavior of X11 applications.
+The resources are used to control look and behavior of <I>X11</I> applications.
 The command will attempt to read resources from <I>filename</I>.
 If the argument isn't a valid file name, then string will be interpreted
 as a resource.
@@ -1096,11 +952,11 @@ would do.
 <P>
 
 modulefiles that use this command, should in most cases contain one or more
-<I>x-resource</I> lines, each defining one X11 resource.
+<I>x-resource</I> lines, each defining one <I>X11</I> resource.
 Reading resources from <I>filename</I> is much slower, due to the preprocessing.
-The DISPLAY environment variable should be properly set and the X11 server should
-be accessible.
-If <B>x-resource</B> can't manipulate the X11 resource database, the
+The DISPLAY environment variable should be properly set and
+the <I>X11</I> server should be accessible.
+If <B>x-resource</B> can't manipulate the <I>X11</I> resource database, the
 <I>modulefile</I> will exit with an error message.
 <P>
 
@@ -1113,22 +969,22 @@ Examples:
 The file <I>Ileaf</I> is preprocessed by 
 <B>cpp</B>(1)
 
-and the result is merged into the X11 resource database.
+and the result is merged into the <I>X11</I> resource database.
 </DL>
 
 <DT><B>x-resource [glob ~/.xres/ileaf]</B>
 
 <DD>
 <DL COMPACT><DT><DD>
-The Tcl <I>glob</I> function is used to have the <I>modulefile</I> read different
-resource files for different users.
+The Tcl <I>glob</I> function is used to have the <I>modulefile</I> read
+different resource files for different users.
 </DL>
 
 <DT><B>x-resource {Ileaf.popup.saveUnder:  True}</B>
 
 <DD>
 <DL COMPACT><DT><DD>
-Merge the <I>Ileaf</I> resource into the X11 resource database.
+Merge the <I>Ileaf</I> resource into the <I>X11</I> resource database.
 </DL>
 
 </DL>
@@ -1153,15 +1009,23 @@ the directory is opened and a search begins for an actual <I>modulefile</I>.
 First, <B>modulecmd</B> looks for a file with the name <I>.modulerc</I> in the
 directory. If this file exists, its contents will be evaluated as if it was
 a module file to be loaded. You may place <I>module-version</I> and
-<I>module-alias</I> commands inside this file. Additionally, before seeking
-for <I>.modulerc</I> files in the module directory, the global <I>.modulerc</I>
+<I>module-alias</I> commands inside this file.
+<P>
+
+Additionally, before seeking
+for <I>.modulerc</I> files in the module directory, the global <I>modulerc</I>
 file is sourced, too. If a named version <I>default</I> now exists for the
-module file to be loaded, the assigned modulefile now will be sourced. Otherwise
-the file <I>.version</I> is looked up in the directory.
-If the <I>.version</I> file exists, it is opened and interpreted as Tcl code.
+module file to be loaded, the assigned modulefile now will be sourced.
+Otherwise the file <I>.version</I> is looked up in the directory.
+<P>
+
+If the <I>.version</I> file exists, it is opened and interpreted as Tcl code
+and takes precedence over a <I>.modulerc</I> file in the same directory.
 If the Tcl variable <B>ModulesVersion</B> is set by the <I>.version</I> file,
 <B>modulecmd</B> will use the name as if it specifies a <I>modulefile</I> in the
 directory. This will become the <I>default</I> module file in this case.
+<P>
+
 If <B>ModulesVersion</B> is a directory, the search begins anew down that
 directory. If the name does not match any files located in the current
 directory, the search continues through the remaining directories in
@@ -1169,16 +1033,21 @@ directory, the search continues through the remaining directories in
 <P>
 
 Every <I>.version</I>  and <I>.modulerc</I> file found is Tcl interpreted.
-So, changes made in these file will affect the subsequently
+The difference is that <I>.version</I> only applies to the current directory,
+and the <I>.modulerc</I> applies to the current directory and all
+subdirectories.
+Changes made in these file will affect the subsequently
 interpreted <I>modulefile</I>.
 <P>
 
 If no <I>default</I> version may be figured out, then the highest
-lexicographically sorted <I>modulefile</I> under the directory will be used.
+lexicographically sorted <I>modulefile</I> under the directory
+using the 'C' locale will be used.
 <P>
 
-For example, it is possible for a user to have a directory named <I>X11</I> which
-simply contains a <I>.version</I> file specifying which version of X11 is to be loaded.
+For example, it is possible for a user to have a directory named <I>X11</I>
+which simply contains a <I>.version</I> file specifying which
+version of <I>X11</I> is to be loaded.
 Such a file would look like:
 <P>
 
@@ -1189,6 +1058,19 @@ Such a file would look like:
 ##  The desired version of X11
 ##
 set ModulesVersion &quot;R4&quot;
+
+</PRE>
+
+</DL>
+
+The equivalent <I>.modulerc</I> would look like:
+<DL COMPACT><DT><DD>
+<PRE>
+#%Module1.0
+##
+##  The desired version of <I>X11</I>
+##
+module-version &quot;./R4&quot; default
 </PRE>
 
 </DL>
@@ -1219,7 +1101,7 @@ information about the <I>modulefile</I>.
 <H2>ENVIRONMENT</H2>
 
 <DL COMPACT>
-<DT><B>${</B><FONT SIZE="-1"><B>MODULEPATH</B></FONT><B>}</B>
+<DT><B></B><FONT SIZE="-1"><B>MODULEPATH</B></FONT><B></B>
 
 <DD>
 Path of directories containing <I>modulefiles</I>.
@@ -1227,7 +1109,7 @@ Path of directories containing <I>modulefiles</I>.
 <A NAME="lbAJ">&nbsp;</A>
 <H2>VERSION</H2>
 
-3.2.7
+3.2.10
 <A NAME="lbAK">&nbsp;</A>
 <H2>SEE ALSO</H2>
 
@@ -1278,6 +1160,6 @@ TclX was developed by Karl Lehenbauer and Mark Diekhans.
 This document was created by
 man2html,
 using the manual pages.<BR>
-Time: 17:14:13 GMT, July 31, 2009
+Time: 20:06:49 GMT, February 02, 2017
 </BODY>
 </HTML>
