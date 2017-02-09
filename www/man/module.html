@@ -1,18 +1,16 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<HTML><HEAD><TITLE>Man page of MODULE</TITLE>
-<link rel=stylesheet href="../modules.css" type="text/css">
+<HTML><HEAD>
+<head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+<TITLE>MODULE(1) manual page (C version)</TITLE>
+
+<!-- Bootstrap core CSS --><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"><!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries --><!--[if lt IE 9]>  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script><![endif]--><!-- Local CSS --><link href="../modules.css" rel="stylesheet"></head>
 </HEAD><BODY>
-<H1>MODULE</H1>
-Section: Modules package (1)<BR>Updated: July 2009<BR><A HREF="#index">Index</A>
-<A HREF="../index.html">Return to Main Contents</A><HR>
-
-
-<A NAME="lbAB">&nbsp;</A>
-<H2>NAME</H2>
+<!-- Static navbar --><nav class="navbar navbar-default navbar-static-top">  <div class="container">    <div class="navbar-header">      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">        <span class="sr-only">Toggle navigation</span>        <span class="icon-bar"></span>        <span class="icon-bar"></span>        <span class="icon-bar"></span>      </button>      <a class="navbar-brand" href="../index.html">Environment Modules</a>    </div>    <div id="navbar" class="navbar-collapse collapse">      <ul class="nav navbar-nav">        <li class="dropdown">          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tcl version documentation<span class="caret"></span></a>          <ul class="dropdown-menu">            <li class="dropdown-header">Man pages</li>            <li><a href="../tcl/module.html">module(1)</a></li>            <li><a href="../tcl/modulefile.html">modulefile(4)</a></li>            <li role="separator" class="divider"></li>            <li><a href="../tcl/diff_with_c-version.html">Differences with C version</a></li>          </ul>        </li>        <li class="dropdown">          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">C version documentation<span class="caret"></span></a>          <ul class="dropdown-menu">            <li class="dropdown-header">Man pages</li>            <li><a href="../man/module.html">module(1)</a></li>            <li><a href="../man/modulefile.html">modulefile(4)</a></li>          </ul>        </li>      </ul>    </div><!--/.nav-collapse -->  </div></nav><div class="container">
+<H1 class="page-header">MODULE(1) manual page (C version)</H1>
 
 module - command interface to the Modules package
-<A NAME="lbAC">&nbsp;</A>
-<H2>SYNOPSIS</H2>
+<H1 class="page-header">SYNOPSIS</H1>
 
 <B>module</B>
 
@@ -26,8 +24,7 @@ module - command interface to the Modules package
 ]
 <I>[ sub-command-args ]</I>
 
-<A NAME="lbAD">&nbsp;</A>
-<H2>DESCRIPTION</H2>
+<H1 class="page-header">DESCRIPTION</H1>
 
 <P>
 
@@ -95,8 +92,7 @@ command to take is described by the
 <I>sub-command</I>
 
 and its associated arguments.
-<A NAME="lbAE">&nbsp;</A>
-<H3>Package Initialization</H3>
+<H2>Package Initialization</H2>
 
 <P>
 
@@ -149,52 +145,44 @@ The perl
 <I>module</I>
 
 command is set up with:
-<P>
-<BR>&nbsp;&nbsp;use&nbsp;lib&nbsp;&quot;/usr/local/Modules/3.2.10/init&quot;;
-<BR>&nbsp;&nbsp;use&nbsp;perl;
-<P>
+
+<pre><code>  use lib "/usr/local/Modules/3.2.10/init";
+  use perl;</code></pre>
 And the python
 <I>module</I>
 
 command is defined with:
-<P>
-<BR>&nbsp;&nbsp;import&nbsp;os;
-<BR>&nbsp;&nbsp;if&nbsp;os.environ.has_key('PYTHONPATH'):
-<BR>&nbsp;&nbsp;<TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TT>os.environ['PYTHONPATH']&nbsp;+=&nbsp;':/usr/local/Modules/3.2.10/init';<BR>
-<BR>&nbsp;&nbsp;else:
-<BR>&nbsp;&nbsp;<TT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TT>os.environ['PYTHONPATH']&nbsp;=&nbsp;'/usr/local/Modules/3.2.10/init';<BR>
-<P>
-<BR>&nbsp;&nbsp;from&nbsp;python&nbsp;import&nbsp;module;
-<P>
-<A NAME="lbAF">&nbsp;</A>
-<H3>Modulecmd startup</H3>
+
+<pre></code>  import os;
+  if os.environ.has_key('PYTHONPATH'):
+      os.environ['PYTHONPATH'] += ':/usr/local/Modules/3.2.10/init';
+  else:
+      os.environ['PYTHONPATH'] = '/usr/local/Modules/3.2.10/init';
+
+  from python import module;</code></pre>
+
+<H2>Modulecmd startup</H2>
 
 <P>
 
 Upon invocation <I>modulecmd</I> sources rc files which contain global, user
 and modulefile specific setups. These files are interpreted as modulefiles.
 See
-<B><A HREF="modulefile.html">modulefile</A></B>(4)
+<A HREF="modulefile.html"><B>modulefile</B>(4)</A>
 
 for detailed information.
 <P>
 
 Upon invocation of modulecmd module run-command files are sourced in
 the following order:
-<PRE>
 
-        Global RC file as specified by <FONT SIZE="-1">${prefix}/etc</FONT>/${<FONT SIZE="-1">MODULERCFILE</FONT>}
-        If ${<FONT SIZE="-1">MODULERCFILE</FONT>} is not defined then the global RC
-        file is assumed to be &quot;modulerc&quot;
+<ol>
+<li><p>Global RC file as specified by <FONT SIZE="-1">${prefix}/etc</FONT>/${<FONT SIZE="-1">MODULERCFILE</FONT>}. If ${<FONT SIZE="-1">MODULERCFILE</FONT>} is not defined then the global RC file is assumed to be &quot;modulerc&quot;</p></li>
+<li><p>User specific module RC file ${<FONT SIZE="-1">HOME</FONT>}/.modulerc</p></li>
+<li><p>All .modulerc and .version files found during modulefile seeking.</p></li>
+</ol>
 
-        User specific module RC file ${<FONT SIZE="-1">HOME</FONT>}/.modulerc
-
-        All .modulerc and .version files found during modulefile seeking.
-
-</PRE>
-
-<A NAME="lbAG">&nbsp;</A>
-<H3>Command line switches</H3>
+<H2>Command line switches</H2>
 
 <P>
 
@@ -260,7 +248,6 @@ the <I>module apropos</I> command.
 <DD>
 Set the user level to the specified value. The argument of this option may
 be one of:
-</DL>
 <P>
 
 <I>novice, nov</I>
@@ -276,8 +263,9 @@ Experienced module user
 <I>advanced, adv</I>
 
 Advanced module user
-<A NAME="lbAH">&nbsp;</A>
-<H3>Module Sub-Commands</H3>
+</DL>
+
+<H2>Module Sub-Commands</H2>
 
 <DL COMPACT>
 <DT><B>help&nbsp;&nbsp; [modulefile...]</B>
@@ -476,8 +464,7 @@ List all of the modulefiles loaded from the shell's initialization file.
 <DD>
 Clear all of the modulefiles from the shell's initialization files.
 </DL>
-<A NAME="lbAI">&nbsp;</A>
-<H3>Modulefiles</H3>
+<H2>Modulefiles</H2>
 
 <P>
 
@@ -512,8 +499,7 @@ it without having the environment variables return to their
 prior state.
 <P>
 
-<A NAME="lbAJ">&nbsp;</A>
-<H2>ENVIRONMENT</H2>
+<H1 class="page-header">ENVIRONMENT</H1>
 
 <DL COMPACT>
 <DT><FONT SIZE="-1"><B></B></FONT><FONT SIZE="-2"><B>MODULEPATH</B></FONT><B></B>
@@ -558,8 +544,7 @@ is invoked.
 The filename of the file containing the initialization environment snapshot.
 <P>
 </DL>
-<A NAME="lbAK">&nbsp;</A>
-<H2>FILES</H2>
+<H1 class="page-header">FILES</H1>
 
 Use following values if specified: ${exec_prefix} = ${prefix} and
 ${prefix} = /usr/local/Modules/3.2.10 if present.
@@ -628,39 +613,15 @@ sub-command (if BEGINENV=1), else
 If this defines a valid filename, it serves the same purpose as above
 (if BEGINENV=99).
 </DL>
-<A NAME="lbAL">&nbsp;</A>
-<H2>VERSION</H2>
+<H1 class="page-header">VERSION</H1>
 
 3.2.10
-<A NAME="lbAM">&nbsp;</A>
-<H2>SEE ALSO</H2>
+<H1 class="page-header">SEE ALSO</H1>
 
-<B><A HREF="modulefile.html">modulefile</A></B>(4)
+<A HREF="modulefile.html"><B>modulefile</B>(4)</A>
 
 <P>
 
-<HR>
-<A NAME="index">&nbsp;</A><H2>Index</H2>
-<DL>
-<DT><A HREF="#lbAB">NAME</A><DD>
-<DT><A HREF="#lbAC">SYNOPSIS</A><DD>
-<DT><A HREF="#lbAD">DESCRIPTION</A><DD>
-<DL>
-<DT><A HREF="#lbAE">Package Initialization</A><DD>
-<DT><A HREF="#lbAF">Modulecmd startup</A><DD>
-<DT><A HREF="#lbAG">Command line switches</A><DD>
-<DT><A HREF="#lbAH">Module Sub-Commands</A><DD>
-<DT><A HREF="#lbAI">Modulefiles</A><DD>
-</DL>
-<DT><A HREF="#lbAJ">ENVIRONMENT</A><DD>
-<DT><A HREF="#lbAK">FILES</A><DD>
-<DT><A HREF="#lbAL">VERSION</A><DD>
-<DT><A HREF="#lbAM">SEE ALSO</A><DD>
-</DL>
-<HR>
-This document was created by
-man2html,
-using the manual pages.<BR>
-Time: 20:06:42 GMT, February 02, 2017
+</div><footer class="footer"><div class="container"><p>Modules is covered by the <a href="http://www.gnu.org/licenses/old-licenses/gpl-2.0.html">GNU General Public License, version 2</a>. Copyright &copy; 1996-2017 John L. Furlani &amp; Peter W. Osel.  All rights reserved. <br/>Trademarks used are the property of their respective owners. Thanks to <a href="http://sourceforge.net/">SourceForge</a> for providing resources for modules.</p></div><!-- jQuery (necessary for Bootstrap's JavaScript plugins) --><script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script><!-- Include all compiled plugins (below), or include individual files as needed --><script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 </BODY>
 </HTML>
