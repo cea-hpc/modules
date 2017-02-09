@@ -1,0 +1,201 @@
+#!/bin/bash
+#
+# DOC2WWW, convert modules documentation to fit public website format
+# Copyright (C) 2017 CEA/DAM
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+read -r -d '' navbar_content <<'EOF'
+<!-- Static navbar -->
+<nav class="navbar navbar-default navbar-static-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="../index.html">Environment Modules</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tcl version documentation<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li class="dropdown-header">Man pages</li>
+            <li><a href="../tcl/module.html">module(1)</a></li>
+            <li><a href="../tcl/modulefile.html">modulefile(4)</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="../tcl/diff_with_c-version.html">Differences with C version</a></li>
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">C version documentation<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li class="dropdown-header">Man pages</li>
+            <li><a href="../man/module.html">module(1)</a></li>
+            <li><a href="../man/modulefile.html">modulefile(4)</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div>
+</nav>
+EOF
+
+read -r -d '' footer_content <<'EOF'
+<footer class="footer">
+<div class="container">
+<p>Modules is covered by the <a href="http://www.gnu.org/licenses/old-licenses/gpl-2.0.html">GNU General Public License, version 2</a>. Copyright \&copy; 1996-2017 John L. Furlani \&amp; Peter W. Osel.  All rights reserved. <br/>Trademarks used are the property of their respective owners. Thanks to <a href="http://sourceforge.net/">SourceForge</a> for providing resources for modules.</p>
+</div>
+EOF
+
+read -r -d '' js_link_content <<'EOF'
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+EOF
+
+read -r -d '' css_link_content <<'EOF'
+<!-- Bootstrap core CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+<![endif]-->
+<!-- Local CSS -->
+<link href="../modules.css" rel="stylesheet">
+EOF
+
+read -r -d '' meta_content <<'EOF'
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+EOF
+
+typeset progpath=$0
+typeset prog=${progpath##*/}
+
+# print message on stderr then exit
+echo_error() {
+    echo "$prog: $1" >&2
+    exit 1
+}
+
+# print usage message
+echo_usage() {
+    echo "Usage: $progpath htmldocfile
+Convert content of HTML docfile to fit public website format."
+}
+
+insert_content() {
+    f=$1
+    pos=$2
+    where=$3
+    if [ -n "$4" ]; then
+        content=$(tr -d '\n' <<<"$4")
+    else
+        content=""
+    fi
+
+    if [ "$pos" == 'after' ]; then
+        rep="$where$content"
+    elif [ "$pos" == 'before' ]; then
+        rep="$content$where"
+    else
+        rep="$content"
+    fi
+
+    sed -i -e "s|$where|$rep|g" $f
+}
+
+# command help is asked
+if [ $# -eq 0 -o "$1" == '-h' -o "$1" == '--help' ]; then
+    echo_usage
+    exit 0
+elif [ $# -ne 1 ]; then
+    echo_usage
+    exit 1
+fi
+
+# test passed htmldocfile
+htmldocfile=$1
+fmime=$(file -b --mime-type $htmldocfile)
+if [ "$fmime" != "text/html" -a "$fmime" != "text/xml" ]; then
+    echo_error "$htmldocfile is not HTML file"
+fi
+
+grep -q 'bootstrap.min.css' $htmldocfile
+if [ $? -eq 0 ]; then
+    echo_error "$htmldocfile already converted"
+fi
+
+# analyze html file name
+fpath=$(pwd)/$htmldocfile
+
+# set page title depending of passed file name
+case $fpath in
+    */tcl/module.html)
+        flavor='Tcl'
+        title='MODULE(1) manual page (Tcl version)' ;;
+    */tcl/modulefile.html)
+        flavor='Tcl'
+        title='MODULEFILE(4) manual page (Tcl version)' ;;
+    */tcl/diff_with_c-version.html)
+        flavor='Tcl'
+        title='Slight differences with C-version' ;;
+esac
+
+
+# delete pod-specific content
+insert_content $htmldocfile 'delete' '<link rev="made" href=".*" />'
+insert_content $htmldocfile 'delete' '<meta http-equiv="content-type" content="text/html; charset=utf-8" />'
+
+# insert bootstrap-specific content
+insert_content $htmldocfile 'after' '<head>' "$meta_content"
+insert_content $htmldocfile 'before' '</head>' "$css_link_content"
+
+# place content in a container
+insert_content $htmldocfile 'after' '<body>' '<div class="container">'
+insert_content $htmldocfile 'before' '</body>' '</div>'
+
+# add navigation menu
+insert_content $htmldocfile 'after' '<body>' "$navbar_content"
+
+# set title
+insert_content $htmldocfile 'after' '<title>' "$title"
+insert_content $htmldocfile 'replace' 'id="NAME">NAME' "id=\"NAME\">$title"
+
+# specific style for key sections
+insert_content $htmldocfile 'after' '<h1 ' 'class="page-header" '
+
+# change relative doc links
+if [ "$flavor" == "Tcl" ]; then
+    insert_content $htmldocfile 'replace' '<b>module</b>(1)' '<a href="module.html"><b>module</b>(1)</a>'
+    insert_content $htmldocfile 'replace' '<b>modulefile</b>(4)' '<a href="modulefile.html"><b>modulefile</b>(4)</a>'
+fi
+
+# add footer
+insert_content $htmldocfile 'before' '</body>' "$footer_content"
+
+# insert bootstrap-specific content
+insert_content $htmldocfile 'before' '</body>' "$js_link_content"
+
+exit 0
