@@ -1,7 +1,7 @@
 export MODULESHOME = $(shell pwd)
 .PHONY: doc www initdir clean
 
-all: initdir doc
+all: initdir doc ChangeLog
 
 initdir:
 	make -C init all
@@ -12,10 +12,13 @@ doc:
 www:
 	make -C www all
 
+ChangeLog:
+	contrib/gitlog2changelog.py
+
 distclean: clean
 
 clean: 
-	rm -f *.log *.sum
+	rm -f *.log *.sum ChangeLog
 	make -C init clean
 	make -C doc clean
 	make -C www clean
