@@ -18,6 +18,25 @@
 
 ##########################################################################
 
+read -r -d '' htmlpre_begin_content <<'EOF'
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title></title>
+</head>
+
+<body>
+<h1 id="NAME">NAME</h1>
+<pre>
+EOF
+
+read -r -d '' htmlpre_end_content <<'EOF'
+</pre>
+</body>
+</html>
+EOF
+
 read -r -d '' navbar_content <<'EOF'
 <!-- Static navbar -->
 <nav class="navbar navbar-default navbar-static-top">
@@ -40,6 +59,7 @@ read -r -d '' navbar_content <<'EOF'
             <li><a href="../tcl/module.html">module(1)</a></li>
             <li><a href="../tcl/modulefile.html">modulefile(4)</a></li>
             <li role="separator" class="divider"></li>
+            <li><a href="../tcl/NEWS.html">NEWS</a></li>
             <li><a href="../tcl/diff_with_c-version.html">Differences with C version</a></li>
           </ul>
         </li>
@@ -47,8 +67,10 @@ read -r -d '' navbar_content <<'EOF'
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">C version documentation<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li class="dropdown-header">Man pages</li>
-            <li><a href="../man/module.html">module(1)</a></li>
-            <li><a href="../man/modulefile.html">modulefile(4)</a></li>
+            <li><a href="../c/module.html">module(1)</a></li>
+            <li><a href="../c/modulefile.html">modulefile(4)</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="../c/NEWS.html">NEWS</a></li>
           </ul>
         </li>
       </ul>
@@ -123,7 +145,13 @@ insert_content() {
         rep="$content"
     fi
 
-    sed -i -e "s|$where|$rep|g" $f
+    if [ "$pos" == 'begin' ]; then
+        sed -i -e "1s|^|$rep|" $f
+    elif [ "$pos" == 'end' ]; then
+        sed -i -e "\$a$rep" $f
+    else
+        sed -i -e "s|$where|$rep|g" $f
+    fi
 }
 
 # command help is asked
@@ -135,20 +163,14 @@ elif [ $# -ne 1 ]; then
     exit 1
 fi
 
-# test passed htmldocfile
+# analyze html file name
 htmldocfile=$1
-fmime=$(file -b --mime-type $htmldocfile)
-if [ "$fmime" != "text/html" -a "$fmime" != "text/xml" ]; then
-    echo_error "$htmldocfile is not HTML file"
-fi
+fpath=$(pwd)/$htmldocfile
 
 grep -q 'bootstrap.min.css' $htmldocfile
 if [ $? -eq 0 ]; then
     echo_error "$htmldocfile already converted"
 fi
-
-# analyze html file name
-fpath=$(pwd)/$htmldocfile
 
 # set page title depending of passed file name
 case $fpath in
@@ -161,12 +183,35 @@ case $fpath in
     */tcl/diff_with_c-version.html)
         flavor='Tcl'
         title='Slight differences with C-version' ;;
+    */tcl/NEWS.html)
+        flavor='Tcl'
+        htmlpre=1
+        title='NEWS (Tcl version)' ;;
 esac
 
+# test passed htmldocfile
+fmime=$(file -b --mime-type $htmldocfile)
+if [ -z "$htmlpre" -a "$fmime" != "text/html" -a "$fmime" != "text/xml" ]; then
+    echo_error "$htmldocfile is not HTML file"
+fi
+
+# set HTML page structure for file generated from a TXT file
+if [ -n "$htmlpre" ]; then
+    insert_content $htmldocfile 'begin' '' "$htmlpre_begin_content"
+    insert_content $htmldocfile 'end' '' "$htmlpre_end_content"
+fi
 
 # delete pod-specific content
 insert_content $htmldocfile 'delete' '<link rev="made" href=".*" />'
 insert_content $htmldocfile 'delete' '<meta http-equiv="content-type" content="text/html; charset=utf-8" />'
+
+# change relative doc links
+if [ "$flavor" == "Tcl" ]; then
+    insert_content $htmldocfile 'replace' '<b>module</b>(1)' '<a href="module.html"><b>module</b>(1)</a>'
+    insert_content $htmldocfile 'replace' 'module(1)' '<a href="module.html"><b>module</b>(1)</a>'
+    insert_content $htmldocfile 'replace' '<b>modulefile</b>(4)' '<a href="modulefile.html"><b>modulefile</b>(4)</a>'
+    insert_content $htmldocfile 'replace' 'modulefile(4)' '<a href="modulefile.html"><b>modulefile</b>(4)</a>'
+fi
 
 # insert bootstrap-specific content
 insert_content $htmldocfile 'after' '<head>' "$meta_content"
@@ -185,12 +230,6 @@ insert_content $htmldocfile 'replace' 'id="NAME">NAME' "id=\"NAME\">$title"
 
 # specific style for key sections
 insert_content $htmldocfile 'after' '<h1 ' 'class="page-header" '
-
-# change relative doc links
-if [ "$flavor" == "Tcl" ]; then
-    insert_content $htmldocfile 'replace' '<b>module</b>(1)' '<a href="module.html"><b>module</b>(1)</a>'
-    insert_content $htmldocfile 'replace' '<b>modulefile</b>(4)' '<a href="modulefile.html"><b>modulefile</b>(4)</a>'
-fi
 
 # add footer
 insert_content $htmldocfile 'before' '</body>' "$footer_content"
