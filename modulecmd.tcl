@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.730
+set MODULES_CURRENT_VERSION 1.742
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2057,16 +2057,16 @@ proc renderSettings {} {
       # future module commands
       set tclshbin [info nameofexecutable]
 
-      # add cwd if not absolute script path
-      if {! [regexp {^/} $argv0]} {
-         # register pwd at first call
-         if {![info exists cwd]} {
-            set cwd [pwd]
-         }
-         set argv0 "$cwd/$argv0"
-      }
+      # ensure script path is absolute
+      set argv0 [getAbsolutePath $argv0]
 
-      set env(MODULESHOME) [file dirname $argv0]
+      # guess MODULESHOME from modulecmd directory
+      set modshome [file dirname $argv0]
+      if { [file tail $modshome] eq "bin" } {
+         # use upper dir if modulecmd is located in a bin dir
+         set modshome [file dirname $modshome]
+      }
+      set env(MODULESHOME) $modshome
       set g_stateEnvVars(MODULESHOME) "new"
 
       switch -- $g_shellType {
@@ -2100,8 +2100,7 @@ proc renderSettings {} {
          }
          perl {
             puts stdout "sub module {"
-            puts stdout "  eval `$tclshbin\
-               \$ENV{\'MODULESHOME\'}/modulecmd.tcl perl @_`;"
+            puts stdout "  eval `$tclshbin $argv0 perl @_`;"
             puts stdout "  if(\$@) {"
             puts stdout "    use Carp;"
             puts stdout "    confess \"module-error: \$@\n\";"
