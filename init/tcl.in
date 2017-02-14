@@ -1,5 +1,3 @@
-set env(MODULESHOME) $MODULESHOME
-
 if {![info exists env(TCLSH)]} {
    if {[file exists /usr/bin/tclsh]} {
       set env(TCLSH) "/usr/bin/tclsh"
@@ -10,15 +8,15 @@ if {![info exists env(TCLSH)]} {
    }
 }
 
-proc module {args}  {
-    global env; 
-    set script {}; 
-    if {[catch { set script [eval exec $env(TCLSH) "$env(MODULESHOME)/modulecmd.tcl" "tcl" $args] } msg]} {
-        puts $msg
-    }; 
-    uplevel $script; 
+proc module {args} {
+   global env; 
+   set script {}; 
+   if {[catch { set script [eval exec $env(TCLSH) "@MODULESHOME@/modulecmd.tcl" "tcl" $args] } msg]} {
+      puts $msg
+   }; 
+   uplevel $script; 
 }
 
-source $env(MODULESHOME)/init/modulerc
+set env(MODULESHOME) @MODULESHOME@
 
-
+source @MODULESHOME@/init/modulerc

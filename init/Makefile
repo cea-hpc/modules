@@ -1,14 +1,16 @@
 SH_LIKE  = sh ksh bash zsh
 CSH_LIKE = csh tcsh
 OTHER    = perl python lisp tcl fish
-D =  $(shell pwd)
+
+# get MODULESHOME location from this Makefile location
+MODULESHOME := $(abspath $(lastword $(MAKEFILE_LIST))/../..)
 
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
 all: $(ALL_SHELLS) modulerc.fake
 
 %: %.in Makefile
-	perl -MCwd -MFile::Basename -pe 'BEGIN {$$d=dirname(cwd)} s|\$$MODULESHOME|$$d|g' $< > $@
+	perl -pe 's|\@MODULESHOME\@|$(MODULESHOME)|g' $< > $@
 
 clean:
 	rm -f $(ALL_SHELLS)

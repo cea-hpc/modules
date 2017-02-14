@@ -1,11 +1,8 @@
-
 if ($?tcsh) then
   set modules_shell="tcsh"
 else
   set modules_shell="csh"
 endif
-
-setenv MODULESHOME $MODULESHOME
 
 if ( ! $?TCLSH ) then
    if ( -f /usr/bin/tclsh ) then
@@ -22,21 +19,22 @@ endif
 if ( $?histchars ) then
   set _histchars = $histchars
   if ($?prompt) then
-    alias module 'unset histchars;set _prompt="$prompt";eval `'$TCLSH $MODULESHOME'/modulecmd.tcl $modules_shell \!*`;set histchars = $_histchars; set prompt="$_prompt";unset _prompt'
+    alias module 'unset histchars;set _prompt="$prompt";eval `'$TCLSH '@MODULESHOME@/modulecmd.tcl $modules_shell \!*`;set histchars = $_histchars; set prompt="$_prompt";unset _prompt'
   else
-  alias module 'unset histchars;eval `'$TCLSH $MODULESHOME'/modulecmd.tcl $modules_shell \!*`;set histchars = $_histchars'
+  alias module 'unset histchars;eval `'$TCLSH '@MODULESHOME@/modulecmd.tcl $modules_shell \!*`;set histchars = $_histchars'
   endif
 else
   if ($?prompt) then
-    alias module 'set _prompt="$prompt";set prompt="";eval `'$TCLSH $MODULESHOME'/modulecmd.tcl $modules_shell \!*`;set prompt="$_prompt";unset _prompt'
+    alias module 'set _prompt="$prompt";set prompt="";eval `'$TCLSH '@MODULESHOME@/modulecmd.tcl $modules_shell \!*`;set prompt="$_prompt";unset _prompt'
 else
-  alias module 'eval `'$TCLSH $MODULESHOME'/modulecmd.tcl $modules_shell \!*`'
+  alias module 'eval `'$TCLSH '@MODULESHOME@/modulecmd.tcl $modules_shell \!*`'
   endif
 endif
 
-if ( $?tcsh && $?prompt && -r $MODULESHOME/init/tcsh_completion ) then
-  source $MODULESHOME/init/tcsh_completion
+if ( $?tcsh && $?prompt && -r @MODULESHOME@/init/tcsh_completion ) then
+  source @MODULESHOME@/init/tcsh_completion
 endif
 
+setenv MODULESHOME @MODULESHOME@
 
-source $MODULESHOME/init/modulerc
+source @MODULESHOME@/init/modulerc

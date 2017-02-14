@@ -1,5 +1,3 @@
-$ENV{MODULESHOME} = "$MODULESHOME";
-
 if ($ENV{TCLSH}) {
    $TCLSH= $ENV{TCLSH};
 } elsif ( -f "/usr/bin/tclsh") {
@@ -11,14 +9,16 @@ if ($ENV{TCLSH}) {
 }
 
 sub module {
-  eval `$TCLSH $ENV{MODULESHOME}/modulecmd.tcl perl @_`;
-  if($@) {
-    use Carp;
-    confess "module-error: $@\n";
-  }
-  return 1;
+   eval `$TCLSH @MODULESHOME@/modulecmd.tcl perl @_`;
+   if ($@) {
+      use Carp;
+      confess "module-error: $@\n";
+   }
+   return 1;
 }
 
-module("source","$MODULESHOME/init/modulerc");
+$ENV{MODULESHOME} = '@MODULESHOME@';
+
+module('source', '@MODULESHOME@/init/modulerc');
 
 1;

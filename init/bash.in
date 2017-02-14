@@ -1,5 +1,3 @@
-MODULESHOME=$MODULESHOME; export MODULESHOME
-
 if [ -z $TCLSH ]; then
    if [ -f /usr/bin/tclsh ]; then
       TCLSH="/usr/bin/tclsh"
@@ -11,17 +9,19 @@ if [ -z $TCLSH ]; then
 fi
 
 if [ ${BASH_VERSINFO:-0} -ge 3 ] && [[ $- =~ i ]] &&
-   [ -r ${MODULESHOME}/init/bash_completion ]; then
-   . ${MODULESHOME}/init/bash_completion
+   [ -r @MODULESHOME@/init/bash_completion ]; then
+   . @MODULESHOME@/init/bash_completion
 fi
 
 # only redirect module from stderr to stdout in interactive mode
 # to avoid breaking non interactive session (scp, sftp, etc)
 if [[ $- =~ i ]]; then
-   moduleraw() { eval `$TCLSH $MODULESHOME/modulecmd.tcl bash $*`; }
+   moduleraw() { eval `$TCLSH @MODULESHOME@/modulecmd.tcl bash $*`; }
    module() { moduleraw $* 2>&1 ; }
 else
-   module() { eval `$TCLSH $MODULESHOME/modulecmd.tcl bash $*`; }
+   module() { eval `$TCLSH @MODULESHOME@/modulecmd.tcl bash $*`; }
 fi
 
-. $MODULESHOME/init/modulerc
+MODULESHOME=@MODULESHOME@; export MODULESHOME
+
+. @MODULESHOME@/init/modulerc
