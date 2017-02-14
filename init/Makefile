@@ -1,5 +1,5 @@
 SH_LIKE  = sh ksh bash zsh
-CSH_LIKE = csh tcsh
+CSH_LIKE = csh tcsh tcsh_completion
 OTHER    = perl python lisp tcl fish
 
 # get MODULESHOME location from this Makefile location
