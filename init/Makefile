@@ -11,9 +11,18 @@ ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
 all: $(ALL_SHELLS) modulerc.fake
 
+define translate-in-script
+perl -pe 's|\@MODULESHOME\@|$(MODULESHOME)|g; \
+	s|\@SHELLNAME\@|$@|g; \
+	s|\@TCLSH\@|$(TCLSH)|g' $< > $@
+endef
+
 %: %.in Makefile
-	perl -pe 's|\@MODULESHOME\@|$(MODULESHOME)|g; \
-		s|\@TCLSH\@|$(TCLSH)|g' $< > $@
+	$(translate-in-script)
+
+# tcsh is derivated from csh init script
+tcsh: csh.in Makefile
+	$(translate-in-script)
 
 clean:
 	rm -f $(ALL_SHELLS)
