@@ -4,13 +4,16 @@ OTHER    = perl python lisp tcl fish
 
 # get MODULESHOME location from this Makefile location
 MODULESHOME := $(abspath $(lastword $(MAKEFILE_LIST))/../..)
+# get tclsh location from standard PATHs or /usr/local/bin
+TCLSH := $(shell PATH=/usr/bin:/bin:/usr/local/bin command -v tclsh)
 
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
 all: $(ALL_SHELLS) modulerc.fake
 
 %: %.in Makefile
-	perl -pe 's|\@MODULESHOME\@|$(MODULESHOME)|g' $< > $@
+	perl -pe 's|\@MODULESHOME\@|$(MODULESHOME)|g; \
+		s|\@TCLSH\@|$(TCLSH)|g' $< > $@
 
 clean:
 	rm -f $(ALL_SHELLS)

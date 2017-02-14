@@ -4,18 +4,6 @@
 
 (setenv "MODULESHOME" "@MODULESHOME@")
 
-(cond
-   ((getenv "TCLSH")
-       t)
-   ((file-executable-p "/usr/local/bin/tclsh")
-       (setenv "TCLSH" "/usr/local/bin/tclsh"))
-   ((file-executable-p "/usr/bin/tclsh")
-       (setenv "TCLSH" "/usr/bin/tclsh"))
-   ((file-executable-p "/bin/tclsh")
-       (setenv "TCLSH" "/bin/tclsh"))
-   (t
-       (setenv "TCLSH")))
-
 (defvar Modules-history '() "module cmd history list")
 
 (defun Modules-module (command)
@@ -50,7 +38,7 @@ Return value is t on success, nil otherwise."
             ;; so it must go to a file and then get pulled into the log buffer
             ;; (XEmacs *can* direct stderr to buffer, but not worth special case)
             (progn
-              (apply 'call-process (getenv "TCLSH") nil
+              (apply 'call-process "@TCLSH@" nil
                                    (list cmd-buffer log-scratch-file)
                                    nil          ;; don't display stdout
                                    "@MODULESHOME@/modulecmd.tcl"

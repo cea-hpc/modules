@@ -1,20 +1,10 @@
-if [ -z $TCLSH ]; then
-   if [ -f /usr/bin/tclsh ]; then
-      TCLSH="/usr/bin/tclsh"
-   elif [ -f /bin/tclsh ]; then
-      TCLSH="/bin/tclsh"
-   else 
-      TCLSH=""
-   fi
-fi
-
 # only redirect module from stderr to stdout in interactive mode
 # to avoid breaking non interactive session (scp, sftp, etc)
 if [[ $- =~ i ]]; then
-   moduleraw() { eval `$TCLSH @MODULESHOME@/modulecmd.tcl zsh $*`; }
+   moduleraw() { eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl zsh $*`; }
    module() { moduleraw $* 2>&1 ; }
 else
-   module() { eval `$TCLSH @MODULESHOME@/modulecmd.tcl zsh $*`; }
+   module() { eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl zsh $*`; }
 fi
 
 MODULESHOME=@MODULESHOME@; export MODULESHOME
