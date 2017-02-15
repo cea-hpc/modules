@@ -1,5 +1,5 @@
-SH_LIKE  = sh ksh bash zsh ksh-functions/module
-CSH_LIKE = csh tcsh tcsh_completion
+SH_LIKE  = sh ksh bash zsh profile.sh ksh-functions/module
+CSH_LIKE = csh tcsh tcsh_completion profile.csh
 OTHER    = perl python lisp tcl fish
 
 # get MODULESHOME location from this Makefile location
@@ -27,6 +27,10 @@ tcsh: csh.in Makefile
 ksh-functions/module: ksh
 	mkdir -p ksh-functions
 	cp $< $@
+
+# this rule is needed for profile.sh to get matched
+profile.sh: profile.sh.in Makefile
+	$(translate-in-script)
 
 clean:
 	rm -f $(ALL_SHELLS)
