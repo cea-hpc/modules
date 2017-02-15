@@ -7,6 +7,15 @@ else
    module() { eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl zsh $*`; }
 fi
 
+# setup ENV variables to get module defined in sub-shells (works for 'sh'
+# and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
+# (zsh-compat) in non-interactive mode.
+ENV=@MODULESHOME@/init/profile.sh; export ENV
+BASH_ENV=@MODULESHOME@/init/bash; export BASH_ENV
+
+# no FPATH setup as zsh requires to 'autoload' functions put in FPATH dir
+# (no gain compared to a bare source of this init script)
+
 MODULESHOME=@MODULESHOME@; export MODULESHOME
 
 if [ "${MODULEPATH:-}" = '' ]; then

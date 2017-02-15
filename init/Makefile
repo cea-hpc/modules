@@ -1,4 +1,4 @@
-SH_LIKE  = sh ksh bash zsh
+SH_LIKE  = sh ksh bash zsh ksh-functions/module
 CSH_LIKE = csh tcsh tcsh_completion
 OTHER    = perl python lisp tcl fish
 
@@ -23,6 +23,10 @@ endef
 # tcsh is derivated from csh init script
 tcsh: csh.in Makefile
 	$(translate-in-script)
+
+ksh-functions/module: ksh
+	mkdir -p ksh-functions
+	cp $< $@
 
 clean:
 	rm -f $(ALL_SHELLS)

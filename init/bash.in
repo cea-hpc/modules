@@ -3,9 +3,19 @@
 if [[ $- =~ i ]]; then
    moduleraw() { eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl bash $*`; }
    module() { moduleraw $* 2>&1 ; }
+   # export functions to get them defined in sub-shells
+   export -f moduleraw
+   export -f module
 else
    module() { eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl bash $*`; }
+   export -f module
 fi
+
+# setup ENV variables to get module defined in sub-shells (works for 'sh'
+# and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
+# (zsh-compat) in non-interactive mode.
+ENV=@MODULESHOME@/init/profile.sh; export ENV
+BASH_ENV=@MODULESHOME@/init/bash; export BASH_ENV
 
 # enable completion only in interactive mode
 if [ ${BASH_VERSINFO:-0} -ge 3 ] && [[ $- =~ i ]] &&

@@ -3,9 +3,23 @@
 if [ -z "$PS1" ]; then
    moduleraw() { eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl sh $*`; }
    module() { moduleraw $* 2>&1 ; }
+   # if sh is bash, export functions to get them defined in sub-shells
+   if [ "${BASH:-}" != '' ]; then
+      export -f moduleraw
+      export -f module
+   fi
 else
    module() { eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl sh $*`; }
+   if [ "${BASH:-}" != '' ]; then
+      export -f module
+   fi
 fi
+
+# setup ENV variables to get module defined in sub-shells (works for 'sh'
+# and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
+# (zsh-compat) in non-interactive mode.
+ENV=@MODULESHOME@/init/profile.sh; export ENV
+BASH_ENV=@MODULESHOME@/init/bash; export BASH_ENV
 
 MODULESHOME=@MODULESHOME@; export MODULESHOME
 
