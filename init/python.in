@@ -3,13 +3,13 @@ import os, subprocess
 if not 'MODULEPATH' in os.environ:
         os.environ['MODULEPATH'] = '/mips/tools/freeware/modulefiles'
 
-if not 'LOADEDMODULES' in os.environ:
-        os.environ['LOADEDMODULES'] = '';
-
 def module(command, *arguments):
    exec(subprocess.Popen(['@TCLSH@', '@MODULESHOME@/modulecmd.tcl', 'python', command] + list(arguments), stdout=subprocess.PIPE).communicate()[0])
 
 os.environ['MODULESHOME'] = '@MODULESHOME@'
+
+if not 'LOADEDMODULES' in os.environ:
+   os.environ['LOADEDMODULES'] = ''
 
 if os.access('@MODULESHOME@/init/modulerc', os.R_OK):
    module('source', '@MODULESHOME@/init/modulerc')
