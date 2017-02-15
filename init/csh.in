@@ -19,6 +19,14 @@ endif
 
 setenv MODULESHOME @MODULESHOME@
 
+if (! $?MODULEPATH ) then
+   if ( -r @MODULESHOME@/init/.modulespath ) then
+      setenv MODULEPATH `sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' @MODULESHOME@/init/.modulespath`
+   else
+      setenv MODULEPATH ''
+   endif
+endif
+
 if (! $?LOADEDMODULES ) then
    setenv LOADEDMODULES ''
 endif

@@ -1,12 +1,20 @@
-import os, subprocess
-
-if not 'MODULEPATH' in os.environ:
-        os.environ['MODULEPATH'] = '/mips/tools/freeware/modulefiles'
+import os, re, subprocess
 
 def module(command, *arguments):
    exec(subprocess.Popen(['@TCLSH@', '@MODULESHOME@/modulecmd.tcl', 'python', command] + list(arguments), stdout=subprocess.PIPE).communicate()[0])
 
 os.environ['MODULESHOME'] = '@MODULESHOME@'
+
+if not 'MODULEPATH' in os.environ:
+   if os.access('@MODULESHOME@/init/.modulespath', os.R_OK):
+      pathlist = []
+      for fline in open('@MODULESHOME@/init/.modulespath', 'r').read().splitlines():
+         patharg = re.match('^\s*(.*?)[\s#].*$', fline)
+         if patharg and patharg.group(1):
+            pathlist.append(patharg.group(1))
+      os.environ['MODULEPATH'] = ':'.join(pathlist)
+   else:
+      os.environ['MODULEPATH'] = ''
 
 if not 'LOADEDMODULES' in os.environ:
    os.environ['LOADEDMODULES'] = ''

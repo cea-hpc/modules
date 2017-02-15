@@ -9,6 +9,16 @@ sub module {
 
 $ENV{MODULESHOME} = '@MODULESHOME@';
 
+if (!defined $ENV{"MODULEPATH"}) {
+   if ( -r '@MODULESHOME@/init/.modulespath' ) {
+      open(F, '@MODULESHOME@/init/.modulespath');
+      $ENV{"MODULEPATH"} = join(":", grep(/\S/, map { s/^\s*//g; s/[\s#].*$//g; $_ } <F>));
+      close F;
+   } else {
+      $ENV{"MODULEPATH"} = '';
+   }
+}
+
 if (!defined $ENV{LOADEDMODULES}) {
    $ENV{LOADEDMODULES} = '';
 }

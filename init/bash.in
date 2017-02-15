@@ -15,6 +15,15 @@ fi
 
 MODULESHOME=@MODULESHOME@; export MODULESHOME
 
+if [ "${MODULEPATH:-}" = '' ]; then
+   if [ -r @MODULESHOME@/init/.modulespath ]; then
+      MODULEPATH=`sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' \
+         @MODULESHOME@/init/.modulespath`; export MODULEPATH
+   else
+      MODULEPATH=; export MODULEPATH
+   fi
+fi
+
 if [ "${LOADEDMODULES:-}" = '' ]; then
    LOADEDMODULES=; export LOADEDMODULES
 fi

@@ -9,6 +9,25 @@ proc module {args} {
 
 set env(MODULESHOME) @MODULESHOME@
 
+if {![info exists env(MODULEPATH)]} {
+   if {[file readable @MODULESHOME@/init/.modulespath]} {
+      set fid [open "@MODULESHOME@/init/.modulespath" r]
+      set fdata [split [read $fid] "\n"]
+      close $fid
+      set pathlist {}
+      foreach fline $fdata {
+         if {[regexp {^\s*(.*?)[\s#].*$} $fline match patharg] == 1} {
+            if {$patharg ne ""} {
+               lappend pathlist $patharg
+            }
+         }
+      }
+      set env(MODULEPATH) [join $pathlist ":"]
+   } else {
+      set env(MODULEPATH) ""
+   }
+}
+
 if {![info exists env(LOADEDMODULES)]} {
    set env(LOADEDMODULES) ""
 }

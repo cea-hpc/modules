@@ -21,6 +21,15 @@ end
 
 set -xg MODULESHOME @MODULESHOME@
 
+if not set -q MODULEPATH
+   if [ -r @MODULESHOME@/init/.modulespath ]
+      set -xg MODULEPATH (sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' \
+         @MODULESHOME@/init/.modulespath)
+   else
+      set -xg MODULEPATH ''
+   end
+end
+
 if not set -q LOADEDMODULES
    set -xg LOADEDMODULES ''
 end
