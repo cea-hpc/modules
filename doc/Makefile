@@ -16,6 +16,8 @@ SOURCE_DIR := source
 
 # set default installation paths if not yet defined
 prefix ?= /usr/local/modules-tcl
+libexecdir ?= $(prefix)/libexec
+initdir ?= $(prefix)/init
 datarootdir ?= $(prefix)/share
 mandir ?= $(datarootdir)/man
 docdir ?= $(datarootdir)/doc
@@ -25,12 +27,23 @@ all: $(HTML_DIR)/module.html $(HTML_DIR)/modulefile.html \
 	$(HTML_DIR)/diff_with_c-version.html diff_with_c-version.txt \
 	.makeinstallpath
 
+define translate-in-script
+perl -pe 's|\@prefix\@|$(prefix)|g; \
+	s|\@libexecdir\@|$(libexecdir)|g; \
+	s|\@initdir\@|$(initdir)|g;' $< > $@
+endef
+
 # save defined install paths
 .makeinstallpath:
 	@echo "prefix := $(prefix)" >$@
+	@echo "libexecdir := $(libexecdir)" >>$@
+	@echo "initdir := $(initdir)" >>$@
 	@echo "datarootdir := $(datarootdir)" >>$@
 	@echo "mandir := $(mandir)" >>$@
 	@echo "docdir := $(docdir)" >>$@
+
+$(SOURCE_DIR)/%.pod: $(SOURCE_DIR)/%.pod.in
+	$(translate-in-script)
 
 $(HTML_DIR)/%.html: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
 	mkdir -p $(HTML_DIR)
@@ -59,6 +72,7 @@ install: all
 clean:
 	rm -f $(HTML_DIR)/*.html
 	rm -f $(MAN1_DIR)/*.1 $(MAN4_DIR)/*.4
+	rm -f $(SOURCE_DIR)/module.pod
 	rmdir $(MAN1_DIR) $(MAN4_DIR) $(MAN_DIR)
 	rm -f diff_with_c-version.txt
 	rm -f pod*.tmp .makeinstallpath

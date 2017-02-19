@@ -30,7 +30,8 @@ initdir:
 		initdir=$(initdir)
 
 doc:
-	make -C doc all prefix=$(prefix) datarootdir=$(datarootdir) \
+	make -C doc all prefix=$(prefix) libexecdir=$(libexecdir) \
+		initdir=$(initdir) datarootdir=$(datarootdir) \
 		mandir=$(mandir) docdir=$(docdir)
 
 www:

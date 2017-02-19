@@ -37,40 +37,37 @@ creates the B<module> command as either an alias or function and creates
 Modules environment variables.
 
 The B<module> alias or function executes the B<modulecmd.tcl> program
-located in F<$MODULESHOME> and has the shell evaluate the command's
+located in F<@libexecdir@> and has the shell evaluate the command's
 output. The first argument to B<modulecmd.tcl> specifies the type of shell.
 
-The initialization scripts are kept in F<$MODULESHOME/init/E<lt>shellE<gt>>
+The initialization scripts are kept in F<@initdir@/E<lt>shellE<gt>>
 where I<E<lt>shellE<gt>> is the name of the sourcing shell. For example,
-a C Shell user sources the F<$MODULESHOME/init/csh> script. The sh, csh,
+a C Shell user sources the F<@initdir@/csh> script. The sh, csh,
 tcsh, bash, ksh, zsh and fish shells are supported by B<modulecmd.tcl>. In
 addition, python, perl, tcl and lisp "shells" are supported which writes
 the environment changes to stdout as python, perl, tcl or lisp code.
 
 =head2 Examples of initialization
 
-In the following examples, replace F<$MODULESHOME> with the actual
-directory name.
-
 C Shell initialization (and derivatives):
 
-    source $MODULESHOME/init/csh
+    source @initdir@/csh
     module load modulefile modulefile ...
 
 Bourne Shell (sh) (and derivatives):
 
-    . $MODULESHOME/init/sh
+    . @initdir@/sh
     module load modulefile modulefile ...
 
 Perl:
 
-    require "${MODULESHOME}/init/perl";
+    require "@initdir@/perl";
     &module("load modulefile modulefile ...");
 
 Python:
 
     import os
-    exec(open(os.environ['MODULESHOME'] + '/init/python').read())
+    exec(open('@initdir@/python').read())
     module('load modulefile modulefile ...')
 
 =head2 Modulecmd startup
@@ -86,7 +83,7 @@ in the following order:
 
 =item 1.
 
-Global RC file as specified by F<$MODULERCFILE> or F<$MODULESHOME/etc/rc>.
+Global RC file as specified by F<$MODULERCFILE> or F<@prefix@/etc/rc>.
 If F<$MODULERCFILE> points to a directory, the F<modulerc> file in this
 directory is used as global RC file.
 
@@ -408,7 +405,7 @@ and a directory containing a collection of master I<modulefiles>.
 
 The path that the B<module> command searches when looking for
 I<modulefiles>. Typically, it is set to the master I<modulefiles> directory,
-I<$MODULESHOME/modulefiles>, by the initialization script. B<MODULEPATH>
+I<@prefix@/modulefiles>, by the initialization script. B<MODULEPATH>
 can be set using B<module use> or by the module initialization script to
 search group or personal I<modulefile> directories before or after the
 master I<modulefile> directory.
@@ -448,11 +445,11 @@ etc.
 
 =over
 
-=item B<$MODULESHOME>
+=item B<@prefix@>
 
 The B<MODULESHOME> directory.
 
-=item B<$MODULESHOME/etc/rc>
+=item B<@prefix@/etc/rc>
 
 The system-wide modules rc file. The location of this file can be changed
 using the B<MODULERCFILE> environment variable as described above.
@@ -465,18 +462,18 @@ The user specific modules rc file.
 
 The user specific collection directory.
 
-=item B<$MODULESHOME/modulefiles>
+=item B<@prefix@/modulefiles>
 
 The directory for system-wide I<modulefiles>. The location of the directory
 can be changed using the B<MODULEPATH> environment variable as described
 above.
 
-=item B<$MODULESHOME/bin/modulecmd.tcl>
+=item B<@libexecdir@/modulecmd.tcl>
 
 The I<modulefile> interpreter that gets executed upon each invocation
 of B<module>.
 
-=item B<$MODULESHOME/init/<shell>>
+=item B<@initdir@/<shell>>
 
 The Modules package initialization file sourced into the user's environment.
 
