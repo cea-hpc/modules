@@ -1,17 +1,30 @@
 if ( $?histchars ) then
+   set histchar   = `echo $histchars | cut -c1`
    set _histchars = $histchars
-   if ($?prompt) then
-      alias module 'unset histchars;set _prompt="$prompt";eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl @SHELLNAME@ \!*`;set histchars = $_histchars; set prompt="$_prompt";unset _prompt'
-   else
-      alias module 'unset histchars;eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl @SHELLNAME@ \!*`;set histchars = $_histchars'
-   endif
+   set prefix     = 'unset histchars;'
+   set postfix    = 'set histchars = $_histchars;'
 else
-   if ($?prompt) then
-      alias module 'set _prompt="$prompt";set prompt="";eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl @SHELLNAME@ \!*`;set prompt="$_prompt";unset _prompt'
-   else
-      alias module 'eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl @SHELLNAME@ \!*`'
-   endif
+   set histchar = \!
+   set prefix   = ''
+   set postfix  = ''
 endif
+
+if ( $?prompt ) then
+   set prefix  = "$prefix"'set _prompt="$prompt";set prompt="";'
+   set postfix = "$postfix"'set prompt="$_prompt";unset _prompt;'
+endif
+
+if ( $?noglob ) then
+   set prefix  = "$prefix"'set noglob;'
+   set postfix = "$postfix"'unset noglob;'
+endif
+
+set postfix = "set _exit="'$status'"; $postfix; test 0 = "'$_exit;'
+
+alias module $prefix'eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl @SHELLNAME@ '$histchar'*`; '$postfix
+unset _histchar
+unset prefix
+unset postfix
 
 if ( $?tcsh && $?prompt && -r @MODULESHOME@/init/tcsh_completion ) then
    source @MODULESHOME@/init/tcsh_completion
