@@ -22,7 +22,8 @@ docdir ?= $(datarootdir)/doc
 
 all: $(HTML_DIR)/module.html $(HTML_DIR)/modulefile.html \
 	$(MAN1_DIR)/module.1 $(MAN4_DIR)/modulefile.4 \
-	$(HTML_DIR)/diff_with_c-version.html .makeinstallpath
+	$(HTML_DIR)/diff_with_c-version.html diff_with_c-version.txt \
+	.makeinstallpath
 
 # save defined install paths
 .makeinstallpath:
@@ -44,10 +45,14 @@ $(MAN4_DIR)/%.4: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
 	mkdir -p $(MAN4_DIR)
 	pod2man -c $(MAN_HEADER) -r $(MAN_VERSION) -s 4 $< $@
 
+%.txt: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
+	pod2text $< >$@
+
 install: all
 	mkdir -p $(docdir)
 	mkdir -p $(mandir)/man1 $(mandir)/man4
 	cp LICENSE.GPL $(docdir)/
+	cp diff_with_c-version.txt $(docdir)/
 	cp $(MAN1_DIR)/module.1 $(mandir)/man1/
 	cp $(MAN4_DIR)/modulefile.4 $(mandir)/man4/
 
@@ -55,4 +60,5 @@ clean:
 	rm -f $(HTML_DIR)/*.html
 	rm -f $(MAN1_DIR)/*.1 $(MAN4_DIR)/*.4
 	rmdir $(MAN1_DIR) $(MAN4_DIR) $(MAN_DIR)
+	rm -f diff_with_c-version.txt
 	rm -f pod*.tmp .makeinstallpath
