@@ -1,18 +1,34 @@
-SH_LIKE  = sh ksh bash zsh profile.sh ksh-functions/module
+.PHONY: install clean .makeinstallpath
+
+SH_LIKE  = sh ksh bash zsh profile.sh
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
 OTHER    = perl python lisp tcl fish
 
-# get MODULESHOME location from this Makefile location
-MODULESHOME := $(abspath $(lastword $(MAKEFILE_LIST))/../..)
+# load previously saved install paths if any
+-include .makeinstallpath
+
+# set default installation paths if not yet defined
+prefix ?= /usr/local/modules-tcl
+libexecdir ?= $(prefix)/libexec
+initdir ?= $(prefix)/init
+
 # get tclsh location from standard PATHs or /usr/local/bin
 TCLSH := $(shell PATH=/usr/bin:/bin:/usr/local/bin command -v tclsh)
 
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
-all: $(ALL_SHELLS) modulerc.fake
+all: $(ALL_SHELLS) modulerc.fake .makeinstallpath
+
+# save defined install paths
+.makeinstallpath:
+	@echo "prefix := $(prefix)" >$@
+	@echo "libexecdir := $(libexecdir)" >>$@
+	@echo "initdir := $(initdir)" >>$@
 
 define translate-in-script
-perl -pe 's|\@MODULESHOME\@|$(MODULESHOME)|g; \
+perl -pe 's|\@prefix\@|$(prefix)|g; \
+	s|\@libexecdir\@|$(libexecdir)|g; \
+	s|\@initdir\@|$(initdir)|g; \
 	s|\@SHELLNAME\@|$@|g; \
 	s|\@TCLSH\@|$(TCLSH)|g' $< > $@
 endef
@@ -24,16 +40,19 @@ endef
 tcsh: csh.in Makefile
 	$(translate-in-script)
 
-ksh-functions/module: ksh
-	mkdir -p ksh-functions
-	cp $< $@
-
 # this rule is needed for profile.sh to get matched
 profile.sh: profile.sh.in Makefile
 	$(translate-in-script)
 
+install: all
+	mkdir -p $(initdir)
+	mkdir -p $(initdir)/ksh-functions
+	cp $(ALL_SHELLS) $(initdir)/
+	cp bash_completion $(initdir)/
+	cp ksh $(initdir)/ksh-functions/module
+
 clean:
-	rm -f $(ALL_SHELLS)
+	rm -f $(ALL_SHELLS) .makeinstallpath
 
 modulerc.fake:
 ifeq ($(wildcard modulerc),) 

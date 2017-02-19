@@ -1,17 +1,17 @@
 proc module {args} {
    global env; 
    set script {}; 
-   if {[catch { set script [eval exec "@TCLSH@" "@MODULESHOME@/modulecmd.tcl" "tcl" $args] } msg]} {
+   if {[catch { set script [eval exec "@TCLSH@" "@libexecdir@/modulecmd.tcl" "tcl" $args] } msg]} {
       puts $msg
    }; 
    uplevel $script; 
 }
 
-set env(MODULESHOME) @MODULESHOME@
+set env(MODULESHOME) @prefix@
 
 if {![info exists env(MODULEPATH)]} {
-   if {[file readable @MODULESHOME@/init/.modulespath]} {
-      set fid [open "@MODULESHOME@/init/.modulespath" r]
+   if {[file readable @initdir@/.modulespath]} {
+      set fid [open "@initdir@/.modulespath" r]
       set fdata [split [read $fid] "\n"]
       close $fid
       set pathlist {}
@@ -32,6 +32,6 @@ if {![info exists env(LOADEDMODULES)]} {
    set env(LOADEDMODULES) ""
 }
 
-if {[file readable @MODULESHOME@/init/modulerc]} {
-   source @MODULESHOME@/init/modulerc
+if {[file readable @initdir@/modulerc]} {
+   source @initdir@/modulerc
 }

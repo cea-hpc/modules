@@ -21,26 +21,26 @@ endif
 
 set postfix = "set _exit="'$status'"; $postfix; test 0 = "'$_exit;'
 
-alias module $prefix'eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl @SHELLNAME@ '$histchar'*`; '$postfix
+alias module $prefix'eval `@TCLSH@ @libexecdir@/modulecmd.tcl @SHELLNAME@ '$histchar'*`; '$postfix
 unset _histchar
 unset prefix
 unset postfix
 
-if ( $?tcsh && $?prompt && -r @MODULESHOME@/init/tcsh_completion ) then
-   source @MODULESHOME@/init/tcsh_completion
+if ( $?tcsh && $?prompt && -r @initdir@/tcsh_completion ) then
+   source @initdir@/tcsh_completion
 endif
 
 # setup ENV variables to get module defined in sub-shells (works for 'sh'
 # and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
 # (zsh-compat) in non-interactive mode.
-setenv ENV @MODULESHOME@/init/profile.sh
-setenv BASH_ENV @MODULESHOME@/init/bash
+setenv ENV @initdir@/profile.sh
+setenv BASH_ENV @initdir@/bash
 
-setenv MODULESHOME @MODULESHOME@
+setenv MODULESHOME @prefix@
 
 if (! $?MODULEPATH ) then
-   if ( -r @MODULESHOME@/init/.modulespath ) then
-      setenv MODULEPATH `sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' @MODULESHOME@/init/.modulespath`
+   if ( -r @initdir@/.modulespath ) then
+      setenv MODULEPATH `sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' @initdir@/.modulespath`
    else
       setenv MODULEPATH ''
    endif
@@ -50,6 +50,6 @@ if (! $?LOADEDMODULES ) then
    setenv LOADEDMODULES ''
 endif
 
-if ( -r @MODULESHOME@/init/modulerc ) then
-   source @MODULESHOME@/init/modulerc
+if ( -r @initdir@/modulerc ) then
+   source @initdir@/modulerc
 endif

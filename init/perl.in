@@ -1,5 +1,5 @@
 sub module {
-   eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl perl @_`;
+   eval `@TCLSH@ @libexecdir@/modulecmd.tcl perl @_`;
    if ($@) {
       use Carp;
       confess "module-error: $@\n";
@@ -7,11 +7,11 @@ sub module {
    return 1;
 }
 
-$ENV{MODULESHOME} = '@MODULESHOME@';
+$ENV{MODULESHOME} = '@prefix@';
 
 if (!defined $ENV{"MODULEPATH"}) {
-   if ( -r '@MODULESHOME@/init/.modulespath' ) {
-      open(F, '@MODULESHOME@/init/.modulespath');
+   if ( -r '@initdir@/.modulespath' ) {
+      open(F, '@initdir@/.modulespath');
       $ENV{"MODULEPATH"} = join(":", grep(/\S/, map { s/^\s*//g; s/[\s#].*$//g; $_ } <F>));
       close F;
    } else {
@@ -23,8 +23,8 @@ if (!defined $ENV{LOADEDMODULES}) {
    $ENV{LOADEDMODULES} = '';
 }
 
-if ( -r '@MODULESHOME@/init/modulerc' ) {
-   module('source', '@MODULESHOME@/init/modulerc');
+if ( -r '@initdir@/modulerc' ) {
+   module('source', '@initdir@/modulerc');
 }
 
 1;

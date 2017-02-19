@@ -1,31 +1,31 @@
 # only redirect module from stderr to stdout in interactive mode
 # to avoid breaking non interactive session (scp, sftp, etc)
 if [[ $- =~ i ]]; then
-   moduleraw() { eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl ksh $*`; }
+   moduleraw() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl ksh $*`; }
    module() { moduleraw $* 2>&1 ; }
 else
-   module() { eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl ksh $*`; }
+   module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl ksh $*`; }
 fi
 
 # setup ENV variables to get module defined in sub-shells (works for 'sh'
 # and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
 # (zsh-compat) in non-interactive mode.
-ENV=@MODULESHOME@/init/profile.sh; export ENV
-BASH_ENV=@MODULESHOME@/init/bash; export BASH_ENV
+ENV=@initdir@/profile.sh; export ENV
+BASH_ENV=@initdir@/bash; export BASH_ENV
 
 # setup FPATH to get module defined in 'ksh' interactive and non-interactive
 # sub-shells. only set in ksh init script to avoid side effect default FPATH
 # set for 'zsh' shell when it starts.
-if [[ ! ":$FPATH:" =~ ':@MODULESHOME@/init/ksh-functions:' ]]; then
-   FPATH+="${FPATH:+:}@MODULESHOME@/init/ksh-functions"; export FPATH
+if [[ ! ":$FPATH:" =~ ':@initdir@/ksh-functions:' ]]; then
+   FPATH+="${FPATH:+:}@initdir@/ksh-functions"; export FPATH
 fi
 
-MODULESHOME=@MODULESHOME@; export MODULESHOME
+MODULESHOME=@prefix@; export MODULESHOME
 
 if [ "${MODULEPATH:-}" = '' ]; then
-   if [ -r @MODULESHOME@/init/.modulespath ]; then
+   if [ -r @initdir@/.modulespath ]; then
       MODULEPATH=`sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' \
-         @MODULESHOME@/init/.modulespath`; export MODULEPATH
+         @initdir@/.modulespath`; export MODULEPATH
    else
       MODULEPATH=; export MODULEPATH
    fi
@@ -35,6 +35,6 @@ if [ "${LOADEDMODULES:-}" = '' ]; then
    LOADEDMODULES=; export LOADEDMODULES
 fi
 
-if [ -r @MODULESHOME@/init/modulerc ]; then
-   source @MODULESHOME@/init/modulerc
+if [ -r @initdir@/modulerc ]; then
+   source @initdir@/modulerc
 fi

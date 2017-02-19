@@ -1,27 +1,27 @@
 # only redirect module from stderr to stdout in interactive mode
 # to avoid breaking non interactive session (scp, sftp, etc)
 if [[ $- =~ i ]]; then
-   moduleraw() { eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl zsh $*`; }
+   moduleraw() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl zsh $*`; }
    module() { moduleraw $* 2>&1 ; }
 else
-   module() { eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl zsh $*`; }
+   module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl zsh $*`; }
 fi
 
 # setup ENV variables to get module defined in sub-shells (works for 'sh'
 # and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
 # (zsh-compat) in non-interactive mode.
-ENV=@MODULESHOME@/init/profile.sh; export ENV
-BASH_ENV=@MODULESHOME@/init/bash; export BASH_ENV
+ENV=@initdir@/profile.sh; export ENV
+BASH_ENV=@initdir@/bash; export BASH_ENV
 
 # no FPATH setup as zsh requires to 'autoload' functions put in FPATH dir
 # (no gain compared to a bare source of this init script)
 
-MODULESHOME=@MODULESHOME@; export MODULESHOME
+MODULESHOME=@prefix@; export MODULESHOME
 
 if [ "${MODULEPATH:-}" = '' ]; then
-   if [ -r @MODULESHOME@/init/.modulespath ]; then
+   if [ -r @initdir@/.modulespath ]; then
       MODULEPATH=`sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' \
-         @MODULESHOME@/init/.modulespath`; export MODULEPATH
+         @initdir@/.modulespath`; export MODULEPATH
    else
       MODULEPATH=; export MODULEPATH
    fi
@@ -31,6 +31,6 @@ if [ "${LOADEDMODULES:-}" = '' ]; then
    LOADEDMODULES=; export LOADEDMODULES
 fi
 
-if [ -r @MODULESHOME@/init/modulerc ]; then
-   source @MODULESHOME@/init/modulerc
+if [ -r @initdir@/modulerc ]; then
+   source @initdir@/modulerc
 fi

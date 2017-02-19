@@ -1,6 +1,6 @@
 if status -i
-   if [ -r @MODULESHOME@/init/fish_completion ]
-      source @MODULESHOME@/init/fish_completion
+   if [ -r @initdir@/fish_completion ]
+      source @initdir@/fish_completion
    end
 
    # only redirect module from stderr to stdout in interactive mode
@@ -8,29 +8,29 @@ if status -i
    function moduleraw
       # use "| source -" rather than "eval" to be able
       # to redirect stderr after stdout being evaluated
-      eval @TCLSH@ @MODULESHOME@/modulecmd.tcl fish $argv | source -
+      eval @TCLSH@ @libexecdir@/modulecmd.tcl fish $argv | source -
    end
    function module
       moduleraw $argv ^&1
    end
 else
    function module
-      eval @TCLSH@ @MODULESHOME@/modulecmd.tcl fish $argv | source -
+      eval @TCLSH@ @libexecdir@/modulecmd.tcl fish $argv | source -
    end
 end
 
 # setup ENV variables to get module defined in sub-shells (works for 'sh'
 # and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
 # (zsh-compat) in non-interactive mode.
-set -xg ENV @MODULESHOME@/init/profile.sh
-set -xg BASH_ENV @MODULESHOME@/init/bash
+set -xg ENV @initdir@/profile.sh
+set -xg BASH_ENV @initdir@/bash
 
-set -xg MODULESHOME @MODULESHOME@
+set -xg MODULESHOME @prefix@
 
 if not set -q MODULEPATH
-   if [ -r @MODULESHOME@/init/.modulespath ]
+   if [ -r @initdir@/.modulespath ]
       set -xg MODULEPATH (sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' \
-         @MODULESHOME@/init/.modulespath)
+         @initdir@/.modulespath)
    else
       set -xg MODULEPATH ''
    end
@@ -40,6 +40,6 @@ if not set -q LOADEDMODULES
    set -xg LOADEDMODULES ''
 end
 
-if [ -r @MODULESHOME@/init/modulerc ]
-   source @MODULESHOME@/init/modulerc
+if [ -r @initdir@/modulerc ]
+   source @initdir@/modulerc
 end

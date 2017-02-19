@@ -1,34 +1,34 @@
 # only redirect module from stderr to stdout in interactive mode
 # to avoid breaking non interactive session (scp, sftp, etc)
 if [[ $- =~ i ]]; then
-   moduleraw() { eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl bash $*`; }
+   moduleraw() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl bash $*`; }
    module() { moduleraw $* 2>&1 ; }
    # export functions to get them defined in sub-shells
    export -f moduleraw
    export -f module
 else
-   module() { eval `@TCLSH@ @MODULESHOME@/modulecmd.tcl bash $*`; }
+   module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl bash $*`; }
    export -f module
 fi
 
 # setup ENV variables to get module defined in sub-shells (works for 'sh'
 # and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
 # (zsh-compat) in non-interactive mode.
-ENV=@MODULESHOME@/init/profile.sh; export ENV
-BASH_ENV=@MODULESHOME@/init/bash; export BASH_ENV
+ENV=@initdir@/profile.sh; export ENV
+BASH_ENV=@initdir@/bash; export BASH_ENV
 
 # enable completion only in interactive mode
 if [ ${BASH_VERSINFO:-0} -ge 3 ] && [[ $- =~ i ]] &&
-   [ -r @MODULESHOME@/init/bash_completion ]; then
-   source @MODULESHOME@/init/bash_completion
+   [ -r @initdir@/bash_completion ]; then
+   source @initdir@/bash_completion
 fi
 
-MODULESHOME=@MODULESHOME@; export MODULESHOME
+MODULESHOME=@prefix@; export MODULESHOME
 
 if [ "${MODULEPATH:-}" = '' ]; then
-   if [ -r @MODULESHOME@/init/.modulespath ]; then
+   if [ -r @initdir@/.modulespath ]; then
       MODULEPATH=`sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' \
-         @MODULESHOME@/init/.modulespath`; export MODULEPATH
+         @initdir@/.modulespath`; export MODULEPATH
    else
       MODULEPATH=; export MODULEPATH
    fi
@@ -38,6 +38,6 @@ if [ "${LOADEDMODULES:-}" = '' ]; then
    LOADEDMODULES=; export LOADEDMODULES
 fi
 
-if [ -r @MODULESHOME@/init/modulerc ]; then
-   source @MODULESHOME@/init/modulerc
+if [ -r @initdir@/modulerc ]; then
+   source @initdir@/modulerc
 fi
