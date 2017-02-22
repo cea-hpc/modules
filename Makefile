@@ -9,6 +9,7 @@ prefix ?= /usr/local/modules-tcl
 bindir ?= $(prefix)/bin
 libexecdir ?= $(prefix)/libexec
 initdir ?= $(prefix)/init
+modulefilesdir ?=$(prefix)/modulefiles
 datarootdir ?= $(prefix)/share
 mandir ?= $(datarootdir)/man
 docdir ?= $(datarootdir)/doc
@@ -25,20 +26,21 @@ all: initdir doc ChangeLog .makeinstallpath
 	@echo "bindir := $(bindir)" >>$@
 	@echo "libexecdir := $(libexecdir)" >>$@
 	@echo "initdir := $(initdir)" >>$@
+	@echo "modulefilesdir := $(modulefilesdir)" >>$@
 	@echo "datarootdir := $(datarootdir)" >>$@
 	@echo "mandir := $(mandir)" >>$@
 	@echo "docdir := $(docdir)" >>$@
 
 initdir:
 	make -C init all prefix=$(prefix) libexecdir=$(libexecdir) \
-		initdir=$(initdir) bindir=$(bindir) mandir=$(mandir) \
-		datarootdir=$(datarootdir) setmanpath=$(setmanpath) \
-		setbinpath=$(setbinpath)
+		initdir=$(initdir) modulefilesdir=$(modulefilesdir) \
+		bindir=$(bindir) mandir=$(mandir) datarootdir=$(datarootdir) \
+		setmanpath=$(setmanpath) setbinpath=$(setbinpath)
 
 doc:
 	make -C doc all prefix=$(prefix) libexecdir=$(libexecdir) \
-		initdir=$(initdir) datarootdir=$(datarootdir) \
-		mandir=$(mandir) docdir=$(docdir)
+		initdir=$(initdir) modulefilesdir=$(modulefilesdir) \
+		bindir=$(bindir) mandir=$(mandir) datarootdir=$(datarootdir)
 
 www:
 	make -C www all

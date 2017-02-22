@@ -18,6 +18,7 @@ SOURCE_DIR := source
 prefix ?= /usr/local/modules-tcl
 libexecdir ?= $(prefix)/libexec
 initdir ?= $(prefix)/init
+modulefilesdir ?=$(prefix)/modulefiles
 datarootdir ?= $(prefix)/share
 mandir ?= $(datarootdir)/man
 docdir ?= $(datarootdir)/doc
@@ -30,7 +31,8 @@ all: $(HTML_DIR)/module.html $(HTML_DIR)/modulefile.html \
 define translate-in-script
 perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@libexecdir\@|$(libexecdir)|g; \
-	s|\@initdir\@|$(initdir)|g;' $< > $@
+	s|\@initdir\@|$(initdir)|g; \
+	s|\@modulefilesdir\@|$(modulefilesdir)|g;' $< > $@
 endef
 
 # save defined install paths
@@ -38,6 +40,7 @@ endef
 	@echo "prefix := $(prefix)" >$@
 	@echo "libexecdir := $(libexecdir)" >>$@
 	@echo "initdir := $(initdir)" >>$@
+	@echo "modulefilesdir := $(modulefilesdir)" >>$@
 	@echo "datarootdir := $(datarootdir)" >>$@
 	@echo "mandir := $(mandir)" >>$@
 	@echo "docdir := $(docdir)" >>$@

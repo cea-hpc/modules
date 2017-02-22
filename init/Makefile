@@ -12,6 +12,7 @@ prefix ?= /usr/local/modules-tcl
 bindir ?= $(prefix)/bin
 libexecdir ?= $(prefix)/libexec
 initdir ?= $(prefix)/init
+modulefilesdir ?=$(prefix)/modulefiles
 datarootdir ?= $(prefix)/share
 mandir ?= $(datarootdir)/man
 
@@ -32,6 +33,7 @@ all: $(ALL_SHELLS) modulerc.fake .makeinstallpath
 	@echo "bindir := $(bindir)" >>$@
 	@echo "libexecdir := $(libexecdir)" >>$@
 	@echo "initdir := $(initdir)" >>$@
+	@echo "modulefilesdir := $(modulefilesdir)" >>$@
 	@echo "datarootdir := $(datarootdir)" >>$@
 	@echo "mandir := $(mandir)" >>$@
 
@@ -52,6 +54,7 @@ define translate-in-script
 perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@libexecdir\@|$(libexecdir)|g; \
 	s|\@initdir\@|$(initdir)|g; \
+	s|\@modulefilesdir\@|$(modulefilesdir)|g; \
 	s|\@bindir\@|$(bindir)|g; \
 	s|\@mandir\@|$(mandir)|g; \
 	s|\@setmanpath\@(.*)\n|$(setmanpathre)|g; \
@@ -74,6 +77,7 @@ profile.sh: profile.sh.in Makefile
 install: all
 	mkdir -p $(initdir)
 	mkdir -p $(initdir)/ksh-functions
+	mkdir -p $(modulefilesdir)
 	cp $(ALL_SHELLS) $(initdir)/
 	cp bash_completion $(initdir)/
 	cp ksh $(initdir)/ksh-functions/module
