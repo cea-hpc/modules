@@ -23,6 +23,15 @@ BASH_ENV=@initdir@/bash; export BASH_ENV
 
 MODULESHOME=@prefix@; export MODULESHOME
 
+@setbinpath@if [[ ! ":$PATH:" =~ ':@bindir@:' ]]; then
+@setbinpath@   PATH=@bindir@${PATH:+:}$PATH; export PATH
+@setbinpath@fi
+@setbinpath@
+@setmanpath@manpath=`manpath 2>/dev/null`
+@setmanpath@if [[ ! ":$manpath:" =~ ':@mandir@:' ]]; then
+@setmanpath@   MANPATH=@mandir@${manpath:+:}$manpath; export MANPATH
+@setmanpath@fi
+@setmanpath@
 if [ "${MODULEPATH:-}" = '' ]; then
    if [ -r @initdir@/.modulespath ]; then
       MODULEPATH=`sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' \

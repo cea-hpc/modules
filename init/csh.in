@@ -38,6 +38,28 @@ setenv BASH_ENV @initdir@/bash
 
 setenv MODULESHOME @prefix@
 
+@setbinpath@if ( ":${PATH}:" !~ '*:@bindir@:*' ) then
+@setbinpath@   if ( "$PATH" == '' ) then
+@setbinpath@      setenv PATH @bindir@
+@setbinpath@   else
+@setbinpath@      setenv PATH "@bindir@:$PATH"
+@setbinpath@   endif
+@setbinpath@endif
+@setbinpath@
+@setmanpath@if ( $?MANPATH ) then
+@setmanpath@   set manpath = $MANPATH
+@setmanpath@else
+@setmanpath@   set manpath = `manpath -q`
+@setbinpath@endif
+@setmanpath@if ( ":${manpath}:" !~ '*:@mandir@:*' ) then
+@setmanpath@   if ( "$manpath" == '' ) then
+@setmanpath@      setenv MANPATH @mandir@
+@setmanpath@   else
+@setmanpath@      setenv MANPATH "@mandir@:$manpath"
+@setmanpath@   endif
+@setmanpath@endif
+@setmanpath@unset manpath
+@setmanpath@
 if (! $?MODULEPATH ) then
    if ( -r @initdir@/.modulespath ) then
       setenv MODULEPATH `sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' @initdir@/.modulespath`

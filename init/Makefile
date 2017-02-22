@@ -9,8 +9,15 @@ OTHER    = perl python lisp tcl fish
 
 # set default installation paths if not yet defined
 prefix ?= /usr/local/modules-tcl
+bindir ?= $(prefix)/bin
 libexecdir ?= $(prefix)/libexec
 initdir ?= $(prefix)/init
+datarootdir ?= $(prefix)/share
+mandir ?= $(datarootdir)/man
+
+# enable or not some specific definition
+setmanpath ?= y
+setbinpath ?= y
 
 # get tclsh location from standard PATHs or /usr/local/bin
 TCLSH := $(shell PATH=/usr/bin:/bin:/usr/local/bin command -v tclsh)
@@ -22,13 +29,33 @@ all: $(ALL_SHELLS) modulerc.fake .makeinstallpath
 # save defined install paths
 .makeinstallpath:
 	@echo "prefix := $(prefix)" >$@
+	@echo "bindir := $(bindir)" >>$@
 	@echo "libexecdir := $(libexecdir)" >>$@
 	@echo "initdir := $(initdir)" >>$@
+	@echo "datarootdir := $(datarootdir)" >>$@
+	@echo "mandir := $(mandir)" >>$@
+
+# if enabled translate to keep text after markup elsewhere remove the
+# entire line
+ifeq ($(setmanpath),y)
+  setmanpathre := \1\n
+else
+  setmanpathre :=
+endif
+ifeq ($(setbinpath),y)
+  setbinpathre := \1\n
+else
+  setbinpathre :=
+endif
 
 define translate-in-script
 perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@libexecdir\@|$(libexecdir)|g; \
 	s|\@initdir\@|$(initdir)|g; \
+	s|\@bindir\@|$(bindir)|g; \
+	s|\@mandir\@|$(mandir)|g; \
+	s|\@setmanpath\@(.*)\n|$(setmanpathre)|g; \
+	s|\@setbinpath\@(.*)\n|$(setbinpathre)|g; \
 	s|\@SHELLNAME\@|$@|g; \
 	s|\@TCLSH\@|$(TCLSH)|g' $< > $@
 endef

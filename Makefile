@@ -13,6 +13,10 @@ datarootdir ?= $(prefix)/share
 mandir ?= $(datarootdir)/man
 docdir ?= $(datarootdir)/doc
 
+# enable or not some specific definition
+setmanpath ?= y
+setbinpath ?= y
+
 all: initdir doc ChangeLog .makeinstallpath
 
 # save defined install paths
@@ -27,7 +31,9 @@ all: initdir doc ChangeLog .makeinstallpath
 
 initdir:
 	make -C init all prefix=$(prefix) libexecdir=$(libexecdir) \
-		initdir=$(initdir)
+		initdir=$(initdir) bindir=$(bindir) mandir=$(mandir) \
+		datarootdir=$(datarootdir) setmanpath=$(setmanpath) \
+		setbinpath=$(setbinpath)
 
 doc:
 	make -C doc all prefix=$(prefix) libexecdir=$(libexecdir) \
