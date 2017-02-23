@@ -13,10 +13,14 @@ modulefilesdir ?=$(prefix)/modulefiles
 datarootdir ?= $(prefix)/share
 mandir ?= $(datarootdir)/man
 docdir ?= $(datarootdir)/doc
+# modulepaths and modulefiles to enable in default config
+modulepath ?= $(modulefilesdir)
+loadedmodules ?=
 
 # enable or not some specific definition
 setmanpath ?= y
 setbinpath ?= y
+setdotmodulespath ?= n
 
 all: initdir doc ChangeLog .makeinstallpath
 
@@ -30,12 +34,15 @@ all: initdir doc ChangeLog .makeinstallpath
 	@echo "datarootdir := $(datarootdir)" >>$@
 	@echo "mandir := $(mandir)" >>$@
 	@echo "docdir := $(docdir)" >>$@
+	@echo "setdotmodulespath := $(setdotmodulespath)" >>$@
 
 initdir:
 	make -C init all prefix=$(prefix) libexecdir=$(libexecdir) \
 		initdir=$(initdir) modulefilesdir=$(modulefilesdir) \
 		bindir=$(bindir) mandir=$(mandir) datarootdir=$(datarootdir) \
-		setmanpath=$(setmanpath) setbinpath=$(setbinpath)
+		setmanpath=$(setmanpath) setbinpath=$(setbinpath) \
+		modulepath=$(modulepath) loadedmodules=$(loadedmodules) \
+		setdotmodulespath=$(setdotmodulespath)
 
 doc:
 	make -C doc all prefix=$(prefix) libexecdir=$(libexecdir) \

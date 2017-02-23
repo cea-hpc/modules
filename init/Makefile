@@ -15,17 +15,37 @@ initdir ?= $(prefix)/init
 modulefilesdir ?=$(prefix)/modulefiles
 datarootdir ?= $(prefix)/share
 mandir ?= $(datarootdir)/man
+# modulepaths and modulefiles to enable in default config
+modulepath ?= $(modulefilesdir)
+loadedmodules ?=
 
 # enable or not some specific definition
 setmanpath ?= y
 setbinpath ?= y
+
+# kind of config file to use: modulerc or both .modulespath and modulerc
+setdotmodulespath ?= n
+ifeq ($(setdotmodulespath),y)
+  ALL_CONFIG := .modulespath modulerc
+  # modulepath information will only be set in .modulespath
+else
+  ALL_CONFIG := modulerc
+  # generate 'module use' commands to put in modulerc from modulepath
+  modulerc := $(addprefix \nmodule use --append ,$(subst :, ,$(modulepath)))
+endif
+
+# generate 'module load' commands to put in modulerc from loadedmodules
+ifneq ($(loadedmodules),)
+  modulerc := $(modulerc)$(addprefix \nmodule load ,\
+    $(subst :, ,$(loadedmodules)))
+endif
 
 # get tclsh location from standard PATHs or /usr/local/bin
 TCLSH := $(shell PATH=/usr/bin:/bin:/usr/local/bin command -v tclsh)
 
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
-all: $(ALL_SHELLS) modulerc.fake .makeinstallpath
+all: $(ALL_SHELLS) $(ALL_CONFIG) .makeinstallpath
 
 # save defined install paths
 .makeinstallpath:
@@ -36,6 +56,7 @@ all: $(ALL_SHELLS) modulerc.fake .makeinstallpath
 	@echo "modulefilesdir := $(modulefilesdir)" >>$@
 	@echo "datarootdir := $(datarootdir)" >>$@
 	@echo "mandir := $(mandir)" >>$@
+	@echo "setdotmodulespath := $(setdotmodulespath)" >>$@
 
 # if enabled translate to keep text after markup elsewhere remove the
 # entire line
@@ -59,6 +80,8 @@ perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@mandir\@|$(mandir)|g; \
 	s|\@setmanpath\@(.*)\n|$(setmanpathre)|g; \
 	s|\@setbinpath\@(.*)\n|$(setbinpathre)|g; \
+	s|\@modulerc\@|$(modulerc)|g; \
+	s|\@modulepath\@|$(modulepath)|g; \
 	s|\@SHELLNAME\@|$@|g; \
 	s|\@TCLSH\@|$(TCLSH)|g' $< > $@
 endef
@@ -81,17 +104,7 @@ install: all
 	cp $(ALL_SHELLS) $(initdir)/
 	cp bash_completion $(initdir)/
 	cp ksh $(initdir)/ksh-functions/module
+	cp $(ALL_CONFIG) $(initdir)/
 
 clean:
-	rm -f $(ALL_SHELLS) .makeinstallpath
-
-modulerc.fake:
-ifeq ($(wildcard modulerc),) 
-	@echo "\n\n\tinit/modulerc does not exist.  You should create one"
-	@echo "\tsee init/modulerc.examp for an example file."
-else
-	@echo "\n\n\tyou should review your: init/modulerc"
-endif
-#	echo module use $(MODULESHOME)/modulefiles > modulerc
-#	echo "module use ~/.modules" >> modulerc
-#
+	rm -f $(ALL_SHELLS) modulerc .modulespath .makeinstallpath
