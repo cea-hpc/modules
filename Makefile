@@ -1,5 +1,5 @@
 export MODULESHOME = $(shell pwd)
-.PHONY: doc www initdir install clean .makeinstallpath
+.PHONY: doc www initdir install uninstall clean .makeinstallpath
 
 # load previously saved install paths if any
 -include .makeinstallpath
@@ -68,6 +68,17 @@ install: ChangeLog .makeinstallpath
 	cp readme.txt $(docdir)/README
 	make -C init install
 	make -C doc install
+
+uninstall:
+	rm -f $(libexecdir)/modulecmd.tcl
+	rm -f $(bindir)/envml
+	rm -f $(addprefix $(docdir)/,ChangeLog NEWS README)
+	make -C init uninstall
+	make -C doc uninstall
+	rmdir $(libexecdir)
+	rmdir $(bindir)
+	rmdir $(datarootdir)
+	rmdir $(prefix)
 
 distclean: clean
 

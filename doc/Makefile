@@ -1,4 +1,4 @@
-.PHONY: install clean .makeinstallpath
+.PHONY: install uninstall clean .makeinstallpath
 
 VERSION_FILE := ../modulecmd.tcl
 MAN_VERSION := "modules-tcl $(shell grep '^set MODULES_CURRENT_VERSION' \
@@ -71,6 +71,15 @@ install: all
 	cp diff_with_c-version.txt $(docdir)/
 	cp $(MAN1_DIR)/module.1 $(mandir)/man1/
 	cp $(MAN4_DIR)/modulefile.4 $(mandir)/man4/
+
+uninstall:
+	rm -f $(docdir)/LICENSE.GPL
+	rm -f $(docdir)/diff_with_c-version.txt
+	rm -f $(mandir)/man1/module.1
+	rm -f $(mandir)/man4/modulefile.4
+	rmdir $(mandir)/man1 $(mandir)/man4
+	rmdir $(mandir)
+	rmdir $(docdir)
 
 clean:
 	rm -f $(HTML_DIR)/*.html

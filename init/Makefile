@@ -1,4 +1,4 @@
-.PHONY: install clean .makeinstallpath
+.PHONY: install uninstall clean .makeinstallpath
 
 SH_LIKE  = sh ksh bash zsh profile.sh
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
@@ -105,6 +105,13 @@ install: all
 	cp bash_completion $(initdir)/
 	cp ksh $(initdir)/ksh-functions/module
 	cp $(ALL_CONFIG) $(initdir)/
+
+uninstall:
+	rm -f $(addprefix $(initdir)/,$(ALL_SHELLS) bash_completion ksh-functions/module)
+	rm -f $(addprefix $(initdir)/,$(ALL_CONFIG))
+	rmdir $(modulefilesdir)
+	rmdir $(initdir)/ksh-functions
+	rmdir $(initdir)
 
 clean:
 	rm -f $(ALL_SHELLS) modulerc .modulespath .makeinstallpath
