@@ -1,8 +1,12 @@
 export MODULESHOME = $(shell pwd)
-.PHONY: doc www initdir install uninstall clean .makeinstallpath
+.PHONY: doc www initdir install uninstall dist clean .makeinstallpath
 
 # load previously saved install paths if any
 -include .makeinstallpath
+
+CURRENT_VERSION := $(shell grep '^set MODULES_CURRENT_VERSION' \
+	modulecmd.tcl | cut -d ' ' -f 3)
+DIST_PREFIX := modules-tcl-$(CURRENT_VERSION)
 
 # set default installation paths if not yet defined
 prefix ?= /usr/local/modules-tcl
@@ -80,13 +84,25 @@ uninstall:
 	rmdir $(datarootdir)
 	rmdir $(prefix)
 
+dist: ChangeLog
+	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
+		-o $(DIST_PREFIX).tar HEAD
+	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' ChangeLog
+	gzip -f -9 $(DIST_PREFIX).tar
+
 distclean: clean
 
 clean: 
-	rm -f *.log *.sum ChangeLog .makeinstallpath
+	rm -f *.log *.sum .makeinstallpath
+ifeq ($(wildcard .git) $(wildcard contrib/gitlog2changelog.py),.git contrib/gitlog2changelog.py)
+	rm -f ChangeLog
+endif
+	rm -f modules-tcl-*.tar.gz
 	make -C init clean
 	make -C doc clean
+ifneq ($(wildcard www),)
 	make -C www clean
+endif
 
 test:
 	MODULEVERSION=Tcl; export MODULEVERSION; \

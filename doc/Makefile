@@ -85,6 +85,14 @@ clean:
 	rm -f $(HTML_DIR)/*.html
 	rm -f $(MAN1_DIR)/*.1 $(MAN4_DIR)/*.4
 	rm -f $(SOURCE_DIR)/module.pod
-	rmdir $(MAN1_DIR) $(MAN4_DIR) $(MAN_DIR)
+ifneq ($(wildcard $(MAN1_DIR)),)
+	rmdir $(MAN1_DIR)
+endif
+ifneq ($(wildcard $(MAN4_DIR)),)
+	rmdir $(MAN4_DIR)
+endif
+ifneq ($(wildcard $(MAN_DIR)),)
+	rmdir $(MAN_DIR)
+endif
 	rm -f diff_with_c-version.txt
 	rm -f pod*.tmp .makeinstallpath
