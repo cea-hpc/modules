@@ -7,6 +7,45 @@ else
    module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl zsh $*`; }
 fi
 
+@setswitchml@# define function to switch between C and Tcl versions of Modules
+@setswitchml@switchml() {
+@setswitchml@   # determine currently used module version
+@setswitchml@   typeset currel=`module --version 2>&1 | grep -E '^(Modules|VERSION=)'`
+@setswitchml@   if [[ "$currel" =~ 'Tcl' ]]; then
+@setswitchml@      typeset mlver='Tcl'
+@setswitchml@      typeset curpath='@bindir@'
+@setswitchml@      typeset curmanpath='@mandir@'
+@setswitchml@   elif [[ "$currel" =~ 'VERSION' ]]; then
+@setswitchml@      typeset mlver='C'
+@setswitchml@      typeset curpath='@cverbindir@'
+@setswitchml@      typeset curmanpath='@cvermandir@'
+@setswitchml@   fi
+@setswitchml@
+@setswitchml@   # remove specific paths set by current module version
+@setswitchml@   if [ -n "$PATH" -a "${curpath:-}" != '' ]; then
+@setswitchml@      PATH=${PATH/:$curpath/}
+@setswitchml@      PATH=${PATH/$curpath:/}
+@setswitchml@   fi
+@setswitchml@   if [ -n "$MANPATH" -a "${curmanpath:-}" != '' ]; then
+@setswitchml@      MANPATH=${MANPATH/:$curmanpath/}
+@setswitchml@      MANPATH=${MANPATH/$curmanpath:/}
+@setswitchml@   fi
+@setswitchml@
+@setswitchml@   # switch module version
+@setswitchml@   if [ "$mlver" = 'Tcl' ]; then
+@setswitchml@      if [ -d @cverinitdir@ ]; then
+@setswitchml@         echo 'Switching to Modules C version'
+@setswitchml@         source @cverinitdir@/sh
+@setswitchml@      else
+@setswitchml@         echo 'Cannot find Modules C version'
+@setswitchml@         return 1
+@setswitchml@      fi
+@setswitchml@   else
+@setswitchml@      echo 'Switching to Modules Tcl version'
+@setswitchml@      source @initdir@/zsh
+@setswitchml@   fi
+@setswitchml@}
+@setswitchml@
 # setup ENV variables to get module defined in sub-shells (works for 'sh'
 # and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
 # (zsh-compat) in non-interactive mode.

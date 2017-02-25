@@ -20,11 +20,16 @@ docdir ?= $(datarootdir)/doc
 # modulepaths and modulefiles to enable in default config
 modulepath ?= $(modulefilesdir)
 loadedmodules ?=
+# path to C version installation, unknown by default
+cverinitdir ?=
+cverbindir ?=
+cvermandir ?=
 
 # enable or not some specific definition
 setmanpath ?= y
 setbinpath ?= y
 setdotmodulespath ?= n
+setswitchml ?= y
 
 all: initdir doc ChangeLog .makeinstallpath
 
@@ -46,7 +51,9 @@ initdir:
 		bindir=$(bindir) mandir=$(mandir) datarootdir=$(datarootdir) \
 		setmanpath=$(setmanpath) setbinpath=$(setbinpath) \
 		modulepath=$(modulepath) loadedmodules=$(loadedmodules) \
-		setdotmodulespath=$(setdotmodulespath)
+		setdotmodulespath=$(setdotmodulespath) cverinitdir=$(cverinitdir) \
+		cverbindir=$(cverbindir) cvermandir=$(cvermandir) \
+		setswitchml=$(setswitchml)
 
 doc:
 	make -C doc all prefix=$(prefix) libexecdir=$(libexecdir) \

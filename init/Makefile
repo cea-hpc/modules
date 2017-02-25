@@ -18,10 +18,29 @@ mandir ?= $(datarootdir)/man
 # modulepaths and modulefiles to enable in default config
 modulepath ?= $(modulefilesdir)
 loadedmodules ?=
+# path to C version installation, unknown by default
+cverinitdir ?=
+cverbindir ?=
+cvermandir ?=
 
 # enable or not some specific definition
 setmanpath ?= y
 setbinpath ?= y
+
+# define switchml if we know where C version is installed
+ifeq ($(cverinitdir),)
+  override setswitchml := n
+else
+  setswitchml ?= y
+endif
+# reset C version path if they are standard system path (to ensure
+# switchml will not remove them from PATH or MANPATH)
+ifneq ($(findstring $(cverbindir),/bin /usr/bin /usr/local/bin),)
+  override cverbindir :=
+endif
+ifneq ($(findstring $(cvermandir),/usr/share/man /usr/local/share/man),)
+  override cvermandir :=
+endif
 
 # kind of config file to use: modulerc or both .modulespath and modulerc
 setdotmodulespath ?= n
@@ -70,6 +89,11 @@ ifeq ($(setbinpath),y)
 else
   setbinpathre :=
 endif
+ifeq ($(setswitchml),y)
+  setswitchmlre := \1\n
+else
+  setswitchmlre :=
+endif
 
 define translate-in-script
 perl -pe 's|\@prefix\@|$(prefix)|g; \
@@ -80,6 +104,10 @@ perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@mandir\@|$(mandir)|g; \
 	s|\@setmanpath\@(.*)\n|$(setmanpathre)|g; \
 	s|\@setbinpath\@(.*)\n|$(setbinpathre)|g; \
+	s|\@setswitchml\@(.*)\n|$(setswitchmlre)|g; \
+	s|\@cverinitdir\@|$(cverinitdir)|g; \
+	s|\@cverbindir\@|$(cverbindir)|g; \
+	s|\@cvermandir\@|$(cvermandir)|g; \
 	s|\@modulerc\@|$(modulerc)|g; \
 	s|\@modulepath\@|$(modulepath)|g; \
 	s|\@SHELLNAME\@|$@|g; \
@@ -104,10 +132,12 @@ install: all
 	cp $(ALL_SHELLS) $(initdir)/
 	cp bash_completion $(initdir)/
 	cp ksh $(initdir)/ksh-functions/module
+	cp ksh $(initdir)/ksh-functions/switchml
 	cp $(ALL_CONFIG) $(initdir)/
 
 uninstall:
-	rm -f $(addprefix $(initdir)/,$(ALL_SHELLS) bash_completion ksh-functions/module)
+	rm -f $(addprefix $(initdir)/,$(ALL_SHELLS) bash_completion)
+	rm -f $(addprefix $(initdir)/,ksh-functions/module ksh-functions/switchml)
 	rm -f $(addprefix $(initdir)/,$(ALL_CONFIG))
 	rmdir $(modulefilesdir)
 	rmdir $(initdir)/ksh-functions
