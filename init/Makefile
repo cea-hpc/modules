@@ -28,10 +28,13 @@ setmanpath ?= y
 setbinpath ?= y
 
 # define switchml if we know where C version is installed
+# same applies for using C version .modulespath config
 ifeq ($(cverinitdir),)
   override setswitchml := n
+  override usecverdotmodulespath := n
 else
   setswitchml ?= y
+  usecverdotmodulespath ?= n
 endif
 # reset C version path if they are standard system path (to ensure
 # switchml will not remove them from PATH or MANPATH)
@@ -43,7 +46,11 @@ ifneq ($(findstring $(cvermandir),/usr/share/man /usr/local/share/man),)
 endif
 
 # kind of config file to use: modulerc or both .modulespath and modulerc
-setdotmodulespath ?= n
+ifeq ($(usecverdotmodulespath),y)
+  override setdotmodulespath := y
+else
+  setdotmodulespath ?= n
+endif
 ifeq ($(setdotmodulespath),y)
   ALL_CONFIG := .modulespath modulerc
   # modulepath information will only be set in .modulespath
@@ -76,6 +83,8 @@ all: $(ALL_SHELLS) $(ALL_CONFIG) .makeinstallpath
 	@echo "datarootdir := $(datarootdir)" >>$@
 	@echo "mandir := $(mandir)" >>$@
 	@echo "setdotmodulespath := $(setdotmodulespath)" >>$@
+	@echo "usecverdotmodulespath := $(usecverdotmodulespath)" >>$@
+	@echo "cverinitdir := $(cverinitdir)" >>$@
 
 # if enabled translate to keep text after markup elsewhere remove the
 # entire line
@@ -125,6 +134,12 @@ tcsh: csh.in Makefile
 profile.sh: profile.sh.in Makefile
 	$(translate-in-script)
 
+# make link on C version installed .modulespath
+ifeq ($(usecverdotmodulespath),y)
+.modulespath:
+	ln -s $(cverinitdir)/$@ $@
+endif
+
 install: all
 	mkdir -p $(initdir)
 	mkdir -p $(initdir)/ksh-functions
@@ -133,7 +148,7 @@ install: all
 	cp bash_completion $(initdir)/
 	cp ksh $(initdir)/ksh-functions/module
 	cp ksh $(initdir)/ksh-functions/switchml
-	cp $(ALL_CONFIG) $(initdir)/
+	cp -P --remove-destination $(ALL_CONFIG) $(initdir)/
 
 uninstall:
 	rm -f $(addprefix $(initdir)/,$(ALL_SHELLS) bash_completion)

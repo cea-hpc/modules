@@ -30,6 +30,7 @@ setmanpath ?= y
 setbinpath ?= y
 setdotmodulespath ?= n
 setswitchml ?= y
+usecverdotmodulespath ?= n
 
 all: initdir doc ChangeLog .makeinstallpath
 
@@ -44,6 +45,8 @@ all: initdir doc ChangeLog .makeinstallpath
 	@echo "mandir := $(mandir)" >>$@
 	@echo "docdir := $(docdir)" >>$@
 	@echo "setdotmodulespath := $(setdotmodulespath)" >>$@
+	@echo "usecverdotmodulespath := $(usecverdotmodulespath)" >>$@
+	@echo "cverinitdir := $(cverinitdir)" >>$@
 
 initdir:
 	make -C init all prefix=$(prefix) libexecdir=$(libexecdir) \
@@ -53,7 +56,7 @@ initdir:
 		modulepath=$(modulepath) loadedmodules=$(loadedmodules) \
 		setdotmodulespath=$(setdotmodulespath) cverinitdir=$(cverinitdir) \
 		cverbindir=$(cverbindir) cvermandir=$(cvermandir) \
-		setswitchml=$(setswitchml)
+		setswitchml=$(setswitchml) usecverdotmodulespath=$(usecverdotmodulespath)
 
 doc:
 	make -C doc all prefix=$(prefix) libexecdir=$(libexecdir) \
