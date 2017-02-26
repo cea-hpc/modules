@@ -42,29 +42,29 @@ ChangeLog:
 	contrib/gitlog2changelog.py
 
 install: ChangeLog
-	mkdir -p $(libexecdir)
-	mkdir -p $(bindir)
-	mkdir -p $(docdir)
-	cp modulecmd.tcl $(libexecdir)/
-	chmod +x $(libexecdir)/modulecmd.tcl
-	cp contrib/envml $(bindir)/
-	chmod +x $(bindir)/envml
-	cp ChangeLog $(docdir)/
-	cp NEWS $(docdir)/
-	cp readme.txt $(docdir)/README
-	make -C init install
-	make -C doc install
+	mkdir -p $(DESTDIR)$(libexecdir)
+	mkdir -p $(DESTDIR)$(bindir)
+	mkdir -p $(DESTDIR)$(docdir)
+	cp modulecmd.tcl $(DESTDIR)$(libexecdir)/
+	chmod +x $(DESTDIR)$(libexecdir)/modulecmd.tcl
+	cp contrib/envml $(DESTDIR)$(bindir)/
+	chmod +x $(DESTDIR)$(bindir)/envml
+	cp ChangeLog $(DESTDIR)$(docdir)/
+	cp NEWS $(DESTDIR)$(docdir)/
+	cp readme.txt $(DESTDIR)$(docdir)/README
+	make -C init install DESTDIR=$(DESTDIR)
+	make -C doc install DESTDIR=$(DESTDIR)
 
 uninstall:
-	rm -f $(libexecdir)/modulecmd.tcl
-	rm -f $(bindir)/envml
-	rm -f $(addprefix $(docdir)/,ChangeLog NEWS README)
-	make -C init uninstall
-	make -C doc uninstall
-	rmdir $(libexecdir)
-	rmdir $(bindir)
-	rmdir $(datarootdir)
-	rmdir $(prefix)
+	rm -f $(DESTDIR)$(libexecdir)/modulecmd.tcl
+	rm -f $(DESTDIR)$(bindir)/envml
+	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog NEWS README)
+	make -C init uninstall DESTDIR=$(DESTDIR)
+	make -C doc uninstall DESTDIR=$(DESTDIR)
+	rmdir $(DESTDIR)$(libexecdir)
+	rmdir $(DESTDIR)$(bindir)
+	rmdir $(DESTDIR)$(datarootdir)
+	rmdir $(DESTDIR)$(prefix)
 
 dist: ChangeLog
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
