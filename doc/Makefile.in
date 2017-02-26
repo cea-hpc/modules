@@ -1,4 +1,4 @@
-.PHONY: install uninstall clean .makeinstallpath
+.PHONY: install uninstall clean distclean
 
 VERSION_FILE := ../modulecmd.tcl
 MAN_VERSION := "modules-tcl $(shell grep '^set MODULES_CURRENT_VERSION' \
@@ -11,22 +11,18 @@ MAN1_DIR := $(MAN_DIR)/man1
 MAN4_DIR := $(MAN_DIR)/man4
 SOURCE_DIR := source
 
-# load previously saved install paths if any
--include .makeinstallpath
-
-# set default installation paths if not yet defined
-prefix ?= /usr/local/modules-tcl
-libexecdir ?= $(prefix)/libexec
-initdir ?= $(prefix)/init
-modulefilesdir ?=$(prefix)/modulefiles
-datarootdir ?= $(prefix)/share
-mandir ?= $(datarootdir)/man
-docdir ?= $(datarootdir)/doc
+# set default installation paths
+prefix := @prefix@
+libexecdir := @libexecdir@
+initdir := @initdir@
+modulefilesdir := @modulefilesdir@
+datarootdir := @datarootdir@
+mandir := @mandir@
+docdir := @docdir@
 
 all: $(HTML_DIR)/module.html $(HTML_DIR)/modulefile.html \
 	$(MAN1_DIR)/module.1 $(MAN4_DIR)/modulefile.4 \
-	$(HTML_DIR)/diff_with_c-version.html diff_with_c-version.txt \
-	.makeinstallpath
+	$(HTML_DIR)/diff_with_c-version.html diff_with_c-version.txt
 
 define translate-in-script
 perl -pe 's|\@prefix\@|$(prefix)|g; \
@@ -34,16 +30,6 @@ perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@initdir\@|$(initdir)|g; \
 	s|\@modulefilesdir\@|$(modulefilesdir)|g;' $< > $@
 endef
-
-# save defined install paths
-.makeinstallpath:
-	@echo "prefix := $(prefix)" >$@
-	@echo "libexecdir := $(libexecdir)" >>$@
-	@echo "initdir := $(initdir)" >>$@
-	@echo "modulefilesdir := $(modulefilesdir)" >>$@
-	@echo "datarootdir := $(datarootdir)" >>$@
-	@echo "mandir := $(mandir)" >>$@
-	@echo "docdir := $(docdir)" >>$@
 
 $(SOURCE_DIR)/%.pod: $(SOURCE_DIR)/%.pod.in
 	$(translate-in-script)
@@ -95,4 +81,7 @@ ifneq ($(wildcard $(MAN_DIR)),)
 	rmdir $(MAN_DIR)
 endif
 	rm -f diff_with_c-version.txt
-	rm -f pod*.tmp .makeinstallpath
+	rm -f pod*.tmp
+
+distclean: clean
+	rm -f Makefile

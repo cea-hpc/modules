@@ -1,0 +1,330 @@
+#!/bin/sh
+#
+# CONFIGURE, check requirements then set variables and create Makefiles
+# Copyright (C) 2017 CEA/DAM
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+progpath=$0
+prog=${progpath##*/}
+
+# argument list
+arglist="TCLSH prefix bindir libexecdir initdir datarootdir mandir docdir \
+modulefilesdir setmanpath setbinpath setswitchml setdotmodulespath \
+usecverdotmodulespath cverinitdir cverbindir cvermandir modulepath \
+loadedmodules"
+
+# flags to know if argument has been specified on command-line
+defswitchml=1
+defdotmodulespath=1
+defcverdotmodulespath=1
+
+# set argument default values
+prefix=/usr/local/modules-tcl
+setmanpath=y
+setbinpath=y
+setswitchml=y
+setdotmodulespath=n
+usecverdotmodulespath=n
+cverinitdir=
+cverbindir=
+cvermandir=
+loadedmodules=
+# these args are initialized here but as they depend on other argument value
+# they will get their default value later (after command-line parse)
+bindir=
+libexecdir=
+initdir=
+datarootdir=
+mandir=
+docdir=
+modulefilesdir=
+modulepath=
+
+
+# print message on stderr then exit
+echo_error() {
+   echo -e "ERROR: $1" >&2
+   exit 1
+}
+
+# print message on stderr then exit
+echo_warning() {
+   echo -e "WARNING: $1"
+}
+
+
+# print usage message
+echo_usage() {
+   echo "Usage: $progpath [OPTION]...
+Check requirements then set variables and create Makefiles.
+
+Defaults for the options are specified in square brackets.
+
+Configuration:
+  -h, --help              display this help and exit
+
+Installation directories:
+  --prefix=PREFIX         install files in PREFIX [$prefix]
+
+By default, \`make install' will install all the files in
+\`$prefix/bin', \`$prefix/libexec', etc. You
+can specify an installation prefix other than \`$prefix'
+using \`--prefix', for instance \`--prefix=\$HOME'.
+
+For better control, use the options below.
+
+Fine tuning of the installation directories:
+  --bindir=DIR            user executables [PREFIX/bin]
+  --libexecdir=DIR        program executables [PREFIX/libexec]
+  --initdir=DIR           environment initialization scripts [PREFIX/init]
+  --datarootdir=DIR       read-only arch.-independent data root [PREFIX/share]
+  --mandir=DIR            man documentation [DATAROOTDIR/man]
+  --docdir=DIR            documentation root [DATAROOTDIR/doc]
+  --modulefilesdir=DIR    system modulefiles [PREFIX/modulefiles]
+
+Optional Features:
+  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
+  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-set-manpath    add mandir to MANPATH in init scripts [yes]
+  --enable-set-binpath    add bindir to PATH in init scripts [yes]
+  --enable-set-switchml   define switchml in init scripts (requires
+                          cver-initdir to be defined) [yes]
+  --enable-dotmodulespath configure modules path in .modulespath file rather
+                          than modulerc file [no]
+  --enable-use-cver-dotmodulespath
+                          bind to the .modulespath configuration file of the
+                          installed Modules C version (requires cver-initdir
+                          to be defined and superseeds dotmodulespath) [no]
+
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-cver-initdir=DIR directory containing Modules C version init
+                          scripts, which is a required information to enable
+                          the \`switchml' and \`use-cver-dotmodulespath'
+                          features []
+  --with-cver-bindir=DIR  directory containing Modules C version binaries,
+                          which is an optional information when enabling the
+                          \`switchml' feature []
+  --with-cver-mandir=DIR  directory containing Modules C version man pages,
+                          which is an optional information when enabling the
+                          \`switchml' feature []
+  --with-modulepath=PATHLIST
+                          default modulepaths to set in default configuration
+                          file to be enabled (each path in PATHLIST should
+                          be separated by \`:') [PREFIX/modulefiles]
+  --with-loadedmodules=MODLIST
+                          default modulefiles to set in default configuration
+                          file to be loaded (each modulefile name in MODLIST
+                          should be separated by \`:') []
+
+Depending on the above configuration options the files are approximately
+placed in the following directory structure:
+  PREFIX/
+    bin/
+    init/
+    libexec/
+    share/
+      doc/
+      man/
+        man1/
+        man4/
+    modulefiles/"
+}
+
+# check requirement availability
+check_requirement() {
+   typeset req=$1
+   typeset optmesg=$2
+   typeset cmdenv=$3
+
+   echo -n "checking for ${req}... "
+   if [ -n "$cmdenv" ]; then
+      cmdsearch="$cmdenv command -v $req"
+   else
+      cmdsearch="command -v $req"
+   fi
+   reqpath=$(eval $cmdsearch)
+
+   if [ -n "$reqpath" ]; then
+      echo $reqpath
+   else
+      echo "not found"
+      if [ -z "$optmesg" ]; then
+         echo_error "$req could not be found"
+      else
+         echo_warning "$optmesg"
+      fi
+   fi
+}
+
+# parse optional argument to find if feature is enabled or disabled
+get_feature_value() {
+   typeset val="${1#*=}"
+
+   if [ "${1//--enable/}" != "$1" ]; then
+      if [ "$val" = 'no' ]; then
+        echo 'n'
+      else
+        echo 'y'
+      fi
+   else
+      echo 'n'
+   fi
+}
+
+# parse optional argument to find package is set or disabled
+get_package_value() {
+   typeset val="${1#*=}"
+
+   if [ "${1//--with/}" != "$1" ]; then
+      if [ "$val" = 'no' ]; then
+        echo ''
+      else
+        echo "$val"
+      fi
+   else
+      echo ''
+   fi
+}
+
+# parse arguments
+for arg in "$@"; do
+   case "$arg" in
+   --prefix=*)
+      prefix="${arg#*=}" ;;
+   --bindir=*)
+      bindir="${arg#*=}" ;;
+   --libexecdir=*)
+      libexecdir="${arg#*=}" ;;
+   --initdir=*)
+      initdir="${arg#*=}" ;;
+   --datarootdir=*)
+      datarootdir="${arg#*=}" ;;
+   --mandir=*)
+      mandir="${arg#*=}" ;;
+   --docdir=*)
+      docdir="${arg#*=}" ;;
+   --modulefilesdir=*)
+      modulefilesdir="${arg#*=}" ;;
+   --enable-set-manpath*|--disable-set-manpath)
+      setmanpath=$(get_feature_value "$arg") ;;
+   --enable-set-binpath*|--disable-set-binpath)
+      setbinpath=$(get_feature_value "$arg") ;;
+   --enable-set-switchml*|--disable-set-switchml)
+      setswitchml=$(get_feature_value "$arg")
+      defswitchml=0 ;;
+   --enable-dotmodulespath*|--disable-dotmodulespath)
+      setdotmodulespath=$(get_feature_value "$arg")
+      defdotmodulespath=0 ;;
+   --enable-use-cver-dotmodulespath*|--disable-use-cver-dotmodulespath)
+      usecverdotmodulespath=$(get_feature_value "$arg")
+      defcverdotmodulespath=0 ;;
+   --with-cver-initdir=*|--without-cver-initdir)
+      cverinitdir=$(get_package_value "$arg") ;;
+   --with-cver-bindir=*|--without-cver-bindir)
+      cverbindir=$(get_package_value "$arg") ;;
+   --with-cver-mandir=*|--without-cver-mandir)
+      cvermandir=$(get_package_value "$arg") ;;
+   --with-modulepath=*|--without-modulepath)
+      modulepath=$(get_package_value "$arg") ;;
+   --with-loadedmodules=*|--without-loadedmodules)
+      loadedmodules=$(get_package_value "$arg") ;;
+   -h|--help)
+      echo_usage
+      exit 0
+      ;;
+   *)
+      echo_error "Unrecognized option \`$arg'\nTry \
+\`$progpath --help' for more information." ;;
+   esac
+done
+
+# set argument default values for those depending of other argument
+[ -z "$bindir" ] && bindir=$prefix/bin
+[ -z "$libexecdir" ] && libexecdir=$prefix/libexec
+[ -z "$initdir" ] && initdir=$prefix/init
+[ -z "$datarootdir" ] && datarootdir=$prefix/share
+[ -z "$mandir" ] && mandir=$datarootdir/man
+[ -z "$docdir" ] && docdir=$datarootdir/doc
+[ -z "$modulefilesdir" ] && modulefilesdir=$prefix/modulefiles
+[ -z "$modulepath" ] && modulepath=$modulefilesdir
+
+# test requirements availability
+check_requirement make
+check_requirement perl
+check_requirement grep
+check_requirement cut
+check_requirement pod2html
+check_requirement pod2text
+check_requirement pod2man
+check_requirement runtest "Install \`dejagnu' if you want to run the \
+testsuite"
+# get tclsh location from standard PATHs or /usr/local/bin
+check_requirement tclsh '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+TCLSH=$reqpath
+
+# check feature requirements are met
+# define switchml if we know where C version is installed
+if [ "$setswitchml" = 'y' -a -z "$cverinitdir" ]; then
+   featmesg="Cannot enable \`switchml' as \`cver-initdir' not defined"
+   if [ $defswitchml -eq 0 ]; then
+      echo_error "$featmesg"
+   else
+      echo_warning "$featmesg"
+      setswitchml='n'
+   fi
+fi
+# same applies for using C version .modulespath config
+if [ "$usecverdotmodulespath" = 'y' -a -z "$cverinitdir" ]; then
+   featmesg="Cannot enable \`use-cver-dotmodulespath' as \`cver-initdir' \
+not defined"
+   if [ $defcverdotmodulespath -eq 0 ]; then
+      echo_error "$featmesg"
+   else
+      echo_warning "$featmesg"
+      usecverdotmodulespath='n'
+   fi
+fi
+if [ "$setdotmodulespath" = 'n' -a "$usecverdotmodulespath" = 'y' ]; then
+   featmesg="Need to enable \`dotmodulespath' as \`use-cver-dotmodulespath' \
+enabled"
+   if [ $defdotmodulespath -eq 0 ]; then
+      echo_error "$featmesg"
+   else
+      echo_warning "$featmesg"
+      setdotmodulespath='y'
+   fi
+fi
+
+# display configuration set
+# and build Makefile translation expression
+translation_regexp=''
+for arg in ${arglist}; do
+   echo "$arg = ${!arg}"
+   translation_regexp+="s|\@${arg}\@|${!arg}|g; "
+done
+
+# generate Makefiles
+echo "creating Makefile"
+perl -pe "$translation_regexp" Makefile.in >Makefile
+echo "creating doc/Makefile"
+perl -pe "$translation_regexp" doc/Makefile.in >doc/Makefile
+echo "creating init/Makefile"
+perl -pe "$translation_regexp" init/Makefile.in >init/Makefile
+
+exit 0
