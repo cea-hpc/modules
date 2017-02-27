@@ -20,7 +20,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.742
+set MODULES_CURRENT_VERSION 1.767
+set MODULES_CURRENT_RELEASE_DATE "2017-02-27"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -4329,7 +4330,7 @@ proc cmdModuleInit {args} {
 }
 
 proc cmdModuleHelp {args} {
-   global MODULES_CURRENT_VERSION
+   global MODULES_CURRENT_VERSION MODULES_CURRENT_RELEASE_DATE
 
    set done 0
    pushMode "help"
@@ -4353,7 +4354,8 @@ proc cmdModuleHelp {args} {
    popMode
    if {$done == 0} {
       report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
-      report {        Copyright GNU GPL v2 1991}
+      report "($MODULES_CURRENT_RELEASE_DATE)" 1
+      report {   Copyright GNU GPL v2 1991}
       report {Usage: module [options] [command] [args ...]}
 
       report {}
@@ -4491,7 +4493,8 @@ if {[catch {
           exit 0
       }
       {^(-V|--ver)} {
-          report "Modules Release Tcl $MODULES_CURRENT_VERSION"
+          report "Modules Release Tcl $MODULES_CURRENT_VERSION\
+            ($MODULES_CURRENT_RELEASE_DATE)"
           exit 0
       }
       {^-} {
