@@ -37,16 +37,18 @@ ifneq ($(findstring $(cvermandir),/usr/share/man /usr/local/share/man),)
   override cvermandir :=
 endif
 
-# kind of config file to use: modulerc or both .modulespath and modulerc
+# kind of config file to use: modulerc or .modulespath
 ifeq ($(setdotmodulespath),y)
+  # both configuration files will be installed and in this case default init
+  # scripts will use .modulespath prior to modulerc. If .modulespath sets a
+  # module path then modulerc will be ignored
   ALL_CONFIG := .modulespath modulerc
-  # modulepath information will only be set in .modulespath
 else
   ALL_CONFIG := modulerc
-  # generate 'module use' commands to put in modulerc from modulepath
-  modulerc := $(addprefix \nmodule use --append ,$(subst :, ,$(modulepath)))
 endif
 
+# generate 'module use' commands to put in modulerc from modulepath
+modulerc := $(addprefix \nmodule use --append ,$(subst :, ,$(modulepath)))
 # generate 'module load' commands to put in modulerc from loadedmodules
 ifneq ($(loadedmodules),)
   modulerc := $(modulerc)$(addprefix \nmodule load ,\
