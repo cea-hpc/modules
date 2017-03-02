@@ -5451,6 +5451,15 @@ proc cmdModuleInit {args} {
    }
 }
 
+proc cmdModuleImm {args} {
+   pushMode "load"
+
+   #puts stderr $args
+   eval $args
+
+   popMode
+}
+
 proc cmdModuleTest {args} {
    reportDebug "cmdModuleTest: testing $args"
 
@@ -5533,6 +5542,11 @@ Shell's initialization files handling commands:
   initswitch      mod1 mod2         Switch mod1 with mod2 from init file
   initclear                         Clear all modulefiles from init file
 
+Module commands available from the command line:
+  prepend-path    VAR PATH [separator]
+  append-path     VAR PATH [separator]
+  remove-path     VAR PATH [separator]
+                                    Path-like variable manipulation
 Other commands:
   help            [modulefile ...]  Print this or modulefile(s) help info
   display | show  modulefile [...]  Display information about modulefile(s)
@@ -5718,8 +5732,16 @@ if {[catch {
    # defined in env(MODULESPATH)
    runModulerc
 
-   # eval needed to pass otherargv as list to module proc
-   eval module $command $otherargv
+   switch -regexp -- $command {
+      {^(prepend|append|remove)-path$} {
+         eval cmdModuleImm $command $otherargv
+         renderSettings
+      }
+      . {
+         # eval needed to pass otherargv as list to module proc
+         eval module $command $otherargv
+      }
+   }
 } errMsg ]} {
    # no use of reportError here to get independent from any
    # previous error report inhibition
