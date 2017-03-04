@@ -20,7 +20,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.729
+set MODULES_CURRENT_VERSION 1.730
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2714,10 +2714,8 @@ proc getVersAliasList {mod args} {
 
    reportDebug "getVersAliasList: $mod (previously: $args)"
 
-   # get module name and version after alias resolution attempt
-   lassign [getModuleNameVersion $mod 1] mod
-   lassign [getModuleNameVersion [resolveModuleVersionOrAlias $mod "alias"]]\
-      mod modname modversion
+   # get module name and version
+   lassign [getModuleNameVersion $mod 1] mod modname modversion
 
    set tag_list {}
    if {[info exists g_versionHash($mod)]} {
@@ -2730,7 +2728,7 @@ proc getVersAliasList {mod args} {
                # concat with any other tag found for modname/version
                set tag_list [concat $tag_list $version\
                   [eval getVersAliasList $modname/$version $args]]
-            } else {
+            } elseif {$modversion ne ""} {
                reportError "Version symbol '$modversion' loops"
             }
          }
@@ -2748,6 +2746,17 @@ proc getVersAliasList {mod args} {
       } else {
          reportError "Version symbol '$modversion' loops"
       }
+   }
+
+   # if mod is an alias collect symbols if not already done
+   lassign [getModuleNameVersion [resolveModuleVersionOrAlias $mod \
+      "alias"]] modnew modnamenew modversionnew
+   if {$modname ne $modnamenew && [lsearch -exact $args $modnew] == -1} {
+      # add default to the list of already resolved element in order to
+      # detect infinite resolution loop
+      lappend args $modnew
+      # concat with any other tag found for alias
+      set tag_list [concat $tag_list [eval getVersAliasList $modnew $args]]
    }
 
    # always dictionary-sort results and remove duplicates

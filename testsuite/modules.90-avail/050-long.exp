@@ -11,7 +11,7 @@
 #
 #   Description:	Testuite testsequence
 #   Command:		avail
-#   Modulefiles:	setenv/1.0, averssort, sym_foo
+#   Modulefiles:	setenv/1.0, averssort, sym_foo, loc_rc6
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -34,6 +34,13 @@ set a1vers2 "1.2.4"
 set a1vers3 "1.10"
 set alias2 "sym_foo"
 set alias2target "loc_rc1/foo"
+set alias2vers "special"
+set module2 "loc_rc6"
+set mod2vers1 "1.2"
+set mod2sym1 "default"
+set mod2sym2 "new"
+set mod2alias1 "1"
+set mod2alias2 "bar"
 eval set  [ array get env MODULEPATH ]
 
 set header "- Package/Alias \[-\]+.- Versions \[-\]+.- Last mod. \[-\]+\n"
@@ -41,7 +48,8 @@ set header1 "$header\[-\]+ $MODULEPATH \[-\]+\n"
 set header2 "$header\[-\]+ global/user modulerc \[-\]+\n"
 set ts_csh "$header1$module\/$version                                                  \[0-9\/]{10} \[0-9:]{8}"
 set tsa1_csh "$header1$alias1/$a1vers1 -> $alias1target/$a1vers1\\s+\n$alias1/$a1vers2 -> $alias1target/$a1vers2\\s+\n$alias1/$a1vers3 -> $alias1target/$a1vers3\\s+"
-set tsa2_csh "$header2$alias2 -> $alias2target\\s+"
+set tsa2_csh "$header2$alias2 -> $alias2target\\s+$alias2vers\\s+"
+set tsa3_csh "$header1$module2/$mod2alias1 -> $module2/$mod2vers1\\s+\n$module2/$mod2vers1\\s+$mod2sym1:$mod2sym2\\s+\[0-9\/]{10} \[0-9:]{8}\n$module2/$mod2alias2 -> $module2/$mod2vers1\\s+"
 
 # save the former rc file setup
 if {[info exists env(MODULERCFILE)]} {
@@ -72,6 +80,13 @@ testerr_cmd_re "csh" "avail -l $alias2" "$tsa2_csh\$"
 
 
 #
+#  tests on a module mixing aliases, symbols and regular modulefile
+#
+
+testerr_cmd_re "csh" "avail -l $module2" "$tsa3_csh\$"
+
+
+#
 #  Cleanup
 #
 
@@ -89,6 +104,7 @@ unset header2
 unset ts_csh
 unset tsa1_csh
 unset tsa2_csh
+unset tsa3_csh
 unset MODULEPATH
 unset version
 unset module
@@ -99,3 +115,10 @@ unset a1vers2
 unset a1vers3
 unset alias2
 unset alias2target
+unset alias2vers
+unset module2
+unset mod2vers1
+unset mod2sym1
+unset mod2sym2
+unset mod2alias1
+unset mod2alias2

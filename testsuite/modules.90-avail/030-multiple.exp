@@ -11,8 +11,8 @@
 #
 #   Description:	Testuite testsequence
 #   Command:		avail
-#   Modulefiles:	loc_rc1/1.0, loc_rc1/2.0, loc_rc3/1.0,
-#                   loc_rc3/2.0, loc_rc3/3.0, averssort, sym_foo, bad
+#   Modulefiles:	loc_rc1/1.0, loc_rc1/2.0, loc_rc3/1.0, loc_rc3/2.0,
+#                   loc_rc3/3.0, loc_rc6, averssort, sym_foo, bad
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -42,6 +42,12 @@ set module5 "bad"
 set mod5vers1 "after"
 set mod5vers2 "before"
 set mod5sym1 "good"
+set module6 "loc_rc6"
+set mod6vers1 "1.2"
+set mod6sym1 "default"
+set mod6sym2 "new"
+set mod6alias1 "1"
+set mod6alias2 "bar"
 eval set  [ array get env MODULEPATH ]
 set header "\[-\]+ $MODULEPATH \[-\]+\n"
 set header2 "\[-\]+ global/user modulerc \[-\]+\n"
@@ -88,7 +94,7 @@ testerr_cmd_re "csh" "avail $module3 $module3" "$ts_csh\n$ts_csh\$"
 #
 
 set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
-set ts_csh "$header2$module4\\(@\\)\\s+"
+set ts_csh "$header2$module4\\(special:@\\)\\s+"
 
 testerr_cmd_re "csh" "avail $module4" "$ts_csh\$"
 testerr_cmd_re "csh" "avail $module4 $module4" "$ts_csh\n$ts_csh\$"
@@ -106,6 +112,16 @@ testerr_cmd_re "csh" "avail $module5 $module5" "$ts_csh\n$ts_csh\$"
 
 
 #
+#  tests on a module mixing aliases, symbols and regular modulefile
+#
+
+set ts_csh "$header$module6/$mod6alias1\\(@\\)\\s+$module6/$mod6vers1\\($mod6sym1:$mod6sym2\\)\\s+$module6/$mod6alias2\\(@\\)\\s+"
+
+testerr_cmd_re "csh" "avail $module6" "$ts_csh\$"
+testerr_cmd_re "csh" "avail $module6 $module6" "$ts_csh\n$ts_csh\$"
+
+
+#
 #  Cleanup
 #
 
@@ -119,6 +135,12 @@ if {[info exists save_rc]} {
 
 unset ts_csh
 
+unset mod6alias2
+unset mod6alias1
+unset mod6sym2
+unset mod6sym1
+unset mod6vers1
+unset module6
 unset mod5sym1
 unset mod5vers1
 unset mod5vers2
