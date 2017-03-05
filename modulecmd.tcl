@@ -20,8 +20,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.767
-set MODULES_CURRENT_RELEASE_DATE "2017-02-27"
+set MODULES_CURRENT_VERSION 1.772
+set MODULES_CURRENT_RELEASE_DATE "2017-03-05"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1967,8 +1967,7 @@ proc runModulerc {} {
    set rclist {}
 
    reportDebug "runModulerc: running..."
-   reportDebug "runModulerc: env MODULESHOME = $env(MODULESHOME)"
-   reportDebug "runModulerc: env HOME = $env(HOME)"
+
    if {[info exists env(MODULERCFILE)]} {
       # if MODULERCFILE is a dir, look at a modulerc file in it
       if {[file isdirectory $env(MODULERCFILE)]\
