@@ -10,9 +10,14 @@ TXT_SRC_DIR := $(TOP_DIR)/doc
 
 all: $(TCL_DIR)/module.html $(TCL_DIR)/modulefile.html \
 	$(TCL_DIR)/diff_with_c-version.html $(TCL_DIR)/NEWS.html \
-    $(DOCS_DIR)/example.txt $(DOCS_DIR)/CSE-IT_modules_talk.pdf \
+	$(TCL_DIR)/README.html $(TCL_DIR)/INSTALL.html \
+	$(TCL_DIR)/INSTALL-win.html $(DOCS_DIR)/example.txt \
+	$(DOCS_DIR)/CSE-IT_modules_talk.pdf \
 	$(DOCS_DIR)/absmod.pdf $(DOCS_DIR)/Modules-Paper.pdf \
 	$(DOCS_DIR)/MC2_whitney_paper.pdf $(DOCS_DIR)/user-setup.pdf
+
+$(POD_SRC_DIR)/%.pod: $(POD_SRC_DIR)/%.pod.in
+	make -C ../doc $(subst $(TOP_DIR)/doc/,,$@)
 
 $(TCL_DIR)/%.html: $(POD_SRC_DIR)/%.pod
 	mkdir -p $(TCL_DIR)
@@ -21,6 +26,11 @@ $(TCL_DIR)/%.html: $(POD_SRC_DIR)/%.pod
 	../contrib/doc2www $@
 
 $(TCL_DIR)/NEWS.html: $(TOP_DIR)/NEWS
+	mkdir -p $(TCL_DIR)
+	cp $< $@
+	../contrib/doc2www $@
+
+$(TCL_DIR)/%.html: $(TOP_DIR)/%.txt
 	mkdir -p $(TCL_DIR)
 	cp $< $@
 	../contrib/doc2www $@
