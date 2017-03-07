@@ -20,8 +20,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.772
-set MODULES_CURRENT_RELEASE_DATE "2017-03-05"
+set MODULES_CURRENT_VERSION 1.774
+set MODULES_CURRENT_RELEASE_DATE "2017-03-07"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2062,8 +2062,9 @@ proc renderSettings {} {
 
       # guess MODULESHOME from modulecmd directory
       set modshome [file dirname $argv0]
-      if { [file tail $modshome] eq "bin" } {
-         # use upper dir if modulecmd is located in a bin dir
+      if { [file tail $modshome] eq "bin" \
+         || [file tail $modshome] eq "libexec" } {
+         # use upper dir if modulecmd is located in a bin or libexec dir
          set modshome [file dirname $modshome]
       }
       set env(MODULESHOME) $modshome
