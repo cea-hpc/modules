@@ -20,8 +20,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.775
-set MODULES_CURRENT_RELEASE_DATE "2017-03-07"
+set MODULES_CURRENT_VERSION 1.779
+set MODULES_CURRENT_RELEASE_DATE "2017-03-12"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1523,7 +1523,7 @@ proc prereq {args} {
 }
 
 proc x-resource {resource {value {}}} {
-   global g_newXResources g_delXResources
+   global g_newXResources g_delXResources env
 
    set mode [currentMode]
 
@@ -1550,6 +1550,11 @@ proc x-resource {resource {value {}}} {
          reportWarning "x-resource $resource is not a valid string or file"
          return {}
       }
+   }
+
+   if {![info exists env(DISPLAY)] && ($mode eq "load"\
+      || $mode eq "unload")} {
+      error "WARNING: x-resource cannot edit X11 resource with no DISPLAY set"
    }
 
    # if a resource does hold an empty value in g_newXResources or

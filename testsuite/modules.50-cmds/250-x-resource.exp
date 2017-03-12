@@ -41,6 +41,16 @@ set xresval1 "-fontname-bold-r-\\*-12-\\*-\\*-\\*-\\*-\\*"
 set xresval2 "true"
 set xresval5 "Fontname:style=Regular:size=10"
 
+set err_sh "/bin/false;"
+set err_csh "$err_sh"
+set err_fish "$err_sh"
+set err_tcl "exec /bin/false;"
+set err_perl "die \"modulefile.tcl: 1 error(s) detected!\\n\""
+set err_python "raise RuntimeError( 'modulefile.tcl: 1 error(s) detected!')"
+set err_lisp "(error \"modulefile.tcl: 1 error(s) detected!\")"
+
+set nodisplay_msg "$warn_msgs: x-resource cannot edit X11 resource with no DISPLAY set"
+
 
 #
 #  load
@@ -130,13 +140,25 @@ set ts_lisp "$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
 #  The load tests
 #
 
-test_cmd_re "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-test_cmd_re "csh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
-test_cmd_re "fish" "load $module" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish\$"
-test_cmd_re "tcl" "load $module" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl\$"
-test_cmd_re "perl" "load $module" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n$ts_perl\n1;\$"
-test_cmd_re "python" "load $module" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$ts_python\$"
-test_cmd_re "lisp" "load $module" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp\$"
+# if DISPLAY env variable is not set, will get an error not a loaded module
+if {[info exists env(DISPLAY)]} {
+    test_cmd_re "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
+    test_cmd_re "csh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
+    test_cmd_re "fish" "load $module" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish\$"
+    test_cmd_re "tcl" "load $module" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl\$"
+    test_cmd_re "perl" "load $module" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n$ts_perl\n1;\$"
+    test_cmd_re "python" "load $module" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$ts_python\$"
+    test_cmd_re "lisp" "load $module" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp\$"
+} else {
+    testouterr_cmd "sh" "load $module" "$err_sh" "$nodisplay_msg"
+    testouterr_cmd "csh" "load $module" "$err_csh" "$nodisplay_msg"
+    testouterr_cmd "fish" "load $module" "$err_fish" "$nodisplay_msg"
+    testouterr_cmd "tcl" "load $module" "$err_tcl" "$nodisplay_msg"
+    testouterr_cmd "perl" "load $module" "$err_perl" "$nodisplay_msg"
+    testouterr_cmd "python" "load $module" "import os\n$err_python" "$nodisplay_msg"
+    testouterr_cmd "lisp" "load $module" "$err_lisp" "$nodisplay_msg"
+}
+
 
 #
 # set-up a loaded environment
@@ -249,13 +271,25 @@ set ts_lisp "$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
 #
 #  The unload tests
 #
-test_cmd_re "sh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-test_cmd_re "csh" "unload $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
-test_cmd_re "fish" "unload $module" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish\$"
-test_cmd_re "tcl" "unload $module" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl\$"
-test_cmd_re "perl" "unload $module" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n$ts_perl\n1;\$"
-test_cmd_re "python" "unload $module" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$ts_python\$"
-test_cmd_re "lisp" "unload $module" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp\$"
+
+# if DISPLAY env variable is not set, will get an error not an unloaded module
+if {[info exists env(DISPLAY)]} {
+    test_cmd_re "sh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
+    test_cmd_re "csh" "unload $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
+    test_cmd_re "fish" "unload $module" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish\$"
+    test_cmd_re "tcl" "unload $module" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl\$"
+    test_cmd_re "perl" "unload $module" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n$ts_perl\n1;\$"
+    test_cmd_re "python" "unload $module" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$ts_python\$"
+    test_cmd_re "lisp" "unload $module" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp\$"
+} else {
+    testouterr_cmd "sh" "unload $module" "$err_sh" "$nodisplay_msg"
+    testouterr_cmd "csh" "unload $module" "$err_csh" "$nodisplay_msg"
+    testouterr_cmd "fish" "unload $module" "$err_fish" "$nodisplay_msg"
+    testouterr_cmd "tcl" "unload $module" "$err_tcl" "$nodisplay_msg"
+    testouterr_cmd "perl" "unload $module" "$err_perl" "$nodisplay_msg"
+    testouterr_cmd "python" "unload $module" "import os\n$err_python" "$nodisplay_msg"
+    testouterr_cmd "lisp" "unload $module" "$err_lisp" "$nodisplay_msg"
+}
 
 
 #
@@ -305,6 +339,16 @@ unset lmf_lisp
 unset lmfmod_lisp
 unset lmmod_lisp
 unset ts_lisp
+
+unset nodisplay_msg
+
+unset err_sh
+unset err_csh
+unset err_fish
+unset err_tcl
+unset err_perl
+unset err_python
+unset err_lisp
 
 unset xresval1
 unset xresval2
