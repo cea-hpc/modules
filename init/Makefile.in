@@ -37,6 +37,19 @@ ifneq ($(findstring $(cvermandir),/usr/share/man /usr/local/share/man),)
   override cvermandir :=
 endif
 
+# reset Tcl version path if they are standard system path (to ensure
+# switchml will not remove them from PATH or MANPATH)
+ifeq ($(findstring $(bindir),/bin /usr/bin /usr/local/bin),)
+  override swmlbindir := $(bindir)
+else
+  override swmlbindir :=
+endif
+ifeq ($(findstring $(mandir),/usr/share/man /usr/local/share/man),)
+  override swmlmandir := $(mandir)
+else
+  override swmlmandir :=
+endif
+
 # kind of config file to use: modulerc or .modulespath
 ifeq ($(setdotmodulespath),y)
   # both configuration files will be installed and in this case default init
@@ -88,6 +101,8 @@ perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@setmanpath\@(.*)\n|$(setmanpathre)|g; \
 	s|\@setbinpath\@(.*)\n|$(setbinpathre)|g; \
 	s|\@setswitchml\@(.*)\n|$(setswitchmlre)|g; \
+	s|\@swmlbindir\@|$(swmlbindir)|g; \
+	s|\@swmlmandir\@|$(swmlmandir)|g; \
 	s|\@cverinitdir\@|$(cverinitdir)|g; \
 	s|\@cverbindir\@|$(cverbindir)|g; \
 	s|\@cvermandir\@|$(cvermandir)|g; \
