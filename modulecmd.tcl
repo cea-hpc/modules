@@ -10,18 +10,31 @@ tclshbin=$(type -p tclsh) && exec $tclshbin "$0" "$@"
 # \
 echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" >&2; exit 1
 
-########################################################################
-# This is a pure TCL implementation of the module command
-# to initialize the module environment, either
-# - one of the scripts from the init directory should be sourced, or just
-# - eval `/some-path/tclsh modulecmd.tcl MYSHELL autoinit`
-# in both cases the path to tclsh is remembered and used furtheron
-########################################################################
+# MODULECMD.TCL, a pure TCL implementation of the module command
+# Copyright (C) 2002-2004 Mark Lakata
+# Copyright (C) 2004-2017 Kent Mein
+# Copyright (C) 2016-2017 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.779
-set MODULES_CURRENT_RELEASE_DATE "2017-03-12"
+set MODULES_CURRENT_VERSION 1.782
+set MODULES_CURRENT_RELEASE_DATE "2017-03-14"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
