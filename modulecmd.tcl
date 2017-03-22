@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.782
-set MODULES_CURRENT_RELEASE_DATE "2017-03-14"
+set MODULES_CURRENT_VERSION 1.783
+set MODULES_CURRENT_RELEASE_DATE "2017-03-22"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -550,10 +550,10 @@ proc module-info {what {more {}}} {
          return "Tcl"
       }
       "symbols" {
-         return [join [getVersAliasList $more] ":"]
+         return [join [getVersAliasList $more 1] ":"]
       }
       "version" {
-         lassign [getModuleNameVersion $more 1] mod
+         lassign [getModuleNameVersion $more 1 1] mod
          return [resolveModuleVersionOrAlias $mod]
       }
       default {
@@ -584,8 +584,12 @@ proc module-whatis {args} {
 # when shorthand version notation is used. Both name and version are guessed
 # from current module if name provided is empty. If 'default_is_special'
 # argument is enabled then a 'default' version name is considered as a
-# symbol not a filename (useful for module-version proc for instance)
-proc getModuleNameVersion {{name {}} {default_is_special 0}} {
+# symbol not a filename (useful for module-version proc for instance). If
+# 'name_relative_tocur' is enabled then name argument may be interpreted as
+# a name relative to the current modulefile directory (useful for
+# module-version and module-alias for instance).
+proc getModuleNameVersion {{name {}} {default_is_special 0}\
+{name_relative_tocur 0}} {
    set curmod [currentModuleName]
    set curmodname [file dirname $curmod]
    set curmodversion [file tail $curmod]
@@ -619,7 +623,7 @@ proc getModuleNameVersion {{name {}} {default_is_special 0}} {
       }
       # name may correspond to last part of current module
       # if so name is replaced by current module name
-      if {[file tail $curmodname] eq $name} {
+      if {$name_relative_tocur && [file tail $curmodname] eq $name} {
          set name $curmodname
       }
    }
@@ -644,7 +648,7 @@ proc module-version {args} {
    global ModulesCurrentModulefile
 
    reportDebug "module-version: executing module-version $args"
-   lassign [getModuleNameVersion [lindex $args 0] 1] mod modname modversion
+   lassign [getModuleNameVersion [lindex $args 0] 1 1] mod modname modversion
 
    foreach version [lrange $args 1 end] {
       if {[string match $version "default"]} {
@@ -683,7 +687,7 @@ proc module-alias {args} {
    global g_sourceAlias ModulesCurrentModulefile
 
    lassign [getModuleNameVersion [lindex $args 0]] alias
-   lassign [getModuleNameVersion [lindex $args 1]] mod
+   lassign [getModuleNameVersion [lindex $args 1] 0 1] mod
 
    reportDebug "module-alias: $alias = $mod"
 
@@ -2727,13 +2731,13 @@ proc checkValidModule {modfile} {
 # those aliases is returned. This takes module/version as an argument.
 # A list of already resolved aliases and default is set to detect
 # infinite resolution loop.
-proc getVersAliasList {mod args} {
+proc getVersAliasList {mod {rel_modname 0} args} {
    global g_versionHash g_moduleDefault
 
    reportDebug "getVersAliasList: $mod (previously: $args)"
 
    # get module name and version
-   lassign [getModuleNameVersion $mod 1] mod modname modversion
+   lassign [getModuleNameVersion $mod 1 $rel_modname] mod modname modversion
 
    set tag_list {}
    if {[info exists g_versionHash($mod)]} {
@@ -2745,7 +2749,8 @@ proc getVersAliasList {mod args} {
                lappend args $modname/$version
                # concat with any other tag found for modname/version
                set tag_list [concat $tag_list $version\
-                  [eval getVersAliasList $modname/$version $args]]
+                  [eval getVersAliasList $modname/$version $rel_modname\
+                     $args]]
             } elseif {$modversion ne ""} {
                reportError "Version symbol '$modversion' loops"
             }
@@ -2760,7 +2765,7 @@ proc getVersAliasList {mod args} {
          lappend args $modname
          # concat with any other tag found for modname
          set tag_list [concat $tag_list "default"\
-            [eval getVersAliasList $modname $args]]
+            [eval getVersAliasList $modname $rel_modname $args]]
       } else {
          reportError "Version symbol '$modversion' loops"
       }
@@ -2774,7 +2779,8 @@ proc getVersAliasList {mod args} {
       # detect infinite resolution loop
       lappend args $modnew
       # concat with any other tag found for alias
-      set tag_list [concat $tag_list [eval getVersAliasList $modnew $args]]
+      set tag_list [concat $tag_list [eval getVersAliasList $modnew\
+         $rel_modname $args]]
    }
 
    # always dictionary-sort results and remove duplicates
