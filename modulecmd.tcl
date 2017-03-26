@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.783
-set MODULES_CURRENT_RELEASE_DATE "2017-03-22"
+set MODULES_CURRENT_VERSION 1.784
+set MODULES_CURRENT_RELEASE_DATE "2017-03-26"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3176,45 +3176,83 @@ proc displayElementList {header one_per_line display_idx args} {
       # compute rows*cols grid size with optimized column number
       # the size of each column is computed to display as much column
       # as possible on each line
-      set old_rows 0
-      set rows 1
-      set cols 1
-      for {set i 0} {$i < $elt_cnt} {incr i} {
-         set col_width($i) 0
+      set max_len 0
+      foreach arg $args {
+         lappend elt_len [set len [expr {[string length $arg] + $elt_suffix_len}]]
+         if {$len > $max_len} {
+            set max_len $len
+         }
       }
 
-      # find valid grid by starting with 1 row and increase
-      # number of rows until number of cols fit screen width
-      while {$old_rows != $rows && $rows <= $elt_cnt} {
-         set old_rows $rows
-         for {set i 0} {$i < $rows} {incr i} {
-            set row_width($i) 0
+      # find valid grid by starting with non-optimized solution where each
+      # column length is equal to the length of the biggest element to display
+      set cur_cols [expr {int($DEF_COLUMNS / $max_len)}]
+      set cols 0
+      set last_round 0
+      set restart_loop 0
+      while {$cur_cols > $cols} {
+         if {!$restart_loop} {
+            if {$last_round} {
+               incr cur_rows
+            } else {
+               set cur_rows [expr {int(ceil(double($elt_cnt) / $cur_cols))}]
+            }
+            for {set i 0} {$i < $cur_cols} {incr i} {
+               set cur_col_width($i) 0
+            }
+            for {set i 0} {$i < $cur_rows} {incr i} {
+               set row_width($i) 0
+            }
+            set istart 0
+         } else {
+            set istart [expr {$col * $cur_rows}]
+            # only remove width of elements from current col
+            for {set row 0} {$row < ($i % $cur_rows)} {incr row} {
+               incr row_width($row) -[expr {$pre_col_width + $elt_prefix_len}]
+            }
          }
-
-         for {set i 0} {$i < $elt_cnt} {incr i} {
-            set col [expr {int($i / $rows)}]
-            set row [expr {$i % $rows}]
-            set elt_len [expr {[string length [lindex $args $i]]\
-               + $elt_suffix_len}]
-            if {$elt_len > $col_width($col)} {
-               set col_width($col) $elt_len
-               set cols [expr {$col + 1}]
-               set old_rows 0
+         set restart_loop 0
+         for {set i $istart} {$i < $elt_cnt} {incr i} {
+            set col [expr {int($i / $cur_rows)}]
+            set row [expr {$i % $cur_rows}]
+            # restart loop if a column width change
+            if {[lindex $elt_len $i] > $cur_col_width($col)} {
+               set pre_col_width $cur_col_width($col)
+               set cur_col_width($col) [lindex $elt_len $i]
+               set restart_loop 1
                break
             }
-            incr row_width($row) +[expr {$col_width($col) + $elt_prefix_len}]
-            if {$row_width($row) > $DEF_COLUMNS} {
-               incr rows
-               set cols 1
-               for {set j 0} {$j < [expr {int($elt_cnt / $rows) + 1}]}\
-                  {incr j} {
-                  set col_width($j) 0
+            # end search of maximum number of columns if computed row width
+            # is larger than terminal width
+            if {[incr row_width($row) +[expr {$cur_col_width($col) \
+               + $elt_prefix_len}]] > $DEF_COLUMNS} {
+               # start last optimization pass by increasing row number until
+               # reaching number used for previous column number, by doing so
+               # this number of column may pass in terminal width, if not
+               # fallback to previous number of column
+               if {$last_round && $cur_rows == $rows} {
+                  incr cur_cols -1
+               } else {
+                  set last_round 1
                }
                break
             }
          }
-      }
+         # went through all elements without reaching terminal width limit so
+         # this number of column solution is valid, try next with a greater
+         # column number
+         if {$i == $elt_cnt} {
+            set cols $cur_cols
+            set rows $cur_rows
+            array set col_width [array get cur_col_width]
+            # number of column is fixed if last optimization round has started
+            # reach end also if there is only one row of results
+            if {!$last_round && $rows > 1} {
+               incr cur_cols
+            }
+         }
 
+      }
       reportDebug "displayElementList: list=$args"
       reportDebug "displayElementList: rows/cols=$rows/$cols,\
          lastcol_item_cnt=[expr {int($elt_cnt % $rows)}]"
