@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.784
+set MODULES_CURRENT_VERSION 1.785
 set MODULES_CURRENT_RELEASE_DATE "2017-03-26"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -3262,17 +3262,17 @@ proc displayElementList {header one_per_line display_idx args} {
             set index [expr {$col * $rows + $row}]
             if {$index < $elt_cnt} {
                if {$display_idx} {
-                  report [format "%2d) %-$col_width($col)s"\
-                     [expr {$index +1}] [lindex $args $index]] -nonewline
+                  append displist [format "%2d) %-$col_width($col)s"\
+                     [expr {$index +1}] [lindex $args $index]]
                } else {
-                  report [format "%-$col_width($col)s"\
-                     [lindex $args $index]] -nonewline
+                  append displist [format "%-$col_width($col)s"\
+                     [lindex $args $index]]
                }
             }
          }
-
-         report ""
+         append displist "\n"
       }
+      report "$displist" -nonewline
    }
 }
 
