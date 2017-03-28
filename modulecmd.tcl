@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.786
+set MODULES_CURRENT_VERSION 1.787
 set MODULES_CURRENT_RELEASE_DATE "2017-03-28"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -2725,10 +2725,12 @@ proc checkValidModule {modfile} {
    reportDebug "checkValidModule: $modfile"
 
    # Check for valid module
-   if {![catch {open $modfile r} fileId]} {
-      gets $fileId first_line
-      close $fileId
-      if {[string first "\#%Module" $first_line] == 0} {
+   if {![catch {
+      set fid [open $modfile r]
+      set fheader [read $fid 8]
+      close $fid
+   }]} {
+      if {$fheader eq "\#%Module"} {
          return 1
       }
    }
