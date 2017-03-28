@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.785
-set MODULES_CURRENT_RELEASE_DATE "2017-03-26"
+set MODULES_CURRENT_VERSION 1.786
+set MODULES_CURRENT_RELEASE_DATE "2017-03-28"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -275,6 +275,7 @@ proc execute-modulefile {modfile {exit_on_error 1}} {
       interp alias $slave raiseErrorCount {} raiseErrorCount
       interp alias $slave report {} report
       interp alias $slave isWin {} isWin
+      interp alias $slave readModuleContent {} readModuleContent
 
       interp eval $slave {global ModulesCurrentModulefile g_debug\
          g_inhibit_interp g_inhibit_errreport}
@@ -289,7 +290,13 @@ proc execute-modulefile {modfile {exit_on_error 1}} {
       if {$g_debug} {
          report "Sourcing $ModulesCurrentModulefile"
       }
-      set sourceFailed [catch {source $ModulesCurrentModulefile} errorMsg]
+      set modcontent [readModuleContent $ModulesCurrentModulefile 1]
+      if {$modcontent eq ""} {
+         # exit after end of slave evaluation
+         return 2
+      }
+      info script $ModulesCurrentModulefile
+      set sourceFailed [catch {eval $modcontent} errorMsg]
       set mode [module-info mode]
       if {$mode eq "help"} {
          if {[info procs "ModulesHelp"] eq "ModulesHelp"} {
@@ -358,11 +365,6 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
    set ModulesCurrentModulefile $modfile
    set ModulesVersion {}
 
-   if {![checkValidModule $modfile]} {
-      reportInternalBug "Magic cookie '#%Module' missing in '$modfile'"
-      return ""
-   }
-
    set modname [file dirname [currentModuleName]]
 
    if {![info exists g_rcfilesSourced($modfile)]} {
@@ -383,6 +385,7 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
          interp alias $slave module-log {} module-log
          interp alias $slave reportInternalBug {} reportInternalBug
          interp alias $slave setModulesVersion {} setModulesVersion
+         interp alias $slave readModuleContent {} readModuleContent
 
          interp eval $slave {global ModulesCurrentModulefile g_debug\
             g_inhibit_errreport ModulesVersion}
@@ -393,7 +396,13 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
          interp eval $slave {set ModulesVersion {}}
       }
       set errorVal [interp eval $slave {
-         if [catch {source $ModulesCurrentModulefile} errorMsg] {
+         set modcontent [readModuleContent $ModulesCurrentModulefile]
+         if {$modcontent eq ""} {
+            # simply skip rc file, no exit on error here
+            return 1
+         }
+         info script $ModulesCurrentModulefile
+         if [catch {eval $modcontent} errorMsg] {
             global errorInfo
 
             reportInternalBug "Occurred in file\
@@ -2725,6 +2734,30 @@ proc checkValidModule {modfile} {
    }
 
    return 0
+}
+
+proc readModuleContent {modfile {report_read_issue 0}} {
+   reportDebug "readModuleContent: $modfile"
+
+   # read file
+   if {[catch {
+      set fid [open $modfile r]
+      set fdata [read $fid]
+      close $fid
+   } errMsg ]} {
+      if {$report_read_issue} {
+         reportInternalBug "Module $modfile cannot be read.\n$errMsg"
+      }
+      return {}
+   }
+
+   # check module validity
+   if {[string first "\#%Module" $fdata] == 0} {
+      return $fdata
+   } else {
+      reportInternalBug "Magic cookie '#%Module' missing in '$modfile'"
+      return {}
+   }
 }
 
 # If given module maps to default or other version aliases, a list of 
