@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.787
-set MODULES_CURRENT_RELEASE_DATE "2017-03-28"
+set MODULES_CURRENT_VERSION 1.788
+set MODULES_CURRENT_RELEASE_DATE "2017-04-01"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2822,11 +2822,142 @@ proc getVersAliasList {mod {rel_modname 0} args} {
    return [lsort -dictionary -unique $tag_list]
 }
 
+# finds all module-related files matching mod in the module path dir
+proc findModules {dir {mod {}} {fetch_mtime 0}} {
+   global ignoreDir
+
+   reportDebug "findModules: finding '$mod' in $dir\
+      (fetch_mtime=$fetch_mtime)"
+
+   # On Cygwin, glob may change the $dir path if there are symlinks
+   # involved. So it is safest to reglob the $dir.
+   # example:
+   # [glob /home/stuff] -> "//homeserver/users0/stuff"
+
+   set dir [glob $dir]
+   set full_list [glob -nocomplain "$dir/$mod*"]
+
+   # remove trailing / needed on some platforms
+   regsub {\/$} $full_list {} full_list
+
+   set sstart [expr {[string length $dir] +1}]
+   array set mod_list {}
+   for {set i 0} {$i < [llength $full_list]} {incr i 1} {
+      set element [lindex $full_list $i]
+      set tag_list {}
+
+      # Cygwin TCL likes to append ".lnk" to the end of symbolic links.
+      # This is not necessary and pollutes the module names, so let's
+      # trim it off.
+      if { [isWin] } {
+         regsub {\.lnk$} $element {} element
+      }
+
+      set tail [file tail $element]
+      set direlem [file dirname $element]
+
+      set modulename [string range $element $sstart end]
+
+      if {[file isdirectory $element] && [file readable $element]} {
+         if {![info exists ignoreDir($tail)]} {
+            # Add each element in the current directory to the list
+            if {[file readable $element/.modulerc]} {
+               lappend full_list $element/.modulerc
+            }
+            if {[file readable $element/.version]} {
+               lappend full_list $element/.version
+            }
+            set child_list [glob -nocomplain "$element/*"]
+            set full_list [concat $full_list $child_list]
+
+            set mod_list($modulename) [concat [list "directory"] $child_list]
+         }
+      } else {
+         switch -glob -- $tail {
+            {.modulerc} {
+               set mod_list($modulename) [list "modulerc"]
+            }
+            {.version} {
+               set mod_list($modulename) [list "modulerc"]
+            }
+            {.*} - {*~} - {*,v} - {\#*\#} { }
+            default {
+               if {[checkValidModule $element]} {
+                  if {$fetch_mtime} {
+                     set mtime [file mtime $element]
+                  } else {
+                     set mtime {}
+                  }
+                  set mod_list($modulename) [list "modulefile" $mtime]
+               }
+            }
+         }
+      }
+   }
+
+   reportDebug "findModules: found [array names mod_list]"
+
+   return [array get mod_list]
+}
+
+proc getModules {dir {mod {}} {fetch_mtime 0} {search {}}} {
+   global ModulesCurrentModulefile
+   global g_sourceAlias
+
+   reportDebug "getModules: get '$mod' in $dir\
+      (fetch_mtime=$fetch_mtime, search=$search)"
+
+   # if search for global or user rc alias only, no dir lookup is performed
+   # and aliases are looked from g_rcAlias array rather than g_moduleAlias
+   if {$search eq "rc_alias_only"} {
+      global g_rcAlias
+      array set g_moduleAlias [array get g_rcAlias]
+      array set mod_list {}
+   } else {
+      global g_moduleAlias
+      array set mod_list [findModules $dir $mod $fetch_mtime]
+   }
+
+   foreach elt [lsort [array names mod_list]] {
+      if {[lindex $mod_list($elt) 0] eq "modulerc"} {
+         # push name to be found by module-alias and version
+         pushSpecifiedName $elt
+         pushModuleName $elt
+         # set is needed for execute-modulerc
+         set ModulesCurrentModulefile $dir/$elt
+         # as we treat a full directory content do not exit on an error
+         # raised from one modulerc file
+         execute-modulerc $ModulesCurrentModulefile 0
+         popModuleName
+         popSpecifiedName
+
+         # remove rc file from result array, will add aliases later
+         unset mod_list($elt)
+      }
+   }
+
+   # add aliases found when parsing .version or .modulerc files in this
+   # directory (skip aliases not registered from this directory) if they
+   # match passed $mod (as for regular modulefiles)
+   foreach alias [array names g_moduleAlias -glob $mod*] {
+      if {$dir eq "" || [string first $dir $g_sourceAlias($alias)] == 0} {
+         set mod_list($alias) [list "alias" $g_moduleAlias($alias)]
+      }
+   }
+
+   reportDebug "getModules: got [array names mod_list]"
+
+   return [array get mod_list]
+}
+
 # Finds all module versions for mod in the module path dir
 proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
    global ignoreDir ModulesCurrentModulefile
    global flag_default_mf flag_default_dir show_modtimes
    global g_sourceAlias
+
+   reportDebug "listModules: get '$mod' in $dir\
+      (show_flags=$show_flags, filter=$filter, search=$search)"
 
    # report flags for directories and modulefiles depending on show_flags
    # procedure argument and global variables
@@ -2846,286 +2977,141 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
       set show_mtime 0
    }
 
-   # if search for global or user rc alias only, no dir lookup is performed
-   # and aliases are looked from g_rcAlias array rather than g_moduleAlias
-   if {$search eq "rc_alias_only"} {
-      global g_rcAlias
-      array set g_moduleAlias [array get g_rcAlias]
-      set full_list {}
-   } else {
-      global g_moduleAlias
-
-      # On Cygwin, glob may change the $dir path if there are symlinks
-      # involved. So it is safest to reglob the $dir.
-      # example:
-      # [glob /home/stuff] -> "//homeserver/users0/stuff"
-
-      set dir [glob $dir]
-      set full_list [glob -nocomplain "$dir/$mod*"]
-
-      # remove trailing / needed on some platforms
-      regsub {\/$} $full_list {} full_list
-   }
-
    if {$filter eq "onlydefaults"} {
        # init a control list to correctly set implicit
        # or defined module default version
        set clean_defdefault {}
    }
 
-   set dirlevel 0
+   # get module list
+   array set mod_list [getModules $dir $mod $show_mtime $search]
+
+   # prepare results for display
    set clean_list {}
-   set ModulesVersion {}
-   for {set i 0} {$i < [llength $full_list]} {incr i 1} {
-      set element [lindex $full_list $i]
-      set tag_list {}
-
-      # Cygwin TCL likes to append ".lnk" to the end of symbolic links.
-      # This is not necessary and pollutes the module names, so let's
-      # trim it off.
-      if { [isWin] } {
-         regsub {\.lnk$} $element {} element
-      }
-
-      set tail [file tail $element]
-      set direlem [file dirname $element]
-
-      set sstart [expr {[string length $dir] +1}]
-      set modulename [string range $element $sstart end]
-
-      if {[file isdirectory $element] && [file readable $element]} {
-         set ModulesVersion ""
-
-         reportDebug "listModules: found $element"
-
-         if {![info exists ignoreDir($tail)]} {
-            # in depth module listing includes .modulerc and .version file
-            if {$search eq "in_depth"} {
-               if {[file readable $element/.modulerc]} {
-                  lappend full_list $element/.modulerc
-               }
-               if {[file readable $element/.version]} {
-                  lappend full_list $element/.version
-               }
-            }
-
-            # not in depth module listing stops at first directory level
-            if {$search eq "in_depth" || $dirlevel == 0} {
-               # Add each element in the current directory to the list
-               foreach f [glob -nocomplain "$element/*"] {
-                  lappend full_list $f
-               }
-               incr dirlevel
-
-               # if element is directory AND default or a version alias, add
-               # it to the list
-               set tag_list [getVersAliasList $modulename]
-
-               if {[llength $tag_list]} {
-                  set mystr $modulename
-
-                  # add to list (only if default when onlydefaults set)
-                  if {$filter ne "onlydefaults"\
-                     || [lsearch $tag_list "default"] >= 0} {
-                     if {$show_flags_dir} {
-                        if {$show_mtime} {
-                           set mystr [format "%-40s%-20s" $mystr\
-                              [join $tag_list ":"]]
-                        } else {
-                           append mystr "(" [join $tag_list ":"] ")"
-                        }
-                     }
-                     lappend clean_list $mystr
-                  }
-               }
-            # not in depth module listing do not process sub-directories
-            # content but add them to the result list
-            } else {
-               lappend clean_list $modulename
-            }
-         }
-      } else {
-         reportDebug "listModules: checking $element ($modulename)\
-            show_flags_dir=$show_flags_dir show_flags_mf=$show_flags_mf\
-            show_mtime=$show_mtime"
-         switch -glob -- $tail {
-            {.modulerc} {
-               # push name to be found by module-alias and version
-               pushSpecifiedName $modulename
-               pushModuleName $modulename
-               # set is needed for execute-modulerc
-               set ModulesCurrentModulefile $element
-               # as we treat a full directory content do not exit on an error
-               # raised from one modulerc file
-               execute-modulerc $element 0
-               popModuleName
-               popSpecifiedName
-            }
-            {.version} {
-               # push name to be found by module-alias and version
-               pushSpecifiedName $modulename
-               pushModuleName $modulename
-               # set is needed for execute-modulerc
-               set ModulesCurrentModulefile $element
-               # as we treat a full directory content do not exit on an error
-               # raised from one version file
-               execute-modulerc $element 0
-               popModuleName
-               popSpecifiedName
-
-               reportDebug "listModules: checking default $element"
-            }
-            {.*} - {*~} - {*,v} - {\#*\#} { }
-            default {
-               if {[checkValidModule $element]} {
-                  set tag_list [getVersAliasList $modulename]
-
-                  set mystr $modulename
-
-                  set add_to_clean_list 1
-                  # add to list only if it is the default set
-                  # or if it is an implicit default when no default is set
-                  if {$filter eq "onlydefaults"} {
-                     set moduleelem [string range $direlem $sstart end]
-
-                     # do not add element if a default has already
-                     # been added for this module
-                     if {[lsearch -exact $clean_defdefault $moduleelem] == -1} {
-                        set clean_mystr_idx [lsearch $clean_list "$moduleelem/*"]
-                        # only one element has to be set for this module
-                        # so replace previously existing element
-                        if {$clean_mystr_idx >= 0} {
-                           # only replace if new occurency is greater than
-                           # existing one or if new occurency is the default set
-                           if {[stringDictionaryCompare $mystr \
-                              [lindex $clean_list $clean_mystr_idx]] == 1 \
-                              || [lsearch $tag_list "default"] >= 0} {
-                              set clean_list [lreplace $clean_list \
-                                 $clean_mystr_idx $clean_mystr_idx]
-                           } else {
-                              set add_to_clean_list 0
-                           }
-                        }
-
-                        # if default is defined add to control list
-                        if {[lsearch $tag_list "default"] >= 0} {
-                           lappend clean_defdefault $moduleelem
-                        }
-                     } else {
-                        set add_to_clean_list 0
-                     }
-
-                  # add latest version to list only
-                  } elseif {$filter eq "onlylatest"} {
-                     set moduleelem [string range $direlem $sstart end]
-                     set clean_mystr_idx [lsearch $clean_list "$moduleelem/*"]
-
-                     # only one element has to be set for this module
-                     # so replace previously existing element and only
-                     # if new occurency is greater than existing one
-                     if {$clean_mystr_idx >= 0 && \
-                        [stringDictionaryCompare $mystr \
-                        [lindex $clean_list $clean_mystr_idx]] == 1} {
-                        set clean_list [lreplace $clean_list \
-                           $clean_mystr_idx $clean_mystr_idx]
-                     } elseif {$clean_mystr_idx != -1} {
-                        set add_to_clean_list 0
-                     }
-                  }
-
-                  if {$add_to_clean_list} {
-                     if {$show_mtime} {
-                        # add to display file modification time in addition
-                        # to potential tags
-                        set mystr [format "%-40s%-20s%10s" $mystr\
-                           [join $tag_list ":"]\
-                           [clock format [file mtime $element]\
-                           -format "%Y/%m/%d %H:%M:%S"]]
-                     } elseif {$show_flags_mf && [llength $tag_list] > 0} {
-                        append mystr "(" [join $tag_list ":"] ")"
-                     }
-
-                     lappend clean_list $mystr
-                  }
-               }
-            }
+   set clean_defname {}
+   foreach elt [array names mod_list] {
+      set elt_type [lindex $mod_list($elt) 0]
+      if {$filter ne ""} {
+         set elt_name [file dirname $elt]
+         if {$elt_name eq "."} {
+            set elt_name $elt
          }
       }
-   }
-   if {$search ne "no_depth"} {
-      # add aliases found when parsing .version or .modulerc files in this
-      # directory (skip aliases not registered from this directory) if they
-      # match passed $mod (as for regular modulefiles)
-      foreach alias [array names g_moduleAlias -glob $mod*] {
-         if {$dir eq "" || [string first $dir $g_sourceAlias($alias)] == 0} {
-            set tag_list [getVersAliasList $alias]
-            set mystr $alias
-            set add_to_clean_list 1
-            # add to list only if it is the default set
-            # or if it is an implicit default when no default is set
-            if {$filter eq "onlydefaults"} {
-               set aliasname [file dirname $alias]
-               if {$aliasname eq "."} {
-                  set aliasname $alias
-               }
 
-               # do not add element if a default has already
-               # been added for this module
-               if {[lsearch -exact $clean_defdefault $aliasname] == -1} {
-                  set clean_mystr_idx [lsearch $clean_list "$aliasname/*"]
-                  # only one element has to be set for this module
-                  # so replace previously existing element
-                  if {$clean_mystr_idx >= 0} {
-                     # only replace if new occurency is greater than
-                     # existing one or if new occurency is the default set
-                     if {[stringDictionaryCompare $mystr \
-                        [lindex $clean_list $clean_mystr_idx]] == 1 \
-                        || [lsearch $tag_list "default"] >= 0} {
-                        set clean_list [lreplace $clean_list \
-                           $clean_mystr_idx $clean_mystr_idx]
-                     } else {
-                        set add_to_clean_list 0
-                     }
-                  }
-
-                  # if default is defined add to control list
-                  if {[lsearch $tag_list "default"] >= 0} {
-                     lappend clean_defdefault $aliasname
-                  }
+      set tag_list [getVersAliasList $elt]
+      set add_to_clean_list 1
+      # add to list only if it is the default set
+      # or if it is an implicit default when no default is set
+      if {$filter eq "onlydefaults"} {
+         # do not add element if a default has already
+         # been added for this module
+         if {[lsearch -exact $clean_defdefault $elt_name] == -1} {
+            set clean_elt_idx [lsearch -exact $clean_defname $elt_name]
+            # only one element has to be set for this module
+            # so replace previously existing element
+            if {$clean_elt_idx >= 0} {
+               # only replace if new occurency is greater than
+               # existing one or if new occurency is the default set
+               # add a dir only if it holds default tag
+               if {([stringDictionaryCompare $elt [lindex $clean_list\
+                  $clean_elt_idx]] == 1 && $elt_type ne "directory") \
+                  || [lsearch $tag_list "default"] >= 0} {
+                  set clean_list [lreplace $clean_list \
+                     $clean_elt_idx $clean_elt_idx]
+                  set clean_defname [lreplace $clean_defname \
+                     $clean_elt_idx $clean_elt_idx]
                } else {
                   set add_to_clean_list 0
                }
+            # add dir only if it holds default tag
+            } elseif {$elt_type eq "directory" \
+               && [lsearch $tag_list "default"] == -1} {
+               set add_to_clean_list 0
+            }
 
-            # add latest version to list only
-            } elseif {$filter eq "onlylatest"} {
-               set aliasname [file dirname $alias]
-               if {$aliasname eq "."} {
-                  set aliasname $alias
-               }
-               set clean_mystr_idx [lsearch $clean_list "$aliasname/*"]
-
-               # only one element has to be set for this module
-               # so replace previously existing element and only
-               # if new occurency is greater than existing one
-               if {$clean_mystr_idx >= 0 && \
-                  [stringDictionaryCompare $mystr \
-                  [lindex $clean_list $clean_mystr_idx]] == 1} {
-                  set clean_list [lreplace $clean_list \
-                     $clean_mystr_idx $clean_mystr_idx]
-               } elseif {$clean_mystr_idx != -1} {
-                  set add_to_clean_list 0
-               }
+            # if default is defined add to control list
+            if {[lsearch $tag_list "default"] >= 0} {
+               lappend clean_defdefault $elt_name
             }
 
             if {$add_to_clean_list} {
+               lappend clean_defname $elt_name
+            }
+         } else {
+            set add_to_clean_list 0
+         }
+      } elseif {$filter eq "onlylatest"} {
+         # add latest version to list only (no directory in this case as we
+         # compare version number between each other
+         if {$elt_type eq "directory"} {
+            set add_to_clean_list 0
+         } else {
+            set clean_elt_idx [lsearch -exact $clean_defname $elt_name]
+
+            # only one element has to be set for this module
+            # so replace previously existing element and only
+            # if new occurency is greater than existing one
+            if {$clean_elt_idx >= 0 && [stringDictionaryCompare $elt \
+               [lindex $clean_list $clean_elt_idx]] == 1} {
+               set clean_list [lreplace $clean_list \
+                  $clean_elt_idx $clean_elt_idx]
+               set clean_defname [lreplace $clean_defname \
+                  $clean_elt_idx $clean_elt_idx]
+            } elseif {$clean_elt_idx != -1} {
+               set add_to_clean_list 0
+            }
+         }
+
+         if {$add_to_clean_list} {
+            lappend clean_defname $elt_name
+         }
+      # do not add a dir if it does not hold tags
+      } elseif {$elt_type eq "directory" && [llength $tag_list] == 0} {
+         set add_to_clean_list 0
+      }
+
+      if {$add_to_clean_list} {
+         switch -- $elt_type {
+            {directory} {
+               if {$show_flags_dir} {
+                  if {$show_mtime} {
+                     lappend clean_list [format "%-40s%-20s" $elt\
+                        [join $tag_list ":"]]
+                  } else {
+                     lappend clean_list [join [list $elt "("\
+                        [join $tag_list ":"] ")"] {}]
+                  }
+               } else {
+                  lappend clean_list $elt
+               }
+            }
+            {modulefile} {
                if {$show_mtime} {
-                  set mystr [format "%-40s%-20s"\
-                     "$mystr -> $g_moduleAlias($alias)" [join $tag_list ":"]]
+                  # add to display file modification time in addition
+                  # to potential tags
+                  lappend clean_list [format "%-40s%-20s%10s" $elt\
+                     [join $tag_list ":"]\
+                     [clock format [lindex $mod_list($elt) 1]\
+                     -format "%Y/%m/%d %H:%M:%S"]]
+               } elseif {$show_flags_mf && [llength $tag_list] > 0} {
+                  lappend clean_list [join [list $elt "("\
+                     [join $tag_list ":"] ")"] {}]
+               } else {
+                  lappend clean_list $elt
+               }
+            }
+            {alias} {
+               if {$show_mtime} {
+                  lappend clean_list [format "%-40s%-20s"\
+                     "$elt -> [lindex $mod_list($elt) 1]"\
+                     [join $tag_list ":"]]
                } elseif {$show_flags_mf} {
                   lappend tag_list "@"
-                  append mystr "(" [join $tag_list ":"] ")"
+                  lappend clean_list [join [list $elt "("\
+                     [join $tag_list ":"] ")"] {}]
+               } else {
+                  lappend clean_list $elt
                }
-               lappend clean_list $mystr
             }
          }
       }
