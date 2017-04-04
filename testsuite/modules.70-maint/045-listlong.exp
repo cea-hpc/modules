@@ -24,6 +24,10 @@
 set module "setenv"
 set version "1.0"
 set modulefile "$env(MODULEPATH)/$module/$version"
+set module2 "loc_rc6"
+set version2 "1.2"
+set modulefile2 "$env(MODULEPATH)/$module2/$version2"
+set taglist2 "default:new"
 
 #
 #  Check this only for the /bin/csh
@@ -47,6 +51,25 @@ set env(LOADEDMODULES) $module/$version
 # must be provided after sub-command, not before
 testerr_cmd_re "csh" "list --long" "$ts_csh"
 
+
+#
+#  Set up the environment pointing to module file holding tags
+#
+
+set ts_csh "$header$module2.$version2                             $taglist2         \[0-9:\/ ]*"
+
+set env(_LMFILES_) $modulefile2
+set env(LOADEDMODULES) $module2/$version2
+
+#
+#  The tests
+#
+
+# different behavior than C-version: on Tcl-version sub-command switches
+# must be provided after sub-command, not before
+testerr_cmd_re "csh" "list --long" "$ts_csh"
+
+
 #
 #  Cleanup
 #
@@ -60,3 +83,8 @@ unset ts_csh
 unset version
 unset modulefile
 unset module
+
+unset version2
+unset modulefile2
+unset module2
+unset taglist2

@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.790
+set MODULES_CURRENT_VERSION 1.791
 set MODULES_CURRENT_RELEASE_DATE "2017-04-04"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -3508,7 +3508,7 @@ proc readCollectionContent {collfile} {
 #
 proc cmdModuleList {} {
    global show_oneperline show_modtimes
-   global g_def_separator
+   global g_loadedModules
 
    set loadedmodlist [getLoadedModuleList]
 
@@ -3532,25 +3532,28 @@ proc cmdModuleList {} {
 
       foreach mod $loadedmodlist {
          if {[string length $mod] > 0} {
-            if {$show_modtimes} {
-               set filetime [clock format [file mtime [lindex\
-                  [getPathToModule $mod] 0]] -format "%Y/%m/%d %H:%M:%S"]
-               lappend display_list [format "%-60s%10s" $mod $filetime]
-            }\
-            elseif {$show_oneperline} {
+            if {$show_oneperline} {
                lappend display_list $mod
             } else {
-               # skip zero length module names
-               # call getPathToModule to find and execute .version and
-               # .modulerc files for this module
-               getPathToModule $mod
+               # call getModules to find and execute rc files for this module
+               set dir [string range $g_loadedModules($mod) 0\
+                  end-[expr {[string length $mod] +1}]]
+               array set mod_list [getModules $dir $mod $show_modtimes]
                set tag_list [getVersAliasList $mod]
 
-               if {[llength $tag_list]} {
-                  append mod "(" [join $tag_list $g_def_separator] ")"
+               if {$show_modtimes} {
+                  # add to display file modification time in addition
+                  # to potential tags
+                  lappend display_list [format "%-40s%-20s%10s" $mod\
+                     [join $tag_list ":"]\
+                     [clock format [lindex $mod_list($mod) 1]\
+                     -format "%Y/%m/%d %H:%M:%S"]]
+               } else {
+                  if {[llength $tag_list]} {
+                     append mod "(" [join $tag_list ":"] ")"
+                  }
+                  lappend display_list $mod
                }
-
-               lappend display_list $mod
             }
          }
       }
