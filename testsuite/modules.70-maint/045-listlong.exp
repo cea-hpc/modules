@@ -28,6 +28,11 @@ set module2 "loc_rc6"
 set version2 "1.2"
 set modulefile2 "$env(MODULEPATH)/$module2/$version2"
 set taglist2 "default:new"
+# validates default tag is correctly displayed when set via a .version file
+set module3 "loc_rc4"
+set version3 "2.0"
+set modulefile3 "$env(MODULEPATH)/$module3/$version3"
+set taglist3 "default"
 
 #
 #  Check this only for the /bin/csh
@@ -57,9 +62,10 @@ testerr_cmd_re "csh" "list --long" "$ts_csh"
 #
 
 set ts_csh "$header$module2.$version2                             $taglist2         \[0-9:\/ ]*"
+append ts_csh "\n$module3.$version3                             $taglist3             \[0-9:\/ ]*"
 
-set env(_LMFILES_) $modulefile2
-set env(LOADEDMODULES) $module2/$version2
+set env(_LMFILES_) "$modulefile2:$modulefile3"
+set env(LOADEDMODULES) "$module2/$version2:$module3/$version3"
 
 #
 #  The tests
@@ -88,3 +94,8 @@ unset version2
 unset modulefile2
 unset module2
 unset taglist2
+
+unset version3
+unset modulefile3
+unset module3
+unset taglist3

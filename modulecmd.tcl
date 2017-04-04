@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.791
+set MODULES_CURRENT_VERSION 1.792
 set MODULES_CURRENT_RELEASE_DATE "2017-04-04"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -2810,6 +2810,13 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
       append parentname "/[lindex $parentlist $i]"
       append parentpath "/[lindex $parentlist $i]"
       incr i
+   }
+   # consider .version file in search upper directory as searched mod
+   # may be influenced by a default set in there (if it is a modulefile
+   # in this directory)
+   set upperpath [file dirname $path]
+   if {[file exists "$upperpath/.version"]} {
+      lappend full_list "$upperpath/.version"
    }
 
    set full_list [concat $full_list [glob -nocomplain "$dir/$mod*"]]
