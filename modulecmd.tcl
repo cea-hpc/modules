@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.788
-set MODULES_CURRENT_RELEASE_DATE "2017-04-01"
+set MODULES_CURRENT_VERSION 1.789
+set MODULES_CURRENT_RELEASE_DATE "2017-04-04"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1767,6 +1767,17 @@ proc getLoadedModuleList {} {
    }
 }
 
+# return list of loaded module files by parsing _LMFILES_ env variable
+proc getLoadedModuleFileList {} {
+   global env g_def_separator
+
+   if {[info exists env(_LMFILES_)]} {
+      return [split $env(_LMFILES_) $g_def_separator]
+   } else {
+      return {}
+   }
+}
+
 # return list of module paths by parsing MODULEPATH env variable
 # behavior param enables to exit in error when no MODULEPATH env variable
 # is set. by default an empty list is returned if no MODULEPATH set
@@ -2526,9 +2537,12 @@ proc cacheCurrentModules {} {
    reportDebug "cacheCurrentModules"
 
    # mark specific as well as generic modules as loaded
+   set i 0
+   set filelist [getLoadedModuleFileList]
    foreach mod [getLoadedModuleList] {
-      set g_loadedModules($mod) 1
+      set g_loadedModules($mod) [lindex $filelist $i]
       set g_loadedModulesGeneric([file dirname $mod]) [file tail $mod]
+      incr i
    }
 }
 
@@ -3978,7 +3992,7 @@ proc cmdModuleLoad {args} {
                append-path LOADEDMODULES $currentModule
                append-path _LMFILES_ $modfile
 
-               set g_loadedModules($currentModule) 1
+               set g_loadedModules($currentModule) $modfile
                set genericModName [file dirname $currentModule]
 
                reportDebug "cmdModuleLoad: genericModName = $genericModName"
