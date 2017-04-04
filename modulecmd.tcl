@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.789
+set MODULES_CURRENT_VERSION 1.790
 set MODULES_CURRENT_RELEASE_DATE "2017-04-04"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -1797,15 +1797,17 @@ proc getModulePathList {{behavior "returnempty"}} {
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
 proc getPathToModule {mod} {
-   global g_loadedModulesGeneric
+   global g_loadedModules g_loadedModulesGeneric
+   global g_found_mod_invalid
 
-   set retlist ""
+   set retlist {}
+   set g_found_mod_invalid 0
 
    if {$mod eq ""} {
       return ""
    }
 
-   reportDebug "getPathToModule: Finding $mod"
+   reportDebug "getPathToModule: finding '$mod'"
 
    # Check for $mod specified as a full pathname
    if {[string match {/*} $mod]} {
@@ -1815,45 +1817,26 @@ proc getPathToModule {mod} {
                # note that a raw filename as an argument returns the full
                # path as the module name
                if {[checkValidModule $mod]} {
-                  return [list $mod $mod]
-               } else {
-                  reportError "Unable to locate a modulefile for '$mod'"
-                  return ""
+                  set retlist [list $mod $mod]
                }
             }
          }
       }
+   # try first to look at loaded modules
+   } elseif {[info exists g_loadedModules($mod)]} {
+      set retlist [list $g_loadedModules($mod) $mod]
+   } elseif {[info exists g_loadedModulesGeneric($mod)]} {
+      set elt "$mod/$g_loadedModulesGeneric($mod)"
+      set retlist [list $g_loadedModules($elt) $elt]
    } else {
+
       # modparent is the the modulename minus the module version.
       lassign [getModuleNameVersion $mod] mod modparent modversion
 
       # Now search for $mod in module paths
       foreach dir [getModulePathList "exiterronundef"] {
-         set path "$dir/$mod"
-         set modparentpath "$dir/$modparent"
-
-         # Search all parent directories (between modulepath dir and mod)
-         # for .modulerc files in case we need to translate an alias
-         set parentlist [split $mod "/"]
-         set parentname [lindex $parentlist 0]
-         set parentpath $dir/$parentname
-         set i 1
-         while {[file isdirectory $parentpath] && $parentpath ne $path} {
-            # Execute any modulerc found on path toward modparent
-            if {[file exists "$parentpath/.modulerc"]} {
-               reportDebug "getPathToModule: Found\
-                  $parentpath/.modulerc"
-               # push name to be found by module-alias and version
-               pushSpecifiedName $parentname/.modulerc
-               pushModuleName $parentname/.modulerc
-               execute-modulerc $parentpath/.modulerc
-               popModuleName
-               popSpecifiedName
-            }
-            append parentname "/[lindex $parentlist $i]"
-            append parentpath "/[lindex $parentlist $i]"
-            incr i
-         }
+         # get module list
+         array set mod_list [getModules $dir $mod]
 
          # Check for an alias set by .modulerc found on parent path
          # or by a previously looked modulefile/modulerc
@@ -1863,66 +1846,37 @@ proc getPathToModule {mod} {
          }
 
          # look if we can find mod in dir
-         if {[file readable $path]} {
+         set path "$dir/$mod"
+         if {[info exists mod_list($mod)]} {
             set prevpath ""
             # loop to resolve correct modulefile in case specified mod is a
             # directory that should be analyzed to get default mod in it
             while {$prevpath ne $path} {
                set prevpath $path
 
-               # If a directory, check for .modulerc then .version and if no
-               # default found at this stage select last file within the dir
-               if {[file isdirectory $path]} {
-                  if {[info exists g_loadedModulesGeneric($mod)]} {
-                     set ModulesVersion $g_loadedModulesGeneric($mod)
-                  } else {
-                     set ModulesVersion ""
-                     # Execute any modulerc for this module
-                     if {[file exists "$path/.modulerc"]} {
-                        reportDebug "getPathToModule: Found $path/.modulerc"
-                        # push name to be found by module-alias and version
-                        pushSpecifiedName $mod/.modulerc
-                        pushModuleName $mod/.modulerc
-                        execute-modulerc $path/.modulerc
-                        popModuleName
-                        popSpecifiedName
-                     }
-                     # Check for an alias that may have been set by modulerc
-                     lassign [getModuleNameVersion\
-                        [resolveModuleVersionOrAlias $mod]]\
-                        newmod newparent newversion
-                     if {$newmod ne $mod} {
-                        # if alias resolve to a different modulename then
-                        # restart search on this new modulename
-                        if {$modparent ne $newparent} {
-                           return [getPathToModule $newmod]
-                        # elsewhere set version to the alias found
-                        } else {
-                           set ModulesVersion $newversion
-                        }
-                     }
+               # If a directory, check for default
+               if {[lindex $mod_list($mod) 0] eq "directory"} {
+                  set ModulesVersion ""
 
-                     # now look at .version file that can superseed version
-                     # set by modulerc
-                     if {[file exists "$path/.version"]} {
-                        reportDebug "getPathToModule: Found $path/.version"
-                        # push name to be found by module-alias and version
-                        pushSpecifiedName $mod/.version
-                        pushModuleName $mod/.version
-                        set ModulesVersion [execute-modulerc\
-                           "$path/.version"]
-                        popModuleName
-                        popSpecifiedName
+                  # Check for an alias that may have been set by modulerc
+                  lassign [getModuleNameVersion\
+                     [resolveModuleVersionOrAlias $mod]]\
+                     newmod newparent newversion
+                  if {$newmod ne $mod} {
+                     # if alias resolve to a different modulename then
+                     # restart search on this new modulename
+                     if {$modparent ne $newparent} {
+                        return [getPathToModule $newmod]
+                     # elsewhere set version to the alias found
+                     } else {
+                        set ModulesVersion $newversion
                      }
                   }
 
                   # Try for the last file in directory if no luck so far
                   if {$ModulesVersion eq ""} {
-                     # ask for module element at first path level only
-                     set modlist [listModules $path "" 0 "" "no_depth"]
-                     set ModulesVersion [lindex $modlist end]
-                     reportDebug "getPathToModule: Found\
-                        $ModulesVersion in $path"
+                     set ModulesVersion [lindex [lsort -dictionary\
+                        [lrange $mod_list($mod) 1 end]] end]
                   }
 
                   if {$ModulesVersion ne ""} {
@@ -1933,42 +1887,31 @@ proc getPathToModule {mod} {
                      set mod "$mod/$ModulesVersion"
                      # if ModulesVersion is a directory keep looking in it
                      # elsewhere we have found a module to return
-                     if {![file isdirectory $path]} {
-                        if {[file readable $path]} {
-                           set retlist [list $path $mod]
-                        } else {
-                           # if we found a ModulesVersion in this dir but it
-                           # points to a non-existent file, raise error and
-                           # return
-                           reportError "Unable to locate a modulefile for\
-                              '$mod'"
-                           return ""
-                        }
+                     if {[info exists mod_list($mod)]\
+                        && [lindex $mod_list($mod) 0] ne "directory"} {
+                        set retlist [list $path $mod]
                      }
                   }
                } else {
                   # If mod was a file in this path, try and return that file
                   set retlist [list $path $mod]
                }
-
-               # if we have result, check its validity or raise error
-               if {[llength $retlist] == 2} {
-                  if {![checkValidModule [lindex $retlist 0]]} {
-                     reportInternalBug "Magic cookie '#%Module' missing in\
-                        '[lindex $retlist 0]'"
-                     return ""
-                  } else {
-                     return $retlist
-                  }
-               }
             }
          }
-         # File wasn't readable, go to next path
+         # break loop if found something, elsewhere go to next path
+         if {[llength $retlist] == 2} {
+            break
+         }
       }
-      # End of of foreach loop
-      reportError "Unable to locate a modulefile for '$mod'"
-      return ""
    }
+
+   if {[llength $retlist] == 2} {
+      reportDebug "getPathToModule: found '[lindex $retlist 0]' as\
+         '[lindex $retlist 1]'"
+   } elseif {!$g_found_mod_invalid} {
+      reportError "Unable to locate a modulefile for '$mod'"
+   }
+   return $retlist
 }
 
 # return the currently loaded module whose name is the closest to the
@@ -2847,9 +2790,29 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
    # involved. So it is safest to reglob the $dir.
    # example:
    # [glob /home/stuff] -> "//homeserver/users0/stuff"
+   # use catch protection to handle non-readable and non-existent dir
+   if {[catch {set dir [glob $dir]}]} {
+      return {}
+   }
+   set full_list {}
 
-   set dir [glob $dir]
-   set full_list [glob -nocomplain "$dir/$mod*"]
+   # Search all parent directories (between modulepath dir and mod)
+   # for .modulerc files in case we need to translate an alias
+   set path "$dir/$mod"
+   set parentlist [split $mod "/"]
+   set parentname [lindex $parentlist 0]
+   set parentpath $dir/$parentname
+   set i 1
+   while {[file isdirectory $parentpath] && $parentpath ne $path} {
+      if {[file exists "$parentpath/.modulerc"]} {
+         lappend full_list "$parentpath/.modulerc"
+      }
+      append parentname "/[lindex $parentlist $i]"
+      append parentpath "/[lindex $parentlist $i]"
+      incr i
+   }
+
+   set full_list [concat $full_list [glob -nocomplain "$dir/$mod*"]]
 
    # remove trailing / needed on some platforms
    regsub {\/$} $full_list {} full_list
@@ -2869,11 +2832,11 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
 
       set tail [file tail $element]
       set direlem [file dirname $element]
-
       set modulename [string range $element $sstart end]
-
+      set add_ref_to_parent 0
       if {[file isdirectory $element] && [file readable $element]} {
          if {![info exists ignoreDir($tail)]} {
+            set mod_list($modulename) [list "directory"]
             # Add each element in the current directory to the list
             if {[file readable $element/.modulerc]} {
                lappend full_list $element/.modulerc
@@ -2881,10 +2844,8 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
             if {[file readable $element/.version]} {
                lappend full_list $element/.version
             }
-            set child_list [glob -nocomplain "$element/*"]
-            set full_list [concat $full_list $child_list]
-
-            set mod_list($modulename) [concat [list "directory"] $child_list]
+            set full_list [concat $full_list [glob -nocomplain "$element/*"]]
+            set add_ref_to_parent 1
          }
       } else {
          switch -glob -- $tail {
@@ -2903,8 +2864,25 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
                      set mtime {}
                   }
                   set mod_list($modulename) [list "modulefile" $mtime]
+                  set add_ref_to_parent 1
+               # if we were exactly looking for mod and it is badly formed
+               # raise an error and let upper procs know mod has been found
+               # but it is not valid
+               } elseif {$modulename eq $mod} {
+                  global g_found_mod_invalid
+                  reportInternalBug "Magic cookie '#%Module' missing in\
+                     '$element'"
+                  set g_found_mod_invalid 1
                }
             }
+         }
+      }
+
+      # add reference to parent structure
+      if {$add_ref_to_parent} {
+         set parentname [file dirname $modulename]
+         if {[info exists mod_list($parentname)]} {
+            lappend mod_list($parentname) $tail
          }
       }
    }
@@ -2914,7 +2892,7 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
    return [array get mod_list]
 }
 
-proc getModules {dir {mod {}} {fetch_mtime 0} {search {}}} {
+proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
    global ModulesCurrentModulefile
    global g_sourceAlias
 
@@ -2939,9 +2917,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}}} {
          pushModuleName $elt
          # set is needed for execute-modulerc
          set ModulesCurrentModulefile $dir/$elt
-         # as we treat a full directory content do not exit on an error
-         # raised from one modulerc file
-         execute-modulerc $ModulesCurrentModulefile 0
+         execute-modulerc $ModulesCurrentModulefile $exit_on_error
          popModuleName
          popSpecifiedName
 
@@ -2998,7 +2974,9 @@ proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
    }
 
    # get module list
-   array set mod_list [getModules $dir $mod $show_mtime $search]
+   # as we treat a full directory content do not exit on an error
+   # raised from one modulerc file
+   array set mod_list [getModules $dir $mod $show_mtime $search 0]
 
    # prepare results for display
    set clean_list {}

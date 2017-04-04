@@ -11,7 +11,7 @@
 #
 #   Description:	Testuite testsequence
 #   Command:		avail
-#   Modulefiles:	setenv/1.0
+#   Modulefiles:	setenv/1.0, loc_rc6/bar
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -24,6 +24,8 @@
 set module "setenv"
 set version "1.0"
 eval set [ array get env MODULEPATH ]
+set module2 "loc_rc6"
+set alias2 "bar"
 
 #
 #  Check this only fo the /bin/csh
@@ -40,6 +42,13 @@ testerr_cmd_re "csh" "avail $module/$version" "$ts_csh\\s+\$"
 testerr_cmd_re "csh" "avail $module" "$ts_csh\\s+\$"
 
 #
+#  Test avail on an alias module
+#
+
+set ts_csh "$header$module2/$alias2\\(@\\)"
+testerr_cmd_re "csh" "avail $module2/$alias2" "$ts_csh\\s+\$"
+
+#
 #  Cleanup
 #
 
@@ -48,3 +57,5 @@ unset header
 unset MODULEPATH
 unset version
 unset module
+unset alias2
+unset module2
