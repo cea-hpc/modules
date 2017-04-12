@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.792
-set MODULES_CURRENT_RELEASE_DATE "2017-04-04"
+set MODULES_CURRENT_VERSION 1.793
+set MODULES_CURRENT_RELEASE_DATE "2017-04-12"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1873,10 +1873,25 @@ proc getPathToModule {mod} {
                      }
                   }
 
-                  # Try for the last file in directory if no luck so far
+                  # Try for the last element in directory if no luck so far
                   if {$ModulesVersion eq ""} {
                      set ModulesVersion [lindex [lsort -dictionary\
                         [lrange $mod_list($mod) 1 end]] end]
+
+                     # Check if last element is an alias that need resolution
+                     lassign [getModuleNameVersion\
+                        [resolveModuleVersionOrAlias $mod/$ModulesVersion]]\
+                        newmod newparent newversion
+                     if {$newmod ne $mod} {
+                        # if alias resolve to a different modulename then
+                        # restart search on this new modulename
+                        if {$modparent ne $newparent} {
+                           return [getPathToModule $newmod]
+                        # elsewhere set version to the alias found
+                        } else {
+                           set ModulesVersion $newversion
+                        }
+                     }
                   }
 
                   if {$ModulesVersion ne ""} {
@@ -2939,6 +2954,13 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
    foreach alias [array names g_moduleAlias -glob $mod*] {
       if {$dir eq "" || [string first $dir $g_sourceAlias($alias)] == 0} {
          set mod_list($alias) [list "alias" $g_moduleAlias($alias)]
+
+         # add reference to this alias version in parent structure
+         set parentname [file dirname $alias]
+         if {[info exists mod_list($parentname)]} {
+            lappend mod_list($parentname) [file tail $alias]
+         }
+
       }
    }
 

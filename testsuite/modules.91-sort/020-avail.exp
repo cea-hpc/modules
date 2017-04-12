@@ -13,7 +13,7 @@
 #   Command:		avail
 #   Modulefiles:	verssort/1, verssort/1.2.1, verssort/1.2.4,
 #                   verssort/1.8-2015-12-01, verssort/1.8-2016-02-01,
-#                   verssort/1.10, averssort
+#                   verssort/1.10, averssort, version/dir2, loc_rc7
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -51,6 +51,23 @@ testerr_cmd_re "sh" "avail -t -d $aliasmod" "$ts_implicit_default_sh\$"
 testerr_cmd_re "sh" "avail -t -L $aliasmod" "$ts_latest_sh\$"
 
 #
+#  tests on modules mixing modulefiles and aliases
+#
+
+set mod2 "loc_rc7"
+set mod2vers1 "0.9"
+set mod2vers2 "1\\(@\\)"
+set mod2vers3 "1.2"
+set mod2vers4 "bar\\(@\\)"
+set ts_sh "$header$mod2/$mod2vers1\n$mod2/$mod2vers2\n$mod2/$mod2vers3\n$mod2/$mod2vers4"
+set ts_default_sh "$header$mod2/$mod2vers4"
+set ts_latest_sh "$header$mod2/$mod2vers4"
+
+testerr_cmd_re "sh" "avail -t $mod2" "$ts_sh\$"
+testerr_cmd_re "sh" "avail -t -d $mod2" "$ts_default_sh\$"
+testerr_cmd_re "sh" "avail -t -L $mod2" "$ts_latest_sh\$"
+
+#
 #  tests on deep modules, mixing modulefiles and directories
 #
 
@@ -63,19 +80,19 @@ if { $verbose > 0 } {
 set env(MODULEPATH) "$modpath"
 
 set header "\[-\]+ $env(MODULEPATH) \[-\]+\n"
-set mod2 "version/dir2"
-set mod2vers1 "1.0"
-set mod2vers2 "2.0\\(default\\)"
-set mod2vers3 "2.0/rc1\\(default\\)"
-set mod2vers4 "2.0/rc2"
-set mod2vers5 "3.0"
-set ts_sh "$header$mod2/$mod2vers1\n$mod2/$mod2vers2\n$mod2/$mod2vers3\n$mod2/$mod2vers4\n$mod2/$mod2vers5"
-set ts_default_sh "$header$mod2/$mod2vers2\n$mod2/$mod2vers3"
-set ts_latest_sh "$header$mod2/$mod2vers4\n$mod2/$mod2vers5"
+set mod3 "version/dir2"
+set mod3vers1 "1.0"
+set mod3vers2 "2.0\\(default\\)"
+set mod3vers3 "2.0/rc1\\(default\\)"
+set mod3vers4 "2.0/rc2"
+set mod3vers5 "3.0"
+set ts_sh "$header$mod3/$mod3vers1\n$mod3/$mod3vers2\n$mod3/$mod3vers3\n$mod3/$mod3vers4\n$mod3/$mod3vers5"
+set ts_default_sh "$header$mod3/$mod3vers2\n$mod3/$mod3vers3"
+set ts_latest_sh "$header$mod3/$mod3vers4\n$mod3/$mod3vers5"
 
-testerr_cmd_re "sh" "avail -t $mod2" "$ts_sh\$"
-testerr_cmd_re "sh" "avail -t -d $mod2" "$ts_default_sh\$"
-testerr_cmd_re "sh" "avail -t -L $mod2" "$ts_latest_sh\$"
+testerr_cmd_re "sh" "avail -t $mod3" "$ts_sh\$"
+testerr_cmd_re "sh" "avail -t -d $mod3" "$ts_default_sh\$"
+testerr_cmd_re "sh" "avail -t -L $mod3" "$ts_latest_sh\$"
 
 #
 #  Cleanup
@@ -94,7 +111,12 @@ unset mod2vers1
 unset mod2vers2
 unset mod2vers3
 unset mod2vers4
-unset mod2vers5
+unset mod3
+unset mod3vers1
+unset mod3vers2
+unset mod3vers3
+unset mod3vers4
+unset mod3vers5
 unset ts_sh
 unset ts_implicit_default_sh
 unset ts_latest_sh
