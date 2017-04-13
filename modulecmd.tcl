@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.793
-set MODULES_CURRENT_RELEASE_DATE "2017-04-12"
+set MODULES_CURRENT_VERSION 1.794
+set MODULES_CURRENT_RELEASE_DATE "2017-04-13"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1839,9 +1839,14 @@ proc getPathToModule {mod} {
          array set mod_list [getModules $dir $mod]
 
          # Check for an alias set by .modulerc found on parent path
-         # or by a previously looked modulefile/modulerc
+         # or by a previously looked modulefile/modulerc and follow
          set newmod [resolveModuleVersionOrAlias $mod]
-         if {$newmod ne $mod} {
+         # search on newmod if it is a subsequent module of mod
+         # (no need to recheck loaded mod, as it is a sub module)
+         if {[string first $mod $newmod] == 0} {
+            set mod $newmod
+         # elsewhere restart search on new modulename
+         } else {
             return [getPathToModule $newmod]
          }
 
@@ -1853,7 +1858,6 @@ proc getPathToModule {mod} {
             # directory that should be analyzed to get default mod in it
             while {$prevpath ne $path} {
                set prevpath $path
-
                # If a directory, check for default
                if {[lindex $mod_list($mod) 0] eq "directory"} {
                   set ModulesVersion ""
@@ -1862,14 +1866,15 @@ proc getPathToModule {mod} {
                   lassign [getModuleNameVersion\
                      [resolveModuleVersionOrAlias $mod]]\
                      newmod newparent newversion
+                  # if alias resolve to a different modulename then
                   if {$newmod ne $mod} {
-                     # if alias resolve to a different modulename then
-                     # restart search on this new modulename
-                     if {$modparent ne $newparent} {
-                        return [getPathToModule $newmod]
-                     # elsewhere set version to the alias found
-                     } else {
+                     # follow search on newmod if subsequent module of mod
+                     if {[string first $mod $newmod] == 0} {
+                        set mod $newparent
                         set ModulesVersion $newversion
+                     # elsewhere restart search on new modulename
+                     } else {
+                        return [getPathToModule $newmod]
                      }
                   }
 
@@ -1882,14 +1887,15 @@ proc getPathToModule {mod} {
                      lassign [getModuleNameVersion\
                         [resolveModuleVersionOrAlias $mod/$ModulesVersion]]\
                         newmod newparent newversion
-                     if {$newmod ne $mod} {
-                        # if alias resolve to a different modulename then
-                        # restart search on this new modulename
-                        if {$modparent ne $newparent} {
-                           return [getPathToModule $newmod]
-                        # elsewhere set version to the alias found
-                        } else {
+                     # if alias resolve to a different modulename then
+                     if {$newmod ne "$mod/$ModulesVersion"} {
+                        # follow search on newmod if subsequent module of mod
+                        if {[string first $mod $newmod] == 0} {
+                           set mod $newparent
                            set ModulesVersion $newversion
+                        # elsewhere restart search on new modulename
+                        } else {
+                           return [getPathToModule $newmod]
                         }
                      }
                   }
