@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.794
-set MODULES_CURRENT_RELEASE_DATE "2017-04-13"
+set MODULES_CURRENT_VERSION 1.795
+set MODULES_CURRENT_RELEASE_DATE "2017-04-14"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1798,7 +1798,7 @@ proc getModulePathList {{behavior "returnempty"}} {
 # "name/version" or just "name" (find default version).
 proc getPathToModule {mod} {
    global g_loadedModules g_loadedModulesGeneric
-   global g_found_mod_invalid
+   global g_invalid_mod_info
 
    set retlist {}
    set g_found_mod_invalid 0
@@ -1818,6 +1818,9 @@ proc getPathToModule {mod} {
                # path as the module name
                if {[checkValidModule $mod]} {
                   set retlist [list $mod $mod]
+               } elseif {[info exists g_invalid_mod_info($mod)]} {
+                  reportInternalBug $g_invalid_mod_info($mod)
+                  set g_found_mod_invalid 1
                }
             }
          }
@@ -1908,9 +1911,14 @@ proc getPathToModule {mod} {
                      set mod "$mod/$ModulesVersion"
                      # if ModulesVersion is a directory keep looking in it
                      # elsewhere we have found a module to return
-                     if {[info exists mod_list($mod)]\
-                        && [lindex $mod_list($mod) 0] ne "directory"} {
-                        set retlist [list $path $mod]
+                     if {[info exists mod_list($mod)]} {
+                        if {[lindex $mod_list($mod) 0] ne "directory"} {
+                           set retlist [list $path $mod]
+                        }
+                     # or an error message to report if file is invalid
+                     } elseif {[info exists g_invalid_mod_info($path)]} {
+                        reportInternalBug $g_invalid_mod_info($path)
+                        set g_found_mod_invalid 1
                      }
                   }
                } else {
@@ -1918,9 +1926,14 @@ proc getPathToModule {mod} {
                   set retlist [list $path $mod]
                }
             }
+         # mod may be found but invalid, so report error and end search
+         } elseif {[info exists g_invalid_mod_info($path)]} {
+            reportInternalBug $g_invalid_mod_info($path)
+            set g_found_mod_invalid 1
          }
-         # break loop if found something, elsewhere go to next path
-         if {[llength $retlist] == 2} {
+         # break loop if found something (valid or invalid module)
+         # elsewhere go to next path
+         if {[llength $retlist] == 2 || $g_found_mod_invalid} {
             break
          }
       }
@@ -2710,6 +2723,10 @@ proc checkValidModule {modfile} {
    }]} {
       if {$fheader eq "\#%Module"} {
          return 1
+      } else {
+         global g_invalid_mod_info
+         set g_invalid_mod_info($modfile) "Magic cookie '#%Module' missing in\
+            '$modfile'"
       }
    }
 
@@ -2893,14 +2910,6 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
                   }
                   set mod_list($modulename) [list "modulefile" $mtime]
                   set add_ref_to_parent 1
-               # if we were exactly looking for mod and it is badly formed
-               # raise an error and let upper procs know mod has been found
-               # but it is not valid
-               } elseif {$modulename eq $mod} {
-                  global g_found_mod_invalid
-                  reportInternalBug "Magic cookie '#%Module' missing in\
-                     '$element'"
-                  set g_found_mod_invalid 1
                }
             }
          }

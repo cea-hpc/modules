@@ -297,6 +297,23 @@ testouterr_cmd_re "python" "load $unknonw" "raise RuntimeError\\\( 'modulefile.t
 testouterr_cmd_re "lisp" "load $unknonw" "\\\(error \"modulefile.tcl: 1 error\\\(s\\\) detected!\"\\\)" "$err_load\'$unknonw\'\$"
 
 #
+# error when loading non existent module given as full path
+#
+set unknonw "$env(TESTSUITEDIR)/XYZ"
+
+testouterr_cmd_re "sh" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "bash" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "ksh" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "zsh" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "csh" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "tcsh" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "fish" "load $unknonw" "/bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "tcl" "load $unknonw" "exec /bin/false;" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "perl" "load $unknonw" "die \"modulefile.tcl: 1 error\\\(s\\\) detected!\\\\n\"" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "python" "load $unknonw" "raise RuntimeError\\\( 'modulefile.tcl: 1 error\\\(s\\\) detected!'\\\)" "$err_load\'$unknonw\'\$"
+testouterr_cmd_re "lisp" "load $unknonw" "\\\(error \"modulefile.tcl: 1 error\\\(s\\\) detected!\"\\\)" "$err_load\'$unknonw\'\$"
+
+#
 # test with erroneous modulefile
 #
 set badmod "bad"
@@ -313,6 +330,25 @@ testouterr_cmd_re "tcl" "load $badmod" "exec /bin/false;" "$out_interr.*"
 testouterr_cmd_re "perl" "load $badmod" "die \"modulefile.tcl: 1 error\\\(s\\\) detected!\\\\n\"" "$out_interr.*"
 testouterr_cmd_re "python" "load $badmod" "raise RuntimeError\\\( 'modulefile.tcl: 1 error\\\(s\\\) detected!'\\\)" "$out_interr.*"
 testouterr_cmd_re "lisp" "load $badmod" "\\\(error \"modulefile.tcl: 1 error\\\(s\\\) detected!\"\\\)" "$out_interr.*"
+
+#
+# test with file given as full path which is not a modulefile
+#
+set badmod "$env(TESTSUITEDIR)/modulefiles/README"
+set out_interr "Module ERROR: Magic cookie '#%Module' missing in '$badmod'"
+
+testouterr_cmd_re "sh" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "bash" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "ksh" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "zsh" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "csh" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "tcsh" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "fish" "load $badmod" "/bin/false;" "$out_interr.*"
+testouterr_cmd_re "tcl" "load $badmod" "exec /bin/false;" "$out_interr.*"
+testouterr_cmd_re "perl" "load $badmod" "die \"modulefile.tcl: 1 error\\\(s\\\) detected!\\\\n\"" "$out_interr.*"
+testouterr_cmd_re "python" "load $badmod" "raise RuntimeError\\\( 'modulefile.tcl: 1 error\\\(s\\\) detected!'\\\)" "$out_interr.*"
+testouterr_cmd_re "lisp" "load $badmod" "\\\(error \"modulefile.tcl: 1 error\\\(s\\\) detected!\"\\\)" "$out_interr.*"
+
 
 #
 #  Cleanup
