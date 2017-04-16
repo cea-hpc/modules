@@ -68,6 +68,24 @@ testerr_cmd_re "sh" "avail -t -d $mod2" "$ts_default_sh\$"
 testerr_cmd_re "sh" "avail -t -L $mod2" "$ts_latest_sh\$"
 
 #
+#  tests on modules mixing modulefiles and symbolic versions
+#
+
+set mod3 "loc_rc2"
+set mod3vers1 "1.0\\(bar:blah:foo\\)"
+set mod3vers2 "2.0"
+set ts_sh "$header$mod3/$mod3vers1\n$mod3/$mod3vers2"
+set ts_default_sh "$header$mod3/$mod3vers2"
+set ts_latest_sh "$header$mod3/$mod3vers2"
+
+# symbols even if they hold greatest value should not be taken
+# into account for default or latest choice
+testerr_cmd_re "sh" "avail -t $mod3" "$ts_sh\$"
+testerr_cmd_re "sh" "avail -t -d $mod3" "$ts_default_sh\$"
+testerr_cmd_re "sh" "avail -t -L $mod3" "$ts_latest_sh\$"
+
+
+#
 #  tests on deep modules, mixing modulefiles and directories
 #
 
@@ -80,19 +98,19 @@ if { $verbose > 0 } {
 set env(MODULEPATH) "$modpath"
 
 set header "\[-\]+ $env(MODULEPATH) \[-\]+\n"
-set mod3 "version/dir2"
-set mod3vers1 "1.0"
-set mod3vers2 "2.0\\(default\\)"
-set mod3vers3 "2.0/rc1\\(default\\)"
-set mod3vers4 "2.0/rc2"
-set mod3vers5 "3.0"
-set ts_sh "$header$mod3/$mod3vers1\n$mod3/$mod3vers2\n$mod3/$mod3vers3\n$mod3/$mod3vers4\n$mod3/$mod3vers5"
-set ts_default_sh "$header$mod3/$mod3vers2\n$mod3/$mod3vers3"
-set ts_latest_sh "$header$mod3/$mod3vers4\n$mod3/$mod3vers5"
+set mod4 "version/dir2"
+set mod4vers1 "1.0"
+set mod4vers2 "2.0\\(default\\)"
+set mod4vers3 "2.0/rc1\\(default\\)"
+set mod4vers4 "2.0/rc2"
+set mod4vers5 "3.0"
+set ts_sh "$header$mod4/$mod4vers1\n$mod4/$mod4vers2\n$mod4/$mod4vers3\n$mod4/$mod4vers4\n$mod4/$mod4vers5"
+set ts_default_sh "$header$mod4/$mod4vers2\n$mod4/$mod4vers3"
+set ts_latest_sh "$header$mod4/$mod4vers4\n$mod4/$mod4vers5"
 
-testerr_cmd_re "sh" "avail -t $mod3" "$ts_sh\$"
-testerr_cmd_re "sh" "avail -t -d $mod3" "$ts_default_sh\$"
-testerr_cmd_re "sh" "avail -t -L $mod3" "$ts_latest_sh\$"
+testerr_cmd_re "sh" "avail -t $mod4" "$ts_sh\$"
+testerr_cmd_re "sh" "avail -t -d $mod4" "$ts_default_sh\$"
+testerr_cmd_re "sh" "avail -t -L $mod4" "$ts_latest_sh\$"
 
 #
 #  Cleanup
@@ -114,9 +132,12 @@ unset mod2vers4
 unset mod3
 unset mod3vers1
 unset mod3vers2
-unset mod3vers3
-unset mod3vers4
-unset mod3vers5
+unset mod4
+unset mod4vers1
+unset mod4vers2
+unset mod4vers3
+unset mod4vers4
+unset mod4vers5
 unset ts_sh
 unset ts_implicit_default_sh
 unset ts_latest_sh
