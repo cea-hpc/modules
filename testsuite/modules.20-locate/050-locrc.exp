@@ -10,7 +10,7 @@
 #   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
 #
 #   Description:	Testuite testsequence
-#   Command:		load, display
+#   Command:		load, display, whatis
 #   Modulefiles:	loc_rc1/1.0, loc_rc2/1.0, loc_rc3/1.0, loc_rc4/1.0
 #   Modulefiles:	loc_rc7, loc_rc2/2.0
 #   Sub-Command:
@@ -45,6 +45,10 @@ set modulefile_5 "$env(MODULEPATH)/$module_5"
 set module_6 "loc_rc2/2.0"
 set modulefile_6 "$env(MODULEPATH)/$module_6"
 
+set module_7 "loc_rc6/1.2"
+set modulefile_7 "$env(MODULEPATH)/$module_7"
+
+
 #
 #  Only checked for the csh
 #
@@ -66,12 +70,18 @@ set ts_csh_1 "setenv testsuite yes;"
 
 
 set disp_csh "setenv\t\ttestsuite\tyes"
-set disp_1 "$modlin\n$modulefile_1:\n\n$disp_csh\n$modlin"
-set disp_2 "$modlin\n$modulefile_2:\n\n$disp_csh\n$modlin"
-set disp_3 "$modlin\n$modulefile_3:\n\n$disp_csh\n$modlin"
-set disp_4 "$modlin\n$modulefile_4:\n\n$disp_csh\n$modlin"
-set disp_5 "$modlin\n$modulefile_5:\n\n$disp_csh\n$modlin"
-set disp_6 "$modlin\n$modulefile_6:\n\n$disp_csh\n$modlin"
+set whatis_csh "module-whatis\t"
+set disp_1 "$modlin\n$modulefile_1:\n\n$whatis_csh$module_1\n$disp_csh\n$modlin"
+set disp_2 "$modlin\n$modulefile_2:\n\n$whatis_csh$module_2\n$disp_csh\n$modlin"
+set disp_3 "$modlin\n$modulefile_3:\n\n$whatis_csh$module_3\n$disp_csh\n$modlin"
+set disp_4 "$modlin\n$modulefile_4:\n\n$whatis_csh$module_4\n$disp_csh\n$modlin"
+set disp_5 "$modlin\n$modulefile_5:\n\n$whatis_csh$module_5\n$disp_csh\n$modlin"
+set disp_6 "$modlin\n$modulefile_6:\n\n$whatis_csh$module_6\n$disp_csh\n$modlin"
+
+set header "\[-\]+ $env(MODULEPATH) \[-\]+"
+set what_1 "$header\n         $module_1: $module_1\$"
+set what_2 "$header\n         $module_2: $module_2\$"
+set what_7 "$header\n         loc_rc6/bar: $module_7\$"
 
 #
 #  The tests
@@ -79,9 +89,11 @@ set disp_6 "$modlin\n$modulefile_6:\n\n$disp_csh\n$modlin"
 
 test_cmd_re "csh" "load loc_rc1/foo" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_1\n$lm_csh_1\n$ts_csh_1"
 testerr_cmd_re "sh" "display loc_rc1/foo" "$disp_1"
+testerr_cmd_re "sh" "whatis loc_rc1/foo" "$what_1"
 
 test_cmd_re "csh" "load loc_rc2/foo" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_2\n$lm_csh_2\n$ts_csh_1"
 testerr_cmd_re "sh" "display loc_rc2/foo" "$disp_2"
+testerr_cmd_re "sh" "whatis loc_rc2/foo" "$what_2"
 
 test_cmd_re "csh" "load loc_rc3" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_3\n$lm_csh_3\n$ts_csh_1"
 testerr_cmd_re "sh" "display loc_rc3" "$disp_3"
@@ -97,6 +109,8 @@ testerr_cmd_re "sh" "display loc_rc7" "$disp_5"
 # this symbol should be ignored and greatest alias or file should be chosen
 test_cmd_re "csh" "load loc_rc2" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_6\n$lm_csh_6\n$ts_csh_1"
 testerr_cmd_re "sh" "display loc_rc2" "$disp_6"
+
+testerr_cmd_re "sh" "whatis loc_rc6/bar" "$what_7"
 
 #
 #  Cleanup
@@ -117,12 +131,18 @@ unset lmf_csh_6
 unset ts_csh_1
 
 unset disp_csh
+unset whatis_csh
 unset disp_1
 unset disp_2
 unset disp_3
 unset disp_4
 unset disp_5
 unset disp_6
+
+unset header
+unset what_1
+unset what_2
+unset what_7
 
 unset modulefile_1
 unset module_1
@@ -141,3 +161,6 @@ unset module_5
 
 unset modulefile_6
 unset module_6
+
+unset modulefile_7
+unset module_7
