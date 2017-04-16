@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.796
+set MODULES_CURRENT_VERSION 1.797
 set MODULES_CURRENT_RELEASE_DATE "2017-04-16"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -2929,7 +2929,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
       set findmod [lindex $parentlist 0]
       # if searched mod is an empty or flat element append wildcard character
       # to match anything starting with mod
-      if {[llength $parentlist] <= 1} {
+      if {$search eq "wild" && [llength $parentlist] <= 1} {
          append findmod "*"
       }
       array set found_list [findModules $dir $findmod $fetch_mtime]
@@ -2974,7 +2974,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
 }
 
 # Finds all module versions for mod in the module path dir
-proc listModules {dir mod {show_flags {1}} {filter ""} {search "in_depth"}} {
+proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
    global ignoreDir ModulesCurrentModulefile
    global flag_default_mf flag_default_dir show_modtimes
    global g_sourceAlias
