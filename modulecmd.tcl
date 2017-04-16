@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.797
+set MODULES_CURRENT_VERSION 1.798
 set MODULES_CURRENT_RELEASE_DATE "2017-04-16"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -1793,6 +1793,14 @@ proc getModulePathList {{behavior "returnempty"}} {
    }
 }
 
+# test if two modules share the same root name
+proc isSameModuleRoot {mod1 mod2} {
+   set mod1split [split $mod1 "/"]
+   set mod2split [split $mod2 "/"]
+
+   return [expr {[lindex $mod1split 0] eq [lindex $mod2split 0]}]
+}
+
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
@@ -1835,18 +1843,22 @@ proc getPathToModule {mod} {
 
       # modparent is the the modulename minus the module version.
       lassign [getModuleNameVersion $mod] mod modparent modversion
+      set modroot [lindex [split $mod "/"] 0]
 
       # Now search for $mod in module paths
       foreach dir [getModulePathList "exiterronundef"] {
-         # get module list
-         array set mod_list [getModules $dir $mod]
+         # get list of modules related to the root of searched module to get
+         # in one call a complete list of any module kind (file, alias, etc)
+         # related to search to be able to then determine in this proc the
+         # correct module to return without restarting new searches
+         array set mod_list [getModules $dir $modroot]
 
          # Check for an alias set by .modulerc found on parent path
          # or by a previously looked modulefile/modulerc and follow
          set newmod [resolveModuleVersionOrAlias $mod]
-         # search on newmod if it is a subsequent module of mod
-         # (no need to recheck loaded mod, as it is a sub module)
-         if {[string first $mod $newmod] == 0} {
+         # search on newmod if it is a module from same root as mod_list
+         # already contains everything related to this root module
+         if {[isSameModuleRoot $mod $newmod]} {
             set mod $newmod
          # elsewhere restart search on new modulename
          } else {
@@ -1871,10 +1883,11 @@ proc getPathToModule {mod} {
                      newmod newparent newversion
                   # if alias resolve to a different modulename then
                   if {$newmod ne $mod} {
-                     # follow search on newmod if subsequent module of mod
-                     if {[string first $mod $newmod] == 0} {
+                     # follow search on newmod if module from same root
+                     if {[isSameModuleRoot $mod $newmod]} {
                         set mod $newparent
                         set ModulesVersion $newversion
+                        set path "$dir/$mod"
                      # elsewhere restart search on new modulename
                      } else {
                         return [getPathToModule $newmod]
@@ -1892,10 +1905,11 @@ proc getPathToModule {mod} {
                         newmod newparent newversion
                      # if alias resolve to a different modulename then
                      if {$newmod ne "$mod/$ModulesVersion"} {
-                        # follow search on newmod if subsequent module of mod
-                        if {[string first $mod $newmod] == 0} {
+                        # follow search on newmod if module from same root
+                        if {[isSameModuleRoot $mod $newmod]} {
                            set mod $newparent
                            set ModulesVersion $newversion
+                           set path "$dir/$mod"
                         # elsewhere restart search on new modulename
                         } else {
                            return [getPathToModule $newmod]
