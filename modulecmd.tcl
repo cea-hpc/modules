@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.798
+set MODULES_CURRENT_VERSION 1.799
 set MODULES_CURRENT_RELEASE_DATE "2017-04-16"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -2921,7 +2921,7 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
 
 proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
    global ModulesCurrentModulefile
-   global g_sourceAlias
+   global g_sourceAlias g_moduleVersion
 
    reportDebug "getModules: get '$mod' in $dir\
       (fetch_mtime=$fetch_mtime, search=$search)"
@@ -2979,6 +2979,18 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
             lappend mod_list($parentname) [file tail $alias]
          }
 
+      }
+   }
+
+   # add the target of symbolic versions found when parsing .version or
+   # .modulerc files if these symbols match passed $mod (as for regular
+   # modulefiles). modulefile target of these version symbol should have
+   # been found previously to be added
+   foreach vers [array names g_moduleVersion -glob $mod*] {
+      set versmod $g_moduleVersion($vers)
+      if {[info exists found_list($versmod)]\
+         && ![info exists mod_list($versmod)]} {
+         set mod_list($versmod) $found_list($versmod)
       }
    }
 

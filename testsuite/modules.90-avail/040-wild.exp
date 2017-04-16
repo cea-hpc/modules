@@ -13,7 +13,7 @@
 #   Command:		avail
 #   Modulefiles:	uname/domain, uname/machine, uname/nodename
 #   Modulefiles:	uname/release, uname/sysnae, uname/version
-#   Modulefiles:	unsetenv/0.9, unsetenv/1.0, averssort, sym_foo
+#   Modulefiles:	unsetenv/0.9, unsetenv/1.0, averssort, sym_foo, loc_rc2
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -46,6 +46,8 @@ set tsa1_csh3 "averssort/1.10"
 
 set tsa2_csh1 "sym_foo"
 
+set tsv1_csh1 "loc_rc2/1.0\\(bar:blah:foo\\)"
+
 # save the former rc file setup
 if {[info exists env(MODULERCFILE)]} {
     set save_rc $env(MODULERCFILE)
@@ -64,6 +66,11 @@ testerr_cmd_re "csh" "avail -t un" "$header\n$ts_csh1\n$ts_csh2\n$ts_csh3\n$ts_c
 
 testerr_cmd_re "csh" "avail -t avers" "$header\n$tsa1_csh1\\(@\\)\n$tsa1_csh2\\(@\\)\n$tsa1_csh3\\(@\\)\$"
 
+#
+#  test on symbolic version
+#
+
+testerr_cmd_re "csh" "avail -t loc_rc2/f" "$header\n$tsv1_csh1\$"
 
 #
 #  test on module alias set from global modulerc
@@ -100,3 +107,4 @@ unset tsa1_csh1
 unset tsa1_csh2
 unset tsa1_csh3
 unset tsa2_csh1
+unset tsv1_csh1
