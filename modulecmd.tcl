@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.795
-set MODULES_CURRENT_RELEASE_DATE "2017-04-14"
+set MODULES_CURRENT_VERSION 1.796
+set MODULES_CURRENT_RELEASE_DATE "2017-04-16"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2832,32 +2832,8 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
    if {[catch {set dir [glob $dir]}]} {
       return {}
    }
-   set full_list {}
 
-   # Search all parent directories (between modulepath dir and mod)
-   # for .modulerc files in case we need to translate an alias
-   set path "$dir/$mod"
-   set parentlist [split $mod "/"]
-   set parentname [lindex $parentlist 0]
-   set parentpath $dir/$parentname
-   set i 1
-   while {[file isdirectory $parentpath] && $parentpath ne $path} {
-      if {[file exists "$parentpath/.modulerc"]} {
-         lappend full_list "$parentpath/.modulerc"
-      }
-      append parentname "/[lindex $parentlist $i]"
-      append parentpath "/[lindex $parentlist $i]"
-      incr i
-   }
-   # consider .version file in search upper directory as searched mod
-   # may be influenced by a default set in there (if it is a modulefile
-   # in this directory)
-   set upperpath [file dirname $path]
-   if {[file exists "$upperpath/.version"]} {
-      lappend full_list "$upperpath/.version"
-   }
-
-   set full_list [concat $full_list [glob -nocomplain "$dir/$mod*"]]
+   set full_list [glob -nocomplain "$dir/$mod"]
 
    # remove trailing / needed on some platforms
    regsub {\/$} $full_list {} full_list
@@ -2941,14 +2917,27 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
    if {$search eq "rc_alias_only"} {
       global g_rcAlias
       array set g_moduleAlias [array get g_rcAlias]
-      array set mod_list {}
+      array set found_list {}
    } else {
       global g_moduleAlias
-      array set mod_list [findModules $dir $mod $fetch_mtime]
+
+      # find modules by searching with first path element if mod is a deep
+      # modulefile (elt1/etl2/vers) in order to catch all .modulerc and
+      # .version files of module-related parent directories in case we need
+      # to translate an alias or a version
+      set parentlist [split $mod "/"]
+      set findmod [lindex $parentlist 0]
+      # if searched mod is an empty or flat element append wildcard character
+      # to match anything starting with mod
+      if {[llength $parentlist] <= 1} {
+         append findmod "*"
+      }
+      array set found_list [findModules $dir $findmod $fetch_mtime]
    }
 
-   foreach elt [lsort [array names mod_list]] {
-      if {[lindex $mod_list($elt) 0] eq "modulerc"} {
+   array set mod_list {}
+   foreach elt [lsort [array names found_list]] {
+      if {[lindex $found_list($elt) 0] eq "modulerc"} {
          # push name to be found by module-alias and version
          pushSpecifiedName $elt
          pushModuleName $elt
@@ -2957,9 +2946,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
          execute-modulerc $ModulesCurrentModulefile $exit_on_error
          popModuleName
          popSpecifiedName
-
-         # remove rc file from result array, will add aliases later
-         unset mod_list($elt)
+      # add other entry kind to the result list
+      } elseif {[string match $mod* $elt]} {
+         set mod_list($elt) $found_list($elt)
       }
    }
 
