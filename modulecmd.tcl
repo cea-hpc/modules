@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.804
+set MODULES_CURRENT_VERSION 1.807
 set MODULES_CURRENT_RELEASE_DATE "2017-04-17"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -229,7 +229,7 @@ proc unset-env {var} {
    }
 }
 
-proc execute-modulefile {modfile {exit_on_error 1}} {
+proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
    global g_debug g_inhibit_interp g_inhibit_errreport g_inhibit_dispreport
    global ModulesCurrentModulefile
 
@@ -287,12 +287,14 @@ proc execute-modulefile {modfile {exit_on_error 1}} {
          $g_inhibit_errreport]
       interp eval $slave [list "set" "g_inhibit_dispreport"\
          $g_inhibit_dispreport]
+      interp eval $slave [list "set" "must_have_cookie" $must_have_cookie]
    }
    set errorVal [interp eval $slave {
       if {$g_debug} {
          report "Sourcing $ModulesCurrentModulefile"
       }
-      set modcontent [readModuleContent $ModulesCurrentModulefile 1]
+      set modcontent [readModuleContent $ModulesCurrentModulefile 1\
+         $must_have_cookie]
       if {$modcontent eq ""} {
          # exit after end of slave evaluation
          return 2
@@ -2757,7 +2759,7 @@ proc checkValidModule {modfile} {
    return 0
 }
 
-proc readModuleContent {modfile {report_read_issue 0}} {
+proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}} {
    reportDebug "readModuleContent: $modfile"
 
    # read file
@@ -2772,8 +2774,8 @@ proc readModuleContent {modfile {report_read_issue 0}} {
       return {}
    }
 
-   # check module validity
-   if {[string first "\#%Module" $fdata] == 0} {
+   # check module validity if magic cookie is mandatory
+   if {[string first "\#%Module" $fdata] == 0 || !$must_have_cookie} {
       return $fdata
    } else {
       reportInternalBug "Magic cookie '#%Module' missing in '$modfile'"
@@ -4008,7 +4010,11 @@ proc cmdModuleSource {args} {
          pushMode "load"
          pushSpecifiedName $file
          pushModuleName $file
-         execute-modulefile $file
+         # relax constraint of having a magic cookie at the start of the
+         # modulefile to execute as sourced files may need more flexibility
+         # as they may be managed outside of the modulefile environment like
+         # the initialization modulerc file
+         execute-modulefile $file 1 0
          popModuleName
          popSpecifiedName
          popMode

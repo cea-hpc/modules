@@ -1,0 +1,60 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2017/04/17
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		source
+#   Modulefiles:	rctosource, rcnomagic, nonexistent
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the module command 'source'
+#		}C%
+#
+##############################################################################
+
+#
+#  Test variables
+#
+
+set module_1 "$env(TESTSUITEDIR)/home/rctosource"
+set module_2 "$env(TESTSUITEDIR)/home/rcnomagic"
+set module_3 "$env(TESTSUITEDIR)/home/nonexistent"
+
+set out_csh "setenv testsuite yes;"
+set out_csh3 "/bin/false;"
+set err_csh "$error_msgs: File $module_3 does not exist"
+
+#
+#  test sourcing rc file with regular module-specific magic cookie
+#
+testouterr_cmd "csh" "source $module_1" "$out_csh" ""
+
+#
+#  test sourcing rc file with no module-specific magic cookie
+#
+testouterr_cmd "csh" "source $module_2" "$out_csh" ""
+
+#
+# test with nonexistent file
+#
+testouterr_cmd "csh" "source $module_3" "$out_csh3" "$err_csh"
+
+#
+#  Cleanup
+#
+
+unset err_csh
+unset out_csh3
+unset out_csh
+
+unset module_1
+unset module_2
+unset module_3
