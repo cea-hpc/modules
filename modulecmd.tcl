@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.807
+set MODULES_CURRENT_VERSION 1.808
 set MODULES_CURRENT_RELEASE_DATE "2017-04-17"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -744,7 +744,8 @@ proc module {command args} {
                eval cmdModuleLoad $args
             }\
             elseif {$mode eq "unload"} {
-               eval cmdModuleUnload $args
+               # on unload mode, unload mods in reverse order
+               eval cmdModuleUnload [lreverse $args]
             }\
             elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
                report "module load\t$args"

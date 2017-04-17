@@ -32,6 +32,13 @@ set modulefile "$env(MODULEPATH)/$module"
 set module_1 "module/2.0"
 set modulefile_1 "$env(MODULEPATH)/$module_1"
 
+set module_2 "trace/all_on"
+set modulefile_2 "$env(MODULEPATH)/$module_2"
+set module_3 "prereq/module"
+set modulefile_3 "$env(MODULEPATH)/$module_3"
+set module_4 "module/meta"
+set modulefile_4 "$env(MODULEPATH)/$module_4"
+
 #
 #  For the different shells ...
 #
@@ -49,6 +56,38 @@ set ts_csh "setenv testsuite yes;"
 test_cmd_re "csh" "load $module_1" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
 
 #
+# Test load of meta-module
+#
+
+set lmfmod_csh "setenv _LMFILES__modshare (.*);"
+set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
+set lmf_csh "setenv _LMFILES_ $modulefile:$modulefile_2:$modulefile_3:$modulefile_4;"
+set lm_csh "setenv LOADEDMODULES $module:$module_2:$module_3:$module_4;"
+set ts_csh "setenv testsuite yes;"
+
+test_cmd_re "csh" "load $module_4" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
+
+#
+# Test unload of meta-module
+#
+
+# Set up the environment for test that require the module to be loaded
+set env(_LMFILES_) "$modulefile:$modulefile_2:$modulefile_3:$modulefile_4"
+set env(LOADEDMODULES) "$module:$module_2:$module_3:$module_4"
+
+set lmfmod_csh "unsetenv _LMFILES__modshare;"
+set lmmod_csh "unsetenv LOADEDMODULES_modshare;"
+set lmf_csh "unsetenv _LMFILES_;"
+set lm_csh "unsetenv LOADEDMODULES;"
+set ts_csh "unsetenv testsuite;"
+
+test_cmd_re "csh" "unload $module_4" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
+
+# Clean up the just changed environment
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+#
 #  Cleanup
 #
 
@@ -62,3 +101,10 @@ unset modulefile
 unset module
 unset modulefile_1
 unset module_1
+
+unset module_2
+unset modulefile_2
+unset module_3
+unset modulefile_3
+unset module_4
+unset modulefile_4
