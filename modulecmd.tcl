@@ -33,13 +33,14 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.799
-set MODULES_CURRENT_RELEASE_DATE "2017-04-16"
+set MODULES_CURRENT_VERSION 1.804
+set MODULES_CURRENT_RELEASE_DATE "2017-04-17"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
+set g_inhibit_dispreport 0 ;# Display-mode reporting disabled if == 1
 set g_force 0 ;# Path element reference counting if == 0
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 set flag_default_dir 1 ;# Report default directories
@@ -229,7 +230,7 @@ proc unset-env {var} {
 }
 
 proc execute-modulefile {modfile {exit_on_error 1}} {
-   global g_debug g_inhibit_interp g_inhibit_errreport
+   global g_debug g_inhibit_interp g_inhibit_errreport g_inhibit_dispreport
    global ModulesCurrentModulefile
 
    set ModulesCurrentModulefile $modfile
@@ -278,13 +279,14 @@ proc execute-modulefile {modfile {exit_on_error 1}} {
       interp alias $slave readModuleContent {} readModuleContent
 
       interp eval $slave {global ModulesCurrentModulefile g_debug\
-         g_inhibit_interp g_inhibit_errreport}
+         g_inhibit_interp g_inhibit_errreport g_inhibit_dispreport}
       interp eval $slave [list "set" "ModulesCurrentModulefile" $modfile]
       interp eval $slave [list "set" "g_debug" $g_debug]
       interp eval $slave [list "set" "g_inhibit_interp" $g_inhibit_interp]
       interp eval $slave [list "set" "g_inhibit_errreport"\
          $g_inhibit_errreport]
-
+      interp eval $slave [list "set" "g_inhibit_dispreport"\
+         $g_inhibit_dispreport]
    }
    set errorVal [interp eval $slave {
       if {$g_debug} {
@@ -357,13 +359,15 @@ proc execute-modulefile {modfile {exit_on_error 1}} {
 # .version files
 proc execute-modulerc {modfile {exit_on_error 1}} {
    global g_rcfilesSourced ModulesVersion
-   global g_debug g_moduleDefault g_inhibit_errreport
+   global g_debug g_moduleDefault g_inhibit_errreport g_inhibit_dispreport
    global ModulesCurrentModulefile
 
    reportDebug "execute-modulerc: $modfile"
 
    set ModulesCurrentModulefile $modfile
    set ModulesVersion {}
+   # does not report commands from rc file on display mode
+   set g_inhibit_dispreport 1
 
    set modname [file dirname [currentModuleName]]
 
@@ -388,11 +392,13 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
          interp alias $slave readModuleContent {} readModuleContent
 
          interp eval $slave {global ModulesCurrentModulefile g_debug\
-            g_inhibit_errreport ModulesVersion}
+            g_inhibit_errreport g_inhibit_dispreport ModulesVersion}
          interp eval $slave [list "set" "ModulesCurrentModulefile" $modfile]
          interp eval $slave [list "set" "g_debug" $g_debug]
          interp eval $slave [list "set" "g_inhibit_errreport"\
             $g_inhibit_errreport]
+         interp eval $slave [list "set" "g_inhibit_dispreport"\
+            $g_inhibit_dispreport]
          interp eval $slave {set ModulesVersion {}}
       }
       set errorVal [interp eval $slave {
@@ -439,6 +445,10 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
          exitOnError
       }
    }
+
+   # re-enable command report on display mode
+   set g_inhibit_dispreport 0
+
    return $g_rcfilesSourced($modfile)
 }
 
@@ -579,7 +589,7 @@ proc module-whatis {args} {
 
    reportDebug "module-whatis: $message  mode=$mode"
 
-   if {$mode eq "display"} {
+   if {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "module-whatis\t$message"
    }\
    elseif {$mode eq "whatis"} {
@@ -685,7 +695,7 @@ proc module-version {args} {
       }
    }
 
-   if {[string match [currentMode] "display"]} {
+   if {[currentMode] eq "display" && !$::g_inhibit_dispreport} {
       report "module-version\t$args"
    }
    return {}
@@ -704,7 +714,7 @@ proc module-alias {args} {
    set g_aliasHash($mod) $alias
    set g_sourceAlias($alias) $ModulesCurrentModulefile
 
-   if {[string match [currentMode] "display"]} {
+   if {[currentMode] eq "display" && !$::g_inhibit_dispreport} {
       report "module-alias\t$args"
    }
 
@@ -734,7 +744,7 @@ proc module {command args} {
             elseif {$mode eq "unload"} {
                eval cmdModuleUnload $args
             }\
-            elseif {$mode eq "display"} {
+            elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
                report "module load\t$args"
             }
             popCommandName
@@ -752,7 +762,7 @@ proc module {command args} {
             elseif {$mode eq "unload"} {
                eval cmdModuleUnload $args
             }\
-            elseif {$mode eq "display"} {
+            elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
                report "module unload\t$args"
             }
             popCommandName
@@ -774,7 +784,7 @@ proc module {command args} {
             eval cmdModuleUse $args
          } elseif {$mode eq "unload"} {
             eval cmdModuleUnuse $args
-         } elseif {$mode eq "display"} {
+         } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
             report "module use\t$args"
          }
          set needrender 1
@@ -782,7 +792,7 @@ proc module {command args} {
       {^unuse$} {
          if {$topcall || $mode eq "load" || $mode eq "unload"} {
             eval cmdModuleUnuse $args
-         } elseif {$mode eq "display"} {
+         } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
             report "module unuse\t$args"
          }
          set needrender 1
@@ -1054,7 +1064,7 @@ proc setenv {var val} {
       #unset-env $var
       set g_stateEnvVars($var) "del"
    }\
-   elseif {$mode eq "display"} {
+   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       # Let display set the variable for later use in the display
       # but don't commit it to the env
       set env($var) $val
@@ -1076,7 +1086,7 @@ proc getenv {var} {
          return "_UNDEFINED_"
       }
    }\
-   elseif {$mode eq "display"} {
+   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       return "\$$var"
    }
    return {}
@@ -1103,7 +1113,7 @@ proc unsetenv {var {val {}}} {
          set g_stateEnvVars($var) "del"
       }
    }\
-   elseif {$mode eq "display"} {
+   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       if {$val ne ""} {
          report "unsetenv\t$var\t$val"
       } else {
@@ -1130,7 +1140,7 @@ proc chdir {dir} {
       }
    } elseif {$mode eq "unload"} {
       # No operation here unable to undo a syscall.
-   } elseif {$mode eq "display"} {
+   } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "chdir\t\t$dir"
    }
 
@@ -1372,7 +1382,7 @@ proc prepend-path {var path args} {
    elseif {$mode eq "unload"} {
       unload-path $var $path $separator
    }\
-   elseif {$mode eq "display"} {
+   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "prepend-path\t$var\t$path"
    }
 
@@ -1401,7 +1411,7 @@ proc append-path {var path args} {
    elseif {$mode eq "unload"} {
       unload-path $var $path $separator
    }\
-   elseif {$mode eq "display"} {
+   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "append-path\t$var\t$path"
    }
 
@@ -1426,7 +1436,7 @@ proc remove-path {var path args} {
    if {$mode eq "load"} {
       unload-path $var $path $separator
    }\
-   elseif {$mode eq "display"} {
+   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "remove-path\t$var\t$path"
    }
    return {}
@@ -1445,7 +1455,7 @@ proc set-alias {alias what} {
       set g_Aliases($alias) {}
       set g_stateAliases($alias) "del"
    }\
-   elseif {$mode eq "display"} {
+   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "set-alias\t$alias\t$what"
    }
 
@@ -1462,7 +1472,7 @@ proc unset-alias {alias} {
       set g_Aliases($alias) {}
       set g_stateAliases($alias) "del"
    }\
-   elseif {$mode eq "display"} {
+   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "unset-alias\t$alias"
    }
 
@@ -1513,7 +1523,7 @@ proc conflict {args} {
          }
       }
    }\
-   elseif {$mode eq "display"} {
+   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "conflict\t$args"
    }
 
@@ -1541,7 +1551,7 @@ proc prereq {args} {
          error $errMsg
       }
    }\
-   elseif {$mode eq "display"} {
+   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "prereq\t\t$args"
    }
 
@@ -1591,7 +1601,7 @@ proc x-resource {resource {value {}}} {
    elseif {$mode eq "unload"} {
       set g_delXResources($resource) $value
    }\
-   elseif {$mode eq "display"} {
+   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "x-resource\t$resource\t$value"
    }
 
@@ -1661,7 +1671,7 @@ proc system {mycmd args} {
           # exit status was 0
           set status 0
       }
-   } elseif {$mode eq "display"} {
+   } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       if {[llength $args] == 0} {
          report "system\t\t$mycmd"
       } else {
