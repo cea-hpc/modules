@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.812
+set MODULES_CURRENT_VERSION 1.813
 set MODULES_CURRENT_RELEASE_DATE "2017-04-19"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -1819,10 +1819,10 @@ proc isSameModuleRoot {mod1 mod2} {
 # "name/version" or just "name" (find default version).
 proc getPathToModule {mod} {
    global g_loadedModules g_loadedModulesGeneric
-   global g_invalid_mod_info
+   global g_invalid_mod_info g_access_mod_info
 
    set retlist {}
-   set g_found_mod_invalid 0
+   set g_found_mod_issue 0
 
    if {$mod eq ""} {
       return ""
@@ -1841,7 +1841,10 @@ proc getPathToModule {mod} {
                   set retlist [list $mod $mod]
                } elseif {[info exists g_invalid_mod_info($mod)]} {
                   reportInternalBug $g_invalid_mod_info($mod)
-                  set g_found_mod_invalid 1
+                  set g_found_mod_issue 1
+               } elseif {[info exists g_access_mod_info($mod)]} {
+                  reportError $g_access_mod_info($mod)
+                  set g_found_mod_issue 1
                }
             }
          }
@@ -1949,7 +1952,11 @@ proc getPathToModule {mod} {
                         g_invalid_mod_info($path/$ModulesVersion)]} {
                         reportInternalBug\
                            $g_invalid_mod_info($path/$ModulesVersion)
-                        set g_found_mod_invalid 1
+                        set g_found_mod_issue 1
+                     } elseif {[info exists\
+                        g_access_mod_info($path/$ModulesVersion)]} {
+                        reportError $g_access_mod_info($path/$ModulesVersion)
+                        set g_found_mod_issue 1
                      }
                   }
                } else {
@@ -1960,11 +1967,14 @@ proc getPathToModule {mod} {
          # mod may be found but invalid, so report error and end search
          } elseif {[info exists g_invalid_mod_info($path)]} {
             reportInternalBug $g_invalid_mod_info($path)
-            set g_found_mod_invalid 1
+            set g_found_mod_issue 1
+         } elseif {[info exists g_access_mod_info($path)]} {
+            reportError $g_access_mod_info($path)
+            set g_found_mod_issue 1
          }
          # break loop if found something (valid or invalid module)
          # elsewhere go to next path
-         if {[llength $retlist] == 2 || $g_found_mod_invalid} {
+         if {[llength $retlist] == 2 || $g_found_mod_issue} {
             break
          }
       }
@@ -1973,7 +1983,7 @@ proc getPathToModule {mod} {
    if {[llength $retlist] == 2} {
       reportDebug "getPathToModule: found '[lindex $retlist 0]' as\
          '[lindex $retlist 1]'"
-   } elseif {!$g_found_mod_invalid} {
+   } elseif {!$g_found_mod_issue} {
       reportError "Unable to locate a modulefile for '$mod'"
    }
    return $retlist
@@ -2747,11 +2757,21 @@ proc checkValidModule {modfile} {
    reportDebug "checkValidModule: $modfile"
 
    # Check for valid module
-   if {![catch {
+   if {[catch {
       set fid [open $modfile r]
       set fheader [read $fid 8]
       close $fid
    }]} {
+      global g_access_mod_info errorCode
+      # retrieve issue message
+      if {[regexp {POSIX .* \{(.*)\}$} $errorCode match errMsg]} {
+         set issue_info "[string totitle $errMsg] on"
+      } else {
+         set issue_info "Cannot access"
+      }
+      # register access issue
+      set g_access_mod_info($modfile) "$issue_info '$modfile'"
+   } else {
       if {$fheader eq "\#%Module"} {
          return 1
       } else {
