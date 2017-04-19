@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.811
+set MODULES_CURRENT_VERSION 1.812
 set MODULES_CURRENT_RELEASE_DATE "2017-04-19"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -1931,20 +1931,24 @@ proc getPathToModule {mod} {
                   }
 
                   if {$ModulesVersion ne ""} {
-                     set modparent $mod
-                     # The path to the module file
-                     set path "$path/$ModulesVersion"
-                     # The modulename (name + version)
-                     set mod "$mod/$ModulesVersion"
-                     # if ModulesVersion is a directory keep looking in it
-                     # elsewhere we have found a module to return
-                     if {[info exists mod_list($mod)]} {
+                     # check found version is known before moving to it
+                     if {[info exists mod_list($mod/$ModulesVersion)]} {
+                        set modparent $mod
+                        # The path to the module file
+                        set path "$path/$ModulesVersion"
+                        # The modulename (name + version)
+                        set mod "$mod/$ModulesVersion"
+
+                        # if ModulesVersion is a directory keep looking in it
+                        # elsewhere we have found a module to return
                         if {[lindex $mod_list($mod) 0] ne "directory"} {
                            set retlist [list $path $mod]
                         }
                      # or an error message to report if file is invalid
-                     } elseif {[info exists g_invalid_mod_info($path)]} {
-                        reportInternalBug $g_invalid_mod_info($path)
+                     } elseif {[info exists\
+                        g_invalid_mod_info($path/$ModulesVersion)]} {
+                        reportInternalBug\
+                           $g_invalid_mod_info($path/$ModulesVersion)
                         set g_found_mod_invalid 1
                      }
                   }
