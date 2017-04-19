@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.808
-set MODULES_CURRENT_RELEASE_DATE "2017-04-17"
+set MODULES_CURRENT_VERSION 1.811
+set MODULES_CURRENT_RELEASE_DATE "2017-04-19"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1865,7 +1865,6 @@ proc getPathToModule {mod} {
          # related to search to be able to then determine in this proc the
          # correct module to return without restarting new searches
          array set mod_list [getModules $dir $modroot]
-
          # Check for an alias set by .modulerc found on parent path
          # or by a previously looked modulefile/modulerc and follow
          set newmod [resolveModuleVersionOrAlias $mod]
@@ -1908,9 +1907,10 @@ proc getPathToModule {mod} {
                   }
 
                   # Try for the last element in directory if no luck so far
-                  if {$ModulesVersion eq ""} {
-                     set ModulesVersion [lindex [lsort -dictionary\
-                        [lrange $mod_list($mod) 1 end]] end]
+                  # and if any element in directory
+                  if {$ModulesVersion eq "" && [set ModulesVersion [lindex\
+                     [lsort -dictionary [lrange $mod_list($mod) 1 end]]\
+                     end]] ne ""} {
 
                      # Check if last element is an alias that need resolution
                      lassign [getModuleNameVersion\
@@ -2991,7 +2991,6 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
          if {[info exists mod_list($parentname)]} {
             lappend mod_list($parentname) [file tail $alias]
          }
-
       }
    }
 
