@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.813
-set MODULES_CURRENT_RELEASE_DATE "2017-04-19"
+set MODULES_CURRENT_VERSION 1.814
+set MODULES_CURRENT_RELEASE_DATE "2017-04-20"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1832,22 +1832,16 @@ proc getPathToModule {mod} {
 
    # Check for $mod specified as a full pathname
    if {[string match {/*} $mod]} {
-      if {[file exists $mod]} {
-         if {[file readable $mod]} {
-            if {[file isfile $mod]} {
-               # note that a raw filename as an argument returns the full
-               # path as the module name
-               if {[checkValidModule $mod]} {
-                  set retlist [list $mod $mod]
-               } elseif {[info exists g_invalid_mod_info($mod)]} {
-                  reportInternalBug $g_invalid_mod_info($mod)
-                  set g_found_mod_issue 1
-               } elseif {[info exists g_access_mod_info($mod)]} {
-                  reportError $g_access_mod_info($mod)
-                  set g_found_mod_issue 1
-               }
-            }
-         }
+      # note that a raw filename as an argument returns the full
+      # path as the module name
+      if {[checkValidModule $mod]} {
+         set retlist [list $mod $mod]
+      } elseif {[info exists g_invalid_mod_info($mod)]} {
+         reportInternalBug $g_invalid_mod_info($mod)
+         set g_found_mod_issue 1
+      } elseif {[info exists g_access_mod_info($mod)]} {
+         reportError $g_access_mod_info($mod)
+         set g_found_mod_issue 1
       }
    # try first to look at loaded modules
    } elseif {[info exists g_loadedModules($mod)]} {
