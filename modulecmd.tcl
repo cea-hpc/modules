@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.814
+set MODULES_CURRENT_VERSION 1.815
 set MODULES_CURRENT_RELEASE_DATE "2017-04-20"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -3712,39 +3712,54 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    inhibitErrorReport
 
    if {$mod eq ""} {
-      set mod "*"
-      set searchmod 0
+      set searchmod "wild"
    } else {
-      set searchmod 1
+      set searchmod {}
    }
    set foundmod 0
    pushMode "whatis"
    foreach dir [getModulePathList "exiterronundef"] {
-      if {[file isdirectory $dir]} {
-         set display_list {}
+      array unset mod_list
+      array set mod_list [getModules $dir $mod 0 $searchmod 0]
+      array unset interp_list
+      array set interp_list {}
 
-         set modlist [listModules $dir $mod 0]
-         foreach mod2 $modlist {
-            set g_whatis {}
-            lassign [getPathToModule $mod2] modfile modname
-
-            if {$modfile ne ""} {
-               pushSpecifiedName $modname
-               pushModuleName $modname
-               # as we treat a full directory content do not exit on an error
-               # raised from one modulefile
-               execute-modulefile $modfile 0
-               popModuleName
-               popSpecifiedName
-
-               # treat whatis as a multi-line text
-               foreach line $g_whatis {
-                  if {$search eq "" || [regexp -nocase $search $line]} {
-                     lappend display_list [format "%20s: %s" $mod2 $line]
-                  }
+      # build list of modulefile to interpret
+      foreach elt [array names mod_list] {
+         switch -- [lindex $mod_list($elt) 0] {
+            {modulefile} {
+               set interp_list($elt) $dir/$elt
+            }
+            {alias} {
+               # resolve alias target
+               lassign [getPathToModule [lindex $mod_list($elt) 1]] modfile\
+                  modname
+               if {$modfile ne ""} {
+                  set interp_list($elt) $modfile
                }
+            }
+         }
+      }
 
-               set foundmod 1
+      if {[array size interp_list] > 0} {
+         set foundmod 1
+         set display_list {}
+         # interpret every modulefiles obtained to get their whatis text
+         foreach elt [lsort -dictionary [array names interp_list]] {
+            set g_whatis {}
+            pushSpecifiedName $elt
+            pushModuleName $elt
+            # as we treat a full directory content do not exit on an error
+            # raised from one modulefile
+            execute-modulefile $interp_list($elt) 0
+            popModuleName
+            popSpecifiedName
+
+            # treat whatis as a multi-line text
+            foreach line $g_whatis {
+               if {$search eq "" || [regexp -nocase $search $line]} {
+                  lappend display_list [format "%20s: %s" $elt $line]
+               }
             }
          }
 
@@ -3758,7 +3773,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    reenableErrorReport
 
    # report error if a modulefile was searched but not found
-   if {$searchmod && !$foundmod} {
+   if {$mod ne "" && !$foundmod} {
       reportError "Unable to locate a modulefile for '$mod'"
    }
 }
