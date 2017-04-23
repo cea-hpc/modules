@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.817
+set MODULES_CURRENT_VERSION 1.818
 set MODULES_CURRENT_RELEASE_DATE "2017-04-23"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -1817,7 +1817,7 @@ proc isSameModuleRoot {mod1 mod2} {
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
-proc getPathToModule {mod} {
+proc getPathToModule {mod {indir {}}} {
    global g_loadedModules g_loadedModulesGeneric
    global g_invalid_mod_info g_access_mod_info
 
@@ -1825,10 +1825,10 @@ proc getPathToModule {mod} {
    set g_found_mod_issue 0
 
    if {$mod eq ""} {
-      return ""
+      return [list "" 0]
    }
 
-   reportDebug "getPathToModule: finding '$mod'"
+   reportDebug "getPathToModule: finding '$mod' in '$indir'"
 
    # Check for $mod specified as a full pathname
    if {[string match {/*} $mod]} {
@@ -1850,13 +1850,18 @@ proc getPathToModule {mod} {
       set elt "$mod/$g_loadedModulesGeneric($mod)"
       set retlist [list $g_loadedModules($elt) $elt]
    } else {
+      if {$indir ne ""} {
+         set dir_list $indir
+      } else {
+         set dir_list [getModulePathList "exiterronundef"]
+      }
 
       # modparent is the the modulename minus the module version.
       lassign [getModuleNameVersion $mod] mod modparent modversion
       set modroot [lindex [split $mod "/"] 0]
 
       # Now search for $mod in module paths
-      foreach dir [getModulePathList "exiterronundef"] {
+      foreach dir $dir_list {
          # get list of modules related to the root of searched module to get
          # in one call a complete list of any module kind (file, alias, etc)
          # related to search to be able to then determine in this proc the
@@ -1977,8 +1982,11 @@ proc getPathToModule {mod} {
    if {[llength $retlist] == 2} {
       reportDebug "getPathToModule: found '[lindex $retlist 0]' as\
          '[lindex $retlist 1]'"
-   } elseif {!$g_found_mod_issue} {
-      reportError "Unable to locate a modulefile for '$mod'"
+   } else {
+      set retlist [list "" $g_found_mod_issue]
+      if {!$g_found_mod_issue && $indir eq ""} {
+         reportError "Unable to locate a modulefile for '$mod'"
+      }
    }
    return $retlist
 }
