@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.816
-set MODULES_CURRENT_RELEASE_DATE "2017-04-22"
+set MODULES_CURRENT_VERSION 1.817
+set MODULES_CURRENT_RELEASE_DATE "2017-04-23"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3758,8 +3758,8 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             popSpecifiedName
 
             # treat whatis as a multi-line text
-            foreach line $g_whatis {
-               if {$search eq "" || [regexp -nocase $search $line]} {
+            if {$search eq "" || [regexp -nocase $search $g_whatis]} {
+               foreach line $g_whatis {
                   lappend display_list [format "%20s: %s" $elt $line]
                }
             }
