@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.821
+set MODULES_CURRENT_VERSION 1.823
 set MODULES_CURRENT_RELEASE_DATE "2017-04-25"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -1866,6 +1866,7 @@ proc getPathToModule {mod {indir {}}} {
          # in one call a complete list of any module kind (file, alias, etc)
          # related to search to be able to then determine in this proc the
          # correct module to return without restarting new searches
+         array unset mod_list
          array set mod_list [getModules $dir $modroot]
          # Check for an alias set by .modulerc found on parent path
          # or by a previously looked modulefile/modulerc and follow
