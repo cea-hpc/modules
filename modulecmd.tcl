@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.819
-set MODULES_CURRENT_RELEASE_DATE "2017-04-23"
+set MODULES_CURRENT_VERSION 1.820
+set MODULES_CURRENT_RELEASE_DATE "2017-04-25"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1885,7 +1885,7 @@ proc getPathToModule {mod {indir {}}} {
             set prevpath ""
             # loop to resolve correct modulefile in case specified mod is a
             # directory that should be analyzed to get default mod in it
-            while {$prevpath ne $path} {
+            while {$prevpath ne $path && !$g_found_mod_issue} {
                set prevpath $path
                # If a directory, check for default
                if {[lindex $mod_list($mod) 0] eq "directory"} {
