@@ -19,6 +19,8 @@ modulefilesdir := @modulefilesdir@
 datarootdir := @datarootdir@
 mandir := @mandir@
 docdir := @docdir@
+# enable or not some specific definition
+docinstall := @docinstall@
 
 man: $(MAN1_DIR)/module.1 $(MAN4_DIR)/modulefile.4
 
@@ -56,21 +58,25 @@ $(MAN4_DIR)/%.4: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
 	pod2text $< >$@
 
 install: all
-	mkdir -p $(DESTDIR)$(docdir)
 	mkdir -p $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man4
+ifeq ($(docinstall),y)
+	mkdir -p $(DESTDIR)$(docdir)
 	cp diff_with_c-version.txt $(DESTDIR)$(docdir)/
 	cp example.txt $(DESTDIR)$(docdir)/
+endif
 	cp $(MAN1_DIR)/module.1 $(DESTDIR)$(mandir)/man1/
 	cp $(MAN4_DIR)/modulefile.4 $(DESTDIR)$(mandir)/man4/
 
 uninstall:
+ifeq ($(docinstall),y)
 	rm -f $(DESTDIR)$(docdir)/diff_with_c-version.txt
 	rm -f $(DESTDIR)$(docdir)/example.txt
+	rmdir $(DESTDIR)$(docdir)
+endif
 	rm -f $(DESTDIR)$(mandir)/man1/module.1
 	rm -f $(DESTDIR)$(mandir)/man4/modulefile.4
 	rmdir $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man4
 	rmdir $(DESTDIR)$(mandir)
-	rmdir $(DESTDIR)$(docdir)
 
 clean:
 	rm -f $(HTML_DIR)/*.html
