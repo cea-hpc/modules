@@ -1,4 +1,4 @@
-.PHONY: doc pkgdoc www initdir install uninstall dist clean distclean
+.PHONY: doc pkgdoc www initdir install uninstall dist srpm clean distclean
 
 CURRENT_VERSION := $(shell grep '^set MODULES_CURRENT_VERSION' \
 	modulecmd.tcl | cut -d ' ' -f 3)
@@ -77,12 +77,16 @@ dist: ChangeLog
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' ChangeLog
 	gzip -f -9 $(DIST_PREFIX).tar
 
+srpm: dist
+	rpmbuild -ts $(DIST_PREFIX).tar.gz
+
 clean: 
 	rm -f *.log *.sum
 ifeq ($(wildcard .git) $(wildcard contrib/gitlog2changelog.py),.git contrib/gitlog2changelog.py)
 	rm -f ChangeLog
 endif
 	rm -f modules-tcl-*.tar.gz
+	rm -f modules-tcl-*.srpm
 	make -C init clean
 	make -C doc clean
 ifneq ($(wildcard www),)
