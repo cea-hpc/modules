@@ -11,7 +11,6 @@ Group:          System Environment/Base
 License:        GPLv2+
 URL:            http://modules.sourceforge.net/
 Source0:        http://downloads.sourceforge.net/modules/%{name}-%{version}.tar.gz
-Source1:        macros.%{name}
 
 BuildArch:      noarch
 BuildRequires:  tcl
@@ -95,7 +94,7 @@ ln -s %{_datadir}/%{name}/init/profile.sh %{buildroot}%{_sysconfdir}/profile.d/t
 %endif
 
 # install the rpm config file an environment-modules flavor should provide
-install -Dpm 644 %{SOURCE1} %{buildroot}/%{macrosdir}/macros.%{name}
+install -Dpm 644 contrib/rpm/macros.%{name} %{buildroot}/%{macrosdir}/macros.%{name}
 
 %if 0%{?fedora}
 %post
@@ -143,6 +142,7 @@ fi
 * Fri Apr 28 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 1.8XX-1
 - Update to 1.8XX
 - Use --disable-doc-install configure option to handle doc instalation
+- Use rpm macro file provided in source tarball
 
 * Tue Mar  7 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 1.775-1
 - Initial packaging.
