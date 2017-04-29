@@ -3,7 +3,7 @@
 %{!?_licensedir:%global license %%doc}
 
 Name:           modules-tcl
-Version:        1.775
+Version:        1.832
 Release:        1%{?dist}
 Summary:        Native Tcl version of the Environment Modules system
 
@@ -147,8 +147,8 @@ fi
 %{macrosdir}/macros.%{name}
 
 %changelog
-* Fri Apr 28 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 1.8XX-1
-- Update to 1.8XX
+* Sat Apr 29 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 1.832-1
+- Update to 1.832
 - Use --disable-doc-install configure option to handle doc instalation
 - Use rpm macro file provided in source tarball
 - Use alternatives for man pages as well

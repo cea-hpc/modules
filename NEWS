@@ -2,6 +2,56 @@ This file describes changes in recent versions of modules-tcl. It primarily
 documents those changes that are of interest to users and admins.
 
 
+Changes in modules-tcl-1.832 (2017-04-29)
+-----------------------------------------
+
+  * Fix 'getenv' sub-command to correctly return environment variable value.
+  * Clarify in man-pages display of module alias and symbolic version-name on
+    'avail' command and management of file access issue when locating
+    modulefiles.
+  * Distinguish access issue (permission denied) from find issue (cannot
+    locate) when trying to access directly a directory or a modulefile as
+    done on 'load', 'display' or 'whatis' commands. In addition on this kind
+    of access, not readable .modulerc files are ignored rather producing a
+    missing magic cookie error.
+  * When mode is set to unload, 'module load' commands in modulefile are
+    interpreted as 'module unload' commands. To guaranty correct behavior
+    regarding requirements, the module list passed to the load command is
+    reversed to unload the modulefiles in the reverse order than they have
+    been loaded.
+  * Correct 'display' command to only report module commands set in modulefile
+    and not those set in the various .modulerc on the path toward this
+    modulefile.
+  * Fix bash and tcsh completion scripts to eliminate symbolic version names
+    from 'avail' command result.
+  * Improve 'avail' command when a symbolic version-name is passed as argument
+    to return the modulefile target of this symbolic version-name.
+  * When looking for an implicit default in a directory, now a module alias is
+    taken into account so it can be returned as the last element in it
+    (highest numerically sorted version).
+  * Fix 'list' command to correctly display the 'default' tag along loaded
+    modules when set via a .version file.
+  * Fix long output of 'list' command to display the symbolic version-names
+    associated to each loaded module if any.
+  * Improve 'avail' command to return alias module when an alias name is
+    passed as argument.
+  * On a '--default' listing, a modulefile does not appear anymore if a
+    directory is set default at the same level. On a '--latest' listing, a
+    directory does not appear anymore if set default but not the latest.
+  * Read modulerc and validate its header in a single open/read/close sequence
+    instead of two in order to reduce to number of IO operations during an
+    'avail' command.
+  * Drastically reduce grid size computation time which removes overhead when
+    displaying module avail results in column-mode.
+  * Translate module name to currently interpreted module name when name
+    correspond to the last part this interpreted module only in case of
+    symbolic version-name or alias resolution.
+  * Avoid resetting regular path (/usr/bin) or manpath (/usr/share/man) when
+    switching from Tcl to C version in switchml utility.
+  * Raise error on x-resource if DISPLAY environment variable is not set.
+  * Fix lisp init script which was broken for environment change actions.
+
+
 Changes in modules-tcl-1.775 (2017-03-07)
 -----------------------------------------
 
