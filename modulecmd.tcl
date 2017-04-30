@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.832
-set MODULES_CURRENT_RELEASE_DATE "2017-04-29"
+set MODULES_CURRENT_VERSION 1.833
+set MODULES_CURRENT_RELEASE_DATE "2017-04-30"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -301,19 +301,34 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
       }
       info script $ModulesCurrentModulefile
       set sourceFailed [catch {eval $modcontent} errorMsg]
-      set mode [module-info mode]
-      if {$mode eq "help"} {
-         if {[info procs "ModulesHelp"] eq "ModulesHelp"} {
-            ModulesHelp
-         } else {
-            reportWarning "Unable to find ModulesHelp in\
-               $ModulesCurrentModulefile."
+      switch -- [module-info mode] {
+         {help} {
+            if {[info procs "ModulesHelp"] eq "ModulesHelp"} {
+               ModulesHelp
+            } else {
+               reportWarning "Unable to find ModulesHelp in\
+                  $ModulesCurrentModulefile."
+            }
+            set sourceFailed 0
          }
-         set sourceFailed 0
-      }
-      if {$mode eq "display" \
-         && [info procs "ModulesDisplay"] eq "ModulesDisplay"} {
-         ModulesDisplay
+         {display} {
+            if {[info procs "ModulesDisplay"] eq "ModulesDisplay"} {
+               ModulesDisplay
+            }
+         }
+         {test} {
+            if {[info procs "ModulesTest"] eq "ModulesTest"} {
+               if {[string is true -strict [ModulesTest]]} {
+                  report "Test result: PASS"
+               } else {
+                  report "Test result: FAIL"
+                  raiseErrorCount
+               }
+            } else {
+               reportWarning "Unable to find ModulesTest in\
+                  $ModulesCurrentModulefile."
+            }
+         }
       }
       if {$sourceFailed} {
          global errorInfo
@@ -1024,6 +1039,18 @@ proc module {command args} {
          } else {
             # help cannot be called elsewhere than from top level
             set errormsg "${msgprefix}Command '$command' not supported"
+         }
+      }
+      {^test$} {
+         if {[llength $args] == 0} {
+            set errormsg "Unexpected number of args for 'test' command"
+         } else {
+            pushCommandName "test"
+            foreach arg $args {
+               eval cmdModuleTest $arg
+            }
+            popCommandName
+            set needrender 1
          }
       }
       . {
@@ -4543,6 +4570,22 @@ proc cmdModuleInit {args} {
    }
 }
 
+proc cmdModuleTest {mod} {
+   pushMode "test"
+   lassign [getPathToModule $mod] modfile modname
+   if {$modfile ne ""} {
+      pushSpecifiedName $mod
+      pushModuleName $modname
+      displaySeparatorLine
+      report "Module Specific Test for $modfile:\n"
+      execute-modulefile $modfile
+      popModuleName
+      popSpecifiedName
+      displaySeparatorLine
+   }
+   popMode
+}
+
 proc cmdModuleHelp {args} {
    global MODULES_CURRENT_VERSION MODULES_CURRENT_RELEASE_DATE
 
@@ -4622,6 +4665,7 @@ proc cmdModuleHelp {args} {
          modulefile(s) help info}
       report {  display | show  modulefile [...]  Display information\
          about modulefile(s)}
+      report {  test            [modulefile ...]  Test modulefile(s)}
       report {  use     [-a|-p] dir [...]         Add dir(s) to\
          MODULEPATH variable}
       report {  unuse           dir [...]         Remove dir(s) from\

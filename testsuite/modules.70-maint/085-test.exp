@@ -1,0 +1,85 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2017/04/30
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		test
+#   Modulefiles:	test, bad
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the module command 'test'
+#		}C%
+#
+##############################################################################
+
+set module "test/1.2"
+set modulefile "$env(TESTSUITEDIR)/modulefiles/$module"
+set module2 "test/1.0"
+set modulefile2 "$env(TESTSUITEDIR)/modulefiles/$module2"
+set module3 "test/2.0"
+set modulefile3 "$env(TESTSUITEDIR)/modulefiles/$module3"
+set module4 "bad"
+set modulefile4 "$env(TESTSUITEDIR)/modulefiles/$module4"
+set mod4_interr "Module ERROR: Occurred in file $modulefile4/.modulerc:invalid command name \"bad-command\""
+
+set lin_test "Module Specific Test for "
+set missing_test "WARNING: Unable to find ModulesTest in "
+set fail_test "Test result: FAIL"
+set ok_test "Test result: PASS"
+set err_sh "/bin/false;"
+set ok_sh "/bin/true;"
+
+#
+#  The tests
+#
+
+# missing procedure
+testouterr_cmd_re "sh" "test $module" "$ok_sh" "^$modlin\n$lin_test$modulefile:\n\n$missing_test$modulefile.\n$modlin\$"
+
+# missing return value
+testouterr_cmd_re "sh" "test $module2" "$err_sh" "^$modlin\n$lin_test$modulefile2:\n\nTest_err\n$fail_test\n$modlin\$"
+
+# test returns false
+testouterr_cmd_re "sh" "test $module3" "$err_sh" "^$modlin\n$lin_test$modulefile3:\n\nTest_err\n$fail_test\n$modlin\$"
+
+# Set up the environment for test to return true
+set env(TEST) 1
+
+# test returns true
+testouterr_cmd_re "sh" "test $module3" "$ok_sh" "^$modlin\n$lin_test$modulefile3:\n\nTest_err\n$ok_test\n$modlin\$"
+
+# Clean up the just changed environment
+unset env(TEST)
+
+# test with erroneous modulefile
+testouterr_cmd_re "sh" "test $module4" "$err_sh" "$mod4_interr.*"
+
+#
+#  Cleanup
+#
+
+unset module
+unset modulefile
+unset module2
+unset modulefile2
+unset module3
+unset modulefile3
+unset module4
+unset modulefile4
+
+unset mod4_interr
+
+unset lin_test
+unset missing_test
+unset ok_test
+unset fail_test
+unset err_sh
+unset ok_sh

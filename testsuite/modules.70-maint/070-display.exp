@@ -27,6 +27,7 @@
 set module_1 "help"
 set module_2 "NonExistant"
 set module_3 "bad"
+set module_4 "test"
 
 # different behavior than C-version: on Tcl-version 'module-log', 'module-verbosity'
 # and 'module-user' commandq are not handled and will always return a warning message
@@ -57,6 +58,24 @@ set out_err "$error_msgs: Unable to locate a modulefile for '$module_2'"
 set out_interr "Module ERROR: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_3/.modulerc:invalid command name \"bad-command\""
 set err_csh "/bin/false;"
 
+set out_pat_4 "-------------------------------------------------------------------
+$env(TESTSUITEDIR)/modulefiles/test/2.0:
+
+set-alias\tal-testsuite\tps -auxww | grep modulecmd
+unset-alias\tal-testsuite
+setenv\t\ttestsuite\tyes
+append-path\ttestsuite\tno
+prepend-path\ttestsuite\tmaybe
+remove-path\ttestsuite\tyes
+unsetenv\ttestsuite
+x-resource\tmy-prog*my-ress\ttrue
+system\t\tls
+module load\tsetenv/1.0
+module-alias\tfoo setenv/1.0
+module-version\tfoo foo bar blah
+module-whatis\tSome checks for TEST and DISPLAY
+-------------------------------------------------------------------"
+
 #
 #  The tests
 #
@@ -74,6 +93,11 @@ testouterr_cmd "csh" "display $module_2" "$err_csh" "$out_err"
 testouterr_cmd_re "csh" "display $module_3" "$err_csh" "$out_interr.*"
 
 #
+# test on modulefile with ModuleTest proc defined
+#
+testerr_cmd "csh" "display $module_4" "$out_pat_4"
+
+#
 #  Cleanup
 #
 
@@ -81,6 +105,9 @@ unset err_csh
 unset out_err
 unset out_interr
 unset out_pat
+unset out_pat_4
 
 unset module_1
 unset module_2
+unset module_3
+unset module_4

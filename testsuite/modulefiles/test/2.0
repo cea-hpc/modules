@@ -1,0 +1,66 @@
+#%Module1.0
+
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		test/%M%
+#   Revision:		%I%
+#   First Edition:	2017/04/30
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite modulefile
+#   Command:
+#   Sub-Command:	test
+#
+#   Invocation:		display @M@, help @M@, test @M@
+#   Result:	%R{
+#		}R%
+#   Comment:	%C{
+#			Test the module 'test' command
+#		}C%
+#
+##############################################################################
+
+# test procedure
+proc ModulesTest { } {
+    puts stderr Test_err
+
+    if {[info exists ::env(TEST)]} {
+        return 1
+    } else {
+        return 0
+    }
+}
+
+#
+#  The following should lead to no result in test mode
+#
+
+set-alias	al-testsuite	"ps -auxww | grep modulecmd"
+unset-alias	al-testsuite
+
+setenv		testsuite	yes
+append-path	testsuite	no
+prepend-path	testsuite	maybe
+remove-path	testsuite	yes
+unsetenv	testsuite
+
+x-resource	my-prog*my-ress:true
+
+system		ls
+
+module		load		setenv/1.0
+
+module-alias	foo		setenv/1.0
+module-version	foo		foo bar blah
+
+#
+#  Don't corrupt the 'apropos' tests ...
+#
+
+if { ![module-info mode whatis] } {
+    module-whatis "Some checks for TEST and DISPLAY"
+}
