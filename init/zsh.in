@@ -52,8 +52,10 @@ fi
 ENV=@initdir@/profile.sh; export ENV
 BASH_ENV=@initdir@/bash; export BASH_ENV
 
-# no FPATH setup as zsh requires to 'autoload' functions put in FPATH dir
-# (no gain compared to a bare source of this init script)
+# setup FPATH to put module completion at hand in case zsh completion enabled
+if [[ ! ":$FPATH:" =~ ':@initdir@/zsh-functions:' ]]; then
+   FPATH=@initdir@/zsh-functions${FPATH:+:}$FPATH; export FPATH
+fi
 
 MODULESHOME=@prefix@; export MODULESHOME
 

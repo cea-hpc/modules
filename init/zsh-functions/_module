@@ -1,0 +1,182 @@
+#compdef module
+
+#
+# Zsh command-line completion for module
+# Copyright (C) 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr>
+#
+
+_module_avail() {
+   module avail -t 2>&1 | sed '
+      /^-\+/d; /^\s*$/d;
+      /->.*$/d;
+      /:$/d;
+      /:ERROR:/d;
+      s#^\(.*\)/\(.\+\)(.*default.*)#\1\n\1\/\2#;
+      s#(.*)$##g;
+      s#\s*$##g;
+      s#/*$##g;'
+}
+
+_module_savelist() {
+   module savelist -t 2>&1 | sed '
+      /Named collection list$/d;
+      /:$/d;
+      /:ERROR:/d;'
+}
+
+_module_not_yet_loaded() {
+   _module_avail | sort | sed -r "\%^(${LOADEDMODULES//:/|})$%d"
+}
+
+
+_module_avail_mods() {
+   local -a avail_mods;
+   avail_mods=(${$(_module_avail)})
+
+   _describe -t avail-mods 'available modulefiles' avail_mods && ret=0
+}
+
+_module_saved_colls() {
+   local -a saved_colls;
+   saved_colls=(${$(_module_savelist)})
+
+   _describe -t saved-colls 'saved collections' saved_colls && ret=0
+}
+
+_module_notloaded_mods() {
+   local -a not_yet_loaded_mods;
+   not_yet_loaded_mods=(${$(_module_not_yet_loaded)})
+
+   _describe -t avail-mods 'available modulefiles' not_yet_loaded_mods && ret=0
+}
+
+_module_loaded_mods() {
+   local -a loaded_mods;
+   loaded_mods=(${=LOADEDMODULES//:/ })
+
+   _describe -t loaded-mods 'loaded modulefiles' loaded_mods && ret=0
+}
+
+_module_used_paths() {
+   local -a used_paths;
+   used_paths=(${=MODULEPATH//:/ })
+
+   _describe -t used-paths 'enabled modulepaths' used_paths && ret=0
+}
+
+
+_module() {
+   typeset -A opt_args
+
+   _arguments -C \
+      '(-D --debug)'{-D,--debug}'[Enable debug messages]' \
+      '(-h --help)'{-h,--help}'[Usage info]' \
+      '(-V --version)'{-V,--version}'[Module version]' \
+      '(-): :->cmd' \
+      '(-)*:: :->arg' && ret=0
+
+   case $state in
+      (cmd)
+         local -a cmds; cmds=(
+            'add:Load modulefile(s)'
+            'load:Load modulefile(s)'
+            'rm:Remove modulefile(s)'
+            'unload:Remove modulefile(s)'
+            'purge:Unload all loaded modulefiles'
+            'reload:Unload then load all loaded modulefiles'
+            'refresh:Unload then load all loaded modulefiles'
+            'switch:Unload mod1 and load mod2'
+            'swap:Unload mod1 and load mod2'
+            'list:List loaded modules'
+            'avail:List all or matching available modules'
+            'aliases:List all module aliases'
+            'whatis:Print whatis information of modulefile(s)'
+            'apropos:Search all name and whatis containing str'
+            'keyword:Search all name and whatis containing str'
+            'search:Search all name and whatis containing str'
+            'save:Save current module list to collection'
+            'restore:Restore module list from collection or file'
+            'saverm:Remove saved collection'
+            'saveshow:Display information about collection'
+            'savelist:List all saved collections'
+            'initlist:List all modules loaded from init file'
+            'initadd:Add modulefile to shell init file'
+            'initrm:Remove modulefile from shell init file'
+            'initprepend:Add to beginning of list in init file'
+            'initswitch:Switch mod1 with mod2 from init file'
+            'initclear:Clear all modulefiles from init file'
+            'help:Print this or modulefile(s) help info'
+            'display:Display information about modulefile(s)'
+            'show:Display information about modulefile(s)'
+            'test:Test modulefile(s)'
+            'use:Add dir(s) to MODULEPATH variable'
+            'unuse:Remove dir(s) from MODULEPATH variable'
+            'path:Print modulefile path'
+            'paths:Print path of matching available modules'
+            'source:Execute scriptfile(s)'
+         )
+         # show commands only with compatible options
+         if (( !$+opt_args[-h] && !$+opt_args[--help] \
+            && !$+opt_args[-V] && !$+opt_args[--version] )); then
+            _describe -t cmds 'Module Sub-Commands' cmds && ret=0
+         fi
+         ;;
+      (arg)
+         local cmd="${words[1]}"
+         case $cmd in
+            (load|add)
+               _alternative 'avail-mods:modulefiles:{_module_notloaded_mods}' \
+                  && ret=0
+               ;;
+            (avail)
+               _arguments \
+                  '(-l --long)'{-l,--long}'[Display output in long format]' \
+                  '(-t --terse)'{-t,--terse}'[Display output in terse format]' \
+                  '(-d --default)'{-d,--default}'[Only show default versions available]' \
+                  '(-L --latest)'{-L,--latest}'[Only show latest versions available]' \
+                  '*::modulefile:_module_avail_mods' && ret=0
+               ;;
+            (list|savelist)
+               local -a opts; opts=(
+                  '-l:Display output in long format'
+                  '--long:Display output in long format'
+                  '-t:Display output in terse format'
+                  '--terse:Display output in terse format'
+               )
+               _describe -t opts 'Switches' opts && ret=0
+               ;;
+            (restore|save|saveshow|saverm)
+               _alternative 'avail-colls:collections:{_module_saved_colls}' \
+                  && ret=0
+               ;;
+            (rm|remove|unload)
+               _alternative 'loaded-mods:modulefiles:{_module_loaded_mods}' \
+                  && ret=0
+               ;;
+            (switch|swap)
+               _arguments \
+                  '1:loaded modulefile:_module_loaded_mods' \
+                  '2:modulefile:_module_notloaded_mods' && ret=0
+               ;;
+            (unuse)
+               _alternative 'used-paths:modulepaths:{_module_used_paths}' \
+                  && ret=0
+               ;;
+            (use)
+               _arguments \
+                  '(-a --append)'{-a,--append}'[Append directory to MODULEPATH]' \
+                  '(-p --prepend)'{-p,--prepend}'[Prepend directory to MODULEPATH]' \
+                  '*:modulepath:_files -/' && ret=0
+               ;;
+            (display|help|show|test|whatis)
+               _alternative 'avail-mods:modulefiles:{_module_avail_mods}' \
+                  && ret=0
+               ;;
+         esac
+         ;;
+   esac
+}
+
+_module "$@"
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
