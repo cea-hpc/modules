@@ -4,6 +4,9 @@ SH_LIKE  = sh ksh bash zsh profile.sh
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
 OTHER    = perl python lisp tcl fish
 
+# example modulefiles to install
+EXAMPLE_MODFILES = dot module-git module-info null use.own
+
 # set default installation paths
 prefix := @prefix@
 bindir := @bindir@
@@ -25,6 +28,7 @@ setbinpath := @setbinpath@
 setswitchml := @setswitchml@
 setdotmodulespath := @setdotmodulespath@
 usecverdotmodulespath := @usecverdotmodulespath@
+examplemodulefiles := @examplemodulefiles@
 # command location
 TCLSH := @TCLSH@
 
@@ -144,6 +148,9 @@ ifeq ($(setswitchml),y)
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/switchml
 endif
 	cp -P --remove-destination $(ALL_CONFIG) $(DESTDIR)$(initdir)/
+ifeq ($(examplemodulefiles),y)
+	cp $(addprefix ../contrib/modulefiles/,$(EXAMPLE_MODFILES)) $(DESTDIR)$(modulefilesdir)/
+endif
 
 uninstall:
 	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_SHELLS) bash_completion)

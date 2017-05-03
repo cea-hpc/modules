@@ -70,6 +70,7 @@ different applications.
             --bindir=%{_bindir} \
             --mandir=%{_mandir} \
             --disable-doc-install \
+            --disable-example-modulefiles \
             --with-modulepath=%{_sysconfdir}/modulefiles:%{_datadir}/modulefiles \
             --with-cver-initdir=%{_datadir}/Modules/init
 make %{?_smp_mflags}
