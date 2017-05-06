@@ -181,3 +181,85 @@ proc modulecmd_version {} {
 proc modulecmd_load { arg } {
 #   not applicable
 }
+
+
+#
+# Test procedure to check a module installation
+#
+
+proc install_test_xxx_ {command} {
+   global verbose
+   global shell
+   global shell_test
+   global shell_path
+   global shell_opts
+   global shell_init
+   global shell_level
+   global subshell
+
+   global comp_output
+   global comp_error
+   global comp_exit
+   global errorCode
+
+   if {![info exists command]} {
+      unresolved "internal testsuite error: no command specified"
+   }
+   if {![info exists shell_path($shell)]} {
+      unresolved "internal testsuite error: no shell path found for '$shell' shell"
+   }
+   if {![info exists shell_test($shell)]} {
+      unresolved "internal testsuite error: no install test script set for '$shell' shell"
+   }
+   if {![info exists shell_init($shell)]} {
+      unresolved "internal testsuite error: no init script set for '$shell' shell"
+   }
+   if {![info exists shell_level]} {
+      set level "top"
+   } else {
+      set level $shell_level
+   }
+   if {![info exists subshell]} {
+      set sub "$shell"
+   } else {
+      set sub $subshell
+   }
+
+   set cmd_to_exec [list $shell_path($shell)]
+   if {[info exists shell_opts($shell)]} {
+      lappend cmd_to_exec $shell_opts($shell)
+   }
+   lappend cmd_to_exec $shell_test($shell) $shell_init($shell) \
+      $level $shell_path($sub) $command
+
+   if { $verbose > 0 } {
+      send_user "   ...  Testing '$shell [file tail $shell_test($shell)]\
+         $level $sub $command'\n"
+   }
+   if { $verbose > 1 } {
+      send_user "starting $cmd_to_exec\n"
+   }
+
+   # now need to capture the exit return code.
+   if [catch {
+      set comp_output [eval exec $cmd_to_exec 2> test321.err > test321.out ]
+   } ] {
+      set comp_exit [lindex $errorCode 2]
+   } else {
+      set comp_exit 0
+   }
+
+   catch {
+      set errfile [ open test321.err ]
+      read -nonewline $errfile
+   } comp_error
+   catch { close $errfile }
+   catch { file delete test321.err }
+
+   catch {
+      set outfile [ open test321.out ]
+      read -nonewline $outfile
+   } comp_output
+   catch { close $outfile }
+   catch { file delete test321.out }
+}

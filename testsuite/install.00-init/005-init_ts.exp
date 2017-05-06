@@ -1,0 +1,98 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:       install.00-init/%M%
+#   Revision:       %I%
+#   First Edition:  2017/05/06
+#   Last Mod.:      %U%, %G%
+#
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:    Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:    %C{
+#           This module defines all patterns used further in the
+#           testsuite
+#       }C%
+#
+##############################################################################
+
+proc find_bin {name} {
+   set path {}
+
+   if {[info exists ::env(PATH)]} {
+      foreach dir [split $::env(PATH) ":"] {
+         if {[file executable "$dir/$name"]} {
+            set path "$dir/$name"
+            break
+         }
+      }
+   }
+
+   return $path
+}
+
+
+if {$verbose > 0} {
+   send_user "\tInitializing the testsuite ...\n"
+}
+
+#
+#  Regular expressions matching error and warning outputs
+#
+
+set messages "(\[^(\]+)\[(\]\[0-9\]+\[)\]"
+set error_msgs "ERROR"
+set warn_msgs "WARNING"
+set prob_msgs "$messages:PROB:\[0-9\]+"
+set verb_msgs "$messages:VERB:\[0-9\]+"
+
+# Used as a line seperator inside modules
+set modlin      "\[-\]+"
+
+# properties to test the different available shells
+set shell_list {}
+array set shell_init {}
+array set shell_path {}
+array set shell_opts {}
+array set shell_test {}
+foreach shell [list sh bash ksh zsh csh tcsh fish] {
+   set shellbin [find_bin $shell]
+   if {$shellbin ne ""} {
+      lappend shell_list $shell
+      set shell_init($shell) "$install_initdir/$shell"
+      set shell_path($shell) $shellbin
+      switch -- $shell {
+         csh - tcsh {
+            # ignore global csh system init file to avoid side effect
+            set shell_opts($shell) "-f"
+         }
+      }
+      switch -- $shell {
+         bash - ksh - zsh {
+            set shell_test($shell) "$env(TESTSUITEDIR)/bin/install_test_sh"
+         }
+         tcsh {
+            set shell_test($shell) "$env(TESTSUITEDIR)/bin/install_test_csh"
+         }
+         default {
+            set shell_test($shell) "$env(TESTSUITEDIR)/bin/install_test_${shell}"
+         }
+      }
+   } else {
+      send_user "\t'$shell' shell is not installed, relative tests will be skipped\n"
+   }
+}
+
+# where to find contrib modulefiles for test
+set contrib_modpath "$env(TESTSUITEDIR)/../contrib/modulefiles"
+
+# basic messages
+set type_help "Try 'module --help' for more information."
+set cur_loaded "Currently Loaded Modulefiles:"
+set no_loaded "No Modulefiles Currently Loaded."
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

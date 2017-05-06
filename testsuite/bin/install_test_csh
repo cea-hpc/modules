@@ -1,0 +1,101 @@
+#!/bin/csh -f
+#
+# INSTALL_TEST_CSH, csh-kind test launcher for install non-reg suite
+# Copyright (C) 2017 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+set progpath=$0
+set progdir=`dirname $progpath`
+if ( -z "$progdir" ) then
+   set progdir='.'
+endif
+set ret=0
+
+if ( $# < 4 ) then
+   # print usage message
+   echo "Usage: $progpath initfile mode shell command"
+   exit 1
+endif
+
+set initfile=$1
+shift
+set mode=$1
+shift
+set sh=$1
+shift
+set cmdlist="$*"
+
+# get shell kind and options for sublaunch
+set shname=`basename $sh`
+switch ($shname)
+   case bash:
+   case ksh:
+   case zsh:
+      set shkind='sh'
+      breaksw
+   case tcsh:
+      set shkind='csh'
+      breaksw
+   default:
+      set shkind=$shname
+endsw
+switch ($shkind)
+   # ignore global csh system init file to avoid side effect
+   case csh:
+      set shopts='-f'
+      breaksw
+   default:
+      set shopts=''
+endsw
+
+if ( ! -r $initfile ) then
+   echo "ERROR: Cannot read $initfile"
+   exit 1
+endif
+
+# source module init file if first step of given mode
+if ( "$mode" == 'top' || "$mode" == 'sub' ||  "$mode" == 'subsub' ) then
+   source $initfile
+endif
+
+# execute command list or perform recursive call
+switch ($mode)
+   case top:
+   case launch:
+      foreach cmd ("`echo '${cmdlist}' | tr ';' '\n'`")
+         eval $cmd
+         set ret=($ret + $?)
+      end
+      breaksw
+   case sub:
+   case sublaunch:
+      $sh $shopts $progdir/install_test_${shkind} $initfile launch $sh "$cmdlist"
+      set ret=$?
+      breaksw
+   case subsub:
+      $sh $shopts $progdir/install_test_${shkind} $initfile sublaunch $sh "$cmdlist"
+      set ret=$?
+      breaksw
+   default:
+      echo "ERROR: Unrecognized mode option. Valid mode are 'top', 'sub', 'subsub'"
+      exit 1
+endsw
+
+# throw command exit code
+exit $ret
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

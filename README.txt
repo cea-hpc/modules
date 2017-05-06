@@ -123,6 +123,11 @@ need dejagnu to run the test suite):
     $ ./configure
     $ make test
 
+Once modules is installed after running `make install', you have the
+ability to test this installation with:
+
+    $ make testinstall
+
 
 Links
 -----

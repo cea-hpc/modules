@@ -1,0 +1,93 @@
+#!/bin/fish
+#
+# INSTALL_TEST_SH, fish test launcher for install non-reg suite
+# Copyright (C) 2017 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+set progpath (status -f):
+set progdir (dirname $progpath)
+if [ -z "$progdir" ]
+   set progdir '.'
+end
+set ret 0
+
+# print message on stderr then exit
+function echo_error
+   echo "ERROR: $argv[1]" >&2
+   exit 1
+end
+
+if [ (count $argv) -lt 4 ]
+   # print usage message
+   echo_error "Usage: $progpath initfile mode shell command"
+end
+
+set initfile $argv[1]
+set mode $argv[2]
+set sh $argv[3]
+set cmdlist $argv[4..-1]
+
+# get shell kind and options for sublaunch
+set shname (basename $sh)
+switch $shname
+   case bash ksh zsh
+      set shkind 'sh'
+   case tcsh
+      set shkind 'csh'
+   case '*'
+      set shkind $shname
+end
+switch $shkind
+   # ignore global csh system init file to avoid side effect
+   case csh
+      set shopts '-f'
+   case '*'
+      set shopts ''
+end
+
+if [ ! -r $initfile ]
+   echo_error "Cannot read $initfile"
+end
+
+# source module init file if first step of given mode
+if [ "$mode" = 'top' -o "$mode" = 'sub' -o  "$mode" = 'subsub' ]
+   source $initfile
+end
+
+# execute command list or perform recursive call
+switch $mode
+   case top launch
+      for cmd in (echo "$cmdlist" | tr ';' '\n')
+         eval $cmd
+         set ret (math $ret+$status)
+      end
+   case sub sublaunch
+      eval $sh $shopts $progdir/install_test_$shkind $initfile launch $sh \
+         "(echo '$cmdlist' | sed 's|;|\\;|')";
+      set ret $status;
+   case subsub
+      eval $sh $shopts $progdir/install_test_$shkind $initfile sublaunch $sh \
+         "(echo '$cmdlist' | sed 's|;|\\;|')";
+      set ret $status;
+   case '*'
+      echo_error "Unrecognized mode option. Valid mode are 'top', 'sub', 'subsub'"
+end
+
+# throw command exit code
+exit $ret
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

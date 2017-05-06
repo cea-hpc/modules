@@ -1,0 +1,42 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:       install.00-init/%M%
+#   Revision:       %I%
+#   First Edition:  2017/05/06
+#   Last Mod.:      %U%, %G%
+#
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:    initialization of the shell environment
+#   Command:
+#   Sub-Command:
+#
+#   Comment:    %C{
+#           First time initialization: Remove everything from
+#           environment, that depends on the module package.
+#   }C%
+#
+##############################################################################
+
+if {$verbose > 0} {
+   send_user "\tInitializing a clean environment ...\n"
+}
+
+catch {unset env(MODULEPATH)}
+catch {unset env(LOADEDMODULES)}
+catch {unset env(_LMFILES_)}
+
+foreach var [array names env] {
+   if {[string match "*_modshare" $var]} {
+      catch {unset env($var)}
+   }
+}
+
+catch {unset env(ENV)}
+catch {unset env(BASH_ENV)}
+catch {unset env(BASH_FUNC_module\(\))}
+catch {unset env(BASH_FUNC_moduleraw\(\))}
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
