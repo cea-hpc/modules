@@ -1,0 +1,119 @@
+language: generic
+
+dist: trusty
+sudo: false
+
+matrix:
+  include:
+    # 3 package variants on major Tcl releases
+    # mixed with 2 installation variants
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl'
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:fish-shell/release-2'
+          packages:
+            - dejagnu
+            - bash
+            - tcsh
+            - ksh
+            - zsh
+            - fish
+            - tcl8.4
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl'
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:fish-shell/release-2'
+          packages:
+            - dejagnu
+            - bash
+            - tcsh
+            - ksh
+            - zsh
+            - fish
+            - tcl8.5
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl'
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:fish-shell/release-2'
+          packages:
+            - dejagnu
+            - bash
+            - tcsh
+            - ksh
+            - zsh
+            - fish
+            - tcl8.6
+
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl --enable-set-switchml --with-cver-initdir=/usr/share/modules/init/ --with-loadedmodules=null:dot'
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:fish-shell/release-2'
+          packages:
+            - dejagnu
+            - bash
+            - tcsh
+            - ksh
+            - zsh
+            - fish
+            - tcl8.4
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl --enable-set-switchml --with-cver-initdir=/usr/share/modules/init/ --with-loadedmodules=null:dot'
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:fish-shell/release-2'
+          packages:
+            - dejagnu
+            - bash
+            - tcsh
+            - ksh
+            - zsh
+            - fish
+            - tcl8.5
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl --enable-set-switchml --with-cver-initdir=/usr/share/modules/init/ --with-loadedmodules=null:dot'
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:fish-shell/release-2'
+          packages:
+            - dejagnu
+            - bash
+            - tcsh
+            - ksh
+            - zsh
+            - fish
+            - tcl8.6
+
+
+    # 1 package variation with environment-modules installed
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl --enable-set-switchml --with-cver-initdir=/usr/share/modules/init/ --with-loadedmodules=null:dot'
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:fish-shell/release-2'
+          packages:
+            - environment-modules
+            - dejagnu
+            - man-db
+            - bash
+            - tcsh
+            - ksh
+            - zsh
+            - fish
+            - tcl8.6
+
+env:
+  global:
+    - RUNTESTFLAGS='-v'
+
+install: true
+
+script:
+  - ./configure $CONFIGURE_OPTS
+  - make
+  - make test
+  - make install
+  - make testinstall
