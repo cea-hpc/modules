@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.833
-set MODULES_CURRENT_RELEASE_DATE "2017-04-30"
+set MODULES_CURRENT_VERSION 1.843
+set MODULES_CURRENT_RELEASE_DATE "2017-05-10"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3262,8 +3262,8 @@ proc displaySeparatorLine {{title {}}} {
       report "[string repeat {-} 67]"
    } else {
       set len  [string length $title]
-      set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]
-      set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]
+      set lrep [expr {max(($DEF_COLUMNS - $len - 2)/2,1)}]
+      set rrep [expr {max($DEF_COLUMNS - $len - 2 - $lrep,1)}]
       report "[string repeat {-} $lrep] $title [string repeat {-} $rrep]"
    }
 }
@@ -3325,7 +3325,14 @@ proc displayElementList {header one_per_line display_idx args} {
       # find valid grid by starting with non-optimized solution where each
       # column length is equal to the length of the biggest element to display
       set cur_cols [expr {int($DEF_COLUMNS / $max_len)}]
-      set cols 0
+      # when display is found too short to display even one column
+      if {$cur_cols == 0} {
+         set cols 1
+         set rows $elt_cnt
+         array set col_width [list 0 $max_len]
+      } else {
+         set cols 0
+      }
       set last_round 0
       set restart_loop 0
       while {$cur_cols > $cols} {
