@@ -21,11 +21,16 @@
 
 
 set bad_cmd "$error_msgs: Invalid command 'foo'"
-set cmd_nf "module: command not found"
+if {$sh_kind eq "dash"} {
+   set cmd_nf "module: not found"
+} else {
+   set cmd_nf "module: command not found"
+}
 set ksh_nf "module: not found \\\[No such file or directory\\\]"
 set zsh_nf "command not found: module"
 set csh_nf "module: Command not found."
 set fish_nf "fish: Unknown command 'module"
+
 #
 # The tests
 #
@@ -49,7 +54,12 @@ foreach subshell $shell_list {
             # propagate only when top shell defines module with export -f
             switch -- $shell {
                sh - bash {
-                  testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release Tcl \\S+ (\\S+)\$" 0
+                  # if sh is dash, exported function will be ignored
+                  if {$subshell eq "sh" && $sh_kind eq "dash"} {
+                     testall_cmd_re "$shell" "module --version" "^\$" "$cmd_nf\$" 127
+                  } else {
+                     testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release Tcl \\S+ (\\S+)\$" 0
+                  }
                }
                default {
                   testall_cmd_re "$shell" "module --version" "^\$" "$cmd_nf\$" 127
@@ -83,7 +93,12 @@ foreach subshell $shell_list {
             # propagate only when top shell defines module with export -f
             switch -- $shell {
                sh - bash {
-                  testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release Tcl \\S+ (\\S+)\$" 0
+                  # if sh is dash, exported function will be ignored
+                  if {$subshell eq "sh" && $sh_kind eq "dash"} {
+                     testall_cmd_re "$shell" "module --version" "^\$" "$cmd_nf\$" 127
+                  } else {
+                     testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release Tcl \\S+ (\\S+)\$" 0
+                  }
                }
                default {
                   testall_cmd_re "$shell" "module --version" "^\$" "$cmd_nf\$" 127

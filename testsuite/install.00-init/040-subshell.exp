@@ -25,6 +25,8 @@ set bad_cmd "$error_msgs: Invalid command 'foo'"
 set zsh_nf "command not found: module"
 set csh_nf "module: Command not found."
 set fish_nf "fish: Unknown command 'module"
+set dash_nf "module: not found"
+
 #
 # The tests
 #
@@ -56,10 +58,17 @@ foreach shell $shell_list {
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*\$" 123
       }
       default {
-         testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release Tcl \\S+ (\\S+)\$" 0
-         testall_cmd "$shell" "module foo" "" "$bad_cmd\n$type_help" 1
-         testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "" "$cur_loaded\nnull" 0
-         testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "" "$no_loaded" 0
+         if {$shell eq "sh" && $sh_kind eq "dash"} {
+            testall_cmd_re "$shell" "module --version" "^\$" "$dash_nf\$" 127
+            testall_cmd_re "$shell" "module foo" "^\$" "$dash_nf\$" 127
+            testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$dash_nf\n.*$dash_nf\n.*$dash_nf\n.*$dash_nf\$" 252
+            testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$dash_nf\n.*$dash_nf\n.*$dash_nf\n.*$dash_nf\n.*$dash_nf\$" 123
+         } else {
+            testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release Tcl \\S+ (\\S+)\$" 0
+            testall_cmd "$shell" "module foo" "" "$bad_cmd\n$type_help" 1
+            testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "" "$cur_loaded\nnull" 0
+            testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "" "$no_loaded" 0
+         }
       }
    }
 }
@@ -91,10 +100,17 @@ foreach shell $shell_list {
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*\$" 123
       }
       default {
-         testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release Tcl \\S+ (\\S+)\$" 0
-         testall_cmd "$shell" "module foo" "" "$bad_cmd\n$type_help" 1
-         testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "" "$cur_loaded\nnull" 0
-         testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "" "$no_loaded" 0
+         if {$shell eq "sh" && $sh_kind eq "dash"} {
+            testall_cmd_re "$shell" "module --version" "^\$" "$dash_nf\$" 127
+            testall_cmd_re "$shell" "module foo" "^\$" "$dash_nf\$" 127
+            testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$dash_nf\n.*$dash_nf\n.*$dash_nf\n.*$dash_nf\$" 252
+            testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$dash_nf\n.*$dash_nf\n.*$dash_nf\n.*$dash_nf\n.*$dash_nf\$" 123
+         } else {
+            testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release Tcl \\S+ (\\S+)\$" 0
+            testall_cmd "$shell" "module foo" "" "$bad_cmd\n$type_help" 1
+            testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "" "$cur_loaded\nnull" 0
+            testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "" "$no_loaded" 0
+         }
       }
    }
 }
@@ -108,6 +124,7 @@ unset bad_cmd
 unset zsh_nf
 unset csh_nf
 unset fish_nf
+unset dash_nf
 unset shell_level
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
