@@ -1,56 +1,59 @@
 # only redirect module from stderr to stdout in interactive mode
 # to avoid breaking non interactive session (scp, sftp, etc)
-if [ -n "$PS1" ]; then
-   moduleraw() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
-   module() { moduleraw $* 2>&1 ; }
-   # if sh is bash, export functions to get them defined in sub-shells
-   if [ "${BASH:-}" != '' ]; then
-      export -f moduleraw
-      export -f module
-   fi
-else
-   module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
-   if [ "${BASH:-}" != '' ]; then
-      export -f module
-   fi
-fi
+case "$-" in
+   *i*)
+      moduleraw() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
+      module() { moduleraw $* 2>&1 ; }
+      # if sh is bash, export functions to get them defined in sub-shells
+      if [ "${BASH:-}" != '' ]; then
+         export -f moduleraw
+         export -f module
+      fi
+      ;;
+   *)
+      module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
+      if [ "${BASH:-}" != '' ]; then
+         export -f module
+      fi
+esac
 
 @setswitchml@# define function to switch between C and Tcl versions of Modules
 @setswitchml@switchml() {
 @setswitchml@   # determine currently used module version
-@setswitchml@   typeset currel=`module --version 2>&1 | grep -E '^(Modules|VERSION=)'`
-@setswitchml@   if [[ "$currel" =~ 'Tcl' ]]; then
-@setswitchml@      typeset mlver='Tcl'
-@setswitchml@      typeset curpath='@swmlbindir@'
-@setswitchml@      typeset curmanpath='@swmlmandir@'
-@setswitchml@   elif [[ "$currel" =~ 'VERSION' ]]; then
-@setswitchml@      typeset mlver='C'
-@setswitchml@      typeset curpath='@cverbindir@'
-@setswitchml@      typeset curmanpath='@cvermandir@'
-@setswitchml@   fi
+@setswitchml@   currel=`module --version 2>&1 | grep -E '^(Modules|VERSION=)'`
+@setswitchml@   case $currel in
+@setswitchml@      *Tcl*)
+@setswitchml@         mlver='Tcl'
+@setswitchml@         curpath='@swmlbindir@'
+@setswitchml@         curmanpath='@swmlmandir@'
+@setswitchml@         ;;
+@setswitchml@      *VERSION*)
+@setswitchml@         mlver='C'
+@setswitchml@         curpath='@cverbindir@'
+@setswitchml@         curmanpath='@cvermandir@'
+@setswitchml@         ;;
+@setswitchml@   esac
 @setswitchml@
 @setswitchml@   # remove specific paths set by current module version
 @setswitchml@   if [ -n "$PATH" -a "${curpath:-}" != '' ]; then
-@setswitchml@      PATH=${PATH/:$curpath/}
-@setswitchml@      PATH=${PATH/$curpath:/}
+@setswitchml@      PATH=`echo $PATH | sed -e "s|:${curpath}||" -e "s|${curpath}:||"`
 @setswitchml@   fi
 @setswitchml@   if [ -n "$MANPATH" -a "${curmanpath:-}" != '' ]; then
-@setswitchml@      MANPATH=${MANPATH/:$curmanpath/}
-@setswitchml@      MANPATH=${MANPATH/$curmanpath:/}
+@setswitchml@      MANPATH=`echo $MANPATH | sed -e "s|:${curmanpath}||" -e "s|${curmanpath}:||"`
 @setswitchml@   fi
 @setswitchml@
 @setswitchml@   # switch module version
 @setswitchml@   if [ "$mlver" = 'Tcl' ]; then
 @setswitchml@      if [ -d @cverinitdir@ ]; then
 @setswitchml@         echo 'Switching to Modules C version'
-@setswitchml@         source @cverinitdir@/sh
+@setswitchml@         . @cverinitdir@/sh
 @setswitchml@      else
 @setswitchml@         echo 'Cannot find Modules C version'
 @setswitchml@         return 1
 @setswitchml@      fi
 @setswitchml@   else
 @setswitchml@      echo 'Switching to Modules Tcl version'
-@setswitchml@      source @initdir@/sh
+@setswitchml@      . @initdir@/sh
 @setswitchml@   fi
 @setswitchml@}
 @setswitchml@if [ "${BASH:-}" != '' ]; then
@@ -65,14 +68,16 @@ BASH_ENV=@initdir@/bash; export BASH_ENV
 
 MODULESHOME=@prefix@; export MODULESHOME
 
-@setbinpath@if [[ ! ":$PATH:" =~ ':@bindir@:' ]]; then
-@setbinpath@   PATH=@bindir@${PATH:+:}$PATH; export PATH
-@setbinpath@fi
+@setbinpath@case ":$PATH:" in
+@setbinpath@   *:@bindir@:*) ;;
+@setbinpath@   *) PATH=@bindir@${PATH:+:}$PATH; export PATH
+@setbinpath@esac
 @setbinpath@
 @setmanpath@manpath=`manpath 2>/dev/null`
-@setmanpath@if [[ ! ":$manpath:" =~ ':@mandir@:' ]]; then
-@setmanpath@   MANPATH=@mandir@${manpath:+:}$manpath; export MANPATH
-@setmanpath@fi
+@setmanpath@case ":$manpath:" in
+@setmanpath@   *:@mandir@:*) ;;
+@setmanpath@   *) MANPATH=@mandir@${manpath:+:}$manpath; export MANPATH
+@setmanpath@esac
 @setmanpath@
 if [ "${MODULEPATH:-}" = '' ]; then
    if [ -r @initdir@/.modulespath ]; then
@@ -89,5 +94,5 @@ fi
 
 # load modulerc only if module environment is empty
 if [ -r @initdir@/modulerc -a "$MODULEPATH" = '' -a "$LOADEDMODULES" = '' ]; then
-   source @initdir@/modulerc
+   . @initdir@/modulerc
 fi
