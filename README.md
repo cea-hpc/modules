@@ -1,5 +1,7 @@
 Modules-Tcl, native Tcl version of the Modules package
 ======================================================
+[![Build Status](https://travis-ci.org/cea-hpc/modules-tcl.svg?branch=master)](https://travis-ci.org/cea-hpc/modules-tcl)
+[![Coverage Status](https://codecov.io/gh/cea-hpc/modules-tcl/branch/master/graph/badge.svg)](https://codecov.io/gh/cea-hpc/modules-tcl)
 
 The Modules package is a tool that simplify shell initialization and
 lets users easily modify their environment during the session with

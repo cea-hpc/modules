@@ -38,7 +38,7 @@ usecverdotmodulespath := @usecverdotmodulespath@
 docinstall := @docinstall@
 examplemodulefiles := @examplemodulefiles@
 
-all: initdir pkgdoc ChangeLog
+all: initdir pkgdoc ChangeLog README
 
 initdir:
 	make -C init all
@@ -55,7 +55,10 @@ www:
 ChangeLog:
 	contrib/gitlog2changelog.py
 
-install: ChangeLog
+README:
+	perl -pe 's|^\[\!\[.*\].*\n||;' $@.md > $@
+
+install: ChangeLog README
 	mkdir -p $(DESTDIR)$(libexecdir)
 	mkdir -p $(DESTDIR)$(bindir)
 	cp modulecmd.tcl $(DESTDIR)$(libexecdir)/
@@ -67,7 +70,7 @@ ifeq ($(docinstall),y)
 	cp COPYING.GPLv2 $(DESTDIR)$(docdir)/
 	cp ChangeLog $(DESTDIR)$(docdir)/
 	cp NEWS $(DESTDIR)$(docdir)/
-	cp README.txt $(DESTDIR)$(docdir)/README
+	cp README $(DESTDIR)$(docdir)/
 	cp INSTALL.txt $(DESTDIR)$(docdir)/INSTALL
 endif
 	make -C init install DESTDIR=$(DESTDIR)
@@ -91,10 +94,10 @@ endif
 	rmdir $(DESTDIR)$(datarootdir)
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(prefix)
 
-dist: ChangeLog
+dist: ChangeLog README
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
-	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' ChangeLog
+	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' $^
 	gzip -f -9 $(DIST_PREFIX).tar
 
 srpm: dist
@@ -106,6 +109,9 @@ clean:
 	rm -rf coverage
 ifeq ($(wildcard .git) $(wildcard contrib/gitlog2changelog.py),.git contrib/gitlog2changelog.py)
 	rm -f ChangeLog
+endif
+ifeq ($(wildcard .git) $(wildcard README.md),.git README.md)
+	rm -f README
 endif
 	rm -f modules-tcl-*.tar.gz
 	rm -f modules-tcl-*.srpm
