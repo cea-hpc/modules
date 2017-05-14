@@ -33,7 +33,8 @@ matrix:
             - zsh
             - fish
             - tcl8.5
-    - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl'
+    # only test code coverage on this configuration
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl' MAKE_TESTCOVERAGE='y'
       addons:
         apt:
           sources:
@@ -117,3 +118,10 @@ script:
   - make test
   - make install
   - make testinstall
+
+# perform code coverage
+after_success: |
+  [ "$MAKE_TESTCOVERAGE" = 'y' ] &&
+  make testcoverage &&
+  contrib/nglfar2ccov modulecmd.tcl &&
+  bash <(curl -s https://codecov.io/bash) -s coverage

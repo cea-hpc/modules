@@ -1,0 +1,134 @@
+#!/usr/bin/env tclsh
+#
+# NGLFAR2CCOV, translate Nagelfar coverage result for Codecov report
+# Copyright (C) 2017 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+set usage "Usage: $argv0 source_file
+Translate Nagelfar coverage result for Codecov report"
+
+# parse command-line arguments
+set srcfile [lindex $argv 0]
+if {[llength $argv] == 0 || $srcfile eq "-h" || $srcfile eq "--help"} {
+   puts stderr $usage
+   exit 0
+} elseif {[llength $argv] > 1} {
+   puts stderr $usage
+   exit 1
+}
+
+# read nagelfar coverage result
+set covres "${srcfile}_log"
+if {[catch {
+   set fid [open $covres r]
+   set fdata [split [read $fid] "\n"]
+   close $fid
+} errMsg ]} {
+   puts stderr "Nagelfar coverage log '$covres' cannot be read.\n$errMsg"
+   exit 1
+}
+
+# parse coverage result
+array set line_hits {}
+set covered_lines 0
+foreach fline $fdata {
+   if {[regexp {^incr ::_instrument_::log\((.*),(\d+)\) (\d+)$} \
+      $fline match fname num hit] == 1} {
+      if {$fname eq $srcfile} {
+         set line_hits($num) $hit
+         if {$hit > 0} {
+            incr covered_lines
+         }
+      }
+   }
+}
+set total_lines [array size line_hits]
+set ratio_covered [format "%.4f" \
+   [expr {double($covered_lines) / $total_lines}]]
+set percent_covered [format "%.2f" [expr {100 * $ratio_covered}]]
+
+puts "Found $covered_lines lines covered over $total_lines ($percent_covered %)"
+
+# catch additional information to build reports
+set fmtime [file mtime $covres]
+set fmtime_date [clock format $fmtime -format "%Y-%m-%d %H:%M:%S"]
+regsub -all "\\." $srcfile "_" srcname
+
+# build json report content
+array set content {}
+set content(json) "{
+   \"files\": \[
+      {\"file\": \"$srcfile\", \"percent_covered\": \"$percent_covered\", \"covered_lines\": \"$covered_lines\", \"total_lines\": \"$total_lines\"}
+   \],
+   \"percent_covered\": \"$percent_covered\",
+   \"covered_lines\": $covered_lines,
+   \"total_lines\": $total_lines,
+   \"percent_low\": 25,
+   \"percent_high\": 75,
+   \"command\": \"$srcfile\",
+   \"date\": \"$fmtime_date\"
+}"
+
+# build xml report content
+set content(xml) "<?xml version=\"1.0\" ?>
+<!DOCTYPE coverage SYSTEM 'http://cobertura.sourceforge.net/xml/coverage-03.dtd'>
+<coverage line-rate=\"0.000\" version=\"1.9\" timestamp=\"$fmtime\">
+   <sources>
+      <source>$srcfile</source>
+   </sources>
+   <packages>
+      <package name=\"$srcname\" line-rate=\"0.000\" branch-rate=\"1.0\" complexity=\"1.0\">
+         <classes>
+            <class name=\"$srcname\" filename=\"$srcfile\" line-rate=\"$ratio_covered\">
+               <lines>
+"
+foreach n [lsort -integer [array names line_hits]] {
+   append content(xml) "                  <line number=\"$n\" hits=\"$line_hits($n)\"/>\n"
+}
+append content(xml) "               </lines>
+            </class>
+         </classes>
+      </package>
+   </packages>
+</coverage>"
+
+# write reports
+set reportdir "[file dirname $srcfile]/coverage/$srcfile"
+if {[catch {file mkdir $reportdir} errMsg ]} {
+   puts stderr "Report directory '$reportdir' cannot be created.\n$errMsg"
+   exit 1
+}
+
+array set report {}
+set report(json) "$reportdir/coverage.json"
+set report(xml) "$reportdir/cobertura.xml"
+
+foreach t [list "json" "xml"] {
+   puts "Writing coverage report '$report($t)'"
+   if {[catch {
+      set fid [open $report($t) w]
+      puts $fid $content($t)
+      close $fid
+   } errMsg ]} {
+      puts stderr "Report '$report($t)' cannot be written.\n$errMsg"
+      exit 1
+   }
+}
+
+exit 0
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
