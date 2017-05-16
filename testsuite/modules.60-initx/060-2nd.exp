@@ -21,20 +21,27 @@
 #
 ##############################################################################
 
-testerr_cmd sh "initrm modules" "Removed modules"
-_test_modules sh "initrm" "$modload null$line2x"
+#
+# restore the .modules file (again)
+#
+file copy -force "$env(HOME)/.modules.save"  "$env(HOME)/.modules"
+
+testerr_cmd sh "initrm modules" ""
+_test_modules sh "initrm" "$modload null\n$line2x"
 
 testerr_cmd sh "initadd modules" ""
-_test_modules sh "initrm" "$modload null modules$line2x"
+_test_modules sh "initrm" "$modload null modules\n$line2x"
 
-testerr_cmd sh "initadd dot" "Moving dot to end"
+# different behavior than C-version: on Tcl-version no message is printed
+testerr_cmd sh "initadd dot" ""
 _test_modules sh "initadd" "$modload null modules dot\n$modload module-cvs module-info use.own"
 
-testerr_cmd sh "initpre use.own" "Moving use.own to beginning"
+testerr_cmd sh "initpre use.own" ""
 _test_modules sh "initprepend" "$modload use.own null modules dot\n$modload module-cvs module-info"
 
-testerr_cmd sh "initswitch module-info info-module" "Switching module-info to info-module"
+testerr_cmd sh "initswitch module-info info-module" ""
 _test_modules sh "initswitch" "$modload use.own null modules dot\n$modload module-cvs info-module"
 
+# different behavior than C-version: on Tcl-version no 'module load null' lines are left
 testerr_cmd sh "initclear" ""
-_test_modules sh "initclear" "$modload null\n$modload null"
+_test_modules sh "initclear" ""

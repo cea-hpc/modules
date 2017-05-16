@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.843
-set MODULES_CURRENT_RELEASE_DATE "2017-05-10"
+set MODULES_CURRENT_VERSION 1.854
+set MODULES_CURRENT_RELEASE_DATE "2017-05-16"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -961,21 +961,21 @@ proc module {command args} {
             cmdModuleSavelist
          }
       }
-      {^init(add|lo)$} {
-         if {[llength $args] != 1} {
+      {^init(a|lo)} {
+         if {[llength $args] == 0} {
             set errormsg "Unexpected number of args for 'initadd' command"
          } else {
             eval cmdModuleInit add $args
          }
       }
-      {^initprepend$} {
-         if {[llength $args] != 1} {
+      {^initp} {
+         if {[llength $args] == 0} {
             set errormsg "Unexpected number of args for 'initprepend' command"
          } else {
             eval cmdModuleInit prepend $args
          }
       }
-      {^initswitch$} {
+      {^initsw} {
          if {[llength $args] != 2} {
             set errormsg "Unexpected number of args for 'initswitch' command"
          } else {
@@ -983,13 +983,13 @@ proc module {command args} {
          }
       }
       {^init(rm|unlo)$} {
-         if {[llength $args] != 1} {
+         if {[llength $args] == 0} {
             set errormsg "Unexpected number of args for 'initrm' command"
          } else {
             eval cmdModuleInit rm $args
          }
       }
-      {^initlist$} {
+      {^initl} {
          if {[llength $args] != 0} {
             set errormsg "Unexpected number of args for 'initlist' command"
          } else {
@@ -2769,15 +2769,12 @@ if {[info commands lassign] eq ""} {
 }
 
 proc replaceFromList {list1 item {item2 {}}} {
-    set xi [lsearch -exact $list1 $item]
-
-    while {$xi >= 0} {
+    while {[set xi [lsearch -exact $list1 $item]] >= 0} {
        if {[string length $item2] == 0} {
           set list1 [lreplace $list1 $xi $xi]
        } else {
           set list1 [lreplace $list1 $xi $xi $item2]
        }
-       set xi [lsearch -exact $list1 $item]
     }
 
     return $list1
@@ -4444,6 +4441,7 @@ proc cmdModuleInit {args} {
    global g_shell env
 
    set moduleinit_cmd [lindex $args 0]
+   set moduleinit_list [lrange $args 1 end]
    set notdone 1
    set notclear 1
 
@@ -4460,17 +4458,6 @@ proc cmdModuleInit {args} {
    set files(fish) [list ".modules" ".config/fish/config.fish"]
    set files(zsh) [list ".modules" ".zshrc" ".zshenv" ".zlogin"]
 
-   array set nargs {
-      list    0
-      add     1
-      load    1
-      prepend 1
-      rm      1
-      unload  1
-      switch  2
-      clear   0
-   }
-
    # Process startup files for this shell
    set current_files $files($g_shell)
    foreach filename $current_files {
@@ -4483,13 +4470,6 @@ proc cmdModuleInit {args} {
          reportDebug "Looking at: $filepath"
          if {[file readable $filepath] && [file isfile $filepath]} {
             set fid [open $filepath r]
-
-            set temp [expr {[llength $args] -1}]
-            if {$temp != $nargs($moduleinit_cmd)} {
-               reportErrorAndExit "'module init$moduleinit_cmd' requires\
-                  exactly $nargs($moduleinit_cmd) arg(s)."
-               #               cmdModuleHelp
-            }
 
             # Only open the new file if we are not doing "initlist"
             if {[string compare $moduleinit_cmd "list"] != 0} {
@@ -4509,48 +4489,53 @@ proc cmdModuleInit {args} {
                   # given command
                   switch $moduleinit_cmd {
                      list {
-                        report "$g_shell initialization file $filepath\
-                           loads modules: $modules"
+                        if {![info exists notheader]} {
+                           report "$g_shell initialization file\
+                              \$HOME/$filename loads modules:"
+                           set notheader 0
+                        }
+                        report "\t$modules"
                      }
                      add {
-                        set newmodule [lindex $args 1]
-                        set modules [replaceFromList $modules $newmodule]
-                        append modules " $newmodule"
-                        puts $newfid "$cmd$modules$comments"
-                        set notdone 0
+                        foreach newmodule $moduleinit_list {
+                           set modules [replaceFromList $modules $newmodule]
+                        }
+                        puts $newfid "$cmd$modules $moduleinit_list$comments"
+                        # delete new modules in potential next lines
+                        set moduleinit_cmd "rm"
                      }
                      prepend {
-                        set newmodule [lindex $args 1]
-                        set modules [replaceFromList $modules $newmodule]
-                        set modules "$newmodule $modules"
-                        puts $newfid "$cmd$modules$comments"
-                        set notdone 0
+                        foreach newmodule $moduleinit_list {
+                           set modules [replaceFromList $modules $newmodule]
+                        }
+                        puts $newfid "$cmd$moduleinit_list $modules$comments"
+                        # delete new modules in potential next lines
+                        set moduleinit_cmd "rm"
                      }
                      rm {
-                        set oldmodule [lindex $args 1]
-                        set modules [replaceFromList $modules $oldmodule]
-                        if {[llength $modules] == 0} {
-                           set modules ""
+                        set oldmodcount [llength $modules]
+                        foreach oldmodule $moduleinit_list {
+                           set modules [replaceFromList $modules $oldmodule]
                         }
-                        puts $newfid "$cmd$modules$comments"
-                        set notdone 0
+                        set modcount [llength $modules]
+                        if {$modcount > 0} {
+                           puts $newfid "$cmd$modules$comments"
+                        }
+                        if {$oldmodcount > $modcount} {
+                           set notdone 0
+                        }
                      }
                      switch {
-                        set oldmodule [lindex $args 1]
-                        set newmodule [lindex $args 2]
-                        set modules [replaceFromList $modules\
+                        set oldmodule [lindex $moduleinit_list 0]
+                        set newmodule [lindex $moduleinit_list 1]
+                        set newmodules [replaceFromList $modules\
                            $oldmodule $newmodule]
-                        puts $newfid "$cmd$modules$comments"
-                        set notdone 0
+                        puts $newfid "$cmd$newmodules$comments"
+                        if {"$modules" ne "$newmodules"} {
+                           set notdone 0
+                        }
                      }
                      clear {
-                        set modules ""
-                        puts $newfid "$cmd$modules$comments"
-                        set notclear 0
-                     }
-                     default {
-                        report "Command init$moduleinit_cmd not\
-                           recognized"
                      }
                   }
                } else {
@@ -4564,12 +4549,13 @@ proc cmdModuleInit {args} {
             close $fid
             if {[info exists newfid]} {
                close $newfid
-               if {[catch {file copy -force $filepath $filepath-OLD}] != 0} {
-                  reportErrorAndExit "Failed to back up original\
-                     $filepath...exiting"
+               if {[catch {file copy -force $newfilepath $filepath} errMsg]} {
+                  reportErrorAndExit "Init file $filepath cannot be\
+                     written.\n$errMsg"
                }
-               if {[catch {file copy -force $newfilepath $filepath}] != 0} {
-                  reportErrorAndExit "Failed to write $filepath...exiting"
+               if {[catch {file delete $newfilepath} errMsg]} {
+                  reportErrorAndExit "Temp file $filepath cannot be\
+                     deleted.\n$errMsg"
                }
             }
          }
@@ -4656,11 +4642,11 @@ proc cmdModuleHelp {args} {
       report {Shell's initialization files handling commands:}
       report {  initlist                          List all modules\
          loaded from init file}
-      report {  initadd         modulefile        Add modulefile to\
+      report {  initadd         modulefile [...]  Add modulefile to\
          shell init file}
-      report {  initrm          modulefile        Remove modulefile\
+      report {  initrm          modulefile [...]  Remove modulefile\
          from shell init file}
-      report {  initprepend     modulefile        Add to beginning of\
+      report {  initprepend     modulefile [...]  Add to beginning of\
          list in init file}
       report {  initswitch      mod1 mod2         Switch mod1 with mod2\
          from init file}
