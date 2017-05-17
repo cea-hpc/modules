@@ -5,9 +5,10 @@ sudo: false
 
 matrix:
   include:
-    # 3 package variants on major Tcl releases
-    # mixed with 2 installation variants
-    - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl'
+    # 3 package variants on major Tcl releases mixed with 2 install variants
+    # run tests in code coverage mode on first installation variant
+    # for each Tcl releases
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl' MAKE_TESTCOVERAGE='y'
       addons:
         apt:
           sources:
@@ -20,7 +21,7 @@ matrix:
             - zsh
             - fish
             - tcl8.4
-    - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl'
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl' MAKE_TESTCOVERAGE='y'
       addons:
         apt:
           sources:
@@ -33,8 +34,12 @@ matrix:
             - zsh
             - fish
             - tcl8.5
-    # only test code coverage on this configuration
+    # also enable a display on this test case to validate x-resource behavior
     - env: CONFIGURE_OPTS='--prefix=/tmp/modules-tcl' MAKE_TESTCOVERAGE='y'
+      before_script:
+        - export DISPLAY=:99.0
+        - sh -e /etc/init.d/xvfb start
+        - sleep 3 # give xvfb some time to start
       addons:
         apt:
           sources:
@@ -115,14 +120,14 @@ install: true
 script:
   - ./configure $CONFIGURE_OPTS
   - make
-  - make test
+  - if [ "$MAKE_TESTCOVERAGE" = 'y' ]; then make testcoverage; fi
+  - if [ "$MAKE_TESTCOVERAGE" != 'y' ]; then make test; fi
   - make install
   - make testinstall
   - make uninstall
 
-# perform code coverage
+# report code coverage results
 after_success: |
   [ "$MAKE_TESTCOVERAGE" = 'y' ] &&
-  make testcoverage &&
   contrib/nglfar2ccov modulecmd.tcl &&
   bash <(curl -s https://codecov.io/bash) -s coverage
