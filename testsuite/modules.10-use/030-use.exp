@@ -56,6 +56,8 @@ set python_modpath "os.environ\\\[\'MODULEPATH\'\\\] = \'$mod_path\'"
 set lisp_modshare "\\\(setenv \"MODULEPATH_modshare\" \"(.*)\"\\\)"
 set lisp_modshare_ref2 "\\\(setenv \"MODULEPATH_modshare\" \"(.*):2\"\\\)"
 set lisp_modpath "\\\(setenv \"MODULEPATH\" \"$mod_path\"\\\)"
+set path_list_header "Search path for module files (in search order):"
+set no_path_list "$warn_msgs: No directories on module search path"
 
 set use	"use"
 
@@ -131,6 +133,18 @@ test_cmd_re "perl" "$use $path" "$perl_modshare\n\\\$ENV{\'MODULEPATH\'} = \'$pa
 test_cmd_re "python" "$use $path" "$python_modshare\nos.environ\\\['MODULEPATH'\\\] = \'$path\'"
 test_cmd_re "lisp" "$use $path" "$lisp_modshare\n\\\(setenv \"MODULEPATH\" \"$path\"\\\)"
 
+# list currently enabled paths
+testouterr_cmd "sh" "$use" "/bin/true;" "$no_path_list"
+testouterr_cmd "ksh" "$use" "/bin/true;" "$no_path_list"
+testouterr_cmd "zsh" "$use" "/bin/true;" "$no_path_list"
+testouterr_cmd "csh" "$use" "/bin/true;" "$no_path_list"
+testouterr_cmd "tcsh" "$use" "/bin/true;" "$no_path_list"
+testouterr_cmd "fish" "$use" "/bin/true;" "$no_path_list"
+testouterr_cmd "tcl" "$use" "exec /bin/true;" "$no_path_list"
+testouterr_cmd "perl" "$use" "1;\n1;" "$no_path_list"
+testouterr_cmd "python" "$use" "import os" "$no_path_list"
+testouterr_cmd "lisp" "$use" "t" "$no_path_list"
+
 if { $verbose > 0 } {
     send_user "\tRestore MODULEPATH = $ORIG\n"
 }
@@ -182,6 +196,35 @@ test_cmd_re "python" "$use $loaded_relpath_wdot" "$python_modshare_ref2\nos.envi
 test_cmd_re "lisp" "$use $loaded_relpath_wdot" "$lisp_modshare_ref2\n\\\(setenv \"MODULEPATH\" \"$loaded_path\"\\\)"
 
 #
+# List enabled paths with 2 paths set
+#
+
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = '$mod_path'\n"
+}
+set ORIG $::env(MODULEPATH)
+set ::env(MODULEPATH) "$mod_path"
+
+# list currently enabled paths
+testouterr_cmd "sh" "$use" "/bin/true;" "$path_list_header\n  $path\n  $ORIG"
+testouterr_cmd "ksh" "$use" "/bin/true;" "$path_list_header\n  $path\n  $ORIG"
+testouterr_cmd "zsh" "$use" "/bin/true;" "$path_list_header\n  $path\n  $ORIG"
+testouterr_cmd "csh" "$use" "/bin/true;" "$path_list_header\n  $path\n  $ORIG"
+testouterr_cmd "tcsh" "$use" "/bin/true;" "$path_list_header\n  $path\n  $ORIG"
+testouterr_cmd "fish" "$use" "/bin/true;" "$path_list_header\n  $path\n  $ORIG"
+testouterr_cmd "tcl" "$use" "exec /bin/true;" "$path_list_header\n  $path\n  $ORIG"
+testouterr_cmd "perl" "$use" "1;\n1;" "$path_list_header\n  $path\n  $ORIG"
+testouterr_cmd "python" "$use" "import os" "$path_list_header\n  $path\n  $ORIG"
+testouterr_cmd "lisp" "$use" "t" "$path_list_header\n  $path\n  $ORIG"
+
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = $ORIG\n"
+}
+set ::env(MODULEPATH) $ORIG
+
+
+#
+#
 # Cleanup
 #
 
@@ -217,3 +260,5 @@ unset python_modpath
 unset lisp_modshare
 unset lisp_modshare_ref2
 unset lisp_modpath
+unset path_list_header
+unset no_path_list

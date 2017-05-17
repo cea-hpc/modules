@@ -48,7 +48,8 @@ set python_modshare "os.environ\\\[\'MODULEPATH_modshare\'\\\] = \'(.*)\'"
 set python_modpath "os.environ\\\[\'MODULEPATH\'\\\] = \'$mod_path\'"
 set lisp_modshare "\\\(setenv \"MODULEPATH_modshare\" \"(.*)\"\\\)"
 set lisp_modpath "\\\(setenv \"MODULEPATH\" \"$mod_path\"\\\)"
-
+set path_list_header "Search path for module files (in search order):"
+set no_path_list "$warn_msgs: No directories on module search path"
 
 set use	"unuse"
 
@@ -132,6 +133,40 @@ test_cmd_re "python" "$use $relpath_wdot" "import os\n$python_modshare\n$python_
 test_cmd_re "lisp" "$use $relpath_wdot" "$lisp_modshare\n$lisp_modpath\$"
 
 #
+# List enabled paths with 2 paths set
+#
+
+testouterr_cmd "sh" "$use" "/bin/true;" "$path_list_header\n  $path\n  $mod_path"
+testouterr_cmd "ksh" "$use" "/bin/true;" "$path_list_header\n  $path\n  $mod_path"
+testouterr_cmd "zsh" "$use" "/bin/true;" "$path_list_header\n  $path\n  $mod_path"
+testouterr_cmd "csh" "$use" "/bin/true;" "$path_list_header\n  $path\n  $mod_path"
+testouterr_cmd "tcsh" "$use" "/bin/true;" "$path_list_header\n  $path\n  $mod_path"
+testouterr_cmd "fish" "$use" "/bin/true;" "$path_list_header\n  $path\n  $mod_path"
+testouterr_cmd "tcl" "$use" "exec /bin/true;" "$path_list_header\n  $path\n  $mod_path"
+testouterr_cmd "perl" "$use" "1;\n1;" "$path_list_header\n  $path\n  $mod_path"
+testouterr_cmd "python" "$use" "import os" "$path_list_header\n  $path\n  $mod_path"
+testouterr_cmd "lisp" "$use" "t" "$path_list_header\n  $path\n  $mod_path"
+
+# list paths with no paths set
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = ''\n"
+}
+set ORIG $::env(MODULEPATH)
+set ::env(MODULEPATH) ""
+
+testouterr_cmd "sh" "$use" "/bin/true;" "$no_path_list"
+testouterr_cmd "ksh" "$use" "/bin/true;" "$no_path_list"
+testouterr_cmd "zsh" "$use" "/bin/true;" "$no_path_list"
+testouterr_cmd "csh" "$use" "/bin/true;" "$no_path_list"
+testouterr_cmd "tcsh" "$use" "/bin/true;" "$no_path_list"
+testouterr_cmd "fish" "$use" "/bin/true;" "$no_path_list"
+testouterr_cmd "tcl" "$use" "exec /bin/true;" "$no_path_list"
+testouterr_cmd "perl" "$use" "1;\n1;" "$no_path_list"
+testouterr_cmd "python" "$use" "import os" "$no_path_list"
+testouterr_cmd "lisp" "$use" "t" "$no_path_list"
+
+
+#
 # Cleanup
 #
 
@@ -164,4 +199,5 @@ unset python_modshare
 unset python_modpath
 unset lisp_modshare
 unset lisp_modpath
-
+unset path_list_header
+unset no_path_list
