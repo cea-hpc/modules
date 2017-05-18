@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.855
-set MODULES_CURRENT_RELEASE_DATE "2017-05-17"
+set MODULES_CURRENT_VERSION 1.859
+set MODULES_CURRENT_RELEASE_DATE "2017-05-18"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3723,13 +3723,11 @@ proc cmdModulePaths {mod} {
 }
 
 proc cmdModulePath {mod} {
-   global g_pathList ModulesCurrentModulefile
+   global g_pathList
 
    reportDebug "cmdModulePath: ($mod)"
    lassign [getPathToModule $mod] modfile modname
    if {$modfile ne ""} {
-      set ModulesCurrentModulefile $modfile
-
       set g_pathList $modfile
    }
 }

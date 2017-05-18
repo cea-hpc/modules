@@ -1,0 +1,89 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2017/05/18
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		path
+#   Modulefiles:	averssort
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the module command 'path'
+#		}C%
+#
+##############################################################################
+
+#
+#  Test variables
+#
+
+set module_1 "averssort"
+set modulefile_1 "$env(MODULEPATH)/verssort/1.10"
+set module_2 "foo"
+set err_locmod "$error_msgs: Unable to locate a modulefile for '$module_2'"
+
+set err_sh "/bin/false;"
+set err_csh "$err_sh"
+set err_fish "$err_sh"
+set err_tcl "exec /bin/false;"
+set err_perl "die \"modulefile.tcl: 1 error(s) detected!\\n\""
+set err_python "raise RuntimeError( 'modulefile.tcl: 1 error(s) detected!')"
+set err_lisp "(error \"modulefile.tcl: 1 error(s) detected!\")"
+
+
+#
+#  test with a modulefile to resolve
+#
+
+testouterr_cmd "sh" "path $module_1" "echo '$modulefile_1';" ""
+testouterr_cmd "bash" "path $module_1" "echo '$modulefile_1';" ""
+testouterr_cmd "ksh" "path $module_1" "echo '$modulefile_1';" ""
+testouterr_cmd "zsh" "path $module_1" "echo '$modulefile_1';" ""
+testouterr_cmd "csh" "path $module_1" "echo '$modulefile_1';" ""
+testouterr_cmd "tcsh" "path $module_1" "echo '$modulefile_1';" ""
+testouterr_cmd "fish" "path $module_1" "echo '$modulefile_1';" ""
+testouterr_cmd "tcl" "path $module_1" "puts \"$modulefile_1\";" ""
+testouterr_cmd "perl" "path $module_1" "print '$modulefile_1'.\"\\n\";\n1;" ""
+testouterr_cmd "python" "path $module_1" "import os\nprint '$modulefile_1'" ""
+testouterr_cmd "lisp" "path $module_1" "(message \"$modulefile_1\")" ""
+
+#
+# test with nonexistent modulefile
+#
+
+testouterr_cmd "sh" "path $module_2" "$err_sh" "$err_locmod"
+testouterr_cmd "bash" "path $module_2" "$err_sh" "$err_locmod"
+testouterr_cmd "ksh" "path $module_2" "$err_sh" "$err_locmod"
+testouterr_cmd "zsh" "path $module_2" "$err_sh" "$err_locmod"
+testouterr_cmd "csh" "path $module_2" "$err_csh" "$err_locmod"
+testouterr_cmd "tcsh" "path $module_2" "$err_csh" "$err_locmod"
+testouterr_cmd "fish" "path $module_2" "$err_fish" "$err_locmod"
+testouterr_cmd "tcl" "path $module_2" "$err_tcl" "$err_locmod"
+testouterr_cmd "perl" "path $module_2" "$err_perl" "$err_locmod"
+testouterr_cmd "python" "path $module_2" "import os\n$err_python" "$err_locmod"
+testouterr_cmd "lisp" "path $module_2" "$err_lisp" "$err_locmod"
+
+
+#
+#  Cleanup
+#
+
+unset module_1
+unset modulefile_1
+unset module_2
+unset err_locmod
+
+unset err_sh
+unset err_csh
+unset err_fish
+unset err_tcl
+unset err_perl
+unset err_python
+unset err_lisp
