@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.859
+set MODULES_CURRENT_VERSION 1.860
 set MODULES_CURRENT_RELEASE_DATE "2017-05-18"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -3714,11 +3714,33 @@ proc cmdModulePaths {mod} {
    reportDebug "cmdModulePaths: ($mod)"
 
    foreach dir [getModulePathList "exiterronundef"] {
-      if {[file isdirectory $dir]} {
-         foreach mod2 [listModules $dir $mod] {
-            lappend g_pathList $mod2
+      array unset mod_list
+      array set mod_list [getModules $dir $mod]
+
+      # build list of modulefile to print
+      foreach elt [array names mod_list] {
+         switch -- [lindex $mod_list($elt) 0] {
+            {modulefile} {
+               lappend g_pathList $dir/$elt
+            }
+            {alias} {
+               # resolve alias target
+               set aliastarget [lindex $mod_list($elt) 1]
+               lassign [getPathToModule $aliastarget $dir]\
+                  modfile modname
+               # add module target as result instead of alias
+               if {$modfile eq "$dir/$modname"\
+                  && ![info exists mod_list($modname)]} {
+                  lappend g_pathList $modfile
+               }
+            }
          }
       }
+   }
+
+   # sort results if any
+   if {[info exists g_pathList]} {
+      set g_pathList [lsort -dictionary $g_pathList]
    }
 }
 
