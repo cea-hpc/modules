@@ -59,13 +59,26 @@ switch $shkind
       set shopts ''
 end
 
-if [ ! -r $initfile ]
+# init module via autoinit cmd if modulecmd.tcl is initfile
+if [ (basename $initfile) = 'modulecmd.tcl' ]
+   set autoinit 0
+else
+   set autoinit 1
+end
+
+if [ $autoinit -eq 0 -a ! -x $initfile ]
+   echo_error "Cannot execute $initfile"
+else if [ $autoinit -ne 0 -a ! -r $initfile ]
    echo_error "Cannot read $initfile"
 end
 
 # source module init file if first step of given mode
 if [ "$mode" = 'top' -o "$mode" = 'sub' -o  "$mode" = 'subsub' ]
-   source $initfile
+   if [ $autoinit -eq 0 ]
+      eval $initfile $shname autoinit | source -
+   else
+      source $initfile
+   end
 end
 
 # execute command list or perform recursive call

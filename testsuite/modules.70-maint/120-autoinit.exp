@@ -1,0 +1,109 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2017/05/20
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		autoinit
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the module command 'autoinit'
+#		}C%
+#
+##############################################################################
+
+#
+#  Test variables
+#
+
+set path_list {}
+foreach elt [file split [file join [pwd] $MODULECMD]] {
+    if {$elt ne "."} {
+        lappend path_list $elt
+    }
+}
+set modulecmd_path [eval file join $path_list]
+set moduleshome [file dirname $modulecmd_path]
+
+set out_sh "^module \\\(\\\) { eval  `'\\S+tclsh' '$modulecmd_path' 'sh' \\$\\*`; } ;\n.*MODULESHOME=$moduleshome; export MODULESHOME;"
+set out_bash "^module \\\(\\\) { eval  `'\\S+tclsh' '$modulecmd_path' 'bash' \\$\\*`; } ;\n.*MODULESHOME=$moduleshome; export MODULESHOME;"
+set out_ksh "^module \\\(\\\) { eval  `'\\S+tclsh' '$modulecmd_path' 'ksh' \\$\\*`; } ;\n.*MODULESHOME=$moduleshome; export MODULESHOME;"
+set out_zsh "^module \\\(\\\) { eval  `'\\S+tclsh' '$modulecmd_path' 'zsh' \\$\\*`; } ;\n.*MODULESHOME=$moduleshome; export MODULESHOME;"
+set out_csh "^    alias module 'eval  `'\\S+tclsh' '$modulecmd_path' 'csh' \\\\!\\*`';
+.*setenv MODULESHOME $moduleshome;"
+set out_tcsh "^    alias module 'eval  `'\\S+tclsh' '$modulecmd_path' 'tcsh' \\\\!\\*`';
+.*setenv MODULESHOME $moduleshome;"
+set out_fish "^function module
+    eval '\\S+tclsh' '$modulecmd_path' 'fish' \\$argv | source -
+end
+.*set -xg MODULESHOME $moduleshome;"
+set out_tcl "^proc module {args}  {
+    global env;
+    set script {};
+    if {\\\[catch { set script \\\[eval exec \"\\S+tclsh\" \"$modulecmd_path\" \"tcl\" \\\$args\\\] } msg\\\]} {
+        puts \\\$msg
+    };
+    uplevel \\\$script;
+}
+.*set env\\\(MODULESHOME\\\) \"$moduleshome\";"
+set out_perl "^sub module {
+  eval `\\S+tclsh $modulecmd_path perl \\@_`;
+  if\\\(\\$\\@\\\) {
+    use Carp;
+    confess \"module-error: \\$\\@
+\";
+  }
+  return 1;
+}
+.*\\\$ENV{'MODULESHOME'} = '$moduleshome';"
+set out_python "^import os
+import subprocess
+def module\\\(command, \\*arguments\\\):
+        exec\\\(subprocess\\.Popen\\\(\\\['\\S+tclsh', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)
+.*os\\.environ\\\['MODULESHOME'\\\] = '$moduleshome'"
+set out_lisp "(error \"modulefile.tcl: 1 error(s) detected!\")"
+set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
+
+#
+#  test autoinit command for the different shells
+#
+
+test_cmd_re "sh" "autoinit" "$out_sh"
+test_cmd_re "bash" "autoinit" "$out_bash"
+test_cmd_re "ksh" "autoinit" "$out_ksh"
+test_cmd_re "zsh" "autoinit" "$out_zsh"
+test_cmd_re "csh" "autoinit" "$out_csh"
+test_cmd_re "tcsh" "autoinit" "$out_tcsh"
+test_cmd_re "fish" "autoinit" "$out_fish"
+test_cmd_re "tcl" "autoinit" "$out_tcl"
+test_cmd_re "perl" "autoinit" "$out_perl"
+test_cmd_re "python" "autoinit" "$out_python"
+testouterr_cmd "lisp" "autoinit" "$out_lisp" "$err_lisp"
+
+#
+#  Cleanup
+#
+
+unset path_list
+unset modulecmd_path
+unset moduleshome
+unset out_sh
+unset out_bash
+unset out_ksh
+unset out_zsh
+unset out_csh
+unset out_tcsh
+unset out_fish
+unset out_tcl
+unset out_perl
+unset out_python
+unset out_lisp
+unset err_lisp

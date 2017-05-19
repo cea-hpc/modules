@@ -192,7 +192,9 @@ proc modulecmd_load { arg } {
 
 proc install_test_xxx_ {command} {
    global verbose
+   global autoinit_script
    global shell
+   global autoinit_mode
    global shell_test
    global shell_path
    global shell_opts
@@ -217,6 +219,9 @@ proc install_test_xxx_ {command} {
    if {![info exists shell_init($shell)]} {
       unresolved "internal testsuite error: no init script set for '$shell' shell"
    }
+   if {![info exists autoinit_script]} {
+      unresolved "internal testsuite error: no autoinit script set"
+   }
    if {![info exists shell_level]} {
       set level "top"
    } else {
@@ -232,12 +237,21 @@ proc install_test_xxx_ {command} {
    if {[info exists shell_opts($shell)]} {
       lappend cmd_to_exec $shell_opts($shell)
    }
-   lappend cmd_to_exec $shell_test($shell) $shell_init($shell) \
-      $level $shell_path($sub) $command
+   lappend cmd_to_exec $shell_test($shell)
+
+   if {$autoinit_mode} {
+      set autoinit_verb "autoinit "
+      lappend cmd_to_exec $autoinit_script
+   } else {
+      set autoinit_verb ""
+      lappend cmd_to_exec $shell_init($shell)
+   }
+
+   lappend cmd_to_exec $level $shell_path($sub) $command
 
    if { $verbose > 0 } {
       send_user "   ...  Testing '$shell [file tail $shell_test($shell)]\
-         $level $sub $command'\n"
+         $autoinit_verb$level $sub $command'\n"
    }
    if { $verbose > 1 } {
       send_user "starting $cmd_to_exec\n"

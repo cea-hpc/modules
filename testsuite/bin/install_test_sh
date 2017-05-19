@@ -63,13 +63,26 @@ case "$shkind" in
       shopts=''
 esac
 
-if [ ! -r $initfile ]; then
+# init module via autoinit cmd if modulecmd.tcl is initfile
+if [ "$(basename $initfile)" = 'modulecmd.tcl' ]; then
+   autoinit=0
+else
+   autoinit=1
+fi
+
+if [ $autoinit -eq 0 -a ! -x $initfile ]; then
+   echo_error "Cannot execute $initfile"
+elif [ $autoinit -ne 0 -a ! -r $initfile ]; then
    echo_error "Cannot read $initfile"
 fi
 
 # source module init file if first step of given mode
 if [ "$mode" = 'top' -o "$mode" = 'sub' -o  "$mode" = 'subsub' ]; then
-   . $initfile
+   if [ $autoinit -eq 0 ]; then
+      eval $($initfile $shname autoinit)
+   else
+      . $initfile
+   fi
 fi
 
 # execute command list or perform recursive call

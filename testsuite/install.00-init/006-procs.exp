@@ -30,6 +30,7 @@ proc _test_sub {test_shell cmd} {
    global comp_error
    global comp_exit
    global shell
+   global autoinit_mode
    global verbose
 
    set comp_output ""
@@ -38,6 +39,15 @@ proc _test_sub {test_shell cmd} {
 
    if { ![info exists test_shell] || ![info exists cmd] } {
       unresolved "$cmd ($test_shell) internal error"
+   }
+
+   # enable autoinit initialization when asked
+   set shell_args [split $test_shell ":"]
+   if { [llength $shell_args] == 2 && [lindex $shell_args 0] eq "autoinit" } {
+      set autoinit_mode 1
+      set test_shell [lindex $shell_args 1]
+   } else {
+      set autoinit_mode 0
    }
 
    set shell $test_shell
