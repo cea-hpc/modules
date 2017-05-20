@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.860
-set MODULES_CURRENT_RELEASE_DATE "2017-05-18"
+set MODULES_CURRENT_VERSION 1.862
+set MODULES_CURRENT_RELEASE_DATE "2017-05-20"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1001,18 +1001,6 @@ proc module {command args} {
             set errormsg "Unexpected number of args for 'initclear' command"
          } else {
             eval cmdModuleInit clear $args
-         }
-      }
-      {^debug$} {
-         if {$topcall} {
-            if {[llength $args] != 0} {
-               set errormsg "Unexpected number of args for 'debug' command"
-            } else {
-               eval cmdModuleDebug
-            }
-         } else {
-            # debug cannot be called elsewhere than from top level
-            set errormsg "${msgprefix}Command '$command' not supported"
          }
       }
       {^autoinit$} {
@@ -4418,34 +4406,6 @@ proc cmdModuleUnuse {args} {
                reportWarning "Did not unuse $unusepath"
             }
          }
-      }
-   }
-}
-
-proc cmdModuleDebug {} {
-   global env g_def_separator
-
-   reportDebug "cmdModuleDebug"
-
-   foreach var [array names env] {
-      array set countarr [getReferenceCountArray $var $g_def_separator]
-
-      foreach path [array names countarr] {
-         report "$var\t$path\t$countarr($path)"
-      }
-      unset countarr
-   }
-   foreach dir [split $env(PATH) $g_def_separator] {
-      foreach file [glob -nocomplain -- "$dir/*"] {
-         if {[file executable $file]} {
-            set exec [file tail $file]
-            lappend execcount($exec) $file
-         }
-      }
-   }
-   foreach file [lsort -dictionary [array names execcount]] {
-      if {[llength $execcount($file)] > 1} {
-         report "$file:\t$execcount($file)"
       }
    }
 }
