@@ -53,6 +53,41 @@ module-alias\tfoo setenv/1.0
 module-version\tfoo foo bar blah
 module-whatis\tSome checks for HELP and DISPLAY
 -------------------------------------------------------------------"
+set out_debug_pat "-------------------------------------------------------------------
+$env(TESTSUITEDIR)/modulefiles/help/2.0:
+
+(DEBUG .*)+
+set-alias\tal-testsuite\tps -auxww | grep modulecmd
+(DEBUG .*)+
+unset-alias\tal-testsuite
+(DEBUG .*)+
+setenv\t\ttestsuite\tyes
+(DEBUG .*)+
+append-path\ttestsuite\tno
+(DEBUG .*)+
+prepend-path\ttestsuite\tmaybe
+(DEBUG .*)+
+remove-path\ttestsuite\tyes
+(DEBUG .*)+
+unsetenv\ttestsuite
+(DEBUG .*)+
+x-resource\tmy-prog*my-ress\ttrue
+(DEBUG .*)+
+WARNING: 'module-user' command not implemented
+WARNING: 'module-verbosity' command not implemented
+WARNING: 'module-log' command not implemented
+(DEBUG .*)+
+system\t\tls
+(DEBUG .*)+
+module load\tsetenv/1.0
+(DEBUG .*)+
+module-alias\tfoo setenv/1.0
+(DEBUG .*)+
+module-version\tfoo foo bar blah
+(DEBUG .*)+
+module-whatis\tSome checks for HELP and DISPLAY
+(DEBUG .*)+
+-------------------------------------------------------------------"
 
 set out_err "$error_msgs: Unable to locate a modulefile for '$module_2'"
 set out_interr "Module ERROR: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_3/.modulerc:invalid command name \"bad-command\""
@@ -83,6 +118,12 @@ module-whatis\tSome checks for TEST and DISPLAY
 testerr_cmd "csh" "display $module_1" "$out_pat"
 
 #
+# test debug mode
+#
+
+testerr_cmd_re "csh" "--debug display $module_1" "$out_debug_pat"
+
+#
 # test exit on error  
 #
 testouterr_cmd "csh" "display $module_2" "$err_csh" "$out_err"
@@ -91,6 +132,11 @@ testouterr_cmd "csh" "display $module_2" "$err_csh" "$out_err"
 # test with erroneous modulefile
 #
 testouterr_cmd_re "csh" "display $module_3" "$err_csh" "$out_interr.*"
+
+#
+# test with erroneous modulefile in debug mode
+#
+testouterr_cmd_re "csh" "--debug display $module_3" "$err_csh" "$out_interr.*DEBUG Error: 1 error\\\(s\\\) detected.\$"
 
 #
 # test on modulefile with ModuleTest proc defined
@@ -105,6 +151,7 @@ unset err_csh
 unset out_err
 unset out_interr
 unset out_pat
+unset out_debug_pat
 unset out_pat_4
 
 unset module_1

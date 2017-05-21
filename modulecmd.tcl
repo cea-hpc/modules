@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.862
-set MODULES_CURRENT_RELEASE_DATE "2017-05-20"
+set MODULES_CURRENT_VERSION 1.863
+set MODULES_CURRENT_RELEASE_DATE "2017-05-21"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -100,11 +100,9 @@ proc raiseErrorCount {} {
 }
 
 proc renderError {} {
-   global g_shellType error_count g_debug
+   global g_shellType error_count
 
-   if {$g_debug} {
-      report "Error: $error_count error(s) detected."
-   }
+   reportDebug "Error: $error_count error(s) detected."
 
    if {[info exists g_shellType]} {
       switch -- $g_shellType {
@@ -290,9 +288,6 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
       interp eval $slave [list "set" "must_have_cookie" $must_have_cookie]
    }
    set errorVal [interp eval $slave {
-      if {$g_debug} {
-         report "Sourcing $ModulesCurrentModulefile"
-      }
       set modcontent [readModuleContent $ModulesCurrentModulefile 1\
          $must_have_cookie]
       if {$modcontent eq ""} {
@@ -4710,13 +4705,8 @@ if {[catch {
    set opt [lindex $argv 1]
    switch -regexp -- $opt {
       {^(-deb|--deb|-D)} {
-         if {!$g_debug} {
-            report "CALLING $argv0 $argv"
-         }
-
          set g_debug 1
-         reportDebug "debug enabled"
-
+         reportDebug "CALLING $argv0 $argv"
          set argv [lreplace $argv 1 1]
       }
       {^(--help|-h)} {

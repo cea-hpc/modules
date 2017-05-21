@@ -44,6 +44,18 @@ WARNING: 'module-log' command not implemented
 Help_out
 Help_err
 -------------------------------------------------------------------"
+set err_debug_help "-------------------------------------------------------------------
+Module Specific Help for $env(TESTSUITEDIR)/modulefiles/$module:
+
+(DEBUG .*)+
+WARNING: 'module-user' command not implemented
+WARNING: 'module-verbosity' command not implemented
+WARNING: 'module-log' command not implemented
+(DEBUG .*)+
+Help_out
+Help_err
+(DEBUG .*)+
+-------------------------------------------------------------------"
 set out_help "/bin/true;"
 
 set module_2 "bad"
@@ -62,6 +74,9 @@ set err_sh "/bin/false;"
 # test stderr output
 testerr_cmd "sh" "help $module" "$err_help"
 
+# test debug mode
+testerr_cmd_re "sh" "-D help $module" "$err_debug_help"
+
 # test stdout output: MUST be empty
 test_cmd "sh" "help $module" "$out_help"
 
@@ -74,6 +89,7 @@ testouterr_cmd_re "sh" "help $module_2" "$err_sh" "$out_interr.*"
 
 unset module 
 unset err_help
+unset err_debug_help
 unset out_help
 
 unset module_2
