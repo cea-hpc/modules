@@ -1,0 +1,68 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:       modules.50-cmds/%M%
+#   Revision:       %I%
+#   First Edition:  2017/05/22
+#   Last Mod.:      %U%, %G%
+#
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:    Testuite testsequence
+#   Command:		load, display, help, test
+#   Modulefiles:    info/others
+#   Sub-Command:
+#
+#   Comment:    %C{
+#           Tests the 'module-info' module subcommand with bad or
+#           deprecated keywords.
+#       }C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "info/others"
+set modulefile "$env(MODULEPATH)/$module"
+
+#
+#  For sh shell only (no need to check every shells)
+#
+
+set trace_msg "trace: "
+set tracepat_msg "tracepat: "
+set bad_msg "Module ERROR: Occurred in file $modulefile:module-info bad not supported"
+
+
+#
+#  The tests
+#
+
+# test loading
+testouterr_cmd_re "sh" "load $module" "^/bin/false;\$" "^$trace_msg\n$tracepat_msg\n$bad_msg"
+
+# test displaying
+testerr_cmd_re "sh" "display $module" "$modlin\n$modulefile:\n\n$trace_msg\n$tracepat_msg\n$bad_msg"
+
+# test help
+testerr_cmd_re "sh" "help $module" "$modlin\nModule Specific Help for $modulefile:\n\n$trace_msg\n$tracepat_msg\n$bad_msg"
+
+# test test
+testerr_cmd_re "sh" "test $module" "$modlin\nModule Specific Test for $modulefile:\n\n$trace_msg\n$tracepat_msg\n$bad_msg"
+
+
+#
+#  Cleanup
+#
+
+unset modulefile
+unset module
+
+unset trace_msg
+unset tracepat_msg
+unset bad_msg
