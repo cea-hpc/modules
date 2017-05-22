@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.863
-set MODULES_CURRENT_RELEASE_DATE "2017-05-21"
+set MODULES_CURRENT_VERSION 1.864
+set MODULES_CURRENT_RELEASE_DATE "2017-05-22"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -295,36 +295,38 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
          return 2
       }
       info script $ModulesCurrentModulefile
-      set sourceFailed [catch {eval $modcontent} errorMsg]
-      switch -- [module-info mode] {
-         {help} {
-            if {[info procs "ModulesHelp"] eq "ModulesHelp"} {
-               ModulesHelp
-            } else {
-               reportWarning "Unable to find ModulesHelp in\
-                  $ModulesCurrentModulefile."
-            }
-            set sourceFailed 0
-         }
-         {display} {
-            if {[info procs "ModulesDisplay"] eq "ModulesDisplay"} {
-               ModulesDisplay
-            }
-         }
-         {test} {
-            if {[info procs "ModulesTest"] eq "ModulesTest"} {
-               if {[string is true -strict [ModulesTest]]} {
-                  report "Test result: PASS"
+      # eval then call for specific proc depending mode under same catch
+      set sourceFailed [catch {
+         eval $modcontent
+         switch -- [module-info mode] {
+            {help} {
+               if {[info procs "ModulesHelp"] eq "ModulesHelp"} {
+                  ModulesHelp
                } else {
-                  report "Test result: FAIL"
-                  raiseErrorCount
+                  reportWarning "Unable to find ModulesHelp in\
+                     $ModulesCurrentModulefile."
                }
-            } else {
-               reportWarning "Unable to find ModulesTest in\
-                  $ModulesCurrentModulefile."
+            }
+            {display} {
+               if {[info procs "ModulesDisplay"] eq "ModulesDisplay"} {
+                  ModulesDisplay
+               }
+            }
+            {test} {
+               if {[info procs "ModulesTest"] eq "ModulesTest"} {
+                  if {[string is true -strict [ModulesTest]]} {
+                     report "Test result: PASS"
+                  } else {
+                     report "Test result: FAIL"
+                     raiseErrorCount
+                  }
+               } else {
+                  reportWarning "Unable to find ModulesTest in\
+                     $ModulesCurrentModulefile."
+               }
             }
          }
-      }
+      } errorMsg]
       if {$sourceFailed} {
          global errorInfo
          # no error in case of "continue" command

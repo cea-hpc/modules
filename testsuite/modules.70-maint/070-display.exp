@@ -28,6 +28,7 @@ set module_1 "help"
 set module_2 "NonExistant"
 set module_3 "bad"
 set module_4 "test"
+set module_5 "bad2"
 
 # different behavior than C-version: on Tcl-version 'module-log', 'module-verbosity'
 # and 'module-user' commandq are not handled and will always return a warning message
@@ -111,6 +112,13 @@ module-version\tfoo foo bar blah
 module-whatis\tSome checks for TEST and DISPLAY
 -------------------------------------------------------------------"
 
+set out_interr_5 "-------------------------------------------------------------------
+$env(TESTSUITEDIR)/modulefiles/$module_5/proc:
+
+setenv\t\ttestsuite\tyes
+module-whatis\terroneous module test
+Module ERROR: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_5/proc:invalid command name \"bad-command\""
+
 #
 #  The tests
 #
@@ -144,6 +152,12 @@ testouterr_cmd_re "csh" "--debug display $module_3" "$err_csh" "$out_interr.*DEB
 testerr_cmd "csh" "display $module_4" "$out_pat_4"
 
 #
+# test with erroneous ModulesDisplay proc in modulefile
+#
+testouterr_cmd_re "csh" "display $module_5" "$err_csh" "$out_interr_5.*"
+
+
+#
 #  Cleanup
 #
 
@@ -153,8 +167,10 @@ unset out_interr
 unset out_pat
 unset out_debug_pat
 unset out_pat_4
+unset out_interr_5
 
 unset module_1
 unset module_2
 unset module_3
 unset module_4
+unset module_5
