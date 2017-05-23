@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.869
+set MODULES_CURRENT_VERSION 1.870
 set MODULES_CURRENT_RELEASE_DATE "2017-05-23"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -2742,12 +2742,14 @@ proc stringDictionaryCompare {str1 str2} {
 
 # provide a lreverse proc for Tcl8.4 and earlier
 if {[info commands lreverse] eq ""} {
-    proc lreverse l {
-        set r {}
-        set i [llength $l]
-        while {[incr i -1]} {lappend r [lindex $l $i]}
-        lappend r [lindex $l 0]
-    }
+   proc lreverse l {
+      set r {}
+      set i [llength $l]
+      while {[incr i -1] > 0} {
+         lappend r [lindex $l $i]
+      }
+      lappend r [lindex $l 0]
+   }
 }
 
 # provide a lassign proc for Tcl8.4 and earlier
