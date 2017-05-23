@@ -70,6 +70,27 @@ proc default_modulecmd {} {
 
 }
 
+proc default_tclsh {} {
+   global TCLSH
+   global verbose
+   global env
+
+   if ![info exists TCLSH] then {
+      if [info exists env(TCLSH)] {
+         set TCLSH $env(TCLSH)
+      } else {
+	     set TCLSH [which modulecmd]
+	     if ![file exists $TCLSH] then {
+		    fail "No 'tclsh' found"
+		    exit -1
+	     } elseif { $verbose > 1 } {
+		    send_user "using 'tclsh' from search path"
+	     }
+      }
+   }
+}
+
+
 #
 # modulecmd_exit -- cleanup
 #
@@ -86,6 +107,7 @@ proc modulecmd_exit {} {
 
 proc modulecmd_xxx_ {command} {
 	global MODULECMD
+	global TCLSH
 	global verbose
 	global shell
 	global comp_output
@@ -100,9 +122,10 @@ proc modulecmd_xxx_ {command} {
 
 	default_shell 
 	default_modulecmd
+	default_tclsh
 
 	if { ! $no_verbose && $verbose > 1 } {
-		send_user "starting $MODULECMD $shell $command\n"
+		send_user "starting $TCLSH $MODULECMD $shell $command\n"
 	}
 
 # this is why I hate Tcl ... you can never count on anything to act
@@ -113,7 +136,7 @@ proc modulecmd_xxx_ {command} {
 #
 # now need to capture the exit return code.
 	if [catch {
-		set comp_output [eval exec $MODULECMD $shell [split $command { }] 2> test321.err > test321.out ]
+		set comp_output [eval exec $TCLSH $MODULECMD $shell [split $command { }] 2> test321.err > test321.out ]
 	} ] {
 		set comp_exit [lindex $errorCode 2]
 	} else {

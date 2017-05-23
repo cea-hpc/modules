@@ -45,6 +45,7 @@ cverinitdir=
 cverbindir=
 cvermandir=
 loadedmodules=
+TCLSH=tclsh
 # these args are initialized here but as they depend on other argument value
 # they will get their default value later (after command-line parse)
 bindir=
@@ -121,6 +122,7 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-tclsh=BIN        name or full path of Tcl interpreter shell [tclsh]
   --with-cver-initdir=DIR directory containing Modules C version init
                           scripts, which is a required information to enable
                           the \`switchml' and \`use-cver-dotmodulespath'
@@ -199,7 +201,7 @@ get_feature_value() {
 get_package_value() {
    typeset val="${1#*=}"
 
-   if [ "${1//--with/}" != "$1" ]; then
+   if [ "${1//--with-/}" != "$1" ]; then
       if [ "$val" = 'no' ]; then
         echo ''
       else
@@ -248,6 +250,8 @@ for arg in "$@"; do
    --enable-example-modulefiles*|--disable-example-modulefiles)
       examplemodulefiles=$(get_feature_value "$arg")
       defexamplemodulefiles=0 ;;
+   --with-tclsh=*|--without-tclsh)
+      tclshbin=$(get_package_value "$arg") ;;
    --with-cver-initdir=*|--without-cver-initdir)
       cverinitdir=$(get_package_value "$arg") ;;
    --with-cver-bindir=*|--without-cver-bindir)
@@ -290,7 +294,9 @@ documentation"
 check_requirement runtest "Install \`dejagnu' if you want to run the \
 testsuite"
 # get tclsh location from standard PATHs or /usr/local/bin
-check_requirement tclsh '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+# or validate location passed as argument
+[ -z "$tclshbin" ] && tclshbin=$TCLSH
+check_requirement $tclshbin '' 'PATH=/usr/bin:/bin:/usr/local/bin'
 TCLSH=$reqpath
 
 # check feature requirements are met

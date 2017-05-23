@@ -33,13 +33,19 @@ foreach elt [file split [file join [pwd] $MODULECMD]] {
 set modulecmd_path [eval file join $path_list]
 set moduleshome [file dirname $modulecmd_path]
 
-set out_sh "^module \\\(\\\) { eval  `'\\S+tclsh' '$modulecmd_path' 'sh' \\$\\*`; } ;\n.*MODULESHOME=$moduleshome; export MODULESHOME;"
-set out_bash "^module \\\(\\\) { eval  `'\\S+tclsh' '$modulecmd_path' 'bash' \\$\\*`; } ;\n.*MODULESHOME=$moduleshome; export MODULESHOME;"
-set out_ksh "^module \\\(\\\) { eval  `'\\S+tclsh' '$modulecmd_path' 'ksh' \\$\\*`; } ;\n.*MODULESHOME=$moduleshome; export MODULESHOME;"
-set out_zsh "^module \\\(\\\) { eval  `'\\S+tclsh' '$modulecmd_path' 'zsh' \\$\\*`; } ;\n.*MODULESHOME=$moduleshome; export MODULESHOME;"
-set out_csh "^    alias module 'eval  `'\\S+tclsh' '$modulecmd_path' 'csh' \\\\!\\*`';
+if {[info exists env(TCLSH)]} {
+    set tclsh_path $env(TCLSH)
+} else {
+    set tclsh_path "\\S+tclsh"
+}
+
+set out_sh "^module \\\(\\\) { eval  `'$tclsh_path' '$modulecmd_path' 'sh' \\$\\*`; } ;\n.*MODULESHOME=$moduleshome; export MODULESHOME;"
+set out_bash "^module \\\(\\\) { eval  `'$tclsh_path' '$modulecmd_path' 'bash' \\$\\*`; } ;\n.*MODULESHOME=$moduleshome; export MODULESHOME;"
+set out_ksh "^module \\\(\\\) { eval  `'$tclsh_path' '$modulecmd_path' 'ksh' \\$\\*`; } ;\n.*MODULESHOME=$moduleshome; export MODULESHOME;"
+set out_zsh "^module \\\(\\\) { eval  `'$tclsh_path' '$modulecmd_path' 'zsh' \\$\\*`; } ;\n.*MODULESHOME=$moduleshome; export MODULESHOME;"
+set out_csh "^    alias module 'eval  `'$tclsh_path' '$modulecmd_path' 'csh' \\\\!\\*`';
 .*setenv MODULESHOME $moduleshome;"
-set out_tcsh "^    alias module 'eval  `'\\S+tclsh' '$modulecmd_path' 'tcsh' \\\\!\\*`';
+set out_tcsh "^    alias module 'eval  `'$tclsh_path' '$modulecmd_path' 'tcsh' \\\\!\\*`';
 .*setenv MODULESHOME $moduleshome;"
 set out_fish "^function module
     eval '\\S+tclsh' '$modulecmd_path' 'fish' \\$argv | source -
@@ -48,14 +54,14 @@ end
 set out_tcl "^proc module {args}  {
     global env;
     set script {};
-    if {\\\[catch { set script \\\[eval exec \"\\S+tclsh\" \"$modulecmd_path\" \"tcl\" \\\$args\\\] } msg\\\]} {
+    if {\\\[catch { set script \\\[eval exec \"$tclsh_path\" \"$modulecmd_path\" \"tcl\" \\\$args\\\] } msg\\\]} {
         puts \\\$msg
     };
     uplevel \\\$script;
 }
 .*set env\\\(MODULESHOME\\\) \"$moduleshome\";"
 set out_perl "^sub module {
-  eval `\\S+tclsh $modulecmd_path perl \\@_`;
+  eval `$tclsh_path $modulecmd_path perl \\@_`;
   if\\\(\\$\\@\\\) {
     use Carp;
     confess \"module-error: \\$\\@
@@ -67,7 +73,7 @@ set out_perl "^sub module {
 set out_python "^import os
 import subprocess
 def module\\\(command, \\*arguments\\\):
-        exec\\\(subprocess\\.Popen\\\(\\\['\\S+tclsh', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)
+        exec\\\(subprocess\\.Popen\\\(\\\['$tclsh_path', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)
 .*os\\.environ\\\['MODULESHOME'\\\] = '$moduleshome'"
 set out_lisp "(error \"modulefile.tcl: 1 error(s) detected!\")"
 set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
