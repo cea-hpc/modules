@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.864
-set MODULES_CURRENT_RELEASE_DATE "2017-05-22"
+set MODULES_CURRENT_VERSION 1.869
+set MODULES_CURRENT_RELEASE_DATE "2017-05-23"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2015,7 +2015,12 @@ proc getLoadedWithClosestName {name} {
    # compare name to each currently loaded module name
    foreach mod [getLoadedModuleList] {
       set modsplit [split $mod "/"]
-      set imax [expr {min([llength $namesplit], [llength $modsplit])}]
+      # min expr function is not supported in Tcl8.4 and earlier
+      if {[llength $namesplit] < [llength $modsplit]} {
+         set imax [llength $namesplit]
+      } else {
+         set imax [llength $modsplit]
+      }
 
       # compare each element of the name to find closest answer
       # in case of equality, last loaded module will be returned as it
@@ -3244,8 +3249,13 @@ proc displaySeparatorLine {{title {}}} {
       report "[string repeat {-} 67]"
    } else {
       set len  [string length $title]
-      set lrep [expr {max(($DEF_COLUMNS - $len - 2)/2,1)}]
-      set rrep [expr {max($DEF_COLUMNS - $len - 2 - $lrep,1)}]
+      # max expr function is not supported in Tcl8.4 and earlier
+      if {[set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]] < 1} {
+         set lrep 1
+      }
+      if {[set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]] < 1} {
+         set rrep 1
+      }
       report "[string repeat {-} $lrep] $title [string repeat {-} $rrep]"
    }
 }
@@ -3414,7 +3424,11 @@ proc getMovementBetweenList {from to} {
    # determine what element to undo then do
    # to restore a target list from a current list
    # with preservation of the element order
-   set imax [expr {max([llength $to], [llength $from])}]
+   if {[llength $to] > [llength $from]} {
+      set imax [llength $to]
+   } else {
+      set imax [llength $from]
+   }
    set list_equal 1
    for {set i 0} {$i < $imax} {incr i} {
       set to_obj [lindex $to $i]
