@@ -1,0 +1,91 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2017/05/25
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		aliases
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the module command 'aliases'
+#		}C%
+#
+##############################################################################
+
+#
+#  Test variables
+#
+
+set alias_header "\[-\]+ Aliases \[-\]+"
+set alias_list "averssort/1 -> verssort/1
+averssort/1.2.4 -> verssort/1.2.4
+averssort/1.10 -> verssort/1.10
+inforc/foo -> inforc/1.0
+loc_rc6/1 -> loc_rc6/1.2
+loc_rc6/bar -> loc_rc6/1.2
+loc_rc7/1 -> loc_rc7/1.2
+loc_rc7/bar -> loc_rc7/0.9"
+set version_header "\[-\]+ Versions \[-\]+"
+set version_list "bad/good -> bad/after
+info/foo -> info/specified
+inforc/aliases -> inforc/2.0
+inforc/bar -> inforc/2.0
+loc_rc1/foo -> loc_rc1/1.0
+loc_rc2/bar -> loc_rc2/1.0
+loc_rc2/blah -> loc_rc2/1.0
+loc_rc2/foo -> loc_rc2/1.0
+loc_rc3/chk -> loc_rc3/3.0
+loc_rc3/cur -> loc_rc3/2.0
+loc_rc3/exp -> loc_rc3/3.0
+loc_rc3/new -> loc_rc3/3.0
+loc_rc3/stable -> loc_rc3/2.0
+loc_rc3/test -> loc_rc3/3.0
+loc_rc6/new -> loc_rc6/1.2"
+
+
+#
+#  test on path were there are aliases
+#
+
+testouterr_cmd_re "sh" "aliases" "" "^$alias_header\n$alias_list\n$version_header\n$version_list\$"
+
+
+#
+#  test on path with no aliases
+#
+
+# setup environment state
+set ORIG_MODULEPATH "$env(MODULEPATH)"
+set modpath "$env(TESTSUITEDIR)/modulefiles.other"
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = $modpath\n"
+}
+set env(MODULEPATH) "$modpath"
+
+testouterr_cmd "sh" "aliases" "" ""
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = $ORIG_MODULEPATH\n"
+}
+set env(MODULEPATH) "$ORIG_MODULEPATH"
+unset ORIG_MODULEPATH
+
+unset modpath
+unset alias_header
+unset alias_list
+unset version_header
+unset version_list
