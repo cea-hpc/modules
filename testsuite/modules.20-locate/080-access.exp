@@ -22,35 +22,6 @@
 ##############################################################################
 
 #
-# Procedure for this test
-#
-
-proc change_file_perms {name perms} {
-    global verbose file_orig_perms
-
-    # backup original file permission to restore them later
-    set file_orig_perms($name) [file attributes $name -permissions]
-
-    if { $verbose > 0 } {
-        send_user "\tChange permissions of file $name ($perms)\n"
-    }
-
-    # lock file by removing read and execution perms
-    file attributes $name -permissions $perms
-}
-
-proc restore_file_perms {name} {
-    global verbose file_orig_perms
-
-    if { $verbose > 0 } {
-        send_user "\tRestore permissions of file $name ($file_orig_perms($name))\n"
-    }
-
-    # restore file original permissions
-    file attributes $name -permissions $file_orig_perms($name)
-}
-
-#
 # Variables for this test
 #
 
@@ -405,9 +376,3 @@ unset m15
 unset lmd15
 unset m16
 unset lmd16
-
-unset file_orig_perms
-
-# remove procs
-rename change_file_perms {}
-rename restore_file_perms {}
