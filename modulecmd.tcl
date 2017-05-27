@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.870
-set MODULES_CURRENT_RELEASE_DATE "2017-05-23"
+set MODULES_CURRENT_VERSION 1.877
+set MODULES_CURRENT_RELEASE_DATE "2017-05-27"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2894,16 +2894,17 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
    reportDebug "findModules: finding '$mod' in $dir\
       (fetch_mtime=$fetch_mtime)"
 
-   # On Cygwin, glob may change the $dir path if there are symlinks
-   # involved. So it is safest to reglob the $dir.
-   # example:
-   # [glob /home/stuff] -> "//homeserver/users0/stuff"
    # use catch protection to handle non-readable and non-existent dir
-   if {[catch {set dir [glob $dir]}]} {
+   if {[catch {
+      # On Cygwin, glob may change the $dir path if there are symlinks
+      # involved. So it is safest to reglob the $dir.
+      # example:
+      # [glob /home/stuff] -> "//homeserver/users0/stuff"
+      set dir [glob $dir]
+      set full_list [glob -nocomplain "$dir/$mod"]
+   }]} {
       return {}
    }
-
-   set full_list [glob -nocomplain "$dir/$mod"]
 
    # remove trailing / needed on some platforms
    regsub {\/$} $full_list {} full_list
@@ -4271,9 +4272,7 @@ proc cmdModuleAliases {} {
    if {[array size g_moduleAlias] == 0 \
       && [array size g_moduleVersion] == 0 } {
       foreach dir [getModulePathList "exiterronundef"] {
-         if {[file isdirectory "$dir"] && [file readable $dir]} {
-            listModules "$dir" ""
-         }
+         getModules $dir "" 0 "" 0
       }
    }
 
@@ -4323,11 +4322,9 @@ proc cmdModuleAvail {{mod {*}}} {
    }
 
    foreach dir [getModulePathList "exiterronundef"] {
-      if {[file isdirectory "$dir"] && [file readable $dir]} {
-         set display_list [listModules "$dir" "$mod" 1 $show_filter]
-         if {[llength $display_list] > 0} {
-            eval displayElementList $dir $one_per_line 0 $display_list
-         }
+      set display_list [listModules "$dir" "$mod" 1 $show_filter]
+      if {[llength $display_list] > 0} {
+         eval displayElementList $dir $one_per_line 0 $display_list
       }
    }
 
