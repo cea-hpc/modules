@@ -12,7 +12,7 @@
 #   Description:	Testuite testsequence
 #   Command:		load
 #   Modulefiles:	use/1.0,use/2.0,use/2.1,use/2.2
-#                   use/3.0,use/3.1,use/3.2
+#                   use/3.0,use/3.1,use/3.2,use/4.0
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -37,6 +37,7 @@ set module4 "use/2.2"
 set module5 "use/3.0"
 set module6 "use/3.1"
 set module7 "use/3.2"
+set module8 "use/4.0"
 set modulefile1 "$path1/$module1"
 set modulefile2 "$path1/$module2"
 set modulefile3 "$path1/$module3"
@@ -44,6 +45,7 @@ set modulefile4 "$path1/$module4"
 set modulefile5 "$path1/$module5"
 set modulefile6 "$path1/$module6"
 set modulefile7 "$path1/$module7"
+set modulefile8 "$path1/$module8"
 
 #
 #  For the different shells ...
@@ -411,6 +413,53 @@ test_cmd_re "python" "load $module7" "$python\$"
 test_cmd_re "lisp" "load $module7" "$lisp\$"
 
 #
+#  For the different shells ...
+#
+
+set lmsh "_LMFILES_=$modulefile8; export _LMFILES_;"
+set lmcsh "setenv _LMFILES_ $modulefile8;"
+set lmfish "set -xg _LMFILES_ $modulefile8;"
+set lmtcl "set env\\\(_LMFILES_\\\) \"$modulefile8\";"
+set lmperl "\\\$ENV{'_LMFILES_'} = \'$modulefile8\';"
+set lmpython "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile8\'"
+set lmlisp "\\\(setenv \"_LMFILES_\" \"$modulefile8\"\\\)"
+
+set loadmodsh "LOADEDMODULES=$module8; export LOADEDMODULES;"
+set loadmodcsh "setenv LOADEDMODULES $module8;"
+set loadmodfish "set -xg LOADEDMODULES $module8;"
+set loadmodtcl "set env\\\(LOADEDMODULES\\\) \"$module8\";"
+set loadmodperl "\\\$ENV{'LOADEDMODULES'} = \'$module8\';"
+set loadmodpython "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module8\'"
+set loadmodlisp "\\\(setenv \"LOADEDMODULES\" \"$module8\"\\\)"
+
+set sh		"$lmmodsharesh\n$loadmodsharesh\n$lmsh\n$loadmodsh\n/bin/false;"
+set csh         "$lmmodsharecsh\n$loadmodsharecsh\n$lmcsh\n$loadmodcsh\n/bin/false;"
+set fish        "$lmmodsharefish\n$loadmodsharefish\n$lmfish\n$loadmodfish\n/bin/false;"
+set tcl         "$lmmodsharetcl\n$loadmodsharetcl\n$lmtcl\n$loadmodtcl\nexec /bin/false;"
+set perl        "$lmmodshareperl\n$loadmodshareperl\n$lmperl\n$loadmodperl\ndie \"modulefile.tcl: 1 error\\\(s\\\) detected!\\\\n\""
+set python      "import os\n$lmmodsharepython\n$loadmodsharepython\n$lmpython\n$loadmodpython\nraise RuntimeError\\\( 'modulefile.tcl: 1 error\\\(s\\\) detected!'\\\)"
+set lisp        "$lmmodsharelisp\n$loadmodsharelisp\n$lmlisp\n$loadmodlisp\n\\\(error \"modulefile.tcl: 1 error\\\(s\\\) detected!\"\\\)"
+
+set err_msg     "$error_msgs: Directory '' not found"
+
+#
+#  The tests (use {})
+#
+
+testouterr_cmd_re "sh" "load $module8" "$sh\$" "^$err_msg\$"
+testouterr_cmd_re "bash" "load $module8" "$sh\$" "^$err_msg\$"
+testouterr_cmd_re "ksh" "load $module8" "$sh\$" "^$err_msg\$"
+testouterr_cmd_re "zsh" "load $module8" "$sh\$" "^$err_msg\$"
+testouterr_cmd_re "csh" "load $module8" "$csh\$" "^$err_msg\$"
+testouterr_cmd_re "tcsh" "load $module8" "$csh\$" "^$err_msg\$"
+testouterr_cmd_re "fish" "load $module8" "$fish\$" "^$err_msg\$"
+testouterr_cmd_re "tcl" "load $module8" "$tcl\$" "^$err_msg\$"
+testouterr_cmd_re "perl" "load $module8" "$perl\$" "^$err_msg\$"
+#testouterr_cmd_re "cmake" "load $module8" "$cmake\$" "^$err_msg\$"
+testouterr_cmd_re "python" "load $module8" "$python\$" "^$err_msg\$"
+testouterr_cmd_re "lisp" "load $module8" "$lisp\$" "^$err_msg\$"
+
+#
 #  Cleanup
 #
 
@@ -445,6 +494,9 @@ unset python
 unset perl
 unset lisp
 
+unset err_msg
+
+unset modulefile8
 unset modulefile7
 unset modulefile6
 unset modulefile5
@@ -452,6 +504,7 @@ unset modulefile4
 unset modulefile3
 unset modulefile2
 unset modulefile1
+unset module8
 unset module7
 unset module6
 unset module5

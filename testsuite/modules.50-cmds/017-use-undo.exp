@@ -12,7 +12,7 @@
 #   Description:	Testuite testsequence
 #   Command:		load
 #   Modulefiles:	use/1.0,use/2.0,use/2.1,use/2.2
-#                   use/3.0,use/3.1,use/3.2
+#                   use/3.0,use/3.1,use/3.2,use/4.0
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -37,6 +37,7 @@ set module4 "use/2.2"
 set module5 "use/3.0"
 set module6 "use/3.1"
 set module7 "use/3.2"
+set module8 "use/4.0"
 set modulefile1 "$path1/$module1"
 set modulefile2 "$path1/$module2"
 set modulefile3 "$path1/$module3"
@@ -44,6 +45,7 @@ set modulefile4 "$path1/$module4"
 set modulefile5 "$path1/$module5"
 set modulefile6 "$path1/$module6"
 set modulefile7 "$path1/$module7"
+set modulefile8 "$path1/$module8"
 
 #
 #  Set up the environment for reversal ...
@@ -268,6 +270,30 @@ test_cmd_re "python" "unload $module7" "import os\n$lmfmod_python\n$lmmod_python
 test_cmd_re "lisp" "unload $module7" "$lmfmod_lisp\n$lmmod_lisp\n$mpmod_lisp\n$lmf_lisp\n$lm_lisp\n$mp_lisp\$"
 
 #
+#  Set up the environment for reversal ...
+#
+
+set env(_LMFILES_) "$modulefile8"
+set env(LOADEDMODULES) "$module8"
+
+#
+#  The tests (use -prepend)
+#	for backward compatibility
+#
+
+testouterr_cmd_re "sh" "unload $module8" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^\$"
+testouterr_cmd_re "bash" "unload $module8" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^\$"
+testouterr_cmd_re "ksh" "unload $module8" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^\$"
+testouterr_cmd_re "zsh" "unload $module8" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^\$"
+testouterr_cmd_re "csh" "unload $module8" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$" "^\$"
+testouterr_cmd_re "tcsh" "unload $module8" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$" "^\$"
+testouterr_cmd_re "fish" "unload $module8" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$" "^\$"
+testouterr_cmd_re "tcl" "unload $module8" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$" "^\$"
+testouterr_cmd_re "perl" "unload $module8" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$" "^\$"
+testouterr_cmd_re "python" "unload $module8" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$" "^\$"
+testouterr_cmd_re "lisp" "unload $module8" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$" "^\$"
+
+#
 #  Cleanup
 #
 
@@ -324,6 +350,7 @@ unset lmf_lisp
 unset lmmod_lisp
 unset lmfmod_lisp
 
+unset modulefile8
 unset modulefile7
 unset modulefile6
 unset modulefile5
@@ -331,6 +358,7 @@ unset modulefile4
 unset modulefile3
 unset modulefile2
 unset modulefile1
+unset module8
 unset module7
 unset module6
 unset module5
