@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.884
+set MODULES_CURRENT_VERSION 1.885
 set MODULES_CURRENT_RELEASE_DATE "2017-06-13"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -2776,6 +2776,20 @@ proc replaceFromList {list1 item {item2 {}}} {
     return $list1
 }
 
+proc registerAccessIssue {modfile} {
+   global g_access_mod_info errorCode
+
+   # retrieve issue message
+   if {[regexp {POSIX .* \{(.*)\}$} $errorCode match errMsg]} {
+      set issue_info "[string totitle $errMsg] on"
+   } else {
+      set issue_info "Cannot access"
+   }
+
+   # register access issue
+   set g_access_mod_info($modfile) "$issue_info '$modfile'"
+}
+
 proc checkValidModule {modfile} {
    reportDebug "checkValidModule: $modfile"
 
@@ -2785,15 +2799,7 @@ proc checkValidModule {modfile} {
       set fheader [read $fid 8]
       close $fid
    }]} {
-      global g_access_mod_info errorCode
-      # retrieve issue message
-      if {[regexp {POSIX .* \{(.*)\}$} $errorCode match errMsg]} {
-         set issue_info "[string totitle $errMsg] on"
-      } else {
-         set issue_info "Cannot access"
-      }
-      # register access issue
-      set g_access_mod_info($modfile) "$issue_info '$modfile'"
+      registerAccessIssue $modfile
    } else {
       if {$fheader eq "\#%Module"} {
          return 1
@@ -2930,18 +2936,25 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
       set direlem [file dirname $element]
       set modulename [string range $element $sstart end]
       set add_ref_to_parent 0
-      if {[file isdirectory $element] && [file readable $element]} {
+      if {[file isdirectory $element]} {
          if {![info exists ignoreDir($tail)]} {
-            set mod_list($modulename) [list "directory"]
-            # Add each element in the current directory to the list
-            if {[file readable $element/.modulerc]} {
-               lappend full_list $element/.modulerc
+            # try then catch any issue rather than test before trying
+            if {[catch {set elt_list [glob -nocomplain "$element/*"]}]} {
+               registerAccessIssue $element
+            } else {
+               set mod_list($modulename) [list "directory"]
+               # Add each element in the current directory to the list
+               if {[file readable $element/.modulerc]} {
+                  lappend full_list $element/.modulerc
+               }
+               if {[file readable $element/.version]} {
+                  lappend full_list $element/.version
+               }
+               if {[llength $elt_list] > 0} {
+                  set full_list [concat $full_list $elt_list]
+               }
+               set add_ref_to_parent 1
             }
-            if {[file readable $element/.version]} {
-               lappend full_list $element/.version
-            }
-            set full_list [concat $full_list [glob -nocomplain "$element/*"]]
-            set add_ref_to_parent 1
          }
       } else {
          switch -glob -- $tail {
