@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.885
+set MODULES_CURRENT_VERSION 1.886
 set MODULES_CURRENT_RELEASE_DATE "2017-06-13"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -377,7 +377,7 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
 # .version files
 proc execute-modulerc {modfile {exit_on_error 1}} {
    global g_rcfilesSourced ModulesVersion
-   global g_debug g_moduleDefault g_inhibit_errreport g_inhibit_dispreport
+   global g_debug g_inhibit_errreport g_inhibit_dispreport
    global ModulesCurrentModulefile
 
    reportDebug "execute-modulerc: $modfile"
@@ -445,13 +445,12 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
 
       interp delete $slave
 
+      # default version set via ModulesVersion variable in .version file
+      # override previously defined default version for modname
       if {[file tail $modfile] eq ".version" && $ModulesVersion ne ""} {
-         # only set g_moduleDefault if .version file,
-         # otherwise any modulerc settings ala "module-version /xxx default"
-         #  would get overwritten
-         set g_moduleDefault($modname) $ModulesVersion
-         reportDebug "execute-version: Setting g_moduleDefault($modname)\
-            $ModulesVersion"
+         reportDebug "execute-version: default $modname =\
+            $modname/$ModulesVersion"
+         setModuleResolution $modname $modname/$ModulesVersion "default" 1
       }
 
       # Keep track of rc files we already sourced so we don't run them again
@@ -570,7 +569,7 @@ proc module-info {what {more {}}} {
          }
       }
       "alias" {
-         set ret [resolveModuleVersionOrAlias $more "alias"]
+         set ret [resolveModuleVersionOrAlias $more]
          if {$ret ne $more} {
             return $ret
          } else {
@@ -587,7 +586,8 @@ proc module-info {what {more {}}} {
          return "Tcl"
       }
       "symbols" {
-         return [join [getVersAliasList $more 1] ":"]
+         lassign [getModuleNameVersion $more 1 1] mod
+         return [join [getVersAliasList $mod] ":"]
       }
       "version" {
          lassign [getModuleNameVersion $more 1 1] mod
@@ -674,15 +674,88 @@ proc getModuleNameVersion {{name {}} {default_is_special 0}\
    return [list $mod $name $version]
 }
 
+# Register alias or symbolic version deep resolution in a global array that
+# can be used thereafter to get in one query the actual modulefile behind
+# a virtual name. Also consolidate a global array that in the same manner
+# list all the symbols held by modulefiles.
+proc setModuleResolution {mod res {symver {}} {override_default 0}} {
+   global g_moduleResolved g_resolvedHash
+   global g_symbolHash
+
+   # find end-point module and register path to get to it
+   lappend res_path $res
+   while {$mod ne $res && [info exists g_moduleResolved($res)]} {
+      set res $g_moduleResolved($res)
+      lappend res_path $res
+   }
+
+   # error if resolution end on initial module
+   if {$mod eq $res} {
+      reportError "Resolution loop on '$res' detected"
+      return 0
+   }
+
+   # change default symbol owner if previously given and override permitted
+   if {$symver eq "default" && [info exists g_moduleResolved($mod)]} {
+      if {!$override_default} {
+         reportDebug "setModuleResolution: symbol 'default' already set for\
+            $mod"
+         return 0
+      }
+
+      set prev $g_moduleResolved($mod)
+      if {[info exists g_symbolHash($prev)]\
+         && [set idx [lsearch -exact $g_symbolHash($prev) "default"]] != -1} {
+         reportDebug "setModuleResolution: remove symbol 'default' from\
+            '$prev'"
+         set g_symbolHash($prev) [lreplace $g_symbolHash($prev) $idx $idx]
+      }
+   }
+
+   # register end-point resolution
+   reportDebug "setModuleResolution: $mod resolved to $res"
+   set g_moduleResolved($mod) $res
+   lappend g_resolvedHash($res) $mod
+
+   # if other modules were pointing to this one, adapt resolution end-point
+   if {[info exists g_resolvedHash($mod)]} {
+      foreach relmod $g_resolvedHash($mod) {
+         set g_moduleResolved($relmod) $res
+         reportDebug "setModuleResolution: $relmod now resolved to $res"
+         lappend g_resolvedHash($res) $relmod
+      }
+      unset g_resolvedHash($mod)
+   }
+
+   # propagate symbols to the resolution path
+   if {$symver ne ""} {
+      lappend sym_list $symver
+      if {[info exists g_symbolHash($mod)]} {
+         # dictionary-sort symbols and remove eventual duplicates
+         set sym_list [lsort -dictionary -unique [concat $sym_list\
+            $g_symbolHash($mod)]]
+      }
+      reportDebug "setModuleResolution: add symbols '$sym_list' to $res_path"
+      foreach modres $res_path {
+         if {[info exists g_symbolHash($modres)]} {
+            set g_symbolHash($modres) [lsort -dictionary -unique [concat\
+               $g_symbolHash($modres) $sym_list]]
+         } else {
+            set g_symbolHash($modres) $sym_list
+         }
+      }
+   }
+
+   return 1
+}
+
 # Specifies a default or alias version for a module that points to an 
 # existing module version Note that aliases defaults are stored by the
 # short module name (not the full path) so aliases and defaults from one
 # directory will apply to modules of the same name found in other
 # directories.
 proc module-version {args} {
-   global g_moduleVersion g_versionHash
-   global g_moduleDefault
-   global ModulesCurrentModulefile
+   global g_moduleVersion
 
    reportDebug "module-version: executing module-version $args"
    lassign [getModuleNameVersion [lindex $args 0] 1 1] mod modname modversion
@@ -691,24 +764,19 @@ proc module-version {args} {
       if {[string match $version "default"]} {
          # If we see more than one default for the same module, just
          # keep the first
-         if {![info exists g_moduleDefault($modname)]} {
-            set g_moduleDefault($modname) $modversion
-            reportDebug "module-version: default $modname = $modversion"
+         if {[setModuleResolution $modname $mod "default"]} {
+            reportDebug "module-version: default $modname = $mod"
          }
       } else {
          set aliasversion "$modname/$version"
          reportDebug "module-version: alias $aliasversion = $mod"
 
          if {![info exists g_moduleVersion($aliasversion)]} {
-            set g_moduleVersion($aliasversion) $mod
-
-            # don't add duplicates
-            if {![info exists g_versionHash($mod)] ||\
-               [lsearch -exact $g_versionHash($mod) $version] < 0} {
-               lappend g_versionHash($mod) $version
+            if {[setModuleResolution $aliasversion $mod $version]} {
+               set g_moduleVersion($aliasversion) $mod
             }
          } else {
-            reportWarning "Duplicate version symbol '$version' found"
+            reportWarning "Symbolic version '$aliasversion' already defined"
          }
       }
    }
@@ -720,7 +788,7 @@ proc module-version {args} {
 }
 
 proc module-alias {args} {
-   global g_moduleAlias g_aliasHash
+   global g_moduleAlias
    global g_sourceAlias ModulesCurrentModulefile
 
    lassign [getModuleNameVersion [lindex $args 0]] alias
@@ -728,9 +796,10 @@ proc module-alias {args} {
 
    reportDebug "module-alias: $alias = $mod"
 
-   set g_moduleAlias($alias) $mod
-   set g_aliasHash($mod) $alias
-   set g_sourceAlias($alias) $ModulesCurrentModulefile
+   if {[setModuleResolution $alias $mod]} {
+      set g_moduleAlias($alias) $mod
+      set g_sourceAlias($alias) $ModulesCurrentModulefile
+   }
 
    if {[currentMode] eq "display" && !$::g_inhibit_dispreport} {
       report "module-alias\t$args"
@@ -2589,57 +2658,17 @@ proc cacheCurrentModules {} {
 }
 
 # This proc resolves module aliases or version aliases to the real module name
-# and version. A list of already resolved aliases and version is set to detect
-# infinite resolution loop. Search may be limited to alias or alias hash, all
-# kind of version/alias is looked for by default.
-proc resolveModuleVersionOrAlias {name {search "all"} args} {
-   global g_moduleVersion g_moduleDefault g_moduleAlias g_aliasHash
+# and version.
+proc resolveModuleVersionOrAlias {name} {
+   global g_moduleResolved
 
-   reportDebug "resolveModuleVersionOrAlias: Resolving $name\
-      (previously: $args), search for $search"
-
-   if {$search ne "aliashash" && [info exists g_moduleAlias($name)]} {
-      reportDebug "resolveModuleVersionOrAlias: $name is an alias"
-      set ret $g_moduleAlias($name)
-   # if we only look for an alias, try to look in hash if not found above
-   # and if recursive call to this proc has not been ignited yet
-   } elseif {(([llength $args] == 0 && $search eq "alias")\
-      || $search eq "aliashash") && [info exists g_aliasHash($name)]} {
-      reportDebug "resolveModuleVersionOrAlias: $name is an alias"
-      set ret $g_aliasHash($name)
-      set search "aliashash"
-   # do not look for version resolution if we only look for alias
-   } elseif {$search eq "all" && [info exists g_moduleVersion($name)]} {
-      reportDebug "resolveModuleVersionOrAlias: $name is a version alias"
-      set ret $g_moduleVersion($name)
-   # do not look for default resolution if we only look for alias
-   } elseif {$search eq "all" && [info exists g_moduleDefault($name)]} {
-      reportDebug "resolveModuleVersionOrAlias: found a default for $name"
-      set ret "$name/$g_moduleDefault($name)"
+   if {[info exists g_moduleResolved($name)]} {
+      set ret $g_moduleResolved($name)
    } else {
-      reportDebug "resolveModuleVersionOrAlias: $name is nothing special"
       set ret $name
    }
 
-   if {$ret ne $name} {
-      if {[lsearch -exact $args $ret] == -1} {
-         # add the alias, pseudo version or default to the list of already
-         # resolved element in order to detect infinite resolution loop
-         lappend args $ret
-         # if the alias, pseudo version or default is an alias, we need to
-         # resolve it
-         set ret [eval resolveModuleVersionOrAlias $ret $search $args]
-      } else {
-         # resolution loop is detected, set return value to "*undef*" as
-         # C-version does
-         set ret "*undef*"
-         # get version name and report loop error
-         lassign [getModuleNameVersion $name] name modname modversion
-         reportError "Version symbol '$modversion' loops"
-      }
-   }
-
-   reportDebug "resolveModuleVersionOrAlias: Resolved to $ret"
+   reportDebug "resolveModuleVersionOrAlias: '$name' resolved to '$ret'"
 
    return $ret
 }
@@ -2837,64 +2866,20 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}} {
    }
 }
 
-# If given module maps to default or other version aliases, a list of 
-# those aliases is returned. This takes module/version as an argument.
-# A list of already resolved aliases and default is set to detect
-# infinite resolution loop.
-proc getVersAliasList {mod {rel_modname 0} args} {
-   global g_versionHash g_moduleDefault
+# If given module maps to default or other symbolic versions, a list of
+# those versions is returned. This takes module/version as an argument.
+proc getVersAliasList {mod} {
+   global g_symbolHash
 
-   reportDebug "getVersAliasList: $mod (previously: $args)"
-
-   # get module name and version
-   lassign [getModuleNameVersion $mod 1 $rel_modname] mod modname modversion
-
-   set tag_list {}
-   if {[info exists g_versionHash($mod)]} {
-      foreach version $g_versionHash($mod) {
-         if {[lsearch -exact $tag_list $version] == -1} {
-            if {[lsearch -exact $args $modname/$version] == -1} {
-               # add pseudo version to the list of already resolved element
-               # in order to detect infinite resolution loop
-               lappend args $modname/$version
-               # concat with any other tag found for modname/version
-               set tag_list [concat $tag_list $version\
-                  [eval getVersAliasList $modname/$version $rel_modname\
-                     $args]]
-            } elseif {$modversion ne ""} {
-               reportError "Version symbol '$modversion' loops"
-            }
-         }
-      }
-   }
-   if {[info exists g_moduleDefault($modname)]\
-      && "$modname/$g_moduleDefault($modname)" eq $mod} {
-      if {[lsearch -exact $args $modname] == -1} {
-         # add default to the list of already resolved element in order to
-         # detect infinite resolution loop
-         lappend args $modname
-         # concat with any other tag found for modname
-         set tag_list [concat $tag_list "default"\
-            [eval getVersAliasList $modname $rel_modname $args]]
-      } else {
-         reportError "Version symbol '$modversion' loops"
-      }
+   if {[info exists g_symbolHash($mod)]} {
+      set tag_list $g_symbolHash($mod)
+   } else {
+      set tag_list {}
    }
 
-   # if mod is an alias collect symbols if not already done
-   lassign [getModuleNameVersion [resolveModuleVersionOrAlias $mod \
-      "alias"]] modnew modnamenew modversionnew
-   if {$modname ne $modnamenew && [lsearch -exact $args $modnew] == -1} {
-      # add default to the list of already resolved element in order to
-      # detect infinite resolution loop
-      lappend args $modnew
-      # concat with any other tag found for alias
-      set tag_list [concat $tag_list [eval getVersAliasList $modnew\
-         $rel_modname $args]]
-   }
+   reportDebug "getVersAliasList: '$mod' has tag list '$tag_list'"
 
-   # always dictionary-sort results and remove duplicates
-   return [lsort -dictionary -unique $tag_list]
+   return $tag_list
 }
 
 # finds all module-related files matching mod in the module path dir
@@ -3076,7 +3061,6 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
 proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
    global ignoreDir ModulesCurrentModulefile
    global flag_default_mf flag_default_dir show_modtimes
-   global g_sourceAlias
 
    reportDebug "listModules: get '$mod' in $dir\
       (show_flags=$show_flags, filter=$filter, search=$search)"

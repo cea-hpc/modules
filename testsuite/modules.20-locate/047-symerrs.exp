@@ -40,8 +40,10 @@ set modulefile_3 "$env(MODULEPATH)/$module_3"
 #  The warning messages
 #
 
-set prob_dup "$warn_msgs: Duplicate version symbol 'foo' found"
-set err_loop "$error_msgs: Version symbol '1.0' loops"
+# different behavior than C-version: error or warning messages for resolution
+# loop or an already defined symbolic version are a bit different on Tcl-version
+set prob_dup "$warn_msgs: Symbolic version 'loc_sym/foo' already defined"
+set err_loop "$error_msgs: Resolution loop on 'loc_sym/1.0'"
 
 #
 #  Only checked for the csh
@@ -53,11 +55,19 @@ set ts_csh_1 "setenv testsuite bar:blah:foo;"
 
 set lmf_csh_2 "setenv _LMFILES_ $modulefile_2;"
 set lm_csh_2 "setenv LOADEDMODULES $module_2;"
-set ts_csh_2 "setenv testsuite 1.0:bar:foo;"
+# different behavior than C-version: resolution loop is found at module-version
+# registering time on Tcl-version, so loop is not saved and error message is
+# output at that time. Then the 'module-info symbols' will not return the
+# looping symbol '1.0' as it has not been registered.
+set ts_csh_2 "setenv testsuite bar:foo;"
 
 set lmf_csh_3 "setenv _LMFILES_ $modulefile_3;"
 set lm_csh_3 "setenv LOADEDMODULES $module_3;"
-set ts_csh_3 "setenv testsuite .*undef.*;"
+# different behavior than C-version: resolution loop is found at module-version
+# registering time on Tcl-version, so loop is not saved and error message is
+# output at that time. Then the 'module-info version' will not return the
+# '*undef*' value as no loop has been registered.
+set ts_csh_3 "setenv testsuite loc_sym/1.0;"
 
 
 #
