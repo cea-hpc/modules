@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.887
+set MODULES_CURRENT_VERSION 1.888
 set MODULES_CURRENT_RELEASE_DATE "2017-06-21"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -240,54 +240,54 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
    }
 
    reportDebug "execute-modulefile:  Starting $modfile"
-   set slave __[currentModuleName]
-   if {![interp exists $slave]} {
-      interp create $slave
-      interp alias $slave setenv {} setenv
-      interp alias $slave unsetenv {} unsetenv
-      interp alias $slave getenv {} getenv
-      interp alias $slave system {} system
-      interp alias $slave chdir {} chdir
-      interp alias $slave append-path {} append-path
-      interp alias $slave prepend-path {} prepend-path
-      interp alias $slave remove-path {} remove-path
-      interp alias $slave prereq {} prereq
-      interp alias $slave conflict {} conflict
-      interp alias $slave is-loaded {} is-loaded
-      interp alias $slave module {} module
-      interp alias $slave module-info {} module-info
-      interp alias $slave module-whatis {} module-whatis
-      interp alias $slave set-alias {} set-alias
-      interp alias $slave unset-alias {} unset-alias
-      interp alias $slave uname {} uname
-      interp alias $slave x-resource {} x-resource
-      interp alias $slave exit {} exitModfileCmd
-      interp alias $slave module-version {} module-version
-      interp alias $slave module-alias {} module-alias
-      interp alias $slave module-trace {} module-trace
-      interp alias $slave module-verbosity {} module-verbosity
-      interp alias $slave module-user {} module-user
-      interp alias $slave module-log {} module-log
-      interp alias $slave reportInternalBug {} reportInternalBug
-      interp alias $slave reportWarning {} reportWarning
-      interp alias $slave reportError {} reportError
-      interp alias $slave raiseErrorCount {} raiseErrorCount
-      interp alias $slave report {} report
-      interp alias $slave isWin {} isWin
-      interp alias $slave readModuleContent {} readModuleContent
-
-      interp eval $slave {global ModulesCurrentModulefile g_debug\
-         g_inhibit_interp g_inhibit_errreport g_inhibit_dispreport}
-      interp eval $slave [list "set" "ModulesCurrentModulefile" $modfile]
-      interp eval $slave [list "set" "g_debug" $g_debug]
-      interp eval $slave [list "set" "g_inhibit_interp" $g_inhibit_interp]
-      interp eval $slave [list "set" "g_inhibit_errreport"\
-         $g_inhibit_errreport]
-      interp eval $slave [list "set" "g_inhibit_dispreport"\
-         $g_inhibit_dispreport]
-      interp eval $slave [list "set" "must_have_cookie" $must_have_cookie]
+   # create modulefile interpreter at first interpretation
+   if {![interp exists __modfile]} {
+      interp create __modfile
+      interp alias __modfile setenv {} setenv
+      interp alias __modfile unsetenv {} unsetenv
+      interp alias __modfile getenv {} getenv
+      interp alias __modfile system {} system
+      interp alias __modfile chdir {} chdir
+      interp alias __modfile append-path {} append-path
+      interp alias __modfile prepend-path {} prepend-path
+      interp alias __modfile remove-path {} remove-path
+      interp alias __modfile prereq {} prereq
+      interp alias __modfile conflict {} conflict
+      interp alias __modfile is-loaded {} is-loaded
+      interp alias __modfile module {} module
+      interp alias __modfile module-info {} module-info
+      interp alias __modfile module-whatis {} module-whatis
+      interp alias __modfile set-alias {} set-alias
+      interp alias __modfile unset-alias {} unset-alias
+      interp alias __modfile uname {} uname
+      interp alias __modfile x-resource {} x-resource
+      interp alias __modfile exit {} exitModfileCmd
+      interp alias __modfile module-version {} module-version
+      interp alias __modfile module-alias {} module-alias
+      interp alias __modfile module-trace {} module-trace
+      interp alias __modfile module-verbosity {} module-verbosity
+      interp alias __modfile module-user {} module-user
+      interp alias __modfile module-log {} module-log
+      interp alias __modfile reportInternalBug {} reportInternalBug
+      interp alias __modfile reportWarning {} reportWarning
+      interp alias __modfile reportError {} reportError
+      interp alias __modfile raiseErrorCount {} raiseErrorCount
+      interp alias __modfile report {} report
+      interp alias __modfile isWin {} isWin
+      interp alias __modfile readModuleContent {} readModuleContent
    }
-   set errorVal [interp eval $slave {
+
+   # reset modulefile-specific variable before each interpretation
+   interp eval __modfile {global ModulesCurrentModulefile g_debug\
+      g_inhibit_interp g_inhibit_errreport g_inhibit_dispreport}
+   interp eval __modfile set ModulesCurrentModulefile $modfile
+   interp eval __modfile set g_debug $g_debug
+   interp eval __modfile set g_inhibit_interp $g_inhibit_interp
+   interp eval __modfile set g_inhibit_errreport $g_inhibit_errreport
+   interp eval __modfile set g_inhibit_dispreport $g_inhibit_dispreport
+   interp eval __modfile set must_have_cookie $must_have_cookie
+
+   set errorVal [interp eval __modfile {
       set modcontent [readModuleContent $ModulesCurrentModulefile 1\
          $must_have_cookie]
       if {$modcontent eq ""} {
@@ -361,7 +361,6 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
       }
    }]
 
-   interp delete $slave
    reportDebug "Exiting $modfile"
 
    # exits rather returns if a critical error has been raised
@@ -391,35 +390,35 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
 
    if {![info exists g_rcfilesSourced($modfile)]} {
       reportDebug "execute-modulerc: sourcing rc $modfile"
-      set slave __.modulerc
-      if {![interp exists $slave]} {
-         interp create $slave
-         interp alias $slave uname {} uname
-         interp alias $slave system {} system
-         interp alias $slave chdir {} chdir
-         interp alias $slave module-version {} module-version
-         interp alias $slave module-alias {} module-alias
-         interp alias $slave module {} module
-         interp alias $slave module-info {} module-info
-         interp alias $slave module-trace {} module-trace
-         interp alias $slave module-verbosity {} module-verbosity
-         interp alias $slave module-user {} module-user
-         interp alias $slave module-log {} module-log
-         interp alias $slave reportInternalBug {} reportInternalBug
-         interp alias $slave setModulesVersion {} setModulesVersion
-         interp alias $slave readModuleContent {} readModuleContent
-
-         interp eval $slave {global ModulesCurrentModulefile g_debug\
-            g_inhibit_errreport g_inhibit_dispreport ModulesVersion}
-         interp eval $slave [list "set" "ModulesCurrentModulefile" $modfile]
-         interp eval $slave [list "set" "g_debug" $g_debug]
-         interp eval $slave [list "set" "g_inhibit_errreport"\
-            $g_inhibit_errreport]
-         interp eval $slave [list "set" "g_inhibit_dispreport"\
-            $g_inhibit_dispreport]
-         interp eval $slave {set ModulesVersion {}}
+      # create modulerc interpreter at first interpretation
+      if {![interp exists __modrc]} {
+         interp create __modrc
+         interp alias __modrc uname {} uname
+         interp alias __modrc system {} system
+         interp alias __modrc chdir {} chdir
+         interp alias __modrc module-version {} module-version
+         interp alias __modrc module-alias {} module-alias
+         interp alias __modrc module {} module
+         interp alias __modrc module-info {} module-info
+         interp alias __modrc module-trace {} module-trace
+         interp alias __modrc module-verbosity {} module-verbosity
+         interp alias __modrc module-user {} module-user
+         interp alias __modrc module-log {} module-log
+         interp alias __modrc reportInternalBug {} reportInternalBug
+         interp alias __modrc setModulesVersion {} setModulesVersion
+         interp alias __modrc readModuleContent {} readModuleContent
       }
-      set errorVal [interp eval $slave {
+
+      # reset modulerc-specific variable before each interpretation
+      interp eval __modrc {global ModulesCurrentModulefile g_debug\
+         g_inhibit_errreport g_inhibit_dispreport ModulesVersion}
+      interp eval __modrc set ModulesCurrentModulefile $modfile
+      interp eval __modrc set g_debug $g_debug
+      interp eval __modrc set g_inhibit_errreport $g_inhibit_errreport
+      interp eval __modrc set g_inhibit_dispreport $g_inhibit_dispreport
+      interp eval __modrc {set ModulesVersion {}}
+
+      set errorVal [interp eval __modrc {
          set modcontent [readModuleContent $ModulesCurrentModulefile]
          if {$modcontent eq ""} {
             # simply skip rc file, no exit on error here
@@ -442,8 +441,6 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
             return 0
          }
       }]
-
-      interp delete $slave
 
       # default version set via ModulesVersion variable in .version file
       # override previously defined default version for modname
