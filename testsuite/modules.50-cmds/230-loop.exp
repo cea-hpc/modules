@@ -11,8 +11,8 @@
 #
 #   Description:	Testuite testsequence
 #   Command:		load
-#   Modulefiles:	break/4.0,
-#   			continue/4.0,
+#   Modulefiles:	break/4.0, break/6.0
+#   			continue/4.0, continue/6.0
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -24,9 +24,13 @@
 
 set break4 "break/4.0"
 set cont4 "continue/4.0"
+set break6 "break/6.0"
+set cont6 "continue/6.0"
 
 set break4p "$env(MODULEPATH)/$break4"
 set cont4p "$env(MODULEPATH)/$cont4"
+set break6p "$env(MODULEPATH)/$break6"
+set cont6p "$env(MODULEPATH)/$cont6"
 
 #
 # set up an empty environment
@@ -135,7 +139,6 @@ set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
 set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
 set ts_lisp4 "\\\(setenv \"testsuite4\" \"9\"\\\)"
 
-
 #
 #  The tests
 #
@@ -151,6 +154,109 @@ test_cmd_re "perl" "load $cont4" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl
 test_cmd_re "python" "load $cont4" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$ts_python4\$"
 test_cmd_re "lisp" "load $cont4" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp4\$"
 
+
+#
+#  load (break called from loop within proc)
+#  For the different shells ...
+#
+set module "$break6"
+set modulefile "$break6p"
+
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+set ts_sh6 "testsuite6=9; export testsuite6;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lm_csh "setenv LOADEDMODULES $module;"
+set ts_csh6 "setenv testsuite6 9;"
+
+set lmf_fish "set -xg _LMFILES_ $modulefile;"
+set lm_fish "set -xg LOADEDMODULES $module;"
+set ts_fish6 "set -xg testsuite6 9;"
+
+set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
+set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
+set ts_tcl6 "set env\\\(testsuite6\\\) \"9\";"
+
+set lmf_perl "\\\$ENV{'_LMFILES_'} = \'$modulefile\';"
+set lm_perl "\\\$ENV{'LOADEDMODULES'} = \'$module\';"
+set ts_perl6 "\\\$ENV{'testsuite6'} = \'9\';"
+
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
+set ts_python6 "os.environ\\\[\'testsuite6\'\\\] = \'9\'"
+
+set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+set ts_lisp6 "\\\(setenv \"testsuite6\" \"9\"\\\)"
+
+#
+#  The tests
+#
+test_cmd_re "sh" "load $break6" "$lmfmod_sh\n$lmmod_sh\n$ts_sh6\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "bash" "load $break6" "$lmfmod_sh\n$lmmod_sh\n$ts_sh6\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "ksh" "load $break6" "$lmfmod_sh\n$lmmod_sh\n$ts_sh6\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "zsh" "load $break6" "$lmfmod_sh\n$lmmod_sh\n$ts_sh6\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "csh" "load $break6" "$lmfmod_csh\n$lmmod_csh\n$ts_csh6\n$lmf_csh\n$lm_csh\$"
+test_cmd_re "tcsh" "load $break6" "$lmfmod_csh\n$lmmod_csh\n$ts_csh6\n$lmf_csh\n$lm_csh\$"
+test_cmd_re "fish" "load $break6" "$lmfmod_fish\n$lmmod_fish\n$ts_fish6\n$lmf_fish\n$lm_fish\$"
+test_cmd_re "tcl" "load $break6" "$lmfmod_tcl\n$lmmod_tcl\n$ts_tcl6\n$lmf_tcl\n$lm_tcl\$"
+test_cmd_re "perl" "load $break6" "$lmfmod_perl\n$lmmod_perl\n$ts_perl6\n$lmf_perl\n$lm_perl\n1;\$"
+test_cmd_re "python" "load $break6" "import os\n$lmfmod_python\n$lmmod_python\n$ts_python6\n$lmf_python\n$lm_python\$"
+test_cmd_re "lisp" "load $break6" "$lmfmod_lisp\n$lmmod_lisp\n$ts_lisp6\n$lmf_lisp\n$lm_lisp\$"
+
+
+#
+#  load (continue called from loop within proc)
+#  For the different shells ...
+#
+set module "$cont6"
+set modulefile "$cont6p"
+
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+set ts_sh6 "testsuite6=9; export testsuite6;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lm_csh "setenv LOADEDMODULES $module;"
+set ts_csh6 "setenv testsuite6 9;"
+
+set lmf_fish "set -xg _LMFILES_ $modulefile;"
+set lm_fish "set -xg LOADEDMODULES $module;"
+set ts_fish6 "set -xg testsuite6 9;"
+
+set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
+set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
+set ts_tcl6 "set env\\\(testsuite6\\\) \"9\";"
+
+set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
+set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
+set ts_perl6 "\\\$ENV{\'testsuite6\'} = \'9\';"
+
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
+set ts_python6 "os.environ\\\[\'testsuite6\'\\\] = \'9\'"
+
+set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+set ts_lisp6 "\\\(setenv \"testsuite6\" \"9\"\\\)"
+
+#
+#  The tests
+#
+test_cmd_re "sh" "load $cont6" "$lmfmod_sh\n$lmmod_sh\n$ts_sh6\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "bash" "load $cont6" "$lmfmod_sh\n$lmmod_sh\n$ts_sh6\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "ksh" "load $cont6" "$lmfmod_sh\n$lmmod_sh\n$ts_sh6\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "zsh" "load $cont6" "$lmfmod_sh\n$lmmod_sh\n$ts_sh6\n$lmf_sh\n$lm_sh\$"
+test_cmd_re "csh" "load $cont6" "$lmfmod_csh\n$lmmod_csh\n$ts_csh6\n$lmf_csh\n$lm_csh\$"
+test_cmd_re "tcsh" "load $cont6" "$lmfmod_csh\n$lmmod_csh\n$ts_csh6\n$lmf_csh\n$lm_csh\$"
+test_cmd_re "fish" "load $cont6" "$lmfmod_fish\n$lmmod_fish\n$ts_fish6\n$lmf_fish\n$lm_fish\$"
+test_cmd_re "tcl" "load $cont6" "$lmfmod_tcl\n$lmmod_tcl\n$ts_tcl6\n$lmf_tcl\n$lm_tcl\$"
+test_cmd_re "perl" "load $cont6" "$lmfmod_perl\n$lmmod_perl\n$ts_perl6\n$lmf_perl\n$lm_perl\n1;\$"
+test_cmd_re "python" "load $cont6" "import os\n$lmfmod_python\n$lmmod_python\n$ts_python6\n$lmf_python\n$lm_python\$"
+test_cmd_re "lisp" "load $cont6" "$lmfmod_lisp\n$lmmod_lisp\n$ts_lisp6\n$lmf_lisp\n$lm_lisp\$"
+
+
 #
 #  Cleanup
 #
@@ -163,42 +269,49 @@ unset lmf_sh
 unset lmmod_sh
 unset lmfmod_sh
 unset ts_sh4
+unset ts_sh6
 
 unset lm_csh
 unset lmf_csh
 unset lmmod_csh
 unset lmfmod_csh
 unset ts_csh4
+unset ts_csh6
 
 unset lm_fish
 unset lmf_fish
 unset lmmod_fish
 unset lmfmod_fish
 unset ts_fish4
+unset ts_fish6
 
 unset lm_tcl
 unset lmf_tcl
 unset lmmod_tcl
 unset lmfmod_tcl
 unset ts_tcl4
+unset ts_tcl6
 
 unset lm_perl
 unset lmf_perl
 unset lmmod_perl
 unset lmfmod_perl
 unset ts_perl4
+unset ts_perl6
 
 unset lm_python
 unset lmf_python
 unset lmmod_python
 unset lmfmod_python
 unset ts_python4
+unset ts_python6
 
 unset lm_lisp
 unset lmf_lisp
 unset lmmod_lisp
 unset lmfmod_lisp
 unset ts_lisp4
+unset ts_lisp6
 
 unset modulefile
 unset module
@@ -207,4 +320,8 @@ unset break4
 unset cont4
 unset break4p
 unset cont4p
+unset break6
+unset cont6
+unset break6p
+unset cont6p
 

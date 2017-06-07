@@ -13,7 +13,7 @@
 #   Command:		load
 #   Modulefiles:	continue/1.0,
 #   			continue/2.0,
-#   			continue/3.0,
+#   			continue/3.0, continue/5.0
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -27,10 +27,12 @@
 set mod1 "continue/1.0"
 set mod2 "continue/2.0"
 set mod3 "continue/3.0"
+set mod5 "continue/5.0"
 
 set mod1p "$env(MODULEPATH)/$mod1"
 set mod2p "$env(MODULEPATH)/$mod2"
 set mod3p "$env(MODULEPATH)/$mod3"
+set mod5p "$env(MODULEPATH)/$mod5"
 
 #
 # set up an empty environment
@@ -119,6 +121,56 @@ test_cmd_re "python" "load $mod1 $mod2 $mod3" "import os\n$ts_python2\n$lmfmod_p
 test_cmd_re "lisp" "load $mod1 $mod2 $mod3" "$ts_lisp2\n$lmfmod_lisp\n$lmmod_lisp\n$ts_lisp3\n$lmf_lisp\n$lm_lisp\n$ts_lisp1\$"
 
 #
+#  Same test with continue called from a proc
+#  For the different shells ...
+#
+set module "$mod1:$mod5:$mod3"
+set modulefile "$mod1p:$mod5p:$mod3p"
+
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+set ts_sh5 "testsuite5=yes; export testsuite5;"
+
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lm_csh "setenv LOADEDMODULES $module;"
+set ts_csh5 "setenv testsuite5 yes;"
+
+set lmf_fish "set -xg _LMFILES_ $modulefile;"
+set lm_fish "set -xg LOADEDMODULES $module;"
+set ts_fish5 "set -xg testsuite5 yes;"
+
+set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
+set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
+set ts_tcl5 "set env\\\(testsuite5\\\) \"yes\";"
+
+set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
+set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
+set ts_perl5 "\\\$ENV{\'testsuite5\'} = \'yes\';"
+
+set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
+set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
+set ts_python5 "os.environ\\\[\'testsuite5\'\\\] = \'yes\'"
+
+set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
+set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+set ts_lisp5 "\\\(setenv \"testsuite5\" \"yes\"\\\)"
+
+#
+#  The tests
+#
+test_cmd_re "sh" "load $mod1 $mod5 $mod3" "$lmfmod_sh\n$lmmod_sh\n$ts_sh3\n$lmf_sh\n$lm_sh\n$ts_sh5\n$ts_sh1\$"
+test_cmd_re "bash" "load $mod1 $mod5 $mod3" "$lmfmod_sh\n$lmmod_sh\n$ts_sh3\n$lmf_sh\n$lm_sh\n$ts_sh5\n$ts_sh1\$"
+test_cmd_re "ksh" "load $mod1 $mod5 $mod3" "$lmfmod_sh\n$lmmod_sh\n$ts_sh3\n$lmf_sh\n$lm_sh\n$ts_sh5\n$ts_sh1\$"
+test_cmd_re "zsh" "load $mod1 $mod5 $mod3" "$lmfmod_sh\n$lmmod_sh\n$ts_sh3\n$lmf_sh\n$lm_sh\n$ts_sh5\n$ts_sh1\$"
+test_cmd_re "csh" "load $mod1 $mod5 $mod3" "$lmfmod_csh\n$lmmod_csh\n$ts_csh3\n$lmf_csh\n$lm_csh\n$ts_csh5\n$ts_csh1\$"
+test_cmd_re "tcsh" "load $mod1 $mod5 $mod3" "$lmfmod_csh\n$lmmod_csh\n$ts_csh3\n$lmf_csh\n$lm_csh\n$ts_csh5\n$ts_csh1\$"
+test_cmd_re "fish" "load $mod1 $mod5 $mod3" "$lmfmod_fish\n$lmmod_fish\n$ts_fish3\n$lmf_fish\n$lm_fish\n$ts_fish5\n$ts_fish1\$"
+test_cmd_re "tcl" "load $mod1 $mod5 $mod3" "$lmfmod_tcl\n$lmmod_tcl\n$ts_tcl3\n$lmf_tcl\n$lm_tcl\n$ts_tcl5\n$ts_tcl1\$"
+test_cmd_re "perl" "load $mod1 $mod5 $mod3" "$lmfmod_perl\n$lmmod_perl\n$ts_perl3\n$lmf_perl\n$lm_perl\n$ts_perl5\n$ts_perl1\n1;\$"
+test_cmd_re "python" "load $mod1 $mod5 $mod3" "import os\n$lmfmod_python\n$lmmod_python\n$ts_python3\n$lmf_python\n$lm_python\n$ts_python5\n$ts_python1\$"
+test_cmd_re "lisp" "load $mod1 $mod5 $mod3" "$lmfmod_lisp\n$lmmod_lisp\n$ts_lisp3\n$lmf_lisp\n$lm_lisp\n$ts_lisp5\n$ts_lisp1\$"
+
+#
 #  Cleanup
 #
 
@@ -132,6 +184,7 @@ unset lmfmod_sh
 unset ts_sh1
 unset ts_sh2
 unset ts_sh3
+unset ts_sh5
 
 unset lm_csh
 unset lmf_csh
@@ -140,6 +193,7 @@ unset lmfmod_csh
 unset ts_csh1
 unset ts_csh2
 unset ts_csh3
+unset ts_csh5
 
 unset lm_fish
 unset lmf_fish
@@ -148,6 +202,7 @@ unset lmfmod_fish
 unset ts_fish1
 unset ts_fish2
 unset ts_fish3
+unset ts_fish5
 
 unset lm_tcl
 unset lmf_tcl
@@ -156,6 +211,7 @@ unset lmfmod_tcl
 unset ts_tcl1
 unset ts_tcl2
 unset ts_tcl3
+unset ts_tcl5
 
 unset lm_perl
 unset lmf_perl
@@ -164,6 +220,7 @@ unset lmfmod_perl
 unset ts_perl1
 unset ts_perl2
 unset ts_perl3
+unset ts_perl5
 
 unset lm_python
 unset lmf_python
@@ -172,6 +229,7 @@ unset lmfmod_python
 unset ts_python1
 unset ts_python2
 unset ts_python3
+unset ts_python5
 
 unset lm_lisp
 unset lmf_lisp
@@ -180,6 +238,7 @@ unset lmfmod_lisp
 unset ts_lisp1
 unset ts_lisp2
 unset ts_lisp3
+unset ts_lisp5
 
 unset modulefile
 unset module
@@ -187,7 +246,9 @@ unset module
 unset mod1
 unset mod2
 unset mod3
+unset mod5
 unset mod1p
 unset mod2p
 unset mod3p
+unset mod5p
 

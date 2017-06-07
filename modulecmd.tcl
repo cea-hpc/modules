@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.880
-set MODULES_CURRENT_RELEASE_DATE "2017-05-27"
+set MODULES_CURRENT_VERSION 1.882
+set MODULES_CURRENT_RELEASE_DATE "2017-06-07"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -330,11 +330,15 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
       if {$sourceFailed} {
          global errorInfo
          # no error in case of "continue" command
-         if {$sourceFailed == 4} {
+         # catch continue even if called outside of a loop
+         if {$errorMsg eq "invoked \"continue\" outside of a loop"\
+            || $sourceFailed == 4} {
             unset errorMsg
             return 0
-         } elseif {$errorMsg eq "" && (![info exists errorInfo]\
-            || $errorInfo eq "")} {
+         # catch break even if called outside of a loop
+         } elseif {$errorMsg eq "invoked \"break\" outside of a loop"\
+            || ($errorMsg eq "" && (![info exists errorInfo]\
+            || $errorInfo eq ""))} {
             raiseErrorCount
             unset errorMsg
             return 1
