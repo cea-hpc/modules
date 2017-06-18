@@ -1,0 +1,68 @@
+#%Module1.0
+
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		spread/%M%
+#   Revision:		%I%
+#   First Edition:	2017/06/18
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite modulefile
+#   Command:
+#   Sub-Command:
+#
+#   Invocation:		load @M@, unload @M@, switch @M@ @M@,
+#                   help @M@, display @M@, test @M@, whatis @M@
+#   Result:	%R{
+#		}R%
+#   Comment:	%C{
+#           Test how variable and procedure definitions spread from
+#           one modulefile interpretation to another one.
+#		}C%
+#
+##############################################################################
+
+
+# test if specific or overriden pre-existing variables have spread here
+if {[info exists spread]} {
+    puts stderr "variable spread exists"
+}
+if {$tcl_version eq "test"} {
+    puts stderr "variable tcl_version equals test"
+}
+if {[array exists spread_array]} {
+    puts stderr "array variable spread_array exists"
+}
+if {$tcl_platform(osVersion) eq "test"} {
+    puts stderr "variable tcl_platform(osVersion) equals test"
+}
+
+# test if specific or overriden interpreter alias command have spread here
+set existing_proc [lindex [info procs] 0]
+# test if first proc defined has been altered
+if {[info procs $existing_proc] ne $existing_proc} {
+    puts stderr "procedure $existing_proc does not exist"
+# env variable spread across interpretation and even between interpreters
+} elseif {[info exists env(spread)] && [$existing_proc] ne "spread"} {
+    puts stderr "procedure $existing_proc has not been altered"
+}
+if {[info procs spread_proc] eq "spread_proc"} {
+    puts stderr "procedure spread_proc exists"
+}
+if {[info procs ModulesHelp] eq "ModulesHelp"} {
+    puts stderr "procedure ModulesHelp exists"
+}
+if {[info procs ModulesTest] eq "ModulesTest"} {
+    puts stderr "procedure ModulesTest exists"
+}
+if {[info procs ModulesDisplay] eq "ModulesDisplay"} {
+    puts stderr "procedure ModulesDisplay exists"
+}
+if {[info procs module-version] eq "module-version"} {
+    puts stderr "procedure module-version exists"
+}
+
