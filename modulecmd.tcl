@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.886
-set MODULES_CURRENT_RELEASE_DATE "2017-06-13"
+set MODULES_CURRENT_VERSION 1.887
+set MODULES_CURRENT_RELEASE_DATE "2017-06-21"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2924,9 +2924,20 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
       if {[file isdirectory $element]} {
          if {![info exists ignoreDir($tail)]} {
             # try then catch any issue rather than test before trying
-            if {[catch {set elt_list [glob -nocomplain "$element/*"]}]} {
-               registerAccessIssue $element
-            } else {
+            # workaround 'glob -nocomplain' which does not return permission
+            # error on Tcl 8.4, so we need to avoid registering issue if
+            # raised error is about a no match
+            set treat_dir 1
+            if {[catch {set elt_list [glob "$element/*"]} errMsg]} {
+               if {$errMsg eq "no files matched glob pattern\
+                  \"$element/*\""} {
+                  set elt_list {}
+               } else {
+                  registerAccessIssue $element
+                  set treat_dir 0
+               }
+            }
+            if {$treat_dir} {
                set mod_list($modulename) [list "directory"]
                # Add each element in the current directory to the list
                if {[file readable $element/.modulerc]} {
