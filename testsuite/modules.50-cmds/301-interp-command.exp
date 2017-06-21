@@ -4,7 +4,7 @@
 #
 #   File:		modules.50-cmds/%M%
 #   Revision:		%I%
-#   First Edition:	2017/06/19
+#   First Edition:	2017/06/20
 #   Last Mod.:		%U%, %G%
 #
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
@@ -16,15 +16,15 @@
 #
 #   Comment:	%C{
 #			Tests how modulefile and modulerc interpreter let spread
-#           variable and procedure definitions from one interpretation
-#           to another.
+#           variable, procedure and commands definitions from one
+#           interpretation to another.
 #		}C%
 #
 ##############################################################################
 
 set mod "spread"
-set mod1 "$mod/1.0"
-set mod2 "$mod/2.0"
+set mod1 "$mod/3.0"
+set mod2 "$mod/4.0"
 set modfile1 "$env(MODULEPATH)/$mod1"
 set modfile2 "$env(MODULEPATH)/$mod2"
 
@@ -51,7 +51,7 @@ set mod2testres "WARNING: Unable to find ModulesTest in $modfile2."
 #
 
 set lmfmod_sh "_LMFILES__modshare=$modfile1:1:$modfile2:1; export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=$mod1:1:$mod2:1; export LOADEDMODULES_modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=$mod2:1:$mod1:1; export LOADEDMODULES_modshare;"
 set lmf_sh "_LMFILES_=$modfile1:$modfile2; export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$mod1:$mod2; export LOADEDMODULES;"
 
@@ -64,8 +64,7 @@ testouterr_cmd_re "sh" "load $mod1 $mod2" "^$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_
 testerr_cmd_re "sh" "display $mod1 $mod2" "^$mod1disph\n$mod1dispres\n$modlin\n$mod2disph\n$spreadres$modlin\$"
 testerr_cmd_re "sh" "help $mod1 $mod2" "^$mod1helph\n$mod1helpres\n$modlin\n$mod2helph\n$spreadres$mod2helpres\n$modlin\$"
 testerr_cmd_re "sh" "test $mod1 $mod2" "^$mod1testh\n$mod1testres\n$modlin\n$mod2testh\n$spreadres$mod2testres\n$modlin\$"
-testerr_cmd_re "sh" "whatis $mod" "^$spreadres\$"
-testerr_cmd_re "sh" "avail -t $mod/" "^$modlin $env(MODULEPATH) $modlin\n$mod1\n$mod2\n$mod/3.0\n$mod/4.0\$"
+# avail/whatis have already been tested in 300-interp
 
 # tests looping on same modulefile
 testerr_cmd_re "sh" "display $mod1 $mod1" "^$mod1disph\n$mod1dispres\n$modlin\n$mod1disph\n$spreadres$mod1dispres\n$modlin\$"
@@ -105,8 +104,8 @@ unset env(_LMFILES_)
 #
 
 set mod "spreadrc"
-set mod1 "$mod/dir1/1.0"
-set mod2 "$mod/dir2/1.0"
+set mod1 "$mod/dir3/1.0"
+set mod2 "$mod/dir4/1.0"
 set modfile1 "$env(MODULEPATH)/$mod1"
 set modfile2 "$env(MODULEPATH)/$mod2"
 
@@ -133,7 +132,7 @@ set mod2testres "WARNING: Unable to find ModulesTest in $modfile2."
 #
 
 set lmfmod_sh "_LMFILES__modshare=$modfile1:1:$modfile2:1; export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=$mod1:1:$mod2:1; export LOADEDMODULES_modshare;"
+set lmmod_sh "LOADEDMODULES_modshare=$mod2:1:$mod1:1; export LOADEDMODULES_modshare;"
 set lmf_sh "_LMFILES_=$modfile1:$modfile2; export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$mod1:$mod2; export LOADEDMODULES;"
 
@@ -146,8 +145,7 @@ testouterr_cmd_re "sh" "load $mod1 $mod2" "^$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_
 testerr_cmd_re "sh" "display $mod1 $mod2" "^$mod1disph\n$mod1dispres\n$modlin\n$mod2disph\n$spreadres$modlin\$"
 testerr_cmd_re "sh" "help $mod1 $mod2" "^$mod1helph\n$mod1helpres\n$modlin\n$mod2helph\n$spreadres$mod2helpres\n$modlin\$"
 testerr_cmd_re "sh" "test $mod1 $mod2" "^$mod1testh\n$mod1testres\n$modlin\n$mod2testh\n$spreadres$mod2testres\n$modlin\$"
-testerr_cmd_re "sh" "whatis $mod" "^$spreadres\$"
-testerr_cmd_re "sh" "avail -t $mod/" "^$modlin $env(MODULEPATH) $modlin\n$mod1\n$mod2\n$mod/dir3/1.0\n$mod/dir4/1.0\$"
+# avail/whatis have already been tested in 300-interp
 
 # tests looping on same modulefile
 testerr_cmd_re "sh" "display $mod1 $mod1" "^$mod1disph\n$mod1dispres\n$modlin\n$mod1disph\n$spreadres$mod1dispres\n$modlin\$"

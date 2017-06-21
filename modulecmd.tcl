@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.889
+set MODULES_CURRENT_VERSION 1.890
 set MODULES_CURRENT_RELEASE_DATE "2017-06-21"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -230,7 +230,7 @@ proc unset-env {var} {
 proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
    global g_debug g_inhibit_interp g_inhibit_errreport g_inhibit_dispreport
    global ModulesCurrentModulefile
-   global g_modfileUntrackVars
+   global g_modfileUntrackVars g_modfileAliases
 
    set ModulesCurrentModulefile $modfile
 
@@ -250,6 +250,20 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
          g_inhibit_errreport 1 g_inhibit_dispreport 1\
          ModulesCurrentModulefile 1 must_have_cookie 1 modcontent 1 env 1]
 
+      # list interpreter alias commands to define
+      array set g_modfileAliases [list setenv setenv unsetenv unsetenv getenv\
+         getenv system system chdir chdir append-path append-path\
+         prepend-path prepend-path remove-path remove-path prereq prereq\
+         conflict conflict is-loaded is-loaded module module module-info\
+         module-info module-whatis module-whatis set-alias set-alias\
+         unset-alias unset-alias uname uname x-resource x-resource exit\
+         exitModfileCmd module-version module-version module-alias\
+         module-alias module-trace module-trace module-verbosity\
+         module-verbosity module-user module-user module-log module-log\
+         reportInternalBug reportInternalBug reportWarning reportWarning\
+         reportError reportError raiseErrorCount raiseErrorCount report\
+         report isWin isWin readModuleContent readModuleContent]
+
       # dump initial interpreter state to restore it before each modulefile
       # interpreation
       dumpInterpState __modfile g_modfileVars g_modfileArrayVars\
@@ -258,19 +272,7 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
 
    # reset interp state command before each interpretation
    resetInterpState __modfile g_modfileVars g_modfileArrayVars\
-      g_modfileUntrackVars g_modfileProcs
-
-   # set interpreter alias commands each time to guaranty them being
-   # defined and not overridden by modulefile content
-   foreach cmd [list setenv unsetenv getenv system chdir append-path\
-      prepend-path remove-path prereq conflict is-loaded module module-info\
-      module-whatis set-alias unset-alias uname x-resource module-version\
-      module-alias module-trace module-verbosity module-user module-log\
-      reportInternalBug reportWarning reportError raiseErrorCount report\
-      isWin readModuleContent] {
-      interp alias __modfile $cmd {} $cmd
-   }
-   interp alias __modfile exit {} exitModfileCmd
+      g_modfileUntrackVars g_modfileProcs g_modfileAliases g_modfileCommands
 
    # reset modulefile-specific variable before each interpretation
    interp eval __modfile {global ModulesCurrentModulefile g_debug\
@@ -373,7 +375,7 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
    global g_rcfilesSourced ModulesVersion
    global g_debug g_inhibit_errreport g_inhibit_dispreport
    global ModulesCurrentModulefile
-   global g_modrcUntrackVars
+   global g_modrcUntrackVars g_modrcAliases
 
    reportDebug "execute-modulerc: $modfile"
 
@@ -395,6 +397,15 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
             g_inhibit_dispreport 1 ModulesCurrentModulefile 1\
             ModulesVersion 1 modcontent 1 env 1]
 
+         # list interpreter alias commands to define
+         array set g_modrcAliases [list uname uname system system chdir\
+            chdir module-version module-version module-alias module-alias\
+            module module module-info module-info module-trace module-trace\
+            module-verbosity module-verbosity module-user module-user\
+            module-log module-log reportInternalBug reportInternalBug\
+            setModulesVersion setModulesVersion readModuleContent\
+            readModuleContent]
+
          # dump initial interpreter state to restore it before each modulerc
          # interpreation
          dumpInterpState __modrc g_modrcVars g_modrcArrayVars\
@@ -403,15 +414,7 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
 
       # reset interp state command before each interpretation
       resetInterpState __modrc g_modrcVars g_modrcArrayVars\
-         g_modrcUntrackVars g_modrcProcs
-
-      # set interpreter alias commands each time to guaranty them being
-      # defined and not overridden by modulerc content
-      foreach cmd [list uname system chdir module-version module-alias module\
-         module-info module-trace module-verbosity module-user module-log\
-         reportInternalBug setModulesVersion readModuleContent] {
-         interp alias __modrc $cmd {} $cmd
-      }
+         g_modrcUntrackVars g_modrcProcs g_modrcAliases g_modrcCommands
 
       interp eval __modrc {global ModulesCurrentModulefile g_debug\
          g_inhibit_errreport g_inhibit_dispreport ModulesVersion}
@@ -505,14 +508,53 @@ proc dumpInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
 # global structure previously filled with initial list of defined procedure
 # and values of global variable.
 proc resetInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
-   dumpProcsVN} {
+   dumpProcsVN aliasesVN dumpCommandsVN} {
    upvar #0 $dumpVarsVN dumpVars
    upvar #0 $dumpArrayVarsVN dumpArrayVars
    upvar #0 $untrackVarsVN untrackVars
    upvar #0 $dumpProcsVN dumpProcs
+   upvar #0 $aliasesVN aliases
+   upvar #0 $dumpCommandsVN dumpCommands
+
+   # look at list of defined procedures and delete those not part of the
+   # initial state list. do not check if they have been altered as no vital
+   # procedures lied there. note that if a Tcl command has been overridden
+   # by a proc, it will be removed here and command will also disappear
+   foreach var [$itrp eval {info procs}] {
+      if {![info exists dumpProcs($var)]} {
+         reportDebug "resetInterpState: removing on $itrp proc $var"
+         $itrp eval [list rename $var {}]
+      }
+   }
+
+   # set interpreter alias commands each time to guaranty them being
+   # defined and not overridden by modulefile or modulerc content
+   foreach alias [array names aliases] {
+      interp alias $itrp $alias {} $aliases($alias)
+   }
+
+   # dump interpreter command list here on first time as aliases should be
+   # set prior to be found on this list for correct match
+   if {![info exists dumpCommands]} {
+      set dumpCommands [$itrp eval {info commands}]
+      reportDebug "resetInterpState: saving for $itrp command list\
+         $dumpCommands"
+   # if current interpreter command list does not match initial list it
+   # means that at least one command has been altered so we need to recreate
+   # interpreter to guaranty proper functioning
+   } elseif {$dumpCommands ne [$itrp eval {info commands}]} {
+      reportDebug "resetInterpState: missing command(s), recreating $itrp"
+      interp delete $itrp
+      interp create $itrp
+      # set aliases again on fresh interpreter
+      foreach alias [array names aliases] {
+         interp alias $itrp $alias {} $aliases($alias)
+      }
+   }
 
    # check every global variables currently set and correct them to restore
-   # initial interpreter state
+   # initial interpreter state. work on variables at the very end to ensure
+   # procedures and commands are correctly defined
    foreach var [$itrp eval {info globals}] {
       if {![info exists untrackVars($var)]} {
          if {![info exists dumpVars($var)]} {
@@ -529,17 +571,6 @@ proc resetInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
                $itrp eval array set ::$var [list $dumpVars($var)]
             }
          }
-      }
-   }
-
-   # look at list of defined procedures and delete those not part of the
-   # initial state list. do not check if they have been altered as no vital
-   # procedures lied there. note that if a Tcl command has been overridden
-   # by a proc, it will be removed here and command will also disappear
-   foreach var [$itrp eval {info procs}] {
-      if {![info exists dumpProcs($var)]} {
-         reportDebug "resetInterpState: removing on $itrp proc $var"
-         $itrp eval [list rename $var {}]
       }
    }
 }
