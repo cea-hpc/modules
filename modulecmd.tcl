@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.890
-set MODULES_CURRENT_RELEASE_DATE "2017-06-21"
+set MODULES_CURRENT_VERSION 1.891
+set MODULES_CURRENT_RELEASE_DATE "2017-06-23"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -241,10 +241,8 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
    }
 
    reportDebug "execute-modulefile:  Starting $modfile"
-   # create modulefile interpreter at first interpretation
-   if {![interp exists __modfile]} {
-      interp create __modfile
 
+   if {![info exists g_modfileUntrackVars]} {
       # list variable that should not be tracked for saving
       array set g_modfileUntrackVars [list g_debug 1 g_inhibit_interp 1\
          g_inhibit_errreport 1 g_inhibit_dispreport 1\
@@ -263,28 +261,37 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
          reportInternalBug reportInternalBug reportWarning reportWarning\
          reportError reportError raiseErrorCount raiseErrorCount report\
          report isWin isWin readModuleContent readModuleContent]
+   }
+
+   # dedicate an interpreter per level of interpretation to have in case of
+   # cascaded interpretations a specific interpreter per level
+   set itrp "__modfile[info level]"
+
+   # create modulefile interpreter at first interpretation
+   if {![interp exists $itrp]} {
+      interp create $itrp
 
       # dump initial interpreter state to restore it before each modulefile
       # interpreation
-      dumpInterpState __modfile g_modfileVars g_modfileArrayVars\
+      dumpInterpState $itrp g_modfileVars g_modfileArrayVars\
          g_modfileUntrackVars g_modfileProcs
    }
 
    # reset interp state command before each interpretation
-   resetInterpState __modfile g_modfileVars g_modfileArrayVars\
+   resetInterpState $itrp g_modfileVars g_modfileArrayVars\
       g_modfileUntrackVars g_modfileProcs g_modfileAliases g_modfileCommands
 
    # reset modulefile-specific variable before each interpretation
-   interp eval __modfile {global ModulesCurrentModulefile g_debug\
+   interp eval $itrp {global ModulesCurrentModulefile g_debug\
       g_inhibit_interp g_inhibit_errreport g_inhibit_dispreport}
-   interp eval __modfile set ModulesCurrentModulefile $modfile
-   interp eval __modfile set g_debug $g_debug
-   interp eval __modfile set g_inhibit_interp $g_inhibit_interp
-   interp eval __modfile set g_inhibit_errreport $g_inhibit_errreport
-   interp eval __modfile set g_inhibit_dispreport $g_inhibit_dispreport
-   interp eval __modfile set must_have_cookie $must_have_cookie
+   interp eval $itrp set ModulesCurrentModulefile $modfile
+   interp eval $itrp set g_debug $g_debug
+   interp eval $itrp set g_inhibit_interp $g_inhibit_interp
+   interp eval $itrp set g_inhibit_errreport $g_inhibit_errreport
+   interp eval $itrp set g_inhibit_dispreport $g_inhibit_dispreport
+   interp eval $itrp set must_have_cookie $must_have_cookie
 
-   set errorVal [interp eval __modfile {
+   set errorVal [interp eval $itrp {
       set modcontent [readModuleContent $ModulesCurrentModulefile 1\
          $must_have_cookie]
       if {$modcontent eq ""} {
@@ -387,11 +394,7 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
    set modname [file dirname [currentModuleName]]
 
    if {![info exists g_rcfilesSourced($modfile)]} {
-      reportDebug "execute-modulerc: sourcing rc $modfile"
-      # create modulerc interpreter at first interpretation
-      if {![interp exists __modrc]} {
-         interp create __modrc
-
+      if {![info exists g_modrcUntrackVars]} {
          # list variable that should not be tracked for saving
          array set g_modrcUntrackVars [list g_debug 1 g_inhibit_errreport 1\
             g_inhibit_dispreport 1 ModulesCurrentModulefile 1\
@@ -405,26 +408,36 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
             module-log module-log reportInternalBug reportInternalBug\
             setModulesVersion setModulesVersion readModuleContent\
             readModuleContent]
+      }
+
+      # dedicate an interpreter per level of interpretation to have in case of
+      # cascaded interpretations a specific interpreter per level
+      set itrp "__modrc[info level]"
+
+      reportDebug "execute-modulerc: sourcing rc $modfile"
+      # create modulerc interpreter at first interpretation
+      if {![interp exists $itrp]} {
+         interp create $itrp
 
          # dump initial interpreter state to restore it before each modulerc
          # interpreation
-         dumpInterpState __modrc g_modrcVars g_modrcArrayVars\
+         dumpInterpState $itrp g_modrcVars g_modrcArrayVars\
             g_modrcUntrackVars g_modrcProcs
       }
 
       # reset interp state command before each interpretation
-      resetInterpState __modrc g_modrcVars g_modrcArrayVars\
+      resetInterpState $itrp g_modrcVars g_modrcArrayVars\
          g_modrcUntrackVars g_modrcProcs g_modrcAliases g_modrcCommands
 
-      interp eval __modrc {global ModulesCurrentModulefile g_debug\
+      interp eval $itrp {global ModulesCurrentModulefile g_debug\
          g_inhibit_errreport g_inhibit_dispreport ModulesVersion}
-      interp eval __modrc set ModulesCurrentModulefile $modfile
-      interp eval __modrc set g_debug $g_debug
-      interp eval __modrc set g_inhibit_errreport $g_inhibit_errreport
-      interp eval __modrc set g_inhibit_dispreport $g_inhibit_dispreport
-      interp eval __modrc {set ModulesVersion {}}
+      interp eval $itrp set ModulesCurrentModulefile $modfile
+      interp eval $itrp set g_debug $g_debug
+      interp eval $itrp set g_inhibit_errreport $g_inhibit_errreport
+      interp eval $itrp set g_inhibit_dispreport $g_inhibit_dispreport
+      interp eval $itrp {set ModulesVersion {}}
 
-      set errorVal [interp eval __modrc {
+      set errorVal [interp eval $itrp {
          set modcontent [readModuleContent $ModulesCurrentModulefile]
          if {$modcontent eq ""} {
             # simply skip rc file, no exit on error here

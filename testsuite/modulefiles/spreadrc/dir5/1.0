@@ -1,0 +1,158 @@
+#%Module1.0
+
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		spreadrc/%M%
+#   Revision:		%I%
+#   First Edition:	2017/06/23
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite modulefile
+#   Command:
+#   Sub-Command:
+#
+#   Invocation:		load @M@, unload @M@, switch @M@ @M@,
+#                   help @M@, display @M@, test @M@, whatis @M@
+#   Result:	%R{
+#		}R%
+#   Comment:	%C{
+#           Test how variable and procedure definitions spread from
+#           one modulerc or modulefile interpretation to another one
+#           when these interpretations are cascaded.
+#		}C%
+#
+##############################################################################
+
+
+# test if specific or overriden pre-existing variables have spread here
+# coming from modulerc or sibbling modulefiles
+if {[info exists spreadrc]} {
+    puts stderr "variable spreadrc exists"
+}
+if {[info exists spreadmod]} {
+    puts stderr "variable spreadmod exists"
+}
+if {$tcl_version eq "test"} {
+    puts stderr "variable tcl_version equals test"
+}
+if {[array exists spreadrc_array]} {
+    puts stderr "array variable spreadrc_array exists"
+}
+if {[array exists spreadmod_array]} {
+    puts stderr "array variable spreadmod_array exists"
+}
+if {$tcl_platform(osVersion) eq "test"} {
+    puts stderr "variable tcl_platform(osVersion) equals test"
+}
+
+# test if specific or overriden interpreter alias command have spread here
+# coming from modulerc or sibbling modulefiles
+set existing_proc [lindex [info procs] 0]
+# test if first proc defined has been altered
+if {[info procs $existing_proc] ne $existing_proc} {
+    puts stderr "procedure $existing_proc does not exist"
+# env variable spread across interpretation and even between interpreters
+} else {
+    if {[info exists env(spreadmodcasc)] && [$existing_proc] ne "spreadmodcasc"} {
+        puts stderr "procedure $existing_proc has not been altered"
+    }
+    if {[info exists env(spreadrccasc)] && [$existing_proc] eq "spreadrccasc"} {
+        puts stderr "procedure $existing_proc has been altered"
+    }
+}
+if {[info procs spreadrc_proc] eq "spreadrc_proc"} {
+    puts stderr "procedure spreadrc_proc exists"
+}
+if {[info procs spreadmod_proc] eq "spreadmod_proc"} {
+    puts stderr "procedure spreadmod_proc exists"
+}
+if {[info procs ModulesHelp] eq "ModulesHelp"} {
+    puts stderr "procedure ModulesHelp exists"
+}
+if {[info procs ModulesTest] eq "ModulesTest"} {
+    puts stderr "procedure ModulesTest exists"
+}
+if {[info procs ModulesDisplay] eq "ModulesDisplay"} {
+    puts stderr "procedure ModulesDisplay exists"
+}
+if {[info procs module-version] eq "module-version"} {
+    puts stderr "procedure module-version exists"
+}
+
+
+# define specific variables or override value in pre-existing variables
+set spreadmod "yes"
+set tcl_version "test"
+array set spreadmod_array [list "yes" 1]
+set tcl_platform(osVersion) "test"
+set env(spreadmodcasc) "yes"
+
+# define specific procs or override interpreter alias command
+# override first proc defined
+proc $existing_proc {args} {
+    return "spreadmodcasc"
+}
+proc spreadmod_proc {text} {
+    puts stderr "spreadmod_proc: $text"
+}
+proc ModulesHelp {} {
+    puts stderr "spreadmod"
+}
+proc ModulesTest {} {
+    puts stderr "spreadmod"
+    return 1
+}
+proc ModulesDisplay {} {
+    puts stderr "spreadmod"
+}
+proc module-version {args} {
+    puts stderr "spreadmod"
+}
+
+setenv testspreadrc "yes"
+
+module load spreadrc/dir6/1.0
+
+# test if specific or overriden pre-existing variables are still there
+# after cascaded interpretation
+if {![info exists spreadmod]} {
+    puts stderr "variable spreadmod has been reset"
+}
+if {$tcl_version ne "test"} {
+    puts stderr "variable tcl_version has been reset"
+}
+if {![array exists spreadmod_array]} {
+    puts stderr "array variable spreadmod_array has been reset"
+}
+if {$tcl_platform(osVersion) ne "test"} {
+    puts stderr "variable tcl_platform(osVersion) has been reset"
+}
+
+# test if specific or overriden interpreter alias command are still there
+# after cascaded interpretation
+# test if first proc defined has been altered
+if {[info procs $existing_proc] ne $existing_proc} {
+    puts stderr "procedure $existing_proc does not exist"
+# env variable spread across interpretation and even between interpreters
+} elseif {[info exists env(spreadmodcasc)] && [$existing_proc] ne "spreadmodcasc"} {
+    puts stderr "procedure $existing_proc has been reset"
+}
+if {[info procs spreadmod_proc] ne "spreadmod_proc"} {
+    puts stderr "procedure spreadmod_proc has been reset"
+}
+if {[info procs ModulesHelp] ne "ModulesHelp"} {
+    puts stderr "procedure ModulesHelp has been reset"
+}
+if {[info procs ModulesTest] ne "ModulesTest"} {
+    puts stderr "procedure ModulesTest has been reset"
+}
+if {[info procs ModulesDisplay] ne "ModulesDisplay"} {
+    puts stderr "procedure ModulesDisplay has been reset"
+}
+if {[info procs module-version] ne "module-version"} {
+    puts stderr "procedure module-version has been reset"
+}
