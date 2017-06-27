@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.891
-set MODULES_CURRENT_RELEASE_DATE "2017-06-23"
+set MODULES_CURRENT_VERSION 1.893
+set MODULES_CURRENT_RELEASE_DATE "2017-06-27"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1263,6 +1263,12 @@ proc setenv {var val} {
    if {$mode eq "load"} {
       set env($var) $val
       set g_stateEnvVars($var) "new"
+      # clean any previously defined reference counter array
+      set sharevar "${var}_modshare"
+      if {[info exists env($sharevar)]} {
+         unset-env $sharevar
+         set g_stateEnvVars($sharevar) "del"
+      }
    }\
    elseif {$mode eq "unload"} {
       # Don't unset-env here ... it breaks modulefiles
@@ -1310,6 +1316,12 @@ proc unsetenv {var {val {}}} {
          unset-env $var
       }
       set g_stateEnvVars($var) "del"
+      # clean any existing reference counter array
+      set sharevar "${var}_modshare"
+      if {[info exists env($sharevar)]} {
+         unset-env $sharevar
+         set g_stateEnvVars($sharevar) "del"
+      }
    }\
    elseif {$mode eq "unload"} {
       if {$val ne ""} {

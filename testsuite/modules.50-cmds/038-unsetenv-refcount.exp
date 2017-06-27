@@ -1,0 +1,162 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2017/06/27
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	unsetenv/0.8
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'unsetenv' module subcommand for all allowed
+#			shell types when variable is previously associated to
+#           a reference counter array.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "unsetenv/0.8"
+set modulefile "$env(MODULEPATH)/$module"
+
+#
+#  Set up the environment for reversal ...
+#
+
+set env(testsuite) "'yes'"
+
+#
+#  For the different shells ...
+#
+
+set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
+set lmf_csh "setenv _LMFILES_ $modulefile;"
+set lmf_fish "set -xg _LMFILES_ $modulefile;"
+set lmf_tcl "set env(_LMFILES_) \"$modulefile\";"
+set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
+set lmf_python "os.environ\['_LMFILES_'\] = '$modulefile'"
+set lmf_lisp "(setenv \"_LMFILES_\" \"$modulefile\")"
+
+set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
+set lm_csh "setenv LOADEDMODULES $module;"
+set lm_fish "set -xg LOADEDMODULES $module;"
+set lm_tcl "set env(LOADEDMODULES) \"$module\";"
+set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
+set lm_python "os.environ\['LOADEDMODULES'\] = '$module'"
+set lm_lisp "(setenv \"LOADEDMODULES\" \"$module\")"
+
+set ts_sh "unset testsuite;"
+set ts_csh "unsetenv testsuite;"
+set ts_fish "set -e testsuite;"
+set ts_tcl "unset env(testsuite);"
+set ts_perl "delete \$ENV{'testsuite'};"
+set ts_python "os.environ\['testsuite'\] = ''\ndel os.environ\['testsuite'\]"
+set ts_lisp "(setenv \"testsuite\" nil)"
+
+set tsmod_sh "unset testsuite_modshare;"
+set tsmod_csh "unsetenv testsuite_modshare;"
+set tsmod_fish "set -e testsuite_modshare;"
+set tsmod_tcl "unset env(testsuite_modshare);"
+set tsmod_perl "delete \$ENV{'testsuite_modshare'};"
+set tsmod_python "os.environ\['testsuite_modshare'\] = ''\ndel os.environ\['testsuite_modshare'\]"
+set tsmod_lisp "(setenv \"testsuite_modshare\" nil)"
+
+set lmfmod_sh "_LMFILES__modshare=$modulefile:1; export _LMFILES__modshare;"
+set lmfmod_csh "setenv _LMFILES__modshare $modulefile:1;"
+set lmfmod_fish "set -xg _LMFILES__modshare $modulefile:1;"
+set lmfmod_tcl "set env(_LMFILES__modshare) \"$modulefile:1\";"
+set lmfmod_perl "\$ENV{'_LMFILES__modshare'} = '$modulefile:1';"
+set lmfmod_python "os.environ\['_LMFILES__modshare'\] = '$modulefile:1'"
+set lmfmod_lisp "(setenv \"_LMFILES__modshare\" \"$modulefile:1\")"
+
+set lmmod_sh "LOADEDMODULES_modshare=$module:1; export LOADEDMODULES_modshare;"
+set lmmod_csh "setenv LOADEDMODULES_modshare $module:1;"
+set lmmod_fish "set -xg LOADEDMODULES_modshare $module:1;"
+set lmmod_tcl "set env(LOADEDMODULES_modshare) \"$module:1\";"
+set lmmod_perl "\$ENV{'LOADEDMODULES_modshare'} = '$module:1';"
+set lmmod_python "os.environ\['LOADEDMODULES_modshare'\] = '$module:1'"
+set lmmod_lisp "(setenv \"LOADEDMODULES_modshare\" \"$module:1\")"
+
+
+#
+#  The tests
+#
+
+test_cmd "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$tsmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh"
+test_cmd "bash" "load $module" "$lmfmod_sh\n$lmmod_sh\n$tsmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh"
+test_cmd "ksh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$tsmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh"
+test_cmd "zsh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$tsmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh"
+test_cmd "csh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$tsmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh"
+test_cmd "tcsh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$tsmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh"
+test_cmd "fish" "load $module" "$lmfmod_fish\n$lmmod_fish\n$tsmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish"
+test_cmd "tcl" "load $module" "$lmfmod_tcl\n$lmmod_tcl\n$tsmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl"
+test_cmd "perl" "load $module" "$lmfmod_perl\n$lmmod_perl\n$tsmod_perl\n$lmf_perl\n$lm_perl\n$ts_perl\n1;"
+#test_cmd "cmake" "load $module" "$lm_cmake\n$lmf_cmake\n$ts_cmake"
+test_cmd "python" "load $module" "import os\n$lmfmod_python\n$lmmod_python\n$tsmod_python\n$lmf_python\n$lm_python\n$ts_python"
+test_cmd "lisp" "load $module" "$lmfmod_lisp\n$lmmod_lisp\n$tsmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp"
+
+
+#
+#  Cleanup
+#
+
+unset lmf_sh
+unset lmf_csh
+unset lmf_fish
+unset lmf_tcl
+unset lmf_perl
+unset lmf_python
+unset lmf_lisp
+
+unset lm_sh
+unset lm_csh
+unset lm_fish
+unset lm_tcl
+unset lm_perl
+unset lm_python
+unset lm_lisp
+
+unset ts_sh
+unset ts_csh
+unset ts_fish
+unset ts_tcl
+unset ts_perl
+unset ts_python
+unset ts_lisp
+
+unset lmfmod_sh
+unset lmfmod_csh
+unset lmfmod_fish
+unset lmfmod_tcl
+unset lmfmod_perl
+unset lmfmod_python
+unset lmfmod_lisp
+
+unset lmmod_sh
+unset lmmod_csh
+unset lmmod_fish
+unset lmmod_tcl
+unset lmmod_perl
+unset lmmod_python
+unset lmmod_lisp
+
+unset modulefile
+unset module
+
+#
+#  Clean up the environment, too
+#
+
+unset env(testsuite)
