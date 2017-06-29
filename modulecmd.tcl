@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.893
-set MODULES_CURRENT_RELEASE_DATE "2017-06-27"
+set MODULES_CURRENT_VERSION 1.894
+set MODULES_CURRENT_RELEASE_DATE "2017-06-29"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -4069,8 +4069,7 @@ proc cmdModuleRestore {{coll {}}} {
    set collfile [getCollectionFilename $coll colldesc]
 
    if {![file readable $collfile]} {
-      reportErrorAndExit "Collection $colldesc does not exist or is not\
-         readable"
+      reportErrorAndExit "Collection $colldesc cannot be found"
    }
 
    # read collection
@@ -4160,7 +4159,7 @@ proc cmdModuleSaverm {{coll {}}} {
    set collfile [getCollectionFilename $coll colldesc]
 
    if {![file exists $collfile]} {
-      reportErrorAndExit "Collection $colldesc does not exist"
+      reportErrorAndExit "Collection $colldesc cannot be found"
    }
 
    # attempt to delete specified colletion
@@ -4182,8 +4181,7 @@ proc cmdModuleSaveshow {{coll {}}} {
    set collfile [getCollectionFilename $coll colldesc]
 
    if {![file readable $collfile]} {
-      reportErrorAndExit "Collection $colldesc does not exist or is not\
-         readable"
+      reportErrorAndExit "Collection $colldesc cannot be found"
    }
 
    # read collection
@@ -4218,7 +4216,16 @@ proc cmdModuleSavelist {} {
       \"$colltarget\""
 
    # list saved collections (matching target suffix)
-   set coll_list [glob -nocomplain -- "$env(HOME)/.module/*$suffix"]
+   set coll_search "$env(HOME)/.module/*$suffix"
+   # workaround 'glob -nocomplain' which does not return permission
+   # error on Tcl 8.4, so we need to avoid raising error if no match
+   if {[catch {set coll_list [glob $coll_search]} errMsg ]} {
+      if {$errMsg eq "no files matched glob pattern \"$coll_search\""} {
+         set coll_list {}
+      } else {
+         reportErrorAndExit "Cannot access collection directory.\n$errMsg"
+      }
+   }
 
    if { [llength $coll_list] == 0} {
       report "No named collection$targetdesc."
