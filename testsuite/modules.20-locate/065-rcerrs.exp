@@ -37,6 +37,14 @@ set err_loc "$error_msgs: Unable to locate a modulefile for 'loc_sym/foobar'"
 if { [info exists env(MODULERCFILE) ] } {
     set save_rc $env(MODULERCFILE)
 }
+if { [info exists env(MODULESHOME) ] } {
+    set save_modhome $env(MODULESHOME)
+}
+
+# backup etc/rc global RC that will be altered by tests
+set modhomerc "$env(TESTSUITEDIR)/etc/rc"
+set modhomercsave "${modhomerc}.save"
+file copy -force $modhomerc $modhomercsave
 
 #
 #  The tests
@@ -47,15 +55,35 @@ set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/bad"
 #testerr_cmd_re "csh" "load loc_sym/foobar" "$prob_name$err_exec\n$warn_src$err_loc"
 testerr_cmd_re "csh" "load loc_sym/foobar" "$prob_name$err_loc"
 
+set env(MODULESHOME) $env(TESTSUITEDIR)
+file copy -force $env(MODULERCFILE) $modhomerc
+set env(MODULERCFILE) ""
+# Tcl-version does not currently locate precisely where the error occured
+#testerr_cmd_re "csh" "load loc_sym/foobar" "$prob_name$err_exec\n$warn_src$err_loc"
+testerr_cmd_re "csh" "load loc_sym/foobar" "$prob_name$err_loc"
+
 #
 #  Restore the former rc file setup
 #
 
 if { [info exists save_rc ] } {
     set env(MODULERCFILE) $save_rc
+    unset save_rc
 } else {
     unset env(MODULERCFILE)
 }
+if { [info exists save_modhome ] } {
+    set env(MODULESHOME) $save_modhome
+    unset save_modhome
+} else {
+    unset env(MODULESHOME)
+}
+
+# restore etc/rc global RC that will be altered by tests
+file copy -force $modhomercsave $modhomerc
+file delete $modhomercsave
+unset modhomerc
+unset modhomercsave
 
 #
 #  Cleanup

@@ -29,6 +29,8 @@
 
 set module_1 "loc_rc1/1.0"
 set modulefile_1 "$env(MODULEPATH)/$module_1"
+set module_2 "loc_rc2/1.0"
+set modulefile_2 "$env(MODULEPATH)/$module_2"
 
 #
 #  Save the former rc file setup
@@ -36,6 +38,9 @@ set modulefile_1 "$env(MODULEPATH)/$module_1"
 
 if { [info exists env(MODULERCFILE) ] } {
     set save_rc $env(MODULERCFILE)
+}
+if { [info exists env(MODULESHOME) ] } {
+    set save_modhome $env(MODULESHOME)
 }
 
 #
@@ -46,10 +51,18 @@ set lmf_csh_1 "setenv _LMFILES_ $modulefile_1;"
 set lm_csh_1 "setenv LOADEDMODULES $module_1;"
 set ts_csh_1 "setenv testsuite yes;"
 
+set lmf_csh_2 "setenv _LMFILES_ $modulefile_2;"
+set lm_csh_2 "setenv LOADEDMODULES $module_2;"
+set ts_csh_2 "setenv testsuite yes;"
 
 set disp_csh "setenv\t\ttestsuite\tyes"
-set whatis_csh "module-whatis\t$module_1"
-set disp_1 "$modlin\n$modulefile_1:\n\n$whatis_csh\n$disp_csh\n$modlin"
+set whatis_csh_1 "module-whatis\t$module_1"
+set disp_1 "$modlin\n$modulefile_1:\n\n$whatis_csh_1\n$disp_csh\n$modlin"
+set whatis_csh_2 "module-whatis\t$module_2"
+set disp_2 "$modlin\n$modulefile_2:\n\n$whatis_csh_2\n$disp_csh\n$modlin"
+
+set locate_msg "$error_msgs: Unable to locate a modulefile for 'sym_foo'"
+set err_csh "/bin/false;"
 
 #
 #  The tests
@@ -63,14 +76,35 @@ set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/"
 test_cmd_re "csh" "load sym_foo" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_1\n$lm_csh_1\n$ts_csh_1"
 testerr_cmd_re "sh" "display sym_foo" "^$disp_1\$"
 
+unset env(MODULERCFILE)
+testouterr_cmd "csh" "load sym_foo" "$err_csh" "$locate_msg"
+testouterr_cmd "sh" "display sym_foo" "$err_csh" "$locate_msg"
+
+set env(MODULESHOME) $env(TESTSUITEDIR)
+test_cmd_re "csh" "load sym_foo" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_2\n$lm_csh_2\n$ts_csh_2"
+testerr_cmd_re "sh" "display sym_foo" "^$disp_2\$"
+
+# test global RCs cascading
+set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
+test_cmd_re "csh" "load sym_foo" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_2\n$lm_csh_2\n$ts_csh_2"
+testerr_cmd_re "sh" "display sym_foo" "^$disp_2\$"
+
+
 #
 #  Restore the former rc file setup
 #
 
 if { [info exists save_rc ] } {
     set env(MODULERCFILE) $save_rc
+    unset save_rc
 } else {
     unset env(MODULERCFILE)
+}
+if { [info exists save_modhome ] } {
+    set env(MODULESHOME) $save_modhome
+    unset save_modhome
+} else {
+    unset env(MODULESHOME)
 }
 
 #
@@ -81,9 +115,21 @@ unset lm_csh_1
 unset lmf_csh_1
 unset ts_csh_1
 
+unset lm_csh_2
+unset lmf_csh_2
+unset ts_csh_2
+
 unset disp_csh
-unset whatis_csh
+unset whatis_csh_1
 unset disp_1
+unset whatis_csh_2
+unset disp_2
+
+unset locate_msg
+unset err_csh
 
 unset modulefile_1
 unset module_1
+
+unset modulefile_2
+unset module_2
