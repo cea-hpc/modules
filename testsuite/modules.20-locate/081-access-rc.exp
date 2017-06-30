@@ -1,0 +1,152 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	2017/06/30
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display
+#   Modulefiles:	loc_rc1/1.0, loc_sym/1.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Tests the evaluation of the global RC files when access rights
+#           to get to it does not allow it
+#       }C%
+#
+##############################################################################
+
+set modhome $env(TESTSUITEDIR)
+set etcdir "$modhome/etc"
+set etcmodrc "$etcdir/modulerc"
+set etcrc "$etcdir/rc"
+set homedir "$env(TESTSUITEDIR)/home"
+set homemodrc "$homedir/.modulerc"
+
+set locate_msg "$error_msgs: Unable to locate a modulefile for 'sym_foo'"
+set locate2_msg "$error_msgs: Unable to locate a modulefile for 'loc_sym/sym_home'"
+set err_sh "/bin/false;"
+set hide_perms "ugo-rx"
+
+#
+#  Save the former rc file setup
+#
+
+if { [info exists env(MODULERCFILE) ] } {
+    set save_rc $env(MODULERCFILE)
+}
+if { [info exists env(MODULESHOME) ] } {
+    set save_modhome $env(MODULESHOME)
+}
+if { [info exists env(HOME) ] } {
+    set save_home $env(HOME)
+}
+
+
+#
+# Test usage of global RC when read access not granted on this RC file
+#
+
+# lock access to MODULERCFILE also used as MODULERCFILE/modulerc
+change_file_perms $etcmodrc $hide_perms
+
+# access issue on global RC files are silenced
+set env(MODULERCFILE) $etcmodrc
+testouterr_cmd "sh" "load sym_foo" "$err_sh" "$locate_msg"
+testouterr_cmd "sh" "display sym_foo" "$err_sh" "$locate_msg"
+
+set env(MODULERCFILE) $etcdir
+testouterr_cmd "sh" "load sym_foo" "$err_sh" "$locate_msg"
+testouterr_cmd "sh" "display sym_foo" "$err_sh" "$locate_msg"
+set env(MODULERCFILE) ""
+
+restore_file_perms $etcmodrc
+
+# lock access to MODULESHOME/etc/rc
+change_file_perms $etcrc $hide_perms
+
+set env(MODULESHOME) $modhome
+testouterr_cmd "sh" "load sym_foo" "$err_sh" "$locate_msg"
+testouterr_cmd "sh" "display sym_foo" "$err_sh" "$locate_msg"
+set env(MODULESHOME) ""
+
+restore_file_perms $etcrc
+
+# lock access to HOME/.modulerc
+change_file_perms $homemodrc $hide_perms
+
+set env(HOME) $homedir
+testouterr_cmd "sh" "load loc_sym/sym_home" "$err_sh" "$locate2_msg"
+testouterr_cmd "sh" "display loc_sym/sym_home" "$err_sh" "$locate2_msg"
+set env(HOME) $save_home
+
+restore_file_perms $homemodrc
+
+
+#
+# Test usage of global RC when read access not granted on its upper directory
+#
+
+# lock access to MODULESHOME/etc also used as MODULERCFILE upper dir
+change_file_perms $etcdir $hide_perms
+
+set env(MODULERCFILE) $etcmodrc
+testouterr_cmd "sh" "load sym_foo" "$err_sh" "$locate_msg"
+testouterr_cmd "sh" "display sym_foo" "$err_sh" "$locate_msg"
+
+set env(MODULERCFILE) $etcdir
+testouterr_cmd "sh" "load sym_foo" "$err_sh" "$locate_msg"
+testouterr_cmd "sh" "display sym_foo" "$err_sh" "$locate_msg"
+set env(MODULERCFILE) ""
+
+set env(MODULESHOME) $modhome
+testouterr_cmd "sh" "load sym_foo" "$err_sh" "$locate_msg"
+testouterr_cmd "sh" "display sym_foo" "$err_sh" "$locate_msg"
+set env(MODULESHOME) ""
+
+restore_file_perms $etcdir
+
+
+#
+#  Restore the former rc file setup
+#
+
+if { [info exists save_rc ] } {
+    set env(MODULERCFILE) $save_rc
+    unset save_rc
+} else {
+    unset env(MODULERCFILE)
+}
+if { [info exists save_modhome ] } {
+    set env(MODULESHOME) $save_modhome
+    unset save_modhome
+} else {
+    unset env(MODULESHOME)
+}
+if { [info exists save_home ] } {
+    set env(HOME) $save_home
+    unset save_home
+} else {
+    unset env(HOME)
+}
+
+#
+#  Cleanup
+#
+
+unset modhome
+unset etcdir
+unset etcmodrc
+unset etcrc
+unset homedir
+unset homemodrc
+
+unset locate_msg
+unset locate2_msg
+unset err_sh
+unset hide_perms
