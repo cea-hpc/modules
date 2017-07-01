@@ -45,3 +45,9 @@ _test_modules sh "initswitch" "$modload use.own null modules dot\n$modload modul
 # different behavior than C-version: on Tcl-version no 'module load null' lines are left
 testerr_cmd sh "initclear" ""
 _test_modules sh "initclear" ""
+
+# test on fully empty init file
+file copy -force "$env(HOME)/.modules.savenull"  "$env(HOME)/.modules"
+
+testouterr_cmd sh "initclear" "$err_sh" "$find_msg_sh"
+_test_modules sh "initclear" "#"

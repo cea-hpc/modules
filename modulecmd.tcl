@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.894
-set MODULES_CURRENT_RELEASE_DATE "2017-06-29"
+set MODULES_CURRENT_VERSION 1.898
+set MODULES_CURRENT_RELEASE_DATE "2017-07-01"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -4579,7 +4579,7 @@ proc cmdModuleInit {args} {
    set moduleinit_cmd [lindex $args 0]
    set moduleinit_list [lrange $args 1 end]
    set notdone 1
-   set notclear 1
+   set nomatch 1
 
    reportDebug "cmdModuleInit: $args"
 
@@ -4597,7 +4597,7 @@ proc cmdModuleInit {args} {
    # Process startup files for this shell
    set current_files $files($g_shell)
    foreach filename $current_files {
-      if {$notdone && $notclear} {
+      if {$notdone} {
          set filepath $env(HOME)
          append filepath "/" $filename
          # create a new file to put the changes in
@@ -4617,6 +4617,7 @@ proc cmdModuleInit {args} {
                set comments {}
                if {$notdone && [regexp {^([ \t]*module[ \t]+(load|add)[\
                   \t]*)(.*)} $curline match cmd subcmd modules]} {
+                  set nomatch 0
                   regexp {([ \t]*\#.+)} $modules match comments
                   regsub {\#.+} $modules {} modules
 
@@ -4696,6 +4697,12 @@ proc cmdModuleInit {args} {
             }
          }
       }
+   }
+
+   # quit in error if command was not performed due to no match
+   if {$nomatch && $moduleinit_cmd ne "list"} {
+      reportErrorAndExit "Cannot find a 'module load' command in any of the\
+         '$g_shell' startup files"
    }
 }
 
