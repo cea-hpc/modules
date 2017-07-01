@@ -1,0 +1,78 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.60-initx/%M%
+#   Revision:		%I%
+#   First Edition:	2017/07/01
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		initlist, initadd, initprepend, initswitch
+#                   initrm, initclear
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Handling of init file when access rights to get to it
+#           does not allow it
+#		}C%
+#
+##############################################################################
+
+# restore regular .modules file for test
+set initf "$env(HOME)/.modules"
+set initfsave "${initf}.save"
+file copy -force $initfsave $initf
+
+set initlist_sh "sh initialization file \$HOME/.modules loads modules:\n\tnull\n\tdot module-cvs module-info modules use.own"
+set write_msg_sh "$error_msgs: Init file $initf cannot be written.\ncouldn't open \"$initf\": permission denied"
+set hide_perms "ugo-rx"
+set write_perms "ugo-w"
+
+
+#
+# Test access to init file when read access not granted on this file
+#
+
+change_file_perms $initf $hide_perms
+
+testerr_cmd sh "initlist" ""
+testouterr_cmd sh "initadd foobar" "$err_sh" "$find_msg_sh"
+testouterr_cmd sh "initswitch foo food" "$err_sh" "$find_msg_sh"
+testouterr_cmd sh "initprepend foobar" "$err_sh" "$find_msg_sh"
+testouterr_cmd sh "initrm foobar" "$err_sh" "$find_msg_sh"
+testouterr_cmd sh "initclear" "$err_sh" "$find_msg_sh"
+
+restore_file_perms $initf
+
+
+#
+# Test access to init file when write access not granted on this file
+#
+
+change_file_perms $initf $write_perms
+
+testerr_cmd sh "initlist" "$initlist_sh"
+testouterr_cmd sh "initadd foobar" "$err_sh" "$write_msg_sh"
+testouterr_cmd sh "initswitch foo food" "$err_sh" "$write_msg_sh"
+testouterr_cmd sh "initprepend foobar" "$err_sh" "$write_msg_sh"
+testouterr_cmd sh "initrm foobar" "$err_sh" "$write_msg_sh"
+testouterr_cmd sh "initclear" "$err_sh" "$write_msg_sh"
+
+restore_file_perms $initf
+
+
+#
+# Cleanup
+#
+
+unset initlist_sh
+unset write_msg_sh
+unset hide_perms
+unset write_perms
+
+unset initf
+unset initfsave
