@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.898
+set MODULES_CURRENT_VERSION 1.899
 set MODULES_CURRENT_RELEASE_DATE "2017-07-01"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -4576,8 +4576,8 @@ proc cmdModuleAutoinit {} {
 proc cmdModuleInit {args} {
    global g_shell env
 
-   set moduleinit_cmd [lindex $args 0]
-   set moduleinit_list [lrange $args 1 end]
+   set init_cmd [lindex $args 0]
+   set init_list [lrange $args 1 end]
    set notdone 1
    set nomatch 1
 
@@ -4600,17 +4600,12 @@ proc cmdModuleInit {args} {
       if {$notdone} {
          set filepath $env(HOME)
          append filepath "/" $filename
-         # create a new file to put the changes in
-         set newfilepath "$filepath-NEW"
 
-         reportDebug "Looking at: $filepath"
+         reportDebug "cmdModuleInit: Looking at $filepath"
          if {[file readable $filepath] && [file isfile $filepath]} {
+            set newinit {}
+            set thismatch 0
             set fid [open $filepath r]
-
-            # Only open the new file if we are not doing "initlist"
-            if {[string compare $moduleinit_cmd "list"] != 0} {
-               set newfid [open $newfilepath w]
-            }
 
             while {[gets $fid curline] >= 0} {
                # Find module load/add command in startup file 
@@ -4618,13 +4613,14 @@ proc cmdModuleInit {args} {
                if {$notdone && [regexp {^([ \t]*module[ \t]+(load|add)[\
                   \t]*)(.*)} $curline match cmd subcmd modules]} {
                   set nomatch 0
+                  set thismatch 1
                   regexp {([ \t]*\#.+)} $modules match comments
                   regsub {\#.+} $modules {} modules
 
                   # remove existing references to the named module from
                   # the list Change the module command line to reflect the 
                   # given command
-                  switch $moduleinit_cmd {
+                  switch $init_cmd {
                      list {
                         if {![info exists notheader]} {
                            report "$g_shell initialization file\
@@ -4634,40 +4630,40 @@ proc cmdModuleInit {args} {
                         report "\t$modules"
                      }
                      add {
-                        foreach newmodule $moduleinit_list {
+                        foreach newmodule $init_list {
                            set modules [replaceFromList $modules $newmodule]
                         }
-                        puts $newfid "$cmd$modules $moduleinit_list$comments"
+                        lappend newinit "$cmd$modules $init_list$comments"
                         # delete new modules in potential next lines
-                        set moduleinit_cmd "rm"
+                        set init_cmd "rm"
                      }
                      prepend {
-                        foreach newmodule $moduleinit_list {
+                        foreach newmodule $init_list {
                            set modules [replaceFromList $modules $newmodule]
                         }
-                        puts $newfid "$cmd$moduleinit_list $modules$comments"
+                        lappend newinit "$cmd$init_list $modules$comments"
                         # delete new modules in potential next lines
-                        set moduleinit_cmd "rm"
+                        set init_cmd "rm"
                      }
                      rm {
                         set oldmodcount [llength $modules]
-                        foreach oldmodule $moduleinit_list {
+                        foreach oldmodule $init_list {
                            set modules [replaceFromList $modules $oldmodule]
                         }
                         set modcount [llength $modules]
                         if {$modcount > 0} {
-                           puts $newfid "$cmd$modules$comments"
+                           lappend newinit "$cmd$modules$comments"
                         }
                         if {$oldmodcount > $modcount} {
                            set notdone 0
                         }
                      }
                      switch {
-                        set oldmodule [lindex $moduleinit_list 0]
-                        set newmodule [lindex $moduleinit_list 1]
+                        set oldmodule [lindex $init_list 0]
+                        set newmodule [lindex $init_list 1]
                         set newmodules [replaceFromList $modules\
                            $oldmodule $newmodule]
-                        puts $newfid "$cmd$newmodules$comments"
+                        lappend newinit "$cmd$newmodules$comments"
                         if {"$modules" ne "$newmodules"} {
                            set notdone 0
                         }
@@ -4677,22 +4673,21 @@ proc cmdModuleInit {args} {
                   }
                } else {
                   # copy the line from the old file to the new
-                  if {[info exists newfid]} {
-                     puts $newfid $curline
-                  }
+                  lappend newinit $curline
                }
             }
 
             close $fid
-            if {[info exists newfid]} {
-               close $newfid
-               if {[catch {file copy -force $newfilepath $filepath} errMsg]} {
+
+            if {$init_cmd ne "list" && $thismatch} {
+               reportDebug "cmdModuleInit: Writing $filepath"
+               if {[catch {
+                  set fid [open $filepath w]
+                  puts $fid [join $newinit "\n"]
+                  close $fid
+               } errMsg ]} {
                   reportErrorAndExit "Init file $filepath cannot be\
                      written.\n$errMsg"
-               }
-               if {[catch {file delete $newfilepath} errMsg]} {
-                  reportErrorAndExit "Temp file $filepath cannot be\
-                     deleted.\n$errMsg"
                }
             }
          }
@@ -4700,7 +4695,7 @@ proc cmdModuleInit {args} {
    }
 
    # quit in error if command was not performed due to no match
-   if {$nomatch && $moduleinit_cmd ne "list"} {
+   if {$nomatch && $init_cmd ne "list"} {
       reportErrorAndExit "Cannot find a 'module load' command in any of the\
          '$g_shell' startup files"
    }
