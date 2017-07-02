@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.899
-set MODULES_CURRENT_RELEASE_DATE "2017-07-01"
+set MODULES_CURRENT_VERSION 1.901
+set MODULES_CURRENT_RELEASE_DATE "2017-07-02"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3719,7 +3719,7 @@ proc formatCollectionContent {path_list mod_list} {
 }
 
 # read given collection file and return the path and module lists it defines
-proc readCollectionContent {collfile} {
+proc readCollectionContent {collfile colldesc} {
    # init lists (maybe coll does not set mod to load)
    set path_list {}
    set mod_list {}
@@ -3730,7 +3730,7 @@ proc readCollectionContent {collfile} {
       set fdata [split [read $fid] "\n"]
       close $fid
    } errMsg ]} {
-      reportErrorAndExit "Collection $collfile cannot be read.\n$errMsg"
+      reportErrorAndExit "Collection $colldesc cannot be read.\n$errMsg"
    }
 
    # analyze collection content
@@ -4068,12 +4068,13 @@ proc cmdModuleRestore {{coll {}}} {
    # get coresponding filename
    set collfile [getCollectionFilename $coll colldesc]
 
-   if {![file readable $collfile]} {
+   if {![file exists $collfile]} {
       reportErrorAndExit "Collection $colldesc cannot be found"
    }
 
    # read collection
-   lassign [readCollectionContent $collfile] coll_path_list coll_mod_list
+   lassign [readCollectionContent $collfile $colldesc] coll_path_list\
+      coll_mod_list
 
    # collection should at least define a path
    if {[llength $coll_path_list] == 0} {
@@ -4180,12 +4181,13 @@ proc cmdModuleSaveshow {{coll {}}} {
    # get coresponding filename
    set collfile [getCollectionFilename $coll colldesc]
 
-   if {![file readable $collfile]} {
+   if {![file exists $collfile]} {
       reportErrorAndExit "Collection $colldesc cannot be found"
    }
 
    # read collection
-   lassign [readCollectionContent $collfile] coll_path_list coll_mod_list
+   lassign [readCollectionContent $collfile $colldesc] coll_path_list\
+      coll_mod_list
 
    # collection should at least define a path
    if {[llength $coll_path_list] == 0} {
