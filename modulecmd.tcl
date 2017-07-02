@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.901
+set MODULES_CURRENT_VERSION 1.902
 set MODULES_CURRENT_RELEASE_DATE "2017-07-02"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -3663,16 +3663,13 @@ proc getCollectionTarget {} {
 }
 
 # get filename corresponding to collection name provided as argument.
-# name provided may already be a file name. a variable name may also be
-# provided to get back collection description (with target info if any)
-proc getCollectionFilename {coll {descvar}} {
+# name provided may already be a file name. collection description name
+# (with target info if any) is returned along with collection filename
+proc getCollectionFilename {coll} {
    global env
 
    # initialize description with collection name
-   # if description variable is set
-   if {[info exists descvar]} {
-      uplevel 1 set $descvar $coll
-   }
+   set colldesc $coll
 
    # is collection a filepath
    if {[string first "/" $coll] > -1} {
@@ -3688,15 +3685,13 @@ proc getCollectionFilename {coll {descvar}} {
       if {$colltarget ne ""} {
          append collfile ".$colltarget"
          # add knowledge of collection target on description
-         if {[info exists descvar]} {
-            uplevel 1 append $descvar \" (for target \\"$colltarget\\")\"
-         }
+         append colldesc " (for target \"$colltarget\")"
       }
    } else {
       reportErrorAndExit "HOME not defined"
    }
 
-   return $collfile
+   return [list $collfile $colldesc]
 }
 
 # generate collection content based on provided path and module lists
@@ -4037,7 +4032,7 @@ proc cmdModuleSave {{coll {}}} {
    }
 
    # get coresponding filename and its directory
-   set collfile [getCollectionFilename $coll colldesc]
+   lassign [getCollectionFilename $coll] collfile colldesc
    set colldir [file dirname $collfile]
 
    if {![file exists $colldir]} {
@@ -4066,7 +4061,7 @@ proc cmdModuleRestore {{coll {}}} {
    reportDebug "cmdModuleRestore: $coll"
 
    # get coresponding filename
-   set collfile [getCollectionFilename $coll colldesc]
+   lassign [getCollectionFilename $coll] collfile colldesc
 
    if {![file exists $collfile]} {
       reportErrorAndExit "Collection $colldesc cannot be found"
@@ -4157,7 +4152,7 @@ proc cmdModuleSaverm {{coll {}}} {
    }
 
    # get coresponding filename
-   set collfile [getCollectionFilename $coll colldesc]
+   lassign [getCollectionFilename $coll] collfile colldesc
 
    if {![file exists $collfile]} {
       reportErrorAndExit "Collection $colldesc cannot be found"
@@ -4179,7 +4174,7 @@ proc cmdModuleSaveshow {{coll {}}} {
    reportDebug "cmdModuleSaveshow: $coll"
 
    # get coresponding filename
-   set collfile [getCollectionFilename $coll colldesc]
+   lassign [getCollectionFilename $coll] collfile colldesc
 
    if {![file exists $collfile]} {
       reportErrorAndExit "Collection $colldesc cannot be found"
