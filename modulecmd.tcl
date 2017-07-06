@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.903
+set MODULES_CURRENT_VERSION 1.904
 set MODULES_CURRENT_RELEASE_DATE "2017-07-06"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -797,7 +797,7 @@ proc getModuleNameVersion {{name {}} {default_is_special 0}\
 # a virtual name. Also consolidate a global array that in the same manner
 # list all the symbols held by modulefiles.
 proc setModuleResolution {mod res {symver {}} {override_default 0}} {
-   global g_moduleResolved g_resolvedHash
+   global g_moduleResolved g_resolvedHash g_resolvedPath
    global g_symbolHash
 
    # find end-point module and register path to get to it
@@ -833,6 +833,7 @@ proc setModuleResolution {mod res {symver {}} {override_default 0}} {
    # register end-point resolution
    reportDebug "setModuleResolution: $mod resolved to $res"
    set g_moduleResolved($mod) $res
+   set g_resolvedPath($mod) $res_path
    lappend g_resolvedHash($res) $mod
 
    # if other modules were pointing to this one, adapt resolution end-point
@@ -2888,21 +2889,6 @@ proc pjoin {lst sep} {
    return $res
 }
 
-# Dictionary-style string comparison
-# Use dictionary sort of lsort proc to compare two strings in the "string
-# compare" fashion (returning -1, 0 or 1). Tcl dictionary-style comparison
-# enables to compare software versions (ex: "1.10" is greater than "1.8")
-proc stringDictionaryCompare {str1 str2} {
-    if {$str1 eq $str2} {
-        return 0
-    # put both strings in a list, then lsort it and get last element
-    } elseif {[lindex [lsort -dictionary [list $str1 $str2]] end] eq $str2} {
-        return -1
-    } else {
-        return 1
-    }
-}
-
 # provide a lreverse proc for Tcl8.4 and earlier
 if {[info commands lreverse] eq ""} {
    proc lreverse l {
@@ -3121,7 +3107,7 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
 
 proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
    global ModulesCurrentModulefile
-   global g_sourceAlias g_moduleVersion
+   global g_sourceAlias g_moduleVersion g_resolvedPath
 
    reportDebug "getModules: get '$mod' in $dir\
       (fetch_mtime=$fetch_mtime, search=$search)"
@@ -3149,6 +3135,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
       array set found_list [findModules $dir $findmod $fetch_mtime]
    }
 
+   set dir_list {}
    array set mod_list {}
    foreach elt [lsort [array names found_list]] {
       if {[lindex $found_list($elt) 0] eq "modulerc"} {
@@ -3163,6 +3150,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
       # add other entry kind to the result list
       } elseif {[string match $mod* $elt]} {
          set mod_list($elt) $found_list($elt)
+         # list dirs to rework their definition at the end
+         if {[lindex $found_list($elt) 0] eq "directory"} {
+            lappend dir_list $elt
+         }
       }
    }
 
@@ -3191,6 +3182,24 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
          && ![info exists mod_list($versmod)]} {
          set mod_list($versmod) $found_list($versmod)
       }
+   }
+
+   # work on directories integrated in the result list by registering
+   # default element in this dir and list of all child elements dictionary
+   # sorted, so last element in dir is also last element in this list
+   # this treatment happen at the end to find all directory entries in
+   # result list (alias included)
+   foreach dir $dir_list {
+      set elt_list [lsort -dictionary [lrange $mod_list($dir) 1 end]]
+      # get default element (defined or implicit) and if defined check
+      # relative module has been found elsewhere use implicit
+      if {[info exists g_resolvedPath($dir)] && [info exists\
+         mod_list([lindex $g_resolvedPath($dir) 0])]} {
+         set dfl_elt [file tail [lindex $g_resolvedPath($dir) 0]]
+      } else {
+         set dfl_elt [lindex $elt_list end]
+      }
+      set mod_list($dir) [concat [list "directory" $dfl_elt] $elt_list]
    }
 
    reportDebug "getModules: got [array names mod_list]"
@@ -3224,12 +3233,6 @@ proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
       set show_mtime 0
    }
 
-   if {$filter eq "onlydefaults"} {
-       # init a control list to correctly set implicit
-       # or defined module default version
-       set clean_defdefault {}
-   }
-
    # get module list
    # as we treat a full directory content do not exit on an error
    # raised from one modulerc file
@@ -3237,86 +3240,44 @@ proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
 
    # prepare results for display
    set clean_list {}
-   set clean_defname {}
    foreach elt [array names mod_list] {
       set elt_type [lindex $mod_list($elt) 0]
-      if {$filter ne ""} {
-         set elt_name [file dirname $elt]
-         if {$elt_name eq "."} {
-            set elt_name $elt
-         }
-      }
 
-      set tag_list [getVersAliasList $elt]
       set add_to_clean_list 1
-      # add to list only if it is the default set
-      # or if it is an implicit default when no default is set
-      if {$filter eq "onlydefaults"} {
-         # do not add element if a default has already
-         # been added for this module
-         if {[lsearch -exact $clean_defdefault $elt_name] == -1} {
-            set clean_elt_idx [lsearch -exact $clean_defname $elt_name]
-            # only one element has to be set for this module
-            # so replace previously existing element
-            if {$clean_elt_idx >= 0} {
-               # only replace if new occurency is greater than
-               # existing one or if new occurency is the default set
-               # add a dir only if it holds default tag
-               if {([stringDictionaryCompare $elt [lindex $clean_list\
-                  $clean_elt_idx]] == 1 && $elt_type ne "directory") \
-                  || [lsearch $tag_list "default"] >= 0} {
-                  set clean_list [lreplace $clean_list \
-                     $clean_elt_idx $clean_elt_idx]
-                  set clean_defname [lreplace $clean_defname \
-                     $clean_elt_idx $clean_elt_idx]
-               } else {
-                  set add_to_clean_list 0
-               }
-            # add dir only if it holds default tag
-            } elseif {$elt_type eq "directory" \
-               && [lsearch $tag_list "default"] == -1} {
-               set add_to_clean_list 0
-            }
-
-            # if default is defined add to control list
-            if {[lsearch $tag_list "default"] >= 0} {
-               lappend clean_defdefault $elt_name
-            }
-
-            if {$add_to_clean_list} {
-               lappend clean_defname $elt_name
-            }
-         } else {
-            set add_to_clean_list 0
-         }
-      } elseif {$filter eq "onlylatest"} {
-         # add latest version to list only (no directory in this case as we
-         # compare version number between each other
+      if {$filter ne ""} {
+         # only analyze directories or modulefile at the root in case of
+         # result filtering. depending on filter kind the selection of the
+         # modulefile to display will be made using the definition
+         # information of its upper directory
          if {$elt_type eq "directory"} {
-            set add_to_clean_list 0
-         } else {
-            set clean_elt_idx [lsearch -exact $clean_defname $elt_name]
-
-            # only one element has to be set for this module
-            # so replace previously existing element and only
-            # if new occurency is greater than existing one
-            if {$clean_elt_idx >= 0 && [stringDictionaryCompare $elt \
-               [lindex $clean_list $clean_elt_idx]] == 1} {
-               set clean_list [lreplace $clean_list \
-                  $clean_elt_idx $clean_elt_idx]
-               set clean_defname [lreplace $clean_defname \
-                  $clean_elt_idx $clean_elt_idx]
-            } elseif {$clean_elt_idx != -1} {
+            switch -- $filter {
+               {onlydefaults} {
+                  set elt_vers [lindex $mod_list($elt) 1]
+               }
+               {onlylatest} {
+                  set elt_vers [lindex $mod_list($elt) end]
+               }
+            }
+            # switch to selected modulefile to display
+            append elt "/$elt_vers"
+            set elt_type [lindex $mod_list($elt) 0]
+            # skip if directory selected, will be looked at in a next round
+            if {$elt_type eq "directory"} {
                set add_to_clean_list 0
             }
+         } elseif {[file dirname $elt] ne "."} {
+            set add_to_clean_list 0
          }
 
          if {$add_to_clean_list} {
-            lappend clean_defname $elt_name
+            set tag_list [getVersAliasList $elt]
          }
-      # do not add a dir if it does not hold tags
-      } elseif {$elt_type eq "directory" && [llength $tag_list] == 0} {
-         set add_to_clean_list 0
+      } else {
+         set tag_list [getVersAliasList $elt]
+         # do not add a dir if it does not hold tags
+         if {$elt_type eq "directory" && [llength $tag_list] == 0} {
+            set add_to_clean_list 0
+         }
       }
 
       if {$add_to_clean_list} {
