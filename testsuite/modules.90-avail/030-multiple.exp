@@ -50,6 +50,7 @@ set mod6sym1 "default"
 set mod6sym2 "new"
 set mod6alias1 "1"
 set mod6alias2 "bar"
+set module7 "modalias/1.0"
 eval set  [ array get env MODULEPATH ]
 set header "\[-\]+ $MODULEPATH \[-\]+\n"
 set header2 "\[-\]+ global/user modulerc \[-\]+\n"
@@ -124,6 +125,20 @@ testerr_cmd_re "csh" "avail $module6 $module6" "$ts_csh\n$ts_csh\$"
 
 
 #
+#  tess on a module alias when multiple paths set
+#
+
+# save the former modulepath setup
+set save_modpath $env(MODULEPATH)
+set env(MODULEPATH) "$MODULEPATH.deep:$MODULEPATH"
+set header "\[-\]+ $MODULEPATH.deep \[-\]+\n"
+set ts_csh "$header$module7\\(@\\)\\s+"
+
+testerr_cmd_re "csh" "avail $module7" "$ts_csh\$"
+testerr_cmd_re "csh" "avail $module7 $module7" "$ts_csh\n$ts_csh\$"
+
+
+#
 #  Cleanup
 #
 
@@ -135,8 +150,13 @@ if {[info exists save_rc]} {
     unset env(MODULERCFILE)
 }
 
+# restore former modulepath setup
+set env(MODULEPATH) $save_modpath
+unset save_modpath
+
 unset ts_csh
 
+unset module7
 unset mod6alias2
 unset mod6alias1
 unset mod6sym2

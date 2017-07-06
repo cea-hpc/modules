@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.902
-set MODULES_CURRENT_RELEASE_DATE "2017-07-02"
+set MODULES_CURRENT_VERSION 1.903
+set MODULES_CURRENT_RELEASE_DATE "2017-07-06"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3170,7 +3170,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
    # directory (skip aliases not registered from this directory) if they
    # match passed $mod (as for regular modulefiles)
    foreach alias [array names g_moduleAlias -glob $mod*] {
-      if {$dir eq "" || [string first $dir $g_sourceAlias($alias)] == 0} {
+      if {$dir eq "" || [string first "$dir/" $g_sourceAlias($alias)] == 0} {
          set mod_list($alias) [list "alias" $g_moduleAlias($alias)]
 
          # add reference to this alias version in parent structure
