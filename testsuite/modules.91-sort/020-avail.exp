@@ -84,21 +84,36 @@ testerr_cmd_re "sh" "avail -t $mod3" "$ts_sh\$"
 testerr_cmd_re "sh" "avail -t -d $mod3" "$ts_default_sh\$"
 testerr_cmd_re "sh" "avail -t -L $mod3" "$ts_latest_sh\$"
 
+#
+#  tests on modules mixing directories overriden by alias
+#
+
+set mod4 "dirmodalias"
+set mod4vers1 "1.0"
+set ts_sh "$header$mod4\\(@\\)\n$mod4/$mod4vers1"
+set ts_default_sh "$header$mod4\\(@\\)"
+set ts_latest_sh "$header$mod4\\(@\\)"
+
+# alias that overrides directory name will get priority for default
+# and latest version choice (directory content will be ignored)
+testerr_cmd_re "sh" "avail -t $mod4" "$ts_sh\$"
+testerr_cmd_re "sh" "avail -t -d $mod4" "$ts_default_sh\$"
+testerr_cmd_re "sh" "avail -t -L $mod4" "$ts_latest_sh\$"
 
 #
 #  tests on deep modules, mixing modulefiles and directories
 #
 
-set mod4 "loc_dv6"
-set mod4vers1 "1.0"
-set mod4vers2 "2.0/1.0"
-set ts_sh "$header$mod4/$mod4vers1\n$mod4/$mod4vers2"
-set ts_default_sh "$header$mod4/$mod4vers2"
-set ts_latest_sh "$header$mod4/$mod4vers2"
+set mod5 "loc_dv6"
+set mod5vers1 "1.0"
+set mod5vers2 "2.0/1.0"
+set ts_sh "$header$mod5/$mod5vers1\n$mod5/$mod5vers2"
+set ts_default_sh "$header$mod5/$mod5vers2"
+set ts_latest_sh "$header$mod5/$mod5vers2"
 
-testerr_cmd_re "sh" "avail -t $mod4" "$ts_sh\$"
-testerr_cmd_re "sh" "avail -t -d $mod4" "$ts_default_sh\$"
-testerr_cmd_re "sh" "avail -t -L $mod4" "$ts_latest_sh\$"
+testerr_cmd_re "sh" "avail -t $mod5" "$ts_sh\$"
+testerr_cmd_re "sh" "avail -t -d $mod5" "$ts_default_sh\$"
+testerr_cmd_re "sh" "avail -t -L $mod5" "$ts_latest_sh\$"
 
 
 # setup environment state
@@ -110,39 +125,39 @@ if { $verbose > 0 } {
 set env(MODULEPATH) "$modpath"
 
 set header "\[-\]+ $env(MODULEPATH) \[-\]+\n"
-set mod5 "version/dir2"
-set mod5vers1 "1.0"
-set mod5vers2 "2.0\\(default\\)"
-set mod5vers3 "2.0/rc1\\(default\\)"
-set mod5vers4 "2.0/rc2"
-set mod5vers5 "3.0"
-set ts_sh "$header$mod5/$mod5vers1\n$mod5/$mod5vers2\n$mod5/$mod5vers3\n$mod5/$mod5vers4\n$mod5/$mod5vers5"
-set ts_default_sh "$header$mod5/$mod5vers3"
-set ts_latest_sh "$header$mod5/$mod5vers4\n$mod5/$mod5vers5"
+set mod6 "version/dir2"
+set mod6vers1 "1.0"
+set mod6vers2 "2.0\\(default\\)"
+set mod6vers3 "2.0/rc1\\(default\\)"
+set mod6vers4 "2.0/rc2"
+set mod6vers5 "3.0"
+set ts_sh "$header$mod6/$mod6vers1\n$mod6/$mod6vers2\n$mod6/$mod6vers3\n$mod6/$mod6vers4\n$mod6/$mod6vers5"
+set ts_default_sh "$header$mod6/$mod6vers3"
+set ts_latest_sh "$header$mod6/$mod6vers4\n$mod6/$mod6vers5"
 
-testerr_cmd_re "sh" "avail -t $mod5" "$ts_sh\$"
-testerr_cmd_re "sh" "avail -t -d $mod5" "$ts_default_sh\$"
-testerr_cmd_re "sh" "avail -t -L $mod5" "$ts_latest_sh\$"
+testerr_cmd_re "sh" "avail -t $mod6" "$ts_sh\$"
+testerr_cmd_re "sh" "avail -t -d $mod6" "$ts_default_sh\$"
+testerr_cmd_re "sh" "avail -t -L $mod6" "$ts_latest_sh\$"
 
 
 #
 #  tests on deep modules, mixing modulefiles, aliases and directories
 #
 
-set mod6 "modalias"
-set mod6vers1 "1.0\\(@\\)"
-set mod6vers2 "3.0"
-set mod6vers3 "dir1/1.0"
-set mod6vers4 "dir1/2.0\\(@\\)"
-set mod6vers5 "dir2/2.0"
-set mod6vers6 "dir2/3.0\\(@\\)"
-set ts_sh "$header$mod6/$mod6vers1\n$mod6/$mod6vers2\n$mod6/$mod6vers3\n$mod6/$mod6vers4\n$mod6/$mod6vers5\n$mod6/$mod6vers6"
-set ts_default_sh "$header$mod6/$mod6vers4\n$mod6/$mod6vers6"
-set ts_latest_sh "$header$mod6/$mod6vers4\n$mod6/$mod6vers6"
+set mod7 "modalias"
+set mod7vers1 "1.0\\(@\\)"
+set mod7vers2 "3.0"
+set mod7vers3 "dir1/1.0"
+set mod7vers4 "dir1/2.0\\(@\\)"
+set mod7vers5 "dir2/2.0"
+set mod7vers6 "dir2/3.0\\(@\\)"
+set ts_sh "$header$mod7/$mod7vers1\n$mod7/$mod7vers2\n$mod7/$mod7vers3\n$mod7/$mod7vers4\n$mod7/$mod7vers5\n$mod7/$mod7vers6"
+set ts_default_sh "$header$mod7/$mod7vers4\n$mod7/$mod7vers6"
+set ts_latest_sh "$header$mod7/$mod7vers4\n$mod7/$mod7vers6"
 
-testerr_cmd_re "sh" "avail -t $mod6" "$ts_sh\$"
-testerr_cmd_re "sh" "avail -t -d $mod6" "$ts_default_sh\$"
-testerr_cmd_re "sh" "avail -t -L $mod6" "$ts_latest_sh\$"
+testerr_cmd_re "sh" "avail -t $mod7" "$ts_sh\$"
+testerr_cmd_re "sh" "avail -t -d $mod7" "$ts_default_sh\$"
+testerr_cmd_re "sh" "avail -t -L $mod7" "$ts_latest_sh\$"
 
 
 #
@@ -167,20 +182,22 @@ unset mod3vers1
 unset mod3vers2
 unset mod4
 unset mod4vers1
-unset mod4vers2
 unset mod5
 unset mod5vers1
 unset mod5vers2
-unset mod5vers3
-unset mod5vers4
-unset mod5vers5
 unset mod6
 unset mod6vers1
 unset mod6vers2
 unset mod6vers3
 unset mod6vers4
 unset mod6vers5
-unset mod6vers6
+unset mod7
+unset mod7vers1
+unset mod7vers2
+unset mod7vers3
+unset mod7vers4
+unset mod7vers5
+unset mod7vers6
 unset ts_sh
 unset ts_implicit_default_sh
 unset ts_latest_sh

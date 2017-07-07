@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.904
-set MODULES_CURRENT_RELEASE_DATE "2017-07-06"
+set MODULES_CURRENT_VERSION 1.905
+set MODULES_CURRENT_RELEASE_DATE "2017-07-07"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3135,7 +3135,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
       array set found_list [findModules $dir $findmod $fetch_mtime]
    }
 
-   set dir_list {}
+   array set dir_list {}
    array set mod_list {}
    foreach elt [lsort [array names found_list]] {
       if {[lindex $found_list($elt) 0] eq "modulerc"} {
@@ -3152,7 +3152,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
          set mod_list($elt) $found_list($elt)
          # list dirs to rework their definition at the end
          if {[lindex $found_list($elt) 0] eq "directory"} {
-            lappend dir_list $elt
+            set dir_list($elt) 1
          }
       }
    }
@@ -3163,6 +3163,11 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
    foreach alias [array names g_moduleAlias -glob $mod*] {
       if {$dir eq "" || [string first "$dir/" $g_sourceAlias($alias)] == 0} {
          set mod_list($alias) [list "alias" $g_moduleAlias($alias)]
+
+         # in case alias overwrites a directory definition
+         if {[info exists dir_list($alias)]} {
+             unset dir_list($alias)
+         }
 
          # add reference to this alias version in parent structure
          set parentname [file dirname $alias]
@@ -3189,7 +3194,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
    # sorted, so last element in dir is also last element in this list
    # this treatment happen at the end to find all directory entries in
    # result list (alias included)
-   foreach dir $dir_list {
+   foreach dir [array names dir_list] {
       set elt_list [lsort -dictionary [lrange $mod_list($dir) 1 end]]
       # get default element (defined or implicit) and if defined check
       # relative module has been found elsewhere use implicit
