@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.905
-set MODULES_CURRENT_RELEASE_DATE "2017-07-07"
+set MODULES_CURRENT_VERSION 1.906
+set MODULES_CURRENT_RELEASE_DATE "2017-07-08"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3194,17 +3194,46 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
    # sorted, so last element in dir is also last element in this list
    # this treatment happen at the end to find all directory entries in
    # result list (alias included)
-   foreach dir [array names dir_list] {
+   foreach dir [lsort [array names dir_list]] {
       set elt_list [lsort -dictionary [lrange $mod_list($dir) 1 end]]
-      # get default element (defined or implicit) and if defined check
-      # relative module has been found elsewhere use implicit
-      if {[info exists g_resolvedPath($dir)] && [info exists\
-         mod_list([lindex $g_resolvedPath($dir) 0])]} {
-         set dfl_elt [file tail [lindex $g_resolvedPath($dir) 0]]
+      # remove dir from list if it is empty
+      if {[llength $elt_list] == 0} {
+         unset mod_list($dir)
+         # rework upper directories content if registered
+         while {[set par_dir [file dirname $dir]] ne "."\
+            && [info exists mod_list($par_dir)]} {
+            set dir_name [file tail $dir]
+            set dir $par_dir
+            # get upper dir content without empty dir (as dir_list is sorted
+            # parent dir information have already been consolidated)
+            set elt_list [lsearch -all -inline -not -exact [lrange\
+               $mod_list($dir) 2 end] $dir_name]
+            # remove also parent dir if it becomes empty
+            if {[llength $elt_list] == 0} {
+               unset mod_list($dir)
+            } else {
+               # change default by last element if empty dir was default
+               set dfl_elt [lindex $mod_list($dir) 1]
+               if {$dfl_elt eq $dir_name} {
+                  set dfl_elt [lindex $elt_list end]
+               }
+               set mod_list($dir) [concat [list "directory" $dfl_elt]\
+                  $elt_list]
+               # no need to update upper directory as this one persists
+               break
+            }
+         }
       } else {
-         set dfl_elt [lindex $elt_list end]
+         # get default element (defined or implicit) and if defined check
+         # relative module has been found elsewhere use implicit
+         if {[info exists g_resolvedPath($dir)] && [info exists\
+            mod_list([lindex $g_resolvedPath($dir) 0])]} {
+            set dfl_elt [file tail [lindex $g_resolvedPath($dir) 0]]
+         } else {
+            set dfl_elt [lindex $elt_list end]
+         }
+         set mod_list($dir) [concat [list "directory" $dfl_elt] $elt_list]
       }
-      set mod_list($dir) [concat [list "directory" $dfl_elt] $elt_list]
    }
 
    reportDebug "getModules: got [array names mod_list]"
