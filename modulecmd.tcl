@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.906
-set MODULES_CURRENT_RELEASE_DATE "2017-07-08"
+set MODULES_CURRENT_VERSION 1.907
+set MODULES_CURRENT_RELEASE_DATE "2017-07-09"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2106,14 +2106,14 @@ proc getPathToModule {mod {indir {}}} {
                set prevpath $path
                # If a directory, check for default
                if {[lindex $mod_list($mod) 0] eq "directory"} {
-                  set ModulesVersion ""
+                  set ModulesVersion [lindex $mod_list($mod) 1]
 
-                  # Check for an alias that may have been set by modulerc
+                  # Check if last element is an alias that need resolution
                   lassign [getModuleNameVersion\
-                     [resolveModuleVersionOrAlias $mod]]\
+                     [resolveModuleVersionOrAlias $mod/$ModulesVersion]]\
                      newmod newparent newversion
                   # if alias resolve to a different modulename then
-                  if {$newmod ne $mod} {
+                  if {$newmod ne "$mod/$ModulesVersion"} {
                      # follow search on newmod if module from same root
                      if {[isSameModuleRoot $mod $newmod]} {
                         set mod $newparent
@@ -2125,55 +2125,29 @@ proc getPathToModule {mod {indir {}}} {
                      }
                   }
 
-                  # Try for the last element in directory if no luck so far
-                  # and if any element in directory
-                  if {$ModulesVersion eq "" && [set ModulesVersion [lindex\
-                     [lsort -dictionary [lrange $mod_list($mod) 1 end]]\
-                     end]] ne ""} {
+                  # check found version is known before moving to it
+                  if {[info exists mod_list($mod/$ModulesVersion)]} {
+                     set modparent $mod
+                     # The path to the module file
+                     set path "$path/$ModulesVersion"
+                     # The modulename (name + version)
+                     set mod "$mod/$ModulesVersion"
 
-                     # Check if last element is an alias that need resolution
-                     lassign [getModuleNameVersion\
-                        [resolveModuleVersionOrAlias $mod/$ModulesVersion]]\
-                        newmod newparent newversion
-                     # if alias resolve to a different modulename then
-                     if {$newmod ne "$mod/$ModulesVersion"} {
-                        # follow search on newmod if module from same root
-                        if {[isSameModuleRoot $mod $newmod]} {
-                           set mod $newparent
-                           set ModulesVersion $newversion
-                           set path "$dir/$mod"
-                        # elsewhere restart search on new modulename
-                        } else {
-                           return [getPathToModule $newmod]
-                        }
+                     # if ModulesVersion is a directory keep looking in it
+                     # elsewhere we have found a module to return
+                     if {[lindex $mod_list($mod) 0] ne "directory"} {
+                        set retlist [list $path $mod]
                      }
-                  }
-
-                  if {$ModulesVersion ne ""} {
-                     # check found version is known before moving to it
-                     if {[info exists mod_list($mod/$ModulesVersion)]} {
-                        set modparent $mod
-                        # The path to the module file
-                        set path "$path/$ModulesVersion"
-                        # The modulename (name + version)
-                        set mod "$mod/$ModulesVersion"
-
-                        # if ModulesVersion is a directory keep looking in it
-                        # elsewhere we have found a module to return
-                        if {[lindex $mod_list($mod) 0] ne "directory"} {
-                           set retlist [list $path $mod]
-                        }
-                     # or an error message to report if file is invalid
-                     } elseif {[info exists\
-                        g_invalid_mod_info($path/$ModulesVersion)]} {
-                        reportInternalBug\
-                           $g_invalid_mod_info($path/$ModulesVersion)
-                        set g_found_mod_issue 1
-                     } elseif {[info exists\
-                        g_access_mod_info($path/$ModulesVersion)]} {
-                        reportError $g_access_mod_info($path/$ModulesVersion)
-                        set g_found_mod_issue 1
-                     }
+                  # or an error message to report if file is invalid
+                  } elseif {[info exists\
+                     g_invalid_mod_info($path/$ModulesVersion)]} {
+                     reportInternalBug\
+                        $g_invalid_mod_info($path/$ModulesVersion)
+                     set g_found_mod_issue 1
+                  } elseif {[info exists\
+                     g_access_mod_info($path/$ModulesVersion)]} {
+                     reportError $g_access_mod_info($path/$ModulesVersion)
+                     set g_found_mod_issue 1
                   }
                } else {
                   # If mod was a file in this path, try and return that file
