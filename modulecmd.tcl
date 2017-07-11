@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.907
-set MODULES_CURRENT_RELEASE_DATE "2017-07-09"
+set MODULES_CURRENT_VERSION 1.908
+set MODULES_CURRENT_RELEASE_DATE "2017-07-11"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -875,6 +875,7 @@ proc setModuleResolution {mod res {symver {}} {override_default 0}} {
 # directories.
 proc module-version {args} {
    global g_moduleVersion
+   global g_sourceVersion ModulesCurrentModulefile
 
    reportDebug "module-version: executing module-version $args"
    lassign [getModuleNameVersion [lindex $args 0] 1 1] mod modname modversion
@@ -893,6 +894,7 @@ proc module-version {args} {
          if {![info exists g_moduleVersion($aliasversion)]} {
             if {[setModuleResolution $aliasversion $mod $version]} {
                set g_moduleVersion($aliasversion) $mod
+               set g_sourceVersion($aliasversion) $ModulesCurrentModulefile
             }
          } else {
             reportWarning "Symbolic version '$aliasversion' already defined"
@@ -3081,7 +3083,7 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
 
 proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
    global ModulesCurrentModulefile
-   global g_sourceAlias g_moduleVersion g_resolvedPath
+   global g_sourceAlias g_moduleVersion g_sourceVersion g_resolvedPath
 
    reportDebug "getModules: get '$mod' in $dir\
       (fetch_mtime=$fetch_mtime, search=$search)"
@@ -3151,12 +3153,20 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
       }
    }
 
-   # add the target of symbolic versions found when parsing .version or
-   # .modulerc files if these symbols match passed $mod (as for regular
-   # modulefiles). modulefile target of these version symbol should have
-   # been found previously to be added
+   # add versions found when parsing .version or .modulerc files in this
+   # directory (skip versions not registered from this directory) if they
+   # match passed $mod (as for regular modulefiles)
    foreach vers [array names g_moduleVersion -glob $mod*] {
       set versmod $g_moduleVersion($vers)
+      if {$dir eq "" || [string first "$dir/" $g_sourceVersion($vers)] == 0} {
+         set mod_list($vers) [list "version" $versmod]
+      }
+      # no reference add to parent directory structure as versions are virtual
+
+      # add the target of symbolic versions found when parsing .version or
+      # .modulerc files if these symbols match passed $mod (as for regular
+      # modulefiles). modulefile target of these version symbol should have
+      # been found previously to be added
       if {[info exists found_list($versmod)]\
          && ![info exists mod_list($versmod)]} {
          set mod_list($versmod) $found_list($versmod)
@@ -3332,6 +3342,8 @@ proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
                }
             }
          }
+         # ignore "version" entries as symbolic version are treated
+         # along to their relative modulefile not independently
       }
    }
 
@@ -3843,6 +3855,7 @@ proc cmdModulePaths {mod} {
                }
             }
          }
+         # ignore "version" entries as not treated independently
       }
    }
 
@@ -3910,6 +3923,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                }
             }
          }
+         # ignore "version" entries as not treated independently
       }
 
       if {[array size interp_list] > 0} {
