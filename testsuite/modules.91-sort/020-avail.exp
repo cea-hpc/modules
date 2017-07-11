@@ -125,6 +125,22 @@ testerr_cmd_re "sh" "avail -t $mod6" "$ts_sh\$"
 testerr_cmd_re "sh" "avail -t -d $mod6" "$ts_default_sh\$"
 testerr_cmd_re "sh" "avail -t -L $mod6" "$ts_latest_sh\$"
 
+#
+#  tests on modules, mixing modulefiles, directories and badly set default
+#
+
+set mod7 "loc_dv3"
+set mod7vers1 "1.0"
+set mod7vers2 "2.0"
+set ts_sh "$header$mod7/$mod7vers1\n$mod7/$mod7vers2"
+set ts_default_sh ""
+set ts_latest_sh "$header$mod7/$mod7vers2"
+
+testerr_cmd_re "sh" "avail -t $mod7" "$ts_sh\$"
+# badly set default, nothing displayed
+testerr_cmd_re "sh" "avail -t -d $mod7" "$ts_default_sh\$"
+testerr_cmd_re "sh" "avail -t -L $mod7" "$ts_latest_sh\$"
+
 
 # setup environment state
 set ORIG_MODULEPATH "$env(MODULEPATH)"
@@ -135,49 +151,49 @@ if { $verbose > 0 } {
 set env(MODULEPATH) "$modpath"
 
 set header "\[-\]+ $env(MODULEPATH) \[-\]+\n"
-set mod7 "version/dir2"
-set mod7vers1 "1.0"
-set mod7vers2 "2.0\\(default\\)"
-set mod7vers3 "2.0/rc1\\(default\\)"
-set mod7vers4 "2.0/rc2"
-set mod7vers5 "3.0"
-set ts_sh "$header$mod7/$mod7vers1\n$mod7/$mod7vers2\n$mod7/$mod7vers3\n$mod7/$mod7vers4\n$mod7/$mod7vers5"
-set ts_default_sh "$header$mod7/$mod7vers3"
-set ts_latest_sh "$header$mod7/$mod7vers4\n$mod7/$mod7vers5"
+set mod8 "version/dir2"
+set mod8vers1 "1.0"
+set mod8vers2 "2.0\\(default\\)"
+set mod8vers3 "2.0/rc1\\(default\\)"
+set mod8vers4 "2.0/rc2"
+set mod8vers5 "3.0"
+set ts_sh "$header$mod8/$mod8vers1\n$mod8/$mod8vers2\n$mod8/$mod8vers3\n$mod8/$mod8vers4\n$mod8/$mod8vers5"
+set ts_default_sh "$header$mod8/$mod8vers3"
+set ts_latest_sh "$header$mod8/$mod8vers4\n$mod8/$mod8vers5"
 
-testerr_cmd_re "sh" "avail -t $mod7" "$ts_sh\$"
-testerr_cmd_re "sh" "avail -t -d $mod7" "$ts_default_sh\$"
-testerr_cmd_re "sh" "avail -t -L $mod7" "$ts_latest_sh\$"
+testerr_cmd_re "sh" "avail -t $mod8" "$ts_sh\$"
+testerr_cmd_re "sh" "avail -t -d $mod8" "$ts_default_sh\$"
+testerr_cmd_re "sh" "avail -t -L $mod8" "$ts_latest_sh\$"
 
 
 #
 #  tests on deep modules, mixing modulefiles, aliases and directories
 #
 
-set mod8 "modalias"
-set mod8vers1 "1.0\\(@\\)"
-set mod8vers2 "3.0"
-set mod8vers3 "dir1/1.0"
-set mod8vers4 "dir1/2.0\\(@\\)"
-set mod8vers5 "dir2/2.0"
-set mod8vers6 "dir2/3.0\\(@\\)"
-set ts_sh "$header$mod8/$mod8vers1\n$mod8/$mod8vers2\n$mod8/$mod8vers3\n$mod8/$mod8vers4\n$mod8/$mod8vers5\n$mod8/$mod8vers6"
-set ts_default_sh "$header$mod8/$mod8vers4\n$mod8/$mod8vers6"
-set ts_latest_sh "$header$mod8/$mod8vers4\n$mod8/$mod8vers6"
+set mod9 "modalias"
+set mod9vers1 "1.0\\(@\\)"
+set mod9vers2 "3.0"
+set mod9vers3 "dir1/1.0"
+set mod9vers4 "dir1/2.0\\(@\\)"
+set mod9vers5 "dir2/2.0"
+set mod9vers6 "dir2/3.0\\(@\\)"
+set ts_sh "$header$mod9/$mod9vers1\n$mod9/$mod9vers2\n$mod9/$mod9vers3\n$mod9/$mod9vers4\n$mod9/$mod9vers5\n$mod9/$mod9vers6"
+set ts_default_sh "$header$mod9/$mod9vers4\n$mod9/$mod9vers6"
+set ts_latest_sh "$header$mod9/$mod9vers4\n$mod9/$mod9vers6"
 
-testerr_cmd_re "sh" "avail -t $mod8" "$ts_sh\$"
-testerr_cmd_re "sh" "avail -t -d $mod8" "$ts_default_sh\$"
-testerr_cmd_re "sh" "avail -t -L $mod8" "$ts_latest_sh\$"
+testerr_cmd_re "sh" "avail -t $mod9" "$ts_sh\$"
+testerr_cmd_re "sh" "avail -t -d $mod9" "$ts_default_sh\$"
+testerr_cmd_re "sh" "avail -t -L $mod9" "$ts_latest_sh\$"
 
 #
 #  tests on deep modules mixing empty directories
 #
 
-set mod9 "emptydeepdir"
+set mod10 "emptydeepdir"
 # empty directories are not displayed
-testerr_cmd "sh" "avail -t $mod9" ""
-testerr_cmd "sh" "avail -t -d $mod9" ""
-testerr_cmd "sh" "avail -t -L $mod9" ""
+testerr_cmd "sh" "avail -t $mod10" ""
+testerr_cmd "sh" "avail -t -d $mod10" ""
+testerr_cmd "sh" "avail -t -L $mod10" ""
 
 
 #
@@ -209,17 +225,20 @@ unset mod6vers2
 unset mod7
 unset mod7vers1
 unset mod7vers2
-unset mod7vers3
-unset mod7vers4
-unset mod7vers5
 unset mod8
 unset mod8vers1
 unset mod8vers2
 unset mod8vers3
 unset mod8vers4
 unset mod8vers5
-unset mod8vers6
 unset mod9
+unset mod9vers1
+unset mod9vers2
+unset mod9vers3
+unset mod9vers4
+unset mod9vers5
+unset mod9vers6
+unset mod10
 unset ts_sh
 unset ts_implicit_default_sh
 unset ts_latest_sh

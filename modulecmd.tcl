@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.908
+set MODULES_CURRENT_VERSION 1.909
 set MODULES_CURRENT_RELEASE_DATE "2017-07-11"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -3208,10 +3208,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
             }
          }
       } else {
-         # get default element (defined or implicit) and if defined check
-         # relative module has been found elsewhere use implicit
-         if {[info exists g_resolvedPath($dir)] && [info exists\
-            mod_list([lindex $g_resolvedPath($dir) 0])]} {
+         # get default element (defined or implicit)
+         if {[info exists g_resolvedPath($dir)]} {
             set dfl_elt [file tail [lindex $g_resolvedPath($dir) 0]]
          } else {
             set dfl_elt [lindex $elt_list end]
@@ -3278,6 +3276,10 @@ proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
             }
             # switch to selected modulefile to display
             append elt "/$elt_vers"
+            # verify it exists elsewhere skip result for this directory
+            if {![info exists mod_list($elt)]} {
+               continue
+            }
             set elt_type [lindex $mod_list($elt) 0]
             # skip if directory selected, will be looked at in a next round
             if {$elt_type eq "directory"} {
