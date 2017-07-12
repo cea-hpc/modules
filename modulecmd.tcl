@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.909
-set MODULES_CURRENT_RELEASE_DATE "2017-07-11"
+set MODULES_CURRENT_VERSION 1.910
+set MODULES_CURRENT_RELEASE_DATE "2017-07-12"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2223,7 +2223,7 @@ proc getLoadedWithClosestName {name} {
 proc runModulerc {} {
    # Runs the global RC files if they exist
    global env
-   global g_moduleAlias g_rcAlias
+   global g_moduleAlias g_rcAlias g_moduleVersion g_rcVersion
    set rclist {}
 
    reportDebug "runModulerc: running..."
@@ -2252,9 +2252,10 @@ proc runModulerc {} {
       }
    }
 
-   # identify alias set in these global RC files to be able to display
-   # them in a specific category on avail output
+   # identify alias or symbolic version set in these global RC files to be
+   # able to include them or not in output or resolution processes
    array set g_rcAlias [array get g_moduleAlias]
+   array set g_rcVersion [array get g_moduleVersion]
 }
 
 # manage settings to save as a stack to have a separate set of settings
@@ -3083,20 +3084,18 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
 
 proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
    global ModulesCurrentModulefile
-   global g_sourceAlias g_moduleVersion g_sourceVersion g_resolvedPath
+   global g_sourceAlias g_sourceVersion g_resolvedPath
+   global g_rcAlias g_moduleAlias g_rcVersion g_moduleVersion
 
    reportDebug "getModules: get '$mod' in $dir\
       (fetch_mtime=$fetch_mtime, search=$search)"
 
    # if search for global or user rc alias only, no dir lookup is performed
-   # and aliases are looked from g_rcAlias array rather than g_moduleAlias
+   # and aliases from g_rcAlias are returned
    if {$search eq "rc_alias_only"} {
-      global g_rcAlias
-      array set g_moduleAlias [array get g_rcAlias]
+      set add_rc_defs 1
       array set found_list {}
    } else {
-      global g_moduleAlias
-
       # find modules by searching with first path element if mod is a deep
       # modulefile (elt1/etl2/vers) in order to catch all .modulerc and
       # .version files of module-related parent directories in case we need
@@ -3107,6 +3106,12 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
       # to match anything starting with mod
       if {$search eq "wild" && [llength $parentlist] <= 1} {
          append findmod "*"
+      }
+      # add alias/version definitions from global or user rc to result
+      if {$search eq "rc_defs_included"} {
+         set add_rc_defs 1
+      } else {
+         set add_rc_defs 0
       }
       array set found_list [findModules $dir $findmod $fetch_mtime]
    }
@@ -3134,10 +3139,12 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
    }
 
    # add aliases found when parsing .version or .modulerc files in this
-   # directory (skip aliases not registered from this directory) if they
-   # match passed $mod (as for regular modulefiles)
+   # directory (skip aliases not registered from this directory except if
+   # global or user rc definitions should be included) if they match passed
+   # $mod (as for regular modulefiles)
    foreach alias [array names g_moduleAlias -glob $mod*] {
-      if {$dir eq "" || [string first "$dir/" $g_sourceAlias($alias)] == 0} {
+      if {($dir ne "" && [string first "$dir/" $g_sourceAlias($alias)] == 0)\
+         || ($add_rc_defs && [info exists g_rcAlias($alias)])} {
          set mod_list($alias) [list "alias" $g_moduleAlias($alias)]
 
          # in case alias overwrites a directory definition
@@ -3154,11 +3161,13 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
    }
 
    # add versions found when parsing .version or .modulerc files in this
-   # directory (skip versions not registered from this directory) if they
-   # match passed $mod (as for regular modulefiles)
+   # directory (skip versions not registered from this directory except if
+   # global or user rc definitions should be included)) if they match passed
+   # $mod (as for regular modulefiles)
    foreach vers [array names g_moduleVersion -glob $mod*] {
       set versmod $g_moduleVersion($vers)
-      if {$dir eq "" || [string first "$dir/" $g_sourceVersion($vers)] == 0} {
+      if {($dir ne "" && [string first "$dir/" $g_sourceVersion($vers)] == 0)\
+         || ($add_rc_defs && [info exists g_rcVersion($vers)])} {
          set mod_list($vers) [list "version" $versmod]
       }
       # no reference add to parent directory structure as versions are virtual
