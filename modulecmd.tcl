@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.910
+set MODULES_CURRENT_VERSION 1.911
 set MODULES_CURRENT_RELEASE_DATE "2017-07-12"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -2085,84 +2085,47 @@ proc getPathToModule {mod {indir {}}} {
          # related to search to be able to then determine in this proc the
          # correct module to return without restarting new searches
          array unset mod_list
-         array set mod_list [getModules $dir $modroot]
-         # Check for an alias set by .modulerc found on parent path
-         # or by a previously looked modulefile/modulerc and follow
-         set newmod [resolveModuleVersionOrAlias $mod]
-         # search on newmod if it is a module from same root as mod_list
-         # already contains everything related to this root module
-         if {[isSameModuleRoot $mod $newmod]} {
-            set mod $newmod
-         # elsewhere restart search on new modulename
-         } else {
-            return [getPathToModule $newmod]
-         }
+         array set mod_list [getModules $dir $modroot 0 "rc_defs_included"]
 
-         # look if we can find mod in dir
-         set path "$dir/$mod"
-         if {[info exists mod_list($mod)]} {
-            set prevpath ""
-            # loop to resolve correct modulefile in case specified mod is a
-            # directory that should be analyzed to get default mod in it
-            while {$prevpath ne $path && !$g_found_mod_issue} {
-               set prevpath $path
-               # If a directory, check for default
-               if {[lindex $mod_list($mod) 0] eq "directory"} {
-                  set ModulesVersion [lindex $mod_list($mod) 1]
+         set prevmod ""
+         # loop to resolve correct modulefile in case specified mod is a
+         # directory that should be analyzed to get default mod in it
+         while {$prevmod ne $mod && !$g_found_mod_issue} {
+            set prevmod $mod
 
-                  # Check if last element is an alias that need resolution
-                  lassign [getModuleNameVersion\
-                     [resolveModuleVersionOrAlias $mod/$ModulesVersion]]\
-                     newmod newparent newversion
-                  # if alias resolve to a different modulename then
-                  if {$newmod ne "$mod/$ModulesVersion"} {
-                     # follow search on newmod if module from same root
+            if {[info exists mod_list($mod)]} {
+               switch -- [lindex $mod_list($mod) 0] {
+                  {alias} {
+                     set newmod [resolveModuleVersionOrAlias $mod]
+                     # search on newmod if module from same root as mod_list
+                     # already contains everything related to this root module
                      if {[isSameModuleRoot $mod $newmod]} {
-                        set mod $newparent
-                        set ModulesVersion $newversion
-                        set path "$dir/$mod"
+                        set mod $newmod
                      # elsewhere restart search on new modulename
                      } else {
                         return [getPathToModule $newmod]
                      }
                   }
-
-                  # check found version is known before moving to it
-                  if {[info exists mod_list($mod/$ModulesVersion)]} {
-                     set modparent $mod
-                     # The path to the module file
-                     set path "$path/$ModulesVersion"
-                     # The modulename (name + version)
-                     set mod "$mod/$ModulesVersion"
-
-                     # if ModulesVersion is a directory keep looking in it
-                     # elsewhere we have found a module to return
-                     if {[lindex $mod_list($mod) 0] ne "directory"} {
-                        set retlist [list $path $mod]
-                     }
-                  # or an error message to report if file is invalid
-                  } elseif {[info exists\
-                     g_invalid_mod_info($path/$ModulesVersion)]} {
-                     reportInternalBug\
-                        $g_invalid_mod_info($path/$ModulesVersion)
-                     set g_found_mod_issue 1
-                  } elseif {[info exists\
-                     g_access_mod_info($path/$ModulesVersion)]} {
-                     reportError $g_access_mod_info($path/$ModulesVersion)
-                     set g_found_mod_issue 1
+                  {version} {
+                     set mod [resolveModuleVersionOrAlias $mod]
                   }
-               } else {
-                  # If mod was a file in this path, try and return that file
-                  set retlist [list $path $mod]
+                  {directory} {
+                     # Move to default element in directory
+                     set mod "$mod/[lindex $mod_list($mod) 1]"
+                  }
+                  {modulefile} {
+                     # If mod was a file in this path, return that file
+                     set retlist [list "$dir/$mod" $mod]
+                  }
                }
+            # mod may be found but invalid, so report error and end search
+            } elseif {[info exists g_invalid_mod_info($dir/$mod)]} {
+               reportInternalBug $g_invalid_mod_info($dir/$mod)
+               set g_found_mod_issue 1
+            } elseif {[info exists g_access_mod_info($dir/$mod)]} {
+               reportError $g_access_mod_info($dir/$mod)
+               set g_found_mod_issue 1
             }
-         # mod may be found but invalid, so report error and end search
-         } elseif {[info exists g_invalid_mod_info($path)]} {
-            reportInternalBug $g_invalid_mod_info($path)
-            set g_found_mod_issue 1
-         } elseif {[info exists g_access_mod_info($path)]} {
-            reportError $g_access_mod_info($path)
-            set g_found_mod_issue 1
          }
          # break loop if found something (valid or invalid module)
          # elsewhere go to next path
