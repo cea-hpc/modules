@@ -10,7 +10,7 @@
 #   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
 #
 #   Description:	Testuite testsequence
-#   Command:		load, display
+#   Command:		load, display, whatis, paths
 #   Modulefiles:	loc_rc1/1.0
 #   Sub-Command:
 #
@@ -58,11 +58,16 @@ set ts_csh_2 "setenv testsuite yes;"
 set disp_csh "setenv\t\ttestsuite\tyes"
 set whatis_csh_1 "module-whatis\t$module_1"
 set disp_1 "$modlin\n$modulefile_1:\n\n$whatis_csh_1\n$disp_csh\n$modlin"
+set what_1 "\[-\]+ $env(MODULEPATH) \[-\]+\n         $module_1: $module_1"
+set path_1 "echo '$modulefile_1';"
 set whatis_csh_2 "module-whatis\t$module_2"
 set disp_2 "$modlin\n$modulefile_2:\n\n$whatis_csh_2\n$disp_csh\n$modlin"
+set what_2 "\[-\]+ $env(MODULEPATH) \[-\]+\n         $module_2: $module_2"
+set path_2 "echo '$modulefile_2';"
 
 set locate_msg "$error_msgs: Unable to locate a modulefile for 'sym_foo'"
 set err_csh "/bin/false;"
+set ok_csh "/bin/true;"
 
 #
 #  The tests
@@ -71,23 +76,33 @@ set err_csh "/bin/false;"
 set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
 test_cmd_re "csh" "load sym_foo" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_1\n$lm_csh_1\n$ts_csh_1"
 testerr_cmd_re "sh" "display sym_foo" "^$disp_1\$"
+testerr_cmd_re "sh" "whatis sym_foo" "^$what_1\$"
+test_cmd "sh" "paths sym_foo" "$path_1"
 
 set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/"
 test_cmd_re "csh" "load sym_foo" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_1\n$lm_csh_1\n$ts_csh_1"
 testerr_cmd_re "sh" "display sym_foo" "^$disp_1\$"
+testerr_cmd_re "sh" "whatis sym_foo" "^$what_1\$"
+test_cmd "sh" "paths sym_foo" "$path_1"
 
 unset env(MODULERCFILE)
 testouterr_cmd "csh" "load sym_foo" "$err_csh" "$locate_msg"
 testouterr_cmd "sh" "display sym_foo" "$err_csh" "$locate_msg"
+testouterr_cmd "sh" "whatis sym_foo" "$err_csh" "$locate_msg"
+testouterr_cmd "sh" "paths sym_foo" "$ok_csh" ""
 
 set env(MODULESHOME) $env(TESTSUITEDIR)
 test_cmd_re "csh" "load sym_foo" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_2\n$lm_csh_2\n$ts_csh_2"
 testerr_cmd_re "sh" "display sym_foo" "^$disp_2\$"
+testerr_cmd_re "sh" "whatis sym_foo" "^$what_2\$"
+test_cmd "sh" "paths sym_foo" "$path_2"
 
 # test global RCs cascading
 set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
 test_cmd_re "csh" "load sym_foo" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_2\n$lm_csh_2\n$ts_csh_2"
 testerr_cmd_re "sh" "display sym_foo" "^$disp_2\$"
+testerr_cmd_re "sh" "whatis sym_foo" "^$what_2\$"
+test_cmd "sh" "paths sym_foo" "$path_2"
 
 
 #
@@ -122,11 +137,16 @@ unset ts_csh_2
 unset disp_csh
 unset whatis_csh_1
 unset disp_1
+unset what_1
+unset path_1
 unset whatis_csh_2
 unset disp_2
+unset what_2
+unset path_2
 
 unset locate_msg
 unset err_csh
+unset ok_csh
 
 unset modulefile_1
 unset module_1

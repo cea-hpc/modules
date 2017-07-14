@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.913
+set MODULES_CURRENT_VERSION 1.914
 set MODULES_CURRENT_RELEASE_DATE "2017-07-14"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -3056,7 +3056,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
 
    # if search for global or user rc alias only, no dir lookup is performed
    # and aliases from g_rcAlias are returned
-   if {$search eq "rc_alias_only"} {
+   if {[lsearch -exact $search "rc_alias_only"] >= 0} {
       set add_rc_defs 1
       array set found_list {}
    } else {
@@ -3068,11 +3068,11 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
       set findmod [lindex $parentlist 0]
       # if searched mod is an empty or flat element append wildcard character
       # to match anything starting with mod
-      if {$search eq "wild" && [llength $parentlist] <= 1} {
+      if {[lsearch -exact $search "wild"] >= 0 && [llength $parentlist] <= 1} {
          append findmod "*"
       }
       # add alias/version definitions from global or user rc to result
-      if {$search eq "rc_defs_included"} {
+      if {[lsearch -exact $search "rc_defs_included"] >= 0} {
          set add_rc_defs 1
       } else {
          set add_rc_defs 0
@@ -3810,7 +3810,7 @@ proc cmdModulePaths {mod} {
 
    foreach dir [getModulePathList "exiterronundef"] {
       array unset mod_list
-      array set mod_list [getModules $dir $mod]
+      array set mod_list [getModules $dir $mod 0 "rc_defs_included"]
 
       # build list of modulefile to print
       foreach elt [array names mod_list] {
@@ -3865,10 +3865,9 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    # to mix with valid search results
    inhibitErrorReport
 
+   lappend searchmod "rc_defs_included"
    if {$mod eq ""} {
-      set searchmod "wild"
-   } else {
-      set searchmod {}
+      lappend searchmod "wild"
    }
    set foundmod 0
    pushMode "whatis"
