@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.911
-set MODULES_CURRENT_RELEASE_DATE "2017-07-12"
+set MODULES_CURRENT_VERSION 1.912
+set MODULES_CURRENT_RELEASE_DATE "2017-07-14"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2101,9 +2101,10 @@ proc getPathToModule {mod {indir {}}} {
                      # already contains everything related to this root module
                      if {[isSameModuleRoot $mod $newmod]} {
                         set mod $newmod
-                     # elsewhere restart search on new modulename
+                     # elsewhere restart search on new modulename, constrained
+                     # to specified dir if set
                      } else {
-                        return [getPathToModule $newmod]
+                        return [getPathToModule $newmod $indir]
                      }
                   }
                   {version} {
@@ -3823,8 +3824,7 @@ proc cmdModulePaths {mod} {
                lassign [getPathToModule $aliastarget $dir]\
                   modfile modname
                # add module target as result instead of alias
-               if {$modfile eq "$dir/$modname"\
-                  && ![info exists mod_list($modname)]} {
+               if {$modfile ne "" && ![info exists mod_list($modname)]} {
                   lappend g_pathList $modfile
                }
             }
@@ -3891,8 +3891,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                lassign [getPathToModule $aliastarget $dir]\
                   modfile modname
                # add module target as result instead of alias
-               if {$modfile eq "$dir/$modname"\
-                  && ![info exists mod_list($modname)]} {
+               if {$modfile ne "" && ![info exists mod_list($modname)]} {
                   set interp_list($modname) $modfile
                }
             }
