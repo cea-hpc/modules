@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.914
+set MODULES_CURRENT_VERSION 1.915
 set MODULES_CURRENT_RELEASE_DATE "2017-07-14"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -2095,7 +2095,7 @@ proc getPathToModule {mod {indir {}} {look_loaded 1}} {
 
             if {[info exists mod_list($mod)]} {
                switch -- [lindex $mod_list($mod) 0] {
-                  {alias} {
+                  {alias} - {version} {
                      set newmod [resolveModuleVersionOrAlias $mod]
                      # search on newmod if module from same root as mod_list
                      # already contains everything related to this root module
@@ -2106,9 +2106,6 @@ proc getPathToModule {mod {indir {}} {look_loaded 1}} {
                      } else {
                         return [getPathToModule $newmod $indir 0]
                      }
-                  }
-                  {version} {
-                     set mod [resolveModuleVersionOrAlias $mod]
                   }
                   {directory} {
                      # Move to default element in directory
@@ -3818,7 +3815,7 @@ proc cmdModulePaths {mod} {
             {modulefile} {
                lappend g_pathList $dir/$elt
             }
-            {alias} {
+            {alias} - {version} {
                # resolve alias target
                set aliastarget [lindex $mod_list($elt) 1]
                lassign [getPathToModule $aliastarget $dir 0] modfile modname
@@ -3828,13 +3825,12 @@ proc cmdModulePaths {mod} {
                }
             }
          }
-         # ignore "version" entries as not treated independently
       }
    }
 
-   # sort results if any
+   # sort results if any and remove duplicates
    if {[info exists g_pathList]} {
-      set g_pathList [lsort -dictionary $g_pathList]
+      set g_pathList [lsort -dictionary -unique $g_pathList]
    }
 }
 
@@ -3883,7 +3879,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             {modulefile} {
                set interp_list($elt) $dir/$elt
             }
-            {alias} {
+            {alias} - {version} {
                # resolve alias target
                set aliastarget [lindex $mod_list($elt) 1]
                lassign [getPathToModule $aliastarget $dir 0] modfile modname
@@ -3893,7 +3889,6 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                }
             }
          }
-         # ignore "version" entries as not treated independently
       }
 
       if {[array size interp_list] > 0} {
