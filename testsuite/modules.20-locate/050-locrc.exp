@@ -10,9 +10,9 @@
 #   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
 #
 #   Description:	Testuite testsequence
-#   Command:		load, display, whatis
+#   Command:		load, display, whatis, paths
 #   Modulefiles:	loc_rc1/1.0, loc_rc2/1.0, loc_rc3/1.0, loc_rc4/1.0
-#   Modulefiles:	loc_rc7, loc_rc2/2.0
+#   Modulefiles:	loc_rc7, loc_rc2/2.0, loc_rc6/1.2, loc_rc6/0.9
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -48,6 +48,9 @@ set modulefile_6 "$env(MODULEPATH)/$module_6"
 set module_7 "loc_rc6/1.2"
 set modulefile_7 "$env(MODULEPATH)/$module_7"
 
+set module_8 "loc_rc6/0.9"
+set modulefile_8 "$env(MODULEPATH)/$module_8"
+
 
 #
 #  Only checked for the csh
@@ -65,6 +68,8 @@ set lmf_csh_5 "setenv _LMFILES_ $modulefile_5;"
 set lm_csh_5 "setenv LOADEDMODULES $module_5;"
 set lmf_csh_6 "setenv _LMFILES_ $modulefile_6;"
 set lm_csh_6 "setenv LOADEDMODULES $module_6;"
+set lmf_csh_8 "setenv _LMFILES_ $modulefile_8:$modulefile_7;"
+set lm_csh_8 "setenv LOADEDMODULES $module_8:$module_7;"
 
 set ts_csh_1 "setenv testsuite yes;"
 
@@ -77,11 +82,14 @@ set disp_3 "$modlin\n$modulefile_3:\n\n$whatis_csh$module_3\n$disp_csh\n$modlin"
 set disp_4 "$modlin\n$modulefile_4:\n\n$whatis_csh$module_4\n$disp_csh\n$modlin"
 set disp_5 "$modlin\n$modulefile_5:\n\n$whatis_csh$module_5\n$disp_csh\n$modlin"
 set disp_6 "$modlin\n$modulefile_6:\n\n$whatis_csh$module_6\n$disp_csh\n$modlin"
+set disp_7 "$modlin\n$modulefile_7:\n\n$whatis_csh$module_7\n$disp_csh\n$modlin"
 
 set header "\[-\]+ $env(MODULEPATH) \[-\]+"
 set what_1 "$header\n         $module_1: $module_1\$"
 set what_2 "$header\n         $module_2: $module_2\$"
 set what_7 "$header\n         $module_7: $module_7\$"
+
+set path_7 "echo '$modulefile_7';"
 
 #
 #  The tests
@@ -112,9 +120,22 @@ testerr_cmd_re "sh" "display loc_rc2" "^$disp_6\$"
 
 testerr_cmd_re "sh" "whatis loc_rc6/bar" "$what_7"
 
+# test working on an alias targeting an implicit default, when another version of the
+# targeted module is loaded, this loaded module should not influence alias resolution
+set env(_LMFILES_) "$modulefile_8"
+set env(LOADEDMODULES) "$module_8"
+test_cmd_re "csh" "load dirmodalias" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_8\n$lm_csh_8\n$ts_csh_1"
+testerr_cmd_re "sh" "display dirmodalias" "^$disp_7\$"
+testerr_cmd_re "sh" "whatis dirmodalias" "$what_7"
+test_cmd_re "sh" "paths dirmodalias" "$path_7"
+
 #
 #  Cleanup
 #
+
+# Clean up the environment
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
 
 unset lm_csh_1
 unset lmf_csh_1
@@ -128,6 +149,8 @@ unset lm_csh_5
 unset lmf_csh_5
 unset lm_csh_6
 unset lmf_csh_6
+unset lm_csh_8
+unset lmf_csh_8
 unset ts_csh_1
 
 unset disp_csh
@@ -138,11 +161,14 @@ unset disp_3
 unset disp_4
 unset disp_5
 unset disp_6
+unset disp_7
 
 unset header
 unset what_1
 unset what_2
 unset what_7
+
+unset path_7
 
 unset modulefile_1
 unset module_1
@@ -164,3 +190,6 @@ unset module_6
 
 unset modulefile_7
 unset module_7
+
+unset modulefile_8
+unset module_8

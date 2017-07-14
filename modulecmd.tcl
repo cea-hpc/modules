@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.912
+set MODULES_CURRENT_VERSION 1.913
 set MODULES_CURRENT_RELEASE_DATE "2017-07-14"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -2035,7 +2035,7 @@ proc isSameModuleRoot {mod1 mod2} {
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
-proc getPathToModule {mod {indir {}}} {
+proc getPathToModule {mod {indir {}} {look_loaded 1}} {
    global g_loadedModules g_loadedModulesGeneric
    global g_invalid_mod_info g_access_mod_info
 
@@ -2061,10 +2061,10 @@ proc getPathToModule {mod {indir {}}} {
          reportError $g_access_mod_info($mod)
          set g_found_mod_issue 1
       }
-   # try first to look at loaded modules
-   } elseif {[info exists g_loadedModules($mod)]} {
+   # try first to look at loaded modules if enabled
+   } elseif {$look_loaded && [info exists g_loadedModules($mod)]} {
       set retlist [list $g_loadedModules($mod) $mod]
-   } elseif {[info exists g_loadedModulesGeneric($mod)]} {
+   } elseif {$look_loaded && [info exists g_loadedModulesGeneric($mod)]} {
       set elt "$mod/$g_loadedModulesGeneric($mod)"
       set retlist [list $g_loadedModules($elt) $elt]
    } else {
@@ -2104,7 +2104,7 @@ proc getPathToModule {mod {indir {}}} {
                      # elsewhere restart search on new modulename, constrained
                      # to specified dir if set
                      } else {
-                        return [getPathToModule $newmod $indir]
+                        return [getPathToModule $newmod $indir 0]
                      }
                   }
                   {version} {
@@ -3821,8 +3821,7 @@ proc cmdModulePaths {mod} {
             {alias} {
                # resolve alias target
                set aliastarget [lindex $mod_list($elt) 1]
-               lassign [getPathToModule $aliastarget $dir]\
-                  modfile modname
+               lassign [getPathToModule $aliastarget $dir 0] modfile modname
                # add module target as result instead of alias
                if {$modfile ne "" && ![info exists mod_list($modname)]} {
                   lappend g_pathList $modfile
@@ -3888,8 +3887,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             {alias} {
                # resolve alias target
                set aliastarget [lindex $mod_list($elt) 1]
-               lassign [getPathToModule $aliastarget $dir]\
-                  modfile modname
+               lassign [getPathToModule $aliastarget $dir 0] modfile modname
                # add module target as result instead of alias
                if {$modfile ne "" && ![info exists mod_list($modname)]} {
                   set interp_list($modname) $modfile
@@ -3929,7 +3927,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
       # access error message
       } elseif {$mod ne ""} {
          reenableErrorReport
-         lassign [getPathToModule $mod $dir] modfile modissue
+         lassign [getPathToModule $mod $dir 0] modfile modissue
          inhibitErrorReport
          # mod was found but issue occurs
          if {$modissue} {
