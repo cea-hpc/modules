@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.915
-set MODULES_CURRENT_RELEASE_DATE "2017-07-14"
+set MODULES_CURRENT_VERSION 1.916
+set MODULES_CURRENT_RELEASE_DATE "2017-07-15"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2037,7 +2037,6 @@ proc isSameModuleRoot {mod1 mod2} {
 # "name/version" or just "name" (find default version).
 proc getPathToModule {mod {indir {}} {look_loaded 1}} {
    global g_loadedModules g_loadedModulesGeneric
-   global g_invalid_mod_info g_access_mod_info
 
    set retlist {}
    set g_found_mod_issue 0
@@ -2052,14 +2051,19 @@ proc getPathToModule {mod {indir {}} {look_loaded 1}} {
    if {[string match {/*} $mod]} {
       # note that a raw filename as an argument returns the full
       # path as the module name
-      if {[checkValidModule $mod]} {
-         set retlist [list $mod $mod]
-      } elseif {[info exists g_invalid_mod_info($mod)]} {
-         reportInternalBug $g_invalid_mod_info($mod)
-         set g_found_mod_issue 1
-      } elseif {[info exists g_access_mod_info($mod)]} {
-         reportError $g_access_mod_info($mod)
-         set g_found_mod_issue 1
+      lassign [checkValidModule $mod] check_valid check_msg
+      switch -- $check_valid {
+         {true} {
+            set retlist [list $mod $mod]
+         }
+         {invalid} {
+            reportInternalBug $check_msg
+            set g_found_mod_issue 1
+         }
+         {accesserr} {
+            reportError $check_msg
+            set g_found_mod_issue 1
+         }
       }
    # try first to look at loaded modules if enabled
    } elseif {$look_loaded && [info exists g_loadedModules($mod)]} {
@@ -2090,7 +2094,7 @@ proc getPathToModule {mod {indir {}} {look_loaded 1}} {
          set prevmod ""
          # loop to resolve correct modulefile in case specified mod is a
          # directory that should be analyzed to get default mod in it
-         while {$prevmod ne $mod && !$g_found_mod_issue} {
+         while {$prevmod ne $mod} {
             set prevmod $mod
 
             if {[info exists mod_list($mod)]} {
@@ -2115,14 +2119,17 @@ proc getPathToModule {mod {indir {}} {look_loaded 1}} {
                      # If mod was a file in this path, return that file
                      set retlist [list "$dir/$mod" $mod]
                   }
+                  {invalid} {
+                     # may found mod but invalid, so report err and end search
+                     reportInternalBug [lindex $mod_list($mod) 1]
+                     set g_found_mod_issue 1
+                  }
+                  {accesserr} {
+                     # may found mod but issue to access it, end search
+                     reportError [lindex $mod_list($mod) 1]
+                     set g_found_mod_issue 1
+                  }
                }
-            # mod may be found but invalid, so report error and end search
-            } elseif {[info exists g_invalid_mod_info($dir/$mod)]} {
-               reportInternalBug $g_invalid_mod_info($dir/$mod)
-               set g_found_mod_issue 1
-            } elseif {[info exists g_access_mod_info($dir/$mod)]} {
-               reportError $g_access_mod_info($dir/$mod)
-               set g_found_mod_issue 1
             }
          }
          # break loop if found something (valid or invalid module)
@@ -2859,18 +2866,15 @@ proc replaceFromList {list1 item {item2 {}}} {
     return $list1
 }
 
-proc registerAccessIssue {modfile} {
-   global g_access_mod_info errorCode
+proc parseAccessIssue {modfile} {
+   global errorCode
 
-   # retrieve issue message
+   # retrieve and return access issue message
    if {[regexp {POSIX .* \{(.*)\}$} $errorCode match errMsg]} {
-      set issue_info "[string totitle $errMsg] on"
+      return "[string totitle $errMsg] on '$modfile'"
    } else {
-      set issue_info "Cannot access"
+      return "Cannot access '$modfile'"
    }
-
-   # register access issue
-   set g_access_mod_info($modfile) "$issue_info '$modfile'"
 }
 
 proc checkValidModule {modfile} {
@@ -2882,18 +2886,19 @@ proc checkValidModule {modfile} {
       set fheader [read $fid 8]
       close $fid
    }]} {
-      registerAccessIssue $modfile
+      set check_valid "accesserr"
+      set check_msg [parseAccessIssue $modfile]
    } else {
       if {$fheader eq "\#%Module"} {
-         return 1
+         set check_valid "true"
+         set check_msg ""
       } else {
-         global g_invalid_mod_info
-         set g_invalid_mod_info($modfile) "Magic cookie '#%Module' missing in\
-            '$modfile'"
+         set check_valid "invalid"
+         set check_msg "Magic cookie '#%Module' missing in '$modfile'"
       }
    }
 
-   return 0
+   return [list $check_valid $check_msg]
 }
 
 proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}} {
@@ -2987,7 +2992,8 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
                   \"$element/*\""} {
                   set elt_list {}
                } else {
-                  registerAccessIssue $element
+                  set mod_list($modulename) [list "accesserr"\
+                     [parseAccessIssue $element]]
                   set treat_dir 0
                }
             }
@@ -3016,14 +3022,24 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
             }
             {.*} - {*~} - {*,v} - {\#*\#} { }
             default {
-               if {[checkValidModule $element]} {
-                  if {$fetch_mtime} {
-                     set mtime [file mtime $element]
-                  } else {
-                     set mtime {}
+               lassign [checkValidModule $element] check_valid check_msg
+               switch -- $check_valid {
+                  {true} {
+                     if {$fetch_mtime} {
+                        set mtime [file mtime $element]
+                     } else {
+                        set mtime {}
+                     }
+                     set mod_list($modulename) [list "modulefile" $mtime]
+                     set add_ref_to_parent 1
                   }
-                  set mod_list($modulename) [list "modulefile" $mtime]
-                  set add_ref_to_parent 1
+                  default {
+                     # register check error and relative message to get it in
+                     # case of direct access of this module element, but no
+                     # registering in parent directory structure as element
+                     # is not valid
+                     set mod_list($modulename) [list $check_valid $check_msg]
+                  }
                }
             }
          }
