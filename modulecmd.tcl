@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.916
-set MODULES_CURRENT_RELEASE_DATE "2017-07-15"
+set MODULES_CURRENT_VERSION 1.917
+set MODULES_CURRENT_RELEASE_DATE "2017-07-16"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2038,9 +2038,6 @@ proc isSameModuleRoot {mod1 mod2} {
 proc getPathToModule {mod {indir {}} {look_loaded 1}} {
    global g_loadedModules g_loadedModulesGeneric
 
-   set retlist {}
-   set g_found_mod_issue 0
-
    if {$mod eq ""} {
       return [list "" 0]
    }
@@ -2056,13 +2053,8 @@ proc getPathToModule {mod {indir {}} {look_loaded 1}} {
          {true} {
             set retlist [list $mod $mod]
          }
-         {invalid} {
-            reportInternalBug $check_msg
-            set g_found_mod_issue 1
-         }
-         {accesserr} {
-            reportError $check_msg
-            set g_found_mod_issue 1
+         {invalid} - {accesserr} {
+            set retlist [list "" $mod $check_valid $check_msg]
          }
       }
    # try first to look at loaded modules if enabled
@@ -2119,34 +2111,38 @@ proc getPathToModule {mod {indir {}} {look_loaded 1}} {
                      # If mod was a file in this path, return that file
                      set retlist [list "$dir/$mod" $mod]
                   }
-                  {invalid} {
-                     # may found mod but invalid, so report err and end search
-                     reportInternalBug [lindex $mod_list($mod) 1]
-                     set g_found_mod_issue 1
-                  }
-                  {accesserr} {
-                     # may found mod but issue to access it, end search
-                     reportError [lindex $mod_list($mod) 1]
-                     set g_found_mod_issue 1
+                  {invalid} - {accesserr} {
+                     # may found mod but issue, so end search with error
+                     set retlist [concat [list "" $mod] $mod_list($mod)]
                   }
                }
             }
          }
          # break loop if found something (valid or invalid module)
          # elsewhere go to next path
-         if {[llength $retlist] == 2 || $g_found_mod_issue} {
+         if {[info exists retlist]} {
             break
          }
       }
    }
 
-   if {[llength $retlist] == 2} {
+   # set result if nothing found
+   if {![info exists retlist]} {
+      set retlist [list "" $mod "none" "Unable to locate a modulefile for\
+         '$mod'"]
+   }
+   if {[lindex $retlist 0] ne ""} {
       reportDebug "getPathToModule: found '[lindex $retlist 0]' as\
          '[lindex $retlist 1]'"
    } else {
-      set retlist [list "" $g_found_mod_issue]
-      if {!$g_found_mod_issue && $indir eq ""} {
-         reportError "Unable to locate a modulefile for '$mod'"
+      # if error report it the correct way
+      switch -- [lindex $retlist 2] {
+         {invalid} {
+            reportInternalBug [lindex $retlist 3]
+         }
+         default {
+            reportError [lindex $retlist 3]
+         }
       }
    }
    return $retlist
