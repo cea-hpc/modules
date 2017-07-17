@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.917
-set MODULES_CURRENT_RELEASE_DATE "2017-07-16"
+set MODULES_CURRENT_VERSION 1.918
+set MODULES_CURRENT_RELEASE_DATE "2017-07-17"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -189,6 +189,18 @@ proc report {message {nonewline ""}} {
       puts -nonewline stderr "$message"
    } else {
       puts stderr "$message"
+   }
+}
+
+# report error the correct way depending of its type
+proc reportIssue {issuetype issuemsg} {
+   switch -- $issuetype {
+      {invalid} {
+         reportInternalBug $issuemsg
+      }
+      default {
+         reportError $issuemsg
+      }
    }
 }
 
@@ -2135,15 +2147,7 @@ proc getPathToModule {mod {indir {}} {look_loaded 1}} {
       reportDebug "getPathToModule: found '[lindex $retlist 0]' as\
          '[lindex $retlist 1]'"
    } else {
-      # if error report it the correct way
-      switch -- [lindex $retlist 2] {
-         {invalid} {
-            reportInternalBug [lindex $retlist 3]
-         }
-         default {
-            reportError [lindex $retlist 3]
-         }
-      }
+      reportIssue [lindex $retlist 2] [lindex $retlist 3]
    }
    return $retlist
 }
@@ -3893,11 +3897,20 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             }
             {alias} - {version} {
                # resolve alias target
-               set aliastarget [lindex $mod_list($elt) 1]
-               lassign [getPathToModule $aliastarget $dir 0] modfile modname
+               lassign [getPathToModule [lindex $mod_list($elt) 1] $dir 0]\
+                  modfile modname issuetype issuemsg
                # add module target as result instead of alias
                if {$modfile ne "" && ![info exists mod_list($modname)]} {
                   set interp_list($modname) $modfile
+               # register resolution error if alias name matches search
+               } elseif {$modfile eq "" && $elt eq $mod} {
+                  set err_list($modname) [list $issuetype $issuemsg]
+               }
+            }
+            {invalid} - {accesserr} {
+               # register any error occuring on element matching search
+               if {$elt eq $mod} {
+                  set err_list($elt) $mod_list($elt)
                }
             }
          }
@@ -3928,31 +3941,22 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          if {[llength $display_list] > 0} {
             eval displayElementList $dir 1 0 $display_list
          }
-      # if looking for a specific mod and no modulefile to interpret
-      # call for a resolution of mod in current searched dir to get any
-      # access error message
-      } elseif {$mod ne ""} {
-         reenableErrorReport
-         lassign [getPathToModule $mod $dir 0] modfile modissue
-         inhibitErrorReport
-         # mod was found but issue occurs
-         if {$modissue} {
-            set foundmod 1
-         }
       }
    }
    popMode
 
    reenableErrorReport
 
-   # report error if a modulefile was searched but not found
+   # report errors if a modulefile was searched but not found
    if {$mod ne "" && !$foundmod} {
-      # if an alias was found for searched mod but no modulefile can be
-      # associated to this alias, report locate error on this defined target
-      if {[info exists aliastarget]} {
-         set mod $aliastarget
+      # no error registered means nothing was found to match search
+      if {![array exists err_list]} {
+         set err_list($mod) [list "none" "Unable to locate a modulefile for\
+            '$mod'"]
       }
-      reportError "Unable to locate a modulefile for '$mod'"
+      foreach elt [array names err_list] {
+         reportIssue [lindex $err_list($elt) 0] [lindex $err_list($elt) 1]
+      }
    }
 }
 
