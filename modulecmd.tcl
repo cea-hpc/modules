@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.918
-set MODULES_CURRENT_RELEASE_DATE "2017-07-17"
+set MODULES_CURRENT_VERSION 1.920
+set MODULES_CURRENT_RELEASE_DATE "2017-07-19"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -4378,12 +4378,9 @@ proc cmdModuleAliases {} {
    # to mix with avail results
    inhibitErrorReport
 
-   # parse paths to fill g_moduleAlias and g_moduleVersion if empty
-   if {[array size g_moduleAlias] == 0 \
-      && [array size g_moduleVersion] == 0 } {
-      foreach dir [getModulePathList "exiterronundef"] {
-         getModules $dir "" 0 "" 0
-      }
+   # parse paths to fill g_moduleAlias and g_moduleVersion
+   foreach dir [getModulePathList "exiterronundef"] {
+      getModules $dir "" 0 "" 0
    }
 
    reenableErrorReport

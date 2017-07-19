@@ -60,6 +60,21 @@ testouterr_cmd_re "sh" "aliases" "" "^$alias_header\n$alias_list\n$version_heade
 
 
 #
+#  test on path were there are aliases also from global RC
+#
+
+# setup environment state
+set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
+
+append alias_list "\nsym_foo -> loc_rc1/foo"
+append version_list "\nsym_foo/special -> sym_foo"
+testouterr_cmd_re "sh" "aliases" "" "^$alias_header\n$alias_list\n$version_header\n$version_list\$"
+
+# restore environment
+unset env(MODULERCFILE)
+
+
+#
 #  test on path with no aliases
 #
 
