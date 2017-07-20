@@ -35,6 +35,11 @@ $(TCL_DIR)/%.html: $(TOP_DIR)/%.txt
 	cp $< $@
 	../contrib/doc2www $@
 
+$(TCL_DIR)/%.html: $(TOP_DIR)/%.md
+	mkdir -p $(TCL_DIR)
+	perl -pe 's|^\[\!\[.*\].*\n||;' $< > $@
+	../contrib/doc2www $@
+
 $(DOCS_DIR)/%.txt: $(TXT_SRC_DIR)/%.txt
 	mkdir -p $(DOCS_DIR)
 	cp $< $@
