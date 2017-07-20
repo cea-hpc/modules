@@ -25,9 +25,13 @@
 #  Check this only fo the /bin/sh
 #
 
-set test_cols 201
 # save current terminal width
-set term_cols [lindex [exec stty size] 1]
+if {[catch {set term_cols [lindex [exec stty size] 1]} errMsg]} {
+    # skip tests if cannot query terminal witdh
+    send_user "\tskipping terminal width-specific tests\n"
+} else {
+
+set test_cols 201
 
 set len  [string length $env(MODULEPATH)]
 set lrep [expr {($test_cols - $len - 2)/2}]
@@ -90,3 +94,5 @@ unset test_cols
 unset len
 unset lrep
 unset rrep
+
+}

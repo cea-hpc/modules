@@ -49,10 +49,6 @@ testerr_cmd "sh" "savelist -l" "$header_no_coll"
 # test HOME containing collections
 #
 
-# save current terminal width and set a specific width for test
-set term_cols [lindex [exec stty size] 1]
-exec stty cols 80
-
 # set HOME to location containing collections
 set ORIG_HOME $env(HOME)
 if { $verbose > 0 } {
@@ -60,12 +56,25 @@ if { $verbose > 0 } {
 }
 set env(HOME) "$homewithcoll"
 
+# save current terminal width and set a specific width for test
+if {[catch {set term_cols [lindex [exec stty size] 1]} errMsg]} {
+    # skip tests if cannot query terminal witdh
+    send_user "\tskipping terminal width-specific tests\n"
+} else {
+
+exec stty cols 80
+
 testerr_cmd "sh" "savelist --terse" "$header_coll\n$coll_list"
 testerr_cmd "sh" "savelist" "$header_coll\n$coll_list_idx"
 testerr_cmd_re "sh" "savelist --long" "^$header_long\n$header_coll\n$coll_list_long\$"
 
 # restore terminal width
 exec stty cols $term_cols
+
+# Cleanup
+unset term_cols
+
+}
 
 
 #
@@ -129,4 +138,3 @@ unset coll_target_list_idx
 unset coll_target_list_long
 
 unset ORIG_HOME
-unset term_cols
