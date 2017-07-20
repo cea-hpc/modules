@@ -2,6 +2,103 @@ This file describes changes in recent versions of modules-tcl. It primarily
 documents those changes that are of interest to users and admins.
 
 
+Changes in modules-tcl-1.923 (2017-07-20)
+-----------------------------------------
+
+  * Fix 'aliases' command when a global or user RC file is set.
+  * Find and solve global or user RC aliases and symbolic versions on
+    'search', 'whatis' and 'paths' commands.
+  * Do not look at currently loaded modules to resolve the target of a module
+    alias.
+  * Rework default and latest versions search on 'avail' command. Correct
+    display when at a given level a sub-directory element is last element in
+    directory among modulefiles. Previously sub-directory was printed but
+    last file among modulefiles was also printed (2 latest versions at the
+    same level). A directory tagged "default" does not appear anymore in
+    default listing result as its content (the default version found in that
+    directory) will be displayed.
+  * When an alias is set and overrides name of an existing directory, take
+    this alias into account for default and latest choice and ignore
+    directory content.
+  * Bad default set will lead to no result displayed for the corresponding
+    module in case of default 'avail' display.
+  * Correct inclusion of aliases in output result when these aliases are not
+    part of the exact same module path than module path of the search.
+  * Rewrite existing shell initialization file with initadd, initprepend,
+    initswitch, initrm and initclear commands rather than writing a new
+    file then copying this new file to replace the existing initialization
+    file. In addition only re-writes shell initialization file if its content
+    need to be altered.
+  * Raise an error on initadd, initprepend, initswitch, initrm and initclear
+    commands when no 'module load' line are found in shell initialization
+    file.
+  * Normalize error messages for the various collection-related commands
+    when collection cannot be accessed.
+  * Cleanup existing reference counters of a path list variable when this
+    variable is altered by a 'setenv' or an 'unsetenv' command.
+  * Init: do not pollute tab-completion with moduleraw command. (Bert Wesarg)
+  * Make use of the same Tcl interp for each modulefile interpretation and
+    use another one for each modulerc (but the same for each modulerc). By
+    doing so we proceed like on C-version where same interpreter is used
+    across modulefile or modulerc interpretation. Huge performance
+    improvement is achieved with this change on commands making intensive
+    use of interp like 'avail'. Interpreter state is reset from one
+    interpretation to another: the initial variable and procedure state is
+    restored before each new interpretation to avoid spread of definitions
+    from one interpretation to another. Also in case of nested interpretation
+    each interpretation level has its own interpreter so a module loaded by
+    another does not influence the interpretation of the module loading it.
+  * Improve performance of aliases and symbolic versions resolution by
+    computing these resolution at definition time. As a consequence
+    resolution loop are not registered anymore and produce an error message
+    when spotted not at display time.
+  * Reduce number of 'access' system call by trying access to modulefile
+    when reading the content of a modulefile directory rather testing access
+    before trying it.
+  * No error raise on empty argument list for load. To cope with initadd
+    behavior that requires at least an empty 'module load' line in startup
+    files. (fix SF bug#88)
+  * Fix initadd to handle load line without trailing space. Was previously
+    expecting load directive to be written 'module load ' to get a match.
+    With fix, 'module load' line will also be matched.
+  * Like C-version catch raised error when break or continue are called from
+    outside of a loop to handle them as when they are called from modulefile
+    main body. (fix SF bug#87)
+  * Return error on 'module use' command when an empty path string is
+    provided rather ignoring it.
+  * Workaround 'min' and 'max' functions and 'lreverse' procedure for correct
+    operations under Tcl version 8.4.
+  * Install: add --with-tclsh configure option to give the ability to choose
+    the Tcl interpreter shell to setup in initialization scripts.
+  * Handle error raised from the ModulesDisplay, ModulesHelp and ModulesTest
+    procedures in the same way than for the evaluation of the modulefile
+    content. An error occurring during the evaluation of the modulefile
+    content will lead to no evaluation of the 'display', 'help' and 'test'
+    command specific functions.
+  * Remove 'debug' module command
+  * Doc: describe 'path', 'paths' and 'autoinit' module command.
+  * Correct use of xrdb tool when not installed in default path.
+  * Fix 'init*' module commands to behave more like C-version and document
+    remaining differences in diff_with_c-version.
+  * Init: make 'sh' init script closer to POSIX specification to support sh
+    flavors different than Bash or Zsh like Dash.
+  * Fix column-mode display for very short width terminal.
+  * Install: introduce an 'install' non-regression testsuite which is
+    triggered by the 'make testinstall' command and checks modules-tcl
+    installation is operational.
+  * Init: fix modulerc load test on 'fish' init script.
+  * Init: fix interactive shell test on 'sh' init script.
+  * Install: add --enable-example-modulefiles configure option that install
+    by default some modulefiles provided as example in the system modulefiles
+    directory.
+  * Install: when uninstalling, do not remove modulefiles directory if it is
+    not empty.
+  * Add completion script for Zsh shell.
+  * Add 'module test' command to trigger when called execution of a
+    ModulesTest procedure in target modulefile following same kind of
+    mechanism than 'module help'.
+
+
 Changes in modules-tcl-1.832 (2017-04-29)
 -----------------------------------------
 

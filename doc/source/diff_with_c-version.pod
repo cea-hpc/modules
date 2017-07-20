@@ -62,6 +62,16 @@ C-version redirects output made on stdout in B<ModulesHelp> Tcl procedure to std
 
 During an B<help> sub-command, only the B<ModulesHelp> Tcl procedure of a modulefile is interpreted on C-version. Tcl-version interprets all the content of the modulefile, then call the B<ModulesHelp> procedure if it exists.
 
+Since C<v1.923>: on Tcl-version B<ModulesHelp> subroutine is not ran if an error occurred during the interpretation of the I<modulefile> main body.
+
+=item B<display>
+
+Since C<v1.923>: on Tcl-version B<ModulesDisplay> subroutine is not ran if an error occurred during the interpretation of the I<modulefile> main body.
+
+=item B<avail>
+
+On C-version, the same Tcl interpreter is used for the interpretation of all F<.modulerc> or F<.version> files during an B<avail> command but the state of this interpreter is not reset between each interpretation. So some variable and procedure definitions may spread from one interpretation to another.
+
 =item B<load>
 
 On Tcl-version the value of an environment variable is set even if the new value is the same as the current value of this variable in environment.
@@ -104,7 +114,7 @@ On Tcl-version code passed to the B<exit> Modules specific Tcl command will not 
 
 =item B<module-version>
 
-Since C<v1.XXX>: in case the specified aliased module or the symbolic version introduces a resolution loop with already defined aliases or symbolic versions, this new alias or symbolic version is not registered and an error message is raised. On C-version and on previous Tcl-version releases, alias or symbolic version introducing loop are registered as the modulefile resolution is not computed at registration time.
+Since C<v1.923>: in case the specified aliased module or the symbolic version introduces a resolution loop with already defined aliases or symbolic versions, this new alias or symbolic version is not registered and an error message is raised. On C-version and on previous Tcl-version releases, alias or symbolic version introducing loop are registered as the modulefile resolution is not computed at registration time.
 
 =item B<module-info>
 
@@ -128,11 +138,11 @@ During a B<switch> sub-command, I<unload> then I<load> is returned instead of I<
 
 =item B<module-info version>
 
-Since C<v1.XXX>: declared aliases or symbolic versions are not registered anymore if they introduce a resolution loop. As a result B<module-info version> does not return an I<*undef*> string value as it does not face resolution loop situation anymore.
+Since C<v1.923>: declared aliases or symbolic versions are not registered anymore if they introduce a resolution loop. As a result B<module-info version> does not return an I<*undef*> string value as it does not face resolution loop situation anymore.
 
 =item B<module-info symbols>
 
-Since C<v1.XXX>: declared aliases or symbolic versions are not registered anymore if they introduce a resolution loop. As a consequence symbolic versions introducing loop situation are not part anymore of the B<module-info symbols> returned result as they are not registered.
+Since C<v1.923>: declared aliases or symbolic versions are not registered anymore if they introduce a resolution loop. As a consequence symbolic versions introducing loop situation are not part anymore of the B<module-info symbols> returned result as they are not registered.
 
 =back
 
@@ -152,6 +162,13 @@ When multiple words are passed as argument to B<module-whatis> but they are not 
 
 =back
 
+=head2 Locating Modulefiles
+
+On Tcl-version when a module alias is set and overrides name of an existing directory, this alias is taken into account to locate the default version of this module name and the I<modulefiles> locating in the directory are ignored.
+
+Since C<v1.832>: when looking for an implicit default in a I<modulefile> directory, aliases are taken into account in addition to I<modulefiles> and directories to determine the highest numerically sorted element.
+
+Since C<v1.832>: distinguish access issue (permission denied) from find issue (cannot locate) when trying to access directly a directory or a modulefile as done on B<load>, B<display> or B<whatis> commands. In addition, on this kind of access not readable F<.modulerc> or F<.version> files are ignored rather producing a missing magic cookie error.
 
 =head1 Features specific to the Tcl-version
 
@@ -201,11 +218,13 @@ These command line switches are not supported on C-version.
 
 =item B<autoinit>
 
+=item B<aliases>
+
 These module sub-commands are not supported on C-version.
 
 =item B<test>
 
-This command appeared on C<v1.XXX> and is not supported on C-version.
+This command appeared on C<v1.923> and is not supported on C-version.
 
 =item B<avail>
 
@@ -244,9 +263,3 @@ This B<module-info> option is not supported on C-version.
 =back
 
 =back
-
-=head2 Locating Modulefiles
-
-Since C<v1.832>: when looking for an implicit default in a I<modulefile> directory, aliases are taken into account in addition to I<modulefiles> and directories to determine the highest numerically sorted element.
-
-Since C<v1.832>: distinguish access issue (permission denied) from find issue (cannot locate) when trying to access directly a directory or a modulefile as done on B<load>, B<display> or B<whatis> commands. In addition, on this kind of access not readable F<.modulerc> or F<.version> files are ignored rather producing a missing magic cookie error.

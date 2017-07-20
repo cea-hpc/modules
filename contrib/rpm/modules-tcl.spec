@@ -3,7 +3,7 @@
 %{!?_licensedir:%global license %%doc}
 
 Name:           modules-tcl
-Version:        1.832
+Version:        1.923
 Release:        1%{?dist}
 Summary:        Native Tcl version of the Environment Modules system
 
@@ -122,7 +122,7 @@ fi
 
 %files
 %license COPYING.GPLv2
-%doc ChangeLog NEWS README.txt doc/diff_with_c-version.txt
+%doc ChangeLog NEWS README doc/diff_with_c-version.txt
 %{_sysconfdir}/modulefiles
 %if 0%{?fedora}
 %ghost %{_sysconfdir}/profile.d/modules.csh
@@ -148,6 +148,11 @@ fi
 %{macrosdir}/macros.%{name}
 
 %changelog
+* Thu Jul 20 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 1.923-1
+- Update to 1.923
+- Use --disable-example-modulefiles configure option to avoid example
+  modulefiles installation
+
 * Sat Apr 29 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 1.832-1
 - Update to 1.832
 - Use --disable-doc-install configure option to handle doc instalation
