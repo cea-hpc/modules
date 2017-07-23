@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.923
-set MODULES_CURRENT_RELEASE_DATE "2017-07-20"
+set MODULES_CURRENT_VERSION 1.926
+set MODULES_CURRENT_RELEASE_DATE "2017-07-23"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -4822,63 +4822,63 @@ if {[catch {
       }
    }
 
-   # Parse options
-   set opt [lindex $argv 1]
-   switch -regexp -- $opt {
-      {^(-deb|--deb|-D)} {
-         set g_debug 1
-         reportDebug "CALLING $argv0 $argv"
-         set argv [lreplace $argv 1 1]
-      }
-      {^(--help|-h)} {
-          cmdModuleHelp
-          exit 0
-      }
-      {^(-V|--ver)} {
-          report "Modules Release Tcl $MODULES_CURRENT_VERSION\
-            ($MODULES_CURRENT_RELEASE_DATE)"
-          exit 0
-      }
-      {^-} {
-          reportErrorAndExit "Invalid option '$opt'\nTry\
-            'module --help' for more information."
-      }
-   }
-
-   set command [lindex $argv 1]
-   # default command is help if none supplied
-   if {$command eq ""} {
-      set command "help"
-   }
-   set argv [lreplace $argv 0 1]
-
-   cacheCurrentModules
-
-   # Find and execute any .modulerc file found in the module directories
-   # defined in env(MODULESPATH)
-   runModulerc
-
-   # extract command switches from other args
+   # extract options and command switches from other args
    set otherargv {}
-   foreach arg $argv {
-      switch -- $arg {
-         "-t" - "--terse" {
+   foreach arg [lrange $argv 1 end] {
+      switch -glob -- $arg {
+         {-D} - {--debug} {
+            if {!$g_debug} {
+               set g_debug 1
+               reportDebug "CALLING $argv0 $argv"
+            }
+         }
+         {--help} - {-h} {
+             cmdModuleHelp
+             exit 0
+         }
+         {-V} - {--version} {
+             report "Modules Release Tcl $MODULES_CURRENT_VERSION\
+               ($MODULES_CURRENT_RELEASE_DATE)"
+             exit 0
+         }
+         {-t} - {--terse} {
             set show_oneperline 1
          }
-         "-l" - "--long" {
+         {-l} - {--long} {
             set show_modtimes 1
          }
-         "-d" - "--default" {
+         {-d} - {--default} {
             set show_filter "onlydefaults"
          }
-         "-L" - "--latest" {
+         {-L} - {--latest} {
             set show_filter "onlylatest"
+         }
+         {-a} - {--append} - {-append} - {-p} - {--prepend} - {-prepend} {
+            # command-specific switches interpreted later on
+            lappend otherargv $arg
+         }
+         {-*} {
+             reportErrorAndExit "Invalid option '$arg'\nTry\
+               'module --help' for more information."
          }
          default {
             lappend otherargv $arg
          }
       }
    }
+
+   set command [lindex $otherargv 0]
+   # default command is help if none supplied
+   if {$command eq ""} {
+      set command "help"
+   }
+   set otherargv [lreplace $otherargv 0 0]
+
+   cacheCurrentModules
+
+   # Find and execute any .modulerc file found in the module directories
+   # defined in env(MODULESPATH)
+   runModulerc
 
    # eval needed to pass otherargv as list to module proc
    eval module $command $otherargv
