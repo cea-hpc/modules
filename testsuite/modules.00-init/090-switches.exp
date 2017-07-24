@@ -26,10 +26,13 @@
 
 set modpath $env(MODULEPATH)
 
-set bad_longarg "$error_msgs: Invalid option '--foobar'"
-set bad_shortarg "$error_msgs: Invalid option '-f'"
+set ign_prefix "$warn_msgs: Unsupported option"
+set bad_prefix "$error_msgs: Invalid option"
+set bad_longarg "$bad_prefix '--foobar'"
+set bad_shortarg "$bad_prefix '-z'"
 set type_help "Try 'module --help' for more information."
 set pos_ans	"Modules Release(.*)Usage: module(.*)Loading \/(.*)Switches:(.*)"
+set pos_display_ans "$modlin\n$modpath/loc_fq/1.0:\n\n$modlin"
 
 set err_sh "/bin/false;"
 set err_csh "$err_sh"
@@ -46,9 +49,6 @@ set err_lisp "(error \"modulefile.tcl: 1 error(s) detected!\")"
 if { $verbose > 0 } {
     send_user "\tChecking command line arguments ...\n"
 }
-
-#testerr_cmd_re "sh" "avail -t" "$pos_ans"
-#testerr_cmd_re "sh" "avail -l" "$pos_ans"
 
 # no error when help asked
 testouterr_cmd_re "sh" "--help" "^$" "$pos_ans"
@@ -68,25 +68,66 @@ testouterr_cmd "tcl" "--foobar display loc_fq/2.0" "$err_tcl" "$bad_longarg\n$ty
 testouterr_cmd "perl" "--foobar display loc_fq/2.0" "$err_perl" "$bad_longarg\n$type_help"
 testouterr_cmd "python" "--foobar display loc_fq/2.0" "$err_python" "$bad_longarg\n$type_help"
 testouterr_cmd "lisp" "--foobar display loc_fq/2.0" "$err_lisp" "$bad_longarg\n$type_help"
-testouterr_cmd "sh" "-f display loc_fq/2.0" "$err_sh" "$bad_shortarg\n$type_help"
-testouterr_cmd "bash" "-f display loc_fq/2.0" "$err_sh" "$bad_shortarg\n$type_help"
-testouterr_cmd "ksh" "-f display loc_fq/2.0" "$err_sh" "$bad_shortarg\n$type_help"
-testouterr_cmd "zsh" "-f display loc_fq/2.0" "$err_sh" "$bad_shortarg\n$type_help"
-testouterr_cmd "csh" "-f display loc_fq/2.0" "$err_csh" "$bad_shortarg\n$type_help"
-testouterr_cmd "tcsh" "-f display loc_fq/2.0" "$err_csh" "$bad_shortarg\n$type_help"
-testouterr_cmd "fish" "-f display loc_fq/2.0" "$err_fish" "$bad_shortarg\n$type_help"
-testouterr_cmd "tcl" "-f display loc_fq/2.0" "$err_tcl" "$bad_shortarg\n$type_help"
-testouterr_cmd "perl" "-f display loc_fq/2.0" "$err_perl" "$bad_shortarg\n$type_help"
-testouterr_cmd "python" "-f display loc_fq/2.0" "$err_python" "$bad_shortarg\n$type_help"
-testouterr_cmd "lisp" "-f display loc_fq/2.0" "$err_lisp" "$bad_shortarg\n$type_help"
+testouterr_cmd "sh" "-z display loc_fq/2.0" "$err_sh" "$bad_shortarg\n$type_help"
+testouterr_cmd "bash" "-z display loc_fq/2.0" "$err_sh" "$bad_shortarg\n$type_help"
+testouterr_cmd "ksh" "-z display loc_fq/2.0" "$err_sh" "$bad_shortarg\n$type_help"
+testouterr_cmd "zsh" "-z display loc_fq/2.0" "$err_sh" "$bad_shortarg\n$type_help"
+testouterr_cmd "csh" "-z display loc_fq/2.0" "$err_csh" "$bad_shortarg\n$type_help"
+testouterr_cmd "tcsh" "-z display loc_fq/2.0" "$err_csh" "$bad_shortarg\n$type_help"
+testouterr_cmd "fish" "-z display loc_fq/2.0" "$err_fish" "$bad_shortarg\n$type_help"
+testouterr_cmd "tcl" "-z display loc_fq/2.0" "$err_tcl" "$bad_shortarg\n$type_help"
+testouterr_cmd "perl" "-z display loc_fq/2.0" "$err_perl" "$bad_shortarg\n$type_help"
+testouterr_cmd "python" "-z display loc_fq/2.0" "$err_python" "$bad_shortarg\n$type_help"
+testouterr_cmd "lisp" "-z display loc_fq/2.0" "$err_lisp" "$bad_shortarg\n$type_help"
+
+
+# ignore C-version specific command-line switches, no error returned
+testerr_cmd_re "sh" "--force display loc_fq/1.0" "^$ign_prefix '--force'\n$pos_display_ans\$"
+testerr_cmd_re "sh" "--terse display loc_fq/1.0" "^$pos_display_ans\$"
+testerr_cmd_re "sh" "--long display loc_fq/1.0" "^$pos_display_ans\$"
+testerr_cmd_re "sh" "--verbose display loc_fq/1.0" "^$ign_prefix '--verbose'\n$pos_display_ans\$"
+testerr_cmd_re "sh" "--userlvl=expert display loc_fq/1.0" "^$ign_prefix '--userlvl=expert'\n$pos_display_ans\$"
+testerr_cmd_re "sh" "--icase display loc_fq/1.0" "^$ign_prefix '--icase'\n$pos_display_ans\$"
+
+# different behavior than C-version: Tcl-version ignores long and short
+# form of C-version specific switches but no other intermediates forms
+testerr_cmd "sh" "--for display loc_fq/1.0" "$bad_prefix '--for'\n$type_help"
+testerr_cmd "sh" "--ter display loc_fq/1.0" "$bad_prefix '--ter'\n$type_help"
+testerr_cmd "sh" "--lon display loc_fq/1.0" "$bad_prefix '--lon'\n$type_help"
+testerr_cmd "sh" "--verb display loc_fq/1.0" "$bad_prefix '--verb'\n$type_help"
+testerr_cmd "sh" "--use=expert display loc_fq/1.0" "$bad_prefix '--use=expert'\n$type_help"
+testerr_cmd "sh" "--ica display loc_fq/1.0" "$bad_prefix '--ica'\n$type_help"
+
+testerr_cmd_re "sh" "-f display loc_fq/1.0" "^$ign_prefix '-f'\n$pos_display_ans\$"
+testerr_cmd_re "sh" "-t display loc_fq/1.0" "^$pos_display_ans\$"
+testerr_cmd_re "sh" "-l display loc_fq/1.0" "^$pos_display_ans\$"
+testerr_cmd_re "sh" "-v display loc_fq/1.0" "^$ign_prefix '-v'\n$pos_display_ans\$"
+testerr_cmd_re "sh" "-u expert display loc_fq/1.0" "^$ign_prefix '-u'\n$pos_display_ans\$"
+testerr_cmd_re "sh" "-i display loc_fq/1.0" "^$ign_prefix '-i'\n$pos_display_ans\$"
+
+testerr_cmd "sh" "--use=exp display loc_fq/1.0" "$bad_prefix '--use=exp'\n$type_help"
+testerr_cmd "sh" "--use=novice display loc_fq/1.0" "$bad_prefix '--use=novice'\n$type_help"
+testerr_cmd "sh" "--use=nov display loc_fq/1.0" "$bad_prefix '--use=nov'\n$type_help"
+testerr_cmd "sh" "--use=advanced display loc_fq/1.0" "$bad_prefix '--use=advanced'\n$type_help"
+testerr_cmd "sh" "--use=adv display loc_fq/1.0" "$bad_prefix '--use=adv'\n$type_help"
+testerr_cmd "sh" "--u novice display loc_fq/1.0" "$bad_prefix '--u'\n$type_help"
+testerr_cmd "sh" "--u advanced display loc_fq/1.0" "$bad_prefix '--u'\n$type_help"
+
+# different behavior than C-version: Tcl-version ignores C-version specific
+# switches so no error is raised when a bad value is passed to these switches
+testerr_cmd_re "sh" "--userlvl=foobar display loc_fq/1.0" "$pos_display_ans"
+
 
 #
 #  Clean up variables used in this test case
 #
 
+unset ign_prefix
+unset bad_prefix
 unset bad_longarg
 unset bad_shortarg
 unset pos_ans
+unset pos_display_ans
 unset type_help
 
 unset err_sh
