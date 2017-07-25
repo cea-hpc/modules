@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.928
-set MODULES_CURRENT_RELEASE_DATE "2017-07-24"
+set MODULES_CURRENT_VERSION 1.929
+set MODULES_CURRENT_RELEASE_DATE "2017-07-25"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2468,10 +2468,6 @@ proc renderSettings {} {
                set val $g_Aliases($var)
                puts stdout "alias $var '$val';"
             }
-            tcl {
-               set val $g_Aliases($var)
-               puts stdout "alias $var \"$val\";"
-            }
          }
       } elseif {$g_stateAliases($var) eq "del"} {
          switch -- $g_shellType {
@@ -2483,9 +2479,6 @@ proc renderSettings {} {
             }
             fish {
                puts stdout "functions -e $var;"
-            }
-            tcl {
-               puts stdout "unalias $var;"
             }
          }
       }

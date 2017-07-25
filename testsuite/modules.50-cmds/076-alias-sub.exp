@@ -30,7 +30,6 @@ set module "alias/1.0"
 set modulefile "$env(MODULEPATH)/$module"
 set alias_sh {ls \$1 \$2 \| grep \$\*}
 set alias_csh {ls \\!\\!:1 \\!\\!:2 \| grep \\!\*}
-set alias_tcl {ls \$1 \$2 | grep \$\*}
 
 #
 #  For the different shells ...
@@ -54,12 +53,6 @@ set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
 set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
 set ts_fish "alias testsuite \'$alias_sh\';"
 
-set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
-set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
-set lmf_tcl "set env\\\(_LMFILES\\\)_ $modulefile;"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-set ts_tcl "alias testsuite \"$alias_tcl\";"
-
 #
 #  The tests
 #
@@ -71,8 +64,7 @@ test_cmd_re "zsh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh
 test_cmd_re "csh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
 test_cmd_re "tcsh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
 test_cmd_re "fish" "load $module" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish\$"
-test_cmd_re "tcl" "load $module" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl\$"
-# only available for csh/sh/fish/tcl derivatives ... no longer warn for others
+# only available for csh/sh/fish derivatives ... no longer warn for others
 
 #
 #  Cleanup
@@ -96,15 +88,8 @@ unset lmf_fish
 unset lmmod_fish
 unset lmfmod_fish
 
-unset ts_tcl
-unset lm_tcl
-unset lmf_tcl
-unset lmmod_tcl
-unset lmfmod_tcl
-
 unset modulefile
 unset module
 unset alias_sh
 unset alias_csh
-unset alias_tcl
 
