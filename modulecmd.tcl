@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.936
+set MODULES_CURRENT_VERSION 1.938
 set MODULES_CURRENT_RELEASE_DATE "2017-08-02"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -2257,16 +2257,18 @@ proc renderSettings {} {
 
    reportDebug "renderSettings: called."
 
-   set iattempt 0
-
    # required to work on cygwin, shouldn't hurt real linux
    fconfigure stdout -translation lf
 
-   # preliminaries
-
-   switch -- $g_shellType {
-      python {
-         puts stdout "import os"
+   # preliminaries if there is stuff to render
+   if {$g_autoInit || [array size g_stateEnvVars] > 0 ||\
+      [array size g_stateAliases] > 0 || [array size g_newXResources] > 0 ||\
+      [array size g_delXResources] > 0 || [info exists g_changeDir] ||\
+      [info exists g_pathList]} {
+      switch -- $g_shellType {
+         python {
+            puts stdout "import os"
+         }
       }
    }
 
@@ -2654,24 +2656,10 @@ proc renderSettings {} {
       }
    }
 
-   set nop 0
-   if {$error_count == 0 && ! [tell stdout]} {
-      set nop 1
-   }
-
    if {$error_count > 0} {
       renderError
-      set nop 0
-   } else {
-      switch -- $g_shellType {
-         perl {
-            puts stdout "1;"
-         }
-      }
-   }
-
-   if {$nop} {
-      #            nothing written!
+   } elseif {![tell stdout]} {
+      # nothing written!
       switch -- $g_shellType {
          csh {
             puts "/bin/true;"
@@ -2697,6 +2685,13 @@ proc renderSettings {} {
          }
          lisp {
             puts "t"
+         }
+      }
+   } else {
+      # conclusion when no error and stuff written
+      switch -- $g_shellType {
+         perl {
+            puts stdout "1;"
          }
       }
    }
