@@ -58,11 +58,9 @@ Help_out
 Help_err
 (DEBUG .*)+
 -------------------------------------------------------------------"
-set out_help "/bin/true;"
 
 set module_2 "bad"
 set out_interr "Module ERROR: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_2/.modulerc:invalid command name \"bad-command\""
-set err_sh "/bin/false;"
 
 set module_3 "bad2"
 set out_interr_3 "-------------------------------------------------------------------
@@ -90,13 +88,13 @@ testerr_cmd_re "sh" "-D help $module" "$err_debug_help"
 testerr_cmd_re "sh" "--debug help $module -D" "$err_debug_help"
 
 # test stdout output: MUST be empty
-test_cmd "sh" "help $module" "$out_help"
+test_cmd "sh" "help $module" "OK"
 
 # test with erroneous modulefile
-testouterr_cmd_re "sh" "help $module_2" "$err_sh" "$out_interr.*"
+testouterr_cmd_re "sh" "help $module_2" "ERR" "$out_interr.*"
 
 # test with erroneous ModulesHelp proc in modulefile
-testouterr_cmd_re "sh" "help $module_3" "$err_sh" "$out_interr_3.*"
+testouterr_cmd_re "sh" "help $module_3" "ERR" "$out_interr_3.*"
 
 #
 #  Cleanup
@@ -105,11 +103,9 @@ testouterr_cmd_re "sh" "help $module_3" "$err_sh" "$out_interr_3.*"
 unset module 
 unset err_help
 unset err_debug_help
-unset out_help
 
 unset module_2
 unset out_interr
-unset err_sh
 
 unset module_3
 unset out_interr_3

@@ -66,8 +66,6 @@ set what_2 "\[-\]+ $env(MODULEPATH) \[-\]+\n         $module_2: $module_2"
 set path_2 "echo '$modulefile_2';"
 
 set locate_msg "$error_msgs: Unable to locate a modulefile for 'sym_foo'"
-set err_csh "/bin/false;"
-set ok_csh "/bin/true;"
 
 #
 #  The tests
@@ -90,10 +88,10 @@ testerr_cmd_re "sh" "whatis sym_foo" "^$what_1\$"
 test_cmd "sh" "paths sym_foo" "$path_1"
 
 unset env(MODULERCFILE)
-testouterr_cmd "csh" "load sym_foo" "$err_csh" "$locate_msg"
-testouterr_cmd "sh" "display sym_foo" "$err_csh" "$locate_msg"
-testouterr_cmd "sh" "whatis sym_foo" "$err_csh" "$locate_msg"
-testouterr_cmd "sh" "paths sym_foo" "$ok_csh" ""
+testouterr_cmd "csh" "load sym_foo" "ERR" "$locate_msg"
+testouterr_cmd "sh" "display sym_foo" "ERR" "$locate_msg"
+testouterr_cmd "sh" "whatis sym_foo" "ERR" "$locate_msg"
+testouterr_cmd "sh" "paths sym_foo" "OK" ""
 
 set env(MODULESHOME) $env(TESTSUITEDIR)
 test_cmd_re "csh" "load sym_foo" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_2\n$lm_csh_2\n$ts_csh_2"
@@ -153,8 +151,6 @@ unset what_2
 unset path_2
 
 unset locate_msg
-unset err_csh
-unset ok_csh
 
 unset modulefile_1
 unset module_1

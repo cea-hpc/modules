@@ -37,36 +37,34 @@ set lin_test "Module Specific Test for "
 set missing_test "WARNING: Unable to find ModulesTest in "
 set fail_test "Test result: FAIL"
 set ok_test "Test result: PASS"
-set err_sh "/bin/false;"
-set ok_sh "/bin/true;"
 
 #
 #  The tests
 #
 
 # missing procedure
-testouterr_cmd_re "sh" "test $module" "$ok_sh" "^$modlin\n$lin_test$modulefile:\n\n$missing_test$modulefile.\n$modlin\$"
+testouterr_cmd_re "sh" "test $module" "OK" "^$modlin\n$lin_test$modulefile:\n\n$missing_test$modulefile.\n$modlin\$"
 
 # missing return value
-testouterr_cmd_re "sh" "test $module2" "$err_sh" "^$modlin\n$lin_test$modulefile2:\n\nTest_err\n$fail_test\n$modlin\$"
+testouterr_cmd_re "sh" "test $module2" "ERR" "^$modlin\n$lin_test$modulefile2:\n\nTest_err\n$fail_test\n$modlin\$"
 
 # test returns false
-testouterr_cmd_re "sh" "test $module3" "$err_sh" "^$modlin\n$lin_test$modulefile3:\n\nTest_err\n$fail_test\n$modlin\$"
+testouterr_cmd_re "sh" "test $module3" "ERR" "^$modlin\n$lin_test$modulefile3:\n\nTest_err\n$fail_test\n$modlin\$"
 
 # Set up the environment for test to return true
 set env(TEST) 1
 
 # test returns true
-testouterr_cmd_re "sh" "test $module3" "$ok_sh" "^$modlin\n$lin_test$modulefile3:\n\nTest_err\n$ok_test\n$modlin\$"
+testouterr_cmd_re "sh" "test $module3" "OK" "^$modlin\n$lin_test$modulefile3:\n\nTest_err\n$ok_test\n$modlin\$"
 
 # Clean up the just changed environment
 unset env(TEST)
 
 # test with erroneous modulefile
-testouterr_cmd_re "sh" "test $module4" "$err_sh" "$mod4_interr.*"
+testouterr_cmd_re "sh" "test $module4" "ERR" "$mod4_interr.*"
 
 # test with erroneous ModulesTest proc in modulefile
-testouterr_cmd_re "sh" "test $module5" "$err_sh" "$mod5_interr.*"
+testouterr_cmd_re "sh" "test $module5" "ERR" "$mod5_interr.*"
 
 #
 #  Cleanup
@@ -90,5 +88,3 @@ unset lin_test
 unset missing_test
 unset ok_test
 unset fail_test
-unset err_sh
-unset ok_sh

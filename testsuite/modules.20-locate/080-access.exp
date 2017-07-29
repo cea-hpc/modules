@@ -74,8 +74,6 @@ set m16 "$m5"
 set lmd16 [file dirname $lmf5]
 
 set pheader "$modlin $env(MODULEPATH) $modlin"
-set err_sh "/bin/false;"
-set ok_sh "/bin/true;"
 set locate_msg "$error_msgs: Unable to locate a modulefile for"
 set access_msg "$error_msgs: Permission denied on"
 set hide_perms "ugo-rx"
@@ -86,9 +84,9 @@ set hide_perms "ugo-rx"
 
 change_file_perms $lmf1 $hide_perms
 
-testouterr_cmd "sh" "load $m1" "$err_sh" "$access_msg '$lmf1'"
-testouterr_cmd "sh" "display $m1" "$err_sh" "$access_msg '$lmf1'"
-testouterr_cmd "sh" "whatis $m1" "$err_sh" "$access_msg '$lmf1'"
+testouterr_cmd "sh" "load $m1" "ERR" "$access_msg '$lmf1'"
+testouterr_cmd "sh" "display $m1" "ERR" "$access_msg '$lmf1'"
+testouterr_cmd "sh" "whatis $m1" "ERR" "$access_msg '$lmf1'"
 testouterr_cmd "sh" "avail -t $m1" "" ""
 
 restore_file_perms $lmf1
@@ -99,9 +97,9 @@ restore_file_perms $lmf1
 
 change_file_perms $lmf2 $hide_perms
 
-testouterr_cmd "sh" "load $m2" "$err_sh" "$access_msg '$lmf2'"
-testouterr_cmd "sh" "display $m2" "$err_sh" "$access_msg '$lmf2'"
-testouterr_cmd "sh" "whatis $m2" "$err_sh" "$access_msg '$lmf2'"
+testouterr_cmd "sh" "load $m2" "ERR" "$access_msg '$lmf2'"
+testouterr_cmd "sh" "display $m2" "ERR" "$access_msg '$lmf2'"
+testouterr_cmd "sh" "whatis $m2" "ERR" "$access_msg '$lmf2'"
 # alias defined so it appears even if access to target modulefile is denied
 testouterr_cmd_re "sh" "avail -t $m2" "" "^$pheader\n$m2\\(@\\)\$"
 
@@ -113,9 +111,9 @@ restore_file_perms $lmf2
 
 change_file_perms $lmf3 $hide_perms
 
-testouterr_cmd "sh" "load $m3" "$err_sh" "$access_msg '$lmf3'"
-testouterr_cmd "sh" "display $m3" "$err_sh" "$access_msg '$lmf3'"
-testouterr_cmd "sh" "whatis $m3" "$err_sh" "$access_msg '$lmf3'"
+testouterr_cmd "sh" "load $m3" "ERR" "$access_msg '$lmf3'"
+testouterr_cmd "sh" "display $m3" "ERR" "$access_msg '$lmf3'"
+testouterr_cmd "sh" "whatis $m3" "ERR" "$access_msg '$lmf3'"
 # symbol is attached to the modulefile so it does not appear if the access
 # to the target modulefile is denied
 testouterr_cmd "sh" "avail -t $m3" "" ""
@@ -129,10 +127,10 @@ restore_file_perms $lmf3
 change_file_perms $lmf4 $hide_perms
 
 # shout error as if we were trying to access the symbol directly
-testouterr_cmd "sh" "load $m4" "$err_sh" "$access_msg '$lmf4'"
-testouterr_cmd "sh" "display $m4" "$err_sh" "$access_msg '$lmf4'"
+testouterr_cmd "sh" "load $m4" "ERR" "$access_msg '$lmf4'"
+testouterr_cmd "sh" "display $m4" "ERR" "$access_msg '$lmf4'"
 # no error on whatis/avail, other versions are listed
-testouterr_cmd_re "sh" "whatis $m4" "$ok_sh" "^$pheader\n\\s+$m4/2.0: $m4/2.0\n\\s+$m4/3.0: $m4/3.0\$"
+testouterr_cmd_re "sh" "whatis $m4" "OK" "^$pheader\n\\s+$m4/2.0: $m4/2.0\n\\s+$m4/3.0: $m4/3.0\$"
 testouterr_cmd_re "sh" "avail -t $m4" "" "^$pheader\n$m4/2.0\\(.*\\)\n$m4/3.0\\(.*\\)\$"
 
 restore_file_perms $lmf4
@@ -152,8 +150,8 @@ set ts_sh "testsuite=yes; export testsuite;"
 
 # another implicit default is chosen
 testouterr_cmd "sh" "load $m5" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh" ""
-testouterr_cmd_re "sh" "display $m5" "$ok_sh" "^$modlin\n$rlmf5:\n\nmodule-whatis\t$rlm5\nsetenv\t\ttestsuite\tyes\n$modlin\$"
-testouterr_cmd_re "sh" "whatis $m5" "$ok_sh" "^$pheader\n\\s+$rlm5: $rlm5\$"
+testouterr_cmd_re "sh" "display $m5" "OK" "^$modlin\n$rlmf5:\n\nmodule-whatis\t$rlm5\nsetenv\t\ttestsuite\tyes\n$modlin\$"
+testouterr_cmd_re "sh" "whatis $m5" "OK" "^$pheader\n\\s+$rlm5: $rlm5\$"
 testouterr_cmd_re "sh" "avail -t $m5" "" "^$pheader\n$rlm5\\(.*\\)\$"
 
 # keep file permissions as it is for next test
@@ -166,9 +164,9 @@ testouterr_cmd_re "sh" "avail -t $m5" "" "^$pheader\n$rlm5\\(.*\\)\$"
 change_file_perms $lmf6 $hide_perms
 
 # nothing found
-testouterr_cmd "sh" "load $m6" "$err_sh" "$locate_msg '$m6'"
-testouterr_cmd "sh" "display $m6" "$err_sh" "$locate_msg '$m6'"
-testouterr_cmd "sh" "whatis $m6" "$err_sh" "$locate_msg '$m6'"
+testouterr_cmd "sh" "load $m6" "ERR" "$locate_msg '$m6'"
+testouterr_cmd "sh" "display $m6" "ERR" "$locate_msg '$m6'"
+testouterr_cmd "sh" "whatis $m6" "ERR" "$locate_msg '$m6'"
 testouterr_cmd "sh" "avail -t $m6" "" ""
 
 restore_file_perms $lmf6
@@ -181,10 +179,10 @@ restore_file_perms $lmf5
 change_file_perms $lmf7 $hide_perms
 
 # shout error as if we were trying to access the alias directly
-testouterr_cmd "sh" "load $m7" "$err_sh" "$access_msg '$lmf7'"
-testouterr_cmd "sh" "display $m7" "$err_sh" "$access_msg '$lmf7'"
+testouterr_cmd "sh" "load $m7" "ERR" "$access_msg '$lmf7'"
+testouterr_cmd "sh" "display $m7" "ERR" "$access_msg '$lmf7'"
 # no error on whatis/avail, other versions are listed
-testouterr_cmd_re "sh" "whatis $m7" "$ok_sh" "^$pheader\n\\s+$m7/1.2: $m7/1.2\$"
+testouterr_cmd_re "sh" "whatis $m7" "OK" "^$pheader\n\\s+$m7/1.2: $m7/1.2\$"
 # alias defined so it appears even if access to target modulefile is denied
 testouterr_cmd_re "sh" "avail -t $m7" "" "^$pheader\n$m7/1\\(@\\)\n$m7/1.2\n$m7/bar\\(@\\)\$"
 
@@ -197,9 +195,9 @@ restore_file_perms $lmf7
 change_file_perms $lmrc8 $hide_perms
 
 # cannot locate module
-testouterr_cmd "sh" "load $m8" "$err_sh" "$locate_msg '$m8'"
-testouterr_cmd "sh" "display $m8" "$err_sh" "$locate_msg '$m8'"
-testouterr_cmd "sh" "whatis $m8" "$err_sh" "$locate_msg '$m8'"
+testouterr_cmd "sh" "load $m8" "ERR" "$locate_msg '$m8'"
+testouterr_cmd "sh" "display $m8" "ERR" "$locate_msg '$m8'"
+testouterr_cmd "sh" "whatis $m8" "ERR" "$locate_msg '$m8'"
 testouterr_cmd "sh" "avail -t $m8" "" ""
 
 restore_file_perms $lmrc8
@@ -211,9 +209,9 @@ restore_file_perms $lmrc8
 change_file_perms $lmrc9 $hide_perms
 
 # cannot locate module
-testouterr_cmd "sh" "load $m9" "$err_sh" "$locate_msg '$m9'"
-testouterr_cmd "sh" "display $m9" "$err_sh" "$locate_msg '$m9'"
-testouterr_cmd "sh" "whatis $m9" "$err_sh" "$locate_msg '$m9'"
+testouterr_cmd "sh" "load $m9" "ERR" "$locate_msg '$m9'"
+testouterr_cmd "sh" "display $m9" "ERR" "$locate_msg '$m9'"
+testouterr_cmd "sh" "whatis $m9" "ERR" "$locate_msg '$m9'"
 testouterr_cmd "sh" "avail -t $m9" "" ""
 
 restore_file_perms $lmrc9
@@ -232,8 +230,8 @@ set ts_sh "testsuite=yes; export testsuite;"
 
 # another implicit default is chosen
 testouterr_cmd "sh" "load $m10" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh" ""
-testouterr_cmd_re "sh" "display $m10" "$ok_sh" "^$modlin\n$rlmf10:\n\nmodule-whatis\t$rlm10\nsetenv\t\ttestsuite\tyes\n$modlin\$"
-testouterr_cmd_re "sh" "whatis $m10" "$ok_sh" "^$pheader\n\\s+$m10/1.0: $m10/1.0\n\\s+$m10/2.0: $m10/2.0\n\\s+$m10/3.0: $m10/3.0\$"
+testouterr_cmd_re "sh" "display $m10" "OK" "^$modlin\n$rlmf10:\n\nmodule-whatis\t$rlm10\nsetenv\t\ttestsuite\tyes\n$modlin\$"
+testouterr_cmd_re "sh" "whatis $m10" "OK" "^$pheader\n\\s+$m10/1.0: $m10/1.0\n\\s+$m10/2.0: $m10/2.0\n\\s+$m10/3.0: $m10/3.0\$"
 testouterr_cmd_re "sh" "avail -t $m10" "" "^$pheader\n$m10/1.0\n$m10/2.0\n$m10/3.0\$"
 
 restore_file_perms $lmrc10
@@ -245,8 +243,8 @@ restore_file_perms $lmrc10
 change_file_perms $m11 $hide_perms
 
 # cannot locate module
-testouterr_cmd "sh" "load $m11" "$err_sh" "$access_msg '$m11'"
-testouterr_cmd "sh" "display $m11" "$err_sh" "$access_msg '$m11'"
+testouterr_cmd "sh" "load $m11" "ERR" "$access_msg '$m11'"
+testouterr_cmd "sh" "display $m11" "ERR" "$access_msg '$m11'"
 # no whatis/avail test as it relies only on MODULEPATH search
 
 restore_file_perms $m11
@@ -258,9 +256,9 @@ restore_file_perms $m11
 change_file_perms $lmd12 $hide_perms
 
 # cannot locate module
-testouterr_cmd "sh" "load $m12" "$err_sh" "$locate_msg '$m12'"
-testouterr_cmd "sh" "display $m12" "$err_sh" "$locate_msg '$m12'"
-testouterr_cmd "sh" "whatis $m12" "$err_sh" "$locate_msg '$m12'"
+testouterr_cmd "sh" "load $m12" "ERR" "$locate_msg '$m12'"
+testouterr_cmd "sh" "display $m12" "ERR" "$locate_msg '$m12'"
+testouterr_cmd "sh" "whatis $m12" "ERR" "$locate_msg '$m12'"
 testouterr_cmd "sh" "avail -t $m12" "" ""
 
 restore_file_perms $lmd12
@@ -272,9 +270,9 @@ restore_file_perms $lmd12
 change_file_perms $lmd13 $hide_perms
 
 # cannot locate module
-testouterr_cmd "sh" "load $m13" "$err_sh" "$locate_msg '$m13'"
-testouterr_cmd "sh" "display $m13" "$err_sh" "$locate_msg '$m13'"
-testouterr_cmd "sh" "whatis $m13" "$err_sh" "$locate_msg '$m13'"
+testouterr_cmd "sh" "load $m13" "ERR" "$locate_msg '$m13'"
+testouterr_cmd "sh" "display $m13" "ERR" "$locate_msg '$m13'"
+testouterr_cmd "sh" "whatis $m13" "ERR" "$locate_msg '$m13'"
 testouterr_cmd "sh" "avail -t $m13" "" ""
 
 restore_file_perms $lmd13
@@ -286,9 +284,9 @@ restore_file_perms $lmd13
 change_file_perms $lmd14 $hide_perms
 
 # cannot locate module
-testouterr_cmd "sh" "load $m14" "$err_sh" "$locate_msg '$m14'"
-testouterr_cmd "sh" "display $m14" "$err_sh" "$locate_msg '$m14'"
-testouterr_cmd "sh" "whatis $m14" "$err_sh" "$locate_msg '$m14'"
+testouterr_cmd "sh" "load $m14" "ERR" "$locate_msg '$m14'"
+testouterr_cmd "sh" "display $m14" "ERR" "$locate_msg '$m14'"
+testouterr_cmd "sh" "whatis $m14" "ERR" "$locate_msg '$m14'"
 testouterr_cmd "sh" "avail -t $m14" "" ""
 
 restore_file_perms $lmd14
@@ -300,9 +298,9 @@ restore_file_perms $lmd14
 change_file_perms $lmd15 $hide_perms
 
 # permission denied on directory
-testouterr_cmd "sh" "load $m15" "$err_sh" "$access_msg '$lmd15'"
-testouterr_cmd "sh" "display $m15" "$err_sh" "$access_msg '$lmd15'"
-testouterr_cmd "sh" "whatis $m15" "$err_sh" "$access_msg '$lmd15'"
+testouterr_cmd "sh" "load $m15" "ERR" "$access_msg '$lmd15'"
+testouterr_cmd "sh" "display $m15" "ERR" "$access_msg '$lmd15'"
+testouterr_cmd "sh" "whatis $m15" "ERR" "$access_msg '$lmd15'"
 testouterr_cmd "sh" "avail -t $m15" "" ""
 
 restore_file_perms $lmd15
@@ -315,9 +313,9 @@ restore_file_perms $lmd15
 change_file_perms $lmd16 $hide_perms
 
 # permission denied on directory
-testouterr_cmd "sh" "load $m16" "$err_sh" "$access_msg '$lmd16'"
-testouterr_cmd "sh" "display $m16" "$err_sh" "$access_msg '$lmd16'"
-testouterr_cmd "sh" "whatis $m16" "$err_sh" "$access_msg '$lmd16'"
+testouterr_cmd "sh" "load $m16" "ERR" "$access_msg '$lmd16'"
+testouterr_cmd "sh" "display $m16" "ERR" "$access_msg '$lmd16'"
+testouterr_cmd "sh" "whatis $m16" "ERR" "$access_msg '$lmd16'"
 testouterr_cmd "sh" "avail -t $m16" "" ""
 
 restore_file_perms $lmd16
@@ -334,8 +332,6 @@ unset lm_sh
 unset ts_sh
 
 unset pheader
-unset err_sh
-unset ok_sh
 unset locate_msg
 unset hide_perms
 

@@ -59,6 +59,71 @@ proc version_test {which} {
 }
 
 #
+# Shell conversion code subprocedures
+#
+
+proc shell_err {test_shell {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+           set answer "/bin/false;"
+        }
+        {tcl} {
+            set answer "exec /bin/false;"
+        }
+        {perl} {
+            set answer "die \"modulefile.tcl: 1 error${esc}(s${esc}) detected!${esc}\\n\""
+        }
+        {python} {
+            set answer "raise RuntimeError${esc}( 'modulefile.tcl: 1 error${esc}(s${esc}) detected!'${esc})"
+        }
+        {lisp} {
+            set answer "${esc}(error \"modulefile.tcl: 1 error${esc}(s${esc}) detected!\"${esc})"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    if {$re_mode} {
+        set answer "^$answer\$"
+    }
+
+    return $answer
+}
+
+proc shell_ok {test_shell {re_mode 0}} {
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            set answer "/bin/true;"
+        }
+        {tcl} {
+            set answer "exec /bin/true;"
+        }
+        {perl} {
+            set answer "1;"
+        }
+        {lisp} {
+            set answer "t"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    if {$re_mode} {
+        set answer "^$answer\$"
+    }
+
+    return $answer
+}
+
+#
 # Test subprocedures
 #
 
@@ -132,6 +197,12 @@ proc _test_out {test_shell cmd answer} {
 	global comp_output
 	global verbose
 
+    if {$answer eq "ERR"} {
+        set answer [shell_err $test_shell]
+    } elseif {$answer eq "OK"} {
+        set answer [shell_ok $test_shell]
+    }
+
 	if { $comp_output != "$answer" } {
 		fail "$cmd ($test_shell)"
 		if { $verbose > 0 } {
@@ -149,6 +220,12 @@ proc _test_out {test_shell cmd answer} {
 proc _test_out_re {test_shell cmd answer} {
 	global comp_output
 	global verbose
+
+    if {$answer eq "ERR"} {
+        set answer [shell_err $test_shell 1]
+    } elseif {$answer eq "OK"} {
+        set answer [shell_ok $test_shell 1]
+    }
 
 	if { ![regexp -- $answer $comp_output] } {
 		fail "$cmd ($test_shell)"

@@ -93,7 +93,6 @@ module-whatis\tSome checks for HELP and DISPLAY
 
 set out_err "$error_msgs: Unable to locate a modulefile for '$module_2'"
 set out_interr "Module ERROR: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_3/.modulerc:invalid command name \"bad-command\""
-set err_csh "/bin/false;"
 
 set out_pat_4 "-------------------------------------------------------------------
 $env(TESTSUITEDIR)/modulefiles/test/2.0:
@@ -135,17 +134,17 @@ testerr_cmd_re "csh" "--debug display $module_1" "$out_debug_pat"
 #
 # test exit on error  
 #
-testouterr_cmd "csh" "display $module_2" "$err_csh" "$out_err"
+testouterr_cmd "csh" "display $module_2" "ERR" "$out_err"
 
 #
 # test with erroneous modulefile
 #
-testouterr_cmd_re "csh" "display $module_3" "$err_csh" "$out_interr.*"
+testouterr_cmd_re "csh" "display $module_3" "ERR" "$out_interr.*"
 
 #
 # test with erroneous modulefile in debug mode
 #
-testouterr_cmd_re "csh" "--debug display $module_3" "$err_csh" "$out_interr.*DEBUG Error: 1 error\\\(s\\\) detected.\$"
+testouterr_cmd_re "csh" "--debug display $module_3" "ERR" "$out_interr.*DEBUG Error: 1 error\\\(s\\\) detected.\$"
 
 #
 # test on modulefile with ModuleTest proc defined
@@ -155,14 +154,13 @@ testerr_cmd "csh" "display $module_4" "$out_pat_4"
 #
 # test with erroneous ModulesDisplay proc in modulefile
 #
-testouterr_cmd_re "csh" "display $module_5" "$err_csh" "$out_interr_5.*"
+testouterr_cmd_re "csh" "display $module_5" "ERR" "$out_interr_5.*"
 
 
 #
 #  Cleanup
 #
 
-unset err_csh
 unset out_err
 unset out_interr
 unset out_pat
