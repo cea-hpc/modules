@@ -35,38 +35,40 @@ set module "help/2.0"
 # different behavior than C-version: on Tcl-version 'module-log', 'module-verbosity'
 # and 'module-user' commandq are not handled and will always return a warning message
 # to inform the user.
-set err_help "-------------------------------------------------------------------
+set err_help "$modlin
 Module Specific Help for $env(TESTSUITEDIR)/modulefiles/$module:
 
-WARNING: 'module-user' command not implemented
-WARNING: 'module-verbosity' command not implemented
-WARNING: 'module-log' command not implemented
-WARNING: 'module-trace' command not implemented
+$warn_msgs: 'module-user' command not implemented
+$warn_msgs: 'module-verbosity' command not implemented
+$warn_msgs: 'module-log' command not implemented
+$warn_msgs: 'module-trace' command not implemented
 Help_out
 Help_err
--------------------------------------------------------------------"
-set err_debug_help "-------------------------------------------------------------------
+$modlin"
+set err_debug_help "(DEBUG .*)+
+$modlin
 Module Specific Help for $env(TESTSUITEDIR)/modulefiles/$module:
 
 (DEBUG .*)+
-WARNING: 'module-user' command not implemented
-WARNING: 'module-verbosity' command not implemented
-WARNING: 'module-log' command not implemented
-WARNING: 'module-trace' command not implemented
+$warn_msgs: 'module-user' command not implemented
+$warn_msgs: 'module-verbosity' command not implemented
+$warn_msgs: 'module-log' command not implemented
+$warn_msgs: 'module-trace' command not implemented
 (DEBUG .*)+
 Help_out
 Help_err
 (DEBUG .*)+
--------------------------------------------------------------------"
+$modlin
+(DEBUG .*)+"
 
 set module_2 "bad"
-set out_interr "Module ERROR: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_2/.modulerc:invalid command name \"bad-command\""
+set out_interr "$moderr_msgs: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_2/.modulerc:invalid command name \"bad-command\""
 
 set module_3 "bad2"
-set out_interr_3 "-------------------------------------------------------------------
+set out_interr_3 "$modlin
 Module Specific Help for $env(TESTSUITEDIR)/modulefiles/$module_3/proc:
 
-Module ERROR: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_3/proc:invalid command name \"bad-command\""
+$moderr_msgs: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_3/proc:invalid command name \"bad-command\""
 
 
 
@@ -80,21 +82,21 @@ Module ERROR: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_3/proc:inv
 # has been adapted to output everything to stderr
 
 # test stderr output
-testerr_cmd "sh" "help $module" "$err_help"
+testerr_cmd_re "sh" "help $module" "^$err_help\$"
 
 # test debug mode
-testerr_cmd_re "sh" "-D help $module" "$err_debug_help"
+testerr_cmd_re "sh" "-D help $module" "^$err_debug_help\$"
 # test multiple debug argument do not change result
-testerr_cmd_re "sh" "--debug help $module -D" "$err_debug_help"
+testerr_cmd_re "sh" "--debug help $module -D" "^$err_debug_help\$"
 
 # test stdout output: MUST be empty
 test_cmd "sh" "help $module" "OK"
 
 # test with erroneous modulefile
-testouterr_cmd_re "sh" "help $module_2" "ERR" "$out_interr.*"
+testouterr_cmd_re "sh" "help $module_2" "ERR" "^$out_interr.*\$"
 
 # test with erroneous ModulesHelp proc in modulefile
-testouterr_cmd_re "sh" "help $module_3" "ERR" "$out_interr_3.*"
+testouterr_cmd_re "sh" "help $module_3" "ERR" "^$out_interr_3.*\$"
 
 #
 #  Cleanup

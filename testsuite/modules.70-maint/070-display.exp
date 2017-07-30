@@ -34,7 +34,7 @@ set module_5 "bad2"
 # and 'module-user' commandq are not handled and will always return a warning message
 # to inform the user. Moreover 'x-resource' commands are displayed as defined in
 # modulefile and not displayed as a 'xrdb' command like on C-version
-set out_pat "-------------------------------------------------------------------
+set out_pat "$modlin
 $env(TESTSUITEDIR)/modulefiles/help/2.0:
 
 set-alias\tal-testsuite\tps -auxww | grep modulecmd
@@ -45,17 +45,17 @@ prepend-path\ttestsuite\tmaybe
 remove-path\ttestsuite\tyes
 unsetenv\ttestsuite
 x-resource\tmy-prog*my-ress\ttrue
-WARNING: 'module-user' command not implemented
-WARNING: 'module-verbosity' command not implemented
-WARNING: 'module-log' command not implemented
-WARNING: 'module-trace' command not implemented
+$warn_msgs: 'module-user' command not implemented
+$warn_msgs: 'module-verbosity' command not implemented
+$warn_msgs: 'module-log' command not implemented
+$warn_msgs: 'module-trace' command not implemented
 system\t\tls
 module load\tsetenv/1.0
 module-alias\tfoo setenv/1.0
 module-version\tfoo foo bar blah
 module-whatis\tSome checks for HELP and DISPLAY
--------------------------------------------------------------------"
-set out_debug_pat "-------------------------------------------------------------------
+$modlin"
+set out_debug_pat "$modlin
 $env(TESTSUITEDIR)/modulefiles/help/2.0:
 
 (DEBUG .*)+
@@ -75,9 +75,9 @@ unsetenv\ttestsuite
 (DEBUG .*)+
 x-resource\tmy-prog*my-ress\ttrue
 (DEBUG .*)+
-WARNING: 'module-user' command not implemented
-WARNING: 'module-verbosity' command not implemented
-WARNING: 'module-log' command not implemented
+$warn_msgs: 'module-user' command not implemented
+$warn_msgs: 'module-verbosity' command not implemented
+$warn_msgs: 'module-log' command not implemented
 (DEBUG .*)+
 system\t\tls
 (DEBUG .*)+
@@ -89,12 +89,13 @@ module-version\tfoo foo bar blah
 (DEBUG .*)+
 module-whatis\tSome checks for HELP and DISPLAY
 (DEBUG .*)+
--------------------------------------------------------------------"
+$modlin
+(DEBUG .*)+"
 
 set out_err "$error_msgs: Unable to locate a modulefile for '$module_2'"
-set out_interr "Module ERROR: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_3/.modulerc:invalid command name \"bad-command\""
+set out_interr "$moderr_msgs: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_3/.modulerc:invalid command name \"bad-command\""
 
-set out_pat_4 "-------------------------------------------------------------------
+set out_pat_4 "$modlin
 $env(TESTSUITEDIR)/modulefiles/test/2.0:
 
 set-alias\tal-testsuite\tps -auxww | grep modulecmd
@@ -110,36 +111,36 @@ module load\tsetenv/1.0
 module-alias\tfoo setenv/1.0
 module-version\tfoo foo bar blah
 module-whatis\tSome checks for TEST and DISPLAY
--------------------------------------------------------------------"
+$modlin"
 
-set out_interr_5 "-------------------------------------------------------------------
+set out_interr_5 "$modlin
 $env(TESTSUITEDIR)/modulefiles/$module_5/proc:
 
 setenv\t\ttestsuite\tyes
 module-whatis\terroneous module test
-Module ERROR: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_5/proc:invalid command name \"bad-command\""
+$moderr_msgs: Occurred in file $env(TESTSUITEDIR)/modulefiles/$module_5/proc:invalid command name \"bad-command\""
 
 #
 #  The tests
 #
 
-testerr_cmd "csh" "display $module_1" "$out_pat"
+testerr_cmd_re "csh" "display $module_1" "^$out_pat\$"
 
 #
 # test debug mode
 #
 
-testerr_cmd_re "csh" "--debug display $module_1" "$out_debug_pat"
+testerr_cmd_re "csh" "--debug display $module_1" "$out_debug_pat\$"
 
 #
 # test exit on error  
 #
-testouterr_cmd "csh" "display $module_2" "ERR" "$out_err"
+testouterr_cmd_re "csh" "display $module_2" "ERR" "^$out_err\$"
 
 #
 # test with erroneous modulefile
 #
-testouterr_cmd_re "csh" "display $module_3" "ERR" "$out_interr.*"
+testouterr_cmd_re "csh" "display $module_3" "ERR" "^$out_interr.*\$"
 
 #
 # test with erroneous modulefile in debug mode
@@ -149,12 +150,12 @@ testouterr_cmd_re "csh" "--debug display $module_3" "ERR" "$out_interr.*DEBUG Er
 #
 # test on modulefile with ModuleTest proc defined
 #
-testerr_cmd "csh" "display $module_4" "$out_pat_4"
+testerr_cmd_re "csh" "display $module_4" "^$out_pat_4\$"
 
 #
 # test with erroneous ModulesDisplay proc in modulefile
 #
-testouterr_cmd_re "csh" "display $module_5" "ERR" "$out_interr_5.*"
+testouterr_cmd_re "csh" "display $module_5" "ERR" "^$out_interr_5.*\$"
 
 
 #
