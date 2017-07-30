@@ -289,11 +289,17 @@ proc _test_ok {test_shell cmd} {
 #
 
 proc test_cmd_re {test_shell cmd answer} {
- 
-	_test_sub $test_shell "$cmd"
-	if { [ _test_out_re $test_shell "$cmd" "$answer" ] } {
-		_test_ok $test_shell "$cmd"
-	}
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            test_cmd_re $shell $cmd $answer
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_out_re $test_shell "$cmd" "$answer" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
 }
 
 #
@@ -301,12 +307,18 @@ proc test_cmd_re {test_shell cmd answer} {
 #
 
 proc test_cmd {test_shell cmd answer {exitval 0}} {
-
-	_test_sub $test_shell "$cmd"
-	if { [ _test_out $test_shell "$cmd" "$answer" ]
-	&&   [ _test_exit $test_shell "$cmd" "$exitval" ] } {
-		_test_ok $test_shell "$cmd"
-	}
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            test_cmd $shell $cmd $answer $exitval
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_out $test_shell "$cmd" "$answer" ]
+        &&   [ _test_exit $test_shell "$cmd" "$exitval" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
 }
 
 #
@@ -314,11 +326,17 @@ proc test_cmd {test_shell cmd answer {exitval 0}} {
 #
 
 proc testerr_cmd_re {test_shell cmd answer} {
-    
-	_test_sub $test_shell "$cmd"
-	if { [ _test_err_re $test_shell $cmd $answer ] } {
-		_test_ok $test_shell "$cmd"
-	}
+     if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testerr_cmd_re $shell $cmd $answer
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_err_re $test_shell $cmd $answer ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
 }
 
 #
@@ -326,12 +344,18 @@ proc testerr_cmd_re {test_shell cmd answer} {
 #
 
 proc testouterr_cmd_re {test_shell cmd answer anserr} {
-
-	_test_sub $test_shell "$cmd"
-	if { [ _test_out_re $test_shell "$cmd" "$answer" ]
-	&&   [ _test_err_re $test_shell "$cmd" "$anserr" ] } {
-		_test_ok $test_shell "$cmd"
-	}
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testouterr_cmd_re $shell $cmd $answer $anserr
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_out_re $test_shell "$cmd" "$answer" ]
+        &&   [ _test_err_re $test_shell "$cmd" "$anserr" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
 }
 
 #
@@ -339,11 +363,17 @@ proc testouterr_cmd_re {test_shell cmd answer anserr} {
 #
 
 proc testerr_cmd {test_shell cmd answer} {
-
-	_test_sub $test_shell "$cmd"
-	if { [ _test_err $test_shell "$cmd" "$answer" ] } {
-		_test_ok $test_shell "$cmd"
-	}
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testerr_cmd $shell $cmd $answer
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_err $test_shell "$cmd" "$answer" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
 }
 
 #
@@ -351,12 +381,18 @@ proc testerr_cmd {test_shell cmd answer} {
 #
 
 proc testouterr_cmd {test_shell cmd answer anserr} {
-
-	_test_sub $test_shell "$cmd"
-	if { [ _test_out $test_shell "$cmd" "$answer" ]
-	&&   [ _test_err $test_shell "$cmd" "$anserr" ] } {
-		_test_ok $test_shell "$cmd"
-	}
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testouterr_cmd $shell $cmd $answer $anserr
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_out $test_shell "$cmd" "$answer" ]
+        &&   [ _test_err $test_shell "$cmd" "$anserr" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
 }
 
 #
@@ -364,12 +400,18 @@ proc testouterr_cmd {test_shell cmd answer anserr} {
 #
 
 proc testoutfile_cmd {test_shell cmd answer filepath ansfile} {
-
-	_test_sub $test_shell "$cmd"
-	if { [ _test_out $test_shell "$cmd" "$answer" ]
-	&&   [ _test_file $test_shell "$cmd" "$filepath" "$ansfile" ] } {
-		_test_ok $test_shell "$cmd"
-	}
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testoutfile_cmd $shell $cmd $answer $filepath $ansfile
+        }
+    } else {
+        _test_sub $test_shell "$cmd"
+        if { [ _test_out $test_shell "$cmd" "$answer" ]
+        &&   [ _test_file $test_shell "$cmd" "$filepath" "$ansfile" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
 }
 
 #
