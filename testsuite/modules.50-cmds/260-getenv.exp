@@ -30,22 +30,17 @@ set module "getenv/1.0"
 set modulefile "$env(MODULEPATH)/$module"
 
 #
-#  For sh shell only (no need to check every shells)
-#
-
-set lmfmod_sh "_LMFILES__modshare=$modulefile:1; export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=$module:1; export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-
-#
 #  The tests when dependent env var is not set
 #
 
-set ts_sh "testsuite=_UNDEFINED_; export testsuite;"
+lappend ans [list set _LMFILES__modshare "$modulefile:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module:1"]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite _UNDEFINED_]
 
 # test loading
-testouterr_cmd "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh" ""
+testouterr_cmd "sh" "load $module" $ans ""
 
 # test displaying
 testerr_cmd_re "sh" "display $module" "^$modlin\n$modulefile:\n\nsetenv\t\ttestsuite\t\\\$TEST\n$modlin\$"
@@ -54,13 +49,18 @@ testerr_cmd_re "sh" "display $module" "^$modlin\n$modulefile:\n\nsetenv\t\ttests
 #  The tests when dependent env var is set
 #
 
-set ts_sh "testsuite=yes; export testsuite;"
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module:1"]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite yes]
 
 # Set up the environment for test that require the module to be loaded
 set env(TEST) "yes"
 
 # test loading
-testouterr_cmd "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh" ""
+testouterr_cmd "sh" "load $module" $ans ""
 
 # test displaying
 testerr_cmd_re "sh" "display $module" "^$modlin\n$modulefile:\n\nsetenv\t\ttestsuite\t\\\$TEST\n$modlin\$"
@@ -72,11 +72,7 @@ testerr_cmd_re "sh" "display $module" "^$modlin\n$modulefile:\n\nsetenv\t\ttests
 # Clean up the environment
 unset env(TEST)
 
-unset lm_sh
-unset lmf_sh
-unset lmmod_sh
-unset lmfmod_sh
-unset ts_sh
+unset ans
 
 unset module
 unset modulefile

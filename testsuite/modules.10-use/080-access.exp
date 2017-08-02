@@ -33,10 +33,6 @@ if {$tcl_platform(user) eq "root"} {
 set module "loc_rc6"
 
 set orig_modpath $::env(MODULEPATH)
-set use_modpath_sh "MODULEPATH=$orig_modpath; export MODULEPATH;"
-set use_modshare_sh "MODULEPATH_modshare=$orig_modpath:1; export MODULEPATH_modshare;"
-set unuse_modpath_sh "unset MODULEPATH;"
-set unuse_modshare_sh "unset MODULEPATH_modshare;"
 
 set locate_msg "$error_msgs: Unable to locate a modulefile for"
 set hide_perms "ugo-rx"
@@ -53,7 +49,9 @@ set ::env(MODULEPATH) ""
 change_file_perms $orig_modpath $hide_perms
 
 # normal enabling, as no directory access
-testouterr_cmd "sh" "use $orig_modpath" "$use_modshare_sh\n$use_modpath_sh" ""
+lappend ans [list set MODULEPATH_modshare "$orig_modpath:1"]
+lappend ans [list set MODULEPATH $orig_modpath]
+testouterr_cmd "sh" "use $orig_modpath" $ans ""
 
 
 if { $verbose > 0 } {
@@ -89,7 +87,9 @@ testouterr_cmd "sh" "avail -t $module" "" ""
 #
 
 # normal disabling, as no directory access
-testouterr_cmd "sh" "unuse $orig_modpath" "$unuse_modshare_sh\n$unuse_modpath_sh" ""
+set ans [list]
+lappend ans [list unsetpath MODULEPATH]
+testouterr_cmd "sh" "unuse $orig_modpath" $ans ""
 
 restore_file_perms $orig_modpath
 
@@ -102,10 +102,7 @@ unset locate_msg
 unset hide_perms
 
 unset orig_modpath
-unset use_modpath_sh
-unset use_modshare_sh
-unset unuse_modpath_sh
-unset unuse_modshare_sh
+unset ans
 
 unset module
 

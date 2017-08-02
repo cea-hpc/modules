@@ -28,8 +28,6 @@ set module "loc_rc6"
 
 set orig_modpath $::env(MODULEPATH)
 set file_modpath $::env(TESTSUITEDIR)/systest
-set unuse_modpath_sh "unset MODULEPATH;"
-set unuse_modshare_sh "unset MODULEPATH_modshare;"
 
 set locate_msg "$error_msgs: Unable to locate a modulefile for"
 set hide_perms "ugo-rx"
@@ -63,7 +61,8 @@ testouterr_cmd "sh" "avail -t $module" "" ""
 #
 
 # normal disabling, as no directory access
-testouterr_cmd "sh" "unuse $file_modpath" "$unuse_modshare_sh\n$unuse_modpath_sh" ""
+lappend ans [list unsetpath MODULEPATH]
+testouterr_cmd "sh" "unuse $file_modpath" $ans ""
 
 
 #
@@ -80,7 +79,6 @@ unset hide_perms
 
 unset orig_modpath
 unset file_modpath
-unset unuse_modpath_sh
-unset unuse_modshare_sh
+unset ans
 
 unset module

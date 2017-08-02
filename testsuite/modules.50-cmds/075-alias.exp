@@ -35,58 +35,22 @@ set alias "ps -auxww \| grep modulecmd"
 #  For the different shells ...
 #
 
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set ts_sh "alias testsuite=\'$alias\';"
-
-set lmfmod_csh "setenv _LMFILES__modshare (.*);"
-set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set lmf_csh "setenv _LMFILES_ $modulefile;"
-set lm_csh "setenv LOADEDMODULES $module;"
-set ts_csh "alias testsuite \'$alias\';"
-
-set lmf_fish "set -xg _LMFILES_ $modulefile;"
-set lm_fish "set -xg LOADEDMODULES $module;"
-set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
-set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
-set ts_fish "alias testsuite \'$alias\';"
+lappend ans [list alias testsuite $alias]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 #
 #  The tests
 #
 
-test_cmd_re "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-test_cmd_re "bash" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-test_cmd_re "ksh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-test_cmd_re "zsh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-test_cmd_re "csh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
-test_cmd_re "tcsh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
-test_cmd_re "fish" "load $module" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish\$"
 # only available for csh/sh/fish derivatives ... no longer warn for others
+test_cmd_re "ALL" "load $module" $ans
 
 #
 #  Cleanup
 #
 
-unset ts_sh
-unset lm_sh
-unset lmf_sh
-unset lmmod_sh
-unset lmfmod_sh
-
-unset ts_csh
-unset lm_csh
-unset lmf_csh
-unset lmmod_csh
-unset lmfmod_csh
-
-unset ts_fish
-unset lm_fish
-unset lmf_fish
-unset lmmod_fish
-unset lmfmod_fish
+unset ans
 
 unset modulefile
 unset module

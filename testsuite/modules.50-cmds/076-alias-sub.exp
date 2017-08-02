@@ -35,23 +35,14 @@ set alias_csh {ls \\!\\!:1 \\!\\!:2 \| grep \\!\*}
 #  For the different shells ...
 #
 
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set ts_sh "alias testsuite=\'$alias_sh\';"
+lappend ans [list alias testsuite $alias_sh]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
-set lmfmod_csh "setenv _LMFILES__modshare (.*);"
-set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set lmf_csh "setenv _LMFILES_ $modulefile;"
-set lm_csh "setenv LOADEDMODULES $module;"
-set ts_csh "alias testsuite \'$alias_csh\';"
+lappend ans2 [list alias testsuite $alias_csh]
+lappend ans2 [list setpath LOADEDMODULES $module]
+lappend ans2 [list setpath _LMFILES_ $modulefile]
 
-set lmf_fish "set -xg _LMFILES_ $modulefile;"
-set lm_fish "set -xg LOADEDMODULES $module;"
-set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
-set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
-set ts_fish "alias testsuite \'$alias_sh\';"
 
 #
 #  The tests
@@ -59,36 +50,22 @@ set ts_fish "alias testsuite \'$alias_sh\';"
 
 # different behavior than C-version: on Tcl-version set-alias command always
 # produces a shell alias never a shell function on Bourne shell derivatives
-test_cmd_re "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-test_cmd_re "bash" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-test_cmd_re "ksh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-test_cmd_re "zsh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-test_cmd_re "csh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
-test_cmd_re "tcsh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
-test_cmd_re "fish" "load $module" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish\$"
-# only available for csh/sh/fish derivatives ... no longer warn for others
+foreach sh $supported_shells {
+    # only available for csh/sh/fish derivatives ... no longer warn for others
+    if {[lsearch -exact $csh_shells $sh] >= 0} {
+        test_cmd_re "$sh" "load $module" $ans2
+    } else {
+        test_cmd_re "$sh" "load $module" $ans
+    }
+}
 
 #
 #  Cleanup
 #
 
-unset ts_sh
-unset lm_sh
-unset lmf_sh
-unset lmmod_sh
-unset lmfmod_sh
-
-unset ts_csh
-unset lm_csh
-unset lmf_csh
-unset lmmod_csh
-unset lmfmod_csh
-
-unset ts_fish
-unset lm_fish
-unset lmf_fish
-unset lmmod_fish
-unset lmfmod_fish
+unset sh
+unset ans
+unset ans2
 
 unset modulefile
 unset module

@@ -34,73 +34,21 @@ set modulefile "$env(MODULEPATH)/$module"
 #  For the different shells ...
 #
 
-set lmsh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lmcsh "setenv _LMFILES_ $modulefile;"
-set lmfish "set -xg _LMFILES_ $modulefile;"
-set lmtcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
-set lmperl "\\\$ENV{'_LMFILES_'} = \'$modulefile\';"
-set lmpython "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
-set lmlisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
-
-set loadmodsh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set loadmodcsh "setenv LOADEDMODULES $module;"
-set loadmodfish "set -xg LOADEDMODULES $module;"
-set loadmodtcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-set loadmodperl "\\\$ENV{'LOADEDMODULES'} = \'$module\';"
-set loadmodpython "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
-set loadmodlisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
-
-set ts_sh "testsuite=yes; export testsuite;"
-set ts_csh "setenv testsuite yes;"
-set ts_fish "set -xg testsuite yes;"
-set ts_tcl "set env\\\(testsuite\\\) \"yes\";"
-set ts_perl "\\\$ENV{'testsuite'} = \'yes\';"
-set ts_python "os.environ\\\[\'testsuite\'] = \'yes\'"
-set ts_lisp "\\\(setenv \"testsuite\" \"yes\"\\\)"
+lappend ans [list set testsuite yes]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 #
 #  The tests
 #
 
-test_cmd_re "sh" "load $module" "$lmsh\n$loadmodsh\n$ts_sh\$"
-test_cmd_re "bash" "load $module" "$lmsh\n$loadmodsh\n$ts_sh\$"
-test_cmd_re "ksh" "load $module" "$lmsh\n$loadmodsh\n$ts_sh\$"
-test_cmd_re "zsh" "load $module" "$lmsh\n$loadmodsh\n$ts_sh\$"
-test_cmd_re "csh" "load $module" "$lmcsh\n$loadmodcsh\n$ts_csh\$"
-test_cmd_re "tcsh" "load $module" "$lmcsh\n$loadmodcsh\n$ts_csh\$"
-test_cmd_re "fish" "load $module" "$lmfish\n$loadmodfish\n$ts_fish\$"
-test_cmd_re "tcl" "load $module" "$lmtcl\n$loadmodtcl\n$ts_tcl\$"
-test_cmd_re "perl" "load $module" "$lmperl\n$loadmodperl\n$ts_perl\n1;\$"
-#test_cmd_re "cmake" "load $module" "$lm_cmake\n$lmf_cmake\n$ts_cmake\$"
-test_cmd_re "python" "load $module" "$lmpython\n$loadmodpython\n$ts_python\$"
-test_cmd_re "lisp" "load $module" "$lmlisp\n$loadmodlisp\n$ts_lisp\$"
+test_cmd_re "ALL" "load $module" $ans
 
 #
 #  Cleanup
 #
-unset lmsh
-unset lmcsh
-unset lmfish
-unset lmtcl
-unset lmperl
-unset lmpython
-unset lmlisp
 
-unset loadmodsh
-unset loadmodcsh
-unset loadmodfish
-unset loadmodtcl
-unset loadmodperl
-unset loadmodpython
-unset loadmodlisp
-
-unset ts_sh
-unset ts_csh
-unset ts_fish
-unset ts_tcl
-unset ts_perl
-unset ts_python
-unset ts_lisp
+unset ans
 
 unset modulefile
 unset module

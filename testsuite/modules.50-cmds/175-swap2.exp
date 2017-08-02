@@ -57,70 +57,15 @@ set modulefile "$mod22p"
 # module but through the whole space of the variable. So prepended stuff
 # will go at the beginning of the variable and appended stuff will go
 # at the end.
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set pmod_sh "PATH_modshare=(.*); export PATH_modshare;"
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set p_sh "PATH=$path22:$path2222:$pathpre:$pathpost; export PATH;"
-
-set lmfmod_csh "setenv _LMFILES__modshare (.*);"
-set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set pmod_csh "setenv PATH_modshare (.*);"
-set lmf_csh "setenv _LMFILES_ $modulefile;"
-set lm_csh "setenv LOADEDMODULES $module;"
-set p_csh "setenv PATH $path22:$path2222:$pathpre:$pathpost;"
-
-set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
-set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
-set pmod_fish "set -xg PATH_modshare (.*);"
-set lmf_fish "set -xg _LMFILES_ $modulefile;"
-set lm_fish "set -xg LOADEDMODULES $module;"
-set p_fish "set -xg PATH $path22 $path2222 $pathpre $pathpost;"
-
-set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
-set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
-set pmod_tcl "set env\\\(PATH_modshare\\\) \"(.*)\";"
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-set p_tcl "set env\\\(PATH\\\) \"$path22:$path2222:$pathpre:$pathpost\";"
-
-set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
-set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
-set pmod_perl "\\\$ENV{\'PATH_modshare\'} = \'(.*)\';"
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
-set p_perl "\\\$ENV{\'PATH\'} = \'$path22:$path2222:$pathpre:$pathpost\';"
-
-set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
-set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
-set pmod_python "os.environ\\\[\'PATH_modshare\'\\\] = \'(.*)\'"
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
-set p_python "os.environ\\\[\'PATH\'\\\] = \'$path22:$path2222:$pathpre:$pathpost\'"
-
-set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
-set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
-set pmod_lisp "\\\(setenv \"PATH_modshare\" \"(.*)\"\\\)"
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
-set p_lisp "\\\(setenv \"PATH\" \"$path22:$path2222:$pathpre:$pathpost\"\\\)"
+lappend ans [list setpath PATH "$path22:$path2222:$pathpre:$pathpost"]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 #
 #  The tests
 #
 
-test_cmd_re "sh" "swap $mod21 $mod22" "$lmfmod_sh\n$lmmod_sh\n$p_sh\n$lmf_sh\n$lm_sh\n$pmod_sh\$"
-test_cmd_re "bash" "swap $mod21 $mod22" "$lmfmod_sh\n$lmmod_sh\n$p_sh\n$lmf_sh\n$lm_sh\n$pmod_sh\$"
-test_cmd_re "ksh" "swap $mod21 $mod22" "$lmfmod_sh\n$lmmod_sh\n$p_sh\n$lmf_sh\n$lm_sh\n$pmod_sh\$"
-test_cmd_re "zsh" "swap $mod21 $mod22" "$lmfmod_sh\n$lmmod_sh\n$p_sh\n$lmf_sh\n$lm_sh\n$pmod_sh\$"
-test_cmd_re "csh" "swap $mod21 $mod22" "$lmfmod_csh\n$lmmod_csh\n$p_csh\n$lmf_csh\n$lm_csh\n$pmod_csh\$"
-test_cmd_re "tcsh" "swap $mod21 $mod22" "$lmfmod_csh\n$lmmod_csh\n$p_csh\n$lmf_csh\n$lm_csh\n$pmod_csh\$"
-test_cmd_re "fish" "swap $mod21 $mod22" "$lmfmod_fish\n$lmmod_fish\n$p_fish\n$lmf_fish\n$lm_fish\n$pmod_fish\$"
-test_cmd_re "tcl" "swap $mod21 $mod22" "$lmfmod_tcl\n$lmmod_tcl\n$p_tcl\n$lmf_tcl\n$lm_tcl\n$pmod_tcl\$"
-test_cmd_re "perl" "swap $mod21 $mod22" "$lmfmod_perl\n$lmmod_perl\n$p_perl\n$lmf_perl\n$lm_perl\n$pmod_perl\n1;\$"
-test_cmd_re "python" "swap $mod21 $mod22" "import os\n$lmfmod_python\n$lmmod_python\n$p_python\n$lmf_python\n$lm_python\n$pmod_python\$"
-test_cmd_re "lisp" "swap $mod21 $mod22" "$lmfmod_lisp\n$lmmod_lisp\n$p_lisp\n$lmf_lisp\n$lm_lisp\n$pmod_lisp\$"
+test_cmd_re "ALL" "swap $mod21 $mod22" $ans
 
 #
 # Append test
@@ -150,49 +95,16 @@ set module "$mod22"
 set modulefile "$mod22p"
 
 # different behavior than C-version: same remark than above
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set p_sh "PATH=$pathpre:$pathpost:$path22:$path2222; export PATH;"
-
-set lmf_csh "setenv _LMFILES_ $modulefile;"
-set lm_csh "setenv LOADEDMODULES $module;"
-set p_csh "setenv PATH $pathpre:$pathpost:$path22:$path2222;"
-
-set lmf_fish "set -xg _LMFILES_ $modulefile;"
-set lm_fish "set -xg LOADEDMODULES $module;"
-set p_fish "set -xg PATH $pathpre $pathpost $path22 $path2222;"
-
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-set p_tcl "set env\\\(PATH\\\) \"$pathpre:$pathpost:$path22:$path2222\";"
-
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
-set p_perl "\\\$ENV{\'PATH\'} = \'$pathpre:$pathpost:$path22:$path2222\';"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
-set p_python "os.environ\\\[\'PATH\'\\\] = \'$pathpre:$pathpost:$path22:$path2222\'"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
-set p_lisp "\\\(setenv \"PATH\" \"$pathpre:$pathpost:$path22:$path2222\"\\\)"
+set ans [list]
+lappend ans [list setpath PATH "$pathpre:$pathpost:$path22:$path2222"]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 #
 #  The tests
 #
 
-test_cmd_re "sh" "swap $mod21 $mod22" "$lmfmod_sh\n$lmmod_sh\n$p_sh\n$lmf_sh\n$lm_sh\n$pmod_sh\$"
-test_cmd_re "bash" "swap $mod21 $mod22" "$lmfmod_sh\n$lmmod_sh\n$p_sh\n$lmf_sh\n$lm_sh\n$pmod_sh\$"
-test_cmd_re "ksh" "swap $mod21 $mod22" "$lmfmod_sh\n$lmmod_sh\n$p_sh\n$lmf_sh\n$lm_sh\n$pmod_sh\$"
-test_cmd_re "zsh" "swap $mod21 $mod22" "$lmfmod_sh\n$lmmod_sh\n$p_sh\n$lmf_sh\n$lm_sh\n$pmod_sh\$"
-test_cmd_re "csh" "swap $mod21 $mod22" "$lmfmod_csh\n$lmmod_csh\n$p_csh\n$lmf_csh\n$lm_csh\n$pmod_csh\$"
-test_cmd_re "tcsh" "swap $mod21 $mod22" "$lmfmod_csh\n$lmmod_csh\n$p_csh\n$lmf_csh\n$lm_csh\n$pmod_csh\$"
-test_cmd_re "fish" "swap $mod21 $mod22" "$lmfmod_fish\n$lmmod_fish\n$p_fish\n$lmf_fish\n$lm_fish\n$pmod_fish\$"
-test_cmd_re "tcl" "swap $mod21 $mod22" "$lmfmod_tcl\n$lmmod_tcl\n$p_tcl\n$lmf_tcl\n$lm_tcl\n$pmod_tcl\$"
-test_cmd_re "perl" "swap $mod21 $mod22" "$lmfmod_perl\n$lmmod_perl\n$p_perl\n$lmf_perl\n$lm_perl\n$pmod_perl\n1;\$"
-test_cmd_re "python" "swap $mod21 $mod22" "import os\n$lmfmod_python\n$lmmod_python\n$p_python\n$lmf_python\n$lm_python\n$pmod_python\$"
-test_cmd_re "lisp" "swap $mod21 $mod22" "$lmfmod_lisp\n$lmmod_lisp\n$p_lisp\n$lmf_lisp\n$lm_lisp\n$pmod_lisp\$"
+test_cmd_re "ALL" "swap $mod21 $mod22" $ans
 
 #
 # clean up
@@ -202,54 +114,7 @@ unset old_path
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 
-unset p_sh
-unset lm_sh
-unset lmf_sh
-unset pmod_sh
-unset lmmod_sh
-unset lmfmod_sh
-
-unset p_csh
-unset lm_csh
-unset lmf_csh
-unset pmod_csh
-unset lmmod_csh
-unset lmfmod_csh
-
-unset p_fish
-unset lm_fish
-unset lmf_fish
-unset pmod_fish
-unset lmmod_fish
-unset lmfmod_fish
-
-unset p_tcl
-unset lm_tcl
-unset lmf_tcl
-unset pmod_tcl
-unset lmmod_tcl
-unset lmfmod_tcl
-
-unset p_perl
-unset lm_perl
-unset lmf_perl
-unset pmod_perl
-unset lmmod_perl
-unset lmfmod_perl
-
-unset p_python
-unset lm_python
-unset lmf_python
-unset pmod_python
-unset lmmod_python
-unset lmfmod_python
-
-unset p_lisp
-unset lm_lisp
-unset lmf_lisp
-unset pmod_lisp
-unset lmmod_lisp
-unset lmfmod_lisp
+unset ans
 
 unset modulefile
 unset module

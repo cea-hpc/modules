@@ -57,71 +57,20 @@ set env(LOADEDMODULES) "$module"
 set module "$mod21:$mod31:$mod12"
 set modulefile "$mod21p:$mod31p:$mod12p"
 
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-
-set lmfmod_csh "setenv _LMFILES__modshare (.*);"
-set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set lmf_csh "setenv _LMFILES_ $modulefile;"
-set lm_csh "setenv LOADEDMODULES $module;"
-
-set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
-set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
-set lmf_fish "set -xg _LMFILES_ $modulefile;"
-set lm_fish "set -xg LOADEDMODULES $module;"
-
-set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
-set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-
-set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
-set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
-
-set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
-set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
-
-set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
-set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 #
 #  The tests
 #
 
-test_cmd_re "sh" "swap $mod11 $mod12" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "bash" "swap $mod11 $mod12" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "ksh" "swap $mod11 $mod12" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "zsh" "swap $mod11 $mod12" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "csh" "swap $mod11 $mod12" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-test_cmd_re "tcsh" "swap $mod11 $mod12" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-test_cmd_re "fish" "swap $mod11 $mod12" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$"
-test_cmd_re "tcl" "swap $mod11 $mod12" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$"
-test_cmd_re "perl" "swap $mod11 $mod12" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$"
-test_cmd_re "python" "swap $mod11 $mod12" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$"
-test_cmd_re "lisp" "swap $mod11 $mod12" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$"
+test_cmd_re "ALL" "swap $mod11 $mod12" $ans
 
 #
 #  Test the one argument form.
 #
 
-test_cmd_re "bash" "swap $mod12" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "ksh" "swap $mod12" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "zsh" "swap $mod12" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "csh" "swap $mod12" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-test_cmd_re "tcsh" "swap $mod12" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-test_cmd_re "fish" "swap $mod12" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$"
-test_cmd_re "tcl" "swap $mod12" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$"
-test_cmd_re "perl" "swap $mod12" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$"
-test_cmd_re "python" "swap $mod12" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$"
-test_cmd_re "lisp" "swap $mod12" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$"
+test_cmd_re "ALL" "swap $mod12" $ans
 
 #
 #  Swap the 2nd in list
@@ -132,58 +81,21 @@ test_cmd_re "lisp" "swap $mod12" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp
 set module "$mod11:$mod31:$mod22"
 set modulefile "$mod11p:$mod31p:$mod22p"
 
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-
-set lmf_csh "setenv _LMFILES_ $modulefile;"
-set lm_csh "setenv LOADEDMODULES $module;"
-
-set lmf_fish "set -xg _LMFILES_ $modulefile;"
-set lm_fish "set -xg LOADEDMODULES $module;"
-
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 #
 #  The tests
 #
 
-test_cmd_re "sh" "swap $mod21 $mod22" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "bash" "swap $mod21 $mod22" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "ksh" "swap $mod21 $mod22" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "zsh" "swap $mod21 $mod22" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "csh" "swap $mod21 $mod22" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-test_cmd_re "tcsh" "swap $mod21 $mod22" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-test_cmd_re "fish" "swap $mod21 $mod22" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$"
-test_cmd_re "tcl" "swap $mod21 $mod22" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$"
-test_cmd_re "perl" "swap $mod21 $mod22" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$"
-test_cmd_re "python" "swap $mod21 $mod22" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$"
-test_cmd_re "lisp" "swap $mod21 $mod22" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$"
+test_cmd_re "ALL" "swap $mod21 $mod22" $ans
 
 #
 #  Test the one argument form.
 #
 
-test_cmd_re "sh" "swap $mod22" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "bash" "swap $mod22" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "ksh" "swap $mod22" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "zsh" "swap $mod22" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "csh" "swap $mod22" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-test_cmd_re "tcsh" "swap $mod22" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-test_cmd_re "fish" "swap $mod22" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$"
-test_cmd_re "tcl" "swap $mod22" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$"
-test_cmd_re "perl" "swap $mod22" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$"
-test_cmd_re "python" "swap $mod22" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$"
-test_cmd_re "lisp" "swap $mod22" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$"
+test_cmd_re "ALL" "swap $mod22" $ans
 
 #
 #  Swap the last in list
@@ -193,58 +105,21 @@ test_cmd_re "lisp" "swap $mod22" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp
 set module "$mod11:$mod21:$mod32"
 set modulefile "$mod11p:$mod21p:$mod32p"
 
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-
-set lmf_csh "setenv _LMFILES_ $modulefile;"
-set lm_csh "setenv LOADEDMODULES $module;"
-
-set lmf_fish "set -xg _LMFILES_ $modulefile;"
-set lm_fish "set -xg LOADEDMODULES $module;"
-
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 #
 #  The tests
 #
 
-test_cmd_re "sh" "swap $mod31 $mod32" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "bash" "swap $mod31 $mod32" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "ksh" "swap $mod31 $mod32" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "zsh" "swap $mod31 $mod32" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "csh" "swap $mod31 $mod32" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-test_cmd_re "tcsh" "swap $mod31 $mod32" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-test_cmd_re "fish" "swap $mod31 $mod32" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$"
-test_cmd_re "tcl" "swap $mod31 $mod32" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$"
-test_cmd_re "perl" "swap $mod31 $mod32" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$"
-test_cmd_re "python" "swap $mod31 $mod32" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$"
-test_cmd_re "lisp" "swap $mod31 $mod32" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$"
+test_cmd_re "ALL" "swap $mod31 $mod32" $ans
 
 #
 #  Test the one argument form.
 #
 
-test_cmd_re "sh" "swap $mod32" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "bash" "swap $mod32" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "ksh" "swap $mod32" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "zsh" "swap $mod32" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
-test_cmd_re "csh" "swap $mod32" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-test_cmd_re "tcsh" "swap $mod32" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-test_cmd_re "fish" "swap $mod32" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$"
-test_cmd_re "tcl" "swap $mod32" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$"
-test_cmd_re "perl" "swap $mod32" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$"
-test_cmd_re "python" "swap $mod32" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$"
-test_cmd_re "lisp" "swap $mod32" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$"
+test_cmd_re "ALL" "swap $mod32" $ans
 
 #
 #  Cleanup
@@ -253,40 +128,7 @@ test_cmd_re "lisp" "swap $mod32" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 
-unset lm_sh
-unset lmf_sh
-unset lmmod_sh
-unset lmfmod_sh
-
-unset lm_csh
-unset lmf_csh
-unset lmmod_csh
-unset lmfmod_csh
-
-unset lm_fish
-unset lmf_fish
-unset lmmod_fish
-unset lmfmod_fish
-
-unset lm_tcl
-unset lmf_tcl
-unset lmmod_tcl
-unset lmfmod_tcl
-
-unset lm_perl
-unset lmf_perl
-unset lmmod_perl
-unset lmfmod_perl
-
-unset lm_python
-unset lmf_python
-unset lmmod_python
-unset lmfmod_python
-
-unset lm_lisp
-unset lmf_lisp
-unset lmmod_lisp
-unset lmfmod_lisp
+unset ans
 
 unset modulefile
 unset module

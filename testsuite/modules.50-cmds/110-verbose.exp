@@ -41,33 +41,30 @@ set modulefile_3 "$env(MODULEPATH)/$module_3"
 set err_verb "$warn_msgs: 'module-verbosity' command not implemented"
 
 #
-#  Only checked for the csh
-#
-
-set lmfmod_csh_1 "setenv _LMFILES__modshare $modulefile_1:1;"
-set lmmod_csh_1 "setenv LOADEDMODULES_modshare $module_1:1;"
-set lmf_csh_1 "setenv _LMFILES_ $modulefile_1;"
-set lm_csh_1 "setenv LOADEDMODULES $module_1;"
-
-set lmfmod_csh_2 "setenv _LMFILES__modshare $modulefile_2:1;"
-set lmmod_csh_2 "setenv LOADEDMODULES_modshare $module_2:1;"
-set lmf_csh_2 "setenv _LMFILES_ $modulefile_2;"
-set lm_csh_2 "setenv LOADEDMODULES $module_2;"
-
-set lmfmod_csh_3 "setenv _LMFILES__modshare $modulefile_3:1;"
-set lmmod_csh_3 "setenv LOADEDMODULES_modshare $module_3:1;"
-set lmf_csh_3 "setenv _LMFILES_ $modulefile_3;"
-set lm_csh_3 "setenv LOADEDMODULES $module_3;"
-
-#
 #  The tests
 #
 
 # different behavior than C-version: on Tcl-version 'module-verbosity' command is
 # not handled and will always return a warning message to inform the user.
-testouterr_cmd "csh" "load $module_1" "$lmfmod_csh_1\n$lmmod_csh_1\n$lmf_csh_1\n$lm_csh_1" "$err_verb"
-testouterr_cmd "csh" "load $module_2" "$lmfmod_csh_2\n$lmmod_csh_2\n$lmf_csh_2\n$lm_csh_2" "$err_verb"
-testouterr_cmd "csh" "load $module_3" "$lmfmod_csh_3\n$lmmod_csh_3\n$lmf_csh_3\n$lm_csh_3" "$err_verb"
+lappend ans [list set _LMFILES__modshare "$modulefile_1:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_1:1"]
+lappend ans [list set _LMFILES_ $modulefile_1]
+lappend ans [list set LOADEDMODULES $module_1]
+testouterr_cmd "csh" "load $module_1" $ans "$err_verb"
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_2:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_2:1"]
+lappend ans [list set _LMFILES_ $modulefile_2]
+lappend ans [list set LOADEDMODULES $module_2]
+testouterr_cmd "csh" "load $module_2" $ans "$err_verb"
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_3:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_3:1"]
+lappend ans [list set _LMFILES_ $modulefile_3]
+lappend ans [list set LOADEDMODULES $module_3]
+testouterr_cmd "csh" "load $module_3" $ans "$err_verb"
 
 #
 #  Cleanup
@@ -75,14 +72,7 @@ testouterr_cmd "csh" "load $module_3" "$lmfmod_csh_3\n$lmmod_csh_3\n$lmf_csh_3\n
 
 unset err_verb
 
-unset lmfmod_csh_1
-unset lmmod_csh_1
-unset lm_csh_1
-unset lmf_csh_1
-unset lmfmod_csh_2
-unset lmmod_csh_2
-unset lm_csh_2
-unset lmf_csh_2
+unset ans
 
 unset modulefile_1
 unset module_1

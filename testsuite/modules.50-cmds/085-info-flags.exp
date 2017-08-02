@@ -39,21 +39,24 @@ set modulefile2 "$env(MODULEPATH)/$module2"
 #  The _LMFILES_ and the LOADEDMODULES will be affected
 #
 
-set lmfmod_sh_ld "_LMFILES__modshare=$modulefile:1; export _LMFILES__modshare;"
-set lmmod_sh_ld "LOADEDMODULES_modshare=$module:1; export LOADEDMODULES_modshare;"
-set lmf_sh_ld "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh_ld "LOADEDMODULES=$module; export LOADEDMODULES;"
+lappend ans [list 0]
+lappend ans [list set _LMFILES__modshare "$modulefile:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module:1"]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
 
-set lmfmod_sh_rm "unset _LMFILES__modshare;"
-set lmmod_sh_rm "unset LOADEDMODULES_modshare;"
-set lmf_sh_rm "unset _LMFILES_;"
-set lm_sh_rm "unset LOADEDMODULES;"
+lappend ansrm [list 0]
+lappend ansrm [list unset _LMFILES__modshare]
+lappend ansrm [list unset LOADEDMODULES_modshare]
+lappend ansrm [list unset _LMFILES_]
+lappend ansrm [list unset LOADEDMODULES]
 
-set lmfmod_sh_sw "_LMFILES__modshare=$modulefile2:1; export _LMFILES__modshare;"
-set lmmod_sh_sw "LOADEDMODULES_modshare=$module2:1; export LOADEDMODULES_modshare;"
-set lmf_sh_sw "_LMFILES_=$modulefile2; export _LMFILES_;"
-set lm_sh_sw "LOADEDMODULES=$module2; export LOADEDMODULES;"
-set switches "0\n0\n"
+lappend anssw [list 0]
+lappend anssw [list 0]
+lappend anssw [list set _LMFILES__modshare "$modulefile2:1"]
+lappend anssw [list set LOADEDMODULES_modshare "$module2:1"]
+lappend anssw [list set _LMFILES_ $modulefile2]
+lappend anssw [list set LOADEDMODULES $module2]
 
 set lin_help "Module Specific Help for $modulefile:"
 set lin_test "Module Specific Test for $modulefile:"
@@ -66,7 +69,7 @@ set lin_test "Module Specific Test for $modulefile:"
 # [module-info flags] will always return "0".
 
 # test loading
-test_cmd "sh" "load $module" "0\n$lmfmod_sh_ld\n$lmmod_sh_ld\n$lmf_sh_ld\n$lm_sh_ld"
+test_cmd "sh" "load $module" $ans
 
 # test displaying
 testouterr_cmd_re "sh" "display $module" "0" "$modlin\n$modulefile:\n\n$modlin"
@@ -76,10 +79,10 @@ set env(_LMFILES_) "$modulefile"
 set env(LOADEDMODULES) "$module"
 
 # test unloading
-test_cmd "sh" "unload $module" "0\n$lmfmod_sh_rm\n$lmmod_sh_rm\n$lmf_sh_rm\n$lm_sh_rm"
+test_cmd "sh" "unload $module" $ansrm
 
 # test switching
-test_cmd "sh" "switch $module $module2" "$switches$lmfmod_sh_sw\n$lmmod_sh_sw\n$lmf_sh_sw\n$lm_sh_sw"
+test_cmd "sh" "switch $module $module2" $anssw
 
 # Clean up the just changed environment
 unset env(LOADEDMODULES)
@@ -98,21 +101,9 @@ testerr_cmd_re "sh" "test $module" "$modlin\n$lin_test\n\n0\nTest result: PASS\n
 unset lin_help
 unset lin_test
 
-unset lmmod_sh_sw
-unset lmfmod_sh_sw
-unset lm_sh_sw
-unset lmf_sh_sw
-unset switches
-
-unset lmmod_sh_rm
-unset lmfmod_sh_rm
-unset lm_sh_rm
-unset lmf_sh_rm
-
-unset lmmod_sh_ld
-unset lmfmod_sh_ld
-unset lm_sh_ld
-unset lmf_sh_ld
+unset ans
+unset ansrm
+unset anssw
 
 unset modulefile2
 unset module2

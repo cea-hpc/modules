@@ -32,22 +32,6 @@ regsub "$tsdirname" $relpath "$tsdirname/../$tsdirname/./" relpath_wdot
 set badpath "$env(TESTSUITEDIR)/modulefiles.bad"
 set mod_path "$env(MODULEPATH)"
 set bad_use ""
-set bash_modshare "MODULEPATH_modshare=(.*); export MODULEPATH_modshare;"
-set bash_modpath "MODULEPATH=$mod_path; export MODULEPATH;"
-set csh_modshare "setenv MODULEPATH_modshare (.*);"
-set csh_modpath "setenv MODULEPATH $mod_path;"
-set fish_modshare "set -xg MODULEPATH_modshare (.*);"
-set fish_modpath "set -xg MODULEPATH $mod_path;"
-set tcl_modshare "set env\\\(MODULEPATH_modshare\\\) \"(.*)\";"
-set tcl_modpath "set env\\\(MODULEPATH\\\) \"$mod_path\";"
-set perl_modshare "\\\$ENV{\'MODULEPATH_modshare\'} = \'(.*)\';"
-set perl_modpath "\\\$ENV{\'MODULEPATH\'} = \'$mod_path\';"
-set cmake_modshare "set\(ENV{MODULEPATH_modshare} \"(.*)\)"
-set cmake_modpath "set\(ENV{MODULEPATH} \"$mod_path\"\)"
-set python_modshare "os.environ\\\[\'MODULEPATH_modshare\'\\\] = \'(.*)\'"
-set python_modpath "os.environ\\\[\'MODULEPATH\'\\\] = \'$mod_path\'"
-set lisp_modshare "\\\(setenv \"MODULEPATH_modshare\" \"(.*)\"\\\)"
-set lisp_modpath "\\\(setenv \"MODULEPATH\" \"$mod_path\"\\\)"
 set path_list_header "Search path for module files (in search order):"
 set no_path_list "$warn_msgs: No directories on module search path"
 
@@ -74,52 +58,22 @@ testerr_cmd_re "ALL" "$use $badpath" "$bad_use\$"
 #   do these last so the .modulesbeginenv is left in a good state for 070-Maint
 #
 
-test_cmd_re "sh" "$use $path" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "bash" "$use $path" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "ksh" "$use $path" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "zsh" "$use $path" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "csh" "$use $path" "$csh_modshare\n$csh_modpath\$"
-test_cmd_re "tcsh" "$use $path" "$csh_modshare\n$csh_modpath\$"
-test_cmd_re "fish" "$use $path" "$fish_modshare\n$fish_modpath\$"
-test_cmd_re "tcl" "$use $path" "$tcl_modshare\n$tcl_modpath\$"
-test_cmd_re "perl" "$use $path" "$perl_modshare\n$perl_modpath\n1;\$"
-#test_cmd_re "cmake" "$use $path" "$cmake_modshare\n$cmake_modpath\$"
-test_cmd_re "python" "$use $path" "import os\n$python_modshare\n$python_modpath\$"
-test_cmd_re "lisp" "$use $path" "$lisp_modshare\n$lisp_modpath\$"
+lappend ans [list setpath MODULEPATH $mod_path]
+test_cmd_re "ALL" "$use $path" $ans
 
 #
 # test with relative-path directory
 # should end with same result as above
 #
 
-test_cmd_re "sh" "$use $relpath" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "bash" "$use $relpath" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "ksh" "$use $relpath" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "zsh" "$use $relpath" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "csh" "$use $relpath" "$csh_modshare\n$csh_modpath\$"
-test_cmd_re "tcsh" "$use $relpath" "$csh_modshare\n$csh_modpath\$"
-test_cmd_re "fish" "$use $relpath" "$fish_modshare\n$fish_modpath\$"
-test_cmd_re "tcl" "$use $relpath" "$tcl_modshare\n$tcl_modpath\$"
-test_cmd_re "perl" "$use $relpath" "$perl_modshare\n$perl_modpath\n1;\$"
-test_cmd_re "python" "$use $relpath" "import os\n$python_modshare\n$python_modpath\$"
-test_cmd_re "lisp" "$use $relpath" "$lisp_modshare\n$lisp_modpath\$"
+test_cmd_re "ALL" "$use $relpath" $ans
 
 #
 # test with relative-path containing useless "." and ".." components
 # should end with same result as above
 #
 
-test_cmd_re "sh" "$use $relpath_wdot" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "bash" "$use $relpath_wdot" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "ksh" "$use $relpath_wdot" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "zsh" "$use $relpath_wdot" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "csh" "$use $relpath_wdot" "$csh_modshare\n$csh_modpath\$"
-test_cmd_re "tcsh" "$use $relpath_wdot" "$csh_modshare\n$csh_modpath\$"
-test_cmd_re "fish" "$use $relpath_wdot" "$fish_modshare\n$fish_modpath\$"
-test_cmd_re "tcl" "$use $relpath_wdot" "$tcl_modshare\n$tcl_modpath\$"
-test_cmd_re "perl" "$use $relpath_wdot" "$perl_modshare\n$perl_modpath\n1;\$"
-test_cmd_re "python" "$use $relpath_wdot" "import os\n$python_modshare\n$python_modpath\$"
-test_cmd_re "lisp" "$use $relpath_wdot" "$lisp_modshare\n$lisp_modpath\$"
+test_cmd_re "ALL" "$use $relpath_wdot" $ans
 
 #
 # List enabled paths with 2 paths set
@@ -160,21 +114,6 @@ unset mod_path
 unset use
 unset badpath
 unset bad_use
-unset bash_modshare
-unset bash_modpath
-unset csh_modshare
-unset csh_modpath
-unset fish_modshare
-unset fish_modpath
-unset tcl_modshare
-unset tcl_modpath
-unset perl_modshare
-unset perl_modpath
-unset cmake_modshare
-unset cmake_modpath
-unset python_modshare
-unset python_modpath
-unset lisp_modshare
-unset lisp_modpath
+unset ans
 unset path_list_header
 unset no_path_list

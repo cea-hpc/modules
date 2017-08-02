@@ -30,7 +30,6 @@
 
 set module "x-resource/1"
 set modulefile "$env(MODULEPATH)/$module"
-set xrdb "(\\\S*)xrdb"
 set xresfile "$env(TESTSUITEDIR)/home/.Xresources"
 set xresprop1 "my-other-prog\\*complex-ress-value"
 set xresprop2 "my-prog\\*my-ress"
@@ -49,84 +48,12 @@ set nodisplay_msg "$warn_msgs: x-resource cannot edit X11 resource with no DISPL
 #  For the different shells ...
 #
 
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set ts_regexp "(echo \"$xresprop1: $xresval1\" \\\| $xrdb -merge;"
-append ts_regexp "|echo \"$xresprop2: $xresval2\" \\\| $xrdb -merge;"
-append ts_regexp "|$xrdb -merge $xresfile;"
-append ts_regexp "|echo \"$xresprop5: $xresval5\" \\\| $xrdb -merge;)"
-# complex regexp needed as output of x-resource setup is not ordered
-set ts_sh "$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
-
-set lmf_csh "setenv _LMFILES_ $modulefile;"
-set lm_csh "setenv LOADEDMODULES $module;"
-set lmfmod_csh "setenv _LMFILES__modshare (.*);"
-set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set ts_csh "$ts_sh"
-
-set lmf_fish "set -xg _LMFILES_ $modulefile;"
-set lm_fish "set -xg LOADEDMODULES $module;"
-set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
-set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
-set ts_fish "$ts_sh"
-
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
-set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
-set ts_regexp "(set XRDBPIPE \\\[open \"\\\|$xrdb -merge\" r\\\+\\\];\n"
-append ts_regexp "puts \\\$XRDBPIPE \"$xresprop1: $xresval1\";\n"
-append ts_regexp "close \\\$XRDBPIPE;\n"
-append ts_regexp "unset XRDBPIPE;"
-append ts_regexp "|set XRDBPIPE \\\[open \"\\\|$xrdb -merge\" r\\\+\\\];\n"
-append ts_regexp "puts \\\$XRDBPIPE \"$xresprop2: $xresval2\";\n"
-append ts_regexp "close \\\$XRDBPIPE;\n"
-append ts_regexp "unset XRDBPIPE;"
-append ts_regexp "|exec $xrdb -merge $xresfile;"
-append ts_regexp "|set XRDBPIPE \\\[open \"\\\|$xrdb -merge\" r\\\+\\\];\n"
-append ts_regexp "puts \\\$XRDBPIPE \"$xresprop5: $xresval5\";\n"
-append ts_regexp "close \\\$XRDBPIPE;\n"
-append ts_regexp "unset XRDBPIPE;)"
-set ts_tcl "$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
-
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
-set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
-set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
-set ts_regexp "(open\\\(XRDBPIPE, \"\\\|$xrdb -merge\"\\\);\n"
-append ts_regexp "print XRDBPIPE \"$xresprop1: $xresval1\\\\n\";\n"
-append ts_regexp "close XRDBPIPE;"
-append ts_regexp "|open\\\(XRDBPIPE, \"\\\|$xrdb -merge\"\\\);\n"
-append ts_regexp "print XRDBPIPE \"$xresprop2: $xresval2\\\\n\";\n"
-append ts_regexp "close XRDBPIPE;"
-append ts_regexp "|system\\\(\"$xrdb -merge $xresfile\"\\\);"
-append ts_regexp "|open\\\(XRDBPIPE, \"\\\|$xrdb -merge\"\\\);\n"
-append ts_regexp "print XRDBPIPE \"$xresprop5: $xresval5\\\\n\";\n"
-append ts_regexp "close XRDBPIPE;)"
-set ts_perl "$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
-set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
-set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
-set ts_regexp "(subprocess.Popen\\\(\\\[\'$xrdb\', \'-merge\'\\\], stdin=subprocess.PIPE\\\).communicate\\\(input=\'$xresprop1: $xresval1\\\\n\'\\\)"
-append ts_regexp "|subprocess.Popen\\\(\\\[\'$xrdb\', \'-merge\'\\\], stdin=subprocess.PIPE\\\).communicate\\\(input=\'$xresprop2: $xresval2\\\\n\'\\\)"
-append ts_regexp "|subprocess.Popen\\\(\\\[\'$xrdb\', \'-merge\', \'$xresfile\'\\\]\\\)"
-append ts_regexp "|subprocess.Popen\\\(\\\[\'$xrdb\', \'-merge\'\\\], stdin=subprocess.PIPE\\\).communicate\\\(input=\'$xresprop5: $xresval5\\\\n\'\\\))"
-set ts_python "import subprocess\n$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
-set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
-set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
-set ts_regexp "(\\\(shell-command-to-string \"echo $xresprop1: $xresval1 \\\| $xrdb -merge\"\\\)"
-append ts_regexp "|\\\(shell-command-to-string \"echo $xresprop2: $xresval2 \\\| $xrdb -merge\"\\\)"
-append ts_regexp "|\\\(shell-command-to-string \"$xrdb -merge $xresfile\"\\\)"
-append ts_regexp "|\\\(shell-command-to-string \"echo $xresprop5: $xresval5 \\\| $xrdb -merge\"\\\))"
-set ts_lisp "$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
-
+lappend ans [list xres $xresprop1 $xresval1]
+lappend ans [list xres $xresfile]
+lappend ans [list xres $xresprop2 $xresval2]
+lappend ans [list xres $xresprop5 $xresval5]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 #
 #  The load tests
@@ -134,13 +61,7 @@ set ts_lisp "$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
 
 # if DISPLAY env variable is not set, will get an error not a loaded module
 if {[info exists env(DISPLAY)]} {
-    test_cmd_re "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-    test_cmd_re "csh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
-    test_cmd_re "fish" "load $module" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish\$"
-    test_cmd_re "tcl" "load $module" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl\$"
-    test_cmd_re "perl" "load $module" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n$ts_perl\n1;\$"
-    test_cmd_re "python" "load $module" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$ts_python\$"
-    test_cmd_re "lisp" "load $module" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp\$"
+    test_cmd_re "ALL" "load $module" $ans
 } else {
     testouterr_cmd "ALL" "load $module" "ERR" "$nodisplay_msg"
 }
@@ -156,103 +77,14 @@ set env(LOADEDMODULES) "$module"
 #  For the different shells ...
 #
 
-set lmf_sh "unset _LMFILES_;"
-set lm_sh "unset LOADEDMODULES;"
-set lmfmod_sh "unset _LMFILES__modshare;"
-set lmmod_sh "unset LOADEDMODULES_modshare;"
-set ts_regexp "(echo \"$xresprop1:\" \\\| $xrdb -merge;"
-append ts_regexp "|echo \"$xresprop2:\" \\\| $xrdb -merge;"
-append ts_regexp "|echo \"$xresprop3:\" \\\| $xrdb -merge;"
-append ts_regexp "|echo \"$xresprop4:\" \\\| $xrdb -merge;"
-append ts_regexp "|echo \"$xresprop5:\" \\\| $xrdb -merge;)"
-# complex regexp needed as output of x-resource setup is not ordered
-set ts_sh "$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
-
-set lmf_csh "unsetenv _LMFILES_;"
-set lm_csh "unsetenv LOADEDMODULES;"
-set lmfmod_csh "unsetenv _LMFILES__modshare;"
-set lmmod_csh "unsetenv LOADEDMODULES_modshare;"
-set ts_csh "$ts_sh"
-
-set lmf_fish "set -e _LMFILES_;"
-set lm_fish "set -e LOADEDMODULES;"
-set lmfmod_fish "set -e _LMFILES__modshare;"
-set lmmod_fish "set -e LOADEDMODULES_modshare;"
-set ts_fish "$ts_sh"
-
-set lmf_tcl "unset env\\\(_LMFILES_\\);"
-set lm_tcl "unset env\\\(LOADEDMODULES\\\);"
-set lmfmod_tcl "unset env\\\(_LMFILES__modshare\\\);"
-set lmmod_tcl "unset env\\\(LOADEDMODULES_modshare\\\);"
-set ts_regexp "(set XRDBPIPE \\\[open \"\\\|$xrdb -merge\" r\\\+\\\];\n"
-append ts_regexp "puts \\\$XRDBPIPE \"$xresprop1:\";\n"
-append ts_regexp "close \\\$XRDBPIPE;\n"
-append ts_regexp "unset XRDBPIPE;"
-append ts_regexp "|set XRDBPIPE \\\[open \"\\\|$xrdb -merge\" r\\\+\\\];\n"
-append ts_regexp "puts \\\$XRDBPIPE \"$xresprop2:\";\n"
-append ts_regexp "close \\\$XRDBPIPE;\n"
-append ts_regexp "unset XRDBPIPE;"
-append ts_regexp "|set XRDBPIPE \\\[open \"\\\|$xrdb -merge\" r\\\+\\\];\n"
-append ts_regexp "puts \\\$XRDBPIPE \"$xresprop3:\";\n"
-append ts_regexp "close \\\$XRDBPIPE;\n"
-append ts_regexp "unset XRDBPIPE;"
-append ts_regexp "|set XRDBPIPE \\\[open \"\\\|$xrdb -merge\" r\\\+\\\];\n"
-append ts_regexp "puts \\\$XRDBPIPE \"$xresprop4:\";\n"
-append ts_regexp "close \\\$XRDBPIPE;\n"
-append ts_regexp "unset XRDBPIPE;"
-append ts_regexp "|set XRDBPIPE \\\[open \"\\\|$xrdb -merge\" r\\\+\\\];\n"
-append ts_regexp "puts \\\$XRDBPIPE \"$xresprop5:\";\n"
-append ts_regexp "close \\\$XRDBPIPE;\n"
-append ts_regexp "unset XRDBPIPE;)"
-set ts_tcl "$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
-
-set lmf_perl "delete \\\$ENV{\'_LMFILES_\'};"
-set lm_perl "delete \\\$ENV{\'LOADEDMODULES\'};"
-set lmfmod_perl "delete \\\$ENV{\'_LMFILES__modshare\'};"
-set lmmod_perl "delete \\\$ENV{\'LOADEDMODULES_modshare\'};"
-set ts_regexp "(open\\\(XRDBPIPE, \"\\\|$xrdb -merge\"\\\);\n"
-append ts_regexp "print XRDBPIPE \"$xresprop1:\\\\n\";\n"
-append ts_regexp "close XRDBPIPE;"
-append ts_regexp "|open\\\(XRDBPIPE, \"\\\|$xrdb -merge\"\\\);\n"
-append ts_regexp "print XRDBPIPE \"$xresprop2:\\\\n\";\n"
-append ts_regexp "close XRDBPIPE;"
-append ts_regexp "|open\\\(XRDBPIPE, \"\\\|$xrdb -merge\"\\\);\n"
-append ts_regexp "print XRDBPIPE \"$xresprop3:\\\\n\";\n"
-append ts_regexp "close XRDBPIPE;"
-append ts_regexp "|open\\\(XRDBPIPE, \"\\\|$xrdb -merge\"\\\);\n"
-append ts_regexp "print XRDBPIPE \"$xresprop4:\\\\n\";\n"
-append ts_regexp "close XRDBPIPE;"
-append ts_regexp "|open\\\(XRDBPIPE, \"\\\|$xrdb -merge\"\\\);\n"
-append ts_regexp "print XRDBPIPE \"$xresprop5:\\\\n\";\n"
-append ts_regexp "close XRDBPIPE;)"
-set ts_perl "$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'\'\n"
-append lmf_python "del os.environ\\\[\'_LMFILES_\'\\\]"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'\'\n"
-append lm_python "del os.environ\\\[\'LOADEDMODULES\\'\\\]"
-set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'\'\n"
-append lmfmod_python "del os.environ\\\[\'_LMFILES__modshare\\'\\\]"
-set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'\'\n"
-append lmmod_python "del os.environ\\\[\'LOADEDMODULES_modshare\\'\\\]"
-set ts_regexp "(subprocess.Popen\\\(\\\[\'$xrdb\', \'-merge\'\\\], stdin=subprocess.PIPE\\\).communicate\\\(input=\'$xresprop1:\\\\n\'\\\)"
-append ts_regexp "|subprocess.Popen\\\(\\\[\'$xrdb\', \'-merge\'\\\], stdin=subprocess.PIPE\\\).communicate\\\(input=\'$xresprop2:\\\\n\'\\\)"
-append ts_regexp "|subprocess.Popen\\\(\\\[\'$xrdb\', \'-merge\'\\\], stdin=subprocess.PIPE\\\).communicate\\\(input=\'$xresprop3:\\\\n\'\\\)"
-append ts_regexp "|subprocess.Popen\\\(\\\[\'$xrdb\', \'-merge\'\\\], stdin=subprocess.PIPE\\\).communicate\\\(input=\'$xresprop4:\\\\n\'\\\)"
-append ts_regexp "|subprocess.Popen\\\(\\\[\'$xrdb\', \'-merge\'\\\], stdin=subprocess.PIPE\\\).communicate\\\(input=\'$xresprop5:\\\\n\'\\\))"
-set ts_python "import subprocess\n$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" nil\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" nil\\\)"
-set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" nil\\\)"
-set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" nil\\\)"
-set ts_regexp "(\\\(shell-command-to-string \"echo $xresprop1: \\\| $xrdb -merge\"\\\)"
-append ts_regexp "|\\\(shell-command-to-string \"echo $xresprop2: \\\| $xrdb -merge\"\\\)"
-append ts_regexp "|\\\(shell-command-to-string \"echo $xresprop3: \\\| $xrdb -merge\"\\\)"
-append ts_regexp "|\\\(shell-command-to-string \"echo $xresprop4: \\\| $xrdb -merge\"\\\)"
-append ts_regexp "|\\\(shell-command-to-string \"echo $xresprop5: \\\| $xrdb -merge\"\\\))"
-set ts_lisp "$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
-
+set ans [list]
+lappend ans [list unxres $xresprop1]
+lappend ans [list unxres $xresprop3]
+lappend ans [list unxres $xresprop4]
+lappend ans [list unxres $xresprop2]
+lappend ans [list unxres $xresprop5]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
 
 #
 #  The unload tests
@@ -260,13 +92,7 @@ set ts_lisp "$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp\n$ts_regexp"
 
 # if DISPLAY env variable is not set, will get an error not an unloaded module
 if {[info exists env(DISPLAY)]} {
-    test_cmd_re "sh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-    test_cmd_re "csh" "unload $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
-    test_cmd_re "fish" "unload $module" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish\$"
-    test_cmd_re "tcl" "unload $module" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl\$"
-    test_cmd_re "perl" "unload $module" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n$ts_perl\n1;\$"
-    test_cmd_re "python" "unload $module" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$ts_python\$"
-    test_cmd_re "lisp" "unload $module" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp\$"
+    test_cmd_re "ALL" "unload $module" $ans
 } else {
     testouterr_cmd "ALL" "unload $module" "ERR" "$nodisplay_msg"
 }
@@ -276,49 +102,7 @@ if {[info exists env(DISPLAY)]} {
 #  Cleanup
 #
 
-unset ts_regexp
-
-unset lm_sh
-unset lmf_sh
-unset lmfmod_sh
-unset lmmod_sh
-unset ts_sh
-
-unset lm_csh
-unset lmf_csh
-unset lmfmod_csh
-unset lmmod_csh
-unset ts_csh
-
-unset lm_fish
-unset lmf_fish
-unset lmfmod_fish
-unset lmmod_fish
-unset ts_fish
-
-unset lm_tcl
-unset lmf_tcl
-unset lmfmod_tcl
-unset lmmod_tcl
-unset ts_tcl
-
-unset lm_perl
-unset lmf_perl
-unset lmfmod_perl
-unset lmmod_perl
-unset ts_perl
-
-unset lm_python
-unset lmf_python
-unset lmfmod_python
-unset lmmod_python
-unset ts_python
-
-unset lm_lisp
-unset lmf_lisp
-unset lmfmod_lisp
-unset lmmod_lisp
-unset ts_lisp
+unset ans
 
 unset nodisplay_msg
 
@@ -331,7 +115,6 @@ unset xresprop3
 unset xresprop4
 unset xresprop5
 unset xresfile
-unset xrdb
 unset modulefile
 unset module
 

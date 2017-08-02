@@ -43,11 +43,9 @@ set env(HOME) "$env(TESTSUITEDIR)/home"
 #  Only checked for the csh
 #
 
-set lmf_csh_1 "setenv _LMFILES_ $modulefile_1;"
-set lm_csh_1 "setenv LOADEDMODULES $module_1;"
-set ts_csh_1 "setenv testsuite yes;"
-
-
+lappend ans [list set testsuite yes]
+lappend ans [list setpath LOADEDMODULES $module_1]
+lappend ans [list setpath _LMFILES_ $modulefile_1]
 
 set disp_csh "setenv\t\ttestsuite\tyes"
 set disp_1 "$modlin\n$modulefile_1:\n\n$disp_csh\n$modlin"
@@ -56,7 +54,7 @@ set disp_1 "$modlin\n$modulefile_1:\n\n$disp_csh\n$modlin"
 #  The tests
 #
 
-test_cmd_re "csh" "load loc_sym/sym_home" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh_1\n$lm_csh_1\n$ts_csh_1"
+test_cmd_re "csh" "load loc_sym/sym_home" $ans
 testerr_cmd_re "sh" "display loc_sym/sym_home" "^$disp_1\$"
 
 #
@@ -73,9 +71,7 @@ if { [info exists save_home ] } {
 #  Cleanup
 #
 
-unset lm_csh_1
-unset lmf_csh_1
-unset ts_csh_1
+unset ans
 
 unset disp_csh
 unset disp_1

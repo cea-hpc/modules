@@ -48,451 +48,101 @@ set modulefile7 "$path1/$module7"
 set modulefile8 "$path1/$module8"
 
 #
-#  For the different shells ...
-#
-
-set lmsh "_LMFILES_=$modulefile1; export _LMFILES_;"
-set lmcsh "setenv _LMFILES_ $modulefile1;"
-set lmfish "set -xg _LMFILES_ $modulefile1;"
-set lmtcl "set env\\\(_LMFILES_\\\) \"$modulefile1\";"
-set lmperl "\\\$ENV{'_LMFILES_'} = \'$modulefile1\';"
-set lmpython "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile1\'"
-set lmlisp "\\\(setenv \"_LMFILES_\" \"$modulefile1\"\\\)"
-
-set loadmodsh "LOADEDMODULES=$module1; export LOADEDMODULES;"
-set loadmodcsh "setenv LOADEDMODULES $module1;"
-set loadmodfish "set -xg LOADEDMODULES $module1;"
-set loadmodtcl "set env\\\(LOADEDMODULES\\\) \"$module1\";"
-set loadmodperl "\\\$ENV{'LOADEDMODULES'} = \'$module1\';"
-set loadmodpython "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module1\'"
-set loadmodlisp "\\\(setenv \"LOADEDMODULES\" \"$module1\"\\\)"
-
-set modpathsh "MODULEPATH=$path2:$path1; export MODULEPATH;"
-set modpathcsh "setenv MODULEPATH $path2:$path1;"
-set modpathfish "set -xg MODULEPATH $path2:$path1;"
-set modpathtcl "set env\\\(MODULEPATH\\\) \"$path2:$path1\";"
-set modpathperl "\\\$ENV{\'MODULEPATH\'} = \'$path2:$path1\';"
-set modpathpython "os.environ\\\[\'MODULEPATH\'\\\] = \'$path2:$path1\'"
-set modpathlisp "\\\(setenv \"MODULEPATH\" \"$path2:$path1\"\\\)"
-
-set lmmodsharesh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmodsharecsh "setenv _LMFILES__modshare (.*);"
-set lmmodsharefish "set -xg _LMFILES__modshare (.*);"
-set lmmodsharetcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
-set lmmodshareperl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
-set lmmodsharepython "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
-set lmmodsharelisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
-
-set loadmodsharesh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set loadmodsharecsh "setenv LOADEDMODULES_modshare (.*);"
-set loadmodsharefish "set -xg LOADEDMODULES_modshare (.*);"
-set loadmodsharetcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
-set loadmodshareperl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
-set loadmodsharepython "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
-set loadmodsharelisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
-
-set modpathsharesh "MODULEPATH_modshare=(.*); export MODULEPATH_modshare;"
-set modpathsharecsh "setenv MODULEPATH_modshare (.*);"
-set modpathsharefish "set -xg MODULEPATH_modshare (.*);"
-set modpathsharetcl "set env\\\(MODULEPATH_modshare\\\) \"(.*)\";"
-set modpathshareperl "\\\$ENV{\'MODULEPATH_modshare\'} = \'(.*)\';"
-set modpathsharepython "os.environ\\\[\'MODULEPATH_modshare\'\\\] = \'(.*)\'"
-set modpathsharelisp "\\\(setenv \"MODULEPATH_modshare\" \"(.*)\"\\\)"
-
-set sh		"$lmmodsharesh\n$loadmodsharesh\n$modpathsharesh\n$lmsh\n$loadmodsh\n$modpathsh"
-set csh         "$lmmodsharecsh\n$loadmodsharecsh\n$modpathsharecsh\n$lmcsh\n$loadmodcsh\n$modpathcsh"
-set fish        "$lmmodsharefish\n$loadmodsharefish\n$modpathsharefish\n$lmfish\n$loadmodfish\n$modpathfish"
-set tcl         "$lmmodsharetcl\n$loadmodsharetcl\n$modpathsharetcl\n$lmtcl\n$loadmodtcl\n$modpathtcl"
-set perl        "$lmmodshareperl\n$loadmodshareperl\n$modpathshareperl\n$lmperl\n$loadmodperl\n$modpathperl\n1;"
-set python      "import os\n$lmmodsharepython\n$loadmodsharepython\n$modpathsharepython\n$lmpython\n$loadmodpython\n$modpathpython"
-set lisp        "$lmmodsharelisp\n$loadmodsharelisp\n$modpathsharelisp\n$lmlisp\n$loadmodlisp\n$modpathlisp"
-
-#
 #  The tests (use)
 #
 
-test_cmd_re "sh" "load $module1" "$sh\$"
-test_cmd_re "bash" "load $module1" "$sh\$"
-test_cmd_re "ksh" "load $module1" "$sh\$"
-test_cmd_re "zsh" "load $module1" "$sh\$"
-test_cmd_re "csh" "load $module1" "$csh\$"
-test_cmd_re "tcsh" "load $module1" "$csh\$"
-test_cmd_re "fish" "load $module1" "$fish\$"
-test_cmd_re "tcl" "load $module1" "$tcl\$"
-test_cmd_re "perl" "load $module1" "$perl\$"
-#test_cmd_re "cmake" "load $module1" "$cmake\$"
-test_cmd_re "python" "load $module1" "$python\$"
-test_cmd_re "lisp" "load $module1" "$lisp\$"
+lappend ans [list setpath MODULEPATH "$path2:$path1"]
+lappend ans [list setpath LOADEDMODULES $module1]
+lappend ans [list setpath _LMFILES_ $modulefile1]
 
-#
-#  For the different shells ...
-#
-
-set lmsh "_LMFILES_=$modulefile2; export _LMFILES_;"
-set lmcsh "setenv _LMFILES_ $modulefile2;"
-set lmfish "set -xg _LMFILES_ $modulefile2;"
-set lmtcl "set env\\\(_LMFILES_\\\) \"$modulefile2\";"
-set lmperl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile2\';"
-set lmpython "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile2\'"
-set lmlisp "\\\(setenv \"_LMFILES_\" \"$modulefile2\"\\\)"
-
-set loadmodsh "LOADEDMODULES=$module2; export LOADEDMODULES;"
-set loadmodcsh "setenv LOADEDMODULES $module2;"
-set loadmodfish "set -xg LOADEDMODULES $module2;"
-set loadmodtcl "set env\\\(LOADEDMODULES\\\) \"$module2\";"
-set loadmodperl "\\\$ENV{\'LOADEDMODULES\'} = \'$module2\';"
-set loadmodpython "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module2\'"
-set loadmodlisp "\\\(setenv \"LOADEDMODULES\" \"$module2\"\\\)"
-
-set modpathsh "MODULEPATH=$path1:$path2; export MODULEPATH;"
-set modpathcsh "setenv MODULEPATH $path1:$path2;"
-set modpathfish "set -xg MODULEPATH $path1:$path2;"
-set modpathtcl "set env\\\(MODULEPATH\\\) \"$path1:$path2\";"
-set modpathperl "\\\$ENV{\'MODULEPATH\'} = \'$path1:$path2\';"
-set modpathpython "os.environ\\\[\'MODULEPATH\'\\\] = \'$path1:$path2\'"
-set modpathlisp "\\\(setenv \"MODULEPATH\" \"$path1:$path2\"\\\)"
-
-set sh		"$lmmodsharesh\n$loadmodsharesh\n$modpathsharesh\n$lmsh\n$loadmodsh\n$modpathsh"
-set csh         "$lmmodsharecsh\n$loadmodsharecsh\n$modpathsharecsh\n$lmcsh\n$loadmodcsh\n$modpathcsh"
-set fish        "$lmmodsharefish\n$loadmodsharefish\n$modpathsharefish\n$lmfish\n$loadmodfish\n$modpathfish"
-set tcl         "$lmmodsharetcl\n$loadmodsharetcl\n$modpathsharetcl\n$lmtcl\n$loadmodtcl\n$modpathtcl"
-set perl        "$lmmodshareperl\n$loadmodshareperl\n$modpathshareperl\n$lmperl\n$loadmodperl\n$modpathperl\n1;"
-set python      "import os\n$lmmodsharepython\n$loadmodsharepython\n$modpathsharepython\n$lmpython\n$loadmodpython\n$modpathpython"
-set lisp        "$lmmodsharelisp\n$loadmodsharelisp\n$modpathsharelisp\n$lmlisp\n$loadmodlisp\n$modpathlisp"
+test_cmd_re "ALL" "load $module1" $ans
 
 #
 #  The tests (use --append)
 #
 
-test_cmd_re "sh" "load $module2" "$sh\$"
-test_cmd_re "bash" "load $module2" "$sh\$"
-test_cmd_re "ksh" "load $module2" "$sh\$"
-test_cmd_re "zsh" "load $module2" "$sh\$"
-test_cmd_re "csh" "load $module2" "$csh\$"
-test_cmd_re "tcsh" "load $module2" "$csh\$"
-test_cmd_re "fish" "load $module2" "$fish\$"
-test_cmd_re "tcl" "load $module2" "$tcl\$"
-test_cmd_re "perl" "load $module2" "$perl\$"
-#test_cmd_re "cmake" "load $module2" "$cmake\$"
-test_cmd_re "python" "load $module2" "$python\$"
-test_cmd_re "lisp" "load $module2" "$lisp\$"
+set ans [list]
+lappend ans [list setpath MODULEPATH "$path1:$path2"]
+lappend ans [list setpath LOADEDMODULES $module2]
+lappend ans [list setpath _LMFILES_ $modulefile2]
 
-#
-#  For the different shells ...
-#
-
-set lmsh "_LMFILES_=$modulefile3; export _LMFILES_;"
-set lmcsh "setenv _LMFILES_ $modulefile3;"
-set lmfish "set -xg _LMFILES_ $modulefile3;"
-set lmtcl "set env\\\(_LMFILES_\\\) \"$modulefile3\";"
-set lmperl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile3\';"
-set lmpython "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile3\'"
-set lmlisp "\\\(setenv \"_LMFILES_\" \"$modulefile3\"\\\)"
-
-set loadmodsh "LOADEDMODULES=$module3; export LOADEDMODULES;"
-set loadmodcsh "setenv LOADEDMODULES $module3;"
-set loadmodfish "set -xg LOADEDMODULES $module3;"
-set loadmodtcl "set env\\\(LOADEDMODULES\\\) \"$module3\";"
-set loadmodperl "\\\$ENV{\'LOADEDMODULES\'} = \'$module3\';"
-set loadmodpython "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module3\'"
-set loadmodlisp "\\\(setenv \"LOADEDMODULES\" \"$module3\"\\\)"
-
-set sh		"$lmmodsharesh\n$loadmodsharesh\n$modpathsharesh\n$lmsh\n$loadmodsh\n$modpathsh"
-set csh         "$lmmodsharecsh\n$loadmodsharecsh\n$modpathsharecsh\n$lmcsh\n$loadmodcsh\n$modpathcsh"
-set fish        "$lmmodsharefish\n$loadmodsharefish\n$modpathsharefish\n$lmfish\n$loadmodfish\n$modpathfish"
-set tcl         "$lmmodsharetcl\n$loadmodsharetcl\n$modpathsharetcl\n$lmtcl\n$loadmodtcl\n$modpathtcl"
-set perl        "$lmmodshareperl\n$loadmodshareperl\n$modpathshareperl\n$lmperl\n$loadmodperl\n$modpathperl\n1;"
-set python      "import os\n$lmmodsharepython\n$loadmodsharepython\n$modpathsharepython\n$lmpython\n$loadmodpython\n$modpathpython"
-set lisp        "$lmmodsharelisp\n$loadmodsharelisp\n$modpathsharelisp\n$lmlisp\n$loadmodlisp\n$modpathlisp"
+test_cmd_re "ALL" "load $module2" $ans
 
 #
 #  The tests (use -a)
 #
 
-test_cmd_re "sh" "load $module3" "$sh\$"
-test_cmd_re "bash" "load $module3" "$sh\$"
-test_cmd_re "ksh" "load $module3" "$sh\$"
-test_cmd_re "zsh" "load $module3" "$sh\$"
-test_cmd_re "csh" "load $module3" "$csh\$"
-test_cmd_re "tcsh" "load $module3" "$csh\$"
-test_cmd_re "fish" "load $module3" "$fish\$"
-test_cmd_re "tcl" "load $module3" "$tcl\$"
-test_cmd_re "perl" "load $module3" "$perl\$"
-#test_cmd_re "cmake" "load $module3" "$cmake\$"
-test_cmd_re "python" "load $module3" "$python\$"
-test_cmd_re "lisp" "load $module3" "$lisp\$"
+set ans [list]
+lappend ans [list setpath MODULEPATH "$path1:$path2"]
+lappend ans [list setpath LOADEDMODULES $module3]
+lappend ans [list setpath _LMFILES_ $modulefile3]
 
-#
-#  For the different shells ...
-#
-set lmsh "_LMFILES_=$modulefile4; export _LMFILES_;"
-set lmcsh "setenv _LMFILES_ $modulefile4;"
-set lmfish "set -xg _LMFILES_ $modulefile4;"
-set lmtcl "set env\\\(_LMFILES_\\\) \"$modulefile4\";"
-set lmperl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile4\';"
-set lmpython "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile4\'"
-set lmlisp "\\\(setenv \"_LMFILES_\" \"$modulefile4\"\\\)"
-
-set loadmodsh "LOADEDMODULES=$module4; export LOADEDMODULES;"
-set loadmodcsh "setenv LOADEDMODULES $module4;"
-set loadmodfish "set -xg LOADEDMODULES $module4;"
-set loadmodtcl "set env\\\(LOADEDMODULES\\\) \"$module4\";"
-set loadmodperl "\\\$ENV{\'LOADEDMODULES\'} = \'$module4\';"
-set loadmodpython "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module4\'"
-set loadmodlisp "\\\(setenv \"LOADEDMODULES\" \"$module4\"\\\)"
-
-set sh		"$lmmodsharesh\n$loadmodsharesh\n$modpathsharesh\n$lmsh\n$loadmodsh\n$modpathsh"
-set csh         "$lmmodsharecsh\n$loadmodsharecsh\n$modpathsharecsh\n$lmcsh\n$loadmodcsh\n$modpathcsh"
-set fish        "$lmmodsharefish\n$loadmodsharefish\n$modpathsharefish\n$lmfish\n$loadmodfish\n$modpathfish"
-set tcl         "$lmmodsharetcl\n$loadmodsharetcl\n$modpathsharetcl\n$lmtcl\n$loadmodtcl\n$modpathtcl"
-set perl        "$lmmodshareperl\n$loadmodshareperl\n$modpathshareperl\n$lmperl\n$loadmodperl\n$modpathperl\n1;"
-set python      "import os\n$lmmodsharepython\n$loadmodsharepython\n$modpathsharepython\n$lmpython\n$loadmodpython\n$modpathpython"
-set lisp        "$lmmodsharelisp\n$loadmodsharelisp\n$modpathsharelisp\n$lmlisp\n$loadmodlisp\n$modpathlisp"
+test_cmd_re "ALL" "load $module3" $ans
 
 #
 #  The tests (use -append)
 #	for backward compatibility
 #
 
-test_cmd_re "sh" "load $module4" "$sh\$"
-test_cmd_re "bash" "load $module4" "$sh\$"
-test_cmd_re "ksh" "load $module4" "$sh\$"
-test_cmd_re "zsh" "load $module4" "$sh\$"
-test_cmd_re "csh" "load $module4" "$csh\$"
-test_cmd_re "tcsh" "load $module4" "$csh\$"
-test_cmd_re "fish" "load $module4" "$fish\$"
-test_cmd_re "tcl" "load $module4" "$tcl\$"
-test_cmd_re "perl" "load $module4" "$perl\$"
-#test_cmd_re "cmake" "load $module4" "$cmake\$"
-test_cmd_re "python" "load $module4" "$python\$"
-test_cmd_re "lisp" "load $module4" "$lisp\$"
+set ans [list]
+lappend ans [list setpath MODULEPATH "$path1:$path2"]
+lappend ans [list setpath LOADEDMODULES $module4]
+lappend ans [list setpath _LMFILES_ $modulefile4]
 
-
-#
-#  For the different shells ...
-#
-
-set lmsh "_LMFILES_=$modulefile5; export _LMFILES_;"
-set lmcsh "setenv _LMFILES_ $modulefile5;"
-set lmfish "set -xg _LMFILES_ $modulefile5;"
-set lmtcl "set env\\\(_LMFILES_\\\) \"$modulefile5\";"
-set lmperl "\\\$ENV{'_LMFILES_'} = \'$modulefile5\';"
-set lmpython "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile5\'"
-set lmlisp "\\\(setenv \"_LMFILES_\" \"$modulefile5\"\\\)"
-
-set loadmodsh "LOADEDMODULES=$module5; export LOADEDMODULES;"
-set loadmodcsh "setenv LOADEDMODULES $module5;"
-set loadmodfish "set -xg LOADEDMODULES $module5;"
-set loadmodtcl "set env\\\(LOADEDMODULES\\\) \"$module5\";"
-set loadmodperl "\\\$ENV{'LOADEDMODULES'} = \'$module5\';"
-set loadmodpython "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module5\'"
-set loadmodlisp "\\\(setenv \"LOADEDMODULES\" \"$module5\"\\\)"
-
-set modpathsh "MODULEPATH=$path2:$path1; export MODULEPATH;"
-set modpathcsh "setenv MODULEPATH $path2:$path1;"
-set modpathfish "set -xg MODULEPATH $path2:$path1;"
-set modpathtcl "set env\\\(MODULEPATH\\\) \"$path2:$path1\";"
-set modpathperl "\\\$ENV{\'MODULEPATH\'} = \'$path2:$path1\';"
-set modpathpython "os.environ\\\[\'MODULEPATH\'\\\] = \'$path2:$path1\'"
-set modpathlisp "\\\(setenv \"MODULEPATH\" \"$path2:$path1\"\\\)"
-
-set sh		"$lmmodsharesh\n$loadmodsharesh\n$modpathsharesh\n$lmsh\n$loadmodsh\n$modpathsh"
-set csh         "$lmmodsharecsh\n$loadmodsharecsh\n$modpathsharecsh\n$lmcsh\n$loadmodcsh\n$modpathcsh"
-set fish        "$lmmodsharefish\n$loadmodsharefish\n$modpathsharefish\n$lmfish\n$loadmodfish\n$modpathfish"
-set tcl         "$lmmodsharetcl\n$loadmodsharetcl\n$modpathsharetcl\n$lmtcl\n$loadmodtcl\n$modpathtcl"
-set perl        "$lmmodshareperl\n$loadmodshareperl\n$modpathshareperl\n$lmperl\n$loadmodperl\n$modpathperl\n1;"
-set python      "import os\n$lmmodsharepython\n$loadmodsharepython\n$modpathsharepython\n$lmpython\n$loadmodpython\n$modpathpython"
-set lisp        "$lmmodsharelisp\n$loadmodsharelisp\n$modpathsharelisp\n$lmlisp\n$loadmodlisp\n$modpathlisp"
+test_cmd_re "ALL" "load $module4" $ans
 
 #
 #  The tests (use --prepend)
 #
 
-test_cmd_re "sh" "load $module5" "$sh\$"
-test_cmd_re "bash" "load $module5" "$sh\$"
-test_cmd_re "ksh" "load $module5" "$sh\$"
-test_cmd_re "zsh" "load $module5" "$sh\$"
-test_cmd_re "csh" "load $module5" "$csh\$"
-test_cmd_re "tcsh" "load $module5" "$csh\$"
-test_cmd_re "fish" "load $module5" "$fish\$"
-test_cmd_re "tcl" "load $module5" "$tcl\$"
-test_cmd_re "perl" "load $module5" "$perl\$"
-#test_cmd_re "cmake" "load $module5" "$cmake\$"
-test_cmd_re "python" "load $module5" "$python\$"
-test_cmd_re "lisp" "load $module5" "$lisp\$"
+set ans [list]
+lappend ans [list setpath MODULEPATH "$path2:$path1"]
+lappend ans [list setpath LOADEDMODULES $module5]
+lappend ans [list setpath _LMFILES_ $modulefile5]
 
-#
-#  For the different shells ...
-#
-
-set lmsh "_LMFILES_=$modulefile6; export _LMFILES_;"
-set lmcsh "setenv _LMFILES_ $modulefile6;"
-set lmfish "set -xg _LMFILES_ $modulefile6;"
-set lmtcl "set env\\\(_LMFILES_\\\) \"$modulefile6\";"
-set lmperl "\\\$ENV{'_LMFILES_'} = \'$modulefile6\';"
-set lmpython "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile6\'"
-set lmlisp "\\\(setenv \"_LMFILES_\" \"$modulefile6\"\\\)"
-
-set loadmodsh "LOADEDMODULES=$module6; export LOADEDMODULES;"
-set loadmodcsh "setenv LOADEDMODULES $module6;"
-set loadmodfish "set -xg LOADEDMODULES $module6;"
-set loadmodtcl "set env\\\(LOADEDMODULES\\\) \"$module6\";"
-set loadmodperl "\\\$ENV{'LOADEDMODULES'} = \'$module6\';"
-set loadmodpython "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module6\'"
-set loadmodlisp "\\\(setenv \"LOADEDMODULES\" \"$module6\"\\\)"
-
-set sh		"$lmmodsharesh\n$loadmodsharesh\n$modpathsharesh\n$lmsh\n$loadmodsh\n$modpathsh"
-set csh         "$lmmodsharecsh\n$loadmodsharecsh\n$modpathsharecsh\n$lmcsh\n$loadmodcsh\n$modpathcsh"
-set fish        "$lmmodsharefish\n$loadmodsharefish\n$modpathsharefish\n$lmfish\n$loadmodfish\n$modpathfish"
-set tcl         "$lmmodsharetcl\n$loadmodsharetcl\n$modpathsharetcl\n$lmtcl\n$loadmodtcl\n$modpathtcl"
-set perl        "$lmmodshareperl\n$loadmodshareperl\n$modpathshareperl\n$lmperl\n$loadmodperl\n$modpathperl\n1;"
-set python      "import os\n$lmmodsharepython\n$loadmodsharepython\n$modpathsharepython\n$lmpython\n$loadmodpython\n$modpathpython"
-set lisp        "$lmmodsharelisp\n$loadmodsharelisp\n$modpathsharelisp\n$lmlisp\n$loadmodlisp\n$modpathlisp"
+test_cmd_re "ALL" "load $module5" $ans
 
 #
 #  The tests (use -p)
 #
 
-test_cmd_re "sh" "load $module6" "$sh\$"
-test_cmd_re "bash" "load $module6" "$sh\$"
-test_cmd_re "ksh" "load $module6" "$sh\$"
-test_cmd_re "zsh" "load $module6" "$sh\$"
-test_cmd_re "csh" "load $module6" "$csh\$"
-test_cmd_re "tcsh" "load $module6" "$csh\$"
-test_cmd_re "fish" "load $module6" "$fish\$"
-test_cmd_re "tcl" "load $module6" "$tcl\$"
-test_cmd_re "perl" "load $module6" "$perl\$"
-#test_cmd_re "cmake" "load $module6" "$cmake\$"
-test_cmd_re "python" "load $module6" "$python\$"
-test_cmd_re "lisp" "load $module6" "$lisp\$"
+set ans [list]
+lappend ans [list setpath MODULEPATH "$path2:$path1"]
+lappend ans [list setpath LOADEDMODULES $module6]
+lappend ans [list setpath _LMFILES_ $modulefile6]
 
-#
-#  For the different shells ...
-#
-
-set lmsh "_LMFILES_=$modulefile7; export _LMFILES_;"
-set lmcsh "setenv _LMFILES_ $modulefile7;"
-set lmfish "set -xg _LMFILES_ $modulefile7;"
-set lmtcl "set env\\\(_LMFILES_\\\) \"$modulefile7\";"
-set lmperl "\\\$ENV{'_LMFILES_'} = \'$modulefile7\';"
-set lmpython "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile7\'"
-set lmlisp "\\\(setenv \"_LMFILES_\" \"$modulefile7\"\\\)"
-
-set loadmodsh "LOADEDMODULES=$module7; export LOADEDMODULES;"
-set loadmodcsh "setenv LOADEDMODULES $module7;"
-set loadmodfish "set -xg LOADEDMODULES $module7;"
-set loadmodtcl "set env\\\(LOADEDMODULES\\\) \"$module7\";"
-set loadmodperl "\\\$ENV{'LOADEDMODULES'} = \'$module7\';"
-set loadmodpython "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module7\'"
-set loadmodlisp "\\\(setenv \"LOADEDMODULES\" \"$module7\"\\\)"
-
-set sh		"$lmmodsharesh\n$loadmodsharesh\n$modpathsharesh\n$lmsh\n$loadmodsh\n$modpathsh"
-set csh         "$lmmodsharecsh\n$loadmodsharecsh\n$modpathsharecsh\n$lmcsh\n$loadmodcsh\n$modpathcsh"
-set fish        "$lmmodsharefish\n$loadmodsharefish\n$modpathsharefish\n$lmfish\n$loadmodfish\n$modpathfish"
-set tcl         "$lmmodsharetcl\n$loadmodsharetcl\n$modpathsharetcl\n$lmtcl\n$loadmodtcl\n$modpathtcl"
-set perl        "$lmmodshareperl\n$loadmodshareperl\n$modpathshareperl\n$lmperl\n$loadmodperl\n$modpathperl\n1;"
-set python      "import os\n$lmmodsharepython\n$loadmodsharepython\n$modpathsharepython\n$lmpython\n$loadmodpython\n$modpathpython"
-set lisp        "$lmmodsharelisp\n$loadmodsharelisp\n$modpathsharelisp\n$lmlisp\n$loadmodlisp\n$modpathlisp"
+test_cmd_re "ALL" "load $module6" $ans
 
 #
 #  The tests (use -prepend)
 #	for backward compatibility
 #
 
-test_cmd_re "sh" "load $module7" "$sh\$"
-test_cmd_re "bash" "load $module7" "$sh\$"
-test_cmd_re "ksh" "load $module7" "$sh\$"
-test_cmd_re "zsh" "load $module7" "$sh\$"
-test_cmd_re "csh" "load $module7" "$csh\$"
-test_cmd_re "tcsh" "load $module7" "$csh\$"
-test_cmd_re "fish" "load $module7" "$fish\$"
-test_cmd_re "tcl" "load $module7" "$tcl\$"
-test_cmd_re "perl" "load $module7" "$perl\$"
-#test_cmd_re "cmake" "load $module7" "$cmake\$"
-test_cmd_re "python" "load $module7" "$python\$"
-test_cmd_re "lisp" "load $module7" "$lisp\$"
+set ans [list]
+lappend ans [list setpath MODULEPATH "$path2:$path1"]
+lappend ans [list setpath LOADEDMODULES $module7]
+lappend ans [list setpath _LMFILES_ $modulefile7]
 
-#
-#  For the different shells ...
-#
-
-set lmsh "_LMFILES_=$modulefile8; export _LMFILES_;"
-set lmcsh "setenv _LMFILES_ $modulefile8;"
-set lmfish "set -xg _LMFILES_ $modulefile8;"
-set lmtcl "set env\\\(_LMFILES_\\\) \"$modulefile8\";"
-set lmperl "\\\$ENV{'_LMFILES_'} = \'$modulefile8\';"
-set lmpython "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile8\'"
-set lmlisp "\\\(setenv \"_LMFILES_\" \"$modulefile8\"\\\)"
-
-set loadmodsh "LOADEDMODULES=$module8; export LOADEDMODULES;"
-set loadmodcsh "setenv LOADEDMODULES $module8;"
-set loadmodfish "set -xg LOADEDMODULES $module8;"
-set loadmodtcl "set env\\\(LOADEDMODULES\\\) \"$module8\";"
-set loadmodperl "\\\$ENV{'LOADEDMODULES'} = \'$module8\';"
-set loadmodpython "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module8\'"
-set loadmodlisp "\\\(setenv \"LOADEDMODULES\" \"$module8\"\\\)"
-
-set sh		"$lmmodsharesh\n$loadmodsharesh\n$lmsh\n$loadmodsh\n/bin/false;"
-set csh         "$lmmodsharecsh\n$loadmodsharecsh\n$lmcsh\n$loadmodcsh\n/bin/false;"
-set fish        "$lmmodsharefish\n$loadmodsharefish\n$lmfish\n$loadmodfish\n/bin/false;"
-set tcl         "$lmmodsharetcl\n$loadmodsharetcl\n$lmtcl\n$loadmodtcl\nexec /bin/false;"
-set perl        "$lmmodshareperl\n$loadmodshareperl\n$lmperl\n$loadmodperl\ndie \"modulefile.tcl: 1 error\\\(s\\\) detected!\\\\n\""
-set python      "import os\n$lmmodsharepython\n$loadmodsharepython\n$lmpython\n$loadmodpython\nraise RuntimeError\\\( 'modulefile.tcl: 1 error\\\(s\\\) detected!'\\\)"
-set lisp        "$lmmodsharelisp\n$loadmodsharelisp\n$lmlisp\n$loadmodlisp\n\\\(error \"modulefile.tcl: 1 error\\\(s\\\) detected!\"\\\)"
-
-set err_msg     "$error_msgs: Directory '' not found"
+test_cmd_re "ALL" "load $module7" $ans
 
 #
 #  The tests (use {})
 #
 
-testouterr_cmd_re "sh" "load $module8" "$sh\$" "^$err_msg\$"
-testouterr_cmd_re "bash" "load $module8" "$sh\$" "^$err_msg\$"
-testouterr_cmd_re "ksh" "load $module8" "$sh\$" "^$err_msg\$"
-testouterr_cmd_re "zsh" "load $module8" "$sh\$" "^$err_msg\$"
-testouterr_cmd_re "csh" "load $module8" "$csh\$" "^$err_msg\$"
-testouterr_cmd_re "tcsh" "load $module8" "$csh\$" "^$err_msg\$"
-testouterr_cmd_re "fish" "load $module8" "$fish\$" "^$err_msg\$"
-testouterr_cmd_re "tcl" "load $module8" "$tcl\$" "^$err_msg\$"
-testouterr_cmd_re "perl" "load $module8" "$perl\$" "^$err_msg\$"
-#testouterr_cmd_re "cmake" "load $module8" "$cmake\$" "^$err_msg\$"
-testouterr_cmd_re "python" "load $module8" "$python\$" "^$err_msg\$"
-testouterr_cmd_re "lisp" "load $module8" "$lisp\$" "^$err_msg\$"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $module8]
+lappend ans [list setpath _LMFILES_ $modulefile8]
+lappend ans [list ERR]
+
+set err_msg     "$error_msgs: Directory '' not found"
+
+testouterr_cmd_re "ALL" "load $module8" $ans "^$err_msg\$"
 
 #
 #  Cleanup
 #
 
-unset lmsh
-unset lmcsh
-unset lmfish
-unset lmtcl
-unset lmperl
-unset lmpython
-unset lmlisp
-
-unset loadmodsh
-unset loadmodcsh
-unset loadmodfish
-unset loadmodtcl
-unset loadmodperl
-unset loadmodpython
-unset loadmodlisp
-
-unset modpathsh
-unset modpathcsh
-unset modpathfish
-unset modpathtcl
-unset modpathperl
-unset modpathpython
-
-unset sh
-unset csh
-unset fish
-unset tcl
-unset python
-unset perl
-unset lisp
+unset ans
 
 unset err_msg
 

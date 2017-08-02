@@ -62,7 +62,7 @@ proc version_test {which} {
 # Shell conversion code subprocedures
 #
 
-proc shell_err {test_shell {re_mode 0}} {
+proc shell_err {test_shell {re_mode 0} {standalone 1}} {
     if {$re_mode} {
         set esc "\\"
     } else {
@@ -90,14 +90,14 @@ proc shell_err {test_shell {re_mode 0}} {
         }
     }
 
-    if {$re_mode} {
+    if {$re_mode && $standalone} {
         set answer "^$answer\$"
     }
 
     return $answer
 }
 
-proc shell_ok {test_shell {re_mode 0}} {
+proc shell_ok {test_shell {re_mode 0} {standalone 1}} {
     switch -- $test_shell {
         {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
             set answer "/bin/true;"
@@ -116,11 +116,490 @@ proc shell_ok {test_shell {re_mode 0}} {
         }
     }
 
+    if {$re_mode && $standalone} {
+        set answer "^$answer\$"
+    }
+
+    return $answer
+}
+
+proc shell_val {test_shell val {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            set val [regsub -all {([\\])} $val {\\\1}]
+            set val [regsub -all {([ ])} $val {\\\\\1}]
+        }
+        {tcl} - {lisp} {
+            set val [regsub -all {(["])} $val {\\\1}]
+        }
+        {perl} - {python} {
+            set val [regsub -all {(['])} $val {\\\1}]
+        }
+    }
+    return $val
+}
+
+proc shell_set {test_shell var val {re_mode 0} {escval 1}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    if {$escval} {
+        set val [shell_val $test_shell $val $re_mode]
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} {
+            set answer "$var=$val; export $var;"
+        }
+        {csh} - {tcsh} {
+            set answer "setenv $var $val;"
+        }
+        {fish} {
+            if {$var eq "PATH"} {
+                regsub -all ":" $val " " val
+            }
+            set answer "set -xg $var $val;"
+        }
+        {tcl} {
+            set answer "set env${esc}($var${esc}) \"$val\";"
+        }
+        {perl} {
+            set answer "${esc}\$ENV{'$var'} = '$val';"
+        }
+        {python} {
+            set answer "os.environ${esc}\['$var'${esc}\] = '$val'"
+        }
+        {lisp} {
+            set answer "${esc}(setenv \"$var\" \"$val\"${esc})"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_unset {test_shell var {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} {
+            set answer "unset $var;"
+        }
+        {csh} - {tcsh} {
+            set answer "unsetenv $var;"
+        }
+        {fish} {
+            set answer "set -e $var;"
+        }
+        {tcl} {
+            set answer "unset env${esc}($var${esc});"
+        }
+        {perl} {
+            set answer "delete ${esc}\$ENV{'$var'};"
+        }
+        {python} {
+            set answer "os.environ${esc}\['$var'${esc}\] = ''\n"
+            append answer "del os.environ${esc}\['$var'${esc}\]"
+        }
+        {lisp} {
+            set answer "${esc}(setenv \"$var\" nil${esc})"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_alias {test_shell var val {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} {
+            set answer "alias $var='$val';"
+        }
+        {csh} - {tcsh} - {fish} {
+            set answer "alias $var '$val';"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_unalias {test_shell var {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} {
+            set answer "unalias $var;"
+        }
+        {fish} {
+            set answer "functions -e $var;"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_chdir {test_shell val {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            set answer "cd '$val';"
+        }
+        {tcl} {
+            set answer "cd \"$val\";"
+        }
+        {perl} {
+            set answer "chdir '$val';"
+        }
+        {python} {
+            set answer "os.chdir${esc}('$val'${esc})"
+        }
+        {lisp} {
+            set answer "${esc}(shell-command-to-string \"cd '$val'\"${esc})"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_xres {test_shell var val first {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+    set xrdb "(${esc}\S*)xrdb"
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            if {$val ne ""} {
+                set answer "echo \"$var: $val\" ${esc}| $xrdb -merge;"
+            } else {
+                set answer "$xrdb -merge $var;"
+            }
+        }
+        {tcl} {
+            if {$val ne ""} {
+                set answer "set XRDBPIPE ${esc}\[open \"${esc}|$xrdb -merge\" r${esc}+${esc}\];\n"
+                append answer "puts ${esc}\$XRDBPIPE \"$var: $val\";\n"
+                append answer "close ${esc}\$XRDBPIPE;\n"
+                append answer "unset XRDBPIPE;"
+            } else {
+                set answer "exec $xrdb -merge $var;"
+            }
+        }
+        {perl} {
+            if {$val ne ""} {
+                set answer "open${esc}(XRDBPIPE, \"${esc}|$xrdb -merge\"${esc});\n"
+                append answer "print XRDBPIPE \"$var: $val${esc}\\n\";\n"
+                append answer "close XRDBPIPE;"
+            } else {
+                set answer "system${esc}(\"$xrdb -merge $var\"${esc});"
+            }
+        }
+        {python} {
+            if {$first} {
+                set answer "import subprocess\n"
+            }
+            if {$val ne ""} {
+                append answer "subprocess.Popen${esc}(${esc}\['$xrdb', '-merge'${esc}\], stdin=subprocess.PIPE${esc}).communicate${esc}(input=\'$var: $val${esc}\\n\'${esc})"
+            } else {
+                append answer "subprocess.Popen${esc}(${esc}\['$xrdb', '-merge', '$var'${esc}\]${esc})"
+            }
+        }
+        {lisp} {
+            if {$val ne ""} {
+                set answer "${esc}(shell-command-to-string \"echo $var: $val ${esc}| $xrdb -merge\"${esc})"
+            } else {
+                set answer "${esc}(shell-command-to-string \"$xrdb -merge $var\"${esc})"
+            }
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_unxres {test_shell var first {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+    set xrdb "(${esc}\S*)xrdb"
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            set answer "echo \"$var:\" ${esc}| $xrdb -merge;"
+        }
+        {tcl} {
+            set answer "set XRDBPIPE ${esc}\[open \"${esc}|$xrdb -merge\" r${esc}+${esc}\];\n"
+            append answer "puts ${esc}\$XRDBPIPE \"$var:\";\n"
+            append answer "close ${esc}\$XRDBPIPE;\n"
+            append answer "unset XRDBPIPE;"
+        }
+        {perl} {
+            set answer "open${esc}(XRDBPIPE, \"${esc}|$xrdb -merge\"${esc});\n"
+            append answer "print XRDBPIPE \"$var:${esc}\\n\";\n"
+            append answer "close XRDBPIPE;"
+        }
+        {python} {
+            if {$first} {
+                set answer "import subprocess\n"
+            }
+            append answer "subprocess.Popen${esc}(${esc}\['$xrdb', '-merge'${esc}\], stdin=subprocess.PIPE${esc}).communicate${esc}(input=\'$var:${esc}\\n\'${esc})"
+        }
+        {lisp} {
+            set answer "${esc}(shell-command-to-string \"echo $var: ${esc}| $xrdb -merge\"${esc})"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+proc shell_echo {test_shell val {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            set answer "echo '$val';"
+        }
+        {tcl} {
+            set answer "puts \"$val\";"
+        }
+        {perl} {
+            set answer "print '$val'.\"\\n\";"
+        }
+        {python} {
+            set answer "print '$val'"
+        }
+        {lisp} {
+            set answer "${esc}(message \"$val\"${esc})"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
+
+# provide a lassign proc for Tcl8.4 and earlier
+if {[info commands lassign] eq ""} {
+   proc lassign {values args} {
+      uplevel 1 [list foreach $args [linsert $values end {}] break]
+      lrange $values [llength $args] end
+   }
+}
+
+proc shell_out {test_shell out_list {re_mode 0}} {
+    set answer_list {}
+    set fixed_list {}
+    array set envvar {}
+    array set autovar {}
+    set status_set 0
+    set first_xres 1
+
+    foreach out $out_list {
+        lassign $out cmd var val extra
+        switch -- $cmd {
+            {set} {
+                if {$extra eq "noescval"} {
+                    set escval 0
+                } else {
+                    set escval 1
+                }
+                set envvar($var) [shell_set $test_shell $var $val $re_mode $escval]
+                lappend answer_list $envvar($var)
+
+                # automatic specification of ref counter var is removed if set
+                if {[info exists autovar($var)]} {
+                    unset autovar($var)
+                }
+            }
+            {setpath} {
+                set envvar($var) [shell_set $test_shell $var $val $re_mode]
+                lappend answer_list $envvar($var)
+
+                # automatically set ref counter variable if not specified
+                set sharevar "${var}_modshare"
+                if {![info exists envvar($sharevar)]} {
+                    set envvar($sharevar) [shell_set $test_shell $sharevar "(.*)" $re_mode]
+                    set autovar($sharevar) 1
+                }
+            }
+            {unset} {
+                set envvar($var) [shell_unset $test_shell $var $re_mode]
+                lappend answer_list $envvar($var)
+
+                # automatic specification of ref counter var is removed if set
+                if {[info exists autovar($var)]} {
+                    unset autovar($var)
+                }
+            }
+            {unsetpath} {
+                set envvar($var) [shell_unset $test_shell $var $re_mode]
+                lappend answer_list $envvar($var)
+
+                # automatically set ref counter variable if not specified
+                set sharevar "${var}_modshare"
+                if {![info exists envvar($sharevar)]} {
+                    set envvar($sharevar) [shell_unset $test_shell $sharevar $re_mode]
+                    set autovar($sharevar) 1
+                }
+            }
+            {alias} {
+                set ret [shell_alias $test_shell $var $val $re_mode]
+                if {$ret ne ""} {
+                    lappend fixed_list $ret
+                    lappend answer_list $ret
+                }
+            }
+            {unalias} {
+                set ret [shell_unalias $test_shell $var $re_mode]
+                 if {$ret ne ""} {
+                    lappend fixed_list $ret
+                    lappend answer_list $ret
+                }
+            }
+            {chdir} {
+                set ret [shell_chdir $test_shell $var $re_mode]
+                if {$ret ne ""} {
+                    lappend fixed_list $ret
+                    lappend answer_list $ret
+                }
+            }
+            {xres} {
+                set ret [shell_xres $test_shell $var $val $first_xres $re_mode]
+                if {$ret ne ""} {
+                    lappend fixed_list $ret
+                    lappend answer_list $ret
+                }
+                set first_xres 0
+            }
+            {unxres} {
+                set ret [shell_unxres $test_shell $var $first_xres $re_mode]
+                 if {$ret ne ""} {
+                    lappend fixed_list $ret
+                    lappend answer_list $ret
+                }
+                set first_xres 0
+            }
+            {echo} {
+                lappend fixed_list [shell_echo $test_shell $var $re_mode]
+                lappend answer_list [lindex $fixed_list end]
+            }
+            {OK} {
+                lappend fixed_list [shell_ok $test_shell $re_mode 0]
+                lappend answer_list [lindex $fixed_list end]
+                set status_set 1
+            }
+            {ERR} {
+                lappend fixed_list [shell_err $test_shell $re_mode 0]
+                lappend answer_list [lindex $fixed_list end]
+                set status_set 1
+            }
+            default {
+                lappend fixed_list [join $out]
+                lappend answer_list [lindex $fixed_list end]
+            }
+        }
+    }
+
+    # specific order if var have been automatically set
+    if {[array size autovar] > 0} {
+        set answer_list {}
+        foreach var [array names envvar] {
+            lappend answer_list $envvar($var)
+        }
+        set answer_list [concat $answer_list $fixed_list]
+    }
+
+
+    if {$test_shell eq "python"} {
+        set answer_list [concat [list "import os"] $answer_list]
+    }
+
+    if {!$status_set && $test_shell eq "perl"} {
+        lappend answer_list "1;"
+    }
+
+    set answer [join $answer_list "\n"]
     if {$re_mode} {
         set answer "^$answer\$"
     }
 
     return $answer
+}
+
+proc is_shell_out_list {answer} {
+    set ret 0
+
+    if {[string is list $answer]} {
+        foreach item $answer {
+            if {[llength $item] > 1} {
+                switch -- [lindex $item 0] {
+                    {set} - {setpath} - {unset} - {unsetpath} - {alias} \
+                        - {unalias} - {echo} {
+                        set ret 1
+                        break
+                    }
+                }
+            }
+        }
+    }
+
+    return $ret
 }
 
 #
@@ -197,7 +676,9 @@ proc _test_out {test_shell cmd answer} {
 	global comp_output
 	global verbose
 
-    if {$answer eq "ERR"} {
+    if {[is_shell_out_list $answer]} {
+        set answer [shell_out $test_shell $answer]
+    } elseif {$answer eq "ERR"} {
         set answer [shell_err $test_shell]
     } elseif {$answer eq "OK"} {
         set answer [shell_ok $test_shell]
@@ -221,7 +702,9 @@ proc _test_out_re {test_shell cmd answer} {
 	global comp_output
 	global verbose
 
-    if {$answer eq "ERR"} {
+    if {[is_shell_out_list $answer]} {
+        set answer [shell_out $test_shell $answer 1]
+    } elseif {$answer eq "ERR"} {
         set answer [shell_err $test_shell 1]
     } elseif {$answer eq "OK"} {
         set answer [shell_ok $test_shell 1]

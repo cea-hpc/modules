@@ -63,71 +63,16 @@ if { $verbose > 0 } {
 #  For the different shells ...
 #
 
-set lmfmod_sh "unset _LMFILES__modshare;"
-set lmmod_sh "unset LOADEDMODULES_modshare;"
-set lmf_sh "unset _LMFILES_;"
-set lm_sh "unset LOADEDMODULES;"
-set mp_sh "MODULEPATH=$path1; export MODULEPATH;"
-set mpmod_sh "MODULEPATH_modshare=(.*); export MODULEPATH_modshare;"
-
-set lmfmod_csh "unsetenv _LMFILES__modshare;"
-set lmmod_csh "unsetenv LOADEDMODULES_modshare;"
-set lmf_csh "unsetenv _LMFILES_;"
-set lm_csh "unsetenv LOADEDMODULES;"
-set mp_csh "setenv MODULEPATH $path1;"
-set mpmod_csh "setenv MODULEPATH_modshare (.*);"
-
-set lmfmod_fish "set -e _LMFILES__modshare;"
-set lmmod_fish "set -e LOADEDMODULES_modshare;"
-set lmf_fish "set -e _LMFILES_;"
-set lm_fish "set -e LOADEDMODULES;"
-set mp_fish "set -xg MODULEPATH $path1;"
-set mpmod_fish "set -xg MODULEPATH_modshare (.*);"
-
-set lmfmod_tcl "unset env\\\(_LMFILES__modshare\\\);"
-set lmmod_tcl "unset env\\\(LOADEDMODULES_modshare\\\);"
-set lmf_tcl "unset env\\\(_LMFILES_\\\);"
-set lm_tcl "unset env\\\(LOADEDMODULES\\\);"
-set mp_tcl "set env\\\(MODULEPATH\\\) \"$path1\";"
-set mpmod_tcl "set env\\\(MODULEPATH_modshare\\\) \"(.*)\";"
-
-set lmfmod_perl "delete \\\$ENV{\'_LMFILES__modshare\'};"
-set lmmod_perl "delete \\\$ENV{\'LOADEDMODULES_modshare\'};"
-set lmf_perl "delete \\\$ENV{\'_LMFILES_\'};"
-set lm_perl "delete \\\$ENV{\'LOADEDMODULES\'};"
-set mp_perl "\\\$ENV{\'MODULEPATH\'} = \'$path1\';"
-set mpmod_perl "\\\$ENV{\'MODULEPATH_modshare\'} = \'(.*)\';"
-
-set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'\'\ndel os.environ\\\[\'_LMFILES__modshare\'\\\]"
-set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'\'\ndel os.environ\\\[\'LOADEDMODULES_modshare\'\\\]"
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'\'\ndel os.environ\\\[\'_LMFILES_\'\\\]"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'\'\ndel os.environ\\\[\'LOADEDMODULES\'\\\]"
-set mp_python "os.environ\\\[\'MODULEPATH\'\\\] = \'$path1\'"
-set mpmod_python "os.environ\\\[\'MODULEPATH_modshare\'\\\] = \'(.*)\'"
-
-set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" nil\\\)"
-set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" nil\\\)"
-set lmf_lisp "\\\(setenv \"_LMFILES_\" nil\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" nil\\\)"
-set mp_lisp "\\\(setenv \"MODULEPATH\" \"$path1\"\\\)"
-set mpmod_lisp "\\\(setenv \"MODULEPATH_modshare\" \"(.*)\"\\\)"
+lappend ans [list setpath MODULEPATH $path1]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
 
 
 #
 #  The tests (use - unload)
 #
 
-test_cmd_re "sh" "unload $module1" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "bash" "unload $module1" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "ksh" "unload $module1" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "zsh" "unload $module1" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "csh" "unload $module1" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "tcsh" "unload $module1" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "fish" "unload $module1" "$lmfmod_fish\n$lmmod_fish\n$mpmod_fish\n$lmf_fish\n$lm_fish\n$mp_fish\$"
-test_cmd_re "tcl" "unload $module1" "$lmfmod_tcl\n$lmmod_tcl\n$mpmod_tcl\n$lmf_tcl\n$lm_tcl\n$mp_tcl\$"
-test_cmd_re "perl" "unload $module1" "$lmfmod_perl\n$lmmod_perl\n$mpmod_perl\n$lmf_perl\n$lm_perl\n$mp_perl\n1;\$"
-test_cmd_re "python" "unload $module1" "import os\n$lmfmod_python\n$lmmod_python\n$mpmod_python\n$lmf_python\n$lm_python\n$mp_python\$"
-test_cmd_re "lisp" "unload $module1" "$lmfmod_lisp\n$lmmod_lisp\n$mpmod_lisp\n$lmf_lisp\n$lm_lisp\n$mp_lisp\$"
+test_cmd_re "ALL" "unload $module1" $ans
 
 #
 #  Set up the environment for reversal ...
@@ -140,17 +85,7 @@ set env(LOADEDMODULES) "$module2"
 #  The tests (use --append)
 #
 
-test_cmd_re "sh" "unload $module2" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "bash" "unload $module2" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "ksh" "unload $module2" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "zsh" "unload $module2" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "csh" "unload $module2" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "tcsh" "unload $module2" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "fish" "unload $module2" "$lmfmod_fish\n$lmmod_fish\n$mpmod_fish\n$lmf_fish\n$lm_fish\n$mp_fish\$"
-test_cmd_re "tcl" "unload $module2" "$lmfmod_tcl\n$lmmod_tcl\n$mpmod_tcl\n$lmf_tcl\n$lm_tcl\n$mp_tcl\$"
-test_cmd_re "perl" "unload $module2" "$lmfmod_perl\n$lmmod_perl\n$mpmod_perl\n$lmf_perl\n$lm_perl\n$mp_perl\n1;\$"
-test_cmd_re "python" "unload $module2" "import os\n$lmfmod_python\n$lmmod_python\n$mpmod_python\n$lmf_python\n$lm_python\n$mp_python\$"
-test_cmd_re "lisp" "unload $module2" "$lmfmod_lisp\n$lmmod_lisp\n$mpmod_lisp\n$lmf_lisp\n$lm_lisp\n$mp_lisp\$"
+test_cmd_re "ALL" "unload $module2" $ans
 
 #
 #  Set up the environment for reversal ...
@@ -163,17 +98,7 @@ set env(LOADEDMODULES) "$module3"
 #  The tests (use -a)
 #
 
-test_cmd_re "sh" "unload $module3" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "bash" "unload $module3" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "ksh" "unload $module3" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "zsh" "unload $module3" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "csh" "unload $module3" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "tcsh" "unload $module3" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "fish" "unload $module3" "$lmfmod_fish\n$lmmod_fish\n$mpmod_fish\n$lmf_fish\n$lm_fish\n$mp_fish\$"
-test_cmd_re "tcl" "unload $module3" "$lmfmod_tcl\n$lmmod_tcl\n$mpmod_tcl\n$lmf_tcl\n$lm_tcl\n$mp_tcl\$"
-test_cmd_re "perl" "unload $module3" "$lmfmod_perl\n$lmmod_perl\n$mpmod_perl\n$lmf_perl\n$lm_perl\n$mp_perl\n1;\$"
-test_cmd_re "python" "unload $module3" "import os\n$lmfmod_python\n$lmmod_python\n$mpmod_python\n$lmf_python\n$lm_python\n$mp_python\$"
-test_cmd_re "lisp" "unload $module3" "$lmfmod_lisp\n$lmmod_lisp\n$mpmod_lisp\n$lmf_lisp\n$lm_lisp\n$mp_lisp\$"
+test_cmd_re "ALL" "unload $module3" $ans
 
 #
 #  Set up the environment for reversal ...
@@ -187,17 +112,7 @@ set env(LOADEDMODULES) "$module4"
 #	for backward compatibility
 #
 
-test_cmd_re "sh" "unload $module4" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "bash" "unload $module4" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "ksh" "unload $module4" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "zsh" "unload $module4" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "csh" "unload $module4" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "tcsh" "unload $module4" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "fish" "unload $module4" "$lmfmod_fish\n$lmmod_fish\n$mpmod_fish\n$lmf_fish\n$lm_fish\n$mp_fish\$"
-test_cmd_re "tcl" "unload $module4" "$lmfmod_tcl\n$lmmod_tcl\n$mpmod_tcl\n$lmf_tcl\n$lm_tcl\n$mp_tcl\$"
-test_cmd_re "perl" "unload $module4" "$lmfmod_perl\n$lmmod_perl\n$mpmod_perl\n$lmf_perl\n$lm_perl\n$mp_perl\n1;\$"
-test_cmd_re "python" "unload $module4" "import os\n$lmfmod_python\n$lmmod_python\n$mpmod_python\n$lmf_python\n$lm_python\n$mp_python\$"
-test_cmd_re "lisp" "unload $module4" "$lmfmod_lisp\n$lmmod_lisp\n$mpmod_lisp\n$lmf_lisp\n$lm_lisp\n$mp_lisp\$"
+test_cmd_re "ALL" "unload $module4" $ans
 
 #
 #  Set up the environment for reversal ...
@@ -210,17 +125,7 @@ set env(LOADEDMODULES) "$module5"
 #  The tests (use --prepend)
 #
 
-test_cmd_re "sh" "unload $module5" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "bash" "unload $module5" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "ksh" "unload $module5" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "zsh" "unload $module5" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "csh" "unload $module5" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "tcsh" "unload $module5" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "fish" "unload $module5" "$lmfmod_fish\n$lmmod_fish\n$mpmod_fish\n$lmf_fish\n$lm_fish\n$mp_fish\$"
-test_cmd_re "tcl" "unload $module5" "$lmfmod_tcl\n$lmmod_tcl\n$mpmod_tcl\n$lmf_tcl\n$lm_tcl\n$mp_tcl\$"
-test_cmd_re "perl" "unload $module5" "$lmfmod_perl\n$lmmod_perl\n$mpmod_perl\n$lmf_perl\n$lm_perl\n$mp_perl\n1;\$"
-test_cmd_re "python" "unload $module5" "import os\n$lmfmod_python\n$lmmod_python\n$mpmod_python\n$lmf_python\n$lm_python\n$mp_python\$"
-test_cmd_re "lisp" "unload $module5" "$lmfmod_lisp\n$lmmod_lisp\n$mpmod_lisp\n$lmf_lisp\n$lm_lisp\n$mp_lisp\$"
+test_cmd_re "ALL" "unload $module5" $ans
 
 #
 #  Set up the environment for reversal ...
@@ -233,17 +138,7 @@ set env(LOADEDMODULES) "$module6"
 #  The tests (use -p)
 #
 
-test_cmd_re "sh" "unload $module6" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "bash" "unload $module6" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "ksh" "unload $module6" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "zsh" "unload $module6" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "csh" "unload $module6" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "tcsh" "unload $module6" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "fish" "unload $module6" "$lmfmod_fish\n$lmmod_fish\n$mpmod_fish\n$lmf_fish\n$lm_fish\n$mp_fish\$"
-test_cmd_re "tcl" "unload $module6" "$lmfmod_tcl\n$lmmod_tcl\n$mpmod_tcl\n$lmf_tcl\n$lm_tcl\n$mp_tcl\$"
-test_cmd_re "perl" "unload $module6" "$lmfmod_perl\n$lmmod_perl\n$mpmod_perl\n$lmf_perl\n$lm_perl\n$mp_perl\n1;\$"
-test_cmd_re "python" "unload $module6" "import os\n$lmfmod_python\n$lmmod_python\n$mpmod_python\n$lmf_python\n$lm_python\n$mp_python\$"
-test_cmd_re "lisp" "unload $module6" "$lmfmod_lisp\n$lmmod_lisp\n$mpmod_lisp\n$lmf_lisp\n$lm_lisp\n$mp_lisp\$"
+test_cmd_re "ALL" "unload $module6" $ans
 
 #
 #  Set up the environment for reversal ...
@@ -257,17 +152,7 @@ set env(LOADEDMODULES) "$module7"
 #	for backward compatibility
 #
 
-test_cmd_re "sh" "unload $module7" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "bash" "unload $module7" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "ksh" "unload $module7" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "zsh" "unload $module7" "$lmfmod_sh\n$lmmod_sh\n$mpmod_sh\n$lmf_sh\n$lm_sh\n$mp_sh\$"
-test_cmd_re "csh" "unload $module7" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "tcsh" "unload $module7" "$lmfmod_csh\n$lmmod_csh\n$mpmod_csh\n$lmf_csh\n$lm_csh\n$mp_csh\$"
-test_cmd_re "fish" "unload $module7" "$lmfmod_fish\n$lmmod_fish\n$mpmod_fish\n$lmf_fish\n$lm_fish\n$mp_fish\$"
-test_cmd_re "tcl" "unload $module7" "$lmfmod_tcl\n$lmmod_tcl\n$mpmod_tcl\n$lmf_tcl\n$lm_tcl\n$mp_tcl\$"
-test_cmd_re "perl" "unload $module7" "$lmfmod_perl\n$lmmod_perl\n$mpmod_perl\n$lmf_perl\n$lm_perl\n$mp_perl\n1;\$"
-test_cmd_re "python" "unload $module7" "import os\n$lmfmod_python\n$lmmod_python\n$mpmod_python\n$lmf_python\n$lm_python\n$mp_python\$"
-test_cmd_re "lisp" "unload $module7" "$lmfmod_lisp\n$lmmod_lisp\n$mpmod_lisp\n$lmf_lisp\n$lm_lisp\n$mp_lisp\$"
+test_cmd_re "ALL" "unload $module7" $ans
 
 #
 #  Set up the environment for reversal ...
@@ -276,22 +161,16 @@ test_cmd_re "lisp" "unload $module7" "$lmfmod_lisp\n$lmmod_lisp\n$mpmod_lisp\n$l
 set env(_LMFILES_) "$modulefile8"
 set env(LOADEDMODULES) "$module8"
 
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
 #
 #  The tests (use -prepend)
 #	for backward compatibility
 #
 
-testouterr_cmd_re "sh" "unload $module8" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^\$"
-testouterr_cmd_re "bash" "unload $module8" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^\$"
-testouterr_cmd_re "ksh" "unload $module8" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^\$"
-testouterr_cmd_re "zsh" "unload $module8" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^\$"
-testouterr_cmd_re "csh" "unload $module8" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$" "^\$"
-testouterr_cmd_re "tcsh" "unload $module8" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$" "^\$"
-testouterr_cmd_re "fish" "unload $module8" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$" "^\$"
-testouterr_cmd_re "tcl" "unload $module8" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$" "^\$"
-testouterr_cmd_re "perl" "unload $module8" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$" "^\$"
-testouterr_cmd_re "python" "unload $module8" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$" "^\$"
-testouterr_cmd_re "lisp" "unload $module8" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$" "^\$"
+testouterr_cmd_re "ALL" "unload $module8" $ans "^\$"
 
 #
 #  Cleanup
@@ -301,54 +180,7 @@ set env(MODULEPATH) "$path1"
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 
-unset mpmod_sh
-unset mp_sh
-unset lm_sh
-unset lmf_sh
-unset lmmod_sh
-unset lmfmod_sh
-
-unset mpmod_csh
-unset mp_csh
-unset lm_csh
-unset lmf_csh
-unset lmmod_csh
-unset lmfmod_csh
-
-unset mpmod_fish
-unset mp_fish
-unset lm_fish
-unset lmf_fish
-unset lmmod_fish
-unset lmfmod_fish
-
-unset mpmod_tcl
-unset mp_tcl
-unset lm_tcl
-unset lmf_tcl
-unset lmmod_tcl
-unset lmfmod_tcl
-
-unset mpmod_perl
-unset mp_perl
-unset lm_perl
-unset lmf_perl
-unset lmmod_perl
-unset lmfmod_perl
-
-unset mpmod_python
-unset mp_python
-unset lm_python
-unset lmf_python
-unset lmmod_python
-unset lmfmod_python
-
-unset mpmod_lisp
-unset mp_lisp
-unset lm_lisp
-unset lmf_lisp
-unset lmmod_lisp
-unset lmfmod_lisp
+unset ans
 
 unset modulefile8
 unset modulefile7

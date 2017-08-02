@@ -57,14 +57,12 @@ set mod2testres "$mod\nTest result: PASS"
 #  The tests
 #
 
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modfile1c:$modfile1; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$mod1c:$mod1; export LOADEDMODULES;"
-set tssub_sh "testspreadsub=yes; export testspreadsub;"
-set ts_sh "testspread=yes; export testspread;"
+lappend ans [list set testspread yes]
+lappend ans [list set testspreadsub yes]
+lappend ans [list setpath LOADEDMODULES "$mod1c:$mod1"]
+lappend ans [list setpath _LMFILES_ "$modfile1c:$modfile1"]
 
-testouterr_cmd_re "sh" "load $mod1" "^$lmfmod_sh\n$lmmod_sh\n$tssub_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$" "^$spreadres\$"
+testouterr_cmd_re "sh" "load $mod1" $ans "^$spreadres\$"
 testerr_cmd_re "sh" "display $mod1" "^$mod1disph\n$mod1dispres\n$modlin\$"
 testerr_cmd_re "sh" "help $mod1" "^$mod1helph\n$mod1helpres\n$modlin\$"
 testerr_cmd_re "sh" "test $mod1" "^$mod1testh\n$mod1testres\n$modlin\$"
@@ -82,23 +80,23 @@ set env(testspreadsub) "yes"
 set env(testspread) "yes"
 
 # test switching
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modfile2c:$modfile2; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$mod2c:$mod2; export LOADEDMODULES;"
-set tssub_sh "testspreadcmdsub=yes; export testspreadcmdsub;\nunset testspreadsub;"
-set ts_sh "testspreadcmd=yes; export testspreadcmd;\nunset testspread;"
-testouterr_cmd_re "sh" "switch $mod1 $mod2" "^$lmfmod_sh\n$lmmod_sh\n$tssub_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$" "^$spreadres\$"
+set ans [list]
+lappend ans [list unset testspread]
+lappend ans [list unset testspreadsub]
+lappend ans [list setpath LOADEDMODULES "$mod2c:$mod2"]
+lappend ans [list setpath _LMFILES_ "$modfile2c:$modfile2"]
+lappend ans [list set testspreadcmd yes]
+lappend ans [list set testspreadcmdsub yes]
+testouterr_cmd_re "sh" "switch $mod1 $mod2" $ans "^$spreadres\$"
 
 testerr_cmd "sh" "list -t" "Currently Loaded Modulefiles:\n$mod1c\n$mod1"
 # test unloading
-set lmfmod_sh "unset _LMFILES__modshare;"
-set lmmod_sh "unset LOADEDMODULES_modshare;"
-set lmf_sh "unset _LMFILES_;"
-set lm_sh "unset LOADEDMODULES;"
-set tssub_sh "unset testspreadsub;"
-set ts_sh "unset testspread;"
-testouterr_cmd_re "sh" "unload $mod1" "^$lmfmod_sh\n$lmmod_sh\n$tssub_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$" "^$spreadres\$"
+set ans [list]
+lappend ans [list unset testspread]
+lappend ans [list unset testspreadsub]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd_re "sh" "unload $mod1" $ans "^$spreadres\$"
 
 # Clean up the environment
 unset env(LOADEDMODULES)
@@ -111,14 +109,13 @@ unset env(testspread)
 # Test with altered command in modulefile
 #
 
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modfile2c:$modfile2; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$mod2c:$mod2; export LOADEDMODULES;"
-set tssub_sh "testspreadcmdsub=yes; export testspreadcmdsub;"
-set ts_sh "testspreadcmd=yes; export testspreadcmd;"
+set ans [list]
+lappend ans [list set testspreadcmd yes]
+lappend ans [list set testspreadcmdsub yes]
+lappend ans [list setpath LOADEDMODULES "$mod2c:$mod2"]
+lappend ans [list setpath _LMFILES_ "$modfile2c:$modfile2"]
 
-testouterr_cmd_re "sh" "load $mod2" "^$lmfmod_sh\n$lmmod_sh\n$tssub_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$" "^$spreadres\$"
+testouterr_cmd_re "sh" "load $mod2" $ans "^$spreadres\$"
 testerr_cmd_re "sh" "display $mod2" "^$mod2disph\n$mod2dispres\n$modlin\$"
 testerr_cmd_re "sh" "help $mod2" "^$mod2helph\n$mod2helpres\n$modlin\$"
 testerr_cmd_re "sh" "test $mod2" "^$mod2testh\n$mod2testres\n$modlin\$"
@@ -137,13 +134,12 @@ set env(testspreadcmd) "yes"
 
 testerr_cmd "sh" "list -t" "Currently Loaded Modulefiles:\n$mod2c\n$mod2"
 # test unloading
-set lmfmod_sh "unset _LMFILES__modshare;"
-set lmmod_sh "unset LOADEDMODULES_modshare;"
-set lmf_sh "unset _LMFILES_;"
-set lm_sh "unset LOADEDMODULES;"
-set tssub_sh "unset testspreadcmdsub;"
-set ts_sh "unset testspreadcmd;"
-testouterr_cmd_re "sh" "unload $mod2" "^$lmfmod_sh\n$lmmod_sh\n$tssub_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$" "^$spreadres\$"
+set ans [list]
+lappend ans [list unset testspreadcmd]
+lappend ans [list unset testspreadcmdsub]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd_re "sh" "unload $mod2" $ans "^$spreadres\$"
 
 # Clean up the environment
 unset env(LOADEDMODULES)
@@ -190,14 +186,13 @@ set mod2testres "spreadmod\nTest result: PASS"
 #  The tests
 #
 
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modfile1c:$modfile1; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$mod1c:$mod1; export LOADEDMODULES;"
-set tssub_sh "testspreadrcsub=yes; export testspreadrcsub;"
-set ts_sh "testspreadrc=yes; export testspreadrc;"
+set ans [list]
+lappend ans [list set testspreadrc yes]
+lappend ans [list set testspreadrcsub yes]
+lappend ans [list setpath LOADEDMODULES "$mod1c:$mod1"]
+lappend ans [list setpath _LMFILES_ "$modfile1c:$modfile1"]
 
-testouterr_cmd_re "sh" "load $mod1" "^$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tssub_sh\$" "^$spreadres\$"
+testouterr_cmd_re "sh" "load $mod1" $ans "^$spreadres\$"
 testerr_cmd_re "sh" "display $mod1" "^$mod1disph\n$mod1dispres\n$modlin\$"
 testerr_cmd_re "sh" "help $mod1" "^$mod1helph\n$mod1helpres\n$modlin\$"
 testerr_cmd_re "sh" "test $mod1" "^$mod1testh\n$mod1testres\n$modlin\$"
@@ -215,23 +210,23 @@ set env(testspreadrcsub) "yes"
 set env(testspreadrc) "yes"
 
 # test switching
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modfile2c:$modfile2; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$mod2c:$mod2; export LOADEDMODULES;"
-set tssub_sh "testspreadrccmdsub=yes; export testspreadrccmdsub;\n$lmf_sh\n$lm_sh\nunset testspreadrcsub;"
-set ts_sh "testspreadrccmd=yes; export testspreadrccmd;\n$lmfmod_sh\n$lmmod_sh\nunset testspreadrc;"
-testouterr_cmd_re "sh" "switch $mod1 $mod2" "^$ts_sh\n$tssub_sh\$" "^$spreadres\$"
+set ans [list]
+lappend ans [list unset testspreadrc]
+lappend ans [list unset testspreadrcsub]
+lappend ans [list setpath LOADEDMODULES "$mod2c:$mod2"]
+lappend ans [list setpath _LMFILES_ "$modfile2c:$modfile2"]
+lappend ans [list set testspreadrccmd yes]
+lappend ans [list set testspreadrccmdsub yes]
+testouterr_cmd_re "sh" "switch $mod1 $mod2" $ans "^$spreadres\$"
 
 testerr_cmd "sh" "list -t" "Currently Loaded Modulefiles:\n$mod1c\n$mod1"
 # test unloading
-set lmfmod_sh "unset _LMFILES__modshare;"
-set lmmod_sh "unset LOADEDMODULES_modshare;"
-set lmf_sh "unset _LMFILES_;"
-set lm_sh "unset LOADEDMODULES;"
-set tssub_sh "unset testspreadrcsub;"
-set ts_sh "unset testspreadrc;"
-testouterr_cmd_re "sh" "unload $mod1" "^$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tssub_sh\$" "^$spreadres\$"
+set ans [list]
+lappend ans [list unset testspreadrc]
+lappend ans [list unset testspreadrcsub]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd_re "sh" "unload $mod1" $ans "^$spreadres\$"
 
 # Clean up the environment
 unset env(LOADEDMODULES)
@@ -244,14 +239,13 @@ unset env(testspreadrc)
 # Test modulerc/modulefile with altered command
 #
 
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modfile2c:$modfile2; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$mod2c:$mod2; export LOADEDMODULES;"
-set tssub_sh "testspreadrccmdsub=yes; export testspreadrccmdsub;"
-set ts_sh "testspreadrccmd=yes; export testspreadrccmd;"
+set ans [list]
+lappend ans [list set testspreadrccmd yes]
+lappend ans [list set testspreadrccmdsub yes]
+lappend ans [list setpath LOADEDMODULES "$mod2c:$mod2"]
+lappend ans [list setpath _LMFILES_ "$modfile2c:$modfile2"]
 
-testouterr_cmd_re "sh" "load $mod2" "^$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tssub_sh\$" "^$spreadres\$"
+testouterr_cmd_re "sh" "load $mod2" $ans "^$spreadres\$"
 testerr_cmd_re "sh" "display $mod2" "^$mod2disph\n$mod2dispres\n$modlin\$"
 testerr_cmd_re "sh" "help $mod2" "^$mod2helph\n$mod2helpres\n$modlin\$"
 testerr_cmd_re "sh" "test $mod2" "^$mod2testh\n$mod2testres\n$modlin\$"
@@ -270,13 +264,12 @@ set env(testspreadrccmd) "yes"
 
 testerr_cmd "sh" "list -t" "Currently Loaded Modulefiles:\n$mod2c\n$mod2"
 # test unloading
-set lmfmod_sh "unset _LMFILES__modshare;"
-set lmmod_sh "unset LOADEDMODULES_modshare;"
-set lmf_sh "unset _LMFILES_;"
-set lm_sh "unset LOADEDMODULES;"
-set tssub_sh "unset testspreadrccmdsub;"
-set ts_sh "unset testspreadrccmd;"
-testouterr_cmd_re "sh" "unload $mod2" "^$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tssub_sh\$" "^$spreadres\$"
+set ans [list]
+lappend ans [list unset testspreadrccmd]
+lappend ans [list unset testspreadrccmdsub]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd_re "sh" "unload $mod2" $ans "^$spreadres\$"
 
 # Clean up the environment
 unset env(LOADEDMODULES)
@@ -289,12 +282,7 @@ unset env(testspreadrccmd)
 #  Cleanup
 #
 
-unset lm_sh
-unset lmf_sh
-unset lmmod_sh
-unset lmfmod_sh
-unset tssub_sh
-unset ts_sh
+unset ans
 
 unset mod1disph
 unset mod2disph

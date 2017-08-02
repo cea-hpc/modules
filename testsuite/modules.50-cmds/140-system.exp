@@ -33,27 +33,23 @@ set modulefile "$env(MODULEPATH)/$module"
 #  Only for the csh
 #
 
-set lmfmod_csh "setenv _LMFILES__modshare $modulefile:1;"
-set lmmod_csh "setenv LOADEDMODULES_modshare $module:1;"
-set lmf_csh "setenv _LMFILES_ $modulefile;"
-set lm_csh "setenv LOADEDMODULES $module;"
-set ts_csh "setenv testsuite 123;"
+lappend ans [list set _LMFILES__modshare "$modulefile:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module:1"]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite 123]
 
 #
 #  The tests
 #
 
-test_cmd "csh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh"
+test_cmd "csh" "load $module" $ans
 
 #
 #  Cleanup
 #
 
-unset lmfmod_csh
-unset lmmod_csh
-unset ts_csh
-unset lm_csh
-unset lmf_csh
+unset ans
 
 unset modulefile
 unset module

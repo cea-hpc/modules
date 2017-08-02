@@ -34,86 +34,18 @@ set env(LOADEDMODULES) "$module1:$module2:$module3"
 #
 #  For the different shells ...
 #
-set mvs_sh "MODULE_VERSION_STACK=$module_version_stack2; export MODULE_VERSION_STACK;"
-set mv_sh "MODULE_VERSION=$version2; export MODULE_VERSION;"
-set lmf_sh "_LMFILES_=$modulefile1:$modulefile2; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module1:$module2; export LOADEDMODULES;"
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set mvsmod_sh "MODULE_VERSION_STACK_modshare=(.*); export MODULE_VERSION_STACK_modshare;"
 
-set mvs_csh "setenv MODULE_VERSION_STACK $module_version_stack2;"
-set mv_csh "setenv MODULE_VERSION $version2;"
-set lmf_csh "setenv _LMFILES_ $modulefile1:$modulefile2;"
-set lm_csh "setenv LOADEDMODULES $module1:$module2;"
-set lmfmod_csh "setenv _LMFILES__modshare (.*);"
-set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set mvsmod_csh "setenv MODULE_VERSION_STACK_modshare (.*);"
-
-set mvs_fish "set -xg MODULE_VERSION_STACK $module_version_stack2;"
-set mv_fish "set -xg MODULE_VERSION $version2;"
-set lmf_fish "set -xg _LMFILES_ $modulefile1:$modulefile2;"
-set lm_fish "set -xg LOADEDMODULES $module1:$module2;"
-set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
-set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
-set mvsmod_fish "set -xg MODULE_VERSION_STACK_modshare (.*);"
-
-set mvs_tcl "set env\\\(MODULE_VERSION_STACK\\\) \"$module_version_stack2\";"
-set mv_tcl "set env\\\(MODULE_VERSION\\\) \"$version2\";"
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile1:$modulefile2\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module1:$module2\";"
-set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
-set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
-set mvsmod_tcl "set env\\\(MODULE_VERSION_STACK_modshare\\\) \"(.*)\";"
-
-set mvs_perl "\\\$ENV{\'MODULE_VERSION_STACK\'} = \'$module_version_stack2\';"
-set mv_perl "\\\$ENV{\'MODULE_VERSION\'} = \'$version2\';"
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = '$modulefile1:$modulefile2\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module1:$module2\';"
-set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
-set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
-set mvsmod_perl "\\\$ENV{\'MODULE_VERSION_STACK_modshare\'} = \'(.*)\';"
-
-set mvs_cmake "set(ENV{MODULE_VERSION_STACK} \"$module_version_stack2\")"
-set mv_cmake "set(ENV{MODULE_VERSION} \"$version2\")"
-set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile1:$modulefile2\")"
-set lm_cmake "set(ENV{LOADEDMODULES} \"$module1:$module2\")"
-set lmfmod_cmake "set(ENV{'_LMFILES__modshare'} = \'(.*)\')"
-set lmmod_cmake "set(ENV{'LOADEDMODULES_modshare'} = \'(.*)\')"
-set mvsmod_cmake "set(ENV{'MODULE_VERSION_STACK_modshare'} = \'(.*)\')"
-
-set mvs_python "os.environ\\\[\'MODULE_VERSION_STACK\'\\\] = \'$module_version_stack2\'"
-set mv_python "os.environ\\\[\'MODULE_VERSION\'\\\] = \'$version2\'"
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile1:$modulefile2\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module1:$module2\'"
-set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
-set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
-set mvsmod_python "os.environ\\\[\'MODULE_VERSION_STACK_modshare\'\\\] = \'(.*)\'"
-
-set mvs_lisp "\\\(setenv \"MODULE_VERSION_STACK\" \"$module_version_stack2\"\\\)"
-set mv_lisp "\\\(setenv \"MODULE_VERSION\" \"$version2\"\\\)"
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile1:$modulefile2\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module1:$module2\"\\\)"
-set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
-set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
-set mvsmod_lisp "\\\(setenv \"MODULE_VERSION_STACK_modshare\" \"(.*)\"\\\)"
+lappend ans [list setpath MODULE_VERSION_STACK $module_version_stack2]
+lappend ans [list setpath LOADEDMODULES "$module1:$module2"]
+lappend ans [list setpath _LMFILES_ "$modulefile1:$modulefile2"]
+lappend ans [list set MODULE_VERSION $version2]
 
 
 #
 #  The tests
 #
-test_cmd_re "sh" "unload $module3" "$lmfmod_sh\n$lmmod_sh\n$mvs_sh\n$lmf_sh\n$lm_sh\n$mvsmod_sh\n$mv_sh\$"
-test_cmd_re "bash" "unload $module3" "$lmfmod_sh\n$lmmod_sh\n$mvs_sh\n$lmf_sh\n$lm_sh\n$mvsmod_sh\n$mv_sh\$"
-test_cmd_re "ksh" "unload $module3" "$lmfmod_sh\n$lmmod_sh\n$mvs_sh\n$lmf_sh\n$lm_sh\n$mvsmod_sh\n$mv_sh\$"
-test_cmd_re "zsh" "unload $module3" "$lmfmod_sh\n$lmmod_sh\n$mvs_sh\n$lmf_sh\n$lm_sh\n$mvsmod_sh\n$mv_sh\$"
-test_cmd_re "csh" "unload $module3" "$lmfmod_csh\n$lmmod_csh\n$mvs_csh\n$lmf_csh\n$lm_csh\n$mvsmod_csh\n$mv_csh\$"
-test_cmd_re "tcsh" "unload $module3" "$lmfmod_csh\n$lmmod_csh\n$mvs_csh\n$lmf_csh\n$lm_csh\n$mvsmod_csh\n$mv_csh\$"
-test_cmd_re "fish" "unload $module3" "$lmfmod_fish\n$lmmod_fish\n$mvs_fish\n$lmf_fish\n$lm_fish\n$mvsmod_fish\n$mv_fish\$"
-test_cmd_re "tcl" "unload $module3" "$lmfmod_tcl\n$lmmod_tcl\n$mvs_tcl\n$lmf_tcl\n$lm_tcl\n$mvsmod_tcl\n$mv_tcl\$"
-test_cmd_re "perl" "unload $module3" "$lmfmod_perl\n$lmmod_perl\n$mvs_perl\n$lmf_perl\n$lm_perl\n$mvsmod_perl\n$mv_perl\n1;\$"
-#test_cmd_re "cmake" "unload $module3\$"
-test_cmd_re "python" "unload $module3" "import os\n$lmfmod_python\n$lmmod_python\n$mvs_python\n$lmf_python\n$lm_python\n$mvsmod_python\n$mv_python\$"
-test_cmd_re "lisp" "unload $module3" "$lmfmod_lisp\n$lmmod_lisp\n$mvs_lisp\n$lmf_lisp\n$lm_lisp\n$mvsmod_lisp\n$mv_lisp\$"
+
+test_cmd_re "ALL" "unload $module3" $ans
 
 #
 # Remove a version that is not on top of the stack
@@ -121,45 +53,11 @@ test_cmd_re "lisp" "unload $module3" "$lmfmod_lisp\n$lmmod_lisp\n$mvs_lisp\n$lmf
 #  For the different shells ...
 #
 
-set mvs_sh "MODULE_VERSION_STACK=$version3:$version1; export MODULE_VERSION_STACK;"
-set mv_sh "MODULE_VERSION=$version3; export MODULE_VERSION;"
-set lmf_sh "_LMFILES_=$modulefile1:$modulefile3; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module1:$module3; export LOADEDMODULES;"
-
-set mvs_csh "setenv MODULE_VERSION_STACK $version3:$version1;"
-set mv_csh "setenv MODULE_VERSION $version3;"
-set lmf_csh "setenv _LMFILES_ $modulefile1:$modulefile3;"
-set lm_csh "setenv LOADEDMODULES $module1:$module3;"
-
-set mvs_fish "set -xg MODULE_VERSION_STACK $version3:$version1;"
-set mv_fish "set -xg MODULE_VERSION $version3;"
-set lmf_fish "set -xg _LMFILES_ $modulefile1:$modulefile3;"
-set lm_fish "set -xg LOADEDMODULES $module1:$module3;"
-
-set mvs_tcl "set env\\\(MODULE_VERSION_STACK\\\) \"$version3:$version1\";"
-set mv_tcl "set env\\\(MODULE_VERSION\\\) \"$version3\";"
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile1:$modulefile3\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module1:$module3\";"
-
-set mvs_perl "\\\$ENV{\'MODULE_VERSION_STACK\'} = \'$version3:$version1\';"
-set mv_perl "\\\$ENV{\'MODULE_VERSION\'} = \'$version3\';"
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile1:$modulefile3\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module1:$module3\';"
-
-set mvs_cmake "set(ENV{MODULE_VERSION_STACK} \"$version3:$version1\")"
-set mv_cmake "set(ENV{MODULE_VERSION} \"$version3\")"
-set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile1:$modulefile3\")"
-set lm_cmake "set(ENV{LOADEDMODULES} \"$module1:$module3\")"
-
-set mvs_python "os.environ\\\[\'MODULE_VERSION_STACK\'\\\] = \'$version3:$version1\'"
-set mv_python "os.environ\\\[\'MODULE_VERSION\'\\\] = \'$version3\'"
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile1:$modulefile3\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module1:$module3\'"
-
-set mvs_lisp "\\\(setenv \"MODULE_VERSION_STACK\" \"$version3:$version1\"\\\)"
-set mv_lisp "\\\(setenv \"MODULE_VERSION\" \"$version3\"\\\)"
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile1:$modulefile3\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module1:$module3\"\\\)"
+set ans [list]
+lappend ans [list setpath MODULE_VERSION_STACK "$version3:$version1"]
+lappend ans [list setpath LOADEDMODULES "$module1:$module3"]
+lappend ans [list setpath _LMFILES_ "$modulefile1:$modulefile3"]
+lappend ans [list set MODULE_VERSION $version3]
 
 #
 #  The tests
@@ -167,86 +65,13 @@ set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module1:$module3\"\\\)"
 
 # different behavior than C-version: on Tcl-version env variable value is
 # set even if its current value does change
-test_cmd_re "sh" "unload $module2" "$lmfmod_sh\n$lmmod_sh\n$mvs_sh\n$lmf_sh\n$lm_sh\n$mvsmod_sh\n$mv_sh\$"
-test_cmd_re "bash" "unload $module2" "$lmfmod_sh\n$lmmod_sh\n$mvs_sh\n$lmf_sh\n$lm_sh\n$mvsmod_sh\n$mv_sh\$"
-test_cmd_re "ksh" "unload $module2" "$lmfmod_sh\n$lmmod_sh\n$mvs_sh\n$lmf_sh\n$lm_sh\n$mvsmod_sh\n$mv_sh\$"
-test_cmd_re "zsh" "unload $module2" "$lmfmod_sh\n$lmmod_sh\n$mvs_sh\n$lmf_sh\n$lm_sh\n$mvsmod_sh\n$mv_sh\$"
-test_cmd_re "csh" "unload $module2" "$lmfmod_csh\n$lmmod_csh\n$mvs_csh\n$lmf_csh\n$lm_csh\n$mvsmod_csh\n$mv_csh\$"
-test_cmd_re "tcsh" "unload $module2" "$lmfmod_csh\n$lmmod_csh\n$mvs_csh\n$lmf_csh\n$lm_csh\n$mvsmod_csh\n$mv_csh\$"
-test_cmd_re "fish" "unload $module2" "$lmfmod_fish\n$lmmod_fish\n$mvs_fish\n$lmf_fish\n$lm_fish\n$mvsmod_fish\n$mv_fish\$"
-test_cmd_re "tcl" "unload $module2" "$lmfmod_tcl\n$lmmod_tcl\n$mvs_tcl\n$lmf_tcl\n$lm_tcl\n$mvsmod_tcl\n$mv_tcl\$"
-test_cmd_re "perl" "unload $module2" "$lmfmod_perl\n$lmmod_perl\n$mvs_perl\n$lmf_perl\n$lm_perl\n$mvsmod_perl\n$mv_perl\n1;\$"
-#test_cmd_re "cmake" "unload $module2\$"
-test_cmd_re "python" "unload $module2" "import os\n$lmfmod_python\n$lmmod_python\n$mvs_python\n$lmf_python\n$lm_python\n$mvsmod_python\n$mv_python\$"
-test_cmd_re "lisp" "unload $module2" "$lmfmod_lisp\n$lmmod_lisp\n$mvs_lisp\n$lmf_lisp\n$lm_lisp\n$mvsmod_lisp\n$mv_lisp\$"
+test_cmd_re "ALL" "unload $module2" $ans
 
 #
 #  Cleanup
 #
 
-unset lm_sh
-unset lmf_sh
-unset mv_sh
-unset mvs_sh
-unset lmfmod_sh 
-unset lmmod_sh 
-unset mvsmod_sh
-
-unset lm_csh
-unset lmf_csh
-unset mv_csh
-unset mvs_csh
-unset lmfmod_csh
-unset lmmod_csh
-unset mvsmod_csh
-
-unset lm_fish
-unset lmf_fish
-unset mv_fish
-unset mvs_fish
-unset lmfmod_fish
-unset lmmod_fish
-unset mvsmod_fish
-
-unset lm_tcl
-unset lmf_tcl
-unset mv_tcl
-unset mvs_tcl
-unset lmfmod_tcl
-unset lmmod_tcl
-unset mvsmod_tcl
-
-unset lm_perl
-unset lmf_perl
-unset mv_perl
-unset mvs_perl
-unset lmfmod_perl
-unset lmmod_perl
-unset mvsmod_perl
-
-unset lm_cmake
-unset lmf_cmake
-unset mv_cmake
-unset mvs_cmake
-unset lmfmod_cmake
-unset lmmod_cmake
-unset mvsmod_cmake
-
-unset lm_python
-unset lmf_python
-unset mv_python
-unset mvs_python
-unset lmfmod_python
-unset lmmod_python
-unset mvsmod_python
-
-unset lm_lisp
-unset lmf_lisp
-unset mv_lisp
-unset mvs_lisp
-unset lmfmod_lisp
-unset lmmod_lisp
-unset mvsmod_lisp
+unset ans
 
 #
 #  Clean up the environment, too

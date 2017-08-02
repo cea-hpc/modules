@@ -142,14 +142,14 @@ restore_file_perms $lmf4
 
 change_file_perms $lmf5 $hide_perms
 
-set lmfmod_sh "_LMFILES__modshare=$rlmf5:1; export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=$rlm5:1; export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$rlmf5; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$rlm5; export LOADEDMODULES;"
-set ts_sh "testsuite=yes; export testsuite;"
+lappend ans [list set _LMFILES__modshare "$rlmf5:1"]
+lappend ans [list set LOADEDMODULES_modshare "$rlm5:1"]
+lappend ans [list set _LMFILES_ $rlmf5]
+lappend ans [list set LOADEDMODULES $rlm5]
+lappend ans [list set testsuite yes]
 
 # another implicit default is chosen
-testouterr_cmd "sh" "load $m5" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh" ""
+testouterr_cmd "sh" "load $m5" $ans ""
 testouterr_cmd_re "sh" "display $m5" "OK" "^$modlin\n$rlmf5:\n\nmodule-whatis\t$rlm5\nsetenv\t\ttestsuite\tyes\n$modlin\$"
 testouterr_cmd_re "sh" "whatis $m5" "OK" "^$pheader\n\\s+$rlm5: $rlm5\$"
 testouterr_cmd_re "sh" "avail -t $m5" "" "^$pheader\n$rlm5\\(.*\\)\$"
@@ -222,14 +222,15 @@ restore_file_perms $lmrc9
 
 change_file_perms $lmrc10 $hide_perms
 
-set lmfmod_sh "_LMFILES__modshare=$rlmf10:1; export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=$rlm10:1; export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$rlmf10; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$rlm10; export LOADEDMODULES;"
-set ts_sh "testsuite=yes; export testsuite;"
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$rlmf10:1"]
+lappend ans [list set LOADEDMODULES_modshare "$rlm10:1"]
+lappend ans [list set _LMFILES_ $rlmf10]
+lappend ans [list set LOADEDMODULES $rlm10]
+lappend ans [list set testsuite yes]
 
 # another implicit default is chosen
-testouterr_cmd "sh" "load $m10" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh" ""
+testouterr_cmd "sh" "load $m10" $ans ""
 testouterr_cmd_re "sh" "display $m10" "OK" "^$modlin\n$rlmf10:\n\nmodule-whatis\t$rlm10\nsetenv\t\ttestsuite\tyes\n$modlin\$"
 testouterr_cmd_re "sh" "whatis $m10" "OK" "^$pheader\n\\s+$m10/1.0: $m10/1.0\n\\s+$m10/2.0: $m10/2.0\n\\s+$m10/3.0: $m10/3.0\$"
 testouterr_cmd_re "sh" "avail -t $m10" "" "^$pheader\n$m10/1.0\n$m10/2.0\n$m10/3.0\$"
@@ -325,11 +326,7 @@ restore_file_perms $lmd16
 # Cleanup
 #
 
-unset lmfmod_sh
-unset lmmod_sh
-unset lmf_sh
-unset lm_sh
-unset ts_sh
+unset ans
 
 unset pheader
 unset locate_msg

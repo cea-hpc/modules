@@ -33,76 +33,20 @@ set modulefile "$env(MODULEPATH)/$module"
 set old_path $env(PATH)
 set ts_path "/this/is/the/modules/testsuite"
 set new_path "$ts_path:$old_path"
-regsub -all ":" $new_path " " new_fish_path
 
 #
 #  For the different shells ...
 #
 
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set tsmod_sh "PATH_modshare=(.*); export PATH_modshare;"
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set ts_sh "PATH=$new_path; export PATH;"
-
-set lmfmod_csh "setenv _LMFILES__modshare (.*);"
-set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set tsmod_csh "setenv PATH_modshare (.*);"
-set lmf_csh "setenv _LMFILES_ $modulefile;"
-set lm_csh "setenv LOADEDMODULES $module;"
-set ts_csh "setenv PATH $new_path;"
-
-set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
-set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
-set tsmod_fish "set -xg PATH_modshare (.*);"
-set lmf_fish "set -xg _LMFILES_ $modulefile;"
-set lm_fish "set -xg LOADEDMODULES $module;"
-set ts_fish "set -xg PATH $new_fish_path;"
-
-set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
-set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
-set tsmod_tcl "set env\\\(PATH_modshare\\\) \"(.*)\";"
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-set ts_tcl "set env\\\(PATH\\\) \"$new_path\";"
-
-set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
-set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
-set tsmod_perl "\\\$ENV{\'PATH_modshare\'} = \'(.*)\';"
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
-set ts_perl "\\\$ENV{\'PATH\'} = \'$new_path\';"
-
-set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
-set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
-set tsmod_python "os.environ\\\[\'PATH_modshare\'\\\] = \'(.*)\'"
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
-set ts_python "os.environ\\\[\'PATH\'\\\] = \'$new_path\'"
-
-set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
-set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
-set tsmod_lisp "\\\(setenv \"PATH_modshare\" \"(.*)\"\\\)"
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
-set ts_lisp "\\\(setenv \"PATH\" \"$new_path\"\\\)"
+lappend ans [list setpath PATH $new_path]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 #
 #  The tests
 #
 
-test_cmd_re "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "bash" "load $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "ksh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "zsh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "csh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$ts_csh\n$lmf_csh\n$lm_csh\n$tsmod_csh\$"
-test_cmd_re "tcsh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$ts_csh\n$lmf_csh\n$lm_csh\n$tsmod_csh\$"
-test_cmd_re "fish" "load $module" "$lmfmod_fish\n$lmmod_fish\n$ts_fish\n$lmf_fish\n$lm_fish\n$tsmod_fish\$"
-test_cmd_re "tcl" "load $module" "$lmfmod_tcl\n$lmmod_tcl\n$ts_tcl\n$lmf_tcl\n$lm_tcl\n$tsmod_tcl\$"
-test_cmd_re "perl" "load $module" "$lmfmod_perl\n$lmmod_perl\n$ts_perl\n$lmf_perl\n$lm_perl\n$tsmod_perl\n1;\$"
-test_cmd_re "python" "load $module" "import os\n$lmfmod_python\n$lmmod_python\n$ts_python\n$lmf_python\n$lm_python\n$tsmod_python\$"
-test_cmd_re "lisp" "load $module" "$lmfmod_lisp\n$lmmod_lisp\n$ts_lisp\n$lmf_lisp\n$lm_lisp\n$tsmod_lisp\$"
+test_cmd_re "ALL" "load $module" $ans
 
 #
 # Try prepending an empty string
@@ -114,55 +58,21 @@ set modulefile "$env(MODULEPATH)/$module"
 set old_path $env(PATH)
 set ts_path ""
 set new_path "$ts_path:$old_path"
-regsub -all ":" $new_path " " new_fish_path
 
 #
 #  For the different shells ...
 #
 
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set ts_sh "PATH=$new_path; export PATH;"
-
-set lmf_csh "setenv _LMFILES_ $modulefile;"
-set lm_csh "setenv LOADEDMODULES $module;"
-set ts_csh "setenv PATH $new_path;"
-
-set lmf_fish "set -xg _LMFILES_ $modulefile;"
-set lm_fish "set -xg LOADEDMODULES $module;"
-set ts_fish "set -xg PATH $new_fish_path;"
-
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-set ts_tcl "set env\\\(PATH\\\) \"$new_path\";"
-
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
-set ts_perl "\\\$ENV{\'PATH\'} = \'$new_path\';"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
-set ts_python "os.environ\\\[\'PATH\'\\\] = \'$new_path\'"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
-set ts_lisp "\\\(setenv \"PATH\" \"$new_path\"\\\)"
+set ans [list]
+lappend ans [list setpath PATH $new_path]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 #
 #  The tests
 #
 
-test_cmd_re "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "bash" "load $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "ksh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "zsh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "csh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$ts_csh\n$lmf_csh\n$lm_csh\n$tsmod_csh\$"
-test_cmd_re "tcsh" "load $module" "$lmfmod_csh\n$lmmod_csh\n$ts_csh\n$lmf_csh\n$lm_csh\n$tsmod_csh\$"
-test_cmd_re "fish" "load $module" "$lmfmod_fish\n$lmmod_fish\n$ts_fish\n$lmf_fish\n$lm_fish\n$tsmod_fish\$"
-test_cmd_re "tcl" "load $module" "$lmfmod_tcl\n$lmmod_tcl\n$ts_tcl\n$lmf_tcl\n$lm_tcl\n$tsmod_tcl\$"
-test_cmd_re "perl" "load $module" "$lmfmod_perl\n$lmmod_perl\n$ts_perl\n$lmf_perl\n$lm_perl\n$tsmod_perl\n1;\$"
-test_cmd_re "python" "load $module" "import os\n$lmfmod_python\n$lmmod_python\n$ts_python\n$lmf_python\n$lm_python\n$tsmod_python\$"
-test_cmd_re "lisp" "load $module" "$lmfmod_lisp\n$lmmod_lisp\n$ts_lisp\n$lmf_lisp\n$lm_lisp\n$tsmod_lisp\$"
+test_cmd_re "ALL" "load $module" $ans
 
 #
 # Try prepending a colon ':'
@@ -186,58 +96,10 @@ testouterr_cmd_re "ALL" "load $module" "" "$ts_err"
 #
 
 unset new_path
-unset new_fish_path
 unset ts_path
 unset old_path
 
-unset ts_sh
-unset lm_sh
-unset lmf_sh
-unset tsmod_sh
-unset lmmod_sh
-unset lmfmod_sh
-
-unset ts_csh
-unset lm_csh
-unset lmf_csh
-unset tsmod_csh
-unset lmmod_csh
-unset lmfmod_csh
-
-unset ts_fish
-unset lm_fish
-unset lmf_fish
-unset tsmod_fish
-unset lmmod_fish
-unset lmfmod_fish
-
-unset ts_tcl
-unset lm_tcl
-unset lmf_tcl
-unset tsmod_tcl
-unset lmmod_tcl
-unset lmfmod_tcl
-
-unset ts_perl
-unset lm_perl
-unset lmf_perl
-unset tsmod_perl
-unset lmmod_perl
-unset lmfmod_perl
-
-unset ts_python
-unset lm_python
-unset lmf_python
-unset tsmod_python
-unset lmmod_python
-unset lmfmod_python
-
-unset ts_lisp
-unset lm_lisp
-unset lmf_lisp
-unset tsmod_lisp
-unset lmmod_lisp
-unset lmfmod_lisp
+unset ans
 
 unset modulefile
 unset module

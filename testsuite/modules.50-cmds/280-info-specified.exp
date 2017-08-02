@@ -34,19 +34,18 @@ set modulefile "$env(MODULEPATH)/$module"
 #  For sh shell only (no need to check every shells)
 #
 
-set lmfmod_sh "_LMFILES__modshare=$modulefile:1; export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=$module:1; export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-
+lappend ans [list set _LMFILES__modshare "$modulefile:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module:1"]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
 
 #
 #  The tests
 #
 
 # test loading
-testouterr_cmd "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module"
-testouterr_cmd "sh" "load $module2" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module2"
+testouterr_cmd "sh" "load $module" $ans "$module"
+testouterr_cmd "sh" "load $module2" $ans "$module2"
 
 # test displaying
 testerr_cmd_re "sh" "display $module" "$modlin\n$modulefile:\n\n$module\n$modlin"
@@ -65,17 +64,17 @@ set env(_LMFILES_) "$modulefile"
 set env(LOADEDMODULES) "$module"
 
 # test switching
-testouterr_cmd "sh" "switch $module $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module\n$module"
-testouterr_cmd "sh" "switch $module $module2" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module\n$module2"
-testouterr_cmd "sh" "switch $module2 $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module2\n$module"
+testouterr_cmd "sh" "switch $module $module" $ans "$module\n$module"
+testouterr_cmd "sh" "switch $module $module2" $ans "$module\n$module2"
+testouterr_cmd "sh" "switch $module2 $module" $ans "$module2\n$module"
 
 # test unloading
-set lmfmod_sh "unset _LMFILES__modshare;"
-set lmmod_sh "unset LOADEDMODULES_modshare;"
-set lmf_sh "unset _LMFILES_;"
-set lm_sh "unset LOADEDMODULES;"
-testouterr_cmd "sh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module"
-testouterr_cmd "sh" "unload $module2" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$module2"
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+testouterr_cmd "sh" "unload $module" $ans "$module"
+testouterr_cmd "sh" "unload $module2" $ans "$module2"
 
 
 #
@@ -86,10 +85,7 @@ testouterr_cmd "sh" "unload $module2" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "
 unset env(LOADEDMODULES)
 unset env(_LMFILES_)
 
-unset lm_sh
-unset lmf_sh
-unset lmmod_sh
-unset lmfmod_sh
+unset ans
 
 unset modulefile
 unset module

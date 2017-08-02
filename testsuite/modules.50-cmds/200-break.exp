@@ -48,90 +48,19 @@ set env(LOADEDMODULES) "$module"
 set module "$mod1:$mod3"
 set modulefile "$mod1p:$mod3p"
 
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set ts_sh1 "testsuite1=yes; export testsuite1;"
-set ts_sh3 "testsuite3=yes; export testsuite3;"
-
-set lmf_csh "setenv _LMFILES_ $modulefile;"
-set lm_csh "setenv LOADEDMODULES $module;"
-set lmfmod_csh "setenv _LMFILES__modshare (.*);"
-set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set ts_csh1 "setenv testsuite1 yes;"
-set ts_csh3 "setenv testsuite3 yes;"
-
-set lmf_fish "set -xg _LMFILES_ $modulefile;"
-set lm_fish "set -xg LOADEDMODULES $module;"
-set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
-set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
-set ts_fish1 "set -xg testsuite1 yes;"
-set ts_fish3 "set -xg testsuite3 yes;"
-
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
-set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
-set ts_tcl1 "set env\\\(testsuite1\\\) \"yes\";"
-set ts_tcl3 "set env\\\(testsuite3\\\) \"yes\";"
-
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$modulefile\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$module\';"
-set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
-set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
-set ts_perl1 "\\\$ENV{\'testsuite1\'} = \'yes\';"
-set ts_perl3 "\\\$ENV{\'testsuite3\'} = \'yes\';"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefile\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$module\'"
-set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
-set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
-set ts_python1 "os.environ\\\[\'testsuite1\'\\\] = \'yes\'"
-set ts_python3 "os.environ\\\[\'testsuite3\'\\\] = \'yes\'"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
-set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
-set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
-set ts_lisp1 "\\\(setenv \"testsuite1\" \"yes\"\\\)"
-set ts_lisp3 "\\\(setenv \"testsuite3\" \"yes\"\\\)"
-
-set err_sh "/bin/false;"
-set err_csh "$err_sh"
-set err_fish "$err_sh"
-set err_tcl "exec /bin/false;"
-set err_perl "die \"modulefile.tcl: 1 error\\\(s\\\) detected!\\\\n\""
-set err_python "raise RuntimeError\\\( \'modulefile.tcl: 1 error\\\(s\\\) detected!\'\\\)"
-set err_lisp "\\\(error \"modulefile.tcl: 1 error\\\(s\\\) detected!\"\\\)"
+lappend ans [list set testsuite1 yes]
+lappend ans [list set testsuite3 yes]
+lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list ERR]
 
 #
 #  The tests
 #
-test_cmd_re "sh" "load $mod1 $mod2 $mod3" "$lmmod_sh\n$lmfmod_sh\n$ts_sh3\n$lm_sh\n$lmf_sh\n$ts_sh1\n$err_sh\$"
-test_cmd_re "bash" "load $mod1 $mod2 $mod3" "$lmmod_sh\n$lmfmod_sh\n$ts_sh3\n$lm_sh\n$lmf_sh\n$ts_sh1\n$err_sh\$"
-test_cmd_re "ksh" "load $mod1 $mod2 $mod3" "$lmmod_sh\n$lmfmod_sh\n$ts_sh3\n$lm_sh\n$lmf_sh\n$ts_sh1\n$err_sh\$"
-test_cmd_re "zsh" "load $mod1 $mod2 $mod3" "$lmmod_sh\n$lmfmod_sh\n$ts_sh3\n$lm_sh\n$lmf_sh\n$ts_sh1\n$err_sh\$"
-test_cmd_re "csh" "load $mod1 $mod2 $mod3" "$lmmod_csh\n$lmfmod_csh\n$ts_csh3\n$lm_csh\n$lmf_csh\n$ts_csh1\n$err_csh\$"
-test_cmd_re "tcsh" "load $mod1 $mod2 $mod3" "$lmmod_csh\n$lmfmod_csh\n$ts_csh3\n$lm_csh\n$lmf_csh\n$ts_csh1\n$err_csh\$"
-test_cmd_re "fish" "load $mod1 $mod2 $mod3" "$lmmod_fish\n$lmfmod_fish\n$ts_fish3\n$lm_fish\n$lmf_fish\n$ts_fish1\n$err_fish\$"
-test_cmd_re "tcl" "load $mod1 $mod2 $mod3" "$lmmod_tcl\n$lmfmod_tcl\n$ts_tcl3\n$lm_tcl\n$lmf_tcl\n$ts_tcl1\n$err_tcl\$"
-test_cmd_re "perl" "load $mod1 $mod2 $mod3" "$lmmod_perl\n$lmfmod_perl\n$ts_perl3\n$lm_perl\n$lmf_perl\n$ts_perl1\n$err_perl\$"
-test_cmd_re "python" "load $mod1 $mod2 $mod3" "import os\n$lmmod_python\n$lmfmod_python\n$ts_python3\n$lm_python\n$lmf_python\n$ts_python1\n$err_python\$"
-test_cmd_re "lisp" "load $mod1 $mod2 $mod3" "$lmmod_lisp\n$lmfmod_lisp\n$ts_lisp3\n$lm_lisp\n$lmf_lisp\n$ts_lisp1\n$err_lisp\$"
+test_cmd_re "ALL" "load $mod1 $mod2 $mod3" $ans
 
 # same test with break called from a proc
-test_cmd_re "sh" "load $mod1 $mod5 $mod3" "$lmmod_sh\n$lmfmod_sh\n$ts_sh3\n$lm_sh\n$lmf_sh\n$ts_sh1\n$err_sh\$"
-test_cmd_re "bash" "load $mod1 $mod5 $mod3" "$lmmod_sh\n$lmfmod_sh\n$ts_sh3\n$lm_sh\n$lmf_sh\n$ts_sh1\n$err_sh\$"
-test_cmd_re "ksh" "load $mod1 $mod5 $mod3" "$lmmod_sh\n$lmfmod_sh\n$ts_sh3\n$lm_sh\n$lmf_sh\n$ts_sh1\n$err_sh\$"
-test_cmd_re "zsh" "load $mod1 $mod5 $mod3" "$lmmod_sh\n$lmfmod_sh\n$ts_sh3\n$lm_sh\n$lmf_sh\n$ts_sh1\n$err_sh\$"
-test_cmd_re "csh" "load $mod1 $mod5 $mod3" "$lmmod_csh\n$lmfmod_csh\n$ts_csh3\n$lm_csh\n$lmf_csh\n$ts_csh1\n$err_csh\$"
-test_cmd_re "tcsh" "load $mod1 $mod5 $mod3" "$lmmod_csh\n$lmfmod_csh\n$ts_csh3\n$lm_csh\n$lmf_csh\n$ts_csh1\n$err_csh\$"
-test_cmd_re "fish" "load $mod1 $mod5 $mod3" "$lmmod_fish\n$lmfmod_fish\n$ts_fish3\n$lm_fish\n$lmf_fish\n$ts_fish1\n$err_fish\$"
-test_cmd_re "tcl" "load $mod1 $mod5 $mod3" "$lmmod_tcl\n$lmfmod_tcl\n$ts_tcl3\n$lm_tcl\n$lmf_tcl\n$ts_tcl1\n$err_tcl\$"
-test_cmd_re "perl" "load $mod1 $mod5 $mod3" "$lmmod_perl\n$lmfmod_perl\n$ts_perl3\n$lm_perl\n$lmf_perl\n$ts_perl1\n$err_perl\$"
-test_cmd_re "python" "load $mod1 $mod5 $mod3" "import os\n$lmmod_python\n$lmfmod_python\n$ts_python3\n$lm_python\n$lmf_python\n$ts_python1\n$err_python\$"
-test_cmd_re "lisp" "load $mod1 $mod5 $mod3" "$lmmod_lisp\n$lmfmod_lisp\n$ts_lisp3\n$lm_lisp\n$lmf_lisp\n$ts_lisp1\n$err_lisp\$"
+test_cmd_re "ALL" "load $mod1 $mod5 $mod3" $ans
 
 #
 #  Cleanup
@@ -140,62 +69,7 @@ test_cmd_re "lisp" "load $mod1 $mod5 $mod3" "$lmmod_lisp\n$lmfmod_lisp\n$ts_lisp
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 
-unset lm_sh
-unset lmf_sh
-unset lmmod_sh
-unset lmfmod_sh
-unset ts_sh1
-unset ts_sh3
-
-unset lm_csh
-unset lmf_csh
-unset lmmod_csh
-unset lmfmod_csh
-unset ts_csh1
-unset ts_csh3
-
-unset lm_fish
-unset lmf_fish
-unset lmmod_fish
-unset lmfmod_fish
-unset ts_fish1
-unset ts_fish3
-
-unset lm_tcl
-unset lmf_tcl
-unset lmmod_tcl
-unset lmfmod_tcl
-unset ts_tcl1
-unset ts_tcl3
-
-unset lm_perl
-unset lmf_perl
-unset lmmod_perl
-unset lmfmod_perl
-unset ts_perl1
-unset ts_perl3
-
-unset lm_python
-unset lmf_python
-unset lmmod_python
-unset lmfmod_python
-unset ts_python1
-unset ts_python3
-
-unset lm_lisp
-unset lmf_lisp
-unset lmmod_lisp
-unset lmfmod_lisp
-unset ts_lisp1
-unset ts_lisp3
-
-unset err_sh
-unset err_csh
-unset err_fish
-unset err_tcl
-unset err_perl
-unset err_python
-unset err_lisp
+unset ans
 
 unset modulefile
 unset module

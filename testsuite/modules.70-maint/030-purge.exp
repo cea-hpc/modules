@@ -33,11 +33,9 @@ set modulefile "$env(MODULEPATH)/$module"
 #  Check this only fo the /bin/csh
 #
 
-set lmmod_csh "unsetenv LOADEDMODULES_modshare;"
-set lm_csh "unsetenv LOADEDMODULES;"
-set lmfmod_csh "unsetenv _LMFILES__modshare;"
-set lmf_csh "unsetenv _LMFILES_;"
-set ts_csh "unsetenv testsuite;"
+lappend ans [list unset testsuite]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
 
 #
 #  Set up the environment pointing to the single module file being load
@@ -50,7 +48,7 @@ set env(LOADEDMODULES) $module
 #  The tests
 #
 
-test_cmd "csh" "purge" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh"
+test_cmd "csh" "purge" $ans
 
 #
 #  Cleanup
@@ -59,11 +57,7 @@ test_cmd "csh" "purge" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh"
 unset env(LOADEDMODULES)
 unset env(_LMFILES_)
 
-unset lmmod_csh
-unset lm_csh
-unset lmfmod_csh
-unset lmf_csh
-unset ts_csh
+unset ans
 
 unset modulefile
 unset module

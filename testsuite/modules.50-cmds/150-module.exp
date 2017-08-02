@@ -40,32 +40,25 @@ set module_4 "module/meta"
 set modulefile_4 "$env(MODULEPATH)/$module_4"
 
 #
-#  For the different shells ...
-#
-
-set lmfmod_csh "setenv _LMFILES__modshare (.*);"
-set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set lmf_csh "setenv _LMFILES_ $modulefile:$modulefile_1;"
-set lm_csh "setenv LOADEDMODULES $module:$module_1;"
-set ts_csh "setenv testsuite yes;"
-
-#
 #  The tests
 #
 
-test_cmd_re "csh" "load $module_1" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
+lappend ans [list set testsuite yes]
+lappend ans [list setpath LOADEDMODULES "$module:$module_1"]
+lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_1"]
+
+test_cmd_re "csh" "load $module_1" $ans
 
 #
 # Test load of meta-module
 #
 
-set lmfmod_csh "setenv _LMFILES__modshare (.*);"
-set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set lmf_csh "setenv _LMFILES_ $modulefile:$modulefile_2:$modulefile_3:$modulefile_4;"
-set lm_csh "setenv LOADEDMODULES $module:$module_2:$module_3:$module_4;"
-set ts_csh "setenv testsuite yes;"
+set ans [list]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath LOADEDMODULES "$module:$module_2:$module_3:$module_4"]
+lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_2:$modulefile_3:$modulefile_4"]
 
-test_cmd_re "csh" "load $module_4" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
+test_cmd_re "csh" "load $module_4" $ans
 
 #
 # Test unload of meta-module
@@ -75,13 +68,12 @@ test_cmd_re "csh" "load $module_4" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n
 set env(_LMFILES_) "$modulefile:$modulefile_2:$modulefile_3:$modulefile_4"
 set env(LOADEDMODULES) "$module:$module_2:$module_3:$module_4"
 
-set lmfmod_csh "unsetenv _LMFILES__modshare;"
-set lmmod_csh "unsetenv LOADEDMODULES_modshare;"
-set lmf_csh "unsetenv _LMFILES_;"
-set lm_csh "unsetenv LOADEDMODULES;"
-set ts_csh "unsetenv testsuite;"
+set ans [list]
+lappend ans [list unset testsuite]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
 
-test_cmd_re "csh" "unload $module_4" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
+test_cmd_re "csh" "unload $module_4" $ans
 
 # Clean up the just changed environment
 unset env(LOADEDMODULES)
@@ -91,11 +83,7 @@ unset env(_LMFILES_)
 #  Cleanup
 #
 
-unset ts_csh
-unset lm_csh
-unset lmf_csh
-unset lmmod_csh
-unset lmfmod_csh
+unset ans
 
 unset modulefile
 unset module

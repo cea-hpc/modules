@@ -27,27 +27,18 @@ set tpall "$tp00"
 set env(mload) "foobar"
 
 for {set t 10} {$t <= 30} {incr t} {
-        set "t$t" "t$t"
-        set "m$t" "load/$t"
-	set "p$t" "$env(MODULEPATH)/[set m$t]"
+    set m "load/$t"
+	set p "$env(MODULEPATH)/$m"
 
-	set tmall "$tmall:[set m$t]"
-	set tpall "$tpall:[set p$t]"
+	append tmall ":$m"
+	append tpall ":$p"
 }
 
 set mall "load/all"
-
 set pall "$env(MODULEPATH)/$mall"
-set xsload "unset mload;"
-set xcload "unsetenv mload;"
-set xfishload "set -e mload;"
-set xtclload "unset env\\\(mload\\\);"
-set xperlload "delete \\\$ENV{\'mload\'};"
-set xpythonload "os.environ\\\[\'mload\'\\\] = \'\'\ndel os.environ\\\[\'mload\'\\\]"
-set xlispload "\\\(setenv \"mload\" nil\\\)"
 
-set tmall "$tmall:$mall"
-set tpall "$tpall:$pall"
+append tmall ":$mall"
+append tpall ":$pall"
 
 #
 # set up a limited environment
@@ -59,209 +50,18 @@ set env(LOADEDMODULES) "$tm00"
 #  load
 #  For the different shells ...
 #
-
-set lmf_sh "_LMFILES_=$tpall; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$tmall; export LOADEDMODULES;"
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set ts1_sh "t13=t13; export t13;\n"
-append ts1_sh "t14=t14; export t14;"
-set ts2_sh "t15=t15; export t15;\n"
-append ts2_sh "t16=t16; export t16;\n"
-append ts2_sh "t17=t17; export t17;\n"
-append ts2_sh "t18=t18; export t18;\n"
-append ts2_sh "$xsload\n"
-append ts2_sh "t20=t20; export t20;\n"
-append ts2_sh "t19=t19; export t19;\n"
-append ts2_sh "t21=t21; export t21;\n"
-append ts2_sh "t22=t22; export t22;\n"
-append ts2_sh "t23=t23; export t23;\n"
-append ts2_sh "t24=t24; export t24;\n"
-append ts2_sh "t25=t25; export t25;\n"
-append ts2_sh "t26=t26; export t26;"
-set ts3_sh "t27=t27; export t27;\n"
-append ts3_sh "t10=t10; export t10;\n"
-append ts3_sh "t28=t28; export t28;\n"
-append ts3_sh "t11=t11; export t11;\n"
-append ts3_sh "t30=t30; export t30;\n"
-append ts3_sh "t29=t29; export t29;\n"
-append ts3_sh "t12=t12; export t12;"
-
-set lmf_csh "setenv _LMFILES_ $tpall;"
-set lm_csh "setenv LOADEDMODULES $tmall;"
-set lmfmod_csh "setenv _LMFILES__modshare (.*);"
-set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set ts1_csh "setenv t13 t13;\n"
-append ts1_csh "setenv t14 t14;"
-set ts2_csh "setenv t15 t15;\n"
-append ts2_csh "setenv t16 t16;\n"
-append ts2_csh "setenv t17 t17;\n"
-append ts2_csh "setenv t18 t18;\n"
-append ts2_csh "$xcload\n"
-append ts2_csh "setenv t20 t20;\n"
-append ts2_csh "setenv t19 t19;\n"
-append ts2_csh "setenv t21 t21;\n"
-append ts2_csh "setenv t22 t22;\n"
-append ts2_csh "setenv t23 t23;\n"
-append ts2_csh "setenv t24 t24;\n"
-append ts2_csh "setenv t25 t25;\n"
-append ts2_csh "setenv t26 t26;"
-set ts3_csh "setenv t27 t27;\n"
-append ts3_csh "setenv t10 t10;\n"
-append ts3_csh "setenv t28 t28;\n"
-append ts3_csh "setenv t11 t11;\n"
-append ts3_csh "setenv t30 t30;\n"
-append ts3_csh "setenv t29 t29;\n"
-append ts3_csh "setenv t12 t12;"
-
-set lmf_fish "set -xg _LMFILES_ $tpall;"
-set lm_fish "set -xg LOADEDMODULES $tmall;"
-set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
-set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
-set ts1_fish "set -xg t13 t13;\n"
-append ts1_fish "set -xg t14 t14;"
-set ts2_fish "set -xg t15 t15;\n"
-append ts2_fish "set -xg t16 t16;\n"
-append ts2_fish "set -xg t17 t17;\n"
-append ts2_fish "set -xg t18 t18;\n"
-append ts2_fish "$xfishload\n"
-append ts2_fish "set -xg t20 t20;\n"
-append ts2_fish "set -xg t19 t19;\n"
-append ts2_fish "set -xg t21 t21;\n"
-append ts2_fish "set -xg t22 t22;\n"
-append ts2_fish "set -xg t23 t23;\n"
-append ts2_fish "set -xg t24 t24;\n"
-append ts2_fish "set -xg t25 t25;\n"
-append ts2_fish "set -xg t26 t26;"
-set ts3_fish "set -xg t27 t27;\n"
-append ts3_fish "set -xg t10 t10;\n"
-append ts3_fish "set -xg t28 t28;\n"
-append ts3_fish "set -xg t11 t11;\n"
-append ts3_fish "set -xg t30 t30;\n"
-append ts3_fish "set -xg t29 t29;\n"
-append ts3_fish "set -xg t12 t12;"
-
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$tpall\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$tmall\";"
-set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
-set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
-set ts1_tcl "set env\\\(t13\\\) \"t13\";\n"
-append ts1_tcl "set env\\\(t14\\\) \"t14\";"
-set ts2_tcl "set env\\\(t15\\\) \"t15\";\n"
-append ts2_tcl "set env\\\(t16\\\) \"t16\";\n"
-append ts2_tcl "set env\\\(t17\\\) \"t17\";\n"
-append ts2_tcl "set env\\\(t18\\\) \"t18\";\n"
-append ts2_tcl "$xtclload\n"
-append ts2_tcl "set env\\\(t20\\\) \"t20\";\n"
-append ts2_tcl "set env\\\(t19\\\) \"t19\";\n"
-append ts2_tcl "set env\\\(t21\\\) \"t21\";\n"
-append ts2_tcl "set env\\\(t22\\\) \"t22\";\n"
-append ts2_tcl "set env\\\(t23\\\) \"t23\";\n"
-append ts2_tcl "set env\\\(t24\\\) \"t24\";\n"
-append ts2_tcl "set env\\\(t25\\\) \"t25\";\n"
-append ts2_tcl "set env\\\(t26\\\) \"t26\";"
-set ts3_tcl "set env\\\(t27\\\) \"t27\";\n"
-append ts3_tcl "set env\\\(t10\\\) \"t10\";\n"
-append ts3_tcl "set env\\\(t28\\\) \"t28\";\n"
-append ts3_tcl "set env\\\(t11\\\) \"t11\";\n"
-append ts3_tcl "set env\\\(t30\\\) \"t30\";\n"
-append ts3_tcl "set env\\\(t29\\\) \"t29\";\n"
-append ts3_tcl "set env\\\(t12\\\) \"t12\";"
-
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = '$tpall';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = '$tmall';"
-set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
-set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
-set ts1_perl "\\\$ENV{\'t13\'} = \'t13\';\n"
-append ts1_perl "\\\$ENV{\'t14\'} = \'t14\';"
-set ts2_perl "\\\$ENV{\'t15\'} = \'t15\';\n"
-append ts2_perl "\\\$ENV{\'t16\'} = \'t16\';\n"
-append ts2_perl "\\\$ENV{\'t17\'} = \'t17\';\n"
-append ts2_perl "\\\$ENV{\'t18\'} = \'t18\';\n"
-append ts2_perl "$xperlload\n"
-append ts2_perl "\\\$ENV{\'t20\'} = \'t20\';\n"
-append ts2_perl "\\\$ENV{\'t19\'} = \'t19\';\n"
-append ts2_perl "\\\$ENV{\'t21\'} = \'t21\';\n"
-append ts2_perl "\\\$ENV{\'t22\'} = \'t22\';\n"
-append ts2_perl "\\\$ENV{\'t23\'} = \'t23\';\n"
-append ts2_perl "\\\$ENV{\'t24\'} = \'t24\';\n"
-append ts2_perl "\\\$ENV{\'t25\'} = \'t25\';\n"
-append ts2_perl "\\\$ENV{\'t26\'} = \'t26\';"
-set ts3_perl "\\\$ENV{\'t27\'} = \'t27\';\n"
-append ts3_perl "\\\$ENV{\'t10\'} = \'t10\';\n"
-append ts3_perl "\\\$ENV{\'t28\'} = \'t28\';\n"
-append ts3_perl "\\\$ENV{\'t11\'} = \'t11\';\n"
-append ts3_perl "\\\$ENV{\'t30\'} = \'t30\';\n"
-append ts3_perl "\\\$ENV{\'t29\'} = \'t29\';\n"
-append ts3_perl "\\\$ENV{\'t12\'} = \'t12\';"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$tpall'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$tmall\'"
-set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
-set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
-set ts1_python "os.environ\\\[\'t13\'\\\] = \'t13\'\n"
-append ts1_python "os.environ\\\[\'t14\'\\\] = \'t14\'"
-set ts2_python "os.environ\\\[\'t15\'\\\] = \'t15\'\n"
-append ts2_python "os.environ\\\[\'t16\'\\\] = \'t16\'\n"
-append ts2_python "os.environ\\\[\'t17\'\\\] = \'t17\'\n"
-append ts2_python "os.environ\\\[\'t18\'\\\] = \'t18\'\n"
-append ts2_python "$xpythonload\n"
-append ts2_python "os.environ\\\[\'t20\'\\\] = \'t20\'\n"
-append ts2_python "os.environ\\\[\'t19\'\\\] = \'t19\'\n"
-append ts2_python "os.environ\\\[\'t21\'\\\] = \'t21\'\n"
-append ts2_python "os.environ\\\[\'t22\'\\\] = \'t22\'\n"
-append ts2_python "os.environ\\\[\'t23\'\\\] = \'t23\'\n"
-append ts2_python "os.environ\\\[\'t24\'\\\] = \'t24\'\n"
-append ts2_python "os.environ\\\[\'t25\'\\\] = \'t25\'\n"
-append ts2_python "os.environ\\\[\'t26\'\\\] = \'t26\'"
-set ts3_python "os.environ\\\[\'t27\'\\\] = \'t27\'\n"
-append ts3_python "os.environ\\\[\'t10\'\\\] = \'t10\'\n"
-append ts3_python "os.environ\\\[\'t28\'\\\] = \'t28\'\n"
-append ts3_python "os.environ\\\[\'t11\'\\\] = \'t11\'\n"
-append ts3_python "os.environ\\\[\'t30\'\\\] = \'t30\'\n"
-append ts3_python "os.environ\\\[\'t29\'\\\] = \'t29\'\n"
-append ts3_python "os.environ\\\[\'t12\'\\\] = \'t12\'"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$tpall\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$tmall\"\\\)"
-set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
-set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
-set ts1_lisp "\\\(setenv \"t13\" \"t13\"\\\)\n"
-append ts1_lisp "\\\(setenv \"t14\" \"t14\"\\\)"
-set ts2_lisp "\\\(setenv \"t15\" \"t15\"\\\)\n"
-append ts2_lisp "\\\(setenv \"t16\" \"t16\"\\\)\n"
-append ts2_lisp "\\\(setenv \"t17\" \"t17\"\\\)\n"
-append ts2_lisp "\\\(setenv \"t18\" \"t18\"\\\)\n"
-append ts2_lisp "$xlispload\n"
-append ts2_lisp "\\\(setenv \"t20\" \"t20\"\\\)\n"
-append ts2_lisp "\\\(setenv \"t19\" \"t19\"\\\)\n"
-append ts2_lisp "\\\(setenv \"t21\" \"t21\"\\\)\n"
-append ts2_lisp "\\\(setenv \"t22\" \"t22\"\\\)\n"
-append ts2_lisp "\\\(setenv \"t23\" \"t23\"\\\)\n"
-append ts2_lisp "\\\(setenv \"t24\" \"t24\"\\\)\n"
-append ts2_lisp "\\\(setenv \"t25\" \"t25\"\\\)\n"
-append ts2_lisp "\\\(setenv \"t26\" \"t26\"\\\)"
-set ts3_lisp "\\\(setenv \"t27\" \"t27\"\\\)\n"
-append ts3_lisp "\\\(setenv \"t10\" \"t10\"\\\)\n"
-append ts3_lisp "\\\(setenv \"t28\" \"t28\"\\\)\n"
-append ts3_lisp "\\\(setenv \"t11\" \"t11\"\\\)\n"
-append ts3_lisp "\\\(setenv \"t30\" \"t30\"\\\)\n"
-append ts3_lisp "\\\(setenv \"t29\" \"t29\"\\\)\n"
-append ts3_lisp "\\\(setenv \"t12\" \"t12\"\\\)"
+set ans [list]
+lappend ans [list unset mload]
+lappend ans [list setpath LOADEDMODULES $tmall]
+lappend ans [list setpath _LMFILES_ $tpall]
+for {set t 10} {$t <= 30} {incr t} {
+    lappend ans [list set "t$t" "t$t"]
+}
 
 #
 #  The load tests
 #
-test_cmd_re "sh" "load $mall" "$ts1_sh\n$lm_sh\n$lmf_sh\n$ts2_sh\n$lmmod_sh\n$lmfmod_sh\n$ts3_sh\$"
-test_cmd_re "ksh" "load $mall" "$ts1_sh\n$lm_sh\n$lmf_sh\n$ts2_sh\n$lmmod_sh\n$lmfmod_sh\n$ts3_sh\$"
-test_cmd_re "zsh" "load $mall" "$ts1_sh\n$lm_sh\n$lmf_sh\n$ts2_sh\n$lmmod_sh\n$lmfmod_sh\n$ts3_sh\$"
-test_cmd_re "csh" "load $mall" "$ts1_csh\n$lm_csh\n$lmf_csh\n$ts2_csh\n$lmmod_csh\n$lmfmod_csh\n$ts3_csh\$"
-test_cmd_re "tcsh" "load $mall" "$ts1_csh\n$lm_csh\n$lmf_csh\n$ts2_csh\n$lmmod_csh\n$lmfmod_csh\n$ts3_csh\$"
-test_cmd_re "fish" "load $mall" "$ts1_fish\n$lm_fish\n$lmf_fish\n$ts2_fish\n$lmmod_fish\n$lmfmod_fish\n$ts3_fish\$"
-test_cmd_re "tcl" "load $mall" "$ts1_tcl\n$lm_tcl\n$lmf_tcl\n$ts2_tcl\n$lmmod_tcl\n$lmfmod_tcl\n$ts3_tcl\$"
-test_cmd_re "perl" "load $mall" "$ts1_perl\n$lm_perl\n$lmf_perl\n$ts2_perl\n$lmmod_perl\n$lmfmod_perl\n$ts3_perl\n1;\$"
-test_cmd_re "python" "load $mall" "import os\n$ts1_python\n$lm_python\n$lmf_python\n$ts2_python\n$lmmod_python\n$lmfmod_python\n$ts3_python\$"
-test_cmd_re "lisp" "load $mall" "$ts1_lisp\n$lm_lisp\n$lmf_lisp\n$ts2_lisp\n$lmmod_lisp\n$lmfmod_lisp\n$ts3_lisp\$"
+test_cmd_re "ALL" "load $mall" $ans
 
 #
 # set-up a loaded environment
@@ -269,202 +69,18 @@ test_cmd_re "lisp" "load $mall" "$ts1_lisp\n$lm_lisp\n$lmf_lisp\n$ts2_lisp\n$lmm
 set env(_LMFILES_) "$tpall"
 set env(LOADEDMODULES) "$tmall"
 
-set xsload "mload=t30; export mload;"
-set xcload "setenv mload t30;"
-set xfishload "set -xg mload t30;"
-set xtclload "set env\\\(mload\\\) \"t30\";"
-set xperlload "\\\$ENV{\'mload\'} = \'t30\';"
-set xpythonload "os.environ\\\[\'mload\'\\\] = \'t30\'"
-set xlispload "\\\(setenv \"mload\" \"t30\"\\\)"
-
-set lmf_sh "_LMFILES_=$tp00; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$tm00; export LOADEDMODULES;"
-set ts1_sh "unset t13;\n"
-append ts1_sh "unset t14;"
-set ts2_sh "unset t15;\n"
-append ts2_sh "unset t16;\n"
-append ts2_sh "unset t17;\n"
-append ts2_sh "unset t18;\n"
-append ts2_sh "$xsload\n"
-append ts2_sh "unset t20;\n"
-append ts2_sh "unset t19;\n"
-append ts2_sh "unset t21;\n"
-append ts2_sh "unset t22;\n"
-append ts2_sh "unset t23;\n"
-append ts2_sh "unset t24;\n"
-append ts2_sh "unset t25;\n"
-append ts2_sh "unset t26;"
-set ts3_sh "unset t27;\n"
-append ts3_sh "unset t10;\n"
-append ts3_sh "unset t28;\n"
-append ts3_sh "unset t11;\n"
-append ts3_sh "unset t30;\n"
-append ts3_sh "unset t29;\n"
-append ts3_sh "unset t12;"
-
-set lmf_csh "setenv _LMFILES_ $tp00;"
-set lm_csh "setenv LOADEDMODULES $tm00;"
-set ts1_csh "unsetenv t13;\n"
-append ts1_csh "unsetenv t14;"
-set ts2_csh "unsetenv t15;\n"
-append ts2_csh "unsetenv t16;\n"
-append ts2_csh "unsetenv t17;\n"
-append ts2_csh "unsetenv t18;\n"
-append ts2_csh "$xcload\n"
-append ts2_csh "unsetenv t20;\n"
-append ts2_csh "unsetenv t19;\n"
-append ts2_csh "unsetenv t21;\n"
-append ts2_csh "unsetenv t22;\n"
-append ts2_csh "unsetenv t23;\n"
-append ts2_csh "unsetenv t24;\n"
-append ts2_csh "unsetenv t25;\n"
-append ts2_csh "unsetenv t26;"
-set ts3_csh "unsetenv t27;\n"
-append ts3_csh "unsetenv t10;\n"
-append ts3_csh "unsetenv t28;\n"
-append ts3_csh "unsetenv t11;\n"
-append ts3_csh "unsetenv t30;\n"
-append ts3_csh "unsetenv t29;\n"
-append ts3_csh "unsetenv t12;"
-
-set lmf_fish "set -xg _LMFILES_ $tp00;"
-set lm_fish "set -xg LOADEDMODULES $tm00;"
-set ts1_fish "set -e t13;\n"
-append ts1_fish "set -e t14;"
-set ts2_fish "set -e t15;\n"
-append ts2_fish "set -e t16;\n"
-append ts2_fish "set -e t17;\n"
-append ts2_fish "set -e t18;\n"
-append ts2_fish "$xfishload\n"
-append ts2_fish "set -e t20;\n"
-append ts2_fish "set -e t19;\n"
-append ts2_fish "set -e t21;\n"
-append ts2_fish "set -e t22;\n"
-append ts2_fish "set -e t23;\n"
-append ts2_fish "set -e t24;\n"
-append ts2_fish "set -e t25;\n"
-append ts2_fish "set -e t26;"
-set ts3_fish "set -e t27;\n"
-append ts3_fish "set -e t10;\n"
-append ts3_fish "set -e t28;\n"
-append ts3_fish "set -e t11;\n"
-append ts3_fish "set -e t30;\n"
-append ts3_fish "set -e t29;\n"
-append ts3_fish "set -e t12;"
-
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$tp00\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$tm00\";"
-set ts1_tcl "unset env\\\(t13\\\);\n"
-append ts1_tcl "unset env\\\(t14\\\);"
-set ts2_tcl "unset env\\\(t15\\\);\n"
-append ts2_tcl "unset env\\\(t16\\\);\n"
-append ts2_tcl "unset env\\\(t17\\\);\n"
-append ts2_tcl "unset env\\\(t18\\\);\n"
-append ts2_tcl "$xtclload\n"
-append ts2_tcl "unset env\\\(t20\\\);\n"
-append ts2_tcl "unset env\\\(t19\\\);\n"
-append ts2_tcl "unset env\\\(t21\\\);\n"
-append ts2_tcl "unset env\\\(t22\\\);\n"
-append ts2_tcl "unset env\\\(t23\\\);\n"
-append ts2_tcl "unset env\\\(t24\\\);\n"
-append ts2_tcl "unset env\\\(t25\\\);\n"
-append ts2_tcl "unset env\\\(t26\\\);"
-set ts3_tcl "unset env\\\(t27\\\);\n"
-append ts3_tcl "unset env\\\(t10\\\);\n"
-append ts3_tcl "unset env\\\(t28\\\);\n"
-append ts3_tcl "unset env\\\(t11\\\);\n"
-append ts3_tcl "unset env\\\(t30\\\);\n"
-append ts3_tcl "unset env\\\(t29\\\);\n"
-append ts3_tcl "unset env\\\(t12\\\);"
-
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = '$tp00';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = '$tm00';"
-set ts1_perl "delete \\\$ENV{\'t13\'};\n"
-append ts1_perl "delete \\\$ENV{\'t14\'};"
-set ts2_perl "delete \\\$ENV{\'t15\'};\n"
-append ts2_perl "delete \\\$ENV{\'t16\'};\n"
-append ts2_perl "delete \\\$ENV{\'t17\'};\n"
-append ts2_perl "delete \\\$ENV{\'t18\'};\n"
-append ts2_perl "$xperlload\n"
-append ts2_perl "delete \\\$ENV{\'t20\'};\n"
-append ts2_perl "delete \\\$ENV{\'t19\'};\n"
-append ts2_perl "delete \\\$ENV{\'t21\'};\n"
-append ts2_perl "delete \\\$ENV{\'t22\'};\n"
-append ts2_perl "delete \\\$ENV{\'t23\'};\n"
-append ts2_perl "delete \\\$ENV{\'t24\'};\n"
-append ts2_perl "delete \\\$ENV{\'t25\'};\n"
-append ts2_perl "delete \\\$ENV{\'t26\'};"
-set ts3_perl "delete \\\$ENV{\'t27\'};\n"
-append ts3_perl "delete \\\$ENV{\'t10\'};\n"
-append ts3_perl "delete \\\$ENV{\'t28\'};\n"
-append ts3_perl "delete \\\$ENV{\'t11\'};\n"
-append ts3_perl "delete \\\$ENV{\'t30\'};\n"
-append ts3_perl "delete \\\$ENV{\'t29\'};\n"
-append ts3_perl "delete \\\$ENV{\'t12\'};"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$tp00'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$tm00\'"
-set ts1_python "os.environ\\\[\'t13\'\\\] = \'\'\ndel os.environ\\\[\'t13\'\\\]\n"
-append ts1_python "os.environ\\\[\'t14\'\\\] = \'\'\ndel os.environ\\\[\'t14\'\\\]"
-set ts2_python "os.environ\\\[\'t15\'\\\] = \'\'\ndel os.environ\\\[\'t15\'\\\]\n"
-append ts2_python "os.environ\\\[\'t16\'\\\] = \'\'\ndel os.environ\\\[\'t16\'\\\]\n"
-append ts2_python "os.environ\\\[\'t17\'\\\] = \'\'\ndel os.environ\\\[\'t17\'\\\]\n"
-append ts2_python "os.environ\\\[\'t18\'\\\] = \'\'\ndel os.environ\\\[\'t18\'\\\]\n"
-append ts2_python "$xpythonload\n"
-append ts2_python "os.environ\\\[\'t20\'\\\] = \'\'\ndel os.environ\\\[\'t20\'\\\]\n"
-append ts2_python "os.environ\\\[\'t19\'\\\] = \'\'\ndel os.environ\\\[\'t19\'\\\]\n"
-append ts2_python "os.environ\\\[\'t21\'\\\] = \'\'\ndel os.environ\\\[\'t21\'\\\]\n"
-append ts2_python "os.environ\\\[\'t22\'\\\] = \'\'\ndel os.environ\\\[\'t22\'\\\]\n"
-append ts2_python "os.environ\\\[\'t23\'\\\] = \'\'\ndel os.environ\\\[\'t23\'\\\]\n"
-append ts2_python "os.environ\\\[\'t24\'\\\] = \'\'\ndel os.environ\\\[\'t24\'\\\]\n"
-append ts2_python "os.environ\\\[\'t25\'\\\] = \'\'\ndel os.environ\\\[\'t25\'\\\]\n"
-append ts2_python "os.environ\\\[\'t26\'\\\] = \'\'\ndel os.environ\\\[\'t26\'\\\]"
-set ts3_python "os.environ\\\[\'t27\'\\\] = \'\'\ndel os.environ\\\[\'t27\'\\\]\n"
-append ts3_python "os.environ\\\[\'t10\'\\\] = \'\'\ndel os.environ\\\[\'t10\'\\\]\n"
-append ts3_python "os.environ\\\[\'t28\'\\\] = \'\'\ndel os.environ\\\[\'t28\'\\\]\n"
-append ts3_python "os.environ\\\[\'t11\'\\\] = \'\'\ndel os.environ\\\[\'t11\'\\\]\n"
-append ts3_python "os.environ\\\[\'t30\'\\\] = \'\'\ndel os.environ\\\[\'t30\'\\\]\n"
-append ts3_python "os.environ\\\[\'t29\'\\\] = \'\'\ndel os.environ\\\[\'t29\'\\\]\n"
-append ts3_python "os.environ\\\[\'t12\'\\\] = \'\'\ndel os.environ\\\[\'t12\'\\\]"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$tp00\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$tm00\"\\\)"
-set ts1_lisp "\\\(setenv \"t13\" nil\\\)\n"
-append ts1_lisp "\\\(setenv \"t14\" nil\\\)"
-set ts2_lisp "\\\(setenv \"t15\" nil\\\)\n"
-append ts2_lisp "\\\(setenv \"t16\" nil\\\)\n"
-append ts2_lisp "\\\(setenv \"t17\" nil\\\)\n"
-append ts2_lisp "\\\(setenv \"t18\" nil\\\)\n"
-append ts2_lisp "$xlispload\n"
-append ts2_lisp "\\\(setenv \"t20\" nil\\\)\n"
-append ts2_lisp "\\\(setenv \"t19\" nil\\\)\n"
-append ts2_lisp "\\\(setenv \"t21\" nil\\\)\n"
-append ts2_lisp "\\\(setenv \"t22\" nil\\\)\n"
-append ts2_lisp "\\\(setenv \"t23\" nil\\\)\n"
-append ts2_lisp "\\\(setenv \"t24\" nil\\\)\n"
-append ts2_lisp "\\\(setenv \"t25\" nil\\\)\n"
-append ts2_lisp "\\\(setenv \"t26\" nil\\\)"
-set ts3_lisp "\\\(setenv \"t27\" nil\\\)\n"
-append ts3_lisp "\\\(setenv \"t10\" nil\\\)\n"
-append ts3_lisp "\\\(setenv \"t28\" nil\\\)\n"
-append ts3_lisp "\\\(setenv \"t11\" nil\\\)\n"
-append ts3_lisp "\\\(setenv \"t30\" nil\\\)\n"
-append ts3_lisp "\\\(setenv \"t29\" nil\\\)\n"
-append ts3_lisp "\\\(setenv \"t12\" nil\\\)"
+set ans [list]
+lappend ans [list set mload t30]
+lappend ans [list setpath LOADEDMODULES $tm00]
+lappend ans [list setpath _LMFILES_ $tp00]
+for {set t 10} {$t <= 30} {incr t} {
+    lappend ans [list unset "t$t"]
+}
 
 #
 #  The unload tests
 #
-test_cmd_re "sh" "unload $mall" "$ts1_sh\n$lm_sh\n$lmf_sh\n$ts2_sh\n$lmmod_sh\n$lmfmod_sh\n$ts3_sh\$"
-test_cmd_re "ksh" "unload $mall" "$ts1_sh\n$lm_sh\n$lmf_sh\n$ts2_sh\n$lmmod_sh\n$lmfmod_sh\n$ts3_sh\$"
-test_cmd_re "zsh" "unload $mall" "$ts1_sh\n$lm_sh\n$lmf_sh\n$ts2_sh\n$lmmod_sh\n$lmfmod_sh\n$ts3_sh\$"
-test_cmd_re "csh" "unload $mall" "$ts1_csh\n$lm_csh\n$lmf_csh\n$ts2_csh\n$lmmod_csh\n$lmfmod_csh\n$ts3_csh\$"
-test_cmd_re "tcsh" "unload $mall" "$ts1_csh\n$lm_csh\n$lmf_csh\n$ts2_csh\n$lmmod_csh\n$lmfmod_csh\n$ts3_csh\$"
-test_cmd_re "fish" "unload $mall" "$ts1_fish\n$lm_fish\n$lmf_fish\n$ts2_fish\n$lmmod_fish\n$lmfmod_fish\n$ts3_fish\$"
-test_cmd_re "tcl" "unload $mall" "$ts1_tcl\n$lm_tcl\n$lmf_tcl\n$ts2_tcl\n$lmmod_tcl\n$lmfmod_tcl\n$ts3_tcl\$"
-test_cmd_re "perl" "unload $mall" "$ts1_perl\n$lm_perl\n$lmf_perl\n$ts2_perl\n$lmmod_perl\n$lmfmod_perl\n$ts3_perl\n1;\$"
-test_cmd_re "python" "unload $mall" "import os\n$ts1_python\n$lm_python\n$lmf_python\n$ts2_python\n$lmmod_python\n$lmfmod_python\n$ts3_python\$"
-test_cmd_re "lisp" "unload $mall" "$ts1_lisp\n$lm_lisp\n$lmf_lisp\n$ts2_lisp\n$lmmod_lisp\n$lmfmod_lisp\n$ts3_lisp\$"
+test_cmd_re "ALL" "unload $mall" $ans
 
 #
 #  Cleanup
@@ -473,61 +89,7 @@ test_cmd_re "lisp" "unload $mall" "$ts1_lisp\n$lm_lisp\n$lmf_lisp\n$ts2_lisp\n$l
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 
-unset lm_sh
-unset lmf_sh
-unset lmfmod_sh
-unset lmmod_sh
-unset ts1_sh
-unset ts2_sh
-unset ts3_sh
-
-unset lm_csh
-unset lmf_csh
-unset lmfmod_csh
-unset lmmod_csh
-unset ts1_csh
-unset ts2_csh
-unset ts3_csh
-
-unset lm_fish
-unset lmf_fish
-unset lmfmod_fish
-unset lmmod_fish
-unset ts1_fish
-unset ts2_fish
-unset ts3_fish
-
-unset lm_tcl
-unset lmf_tcl
-unset lmfmod_tcl
-unset lmmod_tcl
-unset ts1_tcl
-unset ts2_tcl
-unset ts3_tcl
-
-unset lm_perl
-unset lmf_perl
-unset lmfmod_perl
-unset lmmod_perl
-unset ts1_perl
-unset ts2_perl
-unset ts3_perl
-
-unset lm_python
-unset lmf_python
-unset lmfmod_python
-unset lmmod_python
-unset ts1_python
-unset ts2_python
-unset ts3_python
-
-unset lm_lisp
-unset lmf_lisp
-unset lmfmod_lisp
-unset lmmod_lisp
-unset ts1_lisp
-unset ts2_lisp
-unset ts3_lisp
+unset ans
 
 unset tm00
 unset tp00
@@ -535,9 +97,6 @@ unset tmall
 unset tpall
 unset env(mload)
 
-for {set t 30} {$t >= 10} {incr t -1} {
-        unset "t$t"
-        unset "m$t"
-	unset "p$t"
-}
 unset t
+unset m
+unset p

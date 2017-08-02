@@ -28,18 +28,18 @@ set module_1 "$env(TESTSUITEDIR)/home/rctosource"
 set module_2 "$env(TESTSUITEDIR)/home/rcnomagic"
 set module_3 "$env(TESTSUITEDIR)/home/nonexistent"
 
-set out_csh "setenv testsuite yes;"
+lappend ans [list set testsuite yes]
 set err_csh "$error_msgs: File $module_3 does not exist"
 
 #
 #  test sourcing rc file with regular module-specific magic cookie
 #
-testouterr_cmd "csh" "source $module_1" "$out_csh" ""
+testouterr_cmd "csh" "source $module_1" $ans ""
 
 #
 #  test sourcing rc file with no module-specific magic cookie
 #
-testouterr_cmd "csh" "source $module_2" "$out_csh" ""
+testouterr_cmd "csh" "source $module_2" $ans ""
 
 #
 # test with nonexistent file
@@ -51,7 +51,7 @@ testouterr_cmd "csh" "source $module_3" "ERR" "$err_csh"
 #
 
 unset err_csh
-unset out_csh
+unset ans
 
 unset module_1
 unset module_2

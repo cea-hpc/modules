@@ -42,109 +42,21 @@ set modulefilex "$env(MODULEPATH)/$modulex"
 #  For the different shells ...
 #
 
-set lmf_sh "_LMFILES_=$modulefilex; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$modulex; export LOADEDMODULES;"
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set ts_sh "testsuite=Tcl; export testsuite;"
-
-set lmf_csh "setenv _LMFILES_ $modulefilex;"
-set lm_csh "setenv LOADEDMODULES $modulex;"
-set lmfmod_csh "setenv _LMFILES__modshare (.*);"
-set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set ts_csh "setenv testsuite Tcl;"
-
-set lmf_fish "set -xg _LMFILES_ $modulefilex;"
-set lm_fish "set -xg LOADEDMODULES $modulex;"
-set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
-set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
-set ts_fish "set -xg testsuite Tcl;"
-
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$modulefilex\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$modulex\";"
-set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
-set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
-set ts_tcl "set env\\\(testsuite\\\) \"Tcl\";"
-
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = '$modulefilex';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = '$modulex';"
-set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
-set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
-set ts_perl "\\\$ENV{\'testsuite\'} = 'Tcl';"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$modulefilex'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$modulex\'"
-set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
-set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
-set ts_python "os.environ\\\[\'testsuite\'\\\] = \'Tcl\'"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$modulefilex\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$modulex\"\\\)"
-set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
-set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
-set ts_lisp "\\\(setenv \"testsuite\" \"Tcl\"\\\)"
+lappend ans [list set testsuite Tcl]
+lappend ans [list setpath LOADEDMODULES $modulex]
+lappend ans [list setpath _LMFILES_ $modulefilex]
 
 #
 #  The tests
 #
 
-test_cmd_re "sh" "load $modulex" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-test_cmd_re "ksh" "load $modulex" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-test_cmd_re "zsh" "load $modulex" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh\$"
-
-test_cmd_re "csh" "load $modulex" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
-test_cmd_re "tcsh" "load $modulex" "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\n$ts_csh\$"
-test_cmd_re "fish" "load $modulex" "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\n$ts_fish\$"
-test_cmd_re "tcl" "load $modulex" "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\n$ts_tcl\$"
-test_cmd_re "perl" "load $modulex" "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n$ts_perl\n1;\$"
-test_cmd_re "python" "load $modulex" "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\n$ts_python\$"
-test_cmd_re "lisp" "load $modulex" "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\n$ts_lisp\$"
+test_cmd_re "ALL" "load $modulex" $ans
 
 #
 #  Cleanup
 #
 
-unset ts_sh
-unset lmfmod_sh
-unset lmmod_sh
-unset lm_sh
-unset lmf_sh
-
-unset ts_csh
-unset lmfmod_csh
-unset lmmod_csh
-unset lm_csh
-unset lmf_csh
-
-unset ts_fish
-unset lmfmod_fish
-unset lmmod_fish
-unset lm_fish
-unset lmf_fish
-
-unset ts_tcl
-unset lmfmod_tcl
-unset lmmod_tcl
-unset lm_tcl
-unset lmf_tcl
-
-unset ts_perl
-unset lmfmod_perl
-unset lmmod_perl
-unset lm_perl
-unset lmf_perl
-
-unset ts_python
-unset lmfmod_python
-unset lmmod_python
-unset lm_python
-unset lmf_python
-
-unset ts_lisp
-unset lmfmod_lisp
-unset lmmod_lisp
-unset lm_lisp
-unset lmf_lisp
+unset ans
 
 unset modulefilex
 unset modulex

@@ -37,10 +37,10 @@ set err_log "$warn_msgs: 'module-log' command not implemented"
 #  Check only for the csh
 #
 
-set lmfmod1 "setenv _LMFILES__modshare $modulefile1:1;"
-set lmmod1 "setenv LOADEDMODULES_modshare $module1:1;"
-set lmf1 "setenv _LMFILES_ $modulefile1;"
-set lm1 "setenv LOADEDMODULES $module1;"
+lappend ans [list set _LMFILES__modshare "$modulefile1:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module1:1"]
+lappend ans [list set _LMFILES_ $modulefile1]
+lappend ans [list set LOADEDMODULES $module1]
 
 #
 #  The tests
@@ -48,7 +48,7 @@ set lm1 "setenv LOADEDMODULES $module1;"
 
 # different behavior than C-version: on Tcl-version 'module-log' command is
 # not handled and will always return a warning message to inform the user.
-testouterr_cmd_re "csh" "load $module1" "$lmfmod1\n$lmmod1\n$lmf1\n$lm1" "$err_log"
+testouterr_cmd_re "csh" "load $module1" $ans "$err_log"
 
 #
 #  Cleanup
@@ -57,8 +57,7 @@ testouterr_cmd_re "csh" "load $module1" "$lmfmod1\n$lmmod1\n$lmf1\n$lm1" "$err_l
 unset err_log
 unset bad_fac
 
-unset lm1
-unset lmf1
+unset ans
 
 unset modulefile1
 unset module1

@@ -34,30 +34,10 @@ set env(HOME) $env(TESTSUITEDIR)
 # The tests ...
 #
 
+set ans [list]
 if { [ version_test "BEGINENV=1" ] } {
-
-testouterr_cmd "sh" "--long list" \
-		"_MODULESBEGINENV_=$beg_env ;export _MODULESBEGINENV_;" "$not_load"
-testouterr_cmd "ksh" "--long list" \
-		"_MODULESBEGINENV_=$beg_env ;export _MODULESBEGINENV_;" "$not_load"
-testouterr_cmd "zsh" "--long list" \
-		"_MODULESBEGINENV_=$beg_env ;export _MODULESBEGINENV_;" "$not_load"
-testouterr_cmd "csh" "--long list" \
-    "setenv _MODULESBEGINENV_ $beg_env ;" "$not_load"
-testouterr_cmd "tcsh" "--long list" \
-    "setenv _MODULESBEGINENV_ $beg_env ;" "$not_load"
-testouterr_cmd "fish" "--long list" \
-    "set -xg _MODULESBEGINENV_ $beg_env;" "$not_load"
-testouterr_cmd "tcl" "--long list" \
-    "set env(_MODULESBEGINENV_) $beg_env;" "$not_load"
-testouterr_cmd "perl" "--long list" \
-		"\$ENV{'_MODULESBEGINENV_'} = '$beg_env';" "$not_load"
-testouterr_cmd "cmake" "--long list" \
-		"set(ENV{_MODULESBEGINENV_} \"$beg_env\")\n" "$not_load"
-testouterr_cmd "python" "--long list" \
-    "os.environ['_MODULESBEGINENV_'] = '$beg_env'" "$not_load"
-testouterr_cmd "lisp" "--long list" \
-    "(setenv \"_MODULESBEGINENV_\" \"$beg_env\")" "$not_load"
+lappend ans [list set _MODULESBEGINENV_ $beg_env]
+testouterr_cmd "sh" "--long list" $ans "$not_load"
 } elseif { [ version_test "BEGINENV=99" ] } {
 testerr_cmd_re "sh" "update" \
 		".*Invalid update subcommand - No MODULESBEGINENV.*"
@@ -65,28 +45,8 @@ testerr_cmd_re "sh" "update" \
 # set this here
 	set env(MODULESBEGINENV) $beg_envx
 
-testouterr_cmd "sh" "--long list" \
-		"_MODULESBEGINENV_=$beg_envx ;export _MODULESBEGINENV_;" "$not_load"
-testouterr_cmd "ksh" "--long list" \
-		"_MODULESBEGINENV_=$beg_envx ;export _MODULESBEGINENV_;" "$not_load"
-testouterr_cmd "zsh" "--long list" \
-		"_MODULESBEGINENV_=$beg_envx ;export _MODULESBEGINENV_;" "$not_load"
-testouterr_cmd "csh" "--long list" \
-    "setenv _MODULESBEGINENV_ $beg_envx ;" "$not_load"
-testouterr_cmd "tcsh" "--long list" \
-    "setenv _MODULESBEGINENV_ $beg_envx ;" "$not_load"
-testouterr_cmd "fish" "--long list" \
-    "set -xg _MODULESBEGINENV_ $beg_envx;" "$not_load"
-testouterr_cmd "tcl" "--long list" \
-    "set env(_MODULESBEGINENV_) $beg_envx;" "$not_load"
-testouterr_cmd "perl" "--long list" \
-		"\$ENV{'_MODULESBEGINENV_'} = '$beg_envx';" "$not_load"
-testouterr_cmd "cmake" "--long list" \
-		"set(ENV{_MODULESBEGINENV_} \"$beg_envx\")" "$not_load"
-testouterr_cmd "python" "--long list" \
-    "os.environ['_MODULESBEGINENV_'] = '$beg_envx'" "$not_load"
-testouterr_cmd "lisp" "--long list" \
-    "(setenv \"_MODULESBEGINENV_\" \"$beg_envx\")" "$not_load"
+lappend ans [list set _MODULESBEGINENV_ $beg_envx]
+testouterr_cmd "sh" "--long list" $ans "$not_load"
 } else {
 	send_user "skipping .modulesbeginenv tests\n"
 }
@@ -109,3 +69,4 @@ if { [ version_test "BEGINENV=99" ] } {
 unset not_load
 unset beg_env
 unset beg_envx
+unset ans

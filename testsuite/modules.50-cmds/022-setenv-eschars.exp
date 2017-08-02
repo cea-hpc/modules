@@ -34,113 +34,38 @@ set modulefile "$env(MODULEPATH)/$module"
 #  For the different shells ...
 #
 
-set lmfmodsh "_LMFILES__modshare=$modulefile:1; export _LMFILES__modshare;"
-set lmfmodcsh "setenv _LMFILES__modshare $modulefile:1;"
-set lmfmodfish "set -xg _LMFILES__modshare $modulefile:1;"
-set lmfmodtcl "set env(_LMFILES__modshare) \"$modulefile:1\";"
-set lmfmodperl "\$ENV{'_LMFILES__modshare'} = '$modulefile:1';"
-set lmfmodpython "os.environ\['_LMFILES__modshare'\] = '$modulefile:1'"
-set lmfmodlisp "(setenv \"_LMFILES__modshare\" \"$modulefile:1\")"
+lappend ans [list set _LMFILES__modshare "$modulefile:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module:1"]
+lappend ans [list set pathelogical "abc\\ :\\	\\{\\}\\|\\<\\>\\!\\#\\$\\^\\&\\'\\\"\\(\\)@x%y\\\\z:sh\\*" noescval]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
 
-set lmmodsh "LOADEDMODULES_modshare=$module:1; export LOADEDMODULES_modshare;"
-set lmmodcsh "setenv LOADEDMODULES_modshare $module:1;"
-set lmmodfish "set -xg LOADEDMODULES_modshare $module:1;"
-set lmmodtcl "set env(LOADEDMODULES_modshare) \"$module:1\";"
-set lmmodperl "\$ENV{'LOADEDMODULES_modshare'} = '$module:1';"
-set lmmodpython "os.environ\['LOADEDMODULES_modshare'\] = '$module:1'"
-set lmmodlisp "(setenv \"LOADEDMODULES_modshare\" \"$module:1\")"
+lappend ans2 [list set _LMFILES__modshare "$modulefile:1"]
+lappend ans2 [list set LOADEDMODULES_modshare "$module:1"]
+lappend ans2 [list set pathelogical "abc :	{}|<>!#$^&'\"()@x%y\\z:sh*"]
+lappend ans2 [list set _LMFILES_ $modulefile]
+lappend ans2 [list set LOADEDMODULES $module]
 
-set lmsh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lmcsh "setenv _LMFILES_ $modulefile;"
-set lmfish "set -xg _LMFILES_ $modulefile;"
-set lmtcl "set env(_LMFILES_) \"$modulefile\";"
-set lmperl "\$ENV{'_LMFILES_'} = '$modulefile';"
-set lmpython "os.environ\['_LMFILES_'\] = '$modulefile'"
-set lmlisp "(setenv \"_LMFILES_\" \"$modulefile\")"
-
-set loadmodsh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set loadmodcsh "setenv LOADEDMODULES $module;"
-set loadmodfish "set -xg LOADEDMODULES $module;"
-set loadmodtcl "set env(LOADEDMODULES) \"$module\";"
-set loadmodperl "\$ENV{'LOADEDMODULES'} = '$module';"
-set loadmodpython "os.environ\['LOADEDMODULES'\] = '$module'"
-set loadmodlisp "(setenv \"LOADEDMODULES\" \"$module\")"
-
-set multiesc "abc\\ :\\	\\{\\}\\|\\<\\>\\!\\#\\$\\^\\&\\'\\\"\\(\\)@x%y\\\\z:sh\\*"
-set singlequoteesc "abc :	{}|<>!#$^&\\\'\"()@x%y\\z:sh*"
-set doublequoteesc "abc :	{}|<>!#$^&'\\\"()@x%y\\z:sh*"
-
-set ts_sh "pathelogical=$multiesc; export pathelogical;"
-set ts_csh "setenv pathelogical $multiesc;"
-set ts_fish "set -xg pathelogical $multiesc;"
-set ts_tcl "set env(pathelogical) \"$doublequoteesc\";"
-set ts_perl "\$ENV{'pathelogical'} = '$singlequoteesc';"
-set ts_python "os.environ\['pathelogical'\] = '$singlequoteesc'"
-set ts_lisp "(setenv \"pathelogical\" \"$doublequoteesc\")"
 
 #
 #  The tests
 #
 
-test_cmd "sh" "load $module" "$lmfmodsh\n$lmmodsh\n$ts_sh\n$lmsh\n$loadmodsh"
-test_cmd "bash" "load $module" "$lmfmodsh\n$lmmodsh\n$ts_sh\n$lmsh\n$loadmodsh"
-test_cmd "ksh" "load $module" "$lmfmodsh\n$lmmodsh\n$ts_sh\n$lmsh\n$loadmodsh"
-test_cmd "zsh" "load $module" "$lmfmodsh\n$lmmodsh\n$ts_sh\n$lmsh\n$loadmodsh"
-test_cmd "csh" "load $module" "$lmfmodcsh\n$lmmodcsh\n$ts_csh\n$lmcsh\n$loadmodcsh"
-test_cmd "tcsh" "load $module" "$lmfmodcsh\n$lmmodcsh\n$ts_csh\n$lmcsh\n$loadmodcsh"
-test_cmd "fish" "load $module" "$lmfmodfish\n$lmmodfish\n$ts_fish\n$lmfish\n$loadmodfish"
-test_cmd "tcl" "load $module" "$lmfmodtcl\n$lmmodtcl\n$ts_tcl\n$lmtcl\n$loadmodtcl"
-test_cmd "perl" "load $module" "$lmfmodperl\n$lmmodperl\n$ts_perl\n$lmperl\n$loadmodperl\n1;"
-test_cmd "python" "load $module" "import os\n$lmfmodpython\n$lmmodpython\n$ts_python\n$lmpython\n$loadmodpython"
-test_cmd "lisp" "load $module" "$lmfmodlisp\n$lmmodlisp\n$ts_lisp\n$lmlisp\n$loadmodlisp"
+foreach sh $supported_shells {
+    if {[lsearch -exact $real_shells $sh] >= 0} {
+        test_cmd "$sh" "load $module" $ans
+    } else {
+        test_cmd "$sh" "load $module" $ans2
+    }
+}
 
 #
 #  Cleanup
 #
 
-unset doublequoteesc
-unset singlequoteesc
-unset multiesc
-
-unset lmfmodsh
-unset lmfmodcsh
-unset lmfmodfish
-unset lmfmodtcl
-unset lmfmodperl
-unset lmfmodpython
-unset lmfmodlisp
-
-unset lmmodsh
-unset lmmodcsh
-unset lmmodfish
-unset lmmodtcl
-unset lmmodperl
-unset lmmodpython
-unset lmmodlisp
-
-unset lmsh
-unset lmcsh
-unset lmfish
-unset lmtcl
-unset lmperl
-unset lmpython
-unset lmlisp
-
-unset loadmodsh
-unset loadmodcsh
-unset loadmodfish
-unset loadmodtcl
-unset loadmodperl
-unset loadmodpython
-unset loadmodlisp
-
-unset ts_sh
-unset ts_csh
-unset ts_fish
-unset ts_tcl
-unset ts_perl
-unset ts_python
-unset ts_lisp
+unset sh
+unset ans
+unset ans2
 
 unset modulefile
 unset module

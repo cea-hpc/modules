@@ -35,10 +35,10 @@ set modulefile2 "$env(MODULEPATH)/$module2"
 #  For sh shell only (no need to check every shells)
 #
 
-set lmfmod_sh "_LMFILES__modshare=$modulefile2:1; export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=$module2:1; export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modulefile2; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module2; export LOADEDMODULES;"
+lappend ans [list set _LMFILES__modshare "$modulefile2:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module2:1"]
+lappend ans [list set _LMFILES_ $modulefile2]
+lappend ans [list set LOADEDMODULES $module2]
 
 set out_rc "type: Tcl
 name: $module/.modulerc
@@ -62,7 +62,7 @@ set header "$modlin $env(MODULEPATH) $modlin"
 #
 
 # test loading
-testouterr_cmd "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$out_rc_load"
+testouterr_cmd "sh" "load $module" $ans "$out_rc_load"
 
 # test displaying
 testerr_cmd_re "sh" "display $module" "$out_rc_display\n$modlin\n$modulefile2:\n\n$modlin"
@@ -97,15 +97,14 @@ testerr_cmd_re "sh" "list" "$header_list\n 1\\) $module2\\(bar:default:list\\)\\
 
 # test switching
 # modulerc is interpreted on the second phase of switching (load)
-testouterr_cmd "sh" "switch $module $module2" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" "$out_rc_switch"
+testouterr_cmd "sh" "switch $module $module2" $ans "$out_rc_switch"
 
 # test unloading
-set lmfmod_sh "unset _LMFILES__modshare;"
-set lmmod_sh "unset LOADEDMODULES_modshare;"
-set lmf_sh "unset _LMFILES_;"
-set lm_sh "unset LOADEDMODULES;"
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
 # modulerc is not interpreted when unloading a loaded module
-testouterr_cmd "sh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" ""
+testouterr_cmd "sh" "unload $module" $ans ""
 
 
 #
@@ -116,10 +115,7 @@ testouterr_cmd "sh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh" ""
 unset env(LOADEDMODULES)
 unset env(_LMFILES_)
 
-unset lm_sh
-unset lmf_sh
-unset lmmod_sh
-unset lmfmod_sh
+unset ans
 
 unset header_list
 unset header

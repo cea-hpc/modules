@@ -30,17 +30,16 @@ set module "setenv/1.0"
 set modulefile "$env(MODULEPATH)/$module"
 set err_update "$error_msgs: Invalid command 'update'\nTry 'module --help' for more information."
 
-# this allows the test to pass, but don't know why update needs to
-# set the path again
-set setpath "setenv MODULEPATH $env(MODULEPATH)"
-
 #
 #  Check this only for /bin/csh
 #
 
-set lm		"setenv LOADEDMODULES $module: ;"
-set lmf		"setenv _LMFILES_ $env(TESTSUITEDIR)/modulefiles/$module: "
-set ts_csh	"$lm$setpath ;$lmf;setenv testsuite yes ;"
+lappend ans [list set testsuite yes]
+# this allows the test to pass, but don't know why update needs to
+# set the path again
+lappend ans [list setpath MODULEPATH $env(MODULEPATH)]
+lappend ans [list setpath LOADEDMODULES "$module:"]
+lappend ans [list setpath _LMFILES_ "$env(TESTSUITEDIR)/modulefiles/$module:"]
 
 #
 #  Set up the environment pointing to the single module file being loaded
@@ -61,13 +60,13 @@ if { [ version_test "BEGINENV=1" ] } {
 
 if { [ version_test "BEGINENV=1" ] } {
 	set env(_MODULESBEGINENV_) "$env(TESTSUITEDIR)/.modulesbeginenv"
-	test_cmd_re "csh" "update" "$ts_csh"
+	test_cmd_re "csh" "update" $ans
 } elseif { [ version_test "BEGINENV=99" ] } {
 	set env(_MODULESBEGINENV_) "$env(TESTSUITEDIR)/.modulesbeginenv.yyy"
 	testerr_cmd_re "csh" "update" ".*Cannot open file.*"
 	set env(MODULESBEGINENV) "$env(TESTSUITEDIR)/.modulesbeginenv.xxx"
 	set env(_MODULESBEGINENV_) "$env(TESTSUITEDIR)/.modulesbeginenv.xxx"
-	test_cmd_re "csh" "update" "$ts_csh"
+	test_cmd_re "csh" "update" $ans
 } else {
     # different behavior than C-version: on Tcl-version 'update'
     # sub-command is not known
@@ -87,7 +86,7 @@ if { [ version_test "BEGINENV=1" ] } {
 	set env(MODULESBEGINENV) $save_begenvx
 }
 
-unset ts_csh
+unset ans
 
 unset modulefile
 unset module

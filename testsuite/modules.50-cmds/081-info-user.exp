@@ -37,11 +37,11 @@ set modulefile "$env(MODULEPATH)/$module"
 #  The _LMFILES_ and the LOADEDMODULES will be affected
 #
 
-set lmfmod_sh "_LMFILES__modshare=$modulefile:1; export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=$module:1; export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set ts_sh "testsuite=unknown; export testsuite;"
+lappend ans [list set _LMFILES__modshare "$modulefile:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module:1"]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite unknown]
 
 #
 #  The tests
@@ -50,17 +50,13 @@ set ts_sh "testsuite=unknown; export testsuite;"
 # different behavior than C-version: on Tcl-version userlvl is not handled and
 # [module-info user "level"] will always return false.
 
-test_cmd "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\n$ts_sh"
+test_cmd "sh" "load $module" $ans
 
 #
 #  Cleanup
 #
 
-unset lmmod_sh
-unset lmfmod_sh
-unset lm_sh
-unset lmf_sh
-unset ts_sh
+unset ans
 
 unset modulefile
 unset module

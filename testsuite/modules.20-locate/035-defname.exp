@@ -37,23 +37,24 @@ set modpathheader "$modlin $env(MODULEPATH) $modlin"
 # Test load of true default version
 #
 
-set lmfmod_sh "_LMFILES__modshare=$modulefile_2:1; export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=$module_2:1; export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modulefile_2; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module_2; export LOADEDMODULES;"
+lappend ans [list set _LMFILES__modshare "$modulefile_2:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_2:1"]
+lappend ans [list set _LMFILES_ $modulefile_2]
+lappend ans [list set LOADEDMODULES $module_2]
 
-test_cmd "sh" "load $module" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh"
+test_cmd "sh" "load $module" $ans
 
 #
 # Test load of version-name 'default'
 #
 
-set lmfmod_sh "_LMFILES__modshare=$modulefile_1:1; export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=$module_1:1; export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modulefile_1; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$module_1; export LOADEDMODULES;"
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_1:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_1:1"]
+lappend ans [list set _LMFILES_ $modulefile_1]
+lappend ans [list set LOADEDMODULES $module_1]
 
-test_cmd "sh" "load $module_1" "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh"
+test_cmd "sh" "load $module_1" $ans
 
 #
 # Test display of true default version
@@ -96,10 +97,7 @@ testerr_cmd_re "sh" "avail -t $module" "$modpathheader\n$module_1"
 # Cleanup
 #
 
-unset lmfmod_sh
-unset lmmod_sh
-unset lmf_sh
-unset lm_sh
+unset ans
 
 unset modwhatis
 unset modpathheader

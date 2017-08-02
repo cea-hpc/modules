@@ -34,17 +34,8 @@ set err_locmod "$error_msgs: Unable to locate a modulefile for '$module_2'"
 #  test with a modulefile to resolve
 #
 
-testouterr_cmd "sh" "path $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "bash" "path $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "ksh" "path $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "zsh" "path $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "csh" "path $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "tcsh" "path $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "fish" "path $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "tcl" "path $module_1" "puts \"$modulefile_1\";" ""
-testouterr_cmd "perl" "path $module_1" "print '$modulefile_1'.\"\\n\";\n1;" ""
-testouterr_cmd "python" "path $module_1" "import os\nprint '$modulefile_1'" ""
-testouterr_cmd "lisp" "path $module_1" "(message \"$modulefile_1\")" ""
+lappend ans [list echo $modulefile_1]
+testouterr_cmd "ALL" "path $module_1" $ans ""
 
 #
 # test with nonexistent modulefile
@@ -56,6 +47,8 @@ testouterr_cmd "ALL" "path $module_2" "ERR" "$err_locmod"
 #
 #  Cleanup
 #
+
+unset ans
 
 unset module_1
 unset modulefile_1

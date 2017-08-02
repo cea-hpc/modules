@@ -34,29 +34,6 @@ set empty_use "$error_msgs: Directory '' not found"
 set loaded_path "$env(TESTSUITEDIR)/modulefiles"
 regsub "^.*/$tsdirname" $loaded_path "$tsdirname" loaded_relpath
 regsub "$tsdirname" $loaded_relpath "$tsdirname/../$tsdirname/./" loaded_relpath_wdot
-set bash_modshare "MODULEPATH_modshare=(.*); export MODULEPATH_modshare;"
-set bash_modshare_ref2 "MODULEPATH_modshare=(.*):2; export MODULEPATH_modshare;"
-set bash_modpath "MODULEPATH=$mod_path; export MODULEPATH;"
-set csh_modshare "setenv MODULEPATH_modshare (.*);"
-set csh_modshare_ref2 "setenv MODULEPATH_modshare (.*):2;"
-set csh_modpath "setenv MODULEPATH $mod_path;"
-set fish_modshare "set -xg MODULEPATH_modshare (.*);"
-set fish_modshare_ref2 "set -xg MODULEPATH_modshare (.*):2;"
-set fish_modpath "set -xg MODULEPATH $mod_path;"
-set tcl_modshare "set env\\\(MODULEPATH_modshare\\\) \"(.*)\";"
-set tcl_modshare_ref2 "set env\\\(MODULEPATH_modshare\\\) \"(.*):2\";"
-set tcl_modpath "set env\\\(MODULEPATH\\\) \"$mod_path\";"
-set perl_modshare "\\\$ENV{\'MODULEPATH_modshare\'} = \'(.*)\';"
-set perl_modshare_ref2 "\\\$ENV{\'MODULEPATH_modshare\'} = \'(.*):2\';"
-set perl_modpath "\\\$ENV{\'MODULEPATH\'} = \'$mod_path\';"
-set cmake_modshare "set\(ENV{MODULEPATH_modshare} \"(.*)\)"
-set cmake_modpath "set\(ENV{MODULEPATH} \"$mod_path\"\)"
-set python_modshare "os.environ\\\[\'MODULEPATH_modshare\'\\\] = \'(.*)\'"
-set python_modshare_ref2 "os.environ\\\[\'MODULEPATH_modshare\'\\\] = \'(.*):2\'"
-set python_modpath "os.environ\\\[\'MODULEPATH\'\\\] = \'$mod_path\'"
-set lisp_modshare "\\\(setenv \"MODULEPATH_modshare\" \"(.*)\"\\\)"
-set lisp_modshare_ref2 "\\\(setenv \"MODULEPATH_modshare\" \"(.*):2\"\\\)"
-set lisp_modpath "\\\(setenv \"MODULEPATH\" \"$mod_path\"\\\)"
 set path_list_header "Search path for module files (in search order):"
 set no_path_list "$warn_msgs: No directories on module search path"
 
@@ -66,35 +43,15 @@ set use	"use"
 # The tests ...
 #
 
-test_cmd_re "sh" "$use $path" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "bash" "$use $path" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "ksh" "$use $path" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "zsh" "$use $path" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "csh" "$use $path" "$csh_modshare\n$csh_modpath\$"
-test_cmd_re "tcsh" "$use $path" "$csh_modshare\n$csh_modpath\$"
-test_cmd_re "fish" "$use $path" "$fish_modshare\n$fish_modpath\$"
-test_cmd_re "tcl" "$use $path" "$tcl_modshare\n$tcl_modpath\$"
-test_cmd_re "perl" "$use $path" "$perl_modshare\n$perl_modpath\n1;\$"
-#test_cmd_re "cmake" "$use $path" "$cmake_modshare\n$cmake_modpath\$"
-test_cmd_re "python" "$use $path" "import os\n$python_modshare\n$python_modpath\$"
-test_cmd_re "lisp" "$use $path" "$lisp_modshare\n$lisp_modpath\$"
+lappend ans [list setpath MODULEPATH $mod_path]
+test_cmd_re "ALL" "$use $path" $ans
 
 #
 # test if use relative-path directory
 # should end with same absolute-path result as above
 #
 
-test_cmd_re "sh" "$use $relpath" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "bash" "$use $relpath" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "ksh" "$use $relpath" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "zsh" "$use $relpath" "$bash_modshare\n$bash_modpath\$"
-test_cmd_re "csh" "$use $relpath" "$csh_modshare\n$csh_modpath\$"
-test_cmd_re "tcsh" "$use $relpath" "$csh_modshare\n$csh_modpath\$"
-test_cmd_re "fish" "$use $relpath" "$fish_modshare\n$fish_modpath\$"
-test_cmd_re "tcl" "$use $relpath" "$tcl_modshare\n$tcl_modpath\$"
-test_cmd_re "perl" "$use $relpath" "$perl_modshare\n$perl_modpath\n1;\$"
-test_cmd_re "python" "$use $relpath" "import os\n$python_modshare\n$python_modpath\$"
-test_cmd_re "lisp" "$use $relpath" "$lisp_modshare\n$lisp_modpath\$"
+test_cmd_re "ALL" "$use $relpath" $ans
 
 #
 # test if use non-existent modulefile directory
@@ -112,17 +69,10 @@ if { $verbose > 0 } {
 
 set ORIG $::env(MODULEPATH)
 set ::env(MODULEPATH) ""
-test_cmd_re "sh" "$use $path" "$bash_modshare\nMODULEPATH=$path; export MODULEPATH;"
-test_cmd_re "bash" "$use $path" "$bash_modshare\nMODULEPATH=$path; export MODULEPATH;"
-test_cmd_re "ksh" "$use $path" "$bash_modshare\nMODULEPATH=$path; export MODULEPATH;"
-test_cmd_re "zsh" "$use $path" "$bash_modshare\nMODULEPATH=$path; export MODULEPATH;"
-test_cmd_re "csh" "$use $path" "$csh_modshare\nsetenv MODULEPATH $path;"
-test_cmd_re "tcsh" "$use $path" "$csh_modshare\nsetenv MODULEPATH $path;"
-test_cmd_re "fish" "$use $path" "$fish_modshare\nset -xg MODULEPATH $path;"
-test_cmd_re "tcl" "$use $path" "$tcl_modshare\nset env\\\(MODULEPATH\\\) \"$path\";"
-test_cmd_re "perl" "$use $path" "$perl_modshare\n\\\$ENV{\'MODULEPATH\'} = \'$path\';"
-test_cmd_re "python" "$use $path" "$python_modshare\nos.environ\\\['MODULEPATH'\\\] = \'$path\'"
-test_cmd_re "lisp" "$use $path" "$lisp_modshare\n\\\(setenv \"MODULEPATH\" \"$path\"\\\)"
+
+set ans [list]
+lappend ans [list setpath MODULEPATH $path]
+test_cmd_re "ALL" "$use $path" $ans
 
 # list currently enabled paths
 testouterr_cmd "ALL" "$use" "OK" "$no_path_list"
@@ -136,49 +86,22 @@ set ::env(MODULEPATH) $ORIG
 # test with already loaded path
 # re-export and increase reference count (C version does no modification)
 #
-test_cmd_re "sh" "$use $loaded_path" "$bash_modshare_ref2\nMODULEPATH=$loaded_path; export MODULEPATH;"
-test_cmd_re "bash" "$use $loaded_path" "$bash_modshare_ref2\nMODULEPATH=$loaded_path; export MODULEPATH;"
-test_cmd_re "ksh" "$use $loaded_path" "$bash_modshare_ref2\nMODULEPATH=$loaded_path; export MODULEPATH;"
-test_cmd_re "zsh" "$use $loaded_path" "$bash_modshare_ref2\nMODULEPATH=$loaded_path; export MODULEPATH;"
-test_cmd_re "csh" "$use $loaded_path" "$csh_modshare_ref2\nsetenv MODULEPATH $loaded_path;"
-test_cmd_re "tcsh" "$use $loaded_path" "$csh_modshare_ref2\nsetenv MODULEPATH $loaded_path;"
-test_cmd_re "fish" "$use $loaded_path" "$fish_modshare_ref2\nset -xg MODULEPATH $loaded_path;"
-test_cmd_re "tcl" "$use $loaded_path" "$tcl_modshare_ref2\nset env\\\(MODULEPATH\\\) \"$loaded_path\";"
-test_cmd_re "perl" "$use $loaded_path" "$perl_modshare_ref2\n\\\$ENV{\'MODULEPATH\'} = \'$loaded_path\';"
-test_cmd_re "python" "$use $loaded_path" "$python_modshare_ref2\nos.environ\\\['MODULEPATH'\\\] = \'$loaded_path\'"
-test_cmd_re "lisp" "$use $loaded_path" "$lisp_modshare_ref2\n\\\(setenv \"MODULEPATH\" \"$loaded_path\"\\\)"
+set ans [list]
+lappend ans [list set MODULEPATH_modshare "(.*):2"]
+lappend ans [list set MODULEPATH $loaded_path]
+test_cmd_re "ALL" "$use $loaded_path" $ans
 
 #
 # test with already loaded path, but specified as relative-path
 # should end with same absolute-path result as above
 #
-test_cmd_re "sh" "$use $loaded_relpath" "$bash_modshare_ref2\nMODULEPATH=$loaded_path; export MODULEPATH;"
-test_cmd_re "bash" "$use $loaded_relpath" "$bash_modshare_ref2\nMODULEPATH=$loaded_path; export MODULEPATH;"
-test_cmd_re "ksh" "$use $loaded_relpath" "$bash_modshare_ref2\nMODULEPATH=$loaded_path; export MODULEPATH;"
-test_cmd_re "zsh" "$use $loaded_relpath" "$bash_modshare_ref2\nMODULEPATH=$loaded_path; export MODULEPATH;"
-test_cmd_re "csh" "$use $loaded_relpath" "$csh_modshare_ref2\nsetenv MODULEPATH $loaded_path;"
-test_cmd_re "tcsh" "$use $loaded_relpath" "$csh_modshare_ref2\nsetenv MODULEPATH $loaded_path;"
-test_cmd_re "fish" "$use $loaded_relpath" "$fish_modshare_ref2\nset -xg MODULEPATH $loaded_path;"
-test_cmd_re "tcl" "$use $loaded_relpath" "$tcl_modshare_ref2\nset env\\\(MODULEPATH\\\) \"$loaded_path\";"
-test_cmd_re "perl" "$use $loaded_relpath" "$perl_modshare_ref2\n\\\$ENV{\'MODULEPATH\'} = \'$loaded_path\';"
-test_cmd_re "python" "$use $loaded_relpath" "$python_modshare_ref2\nos.environ\\\['MODULEPATH'\\\] = \'$loaded_path\'"
-test_cmd_re "lisp" "$use $loaded_relpath" "$lisp_modshare_ref2\n\\\(setenv \"MODULEPATH\" \"$loaded_path\"\\\)"
+test_cmd_re "ALL" "$use $loaded_relpath" $ans
 
 #
 # test with already loaded path, but specified as relative-path with useless "." and ".." components
 # should end with same absolute-path result as above
 #
-test_cmd_re "sh" "$use $loaded_relpath_wdot" "$bash_modshare_ref2\nMODULEPATH=$loaded_path; export MODULEPATH;"
-test_cmd_re "bash" "$use $loaded_relpath_wdot" "$bash_modshare_ref2\nMODULEPATH=$loaded_path; export MODULEPATH;"
-test_cmd_re "ksh" "$use $loaded_relpath_wdot" "$bash_modshare_ref2\nMODULEPATH=$loaded_path; export MODULEPATH;"
-test_cmd_re "zsh" "$use $loaded_relpath_wdot" "$bash_modshare_ref2\nMODULEPATH=$loaded_path; export MODULEPATH;"
-test_cmd_re "csh" "$use $loaded_relpath_wdot" "$csh_modshare_ref2\nsetenv MODULEPATH $loaded_path;"
-test_cmd_re "tcsh" "$use $loaded_relpath_wdot" "$csh_modshare_ref2\nsetenv MODULEPATH $loaded_path;"
-test_cmd_re "fish" "$use $loaded_relpath_wdot" "$fish_modshare_ref2\nset -xg MODULEPATH $loaded_path;"
-test_cmd_re "tcl" "$use $loaded_relpath_wdot" "$tcl_modshare_ref2\nset env\\\(MODULEPATH\\\) \"$loaded_path\";"
-test_cmd_re "perl" "$use $loaded_relpath_wdot" "$perl_modshare_ref2\n\\\$ENV{\'MODULEPATH\'} = \'$loaded_path\';"
-test_cmd_re "python" "$use $loaded_relpath_wdot" "$python_modshare_ref2\nos.environ\\\['MODULEPATH'\\\] = \'$loaded_path\'"
-test_cmd_re "lisp" "$use $loaded_relpath_wdot" "$lisp_modshare_ref2\n\\\(setenv \"MODULEPATH\" \"$loaded_path\"\\\)"
+test_cmd_re "ALL" "$use $loaded_relpath_wdot" $ans
 
 #
 # List enabled paths with 2 paths set
@@ -222,26 +145,6 @@ unset loaded_path
 unset loaded_relpath
 unset loaded_relpath_wdot
 unset ORIG
-unset bash_modpath
-unset bash_modshare
-unset bash_modshare_ref2
-unset csh_modpath
-unset csh_modshare
-unset csh_modshare_ref2
-unset fish_modpath
-unset fish_modshare
-unset fish_modshare_ref2
-unset tcl_modpath
-unset tcl_modshare
-unset tcl_modshare_ref2
-unset perl_modpath
-unset perl_modshare
-unset perl_modshare_ref2
-unset python_modshare
-unset python_modshare_ref2
-unset python_modpath
-unset lisp_modshare
-unset lisp_modshare_ref2
-unset lisp_modpath
+unset ans
 unset path_list_header
 unset no_path_list

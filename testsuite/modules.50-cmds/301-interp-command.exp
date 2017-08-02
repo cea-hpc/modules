@@ -50,17 +50,15 @@ set mod2testres "$warn_msgs: Unable to find ModulesTest in $modfile2."
 #  For sh shell only (no need to check every shells)
 #
 
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modfile1:$modfile2; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$mod1:$mod2; export LOADEDMODULES;"
+lappend ans [list setpath LOADEDMODULES "$mod1:$mod2"]
+lappend ans [list setpath _LMFILES_ "$modfile1:$modfile2"]
 
 
 #
 #  The tests
 #
 
-testouterr_cmd_re "sh" "load $mod1 $mod2" "^$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^$spreadres\$"
+testouterr_cmd_re "sh" "load $mod1 $mod2" $ans "^$spreadres\$"
 testerr_cmd_re "sh" "display $mod1 $mod2" "^$mod1disph\n$mod1dispres\n$modlin\n$mod2disph\n$spreadres$modlin\$"
 testerr_cmd_re "sh" "help $mod1 $mod2" "^$mod1helph\n$mod1helpres\n$modlin\n$mod2helph\n$spreadres$mod2helpres\n$modlin\$"
 testerr_cmd_re "sh" "test $mod1 $mod2" "^$mod1testh\n$mod1testres\n$modlin\n$mod2testh\n$spreadres$mod2testres\n$modlin\$"
@@ -76,11 +74,12 @@ set env(_LMFILES_) "$modfile1"
 set env(LOADEDMODULES) "$mod1"
 
 # test switching
-set lmfmod_sh "_LMFILES__modshare=$modfile2:1; export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=$mod2:1; export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modfile2; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$mod2; export LOADEDMODULES;"
-testouterr_cmd_re "sh" "switch $mod1 $mod2" "^$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^$spreadres\$"
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modfile2:1"]
+lappend ans [list set LOADEDMODULES_modshare "$mod2:1"]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+testouterr_cmd_re "sh" "switch $mod1 $mod2" $ans "^$spreadres\$"
 
 # Set up the environment for test that require mod1 and mod2 to be loaded
 set env(_LMFILES_) "$modfile1:$modfile2"
@@ -88,11 +87,10 @@ set env(LOADEDMODULES) "$mod1:$mod2"
 
 testerr_cmd "sh" "list -t" "Currently Loaded Modulefiles:\n$mod1\n$mod2"
 # test unloading
-set lmfmod_sh "unset _LMFILES__modshare;"
-set lmmod_sh "unset LOADEDMODULES_modshare;"
-set lmf_sh "unset _LMFILES_;"
-set lm_sh "unset LOADEDMODULES;"
-testouterr_cmd_re "sh" "unload $mod1 $mod2" "^$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^$spreadres\$"
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd_re "sh" "unload $mod1 $mod2" $ans "^$spreadres\$"
 
 # Clean up the environment
 unset env(LOADEDMODULES)
@@ -131,17 +129,16 @@ set mod2testres "$warn_msgs: Unable to find ModulesTest in $modfile2."
 #  For sh shell only (no need to check every shells)
 #
 
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modfile1:$modfile2; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$mod1:$mod2; export LOADEDMODULES;"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$mod1:$mod2"]
+lappend ans [list setpath _LMFILES_ "$modfile1:$modfile2"]
 
 
 #
 #  The tests
 #
 
-testouterr_cmd_re "sh" "load $mod1 $mod2" "^$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^$spreadres\$"
+testouterr_cmd_re "sh" "load $mod1 $mod2" $ans "^$spreadres\$"
 testerr_cmd_re "sh" "display $mod1 $mod2" "^$mod1disph\n$mod1dispres\n$modlin\n$mod2disph\n$spreadres$modlin\$"
 testerr_cmd_re "sh" "help $mod1 $mod2" "^$mod1helph\n$mod1helpres\n$modlin\n$mod2helph\n$spreadres$mod2helpres\n$modlin\$"
 testerr_cmd_re "sh" "test $mod1 $mod2" "^$mod1testh\n$mod1testres\n$modlin\n$mod2testh\n$spreadres$mod2testres\n$modlin\$"
@@ -157,11 +154,12 @@ set env(_LMFILES_) "$modfile1"
 set env(LOADEDMODULES) "$mod1"
 
 # test switching
-set lmfmod_sh "_LMFILES__modshare=$modfile2:1; export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=$mod2:1; export LOADEDMODULES_modshare;"
-set lmf_sh "_LMFILES_=$modfile2; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$mod2; export LOADEDMODULES;"
-testouterr_cmd_re "sh" "switch $mod1 $mod2" "^$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^$spreadres\$"
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modfile2:1"]
+lappend ans [list set LOADEDMODULES_modshare "$mod2:1"]
+lappend ans [list set _LMFILES_ $modfile2]
+lappend ans [list set LOADEDMODULES $mod2]
+testouterr_cmd_re "sh" "switch $mod1 $mod2" $ans "^$spreadres\$"
 
 # Set up the environment for test that require mod1 and mod2 to be loaded
 set env(_LMFILES_) "$modfile1:$modfile2"
@@ -169,11 +167,10 @@ set env(LOADEDMODULES) "$mod1:$mod2"
 
 testerr_cmd "sh" "list -t" "Currently Loaded Modulefiles:\n$mod1\n$mod2"
 # test unloading
-set lmfmod_sh "unset _LMFILES__modshare;"
-set lmmod_sh "unset LOADEDMODULES_modshare;"
-set lmf_sh "unset _LMFILES_;"
-set lm_sh "unset LOADEDMODULES;"
-testouterr_cmd_re "sh" "unload $mod1 $mod2" "^$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$" "^$spreadres\$"
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd_re "sh" "unload $mod1 $mod2" $ans "^$spreadres\$"
 
 
 #
@@ -184,10 +181,7 @@ testouterr_cmd_re "sh" "unload $mod1 $mod2" "^$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$l
 unset env(LOADEDMODULES)
 unset env(_LMFILES_)
 
-unset lm_sh
-unset lmf_sh
-unset lmmod_sh
-unset lmfmod_sh
+unset ans
 
 unset mod1disph
 unset mod2disph

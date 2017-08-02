@@ -30,16 +30,6 @@ set module "uname"
 set modulefile "$env(MODULEPATH)/$module"
 
 #
-#  For the different shells ...
-#
-
-set lmf "setenv _LMFILES_ $modulefile"
-set lm "setenv LOADEDMODULES $module"
-set lmfmod "setenv _LMFILES__modshare (.*)"
-set lmmod "setenv LOADEDMODULES_modshare (.*)"
-set ts "setenv testsuite "
-
-#
 #  The tests
 #
 
@@ -49,26 +39,54 @@ regsub -all {\(} $u_domainname {\\\\\(} u_domainname
 regsub -all {\)} $u_domainname {\\\\\)} u_domainname
 regsub -all {\+} $u_release {\\+} u_release
 
-test_cmd_re "csh" "load $module/sysname" "$lmfmod;\n$lmmod;\n$lmf/sysname;\n$lm/sysname;\n$ts$u_sysname;\$"
-test_cmd_re "csh" "load $module/nodename" "$lmfmod;\n$lmmod;\n$lmf/nodename;\n$lm/nodename;\n$ts$u_nodename;\$"
+lappend ans [list set testsuite $u_sysname noescval]
+lappend ans [list setpath LOADEDMODULES "$module/sysname"]
+lappend ans [list setpath _LMFILES_ "$modulefile/sysname"]
+test_cmd_re "csh" "load $module/sysname" $ans
+
+set ans [list]
+lappend ans [list set testsuite $u_nodename noescval]
+lappend ans [list setpath LOADEDMODULES "$module/nodename"]
+lappend ans [list setpath _LMFILES_ "$modulefile/nodename"]
+test_cmd_re "csh" "load $module/nodename" $ans
+
 if { $u_domainname != "unknown" } {
-	test_cmd_re "csh" "load $module/domain" "$lmfmod;\n$lmmod;\n$lmf/domain;\n$lm/domain;\n$ts$u_domainname;\$"
+    set ans [list]
+    lappend ans [list set testsuite $u_domainname noescval]
+    lappend ans [list setpath LOADEDMODULES "$module/domain"]
+    lappend ans [list setpath _LMFILES_ "$modulefile/domain"]
+	test_cmd_re "csh" "load $module/domain" $ans
 } else {
-	test_cmd_re "csh" "load $module/domain" "$lmfmod;\n$lmmod;\n$lmf/domain;\n$lm/domain;\n$ts.*;\$"
+    set ans [list]
+    lappend ans [list set testsuite ".*" noescval]
+    lappend ans [list setpath LOADEDMODULES "$module/domain"]
+    lappend ans [list setpath _LMFILES_ "$modulefile/domain"]
+	test_cmd_re "csh" "load $module/domain" $ans
 }
-test_cmd_re "csh" "load $module/release" "$lmfmod;\n$lmmod;\n$lmf/release;\n$lm/release;\n$ts$u_release;\$"
-test_cmd_re "csh" "load $module/version" "$lmfmod;\n$lmmod;\n$lmf/version;\n$lm/version;\n$ts$u_version;\$"
-test_cmd_re "csh" "load $module/machine" "$lmfmod;\n$lmmod;\n$lmf/machine;\n$lm/machine;\n$ts$u_machine;\$"
+
+set ans [list]
+lappend ans [list set testsuite $u_release noescval]
+lappend ans [list setpath LOADEDMODULES "$module/release"]
+lappend ans [list setpath _LMFILES_ "$modulefile/release"]
+test_cmd_re "csh" "load $module/release" $ans
+
+set ans [list]
+lappend ans [list set testsuite $u_version noescval]
+lappend ans [list setpath LOADEDMODULES "$module/version"]
+lappend ans [list setpath _LMFILES_ "$modulefile/version"]
+test_cmd_re "csh" "load $module/version" $ans
+
+set ans [list]
+lappend ans [list set testsuite $u_machine noescval]
+lappend ans [list setpath LOADEDMODULES "$module/machine"]
+lappend ans [list setpath _LMFILES_ "$modulefile/machine"]
+test_cmd_re "csh" "load $module/machine" $ans
 
 #
 #  Cleanup
 #
 
-unset ts
-unset lmfmod
-unset lmmod
-unset lm
-unset lmf
+unset ans
 
 unset modulefile
 unset module

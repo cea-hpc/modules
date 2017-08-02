@@ -34,17 +34,8 @@ set modulefile_3 [list "$env(MODULEPATH)/verssort/1" "$env(MODULEPATH)/verssort/
 #  test with a modulefile
 #
 
-testouterr_cmd "sh" "paths $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "bash" "paths $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "ksh" "paths $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "zsh" "paths $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "csh" "paths $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "tcsh" "paths $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "fish" "paths $module_1" "echo '$modulefile_1';" ""
-testouterr_cmd "tcl" "paths $module_1" "puts \"$modulefile_1\";" ""
-testouterr_cmd "perl" "paths $module_1" "print '$modulefile_1'.\"\\n\";\n1;" ""
-testouterr_cmd "python" "paths $module_1" "import os\nprint '$modulefile_1'" ""
-testouterr_cmd "lisp" "paths $module_1" "(message \"$modulefile_1\")" ""
+lappend ans [list echo $modulefile_1]
+testouterr_cmd "ALL" "paths $module_1" $ans ""
 
 #
 # test with nonexistent modulefile
@@ -56,39 +47,12 @@ testouterr_cmd "ALL" "paths $module_2" "OK" ""
 # test with aliases to resolve
 #
 
+set ans [list]
 foreach modfile $modulefile_3 {
-    if {[info exists ts_sh]} {
-        append ts_sh "\n"
-        append ts_csh "\n"
-        append ts_fish "\n"
-        append ts_tcl "\n"
-        append ts_perl "\n"
-        append ts_python "\n"
-        append ts_lisp "\n"
-    } else {
-        set ts_python "import os\n"
-    }
-    append ts_sh "echo '$modfile';"
-    append ts_csh "echo '$modfile';"
-    append ts_fish "echo '$modfile';"
-    append ts_tcl "puts \"$modfile\";"
-    append ts_perl "print '$modfile'.\"\\n\";"
-    append ts_python "print '$modfile'"
-    append ts_lisp "(message \"$modfile\")"
+    lappend ans [list echo $modfile]
 }
-append ts_perl "\n1;"
 
-testouterr_cmd "sh" "paths $module_3" "$ts_sh" ""
-testouterr_cmd "bash" "paths $module_3" "$ts_sh" ""
-testouterr_cmd "ksh" "paths $module_3" "$ts_sh" ""
-testouterr_cmd "zsh" "paths $module_3" "$ts_sh" ""
-testouterr_cmd "csh" "paths $module_3" "$ts_csh" ""
-testouterr_cmd "tcsh" "paths $module_3" "$ts_csh" ""
-testouterr_cmd "fish" "paths $module_3" "$ts_fish" ""
-testouterr_cmd "tcl" "paths $module_3" "$ts_tcl" ""
-testouterr_cmd "perl" "paths $module_3" "$ts_perl" ""
-testouterr_cmd "python" "paths $module_3" "$ts_python" ""
-testouterr_cmd "lisp" "paths $module_3" "$ts_lisp" ""
+testouterr_cmd "ALL" "paths $module_3" $ans ""
 
 
 #
@@ -101,10 +65,4 @@ unset module_2
 unset module_3
 unset modulefile_3
 
-unset ts_sh
-unset ts_csh
-unset ts_fish
-unset ts_tcl
-unset ts_perl
-unset ts_python
-unset ts_lisp
+unset ans

@@ -31,7 +31,6 @@ set module "append/2.0"
 set modulefile "$env(MODULEPATH)/$module"
 
 set old_path $env(PATH)
-regsub -all ":" $old_path " " old_fish_path
 set ts_path "/this/is/the/modules/testsuite"
 set new_path "$old_path:$ts_path"
 
@@ -47,70 +46,15 @@ set env(LOADEDMODULES) "$module"
 #  For the different shells ...
 #
 
-set lmfmod_sh "unset _LMFILES__modshare;"
-set lmmod_sh "unset LOADEDMODULES_modshare;"
-set tsmod_sh "PATH_modshare=(.*); export PATH_modshare;"
-set lmf_sh "unset _LMFILES_;"
-set lm_sh "unset LOADEDMODULES;"
-set ts_sh "PATH=$old_path; export PATH;"
-
-set lmfmod_csh "unsetenv _LMFILES__modshare;"
-set lmmod_csh "unsetenv LOADEDMODULES_modshare;"
-set tsmod_csh "setenv PATH_modshare (.*);"
-set lmf_csh "unsetenv _LMFILES_;"
-set lm_csh "unsetenv LOADEDMODULES;"
-set ts_csh "setenv PATH $old_path;"
-
-set lmfmod_fish "set -e _LMFILES__modshare;"
-set lmmod_fish "set -e LOADEDMODULES_modshare;"
-set tsmod_fish "set -xg PATH_modshare (.*);"
-set lmf_fish "set -e _LMFILES_;"
-set lm_fish "set -e LOADEDMODULES;"
-set ts_fish "set -xg PATH $old_fish_path;"
-
-set lmfmod_tcl "unset env\\\(_LMFILES__modshare\\\);"
-set lmmod_tcl "unset env\\\(LOADEDMODULES_modshare\\\);"
-set tsmod_tcl "set env\\\(PATH_modshare\\\) \"(.*)\";"
-set lmf_tcl "unset env\\\(_LMFILES_\\\);"
-set lm_tcl "unset env\\\(LOADEDMODULES\\\);"
-set ts_tcl "set env\\\(PATH\\\) \"$old_path\";"
-
-set lmfmod_perl "delete \\\$ENV{\'_LMFILES__modshare\'};"
-set lmmod_perl "delete \\\$ENV{\'LOADEDMODULES_modshare\'};"
-set tsmod_perl "\\\$ENV{\'PATH_modshare\'} = \'(.*)\';"
-set lmf_perl "delete \\\$ENV{\'_LMFILES_\'};"
-set lm_perl "delete \\\$ENV{\'LOADEDMODULES\'};"
-set ts_perl "\\\$ENV{\'PATH\'} = \'$old_path\';"
-
-set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'\'\ndel os.environ\\\[\'_LMFILES__modshare\'\\\]"
-set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'\'\ndel os.environ\\\[\'LOADEDMODULES_modshare\'\\\]"
-set tsmod_python "os.environ\\\[\'PATH_modshare\'\\\] = \'(.*)\'"
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'\'\ndel os.environ\\\[\'_LMFILES_\'\\\]"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'\'\ndel os.environ\\\[\'LOADEDMODULES\'\\\]"
-set ts_python "os.environ\\\[\'PATH\'\\\] = \'$old_path\'"
-
-set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" nil\\\)"
-set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" nil\\\)"
-set tsmod_lisp "\\\(setenv \"PATH_modshare\" \"(.*)\"\\\)"
-set lmf_lisp "\\\(setenv \"_LMFILES_\" nil\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" nil\\\)"
-set ts_lisp "\\\(setenv \"PATH\" \"$old_path\"\\\)"
+lappend ans [list setpath PATH $old_path]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
 
 #
 #  The tests
 #
 
-test_cmd_re "sh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "bash" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "ksh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "zsh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "csh" "unload $module" "$lmfmod_csh\n$lmmod_csh\n$ts_csh\n$lmf_csh\n$lm_csh\n$tsmod_csh\$"
-test_cmd_re "tcsh" "unload $module" "$lmfmod_csh\n$lmmod_csh\n$ts_csh\n$lmf_csh\n$lm_csh\n$tsmod_csh\$"
-test_cmd_re "fish" "unload $module" "$lmfmod_fish\n$lmmod_fish\n$ts_fish\n$lmf_fish\n$lm_fish\n$tsmod_fish\$"
-test_cmd_re "tcl" "unload $module" "$lmfmod_tcl\n$lmmod_tcl\n$ts_tcl\n$lmf_tcl\n$lm_tcl\n$tsmod_tcl\$"
-test_cmd_re "perl" "unload $module" "$lmfmod_perl\n$lmmod_perl\n$ts_perl\n$lmf_perl\n$lm_perl\n$tsmod_perl\n1;\$"
-test_cmd_re "python" "unload $module" "import os\n$lmfmod_python\n$lmmod_python\n$ts_python\n$lmf_python\n$lm_python\n$tsmod_python\$"
-test_cmd_re "lisp" "unload $module" "$lmfmod_lisp\n$lmmod_lisp\n$ts_lisp\n$lmf_lisp\n$lm_lisp\n$tsmod_lisp\$"
+test_cmd_re "ALL" "unload $module" $ans
 
 #
 # try the empty string
@@ -139,17 +83,7 @@ set env(LOADEDMODULES) "$module"
 #  The tests
 #
 
-test_cmd_re "sh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "bash" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "ksh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "zsh" "unload $module" "$lmfmod_sh\n$lmmod_sh\n$ts_sh\n$lmf_sh\n$lm_sh\n$tsmod_sh\$"
-test_cmd_re "csh" "unload $module" "$lmfmod_csh\n$lmmod_csh\n$ts_csh\n$lmf_csh\n$lm_csh\n$tsmod_csh\$"
-test_cmd_re "tcsh" "unload $module" "$lmfmod_csh\n$lmmod_csh\n$ts_csh\n$lmf_csh\n$lm_csh\n$tsmod_csh\$"
-test_cmd_re "fish" "unload $module" "$lmfmod_fish\n$lmmod_fish\n$ts_fish\n$lmf_fish\n$lm_fish\n$tsmod_fish\$"
-test_cmd_re "tcl" "unload $module" "$lmfmod_tcl\n$lmmod_tcl\n$ts_tcl\n$lmf_tcl\n$lm_tcl\n$tsmod_tcl\$"
-test_cmd_re "perl" "unload $module" "$lmfmod_perl\n$lmmod_perl\n$ts_perl\n$lmf_perl\n$lm_perl\n$tsmod_perl\n1;\$"
-test_cmd_re "python" "unload $module" "import os\n$lmfmod_python\n$lmmod_python\n$ts_python\n$lmf_python\n$lm_python\n$tsmod_python\$"
-test_cmd_re "lisp" "unload $module" "$lmfmod_lisp\n$lmmod_lisp\n$ts_lisp\n$lmf_lisp\n$lm_lisp\n$tsmod_lisp\$"
+test_cmd_re "ALL" "unload $module" $ans
 
 #
 # try it again with :
@@ -198,57 +132,9 @@ unset env(LOADEDMODULES)
 unset new_path
 unset ts_path
 unset old_path
-unset old_fish_path
 unset ts_err
 
-unset ts_sh
-unset lm_sh
-unset lmf_sh
-unset tsmod_sh
-unset lmmod_sh
-unset lmfmod_sh
-
-unset ts_csh
-unset lm_csh
-unset lmf_csh
-unset tsmod_csh
-unset lmmod_csh
-unset lmfmod_csh
-
-unset ts_fish
-unset lm_fish
-unset lmf_fish
-unset tsmod_fish
-unset lmmod_fish
-unset lmfmod_fish
-
-unset ts_tcl
-unset lm_tcl
-unset lmf_tcl
-unset tsmod_tcl
-unset lmmod_tcl
-unset lmfmod_tcl
-
-unset ts_perl
-unset lm_perl
-unset lmf_perl
-unset tsmod_perl
-unset lmmod_perl
-unset lmfmod_perl
-
-unset ts_python
-unset lm_python
-unset lmf_python
-unset tsmod_python
-unset lmmod_python
-unset lmfmod_python
-
-unset ts_lisp
-unset lm_lisp
-unset lmf_lisp
-unset tsmod_lisp
-unset lmmod_lisp
-unset lmfmod_lisp
+unset ans
 
 unset modulefile
 unset module

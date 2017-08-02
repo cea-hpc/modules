@@ -31,34 +31,6 @@ set c4errmsg "unload $c2mod6\nunload $c2mod5\nunload $c2mod4"
 set badcontfp "$homewithcoll/.Xresources"
 set badcontfperrmsg "$error_msgs: $badcontfp is not a valid collection"
 
-set lmfmod_sh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmod_sh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set modpathmod_sh "MODULEPATH_modshare=(.*); export MODULEPATH_modshare;"
-
-set lmfmod_csh "setenv _LMFILES__modshare (.*);"
-set lmmod_csh "setenv LOADEDMODULES_modshare (.*);"
-set modpathmod_csh "setenv MODULEPATH_modshare (.*);"
-
-set lmfmod_fish "set -xg _LMFILES__modshare (.*);"
-set lmmod_fish "set -xg LOADEDMODULES_modshare (.*);"
-set modpathmod_fish "set -xg MODULEPATH_modshare (.*);"
-
-set lmfmod_tcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
-set lmmod_tcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
-set modpathmod_tcl "set env\\\(MODULEPATH_modshare\\\) \"(.*)\";"
-
-set lmfmod_perl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
-set lmmod_perl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
-set modpathmod_perl "\\\$ENV{\'MODULEPATH_modshare\'} = \'(.*)\';"
-
-set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'(.*)\'"
-set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'(.*)\'"
-set modpathmod_python "os.environ\\\[\'MODULEPATH_modshare\'\\\] = \'(.*)\'"
-
-set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
-set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
-set modpathmod_lisp "\\\(setenv \"MODULEPATH_modshare\" \"(.*)\"\\\)"
-
 
 # set HOME to location containing collections
 set ORIG_HOME $env(HOME)
@@ -100,53 +72,18 @@ if { $verbose > 0 } {
 }
 unset env(MODULEPATH)
 
-set lmf_sh "_LMFILES_=$cdlmf; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$cdlm; export LOADEDMODULES;"
-set modpath_sh "MODULEPATH=$cdmodpath; export MODULEPATH;"
-set ts_sh "$lmfmod_sh\n$lmmod_sh\n(.*);\n$modpathmod_sh\n(.*);\n$lmf_sh\n$lm_sh\n(.*);\n(.*);\n$modpath_sh\$"
+lappend ans [list set _LMFILES__modshare "(.*)"]
+lappend ans [list set LOADEDMODULES_modshare "(.*)"]
+lappend ans "(.*)"
+lappend ans [list set MODULEPATH_modshare "(.*)"]
+lappend ans "(.*)"
+lappend ans [list set _LMFILES_ $cdlmf]
+lappend ans [list set LOADEDMODULES $cdlm]
+lappend ans "(.*)"
+lappend ans "(.*)"
+lappend ans [list set MODULEPATH $cdmodpath]
 
-set lmf_csh "setenv _LMFILES_ $cdlmf;"
-set lm_csh "setenv LOADEDMODULES $cdlm;"
-set modpath_csh "setenv MODULEPATH $cdmodpath;"
-set ts_csh "$lmfmod_csh\n$lmmod_csh\n(.*);\n$modpathmod_csh\n(.*);\n$lmf_csh\n$lm_csh\n(.*);\n(.*);\n$modpath_csh\$"
-
-set lmf_fish "set -xg _LMFILES_ $cdlmf;"
-set lm_fish "set -xg LOADEDMODULES $cdlm;"
-set modpath_fish "set -xg MODULEPATH $cdmodpath;"
-set ts_fish "$lmfmod_fish\n$lmmod_fish\n(.*);\n$modpathmod_fish\n(.*);\n$lmf_fish\n$lm_fish\n(.*);\n(.*);\n$modpath_fish\$"
-
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$cdlmf\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$cdlm\";"
-set modpath_tcl "set env\\\(MODULEPATH\\\) \"$cdmodpath\";"
-set ts_tcl "$lmfmod_tcl\n$lmmod_tcl\n(.*);\n$modpathmod_tcl\n(.*);\n$lmf_tcl\n$lm_tcl\n(.*);\n(.*);\n$modpath_tcl\$"
-
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$cdlmf\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$cdlm\';"
-set modpath_perl "\\\$ENV{\'MODULEPATH\'} = \'$cdmodpath\';"
-set ts_perl "$lmfmod_perl\n$lmmod_perl\n(.*);\n$modpathmod_perl\n(.*);\n$lmf_perl\n$lm_perl\n(.*);\n(.*);\n$modpath_perl\n1;\$"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$cdlmf\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$cdlm\'"
-set modpath_python "os.environ\\\[\'MODULEPATH\'\\\] = \'$cdmodpath\'"
-set ts_python "import os\n$lmfmod_python\n$lmmod_python\n(.*)\n$modpathmod_python\n(.*)\n$lmf_python\n$lm_python\n(.*)\n(.*)\n$modpath_python\$"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$cdlmf\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$cdlm\"\\\)"
-set modpath_lisp "\\\(setenv \"MODULEPATH\" \"$cdmodpath\"\\\)"
-set ts_lisp "$lmfmod_lisp\n$lmmod_lisp\n(.*)\n$modpathmod_lisp\n(.*)\n$lmf_lisp\n$lm_lisp\n(.*)\n(.*)\n$modpath_lisp\$"
-
-
-testouterr_cmd_re "sh" "restore" "$ts_sh" "$cderrmsg"
-testouterr_cmd_re "bash" "restore" "$ts_sh" "$cderrmsg"
-testouterr_cmd_re "ksh" "restore" "$ts_sh" "$cderrmsg"
-testouterr_cmd_re "zsh" "restore" "$ts_sh" "$cderrmsg"
-testouterr_cmd_re "csh" "restore" "$ts_csh" "$cderrmsg"
-testouterr_cmd_re "tcsh" "restore" "$ts_csh" "$cderrmsg"
-testouterr_cmd_re "fish" "restore" "$ts_fish" "$cderrmsg"
-testouterr_cmd_re "tcl" "restore" "$ts_tcl" "$cderrmsg"
-testouterr_cmd_re "perl" "restore" "$ts_perl" "$cderrmsg"
-testouterr_cmd_re "python" "restore" "$ts_python" "$cderrmsg"
-testouterr_cmd_re "lisp" "restore" "$ts_lisp" "$cderrmsg"
+testouterr_cmd_re "ALL" "restore" $ans "$cderrmsg"
 
 
 #
@@ -163,53 +100,12 @@ set env(_LMFILES_) "$cdlmf"
 set env(LOADEDMODULES) "$cdlm"
 set env(MODULEPATH) "$cdmodpath"
 
-set lmf_sh "_LMFILES_=$c1lmf; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$c1lm; export LOADEDMODULES;"
-set modpath_sh "MODULEPATH=$c1modpath; export MODULEPATH;"
-set ts_sh "$lmfmod_sh\n$lmmod_sh\n$modpathmod_sh\n$lmf_sh\n$lm_sh\n$modpath_sh\$"
+set ans [list]
+lappend ans [list setpath MODULEPATH $c1modpath]
+lappend ans [list setpath LOADEDMODULES $c1lm]
+lappend ans [list setpath _LMFILES_ $c1lmf]
 
-set lmf_csh "setenv _LMFILES_ $c1lmf;"
-set lm_csh "setenv LOADEDMODULES $c1lm;"
-set modpath_csh "setenv MODULEPATH $c1modpath;"
-set ts_csh "$lmfmod_csh\n$lmmod_csh\n$modpathmod_csh\n$lmf_csh\n$lm_csh\n$modpath_csh\$"
-
-set lmf_fish "set -xg _LMFILES_ $c1lmf;"
-set lm_fish "set -xg LOADEDMODULES $c1lm;"
-set modpath_fish "set -xg MODULEPATH $c1modpath;"
-set ts_fish "$lmfmod_fish\n$lmmod_fish\n$modpathmod_fish\n$lmf_fish\n$lm_fish\n$modpath_fish\$"
-
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$c1lmf\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$c1lm\";"
-set modpath_tcl "set env\\\(MODULEPATH\\\) \"$c1modpath\";"
-set ts_tcl "$lmfmod_tcl\n$lmmod_tcl\n$modpathmod_tcl\n$lmf_tcl\n$lm_tcl\n$modpath_tcl\$"
-
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$c1lmf\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$c1lm\';"
-set modpath_perl "\\\$ENV{\'MODULEPATH\'} = \'$c1modpath\';"
-set ts_perl "$lmfmod_perl\n$lmmod_perl\n$modpathmod_perl\n$lmf_perl\n$lm_perl\n$modpath_perl\n1;\$"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$c1lmf\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$c1lm\'"
-set modpath_python "os.environ\\\[\'MODULEPATH\'\\\] = \'$c1modpath\'"
-set ts_python "import os\n$lmfmod_python\n$lmmod_python\n$modpathmod_python\n$lmf_python\n$lm_python\n$modpath_python\$"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$c1lmf\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$c1lm\"\\\)"
-set modpath_lisp "\\\(setenv \"MODULEPATH\" \"$c1modpath\"\\\)"
-set ts_lisp "$lmfmod_lisp\n$lmmod_lisp\n$modpathmod_lisp\n$lmf_lisp\n$lm_lisp\n$modpath_lisp\$"
-
-
-testouterr_cmd_re "sh" "restore $coll1" "$ts_sh" "$c1errmsg"
-testouterr_cmd_re "bash" "restore $coll1" "$ts_sh" "$c1errmsg"
-testouterr_cmd_re "ksh" "restore $coll1" "$ts_sh" "$c1errmsg"
-testouterr_cmd_re "zsh" "restore $coll1" "$ts_sh" "$c1errmsg"
-testouterr_cmd_re "csh" "restore $coll1" "$ts_csh" "$c1errmsg"
-testouterr_cmd_re "tcsh" "restore $coll1" "$ts_csh" "$c1errmsg"
-testouterr_cmd_re "fish" "restore $coll1" "$ts_fish" "$c1errmsg"
-testouterr_cmd_re "tcl" "restore $coll1" "$ts_tcl" "$c1errmsg"
-testouterr_cmd_re "perl" "restore $coll1" "$ts_perl" "$c1errmsg"
-testouterr_cmd_re "python" "restore $coll1" "$ts_python" "$c1errmsg"
-testouterr_cmd_re "lisp" "restore $coll1" "$ts_lisp" "$c1errmsg"
+testouterr_cmd_re "ALL" "restore $coll1" $ans "$c1errmsg"
 
 
 #
@@ -234,46 +130,11 @@ testouterr_cmd "ALL" "restore $coll1" "OK" ""
 # to reload them in correct order
 #
 
-set lmf_sh "_LMFILES_=$c2lmf; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$c2lm; export LOADEDMODULES;"
-set ts_sh "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c2lm]
+lappend ans [list setpath _LMFILES_ $c2lmf]
 
-set lmf_csh "setenv _LMFILES_ $c2lmf;"
-set lm_csh "setenv LOADEDMODULES $c2lm;"
-set ts_csh "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-
-set lmf_fish "set -xg _LMFILES_ $c2lmf;"
-set lm_fish "set -xg LOADEDMODULES $c2lm;"
-set ts_fish "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$"
-
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$c2lmf\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$c2lm\";"
-set ts_tcl "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$"
-
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$c2lmf\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$c2lm\';"
-set ts_perl "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$c2lmf\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$c2lm\'"
-set ts_python "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$c2lmf\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$c2lm\"\\\)"
-set ts_lisp "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$"
-
-
-testouterr_cmd_re "sh" "restore $coll2" "$ts_sh" "$c2errmsg"
-testouterr_cmd_re "bash" "restore $coll2" "$ts_sh" "$c2errmsg"
-testouterr_cmd_re "ksh" "restore $coll2" "$ts_sh" "$c2errmsg"
-testouterr_cmd_re "zsh" "restore $coll2" "$ts_sh" "$c2errmsg"
-testouterr_cmd_re "csh" "restore $coll2" "$ts_csh" "$c2errmsg"
-testouterr_cmd_re "tcsh" "restore $coll2" "$ts_csh" "$c2errmsg"
-testouterr_cmd_re "fish" "restore $coll2" "$ts_fish" "$c2errmsg"
-testouterr_cmd_re "tcl" "restore $coll2" "$ts_tcl" "$c2errmsg"
-testouterr_cmd_re "perl" "restore $coll2" "$ts_perl" "$c2errmsg"
-testouterr_cmd_re "python" "restore $coll2" "$ts_python" "$c2errmsg"
-testouterr_cmd_re "lisp" "restore $coll2" "$ts_lisp" "$c2errmsg"
+testouterr_cmd_re "ALL" "restore $coll2" $ans "$c2errmsg"
 
 
 #
@@ -291,85 +152,21 @@ set env(_LMFILES_) "$c2lmf"
 set env(LOADEDMODULES) "$c2lm"
 set env(MODULEPATH) "$c2modpath"
 
-set modpath_sh "MODULEPATH=$c3modpath; export MODULEPATH;"
-set ts_sh "$modpathmod_sh\n$modpath_sh\$"
+set ans [list]
+lappend ans [list setpath MODULEPATH $c3modpath]
 
-set modpath_csh "setenv MODULEPATH $c3modpath;"
-set ts_csh "$modpathmod_csh\n$modpath_csh\$"
-
-set modpath_fish "set -xg MODULEPATH $c3modpath;"
-set ts_fish "$modpathmod_fish\n$modpath_fish\$"
-
-set modpath_tcl "set env\\\(MODULEPATH\\\) \"$c3modpath\";"
-set ts_tcl "$modpathmod_tcl\n$modpath_tcl\$"
-
-set modpath_perl "\\\$ENV{\'MODULEPATH\'} = \'$c3modpath\';"
-set ts_perl "$modpathmod_perl\n$modpath_perl\n1;\$"
-
-set modpath_python "os.environ\\\[\'MODULEPATH\'\\\] = \'$c3modpath\'"
-set ts_python "import os\n$modpathmod_python\n$modpath_python\$"
-
-set modpath_lisp "\\\(setenv \"MODULEPATH\" \"$c3modpath\"\\\)"
-set ts_lisp "$modpathmod_lisp\n$modpath_lisp\$"
-
-
-testouterr_cmd_re "sh" "restore $coll3" "$ts_sh" "$c3errmsg"
-testouterr_cmd_re "bash" "restore $coll3" "$ts_sh" "$c3errmsg"
-testouterr_cmd_re "ksh" "restore $coll3" "$ts_sh" "$c3errmsg"
-testouterr_cmd_re "zsh" "restore $coll3" "$ts_sh" "$c3errmsg"
-testouterr_cmd_re "csh" "restore $coll3" "$ts_csh" "$c3errmsg"
-testouterr_cmd_re "tcsh" "restore $coll3" "$ts_csh" "$c3errmsg"
-testouterr_cmd_re "fish" "restore $coll3" "$ts_fish" "$c3errmsg"
-testouterr_cmd_re "tcl" "restore $coll3" "$ts_tcl" "$c3errmsg"
-testouterr_cmd_re "perl" "restore $coll3" "$ts_perl" "$c3errmsg"
-testouterr_cmd_re "python" "restore $coll3" "$ts_python" "$c3errmsg"
-testouterr_cmd_re "lisp" "restore $coll3" "$ts_lisp" "$c3errmsg"
+testouterr_cmd_re "ALL" "restore $coll3" $ans "$c3errmsg"
 
 
 #
 # test restoring collection specified as filepath
 #
 
-set lmf_sh "_LMFILES_=$c1lmf; export _LMFILES_;"
-set lm_sh "LOADEDMODULES=$c1lm; export LOADEDMODULES;"
-set ts_sh "$lmfmod_sh\n$lmmod_sh\n$lmf_sh\n$lm_sh\$"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c1lm]
+lappend ans [list setpath _LMFILES_ $c1lmf]
 
-set lmf_csh "setenv _LMFILES_ $c1lmf;"
-set lm_csh "setenv LOADEDMODULES $c1lm;"
-set ts_csh "$lmfmod_csh\n$lmmod_csh\n$lmf_csh\n$lm_csh\$"
-
-set lmf_fish "set -xg _LMFILES_ $c1lmf;"
-set lm_fish "set -xg LOADEDMODULES $c1lm;"
-set ts_fish "$lmfmod_fish\n$lmmod_fish\n$lmf_fish\n$lm_fish\$"
-
-set lmf_tcl "set env\\\(_LMFILES_\\) \"$c1lmf\";"
-set lm_tcl "set env\\\(LOADEDMODULES\\\) \"$c1lm\";"
-set ts_tcl "$lmfmod_tcl\n$lmmod_tcl\n$lmf_tcl\n$lm_tcl\$"
-
-set lmf_perl "\\\$ENV{\'_LMFILES_\'} = \'$c1lmf\';"
-set lm_perl "\\\$ENV{\'LOADEDMODULES\'} = \'$c1lm\';"
-set ts_perl "$lmfmod_perl\n$lmmod_perl\n$lmf_perl\n$lm_perl\n1;\$"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'$c1lmf\'"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'$c1lm\'"
-set ts_python "import os\n$lmfmod_python\n$lmmod_python\n$lmf_python\n$lm_python\$"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" \"$c1lmf\"\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" \"$c1lm\"\\\)"
-set ts_lisp "$lmfmod_lisp\n$lmmod_lisp\n$lmf_lisp\n$lm_lisp\$"
-
-
-testouterr_cmd_re "sh" "restore $coll1fp" "$ts_sh" "$c1errmsg"
-testouterr_cmd_re "bash" "restore $coll1fp" "$ts_sh" "$c1errmsg"
-testouterr_cmd_re "ksh" "restore $coll1fp" "$ts_sh" "$c1errmsg"
-testouterr_cmd_re "zsh" "restore $coll1fp" "$ts_sh" "$c1errmsg"
-testouterr_cmd_re "csh" "restore $coll1fp" "$ts_csh" "$c1errmsg"
-testouterr_cmd_re "tcsh" "restore $coll1fp" "$ts_csh" "$c1errmsg"
-testouterr_cmd_re "fish" "restore $coll1fp" "$ts_fish" "$c1errmsg"
-testouterr_cmd_re "tcl" "restore $coll1fp" "$ts_tcl" "$c1errmsg"
-testouterr_cmd_re "perl" "restore $coll1fp" "$ts_perl" "$c1errmsg"
-testouterr_cmd_re "python" "restore $coll1fp" "$ts_python" "$c1errmsg"
-testouterr_cmd_re "lisp" "restore $coll1fp" "$ts_lisp" "$c1errmsg"
+testouterr_cmd_re "ALL" "restore $coll1fp" $ans "$c1errmsg"
 
 
 #
@@ -383,17 +180,7 @@ if { $verbose > 0 } {
 }
 set env(MODULES_COLLECTION_TARGET) "$colltarget"
 
-testouterr_cmd_re "sh" "restore $coll1fp" "$ts_sh" "$c1errmsg"
-testouterr_cmd_re "bash" "restore $coll1fp" "$ts_sh" "$c1errmsg"
-testouterr_cmd_re "ksh" "restore $coll1fp" "$ts_sh" "$c1errmsg"
-testouterr_cmd_re "zsh" "restore $coll1fp" "$ts_sh" "$c1errmsg"
-testouterr_cmd_re "csh" "restore $coll1fp" "$ts_csh" "$c1errmsg"
-testouterr_cmd_re "tcsh" "restore $coll1fp" "$ts_csh" "$c1errmsg"
-testouterr_cmd_re "fish" "restore $coll1fp" "$ts_fish" "$c1errmsg"
-testouterr_cmd_re "tcl" "restore $coll1fp" "$ts_tcl" "$c1errmsg"
-testouterr_cmd_re "perl" "restore $coll1fp" "$ts_perl" "$c1errmsg"
-testouterr_cmd_re "python" "restore $coll1fp" "$ts_python" "$c1errmsg"
-testouterr_cmd_re "lisp" "restore $coll1fp" "$ts_lisp" "$c1errmsg"
+testouterr_cmd_re "ALL" "restore $coll1fp" $ans "$c1errmsg"
 
 
 #
@@ -401,64 +188,17 @@ testouterr_cmd_re "lisp" "restore $coll1fp" "$ts_lisp" "$c1errmsg"
 # when MODULES_COLLECTION_TARGET set
 #
 
-set lmf_sh "unset _LMFILES_;"
-set lm_sh "unset LOADEDMODULES;"
-set lmfmod_sh "unset _LMFILES__modshare;"
-set lmmod_sh "unset LOADEDMODULES_modshare;"
-set ts_sh "$lmfmod_sh\n$lmmod_sh\n(.*);\n(.*)\n(.*);\n$lmf_sh\n$lm_sh\n(.*);\$"
+set ans [list]
+lappend ans [list unset _LMFILES__modshare]
+lappend ans [list unset LOADEDMODULES_modshare]
+lappend ans "(.*)"
+lappend ans "(.*)"
+lappend ans "(.*)"
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans "(.*)"
 
-set lmf_csh "unsetenv _LMFILES_;"
-set lm_csh "unsetenv LOADEDMODULES;"
-set lmfmod_csh "unsetenv _LMFILES__modshare;"
-set lmmod_csh "unsetenv LOADEDMODULES_modshare;"
-set ts_csh "$lmfmod_csh\n$lmmod_csh\n(.*);\n(.*)\n(.*);\n$lmf_csh\n$lm_csh\n(.*);\$"
-
-set lmf_fish "set -e _LMFILES_;"
-set lm_fish "set -e LOADEDMODULES;"
-set lmfmod_fish "set -e _LMFILES__modshare;"
-set lmmod_fish "set -e LOADEDMODULES_modshare;"
-set ts_fish "$lmfmod_fish\n$lmmod_fish\n(.*);\n(.*)\n(.*);\n$lmf_fish\n$lm_fish\n(.*);\$"
-
-set lmf_tcl "unset env\\\(_LMFILES_\\);"
-set lm_tcl "unset env\\\(LOADEDMODULES\\\);"
-set lmfmod_tcl "unset env\\\(_LMFILES__modshare\\\);"
-set lmmod_tcl "unset env\\\(LOADEDMODULES_modshare\\\);"
-set ts_tcl "$lmfmod_tcl\n$lmmod_tcl\n(.*);\n(.*)\n(.*);\n$lmf_tcl\n$lm_tcl\n(.*);\$"
-
-set lmf_perl "delete \\\$ENV{\'_LMFILES_\'};"
-set lm_perl "delete \\\$ENV{\'LOADEDMODULES\'};"
-set lmfmod_perl "delete \\\$ENV{\'_LMFILES__modshare\'};"
-set lmmod_perl "delete \\\$ENV{\'LOADEDMODULES_modshare\'};"
-set ts_perl "$lmfmod_perl\n$lmmod_perl\n(.*);\n(.*)\n(.*);\n$lmf_perl\n$lm_perl\n(.*);\n1;\$"
-
-set lmf_python "os.environ\\\[\'_LMFILES_\'\\\] = \'\'\n"
-append lmf_python "del os.environ\\\[\'_LMFILES_\'\\\]"
-set lm_python "os.environ\\\[\'LOADEDMODULES\'\\\] = \'\'\n"
-append lm_python "del os.environ\\\[\'LOADEDMODULES\\'\\\]"
-set lmfmod_python "os.environ\\\[\'_LMFILES__modshare\'\\\] = \'\'\n"
-append lmfmod_python "del os.environ\\\[\'_LMFILES__modshare\\'\\\]"
-set lmmod_python "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = \'\'\n"
-append lmmod_python "del os.environ\\\[\'LOADEDMODULES_modshare\\'\\\]"
-set ts_python "import os\n$lmfmod_python\n$lmmod_python\n(.*)\n(.*)\n(.*)\n(.*)\n(.*)\n$lmf_python\n$lm_python\n(.*)\n(.*)\$"
-
-set lmf_lisp "\\\(setenv \"_LMFILES_\" nil\\\)"
-set lm_lisp "\\\(setenv \"LOADEDMODULES\" nil\\\)"
-set lmfmod_lisp "\\\(setenv \"_LMFILES__modshare\" nil\\\)"
-set lmmod_lisp "\\\(setenv \"LOADEDMODULES_modshare\" nil\\\)"
-set ts_lisp "$lmfmod_lisp\n$lmmod_lisp\n(.*)\n(.*)\n(.*)\n$lmf_lisp\n$lm_lisp\n(.*)\$"
-
-
-testouterr_cmd_re "sh" "restore $coll4" "$ts_sh" "$c4errmsg"
-testouterr_cmd_re "bash" "restore $coll4" "$ts_sh" "$c4errmsg"
-testouterr_cmd_re "ksh" "restore $coll4" "$ts_sh" "$c4errmsg"
-testouterr_cmd_re "zsh" "restore $coll4" "$ts_sh" "$c4errmsg"
-testouterr_cmd_re "csh" "restore $coll4" "$ts_csh" "$c4errmsg"
-testouterr_cmd_re "tcsh" "restore $coll4" "$ts_csh" "$c4errmsg"
-testouterr_cmd_re "fish" "restore $coll4" "$ts_fish" "$c4errmsg"
-testouterr_cmd_re "tcl" "restore $coll4" "$ts_tcl" "$c4errmsg"
-testouterr_cmd_re "perl" "restore $coll4" "$ts_perl" "$c4errmsg"
-testouterr_cmd_re "python" "restore $coll4" "$ts_python" "$c4errmsg"
-testouterr_cmd_re "lisp" "restore $coll4" "$ts_lisp" "$c4errmsg"
+testouterr_cmd_re "ALL" "restore $coll4" $ans "$c4errmsg"
 
 
 #
@@ -493,61 +233,7 @@ set env(MODULEPATH) "$ORIG_MODULEPATH"
 unset ORIG_MODULEPATH
 unset env(MODULES_COLLECTION_TARGET)
 
-unset ts_sh
-unset modpath_sh
-unset lm_sh
-unset lmf_sh
-unset modpathmod_sh
-unset lmmod_sh
-unset lmfmod_sh
-
-unset ts_csh
-unset modpath_csh
-unset lm_csh
-unset lmf_csh
-unset modpathmod_csh
-unset lmmod_csh
-unset lmfmod_csh
-
-unset ts_fish
-unset modpath_fish
-unset lm_fish
-unset lmf_fish
-unset modpathmod_fish
-unset lmmod_fish
-unset lmfmod_fish
-
-unset ts_tcl
-unset modpath_tcl
-unset lm_tcl
-unset lmf_tcl
-unset modpathmod_tcl
-unset lmmod_tcl
-unset lmfmod_tcl
-
-unset ts_perl
-unset modpath_perl
-unset lm_perl
-unset lmf_perl
-unset modpathmod_perl
-unset lmmod_perl
-unset lmfmod_perl
-
-unset ts_python
-unset modpath_python
-unset lm_python
-unset lmf_python
-unset modpathmod_python
-unset lmmod_python
-unset lmfmod_python
-
-unset ts_lisp
-unset modpath_lisp
-unset lm_lisp
-unset lmf_lisp
-unset modpathmod_lisp
-unset lmmod_lisp
-unset lmfmod_lisp
+unset ans
 
 unset cbadnerrmsg
 unset cbadfperrmsg

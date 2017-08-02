@@ -40,13 +40,6 @@ set modulefile_2 "$env(MODULEPATH)/$module_2"
 #  Only checked for the csh
 #
 
-set lmf_csh_1 "setenv _LMFILES_ $modulefile_1:$modulefile;"
-set lm_csh_1 "setenv LOADEDMODULES $module_1:$module;"
-set lmf_csh_2 "setenv _LMFILES_ $modulefile_2:$modulefile;"
-set lm_csh_2 "setenv LOADEDMODULES $module_2:$module;"
-set ts_csh_1 "setenv testsuite yes;"
-
-
 set disp_csh_1 "module-alias\tfoo loc_sym/1.0"
 set disp_csh_2 "module-version\tloc_sym/1.0 foo"
 set disp_csh "setenv\t\ttestsuite\tyes"
@@ -58,10 +51,17 @@ set disp "$modlin\n$modulefile:\n\n$disp_csh\n$modlin"
 #  The tests
 #
 
-test_cmd_re "csh" "load $module_1 foo" "$lmfmod_csh\n$lmmod_csh\n$ts_csh_1\n$lmf_csh_1\n$lm_csh_1"
+lappend ans [list setpath LOADEDMODULES "$module_1:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile_1:$modulefile"]
+lappend ans [list set testsuite yes]
+test_cmd_re "csh" "load $module_1 foo" $ans
 testerr_cmd_re "sh" "display $module_1 foo" "^$disp_1\n$disp\$"
 
-test_cmd_re "csh" "load $module_2 loc_sym/foo" "$lmfmod_csh\n$lmmod_csh\n$ts_csh_1\n$lmf_csh_2\n$lm_csh_2"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module_2:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile_2:$modulefile"]
+lappend ans [list set testsuite yes]
+test_cmd_re "csh" "load $module_2 loc_sym/foo" $ans
 testerr_cmd_re "sh" "display $module_2 loc_sym/foo" "^$disp_2\n$disp\$"
 
 #
@@ -75,11 +75,7 @@ unset disp
 unset disp_1
 unset disp_2
 
-unset lm_csh_1
-unset lmf_csh_1
-unset lm_csh_2
-unset lmf_csh_2
-unset ts_csh_1
+unset ans
 
 unset modulefile_1
 unset module_1

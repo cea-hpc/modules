@@ -33,75 +33,19 @@ set modulefile "$env(MODULEPATH)/$module"
 set old_path $env(PATH)
 set ts_path "/this/is/the/modules/testsuite"
 set new_path "$old_path:$ts_path"
-regsub -all ":" $new_path " " new_path_fish
 
 #
 #  For the different shells ...
 #
 
-set lmsh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lmcsh "setenv _LMFILES_ $modulefile;"
-set lmfish "set -xg _LMFILES_ $modulefile;"
-set lmtcl "set env\\\(_LMFILES_\\\) \"$modulefile\";"
-set lmperl "\\\$ENV{'_LMFILES_'} = '$modulefile';"
-set lmpython "os.environ\\\['_LMFILES_'\\\] = '$modulefile'"
-set lmlisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
-
-set loadmodsh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set loadmodcsh "setenv LOADEDMODULES $module;"
-set loadmodfish "set -xg LOADEDMODULES $module;"
-set loadmodtcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-set loadmodperl "\\\$ENV{'LOADEDMODULES'} = '$module';"
-set loadmodpython "os.environ\\\['LOADEDMODULES'\\\] = '$module'"
-set loadmodlisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
-
-set ts_sh "PATH=$new_path; export PATH;"
-set ts_csh "setenv PATH $new_path;"
-set ts_fish "set -xg PATH $new_path_fish;"
-set ts_tcl "set env\\\(PATH\\\) \"$new_path\";"
-set ts_perl "\\\$ENV{'PATH'} = '$new_path';"
-set ts_python "os.environ\\\['PATH'\\\] = '$new_path'"
-set ts_lisp "\\\(setenv \"PATH\" \"$new_path\"\\\)"
-
-set lmmodsharesh "_LMFILES__modshare=(.*); export _LMFILES__modshare;"
-set lmmodsharecsh "setenv _LMFILES__modshare (.*);"
-set lmmodsharefish "set -xg _LMFILES__modshare (.*);"
-set lmmodsharetcl "set env\\\(_LMFILES__modshare\\\) \"(.*)\";"
-set lmmodshareperl "\\\$ENV{\'_LMFILES__modshare\'} = \'(.*)\';"
-set lmmodsharepython "os.environ\\\[\'_LMFILES__modshare\'\\\] = (.*)"
-set lmmodsharelisp "\\\(setenv \"_LMFILES__modshare\" \"(.*)\"\\\)"
-
-set loadmodsharesh "LOADEDMODULES_modshare=(.*); export LOADEDMODULES_modshare;"
-set loadmodsharecsh "setenv LOADEDMODULES_modshare (.*);"
-set loadmodsharefish "set -xg LOADEDMODULES_modshare (.*);"
-set loadmodsharetcl "set env\\\(LOADEDMODULES_modshare\\\) \"(.*)\";"
-set loadmodshareperl "\\\$ENV{\'LOADEDMODULES_modshare\'} = \'(.*)\';"
-set loadmodsharepython "os.environ\\\[\'LOADEDMODULES_modshare\'\\\] = (.*)"
-set loadmodsharelisp "\\\(setenv \"LOADEDMODULES_modshare\" \"(.*)\"\\\)"
-
-set modpathsharesh "PATH_modshare=(.*); export PATH_modshare;"
-set modpathsharecsh "setenv PATH_modshare (.*);"
-set modpathsharefish "set -xg PATH_modshare (.*);"
-set modpathsharetcl "set env\\\(PATH_modshare\\\) \"(.*)\";"
-set modpathshareperl "\\\$ENV{\'PATH_modshare\'} = \'(.*)\';"
-set modpathsharepython "os.environ\\\[\'PATH_modshare\'\\\] = \'(.*)\'"
-set modpathsharelisp "\\\(setenv \"PATH_modshare\" \"(.*)\"\\\)"
+lappend ans [list setpath PATH $new_path]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 #
 #  The tests
 #
-test_cmd_re "sh" "load $module" "$lmmodsharesh\n$loadmodsharesh\n$ts_sh\n$lmsh\n$loadmodsh\n$modpathsharesh\$"
-test_cmd_re "bash" "load $module" "$lmmodsharesh\n$loadmodsharesh\n$ts_sh\n$lmsh\n$loadmodsh\n$modpathsharesh\$"
-test_cmd_re "ksh" "load $module" "$lmmodsharesh\n$loadmodsharesh\n$ts_sh\n$lmsh\n$loadmodsh\n$modpathsharesh\$"
-test_cmd_re "zsh" "load $module" "$lmmodsharesh\n$loadmodsharesh\n$ts_sh\n$lmsh\n$loadmodsh\n$modpathsharesh\$"
-test_cmd_re "csh" "load $module" "$lmmodsharecsh\n$loadmodsharecsh\n$ts_csh\n$lmcsh\n$loadmodcsh\n$modpathsharecsh\$"
-test_cmd_re "tcsh" "load $module" "$lmmodsharecsh\n$loadmodsharecsh\n$ts_csh\n$lmcsh\n$loadmodcsh\n$modpathsharecsh\$"
-test_cmd_re "fish" "load $module" "$lmmodsharefish\n$loadmodsharefish\n$ts_fish\n$lmfish\n$loadmodfish\n$modpathsharefish\$"
-test_cmd_re "tcl" "load $module" "$lmmodsharetcl\n$loadmodsharetcl\n$ts_tcl\n$lmtcl\n$loadmodtcl\n$modpathsharetcl\$"
-test_cmd_re "perl" "load $module" "$lmmodshareperl\n$loadmodshareperl\n$ts_perl\n$lmperl\n$loadmodperl\n$modpathshareperl\n1;\$"
-#test_cmd_re "cmake" "load $module" "$lm_cmake\n$lmf_cmake\n$ts_cmake\$"
-test_cmd_re "python" "load $module" "import os\n$lmmodsharepython\n$loadmodsharepython\n$ts_python\n$lmpython\n$loadmodpython\n$modpathsharepython\$"
-test_cmd_re "lisp" "load $module" "$lmmodsharelisp\n$loadmodsharelisp\n$ts_lisp\n$lmlisp\n$loadmodlisp\n$modpathsharelisp\$"
+test_cmd_re "ALL" "load $module" $ans
 
 #
 # Try one empty string
@@ -113,50 +57,20 @@ set modulefile "$env(MODULEPATH)/$module"
 set old_path $env(PATH)
 set ts_path ""
 set new_path "$old_path:$ts_path"
-regsub -all ":" $new_path " " new_path_fish
 
 #
 #  For the different shells ...
 #
-set lmsh "_LMFILES_=$modulefile; export _LMFILES_;"
-set lmcsh "setenv _LMFILES_ $modulefile;"
-set lmfish "set -xg _LMFILES_ $modulefile;"
-set lmtcl "set env\\\(_LMFILES_\\) \"$modulefile\";"
-set lmperl "\\\$ENV{'_LMFILES_'} = '$modulefile';"
-set lmpython "os.environ\\\['_LMFILES_'\\\] = '$modulefile'"
-set lmlisp "\\\(setenv \"_LMFILES_\" \"$modulefile\"\\\)"
 
-set loadmodsh "LOADEDMODULES=$module; export LOADEDMODULES;"
-set loadmodcsh "setenv LOADEDMODULES $module;"
-set loadmodfish "set -xg LOADEDMODULES $module;"
-set loadmodtcl "set env\\\(LOADEDMODULES\\\) \"$module\";"
-set loadmodperl "\\\$ENV{'LOADEDMODULES'} = '$module';"
-set loadmodpython "os.environ\\\['LOADEDMODULES'\\\] = '$module'"
-set loadmodlisp "\\\(setenv \"LOADEDMODULES\" \"$module\"\\\)"
-
-set ts_sh "PATH=$new_path; export PATH;"
-set ts_csh "setenv PATH $new_path;"
-set ts_fish "set -xg PATH $new_path_fish;"
-set ts_tcl "set env\\\(PATH\\\) \"$new_path\";"
-set ts_perl "\\\$ENV{'PATH'} = '$new_path';"
-set ts_python "os.environ\\\['PATH'\\\] = '$new_path'"
-set ts_lisp "\\\(setenv \"PATH\" \"$new_path\"\\\)"
+set ans [list]
+lappend ans [list setpath PATH $new_path]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 #
 #  The tests
 #
-test_cmd_re "sh" "load $module" "$lmmodsharesh\n$loadmodsharesh\n$ts_sh\n$lmsh\n$loadmodsh\n$modpathsharesh\$"
-test_cmd_re "bash" "load $module" "$lmmodsharesh\n$loadmodsharesh\n$ts_sh\n$lmsh\n$loadmodsh\n$modpathsharesh\$"
-test_cmd_re "ksh" "load $module" "$lmmodsharesh\n$loadmodsharesh\n$ts_sh\n$lmsh\n$loadmodsh\n$modpathsharesh\$"
-test_cmd_re "zsh" "load $module" "$lmmodsharesh\n$loadmodsharesh\n$ts_sh\n$lmsh\n$loadmodsh\n$modpathsharesh\$"
-test_cmd_re "csh" "load $module" "$lmmodsharecsh\n$loadmodsharecsh\n$ts_csh\n$lmcsh\n$loadmodcsh\n$modpathsharecsh\$"
-test_cmd_re "tcsh" "load $module" "$lmmodsharecsh\n$loadmodsharecsh\n$ts_csh\n$lmcsh\n$loadmodcsh\n$modpathsharecsh\$"
-test_cmd_re "fish" "load $module" "$lmmodsharefish\n$loadmodsharefish\n$ts_fish\n$lmfish\n$loadmodfish\n$modpathsharefish\$"
-test_cmd_re "tcl" "load $module" "$lmmodsharetcl\n$loadmodsharetcl\n$ts_tcl\n$lmtcl\n$loadmodtcl\n$modpathsharetcl\$"
-test_cmd_re "perl" "load $module" "$lmmodshareperl\n$loadmodshareperl\n$ts_perl\n$lmperl\n$loadmodperl\n$modpathshareperl\n1;\$"
-#test_cmd_re "cmake" "load $module" "$lm_cmake\n$lmf_cmake\n$ts_cmake\$"
-test_cmd_re "python" "load $module" "import os\n$lmmodsharepython\n$loadmodsharepython\n$ts_python\n$lmpython\n$loadmodpython\n$modpathsharepython\$"
-test_cmd_re "lisp" "load $module" "$lmmodsharelisp\n$loadmodsharelisp\n$ts_lisp\n$lmlisp\n$loadmodlisp\n$modpathsharelisp\$"
+test_cmd_re "ALL" "load $module" $ans
 
 #
 # Try the bare colon
@@ -181,50 +95,11 @@ testouterr_cmd_re "ALL" "load $module" "" "$ts_err"
 #
 
 unset new_path
-unset new_path_fish
 unset ts_path
 unset old_path
 unset ts_err
 
-unset lmsh
-unset lmcsh
-unset lmfish
-unset lmtcl
-unset lmperl
-unset lmpython
-unset lmlisp
-
-unset loadmodsh
-unset loadmodcsh
-unset loadmodfish
-unset loadmodtcl
-unset loadmodperl
-unset loadmodpython
-unset loadmodlisp
-
-unset ts_sh
-unset ts_csh
-unset ts_fish
-unset ts_tcl
-unset ts_perl
-unset ts_python
-unset ts_lisp
-
-unset lmmodsharesh
-unset lmmodsharecsh
-unset lmmodsharefish
-unset lmmodsharetcl
-unset lmmodshareperl
-unset lmmodsharepython
-unset lmmodsharelisp
-
-unset loadmodsharesh
-unset loadmodsharecsh
-unset loadmodsharefish
-unset loadmodsharetcl
-unset loadmodshareperl
-unset loadmodsharepython
-unset loadmodsharelisp
+unset ans
 
 unset modulefile
 unset module
