@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.933
-set MODULES_CURRENT_RELEASE_DATE "2017-07-27"
+set MODULES_CURRENT_VERSION 1.936
+set MODULES_CURRENT_RELEASE_DATE "2017-08-02"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1859,16 +1859,7 @@ proc uname {what} {
             set result [info hostname]
          }
          release {
-            # on ubuntu get the CODENAME of the Distribution
-            if { [file isfile /etc/lsb-release]} {
-               set fd [open "/etc/lsb-release" "r"]
-               set a [read $fd]
-               regexp -nocase {DISTRIB_CODENAME=(\S+)(.*)}\
-                  $a matched res end
-               set result $res
-            } else {
-               set result $tcl_platform(osVersion)
-            }
+            set result $tcl_platform(osVersion)
          }
          domain {
             set result [exec /bin/domainname]

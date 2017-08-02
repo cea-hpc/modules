@@ -4,7 +4,7 @@
 
 Name:           modules-tcl
 Version:        1.923
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Native Tcl version of the Environment Modules system
 
 Group:          System Environment/Base
@@ -15,6 +15,7 @@ Patch0:         modules-tcl-1.923-fix-uname-release-test.patch
 Patch1:         modules-tcl-1.923-skip-access-tests-if-root.patch
 Patch2:         modules-tcl-1.923-unneeded-manpath-q-option.patch
 Patch3:         modules-tcl-1.923-no-etc-rc-as-rc-file.patch
+Patch4:         modules-tcl-1.923-fix-uname-release-with-lsb.patch
 
 BuildArch:      noarch
 BuildRequires:  tcl
@@ -156,6 +157,10 @@ fi
 %{macrosdir}/macros.%{name}
 
 %changelog
+* Wed Aug  2 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 1.923-3
+- Add modules-tcl-1.923-fix-uname-release-with-lsb.patch to correct uname
+  release behavior when /etc/lsb-release exists
+
 * Thu Jul 27 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 1.923-2
 - Add modules-tcl-1.923-skip-access-tests-if-root.patch to fix testsuite
   when running as root
