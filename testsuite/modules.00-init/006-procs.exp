@@ -62,7 +62,7 @@ proc version_test {which} {
 # Shell conversion code subprocedures
 #
 
-proc shell_err {test_shell {re_mode 0} {standalone 1}} {
+proc shell_err {test_shell {re_mode 0}} {
     if {$re_mode} {
         set esc "\\"
     } else {
@@ -90,14 +90,10 @@ proc shell_err {test_shell {re_mode 0} {standalone 1}} {
         }
     }
 
-    if {$re_mode && $standalone} {
-        set answer "^$answer\$"
-    }
-
     return $answer
 }
 
-proc shell_ok {test_shell {re_mode 0} {standalone 1}} {
+proc shell_ok {test_shell {re_mode 0}} {
     switch -- $test_shell {
         {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
             set answer "/bin/true;"
@@ -114,10 +110,6 @@ proc shell_ok {test_shell {re_mode 0} {standalone 1}} {
         default {
             set answer ""
         }
-    }
-
-    if {$re_mode && $standalone} {
-        set answer "^$answer\$"
     }
 
     return $answer
@@ -540,12 +532,12 @@ proc shell_out {test_shell out_list {re_mode 0}} {
                 lappend answer_list [lindex $fixed_list end]
             }
             {OK} {
-                lappend fixed_list [shell_ok $test_shell $re_mode 0]
+                lappend fixed_list [shell_ok $test_shell $re_mode]
                 lappend answer_list [lindex $fixed_list end]
                 set status_set 1
             }
             {ERR} {
-                lappend fixed_list [shell_err $test_shell $re_mode 0]
+                lappend fixed_list [shell_err $test_shell $re_mode]
                 lappend answer_list [lindex $fixed_list end]
                 set status_set 1
             }
@@ -575,9 +567,6 @@ proc shell_out {test_shell out_list {re_mode 0}} {
     }
 
     set answer [join $answer_list "\n"]
-    if {$re_mode} {
-        set answer "^$answer\$"
-    }
 
     return $answer
 }
@@ -658,6 +647,7 @@ proc _test_err_re {test_shell cmd answer} {
 	global comp_error
 	global verbose
 
+    set answer "^$answer\$"
 	if { ![regexp -- $answer $comp_error] } {
 		fail "$cmd ($test_shell)"
 		if { $verbose > 0 } {
@@ -710,6 +700,7 @@ proc _test_out_re {test_shell cmd answer} {
         set answer [shell_ok $test_shell 1]
     }
 
+    set answer "^$answer\$"
 	if { ![regexp -- $answer $comp_output] } {
 		fail "$cmd ($test_shell)"
 		if { $verbose > 0 } {
