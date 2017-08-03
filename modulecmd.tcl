@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.938
-set MODULES_CURRENT_RELEASE_DATE "2017-08-02"
+set MODULES_CURRENT_VERSION 1.942
+set MODULES_CURRENT_RELEASE_DATE "2017-08-03"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1856,7 +1856,11 @@ proc uname {what} {
             set result $tcl_platform(machine)
          }
          nodename - node {
-            set result [info hostname]
+            if { [file isfile /bin/uname]} {
+               set result [exec /bin/uname -n]
+            } else {
+               set result [exec /usr/bin/uname -n]
+            }
          }
          release {
             set result $tcl_platform(osVersion)

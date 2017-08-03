@@ -1,0 +1,16 @@
+diff --git a/modulecmd.tcl b/modulecmd.tcl
+--- a/modulecmd.tcl
++++ b/modulecmd.tcl
+@@ -1856,7 +1856,11 @@ proc uname {what} {
+             set result $tcl_platform(machine)
+          }
+          nodename - node {
+-            set result [info hostname]
++            if { [file isfile /bin/uname]} {
++               set result [exec /bin/uname -n]
++            } else {
++               set result [exec /usr/bin/uname -n]
++            }
+          }
+          release {
+             set result $tcl_platform(osVersion)
