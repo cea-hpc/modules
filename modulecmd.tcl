@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.945
+set MODULES_CURRENT_VERSION 1.946
 set MODULES_CURRENT_RELEASE_DATE "2017-08-04"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -123,15 +123,15 @@ proc renderError {} {
                # nothing needed, reserved for future cygwin, MKS, etc
             }
             perl {
-               puts stdout "die \"modulefile.tcl: $error_count error(s)\
-                  detected!\\n\""
+               puts stdout "die \"modulecmd.tcl: $error_count error(s)\
+                  detected!\\n\";"
             }
             python {
-               puts stdout "raise RuntimeError(\
-                  'modulefile.tcl: $error_count error(s) detected!')"
+               puts stdout "raise RuntimeError('modulecmd.tcl: $error_count\
+                  error(s) detected!')"
             }
             lisp {
-               puts stdout "(error \"modulefile.tcl:\
+               puts stdout "(error \"modulecmd.tcl:\
                   $error_count error(s) detected!\")"
             }
          }
@@ -2404,7 +2404,7 @@ proc renderSettings {} {
             }
             perl {
                set val [charEscaped $env($var) \']
-               puts stdout "\$ENV{\'$var\'} = \'$val\';"
+               puts stdout "\$ENV{'$var'} = '$val';"
             }
             python {
                set val [charEscaped $env($var) \']
@@ -2437,7 +2437,7 @@ proc renderSettings {} {
                puts stdout "set $var="
             }
             perl {
-               puts stdout "delete \$ENV{\'$var\'};"
+               puts stdout "delete \$ENV{'$var'};"
             }
             python {
                puts stdout "os.environ\['$var'\] = ''"
@@ -2464,7 +2464,7 @@ proc renderSettings {} {
             }
             sh {
                set val $g_Aliases($var)
-               puts stdout "alias $var=\'$val\';"
+               puts stdout "alias $var='$val';"
             }
             fish {
                set val $g_Aliases($var)

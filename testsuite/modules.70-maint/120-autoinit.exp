@@ -73,14 +73,12 @@ set out_perl "sub module {
   }
   return 1;
 }
-(.*;\\n)*\\\$ENV{'MODULESHOME'} = '$moduleshome';(\\n.*;)*
-1;"
+(.*;\\n)*\\\$ENV{'MODULESHOME'} = '$moduleshome';(\\n.*;)*"
 set out_python "import os
 import subprocess
 def module\\\(command, \\*arguments\\\):
         exec\\\(subprocess\\.Popen\\\(\\\['$tclsh_path', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)
 (.*\\n)*os\\.environ\\\['MODULESHOME'\\\] = '$moduleshome'(\\n.*)*"
-set out_lisp "(error \"modulefile.tcl: 1 error(s) detected!\")"
 set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
 
 #
@@ -97,7 +95,7 @@ test_cmd_re "fish" "autoinit" "$out_fish"
 test_cmd_re "tcl" "autoinit" "$out_tcl"
 test_cmd_re "perl" "autoinit" "$out_perl"
 test_cmd_re "python" "autoinit" "$out_python"
-testouterr_cmd "lisp" "autoinit" "$out_lisp" "$err_lisp"
+testouterr_cmd "lisp" "autoinit" "ERR" "$err_lisp"
 
 #
 #  Cleanup
@@ -116,5 +114,4 @@ unset out_fish
 unset out_tcl
 unset out_perl
 unset out_python
-unset out_lisp
 unset err_lisp
