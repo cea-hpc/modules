@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.947
+set MODULES_CURRENT_VERSION 1.948
 set MODULES_CURRENT_RELEASE_DATE "2017-08-04"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -2659,16 +2659,16 @@ proc renderSettings {} {
       # nothing written!
       switch -- $g_shellType {
          {sh} - {csh} - {fish} {
-            puts "/bin/true;"
+            puts stdout "/bin/true;"
          }
          {tcl} {
-            puts "exec /bin/true;"
+            puts stdout "exec /bin/true;"
          }
          {perl} {
-            puts "1;"
+            puts stdout "1;"
          }
          {lisp} {
-            puts "t"
+            puts stdout "t"
          }
       }
    } else {
