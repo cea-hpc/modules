@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.946
+set MODULES_CURRENT_VERSION 1.947
 set MODULES_CURRENT_RELEASE_DATE "2017-08-04"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -107,30 +107,24 @@ proc renderError {} {
 
       if {[info exists g_shellType]} {
          switch -- $g_shellType {
-            csh {
+            {sh} - {csh} - {fish} {
                puts stdout "/bin/false;"
             }
-            sh {
-               puts stdout "/bin/false;"
-            }
-            fish {
-               puts stdout "/bin/false;"
-            }
-            tcl {
+            {tcl} {
                puts stdout "exec /bin/false;"
             }
-            cmd {
+            {cmd} {
                # nothing needed, reserved for future cygwin, MKS, etc
             }
-            perl {
+            {perl} {
                puts stdout "die \"modulecmd.tcl: $error_count error(s)\
                   detected!\\n\";"
             }
-            python {
+            {python} {
                puts stdout "raise RuntimeError('modulecmd.tcl: $error_count\
                   error(s) detected!')"
             }
-            lisp {
+            {lisp} {
                puts stdout "(error \"modulecmd.tcl:\
                   $error_count error(s) detected!\")"
             }
@@ -638,7 +632,7 @@ proc module-info {what {more {}}} {
    reportDebug "module-info: $what $more  mode=$mode"
 
    switch -- $what {
-      "mode" {
+      {mode} {
          if {$more ne ""} {
             set command [currentCommandName]
             if {$mode eq $more || ($more eq "remove" && $mode eq "unload")\
@@ -651,7 +645,7 @@ proc module-info {what {more {}}} {
             return $mode
          }
       }
-      "command" {
+      {command} {
          set command [currentCommandName]
          if {$more eq ""} {
             return $command
@@ -661,13 +655,13 @@ proc module-info {what {more {}}} {
             return 0
          }
       }
-      "name" {
+      {name} {
          return [currentModuleName]
       }
-      "specified" {
+      {specified} {
          return [currentSpecifiedName]
       }
-      "shell" {
+      {shell} {
          if {$more ne ""} {
             if {$g_shell eq $more} {
                return 1
@@ -678,12 +672,12 @@ proc module-info {what {more {}}} {
             return $g_shell
          }
       }
-      "flags" {
+      {flags} {
          # C-version specific option, not relevant for Tcl-version but return
          # a zero integer value to avoid breaking modulefiles using it
          return 0
       }
-      "shelltype" {
+      {shelltype} {
          if {$more ne ""} {
             if {$g_shellType eq $more} {
                return 1
@@ -694,7 +688,7 @@ proc module-info {what {more {}}} {
             return $g_shellType
          }
       }
-      "user" {
+      {user} {
          # C-version specific option, not relevant for Tcl-version but return
          # an empty value or false to avoid breaking modulefiles using it
          if {$more ne ""} {
@@ -703,7 +697,7 @@ proc module-info {what {more {}}} {
             return {}
          }
       }
-      "alias" {
+      {alias} {
          set ret [resolveModuleVersionOrAlias $more]
          if {$ret ne $more} {
             return $ret
@@ -711,20 +705,20 @@ proc module-info {what {more {}}} {
             return {}
          }
       }
-      "trace" {
+      {trace} {
          return {}
       }
-      "tracepat" {
+      {tracepat} {
          return {}
       }
-      "type" {
+      {type} {
          return "Tcl"
       }
-      "symbols" {
+      {symbols} {
          lassign [getModuleNameVersion $more 1 1] mod
          return [join [getVersAliasList $mod] ":"]
       }
-      "version" {
+      {version} {
          lassign [getModuleNameVersion $more 1 1] mod
          return [resolveModuleVersionOrAlias $mod]
       }
@@ -1854,26 +1848,26 @@ proc uname {what} {
 
    if {! [info exists unameCache($what)]} {
       switch -- $what {
-         sysname {
+         {sysname} {
             set result $tcl_platform(os)
          }
-         machine {
+         {machine} {
             set result $tcl_platform(machine)
          }
-         nodename - node {
+         {nodename} - {node} {
             if { [file isfile /bin/uname]} {
                set result [exec /bin/uname -n]
             } else {
                set result [exec /usr/bin/uname -n]
             }
          }
-         release {
+         {release} {
             set result $tcl_platform(osVersion)
          }
-         domain {
+         {domain} {
             set result [exec /bin/domainname]
          }
-         version {
+         {version} {
             if { [file isfile /bin/uname]} {
                set result [exec /bin/uname -v]
             } else {
@@ -2275,7 +2269,7 @@ proc renderSettings {} {
       [array size g_delXResources] > 0 || [info exists g_changeDir] ||\
       [info exists g_pathList]} {
       switch -- $g_shellType {
-         python {
+         {python} {
             puts stdout "import os"
          }
       }
@@ -2302,20 +2296,20 @@ proc renderSettings {} {
       set g_stateEnvVars(MODULESHOME) "new"
 
       switch -- $g_shellType {
-         csh {
+         {csh} {
             puts stdout "    alias module 'eval \
                `'$tclshbin' '$argv0' '$g_shell' \\!*`';"
          }
-         sh {
+         {sh} {
             puts stdout "module () { eval \
                `'$tclshbin' '$argv0' '$g_shell' \$*`; } ;"
          }
-         fish {
+         {fish} {
             puts stdout "function module"
             puts stdout "    eval '$tclshbin' '$argv0' '$g_shell' \$argv | source -"
             puts stdout "end"
          }
-         tcl {
+         {tcl} {
             puts stdout "proc module {args}  {"
             puts stdout "    global env;"
             puts stdout "    set script {};"
@@ -2327,10 +2321,10 @@ proc renderSettings {} {
             puts stdout "}"
 
          }
-         cmd {
+         {cmd} {
             puts stdout "start /b \%MODULESHOME\%/init/module.cmd %*"
          }
-         perl {
+         {perl} {
             puts stdout "sub module {"
             puts stdout "  eval `$tclshbin $argv0 perl @_`;"
             puts stdout "  if(\$@) {"
@@ -2340,7 +2334,7 @@ proc renderSettings {} {
             puts stdout "  return 1;"
             puts stdout "}"
          }
-         python {
+         {python} {
             puts stdout "import subprocess"
             puts stdout "def module(command, *arguments):"
             puts stdout "        exec(subprocess.Popen(\['$tclshbin',\
@@ -2348,7 +2342,7 @@ proc renderSettings {} {
                list(arguments),\
                stdout=subprocess.PIPE).communicate()\[0\])"
          }
-         lisp {
+         {lisp} {
             reportErrorAndExit "lisp mode autoinit not yet implemented"
          }
       }
@@ -2365,7 +2359,7 @@ proc renderSettings {} {
    foreach var [array names g_stateEnvVars] {
       if {$g_stateEnvVars($var) eq "new"} {
          switch -- $g_shellType {
-            csh {
+            {csh} {
                set val [charEscaped $env($var)]
                # csh barfs on long env vars
                if {$g_shell eq "csh" && [string length $val] >\
@@ -2384,11 +2378,11 @@ proc renderSettings {} {
                }
                puts stdout "setenv $var $val;"
             }
-            sh {
+            {sh} {
                puts stdout "$var=[charEscaped $env($var)];\
                   export $var;"
             }
-            fish {
+            {fish} {
                set val [charEscaped $env($var)]
                # fish shell has special treatment for PATH variable
                # so its value should be provided as a list separated
@@ -2398,52 +2392,52 @@ proc renderSettings {} {
                }
                puts stdout "set -xg $var $val;"
             }
-            tcl {
+            {tcl} {
                set val [charEscaped $env($var) \"]
                puts stdout "set env($var) \"$val\";"
             }
-            perl {
+            {perl} {
                set val [charEscaped $env($var) \']
                puts stdout "\$ENV{'$var'} = '$val';"
             }
-            python {
+            {python} {
                set val [charEscaped $env($var) \']
                puts stdout "os.environ\['$var'\] = '$val'"
             }
-            lisp {
+            {lisp} {
                set val [charEscaped $env($var) \"]
                puts stdout "(setenv \"$var\" \"$val\")"
             }
-            cmd {
+            {cmd} {
                set val $env($var)
                puts stdout "set $var=$val"
             }
          }
       } elseif {$g_stateEnvVars($var) eq "del"} {
          switch -- $g_shellType {
-            csh {
+            {csh} {
                puts stdout "unsetenv $var;"
             }
-            sh {
+            {sh} {
                puts stdout "unset $var;"
             }
-            fish {
+            {fish} {
                puts stdout "set -e $var;"
             }
-            tcl {
+            {tcl} {
                puts stdout "unset env($var);"
             }
-            cmd {
+            {cmd} {
                puts stdout "set $var="
             }
-            perl {
+            {perl} {
                puts stdout "delete \$ENV{'$var'};"
             }
-            python {
+            {python} {
                puts stdout "os.environ\['$var'\] = ''"
                puts stdout "del os.environ\['$var'\]"
             }
-            lisp {
+            {lisp} {
                puts stdout "(setenv \"$var\" nil)"
             }
          }
@@ -2453,7 +2447,7 @@ proc renderSettings {} {
    foreach var [array names g_stateAliases] {
       if {$g_stateAliases($var) eq "new"} {
          switch -- $g_shellType {
-            csh {
+            {csh} {
                # set val [charEscaped $g_Aliases($var)]
                set val $g_Aliases($var)
                # Convert $n -> \!\!:n
@@ -2462,24 +2456,24 @@ proc renderSettings {} {
                regsub -all {\$\*} $val {\\!*} val
                puts stdout "alias $var '$val';"
             }
-            sh {
+            {sh} {
                set val $g_Aliases($var)
                puts stdout "alias $var='$val';"
             }
-            fish {
+            {fish} {
                set val $g_Aliases($var)
                puts stdout "alias $var '$val';"
             }
          }
       } elseif {$g_stateAliases($var) eq "del"} {
          switch -- $g_shellType {
-            csh {
+            {csh} {
                puts stdout "unalias $var;"
             }
-            sh {
+            {sh} {
                puts stdout "unalias $var;"
             }
-            fish {
+            {fish} {
                puts stdout "functions -e $var;"
             }
          }
@@ -2490,7 +2484,7 @@ proc renderSettings {} {
    if {[array size g_newXResources] > 0} {
       set xrdb [findExecutable "xrdb"]
       switch -- $g_shellType {
-         python {
+         {python} {
             puts stdout "import subprocess"
          }
       }
@@ -2498,34 +2492,34 @@ proc renderSettings {} {
          set val $g_newXResources($var)
          # empty val means that var is a file to parse
          if {$val eq ""} {
-            switch -regexp -- $g_shellType {
-               {^(csh|fish|sh)$} {
+            switch -- $g_shellType {
+               {sh} - {csh} - {fish} {
                   puts stdout "$xrdb -merge $var;"
                }
-               tcl {
+               {tcl} {
                   puts stdout "exec $xrdb -merge $var;"
                }
-               perl {
+               {perl} {
                   puts stdout "system(\"$xrdb -merge $var\");"
                }
-               python {
+               {python} {
                   set var [charEscaped $var \']
                   puts stdout "subprocess.Popen(\['$xrdb',\
                      '-merge', '$var'\])"
                }
-               lisp {
+               {lisp} {
                   puts stdout "(shell-command-to-string \"$xrdb\
                      -merge $var\")"
                }
             }
          } else {
-            switch -regexp -- $g_shellType {
-               {^(csh|fish|sh)$} {
+            switch -- $g_shellType {
+               {sh} - {csh} - {fish} {
                   set var [charEscaped $var \"]
                   set val [charEscaped $val \"]
                   puts stdout "echo \"$var: $val\" | $xrdb -merge;"
                }
-               tcl {
+               {tcl} {
                   puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\];"
                   set var [charEscaped $var \"]
                   set val [charEscaped $val \"]
@@ -2533,20 +2527,20 @@ proc renderSettings {} {
                   puts stdout "close \$XRDBPIPE;"
                   puts stdout "unset XRDBPIPE;"
                }
-               perl {
+               {perl} {
                   puts stdout "open(XRDBPIPE, \"|$xrdb -merge\");"
                   set var [charEscaped $var \"]
                   set val [charEscaped $val \"]
                   puts stdout "print XRDBPIPE \"$var: $val\\n\";"
                   puts stdout "close XRDBPIPE;"
                }
-               python {
+               {python} {
                   set var [charEscaped $var \']
                   set val [charEscaped $val \']
                   puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
                      stdin=subprocess.PIPE).communicate(input='$var: $val\\n')"
                }
-               lisp {
+               {lisp} {
                   puts stdout "(shell-command-to-string \"echo $var:\
                      $val | $xrdb -merge\")"
                }
@@ -2573,13 +2567,13 @@ proc renderSettings {} {
 
       # xresource strings are unset by emptying their value since there
       # is no command of xrdb that can properly remove one property
-      switch -regexp -- $g_shellType {
-         {^(csh|fish|sh)$} {
+      switch -- $g_shellType {
+         {sh} - {csh} - {fish} {
             foreach var $xres_to_del {
                puts stdout "echo \"$var:\" | $xrdb -merge;"
             }
          }
-         tcl {
+         {tcl} {
             foreach var $xres_to_del {
                puts stdout "set XRDBPIPE \[open \"|$xrdb -merge\" r+\];"
                set var [charEscaped $var \"]
@@ -2588,7 +2582,7 @@ proc renderSettings {} {
                puts stdout "unset XRDBPIPE;"
             }
          }
-         perl {
+         {perl} {
             foreach var $xres_to_del {
                puts stdout "open(XRDBPIPE, \"|$xrdb -merge\");"
                set var [charEscaped $var \"]
@@ -2596,7 +2590,7 @@ proc renderSettings {} {
                puts stdout "close XRDBPIPE;"
             }
          }
-         python {
+         {python} {
             puts stdout "import subprocess"
             foreach var $xres_to_del {
                set var [charEscaped $var \']
@@ -2604,7 +2598,7 @@ proc renderSettings {} {
                   stdin=subprocess.PIPE).communicate(input='$var:\\n')"
             }
          }
-         lisp {
+         {lisp} {
             foreach var $xres_to_del {
                puts stdout "(shell-command-to-string \"echo $var: |\
                   $xrdb -merge\")"
@@ -2614,20 +2608,20 @@ proc renderSettings {} {
    }
 
    if {[info exists g_changeDir]} {
-      switch -regexp -- $g_shellType {
-         {^(csh|fish|sh)$} {
+      switch -- $g_shellType {
+         {sh} - {csh} - {fish} {
             puts stdout "cd '$g_changeDir';"
          }
-         tcl {
+         {tcl} {
             puts stdout "cd \"$g_changeDir\";"
          }
-         perl {
+         {perl} {
             puts stdout "chdir '$g_changeDir';"
          }
-         python {
+         {python} {
             puts stdout "os.chdir('$g_changeDir')"
          }
-         lisp {
+         {lisp} {
             puts stdout "(shell-command-to-string \"cd '$g_changeDir'\")"
          }
       }
@@ -2637,28 +2631,22 @@ proc renderSettings {} {
    if {[info exists g_pathList]} {
       foreach var $g_pathList {
          switch -- $g_shellType {
-            csh {
+            {sh} - {csh} - {fish} {
                puts stdout "echo '$var';"
             }
-            sh {
-               puts stdout "echo '$var';"
-            }
-            fish {
-               puts stdout "echo '$var';"
-            }
-            tcl {
+            {tcl} {
                puts stdout "puts \"$var\";"
             }
-            cmd {
+            {cmd} {
                puts stdout "echo '$var'"
             }
-            perl {
+            {perl} {
                puts stdout "print '$var'.\"\\n\";"
             }
-            python {
+            {python} {
                puts stdout "print '$var'"
             }
-            lisp {
+            {lisp} {
                puts stdout "(message \"$var\")"
             }
          }
@@ -2670,36 +2658,23 @@ proc renderSettings {} {
    } elseif {![tell stdout]} {
       # nothing written!
       switch -- $g_shellType {
-         csh {
+         {sh} - {csh} - {fish} {
             puts "/bin/true;"
          }
-         sh {
-            puts "/bin/true;"
-         }
-         fish {
-            puts "/bin/true;"
-         }
-         tcl {
+         {tcl} {
             puts "exec /bin/true;"
          }
-         cmd {
-            # nothing needed, reserve for future cygwin, MKS, etc
-         }
-         perl {
+         {perl} {
             puts "1;"
          }
-         python {
-            # this is not correct
-            puts ""
-         }
-         lisp {
+         {lisp} {
             puts "t"
          }
       }
    } else {
       # conclusion when no error and stuff written
       switch -- $g_shellType {
-         perl {
+         {perl} {
             puts stdout "1;"
          }
       }
@@ -4564,8 +4539,8 @@ proc cmdModuleInit {args} {
                   # remove existing references to the named module from
                   # the list Change the module command line to reflect the 
                   # given command
-                  switch $init_cmd {
-                     list {
+                  switch -- $init_cmd {
+                     {list} {
                         if {![info exists notheader]} {
                            report "$g_shell initialization file\
                               \$HOME/$filename loads modules:"
@@ -4573,7 +4548,7 @@ proc cmdModuleInit {args} {
                         }
                         report "\t$modules"
                      }
-                     add {
+                     {add} {
                         foreach newmodule $init_list {
                            set modules [replaceFromList $modules $newmodule]
                         }
@@ -4581,7 +4556,7 @@ proc cmdModuleInit {args} {
                         # delete new modules in potential next lines
                         set init_cmd "rm"
                      }
-                     prepend {
+                     {prepend} {
                         foreach newmodule $init_list {
                            set modules [replaceFromList $modules $newmodule]
                         }
@@ -4589,7 +4564,7 @@ proc cmdModuleInit {args} {
                         # delete new modules in potential next lines
                         set init_cmd "rm"
                      }
-                     rm {
+                     {rm} {
                         set oldmodcount [llength $modules]
                         foreach oldmodule $init_list {
                            set modules [replaceFromList $modules $oldmodule]
@@ -4604,7 +4579,7 @@ proc cmdModuleInit {args} {
                            set notdone 0
                         }
                      }
-                     switch {
+                     {switch} {
                         set oldmodule [lindex $init_list 0]
                         set newmodule [lindex $init_list 1]
                         set newmodules [replaceFromList $modules\
@@ -4614,7 +4589,7 @@ proc cmdModuleInit {args} {
                            set notdone 0
                         }
                      }
-                     clear {
+                     {clear} {
                         lappend newinit [string trim $cmd]
                      }
                   }
@@ -4781,32 +4756,17 @@ reportDebug "CALLING $argv0 $argv"
 if {[catch {
    # Parse shell
    set g_shell [lindex $argv 0]
-   switch -regexp -- $g_shell {
-      ^(sh|bash|ksh|zsh)$ {
-          set g_shellType sh
+   switch -- $g_shell {
+      {sh} - {bash} - {ksh} - {zsh} {
+         set g_shellType sh
       }
-      ^(fish)$ {
-          set g_shellType fish
+      {csh} - {tcsh} {
+         set g_shellType csh
       }
-      ^(cmd)$ {
-          set g_shellType cmd
+      {fish} - {cmd} - {tcl} - {perl} - {python} - {lisp} {
+         set g_shellType $g_shell
       }
-      ^(csh|tcsh)$ {
-          set g_shellType csh
-      }
-      ^(tcl)$ {
-         set g_shellType tcl
-      }
-      ^(perl)$ {
-          set g_shellType perl
-      }
-      ^(python)$ {
-          set g_shellType python
-      }
-      ^(lisp)$ {
-          set g_shellType lisp
-      }
-      . {
+      default {
           reportErrorAndExit "Unknown shell type \'($g_shell)\'"
       }
    }
