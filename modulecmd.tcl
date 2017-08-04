@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.948
+set MODULES_CURRENT_VERSION 1.949
 set MODULES_CURRENT_RELEASE_DATE "2017-08-04"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -2306,7 +2306,8 @@ proc renderSettings {} {
          }
          {fish} {
             puts stdout "function module"
-            puts stdout "    eval '$tclshbin' '$argv0' '$g_shell' \$argv | source -"
+            puts stdout "    eval '$tclshbin' '$argv0' '$g_shell' \$argv |\
+               source -"
             puts stdout "end"
          }
          {tcl} {
@@ -2538,7 +2539,8 @@ proc renderSettings {} {
                   set var [charEscaped $var \']
                   set val [charEscaped $val \']
                   puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
-                     stdin=subprocess.PIPE).communicate(input='$var: $val\\n')"
+                     stdin=subprocess.PIPE).communicate(input='$var:\
+                     $val\\n')"
                }
                {lisp} {
                   puts stdout "(shell-command-to-string \"echo $var:\
@@ -3044,7 +3046,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
       set findmod [lindex $parentlist 0]
       # if searched mod is an empty or flat element append wildcard character
       # to match anything starting with mod
-      if {[lsearch -exact $search "wild"] >= 0 && [llength $parentlist] <= 1} {
+      if {[lsearch -exact $search "wild"] >= 0 &&\
+         [llength $parentlist] <= 1} {
          append findmod "*"
       }
       # add alias/version definitions from global or user rc to result
@@ -3385,7 +3388,8 @@ proc displayElementList {header one_per_line display_idx args} {
       # as possible on each line
       set max_len 0
       foreach arg $args {
-         lappend elt_len [set len [expr {[string length $arg] + $elt_suffix_len}]]
+         lappend elt_len [set len [expr {[string length $arg] +\
+            $elt_suffix_len}]]
          if {$len > $max_len} {
             set max_len $len
          }
