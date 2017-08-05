@@ -1,10 +1,8 @@
 %global macrosdir %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_sysconfdir}/rpm; echo $d)
-# define license macro for el6 build
-%{!?_licensedir:%global license %%doc}
 
 Name:           modules-tcl
 Version:        1.923
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Native Tcl version of the Environment Modules system
 
 Group:          System Environment/Base
@@ -133,7 +131,11 @@ fi
 %endif
 
 %files
+%if 0%{?rhel} && 0%{?rhel} <= 6
+%doc COPYING.GPLv2
+%else
 %license COPYING.GPLv2
+%endif
 %doc ChangeLog NEWS README doc/diff_with_c-version.txt
 %{_sysconfdir}/modulefiles
 %if 0%{?fedora}
@@ -160,6 +162,11 @@ fi
 %{macrosdir}/macros.%{name}
 
 %changelog
+* Sat Aug  5 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 1.923-5
+- Fix modules-tcl-1.923-fix-uname-release-with-lsb.patch to also cover
+  non-regression testsuite with patch
+- Install license file in %doc on el6 as %license is not available
+
 * Thu Aug  3 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 1.923-4
 - Add modules-tcl-1.923-fix-uname-nodename-when-dns.patch to remove DNS
   involvement on uname nodename modulefile command.

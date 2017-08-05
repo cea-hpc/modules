@@ -19,3 +19,38 @@ diff --git a/modulecmd.tcl b/modulecmd.tcl
           }
           domain {
              set result [exec /bin/domainname]
+diff --git a/testsuite/modules.50-cmds/090-uname-proc.exp b/testsuite/modules.50-cmds/090-uname-proc.exp
+--- a/testsuite/modules.50-cmds/090-uname-proc.exp
++++ b/testsuite/modules.50-cmds/090-uname-proc.exp
+@@ -87,18 +87,9 @@ if { ![file executable $domainname] } {
+ if { [info exists uname] } {
+ 	set u_sysname [exec $uname -s]
+ 	set u_nodename [exec $uname -n]
++    set u_release [exec $uname -r]
+ 	set u_version [exec $uname -v]
+ 	set u_machine [exec $uname -m]
+-
+-    # on ubuntu get the CODENAME of the Distribution
+-    if {[file isfile /etc/lsb-release]} {
+-        set fd [open "/etc/lsb-release" "r"]
+-        set a [read $fd]
+-        regexp -nocase {DISTRIB_CODENAME=(\S+)(.*)}\
+-            $a matched u_release end
+-    } else {
+-        set u_release [exec $uname -r]
+-    }
+ }
+ 
+ 
+@@ -138,9 +129,3 @@ if { [info exist uname] } {
+ if { [info exist domainname] } {
+     unset domainname
+ }
+-if { [info exist fd] } {
+-    unset fd
+-}
+-if { [info exist a] } {
+-    unset a
+-}
+-- 
+2.9.4
