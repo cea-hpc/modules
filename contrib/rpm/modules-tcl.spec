@@ -42,7 +42,11 @@ Requires:       hostname
 Requires(post): coreutils
 Requires(post): %{_sbindir}/update-alternatives
 Requires(postun): %{_sbindir}/update-alternatives
+%if 0%{?fedora}
 Provides:       environment(modules)
+%else
+Provides:       environment-modules
+%endif
 
 %description
 The Environment Modules package is a tool that simplify shell initialization
@@ -162,10 +166,11 @@ fi
 %{macrosdir}/macros.%{name}
 
 %changelog
-* Sat Aug  5 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 1.923-5
+* Sun Aug  6 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 1.923-5
 - Fix modules-tcl-1.923-fix-uname-release-with-lsb.patch to also cover
   non-regression testsuite with patch
 - Install license file in %doc on el6 as %license is not available
+- Adapt environment-modules provides statement to distribution
 
 * Thu Aug  3 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 1.923-4
 - Add modules-tcl-1.923-fix-uname-nodename-when-dns.patch to remove DNS
