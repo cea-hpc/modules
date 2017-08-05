@@ -294,7 +294,7 @@ proc shell_chdir {test_shell val {re_mode 0}} {
     return $answer
 }
 
-proc shell_xres {test_shell var val first {re_mode 0}} {
+proc shell_xres {test_shell var val {re_mode 0}} {
     if {$re_mode} {
         set esc "\\"
     } else {
@@ -330,9 +330,6 @@ proc shell_xres {test_shell var val first {re_mode 0}} {
             }
         }
         {python} {
-            if {$first} {
-                set answer "import subprocess\n"
-            }
             if {$val ne ""} {
                 append answer "subprocess.Popen${esc}(${esc}\['$xrdb', '-merge'${esc}\], stdin=subprocess.PIPE${esc}).communicate${esc}(input=\'$var: $val${esc}\\n\'${esc})"
             } else {
@@ -354,7 +351,7 @@ proc shell_xres {test_shell var val first {re_mode 0}} {
     return $answer
 }
 
-proc shell_unxres {test_shell var first {re_mode 0}} {
+proc shell_unxres {test_shell var {re_mode 0}} {
     if {$re_mode} {
         set esc "\\"
     } else {
@@ -378,9 +375,6 @@ proc shell_unxres {test_shell var first {re_mode 0}} {
             append answer "close XRDBPIPE;"
         }
         {python} {
-            if {$first} {
-                set answer "import subprocess\n"
-            }
             append answer "subprocess.Popen${esc}(${esc}\['$xrdb', '-merge'${esc}\], stdin=subprocess.PIPE${esc}).communicate${esc}(input=\'$var:${esc}\\n\'${esc})"
         }
         {lisp} {
@@ -438,9 +432,11 @@ proc shell_out {test_shell out_list {re_mode 0}} {
     set answer_list {}
     set fixed_list {}
     array set envvar {}
+    array set envalias {}
+    array set envxres {}
+    array set envunxres {}
     array set autovar {}
     set status_set 0
-    set first_xres 1
 
     foreach out $out_list {
         lassign $out cmd var val extra
@@ -493,14 +489,14 @@ proc shell_out {test_shell out_list {re_mode 0}} {
             {alias} {
                 set ret [shell_alias $test_shell $var $val $re_mode]
                 if {$ret ne ""} {
-                    lappend fixed_list $ret
+                    set envalias($var) $ret
                     lappend answer_list $ret
                 }
             }
             {unalias} {
                 set ret [shell_unalias $test_shell $var $re_mode]
                  if {$ret ne ""} {
-                    lappend fixed_list $ret
+                    set envalias($var) $ret
                     lappend answer_list $ret
                 }
             }
@@ -512,20 +508,27 @@ proc shell_out {test_shell out_list {re_mode 0}} {
                 }
             }
             {xres} {
-                set ret [shell_xres $test_shell $var $val $first_xres $re_mode]
+                set ret [shell_xres $test_shell $var $val $re_mode]
                 if {$ret ne ""} {
-                    lappend fixed_list $ret
+                    set envxres($var) $ret
                     lappend answer_list $ret
                 }
-                set first_xres 0
             }
             {unxres} {
-                set ret [shell_unxres $test_shell $var $first_xres $re_mode]
+                set ret [shell_unxres $test_shell $var $re_mode]
                  if {$ret ne ""} {
-                    lappend fixed_list $ret
+                    # add element with xres filename as array key for
+                    # correct sorting when rendering
+                    if {$val ne ""} {
+                        if {[info exists envunxres($val)]} {
+                            set ret "\n$ret"
+                        }
+                        append envunxres($val) $ret
+                    } else {
+                        set envunxres($var) $ret
+                    }
                     lappend answer_list $ret
                 }
-                set first_xres 0
             }
             {echo} {
                 lappend fixed_list [shell_echo $test_shell $var $re_mode]
@@ -549,10 +552,24 @@ proc shell_out {test_shell out_list {re_mode 0}} {
     }
 
     # specific order if var have been automatically set
-    if {[array size autovar] > 0} {
+    if {[array size autovar] > 0 || [array size envxres] > 0 ||\
+        [array size envunxres] > 0} {
         set answer_list {}
         foreach var [array names envvar] {
             lappend answer_list $envvar($var)
+        }
+        foreach var [array names envalias] {
+            lappend answer_list $envalias($var)
+        }
+        if {$test_shell eq "python" && ([array size envxres] > 0 ||\
+            [array size envunxres] > 0)} {
+            lappend answer_list "import subprocess"
+        }
+        foreach var [array names envxres] {
+            lappend answer_list $envxres($var)
+        }
+        foreach var [array names envunxres] {
+            lappend answer_list $envunxres($var)
         }
         set answer_list [concat $answer_list $fixed_list]
     }
