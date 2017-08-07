@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.949
-set MODULES_CURRENT_RELEASE_DATE "2017-08-04"
+set MODULES_CURRENT_VERSION 1.954
+set MODULES_CURRENT_RELEASE_DATE "2017-08-07"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -1820,9 +1820,10 @@ proc x-resource {resource {value {}}} {
       }
    }
 
-   if {![info exists env(DISPLAY)] && ($mode eq "load"\
-      || $mode eq "unload")} {
-      error "WARNING: x-resource cannot edit X11 resource with no DISPLAY set"
+   # check current environment can handle X11 resource edition elsewhere exit
+   if {($mode eq "load" || $mode eq "unload") &&\
+      [catch {runCommand xrdb -query} errMsg]} {
+      error "WARNING: X11 resources cannot be edited, issue spotted\n$errMsg"
    }
 
    # if a resource does hold an empty value in g_newXResources or
@@ -1855,24 +1856,16 @@ proc uname {what} {
             set result $tcl_platform(machine)
          }
          {nodename} - {node} {
-            if { [file isfile /bin/uname]} {
-               set result [exec /bin/uname -n]
-            } else {
-               set result [exec /usr/bin/uname -n]
-            }
+            set result [runCommand uname -n]
          }
          {release} {
             set result $tcl_platform(osVersion)
          }
          {domain} {
-            set result [exec /bin/domainname]
+            set result [runCommand domainname]
          }
          {version} {
-            if { [file isfile /bin/uname]} {
-               set result [exec /bin/uname -v]
-            } else {
-               set result [exec /usr/bin/uname -v]
-            }
+            set result [runCommand uname -v]
          }
          default {
             error "uname $what not supported"
@@ -2483,7 +2476,8 @@ proc renderSettings {} {
 
    # new x resources
    if {[array size g_newXResources] > 0} {
-      set xrdb [findExecutable "xrdb"]
+      # xrdb executable has already be verified in x-resource
+      set xrdb [getCommandPath "xrdb"]
       switch -- $g_shellType {
          {python} {
             puts stdout "import subprocess"
@@ -2552,7 +2546,7 @@ proc renderSettings {} {
    }
 
    if {[array size g_delXResources] > 0} {
-      set xrdb [findExecutable "xrdb"]
+      set xrdb [getCommandPath "xrdb"]
       set xres_to_del {}
       foreach var [array names g_delXResources] {
          # empty val means that var is a file to parse
@@ -2722,14 +2716,19 @@ proc charUnescaped {str {charlist { \\\t\{\}|<>!;#^$&*"'`()}}} {
    return [regsub -all "\\\\\(\[$charlist\]\)" $str {\1}]
 }
 
-proc findExecutable {cmd} {
-   foreach dir {/usr/X11R6/bin /usr/openwin/bin /usr/bin/X11} {
-      if {[file executable "$dir/$cmd"]} {
-         return "$dir/$cmd"
-      }
-   }
+# find command path and remember it
+proc getCommandPath {cmd} {
+   return [lindex [auto_execok $cmd] 0]
+}
 
-   return $cmd
+# find then run command or raise error if command not found
+proc runCommand {cmd args} {
+   set cmdpath [getCommandPath $cmd]
+   if {$cmdpath eq ""} {
+      error "WARNING: Command '$cmd' cannot be found"
+   } else {
+      return [eval exec $cmdpath $args]
+   }
 }
 
 proc getAbsolutePath {path} {

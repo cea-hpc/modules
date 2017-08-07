@@ -35,56 +35,75 @@ set modulefile "$env(MODULEPATH)/$module"
 
 regsub -all \# $u_version {\\\#} u_version
 regsub -all { } $u_version {\\\ } u_version
-regsub -all {\(} $u_domainname {\\\\\(} u_domainname
-regsub -all {\)} $u_domainname {\\\\\)} u_domainname
+regsub -all {\(} $u_domain {\\\\\(} u_domain
+regsub -all {\)} $u_domain {\\\\\)} u_domain
 regsub -all {\+} $u_release {\\+} u_release
 
-lappend ans [list set testsuite $u_sysname noescval]
-lappend ans [list setpath LOADEDMODULES "$module/sysname"]
-lappend ans [list setpath _LMFILES_ "$modulefile/sysname"]
-test_cmd_re "csh" "load $module/sysname" $ans
 
-set ans [list]
-lappend ans [list set testsuite $u_nodename noescval]
-lappend ans [list setpath LOADEDMODULES "$module/nodename"]
-lappend ans [list setpath _LMFILES_ "$modulefile/nodename"]
-test_cmd_re "csh" "load $module/nodename" $ans
-
-if { $u_domainname != "unknown" } {
+foreach field [list sysname release machine] {
     set ans [list]
-    lappend ans [list set testsuite $u_domainname noescval]
+    lappend ans [list set testsuite [set "u_$field"] noescval]
+    lappend ans [list setpath LOADEDMODULES "$module/$field"]
+    lappend ans [list setpath _LMFILES_ "$modulefile/$field"]
+    test_cmd_re "csh" "load $module/$field" $ans
+}
+
+foreach field [list nodename version] {
+    if {$uname ne ""} {
+        set ans [list]
+        lappend ans [list set testsuite [set "u_$field"] noescval]
+        lappend ans [list setpath LOADEDMODULES "$module/$field"]
+        lappend ans [list setpath _LMFILES_ "$modulefile/$field"]
+        test_cmd_re "csh" "load $module/$field" $ans
+    } else {
+        testouterr_cmd "csh" "load $module/$field" "ERR" $uname_warn
+    }
+}
+
+if {$domainname ne ""} {
+    set ans [list]
+    lappend ans [list set testsuite $u_domain noescval]
     lappend ans [list setpath LOADEDMODULES "$module/domain"]
     lappend ans [list setpath _LMFILES_ "$modulefile/domain"]
 	test_cmd_re "csh" "load $module/domain" $ans
 } else {
-    set ans [list]
-    lappend ans [list set testsuite ".*" noescval]
-    lappend ans [list setpath LOADEDMODULES "$module/domain"]
-    lappend ans [list setpath _LMFILES_ "$modulefile/domain"]
-	test_cmd_re "csh" "load $module/domain" $ans
+    testouterr_cmd "csh" "load $module/domain" "ERR" $domainname_warn
 }
 
-set ans [list]
-lappend ans [list set testsuite $u_release noescval]
-lappend ans [list setpath LOADEDMODULES "$module/release"]
-lappend ans [list setpath _LMFILES_ "$modulefile/release"]
-test_cmd_re "csh" "load $module/release" $ans
 
-set ans [list]
-lappend ans [list set testsuite $u_version noescval]
-lappend ans [list setpath LOADEDMODULES "$module/version"]
-lappend ans [list setpath _LMFILES_ "$modulefile/version"]
-test_cmd_re "csh" "load $module/version" $ans
+# setup an empty path
+set ORIG_PATH $env(PATH)
+if { $verbose > 0 } {
+    send_user "\tSetup PATH = \n"
+}
+set env(PATH) ""
 
-set ans [list]
-lappend ans [list set testsuite $u_machine noescval]
-lappend ans [list setpath LOADEDMODULES "$module/machine"]
-lappend ans [list setpath _LMFILES_ "$modulefile/machine"]
-test_cmd_re "csh" "load $module/machine" $ans
+# no change for these fields
+foreach field [list sysname release machine] {
+    set ans [list]
+    lappend ans [list set testsuite [set "u_$field"] noescval]
+    lappend ans [list setpath LOADEDMODULES "$module/$field"]
+    lappend ans [list setpath _LMFILES_ "$modulefile/$field"]
+    test_cmd_re "csh" "load $module/$field" $ans
+}
+
+# cannot find bin for those fields
+foreach field [list nodename version] {
+    testouterr_cmd "csh" "load $module/$field" "ERR" $uname_warn
+}
+testouterr_cmd "csh" "load $module/domain" "ERR" $domainname_warn
+
 
 #
 #  Cleanup
 #
+
+# restore default testsuite path
+if { $verbose > 0 } {
+    send_user "\tRestore PATH = $ORIG_PATH\n"
+}
+set env(PATH) $ORIG_PATH
+unset ORIG_PATH
 
 unset ans
 

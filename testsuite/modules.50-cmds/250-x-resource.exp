@@ -40,8 +40,16 @@ set xresval1 "-fontname-bold-r-\\*-12-\\*-\\*-\\*-\\*-\\*"
 set xresval2 "true"
 set xresval5 "Fontname:style=Regular:size=10"
 
-set nodisplay_msg "$warn_msgs: x-resource cannot edit X11 resource with no DISPLAY set"
+set x11_warn_prefix "$warn_msgs: X11 resources cannot be edited, issue spotted"
+set xrdb_warn "$x11_warn_prefix\n$warn_msgs: Command 'xrdb' cannot be found"
 
+#  check where to find the 'xrdb' binary on this system
+set xrdb [auto_execok xrdb]
+if {$xrdb eq ""} {
+    set x11_warn $xrdb_warn
+} elseif {[catch {exec $xrdb -query} errMsg]} {
+    set x11_warn "$x11_warn_prefix\n$errMsg"
+}
 
 #
 #  load
@@ -59,12 +67,30 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 #  The load tests
 #
 
-# if DISPLAY env variable is not set, will get an error not a loaded module
-if {[info exists env(DISPLAY)]} {
-    test_cmd_re "ALL" "load $module" $ans
+# if error when testing X11 setup, will get an error not a loaded module
+if {[info exists x11_warn]} {
+    testouterr_cmd "ALL" "load $module" "ERR" $x11_warn
 } else {
-    testouterr_cmd "ALL" "load $module" "ERR" "$nodisplay_msg"
+    test_cmd_re "ALL" "load $module" $ans
 }
+
+
+# setup an empty path
+set ORIG_PATH $env(PATH)
+if { $verbose > 0 } {
+    send_user "\tSetup PATH = \n"
+}
+set env(PATH) ""
+
+# cannot find xrdb bin
+testouterr_cmd "ALL" "load $module" "ERR" $xrdb_warn
+
+# restore default testsuite path
+if { $verbose > 0 } {
+    send_user "\tRestore PATH = $ORIG_PATH\n"
+}
+set env(PATH) $ORIG_PATH
+unset ORIG_PATH
 
 
 #
@@ -90,12 +116,29 @@ lappend ans [list unsetpath _LMFILES_]
 #  The unload tests
 #
 
-# if DISPLAY env variable is not set, will get an error not an unloaded module
-if {[info exists env(DISPLAY)]} {
-    test_cmd_re "ALL" "unload $module" $ans
+# if error when testing X11 setup, will get an error not a loaded module
+if {[info exists x11_warn]} {
+    testouterr_cmd "ALL" "unload $module" "ERR" $x11_warn
 } else {
-    testouterr_cmd "ALL" "unload $module" "ERR" "$nodisplay_msg"
+    test_cmd_re "ALL" "unload $module" $ans
 }
+
+# setup an empty path
+set ORIG_PATH $env(PATH)
+if { $verbose > 0 } {
+    send_user "\tSetup PATH = \n"
+}
+set env(PATH) ""
+
+# cannot find xrdb bin
+testouterr_cmd "ALL" "unload $module" "ERR" $xrdb_warn
+
+# restore default testsuite path
+if { $verbose > 0 } {
+    send_user "\tRestore PATH = $ORIG_PATH\n"
+}
+set env(PATH) $ORIG_PATH
+unset ORIG_PATH
 
 
 #
@@ -104,7 +147,12 @@ if {[info exists env(DISPLAY)]} {
 
 unset ans
 
-unset nodisplay_msg
+unset x11_warn_prefix
+unset xrdb_warn
+unset xrdb
+if {[info exists x11_warn]} {
+    unset x11_warn
+}
 
 unset xresval1
 unset xresval2

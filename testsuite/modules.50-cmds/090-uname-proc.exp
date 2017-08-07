@@ -15,7 +15,7 @@
 #   Sub-Command:
 #
 #   Comment:	%C{
-#			Checks, wheter 'uname' is configured and retrieves
+#			Checks, whether 'uname' is configured and retrieves
 #			all data required for the tests from the configuration
 #			file.
 #		}C%
@@ -26,83 +26,51 @@
 #  Check the configuration
 #
 
-# assume default and overwrite if necessary
-set u_sysname "unknown"
-set u_nodename "unknown"
-set u_release "unknown"
-set u_version "unknown"
-set u_machine "unknown"
-set u_domainname "unknown"
+set u_sysname $tcl_platform(os)
+set u_release $tcl_platform(osVersion)
+set u_machine $tcl_platform(machine)
 
 
 #
-#  check where to find the 'uname' and the 'domainname'
-#  binary on this system
+#  set up variables relative to uname check
 #
 
-#
-# uname binary
-#
+set uname_warn "$warn_msgs: Command 'uname' cannot be found"
 
-set uname [which uname]
-if { ![info exists uname] } {
+#  check where to find the 'uname' binary on this system
+set uname [auto_execok uname]
+if {$uname eq ""} {
     if { $verbose > 0 } {
-        send_user "Using default /bin/uname for uname checking ..."
+        send_user "\tNo executable 'uname' binary found ...\n"
     }
-    set uname "/bin/uname"
-}
-if { ![file executable $uname] } {
+    set u_nodename "unknown"
+    set u_version "unknown"
+} else {
     if { $verbose > 0 } {
-        send_user "No executable uname binary found. Assuming 'unknown' ..."
+        send_user "\tUsing '$uname' for uname checking ...\n"
     }
-    unset uname
-}
-
-#
-# domainname binary
-#
-
-set domainname [which domainname]
-if { ![info exists domainname] || ![file executable $domainname] } {
-    set domainname [which domainname-yp]
-}
-
-if { ![info exists domainname] } {
-    if { $verbose > 0 } {
-        send_user "Using default /bin/domainname for domainname checking ..."
-    }
-    set domainname "/bin/domainname"
-}
-if { ![file executable $domainname] } {
-    if { $verbose > 0 } {
-        send_user "No executable domainname binary found. Assuming 'unknown' ..."
-    }
-    unset domainname
-}
-
-#
-#  set up variables for uname checking
-#
-
-if { [info exists uname] } {
-	set u_sysname [exec $uname -s]
 	set u_nodename [exec $uname -n]
-    set u_release [exec $uname -r]
 	set u_version [exec $uname -v]
-	set u_machine [exec $uname -m]
 }
 
-
 #
-#  set up variables for domainname checking
+#  set up variables relative to domainname check
 #
 
-if { [info exists domainname] } {
-    set u_domainname [exec $domainname]
-    # some OSes return empty string if NIS is not configured
-    if { $u_domainname == "" } {
-       set u_domainname "unknown"
+set domainname_warn "$warn_msgs: Command 'domainname' cannot be found"
+
+#  check where to find the 'domainname' binary on this system
+set domainname [auto_execok domainname]
+if {$domainname eq ""} {
+    if { $verbose > 0 } {
+        send_user "\tNo executable 'domainname' found ...\n"
     }
+    set u_domain "unknown"
+} else {
+    if { $verbose > 0 } {
+        send_user "\tUsing '$domainname' for domainname checking ...\n"
+    }
+    set u_domain [exec $domainname]
 }
 
 #
@@ -113,7 +81,7 @@ if { $verbose > 0 } {
     send_user "   Uname defaults:\n"
     send_user "        system name      $u_sysname\n"
     send_user "        node name        $u_nodename\n"
-    send_user "        domain name      $u_domainname\n"
+    send_user "        domain name      $u_domain\n"
     send_user "        release          $u_release\n"
     send_user "        version          $u_version\n"
     send_user "        machine          $u_machine\n"
@@ -123,9 +91,3 @@ if { $verbose > 0 } {
 #  Cleanup
 #
 
-if { [info exist uname] } {
-    unset uname
-}
-if { [info exist domainname] } {
-    unset domainname
-}
