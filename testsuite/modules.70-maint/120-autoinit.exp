@@ -80,6 +80,17 @@ def module\\\(command, \\*arguments\\\):
         exec\\\(subprocess\\.Popen\\\(\\\['$tclsh_path', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)
 (.*\\n)*os\\.environ\\\['MODULESHOME'\\\] = '$moduleshome'(\\n.*)*"
 set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
+set out_cmake "function\\\(module\\\)
+   execute_process\\\(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
+      OUTPUT_VARIABLE tempfile_name\\\)
+   execute_process\\\(COMMAND $tclsh_path $modulecmd_path cmake \\\${ARGV}
+      OUTPUT_FILE \\\${tempfile_name}\\\)
+   if\\\(EXISTS \\\${tempfile_name}\\\)
+      include\\\(\\\${tempfile_name}\\\)
+      file\\\(REMOVE \\\${tempfile_name}\\\)
+   endif\\\(\\\)
+endfunction\\\(module\\\)
+(.*\\n)*set\\\(ENV{MODULESHOME} \"$moduleshome\"\\\)(\\n.*)*"
 
 #
 #  test autoinit command for the different shells
@@ -96,6 +107,7 @@ test_cmd_re "tcl" "autoinit" "$out_tcl"
 test_cmd_re "perl" "autoinit" "$out_perl"
 test_cmd_re "python" "autoinit" "$out_python"
 testouterr_cmd "lisp" "autoinit" "ERR" "$err_lisp"
+test_cmd_re "cmake" "autoinit" "$out_cmake"
 
 #
 #  Cleanup
@@ -115,3 +127,4 @@ unset out_tcl
 unset out_perl
 unset out_python
 unset err_lisp
+unset out_cmake

@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.954
+set MODULES_CURRENT_VERSION 1.955
 set MODULES_CURRENT_RELEASE_DATE "2017-08-07"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -126,6 +126,10 @@ proc renderError {} {
             }
             {lisp} {
                puts stdout "(error \"modulecmd.tcl:\
+                  $error_count error(s) detected!\")"
+            }
+            {cmake} {
+               puts stdout "message(FATAL_ERROR \"modulecmd.tcl:\
                   $error_count error(s) detected!\")"
             }
          }
@@ -2339,6 +2343,20 @@ proc renderSettings {} {
          {lisp} {
             reportErrorAndExit "lisp mode autoinit not yet implemented"
          }
+         {cmake} {
+            puts stdout "function(module)"
+            puts stdout "   execute_process(COMMAND mktemp -t\
+               moduleinit.cmake.XXXXXXXXXXXX"
+            puts stdout "      OUTPUT_VARIABLE tempfile_name)"
+            puts stdout "   execute_process(COMMAND $tclshbin $argv0 cmake\
+               \${ARGV}"
+            puts stdout "      OUTPUT_FILE \${tempfile_name})"
+            puts stdout "   if(EXISTS \${tempfile_name})"
+            puts stdout "      include(\${tempfile_name})"
+            puts stdout "      file(REMOVE \${tempfile_name})"
+            puts stdout "   endif()"
+            puts stdout "endfunction(module)"
+         }
       }
 
       if {[file exists "$env(MODULESHOME)/modulerc"]} {
@@ -2402,6 +2420,10 @@ proc renderSettings {} {
                set val [charEscaped $env($var) \"]
                puts stdout "(setenv \"$var\" \"$val\")"
             }
+            {cmake} {
+               set val [charEscaped $env($var) \"]
+               puts stdout "set(ENV{$var} \"$val\")"
+            }
             {cmd} {
                set val $env($var)
                puts stdout "set $var=$val"
@@ -2433,6 +2455,9 @@ proc renderSettings {} {
             }
             {lisp} {
                puts stdout "(setenv \"$var\" nil)"
+            }
+            {cmake} {
+               puts stdout "unset(ENV{$var})"
             }
          }
       }
@@ -2506,6 +2531,9 @@ proc renderSettings {} {
                   puts stdout "(shell-command-to-string \"$xrdb\
                      -merge $var\")"
                }
+               {cmake} {
+                  puts stdout "execute_process(COMMAND $xrdb -merge $var)"
+               }
             }
          } else {
             switch -- $g_shellType {
@@ -2539,6 +2567,12 @@ proc renderSettings {} {
                {lisp} {
                   puts stdout "(shell-command-to-string \"echo $var:\
                      $val | $xrdb -merge\")"
+               }
+               {cmake} {
+                  set var [charEscaped $var \"]
+                  set val [charEscaped $val \"]
+                  puts stdout "execute_process(COMMAND echo \"$var: $val\"\
+                     COMMAND $xrdb -merge)"
                }
             }
          }
@@ -2600,6 +2634,13 @@ proc renderSettings {} {
                   $xrdb -merge\")"
             }
          }
+         {cmake} {
+            foreach var $xres_to_del {
+               set var [charEscaped $var \"]
+               puts stdout "execute_process(COMMAND echo \"$var:\"\
+                  COMMAND $xrdb -merge)"
+            }
+         }
       }
    }
 
@@ -2621,6 +2662,7 @@ proc renderSettings {} {
             puts stdout "(shell-command-to-string \"cd '$g_changeDir'\")"
          }
       }
+      # cannot change current directory of cmake "shell"
    }
 
    # module path{s,} output
@@ -2644,6 +2686,9 @@ proc renderSettings {} {
             }
             {lisp} {
                puts stdout "(message \"$var\")"
+            }
+            {cmake} {
+               puts stdout "message(\"$var\")"
             }
          }
       }
@@ -4766,11 +4811,11 @@ if {[catch {
       {csh} - {tcsh} {
          set g_shellType csh
       }
-      {fish} - {cmd} - {tcl} - {perl} - {python} - {lisp} {
+      {fish} - {cmd} - {tcl} - {perl} - {python} - {lisp} - {cmake} {
          set g_shellType $g_shell
       }
       default {
-          reportErrorAndExit "Unknown shell type \'($g_shell)\'"
+         reportErrorAndExit "Unknown shell type \'($g_shell)\'"
       }
    }
 

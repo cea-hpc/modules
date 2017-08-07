@@ -1,0 +1,31 @@
+function(module)
+   execute_process(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
+      OUTPUT_VARIABLE tempfile_name)
+   execute_process(COMMAND @TCLSH@ @libexecdir@/modulecmd.tcl cmake ${ARGV}
+      OUTPUT_FILE ${tempfile_name})
+   if(EXISTS ${tempfile_name})
+      include(${tempfile_name})
+      file(REMOVE ${tempfile_name})
+   endif()
+endfunction(module)
+
+set(ENV{MODULESHOME} "@prefix@")
+
+if(NOT DEFINED ENV{MODULEPATH})
+   if(EXISTS @initdir@/.modulespath)
+      execute_process(COMMAND sed -n "s/[ 	#].*$//; /./H; $ { x; s/^\\n//; s/\\n/:/g; p; }" @initdir@/.modulespath
+         OUTPUT_VARIABLE modulespath)
+      set(ENV{MODULEPATH} "${modulespath}")
+   else()
+      set(ENV{MODULEPATH} "")
+   endif()
+endif()
+
+if(NOT DEFINED ENV{LOADEDMODULES})
+   set(ENV{LOADEDMODULES} "")
+endif()
+
+# load modulerc only if module environment is empty
+if(EXISTS @initdir@/modulerc AND "$ENV{MODULEPATH}" STREQUAL "" AND "$ENV{LOADEDMODULES}" STREQUAL "")
+   module(source @initdir@/modulerc)
+endif()
