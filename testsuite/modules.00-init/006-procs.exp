@@ -82,6 +82,9 @@ proc shell_err {test_shell {re_mode 0}} {
         {python} {
             set answer "raise RuntimeError${esc}('modulecmd.tcl: 1 error${esc}(s${esc}) detected!'${esc})"
         }
+        {ruby} {
+            set answer "raise 'modulecmd.tcl: 1 error${esc}(s${esc}) detected!'"
+        }
         {lisp} {
             set answer "${esc}(error \"modulecmd.tcl: 1 error${esc}(s${esc}) detected!\"${esc})"
         }
@@ -133,7 +136,7 @@ proc shell_val {test_shell val {re_mode 0}} {
         {tcl} - {lisp} - {cmake} {
             set val [regsub -all {(["])} $val {\\\1}]
         }
-        {perl} - {python} {
+        {perl} - {python} - {ruby} {
             set val [regsub -all {(['])} $val {\\\1}]
         }
     }
@@ -172,6 +175,9 @@ proc shell_set {test_shell var val {re_mode 0} {escval 1}} {
         }
         {python} {
             set answer "os.environ${esc}\['$var'${esc}\] = '$val'"
+        }
+        {ruby} {
+            set answer "ENV${esc}\['$var'${esc}\] = '$val'"
         }
         {lisp} {
             set answer "${esc}(setenv \"$var\" \"$val\"${esc})"
@@ -213,6 +219,9 @@ proc shell_unset {test_shell var {re_mode 0}} {
         {python} {
             set answer "os.environ${esc}\['$var'${esc}\] = ''\n"
             append answer "del os.environ${esc}\['$var'${esc}\]"
+        }
+        {ruby} {
+            set answer "ENV${esc}\['$var'${esc}\] = nil"
         }
         {lisp} {
             set answer "${esc}(setenv \"$var\" nil${esc})"
@@ -292,6 +301,9 @@ proc shell_chdir {test_shell val {re_mode 0}} {
         {python} {
             set answer "os.chdir${esc}('$val'${esc})"
         }
+        {ruby} {
+            set answer "Dir.chdir${esc}('$val'${esc})"
+        }
         {lisp} {
             set answer "${esc}(shell-command-to-string \"cd '$val'\"${esc})"
         }
@@ -345,6 +357,13 @@ proc shell_xres {test_shell var val {re_mode 0}} {
                 set answer "subprocess.Popen${esc}(${esc}\['$xrdb', '-merge', '$var'${esc}\]${esc})"
             }
         }
+        {ruby} {
+            if {$val ne ""} {
+                set answer "Open3.popen2${esc}('$xrdb -merge'${esc}) {${esc}|i,o,t${esc}| i.puts '$var: $val'}"
+            } else {
+                set answer "Open3.popen2${esc}('$xrdb -merge $var'${esc})"
+            }
+        }
         {lisp} {
             if {$val ne ""} {
                 set answer "${esc}(shell-command-to-string \"echo $var: $val ${esc}| $xrdb -merge\"${esc})"
@@ -393,6 +412,9 @@ proc shell_unxres {test_shell var {re_mode 0}} {
         {python} {
             set answer "subprocess.Popen${esc}(${esc}\['$xrdb', '-merge'${esc}\], stdin=subprocess.PIPE${esc}).communicate${esc}(input=\'$var:${esc}\\n\'${esc})"
         }
+        {ruby} {
+            set answer "Open3.popen2${esc}('$xrdb -merge'${esc}) {${esc}|i,o,t${esc}| i.puts '$var:'}"
+        }
         {lisp} {
             set answer "${esc}(shell-command-to-string \"echo $var: ${esc}| $xrdb -merge\"${esc})"
         }
@@ -426,6 +448,9 @@ proc shell_echo {test_shell val {re_mode 0}} {
         }
         {python} {
             set answer "print '$val'"
+        }
+        {ruby} {
+            set answer "puts '$val'"
         }
         {lisp} {
             set answer "${esc}(message \"$val\"${esc})"
@@ -583,9 +608,15 @@ proc shell_out {test_shell out_list {re_mode 0}} {
         foreach var [array names envalias] {
             lappend answer_list $envalias($var)
         }
-        if {$test_shell eq "python" && ([array size envxres] > 0 ||\
-            [array size envunxres] > 0)} {
-            lappend answer_list "import subprocess"
+        if {[array size envxres] > 0 || [array size envunxres] > 0} {
+            switch -- $test_shell {
+                {python} {
+                    lappend answer_list "import subprocess"
+                }
+                {ruby} {
+                    lappend answer_list "require 'open3'"
+                }
+            }
         }
         foreach var [array names envxres] {
             lappend answer_list $envxres($var)

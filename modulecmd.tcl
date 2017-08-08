@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.957
-set MODULES_CURRENT_RELEASE_DATE "2017-08-08"
+set MODULES_CURRENT_VERSION 1.960
+set MODULES_CURRENT_RELEASE_DATE "2017-08-09"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -123,6 +123,10 @@ proc renderError {} {
             {python} {
                puts stdout "raise RuntimeError('modulecmd.tcl: $error_count\
                   error(s) detected!')"
+            }
+            {ruby} {
+               puts stdout "raise 'modulecmd.tcl: $error_count error(s)\
+                  detected!'"
             }
             {lisp} {
                puts stdout "(error \"modulecmd.tcl:\
@@ -2341,6 +2345,18 @@ proc renderSettings {} {
                list(arguments),\
                stdout=subprocess.PIPE).communicate()\[0\])"
          }
+         {ruby} {
+            puts stdout "class ENVModule"
+            puts stdout "   def ENVModule.module(*args)"
+            puts stdout "      if args\[0\].kind_of?(Array) then"
+            puts stdout "         args = args\[0\].join(' ')"
+            puts stdout "      else"
+            puts stdout "         args = args.join(' ')"
+            puts stdout "      end"
+            puts stdout "      eval `$tclshbin $argv0 ruby #{args}`"
+            puts stdout "   end"
+            puts stdout "end"
+         }
          {lisp} {
             reportErrorAndExit "lisp mode autoinit not yet implemented"
          }
@@ -2417,6 +2433,10 @@ proc renderSettings {} {
                set val [charEscaped $env($var) \']
                puts stdout "os.environ\['$var'\] = '$val'"
             }
+            {ruby} {
+               set val [charEscaped $env($var) \']
+               puts stdout "ENV\['$var'\] = '$val'"
+            }
             {lisp} {
                set val [charEscaped $env($var) \"]
                puts stdout "(setenv \"$var\" \"$val\")"
@@ -2453,6 +2473,9 @@ proc renderSettings {} {
             {python} {
                puts stdout "os.environ\['$var'\] = ''"
                puts stdout "del os.environ\['$var'\]"
+            }
+            {ruby} {
+               puts stdout "ENV\['$var'\] = nil"
             }
             {lisp} {
                puts stdout "(setenv \"$var\" nil)"
@@ -2506,6 +2529,9 @@ proc renderSettings {} {
          {python} {
             puts stdout "import subprocess"
          }
+         {ruby} {
+            puts stdout "require 'open3'"
+         }
       }
    }
 
@@ -2531,6 +2557,10 @@ proc renderSettings {} {
                   set var [charEscaped $var \']
                   puts stdout "subprocess.Popen(\['$xrdb',\
                      '-merge', '$var'\])"
+               }
+               {ruby} {
+                  set var [charEscaped $var \']
+                  puts stdout "Open3.popen2('$xrdb -merge $var')"
                }
                {lisp} {
                   puts stdout "(shell-command-to-string \"$xrdb\
@@ -2568,6 +2598,12 @@ proc renderSettings {} {
                   puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
                      stdin=subprocess.PIPE).communicate(input='$var:\
                      $val\\n')"
+               }
+               {ruby} {
+                  set var [charEscaped $var \']
+                  set val [charEscaped $val \']
+                  puts stdout "Open3.popen2('$xrdb -merge') {|i,o,t| i.puts\
+                     '$var: $val'}"
                }
                {lisp} {
                   puts stdout "(shell-command-to-string \"echo $var:\
@@ -2632,6 +2668,13 @@ proc renderSettings {} {
                   stdin=subprocess.PIPE).communicate(input='$var:\\n')"
             }
          }
+         {ruby} {
+            foreach var $xres_to_del {
+               set var [charEscaped $var \']
+               puts stdout "Open3.popen2('$xrdb -merge') {|i,o,t| i.puts\
+                  '$var:'}"
+            }
+         }
          {lisp} {
             foreach var $xres_to_del {
                puts stdout "(shell-command-to-string \"echo $var: |\
@@ -2662,6 +2705,9 @@ proc renderSettings {} {
          {python} {
             puts stdout "os.chdir('$g_changeDir')"
          }
+         {ruby} {
+            puts stdout "Dir.chdir('$g_changeDir')"
+         }
          {lisp} {
             puts stdout "(shell-command-to-string \"cd '$g_changeDir'\")"
          }
@@ -2687,6 +2733,9 @@ proc renderSettings {} {
             }
             {python} {
                puts stdout "print '$var'"
+            }
+            {ruby} {
+               puts stdout "puts '$var'"
             }
             {lisp} {
                puts stdout "(message \"$var\")"
@@ -4815,7 +4864,7 @@ if {[catch {
       {csh} - {tcsh} {
          set g_shellType csh
       }
-      {fish} - {cmd} - {tcl} - {perl} - {python} - {lisp} - {cmake} {
+      {fish} - {cmd} - {tcl} - {perl} - {python} - {ruby} - {lisp} - {cmake} {
          set g_shellType $g_shell
       }
       default {

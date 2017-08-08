@@ -63,7 +63,8 @@ to supplement or replace the shared modulefiles.
 
 Modules can be loaded and unloaded dynamically and atomically, in an clean
 fashion. All popular shells are supported, including bash, ksh, zsh, sh,
-csh, tcsh, fish, as well as some scripting languages such as perl and python.
+csh, tcsh, fish, as well as some scripting languages such as perl, python
+and ruby.
 
 Modules are useful in managing different versions of applications. Modules
 can also be bundled into metamodules that will load an entire suite of

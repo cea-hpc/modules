@@ -79,6 +79,18 @@ import subprocess
 def module\\\(command, \\*arguments\\\):
         exec\\\(subprocess\\.Popen\\\(\\\['$tclsh_path', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)
 (.*\\n)*os\\.environ\\\['MODULESHOME'\\\] = '$moduleshome'(\\n.*)*"
+set out_ruby "class ENVModule
+   def ENVModule.module\\\(\\*args\\\)
+      if args\\\[0\\\].kind_of\\?\\\(Array\\\) then
+         args = args\\\[0\\\].join\\\(' '\\\)
+      else
+         args = args.join\\\(' '\\\)
+      end
+      eval `$tclsh_path $modulecmd_path ruby #{args}`
+   end
+end
+(.*\\n)*ENV\\\['MODULESHOME'\\\] = '$moduleshome'(\\n.*)*"
+
 set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
 set out_cmake "function\\\(module\\\)
    execute_process\\\(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
@@ -106,6 +118,7 @@ test_cmd_re "fish" "autoinit" "$out_fish"
 test_cmd_re "tcl" "autoinit" "$out_tcl"
 test_cmd_re "perl" "autoinit" "$out_perl"
 test_cmd_re "python" "autoinit" "$out_python"
+test_cmd_re "ruby" "autoinit" "$out_ruby"
 testouterr_cmd "lisp" "autoinit" "ERR" "$err_lisp"
 test_cmd_re "cmake" "autoinit" "$out_cmake"
 
@@ -126,5 +139,6 @@ unset out_fish
 unset out_tcl
 unset out_perl
 unset out_python
+unset out_ruby
 unset err_lisp
 unset out_cmake
