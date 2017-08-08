@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.956
-set MODULES_CURRENT_RELEASE_DATE "2017-08-07"
+set MODULES_CURRENT_VERSION 1.957
+set MODULES_CURRENT_RELEASE_DATE "2017-08-08"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2500,15 +2500,19 @@ proc renderSettings {} {
       }
    }
 
-   # new x resources
-   if {[array size g_newXResources] > 0} {
-      # xrdb executable has already be verified in x-resource
-      set xrdb [getCommandPath "xrdb"]
+   # preliminaries for x-resources stuff
+   if {[array size g_newXResources] > 0 || [array size g_delXResources] > 0} {
       switch -- $g_shellType {
          {python} {
             puts stdout "import subprocess"
          }
       }
+   }
+
+   # new x resources
+   if {[array size g_newXResources] > 0} {
+      # xrdb executable has already be verified in x-resource
+      set xrdb [getCommandPath "xrdb"]
       foreach var [array names g_newXResources] {
          set val $g_newXResources($var)
          # empty val means that var is a file to parse
@@ -2622,7 +2626,6 @@ proc renderSettings {} {
             }
          }
          {python} {
-            puts stdout "import subprocess"
             foreach var $xres_to_del {
                set var [charEscaped $var \']
                puts stdout "subprocess.Popen(\['$xrdb', '-merge'\],\
