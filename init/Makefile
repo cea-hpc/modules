@@ -1,4 +1,4 @@
-.PHONY: install uninstall clean distclean
+.PHONY: install uninstall clean
 
 SH_LIKE  = sh ksh bash zsh profile.sh
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
@@ -7,30 +7,11 @@ OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R
 # example modulefiles to install
 EXAMPLE_MODFILES = dot module-git module-info null use.own
 
-# set default installation paths
-prefix := @prefix@
-bindir := @bindir@
-libexecdir := @libexecdir@
-initdir := @initdir@
-modulefilesdir := @modulefilesdir@
-datarootdir := @datarootdir@
-mandir := @mandir@
-# modulepaths and modulefiles to enable in default config
-modulepath := @modulepath@
-loadedmodules := @loadedmodules@
-# path to C version installation
-cverinitdir := @cverinitdir@
-cverbindir := @cverbindir@
-cvermandir := @cvermandir@
-# enable or not some specific definition
-setmanpath := @setmanpath@
-setbinpath := @setbinpath@
-setswitchml := @setswitchml@
-setdotmodulespath := @setdotmodulespath@
-usecverdotmodulespath := @usecverdotmodulespath@
-examplemodulefiles := @examplemodulefiles@
-# command location
-TCLSH := @TCLSH@
+# source definitions shared across the Makefiles of this project
+ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
+  $(error ../Makefile.inc is missing, please run '../configure')
+endif
+include ../Makefile.inc
 
 # reset C version path if they are standard system path (to ensure
 # switchml will not remove them from PATH or MANPATH)
@@ -127,13 +108,10 @@ tcsh: csh.in
 profile.sh: profile.sh.in
 	$(translate-in-script)
 
-# dumb rule to avoid Makefile being rebuilt by '%: %.in' rule
-Makefile:
-
 # make link on C version installed .modulespath
 ifeq ($(usecverdotmodulespath),y)
 .modulespath:
-	ln -s $(cverinitdir)/$@ $@
+	ln -sf $(cverinitdir)/$@ $@
 endif
 
 install: all
@@ -173,6 +151,3 @@ endif
 
 clean:
 	rm -f $(ALL_SHELLS) modulerc .modulespath
-
-distclean: clean
-	rm -f Makefile

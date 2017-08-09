@@ -13,32 +13,11 @@ COVERAGE_IFILE := $(COVERAGE_SRCFILE:.tcl=.tcl_i)
 COVERAGE_LOGFILE := $(COVERAGE_SRCFILE:.tcl=.tcl_log)
 COVERAGE_MFILE := $(COVERAGE_SRCFILE:.tcl=.tcl_m)
 
-# set default installation paths
-prefix := @prefix@
-bindir := @bindir@
-libexecdir := @libexecdir@
-initdir := @initdir@
-modulefilesdir := @modulefilesdir@
-datarootdir := @datarootdir@
-mandir := @mandir@
-docdir := @docdir@
-# modulepaths and modulefiles to enable in default config
-modulepath := @modulepath@
-loadedmodules := @loadedmodules@
-# path to C version installation
-cverinitdir := @cverinitdir@
-cverbindir := @cverbindir@
-cvermandir := @cvermandir@
-# enable or not some specific definition
-setmanpath := @setmanpath@
-setbinpath := @setbinpath@
-setswitchml := @setswitchml@
-setdotmodulespath := @setdotmodulespath@
-usecverdotmodulespath := @usecverdotmodulespath@
-docinstall := @docinstall@
-examplemodulefiles := @examplemodulefiles@
-# command location
-TCLSH := @TCLSH@
+# source definitions shared across the Makefiles of this project
+ifneq ($(wildcard Makefile.inc),Makefile.inc)
+  $(error Makefile.inc is missing, please run './configure')
+endif
+include Makefile.inc
 
 all: initdir pkgdoc ChangeLog README
 
@@ -105,7 +84,7 @@ dist: ChangeLog README
 srpm: dist
 	rpmbuild -ts $(DIST_PREFIX).tar.gz
 
-clean: 
+clean:
 	rm -f *.log *.sum
 	rm -f $(COVERAGE_IFILE) $(COVERAGE_LOGFILE) $(COVERAGE_MFILE)
 	rm -rf coverage
@@ -124,11 +103,9 @@ ifneq ($(wildcard www),)
 endif
 
 distclean: clean
-	rm -f Makefile
+	rm -f Makefile.inc
 	rm -f site.exp
 	rm -rf $(NAGELFAR_RELEASE)
-	make -C init distclean
-	make -C doc distclean
 
 test:
 	TCLSH=$(TCLSH); export TCLSH; \

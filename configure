@@ -19,7 +19,11 @@
 ##########################################################################
 
 progpath=$0
+progdir=${progpath%/*}
 prog=${progpath##*/}
+
+# files to translate
+targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 
 # argument list
 arglist="TCLSH prefix bindir libexecdir initdir datarootdir mandir docdir \
@@ -349,13 +353,9 @@ for arg in ${arglist}; do
 done
 
 # generate Makefiles
-echo "creating Makefile"
-perl -pe "$translation_regexp" Makefile.in >Makefile
-echo "creating doc/Makefile"
-perl -pe "$translation_regexp" doc/Makefile.in >doc/Makefile
-echo "creating init/Makefile"
-perl -pe "$translation_regexp" init/Makefile.in >init/Makefile
-echo "creating site.exp"
-perl -pe "$translation_regexp" site.exp.in >site.exp
+for target in ${targetlist}; do
+   echo "creating $target"
+   perl -pe "$translation_regexp" ${target}.in >$target
+done
 
 exit 0

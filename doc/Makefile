@@ -1,4 +1,4 @@
-.PHONY: install uninstall clean distclean
+.PHONY: install uninstall clean
 
 VERSION_FILE := ../modulecmd.tcl
 MAN_VERSION := "modules-tcl $(shell grep '^set MODULES_CURRENT_VERSION' \
@@ -11,16 +11,11 @@ MAN1_DIR := $(MAN_DIR)/man1
 MAN4_DIR := $(MAN_DIR)/man4
 SOURCE_DIR := source
 
-# set default installation paths
-prefix := @prefix@
-libexecdir := @libexecdir@
-initdir := @initdir@
-modulefilesdir := @modulefilesdir@
-datarootdir := @datarootdir@
-mandir := @mandir@
-docdir := @docdir@
-# enable or not some specific definition
-docinstall := @docinstall@
+# source definitions shared across the Makefiles of this project
+ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
+  $(error ../Makefile.inc is missing, please run '../configure')
+endif
+include ../Makefile.inc
 
 man: $(MAN1_DIR)/module.1 $(MAN4_DIR)/modulefile.4
 
@@ -29,7 +24,7 @@ txt: diff_with_c-version.txt
 html: $(HTML_DIR)/module.html $(HTML_DIR)/modulefile.html \
 	$(HTML_DIR)/diff_with_c-version.html
 
-all: $(html) $(man) $(txt)
+all: html man txt
 
 define translate-in-script
 perl -pe 's|\@prefix\@|$(prefix)|g; \
@@ -93,6 +88,3 @@ ifneq ($(wildcard $(MAN_DIR)),)
 endif
 	rm -f diff_with_c-version.txt
 	rm -f pod*.tmp
-
-distclean: clean
-	rm -f Makefile
