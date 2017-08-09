@@ -91,6 +91,9 @@ proc shell_err {test_shell {re_mode 0}} {
         {cmake} {
             set answer "message${esc}(FATAL_ERROR \"modulecmd.tcl: 1 error${esc}(s${esc}) detected!\"${esc})"
         }
+        {r} {
+            set answer "stop${esc}('modulecmd.tcl: 1 error${esc}(s${esc}) detected!'${esc})"
+        }
         default {
             set answer ""
         }
@@ -136,7 +139,7 @@ proc shell_val {test_shell val {re_mode 0}} {
         {tcl} - {lisp} - {cmake} {
             set val [regsub -all {(["])} $val {\\\1}]
         }
-        {perl} - {python} - {ruby} {
+        {perl} - {python} - {ruby} - {r} {
             set val [regsub -all {(['])} $val {\\\1}]
         }
     }
@@ -185,6 +188,9 @@ proc shell_set {test_shell var val {re_mode 0} {escval 1}} {
         {cmake} {
             set answer "set${esc}(ENV{$var} \"$val\"${esc})"
         }
+        {r} {
+            set answer "Sys.setenv${esc}('$var'='$val'${esc})"
+        }
         default {
             set answer ""
         }
@@ -228,6 +234,9 @@ proc shell_unset {test_shell var {re_mode 0}} {
         }
         {cmake} {
             set answer "unset${esc}(ENV{$var}${esc})"
+        }
+        {r} {
+            set answer "Sys.unsetenv${esc}('$var'${esc})"
         }
         default {
             set answer ""
@@ -307,6 +316,9 @@ proc shell_chdir {test_shell val {re_mode 0}} {
         {lisp} {
             set answer "${esc}(shell-command-to-string \"cd '$val'\"${esc})"
         }
+        {r} {
+            set answer "setwd${esc}('$val'${esc})"
+        }
         default {
             set answer ""
         }
@@ -378,6 +390,13 @@ proc shell_xres {test_shell var val {re_mode 0}} {
                 set answer "execute_process${esc}(COMMAND $xrdb -merge $var${esc})"
             }
         }
+        {r} {
+            if {$val ne ""} {
+                set answer "system${esc}('$xrdb -merge', input='$var: $val'${esc})"
+            } else {
+                set answer "system${esc}('$xrdb -merge $var'${esc})"
+            }
+        }
         default {
             set answer ""
         }
@@ -421,6 +440,9 @@ proc shell_unxres {test_shell var {re_mode 0}} {
         {cmake} {
             set answer "execute_process${esc}(COMMAND echo \"$var:\" COMMAND $xrdb -merge${esc})"
         }
+        {r} {
+            set answer "system${esc}('$xrdb -merge', input='$var:'${esc})"
+        }
         default {
             set answer ""
         }
@@ -457,6 +479,9 @@ proc shell_echo {test_shell val {re_mode 0}} {
         }
         {cmake} {
             set answer "message${esc}(\"$val\"${esc})"
+        }
+        {r} {
+            set answer "cat${esc}('$val','\n',sep=''${esc})"
         }
         default {
             set answer ""

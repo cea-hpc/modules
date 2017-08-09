@@ -33,7 +33,7 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.960
+set MODULES_CURRENT_VERSION 1.962
 set MODULES_CURRENT_RELEASE_DATE "2017-08-09"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -135,6 +135,10 @@ proc renderError {} {
             {cmake} {
                puts stdout "message(FATAL_ERROR \"modulecmd.tcl:\
                   $error_count error(s) detected!\")"
+            }
+            {r} {
+               puts stdout "stop('modulecmd.tcl: $error_count error(s)\
+                  detected!')"
             }
          }
       }
@@ -2374,6 +2378,20 @@ proc renderSettings {} {
             puts stdout "   endif()"
             puts stdout "endfunction(module)"
          }
+         {r} {
+            puts stdout "module <- function(...){"
+            puts stdout "   arglist <- as.list(match.call())"
+            puts stdout "   arglist\[1\] <- 'r'"
+            puts stdout "   args <- paste0(arglist, collapse=' ')"
+            puts stdout "   cmd <- paste('$tclshbin', '$argv0', args,\
+               sep=' ')"
+            puts stdout "   hndl <- pipe(cmd)"
+            puts stdout "   eval(expr = parse(file=hndl))"
+            puts stdout "   close(hndl)"
+            puts stdout "   invisible(0)"
+            puts stdout "}"
+
+         }
       }
 
       if {[file exists "$env(MODULESHOME)/modulerc"]} {
@@ -2445,6 +2463,10 @@ proc renderSettings {} {
                set val [charEscaped $env($var) \"]
                puts stdout "set(ENV{$var} \"$val\")"
             }
+            {r} {
+               set val [charEscaped $env($var) \']
+               puts stdout "Sys.setenv('$var'='$val')"
+            }
             {cmd} {
                set val $env($var)
                puts stdout "set $var=$val"
@@ -2482,6 +2504,9 @@ proc renderSettings {} {
             }
             {cmake} {
                puts stdout "unset(ENV{$var})"
+            }
+            {r} {
+               puts stdout "Sys.unsetenv('$var')"
             }
          }
       }
@@ -2569,6 +2594,10 @@ proc renderSettings {} {
                {cmake} {
                   puts stdout "execute_process(COMMAND $xrdb -merge $var)"
                }
+               {r} {
+                  set var [charEscaped $var \']
+                  puts stdout "system('$xrdb -merge $var')"
+               }
             }
          } else {
             switch -- $g_shellType {
@@ -2614,6 +2643,11 @@ proc renderSettings {} {
                   set val [charEscaped $val \"]
                   puts stdout "execute_process(COMMAND echo \"$var: $val\"\
                      COMMAND $xrdb -merge)"
+               }
+               {r} {
+                  set var [charEscaped $var \']
+                  set val [charEscaped $val \']
+                  puts stdout "system('$xrdb -merge', input='$var: $val')"
                }
             }
          }
@@ -2688,6 +2722,12 @@ proc renderSettings {} {
                   COMMAND $xrdb -merge)"
             }
          }
+         {r} {
+            foreach var $xres_to_del {
+               set var [charEscaped $var \']
+               puts stdout "system('$xrdb -merge', input='$var:')"
+            }
+         }
       }
    }
 
@@ -2710,6 +2750,9 @@ proc renderSettings {} {
          }
          {lisp} {
             puts stdout "(shell-command-to-string \"cd '$g_changeDir'\")"
+         }
+         {r} {
+            puts stdout "setwd('$g_changeDir')"
          }
       }
       # cannot change current directory of cmake "shell"
@@ -2742,6 +2785,9 @@ proc renderSettings {} {
             }
             {cmake} {
                puts stdout "message(\"$var\")"
+            }
+            {r} {
+               puts stdout "cat('$var','\n',sep='')"
             }
          }
       }
@@ -4864,7 +4910,8 @@ if {[catch {
       {csh} - {tcsh} {
          set g_shellType csh
       }
-      {fish} - {cmd} - {tcl} - {perl} - {python} - {ruby} - {lisp} - {cmake} {
+      {fish} - {cmd} - {tcl} - {perl} - {python} - {ruby} - {lisp} - {cmake}\
+         - {r} {
          set g_shellType $g_shell
       }
       default {

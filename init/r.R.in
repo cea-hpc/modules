@@ -1,41 +1,38 @@
-@VERSIONING@if (! is.na(Sys.getenv( "MODULE_VERSION", unset = NA ))) {
-@VERSIONING@	Sys.setenv("MODULE_VERSION_STACK"="@VERSION@")
-@VERSIONING@  Sys.setenv("MODULE_VERSION"="@VERSION@")
-@VERSIONING@} else {
-@VERSIONING@	Sys.setenv("MODULE_VERSION_STACK"=Sys.getenv("MODULE_VERSION"))
-@VERSIONING@}
-
 module <- function(...){
-  arglist <- as.list(match.call())
-  ## change this from 'module' to 'r'
-  arglist[1] <- 'r'
-  args <- paste0(arglist, collapse = ' ')
+   arglist <- as.list(match.call())
+   ## change this from 'module' to 'r'
+   arglist[1] <- 'r'
+   args <- paste0(arglist, collapse=' ')
 
-@VERSIONING@  exec_prefix <- paste0("@BASEPREFIX@/", Sys.getenv("MODULE_VERSION"), collapse = '')
-@VERSIONING@  binary <- paste(exec_prefix, 'bin/modulecmd', sep = '/')
+   cmd <- paste('@TCLSH@', '@libexecdir@/modulecmd.tcl', args, sep=' ')
 
-@NOTVERSIONING@  exec_prefix <- "@bindir@"
-@NOTVERSIONING@  binary <- paste(exec_prefix, 'modulecmd', sep = '/')
+   hndl <- pipe(cmd)
+   eval(expr = parse(file=hndl))
+   close(hndl)
 
-  cmd <- paste(binary, args, sep = ' ')
-
-  hndl <- pipe(cmd)
-  eval(expr = parse(file = hndl))
-  close(hndl)
-
-  invisible(0)
+   invisible(0)
 }
 
-if (is.na(Sys.getenv( "MODULEPATH", unset = NA ))) {
-	dotfile <- file("@INITPATH@/.modulespath", "r")
-  paths <- gsub("^\\s*", "", readLines(dotfile), perl=TRUE)
-  paths <- gsub("[\\s#].*$", "", paths, perl=TRUE)
-	modulepath <- paste0(paths[grepl("\\S", paths, perl=TRUE)], collapse=':')
+Sys.setenv('MODULESHOME'='@prefix@')
 
-	Sys.setenv("MODULEPATH"=modulepath)
-  close(dotfile)
+if (is.na(Sys.getenv('MODULEPATH', unset=NA))) {
+   if (file.access('@initdir@/.modulespath', 4) == 0) {
+      dotfile <- file('@initdir@/.modulespath', 'r')
+      paths <- gsub('^\\s*', '', readLines(dotfile), perl=TRUE)
+      close(dotfile)
+      paths <- gsub('[\\s#].*$', '', paths, perl=TRUE)
+      modulepath <- paste0(paths[grepl('\\S', paths, perl=TRUE)], collapse=':')
+      Sys.setenv('MODULEPATH'=modulepath)
+   } else {
+      Sys.setenv('MODULEPATH'='')
+   }
 }
 
-if (is.na(Sys.getenv( "LOADEDMODULES", unset = NA ))) {
-	Sys.setenv("LOADEDMODULES"="");
+if (is.na(Sys.getenv('LOADEDMODULES', unset=NA))) {
+   Sys.setenv('LOADEDMODULES'='')
+}
+
+# load modulerc only if module environment is empty
+if (file.access('@initdir@/modulerc', 4) == 0 & Sys.getenv('MODULEPATH') == '' & Sys.getenv('LOADEDMODULES') == '') {
+   module('source', '@initdir@/modulerc')
 }

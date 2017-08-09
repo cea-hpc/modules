@@ -103,6 +103,17 @@ set out_cmake "function\\\(module\\\)
    endif\\\(\\\)
 endfunction\\\(module\\\)
 (.*\\n)*set\\\(ENV{MODULESHOME} \"$moduleshome\"\\\)(\\n.*)*"
+set out_r "module <- function\\\(...\\\){
+   arglist <- as.list\\\(match.call\\\(\\\)\\\)
+   arglist\\\[1\\\] <- 'r'
+   args <- paste0\\\(arglist, collapse=' '\\\)
+   cmd <- paste\\\('$tclsh_path', '$modulecmd_path', args, sep=' '\\\)
+   hndl <- pipe\\\(cmd\\\)
+   eval\\\(expr = parse\\\(file=hndl\\\)\\\)
+   close\\\(hndl\\\)
+   invisible\\\(0\\\)
+}
+(.*\\n)*Sys.setenv\\\('MODULESHOME'='$moduleshome'\\\)(\\n.*)*"
 
 #
 #  test autoinit command for the different shells
@@ -121,6 +132,7 @@ test_cmd_re "python" "autoinit" "$out_python"
 test_cmd_re "ruby" "autoinit" "$out_ruby"
 testouterr_cmd "lisp" "autoinit" "ERR" "$err_lisp"
 test_cmd_re "cmake" "autoinit" "$out_cmake"
+test_cmd_re "r" "autoinit" "$out_r"
 
 #
 #  Cleanup
@@ -142,3 +154,4 @@ unset out_python
 unset out_ruby
 unset err_lisp
 unset out_cmake
+unset out_r
