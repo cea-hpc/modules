@@ -118,6 +118,36 @@ set env(LOADEDMODULES) "$module"
 
 testouterr_cmd_re "ALL" "unload $module" "ERR" "$ts_err"
 
+
+#
+# Try unloading when colon is initially set at beginning of set PATH
+#
+
+set module "prepend/2.0"
+set modulefile "$env(MODULEPATH)/$module"
+
+set ts_path "/this/is/the/modules/testsuite::$old_path"
+set new_path ":$old_path"
+
+if { $verbose > 0 } {
+    send_user "\tSetup PATH = $ts_path\n"
+}
+set env(PATH) "$ts_path"
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+set ans [list]
+lappend ans [list setpath PATH $new_path]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+#
+#  The tests
+#
+
+test_cmd_re "ALL" "unload $module" $ans
+
+
 #
 #  Clean up the environment
 #

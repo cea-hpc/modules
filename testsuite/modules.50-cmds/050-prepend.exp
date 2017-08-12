@@ -91,9 +91,47 @@ set ts_err "$moderr_msgs: Occurred in file $modulefile:add-path cannot handle pa
 
 testouterr_cmd_re "ALL" "load $module" "ERR" "$ts_err"
 
+
+#
+# Try loading when colon is set at beginning of set PATH
+#
+
+set module "prepend/2.0"
+set modulefile "$env(MODULEPATH)/$module"
+
+set old_path ":$env(PATH)"
+set ts_path "/this/is/the/modules/testsuite"
+set new_path "$ts_path:$old_path"
+
+# set PATH with prefixing colon
+set ORIG_PATH $env(PATH)
+if { $verbose > 0 } {
+    send_user "\tSetup PATH = $old_path\n"
+}
+set env(PATH) "$old_path"
+
+set ans [list]
+lappend ans [list setpath PATH $new_path]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+#
+#  The tests
+#
+
+test_cmd_re "ALL" "load $module" $ans
+
+
 #
 #  Cleanup
 #
+
+# restore default testsuite PATH
+if { $verbose > 0 } {
+    send_user "\tRestore PATH = $ORIG_PATH\n"
+}
+set env(PATH) $ORIG_PATH
+unset ORIG_PATH
 
 unset new_path
 unset ts_path
