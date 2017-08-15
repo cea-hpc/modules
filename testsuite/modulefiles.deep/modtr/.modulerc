@@ -1,0 +1,59 @@
+#%Module1.0
+
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modtr/%M%
+#   Revision:		%I%
+#   First Edition:	2017/08/16
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite modulefile
+#   Command:        module-version, module-alias
+#   Sub-Command:
+#
+#   Invocation:
+#   Result:	%R{
+#		}R%
+#   Comment:	%C{
+#           Test the correct resolution of module aliases and symbolic
+#           versions set in a transitive manner on deep modules
+#		}C%
+#
+##############################################################################
+
+# symbol set on symbol
+module-version modtr/dir1/cur stable
+module-version modtr/dir1/1.0 cur
+
+# alias set on symbol (alias set before target symbol definition)
+module-alias modtr/al1 modtr/dir2/next
+module-version modtr/dir2/2.0 next
+
+# symbol set on alias of symbol (alias set before target symbol definition)
+module-version modtr/al1 unstable
+
+# alias set on symbol (alias set after target symbol definition)
+module-version /3.0 foo
+
+# see next definitions in dir3/.modulerc
+
+# alias set on symbol set on alias of alias of symbol
+module-alias modtr/al4 modtr/dir3/exp
+
+# alias set on directory
+module-alias modtr/al5 modtr/dir4
+
+# symbol set on alias of directory
+module-version /al5 fld
+
+# alias set on sub-directory
+module-alias modtr/al6 modtr/dir5/subdir
+
+# symbol set on alias of sub-directory
+module-version /al6 sub
+
+# see next definitions in dir4/.modulerc

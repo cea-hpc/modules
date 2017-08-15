@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.962
-set MODULES_CURRENT_RELEASE_DATE "2017-08-09"
+set MODULES_CURRENT_VERSION 1.966
+set MODULES_CURRENT_RELEASE_DATE "2017-08-15"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -487,9 +487,7 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
       # default version set via ModulesVersion variable in .version file
       # override previously defined default version for modname
       if {[file tail $modfile] eq ".version" && $ModulesVersion ne ""} {
-         reportDebug "execute-version: default $modname =\
-            $modname/$ModulesVersion"
-         setModuleResolution $modname $modname/$ModulesVersion "default" 1
+         setModuleResolution $modname $modname/$ModulesVersion "default"
       }
 
       # Keep track of rc files we already sourced so we don't run them again
@@ -820,9 +818,10 @@ proc getModuleNameVersion {{name {}} {default_is_special 0}\
 # can be used thereafter to get in one query the actual modulefile behind
 # a virtual name. Also consolidate a global array that in the same manner
 # list all the symbols held by modulefiles.
-proc setModuleResolution {mod res {symver {}} {override_default 0}} {
+proc setModuleResolution {mod res {symver {}}} {
    global g_moduleResolved g_resolvedHash g_resolvedPath
-   global g_symbolHash
+   global g_symbolHash g_moduleVersion g_sourceVersion
+   global ModulesCurrentModulefile
 
    # find end-point module and register path to get to it
    lappend res_path $res
@@ -837,14 +836,8 @@ proc setModuleResolution {mod res {symver {}} {override_default 0}} {
       return 0
    }
 
-   # change default symbol owner if previously given and override permitted
+   # change default symbol owner if previously given
    if {$symver eq "default" && [info exists g_moduleResolved($mod)]} {
-      if {!$override_default} {
-         reportDebug "setModuleResolution: symbol 'default' already set for\
-            $mod"
-         return 0
-      }
-
       set prev $g_moduleResolved($mod)
       if {[info exists g_symbolHash($prev)]\
          && [set idx [lsearch -exact $g_symbolHash($prev) "default"]] != -1} {
@@ -870,7 +863,7 @@ proc setModuleResolution {mod res {symver {}} {override_default 0}} {
       unset g_resolvedHash($mod)
    }
 
-   # propagate symbols to the resolution path
+   # register and propagate symbols to the resolution path
    if {$symver ne ""} {
       lappend sym_list $symver
       if {[info exists g_symbolHash($mod)]} {
@@ -878,13 +871,42 @@ proc setModuleResolution {mod res {symver {}} {override_default 0}} {
          set sym_list [lsort -dictionary -unique [concat $sym_list\
             $g_symbolHash($mod)]]
       }
-      reportDebug "setModuleResolution: add symbols '$sym_list' to $res_path"
-      foreach modres $res_path {
-         if {[info exists g_symbolHash($modres)]} {
-            set g_symbolHash($modres) [lsort -dictionary -unique [concat\
-               $g_symbolHash($modres) $sym_list]]
+
+      set modres [lindex $res_path 0]
+      reportDebug "setModuleResolution: add symbol '$symver' to $modres"
+      if {[info exists g_symbolHash($modres)]} {
+         set g_symbolHash($modres) [lsort -dictionary -unique [concat\
+            $g_symbolHash($modres) $sym_list]]
+      } else {
+         set g_symbolHash($modres) $sym_list
+      }
+
+      # register symbolic version for querying in g_moduleVersion
+      lassign [getModuleNameVersion $mod] modfull modname
+      foreach symelt $sym_list {
+         if {$symelt eq "default"} {
+            set modvers "$mod/$symelt"
          } else {
-            set g_symbolHash($modres) $sym_list
+            set modvers "$modname/$symelt"
+         }
+         reportDebug "setModuleResolution: module-version $modvers = $modres"
+         set g_moduleVersion($modvers) $modres
+         set g_sourceVersion($modvers) $ModulesCurrentModulefile
+      }
+
+      # propagate to the next entry in resolution path to get symbol
+      # registered in both g_moduleVersion and resolution structures
+      set modres [lindex $res_path 1]
+      if {$modres ne ""} {
+         lassign [getModuleNameVersion $modres] modfull modresname
+         foreach symelt $sym_list {
+            if {$symelt eq "default"} {
+               set modvers $modresname
+            } else {
+               set modvers "$modresname/$symelt"
+            }
+            reportDebug "setModuleResolution: set resolution for $modvers"
+            setModuleResolution $modvers $modres $symelt
          }
       }
    }
@@ -899,30 +921,22 @@ proc setModuleResolution {mod res {symver {}} {override_default 0}} {
 # directories.
 proc module-version {args} {
    global g_moduleVersion
-   global g_sourceVersion ModulesCurrentModulefile
 
    reportDebug "module-version: executing module-version $args"
    lassign [getModuleNameVersion [lindex $args 0] 1 1] mod modname modversion
 
    foreach version [lrange $args 1 end] {
-      if {[string match $version "default"]} {
-         # If we see more than one default for the same module, just
-         # keep the first
-         if {[setModuleResolution $modname $mod "default"]} {
-            reportDebug "module-version: default $modname = $mod"
-         }
+      if {$version eq "default"} {
+         set aliasversion "$modname"
       } else {
          set aliasversion "$modname/$version"
-         reportDebug "module-version: alias $aliasversion = $mod"
+      }
 
-         if {![info exists g_moduleVersion($aliasversion)]} {
-            if {[setModuleResolution $aliasversion $mod $version]} {
-               set g_moduleVersion($aliasversion) $mod
-               set g_sourceVersion($aliasversion) $ModulesCurrentModulefile
-            }
-         } else {
-            reportWarning "Symbolic version '$aliasversion' already defined"
-         }
+      # do not alter a previously defined alias version
+      if {![info exists g_moduleVersion($aliasversion)]} {
+         setModuleResolution $aliasversion $mod $version
+      } else {
+         reportWarning "Symbolic version '$aliasversion' already defined"
       }
    }
 

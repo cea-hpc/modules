@@ -1,0 +1,192 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.80-deep/%M%
+#   Revision:		%I%
+#   First Edition:	2017/08/16
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, display, help, test, avail, whatis, paths
+#   Modulefiles:	modtr
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test the correct resolution of module aliases and symbolic
+#           versions set in a transitive manner on deep modules
+#		}C%
+#
+##############################################################################
+
+set datetime_re "\[0-9\/]{10} \[0-9:]{8}"
+
+# symbol set on symbol
+set modsym_1 "modtr/dir1/stable"
+set module_1 "modtr/dir1/1.0"
+set modulefile_1 "$modpath/$module_1"
+set modavail_1 "$module_1\\s+cur:stable\\s+$datetime_re"
+
+# alias set on symbol (alias set before target symbol definition)
+set modsym_2 "modtr/al1"
+set module_2 "modtr/dir2/2.0"
+set modulefile_2 "$modpath/$module_2"
+set modavail_2 "$modsym_2 -> modtr/dir2/next\\s+unstable\\s+"
+
+# symbol set on alias of symbol (alias set before target symbol definition)
+set modsym_3 "modtr/unstable"
+set module_3 "$module_2"
+set modulefile_3 "$modulefile_2"
+set modavail_3 "$module_3\\s+next:unstable\\s+$datetime_re"
+
+# alias set on symbol (alias set after target symbol definition)
+set modsym_4 "modtr/dir3/al2"
+set module_4 "modtr/3.0"
+set modulefile_4 "$modpath/$module_4"
+set modavail_4 "$modsym_4 -> modtr/foo\\s+bar\\s+"
+
+# symbol set on alias of symbol (alias set after target symbol definition)
+set modsym_5 "modtr/dir3/bar"
+set module_5 "$module_4"
+set modulefile_5 "$modulefile_4"
+set modavail_5 "$module_5\\s+bar:exp:foo\\s+$datetime_re"
+
+# alias set on alias of symbol
+set modsym_6 "modtr/dir3/al3"
+set module_6 "$module_4"
+set modulefile_6 "$modulefile_4"
+set modavail_6 "$modsym_6 -> modtr/dir3/al2\\s+exp\\s+"
+
+# symbol set on alias of alias of symbol
+set modsym_7 "modtr/dir3/exp"
+set module_7 "$module_4"
+set modulefile_7 "$modulefile_4"
+set modavail_7 "$modavail_5"
+
+# alias set on symbol set on alias of alias of symbol
+set modsym_8 "modtr/al4"
+set module_8 "$module_4"
+set modulefile_8 "$modulefile_4"
+set modavail_8 "$modsym_8 -> modtr/dir3/exp\\s+"
+
+# alias set on directory
+set modsym_9 "modtr/al5"
+set module_9 "modtr/dir4/mod4.0"
+set modulefile_9 "$modpath/$module_9"
+set modavail_9 "$modsym_9 -> modtr/dir4\\s+fld\\s+"
+
+# symbol set on alias of directory
+set modsym_10 "modtr/fld"
+set module_10 "$module_9"
+set modulefile_10 "$modulefile_9"
+set modavail_10 "$module_10\\s+$datetime_re"
+
+# alias set on sub-directory
+set modsym_11 "modtr/al6"
+set module_11 "modtr/dir5/subdir/mod5.0"
+set modulefile_11 "$modpath/$module_11"
+set modavail_11 "$modsym_11 -> modtr/dir5/subdir\\s+sub\\s+"
+
+# symbol set on alias of sub-directory
+set modsym_12 "modtr/sub"
+set module_12 "$module_11"
+set modulefile_12 "$modulefile_11"
+set modavail_12 "$module_12\\s+$datetime_re"
+
+# alias set on modulefile of an adjacent sub-directory
+set modsym_13 "modtr/dir4/al7"
+set module_13 "$module_11"
+set modulefile_13 "$modulefile_11"
+set modavail_13 "$modsym_13 -> modtr/dir5/subdir/mod5.0\\s*madj\\s+"
+
+# symbol set on alias of modulefile of an adjacent sub-directory
+set modsym_14 "modtr/dir4/madj"
+set module_14 "$module_11"
+set modulefile_14 "$modulefile_11"
+set modavail_14 "$modavail_12"
+
+# alias set on symbol of an adjacent sub-directory
+set modsym_15 "modtr/dir4/al8"
+set module_15 "$module_11"
+set modulefile_15 "$modulefile_11"
+set modavail_15 "$modsym_15 -> modtr/dir5/sub\\s+dadj\\s+"
+
+# symbol set on alias of symbol of an adjacent sub-directory
+set modsym_16 "modtr/dir4/dadj"
+set module_16 "$module_11"
+set modulefile_16 "$modulefile_11"
+set modavail_16 "$modavail_12"
+
+set help_pre "$modlin\nModule Specific Help for "
+set help_post ":\n\n$modlin"
+set test_pre "$modlin\nModule Specific Test for "
+set test_post ":\n\nTest result: PASS\n$modlin"
+set disp_pre "$modlin\n"
+set disp_wi "module-whatis\\s+"
+set disp_post "\nsetenv\\s+testsuite\\s+yes\n$modlin"
+set header "$modlin $modpath $modlin"
+set avail_pre "- Package/Alias $modlin.- Versions $modlin.- Last mod. $modlin\n$header"
+set whatis_pre "$header\n\\s*"
+
+
+#
+#  The tests
+#
+
+for {set i 1} {$i <= 16} {incr i} {
+    set modsym [set "modsym_${i}"]
+    set module [set "module_${i}"]
+    set modulefile [set "modulefile_${i}"]
+    set modavail [set "modavail_${i}"]
+
+    set ans [list]
+    lappend ans [list set testsuite "yes"]
+    lappend ans [list setpath LOADEDMODULES $module]
+    lappend ans [list setpath _LMFILES_ $modulefile]
+
+    testouterr_cmd_re "sh" "load $modsym" $ans ""
+    testouterr_cmd_re "sh" "display $modsym" "OK" "$disp_pre$modulefile:\n\n$disp_wi$module$disp_post"
+    testouterr_cmd_re "sh" "help $modsym" "OK" "$help_pre$modulefile$help_post"
+    testouterr_cmd_re "sh" "test $modsym" "OK" "$test_pre$modulefile$test_post"
+
+    testouterr_cmd_re "sh" "avail -l $modsym" "" "$avail_pre\n$modavail"
+    testouterr_cmd_re "sh" "whatis $modsym" "OK" "$whatis_pre$module: $module"
+
+    set ans [list]
+    lappend ans [list echo $modulefile]
+    testouterr_cmd "sh" "paths $modsym" $ans ""
+}
+
+
+#
+#  Cleanup
+#
+
+unset datetime_re
+
+unset help_pre
+unset help_post
+unset test_pre
+unset test_post
+unset disp_pre
+unset disp_wi
+unset disp_post
+unset header
+unset avail_pre
+unset whatis_pre
+
+for {set i 1} {$i <= 16} {incr i} {
+    unset "modsym_${i}"
+    unset "module_${i}"
+    unset "modulefile_${i}"
+    unset "modavail_${i}"
+}
+
+unset ans
+
+unset i
+unset modsym
+unset module
+unset modulefile

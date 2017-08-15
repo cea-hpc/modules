@@ -1,0 +1,144 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	2017/08/16
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, display, help, test, avail, whatis, paths
+#   Modulefiles:	loc_tr
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test the correct resolution of module aliases and symbolic
+#           versions set in a transitive manner
+#		}C%
+#
+##############################################################################
+
+set datetime_re "\[0-9\/]{10} \[0-9:]{8}"
+
+# symbol set on symbol
+set modsym_1 "loc_tr/stable"
+set module_1 "loc_tr/1.0"
+set modulefile_1 "$env(MODULEPATH)/$module_1"
+set modavail_1 "$module_1\\s+cur:stable\\s+$datetime_re"
+
+# alias set on symbol (alias set before target symbol definition)
+set modsym_2 "loc_tr/al1"
+set module_2 "loc_tr/2.0"
+set modulefile_2 "$env(MODULEPATH)/$module_2"
+set modavail_2 "$modsym_2 -> loc_tr/next\\s+unstable\\s+"
+
+# symbol set on alias of symbol (alias set before target symbol definition)
+set modsym_3 "loc_tr/unstable"
+set module_3 "$module_2"
+set modulefile_3 "$modulefile_2"
+set modavail_3 "$module_3\\s+next:unstable\\s+$datetime_re"
+
+# alias set on symbol (alias set after target symbol definition)
+set modsym_4 "loc_tr/al2"
+set module_4 "loc_tr/3.0"
+set modulefile_4 "$env(MODULEPATH)/$module_4"
+set modavail_4 "$modsym_4 -> loc_tr/foo\\s+bar\\s+"
+
+# symbol set on alias of symbol (alias set after target symbol definition)
+set modsym_5 "loc_tr/bar"
+set module_5 "$module_4"
+set modulefile_5 "$modulefile_4"
+set modavail_5 "$module_5\\s+bar:exp:foo\\s+$datetime_re"
+
+# alias set on alias of symbol
+set modsym_6 "loc_tr/al3"
+set module_6 "$module_4"
+set modulefile_6 "$modulefile_4"
+set modavail_6 "$modsym_6 -> loc_tr/al2\\s+exp\\s+"
+
+# symbol set on alias of alias of symbol
+set modsym_7 "loc_tr/exp"
+set module_7 "$module_4"
+set modulefile_7 "$modulefile_4"
+set modavail_7 "$modavail_5"
+
+# alias set on symbol set on alias of alias of symbol
+set modsym_8 "loc_tr/al4"
+set module_8 "$module_4"
+set modulefile_8 "$modulefile_4"
+set modavail_8 "$modsym_8 -> loc_tr/exp\\s+"
+
+set help_pre "$modlin\nModule Specific Help for "
+set help_post ":\n\n$modlin"
+set test_pre "$modlin\nModule Specific Test for "
+set test_post ":\n\nTest result: PASS\n$modlin"
+set disp_pre "$modlin\n"
+set disp_wi "module-whatis\\s+"
+set disp_post "\nsetenv\\s+testsuite\\s+yes\n$modlin"
+set header "$modlin $env(MODULEPATH) $modlin"
+set avail_pre "- Package/Alias $modlin.- Versions $modlin.- Last mod. $modlin\n$header"
+set whatis_pre "$header\n\\s+"
+
+
+#
+#  The tests
+#
+
+for {set i 1} {$i <= 8} {incr i} {
+    set modsym [set "modsym_${i}"]
+    set module [set "module_${i}"]
+    set modulefile [set "modulefile_${i}"]
+    set modavail [set "modavail_${i}"]
+
+    set ans [list]
+    lappend ans [list set testsuite "yes"]
+    lappend ans [list setpath LOADEDMODULES $module]
+    lappend ans [list setpath _LMFILES_ $modulefile]
+
+    testouterr_cmd_re "sh" "load $modsym" $ans ""
+    testouterr_cmd_re "sh" "display $modsym" "OK" "$disp_pre$modulefile:\n\n$disp_wi$module$disp_post"
+    testouterr_cmd_re "sh" "help $modsym" "OK" "$help_pre$modulefile$help_post"
+    testouterr_cmd_re "sh" "test $modsym" "OK" "$test_pre$modulefile$test_post"
+
+    testouterr_cmd_re "sh" "avail -l $modsym" "" "$avail_pre\n$modavail"
+    testouterr_cmd_re "sh" "whatis $modsym" "OK" "$whatis_pre$module: $module"
+
+    set ans [list]
+    lappend ans [list echo $modulefile]
+    testouterr_cmd "sh" "paths $modsym" $ans ""
+}
+
+
+#
+#  Cleanup
+#
+
+unset datetime_re
+
+unset help_pre
+unset help_post
+unset test_pre
+unset test_post
+unset disp_pre
+unset disp_wi
+unset disp_post
+unset header
+unset avail_pre
+unset whatis_pre
+
+for {set i 1} {$i <= 8} {incr i} {
+    unset "modsym_${i}"
+    unset "module_${i}"
+    unset "modulefile_${i}"
+    unset "modavail_${i}"
+}
+
+unset ans
+
+unset i
+unset modsym
+unset module
+unset modulefile
