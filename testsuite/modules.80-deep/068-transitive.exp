@@ -39,7 +39,8 @@ set modavail_2 "$modsym_2 -> modtr/dir2/next\\s+unstable\\s+"
 set modsym_3 "modtr/unstable"
 set module_3 "$module_2"
 set modulefile_3 "$modulefile_2"
-set modavail_3 "$module_3\\s+next:unstable\\s+$datetime_re"
+# alias is returned on avail as symbol refers to an alias in dir
+set modavail_3 "$modavail_2"
 
 # alias set on symbol (alias set after target symbol definition)
 set modsym_4 "modtr/dir3/al2"
@@ -51,7 +52,8 @@ set modavail_4 "$modsym_4 -> modtr/foo\\s+bar\\s+"
 set modsym_5 "modtr/dir3/bar"
 set module_5 "$module_4"
 set modulefile_5 "$modulefile_4"
-set modavail_5 "$module_5\\s+bar:exp:foo\\s+$datetime_re"
+# alias is returned on avail as symbol refers to an alias in dir
+set modavail_5 "$modavail_4"
 
 # alias set on alias of symbol
 set modsym_6 "modtr/dir3/al3"
@@ -63,7 +65,8 @@ set modavail_6 "$modsym_6 -> modtr/dir3/al2\\s+exp\\s+"
 set modsym_7 "modtr/dir3/exp"
 set module_7 "$module_4"
 set modulefile_7 "$modulefile_4"
-set modavail_7 "$modavail_5"
+# alias is returned on avail as symbol refers to an alias in dir
+set modavail_7 "$modavail_6"
 
 # alias set on symbol set on alias of alias of symbol
 set modsym_8 "modtr/al4"
@@ -81,19 +84,19 @@ set modavail_9 "$modsym_9 -> modtr/dir4\\s+fld\\s+"
 set modsym_10 "modtr/fld"
 set module_10 "$module_9"
 set modulefile_10 "$modulefile_9"
-set modavail_10 "$module_10\\s+$datetime_re"
+set modavail_10 "modtr/dir4\\s+fld\\s+"
 
 # alias set on sub-directory
 set modsym_11 "modtr/al6"
 set module_11 "modtr/dir5/subdir/mod5.0"
 set modulefile_11 "$modpath/$module_11"
-set modavail_11 "$modsym_11 -> modtr/dir5/subdir\\s+sub\\s+"
+set modavail_11 "$modsym_11 -> modtr/dir5/subdir\\s+sfld\\s+"
 
 # symbol set on alias of sub-directory
-set modsym_12 "modtr/sub"
+set modsym_12 "modtr/sfld"
 set module_12 "$module_11"
 set modulefile_12 "$modulefile_11"
-set modavail_12 "$module_12\\s+$datetime_re"
+set modavail_12 "$modavail_11"
 
 # alias set on modulefile of an adjacent sub-directory
 set modsym_13 "modtr/dir4/al7"
@@ -105,19 +108,136 @@ set modavail_13 "$modsym_13 -> modtr/dir5/subdir/mod5.0\\s*madj\\s+"
 set modsym_14 "modtr/dir4/madj"
 set module_14 "$module_11"
 set modulefile_14 "$modulefile_11"
-set modavail_14 "$modavail_12"
+set modavail_14 "$modavail_13"
 
 # alias set on symbol of an adjacent sub-directory
 set modsym_15 "modtr/dir4/al8"
 set module_15 "$module_11"
 set modulefile_15 "$modulefile_11"
-set modavail_15 "$modsym_15 -> modtr/dir5/sub\\s+dadj\\s+"
+set modavail_15 "$modsym_15 -> modtr/dir5/sfld\\s+dadj\\s+"
 
 # symbol set on alias of symbol of an adjacent sub-directory
 set modsym_16 "modtr/dir4/dadj"
 set module_16 "$module_11"
 set modulefile_16 "$modulefile_11"
-set modavail_16 "$modavail_12"
+set modavail_16 "$modavail_15"
+
+# symbol set on alias of symbol (alias set before target symbol definition)
+# test symbolic version from target modulefile directory
+set modsym_17 "modtr/dir2/unstable"
+set module_17 "$module_2"
+set modulefile_17 "$modulefile_2"
+set modavail_17 "$module_2\\s+next:unstable\\s+$datetime_re"
+
+# symbol set on alias of symbol (alias set after target symbol definition)
+# test symbolic version from target modulefile directory
+set modsym_18 "modtr/bar"
+set module_18 "$module_4"
+set modulefile_18 "$modulefile_4"
+set modavail_18 "$module_4\\s+bar:exp:foo\\s+$datetime_re"
+
+# symbol set on alias of alias of symbol
+# test symbolic version from target modulefile directory
+set modsym_19 "modtr/exp"
+set module_19 "$module_4"
+set modulefile_19 "$modulefile_4"
+set modavail_19 "$modavail_18"
+
+# symbol set on alias of sub-directory
+# test symbolic version from target modulefile directory
+set modsym_20 "modtr/dir5/sfld"
+set module_20 "$module_11"
+set modulefile_20 "$modulefile_11"
+set modavail_20 "modtr/dir5/subdir\\s+dadj:sfld\\s+"
+
+# symbol set on alias of modulefile of an adjacent sub-directory
+# test symbolic version from target modulefile directory
+set modsym_21 "modtr/dir5/subdir/madj"
+set module_21 "$module_11"
+set modulefile_21 "$modulefile_11"
+set modavail_21 "$module_11\\s+madj\\s+$datetime_re"
+
+# symbol set on alias of symbol of an adjacent sub-directory
+# test symbolic version from target modulefile directory
+set modsym_22 "modtr/dir5/dadj"
+set module_22 "$module_11"
+set modulefile_22 "$modulefile_11"
+set modavail_22 "$modavail_20"
+
+
+# alias set on distant deep symbol
+set modsym_23 "trmod/al1"
+set module_23 "$module_2"
+set modulefile_23 "$modulefile_2"
+set modavail_23 "$modsym_23 -> modtr/dir2/next\\s+trunstable\\s+"
+
+# symbol set on alias of distant deep symbol
+set modsym_24 "trmod/trunstable"
+set module_24 "$module_2"
+set modulefile_24 "$modulefile_2"
+set modavail_24 "$modavail_23"
+
+# alias set on distant deep alias
+set modsym_25 "trmod/dir3/al2"
+set module_25 "$module_4"
+set modulefile_25 "$modulefile_4"
+set modavail_25 "$modsym_25 -> modtr/dir3/al2\\s+trbar\\s+"
+
+# symbol set on alias of distant deep alias
+set modsym_26 "trmod/dir3/trbar"
+set module_26 "$module_4"
+set modulefile_26 "$modulefile_4"
+set modavail_26 "$modavail_25"
+
+# alias set on distant deep directory
+set modsym_27 "trmod/al5"
+set module_27 "$module_9"
+set modulefile_27 "$modulefile_9"
+set modavail_27 "$modsym_27 -> modtr/dir4\\s+trfld\\s+"
+
+# symbol set on alias of distant deep directory
+set modsym_28 "trmod/trfld"
+set module_28 "$module_9"
+set modulefile_28 "$modulefile_9"
+set modavail_28 "$modavail_27"
+
+
+# alias set on distant symbol of distant deep alias of distant symbol
+set modsym_29 "tr2mod/al1"
+set module_29 "$module_2"
+set modulefile_29 "$modulefile_2"
+set modavail_29 "$modsym_29 -> trmod/trunstable\\s+tr2unstable\\s+"
+
+# symbol set on alias of distant symbol of distant deep alias of distant symbol
+set modsym_30 "tr2mod/tr2unstable"
+set module_30 "$module_2"
+set modulefile_30 "$modulefile_2"
+set modavail_30 "$modavail_29"
+
+# alias set on distant deep alias of distant deep alias
+set modsym_31 "tr2mod/dir3/al2"
+set module_31 "$module_4"
+set modulefile_31 "$modulefile_4"
+set modavail_31 "$modsym_31 -> trmod/dir3/al2\\s+tr2bar\\s+"
+
+# symbol set on alias of distant deep alias of distant deep alias
+set modsym_32 "tr2mod/dir3/tr2bar"
+set module_32 "$module_4"
+set modulefile_32 "$modulefile_4"
+set modavail_32 "$modavail_31"
+
+# alias set on distant deep directory composed of distant alias
+set modsym_33 "tr2mod/al5"
+set module_33 "$module_4"
+set modulefile_33 "$modulefile_4"
+set modavail_33 "$modsym_33 -> trmod/dir3\\s+tr2fld\\s+"
+
+# symbol set on alias of distant deep directory composed of distant alias
+set modsym_34 "tr2mod/tr2fld"
+set module_34 "$module_4"
+set modulefile_34 "$modulefile_4"
+set modavail_34 "$modavail_33"
+
 
 set help_pre "$modlin\nModule Specific Help for "
 set help_post ":\n\n$modlin"
@@ -135,7 +255,7 @@ set whatis_pre "$header\n\\s*"
 #  The tests
 #
 
-for {set i 1} {$i <= 16} {incr i} {
+for {set i 1} {$i <= 34} {incr i} {
     set modsym [set "modsym_${i}"]
     set module [set "module_${i}"]
     set modulefile [set "modulefile_${i}"]
@@ -177,7 +297,7 @@ unset header
 unset avail_pre
 unset whatis_pre
 
-for {set i 1} {$i <= 16} {incr i} {
+for {set i 1} {$i <= 34} {incr i} {
     unset "modsym_${i}"
     unset "module_${i}"
     unset "modulefile_${i}"

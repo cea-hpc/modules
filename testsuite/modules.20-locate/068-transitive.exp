@@ -33,6 +33,8 @@ set modavail_1 "$module_1\\s+cur:stable\\s+$datetime_re"
 set modsym_2 "loc_tr/al1"
 set module_2 "loc_tr/2.0"
 set modulefile_2 "$env(MODULEPATH)/$module_2"
+# symbols set from alias with different module root name are not shown here
+# when querying modulefile, as in this case alias module is not interpreted
 set modavail_2 "$modsym_2 -> loc_tr/next\\s+unstable\\s+"
 
 # symbol set on alias of symbol (alias set before target symbol definition)
@@ -71,6 +73,100 @@ set module_8 "$module_4"
 set modulefile_8 "$modulefile_4"
 set modavail_8 "$modsym_8 -> loc_tr/exp\\s+"
 
+# alias set on distant symbol
+set modsym_9 "tr_loc/al1"
+set module_9 "$module_2"
+set modulefile_9 "$modulefile_2"
+set modavail_9 "$modsym_9 -> loc_tr/next\\s+trunstable\\s+"
+
+# symbol set on alias of distant symbol
+set modsym_10 "tr_loc/trunstable"
+set module_10 "$module_2"
+set modulefile_10 "$modulefile_2"
+set modavail_10 "$modavail_9"
+
+# symbol set on alias of distant symbol (local symbol set before its target definition)
+set modsym_11 "tr_loc/al2"
+set module_11 "$module_4"
+set modulefile_11 "$modulefile_4"
+set modavail_11 "$modsym_11 -> loc_tr/foo\\s+trbar\\s+"
+
+set modsym_12 "tr_loc/trbar"
+set module_12 "$module_4"
+set modulefile_12 "$modulefile_4"
+set modavail_12 "$modavail_11"
+
+# symbol set on alias of distant alias
+set modsym_13 "tr_loc/al3"
+set module_13 "$module_4"
+set modulefile_13 "$modulefile_4"
+set modavail_13 "$modsym_13 -> loc_tr/al2\\s+trexp\\s+"
+
+# symbol set on alias of distant alias
+set modsym_14 "tr_loc/trexp"
+set module_14 "$module_4"
+set modulefile_14 "$modulefile_4"
+set modavail_14 "$modavail_13"
+
+# alias set on distant symbol set on alias of alias of symbol
+set modsym_15 "tr_loc/al4"
+set module_15 "$module_4"
+set modulefile_15 "$modulefile_4"
+set modavail_15 "$modsym_15 -> loc_tr/exp\\s+"
+
+# alias set on local symbol set on alias of alias of symbol
+set modsym_16 "tr_loc/al5"
+set module_16 "$module_4"
+set modulefile_16 "$modulefile_4"
+set modavail_16 "$modsym_16 -> tr_loc/trexp\\s+"
+
+# alias set on distant symbol
+set modsym_17 "tr2_loc/al1"
+set module_17 "$module_2"
+set modulefile_17 "$modulefile_2"
+set modavail_17 "$modsym_17 -> tr_loc/trunstable\\s+tr2unstable\\s+"
+
+# symbol set on alias of distant symbol
+set modsym_18 "tr2_loc/tr2unstable"
+set module_18 "$module_2"
+set modulefile_18 "$modulefile_2"
+set modavail_18 "$modavail_17"
+
+# symbol set on alias of distant symbol (local symbol set before its target definition)
+set modsym_19 "tr2_loc/al2"
+set module_19 "$module_4"
+set modulefile_19 "$modulefile_4"
+set modavail_19 "$modsym_19 -> tr_loc/trbar\\s+tr2bar\\s+"
+
+set modsym_20 "tr2_loc/tr2bar"
+set module_20 "$module_4"
+set modulefile_20 "$modulefile_4"
+set modavail_20 "$modavail_19"
+
+# alias set on distant alias
+set modsym_21 "tr2_loc/al3"
+set module_21 "$module_4"
+set modulefile_21 "$modulefile_4"
+set modavail_21 "$modsym_21 -> tr_loc/al2\\s+tr2exp\\s+"
+
+# symbol set on alias of distant alias
+set modsym_22 "tr2_loc/tr2exp"
+set module_22 "$module_4"
+set modulefile_22 "$modulefile_4"
+set modavail_22 "$modavail_21"
+
+# alias set on distant symbol set on alias of alias of symbol
+set modsym_23 "tr2_loc/al4"
+set module_23 "$module_4"
+set modulefile_23 "$modulefile_4"
+set modavail_23 "$modsym_23 -> tr_loc/trexp\\s+"
+
+# alias set on local symbol set on alias of alias of symbol
+set modsym_24 "tr2_loc/al5"
+set module_24 "$module_4"
+set modulefile_24 "$modulefile_4"
+set modavail_24 "$modsym_24 -> tr2_loc/tr2exp\\s+"
+
 set help_pre "$modlin\nModule Specific Help for "
 set help_post ":\n\n$modlin"
 set test_pre "$modlin\nModule Specific Test for "
@@ -79,7 +175,8 @@ set disp_pre "$modlin\n"
 set disp_wi "module-whatis\\s+"
 set disp_post "\nsetenv\\s+testsuite\\s+yes\n$modlin"
 set header "$modlin $env(MODULEPATH) $modlin"
-set avail_pre "- Package/Alias $modlin.- Versions $modlin.- Last mod. $modlin\n$header"
+set header_long "- Package/Alias $modlin.- Versions $modlin.- Last mod. $modlin"
+set avail_pre "$header_long\n$header"
 set whatis_pre "$header\n\\s+"
 
 
@@ -87,7 +184,7 @@ set whatis_pre "$header\n\\s+"
 #  The tests
 #
 
-for {set i 1} {$i <= 8} {incr i} {
+for {set i 1} {$i <= 24} {incr i} {
     set modsym [set "modsym_${i}"]
     set module [set "module_${i}"]
     set modulefile [set "modulefile_${i}"]
@@ -111,6 +208,18 @@ for {set i 1} {$i <= 8} {incr i} {
     testouterr_cmd "sh" "paths $modsym" $ans ""
 }
 
+# transitive symbol sets from a distant module (different name) cannot
+# be resolved when queyring target module name
+set modsym "loc_tr/trbar"
+set locate_msg "$error_msgs: Unable to locate a modulefile for '$modsym'"
+testouterr_cmd_re "sh" "load $modsym" "ERR" "$locate_msg"
+testouterr_cmd_re "sh" "display $modsym" "ERR" "$locate_msg"
+testouterr_cmd_re "sh" "help $modsym" "ERR" "$locate_msg"
+testouterr_cmd_re "sh" "test $modsym" "ERR" "$locate_msg"
+testouterr_cmd_re "sh" "avail -l $modsym" "" "$header_long"
+testouterr_cmd_re "sh" "whatis $modsym" "ERR" "$locate_msg"
+testouterr_cmd "sh" "paths $modsym" "OK" ""
+
 
 #
 #  Cleanup
@@ -126,10 +235,11 @@ unset disp_pre
 unset disp_wi
 unset disp_post
 unset header
+unset header_long
 unset avail_pre
 unset whatis_pre
 
-for {set i 1} {$i <= 8} {incr i} {
+for {set i 1} {$i <= 24} {incr i} {
     unset "modsym_${i}"
     unset "module_${i}"
     unset "modulefile_${i}"
@@ -137,6 +247,7 @@ for {set i 1} {$i <= 8} {incr i} {
 }
 
 unset ans
+unset locate_msg
 
 unset i
 unset modsym

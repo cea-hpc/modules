@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.966
-set MODULES_CURRENT_RELEASE_DATE "2017-08-15"
+set MODULES_CURRENT_VERSION 1.968
+set MODULES_CURRENT_RELEASE_DATE "2017-08-16"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3238,28 +3238,6 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
       }
    }
 
-   # add aliases found when parsing .version or .modulerc files in this
-   # directory (skip aliases not registered from this directory except if
-   # global or user rc definitions should be included) if they match passed
-   # $mod (as for regular modulefiles)
-   foreach alias [array names g_moduleAlias -glob $mod*] {
-      if {($dir ne "" && [string first "$dir/" $g_sourceAlias($alias)] == 0)\
-         || ($add_rc_defs && [info exists g_rcAlias($alias)])} {
-         set mod_list($alias) [list "alias" $g_moduleAlias($alias)]
-
-         # in case alias overwrites a directory definition
-         if {[info exists dir_list($alias)]} {
-             unset dir_list($alias)
-         }
-
-         # add reference to this alias version in parent structure
-         set parentname [file dirname $alias]
-         if {[info exists mod_list($parentname)]} {
-            lappend mod_list($parentname) [file tail $alias]
-         }
-      }
-   }
-
    # add versions found when parsing .version or .modulerc files in this
    # directory (skip versions not registered from this directory except if
    # global or user rc definitions should be included)) if they match passed
@@ -3276,9 +3254,45 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
       # .modulerc files if these symbols match passed $mod (as for regular
       # modulefiles). modulefile target of these version symbol should have
       # been found previously to be added
-      if {[info exists found_list($versmod)]\
-         && ![info exists mod_list($versmod)]} {
-         set mod_list($versmod) $found_list($versmod)
+      if {![info exists mod_list($versmod)]} {
+         # symbolic version targets a modulefile most of the time
+         if {[info exists found_list($versmod)]} {
+            set mod_list($versmod) $found_list($versmod)
+         # but sometimes they may target an alias
+         } elseif {[info exists g_moduleAlias($versmod)]} {
+            lappend matching_versalias $versmod
+         }
+      }
+   }
+
+   # add aliases found when parsing .version or .modulerc files in this
+   # directory (skip aliases not registered from this directory except if
+   # global or user rc definitions should be included) if they match passed
+   # $mod (as for regular modulefiles) or if a symbolic versions targeting
+   # alias match passed $mod
+   set matching_alias [array names g_moduleAlias -glob $mod*]
+   if {[info exists matching_versalias]} {
+      foreach versalias $matching_versalias {
+         if {[lsearch -exact $matching_alias $versalias] == -1} {
+            lappend matching_alias $versalias
+         }
+      }
+   }
+   foreach alias $matching_alias {
+      if {($dir ne "" && [string first "$dir/" $g_sourceAlias($alias)] == 0)\
+         || ($add_rc_defs && [info exists g_rcAlias($alias)])} {
+         set mod_list($alias) [list "alias" $g_moduleAlias($alias)]
+
+         # in case alias overwrites a directory definition
+         if {[info exists dir_list($alias)]} {
+             unset dir_list($alias)
+         }
+
+         # add reference to this alias version in parent structure
+         set parentname [file dirname $alias]
+         if {[info exists mod_list($parentname)]} {
+            lappend mod_list($parentname) [file tail $alias]
+         }
       }
    }
 

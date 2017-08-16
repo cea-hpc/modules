@@ -50,6 +50,8 @@ if { [info exists env(MODULESHOME) ] } {
 set disp_csh "setenv\t\ttestsuite\tyes"
 set whatis_csh_1 "module-whatis\t$module_1"
 set disp_1 "$modlin\n$modulefile_1:\n\n$whatis_csh_1\n$disp_csh\n$modlin"
+set avail_1_al "$modlin global/user modulerc $modlin\nsym_foo\\(special:@\\)\\s+"
+set avail_1 "$modlin $env(MODULEPATH) $modlin\n$module_1\\(foo:special\\)\\s+"
 set what_1 "$modlin $env(MODULEPATH) $modlin\n         $module_1: $module_1"
 set path_1 "echo '$modulefile_1';"
 set whatis_csh_2 "module-whatis\t$module_2"
@@ -74,6 +76,7 @@ testerr_cmd_re "sh" "whatis sym_foo" "$what_1"
 test_cmd "sh" "paths sym_foo" "$path_1"
 test_cmd_re "csh" "load sym_foo/special" $ans
 testerr_cmd_re "sh" "display sym_foo/special" "$disp_1"
+testerr_cmd_re "sh" "avail sym_foo/special" "$avail_1_al"
 testerr_cmd_re "sh" "whatis sym_foo/special" "$what_1"
 test_cmd "sh" "paths sym_foo/special" "$path_1"
 
@@ -86,6 +89,7 @@ test_cmd "sh" "paths sym_foo" "$path_1"
 # test symbol set in global RC gets correct transitivity
 test_cmd_re "csh" "load loc_rc1/special" $ans
 testerr_cmd_re "sh" "display loc_rc1/special" "$disp_1"
+testerr_cmd_re "sh" "avail loc_rc1/special" "$avail_1"
 testerr_cmd_re "sh" "whatis loc_rc1/special" "$what_1"
 test_cmd "sh" "paths loc_rc1/special" "$path_1"
 
@@ -143,6 +147,8 @@ unset ans
 unset disp_csh
 unset whatis_csh_1
 unset disp_1
+unset avail_1_al
+unset avail_1
 unset what_1
 unset path_1
 unset whatis_csh_2
