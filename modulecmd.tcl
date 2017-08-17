@@ -33,8 +33,8 @@ echo "FATAL: module: Could not find tclsh in \$PATH or in standard directories" 
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.968
-set MODULES_CURRENT_RELEASE_DATE "2017-08-16"
+set MODULES_CURRENT_VERSION 1.969
+set MODULES_CURRENT_RELEASE_DATE "2017-08-17"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -925,18 +925,21 @@ proc module-version {args} {
    reportDebug "module-version: executing module-version $args"
    lassign [getModuleNameVersion [lindex $args 0] 1 1] mod modname modversion
 
-   foreach version [lrange $args 1 end] {
-      if {$version eq "default"} {
-         set aliasversion "$modname"
-      } else {
-         set aliasversion "$modname/$version"
-      }
+   # go for registration only if valid modulename
+   if {$mod ne ""} {
+      foreach version [lrange $args 1 end] {
+         if {$version eq "default"} {
+            set aliasversion "$modname"
+         } else {
+            set aliasversion "$modname/$version"
+         }
 
-      # do not alter a previously defined alias version
-      if {![info exists g_moduleVersion($aliasversion)]} {
-         setModuleResolution $aliasversion $mod $version
-      } else {
-         reportWarning "Symbolic version '$aliasversion' already defined"
+         # do not alter a previously defined alias version
+         if {![info exists g_moduleVersion($aliasversion)]} {
+            setModuleResolution $aliasversion $mod $version
+         } else {
+            reportWarning "Symbolic version '$aliasversion' already defined"
+         }
       }
    }
 
