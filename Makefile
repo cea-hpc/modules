@@ -2,7 +2,7 @@
 	test testinstall instrument testcoverage
 
 CURRENT_VERSION := $(shell grep '^set MODULES_CURRENT_VERSION' \
-	modulecmd.tcl | cut -d ' ' -f 3)
+	modulecmd.tcl.in | cut -d ' ' -f 3)
 DIST_PREFIX := modules-tcl-$(CURRENT_VERSION)
 
 # definitions for code coverage
@@ -19,7 +19,7 @@ ifneq ($(wildcard Makefile.inc),Makefile.inc)
 endif
 include Makefile.inc
 
-all: initdir pkgdoc ChangeLog README
+all: initdir pkgdoc modulecmd.tcl ChangeLog README
 
 initdir:
 	make -C init all
@@ -33,13 +33,17 @@ doc:
 www:
 	make -C www all
 
+modulecmd.tcl: modulecmd.tcl.in
+	perl -pe 's|\@TCLSHDIR\@/tclsh|$(TCLSH)|g;' $< > $@
+	chmod +x $@
+
 ChangeLog:
 	contrib/gitlog2changelog.py
 
 README:
 	perl -pe 's|^\[\!\[.*\].*\n||;' $@.md > $@
 
-install: ChangeLog README
+install: modulecmd.tcl ChangeLog README
 	mkdir -p $(DESTDIR)$(libexecdir)
 	mkdir -p $(DESTDIR)$(bindir)
 	cp modulecmd.tcl $(DESTDIR)$(libexecdir)/
@@ -94,6 +98,7 @@ endif
 ifeq ($(wildcard .git) $(wildcard README.md),.git README.md)
 	rm -f README
 endif
+	rm -f modulecmd.tcl
 	rm -f modules-tcl-*.tar.gz
 	rm -f modules-tcl-*.srpm
 	make -C init clean
@@ -107,7 +112,7 @@ distclean: clean
 	rm -f site.exp
 	rm -rf $(NAGELFAR_RELEASE)
 
-test:
+test: modulecmd.tcl
 	TCLSH=$(TCLSH); export TCLSH; \
 	MODULEVERSION=Tcl; export MODULEVERSION; \
 	OBJDIR=`pwd -P`; export OBJDIR; \

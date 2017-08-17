@@ -1,6 +1,6 @@
 .PHONY: install uninstall clean
 
-VERSION_FILE := ../modulecmd.tcl
+VERSION_FILE := ../modulecmd.tcl.in
 MAN_VERSION := "modules-tcl $(shell grep '^set MODULES_CURRENT_VERSION' \
 	$(VERSION_FILE) | cut -d ' ' -f 3)"
 MAN_HEADER := "Environment Modules"

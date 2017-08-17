@@ -42,6 +42,13 @@ if {[catch {
    exit 1
 }
 
+# determine source file name to report coverage against
+if {[file exists "${srcfile}.in"]} {
+   set targetfile "${srcfile}.in"
+} else {
+   set targetfile $srcfile
+}
+
 # parse coverage result
 array set line_hits {}
 set covered_lines 0
@@ -66,20 +73,20 @@ puts "Found $covered_lines lines covered over $total_lines ($percent_covered %)"
 # catch additional information to build reports
 set fmtime [file mtime $covres]
 set fmtime_date [clock format $fmtime -format "%Y-%m-%d %H:%M:%S"]
-regsub -all "\\." $srcfile "_" srcname
+regsub -all "\\." $targetfile "_" srcname
 
 # build json report content
 array set content {}
 set content(json) "{
    \"files\": \[
-      {\"file\": \"$srcfile\", \"percent_covered\": \"$percent_covered\", \"covered_lines\": \"$covered_lines\", \"total_lines\": \"$total_lines\"}
+      {\"file\": \"$targetfile\", \"percent_covered\": \"$percent_covered\", \"covered_lines\": \"$covered_lines\", \"total_lines\": \"$total_lines\"}
    \],
    \"percent_covered\": \"$percent_covered\",
    \"covered_lines\": $covered_lines,
    \"total_lines\": $total_lines,
    \"percent_low\": 25,
    \"percent_high\": 75,
-   \"command\": \"$srcfile\",
+   \"command\": \"$targetfile\",
    \"date\": \"$fmtime_date\"
 }"
 
@@ -88,12 +95,12 @@ set content(xml) "<?xml version=\"1.0\" ?>
 <!DOCTYPE coverage SYSTEM 'http://cobertura.sourceforge.net/xml/coverage-03.dtd'>
 <coverage line-rate=\"0.000\" version=\"1.9\" timestamp=\"$fmtime\">
    <sources>
-      <source>$srcfile</source>
+      <source>$targetfile</source>
    </sources>
    <packages>
       <package name=\"$srcname\" line-rate=\"0.000\" branch-rate=\"1.0\" complexity=\"1.0\">
          <classes>
-            <class name=\"$srcname\" filename=\"$srcfile\" line-rate=\"$ratio_covered\">
+            <class name=\"$srcname\" filename=\"$targetfile\" line-rate=\"$ratio_covered\">
                <lines>
 "
 foreach n [lsort -integer [array names line_hits]] {
@@ -107,7 +114,7 @@ append content(xml) "               </lines>
 </coverage>"
 
 # write reports
-set reportdir "[file dirname $srcfile]/coverage/$srcfile"
+set reportdir "[file dirname $srcfile]/coverage/$targetfile"
 if {[catch {file mkdir $reportdir} errMsg ]} {
    puts stderr "Report directory '$reportdir' cannot be created.\n$errMsg"
    exit 1
