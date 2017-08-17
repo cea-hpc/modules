@@ -73,6 +73,22 @@ set lmd15 [file dirname $lmf4]
 set m16 "$m5"
 set lmd16 [file dirname $lmf5]
 
+set m17 "symlink/1.2"
+set lm17 "$m17"
+set lmf17 "$env(MODULEPATH)/$lm17"
+set m18 "symlink/bar"
+set lm18 "$lm17"
+set lmf18 "$env(MODULEPATH)/$lm18"
+set m19 "symlink/new"
+set lm19 "$lm17"
+set lmf19 "$env(MODULEPATH)/$lm19"
+set m20 "$m17"
+set lmd20 [file dirname $lmf17]
+set m21 "$m18"
+set lmd21 [file dirname $lmf18]
+set m22 "$m19"
+set lmd22 [file dirname $lmf19]
+
 set pheader "$modlin $env(MODULEPATH) $modlin"
 set locate_msg "$error_msgs: Unable to locate a modulefile for"
 set access_msg "$error_msgs: Permission denied on"
@@ -321,6 +337,90 @@ testouterr_cmd "sh" "avail -t $m16" "" ""
 
 restore_file_perms $lmd16
 
+#
+# Test access to symlink modulefile when access not granted on this modulefile
+#
+
+change_file_perms $lmf17 $hide_perms
+
+testouterr_cmd "sh" "load $m17" "ERR" "$access_msg '$lmf17'"
+testouterr_cmd "sh" "display $m17" "ERR" "$access_msg '$lmf17'"
+testouterr_cmd "sh" "whatis $m17" "ERR" "$access_msg '$lmf17'"
+testouterr_cmd "sh" "avail -t $m17" "" ""
+
+restore_file_perms $lmf17
+
+#
+# Test access to alias when access not granted on target symlink modulefile
+#
+
+change_file_perms $lmf18 $hide_perms
+
+testouterr_cmd "sh" "load $m18" "ERR" "$access_msg '$lmf18'"
+testouterr_cmd "sh" "display $m18" "ERR" "$access_msg '$lmf18'"
+testouterr_cmd "sh" "whatis $m18" "ERR" "$access_msg '$lmf18'"
+# alias defined so it appears even if access to target modulefile is denied
+testouterr_cmd_re "sh" "avail -t $m18" "" "$pheader\n$m18\\(@\\)"
+
+restore_file_perms $lmf18
+
+#
+# Test access to symbol when access not granted on target symlink modulefile
+#
+
+change_file_perms $lmf19 $hide_perms
+
+testouterr_cmd "sh" "load $m19" "ERR" "$access_msg '$lmf19'"
+testouterr_cmd "sh" "display $m19" "ERR" "$access_msg '$lmf19'"
+testouterr_cmd "sh" "whatis $m19" "ERR" "$access_msg '$lmf19'"
+# symbol is attached to the modulefile so it does not appear if the access
+# to the target modulefile is denied
+testouterr_cmd "sh" "avail -t $m19" "" ""
+
+restore_file_perms $lmf19
+
+#
+# Test access to modulefile when access not granted on symlink target directory
+#
+
+change_file_perms $lmd20 $hide_perms
+
+# cannot locate module
+testouterr_cmd "sh" "load $m20" "ERR" "$locate_msg '$m20'"
+testouterr_cmd "sh" "display $m20" "ERR" "$locate_msg '$m20'"
+testouterr_cmd "sh" "whatis $m20" "ERR" "$locate_msg '$m20'"
+testouterr_cmd "sh" "avail -t $m20" "" ""
+
+restore_file_perms $lmd20
+
+#
+# Test access to alias when access not granted on symlink target directory
+#
+
+change_file_perms $lmd21 $hide_perms
+
+# cannot locate module
+testouterr_cmd "sh" "load $m21" "ERR" "$locate_msg '$m21'"
+testouterr_cmd "sh" "display $m21" "ERR" "$locate_msg '$m21'"
+testouterr_cmd "sh" "whatis $m21" "ERR" "$locate_msg '$m21'"
+testouterr_cmd "sh" "avail -t $m21" "" ""
+
+restore_file_perms $lmd21
+
+#
+# Test access to symbol when access not granted on symlink target directory
+#
+
+change_file_perms $lmd22 $hide_perms
+
+# cannot locate module
+testouterr_cmd "sh" "load $m22" "ERR" "$locate_msg '$m22'"
+testouterr_cmd "sh" "display $m22" "ERR" "$locate_msg '$m22'"
+testouterr_cmd "sh" "whatis $m22" "ERR" "$locate_msg '$m22'"
+testouterr_cmd "sh" "avail -t $m22" "" ""
+
+restore_file_perms $lmd22
+
 
 #
 # Cleanup
@@ -374,5 +474,20 @@ unset m15
 unset lmd15
 unset m16
 unset lmd16
+unset m17
+unset lm17
+unset lmf17
+unset m18
+unset lm18
+unset lmf18
+unset m19
+unset lm19
+unset lmf19
+unset m20
+unset lmd20
+unset m21
+unset lmd21
+unset m22
+unset lmd22
 
 }
