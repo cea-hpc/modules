@@ -23,8 +23,8 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.972
-set MODULES_CURRENT_RELEASE_DATE "2017-08-17"
+set MODULES_CURRENT_VERSION 1.973
+set MODULES_CURRENT_RELEASE_DATE "2017-08-18"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -477,7 +477,8 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
       # default version set via ModulesVersion variable in .version file
       # override previously defined default version for modname
       if {[file tail $modfile] eq ".version" && $ModulesVersion ne ""} {
-         setModuleResolution $modname $modname/$ModulesVersion "default"
+         setModuleResolution "$modname/default" $modname/$ModulesVersion\
+            "default"
       }
 
       # Keep track of rc files we already sourced so we don't run them again
@@ -811,7 +812,7 @@ proc getModuleNameVersion {{name {}} {default_is_special 0}\
 proc setModuleResolution {mod res {symver {}}} {
    global g_moduleResolved g_resolvedHash g_resolvedPath
    global g_symbolHash g_moduleVersion g_sourceVersion
-   global ModulesCurrentModulefile
+   global g_moduleAltName ModulesCurrentModulefile
 
    # find end-point module and register path to get to it
    lappend res_path $res
@@ -826,11 +827,21 @@ proc setModuleResolution {mod res {symver {}}} {
       return 0
    }
 
+   # module name will be useful when registering symbol
+   if {$symver ne ""} {
+      lassign [getModuleNameVersion $mod] modfull modname
+   }
+
    # change default symbol owner if previously given
-   if {$symver eq "default" && [info exists g_moduleResolved($mod)]} {
-      set prev $g_moduleResolved($mod)
-      if {[info exists g_symbolHash($prev)]\
-         && [set idx [lsearch -exact $g_symbolHash($prev) "default"]] != -1} {
+   if {$symver eq "default"} {
+      # alternative name "modname" is set when mod = "modname/default" both
+      # names will be registered to be known for queries and resolution defs
+      set modalt $modname
+
+      if {[info exists g_moduleResolved($mod)]} {
+         set prev $g_moduleResolved($mod)
+         # no test needed, there must be a "default" in $prev symbol list
+         set idx [lsearch -exact $g_symbolHash($prev) "default"]
          reportDebug "setModuleResolution: remove symbol 'default' from\
             '$prev'"
          set g_symbolHash($prev) [lreplace $g_symbolHash($prev) $idx $idx]
@@ -843,60 +854,96 @@ proc setModuleResolution {mod res {symver {}}} {
    set g_resolvedPath($mod) $res_path
    lappend g_resolvedHash($res) $mod
 
+   # also register resolution on alternative name if any
+   if {[info exists modalt]} {
+      reportDebug "setModuleResolution: $modalt resolved to $res"
+      set g_moduleResolved($modalt) $res
+      set g_resolvedPath($modalt) $res_path
+      lappend g_resolvedHash($res) $modalt
+      # register name alternative to know their existence
+      set g_moduleAltName($modalt) $mod
+      set g_moduleAltName($mod) $modalt
+   }
+
    # if other modules were pointing to this one, adapt resolution end-point
+   set relmod_list {}
    if {[info exists g_resolvedHash($mod)]} {
-      foreach relmod $g_resolvedHash($mod) {
-         set g_moduleResolved($relmod) $res
-         reportDebug "setModuleResolution: $relmod now resolved to $res"
-         lappend g_resolvedHash($res) $relmod
-      }
+      set relmod_list $g_resolvedHash($mod)
       unset g_resolvedHash($mod)
+   }
+   # also adapt resolution for modules pointing to the alternative name
+   if {[info exists modalt] && [info exists g_resolvedHash($modalt)]} {
+      set relmod_list [concat $relmod_list $g_resolvedHash($modalt)]
+      unset g_resolvedHash($modalt)
+   }
+   foreach relmod $relmod_list {
+      set g_moduleResolved($relmod) $res
+      reportDebug "setModuleResolution: $relmod now resolved to $res"
+      lappend g_resolvedHash($res) $relmod
    }
 
    # register and propagate symbols to the resolution path
    if {$symver ne ""} {
-      lappend sym_list $symver
+      set sym_list {}
       if {[info exists g_symbolHash($mod)]} {
-         # dictionary-sort symbols and remove eventual duplicates
+         set sym_list $g_symbolHash($mod)
+      }
+      # merge symbol definitions in case of alternative name
+      if {[info exists modalt] && [info exists g_symbolHash($modalt)]} {
          set sym_list [lsort -dictionary -unique [concat $sym_list\
-            $g_symbolHash($mod)]]
+            $g_symbolHash($modalt)]]
+         reportDebug "setModuleResolution: set symbols '$sym_list' to $mod\
+            and $modalt"
+         set g_symbolHash($mod) $sym_list
+         set g_symbolHash($modalt) $sym_list
       }
 
-      set modres [lindex $res_path 0]
-      reportDebug "setModuleResolution: add symbol '$symver' to $modres"
-      if {[info exists g_symbolHash($modres)]} {
-         set g_symbolHash($modres) [lsort -dictionary -unique [concat\
-            $g_symbolHash($modres) $sym_list]]
-      } else {
-         set g_symbolHash($modres) $sym_list
-      }
+      # dictionary-sort symbols and remove eventual duplicates
+      set sym_list [lsort -dictionary -unique [concat $sym_list\
+         [list $symver]]]
 
-      # register symbolic version for querying in g_moduleVersion
-      lassign [getModuleNameVersion $mod] modfull modname
-      foreach symelt $sym_list {
-         if {$symelt eq "default"} {
-            set modvers "$mod/$symelt"
-         } else {
-            set modvers "$modname/$symelt"
-         }
-         reportDebug "setModuleResolution: module-version $modvers = $modres"
-         set g_moduleVersion($modvers) $modres
-         set g_sourceVersion($modvers) $ModulesCurrentModulefile
-      }
-
-      # propagate to the next entry in resolution path to get symbol
-      # registered in both g_moduleVersion and resolution structures
-      set modres [lindex $res_path 1]
-      if {$modres ne ""} {
+      # propagate symbols in g_symbolHash and g_moduleVersion toward the
+      # resolution path, handle that locally if we still work on same
+      # modulename, call for a proper resolution as soon as we change of
+      # module to get this new resolution registered
+      foreach modres $res_path {
          lassign [getModuleNameVersion $modres] modfull modresname
-         foreach symelt $sym_list {
-            if {$symelt eq "default"} {
-               set modvers $modresname
+         if {$modname eq $modresname} {
+            if {[info exists g_symbolHash($modres)]} {
+               set modres_sym_list [lsort -dictionary -unique [concat\
+                  $g_symbolHash($modres) $sym_list]]
             } else {
-               set modvers "$modresname/$symelt"
+               set modres_sym_list $sym_list
             }
-            reportDebug "setModuleResolution: set resolution for $modvers"
-            setModuleResolution $modvers $modres $symelt
+            # sync symbols of alternative name if any
+            if {[info exists g_moduleAltName($modres)]} {
+               set altmodres $g_moduleAltName($modres)
+               reportDebug "setModuleResolution: set symbols\
+                  '$modres_sym_list' to $modres and $altmodres"
+               set g_symbolHash($altmodres) $modres_sym_list
+            } else {
+               reportDebug "setModuleResolution: set symbols\
+                  '$modres_sym_list' to $modres"
+            }
+            set g_symbolHash($modres) $modres_sym_list
+
+            # register symbolic version for querying in g_moduleVersion
+            foreach symelt $sym_list {
+               set modvers "$modresname/$symelt"
+               reportDebug "setModuleResolution: module-version $modvers =\
+                  $modres"
+               set g_moduleVersion($modvers) $modres
+               set g_sourceVersion($modvers) $ModulesCurrentModulefile
+            }
+         } else {
+            foreach symelt $sym_list {
+               set modvers "$modresname/$symelt"
+               reportDebug "setModuleResolution: set resolution for $modvers"
+               setModuleResolution $modvers $modres $symelt
+            }
+            # no need to get further on resolution path, as the above
+            # setModuleResolution call already handled it
+            break
          }
       }
    }
@@ -918,12 +965,7 @@ proc module-version {args} {
    # go for registration only if valid modulename
    if {$mod ne ""} {
       foreach version [lrange $args 1 end] {
-         if {$version eq "default"} {
-            set aliasversion "$modname"
-         } else {
-            set aliasversion "$modname/$version"
-         }
-
+         set aliasversion "$modname/$version"
          # do not alter a previously defined alias version
          if {![info exists g_moduleVersion($aliasversion)]} {
             setModuleResolution $aliasversion $mod $version
