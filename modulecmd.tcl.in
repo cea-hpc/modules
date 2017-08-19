@@ -23,8 +23,8 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.973
-set MODULES_CURRENT_RELEASE_DATE "2017-08-18"
+set MODULES_CURRENT_VERSION 1.974
+set MODULES_CURRENT_RELEASE_DATE "2017-08-19"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -809,15 +809,16 @@ proc getModuleNameVersion {{name {}} {default_is_special 0}\
 # can be used thereafter to get in one query the actual modulefile behind
 # a virtual name. Also consolidate a global array that in the same manner
 # list all the symbols held by modulefiles.
-proc setModuleResolution {mod res {symver {}}} {
+proc setModuleResolution {mod target {symver {}}} {
    global g_moduleResolved g_resolvedHash g_resolvedPath
    global g_symbolHash g_moduleVersion g_sourceVersion
    global g_moduleAltName ModulesCurrentModulefile
 
-   # find end-point module and register path to get to it
-   lappend res_path $res
-   while {$mod ne $res && [info exists g_moduleResolved($res)]} {
-      set res $g_moduleResolved($res)
+   # find end-point module and register step-by-step path to get to it
+   set res $target
+   set res_path $res
+   while {$mod ne $res && [info exists g_resolvedPath($res)]} {
+      set res $g_resolvedPath($res)
       lappend res_path $res
    }
 
@@ -851,14 +852,14 @@ proc setModuleResolution {mod res {symver {}}} {
    # register end-point resolution
    reportDebug "setModuleResolution: $mod resolved to $res"
    set g_moduleResolved($mod) $res
-   set g_resolvedPath($mod) $res_path
+   set g_resolvedPath($mod) $target
    lappend g_resolvedHash($res) $mod
 
    # also register resolution on alternative name if any
    if {[info exists modalt]} {
       reportDebug "setModuleResolution: $modalt resolved to $res"
       set g_moduleResolved($modalt) $res
-      set g_resolvedPath($modalt) $res_path
+      set g_resolvedPath($modalt) $target
       lappend g_resolvedHash($res) $modalt
       # register name alternative to know their existence
       set g_moduleAltName($modalt) $mod
@@ -3368,7 +3369,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
       } else {
          # get default element (defined or implicit)
          if {[info exists g_resolvedPath($dir)]} {
-            set dfl_elt [file tail [lindex $g_resolvedPath($dir) 0]]
+            set dfl_elt [file tail $g_resolvedPath($dir)]
          } else {
             set dfl_elt [lindex $elt_list end]
          }
