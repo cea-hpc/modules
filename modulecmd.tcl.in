@@ -23,7 +23,7 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.974
+set MODULES_CURRENT_VERSION 1.975
 set MODULES_CURRENT_RELEASE_DATE "2017-08-19"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -716,11 +716,19 @@ proc module-info {what {more {}}} {
          return "Tcl"
       }
       {symbols} {
-         lassign [getModuleNameVersion $more 1 1] mod
-         return [join [getVersAliasList $mod] ":"]
+         lassign [getModuleNameVersion $more 1] mod modname modversion
+         set tag_list [getVersAliasList $mod]
+         # if querying special symbol "default" but nothing found registered
+         # on it, look at symbol registered on bare module name in case there
+         # are symbols registered on it but no default symbol set yet to link
+         # to them
+         if {[llength $tag_list] == 0 && $modversion eq "default"} {
+            set tag_list [getVersAliasList $modname]
+         }
+         return [join $tag_list ":"]
       }
       {version} {
-         lassign [getModuleNameVersion $more 1 1] mod
+         lassign [getModuleNameVersion $more 1] mod
          return [resolveModuleVersionOrAlias $mod]
       }
       default {
@@ -749,14 +757,11 @@ proc module-whatis {args} {
 # Determine with a name provided as argument the corresponding module name,
 # version and name/version. Module name is guessed from current module name
 # when shorthand version notation is used. Both name and version are guessed
-# from current module if name provided is empty. If 'default_is_special'
-# argument is enabled then a 'default' version name is considered as a
-# symbol not a filename (useful for module-version proc for instance). If
-# 'name_relative_tocur' is enabled then name argument may be interpreted as
-# a name relative to the current modulefile directory (useful for
-# module-version and module-alias for instance).
-proc getModuleNameVersion {{name {}} {default_is_special 0}\
-{name_relative_tocur 0}} {
+# from current module if name provided is empty. If 'name_relative_tocur' is
+# enabled then name argument may be interpreted as a name relative to the
+# current modulefile directory (useful for module-version and module-alias
+# for instance).
+proc getModuleNameVersion {{name {}} {name_relative_tocur 0}} {
    set curmod [currentModuleName]
    set curmodname [file dirname $curmod]
    set curmodversion [file tail $curmod]
@@ -784,10 +789,6 @@ proc getModuleNameVersion {{name {}} {default_is_special 0}\
          set version ""
       } else {
          set name [file dirname $name]
-         # clear version if default
-         if {$version eq "default" && $default_is_special} {
-            set version ""
-         }
       }
       # name may correspond to last part of current module
       # if so name is replaced by current module name
@@ -961,7 +962,7 @@ proc module-version {args} {
    global g_moduleVersion
 
    reportDebug "module-version: executing module-version $args"
-   lassign [getModuleNameVersion [lindex $args 0] 1 1] mod modname modversion
+   lassign [getModuleNameVersion [lindex $args 0] 1] mod modname modversion
 
    # go for registration only if valid modulename
    if {$mod ne ""} {
@@ -987,7 +988,7 @@ proc module-alias {args} {
    global g_sourceAlias ModulesCurrentModulefile
 
    lassign [getModuleNameVersion [lindex $args 0]] alias
-   lassign [getModuleNameVersion [lindex $args 1] 0 1] mod
+   lassign [getModuleNameVersion [lindex $args 1] 1] mod
 
    reportDebug "module-alias: $alias = $mod"
 
