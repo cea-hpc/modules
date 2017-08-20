@@ -23,8 +23,8 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.975
-set MODULES_CURRENT_RELEASE_DATE "2017-08-19"
+set MODULES_CURRENT_VERSION 1.976
+set MODULES_CURRENT_RELEASE_DATE "2017-08-20"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -885,11 +885,12 @@ proc setModuleResolution {mod target {symver {}}} {
    }
 
    # register and propagate symbols to the resolution path
-   if {$symver ne ""} {
+   if {[info exists g_symbolHash($mod)]} {
+      set sym_list $g_symbolHash($mod)
+   } else {
       set sym_list {}
-      if {[info exists g_symbolHash($mod)]} {
-         set sym_list $g_symbolHash($mod)
-      }
+   }
+   if {$symver ne ""} {
       # merge symbol definitions in case of alternative name
       if {[info exists modalt] && [info exists g_symbolHash($modalt)]} {
          set sym_list [lsort -dictionary -unique [concat $sym_list\
@@ -937,16 +938,27 @@ proc setModuleResolution {mod target {symver {}}} {
                set g_moduleVersion($modvers) $modres
                set g_sourceVersion($modvers) $ModulesCurrentModulefile
             }
+         # as we change of module name a proper resolution call should be
+         # made (see below) and will handle the rest of the resolution path
          } else {
-            foreach symelt $sym_list {
-               set modvers "$modresname/$symelt"
-               reportDebug "setModuleResolution: set resolution for $modvers"
-               setModuleResolution $modvers $modres $symelt
-            }
-            # no need to get further on resolution path, as the above
-            # setModuleResolution call already handled it
+            set need_set_res 1
             break
          }
+      }
+   # when registering an alias, existing symbols on alias source name should
+   # be broadcast along the resolution path with a proper resolution call
+   # (see below)
+   } else {
+      lassign [getModuleNameVersion $target] modres modresname
+      set need_set_res 1
+   }
+
+   # resolution needed to broadcast symbols along resolution path
+   if {[info exists need_set_res]} {
+      foreach symelt $sym_list {
+         set modvers "$modresname/$symelt"
+         reportDebug "setModuleResolution: set resolution for $modvers"
+         setModuleResolution $modvers $modres $symelt
       }
    }
 
