@@ -1,0 +1,86 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.80-deep/%M%
+#   Revision:		%I%
+#   First Edition:	2017/08/23
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        unload
+#   Modulefiles:	setenv
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test unload action
+#		}C%
+#
+##############################################################################
+
+set modulename_1 "setenv"
+set module_1 "$modulename_1/0.8"
+set modulefile_1 "$env(MODULEPATH)/$module_1"
+
+lappend ans [list unsetpath testsuite]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+
+#
+#  The tests
+#
+
+# set up the environment
+set env(_LMFILES_) "$modulefile_1"
+set env(LOADEDMODULES) "$module_1"
+
+# unload passing partial name
+testouterr_cmd_re "sh" "unload set" "ERR" "$error_msgs: Unable to locate a modulefile for 'set'"
+
+# unload passing fully qualified module name
+testouterr_cmd_re "sh" "unload $module_1" $ans ""
+
+
+# unload with just module name
+testouterr_cmd_re "sh" "unload $modulename_1" $ans ""
+
+
+# unset MODULEPATH
+set ORIG_MODULEPATH $env(MODULEPATH)
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = ''\n"
+}
+unset env(MODULEPATH)
+
+# unload passing partial name, modulepath not set anymore
+testouterr_cmd_re "sh" "unload set" "ERR" ""
+
+# unload passing fully qualified module name, modulepath not set anymore
+testouterr_cmd_re "sh" "unload $module_1" $ans ""
+
+
+# unload with just module name, modulepath not set anymore
+testouterr_cmd_re "sh" "unload $modulename_1" $ans ""
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = $ORIG_MODULEPATH\n"
+}
+set env(MODULEPATH) $ORIG_MODULEPATH
+unset ORIG_MODULEPATH
+
+unset ans
+
+unset modulename_1
+unset module_1
+unset modulefile_1
