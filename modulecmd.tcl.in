@@ -23,8 +23,8 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.978
-set MODULES_CURRENT_RELEASE_DATE "2017-08-20"
+set MODULES_CURRENT_VERSION 1.979
+set MODULES_CURRENT_RELEASE_DATE "2017-08-23"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2117,7 +2117,7 @@ proc isSameModuleRoot {mod1 mod2} {
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
-proc getPathToModule {mod {indir {}} {look_loaded 1}} {
+proc getPathToModule {mod {indir {}} {look_loaded 0}} {
    global g_loadedModules g_loadedModulesGeneric
 
    if {$mod eq ""} {
@@ -2182,7 +2182,7 @@ proc getPathToModule {mod {indir {}} {look_loaded 1}} {
                      # elsewhere restart search on new modulename, constrained
                      # to specified dir if set
                      } else {
-                        return [getPathToModule $newmod $indir 0]
+                        return [getPathToModule $newmod $indir]
                      }
                   }
                   {directory} {
@@ -4028,7 +4028,7 @@ proc cmdModulePaths {mod} {
             {alias} - {version} {
                # resolve alias target
                set aliastarget [lindex $mod_list($elt) 1]
-               lassign [getPathToModule $aliastarget $dir 0] modfile modname
+               lassign [getPathToModule $aliastarget $dir] modfile modname
                # add module target as result instead of alias
                if {$modfile ne "" && ![info exists mod_list($modname)]} {
                   lappend g_pathList $modfile
@@ -4091,7 +4091,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             }
             {alias} - {version} {
                # resolve alias target
-               lassign [getPathToModule [lindex $mod_list($elt) 1] $dir 0]\
+               lassign [getPathToModule [lindex $mod_list($elt) 1] $dir]\
                   modfile modname issuetype issuemsg
                # add module target as result instead of alias
                if {$modfile ne "" && ![info exists mod_list($modname)]} {
@@ -4496,7 +4496,8 @@ proc cmdModuleUnload {args} {
    pushMode "unload"
    foreach mod $args {
       catch {
-         lassign [getPathToModule $mod] modfile modname
+         # resolve by also looking at matching loaded module
+         lassign [getPathToModule $mod {} 1] modfile modname
          if {$modfile ne ""} {
             set currentModule $modname
             set ModulesCurrentModulefile $modfile
