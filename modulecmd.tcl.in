@@ -23,7 +23,7 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.983
+set MODULES_CURRENT_VERSION 1.984
 set MODULES_CURRENT_RELEASE_DATE "2017-08-24"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -2915,7 +2915,7 @@ proc renderSettings {} {
 }
 
 proc cacheCurrentModules {} {
-   global g_loadedModules g_loadedModulesGeneric
+   global g_loadedModules
 
    reportDebug "cacheCurrentModules"
 
@@ -2924,7 +2924,6 @@ proc cacheCurrentModules {} {
    set filelist [getLoadedModuleFileList]
    foreach mod [getLoadedModuleList] {
       set g_loadedModules($mod) [lindex $filelist $i]
-      set g_loadedModulesGeneric([file dirname $mod]) [file tail $mod]
       incr i
    }
 }
@@ -4463,7 +4462,7 @@ proc cmdModuleSource {args} {
 }
 
 proc cmdModuleLoad {args} {
-   global g_loadedModules g_loadedModulesGeneric g_force
+   global g_loadedModules g_force
    global ModulesCurrentModulefile
 
    reportDebug "cmdModuleLoad: loading $args"
@@ -4485,17 +4484,7 @@ proc cmdModuleLoad {args} {
             } else {
                append-path LOADEDMODULES $currentModule
                append-path _LMFILES_ $modfile
-
                set g_loadedModules($currentModule) $modfile
-               set genericModName [file dirname $currentModule]
-
-               reportDebug "cmdModuleLoad: genericModName = $genericModName"
-
-               if {![info exists\
-                  g_loadedModulesGeneric($genericModName)]} {
-                     set g_loadedModulesGeneric($genericModName) [file tail\
-                        $currentModule]
-               }
             }
 
             popSettings
@@ -4508,7 +4497,7 @@ proc cmdModuleLoad {args} {
 }
 
 proc cmdModuleUnload {match args} {
-   global g_loadedModules g_loadedModulesGeneric
+   global g_loadedModules
    global ModulesCurrentModulefile g_def_separator
 
    reportDebug "cmdModuleUnload: unloading $args (match=$match)"
@@ -4534,12 +4523,6 @@ proc cmdModuleUnload {match args} {
                      $g_def_separator
                   unload-path _LMFILES_ $modfile $g_def_separator
                   unset g_loadedModules($currentModule)
-
-                  if {[info exists g_loadedModulesGeneric([file dirname\
-                     $currentModule])]} {
-                     unset g_loadedModulesGeneric([file dirname\
-                        $currentModule])
-                  }
                }
 
                popSettings
