@@ -1,0 +1,99 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.80-deep/%M%
+#   Revision:		%I%
+#   First Edition:	2017/08/24
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        switch
+#   Modulefiles:	moddef, plain
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test switch action on deep modulefiles
+#		}C%
+#
+##############################################################################
+
+set module_1 "moddef/dir2/2.0"
+set modulefile_1 "$modpath/$module_1"
+set module_2 "plain/dir2/1.0"
+set modulefile_2 "$modpath/$module_2"
+set module_3 "plain/dir1/2.0"
+set modulefile_3 "$modpath/$module_3"
+set module_4 "plain/dir2/2.0"
+set modulefile_4 "$modpath/$module_4"
+
+
+#
+#  The tests
+#
+
+# set up the environment
+set env(_LMFILES_) "$modulefile_1"
+set env(LOADEDMODULES) "$module_1"
+
+set ans [list]
+lappend ans [list set TEST $module_2]
+lappend ans [list setpath LOADEDMODULES "$module_1:$module_2"]
+lappend ans [list setpath _LMFILES_ "$modulefile_1:$modulefile_2"]
+
+# switch, the one argument form with an already loaded module that does not
+# share same root, but has a middle element equal to the name to switch
+testouterr_cmd_re "sh" "swap $module_2" $ans ""
+
+
+# set up the environment
+set env(_LMFILES_) "$modulefile_2:$modulefile_3"
+set env(LOADEDMODULES) "$module_2:$module_3"
+
+# switch using partial name
+testouterr_cmd_re "sh" "swap pl" "ERR" "$error_msgs: Unable to locate a modulefile for 'pl'"
+
+
+set ans [list]
+lappend ans [list set TEST $module_4]
+lappend ans [list setpath LOADEDMODULES "$module_3:$module_4"]
+lappend ans [list setpath _LMFILES_ "$modulefile_3:$modulefile_4"]
+
+# two modules already loaded sharing same root than module to swap, closest
+# should be returned
+testouterr_cmd_re "sh" "swap $module_4" $ans ""
+
+
+# set up the environment
+set env(_LMFILES_) "$modulefile_3:$modulefile_2"
+set env(LOADEDMODULES) "$module_3:$module_2"
+
+set ans [list]
+lappend ans [list set TEST $module_4]
+lappend ans [list setpath LOADEDMODULES "$module_3:$module_4"]
+lappend ans [list setpath _LMFILES_ "$modulefile_3:$modulefile_4"]
+
+# two modules already loaded sharing same root than module to swap and equality
+# in term of distance to this swap name, lastly loaded should be swapped-out
+testouterr_cmd_re "sh" "swap plain" $ans ""
+
+
+#
+#  Cleanup
+#
+
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+
+unset ans
+
+unset module_1
+unset modulefile_1
+unset module_2
+unset modulefile_2
+unset module_3
+unset modulefile_3
+unset module_4
+unset modulefile_4
