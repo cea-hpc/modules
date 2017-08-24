@@ -1,0 +1,163 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.80-deep/%M%
+#   Revision:		%I%
+#   First Edition:	2017/08/24
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        unload
+#   Modulefiles:	moddef, plain
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test unload action on deep modulefiles
+#		}C%
+#
+##############################################################################
+
+set module_1 "moddef/dir2/2.0"
+set modulefile_1 "$modpath/$module_1"
+set module_2 "plain/dir2/2.0"
+set modulefile_2 "$modpath/$module_2"
+set module_3 "plain/dir2/1.0"
+set modulefile_3 "$modpath/$module_3"
+set module_4 "plain/dir1/2.0"
+set modulefile_4 "$modpath/$module_4"
+
+
+#
+#  The tests
+#
+
+# set up the environment
+set env(_LMFILES_) "$modulefile_1"
+set env(LOADEDMODULES) "$module_1"
+
+testouterr_cmd_re "sh" "unload $module_2" "OK" ""
+
+
+# set up the environment
+set env(_LMFILES_) "$modulefile_3:$modulefile_4"
+set env(LOADEDMODULES) "$module_3:$module_4"
+
+# unload using partial name
+testouterr_cmd_re "sh" "unload pl" "ERR" "$error_msgs: Unable to locate a modulefile for 'pl'"
+testouterr_cmd_re "sh" "unload plain/di" "ERR" "$error_msgs: Unable to locate a modulefile for 'plain/di'"
+
+# unload a different module that shares same root name
+testouterr_cmd_re "sh" "unload $module_2" "OK" ""
+
+
+set ans [list]
+lappend ans [list unset TEST]
+lappend ans [list setpath LOADEDMODULES "$module_3"]
+lappend ans [list setpath _LMFILES_ "$modulefile_3"]
+
+# unload root name, last matching loaded will be unloaded
+testouterr_cmd_re "sh" "unload plain" $ans ""
+
+
+set ans [list]
+lappend ans [list unset TEST]
+lappend ans [list setpath LOADEDMODULES "$module_4"]
+lappend ans [list setpath _LMFILES_ "$modulefile_4"]
+
+# unload using full name
+testouterr_cmd_re "sh" "unload $module_3" $ans ""
+
+# unload using module name
+testouterr_cmd_re "sh" "unload plain/dir2" $ans ""
+
+
+# set up the environment
+set env(_LMFILES_) "$modulefile_2:$modulefile_3"
+set env(LOADEDMODULES) "$module_2:$module_3"
+
+set ans [list]
+lappend ans [list unset TEST]
+lappend ans [list setpath LOADEDMODULES "$module_2"]
+lappend ans [list setpath _LMFILES_ "$modulefile_2"]
+
+# unload root name, last matching loaded will be unloaded
+# even if before that the real default is loaded
+testouterr_cmd_re "sh" "unload plain" $ans ""
+
+
+# unset MODULEPATH and retake the above tests, should get same result
+set ORIG_MODULEPATH $env(MODULEPATH)
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = ''\n"
+}
+unset env(MODULEPATH)
+
+# set up the environment
+set env(_LMFILES_) "$modulefile_3:$modulefile_4"
+set env(LOADEDMODULES) "$module_3:$module_4"
+
+# unload a different module that shares same root name
+# gets error as search to solve module cannot be performed without modulepath
+testouterr_cmd_re "sh" "unload $module_2" "ERR" ""
+
+
+set ans [list]
+lappend ans [list unset TEST]
+lappend ans [list setpath LOADEDMODULES "$module_3"]
+lappend ans [list setpath _LMFILES_ "$modulefile_3"]
+
+# unload root name, last matching loaded will be unloaded
+testouterr_cmd_re "sh" "unload plain" $ans ""
+
+
+set ans [list]
+lappend ans [list unset TEST]
+lappend ans [list setpath LOADEDMODULES "$module_4"]
+lappend ans [list setpath _LMFILES_ "$modulefile_4"]
+
+# unload using full name
+testouterr_cmd_re "sh" "unload $module_3" $ans ""
+
+# unload using module name
+testouterr_cmd_re "sh" "unload plain/dir2" $ans ""
+
+
+# set up the environment
+set env(_LMFILES_) "$modulefile_2:$modulefile_3"
+set env(LOADEDMODULES) "$module_2:$module_3"
+
+set ans [list]
+lappend ans [list unset TEST]
+lappend ans [list setpath LOADEDMODULES "$module_2"]
+lappend ans [list setpath _LMFILES_ "$modulefile_2"]
+
+# unload root name, last matching loaded will be unloaded
+# even if before that the real default is loaded
+testouterr_cmd_re "sh" "unload plain" $ans ""
+
+
+#
+#  Cleanup
+#
+
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = $ORIG_MODULEPATH\n"
+}
+set env(MODULEPATH) $ORIG_MODULEPATH
+unset ORIG_MODULEPATH
+
+unset ans
+
+unset module_1
+unset modulefile_1
+unset module_2
+unset modulefile_2
+unset module_3
+unset modulefile_3
+unset module_4
+unset modulefile_4

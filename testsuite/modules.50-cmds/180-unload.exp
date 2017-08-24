@@ -23,6 +23,8 @@
 set modulename_1 "setenv"
 set module_1 "$modulename_1/0.8"
 set modulefile_1 "$env(MODULEPATH)/$module_1"
+set module_2 "$modulename_1/1.0"
+set modulefile_2 "$env(MODULEPATH)/$module_2"
 
 lappend ans [list unsetpath testsuite]
 lappend ans [list unsetpath LOADEDMODULES]
@@ -48,12 +50,35 @@ testouterr_cmd_re "sh" "unload $module_1" $ans ""
 testouterr_cmd_re "sh" "unload $modulename_1" $ans ""
 
 
+# set up the environment
+set env(_LMFILES_) "$modulefile_2:$modulefile_1"
+set env(LOADEDMODULES) "$module_2:$module_1"
+
+set ans [list]
+lappend ans [list unsetpath testsuite]
+lappend ans [list setpath LOADEDMODULES $module_2]
+lappend ans [list setpath _LMFILES_ $modulefile_2]
+
+# unload with just module name, last matching loaded will be unloaded
+# even if before that the real default is loaded
+testouterr_cmd_re "sh" "unload $modulename_1" $ans ""
+
+
 # unset MODULEPATH
 set ORIG_MODULEPATH $env(MODULEPATH)
 if { $verbose > 0 } {
     send_user "\tSetup MODULEPATH = ''\n"
 }
 unset env(MODULEPATH)
+
+set ans [list]
+lappend ans [list unsetpath testsuite]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+# set up the environment
+set env(_LMFILES_) "$modulefile_1"
+set env(LOADEDMODULES) "$module_1"
 
 # unload passing partial name, modulepath not set anymore
 testouterr_cmd_re "sh" "unload set" "ERR" ""
@@ -63,6 +88,20 @@ testouterr_cmd_re "sh" "unload $module_1" $ans ""
 
 
 # unload with just module name, modulepath not set anymore
+testouterr_cmd_re "sh" "unload $modulename_1" $ans ""
+
+
+# set up the environment
+set env(_LMFILES_) "$modulefile_2:$modulefile_1"
+set env(LOADEDMODULES) "$module_2:$module_1"
+
+set ans [list]
+lappend ans [list unsetpath testsuite]
+lappend ans [list setpath LOADEDMODULES $module_2]
+lappend ans [list setpath _LMFILES_ $modulefile_2]
+
+# unload with just module name, modulepath not set anymore, last matching
+# loaded will be unloaded even if before that the real default is loaded
 testouterr_cmd_re "sh" "unload $modulename_1" $ans ""
 
 
@@ -84,3 +123,5 @@ unset ans
 unset modulename_1
 unset module_1
 unset modulefile_1
+unset module_2
+unset modulefile_2
