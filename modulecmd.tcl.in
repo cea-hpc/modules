@@ -23,7 +23,7 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.982
+set MODULES_CURRENT_VERSION 1.983
 set MODULES_CURRENT_RELEASE_DATE "2017-08-24"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -1045,7 +1045,7 @@ proc module {command args} {
             }\
             elseif {$mode eq "unload"} {
                # on unload mode, unload mods in reverse order
-               eval cmdModuleUnload [lreverse $args]
+               eval cmdModuleUnload "match" [lreverse $args]
             }\
             elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
                report "module load\t$args"
@@ -1060,10 +1060,10 @@ proc module {command args} {
          } else {
             pushCommandName "unload"
             if {$topcall || $mode eq "load"} {
-               eval cmdModuleUnload $args
+               eval cmdModuleUnload "match" $args
             }\
             elseif {$mode eq "unload"} {
-               eval cmdModuleUnload $args
+               eval cmdModuleUnload "match" $args
             }\
             elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
                report "module unload\t$args"
@@ -2117,7 +2117,7 @@ proc isSameModuleRoot {mod1 mod2} {
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
-proc getPathToModule {mod {indir {}} {look_loaded 0}} {
+proc getPathToModule {mod {indir {}} {look_loaded "no"}} {
    global g_loadedModules
 
    if {$mod eq ""} {
@@ -2139,8 +2139,11 @@ proc getPathToModule {mod {indir {}} {look_loaded 0}} {
             set retlist [list "" $mod $check_valid $check_msg]
          }
       }
-   # try first to look at loaded modules if enabled to find closest match
-   } elseif {$look_loaded && [set lm [getLoadedMatchingName $mod]] ne ""} {
+   # try first to look at loaded modules if enabled to find maching module
+   # or to find a closest match (used when switching with single name arg)
+   } elseif {($look_loaded eq "match" && [set lm [getLoadedMatchingName\
+      $mod]] ne "") || ($look_loaded eq "close" && [set lm\
+      [getLoadedWithClosestName $mod]] ne "")} {
       set retlist [list $g_loadedModules($lm) $lm]
    } else {
       if {$indir ne ""} {
@@ -4175,22 +4178,19 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 }
 
 proc cmdModuleSwitch {old {new {}}} {
-   global g_loadedModulesGeneric g_loadedModules
-
+   # if a single name is provided it matches for the module to load and in
+   # this case the module to unload is searched to find the closest match
+   # (loaded module that shares at least the same root name)
    if {$new eq ""} {
       set new $old
-      # find closest module to unload if any
-      set old [getLoadedWithClosestName [resolveModuleVersionOrAlias $old]]
+      set unload_match "close"
+   } else {
+      set unload_match "match"
    }
 
-   if {![info exists g_loadedModules($old)] &&
-      [info exists g_loadedModulesGeneric($old)]} {
-      set old "$old/$g_loadedModulesGeneric($old)"
-   }
+   reportDebug "cmdModuleSwitch: old='$old' new='$new'"
 
-   reportDebug "cmdModuleSwitch: new=\"$new\" old=\"$old\""
-
-   cmdModuleUnload $old
+   cmdModuleUnload $unload_match $old
    cmdModuleLoad $new
 }
 
@@ -4272,7 +4272,7 @@ proc cmdModuleRestore {{coll {}}} {
 
    # unload modules
    if {[llength $mod_to_unload] > 0} {
-      eval cmdModuleUnload [lreverse $mod_to_unload]
+      eval cmdModuleUnload "match" [lreverse $mod_to_unload]
    }
    # unuse paths
    if {[llength $path_to_unuse] > 0} {
@@ -4507,17 +4507,17 @@ proc cmdModuleLoad {args} {
    popMode
 }
 
-proc cmdModuleUnload {args} {
+proc cmdModuleUnload {match args} {
    global g_loadedModules g_loadedModulesGeneric
    global ModulesCurrentModulefile g_def_separator
 
-   reportDebug "cmdModuleUnload: unloading $args"
+   reportDebug "cmdModuleUnload: unloading $args (match=$match)"
 
    pushMode "unload"
    foreach mod $args {
       catch {
          # resolve by also looking at matching loaded module
-         lassign [getPathToModule $mod {} 1] modfile modname
+         lassign [getPathToModule $mod {} $match] modfile modname
          if {$modfile ne ""} {
             set currentModule $modname
             set ModulesCurrentModulefile $modfile
@@ -4555,7 +4555,7 @@ proc cmdModuleUnload {args} {
 proc cmdModulePurge {} {
    reportDebug "cmdModulePurge"
 
-   eval cmdModuleUnload [lreverse [getLoadedModuleList]]
+   eval cmdModuleUnload "match" [lreverse [getLoadedModuleList]]
 }
 
 proc cmdModuleReload {} {
@@ -4564,7 +4564,7 @@ proc cmdModuleReload {} {
    set list [getLoadedModuleList]
    set rlist [lreverse $list]
    foreach mod $rlist {
-      cmdModuleUnload $mod
+      cmdModuleUnload "match" $mod
    }
    foreach mod $list {
       cmdModuleLoad $mod

@@ -53,7 +53,8 @@ set env(_LMFILES_) "$modulefile_2:$modulefile_3"
 set env(LOADEDMODULES) "$module_2:$module_3"
 
 # switch using partial name
-testouterr_cmd_re "sh" "swap pl" "ERR" "$error_msgs: Unable to locate a modulefile for 'pl'"
+set locate_msg "$error_msgs: Unable to locate a modulefile for 'pl'"
+testouterr_cmd_re "sh" "swap pl" "ERR" "$locate_msg\n$locate_msg"
 
 
 set ans [list]
@@ -64,6 +65,21 @@ lappend ans [list setpath _LMFILES_ "$modulefile_3:$modulefile_4"]
 # two modules already loaded sharing same root than module to swap, closest
 # should be returned
 testouterr_cmd_re "sh" "swap $module_4" $ans ""
+
+
+# set up the environment
+set env(_LMFILES_) "$modulefile_3"
+set env(LOADEDMODULES) "$module_3"
+
+set ans [list]
+lappend ans [list set TEST $module_4]
+lappend ans [list setpath LOADEDMODULES "$module_3:$module_4"]
+lappend ans [list setpath _LMFILES_ "$modulefile_3:$modulefile_4"]
+
+# one module already loaded sharing same root than module to swap, a module to
+# unload is specified on command line should unload it and not closest, so here
+# nothing is unloaded
+testouterr_cmd_re "sh" "swap $module_4 $module_4" $ans ""
 
 
 # set up the environment
@@ -88,6 +104,7 @@ unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 
 unset ans
+unset locate_msg
 
 unset module_1
 unset modulefile_1
