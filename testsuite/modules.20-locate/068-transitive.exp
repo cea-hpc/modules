@@ -254,6 +254,10 @@ for {set i 1} {$i <= 30} {incr i} {
         set modwarnnl ""
     }
 
+    # setup clean environment
+    set env(LOADEDMODULES) ""
+    set env(_LMFILES_) ""
+
     set ans [list]
     lappend ans [list set testsuite "yes"]
     lappend ans [list setpath LOADEDMODULES $module]
@@ -270,6 +274,17 @@ for {set i 1} {$i <= 30} {incr i} {
     set ans [list]
     lappend ans [list echo $modulefile]
     testouterr_cmd "sh" "paths $modsym" $ans "$modwarn"
+
+    # setup environment for unload action
+    set env(_LMFILES_) "$modulefile"
+    set env(LOADEDMODULES) "$module"
+
+    set ans [list]
+    lappend ans [list unset testsuite]
+    lappend ans [list unsetpath LOADEDMODULES]
+    lappend ans [list unsetpath _LMFILES_]
+
+    testouterr_cmd_re "sh" "unload $modsym" $ans "$modwarn"
 }
 
 # transitive symbol sets from a distant module (different name) cannot
@@ -288,6 +303,10 @@ testouterr_cmd "sh" "paths $modsym" "OK" ""
 #
 #  Cleanup
 #
+
+# Clean up the environment
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
 
 unset datetime_re
 
