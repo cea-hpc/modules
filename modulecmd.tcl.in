@@ -23,8 +23,8 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.986
-set MODULES_CURRENT_RELEASE_DATE "2017-08-24"
+set MODULES_CURRENT_VERSION 1.989
+set MODULES_CURRENT_RELEASE_DATE "2017-08-26"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2117,14 +2117,14 @@ proc isSameModuleRoot {mod1 mod2} {
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
-proc getPathToModule {mod {indir {}} {look_loaded "no"}} {
+proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
    global g_loadedModules
 
    if {$mod eq ""} {
       return [list "" 0]
    }
 
-   reportDebug "getPathToModule: finding '$mod' in '$indir'"
+   reportDebug "getPathToModule: finding '$mod' in '$indir' (excdir='')"
 
    # Check for $mod specified as a full pathname
    if {[string match {/*} $mod]} {
@@ -2151,6 +2151,10 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"}} {
       } else {
          set dir_list [getModulePathList "exiterronundef"]
       }
+      # remove excluded directories (already searched)
+      foreach dir $excdir {
+         set dir_list [replaceFromList $dir_list $dir]
+      }
 
       # modparent is the the modulename minus the module version.
       lassign [getModuleNameVersion $mod] mod modparent modversion
@@ -2166,6 +2170,7 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"}} {
          array set mod_list [getModules $dir $modroot 0 "rc_defs_included"]
 
          set prevmod ""
+         set mod_res ""
          # loop to resolve correct modulefile in case specified mod is a
          # directory that should be analyzed to get default mod in it
          while {$prevmod ne $mod} {
@@ -2179,6 +2184,8 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"}} {
                      # already contains everything related to this root module
                      if {[isSameModuleRoot $mod $newmod]} {
                         set mod $newmod
+                        # indicate an alias or a symbol was solved
+                        set mod_res $newmod
                      # elsewhere restart search on new modulename, constrained
                      # to specified dir if set
                      } else {
@@ -2204,6 +2211,12 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"}} {
          # elsewhere go to next path
          if {[info exists retlist]} {
             break
+         # found nothing after solving a matching alias or symbol
+         } elseif {$mod_res eq $mod} {
+            lappend excdir $dir
+            # look for this name in the other module paths, so restart
+            # directory search from first dir in list to ensure precedence
+            return [getPathToModule $mod $indir "no" $excdir]
          }
       }
    }
