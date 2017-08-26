@@ -23,7 +23,7 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.989
+set MODULES_CURRENT_VERSION 1.990
 set MODULES_CURRENT_RELEASE_DATE "2017-08-26"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -4054,9 +4054,15 @@ proc cmdModulePaths {mod} {
 
    reportDebug "cmdModulePaths: ($mod)"
 
-   foreach dir [getModulePathList "exiterronundef"] {
+   set dir_list [getModulePathList "exiterronundef"]
+   foreach dir $dir_list {
       array unset mod_list
       array set mod_list [getModules $dir $mod 0 "rc_defs_included"]
+
+      # prepare list of dirs for alias/symbol target search, will first search
+      # in currently looked dir, then in other dirs following precedence order
+      set target_dir_list [concat [list $dir] [replaceFromList $dir_list\
+         $dir]]
 
       # build list of modulefile to print
       foreach elt [array names mod_list] {
@@ -4067,7 +4073,8 @@ proc cmdModulePaths {mod} {
             {alias} - {version} {
                # resolve alias target
                set aliastarget [lindex $mod_list($elt) 1]
-               lassign [getPathToModule $aliastarget $dir] modfile modname
+               lassign [getPathToModule $aliastarget $target_dir_list]\
+                  modfile modname
                # add module target as result instead of alias
                if {$modfile ne "" && ![info exists mod_list($modname)]} {
                   lappend g_pathList $modfile
