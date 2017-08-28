@@ -23,8 +23,8 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.991
-set MODULES_CURRENT_RELEASE_DATE "2017-08-27"
+set MODULES_CURRENT_VERSION 1.992
+set MODULES_CURRENT_RELEASE_DATE "2017-08-28"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -2114,6 +2114,17 @@ proc isSameModuleRoot {mod1 mod2} {
    return [expr {[lindex $mod1split 0] eq [lindex $mod2split 0]}]
 }
 
+# test if one element in module name has a leading "dot" making this module
+# a hidden module
+proc isModuleHidden {mod} {
+   foreach elt [split $mod "/"] {
+      if {[string index $elt 0] eq "."} {
+         return 1
+      }
+   }
+   return 0
+}
+
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
@@ -2159,6 +2170,8 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
       # modparent is the the modulename minus the module version.
       lassign [getModuleNameVersion $mod] mod modparent modversion
       set modroot [lindex [split $mod "/"] 0]
+      # determine if we need to get hidden modules
+      set fetch_hidden [isModuleHidden $mod]
 
       # Now search for $mod in module paths
       foreach dir $dir_list {
@@ -2167,7 +2180,8 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
          # related to search to be able to then determine in this proc the
          # correct module to return without restarting new searches
          array unset mod_list
-         array set mod_list [getModules $dir $modroot 0 "rc_defs_included"]
+         array set mod_list [getModules $dir $modroot 0 "rc_defs_included" 1\
+            $fetch_hidden]
 
          set prevmod ""
          set mod_res ""
@@ -2180,9 +2194,11 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
                switch -- [lindex $mod_list($mod) 0] {
                   {alias} - {version} {
                      set newmod [resolveModuleVersionOrAlias $mod]
-                     # search on newmod if module from same root as mod_list
+                     # continue search on newmod if module from same root and
+                     # not hidden (if hidden search disabled) as mod_list
                      # already contains everything related to this root module
-                     if {[isSameModuleRoot $mod $newmod]} {
+                     if {[isSameModuleRoot $mod $newmod] && ($fetch_hidden ||\
+                        ![isModuleHidden $newmod])} {
                         set mod $newmod
                         # indicate an alias or a symbol was solved
                         set mod_res $newmod
@@ -3155,11 +3171,11 @@ proc getVersAliasList {mod} {
 }
 
 # finds all module-related files matching mod in the module path dir
-proc findModules {dir {mod {}} {fetch_mtime 0}} {
+proc findModules {dir {mod {}} {fetch_mtime 0} {fetch_hidden 0}} {
    global ignoreDir
 
    reportDebug "findModules: finding '$mod' in $dir\
-      (fetch_mtime=$fetch_mtime)"
+      (fetch_mtime=$fetch_mtime, fetch_hidden=$fetch_hidden)"
 
    # use catch protection to handle non-readable and non-existent dir
    if {[catch {
@@ -3222,6 +3238,19 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
                if {[llength $elt_list] > 0} {
                   set full_list [concat $full_list $elt_list]
                }
+               # search for hidden files if asked
+               if {$fetch_hidden} {
+                  foreach elt [glob -nocomplain -types hidden -directory\
+                     $element -tails "*"] {
+                     switch -- $elt {
+                        {.modulerc} - {.version} - {.} - {..} { }
+                        default {
+                           lappend full_list $element/$elt
+                           set hidden_list($element/$elt) 1
+                        }
+                     }
+                  }
+               }
                set add_ref_to_parent 1
             }
          }
@@ -3233,7 +3262,7 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
             {.version} {
                set mod_list($modulename) [list "modulerc"]
             }
-            {.*} - {*~} - {*,v} - {\#*\#} { }
+            {*~} - {*,v} - {\#*\#} { }
             default {
                lassign [checkValidModule $element] check_valid check_msg
                switch -- $check_valid {
@@ -3244,7 +3273,13 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
                         set mtime {}
                      }
                      set mod_list($modulename) [list "modulefile" $mtime]
-                     set add_ref_to_parent 1
+                     # if modfile hidden, do not reference it in parent list
+                     if {$fetch_hidden && [info exists\
+                        hidden_list($element)]} {
+                        set add_ref_to_parent 0
+                     } else {
+                        set add_ref_to_parent 1
+                     }
                   }
                   default {
                      # register check error and relative message to get it in
@@ -3272,13 +3307,14 @@ proc findModules {dir {mod {}} {fetch_mtime 0}} {
    return [array get mod_list]
 }
 
-proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
+proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}\
+   {fetch_hidden 0}} {
    global ModulesCurrentModulefile
    global g_sourceAlias g_sourceVersion g_resolvedPath
    global g_rcAlias g_moduleAlias g_rcVersion g_moduleVersion
 
-   reportDebug "getModules: get '$mod' in $dir\
-      (fetch_mtime=$fetch_mtime, search=$search)"
+   reportDebug "getModules: get '$mod' in $dir (fetch_mtime=$fetch_mtime,\
+      search=$search, fetch_hidden=$fetch_hidden)"
 
    # if search for global or user rc alias only, no dir lookup is performed
    # and aliases from g_rcAlias are returned
@@ -3304,7 +3340,13 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
       } else {
          set add_rc_defs 0
       }
-      array set found_list [findModules $dir $findmod $fetch_mtime]
+      if {!$fetch_hidden} {
+         set fetch_hidden [isModuleHidden $mod]
+         reportDebug "getModules: is '$mod' requiring hidden search\
+            ($fetch_hidden)"
+      }
+      array set found_list [findModules $dir $findmod $fetch_mtime\
+         $fetch_hidden]
    }
 
    array set dir_list {}
@@ -3346,6 +3388,14 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}} {
       # modulefiles). modulefile target of these version symbol should have
       # been found previously to be added
       if {![info exists mod_list($versmod)]} {
+         # exception made to hidden modulefile target which should not be
+         # found previously as not searched (except if we already look for
+         # hidden modules). in case symbolic version matches passed $mod
+         # look for this hidden target
+         if {$mod eq $vers && !$fetch_hidden && [isModuleHidden $versmod]} {
+            array set found_list [findModules $dir $versmod $fetch_mtime 1]
+         }
+
          # symbolic version targets a modulefile most of the time
          if {[info exists found_list($versmod)]} {
             set mod_list($versmod) $found_list($versmod)
