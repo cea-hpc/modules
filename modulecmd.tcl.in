@@ -23,7 +23,7 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.993
+set MODULES_CURRENT_VERSION 1.994
 set MODULES_CURRENT_RELEASE_DATE "2017-08-29"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -3677,7 +3677,7 @@ proc displaySeparatorLine {{title {}}} {
 # get a list of elements and print them in a column or in a
 # one-per-line fashion
 proc displayElementList {header hstyle one_per_line display_idx args} {
-   global DEF_COLUMNS
+   global DEF_COLUMNS g_eltlist_disp
 
    set elt_cnt [llength $args]
    reportDebug "displayElementList: header=$header, hstyle=$hstyle,\
@@ -3685,6 +3685,13 @@ proc displayElementList {header hstyle one_per_line display_idx args} {
 
    # display header if any provided
    if {$header ne "noheader"} {
+      # if list already displayed, separate with a blank line before header
+      if {![info exists g_eltlist_disp]} {
+         set g_eltlist_disp 1
+      } else {
+         report ""
+      }
+
       if {$hstyle eq "sepline"} {
          displaySeparatorLine $header
       } else {
