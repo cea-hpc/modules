@@ -23,8 +23,8 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.992
-set MODULES_CURRENT_RELEASE_DATE "2017-08-28"
+set MODULES_CURRENT_VERSION 1.993
+set MODULES_CURRENT_RELEASE_DATE "2017-08-29"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -3583,7 +3583,7 @@ proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
                if {$show_mtime} {
                   # add to display file modification time in addition
                   # to potential tags
-                  lappend clean_list [format "%-40s%-20s%10s" $elt\
+                  lappend clean_list [format "%-40s%-20s%19s" $elt\
                      [join $tag_list ":"]\
                      [clock format [lindex $mod_list($elt) 1]\
                      -format "%Y/%m/%d %H:%M:%S"]]
@@ -3632,6 +3632,28 @@ proc showModulePath {} {
    } else {
       reportWarning "No directories on module search path"
    }
+}
+
+proc displayTableHeader {args} {
+   set first 1
+   foreach title $args {
+      if {$first} {
+         set first 0
+         if {[llength $args] > 2} {
+            set col_len 39
+         } else {
+            set col_len 59
+         }
+      } else {
+         set col_len 19
+      }
+
+      set col "- $title "
+      append col [string repeat {-} [expr {$col_len - [string length $col]}]]
+      lappend col_list $col
+   }
+
+   report [join $col_list "."]
 }
 
 proc displaySeparatorLine {{title {}}} {
@@ -4037,8 +4059,7 @@ proc cmdModuleList {} {
    } else {
       set list {}
       if {$show_modtimes} {
-         report "- Package -----------------------------.- Versions\
-            --------.- Last mod. -------"
+         displayTableHeader "Package" "Versions" "Last mod."
       }
       report "Currently Loaded Modulefiles:"
       set display_list {}
@@ -4064,7 +4085,7 @@ proc cmdModuleList {} {
                if {$show_modtimes} {
                   # add to display file modification time in addition
                   # to potential tags
-                  lappend display_list [format "%-40s%-20s%10s" $mod\
+                  lappend display_list [format "%-40s%-20s%19s" $mod\
                      [join $tag_list ":"]\
                      [clock format [lindex $mod_list($mod) 1]\
                      -format "%Y/%m/%d %H:%M:%S"]]
@@ -4535,8 +4556,7 @@ proc cmdModuleSavelist {} {
    } else {
       set list {}
       if {$show_modtimes} {
-         report "- Collection\
-            ----------------------------------------------.- Last mod. ------"
+         displayTableHeader "Collection" "Last mod."
       }
       report "Named collection list$targetdesc:"
       set display_list {}
@@ -4556,7 +4576,7 @@ proc cmdModuleSavelist {} {
             if {$show_modtimes} {
                set filetime [clock format [file mtime $coll]\
                   -format "%Y/%m/%d %H:%M:%S"]
-               lappend display_list [format "%-60s%10s" $mod $filetime]
+               lappend display_list [format "%-60s%19s" $mod $filetime]
             } else {
                lappend display_list $mod
             }
@@ -4720,6 +4740,8 @@ proc cmdModuleAvail {{mod {*}}} {
    if {$show_modtimes || $show_oneperline} {
       set one_per_line 1
       set hstyle "terse"
+      set theader_shown 0
+      set theader_cols [list "Package/Alias" "Versions" "Last mod."]
    } else {
       set one_per_line 0
       set hstyle "sepline"
@@ -4729,15 +4751,15 @@ proc cmdModuleAvail {{mod {*}}} {
    # to mix with avail results
    inhibitErrorReport
 
-   if {$show_modtimes} {
-      report "- Package/Alias -----------------------.- Versions --------.-\
-         Last mod. -------"
-   }
 
    # look if aliases have been defined in the global or user-specific
    # modulerc and display them if any in a dedicated list
    set display_list [listModules "" "$mod" 1 $show_filter "rc_alias_only"]
    if {[llength $display_list] > 0} {
+      if {$show_modtimes && !$theader_shown} {
+         set theader_shown 1
+         eval displayTableHeader $theader_cols
+      }
       eval displayElementList "{global/user modulerc}" $hstyle $one_per_line\
          0 $display_list
    }
@@ -4745,6 +4767,10 @@ proc cmdModuleAvail {{mod {*}}} {
    foreach dir [getModulePathList "exiterronundef"] {
       set display_list [listModules "$dir" "$mod" 1 $show_filter]
       if {[llength $display_list] > 0} {
+         if {$show_modtimes && !$theader_shown} {
+            set theader_shown 1
+            eval displayTableHeader $theader_cols
+         }
          eval displayElementList $dir $hstyle $one_per_line 0 $display_list
       }
    }
