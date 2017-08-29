@@ -23,7 +23,7 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.994
+set MODULES_CURRENT_VERSION 1.995
 set MODULES_CURRENT_RELEASE_DATE "2017-08-29"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -752,6 +752,11 @@ proc module-whatis {args} {
       lappend g_whatis $message
    }
    return {}
+}
+
+# deduce modulepath from modulefile and module name
+proc getModulepathFromModuleName {modfile modname} {
+   return [string range $modfile 0 end-[string length "/$modname"]]
 }
 
 # Determine with a name provided as argument the corresponding module name,
@@ -4084,8 +4089,8 @@ proc cmdModuleList {} {
                lappend display_list $mod
             } else {
                # call getModules to find and execute rc files for this module
-               set dir [string range $g_loadedModules($mod) 0\
-                  end-[expr {[string length $mod] +1}]]
+               set dir [getModulepathFromModuleName $g_loadedModules($mod)\
+                  $mod]
                array set mod_list [getModules $dir $mod $show_modtimes]
                set tag_list [getVersAliasList $mod]
 
@@ -4272,7 +4277,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          modfile modname issuetype issuemsg
       # found target so append it to results in corresponding modulepath
       if {$modfile ne ""} {
-         set dir [string range $modfile 0 end-[string length "/$modname"]]
+         set dir [getModulepathFromModuleName $modfile $modname]
          array unset interp_list
          if {[info exists interp_save($dir)]} {
             array set interp_list $interp_save($dir)
