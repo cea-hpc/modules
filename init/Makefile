@@ -97,6 +97,9 @@ perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@TCLSH\@|$(TCLSH)|g' $< > $@
 endef
 
+# avoid shared definitions to be rebuilt by make
+../Makefile.inc: ;
+
 %: %.in
 	$(translate-in-script)
 

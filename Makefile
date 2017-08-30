@@ -33,6 +33,9 @@ doc:
 www:
 	make -C www all
 
+# avoid shared definitions to be rebuilt by make
+Makefile.inc: ;
+
 modulecmd.tcl: modulecmd.tcl.in
 	perl -pe 's|\@TCLSHDIR\@/tclsh|$(TCLSH)|g;' $< > $@
 	chmod +x $@

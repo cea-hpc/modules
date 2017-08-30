@@ -33,6 +33,9 @@ perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@modulefilesdir\@|$(modulefilesdir)|g;' $< > $@
 endef
 
+# avoid shared definitions to be rebuilt by make
+../Makefile.inc: ;
+
 $(SOURCE_DIR)/%.pod: $(SOURCE_DIR)/%.pod.in
 	$(translate-in-script)
 
