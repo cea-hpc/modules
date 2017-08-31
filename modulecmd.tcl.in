@@ -23,8 +23,8 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.996
-set MODULES_CURRENT_RELEASE_DATE "2017-08-29"
+set MODULES_CURRENT_VERSION 1.998
+set MODULES_CURRENT_RELEASE_DATE "2017-08-31"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -174,14 +174,15 @@ proc reportErrorAndExit {message} {
    error "$message"
 }
 
-proc reportInternalBug {message} {
+proc reportInternalBug {message modfile} {
    global contact g_inhibit_errreport
 
    # if report disabled, also disable error raise to get a coherent
    # behavior (if no message printed, no error code change)
    if {!$g_inhibit_errreport} {
       raiseErrorCount
-      report "Module ERROR: $message\nPlease contact: $contact"
+      report "Module ERROR: $message\n  In '$modfile'\n  Please contact\
+         <$contact>"
    }
 }
 
@@ -194,10 +195,10 @@ proc report {message {nonewline ""}} {
 }
 
 # report error the correct way depending of its type
-proc reportIssue {issuetype issuemsg} {
+proc reportIssue {issuetype issuemsg {issuefile {}}} {
    switch -- $issuetype {
       {invalid} {
-         reportInternalBug $issuemsg
+         reportInternalBug $issuemsg $issuefile
       }
       default {
          reportError $issuemsg
@@ -365,8 +366,7 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
             report $errorMsg
             return 1
          } else {
-            reportInternalBug "Occurred in file\
-               $ModulesCurrentModulefile:$errorInfo"
+            reportInternalBug $errorMsg $ModulesCurrentModulefile
             # return a specific value to provoke an exit after end
             # of slave evaluation since here 'exit' procedure has
             # been superseeded for modulefile interpretation
@@ -458,10 +458,7 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
          }
          info script $ModulesCurrentModulefile
          if [catch {eval $modcontent} errorMsg] {
-            global errorInfo
-
-            reportInternalBug "Occurred in file\
-               $ModulesCurrentModulefile:$errorInfo"
+            reportInternalBug $errorMsg $ModulesCurrentModulefile
             # return a specific value to provoke an exit after end
             # of slave evaluation
             return 2
@@ -2157,7 +2154,7 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
             set retlist [list $mod $mod]
          }
          {invalid} - {accesserr} {
-            set retlist [list "" $mod $check_valid $check_msg]
+            set retlist [list "" $mod $check_valid $check_msg $mod]
          }
       }
    # try first to look at loaded modules if enabled to find maching module
@@ -2256,7 +2253,7 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
       reportDebug "getPathToModule: found '[lindex $retlist 0]' as\
          '[lindex $retlist 1]'"
    } else {
-      reportIssue [lindex $retlist 2] [lindex $retlist 3]
+      eval reportIssue [lrange $retlist 2 4]
    }
    return $retlist
 }
@@ -3133,7 +3130,7 @@ proc checkValidModule {modfile} {
          set check_msg ""
       } else {
          set check_valid "invalid"
-         set check_msg "Magic cookie '#%Module' missing in '$modfile'"
+         set check_msg "Magic cookie '#%Module' missing"
       }
    }
 
@@ -3150,7 +3147,7 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}} {
       close $fid
    } errMsg ]} {
       if {$report_read_issue} {
-         reportInternalBug "Module $modfile cannot be read.\n$errMsg"
+         reportError [parseAccessIssue $modfile]
       }
       return {}
    }
@@ -3159,7 +3156,7 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}} {
    if {[string first "\#%Module" $fdata] == 0 || !$must_have_cookie} {
       return $fdata
    } else {
-      reportInternalBug "Magic cookie '#%Module' missing in '$modfile'"
+      reportInternalBug "Magic cookie '#%Module' missing" $modfile
       return {}
    }
 }
@@ -3230,7 +3227,7 @@ proc findModules {dir {mod {}} {fetch_mtime 0} {fetch_hidden 0}} {
                   set elt_list {}
                } else {
                   set mod_list($modulename) [list "accesserr"\
-                     [parseAccessIssue $element]]
+                     [parseAccessIssue $element] $element]
                   set treat_dir 0
                }
             }
@@ -3294,7 +3291,8 @@ proc findModules {dir {mod {}} {fetch_mtime 0} {fetch_hidden 0}} {
                      # case of direct access of this module element, but no
                      # registering in parent directory structure as element
                      # is not valid
-                     set mod_list($modulename) [list $check_valid $check_msg]
+                     set mod_list($modulename) [list $check_valid $check_msg\
+                        $element]
                   }
                }
             }
@@ -4277,7 +4275,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    # find target of aliases in all modulepath except the one already tried
    foreach elt [array names extra_search] {
       lassign [getPathToModule $elt "" "no" [lindex $extra_search($elt) 0]]\
-         modfile modname issuetype issuemsg
+         modfile modname issuetype issuemsg issuefile
       # found target so append it to results in corresponding modulepath
       if {$modfile ne ""} {
          set dir [getModulepathFromModuleName $modfile $modname]
@@ -4289,7 +4287,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          set interp_save($dir) [array get interp_list]
       # register resolution error if primal alias name matches search
       } elseif {$modfile eq "" && [lindex $extra_search($elt) 1]} {
-         set err_list($modname) [list $issuetype $issuemsg]
+         set err_list($modname) [list $issuetype $issuemsg $issuefile]
       }
    }
 
@@ -4336,7 +4334,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             '$mod'"]
       }
       foreach elt [array names err_list] {
-         reportIssue [lindex $err_list($elt) 0] [lindex $err_list($elt) 1]
+         eval reportIssue $err_list($elt)
       }
    }
 }

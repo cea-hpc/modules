@@ -143,9 +143,8 @@ test_cmd_re "ALL" "load $oth11p" $ans
 # error when loading non existent module
 #
 set unknonw "XYZ"
-set err_load "$error_msgs: Unable to locate a modulefile for "
 
-testouterr_cmd_re "ALL" "load $unknonw" "ERR" "$err_load\'$unknonw\'"
+testouterr_cmd_re "ALL" "load $unknonw" "ERR" "$err_path\'$unknonw\'"
 
 #
 # error when loading non existent module given as full path
@@ -159,17 +158,17 @@ testouterr_cmd_re "ALL" "load $unknonw" "ERR" "$err_load\'$unknonw\'"
 # test with erroneous modulefile
 #
 set badmod "bad"
-set out_interr "$moderr_msgs: Occurred in file $env(TESTSUITEDIR)/modulefiles/$badmod/.modulerc:invalid command name \"bad-command\""
+set out_interr "$moderr_msgs: invalid command name \"bad-command\"\n  In '$env(TESTSUITEDIR)/modulefiles/$badmod/.modulerc'\n$err_contact"
 
-testouterr_cmd_re "ALL" "load $badmod" "ERR" "$out_interr.*"
+testouterr_cmd_re "ALL" "load $badmod" "ERR" "$out_interr"
 
 #
 # test with file given as full path which is not a modulefile
 #
 set badmod "$env(TESTSUITEDIR)/modulefiles/README"
-set out_interr "$moderr_msgs: Magic cookie '#%Module' missing in '$badmod'"
+set out_interr "$err_magic'$badmod'\n$err_contact"
 
-testouterr_cmd_re "ALL" "load $badmod" "ERR" "$out_interr.*"
+testouterr_cmd_re "ALL" "load $badmod" "ERR" "$out_interr"
 
 
 #
