@@ -1,0 +1,232 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	2017/09/01
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload, display, help, test, whatis, source
+#   Modulefiles:	append, verssort, bad2
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test commands with multiple modules passed on command-line
+#		}C%
+#
+##############################################################################
+
+
+set mod_g1 "append/2.0"
+set modfile_g1 "$env(MODULEPATH)/$mod_g1"
+set setenv_g1 [list "setpath" "PATH" "$env(PATH):/this/is/the/modules/testsuite"]
+set unsetenv_g1 [list "setpath" "PATH" "$env(PATH)"]
+set disp_g1 "append-path\\s+PATH\\s+/this/is/the/modules/testsuite"
+
+set mod_g2 "verssort/1.2.1"
+set modfile_g2 "$env(MODULEPATH)/$mod_g2"
+set setenv_g2 [list "set" "MODULE_VERSION" "1.2.1"]
+set unsetenv_g2 [list "unset" "MODULE_VERSION"]
+set disp_g2 "setenv\\s+MODULE_VERSION\\s+1.2.1"
+set whatis_g2 "module version sort test"
+
+set mod_b1 "bad2/body"
+set modfile_b1 "$env(MODULEPATH)/$mod_b1"
+set srcenv_b1 [list "set" "testsuite" "yes"]
+set disp_b1 "setenv\\s+testsuite\\s+yes"
+set whatis_b1 "erroneous module test"
+set errlo_b1 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modfile_b1'\n$err_contact"
+set errdi_b1 "$errlo_b1\n"
+
+set mod_b2 "append/0.2"
+set modfile_b2 "$env(MODULEPATH)/$mod_b2"
+set disp_b2 "append-path\\s+PATH\\s+:"
+set errlo_b2 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$modfile_b2'\n$err_contact"
+
+set help_pre "$modlin"
+set help_noproc "$warn_msgs: Unable to find ModulesHelp in"
+set help_post "$modlin"
+set test_pre "$modlin"
+set test_noproc "$warn_msgs: Unable to find ModulesTest in"
+set test_post "$modlin"
+set disp_pre "$modlin"
+set disp_wi "module-whatis\\s+"
+set disp_post "$modlin"
+set whatis_pre "$modlin $env(MODULEPATH) $modlin\n"
+
+
+#
+#  The tests
+#
+
+proc multi_test_case {args} {
+    set ans_lo [list]
+    set ans_unlo [list]
+    set retdi "OK"
+    set disp $::disp_pre
+    set help $::help_pre
+    set test $::test_pre
+    set i 0
+
+    foreach m $args {
+        incr i
+        set mod [set "::mod_${m}"]
+        set modfile [set "::modfile_${m}"]
+        lappend modsym $mod
+        lappend allmodulefile $modfile
+
+        if {[info exists "::errlo_${m}"]} {
+            set errlo [set "::errlo_${m}"]
+            set erri $i
+        } else {
+            lappend module $mod
+            lappend modulefile $modfile
+        }
+
+        if {[info exists "::setenv_${m}"]} {
+            lappend ans_lo [set "::setenv_${m}"]
+            lappend ans_src [set "::setenv_${m}"]
+        }
+        if {[info exists "::srcenv_${m}"]} {
+            lappend ans_src [set "::srcenv_${m}"]
+        }
+        if {[info exists "::unsetenv_${m}"]} {
+            lappend ans_unlo [set "::unsetenv_${m}"]
+        }
+
+        append disp "\n$modfile:\n\n"
+        append help "\nModule Specific Help for $modfile:\n\n"
+        append test "\nModule Specific Test for $modfile:\n\n"
+        if {[info exists "::disp_${m}"]} {
+            append disp "[set ::disp_${m}]\n"
+        }
+        if {[info exists "::whatis_${m}"]} {
+            set modwhatis [set "::whatis_${m}"]
+            append disp "$::disp_wi$modwhatis\n"
+
+            if {[info exists whatis]} {
+                append whatis "\n\n"
+            }
+            append whatis "$::whatis_pre\\s+$mod: $modwhatis"
+
+        }
+        if {[info exists "::errdi_${m}"]} {
+            append disp [set "::errdi_${m}"]
+            append help [set "::errdi_${m}"]
+            append test [set "::errdi_${m}"]
+            set retdi "ERR"
+        } else {
+            append help "$::help_noproc $modfile.\n"
+            append test "$::test_noproc $modfile.\n"
+        }
+        append disp "$::disp_post"
+        append help "$::help_post"
+        append test "$::test_post"
+
+    }
+
+    # setup clean environment
+    set ::env(LOADEDMODULES) ""
+    set ::env(_LMFILES_) ""
+
+    if {[info exists errlo]} {
+        if {$erri == 3} {
+            set ans_lo [lreverse $ans_lo]
+        }
+        if {$erri == 1} {
+            lappend ans_lo [list setpath LOADEDMODULES [join $module ":"]]
+            lappend ans_lo [list setpath _LMFILES_ [join $modulefile ":"]]
+        } else {
+            lappend ans_lo [list setpath _LMFILES_ [join $modulefile ":"]]
+            lappend ans_lo [list setpath LOADEDMODULES [join $module ":"]]
+        }
+        lappend ans_lo [list ERR]
+        lappend ans_src [list ERR]
+    } else {
+        set errlo ""
+        lappend ans_lo [list setpath LOADEDMODULES [join $module ":"]]
+        lappend ans_lo [list setpath _LMFILES_ [join $modulefile ":"]]
+    }
+
+    testouterr_cmd_re "sh" "load $modsym" $ans_lo "$errlo"
+    testouterr_cmd_re "sh" "display $modsym" $retdi "$disp"
+    testouterr_cmd_re "sh" "help $modsym" $retdi "$help"
+    testouterr_cmd_re "sh" "test $modsym" $retdi "$test"
+
+    testouterr_cmd_re "sh" "whatis $modsym" "OK" "$whatis"
+
+    testouterr_cmd_re "sh" "source $allmodulefile" $ans_src "$errlo"
+
+    # setup environment for unload action
+    set ::env(_LMFILES_) [join $modulefile ":"]
+    set ::env(LOADEDMODULES) [join $module ":"]
+
+    lappend ans_unlo [list unsetpath LOADEDMODULES]
+    lappend ans_unlo [list unsetpath _LMFILES_]
+
+    testouterr_cmd_re "sh" "unload $modsym" $ans_unlo ""
+}
+
+
+# initial test with 2 good modules
+multi_test_case g1 g2
+
+# tests with 3 modules, one is broken
+multi_test_case g1 g2 b1
+multi_test_case g1 b1 g2
+multi_test_case b1 g1 g2
+
+# tests with 3 modules, one has warning
+multi_test_case g1 g2 b2
+multi_test_case g1 b2 g2
+multi_test_case b2 g1 g2
+
+
+#
+#  Cleanup
+#
+
+# Clean up the environment
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+unset help_pre
+unset help_noproc
+unset help_post
+unset test_pre
+unset test_noproc
+unset test_post
+unset disp_pre
+unset disp_wi
+unset disp_post
+unset whatis_pre
+
+unset mod_g1
+unset modfile_g1
+unset setenv_g1
+unset unsetenv_g1
+unset disp_g1
+
+unset mod_g2
+unset modfile_g2
+unset setenv_g2
+unset unsetenv_g2
+unset disp_g2
+unset whatis_g2
+
+unset mod_b1
+unset modfile_b1
+unset srcenv_b1
+unset disp_b1
+unset whatis_b1
+unset errlo_b1
+unset errdi_b1
+
+unset mod_b2
+unset modfile_b2
+unset disp_b2
+unset errlo_b2

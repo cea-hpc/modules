@@ -23,8 +23,8 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.998
-set MODULES_CURRENT_RELEASE_DATE "2017-08-31"
+set MODULES_CURRENT_VERSION 1.999
+set MODULES_CURRENT_RELEASE_DATE "2017-09-01"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -90,51 +90,46 @@ proc raiseErrorCount {} {
 }
 
 proc renderError {} {
-   global g_shellType error_count error_rendered
+   global g_shellType error_count
 
-   if {![info exists error_rendered]} {
-      reportDebug "Error: $error_count error(s) detected."
+   reportDebug "Error: $error_count error(s) detected."
 
-      if {[info exists g_shellType]} {
-         switch -- $g_shellType {
-            {sh} - {csh} - {fish} {
-               puts stdout "/bin/false;"
-            }
-            {tcl} {
-               puts stdout "exec /bin/false;"
-            }
-            {cmd} {
-               # nothing needed, reserved for future cygwin, MKS, etc
-            }
-            {perl} {
-               puts stdout "die \"modulecmd.tcl: $error_count error(s)\
-                  detected!\\n\";"
-            }
-            {python} {
-               puts stdout "raise RuntimeError('modulecmd.tcl: $error_count\
-                  error(s) detected!')"
-            }
-            {ruby} {
-               puts stdout "raise 'modulecmd.tcl: $error_count error(s)\
-                  detected!'"
-            }
-            {lisp} {
-               puts stdout "(error \"modulecmd.tcl:\
-                  $error_count error(s) detected!\")"
-            }
-            {cmake} {
-               puts stdout "message(FATAL_ERROR \"modulecmd.tcl:\
-                  $error_count error(s) detected!\")"
-            }
-            {r} {
-               puts stdout "stop('modulecmd.tcl: $error_count error(s)\
-                  detected!')"
-            }
+   if {[info exists g_shellType]} {
+      switch -- $g_shellType {
+         {sh} - {csh} - {fish} {
+            puts stdout "/bin/false;"
+         }
+         {tcl} {
+            puts stdout "exec /bin/false;"
+         }
+         {cmd} {
+            # nothing needed, reserved for future cygwin, MKS, etc
+         }
+         {perl} {
+            puts stdout "die \"modulecmd.tcl: $error_count error(s)\
+               detected!\\n\";"
+         }
+         {python} {
+            puts stdout "raise RuntimeError('modulecmd.tcl: $error_count\
+               error(s) detected!')"
+         }
+         {ruby} {
+            puts stdout "raise 'modulecmd.tcl: $error_count error(s)\
+               detected!'"
+         }
+         {lisp} {
+            puts stdout "(error \"modulecmd.tcl:\
+               $error_count error(s) detected!\")"
+         }
+         {cmake} {
+            puts stdout "message(FATAL_ERROR \"modulecmd.tcl:\
+               $error_count error(s) detected!\")"
+         }
+         {r} {
+            puts stdout "stop('modulecmd.tcl: $error_count error(s)\
+               detected!')"
          }
       }
-
-      # only render error once
-      set error_rendered 1
    }
 }
 
@@ -206,13 +201,6 @@ proc reportIssue {issuetype issuemsg {issuefile {}}} {
    }
 }
 
-# raise error to top level, but no message as information have already
-# been printed by a previous report* call
-proc exitOnError {} {
-   renderError
-   error ""
-}
-
 # disable error reporting (non-critical report only) unless debug enabled
 proc inhibitErrorReport {} {
    global g_inhibit_errreport g_debug
@@ -241,7 +229,7 @@ proc unset-env {var} {
    }
 }
 
-proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
+proc execute-modulefile {modfile {must_have_cookie 1}} {
    global g_debug g_inhibit_interp g_inhibit_errreport g_inhibit_dispreport
    global ModulesCurrentModulefile
    global g_modfileUntrackVars g_modfileAliases
@@ -309,8 +297,7 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
       set modcontent [readModuleContent $ModulesCurrentModulefile 1\
          $must_have_cookie]
       if {$modcontent eq ""} {
-         # exit after end of slave evaluation
-         return 2
+         return 1
       }
       info script $ModulesCurrentModulefile
       # eval then call for specific proc depending mode under same catch
@@ -367,10 +354,7 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
             return 1
          } else {
             reportInternalBug $errorMsg $ModulesCurrentModulefile
-            # return a specific value to provoke an exit after end
-            # of slave evaluation since here 'exit' procedure has
-            # been superseeded for modulefile interpretation
-            return 2
+            return 1
          }
       } else {
          unset errorMsg
@@ -379,19 +363,12 @@ proc execute-modulefile {modfile {exit_on_error 1} {must_have_cookie 1}} {
    }]
 
    reportDebug "Exiting $modfile"
-
-   # exits rather returns if a critical error has been raised
-   # and if the exit_on_error behavior is set
-   if {$errorVal == 2 && $exit_on_error} {
-      exitOnError
-   } else {
-      return $errorVal
-   }
+   return $errorVal
 }
 
 # Smaller subset than main module load... This function runs modulerc and
 # .version files
-proc execute-modulerc {modfile {exit_on_error 1}} {
+proc execute-modulerc {modfile} {
    global g_rcfilesSourced ModulesVersion
    global g_debug g_inhibit_errreport g_inhibit_dispreport
    global ModulesCurrentModulefile
@@ -459,9 +436,7 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
          info script $ModulesCurrentModulefile
          if [catch {eval $modcontent} errorMsg] {
             reportInternalBug $errorMsg $ModulesCurrentModulefile
-            # return a specific value to provoke an exit after end
-            # of slave evaluation
-            return 2
+            return 1
          } else {
             # pass ModulesVersion value to master interp
             if {[info exists ModulesVersion]} {
@@ -480,12 +455,6 @@ proc execute-modulerc {modfile {exit_on_error 1}} {
 
       # Keep track of rc files we already sourced so we don't run them again
       set g_rcfilesSourced($modfile) $ModulesVersion
-
-      # exits rather returns if a critical error has been raised
-      # and if the exit_on_error behavior is set
-      if {$errorVal == 2 && $exit_on_error} {
-         exitOnError
-      }
    }
 
    # re-enable command report on display mode
@@ -2187,7 +2156,7 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
          # related to search to be able to then determine in this proc the
          # correct module to return without restarting new searches
          array unset mod_list
-         array set mod_list [getModules $dir $modroot 0 "rc_defs_included" 1\
+         array set mod_list [getModules $dir $modroot 0 "rc_defs_included"\
             $fetch_hidden]
 
          set prevmod ""
@@ -3313,8 +3282,7 @@ proc findModules {dir {mod {}} {fetch_mtime 0} {fetch_hidden 0}} {
    return [array get mod_list]
 }
 
-proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}\
-   {fetch_hidden 0}} {
+proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    global ModulesCurrentModulefile
    global g_sourceAlias g_sourceVersion g_resolvedPath
    global g_rcAlias g_moduleAlias g_rcVersion g_moduleVersion
@@ -3364,7 +3332,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {exit_on_error 1}\
          pushModuleName $elt
          # set is needed for execute-modulerc
          set ModulesCurrentModulefile $dir/$elt
-         execute-modulerc $ModulesCurrentModulefile $exit_on_error
+         execute-modulerc $ModulesCurrentModulefile
          popModuleName
          popSpecifiedName
       # add other entry kind to the result list
@@ -3522,7 +3490,7 @@ proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
    # get module list
    # as we treat a full directory content do not exit on an error
    # raised from one modulerc file
-   array set mod_list [getModules $dir $mod $show_mtime $search 0]
+   array set mod_list [getModules $dir $mod $show_mtime $search]
 
    # prepare results for display
    set clean_list {}
@@ -4210,7 +4178,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    set dir_list [getModulePathList "exiterronundef"]
    foreach dir $dir_list {
       array unset mod_list
-      array set mod_list [getModules $dir $mod 0 $searchmod 0]
+      array set mod_list [getModules $dir $mod 0 $searchmod]
       array unset interp_list
       array set interp_list {}
 
@@ -4303,9 +4271,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             set g_whatis {}
             pushSpecifiedName $elt
             pushModuleName $elt
-            # as we treat a full directory content do not exit on an error
-            # raised from one modulefile
-            execute-modulefile $interp_list($elt) 0
+            execute-modulefile $interp_list($elt)
             popModuleName
             popSpecifiedName
 
@@ -4613,7 +4579,7 @@ proc cmdModuleSource {args} {
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
          # the initialization modulerc file
-         execute-modulefile $file 1 0
+         execute-modulefile $file 0
          popModuleName
          popSpecifiedName
          popMode
@@ -4666,31 +4632,29 @@ proc cmdModuleUnload {match args} {
 
    pushMode "unload"
    foreach mod $args {
-      catch {
-         # resolve by also looking at matching loaded module
-         lassign [getPathToModule $mod {} $match] modfile modname
-         if {$modfile ne ""} {
-            set currentModule $modname
-            set ModulesCurrentModulefile $modfile
+      # resolve by also looking at matching loaded module
+      lassign [getPathToModule $mod {} $match] modfile modname
+      if {$modfile ne ""} {
+         set currentModule $modname
+         set ModulesCurrentModulefile $modfile
 
-            if {[info exists g_loadedModules($currentModule)]} {
-               pushSpecifiedName $mod
-               pushModuleName $currentModule
-               pushSettings
+         if {[info exists g_loadedModules($currentModule)]} {
+            pushSpecifiedName $mod
+            pushModuleName $currentModule
+            pushSettings
 
-               if {[execute-modulefile $modfile]} {
-                  restoreSettings
-               } else {
-                  unload-path LOADEDMODULES $currentModule\
-                     $g_def_separator
-                  unload-path _LMFILES_ $modfile $g_def_separator
-                  unset g_loadedModules($currentModule)
-               }
-
-               popSettings
-               popModuleName
-               popSpecifiedName
+            if {[execute-modulefile $modfile]} {
+               restoreSettings
+            } else {
+               unload-path LOADEDMODULES $currentModule\
+                  $g_def_separator
+               unload-path _LMFILES_ $modfile $g_def_separator
+               unset g_loadedModules($currentModule)
             }
+
+            popSettings
+            popModuleName
+            popSpecifiedName
          }
       }
    }
@@ -4725,7 +4689,7 @@ proc cmdModuleAliases {} {
 
    # parse paths to fill g_moduleAlias and g_moduleVersion
    foreach dir [getModulePathList "exiterronundef"] {
-      getModules $dir "" 0 "" 0
+      getModules $dir "" 0 ""
    }
 
    reenableErrorReport
@@ -5244,9 +5208,7 @@ if {[catch {
 } errMsg ]} {
    # no use of reportError here to get independent from any
    # previous error report inhibition
-   if {$errMsg ne ""} {
-      report "ERROR: $errMsg"
-   }
+   report "ERROR: $errMsg"
    exit 1
 }
 

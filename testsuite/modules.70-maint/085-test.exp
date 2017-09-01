@@ -28,15 +28,21 @@ set module3 "test/2.0"
 set modulefile3 "$env(TESTSUITEDIR)/modulefiles/$module3"
 set module4 "bad"
 set modulefile4 "$env(TESTSUITEDIR)/modulefiles/$module4"
-set mod4_interr "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modulefile4/.modulerc'\n$err_contact"
 set module5 "bad2"
 set modulefile5 "$env(TESTSUITEDIR)/modulefiles/$module5"
-set mod5_interr "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modulefile5/proc'\n$err_contact"
 
 set lin_test "Module Specific Test for "
 set missing_test "$warn_msgs: Unable to find ModulesTest in "
 set fail_test "Test result: FAIL"
 set ok_test "Test result: PASS"
+
+set mod4_interr "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modulefile4/.modulerc'\n$err_contact
+$modlin
+$lin_test$modulefile4/before:
+
+$moderr_msgs: invalid command name \"bad-command\"\n  In '$modulefile4/before'\n$err_contact
+$modlin"
+set mod5_interr "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modulefile5/proc'\n$err_contact"
 
 #
 #  The tests
@@ -64,7 +70,7 @@ unset env(TEST)
 testouterr_cmd_re "sh" "test $module4" "ERR" "$mod4_interr"
 
 # test with erroneous ModulesTest proc in modulefile
-testouterr_cmd_re "sh" "test $module5" "ERR" "$modlin\n$lin_test$modulefile5/proc:\n\n$mod5_interr"
+testouterr_cmd_re "sh" "test $module5" "ERR" "$modlin\n$lin_test$modulefile5/proc:\n\n$mod5_interr\n$modlin"
 
 #
 #  Cleanup
