@@ -23,7 +23,7 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.999
+set MODULES_CURRENT_VERSION 1.1000
 set MODULES_CURRENT_RELEASE_DATE "2017-09-01"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -1101,9 +1101,7 @@ proc module {command args} {
             set errormsg "Unexpected number of args for 'show' command"
          } else {
             pushCommandName "display"
-            foreach arg $args {
-               eval cmdModuleDisplay $arg
-            }
+            eval cmdModuleDisplay $args
             popCommandName
             set needrender 1
          }
@@ -1295,9 +1293,7 @@ proc module {command args} {
             set errormsg "Unexpected number of args for 'test' command"
          } else {
             pushCommandName "test"
-            foreach arg $args {
-               eval cmdModuleTest $arg
-            }
+            eval cmdModuleTest $args
             popCommandName
             set needrender 1
          }
@@ -4085,18 +4081,27 @@ proc cmdModuleList {} {
    }
 }
 
-proc cmdModuleDisplay {mod} {
+proc cmdModuleDisplay {args} {
+   reportDebug "cmdModuleDisplay: displaying $args"
+
    pushMode "display"
-   lassign [getPathToModule $mod] modfile modname
-   if {$modfile ne ""} {
-      pushSpecifiedName $mod
-      pushModuleName $modname
-      displaySeparatorLine
-      report "$modfile:\n"
-      execute-modulefile $modfile
-      popModuleName
-      popSpecifiedName
-      displaySeparatorLine
+   set first_report 1
+   foreach mod $args {
+      lassign [getPathToModule $mod] modfile modname
+      if {$modfile ne ""} {
+         pushSpecifiedName $mod
+         pushModuleName $modname
+         # only one separator lines between 2 modules
+         if {$first_report} {
+            displaySeparatorLine
+            set first_report 0
+         }
+         report "$modfile:\n"
+         execute-modulefile $modfile
+         popModuleName
+         popSpecifiedName
+         displaySeparatorLine
+      }
    }
    popMode
 }
@@ -4979,18 +4984,27 @@ proc cmdModuleInit {args} {
    }
 }
 
-proc cmdModuleTest {mod} {
+proc cmdModuleTest {args} {
+   reportDebug "cmdModuleTest: testing $args"
+
    pushMode "test"
-   lassign [getPathToModule $mod] modfile modname
-   if {$modfile ne ""} {
-      pushSpecifiedName $mod
-      pushModuleName $modname
-      displaySeparatorLine
-      report "Module Specific Test for $modfile:\n"
-      execute-modulefile $modfile
-      popModuleName
-      popSpecifiedName
-      displaySeparatorLine
+   set first_report 1
+   foreach mod $args {
+      lassign [getPathToModule $mod] modfile modname
+      if {$modfile ne ""} {
+         pushSpecifiedName $mod
+         pushModuleName $modname
+         # only one separator lines between 2 modules
+         if {$first_report} {
+            displaySeparatorLine
+            set first_report 0
+         }
+         report "Module Specific Test for $modfile:\n"
+         execute-modulefile $modfile
+         popModuleName
+         popSpecifiedName
+         displaySeparatorLine
+      }
    }
    popMode
 }
@@ -4998,8 +5012,8 @@ proc cmdModuleTest {mod} {
 proc cmdModuleHelp {args} {
    global MODULES_CURRENT_VERSION MODULES_CURRENT_RELEASE_DATE
 
-   set done 0
    pushMode "help"
+   set first_report 1
    foreach arg $args {
       if {$arg ne ""} {
          lassign [getPathToModule $arg] modfile modname
@@ -5007,18 +5021,21 @@ proc cmdModuleHelp {args} {
          if {$modfile ne ""} {
             pushSpecifiedName $arg
             pushModuleName $modname
-            displaySeparatorLine
+            # only one separator lines between 2 modules
+            if {$first_report} {
+               displaySeparatorLine
+               set first_report 0
+            }
             report "Module Specific Help for $modfile:\n"
             execute-modulefile $modfile
             popModuleName
             popSpecifiedName
             displaySeparatorLine
          }
-         set done 1
       }
    }
    popMode
-   if {$done == 0} {
+   if {[llength $args] == 0} {
       report "Modules Release Tcl $MODULES_CURRENT_VERSION " 1
       report "($MODULES_CURRENT_RELEASE_DATE)" 1
       report {   Copyright GNU GPL v2 1991}
