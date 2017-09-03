@@ -27,9 +27,14 @@
 set module_1 "$env(TESTSUITEDIR)/home/rctosource"
 set module_2 "$env(TESTSUITEDIR)/home/rcnomagic"
 set module_3 "$env(TESTSUITEDIR)/home/nonexistent"
+set module_4 "$env(TESTSUITEDIR)/modulefiles/bad2/body"
 
 lappend ans [list set testsuite yes]
 set err_csh "$error_msgs: File $module_3 does not exist"
+
+lappend ans2 [list set testsuite yes]
+lappend ans2 [list ERR]
+set err_csh2 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$module_4'\n$err_contact"
 
 #
 #  test sourcing rc file with regular module-specific magic cookie
@@ -47,12 +52,20 @@ testouterr_cmd "csh" "source $module_2" $ans ""
 testouterr_cmd "csh" "source $module_3" "ERR" "$err_csh"
 
 #
+# test with broken file
+# env is set until reaching Tcl breaking point
+testouterr_cmd "csh" "source $module_4" $ans2 "$err_csh2"
+
+#
 #  Cleanup
 #
 
 unset err_csh
+unset err_csh2
 unset ans
+unset ans2
 
 unset module_1
 unset module_2
 unset module_3
+unset module_4

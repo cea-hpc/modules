@@ -30,10 +30,24 @@ lappend ans [list unsetpath testsuite]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 
+set module_0 "bad2/body"
+set modulefile_0 "$env(MODULEPATH)/$module_0"
+set mod0_err "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modulefile_0'\n$err_contact"
 
 #
 #  The tests
 #
+
+# unload unkown module
+testouterr_cmd_re "sh" "unload NonExistant" "ERR" "$err_path'NonExistant'"
+
+# set up the environment
+set env(_LMFILES_) "$modulefile_0"
+set env(LOADEDMODULES) "$module_0"
+
+# unload broken module, error but no unload
+testouterr_cmd_re "sh" "unload $module_0" "ERR" "$mod0_err"
+
 
 # set up the environment
 set env(_LMFILES_) "$modulefile_1"
@@ -119,6 +133,10 @@ set env(MODULEPATH) $ORIG_MODULEPATH
 unset ORIG_MODULEPATH
 
 unset ans
+
+unset module_0
+unset modulefile_0
+unset mod0_err
 
 unset modulename_1
 unset module_1
