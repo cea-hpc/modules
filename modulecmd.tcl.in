@@ -23,7 +23,7 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.1002
+set MODULES_CURRENT_VERSION 1.1003
 set MODULES_CURRENT_RELEASE_DATE "2017-09-03"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -347,8 +347,10 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
             raiseErrorCount
             unset errorMsg
             return 1
-         }\
-         elseif [regexp "^WARNING" $errorMsg] {
+         } elseif {$errorMsg eq "SUB_FAILED"} {
+            # error counter and message already handled, just return error
+            return 1
+         } elseif [regexp "^WARNING" $errorMsg] {
             raiseErrorCount
             report $errorMsg
             return 1
@@ -1015,37 +1017,47 @@ proc module {command args} {
          # no error raised on empty argument list to cope with
          # initadd command that may expect this behavior
          if {[llength $args] > 0} {
+            set ret 0
             pushCommandName "load"
             if {$topcall || $mode eq "load"} {
-               eval cmdModuleLoad $args
+               set ret [eval cmdModuleLoad $args]
             }\
             elseif {$mode eq "unload"} {
                # on unload mode, unload mods in reverse order
-               eval cmdModuleUnload "match" [lreverse $args]
+               set ret [eval cmdModuleUnload "match" [lreverse $args]]
             }\
             elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
                report "module load\t$args"
             }
             popCommandName
             set needrender 1
+            # sub-module interpretation failed, raise error
+            if {$ret && !$topcall} {
+               set errormsg "SUB_FAILED"
+            }
          }
       }
       {^(rm|unlo)} {
          if {[llength $args] == 0} {
             set errormsg "Unexpected number of args for 'unload' command"
          } else {
+            set ret 0
             pushCommandName "unload"
             if {$topcall || $mode eq "load"} {
-               eval cmdModuleUnload "match" $args
+               set ret [eval cmdModuleUnload "match" $args]
             }\
             elseif {$mode eq "unload"} {
-               eval cmdModuleUnload "match" $args
+               set ret [eval cmdModuleUnload "match" $args]
             }\
             elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
                report "module unload\t$args"
             }
             popCommandName
             set needrender 1
+            # sub-module interpretation failed, raise error
+            if {$ret && !$topcall} {
+               set errormsg "SUB_FAILED"
+            }
          }
       }
       {^(ref|rel)} {
@@ -4600,6 +4612,7 @@ proc cmdModuleLoad {args} {
 
    reportDebug "cmdModuleLoad: loading $args"
 
+   set ret 0
    pushMode "load"
    foreach mod $args {
       lassign [getPathToModule $mod] modfile modname
@@ -4614,6 +4627,7 @@ proc cmdModuleLoad {args} {
 
             if {[execute-modulefile $modfile]} {
                restoreSettings
+               set ret 1
             } else {
                append-path LOADEDMODULES $currentModule
                append-path _LMFILES_ $modfile
@@ -4624,9 +4638,13 @@ proc cmdModuleLoad {args} {
             popModuleName
             popSpecifiedName
          }
+      } else {
+         set ret 1
       }
    }
    popMode
+
+   return $ret
 }
 
 proc cmdModuleUnload {match args} {
@@ -4635,6 +4653,7 @@ proc cmdModuleUnload {match args} {
 
    reportDebug "cmdModuleUnload: unloading $args (match=$match)"
 
+   set ret 0
    pushMode "unload"
    foreach mod $args {
       # resolve by also looking at matching loaded module
@@ -4650,6 +4669,7 @@ proc cmdModuleUnload {match args} {
 
             if {[execute-modulefile $modfile]} {
                restoreSettings
+               set ret 1
             } else {
                unload-path LOADEDMODULES $currentModule\
                   $g_def_separator
@@ -4661,9 +4681,13 @@ proc cmdModuleUnload {match args} {
             popModuleName
             popSpecifiedName
          }
+      } else {
+         set ret 1
       }
    }
    popMode
+
+   return $ret
 }
 
 proc cmdModulePurge {} {

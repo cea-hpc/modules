@@ -47,6 +47,17 @@ set modfile_b2 "$env(MODULEPATH)/$mod_b2"
 set disp_b2 "append-path\\s+PATH\\s+:"
 set errlo_b2 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$modfile_b2'\n$err_contact"
 
+set mod_b3 "module/bad"
+set modfile_b3 "$env(MODULEPATH)/$mod_b3"
+set disp_b3 "module\\s+load\\s+$mod_b1"
+set errlo_b3 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modfile_b1'\n$err_contact"
+
+set mod_b4 "module/err"
+set modfile_b4 "$env(MODULEPATH)/$mod_b4"
+set disp_b4 "module\\s+load\\s+$mod_b2"
+set errlo_b4 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$modfile_b2'\n$err_contact"
+
+
 set help_pre "$modlin"
 set help_noproc "$warn_msgs: Unable to find ModulesHelp in"
 set help_post "$modlin"
@@ -136,6 +147,9 @@ proc multi_test_case {args} {
     if {[info exists errlo]} {
         if {$erri == 3} {
             set ans_lo [lreverse $ans_lo]
+            if {[string first "module/" $mod] == 0} {
+                set ans_src [lreverse $ans_src]
+            }
         }
         if {$erri == 1} {
             lappend ans_lo [list setpath LOADEDMODULES [join $module ":"]]
@@ -168,6 +182,7 @@ proc multi_test_case {args} {
     lappend ans_unlo [list unsetpath LOADEDMODULES]
     lappend ans_unlo [list unsetpath _LMFILES_]
 
+    # bad mod is stuck loaded
     testouterr_cmd_re "sh" "unload $modsym" $ans_unlo ""
 }
 
@@ -184,6 +199,16 @@ multi_test_case b1 g1 g2
 multi_test_case g1 g2 b2
 multi_test_case g1 b2 g2
 multi_test_case b2 g1 g2
+
+# tests with 3 modules, one loads a broken sub-module
+multi_test_case g1 g2 b3
+multi_test_case g1 b3 g2
+multi_test_case b3 g1 g2
+
+# tests with 3 modules, one loads a sub-module raising a warning
+multi_test_case g1 g2 b4
+multi_test_case g1 b4 g2
+multi_test_case b4 g1 g2
 
 
 #
@@ -230,3 +255,13 @@ unset mod_b2
 unset modfile_b2
 unset disp_b2
 unset errlo_b2
+
+unset mod_b3
+unset modfile_b3
+unset disp_b3
+unset errlo_b3
+
+unset mod_b4
+unset modfile_b4
+unset disp_b4
+unset errlo_b4

@@ -39,6 +39,33 @@ set modulefile_3 "$env(MODULEPATH)/$module_3"
 set module_4 "module/meta"
 set modulefile_4 "$env(MODULEPATH)/$module_4"
 
+set module_5 "module/err"
+set modulefile_5 "$env(MODULEPATH)/$module_5"
+set module_6 "module/bad"
+set modulefile_6 "$env(MODULEPATH)/$module_6"
+set module_7 "module/unk"
+set modulefile_7 "$env(MODULEPATH)/$module_7"
+set module_8 "module/lerr"
+set modulefile_8 "$env(MODULEPATH)/$module_8"
+set module_9 "module/lbad"
+set modulefile_9 "$env(MODULEPATH)/$module_9"
+set module_10 "module/lunk"
+set modulefile_10 "$env(MODULEPATH)/$module_10"
+
+set submod_5 "append/0.2"
+set submodfile_5 "$env(MODULEPATH)/$submod_5"
+set submod_6 "bad2/body"
+set submodfile_6 "$env(MODULEPATH)/$submod_6"
+set submod_7 "NonExistant"
+set submodfile_7 "$env(MODULEPATH)/$submod_7"
+
+set moderr_5 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$submodfile_5'\n$err_contact"
+set moderr_6 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$submodfile_6'\n$err_contact"
+set moderr_7 "$err_path'$submod_7'"
+set moderrun_5 "$moderr_msgs: unload-path cannot handle path equals to separator string\n  In '$submodfile_5'\n$err_contact"
+set moderrun_6 $moderr_6
+set moderrun_7 "$error_msgs: No such file or directory on '$submodfile_7'"
+
 #
 #  The tests
 #
@@ -80,6 +107,55 @@ unset env(LOADEDMODULES)
 unset env(_LMFILES_)
 
 #
+# Test load of module with issue, nothing loads
+#
+
+testouterr_cmd_re "csh" "load $module_5" "ERR" "$moderr_5"
+testouterr_cmd_re "csh" "load $module_6" "ERR" "$moderr_6"
+testouterr_cmd_re "csh" "load $module_7" "ERR" "$moderr_7"
+testouterr_cmd_re "csh" "load $module_8" "ERR" "$moderr_5"
+testouterr_cmd_re "csh" "load $module_9" "ERR" "$moderr_6"
+testouterr_cmd_re "csh" "load $module_10" "ERR" "$moderr_7"
+
+#
+# Test unload of module with issue, nothing unloads
+#
+
+set env(_LMFILES_) "$submodfile_5:$modulefile_5"
+set env(LOADEDMODULES) "$submod_5:$module_5"
+
+testouterr_cmd_re "csh" "unload $module_5" "ERR" "$moderrun_5"
+
+set env(_LMFILES_) "$submodfile_6:$modulefile_6"
+set env(LOADEDMODULES) "$submod_6:$module_6"
+
+testouterr_cmd_re "csh" "unload $module_6" "ERR" "$moderrun_6"
+
+set env(_LMFILES_) "$submodfile_7:$modulefile_7"
+set env(LOADEDMODULES) "$submod_7:$module_7"
+
+testouterr_cmd_re "csh" "unload $module_7" "ERR" "$moderrun_7"
+
+set env(_LMFILES_) "$submodfile_5:$modulefile_5:$modulefile_8"
+set env(LOADEDMODULES) "$submod_5:$module_5:$module_8"
+
+testouterr_cmd_re "csh" "unload $module_8" "ERR" "$moderrun_5"
+
+set env(_LMFILES_) "$submodfile_6:$modulefile_6:$modulefile_9"
+set env(LOADEDMODULES) "$submod_6:$module_6:$module_9"
+
+testouterr_cmd_re "csh" "unload $module_9" "ERR" "$moderrun_6"
+
+set env(_LMFILES_) "$submodfile_7:$modulefile_7:$modulefile_10"
+set env(LOADEDMODULES) "$submod_7:$module_7:$module_10"
+
+testouterr_cmd_re "csh" "unload $module_10" "ERR" "$moderrun_7"
+
+# Clean up the just changed environment
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+#
 #  Cleanup
 #
 
@@ -96,3 +172,29 @@ unset module_3
 unset modulefile_3
 unset module_4
 unset modulefile_4
+unset module_5
+unset modulefile_5
+unset module_6
+unset modulefile_6
+unset module_7
+unset modulefile_7
+unset module_8
+unset modulefile_8
+unset module_9
+unset modulefile_9
+unset module_10
+unset modulefile_10
+
+unset submod_5
+unset submodfile_5
+unset submod_6
+unset submodfile_6
+unset submod_7
+unset submodfile_7
+
+unset moderr_5
+unset moderr_6
+unset moderr_7
+unset moderrun_5
+unset moderrun_6
+unset moderrun_7
