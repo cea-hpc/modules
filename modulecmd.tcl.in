@@ -23,7 +23,7 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION 1.1004
+set MODULES_CURRENT_VERSION 1.1005
 set MODULES_CURRENT_RELEASE_DATE "2017-09-04"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
@@ -4335,8 +4335,10 @@ proc cmdModuleSwitch {old {new {}}} {
 
    reportDebug "cmdModuleSwitch: old='$old' new='$new'"
 
-   cmdModuleUnload $unload_match $old
-   cmdModuleLoad $new
+   # attempt load only if unload succeed
+   if {![cmdModuleUnload $unload_match $old]} {
+      cmdModuleLoad $new
+   }
 }
 
 proc cmdModuleSave {{coll {}}} {
