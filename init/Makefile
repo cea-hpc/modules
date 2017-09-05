@@ -48,6 +48,13 @@ ifeq ($(setbinpath),y)
 else
   setbinpathre :=
 endif
+ifeq ($(compatversion),y)
+  compatversionre := \1\n
+  notcompatversionre :=
+else
+  compatversionre :=
+  notcompatversionre := \1\n
+endif
 
 define translate-in-script
 perl -pe 's|\@prefix\@|$(prefix)|g; \
@@ -58,6 +65,8 @@ perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@mandir\@|$(mandir)|g; \
 	s|\@setmanpath\@(.*)\n|$(setmanpathre)|g; \
 	s|\@setbinpath\@(.*)\n|$(setbinpathre)|g; \
+	s|\@compatversion\@(.*)\n|$(compatversionre)|g; \
+	s|\@notcompatversion\@(.*)\n|$(notcompatversionre)|g; \
 	s|\@modulerc\@|$(modulerc)|g; \
 	s|\@modulepath\@|$(modulepath)|g; \
 	s|\@SHELLNAME\@|$@|g; \
@@ -86,7 +95,7 @@ install: all
 	cp bash_completion $(DESTDIR)$(initdir)/
 	cp -r zsh-functions $(DESTDIR)$(initdir)/
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/module
-ifeq ($(setswitchml),y)
+ifeq ($(compatversion),y)
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/switchml
 endif
 	cp -P --remove-destination $(ALL_CONFIG) $(DESTDIR)$(initdir)/
@@ -97,7 +106,7 @@ endif
 uninstall:
 	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_SHELLS) bash_completion)
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/module
-ifeq ($(setswitchml),y)
+ifeq ($(compatversion),y)
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/switchml
 endif
 	rm -f $(DESTDIR)$(initdir)/zsh-functions/_module

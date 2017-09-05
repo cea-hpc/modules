@@ -11,13 +11,21 @@ MAN1_DIR := $(MAN_DIR)/man1
 MAN4_DIR := $(MAN_DIR)/man4
 SOURCE_DIR := source
 
+# compatibility version-related files
+COMPAT_MAN_DIR := ../compat/doc
+
 # source definitions shared across the Makefiles of this project
 ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
   $(error ../Makefile.inc is missing, please run '../configure')
 endif
 include ../Makefile.inc
 
+ifeq ($(compatversion),y)
+man: $(MAN1_DIR)/module.1 $(MAN4_DIR)/modulefile.4 \
+	$(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4
+else
 man: $(MAN1_DIR)/module.1 $(MAN4_DIR)/modulefile.4
+endif
 
 txt: diff_with_c-version.txt
 
@@ -55,6 +63,10 @@ $(MAN4_DIR)/%.4: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
 %.txt: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
 	pod2text $< >$@
 
+# compatibility version-related rules
+$(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4:
+	make -C $(COMPAT_MAN_DIR) $(@F)
+
 install: all
 	mkdir -p $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man4
 ifeq ($(docinstall),y)
@@ -64,6 +76,10 @@ ifeq ($(docinstall),y)
 endif
 	cp $(MAN1_DIR)/module.1 $(DESTDIR)$(mandir)/man1/
 	cp $(MAN4_DIR)/modulefile.4 $(DESTDIR)$(mandir)/man4/
+ifeq ($(compatversion),y)
+	cp $(COMPAT_MAN_DIR)/module.1 $(DESTDIR)$(mandir)/man1/module-compat.1
+	cp $(COMPAT_MAN_DIR)/modulefile.4 $(DESTDIR)$(mandir)/man4/modulefile-compat.4
+endif
 
 uninstall:
 ifeq ($(docinstall),y)
@@ -73,6 +89,10 @@ ifeq ($(docinstall),y)
 endif
 	rm -f $(DESTDIR)$(mandir)/man1/module.1
 	rm -f $(DESTDIR)$(mandir)/man4/modulefile.4
+ifeq ($(compatversion),y)
+	rm -f $(DESTDIR)$(mandir)/man1/module-compat.1
+	rm -f $(DESTDIR)$(mandir)/man4/modulefile-compat.4
+endif
 	rmdir $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man4
 	rmdir $(DESTDIR)$(mandir)
 

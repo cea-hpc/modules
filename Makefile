@@ -13,13 +13,20 @@ COVERAGE_IFILE := $(COVERAGE_SRCFILE:.tcl=.tcl_i)
 COVERAGE_LOGFILE := $(COVERAGE_SRCFILE:.tcl=.tcl_log)
 COVERAGE_MFILE := $(COVERAGE_SRCFILE:.tcl=.tcl_m)
 
+# compatibility version-related files
+COMPAT_DIR := compat
+
 # source definitions shared across the Makefiles of this project
 ifneq ($(wildcard Makefile.inc),Makefile.inc)
   $(error Makefile.inc is missing, please run './configure')
 endif
 include Makefile.inc
 
+ifeq ($(compatversion),y)
+all: initdir pkgdoc modulecmd.tcl ChangeLog README $(COMPAT_DIR)/modulecmd
+else
 all: initdir pkgdoc modulecmd.tcl ChangeLog README
+endif
 
 initdir:
 	make -C init all
@@ -46,11 +53,23 @@ ChangeLog:
 README:
 	perl -pe 's|^\[\!\[.*\].*\n||;' $@.md > $@
 
+# compatibility version-related rules
+$(COMPAT_DIR)/modulecmd:
+	make -C $(COMPAT_DIR) $(@F)
+
+ifeq ($(compatversion),y)
+install: modulecmd.tcl ChangeLog README $(COMPAT_DIR)/modulecmd
+else
 install: modulecmd.tcl ChangeLog README
+endif
 	mkdir -p $(DESTDIR)$(libexecdir)
 	mkdir -p $(DESTDIR)$(bindir)
 	cp modulecmd.tcl $(DESTDIR)$(libexecdir)/
 	chmod +x $(DESTDIR)$(libexecdir)/modulecmd.tcl
+ifeq ($(compatversion),y)
+	cp $(COMPAT_DIR)/modulecmd $(DESTDIR)$(libexecdir)/modulecmd-compat
+	chmod +x $(DESTDIR)$(libexecdir)/modulecmd-compat
+endif
 	cp contrib/envml $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/envml
 ifeq ($(docinstall),y)
@@ -71,6 +90,9 @@ endif
 
 uninstall:
 	rm -f $(DESTDIR)$(libexecdir)/modulecmd.tcl
+ifeq ($(compatversion),y)
+	rm -f $(DESTDIR)$(libexecdir)/modulecmd-compat
+endif
 	rm -f $(DESTDIR)$(bindir)/envml
 ifeq ($(docinstall),y)
 	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog NEWS README INSTALL COPYING.GPLv2)
@@ -106,6 +128,9 @@ endif
 	rm -f modules-tcl-*.srpm
 	make -C init clean
 	make -C doc clean
+ifneq ($(wildcard $(COMPAT_DIR)/Makefile),)
+	make -C compat clean
+endif
 ifneq ($(wildcard www),)
 	make -C www clean
 endif
@@ -114,8 +139,17 @@ distclean: clean
 	rm -f Makefile.inc
 	rm -f site.exp
 	rm -rf $(NAGELFAR_RELEASE)
+ifeq ($(wildcard .git) $(wildcard $(COMPAT_DIR)),.git $(COMPAT_DIR))
+	rm -rf $(COMPAT_DIR)
+	git worktree prune
+endif
 
+ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
+test: modulecmd.tcl $(COMPAT_DIR)/modulecmd
+	make -C $(COMPAT_DIR) test
+else
 test: modulecmd.tcl
+endif
 	TCLSH=$(TCLSH); export TCLSH; \
 	MODULEVERSION=Tcl; export MODULEVERSION; \
 	OBJDIR=`pwd -P`; export OBJDIR; \

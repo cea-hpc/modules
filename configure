@@ -28,10 +28,12 @@ targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 # argument list
 arglist="TCLSH prefix bindir libexecdir initdir datarootdir mandir docdir \
 modulefilesdir setmanpath setbinpath setdotmodulespath docinstall \
-examplemodulefiles modulepath loadedmodules"
+examplemodulefiles compatversion modulepath loadedmodules"
+compatarglist=
 
 # flags to know if argument has been specified on command-line
 defdotmodulespath=1
+defcompatversion=1
 
 # set argument default values
 prefix=/usr/local/modules-tcl
@@ -40,6 +42,7 @@ setbinpath=y
 setdotmodulespath=n
 docinstall=y
 examplemodulefiles=y
+compatversion=y
 loadedmodules=
 TCLSH=tclsh
 # these args are initialized here but as they depend on other argument value
@@ -108,6 +111,9 @@ Optional Features:
   --enable-example-modulefiles
                           install in 'modulefilesdir' some modulefiles
                           provided as examples [yes]
+  --enable-compat-version also build and install Modules compatibility (C)
+                          version and enable switching capabilities between
+                          the two versions [yes]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -224,19 +230,25 @@ for arg in "$@"; do
    --enable-example-modulefiles*|--disable-example-modulefiles)
       examplemodulefiles=$(get_feature_value "$arg")
       defexamplemodulefiles=0 ;;
+   --enable-compat-version*|--disable-compat-version)
+      compatversion=$(get_feature_value "$arg")
+      defcompatversion=0 ;;
    --with-tclsh=*|--without-tclsh)
       tclshbin=$(get_package_value "$arg") ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)
       loadedmodules=$(get_package_value "$arg") ;;
+   --enable-versioning*)
+      echo_error "Option \`--enable-versioning' not supported" ;;
+   --with-module-path=*)
+      echo_warning "Option \`--with-module-path' ignored, use \`--modulepath' instead" ;;
    -h|--help)
       echo_usage
       exit 0
       ;;
    *)
-      echo_error "Unrecognized option \`$arg'\nTry \
-\`$progpath --help' for more information." ;;
+      compatarglist+="$arg " ;;
    esac
 done
 
@@ -277,6 +289,28 @@ if [ -n "$loadedmodules" -a -z "$modulepath" ]; then
    echo_warning "$featmesg"
 fi
 
+# check compat version sources
+if [ "$compatversion" = 'y' ]; then
+   if [ ! -d 'compat' ]; then
+      # extract sources from a git branch and prepare sources
+      if [ -d '.git' ]; then
+         check_requirement git
+         check_requirement autoreconf
+         check_requirement autopoint
+
+         echo "--- preparing compatibility version sources ------"
+         # quit if issue, base on version 3.2 compatbility branch
+         git worktree add compat c-3.2 || exit 1
+         pushd compat
+         autoreconf -f -i || exit 1
+         popd
+         echo "--------------------------------------------------"
+      else
+         echo_error "Cannot build compatibility version, \`compat' directory cannot be found"
+      fi
+   fi
+fi
+
 # display configuration set
 # and build Makefile translation expression
 translation_regexp=''
@@ -284,6 +318,22 @@ for arg in ${arglist}; do
    echo "$arg = ${!arg}"
    translation_regexp+="s|\@${arg}\@|${!arg}|g; "
 done
+
+# configure compat version sources
+if [ "$compatversion" = 'y' ]; then
+   echo "--- configuring compatibility version sources ----"
+   pushd compat
+   # unknown arguments for this configure script are passed down to the
+   # compatibility version configure script (which raise error if arg unknown)
+   # also pass arguments relative to installation paths to get compatibility
+   # man pages set with them
+   ./configure --prefix=$prefix --bindir=$bindir --libexecdir=$libexecdir \
+      --datarootdir=$datarootdir --mandir=$mandir --docdir=$docdir \
+      --with-module-path=$modulepath --disable-versioning \
+      $compatarglist || exit 1
+   popd
+   echo "--------------------------------------------------"
+fi
 
 # generate Makefiles
 for target in ${targetlist}; do
