@@ -13,28 +13,6 @@ ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
 endif
 include ../Makefile.inc
 
-# reset C version path if they are standard system path (to ensure
-# switchml will not remove them from PATH or MANPATH)
-ifneq ($(findstring $(cverbindir),/bin /usr/bin /usr/local/bin),)
-  override cverbindir :=
-endif
-ifneq ($(findstring $(cvermandir),/usr/share/man /usr/local/share/man),)
-  override cvermandir :=
-endif
-
-# reset Tcl version path if they are standard system path (to ensure
-# switchml will not remove them from PATH or MANPATH)
-ifeq ($(findstring $(bindir),/bin /usr/bin /usr/local/bin),)
-  override swmlbindir := $(bindir)
-else
-  override swmlbindir :=
-endif
-ifeq ($(findstring $(mandir),/usr/share/man /usr/local/share/man),)
-  override swmlmandir := $(mandir)
-else
-  override swmlmandir :=
-endif
-
 # kind of config file to use: modulerc or .modulespath
 ifeq ($(setdotmodulespath),y)
   # both configuration files will be installed and in this case default init
@@ -70,11 +48,6 @@ ifeq ($(setbinpath),y)
 else
   setbinpathre :=
 endif
-ifeq ($(setswitchml),y)
-  setswitchmlre := \1\n
-else
-  setswitchmlre :=
-endif
 
 define translate-in-script
 perl -pe 's|\@prefix\@|$(prefix)|g; \
@@ -85,12 +58,6 @@ perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@mandir\@|$(mandir)|g; \
 	s|\@setmanpath\@(.*)\n|$(setmanpathre)|g; \
 	s|\@setbinpath\@(.*)\n|$(setbinpathre)|g; \
-	s|\@setswitchml\@(.*)\n|$(setswitchmlre)|g; \
-	s|\@swmlbindir\@|$(swmlbindir)|g; \
-	s|\@swmlmandir\@|$(swmlmandir)|g; \
-	s|\@cverinitdir\@|$(cverinitdir)|g; \
-	s|\@cverbindir\@|$(cverbindir)|g; \
-	s|\@cvermandir\@|$(cvermandir)|g; \
 	s|\@modulerc\@|$(modulerc)|g; \
 	s|\@modulepath\@|$(modulepath)|g; \
 	s|\@SHELLNAME\@|$@|g; \
@@ -110,12 +77,6 @@ tcsh: csh.in
 # this rule is needed for profile.sh to get matched
 profile.sh: profile.sh.in
 	$(translate-in-script)
-
-# make link on C version installed .modulespath
-ifeq ($(usecverdotmodulespath),y)
-.modulespath:
-	ln -sf $(cverinitdir)/$@ $@
-endif
 
 install: all
 	mkdir -p $(DESTDIR)$(initdir)

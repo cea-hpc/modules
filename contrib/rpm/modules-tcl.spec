@@ -86,8 +86,7 @@ different applications.
             --mandir=%{_mandir} \
             --disable-doc-install \
             --disable-example-modulefiles \
-            --with-modulepath=%{_sysconfdir}/modulefiles:%{_datadir}/modulefiles \
-            --with-cver-initdir=%{_datadir}/Modules/init
+            --with-modulepath=%{_sysconfdir}/modulefiles:%{_datadir}/modulefiles
 make %{?_smp_mflags}
 
 %check

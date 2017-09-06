@@ -27,27 +27,19 @@ targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 
 # argument list
 arglist="TCLSH prefix bindir libexecdir initdir datarootdir mandir docdir \
-modulefilesdir setmanpath setbinpath setswitchml setdotmodulespath \
-usecverdotmodulespath docinstall examplemodulefiles cverinitdir cverbindir \
-cvermandir modulepath loadedmodules"
+modulefilesdir setmanpath setbinpath setdotmodulespath docinstall \
+examplemodulefiles modulepath loadedmodules"
 
 # flags to know if argument has been specified on command-line
-defswitchml=1
 defdotmodulespath=1
-defcverdotmodulespath=1
 
 # set argument default values
 prefix=/usr/local/modules-tcl
 setmanpath=y
 setbinpath=y
-setswitchml=y
 setdotmodulespath=n
-usecverdotmodulespath=n
 docinstall=y
 examplemodulefiles=y
-cverinitdir=
-cverbindir=
-cvermandir=
 loadedmodules=
 TCLSH=tclsh
 # these args are initialized here but as they depend on other argument value
@@ -108,14 +100,8 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-set-manpath    add mandir to MANPATH in init scripts [yes]
   --enable-set-binpath    add bindir to PATH in init scripts [yes]
-  --enable-set-switchml   define switchml in init scripts (requires
-                          cver-initdir to be defined) [yes]
   --enable-dotmodulespath configure modules path in .modulespath file rather
                           than modulerc file [no]
-  --enable-use-cver-dotmodulespath
-                          bind to the .modulespath configuration file of the
-                          installed Modules C version (requires cver-initdir
-                          to be defined and superseeds dotmodulespath) [no]
   --enable-doc-install    install documentation files in the documentation
                           directory defined with \'docdir' (no impact on
                           man pages installation) [yes]
@@ -127,16 +113,6 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-tclsh=BIN        name or full path of Tcl interpreter shell [tclsh]
-  --with-cver-initdir=DIR directory containing Modules C version init
-                          scripts, which is a required information to enable
-                          the \`switchml' and \`use-cver-dotmodulespath'
-                          features []
-  --with-cver-bindir=DIR  directory containing Modules C version binaries,
-                          which is an optional information when enabling the
-                          \`switchml' feature []
-  --with-cver-mandir=DIR  directory containing Modules C version man pages,
-                          which is an optional information when enabling the
-                          \`switchml' feature []
   --with-modulepath=PATHLIST
                           default modulepaths to set in default configuration
                           file to be enabled (each path in PATHLIST should
@@ -239,15 +215,9 @@ for arg in "$@"; do
       setmanpath=$(get_feature_value "$arg") ;;
    --enable-set-binpath*|--disable-set-binpath)
       setbinpath=$(get_feature_value "$arg") ;;
-   --enable-set-switchml*|--disable-set-switchml)
-      setswitchml=$(get_feature_value "$arg")
-      defswitchml=0 ;;
    --enable-dotmodulespath*|--disable-dotmodulespath)
       setdotmodulespath=$(get_feature_value "$arg")
       defdotmodulespath=0 ;;
-   --enable-use-cver-dotmodulespath*|--disable-use-cver-dotmodulespath)
-      usecverdotmodulespath=$(get_feature_value "$arg")
-      defcverdotmodulespath=0 ;;
    --enable-doc-install*|--disable-doc-install)
       docinstall=$(get_feature_value "$arg")
       defdocinstall=0 ;;
@@ -256,12 +226,6 @@ for arg in "$@"; do
       defexamplemodulefiles=0 ;;
    --with-tclsh=*|--without-tclsh)
       tclshbin=$(get_package_value "$arg") ;;
-   --with-cver-initdir=*|--without-cver-initdir)
-      cverinitdir=$(get_package_value "$arg") ;;
-   --with-cver-bindir=*|--without-cver-bindir)
-      cverbindir=$(get_package_value "$arg") ;;
-   --with-cver-mandir=*|--without-cver-mandir)
-      cvermandir=$(get_package_value "$arg") ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)
@@ -304,37 +268,6 @@ check_requirement $tclshbin '' 'PATH=/usr/bin:/bin:/usr/local/bin'
 TCLSH=$reqpath
 
 # check feature requirements are met
-# define switchml if we know where C version is installed
-if [ "$setswitchml" = 'y' -a -z "$cverinitdir" ]; then
-   featmesg="Cannot enable \`switchml' as \`cver-initdir' not defined"
-   if [ $defswitchml -eq 0 ]; then
-      echo_error "$featmesg"
-   else
-      echo_warning "$featmesg"
-      setswitchml='n'
-   fi
-fi
-# same applies for using C version .modulespath config
-if [ "$usecverdotmodulespath" = 'y' -a -z "$cverinitdir" ]; then
-   featmesg="Cannot enable \`use-cver-dotmodulespath' as \`cver-initdir' \
-not defined"
-   if [ $defcverdotmodulespath -eq 0 ]; then
-      echo_error "$featmesg"
-   else
-      echo_warning "$featmesg"
-      usecverdotmodulespath='n'
-   fi
-fi
-if [ "$setdotmodulespath" = 'n' -a "$usecverdotmodulespath" = 'y' ]; then
-   featmesg="Need to enable \`dotmodulespath' as \`use-cver-dotmodulespath' \
-enabled"
-   if [ $defdotmodulespath -eq 0 ]; then
-      echo_error "$featmesg"
-   else
-      echo_warning "$featmesg"
-      setdotmodulespath='y'
-   fi
-fi
 if [ "$setdotmodulespath" = 'y' -a -n "$loadedmodules" ]; then
    featmesg="As \`setdotmodulespath' is enabled beware that \`loadedmodules' may be ignored by init scripts"
    echo_warning "$featmesg"
