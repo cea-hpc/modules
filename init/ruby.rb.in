@@ -1,3 +1,16 @@
+@compatversion@# set module command in accordance with active version
+@compatversion@if ENV['MODULE_USE_COMPAT_VERSION'] == '1' then
+@compatversion@class ENVModule
+@compatversion@   def ENVModule.module(*args)
+@compatversion@      if args[0].kind_of?(Array) then
+@compatversion@         args = args[0].join(' ')
+@compatversion@      else
+@compatversion@         args = args.join(' ')
+@compatversion@      end
+@compatversion@      eval `@libexecdir@/modulecmd-compat ruby #{args}`
+@compatversion@   end
+@compatversion@end
+@compatversion@else
 class ENVModule
    def ENVModule.module(*args)
       if args[0].kind_of?(Array) then
@@ -8,6 +21,7 @@ class ENVModule
       eval `@TCLSH@ @libexecdir@/modulecmd.tcl ruby #{args}`
    end
 end
+@compatversion@end
 
 ENV['MODULESHOME'] = '@prefix@'
 
@@ -24,6 +38,7 @@ if !ENV.has_key?('LOADEDMODULES') then
 end
 
 # load modulerc only if module environment is empty
-if File.readable?('@initdir@/modulerc') and ENV['MODULEPATH'].empty? and ENV['LOADEDMODULES'].empty? then
+@notcompatversion@if File.readable?('@initdir@/modulerc') and ENV['MODULEPATH'].empty? and ENV['LOADEDMODULES'].empty? then
+@compatversion@if ENV['MODULE_USE_COMPAT_VERSION'] != '1' and File.readable?('@initdir@/modulerc') and ENV['MODULEPATH'].empty? and ENV['LOADEDMODULES'].empty? then
    ENVModule.module('source', '@initdir@/modulerc')
 end

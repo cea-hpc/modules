@@ -1,6 +1,6 @@
 .PHONY: install uninstall clean
 
-SH_LIKE  = sh ksh bash zsh profile.sh
+SH_LIKE  = sh ksh bash zsh profile.sh bash_completion
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
 OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R
 

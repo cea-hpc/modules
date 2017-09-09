@@ -21,13 +21,45 @@ endif
 
 set postfix = "set _exit="'$status'"; $postfix; test 0 = "'$_exit;'
 
-alias module $prefix'eval `@TCLSH@ @libexecdir@/modulecmd.tcl @SHELLNAME@ '$histchar'*`; '$postfix
+@compatversion@# clarify compat version is not enabled for below tests
+@compatversion@if ( ! $?MODULE_USE_COMPAT_VERSION ) then
+@compatversion@   setenv MODULE_USE_COMPAT_VERSION 0
+@compatversion@endif
+@compatversion@
+@notcompatversion@alias module $prefix'eval `@TCLSH@ @libexecdir@/modulecmd.tcl @SHELLNAME@ '$histchar'*`; '$postfix
+@compatversion@# set module command in accordance with active version
+@compatversion@if ( "$MODULE_USE_COMPAT_VERSION" == '1' ) then
+@compatversion@   alias module $prefix'eval `@libexecdir@/modulecmd-compat @SHELLNAME@ '$histchar'*`; '$postfix
+@compatversion@else
+@compatversion@   alias module $prefix'eval `@TCLSH@ @libexecdir@/modulecmd.tcl @SHELLNAME@ '$histchar'*`; '$postfix
+@compatversion@endif
 unset _histchar
 unset prefix
 unset postfix
 
+@compatversion@# define function to switch between C and Tcl versions of Modules
+@compatversion@if ( "`alias switchml`" == '' ) then
+@compatversion@   alias switchml 'set swfound=1; \
+@compatversion@      if ( ! $?MODULE_USE_COMPAT_VERSION ) setenv MODULE_USE_COMPAT_VERSION 0; \
+@compatversion@      if ( "$MODULE_USE_COMPAT_VERSION" == "1" ) set swname="main"; \
+@compatversion@      if ( "$MODULE_USE_COMPAT_VERSION" == "1" && -e @libexecdir@/modulecmd.tcl ) set swfound=0; \
+@compatversion@      if ( "$MODULE_USE_COMPAT_VERSION" != "1" ) set swname="compatibility"; \
+@compatversion@      if ( "$MODULE_USE_COMPAT_VERSION" != "1" && -e @libexecdir@/modulecmd-compat ) set swfound=0; \
+@compatversion@      if ( $swfound == 0 && $swname == "main" ) setenv MODULE_USE_COMPAT_VERSION 0; \
+@compatversion@      if ( $swfound == 0 && $swname == "compatibility" ) setenv MODULE_USE_COMPAT_VERSION 1; \
+@compatversion@      if ( $swfound == 0 ) echo "Switching to Modules $swname version"; \
+@compatversion@      if ( $swfound == 0 ) source @initdir@/@SHELLNAME@; \
+@compatversion@      if ( $swfound != 0 ) echo "Cannot switch to Modules $swname version, command not found"; \
+@compatversion@      unset swfound swname;'
+@compatversion@endif
+@compatversion@
 if ( $?tcsh && $?prompt && -r @initdir@/tcsh_completion ) then
+@compatversion@if ( "$MODULE_USE_COMPAT_VERSION" != '1' ) then
    source @initdir@/tcsh_completion
+@compatversion@else
+@compatversion@   # no completion support on compat version
+@compatversion@   uncomplete module
+@compatversion@endif
 endif
 
 # setup ENV variables to get module defined in sub-shells (works for 'sh'
@@ -73,6 +105,7 @@ if (! $?LOADEDMODULES ) then
 endif
 
 # load modulerc only if module environment is empty
-if ( -r @initdir@/modulerc && "$MODULEPATH" == '' && "$LOADEDMODULES" == '' ) then
+@notcompatversion@if ( -r @initdir@/modulerc && "$MODULEPATH" == '' && "$LOADEDMODULES" == '' ) then
+@compatversion@if ( "$MODULE_USE_COMPAT_VERSION" != '1' && -r @initdir@/modulerc && "$MODULEPATH" == '' && "$LOADEDMODULES" == '' ) then
    module source @initdir@/modulerc
 endif

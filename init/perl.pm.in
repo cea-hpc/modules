@@ -1,5 +1,11 @@
 sub module {
-   eval `@TCLSH@ @libexecdir@/modulecmd.tcl perl @_`;
+@notcompatversion@   eval `@TCLSH@ @libexecdir@/modulecmd.tcl perl @_`;
+@compatversion@   # set module command in accordance with active version
+@compatversion@   if ($ENV{'MODULE_USE_COMPAT_VERSION'} eq '1') {
+@compatversion@      eval `@libexecdir@/modulecmd-compat perl @_`;
+@compatversion@   } else {
+@compatversion@      eval `@TCLSH@ @libexecdir@/modulecmd.tcl perl @_`;
+@compatversion@   }
    if ($@) {
       use Carp;
       confess "module-error: $@\n";
@@ -24,7 +30,8 @@ if (!defined $ENV{LOADEDMODULES}) {
 }
 
 # load modulerc only if module environment is empty
-if ( -r '@initdir@/modulerc' && $ENV{"MODULEPATH"} eq '' && $ENV{LOADEDMODULES} eq '') {
+@notcompatversion@if ( -r '@initdir@/modulerc' && $ENV{"MODULEPATH"} eq '' && $ENV{LOADEDMODULES} eq '') {
+@compatversion@if ($ENV{'MODULE_USE_COMPAT_VERSION'} ne '1' && -r '@initdir@/modulerc' && $ENV{"MODULEPATH"} eq '' && $ENV{LOADEDMODULES} eq '') {
    module('source', '@initdir@/modulerc');
 }
 

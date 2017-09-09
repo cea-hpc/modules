@@ -1,3 +1,16 @@
+@compatversion@# set module command in accordance with active version
+@compatversion@if("$ENV{MODULE_USE_COMPAT_VERSION}" STREQUAL "1")
+@compatversion@function(module)
+@compatversion@   execute_process(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
+@compatversion@      OUTPUT_VARIABLE tempfile_name)
+@compatversion@   execute_process(COMMAND @libexecdir@/modulecmd-compat cmake ${ARGV}
+@compatversion@      OUTPUT_FILE ${tempfile_name})
+@compatversion@   if(EXISTS ${tempfile_name})
+@compatversion@      include(${tempfile_name})
+@compatversion@      file(REMOVE ${tempfile_name})
+@compatversion@   endif()
+@compatversion@endfunction(module)
+@compatversion@else()
 function(module)
    execute_process(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
       OUTPUT_VARIABLE tempfile_name)
@@ -8,6 +21,7 @@ function(module)
       file(REMOVE ${tempfile_name})
    endif()
 endfunction(module)
+@compatversion@endif()
 
 set(ENV{MODULESHOME} "@prefix@")
 
@@ -26,6 +40,7 @@ if(NOT DEFINED ENV{LOADEDMODULES})
 endif()
 
 # load modulerc only if module environment is empty
-if(EXISTS @initdir@/modulerc AND "$ENV{MODULEPATH}" STREQUAL "" AND "$ENV{LOADEDMODULES}" STREQUAL "")
+@notcompatversion@if(EXISTS @initdir@/modulerc AND "$ENV{MODULEPATH}" STREQUAL "" AND "$ENV{LOADEDMODULES}" STREQUAL "")
+@compatversion@if(NOT "$ENV{MODULE_USE_COMPAT_VERSION}" STREQUAL "1" AND EXISTS @initdir@/modulerc AND "$ENV{MODULEPATH}" STREQUAL "" AND "$ENV{LOADEDMODULES}" STREQUAL "")
    module(source @initdir@/modulerc)
 endif()
