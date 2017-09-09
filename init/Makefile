@@ -97,6 +97,8 @@ install: all
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/module
 ifeq ($(compatversion),y)
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/switchml
+else
+	rm -f $(DESTDIR)$(initdir)/ksh-functions/switchml
 endif
 	cp -P --remove-destination $(ALL_CONFIG) $(DESTDIR)$(initdir)/
 ifeq ($(examplemodulefiles),y)
