@@ -108,6 +108,14 @@ dist: ChangeLog README
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' $^
+ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
+	make -C $(COMPAT_DIR) distdir
+	mv $(COMPAT_DIR)/modules-* compatdist
+	tar -cf compatdist.tar --transform 's,^compatdist,$(DIST_PREFIX)/compat,' compatdist
+	tar --concatenate -f $(DIST_PREFIX).tar compatdist.tar
+	rm -rf compatdist
+	rm compatdist.tar
+endif
 	gzip -f -9 $(DIST_PREFIX).tar
 
 srpm: dist
