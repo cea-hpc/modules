@@ -31,6 +31,10 @@ ifneq ($(loadedmodules),)
     $(subst :, ,$(loadedmodules)))
 endif
 
+ifeq ($(compatversion),y)
+SH_LIKE += profile-compat.sh
+CSH_LIKE += profile-compat.csh
+endif
 
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
@@ -85,6 +89,10 @@ tcsh: csh.in
 
 # this rule is needed for profile.sh to get matched
 profile.sh: profile.sh.in
+	$(translate-in-script)
+
+# this rule is needed for profile-compat.sh to get matched
+profile-compat.sh: profile-compat.sh.in
 	$(translate-in-script)
 
 install: all
