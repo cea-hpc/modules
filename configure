@@ -56,6 +56,9 @@ docdir=
 modulefilesdir=
 modulepath=
 
+# git branch to use to build compat version
+compatbranch='c-3.2'
+
 
 # print message on stderr then exit
 echo_error() {
@@ -299,8 +302,36 @@ if [ "$compatversion" = 'y' ]; then
          check_requirement autopoint
 
          echo "--- preparing compatibility version sources ------"
-         # quit if issue, base on version 3.2 compatbility branch
-         git worktree add compat c-3.2 || exit 1
+         repofull=1
+         # retrieve compat version branch if not found locally
+         git rev-parse --verify $compatbranch >/dev/null 2>/dev/null
+         if [ $? -ne 0 ]; then
+            curbranch=$(git rev-parse --abbrev-ref HEAD)
+            curremote=$(git remote show | head -n 1)
+            curnbcomm=$(git rev-list $curbranch | wc -l)
+            if [ $curnbcomm -lt 100 ]; then
+               repofull=0
+            else
+               git fetch $curremote $compatbranch || exit 1
+               git branch $compatbranch $curremote/$compatbranch || exit 1
+            fi
+         fi
+
+         # repository is truncated, need to standalone clone compat branch
+         if [ $repofull -eq 0 ]; then
+            curremoteurl=$(git config --get remote.$curremote.url)
+            git clone --branch=$compatbranch $curremoteurl compat || exit 1
+         else
+            # install compat git branch in a directory
+            git worktree list >/dev/null 2>/dev/null
+            if [ $? -eq 0 ]; then
+               git worktree add compat $compatbranch || exit 1
+            else
+               # clone branch if no worktree command supported
+               git clone --branch=$compatbranch .git compat || exit 1
+            fi
+         fi
+
          pushd compat
          autoreconf -f -i || exit 1
          popd
