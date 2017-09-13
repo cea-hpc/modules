@@ -23,7 +23,7 @@ endif
 include Makefile.inc
 
 ifeq ($(compatversion),y)
-all: initdir pkgdoc modulecmd.tcl ChangeLog README $(COMPAT_DIR)/modulecmd
+all: initdir pkgdoc modulecmd.tcl ChangeLog README $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
 else
 all: initdir pkgdoc modulecmd.tcl ChangeLog README
 endif
@@ -54,11 +54,11 @@ README:
 	perl -pe 's|^\[\!\[.*\].*\n||;' $@.md > $@
 
 # compatibility version-related rules
-$(COMPAT_DIR)/modulecmd:
+$(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog:
 	make -C $(COMPAT_DIR) $(@F)
 
 ifeq ($(compatversion),y)
-install: modulecmd.tcl ChangeLog README $(COMPAT_DIR)/modulecmd
+install: modulecmd.tcl ChangeLog README $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
 else
 install: modulecmd.tcl ChangeLog README
 endif
@@ -79,6 +79,10 @@ ifeq ($(docinstall),y)
 	cp NEWS $(DESTDIR)$(docdir)/
 	cp README $(DESTDIR)$(docdir)/
 	cp INSTALL.txt $(DESTDIR)$(docdir)/INSTALL
+ifeq ($(compatversion),y)
+	cp $(COMPAT_DIR)/ChangeLog $(DESTDIR)$(docdir)/ChangeLog-compat
+	cp $(COMPAT_DIR)/NEWS $(DESTDIR)$(docdir)/NEWS-compat
+endif
 endif
 	make -C init install DESTDIR=$(DESTDIR)
 	make -C doc install DESTDIR=$(DESTDIR)
@@ -96,6 +100,9 @@ endif
 	rm -f $(DESTDIR)$(bindir)/envml
 ifeq ($(docinstall),y)
 	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog NEWS README INSTALL COPYING.GPLv2)
+ifeq ($(compatversion),y)
+	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog-compat NEWS-compat)
+endif
 endif
 	make -C init uninstall DESTDIR=$(DESTDIR)
 	make -C doc uninstall DESTDIR=$(DESTDIR)
