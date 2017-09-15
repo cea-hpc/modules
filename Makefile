@@ -3,7 +3,7 @@
 
 CURRENT_VERSION := $(shell grep '^set MODULES_CURRENT_VERSION' \
 	modulecmd.tcl.in | cut -d ' ' -f 3)
-DIST_PREFIX := modules-tcl-$(CURRENT_VERSION)
+DIST_PREFIX := modules-$(CURRENT_VERSION)
 
 # definitions for code coverage
 NAGELFAR_RELEASE := nagelfar125
@@ -87,7 +87,7 @@ endif
 	make -C init install DESTDIR=$(DESTDIR)
 	make -C doc install DESTDIR=$(DESTDIR)
 	@echo
-	@echo "NOTICE: Modules-Tcl installation is complete."
+	@echo "NOTICE: Modules installation is complete."
 	@echo "        Please read the 'Configuration' section in INSTALL.txt to learn"
 	@echo "        how to adapt your installation and make it fit your needs." >&2
 	@echo
@@ -139,8 +139,8 @@ ifeq ($(wildcard .git) $(wildcard README.md),.git README.md)
 	rm -f README
 endif
 	rm -f modulecmd.tcl
-	rm -f modules-tcl-*.tar.gz
-	rm -f modules-tcl-*.srpm
+	rm -f modules-*.tar.gz
+	rm -f modules-*.srpm
 	make -C init clean
 	make -C doc clean
 ifneq ($(wildcard $(COMPAT_DIR)/Makefile),)
