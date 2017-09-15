@@ -1,11 +1,16 @@
 .PHONY: install uninstall clean
 
+VERSION_FILE := ../modulecmd.tcl.in
+CURRENT_VERSION := $(shell grep '^set MODULES_CURRENT_VERSION' \
+	$(VERSION_FILE) | cut -d ' ' -f 3)
+
 SH_LIKE  = sh ksh bash zsh profile.sh bash_completion
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
 OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R
 
 # example modulefiles to install
-EXAMPLE_MODFILES = dot module-git module-info null use.own
+EXAMPLE_MODFILES_SRCDIR := ../contrib/modulefiles
+EXAMPLE_MODFILES = dot module-git module-info modules null use.own
 
 # source definitions shared across the Makefiles of this project
 ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
@@ -38,7 +43,7 @@ endif
 
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
-all: $(ALL_SHELLS) $(ALL_CONFIG)
+all: $(ALL_SHELLS) $(ALL_CONFIG) $(EXAMPLE_MODFILES_SRCDIR)/modules
 
 # if enabled translate to keep text after markup elsewhere remove the
 # entire line
@@ -74,6 +79,7 @@ perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@modulerc\@|$(modulerc)|g; \
 	s|\@modulepath\@|$(modulepath)|g; \
 	s|\@SHELLNAME\@|$@|g; \
+	s|\@VERSION\@|$(CURRENT_VERSION)|g; \
 	s|\@TCLSH\@|$(TCLSH)|g' $< > $@
 endef
 
@@ -95,6 +101,9 @@ profile.sh: profile.sh.in
 profile-compat.sh: profile-compat.sh.in
 	$(translate-in-script)
 
+$(EXAMPLE_MODFILES_SRCDIR)/modules: $(EXAMPLE_MODFILES_SRCDIR)/modules.in
+	$(translate-in-script)
+
 install: all
 	mkdir -p $(DESTDIR)$(initdir)
 	mkdir -p $(DESTDIR)$(initdir)/ksh-functions
@@ -110,7 +119,7 @@ else
 endif
 	cp -P --remove-destination $(ALL_CONFIG) $(DESTDIR)$(initdir)/
 ifeq ($(examplemodulefiles),y)
-	cp $(addprefix ../contrib/modulefiles/,$(EXAMPLE_MODFILES)) $(DESTDIR)$(modulefilesdir)/
+	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_MODFILES)) $(DESTDIR)$(modulefilesdir)/
 endif
 
 uninstall:
@@ -133,4 +142,4 @@ endif
 	rmdir $(DESTDIR)$(initdir)
 
 clean:
-	rm -f $(ALL_SHELLS) modulerc .modulespath
+	rm -f $(ALL_SHELLS) modulerc .modulespath $(EXAMPLE_MODFILES_SRCDIR)/modules
