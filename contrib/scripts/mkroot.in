@@ -1,0 +1,99 @@
+#! /bin/sh
+#
+# @configure_input@
+#
+PERMS=755
+usage() {
+	cat <<EOF
+
+$0
+	makes all the usual ./bin, ./sbin, ./etc, ./lib, ./include, ./info
+	and BSD-style ./man/\* directories
+	if the first option is "-c" it will clean out any empty directories
+	of same.
+	It also sets the permissions to $PERMS on the directories
+	unless overridden by the -p option.
+usage:	$0 [-p|--perms XXX] [-m|--make] [-c|--clean]
+	-p XXX	permissions for directories in chmod suitable format
+	-m	make directories in the current directory
+	-c	clean out empty directories
+
+	Note common man directory conventions
+	'1' - user commands 
+        '3' - library functions 
+        '5' - file formats and conventions 
+        '7' - macro packages and conventions 
+        '8' - administrative commands 
+        'l' - local commands
+
+	by R.K.Owen,Ph.D.
+	version '$Revision: 1.1.1.1.28.1 $	$Date: 2010/11/11 18:23:18 $'
+
+EOF
+}
+
+if [ $# -eq 0 ]
+then
+	usage
+	exit 1
+fi
+
+while [ $# -gt 0 ]
+do
+	case $1 in
+	-p|-perms|--p|--perms)
+		shift
+		PERMS=$1
+		shift
+		continue
+		;;
+	-c|-clean|--c|--clean)
+		if [ ! -s ./man/whatis ]; then 
+			rm ./man/whatis
+		else
+			echo ./man/whatis is not empty
+		fi
+		for m in 1 2 3 4 5 6 7 8 n p l
+		do
+			if [ -d ./man/man$m ]; then if [ `ls ./man/man$m|wc -l` -eq 0 ]; then
+				rmdir ./man/man$m
+				if [ -d ./man/cat$m ]; then if [ `ls ./man/cat$m|wc -l` -eq 0 ]; then
+					rmdir ./man/cat$m
+				else
+					echo ./man/cat$m is not empty
+				fi;fi
+			else
+				echo ./man/man$m is not empty
+			fi;fi
+		done
+		for d in bin sbin etc lib include info man
+		do
+			if [ -d ./$d ]; then if [ `ls ./$d|wc -l` -eq 0 ]; then
+				rmdir ./$d
+			else
+				echo ./$d is not empty
+			fi;fi
+		done
+		exit
+		;;
+	-m|-make|--m|--make)
+		for d in bin sbin etc lib include info man
+		do
+			mkdir ./$d ; chmod $PERMS ./$d
+		done
+		touch ./man/whatis ; chmod $PERMS ./man/whatis
+		for m in 1 2 3 4 5 6 7 8 n p l
+		do
+			mkdir ./man/man$m ; chmod $PERMS ./man/man$m
+			mkdir ./man/cat$m ; chmod $PERMS ./man/cat$m
+		done
+		exit
+		;;
+	*)
+		usage
+		exit 2
+		;;
+	esac
+done
+
+exit
