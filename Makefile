@@ -23,9 +23,10 @@ endif
 include Makefile.inc
 
 ifeq ($(compatversion),y)
-all: initdir pkgdoc modulecmd.tcl ChangeLog README $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
+all: initdir pkgdoc modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
+	$(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
 else
-all: initdir pkgdoc modulecmd.tcl ChangeLog README
+all: initdir pkgdoc modulecmd.tcl ChangeLog README contrib/scripts/add.modules
 endif
 
 initdir:
@@ -53,14 +54,20 @@ ChangeLog:
 README:
 	perl -pe 's|^\[\!\[.*\].*\n||;' $@.md > $@
 
+contrib/scripts/add.modules: contrib/scripts/add.modules.in
+	perl -pe 's|\@prefix\@|$(prefix)|g; \
+		s|\@libexecdir\@|$(libexecdir)|g; \
+		s|\@TCLSH\@|$(TCLSH)|g' $< > $@
+
 # compatibility version-related rules
 $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog:
 	make -C $(COMPAT_DIR) $(@F)
 
 ifeq ($(compatversion),y)
-install: modulecmd.tcl ChangeLog README $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
+install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
+	$(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
 else
-install: modulecmd.tcl ChangeLog README
+install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules
 endif
 	mkdir -p $(DESTDIR)$(libexecdir)
 	mkdir -p $(DESTDIR)$(bindir)
@@ -72,6 +79,10 @@ ifeq ($(compatversion),y)
 endif
 	cp contrib/envml $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/envml
+	cp contrib/scripts/add.modules $(DESTDIR)$(bindir)/
+	chmod +x $(DESTDIR)$(bindir)/add.modules
+	cp contrib/scripts/mkroot $(DESTDIR)$(bindir)/
+	chmod +x $(DESTDIR)$(bindir)/mkroot
 ifeq ($(docinstall),y)
 	mkdir -p $(DESTDIR)$(docdir)
 	cp COPYING.GPLv2 $(DESTDIR)$(docdir)/
@@ -98,6 +109,8 @@ ifeq ($(compatversion),y)
 	rm -f $(DESTDIR)$(libexecdir)/modulecmd-compat
 endif
 	rm -f $(DESTDIR)$(bindir)/envml
+	rm -f $(DESTDIR)$(bindir)/add.modules
+	rm -f $(DESTDIR)$(bindir)/mkroot
 ifeq ($(docinstall),y)
 	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog NEWS README INSTALL COPYING.GPLv2)
 ifeq ($(compatversion),y)
@@ -139,6 +152,7 @@ ifeq ($(wildcard .git) $(wildcard README.md),.git README.md)
 	rm -f README
 endif
 	rm -f modulecmd.tcl
+	rm -f contrib/scripts/add.modules
 	rm -f modules-*.tar.gz
 	rm -f modules-*.srpm
 	make -C init clean
