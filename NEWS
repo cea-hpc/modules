@@ -2,6 +2,98 @@ This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
 
+Changes in Modules 4.0.0 (2017-XX-XX)
+-------------------------------------
+
+Starting with this release, modules-tcl has become Modules. The following
+changes describe the differences with last modules-tcl release (1.923). To
+learn about the changes between this release and last Modules 3.2 release,
+please see `MIGRATING`.
+
+  * Relax constraint on command-line argument position so options and
+    switches can be passed either before or after command name.
+  * Report 'unsupported option' warning rather stop on error when
+    compatibility-version specific command-line switches are passed (--force,
+    --human, --verbose, --silent, --create, --icase, --userlvl).
+  * Keep empty 'module load' line in shell configuration files after running
+    the 'initrm' or 'initclear' commands.
+  * Always return the value of 'tcl_platform(osVersion)' for 'uname release'
+  * Optimize code output, for Perl to only return '1;' once for a no-operation
+    situation and for Python to not 'import os' when there is only an error
+    to render.
+  * Use value of system command 'uname -n' for 'uname nodename'.
+  * Add support for CMake 'shell'
+  * Ignore '/' character used as suffix in modulefile name passed on command
+    line.
+  * Rename Perl initialization script in 'perl.pm' and Python in 'python.py'.
+  * Add support for Ruby 'shell' (with contribution from Tammo Tjarks)
+  * Add support for R 'shell' (with contribution from Roy Storey)
+  * When a 'default' is set for a given module name, target modulefile can
+    be referred on as 'modulename/default' in addition to just 'modulename'.
+  * Locate symbolic versions on 'avail' command even these symbols are set
+    over a module alias or another symbolic version. In this situation the
+    symbol spread along the resolution path until reaching a modulefile.
+  * Define a more standard shebang on modulecmd.tcl script.
+  * Determine modulefile corresponding to given module name using the loaded
+    context only on 'unload' situation.
+  * Enable to unload 'mod/dir/subdir/vers' when unload of 'mod' or 'mod/dir'
+    asked. Was previously working only if deep module to unload was also the
+    default version for these root names.
+  * Make -l/-t switches mutually exclusive. Last switch mentioned on the
+    command-line is honored.
+  * Output parsable modulepath header when -l/-t switches are enabled.
+  * When searching for a module in a given modulepath directory, if a module
+    alias or a symbolic version matches searched module but the target of
+    this alias or symbol is not found in current modulepath directory,
+    search for this target restarting search from the first modulepath in
+    list to ensure modulepath priority.
+  * Solve aliases or symbolic versions looking for all modulepaths on 'search'
+    and paths' commands. Was previously solved if their target was found in
+    same modulepath directory.
+  * Add support for hidden 'dot' modulefiles. A hidden modulefile does not
+    appear in case of wild search, it is only returned when search is about
+    its exact name.
+  * No table header print in --long mode on an 'avail' command if no result
+    are returned.
+  * Add blank line between displayed list of elements, for instance between
+    modulepath content on 'avail' command.
+  * Improve readability of error messages encountered during modulefile
+    execution by putting Tcl error message first after the 'Module ERROR'
+    prefix.
+  * Do not exit immediately when an internal error occurs in currently
+    interpreted modulefile. Consider this interpretation as failed and
+    continue to proceed the other modulefile arguments.
+  * When multiple modulefiles are passed on 'display', 'help' and 'test'
+    commands only output one separator line between 2 interpreted modulefiles.
+  * Fix environment settings stack handling issue when restoring stack after
+    a failed attempt to load a modulefile in a modulefile.
+  * Failed attempt to load or unload a modulefile within a modulefile now
+    leads to this upper modulefile load or unload failure. Previously upper
+    modulefile were loaded respectively unloaded even if its dependent
+    sub-modulefile failed to load or unload.
+  * During a 'switch' command, if the unloading part fails the loading part
+    will not be tried. Unloading part fails if module to unload does not
+    exist or its unload interpretation raise error.
+  * Init: use 'module source' rather shell command 'source' to load modulerc
+    system configuration in sh-kind, csh-kind and fish shell init scripts.
+  * Install: transform configuration options to bind to an existing
+    compatibility Modules version into option (--enable-compat-version) to
+    build and install this compatibility version along with main version.
+  * Init: adapt initialization scripts to handle both main and compatibility
+    version. By default a shell script enables main version and if the
+    environment variable MODULES_USE_COMPAT_VERSION is set to 1, the
+    compatibility version is enabled instead of main version.
+  * Install: import from compatibility version and install 'add.modules'
+    and 'mkroot' utility scripts (scripts developed by R.K. Owen).
+  * Install: update RPM spec file to handle compatibility version as a
+    'compat' sub-package.
+  * Add completion script for Fish shell (contribution from BEFH).
+
+Above changes describe the differences with modules-tcl release 1.923. To
+learn about the changes between Modules 4.0 and last Modules 3.2 release,
+please see `MIGRATING`.
+
+
 Changes in modules-tcl-1.923 (2017-07-20)
 -----------------------------------------
 
