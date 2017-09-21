@@ -1,0 +1,93 @@
+#completion for apt-get
+
+function __fish_module_no_subcommand --description 'Test if modulecmd has yet to be given the subcommand'
+	for i in (commandline -opc)
+		if contains -- $i add load rm unload swap switch show display list avail aliases use unuse refresh reload purge source whatis apropos keyword search test save restore saverm saveshow savelist initadd initprepend initrm initswitch initlist initclear path paths
+			return 1
+		end
+	end
+	return 0
+end
+
+function __fish_module_use_avail --description 'Test if module command should have available packages as potential completion'
+	for i in (commandline -opc)
+		if contains -- $i help add load swap switch show display list avail source whatis test initadd initprepend path paths
+			return 0
+		end
+	end
+	return 1
+end
+
+function __fish_module_use_list --description 'Test if module command should have loaded packages as potential completion'
+	for i in (commandline -opc)
+		if contains -- $i swap switch list
+			return 0
+		end
+	end
+	return 1
+end
+
+function __fish_module_use_initlist --description 'Test if module command should have packages in init file as potential completion'
+	for i in (commandline -opc)
+		if contains -- $i initrm initswitch
+			return 0
+		end
+	end
+	return 1
+end
+
+function __fish_module_use_savelist --description 'Test if module command should have saved collections as potential completion'
+	for i in (commandline -opc)
+		if contains -- $i save restore saverm saveshow savelist
+			return 0
+		end
+	end
+	return 1
+end
+
+complete -c module -n '__fish_module_use_avail' -a '(module avail -t)' --description 'availible module'
+complete -c module -n '__fish_module_use_list' -a '(module list -t)' --description 'loaded module'
+complete -c module -n '__fish_module_use_initlist' -a '(module initlist -t)' --description 'init module'
+complete -c module -n '__fish_module_use_avail' -a '(module savelist -t)' --description 'collection'
+
+complete -c apt-get -s h -l help --description 'Display help and exit'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'help' --description 'Print the usage of each sub-command. If an argument is given, print the Module-specific help information for the modulefile.'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'avail' --description 'List available modulefiles in MODULEPATH'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'add load' --description 'Load modulefile into the shell environment'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'rm unload' --description 'Remove modulefile from the shell environment'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'swap switch' --description 'Switch loaded modulefile with another modulefile'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'show display' --description 'Display information about one or more modulefiles'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'list' --description 'List loaded modules'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'aliases' --description 'List all available symbolic version-names and aliases'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'use' --description 'Prepend one or more directories to the MODULEPATH environment variable. The --append flag will append the directory to MODULEPATH'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'unuse' --description 'Remove one or more directories from the MODULEPATH environment variable'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'refresh reload' --description 'Unload then load all loaded modulefiles'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'purge' --description 'Unload all loaded modulefiles'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'source' --description 'Execute modulefile into the shell environment'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'whatis' --description 'Display the information set up by the module-whatis commands'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'apropos keyword search' --description 'Seeks through the module-whatis informations of all modulefiles for the specified string'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'test' --description 'Execute and display results of the Module-specific tests for the modulefile'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'save' --description 'Record the currently set MODULEPATH directory list and the currently loaded modulefiles in a collection file under the user collection directory $HOME/.module'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'restore' --description 'Restore the environment state as defined in collection. If collection name is not specified, then it is assumed to be the default collection'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'saverm' --description 'Delete the collection file under the user collection directory'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'saveshow' --description 'Display the content of collection. If collection name is not specified, then it is assumed to be the default collection'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'savelist' --description 'List collections that are currently saved under the user collection directory'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'initadd' --description 'Add modulefile to initialization file in the user home directory'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'initprepend' --description 'prepend modulefile to initialization file in the user home directory'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'initrm' --description 'remove modulefile from the initialization files'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'initswitch' --description 'Switch modulefile1 with modulefile2 in the initialization files'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'initlist' --description 'List all of the modulefiles loaded from the initialization files'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'initclear' --description 'Clear all of the modulefiles from theinitialization files'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'path' --description 'Print path to modulefile'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'paths' --description 'Print path of available modulefiles matching argument'
+
+complete -c module -s V -l version --description 'Lists the current version of the module command.'
+complete -c module -s D -l debug --description 'Debug mode'
+complete -c module -s t -l terse --description 'Display avail, list and savelist output in short format'
+complete -c module -s l -l long --description 'Display avail, list and savelist output in long format'
+complete -c module -s d -l default --description 'On avail sub-command, display only the default version of each module name'
+complete -c module -s L -l latest --description 'On avail sub-command, display only the highest numerically sorted version of each module name'
+
+complete -r -c apt-get -s c -l config-file --description 'Specify a config file'
+complete -r -c apt-get -s o -l option --description 'Set a config option'
+
