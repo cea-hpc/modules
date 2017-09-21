@@ -4,7 +4,7 @@ case "$-" in
    *i*)
 @notcompatversion@      _moduleraw() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
 @compatversion@      # set module command in accordance with active version
-@compatversion@      if [ "$MODULE_USE_COMPAT_VERSION" = '1' ]; then
+@compatversion@      if [ "$MODULES_USE_COMPAT_VERSION" = '1' ]; then
 @compatversion@         _moduleraw() { eval `@libexecdir@/modulecmd-compat sh $*`; }
 @compatversion@      else
 @compatversion@         _moduleraw() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
@@ -18,7 +18,7 @@ case "$-" in
       ;;
    *)
 @notcompatversion@      module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
-@compatversion@      if [ "$MODULE_USE_COMPAT_VERSION" = '1' ]; then
+@compatversion@      if [ "$MODULES_USE_COMPAT_VERSION" = '1' ]; then
 @compatversion@         module() { eval `@libexecdir@/modulecmd-compat sh $*`; }
 @compatversion@      else
 @compatversion@         module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
@@ -31,17 +31,17 @@ esac
 @compatversion@# define function to switch between C and Tcl versions of Modules
 @compatversion@switchml() {
 @compatversion@   swfound=1
-@compatversion@   if [ "$MODULE_USE_COMPAT_VERSION" = '1' ]; then
+@compatversion@   if [ "$MODULES_USE_COMPAT_VERSION" = '1' ]; then
 @compatversion@      swname='main'
 @compatversion@      if [ -e @libexecdir@/modulecmd.tcl ]; then
 @compatversion@         swfound=0
-@compatversion@         unset MODULE_USE_COMPAT_VERSION
+@compatversion@         unset MODULES_USE_COMPAT_VERSION
 @compatversion@      fi
 @compatversion@   else
 @compatversion@      swname='compatibility'
 @compatversion@      if [ -e @libexecdir@/modulecmd-compat ]; then
 @compatversion@         swfound=0
-@compatversion@         MODULE_USE_COMPAT_VERSION=1; export MODULE_USE_COMPAT_VERSION
+@compatversion@         MODULES_USE_COMPAT_VERSION=1; export MODULES_USE_COMPAT_VERSION
 @compatversion@      fi
 @compatversion@   fi
 @compatversion@
@@ -92,6 +92,6 @@ fi
 
 # load modulerc only if module environment is empty
 @notcompatversion@if [ -r @initdir@/modulerc -a "$MODULEPATH" = '' -a "$LOADEDMODULES" = '' ]; then
-@compatversion@if [ "$MODULE_USE_COMPAT_VERSION" != '1' -a -r @initdir@/modulerc -a "$MODULEPATH" = '' -a "$LOADEDMODULES" = '' ]; then
+@compatversion@if [ "$MODULES_USE_COMPAT_VERSION" != '1' -a -r @initdir@/modulerc -a "$MODULEPATH" = '' -a "$LOADEDMODULES" = '' ]; then
    module source @initdir@/modulerc
 fi

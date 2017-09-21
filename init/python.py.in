@@ -2,7 +2,7 @@ import os, re, subprocess
 
 @notcompatversion@def module(command, *arguments):
 @notcompatversion@   exec(subprocess.Popen(['@TCLSH@', '@libexecdir@/modulecmd.tcl', 'python', command] + list(arguments), stdout=subprocess.PIPE).communicate()[0])
-@compatversion@if 'MODULE_USE_COMPAT_VERSION' in os.environ and os.environ['MODULE_USE_COMPAT_VERSION'] == '1':
+@compatversion@if 'MODULES_USE_COMPAT_VERSION' in os.environ and os.environ['MODULES_USE_COMPAT_VERSION'] == '1':
 @compatversion@   # set module command in accordance with active version
 @compatversion@   def module(command, *arguments):
 @compatversion@      exec(subprocess.Popen(['@libexecdir@/modulecmd-compat', 'python', command] + list(arguments), stdout=subprocess.PIPE).communicate()[0])
@@ -28,5 +28,5 @@ if not 'LOADEDMODULES' in os.environ:
 
 # load modulerc only if module environment is empty
 @notcompatversion@if os.access('@initdir@/modulerc', os.R_OK) and not os.environ['MODULEPATH'] and not os.environ['LOADEDMODULES']:
-@compatversion@if (not 'MODULE_USE_COMPAT_VERSION' in os.environ or os.environ['MODULE_USE_COMPAT_VERSION'] != '1') and os.access('@initdir@/modulerc', os.R_OK) and not os.environ['MODULEPATH'] and not os.environ['LOADEDMODULES']:
+@compatversion@if (not 'MODULES_USE_COMPAT_VERSION' in os.environ or os.environ['MODULES_USE_COMPAT_VERSION'] != '1') and os.access('@initdir@/modulerc', os.R_OK) and not os.environ['MODULEPATH'] and not os.environ['LOADEDMODULES']:
    module('source', '@initdir@/modulerc')
