@@ -6,7 +6,7 @@ CURRENT_VERSION := $(shell grep '^set MODULES_CURRENT_VERSION' \
 
 SH_LIKE  = sh ksh bash zsh profile.sh bash_completion
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
-OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R
+OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R fish_completion
 
 # example modulefiles to install
 EXAMPLE_MODFILES_SRCDIR := ../contrib/modulefiles
