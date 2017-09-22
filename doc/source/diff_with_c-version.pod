@@ -12,7 +12,7 @@ This section describes the features of the compatibility version that are not su
 
 =head2 Package Initialization
 
-B<MODULESBEGINENV> environment snapshot functionality is not supported on version 4. Modules collection mechanism should be preferred to save and restore sets of enabled modulepaths and loaded modulefiles.
+B<MODULESBEGINENV> environment snapshot functionality is not supported on version 4. Modules collection mechanism should be preferred to save and restore sets of enabled modulepaths and loaded modulefiles. Modules 4 also introduce a system configuration file F<etc/modulerc>, located in Modules installation directory. This F<modulerc> file is sourced by Modules shell initialization scripts and helps to setup the initial environment right after initializing the B<module> command.
 
 =head2 Command line switches
 
@@ -33,6 +33,12 @@ B<MODULESBEGINENV> environment snapshot functionality is not supported on versio
 =item B<--userlvl> lvl, B<-u> lvl
 
 These command line switches are not supported on Modules 4. When these options are passed on the command-line, it produces an I<Unsupported option> warning and command is ran with the unsupported switches ignored.
+
+=item B<--ter>
+
+=item B<--lon>
+
+These intermediate-form command line switches are not supported on Modules 4. Short or long switch name should be used instead.
 
 =item B<-h>
 
@@ -70,7 +76,9 @@ On version 4, B<ModulesDisplay> subroutine is not ran if an error occurred durin
 
 =item B<avail>
 
-On compatibility version, the same Tcl interpreter is used for the interpretation of all F<.modulerc> or F<.version> files during an B<avail> command but the state of this interpreter is not reset between each interpretation. So some variable and procedure definitions may spread from one interpretation to another on this compatibility version.
+On compatibility version, the same Tcl interpreter is used for the interpretation of all F<.modulerc> or F<.version> files during an B<avail> command but the state of this interpreter is not reset between each interpretation. So some variable and procedure definitions may spread from one interpretation to another on this compatibility version. Modules 4 reuses the same interpreter for all F<.modulerc> or F<.version> interpretation but it is cleaned between each interpretation to protect from definition spread.
+
+In case of B<--terse> or B<--long> mode, all enabled modulepaths will be displayed whether they hold result to display or not. Modules 4 outputs only the modulepaths where matching results are found. Modulepaths with no result to report are discarded from output.
 
 =item B<apropos>
 
@@ -80,11 +88,29 @@ On Modules 4, I<string> passed as argument is always searched in a case insensit
 
 On Modules 4, the value of an environment variable is set even if the new value is the same as the current value of this variable in environment.
 
+When an already loaded I<modulefiles> is asked for load again, compatibility version will refresh the shell alias definition this modulefile hold if any, whereas Modules 4 will ignore the new load order.
+
+In case of I<modulefile> loading another modulefile, if sub-modulefile load fails calling modulefile will still be loaded on compatibility version whereas Modules 4 will also abort calling modulefile load.
+
+=item B<unload>
+
+On Modules 4, the value of an environment variable is set even if the new value is the same as the current value of this variable in environment.
+
+Compatibility version enables to load a I<modulefile> by passing on the command-line the name of a module alias or symbolic version pointing to this modulefile. However this module alias or symbolic version name cannot be used to unload the modulefile once loaded. Modules 4 enables to pass a module alias or symbolic version name to unload a loaded modulefile referred by this name.
+
 =item B<switch>
 
-When switching on version 4 an I<old> modulefile by a I<new> one, no error is raised if I<old> modulefile is not currently loaded.
+When switching on version 4 an I<old> modulefile by a I<new> one, no error is raised if I<old> modulefile is not currently loaded. In this situation compatibility version throws an error and abort switch action.
 
 When switching on Modules 4 an I<old> modulefile by a I<new> one, this I<new> modulefile does not keep the position that the I<old> modulefile had in the B<LOADEDMODULES> list as done on compatibility version but it is appended to the end of the list. Same goes for PATH-like environment variables: replaced PATH component is appended to the end or prepended to the beginning of the relative PATH-like variable, not appended or prepended relatively to the position hold by the swapped PATH component.
+
+=item B<use>
+
+When the modulepath to enable is passed as a relative path, compatibility version will set it using passed relative name whereas Modules 4 will determine the corresponding absolute path and will register it rather passed relative name.
+
+=item B<unuse>
+
+Modules 4 provides path element counting feature which increases a reference counter each time a given path entry is added to a given environment variable. This feature also applies to the B<MODULEPATH> environment variable. As consequence a modulepath entry element is removed from the modulepath enabled list only if the related element counter is equal to 1. When unusing a modulepath if its reference counter is greater than 1, modulepath is kept enabled and reference counter is decreased by 1.
 
 =item B<initadd>
 
@@ -109,6 +135,18 @@ Empty B<module load> lines are left on version 4 whereas B<module load null> lin
 =head2 Modules Specific Tcl Commands
 
 =over
+
+=item B<append-path>
+
+=item B<prepend-path>
+
+Modules 4 produces an error when adding a bare colon character I<:> as a path element to a path-like variable, as this colon cannot be distinguished from the colon used for path separator.
+
+Modules 4 supports adding or removing empty path element to a path-like variable, whereas compatibility version looses track of this path element when the path-like variable is modified afterward. Empty path element enables to set a leading colon character I<:>, which has a specific meaning on some regular environment variable like B<MANPATH> or B<LD_LIBRARY_PATH>.
+
+=item B<remove-path>
+
+Modules 4 provides path element counting feature which increases a reference counter each time a given path entry is added to a given environment variable. As consequence a path entry element is removed from a path-like variable only if the related element counter is equal to 1. If this counter is greater than 1, path element is kept in variable and reference counter is decreased by 1.
 
 =item B<exit>
 
@@ -148,6 +186,8 @@ Declared aliases or symbolic versions are not registered anymore if they introdu
 
 Declared aliases or symbolic versions are not registered anymore if they introduce a resolution loop. As a consequence symbolic versions introducing loop situation are not part anymore of the B<module-info symbols> returned result as they are not registered.
 
+A symbolic version sets on a module alias will be propagated toward the resolution path to also apply to the relative I<modulefile> if it still correspond to the same module name.
+
 =back
 
 =item B<module-log>
@@ -176,6 +216,10 @@ On version 4, when a module alias is set and overrides name of an existing direc
 
 When looking for an implicit default in a I<modulefile> directory, aliases are taken into account in addition to I<modulefiles> and directories to determine the highest numerically sorted element.
 
+Modules 4 will resolve module alias or symbolic version passed to B<unload> command to then remove the loaded modulefile pointed by the mentioned alias or symbolic version.
+
+Modules 4 resolves module alias or symbolic version pointing to a I<modulefile> located in another modulepath.
+
 Distinguish access issue (permission denied) from find issue (cannot locate) when trying to access directly a directory or a modulefile as done on B<load>, B<display> or B<whatis> commands. In addition, on this kind of access not readable F<.modulerc> or F<.version> files are ignored rather producing a missing magic cookie error.
 
 =head1 Features specific to the new main version
@@ -201,6 +245,8 @@ These command line switches are not supported on compatibility version.
 =back
 
 =head2 Module Sub-Commands
+
+All module sub-commands will return a non-zero exit code in case of error whereas on compatibility version issues that occurred do not lead to an exit of the B<module> command with a non-zero code.
 
 =over
 
