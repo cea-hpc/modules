@@ -6,7 +6,7 @@ CURRENT_VERSION := $(shell grep '^set MODULES_CURRENT_VERSION' \
 
 SH_LIKE  = sh ksh bash zsh profile.sh bash_completion
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
-OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R fish_completion
+OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R
 
 # example modulefiles to install
 EXAMPLE_MODFILES_SRCDIR := ../contrib/modulefiles
@@ -109,7 +109,7 @@ install: all
 	mkdir -p $(DESTDIR)$(initdir)/ksh-functions
 	mkdir -p $(DESTDIR)$(modulefilesdir)
 	cp $(ALL_SHELLS) $(DESTDIR)$(initdir)/
-	cp bash_completion $(DESTDIR)$(initdir)/
+	cp fish_completion $(DESTDIR)$(initdir)/
 	cp -r zsh-functions $(DESTDIR)$(initdir)/
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/module
 ifeq ($(compatversion),y)
@@ -123,7 +123,7 @@ ifeq ($(examplemodulefiles),y)
 endif
 
 uninstall:
-	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_SHELLS) bash_completion)
+	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_SHELLS) fish_completion)
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/module
 ifeq ($(compatversion),y)
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/switchml
