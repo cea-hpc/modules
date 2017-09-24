@@ -27,10 +27,10 @@ else
 man: $(MAN1_DIR)/module.1 $(MAN4_DIR)/modulefile.4
 endif
 
-txt: diff_with_c-version.txt
+txt: diff_v3_v4.txt
 
 html: $(HTML_DIR)/module.html $(HTML_DIR)/modulefile.html \
-	$(HTML_DIR)/diff_with_c-version.html
+	$(HTML_DIR)/diff_v3_v4.html
 
 all: html man txt
 
@@ -71,7 +71,7 @@ install: all
 	mkdir -p $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man4
 ifeq ($(docinstall),y)
 	mkdir -p $(DESTDIR)$(docdir)
-	cp diff_with_c-version.txt $(DESTDIR)$(docdir)/
+	cp diff_v3_v4.txt $(DESTDIR)$(docdir)/
 	cp example.txt $(DESTDIR)$(docdir)/
 endif
 	cp $(MAN1_DIR)/module.1 $(DESTDIR)$(mandir)/man1/
@@ -83,7 +83,7 @@ endif
 
 uninstall:
 ifeq ($(docinstall),y)
-	rm -f $(DESTDIR)$(docdir)/diff_with_c-version.txt
+	rm -f $(DESTDIR)$(docdir)/diff_v3_v4.txt
 	rm -f $(DESTDIR)$(docdir)/example.txt
 	rmdir $(DESTDIR)$(docdir)
 endif
@@ -109,5 +109,5 @@ endif
 ifneq ($(wildcard $(MAN_DIR)),)
 	rmdir $(MAN_DIR)
 endif
-	rm -f diff_with_c-version.txt
+	rm -f diff_v3_v4.txt
 	rm -f pod*.tmp

@@ -176,7 +176,7 @@ fi
 %else
 %license COPYING.GPLv2
 %endif
-%doc ChangeLog NEWS README MIGRATING doc/diff_with_c-version.txt
+%doc ChangeLog NEWS README MIGRATING doc/diff_v3_v4.txt
 %{_sysconfdir}/modulefiles
 %if 0%{?fedora}
 %ghost %{_sysconfdir}/profile.d/modules.csh
