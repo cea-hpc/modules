@@ -23,10 +23,10 @@ endif
 include Makefile.inc
 
 ifeq ($(compatversion),y)
-all: initdir pkgdoc modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
+all: initdir pkgdoc modulecmd.tcl ChangeLog README MIGRATING contrib/scripts/add.modules \
 	$(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
 else
-all: initdir pkgdoc modulecmd.tcl ChangeLog README contrib/scripts/add.modules
+all: initdir pkgdoc modulecmd.tcl ChangeLog README MIGRATING contrib/scripts/add.modules
 endif
 
 initdir:
@@ -51,7 +51,7 @@ modulecmd.tcl: modulecmd.tcl.in
 ChangeLog:
 	contrib/gitlog2changelog.py
 
-README:
+README MIGRATING:
 	perl -pe 's|^\[\!\[.*\].*\n||;' $@.md > $@
 
 contrib/scripts/add.modules: contrib/scripts/add.modules.in
@@ -64,10 +64,10 @@ $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog:
 	make -C $(COMPAT_DIR) $(@F)
 
 ifeq ($(compatversion),y)
-install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
+install: modulecmd.tcl ChangeLog README MIGRATING contrib/scripts/add.modules \
 	$(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
 else
-install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules
+install: modulecmd.tcl ChangeLog README MIGRATING contrib/scripts/add.modules
 endif
 	mkdir -p $(DESTDIR)$(libexecdir)
 	mkdir -p $(DESTDIR)$(bindir)
@@ -89,6 +89,7 @@ ifeq ($(docinstall),y)
 	cp ChangeLog $(DESTDIR)$(docdir)/
 	cp NEWS $(DESTDIR)$(docdir)/
 	cp README $(DESTDIR)$(docdir)/
+	cp MIGRATING $(DESTDIR)$(docdir)/
 	cp INSTALL.txt $(DESTDIR)$(docdir)/INSTALL
 ifeq ($(compatversion),y)
 	cp $(COMPAT_DIR)/ChangeLog $(DESTDIR)$(docdir)/ChangeLog-compat
@@ -112,7 +113,7 @@ endif
 	rm -f $(DESTDIR)$(bindir)/add.modules
 	rm -f $(DESTDIR)$(bindir)/mkroot
 ifeq ($(docinstall),y)
-	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog NEWS README INSTALL COPYING.GPLv2)
+	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog NEWS README MIGRATING INSTALL COPYING.GPLv2)
 ifeq ($(compatversion),y)
 	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog-compat NEWS-compat)
 endif
@@ -124,7 +125,7 @@ endif
 	rmdir $(DESTDIR)$(datarootdir)
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(prefix)
 
-dist: ChangeLog README
+dist: ChangeLog README MIGRATING
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' $^
@@ -150,6 +151,9 @@ ifeq ($(wildcard .git) $(wildcard contrib/gitlog2changelog.py),.git contrib/gitl
 endif
 ifeq ($(wildcard .git) $(wildcard README.md),.git README.md)
 	rm -f README
+endif
+ifeq ($(wildcard .git) $(wildcard MIGRATING.md),.git MIGRATING.md)
+	rm -f MIGRATING
 endif
 	rm -f modulecmd.tcl
 	rm -f contrib/scripts/add.modules
