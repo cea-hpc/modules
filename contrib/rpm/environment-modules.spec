@@ -209,7 +209,7 @@ fi
 
 
 %changelog
-* Mon Sep 18 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 4.0.0-0.1.beta
+* Mon Sep 25 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 4.0.0-0.1.beta
 - Update to 4.0.0-beta
 - Define compat subpackage to provide 3.2 compatiblity version also
   provided in source tarball

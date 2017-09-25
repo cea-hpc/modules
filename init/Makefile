@@ -2,7 +2,7 @@
 
 VERSION_FILE := ../modulecmd.tcl.in
 CURRENT_VERSION := $(shell grep '^set MODULES_CURRENT_VERSION' \
-	$(VERSION_FILE) | cut -d ' ' -f 3)
+	$(VERSION_FILE) | cut -d ' ' -f 3 | tr -d \")
 
 SH_LIKE  = sh ksh bash zsh profile.sh bash_completion
 CSH_LIKE = csh tcsh tcsh_completion profile.csh

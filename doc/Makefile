@@ -2,7 +2,7 @@
 
 VERSION_FILE := ../modulecmd.tcl.in
 MAN_VERSION := "modules $(shell grep '^set MODULES_CURRENT_VERSION' \
-	$(VERSION_FILE) | cut -d ' ' -f 3)"
+	$(VERSION_FILE) | cut -d ' ' -f 3 | tr -d \")"
 MAN_HEADER := "Environment Modules"
 
 HTML_DIR := html

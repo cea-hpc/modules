@@ -2,7 +2,7 @@
 	test testinstall instrument testcoverage
 
 CURRENT_VERSION := $(shell grep '^set MODULES_CURRENT_VERSION' \
-	modulecmd.tcl.in | cut -d ' ' -f 3)
+	modulecmd.tcl.in | cut -d ' ' -f 3 | tr -d \")
 DIST_PREFIX := modules-$(CURRENT_VERSION)
 
 # definitions for code coverage
@@ -184,7 +184,6 @@ else
 test: modulecmd.tcl
 endif
 	TCLSH=$(TCLSH); export TCLSH; \
-	MODULEVERSION=Tcl; export MODULEVERSION; \
 	OBJDIR=`pwd -P`; export OBJDIR; \
 	TESTSUITEDIR=`cd testsuite;pwd -P`; export TESTSUITEDIR; \
 	runtest --srcdir $$TESTSUITEDIR --objdir $$OBJDIR $(RUNTESTFLAGS) --tool modules
