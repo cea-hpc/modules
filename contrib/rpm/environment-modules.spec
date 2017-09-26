@@ -2,15 +2,13 @@
 
 Name:           environment-modules
 Version:        4.0.0
-Release:        0.1.beta%{?dist}
+Release:        0.2.beta%{?dist}
 Summary:        Provides dynamic modification of a user's environment
 
 Group:          System Environment/Base
 License:        GPLv2+
 URL:            http://modules.sourceforge.net/
 Source0:        http://downloads.sourceforge.net/modules/modules-%{version}-beta.tar.bz2
-Source1:        createmodule.sh
-Source2:        createmodule.py
 
 BuildRequires:  tcl
 BuildRequires:  dejagnu
@@ -121,7 +119,8 @@ mv %{buildroot}%{_datadir}/Modules/bin/envml %{buildroot}%{_bindir}/
 mv compat/ChangeLog ChangeLog-compat
 mv compat/NEWS NEWS-compat
 
-cp -p %SOURCE1 %SOURCE2 %{buildroot}%{_datadir}/Modules/bin
+cp -p contrib/scripts/createmodule.sh %{buildroot}%{_datadir}/Modules/bin
+cp -p contrib/scripts/createmodule.py %{buildroot}%{_datadir}/Modules/bin
 %if 0%{?fedora} >= 22
 sed -i -e 1s,/usr/bin/python,/usr/bin/python3, \
     %{buildroot}%{_datadir}/Modules/bin/createmodule.py
@@ -209,6 +208,9 @@ fi
 
 
 %changelog
+* Tue Sep 26 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 4.0.0-0.2.beta
+- Integrate createmodule.sh and createmodule.py in distribution tarball
+
 * Mon Sep 25 2017 Xavier Delaruelle <xavier.delaruelle@cea.fr> - 4.0.0-0.1.beta
 - Update to 4.0.0-beta
 - Define compat subpackage to provide 3.2 compatiblity version also
