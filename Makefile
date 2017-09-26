@@ -1,5 +1,5 @@
-.PHONY: doc pkgdoc www initdir install uninstall dist srpm clean distclean \
-	test testinstall instrument testcoverage
+.PHONY: doc pkgdoc www initdir install uninstall dist dist-tar dist-gzip \
+	dist-bzip2 srpm clean distclean test testinstall instrument testcoverage
 
 CURRENT_VERSION := $(shell grep '^set MODULES_CURRENT_VERSION' \
 	modulecmd.tcl.in | cut -d ' ' -f 3 | tr -d \")
@@ -125,7 +125,7 @@ endif
 	rmdir $(DESTDIR)$(datarootdir)
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(prefix)
 
-dist: ChangeLog README MIGRATING
+dist-tar: ChangeLog README MIGRATING
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' $^
@@ -137,10 +137,17 @@ ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
 	rm -rf compatdist
 	rm compatdist.tar
 endif
+
+dist-gzip: dist-tar
 	gzip -f -9 $(DIST_PREFIX).tar
 
-srpm: dist
-	rpmbuild -ts $(DIST_PREFIX).tar.gz
+dist-bzip2: dist-tar
+	bzip2 -f $(DIST_PREFIX).tar
+
+dist: dist-gzip
+
+srpm: dist-bzip2
+	rpmbuild -ts $(DIST_PREFIX).tar.bz2
 
 clean:
 	rm -f *.log *.sum
@@ -157,7 +164,7 @@ ifeq ($(wildcard .git) $(wildcard MIGRATING.md),.git MIGRATING.md)
 endif
 	rm -f modulecmd.tcl
 	rm -f contrib/scripts/add.modules
-	rm -f modules-*.tar.gz
+	rm -f modules-*.tar modules-*.tar.gz modules-*.tar.bz2
 	rm -f modules-*.srpm
 	make -C init clean
 	make -C doc clean
