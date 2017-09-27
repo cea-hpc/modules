@@ -189,6 +189,10 @@ path component is appended to the end or prepended to the beginning of
 the relative path-like variable, not appended or prepended relatively to
 the position hold by the swapped path component.
 
+During a **switch** command, version 4 interprets the swapped-out modulefile
+in *unload* mode, so the sub-modulefiles loaded, with `module load` order in
+the swapped-out modulefile are also unloaded during the switch.
+
 Modules 4 provides path element counting feature which increases a reference
 counter each time a given path entry is added to a given environment
 variable. This feature also applies to the `MODULEPATH` environment
