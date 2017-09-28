@@ -2109,6 +2109,16 @@ proc isModuleHidden {mod} {
    return 0
 }
 
+# check if module name is specified as a full pathname (not a name relative
+# to a modulepath)
+proc isModuleFullPath {mod} {
+   if {[string match {/*} $mod]} {
+      return 1
+   } else {
+      return 0
+   }
+}
+
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
@@ -2122,7 +2132,7 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
    reportDebug "getPathToModule: finding '$mod' in '$indir' (excdir='')"
 
    # Check for $mod specified as a full pathname
-   if {[string match {/*} $mod]} {
+   if {[isModuleFullPath $mod]} {
       # note that a raw filename as an argument returns the full
       # path as the module name
       lassign [checkValidModule $mod] check_valid check_msg
@@ -4065,19 +4075,25 @@ proc cmdModuleList {} {
             if {$show_oneperline} {
                lappend display_list $mod
             } else {
-               # call getModules to find and execute rc files for this module
-               set dir [getModulepathFromModuleName $g_loadedModules($mod)\
-                  $mod]
-               array set mod_list [getModules $dir $mod $show_modtimes]
-               set tag_list [getVersAliasList $mod]
+               # skip rc find and execution if mod is registered as full path
+               if {[isModuleFullPath $mod]} {
+                  set mtime [file mtime $mod]
+                  set tag_list {}
+               } else {
+                  # call getModules to find and execute rc files for this mod
+                  set dir [getModulepathFromModuleName $g_loadedModules($mod)\
+                     $mod]
+                  array set mod_list [getModules $dir $mod $show_modtimes]
+                  set mtime [lindex $mod_list($mod) 1]
+                  set tag_list [getVersAliasList $mod]
+               }
 
                if {$show_modtimes} {
                   # add to display file modification time in addition
                   # to potential tags
                   lappend display_list [format "%-40s%-20s%19s" $mod\
                      [join $tag_list ":"]\
-                     [clock format [lindex $mod_list($mod) 1]\
-                     -format "%Y/%m/%d %H:%M:%S"]]
+                     [clock format $mtime -format "%Y/%m/%d %H:%M:%S"]]
                } else {
                   if {[llength $tag_list]} {
                      append mod "(" [join $tag_list ":"] ")"

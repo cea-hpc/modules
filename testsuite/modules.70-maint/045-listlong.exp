@@ -11,7 +11,7 @@
 #
 #   Description:	Testuite testsequence
 #   Command:		list
-#   Modulefiles:	setenv/1.0
+#   Modulefiles:	setenv/1.0, loc_rc3, loc_rc4, loc_rc6
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -70,6 +70,20 @@ set env(LOADEDMODULES) "$module2/$version2:$module3/$version3"
 #
 
 testerr_cmd_re "csh" "list -t -l" "$ts_csh"
+
+
+#
+# Test loaded module specified as full path
+#
+
+set module "$env(MODULEPATH)/loc_rc3/1.0"
+set modulefile $module
+set ts_csh "$header$module\\s+\[0-9:\/ ]*"
+
+set env(_LMFILES_) $modulefile
+set env(LOADEDMODULES) $module
+
+testerr_cmd_re "csh" "-l list" "$ts_csh"
 
 
 #
