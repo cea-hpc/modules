@@ -252,3 +252,8 @@ Further reading
 
 To get a complete list of the differences between Modules v3.2 and v4,
 please read the `diff_v3_v4.txt` document.
+
+A significant number of issues reported for v3.2 have been closed on v4.
+List of these closed issues can be found at:
+
+    https://github.com/cea-hpc/modules/milestone/1?closed=1
