@@ -63,6 +63,23 @@ lappend ans [list set testsuite yes]
 test_cmd_re "ALL" "load $module_tron $module" $ans
 
 #
+# Tests playing with OR prereq list
+#
+
+set module "prereq/orlist"
+set modulefile "$env(MODULEPATH)/$module"
+set err_prereq "$warn_msgs: $module cannot be loaded due to missing prereq.\n"
+append err_prereq "HINT: at least one of the following modules must be loaded first: trace setenv loc_dv1"
+
+testouterr_cmd_re "ALL" "load $module" "ERR" "$err_prereq"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set testsuite yes]
+test_cmd_re "ALL" "load $module_tron $module" $ans
+
+#
 #  Cleanup
 #
 
