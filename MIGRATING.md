@@ -65,6 +65,20 @@ A symbolic version sets on a module alias is now propagated toward the
 resolution path to also apply to the relative modulefile if it still
 correspond to the same module name.
 
+### Hiding modulefiles
+
+Visibility of modulefiles can be adapted by use of file mode bits or file
+ownership. If a modulefile should only be used by a given subset of persons,
+its mode an ownership can be tailored to provide read rights to this group of
+people only. In this situation, module only reports the modulefile, during an
+**avail** command for instance, if this modulefile can be read by the current
+user.
+
+These hidden modulefiles are simply ignored when walking through the
+modulepath content. Access issues (permission denied) occur only when trying
+to access directly a hidden modulefile or when accessing a symbol or an alias
+targeting a hidden modulefile.
+
 ### Improved modulefiles location
 
 When looking for an implicit default in a modulefile directory, aliases
