@@ -42,7 +42,7 @@ Provides:       environment(modules)
 %else
 Provides:       environment-modules
 %endif
-Obsoletes:      modules-tcl
+Obsoletes:      modules-tcl <= 1.923
 
 %description
 The Environment Modules package provides for the dynamic modification of
