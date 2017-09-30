@@ -1,10 +1,5 @@
 .PHONY: install uninstall clean
 
-VERSION_FILE := ../modulecmd.tcl.in
-MAN_VERSION := "modules $(shell grep '^set MODULES_CURRENT_VERSION' \
-	$(VERSION_FILE) | cut -d ' ' -f 3 | tr -d \")"
-MAN_HEADER := "Environment Modules"
-
 HTML_DIR := html
 MAN_DIR := man
 MAN1_DIR := $(MAN_DIR)/man1
@@ -19,6 +14,12 @@ ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
   $(error ../Makefile.inc is missing, please run '../configure')
 endif
 include ../Makefile.inc
+
+# source version definitions shared across the Makefiles of this project
+include ../version.inc
+
+MAN_VERSION := "modules $(MODULES_RELEASE)$(MODULES_BUILD)"
+MAN_HEADER := "Environment Modules"
 
 ifeq ($(compatversion),y)
 man: $(MAN1_DIR)/module.1 $(MAN4_DIR)/modulefile.4 \
@@ -42,25 +43,25 @@ perl -pe 's|\@prefix\@|$(prefix)|g; \
 endef
 
 # avoid shared definitions to be rebuilt by make
-../Makefile.inc: ;
+../Makefile.inc ../version.inc: ;
 
 $(SOURCE_DIR)/%.pod: $(SOURCE_DIR)/%.pod.in
 	$(translate-in-script)
 
-$(HTML_DIR)/%.html: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
+$(HTML_DIR)/%.html: $(SOURCE_DIR)/%.pod
 	mkdir -p $(HTML_DIR)
 	pod2html --noindex --css=common.css --infile=$< --outfile=$@
 	rm -f pod2htmd.tmp
 
-$(MAN1_DIR)/%.1: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
+$(MAN1_DIR)/%.1: $(SOURCE_DIR)/%.pod ../version.inc
 	mkdir -p $(MAN1_DIR)
 	pod2man -c $(MAN_HEADER) -r $(MAN_VERSION) -s 1 $< $@
 
-$(MAN4_DIR)/%.4: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
+$(MAN4_DIR)/%.4: $(SOURCE_DIR)/%.pod ../version.inc
 	mkdir -p $(MAN4_DIR)
 	pod2man -c $(MAN_HEADER) -r $(MAN_VERSION) -s 4 $< $@
 
-%.txt: $(SOURCE_DIR)/%.pod $(VERSION_FILE)
+%.txt: $(SOURCE_DIR)/%.pod
 	pod2text $< >$@
 
 # compatibility version-related rules

@@ -1,10 +1,6 @@
 .PHONY: doc pkgdoc www initdir install uninstall dist dist-tar dist-gzip \
 	dist-bzip2 srpm clean distclean test testinstall instrument testcoverage
 
-CURRENT_VERSION := $(shell grep '^set MODULES_CURRENT_VERSION' \
-	modulecmd.tcl.in | cut -d ' ' -f 3 | tr -d \")
-DIST_PREFIX := modules-$(CURRENT_VERSION)
-
 # definitions for code coverage
 NAGELFAR_RELEASE := nagelfar125
 NAGELFAR := $(NAGELFAR_RELEASE)/nagelfar.tcl
@@ -22,30 +18,65 @@ ifneq ($(wildcard Makefile.inc),Makefile.inc)
 endif
 include Makefile.inc
 
+all: initdir pkgdoc modulecmd.tcl ChangeLog README MIGRATING\
+	contrib/scripts/add.modules
 ifeq ($(compatversion),y)
-all: initdir pkgdoc modulecmd.tcl ChangeLog README MIGRATING contrib/scripts/add.modules \
-	$(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
+all: $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
 else
-all: initdir pkgdoc modulecmd.tcl ChangeLog README MIGRATING contrib/scripts/add.modules
 endif
 
-initdir:
+initdir: version.inc
 	make -C init all
 
-pkgdoc:
+pkgdoc: version.inc
 	make -C doc man txt
 
-doc:
+doc: version.inc
 	make -C doc all
 
 www:
 	make -C www all
 
+# build version.in shared definitions from git repository info
+ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
+GIT_CURRENT_TAG := $(shell git describe --tags --abbrev=0)
+GIT_CURRENT_DESC := $(shell git describe --tags --dirty=-wip)
+GIT_CURRENT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+
+MODULES_RELEASE := $(subst v,,$(GIT_CURRENT_TAG))
+MODULES_BUILD_DATE := $(shell git log -1 --format=%cd --date=short)
+ifeq ($(GIT_CURRENT_TAG),$(GIT_CURRENT_DESC))
+MODULES_BUILD :=
+else
+MODULES_BUILD := +$(GIT_CURRENT_BRANCH)$(subst $(GIT_CURRENT_TAG),,$(GIT_CURRENT_DESC))
+endif
+
+# rebuild if git repository changed
+version.inc: version.inc.in .git/index
+	perl -pe 's|\@MODULES_RELEASE\@|$(MODULES_RELEASE)|g; \
+		s|\@MODULES_BUILD\@|$(MODULES_BUILD)|g; \
+		s|\@MODULES_BUILD_DATE\@|$(MODULES_BUILD_DATE)|g;' $< > $@
+else
+# source version definitions shared across the Makefiles of this project
+ifneq ($(wildcard version.inc),version.inc)
+  $(error version.inc is missing)
+endif
+include version.inc
+
+# avoid shared definitions to be rebuilt by make
+version.inc: ;
+endif
+
+DIST_PREFIX := modules-$(MODULES_RELEASE)$(MODULES_BUILD)
+
 # avoid shared definitions to be rebuilt by make
 Makefile.inc: ;
 
-modulecmd.tcl: modulecmd.tcl.in
-	perl -pe 's|\@TCLSHDIR\@/tclsh|$(TCLSH)|g;' $< > $@
+modulecmd.tcl: modulecmd.tcl.in version.inc
+	perl -pe 's|\@MODULES_RELEASE\@|$(MODULES_RELEASE)|g; \
+		s|\@MODULES_BUILD\@|$(MODULES_BUILD)|g; \
+		s|\@MODULES_BUILD_DATE\@|$(MODULES_BUILD_DATE)|g; \
+		s|\@TCLSHDIR\@/tclsh|$(TCLSH)|g;' $< > $@
 	chmod +x $@
 
 ChangeLog:
@@ -125,7 +156,7 @@ endif
 	rmdir $(DESTDIR)$(datarootdir)
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(prefix)
 
-dist-tar: ChangeLog README MIGRATING
+dist-tar: ChangeLog README MIGRATING version.inc
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' $^
@@ -168,6 +199,9 @@ endif
 	rm -f modules-*.srpm
 	make -C init clean
 	make -C doc clean
+ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
+	rm -f version.inc
+endif
 ifneq ($(wildcard $(COMPAT_DIR)/Makefile),)
 	make -C compat clean
 endif

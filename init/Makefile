@@ -1,9 +1,5 @@
 .PHONY: install uninstall clean
 
-VERSION_FILE := ../modulecmd.tcl.in
-CURRENT_VERSION := $(shell grep '^set MODULES_CURRENT_VERSION' \
-	$(VERSION_FILE) | cut -d ' ' -f 3 | tr -d \")
-
 SH_LIKE  = sh ksh bash zsh profile.sh bash_completion
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
 OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R
@@ -17,6 +13,9 @@ ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
   $(error ../Makefile.inc is missing, please run '../configure')
 endif
 include ../Makefile.inc
+
+# source version definitions shared across the Makefiles of this project
+include ../version.inc
 
 # kind of config file to use: modulerc or .modulespath
 ifeq ($(setdotmodulespath),y)
@@ -79,12 +78,12 @@ perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@modulerc\@|$(modulerc)|g; \
 	s|\@modulepath\@|$(modulepath)|g; \
 	s|\@SHELLNAME\@|$@|g; \
-	s|\@VERSION\@|$(CURRENT_VERSION)|g; \
+	s|\@VERSION\@|$(MODULES_RELEASE)$(MODULES_BUILD)|g; \
 	s|\@TCLSH\@|$(TCLSH)|g' $< > $@
 endef
 
 # avoid shared definitions to be rebuilt by make
-../Makefile.inc: ;
+../Makefile.inc ../version.inc: ;
 
 %: %.in
 	$(translate-in-script)
@@ -101,7 +100,7 @@ profile.sh: profile.sh.in
 profile-compat.sh: profile-compat.sh.in
 	$(translate-in-script)
 
-$(EXAMPLE_MODFILES_SRCDIR)/modules: $(EXAMPLE_MODFILES_SRCDIR)/modules.in
+$(EXAMPLE_MODFILES_SRCDIR)/modules: $(EXAMPLE_MODFILES_SRCDIR)/modules.in ../version.inc
 	$(translate-in-script)
 
 install: all
