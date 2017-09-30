@@ -55,11 +55,11 @@ $(HTML_DIR)/%.html: $(SOURCE_DIR)/%.pod
 
 $(MAN1_DIR)/%.1: $(SOURCE_DIR)/%.pod ../version.inc
 	mkdir -p $(MAN1_DIR)
-	pod2man -c $(MAN_HEADER) -r $(MAN_VERSION) -s 1 $< $@
+	pod2man -c $(MAN_HEADER) -r $(MAN_VERSION) -d $(MODULES_BUILD_DATE) -s 1 $< $@
 
 $(MAN4_DIR)/%.4: $(SOURCE_DIR)/%.pod ../version.inc
 	mkdir -p $(MAN4_DIR)
-	pod2man -c $(MAN_HEADER) -r $(MAN_VERSION) -s 4 $< $@
+	pod2man -c $(MAN_HEADER) -r $(MAN_VERSION) -d $(MODULES_BUILD_DATE) -s 4 $< $@
 
 %.txt: $(SOURCE_DIR)/%.pod
 	pod2text $< >$@
