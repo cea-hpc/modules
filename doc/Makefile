@@ -68,7 +68,7 @@ $(MAN4_DIR)/%.4: $(SOURCE_DIR)/%.pod ../version.inc
 $(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4:
 	make -C $(COMPAT_MAN_DIR) $(@F)
 
-install: all
+install: man txt
 	mkdir -p $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man4
 ifeq ($(docinstall),y)
 	mkdir -p $(DESTDIR)$(docdir)
