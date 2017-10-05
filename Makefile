@@ -156,10 +156,14 @@ endif
 	rmdir $(DESTDIR)$(datarootdir)
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(prefix)
 
-dist-tar: ChangeLog README MIGRATING version.inc
+# include pre-generated documents not to require documentation build
+# tools when installing from dist tarball
+dist-tar: ChangeLog README MIGRATING version.inc pkgdoc
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
-	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' $^
+	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' \
+		ChangeLog README MIGRATING version.inc doc/build/diff_v3_v4.txt \
+		doc/build/module.1.in doc/build/modulefile.4
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
 	make -C $(COMPAT_DIR) distdir
 	mv $(COMPAT_DIR)/modules-* compatdist

@@ -13,9 +13,6 @@ Source0:        http://downloads.sourceforge.net/modules/modules-%{version}-beta
 BuildRequires:  tcl
 BuildRequires:  dejagnu
 BuildRequires:  perl
-%if 0%{?fedora} || (0%{?rhel} && 0%{?rhel} > 6)
-BuildRequires:  perl-podlators
-%endif
 %if 0%{?rhel} && 0%{?rhel} <= 6
 BuildRequires:  net-tools
 %else

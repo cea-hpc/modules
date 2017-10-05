@@ -1,10 +1,9 @@
 .PHONY: install uninstall clean
 
-HTML_DIR := html
-MAN_DIR := man
-MAN1_DIR := $(MAN_DIR)/man1
-MAN4_DIR := $(MAN_DIR)/man4
 SOURCE_DIR := source
+BUILD_DIR := build
+
+SPHINXOPTS := -q
 
 # compatibility version-related files
 COMPAT_MAN_DIR := ../compat/doc
@@ -18,22 +17,22 @@ include ../Makefile.inc
 # source version definitions shared across the Makefiles of this project
 include ../version.inc
 
-MAN_VERSION := "modules $(MODULES_RELEASE)$(MODULES_BUILD)"
-MAN_HEADER := "Environment Modules"
-
+man: $(BUILD_DIR)/module.1 $(BUILD_DIR)/modulefile.4
 ifeq ($(compatversion),y)
-man: $(MAN1_DIR)/module.1 $(MAN4_DIR)/modulefile.4 \
-	$(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4
-else
-man: $(MAN1_DIR)/module.1 $(MAN4_DIR)/modulefile.4
+man: $(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4
 endif
 
-txt: diff_v3_v4.txt
+txt: $(BUILD_DIR)/diff_v3_v4.txt
 
-html: $(HTML_DIR)/module.html $(HTML_DIR)/modulefile.html \
-	$(HTML_DIR)/diff_v3_v4.html
+html: $(BUILD_DIR)/module.html $(BUILD_DIR)/modulefile.html \
+      $(BUILD_DIR)/diff_v3_v4.html
 
-all: html man txt
+all: man txt
+
+# enable HTML pages build only from git repository
+ifeq ($(wildcard ../.git),../.git)
+all: html
+endif
 
 define translate-in-script
 perl -pe 's|\@prefix\@|$(prefix)|g; \
@@ -45,24 +44,29 @@ endef
 # avoid shared definitions to be rebuilt by make
 ../Makefile.inc ../version.inc: ;
 
-$(SOURCE_DIR)/%.pod: $(SOURCE_DIR)/%.pod.in
+# build doc from source if in git repository
+ifeq ($(wildcard ../.git),../.git)
+$(SOURCE_DIR)/version.py: $(SOURCE_DIR)/version.py.in ../version.inc
+	perl -pe 's|\@MODULES_RELEASE\@|$(MODULES_RELEASE)|g; \
+		s|\@MODULES_BUILD\@|$(MODULES_BUILD)|g; \
+		s|\@MODULES_BUILD_DATE\@|$(MODULES_BUILD_DATE)|g;' $< > $@
+
+$(BUILD_DIR)/%.html: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
+	$(SPHINXBUILD) $(SPHINXOPTS) -b html "$(SOURCE_DIR)" "$(BUILD_DIR)"
+
+$(BUILD_DIR)/%.txt: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
+	$(SPHINXBUILD) $(SPHINXOPTS) -b text "$(SOURCE_DIR)" "$(BUILD_DIR)"
+
+$(BUILD_DIR)/%.4: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
+	$(SPHINXBUILD) $(SPHINXOPTS) -t pathsubs -b man "$(SOURCE_DIR)" "$(BUILD_DIR)"
+
+$(BUILD_DIR)/%.1.in: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
+	$(SPHINXBUILD) $(SPHINXOPTS) -t pathsubs -b man "$(SOURCE_DIR)" "$(BUILD_DIR)"
+	mv $(BUILD_DIR)/module.1 $@
+endif
+
+$(BUILD_DIR)/module.1: $(BUILD_DIR)/module.1.in
 	$(translate-in-script)
-
-$(HTML_DIR)/%.html: $(SOURCE_DIR)/%.pod
-	mkdir -p $(HTML_DIR)
-	pod2html --noindex --css=common.css --infile=$< --outfile=$@
-	rm -f pod2htmd.tmp
-
-$(MAN1_DIR)/%.1: $(SOURCE_DIR)/%.pod ../version.inc
-	mkdir -p $(MAN1_DIR)
-	pod2man -c $(MAN_HEADER) -r $(MAN_VERSION) -d $(MODULES_BUILD_DATE) -s 1 $< $@
-
-$(MAN4_DIR)/%.4: $(SOURCE_DIR)/%.pod ../version.inc
-	mkdir -p $(MAN4_DIR)
-	pod2man -c $(MAN_HEADER) -r $(MAN_VERSION) -d $(MODULES_BUILD_DATE) -s 4 $< $@
-
-%.txt: $(SOURCE_DIR)/%.pod
-	pod2text $< >$@
 
 # compatibility version-related rules
 $(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4:
@@ -72,11 +76,11 @@ install: man txt
 	mkdir -p $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man4
 ifeq ($(docinstall),y)
 	mkdir -p $(DESTDIR)$(docdir)
-	cp diff_v3_v4.txt $(DESTDIR)$(docdir)/
+	cp $(BUILD_DIR)/diff_v3_v4.txt $(DESTDIR)$(docdir)/
 	cp example.txt $(DESTDIR)$(docdir)/
 endif
-	cp $(MAN1_DIR)/module.1 $(DESTDIR)$(mandir)/man1/
-	cp $(MAN4_DIR)/modulefile.4 $(DESTDIR)$(mandir)/man4/
+	cp $(BUILD_DIR)/module.1 $(DESTDIR)$(mandir)/man1/
+	cp $(BUILD_DIR)/modulefile.4 $(DESTDIR)$(mandir)/man4/
 ifeq ($(compatversion),y)
 	cp $(COMPAT_MAN_DIR)/module.1 $(DESTDIR)$(mandir)/man1/module-compat.1
 	cp $(COMPAT_MAN_DIR)/modulefile.4 $(DESTDIR)$(mandir)/man4/modulefile-compat.4
@@ -98,17 +102,11 @@ endif
 	rmdir $(DESTDIR)$(mandir)
 
 clean:
-	rm -f $(HTML_DIR)/*.html
-	rm -f $(MAN1_DIR)/*.1 $(MAN4_DIR)/*.4
-	rm -f $(SOURCE_DIR)/module.pod
-ifneq ($(wildcard $(MAN1_DIR)),)
-	rmdir $(MAN1_DIR)
+# do not clean generated docs if not in git repository
+ifeq ($(wildcard ../.git),../.git)
+	$(SPHINXBUILD) -M clean "$(SOURCE_DIR)" "$(BUILD_DIR)" $(SPHINXOPTS)
+	rm -f $(BUILD_DIR)/*.1.in
+	rmdir $(BUILD_DIR)
+	rm -f $(SOURCE_DIR)/version.py
 endif
-ifneq ($(wildcard $(MAN4_DIR)),)
-	rmdir $(MAN4_DIR)
-endif
-ifneq ($(wildcard $(MAN_DIR)),)
-	rmdir $(MAN_DIR)
-endif
-	rm -f diff_v3_v4.txt
-	rm -f pod*.tmp
+	rm -f $(BUILD_DIR)/*.1

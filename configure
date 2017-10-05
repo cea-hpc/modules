@@ -26,9 +26,9 @@ prog=${progpath##*/}
 targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 
 # argument list
-arglist="TCLSH prefix bindir libexecdir initdir datarootdir mandir docdir \
-modulefilesdir setmanpath setbinpath setdotmodulespath docinstall \
-examplemodulefiles compatversion modulepath loadedmodules"
+arglist="TCLSH SPHINXBUILD prefix bindir libexecdir initdir datarootdir \
+mandir docdir modulefilesdir setmanpath setbinpath setdotmodulespath \
+docinstall examplemodulefiles compatversion modulepath loadedmodules"
 compatarglist=
 
 # flags to know if argument has been specified on command-line
@@ -45,6 +45,7 @@ examplemodulefiles=y
 compatversion=y
 loadedmodules=
 TCLSH=tclsh
+SPHINXBUILD=sphinx-build
 # these args are initialized here but as they depend on other argument value
 # they will get their default value later (after command-line parse)
 bindir=
@@ -148,21 +149,29 @@ placed in the following directory structure:
 # check requirement availability
 check_requirement() {
    typeset req=$1
-   typeset optmesg=$2
-   typeset cmdenv=$3
+   typeset alt=$2
+   typeset optmesg=$3
+   typeset cmdenv=$4
 
-   echo -n "checking for ${req}... "
-   if [ -n "$cmdenv" ]; then
-      cmdsearch="$cmdenv command -v $req"
-   else
-      cmdsearch="command -v $req"
-   fi
-   reqpath=$(eval $cmdsearch)
+   for cmd in $req $alt; do
+      if [ -n "$cmd" ]; then
+         echo -n "checking for ${cmd}... "
+         if [ -n "$cmdenv" ]; then
+            cmdsearch="$cmdenv command -v $cmd"
+         else
+            cmdsearch="command -v $cmd"
+         fi
+         reqpath=$(eval $cmdsearch)
+         if [ -n "$reqpath" ]; then
+            echo $reqpath
+            break
+         else
+            echo "not found"
+         fi
+      fi
+   done
 
-   if [ -n "$reqpath" ]; then
-      echo $reqpath
-   else
-      echo "not found"
+   if [ -z "$reqpath" ]; then
       if [ -z "$optmesg" ]; then
          echo_error "$req could not be found"
       else
@@ -270,16 +279,19 @@ check_requirement make
 check_requirement perl
 check_requirement grep
 check_requirement cut
-check_requirement pod2text
-check_requirement pod2man
-check_requirement pod2html "Install \`pod2html' if you want to build html \
-documentation"
-check_requirement runtest "Install \`dejagnu' if you want to run the \
+check_requirement runtest '' "Install \`dejagnu' if you want to run the \
 testsuite"
+
+# if we install from git repository, must have sphinx to build doc
+if [ -d '.git' ]; then
+   check_requirement sphinx-build sphinx-1.0-build
+   SPHINXBUILD=$reqpath
+fi
+
 # get tclsh location from standard PATHs or /usr/local/bin
 # or validate location passed as argument
 [ -z "$tclshbin" ] && tclshbin=$TCLSH
-check_requirement $tclshbin '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+check_requirement $tclshbin '' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
 TCLSH=$reqpath
 
 # check feature requirements are met
