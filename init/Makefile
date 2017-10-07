@@ -47,39 +47,39 @@ all: $(ALL_SHELLS) $(ALL_CONFIG) $(EXAMPLE_MODFILES_SRCDIR)/modules
 # if enabled translate to keep text after markup elsewhere remove the
 # entire line
 ifeq ($(setmanpath),y)
-  setmanpathre := \1\n
+  setmanpathre := s|@setmanpath@||g
 else
-  setmanpathre :=
+  setmanpathre := /@setmanpath@/d
 endif
 ifeq ($(setbinpath),y)
-  setbinpathre := \1\n
+  setbinpathre := s|@setbinpath@||g
 else
-  setbinpathre :=
+  setbinpathre := /@setbinpath@/d
 endif
 ifeq ($(compatversion),y)
-  compatversionre := \1\n
-  notcompatversionre :=
+  compatversionre := s|@compatversion@||g
+  notcompatversionre := /@notcompatversion@/d
 else
-  compatversionre :=
-  notcompatversionre := \1\n
+  compatversionre := /@compatversion@/d
+  notcompatversionre := s|@notcompatversion@||g
 endif
 
 define translate-in-script
-perl -pe 's|\@prefix\@|$(prefix)|g; \
-	s|\@libexecdir\@|$(libexecdir)|g; \
-	s|\@initdir\@|$(initdir)|g; \
-	s|\@modulefilesdir\@|$(modulefilesdir)|g; \
-	s|\@bindir\@|$(bindir)|g; \
-	s|\@mandir\@|$(mandir)|g; \
-	s|\@setmanpath\@(.*)\n|$(setmanpathre)|g; \
-	s|\@setbinpath\@(.*)\n|$(setbinpathre)|g; \
-	s|\@compatversion\@(.*)\n|$(compatversionre)|g; \
-	s|\@notcompatversion\@(.*)\n|$(notcompatversionre)|g; \
-	s|\@modulerc\@|$(modulerc)|g; \
-	s|\@modulepath\@|$(modulepath)|g; \
-	s|\@SHELLNAME\@|$@|g; \
-	s|\@VERSION\@|$(MODULES_RELEASE)$(MODULES_BUILD)|g; \
-	s|\@TCLSH\@|$(TCLSH)|g' $< > $@
+sed -e 's|@prefix@|$(prefix)|g' \
+	-e 's|@libexecdir@|$(libexecdir)|g' \
+	-e 's|@initdir@|$(initdir)|g' \
+	-e 's|@modulefilesdir@|$(modulefilesdir)|g' \
+	-e 's|@bindir@|$(bindir)|g' \
+	-e 's|@mandir@|$(mandir)|g' \
+	-e '$(setmanpathre)' \
+	-e '$(setbinpathre)' \
+	-e '$(compatversionre)' \
+	-e '$(notcompatversionre)' \
+	-e 's|@modulerc@|$(modulerc)|g' \
+	-e 's|@modulepath@|$(modulepath)|g' \
+	-e 's|@SHELLNAME@|$@|g' \
+	-e 's|@VERSION@|$(MODULES_RELEASE)$(MODULES_BUILD)|g' \
+	-e 's|@TCLSH@|$(TCLSH)|g' $< > $@
 endef
 
 # avoid shared definitions to be rebuilt by make

@@ -61,13 +61,13 @@ include version.inc
 endif
 
 define translate-in-script
-perl -pe 's|\@prefix\@|$(prefix)|g; \
-	s|\@libexecdir\@|$(libexecdir)|g; \
-	s|\@TCLSHDIR\@/tclsh|$(TCLSH)|g; \
-	s|\@TCLSH\@|$(TCLSH)|g; \
-	s|\@MODULES_RELEASE\@|$(MODULES_RELEASE)|g; \
-	s|\@MODULES_BUILD\@|$(MODULES_BUILD)|g; \
-	s|\@MODULES_BUILD_DATE\@|$(MODULES_BUILD_DATE)|g;' $< > $@
+sed -e 's|@prefix@|$(prefix)|g' \
+	-e 's|@libexecdir@|$(libexecdir)|g' \
+	-e 's|@TCLSHDIR@/tclsh|$(TCLSH)|g' \
+	-e 's|@TCLSH@|$(TCLSH)|g' \
+	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \
+	-e 's|@MODULES_BUILD@|$(MODULES_BUILD)|g' \
+	-e 's|@MODULES_BUILD_DATE@|$(MODULES_BUILD_DATE)|g' $< > $@
 endef
 
 ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
@@ -92,7 +92,7 @@ ChangeLog:
 	contrib/gitlog2changelog.py
 
 README MIGRATING:
-	perl -pe 's|^\[\!\[.*\].*\n||;' $@.md > $@
+	sed -e '/^\[\!\[.*\].*/d' $@.md > $@
 
 contrib/scripts/add.modules: contrib/scripts/add.modules.in
 	$(translate-in-script)

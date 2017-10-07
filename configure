@@ -276,7 +276,7 @@ done
 
 # test requirements availability
 check_requirement make
-check_requirement perl
+check_requirement sed
 check_requirement grep
 check_requirement cut
 check_requirement runtest '' "Install \`dejagnu' if you want to run the \
@@ -359,7 +359,7 @@ fi
 translation_regexp=''
 for arg in ${arglist}; do
    echo "$arg = ${!arg}"
-   translation_regexp+="s|\@${arg}\@|${!arg}|g; "
+   translation_regexp+="-e s|@${arg}@|${!arg}|g "
 done
 
 # configure compat version sources
@@ -381,7 +381,7 @@ fi
 # generate Makefiles
 for target in ${targetlist}; do
    echo "creating $target"
-   perl -pe "$translation_regexp" ${target}.in >$target
+   sed $translation_regexp ${target}.in >$target
 done
 
 exit 0

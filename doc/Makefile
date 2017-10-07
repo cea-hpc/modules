@@ -35,13 +35,13 @@ all: html
 endif
 
 define translate-in-script
-perl -pe 's|\@prefix\@|$(prefix)|g; \
-	s|\@libexecdir\@|$(libexecdir)|g; \
-	s|\@initdir\@|$(initdir)|g; \
-	s|\@modulefilesdir\@|$(modulefilesdir)|g; \
-	s|\@MODULES_RELEASE\@|$(MODULES_RELEASE)|g; \
-	s|\@MODULES_BUILD\@|$(MODULES_BUILD)|g; \
-	s|\@MODULES_BUILD_DATE\@|$(MODULES_BUILD_DATE)|g;' $< > $@
+sed -e 's|@prefix@|$(prefix)|g' \
+	-e 's|@libexecdir@|$(libexecdir)|g' \
+	-e 's|@initdir@|$(initdir)|g' \
+	-e 's|@modulefilesdir@|$(modulefilesdir)|g' \
+	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \
+	-e 's|@MODULES_BUILD@|$(MODULES_BUILD)|g' \
+	-e 's|@MODULES_BUILD_DATE@|$(MODULES_BUILD_DATE)|g' $< > $@
 endef
 
 # avoid shared definitions to be rebuilt by make

@@ -12,7 +12,7 @@ Source0:        http://downloads.sourceforge.net/modules/modules-%{version}-beta
 
 BuildRequires:  tcl
 BuildRequires:  dejagnu
-BuildRequires:  perl
+BuildRequires:  sed
 %if 0%{?rhel} && 0%{?rhel} <= 6
 BuildRequires:  net-tools
 %else
