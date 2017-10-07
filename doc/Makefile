@@ -104,9 +104,11 @@ endif
 clean:
 # do not clean generated docs if not in git repository
 ifeq ($(wildcard ../.git),../.git)
+ifeq ($(wildcard $(BUILD_DIR)),$(BUILD_DIR))
 	$(SPHINXBUILD) -M clean "$(SOURCE_DIR)" "$(BUILD_DIR)" $(SPHINXOPTS)
 	rm -f $(BUILD_DIR)/*.1.in
 	rmdir $(BUILD_DIR)
+endif
 	rm -f $(SOURCE_DIR)/version.py
 endif
 	rm -f $(BUILD_DIR)/*.1
