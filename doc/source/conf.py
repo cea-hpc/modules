@@ -73,7 +73,10 @@ def get_version_release_from_git():
         else:
             branch = git_current_branch.rstrip()
             tags = git_current_desc.lstrip(git_current_tag).rstrip()
-            return version, version + '+' + branch + '-' + tags
+            if branch == 'master':
+                return version, version + '+' + tags
+            else:
+                return version, version + '+' + branch + '-' + tags
     else:
         return 'X.Y', ''
 

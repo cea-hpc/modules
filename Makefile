@@ -47,6 +47,8 @@ MODULES_RELEASE := $(subst v,,$(GIT_CURRENT_TAG))
 MODULES_BUILD_DATE := $(shell git log -1 --format=%cd --date=short)
 ifeq ($(GIT_CURRENT_TAG),$(GIT_CURRENT_DESC))
 MODULES_BUILD :=
+else ifeq ($(GIT_CURRENT_BRANCH),master)
+MODULES_BUILD := +$(subst $(GIT_CURRENT_TAG)-,,$(GIT_CURRENT_DESC))
 else
 MODULES_BUILD := +$(GIT_CURRENT_BRANCH)$(subst $(GIT_CURRENT_TAG),,$(GIT_CURRENT_DESC))
 endif
