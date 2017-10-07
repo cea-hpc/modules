@@ -12,6 +12,7 @@ Welcome to Environment Modules' documentation!
    modulefile
    module
    diff_v3_v4
+   FAQ
 
 Indices and tables
 ==================
