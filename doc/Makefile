@@ -38,7 +38,10 @@ define translate-in-script
 perl -pe 's|\@prefix\@|$(prefix)|g; \
 	s|\@libexecdir\@|$(libexecdir)|g; \
 	s|\@initdir\@|$(initdir)|g; \
-	s|\@modulefilesdir\@|$(modulefilesdir)|g;' $< > $@
+	s|\@modulefilesdir\@|$(modulefilesdir)|g; \
+	s|\@MODULES_RELEASE\@|$(MODULES_RELEASE)|g; \
+	s|\@MODULES_BUILD\@|$(MODULES_BUILD)|g; \
+	s|\@MODULES_BUILD_DATE\@|$(MODULES_BUILD_DATE)|g;' $< > $@
 endef
 
 # avoid shared definitions to be rebuilt by make
@@ -47,9 +50,7 @@ endef
 # build doc from source if in git repository
 ifeq ($(wildcard ../.git),../.git)
 $(SOURCE_DIR)/version.py: $(SOURCE_DIR)/version.py.in ../version.inc
-	perl -pe 's|\@MODULES_RELEASE\@|$(MODULES_RELEASE)|g; \
-		s|\@MODULES_BUILD\@|$(MODULES_BUILD)|g; \
-		s|\@MODULES_BUILD_DATE\@|$(MODULES_BUILD_DATE)|g;' $< > $@
+	$(translate-in-script)
 
 $(BUILD_DIR)/%.html: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
 	$(SPHINXBUILD) $(SPHINXOPTS) -b html "$(SOURCE_DIR)" "$(BUILD_DIR)"

@@ -37,7 +37,7 @@ doc: version.inc
 www:
 	make -C www all
 
-# build version.in shared definitions from git repository info
+# build version.inc shared definitions from git repository info
 ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
 GIT_CURRENT_TAG := $(shell git describe --tags --abbrev=0)
 GIT_CURRENT_DESC := $(shell git describe --tags --dirty=-wip)
@@ -50,19 +50,29 @@ MODULES_BUILD :=
 else
 MODULES_BUILD := +$(GIT_CURRENT_BRANCH)$(subst $(GIT_CURRENT_TAG),,$(GIT_CURRENT_DESC))
 endif
-
-# rebuild if git repository changed
-version.inc: version.inc.in .git/index
-	perl -pe 's|\@MODULES_RELEASE\@|$(MODULES_RELEASE)|g; \
-		s|\@MODULES_BUILD\@|$(MODULES_BUILD)|g; \
-		s|\@MODULES_BUILD_DATE\@|$(MODULES_BUILD_DATE)|g;' $< > $@
 else
 # source version definitions shared across the Makefiles of this project
 ifneq ($(wildcard version.inc),version.inc)
   $(error version.inc is missing)
 endif
 include version.inc
+endif
 
+define translate-in-script
+perl -pe 's|\@prefix\@|$(prefix)|g; \
+	s|\@libexecdir\@|$(libexecdir)|g; \
+	s|\@TCLSHDIR\@/tclsh|$(TCLSH)|g; \
+	s|\@TCLSH\@|$(TCLSH)|g; \
+	s|\@MODULES_RELEASE\@|$(MODULES_RELEASE)|g; \
+	s|\@MODULES_BUILD\@|$(MODULES_BUILD)|g; \
+	s|\@MODULES_BUILD_DATE\@|$(MODULES_BUILD_DATE)|g;' $< > $@
+endef
+
+ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
+# rebuild if git repository changed
+version.inc: version.inc.in .git/index
+	$(translate-in-script)
+else
 # avoid shared definitions to be rebuilt by make
 version.inc: ;
 endif
@@ -73,10 +83,7 @@ DIST_PREFIX := modules-$(MODULES_RELEASE)$(MODULES_BUILD)
 Makefile.inc: ;
 
 modulecmd.tcl: modulecmd.tcl.in version.inc
-	perl -pe 's|\@MODULES_RELEASE\@|$(MODULES_RELEASE)|g; \
-		s|\@MODULES_BUILD\@|$(MODULES_BUILD)|g; \
-		s|\@MODULES_BUILD_DATE\@|$(MODULES_BUILD_DATE)|g; \
-		s|\@TCLSHDIR\@/tclsh|$(TCLSH)|g;' $< > $@
+	$(translate-in-script)
 	chmod +x $@
 
 ChangeLog:
@@ -86,9 +93,7 @@ README MIGRATING:
 	perl -pe 's|^\[\!\[.*\].*\n||;' $@.md > $@
 
 contrib/scripts/add.modules: contrib/scripts/add.modules.in
-	perl -pe 's|\@prefix\@|$(prefix)|g; \
-		s|\@libexecdir\@|$(libexecdir)|g; \
-		s|\@TCLSH\@|$(TCLSH)|g' $< > $@
+	$(translate-in-script)
 
 # compatibility version-related rules
 $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog:
