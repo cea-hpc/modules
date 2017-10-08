@@ -24,49 +24,58 @@ set datetime_re "\[0-9\/]{10} \[0-9:]{8}"
 
 set modsym_1 ".hidden"
 set module_1 ".hidden/1.0"
-set modulefile_1 "$env(MODULEPATH)/$module_1"
+set modulefile_1 "$modpath/$module_1"
+set modulefilere_1 "$modpathre/$module_1"
 set modavail_1 "$module_1\\s+$datetime_re"
 
 set modsym_2 ".hidden/1.0"
 set module_2 "$module_1"
-set modulefile_2 "$env(MODULEPATH)/$module_2"
+set modulefile_2 "$modpath/$module_2"
+set modulefilere_2 "$modpathre/$module_2"
 set modavail_2 "$modavail_1"
 
 set modsym_3 "loc_rc8/.2.0"
 set module_3 "$modsym_3"
-set modulefile_3 "$env(MODULEPATH)/$module_3"
+set modulefile_3 "$modpath/$module_3"
+set modulefilere_3 "$modpathre/$module_3"
 set modavail_3 "$module_3\\s+foo\\s+$datetime_re"
 
 set modsym_4 "loc_rc8/foo"
 set module_4 "$module_3"
-set modulefile_4 "$env(MODULEPATH)/$module_4"
+set modulefile_4 "$modpath/$module_4"
+set modulefilere_4 "$modpathre/$module_4"
 set modavail_4 "$modavail_3"
 
 set modsym_5 "loc_rc8/0.9"
 set module_5 "$module_3"
-set modulefile_5 "$env(MODULEPATH)/$module_5"
+set modulefile_5 "$modpath/$module_5"
+set modulefilere_5 "$modpathre/$module_5"
 set modavail_5 "$modsym_5 -> loc_rc8/.2.0\\s+"
 
 set modsym_6 "loc_rc8"
 set module_6 "loc_rc8/1.0"
-set modulefile_6 "$env(MODULEPATH)/$module_6"
+set modulefile_6 "$modpath/$module_6"
+set modulefilere_6 "$modpathre/$module_6"
 set modavail_6 "$modavail_5\n$module_6\\s+$datetime_re"
 set modwhatis_6 "\\s+$module_3: $module_3\n\\s+$module_6: $module_6"
 set modpaths_6 [list $modulefile_3 $modulefile_6]
 
 set modsym_7 "loc_rc8/.subdir/4.0"
 set module_7 "$modsym_7"
-set modulefile_7 "$env(MODULEPATH)/$module_7"
+set modulefile_7 "$modpath/$module_7"
+set modulefilere_7 "$modpathre/$module_7"
 set modavail_7 "$module_7\\s+$datetime_re"
 
 set modsym_8 "loc_rc8/.subdir"
 set module_8 "$module_7"
-set modulefile_8 "$env(MODULEPATH)/$module_8"
+set modulefile_8 "$modpath/$module_8"
+set modulefilere_8 "$modpathre/$module_8"
 set modavail_8 "$modavail_7"
 
 set modsym_9 "loc_rc9"
 set module_9 "loc_rc9/.1.0"
-set modulefile_9 "$env(MODULEPATH)/$module_9"
+set modulefile_9 "$modpath/$module_9"
+set modulefilere_9 "$modpathre/$module_9"
 set modavail_9 ""
 set modwhatis_9 ""
 set modpaths_9 [list]
@@ -81,8 +90,8 @@ set disp_pre "$modlin\n"
 set disp_wi "module-whatis\\s+"
 set disp_post "\nsetenv\\s+testsuite\\s+yes\n$modlin"
 set header_long "- Package/Alias $modlin.- Versions $modlin.- Last mod. $modlin"
-set avail_pre "$header_long\n$env(MODULEPATH):"
-set whatis_pre "$modlin $env(MODULEPATH) $modlin\n"
+set avail_pre "$header_long\n$modpathre:"
+set whatis_pre "$modlin $modpathre $modlin\n"
 
 
 #
@@ -93,6 +102,7 @@ for {set i 1} {$i <= 9} {incr i} {
     set modsym [set "modsym_${i}"]
     set module [set "module_${i}"]
     set modulefile [set "modulefile_${i}"]
+    set modulefilere [set "modulefilere_${i}"]
     set modavail [set "modavail_${i}"]
     if {[info exists "modwhatis_${i}"]} {
         set modwhatis [set "modwhatis_${i}"]
@@ -132,9 +142,9 @@ for {set i 1} {$i <= 9} {incr i} {
         lappend ans [list setpath _LMFILES_ $modulefile]
 
         testouterr_cmd "sh" "load $modsym" $ans ""
-        testouterr_cmd_re "sh" "display $modsym" "OK" "$disp_pre$modulefile:\n\n$disp_wi$module$disp_post"
-        testouterr_cmd_re "sh" "help $modsym" "OK" "$help_pre$modulefile$help_post"
-        testouterr_cmd_re "sh" "test $modsym" "OK" "$test_pre$modulefile$test_post"
+        testouterr_cmd_re "sh" "display $modsym" "OK" "$disp_pre$modulefilere:\n\n$disp_wi$module$disp_post"
+        testouterr_cmd_re "sh" "help $modsym" "OK" "$help_pre$modulefilere$help_post"
+        testouterr_cmd_re "sh" "test $modsym" "OK" "$test_pre$modulefilere$test_post"
     }
 
     if {$modavail eq ""} {
@@ -197,6 +207,7 @@ for {set i 1} {$i <= 9} {incr i} {
     unset "modsym_${i}"
     unset "module_${i}"
     unset "modulefile_${i}"
+    unset "modulefilere_${i}"
     unset "modavail_${i}"
     if {[info exists "modwhatis_${i}"]} {
         unset "modwhatis_${i}"
@@ -217,6 +228,7 @@ unset i
 unset modsym
 unset module
 unset modulefile
+unset modulefilere
 unset modavail
 unset modwhatis
 if {[info exists moderr]} {

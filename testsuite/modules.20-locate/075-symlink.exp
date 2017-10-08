@@ -22,27 +22,31 @@
 
 
 set module_1 "symlink/0.9"
-set modulefile_1 "$env(MODULEPATH)/$module_1"
+set modulefile_1 "$modpath/$module_1"
+set modulefilere_1 "$modpathre/$module_1"
 
 set module_2 "symlink/1.2"
-set modulefile_2 "$env(MODULEPATH)/$module_2"
+set modulefile_2 "$modpath/$module_2"
+set modulefilere_2 "$modpathre/$module_2"
 
 set module_3 "symlink2/2.0"
-set modulefile_3 "$env(MODULEPATH)/$module_3"
+set modulefile_3 "$modpath/$module_3"
+set modulefilere_3 "$modpathre/$module_3"
 
 set module_4 "symlink3"
-set modulefile_4 "$env(MODULEPATH)/$module_4"
+set modulefile_4 "$modpath/$module_4"
+set modulefilere_4 "$modpathre/$module_4"
 
 set disp_sh "setenv\t\ttestsuite\tyes"
 set whatis_sh "module-whatis\t"
-set header "$modlin $env(MODULEPATH) $modlin"
+set header "$modlin $modpathre $modlin"
 
 
 #
 #  Test on filesystem symbolic link with valid target
 #
 
-set disp_2 "$modlin\n$modulefile_2:\n\n${whatis_sh}loc_rc6/1.2\n$disp_sh\n$modlin"
+set disp_2 "$modlin\n$modulefilere_2:\n\n${whatis_sh}loc_rc6/1.2\n$disp_sh\n$modlin"
 set what_1_2 "$header\n         $module_1: loc_rc6/0.9\n         $module_2: loc_rc6/1.2"
 
 # symbolic link name used (not targeted name) once loaded, displayed, etc
@@ -56,7 +60,7 @@ testerr_cmd_re "sh" "whatis symlink" "$what_1_2"
 set ans [list]
 lappend ans [list echo $modulefile_1]
 lappend ans [list echo $modulefile_2]
-test_cmd_re "sh" "paths symlink" $ans
+test_cmd "sh" "paths symlink" $ans
 
 
 #
@@ -64,7 +68,8 @@ test_cmd_re "sh" "paths symlink" $ans
 #
 
 set err_mag_3 "$err_magic'$modpath/symlink2/.modulerc'\n$err_contact"
-set disp_3 "$modlin\n$modulefile_3:\n\n${whatis_sh}loc_rc5/2.0\n$disp_sh\n$modlin"
+set err_magre_3 "$err_magic'$modpathre/symlink2/.modulerc'\n$err_contact"
+set disp_3 "$modlin\n$modulefilere_3:\n\n${whatis_sh}loc_rc5/2.0\n$disp_sh\n$modlin"
 set what_3 "$header\n        $module_3: loc_rc5/2.0"
 
 set ans [list]
@@ -73,12 +78,12 @@ lappend ans [list setpath LOADEDMODULES "$module_3"]
 lappend ans [list setpath _LMFILES_ "$modulefile_3"]
 lappend ans [list ERR]
 testouterr_cmd "sh" "load symlink2" $ans $err_mag_3
-testerr_cmd_re "sh" "display symlink2/2.0" "$err_mag_3\n$disp_3"
+testerr_cmd_re "sh" "display symlink2/2.0" "$err_magre_3\n$disp_3"
 testerr_cmd_re "sh" "whatis symlink2/2.0" "$what_3"
 set ans [list]
 lappend ans [list echo $modulefile_3]
 lappend ans [list ERR]
-test_cmd_re "sh" "paths symlink2/2.0" $ans
+test_cmd "sh" "paths symlink2/2.0" $ans
 
 
 #
@@ -107,19 +112,24 @@ unset disp_2
 unset what_1_2
 
 unset err_mag_3
+unset err_magre_3
 unset disp_3
 unset what_3
 
 unset err_found_4
 
 unset modulefile_1
+unset modulefilere_1
 unset module_1
 
 unset modulefile_2
+unset modulefilere_2
 unset module_2
 
 unset modulefile_3
+unset modulefilere_3
 unset module_3
 
 unset modulefile_4
+unset modulefilere_4
 unset module_4

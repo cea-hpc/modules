@@ -28,8 +28,9 @@
 set modname_1 "loc_dv1"
 set module_1_loa "loc_dv1/1.0"
 set module_1_def "loc_dv1/2.0"
-set modulefile_1_loa "$env(MODULEPATH)/$module_1_loa"
-set modulefile_1_def "$env(MODULEPATH)/$module_1_def"
+set modulefile_1_loa "$modpath/$module_1_loa"
+set modulefile_1_def "$modpath/$module_1_def"
+set modulefilere_1_def "$modpathre/$module_1_def"
 set modavail_1 "$module_1_loa\n$module_1_def"
 set modwhatis_1 "\\s+$module_1_loa: $module_1_loa\n\\s+$module_1_def: $module_1_def"
 set ans_paths_1 [list]
@@ -40,8 +41,9 @@ lappend ans_paths_1 [list echo $modulefile_1_def]
 set modname_2 "loc_dv2"
 set module_2_loa "loc_dv2/2.0"
 set module_2_def "loc_dv2/1.0"
-set modulefile_2_loa "$env(MODULEPATH)/$module_2_loa"
-set modulefile_2_def "$env(MODULEPATH)/$module_2_def"
+set modulefile_2_loa "$modpath/$module_2_loa"
+set modulefile_2_def "$modpath/$module_2_def"
+set modulefilere_2_def "$modpathre/$module_2_def"
 set modavail_2 "$module_2_def\\(default\\)\n$module_2_loa"
 set modwhatis_2 "\\s+$module_2_def: $module_2_def\n\\s+$module_2_loa: $module_2_loa"
 set ans_paths_2 [list]
@@ -58,7 +60,7 @@ set test_post ".\n$modlin"
 set disp_pre "$modlin\n"
 set disp_wi "module-whatis\\s+"
 set disp_post "\n$modlin"
-set header "$modlin $env(MODULEPATH) $modlin"
+set header "$modlin $modpathre $modlin"
 
 
 #
@@ -71,6 +73,7 @@ for {set i 1} {$i <= 2} {incr i} {
     set modulefile_loa [set "modulefile_${i}_loa"]
     set module_def [set "module_${i}_def"]
     set modulefile_def [set "modulefile_${i}_def"]
+    set modulefilere_def [set "modulefilere_${i}_def"]
     set modavail [set "modavail_${i}"]
     set modwhatis [set "modwhatis_${i}"]
     set ans_paths [set "ans_paths_${i}"]
@@ -94,12 +97,12 @@ for {set i 1} {$i <= 2} {incr i} {
     lappend ans [list setpath _LMFILES_ "$modulefile_def"]
     testouterr_cmd_re "sh" "switch $modname $modname" $ans ""
 
-    testouterr_cmd_re "sh" "display $modname" "OK" "$disp_pre$modulefile_def:\n\n$disp_wi$module_def$disp_post"
-    testouterr_cmd_re "sh" "help $modname" "OK" "$help_pre$modulefile_def$help_mid$modulefile_def$help_post"
-    testouterr_cmd_re "sh" "test $modname" "OK" "$test_pre$modulefile_def$test_mid$modulefile_def$test_post"
+    testouterr_cmd_re "sh" "display $modname" "OK" "$disp_pre$modulefilere_def:\n\n$disp_wi$module_def$disp_post"
+    testouterr_cmd_re "sh" "help $modname" "OK" "$help_pre$modulefilere_def$help_mid$modulefilere_def$help_post"
+    testouterr_cmd_re "sh" "test $modname" "OK" "$test_pre$modulefilere_def$test_mid$modulefilere_def$test_post"
 
-    testouterr_cmd_re "sh" "avail -t $modname" "" "$env(MODULEPATH):\n$modavail"
-    testouterr_cmd_re "sh" "whatis $modname" "OK" "$modlin $env(MODULEPATH) $modlin\n$modwhatis"
+    testouterr_cmd_re "sh" "avail -t $modname" "" "$modpathre:\n$modavail"
+    testouterr_cmd_re "sh" "whatis $modname" "OK" "$modlin $modpathre $modlin\n$modwhatis"
 
     set ans [list]
     lappend ans [list echo $modulefile_def]
@@ -132,6 +135,7 @@ for {set i 1} {$i <= 2} {incr i} {
     unset "modulefile_${i}_loa"
     unset "module_${i}_def"
     unset "modulefile_${i}_def"
+    unset "modulefilere_${i}_def"
     unset "modavail_${i}"
     unset "modwhatis_${i}"
     unset "ans_paths_${i}"
@@ -145,6 +149,7 @@ unset module_loa
 unset modulefile_loa
 unset module_def
 unset modulefile_def
+unset modulefilere_def
 unset modavail
 unset modwhatis
 unset ans_paths

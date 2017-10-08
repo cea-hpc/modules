@@ -31,10 +31,12 @@
 #
 
 set module "info/mode1"
-set modulefile "$env(MODULEPATH)/$module"
+set modulefile "$modpath/$module"
+set modulefilere "$modpathre/$module"
 
 set module2 "info/mode2"
-set modulefile2 "$env(MODULEPATH)/$module2"
+set modulefile2 "$modpath/$module2"
+set modulefilere2 "$modpathre/$module2"
 
 #
 #  The _LMFILES_ and the LOADEDMODULES will be affected
@@ -59,8 +61,8 @@ lappend anssw [list set LOADEDMODULES_modshare "$module2:1"]
 lappend anssw [list set _LMFILES_ $modulefile2]
 lappend anssw [list set LOADEDMODULES $module2]
 
-set lin_help "Module Specific Help for $modulefile:"
-set lin_test "Module Specific Test for $modulefile:"
+set lin_help "Module Specific Help for $modulefilere:"
+set lin_test "Module Specific Test for $modulefilere:"
 
 #
 #  The tests
@@ -70,7 +72,7 @@ set lin_test "Module Specific Test for $modulefile:"
 test_cmd "sh" "load $module" $ans
 
 # test displaying
-testouterr_cmd_re "sh" "display $module" "display" "$modlin\n$modulefile:\n\n$modlin"
+testouterr_cmd_re "sh" "display $module" "display" "$modlin\n$modulefilere:\n\n$modlin"
 
 # Set up the environment for test that require the module to be loaded
 set env(_LMFILES_) "$modulefile"
@@ -109,7 +111,9 @@ unset ansrm
 unset anssw
 
 unset modulefile2
+unset modulefilere2
 unset module2
 
 unset modulefile
+unset modulefilere
 unset module

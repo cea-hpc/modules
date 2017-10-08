@@ -11,9 +11,11 @@
 ##############################################################################
 
 if [info exists env(TESTSUITEDIR)] {
-    set	saved_modpath	"$env(MODULEPATH)"
+    set	saved_modpath $modpath
+    set	saved_modpathre $modpathre
     set	modpath	"$env(TESTSUITEDIR)/modulefiles.deep"
-    set	env(MODULEPATH)	"$env(TESTSUITEDIR)/modulefiles:$modpath"
+    set modpathre [regsub -all "\(\[.+?\]\)" $modpath {\\\1}]
+    set	env(MODULEPATH)	"$saved_modpath:$modpath"
     if { $verbose > 0 } {
 	send_user "\tSetup MODULEPATH ... $env(MODULEPATH)\n"
     }

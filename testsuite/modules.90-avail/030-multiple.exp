@@ -52,8 +52,7 @@ set mod6sym2 "new"
 set mod6alias1 "1"
 set mod6alias2 "bar"
 set module7 "modalias/1.0"
-eval set  [ array get env MODULEPATH ]
-set header "$modlin $MODULEPATH $modlin\n"
+set header "$modlin $modpathre $modlin\n"
 set header2 "$modlin global/user modulerc $modlin\n"
 
 # save the former rc file setup
@@ -130,9 +129,8 @@ testerr_cmd_re "csh" "avail $module6 $module6" "$ts_csh\n$ts_csh"
 #
 
 # save the former modulepath setup
-set save_modpath $env(MODULEPATH)
-set env(MODULEPATH) "$MODULEPATH.deep:$MODULEPATH"
-set header "$modlin $MODULEPATH.deep $modlin\n"
+set env(MODULEPATH) "$modpath.deep:$modpath"
+set header "$modlin $modpathre.deep $modlin\n"
 set ts_csh "$header$module7\\(@\\)\\s+"
 
 testerr_cmd_re "csh" "avail $module7" "$ts_csh"
@@ -152,8 +150,7 @@ if {[info exists save_rc]} {
 }
 
 # restore former modulepath setup
-set env(MODULEPATH) $save_modpath
-unset save_modpath
+set env(MODULEPATH) $modpath
 
 unset ts_csh
 
@@ -188,5 +185,4 @@ unset mod1vers2
 unset mod1sym
 unset header
 unset header2
-unset MODULEPATH
 unset module1

@@ -28,18 +28,18 @@ set mod2 "exit/2.0"
 set mod3 "exit/3.0"
 set mod4 "exit/4.0"
 
-set mod1p "$env(MODULEPATH)/$mod1"
-set mod2p "$env(MODULEPATH)/$mod2"
-set mod3p "$env(MODULEPATH)/$mod3"
-set mod4p "$env(MODULEPATH)/$mod4"
+set mod1p "$modpath/$mod1"
+set mod2pre "$modpathre/$mod2"
+set mod3pre "$modpathre/$mod3"
+set mod4pre "$modpathre/$mod4"
 
 set introhelp "Module Specific Help for"
 set warnnohelp "$warn_msgs: Unable to find ModulesHelp in"
 set introtest "Module Specific Test for"
 set warnnotest "$warn_msgs: Unable to find ModulesTest in"
-set modpathheader "$modlin $env(MODULEPATH) $modlin"
+set modpathheader "$modlin $modpathre $modlin"
 set modnext "loc_def/truedef"
-set modnextp "$env(MODULEPATH)/$modnext"
+set modnextpre "$modpathre/$modnext"
 set modnextwhatis "module named default test"
 
 #
@@ -73,11 +73,11 @@ test_cmd_re "ALL" "load $mod1 $mod2 $mod3" $ans
 test_cmd_re "ALL" "load $mod1 $mod3 $mod2" $ans
 
 # tests that 'exit' does not inhibit next modulefile interpretations on non-load mode
-testerr_cmd_re "sh" "display $mod3 $modnext" "$modlin\n$mod3p:\n\nsetenv\t\ttestsuite3\tno\n$modlin\n$modnextp:\n\nmodule-whatis\t$modnextwhatis\n$modlin"
+testerr_cmd_re "sh" "display $mod3 $modnext" "$modlin\n$mod3pre:\n\nsetenv\t\ttestsuite3\tno\n$modlin\n$modnextpre:\n\nmodule-whatis\t$modnextwhatis\n$modlin"
 testerr_cmd_re "sh" "whatis $mod3 $modnext" "$modpathheader\n\\s+$modnext: $modnextwhatis"
 # exit leads to no rendering of ModulesHelp or ModulesTest procs
-testerr_cmd_re "sh" "help $mod3 $modnext" "$modlin\n$introhelp $mod3p:\n\n$modlin\n$introhelp $modnextp:\n\n$warnnohelp $modnextp.\n$modlin"
-testerr_cmd_re "sh" "test $mod3 $modnext" "$modlin\n$introtest $mod3p:\n\n$modlin\n$introtest $modnextp:\n\n$warnnotest $modnextp.\n$modlin"
+testerr_cmd_re "sh" "help $mod3 $modnext" "$modlin\n$introhelp $mod3pre:\n\n$modlin\n$introhelp $modnextpre:\n\n$warnnohelp $modnextpre.\n$modlin"
+testerr_cmd_re "sh" "test $mod3 $modnext" "$modlin\n$introtest $mod3pre:\n\n$modlin\n$introtest $modnextpre:\n\n$warnnotest $modnextpre.\n$modlin"
 
 #
 #  Same tests with exit called from proc
@@ -86,11 +86,11 @@ testerr_cmd_re "sh" "test $mod3 $modnext" "$modlin\n$introtest $mod3p:\n\n$modli
 test_cmd_re "ALL" "load $mod1 $mod4 $mod3" $ans
 
 # tests that 'exit' does not inhibit next modulefile interpretations on non-load mode
-testerr_cmd_re "sh" "display $mod4 $modnext" "$modlin\n$mod4p:\n\nsetenv\t\ttestsuite4\tno\n$modlin\n$modnextp:\n\nmodule-whatis\t$modnextwhatis\n$modlin"
+testerr_cmd_re "sh" "display $mod4 $modnext" "$modlin\n$mod4pre:\n\nsetenv\t\ttestsuite4\tno\n$modlin\n$modnextpre:\n\nmodule-whatis\t$modnextwhatis\n$modlin"
 testerr_cmd_re "sh" "whatis $mod4 $modnext" "$modpathheader\n\\s+$modnext: $modnextwhatis"
 # exit leads to no rendering of ModulesHelp or ModulesTest procs
-testerr_cmd_re "sh" "help $mod4 $modnext" "$modlin\n$introhelp $mod4p:\n\n$modlin\n$introhelp $modnextp:\n\n$warnnohelp $modnextp.\n$modlin"
-testerr_cmd_re "sh" "test $mod4 $modnext" "$modlin\n$introtest $mod4p:\n\n$modlin\n$introtest $modnextp:\n\n$warnnotest $modnextp.\n$modlin"
+testerr_cmd_re "sh" "help $mod4 $modnext" "$modlin\n$introhelp $mod4pre:\n\n$modlin\n$introhelp $modnextpre:\n\n$warnnohelp $modnextpre.\n$modlin"
+testerr_cmd_re "sh" "test $mod4 $modnext" "$modlin\n$introtest $mod4pre:\n\n$modlin\n$introtest $modnextpre:\n\n$warnnotest $modnextpre.\n$modlin"
 
 #
 #  Cleanup
@@ -109,9 +109,9 @@ unset mod2
 unset mod3
 unset mod4
 unset mod1p
-unset mod2p
-unset mod3p
-unset mod4p
+unset mod2pre
+unset mod3pre
+unset mod4pre
 
 unset introhelp
 unset warnnohelp
@@ -120,4 +120,4 @@ unset warnnotest
 unset modpathheader
 unset modnextwhatis
 unset modnext
-unset modnextp
+unset modnextpre

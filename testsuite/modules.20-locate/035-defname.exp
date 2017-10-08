@@ -28,10 +28,12 @@
 set module "loc_def"
 set module_1 "$module/default"
 set module_2 "$module/truedef"
-set modulefile_1 "$env(MODULEPATH)/$module_1"
-set modulefile_2 "$env(MODULEPATH)/$module_2"
+set modulefile_1 "$modpath/$module_1"
+set modulefilere_1 "$modpathre/$module_1"
+set modulefile_2 "$modpath/$module_2"
+set modulefilere_2 "$modpathre/$module_2"
 set modwhatis "module named default test"
-set modpathheader "$modlin $env(MODULEPATH) $modlin"
+set modpathheader "$modlin $modpathre $modlin"
 
 #
 # Test load of true default version
@@ -60,13 +62,13 @@ test_cmd "sh" "load $module_1" $ans
 # Test display of true default version
 #
 
-testerr_cmd_re "sh" "display $module" "$modlin\n$modulefile_2:\n\nmodule-whatis\t$modwhatis\n$modlin"
+testerr_cmd_re "sh" "display $module" "$modlin\n$modulefilere_2:\n\nmodule-whatis\t$modwhatis\n$modlin"
 
 #
 # Test display of version-name 'default'
 #
 
-testerr_cmd_re "sh" "display $module_1" "$modlin\n$modulefile_1:\n\nmodule-whatis\t$modwhatis\n$modlin"
+testerr_cmd_re "sh" "display $module_1" "$modlin\n$modulefilere_1:\n\nmodule-whatis\t$modwhatis\n$modlin"
 
 #
 # Test whatis of generic module name
@@ -84,13 +86,13 @@ testerr_cmd_re "sh" "whatis $module_1" "$modpathheader\n\\s+$module_1: $modwhati
 # Test avail of generic module name
 #
 
-testerr_cmd_re "sh" "avail -t $module" "$env(MODULEPATH):\n$module_1\n$module_2"
+testerr_cmd "sh" "avail -t $module" "$modpath:\n$module_1\n$module_2"
 
 #
 # Test avail of version-name 'default'
 #
 
-testerr_cmd_re "sh" "avail -t $module_1" "$env(MODULEPATH):\n$module_1"
+testerr_cmd "sh" "avail -t $module_1" "$modpath:\n$module_1"
 
 
 #
@@ -103,7 +105,9 @@ unset modwhatis
 unset modpathheader
 
 unset modulefile_2
+unset modulefilere_2
 unset module_2
 unset modulefile_1
+unset modulefilere_1
 unset module_1
 unset module

@@ -22,69 +22,86 @@
 #
 ##############################################################################
 
-set modpath1 "$env(TESTSUITEDIR)/modulefiles.path1"
-set modpath2 "$env(TESTSUITEDIR)/modulefiles.path2"
-set modpath3 "$env(TESTSUITEDIR)/modulefiles.path3"
+set modpath1 "$modpath.path1"
+set modpath1re "$modpathre.path1"
+set modpath2 "$modpath.path2"
+set modpath2re "$modpathre.path2"
+set modpath3 "$modpath.path3"
+set modpath3re "$modpathre.path3"
 
 set modsym_1 "cross/1"
 set module_1 "cross/1.0"
 set modulepath_1 "$modpath2"
+set modulepathre_1 "$modpath2re"
 
 set modsym_2 "cross/2"
 set module_2 "cross/2.0"
 set modulepath_2 "$modpath3"
+set modulepathre_2 "$modpath3re"
 
 set modsym_3 "cross/3"
 set module_3 "cross/3.0"
 set modulepath_3 "$modpath1"
+set modulepathre_3 "$modpath1re"
 
 set modsym_4 "cross/4"
 set module_4 "cross/4.0"
 set modulepath_4 "$modpath1"
+set modulepathre_4 "$modpath1re"
 
 set modsym_5 "cross/5"
 set module_5 "cross/5.0"
 set modulepath_5 "$modpath3"
+set modulepathre_5 "$modpath3re"
 
 set modsym_6 "cross/6"
 set module_6 "cross/6.0"
 set modulepath_6 "$modpath2"
+set modulepathre_6 "$modpath2re"
 
 set modsym_7 "cross/bef"
 set module_7 "cross/3.0"
 set modulepath_7 "$modpath1"
+set modulepathre_7 "$modpath1re"
 
 set modsym_8 "cross/aft"
 set module_8 "cross/5.0"
 set modulepath_8 "$modpath3"
+set modulepathre_8 "$modpath3re"
 
 set modsym_9 "cross/othbef"
 set module_9 "othcross/1.0"
 set modulepath_9 "$modpath1"
+set modulepathre_9 "$modpath1re"
 
 set modsym_10 "cross/othaft"
 set module_10 "othcross/2.0"
 set modulepath_10 "$modpath3"
+set modulepathre_10 "$modpath3re"
 
 # default with no top definition, biggest from first path
 set modsym_11 "cross"
 set module_11 "cross/4.0"
 set modulepath_11 "$modpath1"
+set modulepathre_11 "$modpath1re"
 
 # alias set from top (MODULERCFILE)
 set modsym_12 "cross/top"
 set module_12 "$module_1"
 set modulepath_12 "$modulepath_1"
+set modulepathre_12 "$modulepathre_1"
 
 # alias set from top (MODULERCFILE)
 set modsym_13 "cross/othtop"
 set module_13 "$module_9"
 set modulepath_13 "$modulepath_9"
+set modulepathre_13 "$modulepathre_9"
 
 # default set from top (MODULERCFILE)
 set modsym_14 "cross"
 set module_14 "$module_2"
 set modulepath_14 "$modulepath_2"
+set modulepathre_14 "$modulepathre_2"
 
 # loading tests
 set modsym_15 "lcross/1"
@@ -121,42 +138,52 @@ set modulefile_21 "$modpath1/cross/4.0:$modpath3/lcross/12"
 set modsym_22 "dcross/dir1"
 set module_22 "dcross/dir1/1.0"
 set modulepath_22 "$modpath1"
+set modulepathre_22 "$modpath1re"
 
 set modsym_23 "dcross/d31"
 set module_23 "dcross/dir3/1.0"
 set modulepath_23 "$modpath3"
+set modulepathre_23 "$modpath3re"
 
 set modsym_24 "dcross/dir2/craft"
 set module_24 "dcross/dir2/1.0"
 set modulepath_24 "$modpath2"
+set modulepathre_24 "$modpath2re"
 
 set modsym_25 "dcross/dir1/bef"
 set module_25 "dcross/dir1/1.0"
 set modulepath_25 "$modpath1"
+set modulepathre_25 "$modpath1re"
 
 set modsym_26 "dcross/dir1/aft"
 set module_26 "dcross/dir1/3.0"
 set modulepath_26 "$modpath3"
+set modulepathre_26 "$modpath3re"
 
 set modsym_27 "dcross/dir1/first"
 set module_27 "dcross/4.0"
 set modulepath_27 "$modpath1"
+set modulepathre_27 "$modpath1re"
 
 set modsym_28 "dcross/dir1/last"
 set module_28 "dcross/5.0"
 set modulepath_28 "$modpath3"
+set modulepathre_28 "$modpath3re"
 
 set modsym_29 "dcross/d11"
 set module_29 "dcross/dir1/1.0"
 set modulepath_29 "$modpath1"
+set modulepathre_29 "$modpath1re"
 
 set modsym_30 "dcross/dir1/crbef"
 set module_30 "dcross/dir1/2.0"
 set modulepath_30 "$modpath2"
+set modulepathre_30 "$modpath2re"
 
 set modsym_31 "fodcross/2.7.13/sub-13"
 set module_31 "fodcross/2.7.13/sub-13"
 set modulepath_31 "$modpath1"
+set modulepathre_31 "$modpath1re"
 
 
 set help_pre "$modlin\nModule Specific Help for "
@@ -187,7 +214,9 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
         set modulefile [set "::modulefile_${i}"]
     } else {
         set modulepath [set "::modulepath_${i}"]
+        set modulepathre [set "::modulepathre_${i}"]
         set modulefile "$modulepath/$module"
+        set modulefilere "$modulepathre/$module"
     }
 
     # setup environment with no loaded module
@@ -201,13 +230,13 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     testouterr_cmd_re "sh" "load $modsym" $ans ""
 
     if {$test_shows} {
-        testouterr_cmd_re "sh" "display $modsym" "OK" "$::disp_pre$modulefile:\n\n$::disp_wi$module$::disp_post"
-        testouterr_cmd_re "sh" "help $modsym" "OK" "$::help_pre$modulefile$::help_post"
-        testouterr_cmd_re "sh" "test $modsym" "OK" "$::test_pre$modulefile$::test_post"
+        testouterr_cmd_re "sh" "display $modsym" "OK" "$::disp_pre$modulefilere:\n\n$::disp_wi$module$::disp_post"
+        testouterr_cmd_re "sh" "help $modsym" "OK" "$::help_pre$modulefilere$::help_post"
+        testouterr_cmd_re "sh" "test $modsym" "OK" "$::test_pre$modulefilere$::test_post"
     }
 
     if {$test_whatis} {
-        testouterr_cmd_re "sh" "whatis $modsym" "OK" "$::modlin $modulepath $::modlin\n\\s*$module: $module"
+        testouterr_cmd_re "sh" "whatis $modsym" "OK" "$::modlin $modulepathre $::modlin\n\\s*$module: $module"
     }
 
     if {$test_paths || $test_shows} {
@@ -305,14 +334,18 @@ for {set i 1} {$i <= 31} {incr i} {
         unset "modulefile_${i}"
     } else {
         unset "modulepath_${i}"
+        unset "modulepathre_${i}"
     }
 }
 
 unset i
 
 unset modpath1
+unset modpath1re
 unset modpath2
+unset modpath2re
 unset modpath3
+unset modpath3re
 
 # remove procs
 rename cross_test_case {}

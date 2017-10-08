@@ -28,7 +28,8 @@
 
 set module "info/specified"
 set module2 "info/foo"
-set modulefile "$env(MODULEPATH)/$module"
+set modulefile "$modpath/$module"
+set modulefilere "$modpathre/$module"
 
 #
 #  For sh shell only (no need to check every shells)
@@ -48,16 +49,16 @@ testouterr_cmd "sh" "load $module" $ans "$module"
 testouterr_cmd "sh" "load $module2" $ans "$module2"
 
 # test displaying
-testerr_cmd_re "sh" "display $module" "$modlin\n$modulefile:\n\n$module\n$modlin"
-testerr_cmd_re "sh" "display $module2" "$modlin\n$modulefile:\n\n$module2\n$modlin"
+testerr_cmd_re "sh" "display $module" "$modlin\n$modulefilere:\n\n$module\n$modlin"
+testerr_cmd_re "sh" "display $module2" "$modlin\n$modulefilere:\n\n$module2\n$modlin"
 
 # test help
-testerr_cmd_re "sh" "help $module" "$modlin\nModule Specific Help for $modulefile:\n\n$module\n$modlin"
-testerr_cmd_re "sh" "help $module2" "$modlin\nModule Specific Help for $modulefile:\n\n$module2\n$modlin"
+testerr_cmd_re "sh" "help $module" "$modlin\nModule Specific Help for $modulefilere:\n\n$module\n$modlin"
+testerr_cmd_re "sh" "help $module2" "$modlin\nModule Specific Help for $modulefilere:\n\n$module2\n$modlin"
 
 # test test
-testerr_cmd_re "sh" "test $module" "$modlin\nModule Specific Test for $modulefile:\n\n$module\nTest result: PASS\n$modlin"
-testerr_cmd_re "sh" "test $module2" "$modlin\nModule Specific Test for $modulefile:\n\n$module2\nTest result: PASS\n$modlin"
+testerr_cmd_re "sh" "test $module" "$modlin\nModule Specific Test for $modulefilere:\n\n$module\nTest result: PASS\n$modlin"
+testerr_cmd_re "sh" "test $module2" "$modlin\nModule Specific Test for $modulefilere:\n\n$module2\nTest result: PASS\n$modlin"
 
 # Set up the environment for test that require the module to be loaded
 set env(_LMFILES_) "$modulefile"
@@ -88,5 +89,6 @@ unset env(_LMFILES_)
 unset ans
 
 unset modulefile
+unset modulefilere
 unset module
 unset module2

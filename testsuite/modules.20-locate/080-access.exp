@@ -32,36 +32,38 @@ if {$tcl_platform(user) eq "root"} {
 
 set m1 "loc_rc6/1.2"
 set lm1 "$m1"
-set lmf1 "$env(MODULEPATH)/$lm1"
+set lmf1 "$modpath/$lm1"
 set m2 "loc_rc6/bar"
 set lm2 "$lm1"
-set lmf2 "$env(MODULEPATH)/$lm2"
+set lmf2 "$modpath/$lm2"
 set m3 "loc_rc6/new"
 set lm3 "$lm1"
-set lmf3 "$env(MODULEPATH)/$lm3"
+set lmf3 "$modpath/$lm3"
 set m4 "loc_rc3"
 set lm4 "$m4/1.0"
-set lmf4 "$env(MODULEPATH)/$lm4"
+set lmf4 "$modpath/$lm4"
 set m5 "loc_rc1"
 set lm5 "$m5/2.0"
-set lmf5 "$env(MODULEPATH)/$lm5"
+set lmf5 "$modpath/$lm5"
 set rlm5 "$m5/1.0"
-set rlmf5 "$env(MODULEPATH)/$rlm5"
+set rlmf5 "$modpath/$rlm5"
+set rlmf5re "$modpathre/$rlm5"
 set m6 "loc_rc1"
 set lm6 "$m6/1.0"
-set lmf6 "$env(MODULEPATH)/$lm6"
+set lmf6 "$modpath/$lm6"
 set m7 "loc_rc7"
 set lm7 "$m7/0.9"
-set lmf7 "$env(MODULEPATH)/$lm7"
+set lmf7 "$modpath/$lm7"
 set m8 "$m2"
-set lmrc8 "$env(MODULEPATH)/loc_rc6/.modulerc"
+set lmrc8 "$modpath/loc_rc6/.modulerc"
 set m9 "$m3"
-set lmrc9 "$env(MODULEPATH)/loc_rc6/.modulerc"
+set lmrc9 "$modpath/loc_rc6/.modulerc"
 set m10 "$m4"
-set lmrc10 "$env(MODULEPATH)/$m4/.modulerc"
+set lmrc10 "$modpath/$m4/.modulerc"
 set rlm10 "$m10/3.0"
-set rlmf10 "$env(MODULEPATH)/$rlm10"
-set m11 "$env(MODULEPATH).deep/plain/dir2/1.0"
+set rlmf10 "$modpath/$rlm10"
+set rlmf10re "$modpathre/$rlm10"
+set m11 "$modpath.deep/plain/dir2/1.0"
 set m12 "$m1"
 set lmd12 [file dirname $lmf1]
 set m13 "$m2"
@@ -75,13 +77,13 @@ set lmd16 [file dirname $lmf5]
 
 set m17 "symlink/1.2"
 set lm17 "$m17"
-set lmf17 "$env(MODULEPATH)/$lm17"
+set lmf17 "$modpath/$lm17"
 set m18 "symlink/bar"
 set lm18 "$lm17"
-set lmf18 "$env(MODULEPATH)/$lm18"
+set lmf18 "$modpath/$lm18"
 set m19 "symlink/new"
 set lm19 "$lm17"
-set lmf19 "$env(MODULEPATH)/$lm19"
+set lmf19 "$modpath/$lm19"
 set m20 "$m17"
 set lmd20 [file dirname $lmf17]
 set m21 "$m18"
@@ -89,8 +91,8 @@ set lmd21 [file dirname $lmf18]
 set m22 "$m19"
 set lmd22 [file dirname $lmf19]
 
-set pheader "$modlin $env(MODULEPATH) $modlin"
-set theader "$env(MODULEPATH):"
+set pheader "$modlin $modpathre $modlin"
+set theader "$modpathre:"
 set access_msg "$error_msgs: Permission denied on"
 set hide_perms "ugo-rx"
 
@@ -166,7 +168,7 @@ lappend ans [list set testsuite yes]
 
 # another implicit default is chosen
 testouterr_cmd "sh" "load $m5" $ans ""
-testouterr_cmd_re "sh" "display $m5" "OK" "$modlin\n$rlmf5:\n\nmodule-whatis\t$rlm5\nsetenv\t\ttestsuite\tyes\n$modlin"
+testouterr_cmd_re "sh" "display $m5" "OK" "$modlin\n$rlmf5re:\n\nmodule-whatis\t$rlm5\nsetenv\t\ttestsuite\tyes\n$modlin"
 testouterr_cmd_re "sh" "whatis $m5" "OK" "$pheader\n\\s+$rlm5: $rlm5"
 testouterr_cmd_re "sh" "avail -t $m5" "" "$theader\n$rlm5\\(\[a-z:\]+\\)"
 
@@ -247,7 +249,7 @@ lappend ans [list set testsuite yes]
 
 # another implicit default is chosen
 testouterr_cmd "sh" "load $m10" $ans ""
-testouterr_cmd_re "sh" "display $m10" "OK" "$modlin\n$rlmf10:\n\nmodule-whatis\t$rlm10\nsetenv\t\ttestsuite\tyes\n$modlin"
+testouterr_cmd_re "sh" "display $m10" "OK" "$modlin\n$rlmf10re:\n\nmodule-whatis\t$rlm10\nsetenv\t\ttestsuite\tyes\n$modlin"
 testouterr_cmd_re "sh" "whatis $m10" "OK" "$pheader\n\\s+$m10/1.0: $m10/1.0\n\\s+$m10/2.0: $m10/2.0\n\\s+$m10/3.0: $m10/3.0"
 testouterr_cmd_re "sh" "avail -t $m10" "" "$theader\n$m10/1.0\n$m10/2.0\n$m10/3.0"
 
@@ -449,6 +451,7 @@ unset lm5
 unset lmf5
 unset rlm5
 unset rlmf5
+unset rlmf5re
 unset m6
 unset lm6
 unset lmf6
@@ -463,6 +466,7 @@ unset m10
 unset lmrc10
 unset rlm10
 unset rlmf10
+unset rlmf10re
 unset m11
 unset m12
 unset lmd12

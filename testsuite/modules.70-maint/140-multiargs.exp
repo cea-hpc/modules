@@ -22,40 +22,46 @@
 
 
 set mod_g1 "append/2.0"
-set modfile_g1 "$env(MODULEPATH)/$mod_g1"
+set modfile_g1 "$modpath/$mod_g1"
+set modfilere_g1 "$modpathre/$mod_g1"
 set setenv_g1 [list "setpath" "PATH" "$env(PATH):/this/is/the/modules/testsuite"]
 set unsetenv_g1 [list "setpath" "PATH" "$env(PATH)"]
 set disp_g1 "append-path\\s+PATH\\s+/this/is/the/modules/testsuite"
 
 set mod_g2 "verssort/1.2.1"
-set modfile_g2 "$env(MODULEPATH)/$mod_g2"
+set modfile_g2 "$modpath/$mod_g2"
+set modfilere_g2 "$modpathre/$mod_g2"
 set setenv_g2 [list "set" "MODULE_VERSION" "1.2.1"]
 set unsetenv_g2 [list "unset" "MODULE_VERSION"]
 set disp_g2 "setenv\\s+MODULE_VERSION\\s+1.2.1"
 set whatis_g2 "module version sort test"
 
 set mod_b1 "bad2/body"
-set modfile_b1 "$env(MODULEPATH)/$mod_b1"
+set modfile_b1 "$modpath/$mod_b1"
+set modfilere_b1 "$modpathre/$mod_b1"
 set srcenv_b1 [list "set" "testsuite" "yes"]
 set disp_b1 "setenv\\s+testsuite\\s+yes"
 set whatis_b1 "erroneous module test"
-set errlo_b1 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modfile_b1'\n$err_contact"
+set errlo_b1 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modfilere_b1'\n$err_contact"
 set errdi_b1 "$errlo_b1\n"
 
 set mod_b2 "append/0.2"
-set modfile_b2 "$env(MODULEPATH)/$mod_b2"
+set modfile_b2 "$modpath/$mod_b2"
+set modfilere_b2 "$modpathre/$mod_b2"
 set disp_b2 "append-path\\s+PATH\\s+:"
-set errlo_b2 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$modfile_b2'\n$err_contact"
+set errlo_b2 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$modfilere_b2'\n$err_contact"
 
 set mod_b3 "module/bad"
-set modfile_b3 "$env(MODULEPATH)/$mod_b3"
+set modfile_b3 "$modpath/$mod_b3"
+set modfilere_b3 "$modpathre/$mod_b3"
 set disp_b3 "module\\s+load\\s+$mod_b1"
-set errlo_b3 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modfile_b1'\n$err_contact"
+set errlo_b3 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modfilere_b1'\n$err_contact"
 
 set mod_b4 "module/err"
-set modfile_b4 "$env(MODULEPATH)/$mod_b4"
+set modfile_b4 "$modpath/$mod_b4"
+set modfilere_b4 "$modpathre/$mod_b4"
 set disp_b4 "module\\s+load\\s+$mod_b2"
-set errlo_b4 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$modfile_b2'\n$err_contact"
+set errlo_b4 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$modfilere_b2'\n$err_contact"
 
 
 set help_pre "$modlin"
@@ -67,7 +73,7 @@ set test_post "$modlin"
 set disp_pre "$modlin"
 set disp_wi "module-whatis\\s+"
 set disp_post "$modlin"
-set whatis_pre "$modlin $env(MODULEPATH) $modlin\n"
+set whatis_pre "$modlin $modpathre $modlin\n"
 
 
 #
@@ -87,6 +93,7 @@ proc multi_test_case {args} {
         incr i
         set mod [set "::mod_${m}"]
         set modfile [set "::modfile_${m}"]
+        set modfilere [set "::modfilere_${m}"]
         lappend modsym $mod
         lappend allmodulefile $modfile
 
@@ -109,9 +116,9 @@ proc multi_test_case {args} {
             lappend ans_unlo [set "::unsetenv_${m}"]
         }
 
-        append disp "\n$modfile:\n\n"
-        append help "\nModule Specific Help for $modfile:\n\n"
-        append test "\nModule Specific Test for $modfile:\n\n"
+        append disp "\n$modfilere:\n\n"
+        append help "\nModule Specific Help for $modfilere:\n\n"
+        append test "\nModule Specific Test for $modfilere:\n\n"
         if {[info exists "::disp_${m}"]} {
             append disp "[set ::disp_${m}]\n"
         }
@@ -131,8 +138,8 @@ proc multi_test_case {args} {
             append test [set "::errdi_${m}"]
             set retdi "ERR"
         } else {
-            append help "$::help_noproc $modfile.\n"
-            append test "$::test_noproc $modfile.\n"
+            append help "$::help_noproc $modfilere.\n"
+            append test "$::test_noproc $modfilere.\n"
         }
         append disp "$::disp_post"
         append help "$::help_post"
@@ -232,12 +239,14 @@ unset whatis_pre
 
 unset mod_g1
 unset modfile_g1
+unset modfilere_g1
 unset setenv_g1
 unset unsetenv_g1
 unset disp_g1
 
 unset mod_g2
 unset modfile_g2
+unset modfilere_g2
 unset setenv_g2
 unset unsetenv_g2
 unset disp_g2
@@ -245,6 +254,7 @@ unset whatis_g2
 
 unset mod_b1
 unset modfile_b1
+unset modfilere_b1
 unset srcenv_b1
 unset disp_b1
 unset whatis_b1
@@ -253,15 +263,18 @@ unset errdi_b1
 
 unset mod_b2
 unset modfile_b2
+unset modfilere_b2
 unset disp_b2
 unset errlo_b2
 
 unset mod_b3
 unset modfile_b3
+unset modfilere_b3
 unset disp_b3
 unset errlo_b3
 
 unset mod_b4
 unset modfile_b4
+unset modfilere_b4
 unset disp_b4
 unset errlo_b4
