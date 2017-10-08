@@ -263,7 +263,7 @@ for {set i 1} {$i <= 30} {incr i} {
     lappend ans [list setpath LOADEDMODULES $module]
     lappend ans [list setpath _LMFILES_ $modulefile]
 
-    testouterr_cmd_re "sh" "load $modsym" $ans "$modwarn"
+    testouterr_cmd "sh" "load $modsym" $ans "$modwarn"
     testouterr_cmd_re "sh" "display $modsym" "OK" "$modwarnnl$disp_pre$modulefile:\n\n$disp_wi$module$disp_post"
     testouterr_cmd_re "sh" "help $modsym" "OK" "$modwarnnl$help_pre$modulefile$help_post"
     testouterr_cmd_re "sh" "test $modsym" "OK" "$modwarnnl$test_pre$modulefile$test_post"
@@ -284,14 +284,14 @@ for {set i 1} {$i <= 30} {incr i} {
     lappend ans [list unsetpath LOADEDMODULES]
     lappend ans [list unsetpath _LMFILES_]
 
-    testouterr_cmd_re "sh" "unload $modsym" $ans "$modwarn"
+    testouterr_cmd "sh" "unload $modsym" $ans "$modwarn"
 }
 
 # transitive symbol sets from a distant module (different name) cannot
 # be resolved when queyring target module name
 set modsym "loc_tr/trbar"
 set locate_msg "$err_path'$modsym'"
-testouterr_cmd_re "sh" "load $modsym" "ERR" "$locate_msg"
+testouterr_cmd "sh" "load $modsym" "ERR" "$locate_msg"
 testouterr_cmd_re "sh" "display $modsym" "ERR" "$locate_msg"
 testouterr_cmd_re "sh" "help $modsym" "ERR" "$locate_msg"
 testouterr_cmd_re "sh" "test $modsym" "ERR" "$locate_msg"

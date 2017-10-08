@@ -536,7 +536,12 @@ proc shell_out {test_shell out_list {re_mode 0}} {
                 # automatically set ref counter variable if not specified
                 set sharevar "${var}_modshare"
                 if {![info exists envvar($sharevar)]} {
-                    set envvar($sharevar) [shell_set $test_shell $sharevar "(.*)" $re_mode]
+                    if {$re_mode} {
+                        set envvar($sharevar) [shell_set $test_shell $sharevar "(.*)" $re_mode]
+                    } else {
+                        # set a default value when not in re mode
+                        set envvar($sharevar) [shell_set $test_shell $sharevar "$val:1" $re_mode]
+                    }
                     set autovar($sharevar) 1
                 }
             }
