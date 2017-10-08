@@ -62,13 +62,13 @@ proc version_test {which} {
 # Shell conversion code subprocedures
 #
 
-proc shell_err {test_shell {re_mode 0}} {
+proc shell_err {test_shell {nb_err 1} {re_mode 0}} {
     if {$re_mode} {
         set esc "\\"
         set nb "\\d"
     } else {
         set esc ""
-        set nb "1"
+        set nb $nb_err
     }
 
     switch -- $test_shell {
@@ -619,7 +619,12 @@ proc shell_out {test_shell out_list {re_mode 0}} {
                 set status_set 1
             }
             {ERR} {
-                lappend fixed_list [shell_err $test_shell $re_mode]
+                lappend fixed_list [shell_err $test_shell 1 $re_mode]
+                lappend answer_list [lindex $fixed_list end]
+                set status_set 1
+            }
+            {ERR2} {
+                lappend fixed_list [shell_err $test_shell 2 $re_mode]
                 lappend answer_list [lindex $fixed_list end]
                 set status_set 1
             }
@@ -772,6 +777,8 @@ proc _test_out {test_shell cmd answer} {
         set answer [shell_out $test_shell $answer]
     } elseif {$answer eq "ERR"} {
         set answer [shell_err $test_shell]
+    } elseif {$answer eq "ERR2"} {
+        set answer [shell_err $test_shell 2]
     } elseif {$answer eq "OK"} {
         set answer [shell_ok $test_shell]
     }
@@ -797,7 +804,9 @@ proc _test_out_re {test_shell cmd answer} {
     if {[is_shell_out_list $answer]} {
         set answer [shell_out $test_shell $answer 1]
     } elseif {$answer eq "ERR"} {
-        set answer [shell_err $test_shell 1]
+        set answer [shell_err $test_shell 1 1]
+    } elseif {$answer eq "ERR2"} {
+        set answer [shell_err $test_shell 2 1]
     } elseif {$answer eq "OK"} {
         set answer [shell_ok $test_shell 1]
     }
