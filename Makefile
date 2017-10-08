@@ -52,6 +52,38 @@ MODULES_BUILD := +$(subst $(GIT_CURRENT_TAG)-,,$(GIT_CURRENT_DESC))
 else
 MODULES_BUILD := +$(GIT_CURRENT_BRANCH)$(subst $(GIT_CURRENT_TAG),,$(GIT_CURRENT_DESC))
 endif
+
+# determine RPM release
+# retrieve all parts of the release number and increase minor release number
+MODULES_RELEASE_BASE := $(firstword $(subst -, ,$(MODULES_RELEASE)))
+ifeq ($(MODULES_RELEASE),$(MODULES_RELEASE_BASE))
+MODULES_RELEASE_SUFFIX :=
+else
+MODULES_RELEASE_SUFFIX := $(subst $(MODULES_RELEASE_BASE)-,,$(MODULES_RELEASE))
+endif
+MODULES_LAST_RPM_VERSREL := $(shell grep -Pzo -m 1 '%changelog\n+\*.* - \K.*\n' \
+	contrib/rpm/environment-modules.spec.in)
+
+MODULES_LAST_RPM_RELEASE := $(subst $(MODULES_RELEASE_BASE)-,,$(MODULES_LAST_RPM_VERSREL))
+ifneq ($(MODULES_RELEASE_SUFFIX),)
+MODULES_LAST_RPM_RELEASE := $(subst .$(MODULES_RELEASE_SUFFIX),,$(MODULES_LAST_RPM_RELEASE))
+endif
+
+MODULES_LAST_RPM_RELEASE_P1 := $(firstword $(subst ., ,$(MODULES_LAST_RPM_RELEASE)))
+MODULES_LAST_RPM_RELEASE_P2 := $(subst $(MODULES_LAST_RPM_RELEASE_P1).,,$(MODULES_LAST_RPM_RELEASE))
+
+ifeq ($(MODULES_LAST_RPM_RELEASE_P2),)
+MODULES_RPM_RELEASE_P2 := 1
+else
+MODULES_RPM_RELEASE_P2 := $(shell echo $$(($(MODULES_LAST_RPM_RELEASE_P2)+1)))
+endif
+
+MODULES_RPM_RELEASE := $(MODULES_LAST_RPM_RELEASE_P1).$(MODULES_RPM_RELEASE_P2)
+ifneq ($(MODULES_RELEASE_SUFFIX),)
+MODULES_RPM_RELEASE := $(MODULES_RPM_RELEASE).$(MODULES_RELEASE_SUFFIX)
+endif
+MODULES_RPM_RELEASE := $(MODULES_RPM_RELEASE)$(subst -,.,$(MODULES_BUILD))
+
 else
 # source version definitions shared across the Makefiles of this project
 ifneq ($(wildcard version.inc),version.inc)
@@ -67,6 +99,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \
 	-e 's|@MODULES_BUILD@|$(MODULES_BUILD)|g' \
+	-e 's|@MODULES_RPM_RELEASE@|$(MODULES_RPM_RELEASE)|g' \
 	-e 's|@MODULES_BUILD_DATE@|$(MODULES_BUILD_DATE)|g' $< > $@
 endef
 
@@ -74,9 +107,16 @@ ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
 # rebuild if git repository changed
 version.inc: version.inc.in .git/index
 	$(translate-in-script)
+
+contrib/rpm/environment-modules.spec: contrib/rpm/environment-modules.spec.in .git/index
+	$(translate-in-script)
+
 else
 # avoid shared definitions to be rebuilt by make
 version.inc: ;
+
+# do not rebuild spec file if not in git repository
+contrib/rpm/environment-modules.spec: ;
 endif
 
 DIST_PREFIX := modules-$(MODULES_RELEASE)$(MODULES_BUILD)
@@ -165,12 +205,13 @@ endif
 
 # include pre-generated documents not to require documentation build
 # tools when installing from dist tarball
-dist-tar: ChangeLog README MIGRATING version.inc pkgdoc
+dist-tar: ChangeLog README MIGRATING version.inc contrib/rpm/environment-modules.spec pkgdoc
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' \
 		ChangeLog README MIGRATING version.inc doc/build/diff_v3_v4.txt \
-		doc/build/module.1.in doc/build/modulefile.4
+		doc/build/module.1.in doc/build/modulefile.4 \
+		contrib/rpm/environment-modules.spec
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
 	make -C $(COMPAT_DIR) distdir
 	mv $(COMPAT_DIR)/modules-* compatdist
@@ -212,6 +253,7 @@ endif
 	make -C doc clean
 ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
 	rm -f version.inc
+	rm -f contrib/rpm/environment-modules.spec
 endif
 ifneq ($(wildcard $(COMPAT_DIR)/Makefile),)
 	make -C compat clean
