@@ -188,7 +188,7 @@ before_install: |
     case "${OS_NAME}" in
       centos)
         if [ $OS_VERSION -eq 6 ]; then SPHINX_PKG='python-sphinx10'; else SPHINX_PKG='python-sphinx'; fi
-        docker exec $CONTAINER yum install -y tcsh zsh ksh tcl make wget perl $SPHINX_PKG git dejagnu man-db $EXTRA_PKGS &&
+        docker exec $CONTAINER yum install -y tcsh zsh ksh tcl make wget perl $SPHINX_PKG git dejagnu man-db rpm-build bzip2 $EXTRA_PKGS &&
         docker exec $CONTAINER wget -O /etc/yum.repos.d/shells_fish_release_2.repo http://download.opensuse.org/repositories/shells:fish:release:2/CentOS_${OS_VERSION}/shells:fish:release:2.repo &&
         docker exec $CONTAINER yum install -y fish ;;
       opensuse)
@@ -207,6 +207,7 @@ script:
   - $CMD_PREFIX make install
   - $CMD_PREFIX make testinstall
   - $CMD_PREFIX make uninstall
+  - if [ "$OS_NAME" = 'centos' ]; then $CMD_PREFIX make srpm; fi
 
 # report code coverage results
 after_success: |
