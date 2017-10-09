@@ -1,0 +1,61 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:       modules.00-init/%M%
+#   Revision:       %I%
+#   First Edition:  2017/10/09
+#   Last Mod.:      %U%, %G%
+#
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:    Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:    %C{
+#           Check basic set of compatibility version module
+#           commands on all shells
+#       }C%
+#
+##############################################################################
+
+# cannot test access if superuser privileges are in use
+if {$install_compatversion ne "y"} {
+    send_user "\tSkipping compat version tests, no compat version installed\n"
+} else {
+
+set bad_cmd "'foo' is an unrecognized subcommand"
+
+# set module compat version as default
+set env(MODULES_USE_COMPAT_VERSION) 1
+
+#
+# The tests
+#
+
+if {$verbose > 0} {
+   send_user "\tChecking basic set of compat module commands\n"
+}
+
+foreach shell $shell_list {
+   # compat version does not support Fish shell
+   if {$shell ne "fish"} {
+      testall_cmd_re "$shell" "module --version" "^\$" "^VERSION=\\S+.*\$" 1
+      testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "" "$cur_loaded\nnull" 0
+      testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "" "$no_loaded" 0
+   }
+}
+
+#
+#  Clean up variables used in this test case
+#
+
+unset bad_cmd
+
+# restore environment setup
+unset env(MODULES_USE_COMPAT_VERSION)
+
+}
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
