@@ -70,8 +70,16 @@ if {$install_setbinpath eq "y"} {
       send_user "\tChecking other utilities availability\n"
    }
    foreach shell $shell_list {
-      testall_cmd "$shell" "command -v add.modules" "$install_bindir/add.modules" "" 0
-      testall_cmd "$shell" "command -v mkroot" "$install_bindir/mkroot" "" 0
+      switch -- $shell {
+         csh - tcsh {
+            testall_cmd "$shell" "which add.modules" "$install_bindir/add.modules" "" 0
+            testall_cmd "$shell" "which mkroot" "$install_bindir/mkroot" "" 0
+         }
+         default {
+            testall_cmd "$shell" "command -v add.modules" "$install_bindir/add.modules" "" 0
+            testall_cmd "$shell" "command -v mkroot" "$install_bindir/mkroot" "" 0
+         }
+      }
    }
 } elseif {$verbose > 0} {
    send_user "\tSkipping envml availability checks\n"
