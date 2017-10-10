@@ -234,6 +234,7 @@ Package Initialization
 
 Compatibility version does not support *fish*, *lisp*, *tcl* and *R* as code output.
 
+On version 4 and for *sh*, *bash*, *ksh*, *zsh* and *fish* shells, text output, like listing from the **avail** command, is redirected from *stderr* to *stdout* after shell command evaluation if shell is in interactive mode.
 
 Command line switches
 ^^^^^^^^^^^^^^^^^^^^^

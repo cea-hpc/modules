@@ -34,6 +34,14 @@ code output.
 All module sub-commands will now return a non-zero exit code in case of error
 whereas Modules v3.2 always returned zero exit code even if issue occurred.
 
+### Output redirect
+
+Traditionally the *module* command output text that should be seen by the
+user on *stderr* since shell commands are output to *stdout* to change
+shell's environment. Now on *sh*, *bash*, *ksh*, *zsh* and *fish* shells,
+output text is redirected to *stdout* after shell command evaluation if
+shell is in interactive mode.
+
 ### Filtering avail output
 
 Results obtained from the **avail** sub-command can now be filtered to only
