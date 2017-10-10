@@ -146,16 +146,28 @@ the *modulefile* is being loaded.
  the Tcl specially by enclosing it in " " or { }). A space, however,
  can not be specified by the *--delim=C* form.
 
+ A reference counter environment variable is also set to increase the
+ number of times *value* has been added to environment *variable*. This
+ reference counter environment variable is named by suffixing *variable*
+ by *_modshare*.
+
  If the *variable* is not set, it is created. When a *modulefile* is
  unloaded, **append-path** and **prepend-path** become **remove-path**.
 
 **remove-path** [-d C|--delim C|--delim=C] variable value
 
- Remove *value* from the colon, or *delimiter*, separated list
- in *variable*. See **prepend-path** or **append-path** for further
- explanation of using an arbitrary delimiter. Every string between colons,
- or delimiters, in *variable* is compared to *value*. If the two match,
- *value* is removed from *variable*.
+ Remove *value* from the colon, or *delimiter*, separated list in
+ *variable*. See **prepend-path** or **append-path** for further explanation
+ of using an arbitrary delimiter. Every string between colons, or delimiters,
+ in *variable* is compared to *value*. If the two match, *value* is removed
+ from *variable* if its reference counter is equal to 1 or unknown.
+
+ Reference counter of *value* in *variable* denotes the number of times
+ *value* has been added to *variable*. This information is stored in
+ environment *variable_modshare*. When attempting to remove *value* from
+ *variable*, relative reference counter is checked and *value* is removed
+ only if counter is equal to 1 or not defined. Elsewhere *value* is kept
+ in *variable* and reference counter is decreased by 1.
 
 **prereq** modulefile...
 

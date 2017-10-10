@@ -245,10 +245,22 @@ Module Sub-Commands
  variable.  The *--append* flag will append the *directory* to
  **MODULEPATH**.
 
+ Reference counter environment variable **MODULEPATH_modshare** is
+ also set to increase the number of times *directory* has been added to
+ **MODULEPATH**.
+
 **unuse** directory...
 
  Remove one or more *directories* from the **MODULEPATH** environment
- variable.
+ variable if reference counter of these *directories* is equal to 1
+ or unknown.
+
+ Reference counter of *directory* in **MODULEPATH** denotes the number of
+ times *directory* has been enabled. When attempting to remove *directory*
+ from **MODULEPATH**, reference counter variable **MODULEPATH_modshare**
+ is checked and *directory* is removed only if its relative counter is
+ equal to 1 or not defined. Elsewhere *directory* is kept and reference
+ counter is decreased by 1.
 
 **refresh**
 
@@ -477,6 +489,14 @@ ENVIRONMENT
 **_LMFILES_**
 
  A colon separated list of the full pathname for all loaded *modulefiles*.
+
+**<VAR>_modshare**
+
+ Reference counter variable for path-like variable *<VAR>*. A colon
+ separated list containing pairs of elements. A pair is formed by a path
+ element followed its usage counter which represents the number of times
+ this path has been enabled in variable *<VAR>*. A colon separates the
+ two parts of the pair.
 
 **MODULES_COLLECTION_TARGET**
 
