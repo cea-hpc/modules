@@ -13,6 +13,7 @@ Welcome to Environment Modules' documentation!
    module
    diff_v3_v4
    FAQ
+   MIGRATING
 
 Indices and tables
 ==================

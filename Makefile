@@ -18,7 +18,7 @@ ifneq ($(wildcard Makefile.inc),Makefile.inc)
 endif
 include Makefile.inc
 
-all: initdir pkgdoc modulecmd.tcl ChangeLog README MIGRATING\
+all: initdir pkgdoc modulecmd.tcl ChangeLog README \
 	contrib/scripts/add.modules
 ifeq ($(compatversion),y)
 all: $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
@@ -131,7 +131,7 @@ modulecmd.tcl: modulecmd.tcl.in version.inc
 ChangeLog:
 	contrib/gitlog2changelog.py
 
-README MIGRATING:
+README:
 	sed -e '/^\[\!\[.*\].*/d' $@.md > $@
 
 contrib/scripts/add.modules: contrib/scripts/add.modules.in
@@ -142,10 +142,10 @@ $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog:
 	make -C $(COMPAT_DIR) $(@F)
 
 ifeq ($(compatversion),y)
-install: modulecmd.tcl ChangeLog README MIGRATING contrib/scripts/add.modules \
+install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
 	$(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
 else
-install: modulecmd.tcl ChangeLog README MIGRATING contrib/scripts/add.modules
+install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules
 endif
 	mkdir -p $(DESTDIR)$(libexecdir)
 	mkdir -p $(DESTDIR)$(bindir)
@@ -167,7 +167,6 @@ ifeq ($(docinstall),y)
 	cp ChangeLog $(DESTDIR)$(docdir)/
 	cp NEWS $(DESTDIR)$(docdir)/
 	cp README $(DESTDIR)$(docdir)/
-	cp MIGRATING $(DESTDIR)$(docdir)/
 	cp INSTALL.txt $(DESTDIR)$(docdir)/INSTALL
 ifeq ($(compatversion),y)
 	cp $(COMPAT_DIR)/ChangeLog $(DESTDIR)$(docdir)/ChangeLog-compat
@@ -191,7 +190,7 @@ endif
 	rm -f $(DESTDIR)$(bindir)/add.modules
 	rm -f $(DESTDIR)$(bindir)/mkroot
 ifeq ($(docinstall),y)
-	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog NEWS README MIGRATING INSTALL COPYING.GPLv2)
+	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog NEWS README INSTALL COPYING.GPLv2)
 ifeq ($(compatversion),y)
 	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog-compat NEWS-compat)
 endif
@@ -205,11 +204,13 @@ endif
 
 # include pre-generated documents not to require documentation build
 # tools when installing from dist tarball
-dist-tar: ChangeLog README MIGRATING version.inc contrib/rpm/environment-modules.spec pkgdoc
+dist-tar: ChangeLog README version.inc contrib/rpm/environment-modules.spec pkgdoc
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
+	cp doc/build/MIGRATING.txt ./
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' \
-		ChangeLog README MIGRATING version.inc doc/build/diff_v3_v4.txt \
+		ChangeLog README MIGRATING.txt version.inc \
+		doc/build/MIGRATING.txt doc/build/diff_v3_v4.txt \
 		doc/build/module.1.in doc/build/modulefile.4 \
 		contrib/rpm/environment-modules.spec
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
@@ -242,8 +243,8 @@ endif
 ifeq ($(wildcard .git) $(wildcard README.md),.git README.md)
 	rm -f README
 endif
-ifeq ($(wildcard .git) $(wildcard MIGRATING.md),.git MIGRATING.md)
-	rm -f MIGRATING
+ifeq ($(wildcard .git) $(wildcard MIGRATING.rst),.git MIGRATING.rst)
+	rm -f MIGRATING.txt
 endif
 	rm -f modulecmd.tcl
 	rm -f contrib/scripts/add.modules
