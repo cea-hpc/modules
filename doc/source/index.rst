@@ -15,6 +15,7 @@ Welcome to Environment Modules' documentation!
    FAQ
    MIGRATING
    INSTALL
+   NEWS
 
 Indices and tables
 ==================

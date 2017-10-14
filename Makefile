@@ -165,7 +165,6 @@ ifeq ($(docinstall),y)
 	mkdir -p $(DESTDIR)$(docdir)
 	cp COPYING.GPLv2 $(DESTDIR)$(docdir)/
 	cp ChangeLog $(DESTDIR)$(docdir)/
-	cp NEWS $(DESTDIR)$(docdir)/
 	cp README $(DESTDIR)$(docdir)/
 ifeq ($(compatversion),y)
 	cp $(COMPAT_DIR)/ChangeLog $(DESTDIR)$(docdir)/ChangeLog-compat
@@ -189,7 +188,7 @@ endif
 	rm -f $(DESTDIR)$(bindir)/add.modules
 	rm -f $(DESTDIR)$(bindir)/mkroot
 ifeq ($(docinstall),y)
-	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog NEWS README COPYING.GPLv2)
+	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog README COPYING.GPLv2)
 ifeq ($(compatversion),y)
 	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog-compat NEWS-compat)
 endif
@@ -206,11 +205,11 @@ endif
 dist-tar: ChangeLog README version.inc contrib/rpm/environment-modules.spec pkgdoc
 	git archive --prefix=$(DIST_PREFIX)/ --worktree-attributes \
 		-o $(DIST_PREFIX).tar HEAD
-	cp doc/build/MIGRATING.txt  doc/build/INSTALL.txt ./
+	cp doc/build/MIGRATING.txt  doc/build/INSTALL.txt doc/build/NEWS.txt ./
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' \
-		ChangeLog README MIGRATING.txt INSTALL.txt version.inc \
+		ChangeLog README MIGRATING.txt INSTALL.txt NEWS.txt version.inc \
 		doc/build/MIGRATING.txt doc/build/diff_v3_v4.txt \
-		doc/build/INSTALL.txt \
+		doc/build/INSTALL.txt doc/build/NEWS.txt \
 		doc/build/module.1.in doc/build/modulefile.4 \
 		contrib/rpm/environment-modules.spec
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
@@ -248,6 +247,9 @@ ifeq ($(wildcard .git) $(wildcard MIGRATING.rst),.git MIGRATING.rst)
 endif
 ifeq ($(wildcard .git) $(wildcard INSTALL.rst),.git INSTALL.rst)
 	rm -f INSTALL.txt
+endif
+ifeq ($(wildcard .git) $(wildcard NEWS.rst),.git NEWS.rst)
+	rm -f NEWS.txt
 endif
 	rm -f modulecmd.tcl
 	rm -f contrib/scripts/add.modules

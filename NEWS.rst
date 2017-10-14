@@ -1,0 +1,449 @@
+.. _NEWS:
+
+Release notes
+=============
+
+This file describes changes in recent versions of Modules. It primarily
+documents those changes that are of interest to users and admins.
+
+
+Changes in Modules 4.0.0 (2017-XX-XX)
+-------------------------------------
+
+Starting with this release, modules-tcl has become Modules. The following
+changes describe the differences with last modules-tcl release (1.923). To
+learn about the changes between this release and last Modules 3.2 release,
+please see the :ref:`MIGRATING` document.
+
+* Relax constraint on command-line argument position so options and
+  switches can be passed either before or after command name.
+* Report ``unsupported option`` warning rather stop on error when
+  compatibility-version specific command-line switches are passed (
+  ``--force``, ``--human``, ``--verbose``, ``--silent``, ``--create``,
+  ``--icase``, ``--userlvl``).
+* Keep empty ``module load`` line in shell configuration files after running
+  the ``initrm`` or ``initclear`` commands.
+* Always return the value of ``tcl_platform(osVersion)`` for ``uname release``
+* Optimize code output, for Perl to only return ``1;`` once for a no-operation
+  situation and for Python to not ``import os`` when there is only an error
+  to render.
+* Use value of system command ``uname -n`` for ``uname nodename``.
+* Add support for CMake *shell*
+* Ignore ``/`` character used as suffix in modulefile name passed on command
+  line.
+* Rename Perl initialization script in ``perl.pm`` and Python in
+  ``python.py``.
+* Add support for Ruby *shell* (with contribution from Tammo Tjarks)
+* Add support for R *shell* (with contribution from Roy Storey)
+* When a *default* is set for a given module name, target modulefile can
+  be referred on as *modulename/default* in addition to just *modulename*.
+* Locate symbolic versions on ``avail`` command even these symbols are set
+  over a module alias or another symbolic version. In this situation the
+  symbol spread along the resolution path until reaching a modulefile.
+* Define a more standard shebang on modulecmd.tcl script.
+* Determine modulefile corresponding to given module name using the loaded
+  context only on ``unload`` situation.
+* Enable to unload *mod/dir/subdir/vers* when unload of *mod* or *mod/dir*
+  asked. Was previously working only if deep module to unload was also the
+  default version for these root names.
+* Make -l/-t switches mutually exclusive. Last switch mentioned on the
+  command-line is honored.
+* Output parsable modulepath header when -l/-t switches are enabled.
+* When searching for a module in a given modulepath directory, if a module
+  alias or a symbolic version matches searched module but the target of
+  this alias or symbol is not found in current modulepath directory,
+  search for this target restarting search from the first modulepath in
+  list to ensure modulepath priority.
+* Solve aliases or symbolic versions looking for all modulepaths on ``search``
+  and ``paths`` commands. Was previously solved if their target was found in
+  same modulepath directory.
+* Add support for hidden *dot* modulefiles. A hidden modulefile does not
+  appear in case of wild search, it is only returned when search is about
+  its exact name.
+* No table header print in --long mode on an ``avail`` command if no result
+  are returned.
+* Add blank line between displayed list of elements, for instance between
+  modulepath content on ``avail`` command.
+* Improve readability of error messages encountered during modulefile
+  execution by putting Tcl error message first after the ``Module ERROR``
+  prefix.
+* Do not exit immediately when an internal error occurs in currently
+  interpreted modulefile. Consider this interpretation as failed and
+  continue to proceed the other modulefile arguments.
+* When multiple modulefiles are passed on ``display``, ``help`` and ``test``
+  commands only output one separator line between 2 interpreted modulefiles.
+* Fix environment settings stack handling issue when restoring stack after
+  a failed attempt to load a modulefile in a modulefile.
+* Failed attempt to load or unload a modulefile within a modulefile now
+  leads to this upper modulefile load or unload failure. Previously upper
+  modulefile were loaded respectively unloaded even if its dependent
+  sub-modulefile failed to load or unload.
+* During a ``switch`` command, if the unloading part fails the loading part
+  will not be tried. Unloading part fails if module to unload does not
+  exist or its unload interpretation raise error.
+* Init: use ``module source`` rather shell command ``source`` to load modulerc
+  system configuration in sh-kind, csh-kind and fish shell init scripts.
+* Install: transform configuration options to bind to an existing
+  compatibility Modules version into option (--enable-compat-version) to
+  build and install this compatibility version along with main version.
+* Init: adapt initialization scripts to handle both main and compatibility
+  version. By default a shell script enables main version and if the
+  environment variable MODULES_USE_COMPAT_VERSION is set to 1, the
+  compatibility version is enabled instead of main version.
+* Install: import from compatibility version and install ``add.modules``
+  and ``mkroot`` utility scripts (scripts developed by R.K. Owen).
+* Install: update RPM spec file to handle compatibility version as a
+  ``compat`` sub-package.
+* Add completion script for Fish shell (contribution from BEFH).
+* Doc: extend content of diff_v3_v4 to details all noticeable changes
+  between v3.2 and v4.0.
+* Doc: introduce MIGRATING guide to learn the major changes when moving
+  from v3.2 to v4.0.
+
+Above changes describe the differences with modules-tcl release 1.923. To
+learn about the changes between Modules 4.0 and last Modules 3.2 release,
+please see the :ref:`MIGRATING` document.
+
+
+Changes in modules-tcl-1.923 (2017-07-20)
+-----------------------------------------
+
+* Fix ``aliases`` command when a global or user RC file is set.
+* Find and solve global or user RC aliases and symbolic versions on
+  ``search``, ``whatis`` and ``paths`` commands.
+* Do not look at currently loaded modules to resolve the target of a module
+  alias.
+* Rework default and latest versions search on ``avail`` command. Correct
+  display when at a given level a sub-directory element is last element in
+  directory among modulefiles. Previously sub-directory was printed but
+  last file among modulefiles was also printed (2 latest versions at the
+  same level). A directory tagged "default" does not appear anymore in
+  default listing result as its content (the default version found in that
+  directory) will be displayed.
+* When an alias is set and overrides name of an existing directory, take
+  this alias into account for default and latest choice and ignore
+  directory content.
+* Bad default set will lead to no result displayed for the corresponding
+  module in case of default ``avail`` display.
+* Correct inclusion of aliases in output result when these aliases are not
+  part of the exact same module path than module path of the search.
+* Rewrite existing shell initialization file with initadd, initprepend,
+  initswitch, initrm and initclear commands rather than writing a new
+  file then copying this new file to replace the existing initialization
+  file. In addition only re-writes shell initialization file if its content
+  need to be altered.
+* Raise an error on initadd, initprepend, initswitch, initrm and initclear
+  commands when no ``module load`` line are found in shell initialization
+  file.
+* Normalize error messages for the various collection-related commands
+  when collection cannot be accessed.
+* Cleanup existing reference counters of a path list variable when this
+  variable is altered by a ``setenv`` or an ``unsetenv`` command.
+* Init: do not pollute tab-completion with moduleraw command. (Bert Wesarg)
+* Make use of the same Tcl interp for each modulefile interpretation and
+  use another one for each modulerc (but the same for each modulerc). By
+  doing so we proceed like on C-version where same interpreter is used
+  across modulefile or modulerc interpretation. Huge performance
+  improvement is achieved with this change on commands making intensive
+  use of interp like ``avail``. Interpreter state is reset from one
+  interpretation to another: the initial variable and procedure state is
+  restored before each new interpretation to avoid spread of definitions
+  from one interpretation to another. Also in case of nested interpretation
+  each interpretation level has its own interpreter so a module loaded by
+  another does not influence the interpretation of the module loading it.
+* Improve performance of aliases and symbolic versions resolution by
+  computing these resolution at definition time. As a consequence
+  resolution loop are not registered anymore and produce an error message
+  when spotted not at display time.
+* Reduce number of ``access`` system call by trying access to modulefile
+  when reading the content of a modulefile directory rather testing access
+  before trying it.
+* No error raise on empty argument list for load. To cope with initadd
+  behavior that requires at least an empty ``module load`` line in startup
+  files. (fix SF bug#88)
+* Fix initadd to handle load line without trailing space. Was previously
+  expecting load directive to be written "module load "  to get a match.
+  With fix, ``module load`` line will also be matched.
+* Like C-version catch raised error when break or continue are called from
+  outside of a loop to handle them as when they are called from modulefile
+  main body. (fix SF bug#87)
+* Return error on ``module use`` command when an empty path string is
+  provided rather ignoring it.
+* Workaround ``min`` and ``max`` functions and ``lreverse`` procedure for
+  correct operations under Tcl version 8.4.
+* Install: add --with-tclsh configure option to give the ability to choose
+  the Tcl interpreter shell to setup in initialization scripts.
+* Handle error raised from the ModulesDisplay, ModulesHelp and ModulesTest
+  procedures in the same way than for the evaluation of the modulefile
+  content. An error occurring during the evaluation of the modulefile
+  content will lead to no evaluation of the ``display``, ``help`` and
+  ``test`` command specific functions.
+* Remove ``debug`` module command
+* Doc: describe ``path``, ``paths`` and ``autoinit`` module command.
+* Correct use of xrdb tool when not installed in default path.
+* Fix ``init*`` module commands to behave more like C-version and document
+  remaining differences in diff_with_c-version.
+* Init: make ``sh`` init script closer to POSIX specification to support sh
+  flavors different than Bash or Zsh like Dash.
+* Fix column-mode display for very short width terminal.
+* Install: introduce an ``install`` non-regression testsuite which is
+  triggered by the ``make testinstall`` command and checks modules-tcl
+  installation is operational.
+* Init: fix modulerc load test on ``fish`` init script.
+* Init: fix interactive shell test on ``sh`` init script.
+* Install: add --enable-example-modulefiles configure option that install
+  by default some modulefiles provided as example in the system modulefiles
+  directory.
+* Install: when uninstalling, do not remove modulefiles directory if it is
+  not empty.
+* Add completion script for Zsh shell.
+* Add ``module test`` command to trigger when called execution of a
+  ModulesTest procedure in target modulefile following same kind of
+  mechanism than ``module help``.
+
+
+Changes in modules-tcl-1.832 (2017-04-29)
+-----------------------------------------
+
+* Fix ``getenv`` sub-command to correctly return environment variable value.
+* Clarify in man-pages display of module alias and symbolic version-name on
+  ``avail`` command and management of file access issue when locating
+  modulefiles.
+* Distinguish access issue (permission denied) from find issue (cannot
+  locate) when trying to access directly a directory or a modulefile as
+  done on ``load``, ``display`` or ``whatis`` commands. In addition on this
+  kind of access, not readable .modulerc files are ignored rather producing a
+  missing magic cookie error.
+* When mode is set to unload, ``module load`` commands in modulefile are
+  interpreted as ``module unload`` commands. To guaranty correct behavior
+  regarding requirements, the module list passed to the load command is
+  reversed to unload the modulefiles in the reverse order than they have
+  been loaded.
+* Correct ``display`` command to only report module commands set in
+  modulefile and not those set in the various .modulerc on the path toward
+  this modulefile.
+* Fix bash and tcsh completion scripts to eliminate symbolic version names
+  from ``avail`` command result.
+* Improve ``avail`` command when a symbolic version-name is passed as
+  argument to return the modulefile target of this symbolic version-name.
+* When looking for an implicit default in a directory, now a module alias is
+  taken into account so it can be returned as the last element in it
+  (highest numerically sorted version).
+* Fix ``list`` command to correctly display the ``default`` tag along loaded
+  modules when set via a .version file.
+* Fix long output of ``list`` command to display the symbolic version-names
+  associated to each loaded module if any.
+* Improve ``avail`` command to return alias module when an alias name is
+  passed as argument.
+* On a ``--default`` listing, a modulefile does not appear anymore if a
+  directory is set default at the same level. On a ``--latest`` listing, a
+  directory does not appear anymore if set default but not the latest.
+* Read modulerc and validate its header in a single open/read/close sequence
+  instead of two in order to reduce to number of IO operations during an
+  ``avail`` command.
+* Drastically reduce grid size computation time which removes overhead when
+  displaying module avail results in column-mode.
+* Translate module name to currently interpreted module name when name
+  correspond to the last part this interpreted module only in case of
+  symbolic version-name or alias resolution.
+* Avoid resetting regular path (/usr/bin) or manpath (/usr/share/man) when
+  switching from Tcl to C version in switchml utility.
+* Raise error on x-resource if DISPLAY environment variable is not set.
+* Fix lisp init script which was broken for environment change actions.
+
+
+Changes in modules-tcl-1.775 (2017-03-07)
+-----------------------------------------
+
+* Improve README with examples, requirements, links, etc. Also update
+  INSTALL documentation with details on the new configure/make/make install
+  process.
+* Add display of a release date next to the version number when calling for
+  ``--help`` or ``--version``.
+* Update diff_with_c-version document to describe the features of the
+  Tcl-version that are not supported on the C-version. Also state that the
+  diff takes C version 3.2.10 against Tcl version 1.729 as a basis.
+* Introduce ``switchml`` tool, a shell function (or alias for csh or tcsh
+  shells) that swap currently enabled Modules version (C or Tcl) by the
+  other version (C or Tcl). Configure option ``--with-cver-initdir`` must be
+  defined to enable ``switchml`` in initialization script.
+* Define a PATH and MANPATH in shell initialization scripts that point to
+  the defined modules-tcl installation directories.
+* Give ability to generate distribution tarball from the git repository with
+  Makefile ``dist`` target.
+* Introduce an installation process for this software following the
+  configure/make/make install fashion. Configure step enables to choose
+  installation paths and init scripts features to activate. Make step mainly
+  translates init scripts with the configuration set. Make install creates
+  target directories and copy files into them.
+* Fix MODULESHOME setup in autoinit command to define it as an absolute path
+  and set it to the upper directory when modulecmd.tcl is located in a ``bin``
+  or a ``libexec`` directory.
+* Correct alias and version resolution on avail command which was erroneous
+  in case of a modulefile holding symbols (like ``default``) and targeted by
+  aliases. Avail output was showing the aliases holding the symbols instead
+  of the modulefile.
+
+
+Changes in modules-tcl-1.729 (2017-02-01)
+-----------------------------------------
+
+* Add documentation in module(1) man page on the modulefile collection
+  concept and the relative ``save``, ``restore``, ``saverm``, ``saveshow``
+  and ``savelist`` commands.
+* Add document to list the differences of the functionalities that can be
+  found on the C-version of the Modules package compared to the
+  Tcl-version.
+* Improve modulecmd.tcl shebang to only search ``tclsh`` once if found in
+  PATH.
+* Add ``module-info mode`` check against ``remove`` and ``switch`` values.
+* Introduce ``module-info command`` Modules-specific Tcl command to
+  distinguish complex ``load`` or ``unload`` commands that cannot be
+  determined with ``module-info mode`` alone. For instance a modulefile can
+  now be aware that a ``switch``, a ``restore`` or a ``purge`` command is
+  currently being run.
+* Enable usage of ``module-info`` Modules-specific Tcl command from a
+  modulerc file.
+* Fix ``module-info specified`` Modules-specific Tcl command.
+* No exit raise on modulefile or modulerc error during ``avail``, ``aliases``,
+  ``whatis`` and ``search`` commands to avoid harming results from these
+  global commands if error exists in a few modulefiles.
+* Exit with error code when a critical error is encountered when
+  interpreting a modulefile or a modulerc.
+* Inhibit non-critical error report raised from modulefiles during ``avail``,
+  ``aliases``, ``whatis`` and ``search`` commands to avoid error flood when
+  parsing all modulefiles or modulercs.
+* Handle multiple lines of ``module-whatis`` Modules-specific Tcl commands
+  defined for the same modulefile.
+* Handle multiple arguments passed to the ``module-whatis`` Modules-specific
+  Tcl commands. They are joined to get a single line of text.
+* Return error on ``whatis`` command if searched modulefile is not found.
+
+
+Changes in modules-tcl-1.704 (2017-01-20)
+-----------------------------------------
+
+* Set path variable counter to 1 for paths without a known reference count
+  (was previously set to 999999999).
+* Introduce ``envml`` utility which acts as an application launcher where
+  module commands are instantiated to setup environment before launching
+  the given application.
+* Always register paths provided to be part of MODULEPATH environment
+  variable as absolute paths to get independent from the current working
+  directory.
+* Inhibit next modulefiles interpretation with ``exit`` Modules-specific Tcl
+  command only if current mode is ``load``.
+* Add argument to ``module-info shell`` and ``module-info shelltype`` to test
+  current shell or shelltype value.
+* Fix use of ``default`` version-name to not consider it as a module symbol
+  if a modulefile is named ``default``.
+* Fix path variable counters when ``:`` character is used in elements of a
+  path-like variable.
+* Update module(1) and modulefile(4) man pages to clear content specific to
+  the C version of Modules and add content specific to or adapt content that
+  behave differently on this Tcl version.
+* Fix TCLSH variable issue in Python init script.
+
+
+Changes in modules-tcl-1.677 (2017-01-04)
+-----------------------------------------
+
+* Make ``switch`` command handle a single argument. The modulefile to switch
+  to is the one passed on the command-line and the modulefile to unload is
+  assumed to be the currently loaded module with the same root name as
+  this modulefile specified on the command-line.
+* Make ``switch`` command idempotent by always ending up with ``old`` unloaded
+  and ``new`` loaded, whatever the starting situation is.
+* Fix ``exit`` Modules-specific Tcl command.
+* Add ``refresh`` command as alias on ``reload`` command.
+* Add dummy ``module-log``, ``module-trace``, ``module-user`` and
+  ``module-verbosity`` Modules-specific Tcl commands to enable support for
+  modulefiles using them.
+* Fix ``system`` Modules-specific Tcl command  to behave like described on
+  the man page.
+* Fix ``module list`` when module loaded with full path
+* Disable ``g_force`` property by default to avoid loading a modulefile
+  already loaded. It also avoids path element reference counting to get
+  increased when the same module is asked twice for load.
+* Clarify module-info ``mode`` option and set ``help`` mode on ``module help``
+  command.
+* Clarify module-info ``flags`` and ``user`` options.
+* Handle empty or separator path on ``add-path`` ad ``unload-path`` commands.
+* Delete environment variable targeted by an ``unsetenv`` command on
+  ``unload`` mode if no value has been provided along. On display mode, print
+  environment variable value if any has been passed to ``unsetenv`` command.
+* When setting Tcl variable, enclose value within double quotes.
+* Fix perl quoting style for variable set, escape single quotes rather
+  double quotes.
+* Call ``unuse`` command instead of ``use`` command on a ``module unload``.
+* Fix ``continue`` Modules-specific Tcl command.
+* Add ``chdir`` Modules-specific Tcl command.
+* Fix ``break`` Modules-specific Tcl command.
+
+
+Changes in modules-tcl-1.655 (2016-11-23)
+-----------------------------------------
+
+* No display of modulepath header if no module found in it.
+* Remove call to ``module aliases`` on ``module avail`` command, as aliases
+  are now directly included in the ``avail`` results.
+* Include module aliases in the displayed result of an ``avail`` command.
+  Also display aliases defined in a global or user modulerc file.
+* Exit with error code if error occurred on display or help commands.
+* Fix module-info symbols resolution.
+* Better handling of .modulerc and .version files when searching for a
+  modulefile.
+* Fix module-info version resolution.
+* Fix module-info alias resolution.
+* Register alias and version by the short module name and improve their
+  resolution to avoid loop.
+* Source $MODULERCFILE/modulerc when $MODULERCFILE is dir.
+* Make it so you can do ``module avail un``, wildcard ``*`` character
+  implied.
+
+
+Changes in modules-tcl-1.632 (2016-09-06)
+-----------------------------------------
+
+* Raise error if command does not receive the excepted number of arguments.
+* Improve column-mode display to get a denser output on ``avail`` command.
+* Standardize the output of Warning, Error, InternalBug and ErrorAndExit
+  messages.
+* Add short option -d for --delim on prepend-path.
+* Introduce collection target concept to distinguish between machines,
+  environments or domains that are incompatible with each other.
+* Introduce ``saveshow`` command, to display content of saved collections.
+* Improve ``save`` and ``restore`` commands to handle collection specified as
+  absolute or relative file path.
+* Introduce ``saverm`` command, to delete saved collections.
+* Enable to ``restore`` collection with multiple modulefiles specified on the
+  same line.
+* Fix ``restore`` command when there is no module to load in collection.
+* Fix ``restore`` command when collection fully rewind module paths.
+* Fix ``restore`` command to preserve module path order set in collection.
+* Raise error if try to save an empty environment in a collection.
+
+
+Changes in modules-tcl-1.602 (2016-08-13)
+-----------------------------------------
+
+* Add support for Fish shell.
+* Import recent tests added to C-version on 10-use and 50-cmds testsuites.
+* Add short option -d for --delim on append-path and remove-path.
+* Fix load and implement unload x-resource.
+* Fix Python code that was broken or not Python3-compliant. Fixed code is
+  used to define the module command, to render error and to process
+  x-resource.
+* Always dictionary-sort (also called numerical-sort) list of modulefiles
+  or list of collections.
+* Fix bash completion script to be compliant with bash posix mode.
+
+
+Changes in modules-tcl-1.578 (2014-12-24)
+-----------------------------------------
+
+* First release to be described in this NEWS file but it does not mean this
+  is the first version of modules-tcl as this Modules flavor is born in
+  2002.
+* At this stage, modules-tcl handles a majority of the module commands and
+  modulefile Tcl commands available on C version.
