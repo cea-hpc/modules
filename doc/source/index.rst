@@ -14,6 +14,7 @@ Welcome to Environment Modules' documentation!
    diff_v3_v4
    FAQ
    MIGRATING
+   INSTALL
 
 Indices and tables
 ==================
