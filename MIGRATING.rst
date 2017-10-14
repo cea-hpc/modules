@@ -131,7 +131,7 @@ Collections may be valid for a given target if they are suffixed. In this
 case these collections can only be restored if their suffix correspond
 to the current value of the ``MODULES_COLLECTION_TARGET`` environment
 variable. Saving collection registers the target footprint by suffixing
-the collection filename with "``.$MODULES_COLLECTION_TARGET``.
+the collection filename with ``.$MODULES_COLLECTION_TARGET``.
 
 Path variable element counter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -156,93 +156,75 @@ options by typing ``./configure --help``.
 Fine tuning of the installation directories (the default value for each option
 is displayed within brakets):
 
---prefix=PREFIX        Installation root directory [``/usr/local/Modules``]
-
---bindir=DIR           Directory for executables reachable by users
-                       [``PREFIX/bin``]
-
---libexecdir=DIR       Directory for executables called by other executables
-                       like modulecmd.tcl [``PREFIX/libexec``]
-
---initdir=DIR          Directory for the per-shell environment initialization
-                       scripts [``PREFIX/init``]
-
---datarootdir=DIR      Base directory to set the man and doc directories
-                       [``PREFIX/share``]
-
---mandir=DIR           Directory to host man pages [``DATAROOTDIR/man``]
-
---docdir=DIR           Directory to host documentation other than man
-                       pages like README, license file, etc
-                       [``DATAROOTDIR/doc``]
-
---modulefilesdir=DIR   Directory or main modulefiles also called system
-                       modulefiles [``PREFIX/modulefiles``]
+--prefix=PREFIX       Installation root directory [``/usr/local/Modules``]
+--bindir=DIR          Directory for executables reachable by users
+                      [``PREFIX/bin``]
+--libexecdir=DIR      Directory for executables called by other executables
+                      like modulecmd.tcl [``PREFIX/libexec``]
+--initdir=DIR         Directory for the per-shell environment initialization
+                      scripts [``PREFIX/init``]
+--datarootdir=DIR     Base directory to set the man and doc directories
+                      [``PREFIX/share``]
+--mandir=DIR          Directory to host man pages [``DATAROOTDIR/man``]
+--docdir=DIR          Directory to host documentation other than man
+                      pages like README, license file, etc
+                      [``DATAROOTDIR/doc``]
+--modulefilesdir=DIR  Directory or main modulefiles also called system
+                      modulefiles [``PREFIX/modulefiles``]
 
 Optional Features (the default for each option is displayed within
 parenthesis, to disable an option replace ``enable`` by ``disable`` for
 instance ``--disable-set-manpath``):
 
---enable-set-manpath          Prepend man page directory defined by the
-                              ``--mandir`` option to the MANPATH environment
-                              variable in the shell initialization scripts.
-                              (default=yes)
-
---enable-set-binpath          Prepend binary directory defined by the
-                              ``--bindir`` option to the PATH environment
-                              variable in the shell initialization scripts.
-                              (default=yes)
-
---enable-dotmodulespath       Set the module paths defined by
-                              ``--with-modulepath`` option in a
-                              ``.modulespath`` file (following C version
-                              fashion) within the initialization directory
-                              defined by the ``--initdir`` option rather than
-                              within the ``modulerc`` file. (default=no)
-
---enable-doc-install          Install the documentation files in the
-                              documentation directory defined with the
-                              ``--docdir`` option. This feature has no
-                              impact on manual pages installation.
-                              Disabling documentation file installation is
-                              useful in case of installation process handled
-                              via a package manager which handles by itself
-                              the installation of this kind of documents.
-                              (default=yes)
-
---enable-example-modulefiles  Install some modulefiles provided as example in
-                              the system modulefiles directory defined with
-                              the ``modulefilesdir`` option. (default=yes)
-
---enable-compat-version       Build and install the Modules compatibility (C)
-                              version in addition to the main released
-                              version. This feature also enables switching
-                              capabilities from initialization script between
-                              the two installed version of Modules (by
-                              setting-up the ``switchml`` shell function or
-                              alias). (default=yes)
+--enable-set-manpath  Prepend man page directory defined by the ``--mandir``
+                      option to the MANPATH environment variable in the shell
+                      initialization scripts. (default=yes)
+--enable-set-binpath  Prepend binary directory defined by the ``--bindir``
+                      option to the PATH environment variable in the shell
+                      initialization scripts. (default=yes)
+--enable-dotmodulespath
+                      Set the module paths defined by ``--with-modulepath``
+                      option in a ``.modulespath`` file (following C version
+                      fashion) within the initialization directory defined by
+                      the ``--initdir`` option rather than within the
+                      ``modulerc`` file. (default=no)
+--enable-doc-install  Install the documentation files in the documentation
+                      directory defined with the ``--docdir`` option. This
+                      feature has no impact on manual pages installation.
+                      Disabling documentation file installation is useful in
+                      case of installation process handled via a package
+                      manager which handles by itself the installation of
+                      this kind of documents. (default=yes)
+--enable-example-modulefiles
+                      Install some modulefiles provided as example in the
+                      system modulefiles directory defined with the
+                      ``modulefilesdir`` option. (default=yes)
+--enable-compat-version
+                      Build and install the Modules compatibility (C) version
+                      in addition to the main released version. This feature
+                      also enables switching capabilities from initialization
+                      script between the two installed version of Modules (by
+                      setting-up the ``switchml`` shell function or alias).
+                      (default=yes)
 
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for
 instance ``--without-modulepath``):
 
---with-tclsh=BIN              Name or full path of Tcl interpreter shell
-                              (default=\ ``tclsh``)
-
---with-modulepath=PATHLIST    Default path list to setup as the default
-                              modulepaths. Each path in this list should be
-                              separated by ``:``. Defined value is registered
-                              in the ``modulerc`` or ``.modulespath``
-                              configuration file, depending on the
-                              ``--enable-dotmodulespath`` option. This value
-                              is read at initialization time to populate the
-                              MODULEPATH environment variable. By default,
-                              this modulepath is composed of the directory
-                              set for the system modulefiles
-                              (default=\ ``PREFIX/modulefiles``)
-
---with-loadedmodules=MODLIST  Default modulefiles to load at Modules
-                              initialization time. Each modulefile in this
-                              list should be separated by ``:``. Defined value
-                              is registered in the ``modulerc`` configuration
-                              file. (default=no)
+--with-tclsh=BIN      Name or full path of Tcl interpreter shell
+                      (default=\ ``tclsh``)
+--with-modulepath=PATHLIST
+                      Default path list to setup as the default modulepaths.
+                      Each path in this list should be separated by ``:``.
+                      Defined value is registered in the ``modulerc`` or
+                      ``.modulespath`` configuration file, depending on the
+                      ``--enable-dotmodulespath`` option. This value is read
+                      at initialization time to populate the MODULEPATH
+                      environment variable. By default, this modulepath is
+                      composed of the directory set for the system modulefiles
+                      (default=\ ``PREFIX/modulefiles``)
+--with-loadedmodules=MODLIST
+                      Default modulefiles to load at Modules initialization
+                      time. Each modulefile in this list should be separated
+                      by ``:``. Defined value is registered in the
+                      ``modulerc`` configuration file. (default=no)

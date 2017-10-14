@@ -7,8 +7,8 @@ This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
 
-Changes in Modules 4.0.0 (2017-XX-XX)
--------------------------------------
+Modules 4.0.0 (2017-XX-XX)
+--------------------------
 
 Starting with this release, modules-tcl has become Modules. The following
 changes describe the differences with last modules-tcl release (1.923). To
@@ -105,8 +105,8 @@ learn about the changes between Modules 4.0 and last Modules 3.2 release,
 please see the :ref:`MIGRATING` document.
 
 
-Changes in modules-tcl-1.923 (2017-07-20)
------------------------------------------
+modules-tcl-1.923 (2017-07-20)
+------------------------------
 
 * Fix ``aliases`` command when a global or user RC file is set.
 * Find and solve global or user RC aliases and symbolic versions on
@@ -202,8 +202,8 @@ Changes in modules-tcl-1.923 (2017-07-20)
   mechanism than ``module help``.
 
 
-Changes in modules-tcl-1.832 (2017-04-29)
------------------------------------------
+modules-tcl-1.832 (2017-04-29)
+------------------------------
 
 * Fix ``getenv`` sub-command to correctly return environment variable value.
 * Clarify in man-pages display of module alias and symbolic version-name on
@@ -252,8 +252,8 @@ Changes in modules-tcl-1.832 (2017-04-29)
 * Fix lisp init script which was broken for environment change actions.
 
 
-Changes in modules-tcl-1.775 (2017-03-07)
------------------------------------------
+modules-tcl-1.775 (2017-03-07)
+------------------------------
 
 * Improve README with examples, requirements, links, etc. Also update
   INSTALL documentation with details on the new configure/make/make install
@@ -285,8 +285,8 @@ Changes in modules-tcl-1.775 (2017-03-07)
   of the modulefile.
 
 
-Changes in modules-tcl-1.729 (2017-02-01)
------------------------------------------
+modules-tcl-1.729 (2017-02-01)
+------------------------------
 
 * Add documentation in module(1) man page on the modulefile collection
   concept and the relative ``save``, ``restore``, ``saverm``, ``saveshow``
@@ -320,8 +320,8 @@ Changes in modules-tcl-1.729 (2017-02-01)
 * Return error on ``whatis`` command if searched modulefile is not found.
 
 
-Changes in modules-tcl-1.704 (2017-01-20)
------------------------------------------
+modules-tcl-1.704 (2017-01-20)
+------------------------------
 
 * Set path variable counter to 1 for paths without a known reference count
   (was previously set to 999999999).
@@ -345,8 +345,8 @@ Changes in modules-tcl-1.704 (2017-01-20)
 * Fix TCLSH variable issue in Python init script.
 
 
-Changes in modules-tcl-1.677 (2017-01-04)
------------------------------------------
+modules-tcl-1.677 (2017-01-04)
+------------------------------
 
 * Make ``switch`` command handle a single argument. The modulefile to switch
   to is the one passed on the command-line and the modulefile to unload is
@@ -381,8 +381,8 @@ Changes in modules-tcl-1.677 (2017-01-04)
 * Fix ``break`` Modules-specific Tcl command.
 
 
-Changes in modules-tcl-1.655 (2016-11-23)
------------------------------------------
+modules-tcl-1.655 (2016-11-23)
+------------------------------
 
 * No display of modulepath header if no module found in it.
 * Remove call to ``module aliases`` on ``module avail`` command, as aliases
@@ -402,8 +402,8 @@ Changes in modules-tcl-1.655 (2016-11-23)
   implied.
 
 
-Changes in modules-tcl-1.632 (2016-09-06)
------------------------------------------
+modules-tcl-1.632 (2016-09-06)
+------------------------------
 
 * Raise error if command does not receive the excepted number of arguments.
 * Improve column-mode display to get a denser output on ``avail`` command.
@@ -424,8 +424,8 @@ Changes in modules-tcl-1.632 (2016-09-06)
 * Raise error if try to save an empty environment in a collection.
 
 
-Changes in modules-tcl-1.602 (2016-08-13)
------------------------------------------
+modules-tcl-1.602 (2016-08-13)
+------------------------------
 
 * Add support for Fish shell.
 * Import recent tests added to C-version on 10-use and 50-cmds testsuites.
@@ -439,8 +439,8 @@ Changes in modules-tcl-1.602 (2016-08-13)
 * Fix bash completion script to be compliant with bash posix mode.
 
 
-Changes in modules-tcl-1.578 (2014-12-24)
------------------------------------------
+modules-tcl-1.578 (2014-12-24)
+------------------------------
 
 * First release to be described in this NEWS file but it does not mean this
   is the first version of modules-tcl as this Modules flavor is born in
