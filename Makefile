@@ -1,4 +1,4 @@
-.PHONY: doc pkgdoc www initdir install uninstall dist dist-tar dist-gzip \
+.PHONY: doc pkgdoc initdir install uninstall dist dist-tar dist-gzip \
 	dist-bzip2 srpm clean distclean test testinstall instrument testcoverage
 
 # definitions for code coverage
@@ -33,9 +33,6 @@ pkgdoc: version.inc
 
 doc: version.inc
 	make -C doc all
-
-www:
-	make -C www all
 
 # build version.inc shared definitions from git repository info
 ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
@@ -263,9 +260,6 @@ ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
 endif
 ifneq ($(wildcard $(COMPAT_DIR)/Makefile),)
 	make -C compat clean
-endif
-ifneq ($(wildcard www),)
-	make -C www clean
 endif
 
 distclean: clean
