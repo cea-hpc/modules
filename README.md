@@ -116,6 +116,30 @@ ability to test this installation with:
     $ make testinstall
 
 
+Transition from v3.2
+--------------------
+
+Starting from v4.0, the Modules project provides the `module` command based
+on the native Tcl implementation as main version instead of the traditional
+C version. The full Tcl rewrite of the Modules package, previously called
+Modules-Tcl, was started in 2002 and has now reached maturity to take over
+the binary version in order to push forward the *module* concept.
+
+All new releases are in fact *double-releases* as they also ship the latest
+stable version of the traditional C flavor of modulecmd. This *compatibility*
+version is labeled 3.2.11 as it is based on 3.2.10 with addition of widely
+used patches. The compatibility version builds and installs by default
+along with the new main version (v4 or later). Same initialization scripts
+are shared between compatibility and new main versions and a `switchml`
+shell function enables to swap from one module flavor to another.
+
+If you are moving from Modules 3.2 to 4.0 or later, please look at the
+MIGRATING document. It provides an outlook of what has changed between the 2
+versions. Both v3.2 and >=v4.0 are quite similar and transition to the new
+major version should be smooth. Slights differences may however be noticed
+in a few use-cases and the migration guide provides details about them.
+
+
 Links
 -----
 
