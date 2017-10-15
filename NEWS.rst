@@ -99,6 +99,11 @@ please see the :ref:`MIGRATING` document.
   between v3.2 and v4.0.
 * Doc: introduce MIGRATING guide to learn the major changes when moving
   from v3.2 to v4.0.
+* Fix ``list`` command when full pathname modulefile is loaded (fix bug#132)
+* Install: handle version number though git tags in scripts, documentation
+  and RPM spec file.
+* Doc: migrate documents from POD format to reStructuredText to benefit from
+  Sphinx documentation framework and Read The Docs publishing capabilities.
 
 Above changes describe the differences with modules-tcl release 1.923. To
 learn about the changes between Modules 4.0 and last Modules 3.2 release,
