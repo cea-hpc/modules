@@ -11,8 +11,9 @@ Requirements
 ------------
 
 Modules consists of one Tcl script so to run it from a user shell the
-only requirement is to have a working version of ``tclsh`` available on
-your system. ``tclsh`` is a part of Tcl (http://www.tcl.tk/software/tcltk/).
+only requirement is to have a working version of ``tclsh`` (version
+8.4 or later) available on your system. ``tclsh`` is a part of Tcl
+(http://www.tcl.tk/software/tcltk/).
 
 To install Modules from a distribution tarball or a clone of the git
 repository, a build step is there to adapt the initialization scripts to your
@@ -26,9 +27,18 @@ the tools to be found on your system:
 * cut
 * runtest
 
+When also installing the bundled compatibility version of Modules (enabled
+by default), these additional tools are needed:
+
+* autoconf
+* automake
+* autopoint
+* gcc
+* tcl-devel >= 8.4
+
 When installing from a distribution tarball, documentation is pre-built and
-does not require additionnal software. When installating from a clone of the
-git repository, document has to be built and the following tools are required:
+does not require additional software. When installing from a clone of the git
+repository, document has to be built and the following tools are required:
 
 * sphinx >= 1.0
 
@@ -45,21 +55,22 @@ The simplest way to build and install Modules is::
 Some explanation, step by step:
 
 1. ``cd`` to the directory containing the package's source code. Your system
-   must have the above requirements installed to properly build init scripts
-   and documentation.
+   must have the above requirements installed to properly build scripts,
+   compatibility version of Modules if enabled, and documentation if build
+   occurs from a clone of the git repository.
 
 2. Type ``./configure`` to adapt the installation for your system. At this
    step you can choose the installation paths and the features you want to
    enable in the initialization scripts (see `Build and installation options`_
    section below for a complete overview of the available options)
 
-3. Type ``make`` to adapt scripts to the configuration and build
-   documentation.
+3. Type ``make`` to adapt scripts to the configuration, build compatibility
+   version if enabled and build documentation if working from git repository.
 
 4. Optionally, type ``make test`` to run the test suite.
 
-5. Type ``make install`` to install modulecmd.tcl, initialization scripts and
-   documentation.
+5. Type ``make install`` to install modulecmd.tcl, initialization scripts,
+   compatibility version if built and documentation.
 
 6. Optionally, type ``make testinstall`` to run the installation test suite.
 
