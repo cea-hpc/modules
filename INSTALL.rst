@@ -1,7 +1,7 @@
 .. _INSTALL:
 
 Installing Modules on Unix
-==============================
+==========================
 
 This document is an overview of building and installing Modules on a Unix
 system.
@@ -12,7 +12,7 @@ Requirements
 
 Modules consists of one Tcl script so to run it from a user shell the
 only requirement is to have a working version of ``tclsh`` available on
-your system.  ``tclsh`` is a part of Tcl (http://www.tcl.tk/software/tcltk/).
+your system. ``tclsh`` is a part of Tcl (http://www.tcl.tk/software/tcltk/).
 
 To install Modules from a distribution tarball or a clone of the git
 repository, a build step is there to adapt the initialization scripts to your
@@ -25,6 +25,12 @@ the tools to be found on your system:
 * grep
 * cut
 * runtest
+
+When installing from a distribution tarball, documentation is pre-built and
+does not require additionnal software. When installating from a clone of the
+git repository, document has to be built and the following tools are required:
+
+* sphinx >= 1.0
 
 
 Installation instructions
@@ -63,7 +69,7 @@ Some explanation, step by step:
 
 A default installation process like described above will install Modules
 under ``/usr/local/Modules``. You can change this with the ``--prefix``
-option.  By default, ``/usr/local/Modules/modulefiles`` will be setup as
+option. By default, ``/usr/local/Modules/modulefiles`` will be setup as
 the default directory containing modulefiles. ``--modulefilesdir`` option
 enables to change this directory location. For example::
 

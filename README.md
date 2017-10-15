@@ -90,7 +90,8 @@ regarding changes.
 
 The `doc` directory contains both the paper and man pages describing the
 user's and the module writer's usage. To generate the documentation files,
-like the man pages (you need Sphinx to build the documentation), just type:
+like the man pages (you need Sphinx >= 1.0 to build the documentation), just
+type:
 
     $ ./configure
     $ make -C doc all
