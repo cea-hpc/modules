@@ -7,7 +7,7 @@ This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
 
-Modules 4.0.0 (2017-XX-XX)
+Modules 4.0.0 (2017-10-16)
 --------------------------
 
 Starting with this release, modules-tcl has become Modules. The following

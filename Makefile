@@ -66,6 +66,10 @@ ifneq ($(MODULES_RELEASE_SUFFIX),)
 MODULES_LAST_RPM_RELEASE := $(subst .$(MODULES_RELEASE_SUFFIX),,$(MODULES_LAST_RPM_RELEASE))
 endif
 
+# use last release if we currently sat on tag
+ifeq ($(GIT_CURRENT_TAG),$(GIT_CURRENT_DESC))
+MODULES_RPM_RELEASE := $(MODULES_LAST_RPM_RELEASE)
+else
 MODULES_LAST_RPM_RELEASE_P1 := $(firstword $(subst ., ,$(MODULES_LAST_RPM_RELEASE)))
 MODULES_LAST_RPM_RELEASE_P2 := $(subst $(MODULES_LAST_RPM_RELEASE_P1).,,$(MODULES_LAST_RPM_RELEASE))
 
@@ -80,6 +84,7 @@ ifneq ($(MODULES_RELEASE_SUFFIX),)
 MODULES_RPM_RELEASE := $(MODULES_RPM_RELEASE).$(MODULES_RELEASE_SUFFIX)
 endif
 MODULES_RPM_RELEASE := $(MODULES_RPM_RELEASE)$(subst -,.,$(MODULES_BUILD))
+endif
 
 else
 # source version definitions shared across the Makefiles of this project
