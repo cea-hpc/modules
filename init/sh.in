@@ -1,32 +1,30 @@
-# only redirect module from stderr to stdout in interactive mode
-# to avoid breaking non interactive session (scp, sftp, etc)
-case "$-" in
-   *i*)
-@notcompatversion@      _moduleraw() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
-@compatversion@      # set module command in accordance with active version
-@compatversion@      if [ "$MODULES_USE_COMPAT_VERSION" = '1' ]; then
-@compatversion@         _moduleraw() { eval `@libexecdir@/modulecmd-compat sh $*`; }
-@compatversion@      else
-@compatversion@         _moduleraw() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
-@compatversion@      fi
-      module() { _moduleraw $* 2>&1 ; }
-      # if sh is bash, export functions to get them defined in sub-shells
-      if [ "${BASH:-}" != '' ]; then
-         export -f _moduleraw
-         export -f module
-      fi
-      ;;
-   *)
-@notcompatversion@      module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
-@compatversion@      if [ "$MODULES_USE_COMPAT_VERSION" = '1' ]; then
-@compatversion@         module() { eval `@libexecdir@/modulecmd-compat sh $*`; }
-@compatversion@      else
-@compatversion@         module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
-@compatversion@      fi
-      if [ "${BASH:-}" != '' ]; then
-         export -f module
-      fi
-esac
+# only redirect module from stderr to stdout when session is attached to a
+# terminal to avoid breaking non-terminal session (scp, sftp, etc)
+if [ -t 1 ]; then
+@notcompatversion@   _moduleraw() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
+@compatversion@   # set module command in accordance with active version
+@compatversion@   if [ "$MODULES_USE_COMPAT_VERSION" = '1' ]; then
+@compatversion@      _moduleraw() { eval `@libexecdir@/modulecmd-compat sh $*`; }
+@compatversion@   else
+@compatversion@      _moduleraw() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
+@compatversion@   fi
+   module() { _moduleraw $* 2>&1 ; }
+   # if sh is bash, export functions to get them defined in sub-shells
+   if [ "${BASH:-}" != '' ]; then
+      export -f _moduleraw
+      export -f module
+   fi
+else
+@notcompatversion@   module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
+@compatversion@   if [ "$MODULES_USE_COMPAT_VERSION" = '1' ]; then
+@compatversion@      module() { eval `@libexecdir@/modulecmd-compat sh $*`; }
+@compatversion@   else
+@compatversion@      module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
+@compatversion@   fi
+   if [ "${BASH:-}" != '' ]; then
+      export -f module
+   fi
+fi
 
 @compatversion@# define function to switch between C and Tcl versions of Modules
 @compatversion@switchml() {

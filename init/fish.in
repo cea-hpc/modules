@@ -2,9 +2,11 @@ if status -i
    if [ -r @initdir@/fish_completion ]
       source @initdir@/fish_completion
    end
+end
 
-   # only redirect module from stderr to stdout in interactive mode
-   # to avoid breaking non interactive session (scp, sftp, etc)
+# only redirect module from stderr to stdout when session is attached to a
+# terminal to avoid breaking non-terminal session (scp, sftp, etc)
+if [ -t 1 ]
    function _moduleraw
       # use "| source -" rather than "eval" to be able
       # to redirect stderr after stdout being evaluated
