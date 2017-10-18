@@ -56,6 +56,17 @@ if { [isWin] } {
    set g_def_separator ":"
 }
 
+# Detect if terminal is attached to stderr message channel
+proc isStderrTty {} {
+   global g_is_stderr_tty
+
+   if {![info exists g_is_stderr_tty]} {
+      set g_is_stderr_tty [expr {![catch {fconfigure stderr -mode}]}]
+   }
+
+   return $g_is_stderr_tty
+}
+
 # Dynamic columns
 set DEF_COLUMNS 80 ;# Default size of columns for formatting
 if {[catch {exec stty size} stty_size] == 0 && $stty_size ne ""} {
@@ -2423,14 +2434,35 @@ proc renderSettings {} {
                `'$tclshbin' '$argv0' '$g_shell' \\!*`';"
          }
          {sh} {
-            puts stdout "module () { eval \
-               `'$tclshbin' '$argv0' '$g_shell' \$*`; } ;"
+            # only redirect module from stderr to stdout when session is
+            # attached to a terminal to avoid breaking non-terminal session
+            # (scp, sftp, etc)
+            if {[isStderrTty]} {
+               puts stdout "_moduleraw() { eval\
+                  `'$tclshbin' '$argv0' '$g_shell' \$*`; };"
+               puts stdout "module() { _moduleraw \$* 2>&1; };"
+            } else {
+               puts stdout "module() { eval\
+                  `'$tclshbin' '$argv0' '$g_shell' \$*`; };"
+            }
          }
          {fish} {
-            puts stdout "function module"
-            puts stdout "    eval '$tclshbin' '$argv0' '$g_shell' \$argv |\
-               source -"
-            puts stdout "end"
+            if {[isStderrTty]} {
+               # use "| source -" rather than "eval" to be able
+               # to redirect stderr after stdout being evaluated
+               puts stdout "function _moduleraw"
+               puts stdout "   eval '$tclshbin' '$argv0' '$g_shell' \$argv |\
+                  source -"
+               puts stdout "end"
+               puts stdout "function module"
+               puts stdout "   _moduleraw \$argv ^&1"
+               puts stdout "end"
+            } else {
+               puts stdout "function module"
+               puts stdout "   eval '$tclshbin' '$argv0' '$g_shell' \$argv |\
+                  source -"
+               puts stdout "end"
+            }
          }
          {tcl} {
             puts stdout "proc module {args}  {"
