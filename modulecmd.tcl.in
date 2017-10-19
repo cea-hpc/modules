@@ -4947,9 +4947,22 @@ proc cmdModuleAutoinit {} {
    }
    setenv MODULESHOME $modshome
 
-   # set empty MODULEPATH and LOADEDMODULES if unset
-   if {![info exists env(MODULEPATH)]} {
-      setenv MODULEPATH ""
+   # initialize default MODULEPATH and LOADEDMODULES
+   if {![info exists env(MODULEPATH)] || $env(MODULEPATH) eq ""} {
+      # set modpaths defined in .modulespath config file if it exists
+      if {[file readable "@initdir@/.modulespath"]} {
+         set fid [open "@initdir@/.modulespath" r]
+         set fdata [split [read $fid] "\n"]
+         close $fid
+         foreach fline $fdata {
+            if {[regexp {^\s*(.*?)[\s#].*$} $fline match patharg] == 1\
+               && $patharg ne ""} {
+               eval cmdModuleUse --append [split $patharg ":"]
+            }
+         }
+      } else {
+         setenv MODULEPATH ""
+      }
    }
    if {![info exists env(LOADEDMODULES)]} {
       setenv LOADEDMODULES ""

@@ -97,6 +97,7 @@ endif
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@libexecdir@|$(libexecdir)|g' \
+	-e 's|@initdir@|$(initdir)|g' \
 	-e 's|@TCLSHDIR@/tclsh|$(TCLSH)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \
