@@ -2418,16 +2418,6 @@ proc renderSettings {} {
       # ensure script path is absolute
       set argv0 [getAbsolutePath $argv0]
 
-      # guess MODULESHOME from modulecmd directory
-      set modshome [file dirname $argv0]
-      if { [file tail $modshome] eq "bin" \
-         || [file tail $modshome] eq "libexec" } {
-         # use upper dir if modulecmd is located in a bin or libexec dir
-         set modshome [file dirname $modshome]
-      }
-      set env(MODULESHOME) $modshome
-      set g_stateEnvVars(MODULESHOME) "new"
-
       switch -- $g_shellType {
          {csh} {
             puts stdout "if ( \$?histchars && \$?prompt ) \
@@ -2560,13 +2550,6 @@ proc renderSettings {} {
             puts stdout "}"
 
          }
-      }
-
-      if {[file exists "$env(MODULESHOME)/modulerc"]} {
-         cmdModuleSource "$env(MODULESHOME)/modulerc"
-      }
-      if {[file exists "$env(MODULESHOME)/init/modulerc"]} {
-         cmdModuleSource "$env(MODULESHOME)/init/modulerc"
       }
    }
 
@@ -4945,10 +4928,34 @@ proc cmdModuleUnuse {args} {
 }
 
 proc cmdModuleAutoinit {} {
-   global g_autoInit
+   global g_autoInit argv0 env
 
    reportDebug "cmdModuleAutoinit:"
+
+   # flag to make renderSettings define the module command
    set g_autoInit 1
+
+   # initialize env variables around module command
+   pushMode "load"
+
+   # guess MODULESHOME from modulecmd directory
+   set modshome [file dirname [getAbsolutePath $argv0]]
+   if { [file tail $modshome] eq "bin" \
+      || [file tail $modshome] eq "libexec" } {
+      # use upper dir if modulecmd is located in a bin or libexec dir
+      set modshome [file dirname $modshome]
+   }
+   setenv MODULESHOME $modshome
+
+   # source initialization modulerc if any
+   if {[file exists "$env(MODULESHOME)/modulerc"]} {
+      cmdModuleSource "$env(MODULESHOME)/modulerc"
+   }
+   if {[file exists "$env(MODULESHOME)/init/modulerc"]} {
+      cmdModuleSource "$env(MODULESHOME)/init/modulerc"
+   }
+
+   popMode
 }
 
 proc cmdModuleInit {args} {
