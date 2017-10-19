@@ -39,45 +39,51 @@ if {[info exists env(TCLSH)]} {
     set tclsh_path "\\S+tclsh"
 }
 
-set out_sh "module\\\(\\\) { eval `'$tclsh_path' '$modulecmd_path' 'sh' \\$\\*`; };
+set out_sh "module\\\(\\\) { eval `$tclsh_path $modulecmd_path sh \\$\\*`; };
 (.*;\\n)*MODULESHOME=$moduleshome; export MODULESHOME;(\\n.*;)*"
-set out_bash "module\\\(\\\) { eval `'$tclsh_path' '$modulecmd_path' 'bash' \\$\\*`; };
+set out_bash "module\\\(\\\) { eval `$tclsh_path $modulecmd_path bash \\$\\*`; };
 (.*;\\n)*MODULESHOME=$moduleshome; export MODULESHOME;(\\n.*;)*"
-set out_ksh "module\\\(\\\) { eval `'$tclsh_path' '$modulecmd_path' 'ksh' \\$\\*`; };
+set out_ksh "module\\\(\\\) { eval `$tclsh_path $modulecmd_path ksh \\$\\*`; };
 (.*;\\n)*MODULESHOME=$moduleshome; export MODULESHOME;(\\n.*;)*"
-set out_zsh "module\\\(\\\) { eval `'$tclsh_path' '$modulecmd_path' 'zsh' \\$\\*`; };
+set out_zsh "module\\\(\\\) { eval `$tclsh_path $modulecmd_path zsh \\$\\*`; };
 (.*;\\n)*MODULESHOME=$moduleshome; export MODULESHOME;(\\n.*;)*"
-set out_csh "    alias module 'eval  `'$tclsh_path' '$modulecmd_path' 'csh' \\\\!\\*`';
+set out_csh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\)  alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$tclsh_path $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\";  set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
+if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\)  alias module 'set _histchars = \\\$histchars; unset histchars; eval `$tclsh_path $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\";  set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
+if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\)  alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$tclsh_path $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\";  set prompt=\"\\\$_prompt\";unset _prompt; test 0 = \\\$_exit' ;
+if \\\( \\\! \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\)  alias module 'eval `$tclsh_path $modulecmd_path csh \\\\!\\*`' ;
 (.*;\\n)*setenv MODULESHOME $moduleshome;(\\n.*;)*"
-set out_tcsh "    alias module 'eval  `'$tclsh_path' '$modulecmd_path' 'tcsh' \\\\!\\*`';
+set out_tcsh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\)  alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$tclsh_path $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\";  set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
+if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\)  alias module 'set _histchars = \\\$histchars; unset histchars; eval `$tclsh_path $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\";  set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
+if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\)  alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$tclsh_path $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\";  set prompt=\"\\\$_prompt\";unset _prompt; test 0 = \\\$_exit' ;
+if \\\( \\\! \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\)  alias module 'eval `$tclsh_path $modulecmd_path tcsh \\\\!\\*`' ;
 (.*;\\n)*setenv MODULESHOME $moduleshome;(\\n.*;)*"
 set out_fish "function module
-   eval '\\S+tclsh' '$modulecmd_path' 'fish' \\$argv | source -
+   eval \\S+tclsh $modulecmd_path fish \\$argv | source -
 end
 (.*;\\n)*set -xg MODULESHOME $moduleshome;(\\n.*;)*"
-set out_tcl "proc module {args}  {
-    global env;
-    set script {};
-    if {\\\[catch { set script \\\[eval exec \"$tclsh_path\" \"$modulecmd_path\" \"tcl\" \\\$args\\\] } msg\\\]} {
-        puts \\\$msg
-    };
-    uplevel \\\$script;
+set out_tcl "proc module {args} {
+   global env;
+   set script {};
+   if {\\\[catch {set script \\\[eval exec \"$tclsh_path\" \"$modulecmd_path\" \"tcl\" \\\$args\\\] } msg\\\]} {
+      puts \\\$msg
+   };
+   uplevel \\\$script;
 }
 (.*;\\n)*set env\\\(MODULESHOME\\\) \"$moduleshome\";(\\n.*;)*"
 set out_perl "sub module {
-  eval `$tclsh_path $modulecmd_path perl \\@_`;
-  if\\\(\\$\\@\\\) {
-    use Carp;
-    confess \"module-error: \\$\\@
+   eval `$tclsh_path $modulecmd_path perl \\@_`;
+   if\\\(\\$\\@\\\) {
+      use Carp;
+      confess \"module-error: \\$\\@
 \";
-  }
-  return 1;
+   }
+   return 1;
 }
 (.*;\\n)*\\\$ENV{'MODULESHOME'} = '$moduleshome';(\\n.*;)*"
 set out_python "import os
 import subprocess
 def module\\\(command, \\*arguments\\\):
-        exec\\\(subprocess\\.Popen\\\(\\\['$tclsh_path', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)
+   exec\\\(subprocess\\.Popen\\\(\\\['$tclsh_path', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)
 (.*\\n)*os\\.environ\\\['MODULESHOME'\\\] = '$moduleshome'(\\n.*)*"
 set out_ruby "class ENVModule
    def ENVModule.module\\\(\\*args\\\)

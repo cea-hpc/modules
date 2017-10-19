@@ -2430,8 +2430,28 @@ proc renderSettings {} {
 
       switch -- $g_shellType {
          {csh} {
-            puts stdout "    alias module 'eval \
-               `'$tclshbin' '$argv0' '$g_shell' \\!*`';"
+            puts stdout "if ( \$?histchars && \$?prompt ) \
+               alias module 'set _histchars = \$histchars; unset histchars;\
+               set _prompt=\"\$prompt\"; set prompt=\"\";\
+               eval `$tclshbin $argv0 $g_shell \\!*`;\
+               set _exit=\"\$status\"; \
+               set histchars = \$_histchars; unset _histchars;\
+               set prompt=\"\$_prompt\"; unset _prompt;\
+               test 0 = \$_exit' ;"
+            puts stdout "if ( \$?histchars && ! \$?prompt ) \
+               alias module 'set _histchars = \$histchars; unset histchars;\
+               eval `$tclshbin $argv0 $g_shell \\!*`;\
+               set _exit=\"\$status\"; \
+               set histchars = \$_histchars; unset _histchars;\
+               test 0 = \$_exit' ;"
+            puts stdout "if ( ! \$?histchars && \$?prompt ) \
+               alias module 'set _prompt=\"\$prompt\"; set prompt=\"\";\
+               eval `$tclshbin $argv0 $g_shell \\!*`;\
+               set _exit=\"\$status\"; \
+               set prompt=\"\$_prompt\";unset _prompt;\
+               test 0 = \$_exit' ;"
+            puts stdout "if ( ! \$?histchars && ! \$?prompt ) \
+               alias module 'eval `$tclshbin $argv0 $g_shell \\!*`' ;"
          }
          {sh} {
             # only redirect module from stderr to stdout when session is
@@ -2439,11 +2459,11 @@ proc renderSettings {} {
             # (scp, sftp, etc)
             if {[isStderrTty]} {
                puts stdout "_moduleraw() { eval\
-                  `'$tclshbin' '$argv0' '$g_shell' \$*`; };"
+                  `$tclshbin $argv0 $g_shell \$*`; };"
                puts stdout "module() { _moduleraw \$* 2>&1; };"
             } else {
                puts stdout "module() { eval\
-                  `'$tclshbin' '$argv0' '$g_shell' \$*`; };"
+                  `$tclshbin $argv0 $g_shell \$*`; };"
             }
          }
          {fish} {
@@ -2451,7 +2471,7 @@ proc renderSettings {} {
                # use "| source -" rather than "eval" to be able
                # to redirect stderr after stdout being evaluated
                puts stdout "function _moduleraw"
-               puts stdout "   eval '$tclshbin' '$argv0' '$g_shell' \$argv |\
+               puts stdout "   eval $tclshbin $argv0 $g_shell \$argv |\
                   source -"
                puts stdout "end"
                puts stdout "function module"
@@ -2459,20 +2479,20 @@ proc renderSettings {} {
                puts stdout "end"
             } else {
                puts stdout "function module"
-               puts stdout "   eval '$tclshbin' '$argv0' '$g_shell' \$argv |\
+               puts stdout "   eval $tclshbin $argv0 $g_shell \$argv |\
                   source -"
                puts stdout "end"
             }
          }
          {tcl} {
-            puts stdout "proc module {args}  {"
-            puts stdout "    global env;"
-            puts stdout "    set script {};"
-            puts stdout "    if {\[catch { set script \[eval exec\
+            puts stdout "proc module {args} {"
+            puts stdout "   global env;"
+            puts stdout "   set script {};"
+            puts stdout "   if {\[catch {set script \[eval exec\
                 \"$tclshbin\" \"$argv0\" \"$g_shell\" \$args] } msg]} {"
-            puts stdout "        puts \$msg"
-            puts stdout "    };"
-            puts stdout "    uplevel \$script;"
+            puts stdout "      puts \$msg"
+            puts stdout "   };"
+            puts stdout "   uplevel \$script;"
             puts stdout "}"
 
          }
@@ -2481,18 +2501,18 @@ proc renderSettings {} {
          }
          {perl} {
             puts stdout "sub module {"
-            puts stdout "  eval `$tclshbin $argv0 perl @_`;"
-            puts stdout "  if(\$@) {"
-            puts stdout "    use Carp;"
-            puts stdout "    confess \"module-error: \$@\n\";"
-            puts stdout "  }"
-            puts stdout "  return 1;"
+            puts stdout "   eval `$tclshbin $argv0 perl @_`;"
+            puts stdout "   if(\$@) {"
+            puts stdout "      use Carp;"
+            puts stdout "      confess \"module-error: \$@\n\";"
+            puts stdout "   }"
+            puts stdout "   return 1;"
             puts stdout "}"
          }
          {python} {
             puts stdout "import subprocess"
             puts stdout "def module(command, *arguments):"
-            puts stdout "        exec(subprocess.Popen(\['$tclshbin',\
+            puts stdout "   exec(subprocess.Popen(\['$tclshbin',\
                '$argv0', 'python', command\] +\
                list(arguments),\
                stdout=subprocess.PIPE).communicate()\[0\])"
