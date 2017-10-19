@@ -4947,12 +4947,22 @@ proc cmdModuleAutoinit {} {
    }
    setenv MODULESHOME $modshome
 
-   # source initialization modulerc if any
-   if {[file exists "$env(MODULESHOME)/modulerc"]} {
-      cmdModuleSource "$env(MODULESHOME)/modulerc"
+   # set empty MODULEPATH and LOADEDMODULES if unset
+   if {![info exists env(MODULEPATH)]} {
+      setenv MODULEPATH ""
    }
-   if {[file exists "$env(MODULESHOME)/init/modulerc"]} {
-      cmdModuleSource "$env(MODULESHOME)/init/modulerc"
+   if {![info exists env(LOADEDMODULES)]} {
+      setenv LOADEDMODULES ""
+   }
+
+   # source initialization modulerc if any and if no env already initialized
+   if {$env(MODULEPATH) eq "" && $env(LOADEDMODULES) eq ""} {
+      if {[file exists "$env(MODULESHOME)/modulerc"]} {
+         cmdModuleSource "$env(MODULESHOME)/modulerc"
+      }
+      if {[file exists "$env(MODULESHOME)/init/modulerc"]} {
+         cmdModuleSource "$env(MODULESHOME)/init/modulerc"
+      }
    }
 
    popMode
