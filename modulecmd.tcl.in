@@ -4938,14 +4938,8 @@ proc cmdModuleAutoinit {} {
    # initialize env variables around module command
    pushMode "load"
 
-   # guess MODULESHOME from modulecmd directory
-   set modshome [file dirname [getAbsolutePath $argv0]]
-   if { [file tail $modshome] eq "bin" \
-      || [file tail $modshome] eq "libexec" } {
-      # use upper dir if modulecmd is located in a bin or libexec dir
-      set modshome [file dirname $modshome]
-   }
-   setenv MODULESHOME $modshome
+   # default MODULESHOME
+   setenv MODULESHOME "@prefix@"
 
    # initialize default MODULEPATH and LOADEDMODULES
    if {![info exists env(MODULEPATH)] || $env(MODULEPATH) eq ""} {
@@ -4970,11 +4964,11 @@ proc cmdModuleAutoinit {} {
 
    # source initialization modulerc if any and if no env already initialized
    if {$env(MODULEPATH) eq "" && $env(LOADEDMODULES) eq ""} {
-      if {[file exists "$env(MODULESHOME)/modulerc"]} {
-         cmdModuleSource "$env(MODULESHOME)/modulerc"
+      if {[file exists "@prefix@/modulerc"]} {
+         cmdModuleSource "@prefix@/modulerc"
       }
-      if {[file exists "$env(MODULESHOME)/init/modulerc"]} {
-         cmdModuleSource "$env(MODULESHOME)/init/modulerc"
+      if {[file exists "@initdir@/modulerc"]} {
+         cmdModuleSource "@initdir@/modulerc"
       }
    }
 
