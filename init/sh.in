@@ -1,29 +1,22 @@
-# only redirect module from stderr to stdout when session is attached to a
-# terminal to avoid breaking non-terminal session (scp, sftp, etc)
-if [ -t 1 ]; then
-@notcompatversion@   _moduleraw() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
-@compatversion@   # set module command in accordance with active version
-@compatversion@   if [ "$MODULES_USE_COMPAT_VERSION" = '1' ]; then
+# define module command and surrounding initial environment (default value
+# for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
+eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh autoinit`
+
+@compatversion@# redefine module command if compat version has been activated
+@compatversion@if [ "$MODULES_USE_COMPAT_VERSION" = '1' ]; then
+@compatversion@   if [ -t 1 ]; then
 @compatversion@      _moduleraw() { eval `@libexecdir@/modulecmd-compat sh $*`; }
 @compatversion@   else
-@compatversion@      _moduleraw() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
-@compatversion@   fi
-   module() { _moduleraw $* 2>&1 ; }
-   # if sh is bash, export functions to get them defined in sub-shells
-   if [ "${BASH:-}" != '' ]; then
-      export -f _moduleraw
-      export -f module
-   fi
-else
-@notcompatversion@   module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
-@compatversion@   if [ "$MODULES_USE_COMPAT_VERSION" = '1' ]; then
 @compatversion@      module() { eval `@libexecdir@/modulecmd-compat sh $*`; }
-@compatversion@   else
-@compatversion@      module() { eval `@TCLSH@ @libexecdir@/modulecmd.tcl sh $*`; }
 @compatversion@   fi
-   if [ "${BASH:-}" != '' ]; then
-      export -f module
+@compatversion@fi
+@compatversion@
+# if sh is bash, export functions to get them defined in sub-shells
+if [ "${BASH:-}" != '' ]; then
+   if [ -t 1 ]; then
+      export -f _moduleraw
    fi
+   export -f module
 fi
 
 @compatversion@# define function to switch between C and Tcl versions of Modules
@@ -62,8 +55,6 @@ fi
 ENV=@initdir@/profile.sh; export ENV
 BASH_ENV=@initdir@/bash; export BASH_ENV
 
-MODULESHOME=@prefix@; export MODULESHOME
-
 @setbinpath@case ":$PATH:" in
 @setbinpath@   *:@bindir@:*) ;;
 @setbinpath@   *) PATH=@bindir@${PATH:+:}$PATH; export PATH
@@ -74,22 +65,3 @@ MODULESHOME=@prefix@; export MODULESHOME
 @setmanpath@   *:@mandir@:*) ;;
 @setmanpath@   *) MANPATH=@mandir@${manpath:+:}$manpath; export MANPATH
 @setmanpath@esac
-@setmanpath@
-if [ "${MODULEPATH:-}" = '' ]; then
-   if [ -r @initdir@/.modulespath ]; then
-      MODULEPATH=`sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' \
-         @initdir@/.modulespath`; export MODULEPATH
-   else
-      MODULEPATH=; export MODULEPATH
-   fi
-fi
-
-if [ "${LOADEDMODULES:-}" = '' ]; then
-   LOADEDMODULES=; export LOADEDMODULES
-fi
-
-# load modulerc only if module environment is empty
-@notcompatversion@if [ -r @initdir@/modulerc -a "$MODULEPATH" = '' -a "$LOADEDMODULES" = '' ]; then
-@compatversion@if [ "$MODULES_USE_COMPAT_VERSION" != '1' -a -r @initdir@/modulerc -a "$MODULEPATH" = '' -a "$LOADEDMODULES" = '' ]; then
-   module source @initdir@/modulerc
-fi

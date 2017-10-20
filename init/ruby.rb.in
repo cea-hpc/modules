@@ -1,44 +1,17 @@
-@compatversion@# set module command in accordance with active version
+# define module command and surrounding initial environment (default value
+# for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
+eval `@TCLSH@ @libexecdir@/modulecmd.tcl ruby autoinit`
+@compatversion@
+@compatversion@# redefine module command if compat version has been activated
 @compatversion@if ENV['MODULES_USE_COMPAT_VERSION'] == '1' then
-@compatversion@class ENVModule
-@compatversion@   def ENVModule.module(*args)
-@compatversion@      if args[0].kind_of?(Array) then
-@compatversion@         args = args[0].join(' ')
-@compatversion@      else
-@compatversion@         args = args.join(' ')
+@compatversion@   class ENVModule
+@compatversion@      def ENVModule.module(*args)
+@compatversion@         if args[0].kind_of?(Array) then
+@compatversion@            args = args[0].join(' ')
+@compatversion@         else
+@compatversion@            args = args.join(' ')
+@compatversion@         end
+@compatversion@         eval `@libexecdir@/modulecmd-compat ruby #{args}`
 @compatversion@      end
-@compatversion@      eval `@libexecdir@/modulecmd-compat ruby #{args}`
 @compatversion@   end
 @compatversion@end
-@compatversion@else
-class ENVModule
-   def ENVModule.module(*args)
-      if args[0].kind_of?(Array) then
-         args = args[0].join(' ')
-      else
-         args = args.join(' ')
-      end
-      eval `@TCLSH@ @libexecdir@/modulecmd.tcl ruby #{args}`
-   end
-end
-@compatversion@end
-
-ENV['MODULESHOME'] = '@prefix@'
-
-if !ENV.has_key?('MODULEPATH') then
-   if File.readable?('@initdir@/.modulespath') then
-      ENV['MODULEPATH'] = File.open('@initdir@/.modulespath','r').readlines.reject {|e| e =~ /^(\s*#|$)/}.select {|s| s.sub!(/^\s*(.*?)[\s#].*$/, '\\1').chop! }.join(':')
-   else
-      ENV['MODULEPATH'] = ''
-   end
-end
-
-if !ENV.has_key?('LOADEDMODULES') then
-   ENV['LOADEDMODULES'] = ''
-end
-
-# load modulerc only if module environment is empty
-@notcompatversion@if File.readable?('@initdir@/modulerc') and ENV['MODULEPATH'].empty? and ENV['LOADEDMODULES'].empty? then
-@compatversion@if ENV['MODULES_USE_COMPAT_VERSION'] != '1' and File.readable?('@initdir@/modulerc') and ENV['MODULEPATH'].empty? and ENV['LOADEDMODULES'].empty? then
-   ENVModule.module('source', '@initdir@/modulerc')
-end

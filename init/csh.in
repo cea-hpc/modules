@@ -1,42 +1,20 @@
-if ( $?histchars ) then
-   set histchar   = `echo $histchars | cut -c1`
-   set _histchars = $histchars
-   set prefix     = 'unset histchars;'
-   set postfix    = 'set histchars = $_histchars;'
-else
-   set histchar = \!
-   set prefix   = ''
-   set postfix  = ''
-endif
-
-if ( $?prompt ) then
-   set prefix  = "$prefix"'set _prompt="$prompt";set prompt="";'
-   set postfix = "$postfix"'set prompt="$_prompt";unset _prompt;'
-endif
-
-if ( $?noglob ) then
-   set prefix  = "$prefix"'set noglob;'
-   set postfix = "$postfix"'unset noglob;'
-endif
-
-set postfix = "set _exit="'$status'"; $postfix; test 0 = "'$_exit;'
+# define module command and surrounding initial environment (default value
+# for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
+eval `@TCLSH@ @libexecdir@/modulecmd.tcl @SHELLNAME@ autoinit`
 
 @compatversion@# clarify compat version is not enabled for below tests
 @compatversion@if ( ! $?MODULES_USE_COMPAT_VERSION ) then
 @compatversion@   setenv MODULES_USE_COMPAT_VERSION 0
 @compatversion@endif
 @compatversion@
-@notcompatversion@alias module $prefix'eval `@TCLSH@ @libexecdir@/modulecmd.tcl @SHELLNAME@ '$histchar'*`; '$postfix
-@compatversion@# set module command in accordance with active version
+@compatversion@# redefine module command if compat version has been activated
 @compatversion@if ( "$MODULES_USE_COMPAT_VERSION" == '1' ) then
-@compatversion@   alias module $prefix'eval `@libexecdir@/modulecmd-compat @SHELLNAME@ '$histchar'*`; '$postfix
-@compatversion@else
-@compatversion@   alias module $prefix'eval `@TCLSH@ @libexecdir@/modulecmd.tcl @SHELLNAME@ '$histchar'*`; '$postfix
+@compatversion@   if ( $?histchars && $?prompt ) alias module 'set _histchars = $histchars; unset histchars; set _prompt="$prompt"; set prompt=""; eval `@libexecdir@/modulecmd-compat @SHELLNAME@ \!*`; set _exit="$status";  set histchars = $_histchars; unset _histchars; set prompt="$_prompt"; unset _prompt; test 0 = $_exit' ;
+@compatversion@   if ( $?histchars && ! $?prompt ) alias module 'set _histchars = $histchars; unset histchars; eval `@libexecdir@/modulecmd-compat @SHELLNAME@ \!*`; set _exit="$status";  set histchars = $_histchars; unset _histchars; test 0 = $_exit' ;
+@compatversion@   if ( ! $?histchars && $?prompt ) alias module 'set _prompt="$prompt"; set prompt=""; eval `@libexecdir@/modulecmd-compat @SHELLNAME@ \!*`; set _exit="$status";  set prompt="$_prompt";unset _prompt; test 0 = $_exit' ;
+@compatversion@   if ( ! $?histchars && ! $?prompt ) alias module 'eval `@libexecdir@/modulecmd-compat @SHELLNAME@ \!*`' ;
 @compatversion@endif
-unset _histchar
-unset prefix
-unset postfix
-
+@compatversion@
 @compatversion@# define function to switch between C and Tcl versions of Modules
 @compatversion@if ( "`alias switchml`" == '' ) then
 @compatversion@   alias switchml 'set swfound=1; \
@@ -68,8 +46,6 @@ endif
 setenv ENV @initdir@/profile.sh
 setenv BASH_ENV @initdir@/bash
 
-setenv MODULESHOME @prefix@
-
 @setbinpath@if ( ":${PATH}:" !~ '*:@bindir@:*' ) then
 @setbinpath@   if ( "$PATH" == '' ) then
 @setbinpath@      setenv PATH @bindir@
@@ -91,21 +67,3 @@ setenv MODULESHOME @prefix@
 @setmanpath@   endif
 @setmanpath@endif
 @setmanpath@unset manpath
-@setmanpath@
-if (! $?MODULEPATH ) then
-   if ( -r @initdir@/.modulespath ) then
-      setenv MODULEPATH `sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' @initdir@/.modulespath`
-   else
-      setenv MODULEPATH ''
-   endif
-endif
-
-if (! $?LOADEDMODULES ) then
-   setenv LOADEDMODULES ''
-endif
-
-# load modulerc only if module environment is empty
-@notcompatversion@if ( -r @initdir@/modulerc && "$MODULEPATH" == '' && "$LOADEDMODULES" == '' ) then
-@compatversion@if ( "$MODULES_USE_COMPAT_VERSION" != '1' && -r @initdir@/modulerc && "$MODULEPATH" == '' && "$LOADEDMODULES" == '' ) then
-   module source @initdir@/modulerc
-endif

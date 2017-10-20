@@ -1,23 +1,10 @@
+# define module command and surrounding initial environment (default value
+# for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
+eval @TCLSH@ @libexecdir@/modulecmd.tcl fish autoinit | source -
+
 if status -i
    if [ -r @initdir@/fish_completion ]
       source @initdir@/fish_completion
-   end
-end
-
-# only redirect module from stderr to stdout when session is attached to a
-# terminal to avoid breaking non-terminal session (scp, sftp, etc)
-if [ -t 1 ]
-   function _moduleraw
-      # use "| source -" rather than "eval" to be able
-      # to redirect stderr after stdout being evaluated
-      eval @TCLSH@ @libexecdir@/modulecmd.tcl fish $argv | source -
-   end
-   function module
-      _moduleraw $argv ^&1
-   end
-else
-   function module
-      eval @TCLSH@ @libexecdir@/modulecmd.tcl fish $argv | source -
    end
 end
 
@@ -28,8 +15,6 @@ end
 # (zsh-compat) in non-interactive mode.
 set -xg ENV @initdir@/profile.sh
 set -xg BASH_ENV @initdir@/bash
-
-set -xg MODULESHOME @prefix@
 
 @setbinpath@if not contains @bindir@ $PATH
 @setbinpath@   set -xg PATH @bindir@ $PATH
@@ -43,22 +28,3 @@ set -xg MODULESHOME @prefix@
 @setmanpath@      set -xg MANPATH @mandir@:$manpath
 @setmanpath@   end
 @setmanpath@end
-@setmanpath@
-if not set -q MODULEPATH
-   if [ -r @initdir@/.modulespath ]
-      set -xg MODULEPATH (sed -n 's/[ 	#].*$//; /./H; $ { x; s/^\n//; s/\n/:/g; p; }' \
-         @initdir@/.modulespath)
-   else
-      set -xg MODULEPATH ''
-   end
-end
-
-if not set -q LOADEDMODULES
-   set -xg LOADEDMODULES ''
-end
-
-# load modulerc only if module environment is empty
-if [ -r @initdir@/modulerc -a "$MODULEPATH" = '' \
-   -a "$LOADEDMODULES" = '' ]
-   module source @initdir@/modulerc
-end

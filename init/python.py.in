@@ -1,32 +1,11 @@
 import os, re, subprocess
 
-@notcompatversion@def module(command, *arguments):
-@notcompatversion@   exec(subprocess.Popen(['@TCLSH@', '@libexecdir@/modulecmd.tcl', 'python', command] + list(arguments), stdout=subprocess.PIPE).communicate()[0])
+# define module command and surrounding initial environment (default value
+# for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
+exec(subprocess.Popen(['@TCLSH@', '@libexecdir@/modulecmd.tcl', 'python', 'autoinit'], stdout=subprocess.PIPE).communicate()[0])
+@compatversion@
+@compatversion@# redefine module command if compat version has been activated
 @compatversion@if 'MODULES_USE_COMPAT_VERSION' in os.environ and os.environ['MODULES_USE_COMPAT_VERSION'] == '1':
 @compatversion@   # set module command in accordance with active version
 @compatversion@   def module(command, *arguments):
 @compatversion@      exec(subprocess.Popen(['@libexecdir@/modulecmd-compat', 'python', command] + list(arguments), stdout=subprocess.PIPE).communicate()[0])
-@compatversion@else:
-@compatversion@   def module(command, *arguments):
-@compatversion@      exec(subprocess.Popen(['@TCLSH@', '@libexecdir@/modulecmd.tcl', 'python', command] + list(arguments), stdout=subprocess.PIPE).communicate()[0])
-
-os.environ['MODULESHOME'] = '@prefix@'
-
-if not 'MODULEPATH' in os.environ:
-   if os.access('@initdir@/.modulespath', os.R_OK):
-      pathlist = []
-      for fline in open('@initdir@/.modulespath', 'r').read().splitlines():
-         patharg = re.match('^\s*(.*?)[\s#].*$', fline)
-         if patharg and patharg.group(1):
-            pathlist.append(patharg.group(1))
-      os.environ['MODULEPATH'] = ':'.join(pathlist)
-   else:
-      os.environ['MODULEPATH'] = ''
-
-if not 'LOADEDMODULES' in os.environ:
-   os.environ['LOADEDMODULES'] = ''
-
-# load modulerc only if module environment is empty
-@notcompatversion@if os.access('@initdir@/modulerc', os.R_OK) and not os.environ['MODULEPATH'] and not os.environ['LOADEDMODULES']:
-@compatversion@if (not 'MODULES_USE_COMPAT_VERSION' in os.environ or os.environ['MODULES_USE_COMPAT_VERSION'] != '1') and os.access('@initdir@/modulerc', os.R_OK) and not os.environ['MODULEPATH'] and not os.environ['LOADEDMODULES']:
-   module('source', '@initdir@/modulerc')

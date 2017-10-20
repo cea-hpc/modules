@@ -1,38 +1,5 @@
-module <- function(...){
-   arglist <- as.list(match.call())
-   ## change this from 'module' to 'r'
-   arglist[1] <- 'r'
-   args <- paste0(arglist, collapse=' ')
-
-   cmd <- paste('@TCLSH@', '@libexecdir@/modulecmd.tcl', args, sep=' ')
-
-   hndl <- pipe(cmd)
-   eval(expr = parse(file=hndl))
-   close(hndl)
-
-   invisible(0)
-}
-
-Sys.setenv('MODULESHOME'='@prefix@')
-
-if (is.na(Sys.getenv('MODULEPATH', unset=NA))) {
-   if (file.access('@initdir@/.modulespath', 4) == 0) {
-      dotfile <- file('@initdir@/.modulespath', 'r')
-      paths <- gsub('^\\s*', '', readLines(dotfile), perl=TRUE)
-      close(dotfile)
-      paths <- gsub('[\\s#].*$', '', paths, perl=TRUE)
-      modulepath <- paste0(paths[grepl('\\S', paths, perl=TRUE)], collapse=':')
-      Sys.setenv('MODULEPATH'=modulepath)
-   } else {
-      Sys.setenv('MODULEPATH'='')
-   }
-}
-
-if (is.na(Sys.getenv('LOADEDMODULES', unset=NA))) {
-   Sys.setenv('LOADEDMODULES'='')
-}
-
-# load modulerc only if module environment is empty
-if (file.access('@initdir@/modulerc', 4) == 0 & Sys.getenv('MODULEPATH') == '' & Sys.getenv('LOADEDMODULES') == '') {
-   module('source', '@initdir@/modulerc')
-}
+# define module command and surrounding initial environment (default value
+# for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
+cmdpipe <- pipe('@TCLSH@ @libexecdir@/modulecmd.tcl r autoinit')
+eval(parse(cmdpipe))
+close(cmdpipe)

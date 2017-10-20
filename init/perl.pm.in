@@ -1,38 +1,17 @@
-sub module {
-@notcompatversion@   eval `@TCLSH@ @libexecdir@/modulecmd.tcl perl @_`;
-@compatversion@   # set module command in accordance with active version
-@compatversion@   if ($ENV{'MODULES_USE_COMPAT_VERSION'} eq '1') {
-@compatversion@      eval `@libexecdir@/modulecmd-compat perl @_`;
-@compatversion@   } else {
-@compatversion@      eval `@TCLSH@ @libexecdir@/modulecmd.tcl perl @_`;
+eval `@TCLSH@ @libexecdir@/modulecmd.tcl perl autoinit`;
+
+@compatversion@# redefine module command if compat version has been activated
+@compatversion@if ($ENV{'MODULES_USE_COMPAT_VERSION'} eq '1') {
+@compatversion@   { no warnings 'redefine';
+@compatversion@      *module = sub {
+@compatversion@         eval `@libexecdir@/modulecmd-compat perl @_`;
+@compatversion@         if ($@) {
+@compatversion@            use Carp;
+@compatversion@            confess "module-error: $@\n";
+@compatversion@         }
+@compatversion@         return 1;
+@compatversion@      };
 @compatversion@   }
-   if ($@) {
-      use Carp;
-      confess "module-error: $@\n";
-   }
-   return 1;
-}
-
-$ENV{'MODULESHOME'} = '@prefix@';
-
-if (!defined $ENV{'MODULEPATH'}) {
-   if ( -r '@initdir@/.modulespath' ) {
-      open(F, '@initdir@/.modulespath');
-      $ENV{'MODULEPATH'} = join(":", grep(/\S/, map { s/^\s*//g; s/[\s#].*$//g; $_ } <F>));
-      close F;
-   } else {
-      $ENV{'MODULEPATH'} = '';
-   }
-}
-
-if (!defined $ENV{'LOADEDMODULES'}) {
-   $ENV{'LOADEDMODULES'} = '';
-}
-
-# load modulerc only if module environment is empty
-@notcompatversion@if ( -r '@initdir@/modulerc' && $ENV{'MODULEPATH'} eq '' && $ENV{'LOADEDMODULES'} eq '') {
-@compatversion@if ($ENV{'MODULES_USE_COMPAT_VERSION'} ne '1' && -r '@initdir@/modulerc' && $ENV{'MODULEPATH'} eq '' && $ENV{'LOADEDMODULES'} eq '') {
-   module('source', '@initdir@/modulerc');
-}
-
+@compatversion@}
+@compatversion@
 1;
