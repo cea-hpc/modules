@@ -17,6 +17,7 @@ matrix:
     # run tests in code coverage mode on first installation variant
     # for each Tcl releases
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --disable-compat-version --prefix=/tmp/modules' MAKE_TESTCOVERAGE='y'
+           EXTRA_SCRIPT='install -D -t /tmp/modules/init testsuite/example/modulerc'
       addons:
         apt:
           sources:
@@ -30,7 +31,9 @@ matrix:
             - zsh
             - fish
             - tcl8.4
+    # install configuration file before test to trigger specific behaviors on initialization parts
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --disable-compat-version --prefix=/tmp/modules' MAKE_TESTCOVERAGE='y'
+           EXTRA_SCRIPT='install -D -t /tmp/modules/init testsuite/example/modulerc testsuite/example/.modulespath'
       addons:
         apt:
           sources:
@@ -65,6 +68,7 @@ matrix:
             - tcl8.6
 
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot'
+           EXTRA_SCRIPT='install -D -t /tmp/modules/init testsuite/example/modulerc'
       addons:
         apt:
           sources:
@@ -85,6 +89,7 @@ matrix:
             - autopoint
             - tcl8.4-dev
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot'
+           EXTRA_SCRIPT='install -D -t /tmp/modules/init testsuite/example/modulerc testsuite/example/.modulespath'
       addons:
         apt:
           sources:
@@ -205,6 +210,7 @@ before_install: |
 script:
   - $CMD_PREFIX ./configure $CONFIGURE_OPTS
   - $CMD_PREFIX make
+  - if [ -n "$EXTRA_SCRIPT" ]; then $CMD_PREFIX $EXTRA_SCRIPT; fi
   - if [ "$MAKE_TESTCOVERAGE" = 'y' ]; then $CMD_PREFIX make testcoverage; fi
   - if [ "$MAKE_TESTCOVERAGE" != 'y' ]; then $CMD_PREFIX make test; fi
   - $CMD_PREFIX make install
