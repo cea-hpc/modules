@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+#
+# INSTALL_TEST_RUBY, ruby test script for install non-reg suite
+# Copyright (C) 2017 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+if ARGV.length != 2 then
+   # print usage message
+   STDERR.puts("Usage: #{$0} initfile command[:command]")
+   exit(1)
+end
+
+initfile = ARGV[0]
+cmdlist = ARGV[1]
+
+if not File.readable?(initfile) then
+   STDERR.puts("Cannot read #{initfile}")
+   exit(1)
+end
+
+# source module init file
+require initfile
+
+# execute command list
+cmdlist.split(':').each do |cmd|
+   ENVModule.module(cmd)
+end
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

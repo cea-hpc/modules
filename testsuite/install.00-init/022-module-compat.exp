@@ -47,6 +47,17 @@ foreach shell $shell_list {
    }
 }
 
+foreach shell $othlang_list {
+   # compat version does not support Tcl and R shell
+   switch -- $shell {
+      perl - python - ruby - cmake {
+         testall_cmd_re "$shell" "--version" "^\$" "^VERSION=\\S+.*\$" 0
+         testall_cmd "$shell" "use $contrib_modpath:purge:load null:list -t" "" "$cur_loaded\nnull" 0
+         testall_cmd "$shell" "use $contrib_modpath:purge:load null:unload null:list -t" "" "$no_loaded" 0
+      }
+   }
+}
+
 #
 #  Clean up variables used in this test case
 #

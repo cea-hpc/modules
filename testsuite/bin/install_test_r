@@ -1,0 +1,43 @@
+#!/usr/bin/env Rscript
+#
+# INSTALL_TEST_R, R test script for install non-reg suite
+# Copyright (C) 2017 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+args = commandArgs(trailingOnly=TRUE)
+
+if (length(args) != 2) {
+# print usage message
+   stop('Usage: install_test_r initfile command[:command]')
+}
+
+initfile <- args[1]
+cmdlist <- args[2]
+
+if (file.access(initfile, 4) != 0) {
+   stop('Cannot read ', initfile)
+}
+
+# source module init file
+source(initfile)
+
+# execute command list
+for (cmd in strsplit(cmdlist, ':')[[1]]) {
+   do.call(module, list(cmd))
+}
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

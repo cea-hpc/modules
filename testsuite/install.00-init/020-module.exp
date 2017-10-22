@@ -37,10 +37,26 @@ foreach shell $shell_list {
    testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "" "$no_loaded" 0
 }
 
+foreach shell $othlang_list {
+   switch -- $shell {
+      perl - python - ruby - cmake - r {
+         set err_exit 1
+      }
+      default {
+         set err_exit 0
+      }
+   }
+   testall_cmd_re "$shell" "--version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+   testall_cmd_re "$shell" "foo" "^\$" "$bad_cmd\n$type_help.*" $err_exit
+   testall_cmd "$shell" "use $contrib_modpath:purge:load null:list -t" "" "$cur_loaded\nnull" 0
+   testall_cmd "$shell" "use $contrib_modpath:purge:load null:unload null:list -t" "" "$no_loaded" 0
+}
+
 #
 #  Clean up variables used in this test case
 #
 
 unset bad_cmd
+unset err_exit
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

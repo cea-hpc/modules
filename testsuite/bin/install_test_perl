@@ -1,0 +1,45 @@
+#!/usr/bin/env perl
+#
+# INSTALL_TEST_PERL, perl test script for install non-reg suite
+# Copyright (C) 2017 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+use strict;
+use warnings;
+
+if ($#ARGV != 1) {
+   # print usage message
+   print STDERR "Usage: $0 initfile command[:command]\n";
+   exit 1;
+}
+
+my ($initfile, $cmdlist) = @ARGV;
+
+if (! -r $initfile) {
+   print STDERR "Cannot read $initfile\n";
+   exit 1
+}
+
+# source module init file
+require $initfile;
+
+# execute command list
+foreach my $cmd (split ':', $cmdlist) {
+   &module($cmd);
+}
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

@@ -218,6 +218,7 @@ proc install_test_xxx_ {command} {
    global autoinit_script
    global shell
    global autoinit_mode
+   global shell_list
    global shell_test
    global shell_path
    global shell_opts
@@ -260,21 +261,38 @@ proc install_test_xxx_ {command} {
    if {[info exists shell_opts($shell)]} {
       lappend cmd_to_exec $shell_opts($shell)
    }
-   lappend cmd_to_exec $shell_test($shell)
 
-   if {$autoinit_mode} {
-      set autoinit_verb "autoinit "
-      lappend cmd_to_exec $autoinit_script
+   if {$shell eq "cmake"} {
+      lappend cmd_to_exec "-Dinitfile=$shell_init($shell)"
+      lappend cmd_to_exec "-Dcmdlist='$command'"
+      lappend cmd_to_exec "-P"
+      lappend cmd_to_exec $shell_test($shell)
+      if { $verbose > 0 } {
+         send_user "   ...  Testing '$cmd_to_exec'\n"
+      }
    } else {
-      set autoinit_verb ""
-      lappend cmd_to_exec $shell_init($shell)
-   }
+      lappend cmd_to_exec $shell_test($shell)
+      if {$autoinit_mode} {
+         set autoinit_verb "autoinit "
+         lappend cmd_to_exec $autoinit_script
+      } else {
+         set autoinit_verb ""
+         lappend cmd_to_exec $shell_init($shell)
+      }
 
-   lappend cmd_to_exec $level $shell_path($sub) $command
-
-   if { $verbose > 0 } {
-      send_user "   ...  Testing '$shell [file tail $shell_test($shell)]\
-         $autoinit_verb$level $sub $command'\n"
+      if {[lsearch -exact $shell_list $shell] != -1} {
+         lappend cmd_to_exec $level $shell_path($sub) $command
+         if { $verbose > 0 } {
+            send_user "   ...  Testing '$shell [file tail $shell_test($shell)]\
+               $autoinit_verb$level $sub $command'\n"
+         }
+      } else {
+         lappend cmd_to_exec $command
+         if { $verbose > 0 } {
+            send_user "   ...  Testing '$shell [file tail $shell_test($shell)]\
+               $autoinit_verb$command'\n"
+         }
+      }
    }
    if { $verbose > 1 } {
       send_user "starting $cmd_to_exec\n"
