@@ -138,7 +138,13 @@ else
 endif
 	rmdir $(DESTDIR)$(initdir)/ksh-functions
 	rmdir $(DESTDIR)$(initdir)/zsh-functions
+ifeq ($(wildcard $(DESTDIR)$(initdir)/*),)
 	rmdir $(DESTDIR)$(initdir)
+else
+	@echo
+	@echo "WARNING: $(DESTDIR)$(initdir) is not empty so skip removal" >&2
+	@echo
+endif
 
 clean:
 	rm -f $(ALL_SHELLS) modulerc .modulespath $(EXAMPLE_MODFILES_SRCDIR)/modules
