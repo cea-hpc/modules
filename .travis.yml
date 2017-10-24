@@ -17,7 +17,7 @@ matrix:
     # run tests in code coverage mode on first installation variant
     # for each Tcl releases
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --disable-compat-version --prefix=/tmp/modules' MAKE_TESTCOVERAGE='y'
-           EXTRA_SCRIPT='install -D -t /tmp/modules/init testsuite/example/modulerc'
+           EXTRA_SCRIPT='install -d /tmp/modules/init && install -D -t /tmp/modules/init testsuite/example/modulerc'
       addons:
         apt:
           sources:
@@ -34,11 +34,11 @@ matrix:
             - perl
             - python
             - ruby
-            - cmake
+            - cmake3
             - r-base-core
     # install configuration file before test to trigger specific behaviors on initialization parts
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --disable-compat-version --prefix=/tmp/modules' MAKE_TESTCOVERAGE='y'
-           EXTRA_SCRIPT='install -D -t /tmp/modules/init testsuite/example/modulerc testsuite/example/.modulespath'
+           EXTRA_SCRIPT='install -d /tmp/modules/init && install -D -t /tmp/modules/init testsuite/example/modulerc testsuite/example/.modulespath'
       addons:
         apt:
           sources:
@@ -55,7 +55,7 @@ matrix:
             - perl
             - python
             - ruby
-            - cmake
+            - cmake3
             - r-base-core
     # also enable a display on this test case to validate x-resource behavior
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --disable-compat-version --prefix=/tmp/modules' MAKE_TESTCOVERAGE='y'
@@ -79,11 +79,11 @@ matrix:
             - perl
             - python
             - ruby
-            - cmake
+            - cmake3
             - r-base-core
 
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot'
-           EXTRA_SCRIPT='install -D -t /tmp/modules/init testsuite/example/modulerc'
+           EXTRA_SCRIPT='install -d /tmp/modules/init && install -D -t /tmp/modules/init testsuite/example/modulerc'
       addons:
         apt:
           sources:
@@ -100,7 +100,7 @@ matrix:
             - perl
             - python
             - ruby
-            - cmake
+            - cmake3
             - r-base-core
             # compatibility version build requirements
             - gcc
@@ -109,7 +109,7 @@ matrix:
             - autopoint
             - tcl8.4-dev
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot'
-           EXTRA_SCRIPT='install -D -t /tmp/modules/init testsuite/example/modulerc testsuite/example/.modulespath'
+           EXTRA_SCRIPT='install -d /tmp/modules/init && install -D -t /tmp/modules/init testsuite/example/modulerc testsuite/example/.modulespath'
       addons:
         apt:
           sources:
@@ -126,7 +126,7 @@ matrix:
             - perl
             - python
             - ruby
-            - cmake
+            - cmake3
             - r-base-core
             # compatibility version build requirements
             - gcc
@@ -151,7 +151,7 @@ matrix:
             - perl
             - python
             - ruby
-            - cmake
+            - cmake3
             - r-base-core
             # compatibility version build requirements
             - gcc
@@ -231,7 +231,7 @@ before_install: |
         docker exec $CONTAINER wget -O /etc/yum.repos.d/shells_fish_release_2.repo http://download.opensuse.org/repositories/shells:fish:release:2/CentOS_${OS_VERSION}/shells:fish:release:2.repo &&
         docker exec $CONTAINER yum install -y fish ;;
       opensuse)
-        docker exec $CONTAINER zypper install -y tcsh zsh ksh fish tcl perl python ruby cmake R-core make wget python-Sphinx git dejagnu man net-tools $EXTRA_PKGS ;;
+        docker exec $CONTAINER zypper install -y tcsh zsh ksh fish tcl perl python ruby cmake R-core R-core-packages make wget python-Sphinx git dejagnu man net-tools $EXTRA_PKGS ;;
     esac
     docker cp ./. $CONTAINER:modules
   else
