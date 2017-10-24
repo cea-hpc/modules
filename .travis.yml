@@ -31,6 +31,11 @@ matrix:
             - zsh
             - fish
             - tcl8.4
+            - perl
+            - python
+            - ruby
+            - cmake
+            - r-base-core
     # install configuration file before test to trigger specific behaviors on initialization parts
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --disable-compat-version --prefix=/tmp/modules' MAKE_TESTCOVERAGE='y'
            EXTRA_SCRIPT='install -D -t /tmp/modules/init testsuite/example/modulerc testsuite/example/.modulespath'
@@ -47,6 +52,11 @@ matrix:
             - zsh
             - fish
             - tcl8.5
+            - perl
+            - python
+            - ruby
+            - cmake
+            - r-base-core
     # also enable a display on this test case to validate x-resource behavior
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --disable-compat-version --prefix=/tmp/modules' MAKE_TESTCOVERAGE='y'
       before_script:
@@ -66,6 +76,11 @@ matrix:
             - zsh
             - fish
             - tcl8.6
+            - perl
+            - python
+            - ruby
+            - cmake
+            - r-base-core
 
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot'
            EXTRA_SCRIPT='install -D -t /tmp/modules/init testsuite/example/modulerc'
@@ -82,6 +97,11 @@ matrix:
             - zsh
             - fish
             - tcl8.4
+            - perl
+            - python
+            - ruby
+            - cmake
+            - r-base-core
             # compatibility version build requirements
             - gcc
             - automake
@@ -103,6 +123,11 @@ matrix:
             - zsh
             - fish
             - tcl8.5
+            - perl
+            - python
+            - ruby
+            - cmake
+            - r-base-core
             # compatibility version build requirements
             - gcc
             - automake
@@ -123,6 +148,11 @@ matrix:
             - zsh
             - fish
             - tcl8.6
+            - perl
+            - python
+            - ruby
+            - cmake
+            - r-base-core
             # compatibility version build requirements
             - gcc
             - automake
@@ -196,11 +226,12 @@ before_install: |
     case "${OS_NAME}" in
       centos)
         if [ $OS_VERSION -eq 6 ]; then SPHINX_PKG='python-sphinx10' MAN_PKG='man'; else SPHINX_PKG='python-sphinx' MAN_PKG='man-db'; fi
-        docker exec $CONTAINER yum install -y tcsh zsh ksh tcl make wget perl $SPHINX_PKG git dejagnu $MAN_PKG rpm-build bzip2 $EXTRA_PKGS &&
+        docker exec $CONTAINER yum install -y epel-release &&
+        docker exec $CONTAINER yum install -y tcsh zsh ksh tcl perl python ruby cmake R-core make wget perl $SPHINX_PKG git dejagnu $MAN_PKG rpm-build bzip2 $EXTRA_PKGS &&
         docker exec $CONTAINER wget -O /etc/yum.repos.d/shells_fish_release_2.repo http://download.opensuse.org/repositories/shells:fish:release:2/CentOS_${OS_VERSION}/shells:fish:release:2.repo &&
         docker exec $CONTAINER yum install -y fish ;;
       opensuse)
-        docker exec $CONTAINER zypper install -y tcsh zsh ksh fish tcl make wget perl python-Sphinx git dejagnu man net-tools $EXTRA_PKGS ;;
+        docker exec $CONTAINER zypper install -y tcsh zsh ksh fish tcl perl python ruby cmake R-core make wget python-Sphinx git dejagnu man net-tools $EXTRA_PKGS ;;
     esac
     docker cp ./. $CONTAINER:modules
   else
