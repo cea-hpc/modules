@@ -111,7 +111,8 @@ proc renderError {} {
             puts stdout "/bin/false;"
          }
          {tcl} {
-            puts stdout "exec /bin/false;"
+            puts stdout "error \"modulecmd.tcl: $error_count error(s)\
+               detected!\";"
          }
          {cmd} {
             # nothing needed, reserved for future cygwin, MKS, etc
@@ -2476,10 +2477,8 @@ proc renderSettings {} {
          }
          {tcl} {
             puts stdout "proc module {args} {"
-            puts stdout "   global env;"
-            puts stdout "   set script {};"
-            puts stdout "   catch {set script \[eval exec\
-                \"$tclshbin\" \"$argv0\" \"$g_shell\" \$args 2>@stderr]}"
+            puts stdout "   catch {eval exec \"$tclshbin\" \"$argv0\"\
+                \"$g_shell\" \$args 2>@stderr} script"
             puts stdout "   uplevel \$script;"
             puts stdout "}"
 
