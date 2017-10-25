@@ -1,5 +1,6 @@
-.PHONY: doc pkgdoc initdir install uninstall dist dist-tar dist-gzip \
-	dist-bzip2 srpm clean distclean test testinstall instrument testcoverage
+.PHONY: doc pkgdoc initdir install install-testmodulerc install-testmodspath \
+	uninstall-testconfig uninstall dist dist-tar dist-gzip dist-bzip2 srpm \
+	clean distclean test testinstall instrument testcoverage
 
 # definitions for code coverage
 NAGELFAR_RELEASE := nagelfar125
@@ -98,6 +99,7 @@ define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@libexecdir@|$(libexecdir)|g' \
 	-e 's|@initdir@|$(initdir)|g' \
+	-e 's|@modulefilesdir@|$(modulefilesdir)|g' \
 	-e 's|@TCLSHDIR@/tclsh|$(TCLSH)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \
@@ -143,6 +145,26 @@ contrib/scripts/add.modules: contrib/scripts/add.modules.in
 # compatibility version-related rules
 $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog:
 	make -C $(COMPAT_DIR) $(@F)
+
+# example configs for test rules
+testsuite/example/.modulespath: testsuite/example/.modulespath.in
+	$(translate-in-script)
+
+testsuite/example/modulerc: testsuite/example/modulerc.in
+	$(translate-in-script)
+
+install-testmodulerc: testsuite/example/modulerc
+	make -C init install-testconfig DESTDIR=$(DESTDIR)
+	cp $^ $(DESTDIR)$(initdir)/
+
+install-testmodspath: testsuite/example/.modulespath
+	make -C init install-testconfig DESTDIR=$(DESTDIR)
+	cp $^ $(DESTDIR)$(initdir)/
+
+uninstall-testconfig:
+	rm -f $(DESTDIR)$(initdir)/modulerc
+	rm -f $(DESTDIR)$(initdir)/.modulespath
+	make -C init uninstall-testconfig DESTDIR=$(DESTDIR)
 
 ifeq ($(compatversion),y)
 install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
@@ -256,6 +278,7 @@ ifeq ($(wildcard .git) $(wildcard NEWS.rst),.git NEWS.rst)
 endif
 	rm -f modulecmd.tcl
 	rm -f contrib/scripts/add.modules
+	rm -f testsuite/example/.modulespath testsuite/example/modulerc
 	rm -f modules-*.tar modules-*.tar.gz modules-*.tar.bz2
 	rm -f modules-*.srpm
 	make -C init clean

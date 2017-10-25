@@ -1,4 +1,4 @@
-.PHONY: install uninstall clean
+.PHONY: install install-testconfig uninstall-testconfig uninstall clean
 
 SH_LIKE  = sh ksh bash zsh profile.sh bash_completion
 CSH_LIKE = csh tcsh tcsh_completion profile.csh
@@ -7,6 +7,7 @@ OTHER    = perl.pm python.py ruby.rb lisp tcl fish cmake r.R
 # example modulefiles to install
 EXAMPLE_MODFILES_SRCDIR := ../contrib/modulefiles
 EXAMPLE_MODFILES = dot module-git module-info modules null use.own
+EXAMPLE_TESTCONFIG_MODFILES = null
 
 # source definitions shared across the Makefiles of this project
 ifneq ($(wildcard ../Makefile.inc),../Makefile.inc)
@@ -102,6 +103,23 @@ profile-compat.sh: profile-compat.sh.in
 
 $(EXAMPLE_MODFILES_SRCDIR)/modules: $(EXAMPLE_MODFILES_SRCDIR)/modules.in ../version.inc
 	$(translate-in-script)
+
+# example configs for test rules
+install-testconfig:
+	mkdir -p $(DESTDIR)$(initdir)
+	mkdir -p $(DESTDIR)$(modulefilesdir)
+	mkdir -p $(DESTDIR)$(prefix)/test/modulefiles $(DESTDIR)$(prefix)/test/etc
+	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_TESTCONFIG_MODFILES)) $(DESTDIR)$(modulefilesdir)/
+
+uninstall-testconfig:
+	rmdir $(DESTDIR)$(prefix)/test/modulefiles $(DESTDIR)$(prefix)/test/etc $(DESTDIR)$(prefix)/test
+	rm -f $(addprefix $(DESTDIR)$(modulefilesdir)/,$(EXAMPLE_TESTCONFIG_MODFILES))
+ifeq ($(wildcard $(DESTDIR)$(modulefilesdir)/*),)
+	rmdir $(DESTDIR)$(modulefilesdir)
+endif
+ifeq ($(wildcard $(DESTDIR)$(initdir)/*),)
+	rmdir $(DESTDIR)$(initdir)
+endif
 
 install: all
 	mkdir -p $(DESTDIR)$(initdir)

@@ -17,7 +17,7 @@ matrix:
     # run tests in code coverage mode on first installation variant
     # for each Tcl releases
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --disable-compat-version --prefix=/tmp/modules' MAKE_TESTCOVERAGE='y'
-           EXTRA_SCRIPT='install -d /tmp/modules/init && install -D -t /tmp/modules/init testsuite/example/modulerc'
+           EXTRA_SCRIPT_PRETEST='make install-testmodulerc' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
           sources:
@@ -38,7 +38,7 @@ matrix:
             - r-base-core
     # install configuration file before test to trigger specific behaviors on initialization parts
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --disable-compat-version --prefix=/tmp/modules' MAKE_TESTCOVERAGE='y'
-           EXTRA_SCRIPT='install -d /tmp/modules/init && install -D -t /tmp/modules/init testsuite/example/modulerc testsuite/example/.modulespath'
+           EXTRA_SCRIPT_PRETEST='make install-testmodulerc && make install-testmodspath' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
           sources:
@@ -83,7 +83,7 @@ matrix:
             - r-base-core
 
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot'
-           EXTRA_SCRIPT='install -d /tmp/modules/init && install -D -t /tmp/modules/init testsuite/example/modulerc'
+           EXTRA_SCRIPT_PRETEST='make install-testmodulerc' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
           sources:
@@ -109,7 +109,7 @@ matrix:
             - autopoint
             - tcl8.4-dev
     - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot'
-           EXTRA_SCRIPT='install -d /tmp/modules/init && install -D -t /tmp/modules/init testsuite/example/modulerc testsuite/example/.modulespath'
+           EXTRA_SCRIPT_PRETEST='make install-testmodulerc && make install-testmodspath' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
           sources:
@@ -241,9 +241,10 @@ before_install: |
 script:
   - $CMD_PREFIX ./configure $CONFIGURE_OPTS
   - $CMD_PREFIX make
-  - if [ -n "$EXTRA_SCRIPT" ]; then $CMD_PREFIX $EXTRA_SCRIPT; fi
+  - if [ -n "$EXTRA_SCRIPT_PRETEST" ]; then $CMD_PREFIX eval $EXTRA_SCRIPT_PRETEST; fi
   - if [ "$MAKE_TESTCOVERAGE" = 'y' ]; then $CMD_PREFIX make testcoverage; fi
   - if [ "$MAKE_TESTCOVERAGE" != 'y' ]; then $CMD_PREFIX make test; fi
+  - if [ -n "$EXTRA_SCRIPT_POSTTEST" ]; then $CMD_PREFIX eval $EXTRA_SCRIPT_POSTTEST; fi
   - $CMD_PREFIX make install
   - $CMD_PREFIX make testinstall
   - $CMD_PREFIX make uninstall

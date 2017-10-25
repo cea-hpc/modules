@@ -40,39 +40,41 @@ if {[info exists env(TCLSH)]} {
 }
 
 # compare init config files to determine if we can guess expected setup
-set fid [open $env(TESTSUITEDIR)/example/.modulespath r]
-set exmodspathdata [split [read $fid] "\n"]
-close $fid
-set fid [open $env(TESTSUITEDIR)/example/modulerc r]
-set exmodrcdata [split [read $fid] "\n"]
-close $fid
-if {[file readable $install_initdir/.modulespath]} {
-    set fid [open $install_initdir/.modulespath r]
-    set insmodspathdata [split [read $fid] "\n"]
+set insmodspath [file readable $install_initdir/.modulespath]
+set modspath_exinstalled 0
+if {[file readable $env(TESTSUITEDIR)/example/.modulespath]} {
+    set fid [open $env(TESTSUITEDIR)/example/.modulespath r]
+    set exmodspathdata [split [read $fid] "\n"]
     close $fid
-    set insmodspath 1
-} else {
-    set insmodspathdata ""
-    set insmodspath 0
+    if {$insmodspath} {
+        set fid [open $install_initdir/.modulespath r]
+        set insmodspathdata [split [read $fid] "\n"]
+        close $fid
+    } else {
+        set insmodspathdata ""
+    }
+    if {$exmodspathdata eq $insmodspathdata} {
+        set modspath_exinstalled 1
+    }
 }
-if {[file readable $install_initdir/modulerc]} {
-    set fid [open $install_initdir/modulerc r]
-    set insmodrcdata [split [read $fid] "\n"]
-    set insmodrc 1
+
+set insmodrc [file readable $install_initdir/modulerc]
+set modrc_exinstalled 0
+if {[file readable $env(TESTSUITEDIR)/example/modulerc]} {
+    set fid [open $env(TESTSUITEDIR)/example/modulerc r]
+    set exmodrcdata [split [read $fid] "\n"]
     close $fid
-} else {
-    set insmodrcdata ""
-    set insmodrc 0
-}
-if {$exmodspathdata eq $insmodspathdata} {
-    set modspath_exinstalled 1
-} else {
-    set modspath_exinstalled 0
-}
-if {$exmodrcdata eq $insmodrcdata} {
-    set modrc_exinstalled 1
-} else {
-    set modrc_exinstalled 0
+    if {$insmodrc} {
+        set fid [open $install_initdir/modulerc r]
+        set insmodrcdata [split [read $fid] "\n"]
+        set insmodrc 1
+        close $fid
+    } else {
+        set insmodrcdata ""
+    }
+    if {$exmodrcdata eq $insmodrcdata} {
+        set modrc_exinstalled 1
+    }
 }
 
 set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
@@ -183,15 +185,15 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                 lappend ans [list set MODULEPATH_modshare "(.*)"]
                 lappend ans [list set LOADEDMODULES ""]
                 lappend ans [list set MODULESHOME $moduleshome]
-                lappend ans [list set MODULEPATH "/usr/share/Modules/modulefiles:/etc/modulefiles:/usr/share/modulefiles"]
+                lappend ans [list set MODULEPATH "$install_modulefilesdir:$install_prefix/test/modulefiles:$install_prefix/test/etc"]
             } elseif {!$insmodspath && $modrc_exinstalled} {
-                lappend ans [list set _LMFILES__modshare "/usr/share/Modules/modulefiles/null:1"]
+                lappend ans [list set _LMFILES__modshare "$install_modulefilesdir/null:1"]
                 lappend ans [list set LOADEDMODULES_modshare "null:1"]
-                lappend ans [list set MODULEPATH_modshare "/usr/share/Modules/modulefiles:1"]
-                lappend ans [list set _LMFILES_ "/usr/share/Modules/modulefiles/null"]
+                lappend ans [list set MODULEPATH_modshare "$install_modulefilesdir:1"]
+                lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
                 lappend ans [list set LOADEDMODULES "null"]
                 lappend ans [list set MODULESHOME $moduleshome]
-                lappend ans [list set MODULEPATH "/usr/share/Modules/modulefiles"]
+                lappend ans [list set MODULEPATH "$install_modulefilesdir"]
             }
 
             test_cmd_re $shell "autoinit" $ans
@@ -216,12 +218,22 @@ unset path_list
 unset modulecmd_path
 unset moduleshome
 
-unset fid
-unset exmodspathdata
-unset exmodrcdata
-unset insmodspathdata
+if {[info exists fid]} {
+    unset fid
+}
+if {[info exists exmodspathdata]} {
+    unset exmodspathdata
+}
+if {[info exists exmodrcdata]} {
+    unset exmodrcdata
+}
+if {[info exists insmodspathdata]} {
+    unset insmodspathdata
+}
 unset insmodspath
-unset insmodrcdata
+if {[info exists insmodrcdata]} {
+    unset insmodrcdata
+}
 unset insmodrc
 unset modspath_exinstalled
 unset modrc_exinstalled
