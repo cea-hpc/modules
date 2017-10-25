@@ -7,6 +7,23 @@ This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
 
+Modules 4.1.0 (2017-??-??)
+--------------------------
+
+**Ongoing work! This version has not been released yet.**
+
+* Extend stderr output redirection on sh-kind shells to all terminal-attached
+  shell session, not only interactive shell session.
+* Extend shell code produced by the ``autoinit`` command to perform the same
+  environment initialization as done in ``init`` shell scripts (default value
+  set for module-specific environment variables, parse or source of
+  configuration files).
+* Make init shell scripts rely on ``autoinit`` command to define the
+  ``module`` command and setup its default environment.
+* Fix error rendering code for Tcl shell by producing a call to the ``error``
+  procedure.
+
+
 Modules 4.0.0 (2017-10-16)
 --------------------------
 
