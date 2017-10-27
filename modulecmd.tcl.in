@@ -35,6 +35,11 @@ set g_force 0 ;# Path element reference counting if == 0
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 set flag_default_dir 1 ;# Report default directories
 set flag_default_mf 1 ;# Report default modulefiles and version alias
+set reportfd "stderr" ;# File descriptor to use to report messages
+
+set g_use_pager 1 ;# Set to 0 to disable message output paging
+set g_pager "less" ;# Default command to page into
+set g_pager_opts "-eFRX" ;# Options to pass to the pager command
 
 # Used to tell if a machine is running Windows or not
 proc isWin {} {
@@ -194,10 +199,12 @@ proc reportInternalBug {message modfile} {
 }
 
 proc report {message {nonewline ""}} {
+   global reportfd
+
    if {$nonewline ne ""} {
-      puts -nonewline stderr "$message"
+      puts -nonewline $reportfd "$message"
    } else {
-      puts stderr "$message"
+      puts $reportfd "$message"
    }
 }
 
@@ -226,6 +233,91 @@ proc reenableErrorReport {} {
    global g_inhibit_errreport
 
    set g_inhibit_errreport 0
+}
+
+# exit in a clean manner by closing interaction with external components
+proc cleanupAndExit {code} {
+   global reportfd
+
+   # close pager if enabled
+   if {$reportfd ne "stderr"} {
+      flush $reportfd
+      close $reportfd
+   }
+
+   exit $code
+}
+
+# init configuration for output paging then start paging if enabled
+proc initPager {} {
+   global env g_use_pager g_pager g_pager_opts asked_pager
+   global argdebugmsgs argwarnmsgs reportfd
+
+   if {$g_pager eq "less" && $g_pager_opts ne "" && [info exists env(LESS)]} {
+      lappend argdebugmsgs "initPager: clear 'less' pager options as LESS\
+         variable defined"
+      set g_pager_opts ""
+   }
+
+   foreach var [list MODULES_PAGER PAGER] {
+      if {[info exists env($var)]} {
+         if {$env($var) ne ""} {
+            # MODULES_PAGER env variable set means pager should be enabled
+            if {!$g_use_pager && $var eq "MODULES_PAGER"} {
+               set g_use_pager 1
+            }
+            # fetch pager command and option
+            set g_pager [lindex $env($var) 0]
+            set g_pager_opts [lrange $env($var) 1 end]
+
+         # variable defined empty means no-pager
+         } else {
+            set g_use_pager 0
+            set g_pager ""
+            set g_pager_opts ""
+         }
+
+         lappend argdebugmsgs "initPager: configure pager from $var variable\
+            (use_pager=$g_use_pager, cmd='$g_pager', opts='$g_pager_opts')"
+
+         # if MODULES_PAGER set, no look at PAGER
+         break
+      }
+   }
+
+   # paging may have been enabled or disabled from the comman-line
+   if {[info exists asked_pager]} {
+      if {$asked_pager && !$g_use_pager} {
+         set g_use_pager 1
+      } elseif {!$asked_pager && $g_use_pager} {
+         set g_use_pager 0
+      }
+      set asked $asked_pager
+   } else {
+      set asked "-"
+   }
+
+   # empty of 'cat' pager command means no-pager
+   if {$g_use_pager && ($g_pager eq "" || $g_pager eq "cat")} {
+      set g_use_pager 0
+   }
+
+   # setup paging if enabled and if error stream is attached to a terminal
+   set is_tty [isStderrTty]
+   if {$is_tty && $g_use_pager} {
+      lappend argdebugmsgs "initPager: start pager (asked_pager=$asked,\
+         cmd='$g_pager', opts='$g_pager_opts')"
+      if {[catch {
+         set reportfd [open "|$g_pager $g_pager_opts >@stderr 2>@stderr" w]
+         fconfigure $reportfd -buffering line -blocking 1
+      } errMsg]} {
+         lappend argwarnmsgs $errMsg
+      }
+   } else {
+      lappend argdebugmsgs "initPager: no pager start (is_tty=$is_tty,\
+         use_pager=$g_use_pager, asked_pager=$asked, cmd='$g_pager',\
+         opts='$g_pager_opts')"
+   }
 }
 
 ########################################################################
@@ -5227,9 +5319,11 @@ proc cmdModuleHelp {args} {
       report {  -h | --help     This usage info}
       report {  -V | --version  Module version}
       report {  -D | --debug    Enable debug messages}
+      report {  --paginate      Pipe mesg output into a pager if stream\
+         attached to terminal}
+      report {  --no-pager      Do not pipe message output into a pager}
    }
 }
-
 
 ########################################################################
 # main program
@@ -5238,9 +5332,15 @@ proc cmdModuleHelp {args} {
 # supposed to be the default behavior
 fconfigure stderr -translation auto
 
-reportDebug "CALLING $argv0 $argv"
-
 if {[catch {
+   # parse all command-line arguments before doing any action, no output is
+   # made during argument parse to wait for potential paging to be setup
+   set show_help 0
+   set show_version 0
+   set argerrmsgs {}
+   set argwarnmsgs {}
+   set argdebugmsgs [list "CALLING $argv0 $argv"]
+
    # Parse shell
    set g_shell [lindex $argv 0]
    switch -- $g_shell {
@@ -5255,7 +5355,7 @@ if {[catch {
          set g_shellType $g_shell
       }
       default {
-         reportErrorAndExit "Unknown shell type \'($g_shell)\'"
+         lappend argerrmsgs "Unknown shell type \'($g_shell)\'"
       }
    }
 
@@ -5267,19 +5367,19 @@ if {[catch {
       } else {
          switch -glob -- $arg {
             {-D} - {--debug} {
-               if {!$g_debug} {
-                  set g_debug 1
-                  reportDebug "CALLING $argv0 $argv"
-               }
+               set g_debug 1
             }
             {--help} - {-h} {
-                cmdModuleHelp
-                exit 0
+               set show_help 1
             }
             {-V} - {--version} {
-                report "Modules Release $MODULES_CURRENT_VERSION\
-                  ($MODULES_CURRENT_RELEASE_DATE)"
-                exit 0
+               set show_version 1
+            }
+            {--paginate} {
+               set asked_pager 1
+            }
+            {--no-pager} {
+               set asked_pager 0
             }
             {-t} - {--terse} {
                set show_oneperline 1
@@ -5303,15 +5403,15 @@ if {[catch {
                {--silent} - {-c} - {--create} - {-i} - {--icase} -\
                {--userlvl=*} {
                # ignore C-version specific option, no error only warning
-               reportWarning "Unsupported option '$arg'"
+               lappend argwarnmsgs "Unsupported option '$arg'"
             }
             {-u} - {--userlvl} {
-               reportWarning "Unsupported option '$arg'"
+               lappend argwarnmsgs "Unsupported option '$arg'"
                # also ignore argument value
                set ignore_next_arg 1
             }
             {-*} {
-                reportErrorAndExit "Invalid option '$arg'\nTry\
+                lappend argerrmsgs "Invalid option '$arg'\nTry\
                   'module --help' for more information."
             }
             default {
@@ -5319,6 +5419,32 @@ if {[catch {
             }
          }
       }
+   }
+
+   # setup message paging if enabled
+   initPager
+
+   # now pager is eventually setup, start output
+   foreach argmsg $argdebugmsgs {
+      reportDebug $argmsg
+   }
+
+   # display first error message and exit if any
+   if {[llength $argerrmsgs] > 0} {
+      reportErrorAndExit [lindex $argerrmsgs 0]
+   }
+   foreach argmsg $argwarnmsgs {
+      reportWarning $argmsg
+   }
+
+   if {$show_help} {
+      cmdModuleHelp
+      cleanupAndExit 0
+   }
+   if {$show_version} {
+      report "Modules Release $MODULES_CURRENT_VERSION\
+         ($MODULES_CURRENT_RELEASE_DATE)"
+      cleanupAndExit 0
    }
 
    set command [lindex $otherargv 0]
@@ -5340,10 +5466,10 @@ if {[catch {
    # no use of reportError here to get independent from any
    # previous error report inhibition
    report "ERROR: $errMsg"
-   exit 1
+   cleanupAndExit 1
 }
 
-exit 0
+cleanupAndExit 0
 
 # ;;; Local Variables: ***
 # ;;; mode:tcl ***

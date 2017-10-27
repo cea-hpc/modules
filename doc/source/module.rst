@@ -142,6 +142,15 @@ switches are accepted:
  Debug mode. Causes **module** to print debugging messages about its
  progress.
 
+**--paginate**
+
+ Pipe all message output into *less* (or if set, *$MODULES_PAGER* or *$PAGER*)
+ if error output stream is a terminal. See also **MODULES_PAGER** section.
+
+**--no-pager**
+
+ Do not pipe message output into a pager.
+
 **--terse**, **-t**
 
  Display **avail**, **list** and **savelist** output in short format.
@@ -518,6 +527,24 @@ ENVIRONMENT
  For example, the **MODULES_COLLECTION_TARGET** variable may be set with
  results from commands like **lsb_release**, **hostname**, **dnsdomainname**,
  etc.
+
+**MODULES_PAGER**
+
+ Text viewer for use to paginate message output if error output stream is
+ attached to a terminal. The value of this variable is composed of a pager
+ command name or path eventually followed by command-line options.
+
+ Paging command and options is defined for Modules in the following order of
+ preference: **MODULES_PAGER** environment variable, then **PAGER** and then
+ the default set in **modulecmd.tcl** script configuration. Which means
+ **MODULES_PAGER** overrides **PAGER** which in turns overrides default
+ configuration.
+
+ If **LESS** environment variable is defined and default configuration defines
+ *less* as paging command, default paging command options will be ignored.
+
+ If **MODULES_PAGER** variable is set to an empty string or to the value
+ *cat*, pager will not be launched.
 
 **MODULES_USE_COMPAT_VERSION**
 
