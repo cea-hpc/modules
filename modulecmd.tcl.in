@@ -199,7 +199,14 @@ proc reportInternalBug {message modfile} {
 }
 
 proc report {message {nonewline ""}} {
-   global reportfd
+   global has_yet_report reportfd
+
+   # first message report, initialize
+   if {![info exists has_yet_report]} {
+      set has_yet_report 1
+      # setup message paging if enabled
+      initPager
+   }
 
    if {$nonewline ne ""} {
       puts -nonewline $reportfd "$message"
@@ -5421,12 +5428,11 @@ if {[catch {
       }
    }
 
-   # setup message paging if enabled
-   initPager
-
-   # now pager is eventually setup, start output
-   foreach argmsg $argdebugmsgs {
-      reportDebug $argmsg
+   # now options are known so first message output will be able to start
+   # pager if enabled. 'for' is used instead of foreach since msg list
+   # will be updated from initPager procedure.
+   for {set i 0} {$i < [llength $argdebugmsgs]} {incr i 1} {
+      reportDebug [lindex $argdebugmsgs $i]
    }
 
    # display first error message and exit if any
