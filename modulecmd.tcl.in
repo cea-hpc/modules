@@ -23,8 +23,6 @@
 #
 # Some Global Variables.....
 #
-set MODULES_CURRENT_VERSION "@MODULES_RELEASE@@MODULES_BUILD@"
-set MODULES_CURRENT_RELEASE_DATE "@MODULES_BUILD_DATE@"
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_autoInit 0
@@ -225,6 +223,11 @@ proc reportIssue {issuetype issuemsg {issuefile {}}} {
          reportError $issuemsg
       }
    }
+}
+
+proc reportVersion {} {
+   report "Modules Release @MODULES_RELEASE@@MODULES_BUILD@\
+      (@MODULES_BUILD_DATE@)"
 }
 
 # disable error reporting (non-critical report only) unless debug enabled
@@ -5224,8 +5227,6 @@ proc cmdModuleTest {args} {
 }
 
 proc cmdModuleHelp {args} {
-   global MODULES_CURRENT_VERSION MODULES_CURRENT_RELEASE_DATE
-
    pushMode "help"
    set first_report 1
    foreach arg $args {
@@ -5250,8 +5251,7 @@ proc cmdModuleHelp {args} {
    }
    popMode
    if {[llength $args] == 0} {
-      report "Modules Release $MODULES_CURRENT_VERSION " 1
-      report "($MODULES_CURRENT_RELEASE_DATE)"
+      reportVersion
       report {Usage: module [options] [command] [args ...]
 
 Loading / Unloading commands:
@@ -5426,8 +5426,7 @@ if {[catch {
       cleanupAndExit 0
    }
    if {$show_version} {
-      report "Modules Release $MODULES_CURRENT_VERSION\
-         ($MODULES_CURRENT_RELEASE_DATE)"
+      reportVersion
       cleanupAndExit 0
    }
 
