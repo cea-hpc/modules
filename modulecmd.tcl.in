@@ -70,10 +70,21 @@ proc isStderrTty {} {
    return $g_is_stderr_tty
 }
 
-# Dynamic columns
-set DEF_COLUMNS 80 ;# Default size of columns for formatting
-if {[catch {exec stty size} stty_size] == 0 && $stty_size ne ""} {
-   set DEF_COLUMNS [lindex $stty_size 1]
+# Provide columns number for output formatting
+proc getTtyColumns {} {
+   global g_tty_columns
+
+   if {![info exists g_tty_columns]} {
+      # determine col number from tty capabilites
+      if {[catch {exec stty size} stty_size] == 0 && $stty_size ne ""} {
+         set g_tty_columns [lindex $stty_size 1]
+      } else {
+         # default size if tty cols cannot be found
+         set g_tty_columns 80
+      }
+   }
+
+   return $g_tty_columns
 }
 
 # Use MODULECONTACT variable to set your support email address
@@ -3783,17 +3794,17 @@ proc displayTableHeader {args} {
 }
 
 proc displaySeparatorLine {{title {}}} {
-   global DEF_COLUMNS
 
    if {$title eq ""} {
       report "[string repeat {-} 67]"
    } else {
+      set tty_cols [getTtyColumns]
       set len  [string length $title]
       # max expr function is not supported in Tcl8.4 and earlier
-      if {[set lrep [expr {($DEF_COLUMNS - $len - 2)/2}]] < 1} {
+      if {[set lrep [expr {($tty_cols - $len - 2)/2}]] < 1} {
          set lrep 1
       }
-      if {[set rrep [expr {$DEF_COLUMNS - $len - 2 - $lrep}]] < 1} {
+      if {[set rrep [expr {$tty_cols - $len - 2 - $lrep}]] < 1} {
          set rrep 1
       }
       report "[string repeat {-} $lrep] $title [string repeat {-} $rrep]"
@@ -3803,7 +3814,7 @@ proc displaySeparatorLine {{title {}}} {
 # get a list of elements and print them in a column or in a
 # one-per-line fashion
 proc displayElementList {header hstyle one_per_line display_idx args} {
-   global DEF_COLUMNS g_eltlist_disp
+   global g_eltlist_disp
 
    set elt_cnt [llength $args]
    reportDebug "displayElementList: header=$header, hstyle=$hstyle,\
@@ -3866,9 +3877,10 @@ proc displayElementList {header hstyle one_per_line display_idx args} {
          }
       }
 
+      set tty_cols [getTtyColumns]
       # find valid grid by starting with non-optimized solution where each
       # column length is equal to the length of the biggest element to display
-      set cur_cols [expr {int($DEF_COLUMNS / $max_len)}]
+      set cur_cols [expr {int($tty_cols / $max_len)}]
       # when display is found too short to display even one column
       if {$cur_cols == 0} {
          set cols 1
@@ -3914,7 +3926,7 @@ proc displayElementList {header hstyle one_per_line display_idx args} {
             # end search of maximum number of columns if computed row width
             # is larger than terminal width
             if {[incr row_width($row) +[expr {$cur_col_width($col) \
-               + $elt_prefix_len}]] > $DEF_COLUMNS} {
+               + $elt_prefix_len}]] > $tty_cols} {
                # start last optimization pass by increasing row number until
                # reaching number used for previous column number, by doing so
                # this number of column may pass in terminal width, if not
