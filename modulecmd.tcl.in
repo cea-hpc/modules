@@ -217,10 +217,13 @@ proc report {message {nonewline ""}} {
       initPager
    }
 
-   if {$nonewline ne ""} {
-      puts -nonewline $reportfd "$message"
-   } else {
-      puts $reportfd "$message"
+   # protect from issue with fd, just ignore it
+   catch {
+      if {$nonewline ne ""} {
+         puts -nonewline $reportfd "$message"
+      } else {
+         puts $reportfd "$message"
+      }
    }
 }
 
@@ -262,8 +265,8 @@ proc cleanupAndExit {code} {
 
    # close pager if enabled
    if {$reportfd ne "stderr"} {
-      flush $reportfd
-      close $reportfd
+      catch {flush $reportfd}
+      catch {close $reportfd}
    }
 
    exit $code
