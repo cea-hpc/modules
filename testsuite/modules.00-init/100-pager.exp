@@ -1,0 +1,237 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	2017/10/30
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check pager-related switches and configs.
+#		}C%
+#
+##############################################################################
+
+set pager_dft_cmd "less"
+set pager_dft_opts "-eFKRX"
+
+# helper proc to generate pager test and expected debugging output
+proc pager_test_case {modarg use asked cmd opts} {
+    global MODULECMD env
+
+    if {$modarg ne ""} {
+        set modarg " $modarg"
+    }
+
+    set ans [list]
+    lappend ans "DEBUG CALLING $MODULECMD sh -V -D$modarg"
+
+    if {[info exists env(LESS)]} {
+        lappend ans "DEBUG initPager: clear 'less' pager options as LESS variable defined"
+    }
+    foreach envvar [list MODULES_PAGER PAGER] {
+        if {[info exists env($envvar)]} {
+            lappend ans "DEBUG initPager: configure pager from $envvar variable \\(use_pager=\\d, cmd='$cmd', opts='$opts'\\)"
+            break
+        }
+    }
+
+    lappend ans "DEBUG initPager: no pager start \\(is_tty=0, use_pager=$use, asked_pager=$asked, cmd='$cmd', opts='$opts'\\)"
+    lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+
+    testouterr_cmd_re "sh" "-V -D$modarg" "" [join $ans "\n"]
+}
+
+#
+# The tests
+#
+
+# vanilla test, no related-env variable set
+pager_test_case "" 1 "-" $pager_dft_cmd $pager_dft_opts
+pager_test_case "--paginate" 1 "1" $pager_dft_cmd $pager_dft_opts
+pager_test_case "--no-pager" 0 "0" $pager_dft_cmd $pager_dft_opts
+
+# play with LESS env variable
+set opts "-K"
+if { $verbose > 0 } {
+    send_user "\tSetup LESS = '$opts'\n"
+}
+set env(LESS) $opts
+pager_test_case "" 1 "-" $pager_dft_cmd ""
+pager_test_case "--paginate" 1 "1" $pager_dft_cmd ""
+pager_test_case "--no-pager" 0 "0" $pager_dft_cmd ""
+
+set opts ""
+if { $verbose > 0 } {
+    send_user "\tSetup LESS = '$opts'\n"
+}
+set env(LESS) $opts
+pager_test_case "" 1 "-" $pager_dft_cmd ""
+pager_test_case "--paginate" 1 "1" $pager_dft_cmd ""
+pager_test_case "--no-pager" 0 "0" $pager_dft_cmd ""
+
+if { $verbose > 0 } {
+    send_user "\tUnset LESS\n"
+}
+unset env(LESS)
+
+
+# play with PAGER env variable
+set cmd "more"
+if { $verbose > 0 } {
+    send_user "\tSetup PAGER = '$cmd'\n"
+}
+set env(PAGER) $cmd
+pager_test_case "" 1 "-" $cmd ""
+pager_test_case "--paginate" 1 "1" $cmd ""
+pager_test_case "--no-pager" 0 "0" $cmd ""
+
+set cmd ""
+if { $verbose > 0 } {
+    send_user "\tSetup PAGER = '$cmd'\n"
+}
+set env(PAGER) $cmd
+pager_test_case "" 0 "-" $cmd ""
+pager_test_case "--paginate" 0 "1" $cmd ""
+pager_test_case "--no-pager" 0 "0" $cmd ""
+
+set cmd "cat"
+if { $verbose > 0 } {
+    send_user "\tSetup PAGER = '$cmd'\n"
+}
+set env(PAGER) $cmd
+pager_test_case "" 0 "-" $cmd ""
+pager_test_case "--paginate" 0 "1" $cmd ""
+pager_test_case "--no-pager" 0 "0" $cmd ""
+
+set opts "-K"
+if { $verbose > 0 } {
+    send_user "\tSetup LESS = '$opts'\n"
+}
+set env(LESS) $opts
+pager_test_case "" 0 "-" $cmd ""
+pager_test_case "--paginate" 0 "1" $cmd ""
+pager_test_case "--no-pager" 0 "0" $cmd ""
+
+set cmd "/usr/bin/more"
+if { $verbose > 0 } {
+    send_user "\tSetup PAGER = '$cmd'\n"
+}
+set env(PAGER) $cmd
+pager_test_case "" 1 "-" $cmd ""
+pager_test_case "--paginate" 1 "1" $cmd ""
+pager_test_case "--no-pager" 0 "0" $cmd ""
+
+set cmd "/usr/bin/less"
+if { $verbose > 0 } {
+    send_user "\tSetup PAGER = '$cmd'\n"
+}
+set env(PAGER) $cmd
+pager_test_case "" 1 "-" $cmd ""
+pager_test_case "--paginate" 1 "1" $cmd ""
+pager_test_case "--no-pager" 0 "0" $cmd ""
+
+set cmd "less"
+set opts "-e"
+if { $verbose > 0 } {
+    send_user "\tSetup PAGER = '$cmd $opts'\n"
+}
+set env(PAGER) "$cmd $opts"
+pager_test_case "" 1 "-" $cmd $opts
+pager_test_case "--paginate" 1 "1" $cmd $opts
+pager_test_case "--no-pager" 0 "0" $cmd $opts
+
+set cmd "/usr/bin/less"
+if { $verbose > 0 } {
+    send_user "\tUnset LESS\n"
+    send_user "\tSetup PAGER = '$cmd'\n"
+}
+unset env(LESS)
+set env(PAGER) $cmd
+pager_test_case "" 1 "-" $cmd ""
+pager_test_case "--paginate" 1 "1" $cmd ""
+pager_test_case "--no-pager" 0 "0" $cmd ""
+
+
+# play with MODULES_PAGER env variable
+set cmd "more"
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_PAGER = '$cmd'\n"
+}
+set env(MODULES_PAGER) $cmd
+pager_test_case "" 1 "-" $cmd ""
+pager_test_case "--paginate" 1 "1" $cmd ""
+pager_test_case "--no-pager" 0 "0" $cmd ""
+
+set cmd ""
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_PAGER = '$cmd'\n"
+}
+set env(MODULES_PAGER) $cmd
+pager_test_case "" 0 "-" $cmd ""
+pager_test_case "--paginate" 0 "1" $cmd ""
+pager_test_case "--no-pager" 0 "0" $cmd ""
+
+set cmd "cat"
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_PAGER = '$cmd'\n"
+}
+set env(MODULES_PAGER) $cmd
+pager_test_case "" 0 "-" $cmd ""
+pager_test_case "--paginate" 0 "1" $cmd ""
+pager_test_case "--no-pager" 0 "0" $cmd ""
+
+set cmd "less"
+set opts "-e"
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_PAGER = '$cmd $opts'\n"
+}
+set env(MODULES_PAGER) "$cmd $opts"
+pager_test_case "" 1 "-" $cmd $opts
+pager_test_case "--paginate" 1 "1" $cmd $opts
+pager_test_case "--no-pager" 0 "0" $cmd $opts
+
+if { $verbose > 0 } {
+    send_user "\tUnset PAGER\n"
+}
+unset env(PAGER)
+pager_test_case "" 1 "-" $cmd $opts
+pager_test_case "--paginate" 1 "1" $cmd $opts
+pager_test_case "--no-pager" 0 "0" $cmd $opts
+
+if { $verbose > 0 } {
+    send_user "\tSetup LESS = '-K'\n"
+}
+set env(LESS) "-K"
+pager_test_case "" 1 "-" $cmd $opts
+pager_test_case "--paginate" 1 "1" $cmd $opts
+pager_test_case "--no-pager" 0 "0" $cmd $opts
+
+
+#
+#  Clean up variables used in this test case
+#
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tUnset LESS\n"
+    send_user "\tUnset MODULES_PAGER\n"
+}
+unset env(LESS)
+unset env(MODULES_PAGER)
+
+unset pager_dft_cmd
+unset pager_dft_opts
+
+unset opts
+unset cmd
+
+# remove procs
+rename pager_test_case {}
