@@ -35,8 +35,7 @@ set flag_default_dir 1 ;# Report default directories
 set flag_default_mf 1 ;# Report default modulefiles and version alias
 set reportfd "stderr" ;# File descriptor to use to report messages
 
-set g_use_pager 1 ;# Set to 0 to disable message output paging
-set g_pager "less" ;# Default command to page into
+set g_pager "less" ;# Default command to page into, set empty to disable
 set g_pager_opts "-eFKRX" ;# Options to pass to the pager command
 
 # Used to tell if a machine is running Windows or not
@@ -274,8 +273,15 @@ proc cleanupAndExit {code} {
 
 # init configuration for output paging then start paging if enabled
 proc initPager {} {
-   global env g_use_pager g_pager g_pager_opts asked_pager
+   global env g_pager g_pager_opts asked_pager
    global argdebugmsgs argwarnmsgs reportfd
+
+   # default pager enablement depends of pager command value
+   if {$g_pager eq ""} {
+      set use_pager 0
+   } else {
+      set use_pager 1
+   }
 
    if {$g_pager eq "less" && $g_pager_opts ne "" && [info exists env(LESS)]} {
       lappend argdebugmsgs "initPager: clear 'less' pager options as LESS\
@@ -287,8 +293,8 @@ proc initPager {} {
       if {[info exists env($var)]} {
          if {$env($var) ne ""} {
             # MODULES_PAGER env variable set means pager should be enabled
-            if {!$g_use_pager && $var eq "MODULES_PAGER"} {
-               set g_use_pager 1
+            if {!$use_pager && $var eq "MODULES_PAGER"} {
+               set use_pager 1
             }
             # fetch pager command and option
             set g_pager [lindex $env($var) 0]
@@ -296,13 +302,13 @@ proc initPager {} {
 
          # variable defined empty means no-pager
          } else {
-            set g_use_pager 0
+            set use_pager 0
             set g_pager ""
             set g_pager_opts ""
          }
 
          lappend argdebugmsgs "initPager: configure pager from $var variable\
-            (use_pager=$g_use_pager, cmd='$g_pager', opts='$g_pager_opts')"
+            (use_pager=$use_pager, cmd='$g_pager', opts='$g_pager_opts')"
 
          # if MODULES_PAGER set, no look at PAGER
          break
@@ -311,24 +317,24 @@ proc initPager {} {
 
    # paging may have been enabled or disabled from the comman-line
    if {[info exists asked_pager]} {
-      if {$asked_pager && !$g_use_pager} {
-         set g_use_pager 1
-      } elseif {!$asked_pager && $g_use_pager} {
-         set g_use_pager 0
+      if {$asked_pager && !$use_pager} {
+         set use_pager 1
+      } elseif {!$asked_pager && $use_pager} {
+         set use_pager 0
       }
       set asked $asked_pager
    } else {
       set asked "-"
    }
 
-   # empty of 'cat' pager command means no-pager
-   if {$g_use_pager && ($g_pager eq "" || $g_pager eq "cat")} {
-      set g_use_pager 0
+   # empty or 'cat' pager command means no-pager
+   if {$use_pager && ($g_pager eq "" || $g_pager eq "cat")} {
+      set use_pager 0
    }
 
    # setup paging if enabled and if error stream is attached to a terminal
    set is_tty [isStderrTty]
-   if {$is_tty && $g_use_pager} {
+   if {$is_tty && $use_pager} {
       lappend argdebugmsgs "initPager: start pager (asked_pager=$asked,\
          cmd='$g_pager', opts='$g_pager_opts')"
       if {[catch {
@@ -339,7 +345,7 @@ proc initPager {} {
       }
    } else {
       lappend argdebugmsgs "initPager: no pager start (is_tty=$is_tty,\
-         use_pager=$g_use_pager, asked_pager=$asked, cmd='$g_pager',\
+         use_pager=$use_pager, asked_pager=$asked, cmd='$g_pager',\
          opts='$g_pager_opts')"
    }
 }
