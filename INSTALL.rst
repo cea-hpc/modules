@@ -230,6 +230,13 @@ instance ``--without-modulepath``):
 
 --with-tclsh=BIN      Name or full path of Tcl interpreter shell
                       (default=\ ``tclsh``)
+--with-pager=BIN      Name or full path of default pager program to use to
+                      paginate informational message output (can be super-
+                      seeded at run-time by environment variable)
+                      (default=\ ``less``)
+--with-pager-opts=OPTLIST
+                      Settings to apply to default pager program
+                      (default=\ ``-eFKRX``)
 --with-modulepath=PATHLIST
                       Default path list to setup as the default modulepaths.
                       Each path in this list should be separated by ``:``.

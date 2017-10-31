@@ -28,12 +28,14 @@ targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 # argument list
 arglist="TCLSH SPHINXBUILD prefix bindir libexecdir initdir datarootdir \
 mandir docdir modulefilesdir setmanpath setbinpath setdotmodulespath \
-docinstall examplemodulefiles compatversion modulepath loadedmodules"
+docinstall examplemodulefiles compatversion pager pageropts modulepath \
+loadedmodules"
 compatarglist=
 
 # flags to know if argument has been specified on command-line
 defdotmodulespath=1
 defcompatversion=1
+defpageropts=1
 
 # set argument default values
 prefix=/usr/local/Modules
@@ -46,6 +48,8 @@ compatversion=y
 loadedmodules=
 TCLSH=tclsh
 SPHINXBUILD=sphinx-build
+pager=less
+pageropts='-eFKRX'
 # these args are initialized here but as they depend on other argument value
 # they will get their default value later (after command-line parse)
 bindir=
@@ -123,6 +127,11 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-tclsh=BIN        name or full path of Tcl interpreter shell [tclsh]
+  --with-pager=BIN        name or full path of default pager program to use to
+                          paginate informational message output (can be super-
+                          seeded at run-time by environment variable) [$pager]
+  --with-pager-opts=OPTLIST
+                          settings to apply to default pager program [$pageropts]
   --with-modulepath=PATHLIST
                           default modulepaths to set in default configuration
                           file to be enabled (each path in PATHLIST should
@@ -247,6 +256,11 @@ for arg in "$@"; do
       defcompatversion=0 ;;
    --with-tclsh=*|--without-tclsh)
       tclshbin=$(get_package_value "$arg") ;;
+   --with-pager=*|--without-pager)
+      pager=$(get_package_value "$arg") ;;
+   --with-pager-opts=*|--without-pager-opts)
+      pageropts=$(get_package_value "$arg")
+      defpageropts=0 ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)
@@ -293,6 +307,18 @@ fi
 [ -z "$tclshbin" ] && tclshbin=$TCLSH
 check_requirement $tclshbin '' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
 TCLSH=$reqpath
+
+# get pager program location from standard PATHs or /usr/local/bin
+# or validate location passed as argument
+if [ -n "$pager" ]; then
+   check_requirement $pager '' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+   pager=$reqpath
+fi
+# adapt pager program settings dependings of specified args
+if [ $defpageropts -eq 1 -a "${pager##*/}" != 'less' ]; then
+    pageropts=''
+    echo_warning "As chosen pager is not \`less', default pager options are cleared"
+fi
 
 # check feature requirements are met
 if [ "$setdotmodulespath" = 'y' -a -n "$loadedmodules" ]; then
