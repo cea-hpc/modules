@@ -114,12 +114,8 @@ install-testconfig:
 uninstall-testconfig:
 	rmdir $(DESTDIR)$(prefix)/test/modulefiles $(DESTDIR)$(prefix)/test/etc $(DESTDIR)$(prefix)/test
 	rm -f $(addprefix $(DESTDIR)$(modulefilesdir)/,$(EXAMPLE_TESTCONFIG_MODFILES))
-ifeq ($(wildcard $(DESTDIR)$(modulefilesdir)/*),)
-	rmdir $(DESTDIR)$(modulefilesdir)
-endif
-ifeq ($(wildcard $(DESTDIR)$(initdir)/*),)
-	rmdir $(DESTDIR)$(initdir)
-endif
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(modulefilesdir)
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(initdir)
 
 install: all
 	mkdir -p $(DESTDIR)$(initdir)
@@ -147,22 +143,12 @@ ifeq ($(compatversion),y)
 endif
 	rm -f $(DESTDIR)$(initdir)/zsh-functions/_module
 	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_CONFIG))
-ifeq ($(wildcard $(DESTDIR)$(modulefilesdir)/*),)
-	rmdir $(DESTDIR)$(modulefilesdir)
-else
-	@echo
-	@echo "WARNING: $(DESTDIR)$(modulefilesdir) is not empty so skip removal" >&2
-	@echo
-endif
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(modulefilesdir)
+	@if [ -d $(DESTDIR)$(modulefilesdir) ]; then echo -e "\nWARNING: $(DESTDIR)$(modulefilesdir) is not empty so skip removal\n" >&2; fi
 	rmdir $(DESTDIR)$(initdir)/ksh-functions
 	rmdir $(DESTDIR)$(initdir)/zsh-functions
-ifeq ($(wildcard $(DESTDIR)$(initdir)/*),)
-	rmdir $(DESTDIR)$(initdir)
-else
-	@echo
-	@echo "WARNING: $(DESTDIR)$(initdir) is not empty so skip removal" >&2
-	@echo
-endif
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(initdir)
+	@if [ -d $(DESTDIR)$(initdir) ]; then echo -e "\nWARNING: $(DESTDIR)$(initdir) is not empty so skip removal\n" >&2; fi
 
 clean:
 	rm -f $(ALL_SHELLS) modulerc .modulespath $(EXAMPLE_MODFILES_SRCDIR)/modules
