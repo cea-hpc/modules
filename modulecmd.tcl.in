@@ -279,8 +279,10 @@ proc initPager {} {
    # default pager enablement depends of pager command value
    if {$g_pager eq ""} {
       set use_pager 0
+      set init_use_pager 0
    } else {
       set use_pager 1
+      set init_use_pager 1
    }
 
    if {[file tail $g_pager] eq "less" && $g_pager_opts ne "" &&\
@@ -316,9 +318,10 @@ proc initPager {} {
       }
    }
 
-   # paging may have been enabled or disabled from the comman-line
+   # paging may have been enabled or disabled from the command-line
    if {[info exists asked_pager]} {
-      if {$asked_pager && !$use_pager} {
+      # enable from command-line only if it is enabled in script config
+      if {$asked_pager && !$use_pager && $init_use_pager} {
          set use_pager 1
       } elseif {!$asked_pager && $use_pager} {
          set use_pager 0
