@@ -38,7 +38,7 @@ doc: version.inc
 # build version.inc shared definitions from git repository info
 ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
 GIT_CURRENT_TAG := $(shell git describe --tags --abbrev=0)
-GIT_CURRENT_DESC := $(shell git describe --tags --dirty=-wip)
+GIT_CURRENT_DESC := $(shell git describe --tags)
 GIT_CURRENT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 
 MODULES_RELEASE := $(subst v,,$(GIT_CURRENT_TAG))

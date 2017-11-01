@@ -61,7 +61,7 @@ def get_version_release_from_git():
     DEVNULL = open(os.devnull, 'w')
     pipe = Popen('git describe --tags --abbrev=0', stdout=PIPE, stderr=DEVNULL, shell=True)
     git_current_tag = pipe.stdout.read()
-    pipe = Popen('git describe --tags --dirty=-wip', stdout=PIPE, stderr=DEVNULL, shell=True)
+    pipe = Popen('git describe --tags', stdout=PIPE, stderr=DEVNULL, shell=True)
     git_current_desc = pipe.stdout.read()
     pipe = Popen('git rev-parse --abbrev-ref HEAD', stdout=PIPE, stderr=DEVNULL, shell=True)
     git_current_branch = pipe.stdout.read()
@@ -72,7 +72,7 @@ def get_version_release_from_git():
             return version, ''
         else:
             branch = git_current_branch.rstrip()
-            tags = git_current_desc.lstrip(git_current_tag).rstrip()
+            tags = git_current_desc.lstrip(git_current_tag + '-').rstrip()
             if branch == 'master':
                 return version, version + '+' + tags
             else:
