@@ -22,6 +22,13 @@ Modules 4.1.0 (2017-??-??)
   ``module`` command and setup its default environment.
 * Fix error rendering code for Tcl shell by producing a call to the ``error``
   procedure.
+* Introduce pager support to handle informational messages, using ``less``
+  command with ``-eFKRX`` options by default. Environment variable
+  ``MODULES_PAGER`` or ``PAGER`` may be used to supersede default pager
+  command and options. ``--paginate`` and ``--no-pager`` switches enable or
+  disable pager from the command line.
+* Install: add ``--with-pager`` and ``--with-pager-opts`` configure options to
+  define default pager command and its relative command-line options.
 
 
 Modules 4.0.0 (2017-10-16)
