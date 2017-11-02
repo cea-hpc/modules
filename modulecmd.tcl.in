@@ -2571,33 +2571,66 @@ proc renderSettings {} {
                alias module 'eval `$tclshbin $argv0 $g_shell \\!*`' ;"
          }
          {sh} {
+            # adapt shell function to define local variable, as 'typeset' is
+            # not known by dash and 'local' is not known by ksh
+            if {$g_shell eq "sh"} {
+               set locf "local"
+            } else {
+               set locf "typeset"
+            }
+            # on zsh, word splitting should be enabled explicitly
+            if {$g_shell eq "zsh"} {
+               set wsplit "="
+            } else {
+               set wsplit ""
+            }
+
+            # build quarantine mechanism in module function
+            # an empty runtime variable is set even if no corresponding
+            # MODULES_RUNENV_* variable found, as var cannot be unset on
+            # modified environment command-line
+            set fdef "   $locf _mlre=''; $locf _mlv; $locf _mlrv;
+   for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE}; do
+      if \[ -n \"`eval 'echo \${'\$_mlv'+x}'`\" \]; then
+         _mlre=\"\${_mlre}\${_mlv}_modquar='`eval \'echo \${\'\$_mlv\'}\'`' \";
+      fi;
+      _mlrv=\"MODULES_RUNENV_\${_mlv}\";
+      _mlre=\"\${_mlre}\${_mlv}='`eval \'echo \${\'\$_mlrv\'}\'`' \";
+   done;
+   if \[ -n \"\$_mlre\" \]; then
+      _mlre=\"eval \${_mlre}\";
+   fi;
+   eval `\${${wsplit}_mlre}$tclshbin $argv0 $g_shell \$*`;"
+
             # only redirect module from stderr to stdout when session is
             # attached to a terminal to avoid breaking non-terminal session
             # (scp, sftp, etc)
             if {[isStderrTty]} {
-               puts stdout "_moduleraw() { eval\
-                  `$tclshbin $argv0 $g_shell \$*`; };"
+               puts stdout "_moduleraw() {"
+               puts stdout $fdef
+               puts stdout "};"
                puts stdout "module() { _moduleraw \$* 2>&1; };"
             } else {
-               puts stdout "module() { eval\
-                  `$tclshbin $argv0 $g_shell \$*`; };"
+               puts stdout "module() {"
+               puts stdout $fdef
+               puts stdout "};"
             }
          }
          {fish} {
+            set fdef "   eval $tclshbin $argv0 $g_shell \$argv | source -"
+
             if {[isStderrTty]} {
                # use "| source -" rather than "eval" to be able
                # to redirect stderr after stdout being evaluated
                puts stdout "function _moduleraw"
-               puts stdout "   eval $tclshbin $argv0 $g_shell \$argv |\
-                  source -"
+               puts stdout $fdef
                puts stdout "end"
                puts stdout "function module"
                puts stdout "   _moduleraw \$argv ^&1"
                puts stdout "end"
             } else {
                puts stdout "function module"
-               puts stdout "   eval $tclshbin $argv0 $g_shell \$argv |\
-                  source -"
+               puts stdout $fdef
                puts stdout "end"
             }
          }
@@ -5444,6 +5477,24 @@ if {[catch {
    }
    foreach argmsg $argwarnmsgs {
       reportWarning $argmsg
+   }
+
+   # put back quarantine variables in env
+   if {[info exists env(MODULES_RUN_QUARANTINE)]} {
+      foreach var [split $env(MODULES_RUN_QUARANTINE) " "] {
+         set quarvar "${var}_modquar"
+         # put back value
+         if {[info exists env($quarvar)]} {
+            reportDebug "Release '$var' environment variable from quarantine\
+               ($env($quarvar))"
+            set env($var) $env($quarvar)
+            unset env($quarvar)
+         # or unset env var if no value found in quarantine
+         } elseif {[info exists env($var)]} {
+            reportDebug "Unset '$var' environment variable after quarantine"
+            unset env($var)
+         }
+      }
    }
 
    if {$show_help} {
