@@ -33,12 +33,6 @@ foreach elt [file split [file join [pwd] $MODULECMD]] {
 set modulecmd_path [regsub -all "\(\[.+?\]\)" [eval file join $path_list] {\\\1}]
 set moduleshome $install_prefix
 
-if {[info exists env(TCLSH)]} {
-    set tclsh_path $env(TCLSH)
-} else {
-    set tclsh_path "\\S+tclsh"
-}
-
 # compare init config files to determine if we can guess expected setup
 set insmodspath [file readable $install_initdir/.modulespath]
 set modspath_exinstalled 0
@@ -79,27 +73,27 @@ if {[file readable $env(TESTSUITEDIR)/example/modulerc]} {
 
 set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
 
-set func_sh "module\\\(\\\) { eval `$tclsh_path $modulecmd_path sh \\$\\*`; };"
-set func_bash "module\\\(\\\) { eval `$tclsh_path $modulecmd_path bash \\$\\*`; };"
-set func_ksh "module\\\(\\\) { eval `$tclsh_path $modulecmd_path ksh \\$\\*`; };"
-set func_zsh "module\\\(\\\) { eval `$tclsh_path $modulecmd_path zsh \\$\\*`; };"
-set func_csh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\)  alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$tclsh_path $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\";  set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
-if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\)  alias module 'set _histchars = \\\$histchars; unset histchars; eval `$tclsh_path $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\";  set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
-if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\)  alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$tclsh_path $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\";  set prompt=\"\\\$_prompt\";unset _prompt; test 0 = \\\$_exit' ;
-if \\\( \\\! \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\)  alias module 'eval `$tclsh_path $modulecmd_path csh \\\\!\\*`' ;"
-set func_tcsh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\)  alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$tclsh_path $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\";  set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
-if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\)  alias module 'set _histchars = \\\$histchars; unset histchars; eval `$tclsh_path $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\";  set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
-if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\)  alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$tclsh_path $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\";  set prompt=\"\\\$_prompt\";unset _prompt; test 0 = \\\$_exit' ;
-if \\\( \\\! \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\)  alias module 'eval `$tclsh_path $modulecmd_path tcsh \\\\!\\*`' ;"
+set func_sh "module\\\(\\\) { eval `$install_tclsh $modulecmd_path sh \\$\\*`; };"
+set func_bash "module\\\(\\\) { eval `$install_tclsh $modulecmd_path bash \\$\\*`; };"
+set func_ksh "module\\\(\\\) { eval `$install_tclsh $modulecmd_path ksh \\$\\*`; };"
+set func_zsh "module\\\(\\\) { eval `$install_tclsh $modulecmd_path zsh \\$\\*`; };"
+set func_csh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\)  alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\";  set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
+if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\)  alias module 'set _histchars = \\\$histchars; unset histchars; eval `$install_tclsh $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\";  set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
+if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\)  alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\";  set prompt=\"\\\$_prompt\";unset _prompt; test 0 = \\\$_exit' ;
+if \\\( \\\! \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\)  alias module 'eval `$install_tclsh $modulecmd_path csh \\\\!\\*`' ;"
+set func_tcsh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\)  alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\";  set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
+if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\)  alias module 'set _histchars = \\\$histchars; unset histchars; eval `$install_tclsh $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\";  set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
+if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\)  alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\";  set prompt=\"\\\$_prompt\";unset _prompt; test 0 = \\\$_exit' ;
+if \\\( \\\! \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\)  alias module 'eval `$install_tclsh $modulecmd_path tcsh \\\\!\\*`' ;"
 set func_fish "function module
    eval \\S+tclsh $modulecmd_path fish \\$argv | source -
 end"
 set func_tcl "proc module {args} {
-   catch {eval exec \"$tclsh_path\" \"$modulecmd_path\" \"tcl\" \\\$args 2>@stderr} script
+   catch {eval exec \"$install_tclsh\" \"$modulecmd_path\" \"tcl\" \\\$args 2>@stderr} script
    uplevel \\\$script;
 }"
 set func_perl "sub module {
-   eval `$tclsh_path $modulecmd_path perl \\@_`;
+   eval `$install_tclsh $modulecmd_path perl \\@_`;
    if\\\(\\$\\@\\\) {
       use Carp;
       confess \"module-error: \\$\\@\";
@@ -108,7 +102,7 @@ set func_perl "sub module {
 }"
 set func_python "import subprocess
 def module\\\(command, \\*arguments\\\):
-   exec\\\(subprocess\\.Popen\\\(\\\['$tclsh_path', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)"
+   exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)"
 set func_ruby "class ENVModule
    def ENVModule.module\\\(\\*args\\\)
       if args\\\[0\\\].kind_of\\?\\\(Array\\\) then
@@ -116,13 +110,13 @@ set func_ruby "class ENVModule
       else
          args = args.join\\\(' '\\\)
       end
-      eval `$tclsh_path $modulecmd_path ruby #{args}`
+      eval `$install_tclsh $modulecmd_path ruby #{args}`
    end
 end"
 set func_cmake "function\\\(module\\\)
    execute_process\\\(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
       OUTPUT_VARIABLE tempfile_name\\\)
-   execute_process\\\(COMMAND $tclsh_path $modulecmd_path cmake \\\${ARGV}
+   execute_process\\\(COMMAND $install_tclsh $modulecmd_path cmake \\\${ARGV}
       OUTPUT_FILE \\\${tempfile_name}\\\)
    if\\\(EXISTS \\\${tempfile_name}\\\)
       include\\\(\\\${tempfile_name}\\\)
@@ -133,7 +127,7 @@ set func_r "module <- function\\\(...\\\){
    arglist <- as.list\\\(match.call\\\(\\\)\\\)
    arglist\\\[1\\\] <- 'r'
    args <- paste0\\\(arglist, collapse=' '\\\)
-   cmd <- paste\\\('$tclsh_path', '$modulecmd_path', args, sep=' '\\\)
+   cmd <- paste\\\('$install_tclsh', '$modulecmd_path', args, sep=' '\\\)
    hndl <- pipe\\\(cmd\\\)
    eval\\\(expr = parse\\\(file=hndl\\\)\\\)
    close\\\(hndl\\\)
