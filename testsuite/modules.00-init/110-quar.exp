@@ -1,0 +1,155 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	2017/11/02
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check runtime quarantine mechanism of environment variables.
+#		}C%
+#
+##############################################################################
+
+# Test handling of quarantine-related variables, full runtime quarantine
+# test is made in the install testsuite.
+
+set modfile "$env(TESTSUITEDIR)/modulefiles.other/quar"
+
+
+# no quarantine setup, nothing should be set
+testouterr_cmd "ALL" "source $modfile" "OK" ""
+
+
+# empty quarantine setup
+set quar ""
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
+}
+set env(MODULES_RUN_QUARANTINE) $quar
+
+set ans [list]
+lappend ans "MODULES_RUN_QUARANTINE=$quar"
+
+testouterr_cmd "ALL" "source $modfile" "OK" [join $ans "\n"]
+
+
+# one quarantine variable, no env value, no runtime value: nop
+set quar "BAR"
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
+}
+set env(MODULES_RUN_QUARANTINE) $quar
+
+set ans [list]
+lappend ans "MODULES_RUN_QUARANTINE=$quar"
+
+testouterr_cmd "ALL" "source $modfile" "OK" [join $ans "\n"]
+
+
+# one quarantine variable, no env value, with runtime value: envvar set, quarvar unset
+set runenv1 "value"
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_RUNENV_BAR = '$runenv1'\n"
+    send_user "\tSetup BAR = '$runenv1'\n"
+}
+set env(MODULES_RUNENV_BAR) $runenv1
+set env(BAR) $runenv1
+
+set ans [list]
+lappend ans "MODULES_RUN_QUARANTINE=$quar"
+lappend ans "MODULES_RUNENV_BAR=$runenv1"
+
+testouterr_cmd "ALL" "source $modfile" "OK" [join $ans "\n"]
+
+
+# one quarantine variable, with env value, no runtime value: envvar empty, quarvar set
+set env1 "orig"
+if { $verbose > 0 } {
+    send_user "\tUnset MODULES_RUNENV_BAR\n"
+    send_user "\tSetup BAR_modquar = '$env1'\n"
+    send_user "\tSetup BAR = ''\n"
+}
+unset env(MODULES_RUNENV_BAR)
+set env(BAR_modquar) $env1
+set env(BAR) ""
+
+set ans [list]
+lappend ans "MODULES_RUN_QUARANTINE=$quar"
+lappend ans "BAR=$env1"
+
+testouterr_cmd "ALL" "source $modfile" "OK" [join $ans "\n"]
+
+
+# one quarantine variable, with env value, with runtime value: envar set, quarvar set
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_RUNENV_BAR = '$runenv1'\n"
+    send_user "\tSetup BAR = '$runenv1'\n"
+}
+set env(MODULES_RUNENV_BAR) $runenv1
+set env(BAR) $runenv1
+
+set ans [list]
+lappend ans "MODULES_RUN_QUARANTINE=$quar"
+lappend ans "BAR=$env1"
+lappend ans "MODULES_RUNENV_BAR=$runenv1"
+
+testouterr_cmd "ALL" "source $modfile" "OK" [join $ans "\n"]
+
+
+# two quarantine variables, first with env and runtime, second with env no runtime
+set quar "BAR FOO"
+set env2 "orig2"
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
+    send_user "\tSetup FOO_modquar = '$env2'\n"
+    send_user "\tSetup FOO = ''\n"
+}
+set env(MODULES_RUN_QUARANTINE) $quar
+set env(FOO_modquar) $env2
+set env(FOO) ""
+
+set ans [list]
+lappend ans "MODULES_RUN_QUARANTINE=$quar"
+lappend ans "BAR=$env1"
+lappend ans "FOO=$env2"
+lappend ans "MODULES_RUNENV_BAR=$runenv1"
+
+testouterr_cmd "ALL" "source $modfile" "OK" [join $ans "\n"]
+
+
+#
+#  Clean up variables used in this test case
+#
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tUnset MODULES_RUN_QUARANTINE\n"
+    send_user "\tUnset MODULES_RUNENV_BAR\n"
+    send_user "\tUnset BAR_modquar\n"
+    send_user "\tUnset FOO_modquar\n"
+    send_user "\tUnset BAR\n"
+    send_user "\tUnset FOO\n"
+}
+unset env(MODULES_RUN_QUARANTINE)
+unset env(MODULES_RUNENV_BAR)
+unset env(BAR_modquar)
+unset env(FOO_modquar)
+unset env(BAR)
+unset env(FOO)
+
+unset quar
+unset runenv1
+unset env1
+unset env2
+
+unset ans
+unset modfile
