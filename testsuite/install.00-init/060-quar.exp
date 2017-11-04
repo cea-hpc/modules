@@ -1,0 +1,135 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:       modules.00-init/%M%
+#   Revision:       %I%
+#   First Edition:  2017/11/03
+#   Last Mod.:      %U%, %G%
+#
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:    Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:    %C{
+#           Check runtime quarantine mechanism in real operation
+#       }C%
+#
+##############################################################################
+
+# Create a fake libtcl so file to trip up tclsh
+if {![catch {exec ldd $install_tclsh} ldd_out]} {
+   regexp {(libtcl\S+so)} $ldd_out libtclname
+   if {[info exists libtclname]} {
+      set testlibfile "$env(TESTSUITEDIR)/$libtclname"
+      if {$verbose > 0} {
+         send_user "\tCreate fake library $testlibfile\n"
+      }
+      set fid [open $testlibfile "a+"]
+      close $fid
+   }
+}
+
+set modfile "$env(TESTSUITEDIR)/modulefiles.other/quar"
+
+#
+# The tests
+#
+
+# no quarantine setup, nothing should be set
+foreach shell $shell_list {
+   testall_cmd "$shell" "module source $modfile" "" "" 0
+}
+foreach shell $othlang_list {
+   testall_cmd "$shell" "source $modfile" "" "" 0
+}
+
+
+# empty quarantine setup
+set quar ""
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
+}
+set env(MODULES_RUN_QUARANTINE) $quar
+
+set ans [list]
+lappend ans "MODULES_RUN_QUARANTINE=$quar"
+
+foreach shell $shell_list {
+   testall_cmd "$shell" "module source $modfile" "" [join $ans "\n"] 0
+}
+foreach shell $othlang_list {
+   testall_cmd "$shell" "source $modfile" "" [join $ans "\n"] 0
+}
+
+
+# two quarantine variables, first with env no runtime, second with env and runtime
+set quar "LD_LIBRARY_PATH FOO"
+set env1 $env(TESTSUITEDIR)
+set env2 "orig2"
+set runenv2 "value2"
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
+    send_user "\tSetup LD_LIBRARY_PATH = '$env1'\n"
+    send_user "\tSetup FOO = '$env2'\n"
+    send_user "\tSetup MODULES_RUNENV_FOO = '$runenv2'\n"
+}
+set env(MODULES_RUN_QUARANTINE) $quar
+set env(LD_LIBRARY_PATH) $env1
+set env(FOO) $env2
+set env(MODULES_RUNENV_FOO) $runenv2
+
+set ans [list]
+lappend ans "MODULES_RUN_QUARANTINE=$quar"
+lappend ans "LD_LIBRARY_PATH=$env1"
+lappend ans "FOO=$env2"
+lappend ans "MODULES_RUNENV_FOO=$runenv2"
+
+foreach shell $shell_list {
+   testall_cmd "$shell" "module source $modfile" "" [join $ans "\n"] 0
+}
+foreach shell $othlang_list {
+   testall_cmd "$shell" "source $modfile" "" [join $ans "\n"] 0
+}
+
+
+#
+#  Clean up variables used in this test case
+#
+
+# remove temp file used for test
+if {[info exists testlibfile] && [file exists $testlibfile]} {
+   if {$verbose > 0} {
+      send_user "\tDelete fake library $testlibfile\n"
+   }
+   file delete $testlibfile
+   unset testlibfile
+}
+
+if {[info exists libtclname]} {
+   unset libtclname
+   unset fid
+}
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tUnset MODULES_RUN_QUARANTINE\n"
+    send_user "\tUnset LD_LIBRARY_PATH\n"
+    send_user "\tUnset FOO\n"
+    send_user "\tUnset MODULES_RUNENV_FOO\n"
+}
+unset env(MODULES_RUN_QUARANTINE)
+unset env(LD_LIBRARY_PATH)
+unset env(FOO)
+unset env(MODULES_RUNENV_FOO)
+
+unset quar
+unset env1
+unset env2
+unset runenv2
+
+unset modfile
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
