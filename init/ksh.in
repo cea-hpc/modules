@@ -1,6 +1,22 @@
+# setup quarantine if defined
+_mlre='';
+for _mlv in ${MODULES_RUN_QUARANTINE}; do
+   if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
+      _mlre="${_mlre}${_mlv}_modquar='`eval 'echo ${'$_mlv'}'`' ";
+   fi;
+   _mlrv="MODULES_RUNENV_${_mlv}";
+   _mlre="${_mlre}${_mlv}='`eval 'echo ${'$_mlrv'}'`' ";
+done;
+if [ -n "$_mlre" ]; then
+   _mlre="eval ${_mlre}";
+fi;
+
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
-eval `@TCLSH@ @libexecdir@/modulecmd.tcl ksh autoinit`
+eval `${_mlre}@TCLSH@ @libexecdir@/modulecmd.tcl ksh autoinit`
+
+# clean temp variables used to setup quarantine
+unset _mlre _mlv _mlrv
 
 @compatversion@# redefine module command if compat version has been activated
 @compatversion@if [ "$MODULES_USE_COMPAT_VERSION" = '1' ]; then
