@@ -2591,11 +2591,13 @@ proc renderSettings {} {
             # modified environment command-line
             set fdef "   $locf _mlre=''; $locf _mlv; $locf _mlrv;
    for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE}; do
-      if \[ -n \"`eval 'echo \${'\$_mlv'+x}'`\" \]; then
-         _mlre=\"\${_mlre}\${_mlv}_modquar='`eval \'echo \${\'\$_mlv\'}\'`' \";
+      if \[ \"\${_mlv}\" = \"\${_mlv##*\[!A-Za-z0-9_\]}\" \]; then
+         if \[ -n \"`eval 'echo \${'\$_mlv'+x}'`\" \]; then
+            _mlre=\"\${_mlre}\${_mlv}_modquar='`eval \'echo \${\'\$_mlv\'}\'`' \";
+         fi;
+         _mlrv=\"MODULES_RUNENV_\${_mlv}\";
+         _mlre=\"\${_mlre}\${_mlv}='`eval \'echo \${\'\$_mlrv\'}\'`' \";
       fi;
-      _mlrv=\"MODULES_RUNENV_\${_mlv}\";
-      _mlre=\"\${_mlre}\${_mlv}='`eval \'echo \${\'\$_mlrv\'}\'`' \";
    done;
    if \[ -n \"\$_mlre\" \]; then
       _mlre=\"eval \${_mlre}\";
@@ -5482,17 +5484,24 @@ if {[catch {
    # put back quarantine variables in env
    if {[info exists env(MODULES_RUN_QUARANTINE)]} {
       foreach var [split $env(MODULES_RUN_QUARANTINE) " "] {
-         set quarvar "${var}_modquar"
-         # put back value
-         if {[info exists env($quarvar)]} {
-            reportDebug "Release '$var' environment variable from quarantine\
-               ($env($quarvar))"
-            set env($var) $env($quarvar)
-            unset env($quarvar)
-         # or unset env var if no value found in quarantine
-         } elseif {[info exists env($var)]} {
-            reportDebug "Unset '$var' environment variable after quarantine"
-            unset env($var)
+         # check variable name is valid
+         if {[regexp {^[A-Za-z0-9_]+$} $var]} {
+            set quarvar "${var}_modquar"
+            # put back value
+            if {[info exists env($quarvar)]} {
+               reportDebug "Release '$var' environment variable from\
+                  quarantine ($env($quarvar))"
+               set env($var) $env($quarvar)
+               unset env($quarvar)
+            # or unset env var if no value found in quarantine
+            } elseif {[info exists env($var)]} {
+               reportDebug "Unset '$var' environment variable after\
+                  quarantine"
+               unset env($var)
+            }
+         } elseif {[string length $var] > 0} {
+            reportWarning "Bad variable name set in MODULES_RUN_QUARANTINE\
+               ($var)"
          }
       }
    }

@@ -73,11 +73,13 @@ if {[file readable $env(TESTSUITEDIR)/example/modulerc]} {
 
 set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
 
-set end_quar_sh "      if \\\[ -n \"`eval 'echo \\\${'\\\$_mlv'\\\+x}'`\" \\\]; then
-         _mlre=\"\\\${_mlre}\\\${_mlv}_modquar='`eval 'echo \\\${'\\\$_mlv'}'`' \";
+set end_quar_sh "      if \\\[ \"\\\${_mlv}\" = \"\\\${_mlv##\\\*\\\[\\\!A-Za-z0-9_\\\]}\" \\\]; then
+         if \\\[ -n \"`eval 'echo \\\${'\\\$_mlv'\\\+x}'`\" \\\]; then
+            _mlre=\"\\\${_mlre}\\\${_mlv}_modquar='`eval 'echo \\\${'\\\$_mlv'}'`' \";
+         fi;
+         _mlrv=\"MODULES_RUNENV_\\\${_mlv}\";
+         _mlre=\"\\\${_mlre}\\\${_mlv}='`eval 'echo \\\${'\\\$_mlrv'}'`' \";
       fi;
-      _mlrv=\"MODULES_RUNENV_\\\${_mlv}\";
-      _mlre=\"\\\${_mlre}\\\${_mlv}='`eval 'echo \\\${'\\\$_mlrv'}'`' \";
    done;
    if \\\[ -n \"\\\$_mlre\" \\\]; then
       _mlre=\"eval \\\${_mlre}\";

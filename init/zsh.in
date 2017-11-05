@@ -1,11 +1,13 @@
 # setup quarantine if defined
 _mlre='';
 for _mlv in ${=MODULES_RUN_QUARANTINE}; do
-   if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
-      _mlre="${_mlre}${_mlv}_modquar='`eval 'echo ${'$_mlv'}'`' ";
+   if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" ]; then
+      if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
+         _mlre="${_mlre}${_mlv}_modquar='`eval 'echo ${'$_mlv'}'`' ";
+      fi;
+      _mlrv="MODULES_RUNENV_${_mlv}";
+      _mlre="${_mlre}${_mlv}='`eval 'echo ${'$_mlrv'}'`' ";
    fi;
-   _mlrv="MODULES_RUNENV_${_mlv}";
-   _mlre="${_mlre}${_mlv}='`eval 'echo ${'$_mlrv'}'`' ";
 done;
 if [ -n "$_mlre" ]; then
    _mlre="eval ${_mlre}";

@@ -65,6 +65,37 @@ foreach shell $othlang_list {
 }
 
 
+# one good quarantine variable (with env value & runtime value) among bad variable names
+set quar "BAR F:OO  B\\AD"
+set env1 "orig"
+set runenv1 "value"
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
+    send_user "\tSetup BAR = '$env1'\n"
+    send_user "\tSetup MODULES_RUNENV_BAR = '$runenv1'\n"
+}
+set env(MODULES_RUN_QUARANTINE) $quar
+set env(BAR) $env1
+set env(MODULES_RUNENV_BAR) $runenv1
+
+# warnings are doubled (one for the init pass, second for source pass)
+set ans [list]
+lappend ans "$warn_msgs: Bad variable name set in MODULES_RUN_QUARANTINE (F:OO)"
+lappend ans "$warn_msgs: Bad variable name set in MODULES_RUN_QUARANTINE (B\\AD)"
+lappend ans "$warn_msgs: Bad variable name set in MODULES_RUN_QUARANTINE (F:OO)"
+lappend ans "$warn_msgs: Bad variable name set in MODULES_RUN_QUARANTINE (B\\AD)"
+lappend ans "MODULES_RUN_QUARANTINE=$quar"
+lappend ans "BAR=$env1"
+lappend ans "MODULES_RUNENV_BAR=$runenv1"
+
+foreach shell $shell_list {
+   testall_cmd "$shell" "module source $modfile" "" [join $ans "\n"] 0
+}
+foreach shell $othlang_list {
+   testall_cmd "$shell" "source $modfile" "" [join $ans "\n"] 0
+}
+
+
 # two quarantine variables, first with env no runtime, second with env and runtime
 set quar "LD_LIBRARY_PATH FOO"
 set env1 $env(TESTSUITEDIR)
@@ -75,11 +106,13 @@ if { $verbose > 0 } {
     send_user "\tSetup LD_LIBRARY_PATH = '$env1'\n"
     send_user "\tSetup FOO = '$env2'\n"
     send_user "\tSetup MODULES_RUNENV_FOO = '$runenv2'\n"
+    send_user "\tUnset MODULES_RUNENV_BAR\n"
 }
 set env(MODULES_RUN_QUARANTINE) $quar
 set env(LD_LIBRARY_PATH) $env1
 set env(FOO) $env2
 set env(MODULES_RUNENV_FOO) $runenv2
+unset env(MODULES_RUNENV_BAR)
 
 set ans [list]
 lappend ans "MODULES_RUN_QUARANTINE=$quar"
@@ -116,11 +149,13 @@ if {[info exists libtclname]} {
 # restore environment
 if { $verbose > 0 } {
     send_user "\tUnset MODULES_RUN_QUARANTINE\n"
+    send_user "\tUnset BAR\n"
     send_user "\tUnset LD_LIBRARY_PATH\n"
     send_user "\tUnset FOO\n"
     send_user "\tUnset MODULES_RUNENV_FOO\n"
 }
 unset env(MODULES_RUN_QUARANTINE)
+unset env(BAR)
 unset env(LD_LIBRARY_PATH)
 unset env(FOO)
 unset env(MODULES_RUNENV_FOO)
@@ -128,6 +163,7 @@ unset env(MODULES_RUNENV_FOO)
 unset quar
 unset env1
 unset env2
+unset runenv1
 unset runenv2
 
 unset modfile
