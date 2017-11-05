@@ -2591,7 +2591,7 @@ proc renderSettings {} {
             # modified environment command-line
             set fdef "   $locf _mlre=''; $locf _mlv; $locf _mlrv;
    for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE}; do
-      if \[ \"\${_mlv}\" = \"\${_mlv##*\[!A-Za-z0-9_\]}\" \]; then
+      if \[ \"\${_mlv}\" = \"\${_mlv##*\[!A-Za-z0-9_\]}\" -a \"\${_mlv}\" = \"\${_mlv#\[0-9\]}\" \]; then
          if \[ -n \"`eval 'echo \${'\$_mlv'+x}'`\" \]; then
             _mlre=\"\${_mlre}\${_mlv}_modquar='`eval \'echo \${\'\$_mlv\'}\'`' \";
          fi;
@@ -5485,7 +5485,7 @@ if {[catch {
    if {[info exists env(MODULES_RUN_QUARANTINE)]} {
       foreach var [split $env(MODULES_RUN_QUARANTINE) " "] {
          # check variable name is valid
-         if {[regexp {^[A-Za-z0-9_]+$} $var]} {
+         if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $var]} {
             set quarvar "${var}_modquar"
             # put back value
             if {[info exists env($quarvar)]} {
