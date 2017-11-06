@@ -2547,28 +2547,23 @@ proc renderSettings {} {
 
       switch -- $g_shellType {
          {csh} {
-            puts stdout "if ( \$?histchars && \$?prompt ) \
-               alias module 'set _histchars = \$histchars; unset histchars;\
-               set _prompt=\"\$prompt\"; set prompt=\"\";\
-               eval `$tclshbin $argv0 $g_shell \\!*`;\
-               set _exit=\"\$status\"; \
-               set histchars = \$_histchars; unset _histchars;\
-               set prompt=\"\$_prompt\"; unset _prompt;\
-               test 0 = \$_exit' ;"
-            puts stdout "if ( \$?histchars && ! \$?prompt ) \
-               alias module 'set _histchars = \$histchars; unset histchars;\
-               eval `$tclshbin $argv0 $g_shell \\!*`;\
-               set _exit=\"\$status\"; \
-               set histchars = \$_histchars; unset _histchars;\
-               test 0 = \$_exit' ;"
-            puts stdout "if ( ! \$?histchars && \$?prompt ) \
-               alias module 'set _prompt=\"\$prompt\"; set prompt=\"\";\
-               eval `$tclshbin $argv0 $g_shell \\!*`;\
-               set _exit=\"\$status\"; \
-               set prompt=\"\$_prompt\";unset _prompt;\
-               test 0 = \$_exit' ;"
-            puts stdout "if ( ! \$?histchars && ! \$?prompt ) \
-               alias module 'eval `$tclshbin $argv0 $g_shell \\!*`' ;"
+            set pre_hi {set _histchars = $histchars; unset histchars;}
+            set post_hi {set histchars = $_histchars; unset _histchars;}
+            set pre_pr {set _prompt="$prompt"; set prompt="";}
+            set post_pr {set prompt="$_prompt"; unset _prompt;}
+            set eval_cmd "eval `$tclshbin $argv0 $g_shell \\!*`;"
+            set pre_ex {set _exit="$status";}
+            set post_ex {test 0 = $_exit}
+
+            puts stdout "if ( \$?histchars && \$?prompt )\
+               alias module '$pre_hi $pre_pr $eval_cmd $pre_ex $post_hi\
+               $post_pr $post_ex' ;"
+            puts stdout "if ( \$?histchars && ! \$?prompt )\
+               alias module '$pre_hi $eval_cmd $pre_ex $post_hi $post_ex' ;"
+            puts stdout "if ( ! \$?histchars && \$?prompt )\
+               alias module '$pre_pr $eval_cmd $pre_ex $post_pr $post_ex' ;"
+            puts stdout "if ( ! \$?histchars && ! \$?prompt )\
+               alias module '$eval_cmd' ;"
          }
          {sh} {
             # adapt shell function to define local variable, as 'typeset' is
