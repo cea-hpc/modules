@@ -68,7 +68,22 @@ set ans [list]
 lappend ans "MODULES_RUN_QUARANTINE=$quar"
 lappend ans "MODULES_RUNENV_BAR=$runenv1"
 
-testouterr_cmd "ALL" "source $modfile" "OK" [join $ans "\n"]
+set anscsh [list]
+lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
+lappend anscsh "BAR=$runenv1"
+lappend anscsh "MODULES_RUNENV_BAR=$runenv1"
+
+foreach shell $supported_shells {
+    switch -- $shell {
+        csh - tcsh {
+            # no quarantine mechanism support on these shells
+            testouterr_cmd "$shell" "source $modfile" "OK" [join $anscsh "\n"]
+        }
+        default {
+            testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
+        }
+    }
+}
 
 
 # one quarantine variable, with env value, no runtime value: envvar empty, quarvar set
@@ -86,7 +101,22 @@ set ans [list]
 lappend ans "MODULES_RUN_QUARANTINE=$quar"
 lappend ans "BAR=$env1"
 
-testouterr_cmd "ALL" "source $modfile" "OK" [join $ans "\n"]
+set anscsh [list]
+lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
+lappend anscsh "BAR="
+lappend anscsh "BAR_modquar=$env1"
+
+foreach shell $supported_shells {
+    switch -- $shell {
+        csh - tcsh {
+            # no quarantine mechanism support on these shells
+            testouterr_cmd "$shell" "source $modfile" "OK" [join $anscsh "\n"]
+        }
+        default {
+            testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
+        }
+    }
+}
 
 
 # one quarantine variable, with env value, with runtime value: envar set, quarvar set
@@ -102,7 +132,23 @@ lappend ans "MODULES_RUN_QUARANTINE=$quar"
 lappend ans "BAR=$env1"
 lappend ans "MODULES_RUNENV_BAR=$runenv1"
 
-testouterr_cmd "ALL" "source $modfile" "OK" [join $ans "\n"]
+set anscsh [list]
+lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
+lappend anscsh "BAR=$runenv1"
+lappend anscsh "MODULES_RUNENV_BAR=$runenv1"
+lappend anscsh "BAR_modquar=$env1"
+
+foreach shell $supported_shells {
+    switch -- $shell {
+        csh - tcsh {
+            # no quarantine mechanism support on these shells
+            testouterr_cmd "$shell" "source $modfile" "OK" [join $anscsh "\n"]
+        }
+        default {
+            testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
+        }
+    }
+}
 
 
 # one good quarantine variable (with env value & runtime value) among bad variable names
@@ -120,7 +166,23 @@ lappend ans "MODULES_RUN_QUARANTINE=$quar"
 lappend ans "BAR=$env1"
 lappend ans "MODULES_RUNENV_BAR=$runenv1"
 
-testouterr_cmd "ALL" "source $modfile" "OK" [join $ans "\n"]
+set anscsh [list]
+lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
+lappend anscsh "BAR=$runenv1"
+lappend anscsh "MODULES_RUNENV_BAR=$runenv1"
+lappend anscsh "BAR_modquar=$env1"
+
+foreach shell $supported_shells {
+    switch -- $shell {
+        csh - tcsh {
+            # no quarantine mechanism support on these shells
+            testouterr_cmd "$shell" "source $modfile" "OK" [join $anscsh "\n"]
+        }
+        default {
+            testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
+        }
+    }
+}
 
 
 # two quarantine variables, first with env and runtime, second with env no runtime
@@ -141,7 +203,25 @@ lappend ans "BAR=$env1"
 lappend ans "FOO=$env2"
 lappend ans "MODULES_RUNENV_BAR=$runenv1"
 
-testouterr_cmd "ALL" "source $modfile" "OK" [join $ans "\n"]
+set anscsh [list]
+lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
+lappend anscsh "BAR=$runenv1"
+lappend anscsh "FOO="
+lappend anscsh "MODULES_RUNENV_BAR=$runenv1"
+lappend anscsh "FOO_modquar=$env2"
+lappend anscsh "BAR_modquar=$env1"
+
+foreach shell $supported_shells {
+    switch -- $shell {
+        csh - tcsh {
+            # no quarantine mechanism support on these shells
+            testouterr_cmd "$shell" "source $modfile" "OK" [join $anscsh "\n"]
+        }
+        default {
+            testouterr_cmd "$shell" "source $modfile" "OK" [join $ans "\n"]
+        }
+    }
+}
 
 
 #
@@ -170,4 +250,5 @@ unset env1
 unset env2
 
 unset ans
+unset anscsh
 unset modfile

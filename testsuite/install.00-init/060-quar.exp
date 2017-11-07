@@ -90,8 +90,21 @@ lappend ans "MODULES_RUN_QUARANTINE=$quar"
 lappend ans "BAR=$env1"
 lappend ans "MODULES_RUNENV_BAR=$runenv1"
 
+# quarantine mechanism is not supported on csh/tcsh shells
+set anscsh [list]
+lappend anscsh "MODULES_RUN_QUARANTINE=$quar"
+lappend anscsh "BAR=$env1"
+lappend anscsh "MODULES_RUNENV_BAR=$runenv1"
+
 foreach shell $shell_list {
-   testall_cmd "$shell" "module source $modfile" "" [join $ans "\n"] 0
+   switch -- $shell {
+      {csh} - {tcsh} {
+         testall_cmd "$shell" "module source $modfile" "" [join $anscsh "\n"] 0
+      }
+      default {
+         testall_cmd "$shell" "module source $modfile" "" [join $ans "\n"] 0
+      }
+   }
 }
 foreach shell $othlang_list {
    testall_cmd "$shell" "source $modfile" "" [join $ans "\n"] 0
@@ -123,7 +136,16 @@ lappend ans "FOO=$env2"
 lappend ans "MODULES_RUNENV_FOO=$runenv2"
 
 foreach shell $shell_list {
-   testall_cmd "$shell" "module source $modfile" "" [join $ans "\n"] 0
+   switch -- $shell {
+      {csh} - {tcsh} {
+         if { $verbose > 0 } {
+            send_user "\tskip test for $shell, no quarantine support\n"
+         }
+      }
+      default {
+         testall_cmd "$shell" "module source $modfile" "" [join $ans "\n"] 0
+      }
+   }
 }
 foreach shell $othlang_list {
    testall_cmd "$shell" "source $modfile" "" [join $ans "\n"] 0
@@ -167,6 +189,9 @@ unset env1
 unset env2
 unset runenv1
 unset runenv2
+
+unset ans
+unset anscsh
 
 unset modfile
 
