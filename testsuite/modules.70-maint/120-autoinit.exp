@@ -107,7 +107,20 @@ if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'set _histcha
 if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\"; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
 if \\\( \\\! \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'eval `$install_tclsh $modulecmd_path tcsh \\\\!\\*`;' ;"
 set func_fish "function module
-   eval \\S+tclsh $modulecmd_path fish \\$argv | source -
+   set -l _mlre ''; set -l _mlv; set -l _mlrv;
+   for _mlv in \\\(string split ' ' \\\$MODULES_RUN_QUARANTINE\\\)
+      if string match -r '^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]*\\\$' \\\$_mlv >/dev/null
+         if set -q \\\$_mlv
+            set _mlre \\\$_mlre\\\$_mlv\"_modquar='\\\$\\\$_mlv' \"
+         end
+         set _mlrv \"MODULES_RUNENV_\\\$_mlv\"
+         set _mlre \"\\\$_mlre\\\$_mlv='\\\$\\\$_mlrv' \"
+      end
+   end
+   if \\\[ -n \"\\\$_mlre\\\" \\\]
+      set _mlre \"env \\\$_mlre\"
+   end
+   eval \\\$_mlre \\S+tclsh $modulecmd_path fish \\\$argv | source -
 end"
 set func_tcl "proc module {args} {
    catch {eval exec \"$install_tclsh\" \"$modulecmd_path\" \"tcl\" \\\$args 2>@stderr} script

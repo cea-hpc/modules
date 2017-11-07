@@ -2614,7 +2614,22 @@ proc renderSettings {} {
             }
          }
          {fish} {
-            set fdef "   eval $tclshbin $argv0 $g_shell \$argv | source -"
+            set fdef {   set -l _mlre ''; set -l _mlv; set -l _mlrv;
+   for _mlv in (string split ' ' $MODULES_RUN_QUARANTINE)
+      if string match -r '^[A-Za-z_][A-Za-z0-9_]*$' $_mlv >/dev/null
+         if set -q $_mlv
+            set _mlre $_mlre$_mlv"_modquar='$$_mlv' "
+         end
+         set _mlrv "MODULES_RUNENV_$_mlv"
+         set _mlre "$_mlre$_mlv='$$_mlrv' "
+      end
+   end
+   if [ -n "$_mlre" ]
+      set _mlre "env $_mlre"
+   end
+}
+            append fdef "   eval \$_mlre $tclshbin $argv0 $g_shell \$argv\
+               | source -"
 
             if {[isStderrTty]} {
                # use "| source -" rather than "eval" to be able

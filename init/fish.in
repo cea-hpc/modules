@@ -1,6 +1,24 @@
+# setup quarantine if defined
+set _mlre '';
+for _mlv in (string split ' ' $MODULES_RUN_QUARANTINE)
+  if string match -r '^[A-Za-z_][A-Za-z0-9_]*$' $_mlv >/dev/null
+     if set -q $_mlv
+        set _mlre $_mlre$_mlv"_modquar='$$_mlv' "
+     end
+     set _mlrv "MODULES_RUNENV_$_mlv"
+     set _mlre "$_mlre$_mlv='$$_mlrv' "
+  end
+end
+if [ -n "$_mlre" ]
+  set _mlre "env $_mlre"
+end
+
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
-eval @TCLSH@ @libexecdir@/modulecmd.tcl fish autoinit | source -
+eval $_mlre @TCLSH@ @libexecdir@/modulecmd.tcl fish autoinit | source -
+
+# clean temp variables used to setup quarantine
+set -e _mlre; set -e _mlv; set -e _mlrv;
 
 if status -i
    if [ -r @initdir@/fish_completion ]
