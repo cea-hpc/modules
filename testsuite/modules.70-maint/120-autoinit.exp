@@ -146,10 +146,25 @@ set func_tcl "proc module {args} {
    uplevel \\\$script;
 }"
 set func_perl "sub module {
-   eval `$install_tclsh $modulecmd_path perl \\@_`;
-   if\\\(\\$\\@\\\) {
+\\s*my \\\$_mlre = '';
+\\s*if \\\(defined \\\$ENV{'MODULES_RUN_QUARANTINE'}\\\) {
+\\s*foreach my \\\$_mlv \\\(split\\\(' ', \\\$ENV{'MODULES_RUN_QUARANTINE'}\\\)\\\) {
+\\s*if \\\(\\\$_mlv =~ \\\/\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$\\\/\\\) {
+\\s*if \\\(defined \\\$ENV{\\\$_mlv}\\\) {
+\\s*\\\$_mlre .= \"\\\${_mlv}_modquar='\\\$ENV{\\\$_mlv}' \";
+\\s*}
+\\s*my \\\$_mlrv = \"MODULES_RUNENV_\\\$_mlv\";
+\\s*\\\$_mlre .= \"\\\$_mlv='\\\$ENV{\\\$_mlrv}' \";
+\\s*}
+\\s*}
+\\s*if \\\(\\\$_mlre ne \"\"\\\) {
+\\s*\\\$_mlre = \"env \\\$_mlre\";
+\\s*}
+\\s*}
+   eval `\\\${_mlre}$install_tclsh $modulecmd_path perl \\\@_`;
+   if\\\(\\\$\\\@\\\) {
       use Carp;
-      confess \"module-error: \\$\\@\";
+      confess \"module-error: \\\$\\\@\";
    }
    return 1;
 }"

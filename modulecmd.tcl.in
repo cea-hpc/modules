@@ -2679,8 +2679,24 @@ proc renderSettings {} {
             puts stdout "start /b \%MODULESHOME\%/init/module.cmd %*"
          }
          {perl} {
+            set fdef {my $_mlre = '';
+   if (defined $ENV{'MODULES_RUN_QUARANTINE'}) {
+      foreach my $_mlv (split(' ', $ENV{'MODULES_RUN_QUARANTINE'})) {
+         if ($_mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/) {
+            if (defined $ENV{$_mlv}) {
+               $_mlre .= "${_mlv}_modquar='$ENV{$_mlv}' ";
+            }
+            my $_mlrv = "MODULES_RUNENV_$_mlv";
+            $_mlre .= "$_mlv='$ENV{$_mlrv}' ";
+        }
+      }
+      if ($_mlre ne "") {
+         $_mlre = "env $_mlre";
+      }
+   }}
             puts stdout "sub module {"
-            puts stdout "   eval `$tclshbin $argv0 perl @_`;"
+            puts stdout "   $fdef"
+            puts stdout "   eval `\${_mlre}$tclshbin $argv0 perl @_`;"
             puts stdout "   if(\$@) {"
             puts stdout "      use Carp;"
             puts stdout "      confess \"module-error: \$@\";"
