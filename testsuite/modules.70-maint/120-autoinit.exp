@@ -168,9 +168,20 @@ set func_perl "sub module {
    }
    return 1;
 }"
-set func_python "import subprocess
+set func_python "import re, subprocess
 def module\\\(command, \\*arguments\\\):
-   exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)"
+\\s*_mlre = os.environ.copy\\\(\\\)
+\\s*if 'MODULES_RUN_QUARANTINE' in os.environ:
+\\s*for _mlv in os.environ\\\['MODULES_RUN_QUARANTINE'\\\].split\\\(\\\):
+\\s*if re.match\\\('\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$', _mlv\\\):
+\\s*if _mlv in os.environ:
+\\s*_mlre\\\[_mlv \\\+ '_modquar'\\\] = os.environ\\\[_mlv\\\]
+\\s*_mlrv = 'MODULES_RUNENV_' \\\+ _mlv
+\\s*if _mlrv in os.environ:
+\\s*_mlre\\\[_mlv\\\] = os.environ\\\[_mlrv\\\]
+\\s*else:
+\\s*_mlre\\\[_mlv\\\] = ''
+   exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)"
 set func_ruby "class ENVModule
    def ENVModule.module\\\(\\*args\\\)
       if args\\\[0\\\].kind_of\\?\\\(Array\\\) then

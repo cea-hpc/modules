@@ -1,8 +1,24 @@
 import os, re, subprocess
 
+# setup quarantine if defined
+_mlre = os.environ.copy()
+if 'MODULES_RUN_QUARANTINE' in os.environ:
+   for _mlv in os.environ['MODULES_RUN_QUARANTINE'].split():
+      if re.match('^[A-Za-z_][A-Za-z0-9_]*$', _mlv):
+         if _mlv in os.environ:
+            _mlre[_mlv + '_modquar'] = os.environ[_mlv]
+         _mlrv = 'MODULES_RUNENV_' + _mlv
+         if _mlrv in os.environ:
+            _mlre[_mlv] = os.environ[_mlrv]
+         else:
+            _mlre[_mlv] = ''
+
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
-exec(subprocess.Popen(['@TCLSH@', '@libexecdir@/modulecmd.tcl', 'python', 'autoinit'], stdout=subprocess.PIPE).communicate()[0])
+exec(subprocess.Popen(['@TCLSH@', '@libexecdir@/modulecmd.tcl', 'python', 'autoinit'], stdout=subprocess.PIPE, env=_mlre).communicate()[0])
+
+# clean temp variable used to setup quarantine
+del _mlre
 @compatversion@
 @compatversion@# redefine module command if compat version has been activated
 @compatversion@if 'MODULES_USE_COMPAT_VERSION' in os.environ and os.environ['MODULES_USE_COMPAT_VERSION'] == '1':

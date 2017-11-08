@@ -2705,12 +2705,24 @@ proc renderSettings {} {
             puts stdout "}"
          }
          {python} {
-            puts stdout "import subprocess"
+            set fdef {_mlre = os.environ.copy()
+   if 'MODULES_RUN_QUARANTINE' in os.environ:
+      for _mlv in os.environ['MODULES_RUN_QUARANTINE'].split():
+         if re.match('^[A-Za-z_][A-Za-z0-9_]*$', _mlv):
+            if _mlv in os.environ:
+               _mlre[_mlv + '_modquar'] = os.environ[_mlv]
+            _mlrv = 'MODULES_RUNENV_' + _mlv
+            if _mlrv in os.environ:
+               _mlre[_mlv] = os.environ[_mlrv]
+            else:
+               _mlre[_mlv] = ''}
+            puts stdout "import re, subprocess"
             puts stdout "def module(command, *arguments):"
+            puts stdout "   $fdef"
             puts stdout "   exec(subprocess.Popen(\['$tclshbin',\
                '$argv0', 'python', command\] +\
                list(arguments),\
-               stdout=subprocess.PIPE).communicate()\[0\])"
+               stdout=subprocess.PIPE, env=_mlre).communicate()\[0\])"
          }
          {ruby} {
             puts stdout "class ENVModule"
