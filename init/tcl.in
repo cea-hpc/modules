@@ -1,3 +1,27 @@
+# setup quarantine if defined
+set _mlre {}; set _mlv ""; set _mlrv "";
+if {[info exists env(MODULES_RUN_QUARANTINE)]} {
+   foreach _mlv [split $env(MODULES_RUN_QUARANTINE) " "] {
+     if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $_mlv]} {
+        if {[info exists env($_mlv)]} {
+           lappend _mlre "${_mlv}_modquar=$env($_mlv)"
+        }
+        set _mlrv "MODULES_RUNENV_${_mlv}"
+        if {[info exists env($_mlrv)]} {
+           lappend _mlre "${_mlv}=$env($_mlrv)"
+        } else {
+           lappend _mlre "${_mlv}="
+        }
+     }
+   }
+   if {[llength $_mlre] > 0} {
+     set _mlre [linsert $_mlre 0 "env"]
+   }
+}
+
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
-eval [exec "@TCLSH@" "@libexecdir@/modulecmd.tcl" "tcl" "autoinit"]
+eval [eval exec $_mlre "@TCLSH@" "@libexecdir@/modulecmd.tcl" "tcl" "autoinit" 2>@stderr]
+
+# clean temp variables used to setup quarantine
+unset _mlre _mlv _mlrv
