@@ -208,9 +208,25 @@ set func_ruby "class ENVModule
    end
 end"
 set func_cmake "function\\\(module\\\)
+\\s*set\\\(_mlre \"\"\\\)
+\\s*if\\\(DEFINED ENV{MODULES_RUN_QUARANTINE}\\\)
+\\s*string\\\(REPLACE \" \" \";\" _mlv_list \"\\\$ENV{MODULES_RUN_QUARANTINE}\"\\\)
+\\s*foreach\\\(_mlv \\\${_mlv_list}\\\)
+\\s*if\\\(\\\${_mlv} MATCHES \"\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$\"\\\)
+\\s*if\\\(DEFINED ENV{\\\${_mlv}}\\\)
+\\s*set\\\(_mlre \"\\\${_mlre}\\\${_mlv}_modquar=\\\$ENV{\\\${_mlv}};\"\\\)
+\\s*endif\\\(\\\)
+\\s*set\\\(_mlrv \"MODULES_RUNENV_\\\${_mlv}\"\\\)
+\\s*set\\\(_mlre \"\\\${_mlre}\\\${_mlv}=\\\$ENV{\\\${_mlrv}};\"\\\)
+\\s*endif\\\(\\\)
+\\s*endforeach\\\(\\\)
+\\s*if \\\(NOT \"\\\${_mlre}\" STREQUAL \"\"\\\)
+\\s*set\\\(_mlre \"env;\\\${_mlre}\"\\\)
+\\s*endif\\\(\\\)
+\\s*endif\\\(\\\)
    execute_process\\\(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
       OUTPUT_VARIABLE tempfile_name\\\)
-   execute_process\\\(COMMAND $install_tclsh $modulecmd_path cmake \\\${ARGV}
+   execute_process\\\(COMMAND \\\${_mlre} $install_tclsh $modulecmd_path cmake \\\${ARGV}
       OUTPUT_FILE \\\${tempfile_name}\\\)
    if\\\(EXISTS \\\${tempfile_name}\\\)
       include\\\(\\\${tempfile_name}\\\)
