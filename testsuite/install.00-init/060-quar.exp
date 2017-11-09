@@ -135,6 +135,12 @@ lappend ans "LD_LIBRARY_PATH=$env1"
 lappend ans "FOO=$env2"
 lappend ans "MODULES_RUNENV_FOO=$runenv2"
 
+set ansr [list]
+lappend ansr "MODULES_RUN_QUARANTINE=$quar"
+lappend ansr "LD_LIBRARY_PATH=.*$env1"
+lappend ansr "FOO=$env2"
+lappend ansr "MODULES_RUNENV_FOO=$runenv2"
+
 foreach shell $shell_list {
    switch -- $shell {
       {csh} - {tcsh} {
@@ -153,6 +159,10 @@ foreach shell $othlang_list {
          if { $verbose > 0 } {
             send_user "\tspecific test for $shell\n"
          }
+      }
+      {r} {
+         # specific result for R as LD_LIBRARY_PATH value is altered by R on the way
+         testall_cmd_re "$shell" "source $modfile" "" [join $ansr "\n"] 0
       }
       default {
          testall_cmd "$shell" "source $modfile" "" [join $ans "\n"] 0
@@ -219,6 +229,7 @@ unset runenv2
 
 unset ans
 unset anscsh
+unset ansr
 
 unset modfile
 

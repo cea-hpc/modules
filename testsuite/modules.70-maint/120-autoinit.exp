@@ -234,10 +234,25 @@ set func_cmake "function\\\(module\\\)
    endif\\\(\\\)
 endfunction\\\(module\\\)"
 set func_r "module <- function\\\(...\\\){
+\\s*mlre <- ''
+\\s*if \\\(\\\!is.na\\\(Sys.getenv\\\('MODULES_RUN_QUARANTINE', unset=NA\\\)\\\)\\\) {
+\\s*for \\\(mlv in strsplit\\\(Sys.getenv\\\('MODULES_RUN_QUARANTINE'\\\), ' '\\\)\\\[\\\[1\\\]\\\]\\\) {
+\\s*if \\\(grepl\\\('\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$', mlv\\\)\\\) {
+\\s*if \\\(\\\!is.na\\\(Sys.getenv\\\(mlv, unset=NA\\\)\\\)\\\) {
+\\s*mlre <- paste0\\\(mlre, mlv, \"_modquar='\", Sys.getenv\\\(mlv\\\), \"' \"\\\)
+\\s*}
+\\s*mlrv <- paste0\\\('MODULES_RUNENV_', mlv\\\)
+\\s*mlre <- paste0\\\(mlre, mlv, \"='\", Sys.getenv\\\(mlrv\\\), \"' \"\\\)
+\\s*}
+\\s*}
+\\s*if \\\(mlre \\\!= ''\\\) {
+\\s*mlre <- paste0\\\('env ', mlre\\\)
+\\s*}
+\\s*}
    arglist <- as.list\\\(match.call\\\(\\\)\\\)
    arglist\\\[1\\\] <- 'r'
    args <- paste0\\\(arglist, collapse=' '\\\)
-   cmd <- paste\\\('$install_tclsh', '$modulecmd_path', args, sep=' '\\\)
+   cmd <- paste\\\(mlre, '$install_tclsh', '$modulecmd_path', args, sep=' '\\\)
    hndl <- pipe\\\(cmd\\\)
    eval\\\(expr = parse\\\(file=hndl\\\)\\\)
    close\\\(hndl\\\)

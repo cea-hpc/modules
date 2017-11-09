@@ -1,5 +1,22 @@
+# setup quarantine if defined
+mlre <- ''
+if (!is.na(Sys.getenv('MODULES_RUN_QUARANTINE', unset=NA))) {
+   for (mlv in strsplit(Sys.getenv('MODULES_RUN_QUARANTINE'), ' ')[[1]]) {
+      if (grepl('^[A-Za-z_][A-Za-z0-9_]*$', mlv)) {
+         if (!is.na(Sys.getenv(mlv, unset=NA))) {
+            mlre <- paste0(mlre, mlv, "_modquar='", Sys.getenv(mlv), "' ")
+         }
+         mlrv <- paste0('MODULES_RUNENV_', mlv)
+         mlre <- paste0(mlre, mlv, "='", Sys.getenv(mlrv), "' ")
+      }
+   }
+   if (mlre != '') {
+      mlre <- paste0('env ', mlre)
+   }
+}
+
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
-cmdpipe <- pipe('@TCLSH@ @libexecdir@/modulecmd.tcl r autoinit')
+cmdpipe <- pipe(paste0(mlre, '@TCLSH@ @libexecdir@/modulecmd.tcl r autoinit'))
 eval(parse(cmdpipe))
 close(cmdpipe)

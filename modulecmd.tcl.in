@@ -2787,11 +2787,27 @@ proc renderSettings {} {
             puts stdout "endfunction(module)"
          }
          {r} {
+            set fdef {mlre <- ''
+   if (!is.na(Sys.getenv('MODULES_RUN_QUARANTINE', unset=NA))) {
+      for (mlv in strsplit(Sys.getenv('MODULES_RUN_QUARANTINE'), ' ')[[1]]) {
+         if (grepl('^[A-Za-z_][A-Za-z0-9_]*$', mlv)) {
+            if (!is.na(Sys.getenv(mlv, unset=NA))) {
+               mlre <- paste0(mlre, mlv, "_modquar='", Sys.getenv(mlv), "' ")
+            }
+            mlrv <- paste0('MODULES_RUNENV_', mlv)
+            mlre <- paste0(mlre, mlv, "='", Sys.getenv(mlrv), "' ")
+         }
+      }
+      if (mlre != '') {
+         mlre <- paste0('env ', mlre)
+      }
+   }}
             puts stdout "module <- function(...){"
+            puts stdout "   $fdef"
             puts stdout "   arglist <- as.list(match.call())"
             puts stdout "   arglist\[1\] <- 'r'"
             puts stdout "   args <- paste0(arglist, collapse=' ')"
-            puts stdout "   cmd <- paste('$tclshbin', '$argv0', args,\
+            puts stdout "   cmd <- paste(mlre, '$tclshbin', '$argv0', args,\
                sep=' ')"
             puts stdout "   hndl <- pipe(cmd)"
             puts stdout "   eval(expr = parse(file=hndl))"
