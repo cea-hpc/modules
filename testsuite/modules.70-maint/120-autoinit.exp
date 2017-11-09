@@ -184,12 +184,27 @@ def module\\\(command, \\*arguments\\\):
    exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)"
 set func_ruby "class ENVModule
    def ENVModule.module\\\(\\*args\\\)
+\\s*_mlre = ''
+\\s*if ENV.has_key\\\?\\\('MODULES_RUN_QUARANTINE'\\\) then
+\\s*ENV\\\['MODULES_RUN_QUARANTINE'\\\].split\\\(' '\\\).each do \\\|_mlv\\\|
+\\s*if _mlv =~ \\\/\\\^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]\\\*\\\$\\\/ then
+\\s*if ENV.has_key\\\?\\\(_mlv\\\) then
+\\s*_mlre << _mlv \\\+ \"_modquar='\" \\\+ ENV\\\[_mlv\\\].to_s \\\+ \"' \"
+\\s*end
+\\s*_mlrv = 'MODULES_RUNENV_' \\\+ _mlv
+\\s*_mlre << _mlv \\\+ \"='\" \\\+ ENV\\\[_mlrv\\\].to_s \\\+ \"' \"
+\\s*end
+\\s*end
+\\s*unless _mlre.empty\\\?
+\\s*_mlre = 'env ' \\\+ _mlre
+\\s*end
+\\s*end
       if args\\\[0\\\].kind_of\\?\\\(Array\\\) then
          args = args\\\[0\\\].join\\\(' '\\\)
       else
          args = args.join\\\(' '\\\)
       end
-      eval `$install_tclsh $modulecmd_path ruby #{args}`
+      eval `#{_mlre}$install_tclsh $modulecmd_path ruby #{args}`
    end
 end"
 set func_cmake "function\\\(module\\\)

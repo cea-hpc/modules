@@ -2725,14 +2725,30 @@ proc renderSettings {} {
                stdout=subprocess.PIPE, env=_mlre).communicate()\[0\])"
          }
          {ruby} {
+            set fdef {_mlre = ''
+      if ENV.has_key?('MODULES_RUN_QUARANTINE') then
+         ENV['MODULES_RUN_QUARANTINE'].split(' ').each do |_mlv|
+            if _mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/ then
+               if ENV.has_key?(_mlv) then
+                  _mlre << _mlv + "_modquar='" + ENV[_mlv].to_s + "' "
+               end
+               _mlrv = 'MODULES_RUNENV_' + _mlv
+               _mlre << _mlv + "='" + ENV[_mlrv].to_s + "' "
+            end
+         end
+         unless _mlre.empty?
+            _mlre = 'env ' + _mlre
+         end
+      end}
             puts stdout "class ENVModule"
             puts stdout "   def ENVModule.module(*args)"
+            puts stdout "      $fdef"
             puts stdout "      if args\[0\].kind_of?(Array) then"
             puts stdout "         args = args\[0\].join(' ')"
             puts stdout "      else"
             puts stdout "         args = args.join(' ')"
             puts stdout "      end"
-            puts stdout "      eval `$tclshbin $argv0 ruby #{args}`"
+            puts stdout "      eval `#{_mlre}$tclshbin $argv0 ruby #{args}`"
             puts stdout "   end"
             puts stdout "end"
          }
