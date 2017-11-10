@@ -191,6 +191,44 @@ lappend ans "MODULES_RUNENV_FOO=$runenv2"
 testall_cmd "tcl" "source $modfile" "" [join $ans "\n"] 0
 
 
+# one quarantine variable, no env with runtime, inject bad runtime value
+set quar "LD_LIBRARY_PATH"
+set env1 ""
+set runenv1 $env(TESTSUITEDIR)
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
+    send_user "\tSetup LD_LIBRARY_PATH = '$env1'\n"
+    send_user "\tSetup MODULES_RUNENV_LD_LIBRARY_PATH = '$runenv1'\n"
+}
+set env(MODULES_RUN_QUARANTINE) $quar
+set env(LD_LIBRARY_PATH) $env1
+set env(MODULES_RUNENV_LD_LIBRARY_PATH) $runenv1
+
+set ans "$install_tclsh: error while loading shared libraries: $testlibfile: file too short\n.*"
+
+foreach shell $shell_list {
+   switch -- $shell {
+      {csh} - {tcsh} {
+         if { $verbose > 0 } {
+            send_user "\tskip test for $shell, no quarantine support\n"
+         }
+      }
+      default {
+         if {$shell eq "ksh"} {
+            set ansexit 126
+         } else {
+            set ansexit 127
+         }
+         testall_cmd_re "$shell" "module source $modfile" "" $ans $ansexit
+      }
+   }
+}
+foreach shell $othlang_list {
+   testall_cmd_re "$shell" "source $modfile" "" $ans 1
+}
+
+
+
 #
 #  Clean up variables used in this test case
 #
@@ -212,13 +250,17 @@ if {[info exists libtclname]} {
 # restore environment
 if { $verbose > 0 } {
     send_user "\tUnset MODULES_RUN_QUARANTINE\n"
+    send_user "\tUnset LD_LIBRARY_PATH\n"
     send_user "\tUnset BAR\n"
     send_user "\tUnset FOO\n"
+    send_user "\tUnset MODULES_RUNENV_LD_LIBRARY_PATH\n"
     send_user "\tUnset MODULES_RUNENV_FOO\n"
 }
 unset env(MODULES_RUN_QUARANTINE)
+unset env(LD_LIBRARY_PATH)
 unset env(BAR)
 unset env(FOO)
+unset env(MODULES_RUNENV_LD_LIBRARY_PATH)
 unset env(MODULES_RUNENV_FOO)
 
 unset quar
@@ -230,6 +272,7 @@ unset runenv2
 unset ans
 unset anscsh
 unset ansr
+unset ansexit
 
 unset modfile
 
