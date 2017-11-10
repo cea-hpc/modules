@@ -2585,6 +2585,10 @@ proc renderSettings {} {
             # MODULES_RUNENV_* variable found, as var cannot be unset on
             # modified environment command-line
             set fdef "   $locf _mlre=''; $locf _mlv; $locf _mlrv;
+   if \[ -n \"\${IFS+x}\" \]; then
+      $locf _mlIFS=\$IFS;
+   fi;
+   $locf IFS=\$' ';
    for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE}; do
       if \[ \"\${_mlv}\" = \"\${_mlv##*\[!A-Za-z0-9_\]}\" -a \"\${_mlv}\" = \"\${_mlv#\[0-9\]}\" \]; then
          if \[ -n \"`eval 'echo \${'\$_mlv'+x}'`\" \]; then
@@ -2597,7 +2601,14 @@ proc renderSettings {} {
    if \[ -n \"\$_mlre\" \]; then
       _mlre=\"eval \${_mlre}\";
    fi;
-   eval `\${${wsplit}_mlre}$tclshbin $argv0 $g_shell \$*`;"
+   eval `\${${wsplit}_mlre}$tclshbin $argv0 $g_shell \$*`;
+   $locf retcode=\$?;
+    if \[ -n \"\${_mlIFS+x}\" \]; then
+      IFS=\$_mlIFS;
+   else
+      unset IFS;
+   fi;
+   return \$retcode;"
 
             # only redirect module from stderr to stdout when session is
             # attached to a terminal to avoid breaking non-terminal session

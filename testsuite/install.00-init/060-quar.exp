@@ -170,6 +170,31 @@ foreach shell $othlang_list {
    }
 }
 
+
+# same test than above with a disturbing IFS value, for real shells only
+set ifs ":"
+if { $verbose > 0 } {
+    send_user "\tSetup IFS = '$ifs'\n"
+}
+set env(IFS) $ifs
+
+foreach shell $shell_list {
+   switch -- $shell {
+      {csh} - {tcsh} {
+         if { $verbose > 0 } {
+            send_user "\tskip test for $shell, no quarantine support\n"
+         }
+      }
+      {fish} {
+         testall_cmd "$shell" "module source $modfile" "" [join $ans "\n"] 0
+      }
+      default {
+         testall_cmd "$shell" "IFS='$ifs' module source $modfile" "" [join $ans "\n"] 0
+      }
+   }
+}
+
+
 # make a specific test for tcl, as its install_test script is not
 # shielded against bad LD_LIBRARY_PATH
 set quar "BAR FOO"
@@ -177,10 +202,12 @@ if { $verbose > 0 } {
     send_user "\tSetup MODULES_RUN_QUARANTINE = '$quar'\n"
     send_user "\tSetup BAR = '$env1'\n"
     send_user "\tUnset LD_LIBRARY_PATH\n"
+    send_user "\tUnset IFS\n"
 }
 set env(MODULES_RUN_QUARANTINE) $quar
 set env(BAR) $env1
 unset env(LD_LIBRARY_PATH)
+unset env(IFS)
 
 set ans [list]
 lappend ans "MODULES_RUN_QUARANTINE=$quar"
@@ -268,6 +295,7 @@ unset env1
 unset env2
 unset runenv1
 unset runenv2
+unset ifs
 
 unset ans
 unset anscsh
