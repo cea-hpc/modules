@@ -125,20 +125,20 @@ if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'set _histcha
 if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\"; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
 if \\\( \\\! \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'eval `$install_tclsh $modulecmd_path tcsh \\\\!\\*`;' ;"
 set func_fish "function module
-   set -l _mlre ''; set -l _mlv; set -l _mlrv;
-   for _mlv in \\\(string split ' ' \\\$MODULES_RUN_QUARANTINE\\\)
-      if string match -r '^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]*\\\$' \\\$_mlv >/dev/null
-         if set -q \\\$_mlv
-            set _mlre \\\$_mlre\\\$_mlv\"_modquar='\\\$\\\$_mlv' \"
-         end
-         set _mlrv \"MODULES_RUNENV_\\\$_mlv\"
-         set _mlre \"\\\$_mlre\\\$_mlv='\\\$\\\$_mlrv' \"
-      end
-   end
-   if \\\[ -n \"\\\$_mlre\\\" \\\]
-      set _mlre \"env \\\$_mlre\"
-   end
-   eval \\\$_mlre \\S+tclsh $modulecmd_path fish \\\$argv | source -
+\\s*set -l _mlre ''; set -l _mlv; set -l _mlrv;
+\\s*for _mlv in \\\(string split ' ' \\\$MODULES_RUN_QUARANTINE\\\)
+\\s*if string match -r '^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]*\\\$' \\\$_mlv >/dev/null
+\\s*if set -q \\\$_mlv
+\\s*set _mlre \\\$_mlre\\\$_mlv\"_modquar='\\\$\\\$_mlv' \"
+\\s*end
+\\s*set _mlrv \"MODULES_RUNENV_\\\$_mlv\"
+\\s*set _mlre \"\\\$_mlre\\\$_mlv='\\\$\\\$_mlrv' \"
+\\s*end
+\\s*end
+\\s*if \\\[ -n \"\\\$_mlre\\\" \\\]
+\\s*set _mlre \"env \\\$_mlre\"
+\\s*end
+\\s*eval \\\$_mlre \\S+tclsh $modulecmd_path fish \\\$argv | source -
 end"
 set func_tcl "proc module {args} {
 \\s*global env; set _mlre {};
@@ -160,8 +160,8 @@ set func_tcl "proc module {args} {
 \\s*set _mlre \\\[linsert \\\$_mlre 0 \"env\"\\\]
 \\s*}
 \\s*}
-   catch {eval exec \\\$_mlre \"$install_tclsh\" \"$modulecmd_path\" \"tcl\" \\\$args 2>@stderr} script
-   uplevel \\\$script;
+\\s*catch {eval exec \\\$_mlre \"$install_tclsh\" \"$modulecmd_path\" \"tcl\" \\\$args 2>@stderr} script
+\\s*uplevel \\\$script;
 }"
 set func_perl "sub module {
 \\s*my \\\$_mlre = '';
@@ -179,12 +179,12 @@ set func_perl "sub module {
 \\s*\\\$_mlre = \"env \\\$_mlre\";
 \\s*}
 \\s*}
-   eval `\\\${_mlre}$install_tclsh $modulecmd_path perl \\\@_`;
-   if\\\(\\\$\\\@\\\) {
-      use Carp;
-      confess \"module-error: \\\$\\\@\";
-   }
-   return 1;
+\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_path perl \\\@_`;
+\\s*if\\\(\\\$\\\@\\\) {
+\\s*use Carp;
+\\s*confess \"module-error: \\\$\\\@\";
+\\s*}
+\\s*return 1;
 }"
 set func_python "import re, subprocess
 def module\\\(command, \\*arguments\\\):
@@ -199,9 +199,9 @@ def module\\\(command, \\*arguments\\\):
 \\s*_mlre\\\[_mlv\\\] = os.environ\\\[_mlrv\\\]
 \\s*else:
 \\s*_mlre\\\[_mlv\\\] = ''
-   exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)"
+\\s*exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)"
 set func_ruby "class ENVModule
-   def ENVModule.module\\\(\\*args\\\)
+\\s*def ENVModule.module\\\(\\*args\\\)
 \\s*_mlre = ''
 \\s*if ENV.has_key\\\?\\\('MODULES_RUN_QUARANTINE'\\\) then
 \\s*ENV\\\['MODULES_RUN_QUARANTINE'\\\].split\\\(' '\\\).each do \\\|_mlv\\\|
@@ -217,13 +217,13 @@ set func_ruby "class ENVModule
 \\s*_mlre = 'env ' \\\+ _mlre
 \\s*end
 \\s*end
-      if args\\\[0\\\].kind_of\\?\\\(Array\\\) then
-         args = args\\\[0\\\].join\\\(' '\\\)
-      else
-         args = args.join\\\(' '\\\)
-      end
-      eval `#{_mlre}$install_tclsh $modulecmd_path ruby #{args}`
-   end
+\\s*if args\\\[0\\\].kind_of\\?\\\(Array\\\) then
+\\s*args = args\\\[0\\\].join\\\(' '\\\)
+\\s*else
+\\s*args = args.join\\\(' '\\\)
+\\s*end
+\\s*eval `#{_mlre}$install_tclsh $modulecmd_path ruby #{args}`
+\\s*end
 end"
 set func_cmake "function\\\(module\\\)
 \\s*set\\\(_mlre \"\"\\\)
@@ -242,14 +242,14 @@ set func_cmake "function\\\(module\\\)
 \\s*set\\\(_mlre \"env;\\\${_mlre}\"\\\)
 \\s*endif\\\(\\\)
 \\s*endif\\\(\\\)
-   execute_process\\\(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
-      OUTPUT_VARIABLE tempfile_name\\\)
-   execute_process\\\(COMMAND \\\${_mlre} $install_tclsh $modulecmd_path cmake \\\${ARGV}
-      OUTPUT_FILE \\\${tempfile_name}\\\)
-   if\\\(EXISTS \\\${tempfile_name}\\\)
-      include\\\(\\\${tempfile_name}\\\)
-      file\\\(REMOVE \\\${tempfile_name}\\\)
-   endif\\\(\\\)
+\\s*execute_process\\\(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
+\\s*OUTPUT_VARIABLE tempfile_name\\\)
+\\s*execute_process\\\(COMMAND \\\${_mlre} $install_tclsh $modulecmd_path cmake \\\${ARGV}
+\\s*OUTPUT_FILE \\\${tempfile_name}\\\)
+\\s*if\\\(EXISTS \\\${tempfile_name}\\\)
+\\s*include\\\(\\\${tempfile_name}\\\)
+\\s*file\\\(REMOVE \\\${tempfile_name}\\\)
+\\s*endif\\\(\\\)
 endfunction\\\(module\\\)"
 set func_r "module <- function\\\(...\\\){
 \\s*mlre <- ''
@@ -267,14 +267,14 @@ set func_r "module <- function\\\(...\\\){
 \\s*mlre <- paste0\\\('env ', mlre\\\)
 \\s*}
 \\s*}
-   arglist <- as.list\\\(match.call\\\(\\\)\\\)
-   arglist\\\[1\\\] <- 'r'
-   args <- paste0\\\(arglist, collapse=' '\\\)
-   cmd <- paste\\\(mlre, '$install_tclsh', '$modulecmd_path', args, sep=' '\\\)
-   hndl <- pipe\\\(cmd\\\)
-   eval\\\(expr = parse\\\(file=hndl\\\)\\\)
-   close\\\(hndl\\\)
-   invisible\\\(0\\\)
+\\s*arglist <- as.list\\\(match.call\\\(\\\)\\\)
+\\s*arglist\\\[1\\\] <- 'r'
+\\s*args <- paste0\\\(arglist, collapse=' '\\\)
+\\s*cmd <- paste\\\(mlre, '$install_tclsh', '$modulecmd_path', args, sep=' '\\\)
+\\s*hndl <- pipe\\\(cmd\\\)
+\\s*eval\\\(expr = parse\\\(file=hndl\\\)\\\)
+\\s*close\\\(hndl\\\)
+\\s*invisible\\\(0\\\)
 }"
 
 #

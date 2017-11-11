@@ -2555,15 +2555,13 @@ proc renderSettings {} {
             set pre_ex {set _exit="$status";}
             set post_ex {test 0 = $_exit}
 
-            puts stdout "if ( \$?histchars && \$?prompt )\
-               alias module '$pre_hi $pre_pr $eval_cmd $pre_ex $post_hi\
-               $post_pr $post_ex' ;"
-            puts stdout "if ( \$?histchars && ! \$?prompt )\
-               alias module '$pre_hi $eval_cmd $pre_ex $post_hi $post_ex' ;"
-            puts stdout "if ( ! \$?histchars && \$?prompt )\
-               alias module '$pre_pr $eval_cmd $pre_ex $post_pr $post_ex' ;"
-            puts stdout "if ( ! \$?histchars && ! \$?prompt )\
-               alias module '$eval_cmd' ;"
+            set fdef "if ( \$?histchars && \$?prompt )\
+alias module '$pre_hi $pre_pr $eval_cmd $pre_ex $post_hi $post_pr $post_ex' ;
+if ( \$?histchars && ! \$?prompt )\
+alias module '$pre_hi $eval_cmd $pre_ex $post_hi $post_ex' ;
+if ( ! \$?histchars && \$?prompt )\
+alias module '$pre_pr $eval_cmd $pre_ex $post_pr $post_ex' ;
+if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
          }
          {sh} {
             # adapt shell function to define local variable, as 'typeset' is
@@ -2579,53 +2577,58 @@ proc renderSettings {} {
             } else {
                set wsplit ""
             }
-
-            # build quarantine mechanism in module function
-            # an empty runtime variable is set even if no corresponding
-            # MODULES_RUNENV_* variable found, as var cannot be unset on
-            # modified environment command-line
-            set fdef "   $locf _mlre=''; $locf _mlv; $locf _mlrv;
-   if \[ -n \"\${IFS+x}\" \]; then
-      $locf _mlIFS=\$IFS;
-   fi;
-   $locf IFS=\$' ';
-   for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE}; do
-      if \[ \"\${_mlv}\" = \"\${_mlv##*\[!A-Za-z0-9_\]}\" -a \"\${_mlv}\" = \"\${_mlv#\[0-9\]}\" \]; then
-         if \[ -n \"`eval 'echo \${'\$_mlv'+x}'`\" \]; then
-            _mlre=\"\${_mlre}\${_mlv}_modquar='`eval \'echo \${\'\$_mlv\'}\'`' \";
-         fi;
-         _mlrv=\"MODULES_RUNENV_\${_mlv}\";
-         _mlre=\"\${_mlre}\${_mlv}='`eval \'echo \${\'\$_mlrv\'}\'`' \";
-      fi;
-   done;
-   if \[ -n \"\$_mlre\" \]; then
-      _mlre=\"eval \${_mlre}\";
-   fi;
-   eval `\${${wsplit}_mlre}$tclshbin $argv0 $g_shell \$*`;
-   $locf retcode=\$?;
-    if \[ -n \"\${_mlIFS+x}\" \]; then
-      IFS=\$_mlIFS;
-   else
-      unset IFS;
-   fi;
-   return \$retcode;"
-
             # only redirect module from stderr to stdout when session is
             # attached to a terminal to avoid breaking non-terminal session
             # (scp, sftp, etc)
             if {[isStderrTty]} {
-               puts stdout "_moduleraw() {"
-               puts stdout $fdef
-               puts stdout "};"
-               puts stdout "module() { _moduleraw \$* 2>&1; };"
+               set fname "_moduleraw"
             } else {
-               puts stdout "module() {"
-               puts stdout $fdef
-               puts stdout "};"
+               set fname "module"
+            }
+            # build quarantine mechanism in module function
+            # an empty runtime variable is set even if no corresponding
+            # MODULES_RUNENV_* variable found, as var cannot be unset on
+            # modified environment command-line
+            set fdef "${fname}() {
+   $locf _mlre=''; $locf _mlv; $locf _mlrv;
+   if \[ -n \"\${IFS+x}\" \]; then
+      $locf _mlIFS=\$IFS;
+   fi;
+   $locf IFS=\$' ';
+   for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE}; do"
+            append fdef {
+      if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
+         if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
+            _mlre="${_mlre}${_mlv}_modquar='`eval 'echo ${'$_mlv'}'`' ";
+         fi;
+         _mlrv="MODULES_RUNENV_${_mlv}";
+         _mlre="${_mlre}${_mlv}='`eval 'echo ${'$_mlrv'}'`' ";
+      fi;
+   done;
+   if [ -n "$_mlre" ]; then
+      _mlre="eval ${_mlre}";
+   fi;}
+            append fdef "\n   eval `\${${wsplit}_mlre}$tclshbin $argv0\
+$g_shell \$*`;
+   $locf retcode=\$?;\n"
+            append fdef {   if [ -n "${_mlIFS+x}" ]; then
+      IFS=$_mlIFS;
+   else
+      unset IFS;
+   fi;
+   return $retcode;}
+            append fdef "\n};"
+            if {[isStderrTty]} {
+               append fdef "\nmodule() { _moduleraw \$* 2>&1; };"
             }
          }
          {fish} {
-            set fdef {   set -l _mlre ''; set -l _mlv; set -l _mlrv;
+            if {[isStderrTty]} {
+               set fdef "function _moduleraw\n"
+            } else {
+               set fdef "function module\n"
+            }
+            append fdef {   set -l _mlre ''; set -l _mlv; set -l _mlrv;
    for _mlv in (string split ' ' $MODULES_RUN_QUARANTINE)
       if string match -r '^[A-Za-z_][A-Za-z0-9_]*$' $_mlv >/dev/null
          if set -q $_mlv
@@ -2637,28 +2640,23 @@ proc renderSettings {} {
    end
    if [ -n "$_mlre" ]
       set _mlre "env $_mlre"
-   end
-}
-            append fdef "   eval \$_mlre $tclshbin $argv0 $g_shell \$argv\
-               | source -"
-
+   end}
+            # use "| source -" rather than "eval" to be able
+            # to redirect stderr after stdout being evaluated
+            append fdef "\n   eval \$_mlre $tclshbin $argv0 $g_shell \$argv\
+               | source -\n"
             if {[isStderrTty]} {
-               # use "| source -" rather than "eval" to be able
-               # to redirect stderr after stdout being evaluated
-               puts stdout "function _moduleraw"
-               puts stdout $fdef
-               puts stdout "end"
-               puts stdout "function module"
-               puts stdout "   _moduleraw \$argv ^&1"
-               puts stdout "end"
+               append fdef {end
+function module
+   _moduleraw $argv ^&1
+end}
             } else {
-               puts stdout "function module"
-               puts stdout $fdef
-               puts stdout "end"
+               append fdef {end}
             }
          }
          {tcl} {
-            set fdef {global env; set _mlre {};
+            set fdef "proc module {args} {\n"
+            append fdef {global env; set _mlre {};
    if {[info exists env(MODULES_RUN_QUARANTINE)]} {
       foreach _mlv [split $env(MODULES_RUN_QUARANTINE) " "] {
          if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $_mlv]} {
@@ -2677,20 +2675,17 @@ proc renderSettings {} {
          set _mlre [linsert $_mlre 0 "env"]
       }
    }}
-
-            puts stdout "proc module {args} {"
-            puts stdout "   $fdef"
-            puts stdout "   catch {eval exec \$_mlre \"$tclshbin\" \"$argv0\"\
-                \"$g_shell\" \$args 2>@stderr} script"
-            puts stdout "   uplevel \$script;"
-            puts stdout "}"
-
+            append fdef "\n   catch {eval exec \$_mlre \"$tclshbin\"\
+               \"$argv0\" \"$g_shell\" \$args 2>@stderr} script\n"
+            append fdef {   uplevel $script;}
+            append fdef "\n}"
          }
          {cmd} {
-            puts stdout "start /b \%MODULESHOME\%/init/module.cmd %*"
+            set fdef "start /b \%MODULESHOME\%/init/module.cmd %*"
          }
          {perl} {
-            set fdef {my $_mlre = '';
+            set fdef "sub module {\n"
+            append fdef {   my $_mlre = '';
    if (defined $ENV{'MODULES_RUN_QUARANTINE'}) {
       foreach my $_mlv (split(' ', $ENV{'MODULES_RUN_QUARANTINE'})) {
          if ($_mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/) {
@@ -2705,18 +2700,18 @@ proc renderSettings {} {
          $_mlre = "env $_mlre";
       }
    }}
-            puts stdout "sub module {"
-            puts stdout "   $fdef"
-            puts stdout "   eval `\${_mlre}$tclshbin $argv0 perl @_`;"
-            puts stdout "   if(\$@) {"
-            puts stdout "      use Carp;"
-            puts stdout "      confess \"module-error: \$@\";"
-            puts stdout "   }"
-            puts stdout "   return 1;"
-            puts stdout "}"
+            append fdef "\n   eval `\${_mlre}$tclshbin $argv0 perl @_`;\n"
+            append fdef {   if($@) {
+      use Carp;
+      confess "module-error: $@";
+   }
+   return 1;}
+            append fdef "\n}"
          }
          {python} {
-            set fdef {_mlre = os.environ.copy()
+            set fdef {import re, subprocess
+def module(command, *arguments):
+   _mlre = os.environ.copy()
    if 'MODULES_RUN_QUARANTINE' in os.environ:
       for _mlv in os.environ['MODULES_RUN_QUARANTINE'].split():
          if re.match('^[A-Za-z_][A-Za-z0-9_]*$', _mlv):
@@ -2727,16 +2722,15 @@ proc renderSettings {} {
                _mlre[_mlv] = os.environ[_mlrv]
             else:
                _mlre[_mlv] = ''}
-            puts stdout "import re, subprocess"
-            puts stdout "def module(command, *arguments):"
-            puts stdout "   $fdef"
-            puts stdout "   exec(subprocess.Popen(\['$tclshbin',\
+            append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
                '$argv0', 'python', command\] +\
                list(arguments),\
                stdout=subprocess.PIPE, env=_mlre).communicate()\[0\])"
          }
          {ruby} {
-            set fdef {_mlre = ''
+            set fdef {class ENVModule
+   def ENVModule.module(*args)
+      _mlre = ''
       if ENV.has_key?('MODULES_RUN_QUARANTINE') then
          ENV['MODULES_RUN_QUARANTINE'].split(' ').each do |_mlv|
             if _mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/ then
@@ -2750,24 +2744,23 @@ proc renderSettings {} {
          unless _mlre.empty?
             _mlre = 'env ' + _mlre
          end
+      end
+      if args[0].kind_of?(Array) then
+         args = args[0].join(' ')
+      else
+         args = args.join(' ')
       end}
-            puts stdout "class ENVModule"
-            puts stdout "   def ENVModule.module(*args)"
-            puts stdout "      $fdef"
-            puts stdout "      if args\[0\].kind_of?(Array) then"
-            puts stdout "         args = args\[0\].join(' ')"
-            puts stdout "      else"
-            puts stdout "         args = args.join(' ')"
-            puts stdout "      end"
-            puts stdout "      eval `#{_mlre}$tclshbin $argv0 ruby #{args}`"
-            puts stdout "   end"
-            puts stdout "end"
+            append fdef "\n      eval `#{_mlre}$tclshbin $argv0 ruby\
+               #{args}`\n"
+            append fdef {   end
+end}
          }
          {lisp} {
             reportErrorAndExit "lisp mode autoinit not yet implemented"
          }
          {cmake} {
-            set fdef {set(_mlre "")
+            set fdef {function(module)
+   set(_mlre "")
    if(DEFINED ENV{MODULES_RUN_QUARANTINE})
       string(REPLACE " " ";" _mlv_list "$ENV{MODULES_RUN_QUARANTINE}")
       foreach(_mlv ${_mlv_list})
@@ -2782,23 +2775,21 @@ proc renderSettings {} {
       if (NOT "${_mlre}" STREQUAL "")
          set(_mlre "env;${_mlre}")
       endif()
-   endif()}
-            puts stdout "function(module)"
-            puts stdout "   $fdef"
-            puts stdout "   execute_process(COMMAND mktemp -t\
-               moduleinit.cmake.XXXXXXXXXXXX"
-            puts stdout "      OUTPUT_VARIABLE tempfile_name)"
-            puts stdout "   execute_process(COMMAND \${_mlre} $tclshbin\
-               $argv0 cmake \${ARGV}"
-            puts stdout "      OUTPUT_FILE \${tempfile_name})"
-            puts stdout "   if(EXISTS \${tempfile_name})"
-            puts stdout "      include(\${tempfile_name})"
-            puts stdout "      file(REMOVE \${tempfile_name})"
-            puts stdout "   endif()"
-            puts stdout "endfunction(module)"
+   endif()
+   execute_process(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
+      OUTPUT_VARIABLE tempfile_name)}
+            append fdef "\n   execute_process(COMMAND \${_mlre} $tclshbin\
+               $argv0 cmake \${ARGV}\n"
+            append fdef {      OUTPUT_FILE ${tempfile_name})
+   if(EXISTS ${tempfile_name})
+      include(${tempfile_name})
+      file(REMOVE ${tempfile_name})
+   endif()
+endfunction(module)}
          }
          {r} {
-            set fdef {mlre <- ''
+            set fdef "module <- function(...){\n"
+            append fdef {   mlre <- ''
    if (!is.na(Sys.getenv('MODULES_RUN_QUARANTINE', unset=NA))) {
       for (mlv in strsplit(Sys.getenv('MODULES_RUN_QUARANTINE'), ' ')[[1]]) {
          if (grepl('^[A-Za-z_][A-Za-z0-9_]*$', mlv)) {
@@ -2812,22 +2803,22 @@ proc renderSettings {} {
       if (mlre != '') {
          mlre <- paste0('env ', mlre)
       }
-   }}
-            puts stdout "module <- function(...){"
-            puts stdout "   $fdef"
-            puts stdout "   arglist <- as.list(match.call())"
-            puts stdout "   arglist\[1\] <- 'r'"
-            puts stdout "   args <- paste0(arglist, collapse=' ')"
-            puts stdout "   cmd <- paste(mlre, '$tclshbin', '$argv0', args,\
-               sep=' ')"
-            puts stdout "   hndl <- pipe(cmd)"
-            puts stdout "   eval(expr = parse(file=hndl))"
-            puts stdout "   close(hndl)"
-            puts stdout "   invisible(0)"
-            puts stdout "}"
+   }
+   arglist <- as.list(match.call())
+   arglist[1] <- 'r'
+   args <- paste0(arglist, collapse=' ')}
+            append fdef "\n   cmd <- paste(mlre, '$tclshbin', '$argv0', args,\
+               sep=' ')\n"
+            append fdef {   hndl <- pipe(cmd)
+   eval(expr = parse(file=hndl))
+   close(hndl)
+   invisible(0)}
+            append fdef "\n}"
 
          }
       }
+      # output function definition
+      puts stdout $fdef
    }
 
    # new environment variables
