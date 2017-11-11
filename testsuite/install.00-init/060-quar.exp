@@ -231,29 +231,34 @@ set env(MODULES_RUN_QUARANTINE) $quar
 set env(LD_LIBRARY_PATH) $env1
 set env(MODULES_RUNENV_LD_LIBRARY_PATH) $runenv1
 
-set ans "$install_tclsh: error while loading shared libraries: $testlibfile: file too short\n.*"
+if {[info exists testlibfile] && [file exists $testlibfile]\
+   && ![catch {exec ldd $install_tclsh} ldd_out]\
+   && [string first $testlibfile $ldd_out] != -1} {
+   set ans "$install_tclsh: error while loading shared libraries: $testlibfile: file too short\n.*"
 
-foreach shell $shell_list {
-   switch -- $shell {
-      {csh} - {tcsh} {
-         if { $verbose > 0 } {
-            send_user "\tskip test for $shell, no quarantine support\n"
+   foreach shell $shell_list {
+      switch -- $shell {
+         {csh} - {tcsh} {
+            if { $verbose > 0 } {
+               send_user "\tskip test for $shell, no quarantine support\n"
+            }
          }
-      }
-      default {
-         if {$shell eq "ksh"} {
-            set ansexit 126
-         } else {
-            set ansexit 127
+         default {
+            if {$shell eq "ksh"} {
+               set ansexit 126
+            } else {
+               set ansexit 127
+            }
+            testall_cmd_re "$shell" "module source $modfile" "" $ans $ansexit
          }
-         testall_cmd_re "$shell" "module source $modfile" "" $ans $ansexit
       }
    }
+   foreach shell $othlang_list {
+      testall_cmd_re "$shell" "source $modfile" "" $ans 1
+   }
+} elseif {$verbose > 0} {
+   send_user "\tSkip test as fake library setup not understood by $install_tclsh\n"
 }
-foreach shell $othlang_list {
-   testall_cmd_re "$shell" "source $modfile" "" $ans 1
-}
-
 
 
 #
@@ -300,7 +305,9 @@ unset ifs
 unset ans
 unset anscsh
 unset ansr
-unset ansexit
+if {[info exists ansexit]} {
+   unset ansexit
+}
 
 unset modfile
 
