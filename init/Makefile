@@ -65,6 +65,23 @@ else
   notcompatversionre := s|@notcompatversion@||g
 endif
 
+# define translation rules for quarantine mechanism
+ifeq ($(quarantinevars),)
+setquarvarsre := /@setquarvars@/d
+notsetquarvarsre := s|@notsetquarvars@||g
+else
+setquarvarsre := s|@setquarvars@||g
+notsetquarvarsre := /@notsetquarvars@/d
+define runenvvarre
+$(if $(filter-out ${1},${2}),s|\(@\(.*\)RUNENV_VAR\(.*\)RUNENV_VAL\(.*\)@\)|\2MODULES_RUNENV_${1}\3${2}\4\n\1|g;)
+endef
+quarvarsre = -e 's|@RUN_QUARANTINE@|$(foreach vv,$(quarantinevars),$(firstword\
+	$(subst =, ,$(vv))))|g;
+quarvarsre += $(foreach vv,$(quarantinevars),$(call runenvvarre,$(firstword\
+	$(subst =, ,$(vv))),$(subst $(firstword $(subst =, ,$(vv)))=,,$(vv))))
+quarvarsre += s/@.*RUNENV_VAR.*@//;'
+endif
+
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@libexecdir@|$(libexecdir)|g' \
@@ -78,6 +95,8 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e '$(notcompatversionre)' \
 	-e 's|@modulerc@|$(modulerc)|g' \
 	-e 's|@modulepath@|$(modulepath)|g' \
+	-e '$(setquarvarsre)' $(quarvarsre) \
+	-e '$(notsetquarvarsre)' \
 	-e 's|@SHELLNAME@|$@|g' \
 	-e 's|@VERSION@|$(MODULES_RELEASE)$(MODULES_BUILD)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' $< > $@

@@ -29,7 +29,7 @@ targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 arglist="TCLSH SPHINXBUILD prefix bindir libexecdir initdir datarootdir \
 mandir docdir modulefilesdir setmanpath setbinpath setdotmodulespath \
 docinstall examplemodulefiles compatversion pager pageropts modulepath \
-loadedmodules"
+loadedmodules quarantinevars"
 compatarglist=
 
 # flags to know if argument has been specified on command-line
@@ -46,6 +46,7 @@ docinstall=y
 examplemodulefiles=y
 compatversion=y
 loadedmodules=
+quarantinevars=
 TCLSH=tclsh
 SPHINXBUILD=sphinx-build
 pager=less
@@ -140,6 +141,12 @@ Optional Packages:
                           default modulefiles to set in default configuration
                           file to be loaded (each modulefile name in MODLIST
                           should be separated by \`:') []
+  --with-quarantine-vars='VARNAME[=VALUE] ...'
+                          environment variables to put in quarantine when
+                          running the module command to ensure it a sane
+                          execution environment (each variable should be
+                          separated by \` '). a value can eventually be set to
+                          a quarantine variable instead of emptying it. []
 
 Depending on the above configuration options the files are approximately
 placed in the following directory structure:
@@ -265,6 +272,8 @@ for arg in "$@"; do
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)
       loadedmodules=$(get_package_value "$arg") ;;
+    --with-quarantine-vars=*|--without-quarantine-vars)
+      quarantinevars=$(get_package_value "$arg") ;;
    --enable-versioning*)
       echo_error "Option \`--enable-versioning' not supported" ;;
    --with-module-path=*)
@@ -382,10 +391,10 @@ fi
 
 # display configuration set
 # and build Makefile translation expression
-translation_regexp=''
+translation_regexp=()
 for arg in ${arglist}; do
    echo "$arg = ${!arg}"
-   translation_regexp+="-e s|@${arg}@|${!arg}|g "
+   translation_regexp+=('-e' "s|@${arg}@|${!arg}|g")
 done
 
 # configure compat version sources
@@ -407,7 +416,7 @@ fi
 # generate Makefiles
 for target in ${targetlist}; do
    echo "creating $target"
-   sed $translation_regexp ${target}.in >$target
+   sed "${translation_regexp[@]}" ${target}.in >$target
 done
 
 exit 0
