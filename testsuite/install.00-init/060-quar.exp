@@ -19,6 +19,104 @@
 #
 ##############################################################################
 
+set modfile "$env(TESTSUITEDIR)/modulefiles.other/quar"
+
+# if quarantine configured in init scripts at build time only check
+# that defined configuration is operational
+if {$install_quarantinevars ne ""} {
+
+set quarlist {}
+array set runenvarray {}
+foreach vv [split $install_quarantinevars " "] {
+   set vvlist [split $vv "="]
+   if {[llength $vvlist] == 2} {
+      set vname [lindex $vvlist 0]
+      set runenvarray($vname) [lindex $vvlist 1]
+   } else {
+      set vname [lindex $vvlist 0]
+   }
+   lappend quarlist $vname
+
+}
+
+set ans [list]
+set ansr [list]
+
+set quar [join $quarlist " "]
+if { $verbose > 0 } {
+    send_user "\tAlready configured MODULES_RUN_QUARANTINE = '$quar'\n"
+}
+lappend ans "MODULES_RUN_QUARANTINE=$quar"
+lappend ansr "MODULES_RUN_QUARANTINE=$quar"
+
+foreach vname $quarlist {
+   if { $verbose > 0 } {
+       send_user "\tSetup $vname = 'foo'\n"
+   }
+   set env($vname) "foo"
+   lappend ans "$vname=foo"
+   if {$vname eq "LD_LIBRARY_PATH"} {
+      lappend ansr "$vname=.*foo"
+   } else {
+      lappend ansr "$vname=foo"
+   }
+}
+foreach vname [lsort $quarlist] {
+   if {[info exists runenvarray($vname)]} {
+      if { $verbose > 0 } {
+          send_user "\tAlready configured MODULES_RUNENV_$vname = '$runenvarray($vname)'\n"
+      }
+      lappend ans "MODULES_RUNENV_$vname=$runenvarray($vname)"
+      lappend ansr "MODULES_RUNENV_$vname=$runenvarray($vname)"
+   }
+}
+
+#
+# The tests
+#
+
+foreach shell $shell_list {
+   switch -- $shell {
+      {csh} - {tcsh} {
+         if { $verbose > 0 } {
+            send_user "\tskip test for $shell, no quarantine support\n"
+         }
+      }
+      default {
+         testall_cmd "$shell" "module source $modfile" "" [join $ans "\n"] 0
+      }
+   }
+}
+foreach shell $othlang_list {
+   switch -- $shell {
+      {r} {
+         # specific result for R as LD_LIBRARY_PATH value is altered by R on the way
+         testall_cmd_re "$shell" "source $modfile" "" [join $ansr "\n"] 0
+      }
+      default {
+         testall_cmd "$shell" "source $modfile" "" [join $ans "\n"] 0
+      }
+   }
+}
+
+#
+#  Clean up variables used in this test case
+#
+
+unset quarlist
+unset runenvarray
+if {[info exists vv]} {
+   unset vv
+   unset vvlist
+}
+if {[info exists vname]} {
+   unset vname
+}
+
+# if quarantine has not been configured at build time, check the
+# whole mechanism in various conditions
+} else {
+
 # Create a fake libtcl so file to trip up tclsh
 if {![catch {exec ldd $install_tclsh} ldd_out]} {
    regexp {(libtcl\S+so)} $ldd_out libtclname
@@ -31,8 +129,6 @@ if {![catch {exec ldd $install_tclsh} ldd_out]} {
       close $fid
    }
 }
-
-set modfile "$env(TESTSUITEDIR)/modulefiles.other/quar"
 
 #
 # The tests
@@ -302,12 +398,15 @@ unset runenv1
 unset runenv2
 unset ifs
 
-unset ans
 unset anscsh
-unset ansr
 if {[info exists ansexit]} {
    unset ansexit
 }
+
+}
+
+unset ans
+unset ansr
 
 unset modfile
 
