@@ -546,6 +546,29 @@ ENVIRONMENT
  If **MODULES_PAGER** variable is set to an empty string or to the value
  *cat*, pager will not be launched.
 
+**MODULES_RUN_QUARANTINE**
+
+ A space separated list of environment variable names that should be passed
+ indirectly to **modulecmd.tcl** to protect its run-time environment from
+ side-effect coming from their current definition.
+
+ Each variable found in **MODULES_RUN_QUARANTINE** will have its value emptied
+ or set to the value of the corresponding **MODULES_RUNENV_<VAR>** variable
+ when defining **modulecmd.tcl** run-time environment.
+
+ Original values of these environment variables set in quarantine are passed
+ to **modulecmd.tcl** via **<VAR>_modquar** variables.
+
+**MODULES_RUNENV_<VAR>**
+
+ Value to set to environment variable *<VAR>* for **modulecmd.tcl** run-time
+ execution if *<VAR>* is referred in **MODULES_RUN_QUARANTINE**.
+
+**<VAR>_modquar**
+
+ Value of environment variable *<VAR>* passed to **modulecmd.tcl** in order
+ to restore *<VAR>* to this value once started.
+
 **MODULES_USE_COMPAT_VERSION**
 
  If set to **1** prior to Modules package initialization, enable
