@@ -476,11 +476,9 @@ The **module** command exits with **0** if its execution succeed. Elsewhere
 ENVIRONMENT
 -----------
 
-**MODULESHOME**
+**LOADEDMODULES**
 
- The location of the master Modules package file directory containing module
- command initialization scripts, the executable program **modulecmd.tcl**,
- and a directory containing a collection of master *modulefiles*.
+ A colon separated list of all loaded *modulefiles*.
 
 **MODULEPATH**
 
@@ -491,21 +489,11 @@ ENVIRONMENT
  to search group or personal *modulefile* directories before or after the
  master *modulefile* directory.
 
-**LOADEDMODULES**
+**MODULESHOME**
 
- A colon separated list of all loaded *modulefiles*.
-
-**_LMFILES_**
-
- A colon separated list of the full pathname for all loaded *modulefiles*.
-
-**<VAR>_modshare**
-
- Reference counter variable for path-like variable *<VAR>*. A colon
- separated list containing pairs of elements. A pair is formed by a path
- element followed its usage counter which represents the number of times
- this path has been enabled in variable *<VAR>*. A colon separates the
- two parts of the pair.
+ The location of the master Modules package file directory containing module
+ command initialization scripts, the executable program **modulecmd.tcl**,
+ and a directory containing a collection of master *modulefiles*.
 
 **MODULES_COLLECTION_TARGET**
 
@@ -546,6 +534,11 @@ ENVIRONMENT
  If **MODULES_PAGER** variable is set to an empty string or to the value
  *cat*, pager will not be launched.
 
+**MODULES_RUNENV_<VAR>**
+
+ Value to set to environment variable *<VAR>* for **modulecmd.tcl** run-time
+ execution if *<VAR>* is referred in **MODULES_RUN_QUARANTINE**.
+
 **MODULES_RUN_QUARANTINE**
 
  A space separated list of environment variable names that should be passed
@@ -559,16 +552,6 @@ ENVIRONMENT
  Original values of these environment variables set in quarantine are passed
  to **modulecmd.tcl** via **<VAR>_modquar** variables.
 
-**MODULES_RUNENV_<VAR>**
-
- Value to set to environment variable *<VAR>* for **modulecmd.tcl** run-time
- execution if *<VAR>* is referred in **MODULES_RUN_QUARANTINE**.
-
-**<VAR>_modquar**
-
- Value of environment variable *<VAR>* passed to **modulecmd.tcl** in order
- to restore *<VAR>* to this value once started.
-
 **MODULES_USE_COMPAT_VERSION**
 
  If set to **1** prior to Modules package initialization, enable
@@ -576,6 +559,23 @@ ENVIRONMENT
  at initialization scripts running time. Modules package compatibility
  version should be installed along with main version for this environment
  variable to have any effect.
+
+**_LMFILES_**
+
+ A colon separated list of the full pathname for all loaded *modulefiles*.
+
+**<VAR>_modquar**
+
+ Value of environment variable *<VAR>* passed to **modulecmd.tcl** in order
+ to restore *<VAR>* to this value once started.
+
+**<VAR>_modshare**
+
+ Reference counter variable for path-like variable *<VAR>*. A colon
+ separated list containing pairs of elements. A pair is formed by a path
+ element followed its usage counter which represents the number of times
+ this path has been enabled in variable *<VAR>*. A colon separates the
+ two parts of the pair.
 
 
 FILES
