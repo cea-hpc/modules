@@ -2590,6 +2590,14 @@ if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
             # MODULES_RUNENV_* variable found, as var cannot be unset on
             # modified environment command-line
             set fdef "${fname}() {
+   if \[ \"\$MODULES_SILENT_SHELL_DEBUG\" = '1' \]; then
+      case \"$-\" in
+         *v*x*) set +vx; $locf _mlshdbg='vx' ;;
+         *v*) set +v; $locf _mlshdbg='v' ;;
+         *x*) set +x; $locf _mlshdbg='x' ;;
+         *) $locf _mlshdbg='' ;;
+      esac;
+   fi;
    $locf _mlre=''; $locf _mlv; $locf _mlrv;
    if \[ -n \"\${IFS+x}\" \]; then
       $locf _mlIFS=\$IFS;
@@ -2615,6 +2623,10 @@ $g_shell \$*`;
       IFS=$_mlIFS;
    else
       unset IFS;
+   fi;
+   if [ -n "$_mlshdbg" ]; then
+      set -$_mlshdbg;
+      unset _mlshdbg;
    fi;
    return $_mlret;}
             append fdef "\n};"

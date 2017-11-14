@@ -1,3 +1,14 @@
+# disable shell debugging for the run of this init file
+if [ "$MODULES_SILENT_SHELL_DEBUG" = '1' ]; then
+   # immediately disable debugging to echo the less number of line possible
+   case "$-" in
+      *v*x*) set +vx; _mlshdbg='vx' ;;
+      *v*) set +v; _mlshdbg='v' ;;
+      *x*) set +x; _mlshdbg='x' ;;
+      *) _mlshdbg='' ;;
+   esac;
+fi;
+
 # define modules runtine quarantine configuration
 @setquarvars@export MODULES_RUN_QUARANTINE='@RUN_QUARANTINE@'
 @setquarvars@@export RUNENV_VAR='RUNENV_VAL'@
@@ -97,3 +108,9 @@ BASH_ENV=@initdir@/bash; export BASH_ENV
 @setmanpath@   *:@mandir@:*) ;;
 @setmanpath@   *) MANPATH=@mandir@${manpath:+:}$manpath; export MANPATH
 @setmanpath@esac
+@setmanpath@
+# restore shell debugging options if disabled
+if [ -n "$_mlshdbg" ]; then
+   set -$_mlshdbg;
+   unset _mlshdbg;
+fi;
