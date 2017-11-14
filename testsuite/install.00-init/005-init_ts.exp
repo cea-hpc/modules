@@ -146,4 +146,23 @@ set install_modulefilesdirre [regsub -all "\(\[.+?\]\)" $install_modulefilesdir 
 set install_modulepathre [regsub -all "\(\[.+?\]\)" $install_modulepath {\\\1}]
 set install_loadedmodulesre [regsub -all "\(\[.+?\]\)" $install_loadedmodules {\\\1}]
 
+# fetch quarantine configuration defined at build time
+if {$install_quarantinevars ne ""} {
+   set install_quarlist {}
+   array set install_runenv {}
+   foreach vv [split $install_quarantinevars " "] {
+      set vvlist [split $vv "="]
+      if {[llength $vvlist] == 2} {
+         set vname [lindex $vvlist 0]
+         set install_runenv($vname) [lindex $vvlist 1]
+      } else {
+         set vname [lindex $vvlist 0]
+      }
+      lappend install_quarlist $vname
+   }
+   catch {unset vv}
+   catch {unset vvlist}
+   catch {unset vname}
+}
+
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

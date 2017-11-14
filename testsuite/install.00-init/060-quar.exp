@@ -25,33 +25,19 @@ set modfile "$env(TESTSUITEDIR)/modulefiles.other/quar"
 # that defined configuration is operational
 if {$install_quarantinevars ne ""} {
 
-set quarlist {}
-array set runenvarray {}
-foreach vv [split $install_quarantinevars " "] {
-   set vvlist [split $vv "="]
-   if {[llength $vvlist] == 2} {
-      set vname [lindex $vvlist 0]
-      set runenvarray($vname) [lindex $vvlist 1]
-   } else {
-      set vname [lindex $vvlist 0]
-   }
-   lappend quarlist $vname
-
-}
-
 set ans [list]
 set ansr [list]
 
-set quar [join $quarlist " "]
+set quar [join $install_quarlist " "]
 if { $verbose > 0 } {
-    send_user "\tAlready configured MODULES_RUN_QUARANTINE = '$quar'\n"
+   send_user "\tAlready configured MODULES_RUN_QUARANTINE = '$quar'\n"
 }
 lappend ans "MODULES_RUN_QUARANTINE=$quar"
 lappend ansr "MODULES_RUN_QUARANTINE=$quar"
 
-foreach vname $quarlist {
+foreach vname $install_quarlist {
    if { $verbose > 0 } {
-       send_user "\tSetup $vname = 'foo'\n"
+      send_user "\tSetup $vname = 'foo'\n"
    }
    set env($vname) "foo"
    lappend ans "$vname=foo"
@@ -61,13 +47,13 @@ foreach vname $quarlist {
       lappend ansr "$vname=foo"
    }
 }
-foreach vname [lsort $quarlist] {
-   if {[info exists runenvarray($vname)]} {
+foreach vname [lsort $install_quarlist] {
+   if {[info exists install_runenv($vname)]} {
       if { $verbose > 0 } {
-          send_user "\tAlready configured MODULES_RUNENV_$vname = '$runenvarray($vname)'\n"
+         send_user "\tAlready configured MODULES_RUNENV_$vname = '$install_runenv($vname)'\n"
       }
-      lappend ans "MODULES_RUNENV_$vname=$runenvarray($vname)"
-      lappend ansr "MODULES_RUNENV_$vname=$runenvarray($vname)"
+      lappend ans "MODULES_RUNENV_$vname=$install_runenv($vname)"
+      lappend ansr "MODULES_RUNENV_$vname=$install_runenv($vname)"
    }
 }
 
@@ -103,12 +89,6 @@ foreach shell $othlang_list {
 #  Clean up variables used in this test case
 #
 
-unset quarlist
-unset runenvarray
-if {[info exists vv]} {
-   unset vv
-   unset vvlist
-}
 if {[info exists vname]} {
    unset vname
 }
