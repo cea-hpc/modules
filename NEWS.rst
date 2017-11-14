@@ -29,6 +29,15 @@ Modules 4.1.0 (2017-??-??)
   disable pager from the command line.
 * Install: add ``--with-pager`` and ``--with-pager-opts`` configure options to
   define default pager command and its relative command-line options.
+* Introduce quarantine mechanism to protect module execution against side
+  effect coming from the current environment definition. Variables whose name
+  has been put in ``MODULES_RUN_QUARANTINE`` will be emptied or set to the
+  value hold by ``MODULES_RUNENV_<VAR>`` in the modulecmd.tcl run-time
+  environment. Quarantine variable original value is then restored within
+  modulecmd.tcl execution context once it has started.
+* Install: add ``--with-quarantine-vars`` configure option to define at build
+  time the ``MODULES_RUN_QUARANTINE`` and ``MODULES_RUNENV_<VAR>`` environment
+  variables set in initialization scripts.
 
 
 Modules 4.0.0 (2017-10-16)
