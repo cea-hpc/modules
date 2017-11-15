@@ -252,3 +252,9 @@ instance ``--without-modulepath``):
                       time. Each modulefile in this list should be separated
                       by ``:``. Defined value is registered in the
                       ``modulerc`` configuration file. (default=no)
+--with-quarantine-vars=<VARNAME[=VALUE] ...>
+                      Environment variables to put in quarantine when running
+                      the module command to ensure it a sane execution
+                      environment (each variable should be separated by space
+                      character). A value can eventually be set to a
+                      quarantine variable instead of emptying it. (default=no)
