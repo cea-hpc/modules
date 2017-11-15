@@ -38,6 +38,10 @@ Modules 4.1.0 (2017-??-??)
 * Install: add ``--with-quarantine-vars`` configure option to define at build
   time the ``MODULES_RUN_QUARANTINE`` and ``MODULES_RUNENV_<VAR>`` environment
   variables set in initialization scripts.
+* Add ``MODULES_SILENT_SHELL_DEBUG`` environment variable to disable on sh
+  shell and derivatives any ``xtrace`` or ``verbose`` debugging property for
+  the duration of either the module command or the module shell initialization
+  script.
 
 
 Modules 4.0.0 (2017-10-16)

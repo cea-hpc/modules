@@ -552,6 +552,13 @@ ENVIRONMENT
  Original values of these environment variables set in quarantine are passed
  to **modulecmd.tcl** via **<VAR>_modquar** variables.
 
+**MODULES_SILENT_SHELL_DEBUG**
+
+ If set to **1**, disable any *xtrace* or *verbose* debugging property set on
+ current shell session for the duration of either the module command or the
+ module shell initialization script. Only applies to Bourne Shell (sh) and its
+ derivatives.
+
 **MODULES_USE_COMPAT_VERSION**
 
  If set to **1** prior to Modules package initialization, enable
