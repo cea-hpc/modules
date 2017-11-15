@@ -164,9 +164,56 @@ if {$install_loadedmodules ne ""} {
    send_user "\tSkipping default loaded modules checks\n"
 }
 
+# basic test for MODULES_SILENT_SHELL_DEBUG, checking module answer is still present
+# among the debugging output
+if {$verbose > 0} {
+   send_user "\tChecking MODULES_SILENT_SHELL_DEBUG\n"
+   send_user "\tSetup MODULES_SILENT_SHELL_DEBUG = '1'\n"
+}
+set env(MODULES_SILENT_SHELL_DEBUG) 1
+
+foreach shell $shell_sh_family {
+   if {[info exists shell_opts($shell)]} {
+      set shell_opts_save $shell_opts($shell)
+      set shell_opts($shell) "$shell_opts($shell) -xv"
+   } else {
+      set shell_opts($shell) "-xv"
+   }
+   testall_cmd_re "$shell" "module --version" "^\$" ".*Modules Release \\S+ (\\S+).*" 0
+   if {[info exists shell_opts_save]} {
+      set shell_opts($shell) $shell_opts_save
+      unset shell_opts_save
+   } else {
+      unset shell_opts($shell)
+   }
+}
+
+if {$verbose > 0} {
+   send_user "\tSetup MODULES_SILENT_SHELL_DEBUG = '0'\n"
+}
+set env(MODULES_SILENT_SHELL_DEBUG) 0
+
+foreach shell $shell_sh_family {
+   if {[info exists shell_opts($shell)]} {
+      set shell_opts_save $shell_opts($shell)
+      set shell_opts($shell) "$shell_opts($shell) -xv"
+   } else {
+      set shell_opts($shell) "-xv"
+   }
+   testall_cmd_re "$shell" "module --version" "^\$" ".*Modules Release \\S+ (\\S+).*" 0
+   if {[info exists shell_opts_save]} {
+      set shell_opts($shell) $shell_opts_save
+      unset shell_opts_save
+   } else {
+      unset shell_opts($shell)
+   }
+}
+
 #
 #  Clean up variables used in this test case
 #
+
+unset env(MODULES_SILENT_SHELL_DEBUG)
 
 unset bad_cmd
 unset use_desc
