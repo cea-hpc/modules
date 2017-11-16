@@ -2668,7 +2668,7 @@ end}
          }
          {tcl} {
             set fdef "proc module {args} {\n"
-            append fdef {global env; set _mlre {};
+            append fdef {   global env; set _mlre {};
    if {[info exists env(MODULES_RUN_QUARANTINE)]} {
       foreach _mlv [split $env(MODULES_RUN_QUARANTINE) " "] {
          if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $_mlv]} {
@@ -2689,7 +2689,7 @@ end}
    }}
             append fdef "\n   catch {eval exec \$_mlre \"$tclshbin\"\
                \"$argv0\" \"$g_shell\" \$args 2>@stderr} script\n"
-            append fdef {   uplevel $script;}
+            append fdef {   eval $script;}
             append fdef "\n}"
          }
          {cmd} {
@@ -3231,9 +3231,6 @@ endfunction(module)}
       switch -- $g_shellType {
          {sh} - {csh} - {fish} {
             puts stdout "test 0;"
-         }
-         {tcl} {
-            puts stdout "exec /bin/true;"
          }
          {perl} {
             puts stdout "1;"
