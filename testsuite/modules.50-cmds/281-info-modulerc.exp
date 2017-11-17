@@ -66,35 +66,35 @@ set header "$modlin $modpathre $modlin"
 testouterr_cmd "sh" "load $module" $ans "$out_rc_load"
 
 # test displaying
-testerr_cmd_re "sh" "display $module" "$out_rc_display\n$modlin\n$modulefilere2:\n\n$modlin"
+testouterr_cmd_re "sh" "display $module" "OK" "$out_rc_display\n$modlin\n$modulefilere2:\n\n$modlin"
 
 # test help
-testerr_cmd_re "sh" "help $module" "$out_rc_help\n$modlin\nModule Specific Help for $modulefilere2:\n\n$modlin"
+testouterr_cmd_re "sh" "help $module" "OK" "$out_rc_help\n$modlin\nModule Specific Help for $modulefilere2:\n\n$modlin"
 
 # test test
-testerr_cmd_re "sh" "test $module" "$out_rc_test\n$modlin\nModule Specific Test for $modulefilere2:\n\nTest result: PASS\n$modlin"
+testouterr_cmd_re "sh" "test $module" "OK" "$out_rc_test\n$modlin\nModule Specific Test for $modulefilere2:\n\nTest result: PASS\n$modlin"
 
 # test avail
 # no output as defined in modulerc if mode is not set
-testerr_cmd_re "sh" "avail $module" "$header\n$module/1.0\\s+$module/2.0\\(avail:bar:default\\)\\s+$module/foo\\(@\\)\\s+"
+testouterr_cmd_re "sh" "avail $module" "" "$header\n$module/1.0\\s+$module/2.0\\(avail:bar:default\\)\\s+$module/foo\\(@\\)\\s+"
 
 # test aliases
-testerr_cmd_re "sh" "aliases" ".*$module/aliases -> $module2\n.*"
+testouterr_cmd_re "sh" "aliases" "" ".*$module/aliases -> $module2\n.*"
 
 # test whatis
 # no output as defined in modulerc if mode = whatis
-testerr_cmd "sh" "whatis $module" ""
+testouterr_cmd "sh" "whatis $module" "OK" ""
 
 # test apropos
 # no output as defined in modulerc if mode = whatis
-testerr_cmd "sh" "apropos $module" ""
+testouterr_cmd "sh" "apropos $module" "" ""
 
 # Set up the environment for test that require the module to be loaded
 set env(_LMFILES_) "$modulefile2"
 set env(LOADEDMODULES) "$module2"
 
 # test listing
-testerr_cmd_re "sh" "list" "$header_list\n 1\\) $module2\\(bar:default:list\\)\\s+"
+testouterr_cmd_re "sh" "list" "" "$header_list\n 1\\) $module2\\(bar:default:list\\)\\s+"
 
 # test switching
 # modulerc is interpreted on the second phase of switching (load)

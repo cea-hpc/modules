@@ -34,9 +34,9 @@ set ts_sh "$header$module/$version1\n$module/$version2\n$module/$version3\n$modu
 set ts_implicit_default_sh "$header$module/$version6"
 set ts_latest_sh "$header$module/$version6"
 
-testerr_cmd_re "sh" "avail -t $module" "$ts_sh"
-testerr_cmd_re "sh" "avail -t -d $module" "$ts_implicit_default_sh"
-testerr_cmd_re "sh" "avail -t -L $module" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t $module" "" "$ts_sh"
+testouterr_cmd_re "sh" "avail -t -d $module" "" "$ts_implicit_default_sh"
+testouterr_cmd_re "sh" "avail -t -L $module" "" "$ts_latest_sh"
 
 #
 #  tests on module aliases
@@ -46,9 +46,9 @@ set ts_sh "$header$aliasmod/$version1\\(@\\)\n$aliasmod/$version3\\(@\\)\n$alias
 set ts_implicit_default_sh "$header$aliasmod/$version6\\(@\\)"
 set ts_latest_sh "$header$aliasmod/$version6\\(@\\)"
 
-testerr_cmd_re "sh" "avail -t $aliasmod" "$ts_sh"
-testerr_cmd_re "sh" "avail -t -d $aliasmod" "$ts_implicit_default_sh"
-testerr_cmd_re "sh" "avail -t -L $aliasmod" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t $aliasmod" "" "$ts_sh"
+testouterr_cmd_re "sh" "avail -t -d $aliasmod" "" "$ts_implicit_default_sh"
+testouterr_cmd_re "sh" "avail -t -L $aliasmod" "" "$ts_latest_sh"
 
 #
 #  tests on modules mixing modulefiles and aliases
@@ -63,9 +63,9 @@ set ts_sh "$header$mod2/$mod2vers1\n$mod2/$mod2vers2\n$mod2/$mod2vers3\n$mod2/$m
 set ts_default_sh "$header$mod2/$mod2vers4"
 set ts_latest_sh "$header$mod2/$mod2vers4"
 
-testerr_cmd_re "sh" "avail -t $mod2" "$ts_sh"
-testerr_cmd_re "sh" "avail -t -d $mod2" "$ts_default_sh"
-testerr_cmd_re "sh" "avail -t -L $mod2" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t $mod2" "" "$ts_sh"
+testouterr_cmd_re "sh" "avail -t -d $mod2" "" "$ts_default_sh"
+testouterr_cmd_re "sh" "avail -t -L $mod2" "" "$ts_latest_sh"
 
 #
 #  tests on modules mixing modulefiles and symbolic versions
@@ -80,9 +80,9 @@ set ts_latest_sh "$header$mod3/$mod3vers2"
 
 # symbols even if they hold greatest value should not be taken
 # into account for default or latest choice
-testerr_cmd_re "sh" "avail -t $mod3" "$ts_sh"
-testerr_cmd_re "sh" "avail -t -d $mod3" "$ts_default_sh"
-testerr_cmd_re "sh" "avail -t -L $mod3" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t $mod3" "" "$ts_sh"
+testouterr_cmd_re "sh" "avail -t -d $mod3" "" "$ts_default_sh"
+testouterr_cmd_re "sh" "avail -t -L $mod3" "" "$ts_latest_sh"
 
 #
 #  tests on modules mixing directories overriden by alias
@@ -96,9 +96,9 @@ set ts_latest_sh "$header$mod4\\(@\\)"
 
 # alias that overrides directory name will get priority for default
 # and latest version choice (directory content will be ignored)
-testerr_cmd_re "sh" "avail -t $mod4" "$ts_sh"
-testerr_cmd_re "sh" "avail -t -d $mod4" "$ts_default_sh"
-testerr_cmd_re "sh" "avail -t -L $mod4" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t $mod4" "" "$ts_sh"
+testouterr_cmd_re "sh" "avail -t -d $mod4" "" "$ts_default_sh"
+testouterr_cmd_re "sh" "avail -t -L $mod4" "" "$ts_latest_sh"
 
 #
 #  tests on modules mixing empty directories
@@ -106,9 +106,9 @@ testerr_cmd_re "sh" "avail -t -L $mod4" "$ts_latest_sh"
 
 set mod5 "emptydir"
 # empty directories are not displayed
-testerr_cmd "sh" "avail -t $mod5" ""
-testerr_cmd "sh" "avail -t -d $mod5" ""
-testerr_cmd "sh" "avail -t -L $mod5" ""
+testouterr_cmd "sh" "avail -t $mod5" "" ""
+testouterr_cmd "sh" "avail -t -d $mod5" "" ""
+testouterr_cmd "sh" "avail -t -L $mod5" "" ""
 
 #
 #  tests on deep modules, mixing modulefiles and directories
@@ -121,9 +121,9 @@ set ts_sh "$header$mod6/$mod6vers1\n$mod6/$mod6vers2"
 set ts_default_sh "$header$mod6/$mod6vers2"
 set ts_latest_sh "$header$mod6/$mod6vers2"
 
-testerr_cmd_re "sh" "avail -t $mod6" "$ts_sh"
-testerr_cmd_re "sh" "avail -t -d $mod6" "$ts_default_sh"
-testerr_cmd_re "sh" "avail -t -L $mod6" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t $mod6" "" "$ts_sh"
+testouterr_cmd_re "sh" "avail -t -d $mod6" "" "$ts_default_sh"
+testouterr_cmd_re "sh" "avail -t -L $mod6" "" "$ts_latest_sh"
 
 #
 #  tests on modules, mixing modulefiles, directories and badly set default
@@ -136,10 +136,10 @@ set ts_sh "$header$mod7/$mod7vers1\n$mod7/$mod7vers2"
 set ts_default_sh ""
 set ts_latest_sh "$header$mod7/$mod7vers2"
 
-testerr_cmd_re "sh" "avail -t $mod7" "$ts_sh"
+testouterr_cmd_re "sh" "avail -t $mod7" "" "$ts_sh"
 # badly set default, nothing displayed
-testerr_cmd_re "sh" "avail -t -d $mod7" "$ts_default_sh"
-testerr_cmd_re "sh" "avail -t -L $mod7" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t -d $mod7" "" "$ts_default_sh"
+testouterr_cmd_re "sh" "avail -t -L $mod7" "" "$ts_latest_sh"
 
 
 # setup environment state
@@ -159,9 +159,9 @@ set ts_sh "$header$mod8/$mod8vers1\n$mod8/$mod8vers2\n$mod8/$mod8vers3\n$mod8/$m
 set ts_default_sh "$header$mod8/$mod8vers3"
 set ts_latest_sh "$header$mod8/$mod8vers4\n$mod8/$mod8vers5"
 
-testerr_cmd_re "sh" "avail -t $mod8" "$ts_sh"
-testerr_cmd_re "sh" "avail -t -d $mod8" "$ts_default_sh"
-testerr_cmd_re "sh" "avail -t -L $mod8" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t $mod8" "" "$ts_sh"
+testouterr_cmd_re "sh" "avail -t -d $mod8" "" "$ts_default_sh"
+testouterr_cmd_re "sh" "avail -t -L $mod8" "" "$ts_latest_sh"
 
 
 #
@@ -179,9 +179,9 @@ set ts_sh "$header$mod9/$mod9vers1\n$mod9/$mod9vers2\n$mod9/$mod9vers3\n$mod9/$m
 set ts_default_sh "$header$mod9/$mod9vers4\n$mod9/$mod9vers6"
 set ts_latest_sh "$header$mod9/$mod9vers4\n$mod9/$mod9vers6"
 
-testerr_cmd_re "sh" "avail -t $mod9" "$ts_sh"
-testerr_cmd_re "sh" "avail -t -d $mod9" "$ts_default_sh"
-testerr_cmd_re "sh" "avail -t -L $mod9" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t $mod9" "" "$ts_sh"
+testouterr_cmd_re "sh" "avail -t -d $mod9" "" "$ts_default_sh"
+testouterr_cmd_re "sh" "avail -t -L $mod9" "" "$ts_latest_sh"
 
 #
 #  tests on deep modules mixing empty directories
@@ -189,9 +189,9 @@ testerr_cmd_re "sh" "avail -t -L $mod9" "$ts_latest_sh"
 
 set mod10 "emptydeepdir"
 # empty directories are not displayed
-testerr_cmd "sh" "avail -t $mod10" ""
-testerr_cmd "sh" "avail -t -d $mod10" ""
-testerr_cmd "sh" "avail -t -L $mod10" ""
+testouterr_cmd "sh" "avail -t $mod10" "" ""
+testouterr_cmd "sh" "avail -t -d $mod10" "" ""
+testouterr_cmd "sh" "avail -t -L $mod10" "" ""
 
 
 #

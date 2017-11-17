@@ -23,7 +23,7 @@
 # test on empty module load list
 file copy -force "$env(HOME)/.modules.saveempty"  "$env(HOME)/.modules"
 
-testerr_cmd sh "initadd foobar" ""
+testouterr_cmd sh "initadd foobar" "" ""
 _test_modules sh "initadd" "$modload foobar"
 
 
@@ -37,16 +37,16 @@ _test_modules sh "initadd" "#"
 # restore regular .modules file for test
 file copy -force "$env(HOME)/.modules.save"  "$env(HOME)/.modules"
 
-testerr_cmd sh "initadd foobar" ""
+testouterr_cmd sh "initadd foobar" "" ""
 _test_modules sh "initadd" "$modload null foobar\n$line2"
 
-testerr_cmd ksh "initad foo bar" ""
+testouterr_cmd ksh "initad foo bar" "" ""
 _test_modules ksh "initadd" "$modload null foobar foo bar\n$line2"
 
-testerr_cmd zsh "inita poo/2.0" ""
+testouterr_cmd zsh "inita poo/2.0" "" ""
 _test_modules zsh "initadd" "$modload null foobar foo bar poo/2.0\n$line2"
 
 # different behavior than C-version: on Tcl-version no message is printed
-testerr_cmd csh "initadd foobar" ""
+testouterr_cmd csh "initadd foobar" "" ""
 _test_modules csh "initadd" "$modload null foo bar poo/2.0 foobar\n$line2"
 
