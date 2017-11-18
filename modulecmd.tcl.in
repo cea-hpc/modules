@@ -116,7 +116,7 @@ proc raiseErrorCount {} {
 proc renderError {} {
    global g_shellType error_count
 
-   reportDebug "Error: $error_count error(s) detected."
+   reportDebug "renderError: $error_count error(s) detected."
 
    if {[info exists g_shellType]} {
       switch -- $g_shellType {
@@ -124,35 +124,30 @@ proc renderError {} {
             puts stdout "test 0 = 1;"
          }
          {tcl} {
-            puts stdout "error \"modulecmd.tcl: $error_count error(s)\
-               detected!\";"
+            puts stdout "expr {0};"
          }
          {cmd} {
             # nothing needed, reserved for future cygwin, MKS, etc
          }
          {perl} {
-            puts stdout "die \"modulecmd.tcl: $error_count error(s)\
-               detected!\\n\";"
+            puts stdout "0;"
          }
          {python} {
-            puts stdout "raise RuntimeError('modulecmd.tcl: $error_count\
-               error(s) detected!')"
+            # set status via variable, if called from module function this var
+            # will be function returned value
+            puts stdout "_mlret = False"
          }
          {ruby} {
-            puts stdout "raise 'modulecmd.tcl: $error_count error(s)\
-               detected!'"
+            puts stdout "false"
          }
          {lisp} {
-            puts stdout "(error \"modulecmd.tcl:\
-               $error_count error(s) detected!\")"
+            puts stdout "nil"
          }
          {cmake} {
-            puts stdout "message(FATAL_ERROR \"modulecmd.tcl:\
-               $error_count error(s) detected!\")"
+            puts stdout "set(_mlret FALSE)"
          }
          {r} {
-            puts stdout "stop('modulecmd.tcl: $error_count error(s)\
-               detected!')"
+            puts stdout "FALSE"
          }
       }
    }
