@@ -3148,13 +3148,7 @@ end}
          $_mlre = "env $_mlre";
       }
    }}
-         append fdef "\n   eval `\${_mlre}$tclshbin $argv0 perl @_`;\n"
-         append fdef {   if($@) {
-      use Carp;
-      confess "module-error: $@";
-   }
-   return 1;}
-         append fdef "\n}"
+         append fdef "\n   eval `\${_mlre}$tclshbin $argv0 perl @_`;\n}"
       }
       {python} {
          set fdef {import re, subprocess
@@ -3173,7 +3167,9 @@ def module(command, *arguments):
          append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
             '$argv0', 'python', command\] +\
             list(arguments),\
-            stdout=subprocess.PIPE, env=_mlre).communicate()\[0\])"
+            stdout=subprocess.PIPE, env=_mlre).communicate()\[0\])\n"
+         append fdef {   if '_mlret' in locals():
+      return _mlret}
       }
       {ruby} {
          set fdef {class ENVModule
@@ -3232,6 +3228,9 @@ end}
       include(${tempfile_name})
       file(REMOVE ${tempfile_name})
    endif()
+   if(DEFINED _mlret)
+      set(module_result ${_mlret} PARENT_SCOPE)
+   endif()
 endfunction(module)}
       }
       {r} {
@@ -3257,9 +3256,9 @@ endfunction(module)}
          append fdef "\n   cmd <- paste(mlre, '$tclshbin', '$argv0', args,\
             sep=' ')\n"
          append fdef {   hndl <- pipe(cmd)
-   eval(expr = parse(file=hndl))
+   mlret <- eval(expr = parse(file=hndl))
    close(hndl)
-   invisible(0)}
+   invisible(mlret)}
          append fdef "\n}"
 
       }

@@ -201,11 +201,6 @@ set func_perl "sub module {
 \\s*}
 \\s*}
 \\s*eval `\\\${_mlre}$install_tclsh $modulecmd_path perl \\\@_`;
-\\s*if\\\(\\\$\\\@\\\) {
-\\s*use Carp;
-\\s*confess \"module-error: \\\$\\\@\";
-\\s*}
-\\s*return 1;
 }"
 set func_python "import re, subprocess
 def module\\\(command, \\*arguments\\\):
@@ -220,7 +215,9 @@ def module\\\(command, \\*arguments\\\):
 \\s*_mlre\\\[_mlv\\\] = os.environ\\\[_mlrv\\\]
 \\s*else:
 \\s*_mlre\\\[_mlv\\\] = ''
-\\s*exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)"
+\\s*exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)
+\\s*if '_mlret' in locals\\\(\\\):
+\\s*return _mlret"
 set func_ruby "class ENVModule
 \\s*def ENVModule.module\\\(\\*args\\\)
 \\s*_mlre = ''
@@ -271,6 +268,9 @@ set func_cmake "function\\\(module\\\)
 \\s*include\\\(\\\${tempfile_name}\\\)
 \\s*file\\\(REMOVE \\\${tempfile_name}\\\)
 \\s*endif\\\(\\\)
+\\s*if\\\(DEFINED _mlret\\\)
+\\s*set\\\(module_result \\\${_mlret} PARENT_SCOPE\\\)
+\\s*endif\\\(\\\)
 endfunction\\\(module\\\)"
 set func_r "module <- function\\\(...\\\){
 \\s*mlre <- ''
@@ -293,9 +293,9 @@ set func_r "module <- function\\\(...\\\){
 \\s*args <- paste0\\\(arglist, collapse=' '\\\)
 \\s*cmd <- paste\\\(mlre, '$install_tclsh', '$modulecmd_path', args, sep=' '\\\)
 \\s*hndl <- pipe\\\(cmd\\\)
-\\s*eval\\\(expr = parse\\\(file=hndl\\\)\\\)
+\\s*mlret <- eval\\\(expr = parse\\\(file=hndl\\\)\\\)
 \\s*close\\\(hndl\\\)
-\\s*invisible\\\(0\\\)
+\\s*invisible\\\(mlret\\\)
 }"
 
 #
