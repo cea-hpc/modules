@@ -114,7 +114,7 @@ set func_clean_ifs "\\s*if \\\[ -n \"\\\${_mlIFS\\\+x}\" \\\]; then
 \\s*set -\\\$_mlshdbg;
 \\s*unset _mlshdbg;
 \\s*fi;
-\\s*return \\\$_mlret;"
+\\s*return \\\$_mlstatus;"
 set func_silentdbg_sh "\\s*if \\\[ \"\\\$MODULES_SILENT_SHELL_DEBUG\" = '1' \\\]; then
 \\s*case \"\\\$-\" in
 \\s*\\\*v\\\*x\\\*\\\) set \\\+vx; local _mlshdbg='vx' ;;
@@ -133,10 +133,10 @@ set func_silentdbg_othsh "\\s*if \\\[ \"\\\$MODULES_SILENT_SHELL_DEBUG\" = '1' \
 \\s*fi;"
 
 
-set func_sh "module\\\(\\\) {\n$func_silentdbg_sh\n$func_quar_sh\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_path sh \\$\\*`;\n\\s*local _mlret=\\\$\\\?;\n$func_clean_ifs\n};"
-set func_bash "module\\\(\\\) {\n$func_silentdbg_othsh\n$func_quar_sh_other\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_path bash \\$\\*`;\n\\s*typeset _mlret=\\\$\\\?;\n$func_clean_ifs\n};"
-set func_ksh "module\\\(\\\) {\n$func_silentdbg_othsh\n$func_quar_sh_other\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_path ksh \\$\\*`;\n\\s*typeset _mlret=\\\$\\\?;\n$func_clean_ifs\n};"
-set func_zsh "module\\\(\\\) {\n$func_silentdbg_othsh\n$func_quar_zsh\n\\s*eval `\\\${=_mlre}$install_tclsh $modulecmd_path zsh \\$\\*`;\n\\s*typeset _mlret=\\\$\\\?;\n$func_clean_ifs\n};"
+set func_sh "module\\\(\\\) {\n$func_silentdbg_sh\n$func_quar_sh\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_path sh \\$\\*`;\n\\s*local _mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
+set func_bash "module\\\(\\\) {\n$func_silentdbg_othsh\n$func_quar_sh_other\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_path bash \\$\\*`;\n\\s*typeset _mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
+set func_ksh "module\\\(\\\) {\n$func_silentdbg_othsh\n$func_quar_sh_other\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_path ksh \\$\\*`;\n\\s*typeset _mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
+set func_zsh "module\\\(\\\) {\n$func_silentdbg_othsh\n$func_quar_zsh\n\\s*eval `\\\${=_mlre}$install_tclsh $modulecmd_path zsh \\$\\*`;\n\\s*typeset _mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
 set func_csh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
 if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; eval `$install_tclsh $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
 if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\"; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
@@ -216,8 +216,8 @@ def module\\\(command, \\*arguments\\\):
 \\s*else:
 \\s*_mlre\\\[_mlv\\\] = ''
 \\s*exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)
-\\s*if '_mlret' in locals\\\(\\\):
-\\s*return _mlret"
+\\s*if '_mlstatus' in locals\\\(\\\):
+\\s*return _mlstatus"
 set func_ruby "class ENVModule
 \\s*def ENVModule.module\\\(\\*args\\\)
 \\s*_mlre = ''
@@ -268,8 +268,8 @@ set func_cmake "function\\\(module\\\)
 \\s*include\\\(\\\${tempfile_name}\\\)
 \\s*file\\\(REMOVE \\\${tempfile_name}\\\)
 \\s*endif\\\(\\\)
-\\s*if\\\(DEFINED _mlret\\\)
-\\s*set\\\(module_result \\\${_mlret} PARENT_SCOPE\\\)
+\\s*if\\\(DEFINED _mlstatus\\\)
+\\s*set\\\(module_result \\\${_mlstatus} PARENT_SCOPE\\\)
 \\s*endif\\\(\\\)
 endfunction\\\(module\\\)"
 set func_r "module <- function\\\(...\\\){
@@ -293,9 +293,9 @@ set func_r "module <- function\\\(...\\\){
 \\s*args <- paste0\\\(arglist, collapse=' '\\\)
 \\s*cmd <- paste\\\(mlre, '$install_tclsh', '$modulecmd_path', args, sep=' '\\\)
 \\s*hndl <- pipe\\\(cmd\\\)
-\\s*mlret <- eval\\\(expr = parse\\\(file=hndl\\\)\\\)
+\\s*mlstatus <- eval\\\(expr = parse\\\(file=hndl\\\)\\\)
 \\s*close\\\(hndl\\\)
-\\s*invisible\\\(mlret\\\)
+\\s*invisible\\\(mlstatus\\\)
 }"
 
 #

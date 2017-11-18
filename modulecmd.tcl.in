@@ -135,7 +135,7 @@ proc renderError {} {
          {python} {
             # set status via variable, if called from module function this var
             # will be function returned value
-            puts stdout "_mlret = False"
+            puts stdout "_mlstatus = False"
          }
          {ruby} {
             puts stdout "false"
@@ -144,7 +144,7 @@ proc renderError {} {
             puts stdout "nil"
          }
          {cmake} {
-            puts stdout "set(_mlret FALSE)"
+            puts stdout "set(_mlstatus FALSE)"
          }
          {r} {
             puts stdout "FALSE"
@@ -174,7 +174,7 @@ proc renderOk {} {
       {python} {
          # set status via variable, if called from module function this var
          # will be function returned value
-         puts stdout "_mlret = True"
+         puts stdout "_mlstatus = True"
       }
       {ruby} {
          puts stdout "true"
@@ -183,7 +183,7 @@ proc renderOk {} {
          puts stdout "t"
       }
       {cmake} {
-         puts stdout "set(_mlret TRUE)"
+         puts stdout "set(_mlstatus TRUE)"
       }
       {r} {
          puts stdout "TRUE"
@@ -3054,7 +3054,7 @@ if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
    fi;}
          append fdef "\n   eval `\${${wsplit}_mlre}$tclshbin $argv0\
 $g_shell \$*`;
-   $locf _mlret=\$?;\n"
+   $locf _mlstatus=\$?;\n"
          append fdef {   if [ -n "${_mlIFS+x}" ]; then
       IFS=$_mlIFS;
    else
@@ -3064,7 +3064,7 @@ $g_shell \$*`;
       set -$_mlshdbg;
       unset _mlshdbg;
    fi;
-   return $_mlret;}
+   return $_mlstatus;}
          append fdef "\n};"
          if {[isStderrTty]} {
             append fdef "\nmodule() { _moduleraw \$* 2>&1; };"
@@ -3168,8 +3168,8 @@ def module(command, *arguments):
             '$argv0', 'python', command\] +\
             list(arguments),\
             stdout=subprocess.PIPE, env=_mlre).communicate()\[0\])\n"
-         append fdef {   if '_mlret' in locals():
-      return _mlret}
+         append fdef {   if '_mlstatus' in locals():
+      return _mlstatus}
       }
       {ruby} {
          set fdef {class ENVModule
@@ -3228,8 +3228,8 @@ end}
       include(${tempfile_name})
       file(REMOVE ${tempfile_name})
    endif()
-   if(DEFINED _mlret)
-      set(module_result ${_mlret} PARENT_SCOPE)
+   if(DEFINED _mlstatus)
+      set(module_result ${_mlstatus} PARENT_SCOPE)
    endif()
 endfunction(module)}
       }
@@ -3256,9 +3256,9 @@ endfunction(module)}
          append fdef "\n   cmd <- paste(mlre, '$tclshbin', '$argv0', args,\
             sep=' ')\n"
          append fdef {   hndl <- pipe(cmd)
-   mlret <- eval(expr = parse(file=hndl))
+   mlstatus <- eval(expr = parse(file=hndl))
    close(hndl)
-   invisible(mlret)}
+   invisible(mlstatus)}
          append fdef "\n}"
 
       }
