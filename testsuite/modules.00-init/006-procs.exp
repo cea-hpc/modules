@@ -105,15 +105,36 @@ proc shell_err {test_shell {nb_err 1} {re_mode 0}} {
 }
 
 proc shell_ok {test_shell {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
     switch -- $test_shell {
         {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
             set answer "test 0;"
+        }
+        {tcl} {
+            set answer "expr ${esc}{1${esc}};"
+        }
+        {python} {
+            set answer "_mlret = True"
+        }
+        {ruby} {
+            set answer "true"
         }
         {perl} {
             set answer "1;"
         }
         {lisp} {
             set answer "t"
+        }
+        {cmake} {
+            set answer "set${esc}(_mlret TRUE${esc})"
+        }
+        {r} {
+            set answer "TRUE"
         }
         default {
             set answer ""
@@ -671,8 +692,15 @@ proc shell_out {test_shell out_list {re_mode 0}} {
         set answer_list [concat [list "import os"] $answer_list]
     }
 
-    if {!$status_set && $test_shell eq "perl"} {
-        lappend answer_list "1;"
+    # add automatic status if any for shell
+    if {!$status_set} {
+        switch -- $test_shell {
+            {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            }
+            default {
+                lappend answer_list [shell_ok $test_shell $re_mode]
+            }
+        }
     }
 
     set answer [join $answer_list "\n"]

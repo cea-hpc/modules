@@ -158,6 +158,44 @@ proc renderError {} {
    }
 }
 
+proc renderOk {} {
+   global g_shellType
+
+   reportDebug "renderOk: called."
+
+   switch -- $g_shellType {
+      {sh} - {csh} - {fish} {
+         # ok already rendered if some code rendered
+         if {![tell stdout]} {
+            puts stdout "test 0;"
+         }
+      }
+      {tcl} {
+         puts stdout "expr {1};"
+      }
+      {perl} {
+         puts stdout "1;"
+      }
+      {python} {
+         # set status via variable, if called from module function this var
+         # will be function returned value
+         puts stdout "_mlret = True"
+      }
+      {ruby} {
+         puts stdout "true"
+      }
+      {lisp} {
+         puts stdout "t"
+      }
+      {cmake} {
+         puts stdout "set(_mlret TRUE)"
+      }
+      {r} {
+         puts stdout "TRUE"
+      }
+   }
+}
+
 #
 # Debug, Info, Warnings and Error message handling.
 #
@@ -2931,26 +2969,8 @@ proc renderSettings {} {
 
    if {$error_count > 0} {
       renderError
-   } elseif {![tell stdout]} {
-      # nothing written!
-      switch -- $g_shellType {
-         {sh} - {csh} - {fish} {
-            puts stdout "test 0;"
-         }
-         {perl} {
-            puts stdout "1;"
-         }
-         {lisp} {
-            puts stdout "t"
-         }
-      }
    } else {
-      # conclusion when no error and stuff written
-      switch -- $g_shellType {
-         {perl} {
-            puts stdout "1;"
-         }
-      }
+      renderOk
    }
 }
 
