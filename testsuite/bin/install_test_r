@@ -36,8 +36,15 @@ if (file.access(initfile, 4) != 0) {
 source(initfile)
 
 # execute command list
+code <- 0
 for (cmd in strsplit(cmdlist, ':')[[1]]) {
-   do.call(module, list(cmd))
+   if (identical(do.call(module, list(cmd)), FALSE)) {
+      code <- 1
+   }
+}
+
+if (code != 0) {
+   stop()
 }
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

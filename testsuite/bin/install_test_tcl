@@ -36,8 +36,13 @@ if {![file readable $initfile]} {
 source $initfile
 
 # execute command list
+set code 0
 foreach cmd [split $cmdlist ":"] {
-   eval module $cmd
+   if {[catch {eval module $cmd}]} {
+      set code 1
+   }
 }
+
+exit $code
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

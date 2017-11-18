@@ -25,6 +25,7 @@ endif()
 include(${initfile})
 
 # execute command list
+set(code 0)
 string(REPLACE ":" ";" cmdsplit ${cmdlist})
 foreach(cmd ${cmdsplit})
    string(REPLACE " " ";" cmdelt ${cmd})
@@ -36,6 +37,12 @@ foreach(cmd ${cmdsplit})
       set(elt1 "")
    endif()
    module(${elt0} ${elt1})
+   if(NOT module_result)
+      set(code 1)
+   endif()
 endforeach()
 
+if(${code})
+   message(FATAL_ERROR "")
+endif()
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
