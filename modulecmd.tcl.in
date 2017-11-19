@@ -113,10 +113,10 @@ proc raiseErrorCount {} {
    incr error_count
 }
 
-proc renderError {} {
-   global g_shellType error_count
+proc renderFalse {} {
+   global g_shellType
 
-   reportDebug "renderError: $error_count error(s) detected."
+   reportDebug "renderFalse: called."
 
    if {[info exists g_shellType]} {
       switch -- $g_shellType {
@@ -153,10 +153,10 @@ proc renderError {} {
    }
 }
 
-proc renderOk {} {
+proc renderTrue {} {
    global g_shellType
 
-   reportDebug "renderOk: called."
+   reportDebug "renderTrue: called."
 
    switch -- $g_shellType {
       {sh} - {csh} - {fish} {
@@ -223,7 +223,7 @@ proc reportError {message {nonewline ""}} {
 
 proc reportErrorAndExit {message} {
    raiseErrorCount
-   renderError
+   renderFalse
    error "$message"
 }
 
@@ -2947,9 +2947,10 @@ proc renderSettings {} {
    }
 
    if {$error_count > 0} {
-      renderError
+      reportDebug "renderSettings: $error_count error(s) detected."
+      renderFalse
    } else {
-      renderOk
+      renderTrue
    }
 }
 
