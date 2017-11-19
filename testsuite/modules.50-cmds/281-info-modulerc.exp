@@ -76,10 +76,10 @@ testouterr_cmd_re "sh" "test $module" "OK" "$out_rc_test\n$modlin\nModule Specif
 
 # test avail
 # no output as defined in modulerc if mode is not set
-testouterr_cmd_re "sh" "avail $module" "" "$header\n$module/1.0\\s+$module/2.0\\(avail:bar:default\\)\\s+$module/foo\\(@\\)\\s+"
+testouterr_cmd_re "sh" "avail $module" "OK" "$header\n$module/1.0\\s+$module/2.0\\(avail:bar:default\\)\\s+$module/foo\\(@\\)\\s+"
 
 # test aliases
-testouterr_cmd_re "sh" "aliases" "" ".*$module/aliases -> $module2\n.*"
+testouterr_cmd_re "sh" "aliases" "OK" ".*$module/aliases -> $module2\n.*"
 
 # test whatis
 # no output as defined in modulerc if mode = whatis
@@ -87,14 +87,15 @@ testouterr_cmd "sh" "whatis $module" "OK" ""
 
 # test apropos
 # no output as defined in modulerc if mode = whatis
-testouterr_cmd "sh" "apropos $module" "" ""
+# error found in interpreted module, so an error code is rendered
+testouterr_cmd "sh" "apropos $module" "ERR" ""
 
 # Set up the environment for test that require the module to be loaded
 set env(_LMFILES_) "$modulefile2"
 set env(LOADEDMODULES) "$module2"
 
 # test listing
-testouterr_cmd_re "sh" "list" "" "$header_list\n 1\\) $module2\\(bar:default:list\\)\\s+"
+testouterr_cmd_re "sh" "list" "OK" "$header_list\n 1\\) $module2\\(bar:default:list\\)\\s+"
 
 # test switching
 # modulerc is interpreted on the second phase of switching (load)

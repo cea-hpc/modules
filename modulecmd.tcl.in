@@ -1201,7 +1201,6 @@ proc module {command args} {
                report "module load\t$args"
             }
             popCommandName
-            set needrender 1
             # sub-module interpretation failed, raise error
             if {$ret && !$topcall} {
                set errormsg "SUB_FAILED"
@@ -1224,7 +1223,6 @@ proc module {command args} {
                report "module unload\t$args"
             }
             popCommandName
-            set needrender 1
             # sub-module interpretation failed, raise error
             if {$ret && !$topcall} {
                set errormsg "SUB_FAILED"
@@ -1238,7 +1236,6 @@ proc module {command args} {
             pushCommandName "reload"
             cmdModuleReload
             popCommandName
-            set needrender 1
          }
       }
       {^use$} {
@@ -1249,7 +1246,6 @@ proc module {command args} {
          } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
             report "module use\t$args"
          }
-         set needrender 1
       }
       {^unuse$} {
          if {$topcall || $mode eq "load" || $mode eq "unload"} {
@@ -1257,7 +1253,6 @@ proc module {command args} {
          } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
             report "module unuse\t$args"
          }
-         set needrender 1
       }
       {^source$} {
          if {[llength $args] == 0} {
@@ -1266,7 +1261,6 @@ proc module {command args} {
             pushCommandName "source"
             eval cmdModuleSource $args
             popCommandName
-            set needrender 1
          }
       }
       {^sw} {
@@ -1276,7 +1270,6 @@ proc module {command args} {
             pushCommandName "switch"
             eval cmdModuleSwitch $args
             popCommandName
-            set needrender 1
          }
       }
       {^(di|show)} {
@@ -1286,7 +1279,6 @@ proc module {command args} {
             pushCommandName "display"
             eval cmdModuleDisplay $args
             popCommandName
-            set needrender 1
          }
       }
       {^av} {
@@ -1314,7 +1306,6 @@ proc module {command args} {
             set errormsg "Unexpected number of args for 'path' command"
          } else {
             eval cmdModulePath $args
-            set needrender 1
          }
       }
       {^paths$} {
@@ -1322,7 +1313,6 @@ proc module {command args} {
             set errormsg "Unexpected number of args for 'paths' command"
          } else {
             eval cmdModulePaths $args
-            set needrender 1
          }
       }
       {^li} {
@@ -1340,7 +1330,6 @@ proc module {command args} {
             foreach arg $args {
                cmdModuleWhatIs $arg
             }
-            set needrender 1
          } else {
             cmdModuleWhatIs
          }
@@ -1362,7 +1351,6 @@ proc module {command args} {
             pushCommandName "purge"
             eval cmdModulePurge
             popCommandName
-            set needrender 1
          }
       }
       {^save$} {
@@ -1379,7 +1367,6 @@ proc module {command args} {
             pushCommandName "restore"
             eval cmdModuleRestore $args
             popCommandName
-            set needrender 1
          }
       }
       {^saverm$} {
@@ -1451,7 +1438,6 @@ proc module {command args} {
                set errormsg "Unexpected number of args for 'autoinit' command"
             } else {
                cmdModuleAutoinit
-               set needrender 1
             }
          } else {
             # autoinit cannot be called elsewhere than from top level
@@ -1464,7 +1450,6 @@ proc module {command args} {
             eval cmdModuleHelp $args
             popCommandName
             if {[llength $args] != 0} {
-               set needrender 1
             }
          } else {
             # help cannot be called elsewhere than from top level
@@ -1478,7 +1463,6 @@ proc module {command args} {
             pushCommandName "test"
             eval cmdModuleTest $args
             popCommandName
-            set needrender 1
          }
       }
       . {
@@ -1498,7 +1482,7 @@ proc module {command args} {
          error "$errormsg"
       }
    # if called from top level render settings if any
-   } elseif {$topcall && [info exists needrender]} {
+   } elseif {$topcall} {
       renderSettings
    }
 
@@ -3169,7 +3153,9 @@ def module(command, *arguments):
             list(arguments),\
             stdout=subprocess.PIPE, env=_mlre).communicate()\[0\])\n"
          append fdef {   if '_mlstatus' in locals():
-      return _mlstatus}
+      return _mlstatus
+   else:
+      return False}
       }
       {ruby} {
          set fdef {class ENVModule
@@ -3230,6 +3216,8 @@ end}
    endif()
    if(DEFINED _mlstatus)
       set(module_result ${_mlstatus} PARENT_SCOPE)
+   else()
+      set(module_result FALSE PARENT_SCOPE)
    endif()
 endfunction(module)}
       }
