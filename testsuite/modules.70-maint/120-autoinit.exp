@@ -181,8 +181,10 @@ set func_tcl "proc module {args} {
 \\s*set _mlre \\\[linsert \\\$_mlre 0 \"env\"\\\]
 \\s*}
 \\s*}
+\\s*set _mlstatus 1;
 \\s*catch {eval exec \\\$_mlre \"$install_tclsh\" \"$modulecmd_path\" \"tcl\" \\\$args 2>@stderr} script
 \\s*eval \\\$script;
+\\s*return \\\$_mlstatus
 }"
 set func_perl "sub module {
 \\s*my \\\$_mlre = '';
@@ -200,7 +202,9 @@ set func_perl "sub module {
 \\s*\\\$_mlre = \"env \\\$_mlre\";
 \\s*}
 \\s*}
+\\s*my \\\$_mlstatus = 1;
 \\s*eval `\\\${_mlre}$install_tclsh $modulecmd_path perl \\\@_`;
+\\s*return \\\$_mlstatus;
 }"
 set func_python "import re, subprocess
 def module\\\(command, \\*arguments\\\):
@@ -215,11 +219,9 @@ def module\\\(command, \\*arguments\\\):
 \\s*_mlre\\\[_mlv\\\] = os.environ\\\[_mlrv\\\]
 \\s*else:
 \\s*_mlre\\\[_mlv\\\] = ''
+\\s*_mlstatus = True
 \\s*exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)
-\\s*if '_mlstatus' in locals\\\(\\\):
-\\s*return _mlstatus
-\\s*else:
-\\s*return False"
+\\s*return _mlstatus"
 set func_ruby "class ENVModule
 \\s*def ENVModule.module\\\(\\*args\\\)
 \\s*_mlre = ''
@@ -242,7 +244,9 @@ set func_ruby "class ENVModule
 \\s*else
 \\s*args = args.join\\\(' '\\\)
 \\s*end
+\\s*_mlstatus = true
 \\s*eval `#{_mlre}$install_tclsh $modulecmd_path ruby #{args}`
+\\s*return _mlstatus
 \\s*end
 end"
 set func_cmake "function\\\(module\\\)
@@ -262,6 +266,7 @@ set func_cmake "function\\\(module\\\)
 \\s*set\\\(_mlre \"env;\\\${_mlre}\"\\\)
 \\s*endif\\\(\\\)
 \\s*endif\\\(\\\)
+\\s*set\\\(_mlstatus TRUE\\\)
 \\s*execute_process\\\(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
 \\s*OUTPUT_VARIABLE tempfile_name\\\)
 \\s*execute_process\\\(COMMAND \\\${_mlre} $install_tclsh $modulecmd_path cmake \\\${ARGV}
@@ -270,11 +275,7 @@ set func_cmake "function\\\(module\\\)
 \\s*include\\\(\\\${tempfile_name}\\\)
 \\s*file\\\(REMOVE \\\${tempfile_name}\\\)
 \\s*endif\\\(\\\)
-\\s*if\\\(DEFINED _mlstatus\\\)
 \\s*set\\\(module_result \\\${_mlstatus} PARENT_SCOPE\\\)
-\\s*else\\\(\\\)
-\\s*set\\\(module_result FALSE PARENT_SCOPE\\\)
-\\s*endif\\\(\\\)
 endfunction\\\(module\\\)"
 set func_r "module <- function\\\(...\\\){
 \\s*mlre <- ''
@@ -296,8 +297,9 @@ set func_r "module <- function\\\(...\\\){
 \\s*arglist\\\[1\\\] <- 'r'
 \\s*args <- paste0\\\(arglist, collapse=' '\\\)
 \\s*cmd <- paste\\\(mlre, '$install_tclsh', '$modulecmd_path', args, sep=' '\\\)
+\\s*mlstatus <- TRUE
 \\s*hndl <- pipe\\\(cmd\\\)
-\\s*mlstatus <- eval\\\(expr = parse\\\(file=hndl\\\)\\\)
+\\s*eval\\\(expr = parse\\\(file=hndl\\\)\\\)
 \\s*close\\\(hndl\\\)
 \\s*invisible\\\(mlstatus\\\)
 }"

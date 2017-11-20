@@ -119,26 +119,31 @@ proc renderFalse {} {
    reportDebug "renderFalse: called."
 
    if {[info exists g_shellType]} {
+      # render a false value most of the time through a variable assignement
+      # that will be looked at in the shell module function calling
+      # modulecmd.tcl to return in turns a boolean status. Except for python
+      # and cmake, the value assigned to variable is also returned as the
+      # entire rendering status
       switch -- $g_shellType {
          {sh} - {csh} - {fish} {
+            # no need to set a variable on real shells as last statement
+            # result can easily be checked
             puts stdout "test 0 = 1;"
          }
          {tcl} {
-            puts stdout "expr {0};"
+            puts stdout "set _mlstatus 0;"
          }
          {cmd} {
             # nothing needed, reserved for future cygwin, MKS, etc
          }
          {perl} {
-            puts stdout "0;"
+            puts stdout "\$_mlstatus = 0;"
          }
          {python} {
-            # set status via variable, if called from module function this var
-            # will be function returned value
             puts stdout "_mlstatus = False"
          }
          {ruby} {
-            puts stdout "false"
+            puts stdout "_mlstatus = false"
          }
          {lisp} {
             puts stdout "nil"
@@ -147,7 +152,7 @@ proc renderFalse {} {
             puts stdout "set(_mlstatus FALSE)"
          }
          {r} {
-            puts stdout "FALSE"
+            puts stdout "mlstatus <- FALSE"
          }
       }
    }
@@ -158,26 +163,30 @@ proc renderTrue {} {
 
    reportDebug "renderTrue: called."
 
+   # render a true value most of the time through a variable assignement that
+   # will be looked at in the shell module function calling modulecmd.tcl to
+   # return in turns a boolean status. Except for python and cmake, the
+   # value assigned to variable is also returned as the full rendering status
    switch -- $g_shellType {
       {sh} - {csh} - {fish} {
          # ok already rendered if some code rendered
          if {![tell stdout]} {
+            # no need to set a variable on real shells as last statement
+            # result can easily be checked
             puts stdout "test 0;"
          }
       }
       {tcl} {
-         puts stdout "expr {1};"
+         puts stdout "set _mlstatus 1;"
       }
       {perl} {
-         puts stdout "1;"
+         puts stdout "\$_mlstatus = 1;"
       }
       {python} {
-         # set status via variable, if called from module function this var
-         # will be function returned value
          puts stdout "_mlstatus = True"
       }
       {ruby} {
-         puts stdout "true"
+         puts stdout "_mlstatus = true"
       }
       {lisp} {
          puts stdout "t"
@@ -186,7 +195,7 @@ proc renderTrue {} {
          puts stdout "set(_mlstatus TRUE)"
       }
       {r} {
-         puts stdout "TRUE"
+         puts stdout "mlstatus <- TRUE"
       }
    }
 }
@@ -3107,10 +3116,12 @@ end}
       if {[llength $_mlre] > 0} {
          set _mlre [linsert $_mlre 0 "env"]
       }
-   }}
+   }
+   set _mlstatus 1;}
          append fdef "\n   catch {eval exec \$_mlre \"$tclshbin\"\
             \"$argv0\" \"$g_shell\" \$args 2>@stderr} script\n"
-         append fdef {   eval $script;}
+         append fdef {   eval $script;
+   return $_mlstatus}
          append fdef "\n}"
       }
       {cmd} {
@@ -3132,8 +3143,11 @@ end}
       if ($_mlre ne "") {
          $_mlre = "env $_mlre";
       }
-   }}
-         append fdef "\n   eval `\${_mlre}$tclshbin $argv0 perl @_`;\n}"
+   }
+   my $_mlstatus = 1;}
+         append fdef "\n   eval `\${_mlre}$tclshbin $argv0 perl @_`;\n"
+         append fdef {   return $_mlstatus;}
+         append fdef "\n}"
       }
       {python} {
          set fdef {import re, subprocess
@@ -3148,15 +3162,13 @@ def module(command, *arguments):
             if _mlrv in os.environ:
                _mlre[_mlv] = os.environ[_mlrv]
             else:
-               _mlre[_mlv] = ''}
+               _mlre[_mlv] = ''
+   _mlstatus = True}
          append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
             '$argv0', 'python', command\] +\
             list(arguments),\
             stdout=subprocess.PIPE, env=_mlre).communicate()\[0\])\n"
-         append fdef {   if '_mlstatus' in locals():
-      return _mlstatus
-   else:
-      return False}
+         append fdef {   return _mlstatus}
       }
       {ruby} {
          set fdef {class ENVModule
@@ -3180,9 +3192,11 @@ def module(command, *arguments):
          args = args[0].join(' ')
       else
          args = args.join(' ')
-      end}
+      end
+      _mlstatus = true}
          append fdef "\n      eval `#{_mlre}$tclshbin $argv0 ruby #{args}`\n"
-         append fdef {   end
+         append fdef {      return _mlstatus
+   end
 end}
       }
       {lisp} {
@@ -3206,6 +3220,7 @@ end}
          set(_mlre "env;${_mlre}")
       endif()
    endif()
+   set(_mlstatus TRUE)
    execute_process(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
       OUTPUT_VARIABLE tempfile_name)}
             append fdef "\n   execute_process(COMMAND \${_mlre} $tclshbin\
@@ -3215,11 +3230,7 @@ end}
       include(${tempfile_name})
       file(REMOVE ${tempfile_name})
    endif()
-   if(DEFINED _mlstatus)
-      set(module_result ${_mlstatus} PARENT_SCOPE)
-   else()
-      set(module_result FALSE PARENT_SCOPE)
-   endif()
+   set(module_result ${_mlstatus} PARENT_SCOPE)
 endfunction(module)}
       }
       {r} {
@@ -3244,8 +3255,9 @@ endfunction(module)}
    args <- paste0(arglist, collapse=' ')}
          append fdef "\n   cmd <- paste(mlre, '$tclshbin', '$argv0', args,\
             sep=' ')\n"
-         append fdef {   hndl <- pipe(cmd)
-   mlstatus <- eval(expr = parse(file=hndl))
+         append fdef {   mlstatus <- TRUE
+   hndl <- pipe(cmd)
+   eval(expr = parse(file=hndl))
    close(hndl)
    invisible(mlstatus)}
          append fdef "\n}"
