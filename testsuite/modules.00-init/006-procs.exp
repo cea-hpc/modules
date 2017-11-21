@@ -693,7 +693,7 @@ proc shell_out {test_shell out_list {re_mode 0}} {
     }
 
     # add automatic status if any for shell
-    if {!$status_set} {
+    if {!$status_set && [llength $answer_list] > 0} {
         lappend answer_list [shell_ok $test_shell $re_mode]
     }
 
@@ -804,7 +804,8 @@ proc _test_out {test_shell cmd answer} {
     } elseif {$answer eq "ERR2"} {
         set answer [shell_err $test_shell 2]
     } elseif {$answer eq "OK"} {
-        set answer [shell_ok $test_shell]
+        # just OK means no output
+        set answer ""
     }
 
 	if { $comp_output != "$answer" } {
@@ -832,7 +833,8 @@ proc _test_out_re {test_shell cmd answer} {
     } elseif {$answer eq "ERR2"} {
         set answer [shell_err $test_shell 2 1]
     } elseif {$answer eq "OK"} {
-        set answer [shell_ok $test_shell 1]
+        # just OK means no output
+        set answer ""
     }
 
     set answer "^$answer\$"
