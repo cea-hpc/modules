@@ -55,11 +55,9 @@ set disp_1 "$modlin\n$modulefilere_1:\n\n$whatis_csh_1\n$disp_csh\n$modlin"
 set avail_1_al "$modlin global/user modulerc $modlin\nsym_foo\\(special:@\\)\\s+"
 set avail_1 "$modlin $modpathre $modlin\n$module_1\\(foo:special\\)\\s+"
 set what_1 "$modlin $modpathre $modlin\n         $module_1: $module_1"
-set path_1 "echo '$modulefile_1';"
 set whatis_csh_2 "module-whatis\t$module_2"
 set disp_2 "$modlin\n$modulefilere_2:\n\n$whatis_csh_2\n$disp_csh\n$modlin"
 set what_2 "$modlin $modpathre $modlin\n         $module_2: $module_2"
-set path_2 "echo '$modulefile_2';"
 
 set locate_msg "$err_path'sym_foo'"
 
@@ -72,28 +70,29 @@ set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
 lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES $module_1]
 lappend ans [list setpath _LMFILES_ $modulefile_1]
+lappend anspa [list echo $modulefile_1]
 test_cmd "csh" "load sym_foo" $ans
 testouterr_cmd_re "sh" "display sym_foo" "OK" "$disp_1"
 testouterr_cmd_re "sh" "whatis sym_foo" "OK" "$what_1"
-test_cmd "sh" "paths sym_foo" "$path_1"
+test_cmd "sh" "paths sym_foo" $anspa
 test_cmd "csh" "load sym_foo/special" $ans
 testouterr_cmd_re "sh" "display sym_foo/special" "OK" "$disp_1"
 testouterr_cmd_re "sh" "avail sym_foo/special" "OK" "$avail_1_al"
 testouterr_cmd_re "sh" "whatis sym_foo/special" "OK" "$what_1"
-test_cmd "sh" "paths sym_foo/special" "$path_1"
+test_cmd "sh" "paths sym_foo/special" $anspa
 
 set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/"
 test_cmd "csh" "load sym_foo" $ans
 testouterr_cmd_re "sh" "display sym_foo" "OK" "$disp_1"
 testouterr_cmd_re "sh" "whatis sym_foo" "OK" "$what_1"
-test_cmd "sh" "paths sym_foo" "$path_1"
+test_cmd "sh" "paths sym_foo" $anspa
 
 # test symbol set in global RC gets correct transitivity
 test_cmd "csh" "load loc_rc1/special" $ans
 testouterr_cmd_re "sh" "display loc_rc1/special" "OK" "$disp_1"
 testouterr_cmd_re "sh" "avail loc_rc1/special" "OK" "$avail_1"
 testouterr_cmd_re "sh" "whatis loc_rc1/special" "OK" "$what_1"
-test_cmd "sh" "paths loc_rc1/special" "$path_1"
+test_cmd "sh" "paths loc_rc1/special" $anspa
 
 unset env(MODULERCFILE)
 testouterr_cmd "csh" "load sym_foo" "ERR" "$locate_msg"
@@ -106,21 +105,23 @@ set ans [list]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES $module_2]
 lappend ans [list setpath _LMFILES_ $modulefile_2]
+set anspa [list]
+lappend anspa [list echo $modulefile_2]
 test_cmd "csh" "load sym_foo" $ans
 testouterr_cmd_re "sh" "display sym_foo" "OK" "$disp_2"
 testouterr_cmd_re "sh" "whatis sym_foo" "OK" "$what_2"
-test_cmd "sh" "paths sym_foo" "$path_2"
+test_cmd "sh" "paths sym_foo" $anspa
 test_cmd "csh" "load sym_foo/special2" $ans
 testouterr_cmd_re "sh" "display sym_foo/special2" "OK" "$disp_2"
 testouterr_cmd_re "sh" "whatis sym_foo/special2" "OK" "$what_2"
-test_cmd "sh" "paths sym_foo/special2" "$path_2"
+test_cmd "sh" "paths sym_foo/special2" $anspa
 
 # test global RCs cascading
 set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
 test_cmd "csh" "load sym_foo" $ans
 testouterr_cmd_re "sh" "display sym_foo" "OK" "$disp_2"
 testouterr_cmd_re "sh" "whatis sym_foo" "OK" "$what_2"
-test_cmd "sh" "paths sym_foo" "$path_2"
+test_cmd "sh" "paths sym_foo" $anspa
 
 
 #
@@ -145,6 +146,7 @@ if { [info exists save_modhome ] } {
 #
 
 unset ans
+unset anspa
 
 unset disp_csh
 unset whatis_csh_1
@@ -152,11 +154,9 @@ unset disp_1
 unset avail_1_al
 unset avail_1
 unset what_1
-unset path_1
 unset whatis_csh_2
 unset disp_2
 unset what_2
-unset path_2
 
 unset locate_msg
 

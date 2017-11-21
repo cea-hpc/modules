@@ -83,9 +83,6 @@ set what_2 "$header\n         $module_2: $module_2"
 set what_7 "$header\n         $module_7: $module_7"
 set what_9_7 "$header\n     $module_9: $module_9\n         $module_7: $module_7"
 
-set path_7 "echo '$modulefile_7';"
-set path_9 "echo '$modulefile_9';"
-
 #
 #  The tests
 #
@@ -149,7 +146,10 @@ lappend ans [list setpath _LMFILES_ "$modulefile_8:$modulefile_7"]
 test_cmd_re "csh" "load dirmodalias" $ans
 testouterr_cmd_re "sh" "display dirmodalias" "OK" "$disp_7"
 testouterr_cmd_re "sh" "whatis dirmodalias" "OK" "$what_9_7"
-test_cmd "sh" "paths dirmodalias" "$path_9\n$path_7"
+set ans [list]
+lappend ans [list echo $modulefile_7]
+lappend ans [list echo $modulefile_9]
+test_cmd "sh" "paths dirmodalias" $ans
 
 #
 #  Cleanup
@@ -176,9 +176,6 @@ unset what_1
 unset what_2
 unset what_7
 unset what_9_7
-
-unset path_7
-unset path_9
 
 unset modulefile_1
 unset modulefilere_1

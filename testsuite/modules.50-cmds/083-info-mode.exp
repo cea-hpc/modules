@@ -72,7 +72,8 @@ set lin_test "Module Specific Test for $modulefilere:"
 test_cmd "sh" "load $module" $ans
 
 # test displaying
-testouterr_cmd_re "sh" "display $module" "display" "$modlin\n$modulefilere:\n\n$modlin"
+set ansout [list "display" [shell_ok sh 1]]
+testouterr_cmd_re "sh" "display $module" [join $ansout "\n"] "$modlin\n$modulefilere:\n\n$modlin"
 
 # Set up the environment for test that require the module to be loaded
 set env(_LMFILES_) "$modulefile"
@@ -94,10 +95,12 @@ unset env(LOADEDMODULES)
 unset env(_LMFILES_)
 
 # test help
-testouterr_cmd_re "sh" "help $module" "help" "$modlin\n$lin_help\n\nhelp\n$modlin"
+set ansout [list "help" [shell_ok sh 1]]
+testouterr_cmd_re "sh" "help $module" [join $ansout "\n"] "$modlin\n$lin_help\n\nhelp\n$modlin"
 
 # test test
-testouterr_cmd_re "sh" "test $module" "test" "$modlin\n$lin_test\n\ntest\nTest result: PASS\n$modlin"
+set ansout [list "test" [shell_ok sh 1]]
+testouterr_cmd_re "sh" "test $module" [join $ansout "\n"] "$modlin\n$lin_test\n\ntest\nTest result: PASS\n$modlin"
 
 #
 #  Cleanup
@@ -109,6 +112,7 @@ unset lin_test
 unset ans
 unset ansrm
 unset anssw
+unset ansout
 
 unset modulefile2
 unset modulefilere2
