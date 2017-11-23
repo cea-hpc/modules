@@ -41,7 +41,19 @@ Modules 4.1.0 (2017-??-??)
 * Add ``MODULES_SILENT_SHELL_DEBUG`` environment variable to disable on sh
   shell and derivatives any ``xtrace`` or ``verbose`` debugging property for
   the duration of either the module command or the module shell initialization
-  script.
+  script. (fix issue#121)
+* Change error code produced by modulecmd.tcl for the Tcl, Perl, Python, Ruby,
+  CMake and R scripting languages to return a 'false' boolean value in case of
+  error rather raising a fatal exception.
+* Adapt module function definition for Tcl, Perl, Python, Ruby, CMake and R
+  scripting languages to always return a value, result of the modulecmd.tcl
+  run. When modulecmd.tcl run does not produce a specific status, a 'true'
+  boolean value is returned. On CMake, resulting value is returned though a
+  ``module_result`` global variable.
+* Spool content sent to the stdout channel with ``puts`` command during a
+  modulefile interpretation, to effectively transmit this content to stdout
+  after rendering the environment changes made by this modulefile. (fix
+  issue#113)
 
 
 Modules 4.0.0 (2017-10-16)
