@@ -1,0 +1,147 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:       modules.50-cmds/%M%
+#   Revision:       %I%
+#   First Edition:  2017/11/23
+#   Last Mod.:      %U%, %G%
+#
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:    Testuite testsequence
+#   Command:        load
+#   Modulefiles:    puts
+#   Sub-Command:
+#
+#   Comment:    %C{
+#           Test 'puts' sub-command
+#       }C%
+#
+##############################################################################
+
+#
+#  The tests with various puts statement finishing with a nonewline
+#
+
+set module "puts/1"
+set modulefile "$modpath/$module"
+set modulefilere "$modpathre/$module"
+
+lappend ans [list set _LMFILES__modshare "$modulefile:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module:1"]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite "ok"]
+lappend ans [list out "stdout"]
+lappend ans [list out "stderr"]
+lappend ans [list out "stdoutstderrtextout1"]
+lappend ans [list out "textout2textout3"]
+
+# test loading
+testouterr_cmd "ALL" "load $module" $ans "texterr1\ntexterr2texterr3"
+
+set ans [list]
+lappend ans [list out "stdout"]
+lappend ans [list out "stderr"]
+lappend ans [list out "stdoutstderrtextout1"]
+lappend ans [list out "textout2textout3"]
+
+# test displaying
+testouterr_cmd_re "ALL" "display $module" $ans "$modlin\n$modulefilere:\n\ntexterr1\ntexterr2texterr3\nsetenv\t\ttestsuite\tok\n$modlin"
+
+
+#
+#  The tests with a newline finishing puts
+#
+
+set module "puts/2"
+set modulefile "$modpath/$module"
+set modulefilere "$modpathre/$module"
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module:1"]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite ok]
+lappend ans [list out "textout1"]
+
+# test loading
+testouterr_cmd "ALL" "load $module" $ans ""
+
+set ans [list]
+lappend ans [list out "textout1"]
+
+# test displaying
+testouterr_cmd_re "ALL" "display $module" $ans "$modlin\n$modulefilere:\n\nsetenv\t\ttestsuite\tok\n$modlin"
+
+
+#
+#  The tests with bad puts statements
+#
+
+set module "puts/3"
+set modulefilere "$modpathre/$module"
+set bad_puts "$moderr_msgs: wrong # args: should be \"puts \\\?-nonewline\\\? \\\?channelId\\\? string\"
+  In '$modulefilere'
+$err_contact"
+
+# test loading
+testouterr_cmd_re "sh" "load $module" "ERR" "$bad_puts"
+
+# test displaying
+testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$bad_puts\n$modlin"
+
+
+set module "puts/4"
+set modulefilere "$modpathre/$module"
+set bad_puts "$moderr_msgs: can not find channel named \"foo\"
+  In '$modulefilere'
+$err_contact"
+
+# test loading
+testouterr_cmd_re "sh" "load $module" "ERR" "$bad_puts"
+
+# test displaying
+testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$bad_puts\n$modlin"
+
+
+set module "puts/5"
+set modulefilere "$modpathre/$module"
+set bad_puts "$moderr_msgs: can not find channel named \"foo\"
+  In '$modulefilere'
+$err_contact"
+
+# test loading
+testouterr_cmd_re "sh" "load $module" "ERR" "$bad_puts"
+
+# test displaying
+testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$bad_puts\n$modlin"
+
+
+set module "puts/6"
+set modulefilere "$modpathre/$module"
+set bad_puts "$moderr_msgs: wrong # args: should be \"puts \\\?-nonewline\\\? \\\?channelId\\\? string\"
+  In '$modulefilere'
+$err_contact"
+
+# test loading
+testouterr_cmd_re "sh" "load $module" "ERR" "$bad_puts"
+
+# test displaying
+testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$bad_puts\n$modlin"
+
+
+#
+#  Cleanup
+#
+
+# Clean up the environment
+unset ans
+
+unset bad_puts
+
+unset module
+unset modulefile
+unset modulefilere

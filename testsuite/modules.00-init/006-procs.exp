@@ -651,6 +651,10 @@ proc shell_out {test_shell out_list {re_mode 0}} {
                 lappend answer_list [lindex $fixed_list end]
                 set status_set 1
             }
+            {out} {
+                lappend fixed_list [join [lrange $out 1 end]]
+                lappend answer_list [lindex $fixed_list end]
+            }
             default {
                 lappend fixed_list [join $out]
                 lappend answer_list [lindex $fixed_list end]
@@ -710,7 +714,7 @@ proc is_shell_out_list {answer} {
             if {[llength $item] > 1} {
                 switch -- [lindex $item 0] {
                     {set} - {setpath} - {unset} - {unsetpath} - {alias} \
-                        - {unalias} - {echo} {
+                        - {unalias} - {echo} - {out} {
                         set ret 1
                         break
                     }

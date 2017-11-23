@@ -439,7 +439,8 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
          module-verbosity module-user module-user module-log module-log\
          reportInternalBug reportInternalBug reportWarning reportWarning\
          reportError reportError raiseErrorCount raiseErrorCount report\
-         report isWin isWin readModuleContent readModuleContent]
+         report isWin isWin puts putsModfileCmd readModuleContent\
+         readModuleContent]
    }
 
    # dedicate an interpreter per level of interpretation to have in case of
@@ -1630,6 +1631,43 @@ proc setModulesVersion {val} {
    set ModulesVersion $val
 }
 
+# supersede puts command to catch content sent to stdout within modulefile
+# in order to postpone content channel send after rendering on stdout the
+# relative environment changes required by the modulefile
+proc putsModfileCmd {args} {
+   global g_stdoutPuts
+
+   reportDebug "puts: ($args)"
+
+   # determine if puts call targets the stdout channel
+   switch -- [llength $args] {
+      {1} {
+         set deferPuts 1
+      }
+      {2} {
+         switch -- [lindex $args 0] {
+            {-nonewline} - {stdout} {
+               set deferPuts 1
+            }
+         }
+      }
+      {3} {
+         if {[lindex $args 0] eq "-nonewline" &&\
+            [lindex $args 1] eq "stdout"} {
+            set deferPuts 1
+         }
+      }
+   }
+
+   # defer puts if it targets stdout (see renderSettings)
+   if {[info exists deferPuts]} {
+      lappend g_stdoutPuts $args
+   # pass to real puts command if not related to stdout or bad call
+   } else {
+      eval puts $args
+   }
+}
+
 ########################################################################
 # path fiddling
 #
@@ -2537,7 +2575,7 @@ proc renderSettings {} {
    global env g_Aliases g_shellType g_shell
    global g_stateEnvVars g_stateAliases
    global g_newXResources g_delXResources
-   global g_pathList g_changeDir error_count
+   global g_pathList g_changeDir g_stdoutPuts error_count
    global g_autoInit CSH_LIMIT cwd
 
    reportDebug "renderSettings: called."
@@ -2549,7 +2587,7 @@ proc renderSettings {} {
    if {$g_autoInit || [array size g_stateEnvVars] > 0 ||\
       [array size g_stateAliases] > 0 || [array size g_newXResources] > 0 ||\
       [array size g_delXResources] > 0 || [info exists g_changeDir] ||\
-      [info exists g_pathList]} {
+      [info exists g_pathList] || [info exists g_stdoutPuts]} {
       switch -- $g_shellType {
          {python} {
             puts stdout "import os"
@@ -2949,6 +2987,22 @@ proc renderSettings {} {
                puts stdout "cat('$var','\n',sep='')"
             }
          }
+      }
+   }
+
+   # send content deferred during modulefile interpretation
+   if {[info exists g_stdoutPuts]} {
+      foreach putsArgs $g_stdoutPuts {
+         eval puts $putsArgs
+         # check if a finishing newline will be needed after content sent
+         if {[lindex $putsArgs 0] eq "-nonewline"} {
+            set needPutsNl 1
+         } else {
+            set needPutsNl 0
+         }
+      }
+      if {$needPutsNl} {
+         puts stdout ""
       }
    }
 
