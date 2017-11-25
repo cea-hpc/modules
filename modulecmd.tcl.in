@@ -1472,6 +1472,19 @@ proc module {command args} {
             popCommandName
          }
       }
+      {^(prepend|append|remove)-path$} {
+         if {$topcall} {
+            if {[llength $args] < 2 || [llength $args] > 4} {
+               set errormsg "Unexpected number of args for '$command' command"
+            } else {
+               eval cmdModuleResurface $command $args
+            }
+         } else {
+            # no call other than from top level to to conflict with modulefile
+            # specific Tcl commands
+            set errormsg "${msgprefix}Command '$command' not supported"
+         }
+      }
       . {
          set errormsg "${msgprefix}Invalid command '$command'"
       }
@@ -5451,12 +5464,15 @@ proc cmdModuleInit {args} {
    }
 }
 
-proc cmdModuleImm {args} {
+# provide access to modulefile specific commands from the command-line, making
+# them standing as a module sub-command (see module procedure)
+proc cmdModuleResurface {cmd args} {
+   reportDebug "cmdModuleResurface: cmd='$cmd', args='$args'"
+
    pushMode "load"
-
-   #puts stderr $args
-   eval $args
-
+   pushCommandName $cmd
+   eval $cmd $args
+   popCommandName
    popMode
 }
 
@@ -5542,11 +5558,11 @@ Shell's initialization files handling commands:
   initswitch      mod1 mod2         Switch mod1 with mod2 from init file
   initclear                         Clear all modulefiles from init file
 
-Module commands available from the command line:
-  prepend-path    VAR PATH [separator]
-  append-path     VAR PATH [separator]
-  remove-path     VAR PATH [separator]
-                                    Path-like variable manipulation
+Environment direct handling commands:
+  prepend-path [-d c] var value     Prepend value to environment variable
+  append-path [-d c] var value      Append value to environment variable
+  remove-path [-d c] var value      Remove value from environment variable
+
 Other commands:
   help            [modulefile ...]  Print this or modulefile(s) help info
   display | show  modulefile [...]  Display information about modulefile(s)
@@ -5610,6 +5626,7 @@ if {[catch {
 
    # extract options and command switches from other args
    set otherargv {}
+   set ddelimarg 0
    foreach arg [lrange $argv 1 end] {
       if {[info exists ignore_next_arg]} {
          unset ignore_next_arg
@@ -5639,13 +5656,24 @@ if {[catch {
                set show_oneperline 0
             }
             {-d} - {--default} {
-               set show_filter "onlydefaults"
+               # in case of *-path command, -d means --delim
+               if {$arg eq "-d" && $ddelimarg} {
+                  lappend otherargv $arg
+               } else {
+                  set show_filter "onlydefaults"
+               }
             }
             {-L} - {--latest} {
                set show_filter "onlylatest"
             }
-            {-a} - {--append} - {-append} - {-p} - {--prepend} - {-prepend} {
+            {-a} - {--append} - {-append} - {-p} - {--prepend} - {-prepend} \
+            - {--delim} - {-delim} - {--delim=*} - {-delim=*} {
                # command-specific switches interpreted later on
+               lappend otherargv $arg
+            }
+            {append-path} - {prepend-path} - {remove-path} {
+               # detect *-path commands to say -d means --delim, not --default
+               set ddelimarg 1
                lappend otherargv $arg
             }
             {-f} - {--force} - {--human} - {-v} - {--verbose} - {-s} -\
@@ -5732,16 +5760,8 @@ if {[catch {
    # defined in env(MODULESPATH)
    runModulerc
 
-   switch -regexp -- $command {
-      {^(prepend|append|remove)-path$} {
-         eval cmdModuleImm $command $otherargv
-         renderSettings
-      }
-      . {
-         # eval needed to pass otherargv as list to module proc
-         eval module $command $otherargv
-      }
-   }
+   # eval needed to pass otherargv as list to module proc
+   eval module $command $otherargv
 } errMsg ]} {
    # no use of reportError here to get independent from any
    # previous error report inhibition

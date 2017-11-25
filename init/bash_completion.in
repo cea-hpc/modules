@@ -91,14 +91,15 @@ _module() {
 
     COMPREPLY=()
 
-    cmds="add apropos aliases avail display help\
-        initadd initclear initlist initprepend initrm\
-        keyword list load path paths purge refresh reload restore\
-        rm save savelist saveshow saverm search show source swap\
-        switch test unload unuse use whatis"
+    cmds="add apropos aliases avail append-path display help\
+        initadd initclear initlist initprepend initrm keyword\
+        list load path paths purge prepend-path refresh reload\
+        restore rm remove-path save savelist saveshow saverm search\
+        show source swap switch test unload unuse use whatis"
 
     opts="-D -h -V --debug --help --version"
     list_opts="-l -t --long --terse"
+    path_opts="-d --delim"
     avail_opts="-d -L -l -t --default --latest --long --terse"
 
     case "$prev" in
@@ -115,6 +116,8 @@ _module() {
                     COMPREPLY=( $(compgen -W "$(_module_avail)" -- "$cur") );;
     -h|--help|-V|--version|aliases|apropos|keyword|purge|refresh|reload|search|source)
                     ;;
+    append-path|prepend-path|remove-path)
+                    COMPREPLY=( $(compgen -W "$path_opts" -- "$cur") );;
     initadd|initclear|initlist|initprepend|initrm)
                     ;;
     *)  if test $COMP_CWORD -gt 2

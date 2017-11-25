@@ -114,6 +114,9 @@ _module() {
             'path:Print modulefile path'
             'paths:Print path of matching available modules'
             'source:Execute scriptfile(s)'
+            'append-path:Append value to environment variable'
+            'prepend-path:Prepend value to environment variable'
+            'remove-path:Remove value from environment variable'
          )
          # show commands only with compatible options
          if (( !$+opt_args[-h] && !$+opt_args[--help] \
@@ -170,6 +173,11 @@ _module() {
                ;;
             (display|help|show|test|whatis)
                _alternative 'avail-mods:modulefiles:{_module_avail_mods}' \
+                  && ret=0
+               ;;
+            (append-path|prepend-path|remove-path)
+               _arguments \
+                  '(-d --delim)'{-d,--delim}'[Path element separator]' \
                   && ret=0
                ;;
          esac
