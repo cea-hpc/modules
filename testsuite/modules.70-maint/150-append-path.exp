@@ -1,0 +1,94 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2017/11/25
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        append-path
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test 'append-path' module command
+#		}C%
+#
+##############################################################################
+
+if {[info exists env(FOO)]} {
+    if { $verbose > 0 } {
+        send_user "\tUnset FOO\n"
+    }
+    set ORIG_FOO $env(FOO)
+    unset env(FOO)
+}
+
+set path1 "/path/to/dir1"
+set path2 "/path/other/dir2"
+
+lappend ans [list set FOO $path1]
+lappend ans [list set FOO_modshare "$path1:1"]
+
+testouterr_cmd_re "sh" "append-path FOO $path1" $ans ""
+
+
+if { $verbose > 0 } {
+    send_user "\tSetup FOO = '$path1'\n"
+}
+set env(FOO) $path1
+
+set ans [list]
+lappend ans [list set FOO "$path1"]
+lappend ans [list set FOO_modshare "$path1:2"]
+testouterr_cmd_re "sh" "append-path FOO $path1" $ans ""
+
+set ans [list]
+lappend ans [list setpath FOO "$path1:$path2"]
+testouterr_cmd_re "ALL" "append-path FOO $path2" $ans ""
+testouterr_cmd_re "sh" "append-path -d : FOO $path2" $ans ""
+testouterr_cmd_re "sh" "append-path --delim : FOO $path2" $ans ""
+
+set ans [list]
+lappend ans [list setpath FOO "$path1,$path2"]
+testouterr_cmd_re "sh" "append-path -d , FOO $path2" $ans ""
+testouterr_cmd_re "sh" "append-path --delim , FOO $path2" $ans ""
+
+
+if { $verbose > 0 } {
+    send_user "\tSetup FOO = '$path1:$path2'\n"
+}
+set env(FOO) "$path1:$path2"
+
+set ans [list]
+lappend ans [list setpath FOO "$path1:$path2"]
+testouterr_cmd_re "sh" "append-path FOO $path2" $ans ""
+
+set ans [list]
+lappend ans [list setpath FOO "$path1:$path2:"]
+testouterr_cmd_re "sh" "append-path FOO " $ans ""
+
+
+#
+#  Cleanup
+#
+
+# Clean up the environment
+if {[info exists ORIG_FOO]} {
+    if { $verbose > 0 } {
+        send_user "\tRestore FOO = '$ORIG_FOO'\n"
+    }
+    set env(FOO) $ORIG_FOO
+    unset ORIG_FOO
+} else {
+    unset env(FOO)
+}
+
+unset ans
+
+unset path1
+unset path2
