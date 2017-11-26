@@ -54,6 +54,9 @@ Modules 4.1.0 (2017-??-??)
   modulefile interpretation, to effectively transmit this content to stdout
   after rendering the environment changes made by this modulefile. (fix
   issue#113)
+* Introduce ``append-path``, ``prepend-path``, ``remove-path`` and
+  ``is-loaded`` module sub-commands, based on existing modulefile-specific
+  Tcl commands. (fix issue#116)
 
 
 Modules 4.0.0 (2017-10-16)
