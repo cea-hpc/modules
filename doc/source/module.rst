@@ -450,6 +450,12 @@ Module Sub-Commands
  *variable*. See **remove-path** in the :ref:`modulefile(4)` man page for
  further explanation.
 
+**is-loaded** modulefile...
+
+ Returns a true value if any of the listed *modulefiles* has been loaded.
+ Returns a false value elsewhere. See **is-loaded** in the
+ :ref:`modulefile(4)` man page for further explanation.
+
 
 Modulefiles
 ^^^^^^^^^^^

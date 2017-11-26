@@ -1,0 +1,46 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2017/11/26
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        is-loaded
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test 'is-loaded' module command
+#		}C%
+#
+##############################################################################
+
+set module "setenv/1.0"
+
+testouterr_cmd "ALL" "is-loaded $module" "ERR" ""
+
+
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = '$module'\n"
+}
+set env(LOADEDMODULES) $module
+
+testouterr_cmd "ALL" "is-loaded $module" "OK" ""
+
+
+#
+#  Cleanup
+#
+
+# Clean up the environment
+if { $verbose > 0 } {
+    send_user "\tUnset LOADEDMODULES\n"
+}
+unset env(LOADEDMODULES)
+
+unset module

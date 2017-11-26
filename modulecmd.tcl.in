@@ -25,6 +25,7 @@
 #
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
+set g_return_false 0 ;# False value is rendered if == 1
 set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
@@ -1485,6 +1486,19 @@ proc module {command args} {
             set errormsg "${msgprefix}Command '$command' not supported"
          }
       }
+      {^is-loaded$} {
+         if {$topcall} {
+            if {[llength $args] == 0} {
+               set errormsg "Unexpected number of args for '$command' command"
+            } else {
+               eval cmdModuleResurface $command $args
+            }
+         } else {
+            # no call other than from top level to to conflict with modulefile
+            # specific Tcl commands
+            set errormsg "${msgprefix}Command '$command' not supported"
+         }
+      }
       . {
          set errormsg "${msgprefix}Invalid command '$command'"
       }
@@ -2588,7 +2602,7 @@ proc renderSettings {} {
    global env g_Aliases g_shellType g_shell
    global g_stateEnvVars g_stateAliases
    global g_newXResources g_delXResources
-   global g_pathList g_changeDir g_stdoutPuts error_count
+   global g_pathList g_changeDir g_stdoutPuts error_count g_return_false
    global g_autoInit CSH_LIMIT cwd
 
    reportDebug "renderSettings: called."
@@ -3021,6 +3035,9 @@ proc renderSettings {} {
 
    if {$error_count > 0} {
       reportDebug "renderSettings: $error_count error(s) detected."
+      renderFalse
+   } elseif {$g_return_false} {
+      reportDebug "renderSettings: false value should be returned."
       renderFalse
    } elseif {[tell stdout]} {
       renderTrue
@@ -5467,11 +5484,16 @@ proc cmdModuleInit {args} {
 # provide access to modulefile specific commands from the command-line, making
 # them standing as a module sub-command (see module procedure)
 proc cmdModuleResurface {cmd args} {
+   global g_return_false
+
    reportDebug "cmdModuleResurface: cmd='$cmd', args='$args'"
 
    pushMode "load"
    pushCommandName $cmd
-   eval $cmd $args
+   if {[eval $cmd $args] == 0} {
+      # render false if command returned false
+      set g_return_false 1
+   }
    popCommandName
    popMode
 }
@@ -5542,6 +5564,7 @@ Listing / Searching commands:
   aliases                           List all module aliases
   whatis          [modulefile ...]  Print whatis information of modulefile(s)
   apropos | keyword | search  str   Search all name and whatis containing str
+  is-loaded       modulefile [...]  Test if any of the modulefile(s) are loaded
 
 Collection of modules handling commands:
   save            [collection|file] Save current module list to collection
