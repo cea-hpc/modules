@@ -432,7 +432,8 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
       array set g_modfileAliases [list setenv setenv unsetenv unsetenv getenv\
          getenv system system chdir chdir append-path append-path\
          prepend-path prepend-path remove-path remove-path prereq prereq\
-         conflict conflict is-loaded is-loaded module module module-info\
+         conflict conflict is-loaded is-loaded is-saved is-saved module\
+         module module-info\
          module-info module-whatis module-whatis set-alias set-alias\
          unset-alias unset-alias uname uname x-resource x-resource exit\
          exitModfileCmd module-version module-version module-alias\
@@ -2192,6 +2193,19 @@ proc system {mycmd args} {
    }
 
    return $status
+}
+
+# test at least one of the collections passed as argument exist
+proc is-saved {args} {
+   reportDebug "is-saved: $args"
+
+   foreach coll $args {
+      lassign [getCollectionFilename $coll] collfile colldesc
+      if {[file exists $collfile]} {
+         return 1
+      }
+   }
+   return 0
 }
 
 ########################################################################

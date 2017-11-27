@@ -203,6 +203,15 @@ the *modulefile* is being loaded.
  argument for **is-loaded** is a directory and any *modulefile* from the
  directory has been loaded **is-loaded** would return a true value.
 
+**is-saved** collection...
+
+ The **is-saved** command returns a true value if any of the listed
+ *collections* exists. If a list contains more than one *collection*, then
+ each member acts as a boolean OR operation.
+
+ If **MODULES_COLLECTION_TARGET** is set, a suffix equivalent to the value
+ of this variable is appended to the passed *collection* name.
+
 **module** [sub-command] [sub-command-args]
 
  Contains the same *sub-commands* as described in the :ref:`module(1)`
