@@ -1,0 +1,66 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2017/11/27
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        is-saved
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test 'is-saved' module command
+#		}C%
+#
+##############################################################################
+
+# set HOME to location containing collections
+set ORIG_HOME $env(HOME)
+set homewithcoll "$env(HOME)/home"
+if { $verbose > 0 } {
+    send_user "\tSetup HOME = $homewithcoll\n"
+}
+set env(HOME) "$homewithcoll"
+
+
+#
+#  The tests
+#
+
+testouterr_cmd "ALL" "is-saved foo" "ERR" ""
+testouterr_cmd "ALL" "is-saved foo coll1" "OK" ""
+
+# define a collection target
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_COLLECTION_TARGET = 'target'\n"
+}
+set env(MODULES_COLLECTION_TARGET) "target"
+
+testouterr_cmd "sh" "is-saved foo coll1" "ERR" ""
+testouterr_cmd "sh" "is-saved coll4" "OK" ""
+
+
+#
+#  Cleanup
+#
+
+# restore default testsuite home
+if { $verbose > 0 } {
+    send_user "\tRestore HOME = $ORIG_HOME\n"
+}
+set env(HOME) $ORIG_HOME
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tUnset MODULES_COLLECTION_TARGET\n"
+}
+unset env(MODULES_COLLECTION_TARGET)
+
+unset ORIG_HOME
+unset homewithcoll

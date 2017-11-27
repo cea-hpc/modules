@@ -456,6 +456,12 @@ Module Sub-Commands
  Returns a false value elsewhere. See **is-loaded** in the
  :ref:`modulefile(4)` man page for further explanation.
 
+**is-saved** collection...
+
+ Returns a true value if any of the listed *collections* exists. Returns a
+ false value elsewhere. See **is-saved** in the :ref:`modulefile(4)` man page
+ for further explanation.
+
 
 Modulefiles
 ^^^^^^^^^^^
