@@ -468,6 +468,12 @@ Module Sub-Commands
  **MODULEPATH**. Returns a false value elsewhere. See **is-used** in the
  :ref:`modulefile(4)` man page for further explanation.
 
+**is-avail** modulefile...
+
+ Returns a true value if any of the listed *modulefiles* exists in enabled
+ **MODULEPATH**. Returns a false value elsewhere. See **is-avail** in the
+ :ref:`modulefile(4)` man page for further explanation.
+
 
 Modulefiles
 ^^^^^^^^^^^
