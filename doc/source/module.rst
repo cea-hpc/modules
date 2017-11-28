@@ -462,6 +462,12 @@ Module Sub-Commands
  false value elsewhere. See **is-saved** in the :ref:`modulefile(4)` man page
  for further explanation.
 
+**is-used** directory...
+
+ Returns a true value if any of the listed *directories* has been enabled in
+ **MODULEPATH**. Returns a false value elsewhere. See **is-used** in the
+ :ref:`modulefile(4)` man page for further explanation.
+
 
 Modulefiles
 ^^^^^^^^^^^
