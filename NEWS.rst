@@ -57,6 +57,9 @@ Modules 4.1.0 (2017-??-??)
 * Introduce ``append-path``, ``prepend-path``, ``remove-path`` and
   ``is-loaded`` module sub-commands, based on existing modulefile-specific
   Tcl commands. (fix issue#116)
+* Introduce ``is-saved``, ``is-used`` and ``is-avail`` modulefile Tcl commands
+  and module sub-commands to test availability of collection, modulepath or
+  modulefile.
 
 
 Modules 4.0.0 (2017-10-16)
