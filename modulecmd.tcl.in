@@ -298,6 +298,12 @@ proc reenableErrorReport {} {
    set g_inhibit_errreport 0
 }
 
+proc isErrorReportInhibited {} {
+   global g_inhibit_errreport
+
+   return $g_inhibit_errreport
+}
+
 # exit in a clean manner by closing interaction with external components
 proc cleanupAndExit {code} {
    global reportfd
@@ -433,7 +439,7 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
          getenv system system chdir chdir append-path append-path\
          prepend-path prepend-path remove-path remove-path prereq prereq\
          conflict conflict is-loaded is-loaded is-saved is-saved is-used\
-         is-used module module module-info\
+         is-used is-avail is-avail module module module-info\
          module-info module-whatis module-whatis set-alias set-alias\
          unset-alias unset-alias uname uname x-resource x-resource exit\
          exitModfileCmd module-version module-version module-alias\
@@ -2195,7 +2201,7 @@ proc system {mycmd args} {
    return $status
 }
 
-# test at least one of the collections passed as argument exist
+# test at least one of the collections passed as argument exists
 proc is-saved {args} {
    reportDebug "is-saved: $args"
 
@@ -2223,6 +2229,33 @@ proc is-used {args} {
       }
    }
    return 0
+}
+
+# test at least one of the modulefiles passed as argument exists
+proc is-avail {args} {
+   reportDebug "is-avail: $args"
+   set ret 0
+
+   # disable error reporting to avoid modulefile errors
+   # to pollute result. Only if not already inhibited
+   set alreadyinhibit [isErrorReportInhibited]
+   if {!$alreadyinhibit} {
+      inhibitErrorReport
+   }
+
+   foreach mod $args {
+      lassign [getPathToModule $mod] modfile modname
+      if {$modfile ne ""} {
+         set ret 1
+         break
+      }
+   }
+
+   # re-enable only is it was disabled from this procedure
+   if {!$alreadyinhibit} {
+      reenableErrorReport
+   }
+   return $ret
 }
 
 ########################################################################

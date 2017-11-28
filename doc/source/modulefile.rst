@@ -218,6 +218,14 @@ the *modulefile* is being loaded.
  *directories* has been enabled in **MODULEPATH**. If a list contains more
  than one *directory*, then each member acts as a boolean OR operation.
 
+**is-avail** modulefile...
+
+ The **is-avail** command returns a true value if any of the listed
+ *modulefiles* exists in enabled **MODULEPATH**. If a list contains more than
+ one *modulefile*, then each member acts as a boolean OR operation. If an
+ argument for **is-avail** is a directory and a *modulefile* exists in the
+ directory **is-avail** would return a true value.
+
 **module** [sub-command] [sub-command-args]
 
  Contains the same *sub-commands* as described in the :ref:`module(1)`
