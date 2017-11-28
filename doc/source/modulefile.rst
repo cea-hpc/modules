@@ -212,6 +212,12 @@ the *modulefile* is being loaded.
  If **MODULES_COLLECTION_TARGET** is set, a suffix equivalent to the value
  of this variable is appended to the passed *collection* name.
 
+**is-used** directory...
+
+ The **is-used** command returns a true value if any of the listed
+ *directories* has been enabled in **MODULEPATH**. If a list contains more
+ than one *directory*, then each member acts as a boolean OR operation.
+
 **module** [sub-command] [sub-command-args]
 
  Contains the same *sub-commands* as described in the :ref:`module(1)`

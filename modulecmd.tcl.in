@@ -432,8 +432,8 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
       array set g_modfileAliases [list setenv setenv unsetenv unsetenv getenv\
          getenv system system chdir chdir append-path append-path\
          prepend-path prepend-path remove-path remove-path prereq prereq\
-         conflict conflict is-loaded is-loaded is-saved is-saved module\
-         module module-info\
+         conflict conflict is-loaded is-loaded is-saved is-saved is-used\
+         is-used module module module-info\
          module-info module-whatis module-whatis set-alias set-alias\
          unset-alias unset-alias uname uname x-resource x-resource exit\
          exitModfileCmd module-version module-version module-alias\
@@ -2202,6 +2202,23 @@ proc is-saved {args} {
    foreach coll $args {
       lassign [getCollectionFilename $coll] collfile colldesc
       if {[file exists $collfile]} {
+         return 1
+      }
+   }
+   return 0
+}
+
+# test at least one of the directories passed as argument is set in MODULEPATH
+proc is-used {args} {
+   reportDebug "is-used: $args"
+
+   set modpathlist [getModulePathList]
+   foreach path $args {
+      # transform given path in an absolute path which should have been
+      # registered in the MODULEPATH env var.
+      set abspath [getAbsolutePath $path]
+      if {[lsearch -exact $modpathlist $path] >= 0 ||\
+         [lsearch -exact $modpathlist $abspath] >= 0} {
          return 1
       }
    }
