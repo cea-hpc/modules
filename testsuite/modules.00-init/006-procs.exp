@@ -144,6 +144,46 @@ proc shell_ok {test_shell {re_mode 0}} {
     return $answer
 }
 
+proc shell_text {test_shell val {re_mode 0}} {
+    if {$re_mode} {
+        set esc "\\"
+    } else {
+        set esc ""
+    }
+
+    switch -- $test_shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            set answer "echo '$val';"
+        }
+        {tcl} {
+            set answer "set _mlstatus \"$val\";"
+        }
+        {python} {
+            set answer "_mlstatus = '$val'"
+        }
+        {ruby} {
+            set answer "_mlstatus = '$val'"
+        }
+        {perl} {
+            set answer "${esc}\$_mlstatus = '$val';"
+        }
+        {lisp} {
+            set answer "${esc}(message \"$val\"${esc})"
+        }
+        {cmake} {
+            set answer "set${esc}(_mlstatus \"$val\"${esc})"
+        }
+        {r} {
+            set answer "mlstatus <- '$val'"
+        }
+        default {
+            set answer ""
+        }
+    }
+
+    return $answer
+}
+
 proc shell_val {test_shell val {re_mode 0}} {
     if {$re_mode} {
         set esc "\\"
@@ -632,6 +672,11 @@ proc shell_out {test_shell out_list {re_mode 0}} {
                     lappend answer_list $ret
                 }
             }
+            {text} {
+                lappend fixed_list [shell_text $test_shell $var $re_mode]
+                lappend answer_list [lindex $fixed_list end]
+                set status_set 1
+            }
             {echo} {
                 lappend fixed_list [shell_echo $test_shell $var $re_mode]
                 lappend answer_list [lindex $fixed_list end]
@@ -714,7 +759,7 @@ proc is_shell_out_list {answer} {
             if {[llength $item] > 1} {
                 switch -- [lindex $item 0] {
                     {set} - {setpath} - {unset} - {unsetpath} - {alias} \
-                        - {unalias} - {echo} - {out} {
+                        - {unalias} - {echo} - {out} - {text} {
                         set ret 1
                         break
                     }

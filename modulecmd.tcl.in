@@ -26,6 +26,7 @@
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_return_false 0 ;# False value is rendered if == 1
+set g_return_text "" ;# Text value is rendered if not empty
 set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
@@ -194,6 +195,44 @@ proc renderTrue {} {
       }
       {r} {
          puts stdout "mlstatus <- TRUE"
+      }
+   }
+}
+
+proc renderText {text} {
+   global g_shellType
+
+   reportDebug "renderText: called ($text)."
+
+   # render a text value most of the time through a variable assignement that
+   # will be looked at in the shell module function calling modulecmd.tcl to
+   # return in turns a string value.
+   switch -- $g_shellType {
+      {sh} - {csh} - {fish} {
+         # no need to set a variable on real shells, echoing text will make it
+         # available as result
+         puts stdout "echo '$text';"
+      }
+      {tcl} {
+         puts stdout "set _mlstatus \"$text\";"
+      }
+      {perl} {
+         puts stdout "\$_mlstatus = '$text';"
+      }
+      {python} {
+         puts stdout "_mlstatus = '$text'"
+      }
+      {ruby} {
+         puts stdout "_mlstatus = '$text'"
+      }
+      {lisp} {
+         puts stdout "(message \"$text\")"
+      }
+      {cmake} {
+         puts stdout "set(_mlstatus \"$text\")"
+      }
+      {r} {
+         puts stdout "mlstatus <- '$text'"
       }
    }
 }
@@ -2667,7 +2706,7 @@ proc renderSettings {} {
    global g_stateEnvVars g_stateAliases
    global g_newXResources g_delXResources
    global g_pathList g_changeDir g_stdoutPuts error_count g_return_false
-   global g_autoInit CSH_LIMIT cwd
+   global g_return_text g_autoInit CSH_LIMIT cwd
 
    reportDebug "renderSettings: called."
 
@@ -2678,7 +2717,8 @@ proc renderSettings {} {
    if {$g_autoInit || [array size g_stateEnvVars] > 0 ||\
       [array size g_stateAliases] > 0 || [array size g_newXResources] > 0 ||\
       [array size g_delXResources] > 0 || [info exists g_changeDir] ||\
-      [info exists g_pathList] || [info exists g_stdoutPuts]} {
+      [info exists g_pathList] || [info exists g_stdoutPuts] ||\
+      $g_return_text ne ""} {
       switch -- $g_shellType {
          {python} {
             puts stdout "import os"
@@ -3106,6 +3146,9 @@ proc renderSettings {} {
    } elseif {$g_return_false} {
       reportDebug "renderSettings: false value should be returned."
       renderFalse
+   } elseif {$g_return_text ne ""} {
+      reportDebug "renderSettings: text value should be returned."
+      renderText $g_return_text
    } elseif {$has_rendered} {
       # finish with true statement if something has been put
       renderTrue
@@ -4658,12 +4701,12 @@ proc cmdModulePaths {mod} {
 }
 
 proc cmdModulePath {mod} {
-   global g_pathList
+   global g_return_text
 
    reportDebug "cmdModulePath: ($mod)"
    lassign [getPathToModule $mod] modfile modname
    if {$modfile ne ""} {
-      set g_pathList $modfile
+      set g_return_text $modfile
    }
 }
 
