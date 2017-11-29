@@ -1356,17 +1356,27 @@ proc module {command args} {
          }
       }
       {^path$} {
-         if {[llength $args] != 1} {
-            set errormsg "Unexpected number of args for 'path' command"
+         if {$topcall} {
+            if {[llength $args] != 1} {
+               set errormsg "Unexpected number of args for 'path' command"
+            } else {
+               eval cmdModulePath $args
+            }
          } else {
-            eval cmdModulePath $args
+            # no call other than from top level as it renders a result value
+            set errormsg "${msgprefix}Command '$command' not supported"
          }
       }
       {^paths$} {
-         if {[llength $args] != 1} {
-            set errormsg "Unexpected number of args for 'paths' command"
+         if {$topcall} {
+            if {[llength $args] != 1} {
+               set errormsg "Unexpected number of args for 'paths' command"
+            } else {
+               eval cmdModulePaths $args
+            }
          } else {
-            eval cmdModulePaths $args
+            # no call other than from top level as it renders a result value
+            set errormsg "${msgprefix}Command '$command' not supported"
          }
       }
       {^li} {
