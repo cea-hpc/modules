@@ -521,46 +521,6 @@ proc shell_unxres {test_shell var {re_mode 0}} {
     return $answer
 }
 
-proc shell_echo {test_shell val {re_mode 0}} {
-    if {$re_mode} {
-        set esc "\\"
-    } else {
-        set esc ""
-    }
-
-    switch -- $test_shell {
-        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
-            set answer "echo '$val';"
-        }
-        {tcl} {
-            set answer "puts \"$val\";"
-        }
-        {perl} {
-            set answer "print '$val'.\"\\n\";"
-        }
-        {python} {
-            set answer "print '$val'"
-        }
-        {ruby} {
-            set answer "puts '$val'"
-        }
-        {lisp} {
-            set answer "${esc}(message \"$val\"${esc})"
-        }
-        {cmake} {
-            set answer "message${esc}(\"$val\"${esc})"
-        }
-        {r} {
-            set answer "cat${esc}('$val','\n',sep=''${esc})"
-        }
-        default {
-            set answer ""
-        }
-    }
-
-    return $answer
-}
-
 
 # provide a lassign proc for Tcl8.4 and earlier
 if {[info commands lassign] eq ""} {
@@ -682,10 +642,6 @@ proc shell_out {test_shell out_list {re_mode 0}} {
                 lappend answer_list [lindex $fixed_list end]
                 set status_set 1
             }
-            {echo} {
-                lappend fixed_list [shell_echo $test_shell $var $re_mode]
-                lappend answer_list [lindex $fixed_list end]
-            }
             {OK} {
                 lappend fixed_list [shell_ok $test_shell $re_mode]
                 lappend answer_list [lindex $fixed_list end]
@@ -764,7 +720,7 @@ proc is_shell_out_list {answer} {
             if {[llength $item] > 1} {
                 switch -- [lindex $item 0] {
                     {set} - {setpath} - {unset} - {unsetpath} - {alias} \
-                        - {unalias} - {echo} - {out} - {text} {
+                        - {unalias} - {out} - {text} {
                         set ret 1
                         break
                     }
