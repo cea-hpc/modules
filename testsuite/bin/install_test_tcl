@@ -39,8 +39,11 @@ source $initfile
 set code 0
 foreach cmd [split $cmdlist ":"] {
    if {[catch {
-      if {[eval module $cmd] == 0} {
+      set ret [eval module $cmd]
+      if {$ret == 0} {
          set code 1
+      } elseif {![string is entier $ret]} {
+         puts stdout $ret
       }
    }]} {
       set code 1
