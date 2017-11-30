@@ -1543,7 +1543,7 @@ proc module {command args} {
                eval cmdModuleResurface $command $args
             }
          } else {
-            # no call other than from top level to to conflict with modulefile
+            # no call other than from top level not to conflict with modulefile
             # specific Tcl commands
             set errormsg "${msgprefix}Command '$command' not supported"
          }
@@ -1556,7 +1556,20 @@ proc module {command args} {
                eval cmdModuleResurface $command $args
             }
          } else {
-            # no call other than from top level to to conflict with modulefile
+            # no call other than from top level not to conflict with modulefile
+            # specific Tcl commands
+            set errormsg "${msgprefix}Command '$command' not supported"
+         }
+      }
+      {info-loaded} {
+         if {$topcall} {
+            if {[llength $args] != 1} {
+               set errormsg "Unexpected number of args for '$command' command"
+            } else {
+               eval cmdModuleResurface module-info loaded $args
+            }
+         } else {
+            # no call other than from top level not to conflict with modulefile
             # specific Tcl commands
             set errormsg "${msgprefix}Command '$command' not supported"
          }
@@ -5584,15 +5597,27 @@ proc cmdModuleInit {args} {
 # provide access to modulefile specific commands from the command-line, making
 # them standing as a module sub-command (see module procedure)
 proc cmdModuleResurface {cmd args} {
-   global g_return_false
+   global g_return_false g_return_text
 
    reportDebug "cmdModuleResurface: cmd='$cmd', args='$args'"
 
    pushMode "load"
    pushCommandName $cmd
-   if {[eval $cmd $args] == 0} {
-      # render false if command returned false
-      set g_return_false 1
+
+   # run modulefile command and get its result
+   set res [eval $cmd $args]
+
+   # register result depending of return kind (false or text)
+   switch -- $cmd {
+      {module-info} {
+         set g_return_text $res
+      }
+      default {
+         if {$res == 0} {
+            # render false if command returned false
+            set g_return_false 1
+         }
+      }
    }
    popCommandName
    popMode
@@ -5666,6 +5691,7 @@ Listing / Searching commands:
   apropos | keyword | search  str   Search all name and whatis containing str
   is-loaded       modulefile [...]  Test if any of the modulefile(s) are loaded
   is-avail        modulefile [...]  Is any of the modulefile(s) available
+  info-loaded     modulefile        Get full name of matching loaded module(s)
 
 Collection of modules handling commands:
   save            [collection|file] Save current module list to collection

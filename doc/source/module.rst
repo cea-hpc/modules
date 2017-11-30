@@ -474,6 +474,13 @@ Module Sub-Commands
  **MODULEPATH**. Returns a false value elsewhere. See **is-avail** in the
  :ref:`modulefile(4)` man page for further explanation.
 
+ **info-loaded** modulefile
+
+  Returns the names of currently loaded modules matching passed *modulefile*.
+  Returns an empty string if passed *modulefile* does not match any loaded
+  modules. See **module-info loaded** in the :ref:`modulefile(4)` man page for
+  further explanation.
+
 
 Modulefiles
 ^^^^^^^^^^^

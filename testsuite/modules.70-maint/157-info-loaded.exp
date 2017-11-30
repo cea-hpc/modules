@@ -1,0 +1,93 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2017/11/30
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        info-loaded
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test 'info-loaded' module command
+#		}C%
+#
+##############################################################################
+
+set module "info"
+set module1 "$module/loaded"
+set modulefile1 "$modpath/$module1"
+set module2 "$module/name"
+set modulefile2 "$modpath/$module2"
+
+
+#
+#  The tests
+#
+
+lappend ans [list text ""]
+
+testouterr_cmd "ALL" "info-loaded $module" $ans ""
+
+
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = '$module1'\n"
+}
+set env(LOADEDMODULES) $module1
+
+testouterr_cmd "sh" "info-loaded foo" $ans ""
+testouterr_cmd "sh" "info-loaded $module/foo" $ans ""
+testouterr_cmd "sh" "info-loaded foo/$module" $ans ""
+
+set ans [list]
+lappend ans [list text $module1]
+
+testouterr_cmd "sh" "info-loaded $module" $ans ""
+testouterr_cmd "sh" "info-loaded $module1" $ans ""
+
+
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = '$module1:$module2'\n"
+}
+set env(LOADEDMODULES) "$module1:$module2"
+
+set ans [list]
+lappend ans [list text ""]
+
+testouterr_cmd "sh" "info-loaded foo" $ans ""
+testouterr_cmd "sh" "info-loaded $module/foo" $ans ""
+testouterr_cmd "sh" "info-loaded foo/$module" $ans ""
+
+set ans [list]
+lappend ans [list text $module1]
+
+testouterr_cmd "sh" "info-loaded $module1" $ans ""
+
+set ans [list]
+lappend ans [list text [list $module1 $module2]]
+
+testouterr_cmd "ALL" "info-loaded $module" $ans ""
+
+
+#
+#  Cleanup
+#
+
+# Clean up the environment
+if { $verbose > 0 } {
+    send_user "\tUnset LOADEDMODULES\n"
+}
+unset env(LOADEDMODULES)
+
+unset ans
+unset module
+unset module1
+unset modulefile1
+unset module2
+unset modulefile2
