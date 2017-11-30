@@ -58,8 +58,7 @@ test_cmd "sh" "load symlink" $ans
 testouterr_cmd_re "sh" "display symlink" "OK" "$disp_2"
 testouterr_cmd_re "sh" "whatis symlink" "OK" "$what_1_2"
 set ans [list]
-lappend ans [list echo $modulefile_1]
-lappend ans [list echo $modulefile_2]
+lappend ans [list text [list $modulefile_1 $modulefile_2]]
 test_cmd "sh" "paths symlink" $ans
 
 
@@ -80,10 +79,8 @@ lappend ans [list ERR]
 testouterr_cmd "sh" "load symlink2" $ans $err_mag_3
 testouterr_cmd_re "sh" "display symlink2/2.0" "ERR" "$err_magre_3\n$disp_3"
 testouterr_cmd_re "sh" "whatis symlink2/2.0" "OK" "$what_3"
-set ans [list]
-lappend ans [list echo $modulefile_3]
-lappend ans [list ERR]
-test_cmd "sh" "paths symlink2/2.0" $ans
+# error takes the return spot used by paths answer
+test_cmd "sh" "paths symlink2/2.0" "ERR"
 
 
 #

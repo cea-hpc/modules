@@ -209,9 +209,11 @@ proc renderText {text} {
    # return in turns a string value.
    switch -- $g_shellType {
       {sh} - {csh} - {fish} {
-         # no need to set a variable on real shells, echoing text will make it
-         # available as result
-         puts stdout "echo '$text';"
+         foreach word $text {
+            # no need to set a variable on real shells, echoing text will make
+            # it available as result
+            puts stdout "echo '$word';"
+         }
       }
       {tcl} {
          puts stdout "set _mlstatus \"$text\";"
@@ -2715,8 +2717,8 @@ proc renderSettings {} {
    global env g_Aliases g_shellType g_shell
    global g_stateEnvVars g_stateAliases
    global g_newXResources g_delXResources
-   global g_pathList g_changeDir g_stdoutPuts error_count g_return_false
-   global g_return_text g_autoInit CSH_LIMIT cwd
+   global g_changeDir g_stdoutPuts error_count g_return_false g_return_text
+   global g_autoInit CSH_LIMIT cwd
 
    reportDebug "renderSettings: called."
 
@@ -2727,8 +2729,7 @@ proc renderSettings {} {
    if {$g_autoInit || [array size g_stateEnvVars] > 0 ||\
       [array size g_stateAliases] > 0 || [array size g_newXResources] > 0 ||\
       [array size g_delXResources] > 0 || [info exists g_changeDir] ||\
-      [info exists g_pathList] || [info exists g_stdoutPuts] ||\
-      $g_return_text ne ""} {
+      [info exists g_stdoutPuts] || $g_return_text ne ""} {
       switch -- $g_shellType {
          {python} {
             puts stdout "import os"
@@ -3097,41 +3098,6 @@ proc renderSettings {} {
          }
       }
       # cannot change current directory of cmake "shell"
-   }
-
-   # module path{s,} output
-   if {[info exists g_pathList]} {
-      foreach var $g_pathList {
-         switch -- $g_shellType {
-            {sh} - {csh} - {fish} {
-               puts stdout "echo '$var';"
-            }
-            {tcl} {
-               puts stdout "puts \"$var\";"
-            }
-            {cmd} {
-               puts stdout "echo '$var'"
-            }
-            {perl} {
-               puts stdout "print '$var'.\"\\n\";"
-            }
-            {python} {
-               puts stdout "print '$var'"
-            }
-            {ruby} {
-               puts stdout "puts '$var'"
-            }
-            {lisp} {
-               puts stdout "(message \"$var\")"
-            }
-            {cmake} {
-               puts stdout "message(\"$var\")"
-            }
-            {r} {
-               puts stdout "cat('$var','\n',sep='')"
-            }
-         }
-      }
    }
 
    # send content deferred during modulefile interpretation
@@ -4670,7 +4636,7 @@ proc cmdModuleDisplay {args} {
 }
 
 proc cmdModulePaths {mod} {
-   global g_pathList
+   global g_return_text
 
    reportDebug "cmdModulePaths: ($mod)"
 
@@ -4688,7 +4654,7 @@ proc cmdModulePaths {mod} {
       foreach elt [array names mod_list] {
          switch -- [lindex $mod_list($elt) 0] {
             {modulefile} {
-               lappend g_pathList $dir/$elt
+               lappend g_return_text $dir/$elt
             }
             {alias} - {version} {
                # resolve alias target
@@ -4697,7 +4663,7 @@ proc cmdModulePaths {mod} {
                   modfile modname
                # add module target as result instead of alias
                if {$modfile ne "" && ![info exists mod_list($modname)]} {
-                  lappend g_pathList $modfile
+                  lappend g_return_text $modfile
                }
             }
          }
@@ -4705,8 +4671,8 @@ proc cmdModulePaths {mod} {
    }
 
    # sort results if any and remove duplicates
-   if {[info exists g_pathList]} {
-      set g_pathList [lsort -dictionary -unique $g_pathList]
+   if {[llength g_return_text] > 0} {
+      set g_return_text [lsort -dictionary -unique $g_return_text]
    }
 }
 

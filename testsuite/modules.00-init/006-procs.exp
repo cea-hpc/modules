@@ -153,7 +153,12 @@ proc shell_text {test_shell val {re_mode 0}} {
 
     switch -- $test_shell {
         {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
-            set answer "echo '$val';"
+            foreach word $val {
+                if {[info exists answer]} {
+                    append answer "\n"
+                }
+                append answer "echo '$word';"
+            }
         }
         {tcl} {
             set answer "set _mlstatus \"$val\";"
