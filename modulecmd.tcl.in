@@ -26,7 +26,6 @@
 set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_return_false 0 ;# False value is rendered if == 1
-set g_return_text "" ;# Text value is rendered if not empty
 set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
@@ -2755,7 +2754,7 @@ proc renderSettings {} {
    if {$g_autoInit || [array size g_stateEnvVars] > 0 ||\
       [array size g_stateAliases] > 0 || [array size g_newXResources] > 0 ||\
       [array size g_delXResources] > 0 || [info exists g_changeDir] ||\
-      [info exists g_stdoutPuts] || $g_return_text ne ""} {
+      [info exists g_stdoutPuts] || [info exists g_return_text]} {
       switch -- $g_shellType {
          {python} {
             puts stdout "import os"
@@ -3142,15 +3141,16 @@ proc renderSettings {} {
       }
    }
 
-   if {$error_count > 0} {
+   # return text value if defined even if error happened
+   if {[info exists g_return_text]} {
+      reportDebug "renderSettings: text value should be returned."
+      renderText $g_return_text
+   } elseif {$error_count > 0} {
       reportDebug "renderSettings: $error_count error(s) detected."
       renderFalse
    } elseif {$g_return_false} {
       reportDebug "renderSettings: false value should be returned."
       renderFalse
-   } elseif {$g_return_text ne ""} {
-      reportDebug "renderSettings: text value should be returned."
-      renderText $g_return_text
    } elseif {$has_rendered} {
       # finish with true statement if something has been put
       renderTrue
@@ -4697,8 +4697,11 @@ proc cmdModulePaths {mod} {
    }
 
    # sort results if any and remove duplicates
-   if {[llength g_return_text] > 0} {
+   if {[info exists g_return_text]} {
       set g_return_text [lsort -dictionary -unique $g_return_text]
+   } else {
+      # set empty value to return empty if no result
+      set g_return_text ""
    }
 }
 
@@ -4707,9 +4710,8 @@ proc cmdModulePath {mod} {
 
    reportDebug "cmdModulePath: ($mod)"
    lassign [getPathToModule $mod] modfile modname
-   if {$modfile ne ""} {
-      set g_return_text $modfile
-   }
+   # if no result set empty value to return empty
+   set g_return_text $modfile
 }
 
 proc cmdModuleWhatIs {{mod {}}} {

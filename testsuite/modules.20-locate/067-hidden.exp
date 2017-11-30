@@ -111,11 +111,7 @@ for {set i 1} {$i <= 9} {incr i} {
     }
     set ans_paths [list]
     if {[info exists "modpaths_${i}"]} {
-        if {[llength [set "modpaths_${i}"]] == 0} {
-            lappend ans_paths [list "OK"]
-        } else {
-            lappend ans_paths [list text [set "modpaths_${i}"]]
-        }
+        lappend ans_paths [list text [set "modpaths_${i}"]]
     } else {
         lappend ans_paths [list text $modulefile]
     }
@@ -157,10 +153,11 @@ for {set i 1} {$i <= 9} {incr i} {
         testouterr_cmd_re "sh" "whatis $modsym" "OK" "$whatis_pre$modwhatis"
     }
 
+    set ans [list]
     if {[info exists moderr]} {
-        testouterr_cmd "sh" "path $modsym" "ERR" "$moderr"
+        lappend ans [list text ""]
+        testouterr_cmd "sh" "path $modsym" $ans "$moderr"
     } else {
-        set ans [list]
         lappend ans [list text $modulefile]
         testouterr_cmd "sh" "path $modsym" $ans ""
     }
