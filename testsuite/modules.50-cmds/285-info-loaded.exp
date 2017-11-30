@@ -1,0 +1,98 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2017/11/30
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	info/loaded, info/name, info/type
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'module-info loaded' modulefile subcommand
+#		}C%
+#
+##############################################################################
+
+set module "info/loaded"
+set modulefile "$modpath/$module"
+
+set module1 "info/name"
+set modulefile1 "$modpath/$module1"
+
+set module2 "info/type"
+set modulefile2 "$modpath/$module2"
+
+
+#
+#  The tests
+#
+
+lappend ans [list set testsuite1 ""]
+lappend ans [list set testsuite2 ""]
+lappend ans [list set testsuite3 ""]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd "sh" "load $module" $ans ""
+
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = '$module1'\n"
+    send_user "\tSetup _LMFILES_ = '$modulefile1'\n"
+}
+set env(LOADEDMODULES) $module1
+set env(_LMFILES_) $modulefile1
+
+set ans [list]
+lappend ans [list set testsuite1 "$module1"]
+lappend ans [list set testsuite2 "$module1"]
+lappend ans [list set testsuite3 ""]
+lappend ans [list setpath LOADEDMODULES "$module1:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile1:$modulefile"]
+
+testouterr_cmd_re "sh" "load $module" $ans ""
+
+
+
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = '$module1:$module2'\n"
+    send_user "\tSetup _LMFILES_ = '$modulefile1:$modulefile2'\n"
+}
+set env(LOADEDMODULES) "$module1:$module2"
+set env(_LMFILES_) "$modulefile1:$modulefile2"
+
+set ans [list]
+lappend ans [list set testsuite1 "$module1"]
+lappend ans [list set testsuite2 "$module1 $module2"]
+lappend ans [list set testsuite3 ""]
+lappend ans [list setpath LOADEDMODULES "$module1:$module2:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile1:$modulefile2:$modulefile"]
+
+testouterr_cmd_re "sh" "load $module" $ans ""
+
+
+#
+#  Cleanup
+#
+
+# Clean up the environment
+if { $verbose > 0 } {
+    send_user "\tUnset LOADEDMODULES\n"
+    send_user "\tUnset _LMFILES_\n"
+}
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+unset ans
+unset modulefile
+unset module
+unset modulefile1
+unset module1
+unset modulefile2
+unset module2

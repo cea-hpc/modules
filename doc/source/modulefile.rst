@@ -317,6 +317,13 @@ the *modulefile* is being loaded.
   *modulefile* with name and version, another symbolic *modulefile* name
   or a *modulefile* alias.
 
+ **module-info loaded** modulefile
+
+  Returns the names of currently loaded modules matching passed *modulefile*.
+  The parameter *modulefile* might either be a full qualified *modulefile*
+  with name and version or just a directory which in case all loaded
+  *modulefiles* from the directory will be returned.
+
 **module-version** modulefile version-name...
 
  Assigns the symbolic *version-name* to the *modulefile*. This command

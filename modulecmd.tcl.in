@@ -926,6 +926,10 @@ proc module-info {what {more {}}} {
          lassign [getModuleNameVersion $more 1] mod
          return [resolveModuleVersionOrAlias $mod]
       }
+      {loaded} {
+         lassign [getModuleNameVersion $more 1] mod
+         return [getLoadedMatchingName $mod "returnall"]
+      }
       default {
          error "module-info $what not supported"
          return {}
@@ -2626,16 +2630,25 @@ proc getLoadedWithClosestName {name} {
 
 # return the currently loaded module whose name is equal or include the name
 # passed as argument. if no loaded module match, an empty string is returned.
-proc getLoadedMatchingName {name} {
-   set ret ""
+proc getLoadedMatchingName {name {behavior "returnlast"}} {
+   set ret {}
    set retmax 0
    set namesplit [split $name "/"]
 
    # compare name to each currently loaded module name, if multiple mod
-   # match name, the last loaded module will be returned
+   # match name:
    foreach mod [getLoadedModuleList] {
       if {[string first "$name/" "$mod/"] == 0} {
-         set ret $mod
+         switch -- $behavior {
+            {returnlast} {
+               # the last loaded module will be returned
+               set ret $mod
+            }
+            {returnall} {
+               # all loaded modules will be returned
+               lappend ret $mod
+            }
+         }
       }
    }
 
