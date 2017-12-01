@@ -2077,18 +2077,15 @@ proc unset-alias {alias} {
    return {}
 }
 
-proc is-loaded {modulelist} {
-   reportDebug "is-loaded: $modulelist"
+proc is-loaded {args} {
+   reportDebug "is-loaded: $args"
 
-   if {[llength $modulelist] > 0} {
-      foreach arg $modulelist {
-         if {[getLoadedMatchingName $arg "returnfirst"] ne ""} {
-            return 1
-         }
+   foreach mod $args {
+      if {[getLoadedMatchingName $mod "returnfirst"] ne ""} {
+         return 1
       }
-      return 0
    }
-   return 1
+   return 0
 }
 
 proc conflict {args} {
@@ -2126,7 +2123,7 @@ proc prereq {args} {
    reportDebug "prereq: ($args) mode = $mode"
 
    if {$mode eq "load"} {
-      if {![is-loaded $args]} {
+      if {![eval is-loaded $args]} {
          set errMsg "WARNING: $currentModule cannot be loaded due to\
              missing prereq."
          # adapt error message when multiple modules are specified
