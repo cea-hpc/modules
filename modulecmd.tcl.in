@@ -1547,7 +1547,7 @@ proc module {command args} {
             set errormsg "${msgprefix}Command '$command' not supported"
          }
       }
-      {^is-(loaded)$} {
+      {^is-(loaded|saved)$} {
          if {$topcall} {
             eval cmdModuleResurface $command $args
          } else {
@@ -1556,7 +1556,7 @@ proc module {command args} {
             set errormsg "${msgprefix}Command '$command' not supported"
          }
       }
-      {^is-(avail|saved|used)$} {
+      {^is-(avail|used)$} {
          if {$topcall} {
             if {[llength $args] == 0} {
                set errormsg "Unexpected number of args for '$command' command"
@@ -2280,7 +2280,12 @@ proc is-saved {args} {
          return 1
       }
    }
-   return 0
+   # is something saved whatever it is?
+   if {[llength $args] == 0 && [llength [findCollections]] > 0} {
+      return 1
+   } else {
+      return 0
+   }
 }
 
 # test at least one of the directories passed as argument is set in MODULEPATH
@@ -5723,7 +5728,7 @@ Collection of modules handling commands:
   saverm          [collection]      Remove saved collection
   saveshow        [collection|file] Display information about collection
   savelist        [-t|-l]           List all saved collections
-  is-saved        collection [...]  Test if any of the collection(s) exists
+  is-saved        [collection ...]  Test if any of the collection(s) exists
 
 Shell's initialization files handling commands:
   initlist                          List all modules loaded from init file

@@ -198,19 +198,23 @@ the *modulefile* is being loaded.
 **is-loaded** [modulefile...]
 
  The **is-loaded** command returns a true value if any of the listed
- *modulefiles* has been loaded. If a list contains more than one
- *modulefile*, then each member acts as a boolean OR operation. If an
- argument for **is-loaded** is a directory and any *modulefile* from the
- directory has been loaded **is-loaded** would return a true value.
+ *modulefiles* has been loaded or if any *modulefile* is loaded in case no
+ argument is provided. If a list contains more than one *modulefile*, then
+ each member acts as a boolean OR operation. If an argument for **is-loaded**
+ is a directory and any *modulefile* from the directory has been loaded
+ **is-loaded** would return a true value.
 
-**is-saved** collection...
+**is-saved** [collection...]
 
  The **is-saved** command returns a true value if any of the listed
- *collections* exists. If a list contains more than one *collection*, then
- each member acts as a boolean OR operation.
+ *collections* exists or if any *collection* exists in case no argument is
+ provided. If a list contains more than one *collection*, then each member
+ acts as a boolean OR operation.
 
  If **MODULES_COLLECTION_TARGET** is set, a suffix equivalent to the value
- of this variable is appended to the passed *collection* name.
+ of this variable is appended to the passed *collection* name. In case no
+ *collection* argument is provided, a true value will only be returned if
+ a collection matching currently set target exists.
 
 **is-used** directory...
 

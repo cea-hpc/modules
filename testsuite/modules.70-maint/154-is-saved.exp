@@ -35,6 +35,7 @@ set env(HOME) "$homewithcoll"
 
 testouterr_cmd "ALL" "is-saved foo" "ERR" ""
 testouterr_cmd "ALL" "is-saved foo coll1" "OK" ""
+testouterr_cmd "sh" "is-saved" "OK" ""
 
 # define a collection target
 if { $verbose > 0 } {
@@ -44,6 +45,15 @@ set env(MODULES_COLLECTION_TARGET) "target"
 
 testouterr_cmd "sh" "is-saved foo coll1" "ERR" ""
 testouterr_cmd "sh" "is-saved coll4" "OK" ""
+testouterr_cmd "sh" "is-saved" "OK" ""
+
+# define a collection target with no collection related to it
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_COLLECTION_TARGET = 'foo'\n"
+}
+set env(MODULES_COLLECTION_TARGET) "foo"
+
+testouterr_cmd "sh" "is-saved" "ERR" ""
 
 
 #
