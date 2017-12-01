@@ -4468,6 +4468,32 @@ proc getCollectionTarget {} {
    }
 }
 
+# return saved collections found in user directory which corresponds to
+# enabled collection target if any set.
+proc findCollections {} {
+   global env
+
+   set coll_search "$env(HOME)/.module/*"
+
+   # find saved collections (matching target suffix)
+   set colltarget [getCollectionTarget]
+   if {$colltarget ne ""} {
+      append coll_search ".$colltarget"
+   }
+
+   # workaround 'glob -nocomplain' which does not return permission
+   # error on Tcl 8.4, so we need to avoid raising error if no match
+   if {[catch {set coll_list [glob $coll_search]} errMsg ]} {
+      if {$errMsg eq "no files matched glob pattern \"$coll_search\""} {
+         set coll_list {}
+      } else {
+         reportErrorAndExit "Cannot access collection directory.\n$errMsg"
+      }
+   }
+
+   return $coll_list
+}
+
 # get filename corresponding to collection name provided as argument.
 # name provided may already be a file name. collection description name
 # (with target info if any) is returned along with collection filename
@@ -5072,7 +5098,7 @@ proc cmdModuleSaveshow {{coll {}}} {
 }
 
 proc cmdModuleSavelist {} {
-   global env show_oneperline show_modtimes
+   global show_oneperline show_modtimes
 
    # if a target is set, only list collection matching this
    # target (means having target as suffix in their name)
@@ -5088,17 +5114,7 @@ proc cmdModuleSavelist {} {
    reportDebug "cmdModuleSavelist: list collections for target\
       \"$colltarget\""
 
-   # list saved collections (matching target suffix)
-   set coll_search "$env(HOME)/.module/*$suffix"
-   # workaround 'glob -nocomplain' which does not return permission
-   # error on Tcl 8.4, so we need to avoid raising error if no match
-   if {[catch {set coll_list [glob $coll_search]} errMsg ]} {
-      if {$errMsg eq "no files matched glob pattern \"$coll_search\""} {
-         set coll_list {}
-      } else {
-         reportErrorAndExit "Cannot access collection directory.\n$errMsg"
-      }
-   }
+   set coll_list [findCollections]
 
    if { [llength $coll_list] == 0} {
       report "No named collection$targetdesc."
