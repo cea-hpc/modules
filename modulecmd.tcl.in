@@ -2081,21 +2081,12 @@ proc is-loaded {modulelist} {
    reportDebug "is-loaded: $modulelist"
 
    if {[llength $modulelist] > 0} {
-      set loadedmodlist [getLoadedModuleList]
-      if {[llength $loadedmodlist] > 0} {
-         foreach arg $modulelist {
-            set arg "$arg/"
-            foreach mod $loadedmodlist {
-               set mod "$mod/"
-               if {[string first $arg $mod] == 0} {
-                  return 1
-               }
-            }
+      foreach arg $modulelist {
+         if {[getLoadedMatchingName $arg "returnfirst"] ne ""} {
+            return 1
          }
-         return 0
-      } else {
-         return 0
       }
+      return 0
    }
    return 1
 }
@@ -2645,7 +2636,6 @@ proc getLoadedWithClosestName {name} {
 proc getLoadedMatchingName {name {behavior "returnlast"}} {
    set ret {}
    set retmax 0
-   set namesplit [split $name "/"]
 
    # compare name to each currently loaded module name, if multiple mod
    # match name:
@@ -2655,6 +2645,11 @@ proc getLoadedMatchingName {name {behavior "returnlast"}} {
             {returnlast} {
                # the last loaded module will be returned
                set ret $mod
+            }
+            {returnfirst} {
+               # the first loaded module will be returned
+               set ret $mod
+               break
             }
             {returnall} {
                # all loaded modules will be returned
