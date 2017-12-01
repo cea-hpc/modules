@@ -60,6 +60,18 @@ Modules 4.1.0 (2017-??-??)
 * Introduce ``is-saved``, ``is-used`` and ``is-avail`` modulefile Tcl commands
   and module sub-commands to test availability of collection, modulepath or
   modulefile.
+* Raise error when a call to ``path`` or ``paths`` module sub-commands is
+  attempted during a modulefile interpretation. Both commands now return text
+  rather print text on scripting languages. An empty string is returned in
+  no match case instead of a false boolean value.
+* Introduce ``module-info loaded`` modulefile command and its module
+  sub-command counterpart ``info-loaded``. This new command returns name of
+  the modules currently loaded corresponding to the name passed as argument.
+  (fix issue#3)
+* Fix ``is-loaded`` command to correctly handle multiple module names passed
+  as argument (fix issue#138)
+* Support no argument on ``is-loaded``, ``is-saved`` and ``is-used`` commands
+  to return if anything is respectively loaded, saved or used.
 
 
 Modules 4.0.0 (2017-10-16)
