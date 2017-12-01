@@ -1547,7 +1547,16 @@ proc module {command args} {
             set errormsg "${msgprefix}Command '$command' not supported"
          }
       }
-      {^is-(avail|loaded|saved|used)$} {
+      {^is-(loaded)$} {
+         if {$topcall} {
+            eval cmdModuleResurface $command $args
+         } else {
+            # no call other than from top level not to conflict with modulefile
+            # specific Tcl commands
+            set errormsg "${msgprefix}Command '$command' not supported"
+         }
+      }
+      {^is-(avail|saved|used)$} {
          if {$topcall} {
             if {[llength $args] == 0} {
                set errormsg "Unexpected number of args for '$command' command"
@@ -2085,7 +2094,12 @@ proc is-loaded {args} {
          return 1
       }
    }
-   return 0
+   # is something loaded whatever it is?
+   if {[llength $args] == 0 && [llength [getLoadedModuleList]] > 0} {
+      return 1
+   } else {
+      return 0
+   }
 }
 
 proc conflict {args} {
@@ -5683,7 +5697,7 @@ Listing / Searching commands:
   aliases                           List all module aliases
   whatis          [modulefile ...]  Print whatis information of modulefile(s)
   apropos | keyword | search  str   Search all name and whatis containing str
-  is-loaded       modulefile [...]  Test if any of the modulefile(s) are loaded
+  is-loaded       [modulefile ...]  Test if any of the modulefile(s) are loaded
   is-avail        modulefile [...]  Is any of the modulefile(s) available
   info-loaded     modulefile        Get full name of matching loaded module(s)
 

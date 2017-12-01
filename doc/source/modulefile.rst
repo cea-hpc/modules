@@ -195,7 +195,7 @@ the *modulefile* is being loaded.
  example, specifying X11 as a **conflict** will stop X11/R4 and X11/R5
  from being loaded at the same time.
 
-**is-loaded** modulefile...
+**is-loaded** [modulefile...]
 
  The **is-loaded** command returns a true value if any of the listed
  *modulefiles* has been loaded. If a list contains more than one
