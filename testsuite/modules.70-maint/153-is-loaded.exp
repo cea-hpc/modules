@@ -21,8 +21,12 @@
 ##############################################################################
 
 set module "setenv/1.0"
+set modname "setenv"
+set modpart "setenv/1"
 
 testouterr_cmd "ALL" "is-loaded $module" "ERR" ""
+testouterr_cmd "sh" "is-loaded $modname foo" "ERR" ""
+testouterr_cmd "sh" "is-loaded foo $modpart" "ERR" ""
 
 
 if { $verbose > 0 } {
@@ -31,6 +35,8 @@ if { $verbose > 0 } {
 set env(LOADEDMODULES) $module
 
 testouterr_cmd "ALL" "is-loaded $module" "OK" ""
+testouterr_cmd "sh" "is-loaded $modname foo" "OK" ""
+testouterr_cmd "sh" "is-loaded foo $modpart" "ERR" ""
 
 
 #
@@ -44,3 +50,5 @@ if { $verbose > 0 } {
 unset env(LOADEDMODULES)
 
 unset module
+unset modname
+unset modpart
