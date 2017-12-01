@@ -28,7 +28,7 @@
 #    be set up
 #
 
-set path1 "$env(MODULEPATH)"
+set path1 $modpath
 set path2 "$env(TESTSUITEDIR)/modulefiles.other"
 set module1 "use/1.0"
 set module2 "use/2.0"
@@ -53,11 +53,11 @@ set modulefile8 "$path1/$module8"
 
 set env(_LMFILES_) "$modulefile1"
 set env(LOADEDMODULES) "$module1"
-set env(MODULEPATH) "$path1:$path2"
 
 if { $verbose > 0 } {
-    send_user "Setup MODULEPATH = $env(MODULEPATH)\n"
+    send_user "Setup MODULEPATH = '$path1:$path2'\n"
 }
+set env(MODULEPATH) "$path1:$path2"
 
 #
 #  For the different shells ...
@@ -176,7 +176,11 @@ testouterr_cmd "ALL" "unload $module8" $ans ""
 #  Cleanup
 #
 
-set env(MODULEPATH) "$path1"
+if { $verbose > 0 } {
+    send_user "Restore MODULEPATH = '$modpath'\n"
+}
+
+set env(MODULEPATH) $modpath
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 

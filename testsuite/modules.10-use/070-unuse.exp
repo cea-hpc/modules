@@ -30,7 +30,6 @@ set tsdirname [file tail $env(TESTSUITEDIR)]
 regsub "^.*/$tsdirname" $path "$tsdirname" relpath
 regsub "$tsdirname" $relpath "$tsdirname/../$tsdirname/./" relpath_wdot
 set badpath "$env(TESTSUITEDIR)/modulefiles.bad"
-set mod_path "$env(MODULEPATH)"
 set bad_use ""
 set path_list_header "Search path for module files (in search order):"
 set no_path_list "$warn_msgs: No directories on module search path"
@@ -42,9 +41,9 @@ set use	"unuse"
 #
 
 if { $verbose > 0 } {
-    send_user "Setup MODULEPATH = $path:$mod_path\n"
+    send_user "Setup MODULEPATH = $path:$modpath\n"
 }
-set env(MODULEPATH) "$path:$mod_path"
+set env(MODULEPATH) "$path:$modpath"
 
 
 #
@@ -58,7 +57,7 @@ testouterr_cmd_re "ALL" "$use $badpath" "OK" "$bad_use"
 #   do these last so the .modulesbeginenv is left in a good state for 070-Maint
 #
 
-lappend ans [list setpath MODULEPATH $mod_path]
+lappend ans [list setpath MODULEPATH $modpath]
 test_cmd_re "ALL" "$use $path" $ans
 
 #
@@ -79,13 +78,12 @@ test_cmd_re "ALL" "$use $relpath_wdot" $ans
 # List enabled paths with 2 paths set
 #
 
-testouterr_cmd "ALL" "$use" "OK" "$path_list_header\n  $path\n  $mod_path"
+testouterr_cmd "ALL" "$use" "OK" "$path_list_header\n  $path\n  $modpath"
 
 # list paths with no paths set
 if { $verbose > 0 } {
     send_user "\tSetup MODULEPATH = ''\n"
 }
-set ORIG $::env(MODULEPATH)
 set ::env(MODULEPATH) ""
 
 testouterr_cmd "ALL" "$use" "OK" "$no_path_list"
@@ -104,13 +102,12 @@ testouterr_cmd "ALL" "$use " "OK" ""
 if { $verbose > 0 } {
     send_user "Resetting MODULEPATH\n"
 }
-set env(MODULEPATH) "$mod_path"
+set env(MODULEPATH) "$modpath"
 
 unset path
 unset tsdirname
 unset relpath
 unset relpath_wdot
-unset mod_path
 unset use
 unset badpath
 unset bad_use

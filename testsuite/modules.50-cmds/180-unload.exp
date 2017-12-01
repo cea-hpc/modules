@@ -22,10 +22,10 @@
 
 set modulename_1 "setenv"
 set module_1 "$modulename_1/0.8"
-set modulefile_1 "$env(MODULEPATH)/$module_1"
+set modulefile_1 "$modpath/$module_1"
 set module_2 "$modulename_1/1.0"
-set modulefile_2 "$env(MODULEPATH)/$module_2"
-set module_3 "$env(MODULEPATH)/loc_rc3/1.0"
+set modulefile_2 "$modpath/$module_2"
+set module_3 "$modpath/loc_rc3/1.0"
 set modulefile_3 $module_3
 
 lappend ans [list unsetpath testsuite]
@@ -33,7 +33,7 @@ lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 
 set module_0 "bad2/body"
-set modulefile_0 "$env(MODULEPATH)/$module_0"
+set modulefile_0 "$modpath/$module_0"
 set mod0_err "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modulefile_0'\n$err_contact"
 
 #
@@ -81,9 +81,8 @@ testouterr_cmd "sh" "unload $modulename_1" $ans ""
 
 
 # unset MODULEPATH
-set ORIG_MODULEPATH $env(MODULEPATH)
 if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = ''\n"
+    send_user "\tUnset MODULEPATH\n"
 }
 unset env(MODULEPATH)
 
@@ -142,10 +141,9 @@ testouterr_cmd "sh" "unload $module_3" $ans ""
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $ORIG_MODULEPATH\n"
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
 }
-set env(MODULEPATH) $ORIG_MODULEPATH
-unset ORIG_MODULEPATH
+set env(MODULEPATH) $modpath
 
 unset ans
 
