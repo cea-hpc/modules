@@ -1547,7 +1547,7 @@ proc module {command args} {
             set errormsg "${msgprefix}Command '$command' not supported"
          }
       }
-      {^is-(loaded|saved)$} {
+      {^is-(loaded|saved|used)$} {
          if {$topcall} {
             eval cmdModuleResurface $command $args
          } else {
@@ -1556,7 +1556,7 @@ proc module {command args} {
             set errormsg "${msgprefix}Command '$command' not supported"
          }
       }
-      {^is-(avail|used)$} {
+      {^is-avail$} {
          if {$topcall} {
             if {[llength $args] == 0} {
                set errormsg "Unexpected number of args for '$command' command"
@@ -2302,7 +2302,12 @@ proc is-used {args} {
          return 1
       }
    }
-   return 0
+   # is something used whatever it is?
+   if {[llength $args] == 0 && [llength $modpathlist] > 0} {
+      return 1
+   } else {
+      return 0
+   }
 }
 
 # test at least one of the modulefiles passed as argument exists
@@ -5749,7 +5754,7 @@ Other commands:
   test            [modulefile ...]  Test modulefile(s)
   use     [-a|-p] dir [...]         Add dir(s) to MODULEPATH variable
   unuse           dir [...]         Remove dir(s) from MODULEPATH variable
-  is-used         dir [...]         Is any of the dir(s) enabled in MODULEPATH
+  is-used         [dir ...]         Is any of the dir(s) enabled in MODULEPATH
   path            modulefile        Print modulefile path
   paths           modulefile        Print path of matching available modules
   source          scriptfile [...]  Execute scriptfile(s)

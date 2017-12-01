@@ -28,7 +28,7 @@ set modulefile "$modpath/$module"
 #  The tests
 #
 
-lappend ans [list set testsuite1 0]
+lappend ans [list set testsuite1 1]
 lappend ans [list set testsuite2 0]
 lappend ans [list set testsuite3 0]
 lappend ans [list set testsuite4 1]
@@ -40,9 +40,34 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 
 testouterr_cmd "ALL" "load $module" $ans ""
 
+# empty modulepath
+if { $verbose > 0 } {
+    send_user "\tUnset MODULEPATH\n"
+}
+unset env(MODULEPATH)
+
+set ans [list]
+lappend ans [list set testsuite1 0]
+lappend ans [list set testsuite2 0]
+lappend ans [list set testsuite3 0]
+lappend ans [list set testsuite4 0]
+lappend ans [list set testsuite5 0]
+lappend ans [list set testsuite6 1]
+lappend ans [list unsetpath MODULEPATH]
+lappend ans [list setpath LOADEDMODULES $modulefile]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd "sh" "load $modulefile" $ans ""
+
 #
 #  Cleanup
 #
+
+# restore modulepath
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
+}
+set env(MODULEPATH) $modpath
 
 unset ans
 unset modulefile

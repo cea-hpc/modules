@@ -216,11 +216,12 @@ the *modulefile* is being loaded.
  *collection* argument is provided, a true value will only be returned if
  a collection matching currently set target exists.
 
-**is-used** directory...
+**is-used** [directory...]
 
  The **is-used** command returns a true value if any of the listed
- *directories* has been enabled in **MODULEPATH**. If a list contains more
- than one *directory*, then each member acts as a boolean OR operation.
+ *directories* has been enabled in **MODULEPATH** or if any *directory* is
+ enabled in case no argument is provided. If a list contains more than one
+ *directory*, then each member acts as a boolean OR operation.
 
 **is-avail** modulefile...
 

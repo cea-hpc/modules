@@ -26,9 +26,23 @@
 
 testouterr_cmd "ALL" "is-used foo" "ERR" ""
 testouterr_cmd "ALL" "is-used foo $modpath" "OK" ""
+testouterr_cmd "sh" "is-used" "OK" ""
+
+# empty modulepath
+if { $verbose > 0 } {
+    send_user "\tUnset MODULEPATH\n"
+}
+unset env(MODULEPATH)
+
+testouterr_cmd "sh" "is-used" "ERR" ""
 
 
 #
 #  Cleanup
 #
 
+# restore modulepath
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
+}
+set env(MODULEPATH) $modpath
