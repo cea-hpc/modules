@@ -1,0 +1,107 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2017/12/02
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload
+#   Modulefiles:	info/isavail
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the 'source' modulefile subcommand for all
+#			allowed shell types.
+#		}C%
+#
+##############################################################################
+
+set module "source/1.0"
+set modulefile "$modpath/$module"
+set modulefilere "$modpathre/$module"
+set path $env(PATH)
+set pathnew "$path:/modules/testsuite2.2:/modules/testsuite2.2/2.2"
+set module2 "source/0.9"
+set modulefile2 "$modpath/$module2"
+
+
+#
+#  The tests
+#
+
+# load test
+lappend ans [list set testsuite "yes"]
+lappend ans [list setpath PATH $pathnew]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd_re "ALL" "load $module" $ans ""
+
+# display test
+set dispout "module source\t$modpath/setenv/1.0 $modpath/append/2.2"
+testouterr_cmd_re "ALL" "display $module" "OK" "$modlin\n$modulefilere:\n\n$dispout\n$modlin"
+
+# unload test
+if { $verbose > 0 } {
+    send_user "\tSetup PATH = '$pathnew'\n"
+    send_user "\tSetup LOADEDMODULES = '$module'\n"
+    send_user "\tSetup _LMFILES_ = '$modulefile'\n"
+}
+set env(PATH) $pathnew
+set env(LOADEDMODULES) $module
+set env(_LMFILES_) $modulefile
+set env(testsuite) "yes"
+
+set ans [list]
+lappend ans [list unset testsuite]
+lappend ans [list setpath PATH $path]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+testouterr_cmd_re "ALL" "unload $module" $ans ""
+
+# load test with source command targeting bad file
+set errsource "$moderr_msgs: File unknown/1.0 does not exist
+  In '$modulefile2'
+$err_contact"
+testouterr_cmd_re "sh" "load $module2" "ERR" "$errsource"
+
+# unload test with bad sourced file
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = '$module2'\n"
+    send_user "\tSetup _LMFILES_ = '$modulefile2'\n"
+}
+set env(LOADEDMODULES) $module2
+set env(_LMFILES_) $modulefile2
+
+testouterr_cmd_re "sh" "unload $module2" "ERR" "$errsource"
+
+#
+#  Cleanup
+#
+
+if { $verbose > 0 } {
+    send_user "\tRestore PATH = '$path'\n"
+    send_user "\tUnset LOADEDMODULES\n"
+    send_user "\tUnset _LMFILES_\n"
+}
+set env(PATH) $path
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+unset env(testsuite)
+
+unset ans
+unset path
+unset pathnew
+unset dispout
+unset errsource
+unset modulefile
+unset modulefilere
+unset module
+unset module2
+unset modulefile2
