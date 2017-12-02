@@ -1318,7 +1318,14 @@ proc module {command args} {
             set errormsg "Unexpected number of args for 'source' command"
          } else {
             pushCommandName "source"
-            eval cmdModuleSource $args
+            if {$topcall || $mode eq "load"} {
+               eval cmdModuleSource $args
+            } elseif {$mode eq "unload"} {
+               # on unload mode, unsource script in reverse order
+               eval cmdModuleUnsource [lreverse $args]
+            } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
+               report "module source\t$args"
+            }
             popCommandName
          }
       }
@@ -5169,6 +5176,27 @@ proc cmdModuleSource {args} {
    foreach file $args {
       if {[file exists $file]} {
          pushMode "load"
+         pushSpecifiedName $file
+         pushModuleName $file
+         # relax constraint of having a magic cookie at the start of the
+         # modulefile to execute as sourced files may need more flexibility
+         # as they may be managed outside of the modulefile environment like
+         # the initialization modulerc file
+         execute-modulefile $file 0
+         popModuleName
+         popSpecifiedName
+         popMode
+      } else {
+         reportErrorAndExit "File $file does not exist"
+      }
+   }
+}
+
+proc cmdModuleUnsource {args} {
+   reportDebug "cmdModuleUnsource: $args"
+   foreach file $args {
+      if {[file exists $file]} {
+         pushMode "unload"
          pushSpecifiedName $file
          pushModuleName $file
          # relax constraint of having a magic cookie at the start of the
