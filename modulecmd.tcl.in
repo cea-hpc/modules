@@ -1753,15 +1753,16 @@ proc setModulesVersion {val} {
    set ModulesVersion $val
 }
 
-# supersede puts command to catch content sent to stdout within modulefile
-# in order to postpone content channel send after rendering on stdout the
+# supersede puts command to catch content sent to stdout/stderr within
+# modulefile in order to correctly send stderr content (if a pager has been
+# enabled) or postpone content channel send after rendering on stdout the
 # relative environment changes required by the modulefile
 proc putsModfileCmd {args} {
    global g_stdoutPuts
 
    reportDebug "puts: ($args)"
 
-   # determine if puts call targets the stdout channel
+   # determine if puts call targets the stdout or stderr channel
    switch -- [llength $args] {
       {1} {
          set deferPuts 1
@@ -1771,12 +1772,21 @@ proc putsModfileCmd {args} {
             {-nonewline} - {stdout} {
                set deferPuts 1
             }
+            {stderr} {
+               set reportArgs [list [lindex $args 1]]
+            }
          }
       }
       {3} {
-         if {[lindex $args 0] eq "-nonewline" &&\
-            [lindex $args 1] eq "stdout"} {
-            set deferPuts 1
+         if {[lindex $args 0] eq "-nonewline"} {
+            switch -- [lindex $args 1] {
+               {stdout} {
+                  set deferPuts 1
+               }
+               {stderr} {
+                  set reportArgs [list [lindex $args 2] 1]
+               }
+            }
          }
       }
    }
@@ -1784,6 +1794,9 @@ proc putsModfileCmd {args} {
    # defer puts if it targets stdout (see renderSettings)
    if {[info exists deferPuts]} {
       lappend g_stdoutPuts $args
+   # if it targets stderr call report, which knows what channel to use
+   } elseif {[info exists reportArgs]} {
+      eval report $reportArgs
    # pass to real puts command if not related to stdout or bad call
    } else {
       eval puts $args
