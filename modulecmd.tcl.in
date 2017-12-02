@@ -115,11 +115,16 @@ proc raiseErrorCount {} {
 }
 
 proc renderFalse {} {
-   global g_shellType
+   global g_shellType g_false_rendered
 
    reportDebug "renderFalse: called."
 
-   if {[info exists g_shellType]} {
+   if {[info exists g_false_rendered]} {
+      reportDebug "renderFalse: false already rendered"
+   } elseif {[info exists g_shellType]} {
+      # setup flag to render only once
+      set g_false_rendered 1
+
       # render a false value most of the time through a variable assignement
       # that will be looked at in the shell module function calling
       # modulecmd.tcl to return in turns a boolean status. Except for python
