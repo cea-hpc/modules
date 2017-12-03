@@ -32,6 +32,10 @@
 #
 
 set module "help/2.0"
+set modulefile "$modpath/$module"
+set modulefile_reld "$reldmodpath/$module"
+set modulefile_reldd "$relddmodpath/$module"
+
 # different behavior than C-version: on Tcl-version 'module-log', 'module-verbosity'
 # and 'module-user' commandq are not handled and will always return a warning message
 # to inform the user.
@@ -72,6 +76,9 @@ $moderr_msgs: invalid command name \"bad-command\"\n  In '$modpathre/$module_2/b
 $modlin"
 
 set module_3 "bad2"
+set modulefile_3 "$modpath/$module_3/proc"
+set modulefile_3_reld "$reldmodpath/$module_3/proc"
+set modulefile_3_reldd "$relddmodpath/$module_3/proc"
 set out_interr_3 "$modlin
 Module Specific Help for $modpathre/$module_3/proc:
 
@@ -93,6 +100,10 @@ set out_err_4 "$err_path'$module_4'"
 
 # test stderr output
 testouterr_cmd_re "sh" "help $module" "OK" "$err_help"
+# test with module passed as full path
+testouterr_cmd_re "sh" "help $modulefile" "OK" "$err_help"
+testouterr_cmd_re "sh" "help $modulefile_reld" "OK" "$err_help"
+testouterr_cmd_re "sh" "help $modulefile_reldd" "OK" "$err_help"
 
 # test debug mode
 testouterr_cmd_re "sh" "-D help $module" "OK" "$err_debug_help"
@@ -107,6 +118,10 @@ testouterr_cmd_re "sh" "help $module_2" "ERR" "$out_interr"
 
 # test with erroneous ModulesHelp proc in modulefile
 testouterr_cmd_re "sh" "help $module_3" "ERR" "$out_interr_3"
+# test with module passed as full path
+testouterr_cmd_re "sh" "help $modulefile_3" "ERR" "$out_interr_3"
+testouterr_cmd_re "sh" "help $modulefile_3_reld" "ERR" "$out_interr_3"
+testouterr_cmd_re "sh" "help $modulefile_3_reldd" "ERR" "$out_interr_3"
 
 # test on unexistant modulefile
 testouterr_cmd "sh" "help $module_4" "ERR" "$out_err_4"
@@ -115,7 +130,10 @@ testouterr_cmd "sh" "help $module_4" "ERR" "$out_err_4"
 #  Cleanup
 #
 
-unset module 
+unset module
+unset modulefile
+unset modulefile_reld
+unset modulefile_reldd
 unset err_help
 unset err_debug_help
 
@@ -123,6 +141,9 @@ unset module_2
 unset out_interr
 
 unset module_3
+unset modulefile_3
+unset modulefile_3_reld
+unset modulefile_3_reldd
 unset out_interr_3
 
 unset module_4

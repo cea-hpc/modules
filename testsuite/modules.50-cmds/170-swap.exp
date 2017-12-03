@@ -255,6 +255,29 @@ testouterr_cmd "sh" "swap $mod11 $mod107" $ans "$mod101err"
 testouterr_cmd "sh" "swap $mod11 $mod108" $ans "$mod102err"
 
 #
+# Test to swap with full path modulefiles
+#
+
+set env(_LMFILES_) "$mod11p"
+set env(LOADEDMODULES) "$mod11p"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mod12p]
+lappend ans [list setpath _LMFILES_ $mod12p]
+
+testouterr_cmd "sh" "swap $mod11p $mod12p" $ans ""
+
+set env(_LMFILES_) "$mod12p"
+set env(LOADEDMODULES) "$mod12p"
+
+testouterr_cmd "sh" "swap $mod11p $mod12p" "OK" ""
+
+testouterr_cmd "sh" "swap $modpath/unknown $mod100p" "ERR" "$err_file'$modpath/unknown'"
+
+testouterr_cmd "sh" "swap $mod11p $mod100p" "ERR" "$mod100err"
+
+
+#
 #  Cleanup
 #
 
