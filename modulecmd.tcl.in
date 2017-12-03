@@ -2505,7 +2505,7 @@ proc isModuleHidden {mod} {
 # check if module name is specified as a full pathname (not a name relative
 # to a modulepath)
 proc isModuleFullPath {mod} {
-   if {[string match {/*} $mod]} {
+   if {[regexp {^(|\.|\.\.)/} $mod]} {
       return 1
    } else {
       return 0
@@ -2526,6 +2526,7 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
 
    # Check for $mod specified as a full pathname
    if {[isModuleFullPath $mod]} {
+      set mod [getAbsolutePath $mod]
       # note that a raw filename as an argument returns the full
       # path as the module name
       lassign [checkValidModule $mod] check_valid check_msg

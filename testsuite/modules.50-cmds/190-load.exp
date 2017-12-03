@@ -32,6 +32,8 @@ set mod31p "$modpath/$mod31"
 
 set oth11 "version"
 set oth11p "$modpath.other/1.1/version"
+set oth11pd "$reldmodpath.other/1.1/version"
+set oth11pdd "$relddmodpath.other/1.1/version"
 
 #
 # set up an empty environment
@@ -139,6 +141,10 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 #
 test_cmd_re "ALL" "load $oth11p" $ans
 
+# try with other full path name forms (./ and ../)
+test_cmd_re "sh" "load $oth11pd" $ans
+test_cmd_re "sh" "load $oth11pdd" $ans
+
 #
 # error when loading non existent module
 #
@@ -150,26 +156,44 @@ testouterr_cmd "ALL" "load $unknonw" "ERR" "$err_path\'$unknonw\'"
 # error when loading non existent module given as full path
 #
 set unknonw "$env(TESTSUITEDIR)/XYZ"
-set err_load "$error_msgs: No such file or directory on "
 
-testouterr_cmd "ALL" "load $unknonw" "ERR" "$err_load\'$unknonw\'"
+testouterr_cmd "ALL" "load $unknonw" "ERR" "$err_file'$unknonw'"
+
+# try with other full path name forms (./ and ../)
+set unknonw "$reldmodpath/XYZ"
+set out_interr "$err_file'$modpath/XYZ'"
+testouterr_cmd "sh" "load $unknonw" "ERR" $out_interr
+set unknonw "$relddmodpath/XYZ"
+testouterr_cmd "sh" "load $unknonw" "ERR" $out_interr
 
 #
 # test with erroneous modulefile
 #
 set badmod "bad"
-set out_interr "$moderr_msgs: invalid command name \"bad-command\"\n  In '$env(TESTSUITEDIR)/modulefiles/$badmod/.modulerc'\n$err_contact
-$moderr_msgs: invalid command name \"bad-command\"\n  In '$env(TESTSUITEDIR)/modulefiles/$badmod/before'\n$err_contact"
+set out_interr "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modpath/$badmod/.modulerc'\n$err_contact
+$moderr_msgs: invalid command name \"bad-command\"\n  In '$modpath/$badmod/before'\n$err_contact"
 
 testouterr_cmd "ALL" "load $badmod" "ERR2" "$out_interr"
+
+# try with other full path name forms (./ and ../)
+set badmod "$reldmodpath/bad/before"
+set out_interr "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modpath/bad/before'\n$err_contact"
+testouterr_cmd "sh" "load $badmod" "ERR" $out_interr
+set badmod "$relddmodpath/bad/before"
+testouterr_cmd "sh" "load $badmod" "ERR" $out_interr
 
 #
 # test with file given as full path which is not a modulefile
 #
 set badmod "$env(TESTSUITEDIR)/modulefiles/README"
 set out_interr "$err_magic'$badmod'\n$err_contact"
+testouterr_cmd "ALL" "load $badmod" "ERR" $out_interr
 
-testouterr_cmd "ALL" "load $badmod" "ERR" "$out_interr"
+# try with other full path name forms (./ and ../)
+set badmod "$reldmodpath/README"
+testouterr_cmd "sh" "load $badmod" "ERR" $out_interr
+set badmod "$relddmodpath/README"
+testouterr_cmd "sh" "load $badmod" "ERR" $out_interr
 
 
 #
@@ -182,7 +206,6 @@ unset env(LOADEDMODULES)
 unset ans
 
 unset unknonw
-unset err_load
 
 unset badmod
 unset out_interr
@@ -197,3 +220,7 @@ unset mod11p
 unset mod21p
 unset mod31p
 
+unset oth11
+unset oth11p
+unset oth11pd
+unset oth11pdd

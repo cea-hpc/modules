@@ -27,6 +27,8 @@ set module_2 "$modulename_1/1.0"
 set modulefile_2 "$modpath/$module_2"
 set module_3 "$modpath/loc_rc3/1.0"
 set modulefile_3 $module_3
+set module_3_reld "$reldmodpath/loc_rc3/1.0"
+set module_3_reldd "$relddmodpath/loc_rc3/1.0"
 
 lappend ans [list unsetpath testsuite]
 lappend ans [list unsetpath LOADEDMODULES]
@@ -42,6 +44,11 @@ set mod0_err "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modulef
 
 # unload unkown module
 testouterr_cmd "sh" "unload NonExistant" "ERR" "$err_path'NonExistant'"
+
+# try with full path name forms
+testouterr_cmd "sh" "unload $modpath/XYZ" "ERR" "$err_file'$modpath/XYZ'"
+testouterr_cmd "sh" "unload $reldmodpath/XYZ" "ERR" "$err_file'$modpath/XYZ'"
+testouterr_cmd "sh" "unload $relddmodpath/XYZ" "ERR" "$err_file'$modpath/XYZ'"
 
 # set up the environment
 set env(_LMFILES_) "$modulefile_0"
@@ -132,6 +139,10 @@ lappend ans [list setpath _LMFILES_ $modulefile_2]
 # unload modulefile loaded as full pathname
 testouterr_cmd "sh" "unload $module_3" $ans ""
 
+# try with other full path name forms (./ and ../)
+testouterr_cmd "sh" "unload $module_3_reld" $ans ""
+testouterr_cmd "sh" "unload $module_3_reldd" $ans ""
+
 
 #
 #  Cleanup
@@ -158,3 +169,5 @@ unset module_2
 unset modulefile_2
 unset module_3
 unset modulefile_3
+unset module_3_reld
+unset module_3_reldd
