@@ -23,22 +23,54 @@
 set module "setenv/1.0"
 set modname "setenv"
 set modpart "setenv/1"
+set modulefile "$modpath/$module"
+set modulefile_reld "$reldmodpath/$module"
+set modulefile_reldd "$relddmodpath/$module"
 
 testouterr_cmd "ALL" "is-loaded $module" "ERR" ""
 testouterr_cmd "sh" "is-loaded" "ERR" ""
 testouterr_cmd "sh" "is-loaded $modname foo" "ERR" ""
 testouterr_cmd "sh" "is-loaded foo $modpart" "ERR" ""
 
+# test with full path module name
+testouterr_cmd "sh" "is-loaded $modulefile" "ERR" ""
+testouterr_cmd "sh" "is-loaded $modulefile_reld" "ERR" ""
+testouterr_cmd "sh" "is-loaded $modulefile_reldd" "ERR" ""
+
 
 if { $verbose > 0 } {
     send_user "\tSetup LOADEDMODULES = '$module'\n"
+    send_user "\tSetup _LMFILES_ = '$modulefile'\n"
 }
 set env(LOADEDMODULES) $module
+set env(_LMFILES_) $modulefile
 
 testouterr_cmd "ALL" "is-loaded $module" "OK" ""
 testouterr_cmd "sh" "is-loaded" "OK" ""
 testouterr_cmd "sh" "is-loaded $modname foo" "OK" ""
 testouterr_cmd "sh" "is-loaded foo $modpart" "ERR" ""
+
+# test with full path module name
+testouterr_cmd "sh" "is-loaded $modulefile" "OK" ""
+testouterr_cmd "sh" "is-loaded $modulefile_reld" "OK" ""
+testouterr_cmd "sh" "is-loaded $modulefile_reldd" "OK" ""
+
+
+# unset MODULEPATH
+if { $verbose > 0 } {
+    send_user "\tUnset MODULEPATH\n"
+}
+unset env(MODULEPATH)
+
+testouterr_cmd "sh" "is-loaded $module" "OK" ""
+testouterr_cmd "sh" "is-loaded" "OK" ""
+testouterr_cmd "sh" "is-loaded $modname foo" "OK" ""
+testouterr_cmd "sh" "is-loaded foo $modpart" "ERR" ""
+
+# test with full path module name
+testouterr_cmd "sh" "is-loaded $modulefile" "OK" ""
+testouterr_cmd "sh" "is-loaded $modulefile_reld" "OK" ""
+testouterr_cmd "sh" "is-loaded $modulefile_reldd" "OK" ""
 
 
 #
@@ -48,9 +80,18 @@ testouterr_cmd "sh" "is-loaded foo $modpart" "ERR" ""
 # Clean up the environment
 if { $verbose > 0 } {
     send_user "\tUnset LOADEDMODULES\n"
+    send_user "\tUnset _LMFILES_\n"
 }
 unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
+}
+set env(MODULEPATH) $modpath
 
 unset module
 unset modname
 unset modpart
+unset modulefile
+unset modulefile_reld
+unset modulefile_reldd

@@ -277,10 +277,33 @@ testouterr_cmd "sh" "swap $modpath/unknown $mod100p" "ERR" "$err_file'$modpath/u
 testouterr_cmd "sh" "swap $mod11p $mod100p" "ERR" "$mod100err"
 
 
+# swap with full path modulefiles modules loaded short path
+set env(_LMFILES_) "$mod11p:$mod21p"
+set env(LOADEDMODULES) "$mod11:$mod21"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mod21]
+lappend ans [list setpath _LMFILES_ $mod21p]
+
+testouterr_cmd "sh" "swap $mod11p $mod21p" $ans ""
+
+# same test without MODULEPATH set anymore
+if { $verbose > 0 } {
+    send_user "\tUnset MODULEPATH\n"
+}
+unset env(MODULEPATH)
+
+testouterr_cmd "sh" "swap $mod11p $mod21p" $ans ""
+
+
 #
 #  Cleanup
 #
 
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
+}
+set env(MODULEPATH) $modpath
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 

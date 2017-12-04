@@ -27,6 +27,8 @@ set mod21 "loc_dv2/1.0"
 set mod31 "loc_dv3/1.0"
 
 set mod11p "$modpath/$mod11"
+set mod11pd "$reldmodpath/$mod11"
+set mod11pdd "$relddmodpath/$mod11"
 set mod21p "$modpath/$mod21"
 set mod31p "$modpath/$mod31"
 
@@ -208,11 +210,36 @@ test_cmd_re "sh" "load $oth11pdd" "OK"
 
 
 #
+# test to load full path a modulefile already loaded with short name
+#
+set env(LOADEDMODULES) $mod11
+set env(_LMFILES_) $mod11p
+
+test_cmd_re "sh" "load $mod11p" "OK"
+test_cmd_re "sh" "load $mod11pd" "OK"
+test_cmd_re "sh" "load $mod11pdd" "OK"
+
+# unset MODULEPATH
+if { $verbose > 0 } {
+    send_user "\tUnset MODULEPATH\n"
+}
+unset env(MODULEPATH)
+
+test_cmd_re "sh" "load $mod11p" "OK"
+test_cmd_re "sh" "load $mod11pd" "OK"
+test_cmd_re "sh" "load $mod11pdd" "OK"
+
+
+#
 #  Cleanup
 #
 
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
+}
+set env(MODULEPATH) $modpath
 
 unset ans
 
@@ -228,6 +255,8 @@ unset mod11
 unset mod21
 unset mod31
 unset mod11p
+unset mod11pd
+unset mod11pdd
 unset mod21p
 unset mod31p
 

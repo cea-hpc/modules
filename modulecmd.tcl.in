@@ -2524,8 +2524,14 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
 
    reportDebug "getPathToModule: finding '$mod' in '$indir' (excdir='')"
 
+   # try first to look at loaded modules if enabled to find maching module
+   # or to find a closest match (used when switching with single name arg)
+   if {($look_loaded eq "match" && [set lm [getLoadedMatchingName\
+      $mod]] ne "") || ($look_loaded eq "close" && [set lm\
+      [getLoadedWithClosestName $mod]] ne "")} {
+      set retlist [list $g_loadedModules($lm) $lm]
    # Check for $mod specified as a full pathname
-   if {[isModuleFullPath $mod]} {
+   } elseif {[isModuleFullPath $mod]} {
       set mod [getAbsolutePath $mod]
       # note that a raw filename as an argument returns the full
       # path as the module name
@@ -2538,12 +2544,6 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
             set retlist [list "" $mod $check_valid $check_msg $mod]
          }
       }
-   # try first to look at loaded modules if enabled to find maching module
-   # or to find a closest match (used when switching with single name arg)
-   } elseif {($look_loaded eq "match" && [set lm [getLoadedMatchingName\
-      $mod]] ne "") || ($look_loaded eq "close" && [set lm\
-      [getLoadedWithClosestName $mod]] ne "")} {
-      set retlist [list $g_loadedModules($lm) $lm]
    } else {
       if {$indir ne ""} {
          set dir_list $indir
@@ -2647,28 +2647,38 @@ proc getLoadedWithClosestName {name} {
    set retmax 0
    set namesplit [split $name "/"]
 
-   # compare name to each currently loaded module name
-   foreach mod [getLoadedModuleList] {
-      set modsplit [split $mod "/"]
-      # min expr function is not supported in Tcl8.4 and earlier
-      if {[llength $namesplit] < [llength $modsplit]} {
-         set imax [llength $namesplit]
-      } else {
-         set imax [llength $modsplit]
+   # if module is passed as full modulefile path name, look at lmfile names
+   # to return the eventual exact match
+   if {[isModuleFullPath $name]} {
+      global g_loadedModuleFiles
+      set mod [getAbsolutePath $name]
+      if {[info exists g_loadedModuleFiles($mod)]} {
+         set ret $g_loadedModuleFiles($mod)
       }
-
-      # compare each element of the name to find closest answer
-      # in case of equality, last loaded module will be returned as it
-      # overwrites previously found value
-      for {set i 0} {$i < $imax} {incr i} {
-         if {[lindex $modsplit $i] eq [lindex $namesplit $i]} {
-            if {$i >= $retmax} {
-               set retmax $i
-               set ret $mod
-            }
+   } else {
+      # compare name to each currently loaded module name
+      foreach mod [getLoadedModuleList] {
+         set modsplit [split $mod "/"]
+         # min expr function is not supported in Tcl8.4 and earlier
+         if {[llength $namesplit] < [llength $modsplit]} {
+            set imax [llength $namesplit]
          } else {
-            # end of match, go next mod
-            break
+            set imax [llength $modsplit]
+         }
+
+         # compare each element of the name to find closest answer
+         # in case of equality, last loaded module will be returned as it
+         # overwrites previously found value
+         for {set i 0} {$i < $imax} {incr i} {
+            if {[lindex $modsplit $i] eq [lindex $namesplit $i]} {
+               if {$i >= $retmax} {
+                  set retmax $i
+                  set ret $mod
+               }
+            } else {
+               # end of match, go next mod
+               break
+            }
          }
       }
    }
@@ -2684,23 +2694,33 @@ proc getLoadedMatchingName {name {behavior "returnlast"}} {
    set ret {}
    set retmax 0
 
-   # compare name to each currently loaded module name, if multiple mod
-   # match name:
-   foreach mod [getLoadedModuleList] {
-      if {[string first "$name/" "$mod/"] == 0} {
-         switch -- $behavior {
-            {returnlast} {
-               # the last loaded module will be returned
-               set ret $mod
-            }
-            {returnfirst} {
-               # the first loaded module will be returned
-               set ret $mod
-               break
-            }
-            {returnall} {
-               # all loaded modules will be returned
-               lappend ret $mod
+   # if module is passed as full modulefile path name, look at lmfile names
+   # to return the eventual exact match
+   if {[isModuleFullPath $name]} {
+      global g_loadedModuleFiles
+      set mod [getAbsolutePath $name]
+      if {[info exists g_loadedModuleFiles($mod)]} {
+         set ret $g_loadedModuleFiles($mod)
+      }
+   } else {
+      # compare name to each currently loaded module name, if multiple mod
+      # match name:
+      foreach mod [getLoadedModuleList] {
+         if {[string first "$name/" "$mod/"] == 0} {
+            switch -- $behavior {
+               {returnlast} {
+                  # the last loaded module will be returned
+                  set ret $mod
+               }
+               {returnfirst} {
+                  # the first loaded module will be returned
+                  set ret $mod
+                  break
+               }
+               {returnall} {
+                  # all loaded modules will be returned
+                  lappend ret $mod
+               }
             }
          }
       }
@@ -3506,7 +3526,7 @@ endfunction(module)}
 }
 
 proc cacheCurrentModules {} {
-   global g_loadedModules
+   global g_loadedModules g_loadedModuleFiles
 
    reportDebug "cacheCurrentModules"
 
@@ -3515,6 +3535,7 @@ proc cacheCurrentModules {} {
    set filelist [getLoadedModuleFileList]
    foreach mod [getLoadedModuleList] {
       set g_loadedModules($mod) [lindex $filelist $i]
+      set g_loadedModuleFiles([lindex $filelist $i]) $mod
       incr i
    }
 }
@@ -5233,7 +5254,7 @@ proc cmdModuleUnsource {args} {
 }
 
 proc cmdModuleLoad {args} {
-   global g_loadedModules g_force
+   global g_loadedModules g_loadedModuleFiles g_force
    global ModulesCurrentModulefile
 
    reportDebug "cmdModuleLoad: loading $args"
@@ -5243,6 +5264,11 @@ proc cmdModuleLoad {args} {
    foreach mod $args {
       lassign [getPathToModule $mod] modfile modname
       if {$modfile ne ""} {
+         # check if passed modname correspond to an already loaded modfile
+         if {[info exists g_loadedModuleFiles($modname)]} {
+            set modname $g_loadedModuleFiles($modname)
+         }
+
          set currentModule $modname
          set ModulesCurrentModulefile $modfile
 
