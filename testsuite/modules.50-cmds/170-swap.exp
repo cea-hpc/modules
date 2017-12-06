@@ -24,8 +24,10 @@
 #
 ##############################################################################
 
+set mod1name "loc_dv1"
 set mod11 "loc_dv1/1.0"
 set mod12 "loc_dv1/2.0"
+set mod2name "loc_dv2"
 set mod21 "loc_dv2/1.0"
 set mod22 "loc_dv2/2.0"
 set mod31 "loc_dv3/1.0"
@@ -296,6 +298,31 @@ unset env(MODULEPATH)
 testouterr_cmd "sh" "swap $mod11p $mod21p" $ans ""
 
 
+# swap with short path whereas full path loaded
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
+}
+set env(MODULEPATH) $modpath
+set env(_LMFILES_) "$mod11p:$mod21p"
+set env(LOADEDMODULES) "$mod11p:$mod21p"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mod21p]
+lappend ans [list setpath _LMFILES_ $mod21p]
+
+testouterr_cmd "sh" "swap $mod11 $mod21" $ans ""
+testouterr_cmd "sh" "swap $mod1name $mod2name" $ans ""
+
+# same test without MODULEPATH set anymore
+if { $verbose > 0 } {
+    send_user "\tUnset MODULEPATH\n"
+}
+unset env(MODULEPATH)
+
+testouterr_cmd "sh" "swap $mod11 $mod21" "ERR" $err_nomodpath
+testouterr_cmd "sh" "swap $mod1name $mod2name" "ERR" $err_nomodpath
+
+
 #
 #  Cleanup
 #
@@ -313,8 +340,10 @@ unset ans2
 unset modulefile
 unset module
 
+unset mod1name
 unset mod11
 unset mod12
+unset mod2name
 unset mod21
 unset mod22
 unset mod31

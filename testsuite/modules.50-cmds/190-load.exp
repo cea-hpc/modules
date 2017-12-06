@@ -22,13 +22,16 @@
 #
 ##############################################################################
 
+set mod1name "loc_dv1"
 set mod11 "loc_dv1/1.0"
+set mod12 "loc_dv1/2.0"
 set mod21 "loc_dv2/1.0"
 set mod31 "loc_dv3/1.0"
 
 set mod11p "$modpath/$mod11"
 set mod11pd "$reldmodpath/$mod11"
 set mod11pdd "$relddmodpath/$mod11"
+set mod12p "$modpath/$mod12"
 set mod21p "$modpath/$mod21"
 set mod31p "$modpath/$mod31"
 
@@ -210,6 +213,21 @@ test_cmd_re "sh" "load $oth11pdd" "OK"
 
 
 #
+# test module already loaded as full path, try to load again with short name
+# and modpath used
+#
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = '$modpath.other:$modpath'\n"
+}
+set env(MODULEPATH) "$modpath.other:$modpath"
+set env(LOADEDMODULES) $mod12p
+set env(_LMFILES_) $mod12p
+
+test_cmd_re "sh" "load $mod12" "OK"
+test_cmd_re "sh" "load $mod1name" "OK"
+
+
+#
 # test to load full path a modulefile already loaded with short name
 #
 set env(LOADEDMODULES) $mod11
@@ -228,6 +246,17 @@ unset env(MODULEPATH)
 test_cmd_re "sh" "load $mod11p" "OK"
 test_cmd_re "sh" "load $mod11pd" "OK"
 test_cmd_re "sh" "load $mod11pdd" "OK"
+
+
+#
+# test module already loaded as full path, try to load again with short name
+# no modpath set
+#
+set env(LOADEDMODULES) $mod12p
+set env(_LMFILES_) $mod12p
+
+testouterr_cmd_re "sh" "load $mod12" "ERR" $err_nomodpath
+testouterr_cmd_re "sh" "load $mod1name" "ERR" $err_nomodpath
 
 
 #
@@ -251,12 +280,15 @@ unset out_interr
 unset modulefile
 unset module
 
+unset mod1name
 unset mod11
+unset mod12
 unset mod21
 unset mod31
 unset mod11p
 unset mod11pd
 unset mod11pdd
+unset mod12p
 unset mod21p
 unset mod31p
 

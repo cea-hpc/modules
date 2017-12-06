@@ -967,6 +967,19 @@ proc getModuleNameFromModulepath {modfile modpath} {
    return [string range $modfile [string length "$modpath/"] end]
 }
 
+# extract module name from modulefile and currently enabled modulepaths
+proc findModuleNameFromModulefile {modfile} {
+   set ret ""
+
+   foreach modpath [getModulePathList] {
+      if {[string first "$modpath/" "$modfile/"] == 0} {
+         set ret [getModuleNameFromModulepath $modfile $modpath]
+         break
+      }
+   }
+   return $ret
+}
+
 # Determine with a name provided as argument the corresponding module name,
 # version and name/version. Module name is guessed from current module name
 # when shorthand version notation is used. Both name and version are guessed
@@ -2652,13 +2665,23 @@ proc getLoadedWithClosestName {name} {
    if {[isModuleFullPath $name]} {
       global g_loadedModuleFiles
       set mod [getAbsolutePath $name]
+      # if module is loaded with its full path name loadedmodules entry is
+      # equivalent to _lmfiles_ corresponding entry so only check _lmfiles_
       if {[info exists g_loadedModuleFiles($mod)]} {
          set ret $g_loadedModuleFiles($mod)
       }
    } else {
       # compare name to each currently loaded module name
       foreach mod [getLoadedModuleList] {
-         set modsplit [split $mod "/"]
+         # if module loaded as fullpath but test name not, try to get loaded
+         # mod short name (with currently used modulepaths) to compare it
+         if {[isModuleFullPath $mod] && [set modname\
+            [findModuleNameFromModulefile $mod]] ne ""} {
+            set modsplit [split $modname "/"]
+         } else {
+            set modsplit [split $mod "/"]
+         }
+
          # min expr function is not supported in Tcl8.4 and earlier
          if {[llength $namesplit] < [llength $modsplit]} {
             set imax [llength $namesplit]
@@ -2699,6 +2722,8 @@ proc getLoadedMatchingName {name {behavior "returnlast"}} {
    if {[isModuleFullPath $name]} {
       global g_loadedModuleFiles
       set mod [getAbsolutePath $name]
+      # if module is loaded with its full path name loadedmodules entry is
+      # equivalent to _lmfiles_ corresponding entry so only check _lmfiles_
       if {[info exists g_loadedModuleFiles($mod)]} {
          set ret $g_loadedModuleFiles($mod)
       }
@@ -2706,7 +2731,15 @@ proc getLoadedMatchingName {name {behavior "returnlast"}} {
       # compare name to each currently loaded module name, if multiple mod
       # match name:
       foreach mod [getLoadedModuleList] {
-         if {[string first "$name/" "$mod/"] == 0} {
+         # if module loaded as fullpath but test name not, try to get loaded
+         # mod short name (with currently used modulepaths) to compare it
+         if {[isModuleFullPath $mod] && [set modname\
+            [findModuleNameFromModulefile $mod]] ne ""} {
+            set matchmod "$modname/"
+         } else {
+            set matchmod $mod
+         }
+         if {[string first "$name/" "$matchmod/"] == 0} {
             switch -- $behavior {
                {returnlast} {
                   # the last loaded module will be returned
@@ -5254,7 +5287,7 @@ proc cmdModuleUnsource {args} {
 }
 
 proc cmdModuleLoad {args} {
-   global g_loadedModules g_loadedModuleFiles g_force
+   global g_loadedModules g_force
    global ModulesCurrentModulefile
 
    reportDebug "cmdModuleLoad: loading $args"
@@ -5265,8 +5298,10 @@ proc cmdModuleLoad {args} {
       lassign [getPathToModule $mod] modfile modname
       if {$modfile ne ""} {
          # check if passed modname correspond to an already loaded modfile
-         if {[info exists g_loadedModuleFiles($modname)]} {
-            set modname $g_loadedModuleFiles($modname)
+         # and get its loaded name (in case it has been loaded as full path)
+         set loadedmodname [getLoadedMatchingName $modname]
+         if {$loadedmodname ne ""} {
+            set modname $loadedmodname
          }
 
          set currentModule $modname
