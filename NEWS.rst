@@ -72,6 +72,8 @@ Modules 4.1.0 (2017-??-??)
   as argument (fix issue#138)
 * Support no argument on ``is-loaded``, ``is-saved`` and ``is-used`` commands
   to return if anything is respectively loaded, saved or used.
+* Interpret ``module source`` command set in modulefile in ``unload`` mode
+  when the modulefile itself is interpreted in this mode.
 
 
 Modules 4.0.0 (2017-10-16)
