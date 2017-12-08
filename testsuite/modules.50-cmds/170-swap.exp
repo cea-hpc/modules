@@ -286,8 +286,18 @@ set env(LOADEDMODULES) "$mod11:$mod21"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod21]
 lappend ans [list setpath _LMFILES_ $mod21p]
-
 testouterr_cmd "sh" "swap $mod11p $mod21p" $ans ""
+
+# one name rule
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mod21:$mod12p]
+lappend ans [list setpath _LMFILES_ $mod21p:$mod12p]
+testouterr_cmd_re "sh" "swap $mod12p" $ans ""
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mod21:$mod11]
+lappend ans [list setpath _LMFILES_ $mod21p:$mod11p]
+testouterr_cmd_re "sh" "swap $mod11p" $ans ""
 
 # same test without MODULEPATH set anymore
 if { $verbose > 0 } {
@@ -295,7 +305,21 @@ if { $verbose > 0 } {
 }
 unset env(MODULEPATH)
 
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mod21]
+lappend ans [list setpath _LMFILES_ $mod21p]
 testouterr_cmd "sh" "swap $mod11p $mod21p" $ans ""
+
+# one name rule
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mod11:$mod21:$mod12p]
+lappend ans [list setpath _LMFILES_ $mod11p:$mod21p:$mod12p]
+testouterr_cmd_re "sh" "swap $mod12p" $ans ""
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mod21:$mod11]
+lappend ans [list setpath _LMFILES_ $mod21p:$mod11p]
+testouterr_cmd_re "sh" "swap $mod11p" $ans ""
 
 
 # swap with short path whereas full path loaded
@@ -309,9 +333,15 @@ set env(LOADEDMODULES) "$mod11p:$mod21p"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod21p]
 lappend ans [list setpath _LMFILES_ $mod21p]
-
 testouterr_cmd "sh" "swap $mod11 $mod21" $ans ""
 testouterr_cmd "sh" "swap $mod1name $mod2name" $ans ""
+
+# one name rule
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mod21p:$mod12]
+lappend ans [list setpath _LMFILES_ $mod21p:$mod12p]
+testouterr_cmd_re "sh" "swap $mod12" $ans ""
+testouterr_cmd_re "sh" "swap $mod1name" $ans ""
 
 # same test without MODULEPATH set anymore
 if { $verbose > 0 } {
@@ -321,6 +351,10 @@ unset env(MODULEPATH)
 
 testouterr_cmd "sh" "swap $mod11 $mod21" "ERR" $err_nomodpath
 testouterr_cmd "sh" "swap $mod1name $mod2name" "ERR" $err_nomodpath
+
+# one name rule
+testouterr_cmd "sh" "swap $mod12" "ERR" $err_nomodpath
+testouterr_cmd "sh" "swap $mod1name" "ERR" $err_nomodpath
 
 
 #
