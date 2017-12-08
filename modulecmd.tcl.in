@@ -2658,19 +2658,27 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
 proc getLoadedWithClosestName {name} {
    set ret ""
    set retmax 0
-   set namesplit [split $name "/"]
 
-   # if module is passed as full modulefile path name, look at lmfile names
-   # to return the eventual exact match
    if {[isModuleFullPath $name]} {
-      global g_loadedModuleFiles
-      set mod [getAbsolutePath $name]
-      # if module is loaded with its full path name loadedmodules entry is
-      # equivalent to _lmfiles_ corresponding entry so only check _lmfiles_
-      if {[info exists g_loadedModuleFiles($mod)]} {
-         set ret $g_loadedModuleFiles($mod)
+      set fullname [getAbsolutePath $name]
+      # if module is passed as full modulefile path name, get corresponding
+      # short name from used modulepaths
+      if {[set shortname [findModuleNameFromModulefile $fullname]] ne ""} {
+         set namesplit [split $shortname "/"]
+      # or look at lmfile names to return the eventual exact match
+      } else {
+         global g_loadedModuleFiles
+         # if module is loaded with its full path name loadedmodules entry is
+         # equivalent to _lmfiles_ corresponding entry so only check _lmfiles_
+         if {[info exists g_loadedModuleFiles($fullname)]} {
+            set ret $g_loadedModuleFiles($fullname)
+         }
       }
    } else {
+      set namesplit [split $name "/"]
+   }
+
+   if {[info exists namesplit]} {
       # compare name to each currently loaded module name
       foreach mod [getLoadedModuleList] {
          # if module loaded as fullpath but test name not, try to get loaded
