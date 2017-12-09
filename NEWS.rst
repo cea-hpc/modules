@@ -74,6 +74,15 @@ Modules 4.1.0 (2017-??-??)
   to return if anything is respectively loaded, saved or used.
 * Interpret ``module source`` command set in modulefile in ``unload`` mode
   when the modulefile itself is interpreted in this mode.
+* Consider a modulefile passed with name starting by ``./`` or ``../`` a full
+  path name modulefile, like those starting by ``/``. These kind of names are
+  converted to absolute path names, for instance to register them in loaded
+  modulefile list during a ``load`` command.
+* Correlate modulefile passed as full path name (starting by either ``./``,
+  ``../`` or ``/``) to already loaded modulefile registered with regular
+  module name (file name without its modulepath prefix) to prevent for
+  instance from loading twice same modulefile. Correlate in the same way
+  regular module name to already loaded full path name modulefile.
 
 
 Modules 4.0.0 (2017-10-16)
