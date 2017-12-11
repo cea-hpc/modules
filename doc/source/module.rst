@@ -162,7 +162,7 @@ switches are accepted:
 **--default**, **-d**
 
  On **avail** sub-command, display only the default version of each module
- name. Default version is either the explicitely set default version or
+ name. Default version is either the explicitly set default version or
  the highest numerically sorted *modulefile* if no default version set
  (see Locating Modulefiles section in the :ref:`modulefile(4)` man page).
 
@@ -326,6 +326,11 @@ Module Sub-Commands
 
  If **MODULES_COLLECTION_TARGET** is set, a suffix equivalent to the value
  of this variable will be appended to the *collection* file name.
+
+ By default, if loaded modulefile corresponds to the default module version,
+ the bare module name is recorded. If **MODULES_COLLECTION_PIN_VERSION** is
+ set to **1**, module version is always recorded even if it is the default
+ version.
 
 **restore** [collection]
 
@@ -546,6 +551,12 @@ ENVIRONMENT
  The location of the master Modules package file directory containing module
  command initialization scripts, the executable program **modulecmd.tcl**,
  and a directory containing a collection of master *modulefiles*.
+
+**MODULES_COLLECTION_PIN_VERSION**
+
+ If set to **1**, register exact version number of modulefiles when saving a
+ collection. Elsewhere modulefile version number is omitted if it corresponds
+ to the implicit or explicitly set default version.
 
 **MODULES_COLLECTION_TARGET**
 

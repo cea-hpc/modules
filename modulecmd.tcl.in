@@ -4566,6 +4566,18 @@ proc getCollectionTarget {} {
    }
 }
 
+# should modulefile version be pinned when saving collection?
+proc pinVersionInCollection {} {
+   global env
+
+   if {[info exists env(MODULES_COLLECTION_PIN_VERSION)] &&\
+      $env(MODULES_COLLECTION_PIN_VERSION) eq "1"} {
+      return 1
+   } else {
+      return 0
+   }
+}
+
 # return saved collections found in user directory which corresponds to
 # enabled collection target if any set.
 proc findCollections {} {
@@ -5023,9 +5035,14 @@ proc cmdModuleSave {{coll {}}} {
    }
    reportDebug "cmdModuleSave: $coll"
 
-   # format collection content
-   set save [formatCollectionContent [getModulePathList] \
-      [getSimplifiedLoadedModuleList]]
+   # format collection content, version number of modulefile are saved if
+   # version pinning is enabled
+   if {[pinVersionInCollection]} {
+      set curr_mod_list [getLoadedModuleList]
+   } else {
+      set curr_mod_list [getSimplifiedLoadedModuleList]
+   }
+   set save [formatCollectionContent [getModulePathList] $curr_mod_list]
 
    if { [string length $save] == 0} {
       reportErrorAndExit "Nothing to save in a collection"
@@ -5087,6 +5104,13 @@ proc cmdModuleRestore {{coll {}}} {
    # from current situation with preservation of the load order
    lassign [getMovementBetweenList $curr_mod_list $coll_mod_list] \
       mod_to_unload mod_to_load
+   # determine unload movement with raw loaded list in case versions are
+   # pinning in saved collection
+   lassign [getMovementBetweenList $curr_mod_list_raw $coll_mod_list] \
+      mod_to_unload_raw mod_to_load_raw
+   if {[llength $mod_to_unload] > [llength $mod_to_unload_raw]} {
+      set mod_to_unload $mod_to_unload_raw
+   }
 
    # proceed as well for modulepath
    lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
@@ -5115,11 +5139,19 @@ proc cmdModuleRestore {{coll {}}} {
    # before starting to unload modules
    set curr_mod_list [getSimplifiedLoadedModuleList\
       $curr_mod_list_raw $curr_mod_list]
+   set curr_mod_list_raw [getLoadedModuleList]
 
    # determine what module to load to restore collection
    # from current situation with preservation of the load order
    lassign [getMovementBetweenList $curr_mod_list $coll_mod_list] \
       mod_to_unload mod_to_load
+   # determine load movement with raw loaded list in case versions are
+   # pinning in saved collection
+   lassign [getMovementBetweenList $curr_mod_list_raw $coll_mod_list] \
+      mod_to_unload_raw mod_to_load_raw
+   if {[llength $mod_to_load] > [llength $mod_to_load_raw]} {
+      set mod_to_load $mod_to_load_raw
+   }
 
    # proceed as well for modulepath
    lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
