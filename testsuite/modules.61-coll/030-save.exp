@@ -76,6 +76,7 @@ testouterr_cmd "ALL" "save" "ERR" "$emptyenverrmsg"
 
 #
 # test saving default collection
+# with module version pinned or not
 #
 
 # setup environment state
@@ -83,13 +84,22 @@ if { $verbose > 0 } {
     send_user "\tSetup _LMFILES_ = $cdlmf\n"
     send_user "\tSetup LOADEDMODULES = $cdlm\n"
     send_user "\tSetup MODULEPATH = $cdmodpath\n"
+    send_user "\tSetup MODULES_COLLECTION_PIN_VERSION = 0\n"
 }
 set env(_LMFILES_) "$cdlmf"
 set env(LOADEDMODULES) "$cdlm"
 set env(MODULEPATH) "$cdmodpath"
+set env(MODULES_COLLECTION_PIN_VERSION) "0"
 
 # test only sh shell as this test does not produce shell output
 testoutfile_cmd "sh" "save" "OK" "$hometestdotmod/default" "$cdcont"
+
+# now test save with module version pinning enabled
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_COLLECTION_PIN_VERSION = 1\n"
+}
+set env(MODULES_COLLECTION_PIN_VERSION) "1"
+testoutfile_cmd "sh" "save" "OK" "$hometestdotmod/default" "$cdcontpin"
 
 
 #
@@ -101,10 +111,12 @@ if { $verbose > 0 } {
     send_user "\tSetup _LMFILES_ = $c1lmf\n"
     send_user "\tSetup LOADEDMODULES = $c1lm\n"
     send_user "\tSetup MODULEPATH = $c1modpath\n"
+    send_user "\tUnset MODULES_COLLECTION_PIN_VERSION\n"
 }
 set env(_LMFILES_) "$c1lmf"
 set env(LOADEDMODULES) "$c1lm"
 set env(MODULEPATH) "$c1modpath"
+unset env(MODULES_COLLECTION_PIN_VERSION)
 
 # test only sh shell as this test does not produce shell output
 testoutfile_cmd "sh" "save $coll1" "OK" "$hometestdotmod/$coll1" "$c1cont1"
@@ -185,7 +197,7 @@ unset ORIG_HOME
 # _LMFILES_ and LOADEDMODULES already restored during last test
 if { $verbose > 0 } {
     send_user "\tRestore MODULEPATH = $modpath\n"
-    send_user "\tRestore MODULES_COLLECTION_TARGET = ''\n"
+    send_user "\tUnset MODULES_COLLECTION_TARGET\n"
 }
 set env(MODULEPATH) $modpath
 unset env(MODULES_COLLECTION_TARGET)

@@ -87,6 +87,27 @@ testouterr_cmd_re "ALL" "restore" $ans "$cderrmsg"
 
 
 #
+# test restoring default collection saved with version pinned and with parts
+# of this environment already loaded (default version comparison)
+#
+
+if { $verbose > 0 } {
+    send_user "\tSetup _LMFILES_ = $cdlmf_part\n"
+    send_user "\tSetup LOADEDMODULES = $cdlm_part\n"
+    send_user "\tSetup MODULEPATH = $cdmodpath\n"
+}
+set env(_LMFILES_) $cdlmf_part
+set env(LOADEDMODULES) $cdlm_part
+set env(MODULEPATH) "$cdmodpath"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $cdlm]
+lappend ans [list setpath _LMFILES_ $cdlmf]
+
+testouterr_cmd_re "sh" "restore" $ans ""
+
+
+#
 # test restoring collection that only adds path to use and mods to load
 #
 
@@ -94,11 +115,9 @@ testouterr_cmd_re "ALL" "restore" $ans "$cderrmsg"
 if { $verbose > 0 } {
     send_user "\tSetup _LMFILES_ = $cdlmf\n"
     send_user "\tSetup LOADEDMODULES = $cdlm\n"
-    send_user "\tSetup MODULEPATH = $cdmodpath\n"
 }
 set env(_LMFILES_) "$cdlmf"
 set env(LOADEDMODULES) "$cdlm"
-set env(MODULEPATH) "$cdmodpath"
 
 set ans [list]
 lappend ans [list setpath MODULEPATH $c1modpath]
