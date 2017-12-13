@@ -41,9 +41,6 @@ set modulefilere_2 "$modpathre/$module_2"
 if { [info exists env(MODULERCFILE) ] } {
     set save_rc $env(MODULERCFILE)
 }
-if { [info exists env(MODULESHOME) ] } {
-    set save_modhome $env(MODULESHOME)
-}
 
 #
 #  Only checked for the csh
@@ -102,7 +99,7 @@ set anspa [list]
 lappend anspa [list text ""]
 testouterr_cmd "sh" "paths sym_foo" $anspa ""
 
-set env(MODULESHOME) $env(TESTSUITEDIR)
+set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/rc"
 set ans [list]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES $module_2]
@@ -118,12 +115,8 @@ testouterr_cmd_re "sh" "display sym_foo/special2" "OK" "$disp_2"
 testouterr_cmd_re "sh" "whatis sym_foo/special2" "OK" "$what_2"
 test_cmd "sh" "paths sym_foo/special2" $anspa
 
-# test global RCs cascading
-set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
-test_cmd "csh" "load sym_foo" $ans
-testouterr_cmd_re "sh" "display sym_foo" "OK" "$disp_2"
-testouterr_cmd_re "sh" "whatis sym_foo" "OK" "$what_2"
-test_cmd "sh" "paths sym_foo" $anspa
+# test global RCs cascading is now achieved with 'make install-testetcrc'
+# that setup a @prefix@/etc/rc file for the whole 'make test' duration
 
 
 #
@@ -135,12 +128,6 @@ if { [info exists save_rc ] } {
     unset save_rc
 } else {
     unset env(MODULERCFILE)
-}
-if { [info exists save_modhome ] } {
-    set env(MODULESHOME) $save_modhome
-    unset save_modhome
-} else {
-    unset env(MODULESHOME)
 }
 
 #

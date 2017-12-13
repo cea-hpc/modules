@@ -26,8 +26,7 @@ if {$tcl_platform(user) eq "root"} {
     send_user "\tskipping access tests as tests are run by superuser\n"
 } else {
 
-set modhome $env(TESTSUITEDIR)
-set etcdir "$modhome/etc"
+set etcdir "$env(TESTSUITEDIR)/etc"
 set etcmodrc "$etcdir/modulerc"
 set etcrc "$etcdir/rc"
 set homedir "$env(TESTSUITEDIR)/home"
@@ -43,9 +42,6 @@ set hide_perms "ugo-rx"
 
 if { [info exists env(MODULERCFILE) ] } {
     set save_rc $env(MODULERCFILE)
-}
-if { [info exists env(MODULESHOME) ] } {
-    set save_modhome $env(MODULESHOME)
 }
 if { [info exists env(HOME) ] } {
     set save_home $env(HOME)
@@ -71,15 +67,8 @@ set env(MODULERCFILE) ""
 
 restore_file_perms $etcmodrc
 
-# lock access to MODULESHOME/etc/rc
-change_file_perms $etcrc $hide_perms
-
-set env(MODULESHOME) $modhome
-testouterr_cmd "sh" "load sym_foo" "ERR" "$locate_msg"
-testouterr_cmd "sh" "display sym_foo" "ERR" "$locate_msg"
-set env(MODULESHOME) ""
-
-restore_file_perms $etcrc
+# no lock access test for @prefix@/etc/rc as it may be a config file currently
+# in use in production by an already installed version of Modules
 
 # lock access to HOME/.modulerc
 change_file_perms $homemodrc $hide_perms
@@ -96,7 +85,7 @@ restore_file_perms $homemodrc
 # Test usage of global RC when read access not granted on its upper directory
 #
 
-# lock access to MODULESHOME/etc also used as MODULERCFILE upper dir
+# lock access to TESTSUITEDIR/etc also used as MODULERCFILE upper dir
 change_file_perms $etcdir $hide_perms
 
 set env(MODULERCFILE) $etcmodrc
@@ -107,11 +96,6 @@ set env(MODULERCFILE) $etcdir
 testouterr_cmd "sh" "load sym_foo" "ERR" "$locate_msg"
 testouterr_cmd "sh" "display sym_foo" "ERR" "$locate_msg"
 set env(MODULERCFILE) ""
-
-set env(MODULESHOME) $modhome
-testouterr_cmd "sh" "load sym_foo" "ERR" "$locate_msg"
-testouterr_cmd "sh" "display sym_foo" "ERR" "$locate_msg"
-set env(MODULESHOME) ""
 
 restore_file_perms $etcdir
 
@@ -126,12 +110,6 @@ if { [info exists save_rc ] } {
 } else {
     unset env(MODULERCFILE)
 }
-if { [info exists save_modhome ] } {
-    set env(MODULESHOME) $save_modhome
-    unset save_modhome
-} else {
-    unset env(MODULESHOME)
-}
 if { [info exists save_home ] } {
     set env(HOME) $save_home
     unset save_home
@@ -143,7 +121,6 @@ if { [info exists save_home ] } {
 #  Cleanup
 #
 
-unset modhome
 unset etcdir
 unset etcmodrc
 unset etcrc
