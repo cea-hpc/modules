@@ -83,6 +83,12 @@ Modules 4.1.0 (2017-??-??)
   module name (file name without its modulepath prefix) to prevent for
   instance from loading twice same modulefile. Correlate in the same way
   regular module name to already loaded full path name modulefile.
+* Introduce ``MODULES_COLLECTION_PIN_VERSION`` environment variable to record
+  modulefile version number when saving collections even if version
+  corresponds to the default one. (fix issue#89)
+* Fix location of ``etc/rc`` global RC file to ``@prefix@/etc/rc`` instead of
+  ``$MODULESHOME/etc/rc`` not to depend on ``MODULESHOME`` environment
+  variable value.
 
 
 Modules 4.0.0 (2017-10-16)
