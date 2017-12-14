@@ -66,6 +66,28 @@ lappend ans [list unsetpath _LMFILES_]
 test_cmd "ALL" "unload $module" $ans
 
 #
+# Try bad argument list: missing variable name
+#
+
+set module "remove/0.3"
+set modulefile "$modpath/$module"
+set env(_LMFILES_) $modulefile
+set env(LOADEDMODULES) $module
+set ts_err "$moderr_msgs: remove-path should get an environment variable name\n  In '$modulefile'\n$err_contact"
+testouterr_cmd "sh" "unload $module" "ERR" $ts_err
+
+#
+# Try bad argument list: missing variable value
+#
+
+set module "remove/0.4"
+set modulefile "$modpath/$module"
+set env(_LMFILES_) $modulefile
+set env(LOADEDMODULES) $module
+set ts_err "$moderr_msgs: remove-path should get a value for environment variable PATH\n  In '$modulefile'\n$err_contact"
+testouterr_cmd "sh" "unload $module" "ERR" $ts_err
+
+#
 #  Clen up the environment
 #
 
@@ -79,6 +101,7 @@ unset env(LOADEDMODULES)
 unset new_path
 unset ts_path
 unset old_path
+unset ts_err
 
 unset ans
 

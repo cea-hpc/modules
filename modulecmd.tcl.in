@@ -2006,26 +2006,57 @@ proc add-path {var path pos separator} {
    return {}
 }
 
-proc prepend-path {var path args} {
+# analyze argument list passed to a path command to set default value or raise
+# error in case some attributes are missing
+proc parsePathCommandArgs {cmd args} {
    global g_def_separator
 
-   set mode [currentMode]
-
-   reportDebug "prepend-path: ($var, $path, $args) mode=$mode"
-
-   if {($var eq "--delim") || ($var eq "-d") || ($var eq "-delim")} {
-      set separator $path
-      set var [lindex $args 0]
-      set path [lindex $args 1]
-   } else {
-      set separator $g_def_separator
+   # parse argument list
+   set next_is_delim 0
+   foreach arg $args {
+      switch -glob -- $arg {
+         {-d} - {-delim} - {--delim} {
+            set next_is_delim 1
+         }
+         default {
+            if {$next_is_delim} {
+               set delim $arg
+               set next_is_delim 0
+            } elseif {![info exists var]} {
+               set var $arg
+            } else {
+               set val $arg
+            }
+         }
+      }
    }
 
+   # adapt with default value or raise error if some arguments are missing
+   if {![info exists delim]} {
+      set delim $g_def_separator
+   }
+   if {![info exists var]} {
+      error "$cmd should get an environment variable name"
+   }
+   if {![info exists val]} {
+      error "$cmd should get a value for environment variable $var"
+   }
+
+   return [list $delim $var $val]
+}
+
+proc prepend-path {args} {
+   set mode [currentMode]
+
+   reportDebug "prepend-path: ($args) mode=$mode"
+
+   lassign [eval parsePathCommandArgs "prepend-path" $args] sep var path
+
    if {$mode eq "load"} {
-      add-path $var $path "prepend" $separator
+      add-path $var $path "prepend" $sep
    }\
    elseif {$mode eq "unload"} {
-      unload-path $var $path $separator
+      unload-path $var $path $sep
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "prepend-path\t$var\t$path"
@@ -2034,27 +2065,18 @@ proc prepend-path {var path args} {
    return {}
 }
 
-
-proc append-path {var path args} {
-   global g_def_separator
-
+proc append-path {args} {
    set mode [currentMode]
 
-   reportDebug "append-path: ($var, $path, $args) mode=$mode"
+   reportDebug "append-path: ($args) mode=$mode"
 
-   if {($var eq "--delim") || ($var eq "-d") || ($var eq "-delim")} {
-      set separator $path
-      set var [lindex $args 0]
-      set path [lindex $args 1]
-   } else {
-      set separator $g_def_separator
-   }
+   lassign [eval parsePathCommandArgs "append-path" $args] sep var path
 
    if {$mode eq "load"} {
-      add-path $var $path "append" $separator
+      add-path $var $path "append" $sep
    }\
    elseif {$mode eq "unload"} {
-      unload-path $var $path $separator
+      unload-path $var $path $sep
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "append-path\t$var\t$path"
@@ -2063,23 +2085,15 @@ proc append-path {var path args} {
    return {}
 }
 
-proc remove-path {var path args} {
-   global g_def_separator
-
+proc remove-path {args} {
    set mode [currentMode]
 
-   reportDebug "remove-path: ($var, $path, $args) mode=$mode"
+   reportDebug "remove-path: ($args) mode=$mode"
 
-   if {($var eq "--delim") || ($var eq "-d") || ($var eq "-delim")} {
-      set separator $path
-      set var [lindex $args 0]
-      set path [lindex $args 1]
-   } else {
-      set separator $g_def_separator
-   }
+   lassign [eval parsePathCommandArgs "remove-path" $args] sep var path
 
    if {$mode eq "load"} {
-      unload-path $var $path $separator
+      unload-path $var $path $sep
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "remove-path\t$var\t$path"
