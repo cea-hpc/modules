@@ -5800,20 +5800,24 @@ proc cmdModuleResurface {cmd args} {
    pushCommandName $cmd
 
    # run modulefile command and get its result
-   set res [eval $cmd $args]
-
-   # register result depending of return kind (false or text)
-   switch -- $cmd {
-      {module-info} {
-         set g_return_text $res
-      }
-      default {
-         if {$res == 0} {
-            # render false if command returned false
-            set g_return_false 1
+   if {[catch {eval $cmd $args} res]} {
+      # report error if any and return false
+      reportError $res
+   } else {
+      # register result depending of return kind (false or text)
+      switch -- $cmd {
+         {module-info} {
+            set g_return_text $res
+         }
+         default {
+            if {$res == 0} {
+               # render false if command returned false
+               set g_return_false 1
+            }
          }
       }
    }
+
    popCommandName
    popMode
 }
