@@ -54,6 +54,23 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 test_cmd_re "ALL" "load $module" $ans
 
 #
+# Test the --delim=C argument form
+#
+
+set ts_new "$ts_3,$ts_1,$ts_2"
+set env(testsuite)	"$ts_1,$ts_2"
+set module "prepend/1.7"
+set modulefile "$modpath/$module"
+
+set ans [list]
+lappend ans [list set testsuite_modshare $tsmod_new]
+lappend ans [list set testsuite $ts_new]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+test_cmd_re "sh" "load $module" $ans
+
+#
 # Try bad argument list: missing variable name
 #
 
@@ -78,6 +95,15 @@ testouterr_cmd "sh" "load $module" "ERR" $ts_err
 set module "prepend/1.5"
 set modulefile "$modpath/$module"
 set ts_err "$moderr_msgs: prepend-path should get a valid environment variable name\n  In '$modulefile'\n$err_contact"
+testouterr_cmd "sh" "load $module" "ERR" $ts_err
+
+#
+# Try bad argument list: empty delimiter value
+#
+
+set module "prepend/1.6"
+set modulefile "$modpath/$module"
+set ts_err "$moderr_msgs: prepend-path should get a non-empty path delimiter\n  In '$modulefile'\n$err_contact"
 testouterr_cmd "sh" "load $module" "ERR" $ts_err
 
 #

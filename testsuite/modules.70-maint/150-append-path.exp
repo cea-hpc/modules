@@ -52,11 +52,13 @@ lappend ans [list setpath FOO "$path1:$path2"]
 testouterr_cmd_re "ALL" "append-path FOO $path2" $ans ""
 testouterr_cmd_re "sh" "append-path -d : FOO $path2" $ans ""
 testouterr_cmd_re "sh" "append-path --delim : FOO $path2" $ans ""
+testouterr_cmd_re "sh" "append-path --delim=: FOO $path2" $ans ""
 
 set ans [list]
 lappend ans [list setpath FOO "$path1,$path2"]
 testouterr_cmd_re "sh" "append-path -d , FOO $path2" $ans ""
 testouterr_cmd_re "sh" "append-path --delim , FOO $path2" $ans ""
+testouterr_cmd_re "sh" "append-path --delim=, FOO $path2" $ans ""
 
 
 if { $verbose > 0 } {
@@ -77,6 +79,7 @@ testouterr_cmd_re "sh" "append-path FOO" "ERR" "$error_msgs: Unexpected number o
 testouterr_cmd_re "sh" "append-path -d : FOO" "ERR" "$error_msgs: append-path should get a value for environment variable FOO"
 testouterr_cmd_re "sh" "append-path -d :" "ERR" "$error_msgs: append-path should get an environment variable name"
 testouterr_cmd_re "sh" "append-path -d : " "ERR" "$error_msgs: append-path should get a valid environment variable name"
+testouterr_cmd_re "sh" "append-path --delim= FOO /path/to" "ERR" "$error_msgs: append-path should get a non-empty path delimiter"
 
 
 #

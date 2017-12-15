@@ -2018,6 +2018,9 @@ proc parsePathCommandArgs {cmd args} {
          {-d} - {-delim} - {--delim} {
             set next_is_delim 1
          }
+         {--delim=*} {
+            set delim [string range $arg 8 end]
+         }
          default {
             if {$next_is_delim} {
                set delim $arg
@@ -2034,6 +2037,8 @@ proc parsePathCommandArgs {cmd args} {
    # adapt with default value or raise error if some arguments are missing
    if {![info exists delim]} {
       set delim $g_def_separator
+   } elseif {$delim eq ""} {
+      error "$cmd should get a non-empty path delimiter"
    }
    if {![info exists var]} {
       error "$cmd should get an environment variable name"
@@ -2043,6 +2048,8 @@ proc parsePathCommandArgs {cmd args} {
    if {![info exists val]} {
       error "$cmd should get a value for environment variable $var"
    }
+
+   reportDebug "parsePathCommandArgs: (delim=$delim, var=$var, val=$val)"
 
    return [list $delim $var $val]
 }
