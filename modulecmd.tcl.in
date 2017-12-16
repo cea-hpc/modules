@@ -1899,12 +1899,14 @@ proc getReferenceCountArray {var separator} {
 }
 
 
-proc unload-path {var path separator} {
+proc unload-path {args} {
    global g_stateEnvVars env g_force g_def_separator
 
-   array set countarr [getReferenceCountArray $var $separator]
+   reportDebug "unload-path: ($args)"
 
-   reportDebug "unload-path: ($var, $path, $separator)"
+   lassign [eval parsePathCommandArgs "unload-path" $args] separator var path
+
+   array set countarr [getReferenceCountArray $var $separator]
 
    # Don't worry about dealing with this variable if it is already scheduled
    #  for deletion
@@ -1912,19 +1914,15 @@ proc unload-path {var path separator} {
       return {}
    }
 
-   # special syntax to use variable as switch pattern argument
-   switch -- $path \
+   switch -- $path {
       {} {
          # enable removal of an empty path
          lappend pathelems {}
-      } \
-      $separator {
-         # raise error on removal attempt of a path equals to separator
-         error "unload-path cannot handle path equals to separator string"
-      } \
+      }
       default {
          set pathelems [split $path $separator]
       }
+   }
 
    foreach dir $pathelems {
       set doit 0
@@ -1970,24 +1968,21 @@ proc unload-path {var path separator} {
    return {}
 }
 
-proc add-path {var path pos separator} {
+proc add-path {pos args} {
    global env g_stateEnvVars g_def_separator
 
-   reportDebug "add-path: ($var, $path, $separator)"
+   reportDebug "add-path: ($args) pos=$pos"
+
+   lassign [eval parsePathCommandArgs "add-path" $args] separator var path
 
    set sharevar "${var}_modshare"
    array set countarr [getReferenceCountArray $var $separator]
 
-   # special syntax to use variable as switch pattern argument
-   switch -- $path \
+   switch -- $path {
       {} {
          # enable add of an empty path
          lappend pathelems {}
-      } \
-      $separator {
-         # raise error on add attempt of a path equals to separator
-         error "add-path cannot handle path equals to separator string"
-      } \
+      }
       default {
          if {$pos eq "prepend"} {
             set pathelems [lreverse [split $path $separator]]
@@ -1995,6 +1990,7 @@ proc add-path {var path pos separator} {
             set pathelems [split $path $separator]
          }
       }
+   }
 
    foreach dir $pathelems {
       if {[info exists countarr($dir)]} {
@@ -2069,6 +2065,8 @@ proc parsePathCommandArgs {cmd args} {
    }
    if {![info exists val]} {
       error "$cmd should get a value for environment variable $var"
+   } elseif {$val eq $delim} {
+      error "$cmd cannot handle path equals to separator string"
    }
 
    reportDebug "parsePathCommandArgs: (delim=$delim, var=$var, val=$val)"
@@ -2081,16 +2079,14 @@ proc prepend-path {args} {
 
    reportDebug "prepend-path: ($args) mode=$mode"
 
-   lassign [eval parsePathCommandArgs "prepend-path" $args] sep var path
-
    if {$mode eq "load"} {
-      add-path $var $path "prepend" $sep
+      eval add-path "prepend" $args
    }\
    elseif {$mode eq "unload"} {
-      unload-path $var $path $sep
+      eval unload-path $args
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "prepend-path\t$var\t$path"
+      report "prepend-path\t$args"
    }
 
    return {}
@@ -2101,16 +2097,14 @@ proc append-path {args} {
 
    reportDebug "append-path: ($args) mode=$mode"
 
-   lassign [eval parsePathCommandArgs "append-path" $args] sep var path
-
    if {$mode eq "load"} {
-      add-path $var $path "append" $sep
+      eval add-path "append" $args
    }\
    elseif {$mode eq "unload"} {
-      unload-path $var $path $sep
+      eval unload-path $args
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "append-path\t$var\t$path"
+      report "append-path\t$args"
    }
 
    return {}
@@ -2121,13 +2115,11 @@ proc remove-path {args} {
 
    reportDebug "remove-path: ($args) mode=$mode"
 
-   lassign [eval parsePathCommandArgs "remove-path" $args] sep var path
-
    if {$mode eq "load"} {
-      unload-path $var $path $sep
+      eval unload-path $args
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "remove-path\t$var\t$path"
+      report "remove-path\t$args"
    }
    return {}
 }
@@ -5425,7 +5417,7 @@ proc cmdModuleLoad {args} {
 
 proc cmdModuleUnload {match args} {
    global g_loadedModules
-   global ModulesCurrentModulefile g_def_separator
+   global ModulesCurrentModulefile
 
    reportDebug "cmdModuleUnload: unloading $args (match=$match)"
 
@@ -5447,9 +5439,8 @@ proc cmdModuleUnload {match args} {
                restoreSettings
                set ret 1
             } else {
-               unload-path LOADEDMODULES $currentModule\
-                  $g_def_separator
-               unload-path _LMFILES_ $modfile $g_def_separator
+               unload-path LOADEDMODULES $currentModule
+               unload-path _LMFILES_ $modfile
                unset g_loadedModules($currentModule)
             }
 
@@ -5563,8 +5554,6 @@ proc cmdModuleAvail {{mod {*}}} {
 }
 
 proc cmdModuleUse {args} {
-   global g_def_separator
-
    reportDebug "cmdModuleUse: $args"
 
    if {$args eq ""} {
@@ -5585,14 +5574,10 @@ proc cmdModuleUse {args} {
             # the current work directory.
             set path [getAbsolutePath $path]
 
-            reportDebug "cmdModuleUse: calling add-path \
-               MODULEPATH $path $stuff_path $g_def_separator"
-
             pushMode "load"
             catch {
-               add-path MODULEPATH $path $stuff_path $g_def_separator
+               add-path $stuff_path MODULEPATH $path
             }
-
             popMode
          } else {
             reportError "Directory '$path' not found"
@@ -5602,9 +5587,8 @@ proc cmdModuleUse {args} {
 }
 
 proc cmdModuleUnuse {args} {
-   global g_def_separator
-
    reportDebug "cmdModuleUnuse: $args"
+
    if {$args eq ""} {
       showModulePath
    } else {
@@ -5628,13 +5612,9 @@ proc cmdModuleUnuse {args} {
          }
 
          if {$unusepath ne ""} {
-            reportDebug "calling unload-path MODULEPATH $unusepath\
-               $g_def_separator"
-
             pushMode "unload"
-
             catch {
-               unload-path MODULEPATH $unusepath $g_def_separator
+               unload-path MODULEPATH $unusepath
             }
             popMode
 
