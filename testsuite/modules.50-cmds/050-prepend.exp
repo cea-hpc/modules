@@ -140,7 +140,6 @@ set modulefile "$modpath/$module"
 set ts_err "$moderr_msgs: prepend-path should get a value for environment variable PATH\n  In '$modulefile'\n$err_contact"
 testouterr_cmd "sh" "load $module" "ERR" $ts_err
 
-
 #
 # Try bad argument list: empty variable name
 #
@@ -149,6 +148,41 @@ set module "prepend/0.5"
 set modulefile "$modpath/$module"
 set ts_err "$moderr_msgs: prepend-path should get a valid environment variable name\n  In '$modulefile'\n$err_contact"
 testouterr_cmd "sh" "load $module" "ERR" $ts_err
+
+
+#
+# Try prepending empty string and check reference counter
+#
+
+set module "prepend/3.0"
+set modulefile "$modpath/$module"
+
+set ans [list]
+lappend ans [list set FOO_modshare ":1"]
+lappend ans [list set FOO ""]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd "sh" "load $module" $ans ""
+
+set module2 "prepend/3.1"
+set modulefile2 "$modpath/$module2"
+
+set ans [list]
+lappend ans [list set FOO_modshare "/path/to/dir:1::2"]
+lappend ans [list set FOO "/path/to/dir:"]
+lappend ans [list setpath LOADEDMODULES "$module:$module2"]
+lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile2"]
+
+testouterr_cmd_re "sh" "load $module $module2" $ans ""
+
+set ans [list]
+lappend ans [list set FOO_modshare "/path/to/dir:1::2"]
+lappend ans [list set FOO "/path/to/dir:"]
+lappend ans [list setpath LOADEDMODULES "$module2:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile2:$modulefile"]
+
+testouterr_cmd_re "sh" "load $module2 $module" $ans ""
 
 
 #
@@ -170,4 +204,6 @@ unset ts_err
 unset ans
 
 unset modulefile
+unset modulefile2
 unset module
+unset module2

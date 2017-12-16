@@ -1838,8 +1838,13 @@ proc getReferenceCountArray {var separator} {
             array set fixers {}
             array set usagearr {}
 
-            foreach dir [split $env($var) $separator] {
-               set usagearr($dir) 1
+            # do not skip a bare empty path entry
+            if {$env($var) eq ""} {
+               set usagearr() 1
+            } else {
+               foreach dir [split $env($var) $separator] {
+                  set usagearr($dir) 1
+               }
             }
             foreach path [array names countarr] {
                if {! [info exists usagearr($path)]} {
@@ -1905,15 +1910,21 @@ proc unload-path {var path separator} {
       return {}
    }
 
-   # enable removal of an empty path
-   if {$path eq ""} {
-      set path $separator
-   # raise error on removal attempt of a path equals to separator
-   } elseif {$path eq $separator} {
-      error "unload-path cannot handle path equals to separator string"
-   }
+   # special syntax to use variable as switch pattern argument
+   switch -- $path \
+      {} {
+         # enable removal of an empty path
+         lappend pathelems {}
+      } \
+      $separator {
+         # raise error on removal attempt of a path equals to separator
+         error "unload-path cannot handle path equals to separator string"
+      } \
+      default {
+         set pathelems [split $path $separator]
+      }
 
-   foreach dir [split $path $separator] {
+   foreach dir $pathelems {
       set doit 0
 
       if {[info exists countarr($dir)]} {
@@ -1965,25 +1976,31 @@ proc add-path {var path pos separator} {
    set sharevar "${var}_modshare"
    array set countarr [getReferenceCountArray $var $separator]
 
-   # enable add of an empty path
-   if {$path eq ""} {
-      set path $separator
-   # raise error on removal attempt of a path equals to separator
-   } elseif {$path eq $separator} {
-      error "add-path cannot handle path equals to separator string"
-   }
+   # special syntax to use variable as switch pattern argument
+   switch -- $path \
+      {} {
+         # enable add of an empty path
+         lappend pathelems {}
+      } \
+      $separator {
+         # raise error on add attempt of a path equals to separator
+         error "add-path cannot handle path equals to separator string"
+      } \
+      default {
+         if {$pos eq "prepend"} {
+            set pathelems [lreverse [split $path $separator]]
+         } else {
+            set pathelems [split $path $separator]
+         }
+      }
 
-   if {$pos eq "prepend"} {
-      set pathelems [lreverse [split $path $separator]]
-   } else {
-      set pathelems [split $path $separator]
-   }
    foreach dir $pathelems {
       if {[info exists countarr($dir)]} {
          # already see $dir in $var"
          incr countarr($dir)
       } else {
-         if {[info exists env($var)] && $env($var) ne ""} {
+         if {[info exists env($var)] && ($env($var) ne "" ||\
+            [info exists countarr()])} {
             if {$pos eq "prepend"} {
                set env($var) "$dir$separator$env($var)"
             }\
@@ -3699,8 +3716,11 @@ proc pjoin {lst sep} {
    set res ""
 
    foreach elt $lst {
-      if {$res ne ""} {
+      # preserve empty entries
+      if {[info exists not_first]} {
          append res $sep
+      } else {
+         set not_first 1
       }
       # escape any separator character when adding to string
       append res [charEscaped $elt $sep]

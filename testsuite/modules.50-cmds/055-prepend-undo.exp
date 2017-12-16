@@ -183,12 +183,107 @@ testouterr_cmd "sh" "unload $module" "ERR" $ts_err
 
 
 #
+# Try prepending empty string and check reference counter
+#
+
+set module "prepend/3.0"
+set modulefile "$modpath/$module"
+set env(FOO_modshare) ":1"
+set env(FOO) ""
+set env(_LMFILES_) $modulefile
+set env(LOADEDMODULES) $module
+
+set ans [list]
+lappend ans [list unset _LMFILES__modshare]
+lappend ans [list unset LOADEDMODULES_modshare]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset FOO_modshare]
+
+testouterr_cmd "sh" "unload $module" $ans ""
+
+set module2 "prepend/3.1"
+set modulefile2 "$modpath/$module2"
+
+
+set env(FOO_modshare) "/path/to/dir:1::2"
+set env(FOO) "/path/to/dir:"
+set env(_LMFILES_) "$modulefile:$modulefile2"
+set env(_LMFILES__modshare) "$modulefile:1:$modulefile2:1"
+set env(LOADEDMODULES) "$module:$module2"
+set env(LOADEDMODULES_modshare) "$module:1:$module2:1"
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES__modshare]
+lappend ans [list unset LOADEDMODULES_modshare]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset FOO_modshare]
+
+testouterr_cmd "sh" "unload $module $module2" $ans ""
+
+set ans [list]
+lappend ans [list set FOO_modshare ":1"]
+lappend ans [list set FOO ""]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd "sh" "unload $module2" $ans ""
+
+set ans [list]
+lappend ans [list set FOO_modshare "/path/to/dir:1::1"]
+lappend ans [list setpath LOADEDMODULES $module2]
+lappend ans [list setpath _LMFILES_ $modulefile2]
+
+testouterr_cmd "sh" "unload $module" $ans ""
+
+
+set env(FOO_modshare) "/path/to/dir:1::2"
+set env(FOO) "/path/to/dir:"
+set env(_LMFILES_) "$modulefile2:$modulefile"
+set env(_LMFILES__modshare) "$modulefile:1:$modulefile2:1"
+set env(LOADEDMODULES) "$module2:$module"
+set env(LOADEDMODULES_modshare) "$module:1:$module2:1"
+
+set ans [list]
+lappend ans [list unset FOO]
+lappend ans [list unset _LMFILES__modshare]
+lappend ans [list unset LOADEDMODULES_modshare]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset FOO_modshare]
+
+testouterr_cmd "sh" "unload $module $module2" $ans ""
+
+set ans [list]
+lappend ans [list set FOO_modshare ":1"]
+lappend ans [list set FOO ""]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd "sh" "unload $module2" $ans ""
+
+set ans [list]
+lappend ans [list set FOO_modshare "/path/to/dir:1::1"]
+lappend ans [list setpath LOADEDMODULES $module2]
+lappend ans [list setpath _LMFILES_ $modulefile2]
+
+testouterr_cmd "sh" "unload $module" $ans ""
+
+
+#
 #  Clean up the environment
 #
 
 set env(PATH) "$old_path"
+unset env(FOO)
+unset env(FOO_modshare)
 unset env(_LMFILES_)
+unset env(_LMFILES__modshare)
 unset env(LOADEDMODULES)
+unset env(LOADEDMODULES_modshare)
 
 #
 #  Cleanup
