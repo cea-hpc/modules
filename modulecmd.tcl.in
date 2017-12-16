@@ -5559,28 +5559,30 @@ proc cmdModuleUse {args} {
    if {$args eq ""} {
       showModulePath
    } else {
-      set stuff_path "prepend"
+      set pos "prepend"
       foreach path $args {
-         if {($path eq "--append") ||($path eq "-a") ||($path eq\
-            "-append")} {
-            set stuff_path "append"
-         }\
-         elseif {($path eq "--prepend") ||($path eq "-p") ||($path eq\
-            "-prepend")} {
-            set stuff_path "prepend"
-         }\
-         elseif {[file isdirectory $path]} {
-            # tranform given path in an absolute path to avoid dependency to
-            # the current work directory.
-            set path [getAbsolutePath $path]
-
-            pushMode "load"
-            catch {
-               add-path $stuff_path MODULEPATH $path
+         switch -- $path {
+            {-a} - {--append} - {-append} {
+               set pos "append"
             }
-            popMode
-         } else {
-            reportError "Directory '$path' not found"
+            {-p} - {--prepend} - {-prepend} {
+               set pos "prepend"
+            }
+            default {
+               if {[file isdirectory $path]} {
+                  # tranform given path in an absolute path to avoid
+                  # dependency to the current work directory.
+                  set path [getAbsolutePath $path]
+
+                  pushMode "load"
+                  catch {
+                     add-path $pos MODULEPATH $path
+                  }
+                  popMode
+               } else {
+                  reportError "Directory '$path' not found"
+               }
+            }
          }
       }
    }
