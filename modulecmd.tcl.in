@@ -1838,8 +1838,10 @@ proc getReferenceCountArray {var separator} {
             array set fixers {}
             array set usagearr {}
 
-            # do not skip a bare empty path entry
-            if {$env($var) eq ""} {
+            # do not skip a bare empty path entry that can also be found in
+            # reference counter array (sometimes var is cleared by setting it
+            # empty not unsetting it, ignore var in this case)
+            if {$env($var) eq "" && [info exists countarr()]} {
                set usagearr() 1
             } else {
                foreach dir [split $env($var) $separator] {
@@ -1999,6 +2001,9 @@ proc add-path {var path pos separator} {
          # already see $dir in $var"
          incr countarr($dir)
       } else {
+         # ignore env var set empty if no empty entry found in reference
+         # counter array (sometimes var is cleared by setting it empty not
+         # unsetting it)
          if {[info exists env($var)] && ($env($var) ne "" ||\
             [info exists countarr()])} {
             if {$pos eq "prepend"} {
