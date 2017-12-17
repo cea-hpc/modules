@@ -1561,7 +1561,7 @@ proc module {command args} {
       }
       {^(prepend|append|remove)-path$} {
          if {$topcall} {
-            if {[llength $args] < 2 || [llength $args] > 4} {
+            if {[llength $args] < 2} {
                set errormsg "Unexpected number of args for '$command' command"
             } else {
                eval cmdModuleResurface $command $args
@@ -2025,7 +2025,8 @@ proc parsePathCommandArgs {cmd args} {
             } elseif {![info exists var]} {
                set var $arg
             } else {
-               set val $arg
+               # set multiple passed values in a list
+               lappend val_raw_list $arg
             }
          }
       }
@@ -2042,19 +2043,25 @@ proc parsePathCommandArgs {cmd args} {
    } elseif {$var eq ""} {
       error "$cmd should get a valid environment variable name"
    }
-   if {![info exists val]} {
+   if {![info exists val_raw_list]} {
       error "$cmd should get a value for environment variable $var"
-   } elseif {$val eq $delim} {
-      error "$cmd cannot handle path equals to separator string"
    }
 
    # set list of value to add
-   if {$val eq ""} {
-      # add empty entry in list
-      lappend val_list {}
-   } else {
-      # split passed value with delimiter
-      set val_list [split $val $delim]
+   set val_list [list]
+   foreach val $val_raw_list {
+      switch -- $val \
+         {} {
+            # add empty entry in list
+            lappend val_list {}
+         } \
+         $delim {
+            error "$cmd cannot handle path equals to separator string"
+         } \
+         default {
+            # split passed value with delimiter
+            set val_list [concat $val_list [split $val $delim]]
+         }
    }
 
    reportDebug "parsePathCommandArgs: (delim=$delim, var=$var, val=$val_list,\
@@ -5914,9 +5921,9 @@ Shell's initialization files handling commands:
   initclear                         Clear all modulefiles from init file
 
 Environment direct handling commands:
-  prepend-path [-d c] var value     Prepend value to environment variable
-  append-path [-d c] var value      Append value to environment variable
-  remove-path [-d c] var value      Remove value from environment variable
+  prepend-path [-d c] var val [...] Prepend value to environment variable
+  append-path [-d c] var val [...]  Append value to environment variable
+  remove-path [-d c] var val [...]  Remove value from environment variable
 
 Other commands:
   help            [modulefile ...]  Print this or modulefile(s) help info

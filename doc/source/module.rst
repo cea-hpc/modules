@@ -437,19 +437,19 @@ Module Sub-Commands
 
  Print path of available *modulefiles* matching argument.
 
-**append-path** [-d C|--delim C|--delim=C] variable value
+**append-path** [-d C|--delim C|--delim=C] variable value...
 
  Append *value* to environment *variable*. The *variable* is a colon, or
  *delimiter*, separated list. See **append-path** in the :ref:`modulefile(4)`
  man page for further explanation.
 
-**prepend-path** [-d C|--delim C|--delim=C] variable value
+**prepend-path** [-d C|--delim C|--delim=C] variable value...
 
  Prepend *value* to environment *variable*. The *variable* is a colon, or
  *delimiter*, separated list. See **prepend-path** in the :ref:`modulefile(4)`
  man page for further explanation.
 
-**remove-path** [-d C|--delim C|--delim=C] variable value
+**remove-path** [-d C|--delim C|--delim=C] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in environment
  *variable*. See **remove-path** in the :ref:`modulefile(4)` man page for

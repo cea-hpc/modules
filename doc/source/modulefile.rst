@@ -132,11 +132,11 @@ the *modulefile* is being loaded.
  then when unloading a module, it will set *variable* to *value*. The
  **unsetenv** command changes the process' environment like **setenv**.
 
-**append-path** [-d C|--delim C|--delim=C] variable value
+**append-path** [-d C|--delim C|--delim=C] variable value...
 
  See **prepend-path**.
 
-**prepend-path** [-d C|--delim C|--delim=C] variable value
+**prepend-path** [-d C|--delim C|--delim=C] variable value...
 
  Append or prepend *value* to environment *variable*. The
  *variable* is a colon, or *delimiter*, separated list such as
@@ -157,7 +157,7 @@ the *modulefile* is being loaded.
  If *value* corresponds to the concatenation of multiple elements separated by
  colon, or *delimiter*, character, each element is treated separately.
 
-**remove-path** [-d C|--delim C|--delim=C] variable value
+**remove-path** [-d C|--delim C|--delim=C] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in
  *variable*. See **prepend-path** or **append-path** for further explanation
