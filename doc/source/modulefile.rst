@@ -154,6 +154,9 @@ the *modulefile* is being loaded.
  If the *variable* is not set, it is created. When a *modulefile* is
  unloaded, **append-path** and **prepend-path** become **remove-path**.
 
+ If *value* corresponds to the concatenation of multiple elements separated by
+ colon, or *delimiter*, character, each element is treated separately.
+
 **remove-path** [-d C|--delim C|--delim=C] variable value
 
  Remove *value* from the colon, or *delimiter*, separated list in
@@ -168,6 +171,9 @@ the *modulefile* is being loaded.
  *variable*, relative reference counter is checked and *value* is removed
  only if counter is equal to 1 or not defined. Elsewhere *value* is kept
  in *variable* and reference counter is decreased by 1.
+
+ If *value* corresponds to the concatenation of multiple elements separated by
+ colon, or *delimiter*, character, each element is treated separately.
 
 **prereq** modulefile...
 

@@ -99,11 +99,31 @@ set env(LOADEDMODULES) $module
 testouterr_cmd "sh" "unload $module" $ans ""
 
 #
-#  Clen up the environment
+# Remove multiple paths passed as one string
+#
+
+set module "remove/2.3"
+set modulefile "$modpath/$module"
+
+set env(FOO_modshare) "/path/to/dir1:1"
+set env(FOO) "/path/to/dir1"
+set env(_LMFILES_) "$modulefile"
+set env(LOADEDMODULES) "$module"
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+testouterr_cmd "sh" "unload $module" $ans ""
+
+#
+#  Clean up the environment
 #
 
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
+unset env(FOO_modshare)
+unset env(FOO)
 
 #
 #  Cleanup

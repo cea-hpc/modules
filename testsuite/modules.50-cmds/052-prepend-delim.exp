@@ -107,6 +107,26 @@ set ts_err "$moderr_msgs: add-path should get a non-empty path delimiter\n  In '
 testouterr_cmd "sh" "load $module" "ERR" $ts_err
 
 #
+# Prepend multiple paths passed as one string
+#
+
+set module "prepend/1.8"
+set modulefile "$modpath/$module"
+set ts_new " http://foobar.io $ts_3 $ts_1 $ts_2"
+set tsmod_new ":1:http\\\\://foobar.com:1:http\\\\://foobar.net:1:http\\\\://foobar.io:1:http\\\\://foobar.org:1"
+
+set env(testsuite) "$ts_1 $ts_2"
+set env(testsuite_modshare) "http\\://foobar.org:1:http\\://foobar.net:1"
+
+set ans [list]
+lappend ans [list set testsuite_modshare $tsmod_new]
+lappend ans [list set testsuite $ts_new]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd_re "sh" "load $module" $ans ""
+
+#
 #  Cleanup
 #
 

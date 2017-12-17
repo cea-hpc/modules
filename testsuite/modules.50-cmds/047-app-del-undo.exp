@@ -94,6 +94,26 @@ set ts_err "$moderr_msgs: unload-path should get a valid environment variable na
 testouterr_cmd "sh" "unload $module" "ERR" $ts_err
 
 #
+# Append multiple paths passed as one string
+#
+
+set module "append/1.6"
+set modulefile "$modpath/$module"
+
+set env(testsuite) "$ts_1 $ts_2 $ts_3 http://foobar.io "
+set env(testsuite_modshare) ":1:http\\://foobar.com:1:http\\://foobar.net:1:http\\://foobar.io:1:http\\://foobar.org:1"
+set env(_LMFILES_) $modulefile
+set env(LOADEDMODULES) $module
+
+set ans [list]
+lappend ans [list set testsuite_modshare $tsmod_new]
+lappend ans [list set testsuite $ts_new]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+testouterr_cmd_re "sh" "unload $module" $ans ""
+
+#
 #  Cleanup
 #
 

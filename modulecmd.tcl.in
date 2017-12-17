@@ -1904,7 +1904,8 @@ proc unload-path {args} {
 
    reportDebug "unload-path: ($args)"
 
-   lassign [eval parsePathCommandArgs "unload-path" $args] separator var path
+   lassign [eval parsePathCommandArgs "unload-path" $args] separator var\
+      path_list
 
    array set countarr [getReferenceCountArray $var $separator]
 
@@ -1914,17 +1915,7 @@ proc unload-path {args} {
       return {}
    }
 
-   switch -- $path {
-      {} {
-         # enable removal of an empty path
-         lappend pathelems {}
-      }
-      default {
-         set pathelems [split $path $separator]
-      }
-   }
-
-   foreach dir $pathelems {
+   foreach dir $path_list {
       set doit 0
 
       if {[info exists countarr($dir)]} {
@@ -1973,26 +1964,17 @@ proc add-path {pos args} {
 
    reportDebug "add-path: ($args) pos=$pos"
 
-   lassign [eval parsePathCommandArgs "add-path" $args] separator var path
+   lassign [eval parsePathCommandArgs "add-path" $args] separator var\
+      path_list
 
    set sharevar "${var}_modshare"
    array set countarr [getReferenceCountArray $var $separator]
 
-   switch -- $path {
-      {} {
-         # enable add of an empty path
-         lappend pathelems {}
-      }
-      default {
-         if {$pos eq "prepend"} {
-            set pathelems [lreverse [split $path $separator]]
-         } else {
-            set pathelems [split $path $separator]
-         }
-      }
+   if {$pos eq "prepend"} {
+      set path_list [lreverse $path_list]
    }
 
-   foreach dir $pathelems {
+   foreach dir $path_list {
       if {[info exists countarr($dir)]} {
          # already see $dir in $var"
          incr countarr($dir)
@@ -2066,9 +2048,19 @@ proc parsePathCommandArgs {cmd args} {
       error "$cmd cannot handle path equals to separator string"
    }
 
-   reportDebug "parsePathCommandArgs: (delim=$delim, var=$var, val=$val)"
+   # set list of value to add
+   if {$val eq ""} {
+      # add empty entry in list
+      lappend val_list {}
+   } else {
+      # split passed value with delimiter
+      set val_list [split $val $delim]
+   }
 
-   return [list $delim $var $val]
+   reportDebug "parsePathCommandArgs: (delim=$delim, var=$var, val=$val_list,\
+      nbval=[llength $val_list])"
+
+   return [list $delim $var $val_list]
 }
 
 proc prepend-path {args} {

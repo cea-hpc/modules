@@ -83,6 +83,37 @@ testouterr_cmd_re "sh" "append-path --delim= FOO /path/to" "ERR" "$error_msgs: a
 
 
 #
+# Append multiple paths passed as one string
+#
+
+set path1 "/path/to/dir1"
+if { $verbose > 0 } {
+    send_user "\tSetup FOO_modshare = '$path1:1'\n"
+    send_user "\tSetup FOO = '$path1'\n"
+}
+set env(FOO_modshare) "$path1:1"
+set env(FOO) $path1
+
+set ans [list]
+lappend ans [list set FOO "$path1:/modules/testsuite2.2:/modules/testsuite2.2/2.2:"]
+lappend ans [list set FOO_modshare ":1:/modules/testsuite2.2/2.2:1:$path1:1:/modules/testsuite2.2:1"]
+testouterr_cmd_re "sh" "append-path FOO /modules/testsuite2.2:/modules/testsuite2.2/2.2:" $ans ""
+
+# with specific delim
+if { $verbose > 0 } {
+    send_user "\tSetup FOO_modshare = 'http://foobar.org:1:http://foobar.net:1'\n"
+    send_user "\tSetup FOO = 'http://foobar.org,http://foobar.net'\n"
+}
+set env(FOO_modshare) "http\\://foobar.org:1:http\\://foobar.net:1"
+set env(FOO) "http://foobar.org,http://foobar.net"
+
+set ans [list]
+lappend ans [list set FOO "http://foobar.org,http://foobar.net,http://foobar.com,http://foobar.io,"]
+lappend ans [list set FOO_modshare ":1:http\\\\://foobar.com:1:http\\\\://foobar.net:1:http\\\\://foobar.io:1:http\\\\://foobar.org:1"]
+testouterr_cmd_re "sh" "append-path -d , FOO http://foobar.com,http://foobar.io," $ans ""
+
+
+#
 #  Cleanup
 #
 
@@ -96,6 +127,7 @@ if {[info exists ORIG_FOO]} {
 } else {
     unset env(FOO)
 }
+unset env(FOO_modshare)
 
 unset ans
 

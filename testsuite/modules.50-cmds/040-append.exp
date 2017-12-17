@@ -118,8 +118,30 @@ set ts_err "$moderr_msgs: add-path should get a valid environment variable name\
 testouterr_cmd "sh" "load $module" "ERR" $ts_err
 
 #
+# Append multiple paths passed as one string
+#
+
+set module "append/2.3"
+set modulefile "$modpath/$module"
+set old_path "/path/to/dir1"
+
+set env(FOO_modshare) "$old_path:1"
+set env(FOO) $old_path
+
+set ans [list]
+lappend ans [list set FOO_modshare ":1:/modules/testsuite2.2/2.2:1:$old_path:1:/modules/testsuite2.2:1"]
+lappend ans [list set FOO "$old_path:/modules/testsuite2.2:/modules/testsuite2.2/2.2:"]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd "sh" "load $module" $ans ""
+
+#
 #  Cleanup
 #
+
+unset env(FOO_modshare)
+unset env(FOO)
 
 unset new_path
 unset ts_path

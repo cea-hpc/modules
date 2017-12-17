@@ -82,10 +82,31 @@ set ts_err "$moderr_msgs: unload-path should get a valid environment variable na
 testouterr_cmd "sh" "load $module" "ERR" $ts_err
 
 #
+# Remove multiple paths passed as one string
+#
+
+set module "remove/2.3"
+set modulefile "$modpath/$module"
+
+set env(FOO_modshare) ":1:/modules/testsuite2.2/2.2:1:/path/to/dir1:1:/modules/testsuite2.2:1"
+set env(FOO) "/path/to/dir1:/modules/testsuite2.2:/modules/testsuite2.2/2.2:"
+
+set ans [list]
+lappend ans [list set FOO_modshare "/path/to/dir1:1"]
+lappend ans [list set FOO "/path/to/dir1"]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd "sh" "load $module" $ans ""
+
+
+#
 #  Clean up the environment
 #
 
 set env(PATH) "$old_path"
+unset env(FOO_modshare)
+unset env(FOO)
 
 #
 #  Cleanup

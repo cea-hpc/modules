@@ -274,6 +274,29 @@ testouterr_cmd "sh" "unload $module" $ans ""
 
 
 #
+# Prepend multiple paths passed as one string
+#
+
+set module "prepend/2.3"
+set modulefile "$modpath/$module"
+
+set env(FOO_modshare) ":1:/modules/testsuite2.2/2.2:1:/path/to/dir1:1:/modules/testsuite2.2:1"
+set env(FOO) ":/modules/testsuite2.2:/modules/testsuite2.2/2.2:/path/to/dir1"
+set env(_LMFILES_) "$modulefile"
+set env(_LMFILES__modshare) "$modulefile:1"
+set env(LOADEDMODULES) "$module"
+set env(LOADEDMODULES_modshare) "$module:1"
+
+set ans [list]
+lappend ans [list set FOO_modshare "/path/to/dir1:1"]
+lappend ans [list set FOO "/path/to/dir1"]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+testouterr_cmd "sh" "unload $module" $ans ""
+
+
+#
 #  Clean up the environment
 #
 

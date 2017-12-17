@@ -105,6 +105,26 @@ set ts_err "$moderr_msgs: unload-path should get a non-empty path delimiter\n  I
 testouterr_cmd "sh" "unload $module" "ERR" $ts_err
 
 #
+# Prepend multiple paths passed as one string
+#
+
+set module "prepend/1.8"
+set modulefile "$modpath/$module"
+
+set env(testsuite) " http://foobar.io $ts_3 $ts_1 $ts_2"
+set env(testsuite_modshare) ":1:http\\://foobar.com:1:http\\://foobar.net:1:http\\://foobar.io:1:http\\://foobar.org:1"
+set env(_LMFILES_) $modulefile
+set env(LOADEDMODULES) $module
+
+set ans [list]
+lappend ans [list set testsuite_modshare $tsmod_new]
+lappend ans [list set testsuite $ts_new]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+testouterr_cmd_re "sh" "unload $module" $ans ""
+
+#
 #  Cleanup
 #
 
