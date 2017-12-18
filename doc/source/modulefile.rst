@@ -132,11 +132,11 @@ the *modulefile* is being loaded.
  then when unloading a module, it will set *variable* to *value*. The
  **unsetenv** command changes the process' environment like **setenv**.
 
-**append-path** [-d C|--delim C|--delim=C] variable value...
+**append-path** [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
  See **prepend-path**.
 
-**prepend-path** [-d C|--delim C|--delim=C] variable value...
+**prepend-path** [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
  Append or prepend *value* to environment *variable*. The
  *variable* is a colon, or *delimiter*, separated list such as
@@ -150,6 +150,9 @@ the *modulefile* is being loaded.
  number of times *value* has been added to environment *variable*. This
  reference counter environment variable is named by suffixing *variable*
  by *_modshare*.
+
+ When *value* is already defined in environement *variable*, it is not added
+ again except if *--duplicates* option is set.
 
  If the *variable* is not set, it is created. When a *modulefile* is
  unloaded, **append-path** and **prepend-path** become **remove-path**.

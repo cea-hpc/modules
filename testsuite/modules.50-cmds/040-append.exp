@@ -152,9 +152,59 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 testouterr_cmd "sh" "load $module" $ans ""
 
 #
+# Append path in duplication mode
+#
+
+set module "append/4.0"
+set modulefile "$modpath/$module"
+
+unset env(FOO_modshare)
+unset env(FOO)
+set env(BAR_modshare) "/path/to/dir1:2:/path/to/dir2:1"
+set env(BAR) "/path/to/dir1:/path/to/dir2:/path/to/dir1"
+
+set ans [list]
+lappend ans [list set FOO_modshare "/path/to/dir1:2:/path/to/dir2:1"]
+lappend ans [list set FOO "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
+lappend ans [list set BAR_modshare "/path/to/dir1:3:/path/to/dir2:1"]
+lappend ans [list set BAR "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd "sh" "load $module" $ans ""
+
+set env(FOO) "/path/to/dir1"
+
+set ans [list]
+lappend ans [list set FOO_modshare "/path/to/dir1:3:/path/to/dir2:1"]
+lappend ans [list set FOO "/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1"]
+lappend ans [list set BAR_modshare "/path/to/dir1:3:/path/to/dir2:1"]
+lappend ans [list set BAR "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd "sh" "load $module" $ans ""
+
+set env(FOO_modshare) "/path/to/dir1:2"
+set env(FOO) "/path/to/dir1"
+
+set ans [list]
+lappend ans [list set FOO_modshare "/path/to/dir1:4:/path/to/dir2:1"]
+lappend ans [list set FOO "/path/to/dir1:/path/to/dir1:/path/to/dir2:/path/to/dir1"]
+lappend ans [list set BAR_modshare "/path/to/dir1:3:/path/to/dir2:1"]
+lappend ans [list set BAR "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd "sh" "load $module" $ans ""
+
+
+#
 #  Cleanup
 #
 
+unset env(BAR_modshare)
+unset env(BAR)
 unset env(FOO_modshare)
 unset env(FOO)
 

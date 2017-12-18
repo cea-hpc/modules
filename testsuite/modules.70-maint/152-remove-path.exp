@@ -128,6 +128,24 @@ testouterr_cmd_re "sh" "remove-path -d , FOO ,http://foobar.com http://foobar.io
 
 
 #
+# Remove path added in duplication mode
+#
+
+if { $verbose > 0 } {
+    send_user "\tSetup FOO_modshare = '$path1:2:/foo:1'\n"
+    send_user "\tSetup FOO = '$path1:/foo:$path1'\n"
+}
+set env(FOO_modshare) "$path1:2:/foo:1"
+set env(FOO) "$path1:/foo:$path1"
+
+set ans [list]
+lappend ans [list set FOO "$path1:/foo"]
+lappend ans [list set FOO_modshare "$path1:1:/foo:1"]
+testouterr_cmd_re "sh" "remove-path FOO $path1" $ans ""
+testouterr_cmd_re "sh" "remove-path --duplicates FOO $path1" $ans "$warn_msgs: --duplicates option has no effect on unload-path"
+
+
+#
 #  Cleanup
 #
 

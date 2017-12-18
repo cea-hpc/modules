@@ -1904,8 +1904,8 @@ proc unload-path {args} {
 
    reportDebug "unload-path: ($args)"
 
-   lassign [eval parsePathCommandArgs "unload-path" $args] separator var\
-      path_list
+   lassign [eval parsePathCommandArgs "unload-path" $args] separator\
+      allow_dup var path_list
 
    array set countarr [getReferenceCountArray $var $separator]
 
@@ -1920,21 +1920,42 @@ proc unload-path {args} {
 
       if {[info exists countarr($dir)]} {
          incr countarr($dir) -1
+         set newcount $countarr($dir)
          if {$countarr($dir) <= 0} {
             set doit 1
             unset countarr($dir)
          }
       } else {
+         set newcount 0
          set doit 1
       }
 
-      if {$doit || $g_force} {
-         if {[info exists env($var)]} {
-            set dirs [split $env($var) $separator]
+      if {[info exists env($var)]} {
+         set dirs [split $env($var) $separator]
+         set found_idx_list [lsearch -all -exact $dirs $dir]
+         if {[info exists del_idx_list]} {
+            unset del_idx_list
+         }
+         # remove all found entries
+         if {$g_force || $newcount <= 0} {
+            set del_idx_list $found_idx_list
+         # if multiple entries found remove the extra entries compared to new
+         # reference counter
+         } elseif {[llength $found_idx_list] > $newcount} {
+            # delete extra entries, starting from end of the list (on a path
+            # variable, entries at the end have less priority than those at
+            # the start)
+            set del_idx_list [lrange $found_idx_list $newcount end]
+         }
+
+         # update variable if some element need to be removed
+         if {[info exists del_idx_list]} {
             set newpath ""
-            foreach elem $dirs {
-               if {$elem ne $dir} {
-                  lappend newpath $elem
+            set nbelem [llength $dirs]
+            # rebuild list of element without indexes set for deletion
+            for {set i 0} {$i < $nbelem} {incr i} {
+               if {[lsearch -exact $del_idx_list $i] == -1} {
+                  lappend newpath [lindex $dirs $i]
                }
             }
             if {$newpath eq ""} {
@@ -1964,8 +1985,8 @@ proc add-path {pos args} {
 
    reportDebug "add-path: ($args) pos=$pos"
 
-   lassign [eval parsePathCommandArgs "add-path" $args] separator var\
-      path_list
+   lassign [eval parsePathCommandArgs "add-path" $args] separator allow_dup\
+      var path_list
 
    set sharevar "${var}_modshare"
    array set countarr [getReferenceCountArray $var $separator]
@@ -1975,10 +1996,7 @@ proc add-path {pos args} {
    }
 
    foreach dir $path_list {
-      if {[info exists countarr($dir)]} {
-         # already see $dir in $var"
-         incr countarr($dir)
-      } else {
+      if {![info exists countarr($dir)] || $allow_dup} {
          # ignore env var set empty if no empty entry found in reference
          # counter array (sometimes var is cleared by setting it empty not
          # unsetting it)
@@ -1992,6 +2010,10 @@ proc add-path {pos args} {
          } else {
             set env($var) "$dir"
          }
+      }
+      if {[info exists countarr($dir)]} {
+         incr countarr($dir)
+      } else {
          set countarr($dir) 1
       }
       reportDebug "add-path: env($var) = $env($var)"
@@ -2010,8 +2032,16 @@ proc parsePathCommandArgs {cmd args} {
 
    # parse argument list
    set next_is_delim 0
+   set allow_dup 0
    foreach arg $args {
       switch -glob -- $arg {
+         {--duplicates} {
+            if {$cmd eq "unload-path"} {
+               reportWarning "--duplicates option has no effect on $cmd"
+            } else {
+               set allow_dup 1
+            }
+         }
          {-d} - {-delim} - {--delim} {
             set next_is_delim 1
          }
@@ -2064,10 +2094,10 @@ proc parsePathCommandArgs {cmd args} {
          }
    }
 
-   reportDebug "parsePathCommandArgs: (delim=$delim, var=$var, val=$val_list,\
-      nbval=[llength $val_list])"
+   reportDebug "parsePathCommandArgs: (delim=$delim, allow_dup=$allow_dup,\
+      var=$var, val=$val_list, nbval=[llength $val_list])"
 
-   return [list $delim $var $val_list]
+   return [list $delim $allow_dup $var $val_list]
 }
 
 proc prepend-path {args} {
@@ -6030,7 +6060,8 @@ if {[catch {
                set show_filter "onlylatest"
             }
             {-a} - {--append} - {-append} - {-p} - {--prepend} - {-prepend} \
-            - {--delim} - {-delim} - {--delim=*} - {-delim=*} {
+            - {--delim} - {-delim} - {--delim=*} - {-delim=*} \
+            - {--duplicates} {
                # command-specific switches interpreted later on
                lappend otherargv $arg
             }
