@@ -449,7 +449,7 @@ Module Sub-Commands
  *delimiter*, separated list. See **prepend-path** in the :ref:`modulefile(4)`
  man page for further explanation.
 
-**remove-path** [-d C|--delim C|--delim=C] variable value...
+**remove-path** [-d C|--delim C|--delim=C] [--index] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in environment
  *variable*. See **remove-path** in the :ref:`modulefile(4)` man page for

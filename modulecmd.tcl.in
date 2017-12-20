@@ -1905,7 +1905,7 @@ proc unload-path {args} {
    reportDebug "unload-path: ($args)"
 
    lassign [eval parsePathCommandArgs "unload-path" $args] separator\
-      allow_dup var path_list
+      allow_dup idx_val var path_list
 
    array set countarr [getReferenceCountArray $var $separator]
 
@@ -1915,57 +1915,83 @@ proc unload-path {args} {
       return {}
    }
 
-   foreach dir $path_list {
-      set doit 0
+   # save initial variable content to match index arguments
+   if {[info exists env($var)]} {
+      set dir_list [split $env($var) $separator]
+   } else {
+      set dir_list [list]
+   }
 
+   # build list of index to remove from variable
+   set del_idx_list [list]
+   foreach dir $path_list {
+      # retrieve dir value if working on an index list
+      if {$idx_val} {
+         set idx $dir
+         # go to next index if this one is not part of the existing range
+         # needed to distinguish an empty value to an out-of-bound value
+         if {$idx < 0 || $idx >= [llength $dir_list]} {
+            continue
+         } else {
+            set dir [lindex $dir_list $idx]
+         }
+      }
+
+      # update reference counter array
       if {[info exists countarr($dir)]} {
          incr countarr($dir) -1
          set newcount $countarr($dir)
          if {$countarr($dir) <= 0} {
-            set doit 1
             unset countarr($dir)
          }
       } else {
          set newcount 0
-         set doit 1
       }
 
-      if {[info exists env($var)]} {
-         set dirs [split $env($var) $separator]
-         set found_idx_list [lsearch -all -exact $dirs $dir]
-         if {[info exists del_idx_list]} {
-            unset del_idx_list
+      # get all entry indexes corresponding to dir
+      set found_idx_list [lsearch -all -exact $dir_list $dir]
+
+      # remove all found entries
+      if {$g_force || $newcount <= 0} {
+         # only remove passed position in --index mode
+         if {$idx_val} {
+            lappend del_idx_list $idx
+         } else {
+            set del_idx_list [concat $del_idx_list $found_idx_list]
          }
-         # remove all found entries
-         if {$g_force || $newcount <= 0} {
-            set del_idx_list $found_idx_list
-         # if multiple entries found remove the extra entries compared to new
-         # reference counter
-         } elseif {[llength $found_idx_list] > $newcount} {
+      # if multiple entries found remove the extra entries compared to new
+      # reference counter
+      } elseif {[llength $found_idx_list] > $newcount} {
+         # only remove passed position in --index mode
+         if {$idx_val} {
+            lappend del_idx_list $idx
+         } else {
             # delete extra entries, starting from end of the list (on a path
             # variable, entries at the end have less priority than those at
             # the start)
-            set del_idx_list [lrange $found_idx_list $newcount end]
+            set del_idx_list [concat $del_idx_list [lrange $found_idx_list\
+               $newcount end]]
          }
+      }
+   }
 
-         # update variable if some element need to be removed
-         if {[info exists del_idx_list]} {
-            set newpath ""
-            set nbelem [llength $dirs]
-            # rebuild list of element without indexes set for deletion
-            for {set i 0} {$i < $nbelem} {incr i} {
-               if {[lsearch -exact $del_idx_list $i] == -1} {
-                  lappend newpath [lindex $dirs $i]
-               }
-            }
-            if {$newpath eq ""} {
-               unset-env $var
-               set g_stateEnvVars($var) "del"
-            } else {
-               set env($var) [join $newpath $separator]
-               set g_stateEnvVars($var) "new"
-            }
+   # update variable if some element need to be removed
+   if {[llength $del_idx_list] > 0} {
+      set del_idx_list [lsort -integer -unique $del_idx_list]
+      set newpath ""
+      set nbelem [llength $dir_list]
+      # rebuild list of element without indexes set for deletion
+      for {set i 0} {$i < $nbelem} {incr i} {
+         if {[lsearch -exact $del_idx_list $i] == -1} {
+            lappend newpath [lindex $dir_list $i]
          }
+      }
+      if {$newpath eq ""} {
+         unset-env $var
+         set g_stateEnvVars($var) "del"
+      } else {
+         set env($var) [join $newpath $separator]
+         set g_stateEnvVars($var) "new"
       }
    }
 
@@ -1986,7 +2012,7 @@ proc add-path {pos args} {
    reportDebug "add-path: ($args) pos=$pos"
 
    lassign [eval parsePathCommandArgs "add-path" $args] separator allow_dup\
-      var path_list
+      idx_val var path_list
 
    set sharevar "${var}_modshare"
    array set countarr [getReferenceCountArray $var $separator]
@@ -2033,8 +2059,16 @@ proc parsePathCommandArgs {cmd args} {
    # parse argument list
    set next_is_delim 0
    set allow_dup 0
+   set idx_val 0
    foreach arg $args {
       switch -glob -- $arg {
+         {--index} {
+            if {$cmd eq "add-path"} {
+               reportWarning "--index option has no effect on $cmd"
+            } else {
+               set idx_val 1
+            }
+         }
          {--duplicates} {
             if {$cmd eq "unload-path"} {
                reportWarning "--duplicates option has no effect on $cmd"
@@ -2080,6 +2114,11 @@ proc parsePathCommandArgs {cmd args} {
    # set list of value to add
    set val_list [list]
    foreach val $val_raw_list {
+      # check passed indexes are numbers
+      if {$idx_val && ![string is integer -strict $val]} {
+         error "$cmd should get valid number as index value"
+      }
+
       switch -- $val \
          {} {
             # add empty entry in list
@@ -2095,9 +2134,9 @@ proc parsePathCommandArgs {cmd args} {
    }
 
    reportDebug "parsePathCommandArgs: (delim=$delim, allow_dup=$allow_dup,\
-      var=$var, val=$val_list, nbval=[llength $val_list])"
+      idx_val=$idx_val, var=$var, val=$val_list, nbval=[llength $val_list])"
 
-   return [list $delim $allow_dup $var $val_list]
+   return [list $delim $allow_dup $idx_val $var $val_list]
 }
 
 proc prepend-path {args} {
@@ -6061,7 +6100,7 @@ if {[catch {
             }
             {-a} - {--append} - {-append} - {-p} - {--prepend} - {-prepend} \
             - {--delim} - {-delim} - {--delim=*} - {-delim=*} \
-            - {--duplicates} {
+            - {--duplicates} - {--index} {
                # command-specific switches interpreted later on
                lappend otherargv $arg
             }

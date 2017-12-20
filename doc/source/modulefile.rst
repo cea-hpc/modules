@@ -160,13 +160,16 @@ the *modulefile* is being loaded.
  If *value* corresponds to the concatenation of multiple elements separated by
  colon, or *delimiter*, character, each element is treated separately.
 
-**remove-path** [-d C|--delim C|--delim=C] variable value...
+**remove-path** [-d C|--delim C|--delim=C] [--index] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in
  *variable*. See **prepend-path** or **append-path** for further explanation
  of using an arbitrary delimiter. Every string between colons, or delimiters,
  in *variable* is compared to *value*. If the two match, *value* is removed
  from *variable* if its reference counter is equal to 1 or unknown.
+
+ When *--index* option is set, *value* refers to an index in *variable* list.
+ The string element pointed by this index is set for removal.
 
  Reference counter of *value* in *variable* denotes the number of times
  *value* has been added to *variable*. This information is stored in

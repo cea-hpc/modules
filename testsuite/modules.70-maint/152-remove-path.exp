@@ -60,7 +60,7 @@ testouterr_cmd_re "sh" "remove-path --delim : FOO $path2" $ans ""
 testouterr_cmd_re "sh" "remove-path --delim=: FOO $path2" $ans ""
 
 set ans [list]
-lappend ans [list setpath FOO "$path1:$path2"]
+lappend ans [list set FOO_modshare "$path1:1:$path2:1"]
 testouterr_cmd_re "sh" "remove-path FOO $path3" $ans ""
 
 
@@ -143,6 +143,17 @@ lappend ans [list set FOO "$path1:/foo"]
 lappend ans [list set FOO_modshare "$path1:1:/foo:1"]
 testouterr_cmd_re "sh" "remove-path FOO $path1" $ans ""
 testouterr_cmd_re "sh" "remove-path --duplicates FOO $path1" $ans "$warn_msgs: --duplicates option has no effect on unload-path"
+
+
+#
+# Remove path in index mode
+#
+
+set ans [list]
+lappend ans [list set FOO "$path1:$path1"]
+lappend ans [list set FOO_modshare "$path1:2"]
+testouterr_cmd_re "sh" "remove-path --index FOO $path1" "ERR" "$error_msgs: unload-path should get valid number as index value"
+testouterr_cmd_re "sh" "remove-path --index FOO 1" $ans ""
 
 
 #
