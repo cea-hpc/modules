@@ -1918,6 +1918,10 @@ proc unload-path {args} {
    # save initial variable content to match index arguments
    if {[info exists env($var)]} {
       set dir_list [split $env($var) $separator]
+      # detect if empty env value means empty path entry
+      if {[llength $dir_list] == 0 && [info exists countarr()]} {
+         lappend dir_list {}
+      }
    } else {
       set dir_list [list]
    }
@@ -1978,7 +1982,7 @@ proc unload-path {args} {
    # update variable if some element need to be removed
    if {[llength $del_idx_list] > 0} {
       set del_idx_list [lsort -integer -unique $del_idx_list]
-      set newpath ""
+      set newpath [list]
       set nbelem [llength $dir_list]
       # rebuild list of element without indexes set for deletion
       for {set i 0} {$i < $nbelem} {incr i} {
@@ -1986,13 +1990,17 @@ proc unload-path {args} {
             lappend newpath [lindex $dir_list $i]
          }
       }
-      if {$newpath eq ""} {
-         unset-env $var
-         set g_stateEnvVars($var) "del"
-      } else {
-         set env($var) [join $newpath $separator]
-         set g_stateEnvVars($var) "new"
-      }
+   } else {
+      set newpath $dir_list
+   }
+
+   # set env variable and corresponding reference counter in any case
+   if {[llength $newpath] == 0} {
+      unset-env $var
+      set g_stateEnvVars($var) "del"
+   } else {
+      set env($var) [join $newpath $separator]
+      set g_stateEnvVars($var) "new"
    }
 
    set sharevar "${var}_modshare"

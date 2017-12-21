@@ -116,6 +116,25 @@ testouterr_cmd "sh" "load $module" $ans ""
 
 
 #
+# Remove unknown path on a var set empty
+#
+
+set module "remove/3.0"
+set modulefile "$modpath/$module"
+
+set env(FOO_modshare) ":1"
+set env(FOO) ""
+
+set ans [list]
+lappend ans [list set FOO_modshare ":1"]
+lappend ans [list set FOO ""]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd "sh" "load $module" $ans ""
+
+
+#
 # Remove path added in duplication mode
 #
 
@@ -157,6 +176,7 @@ set env(FOO_modshare) "/path/to/dir1:3:/path/to/dir2:1"
 
 set ans [list]
 lappend ans [list set FOO_modshare "/path/to/dir1:2:/path/to/dir2:1"]
+lappend ans [list set FOO "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 
@@ -195,6 +215,7 @@ set env(FOO) ""
 
 set ans [list]
 lappend ans [list set FOO_modshare ":1"]
+lappend ans [list set FOO ""]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 
@@ -217,6 +238,7 @@ set env(FOO) "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"
 
 set ans [list]
 lappend ans [list set FOO_modshare "/path/to/dir1:2:/path/to/dir2:1"]
+lappend ans [list set FOO "/path/to/dir1:/path/to/dir2:/path/to/dir1:/path/to/dir1"]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 
