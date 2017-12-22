@@ -39,6 +39,8 @@ set reportfd "stderr" ;# File descriptor to use to report messages
 set g_pager "@pager@" ;# Default command to page into, empty=disable
 set g_pager_opts "@pageropts@" ;# Options to pass to the pager command
 
+set g_siteconfig "@etcdir@/siteconfig.tcl" ;# Site configuration
+
 # Used to tell if a machine is running Windows or not
 proc isWin {} {
    global tcl_platform
@@ -6048,6 +6050,14 @@ if {[catch {
    set argerrmsgs {}
    set argwarnmsgs {}
    set argdebugmsgs [list "CALLING $argv0 $argv"]
+
+   # source site configuration script if any
+   if {[file readable $g_siteconfig]} {
+      lappend argdebugmsgs "Source site configuration ($g_siteconfig)"
+      if {[catch {source $g_siteconfig}] errMsg} {
+         lappend argerrmsgs "Site configuration source failed\n$errMsg"
+      }
+   }
 
    # Parse shell
    set g_shell [lindex $argv 0]

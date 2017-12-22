@@ -39,6 +39,7 @@ endif
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@libexecdir@|$(libexecdir)|g' \
+	-e 's|@etcdir@|$(etcdir)|g' \
 	-e 's|@initdir@|$(initdir)|g' \
 	-e 's|@modulefilesdir@|$(modulefilesdir)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \

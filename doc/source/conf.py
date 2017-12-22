@@ -171,12 +171,14 @@ latex_documents = [
 if 'pathsubs' in tags:
     prefix = '@prefix@'
     libexecdir = '@libexecdir@'
+    etcdir = '@etcdir@'
     initdir = '@initdir@'
     modulefilesdir = '@modulefilesdir@'
 # or set default distributions location
 else:
     prefix = '/usr/share/Modules'
     libexecdir = prefix + '/libexec'
+    etcdir = prefix + '/etc'
     initdir = prefix + '/init'
     modulefilesdir = prefix + '/modulefiles'
 
@@ -187,6 +189,9 @@ rst_epilog += '.. |bold prefix| replace:: **%s**\n' % prefix
 rst_epilog += '.. |libexecdir| replace:: %s\n' % libexecdir
 rst_epilog += '.. |emph libexecdir| replace:: *%s*\n' % libexecdir
 rst_epilog += '.. |bold libexecdir| replace:: **%s**\n' % libexecdir
+rst_epilog += '.. |etcdir| replace:: %s\n' % etcdir
+rst_epilog += '.. |emph etcdir| replace:: *%s*\n' % etcdir
+rst_epilog += '.. |bold etcdir| replace:: **%s**\n' % etcdir
 rst_epilog += '.. |initdir| replace:: %s\n' % initdir
 rst_epilog += '.. |emph initdir| replace:: *%s*\n' % initdir
 rst_epilog += '.. |bold initdir| replace:: **%s**\n' % initdir

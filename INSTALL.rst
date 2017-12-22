@@ -178,6 +178,8 @@ is displayed within brakets):
                       [``PREFIX/bin``]
 --libexecdir=DIR      Directory for executables called by other executables
                       like modulecmd.tcl [``PREFIX/libexec``]
+--etcdir=DIR          Directory for the executable configuration scripts
+                      [``PREFIX/etc``]
 --initdir=DIR         Directory for the per-shell environment initialization
                       scripts [``PREFIX/init``]
 --datarootdir=DIR     Base directory to set the man and doc directories

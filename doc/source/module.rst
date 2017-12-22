@@ -102,7 +102,12 @@ Bourne Shell (sh) (and derivatives) with **autoinit** sub-command:
 Modulecmd startup
 ^^^^^^^^^^^^^^^^^
 
-Upon invocation **modulecmd.tcl** sources rc files which contain global,
+Upon invocation **modulecmd.tcl** sources if it exists a site-specific
+configuration script located in |emph etcdir|\ */siteconfig.tcl*. This Tcl
+script enables to supersede any global variable or procedure definition of
+**modulecmd.tcl**.
+
+Afterward, **modulecmd.tcl** sources rc files which contain global,
 user and *modulefile* specific setups. These files are interpreted as
 *modulefiles*. See :ref:`modulefile(4)` for detailed information.
 

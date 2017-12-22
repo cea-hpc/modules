@@ -26,10 +26,10 @@ prog=${progpath##*/}
 targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 
 # argument list
-arglist="TCLSH SPHINXBUILD prefix bindir libexecdir initdir datarootdir \
-mandir docdir modulefilesdir setmanpath setbinpath setdotmodulespath \
-docinstall examplemodulefiles compatversion pager pageropts modulepath \
-loadedmodules quarantinevars"
+arglist="TCLSH SPHINXBUILD prefix bindir libexecdir etcdir initdir \
+datarootdir mandir docdir modulefilesdir setmanpath setbinpath \
+setdotmodulespath docinstall examplemodulefiles compatversion pager \
+pageropts modulepath loadedmodules quarantinevars"
 compatarglist=
 
 # flags to know if argument has been specified on command-line
@@ -55,6 +55,7 @@ pageropts='-eFKRX'
 # they will get their default value later (after command-line parse)
 bindir=
 libexecdir=
+etcdir=
 initdir=
 datarootdir=
 mandir=
@@ -101,6 +102,7 @@ For better control, use the options below.
 Fine tuning of the installation directories:
   --bindir=DIR            user executables [PREFIX/bin]
   --libexecdir=DIR        program executables [PREFIX/libexec]
+  --etcdir=DIR            program configurations [PREFIX/etc]
   --initdir=DIR           environment initialization scripts [PREFIX/init]
   --datarootdir=DIR       read-only arch.-independent data root [PREFIX/share]
   --mandir=DIR            man documentation [DATAROOTDIR/man]
@@ -152,6 +154,7 @@ Depending on the above configuration options the files are approximately
 placed in the following directory structure:
   PREFIX/
     bin/
+    etc/
     init/
     libexec/
     share/
@@ -235,6 +238,8 @@ for arg in "$@"; do
       bindir="${arg#*=}" ;;
    --libexecdir=*)
       libexecdir="${arg#*=}" ;;
+   --etcdir=*)
+      etcdir="${arg#*=}" ;;
    --initdir=*)
       initdir="${arg#*=}" ;;
    --datarootdir=*)
@@ -290,6 +295,7 @@ done
 # set argument default values for those depending of other argument
 [ -z "$bindir" ] && bindir=$prefix/bin
 [ -z "$libexecdir" ] && libexecdir=$prefix/libexec
+[ -z "$etcdir" ] && etcdir=$prefix/etc
 [ -z "$initdir" ] && initdir=$prefix/init
 [ -z "$datarootdir" ] && datarootdir=$prefix/share
 [ -z "$mandir" ] && mandir=$datarootdir/man
