@@ -89,6 +89,22 @@ Modules 4.1.0 (2017-??-??)
 * Fix location of ``etc/rc`` global RC file to ``@prefix@/etc/rc`` instead of
   ``$MODULESHOME/etc/rc`` not to depend on ``MODULESHOME`` environment
   variable value.
+* Strengthen argument check for ``append-path``, ``prepend-path`` and
+  ``remove-path`` modulefile Tcl commands and module sub-commands. Raise error
+  if argument list is not correct.
+* Fix support for the ``--delim=C`` argument form on ``append-path``,
+  ``prepend-path`` and ``remove-path`` commands.
+* Fix path reference counter handling in case path element is an empty string.
+  Distinguish an empty path element from a variable set empty to clear it.
+* Pass multiple path elements separated by delimiter character as one string
+  on ``append-path``, ``prepend-path`` and ``remove-path`` commands.
+* Accept multiple path element arguments on ``append-path``, ``prepend-path``
+  and ``remove-path`` commands.
+* Introduce the ``--duplicates`` argument option to ``append-path`` and
+  ``prepend-path`` commands to add a path element already registered in
+  variable.
+* Introduce the ``--index`` argument option to ``remove-path`` command to
+  delete a path entry by passing its position index in variable.
 
 
 Modules 4.0.0 (2017-10-16)
