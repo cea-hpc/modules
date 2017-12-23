@@ -127,6 +127,7 @@ $(EXAMPLE_MODFILES_SRCDIR)/modules: $(EXAMPLE_MODFILES_SRCDIR)/modules.in ../ver
 # example configs for test rules
 install-testconfig:
 	mkdir -p $(DESTDIR)$(initdir)
+	mkdir -p $(DESTDIR)$(etcdir)
 	mkdir -p $(DESTDIR)$(prefix)/etc
 	mkdir -p $(DESTDIR)$(modulefilesdir)
 	mkdir -p $(DESTDIR)$(prefix)/test/modulefiles $(DESTDIR)$(prefix)/test/etc
@@ -137,6 +138,7 @@ uninstall-testconfig:
 	rm -f $(addprefix $(DESTDIR)$(modulefilesdir)/,$(EXAMPLE_TESTCONFIG_MODFILES))
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(modulefilesdir)
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(prefix)/etc
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(etcdir)
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(initdir)
 
 install: all
