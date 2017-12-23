@@ -30,6 +30,7 @@ set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
 set g_inhibit_dispreport 0 ;# Display-mode reporting disabled if == 1
+set g_init_errreport 0 ;# Start with error report locked before opts parsed
 set g_force 0 ;# Path element reference counting if == 0
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 set flag_default_dir 1 ;# Report default directories
@@ -253,6 +254,10 @@ proc reportDebug {message {nonewline ""}} {
 
    if {$g_debug} {
       report "DEBUG $message" "$nonewline"
+   } elseif {!$::g_init_errreport} {
+      # save message if report is not currently initialized as we do not
+      # know yet if debug mode is enabled or not
+      lappend ::errreport_buffer [list "reportDebug" $message $nonewline]
    }
 }
 
@@ -276,9 +281,14 @@ proc reportError {message {nonewline ""}} {
 }
 
 proc reportErrorAndExit {message} {
-   raiseErrorCount
-   renderFalse
-   error "$message"
+   if {$::g_init_errreport} {
+      raiseErrorCount
+      renderFalse
+      error "$message"
+   } else {
+      # save message if report is not yet initialized
+      lappend ::errreport_buffer [list "reportErrorAndExit" $message]
+   }
 }
 
 proc reportInternalBug {message modfile} {
@@ -294,22 +304,20 @@ proc reportInternalBug {message modfile} {
 }
 
 proc report {message {nonewline ""}} {
-   global has_yet_report reportfd
+   global reportfd
 
-   # first message report, initialize
-   if {![info exists has_yet_report]} {
-      set has_yet_report 1
-      # setup message paging if enabled
-      initPager
-   }
-
-   # protect from issue with fd, just ignore it
-   catch {
-      if {$nonewline ne ""} {
-         puts -nonewline $reportfd "$message"
-      } else {
-         puts $reportfd "$message"
+   if {$::g_init_errreport} {
+      # protect from issue with fd, just ignore it
+      catch {
+         if {$nonewline ne ""} {
+            puts -nonewline $reportfd "$message"
+         } else {
+            puts $reportfd "$message"
+         }
       }
+   } else {
+      # save message if report is not yet initialized
+      lappend ::errreport_buffer [list "report" $message $nonewline]
    }
 }
 
@@ -351,6 +359,19 @@ proc isErrorReportInhibited {} {
    return $g_inhibit_errreport
 }
 
+# init error report and output buffered messages
+proc initErrorReport {} {
+   # setup message paging if enabled
+   initPager
+
+   set ::g_init_errreport 1
+
+   # now error report is init output every message saved in buffer
+   foreach errreport $::errreport_buffer {
+      eval $errreport
+   }
+}
+
 # exit in a clean manner by closing interaction with external components
 proc cleanupAndExit {code} {
    global reportfd
@@ -366,8 +387,7 @@ proc cleanupAndExit {code} {
 
 # init configuration for output paging then start paging if enabled
 proc initPager {} {
-   global env g_pager g_pager_opts asked_pager
-   global argdebugmsgs argwarnmsgs reportfd
+   global env g_pager g_pager_opts asked_pager reportfd
 
    # default pager enablement depends of pager command value
    if {$g_pager eq "" || [file tail $g_pager] eq "cat"} {
@@ -380,8 +400,8 @@ proc initPager {} {
 
    if {[file tail $g_pager] eq "less" && $g_pager_opts ne "" &&\
       [info exists env(LESS)]} {
-      lappend argdebugmsgs "initPager: clear 'less' pager options as LESS\
-         variable defined"
+      reportDebug "initPager: clear 'less' pager options as LESS variable\
+         defined"
       set g_pager_opts ""
    }
 
@@ -403,7 +423,7 @@ proc initPager {} {
             set g_pager_opts ""
          }
 
-         lappend argdebugmsgs "initPager: configure pager from $var variable\
+         reportDebug "initPager: configure pager from $var variable\
             (use_pager=$use_pager, cmd='$g_pager', opts='$g_pager_opts')"
 
          # if MODULES_PAGER set, no look at PAGER
@@ -432,16 +452,16 @@ proc initPager {} {
    # setup paging if enabled and if error stream is attached to a terminal
    set is_tty [isStderrTty]
    if {$is_tty && $use_pager} {
-      lappend argdebugmsgs "initPager: start pager (asked_pager=$asked,\
+      reportDebug "initPager: start pager (asked_pager=$asked,\
          cmd='$g_pager', opts='$g_pager_opts')"
       if {[catch {
          set reportfd [open "|$g_pager $g_pager_opts >@stderr 2>@stderr" w]
          fconfigure $reportfd -buffering line -blocking 1 -buffersize 65536
       } errMsg]} {
-         lappend argwarnmsgs $errMsg
+         reportWarning $errMsg
       }
    } else {
-      lappend argdebugmsgs "initPager: no pager start (is_tty=$is_tty,\
+      reportDebug "initPager: no pager start (is_tty=$is_tty,\
          use_pager=$use_pager, asked_pager=$asked, cmd='$g_pager',\
          opts='$g_pager_opts')"
    }
@@ -6047,15 +6067,13 @@ if {[catch {
    # made during argument parse to wait for potential paging to be setup
    set show_help 0
    set show_version 0
-   set argerrmsgs {}
-   set argwarnmsgs {}
-   set argdebugmsgs [list "CALLING $argv0 $argv"]
+   reportDebug "CALLING $argv0 $argv"
 
    # source site configuration script if any
    if {[file readable $g_siteconfig]} {
-      lappend argdebugmsgs "Source site configuration ($g_siteconfig)"
-      if {[catch {source $g_siteconfig}] errMsg} {
-         lappend argerrmsgs "Site configuration source failed\n$errMsg"
+      reportDebug "Source site configuration ($g_siteconfig)"
+      if {[catch {source $g_siteconfig} errMsg]} {
+         reportErrorAndExit "Site configuration source failed\n$errMsg"
       }
    }
 
@@ -6073,7 +6091,7 @@ if {[catch {
          set g_shellType $g_shell
       }
       default {
-         lappend argerrmsgs "Unknown shell type \'($g_shell)\'"
+         reportErrorAndExit "Unknown shell type \'($g_shell)\'"
       }
    }
 
@@ -6134,15 +6152,15 @@ if {[catch {
                {--silent} - {-c} - {--create} - {-i} - {--icase} -\
                {--userlvl=*} {
                # ignore C-version specific option, no error only warning
-               lappend argwarnmsgs "Unsupported option '$arg'"
+               reportWarning "Unsupported option '$arg'"
             }
             {-u} - {--userlvl} {
-               lappend argwarnmsgs "Unsupported option '$arg'"
+               reportWarning "Unsupported option '$arg'"
                # also ignore argument value
                set ignore_next_arg 1
             }
             {-*} {
-                lappend argerrmsgs "Invalid option '$arg'\nTry\
+                reportErrorAndExit "Invalid option '$arg'\nTry\
                   'module --help' for more information."
             }
             default {
@@ -6152,20 +6170,8 @@ if {[catch {
       }
    }
 
-   # now options are known so first message output will be able to start
-   # pager if enabled. 'for' is used instead of foreach since msg list
-   # will be updated from initPager procedure.
-   for {set i 0} {$i < [llength $argdebugmsgs]} {incr i 1} {
-      reportDebug [lindex $argdebugmsgs $i]
-   }
-
-   # display first error message and exit if any
-   if {[llength $argerrmsgs] > 0} {
-      reportErrorAndExit [lindex $argerrmsgs 0]
-   }
-   foreach argmsg $argwarnmsgs {
-      reportWarning $argmsg
-   }
+   # now options are known initialize error report (start pager if enabled)
+   initErrorReport
 
    # put back quarantine variables in env, if quarantine mechanism supported
    if {[info exists env(MODULES_RUN_QUARANTINE)] && $g_shellType ne "csh"} {

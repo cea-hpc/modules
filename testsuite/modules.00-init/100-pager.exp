@@ -27,14 +27,14 @@ if {$install_pager eq "" || [file tail $install_pager] eq "cat"} {
 
 # helper proc to generate pager test and expected debugging output
 proc pager_test_case {modarg use asked cmd opts} {
-    global MODULECMD env install_pager install_pageropts
+    global MODULECMD env install_pager install_pageropts install_etcdir
 
     if {$modarg ne ""} {
         set modarg " $modarg"
     }
 
     set ans [list]
-    lappend ans "DEBUG CALLING $MODULECMD sh -V -D$modarg"
+    lappend ans "DEBUG CALLING $MODULECMD sh -V -D${modarg}(\\nDEBUG Source site configuration \\($install_etcdir/siteconfig.tcl\\))?"
 
     if {[info exists env(LESS)] && $install_pageropts ne "" & [file tail $install_pager] eq "less"} {
         lappend ans "DEBUG initPager: clear 'less' pager options as LESS variable defined"
