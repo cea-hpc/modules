@@ -105,6 +105,11 @@ Modules 4.1.0 (2017-??-??)
   variable.
 * Introduce the ``--index`` argument option to ``remove-path`` command to
   delete a path entry by passing its position index in variable.
+* Provide the ability to setup a site-specific configuration sourced at the
+  start of ``modulecmd.tcl`` main procedure. This configuration is a Tcl
+  script named ``siteconfig.tcl`` which enables to supersede any Tcl
+  definition made in ``modulecmd.tcl``. Location of this file is controlled
+  at configure time with the ``--etcdir`` option.
 
 
 Modules 4.0.0 (2017-10-16)
