@@ -225,6 +225,8 @@ instance ``--disable-set-manpath``):
                       script between the two installed version of Modules (by
                       setting-up the ``switchml`` shell function or alias).
                       (default=yes)
+--enable-versioning   Append Modules version to installation prefix.
+                      (default=no)
 
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for

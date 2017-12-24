@@ -28,8 +28,8 @@ targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 # argument list
 arglist="TCLSH SPHINXBUILD prefix bindir libexecdir etcdir initdir \
 datarootdir mandir docdir modulefilesdir setmanpath setbinpath \
-setdotmodulespath docinstall examplemodulefiles compatversion pager \
-pageropts modulepath loadedmodules quarantinevars"
+setdotmodulespath docinstall examplemodulefiles compatversion versioning \
+pager pageropts modulepath loadedmodules quarantinevars"
 compatarglist=
 
 # flags to know if argument has been specified on command-line
@@ -45,6 +45,7 @@ setdotmodulespath=n
 docinstall=y
 examplemodulefiles=y
 compatversion=y
+versioning=n
 loadedmodules=
 quarantinevars=
 TCLSH=tclsh
@@ -125,6 +126,7 @@ Optional Features:
   --enable-compat-version also build and install Modules compatibility (C)
                           version and enable switching capabilities between
                           the two versions [yes]
+  --enable-versioning     append modules version to installation prefix [no]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -266,6 +268,8 @@ for arg in "$@"; do
    --enable-compat-version*|--disable-compat-version)
       compatversion=$(get_feature_value "$arg")
       defcompatversion=0 ;;
+   --enable-versioning*|--disable-versioning)
+      versioning=$(get_feature_value "$arg") ;;
    --with-tclsh=*|--without-tclsh)
       tclshbin=$(get_package_value "$arg") ;;
    --with-pager=*|--without-pager)
@@ -279,8 +283,6 @@ for arg in "$@"; do
       loadedmodules=$(get_package_value "$arg") ;;
     --with-quarantine-vars=*|--without-quarantine-vars)
       quarantinevars=$(get_package_value "$arg") ;;
-   --enable-versioning*)
-      echo_error "Option \`--enable-versioning' not supported" ;;
    --with-module-path=*)
       echo_warning "Option \`--with-module-path' ignored, use \`--modulepath' instead" ;;
    -h|--help)
@@ -292,17 +294,6 @@ for arg in "$@"; do
    esac
 done
 
-# set argument default values for those depending of other argument
-[ -z "$bindir" ] && bindir=$prefix/bin
-[ -z "$libexecdir" ] && libexecdir=$prefix/libexec
-[ -z "$etcdir" ] && etcdir=$prefix/etc
-[ -z "$initdir" ] && initdir=$prefix/init
-[ -z "$datarootdir" ] && datarootdir=$prefix/share
-[ -z "$mandir" ] && mandir=$datarootdir/man
-[ -z "$docdir" ] && docdir=$datarootdir/doc
-[ -z "$modulefilesdir" ] && modulefilesdir=$prefix/modulefiles
-[ -z "$modulepath" ] && modulepath=$modulefilesdir
-
 # test requirements availability
 check_requirement make
 check_requirement sed
@@ -311,10 +302,12 @@ check_requirement cut
 check_requirement runtest '' "Install \`dejagnu' if you want to run the \
 testsuite"
 
-# if we install from git repository, must have sphinx to build doc
+# if we install from git repository, must have sphinx to build doc and git to
+# fetch current release number
 if [ -d '.git' ]; then
    check_requirement sphinx-build sphinx-1.0-build
    SPHINXBUILD=$reqpath
+   check_requirement git
 fi
 
 # get tclsh location from standard PATHs or /usr/local/bin
@@ -335,6 +328,46 @@ if [ $defpageropts -eq 1 -a "${pager##*/}" != 'less' ]; then
     echo_warning "As chosen pager is not \`less', default pager options are cleared"
 fi
 
+# adapt prefix if versioning enabled
+if [ "$versioning" = 'y' ]; then
+   # fetch modules version from git repository tags
+   if [ -d '.git' ]; then
+      gitcurtag=$(git describe --tags --abbrev=0)
+      gitcurdesc=$(git describe --tags)
+      gitcurbranch=$(git rev-parse --abbrev-ref HEAD)
+      release=${gitcurtag#v}
+      if [ "$gitcurtag" = "$gitcurdesc" ]; then
+         build=''
+      elif [ "$gitcurbranch" = 'master' ]; then
+         build="+${gitcurdesc#${gitcurtag}-}"
+      else
+         build="+${gitcurbranch}${gitcurdesc#${gitcurtag}}"
+      fi
+   # elsewhere fetch modules version from version.inc file
+   elif [ -r ${progdir}/version.inc ]; then
+      release=$(grep '^MODULES_RELEASE ' ${progdir}/version.inc | cut -d ' ' -f 3)
+      build=$(grep '^MODULES_BUILD ' ${progdir}/version.inc | cut -d ' ' -f 3)
+   fi
+
+   if [ -z "$release" ]; then
+      echo_error "Cannot install in versioning mode, modules version cannot be fetched"
+   else
+      # append modules version to installation prefix
+      prefix=$prefix/$release$build
+   fi
+fi
+
+# set argument default values for those depending of other argument
+[ -z "$bindir" ] && bindir=$prefix/bin
+[ -z "$libexecdir" ] && libexecdir=$prefix/libexec
+[ -z "$etcdir" ] && etcdir=$prefix/etc
+[ -z "$initdir" ] && initdir=$prefix/init
+[ -z "$datarootdir" ] && datarootdir=$prefix/share
+[ -z "$mandir" ] && mandir=$datarootdir/man
+[ -z "$docdir" ] && docdir=$datarootdir/doc
+[ -z "$modulefilesdir" ] && modulefilesdir=$prefix/modulefiles
+[ -z "$modulepath" ] && modulepath=$modulefilesdir
+
 # check feature requirements are met
 if [ "$setdotmodulespath" = 'y' -a -n "$loadedmodules" ]; then
    featmesg="As \`setdotmodulespath' is enabled beware that \`loadedmodules' may be ignored by init scripts"
@@ -350,7 +383,6 @@ if [ "$compatversion" = 'y' ]; then
    if [ ! -d 'compat' ]; then
       # extract sources from a git branch and prepare sources
       if [ -d '.git' ]; then
-         check_requirement git
          check_requirement autoreconf
          check_requirement autopoint
 
@@ -411,6 +443,7 @@ if [ "$compatversion" = 'y' ]; then
    # compatibility version configure script (which raise error if arg unknown)
    # also pass arguments relative to installation paths to get compatibility
    # man pages set with them
+   # keep versioning disabled for compat version to get expected paths defined
    ./configure --prefix=$prefix --bindir=$bindir --libexecdir=$libexecdir \
       --datarootdir=$datarootdir --mandir=$mandir --docdir=$docdir \
       --with-module-path=$modulepath --disable-versioning \
