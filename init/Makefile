@@ -137,7 +137,6 @@ uninstall-testconfig:
 	rmdir $(DESTDIR)$(prefix)/test/modulefiles $(DESTDIR)$(prefix)/test/etc $(DESTDIR)$(prefix)/test
 	rm -f $(addprefix $(DESTDIR)$(modulefilesdir)/,$(EXAMPLE_TESTCONFIG_MODFILES))
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(modulefilesdir)
-	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(prefix)/etc
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(etcdir)
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(initdir)
 
