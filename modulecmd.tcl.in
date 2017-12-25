@@ -979,6 +979,38 @@ proc module-whatis {args} {
    return {}
 }
 
+# convert environment variable references in string to their values
+# every local variable is prefixed by '0' to ensure they will not be
+# overwritten through variable reference resolution process
+proc resolvStringWithEnv {0str} {
+   global env
+
+   # fetch variable references in string
+   set 0match_list [regexp -all -inline {\$[{]?([A-Za-z_][A-Za-z0-9_]*)[}]?}\
+      ${0str}]
+   if {[llength ${0match_list}] > 0} {
+      # put in local scope every environment variable referred in string
+      for {set 0i 1} {${0i} < [llength ${0match_list}]} {incr 0i 2} {
+         set 0varname [lindex ${0match_list} ${0i}]
+         if {![info exists ${0varname}]} {
+            if {[info exists env(${0varname})]} {
+               set ${0varname} $env(${0varname})
+            } else {
+            set ${0varname} ""
+            }
+         }
+      }
+      # resolv variable reference with values (now in local scope)
+      set 0res [subst -nobackslashes -nocommands ${0str}]
+   } else {
+      set 0res ${0str}
+   }
+
+   reportDebug "resolvStringWithEnv: '${0str}' resolved to '${0res}'"
+
+   return ${0res}
+}
+
 # deduce modulepath from modulefile and module name
 proc getModulepathFromModuleName {modfile modname} {
    return [string range $modfile 0 end-[string length "/$modname"]]
@@ -2619,11 +2651,21 @@ proc getLoadedModuleFileList {} {
 # return list of module paths by parsing MODULEPATH env variable
 # behavior param enables to exit in error when no MODULEPATH env variable
 # is set. by default an empty list is returned if no MODULEPATH set
-proc getModulePathList {{behavior "returnempty"}} {
+# resolv_var param tells if environement variable references in path elements
+# should be resolved or passed as-is in result list
+proc getModulePathList {{behavior "returnempty"} {resolv_var 1}} {
    global env g_def_separator
 
    if {[info exists env(MODULEPATH)]} {
-      return [split $env(MODULEPATH) $g_def_separator]
+      set modpathlist [split $env(MODULEPATH) $g_def_separator]
+      if {$resolv_var && [llength $modpathlist] > 0} {
+         foreach modpath $modpathlist {
+            lappend resmodpathlist [resolvStringWithEnv $modpath]
+         }
+         return $resmodpathlist
+      } else {
+         return $modpathlist
+      }
    } elseif {$behavior eq "exiterronundef"} {
       reportErrorAndExit "No module path defined"
    } else {
@@ -5179,7 +5221,8 @@ proc cmdModuleSave {{coll {}}} {
    } else {
       set curr_mod_list [getSimplifiedLoadedModuleList]
    }
-   set save [formatCollectionContent [getModulePathList] $curr_mod_list]
+   set save [formatCollectionContent [getModulePathList "returnempty" 0]\
+      $curr_mod_list]
 
    if { [string length $save] == 0} {
       reportErrorAndExit "Nothing to save in a collection"
@@ -5231,7 +5274,7 @@ proc cmdModuleRestore {{coll {}}} {
    }
 
    # fetch what is currently loaded
-   set curr_path_list [getModulePathList]
+   set curr_path_list [getModulePathList "returnempty" 0]
    # get current loaded module list in simplified and raw versions
    # these lists may be used later on, see below
    set curr_mod_list_raw [getLoadedModuleList]
@@ -5265,7 +5308,7 @@ proc cmdModuleRestore {{coll {}}} {
    # since unloading a module may unload other modules or
    # paths, what to load/use has to be determined after
    # the undo phase, so current situation is fetched again
-   set curr_path_list [getModulePathList]
+   set curr_path_list [getModulePathList "returnempty" 0]
 
    # here we may be in a situation were no more path is left
    # in module path, so we cannot easily compute the simplified loaded
@@ -5667,7 +5710,7 @@ proc cmdModuleUse {args} {
                set pos "prepend"
             }
             default {
-               if {[file isdirectory $path]} {
+               if {[file isdirectory [resolvStringWithEnv $path]]} {
                   # tranform given path in an absolute path to avoid
                   # dependency to the current work directory.
                   set path [getAbsolutePath $path]
@@ -5695,7 +5738,7 @@ proc cmdModuleUnuse {args} {
       foreach path $args {
          # get current module path list
          if {![info exists modpathlist]} {
-            set modpathlist [getModulePathList]
+            set modpathlist [getModulePathList "returnempty" 0]
          }
 
          # transform given path in an absolute path which should have been
@@ -5719,7 +5762,7 @@ proc cmdModuleUnuse {args} {
             popMode
 
             # refresh path list after unload
-            set modpathlist [getModulePathList]
+            set modpathlist [getModulePathList "returnempty" 0]
             if {[lsearch -exact $modpathlist $unusepath] >= 0} {
                reportWarning "Did not unuse $unusepath"
             }
