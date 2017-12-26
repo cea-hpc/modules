@@ -320,7 +320,13 @@ foreach shell $supported_shells {
     } else {
         set ans [list]
         lappend ans [list [set "func_$shell"]]
-        lappend ans [list set MODULESHOME $moduleshome]
+        if {$install_versioning eq "y"} {
+            lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+            lappend ans [list set MODULESHOME $moduleshome]
+            lappend ans [list set MODULE_VERSION "(.*)"]
+        } else {
+            lappend ans [list set MODULESHOME $moduleshome]
+        }
 
         test_cmd_re $shell "autoinit" $ans
     }
@@ -342,22 +348,40 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
             set ans [list]
             lappend ans [list [set "func_$shell"]]
             if {!$insmodspath && !$insmodrc} {
+                if {$install_versioning eq "y"} {
+                    lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+                }
                 lappend ans [list set LOADEDMODULES ""]
                 lappend ans [list set MODULESHOME $moduleshome]
                 lappend ans [list set MODULEPATH ""]
+                if {$install_versioning eq "y"} {
+                    lappend ans [list set MODULE_VERSION "(.*)"]
+                }
             } elseif {$modspath_exinstalled} {
+                if {$install_versioning eq "y"} {
+                    lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+                }
                 lappend ans [list set MODULEPATH_modshare "(.*)"]
                 lappend ans [list set LOADEDMODULES ""]
                 lappend ans [list set MODULESHOME $moduleshome]
                 lappend ans [list set MODULEPATH "$install_modulefilesdir:$install_prefix/test/modulefiles:$install_prefix/test/etc"]
+                if {$install_versioning eq "y"} {
+                    lappend ans [list set MODULE_VERSION "(.*)"]
+                }
             } elseif {!$insmodspath && $modrc_exinstalled} {
                 lappend ans [list set _LMFILES__modshare "$install_modulefilesdir/null:1"]
                 lappend ans [list set LOADEDMODULES_modshare "null:1"]
+                if {$install_versioning eq "y"} {
+                    lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+                }
                 lappend ans [list set MODULEPATH_modshare "$install_modulefilesdir:1"]
                 lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
                 lappend ans [list set LOADEDMODULES "null"]
                 lappend ans [list set MODULESHOME $moduleshome]
                 lappend ans [list set MODULEPATH "$install_modulefilesdir"]
+                if {$install_versioning eq "y"} {
+                    lappend ans [list set MODULE_VERSION "(.*)"]
+                }
             }
 
             test_cmd_re $shell "autoinit" $ans

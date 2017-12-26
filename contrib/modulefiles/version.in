@@ -1,0 +1,43 @@
+#%Module1.0#####################################################################
+##
+## version modulefile
+##
+proc ModulesHelp { } {
+        global version
+
+        puts stderr "\tInitializes new version of the module command"
+        puts stderr "\n\tVersion $version\n"
+}
+
+module-whatis "Initializes new version of the module command"
+
+# for Tcl script use only
+set version @VERSION@
+
+if [ expr [ module-info mode load ] || [ module-info mode display ] ] {
+# get rid of old version
+    module unload null
+    module unload modules
+    setenv MODULE_VERSION @VERSION@
+}
+
+# version stack
+prepend-path MODULE_VERSION_STACK @VERSION@
+
+if [ module-info mode remove ] {
+    set prevversion [lindex [split $env(MODULE_VERSION_STACK) : ] 0 ]
+    unsetenv MODULE_VERSION $prevversion
+
+    # re-initialize previous module command version (if >4.0)
+    regsub $version "@libexecdir@/modulecmd.tcl" $prevprefix prevmodulecmd
+    if {[file exists $prevmodulecmd]} {
+        puts stdout [exec @TCLSH@ $prevmodulecmd [module-info shell] autoinit]
+    }
+}
+
+if [ expr [ module-info mode load ] || [ module-info mode display ] ] {
+    # bring in new version
+    module load modules
+    puts stdout [exec @TCLSH@ @libexecdir@/modulecmd.tcl [module-info shell] autoinit]
+}
+

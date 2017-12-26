@@ -44,6 +44,9 @@ endif
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
 all: $(ALL_SHELLS) $(ALL_CONFIG) $(EXAMPLE_MODFILES_SRCDIR)/modules
+ifeq ($(versioning),y)
+all: $(EXAMPLE_MODFILES_SRCDIR)/version
+endif
 
 # if enabled translate to keep text after markup elsewhere remove the
 # entire line
@@ -65,6 +68,14 @@ else
   notcompatversionre := s|@notcompatversion@||g
 endif
 
+# comment entries if feature not enabled
+ifeq ($(versioning),y)
+  versdir := $(baseprefix)/versions
+  setversioning :=
+else
+  setversioning := \#
+endif
+
 # define translation rules for quarantine mechanism
 ifeq ($(quarantinevars),)
 setquarvarsre := /@setquarvars@/d
@@ -84,6 +95,7 @@ endif
 
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
+	-e 's|@baseprefix@|$(baseprefix)|g' \
 	-e 's|@libexecdir@|$(libexecdir)|g' \
 	-e 's|@initdir@|$(initdir)|g' \
 	-e 's|@etcdir@|$(etcdir)|g' \
@@ -99,6 +111,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e '$(setquarvarsre)' $(quarvarsre) \
 	-e '$(notsetquarvarsre)' \
 	-e 's|@SHELLNAME@|$@|g' \
+	-e 's|@VERSIONING@|$(setversioning)|g' \
 	-e 's|@VERSION@|$(MODULES_RELEASE)$(MODULES_BUILD)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' $< > $@
 endef
@@ -122,6 +135,9 @@ profile-compat.sh: profile-compat.sh.in
 	$(translate-in-script)
 
 $(EXAMPLE_MODFILES_SRCDIR)/modules: $(EXAMPLE_MODFILES_SRCDIR)/modules.in ../version.inc
+	$(translate-in-script)
+
+$(EXAMPLE_MODFILES_SRCDIR)/version: $(EXAMPLE_MODFILES_SRCDIR)/version.in ../version.inc
 	$(translate-in-script)
 
 # example configs for test rules
@@ -157,6 +173,10 @@ endif
 ifeq ($(examplemodulefiles),y)
 	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_MODFILES)) $(DESTDIR)$(modulefilesdir)/
 endif
+ifeq ($(versioning),y)
+	mkdir -p $(DESTDIR)$(versdir)
+	cp $(EXAMPLE_MODFILES_SRCDIR)/version $(DESTDIR)$(versdir)/$(MODULES_RELEASE)$(MODULES_BUILD)
+endif
 
 uninstall:
 	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_SHELLS) fish_completion)
@@ -172,6 +192,14 @@ endif
 	rmdir $(DESTDIR)$(initdir)/zsh-functions
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(initdir)
 	@if [ -d $(DESTDIR)$(initdir) ]; then echo -e "\nWARNING: $(DESTDIR)$(initdir) is not empty so skip removal\n" >&2; fi
+ifeq ($(versioning),y)
+	rm -f $(DESTDIR)$(versdir)/$(MODULES_RELEASE)$(MODULES_BUILD)
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(versdir)
+	@if [ -d $(DESTDIR)$(versdir) ]; then echo -e "\nWARNING: $(DESTDIR)$(versdir) is not empty so skip removal\n" >&2; fi
+endif
 
 clean:
 	rm -f $(ALL_SHELLS) modulerc .modulespath $(EXAMPLE_MODFILES_SRCDIR)/modules
+ifeq ($(versioning),y)
+	rm -f $(EXAMPLE_MODFILES_SRCDIR)/version
+endif

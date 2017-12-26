@@ -26,8 +26,8 @@ prog=${progpath##*/}
 targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 
 # argument list
-arglist="TCLSH SPHINXBUILD prefix bindir libexecdir etcdir initdir \
-datarootdir mandir docdir modulefilesdir setmanpath setbinpath \
+arglist="TCLSH SPHINXBUILD baseprefix prefix bindir libexecdir etcdir \
+initdir datarootdir mandir docdir modulefilesdir setmanpath setbinpath \
 setdotmodulespath docinstall examplemodulefiles compatversion versioning \
 pager pageropts modulepath loadedmodules quarantinevars"
 compatarglist=
@@ -126,7 +126,11 @@ Optional Features:
   --enable-compat-version also build and install Modules compatibility (C)
                           version and enable switching capabilities between
                           the two versions [yes]
-  --enable-versioning     append modules version to installation prefix [no]
+  --enable-versioning     append modules version to installation prefix and
+                          deploy a \`versions' modulepath, shared between all
+                          versioning enabled Modules installation, containing
+                          modulefiles that enable to switch from one Modules
+                          version to another [no]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -329,6 +333,7 @@ if [ $defpageropts -eq 1 -a "${pager##*/}" != 'less' ]; then
 fi
 
 # adapt prefix if versioning enabled
+baseprefix=$prefix
 if [ "$versioning" = 'y' ]; then
    # fetch modules version from git repository tags
    if [ -d '.git' ]; then
