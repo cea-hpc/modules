@@ -1,7 +1,7 @@
 .PHONY: doc pkgdoc initdir install install-testsiteconfig install-testmodulerc \
-	install-testetcrc install-testmodspath uninstall-testconfig uninstall dist \
-	dist-tar dist-gzip dist-bzip2 srpm clean distclean test testinstall \
-	instrument testcoverage
+	install-testetcrc install-testmodspath install-testmodspath-empty \
+	uninstall-testconfig uninstall dist dist-tar dist-gzip dist-bzip2 srpm \
+	clean distclean test testinstall instrument testcoverage
 
 # definitions for code coverage
 NAGELFAR_RELEASE := nagelfar125
@@ -180,6 +180,10 @@ install-testetcrc: testsuite/etc/empty
 install-testmodspath: testsuite/example/.modulespath
 	make -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(initdir)/
+
+install-testmodspath-empty: testsuite/example/.modulespath-empty
+	make -C init install-testconfig DESTDIR=$(DESTDIR)
+	cp $^ $(DESTDIR)$(initdir)/.modulespath
 
 uninstall-testconfig:
 	rm -f $(DESTDIR)$(prefix)/etc/rc
