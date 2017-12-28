@@ -144,7 +144,9 @@ Optional Packages:
   --with-modulepath=PATHLIST
                           default modulepaths to set in default configuration
                           file to be enabled (each path in PATHLIST should
-                          be separated by \`:') [PREFIX/modulefiles]
+                          be separated by \`:') [PREFIX/modulefiles or
+                          BASEPREFIX/\$MODULE_VERSION/modulefiles if versioning
+                          installation mode enabled]
   --with-loadedmodules=MODLIST
                           default modulefiles to set in default configuration
                           file to be loaded (each modulefile name in MODLIST
@@ -371,6 +373,8 @@ fi
 [ -z "$mandir" ] && mandir=$datarootdir/man
 [ -z "$docdir" ] && docdir=$datarootdir/doc
 [ -z "$modulefilesdir" ] && modulefilesdir=$prefix/modulefiles
+# default modulepath based on MODULE_VERSION if versioning enabled
+[ -z "$modulepath" -a "$versioning" = 'y' ] && modulepath=${modulefilesdir/#$prefix/$baseprefix\/\$MODULE_VERSION}
 [ -z "$modulepath" ] && modulepath=$modulefilesdir
 
 # check feature requirements are met
@@ -459,8 +463,14 @@ fi
 
 # generate Makefiles
 for target in ${targetlist}; do
+   # escape any '$' in value for Makefile or testsuite interpretation
+   if [ "${target/Makefile}" = "${target}" ]; then
+      extra_regexp=()
+   else
+      extra_regexp=('-e' 's|\$|\$\$|g')
+   fi
    echo "creating $target"
-   sed "${translation_regexp[@]}" ${target}.in >$target
+   sed "${translation_regexp[@]}" "${extra_regexp[@]}" ${target}.in >$target
 done
 
 exit 0

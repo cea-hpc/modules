@@ -29,7 +29,7 @@ else
 endif
 
 # generate 'module use' commands to put in modulerc from modulepath
-modulerc := $(addprefix \nmodule use --append ,$(subst :, ,$(modulepath)))
+modulerc := $(addprefix \nmodule use --append {,$(subst :,} {,$(modulepath)}))
 # generate 'module load' commands to put in modulerc from loadedmodules
 ifneq ($(loadedmodules),)
   modulerc := $(modulerc)$(addprefix \nmodule load ,\

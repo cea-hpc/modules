@@ -254,7 +254,9 @@ instance ``--without-modulepath``):
                       at initialization time to populate the MODULEPATH
                       environment variable. By default, this modulepath is
                       composed of the directory set for the system modulefiles
-                      (default=\ ``PREFIX/modulefiles``)
+                      (default=\ ``PREFIX/modulefiles`` or
+                      ``BASEPREFIX/$MODULE_VERSION/modulefiles`` if versioning
+                      installation mode enabled)
 --with-loadedmodules=MODLIST
                       Default modulefiles to load at Modules initialization
                       time. Each modulefile in this list should be separated

@@ -24,9 +24,25 @@ set bad_cmd "$error_msgs: Invalid command 'foo'"
 set use_desc "Search path for module files \\(in search order\\):"
 set moddir_header "$install_modulefilesdirre:"
 set mod_examples "dot\nmodule-git\nmodule-info\nmodules\nnull\nuse.own"
-set modpath_list [split $install_modulepath ":"]
-set modpath_listre [split $install_modulepathre ":"]
 set lm_list [split $install_loadedmodulesre ":"]
+
+# check if modulefiles dir is part of default MODULEPATH
+set modfilesdir_in_modpath 0
+foreach modp [split $install_modulepath ":"] {
+   # adapt modulepath entry if it contains variable reference
+   regsub -all {\$[{]?[A-Za-z_][A-Za-z0-9_]*[}]?} $modp {.*} modp
+   if {[regexp "^$modp\$" $install_modulefilesdir]} {
+      set modfilesdir_in_modpath 1
+      break
+   }
+}
+
+# adapt modulepath entry if it contains variable reference
+set modpath_listre [list]
+foreach modp [split $install_modulepathre ":"] {
+   regsub -all {\$[{]?[A-Za-z_][A-Za-z0-9_]*[}]?} $modp {.*} modp
+   lappend modpath_listre $modp
+}
 
 set swmain_msg "Switching to Modules main version"
 set swcompat_msg "Switching to Modules compatibility version"
@@ -60,7 +76,7 @@ if {$install_setbinpath eq "y"} {
       testall_cmd_re "$shell" "envml -h" "^Usage:.*/envml .*\$" "^\$" 0
    }
    if {$install_examplemodulefiles eq "y" && $install_loadedmodules eq "" \
-      && [lsearch -exact $modpath_list $install_modulefilesdir] > -1} {
+      && $modfilesdir_in_modpath} {
       foreach shell $shell_list {
          testall_cmd "$shell" "envml null printenv LOADEDMODULES" "null" "" 0
       }
@@ -135,8 +151,7 @@ if {$install_modulepath ne ""} {
    send_user "\tSkipping default modulepath checks\n"
 }
 
-if {$install_examplemodulefiles eq "y" \
-   && [lsearch -exact $modpath_list $install_modulefilesdir] > -1} {
+if {$install_examplemodulefiles eq "y" && $modfilesdir_in_modpath} {
    if {$verbose > 0} {
       send_user "\tChecking example modulefiles installation\n"
    }
@@ -219,8 +234,11 @@ unset bad_cmd
 unset use_desc
 unset mod_examples
 unset moddir_header
-unset modpath_list
 unset lm_list
+
+unset modp
+unset modfilesdir_in_modpath
+unset modpath_listre
 
 unset swmain_msg
 unset swcompat_msg
