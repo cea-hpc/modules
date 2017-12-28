@@ -90,19 +90,24 @@ BASH_ENV=@initdir@/bash; export BASH_ENV
 # setup FPATH to get module defined in 'ksh' interactive and non-interactive
 # sub-shells. only set in ksh init script to avoid side effect default FPATH
 # set for 'zsh' shell when it starts.
-if [[ ! ":$FPATH:" =~ ':@initdir@/ksh-functions:' ]]; then
+_mlinstr=":$FPATH:"
+if [ "${_mlinstr#*:@initdir@/ksh-functions:}" = "$_mlinstr" ]; then
    FPATH+="${FPATH:+:}@initdir@/ksh-functions"; export FPATH
 fi
 
-@setbinpath@if [[ ! ":$PATH:" =~ ':@bindir@:' ]]; then
+@setbinpath@_mlinstr=":$PATH:"
+@setbinpath@if [ "${_mlinstr#*:@bindir@:}" = "$_mlinstr" ]; then
 @setbinpath@   PATH=@bindir@${PATH:+:}$PATH; export PATH
 @setbinpath@fi
 @setbinpath@
 @setmanpath@manpath=`manpath 2>/dev/null`
-@setmanpath@if [[ ! ":$manpath:" =~ ':@mandir@:' ]]; then
+@setmanpath@_mlinstr=":$manpath:"
+@setmanpath@if [ "${_mlinstr#*:@mandir@:}" = "$_mlinstr" ]; then
 @setmanpath@   MANPATH=@mandir@${manpath:+:}$manpath; export MANPATH
 @setmanpath@fi
 @setmanpath@
+unset _mlinstr
+
 # restore shell debugging options if disabled
 if [ -n "$_mlshdbg" ]; then
    set -$_mlshdbg;
