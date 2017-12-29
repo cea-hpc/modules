@@ -32,6 +32,7 @@ foreach elt [file split [file join [pwd] $MODULECMD]] {
 }
 set modulecmd_path [regsub -all "\(\[.+?\]\)" [eval file join $path_list] {\\\1}]
 set moduleshome $install_prefix
+set modulepathre [regsub -all "\(\[$.+?\]\)" $install_modulepath {\\\1}]
 
 # compare init config files to determine if we can guess expected setup
 set insmodspath [file readable $install_initdir/.modulespath]
@@ -364,7 +365,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                 lappend ans [list set MODULEPATH_modshare "(.*)"]
                 lappend ans [list set LOADEDMODULES ""]
                 lappend ans [list set MODULESHOME $moduleshome]
-                lappend ans [list set MODULEPATH "$install_modulefilesdir:$install_prefix/test/modulefiles:$install_prefix/test/etc"]
+                lappend ans [list set MODULEPATH "$modulepathre:$install_prefix/test/modulefiles:$install_prefix/test/etc"]
                 if {$install_versioning eq "y"} {
                     lappend ans [list set MODULE_VERSION "(.*)"]
                 }
@@ -374,11 +375,11 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                 if {$install_versioning eq "y"} {
                     lappend ans [list set MODULE_VERSION_STACK "(.*)"]
                 }
-                lappend ans [list set MODULEPATH_modshare "$install_modulefilesdir:1"]
+                lappend ans [list set MODULEPATH_modshare "$modulepathre:1"]
                 lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
                 lappend ans [list set LOADEDMODULES "null"]
                 lappend ans [list set MODULESHOME $moduleshome]
-                lappend ans [list set MODULEPATH "$install_modulefilesdir"]
+                lappend ans [list set MODULEPATH "$modulepathre"]
                 if {$install_versioning eq "y"} {
                     lappend ans [list set MODULE_VERSION "(.*)"]
                 }
@@ -405,6 +406,7 @@ set env(MODULEPATH) $modpath
 unset path_list
 unset modulecmd_path
 unset moduleshome
+unset modulepathre
 
 if {[info exists fid]} {
     unset fid
