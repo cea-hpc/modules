@@ -26,7 +26,7 @@ prog=${progpath##*/}
 targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 
 # argument list
-arglist="TCLSH SPHINXBUILD baseprefix prefix bindir libexecdir etcdir \
+arglist="TCLSH SPHINXBUILD VERSION baseprefix prefix bindir libexecdir etcdir \
 initdir datarootdir mandir docdir modulefilesdir setmanpath setbinpath \
 setdotmodulespath docinstall examplemodulefiles compatversion versioning \
 pager pageropts modulepath loadedmodules quarantinevars"
@@ -50,6 +50,7 @@ loadedmodules=
 quarantinevars=
 TCLSH=tclsh
 SPHINXBUILD=sphinx-build
+VERSION=
 pager=less
 pageropts='-eFKRX'
 # these args are initialized here but as they depend on other argument value
@@ -334,34 +335,35 @@ if [ $defpageropts -eq 1 -a "${pager##*/}" != 'less' ]; then
     echo_warning "As chosen pager is not \`less', default pager options are cleared"
 fi
 
+# fetch modules version from git repository tags
+if [ -d '.git' ]; then
+  gitcurtag=$(git describe --tags --abbrev=0)
+  gitcurdesc=$(git describe --tags)
+  gitcurbranch=$(git rev-parse --abbrev-ref HEAD)
+  release=${gitcurtag#v}
+  if [ "$gitcurtag" = "$gitcurdesc" ]; then
+     build=''
+  elif [ "$gitcurbranch" = 'master' ]; then
+     build="+${gitcurdesc#${gitcurtag}-}"
+  else
+     build="+${gitcurbranch}${gitcurdesc#${gitcurtag}}"
+  fi
+# elsewhere fetch modules version from version.inc file
+elif [ -r ${progdir}/version.inc ]; then
+  release=$(grep '^MODULES_RELEASE ' ${progdir}/version.inc | cut -d ' ' -f 3)
+  build=$(grep '^MODULES_BUILD ' ${progdir}/version.inc | cut -d ' ' -f 3)
+fi
+VERSION=$release$build
+
+if [ -z "$VERSION" ]; then
+   echo_error "Cannot fetch modules version"
+fi
+
 # adapt prefix if versioning enabled
 baseprefix=$prefix
 if [ "$versioning" = 'y' ]; then
-   # fetch modules version from git repository tags
-   if [ -d '.git' ]; then
-      gitcurtag=$(git describe --tags --abbrev=0)
-      gitcurdesc=$(git describe --tags)
-      gitcurbranch=$(git rev-parse --abbrev-ref HEAD)
-      release=${gitcurtag#v}
-      if [ "$gitcurtag" = "$gitcurdesc" ]; then
-         build=''
-      elif [ "$gitcurbranch" = 'master' ]; then
-         build="+${gitcurdesc#${gitcurtag}-}"
-      else
-         build="+${gitcurbranch}${gitcurdesc#${gitcurtag}}"
-      fi
-   # elsewhere fetch modules version from version.inc file
-   elif [ -r ${progdir}/version.inc ]; then
-      release=$(grep '^MODULES_RELEASE ' ${progdir}/version.inc | cut -d ' ' -f 3)
-      build=$(grep '^MODULES_BUILD ' ${progdir}/version.inc | cut -d ' ' -f 3)
-   fi
-
-   if [ -z "$release" ]; then
-      echo_error "Cannot install in versioning mode, modules version cannot be fetched"
-   else
-      # append modules version to installation prefix
-      prefix=$prefix/$release$build
-   fi
+   # append modules version to installation prefix
+   prefix=$prefix/$VERSION
 fi
 
 # set argument default values for those depending of other argument

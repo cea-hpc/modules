@@ -112,6 +112,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@initdir@|$(initdir)|g' \
 	-e 's|@etcdir@|$(etcdir)|g' \
 	-e 's|@modulefilesdir@|$(modulefilesdir)|g' \
+	-e 's|@VERSION@|$(VERSION)|g' \
 	-e 's|@TCLSHDIR@/tclsh|$(TCLSH)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' \
 	-e 's|@pager@|$(pager)|g' \

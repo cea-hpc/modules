@@ -112,7 +112,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e '$(notsetquarvarsre)' \
 	-e 's|@SHELLNAME@|$@|g' \
 	-e 's|@VERSIONING@|$(setversioning)|g' \
-	-e 's|@VERSION@|$(MODULES_RELEASE)$(MODULES_BUILD)|g' \
+	-e 's|@VERSION@|$(VERSION)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' $< > $@
 endef
 
@@ -175,7 +175,7 @@ ifeq ($(examplemodulefiles),y)
 endif
 ifeq ($(versioning),y)
 	mkdir -p $(DESTDIR)$(versdir)
-	cp $(EXAMPLE_MODFILES_SRCDIR)/version $(DESTDIR)$(versdir)/$(MODULES_RELEASE)$(MODULES_BUILD)
+	cp $(EXAMPLE_MODFILES_SRCDIR)/version $(DESTDIR)$(versdir)/$(VERSION)
 endif
 
 uninstall:
@@ -193,7 +193,7 @@ endif
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(initdir)
 	@if [ -d $(DESTDIR)$(initdir) ]; then echo -e "\nWARNING: $(DESTDIR)$(initdir) is not empty so skip removal\n" >&2; fi
 ifeq ($(versioning),y)
-	rm -f $(DESTDIR)$(versdir)/$(MODULES_RELEASE)$(MODULES_BUILD)
+	rm -f $(DESTDIR)$(versdir)/$(VERSION)
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(versdir)
 	@if [ -d $(DESTDIR)$(versdir) ]; then echo -e "\nWARNING: $(DESTDIR)$(versdir) is not empty so skip removal\n" >&2; fi
 endif
