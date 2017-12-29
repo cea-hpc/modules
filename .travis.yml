@@ -37,7 +37,7 @@ matrix:
             - cmake3
             - r-base-core
     # install configuration file before test to trigger specific behaviors on initialization parts
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --disable-compat-version --prefix=/tmp/modules --without-pager' MAKE_TESTCOVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --disable-compat-version --enable-versioning --prefix=/tmp/modules --without-pager --enable-dotmodulespath' MAKE_TESTCOVERAGE='y'
            EXTRA_SCRIPT_PRETEST='make install-testmodulerc install-testsiteconfig install-testmodspath' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
@@ -82,7 +82,7 @@ matrix:
             - cmake3
             - r-base-core
 
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot --without-pager'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --prefix=/tmp/modules --enable-compat-version --enable-versioning --with-loadedmodules=null:dot --without-pager'
            EXTRA_SCRIPT_PRETEST='make install-testmodulerc install-testsiteconfig install-testmodspath-empty' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
@@ -195,7 +195,7 @@ matrix:
     # openSUSE
     - env: OS_NAME=opensuse OS_VERSION=leap DOCKER_IMAGE=${OS_NAME}:${OS_VERSION} CONTAINER=${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER"
-           CONFIGURE_OPTS='--disable-compat-version'
+           CONFIGURE_OPTS='--disable-compat-version --enable-versioning'
       sudo: required
       services:
         - docker
@@ -203,7 +203,7 @@ matrix:
     # also enable a display on this test case to validate x-resource behavior
     - env: OS_NAME=opensuse OS_VERSION=leap DOCKER_IMAGE=${OS_NAME}:${OS_VERSION} CONTAINER=${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER xvfb-run"
-           CONFIGURE_OPTS='--prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot --with-quarantine-vars=LD_LIBRARY_PATH'
+           CONFIGURE_OPTS='--prefix=/tmp/modules --enable-compat-version --enable-versioning --with-loadedmodules=null:dot --with-quarantine-vars=LD_LIBRARY_PATH'
            EXTRA_PKGS='which xrdb xvfb-run autoconf automake gettext-tools-mini gcc tcl-devel'
       sudo: required
       services:
