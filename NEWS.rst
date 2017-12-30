@@ -7,7 +7,7 @@ This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
 
-Modules 4.1.0 (2017-??-??)
+Modules 4.1.0 (2018-01-??)
 --------------------------
 
 **Ongoing work! This version has not been released yet.**
@@ -110,6 +110,10 @@ Modules 4.1.0 (2017-??-??)
   script named ``siteconfig.tcl`` which enables to supersede any Tcl
   definition made in ``modulecmd.tcl``. Location of this file is controlled
   at configure time with the ``--etcdir`` option.
+* Add the ability to handle paths containing reference to environment variable
+  in ``MODULEPATH``. When these kind of paths are used by ``module`` command,
+  the variable references are converted to their corresponding value or to an
+  empty string if they are not defined.
 
 
 Modules 4.0.0 (2017-10-16)

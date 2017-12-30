@@ -551,6 +551,12 @@ ENVIRONMENT
  to search group or personal *modulefile* directories before or after the
  master *modulefile* directory.
 
+ Path elements registered in the **MODULEPATH** environment variable may
+ contain reference to environment variables which are converted to their
+ corresponding value by **module** command each time it looks at the
+ **MODULEPATH** value. If an environment variable referred in a path element
+ is not defined, its reference is converted to an empty string.
+
 **MODULESHOME**
 
  The location of the master Modules package file directory containing module
