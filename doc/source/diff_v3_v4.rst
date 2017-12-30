@@ -54,8 +54,8 @@ Command line switches
 
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
+On compatibility version, paths composing the **MODULEPATH** environment variable may contain reference to environment variable. These variable references are resolved dynamically when **MODULEPATH** is looked at during module sub-command action like **avail**. This feature was missing on Modules ``4.0`` but it has been re-introduced on Modules ``4.1``.
 
-On compatibility version, paths composing the **MODULEPATH** environment variable may contain reference to environment variable. These variable references are resolved dynamically when **MODULEPATH** is looked at during module sub-command action like **avail**.
 
 **clear**
 
@@ -97,11 +97,15 @@ On compatibility version, paths composing the **MODULEPATH** environment variabl
  
  In case of *modulefile* loading another modulefile, if sub-modulefile load fails calling modulefile will still be loaded on compatibility version whereas Modules 4 will also abort calling modulefile load.
 
+ Starting with version ``4.1``, content sent to the ``stdout`` channel during a *modulefile* interpretation is spooled to effectively transmit this content to stdout after rendering the environment changes made by this modulefile.
+
 **unload**
  
  On Modules 4, the value of an environment variable is set even if the new value is the same as the current value of this variable in environment.
  
  Compatibility version enables to load a *modulefile* by passing on the command-line the name of a module alias or symbolic version pointing to this modulefile. However this module alias or symbolic version name cannot be used to unload the modulefile once loaded. Modules 4 enables to pass a module alias or symbolic version name to unload a loaded modulefile referred by this name.
+
+ Starting with version ``4.1``, content sent to the ``stdout`` channel during a *modulefile* interpretation is spooled to effectively transmit this content to stdout after rendering the environment changes made by this modulefile.
 
 **switch**
  
@@ -229,12 +233,20 @@ Features specific to the new main version
 
 This section describes the features of Modules version 4 that are not supported on the compatibility version. Please refer to the above section for features supported by both versions but behaving differently.
 
+
 Package Initialization
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Compatibility version does not support *fish*, *lisp*, *tcl* and *R* as code output.
 
-On version 4 and for *sh*, *bash*, *ksh*, *zsh* and *fish* shells, text output, like listing from the **avail** command, is redirected from *stderr* to *stdout* after shell command evaluation if shell is in interactive mode.
+On version 4 and for *sh*, *bash*, *ksh*, *zsh* and *fish* shells, text output, like listing from the **avail** command, is redirected from *stderr* to *stdout* after shell command evaluation if shell is in interactive mode. Starting version ``4.1``, this content redirection occurs if shell session is attached to a terminal.
+
+
+Modulecmd startup
+^^^^^^^^^^^^^^^^^
+
+Starting with version ``4.1``, **modulecmd.tcl** sources upon invocation a site-specific configuration script named **siteconfig.tcl**. This Tcl script enables to supersede any global variable or procedure definition of modulecmd.tcl.
+
 
 Command line switches
 ^^^^^^^^^^^^^^^^^^^^^
@@ -247,11 +259,19 @@ Command line switches
  
  These command line switches are not supported on compatibility version.
  
+**--paginate**
+
+**--no-pager**
+
+ These command line switches appeared on version ``4.1`` and are not supported on compatibility version.
+
 
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
 
 All module sub-commands will return a non-zero exit code in case of error whereas on compatibility version issues that occurred do not lead to an exit of the **module** command with a non-zero code.
+
+Starting with version ``4.1``, **module** function for all scripting languages, like Perl or Python, always returns a value. In case of error, a *false* boolean value is returned instead of raising a fatal exception. For module sub-commands returning a text value, the module function will actually return this value. In all other cases a *true* boolean value is returned.
 
 
 **reload**
@@ -281,6 +301,24 @@ All module sub-commands will return a non-zero exit code in case of error wherea
 **test**
  
  These module sub-commands are not supported on compatibility version.
+
+**append-path**
+
+**prepend-path**
+
+**remove-path**
+
+**is-loaded**
+
+**is-saved**
+
+**is-used**
+
+**is-avail**
+
+**info-loaded**
+
+ These module sub-commands appeared on version ``4.1`` and are not supported on compatibility version.
  
 **avail**
 
@@ -295,12 +333,38 @@ All module sub-commands will return a non-zero exit code in case of error wherea
  Search may be performed with an alias or a symbolic version-name passed as argument.
  
  Arguments to these **avail**, **whatis** and **apropos** commands may use wildcard characters to express glob patterns.
- 
+
 
 Collections
 ^^^^^^^^^^^
 
 Modules collections are not supported on compatibility version.
+
+
+Environment
+^^^^^^^^^^^
+
+**MODULES_COLLECTION_TARGET**
+
+**MODULES_USE_COMPAT_VERSION**
+
+**<VAR>_modshare**
+
+ These environment variables are not supported on compatibility version.
+
+**MODULES_COLLECTION_PIN_VERSION**
+
+**MODULES_PAGER**
+
+**MODULES_RUNENV_<VAR>**
+
+**MODULES_RUN_QUARANTINE**
+
+**MODULES_SILENT_SHELL_DEBUG**
+
+**<VAR>_modquar**
+
+ These environment variables appeared on version ``4.1`` and are not supported on compatibility version.
 
 
 Modules Specific Tcl Commands
@@ -315,4 +379,31 @@ Modules Specific Tcl Commands
  **module-info command**
   
   This **module-info** option is not supported on compatibility version.
+
+ **module-info loaded**
   
+  This **module-info** option appeared on version ``4.1`` and is not supported on compatibility version.
+
+**append-path**
+
+ Starting with version ``4.1``, **append-path** handles being called with multiple *value* arguments and option ``--duplicates`` is added.
+
+**prepend-path**
+
+ Starting with version ``4.1``, **prepend-path** handles being called with multiple *value* arguments and option ``--duplicates`` is added.
+
+**remove-path**
+
+ Starting with version ``4.1``, **remove-path** handles being called with multiple *value* arguments and option ``--index`` is added.
+
+**is-loaded**
+
+ Starting with version ``4.1``, **is-loaded** supports being called with no argument passed. In this case, it returns *true* if any modulefile is currently loaded, *false* elsewhere.
+
+**is-saved**
+
+**is-used**
+
+**is-avail**
+
+ These Modules-specific Tcl commands appeared on version ``4.1`` and are not supported on compatibility version.
