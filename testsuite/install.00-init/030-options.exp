@@ -23,6 +23,7 @@
 set bad_cmd "$error_msgs: Invalid command 'foo'"
 set use_desc "Search path for module files \\(in search order\\):"
 set moddir_header "$install_modulefilesdirre:"
+set versdir_header "$install_versionfilesdirre:"
 set mod_examples "dot\nmodule-git\nmodule-info\nmodules\nnull\nuse.own"
 set lm_list [split $install_loadedmodulesre ":"]
 
@@ -161,6 +162,15 @@ if {$install_examplemodulefiles eq "y" && $modfilesdir_in_modpath} {
    foreach shell $othlang_list {
       testall_cmd_re "$shell" "avail -t" "^\$" "$moddir_header\n$mod_examples" 0
    }
+   # check version-specific modulefile, related to versioning installation mode
+   if {$install_versioning eq "y"} {
+      foreach shell $shell_list {
+         testall_cmd_re "$shell" "module load modules; module avail -t $install_version" "^\$" "^$versdir_header\n$install_versionre\$" 0
+      }
+      foreach shell $othlang_list {
+         testall_cmd_re "$shell" "load modules:avail -t $install_version" "^\$" "^$versdir_header\n$install_versionre\$" 0
+      }
+   }
 } elseif {$verbose > 0} {
    send_user "\tSkipping example modulefiles installation checks\n"
 }
@@ -234,6 +244,7 @@ unset bad_cmd
 unset use_desc
 unset mod_examples
 unset moddir_header
+unset versdir_header
 unset lm_list
 
 unset modp
