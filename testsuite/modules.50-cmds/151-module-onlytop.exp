@@ -23,18 +23,16 @@
 
 foreach subcmd [list append-path prepend-path remove-path autoinit help is-loaded is-saved is-used is-avail path paths info-loaded] {
     set module "modbad/$subcmd"
-    set modulefile "$modpath/$module"
     set modulefilere "$modpathre/$module"
-    set moderr "$moderr_msgs: module: Command '$subcmd' not supported\n  In '$modulefile'\n$err_contact"
+    set moderr "$moderr_msgs: module: Command '$subcmd' not supported\n  In '$modulefilere'\n$err_contact"
 
     testouterr_cmd_re "sh" "load $module" "ERR" "$moderr"
     testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$moderr\n$modlin"
 }
 
 set module "modbad/foo"
-set modulefile "$modpath/$module"
 set modulefilere "$modpathre/$module"
-set moderr "$moderr_msgs: module: Invalid command 'foo'\n  In '$modulefile'\n$err_contact"
+set moderr "$moderr_msgs: module: Invalid command 'foo'\n  In '$modulefilere'\n$err_contact"
 
 testouterr_cmd_re "sh" "load $module" "ERR" "$moderr"
 testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$moderr\n$modlin"
@@ -48,5 +46,4 @@ unset subcmd
 
 unset moderr
 unset modulefilere
-unset modulefile
 unset module

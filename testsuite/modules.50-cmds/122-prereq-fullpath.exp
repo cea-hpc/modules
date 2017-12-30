@@ -49,6 +49,7 @@ set err_prereqf1 "$warn_msgs: $modulefile1 cannot be loaded due to missing prere
 append err_prereqf1 "HINT: the following module must be loaded first: $modpath/setenv/1.0"
 set err_prereqf2 "$warn_msgs: $modulefile2 cannot be loaded due to missing prereq.\n"
 append err_prereqf2 "HINT: the following module must be loaded first: trace"
+set err_prereqf2re [regsub -all "\(\[.+?\]\)" $err_prereqf2 {\\\1}]
 
 
 #
@@ -122,7 +123,7 @@ lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefi
 lappend ans [list setpath LOADEDMODULES "$modulefile_tron:$modulefile_set1:$modulefile1"]
 lappend ans [list set testsuite yes]
 lappend ans [list ERR]
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2" $ans "$err_prereqf2"
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2" $ans "$err_prereqf2re"
 
 
 #
@@ -143,6 +144,7 @@ unset err_prereq1
 unset err_prereq2
 unset err_prereqf1
 unset err_prereqf2
+unset err_prereqf2re
 
 unset ans
 

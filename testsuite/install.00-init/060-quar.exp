@@ -213,7 +213,9 @@ lappend ans "MODULES_RUNENV_FOO=$runenv2"
 
 set ansr [list]
 lappend ansr "MODULES_RUN_QUARANTINE=$quar"
-lappend ansr "LD_LIBRARY_PATH=.*$env1"
+# escape path if regexp-sensitive character in path
+set env1r [regsub -all "\(\[.+?\]\)" $env1 {\\\1}]
+lappend ansr "LD_LIBRARY_PATH=.*$env1r"
 lappend ansr "FOO=$env2"
 lappend ansr "MODULES_RUNENV_FOO=$runenv2"
 
@@ -372,6 +374,7 @@ unset env(MODULES_RUNENV_LD_LIBRARY_PATH)
 unset env(MODULES_RUNENV_FOO)
 
 unset quar
+unset env1r
 unset env1
 unset env2
 unset runenv1
