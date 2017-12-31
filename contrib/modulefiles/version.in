@@ -25,13 +25,41 @@ if [ expr [ module-info mode load ] || [ module-info mode display ] ] {
 prepend-path MODULE_VERSION_STACK @VERSION@
 
 if [ module-info mode remove ] {
+    # unload modules modulefile to get PATHs refreshed after previous module
+    # command restoration
+    module load modules
     set prevversion [lindex [split $env(MODULE_VERSION_STACK) : ] 0 ]
     unsetenv MODULE_VERSION $prevversion
 
-    # re-initialize previous module command version (if >4.0)
-    regsub $version "@libexecdir@/modulecmd.tcl" $prevprefix prevmodulecmd
-    if {[file exists $prevmodulecmd]} {
-        puts stdout [exec @TCLSH@ $prevmodulecmd [module-info shell] autoinit]
+    # re-initialize previous module command version by sourcing its
+    # initialization script, as module function definition is not compatible
+    # between Modules 3 and Modules 4
+    set shell [module-info shell]
+    switch -- $shell {
+        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+            set versionre [regsub -all "\(\[.+?\]\)" $version {\\\1}]
+            regsub $versionre "@initdir@/$shell" $prevversion previnitshell
+            if {[file exists $previnitshell]} {
+                switch -- $shell {
+                    {sh} - {bash} - {ksh} - {zsh} {
+                        set sourcecmd "."
+                    }
+                    {csh} - {tcsh} - {fish} {
+                        set sourcecmd "source"
+                    }
+                }
+                puts stdout "$sourcecmd $previnitshell"
+                puts stdout "module load modules"
+            } else {
+                puts stderr "No initialization script for '$shell' on version '$prevversion'"
+            }
+        }
+        default {
+            # no support for re-initializing module command on scripting shell
+            # as it is not a common practice for most of these languages to
+            # redefine an already set function
+            puts stderr "No re-initialization supported for '$shell' on version '$prevversion'"
+        }
     }
 }
 
