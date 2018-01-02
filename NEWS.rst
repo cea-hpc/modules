@@ -114,6 +114,15 @@ Modules 4.1.0 (2018-01-??)
   in ``MODULEPATH``. When these kind of paths are used by ``module`` command,
   the variable references are converted to their corresponding value or to an
   empty string if they are not defined.
+* Enclose value set to environment variable on Tcl within curly braces rather
+  double quotes to protect special characters in it from interpretation.
+* Correctly parse ``.modulespath`` initialization file to handle lines without
+  any ``#`` character or to handle files with no content to extract.
+* Re-introduce the ``--enable-versioning`` configure option, which appends
+  Modules version to installation prefix and deploy a ``versions`` modulepath
+  shared between all versioning enabled Modules installation. A modulefile
+  corresponding to Modules version is added to the shared modulepath and
+  enables to switch from one Modules version to another.
 
 
 Modules 4.0.0 (2017-10-16)
