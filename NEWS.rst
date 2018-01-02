@@ -123,6 +123,8 @@ Modules 4.1.0 (2018-01-??)
   shared between all versioning enabled Modules installation. A modulefile
   corresponding to Modules version is added to the shared modulepath and
   enables to switch from one Modules version to another.
+* Fix removal of CMake generated temporary script file by stripping newline
+  character from script file name.
 
 
 Modules 4.0.0 (2017-10-16)
