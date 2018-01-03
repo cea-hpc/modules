@@ -9,6 +9,7 @@ eval `@TCLSH@ @libexecdir@/modulecmd.tcl @SHELLNAME@ autoinit`
 @compatversion@
 @compatversion@# redefine module command if compat version has been activated
 @compatversion@if ( "$MODULES_USE_COMPAT_VERSION" == '1' ) then
+@compatversion@   setenv MODULES_CMD @libexecdir@/modulecmd-compat ;
 @compatversion@   if ( $?histchars && $?prompt ) alias module 'set _histchars = $histchars; unset histchars; set _prompt="$prompt"; set prompt=""; eval `@libexecdir@/modulecmd-compat @SHELLNAME@ \!*`; set _exit="$status";  set histchars = $_histchars; unset _histchars; set prompt="$_prompt"; unset _prompt; test 0 = $_exit' ;
 @compatversion@   if ( $?histchars && ! $?prompt ) alias module 'set _histchars = $histchars; unset histchars; eval `@libexecdir@/modulecmd-compat @SHELLNAME@ \!*`; set _exit="$status";  set histchars = $_histchars; unset _histchars; test 0 = $_exit' ;
 @compatversion@   if ( ! $?histchars && $?prompt ) alias module 'set _prompt="$prompt"; set prompt=""; eval `@libexecdir@/modulecmd-compat @SHELLNAME@ \!*`; set _exit="$status";  set prompt="$_prompt";unset _prompt; test 0 = $_exit' ;

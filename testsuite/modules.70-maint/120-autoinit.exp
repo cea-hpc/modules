@@ -30,7 +30,8 @@ foreach elt [file split [file join [pwd] $MODULECMD]] {
         lappend path_list $elt
     }
 }
-set modulecmd_path [regsub -all "\(\[.+?\]\)" [eval file join $path_list] {\\\1}]
+set modulecmd_path [eval file join $path_list]
+set modulecmd_pathre [regsub -all "\(\[.+?\]\)" $modulecmd_path {\\\1}]
 set moduleshome $install_prefix
 set modulepathre [regsub -all "\(\[$.+?\]\)" $install_modulepath {\\\1}]
 
@@ -134,18 +135,18 @@ set func_silentdbg_othsh "\\s*if \\\[ \"\\\$MODULES_SILENT_SHELL_DEBUG\" = '1' \
 \\s*fi;"
 
 
-set func_sh "module\\\(\\\) {\n$func_silentdbg_sh\n$func_quar_sh\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_path sh \\$\\*`;\n\\s*local _mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
-set func_bash "module\\\(\\\) {\n$func_silentdbg_othsh\n$func_quar_sh_other\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_path bash \\$\\*`;\n\\s*typeset _mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
-set func_ksh "module\\\(\\\) {\n$func_silentdbg_othsh\n$func_quar_sh_other\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_path ksh \\$\\*`;\n\\s*typeset _mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
-set func_zsh "module\\\(\\\) {\n$func_silentdbg_othsh\n$func_quar_zsh\n\\s*eval `\\\${=_mlre}$install_tclsh $modulecmd_path zsh \\$\\*`;\n\\s*typeset _mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
-set func_csh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
-if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; eval `$install_tclsh $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
-if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_path csh \\\\!\\*`; set _exit=\"\\\$status\"; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
-if \\\( \\\! \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'eval `$install_tclsh $modulecmd_path csh \\\\!\\*`;' ;"
-set func_tcsh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
-if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; eval `$install_tclsh $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
-if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_path tcsh \\\\!\\*`; set _exit=\"\\\$status\"; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
-if \\\( \\\! \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'eval `$install_tclsh $modulecmd_path tcsh \\\\!\\*`;' ;"
+set func_sh "module\\\(\\\) {\n$func_silentdbg_sh\n$func_quar_sh\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_pathre sh \\$\\*`;\n\\s*local _mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
+set func_bash "module\\\(\\\) {\n$func_silentdbg_othsh\n$func_quar_sh_other\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_pathre bash \\$\\*`;\n\\s*typeset _mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
+set func_ksh "module\\\(\\\) {\n$func_silentdbg_othsh\n$func_quar_sh_other\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_pathre ksh \\$\\*`;\n\\s*typeset _mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
+set func_zsh "module\\\(\\\) {\n$func_silentdbg_othsh\n$func_quar_zsh\n\\s*eval `\\\${=_mlre}$install_tclsh $modulecmd_pathre zsh \\$\\*`;\n\\s*typeset _mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
+set func_csh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_pathre csh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
+if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; eval `$install_tclsh $modulecmd_pathre csh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
+if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_pathre csh \\\\!\\*`; set _exit=\"\\\$status\"; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
+if \\\( \\\! \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'eval `$install_tclsh $modulecmd_pathre csh \\\\!\\*`;' ;"
+set func_tcsh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_pathre tcsh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
+if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; eval `$install_tclsh $modulecmd_pathre tcsh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
+if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_pathre tcsh \\\\!\\*`; set _exit=\"\\\$status\"; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
+if \\\( \\\! \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'eval `$install_tclsh $modulecmd_pathre tcsh \\\\!\\*`;' ;"
 set func_fish "function module
 \\s*set -l _mlre ''; set -l _mlv; set -l _mlrv;
 \\s*for _mlv in \\\(string split ' ' \\\$MODULES_RUN_QUARANTINE\\\)
@@ -160,7 +161,7 @@ set func_fish "function module
 \\s*if \\\[ -n \"\\\$_mlre\\\" \\\]
 \\s*set _mlre \"env \\\$_mlre\"
 \\s*end
-\\s*eval \\\$_mlre \\S+tclsh $modulecmd_path fish \\\$argv | source -
+\\s*eval \\\$_mlre \\S+tclsh $modulecmd_pathre fish \\\$argv | source -
 end"
 set func_tcl "proc module {args} {
 \\s*global env; set _mlre {};
@@ -183,7 +184,7 @@ set func_tcl "proc module {args} {
 \\s*}
 \\s*}
 \\s*set _mlstatus 1;
-\\s*catch {eval exec \\\$_mlre \"$install_tclsh\" \"$modulecmd_path\" \"tcl\" \\\$args 2>@stderr} script
+\\s*catch {eval exec \\\$_mlre \"$install_tclsh\" \"$modulecmd_pathre\" \"tcl\" \\\$args 2>@stderr} script
 \\s*eval \\\$script;
 \\s*return \\\$_mlstatus
 }"
@@ -204,7 +205,7 @@ set func_perl "sub module {
 \\s*}
 \\s*}
 \\s*my \\\$_mlstatus = 1;
-\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_path perl \\\@_`;
+\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_pathre perl \\\@_`;
 \\s*return \\\$_mlstatus;
 }"
 set func_python "import re, subprocess
@@ -221,7 +222,7 @@ def module\\\(command, \\*arguments\\\):
 \\s*else:
 \\s*_mlre\\\[_mlv\\\] = ''
 \\s*_mlstatus = True
-\\s*exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_path', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)
+\\s*exec\\\(subprocess\\.Popen\\\(\\\['$install_tclsh', '$modulecmd_pathre', 'python', command\\\] \\+ list\\\(arguments\\\), stdout=subprocess\\.PIPE, env=_mlre\\\)\\.communicate\\\(\\\)\\\[0\\\]\\\)
 \\s*return _mlstatus"
 set func_ruby "class ENVModule
 \\s*def ENVModule.module\\\(\\*args\\\)
@@ -246,7 +247,7 @@ set func_ruby "class ENVModule
 \\s*args = args.join\\\(' '\\\)
 \\s*end
 \\s*_mlstatus = true
-\\s*eval `#{_mlre}$install_tclsh $modulecmd_path ruby #{args}`
+\\s*eval `#{_mlre}$install_tclsh $modulecmd_pathre ruby #{args}`
 \\s*return _mlstatus
 \\s*end
 end"
@@ -271,7 +272,7 @@ set func_cmake "function\\\(module\\\)
 \\s*execute_process\\\(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
 \\s*OUTPUT_VARIABLE tempfile_name
 \\s*OUTPUT_STRIP_TRAILING_WHITESPACE\\\)
-\\s*execute_process\\\(COMMAND \\\${_mlre} $install_tclsh $modulecmd_path cmake \\\${ARGV}
+\\s*execute_process\\\(COMMAND \\\${_mlre} $install_tclsh $modulecmd_pathre cmake \\\${ARGV}
 \\s*OUTPUT_FILE \\\${tempfile_name}\\\)
 \\s*if\\\(EXISTS \\\${tempfile_name}\\\)
 \\s*include\\\(\\\${tempfile_name}\\\)
@@ -298,7 +299,7 @@ set func_r "module <- function\\\(...\\\){
 \\s*arglist <- as.list\\\(match.call\\\(\\\)\\\)
 \\s*arglist\\\[1\\\] <- 'r'
 \\s*args <- paste0\\\(arglist, collapse=' '\\\)
-\\s*cmd <- paste\\\(mlre, '$install_tclsh', '$modulecmd_path', args, sep=' '\\\)
+\\s*cmd <- paste\\\(mlre, '$install_tclsh', '$modulecmd_pathre', args, sep=' '\\\)
 \\s*mlstatus <- TRUE
 \\s*hndl <- pipe\\\(cmd\\\)
 \\s*eval\\\(expr = parse\\\(file=hndl\\\)\\\)
@@ -324,9 +325,11 @@ foreach shell $supported_shells {
         lappend ans [list [set "func_$shell"]]
         if {$install_versioning eq "y"} {
             lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+            lappend ans [list set MODULES_CMD $modulecmd_path]
             lappend ans [list set MODULESHOME $moduleshome]
             lappend ans [list set MODULE_VERSION "(.*)"]
         } else {
+            lappend ans [list set MODULES_CMD $modulecmd_path]
             lappend ans [list set MODULESHOME $moduleshome]
         }
 
@@ -353,6 +356,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                 if {$install_versioning eq "y"} {
                     lappend ans [list set MODULE_VERSION_STACK "(.*)"]
                 }
+                lappend ans [list set MODULES_CMD $modulecmd_path]
                 lappend ans [list set LOADEDMODULES ""]
                 lappend ans [list set MODULESHOME $moduleshome]
                 lappend ans [list set MODULEPATH ""]
@@ -363,6 +367,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                 if {$install_versioning eq "y"} {
                     lappend ans [list set MODULE_VERSION_STACK "(.*)"]
                 }
+                lappend ans [list set MODULES_CMD $modulecmd_path]
                 lappend ans [list set MODULEPATH_modshare "(.*)"]
                 lappend ans [list set LOADEDMODULES ""]
                 lappend ans [list set MODULESHOME $moduleshome]
@@ -376,6 +381,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                 if {$install_versioning eq "y"} {
                     lappend ans [list set MODULE_VERSION_STACK "(.*)"]
                 }
+                lappend ans [list set MODULES_CMD $modulecmd_path]
                 lappend ans [list set MODULEPATH_modshare "$modulepathre:1"]
                 lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
                 lappend ans [list set LOADEDMODULES "null"]
@@ -405,6 +411,7 @@ set env(MODULEPATH) $modpath
 #
 
 unset path_list
+unset modulecmd_pathre
 unset modulecmd_path
 unset moduleshome
 unset modulepathre
