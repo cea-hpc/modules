@@ -89,21 +89,23 @@ if {$install_setbinpath eq "y"} {
    foreach shell $shell_list {
       testall_cmd_re "$shell" "modulecmd $shell --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
    }
-   # set module compat version as default
-   set env(MODULES_USE_COMPAT_VERSION) 1
-   if {$verbose > 0} {
-      send_user "\tSetup MODULES_USE_COMPAT_VERSION = 1\n"
-   }
-   foreach shell $shell_list {
-      # compat version does not support Fish shell
-      if {$shell ne "fish"} {
-         testall_cmd_re "$shell" "modulecmd $shell --version" " test 0 = 1;" "^VERSION=\\S+.*\$" 1
+   if {$install_compatversion eq "y"} {
+      # set module compat version as default
+      set env(MODULES_USE_COMPAT_VERSION) 1
+      if {$verbose > 0} {
+         send_user "\tSetup MODULES_USE_COMPAT_VERSION = 1\n"
       }
-   }
-   # restore environment setup
-   unset env(MODULES_USE_COMPAT_VERSION)
-   if {$verbose > 0} {
-      send_user "\tUnset MODULES_USE_COMPAT_VERSION\n"
+      foreach shell $shell_list {
+         # compat version does not support Fish shell
+         if {$shell ne "fish"} {
+            testall_cmd_re "$shell" "modulecmd $shell --version" " test 0 = 1;" "^VERSION=\\S+.*\$" 1
+         }
+      }
+      # restore environment setup
+      unset env(MODULES_USE_COMPAT_VERSION)
+      if {$verbose > 0} {
+         send_user "\tUnset MODULES_USE_COMPAT_VERSION\n"
+      }
    }
 
    if {$verbose > 0} {
