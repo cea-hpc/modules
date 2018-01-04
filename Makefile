@@ -21,7 +21,7 @@ endif
 include Makefile.inc
 
 all: initdir pkgdoc modulecmd.tcl ChangeLog README \
-	contrib/scripts/add.modules
+	contrib/scripts/add.modules contrib/scripts/modulecmd
 ifeq ($(compatversion),y)
 all: $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
 else
@@ -159,6 +159,9 @@ README:
 contrib/scripts/add.modules: contrib/scripts/add.modules.in
 	$(translate-in-script)
 
+contrib/scripts/modulecmd: contrib/scripts/modulecmd.in
+	$(translate-in-script)
+
 # compatibility version-related rules
 $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog:
 	make -C $(COMPAT_DIR) $(@F)
@@ -199,9 +202,10 @@ uninstall-testconfig:
 
 ifeq ($(compatversion),y)
 install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
-	$(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
+	contrib/scripts/modulecmd $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
 else
-install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules
+install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
+	contrib/scripts/modulecmd
 endif
 	mkdir -p $(DESTDIR)$(libexecdir)
 	mkdir -p $(DESTDIR)$(bindir)
@@ -215,6 +219,8 @@ endif
 	chmod +x $(DESTDIR)$(bindir)/envml
 	cp contrib/scripts/add.modules $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/add.modules
+	cp contrib/scripts/modulecmd $(DESTDIR)$(bindir)/
+	chmod +x $(DESTDIR)$(bindir)/modulecmd
 	cp contrib/scripts/mkroot $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/mkroot
 ifeq ($(docinstall),y)
@@ -242,6 +248,7 @@ ifeq ($(compatversion),y)
 endif
 	rm -f $(DESTDIR)$(bindir)/envml
 	rm -f $(DESTDIR)$(bindir)/add.modules
+	rm -f $(DESTDIR)$(bindir)/modulecmd
 	rm -f $(DESTDIR)$(bindir)/mkroot
 ifeq ($(docinstall),y)
 	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog README COPYING.GPLv2)
@@ -309,6 +316,7 @@ ifeq ($(wildcard .git) $(wildcard NEWS.rst),.git NEWS.rst)
 endif
 	rm -f modulecmd.tcl
 	rm -f contrib/scripts/add.modules
+	rm -f contrib/scripts/modulecmd
 	rm -f testsuite/example/.modulespath testsuite/example/modulerc
 	rm -f modules-*.tar modules-*.tar.gz modules-*.tar.bz2
 	rm -f modules-*.srpm

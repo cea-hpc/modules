@@ -105,12 +105,14 @@ mkdir -p %{buildroot}%{_bindir}
 # setup for alternatives on Fedora
 touch %{buildroot}%{_sysconfdir}/profile.d/modules.{csh,sh}
 touch %{buildroot}%{_bindir}/modulecmd
+# remove modulecmd wrapper as it will be handled by alternatives
+rm -f %{buildroot}%{_datadir}/Modules/bin/modulecmd
 %else
 # install profile links
 ln -s %{_datadir}/Modules/init/profile.csh %{buildroot}%{_sysconfdir}/profile.d/modules.csh
 ln -s %{_datadir}/Modules/init/profile.sh %{buildroot}%{_sysconfdir}/profile.d/modules.sh
-# link to main command in bin for compatibility
-ln -s %{_datadir}/Modules/libexec/modulecmd.tcl %{buildroot}%{_bindir}/modulecmd
+# install modulecmd wrapper script
+mv %{buildroot}%{_datadir}/Modules/bin/modulecmd %{buildroot}%{_bindir}/
 %endif
 
 # major utilities go to regular bin dir
