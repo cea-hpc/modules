@@ -563,6 +563,10 @@ ENVIRONMENT
  command initialization scripts, the executable program **modulecmd.tcl**,
  and a directory containing a collection of master *modulefiles*.
 
+**MODULES_CMD**
+
+ The location of the active module command script.
+
 **MODULES_COLLECTION_PIN_VERSION**
 
  If set to **1**, register exact version number of modulefiles when saving a

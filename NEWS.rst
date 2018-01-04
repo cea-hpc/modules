@@ -125,6 +125,10 @@ Modules 4.1.0 (2018-01-??)
   enables to switch from one Modules version to another.
 * Fix removal of CMake generated temporary script file by stripping newline
   character from script file name.
+* Add ``MODULES_CMD`` environment variable to expose path to the currently
+  active module command script. This variable is set at initialization time.
+* Introduce ``modulecmd`` wrapper script, installed in binary directory, which
+  executes the active module command.
 
 
 Modules 4.0.0 (2017-10-16)

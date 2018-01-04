@@ -352,6 +352,8 @@ Environment
 
  These environment variables are not supported on compatibility version.
 
+**MODULES_CMD**
+
 **MODULES_COLLECTION_PIN_VERSION**
 
 **MODULES_PAGER**
