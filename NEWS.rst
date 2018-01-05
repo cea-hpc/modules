@@ -129,6 +129,8 @@ Modules 4.1.0 (2018-01-??)
   active module command script. This variable is set at initialization time.
 * Introduce ``modulecmd`` wrapper script, installed in binary directory, which
   executes the active module command.
+* Fix modulefile Tcl interpreter reset when handling list variables. (fix
+  issue#145)
 
 
 Modules 4.0.0 (2017-10-16)

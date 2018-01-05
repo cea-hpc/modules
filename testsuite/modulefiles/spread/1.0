@@ -40,6 +40,12 @@ if {[array exists spread_array]} {
 if {$tcl_platform(osVersion) eq "test"} {
     puts stderr "variable tcl_platform(osVersion) equals test"
 }
+if {[llength $auto_path] <= 1} {
+    puts stderr "variable auto_path has lost elements"
+}
+if {[lsearch -exact $auto_path $env(TESTSUITEDIR)] > -1} {
+    puts stderr "variable auto_path contains $env(TESTSUITEDIR)"
+}
 
 # test if specific or overriden interpreter alias command have spread here
 set existing_proc [lindex [info procs] 0]
@@ -72,6 +78,7 @@ set spread "yes"
 set tcl_version "test"
 array set spread_array [list "yes" 1]
 set tcl_platform(osVersion) "test"
+lappend auto_path $env(TESTSUITEDIR)
 set env(spread) "yes"
 
 # define specific procs or override interpreter alias command

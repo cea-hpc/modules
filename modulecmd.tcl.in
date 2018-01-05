@@ -809,7 +809,12 @@ proc resetInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
          } elseif {![info exists dumpArrayVars($var)]} {
             if {$dumpVars($var) ne [$itrp eval set ::$var]} {
                reportDebug "resetInterpState: restoring on $itrp var $var"
-               $itrp eval set ::$var $dumpVars($var)
+               if {[llength $dumpVars($var)] > 1} {
+                  # restore value as list
+                  $itrp eval set ::$var [list $dumpVars($var)]
+               } else {
+                  $itrp eval set ::$var $dumpVars($var)
+               }
             }
          } else {
             if {$dumpVars($var) ne [$itrp eval array get ::$var]} {
