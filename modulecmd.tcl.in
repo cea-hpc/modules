@@ -510,12 +510,12 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
          module-info module-whatis module-whatis set-alias set-alias\
          unset-alias unset-alias uname uname x-resource x-resource exit\
          exitModfileCmd module-version module-version module-alias\
-         module-alias module-trace module-trace module-verbosity\
-         module-verbosity module-user module-user module-log module-log\
-         reportInternalBug reportInternalBug reportWarning reportWarning\
-         reportError reportError raiseErrorCount raiseErrorCount report\
-         report isWin isWin puts putsModfileCmd readModuleContent\
-         readModuleContent]
+         module-alias module-virtual module-virtual module-trace module-trace\
+         module-verbosity module-verbosity module-user module-user module-log\
+         module-log reportInternalBug reportInternalBug reportWarning\
+         reportWarning reportError reportError raiseErrorCount\
+         raiseErrorCount report report isWin isWin puts putsModfileCmd\
+         readModuleContent readModuleContent]
    }
 
    # dedicate an interpreter per level of interpretation to have in case of
@@ -648,11 +648,11 @@ proc execute-modulerc {modfile} {
          # list interpreter alias commands to define
          array set g_modrcAliases [list uname uname system system chdir\
             chdir module-version module-version module-alias module-alias\
-            module module module-info module-info module-trace module-trace\
-            module-verbosity module-verbosity module-user module-user\
-            module-log module-log reportInternalBug reportInternalBug\
-            setModulesVersion setModulesVersion readModuleContent\
-            readModuleContent]
+            module-virtual module-virtual module module module-info\
+            module-info module-trace module-trace module-verbosity\
+            module-verbosity module-user module-user module-log module-log\
+            reportInternalBug reportInternalBug setModulesVersion\
+            setModulesVersion readModuleContent readModuleContent]
       }
 
       # dedicate an interpreter per level of interpretation to have in case of
@@ -1303,6 +1303,25 @@ proc module-alias {args} {
 
    if {[currentMode] eq "display" && !$::g_inhibit_dispreport} {
       report "module-alias\t$args"
+   }
+
+   return {}
+}
+
+proc module-virtual {args} {
+   global g_moduleVirtual
+   global g_sourceVirtual ModulesCurrentModulefile
+
+   lassign [getModuleNameVersion [lindex $args 0]] mod
+   set modfile [getAbsolutePath [lindex $args 1]]
+
+   reportDebug "module-virtual: $mod = $modfile"
+
+   set g_moduleVirtual($mod) $modfile
+   set g_sourceVirtual($mod) $ModulesCurrentModulefile
+
+   if {[currentMode] eq "display" && !$::g_inhibit_dispreport} {
+      report "module-virtual\t$args"
    }
 
    return {}
@@ -2799,6 +2818,10 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
                      # If mod was a file in this path, return that file
                      set retlist [list "$dir/$mod" $mod]
                   }
+                  {virtual} {
+                     # return virtual name with file it targets
+                     set retlist [list [lindex $mod_list($mod) 2] $mod]
+                  }
                   {invalid} - {accesserr} {
                      # may found mod but issue, so end search with error
                      set retlist [concat [list "" $mod] $mod_list($mod)]
@@ -2958,6 +2981,7 @@ proc runModulerc {} {
    # Runs the global RC files if they exist
    global env
    global g_moduleAlias g_rcAlias g_moduleVersion g_rcVersion
+   global g_moduleVirtual g_rcVirtual
    set rclist {}
 
    reportDebug "runModulerc: running..."
@@ -2989,6 +3013,7 @@ proc runModulerc {} {
    # able to include them or not in output or resolution processes
    array set g_rcAlias [array get g_moduleAlias]
    array set g_rcVersion [array get g_moduleVersion]
+   array set g_rcVirtual [array get g_moduleVirtual]
 }
 
 # manage settings to save as a stack to have a separate set of settings
@@ -4117,8 +4142,9 @@ proc findModules {dir {mod {}} {fetch_mtime 0} {fetch_hidden 0}} {
 
 proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    global ModulesCurrentModulefile
-   global g_sourceAlias g_sourceVersion g_resolvedPath
+   global g_sourceAlias g_sourceVersion g_sourceVirtual g_resolvedPath
    global g_rcAlias g_moduleAlias g_rcVersion g_moduleVersion
+   global g_rcVirtual g_moduleVirtual
 
    reportDebug "getModules: get '$mod' in $dir (fetch_mtime=$fetch_mtime,\
       search=$search, fetch_hidden=$fetch_hidden)"
@@ -4209,6 +4235,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          # but sometimes they may target an alias
          } elseif {[info exists g_moduleAlias($versmod)]} {
             lappend matching_versalias $versmod
+         # or a virtual module
+         } elseif {[info exists g_moduleVirtual($versmod)]} {
+            lappend matching_versvirt $versmod
          }
       }
    }
@@ -4240,6 +4269,65 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          set parentname [file dirname $alias]
          if {[info exists mod_list($parentname)]} {
             lappend mod_list($parentname) [file tail $alias]
+         }
+      }
+   }
+
+   # add virtual mods found when parsing .version or .modulerc files in this
+   # directory (skip virtual mods not registered from this directory except if
+   # global or user rc definitions should be included) if they match passed
+   # $mod (as for regular modulefiles) or if a symbolic versions targeting
+   # virtual mod match passed $mod
+   set matching_virtual [array names g_moduleVirtual -glob $mod*]
+   if {[info exists matching_versvirt]} {
+      foreach versvirt $matching_versvirt {
+         if {[lsearch -exact $matching_virtual $versvirt] == -1} {
+            lappend matching_virtual $versvirt
+         }
+      }
+   }
+   foreach virt $matching_virtual {
+      if {($dir ne "" && [string first "$dir/" $g_sourceVirtual($virt)] == 0)\
+         || ($add_rc_defs && [info exists g_rcVirtual($virt)])} {
+         lassign [checkValidModule $g_moduleVirtual($virt)] check_valid\
+            check_msg
+         switch -- $check_valid {
+            {true} {
+               if {$fetch_mtime} {
+                  set mtime [file mtime $g_moduleVirtual($virt)]
+               } else {
+                  set mtime {}
+               }
+               # set mtime at index 1 like a modulefile entry
+               set mod_list($virt) [list "virtual" $mtime\
+                  $g_moduleVirtual($virt)]
+
+               set add_ref_to_parent 1
+            }
+            default {
+               # register check error and relative message to get it in
+               # case of direct access of this module element, but no
+               # registering in parent directory structure as element
+               # is not valid
+               set mod_list($virt) [list $check_valid $check_msg\
+                  $g_moduleVirtual($virt)]
+
+               # no reference to parent list
+               set add_ref_to_parent 0
+            }
+         }
+
+         # in case virtual mod overwrites a directory definition
+         if {[info exists dir_list($virt)]} {
+             unset dir_list($virt)
+         }
+
+         # add reference to this virtual mod in parent structure
+         if {$add_ref_to_parent} {
+            set parentname [file dirname $virt]
+            if {[info exists mod_list($parentname)]} {
+               lappend mod_list($parentname) [file tail $virt]
+            }
          }
       }
    }
@@ -4386,7 +4474,7 @@ proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
                   lappend clean_list $elt
                }
             }
-            {modulefile} {
+            {modulefile} - {virtual} {
                if {$show_mtime} {
                   # add to display file modification time in addition
                   # to potential tags
@@ -5009,6 +5097,9 @@ proc cmdModulePaths {mod} {
             {modulefile} {
                lappend g_return_text $dir/$elt
             }
+            {virtual} {
+               lappend g_return_text [lindex $mod_list($elt) 2]
+            }
             {alias} - {version} {
                # resolve alias target
                set aliastarget [lindex $mod_list($elt) 1]
@@ -5078,6 +5169,10 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                set interp_list($elt) $dir/$elt
                # register module name in a global list (shared across
                # modulepaths) to get hints when solving aliases/version
+               set full_list($elt) 1
+            }
+            {virtual} {
+               set interp_list($elt) [lindex $mod_list($elt) 2]
                set full_list($elt) 1
             }
             {alias} - {version} {
