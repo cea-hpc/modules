@@ -1,0 +1,51 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/01/07
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:	modvar/modfile, modvar/submodfile
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Tests the availability of known variables in modulefile
+#           interpretation context.
+#   }C%
+#
+##############################################################################
+
+set module1 "modvar/modfile"
+set modulefile1 "$modpath/$module1"
+set module2 "modvar/submodfile"
+set modulefile2 "$modpath/$module2"
+
+
+#
+#  The tests
+#
+
+lappend ans [list set ts1 $modulefile1]
+lappend ans [list set ts2 $modulefile2]
+lappend ans [list setpath LOADEDMODULES "$module2:$module1"]
+lappend ans [list setpath _LMFILES_ "$modulefile2:$modulefile1"]
+lappend ans [list set ts3 $modulefile1]
+
+testouterr_cmd_re "sh" "load $module1" $ans ""
+
+
+#
+#  Cleanup
+#
+
+unset ans
+unset modulefile1
+unset module1
+unset modulefile2
+unset module2

@@ -482,10 +482,9 @@ proc unset-env {var} {
 
 proc execute-modulefile {modfile {must_have_cookie 1}} {
    global g_debug g_inhibit_interp g_inhibit_errreport g_inhibit_dispreport
-   global ModulesCurrentModulefile
    global g_modfileUntrackVars g_modfileAliases
 
-   set ModulesCurrentModulefile $modfile
+   pushModuleFile $modfile
 
    # skip modulefile if interpretation has been inhibited
    if {$g_inhibit_interp} {
@@ -617,6 +616,8 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
       }
    }]
 
+   popModuleFile
+
    reportDebug "Exiting $modfile"
    return $errorVal
 }
@@ -626,12 +627,11 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
 proc execute-modulerc {modfile} {
    global g_rcfilesSourced ModulesVersion
    global g_debug g_inhibit_errreport g_inhibit_dispreport
-   global ModulesCurrentModulefile
    global g_modrcUntrackVars g_modrcAliases
 
    reportDebug "execute-modulerc: $modfile"
 
-   set ModulesCurrentModulefile $modfile
+   pushModuleFile $modfile
    set ModulesVersion {}
    # does not report commands from rc file on display mode
    set g_inhibit_dispreport 1
@@ -714,6 +714,8 @@ proc execute-modulerc {modfile} {
 
    # re-enable command report on display mode
    set g_inhibit_dispreport 0
+
+   popModuleFile
 
    return $g_rcfilesSourced($modfile)
 }
@@ -829,7 +831,6 @@ proc resetInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
 ########################################################################
 # commands run from inside a module file
 #
-set ModulesCurrentModulefile {}
 
 # Dummy procedures for commands available on C-version but not
 # implemented here. These dummy procedures enables support for
@@ -2609,6 +2610,22 @@ proc popModuleName {} {
    set g_moduleNameStack [lrange $g_moduleNameStack 0 end-1]
 }
 
+set g_moduleFileStack {}
+
+proc pushModuleFile {modfile} {
+   global g_moduleFileStack ModulesCurrentModulefile
+
+   lappend g_moduleFileStack $modfile
+   set ModulesCurrentModulefile $modfile
+}
+
+proc popModuleFile {} {
+   global g_moduleFileStack ModulesCurrentModulefile
+
+   set g_moduleFileStack [lrange $g_moduleFileStack 0 end-1]
+   set ModulesCurrentModulefile [lindex $g_moduleFileStack end]
+}
+
 set g_specifiedNameStack {}
 
 proc currentSpecifiedName {} {
@@ -4189,9 +4206,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          # push name to be found by module-alias and version
          pushSpecifiedName $elt
          pushModuleName $elt
-         # set is needed for execute-modulerc
-         set ModulesCurrentModulefile $dir/$elt
-         execute-modulerc $ModulesCurrentModulefile
+         execute-modulerc $dir/$elt
          popModuleName
          popSpecifiedName
       # add other entry kind to the result list
@@ -4384,8 +4399,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
 
 # Finds all module versions for mod in the module path dir
 proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
-   global ignoreDir ModulesCurrentModulefile
-   global flag_default_mf flag_default_dir show_modtimes
+   global ignoreDir flag_default_mf flag_default_dir show_modtimes
 
    reportDebug "listModules: get '$mod' in $dir\
       (show_flags=$show_flags, filter=$filter, search=$search)"
@@ -5609,7 +5623,6 @@ proc cmdModuleUnsource {args} {
 
 proc cmdModuleLoad {args} {
    global g_loadedModules g_force
-   global ModulesCurrentModulefile
 
    reportDebug "cmdModuleLoad: loading $args"
 
@@ -5626,7 +5639,6 @@ proc cmdModuleLoad {args} {
          }
 
          set currentModule $modname
-         set ModulesCurrentModulefile $modfile
 
          if {$g_force || ! [info exists g_loadedModules($currentModule)]} {
             pushSpecifiedName $mod
@@ -5659,7 +5671,6 @@ proc cmdModuleLoad {args} {
 
 proc cmdModuleUnload {match args} {
    global g_loadedModules
-   global ModulesCurrentModulefile
 
    reportDebug "cmdModuleUnload: unloading $args (match=$match)"
 
@@ -5670,7 +5681,6 @@ proc cmdModuleUnload {match args} {
       lassign [getPathToModule $mod {} $match] modfile modname
       if {$modfile ne ""} {
          set currentModule $modname
-         set ModulesCurrentModulefile $modfile
 
          if {[info exists g_loadedModules($currentModule)]} {
             pushSpecifiedName $mod
@@ -6370,6 +6380,9 @@ if {[catch {
    set otherargv [lreplace $otherargv 0 0]
 
    cacheCurrentModules
+
+   # no modulefile is currently being interpreted
+   pushModuleFile {}
 
    # Find and execute any .modulerc file found in the module directories
    # defined in env(MODULESPATH)
