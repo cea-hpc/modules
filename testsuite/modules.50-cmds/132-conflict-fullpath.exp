@@ -31,6 +31,8 @@ set module1 "conflict/fullpath"
 set modulefile1 "$modpath/$module1"
 set module2 "conflict/module"
 set modulefile2 "$modpath/$module2"
+set module3 "conflict/relpath"
+set modulefile3 "$modpath/$module3"
 
 set module_tron "trace/all_on"
 set modulefile_tron "$modpath/$module_tron"
@@ -46,12 +48,18 @@ append err_conflict1 "HINT: Might try \"module unload $modpath/setenv/1.0\" firs
 set err_conflict1re [regsub -all "\(\[.+?\]\)" $err_conflict1 {\\\1}]
 set err_conflict2 "$warn_msgs: $module2 cannot be loaded due to a conflict.\n"
 append err_conflict2 "HINT: Might try \"module unload trace\" first."
+set err_conflict3 "$warn_msgs: $module3 cannot be loaded due to a conflict.\n"
+append err_conflict3 "HINT: Might try \"module unload ../setenv/1.0\" first."
+set err_conflict3re [regsub -all "\(\[.+?\]\)" $err_conflict3 {\\\1}]
 set err_conflictf1 "$warn_msgs: $modulefile1 cannot be loaded due to a conflict.\n"
 append err_conflictf1 "HINT: Might try \"module unload $modpath/setenv/1.0\" first."
 set err_conflictf1re [regsub -all "\(\[.+?\]\)" $err_conflictf1 {\\\1}]
 set err_conflictf2 "$warn_msgs: $modulefile2 cannot be loaded due to a conflict.\n"
 append err_conflictf2 "HINT: Might try \"module unload trace\" first."
 set err_conflictf2re [regsub -all "\(\[.+?\]\)" $err_conflictf2 {\\\1}]
+set err_conflictf3 "$warn_msgs: $modulefile3 cannot be loaded due to a conflict.\n"
+append err_conflictf3 "HINT: Might try \"module unload ../setenv/1.0\" first."
+set err_conflictf3re [regsub -all "\(\[.+?\]\)" $err_conflictf3 {\\\1}]
 
 
 #
@@ -59,15 +67,15 @@ set err_conflictf2re [regsub -all "\(\[.+?\]\)" $err_conflictf2 {\\\1}]
 #
 
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$module1:$module2"]
-lappend ans [list setpath _LMFILES_ "$modulefile1:$modulefile2"]
-testouterr_cmd_re "sh" "load $module1 $module2" $ans ""
+lappend ans [list setpath LOADEDMODULES "$module1:$module2:$module3"]
+lappend ans [list setpath _LMFILES_ "$modulefile1:$modulefile2:$modulefile3"]
+testouterr_cmd_re "sh" "load $module1 $module2 $module3" $ans ""
 
 set ans [list]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$modulefile1:$modulefile2"]
-lappend ans [list setpath _LMFILES_ "$modulefile1:$modulefile2"]
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2" $ans ""
+lappend ans [list setpath LOADEDMODULES "$modulefile1:$modulefile2:$modulefile3"]
+lappend ans [list setpath _LMFILES_ "$modulefile1:$modulefile2:$modulefile3"]
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans ""
 
 
 # test with conflicts loaded as short path
@@ -78,8 +86,8 @@ if { $verbose > 0 } {
 set env(LOADEDMODULES) "$module_tron:$module_set1"
 set env(_LMFILES_) "$modulefile_tron:$modulefile_set1"
 
-testouterr_cmd_re "sh" "load $module1 $module2" "ERR" "$err_conflict1re\n$err_conflict2"
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2" "ERR" "$err_conflictf1re\n$err_conflictf2re"
+testouterr_cmd_re "sh" "load $module1 $module2 $module3" "ERR" "$err_conflict1re\n$err_conflict2\n$err_conflict3"
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_conflictf1re\n$err_conflictf2re\n$err_conflictf3re"
 
 
 # test with conflicts loaded as short path, no more modulepath set
@@ -88,7 +96,7 @@ if { $verbose > 0 } {
 }
 unset env(MODULEPATH)
 
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2" "ERR" "$err_conflictf1re\n$err_conflictf2re"
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_conflictf1re\n$err_conflictf2re\n$err_conflictf3re"
 
 
 # test with conflicts loaded as full path
@@ -101,8 +109,8 @@ set env(LOADEDMODULES) "$modulefile_tron:$modulefile_set1"
 set env(_LMFILES_) "$modulefile_tron:$modulefile_set1"
 set env(MODULEPATH) $modpath
 
-testouterr_cmd_re "sh" "load $module1 $module2" "ERR" "$err_conflict1re\n$err_conflict2"
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2" "ERR" "$err_conflictf1re\n$err_conflictf2re"
+testouterr_cmd_re "sh" "load $module1 $module2 $module3" "ERR" "$err_conflict1re\n$err_conflict2\n$err_conflict3"
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_conflictf1re\n$err_conflictf2re\n$err_conflictf3re"
 
 
 # test with conflicts loaded as full path, no more modulepath set
@@ -112,11 +120,11 @@ if { $verbose > 0 } {
 unset env(MODULEPATH)
 
 set ans [list]
-lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$modulefile_tron:$modulefile_set1:$modulefile2"]
 lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile2"]
+lappend ans [list setpath LOADEDMODULES "$modulefile_tron:$modulefile_set1:$modulefile2"]
+lappend ans [list set testsuite yes]
 lappend ans [list ERR]
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2" $ans $err_conflictf1re
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans "$err_conflictf1re\n$err_conflictf3re"
 
 
 #
@@ -136,10 +144,14 @@ set env(MODULEPATH) $modpath
 unset err_conflict1
 unset err_conflict1re
 unset err_conflict2
+unset err_conflict3
+unset err_conflict3re
 unset err_conflictf1
 unset err_conflictf1re
 unset err_conflictf2
 unset err_conflictf2re
+unset err_conflictf3
+unset err_conflictf3re
 
 unset ans
 
@@ -147,6 +159,8 @@ unset modulefile1
 unset module1
 unset modulefile2
 unset module2
+unset modulefile3
+unset module3
 unset modulefile_tron
 unset module_tron
 unset modulefile_set1

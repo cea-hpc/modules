@@ -3069,7 +3069,7 @@ proc renderSettings {} {
    global g_stateEnvVars g_stateAliases
    global g_newXResources g_delXResources
    global g_changeDir g_stdoutPuts error_count g_return_false g_return_text
-   global g_autoInit CSH_LIMIT cwd
+   global g_autoInit CSH_LIMIT
 
    reportDebug "renderSettings: called."
 
@@ -3845,20 +3845,28 @@ proc runCommand {cmd args} {
 }
 
 proc getAbsolutePath {path} {
-   global cwd
-   # register pwd at first call
-   if {![info exists cwd]} {
-      set cwd [pwd]
+   global cwd ModulesCurrentModulefile
+
+   # currently executing a modulefile or rc, so get the directory of this file
+   if {$ModulesCurrentModulefile ne ""} {
+      set curdir [file dirname $ModulesCurrentModulefile]
+   # elsewhere get module command current working directory
+   } else {
+      # register pwd at first call
+      if {![info exists cwd]} {
+         set cwd [pwd]
+      }
+      set curdir $cwd
    }
 
    set abslist {}
    # get a first version of the absolute path by joining the current working
    # directory to the given path. if given path is already absolute
-   # 'file join' will not break it as $cwd will be ignored as soon a
+   # 'file join' will not break it as $curdir will be ignored as soon a
    # beginning '/' character is found on $path. this first pass also clean
    # extra '/' character. then each element of the path is analyzed to clear
    # "." and ".." components.
-   foreach elt [file split [file join $cwd $path]] {
+   foreach elt [file split [file join $curdir $path]] {
       if {$elt eq ".."} {
          # skip ".." element if it comes after root element, remove last
          # element elsewhere
@@ -5821,11 +5829,10 @@ proc cmdModuleUse {args} {
                set pos "prepend"
             }
             default {
+               # tranform given path in an absolute path to avoid
+               # dependency to the current work directory.
+               set path [getAbsolutePath $path]
                if {[file isdirectory [resolvStringWithEnv $path]]} {
-                  # tranform given path in an absolute path to avoid
-                  # dependency to the current work directory.
-                  set path [getAbsolutePath $path]
-
                   pushMode "load"
                   catch {
                      add-path $pos MODULEPATH $path

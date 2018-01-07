@@ -51,6 +51,8 @@ set module_9 "module/lbad"
 set modulefile_9 "$modpath/$module_9"
 set module_10 "module/lunk"
 set modulefile_10 "$modpath/$module_10"
+set module_11 "module/relpath"
+set modulefile_11 "$modpath/$module_11"
 
 set submod_5 "append/0.2"
 set submodfile_5 "$modpath/$submod_5"
@@ -58,13 +60,17 @@ set submod_6 "bad2/body"
 set submodfile_6 "$modpath/$submod_6"
 set submod_7 "NonExistant"
 set submodfile_7 "$modpath/$submod_7"
+set submod_11 $submod_5
+set submodfile_11 $submodfile_5
 
 set moderr_5 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$submodfile_5'\n$err_contact"
 set moderr_6 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$submodfile_6'\n$err_contact"
 set moderr_7 "$err_path'$submod_7'"
+set moderr_11 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$submodfile_11'\n$err_contact"
 set moderrun_5 "$moderr_msgs: unload-path cannot handle path equals to separator string\n  In '$submodfile_5'\n$err_contact"
 set moderrun_6 $moderr_6
 set moderrun_7 "$err_file'$submodfile_7'"
+set moderrun_11 "$moderr_msgs: unload-path cannot handle path equals to separator string\n  In '$submodfile_11'\n$err_contact"
 
 #
 #  The tests
@@ -116,6 +122,7 @@ testouterr_cmd "csh" "load $module_7" "ERR" "$moderr_7"
 testouterr_cmd "csh" "load $module_8" "ERR" "$moderr_5"
 testouterr_cmd "csh" "load $module_9" "ERR" "$moderr_6"
 testouterr_cmd "csh" "load $module_10" "ERR" "$moderr_7"
+testouterr_cmd "csh" "load $module_11" "ERR" "$moderr_11"
 
 #
 # Test unload of module with issue, nothing unloads
@@ -151,6 +158,11 @@ set env(LOADEDMODULES) "$submod_7:$module_7:$module_10"
 
 testouterr_cmd "csh" "unload $module_10" "ERR" "$moderrun_7"
 
+set env(_LMFILES_) "$submodfile_11:$modulefile_11"
+set env(LOADEDMODULES) "$submod_11:$module_11"
+
+testouterr_cmd "csh" "unload $module_11" "ERR" "$moderrun_11"
+
 # Clean up the just changed environment
 unset env(LOADEDMODULES)
 unset env(_LMFILES_)
@@ -184,6 +196,8 @@ unset module_9
 unset modulefile_9
 unset module_10
 unset modulefile_10
+unset module_11
+unset modulefile_11
 
 unset submod_5
 unset submodfile_5
@@ -191,10 +205,14 @@ unset submod_6
 unset submodfile_6
 unset submod_7
 unset submodfile_7
+unset submod_11
+unset submodfile_11
 
 unset moderr_5
 unset moderr_6
 unset moderr_7
+unset moderr_11
 unset moderrun_5
 unset moderrun_6
 unset moderrun_7
+unset moderrun_11

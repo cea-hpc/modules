@@ -31,6 +31,8 @@ set module1 "prereq/fullpath"
 set modulefile1 "$modpath/$module1"
 set module2 "prereq/module"
 set modulefile2 "$modpath/$module2"
+set module3 "prereq/relpath"
+set modulefile3 "$modpath/$module3"
 
 set module_tron "trace/all_on"
 set modulefile_tron "$modpath/$module_tron"
@@ -45,19 +47,23 @@ set err_prereq1 "$warn_msgs: $module1 cannot be loaded due to missing prereq.\n"
 append err_prereq1 "HINT: the following module must be loaded first: $modpath/setenv/1.0"
 set err_prereq2 "$warn_msgs: $module2 cannot be loaded due to missing prereq.\n"
 append err_prereq2 "HINT: the following module must be loaded first: trace"
+set err_prereq3 "$warn_msgs: $module3 cannot be loaded due to missing prereq.\n"
+append err_prereq3 "HINT: the following module must be loaded first: ../setenv/1.0"
 set err_prereqf1 "$warn_msgs: $modulefile1 cannot be loaded due to missing prereq.\n"
 append err_prereqf1 "HINT: the following module must be loaded first: $modpath/setenv/1.0"
 set err_prereqf2 "$warn_msgs: $modulefile2 cannot be loaded due to missing prereq.\n"
 append err_prereqf2 "HINT: the following module must be loaded first: trace"
 set err_prereqf2re [regsub -all "\(\[.+?\]\)" $err_prereqf2 {\\\1}]
+set err_prereqf3 "$warn_msgs: $modulefile3 cannot be loaded due to missing prereq.\n"
+append err_prereqf3 "HINT: the following module must be loaded first: ../setenv/1.0"
 
 
 #
 #  The tests
 #
 
-testouterr_cmd "sh" "load $module1 $module2" "ERR" "$err_prereq1\n$err_prereq2"
-testouterr_cmd "sh" "load $modulefile1 $modulefile2" "ERR" "$err_prereqf1\n$err_prereqf2"
+testouterr_cmd "sh" "load $module1 $module2 $module3" "ERR" "$err_prereq1\n$err_prereq2\n$err_prereq3"
+testouterr_cmd "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_prereqf1\n$err_prereqf2\n$err_prereqf3"
 
 
 # test with prereqs loaded as short path
@@ -69,15 +75,15 @@ set env(LOADEDMODULES) "$module_tron:$module_set1"
 set env(_LMFILES_) "$modulefile_tron:$modulefile_set1"
 
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$module_tron:$module_set1:$module1:$module2"]
-lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile2"]
-testouterr_cmd_re "sh" "load $module1 $module2" $ans ""
+lappend ans [list setpath LOADEDMODULES "$module_tron:$module_set1:$module1:$module2:$module3"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile2:$modulefile3"]
+testouterr_cmd_re "sh" "load $module1 $module2 $module3" $ans ""
 
 set ans [list]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$module_tron:$module_set1:$modulefile1:$modulefile2"]
-lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile2"]
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2" $ans ""
+lappend ans [list setpath LOADEDMODULES "$module_tron:$module_set1:$modulefile1:$modulefile2:$modulefile3"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile2:$modulefile3"]
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans ""
 
 
 # test with prereqs loaded as short path, no more modulepath set
@@ -86,7 +92,7 @@ if { $verbose > 0 } {
 }
 unset env(MODULEPATH)
 
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2" $ans ""
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans ""
 
 
 # test with prereqs loaded as full path
@@ -101,15 +107,15 @@ set env(MODULEPATH) $modpath
 
 set ans [list]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$modulefile_tron:$modulefile_set1:$module1:$module2"]
-lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile2"]
-testouterr_cmd_re "sh" "load $module1 $module2" $ans ""
+lappend ans [list setpath LOADEDMODULES "$modulefile_tron:$modulefile_set1:$module1:$module2:$module3"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile2:$modulefile3"]
+testouterr_cmd_re "sh" "load $module1 $module2 $module3" $ans ""
 
 set ans [list]
 lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile2"]
-lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile2"]
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2" $ans ""
+lappend ans [list setpath LOADEDMODULES "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile2:$modulefile3"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile2:$modulefile3"]
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans ""
 
 
 # test with prereqs loaded as full path, no more modulepath set
@@ -119,11 +125,11 @@ if { $verbose > 0 } {
 unset env(MODULEPATH)
 
 set ans [list]
-lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1"]
-lappend ans [list setpath LOADEDMODULES "$modulefile_tron:$modulefile_set1:$modulefile1"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile3"]
+lappend ans [list setpath LOADEDMODULES "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile3"]
 lappend ans [list set testsuite yes]
 lappend ans [list ERR]
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2" $ans "$err_prereqf2re"
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans "$err_prereqf2re"
 
 
 #
@@ -142,9 +148,11 @@ set env(MODULEPATH) $modpath
 
 unset err_prereq1
 unset err_prereq2
+unset err_prereq3
 unset err_prereqf1
 unset err_prereqf2
 unset err_prereqf2re
+unset err_prereqf3
 
 unset ans
 
@@ -152,6 +160,8 @@ unset modulefile1
 unset module1
 unset modulefile2
 unset module2
+unset modulefile3
+unset module3
 unset modulefile_tron
 unset module_tron
 unset modulefile_set1
