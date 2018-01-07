@@ -5589,42 +5589,48 @@ proc cmdModuleSavelist {} {
 
 proc cmdModuleSource {args} {
    reportDebug "cmdModuleSource: $args"
-   foreach file $args {
-      if {[file exists $file]} {
+   foreach fpath $args {
+      set absfpath [getAbsolutePath $fpath]
+      if {$fpath eq ""} {
+         reportErrorAndExit "File name empty"
+      } elseif {[file exists $absfpath]} {
          pushMode "load"
-         pushSpecifiedName $file
-         pushModuleName $file
+         pushSpecifiedName $absfpath
+         pushModuleName $absfpath
          # relax constraint of having a magic cookie at the start of the
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
          # the initialization modulerc file
-         execute-modulefile $file 0
+         execute-modulefile $absfpath 0
          popModuleName
          popSpecifiedName
          popMode
       } else {
-         reportErrorAndExit "File $file does not exist"
+         reportErrorAndExit "File $fpath does not exist"
       }
    }
 }
 
 proc cmdModuleUnsource {args} {
    reportDebug "cmdModuleUnsource: $args"
-   foreach file $args {
-      if {[file exists $file]} {
+   foreach fpath $args {
+      set absfpath [getAbsolutePath $fpath]
+      if {$fpath eq ""} {
+         reportErrorAndExit "File name empty"
+      } elseif {[file exists $absfpath]} {
          pushMode "unload"
-         pushSpecifiedName $file
-         pushModuleName $file
+         pushSpecifiedName $absfpath
+         pushModuleName $absfpath
          # relax constraint of having a magic cookie at the start of the
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
          # the initialization modulerc file
-         execute-modulefile $file 0
+         execute-modulefile $absfpath 0
          popModuleName
          popSpecifiedName
          popMode
       } else {
-         reportErrorAndExit "File $file does not exist"
+         reportErrorAndExit "File $fpath does not exist"
       }
    }
 }

@@ -28,6 +28,11 @@ set path $env(PATH)
 set pathnew "$path:/modules/testsuite2.2:/modules/testsuite2.2/2.2"
 set module2 "source/0.9"
 set modulefile2 "$modpath/$module2"
+set module3 "source/1.1"
+set modulefile3 "$modpath/$module3"
+set modulefile3re "$modpathre/$module3"
+set module4 "source/1.2"
+set modulefile4 "$modpath/$module4"
 
 
 #
@@ -42,9 +47,28 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 
 testouterr_cmd_re "ALL" "load $module" $ans ""
 
+# test with relative path source
+set ans [list]
+lappend ans [list set testsuite "yes"]
+lappend ans [list setpath PATH $pathnew]
+lappend ans [list setpath LOADEDMODULES $module3]
+lappend ans [list setpath _LMFILES_ $modulefile3]
+
+testouterr_cmd_re "sh" "load $module3" $ans ""
+
+# test empty file name
+set errsource "$moderr_msgs: File name empty
+  In '$modulefile4'
+$err_contact"
+testouterr_cmd "sh" "load $module4" "ERR" $errsource
+
 # display test
 set dispout "module source\t$modpathre/setenv/1.0 $modpathre/append/2.2"
 testouterr_cmd_re "ALL" "display $module" "OK" "$modlin\n$modulefilere:\n\n$dispout\n$modlin"
+
+# test with relative path source
+set dispout "module source\t../setenv/1.0 ../append/2.2"
+testouterr_cmd_re "sh" "display $module3" "OK" "$modlin\n$modulefile3re:\n\n$dispout\n$modlin"
 
 # unload test
 if { $verbose > 0 } {
@@ -65,6 +89,38 @@ lappend ans [list unsetpath _LMFILES_]
 
 testouterr_cmd_re "ALL" "unload $module" $ans ""
 
+# test with relative path source
+if { $verbose > 0 } {
+    send_user "\tSetup PATH = '$pathnew'\n"
+    send_user "\tSetup LOADEDMODULES = '$module3'\n"
+    send_user "\tSetup _LMFILES_ = '$modulefile3'\n"
+}
+set env(PATH) $pathnew
+set env(LOADEDMODULES) $module3
+set env(_LMFILES_) $modulefile3
+set env(testsuite) "yes"
+
+set ans [list]
+lappend ans [list unset testsuite]
+lappend ans [list setpath PATH $path]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+testouterr_cmd_re "sh" "unload $module3" $ans ""
+
+# test empty file name
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = '$module4'\n"
+    send_user "\tSetup _LMFILES_ = '$modulefile4'\n"
+}
+set env(LOADEDMODULES) $module4
+set env(_LMFILES_) $modulefile4
+
+set errsource "$moderr_msgs: File name empty
+  In '$modulefile4'
+$err_contact"
+testouterr_cmd "sh" "unload $module4" "ERR" $errsource
+
 # load test with source command targeting bad file
 set errsource "$moderr_msgs: File unknown/1.0 does not exist
   In '$modulefile2'
@@ -80,6 +136,7 @@ set env(LOADEDMODULES) $module2
 set env(_LMFILES_) $modulefile2
 
 testouterr_cmd "sh" "unload $module2" "ERR" "$errsource"
+
 
 #
 #  Cleanup
@@ -105,3 +162,8 @@ unset modulefilere
 unset module
 unset module2
 unset modulefile2
+unset module3
+unset modulefile3
+unset modulefile3re
+unset module4
+unset modulefile4
