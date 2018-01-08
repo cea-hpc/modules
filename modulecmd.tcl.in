@@ -2743,6 +2743,16 @@ proc isModuleFullPath {mod} {
    }
 }
 
+# check if a module corresponds to a virtual module (module name
+# does not corresponds to end of the modulefile name)
+proc isModuleVirtual {mod modfile} {
+   if {[string first $mod $modfile end-[string length $mod]] == -1} {
+      return 1
+   } else {
+      return 0
+   }
+}
+
 # Return the full pathname and modulename to the module.  
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
@@ -5042,6 +5052,10 @@ proc cmdModuleList {} {
                # skip rc find and execution if mod is registered as full path
                if {[isModuleFullPath $mod]} {
                   set mtime [file mtime $mod]
+                  set tag_list {}
+               # or if loaded module is a virtual module
+               } elseif {[isModuleVirtual $mod $g_loadedModules($mod)]} {
+                  set mtime [file mtime $g_loadedModules($mod)]
                   set tag_list {}
                } else {
                   # call getModules to find and execute rc files for this mod
