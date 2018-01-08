@@ -3989,27 +3989,35 @@ proc parseAccessIssue {modfile} {
 }
 
 proc checkValidModule {modfile} {
+   global g_modfileValid
+
    reportDebug "checkValidModule: $modfile"
 
-   # Check for valid module
-   if {[catch {
-      set fid [open $modfile r]
-      set fheader [read $fid 8]
-      close $fid
-   }]} {
-      set check_valid "accesserr"
-      set check_msg [parseAccessIssue $modfile]
+   # use cached result
+   if {[info exists g_modfileValid($modfile)]} {
+      return $g_modfileValid($modfile)
    } else {
-      if {$fheader eq "\#%Module"} {
-         set check_valid "true"
-         set check_msg ""
+      # Check for valid module
+      if {[catch {
+         set fid [open $modfile r]
+         set fheader [read $fid 8]
+         close $fid
+      }]} {
+         set check_valid "accesserr"
+         set check_msg [parseAccessIssue $modfile]
       } else {
-         set check_valid "invalid"
-         set check_msg "Magic cookie '#%Module' missing"
+         if {$fheader eq "\#%Module"} {
+            set check_valid "true"
+            set check_msg ""
+         } else {
+            set check_valid "invalid"
+            set check_msg "Magic cookie '#%Module' missing"
+         }
       }
-   }
 
-   return [list $check_valid $check_msg]
+      # cache result at first query
+      return [set g_modfileValid($modfile) [list $check_valid $check_msg]]
+   }
 }
 
 # get file modification time, cache it at first query, use cache afterward
