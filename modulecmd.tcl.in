@@ -4012,6 +4012,17 @@ proc checkValidModule {modfile} {
    return [list $check_valid $check_msg]
 }
 
+# get file modification time, cache it at first query, use cache afterward
+proc getFileMtime {fpath} {
+   global g_fileMtime
+
+   if {[info exists g_fileMtime($fpath)]} {
+      return $g_fileMtime($fpath)
+   } else {
+      return [set g_fileMtime($fpath) [file mtime $fpath]]
+   }
+}
+
 proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}} {
    reportDebug "readModuleContent: $modfile"
 
@@ -4148,7 +4159,7 @@ proc findModules {dir {mod {}} {fetch_mtime 0} {fetch_hidden 0}} {
                switch -- $check_valid {
                   {true} {
                      if {$fetch_mtime} {
-                        set mtime [file mtime $element]
+                        set mtime [getFileMtime $element]
                      } else {
                         set mtime {}
                      }
@@ -4340,7 +4351,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          switch -- $check_valid {
             {true} {
                if {$fetch_mtime} {
-                  set mtime [file mtime $g_moduleVirtual($virt)]
+                  set mtime [getFileMtime $g_moduleVirtual($virt)]
                } else {
                   set mtime {}
                }
@@ -5064,11 +5075,11 @@ proc cmdModuleList {} {
             } else {
                # skip rc find and execution if mod is registered as full path
                if {[isModuleFullPath $mod]} {
-                  set mtime [file mtime $mod]
+                  set mtime [getFileMtime $mod]
                   set tag_list {}
                # or if loaded module is a virtual module
                } elseif {[isModuleVirtual $mod $g_loadedModules($mod)]} {
-                  set mtime [file mtime $g_loadedModules($mod)]
+                  set mtime [getFileMtime $g_loadedModules($mod)]
                   set tag_list {}
                } else {
                   # call getModules to find and execute rc files for this mod
@@ -5604,7 +5615,7 @@ proc cmdModuleSavelist {} {
 
          if {[string length $mod] > 0} {
             if {$show_modtimes} {
-               set filetime [clock format [file mtime $coll]\
+               set filetime [clock format [getFileMtime $coll]\
                   -format "%Y/%m/%d %H:%M:%S"]
                lappend display_list [format "%-60s%19s" $mod $filetime]
             } else {
