@@ -1040,6 +1040,19 @@ proc findModuleNameFromModulefile {modfile} {
    return $ret
 }
 
+# extract modulepath from modulefile and currently enabled modulepaths
+proc findModulepathFromModulefile {modfile} {
+   set ret ""
+
+   foreach modpath [getModulePathList] {
+      if {[string first "$modpath/" "$modfile/"] == 0} {
+         set ret $modpath
+         break
+      }
+   }
+   return $ret
+}
+
 # Determine with a name provided as argument the corresponding module name,
 # version and name/version. Module name is guessed from current module name
 # when shorthand version notation is used. Both name and version are guessed
@@ -5177,7 +5190,7 @@ proc cmdModuleApropos {{search {}}} {
 }
 
 proc cmdModuleSearch {{mod {}} {search {}}} {
-   global g_whatis g_inhibit_errreport
+   global g_whatis g_inhibit_errreport g_sourceVirtual
 
    reportDebug "cmdModuleSearch: ($mod, $search)"
 
@@ -5266,7 +5279,12 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          modfile modname issuetype issuemsg issuefile
       # found target so append it to results in corresponding modulepath
       if {$modfile ne ""} {
-         set dir [getModulepathFromModuleName $modfile $modname]
+         # get belonging modulepath dir depending of module kind
+         if {[isModuleVirtual $modname $modfile]} {
+            set dir [findModulepathFromModulefile $g_sourceVirtual($modname)]
+         } else {
+            set dir [getModulepathFromModuleName $modfile $modname]
+         }
          array unset interp_list
          if {[info exists interp_save($dir)]} {
             array set interp_list $interp_save($dir)
