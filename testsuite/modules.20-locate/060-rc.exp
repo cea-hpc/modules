@@ -33,6 +33,9 @@ set modulefilere_1 "$modpathre/$module_1"
 set module_2 "loc_rc2/1.0"
 set modulefile_2 "$modpath/$module_2"
 set modulefilere_2 "$modpathre/$module_2"
+set module_3 "virt_bar"
+set modulefile_3 "$modpath/loc_rcv1/.common"
+set modulefilere_3 "$modpathre/loc_rcv1/.common"
 
 #
 #  Save the former rc file setup
@@ -55,6 +58,9 @@ set what_1 "$modlin $modpathre $modlin\n         $module_1: $module_1"
 set whatis_csh_2 "module-whatis\t$module_2"
 set disp_2 "$modlin\n$modulefilere_2:\n\n$whatis_csh_2\n$disp_csh\n$modlin"
 set what_2 "$modlin $modpathre $modlin\n         $module_2: $module_2"
+set whatis_csh_3 "module-whatis\t$module_3"
+set disp_3 "$modlin\n$modulefilere_3:\n\n$whatis_csh_3\n$modlin"
+set what_3 "$modlin $modpathre $modlin\n            $module_3: $module_3"
 
 set locate_msg "$err_path'sym_foo'"
 
@@ -118,6 +124,21 @@ test_cmd "sh" "paths sym_foo/special2" $anspa
 # test global RCs cascading is now achieved with 'make install-testetcrc'
 # that setup a @prefix@/etc/rc file for the whole 'make test' duration
 
+# test with virtual modules
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $module_3]
+lappend ans [list setpath _LMFILES_ $modulefile_3]
+set anspa [list]
+lappend anspa [list text $modulefile_3]
+test_cmd "csh" "load sym_bar" $ans
+testouterr_cmd_re "sh" "display sym_bar" "OK" "$disp_3"
+testouterr_cmd_re "sh" "whatis sym_bar" "OK" "$what_3"
+test_cmd "sh" "paths sym_bar" $anspa
+test_cmd "csh" "load sym_bar/special3" $ans
+testouterr_cmd_re "sh" "display sym_bar/special3" "OK" "$disp_3"
+testouterr_cmd_re "sh" "whatis sym_bar/special3" "OK" "$what_3"
+test_cmd "sh" "paths sym_bar/special3" $anspa
+
 
 #
 #  Restore the former rc file setup
@@ -146,6 +167,9 @@ unset what_1
 unset whatis_csh_2
 unset disp_2
 unset what_2
+unset whatis_csh_3
+unset disp_3
+unset what_3
 
 unset locate_msg
 
@@ -156,3 +180,7 @@ unset module_1
 unset modulefile_2
 unset modulefilere_2
 unset module_2
+
+unset modulefile_3
+unset modulefilere_3
+unset module_3

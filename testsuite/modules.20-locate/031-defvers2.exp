@@ -11,7 +11,7 @@
 #
 #   Description:	Testuite testsequence
 #   Command:        load, display, help, test, avail, whatis, paths
-#   Modulefiles:	loc_dv2, loc_dv7, loc_dv9, loc_dv1, loc_xx
+#   Modulefiles:	loc_dv2, loc_dv7, loc_dv9, loc_dvv1, loc_dv1, loc_xx
 #   Sub-Command:
 #
 #   Comment:	%C{
@@ -45,11 +45,18 @@ set modulefile_3 "$modpath/$module_3"
 set modulefilere_3 "$modpathre/$module_3"
 set modavail_3 "$module_3\\s+default\\s+$datetime_re"
 
+# default symbol set by using '.version' file on virtual modules
+set modsym_4 "loc_dvv1/default"
+set module_4 "loc_dvv1/1.0"
+set modulefile_4 "$modpath/loc_dvv1/.common"
+set modulefilere_4 "$modpathre/loc_dvv1/.common"
+set modavail_4 "$module_4\\s+default\\s+$datetime_re"
+
 # existing module without default symbol set
-set modsym_4 "loc_dv1/default"
+set modsym_5 "loc_dv1/default"
 
 # non existant module
-set modsym_5 "loc_xx/default"
+set modsym_6 "loc_xx/default"
 
 
 set help_pre "$modlin\nModule Specific Help for "
@@ -70,7 +77,7 @@ set whatis_pre "$modlin $modpathre $modlin\n\\s+"
 #  The tests
 #
 
-for {set i 1} {$i <= 3} {incr i} {
+for {set i 1} {$i <= 4} {incr i} {
     set modsym [set "modsym_${i}"]
     set module [set "module_${i}"]
     set modulefile [set "modulefile_${i}"]
@@ -95,7 +102,7 @@ for {set i 1} {$i <= 3} {incr i} {
 }
 
 # test on erroneous modules
-foreach modsym [list $modsym_4 $modsym_5] {
+foreach modsym [list $modsym_5 $modsym_6] {
     set locate_msg "$err_path'$modsym'"
     testouterr_cmd "sh" "load $modsym" "ERR" "$locate_msg"
     testouterr_cmd "sh" "display $modsym" "ERR" "$locate_msg"
@@ -127,7 +134,7 @@ unset header_long
 unset avail_pre
 unset whatis_pre
 
-for {set i 1} {$i <= 3} {incr i} {
+for {set i 1} {$i <= 4} {incr i} {
     unset "modsym_${i}"
     unset "module_${i}"
     unset "modulefile_${i}"
@@ -135,8 +142,8 @@ for {set i 1} {$i <= 3} {incr i} {
     unset "modavail_${i}"
 }
 
-unset modsym_4
 unset modsym_5
+unset modsym_6
 
 unset ans
 unset locate_msg

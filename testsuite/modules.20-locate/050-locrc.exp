@@ -63,6 +63,18 @@ set module_9 "dirmodalias/1.0"
 set modulefile_9 "$modpath/$module_9"
 set modulefilere_9 "$modpathre/$module_9"
 
+set module_10 "loc_rcv1/1.2"
+set modulefile_10 "$modpath/loc_rcv1/.common"
+set modulefilere_10 "$modpathre/loc_rcv1/.common"
+
+set module_11 "dirmodvirt"
+set modulefile_11 "$modpath/loc_rcv1/.common"
+set modulefilere_11 "$modpathre/loc_rcv1/.common"
+
+set module_12 "dirmodvirt/1.0"
+set modulefile_12 "$modpath/loc_rcv1/.common"
+set modulefilere_12 "$modpathre/loc_rcv1/.common"
+
 #
 #  Only checked for the csh
 #
@@ -76,12 +88,18 @@ set disp_4 "$modlin\n$modulefilere_4:\n\n$whatis_csh$module_4\n$disp_csh\n$modli
 set disp_5 "$modlin\n$modulefilere_5:\n\n$whatis_csh$module_5\n$disp_csh\n$modlin"
 set disp_6 "$modlin\n$modulefilere_6:\n\n$whatis_csh$module_6\n$disp_csh\n$modlin"
 set disp_7 "$modlin\n$modulefilere_7:\n\n$whatis_csh$module_7\n$disp_csh\n$modlin"
+set disp_10 "$modlin\n$modulefilere_10:\n\n$whatis_csh$module_10\n$modlin"
+set disp_11 "$modlin\n$modulefilere_11:\n\n$whatis_csh$module_11\n$modlin"
+set disp_12 "$modlin\n$modulefilere_12:\n\n$whatis_csh$module_12\n$modlin"
 
 set header "$modlin $modpathre $modlin"
 set what_1 "$header\n         $module_1: $module_1"
 set what_2 "$header\n         $module_2: $module_2"
 set what_7 "$header\n         $module_7: $module_7"
 set what_9_7 "$header\n     $module_9: $module_9\n         $module_7: $module_7"
+set what_10 "$header\n        $module_10: $module_10"
+set what_11 "$header\n          $module_11: $module_11\n      $module_12: $module_12"
+set what_12 "$header\n      $module_12: $module_12"
 
 #
 #  The tests
@@ -150,13 +168,43 @@ set ans [list]
 lappend ans [list text [list $modulefile_9 $modulefile_7]]
 test_cmd "sh" "paths dirmodalias" $ans
 
-#
-#  Cleanup
-#
-
 # Clean up the environment
 unset env(LOADEDMODULES)
 unset env(_LMFILES_)
+
+# working on virtual modules
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $module_10]
+lappend ans [list setpath _LMFILES_ $modulefile_10]
+test_cmd "csh" "load loc_rcv1" $ans
+testouterr_cmd_re "sh" "display loc_rcv1" "OK" "$disp_10"
+testouterr_cmd_re "sh" "whatis loc_rcv1/bar" "OK" "$what_10"
+
+# virtual modules covering existing directory name
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module_11"]
+lappend ans [list setpath _LMFILES_ "$modulefile_11"]
+test_cmd_re "csh" "load dirmodvirt" $ans
+testouterr_cmd_re "sh" "display dirmodvirt" "OK" "$disp_11"
+testouterr_cmd_re "sh" "whatis dirmodvirt" "OK" "$what_11"
+set ans [list]
+lappend ans [list text [list $modulefile_11]]
+test_cmd "sh" "paths dirmodvirt" $ans
+
+# virtual modules covering existing modulefile name
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module_12"]
+lappend ans [list setpath _LMFILES_ "$modulefile_12"]
+test_cmd_re "csh" "load $module_12" $ans
+testouterr_cmd_re "sh" "display $module_12" "OK" "$disp_12"
+testouterr_cmd_re "sh" "whatis $module_12" "OK" "$what_12"
+set ans [list]
+lappend ans [list text [list $modulefile_12]]
+test_cmd "sh" "paths $module_12" $ans
+
+#
+#  Cleanup
+#
 
 unset ans
 
@@ -169,12 +217,18 @@ unset disp_4
 unset disp_5
 unset disp_6
 unset disp_7
+unset disp_10
+unset disp_11
+unset disp_12
 
 unset header
 unset what_1
 unset what_2
 unset what_7
 unset what_9_7
+unset what_10
+unset what_11
+unset what_12
 
 unset modulefile_1
 unset modulefilere_1
@@ -211,3 +265,15 @@ unset module_8
 unset modulefile_9
 unset modulefilere_9
 unset module_9
+
+unset modulefile_10
+unset modulefilere_10
+unset module_10
+
+unset modulefile_11
+unset modulefilere_11
+unset module_11
+
+unset modulefile_12
+unset modulefilere_12
+unset module_12

@@ -185,6 +185,61 @@ set module_31 "fodcross/2.7.13/sub-13"
 set modulepath_31 "$modpath1"
 set modulepathre_31 "$modpath1re"
 
+# working with virtual modules
+set modsym_32 "vcross/1"
+set module_32 "vcross/1.0"
+set modulefile_32 "$modpath2/vcross/.base"
+set modulefilere_32 "$modpath2re/vcross/.base"
+set modulepathre_32 "$modpath2re"
+
+set modsym_33 "vcross/2"
+set module_33 "vcross/2.0"
+set modulefile_33 "$modpath3/vcross/.base"
+set modulefilere_33 "$modpath3re/vcross/.base"
+set modulepathre_33 "$modpath3re"
+
+set modsym_34 "vcross/3"
+set module_34 "vcross/3.0"
+set modulefile_34 "$modpath1/vcross/.base"
+set modulefilere_34 "$modpath1re/vcross/.base"
+set modulepathre_34 "$modpath1re"
+
+set modsym_35 "vcross/4"
+set module_35 "vcross/4.0"
+set modulefile_35 "$modpath1/vcross/.base"
+set modulefilere_35 "$modpath1re/vcross/.base"
+set modulepathre_35 "$modpath1re"
+
+set modsym_36 "vcross/5"
+set module_36 "vcross/5.0"
+set modulefile_36 "$modpath3/vcross/.base"
+set modulefilere_36 "$modpath3re/vcross/.base"
+set modulepathre_36 "$modpath3re"
+
+set modsym_37 "vcross/6"
+set module_37 "vcross/6.0"
+set modulefile_37 "$modpath2/vcross/.base"
+set modulefilere_37 "$modpath2re/vcross/.base"
+set modulepathre_37 "$modpath2re"
+
+set modsym_38 "vcross/bef"
+set module_38 "vcross/3.0"
+set modulefile_38 "$modpath1/vcross/.base"
+set modulefilere_38 "$modpath1re/vcross/.base"
+set modulepathre_38 "$modpath1re"
+
+set modsym_39 "vcross/aft"
+set module_39 "vcross/5.0"
+set modulefile_39 "$modpath3/vcross/.base"
+set modulefilere_39 "$modpath3re/vcross/.base"
+set modulepathre_39 "$modpath3re"
+
+# default on virtual modules, biggest from first path
+set modsym_40 "vcross"
+set module_40 "vcross/4.0"
+set modulefile_40 "$modpath1/vcross/.base"
+set modulefilere_40 "$modpath1re/vcross/.base"
+set modulepathre_40 "$modpath1re"
 
 set help_pre "$modlin\nModule Specific Help for "
 set help_post ":\n\n$modlin"
@@ -211,6 +266,12 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     set module [set "::module_${i}"]
     if {[info exists "::modulefile_${i}"]} {
         set modulefile [set "::modulefile_${i}"]
+        if {[info exists "::modulefilere_${i}"]} {
+            set modulefilere [set "::modulefilere_${i}"]
+        }
+        if {[info exists "::modulepathre_${i}"]} {
+            set modulepathre [set "::modulepathre_${i}"]
+        }
     } else {
         set modulepath [set "::modulepath_${i}"]
         set modulepathre [set "::modulepathre_${i}"]
@@ -304,6 +365,12 @@ for {set i 23} {$i <= 30} {incr i} {
 # and file in other path
 cross_test_case 31
 
+# test virtual modules
+for {set i 32} {$i <= 39} {incr i} {
+    cross_test_case $i
+}
+# test default, but not wide commands (whatis, paths)
+cross_test_case 40 0 0
 
 #
 #  Cleanup
@@ -325,11 +392,17 @@ unset disp_pre
 unset disp_wi
 unset disp_post
 
-for {set i 1} {$i <= 31} {incr i} {
+for {set i 1} {$i <= 40} {incr i} {
     unset "modsym_${i}"
     unset "module_${i}"
     if {[info exists "::modulefile_${i}"]} {
         unset "modulefile_${i}"
+        if {[info exists "::modulefilere_${i}"]} {
+            unset "modulefilere_${i}"
+        }
+        if {[info exists "::modulepathre_${i}"]} {
+            unset "modulepathre_${i}"
+        }
     } else {
         unset "modulepath_${i}"
         unset "modulepathre_${i}"

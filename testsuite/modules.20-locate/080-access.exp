@@ -91,6 +91,28 @@ set lmd21 [file dirname $lmf18]
 set m22 "$m19"
 set lmd22 [file dirname $lmf19]
 
+# work on virtual modules
+set m23 "loc_rcv1/1.2"
+set lmrc23 "$modpath/loc_rcv1/.modulerc"
+set m24 "$m23"
+set lmf24 "$modpath/loc_rcv1/.common"
+set m25 "loc_rcv1"
+set lmf25 "$lmf24"
+set m26 "loc_rcv2"
+set lm26 "$m26/2.0"
+set lmf26 "$modpath/$m26/.common"
+set rlm26 "$m26/1.5"
+set rlmf26 "$env(TESTSUITEDIR)/virttargets/loc_rcv"
+set rlmf26re [regsub -all "\(\[.+?\]\)" $rlmf26 {\\\1}]
+set m27 "loc_rcv2"
+set lmf27 "$env(TESTSUITEDIR)/virttargets/loc_rcv"
+set m28 "$m24"
+set lmd28 [file dirname $lmf24]
+set m29 "$rlm26"
+set lmf29 "$env(TESTSUITEDIR)/virttargets/loc_rcv"
+set lmd29 [file dirname $lmf29]
+
+
 set pheader "$modlin $modpathre $modlin"
 set theader "$modpathre:"
 set access_msg "$error_msgs: Permission denied on"
@@ -423,6 +445,114 @@ testouterr_cmd "sh" "avail -t $m22" "OK" ""
 
 restore_file_perms $lmd22
 
+#
+# Test access to virtual module when access not granted on modulerc defining it
+#
+
+change_file_perms $lmrc23 $hide_perms
+
+# cannot locate module
+testouterr_cmd "sh" "load $m23" "ERR" "$err_path'$m23'"
+testouterr_cmd "sh" "display $m23" "ERR" "$err_path'$m23'"
+testouterr_cmd "sh" "whatis $m23" "ERR" "$err_path'$m23'"
+testouterr_cmd "sh" "avail -t $m23" "OK" ""
+
+restore_file_perms $lmrc23
+
+#
+# Test access to virtual module when access not granted on its target file
+#
+
+change_file_perms $lmf24 $hide_perms
+
+testouterr_cmd "sh" "load $m24" "ERR" "$access_msg '$lmf24'"
+testouterr_cmd "sh" "display $m24" "ERR" "$access_msg '$lmf24'"
+testouterr_cmd "sh" "whatis $m24" "ERR" "$access_msg '$lmf24'"
+testouterr_cmd "sh" "avail -t $m24" "OK" ""
+
+restore_file_perms $lmf24
+
+#
+# Test access to default symbol when access not granted on virtual target file
+#
+
+change_file_perms $lmf25 $hide_perms
+
+# shout error as if we were trying to access the symbol directly
+testouterr_cmd "sh" "load $m25" "ERR" "$access_msg '$lmf25'"
+testouterr_cmd "sh" "display $m25" "ERR" "$access_msg '$lmf25'"
+# no error on whatis/avail, other versions are listed
+testouterr_cmd_re "sh" "whatis $m25" "OK" "$pheader\n\\s+$m25/1.1: $m25/1.1"
+testouterr_cmd_re "sh" "avail -t $m25" "OK" "$theader\n$m25/1\\(@\\)\n$m25/1.1\n$m25/bar\\(@\\)"
+
+restore_file_perms $lmf25
+
+#
+# Test access to implicit default (a virtual module) when access not granted on
+# its target file
+#
+
+change_file_perms $lmf26 $hide_perms
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$rlmf26:1"]
+lappend ans [list set LOADEDMODULES_modshare "$rlm26:1"]
+lappend ans [list set _LMFILES_ $rlmf26]
+lappend ans [list set LOADEDMODULES $rlm26]
+lappend ans [list set testsuite yes]
+
+# another implicit default is chosen
+testouterr_cmd "sh" "load $m26" $ans ""
+testouterr_cmd_re "sh" "display $m26" "OK" "$modlin\n$rlmf26re:\n\nmodule-whatis\t$rlm26\nsetenv\t\ttestsuite\tyes\n$modlin"
+testouterr_cmd_re "sh" "whatis $m26" "OK" "$pheader\n\\s+$rlm26: $rlm26"
+testouterr_cmd_re "sh" "avail -t $m26" "OK" "$theader\n$rlm26"
+
+# keep file permissions as it is for next test
+
+#
+# Test access to implicit default (a virtual module) when access not granted on
+# its target file and there is no other implicit default available
+#
+
+change_file_perms $lmf27 $hide_perms
+
+# nothing found
+testouterr_cmd "sh" "load $m27" "ERR" "$err_path'$m27'"
+testouterr_cmd "sh" "display $m27" "ERR" "$err_path'$m27'"
+testouterr_cmd "sh" "whatis $m27" "ERR" "$err_path'$m27'"
+testouterr_cmd "sh" "avail -t $m27" "OK" ""
+
+restore_file_perms $lmf27
+restore_file_perms $lmf26
+
+#
+# Test access to virtual module when access not granted on its upper directory
+#
+
+change_file_perms $lmd28 $hide_perms
+
+# cannot locate module
+testouterr_cmd "sh" "load $m28" "ERR" "$err_path'$m28'"
+testouterr_cmd "sh" "display $m28" "ERR" "$err_path'$m28'"
+testouterr_cmd "sh" "whatis $m28" "ERR" "$err_path'$m28'"
+testouterr_cmd "sh" "avail -t $m28" "OK" ""
+
+restore_file_perms $lmd28
+
+#
+# Test access to virtual module when access not granted on upper directory of
+# its target file, located in a different directory
+#
+
+change_file_perms $lmd29 $hide_perms
+
+# cannot locate module
+testouterr_cmd "sh" "load $m29" "ERR" "$access_msg '$lmf29'"
+testouterr_cmd "sh" "display $m29" "ERR" "$access_msg '$lmf29'"
+testouterr_cmd "sh" "whatis $m29" "ERR" "$access_msg '$lmf29'"
+testouterr_cmd "sh" "avail -t $m29" "OK" ""
+
+restore_file_perms $lmd29
 
 #
 # Cleanup
@@ -493,5 +623,24 @@ unset m21
 unset lmd21
 unset m22
 unset lmd22
+unset m23
+unset lmrc23
+unset m24
+unset lmf24
+unset m25
+unset lmf25
+unset m26
+unset lm26
+unset lmf26
+unset rlm26
+unset rlmf26
+unset rlmf26re
+unset m27
+unset lmf27
+unset m28
+unset lmd28
+unset m29
+unset lmf29
+unset lmd29
 
 }
