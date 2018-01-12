@@ -2916,7 +2916,7 @@ proc getLoadedWithClosestName {name} {
          # if module is loaded with its full path name loadedmodules entry is
          # equivalent to _lmfiles_ corresponding entry so only check _lmfiles_
          if {[info exists g_loadedModuleFiles($fullname)]} {
-            set ret $g_loadedModuleFiles($fullname)
+            set ret [lindex $g_loadedModuleFiles($fullname) end]
          }
       }
    } else {
@@ -2978,7 +2978,21 @@ proc getLoadedMatchingName {name {behavior "returnlast"}} {
       # if module is loaded with its full path name loadedmodules entry is
       # equivalent to _lmfiles_ corresponding entry so only check _lmfiles_
       if {[info exists g_loadedModuleFiles($mod)]} {
-         set ret $g_loadedModuleFiles($mod)
+         # a loaded modfile may correspond to multiple loaded virtual modules
+         switch -- $behavior {
+            {returnlast} {
+               # the last loaded module will be returned
+               set ret [lindex $g_loadedModuleFiles($mod) end]
+            }
+            {returnfirst} {
+               # the first loaded module will be returned
+               set ret [lindex $g_loadedModuleFiles($mod) 0]
+            }
+            {returnall} {
+               # all loaded modules will be returned
+               set ret $g_loadedModuleFiles($mod)
+            }
+         }
       }
    } else {
       # compare name to each currently loaded module name, if multiple mod
@@ -3823,7 +3837,8 @@ proc cacheCurrentModules {} {
    set filelist [getLoadedModuleFileList]
    foreach mod [getLoadedModuleList] {
       set g_loadedModules($mod) [lindex $filelist $i]
-      set g_loadedModuleFiles([lindex $filelist $i]) $mod
+      # a loaded modfile may correspond to multiple loaded virtual modules
+      lappend g_loadedModuleFiles([lindex $filelist $i]) $mod
       incr i
    }
 }
@@ -5715,7 +5730,8 @@ proc cmdModuleLoad {args} {
                set ret 1
             } else {
                add-path "append" LOADEDMODULES $currentModule
-               add-path "append" _LMFILES_ $modfile
+               # allow duplicate modfile entries for virtual modules
+               add-path "append" --duplicates _LMFILES_ $modfile
                set g_loadedModules($currentModule) $modfile
             }
 
@@ -5756,8 +5772,11 @@ proc cmdModuleUnload {match args} {
                restoreSettings
                set ret 1
             } else {
+               # get module position in loaded list to remove corresponding
+               # loaded modulefile (entry at same position in _LMFILES_)
+               set lmidx [lsearch -exact [getLoadedModuleList] $currentModule]
                unload-path LOADEDMODULES $currentModule
-               unload-path _LMFILES_ $modfile
+               unload-path --index _LMFILES_ $lmidx
                unset g_loadedModules($currentModule)
             }
 
