@@ -2912,10 +2912,13 @@ proc getLoadedWithClosestName {name} {
          set namesplit [split $shortname "/"]
       # or look at lmfile names to return the eventual exact match
       } else {
-         global g_loadedModuleFiles
-         # if module is loaded with its full path name loadedmodules entry is
-         # equivalent to _lmfiles_ corresponding entry so only check _lmfiles_
-         if {[info exists g_loadedModuleFiles($fullname)]} {
+         global g_loadedModules g_loadedModuleFiles
+         # module may be loaded with its full path name
+         if {[info exists g_loadedModules($fullname)]} {
+            set ret $fullname
+         # or name corresponds to the _lmfiles_ entry of a virtual modules in
+         # which case lastly loaded virtual module is returned
+         } elseif {[info exists g_loadedModuleFiles($fullname)]} {
             set ret [lindex $g_loadedModuleFiles($fullname) end]
          }
       }

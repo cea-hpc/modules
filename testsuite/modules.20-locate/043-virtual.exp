@@ -96,6 +96,20 @@ set modulefile_10 "$modpath/$module_10"
 set modulefilere_10 "$modpathre/$module_10"
 set modavail_10 "$module_10\\s+$datetime_re"
 
+set modsym_11 "loc_virt2/1.0"
+set module_11 $modsym_11
+set modulefile_11 "$modpath/loc_virt2/2.0"
+set modulefilere_11 "$modpathre/loc_virt2/2.0"
+set modavail_11 "$module_11\\s+$datetime_re"
+set modwhatis_11 "\\s+$module_11: $module_11"
+
+set modsym_12 "loc_virt2"
+set module_12 $modsym_12/2.0
+set modulefile_12 "$modpath/$module_12"
+set modulefilere_12 "$modpathre/$module_12"
+set modavail_12 "$modsym_12/1.0\\s+$datetime_re\n$module_12\\s+$datetime_re"
+set modwhatis_12 "\\s+$modsym_12/1.0: $modsym_12/1.0\n\\s+$module_12: $module_12"
+
 set module_reg "setenv/1.0"
 set modulefile_reg "$modpath/$module_reg"
 
@@ -117,7 +131,7 @@ set listh_long "- Package $modlin.- Versions $modlin.- Last mod. $modlin"
 #  The tests
 #
 
-for {set i 1} {$i <= 10} {incr i} {
+for {set i 1} {$i <= 12} {incr i} {
     set modsym [set "modsym_${i}"]
     set module [set "module_${i}"]
     set modulefile [set "modulefile_${i}"]
@@ -252,6 +266,10 @@ lappend ans [list set testsuite $module_3]
 
 testouterr_cmd "sh" "load $module_3" $ans ""
 
+# load with full path name, but it does not exist as it is virtual
+testouterr_cmd "sh" "load $modpath/$module_3" "ERR" "$err_file'$modpath/$module_3'"
+
+
 # switch to same target file
 set ans [list]
 lappend ans [list set _LMFILES__modshare "$modulefile_2:1"]
@@ -298,6 +316,12 @@ lappend ans [list unset testsuite]
 
 testouterr_cmd "sh" "unload $module_2" $ans ""
 testouterr_cmd "sh" "unload loc_virt1" $ans ""
+
+# unload with full path name, but it does not exist as it is virtual
+testouterr_cmd "sh" "unload $modpath/$module_2" "ERR" "$err_file'$modpath/$module_2'"
+
+# unload by target file name, lastly loaded using this target file will be unloaded
+testouterr_cmd "sh" "unload $modulefile_1" $ans ""
 
 
 # setup environment for more even more complex load/unload tests with same
@@ -388,13 +412,318 @@ lappend ans [list set LOADEDMODULES "$modulefile_4:$module_1:$module_reg:$module
 lappend ans [list set testsuite $module_4]
 testouterr_cmd "sh" "switch $module_4" $ans ""
 
+# switch target file, when it is also loaded as a module name
 set ans [list]
 lappend ans [list set _LMFILES__modshare "$modulefile_1:1:$modulefile_reg:1:$modulefile_4:2"]
-lappend ans [list set LOADEDMODULES_modshare "$module_4:1:$module_1:1:$module_reg:1:$modulefile_4:1"]
-lappend ans [list set _LMFILES_ "$modulefile_4:$modulefile_4:$modulefile_1:$modulefile_reg"]
-lappend ans [list set LOADEDMODULES "$module_4:$modulefile_4:$module_1:$module_reg"]
+lappend ans [list set LOADEDMODULES_modshare "$module_4:1:$module_1:1:$module_3:1:$module_reg:1"]
+lappend ans [list set _LMFILES_ "$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"]
+lappend ans [list set LOADEDMODULES "$module_4:$module_1:$module_reg:$module_3"]
 lappend ans [list unset testsuite]
 testouterr_cmd "sh" "switch $modulefile_4" $ans ""
+
+# same test without modulepath defined
+unset env(MODULEPATH)
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_1:1:$modulefile_reg:1:$modulefile_4:2"]
+lappend ans [list set LOADEDMODULES_modshare "$module_4:1:$module_1:1:$module_3:1:$module_reg:1"]
+lappend ans [list set _LMFILES_ "$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"]
+lappend ans [list set LOADEDMODULES "$module_4:$module_1:$module_reg:$module_3"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "switch $modulefile_4" $ans ""
+
+# restore modulepath
+set env(MODULEPATH) $modpath
+
+# reset environment by removing the virtual target file loaded as a full path module
+set env(testsuite) $module_3
+set env(_LMFILES__modshare) "$modulefile_1:1:$modulefile_reg:1:$modulefile_4:2"
+set env(_LMFILES_) "$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"
+set env(LOADEDMODULES_modshare) "$module_4:1:$module_1:1:$module_3:1:$module_reg:1"
+set env(LOADEDMODULES) "$module_4:$module_1:$module_reg:$module_3"
+
+# switch target file, when it is not also loaded as a module name
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_1:1:$modulefile_reg:1:$modulefile_4:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_4:1:$module_1:1:$module_reg:1"]
+lappend ans [list set _LMFILES_ "$modulefile_4:$modulefile_1:$modulefile_reg"]
+lappend ans [list set LOADEDMODULES "$module_4:$module_1:$module_reg"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "switch $modulefile_4" $ans ""
+
+# same test without modulepath defined
+unset env(MODULEPATH)
+testouterr_cmd "sh" "switch $modulefile_4" $ans ""
+
+# restore modulepath
+set env(MODULEPATH) $modpath
+
+# setup environment for load/unload tests on a module where versions are a mix of regular
+# and virtual, virtual module targeting the regular modulefile
+
+set env(testsuite) $module_11
+set env(_LMFILES__modshare) "$modulefile_11:1"
+set env(_LMFILES_) "$modulefile_11"
+set env(LOADEDMODULES_modshare) "$module_11:1"
+set env(LOADEDMODULES) "$module_11"
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_11:2"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1:$module_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_11:$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$module_11:$module_12"]
+lappend ans [list set testsuite $module_12]
+testouterr_cmd "sh" "load $module_12" $ans ""
+
+testouterr_cmd "sh" "load $modulefile_12" "OK" ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$module_12"]
+lappend ans [list set testsuite $module_12]
+testouterr_cmd "sh" "switch $module_12" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:1"]
+lappend ans [list set LOADEDMODULES_modshare "$modulefile_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$modulefile_12"]
+lappend ans [list set testsuite $modulefile_12]
+testouterr_cmd "sh" "switch $modulefile_12" $ans ""
+
+
+set env(testsuite) $module_12
+set env(_LMFILES__modshare) "$modulefile_12:1"
+set env(_LMFILES_) "$modulefile_12"
+set env(LOADEDMODULES_modshare) "$module_12:1"
+set env(LOADEDMODULES) "$module_12"
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:2"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1:$module_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_12:$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$module_12:$module_11"]
+lappend ans [list set testsuite $module_11]
+testouterr_cmd "sh" "load $module_11" $ans ""
+
+testouterr_cmd "sh" "load $modulefile_11" "OK" ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_11:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1"]
+lappend ans [list set _LMFILES_ "$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$module_11"]
+lappend ans [list set testsuite $module_11]
+testouterr_cmd "sh" "switch $module_11" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_11:1"]
+lappend ans [list set LOADEDMODULES_modshare "$modulefile_11:1"]
+lappend ans [list set _LMFILES_ "$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$modulefile_11"]
+lappend ans [list set testsuite $modulefile_11]
+testouterr_cmd "sh" "switch $modulefile_11" $ans ""
+
+
+set env(testsuite) $module_12
+set env(_LMFILES__modshare) "$modulefile_12:2"
+set env(_LMFILES_) "$modulefile_11:$modulefile_12"
+set env(LOADEDMODULES_modshare) "$module_11:1:$module_12:1"
+set env(LOADEDMODULES) "$module_11:$module_12"
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$module_12"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "unload $module_11" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_11:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1"]
+lappend ans [list set _LMFILES_ "$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$module_11"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "unload $module_12" $ans ""
+testouterr_cmd "sh" "unload $modulefile_11" $ans ""
+testouterr_cmd "sh" "unload loc_virt2" $ans ""
+
+testouterr_cmd "sh" "switch $modulefile_11" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:2"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1:$module_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_12:$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$module_12:$module_11"]
+lappend ans [list set testsuite $module_11]
+testouterr_cmd "sh" "switch $module_11" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:2"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1:$module_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_11:$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$module_11:$module_12"]
+lappend ans [list set testsuite $module_12]
+testouterr_cmd "sh" "switch $module_12" $ans ""
+
+
+set env(testsuite) $module_11
+set env(_LMFILES__modshare) "$modulefile_12:2"
+set env(_LMFILES_) "$modulefile_12:$modulefile_11"
+set env(LOADEDMODULES_modshare) "$module_11:1:$module_12:1"
+set env(LOADEDMODULES) "$module_12:$module_11"
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$module_12"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "unload $module_11" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_11:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1"]
+lappend ans [list set _LMFILES_ "$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$module_11"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "unload $module_12" $ans ""
+
+# remove lastly loaded match
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$module_12"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "unload $modulefile_11" $ans ""
+testouterr_cmd "sh" "unload loc_virt2" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_11:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1"]
+lappend ans [list set _LMFILES_ "$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$module_11"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "switch $modulefile_11" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:2"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1:$module_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_12:$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$module_12:$module_11"]
+lappend ans [list set testsuite $module_11]
+testouterr_cmd "sh" "switch $module_11" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:2"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1:$module_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_11:$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$module_11:$module_12"]
+lappend ans [list set testsuite $module_12]
+testouterr_cmd "sh" "switch $module_12" $ans ""
+
+
+set env(testsuite) $module_12
+set env(_LMFILES__modshare) "$modulefile_12:2"
+set env(_LMFILES_) "$modulefile_11:$modulefile_12"
+set env(LOADEDMODULES_modshare) "$module_11:1:$modulefile_12:1"
+set env(LOADEDMODULES) "$module_11:$modulefile_12"
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:1"]
+lappend ans [list set LOADEDMODULES_modshare "$modulefile_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$modulefile_12"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "unload $module_11" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_11:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1"]
+lappend ans [list set _LMFILES_ "$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$module_11"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "unload $module_12" $ans ""
+testouterr_cmd "sh" "unload $modulefile_11" $ans ""
+testouterr_cmd "sh" "unload loc_virt2" $ans ""
+
+testouterr_cmd "sh" "switch $modulefile_11" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:2"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1:$modulefile_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_12:$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$modulefile_12:$module_11"]
+lappend ans [list set testsuite $module_11]
+testouterr_cmd "sh" "switch $module_11" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:2"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1:$module_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_11:$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$module_11:$module_12"]
+lappend ans [list set testsuite $module_12]
+testouterr_cmd "sh" "switch $module_12" $ans ""
+
+
+set env(testsuite) $module_11
+set env(_LMFILES__modshare) "$modulefile_12:2"
+set env(_LMFILES_) "$modulefile_12:$modulefile_11"
+set env(LOADEDMODULES_modshare) "$module_11:1:$modulefile_12:1"
+set env(LOADEDMODULES) "$modulefile_12:$module_11"
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:1"]
+lappend ans [list set LOADEDMODULES_modshare "$modulefile_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$modulefile_12"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "unload $module_11" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_11:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1"]
+lappend ans [list set _LMFILES_ "$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$module_11"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "unload $module_12" $ans ""
+
+# remove lastly loaded match
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:1"]
+lappend ans [list set LOADEDMODULES_modshare "$modulefile_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$modulefile_12"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "unload $modulefile_11" $ans ""
+testouterr_cmd "sh" "unload loc_virt2" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_11:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1"]
+lappend ans [list set _LMFILES_ "$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$module_11"]
+lappend ans [list unset testsuite]
+testouterr_cmd "sh" "switch $modulefile_11" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:2"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1:$modulefile_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_12:$modulefile_11"]
+lappend ans [list set LOADEDMODULES "$modulefile_12:$module_11"]
+lappend ans [list set testsuite $module_11]
+testouterr_cmd "sh" "switch $module_11" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_12:2"]
+lappend ans [list set LOADEDMODULES_modshare "$module_11:1:$module_12:1"]
+lappend ans [list set _LMFILES_ "$modulefile_11:$modulefile_12"]
+lappend ans [list set LOADEDMODULES "$module_11:$module_12"]
+lappend ans [list set testsuite $module_12]
+testouterr_cmd "sh" "switch $module_12" $ans ""
 
 
 #
@@ -407,6 +736,7 @@ unset env(LOADEDMODULES)
 unset env(LOADEDMODULES_modshare)
 unset env(_LMFILES_)
 unset env(_LMFILES__modshare)
+set env(MODULEPATH) $modpath
 
 unset datetime_re
 
@@ -424,7 +754,7 @@ unset whatis_pre
 unset cur_loaded
 unset listh_long
 
-for {set i 1} {$i <= 10} {incr i} {
+for {set i 1} {$i <= 12} {incr i} {
     unset "modsym_${i}"
     unset "module_${i}"
     unset "modulefile_${i}"
