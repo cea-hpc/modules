@@ -39,15 +39,21 @@ set module_2 "loc_sym/exec2"
 set modulefile_2 "$modpath/$module_2"
 set modulefilere_2 "$modpathre/$module_2"
 
+set module_3 "loc_sym/exec3"
+set modulefile_3 "$modpath/$module_3"
+set modulefilere_3 "$modpathre/$module_3"
+
 #
 #  Only checked for the csh
 #
 
 set disp_csh_1 "module-alias\tfoo loc_sym/1.0"
 set disp_csh_2 "module-version\tloc_sym/1.0 foo"
+set disp_csh_3 "module-virtual\tloc_sym/2.0 1.0"
 set disp_csh "setenv\t\ttestsuite\tyes"
 set disp_1 "$modlin\n$modulefilere_1:\n\n$disp_csh_1\n$modlin"
 set disp_2 "$modlin\n$modulefilere_2:\n\n$disp_csh_2\n$modlin"
+set disp_3 "$modlin\n$modulefilere_3:\n\n$disp_csh_3\n$modlin"
 set disp "$modulefilere:\n\n$disp_csh\n$modlin"
 
 #
@@ -67,6 +73,13 @@ lappend ans [list set testsuite yes]
 test_cmd_re "csh" "load $module_2 loc_sym/foo" $ans
 testouterr_cmd_re "sh" "display $module_2 loc_sym/foo" "OK" "$disp_2\n$disp"
 
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module_3:loc_sym/2.0"]
+lappend ans [list setpath _LMFILES_ "$modulefile_3:$modulefile"]
+lappend ans [list set testsuite yes]
+test_cmd_re "csh" "load $module_3 loc_sym/2.0" $ans
+testouterr_cmd_re "sh" "display $module_3 loc_sym/2.0" "OK" "$disp_3\n$disp"
+
 #
 #  Cleanup
 #
@@ -74,9 +87,11 @@ testouterr_cmd_re "sh" "display $module_2 loc_sym/foo" "OK" "$disp_2\n$disp"
 unset disp_csh
 unset disp_csh_1
 unset disp_csh_2
+unset disp_csh_3
 unset disp
 unset disp_1
 unset disp_2
+unset disp_3
 
 unset ans
 
@@ -87,6 +102,10 @@ unset module_1
 unset modulefile_2
 unset modulefilere_2
 unset module_2
+
+unset modulefile_3
+unset modulefilere_3
+unset module_3
 
 unset modulefile
 unset modulefilere
