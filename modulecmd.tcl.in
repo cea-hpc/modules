@@ -5702,7 +5702,7 @@ proc cmdModuleUnsource {args} {
 }
 
 proc cmdModuleLoad {args} {
-   global g_loadedModules g_force
+   global g_loadedModules g_loadedModuleFiles g_force
 
    reportDebug "cmdModuleLoad: loading $args"
 
@@ -5732,7 +5732,9 @@ proc cmdModuleLoad {args} {
                add-path "append" LOADEDMODULES $currentModule
                # allow duplicate modfile entries for virtual modules
                add-path "append" --duplicates _LMFILES_ $modfile
+               # update cache arrays
                set g_loadedModules($currentModule) $modfile
+               lappend g_loadedModuleFiles($modfile) $currentModule
             }
 
             popSettings
@@ -5751,7 +5753,7 @@ proc cmdModuleLoad {args} {
 }
 
 proc cmdModuleUnload {match args} {
-   global g_loadedModules
+   global g_loadedModules g_loadedModuleFiles
 
    reportDebug "cmdModuleUnload: unloading $args (match=$match)"
 
@@ -5777,7 +5779,14 @@ proc cmdModuleUnload {match args} {
                set lmidx [lsearch -exact [getLoadedModuleList] $currentModule]
                unload-path LOADEDMODULES $currentModule
                unload-path --index _LMFILES_ $lmidx
+               # update cache arrays
                unset g_loadedModules($currentModule)
+               if {[llength $g_loadedModuleFiles($modfile)] == 1} {
+                  unset g_loadedModuleFiles($modfile)
+               } else {
+                  set g_loadedModuleFiles($modfile) [replaceFromList\
+                     $g_loadedModuleFiles($modfile) $currentModule]
+               }
             }
 
             popSettings

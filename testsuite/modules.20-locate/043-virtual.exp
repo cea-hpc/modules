@@ -205,14 +205,25 @@ set env(LOADEDMODULES) ""
 set env(_LMFILES_) ""
 
 # complex single load command of multiple virtual modules targeting same file
+# full path virtual target will not be honored as virtual already loaded
 set ans [list]
-lappend ans [list set _LMFILES__modshare "$modulefile_1:1:$modulefile_reg:1:$modulefile_4:3"]
-lappend ans [list set LOADEDMODULES_modshare "$module_4:1:$module_1:1:$module_3:1:$module_reg:1:$modulefile_4:1"]
-lappend ans [list set _LMFILES_ "$modulefile_4:$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"]
-lappend ans [list set LOADEDMODULES "$module_4:$modulefile_4:$module_1:$module_reg:$module_3"]
+lappend ans [list set _LMFILES__modshare "$modulefile_1:1:$modulefile_reg:1:$modulefile_4:2"]
+lappend ans [list set LOADEDMODULES_modshare "$module_4:1:$module_1:1:$module_3:1:$module_reg:1"]
+lappend ans [list set _LMFILES_ "$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"]
+lappend ans [list set LOADEDMODULES "$module_4:$module_1:$module_reg:$module_3"]
 lappend ans [list set testsuite $module_3]
 
 testouterr_cmd "sh" "load $module_4 $modulefile_4 $module_1 $module_reg $module_3" $ans ""
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile_4:3"]
+lappend ans [list set LOADEDMODULES_modshare "$module_4:1:$module_3:1:$modulefile_4:1"]
+lappend ans [list set _LMFILES_ "$modulefile_4:$modulefile_4:$modulefile_4"]
+lappend ans [list set LOADEDMODULES "$modulefile_4:$module_4:$module_3"]
+lappend ans [list set testsuite $module_3]
+
+# full path target loaded as is will not impact the afterward load of virtual modules targeting it
+testouterr_cmd "sh" "load $modulefile_4 $module_4 $module_3" $ans ""
 
 # setup environment for more complex load tests
 set env(testsuite) $module_1
@@ -291,6 +302,8 @@ testouterr_cmd "sh" "unload loc_virt1" $ans ""
 
 # setup environment for more even more complex load/unload tests with same
 # modulefile target loaded multiple times with virtual modules and full path reference
+# this setup helps to detect corner cases however it cannot happened in the wild as full
+# path target cannot be loaded if one of the virtual module targeting it is already loaded
 set env(testsuite) $module_3
 set env(_LMFILES__modshare) "$modulefile_1:1:$modulefile_reg:1:$modulefile_4:3"
 set env(_LMFILES_) "$modulefile_4:$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"
@@ -376,11 +389,11 @@ lappend ans [list set testsuite $module_4]
 testouterr_cmd "sh" "switch $module_4" $ans ""
 
 set ans [list]
-lappend ans [list set _LMFILES__modshare "$modulefile_1:1:$modulefile_reg:1:$modulefile_4:3"]
-lappend ans [list set LOADEDMODULES_modshare "$module_4:1:$module_1:1:$module_3:1:$module_reg:1:$modulefile_4:1"]
-lappend ans [list set _LMFILES_ "$modulefile_4:$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"]
-lappend ans [list set LOADEDMODULES "$module_4:$modulefile_4:$module_1:$module_reg:$module_3"]
-lappend ans [list set testsuite $module_3]
+lappend ans [list set _LMFILES__modshare "$modulefile_1:1:$modulefile_reg:1:$modulefile_4:2"]
+lappend ans [list set LOADEDMODULES_modshare "$module_4:1:$module_1:1:$module_reg:1:$modulefile_4:1"]
+lappend ans [list set _LMFILES_ "$modulefile_4:$modulefile_4:$modulefile_1:$modulefile_reg"]
+lappend ans [list set LOADEDMODULES "$module_4:$modulefile_4:$module_1:$module_reg"]
+lappend ans [list unset testsuite]
 testouterr_cmd "sh" "switch $modulefile_4" $ans ""
 
 
