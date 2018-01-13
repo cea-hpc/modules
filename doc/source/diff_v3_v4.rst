@@ -408,4 +408,6 @@ Modules Specific Tcl Commands
 
 **is-avail**
 
+**module-virtual**
+
  These Modules-specific Tcl commands appeared on version ``4.1`` and are not supported on compatibility version.

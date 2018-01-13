@@ -376,6 +376,18 @@ the *modulefile* is being loaded.
 
  * another *modulefile* alias
 
+**module-virtual** name modulefile
+
+ Assigns the *modulefile* to the virtual module *name*. This command should be
+ placed in rc files in order to define virtual modules.
+
+ A virtual module stands for a module *name* associated to a *modulefile*. The
+ modulefile is the script interpreted when loading or unloading the virtual
+ module which appears or can be found with its virtual name.
+
+ The parameter *modulefile* corresponds to the relative or absolute file
+ location of a *modulefile*.
+
 **module-whatis** string
 
  Defines a string which is displayed in case of the invocation of the
@@ -475,7 +487,8 @@ is actually a directory, the directory is opened and a search begins for
 an actual *modulefile*. First, **modulecmd.tcl** looks for a file with
 the name *.modulerc* in the directory. If this file exists, its contents
 will be evaluated as if it was a *modulefile* to be loaded. You may place
-**module-version** and **module-alias** commands inside this file.
+**module-version**, **module-alias** and **module-virtual** commands inside
+this file.
 
 Additionally, before seeking for *.modulerc* files in the module directory,
 the global modulerc file is sourced, too. If a named version default now
@@ -499,9 +512,9 @@ difference is that *.version* only applies to the current directory, and the
 made in these files will affect the subsequently interpreted *modulefile*.
 
 If no default version may be figured out, then the highest numerically
-sorted *modulefile* or module alias under the directory will be used. The
-dictionary comparison method of the **lsort**\ (n) Tcl command is used
-to achieve this sort. If highest numerically sorted element is an alias,
+sorted *modulefile*, virtual module or module alias under the directory will
+be used. The dictionary comparison method of the **lsort**\ (n) Tcl command is
+used to achieve this sort. If highest numerically sorted element is an alias,
 search continues on its *modulefile* target.
 
 For example, it is possible for a user to have a directory named X11 which

@@ -131,6 +131,14 @@ Modules 4.1.0 (2018-01-??)
   executes the active module command.
 * Fix modulefile Tcl interpreter reset when handling list variables. (fix
   issue#145)
+* Introduce 'module-virtual' modulefile Tcl command to associate a virtual
+  module name to a modulefile. This module can be located with its virtual
+  name and the associated modulefile is the script interpreted when loading,
+  unloading, etc.
+* Resolution of relative paths occurring during a modulefile interpretation to
+  target a modulefile or a modulepath now takes the directory of the currently
+  interpreted modulefile as the current working directory to solve the
+  relative paths.
 
 
 Modules 4.0.0 (2017-10-16)
