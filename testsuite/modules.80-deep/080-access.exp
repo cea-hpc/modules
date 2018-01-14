@@ -77,6 +77,9 @@ set m17 "$m13"
 set lmd17 [file dirname $lmd13]
 set m18 "$m15"
 set lmd18 [file dirname $lmd15]
+set m19 "modvirt/dir1/1.0"
+set lmd19 "$modpath/modvirt/.common"
+set m20 "modvirt/dir1/2.0"
 
 set pheader "$modlin $modpathre $modlin"
 set theader "$modpathre:"
@@ -341,6 +344,33 @@ testouterr_cmd "sh" "avail -t $m18" "OK" ""
 
 restore_file_perms $lmd18
 
+#
+# Test access to virtual module when access not granted on its target file
+# lying in upper directory
+#
+
+change_file_perms $lmd19 $hide_perms
+
+# permission denied on virtual target file
+testouterr_cmd "sh" "load $m19" "ERR" "$access_msg '$lmd19'"
+testouterr_cmd "sh" "display $m19" "ERR" "$access_msg '$lmd19'"
+testouterr_cmd "sh" "whatis $m19" "ERR" "$access_msg '$lmd19'"
+testouterr_cmd "sh" "avail -t $m19" "OK" ""
+
+#
+# Test access to alias when access not granted on its virtual module target
+# lying in upper directory
+#
+
+# permission denied on virtual target file
+testouterr_cmd "sh" "load $m20" "ERR" "$access_msg '$lmd19'"
+testouterr_cmd "sh" "display $m20" "ERR" "$access_msg '$lmd19'"
+testouterr_cmd "sh" "whatis $m20" "ERR" "$access_msg '$lmd19'"
+# alias defined so it appears even if access to target modulefile is denied
+testouterr_cmd_re "sh" "avail -t $m20" "OK" "$theader\n$m20\\(@\\)"
+
+restore_file_perms $lmd19
+
 
 #
 # Cleanup
@@ -399,5 +429,8 @@ unset m17
 unset lmd17
 unset m18
 unset lmd18
+unset m19
+unset lmd19
+unset m20
 
 }

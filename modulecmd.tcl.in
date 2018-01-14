@@ -4352,6 +4352,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          set parentname [file dirname $alias]
          if {[info exists mod_list($parentname)]} {
             lappend mod_list($parentname) [file tail $alias]
+         } else {
+            # add reference to orphan list if dir does not exist may be added
+            # below if dir is virtually set by a virtual deep module
+            lappend orphan_list($parentname) [file tail $alias]
          }
       }
    }
@@ -4408,10 +4412,36 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          # add reference to this virtual mod in parent structure
          if {$add_ref_to_parent} {
             set parentname [file dirname $virt]
-            if {[info exists mod_list($parentname)]} {
-               lappend mod_list($parentname) [file tail $virt]
+            set elt [file tail $virt]
+
+            # initialize virtual parent structure if it does not exist
+            if {![info exists mod_list($parentname)]} {
+               # loop until reaching an existing or a top entry
+               while {![info exists mod_list($parentname)]\
+                  && $parentname ne "."} {
+                  # create virtual directory entry
+                  set mod_list($parentname) [list "directory" $elt]
+                  set dir_list($parentname) 1
+
+                  set elt [file tail $parentname]
+                  set parentname [file dirname $parentname]
+               }
+               # add reference to reached existing entry
+               if {[info exists mod_list($parentname)]} {
+                  lappend mod_list($parentname) $elt
+               }
+            } else {
+               lappend mod_list($parentname) $elt
             }
          }
+      }
+   }
+
+   # integrate aliases defined in orphan directories if these dirs have been
+   # virtually created by a virtual module reference
+   foreach dir [array names orphan_list] {
+      if {[info exists mod_list($dir)]} {
+         set mod_list($dir) [concat $mod_list($dir) $orphan_list($dir)]
       }
    }
 
@@ -4419,7 +4449,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # default element in this dir and list of all child elements dictionary
    # sorted, so last element in dir is also last element in this list
    # this treatment happen at the end to find all directory entries in
-   # result list (alias included)
+   # result list (alias and virtual included)
    foreach dir [lsort [array names dir_list]] {
       set elt_list [lsort -dictionary [lrange $mod_list($dir) 1 end]]
       # remove dir from list if it is empty
