@@ -1,5 +1,173 @@
 .. _MIGRATING:
 
+MIGRATING
+*********
+
+This document describes the major changes occurring between versions of
+Modules. It provides an overview of the new features and changed behaviors
+that will be encountered when upgrading.
+
+
+Migrating from v4.0 to v4.1
+===========================
+
+This new version is backward-compatible with v4.0 and primarily fixes bugs and
+adds new features.
+
+New features
+------------
+
+Version 4.1 introduces a bunch of new functionalities. These major new
+features are described in this section.
+
+Virtual modules
+^^^^^^^^^^^^^^^
+
+A virtual module stands for a module name associated to a modulefile. The
+modulefile is the script interpreted when loading or unloading the virtual
+module which appears or can be found with its virtual name.
+
+The **module-virtual** modulefile command is introduced to give the ability
+to define these virtual modules. This new command takes a module name as
+first argument and a modulefile location as second argument::
+
+    module-virtual app/1.2.3 /path/to/virtualmod/app
+
+With this feature it is now possible to dynamically define modulefiles
+depending on the context.
+
+Extend module command with site-specific Tcl code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``module`` command can now be extended with site-specific Tcl
+code. ``modulecmd.tcl`` now looks at a **siteconfig.tcl** file in an
+``etcdir`` defined at configure time (by default ``$prefix/etc``). If
+it finds this Tcl script file, it is sourced within ``modulecmd.tcl`` at the
+beginning of the main procedure code.
+
+``siteconfig.tcl`` enables to supersede any global variable or procedure
+definitions made in ``modulecmd.tcl`` with site-specific code. A module
+sub-command can for instance be redefined to make it fit local needs
+without having to touch the main ``modulecmd.tcl``.
+
+Quarantine mechanism to protect module execution
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To protect the module command run-time environment from side effect
+coming from the current environment definition a quarantine mechanism
+is introduced. This mechanism, sets within module function definition
+and shell initialization script, modifies the ``modulecmd.tcl`` run-time
+environment to sanitize it.
+
+The mechanism is piloted by environment variables. First of all
+``MODULES_RUN_QUARANTINE``, a space-separated list of environment variable
+names. Every variable found in ``MODULES_RUN_QUARANTINE`` will be set in
+quarantine during the ``modulecmd.tcl`` run-time. Their value will be set
+empty or set to the value of the corresponding ``MODULES_RUNENV_<VAR>``
+environment variable if defined. Once ``modulecmd.tcl`` is started it
+restores quarantine variables to their original values.
+
+``MODULES_RUN_QUARANTINE`` and ``MODULES_RUNENV_<VAR>`` environment variables
+can be defined at build time by using the following configure option::
+
+    --with-quarantine-vars='VARNAME[=VALUE] ...'
+
+Quarantine mechanism is available for all supported shells except ``csh``
+and ``tcsh``.
+
+Pager support
+^^^^^^^^^^^^^
+
+The informational messages Modules sends on the *stderr* channel may
+sometimes be quite long. This is especially the case for the avail
+sub-command when hundreds of modulefiles are handled. To improve the
+readability of those messages, *stderr* output can now be piped into a
+paging command.
+
+This new feature can be controlled at build time with the ``--with-pager``
+and ``--with-pager-opts`` configure options. Default pager command is set
+to ``less`` and its relative options are by default ``-eFKRX``. Default
+configuration can be supersedes at run-time with environment variables
+(``MODULES_PAGER`` or ``PAGER``) or command-line switches (``--no-pager``,
+``--paginate``).
+
+Module function to return value in scripting languages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On Tcl, Perl, Python, Ruby, CMake and R scripting shells, module function
+was not returning value and until now an occurred error led to raising a
+fatal exception.
+
+To make ``module`` function more friendly to use on these scripting shells
+it now returns a value. False in case of error, true if everything goes well.
+
+As a consequence, returned value of a module sub-command can be checked. For
+instance in Python::
+
+    if module('load foo'):
+      # success
+    else:
+      # failure
+
+New modulefile commands
+^^^^^^^^^^^^^^^^^^^^^^^
+
+4 new modulefile Tcl commands have are introduced:
+
+* **is-saved**: returns true or false whether a collection, corresponding to
+  currently set collection target, exists or not.
+* **is-used**: returns true or false whether a given directory is currently
+  enabled in ``MODULEPATH``.
+* **is-avail**: returns true or false whether a given modulefile exists in
+  currently enabled module paths.
+* **module-info loaded**: returns the exact name of the modulefile currently
+  loaded corresponding to the name argument.
+
+Multiple collections, paths or modulefiles can be passed respectively to
+``is-saved``, ``is-used`` and ``is-avail`` in which case true is returned if
+at least one argument matches condition (acts as a OR boolean operation). No
+argument may be passed to ``is-loaded``, ``is-saved`` and ``is-used``
+commands to return if anything is respectively loaded, saved or used.
+
+If no loaded modulefile matches the ``module-info loaded`` query, an empty
+string is returned.
+
+New module sub-commands
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Modulefile-specific commands are sometimes wished to be used outside of a
+modulefile context. Especially for the commands managing path variables
+or commands querying current environment context. So the following
+modulefile-specific commands have been made reachable as module sub-commands
+with same arguments and properties as if called from within a modulefile:
+
+* **append-path**
+* **prepend-path**
+* **remove-path**
+* **is-loaded**
+* **info-loaded**
+
+The ``is-loaded`` sub-command returns a boolean value. Small Python example::
+
+    if module('is-loaded app'):
+      print 'app is loaded'
+    else:
+      print 'app not loaded'
+
+``info-loaded`` returns a string value and is the sub-command counterpart
+of the ``module-info loaded`` modulefile command::
+
+    $ module load app/0.8
+    $ module info-loaded app
+    app/0.8
+
+Further reading
+---------------
+
+To get a complete list of the changes between Modules v4.0 and v4.1,
+please read the :ref:`NEWS` document.
+
+
 Migrating from v3.2 to v4.0
 ===========================
 
