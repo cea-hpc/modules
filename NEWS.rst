@@ -7,10 +7,8 @@ This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
 
-Modules 4.1.0 (2018-01-??)
+Modules 4.1.0 (2018-01-15)
 --------------------------
-
-**Ongoing work! This version has not been released yet.**
 
 * Extend stderr output redirection on sh-kind shells to all terminal-attached
   shell session, not only interactive shell session.
