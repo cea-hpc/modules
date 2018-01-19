@@ -28,13 +28,13 @@ else
 endif
 
 initdir: version.inc
-	make -C init all
+	$(MAKE) -C init all
 
 pkgdoc: version.inc
-	make -C doc man txt
+	$(MAKE) -C doc man txt
 
 doc: version.inc
-	make -C doc all
+	$(MAKE) -C doc all
 
 # build version.inc shared definitions from git repository info
 ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
@@ -164,7 +164,7 @@ contrib/scripts/modulecmd: contrib/scripts/modulecmd.in
 
 # compatibility version-related rules
 $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog:
-	make -C $(COMPAT_DIR) $(@F)
+	$(MAKE) -C $(COMPAT_DIR) $(@F)
 
 # example configs for test rules
 testsuite/example/.modulespath: testsuite/example/.modulespath.in
@@ -174,23 +174,23 @@ testsuite/example/modulerc: testsuite/example/modulerc.in
 	$(translate-in-script)
 
 install-testsiteconfig: testsuite/example/siteconfig.tcl
-	make -C init install-testconfig DESTDIR=$(DESTDIR)
+	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(etcdir)/
 
 install-testmodulerc: testsuite/example/modulerc
-	make -C init install-testconfig DESTDIR=$(DESTDIR)
+	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(initdir)/
 
 install-testetcrc: testsuite/etc/empty
-	make -C init install-testconfig DESTDIR=$(DESTDIR)
+	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(prefix)/etc/rc
 
 install-testmodspath: testsuite/example/.modulespath
-	make -C init install-testconfig DESTDIR=$(DESTDIR)
+	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(initdir)/
 
 install-testmodspath-empty: testsuite/example/.modulespath-empty
-	make -C init install-testconfig DESTDIR=$(DESTDIR)
+	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(initdir)/.modulespath
 
 uninstall-testconfig:
@@ -198,7 +198,7 @@ uninstall-testconfig:
 	rm -f $(DESTDIR)$(etcdir)/siteconfig.tcl
 	rm -f $(DESTDIR)$(initdir)/modulerc
 	rm -f $(DESTDIR)$(initdir)/.modulespath
-	make -C init uninstall-testconfig DESTDIR=$(DESTDIR)
+	$(MAKE) -C init uninstall-testconfig DESTDIR=$(DESTDIR)
 
 ifeq ($(compatversion),y)
 install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
@@ -233,8 +233,8 @@ ifeq ($(compatversion),y)
 	cp $(COMPAT_DIR)/NEWS $(DESTDIR)$(docdir)/NEWS-compat
 endif
 endif
-	make -C init install DESTDIR=$(DESTDIR)
-	make -C doc install DESTDIR=$(DESTDIR)
+	$(MAKE) -C init install DESTDIR=$(DESTDIR)
+	$(MAKE) -C doc install DESTDIR=$(DESTDIR)
 	@echo
 	@echo "NOTICE: Modules installation is complete."
 	@echo "        Please read the 'Configuration' section in INSTALL.txt to learn"
@@ -256,8 +256,8 @@ ifeq ($(compatversion),y)
 	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog-compat NEWS-compat)
 endif
 endif
-	make -C init uninstall DESTDIR=$(DESTDIR)
-	make -C doc uninstall DESTDIR=$(DESTDIR)
+	$(MAKE) -C init uninstall DESTDIR=$(DESTDIR)
+	$(MAKE) -C doc uninstall DESTDIR=$(DESTDIR)
 	rmdir $(DESTDIR)$(libexecdir)
 	rmdir $(DESTDIR)$(bindir)
 	rmdir $(DESTDIR)$(datarootdir)
@@ -276,7 +276,7 @@ dist-tar: ChangeLog README version.inc contrib/rpm/environment-modules.spec pkgd
 		doc/build/module.1.in doc/build/modulefile.4 \
 		contrib/rpm/environment-modules.spec
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
-	make -C $(COMPAT_DIR) distdir
+	$(MAKE) -C $(COMPAT_DIR) distdir
 	mv $(COMPAT_DIR)/modules-* compatdist
 	tar -cf compatdist.tar --transform 's,^compatdist,$(DIST_PREFIX)/compat,' compatdist
 	tar --concatenate -f $(DIST_PREFIX).tar compatdist.tar
@@ -320,14 +320,14 @@ endif
 	rm -f testsuite/example/.modulespath testsuite/example/modulerc
 	rm -f modules-*.tar modules-*.tar.gz modules-*.tar.bz2
 	rm -f modules-*.srpm
-	make -C init clean
-	make -C doc clean
+	$(MAKE) -C init clean
+	$(MAKE) -C doc clean
 ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
 	rm -f version.inc
 	rm -f contrib/rpm/environment-modules.spec
 endif
 ifneq ($(wildcard $(COMPAT_DIR)/Makefile),)
-	make -C compat clean
+	$(MAKE) -C compat clean
 endif
 
 distclean: clean
@@ -341,7 +341,7 @@ endif
 
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
 test: modulecmd.tcl $(COMPAT_DIR)/modulecmd
-	make -C $(COMPAT_DIR) test
+	$(MAKE) -C $(COMPAT_DIR) test
 else
 test: modulecmd.tcl
 endif
@@ -372,7 +372,7 @@ instrument: $(COVERAGE_IFILE)
 
 # run tests on instrumented file to create coverage log
 $(COVERAGE_LOGFILE): $(COVERAGE_IFILE)
-	MODULECMD=./$< make test
+	MODULECMD=./$< $(MAKE) test
 
 # create markup file for better read coverage result
 %.tcl_m: %.tcl_log $(NAGELFAR)
