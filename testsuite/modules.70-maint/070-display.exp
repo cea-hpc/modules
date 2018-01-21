@@ -35,6 +35,8 @@ set module_5 "bad2"
 set modulefile_5 "$modpath/$module_5/proc"
 set modulefile_5_reld "$reldmodpath/$module_5/proc"
 set modulefile_5_reldd "$relddmodpath/$module_5/proc"
+set module_6 "setenv/1.0"
+set modulefile_6 "$modpath/setenv/1.0"
 
 # different behavior than C-version: on Tcl-version 'module-log', 'module-verbosity'
 # and 'module-user' commandq are not handled and will always return a warning message
@@ -146,6 +148,14 @@ module-whatis\terroneous module test
 $moderr_msgs: invalid command name \"bad-command\"\n  In '$modpathre/$module_5/proc'\n$err_contact
 $modlin"
 
+set out_err_6 "------------------------------------------------------------
+$modulefile_6:
+
+setenv\t\ttestsuite\tyes
+------------------------------------------------------------"
+
+
+
 #
 #  The tests
 #
@@ -193,6 +203,26 @@ testouterr_cmd_re "csh" "display $modulefile_5" "ERR" "$out_interr_5"
 testouterr_cmd_re "csh" "display $modulefile_5_reld" "ERR" "$out_interr_5"
 testouterr_cmd_re "csh" "display $modulefile_5_reldd" "ERR" "$out_interr_5"
 
+# test small width terminal
+# save current terminal width
+if {[catch {set term_cols [lindex [exec stty size] 1]} errMsg]} {
+    # skip tests if cannot query terminal witdh
+    send_user "\tskipping terminal width-specific tests\n"
+} else {
+
+set test_cols 60
+
+# set a specific terminal width
+exec stty cols $test_cols
+
+testouterr_cmd "sh" "display $module_6" "OK" $out_err_6
+
+# restore terminal width
+exec stty cols $term_cols
+unset term_cols
+unset test_cols
+
+}
 
 #
 #  Cleanup
@@ -205,6 +235,7 @@ unset out_pat
 unset out_debug_pat
 unset out_pat_4
 unset out_interr_5
+unset out_err_6
 
 unset module_1
 unset modulefile_1
@@ -217,3 +248,5 @@ unset module_5
 unset modulefile_5
 unset modulefile_5_reld
 unset modulefile_5_reldd
+unset module_6
+unset modulefile_6

@@ -4664,11 +4664,17 @@ proc displayTableHeader {args} {
 }
 
 proc displaySeparatorLine {{title {}}} {
-
+   set tty_cols [getTtyColumns]
    if {$title eq ""} {
-      report "[string repeat {-} 67]"
+      # adapt length if screen width is very small
+      set max_rep 67
+      if {$tty_cols > $max_rep} {
+         set rep $max_rep
+      } else {
+         set rep $tty_cols
+      }
+      report "[string repeat {-} $rep]"
    } else {
-      set tty_cols [getTtyColumns]
       set len  [string length $title]
       # max expr function is not supported in Tcl8.4 and earlier
       if {[set lrep [expr {($tty_cols - $len - 2)/2}]] < 1} {
