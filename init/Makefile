@@ -113,6 +113,8 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@SHELLNAME@|$@|g' \
 	-e 's|@VERSIONING@|$(setversioning)|g' \
 	-e 's|@VERSION@|$(VERSION)|g' \
+	-e 's|@PS@|$(PS)|g' \
+	-e 's|@BASENAME@|$(BASENAME)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' $< > $@
 endef
 

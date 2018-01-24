@@ -26,10 +26,11 @@ prog=${progpath##*/}
 targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 
 # argument list
-arglist="TCLSH SPHINXBUILD VERSION baseprefix prefix bindir libexecdir etcdir \
-initdir datarootdir mandir docdir modulefilesdir setmanpath setbinpath \
-setdotmodulespath docinstall examplemodulefiles compatversion versioning \
-pager pageropts modulepath loadedmodules quarantinevars"
+arglist="TCLSH SPHINXBUILD PS BASENAME VERSION baseprefix prefix bindir \
+libexecdir etcdir initdir datarootdir mandir docdir modulefilesdir \
+setmanpath setbinpath setdotmodulespath docinstall examplemodulefiles \
+compatversion versioning pager pageropts modulepath loadedmodules \
+quarantinevars"
 compatarglist=
 
 # flags to know if argument has been specified on command-line
@@ -50,6 +51,8 @@ loadedmodules=
 quarantinevars=
 TCLSH=tclsh
 SPHINXBUILD=sphinx-build
+PS=ps
+BASENAME=basename
 VERSION=
 pager=less
 pageropts='-eFKRX'
@@ -322,6 +325,12 @@ fi
 [ -z "$tclshbin" ] && tclshbin=$TCLSH
 check_requirement $tclshbin '' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
 TCLSH=$reqpath
+
+# get location of commands used 'fullpath' in init scripts
+check_requirement 'ps' '' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+PS=$reqpath
+check_requirement 'basename' '' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+BASENAME=$reqpath
 
 # get pager program location from standard PATHs or /usr/local/bin
 # or validate location passed as argument
