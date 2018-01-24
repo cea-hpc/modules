@@ -20,11 +20,15 @@ ifneq ($(wildcard Makefile.inc),Makefile.inc)
 endif
 include Makefile.inc
 
-all: initdir pkgdoc modulecmd.tcl ChangeLog README \
+all: initdir modulecmd.tcl ChangeLog README \
 	contrib/scripts/add.modules contrib/scripts/modulecmd
 ifeq ($(compatversion),y)
 all: $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
 else
+endif
+# skip doc build if no sphinx-build
+ifeq ($(builddoc),y)
+all: pkgdoc
 endif
 
 initdir: version.inc
@@ -234,7 +238,12 @@ ifeq ($(compatversion),y)
 endif
 endif
 	$(MAKE) -C init install DESTDIR=$(DESTDIR)
+ifeq ($(builddoc),y)
 	$(MAKE) -C doc install DESTDIR=$(DESTDIR)
+else
+	@echo
+	@echo "WARNING: Documentation not built nor installed"
+endif
 	@echo
 	@echo "NOTICE: Modules installation is complete."
 	@echo "        Please read the 'Configuration' section in INSTALL.txt to learn"
@@ -255,9 +264,14 @@ ifeq ($(docinstall),y)
 ifeq ($(compatversion),y)
 	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog-compat NEWS-compat)
 endif
+ifneq ($(builddoc),y)
+	rmdir $(DESTDIR)$(docdir)
+endif
 endif
 	$(MAKE) -C init uninstall DESTDIR=$(DESTDIR)
+ifeq ($(builddoc),y)
 	$(MAKE) -C doc uninstall DESTDIR=$(DESTDIR)
+endif
 	rmdir $(DESTDIR)$(libexecdir)
 	rmdir $(DESTDIR)$(bindir)
 	rmdir $(DESTDIR)$(datarootdir)
@@ -321,7 +335,9 @@ endif
 	rm -f modules-*.tar modules-*.tar.gz modules-*.tar.bz2
 	rm -f modules-*.srpm
 	$(MAKE) -C init clean
+ifeq ($(builddoc),y)
 	$(MAKE) -C doc clean
+endif
 ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
 	rm -f version.inc
 	rm -f contrib/rpm/environment-modules.spec

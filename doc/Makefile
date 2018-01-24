@@ -17,6 +17,11 @@ include ../Makefile.inc
 # source version definitions shared across the Makefiles of this project
 include ../version.inc
 
+# quit if no sphinx-build found at configure time
+ifneq ($(builddoc),y)
+  $(error No 'sphinx-build' command defined, cannot build documentation)
+endif
+
 man: $(BUILD_DIR)/module.1 $(BUILD_DIR)/modulefile.4
 ifeq ($(compatversion),y)
 man: $(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4

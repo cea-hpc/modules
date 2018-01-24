@@ -29,7 +29,7 @@ targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 arglist="TCLSH SPHINXBUILD PS BASENAME VERSION baseprefix prefix bindir \
 libexecdir etcdir initdir datarootdir mandir docdir modulefilesdir \
 setmanpath setbinpath setdotmodulespath docinstall examplemodulefiles \
-compatversion versioning pager pageropts modulepath loadedmodules \
+builddoc compatversion versioning pager pageropts modulepath loadedmodules \
 quarantinevars"
 compatarglist=
 
@@ -51,6 +51,7 @@ loadedmodules=
 quarantinevars=
 TCLSH=tclsh
 SPHINXBUILD=sphinx-build
+builddoc=y
 PS=ps
 BASENAME=basename
 VERSION=
@@ -315,8 +316,11 @@ testsuite"
 # if we install from git repository, must have sphinx to build doc and git to
 # fetch current release number
 if [ -d '.git' ]; then
-   check_requirement sphinx-build sphinx-1.0-build
+   # pass even if sphinx not there but no doc will be built
+   check_requirement sphinx-build sphinx-1.0-build "Install \`sphinx-build' \
+if you want to build the documentation"
    SPHINXBUILD=$reqpath
+   [ -z "$reqpath" ] && builddoc=n
    check_requirement git
 fi
 
