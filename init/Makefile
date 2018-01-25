@@ -171,7 +171,8 @@ ifeq ($(compatversion),y)
 else
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/switchml
 endif
-	cp -P --remove-destination $(ALL_CONFIG) $(DESTDIR)$(initdir)/
+	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_CONFIG))
+	cp -P $(ALL_CONFIG) $(DESTDIR)$(initdir)/
 ifeq ($(examplemodulefiles),y)
 	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_MODFILES)) $(DESTDIR)$(modulefilesdir)/
 endif
