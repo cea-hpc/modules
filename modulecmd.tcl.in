@@ -3554,13 +3554,12 @@ alias module '$pre_pr $eval_cmd $pre_ex $post_pr $post_ex' ;
 if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
       }
       {sh} {
-         # adapt shell function to define local variable, as 'typeset' is
-         # not known by dash and 'local' is not known by ksh
-         if {$g_shell eq "sh"} {
-            set locf "local"
-         } else {
-            set locf "typeset"
-         }
+         # Considering the diversity of ways local variables are handled
+         # through the sh-variants ('local' known everywhere except on ksh,
+         # 'typeset' known everywhere except on pure-sh, and on some systems
+         # the pure-sh is in fact a 'ksh'), no local variables are defined and
+         # these variables that should have been local are unset at the end
+
          # on zsh, word splitting should be enabled explicitly
          if {$g_shell eq "zsh"} {
             set wsplit "="
@@ -3580,17 +3579,17 @@ if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
          # MODULES_RUNENV_* variable found, as var cannot be unset on
          # modified environment command-line
          set fdef "${fname}() {
+   unset _mlre _mlIFS _mlshdbg;
    if \[ \"\$MODULES_SILENT_SHELL_DEBUG\" = '1' \]; then
       case \"$-\" in
-         *v*x*) set +vx; $locf _mlshdbg='vx' ;;
-         *v*) set +v; $locf _mlshdbg='v' ;;
-         *x*) set +x; $locf _mlshdbg='x' ;;
-         *) $locf _mlshdbg='' ;;
+         *v*x*) set +vx; _mlshdbg='vx' ;;
+         *v*) set +v; _mlshdbg='v' ;;
+         *x*) set +x; _mlshdbg='x' ;;
+         *) _mlshdbg='' ;;
       esac;
    fi;
-   $locf _mlre=''; $locf _mlv; $locf _mlrv;
    if \[ -n \"\${IFS+x}\" \]; then
-      $locf _mlIFS=\$IFS;
+      _mlIFS=\$IFS;
    fi;
    IFS=' ';
    for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE}; do"
@@ -3608,7 +3607,7 @@ if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
    fi;}
          append fdef "\n   eval `\${${wsplit}_mlre}$tclshbin $argv0\
 $g_shell \$*`;
-   $locf _mlstatus=\$?;\n"
+   _mlstatus=\$?;\n"
          append fdef {   if [ -n "${_mlIFS+x}" ]; then
       IFS=$_mlIFS;
    else
@@ -3616,8 +3615,8 @@ $g_shell \$*`;
    fi;
    if [ -n "$_mlshdbg" ]; then
       set -$_mlshdbg;
-      unset _mlshdbg;
    fi;
+   unset _mlre _mlv _mlrv _mlIFS _mlshdbg;
    return $_mlstatus;}
          append fdef "\n};"
          if {[isStderrTty]} {
