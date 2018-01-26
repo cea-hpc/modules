@@ -87,7 +87,11 @@ if {$install_setbinpath eq "y"} {
       send_user "\tChecking modulecmd availability\n"
    }
    foreach shell $shell_list {
-      testall_cmd_re "$shell" "modulecmd $shell --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+      if {$shell eq "basheu"} {
+         testall_cmd_re "$shell" "modulecmd bash --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+      } else {
+         testall_cmd_re "$shell" "modulecmd $shell --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+      }
    }
    if {$install_compatversion eq "y"} {
       # set module compat version as default
@@ -98,7 +102,11 @@ if {$install_setbinpath eq "y"} {
       foreach shell $shell_list {
          # compat version does not support Fish shell
          if {$shell ne "fish"} {
-            testall_cmd_re "$shell" "modulecmd $shell --version" " test 0 = 1;" "^VERSION=\\S+.*\$" 1
+            if {$shell eq "basheu"} {
+               testall_cmd_re "$shell" "modulecmd bash --version" " test 0 = 1;" "^VERSION=\\S+.*\$" 1
+            } else {
+               testall_cmd_re "$shell" "modulecmd $shell --version" " test 0 = 1;" "^VERSION=\\S+.*\$" 1
+            }
          }
       }
       # restore environment setup
@@ -226,7 +234,7 @@ set env(MODULES_SILENT_SHELL_DEBUG) 1
 foreach shell $shell_sh_family {
    if {[info exists shell_opts($shell)]} {
       set shell_opts_save $shell_opts($shell)
-      set shell_opts($shell) "$shell_opts($shell) -xv"
+      set shell_opts($shell) "$shell_opts($shell)xv"
    } else {
       set shell_opts($shell) "-xv"
    }
@@ -247,7 +255,7 @@ set env(MODULES_SILENT_SHELL_DEBUG) 0
 foreach shell $shell_sh_family {
    if {[info exists shell_opts($shell)]} {
       set shell_opts_save $shell_opts($shell)
-      set shell_opts($shell) "$shell_opts($shell) -xv"
+      set shell_opts($shell) "$shell_opts($shell)xv"
    } else {
       set shell_opts($shell) "-xv"
    }

@@ -3580,7 +3580,7 @@ if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
          # modified environment command-line
          set fdef "${fname}() {
    unset _mlre _mlIFS _mlshdbg;
-   if \[ \"\$MODULES_SILENT_SHELL_DEBUG\" = '1' \]; then
+   if \[ \"\$\{MODULES_SILENT_SHELL_DEBUG:-0\}\" = '1' \]; then
       case \"$-\" in
          *v*x*) set +vx; _mlshdbg='vx' ;;
          *v*) set +v; _mlshdbg='v' ;;
@@ -3592,20 +3592,20 @@ if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
       _mlIFS=\$IFS;
    fi;
    IFS=' ';
-   for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE}; do"
+   for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE:-}; do"
          append fdef {
       if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
          if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
-            _mlre="${_mlre}${_mlv}_modquar='`eval 'echo ${'$_mlv'}'`' ";
+            _mlre="${_mlre:-}${_mlv}_modquar='`eval 'echo ${'$_mlv'}'`' ";
          fi;
          _mlrv="MODULES_RUNENV_${_mlv}";
-         _mlre="${_mlre}${_mlv}='`eval 'echo ${'$_mlrv'}'`' ";
+         _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
       fi;
    done;
-   if [ -n "$_mlre" ]; then
+   if [ -n "${_mlre:-}" ]; then
       _mlre="eval ${_mlre}";
    fi;}
-         append fdef "\n   eval `\${${wsplit}_mlre}$tclshbin $argv0\
+         append fdef "\n   eval `\${${wsplit}_mlre:-}$tclshbin $argv0\
 $g_shell \$*`;
    _mlstatus=\$?;\n"
          append fdef {   if [ -n "${_mlIFS+x}" ]; then
@@ -3613,7 +3613,7 @@ $g_shell \$*`;
    else
       unset IFS;
    fi;
-   if [ -n "$_mlshdbg" ]; then
+   if [ -n "${_mlshdbg:-}" ]; then
       set -$_mlshdbg;
    fi;
    unset _mlre _mlv _mlrv _mlIFS _mlshdbg;

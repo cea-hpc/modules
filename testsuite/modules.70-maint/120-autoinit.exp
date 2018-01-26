@@ -77,39 +77,39 @@ set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
 
 set end_quar_sh "\\s*if \\\[ \"\\\${_mlv}\" = \"\\\${_mlv##\\\*\\\[\\\!A-Za-z0-9_\\\]}\" -a \"\\\${_mlv}\" = \"\\\${_mlv#\\\[0-9\\\]}\" \\\]; then
 \\s*if \\\[ -n \"`eval 'echo \\\${'\\\$_mlv'\\\+x}'`\" \\\]; then
-\\s*_mlre=\"\\\${_mlre}\\\${_mlv}_modquar='`eval 'echo \\\${'\\\$_mlv'}'`' \";
+\\s*_mlre=\"\\\${_mlre:-}\\\${_mlv}_modquar='`eval 'echo \\\${'\\\$_mlv'}'`' \";
 \\s*fi;
 \\s*_mlrv=\"MODULES_RUNENV_\\\${_mlv}\";
-\\s*_mlre=\"\\\${_mlre}\\\${_mlv}='`eval 'echo \\\${'\\\$_mlrv'}'`' \";
+\\s*_mlre=\"\\\${_mlre:-}\\\${_mlv}='`eval 'echo \\\${'\\\$_mlrv':-}'`' \";
 \\s*fi;
 \\s*done;
-\\s*if \\\[ -n \"\\\$_mlre\" \\\]; then
+\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
 \\s*_mlre=\"eval \\\${_mlre}\";
 \\s*fi;"
 set func_quar_sh "\\s*if \\\[ -n \"\\\${IFS\\\+x}\" \\\]; then
 \\s*_mlIFS=\\\$IFS;
 \\s*fi;
 \\s*IFS=' ';
-\\s*for _mlv in \\\${MODULES_RUN_QUARANTINE}; do
+\\s*for _mlv in \\\${MODULES_RUN_QUARANTINE:-}; do
 $end_quar_sh"
 set func_quar_zsh "\\s*if \\\[ -n \"\\\${IFS\\\+x}\" \\\]; then
 \\s*_mlIFS=\\\$IFS;
 \\s*fi;
 \\s*IFS=' ';
-\\s*for _mlv in \\\${=MODULES_RUN_QUARANTINE}; do
+\\s*for _mlv in \\\${=MODULES_RUN_QUARANTINE:-}; do
 $end_quar_sh"
 set func_clean_ifs "\\s*if \\\[ -n \"\\\${_mlIFS\\\+x}\" \\\]; then
 \\s*IFS=\\\$_mlIFS;
 \\s*else
 \\s*unset IFS;
 \\s*fi;
-\\s*if \\\[ -n \"\\\$_mlshdbg\" \\\]; then
+\\s*if \\\[ -n \"\\\${_mlshdbg:-}\" \\\]; then
 \\s*set -\\\$_mlshdbg;
 \\s*fi;
 \\s*unset _mlre _mlv _mlrv _mlIFS _mlshdbg;
 \\s*return \\\$_mlstatus;"
 set func_silentdbg "\\s*unset _mlre _mlIFS _mlshdbg;
-\\s*if \\\[ \"\\\$MODULES_SILENT_SHELL_DEBUG\" = '1' \\\]; then
+\\s*if \\\[ \"\\\${MODULES_SILENT_SHELL_DEBUG:-0}\" = '1' \\\]; then
 \\s*case \"\\\$-\" in
 \\s*\\\*v\\\*x\\\*\\\) set \\\+vx; _mlshdbg='vx' ;;
 \\s*\\\*v\\\*\\\) set \\\+v; _mlshdbg='v' ;;
@@ -119,10 +119,10 @@ set func_silentdbg "\\s*unset _mlre _mlIFS _mlshdbg;
 \\s*fi;"
 
 
-set func_sh "module\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_pathre sh \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
-set func_bash "module\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_pathre bash \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
-set func_ksh "module\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n\\s*eval `\\\${_mlre}$install_tclsh $modulecmd_pathre ksh \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
-set func_zsh "module\\\(\\\) {\n$func_silentdbg\n$func_quar_zsh\n\\s*eval `\\\${=_mlre}$install_tclsh $modulecmd_pathre zsh \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
+set func_sh "module\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n\\s*eval `\\\${_mlre:-}$install_tclsh $modulecmd_pathre sh \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
+set func_bash "module\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n\\s*eval `\\\${_mlre:-}$install_tclsh $modulecmd_pathre bash \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
+set func_ksh "module\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n\\s*eval `\\\${_mlre:-}$install_tclsh $modulecmd_pathre ksh \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
+set func_zsh "module\\\(\\\) {\n$func_silentdbg\n$func_quar_zsh\n\\s*eval `\\\${=_mlre:-}$install_tclsh $modulecmd_pathre zsh \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
 set func_csh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_pathre csh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
 if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; eval `$install_tclsh $modulecmd_pathre csh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
 if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_pathre csh \\\\!\\*`; set _exit=\"\\\$status\"; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;

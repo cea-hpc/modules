@@ -1,5 +1,6 @@
+unset _mlre _mlIFS _mlshdbg;
 # disable shell debugging for the run of this init file
-if [ "$MODULES_SILENT_SHELL_DEBUG" = '1' ]; then
+if [ "${MODULES_SILENT_SHELL_DEBUG:-0}" = '1' ]; then
    # immediately disable debugging to echo the less number of line possible
    case "$-" in
       *v*x*) set +vx; _mlshdbg='vx' ;;
@@ -15,27 +16,26 @@ fi;
 @notsetquarvars@#export MODULES_RUN_QUARANTINE='ENVVARNAME'
 @notsetquarvars@
 # setup quarantine if defined
-_mlre='';
 if [ -n "${IFS+x}" ]; then
    _mlIFS=$IFS;
 fi;
 IFS=' ';
-for _mlv in ${MODULES_RUN_QUARANTINE}; do
+for _mlv in ${MODULES_RUN_QUARANTINE:-}; do
    if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
       if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
-         _mlre="${_mlre}${_mlv}_modquar='`eval 'echo ${'$_mlv'}'`' ";
+         _mlre="${_mlre:-}${_mlv}_modquar='`eval 'echo ${'$_mlv'}'`' ";
       fi;
       _mlrv="MODULES_RUNENV_${_mlv}";
-      _mlre="${_mlre}${_mlv}='`eval 'echo ${'$_mlrv'}'`' ";
+      _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
    fi;
 done;
-if [ -n "$_mlre" ]; then
+if [ -n "${_mlre:-}" ]; then
    _mlre="eval ${_mlre}";
 fi;
 
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
-eval `${_mlre}@TCLSH@ @libexecdir@/modulecmd.tcl sh autoinit`
+eval `${_mlre:-}@TCLSH@ @libexecdir@/modulecmd.tcl sh autoinit`
 
 # clean temp variables used to setup quarantine
 if [ -n "${_mlIFS+x}" ]; then
@@ -46,7 +46,7 @@ fi;
 unset _mlre _mlv _mlrv
 
 @compatversion@# redefine module command if compat version has been activated
-@compatversion@if [ "$MODULES_USE_COMPAT_VERSION" = '1' ]; then
+@compatversion@if [ "${MODULES_USE_COMPAT_VERSION:-0}" = '1' ]; then
 @compatversion@   MODULES_CMD=@libexecdir@/modulecmd-compat; export MODULES_CMD
 @compatversion@   if [ -t 1 ]; then
 @compatversion@      _moduleraw() { eval `@libexecdir@/modulecmd-compat sh $*`; }
@@ -66,7 +66,7 @@ fi
 @compatversion@# define function to switch between C and Tcl versions of Modules
 @compatversion@switchml() {
 @compatversion@   swfound=1
-@compatversion@   if [ "$MODULES_USE_COMPAT_VERSION" = '1' ]; then
+@compatversion@   if [ "${MODULES_USE_COMPAT_VERSION:-0}" = '1' ]; then
 @compatversion@      swname='main'
 @compatversion@      if [ -e @libexecdir@/modulecmd.tcl ]; then
 @compatversion@         swfound=0
@@ -111,7 +111,7 @@ BASH_ENV=@initdir@/bash; export BASH_ENV
 @setmanpath@esac
 @setmanpath@
 # restore shell debugging options if disabled
-if [ -n "$_mlshdbg" ]; then
+if [ -n "${_mlshdbg:-}" ]; then
    set -$_mlshdbg;
    unset _mlshdbg;
 fi;
