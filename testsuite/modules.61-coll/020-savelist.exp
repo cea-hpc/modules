@@ -56,9 +56,9 @@ if { $verbose > 0 } {
 }
 set env(HOME) "$homewithcoll"
 
-# save current terminal width and set a specific width for test
-if {[catch {set term_cols [lindex [exec stty size] 1]} errMsg]} {
-    # skip tests if cannot query terminal witdh
+# set a specific width for test
+if {![info exists term_cols]} {
+    # skip tests if current terminal witdh is unknown
     send_user "\tskipping terminal width-specific tests\n"
 } else {
 
@@ -72,9 +72,6 @@ testouterr_cmd_re "sh" "savelist -t --long" "OK" "$header_long\n$header_coll\n$c
 
 # restore terminal width
 exec stty cols $term_cols
-
-# Cleanup
-unset term_cols
 
 }
 

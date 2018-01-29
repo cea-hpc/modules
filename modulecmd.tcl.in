@@ -79,10 +79,18 @@ proc getTtyColumns {} {
 
    if {![info exists g_tty_columns]} {
       # determine col number from tty capabilites
-      if {[catch {exec stty size} stty_size] == 0 && $stty_size ne ""} {
-         set g_tty_columns [lindex $stty_size 1]
-      } else {
-         # default size if tty cols cannot be found
+      # tty info query depends on running OS
+      switch -- $::tcl_platform(os) {
+         {SunOS} {
+            catch {regexp {columns = (\d+);} [exec stty] match g_tty_columns}\
+               errMsg
+         }
+         default {
+            catch {set g_tty_columns [lindex [exec stty size] 1]} errMsg
+         }
+      }
+      # default size if tty cols cannot be found
+      if {![info exists g_tty_columns]} {
          set g_tty_columns 80
       }
    }

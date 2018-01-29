@@ -25,9 +25,8 @@
 #  Check this only fo the /bin/sh
 #
 
-# save current terminal width
-if {[catch {set term_cols [lindex [exec stty size] 1]} errMsg]} {
-    # skip tests if cannot query terminal witdh
+if {![info exists term_cols]} {
+    # skip tests if current terminal witdh is unknown
     send_user "\tskipping terminal width-specific tests\n"
 } else {
 
@@ -136,7 +135,6 @@ testouterr_cmd "sh" "avail" "OK" "$ts_sh"
 # restore terminal width
 exec stty cols $term_cols
 
-unset term_cols
 unset ts_sh
 
 unset test_cols

@@ -54,6 +54,16 @@ set err_magic "$moderr_msgs: Magic cookie '#%Module' missing\n  In "
 set err_contact "  Please contact <root@localhost>"
 set err_typehelp "Try 'module --help' for more information."
 
+# get current terminal width
+switch -- $tcl_platform(os) {
+    {SunOS} {
+        catch {regexp {columns = (\d+);} [exec stty] match term_cols} errMsg
+    }
+    default {
+        catch {set term_cols [lindex [exec stty size] 1]} errMsg
+    }
+}
+
 #
 #  Set up the config-file variable if possible
 #

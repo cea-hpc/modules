@@ -204,9 +204,8 @@ testouterr_cmd_re "csh" "display $modulefile_5_reld" "ERR" "$out_interr_5"
 testouterr_cmd_re "csh" "display $modulefile_5_reldd" "ERR" "$out_interr_5"
 
 # test small width terminal
-# save current terminal width
-if {[catch {set term_cols [lindex [exec stty size] 1]} errMsg]} {
-    # skip tests if cannot query terminal witdh
+if {![info exists term_cols]} {
+    # skip tests if current terminal witdh is unknown
     send_user "\tskipping terminal width-specific tests\n"
 } else {
 
@@ -219,7 +218,6 @@ testouterr_cmd "sh" "display $module_6" "OK" $out_err_6
 
 # restore terminal width
 exec stty cols $term_cols
-unset term_cols
 unset test_cols
 
 }
