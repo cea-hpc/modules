@@ -181,11 +181,16 @@ placed in the following directory structure:
 # check requirement availability
 check_requirement() {
    typeset req=$1
-   typeset alt=$2
-   typeset optmesg=$3
-   typeset cmdenv=$4
+   typeset optmesg=$2
+   typeset cmdenv=$3
 
-   for cmd in $req $alt; do
+   if [ $# -gt 3 ]; then
+      shift 3
+   else
+      shift $#
+   fi
+
+   for cmd in $req "${@}"; do
       if [ -n "$cmd" ]; then
          echo -n "checking for ${cmd}... "
          if [ -n "$cmdenv" ]; then
@@ -310,15 +315,15 @@ check_requirement make
 check_requirement sed
 check_requirement grep
 check_requirement cut
-check_requirement runtest '' "Install \`dejagnu' if you want to run the \
+check_requirement runtest "Install \`dejagnu' if you want to run the \
 testsuite"
 
 # if we install from git repository, must have sphinx to build doc and git to
 # fetch current release number
 if [ -d '.git' ]; then
    # pass even if sphinx not there but no doc will be built
-   check_requirement sphinx-build sphinx-1.0-build "Install \`sphinx-build' \
-if you want to build the documentation"
+   check_requirement sphinx-build "Install \`sphinx-build' if you want to \
+build the documentation" '' 'sphinx-1.0-build'
    SPHINXBUILD=$reqpath
    [ -z "$reqpath" ] && builddoc=n
    check_requirement git
@@ -326,20 +331,24 @@ fi
 
 # get tclsh location from standard PATHs or /usr/local/bin
 # or validate location passed as argument
-[ -z "$tclshbin" ] && tclshbin=$TCLSH
-check_requirement $tclshbin '' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+if [ -n "$tclshbin" ]; then
+   check_requirement $tclshbin '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+else
+   # also check version-specific names in case no generic tclsh binary exists
+   check_requirement $TCLSH '' 'PATH=/usr/bin:/bin:/usr/local/bin' 'tclsh8.6' 'tclsh8.5' 'tclsh8.4'
+fi
 TCLSH=$reqpath
 
 # get location of commands used 'fullpath' in init scripts
-check_requirement 'ps' '' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+check_requirement 'ps' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
 PS=$reqpath
-check_requirement 'basename' '' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+check_requirement 'basename' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
 BASENAME=$reqpath
 
 # get pager program location from standard PATHs or /usr/local/bin
 # or validate location passed as argument
 if [ -n "$pager" ]; then
-   check_requirement $pager '' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+   check_requirement $pager '' 'PATH=/usr/bin:/bin:/usr/local/bin'
    pager=$reqpath
 fi
 # adapt pager program settings dependings of specified args
