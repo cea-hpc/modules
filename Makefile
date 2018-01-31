@@ -352,7 +352,9 @@ distclean: clean
 	rm -rf $(NAGELFAR_RELEASE)
 ifeq ($(wildcard .git) $(wildcard $(COMPAT_DIR)),.git $(COMPAT_DIR))
 	rm -rf $(COMPAT_DIR)
+ifeq ($(gitworktree),y)
 	git worktree prune
+endif
 endif
 
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))

@@ -29,8 +29,8 @@ targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 arglist="TCLSH SPHINXBUILD PS BASENAME VERSION baseprefix prefix bindir \
 libexecdir etcdir initdir datarootdir mandir docdir modulefilesdir \
 setmanpath setbinpath setdotmodulespath docinstall examplemodulefiles \
-builddoc compatversion versioning pager pageropts modulepath loadedmodules \
-quarantinevars"
+builddoc gitworktree compatversion versioning pager pageropts modulepath \
+loadedmodules quarantinevars"
 compatarglist=
 
 # flags to know if argument has been specified on command-line
@@ -52,6 +52,7 @@ quarantinevars=
 TCLSH=tclsh
 SPHINXBUILD=sphinx-build
 builddoc=y
+gitworktree=y
 PS=ps
 BASENAME=basename
 VERSION=
@@ -460,6 +461,7 @@ if [ "$compatversion" = 'y' ]; then
             if [ $? -eq 0 ]; then
                git worktree add compat $compatbranch || exit 1
             else
+               gitworktree=n
                # clone branch if no worktree command supported
                git clone --branch=$compatbranch .git compat || exit 1
             fi
