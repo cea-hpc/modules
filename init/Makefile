@@ -67,6 +67,13 @@ else
   compatversionre := /@compatversion@/d
   notcompatversionre := s|@notcompatversion@||g
 endif
+ifeq ($(usemanpath),y)
+  usemanpathre := s|@usemanpath@||g
+  notusemanpathre := /@notusemanpath@/d
+else
+  usemanpathre := /@usemanpath@/d
+  notusemanpathre := s|@notusemanpath@||g
+endif
 
 # comment entries if feature not enabled
 ifeq ($(versioning),y)
@@ -106,6 +113,8 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e '$(setbinpathre)' \
 	-e '$(compatversionre)' \
 	-e '$(notcompatversionre)' \
+	-e '$(usemanpathre)' \
+	-e '$(notusemanpathre)' \
 	-e 's|@modulerc@|$(modulerc)|g' \
 	-e 's|@modulepath@|$(modulepath)|g' \
 	-e '$(setquarvarsre)' $(quarvarsre) \
