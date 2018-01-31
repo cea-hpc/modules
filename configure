@@ -311,7 +311,20 @@ for arg in "$@"; do
 done
 
 # test requirements availability
-check_requirement make
+check_requirement uname
+kernelname=$(uname -s)
+
+# Makefile for this project are GNU Makefile so we must ensure correct make
+# command is available, on Linux systems the 'make' bin refers to GNU Make
+# whereas on other system it is not the default make flavor, so 'gmake' should
+# be checked
+if [ "$kernelname" = 'Linux' ]; then
+   make='make'
+else
+   make='gmake'
+fi
+
+check_requirement $make
 check_requirement sed
 check_requirement grep
 check_requirement cut
