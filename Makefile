@@ -275,7 +275,7 @@ endif
 	rmdir $(DESTDIR)$(libexecdir)
 	rmdir $(DESTDIR)$(bindir)
 	rmdir $(DESTDIR)$(datarootdir)
-	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(prefix)
+	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(prefix) || true
 
 # include pre-generated documents not to require documentation build
 # tools when installing from dist tarball

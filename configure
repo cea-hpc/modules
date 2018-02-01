@@ -26,11 +26,11 @@ prog=${progpath##*/}
 targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 
 # argument list
-arglist="TCLSH SPHINXBUILD PS BASENAME GREP VERSION baseprefix prefix bindir \
-libexecdir etcdir initdir datarootdir mandir docdir modulefilesdir \
-setmanpath setbinpath setdotmodulespath docinstall examplemodulefiles \
-builddoc gitworktree usemanpath compatversion versioning pager pageropts \
-modulepath loadedmodules quarantinevars"
+arglist="TCLSH SPHINXBUILD PS BASENAME GREP RMDIR_IGN_NON_EMPTY VERSION \
+baseprefix prefix bindir libexecdir etcdir initdir datarootdir mandir docdir \
+modulefilesdir setmanpath setbinpath setdotmodulespath docinstall \
+examplemodulefiles builddoc gitworktree usemanpath compatversion versioning \
+pager pageropts modulepath loadedmodules quarantinevars"
 compatarglist=
 
 # flags to know if argument has been specified on command-line
@@ -57,6 +57,7 @@ usemanpath=y
 PS=ps
 BASENAME=basename
 GREP=grep
+RMDIR_IGN_NON_EMPTY=rmdir
 VERSION=
 pager=less
 pageropts='-eFKRX'
@@ -341,6 +342,13 @@ check_requirement runtest "Install \`dejagnu' if you want to run the \
 testsuite"
 check_requirement manpath 'Will rely on MANPATH to get enabled man directories'
 [ -z "$reqpath" ] && usemanpath=n
+
+# rmdir option may not be available, use || true in any case
+if [ "$kernelname" = 'Linux' ]; then
+    RMDIR_IGN_NON_EMPTY='rmdir --ignore-fail-on-non-empty'
+else
+    RMDIR_IGN_NON_EMPTY='rmdir'
+fi
 
 # if we install from git repository, must have sphinx to build doc and git to
 # fetch current release number

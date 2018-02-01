@@ -168,9 +168,9 @@ install-testconfig:
 uninstall-testconfig:
 	rmdir $(DESTDIR)$(prefix)/test/modulefiles $(DESTDIR)$(prefix)/test/etc $(DESTDIR)$(prefix)/test
 	rm -f $(addprefix $(DESTDIR)$(modulefilesdir)/,$(EXAMPLE_TESTCONFIG_MODFILES))
-	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(modulefilesdir)
-	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(etcdir)
-	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(initdir)
+	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(modulefilesdir) || true
+	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(etcdir) || true
+	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(initdir) || true
 
 install: all
 	mkdir -p $(DESTDIR)$(initdir)
@@ -203,15 +203,15 @@ ifeq ($(compatversion),y)
 endif
 	rm -f $(DESTDIR)$(initdir)/zsh-functions/_module
 	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_CONFIG))
-	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(modulefilesdir)
+	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(modulefilesdir) || true
 	@if [ -d $(DESTDIR)$(modulefilesdir) ]; then echo -e "\nWARNING: $(DESTDIR)$(modulefilesdir) is not empty so skip removal\n" >&2; fi
 	rmdir $(DESTDIR)$(initdir)/ksh-functions
 	rmdir $(DESTDIR)$(initdir)/zsh-functions
-	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(initdir)
+	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(initdir) || true
 	@if [ -d $(DESTDIR)$(initdir) ]; then echo -e "\nWARNING: $(DESTDIR)$(initdir) is not empty so skip removal\n" >&2; fi
 ifeq ($(versioning),y)
 	rm -f $(DESTDIR)$(versdir)/$(VERSION)
-	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(versdir)
+	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(versdir) || true
 	@if [ -d $(DESTDIR)$(versdir) ]; then echo -e "\nWARNING: $(DESTDIR)$(versdir) is not empty so skip removal\n" >&2; fi
 endif
 
