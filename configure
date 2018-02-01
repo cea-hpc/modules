@@ -26,7 +26,7 @@ prog=${progpath##*/}
 targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 
 # argument list
-arglist="TCLSH SPHINXBUILD PS BASENAME VERSION baseprefix prefix bindir \
+arglist="TCLSH SPHINXBUILD PS BASENAME GREP VERSION baseprefix prefix bindir \
 libexecdir etcdir initdir datarootdir mandir docdir modulefilesdir \
 setmanpath setbinpath setdotmodulespath docinstall examplemodulefiles \
 builddoc gitworktree usemanpath compatversion versioning pager pageropts \
@@ -56,6 +56,7 @@ gitworktree=y
 usemanpath=y
 PS=ps
 BASENAME=basename
+GREP=grep
 VERSION=
 pager=less
 pageropts='-eFKRX'
@@ -325,10 +326,16 @@ if [ "$kernelname" = 'Linux' ]; then
 else
    make='gmake'
 fi
-
 check_requirement $make
 check_requirement sed
-check_requirement grep
+# ensure a GNU grep is used on Solaris
+if [ "$kernelname" = 'SunOS' ]; then
+   grep='ggrep'
+else
+   grep='grep'
+fi
+check_requirement $grep
+GREP=$reqpath
 check_requirement cut
 check_requirement runtest "Install \`dejagnu' if you want to run the \
 testsuite"
