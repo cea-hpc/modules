@@ -25,7 +25,7 @@ if ( -z "$progdir" ) then
 endif
 set ret=0
 
-if ( $# < 4 ) then
+if ( $#argv < 4 ) then
    # print usage message
    echo "Usage: $progpath initfile mode shell command"
    exit 1
@@ -92,17 +92,17 @@ switch ($mode)
    case launch:
       foreach cmd ("`echo '${cmdlist}' | tr ';' '\n'`")
          eval $cmd
-         set ret=($ret + $?)
+         set ret=($ret + $status)
       end
       breaksw
    case sub:
    case sublaunch:
       $sh $shopts $progdir/install_test_${shkind} $initfile launch $sh "$cmdlist"
-      set ret=$?
+      set ret=$status
       breaksw
    case subsub:
       $sh $shopts $progdir/install_test_${shkind} $initfile sublaunch $sh "$cmdlist"
-      set ret=$?
+      set ret=$status
       breaksw
    default:
       echo "ERROR: Unrecognized mode option. Valid mode are 'top', 'sub', 'subsub'"
