@@ -34,7 +34,7 @@ define newline
 endef
 
 # generate 'module use' commands to put in modulerc from modulepath
-modulerc := $(addprefix \$(newline)module use --append {,$(subst :,} {,$(modulepath)}))
+modulerc := $(addprefix \$(newline)module use --append {,$(subst :,} ,$(modulepath)}))
 # generate 'module load' commands to put in modulerc from loadedmodules
 ifneq ($(loadedmodules),)
   modulerc := $(modulerc)$(addprefix \$(newline)module load ,\
