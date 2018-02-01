@@ -25,7 +25,11 @@ set bad_cmd "$error_msgs: Invalid command 'foo'"
 set zsh_nf "command not found: module"
 set csh_nf "module: Command not found."
 set fish_nf "fish: Unknown command 'module"
-set dash_nf "module: not found"
+if {$tcl_platform(os) eq "FreeBSD"} {
+   set sh_nf "eval: module: not found"
+} else {
+   set sh_nf "module: not found"
+}
 
 #
 # The tests
@@ -58,11 +62,11 @@ foreach shell $shell_list {
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*\$" 123
       }
       default {
-         if {$shell eq "sh" && $sh_kind eq "dash"} {
-            testall_cmd_re "$shell" "module --version" "^\$" "$dash_nf\$" 127
-            testall_cmd_re "$shell" "module foo" "^\$" "$dash_nf\$" 127
-            testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$dash_nf\n.*$dash_nf\n.*$dash_nf\n.*$dash_nf\$" 252
-            testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$dash_nf\n.*$dash_nf\n.*$dash_nf\n.*$dash_nf\n.*$dash_nf\$" 123
+         if {$shell eq "sh" && $sh_strict} {
+            testall_cmd_re "$shell" "module --version" "^\$" "$sh_nf\$" 127
+            testall_cmd_re "$shell" "module foo" "^\$" "$sh_nf\$" 127
+            testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$sh_nf\n.*$sh_nf\n.*$sh_nf\n.*$sh_nf\$" 252
+            testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$sh_nf\n.*$sh_nf\n.*$sh_nf\n.*$sh_nf\n.*$sh_nf\$" 123
          } else {
             testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
             testall_cmd "$shell" "module foo" "" "$bad_cmd\n$type_help" 1
@@ -100,11 +104,11 @@ foreach shell $shell_list {
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*\$" 123
       }
       default {
-         if {$shell eq "sh" && $sh_kind eq "dash"} {
-            testall_cmd_re "$shell" "module --version" "^\$" "$dash_nf\$" 127
-            testall_cmd_re "$shell" "module foo" "^\$" "$dash_nf\$" 127
-            testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$dash_nf\n.*$dash_nf\n.*$dash_nf\n.*$dash_nf\$" 252
-            testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$dash_nf\n.*$dash_nf\n.*$dash_nf\n.*$dash_nf\n.*$dash_nf\$" 123
+         if {$shell eq "sh" && $sh_strict} {
+            testall_cmd_re "$shell" "module --version" "^\$" "$sh_nf\$" 127
+            testall_cmd_re "$shell" "module foo" "^\$" "$sh_nf\$" 127
+            testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$sh_nf\n.*$sh_nf\n.*$sh_nf\n.*$sh_nf\$" 252
+            testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$sh_nf\n.*$sh_nf\n.*$sh_nf\n.*$sh_nf\n.*$sh_nf\$" 123
          } else {
             testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
             testall_cmd "$shell" "module foo" "" "$bad_cmd\n$type_help" 1
@@ -124,7 +128,7 @@ unset bad_cmd
 unset zsh_nf
 unset csh_nf
 unset fish_nf
-unset dash_nf
+unset sh_nf
 unset shell_level
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
