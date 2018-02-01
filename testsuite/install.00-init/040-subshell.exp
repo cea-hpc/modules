@@ -23,9 +23,16 @@
 
 set bad_cmd "$error_msgs: Invalid command 'foo'"
 set zsh_nf "command not found: module"
-set csh_nf "module: Command not found."
+set tcsh_nf "module: Command not found."
+if {$tcl_platform(os) eq "SunOS"} {
+   set csh_nf "module: Command not found"
+} else {
+   set csh_nf $tcsh_nf
+}
 set fish_nf "fish: Unknown command 'module"
-if {$tcl_platform(os) eq "FreeBSD"} {
+if {$tcl_platform(os) eq "SunOS"} {
+   set sh_nf "module: not found \\\[No such file or directory\\\]"
+} elseif {$tcl_platform(os) eq "FreeBSD"} {
    set sh_nf "eval: module: not found"
 } else {
    set sh_nf "module: not found"
@@ -49,11 +56,17 @@ foreach shell $shell_list {
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\$" 127
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\$" 127
       }
-      csh - tcsh {
+      csh {
          testall_cmd_re "$shell" "module --version" "^\$" "$csh_nf\$" 1
          testall_cmd_re "$shell" "module foo" "^\$" "$csh_nf\$" 1
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$csh_nf\n.*$csh_nf\n.*$csh_nf\n.*$csh_nf\$" 4
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$csh_nf\n.*$csh_nf\n.*$csh_nf\n.*$csh_nf\n.*$csh_nf\$" 5
+      }
+      tcsh {
+         testall_cmd_re "$shell" "module --version" "^\$" "$tcsh_nf\$" 1
+         testall_cmd_re "$shell" "module foo" "^\$" "$tcsh_nf\$" 1
+         testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\$" 4
+         testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\$" 5
       }
       fish {
          testall_cmd_re "$shell" "module --version" "^\$" "$fish_nf.*\$" 127
@@ -91,11 +104,17 @@ foreach shell $shell_list {
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\$" 127
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\$" 127
       }
-      csh - tcsh {
+      csh {
          testall_cmd_re "$shell" "module --version" "^\$" "$csh_nf\$" 1
          testall_cmd_re "$shell" "module foo" "^\$" "$csh_nf\$" 1
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$csh_nf\n.*$csh_nf\n.*$csh_nf\n.*$csh_nf\$" 4
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$csh_nf\n.*$csh_nf\n.*$csh_nf\n.*$csh_nf\n.*$csh_nf\$" 5
+      }
+      tcsh {
+         testall_cmd_re "$shell" "module --version" "^\$" "$tcsh_nf\$" 1
+         testall_cmd_re "$shell" "module foo" "^\$" "$tcsh_nf\$" 1
+         testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\$" 4
+         testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\$" 5
       }
       fish {
          testall_cmd_re "$shell" "module --version" "^\$" "$fish_nf.*\$" 127
@@ -127,6 +146,7 @@ foreach shell $shell_list {
 unset bad_cmd
 unset zsh_nf
 unset csh_nf
+unset tcsh_nf
 unset fish_nf
 unset sh_nf
 unset shell_level
