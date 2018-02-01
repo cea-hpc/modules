@@ -204,15 +204,15 @@ endif
 	rm -f $(DESTDIR)$(initdir)/zsh-functions/_module
 	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_CONFIG))
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(modulefilesdir) || true
-	@if [ -d $(DESTDIR)$(modulefilesdir) ]; then echo -e "\nWARNING: $(DESTDIR)$(modulefilesdir) is not empty so skip removal\n" >&2; fi
+	@if [ -d $(DESTDIR)$(modulefilesdir) ]; then echo; echo "WARNING: $(DESTDIR)$(modulefilesdir) is not empty so skip removal" >&2; echo; fi
 	rmdir $(DESTDIR)$(initdir)/ksh-functions
 	rmdir $(DESTDIR)$(initdir)/zsh-functions
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(initdir) || true
-	@if [ -d $(DESTDIR)$(initdir) ]; then echo -e "\nWARNING: $(DESTDIR)$(initdir) is not empty so skip removal\n" >&2; fi
+	@if [ -d $(DESTDIR)$(initdir) ]; then echo; echo "WARNING: $(DESTDIR)$(initdir) is not empty so skip removal" >&2; echo; fi
 ifeq ($(versioning),y)
 	rm -f $(DESTDIR)$(versdir)/$(VERSION)
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(versdir) || true
-	@if [ -d $(DESTDIR)$(versdir) ]; then echo -e "\nWARNING: $(DESTDIR)$(versdir) is not empty so skip removal\n" >&2; fi
+	@if [ -d $(DESTDIR)$(versdir) ]; then echo; echo "WARNING: $(DESTDIR)$(versdir) is not empty so skip removal" >&2; echo; fi
 endif
 
 clean:
