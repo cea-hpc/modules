@@ -90,6 +90,10 @@ enables to change this directory location. For example::
 See `Build and installation options`_ section to discover all ``./configure``
 option available.
 
+.. note:: GNU Make is excepted to be used for this build and installation
+   process. On non-Linux systems, the ``gmake`` should be called instead of
+   ``make``.
+
 
 Configuration
 -------------
