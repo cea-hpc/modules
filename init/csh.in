@@ -17,20 +17,22 @@ eval "`@TCLSH@ @libexecdir@/modulecmd.tcl @SHELLNAME@ autoinit`"
 @compatversion@endif
 @compatversion@
 @compatversion@# define function to switch between C and Tcl versions of Modules
-@compatversion@if ( "`alias switchml`" == '' ) then
-@compatversion@   alias switchml 'set swfound=1; \
-@compatversion@      if ( ! $?MODULES_USE_COMPAT_VERSION ) setenv MODULES_USE_COMPAT_VERSION 0; \
-@compatversion@      if ( "$MODULES_USE_COMPAT_VERSION" == "1" ) set swname="main"; \
-@compatversion@      if ( "$MODULES_USE_COMPAT_VERSION" == "1" && -e @libexecdir@/modulecmd.tcl ) set swfound=0; \
-@compatversion@      if ( "$MODULES_USE_COMPAT_VERSION" != "1" ) set swname="compatibility"; \
-@compatversion@      if ( "$MODULES_USE_COMPAT_VERSION" != "1" && -e @libexecdir@/modulecmd-compat ) set swfound=0; \
-@compatversion@      if ( $swfound == 0 && $swname == "main" ) setenv MODULES_USE_COMPAT_VERSION 0; \
-@compatversion@      if ( $swfound == 0 && $swname == "compatibility" ) setenv MODULES_USE_COMPAT_VERSION 1; \
-@compatversion@      if ( $swfound == 0 ) echo "Switching to Modules $swname version"; \
-@compatversion@      if ( $swfound == 0 ) source @initdir@/@SHELLNAME@; \
-@compatversion@      if ( $swfound != 0 ) echo "Cannot switch to Modules $swname version, command not found"; \
+@compatversion@set switchml_defined="`alias switchml`"
+@compatversion@if ( "$switchml_defined" == '' ) then
+@compatversion@   alias switchml 'set swfound=1; \\
+@compatversion@      if ( ! $?MODULES_USE_COMPAT_VERSION ) setenv MODULES_USE_COMPAT_VERSION 0; \\
+@compatversion@      if ( "$MODULES_USE_COMPAT_VERSION" == "1" ) set swname="main"; \\
+@compatversion@      if ( "$MODULES_USE_COMPAT_VERSION" == "1" && -e @libexecdir@/modulecmd.tcl ) set swfound=0; \\
+@compatversion@      if ( "$MODULES_USE_COMPAT_VERSION" != "1" ) set swname="compatibility"; \\
+@compatversion@      if ( "$MODULES_USE_COMPAT_VERSION" != "1" && -e @libexecdir@/modulecmd-compat ) set swfound=0; \\
+@compatversion@      if ( $swfound == 0 && $swname == "main" ) setenv MODULES_USE_COMPAT_VERSION 0; \\
+@compatversion@      if ( $swfound == 0 && $swname == "compatibility" ) setenv MODULES_USE_COMPAT_VERSION 1; \\
+@compatversion@      if ( $swfound == 0 ) echo "Switching to Modules $swname version"; \\
+@compatversion@      if ( $swfound == 0 ) source @initdir@/@SHELLNAME@; \\
+@compatversion@      if ( $swfound != 0 ) echo "Cannot switch to Modules $swname version, command not found"; \\
 @compatversion@      unset swfound swname;'
 @compatversion@endif
+@compatversion@unset switchml_defined
 @compatversion@
 if ( $?tcsh && $?prompt && -r @initdir@/tcsh_completion ) then
 @compatversion@if ( "$MODULES_USE_COMPAT_VERSION" != '1' ) then
