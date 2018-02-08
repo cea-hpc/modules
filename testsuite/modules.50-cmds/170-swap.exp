@@ -150,6 +150,19 @@ test_cmd_re "ALL" "swap $mod31 $mod32" $ans
 
 test_cmd_re "ALL" "swap $mod32" $ans
 
+# setup MODULEPATH with a trailing slash
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = $modpath/\n"
+}
+set env(MODULEPATH) "$modpath/"
+test_cmd_re "sh" "swap $mod32" $ans
+
+# restore MODULEPATH
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = $modpath\n"
+}
+set env(MODULEPATH) $modpath
+
 #
 #  Test with module to unload equal to module to load
 #
@@ -186,6 +199,19 @@ set env(LOADEDMODULES) "$mod21"
 
 # module to unload exists but is not loaded and module to load is already loaded, nothing to do
 testouterr_cmd "sh" "swap $mod11 $mod21" "OK" ""
+
+# setup MODULEPATH with a trailing slash
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = $modpath/\n"
+}
+set env(MODULEPATH) "$modpath/"
+testouterr_cmd "sh" "swap $mod11 $mod21" "OK" ""
+
+# restore MODULEPATH
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = $modpath\n"
+}
+set env(MODULEPATH) $modpath
 
 
 #

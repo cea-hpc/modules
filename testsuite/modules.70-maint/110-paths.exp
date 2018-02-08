@@ -37,6 +37,19 @@ set modulefile_3 [list "$modpath/verssort/1" "$modpath/verssort/1.2.4" "$modpath
 lappend ans [list text $modulefile_1]
 testouterr_cmd "ALL" "paths $module_1" $ans ""
 
+# setup MODULEPATH with a trailing slash
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = $modpath/\n"
+}
+set env(MODULEPATH) "$modpath/"
+testouterr_cmd "sh" "paths $module_1" $ans ""
+
+# restore MODULEPATH
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = $modpath\n"
+}
+set env(MODULEPATH) $modpath
+
 #
 # test with nonexistent modulefile
 #

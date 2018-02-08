@@ -111,12 +111,38 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 #
 test_cmd_re "ALL" "load $mod31" $ans
 
+# setup MODULEPATH with a trailing slash
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = $modpath/\n"
+}
+set env(MODULEPATH) "$modpath/"
+test_cmd_re "sh" "load $mod31" $ans
+
+# restore MODULEPATH
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = $modpath\n"
+}
+set env(MODULEPATH) $modpath
+
 #
 # load already loaded module
 # no environement modification, exit 0
 #
 
 test_cmd "ALL" "load $mod11" "OK"
+
+# setup MODULEPATH with a trailing slash
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = $modpath/\n"
+}
+set env(MODULEPATH) "$modpath/"
+test_cmd "sh" "load $mod11" "OK"
+
+# restore MODULEPATH
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = $modpath\n"
+}
+set env(MODULEPATH) $modpath
 
 #
 # reference a module not in the path

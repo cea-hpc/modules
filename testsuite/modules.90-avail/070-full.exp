@@ -127,10 +127,22 @@ exec stty cols $test_cols
 
 testouterr_cmd "sh" "avail" "OK" "$ts_sh"
 
+# setup MODULEPATH with a trailing slash
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = $modpath/\n"
+}
+set env(MODULEPATH) "$modpath/"
+testouterr_cmd "sh" "avail" "OK" "$ts_sh"
 
 #
 #  Cleanup
 #
+
+# restore MODULEPATH
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = $modpath\n"
+}
+set env(MODULEPATH) $modpath
 
 # restore terminal width
 exec stty cols $term_cols

@@ -2545,11 +2545,10 @@ proc is-used {args} {
 
    set modpathlist [getModulePathList]
    foreach path $args {
-      # transform given path in an absolute path which should have been
-      # registered in the MODULEPATH env var.
+      # transform given path in an absolute path to compare with dirs
+      # registered in the MODULEPATH env var which are returned absolute.
       set abspath [getAbsolutePath $path]
-      if {[lsearch -exact $modpathlist $path] >= 0 ||\
-         [lsearch -exact $modpathlist $abspath] >= 0} {
+      if {[lsearch -exact $modpathlist $abspath] >= 0} {
          return 1
       }
    }
@@ -2715,19 +2714,23 @@ proc getLoadedModuleFileList {} {
 # is set. by default an empty list is returned if no MODULEPATH set
 # resolv_var param tells if environement variable references in path elements
 # should be resolved or passed as-is in result list
-proc getModulePathList {{behavior "returnempty"} {resolv_var 1}} {
+# set_abs param applies an absolute path name convertion to path elements
+# if enabled
+proc getModulePathList {{behavior "returnempty"} {resolv_var 1} {set_abs 1}} {
    global env g_def_separator
 
    if {[info exists env(MODULEPATH)]} {
-      set modpathlist [split $env(MODULEPATH) $g_def_separator]
-      if {$resolv_var && [llength $modpathlist] > 0} {
-         foreach modpath $modpathlist {
-            lappend resmodpathlist [resolvStringWithEnv $modpath]
+      set modpathlist [list]
+      foreach modpath [split $env(MODULEPATH) $g_def_separator] {
+         if {$resolv_var && $modpath ne ""} {
+            set modpath [resolvStringWithEnv $modpath]
          }
-         return $resmodpathlist
-      } else {
-         return $modpathlist
+         if {$set_abs && $modpath ne ""} {
+            set modpath [getAbsolutePath $modpath]
+         }
+         lappend modpathlist $modpath
       }
+      return $modpathlist
    } elseif {$behavior eq "exiterronundef"} {
       reportErrorAndExit "No module path defined"
    } else {
@@ -5987,8 +5990,9 @@ proc cmdModuleUnuse {args} {
    } else {
       foreach path $args {
          # get current module path list
+         # no absolute path conversion for the moment
          if {![info exists modpathlist]} {
-            set modpathlist [getModulePathList "returnempty" 0]
+            set modpathlist [getModulePathList "returnempty" 0 0]
          }
 
          # transform given path in an absolute path which should have been
@@ -6012,7 +6016,7 @@ proc cmdModuleUnuse {args} {
             popMode
 
             # refresh path list after unload
-            set modpathlist [getModulePathList "returnempty" 0]
+            set modpathlist [getModulePathList "returnempty" 0 0]
             if {[lsearch -exact $modpathlist $unusepath] >= 0} {
                reportWarning "Did not unuse $unusepath"
             }
