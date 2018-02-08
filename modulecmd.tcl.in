@@ -5156,16 +5156,28 @@ proc cmdModuleList {} {
                   set dir [getModulepathFromModuleName $g_loadedModules($mod)\
                      $mod]
                   array set mod_list [getModules $dir $mod $show_modtimes]
-                  set mtime [lindex $mod_list($mod) 1]
-                  set tag_list [getVersAliasList $mod]
+                  # fetch info only if mod found
+                  if {[info exists mod_list($mod)]} {
+                     set mtime [lindex $mod_list($mod) 1]
+                     set tag_list [getVersAliasList $mod]
+                  } else {
+                     set tag_list {}
+                  }
                }
 
                if {$show_modtimes} {
+                  if {[info exists mtime]} {
+                     set clock_mtime [clock format $mtime -format\
+                        "%Y/%m/%d %H:%M:%S"]
+                     unset mtime
+                  } else {
+                     set clock_mtime {}
+                  }
+
                   # add to display file modification time in addition
                   # to potential tags
                   lappend display_list [format "%-40s%-20s%19s" $mod\
-                     [join $tag_list ":"]\
-                     [clock format $mtime -format "%Y/%m/%d %H:%M:%S"]]
+                     [join $tag_list ":"] $clock_mtime]
                } else {
                   if {[llength $tag_list]} {
                      append mod "(" [join $tag_list ":"] ")"
