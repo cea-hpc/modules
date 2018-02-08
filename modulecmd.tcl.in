@@ -1731,6 +1731,16 @@ proc module {command args} {
    return {}
 }
 
+proc getModshareVarName {var} {
+   # specific modshare variable for DYLD-related variables as a suffixed
+   # variable will lead to warning messages with this tool
+   if {[string range $var 0 4] eq "DYLD_"} {
+      return "MODULES_MODSHARE_${var}"
+   } else {
+      return "${var}_modshare"
+   }
+}
+
 proc setenv {var val} {
    global g_stateEnvVars env
 
@@ -1742,7 +1752,7 @@ proc setenv {var val} {
       set env($var) $val
       set g_stateEnvVars($var) "new"
       # clean any previously defined reference counter array
-      set sharevar "${var}_modshare"
+      set sharevar [getModshareVarName $var]
       if {[info exists env($sharevar)]} {
          unset-env $sharevar
          set g_stateEnvVars($sharevar) "del"
@@ -1794,7 +1804,7 @@ proc unsetenv {var {val {}}} {
       }
       set g_stateEnvVars($var) "del"
       # clean any existing reference counter array
-      set sharevar "${var}_modshare"
+      set sharevar [getModshareVarName $var]
       if {[info exists env($sharevar)]} {
          unset-env $sharevar
          set g_stateEnvVars($sharevar) "del"
@@ -1922,7 +1932,7 @@ proc putsModfileCmd {args} {
 proc getReferenceCountArray {var separator} {
    global env g_force g_def_separator g_debug
 
-   set sharevar "${var}_modshare"
+   set sharevar [getModshareVarName $var]
    set modshareok 1
    if {[info exists env($sharevar)]} {
       if {[info exists env($var)]} {
@@ -1964,7 +1974,7 @@ proc getReferenceCountArray {var separator} {
             if {! $g_force} {
                if {[array size fixers]} {
                   reportWarning "\$$var does not agree with\
-                     \$${var}_modshare counter. The following\
+                     \$$sharevar counter. The following\
                      directories' usage counters were adjusted to match.\
                      Note that this may mean that module unloading may\
                      not work correctly."
@@ -2106,7 +2116,7 @@ proc unload-path {args} {
       set g_stateEnvVars($var) "new"
    }
 
-   set sharevar "${var}_modshare"
+   set sharevar [getModshareVarName $var]
    if {[array size countarr] > 0} {
       set env($sharevar) [pjoin [array get countarr] $g_def_separator]
       set g_stateEnvVars($sharevar) "new"
@@ -2125,7 +2135,7 @@ proc add-path {pos args} {
    lassign [eval parsePathCommandArgs "add-path" $args] separator allow_dup\
       idx_val var path_list
 
-   set sharevar "${var}_modshare"
+   set sharevar [getModshareVarName $var]
    array set countarr [getReferenceCountArray $var $separator]
 
    if {$pos eq "prepend"} {
