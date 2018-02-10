@@ -324,6 +324,12 @@ proc report {message {nonewline ""}} {
 proc __report {message {nonewline ""}} {
    global reportfd
 
+   # start pager at first call and only if enabled
+   if {$::start_pager} {
+      set ::start_pager 0
+      startPager
+   }
+
    # protect from issue with fd, just ignore it
    catch {
       if {$nonewline ne ""} {
@@ -374,7 +380,7 @@ proc isErrorReportInhibited {} {
 
 # init error report and output buffered messages
 proc initErrorReport {} {
-   # setup message paging if enabled
+   # determine message paging configuration and enablement
    initPager
 
    # replace report procedures used to bufferize messages until error report
@@ -405,9 +411,9 @@ proc cleanupAndExit {code} {
    exit $code
 }
 
-# init configuration for output paging then start paging if enabled
+# init configuration for output paging to prepare for startup
 proc initPager {} {
-   global env g_pager g_pager_opts asked_pager reportfd
+   global env g_pager g_pager_opts asked_pager start_pager
 
    # default pager enablement depends of pager command value
    if {$g_pager eq "" || [file tail $g_pager] eq "cat"} {
@@ -469,21 +475,27 @@ proc initPager {} {
       set use_pager 0
    }
 
-   # setup paging if enabled and if error stream is attached to a terminal
+   # start paging if enabled and if error stream is attached to a terminal
    set is_tty [isStderrTty]
    if {$is_tty && $use_pager} {
       reportDebug "initPager: start pager (asked_pager=$asked,\
          cmd='$g_pager', opts='$g_pager_opts')"
-      if {[catch {
-         set reportfd [open "|$g_pager $g_pager_opts >@stderr 2>@stderr" w]
-         fconfigure $reportfd -buffering line -blocking 1 -buffersize 65536
-      } errMsg]} {
-         reportWarning $errMsg
-      }
+      set start_pager 1
    } else {
       reportDebug "initPager: no pager start (is_tty=$is_tty,\
          use_pager=$use_pager, asked_pager=$asked, cmd='$g_pager',\
          opts='$g_pager_opts')"
+      set start_pager 0
+   }
+}
+
+# start pager pipe process with defined configuration
+proc startPager {} {
+   if {[catch {
+      set ::reportfd [open "|$::g_pager $::g_pager_opts >@stderr 2>@stderr" w]
+      fconfigure $::reportfd -buffering line -blocking 1 -buffersize 65536
+   } errMsg]} {
+      reportWarning $errMsg
    }
 }
 
