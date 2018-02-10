@@ -30,7 +30,6 @@ set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
 set g_inhibit_dispreport 0 ;# Display-mode reporting disabled if == 1
-set g_init_errreport 0 ;# Start with error report locked before opts parsed
 set g_force 0 ;# Path element reference counting if == 0
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 set flag_default_dir 1 ;# Report default directories
@@ -257,15 +256,19 @@ proc renderText {text} {
 #
 # Debug, Info, Warnings and Error message handling.
 #
+
+# save message when report is not currently initialized as we do not
+# know yet if debug mode is enabled or not
 proc reportDebug {message {nonewline ""}} {
+   lappend ::errreport_buffer [list "reportDebug" $message $nonewline]
+}
+
+# regular procedure to use once error report is initialized
+proc __reportDebug {message {nonewline ""}} {
    global g_debug
 
    if {$g_debug} {
       report "DEBUG $message" "$nonewline"
-   } elseif {!$::g_init_errreport} {
-      # save message if report is not currently initialized as we do not
-      # know yet if debug mode is enabled or not
-      lappend ::errreport_buffer [list "reportDebug" $message $nonewline]
    }
 }
 
@@ -288,15 +291,16 @@ proc reportError {message {nonewline ""}} {
    }
 }
 
+# save message if report is not yet initialized
 proc reportErrorAndExit {message} {
-   if {$::g_init_errreport} {
-      raiseErrorCount
-      renderFalse
-      error "$message"
-   } else {
-      # save message if report is not yet initialized
-      lappend ::errreport_buffer [list "reportErrorAndExit" $message]
-   }
+   lappend ::errreport_buffer [list "reportErrorAndExit" $message]
+}
+
+# regular procedure to use once error report is initialized
+proc __reportErrorAndExit {message} {
+   raiseErrorCount
+   renderFalse
+   error "$message"
 }
 
 proc reportInternalBug {message modfile} {
@@ -311,21 +315,22 @@ proc reportInternalBug {message modfile} {
    }
 }
 
+# save message if report is not yet initialized
 proc report {message {nonewline ""}} {
+   lappend ::errreport_buffer [list "report" $message $nonewline]
+}
+
+# regular procedure to use once error report is initialized
+proc __report {message {nonewline ""}} {
    global reportfd
 
-   if {$::g_init_errreport} {
-      # protect from issue with fd, just ignore it
-      catch {
-         if {$nonewline ne ""} {
-            puts -nonewline $reportfd "$message"
-         } else {
-            puts $reportfd "$message"
-         }
+   # protect from issue with fd, just ignore it
+   catch {
+      if {$nonewline ne ""} {
+         puts -nonewline $reportfd "$message"
+      } else {
+         puts $reportfd "$message"
       }
-   } else {
-      # save message if report is not yet initialized
-      lappend ::errreport_buffer [list "report" $message $nonewline]
    }
 }
 
@@ -372,7 +377,14 @@ proc initErrorReport {} {
    # setup message paging if enabled
    initPager
 
-   set ::g_init_errreport 1
+   # replace report procedures used to bufferize messages until error report
+   # being initialized by regular report procedures
+   rename ::reportDebug {}
+   rename ::__reportDebug ::reportDebug
+   rename ::reportErrorAndExit {}
+   rename ::__reportErrorAndExit ::reportErrorAndExit
+   rename ::report {}
+   rename ::__report ::report
 
    # now error report is init output every message saved in buffer
    foreach errreport $::errreport_buffer {
