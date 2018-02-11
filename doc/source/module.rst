@@ -149,8 +149,8 @@ switches are accepted:
 
 **--paginate**
 
- Pipe all message output into *less* (or if set, *$MODULES_PAGER* or *$PAGER*)
- if error output stream is a terminal. See also **MODULES_PAGER** section.
+ Pipe all message output into *less* (or if set, *$MODULES_PAGER*) if error
+ output stream is a terminal. See also **MODULES_PAGER** section.
 
 **--no-pager**
 
@@ -600,11 +600,10 @@ ENVIRONMENT
  attached to a terminal. The value of this variable is composed of a pager
  command name or path eventually followed by command-line options.
 
- Paging command and options is defined for Modules in the following order of
- preference: **MODULES_PAGER** environment variable, then **PAGER** and then
- the default set in **modulecmd.tcl** script configuration. Which means
- **MODULES_PAGER** overrides **PAGER** which in turns overrides default
- configuration.
+ Paging command and options are defined for Modules in the following order of
+ preference: **MODULES_PAGER** environment variable, then the default set in
+ **modulecmd.tcl** script configuration. Which means **MODULES_PAGER**
+ overrides default configuration.
 
  If **LESS** environment variable is defined and default configuration defines
  *less* as paging command, default paging command options will be ignored.

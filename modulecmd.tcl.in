@@ -431,30 +431,25 @@ proc initPager {} {
       set g_pager_opts ""
    }
 
-   foreach var [list MODULES_PAGER PAGER] {
-      if {[info exists env($var)]} {
-         if {$env($var) ne ""} {
-            # MODULES_PAGER env variable set means pager should be enabled
-            if {!$use_pager && $var eq "MODULES_PAGER"} {
-               set use_pager 1
-            }
-            # fetch pager command and option
-            set g_pager [lindex $env($var) 0]
-            set g_pager_opts [lrange $env($var) 1 end]
-
-         # variable defined empty means no-pager
-         } else {
-            set use_pager 0
-            set g_pager ""
-            set g_pager_opts ""
+   if {[info exists env(MODULES_PAGER)]} {
+      if {$env(MODULES_PAGER) ne ""} {
+         # MODULES_PAGER env variable set means pager should be enabled
+         if {!$use_pager} {
+            set use_pager 1
          }
+         # fetch pager command and option
+         set g_pager [lindex $env(MODULES_PAGER) 0]
+         set g_pager_opts [lrange $env(MODULES_PAGER) 1 end]
 
-         reportDebug "initPager: configure pager from $var variable\
-            (use_pager=$use_pager, cmd='$g_pager', opts='$g_pager_opts')"
-
-         # if MODULES_PAGER set, no look at PAGER
-         break
+      # variable defined empty means no-pager
+      } else {
+         set use_pager 0
+         set g_pager ""
+         set g_pager_opts ""
       }
+
+      reportDebug "initPager: configure pager from MODULES_PAGER variable\
+         (use_pager=$use_pager, cmd='$g_pager', opts='$g_pager_opts')"
    }
 
    # paging may have been enabled or disabled from the command-line
