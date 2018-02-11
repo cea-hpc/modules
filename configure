@@ -319,18 +319,18 @@ check_requirement uname
 kernelname=$(uname -s)
 
 # Makefile for this project are GNU Makefile so we must ensure correct make
-# command is available, on Linux systems the 'make' bin refers to GNU Make
-# whereas on other system it is not the default make flavor, so 'gmake' should
-# be checked
-if [ "$kernelname" = 'Linux' ]; then
+# command is available, on Linux/Darwin systems the 'make' bin refers to GNU
+# Make whereas on other system it is not the default make flavor, so 'gmake'
+# should be checked
+if [ "$kernelname" = 'Linux' -o "$kernelname" = 'Darwin' ]; then
    make='make'
 else
    make='gmake'
 fi
 check_requirement $make
 check_requirement sed
-# ensure a GNU grep is used on Solaris
-if [ "$kernelname" = 'SunOS' ]; then
+# ensure a GNU grep is used on Solaris and Darwin
+if [ "$kernelname" = 'SunOS' -o "$kernelname" = 'Darwin' ]; then
    grep='ggrep'
 else
    grep='grep'
@@ -449,7 +449,12 @@ if [ "$compatversion" = 'y' ]; then
       # extract sources from a git branch and prepare sources
       if [ -d '.git' ]; then
          check_requirement autoreconf
-         check_requirement autopoint
+         # specific location to find autopoint on Darwin
+         if [ "$kernelname" = 'Darwin' ]; then
+            check_requirement autopoint '' 'PATH=/usr/bin:/bin:/usr/local/bin:/usr/local/opt/gettext/bin'
+         else
+            check_requirement autopoint
+         fi
          check_requirement automake
          check_requirement aclocal
 
