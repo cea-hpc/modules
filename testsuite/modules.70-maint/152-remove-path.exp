@@ -169,8 +169,16 @@ set env(MODULES_MODSHARE_DYLD_FOO) "$path1:2"
 set env(DYLD_FOO) $path1
 
 set ans [list]
-lappend ans [list set DYLD_FOO "$path1"]
-lappend ans [list set MODULES_MODSHARE_DYLD_FOO "$path1:1"]
+# path-variable handling not effective on OSX with DYLD variables when System
+# Integrity Protection (SIP) is enabled: variables are not exported in
+# subshell context, so they appear undefined to modulecmd.tcl
+if {$sip_enabled} {
+    lappend ans [list unset DYLD_FOO]
+    lappend ans [list unset MODULES_MODSHARE_DYLD_FOO]
+} else {
+    lappend ans [list set DYLD_FOO "$path1"]
+    lappend ans [list set MODULES_MODSHARE_DYLD_FOO "$path1:1"]
+}
 testouterr_cmd_re "sh" "remove-path DYLD_FOO $path1" $ans ""
 
 if { $verbose > 0 } {

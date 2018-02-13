@@ -2007,6 +2007,12 @@ proc getReferenceCountArray {var separator} {
             # sharevar was corrupted, odd number of elements.
             set modshareok 0
          }
+      # nullify modshare if a SIP-protected var is not found in context as
+      # this kind of variable is not exported to subshell on OSX when SIP
+      # is enabled
+      } elseif {([string range $var 0 4] eq "DYLD_" || [string range\
+         $var 0 2] eq "LD_") && $::tcl_platform(os) eq "Darwin"} {
+         set modshareok 0
       } else {
          reportWarning "$sharevar exists ( $env($sharevar) ), but $var\
             doesn't. Environment is corrupted."

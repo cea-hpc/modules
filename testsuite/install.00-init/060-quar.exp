@@ -186,7 +186,6 @@ foreach shell $othlang_list {
    testall_cmd "$shell" "source $modfile" "" [join $ans "\n"] 0
 }
 
-
 # two quarantine variables, first with env no runtime, second with env and runtime
 set quar "LD_LIBRARY_PATH FOO"
 set env1 $env(TESTSUITEDIR)
@@ -219,6 +218,12 @@ lappend ansr "LD_LIBRARY_PATH=.*$env1r"
 lappend ansr "FOO=$env2"
 lappend ansr "MODULES_RUNENV_FOO=$runenv2"
 
+if {$sip_enabled} {
+   if { $verbose > 0 } {
+      send_user "\tSkip LD_LIBRARY_PATH-related tests as SIP is enabled\n"
+   }
+} else {
+
 foreach shell $shell_list {
    switch -- $shell {
       {csh} - {tcsh} {
@@ -248,6 +253,7 @@ foreach shell $othlang_list {
    }
 }
 
+}
 
 # same test than above with a disturbing IFS value, for real shells only
 set ifs ":"
@@ -255,6 +261,12 @@ if { $verbose > 0 } {
     send_user "\tSetup IFS = '$ifs'\n"
 }
 set env(IFS) $ifs
+
+if {$sip_enabled} {
+   if { $verbose > 0 } {
+      send_user "\tSkip LD_LIBRARY_PATH-related tests as SIP is enabled\n"
+   }
+} else {
 
 foreach shell $shell_list {
    switch -- $shell {
@@ -272,6 +284,7 @@ foreach shell $shell_list {
    }
 }
 
+}
 
 # make a specific test for tcl, as its install_test script is not
 # shielded against bad LD_LIBRARY_PATH
