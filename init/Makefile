@@ -133,6 +133,13 @@ endef
 %: %.in
 	$(translate-in-script)
 
+# workaround '\\\n' issue on Linux with Make 3.81
+modulerc: modulerc.in
+	$(translate-in-script)
+	mv $@ ${@}.tmp
+	sed -e 's|\\$$||' ${@}.tmp > $@
+	rm -f ${@}.tmp
+
 # tcsh is derivated from csh init script
 tcsh: csh.in
 	$(translate-in-script)
