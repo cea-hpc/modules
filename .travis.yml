@@ -209,6 +209,12 @@ matrix:
       services:
         - docker
 
+    # OSX tests
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules --disable-compat-version' MAKE_TESTCOVERAGE='y'
+      os: osx
+
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot'
+      os: osx
 
 
 env:
@@ -234,6 +240,8 @@ before_install: |
         docker exec $CONTAINER zypper install -y tcsh zsh ksh fish tcl perl python ruby cmake R-core R-core-packages make wget python-Sphinx git dejagnu man net-tools $EXTRA_PKGS ;;
     esac
     docker cp ./. $CONTAINER:modules
+  elif [ "$TRAVIS_OS_NAME" = 'osx' ]; then
+    brew install dejagnu grep autoconf automake gettext fish
   else
     true
   fi
