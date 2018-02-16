@@ -38,9 +38,6 @@ proc pager_test_case {modarg use asked cmd opts} {
     set ans [list]
     lappend ans "DEBUG CALLING $MODULECMD sh -V -D${modarg}(\\nDEBUG Source site configuration \\($install_etcdirre/siteconfig.tcl\\))?"
 
-    if {[info exists env(LESS)] && $install_pageropts ne "" & [file tail $install_pager] eq "less"} {
-        lappend ans "DEBUG initPager: clear 'less' pager options as LESS variable defined"
-    }
     if {[info exists env(MODULES_PAGER)]} {
         lappend ans "DEBUG initPager: configure pager from MODULES_PAGER variable \\(use_pager=\\d, cmd='$cmd', opts='$opts'\\)"
     }
@@ -60,32 +57,24 @@ pager_test_case "" $pager_dfl_use "-" $install_pager $install_pageropts
 pager_test_case "--paginate" $pager_dfl_use "1" $install_pager $install_pageropts
 pager_test_case "--no-pager" 0 "0" $install_pager $install_pageropts
 
-# play with LESS env variable
+# play with LESS env variable, should not have impact on install pager opts
 set opts "-K"
 if { $verbose > 0 } {
     send_user "\tSetup LESS = '$opts'\n"
 }
 set env(LESS) $opts
-if {[file tail $install_pager] eq "less"} {
-    set opts ""
-} else {
-    set opts $install_pageropts
-}
-pager_test_case "" $pager_dfl_use "-" $install_pager $opts
-pager_test_case "--paginate" $pager_dfl_use "1" $install_pager $opts
-pager_test_case "--no-pager" 0 "0" $install_pager $opts
+pager_test_case "" $pager_dfl_use "-" $install_pager $install_pageropts
+pager_test_case "--paginate" $pager_dfl_use "1" $install_pager $install_pageropts
+pager_test_case "--no-pager" 0 "0" $install_pager $install_pageropts
 
 set opts ""
 if { $verbose > 0 } {
     send_user "\tSetup LESS = '$opts'\n"
 }
 set env(LESS) $opts
-if {[file tail $install_pager] ne "less"} {
-    set opts $install_pageropts
-}
-pager_test_case "" $pager_dfl_use "-" $install_pager $opts
-pager_test_case "--paginate" $pager_dfl_use "1" $install_pager $opts
-pager_test_case "--no-pager" 0 "0" $install_pager $opts
+pager_test_case "" $pager_dfl_use "-" $install_pager $install_pageropts
+pager_test_case "--paginate" $pager_dfl_use "1" $install_pager $install_pageropts
+pager_test_case "--no-pager" 0 "0" $install_pager $install_pageropts
 
 if { $verbose > 0 } {
     send_user "\tUnset LESS\n"
@@ -127,41 +116,36 @@ if { $verbose > 0 } {
     send_user "\tSetup LESS = '$opts'\n"
 }
 set env(LESS) $opts
-if {[file tail $install_pager] eq "less"} {
-    set opts ""
-} else {
-    set opts $install_pageropts
-}
-pager_test_case "" $pager_dfl_use "-" $install_pager $opts
-pager_test_case "--paginate" $pager_dfl_use "1" $install_pager $opts
-pager_test_case "--no-pager" 0 "0" $install_pager $opts
+pager_test_case "" $pager_dfl_use "-" $install_pager $install_pageropts
+pager_test_case "--paginate" $pager_dfl_use "1" $install_pager $install_pageropts
+pager_test_case "--no-pager" 0 "0" $install_pager $install_pageropts
 
 set cmd "/usr/bin/more"
 if { $verbose > 0 } {
     send_user "\tSetup PAGER = '$cmd'\n"
 }
 set env(PAGER) $cmd
-pager_test_case "" $pager_dfl_use "-" $install_pager $opts
-pager_test_case "--paginate" $pager_dfl_use "1" $install_pager $opts
-pager_test_case "--no-pager" 0 "0" $install_pager $opts
+pager_test_case "" $pager_dfl_use "-" $install_pager $install_pageropts
+pager_test_case "--paginate" $pager_dfl_use "1" $install_pager $install_pageropts
+pager_test_case "--no-pager" 0 "0" $install_pager $install_pageropts
 
 set cmd "/usr/bin/less"
 if { $verbose > 0 } {
     send_user "\tSetup PAGER = '$cmd'\n"
 }
 set env(PAGER) $cmd
-pager_test_case "" $pager_dfl_use "-" $install_pager $opts
-pager_test_case "--paginate" $pager_dfl_use "1" $install_pager $opts
-pager_test_case "--no-pager" 0 "0" $install_pager $opts
+pager_test_case "" $pager_dfl_use "-" $install_pager $install_pageropts
+pager_test_case "--paginate" $pager_dfl_use "1" $install_pager $install_pageropts
+pager_test_case "--no-pager" 0 "0" $install_pager $install_pageropts
 
 set cmd "less -e"
 if { $verbose > 0 } {
     send_user "\tSetup PAGER = '$cmd'\n"
 }
 set env(PAGER) "$cmd"
-pager_test_case "" $pager_dfl_use "-" $install_pager $opts
-pager_test_case "--paginate" $pager_dfl_use "1" $install_pager $opts
-pager_test_case "--no-pager" 0 "0" $install_pager $opts
+pager_test_case "" $pager_dfl_use "-" $install_pager $install_pageropts
+pager_test_case "--paginate" $pager_dfl_use "1" $install_pager $install_pageropts
+pager_test_case "--no-pager" 0 "0" $install_pager $install_pageropts
 
 set cmd "/usr/bin/less"
 if { $verbose > 0 } {

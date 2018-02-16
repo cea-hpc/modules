@@ -605,9 +605,6 @@ ENVIRONMENT
  **modulecmd.tcl** script configuration. Which means **MODULES_PAGER**
  overrides default configuration.
 
- If **LESS** environment variable is defined and default configuration defines
- *less* as paging command, default paging command options will be ignored.
-
  If **MODULES_PAGER** variable is set to an empty string or to the value
  *cat*, pager will not be launched.
 
