@@ -87,9 +87,13 @@ paging command.
 This new feature can be controlled at build time with the ``--with-pager``
 and ``--with-pager-opts`` configure options. Default pager command is set
 to ``less`` and its relative options are by default ``-eFKRX``. Default
-configuration can be supersedes at run-time with environment variables
-(``MODULES_PAGER`` or ``PAGER``) or command-line switches (``--no-pager``,
-``--paginate``).
+configuration can be supersedes at run-time with ``MODULES_PAGER`` environment
+variables or command-line switches (``--no-pager``, ``--paginate``).
+
+.. warning:: On version ``4.1.0``, the ``PAGER`` environment variable was
+   taken in consideration to supersede pager configuration at run-time. Since
+   version ``4.1.1``, ``PAGER`` environment variable is ignored to avoid side
+   effects coming from the system general pager configuration.
 
 Module function to return value in scripting languages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
