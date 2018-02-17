@@ -44,7 +44,7 @@ Modules 4.1.1 (2018-02-17)
 * Do not blank anymore default Modules pager options if default pager is
   ``less`` when the ``LESS`` environment variable is defined. (fix issue#146)
 
-.. warning:: With this bugfix release, changes has been made on the pager
+.. warning:: With this bugfix release, changes have been made on the pager
    setup to avoid side effects coming from the system general pager
    configuration. As a result ``PAGER`` environment variable is now ignored
    and ``MODULES_PAGER`` should be used instead to adapt Modules pager
