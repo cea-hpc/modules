@@ -73,6 +73,12 @@ if {[file readable $env(TESTSUITEDIR)/example/modulerc]} {
     }
 }
 
+# check if stderr terminal attachement state is forced
+set is_stderr_tty [siteconfig_isStderrTty]
+if { $verbose > 0 } {
+    send_user "\tIs STDERR a TTY? = '$is_stderr_tty'\n"
+}
+
 set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
 
 set end_quar_sh "\\s*if \\\[ \"\\\${_mlv}\" = \"\\\${_mlv##\\\*\\\[\\\!A-Za-z0-9_\\\]}\" -a \"\\\${_mlv}\" = \"\\\${_mlv#\\\[0-9\\\]}\" \\\]; then
@@ -119,10 +125,20 @@ set func_silentdbg "\\s*unset _mlre _mlIFS _mlshdbg;
 \\s*fi;"
 
 
-set func_sh "module\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n\\s*eval `\\\${_mlre:-}$install_tclsh $modulecmd_pathre sh \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
-set func_bash "module\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n\\s*eval `\\\${_mlre:-}$install_tclsh $modulecmd_pathre bash \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
-set func_ksh "module\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n\\s*eval `\\\${_mlre:-}$install_tclsh $modulecmd_pathre ksh \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
-set func_zsh "module\\\(\\\) {\n$func_silentdbg\n$func_quar_zsh\n\\s*eval `\\\${=_mlre:-}$install_tclsh $modulecmd_pathre zsh \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};"
+if {$is_stderr_tty} {
+    set func_name "_moduleraw"
+    set add_func_sh "\nmodule\\\(\\\) { _moduleraw \"\\\$\\\*\" 2>&1; };"
+    set add_func_fish "\nfunction module\n\\s*_moduleraw \\\$argv \\\^&1\nend"
+} else {
+    set func_name "module"
+    set add_func_sh ""
+    set add_func_fish ""
+}
+
+set func_sh "$func_name\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n\\s*eval `\\\${_mlre:-}$install_tclsh $modulecmd_pathre sh \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};$add_func_sh"
+set func_bash "$func_name\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n\\s*eval `\\\${_mlre:-}$install_tclsh $modulecmd_pathre bash \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};$add_func_sh"
+set func_ksh "$func_name\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n\\s*eval `\\\${_mlre:-}$install_tclsh $modulecmd_pathre ksh \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};$add_func_sh"
+set func_zsh "$func_name\\\(\\\) {\n$func_silentdbg\n$func_quar_zsh\n\\s*eval `\\\${=_mlre:-}$install_tclsh $modulecmd_pathre zsh \\$\\*`;\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};$add_func_sh"
 set func_csh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_pathre csh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
 if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; eval `$install_tclsh $modulecmd_pathre csh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
 if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_pathre csh \\\\!\\*`; set _exit=\"\\\$status\"; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
@@ -131,7 +147,7 @@ set func_tcsh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'se
 if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; eval `$install_tclsh $modulecmd_pathre tcsh \\\\!\\*`; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
 if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval `$install_tclsh $modulecmd_pathre tcsh \\\\!\\*`; set _exit=\"\\\$status\"; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
 if \\\( \\\! \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'eval `$install_tclsh $modulecmd_pathre tcsh \\\\!\\*`;' ;"
-set func_fish "function module
+set func_fish "function $func_name
 \\s*set -l _mlre ''; set -l _mlv; set -l _mlrv;
 \\s*for _mlv in \\\(string split ' ' \\\$MODULES_RUN_QUARANTINE\\\)
 \\s*if string match -r '^\\\[A-Za-z_\\\]\\\[A-Za-z0-9_\\\]*\\\$' \\\$_mlv >/dev/null
@@ -146,7 +162,7 @@ set func_fish "function module
 \\s*set _mlre \"env \\\$_mlre\"
 \\s*end
 \\s*eval \\\$_mlre \\S+tclsh $modulecmd_pathre fish \\\$argv | source -
-end"
+end$add_func_fish"
 set func_tcl "proc module {args} {
 \\s*set _mlre {};
 \\s*if {\\\[info exists ::env\\\(MODULES_RUN_QUARANTINE\\\)\\\]} {
@@ -430,6 +446,11 @@ unset func_quar_sh
 unset func_quar_zsh
 unset func_clean_ifs
 unset func_silentdbg
+
+unset is_stderr_tty
+unset func_name
+unset add_func_sh
+unset add_func_fish
 
 unset func_sh
 unset func_bash

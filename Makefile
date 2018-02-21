@@ -1,7 +1,8 @@
-.PHONY: doc pkgdoc initdir install install-testsiteconfig install-testmodulerc \
-	install-testetcrc install-testmodspath install-testmodspath-empty \
-	uninstall-testconfig uninstall dist dist-tar dist-gzip dist-bzip2 srpm \
-	clean distclean test testinstall instrument testcoverage
+.PHONY: doc pkgdoc initdir install install-testsiteconfig \
+	install-testsiteconfig-1 install-testmodulerc install-testetcrc \
+	install-testmodspath install-testmodspath-empty uninstall-testconfig \
+	uninstall dist dist-tar dist-gzip dist-bzip2 srpm clean distclean test \
+	testinstall instrument testcoverage
 
 # definitions for code coverage
 NAGELFAR_RELEASE := nagelfar125
@@ -180,6 +181,10 @@ testsuite/example/modulerc: testsuite/example/modulerc.in
 install-testsiteconfig: testsuite/example/siteconfig.tcl
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(etcdir)/
+
+install-testsiteconfig-1: testsuite/example/siteconfig.tcl-1
+	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
+	cp $^ $(DESTDIR)$(etcdir)/siteconfig.tcl
 
 install-testmodulerc: testsuite/example/modulerc
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)

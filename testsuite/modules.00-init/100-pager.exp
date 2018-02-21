@@ -25,24 +25,33 @@ if {$install_pager eq "" || [file tail $install_pager] eq "cat"} {
     set pager_dfl_use 1
 }
 
-set install_etcdirre [regsub -all "\(\[.+?\]\)" $install_etcdir {\\\1}]
+# check if stderr terminal attachement state is forced
+set is_stderr_tty [siteconfig_isStderrTty]
+if { $verbose > 0 } {
+    send_user "\tIs STDERR a TTY? = '$is_stderr_tty'\n"
+}
+
 
 # helper proc to generate pager test and expected debugging output
 proc pager_test_case {modarg use asked cmd opts} {
-    global MODULECMD env install_pager install_pageropts install_etcdirre
+    global MODULECMD env install_pager install_pageropts siteconfig_filere is_stderr_tty
 
     if {$modarg ne ""} {
         set modarg " $modarg"
     }
 
     set ans [list]
-    lappend ans "DEBUG CALLING $MODULECMD sh -V -D${modarg}(\\nDEBUG Source site configuration \\($install_etcdirre/siteconfig.tcl\\))?"
+    lappend ans "DEBUG CALLING $MODULECMD sh -V -D${modarg}(\\nDEBUG Source site configuration \\($siteconfig_filere\\))?"
 
     if {[info exists env(MODULES_PAGER)]} {
         lappend ans "DEBUG initPager: configure pager from MODULES_PAGER variable \\(use_pager=\\d, cmd='$cmd', opts='$opts'\\)"
     }
 
-    lappend ans "DEBUG initPager: no pager start \\(is_tty=0, use_pager=$use, asked_pager=$asked, cmd='$cmd', opts='$opts'\\)"
+    if {$is_stderr_tty && $use} {
+        lappend ans "DEBUG initPager: start pager \\(asked_pager=$asked, cmd='$cmd', opts='$opts'\\)"
+    } else {
+        lappend ans "DEBUG initPager: no pager start \\(is_tty=$is_stderr_tty, use_pager=$use, asked_pager=$asked, cmd='$cmd', opts='$opts'\\)"
+    }
     lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
 
     testouterr_cmd_re "sh" "-V -D$modarg" "" [join $ans "\n"]
@@ -227,10 +236,9 @@ unset env(LESS)
 unset env(MODULES_PAGER)
 
 unset pager_dfl_use
+unset is_stderr_tty
 unset opts
 unset cmd
-
-unset install_etcdirre
 
 # remove procs
 rename pager_test_case {}

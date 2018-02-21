@@ -159,6 +159,30 @@ matrix:
             - autoconf
             - autopoint
             - tcl8.6-dev
+    # install specific siteconfig file before test to trigger specific behaviors
+    # content of this specific siteconfig is activated by defining a TESTSUITE_ENABLE_SITECONFIG env var
+    # siteconfig is deactivated for testinstall suite, will be handled locally in this test suite
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --prefix=/tmp/modules --disable-compat-version' MAKE_TESTCOVERAGE='y'
+           EXTRA_SCRIPT_PRETEST='make install-testsiteconfig-1 && export TESTSUITE_ENABLE_SITECONFIG=1'
+           EXTRA_SCRIPT_POSTTEST='unset TESTSUITE_ENABLE_SITECONFIG'
+      addons:
+        apt:
+          sources:
+            - sourceline: 'ppa:fish-shell/release-2'
+          packages:
+            - dejagnu
+            - python-sphinx
+            - bash
+            - tcsh
+            - ksh
+            - zsh
+            - fish
+            - tcl8.5
+            - perl
+            - python
+            - ruby
+            - cmake3
+            - r-base-core
 
     # CentOS tests
     - env: OS_NAME=centos OS_VERSION=6 DOCKER_IMAGE=${OS_NAME}:${OS_NAME}${OS_VERSION} CONTAINER=${OS_NAME}${OS_VERSION}
