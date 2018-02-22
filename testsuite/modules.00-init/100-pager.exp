@@ -34,13 +34,18 @@ if { $verbose > 0 } {
 
 # helper proc to generate pager test and expected debugging output
 proc pager_test_case {modarg use asked cmd opts} {
-    global MODULECMD env install_pager install_pageropts siteconfig_filere is_stderr_tty
+    global MODULECMD env install_pager install_pageropts siteconfig_filere warn_msgs is_stderr_tty
 
     if {$modarg ne ""} {
         set modarg " $modarg"
     }
 
     set ans [list]
+    # check command exist if specified full path
+    if {$is_stderr_tty && $use && [string index $cmd 0] eq "/" && ![file exists $cmd]} {
+        lappend ans "$warn_msgs: couldn't execute \"$cmd\": no such file or directory"
+    }
+
     lappend ans "DEBUG CALLING $MODULECMD sh -V -D${modarg}(\\nDEBUG Source site configuration \\($siteconfig_filere\\))?"
 
     if {[info exists env(MODULES_PAGER)]} {
@@ -218,6 +223,18 @@ if { $verbose > 0 } {
     send_user "\tSetup LESS = '-K'\n"
 }
 set env(LESS) "-K"
+pager_test_case "" 1 "-" $cmd $opts
+pager_test_case "--paginate" 1 "1" $cmd $opts
+pager_test_case "--no-pager" 0 "0" $cmd $opts
+
+
+# bad command set as pager
+set cmd "/unk/foo"
+set opts ""
+if { $verbose > 0 } {
+    send_user "\tSetup MODULES_PAGER = '$cmd'\n"
+}
+set env(MODULES_PAGER) $cmd
 pager_test_case "" 1 "-" $cmd $opts
 pager_test_case "--paginate" 1 "1" $cmd $opts
 pager_test_case "--no-pager" 0 "0" $cmd $opts
