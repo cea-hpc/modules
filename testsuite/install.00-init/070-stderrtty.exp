@@ -89,12 +89,43 @@ foreach shell $othlang_list {
    testall_cmd "$shell" "use $contrib_modpath:load null:info-loaded null" $anstxt "" 0
 }
 
+
+# set a directory with name starting by '$' to check if shell arguments are correctly escaped
+set disruptive_dir "[pwd]/\$RE.BIN"
+if {$verbose > 0} {
+   send_user "\tCreate disruptive directory $disruptive_dir\n"
+}
+file mkdir $disruptive_dir
+
+foreach shell $shell_list {
+   switch -- $shell {
+      {csh} - {tcsh} {
+         testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+      }
+      default {
+         testall_cmd_re "$shell" "module --version" "^Modules Release \\S+ (\\S+)\$" "^\$" 0
+      }
+   }
+}
+
+foreach shell $othlang_list {
+   testall_cmd_re "$shell" "--version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+}
+
+
+if {$verbose > 0} {
+   send_user "\tDelete disruptive directory $disruptive_dir\n"
+}
+file delete $disruptive_dir
+
+
 #
 #  Clean up variables used in this test case
 #
 
 unset bad_cmd
 unset anstxt
+unset disruptive_dir
 
 } elseif {$verbose > 0} {
    send_user "\tSkip test as STDERR is not attached to a TTY\n"
