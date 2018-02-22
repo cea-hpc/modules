@@ -1,0 +1,73 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	2018/02/22
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check siteconfig superseding mechanism
+#		}C%
+#
+##############################################################################
+
+# check excepted siteconfig file is installed
+if {[siteconfig_isStderrTty]} {
+
+# no procedure superseding test, already handled in 100-pager tests
+
+# test variable superseding
+if { $verbose > 0 } {
+    send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG_DEBUG = '1'\n"
+}
+set env(TESTSUITE_ENABLE_SITECONFIG_DEBUG) 1
+
+set ans [list]
+lappend ans "DEBUG CALLING $MODULECMD sh -V"
+lappend ans "DEBUG Source site configuration \\($siteconfig_filere\\)"
+lappend ans "DEBUG initPager: start pager \\(asked_pager=-, cmd='$install_pager', opts='$install_pageropts'\\)"
+lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+testouterr_cmd_re "sh" "-V" "" [join $ans "\n"]
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_DEBUG\n"
+}
+unset env(TESTSUITE_ENABLE_SITECONFIG_DEBUG)
+
+
+# test broken siteconfig file
+if { $verbose > 0 } {
+    send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG_BROKEN = '1'\n"
+}
+set env(TESTSUITE_ENABLE_SITECONFIG_BROKEN) 1
+
+set ans [list]
+lappend ans "$error_msgs: Site configuration source failed"
+lappend ans "invalid command name \"unk_foo\""
+testouterr_cmd "sh" "-V" "ERR" [join $ans "\n"]
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_BROKEN\n"
+}
+unset env(TESTSUITE_ENABLE_SITECONFIG_BROKEN)
+
+#
+#  Clean up variables used in this test case
+#
+
+unset ans
+
+} elseif {$verbose > 0} {
+   send_user "\tSkip tests as excepted siteconfig file not installed\n"
+}
+
