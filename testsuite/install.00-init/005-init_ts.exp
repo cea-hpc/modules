@@ -208,4 +208,28 @@ if {$install_quarantinevars ne ""} {
    catch {unset vname}
 }
 
+# locate siteconfig file
+set siteconfig_file "$install_etcdir/siteconfig.tcl"
+
+# determine if siteconfig forces stderr terminal attachement state
+proc siteconfig_isStderrTty {} {
+   interp create _siteconfig
+   interp eval _siteconfig set ::siteconfig_file $::siteconfig_file
+   set is_stderr_tty [interp eval _siteconfig {
+      set is_stderr_tty 0
+      if {[file readable $::siteconfig_file]} {
+         # evaluate siteconfig file to check isStderrTty procedure
+         catch {
+            source $::siteconfig_file
+            if {[info procs isStderrTty] eq "isStderrTty"} {
+               set is_stderr_tty [isStderrTty]
+            }
+         } errorMsg
+      }
+      return $is_stderr_tty
+   }]
+   interp delete _siteconfig
+   return $is_stderr_tty
+}
+
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

@@ -1,0 +1,109 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:       modules.00-init/%M%
+#   Revision:       %I%
+#   First Edition:  2018/02/22
+#   Last Mod.:      %U%, %G%
+#
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:    Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:    %C{
+#           Checks commands when stderr is attached to a TTY
+#       }C%
+#
+##############################################################################
+
+# activate potential siteconfig extension
+if { $verbose > 0 } {
+    send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG = '1'\n"
+}
+set env(TESTSUITE_ENABLE_SITECONFIG) 1
+
+# check if stderr terminal attachement state is forced
+set is_stderr_tty [siteconfig_isStderrTty]
+if { $verbose > 0 } {
+    send_user "\tIs STDERR a TTY? = '$is_stderr_tty'\n"
+}
+
+
+# test only if stderr is attached to TTY
+if {$is_stderr_tty} {
+
+if {$verbose > 0} {
+   send_user "\tChecking basic set of commands when STDERR is attached to TTY\n"
+}
+
+set bad_cmd "$error_msgs: Invalid command 'foo'"
+
+foreach shell $shell_list {
+   switch -- $shell {
+      {csh} - {tcsh} {
+         testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+         testall_cmd "$shell" "module foo" "" "$bad_cmd\n$type_help" 1
+         testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "" "$cur_loaded\nnull" 0
+         testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "" "$no_loaded" 0
+         testall_cmd "$shell" "module is-loaded unk" "" "" 1
+         testall_cmd "$shell" "module use $contrib_modpath\; module load null\; module is-loaded null" "" "" 0
+         testall_cmd "$shell" "module info-loaded unk" "" "" 0
+         testall_cmd "$shell" "module use $contrib_modpath\; module load null\; module info-loaded null" "null" "" 0
+      }
+      default {
+         testall_cmd_re "$shell" "module --version" "^Modules Release \\S+ (\\S+)\$" "^\$" 0
+         testall_cmd "$shell" "module foo" "$bad_cmd\n$type_help" "" 1
+         testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "$cur_loaded\nnull" "" 0
+         testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "$no_loaded" "" 0
+         testall_cmd "$shell" "module is-loaded unk" "" "" 1
+         testall_cmd "$shell" "module use $contrib_modpath\; module load null\; module is-loaded null" "" "" 0
+         testall_cmd "$shell" "module info-loaded unk" "" "" 0
+         testall_cmd "$shell" "module use $contrib_modpath\; module load null\; module info-loaded null" "null" "" 0
+      }
+   }
+}
+
+foreach shell $othlang_list {
+   testall_cmd_re "$shell" "--version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+   testall_cmd_re "$shell" "foo" "^\$" "$bad_cmd\n$type_help.*" 1
+   testall_cmd "$shell" "use $contrib_modpath:purge:load null:list -t" "" "$cur_loaded\nnull" 0
+   testall_cmd "$shell" "use $contrib_modpath:purge:load null:unload null:list -t" "" "$no_loaded" 0
+   testall_cmd_re "$shell" "is-loaded unk" "" ".*" 1
+   testall_cmd "$shell" "use $contrib_modpath:load null:is-loaded null" "" "" 0
+   testall_cmd_re "$shell" "info-loaded unk" "" "" 0
+
+   switch -- $shell {
+      {cmake} {
+         set anstxt "-- null"
+      }
+      {r} {
+         set anstxt "\[1\] \"null\""
+      }
+      default {
+         set anstxt "null"
+      }
+   }
+   testall_cmd "$shell" "use $contrib_modpath:load null:info-loaded null" $anstxt "" 0
+}
+
+#
+#  Clean up variables used in this test case
+#
+
+unset bad_cmd
+unset anstxt
+
+} elseif {$verbose > 0} {
+   send_user "\tSkip test as STDERR is not attached to a TTY\n"
+}
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG\n"
+}
+unset env(TESTSUITE_ENABLE_SITECONFIG)
+
+unset is_stderr_tty
