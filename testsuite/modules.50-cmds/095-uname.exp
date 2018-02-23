@@ -75,6 +75,16 @@ if {$domainname ne ""} {
     testouterr_cmd "csh" "load $module/domain" "ERR" $domainname_warn
 }
 
+# check internal uname value cache mechanism
+set ans [list]
+lappend ans [list set testsuite1 [set "u_machine"] noescval]
+lappend ans [list set testsuite2 [set "u_machine"] noescval]
+lappend ans [list setpath LOADEDMODULES "$module/cache"]
+lappend ans [list setpath _LMFILES_ "$modulefile/cache"]
+test_cmd_re "csh" "load $module/cache" $ans
+
+# bad uname subcommand
+testouterr_cmd "csh" "load $module/unk" "ERR" "$moderr_msgs: uname unk not supported\n  In '$modulefile/unk'\n$err_contact"
 
 # setup an empty path
 set ORIG_PATH $env(PATH)
