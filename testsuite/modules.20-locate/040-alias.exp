@@ -57,6 +57,9 @@ set modulefile_9 "$modpath/$module_9"
 set module_10 "loc_sym/alias10"
 set modulefile_10 "$modpath/$module_10"
 
+set module_11 "loc_sym/alias11"
+set modulefile_11 "$modpath/$module_11"
+
 #
 #  Only checked for the csh
 #
@@ -132,6 +135,14 @@ lappend ans [list setpath LOADEDMODULES $module_10]
 lappend ans [list setpath _LMFILES_ $modulefile_10]
 test_cmd "csh" "load $module_10" $ans
 
+# test module-alias loop definition
+set ans [list]
+lappend ans [list set testsuite "loc_sym/bar"]
+lappend ans [list setpath LOADEDMODULES $module_11]
+lappend ans [list setpath _LMFILES_ $modulefile_11]
+lappend ans [list ERR]
+testouterr_cmd "csh" "load $module_11" $ans "$error_msgs: Resolution loop on 'loc_sym/bar' detected"
+
 #
 #  Cleanup
 #
@@ -158,3 +169,5 @@ unset modulefile_9
 unset module_9
 unset modulefile_10
 unset module_10
+unset modulefile_11
+unset module_11
