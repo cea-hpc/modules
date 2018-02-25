@@ -31,6 +31,7 @@ if {![info exists term_cols]} {
 } else {
 
 set test_cols 201
+set test_cols_small 25
 
 set len  [string length $modpath]
 set lrep [expr {($test_cols - $len - 2)/2}]
@@ -119,6 +120,74 @@ info/shells          loc_rcv2/1.5                   modbad/help                 
 info/shellsexp       loc_rcv2/2.0                   modbad/info-loaded                                                   spread/5.0           
 info/specified(foo)  loc_sym/1.0                    modbad/is-avail                                                      spread/6.0           "
 
+set ts_sh_small "- $modpath.deep -
+dir2/1.0(d1)                                          
+dir2/3.0(d3)                                          
+modalias/1.0(@)                                       
+modalias/3.0                                          
+modalias/dir1/1.0                                     
+modalias/dir1/2.0(@)                                  
+modalias/dir2/2.0                                     
+modalias/dir2/3.0(@)                                  
+moddef/dir2/1.0(default)                              
+moddef/dir2/2.0                                       
+modload/dir2/1.0(md1)                                 
+modload/dir2/3.0(md3)                                 
+modsym/dir1/1.0(3.0)                                  
+modsym/dir2/2.0(3.0)                                  
+modtr/3.0(bar:exp:foo:reg:tr2bar:trbar)               
+modtr/al1(unstable:@)                                 
+modtr/al4(default:reg:@)                              
+modtr/al5(fld:@)                                      
+modtr/al6(sfld:@)                                     
+modtr/dir1/1.0(cur:stable)                            
+modtr/dir2/2.0(next:tr2unstable:trunstable:unstable)  
+modtr/dir3/al2(bar:default:exp:reg:tr2bar:trbar:@)    
+modtr/dir3/al3(default:exp:reg:@)                     
+modtr/dir4(default:fld:reg:trfld:trreg)               
+modtr/dir4/al7(madj:@)                                
+modtr/dir4/al8(dadj:@)                                
+modtr/dir4/mod4.0                                     
+modtr/dir5/subdir(dadj:sfld)                          
+modtr/dir5/subdir/mod5.0(madj)                        
+modulerc/dir1(default)                                
+modulerc/dir1/1.0(default)                            
+modulerc/dir1/2.0                                     
+modulerc/dir2/1.0(default)                            
+modulerc/dir2/1.0/rc1(default)                        
+modulerc/dir2/1.0/rc2                                 
+modulerc/dir2/2.0                                     
+modulerc/dir2/3.0                                     
+modvirt/1.0(@)                                        
+modvirt/3.0                                           
+modvirt/dir0/sub1/4.0                                 
+modvirt/dir0/sub1/5.0(@)                              
+modvirt/dir0/sub1/6.0                                 
+modvirt/dir1/1.0                                      
+modvirt/dir1/2.0(@)                                   
+modvirt/dir2/2.0                                      
+modvirt/dir2/3.0(@)                                   
+plain/dir1/1.0                                        
+plain/dir1/2.0                                        
+plain/dir2/1.0                                        
+plain/dir2/2.0                                        
+tr2mod/al1(tr2unstable:@)                             
+tr2mod/al5(tr2fld:@)                                  
+tr2mod/dir3/al2(tr2bar:@)                             
+trmod(trreg)                                          
+trmod/al1(tr2unstable:trunstable:@)                   
+trmod/al5(default:trfld:trreg:@)                      
+trmod/dir3(tr2fld)                                    
+trmod/dir3/al2(tr2bar:trbar:@)                        
+version/dir1(default)                                 
+version/dir1/1.0(default)                             
+version/dir1/2.0                                      
+version/dir2/1.0                                      
+version/dir2/2.0(default)                             
+version/dir2/2.0/rc1(default)                         
+version/dir2/2.0/rc2                                  
+version/dir2/3.0                                      "
+
 #
 #  test
 #
@@ -135,6 +204,16 @@ if { $verbose > 0 } {
 set env(MODULEPATH) "$modpath/"
 testouterr_cmd "sh" "avail" "OK" "$ts_sh"
 
+
+# test with a small terminal width
+exec stty cols $test_cols_small
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = $modpath.deep\n"
+}
+set env(MODULEPATH) "$modpath.deep"
+testouterr_cmd "sh" "avail" "OK" "$ts_sh_small"
+
+
 #
 #  Cleanup
 #
@@ -149,8 +228,10 @@ set env(MODULEPATH) $modpath
 exec stty cols $term_cols
 
 unset ts_sh
+unset ts_sh_small
 
 unset test_cols
+unset test_cols_small
 unset len
 unset lrep
 unset rrep
