@@ -1,0 +1,62 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2018/02/25
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		display
+#   Modulefiles:	bad2
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the MODULECONTACT environment variable
+#		}C%
+#
+##############################################################################
+
+#
+#  Test variables
+#
+
+set contact "foo@example.org"
+if { $verbose > 0 } {
+    send_user "\tSetup MODULECONTACT = '$contact'\n"
+}
+set env(MODULECONTACT) $contact
+
+set module "bad2"
+set out_interr "$modlin
+$modpathre/$module/proc:
+
+setenv\t\ttestsuite\tyes
+module-whatis\terroneous module test
+$moderr_msgs: invalid command name \"bad-command\"
+  In '$modpathre/$module/proc'
+  Please contact <$contact>
+$modlin"
+
+
+#
+#  The tests
+#
+
+testouterr_cmd_re "sh" "display $module" "ERR" "$out_interr"
+
+#
+#  Cleanup
+#
+
+if { $verbose > 0 } {
+    send_user "\tUnset MODULECONTACT\n"
+}
+unset env(MODULECONTACT)
+
+unset out_interr
+unset module
+unset contact
