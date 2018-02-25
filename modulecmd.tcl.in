@@ -3040,145 +3040,151 @@ proc renderSettings {} {
 
    # new environment variables
    foreach var [array names g_stateEnvVars] {
-      if {$g_stateEnvVars($var) eq "new"} {
-         switch -- $::g_shellType {
-            {csh} {
-               set val [charEscaped $::env($var)]
-               # csh barfs on long env vars
-               if {$::g_shell eq "csh" && [string length $val] >\
-                  $::CSH_LIMIT} {
-                  if {$var eq "PATH"} {
-                     reportWarning "PATH exceeds $::CSH_LIMIT characters,\
-                        truncating and appending /usr/bin:/bin ..."
-                     set val [string range $val 0 [expr {$::CSH_LIMIT\
-                        - 1}]]:/usr/bin:/bin
-                  } else {
-                      reportWarning "$var exceeds $::CSH_LIMIT characters,\
-                         truncating..."
-                      set val [string range $val 0 [expr {$::CSH_LIMIT\
-                         - 1}]]
+      switch -- $g_stateEnvVars($var) {
+         {new} {
+            switch -- $::g_shellType {
+               {csh} {
+                  set val [charEscaped $::env($var)]
+                  # csh barfs on long env vars
+                  if {$::g_shell eq "csh" && [string length $val] >\
+                     $::CSH_LIMIT} {
+                     if {$var eq "PATH"} {
+                        reportWarning "PATH exceeds $::CSH_LIMIT characters,\
+                           truncating and appending /usr/bin:/bin ..."
+                        set val [string range $val 0 [expr {$::CSH_LIMIT\
+                           - 1}]]:/usr/bin:/bin
+                     } else {
+                         reportWarning "$var exceeds $::CSH_LIMIT characters,\
+                            truncating..."
+                         set val [string range $val 0 [expr {$::CSH_LIMIT\
+                            - 1}]]
+                     }
                   }
+                  puts stdout "setenv $var $val;"
                }
-               puts stdout "setenv $var $val;"
-            }
-            {sh} {
-               puts stdout "$var=[charEscaped $::env($var)];\
-                  export $var;"
-            }
-            {fish} {
-               set val [charEscaped $::env($var)]
-               # fish shell has special treatment for PATH variable
-               # so its value should be provided as a list separated
-               # by spaces not by semi-colons
-               if {$var eq "PATH"} {
-                  regsub -all ":" $val " " val
+               {sh} {
+                  puts stdout "$var=[charEscaped $::env($var)];\
+                     export $var;"
                }
-               puts stdout "set -xg $var $val;"
-            }
-            {tcl} {
-               set val $::env($var)
-               puts stdout "set ::env($var) {$val};"
-            }
-            {perl} {
-               set val [charEscaped $::env($var) \']
-               puts stdout "\$ENV{'$var'} = '$val';"
-            }
-            {python} {
-               set val [charEscaped $::env($var) \']
-               puts stdout "os.environ\['$var'\] = '$val'"
-            }
-            {ruby} {
-               set val [charEscaped $::env($var) \']
-               puts stdout "ENV\['$var'\] = '$val'"
-            }
-            {lisp} {
-               set val [charEscaped $::env($var) \"]
-               puts stdout "(setenv \"$var\" \"$val\")"
-            }
-            {cmake} {
-               set val [charEscaped $::env($var) \"]
-               puts stdout "set(ENV{$var} \"$val\")"
-            }
-            {r} {
-               set val [charEscaped $::env($var) \']
-               puts stdout "Sys.setenv('$var'='$val')"
-            }
-            {cmd} {
-               set val $::env($var)
-               puts stdout "set $var=$val"
+               {fish} {
+                  set val [charEscaped $::env($var)]
+                  # fish shell has special treatment for PATH variable
+                  # so its value should be provided as a list separated
+                  # by spaces not by semi-colons
+                  if {$var eq "PATH"} {
+                     regsub -all ":" $val " " val
+                  }
+                  puts stdout "set -xg $var $val;"
+               }
+               {tcl} {
+                  set val $::env($var)
+                  puts stdout "set ::env($var) {$val};"
+               }
+               {perl} {
+                  set val [charEscaped $::env($var) \']
+                  puts stdout "\$ENV{'$var'} = '$val';"
+               }
+               {python} {
+                  set val [charEscaped $::env($var) \']
+                  puts stdout "os.environ\['$var'\] = '$val'"
+               }
+               {ruby} {
+                  set val [charEscaped $::env($var) \']
+                  puts stdout "ENV\['$var'\] = '$val'"
+               }
+               {lisp} {
+                  set val [charEscaped $::env($var) \"]
+                  puts stdout "(setenv \"$var\" \"$val\")"
+               }
+               {cmake} {
+                  set val [charEscaped $::env($var) \"]
+                  puts stdout "set(ENV{$var} \"$val\")"
+               }
+               {r} {
+                  set val [charEscaped $::env($var) \']
+                  puts stdout "Sys.setenv('$var'='$val')"
+               }
+               {cmd} {
+                  set val $::env($var)
+                  puts stdout "set $var=$val"
+               }
             }
          }
-      } elseif {$g_stateEnvVars($var) eq "del"} {
-         switch -- $::g_shellType {
-            {csh} {
-               puts stdout "unsetenv $var;"
-            }
-            {sh} {
-               puts stdout "unset $var;"
-            }
-            {fish} {
-               puts stdout "set -e $var;"
-            }
-            {tcl} {
-               puts stdout "catch {unset ::env($var)};"
-            }
-            {cmd} {
-               puts stdout "set $var="
-            }
-            {perl} {
-               puts stdout "delete \$ENV{'$var'};"
-            }
-            {python} {
-               puts stdout "os.environ\['$var'\] = ''"
-               puts stdout "del os.environ\['$var'\]"
-            }
-            {ruby} {
-               puts stdout "ENV\['$var'\] = nil"
-            }
-            {lisp} {
-               puts stdout "(setenv \"$var\" nil)"
-            }
-            {cmake} {
-               puts stdout "unset(ENV{$var})"
-            }
-            {r} {
-               puts stdout "Sys.unsetenv('$var')"
+         {del} {
+            switch -- $::g_shellType {
+               {csh} {
+                  puts stdout "unsetenv $var;"
+               }
+               {sh} {
+                  puts stdout "unset $var;"
+               }
+               {fish} {
+                  puts stdout "set -e $var;"
+               }
+               {tcl} {
+                  puts stdout "catch {unset ::env($var)};"
+               }
+               {cmd} {
+                  puts stdout "set $var="
+               }
+               {perl} {
+                  puts stdout "delete \$ENV{'$var'};"
+               }
+               {python} {
+                  puts stdout "os.environ\['$var'\] = ''"
+                  puts stdout "del os.environ\['$var'\]"
+               }
+               {ruby} {
+                  puts stdout "ENV\['$var'\] = nil"
+               }
+               {lisp} {
+                  puts stdout "(setenv \"$var\" nil)"
+               }
+               {cmake} {
+                  puts stdout "unset(ENV{$var})"
+               }
+               {r} {
+                  puts stdout "Sys.unsetenv('$var')"
+               }
             }
          }
       }
    }
 
    foreach var [array names g_stateAliases] {
-      if {$g_stateAliases($var) eq "new"} {
-         switch -- $::g_shellType {
-            {csh} {
-               # set val [charEscaped $::g_Aliases($var)]
-               set val $::g_Aliases($var)
-               # Convert $n -> \!\!:n
-               regsub -all {\$([0-9]+)} $val {\\!\\!:\1} val
-               # Convert $* -> \!*
-               regsub -all {\$\*} $val {\\!*} val
-               puts stdout "alias $var '$val';"
-            }
-            {sh} {
-               set val $::g_Aliases($var)
-               puts stdout "alias $var='$val';"
-            }
-            {fish} {
-               set val $::g_Aliases($var)
-               puts stdout "alias $var '$val';"
+      switch -- $g_stateAliases($var) {
+         {new} {
+            switch -- $::g_shellType {
+               {csh} {
+                  # set val [charEscaped $::g_Aliases($var)]
+                  set val $::g_Aliases($var)
+                  # Convert $n -> \!\!:n
+                  regsub -all {\$([0-9]+)} $val {\\!\\!:\1} val
+                  # Convert $* -> \!*
+                  regsub -all {\$\*} $val {\\!*} val
+                  puts stdout "alias $var '$val';"
+               }
+               {sh} {
+                  set val $::g_Aliases($var)
+                  puts stdout "alias $var='$val';"
+               }
+               {fish} {
+                  set val $::g_Aliases($var)
+                  puts stdout "alias $var '$val';"
+               }
             }
          }
-      } elseif {$g_stateAliases($var) eq "del"} {
-         switch -- $::g_shellType {
-            {csh} {
-               puts stdout "unalias $var;"
-            }
-            {sh} {
-               puts stdout "unalias $var;"
-            }
-            {fish} {
-               puts stdout "functions -e $var;"
+         {del} {
+            switch -- $::g_shellType {
+               {csh} {
+                  puts stdout "unalias $var;"
+               }
+               {sh} {
+                  puts stdout "unalias $var;"
+               }
+               {fish} {
+                  puts stdout "functions -e $var;"
+               }
             }
          }
       }
