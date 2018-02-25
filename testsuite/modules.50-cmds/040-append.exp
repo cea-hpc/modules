@@ -212,19 +212,59 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 testouterr_cmd "sh" "load $module" $ans "$warn_msgs: --index option has no effect on add-path"
 
 
+# test setting a large value in variable. For csh shell family, Modules
+# truncates value to avoid going over csh limit (this should be changed in
+# next major release, v5.0, to let shell barfs rather trying to handle it at
+# the Modules level)
+for {set i 0} {$i < 150} {incr i} {
+    lappend bigval "/the/path/to/the/directory/$i"
+}
+set bigval [join $bigval ":"]
+set bigpathval "$env(PATH):$bigval"
+
+set module "append/5.0"
+set modulefile "$modpath/$module"
+
+unset env(FOO_modshare)
+unset env(FOO)
+
+set ans [list]
+lappend ans [list setpath FOO $bigval]
+lappend ans [list setpath PATH $bigpathval]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+testouterr_cmd_re "sh" "load $module" $ans ""
+
+# limit is defined at 4000 characters, value is truncated, specific treatment
+# is done for PATH
+set ans [list]
+lappend ans [list setpath FOO [string range $bigval 0 3999]]
+lappend ans [list setpath PATH "[string range $bigpathval 0 3999]:/usr/bin:/bin"]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+set ts_err "$warn_msgs: FOO exceeds 4000 characters, truncating...
+$warn_msgs: PATH exceeds 4000 characters, truncating and appending /usr/bin:/bin ...
+$warn_msgs: FOO_modshare exceeds 4000 characters, truncating...
+$warn_msgs: PATH_modshare exceeds 4000 characters, truncating..."
+
+testouterr_cmd_re "csh" "load $module" $ans $ts_err
+
+
 #
 #  Cleanup
 #
 
 unset env(BAR_modshare)
 unset env(BAR)
-unset env(FOO_modshare)
-unset env(FOO)
 
 unset new_path
 unset ts_path
 unset old_path
 unset ts_err
+unset bigval
+unset bigpathval
 
 unset ans
 
