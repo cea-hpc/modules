@@ -21,17 +21,11 @@
 ##############################################################################
 
 #
-#  Variables. This test forces a module load command. It will result in the
-#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
-#    be set up
+#  The tests
 #
 
 set module "system/2.0"
 set modulefile "$modpath/$module"
-
-#
-#  Only for the csh
-#
 
 lappend ans [list set _LMFILES__modshare "$modulefile:1"]
 lappend ans [list set LOADEDMODULES_modshare "$module:1"]
@@ -39,17 +33,45 @@ lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
 lappend ans [list set testsuite 123]
 
+test_cmd "csh" "load $module" $ans
+
 #
-#  The tests
+# Test a command returning 0 exit code
 #
 
+set module "system/1.0"
+set modulefile "$modpath/$module"
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$modulefile:1"]
+lappend ans [list set LOADEDMODULES_modshare "$module:1"]
+lappend ans [list set _LMFILES_ $modulefile]
+lappend ans [list set LOADEDMODULES $module]
+lappend ans [list set testsuite 0]
+
 test_cmd "csh" "load $module" $ans
+
+#
+# Display system command with multiple arguments
+#
+
+# system call is resolved and reported standalone to stderr rather
+# part of the setenv call
+set disp "$modlin
+$modulefile:
+
+system\t\t$env(TESTSUITEDIR)/systest0 foo bar
+setenv\t\ttestsuite\t
+$modlin"
+
+testouterr_cmd_re "csh" "display $module" "OK" $disp
 
 #
 #  Cleanup
 #
 
 unset ans
+unset disp
 
 unset modulefile
 unset module
