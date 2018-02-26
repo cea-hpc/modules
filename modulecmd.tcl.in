@@ -4852,7 +4852,11 @@ proc pinVersionInCollection {} {
 # return saved collections found in user directory which corresponds to
 # enabled collection target if any set.
 proc findCollections {} {
-   set coll_search "$::env(HOME)/.module/*"
+   if {[info exists ::env(HOME)]} {
+      set coll_search "$::env(HOME)/.module/*"
+   } else {
+      reportErrorAndExit "HOME not defined"
+   }
 
    # find saved collections (matching target suffix)
    set colltarget [getCollectionTarget]
