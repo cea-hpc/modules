@@ -32,6 +32,7 @@ if {![info exists term_cols]} {
 
 set test_cols 201
 set test_cols_small 25
+set test_cols_sunos 120
 
 set len  [string length $modpath]
 set lrep [expr {($test_cols - $len - 2)/2}]
@@ -256,6 +257,25 @@ version/dir2/2.0/rc1
 version/dir2/2.0/rc2      
 version/dir2/3.0          "
 
+set len  [string length $modpath.deep]
+set lrep [expr {($test_cols_sunos - $len - 2)/2}]
+set rrep [expr {$test_cols_sunos - $len - 2 - $lrep}]
+set ts_sh_noflag_sunos "[string repeat {-} $lrep] $modpath.deep [string repeat {-} $rrep]
+dir2/1.0           modtr/3.0          modtr/dir5/subdir/mod5.0  modvirt/dir1/1.0  trmod/dir3            
+dir2/3.0           modtr/al1          modulerc/dir1             modvirt/dir1/2.0  trmod/dir3/al2        
+modalias/1.0       modtr/al4          modulerc/dir1/1.0         modvirt/dir2/2.0  version/dir1          
+modalias/3.0       modtr/al5          modulerc/dir1/2.0         modvirt/dir2/3.0  version/dir1/1.0      
+modalias/dir1/1.0  modtr/al6          modulerc/dir2/1.0         plain/dir1/1.0    version/dir1/2.0      
+modalias/dir1/2.0  modtr/dir1/1.0     modulerc/dir2/1.0/rc1     plain/dir1/2.0    version/dir2/1.0      
+modalias/dir2/2.0  modtr/dir2/2.0     modulerc/dir2/1.0/rc2     plain/dir2/1.0    version/dir2/2.0      
+modalias/dir2/3.0  modtr/dir3/al2     modulerc/dir2/2.0         plain/dir2/2.0    version/dir2/2.0/rc1  
+moddef/dir2/1.0    modtr/dir3/al3     modulerc/dir2/3.0         tr2mod/al1        version/dir2/2.0/rc2  
+moddef/dir2/2.0    modtr/dir4         modvirt/1.0               tr2mod/al5        version/dir2/3.0      
+modload/dir2/1.0   modtr/dir4/al7     modvirt/3.0               tr2mod/dir3/al2   
+modload/dir2/3.0   modtr/dir4/al8     modvirt/dir0/sub1/4.0     trmod             
+modsym/dir1/1.0    modtr/dir4/mod4.0  modvirt/dir0/sub1/5.0     trmod/al1         
+modsym/dir2/2.0    modtr/dir5/subdir  modvirt/dir0/sub1/6.0     trmod/al5         "
+
 #
 #  test
 #
@@ -293,14 +313,24 @@ set env(TESTSUITE_ENABLE_SITECONFIG_NO_FLAG) 1
 
 testouterr_cmd "sh" "avail" "OK" "$ts_sh_noflag"
 
+# simulate Solaris OS with its specific stty command output
+if { $verbose > 0 } {
+    send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG_SOLARIS_STTY = '1'\n"
+}
+set env(TESTSUITE_ENABLE_SITECONFIG_SOLARIS_STTY) 1
+
+testouterr_cmd "sh" "avail" "OK" "$ts_sh_noflag_sunos"
+
 # restore environment
 if { $verbose > 0 } {
     send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_NO_FLAG\n"
+    send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_SOLARIS_STTY\n"
 }
 unset env(TESTSUITE_ENABLE_SITECONFIG_NO_FLAG)
+unset env(TESTSUITE_ENABLE_SITECONFIG_SOLARIS_STTY)
 
 } elseif {$verbose > 0} {
-   send_user "\tSkip show flag test as excepted siteconfig file not installed\n"
+   send_user "\tSkip some tests as excepted siteconfig file not installed\n"
 }
 
 
@@ -320,9 +350,11 @@ exec stty cols $term_cols
 unset ts_sh
 unset ts_sh_small
 unset ts_sh_noflag
+unset ts_sh_noflag_sunos
 
 unset test_cols
 unset test_cols_small
+unset test_cols_sunos
 unset len
 unset lrep
 unset rrep
