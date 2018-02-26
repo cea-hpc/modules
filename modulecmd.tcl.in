@@ -1906,18 +1906,15 @@ proc getReferenceCountArray {var separator} {
                }
             }
 
-            if {!$::g_force} {
-               if {[array size fixers]} {
-                  reportWarning "\$$var does not agree with\
-                     \$$sharevar counter. The following\
-                     directories' usage counters were adjusted to match.\
-                     Note that this may mean that module unloading may\
-                     not work correctly."
-                  foreach dir [array names fixers] {
-                     report " $dir" -nonewline
-                  }
-                  report ""
+            if {!$::g_force && [array size fixers]} {
+               reportWarning "\$$var does not agree with \$$sharevar counter.\
+                  The following directories' usage counters were adjusted to\
+                  match. Note that this may mean that module unloading may\
+                  not work correctly."
+               foreach dir [array names fixers] {
+                  report " $dir" -nonewline
                }
+               report ""
             }
          } else {
             # sharevar was corrupted, odd number of elements.
