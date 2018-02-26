@@ -41,7 +41,7 @@ set use	"unuse"
 #
 
 if { $verbose > 0 } {
-    send_user "Setup MODULEPATH = $path:$modpath\n"
+    send_user "\tSetup MODULEPATH = $path:$modpath\n"
 }
 set env(MODULEPATH) "$path:$modpath"
 
@@ -80,6 +80,28 @@ test_cmd_re "ALL" "$use $relpath_wdot" $ans
 
 testouterr_cmd "ALL" "$use" "OK" "$path_list_header\n  $path\n  $modpath"
 
+#
+# test removing dir enabled multiple times
+#
+
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH_modshare = $path:2:$modpath:1\n"
+}
+set env(MODULEPATH_modshare) "$path:2:$modpath:1"
+
+# dir not removed if ref counter > 1, should be changed in next major version
+# as commands sends from the command-line should by-pass any ref counter
+set ans [list]
+lappend ans [list set MODULEPATH_modshare "$path:1:$modpath:1"]
+lappend ans [list set MODULEPATH "$path:$modpath"]
+testouterr_cmd_re "sh" "$use $path" $ans "$warn_msgs: Did not unuse $path"
+
+if { $verbose > 0 } {
+    send_user "\tUnset MODULEPATH_modshare\n"
+}
+unset env(MODULEPATH_modshare)
+
+
 # list paths with no paths set
 if { $verbose > 0 } {
     send_user "\tSetup MODULEPATH = ''\n"
@@ -100,7 +122,7 @@ testouterr_cmd "ALL" "$use " "OK" ""
 #
 
 if { $verbose > 0 } {
-    send_user "Resetting MODULEPATH\n"
+    send_user "\tResetting MODULEPATH\n"
 }
 set env(MODULEPATH) "$modpath"
 
