@@ -183,11 +183,30 @@ testoutfile_cmd "sh" "save $coll4" "OK" "$hometestdotmod/$coll4f" "$c4cont"
 
 
 #
+# test saving collection mixing virtual and deep modules spread through
+# different modulepaths to check correct defaults detection
+#
+
+# setup environment state
+if { $verbose > 0 } {
+    send_user "\tSetup _LMFILES_ = '$c6lmf'\n"
+    send_user "\tSetup LOADEDMODULES = '$c6lm'\n"
+    send_user "\tSetup MODULEPATH = $c6modpath\n"
+}
+set env(_LMFILES_) $c6lmf
+set env(LOADEDMODULES) $c6lm
+set env(MODULEPATH) $c6modpath
+
+# test only sh shell as this test does not produce shell output
+testoutfile_cmd "sh" "save $coll6" "OK" "$hometestdotmod/$coll6f" "$c6cont"
+
+
+#
 # test unsetting HOME
 #
 
 if { $verbose > 0 } {
-    send_user "\tUnset HOME \n"
+    send_user "\tUnset HOME\n"
 }
 unset env(HOME)
 
@@ -205,11 +224,14 @@ set env(HOME) $ORIG_HOME
 unset ORIG_HOME
 
 # restore environment
-# _LMFILES_ and LOADEDMODULES already restored during last test
 if { $verbose > 0 } {
+    send_user "\tUnset _LMFILES_\n"
+    send_user "\tUnset LOADEDMODULES\n"
     send_user "\tRestore MODULEPATH = $modpath\n"
     send_user "\tUnset MODULES_COLLECTION_TARGET\n"
 }
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
 set env(MODULEPATH) $modpath
 unset env(MODULES_COLLECTION_TARGET)
 

@@ -4771,10 +4771,9 @@ proc getMovementBetweenList {from to} {
    return [list $undo $do]
 }
 
-# build list of currently loaded modules where modulename
-# is registered minus module version if loaded version is
-# the default one. a helper list may be provided and looked
-# at if no module path is set
+# build list of currently loaded modules where modulename is registered minus
+# module version if loaded version is the default one. a helper list may be
+# provided and looked at prior to module search
 proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
    {helper_list {}}} {
    reportDebug "getSimplifiedLoadedModuleList"
@@ -4783,39 +4782,29 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
    set modpathlist [getModulePathList]
    foreach mod [getLoadedModuleList] {
       if {[string length $mod] > 0} {
-         set modparent [file dirname $mod]
-         if {$modparent eq "."} {
-            lappend curr_mod_list $mod
+         # if mod found in a previous LOADEDMODULES list use simplified
+         # version of this module found in relative helper list (previously
+         # computed simplified list)
+         if {[set helper_idx [lsearch -exact $helper_raw_list $mod]] != -1} {
+            lappend curr_mod_list [lindex $helper_list $helper_idx]
+         # look through modulepaths for a simplified name for mod
          } elseif {[llength $modpathlist] > 0} {
-            # fetch all module version available
-            set modlist {}
-            foreach dir $modpathlist {
-               if {[file isdirectory $dir]} {
-                  set modlist [listModules $dir $modparent 0 "onlydefaults"]
-                  # quit loop if result found
-                  if {[llength $modlist] > 0} {
-                     break
-                  }
+            set modfile $::g_loadedModules($mod)
+            set parentmod [file dirname $mod]
+            set simplemod $mod
+            # simplify to parent name as long as it resolves to current mod
+            while {$parentmod ne "."} {
+               lassign [getPathToModule $parentmod $modpathlist] parentfile
+               if {$parentfile eq $modfile} {
+                  set simplemod $parentmod
+                  set parentmod [file dirname $parentmod]
+               } else {
+                  set parentmod "."
                }
             }
-            # check if loaded version is default
-            if {[lsearch -exact $modlist $mod] >-1 } {
-               lappend curr_mod_list $modparent
-            } else {
-               lappend curr_mod_list $mod
-            }
+            lappend curr_mod_list $simplemod
          } else {
-            # if no path set currently, cannot search for all
-            # available version so use helper lists if provided
-            set helper_idx [lsearch -exact $helper_raw_list $mod]
-            if {$helper_idx == -1} {
-               lappend curr_mod_list $mod
-            } else {
-               # if mod found in a previous LOADEDMODULES list use
-               # simplified version of this module found in relative
-               # helper list (previously computed simplified list)
-               lappend curr_mod_list [lindex $helper_list $helper_idx]
-            }
+            lappend curr_mod_list $mod
          }
       }
    }

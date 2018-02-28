@@ -229,6 +229,30 @@ testouterr_cmd_re "ALL" "restore $coll5fp" $ans "$c4errmsg"
 
 
 #
+# test restoring collection mixing virtual and deep modules spread through
+# different modulepaths to check correct default version is restored
+#
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tUnset _LMFILES_\n"
+    send_user "\tUnset LOADEDMODULES\n"
+    send_user "\tUnset MODULEPATH\n"
+}
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
+unset env(MODULEPATH)
+
+set ans [list]
+lappend ans [list set testsuite "yes"]
+lappend ans [list setpath LOADEDMODULES $c6lm]
+lappend ans [list setpath _LMFILES_ $c6lmf]
+lappend ans [list setpath MODULEPATH $c6modpath]
+
+testouterr_cmd_re "sh" "restore $coll6" $ans ""
+
+
+#
 # test restoring nonexistent default collection when
 # MODULES_COLLECTION_TARGET is set
 #
@@ -260,14 +284,11 @@ set env(HOME) $ORIG_HOME
 unset ORIG_HOME
 
 # restore environment
+# _LMFILES_ and LOADEDMODULES already restored during last test
 if { $verbose > 0 } {
-    send_user "\tRestore _LMFILES_ = ''\n"
-    send_user "\tRestore LOADEDMODULES = ''\n"
     send_user "\tRestore MODULEPATH = $modpath\n"
     send_user "\tRestore MODULES_COLLECTION_TARGET = ''\n"
 }
-unset env(_LMFILES_)
-unset env(LOADEDMODULES)
 set env(MODULEPATH) $modpath
 unset env(MODULES_COLLECTION_TARGET)
 
