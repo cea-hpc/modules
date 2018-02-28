@@ -80,6 +80,28 @@ if { $verbose > 0 } {
 }
 unset env(TESTSUITE_ENABLE_SITECONFIG_ACCESSERR)
 
+
+# test displayElementList procedure in terse+numbered mode
+if { $verbose > 0 } {
+    send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG_TERSENUM = '1'\n"
+}
+set env(TESTSUITE_ENABLE_SITECONFIG_TERSENUM) 1
+
+set ans [list]
+lappend ans "test:"
+lappend ans " 1\\\) elt1 "
+lappend ans " 2\\\) elt2 "
+lappend ans " 3\\\) elt3 "
+lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+testouterr_cmd_re "sh" "-V" "OK" [join $ans "\n"]
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_TERSENUM\n"
+}
+unset env(TESTSUITE_ENABLE_SITECONFIG_TERSENUM)
+
+
 #
 #  Clean up variables used in this test case
 #
