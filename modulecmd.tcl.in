@@ -4787,8 +4787,8 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
          # computed simplified list)
          if {[set helper_idx [lsearch -exact $helper_raw_list $mod]] != -1} {
             lappend curr_mod_list [lindex $helper_list $helper_idx]
-         # look through modulepaths for a simplified name for mod
-         } elseif {[llength $modpathlist] > 0} {
+         # look through modpaths for a simplified mod name if not full path
+         } elseif {![isModuleFullPath $mod] && [llength $modpathlist] > 0} {
             set modfile $::g_loadedModules($mod)
             set parentmod [file dirname $mod]
             set simplemod $mod
@@ -5366,8 +5366,8 @@ proc cmdModuleRestore {{coll {}}} {
    lassign [readCollectionContent $collfile $colldesc] coll_path_list\
       coll_mod_list
 
-   # collection should at least define a path
-   if {[llength $coll_path_list] == 0} {
+   # collection should at least define a path or a mod
+   if {[llength $coll_path_list] == 0 && [llength $coll_mod_list] == 0} {
       reportErrorAndExit "$colldesc is not a valid collection"
    }
 
@@ -5494,8 +5494,8 @@ proc cmdModuleSaveshow {{coll {}}} {
    lassign [readCollectionContent $collfile $colldesc] coll_path_list\
       coll_mod_list
 
-   # collection should at least define a path
-   if {[llength $coll_path_list] == 0} {
+   # collection should at least define a path or a mod
+   if {[llength $coll_path_list] == 0 && [llength $coll_mod_list] == 0} {
       reportErrorAndExit "$colldesc is not a valid collection"
    }
 

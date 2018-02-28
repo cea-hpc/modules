@@ -253,6 +253,55 @@ testouterr_cmd_re "sh" "restore $coll6" $ans ""
 
 
 #
+# test restoring collection with no modulepath and modulefiles loaded as fullpath
+#
+
+set ans [list]
+lappend ans [list set testsuite "yes"]
+lappend ans [list setpath LOADEDMODULES $c7lm]
+lappend ans [list setpath _LMFILES_ $c7lmf]
+
+testouterr_cmd_re "sh" "restore $coll7fp" $ans ""
+
+
+#
+# test restoring collection with no modulepath and modulefiles loaded as fullpath
+# starting with a defined MODULEPATH
+#
+
+if { $verbose > 0 } {
+    send_user "\tMODULEPATH = '$modpath'\n"
+}
+set env(MODULEPATH) $modpath
+
+set ans [list]
+lappend ans [list set testsuite "yes"]
+lappend ans [list setpath LOADEDMODULES $c7lm]
+lappend ans [list setpath _LMFILES_ $c7lmf]
+lappend ans [list unsetpath MODULEPATH]
+
+testouterr_cmd_re "sh" "restore $coll7fp" $ans ""
+
+
+#
+# test restoring collection with a modulepath and modulefiles loaded as fullpath
+#
+
+if { $verbose > 0 } {
+    send_user "\tUnset MODULEPATH\n"
+}
+unset env(MODULEPATH)
+
+set ans [list]
+lappend ans [list set testsuite "yes"]
+lappend ans [list setpath LOADEDMODULES $c8lm]
+lappend ans [list setpath _LMFILES_ $c8lmf]
+lappend ans [list setpath MODULEPATH $c8modpath]
+
+testouterr_cmd_re "sh" "restore $coll8fp" $ans ""
+
+
+#
 # test restoring nonexistent default collection when
 # MODULES_COLLECTION_TARGET is set
 #
