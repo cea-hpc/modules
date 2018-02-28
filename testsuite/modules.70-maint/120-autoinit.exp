@@ -337,10 +337,36 @@ foreach shell $supported_shells {
     }
 }
 
+# test versioning autoinit when MODULE_VERSION is already defined
+if {$install_versioning eq "y"} {
+    # setup environment state
+    if { $verbose > 0 } {
+        send_user "\tSetup MODULE_VERSION = 'vers'\n"
+        send_user "\tSetup MODULE_VERSION_STACK = 'vers'\n"
+    }
+    set env(MODULE_VERSION) "vers"
+    set env(MODULE_VERSION_STACK) "vers"
+
+    set ans [list]
+    lappend ans [list [set "func_sh"]]
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    lappend ans [list set MODULESHOME $moduleshome]
+
+    test_cmd_re "sh" "autoinit" $ans
+
+    # setup environment state
+    if { $verbose > 0 } {
+        send_user "\tUnset MODULE_VERSION\n"
+        send_user "\tUnset MODULE_VERSION_STACK\n"
+    }
+    unset env(MODULE_VERSION)
+    unset env(MODULE_VERSION_STACK)
+}
+
 # setup environment state
 if { $verbose > 0 } {
-    send_user "\tRestore LOADEDMODULES = ''\n"
-    send_user "\tSetup MODULEPATH = ''\n"
+    send_user "\tUnset LOADEDMODULES\n"
+    send_user "\tUnset MODULEPATH\n"
 }
 unset env(LOADEDMODULES)
 unset env(MODULEPATH)
