@@ -61,6 +61,25 @@ if { $verbose > 0 } {
 }
 unset env(TESTSUITE_ENABLE_SITECONFIG_BROKEN)
 
+
+# test siteconfig file raising error
+# test parseAccessIssue with custom error code by the way
+if { $verbose > 0 } {
+    send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG_ACCESSERR = '1'\n"
+}
+set env(TESTSUITE_ENABLE_SITECONFIG_ACCESSERR) 1
+
+set ans [list]
+lappend ans "$error_msgs: Site configuration source failed"
+lappend ans "Cannot access 'foo'"
+testouterr_cmd "sh" "-V" "ERR" [join $ans "\n"]
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_ACCESSERR\n"
+}
+unset env(TESTSUITE_ENABLE_SITECONFIG_ACCESSERR)
+
 #
 #  Clean up variables used in this test case
 #
