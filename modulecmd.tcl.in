@@ -4579,6 +4579,11 @@ proc displayElementList {header hstyle one_per_line display_idx args} {
    reportDebug "displayElementList: header=$header, hstyle=$hstyle,\
       elt_cnt=$elt_cnt, one_per_line=$one_per_line, display_idx=$display_idx"
 
+   # end proc if no element are to print
+   if {$elt_cnt == 0} {
+      return
+   }
+
    # display header if any provided
    if {$header ne "noheader"} {
       # if list already displayed, separate with a blank line before header
@@ -4593,11 +4598,6 @@ proc displayElementList {header hstyle one_per_line display_idx args} {
       } else {
          report "$header:"
       }
-   }
-
-   # end proc if no element are to print
-   if {$elt_cnt == 0} {
-      return
    }
 
    # display one element per line
@@ -5264,9 +5264,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             }
          }
 
-         if {[llength $display_list] > 0} {
-            eval displayElementList $dir "sepline" 1 0 $display_list
-         }
+         eval displayElementList $dir "sepline" 1 0 $display_list
       }
    }
    popMode
@@ -5742,17 +5740,13 @@ proc cmdModuleAliases {} {
    foreach name [lsort -dictionary [array names ::g_moduleAlias]] {
       lappend display_list "$name -> $::g_moduleAlias($name)"
    }
-   if {[llength $display_list] > 0} {
-      eval displayElementList "Aliases" "sepline" 1 0 $display_list
-   }
+   eval displayElementList "Aliases" "sepline" 1 0 $display_list
 
    set display_list {}
    foreach name [lsort -dictionary [array names ::g_moduleVersion]] {
       lappend display_list "$name -> $::g_moduleVersion($name)"
    }
-   if {[llength $display_list] > 0} {
-      eval displayElementList "Versions" "sepline" 1 0 $display_list
-   }
+   eval displayElementList "Versions" "sepline" 1 0 $display_list
 }
 
 proc cmdModuleAvail {{mod {*}}} {
@@ -5774,24 +5768,20 @@ proc cmdModuleAvail {{mod {*}}} {
    # look if aliases have been defined in the global or user-specific
    # modulerc and display them if any in a dedicated list
    set display_list [listModules "" "$mod" 1 $::show_filter "rc_alias_only"]
-   if {[llength $display_list] > 0} {
-      if {$::show_modtimes && !$theader_shown} {
-         set theader_shown 1
-         eval displayTableHeader $theader_cols
-      }
-      eval displayElementList "{global/user modulerc}" $hstyle $one_per_line\
-         0 $display_list
+   if {[llength $display_list] > 0 && $::show_modtimes && !$theader_shown} {
+      set theader_shown 1
+      eval displayTableHeader $theader_cols
    }
+   eval displayElementList "{global/user modulerc}" $hstyle $one_per_line 0\
+      $display_list
 
    foreach dir [getModulePathList "exiterronundef"] {
       set display_list [listModules "$dir" "$mod" 1 $::show_filter]
-      if {[llength $display_list] > 0} {
-         if {$::show_modtimes && !$theader_shown} {
-            set theader_shown 1
-            eval displayTableHeader $theader_cols
-         }
-         eval displayElementList $dir $hstyle $one_per_line 0 $display_list
+      if {[llength $display_list] > 0 && $::show_modtimes && !$theader_shown} {
+         set theader_shown 1
+         eval displayTableHeader $theader_cols
       }
+      eval displayElementList $dir $hstyle $one_per_line 0 $display_list
    }
 
    reenableErrorReport
