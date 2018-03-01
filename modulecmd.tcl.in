@@ -480,6 +480,9 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
          g_inhibit_errreport 1 g_inhibit_dispreport 1\
          ModulesCurrentModulefile 1 must_have_cookie 1 modcontent 1 env 1]
 
+      # commands that should be renamed before aliases setup
+      array set ::g_modfileRenameCmds [list puts _puts]
+
       # list interpreter alias commands to define
       array set ::g_modfileAliases [list setenv setenv unsetenv unsetenv\
          getenv getenv system system chdir chdir append-path append-path\
@@ -495,6 +498,9 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
          reportWarning reportError reportError raiseErrorCount\
          raiseErrorCount report report isWin isWin puts putsModfileCmd\
          readModuleContent readModuleContent]
+
+      # alias commands where interpreter ref should be passed as argument
+      array set ::g_modfileAliasesPassItrp [list puts 1]
    }
 
    # dedicate an interpreter per level of interpretation to have in case of
@@ -509,11 +515,17 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
       # interpreation
       dumpInterpState $itrp g_modfileVars g_modfileArrayVars\
          g_modfileUntrackVars g_modfileProcs
+
+      # interp has just been created
+      set fresh 1
+   } else {
+      set fresh 0
    }
 
    # reset interp state command before each interpretation
-   resetInterpState $itrp g_modfileVars g_modfileArrayVars\
-      g_modfileUntrackVars g_modfileProcs g_modfileAliases g_modfileCommands
+   resetInterpState $itrp $fresh g_modfileVars g_modfileArrayVars\
+      g_modfileUntrackVars g_modfileProcs g_modfileAliases\
+      g_modfileAliasesPassItrp g_modfileRenameCmds g_modfileCommands
 
    # reset modulefile-specific variable before each interpretation
    interp eval $itrp set ::ModulesCurrentModulefile $modfile
@@ -618,6 +630,9 @@ proc execute-modulerc {modfile} {
             g_inhibit_dispreport 1 ModulesCurrentModulefile 1\
             ModulesVersion 1 modcontent 1 env 1]
 
+         # commands that should be renamed before aliases setup
+         array set ::g_modrcRenameCmds [list]
+
          # list interpreter alias commands to define
          array set ::g_modrcAliases [list uname uname system system chdir\
             chdir module-version module-version module-alias module-alias\
@@ -626,6 +641,9 @@ proc execute-modulerc {modfile} {
             module-verbosity module-user module-user module-log module-log\
             reportInternalBug reportInternalBug setModulesVersion\
             setModulesVersion readModuleContent readModuleContent]
+
+         # alias commands where interpreter ref should be passed as argument
+         array set ::g_modrcAliasesPassItrp [list]
       }
 
       # dedicate an interpreter per level of interpretation to have in case of
@@ -641,11 +659,17 @@ proc execute-modulerc {modfile} {
          # interpreation
          dumpInterpState $itrp g_modrcVars g_modrcArrayVars\
             g_modrcUntrackVars g_modrcProcs
+
+         # interp has just been created
+         set fresh 1
+      } else {
+         set fresh 0
       }
 
       # reset interp state command before each interpretation
-      resetInterpState $itrp g_modrcVars g_modrcArrayVars\
-         g_modrcUntrackVars g_modrcProcs g_modrcAliases g_modrcCommands
+      resetInterpState $itrp $fresh g_modrcVars g_modrcArrayVars\
+         g_modrcUntrackVars g_modrcProcs g_modrcAliases\
+         g_modrcAliasesPassItrp g_modrcRenameCmds g_modrcCommands
 
       interp eval $itrp set ::ModulesCurrentModulefile $modfile
       interp eval $itrp set ::g_debug $::g_debug
@@ -726,13 +750,15 @@ proc dumpInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
 # Restore initial setup of slave interpreter passed as argument based on
 # global structure previously filled with initial list of defined procedure
 # and values of global variable.
-proc resetInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
-   dumpProcsVN aliasesVN dumpCommandsVN} {
+proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
+   dumpProcsVN aliasesVN aliasesPassItrpVN renameCmdsVN dumpCommandsVN} {
    upvar #0 $dumpVarsVN dumpVars
    upvar #0 $dumpArrayVarsVN dumpArrayVars
    upvar #0 $untrackVarsVN untrackVars
    upvar #0 $dumpProcsVN dumpProcs
    upvar #0 $aliasesVN aliases
+   upvar #0 $aliasesPassItrpVN aliasesPassItrp
+   upvar #0 $renameCmdsVN renameCmds
    upvar #0 $dumpCommandsVN dumpCommands
 
    # look at list of defined procedures and delete those not part of the
@@ -746,10 +772,22 @@ proc resetInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
       }
    }
 
+   # rename some commands on first time before aliases defined below
+   # overwrite them
+   if {$fresh} {
+      foreach cmd [array names renameCmds] {
+         $itrp eval rename $cmd $renameCmds($cmd)
+      }
+   }
+
    # set interpreter alias commands each time to guaranty them being
    # defined and not overridden by modulefile or modulerc content
    foreach alias [array names aliases] {
-      interp alias $itrp $alias {} $aliases($alias)
+      if {[info exists aliasesPassItrp($alias)]} {
+         interp alias $itrp $alias {} $aliases($alias) $itrp
+      } else {
+         interp alias $itrp $alias {} $aliases($alias)
+      }
    }
 
    # dump interpreter command list here on first time as aliases should be
@@ -765,9 +803,16 @@ proc resetInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
       reportDebug "resetInterpState: missing command(s), recreating $itrp"
       interp delete $itrp
       interp create $itrp
-      # set aliases again on fresh interpreter
+      # rename some commands and set aliases again on fresh interpreter
+      foreach cmd [array names renameCmds] {
+         $itrp eval rename $cmd $renameCmds($cmd)
+      }
       foreach alias [array names aliases] {
-         interp alias $itrp $alias {} $aliases($alias)
+         if {[info exists aliasesPassItrp($alias)]} {
+            interp alias $itrp $alias {} $aliases($alias) $itrp
+         } else {
+            interp alias $itrp $alias {} $aliases($alias)
+         }
       }
    }
 
@@ -1819,8 +1864,8 @@ proc setModulesVersion {val} {
 # modulefile in order to correctly send stderr content (if a pager has been
 # enabled) or postpone content channel send after rendering on stdout the
 # relative environment changes required by the modulefile
-proc putsModfileCmd {args} {
-   reportDebug "puts: ($args)"
+proc putsModfileCmd {itrp args} {
+   reportDebug "puts: $args (itrp=$itrp)"
 
    # determine if puts call targets the stdout or stderr channel
    switch -- [llength $args] {
@@ -1847,19 +1892,29 @@ proc putsModfileCmd {args} {
                   set reportArgs [list [lindex $args 2] 1]
                }
             }
+         } else {
+            set wrongNumArgs 1
          }
+      }
+      default {
+         set wrongNumArgs 1
       }
    }
 
+   # raise error if bad argument number detected, do this here rather in _puts
+   # not to confuse people with an error reported by an internal name (_puts)
+   if {[info exists wrongNumArgs]} {
+      error "wrong # args: should be \"puts ?-nonewline? ?channelId? string\""
    # defer puts if it targets stdout (see renderSettings)
-   if {[info exists deferPuts]} {
+   } elseif {[info exists deferPuts]} {
       lappend ::g_stdoutPuts $args
    # if it targets stderr call report, which knows what channel to use
    } elseif {[info exists reportArgs]} {
       eval report $reportArgs
-   # pass to real puts command if not related to stdout or bad call
+   # pass to real puts command if not related to stdout and do that in modfile
+   # interpreter context to get access to eventual specific channel
    } else {
-      eval puts $args
+      $itrp eval _puts $args
    }
 }
 
