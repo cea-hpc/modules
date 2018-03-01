@@ -91,11 +91,14 @@ foreach shell $othlang_list {
 
 
 # set a directory with name starting by '$' to check if shell arguments are correctly escaped
-set disruptive_dir "[pwd]/\$RE.BIN"
+set disruptive_dir1 "[pwd]/\$RE.BIN"
+set disruptive_dir2 "[pwd]/something (test)"
 if {$verbose > 0} {
-   send_user "\tCreate disruptive directory $disruptive_dir\n"
+   send_user "\tCreate disruptive directory $disruptive_dir1\n"
+   send_user "\tCreate disruptive directory $disruptive_dir2\n"
 }
-file mkdir $disruptive_dir
+file mkdir $disruptive_dir1
+file mkdir $disruptive_dir2
 
 foreach shell $shell_list {
    switch -- $shell {
@@ -114,9 +117,11 @@ foreach shell $othlang_list {
 
 
 if {$verbose > 0} {
-   send_user "\tDelete disruptive directory $disruptive_dir\n"
+   send_user "\tDelete disruptive directory $disruptive_dir1\n"
+   send_user "\tDelete disruptive directory $disruptive_dir2\n"
 }
-file delete $disruptive_dir
+file delete $disruptive_dir1
+file delete $disruptive_dir2
 
 
 #
@@ -125,7 +130,8 @@ file delete $disruptive_dir
 
 unset bad_cmd
 unset anstxt
-unset disruptive_dir
+unset disruptive_dir1
+unset disruptive_dir2
 
 } elseif {$verbose > 0} {
    send_user "\tSkip test as STDERR is not attached to a TTY\n"

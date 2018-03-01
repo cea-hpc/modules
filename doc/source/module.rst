@@ -96,7 +96,7 @@ Bourne Shell (sh) (and derivatives) with **autoinit** sub-command:
 
 .. parsed-literal::
 
-     eval \`\ |libexecdir|\ /modulecmd.tcl sh autoinit\`
+     eval "\`\ |libexecdir|\ /modulecmd.tcl sh autoinit\`"
 
 
 Modulecmd startup
