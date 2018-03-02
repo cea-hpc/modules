@@ -50,6 +50,22 @@ set env(LOADEDMODULES) $module
 
 test_cmd "csh" "purge" $ans
 
+
+# setup LOADEDMODULES with an empty element
+set env(LOADEDMODULES) ":$module"
+
+set ans [list]
+lappend ans [list unset testsuite]
+# empty elements are ignored but stick to the variable, they should be removed
+lappend ans [list setpath LOADEDMODULES ""]
+lappend ans [list unsetpath _LMFILES_]
+
+test_cmd "sh" "purge" $ans
+
+# restore LOADEDMODULES
+set env(LOADEDMODULES) "$module"
+
+
 #
 #  Cleanup
 #

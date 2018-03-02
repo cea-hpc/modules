@@ -124,6 +124,20 @@ if { $verbose > 0 } {
 }
 set env(MODULEPATH) $modpath
 
+
+# setup LOADEDMODULES with an empty element
+set env(LOADEDMODULES) ":$mod11:$mod21"
+
+set ans [list]
+# empty elements are ignored but stick to the variable, they should be removed
+lappend ans [list setpath LOADEDMODULES ":$module"]
+lappend ans [list setpath _LMFILES_ $modulefile]
+test_cmd_re "sh" "load $mod31" $ans
+
+# restore LOADEDMODULES
+set env(LOADEDMODULES) "$mod11:$mod21"
+
+
 #
 # load already loaded module
 # no environement modification, exit 0
@@ -143,6 +157,17 @@ if { $verbose > 0 } {
     send_user "\tRestore MODULEPATH = $modpath\n"
 }
 set env(MODULEPATH) $modpath
+
+
+# setup LOADEDMODULES with an empty element
+set env(LOADEDMODULES) ":$mod11:$mod21"
+
+set ans [list]
+test_cmd "sh" "load $mod11" "OK"
+
+# restore LOADEDMODULES
+set env(LOADEDMODULES) "$mod11:$mod21"
+
 
 #
 # reference a module not in the path
