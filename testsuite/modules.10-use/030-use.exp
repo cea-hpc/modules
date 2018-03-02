@@ -30,6 +30,7 @@ set tsdirname [file tail $env(TESTSUITEDIR)]
 regsub "^.*/$tsdirname" $path "$tsdirname" relpath
 set badpath "$modpath.bad"
 set mod_path "$path:$modpath"
+set mod_path2 "${path}::$modpath"
 set bad_use "$error_msgs: Directory '$badpath' not found"
 set empty_use "$error_msgs: Directory name empty"
 set loaded_path "$modpath"
@@ -111,14 +112,14 @@ test_cmd_re "ALL" "$use $loaded_relpath" $ans
 test_cmd_re "ALL" "$use $loaded_relpath_wdot" $ans
 
 #
-# List enabled paths with 2 paths set
+# List enabled paths with 2 paths set and 1 empty element which should be ignored
 #
 
 if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = '$mod_path'\n"
+    send_user "\tSetup MODULEPATH = '$mod_path2'\n"
 }
 set ORIG $::env(MODULEPATH)
-set ::env(MODULEPATH) "$mod_path"
+set ::env(MODULEPATH) "$mod_path2"
 
 # list currently enabled paths
 testouterr_cmd "ALL" "$use" "OK" "$path_list_header\n  $path\n  $ORIG"
@@ -174,6 +175,7 @@ unset extravapath
 unset tsdirname
 unset relpath
 unset mod_path
+unset mod_path2
 unset use
 unset badpath
 unset bad_use

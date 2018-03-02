@@ -2680,13 +2680,16 @@ proc getModulePathList {{behavior "returnempty"} {resolv_var 1} {set_abs 1}} {
    if {[info exists ::env(MODULEPATH)]} {
       set modpathlist [list]
       foreach modpath [split $::env(MODULEPATH) $::g_def_separator] {
-         if {$resolv_var && $modpath ne ""} {
-            set modpath [resolvStringWithEnv $modpath]
+         # ignore empty element
+         if {$modpath ne ""} {
+            if {$resolv_var} {
+               set modpath [resolvStringWithEnv $modpath]
+            }
+            if {$set_abs} {
+               set modpath [getAbsolutePath $modpath]
+            }
+            lappend modpathlist $modpath
          }
-         if {$set_abs && $modpath ne ""} {
-            set modpath [getAbsolutePath $modpath]
-         }
-         lappend modpathlist $modpath
       }
       return $modpathlist
    } elseif {$behavior eq "exiterronundef"} {
@@ -5319,7 +5322,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             }
          }
 
-         eval displayElementList "{$dir}" "sepline" 1 0 $display_list
+         eval displayElementList $dir "sepline" 1 0 $display_list
       }
    }
    popMode
@@ -5831,7 +5834,7 @@ proc cmdModuleAvail {{mod {*}}} {
       $display_list
 
    foreach dir [getModulePathList "exiterronundef"] {
-      set display_list [listModules "$dir" "$mod" 1 $::show_filter]
+      set display_list [listModules $dir "$mod" 1 $::show_filter]
       if {[llength $display_list] > 0 && $::show_modtimes && !$theader_shown} {
          set theader_shown 1
          eval displayTableHeader $theader_cols

@@ -61,10 +61,31 @@ lappend ans [list setpath MODULEPATH $modpath]
 test_cmd_re "ALL" "$use $path" $ans
 
 #
+# Insert an empty dir element in MODULEPATH, should be ignored
+#
+
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = ${path}::$modpath\n"
+}
+set env(MODULEPATH) "${path}::$modpath"
+
+set ans [list]
+# empty dir elements are ignored but stick to the variable, they should be removed
+lappend ans [list setpath MODULEPATH ":$modpath"]
+test_cmd_re "sh" "$use $path" $ans
+
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = $path:$modpath\n"
+}
+set env(MODULEPATH) "$path:$modpath"
+
+#
 # test with relative-path directory
 # should end with same result as above
 #
 
+set ans [list]
+lappend ans [list setpath MODULEPATH $modpath]
 test_cmd_re "ALL" "$use $relpath" $ans
 
 #
@@ -115,6 +136,18 @@ testouterr_cmd "ALL" "$use" "OK" "$no_path_list"
 #
 
 testouterr_cmd "ALL" "$use " "OK" ""
+
+#
+# Set empty MODULEPATH with just empty dir element, that should be ignored
+#
+
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = ':'\n"
+}
+set ::env(MODULEPATH) ":"
+
+testouterr_cmd "sh" "$use" "OK" "$no_path_list"
+testouterr_cmd "sh" "$use " "OK" ""
 
 
 #
