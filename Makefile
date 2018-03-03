@@ -5,7 +5,11 @@
 	testinstall instrument testcoverage
 
 # definitions for code coverage
+NAGELFAR_DLSRC1 := http://downloads.sourceforge.net/nagelfar/
+NAGELFAR_DLSRC2 := https://ftp.openbsd.org/pub/OpenBSD/distfiles/
 NAGELFAR_RELEASE := nagelfar125
+NAGELFAR_DIST := $(NAGELFAR_RELEASE).tar.gz
+NAGELFAR_DISTSUM := 707e3c305437dce1f14103f0bd058fc9
 NAGELFAR := $(NAGELFAR_RELEASE)/nagelfar.tcl
 COVERAGE_SRCFILE := modulecmd.tcl
 COVERAGE_IFILE := $(COVERAGE_SRCFILE:.tcl=.tcl_i)
@@ -380,10 +384,13 @@ testinstall:
 
 
 # install code coverage tool
+# download from alt. source if correct tarball not retrieved from primary location
 $(NAGELFAR):
-	wget http://downloads.sourceforge.net/nagelfar/$(NAGELFAR_RELEASE).tar.gz
-	tar xzf $(NAGELFAR_RELEASE).tar.gz
-	rm $(NAGELFAR_RELEASE).tar.gz
+	wget $(NAGELFAR_DLSRC1)$(NAGELFAR_DIST) || true
+	echo "$(NAGELFAR_DISTSUM) $(NAGELFAR_DIST)" | md5sum -c --status || \
+		wget -O $(NAGELFAR_DIST) $(NAGELFAR_DLSRC2)$(NAGELFAR_DIST)
+	tar xzf $(NAGELFAR_DIST)
+	rm $(NAGELFAR_DIST)
 
 # instrument source file for code coverage
 %.tcl_i: %.tcl $(NAGELFAR)
