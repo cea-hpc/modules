@@ -2670,7 +2670,14 @@ proc getLoadedModuleList {{filter_empty 1}} {
 # return list of loaded module files by parsing _LMFILES_ env variable
 proc getLoadedModuleFileList {} {
    if {[info exists ::env(_LMFILES_)]} {
-      return [split $::env(_LMFILES_) $::g_def_separator]
+      set modfilelist [list]
+      foreach modfile [split $::env(_LMFILES_) $::g_def_separator] {
+         # ignore empty element
+         if {$modfile ne ""} {
+            lappend modfilelist $modfile
+         }
+      }
+      return $modfilelist
    } else {
       return {}
    }

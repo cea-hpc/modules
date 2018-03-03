@@ -258,16 +258,18 @@ testouterr_cmd_re "sh" "restore $coll6" $ans ""
 
 # restore environment
 if { $verbose > 0 } {
+    send_user "\tSetup _LMFILES_ = ':'\n"
     send_user "\tSetup LOADEDMODULES = ':'\n"
     send_user "\tSetup MODULEPATH = ':'\n"
 }
+set env(_LMFILES_) ":"
 set env(LOADEDMODULES) ":"
 set env(MODULEPATH) ":"
 
 set ans [list]
 lappend ans [list set testsuite "yes"]
 lappend ans [list setpath LOADEDMODULES "::$c6lm"]
-lappend ans [list setpath _LMFILES_ $c6lmf]
+lappend ans [list setpath _LMFILES_ "::$c6lmf"]
 # empty dir elements are ignored but stick to the variable, they should be removed
 lappend ans [list setpath MODULEPATH "::$c6modpath"]
 
@@ -280,9 +282,11 @@ testouterr_cmd_re "sh" "restore $coll6" $ans ""
 
 # setup environment state
 if { $verbose > 0 } {
+    send_user "\tUnset _LMFILES_\n"
     send_user "\tUnset LOADEDMODULES\n"
     send_user "\tUnset MODULEPATH\n"
 }
+unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 unset env(MODULEPATH)
 

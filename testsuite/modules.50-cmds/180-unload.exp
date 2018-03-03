@@ -101,18 +101,20 @@ set env(MODULEPATH) ":$modpath/"
 testouterr_cmd "sh" "unload $modulefile_1" $ans ""
 
 
-# setup LOADEDMODULES with an empty element
+# setup LOADEDMODULES/_LMFILES_ with an empty element
+set env(_LMFILES_) ":$modulefile_2:$modulefile_1"
 set env(LOADEDMODULES) ":$module_2:$module_1"
 
 set ans [list]
 lappend ans [list unsetpath testsuite]
 # empty elements are ignored but stick to the variable, they should be removed
 lappend ans [list setpath LOADEDMODULES ":$module_2"]
-lappend ans [list setpath _LMFILES_ $modulefile_2]
+lappend ans [list setpath _LMFILES_ ":$modulefile_2"]
 
 testouterr_cmd_re "sh" "unload $modulefile_1" $ans ""
 
-# restore LOADEDMODULES
+# restore LOADEDMODULES/_LMFILES_
+set env(_LMFILES_) "$modulefile_2:$modulefile_1"
 set env(LOADEDMODULES) "$module_2:$module_1"
 
 
