@@ -1382,6 +1382,50 @@ proc module {command args} {
       }
    }
 
+   # argument number check
+   switch -- $command {
+      {unload} - {source} - {display} - {initadd} - {initprepend} - \
+      {initrm} - {test} - {is-avail} {
+         if {[llength $args] == 0} {
+            set argnberr 1
+         }
+      }
+      {reload} - {aliases} - {list} - {purge} - {savelist} - {initlist} - \
+      {initclear} - {autoinit} {
+         if {[llength $args] != 0} {
+            set argnberr 1
+         }
+      }
+      {switch} {
+         if {[llength $args] == 0 || [llength $args] > 2} {
+            set argnberr 1
+         }
+      }
+      {path} - {paths} - {info-loaded} {
+         if {[llength $args] != 1} {
+            set argnberr 1
+         }
+      }
+      {search} - {save} - {restore} - {saverm} - {saveshow} {
+         if {[llength $args] > 1} {
+            set argnberr 1
+         }
+      }
+      {initswitch} {
+         if {[llength $args] != 2} {
+            set argnberr 1
+         }
+      }
+      {prepend-path} - {append-path} - {remove-path} {
+         if {[llength $args] < 2} {
+            set argnberr 1
+         }
+      }
+   }
+   if {[info exists argnberr]} {
+      set errormsg "Unexpected number of args for '$command' command"
+   }
+
    # skip command processing if error already spotted
    if {![info exists errormsg]} {
       pushCommandName $command
@@ -1408,31 +1452,23 @@ proc module {command args} {
             }
          }
          {unload} {
-            if {[llength $args] == 0} {
-               set errormsg "Unexpected number of args for 'unload' command"
-            } else {
-               set ret 0
-               if {$topcall || $mode eq "load"} {
-                  set ret [eval cmdModuleUnload "match" $args]
-               }\
-               elseif {$mode eq "unload"} {
-                  set ret [eval cmdModuleUnload "match" $args]
-               }\
-               elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-                  report "module unload\t$args"
-               }
-               # sub-module interpretation failed, raise error
-               if {$ret && !$topcall} {
-                  set errormsg "SUB_FAILED"
-               }
+            set ret 0
+            if {$topcall || $mode eq "load"} {
+               set ret [eval cmdModuleUnload "match" $args]
+            }\
+            elseif {$mode eq "unload"} {
+               set ret [eval cmdModuleUnload "match" $args]
+            }\
+            elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
+               report "module unload\t$args"
+            }
+            # sub-module interpretation failed, raise error
+            if {$ret && !$topcall} {
+               set errormsg "SUB_FAILED"
             }
          }
          {reload} {
-            if {[llength $args] != 0} {
-               set errormsg "Unexpected number of args for 'reload' command"
-            } else {
-               cmdModuleReload
-            }
+            cmdModuleReload
          }
          {use} {
             if {$topcall || $mode eq "load"} {
@@ -1451,32 +1487,20 @@ proc module {command args} {
             }
          }
          {source} {
-            if {[llength $args] == 0} {
-               set errormsg "Unexpected number of args for 'source' command"
-            } else {
-               if {$topcall || $mode eq "load"} {
-                  eval cmdModuleSource $args
-               } elseif {$mode eq "unload"} {
-                  # on unload mode, unsource script in reverse order
-                  eval cmdModuleUnsource [lreverse $args]
-               } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-                  report "module source\t$args"
-               }
+            if {$topcall || $mode eq "load"} {
+               eval cmdModuleSource $args
+            } elseif {$mode eq "unload"} {
+               # on unload mode, unsource script in reverse order
+               eval cmdModuleUnsource [lreverse $args]
+            } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
+               report "module source\t$args"
             }
          }
          {switch} {
-            if {[llength $args] == 0 || [llength $args] > 2} {
-               set errormsg "Unexpected number of args for 'switch' command"
-            } else {
-               eval cmdModuleSwitch $args
-            }
+            eval cmdModuleSwitch $args
          }
          {display} {
-            if {[llength $args] == 0} {
-               set errormsg "Unexpected number of args for 'show' command"
-            } else {
-               eval cmdModuleDisplay $args
-            }
+            eval cmdModuleDisplay $args
          }
          {avail} {
             if {$args ne ""} {
@@ -1488,32 +1512,16 @@ proc module {command args} {
             }
          }
          {aliases} {
-            if {[llength $args] != 0} {
-               set errormsg "Unexpected number of args for 'aliases' command"
-            } else {
-               cmdModuleAliases
-            }
+            cmdModuleAliases
          }
          {path} {
-            if {[llength $args] != 1} {
-               set errormsg "Unexpected number of args for 'path' command"
-            } else {
-               eval cmdModulePath $args
-            }
+            eval cmdModulePath $args
          }
          {paths} {
-            if {[llength $args] != 1} {
-               set errormsg "Unexpected number of args for 'paths' command"
-            } else {
-               eval cmdModulePaths $args
-            }
+            eval cmdModulePaths $args
          }
          {list} {
-            if {[llength $args] != 0} {
-               set errormsg "Unexpected number of args for 'list' command"
-            } else {
-               cmdModuleList
-            }
+            cmdModuleList
          }
          {whatis} {
             if {$args ne ""} {
@@ -1525,138 +1533,64 @@ proc module {command args} {
             }
          }
          {search} {
-            if {[llength $args] > 1} {
-               set errormsg "Unexpected number of args for '$command' command"
-            } else {
-               eval cmdModuleApropos $args
-            }
+            eval cmdModuleApropos $args
          }
          {purge} {
-            if {[llength $args] != 0} {
-               set errormsg "Unexpected number of args for 'purge' command"
-            } else {
-               eval cmdModulePurge
-            }
+            eval cmdModulePurge
          }
          {save} {
-            if {[llength $args] > 1} {
-               set errormsg "Unexpected number of args for 'save' command"
-            } else {
-               eval cmdModuleSave $args
-            }
+            eval cmdModuleSave $args
          }
          {restore} {
-            if {[llength $args] > 1} {
-               set errormsg "Unexpected number of args for 'restore' command"
-            } else {
-               eval cmdModuleRestore $args
-            }
+            eval cmdModuleRestore $args
          }
          {saverm} {
-            if {[llength $args] > 1} {
-               set errormsg "Unexpected number of args for 'saverm' command"
-            } else {
-               eval cmdModuleSaverm $args
-            }
+            eval cmdModuleSaverm $args
          }
          {saveshow} {
-            if {[llength $args] > 1} {
-               set errormsg "Unexpected number of args for 'saveshow' command"
-            } else {
-               eval cmdModuleSaveshow $args
-            }
+            eval cmdModuleSaveshow $args
          }
          {savelist} {
-            if {[llength $args] != 0} {
-               set errormsg "Unexpected number of args for 'savelist' command"
-            } else {
-               cmdModuleSavelist
-            }
+            cmdModuleSavelist
          }
          {initadd} {
-            if {[llength $args] == 0} {
-               set errormsg "Unexpected number of args for 'initadd' command"
-            } else {
-               eval cmdModuleInit add $args
-            }
+            eval cmdModuleInit add $args
          }
          {initprepend} {
-            if {[llength $args] == 0} {
-               set errormsg "Unexpected number of args for 'initprepend' command"
-            } else {
-               eval cmdModuleInit prepend $args
-            }
+            eval cmdModuleInit prepend $args
          }
          {initswitch} {
-            if {[llength $args] != 2} {
-               set errormsg "Unexpected number of args for 'initswitch' command"
-            } else {
-               eval cmdModuleInit switch $args
-            }
+            eval cmdModuleInit switch $args
          }
          {initrm} {
-            if {[llength $args] == 0} {
-               set errormsg "Unexpected number of args for 'initrm' command"
-            } else {
-               eval cmdModuleInit rm $args
-            }
+            eval cmdModuleInit rm $args
          }
          {initlist} {
-            if {[llength $args] != 0} {
-               set errormsg "Unexpected number of args for 'initlist' command"
-            } else {
-               eval cmdModuleInit list $args
-            }
+            eval cmdModuleInit list $args
          }
          {initclear} {
-            if {[llength $args] != 0} {
-               set errormsg "Unexpected number of args for 'initclear' command"
-            } else {
-               eval cmdModuleInit clear $args
-            }
+            eval cmdModuleInit clear $args
          }
          {autoinit} {
-            if {[llength $args] != 0} {
-               set errormsg "Unexpected number of args for 'autoinit' command"
-            } else {
-               cmdModuleAutoinit
-            }
+            cmdModuleAutoinit
          }
          {help} {
             eval cmdModuleHelp $args
-            if {[llength $args] != 0} {
-            }
          }
          {test} {
-            if {[llength $args] == 0} {
-               set errormsg "Unexpected number of args for 'test' command"
-            } else {
-               eval cmdModuleTest $args
-            }
+            eval cmdModuleTest $args
          }
          {prepend-path} - {append-path} - {remove-path} {
-            if {[llength $args] < 2} {
-               set errormsg "Unexpected number of args for '$command' command"
-            } else {
-               eval cmdModuleResurface $command $args
-            }
+            eval cmdModuleResurface $command $args
          }
          {is-loaded} - {is-saved} - {is-used} {
             eval cmdModuleResurface $command $args
          }
          {is-avail} {
-            if {[llength $args] == 0} {
-               set errormsg "Unexpected number of args for '$command' command"
-            } else {
-               eval cmdModuleResurface $command $args
-            }
+            eval cmdModuleResurface $command $args
          }
          {info-loaded} {
-            if {[llength $args] != 1} {
-               set errormsg "Unexpected number of args for '$command' command"
-            } else {
-               eval cmdModuleResurface module-info loaded $args
-            }
+            eval cmdModuleResurface module-info loaded $args
          }
          default {
             set errormsg "${msgprefix}Invalid command '$command'"
