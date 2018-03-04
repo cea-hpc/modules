@@ -80,6 +80,10 @@ set lmd18 [file dirname $lmd15]
 set m19 "modvirt/dir1/1.0"
 set lmd19 "$modpath/modvirt/.common"
 set m20 "modvirt/dir1/2.0"
+set m21 "modsym"
+set lm21 "$m21/dir2/2.0"
+set lmf21 "$modpath/$lm21"
+set lmfh21 "$modpath/$m21/dir1/1.0"
 
 set pheader "$modlin $modpathre $modlin"
 set theader "$modpathre:"
@@ -373,6 +377,29 @@ restore_file_perms $lmd19
 
 
 #
+# Test access to implicit default modulefile when access not granted on sibbling
+# modulefile leading to removing sibbling directory
+#
+
+change_file_perms $lmfh21 $hide_perms
+
+set ans [list]
+lappend ans [list set _LMFILES__modshare "$lmf21:1"]
+lappend ans [list set LOADEDMODULES_modshare "$lm21:1"]
+lappend ans [list set TEST $lm21]
+lappend ans [list set _LMFILES_ $lmf21]
+lappend ans [list set LOADEDMODULES $lm21]
+
+# implicit default is not impacted
+testouterr_cmd "sh" "load $m21" $ans ""
+testouterr_cmd_re "sh" "display $m21" "OK" "$modlin\n$lmf21:\n\nmodule-whatis\t$lm21\nconflict\t$m21\nsetenv\t\tTEST\t$lm21\n$modlin"
+testouterr_cmd_re "sh" "whatis $m21" "OK" "$pheader\n\\s+$lm21: $lm21"
+testouterr_cmd_re "sh" "avail -t $m21" "OK" "$theader\n$lm21\\(3.0\\)"
+
+restore_file_perms $lmfh21
+
+
+#
 # Cleanup
 #
 
@@ -432,5 +459,9 @@ unset lmd18
 unset m19
 unset lmd19
 unset m20
+unset m21
+unset lm21
+unset lmf21
+unset lmfh21
 
 }
