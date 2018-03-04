@@ -102,6 +102,26 @@ if { $verbose > 0 } {
 unset env(TESTSUITE_ENABLE_SITECONFIG_TERSENUM)
 
 
+# test readModuleContent procedure in no error message report if issue
+# could happen when reading .modulerc/.version file if this kind of file gets
+# locked/removed/... between the execution of findModules (that check
+# readability) and getModules (that actually read/execute)
+if { $verbose > 0 } {
+    send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG_READMODNOREPORT = '1'\n"
+}
+set env(TESTSUITE_ENABLE_SITECONFIG_READMODNOREPORT) 1
+
+set ans [list]
+lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+testouterr_cmd_re "sh" "-V" "OK" [join $ans "\n"]
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_READMODNOREPORT\n"
+}
+unset env(TESTSUITE_ENABLE_SITECONFIG_READMODNOREPORT)
+
+
 #
 #  Clean up variables used in this test case
 #
