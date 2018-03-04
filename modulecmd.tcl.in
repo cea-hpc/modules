@@ -1371,357 +1371,325 @@ proc module {command args} {
       set msgprefix ""
    } else {
       set msgprefix "module: "
+
+      # some commands can only be called from top level, not within modulefile
+      switch -- $command {
+         {path} - {paths} - {autoinit} - {help} - {prepend-path} - \
+         {append-path} - {remove-path} - {is-loaded} - {is-saved} - \
+         {is-used} - {is-avail} - {info-loaded} {
+            set errormsg "${msgprefix}Command '$command' not supported"
+         }
+      }
    }
 
-   switch -- $command {
-      {load} {
-         # no error raised on empty argument list to cope with
-         # initadd command that may expect this behavior
-         if {[llength $args] > 0} {
-            set ret 0
-            pushCommandName "load"
+   # skip command processing if error already spotted
+   if {![info exists errormsg]} {
+      switch -- $command {
+         {load} {
+            # no error raised on empty argument list to cope with
+            # initadd command that may expect this behavior
+            if {[llength $args] > 0} {
+               set ret 0
+               pushCommandName "load"
+               if {$topcall || $mode eq "load"} {
+                  set ret [eval cmdModuleLoad $args]
+               }\
+               elseif {$mode eq "unload"} {
+                  # on unload mode, unload mods in reverse order
+                  set ret [eval cmdModuleUnload "match" [lreverse $args]]
+               }\
+               elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
+                  report "module load\t$args"
+               }
+               popCommandName
+               # sub-module interpretation failed, raise error
+               if {$ret && !$topcall} {
+                  set errormsg "SUB_FAILED"
+               }
+            }
+         }
+         {unload} {
+            if {[llength $args] == 0} {
+               set errormsg "Unexpected number of args for 'unload' command"
+            } else {
+               set ret 0
+               pushCommandName "unload"
+               if {$topcall || $mode eq "load"} {
+                  set ret [eval cmdModuleUnload "match" $args]
+               }\
+               elseif {$mode eq "unload"} {
+                  set ret [eval cmdModuleUnload "match" $args]
+               }\
+               elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
+                  report "module unload\t$args"
+               }
+               popCommandName
+               # sub-module interpretation failed, raise error
+               if {$ret && !$topcall} {
+                  set errormsg "SUB_FAILED"
+               }
+            }
+         }
+         {reload} {
+            if {[llength $args] != 0} {
+               set errormsg "Unexpected number of args for 'reload' command"
+            } else {
+               pushCommandName "reload"
+               cmdModuleReload
+               popCommandName
+            }
+         }
+         {use} {
             if {$topcall || $mode eq "load"} {
-               set ret [eval cmdModuleLoad $args]
-            }\
-            elseif {$mode eq "unload"} {
-               # on unload mode, unload mods in reverse order
-               set ret [eval cmdModuleUnload "match" [lreverse $args]]
-            }\
-            elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-               report "module load\t$args"
-            }
-            popCommandName
-            # sub-module interpretation failed, raise error
-            if {$ret && !$topcall} {
-               set errormsg "SUB_FAILED"
-            }
-         }
-      }
-      {unload} {
-         if {[llength $args] == 0} {
-            set errormsg "Unexpected number of args for 'unload' command"
-         } else {
-            set ret 0
-            pushCommandName "unload"
-            if {$topcall || $mode eq "load"} {
-               set ret [eval cmdModuleUnload "match" $args]
-            }\
-            elseif {$mode eq "unload"} {
-               set ret [eval cmdModuleUnload "match" $args]
-            }\
-            elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-               report "module unload\t$args"
-            }
-            popCommandName
-            # sub-module interpretation failed, raise error
-            if {$ret && !$topcall} {
-               set errormsg "SUB_FAILED"
-            }
-         }
-      }
-      {reload} {
-         if {[llength $args] != 0} {
-            set errormsg "Unexpected number of args for 'reload' command"
-         } else {
-            pushCommandName "reload"
-            cmdModuleReload
-            popCommandName
-         }
-      }
-      {use} {
-         if {$topcall || $mode eq "load"} {
-            eval cmdModuleUse $args
-         } elseif {$mode eq "unload"} {
-            eval cmdModuleUnuse $args
-         } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-            report "module use\t$args"
-         }
-      }
-      {unuse} {
-         if {$topcall || $mode eq "load" || $mode eq "unload"} {
-            eval cmdModuleUnuse $args
-         } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-            report "module unuse\t$args"
-         }
-      }
-      {source} {
-         if {[llength $args] == 0} {
-            set errormsg "Unexpected number of args for 'source' command"
-         } else {
-            pushCommandName "source"
-            if {$topcall || $mode eq "load"} {
-               eval cmdModuleSource $args
+               eval cmdModuleUse $args
             } elseif {$mode eq "unload"} {
-               # on unload mode, unsource script in reverse order
-               eval cmdModuleUnsource [lreverse $args]
+               eval cmdModuleUnuse $args
             } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-               report "module source\t$args"
+               report "module use\t$args"
+            }
+         }
+         {unuse} {
+            if {$topcall || $mode eq "load" || $mode eq "unload"} {
+               eval cmdModuleUnuse $args
+            } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
+               report "module unuse\t$args"
+            }
+         }
+         {source} {
+            if {[llength $args] == 0} {
+               set errormsg "Unexpected number of args for 'source' command"
+            } else {
+               pushCommandName "source"
+               if {$topcall || $mode eq "load"} {
+                  eval cmdModuleSource $args
+               } elseif {$mode eq "unload"} {
+                  # on unload mode, unsource script in reverse order
+                  eval cmdModuleUnsource [lreverse $args]
+               } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
+                  report "module source\t$args"
+               }
+               popCommandName
+            }
+         }
+         {switch} {
+            if {[llength $args] == 0 || [llength $args] > 2} {
+               set errormsg "Unexpected number of args for 'switch' command"
+            } else {
+               pushCommandName "switch"
+               eval cmdModuleSwitch $args
+               popCommandName
+            }
+         }
+         {display} {
+            if {[llength $args] == 0} {
+               set errormsg "Unexpected number of args for 'show' command"
+            } else {
+               pushCommandName "display"
+               eval cmdModuleDisplay $args
+               popCommandName
+            }
+         }
+         {avail} {
+            pushCommandName "avail"
+            if {$args ne ""} {
+               foreach arg $args {
+                  cmdModuleAvail $arg
+               }
+            } else {
+               cmdModuleAvail
             }
             popCommandName
          }
-      }
-      {switch} {
-         if {[llength $args] == 0 || [llength $args] > 2} {
-            set errormsg "Unexpected number of args for 'switch' command"
-         } else {
-            pushCommandName "switch"
-            eval cmdModuleSwitch $args
-            popCommandName
-         }
-      }
-      {display} {
-         if {[llength $args] == 0} {
-            set errormsg "Unexpected number of args for 'show' command"
-         } else {
-            pushCommandName "display"
-            eval cmdModuleDisplay $args
-            popCommandName
-         }
-      }
-      {avail} {
-         pushCommandName "avail"
-         if {$args ne ""} {
-            foreach arg $args {
-               cmdModuleAvail $arg
+         {aliases} {
+            if {[llength $args] != 0} {
+               set errormsg "Unexpected number of args for 'aliases' command"
+            } else {
+               pushCommandName "aliases"
+               cmdModuleAliases
+               popCommandName
             }
-         } else {
-            cmdModuleAvail
          }
-         popCommandName
-      }
-      {aliases} {
-         if {[llength $args] != 0} {
-            set errormsg "Unexpected number of args for 'aliases' command"
-         } else {
-            pushCommandName "aliases"
-            cmdModuleAliases
-            popCommandName
-         }
-      }
-      {path} {
-         if {$topcall} {
+         {path} {
             if {[llength $args] != 1} {
                set errormsg "Unexpected number of args for 'path' command"
             } else {
                eval cmdModulePath $args
             }
-         } else {
-            # no call other than from top level as it renders a result value
-            set errormsg "${msgprefix}Command '$command' not supported"
          }
-      }
-      {paths} {
-         if {$topcall} {
+         {paths} {
             if {[llength $args] != 1} {
                set errormsg "Unexpected number of args for 'paths' command"
             } else {
                eval cmdModulePaths $args
             }
-         } else {
-            # no call other than from top level as it renders a result value
-            set errormsg "${msgprefix}Command '$command' not supported"
          }
-      }
-      {list} {
-         if {[llength $args] != 0} {
-            set errormsg "Unexpected number of args for 'list' command"
-         } else {
-            pushCommandName "list"
-            cmdModuleList
-            popCommandName
-         }
-      }
-      {whatis} {
-         pushCommandName "whatis"
-         if {$args ne ""} {
-            foreach arg $args {
-               cmdModuleWhatIs $arg
+         {list} {
+            if {[llength $args] != 0} {
+               set errormsg "Unexpected number of args for 'list' command"
+            } else {
+               pushCommandName "list"
+               cmdModuleList
+               popCommandName
             }
-         } else {
-            cmdModuleWhatIs
          }
-         popCommandName
-      }
-      {search} {
-         if {[llength $args] > 1} {
-            set errormsg "Unexpected number of args for '$command' command"
-         } else {
-            pushCommandName "search"
-            eval cmdModuleApropos $args
+         {whatis} {
+            pushCommandName "whatis"
+            if {$args ne ""} {
+               foreach arg $args {
+                  cmdModuleWhatIs $arg
+               }
+            } else {
+               cmdModuleWhatIs
+            }
             popCommandName
          }
-      }
-      {purge} {
-         if {[llength $args] != 0} {
-            set errormsg "Unexpected number of args for 'purge' command"
-         } else {
-            pushCommandName "purge"
-            eval cmdModulePurge
-            popCommandName
+         {search} {
+            if {[llength $args] > 1} {
+               set errormsg "Unexpected number of args for '$command' command"
+            } else {
+               pushCommandName "search"
+               eval cmdModuleApropos $args
+               popCommandName
+            }
          }
-      }
-      {save} {
-         if {[llength $args] > 1} {
-            set errormsg "Unexpected number of args for 'save' command"
-         } else {
-            eval cmdModuleSave $args
+         {purge} {
+            if {[llength $args] != 0} {
+               set errormsg "Unexpected number of args for 'purge' command"
+            } else {
+               pushCommandName "purge"
+               eval cmdModulePurge
+               popCommandName
+            }
          }
-      }
-      {restore} {
-         if {[llength $args] > 1} {
-            set errormsg "Unexpected number of args for 'restore' command"
-         } else {
-            pushCommandName "restore"
-            eval cmdModuleRestore $args
-            popCommandName
+         {save} {
+            if {[llength $args] > 1} {
+               set errormsg "Unexpected number of args for 'save' command"
+            } else {
+               eval cmdModuleSave $args
+            }
          }
-      }
-      {saverm} {
-         if {[llength $args] > 1} {
-            set errormsg "Unexpected number of args for 'saverm' command"
-         } else {
-            eval cmdModuleSaverm $args
+         {restore} {
+            if {[llength $args] > 1} {
+               set errormsg "Unexpected number of args for 'restore' command"
+            } else {
+               pushCommandName "restore"
+               eval cmdModuleRestore $args
+               popCommandName
+            }
          }
-      }
-      {saveshow} {
-         if {[llength $args] > 1} {
-            set errormsg "Unexpected number of args for 'saveshow' command"
-         } else {
-            eval cmdModuleSaveshow $args
+         {saverm} {
+            if {[llength $args] > 1} {
+               set errormsg "Unexpected number of args for 'saverm' command"
+            } else {
+               eval cmdModuleSaverm $args
+            }
          }
-      }
-      {savelist} {
-         if {[llength $args] != 0} {
-            set errormsg "Unexpected number of args for 'savelist' command"
-         } else {
-            cmdModuleSavelist
+         {saveshow} {
+            if {[llength $args] > 1} {
+               set errormsg "Unexpected number of args for 'saveshow' command"
+            } else {
+               eval cmdModuleSaveshow $args
+            }
          }
-      }
-      {initadd} {
-         if {[llength $args] == 0} {
-            set errormsg "Unexpected number of args for 'initadd' command"
-         } else {
-            eval cmdModuleInit add $args
+         {savelist} {
+            if {[llength $args] != 0} {
+               set errormsg "Unexpected number of args for 'savelist' command"
+            } else {
+               cmdModuleSavelist
+            }
          }
-      }
-      {initprepend} {
-         if {[llength $args] == 0} {
-            set errormsg "Unexpected number of args for 'initprepend' command"
-         } else {
-            eval cmdModuleInit prepend $args
+         {initadd} {
+            if {[llength $args] == 0} {
+               set errormsg "Unexpected number of args for 'initadd' command"
+            } else {
+               eval cmdModuleInit add $args
+            }
          }
-      }
-      {initswitch} {
-         if {[llength $args] != 2} {
-            set errormsg "Unexpected number of args for 'initswitch' command"
-         } else {
-            eval cmdModuleInit switch $args
+         {initprepend} {
+            if {[llength $args] == 0} {
+               set errormsg "Unexpected number of args for 'initprepend' command"
+            } else {
+               eval cmdModuleInit prepend $args
+            }
          }
-      }
-      {initrm} {
-         if {[llength $args] == 0} {
-            set errormsg "Unexpected number of args for 'initrm' command"
-         } else {
-            eval cmdModuleInit rm $args
+         {initswitch} {
+            if {[llength $args] != 2} {
+               set errormsg "Unexpected number of args for 'initswitch' command"
+            } else {
+               eval cmdModuleInit switch $args
+            }
          }
-      }
-      {initlist} {
-         if {[llength $args] != 0} {
-            set errormsg "Unexpected number of args for 'initlist' command"
-         } else {
-            eval cmdModuleInit list $args
+         {initrm} {
+            if {[llength $args] == 0} {
+               set errormsg "Unexpected number of args for 'initrm' command"
+            } else {
+               eval cmdModuleInit rm $args
+            }
          }
-      }
-      {initclear} {
-         if {[llength $args] != 0} {
-            set errormsg "Unexpected number of args for 'initclear' command"
-         } else {
-            eval cmdModuleInit clear $args
+         {initlist} {
+            if {[llength $args] != 0} {
+               set errormsg "Unexpected number of args for 'initlist' command"
+            } else {
+               eval cmdModuleInit list $args
+            }
          }
-      }
-      {autoinit} {
-         if {$topcall} {
+         {initclear} {
+            if {[llength $args] != 0} {
+               set errormsg "Unexpected number of args for 'initclear' command"
+            } else {
+               eval cmdModuleInit clear $args
+            }
+         }
+         {autoinit} {
             if {[llength $args] != 0} {
                set errormsg "Unexpected number of args for 'autoinit' command"
             } else {
                cmdModuleAutoinit
             }
-         } else {
-            # autoinit cannot be called elsewhere than from top level
-            set errormsg "${msgprefix}Command '$command' not supported"
          }
-      }
-      {help} {
-         if {$topcall} {
+         {help} {
             pushCommandName "help"
             eval cmdModuleHelp $args
             popCommandName
             if {[llength $args] != 0} {
             }
-         } else {
-            # help cannot be called elsewhere than from top level
-            set errormsg "${msgprefix}Command '$command' not supported"
          }
-      }
-      {test} {
-         if {[llength $args] == 0} {
-            set errormsg "Unexpected number of args for 'test' command"
-         } else {
-            pushCommandName "test"
-            eval cmdModuleTest $args
-            popCommandName
+         {test} {
+            if {[llength $args] == 0} {
+               set errormsg "Unexpected number of args for 'test' command"
+            } else {
+               pushCommandName "test"
+               eval cmdModuleTest $args
+               popCommandName
+            }
          }
-      }
-      {prepend-path} - {append-path} - {remove-path} {
-         if {$topcall} {
+         {prepend-path} - {append-path} - {remove-path} {
             if {[llength $args] < 2} {
                set errormsg "Unexpected number of args for '$command' command"
             } else {
                eval cmdModuleResurface $command $args
             }
-         } else {
-            # no call other than from top level not to conflict with modulefile
-            # specific Tcl commands
-            set errormsg "${msgprefix}Command '$command' not supported"
          }
-      }
-      {is-loaded} - {is-saved} - {is-used} {
-         if {$topcall} {
+         {is-loaded} - {is-saved} - {is-used} {
             eval cmdModuleResurface $command $args
-         } else {
-            # no call other than from top level not to conflict with modulefile
-            # specific Tcl commands
-            set errormsg "${msgprefix}Command '$command' not supported"
          }
-      }
-      {is-avail} {
-         if {$topcall} {
+         {is-avail} {
             if {[llength $args] == 0} {
                set errormsg "Unexpected number of args for '$command' command"
             } else {
                eval cmdModuleResurface $command $args
             }
-         } else {
-            # no call other than from top level not to conflict with modulefile
-            # specific Tcl commands
-            set errormsg "${msgprefix}Command '$command' not supported"
          }
-      }
-      {info-loaded} {
-         if {$topcall} {
+         {info-loaded} {
             if {[llength $args] != 1} {
                set errormsg "Unexpected number of args for '$command' command"
             } else {
                eval cmdModuleResurface module-info loaded $args
             }
-         } else {
-            # no call other than from top level not to conflict with modulefile
-            # specific Tcl commands
-            set errormsg "${msgprefix}Command '$command' not supported"
          }
-      }
-      default {
-         set errormsg "${msgprefix}Invalid command '$command'"
+         default {
+            set errormsg "${msgprefix}Invalid command '$command'"
+         }
       }
    }
 
