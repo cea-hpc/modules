@@ -2662,7 +2662,7 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
    if {($look_loaded eq "match" && [set lm [getLoadedMatchingName\
       $mod]] ne "") || ($look_loaded eq "close" && [set lm\
       [getLoadedWithClosestName $mod]] ne "")} {
-      set retlist [list $::g_loadedModules($lm) $lm]
+      set retlist [list [getModulefileFromLoadedModule $lm] $lm]
    # Check for $mod specified as a full pathname
    } elseif {[isModuleFullPath $mod]} {
       set mod [getAbsolutePath $mod]
@@ -2776,6 +2776,57 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
    return $retlist
 }
 
+proc isModuleLoaded {mod} {
+   cacheCurrentModules
+
+   return [info exists ::g_loadedModules($mod)]
+}
+
+proc getModulefileFromLoadedModule {mod} {
+   if {[isModuleLoaded $mod]} {
+      return $::g_loadedModules($mod)
+   } else {
+      return {}
+   }
+}
+
+proc isModulefileLoaded {modfile} {
+   cacheCurrentModules
+
+   return [info exists ::g_loadedModuleFiles($modfile)]
+}
+
+proc getModuleFromLoadedModulefile {modfile {idx "all"}} {
+   set ret {}
+
+   if {[isModulefileLoaded $modfile]} {
+      if {$idx eq "all"} {
+         set ret $::g_loadedModuleFiles($modfile)
+      } else {
+         set ret [lindex $::g_loadedModuleFiles($modfile) $idx]
+      }
+   }
+
+   return $ret
+}
+
+proc setLoadedModule {mod modfile} {
+   set ::g_loadedModules($mod) $modfile
+   # a loaded modfile may correspond to multiple loaded virtual modules
+   lappend ::g_loadedModuleFiles($modfile) $mod
+}
+
+proc unsetLoadedModule {mod modfile} {
+   unset ::g_loadedModules($mod)
+   # a loaded modfile may correspond to multiple loaded virtual modules
+   if {[llength $::g_loadedModuleFiles($modfile)] == 1} {
+      unset ::g_loadedModuleFiles($modfile)
+   } else {
+      set ::g_loadedModuleFiles($modfile) [replaceFromList\
+         $::g_loadedModuleFiles($modfile) $mod]
+   }
+}
+
 # return the currently loaded module whose name is the closest to the
 # name passed as argument. if no loaded module match at least one part
 # of the passed name, an empty string is returned.
@@ -2792,12 +2843,12 @@ proc getLoadedWithClosestName {name} {
       # or look at lmfile names to return the eventual exact match
       } else {
          # module may be loaded with its full path name
-         if {[info exists ::g_loadedModules($fullname)]} {
+         if {[isModuleLoaded $fullname]} {
             set ret $fullname
          # or name corresponds to the _lmfiles_ entry of a virtual modules in
          # which case lastly loaded virtual module is returned
-         } elseif {[info exists ::g_loadedModuleFiles($fullname)]} {
-            set ret [lindex $::g_loadedModuleFiles($fullname) end]
+         } elseif {[isModulefileLoaded $fullname]} {
+            set ret [getModuleFromLoadedModulefile $fullname end]
          }
       }
    } else {
@@ -2857,20 +2908,20 @@ proc getLoadedMatchingName {name {behavior "returnlast"}} {
       set mod [getAbsolutePath $name]
       # if module is loaded with its full path name loadedmodules entry is
       # equivalent to _lmfiles_ corresponding entry so only check _lmfiles_
-      if {[info exists ::g_loadedModuleFiles($mod)]} {
+      if {[isModulefileLoaded $mod]} {
          # a loaded modfile may correspond to multiple loaded virtual modules
          switch -- $behavior {
             {returnlast} {
                # the last loaded module will be returned
-               set ret [lindex $::g_loadedModuleFiles($mod) end]
+               set ret [getModuleFromLoadedModulefile $mod end]
             }
             {returnfirst} {
                # the first loaded module will be returned
-               set ret [lindex $::g_loadedModuleFiles($mod) 0]
+               set ret [getModuleFromLoadedModulefile $mod 0]
             }
             {returnall} {
                # all loaded modules will be returned
-               set ret $::g_loadedModuleFiles($mod)
+               set ret [getModuleFromLoadedModulefile $mod]
             }
          }
       }
@@ -3701,16 +3752,19 @@ endfunction(module)}
 }
 
 proc cacheCurrentModules {} {
-   reportDebug "cacheCurrentModules"
+   # parse loaded modules information only once, global arrays are updated
+   # afterwards when module commands update loaded modules state
+   if {![info exists ::g_lm_info_cached]} {
+      # mark specific as well as generic modules as loaded
+      set i 0
+      set filelist [getLoadedModuleFileList]
+      foreach mod [getLoadedModuleList] {
+         setLoadedModule $mod [lindex $filelist $i]
+         incr i
+      }
 
-   # mark specific as well as generic modules as loaded
-   set i 0
-   set filelist [getLoadedModuleFileList]
-   foreach mod [getLoadedModuleList] {
-      set ::g_loadedModules($mod) [lindex $filelist $i]
-      # a loaded modfile may correspond to multiple loaded virtual modules
-      lappend ::g_loadedModuleFiles([lindex $filelist $i]) $mod
-      incr i
+      set ::g_lm_info_cached 1
+      reportDebug "cacheCurrentModules: $i loaded"
    }
 }
 
@@ -4755,7 +4809,7 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
          lappend curr_mod_list [lindex $helper_list $helper_idx]
       # look through modpaths for a simplified mod name if not full path
       } elseif {![isModuleFullPath $mod] && [llength $modpathlist] > 0} {
-         set modfile $::g_loadedModules($mod)
+         set modfile [getModulefileFromLoadedModule $mod]
          set parentmod [file dirname $mod]
          set simplemod $mod
          # simplify to parent name as long as it resolves to current mod
@@ -4962,18 +5016,18 @@ proc cmdModuleList {} {
          if {$::show_oneperline} {
             lappend display_list $mod
          } else {
+            set modfile [getModulefileFromLoadedModule $mod]
             # skip rc find and execution if mod is registered as full path
             if {[isModuleFullPath $mod]} {
                set mtime [getFileMtime $mod]
                set tag_list {}
             # or if loaded module is a virtual module
-            } elseif {[isModuleVirtual $mod $::g_loadedModules($mod)]} {
-               set mtime [getFileMtime $::g_loadedModules($mod)]
+            } elseif {[isModuleVirtual $mod $modfile]} {
+               set mtime [getFileMtime $modfile]
                set tag_list {}
             } else {
                # call getModules to find and execute rc files for this mod
-               set dir [getModulepathFromModuleName\
-                  $::g_loadedModules($mod) $mod]
+               set dir [getModulepathFromModuleName $modfile $mod]
                array set mod_list [getModules $dir $mod $::show_modtimes]
                # fetch info only if mod found
                if {[info exists mod_list($mod)]} {
@@ -5586,7 +5640,7 @@ proc cmdModuleLoad {args} {
 
          set currentModule $modname
 
-         if {$::g_force || ![info exists ::g_loadedModules($currentModule)]} {
+         if {$::g_force || ![isModuleLoaded $currentModule]} {
             pushSpecifiedName $mod
             pushModuleName $currentModule
             pushSettings
@@ -5599,8 +5653,7 @@ proc cmdModuleLoad {args} {
                # allow duplicate modfile entries for virtual modules
                add-path "append" --duplicates _LMFILES_ $modfile
                # update cache arrays
-               set ::g_loadedModules($currentModule) $modfile
-               lappend ::g_loadedModuleFiles($modfile) $currentModule
+               setLoadedModule $currentModule $modfile
             }
 
             popSettings
@@ -5629,7 +5682,7 @@ proc cmdModuleUnload {match args} {
       if {$modfile ne ""} {
          set currentModule $modname
 
-         if {[info exists ::g_loadedModules($currentModule)]} {
+         if {[isModuleLoaded $currentModule]} {
             pushSpecifiedName $mod
             pushModuleName $currentModule
             pushSettings
@@ -5646,13 +5699,7 @@ proc cmdModuleUnload {match args} {
                unload-path LOADEDMODULES $currentModule
                unload-path --index _LMFILES_ $lmidx
                # update cache arrays
-               unset ::g_loadedModules($currentModule)
-               if {[llength $::g_loadedModuleFiles($modfile)] == 1} {
-                  unset ::g_loadedModuleFiles($modfile)
-               } else {
-                  set ::g_loadedModuleFiles($modfile) [replaceFromList\
-                     $::g_loadedModuleFiles($modfile) $currentModule]
-               }
+               unsetLoadedModule $currentModule $modfile
             }
 
             popSettings
@@ -6322,8 +6369,6 @@ if {[catch {
       set command "help"
    }
    set otherargv [lreplace $otherargv 0 0]
-
-   cacheCurrentModules
 
    # no modulefile is currently being interpreted
    pushModuleFile {}
