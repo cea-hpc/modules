@@ -1,0 +1,91 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2018/03/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
+#
+#   Description:	Testuite testsequence
+#   Command:		reload
+#   Modulefiles:	setenv/1.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the module command 'reload'
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module load command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "setenv/1.0"
+set modulefile "$modpath/$module"
+
+lappend ans [list set testsuite "yes"]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+#
+#  Set up the environment pointing to the single module file being load
+#
+
+set env(_LMFILES_) $modulefile
+set env(LOADEDMODULES) $module
+
+#
+#  The tests
+#
+
+test_cmd "sh" "reload" $ans
+
+# command nickname tests
+test_cmd "sh" "rel" $ans
+test_cmd "sh" "ref" $ans
+
+
+# setup LOADEDMODULES/_LMFILES_ with an empty element
+set env(_LMFILES_) ":$modulefile"
+set env(LOADEDMODULES) ":$module"
+
+set ans [list]
+lappend ans [list set testsuite "yes"]
+# empty elements are ignored but stick to the variable, they should be removed
+lappend ans [list setpath LOADEDMODULES ":$module"]
+lappend ans [list setpath _LMFILES_ ":$modulefile"]
+
+test_cmd_re "sh" "reload" $ans
+
+# restore LOADEDMODULES/_LMFILES_
+set env(_LMFILES_) $modulefile
+set env(LOADEDMODULES) "$module"
+
+
+#
+# reload when loaded environment is inconsistent
+#
+
+set env(LOADEDMODULES) "foo:bar"
+set env(_LMFILES_) "/path/to/foo"
+
+testouterr_cmd_re "sh" "reload" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
+
+
+#
+#  Cleanup
+#
+
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+unset ans
+
+unset modulefile
+unset module
