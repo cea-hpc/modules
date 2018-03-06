@@ -5005,20 +5005,7 @@ proc cmdModuleList {} {
    if {[llength $loadedmodlist] == 0} {
       report "No Modulefiles Currently Loaded."
    } else {
-      set list {}
-      if {$::show_modtimes} {
-         displayTableHeader "Package" "Versions" "Last mod."
-      }
-      report "Currently Loaded Modulefiles:"
       set display_list {}
-      if {$::show_modtimes || $::show_oneperline} {
-         set display_idx 0
-         set one_per_line 1
-      } else {
-         set display_idx 1
-         set one_per_line 0
-      }
-
       foreach mod $loadedmodlist {
          if {$::show_oneperline} {
             lappend display_list $mod
@@ -5065,6 +5052,18 @@ proc cmdModuleList {} {
                lappend display_list $mod
             }
          }
+      }
+
+      if {$::show_modtimes} {
+         displayTableHeader "Package" "Versions" "Last mod."
+      }
+      report "Currently Loaded Modulefiles:"
+      if {$::show_modtimes || $::show_oneperline} {
+         set display_idx 0
+         set one_per_line 1
+      } else {
+         set display_idx 1
+         set one_per_line 0
       }
 
       eval displayElementList "noheader" "{}" $one_per_line $display_idx\
