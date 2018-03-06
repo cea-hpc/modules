@@ -101,6 +101,15 @@ set env(LOADEDMODULES) $module
 testouterr_cmd "csh" "-t list" "OK" "$ts_csh"
 
 #
+# list when loaded environment is inconsistent
+#
+
+set env(LOADEDMODULES) "foo:bar"
+set env(_LMFILES_) "/path/to/foo"
+
+testouterr_cmd_re "sh" "list" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
+
+#
 #  Cleanup
 #
 

@@ -94,9 +94,33 @@ testouterr_cmd "csh" "whatis $module_6" "ERR" "$ts_csh_6"
 #
 testouterr_cmd_re "csh" "whatis $module_7" "OK" "$ts_csh_7"
 
+
+#
+# test when loaded environment is inconsistent
+#
+
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = 'foo:bar'\n"
+    send_user "\tSetup _LMFILES_ = '/path/to/foo'\n"
+}
+set env(LOADEDMODULES) "foo:bar"
+set env(_LMFILES_) "/path/to/foo"
+
+# should not affect result
+testouterr_cmd_re "csh" "--terse whatis $module_5" "OK" "$ts_csh_5"
+
+
 #
 #  Cleanup
 #
+
+# Clean up the environment
+if { $verbose > 0 } {
+    send_user "\tUnset LOADEDMODULES\n"
+    send_user "\tUnset _LMFILES_\n"
+}
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
 
 unset header
 

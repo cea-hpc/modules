@@ -265,16 +265,31 @@ unset env(HOME)
 
 testouterr_cmd "sh" "save" "ERR" $nohomeerrmsg
 
-#
-# Cleanup
-#
-
 # restore default testsuite home
 if { $verbose > 0 } {
     send_user "\tRestore HOME = $ORIG_HOME\n"
 }
 set env(HOME) $ORIG_HOME
 unset ORIG_HOME
+
+
+#
+# test when loaded environment is inconsistent
+#
+
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = 'foo:bar'\n"
+    send_user "\tSetup _LMFILES_ = '/path/to/foo'\n"
+}
+set env(LOADEDMODULES) "foo:bar"
+set env(_LMFILES_) "/path/to/foo"
+
+testouterr_cmd "sh" "save" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
+
+
+#
+# Cleanup
+#
 
 # restore environment
 if { $verbose > 0 } {

@@ -315,15 +315,25 @@ testouterr_cmd_re "sh" "load $mod1name" "ERR" $err_nomodpath
 
 
 #
+# load when loaded environment is inconsistent
+#
+
+set env(LOADEDMODULES) "foo:bar"
+set env(_LMFILES_) "/path/to/foo"
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
+}
+set env(MODULEPATH) $modpath
+
+testouterr_cmd_re "sh" "load $mod12" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
+
+
+#
 #  Cleanup
 #
 
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
-if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = '$modpath'\n"
-}
-set env(MODULEPATH) $modpath
 
 unset ans
 

@@ -3757,14 +3757,21 @@ proc cacheCurrentModules {} {
    if {![info exists ::g_lm_info_cached]} {
       # mark specific as well as generic modules as loaded
       set i 0
-      set filelist [getLoadedModuleFileList]
-      foreach mod [getLoadedModuleList] {
-         setLoadedModule $mod [lindex $filelist $i]
-         incr i
-      }
+      set modfilelist [getLoadedModuleFileList]
+      set modlist [getLoadedModuleList]
 
-      set ::g_lm_info_cached 1
-      reportDebug "cacheCurrentModules: $i loaded"
+      if {[llength $modlist] == [llength $modfilelist]} {
+         foreach mod $modlist {
+            setLoadedModule $mod [lindex $modfilelist $i]
+            incr i
+         }
+
+         set ::g_lm_info_cached 1
+         reportDebug "cacheCurrentModules: $i loaded"
+      } else {
+         reportErrorAndExit "Loaded environment state is inconsistent\n \
+            LOADEDMODULES=$modlist\n  _LMFILES_=$modfilelist"
+      }
    }
 }
 

@@ -128,6 +128,20 @@ unset env(MODULEPATH)
 testouterr_cmd "sh" "is-loaded $module" "ERR" ""
 testouterr_cmd "sh" "is-loaded $modname" "ERR" ""
 
+# test when loaded environment is inconsistent
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = 'foo:bar'\n"
+    send_user "\tSetup _LMFILES_ = '/path/to/foo'\n"
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
+}
+set env(LOADEDMODULES) "foo:bar"
+set env(_LMFILES_) "/path/to/foo"
+set env(MODULEPATH) $modpath
+
+# error raised only if correlation between LOADEDMODULES and _LMFILES_ is attempted
+testouterr_cmd "sh" "is-loaded foo" "OK" ""
+testouterr_cmd "sh" "is-loaded /foo" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
+
 
 #
 #  Cleanup
@@ -137,11 +151,9 @@ testouterr_cmd "sh" "is-loaded $modname" "ERR" ""
 if { $verbose > 0 } {
     send_user "\tUnset LOADEDMODULES\n"
     send_user "\tUnset _LMFILES_\n"
-    send_user "\tRestore MODULEPATH = '$modpath'\n"
 }
 unset env(LOADEDMODULES)
 unset env(_LMFILES_)
-set env(MODULEPATH) $modpath
 
 unset module
 unset modname

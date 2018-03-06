@@ -75,6 +75,22 @@ lappend ans [list text [list $module1 $module2]]
 testouterr_cmd "ALL" "info-loaded $module" $ans ""
 
 
+# test when loaded environment is inconsistent
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = 'foo:bar'\n"
+    send_user "\tSetup _LMFILES_ = '/path/to/foo'\n"
+}
+set env(LOADEDMODULES) "foo:bar"
+set env(_LMFILES_) "/path/to/foo"
+
+set ans [list]
+lappend ans [list text "foo"]
+
+# error raised only if correlation between LOADEDMODULES and _LMFILES_ is attempted
+testouterr_cmd "sh" "info-loaded foo" $ans ""
+testouterr_cmd "sh" "info-loaded /foo" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
+
+
 #
 #  Cleanup
 #
@@ -82,8 +98,10 @@ testouterr_cmd "ALL" "info-loaded $module" $ans ""
 # Clean up the environment
 if { $verbose > 0 } {
     send_user "\tUnset LOADEDMODULES\n"
+    send_user "\tUnset _LMFILES_\n"
 }
 unset env(LOADEDMODULES)
+unset env(_LMFILES_)
 
 unset ans
 unset module

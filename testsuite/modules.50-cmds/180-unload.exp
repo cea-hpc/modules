@@ -217,6 +217,16 @@ testouterr_cmd "sh" "unload $modulename_1" "ERR" $err_nomodpath
 
 
 #
+# unload when loaded environment is inconsistent
+#
+
+set env(LOADEDMODULES) "foo:bar"
+set env(_LMFILES_) "/path/to/foo"
+
+testouterr_cmd_re "sh" "unload foo" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
+
+
+#
 #  Cleanup
 #
 

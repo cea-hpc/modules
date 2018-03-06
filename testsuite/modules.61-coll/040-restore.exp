@@ -354,11 +354,6 @@ unset env(HOME)
 
 testouterr_cmd "sh" "restore" "ERR" $nohomeerrmsg
 
-
-#
-# Cleanup
-#
-
 # restore default testsuite home
 if { $verbose > 0 } {
     send_user "\tRestore HOME = $ORIG_HOME\n"
@@ -366,14 +361,37 @@ if { $verbose > 0 } {
 set env(HOME) $ORIG_HOME
 unset ORIG_HOME
 
+
+#
+# test when loaded environment is inconsistent
+#
+
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = 'foo:bar'\n"
+    send_user "\tSetup _LMFILES_ = '/path/to/foo'\n"
+}
+set env(LOADEDMODULES) "foo:bar"
+set env(_LMFILES_) "/path/to/foo"
+
+testouterr_cmd "sh" "restore $coll8fp" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
+
+
+#
+# Cleanup
+#
+
 # restore environment
 # _LMFILES_ and LOADEDMODULES already restored during last test
 if { $verbose > 0 } {
+    send_user "\tUnset _LMFILES_\n"
+    send_user "\tUnset LOADEDMODULES\n"
     send_user "\tRestore MODULEPATH = $modpath\n"
     send_user "\tRestore MODULES_COLLECTION_TARGET = ''\n"
 }
 set env(MODULEPATH) $modpath
 unset env(MODULES_COLLECTION_TARGET)
+unset env(_LMFILES_)
+unset env(LOADEDMODULES)
 
 unset ans
 
