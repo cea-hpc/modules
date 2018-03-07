@@ -122,6 +122,28 @@ if { $verbose > 0 } {
 unset env(TESTSUITE_ENABLE_SITECONFIG_READMODNOREPORT)
 
 
+# test loaded module accessor procedures on non-loaded module
+# does not happened currently within modulecmd.tcl as there is always a
+# getLoadedModulesList retrieval or a isModuleLoaded call prior use of get
+# accessor
+if { $verbose > 0 } {
+    send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG_LMACCESSOR = '1'\n"
+}
+set env(TESTSUITE_ENABLE_SITECONFIG_LMACCESSOR) 1
+
+set ans [list]
+lappend ans ""
+lappend ans ""
+lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+testouterr_cmd_re "sh" "-V" "OK" [join $ans "\n"]
+
+# restore environment
+if { $verbose > 0 } {
+    send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_LMACCESSOR\n"
+}
+unset env(TESTSUITE_ENABLE_SITECONFIG_LMACCESSOR)
+
+
 #
 #  Clean up variables used in this test case
 #
