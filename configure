@@ -322,11 +322,10 @@ kernelname=$(uname -s)
 # command is available, on Linux/Darwin systems the 'make' bin refers to GNU
 # Make whereas on other system it is not the default make flavor, so 'gmake'
 # should be checked
-if [ "$kernelname" = 'Linux' -o "$kernelname" = 'Darwin' ]; then
-   make='make'
-else
-   make='gmake'
-fi
+case "$kernelname" in
+   Linux|Darwin|CYGWIN*) make='make' ;;
+   *) make='gmake'
+esac
 check_requirement $make
 check_requirement sed
 # ensure a GNU grep is used on Solaris and Darwin
