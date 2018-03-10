@@ -221,6 +221,10 @@ for {set i 0} {$i < 150} {incr i} {
 }
 set bigval [join $bigval ":"]
 set bigpathval "$env(PATH):$bigval"
+# compute truncated length depending on the number of escaped characters
+set charlist { \\\t\{\}|<>!;#^$&*"'`()}
+set bigpathvalesc [regsub -all "\(\[$charlist\]\)" $bigpathval {\\\1}]
+set bigpathtrunclen [expr {3999 - ([string length $bigpathvalesc] - [string length $bigpathval])}]
 
 set module "append/5.0"
 set modulefile "$modpath/$module"
@@ -240,7 +244,7 @@ testouterr_cmd_re "sh" "load $module" $ans ""
 # is done for PATH
 set ans [list]
 lappend ans [list setpath FOO [string range $bigval 0 3999]]
-lappend ans [list setpath PATH "[string range $bigpathval 0 3999]:/usr/bin:/bin"]
+lappend ans [list setpath PATH "[string range $bigpathval 0 $bigpathtrunclen]:/usr/bin:/bin"]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 
@@ -338,6 +342,9 @@ unset old_path
 unset ts_err
 unset bigval
 unset bigpathval
+unset charlist
+unset bigpathvalesc
+unset bigpathtrunclen
 
 unset ans
 
