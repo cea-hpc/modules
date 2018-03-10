@@ -21,8 +21,11 @@
 #
 ##############################################################################
 
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
 # cannot test access if superuser privileges are in use
-if {$tcl_platform(user) eq "root"} {
+} elseif {$tcl_platform(user) eq "root"} {
     send_user "\tskipping access tests as tests are run by superuser\n"
 } else {
 
@@ -74,10 +77,31 @@ testouterr_cmd "sh" "aliases" "OK" ""
 # Test access to modulefile when access not granted on modulepath
 #
 
-# nothing found
-testouterr_cmd "sh" "load $module" "ERR" "$err_path'$module'"
-testouterr_cmd "sh" "display $module" "ERR" "$err_path'$module'"
-testouterr_cmd "sh" "whatis $module" "ERR" "$err_path'$module'"
+# different result if a file in a locked directory still readable on this system
+if {$is_locked_dir_file_readable} {
+    set lm "$module/1.2"
+    set lmf "$modpath/$lm"
+    set lmfre "$modpathre/$lm"
+    set ans [list]
+    lappend ans [list set _LMFILES__modshare "$lmf:1"]
+    lappend ans [list set LOADEDMODULES_modshare "$lm:1"]
+    lappend ans [list set _LMFILES_ $lmf]
+    lappend ans [list set LOADEDMODULES $lm]
+    lappend ans [list set testsuite yes]
+
+    testouterr_cmd "sh" "load $module" $ans ""
+    testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$lmfre:\n\nmodule-whatis\t$lm\nsetenv\t\ttestsuite\tyes\n$modlin"
+    testouterr_cmd_re "sh" "whatis $module" "OK" "$modlin $modpathre $modlin\n\\s+$module/0.9: $module/0.9\n\\s+$lm: $lm"
+
+    unset lm
+    unset lmf
+    unset lmfre
+} else {
+    # nothing found
+    testouterr_cmd "sh" "load $module" "ERR" "$err_path'$module'"
+    testouterr_cmd "sh" "display $module" "ERR" "$err_path'$module'"
+    testouterr_cmd "sh" "whatis $module" "ERR" "$err_path'$module'"
+}
 testouterr_cmd "sh" "avail -t $module" "OK" ""
 
 

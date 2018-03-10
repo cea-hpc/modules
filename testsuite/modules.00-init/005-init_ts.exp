@@ -103,6 +103,31 @@ proc siteconfig_isStderrTty {} {
     return $is_stderr_tty
 }
 
+# check file permission capabilities
+set test_perms_dir "$env(TESTSUITEDIR)/etc"
+set test_perms_file "$test_perms_dir/modulerc"
+set orig_perms [file attributes $test_perms_dir -permissions]
+file attributes $test_perms_dir -permissions "ugo-rx"
+set new_perms [file attributes $test_perms_dir -permissions]
+if {$new_perms eq $orig_perms} {
+    set is_file_perms_editable 0
+} else {
+    set is_file_perms_editable 1
+    if {[catch {
+        set fid [open $test_perms_file r]
+        close $fid
+    }]} {
+        set is_locked_dir_file_readable 0
+    } else {
+        set is_locked_dir_file_readable 1
+    }
+    file attributes $test_perms_dir -permissions $orig_perms
+}
+unset test_perms_dir
+unset test_perms_file
+unset orig_perms
+unset new_perms
+
 
 #
 #  Set up the config-file variable if possible

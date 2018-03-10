@@ -21,8 +21,11 @@
 #
 ##############################################################################
 
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
 # cannot test access if superuser privileges are in use
-if {$tcl_platform(user) eq "root"} {
+} elseif {$tcl_platform(user) eq "root"} {
     send_user "\tskipping access tests as tests are run by superuser\n"
 } else {
 
@@ -88,14 +91,42 @@ restore_file_perms $homemodrc
 # lock access to TESTSUITEDIR/etc also used as MODULERCFILE upper dir
 change_file_perms $etcdir $hide_perms
 
-set env(MODULERCFILE) $etcmodrc
-testouterr_cmd "sh" "load sym_foo" "ERR" "$locate_msg"
-testouterr_cmd "sh" "display sym_foo" "ERR" "$locate_msg"
+# different result if a file in a locked directory still readable on this system
+if {$is_locked_dir_file_readable} {
+    set lm "loc_rc1/1.0"
+    set lmf "$modpath/$lm"
+    set lmfre "$modpathre/$lm"
 
-set env(MODULERCFILE) $etcdir
-testouterr_cmd "sh" "load sym_foo" "ERR" "$locate_msg"
-testouterr_cmd "sh" "display sym_foo" "ERR" "$locate_msg"
-set env(MODULERCFILE) ""
+    set ans [list]
+    lappend ans [list set _LMFILES__modshare "$lmf:1"]
+    lappend ans [list set LOADEDMODULES_modshare "$lm:1"]
+    lappend ans [list set _LMFILES_ $lmf]
+    lappend ans [list set LOADEDMODULES $lm]
+    lappend ans [list set testsuite yes]
+
+    set env(MODULERCFILE) $etcmodrc
+    testouterr_cmd "sh" "load sym_foo" $ans ""
+    testouterr_cmd_re "sh" "display sym_foo" "OK" "$modlin\n$lmfre:\n\nmodule-whatis\t$lm\nsetenv\t\ttestsuite\tyes\n$modlin"
+
+    set env(MODULERCFILE) $etcdir
+    testouterr_cmd "sh" "load sym_foo" $ans ""
+    testouterr_cmd_re "sh" "display sym_foo" "OK" "$modlin\n$lmfre:\n\nmodule-whatis\t$lm\nsetenv\t\ttestsuite\tyes\n$modlin"
+    set env(MODULERCFILE) ""
+
+    unset lm
+    unset lmf
+    unset lmfre
+    unset ans
+} else {
+    set env(MODULERCFILE) $etcmodrc
+    testouterr_cmd "sh" "load sym_foo" "ERR" "$locate_msg"
+    testouterr_cmd "sh" "display sym_foo" "ERR" "$locate_msg"
+
+    set env(MODULERCFILE) $etcdir
+    testouterr_cmd "sh" "load sym_foo" "ERR" "$locate_msg"
+    testouterr_cmd "sh" "display sym_foo" "ERR" "$locate_msg"
+    set env(MODULERCFILE) ""
+}
 
 restore_file_perms $etcdir
 

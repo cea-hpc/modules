@@ -21,8 +21,11 @@
 #
 ##############################################################################
 
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
 # cannot test access if superuser privileges are in use
-if {$tcl_platform(user) eq "root"} {
+} elseif {$tcl_platform(user) eq "root"} {
     send_user "\tskipping access tests as tests are run by superuser\n"
 } else {
 
@@ -110,6 +113,7 @@ set m28 "$m24"
 set lmd28 [file dirname $lmf24]
 set m29 "$rlm26"
 set lmf29 "$env(TESTSUITEDIR)/virttargets/loc_rcv"
+set lmf29re [regsub -all "\(\[.+?\]\)" $lmf29 {\\\1}]
 set lmd29 [file dirname $lmf29]
 
 
@@ -546,11 +550,26 @@ restore_file_perms $lmd28
 
 change_file_perms $lmd29 $hide_perms
 
-# cannot locate module
-testouterr_cmd "sh" "load $m29" "ERR" "$access_msg '$lmf29'"
-testouterr_cmd "sh" "display $m29" "ERR" "$access_msg '$lmf29'"
-testouterr_cmd "sh" "whatis $m29" "ERR" "$access_msg '$lmf29'"
-testouterr_cmd "sh" "avail -t $m29" "OK" ""
+# different result if a file in a locked directory still readable on this system
+if {$is_locked_dir_file_readable} {
+    set ans [list]
+    lappend ans [list set _LMFILES__modshare "$lmf29:1"]
+    lappend ans [list set LOADEDMODULES_modshare "$m29:1"]
+    lappend ans [list set _LMFILES_ $lmf29]
+    lappend ans [list set LOADEDMODULES $m29]
+    lappend ans [list set testsuite yes]
+
+    testouterr_cmd "sh" "load $m29" $ans ""
+    testouterr_cmd_re "sh" "display $m29" "OK" "$modlin\n$lmf29re:\n\nmodule-whatis\t$m29\nsetenv\t\ttestsuite\tyes\n$modlin"
+    testouterr_cmd_re "sh" "whatis $m29" "OK" "$pheader\n\\s+$m29: $m29"
+    testouterr_cmd_re "sh" "avail -t $m29" "OK" "$theader\n$m29"
+} else {
+    # cannot locate module
+    testouterr_cmd "sh" "load $m29" "ERR" "$access_msg '$lmf29'"
+    testouterr_cmd "sh" "display $m29" "ERR" "$access_msg '$lmf29'"
+    testouterr_cmd "sh" "whatis $m29" "ERR" "$access_msg '$lmf29'"
+    testouterr_cmd "sh" "avail -t $m29" "OK" ""
+}
 
 restore_file_perms $lmd29
 
@@ -641,6 +660,7 @@ unset m28
 unset lmd28
 unset m29
 unset lmf29
+unset lmf29re
 unset lmd29
 
 }
