@@ -31,6 +31,7 @@ set module "remove/2.0"
 set modulefile "$env(MODULEPATH)/$module"
 
 set old_path $env(PATH)
+regsub -all {([ ()])} $old_path {\\\1} old_path_esc
 set ts_path "/this/is/the/modules/testsuite"
 set new_path "$old_path:$ts_path"
 
@@ -46,11 +47,11 @@ set env(PATH) "$new_path"
 
 set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
-set ts_sh "PATH=$old_path ;export PATH;"
+set ts_sh "PATH=$old_path_esc ;export PATH;"
 
 set lmf_csh "setenv _LMFILES_ $modulefile ;"
 set lm_csh "setenv LOADEDMODULES $module ;"
-set ts_csh "setenv PATH $old_path ;"
+set ts_csh "setenv PATH $old_path_esc ;"
 
 set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
@@ -85,6 +86,7 @@ set env(PATH) "$old_path"
 unset new_path
 unset ts_path
 unset old_path
+unset old_path_esc
 
 unset ts_sh
 unset lm_sh
