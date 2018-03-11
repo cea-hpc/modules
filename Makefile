@@ -28,7 +28,7 @@ include Makefile.inc
 all: initdir modulecmd.tcl ChangeLog README \
 	contrib/scripts/add.modules contrib/scripts/modulecmd
 ifeq ($(compatversion),y)
-all: $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
+all: $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog
 else
 endif
 # skip doc build if no sphinx-build
@@ -172,7 +172,7 @@ contrib/scripts/modulecmd: contrib/scripts/modulecmd.in
 	$(translate-in-script)
 
 # compatibility version-related rules
-$(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog:
+$(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog:
 	$(MAKE) -C $(COMPAT_DIR) $(@F)
 
 # example configs for test rules
@@ -215,7 +215,7 @@ uninstall-testconfig:
 
 ifeq ($(compatversion),y)
 install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
-	contrib/scripts/modulecmd $(COMPAT_DIR)/modulecmd $(COMPAT_DIR)/ChangeLog
+	contrib/scripts/modulecmd $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog
 else
 install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
 	contrib/scripts/modulecmd
@@ -225,8 +225,8 @@ endif
 	cp modulecmd.tcl $(DESTDIR)$(libexecdir)/
 	chmod +x $(DESTDIR)$(libexecdir)/modulecmd.tcl
 ifeq ($(compatversion),y)
-	cp $(COMPAT_DIR)/modulecmd $(DESTDIR)$(libexecdir)/modulecmd-compat
-	chmod +x $(DESTDIR)$(libexecdir)/modulecmd-compat
+	cp $(COMPAT_DIR)/modulecmd$(EXEEXT) $(DESTDIR)$(libexecdir)/modulecmd-compat$(EXEEXT)
+	chmod +x $(DESTDIR)$(libexecdir)/modulecmd-compat$(EXEEXT)
 endif
 	cp contrib/envml $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/envml
@@ -262,7 +262,7 @@ endif
 uninstall:
 	rm -f $(DESTDIR)$(libexecdir)/modulecmd.tcl
 ifeq ($(compatversion),y)
-	rm -f $(DESTDIR)$(libexecdir)/modulecmd-compat
+	rm -f $(DESTDIR)$(libexecdir)/modulecmd-compat$(EXEEXT)
 endif
 	rm -f $(DESTDIR)$(bindir)/envml
 	rm -f $(DESTDIR)$(bindir)/add.modules

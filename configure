@@ -29,8 +29,8 @@ targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 arglist="TCLSH SPHINXBUILD PS BASENAME GREP RMDIR_IGN_NON_EMPTY VERSION \
 baseprefix prefix bindir libexecdir etcdir initdir datarootdir mandir docdir \
 modulefilesdir setmanpath setbinpath setdotmodulespath docinstall \
-examplemodulefiles builddoc gitworktree usemanpath compatversion versioning \
-pager pageropts modulepath loadedmodules quarantinevars"
+examplemodulefiles builddoc gitworktree usemanpath compatversion EXEEXT \
+versioning pager pageropts modulepath loadedmodules quarantinevars"
 compatarglist=
 
 # flags to know if argument has been specified on command-line
@@ -46,6 +46,7 @@ setdotmodulespath=n
 docinstall=y
 examplemodulefiles=y
 compatversion=y
+EXEEXT=
 versioning=n
 loadedmodules=
 quarantinevars=
@@ -411,6 +412,11 @@ VERSION=$release$build
 if [ -z "$VERSION" ]; then
    echo_error "Cannot fetch modules version"
 fi
+
+# refer to binaries to build with .exe extension on Cygwin environment
+case "$kernelname" in
+   CYGWIN*) EXEEXT='.exe' ;;
+esac
 
 # adapt prefix if versioning enabled
 baseprefix=$prefix
