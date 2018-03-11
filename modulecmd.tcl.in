@@ -43,11 +43,7 @@ set g_siteconfig "@etcdir@/siteconfig.tcl" ;# Site configuration
 
 # Used to tell if a machine is running Windows or not
 proc isWin {} {
-   if {$::tcl_platform(platform) eq "windows"} {
-      return 1
-   } else {
-      return 0
-   }
+   return [expr {$::tcl_platform(platform) eq "windows"}]
 }
 
 #
@@ -877,12 +873,8 @@ proc module-info {what {more {}}} {
       {mode} {
          if {$more ne ""} {
             set command [currentCommandName]
-            if {$mode eq $more || ($more eq "remove" && $mode eq "unload")\
-               || ($more eq "switch" && $command eq "switch")} {
-               return 1
-            } else {
-               return 0
-            }
+            return [expr {$mode eq $more || ($more eq "remove" && $mode eq \
+               "unload") || ($more eq "switch" && $command eq "switch")}]
          } else {
             return $mode
          }
@@ -891,10 +883,8 @@ proc module-info {what {more {}}} {
          set command [currentCommandName]
          if {$more eq ""} {
             return $command
-         } elseif {$command eq $more} {
-            return 1
          } else {
-            return 0
+            return [expr {$command eq $more}]
          }
       }
       {name} {
@@ -905,11 +895,7 @@ proc module-info {what {more {}}} {
       }
       {shell} {
          if {$more ne ""} {
-            if {$::g_shell eq $more} {
-               return 1
-            } else {
-               return 0
-            }
+            return [expr {$::g_shell eq $more}]
          } else {
             return $::g_shell
          }
@@ -921,11 +907,7 @@ proc module-info {what {more {}}} {
       }
       {shelltype} {
          if {$more ne ""} {
-            if {$::g_shellType eq $more} {
-               return 1
-            } else {
-               return 0
-            }
+            return [expr {$::g_shellType eq $more}]
          } else {
             return $::g_shellType
          }
@@ -2236,11 +2218,7 @@ proc is-loaded {args} {
       }
    }
    # is something loaded whatever it is?
-   if {[llength $args] == 0 && [llength [getLoadedModuleList]] > 0} {
-      return 1
-   } else {
-      return 0
-   }
+   return [expr {[llength $args] == 0 && [llength [getLoadedModuleList]] > 0}]
 }
 
 proc conflict {args} {
@@ -2419,11 +2397,7 @@ proc is-saved {args} {
       }
    }
    # is something saved whatever it is?
-   if {[llength $args] == 0 && [llength [findCollections]] > 0} {
-      return 1
-   } else {
-      return 0
-   }
+   return [expr {[llength $args] == 0 && [llength [findCollections]] > 0}]
 }
 
 # test at least one of the directories passed as argument is set in MODULEPATH
@@ -2440,11 +2414,7 @@ proc is-used {args} {
       }
    }
    # is something used whatever it is?
-   if {[llength $args] == 0 && [llength $modpathlist] > 0} {
-      return 1
-   } else {
-      return 0
-   }
+   return [expr {[llength $args] == 0 && [llength $modpathlist] > 0}]
 }
 
 # test at least one of the modulefiles passed as argument exists
@@ -2630,21 +2600,13 @@ proc isModuleHidden {mod} {
 # check if module name is specified as a full pathname (not a name relative
 # to a modulepath)
 proc isModuleFullPath {mod} {
-   if {[regexp {^(|\.|\.\.)/} $mod]} {
-      return 1
-   } else {
-      return 0
-   }
+   return [regexp {^(|\.|\.\.)/} $mod]
 }
 
 # check if a module corresponds to a virtual module (module name
 # does not corresponds to end of the modulefile name)
 proc isModuleVirtual {mod modfile} {
-   if {[string first $mod $modfile end-[string length $mod]] == -1} {
-      return 1
-   } else {
-      return 0
-   }
+   return [expr {[string first $mod $modfile end-[string length $mod]] == -1}]
 }
 
 # Return the full pathname and modulename to the module.  
@@ -3031,7 +2993,7 @@ proc renderSettings {} {
 
    reportDebug "renderSettings: called."
 
-   # required to work on cygwin, shouldn't hurt real linux
+   # required to work on ygwin, shouldn't hurt real linux
    fconfigure stdout -translation lf
 
    # preliminaries if there is stuff to render
@@ -4841,12 +4803,8 @@ proc getCollectionTarget {} {
 
 # should modulefile version be pinned when saving collection?
 proc pinVersionInCollection {} {
-   if {[info exists ::env(MODULES_COLLECTION_PIN_VERSION)] &&\
-      $::env(MODULES_COLLECTION_PIN_VERSION) eq "1"} {
-      return 1
-   } else {
-      return 0
-   }
+   return [expr {[info exists ::env(MODULES_COLLECTION_PIN_VERSION)] &&\
+      $::env(MODULES_COLLECTION_PIN_VERSION) eq "1"}]
 }
 
 # return saved collections found in user directory which corresponds to
