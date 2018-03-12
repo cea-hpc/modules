@@ -30,6 +30,10 @@
 set module "append/2.0"
 set modulefile "$modpath/$module"
 
+# complexify PATH value with space an parenthesis
+set ORIG_PATH $env(PATH)
+set env(PATH) "$ORIG_PATH:/path/to/dir (stuff)"
+
 set old_path $env(PATH)
 set ts_path "/this/is/the/modules/testsuite"
 set new_path "$old_path:$ts_path"
@@ -331,6 +335,9 @@ testouterr_cmd "sh" "load $module" $ans "$warn_msgs: FOO_modshare exists ( /path
 #
 #  Cleanup
 #
+
+set env(PATH) $ORIG_PATH
+unset ORIG_PATH
 
 unset env(FOO_modshare)
 unset env(BAR_modshare)

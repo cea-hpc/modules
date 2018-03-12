@@ -199,21 +199,23 @@ proc shell_val {test_shell val {re_mode 0}} {
         set esc ""
     }
 
-    switch -- $test_shell {
-        {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
-            set val [regsub -all {([\\$])} $val {\\\1}]
-            set val [regsub -all {([ ])} $val {\\\\\1}]
+    if {$val ne "(.*)"} {
+        switch -- $test_shell {
+            {sh} - {bash} - {ksh} - {zsh} - {csh} - {tcsh} - {fish} {
+                set val [regsub -all {([\\$])} $val {\\\1}]
+                set val [regsub -all {([ ()])} $val {\\\\\1}]
+            }
+            {lisp} - {cmake} {
+                set val [regsub -all {(["])} $val {\\\1}]
+            }
+            {perl} - {python} - {ruby} - {r} {
+                set val [regsub -all {(['])} $val {\\\1}]
+            }
         }
-        {lisp} - {cmake} {
-            set val [regsub -all {(["])} $val {\\\1}]
-        }
-        {perl} - {python} - {ruby} - {r} {
-            set val [regsub -all {(['])} $val {\\\1}]
-        }
-    }
 
-    if {$re_mode} {
-        set val [regsub -all {([+])} $val {\\\1}]
+        if {$re_mode} {
+            set val [regsub -all {([+()])} $val {\\\1}]
+        }
     }
 
     return $val
