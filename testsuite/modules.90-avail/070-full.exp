@@ -25,12 +25,15 @@
 #  Check this only fo the /bin/sh
 #
 
+set test_cols 201
 if {![info exists term_cols]} {
     # skip tests if current terminal witdh is unknown
     send_user "\tskipping terminal width-specific tests\n"
+# set a specific terminal width
+} elseif {[catch {exec stty cols $test_cols}]} {
+    send_user "\tskipping terminal width-specific tests, cannot set width\n"
 } else {
 
-set test_cols 201
 set test_cols_small 25
 set test_cols_sunos 120
 
@@ -281,9 +284,6 @@ modsym/dir2/2.0    modtr/dir5/subdir  modvirt/dir0/sub1/6.0     trmod/al5       
 #  test
 #
 
-# set a specific terminal width
-exec stty cols $test_cols
-
 testouterr_cmd "sh" "avail" "OK" "$ts_sh"
 
 # setup MODULEPATH with a trailing slash and an empty dir element
@@ -353,7 +353,6 @@ unset ts_sh_small
 unset ts_sh_noflag
 unset ts_sh_noflag_sunos
 
-unset test_cols
 unset test_cols_small
 unset test_cols_sunos
 unset len
@@ -361,3 +360,5 @@ unset lrep
 unset rrep
 
 }
+
+unset test_cols
