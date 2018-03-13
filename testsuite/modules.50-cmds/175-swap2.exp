@@ -43,7 +43,8 @@ set modulefile "$mod21p"
 set env(_LMFILES_) "$modulefile"
 set env(LOADEDMODULES) "$module"
 set old_path $env(PATH)
-set env(PATH) "$pathpre:$path21:$path2121:$pathpost"
+regsub -all {([ ()])} $old_path {\\\1} old_path_esc
+set env(PATH) "$pathpre:$path21:$path2121:$pathpost:$old_path"
 
 #
 #  For the different shells ...
@@ -54,19 +55,19 @@ set modulefile "$mod22p"
 
 set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
-set p_sh "PATH=$pathpre:$path22:$path2222:$pathpost ;export PATH;"
+set p_sh "PATH=$pathpre:$path22:$path2222:$pathpost:$old_path_esc ;export PATH;"
 
 set lmf_csh "setenv _LMFILES_ $modulefile ;"
 set lm_csh "setenv LOADEDMODULES $module ;"
-set p_csh "setenv PATH $pathpre:$path22:$path2222:$pathpost ;"
+set p_csh "setenv PATH $pathpre:$path22:$path2222:$pathpost:$old_path_esc ;"
 
 set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
-set p_perl "\$ENV{'PATH'} = '$pathpre:$path22:$path2222:$pathpost';"
+set p_perl "\$ENV{'PATH'} = '$pathpre:$path22:$path2222:$pathpost:$old_path';"
 
 set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
 set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
-set p_cmake "set(ENV{PATH} \"$pathpre:$path22:$path2222:$pathpost\")"
+set p_cmake "set(ENV{PATH} \"$pathpre:$path22:$path2222:$pathpost:$old_path\")"
 
 #
 #  The tests
@@ -98,7 +99,7 @@ set modulefile "$mod21p"
 
 set env(_LMFILES_) "$modulefile"
 set env(LOADEDMODULES) "$module"
-set env(PATH) "$pathpre:$path21:$path2121:$pathpost"
+set env(PATH) "$pathpre:$path21:$path2121:$pathpost:$old_path"
 
 #
 #  For the different shells ...
@@ -109,19 +110,19 @@ set modulefile "$mod22p"
 
 set lmf_sh "_LMFILES_=$modulefile ;export _LMFILES_;"
 set lm_sh "LOADEDMODULES=$module ;export LOADEDMODULES;"
-set p_sh "PATH=$pathpre:$path22:$path2222:$pathpost ;export PATH;"
+set p_sh "PATH=$pathpre:$path22:$path2222:$pathpost:$old_path_esc ;export PATH;"
 
 set lmf_csh "setenv _LMFILES_ $modulefile ;"
 set lm_csh "setenv LOADEDMODULES $module ;"
-set p_csh "setenv PATH $pathpre:$path22:$path2222:$pathpost ;"
+set p_csh "setenv PATH $pathpre:$path22:$path2222:$pathpost:$old_path_esc ;"
 
 set lmf_perl "\$ENV{'_LMFILES_'} = '$modulefile';"
 set lm_perl "\$ENV{'LOADEDMODULES'} = '$module';"
-set p_perl "\$ENV{'PATH'} = '$pathpre:$path22:$path2222:$pathpost';"
+set p_perl "\$ENV{'PATH'} = '$pathpre:$path22:$path2222:$pathpost:$old_path';"
 
 set lmf_cmake "set(ENV{_LMFILES_} \"$modulefile\")"
 set lm_cmake "set(ENV{LOADEDMODULES} \"$module\")"
-set p_cmake "set(ENV{PATH} \"$pathpre:$path22:$path2222:$pathpost\")"
+set p_cmake "set(ENV{PATH} \"$pathpre:$path22:$path2222:$pathpost:$old_path\")"
 
 #
 #  The tests
@@ -140,6 +141,7 @@ test_cmd "cmake" "swap $mod21 $mod22" "$lm_cmake\n$p_cmake\n$lmf_cmake"
 #
 set env(PATH) "$old_path"
 unset old_path
+unset old_path_esc
 unset env(_LMFILES_)
 unset env(LOADEDMODULES)
 
