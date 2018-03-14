@@ -80,6 +80,7 @@ if { $verbose > 0 } {
 }
 
 set err_lisp "$error_msgs: lisp mode autoinit not yet implemented"
+set err_cmd "$error_msgs: No autoinit mode available for 'cmd' shell"
 
 set end_quar_sh "\\s*if \\\[ \"\\\${_mlv}\" = \"\\\${_mlv##\\\*\\\[\\\!A-Za-z0-9_\\\]}\" -a \"\\\${_mlv}\" = \"\\\${_mlv#\\\[0-9\\\]}\" \\\]; then
 \\s*if \\\[ -n \"`eval 'echo \\\${'\\\$_mlv'\\\+x}'`\" \\\]; then
@@ -318,22 +319,28 @@ if { $verbose > 0 } {
 set env(LOADEDMODULES) "foo"
 
 foreach shell $supported_shells {
-    if {$shell eq "lisp"} {
-        testouterr_cmd "lisp" "autoinit" "ERR" "$err_lisp"
-    } else {
-        set ans [list]
-        lappend ans [list [set "func_$shell"]]
-        if {$install_versioning eq "y"} {
-            lappend ans [list set MODULE_VERSION_STACK "(.*)"]
-            lappend ans [list set MODULES_CMD $modulecmd_path]
-            lappend ans [list set MODULESHOME $moduleshome]
-            lappend ans [list set MODULE_VERSION "(.*)"]
-        } else {
-            lappend ans [list set MODULES_CMD $modulecmd_path]
-            lappend ans [list set MODULESHOME $moduleshome]
+    switch -- $shell {
+        {lisp} {
+            testouterr_cmd "lisp" "autoinit" "ERR" "$err_lisp"
         }
+        {cmd} {
+            testouterr_cmd "cmd" "autoinit" "ERR" "$err_cmd"
+        }
+        default {
+            set ans [list]
+            lappend ans [list [set "func_$shell"]]
+            if {$install_versioning eq "y"} {
+                lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+                lappend ans [list set MODULES_CMD $modulecmd_path]
+                lappend ans [list set MODULESHOME $moduleshome]
+                lappend ans [list set MODULE_VERSION "(.*)"]
+            } else {
+                lappend ans [list set MODULES_CMD $modulecmd_path]
+                lappend ans [list set MODULESHOME $moduleshome]
+            }
 
-        test_cmd_re $shell "autoinit" $ans
+            test_cmd_re $shell "autoinit" $ans
+        }
     }
 }
 
@@ -373,52 +380,58 @@ unset env(MODULEPATH)
 
 if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalled)} {
     foreach shell $supported_shells {
-        if {$shell eq "lisp"} {
-            testouterr_cmd "lisp" "autoinit" "ERR" "$err_lisp"
-        } else {
-            set ans [list]
-            lappend ans [list [set "func_$shell"]]
-            if {!$insmodspath && !$insmodrc} {
-                if {$install_versioning eq "y"} {
-                    lappend ans [list set MODULE_VERSION_STACK "(.*)"]
-                }
-                lappend ans [list set MODULES_CMD $modulecmd_path]
-                lappend ans [list set LOADEDMODULES ""]
-                lappend ans [list set MODULESHOME $moduleshome]
-                lappend ans [list set MODULEPATH ""]
-                if {$install_versioning eq "y"} {
-                    lappend ans [list set MODULE_VERSION "(.*)"]
-                }
-            } elseif {$modspath_exinstalled} {
-                if {$install_versioning eq "y"} {
-                    lappend ans [list set MODULE_VERSION_STACK "(.*)"]
-                }
-                lappend ans [list set MODULES_CMD $modulecmd_path]
-                lappend ans [list set MODULEPATH_modshare "(.*)"]
-                lappend ans [list set LOADEDMODULES ""]
-                lappend ans [list set MODULESHOME $moduleshome]
-                lappend ans [list set MODULEPATH "$modulepathre:$install_prefix/test/modulefiles:$install_prefix/test/etc"]
-                if {$install_versioning eq "y"} {
-                    lappend ans [list set MODULE_VERSION "(.*)"]
-                }
-            } elseif {!$insmodspath && $modrc_exinstalled} {
-                lappend ans [list set _LMFILES__modshare "$install_modulefilesdir/null:1"]
-                lappend ans [list set LOADEDMODULES_modshare "null:1"]
-                if {$install_versioning eq "y"} {
-                    lappend ans [list set MODULE_VERSION_STACK "(.*)"]
-                }
-                lappend ans [list set MODULES_CMD $modulecmd_path]
-                lappend ans [list set MODULEPATH_modshare "$modulepathre:1"]
-                lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
-                lappend ans [list set LOADEDMODULES "null"]
-                lappend ans [list set MODULESHOME $moduleshome]
-                lappend ans [list set MODULEPATH "$modulepathre"]
-                if {$install_versioning eq "y"} {
-                    lappend ans [list set MODULE_VERSION "(.*)"]
-                }
+        switch -- $shell {
+            {lisp} {
+                testouterr_cmd "lisp" "autoinit" "ERR" "$err_lisp"
             }
+            {cmd} {
+                testouterr_cmd "cmd" "autoinit" "ERR" "$err_cmd"
+            }
+            default {
+                set ans [list]
+                lappend ans [list [set "func_$shell"]]
+                if {!$insmodspath && !$insmodrc} {
+                    if {$install_versioning eq "y"} {
+                        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+                    }
+                    lappend ans [list set MODULES_CMD $modulecmd_path]
+                    lappend ans [list set LOADEDMODULES ""]
+                    lappend ans [list set MODULESHOME $moduleshome]
+                    lappend ans [list set MODULEPATH ""]
+                    if {$install_versioning eq "y"} {
+                        lappend ans [list set MODULE_VERSION "(.*)"]
+                    }
+                } elseif {$modspath_exinstalled} {
+                    if {$install_versioning eq "y"} {
+                        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+                    }
+                    lappend ans [list set MODULES_CMD $modulecmd_path]
+                    lappend ans [list set MODULEPATH_modshare "(.*)"]
+                    lappend ans [list set LOADEDMODULES ""]
+                    lappend ans [list set MODULESHOME $moduleshome]
+                    lappend ans [list set MODULEPATH "$modulepathre:$install_prefix/test/modulefiles:$install_prefix/test/etc"]
+                    if {$install_versioning eq "y"} {
+                        lappend ans [list set MODULE_VERSION "(.*)"]
+                    }
+                } elseif {!$insmodspath && $modrc_exinstalled} {
+                    lappend ans [list set _LMFILES__modshare "$install_modulefilesdir/null:1"]
+                    lappend ans [list set LOADEDMODULES_modshare "null:1"]
+                    if {$install_versioning eq "y"} {
+                        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+                    }
+                    lappend ans [list set MODULES_CMD $modulecmd_path]
+                    lappend ans [list set MODULEPATH_modshare "$modulepathre:1"]
+                    lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
+                    lappend ans [list set LOADEDMODULES "null"]
+                    lappend ans [list set MODULESHOME $moduleshome]
+                    lappend ans [list set MODULEPATH "$modulepathre"]
+                    if {$install_versioning eq "y"} {
+                        lappend ans [list set MODULE_VERSION "(.*)"]
+                    }
+                }
 
-            test_cmd_re $shell "autoinit" $ans
+                test_cmd_re $shell "autoinit" $ans
+            }
         }
     }
 } else {
@@ -466,6 +479,7 @@ unset shell
 unset ans
 
 unset err_lisp
+unset err_cmd
 
 unset end_quar_sh
 unset func_quar_sh

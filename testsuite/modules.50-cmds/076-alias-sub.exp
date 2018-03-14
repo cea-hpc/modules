@@ -30,6 +30,7 @@ set module "alias/1.0"
 set modulefile "$modpath/$module"
 set alias_sh {ls \$1 \$2 \| grep \$\*}
 set alias_csh {ls \\!\\!:1 \\!\\!:2 \| grep \\!\*}
+set alias_cmd {ls $1 $2 | grep $*}
 
 #
 #  For the different shells ...
@@ -43,6 +44,10 @@ lappend ans2 [list alias testsuite $alias_csh]
 lappend ans2 [list setpath LOADEDMODULES $module]
 lappend ans2 [list setpath _LMFILES_ $modulefile]
 
+lappend ans3 [list alias testsuite $alias_cmd]
+lappend ans3 [list setpath LOADEDMODULES $module]
+lappend ans3 [list setpath _LMFILES_ $modulefile]
+
 
 #
 #  The tests
@@ -51,8 +56,10 @@ lappend ans2 [list setpath _LMFILES_ $modulefile]
 # different behavior than C-version: on Tcl-version set-alias command always
 # produces a shell alias never a shell function on Bourne shell derivatives
 foreach sh $supported_shells {
-    # only available for csh/sh/fish derivatives ... no longer warn for others
-    if {[lsearch -exact $csh_shells $sh] >= 0} {
+    # only available for csh/sh/fish/cmd derivatives ... no longer warn for others
+    if {$sh eq "cmd"} {
+        test_cmd "$sh" "load $module" $ans3
+    } elseif {[lsearch -exact $csh_shells $sh] >= 0} {
         test_cmd_re "$sh" "load $module" $ans2
     } else {
         test_cmd_re "$sh" "load $module" $ans
@@ -66,9 +73,11 @@ foreach sh $supported_shells {
 unset sh
 unset ans
 unset ans2
+unset ans3
 
 unset modulefile
 unset module
 unset alias_sh
 unset alias_csh
+unset alias_cmd
 

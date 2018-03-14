@@ -78,6 +78,9 @@ proc shell_err {test_shell {nb_err 1} {re_mode 0}} {
         {tcl} {
             set answer "set _mlstatus 0;"
         }
+        {cmd} {
+            set answer "set errorlevel=1"
+        }
         {perl} {
             set answer "${esc}\$_mlstatus = 0;"
         }
@@ -117,6 +120,9 @@ proc shell_ok {test_shell {re_mode 0}} {
         }
         {tcl} {
             set answer "set _mlstatus 1;"
+        }
+        {cmd} {
+            set answer "set errorlevel=0"
         }
         {python} {
             set answer "_mlstatus = True"
@@ -165,6 +171,17 @@ proc shell_text {test_shell val {re_mode 0}} {
         }
         {tcl} {
             set answer "set _mlstatus \"$val\";"
+        }
+        {cmd} {
+            foreach word $val {
+                if {[info exists answer]} {
+                    append answer "\n"
+                }
+                append answer "echo $word"
+            }
+            if {![info exists answer]} {
+                set answer ""
+            }
         }
         {python} {
             set answer "_mlstatus = '$val'"
@@ -248,6 +265,9 @@ proc shell_set {test_shell var val {re_mode 0} {escval 1}} {
         {tcl} {
             set answer "set ::env${esc}($var${esc}) ${esc}{$val${esc}};"
         }
+        {cmd} {
+            set answer "set $var=$val"
+        }
         {perl} {
             set answer "${esc}\$ENV{'$var'} = '$val';"
         }
@@ -294,6 +314,9 @@ proc shell_unset {test_shell var {re_mode 0}} {
         {tcl} {
             set answer "catch {unset ::env${esc}($var${esc})};"
         }
+        {cmd} {
+            set answer "set $var="
+        }
         {perl} {
             set answer "delete ${esc}\$ENV{'$var'};"
         }
@@ -335,6 +358,9 @@ proc shell_alias {test_shell var val {re_mode 0}} {
         {csh} - {tcsh} - {fish} {
             set answer "alias $var '$val';"
         }
+        {cmd} {
+            set answer "doskey $var=$val"
+        }
         default {
             set answer ""
         }
@@ -357,6 +383,9 @@ proc shell_unalias {test_shell var {re_mode 0}} {
         {fish} {
             set answer "functions -e $var;"
         }
+        {cmd} {
+            set answer "doskey $var="
+        }
         default {
             set answer ""
         }
@@ -378,6 +407,9 @@ proc shell_chdir {test_shell val {re_mode 0}} {
         }
         {tcl} {
             set answer "cd \"$val\";"
+        }
+        {cmd} {
+            set answer "cd $val"
         }
         {perl} {
             set answer "chdir '$val';"
