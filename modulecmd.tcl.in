@@ -138,7 +138,7 @@ proc renderFalse {} {
             puts stdout "set _mlstatus 0;"
          }
          {cmd} {
-            # nothing needed, reserved for future cygwin, MKS, etc
+            puts stdout "set errorlevel=1"
          }
          {perl} {
             puts stdout "\$_mlstatus = 0;"
@@ -178,6 +178,9 @@ proc renderTrue {} {
       {tcl} {
          puts stdout "set _mlstatus 1;"
       }
+      {cmd} {
+         puts stdout "set errorlevel=0"
+      }
       {perl} {
          puts stdout "\$_mlstatus = 1;"
       }
@@ -215,6 +218,11 @@ proc renderText {text} {
       }
       {tcl} {
          puts stdout "set _mlstatus \"$text\";"
+      }
+      {cmd} {
+         foreach word $text {
+            puts stdout "echo $word"
+         }
       }
       {perl} {
          puts stdout "\$_mlstatus = '$text';"
@@ -3060,6 +3068,10 @@ proc renderSettings {} {
                   set val $::env($var)
                   puts stdout "set ::env($var) {$val};"
                }
+               {cmd} {
+                  set val $::env($var)
+                  puts stdout "set $var=$val"
+               }
                {perl} {
                   set val [charEscaped $::env($var) \']
                   puts stdout "\$ENV{'$var'} = '$val';"
@@ -3083,10 +3095,6 @@ proc renderSettings {} {
                {r} {
                   set val [charEscaped $::env($var) \']
                   puts stdout "Sys.setenv('$var'='$val')"
-               }
-               {cmd} {
-                  set val $::env($var)
-                  puts stdout "set $var=$val"
                }
             }
          }
@@ -3152,6 +3160,10 @@ proc renderSettings {} {
                   set val $::g_Aliases($var)
                   puts stdout "alias $var '$val';"
                }
+               {cmd} {
+                  set val $::g_Aliases($var)
+                  puts stdout "doskey $var=$val"
+               }
             }
          }
          {del} {
@@ -3164,6 +3176,9 @@ proc renderSettings {} {
                }
                {fish} {
                   puts stdout "functions -e $var;"
+               }
+               {cmd} {
+                  puts stdout "doskey $var="
                }
             }
          }
@@ -3360,6 +3375,9 @@ proc renderSettings {} {
          }
          {tcl} {
             puts stdout "cd \"$::g_changeDir\";"
+         }
+         {cmd} {
+            puts stdout "cd $::g_changeDir"
          }
          {perl} {
             puts stdout "chdir '$::g_changeDir';"
@@ -3571,7 +3589,7 @@ end}
          append fdef "\n}"
       }
       {cmd} {
-         set fdef "start /b \%MODULESHOME\%/init/module.cmd %*"
+         reportErrorAndExit "No autoinit mode available for 'cmd' shell"
       }
       {perl} {
          set fdef "sub module {\n"
