@@ -35,7 +35,7 @@ if {![info exists term_cols]} {
 } else {
 
 set test_cols_small 25
-set test_cols_sunos 120
+set test_cols_othos 120
 
 set len  [string length $modpath]
 set lrep [expr {($test_cols - $len - 2)/2}]
@@ -262,9 +262,9 @@ version/dir2/2.0/rc2
 version/dir2/3.0          "
 
 set len  [string length $modpath.deep]
-set lrep [expr {($test_cols_sunos - $len - 2)/2}]
-set rrep [expr {$test_cols_sunos - $len - 2 - $lrep}]
-set ts_sh_noflag_sunos "[string repeat {-} $lrep] $modpath.deep [string repeat {-} $rrep]
+set lrep [expr {($test_cols_othos - $len - 2)/2}]
+set rrep [expr {$test_cols_othos - $len - 2 - $lrep}]
+set ts_sh_noflag_othos "[string repeat {-} $lrep] $modpath.deep [string repeat {-} $rrep]
 dir2/1.0           modtr/3.0          modtr/dir5/subdir/mod5.0  modvirt/dir1/1.0  trmod/dir3            
 dir2/3.0           modtr/al1          modulerc/dir1             modvirt/dir1/2.0  trmod/dir3/al2        
 modalias/1.0       modtr/al4          modulerc/dir1/1.0         modvirt/dir2/2.0  version/dir1          
@@ -320,15 +320,26 @@ if { $verbose > 0 } {
 }
 set env(TESTSUITE_ENABLE_SITECONFIG_SOLARIS_STTY) 1
 
-testouterr_cmd "sh" "avail" "OK" "$ts_sh_noflag_sunos"
+testouterr_cmd "sh" "avail" "OK" "$ts_sh_noflag_othos"
+
+
+# simulate Windows OS with its specific mode command output
+if { $verbose > 0 } {
+    send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG_WINDOWS_MODE = '1'\n"
+}
+set env(TESTSUITE_ENABLE_SITECONFIG_WINDOWS_MODE) 1
+
+testouterr_cmd "sh" "avail" "OK" "$ts_sh_noflag_othos"
 
 # restore environment
 if { $verbose > 0 } {
     send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_NO_FLAG\n"
     send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_SOLARIS_STTY\n"
+    send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_WINDOWS_MODE\n"
 }
 unset env(TESTSUITE_ENABLE_SITECONFIG_NO_FLAG)
 unset env(TESTSUITE_ENABLE_SITECONFIG_SOLARIS_STTY)
+unset env(TESTSUITE_ENABLE_SITECONFIG_WINDOWS_MODE)
 
 } elseif {$verbose > 0} {
    send_user "\tSkip some tests as excepted siteconfig file not installed\n"
@@ -351,10 +362,10 @@ exec stty cols $term_cols
 unset ts_sh
 unset ts_sh_small
 unset ts_sh_noflag
-unset ts_sh_noflag_sunos
+unset ts_sh_noflag_othos
 
 unset test_cols_small
-unset test_cols_sunos
+unset test_cols_othos
 unset len
 unset lrep
 unset rrep
