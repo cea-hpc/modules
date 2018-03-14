@@ -46,13 +46,17 @@ proc isWin {} {
    return [expr {$::tcl_platform(platform) eq "windows"}]
 }
 
-#
-# Set Default Path separator
-#
-if { [isWin] } {
-   set g_def_separator "\;"
-} else {
-   set g_def_separator ":"
+# Get default path separator
+proc getPathSeparator {} {
+   if {![info exists ::g_def_separator]} {
+      if {[isWin]} {
+         set ::g_def_separator ";"
+      } else {
+         set ::g_def_separator ":"
+      }
+   }
+
+   return $::g_def_separator
 }
 
 # Detect if terminal is attached to stderr message channel
@@ -1814,7 +1818,7 @@ proc getReferenceCountArray {var separator} {
    set modshareok 1
    if {[info exists ::env($sharevar)]} {
       if {[info exists ::env($var)]} {
-         set modsharelist [psplit $::env($sharevar) $::g_def_separator]
+         set modsharelist [psplit $::env($sharevar) [getPathSeparator]]
          set temp [expr {[llength $modsharelist] % 2}]
 
          if {$temp == 0} {
@@ -1998,7 +2002,7 @@ proc unload-path {args} {
 
    set sharevar [getModshareVarName $var]
    if {[array size countarr] > 0} {
-      set ::env($sharevar) [pjoin [array get countarr] $::g_def_separator]
+      set ::env($sharevar) [pjoin [array get countarr] [getPathSeparator]]
       set ::g_stateEnvVars($sharevar) "new"
    } else {
       unset-env $sharevar
@@ -2044,7 +2048,7 @@ proc add-path {pos args} {
       reportDebug "add-path: env($var) = $::env($var)"
    }
 
-   set ::env($sharevar) [pjoin [array get countarr] $::g_def_separator]
+   set ::env($sharevar) [pjoin [array get countarr] [getPathSeparator]]
    set ::g_stateEnvVars($var) "new"
    set ::g_stateEnvVars($sharevar) "new"
    return {}
@@ -2095,7 +2099,7 @@ proc parsePathCommandArgs {cmd args} {
 
    # adapt with default value or raise error if some arguments are missing
    if {![info exists delim]} {
-      set delim $::g_def_separator
+      set delim [getPathSeparator]
    } elseif {$delim eq ""} {
       error "$cmd should get a non-empty path delimiter"
    }
@@ -2531,7 +2535,7 @@ proc popCommandName {} {
 proc getLoadedModuleList {{filter_empty 1}} {
    if {[info exists ::env(LOADEDMODULES)]} {
       set modlist [list]
-      foreach mod [split $::env(LOADEDMODULES) $::g_def_separator] {
+      foreach mod [split $::env(LOADEDMODULES) [getPathSeparator]] {
          # ignore empty element
          if {$mod ne "" || !$filter_empty} {
             lappend modlist $mod
@@ -2547,7 +2551,7 @@ proc getLoadedModuleList {{filter_empty 1}} {
 proc getLoadedModuleFileList {} {
    if {[info exists ::env(_LMFILES_)]} {
       set modfilelist [list]
-      foreach modfile [split $::env(_LMFILES_) $::g_def_separator] {
+      foreach modfile [split $::env(_LMFILES_) [getPathSeparator]] {
          # ignore empty element
          if {$modfile ne ""} {
             lappend modfilelist $modfile
@@ -2569,7 +2573,7 @@ proc getLoadedModuleFileList {} {
 proc getModulePathList {{behavior "returnempty"} {resolv_var 1} {set_abs 1}} {
    if {[info exists ::env(MODULEPATH)]} {
       set modpathlist [list]
-      foreach modpath [split $::env(MODULEPATH) $::g_def_separator] {
+      foreach modpath [split $::env(MODULEPATH) [getPathSeparator]] {
          # ignore empty element
          if {$modpath ne ""} {
             if {$resolv_var} {
