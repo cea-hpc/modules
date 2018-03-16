@@ -2628,15 +2628,13 @@ proc isModuleVirtual {mod modfile} {
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
 proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
-   if {$mod eq ""} {
-      return [list "" 0]
-   }
-
    reportDebug "getPathToModule: finding '$mod' in '$indir' (excdir='')"
 
+   if {$mod eq ""} {
+      set retlist [list "" 0 "none" "Invalid empty module name"]
    # try first to look at loaded modules if enabled to find maching module
    # or to find a closest match (used when switching with single name arg)
-   if {($look_loaded eq "match" && [set lm [getLoadedMatchingName\
+   } elseif {($look_loaded eq "match" && [set lm [getLoadedMatchingName\
       $mod]] ne "") || ($look_loaded eq "close" && [set lm\
       [getLoadedWithClosestName $mod]] ne "")} {
       set retlist [list [getModulefileFromLoadedModule $lm] $lm]
