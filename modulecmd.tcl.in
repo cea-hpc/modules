@@ -6097,23 +6097,21 @@ proc cmdModuleHelp {args} {
    pushMode "help"
    set first_report 1
    foreach arg $args {
-      if {$arg ne ""} {
-         lassign [getPathToModule $arg] modfile modname
+      lassign [getPathToModule $arg] modfile modname
 
-         if {$modfile ne ""} {
-            pushSpecifiedName $arg
-            pushModuleName $modname
-            # only one separator lines between 2 modules
-            if {$first_report} {
-               displaySeparatorLine
-               set first_report 0
-            }
-            report "Module Specific Help for $modfile:\n"
-            execute-modulefile $modfile
-            popModuleName
-            popSpecifiedName
+      if {$modfile ne ""} {
+         pushSpecifiedName $arg
+         pushModuleName $modname
+         # only one separator lines between 2 modules
+         if {$first_report} {
             displaySeparatorLine
+            set first_report 0
          }
+         report "Module Specific Help for $modfile:\n"
+         execute-modulefile $modfile
+         popModuleName
+         popSpecifiedName
+         displaySeparatorLine
       }
    }
    popMode
