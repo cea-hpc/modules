@@ -3810,28 +3810,34 @@ proc getAbsolutePath {path} {
       set curdir $::cwd
    }
 
-   set abslist {}
-   # get a first version of the absolute path by joining the current working
-   # directory to the given path. if given path is already absolute
-   # 'file join' will not break it as $curdir will be ignored as soon a
-   # beginning '/' character is found on $path. this first pass also clean
-   # extra '/' character. then each element of the path is analyzed to clear
-   # "." and ".." components.
-   foreach elt [file split [file join $curdir $path]] {
-      if {$elt eq ".."} {
-         # skip ".." element if it comes after root element, remove last
-         # element elsewhere
-         if {[llength $abslist] > 1} {
-            set abslist [lreplace $abslist end end]
+   # empty result if empty path
+   if {$path eq ""} {
+      set abspath {}
+   } else {
+      set abslist {}
+      # get a first version of the absolute path by joining the current
+      # working directory to the given path. if given path is already absolute
+      # 'file join' will not break it as $curdir will be ignored as soon a
+      # beginning '/' character is found on $path. this first pass also clean
+      # extra '/' character. then each element of the path is analyzed to
+      # clear "." and ".." components.
+      foreach elt [file split [file join $curdir $path]] {
+         if {$elt eq ".."} {
+            # skip ".." element if it comes after root element, remove last
+            # element elsewhere
+            if {[llength $abslist] > 1} {
+               set abslist [lreplace $abslist end end]
+            }
+         # skip any "." element
+         } elseif {$elt ne "."} {
+            lappend abslist $elt
          }
-      # skip any "." element
-      } elseif {$elt ne "."} {
-         lappend abslist $elt
       }
+      set abspath [eval file join $abslist]
    }
 
    # return cleaned absolute path
-   return [eval file join $abslist]
+   return $abspath
 }
 
 # split string while ignore any separator character that is espaced
