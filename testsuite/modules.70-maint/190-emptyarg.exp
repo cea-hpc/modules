@@ -1,0 +1,127 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2018/03/18
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload, display, help, test, path, switch,
+#                   source, whatis, apropos, paths, purge, reload,
+#                   aliases, savelist, autoinit, save, restore, saveshow,
+#                   saverm, is-saved, use, unuse, is-loaded, is-used,
+#                   is-avail, info-loaded, append-path, prepend-path,
+#                   remove-path
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test commands with an empty string argument passed on command-line
+#		}C%
+#
+##############################################################################
+
+set module1 "/path/to/mod1"
+set modulefile1 "$module1"
+set module2 "loc_dv1/1.0"
+set modulefile2 "$modpath/$module2"
+
+# setup specific environment (with current path as modulepath and a module
+# loaded with full path name) to check passed empty argument is not mismatched
+# with something else due to these conditions
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = '$modpath:[pwd]'\n"
+    send_user "\tSetup LOADEDMODULES = '$module1'\n"
+    send_user "\tSetup _LMFILES_ = '$modulefile1'\n"
+}
+set env(MODULEPATH) "$modpath:[pwd]"
+set env(LOADEDMODULES) $module1
+set env(_LMFILES_) $modulefile1
+
+
+# wrong arg number if command does not accept any argument
+foreach cmd [list list purge reload aliases savelist autoinit] {
+    testouterr_cmd "sh" "$cmd " "ERR" "$error_msgs: Unexpected number of args for '$cmd' command\n$err_typehelp"
+}
+
+
+# on most commands, empty arg leads to error
+foreach cmd [list "load" "unload" "display" "help" "test"] {
+    testouterr_cmd "sh" "$cmd " "ERR" $err_emptymodname
+}
+foreach cmd [list "save" "restore" "saveshow" "saverm" "is-saved"] {
+    testouterr_cmd "sh" "$cmd " "ERR" $err_emptycollname
+}
+foreach cmd [list "use" "unuse"] {
+    testouterr_cmd "sh" "$cmd " "ERR" $err_emptydirname
+}
+testouterr_cmd "sh" "source " "ERR" "$error_msgs: File name empty"
+testouterr_cmd "sh" "swap  $module2" "ERR" "$err_emptymodname"
+
+# switch: an empty second arg leads to one name rule
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module1:$module2"]
+lappend ans [list setpath _LMFILES_ "$modulefile1:$modulefile2"]
+testouterr_cmd_re "sh" "swap $module2 " $ans ""
+
+# path: empty result returned
+set ans [list]
+lappend ans [list text ""]
+testouterr_cmd "sh" "path " $ans $err_emptymodname
+
+
+# return false or empty, no error reported
+foreach cmd [list is-loaded is-used is-avail] {
+    testouterr_cmd "sh" "$cmd " "ERR" ""
+}
+testouterr_cmd "sh" "info-loaded " $ans ""
+
+
+# also leads to error for path management commands except if only variable value is empty
+set ans [list]
+lappend ans [list setpath FOO ""]
+foreach cmd [list append-path prepend-path] {
+    testouterr_cmd "sh" "$cmd  " "ERR" "$error_msgs: add-path should get a valid environment variable name"
+    testouterr_cmd "sh" "$cmd -d   " "ERR" "$error_msgs: add-path should get a non-empty path delimiter"
+    testouterr_cmd "sh" "$cmd FOO " $ans ""
+}
+set ans [list]
+lappend ans [list unsetpath FOO ""]
+testouterr_cmd "sh" "remove-path  " "ERR" "$error_msgs: unload-path should get a valid environment variable name"
+testouterr_cmd "sh" "remove-path -d   " "ERR" "$error_msgs: unload-path should get a non-empty path delimiter"
+testouterr_cmd "sh" "remove-path FOO " $ans ""
+
+
+# empty string currently understood like wildcard
+foreach cmd [list whatis apropos] {
+    # error rendered as some evaluated modules produce error
+    testouterr_cmd_re "sh" "$cmd " "ERR" "^.+$"
+}
+testouterr_cmd_re "sh" "avail " "" "^.+$"
+testouterr_cmd_re "sh" "paths " "^.+$" "^.+$"
+
+
+#
+#  Cleanup
+#
+
+# restore MODULEPATH
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
+    send_user "\tUnset LOADEDMODULES\n"
+    send_user "\tUnset _LMFILES_\n"
+}
+set env(MODULEPATH) $modpath
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+unset module1
+unset modulefile1
+unset module2
+unset modulefile2
+unset ans
+unset cmd
