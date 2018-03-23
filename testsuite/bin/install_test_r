@@ -38,7 +38,8 @@ source(initfile)
 # execute command list
 code <- 0
 for (cmd in strsplit(cmdlist, ':')[[1]]) {
-   ret <- do.call(module, list(cmd))
+   # append ',' to take into account eventual empty string arg
+   ret <- do.call(module, as.list(strsplit(paste0(cmd,',',collapse='')[[1]], ',')[[1]]))
    if (identical(ret, FALSE)) {
       code <- 1
    } else if (!(identical(ret, TRUE))) {
