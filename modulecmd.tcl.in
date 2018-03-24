@@ -1359,7 +1359,7 @@ proc module {command args} {
       {^initsw}             {set command "initswitch"}
       {^init(rm|unlo)$}     {set command "initrm"}
       {^initl}              {set command "initlist"}
-      {^($|help)}           {set command "help"}
+      {^$}                  {set command "help"; set args {}}
    }
 
    # guess if called from top level
@@ -6362,8 +6362,11 @@ if {[catch {
    # default command is help if none supplied
    if {$command eq ""} {
       set command "help"
+      # clear other args if no command name supplied
+      set otherargv {}
+   } else {
+      set otherargv [lreplace $otherargv 0 0]
    }
-   set otherargv [lreplace $otherargv 0 0]
 
    # no modulefile is currently being interpreted
    pushModuleFile {}
