@@ -28,6 +28,11 @@ if ($#ARGV != 1) {
 }
 
 my ($initfile, $cmdlist) = @ARGV;
+my @cmdlist = split(':', $cmdlist);
+# empty command list, means one empty command
+if (@cmdlist == 0) {
+   push @cmdlist, "";
+}
 
 if (! -r $initfile) {
    print STDERR "Cannot read $initfile\n";
@@ -39,8 +44,19 @@ require $initfile;
 
 # execute command list
 my $code = 0;
-foreach my $cmd (split ':', $cmdlist) {
-   my $ret = &module(split(/,/, $cmd, -1));
+foreach my $cmd (@cmdlist) {
+   my $ret;
+   # if command equals to NOARG string, means call with no arg passed
+   if ($cmd eq 'NOARG') {
+      $ret = &module();
+   } else {
+      my @arglist = split(/,/, $cmd, -1);
+      # empty arg list, means one empty arg
+      if (@arglist == 0) {
+         push @arglist, "";
+      }
+      $ret = &module(@arglist);
+   }
    if (!($ret & ~$ret) && length($ret) > 0 && $ret == 0) {
       $code = 1;
    } elsif ($ret & ~$ret) {

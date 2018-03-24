@@ -26,7 +26,11 @@ if (length(args) != 2) {
 }
 
 initfile <- args[1]
-cmdlist <- args[2]
+cmdlist <- strsplit(args[2], ':')[[1]]
+# empty command list, means one empty command
+if (length(cmdlist) == 0) {
+   cmdlist <- list('')
+}
 
 if (file.access(initfile, 4) != 0) {
    stop('Cannot read ', initfile)
@@ -37,9 +41,14 @@ source(initfile)
 
 # execute command list
 code <- 0
-for (cmd in strsplit(cmdlist, ':')[[1]]) {
-   # append ',' to take into account eventual empty string arg
-   ret <- do.call(module, as.list(strsplit(paste0(cmd,',',collapse='')[[1]], ',')[[1]]))
+for (cmd in cmdlist) {
+   # if command equals to NOARG string, means call with no arg passed
+   if (cmd == 'NOARG') {
+      ret <- do.call(module, list())
+   } else {
+      # append ',' to take into account eventual empty string arg
+      ret <- do.call(module, as.list(strsplit(paste0(cmd,',',collapse='')[[1]], ',')[[1]]))
+   }
    if (identical(ret, FALSE)) {
       code <- 1
    } else if (!(identical(ret, TRUE))) {

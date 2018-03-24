@@ -25,7 +25,11 @@ if ARGV.length != 2 then
 end
 
 initfile = ARGV[0]
-cmdlist = ARGV[1]
+cmdlist = ARGV[1].split(':')
+# empty command list, means one empty command
+if cmdlist.length == 0 then
+   cmdlist.push('')
+end
 
 if not File.readable?(initfile) then
    STDERR.puts("Cannot read #{initfile}")
@@ -37,8 +41,18 @@ require initfile
 
 # execute command list
 code = 0
-cmdlist.split(':').each do |cmd|
-   ret = ENVModule.module(cmd.split(/,/, -1))
+cmdlist.each do |cmd|
+   # if command equals to NOARG string, means call with no arg passed
+   if cmd == 'NOARG' then
+      ret = ENVModule.module()
+   else
+      arglist = cmd.split(/,/, -1)
+      # empty arg list, means one empty arg
+      if arglist.length == 0 then
+         arglist.push('')
+      end
+      ret = ENVModule.module(arglist)
+   end
    if ret == false then
       code = 1
    elsif ret != true then

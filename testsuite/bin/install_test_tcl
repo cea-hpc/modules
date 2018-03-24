@@ -25,7 +25,11 @@ if {$argc != 2} {
 }
 
 set initfile [lindex $argv 0]
-set cmdlist [lindex $argv 1]
+set cmdlist [split [lindex $argv 1] ":"]
+# empty command list, means one empty command
+if {[llength $cmdlist] == 0} {
+   lappend cmdlist {}
+}
 
 if {![file readable $initfile]} {
    puts stderr "Cannot read $initfile"
@@ -37,9 +41,19 @@ source $initfile
 
 # execute command list
 set code 0
-foreach cmd [split $cmdlist ":"] {
+foreach cmd $cmdlist {
+   # if command equals to NOARG string, means call with no arg passed
+   if {$cmd eq "NOARG"} {
+      set arglist ""
+   } else {
+      set arglist [split $cmd ","]
+      # empty arg list, means one empty arg
+      if {[llength $arglist] == 0} {
+         lappend arglist {}
+      }
+   }
    if {[catch {
-      set ret [eval module [split $cmd ","]]
+      set ret [eval module $arglist]
       if {$ret == 0} {
          set code 1
       } elseif {![string is integer $ret]} {
