@@ -3509,11 +3509,12 @@ if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
          _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
       fi;
    done;
-   if [ -n "${_mlre:-}" ]; then
-      _mlre="eval ${_mlre}";
-   fi;}
-         append fdef "\n   eval `\${${wsplit}_mlre:-}$tclshbin $::argv0\
-$::g_shell \"\$@\"`;
+   if [ -n "${_mlre:-}" ]; then}
+         append fdef "\n      eval `eval \${${wsplit}_mlre}$tclshbin $::argv0\
+$::g_shell '\"\$@\"'`;
+   else
+      eval `$tclshbin $::argv0 $::g_shell \"\$@\"`;
+   fi;
    _mlstatus=\$?;\n"
          append fdef {   if [ -n "${_mlIFS+x}" ]; then
       IFS=$_mlIFS;
