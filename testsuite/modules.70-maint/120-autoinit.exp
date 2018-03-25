@@ -34,6 +34,7 @@ set modulecmd_path [eval file join $path_list]
 set modulecmd_pathre [regsub -all "\(\[.+?\]\)" $modulecmd_path {\\\1}]
 set moduleshome $install_prefix
 set modulepathre [regsub -all "\(\[$.+?\]\)" $install_modulepath {\\\1}]
+set install_prefixre [regsub -all {([$.+?])} $install_prefix {\\\1}]
 
 # compare init config files to determine if we can guess expected setup
 set insmodspath [file readable $install_initdir/.modulespath]
@@ -409,7 +410,12 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     lappend ans [list set MODULEPATH_modshare "(.*)"]
                     lappend ans [list set LOADEDMODULES ""]
                     lappend ans [list set MODULESHOME $moduleshome]
-                    lappend ans [list set MODULEPATH "$modulepathre:$install_prefix/test/modulefiles:$install_prefix/test/etc"]
+                    # no re escaping for R (need re escaping to better cope with lang escaping)
+                    if {$shell eq "r"} {
+                        lappend ans [list set MODULEPATH "$modulepathre:$install_prefixre/test/modulefiles:$install_prefixre/test/etc" "noescval"]
+                    } else {
+                        lappend ans [list set MODULEPATH "$modulepathre:$install_prefix/test/modulefiles:$install_prefix/test/etc"]
+                    }
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION "(.*)"]
                     }
@@ -420,11 +426,21 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
                     }
                     lappend ans [list set MODULES_CMD $modulecmd_path]
-                    lappend ans [list set MODULEPATH_modshare "$modulepathre:1"]
+                    # no re escaping for R (need re escaping to better cope with lang escaping)
+                    if {$shell eq "r"} {
+                        lappend ans [list set MODULEPATH_modshare "$modulepathre:1" "noescval"]
+                    } else {
+                        lappend ans [list set MODULEPATH_modshare "$modulepathre:1"]
+                    }
                     lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
                     lappend ans [list set LOADEDMODULES "null"]
                     lappend ans [list set MODULESHOME $moduleshome]
-                    lappend ans [list set MODULEPATH "$modulepathre"]
+                    # no re escaping for R (need re escaping to better cope with lang escaping)
+                    if {$shell eq "r"} {
+                        lappend ans [list set MODULEPATH "$modulepathre" "noescval"]
+                    } else {
+                        lappend ans [list set MODULEPATH "$modulepathre"]
+                    }
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION "(.*)"]
                     }
@@ -454,6 +470,7 @@ unset modulecmd_pathre
 unset modulecmd_path
 unset moduleshome
 unset modulepathre
+unset install_prefixre
 
 if {[info exists fid]} {
     unset fid
