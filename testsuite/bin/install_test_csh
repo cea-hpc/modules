@@ -91,10 +91,33 @@ endif
 switch ($mode)
    case top:
    case launch:
-      foreach cmd ("`echo '${cmdlist}' | tr ';' '\n'`")
-         eval $cmd
+      # hardcode single quote test from 080-args to correctly pass the single
+      # quotes to the module command
+      set hardcodetest=1
+      if ( "$cmdlist" == "module load ''" ) then
+         module load ''
          set ret=($ret + $status)
-      end
+         set hardcodetest=0
+      endif
+      if ( "$cmdlist" == "module load \'\'" ) then
+         module load \'\'
+         set ret=($ret + $status)
+         set hardcodetest=0
+      endif
+      if ( "$cmdlist" == "module append-path -d ' ' FOO /path/to/dir2;module source $TESTSUITEDIR/modulefiles.other/putsvar" ) then
+         module append-path -d ' ' FOO /path/to/dir2
+         set ret=($ret + $status)
+         module source $TESTSUITEDIR/modulefiles.other/putsvar
+         set ret=($ret + $status)
+         set hardcodetest=0
+      endif
+
+      if ( $hardcodetest != 0 ) then
+         foreach cmd ("`echo '${cmdlist}' | tr ';' '\n'`")
+            eval $cmd
+            set ret=($ret + $status)
+         end
+      endif
       breaksw
    case sub:
    case sublaunch:

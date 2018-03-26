@@ -1,0 +1,149 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:       modules.00-init/%M%
+#   Revision:       %I%
+#   First Edition:  2018/03/20
+#   Last Mod.:      %U%, %G%
+#
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:    Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:    %C{
+#           Check handling of argument strings on all shells
+#       }C%
+#
+##############################################################################
+
+set modfile "$env(TESTSUITEDIR)/modulefiles.other/putsvar"
+
+set err_emptymod "$error_msgs: Invalid empty module name"
+set err_emptydir "$error_msgs: Directory name empty"
+set err_locatemod "$error_msgs: Unable to locate a modulefile for 'foo bar'"
+set err_locatemod2 "$error_msgs: Unable to locate a modulefile for 'foo\\\\\ bar'"
+set err_locatemod3 "$error_msgs: Unable to locate a modulefile for '\$foo'"
+set err_locatemod4 "$error_msgs: Unable to locate a modulefile for '\\\$foo'"
+set err_locatemod5 "$error_msgs: Unable to locate a modulefile for '\\\\\\\$foo'"
+set err_locatemod6 "$error_msgs: Unable to locate a modulefile for '\"\"'"
+set err_locatemod7 "$error_msgs: Unable to locate a modulefile for ''''"
+set usage_msg "^Modules Release \\S+ (\\S+).*"
+
+#
+# The tests
+#
+
+if {$verbose > 0} {
+   send_user "\tChecking handling of argument strings\n"
+}
+
+set foo ":/path/to/dir1"
+set bar "/path/to/dir3"
+if { $verbose > 0 } {
+    send_user "\tSetup FOO = '$foo'\n"
+    send_user "\tSetup BAR = '$bar'\n"
+}
+set env(FOO) "$foo"
+set env(BAR) "$bar"
+
+for {set i 0} {$i < 2} {incr i} {
+
+# do the tests twice, second time with a quarantine setup
+# to check quarantine mechanism does not alter argument handling
+if {$i == 1} {
+   if { $verbose > 0 } {
+       send_user "\tSetup MODULES_RUN_QUARANTINE = 'FOO'\n"
+   }
+   set env(MODULES_RUN_QUARANTINE) "FOO"
+}
+
+foreach shell $shell_list {
+   testall_cmd "$shell" "module use \"\"" "" $err_emptydir 1
+   testall_cmd "$shell" "module load ''" "" $err_emptymod 1
+   testall_cmd "$shell" "module load \\\"\\\"" "" $err_locatemod6 1
+   testall_cmd "$shell" "module load \\'\\'" "" $err_locatemod7 1
+   testall_cmd "$shell" "module load \"foo bar\"" "" $err_locatemod 1
+   testall_cmd "$shell" "module load foo\\ bar" "" $err_locatemod 1
+   testall_cmd "$shell" "module load \\\$foo" "" $err_locatemod3 1
+   testall_cmd_re "$shell" "module" "" $usage_msg 0
+   testall_cmd_re "$shell" "module " "" $usage_msg 0
+   testall_cmd_re "$shell" "module \"\"" "" $usage_msg 0
+   testall_cmd_re "$shell" "module \"\" \"\"" "" $usage_msg 0
+   testall_cmd "$shell" "module append-path -d \" \" FOO /path/to/dir2;module source $modfile" "" "$foo /path/to/dir2" 0
+   testall_cmd "$shell" "module append-path -d ' ' FOO /path/to/dir2;module source $modfile" "" "$foo /path/to/dir2" 0
+   testall_cmd "$shell" "module append-path FOO \"\$BAR\";module source $modfile" "" "$foo:$bar" 0
+   testall_cmd "$shell" "module append-path FOO \\\$foo;module source $modfile" "" "$foo:\$foo" 0
+   testall_cmd "$shell" "module append-path --duplicates FOO \"\";module source $modfile" "" "$foo:" 0
+   testall_cmd "$shell" "module remove-path FOO \"\";module source $modfile" "" "/path/to/dir1" 0
+}
+
+foreach shell $othlang_list {
+   testall_cmd_re "$shell" "use," "" $err_emptydir 1
+   testall_cmd_re "$shell" "load," "" $err_emptymod 1
+   # langs swallow " differently
+   switch -- $shell {
+      {perl} - {ruby} - {r} {
+         testall_cmd_re "$shell" "load,\"\"" "" $err_emptymod 1
+      }
+      default {
+         testall_cmd_re "$shell" "load,\"\"" "" $err_locatemod6 1
+      }
+   }
+   testall_cmd_re "$shell" "load,''" "" $err_locatemod7 1
+   testall_cmd_re "$shell" "load,foo bar" "" $err_locatemod 1
+   testall_cmd_re "$shell" "load,foo\\ bar" "" $err_locatemod2 1
+   # langs swallow \$ differently
+   switch -- $shell {
+      {tcl} - {python} - {cmake} {
+         testall_cmd_re "$shell" "load,\\\$foo" "" $err_locatemod5 1
+      }
+      default {
+         testall_cmd_re "$shell" "load,\\\$foo" "" $err_locatemod4 1
+      }
+   }
+   testall_cmd_re "$shell" "NOARG" "" $usage_msg 0
+   testall_cmd_re "$shell" "" "" $usage_msg 0
+   testall_cmd_re "$shell" "," "" $usage_msg 0
+   testall_cmd_re "$shell" "append-path,-d, ,FOO,/path/to/dir2:source,$modfile" "" "$foo /path/to/dir2" 0
+   # langs swallow \$ differently
+   switch -- $shell {
+      {tcl} - {python} {
+         testall_cmd_re "$shell" "append-path,FOO,\\\$foo:source,$modfile" "" "$foo:\\\\\\\$foo" 0
+      }
+      default {
+         testall_cmd_re "$shell" "append-path,FOO,\\\$foo:source,$modfile" "" "$foo:\\\$foo" 0
+      }
+   }
+   testall_cmd_re "$shell" "append-path,--duplicates,FOO,:source,$modfile" "" "$foo:" 0
+   testall_cmd_re "$shell" "remove-path,FOO,:source,$modfile" "" "/path/to/dir1" 0
+}
+
+}
+
+#
+#  Clean up variables used in this test case
+#
+
+unset foo
+unset bar
+unset env(FOO)
+unset env(BAR)
+unset env(MODULES_RUN_QUARANTINE)
+
+unset modfile
+
+unset err_emptymod
+unset err_emptydir
+unset err_locatemod
+unset err_locatemod2
+unset err_locatemod3
+unset err_locatemod4
+unset err_locatemod5
+unset err_locatemod6
+unset err_locatemod7
+unset usage_msg
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
