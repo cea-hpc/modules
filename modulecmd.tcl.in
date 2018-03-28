@@ -521,11 +521,11 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
 
    # skip modulefile if interpretation has been inhibited
    if {$::g_inhibit_interp} {
-      reportDebug "execute-modulefile: Skipping $modfile"
+      reportDebug "execute-modulefile: skipping $modfile"
       return 1
    }
 
-   reportDebug "execute-modulefile:  Starting $modfile"
+   reportDebug "execute-modulefile: sourcing $modfile"
 
    if {![info exists ::g_modfileUntrackVars]} {
       # list variable that should not be tracked for saving
@@ -660,15 +660,13 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
 
    popModuleFile
 
-   reportDebug "Exiting $modfile"
+   reportDebug "execute-modulefile: exiting $modfile"
    return $errorVal
 }
 
 # Smaller subset than main module load... This function runs modulerc and
 # .version files
 proc execute-modulerc {modfile} {
-   reportDebug "execute-modulerc: $modfile"
-
    pushModuleFile $modfile
    set ::ModulesVersion {}
    # does not report commands from rc file on display mode
@@ -703,7 +701,7 @@ proc execute-modulerc {modfile} {
       # cascaded interpretations a specific interpreter per level
       set itrp "__modrc[info level]"
 
-      reportDebug "execute-modulerc: sourcing rc $modfile"
+      reportDebug "execute-modulerc: sourcing $modfile"
       # create modulerc interpreter at first interpretation
       if {![interp exists $itrp]} {
          interp create $itrp
