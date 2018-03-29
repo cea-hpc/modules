@@ -4059,10 +4059,46 @@ proc getVersAliasList {mod} {
    return $tag_list
 }
 
+# check if an existing findModules cache entry matches current search by
+# evaluating search ids. if an exact match cannot be found, look at saved
+# searches that contains current search (superset of looked elements), extra
+# elements will be filtered-out by GetModules
+proc findModulesInMemCache {searchid} {
+   # exact same search is cached
+   if {[info exists ::g_foundModulesMemCache($searchid)]} {
+      set match_searchid $searchid
+      set mod_list $::g_foundModulesMemCache($searchid)
+   # look for a superset search
+   } else {
+      set match_searchid {}
+      set mod_list {}
+      foreach cacheid [array names ::g_foundModulesMemCache] {
+         # cache id acts as pattern to check if it contains current search
+         if {[string match $cacheid $searchid]} {
+            set match_searchid $cacheid
+            set mod_list $::g_foundModulesMemCache($cacheid)
+            break
+         }
+      }
+   }
+
+   return [list $match_searchid $mod_list]
+}
+
 # finds all module-related files matching mod in the module path dir
 proc findModules {dir {mod {}} {fetch_mtime 0} {fetch_hidden 0}} {
    reportDebug "finding '$mod' in $dir (fetch_mtime=$fetch_mtime,\
       fetch_hidden=$fetch_hidden)"
+
+   # generated search id (for cache search/save) by compacting given args
+   set searchid "$dir:$mod:$fetch_mtime:$fetch_hidden"
+
+   # look at memory cache for a compatible result
+   lassign [findModulesInMemCache $searchid] cache_searchid cache_list
+   if {$cache_searchid ne ""} {
+      reportDebug "findModules: use cache entry '$cache_searchid'"
+      return $cache_list
+   }
 
    # use catch protection to handle non-readable and non-existent dir
    if {[catch {
@@ -4178,7 +4214,12 @@ proc findModules {dir {mod {}} {fetch_mtime 0} {fetch_hidden 0}} {
 
    reportDebug "found [array names mod_list]"
 
-   return [array get mod_list]
+   # cache search results
+   reportDebug "findModules: create cache entry '$searchid'"
+   set found_list [array get mod_list]
+   set ::g_foundModulesMemCache($searchid) $found_list
+
+   return $found_list
 }
 
 proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
