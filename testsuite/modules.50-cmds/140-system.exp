@@ -41,6 +41,7 @@ test_cmd "csh" "load $module" $ans
 
 set module "system/1.0"
 set modulefile "$modpath/$module"
+set modulefilere "$modpathre/$module"
 
 set ans [list]
 lappend ans [list set _LMFILES__modshare "$modulefile:1"]
@@ -57,10 +58,11 @@ test_cmd "csh" "load $module" $ans
 
 # system call is resolved and reported standalone to stderr rather
 # part of the setenv call
+set testsuitedirre [regsub -all "\(\[.+?\]\)" $env(TESTSUITEDIR) {\\\1}]
 set disp "$modlin
-$modulefile:
+$modulefilere:
 
-system\t\t$env(TESTSUITEDIR)/systest0 foo bar
+system\t\t$testsuitedirre/systest0 foo bar
 setenv\t\ttestsuite\t
 $modlin"
 
@@ -71,7 +73,9 @@ testouterr_cmd_re "csh" "display $module" "OK" $disp
 #
 
 unset ans
+unset testsuitedirre
 unset disp
 
 unset modulefile
+unset modulefilere
 unset module
