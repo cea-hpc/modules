@@ -7,6 +7,58 @@ This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
 
+Modules 4.1.2 (2018-03-31)
+--------------------------
+
+* Add an example global rc file in ``contrib/etc`` directory that ensures
+  ``MODULEPATH`` is always defined.
+* Check ``HOME`` environment variable is defined on ``savelist`` and
+  ``is-saved`` commands or raise error if not.
+* Fix saving of deep module default version in collection when version pinning
+  is disabled: if ``foo/bar/version`` is default version for ``foo``,
+  collection will retain just ``foo`` (was retaining ``foo/bar``).
+* Enable to save and restore collections containing full path modulefiles
+  eventually with no modulepath defined.
+* Run ``puts`` command not related to ``stderr`` or ``stdout`` channels in
+  calling modulefile context to correctly get access to the targeted file
+  channel. (fix issue#157)
+* Quote ``autoinit`` result for eval interpretation on SH-kind shells to avoid
+  parameter expansion to randomly occur on generated code depending on file
+  or directory names of current working directory. (fix RH bug#1549664)
+* Ignore empty elements found in ``MODULEPATH``, ``LOADEDMODULES`` or
+  ``_LMFILES_`` to ensure all elements in these variables are non-empty
+  strings.
+* Raise error if loaded environment is in an inconsistent state when calling
+  commands requiring correlation of information from the ``LOADEDMODULES`` and
+  the ``_LMFILES_`` environment variables. Error raised on ``load``,
+  ``unload``, ``switch``, ``reload``, ``purge``, ``list``, ``save`` and
+  ``restore`` commands.  May affect ``info-loaded`` or ``is-loaded`` commands
+  if module passed as argument to these command is specified as a full path
+  modulefile.
+* Fix ``list`` command to process loaded modules information before performing
+  any content output.
+* Install: adapt ``configure`` script and Makefiles to support installation on
+  Cygwin system.
+* Detect terminal width on Windows ``cmd`` terminal with ``mode`` command.
+* Improve Windows ``cmd`` shell support: error code returned, echoing text,
+  shell alias creation and removal, working directory change.
+* Raise error when an empty module name is passed to module sub-commands like
+  ``load``, ``display`` or ``unload``.
+* Raise error when an empty collection name is passed to module sub-commands
+  like ``save``, ``saveshow`` or ``restore``.
+* Raise error when an empty path is passed to module ``unuse`` sub-command,
+  like already done on ``use`` sub-command.
+* Clear argument list if an empty module command name is passed.
+* Fix ``module`` function definition for all shells in ``autoinit`` command to
+  correctly handle empty-string parameters or parameters containing
+  white-spaces, quotes, escape characters.
+* Fix ``module`` function definition for Python to accept being called with no
+  argument.
+* Fix parameter expansion on ``module`` function for all SH-kind shells when
+  quarantine mode is activated.
+* Escape ``\`` character when producing R shell code.
+
+
 Modules 4.1.1 (2018-02-17)
 --------------------------
 
