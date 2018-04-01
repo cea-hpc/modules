@@ -1359,7 +1359,12 @@ proc module {command args} {
       {^initsw}             {set command "initswitch"}
       {^init(rm|unlo)$}     {set command "initrm"}
       {^initl}              {set command "initlist"}
-      {^$}                  {set command "help"; set args {}}
+      {^$} {
+         # default command is help if empty string supplied
+         set command "help"
+         # clear other args if no command name supplied
+         set args {}
+      }
    }
 
    # guess if called from top level
@@ -6359,14 +6364,7 @@ if {[catch {
    }
 
    set command [lindex $otherargv 0]
-   # default command is help if none supplied
-   if {$command eq ""} {
-      set command "help"
-      # clear other args if no command name supplied
-      set otherargv {}
-   } else {
-      set otherargv [lreplace $otherargv 0 0]
-   }
+   set otherargv [lreplace $otherargv 0 0]
 
    # no modulefile is currently being interpreted
    pushModuleFile {}
@@ -6376,7 +6374,7 @@ if {[catch {
    runModulerc
 
    # eval needed to pass otherargv as list to module proc
-   eval module $command $otherargv
+   eval module "{$command}" $otherargv
 } errMsg ]} {
    # no use of reportError here to get independent from any
    # previous error report inhibition
