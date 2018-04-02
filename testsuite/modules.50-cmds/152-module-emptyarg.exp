@@ -1,0 +1,322 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/04/01
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload, display, test, switch, source, whatis,
+#                   apropos, purge, reload, aliases, savelist, save,
+#                   restore, saveshow, saverm, use, unuse, avail 
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test module commands called from modulefile with an empty string
+#           argument called
+#		}C%
+#
+##############################################################################
+
+set module "modemptyarg"
+set modulepath "$modpath.other"
+set modulepathre "$modpathre.other"
+
+# setup specific environment
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = '$modulepath'\n"
+}
+set env(MODULEPATH) $modulepath
+
+# no test of module commands that can only be called from the top level
+# (command-line). these commands are already checked in 151-module-onlytop.exp
+
+#
+# test load mode
+#
+
+# wrong arg number if command does not accept any argument
+foreach cmd [list list purge reload aliases savelist] {
+    testouterr_cmd "sh" "load $module/$cmd" "ERR" "$moderr_msgs: Unexpected number of args for '$cmd' command\n  In '$modulepath/$module/$cmd'\n$err_contact"
+}
+
+# on most module commands, empty arg leads to error
+foreach cmd [list load unload] {
+    # test both empty names {} and "" on same module command
+    testouterr_cmd "sh" "load $module/$cmd" "ERR" "$err_emptymodname\n$err_emptymodname"
+}
+
+# for some module commands, error is not fatal and modulefile is loaded
+foreach cmd [list display test swap] {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES "$module/$cmd"]
+    lappend ans [list setpath _LMFILES_ "$modulepath/$module/$cmd"]
+    lappend ans [list ERR]
+    testouterr_cmd "sh" "load $module/$cmd" $ans $err_emptymodname
+}
+# switch: an empty second arg leads to one name rule
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module/swap2"]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/swap2"]
+lappend ans [list ERR]
+testouterr_cmd_re "sh" "load $module/swap2" $ans "$err_path'bar'"
+foreach cmd [list use unuse] {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES "$module/$cmd"]
+    lappend ans [list setpath _LMFILES_ "$modulepath/$module/$cmd"]
+    lappend ans [list ERR]
+    testouterr_cmd "sh" "load $module/$cmd" $ans $err_emptydirname
+}
+
+# or error is reported as modulefile error rather global error
+foreach cmd [list save restore saveshow saverm] {
+    testouterr_cmd "sh" "load $module/$cmd" "ERR" "$moderr_emptycollname'$modulepath/$module/$cmd'\n$err_contact"
+}
+testouterr_cmd "sh" "load $module/source" "ERR" "$moderr_emptyfilename'$modulepath/$module/source'\n$err_contact"
+
+# empty string currently understood like wildcard
+foreach cmd [list whatis apropos] {
+    set ans [list]
+    lappend ans [list ERR]
+    lappend ans [list set _LMFILES__modshare "$modulepath/$module/$cmd:1"]
+    lappend ans [list set LOADEDMODULES_modshare "$module/$cmd:1"]
+    lappend ans [list set _LMFILES_ "$modulepath/$module/$cmd"]
+    lappend ans [list set LOADEDMODULES "$module/$cmd"]
+    # error rendered as some evaluated modules produce error
+    testouterr_cmd "sh" "load $module/$cmd" $ans ""
+}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module/avail"]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/avail"]
+testouterr_cmd_re "sh" "load $module/avail" $ans "^.+$"
+
+
+#
+# test unload mode
+#
+
+# wrong arg number if command does not accept any argument
+foreach cmd [list list purge reload aliases savelist] {
+    set env(LOADEDMODULES) "$module/$cmd"
+    set env(_LMFILES_) "$modulepath/$module/$cmd"
+    testouterr_cmd "sh" "unload $module/$cmd" "ERR" "$moderr_msgs: Unexpected number of args for '$cmd' command\n  In '$modulepath/$module/$cmd'\n$err_contact"
+}
+
+# on most module commands, empty arg leads to error
+foreach cmd [list load unload] {
+    set env(LOADEDMODULES) "$module/$cmd"
+    set env(_LMFILES_) "$modulepath/$module/$cmd"
+    # test both empty names {} and "" on same module command
+    testouterr_cmd "sh" "unload $module/$cmd" "ERR" "$err_emptymodname\n$err_emptymodname"
+}
+
+# for some module commands, error is not fatal and modulefile is unloaded
+foreach cmd [list display test swap] {
+    set env(LOADEDMODULES) "$module/$cmd"
+    set env(_LMFILES_) "$modulepath/$module/$cmd"
+    set ans [list]
+    lappend ans [list unsetpath LOADEDMODULES]
+    lappend ans [list unsetpath _LMFILES_]
+    lappend ans [list ERR]
+    testouterr_cmd "sh" "unload $module/$cmd" $ans $err_emptymodname
+}
+# switch: an empty second arg leads to one name rule
+set env(LOADEDMODULES) "$module/swap2"
+set env(_LMFILES_) "$modulepath/$module/swap2"
+testouterr_cmd_re "sh" "unload $module/swap2" $ans "$err_path'bar'"
+foreach cmd [list use unuse] {
+    set env(LOADEDMODULES) "$module/$cmd"
+    set env(_LMFILES_) "$modulepath/$module/$cmd"
+    testouterr_cmd "sh" "unload $module/$cmd" $ans $err_emptydirname
+}
+
+# or error is reported as modulefile error rather global error
+foreach cmd [list save restore saveshow saverm] {
+    set env(LOADEDMODULES) "$module/$cmd"
+    set env(_LMFILES_) "$modulepath/$module/$cmd"
+    testouterr_cmd "sh" "unload $module/$cmd" "ERR" "$moderr_emptycollname'$modulepath/$module/$cmd'\n$err_contact"
+}
+set env(LOADEDMODULES) "$module/source"
+set env(_LMFILES_) "$modulepath/$module/source"
+testouterr_cmd "sh" "unload $module/source" "ERR" "$moderr_emptyfilename'$modulepath/$module/source'\n$err_contact"
+
+# empty string currently understood like wildcard
+foreach cmd [list whatis apropos] {
+    set env(LOADEDMODULES) "$module/$cmd"
+    set env(_LMFILES_) "$modulepath/$module/$cmd"
+    set ans [list]
+    lappend ans [list ERR]
+    lappend ans [list unset _LMFILES__modshare]
+    lappend ans [list unset LOADEDMODULES_modshare]
+    lappend ans [list unset _LMFILES_]
+    lappend ans [list unset LOADEDMODULES]
+    # error rendered as some evaluated modules produce error
+    testouterr_cmd "sh" "unload $module/$cmd" $ans ""
+}
+set env(LOADEDMODULES) "$module/avail"
+set env(_LMFILES_) "$modulepath/$module/avail"
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd_re "sh" "unload $module/avail" $ans "^.+$"
+
+# restore environment
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+
+#
+# test display mode
+#
+
+proc display_stderr_content {modfile content} {
+    if {$content ne ""} {
+        append content "\n"
+    }
+
+    return "$::modlin\n$modfile:\n\n$content$::modlin"
+}
+
+
+# on most module commands, command line with empty arg is printed
+foreach cmd [list load unload] {
+    # test both empty names {} and "" on same module command
+    testouterr_cmd_re "sh" "display $module/$cmd" "OK" [display_stderr_content "$modulepathre/$module/$cmd" "module $cmd\t{} {}"]
+}
+foreach cmd [list use unuse source] {
+    testouterr_cmd_re "sh" "display $module/$cmd" "OK" [display_stderr_content "$modulepathre/$module/$cmd" "module $cmd\t{}"]
+}
+
+# for some module commands, command is run instead of being displayed
+foreach cmd [list list purge reload aliases savelist] {
+    testouterr_cmd_re "sh" "display $module/$cmd" "ERR" [display_stderr_content "$modulepathre/$module/$cmd" "$moderr_msgs: Unexpected number of args for '$cmd' command\n  In '$modulepathre/$module/$cmd'\n$err_contact"]
+}
+foreach cmd [list display test swap] {
+    testouterr_cmd_re "sh" "display $module/$cmd" "ERR" [display_stderr_content "$modulepathre/$module/$cmd" $err_emptymodname]
+}
+testouterr_cmd_re "sh" "display $module/swap2" "ERR" [display_stderr_content "$modulepathre/$module/swap2" "$err_path'bar'"]
+foreach cmd [list save restore saveshow saverm] {
+    testouterr_cmd_re "sh" "display $module/$cmd" "ERR" [display_stderr_content "$modulepathre/$module/$cmd" "$moderr_emptycollname'$modulepathre/$module/$cmd'\n$err_contact"]
+}
+foreach cmd [list whatis apropos] {
+    testouterr_cmd_re "sh" "display $module/$cmd" "ERR" [display_stderr_content "$modulepathre/$module/$cmd" ""]
+}
+testouterr_cmd_re "sh" "display $module/avail" "OK" [display_stderr_content "$modulepathre/$module/avail" "(.*)+"]
+
+
+#
+# test help mode
+#
+
+proc help_stderr_content {modfile content {procwarn 0}} {
+    if {$content ne ""} {
+        append content "\n"
+    }
+
+    if {$procwarn} {
+        append content "WARNING: Unable to find ModulesHelp in $modfile.\n"
+    }
+
+    return "$::modlin\nModule Specific Help for $modfile:\n\n$content$::modlin"
+}
+
+# on most module commands, command line is ignored
+foreach cmd [list load unload] {
+    # test both empty names {} and "" on same module command
+    testouterr_cmd_re "sh" "help $module/$cmd" "OK" [help_stderr_content "$modulepathre/$module/$cmd" "" 1]
+}
+foreach cmd [list use unuse source] {
+    testouterr_cmd_re "sh" "help $module/$cmd" "OK" [help_stderr_content "$modulepathre/$module/$cmd" "" 1]
+}
+
+# for some module commands, command is run instead of being ignored
+foreach cmd [list list purge reload aliases savelist] {
+    testouterr_cmd_re "sh" "help $module/$cmd" "ERR" [help_stderr_content "$modulepathre/$module/$cmd" "$moderr_msgs: Unexpected number of args for '$cmd' command\n  In '$modulepathre/$module/$cmd'\n$err_contact"]
+}
+foreach cmd [list display test swap] {
+    testouterr_cmd_re "sh" "help $module/$cmd" "ERR" [help_stderr_content "$modulepathre/$module/$cmd" $err_emptymodname 1]
+}
+testouterr_cmd_re "sh" "help $module/swap2" "ERR" [help_stderr_content "$modulepathre/$module/swap2" "$err_path'bar'" 1]
+foreach cmd [list save restore saveshow saverm] {
+    testouterr_cmd_re "sh" "help $module/$cmd" "ERR" [help_stderr_content "$modulepathre/$module/$cmd" "$moderr_emptycollname'$modulepathre/$module/$cmd'\n$err_contact"]
+}
+foreach cmd [list whatis apropos] {
+    testouterr_cmd_re "sh" "help $module/$cmd" "ERR" [help_stderr_content "$modulepathre/$module/$cmd" "" 1]
+}
+testouterr_cmd_re "sh" "help $module/avail" "OK" [help_stderr_content "$modulepathre/$module/avail" "(.*)+" 1]
+
+
+#
+# test test mode
+#
+
+proc test_stderr_content {modfile content {procwarn 0}} {
+    if {$content ne ""} {
+        append content "\n"
+    }
+
+    if {$procwarn} {
+        append content "WARNING: Unable to find ModulesTest in $modfile.\n"
+    }
+
+    return "$::modlin\nModule Specific Test for $modfile:\n\n$content$::modlin"
+}
+
+# on most module commands, command line is ignored
+foreach cmd [list load unload] {
+    # test both empty names {} and "" on same module command
+    testouterr_cmd_re "sh" "test $module/$cmd" "OK" [test_stderr_content "$modulepathre/$module/$cmd" "" 1]
+}
+foreach cmd [list use unuse source] {
+    testouterr_cmd_re "sh" "test $module/$cmd" "OK" [test_stderr_content "$modulepathre/$module/$cmd" "" 1]
+}
+
+# for some module commands, command is run instead of being ignored
+foreach cmd [list list purge reload aliases savelist] {
+    testouterr_cmd_re "sh" "test $module/$cmd" "ERR" [test_stderr_content "$modulepathre/$module/$cmd" "$moderr_msgs: Unexpected number of args for '$cmd' command\n  In '$modulepathre/$module/$cmd'\n$err_contact"]
+}
+foreach cmd [list display test swap] {
+    testouterr_cmd_re "sh" "test $module/$cmd" "ERR" [test_stderr_content "$modulepathre/$module/$cmd" $err_emptymodname 1]
+}
+testouterr_cmd_re "sh" "test $module/swap2" "ERR" [test_stderr_content "$modulepathre/$module/swap2" "$err_path'bar'" 1]
+foreach cmd [list save restore saveshow saverm] {
+    testouterr_cmd_re "sh" "test $module/$cmd" "ERR" [test_stderr_content "$modulepathre/$module/$cmd" "$moderr_emptycollname'$modulepathre/$module/$cmd'\n$err_contact"]
+}
+foreach cmd [list whatis apropos] {
+    testouterr_cmd_re "sh" "test $module/$cmd" "ERR" [test_stderr_content "$modulepathre/$module/$cmd" "" 1]
+}
+testouterr_cmd_re "sh" "test $module/avail" "OK" [test_stderr_content "$modulepathre/$module/avail" "(.*)+" 1]
+
+
+#
+# test whatis mode
+#
+
+testouterr_cmd "sh" "whatis $module" "ERR" ""
+
+
+#
+#  Cleanup
+#
+
+# restore MODULEPATH
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
+}
+set env(MODULEPATH) $modpath
+
+unset module
+unset modulepath
+unset modulepathre
+unset ans
+unset cmd
+
+# remove procs
+rename display_stderr_content {}
+rename help_stderr_content {}
+rename test_stderr_content {}

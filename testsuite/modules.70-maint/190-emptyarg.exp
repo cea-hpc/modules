@@ -59,7 +59,7 @@ foreach cmd [list "save" "restore" "saveshow" "saverm" "is-saved"] {
 foreach cmd [list "use" "unuse"] {
     testouterr_cmd "sh" "$cmd " "ERR" $err_emptydirname
 }
-testouterr_cmd "sh" "source " "ERR" "$error_msgs: File name empty"
+testouterr_cmd "sh" "source " "ERR" $err_emptyfilename
 testouterr_cmd "sh" "swap  $module2" "ERR" "$err_emptymodname"
 
 # switch: an empty second arg leads to one name rule
@@ -95,6 +95,11 @@ testouterr_cmd "sh" "remove-path  " "ERR" "$error_msgs: unload-path should get a
 testouterr_cmd "sh" "remove-path -d   " "ERR" "$error_msgs: unload-path should get a non-empty path delimiter"
 testouterr_cmd "sh" "remove-path FOO " $ans ""
 
+# restore MODULEPATH
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
+}
+set env(MODULEPATH) $modpath
 
 # empty string currently understood like wildcard
 foreach cmd [list whatis apropos] {
@@ -109,13 +114,11 @@ testouterr_cmd_re "sh" "paths " "^.+$" "^.+$"
 #  Cleanup
 #
 
-# restore MODULEPATH
+# restore environment
 if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = '$modpath'\n"
     send_user "\tUnset LOADEDMODULES\n"
     send_user "\tUnset _LMFILES_\n"
 }
-set env(MODULEPATH) $modpath
 unset env(LOADEDMODULES)
 unset env(_LMFILES_)
 
