@@ -110,10 +110,6 @@ set ignoreDir(SCCS) 1
 set ignoreDir(.svn) 1
 set ignoreDir(.git) 1
 
-set show_oneperline 0 ;# Gets set if you do module list/avail -t
-set show_modtimes 0 ;# Gets set if you do module list/avail -l
-set show_filter "" ;# Gets set if you do module avail -d or -L
-
 proc raiseErrorCount {} {
    incr ::error_count
 }
@@ -1369,6 +1365,11 @@ proc module {command args} {
 
    reportDebug "module: cmd='$command', args='$args' (mode=$mode)"
 
+   # parse listing specific options, do that globally to ignore these
+   # options on commands not related to listing (exclude them from arg list)
+   lassign [eval parseListCommandArgs $command $args] show_oneperline\
+      show_mtime show_filter args
+
    # guess if called from top level
    set topcall [expr {[info level] == 1}]
    if {$topcall} {
@@ -1507,7 +1508,8 @@ proc module {command args} {
             eval cmdModuleDisplay $args
          }
          {avail} {
-            eval cmdModuleAvail $args
+            eval cmdModuleAvail $show_oneperline $show_mtime "{$show_filter}"\
+               $args
          }
          {aliases} {
             cmdModuleAliases
@@ -1519,7 +1521,7 @@ proc module {command args} {
             eval cmdModulePaths $args
          }
          {list} {
-            cmdModuleList
+            cmdModuleList $show_oneperline $show_mtime
          }
          {whatis} {
             if {$args ne ""} {
@@ -1549,7 +1551,7 @@ proc module {command args} {
             eval cmdModuleSaveshow $args
          }
          {savelist} {
-            cmdModuleSavelist
+            cmdModuleSavelist $show_oneperline $show_mtime
          }
          {initadd} {
             eval cmdModuleInit add $args
@@ -4414,16 +4416,16 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
 }
 
 # Finds all module versions for mod in the module path dir
-proc listModules {dir mod {filter {}} {search "wild"}} {
-   global flag_default_mf flag_default_dir show_modtimes
+proc listModules {dir mod show_mtime {filter {}} {search "wild"}} {
+   global flag_default_mf flag_default_dir
 
    reportDebug "listModules: get '$mod' in $dir\
-      (filter=$filter, search=$search)"
+      (show_mtime=$show_mtime, filter=$filter, search=$search)"
 
    # get module list
    # as we treat a full directory content do not exit on an error
    # raised from one modulerc file
-   array set mod_list [getModules $dir $mod $show_modtimes $search]
+   array set mod_list [getModules $dir $mod $show_mtime $search]
 
    # prepare results for display
    set clean_list {}
@@ -4475,7 +4477,7 @@ proc listModules {dir mod {filter {}} {search "wild"}} {
          switch -- $elt_type {
             {directory} {
                if {$flag_default_dir} {
-                  if {$show_modtimes} {
+                  if {$show_mtime} {
                      lappend clean_list [format "%-40s%-20s" $elt\
                         [join $tag_list ":"]]
                   } else {
@@ -4487,7 +4489,7 @@ proc listModules {dir mod {filter {}} {search "wild"}} {
                }
             }
             {modulefile} - {virtual} {
-               if {$show_modtimes} {
+               if {$show_mtime} {
                   # add to display file modification time in addition
                   # to potential tags
                   lappend clean_list [format "%-40s%-20s%19s" $elt\
@@ -4502,7 +4504,7 @@ proc listModules {dir mod {filter {}} {search "wild"}} {
                }
             }
             {alias} {
-               if {$show_modtimes} {
+               if {$show_mtime} {
                   lappend clean_list [format "%-40s%-20s"\
                      "$elt -> [lindex $mod_list($elt) 1]"\
                      [join $tag_list ":"]]
@@ -4981,11 +4983,51 @@ proc readCollectionContent {collfile colldesc} {
    return [list $path_list $mod_list]
 }
 
+# analyze arg list passed to a module cmd to set listing-related options
+proc parseListCommandArgs {cmd args} {
+   set show_oneperline 0
+   set show_mtime 0
+   set show_filter ""
+   set otherargs {}
+
+   # parse argument list
+   foreach arg $args {
+      switch -glob -- $arg {
+         {-t} - {--terse} {
+            set show_oneperline 1
+            set show_mtime 0
+         }
+         {-l} - {--long} {
+            set show_mtime 1
+            set show_oneperline 0
+         }
+         {-d} - {--default} {
+            # in case of *-path command, -d means --delim
+            if {$arg eq "-d" && [string match "*-path" $cmd]} {
+               lappend otherargs $arg
+            } else {
+               set show_filter "onlydefaults"
+            }
+         }
+         {-L} - {--latest} {
+            set show_filter "onlylatest"
+         }
+         default {
+            lappend otherargs $arg
+         }
+      }
+   }
+
+   reportDebug "parseListCommandArgs: (show_oneperline=$show_oneperline,\
+      show_mtime=$show_mtime, show_filter=$show_filter, otherargs=$otherargs)"
+
+   return [list $show_oneperline $show_mtime $show_filter $otherargs]
+}
 
 ########################################################################
 # command line commands
 #
-proc cmdModuleList {} {
+proc cmdModuleList {show_oneperline show_mtime} {
    set loadedmodlist [getLoadedModuleList]
 
    if {[llength $loadedmodlist] == 0} {
@@ -4993,7 +5035,7 @@ proc cmdModuleList {} {
    } else {
       set display_list {}
       foreach mod $loadedmodlist {
-         if {$::show_oneperline} {
+         if {$show_oneperline} {
             lappend display_list $mod
          } else {
             set modfile [getModulefileFromLoadedModule $mod]
@@ -5008,7 +5050,7 @@ proc cmdModuleList {} {
             } else {
                # call getModules to find and execute rc files for this mod
                set dir [getModulepathFromModuleName $modfile $mod]
-               array set mod_list [getModules $dir $mod $::show_modtimes]
+               array set mod_list [getModules $dir $mod $show_mtime]
                # fetch info only if mod found
                if {[info exists mod_list($mod)]} {
                   set mtime [lindex $mod_list($mod) 1]
@@ -5018,7 +5060,7 @@ proc cmdModuleList {} {
                }
             }
 
-            if {$::show_modtimes} {
+            if {$show_mtime} {
                if {[info exists mtime]} {
                   set clock_mtime [clock format $mtime -format\
                      "%Y/%m/%d %H:%M:%S"]
@@ -5040,11 +5082,11 @@ proc cmdModuleList {} {
          }
       }
 
-      if {$::show_modtimes} {
+      if {$show_mtime} {
          displayTableHeader "Package" "Versions" "Last mod."
       }
       report "Currently Loaded Modulefiles:"
-      if {$::show_modtimes || $::show_oneperline} {
+      if {$show_mtime || $show_oneperline} {
          set display_idx 0
          set one_per_line 1
       } else {
@@ -5496,7 +5538,7 @@ proc cmdModuleSaveshow {{coll {default}}} {
    displaySeparatorLine
 }
 
-proc cmdModuleSavelist {} {
+proc cmdModuleSavelist {show_oneperline show_mtime} {
    # if a target is set, only list collection matching this
    # target (means having target as suffix in their name)
    set colltarget [getCollectionTarget]
@@ -5517,12 +5559,12 @@ proc cmdModuleSavelist {} {
       report "No named collection$targetdesc."
    } else {
       set list {}
-      if {$::show_modtimes} {
+      if {$show_mtime} {
          displayTableHeader "Collection" "Last mod."
       }
       report "Named collection list$targetdesc:"
       set display_list {}
-      if {$::show_modtimes || $::show_oneperline} {
+      if {$show_mtime || $show_oneperline} {
          set display_idx 0
          set one_per_line 1
       } else {
@@ -5536,7 +5578,7 @@ proc cmdModuleSavelist {} {
 
          # no need to test mod consistency as findCollections does not return
          # collection whose name starts with "."
-         if {$::show_modtimes} {
+         if {$show_mtime} {
             set filetime [clock format [getFileMtime $coll]\
                -format "%Y/%m/%d %H:%M:%S"]
             lappend display_list [format "%-60s%19s" $mod $filetime]
@@ -5737,12 +5779,12 @@ proc cmdModuleAliases {} {
    eval displayElementList "Versions" "sepline" 1 0 $display_list
 }
 
-proc cmdModuleAvail {args} {
+proc cmdModuleAvail {show_oneperline show_mtime show_filter args} {
    if {[llength $args] == 0} {
       lappend args "*"
    }
 
-   if {$::show_modtimes || $::show_oneperline} {
+   if {$show_mtime || $show_oneperline} {
       set one_per_line 1
       set hstyle "terse"
       set theader_shown 0
@@ -5759,8 +5801,9 @@ proc cmdModuleAvail {args} {
    foreach mod $args {
       # look if aliases have been defined in the global or user-specific
       # modulerc and display them if any in a dedicated list
-      set display_list [listModules "" "$mod" $::show_filter "rc_alias_only"]
-      if {[llength $display_list] > 0 && $::show_modtimes && !$theader_shown} {
+      set display_list [listModules "" "$mod" $show_mtime $show_filter\
+         "rc_alias_only"]
+      if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
          set theader_shown 1
          eval displayTableHeader $theader_cols
       }
@@ -5768,9 +5811,8 @@ proc cmdModuleAvail {args} {
          0 $display_list
 
       foreach dir [getModulePathList "exiterronundef"] {
-         set display_list [listModules $dir "$mod" $::show_filter]
-         if {[llength $display_list] > 0 && $::show_modtimes &&\
-            !$theader_shown} {
+         set display_list [listModules $dir "$mod" $show_mtime $show_filter]
+         if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
             set theader_shown 1
             eval displayTableHeader $theader_cols
          }
@@ -6239,6 +6281,7 @@ if {[catch {
 
    # extract options and command switches from other args
    set otherargv {}
+   set extraargv {}
    set ddelimarg 0
    foreach arg [lrange $argv 1 end] {
       if {[info exists ignore_next_arg]} {
@@ -6260,24 +6303,20 @@ if {[catch {
             {--no-pager} {
                set asked_pager 0
             }
-            {-t} - {--terse} {
-               set show_oneperline 1
-               set show_modtimes 0
+            {-t} - {--terse} - {-l} - {--long} - {--default} - {-L} \
+            - {--latest} {
+               # command-specific switches that can for compatibility be
+               # passed before the command name, so add them to a specific
+               # arg list to ensure command name as first position argument
+               lappend extraargv $arg
             }
-            {-l} - {--long} {
-               set show_modtimes 1
-               set show_oneperline 0
-            }
-            {-d} - {--default} {
+            {-d} {
                # in case of *-path command, -d means --delim
-               if {$arg eq "-d" && $ddelimarg} {
+               if {$ddelimarg} {
                   lappend otherargv $arg
                } else {
-                  set show_filter "onlydefaults"
+                  lappend extraargv $arg
                }
-            }
-            {-L} - {--latest} {
-               set show_filter "onlylatest"
             }
             {-a} - {--append} - {-append} - {-p} - {--prepend} - {-prepend} \
             - {--delim} - {-delim} - {--delim=*} - {-delim=*} \
@@ -6350,7 +6389,7 @@ if {[catch {
    }
 
    set command [lindex $otherargv 0]
-   set otherargv [lreplace $otherargv 0 0]
+   set otherargv [concat [lreplace $otherargv 0 0] $extraargv]
 
    # no modulefile is currently being interpreted
    pushModuleFile {}
