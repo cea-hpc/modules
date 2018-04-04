@@ -4414,32 +4414,16 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
 }
 
 # Finds all module versions for mod in the module path dir
-proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
-   reportDebug "listModules: get '$mod' in $dir\
-      (show_flags=$show_flags, filter=$filter, search=$search)"
+proc listModules {dir mod {filter {}} {search "wild"}} {
+   global flag_default_mf flag_default_dir show_modtimes
 
-   # report flags for directories and modulefiles depending on show_flags
-   # procedure argument and global variables
-   if {$show_flags && $::flag_default_mf} {
-      set show_flags_mf 1
-   } else {
-      set show_flags_mf 0
-   }
-   if {$show_flags && $::flag_default_dir} {
-      set show_flags_dir 1
-   } else {
-      set show_flags_dir 0
-   }
-   if {$show_flags && $::show_modtimes} {
-      set show_mtime 1
-   } else {
-      set show_mtime 0
-   }
+   reportDebug "listModules: get '$mod' in $dir\
+      (filter=$filter, search=$search)"
 
    # get module list
    # as we treat a full directory content do not exit on an error
    # raised from one modulerc file
-   array set mod_list [getModules $dir $mod $show_mtime $search]
+   array set mod_list [getModules $dir $mod $show_modtimes $search]
 
    # prepare results for display
    set clean_list {}
@@ -4490,8 +4474,8 @@ proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
       if {$add_to_clean_list} {
          switch -- $elt_type {
             {directory} {
-               if {$show_flags_dir} {
-                  if {$show_mtime} {
+               if {$flag_default_dir} {
+                  if {$show_modtimes} {
                      lappend clean_list [format "%-40s%-20s" $elt\
                         [join $tag_list ":"]]
                   } else {
@@ -4503,14 +4487,14 @@ proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
                }
             }
             {modulefile} - {virtual} {
-               if {$show_mtime} {
+               if {$show_modtimes} {
                   # add to display file modification time in addition
                   # to potential tags
                   lappend clean_list [format "%-40s%-20s%19s" $elt\
                      [join $tag_list ":"]\
                      [clock format [lindex $mod_list($elt) 1]\
                      -format "%Y/%m/%d %H:%M:%S"]]
-               } elseif {$show_flags_mf && [llength $tag_list] > 0} {
+               } elseif {$flag_default_mf && [llength $tag_list] > 0} {
                   lappend clean_list [join [list $elt "("\
                      [join $tag_list ":"] ")"] {}]
                } else {
@@ -4518,11 +4502,11 @@ proc listModules {dir mod {show_flags {1}} {filter {}} {search "wild"}} {
                }
             }
             {alias} {
-               if {$show_mtime} {
+               if {$show_modtimes} {
                   lappend clean_list [format "%-40s%-20s"\
                      "$elt -> [lindex $mod_list($elt) 1]"\
                      [join $tag_list ":"]]
-               } elseif {$show_flags_mf} {
+               } elseif {$flag_default_mf} {
                   lappend tag_list "@"
                   lappend clean_list [join [list $elt "("\
                      [join $tag_list ":"] ")"] {}]
@@ -5775,7 +5759,7 @@ proc cmdModuleAvail {args} {
    foreach mod $args {
       # look if aliases have been defined in the global or user-specific
       # modulerc and display them if any in a dedicated list
-      set display_list [listModules "" "$mod" 1 $::show_filter "rc_alias_only"]
+      set display_list [listModules "" "$mod" $::show_filter "rc_alias_only"]
       if {[llength $display_list] > 0 && $::show_modtimes && !$theader_shown} {
          set theader_shown 1
          eval displayTableHeader $theader_cols
@@ -5784,7 +5768,7 @@ proc cmdModuleAvail {args} {
          0 $display_list
 
       foreach dir [getModulePathList "exiterronundef"] {
-         set display_list [listModules $dir "$mod" 1 $::show_filter]
+         set display_list [listModules $dir "$mod" $::show_filter]
          if {[llength $display_list] > 0 && $::show_modtimes &&\
             !$theader_shown} {
             set theader_shown 1
