@@ -1507,13 +1507,7 @@ proc module {command args} {
             eval cmdModuleDisplay $args
          }
          {avail} {
-            if {$args ne ""} {
-               foreach arg $args {
-                  cmdModuleAvail $arg
-               }
-            } else {
-               cmdModuleAvail
-            }
+            eval cmdModuleAvail $args
          }
          {aliases} {
             cmdModuleAliases
@@ -5759,7 +5753,11 @@ proc cmdModuleAliases {} {
    eval displayElementList "Versions" "sepline" 1 0 $display_list
 }
 
-proc cmdModuleAvail {{mod {*}}} {
+proc cmdModuleAvail {args} {
+   if {[llength $args] == 0} {
+      lappend args "*"
+   }
+
    if {$::show_modtimes || $::show_oneperline} {
       set one_per_line 1
       set hstyle "terse"
@@ -5774,24 +5772,26 @@ proc cmdModuleAvail {{mod {*}}} {
    # to mix with avail results
    inhibitErrorReport
 
-
-   # look if aliases have been defined in the global or user-specific
-   # modulerc and display them if any in a dedicated list
-   set display_list [listModules "" "$mod" 1 $::show_filter "rc_alias_only"]
-   if {[llength $display_list] > 0 && $::show_modtimes && !$theader_shown} {
-      set theader_shown 1
-      eval displayTableHeader $theader_cols
-   }
-   eval displayElementList "{global/user modulerc}" $hstyle $one_per_line 0\
-      $display_list
-
-   foreach dir [getModulePathList "exiterronundef"] {
-      set display_list [listModules $dir "$mod" 1 $::show_filter]
+   foreach mod $args {
+      # look if aliases have been defined in the global or user-specific
+      # modulerc and display them if any in a dedicated list
+      set display_list [listModules "" "$mod" 1 $::show_filter "rc_alias_only"]
       if {[llength $display_list] > 0 && $::show_modtimes && !$theader_shown} {
          set theader_shown 1
          eval displayTableHeader $theader_cols
       }
-      eval displayElementList $dir $hstyle $one_per_line 0 $display_list
+      eval displayElementList "{global/user modulerc}" $hstyle $one_per_line\
+         0 $display_list
+
+      foreach dir [getModulePathList "exiterronundef"] {
+         set display_list [listModules $dir "$mod" 1 $::show_filter]
+         if {[llength $display_list] > 0 && $::show_modtimes &&\
+            !$theader_shown} {
+            set theader_shown 1
+            eval displayTableHeader $theader_cols
+         }
+         eval displayElementList $dir $hstyle $one_per_line 0 $display_list
+      }
    }
 
    reenableErrorReport
