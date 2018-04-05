@@ -2979,11 +2979,19 @@ proc pushSettings {} {
       g_delXResource} {
       eval "lappend ::g_SAVE_$var \[array get ::$var\]"
    }
+   # save non-array variable and indication if it was set
+   foreach var {g_changeDir g_stdoutPuts g_return_text} {
+      if {[info exists ::$var]} {
+         eval "lappend ::g_SAVE_$var \[list 1 \[set ::$var\]\]"
+      } else {
+         eval "lappend ::g_SAVE_$var \[list 0 {}\]"
+      }
+   }
 }
 
 proc popSettings {} {
    foreach var {env g_Aliases g_stateEnvVars g_stateAliases g_newXResource\
-      g_delXResource} {
+      g_delXResource g_changeDir g_stdoutPuts g_return_text} {
       eval "set ::g_SAVE_$var \[lrange \$::g_SAVE_$var 0 end-1\]"
    }
 }
@@ -2996,6 +3004,16 @@ proc restoreSettings {} {
          eval "unset ::$var; array set ::$var {}"
       }
       eval "array set ::$var \[lindex \$::g_SAVE_$var end\]"
+   }
+   # restore non-array variable if it was set
+   foreach var {g_changeDir g_stdoutPuts g_return_text} {
+      if {[info exists ::$var]} {
+         eval "unset ::$var"
+      }
+      eval "lassign \[lindex \$::g_SAVE_$var end\] isdefined val"
+      if {$isdefined} {
+         set ::$var $val
+      }
    }
 }
 
