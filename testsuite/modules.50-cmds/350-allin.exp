@@ -1,0 +1,369 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/04/05
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload, display, test, help, whatis
+#   Modulefiles:    allin
+#   Sub-Command:    all
+#
+#   Comment:	%C{
+#           Test modulefiles containing all existing commands over all
+#            existing mode
+#		}C%
+#
+##############################################################################
+
+set module "allin"
+set modulepath "$modpath.allin"
+set modulepathre "$modpathre.allin"
+
+set whatis "$modlin $modulepathre $modlin\n\\s+$module/1: $module"
+
+# fetch info for uname result test
+set u_sysname $tcl_platform(os)
+set u_release $tcl_platform(osVersion)
+set u_machine $tcl_platform(machine)
+set u_nodename [exec uname -n]
+set u_version [exec uname -v]
+set u_domain [exec domainname]
+regsub -all {([.+?()])} $u_sysname {\\\1} u_sysnamere
+regsub -all {([.+?()])} $u_release {\\\1} u_releasere
+regsub -all {([.+?()])} $u_machine {\\\1} u_machinere
+regsub -all {([.+?()])} $u_nodename {\\\1} u_nodenamere
+regsub -all {([.+?()])} $u_version {\\\1} u_versionre
+regsub -all {([.+?()])} $u_domain {\\\1} u_domainre
+
+proc display_stderr_content {modfile content} {
+    if {$content ne ""} {
+        append content "\n"
+    }
+
+    return "$::modlin\n$modfile:\n\n$content$::modlin"
+}
+
+proc help_stderr_content {modfile content {procwarn 0}} {
+    if {$content ne ""} {
+        append content "\n"
+    }
+
+    if {$procwarn} {
+        append content "WARNING: Unable to find ModulesHelp in $modfile.\n"
+    }
+
+    return "$::modlin\nModule Specific Help for $modfile:\n\n$content$::modlin"
+}
+
+proc test_stderr_content {modfile content {procwarn 0}} {
+    if {$content ne ""} {
+        append content "\n"
+    }
+
+    if {$procwarn} {
+        append content "WARNING: Unable to find ModulesTest in $modfile.\n"
+    }
+
+    return "$::modlin\nModule Specific Test for $modfile:\n\n$content$::modlin"
+}
+
+
+# setup specific environment
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = '$modulepath'\n"
+}
+set env(MODULEPATH) $modulepath
+
+#
+# test load mode
+#
+
+set ans [list]
+lappend ans [list set ts1 ok]
+lappend ans [list setpath TSPATH "dir3 dir2"]
+lappend ans [list unset ts2]
+lappend ans [list unset ts3]
+lappend ans [list alias foo bar]
+lappend ans [list unalias bar]
+lappend ans [list xres Ileaf.popup.saveUnder True]
+lappend ans [list chdir $env(TESTSUITEDIR)]
+lappend ans [list setpath LOADEDMODULES $module/1]
+lappend ans [list setpath _LMFILES_ $modulepath/$module/1]
+lappend ans [list ERR]
+set tserr1 "$modulepathre:
+$module/1
+$module/2
+$module/3
+$module/4
+$module/5
+$modlin
+$modulepathre/$module/5:
+
+setenv\t\tts3\tok
+$modlin
+No Modulefiles Currently Loaded.
+Named collection list:
+default
+$modlin
+$env(HOME)/.module/default:
+
+module use --append $modulepathre
+module load $module
+
+$modlin
+[test_stderr_content $modulepathre/$module/5 {} 1]
+$error_msgs: Directory '/path/to/dir' not found
+foo"
+# if error when testing X11 setup, will get an error not a loaded module
+if {[info exists x11_warn]} {
+    testouterr_cmd_re "sh" "load $module/1" "ERR" "$tserr1\n$x11_warn"
+} else {
+    testouterr_cmd_re "sh" "load $module/1" $ans $tserr1
+}
+
+# satisfy prereq
+set env(LOADEDMODULES) "$module/5"
+set env(_LMFILES_) "$modulepath/$module/5"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module/5:$module/2"]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/5:$modulepath/$module/2"]
+
+set tserr "_UNDEFINED_1001Tclloadload$module/2$module/2shsh$module$module/5$u_sysnamere$u_nodenamere$u_domainre$u_releasere$u_versionre$u_machinere"
+
+testouterr_cmd_re "sh" "load $module/2" $ans $tserr
+
+# restore environment
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+
+testouterr_cmd_re "sh" "load $module/3" "ERR" "$whatis\n\n$whatis"
+testouterr_cmd "sh" "load $module/4" "ERR" ""
+
+
+#
+# test unload mode
+#
+
+set env(LOADEDMODULES) "$module/1"
+set env(_LMFILES_) "$modulepath/$module/1"
+set ans [list]
+lappend ans [list unset ts1]
+lappend ans [list unsetpath TSPATH]
+lappend ans [list set ts2 nok]
+lappend ans [list unset ts3]
+lappend ans [list unalias foo]
+lappend ans [list unxres Ileaf.popup.saveUnder]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+set tserr1 "$modulepathre:
+$module/1
+$module/2
+$module/3
+$module/4
+$module/5
+$modlin
+$modulepathre/$module/5:
+
+setenv\t\tts3\tok
+$modlin
+Currently Loaded Modulefiles:
+$module/1
+Named collection list:
+default
+$modlin
+$env(HOME)/.module/default:
+
+module use --append $modulepathre
+module load $module/1
+
+$modlin
+[test_stderr_content $modulepathre/$module/5 {} 1]
+foo"
+# if error when testing X11 setup, will get an error not a loaded module
+if {[info exists x11_warn]} {
+    testouterr_cmd_re "sh" "unload $module/1" "ERR" "$tserr1\n$x11_warn"
+} else {
+    testouterr_cmd_re "sh" "unload $module/1" $ans $tserr1
+}
+
+set env(LOADEDMODULES) "$module/2"
+set env(_LMFILES_) "$modulepath/$module/2"
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+set tserr "_UNDEFINED_1001Tclunloadunload$module/2$module/2shsh$module$module/2$u_sysnamere$u_nodenamere$u_domainre$u_releasere$u_versionre$u_machinere"
+
+testouterr_cmd_re "sh" "unload $module/2" $ans $tserr
+
+set env(LOADEDMODULES) "$module/3"
+set env(_LMFILES_) "$modulepath/$module/3"
+testouterr_cmd_re "sh" "unload $module/3" "ERR" "$whatis\n\n$whatis"
+
+set env(LOADEDMODULES) "$module/4"
+set env(_LMFILES_) "$modulepath/$module/4"
+testouterr_cmd "sh" "unload $module/4" "ERR" ""
+
+
+# restore environment
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+
+#
+# test display mode
+#
+
+set tserr1 "chdir\t\t$env(TESTSUITEDIR)
+setenv\t\tts1\tok
+unsetenv\tts2
+unsetenv\tts2\tnok
+append-path\t-d { } TSPATH dir1
+append-path\t-d { } TSPATH dir2
+prepend-path\t-d { } TSPATH dir3
+remove-path\t-d { } TSPATH dir1
+$modulepathre:
+$module/1
+$module/2
+$module/3
+$module/4
+$module/5
+$modlin
+$modulepathre/$module/5:
+
+setenv\t\tts3\tok
+$modlin
+No Modulefiles Currently Loaded.
+module load\t$module/5
+Named collection list:
+default
+$modlin
+$env(HOME)/.module/default:
+
+module use --append $modulepathre
+
+$modlin
+module source\t./5
+[test_stderr_content $modulepathre/$module/5 {} 1]
+module unload\t$module/5
+module use\t-a /path/to/dir
+module unuse\t/path/to/dir
+module-version\t/3 3.0
+module-alias\tfoo $module/1
+module-virtual\t/6 5
+module-whatis\t$module
+set-alias\tfoo\tbar
+unset-alias\tbar
+system\t\techo foo
+x-resource\tIleaf.popup.saveUnder\tTrue"
+
+testouterr_cmd_re "sh" "display $module/1" "OK" [display_stderr_content "$modulepathre/$module/1" $tserr1]
+
+set tserr "\\\$ts0001Tcldisplaydisplay$module/2$module/2shsh$module$u_sysnamere$u_nodenamere$u_domainre$u_releasere$u_versionre$u_machinere"
+testouterr_cmd_re "sh" "display $module/2" "OK" [display_stderr_content "$modulepathre/$module/2" "prereq\t\t$module/5\n$tserr"]
+testouterr_cmd_re "sh" "display $module/3" "ERR" [display_stderr_content "$modulepathre/$module/3" "conflict\t$module/5\n$whatis\n\n$whatis"]
+
+set ans [list]
+lappend ans [list set ts3 "ok"]
+lappend ans [list setpath LOADEDMODULES "$module/5"]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/5"]
+lappend ans [list ERR]
+
+testouterr_cmd_re "sh" "display $module/4" $ans [display_stderr_content "$modulepathre/$module/4" ""]
+
+
+#
+# test help mode
+#
+
+set tserr1 "$modulepathre:
+$module/1
+$module/2
+$module/3
+$module/4
+$module/5
+$modlin
+$modulepathre/$module/5:
+
+setenv\t\tts3\tok
+$modlin
+No Modulefiles Currently Loaded.
+Named collection list:
+default
+$modlin
+$env(HOME)/.module/default:
+
+module use --append $modulepathre
+
+$modlin
+[test_stderr_content $modulepathre/$module/5 {} 1]"
+testouterr_cmd_re "sh" "help $module/1" "OK" [help_stderr_content "$modulepathre/$module/1" $tserr1 1]
+
+set tserr "0001Tclhelphelp$module/2$module/2shsh$module$u_sysnamere$u_nodenamere$u_domainre$u_releasere$u_versionre$u_machinere"
+testouterr_cmd_re "sh" "help $module/2" "OK" [help_stderr_content "$modulepathre/$module/2" "$tserr" 0]
+testouterr_cmd_re "sh" "help $module/3" "ERR" [help_stderr_content "$modulepathre/$module/3" "$whatis\n\n$whatis" 0]
+testouterr_cmd_re "sh" "help $module/4" $ans [help_stderr_content "$modulepathre/$module/4" "" 0]
+
+
+#
+# test test mode
+#
+
+testouterr_cmd_re "sh" "test $module/1" "OK" [test_stderr_content "$modulepathre/$module/1" $tserr1 1]
+set tserr "0001Tcltesttest$module/2$module/2shsh$module$u_sysnamere$u_nodenamere$u_domainre$u_releasere$u_versionre$u_machinere"
+testouterr_cmd_re "sh" "test $module/2" "OK" [test_stderr_content "$modulepathre/$module/2" "$tserr" 0]
+testouterr_cmd_re "sh" "test $module/3" "ERR" [test_stderr_content "$modulepathre/$module/3" "$whatis\n\n$whatis" 0]
+testouterr_cmd_re "sh" "test $module/4" $ans [test_stderr_content "$modulepathre/$module/4" "" 0]
+
+
+#
+# test whatis mode
+#
+
+testouterr_cmd_re "sh" "whatis $module" "ERR" $whatis
+
+
+#
+#  Cleanup
+#
+
+# restore MODULEPATH
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
+    send_user "\tDelete $env(HOME)/.module\n"
+}
+set env(MODULEPATH) $modpath
+file delete $env(HOME)/.module
+
+unset module
+unset modulepath
+unset modulepathre
+unset whatis
+unset tserr
+unset tserr1
+unset ans
+
+unset u_sysnamere
+unset u_releasere
+unset u_machinere
+unset u_nodenamere
+unset u_versionre
+unset u_domainre
+unset u_sysname
+unset u_release
+unset u_machine
+unset u_nodename
+unset u_version
+unset u_domain
+
+# remove procs
+rename display_stderr_content {}
+rename help_stderr_content {}
+rename test_stderr_content {}

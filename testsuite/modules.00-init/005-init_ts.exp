@@ -135,6 +135,17 @@ unset test_perms_file
 unset orig_perms
 unset new_perms
 
+# check x11 capabilities
+set x11_warn_prefix "$warn_msgs: X11 resources cannot be edited, issue spotted"
+set xrdb_warn "$x11_warn_prefix\n$warn_msgs: Command 'xrdb' cannot be found"
+#  check where to find the 'xrdb' binary on this system
+set xrdb [auto_execok xrdb]
+if {$xrdb eq ""} {
+    set x11_warn $xrdb_warn
+} elseif {[catch {exec $xrdb -query} errMsg]} {
+    set x11_warn "$x11_warn_prefix\n$errMsg"
+}
+
 
 #
 #  Set up the config-file variable if possible
