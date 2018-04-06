@@ -1,0 +1,172 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/04/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, display, help, test
+#   Modulefiles:	setenv/0.6
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Check the effect of 'setenv' command on $env() array variable
+#           through the different modulefile evaluation mode
+#		}C%
+#
+##############################################################################
+
+set module "setenv/0.6"
+set modulefile "$modpath/$module"
+set modulefilere "$modpathre/$module"
+
+#
+#  test load mode
+#
+
+set ans [list]
+lappend ans [list set TS1 yes]
+lappend ans [list set TS2 yes]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+testouterr_cmd "sh" "load $module" $ans ""
+
+# test with value set to variable prior to load
+set env(TS1) "no"
+testouterr_cmd "sh" "load $module" $ans ""
+
+
+#
+#  test unload mode
+#
+
+# test with module loaded
+set env(TS1) "yes"
+set env(TS2) "yes"
+set env(LOADEDMODULES) $module
+set env(_LMFILES_) $modulefile
+
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list unset TS2]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd "sh" "unload $module" $ans ""
+
+# test with module loaded but vanished env vars
+unset env(TS1)
+unset env(TS2)
+
+# raise an error
+set tserr "$moderr_msgs: can't read \"env(TS1)\": no such variable
+  In '$modulefile'
+$err_contact"
+
+testouterr_cmd "sh" "unload $module" "ERR" $tserr
+
+
+# restore environment
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+
+#
+#  test display mode
+#
+
+set tserr "$modlin
+$modulefilere:
+
+setenv\t\tTS1\tyes
+setenv\t\tTS2\tyes
+$modlin"
+
+# test without module loaded
+testouterr_cmd_re "sh" "display $module" "" $tserr
+
+# test with module loaded
+set env(TS1) "yes"
+set env(TS2) "yes"
+set env(LOADEDMODULES) $module
+set env(_LMFILES_) $modulefile
+
+testouterr_cmd_re "sh" "display $module" "" $tserr
+
+# restore environment
+unset env(TS1)
+unset env(TS2)
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+
+#
+#  test help mode
+#
+
+set tserr "$modlin
+Module Specific Help for $modulefilere:
+
+$warn_msgs: Unable to find ModulesHelp in $modulefilere.
+$modlin"
+
+# test without module loaded
+testouterr_cmd_re "sh" "help $module" "" $tserr
+
+# test with module loaded
+set env(TS1) "yes"
+set env(TS2) "yes"
+set env(LOADEDMODULES) $module
+set env(_LMFILES_) $modulefile
+
+testouterr_cmd_re "sh" "help $module" "" $tserr
+
+# restore environment
+unset env(TS1)
+unset env(TS2)
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+
+#
+#  test test mode
+#
+
+set tserr "$modlin
+Module Specific Test for $modulefilere:
+
+$warn_msgs: Unable to find ModulesTest in $modulefilere.
+$modlin"
+
+# test without module loaded
+testouterr_cmd_re "sh" "test $module" "" $tserr
+
+# test with module previously loaded
+set env(TS1) "yes"
+set env(TS2) "yes"
+set env(LOADEDMODULES) $module
+set env(_LMFILES_) $modulefile
+
+testouterr_cmd_re "sh" "test $module" "" $tserr
+
+# restore environment
+unset env(TS1)
+unset env(TS2)
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+
+#
+#  Cleanup
+#
+
+unset tserr
+unset ans
+
+unset modulefilere
+unset modulefile
+unset module
