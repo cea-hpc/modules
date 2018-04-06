@@ -1630,13 +1630,22 @@ proc setenv {var val} {
 
    reportDebug "setenv: ($var,$val) mode = $mode"
 
-   if {$mode eq "load"} {
+   # Set the variable for later use during the modulefile evaluation
+   # for all mode except unload
+   if {$mode ne "unload"} {
       set ::env($var) $val
-      set ::g_stateEnvVars($var) "new"
       # clean any previously defined reference counter array
       set sharevar [getModshareVarName $var]
       if {[info exists ::env($sharevar)]} {
          unset-env $sharevar
+         set sharevarunset 1
+      }
+   }
+
+   # propagate variable setup to shell environment on load mode
+   if {$mode eq "load"} {
+      set ::g_stateEnvVars($var) "new"
+      if {[info exists sharevarunset]} {
          set ::g_stateEnvVars($sharevar) "del"
       }
    }\
@@ -1647,9 +1656,6 @@ proc setenv {var val} {
       set ::g_stateEnvVars($var) "del"
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      # Let display set the variable for later use in the display
-      # but don't commit it to the env
-      set ::env($var) $val
       report "setenv\t\t$var\t$val"
    }
    return {}
