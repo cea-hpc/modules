@@ -1,0 +1,41 @@
+#%Module1.0
+
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		restoreenv/%M%
+#   Revision:		%I%
+#   First Edition:	2018/04/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite modulefile
+#   Command:
+#
+#   Invocation:
+#   Result:	%R{
+#		}R%
+#   Comment:	%C{
+#           Test all kind of environment change (variable, alias, chdir, ...)
+#           in case the evaluation of a modulefile fails: previous environment
+#           context should be restored
+#		}C%
+#
+##############################################################################
+
+chdir $env(HOME)
+setenv ts1 ok
+unsetenv ts2
+set-alias foo bar
+unset-alias bar
+if {![module-info mode whatis]} {
+puts "echo foo"
+puts "echo text"
+}
+x-resource {Ileaf.popup.saveUnder:True}
+
+if {[info exists env(TSBREAK1)]} {
+    break
+}

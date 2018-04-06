@@ -1,0 +1,188 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/04/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload
+#   Modulefiles:    restoreenv
+#   Sub-Command:    setenv, unsetenv, set-alias, unset-alias, chdir,
+#                   puts, x-resource
+#
+#   Comment:	%C{
+#           Test all kind of environment change (variable, alias, chdir, ...)
+#           in case the evaluation of a modulefile fails: previous environment
+#           context should be restored
+#		}C%
+#
+##############################################################################
+
+# skip tests if error when testing X11 setup
+if {[info exists x11_warn]} {
+    send_user "\tskipping context restore tests as x-resource cannot be set/unset\n"
+} else {
+
+set module "restoreenv"
+set modulepath "$modpath.allin"
+
+# setup specific environment
+if { $verbose > 0 } {
+    send_user "\tSetup MODULEPATH = '$modulepath'\n"
+}
+set env(MODULEPATH) $modulepath
+
+
+#
+# test load mode
+#
+
+set ans [list]
+lappend ans [list set ts1 ok]
+lappend ans [list unset ts2]
+lappend ans [list alias foo bar]
+lappend ans [list unalias bar]
+lappend ans [list xres Ileaf.popup.saveUnder True]
+lappend ans [list chdir $env(HOME)]
+lappend ans [list echo foo]
+lappend ans [list echo text]
+lappend ans [list setpath LOADEDMODULES "$module/1:$module/2"]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/1:$modulepath/$module/2"]
+
+testouterr_cmd_re "sh" "load $module/1 $module/2" $ans ""
+
+set env(TSBREAK1) 1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module/2"]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/2"]
+lappend ans [list ERR]
+testouterr_cmd_re "sh" "load $module/1 $module/2" $ans ""
+
+set ans [list]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/2"]
+lappend ans [list setpath LOADEDMODULES "$module/2"]
+lappend ans [list ERR]
+testouterr_cmd_re "sh" "load $module/2 $module/1" $ans ""
+
+unset env(TSBREAK1)
+set env(TSBREAK2) 1
+set ans [list]
+lappend ans [list unset ts2]
+lappend ans [list alias foo bar]
+lappend ans [list unalias bar]
+lappend ans [list xres Ileaf.popup.saveUnder True]
+lappend ans [list chdir $env(HOME)]
+lappend ans [list echo foo]
+lappend ans [list echo text]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/1"]
+lappend ans [list setpath LOADEDMODULES "$module/1"]
+lappend ans [list set ts1 ok]
+lappend ans [list ERR]
+testouterr_cmd_re "sh" "load $module/1 $module/2" $ans ""
+
+set ans [list]
+lappend ans [list set ts1 ok]
+lappend ans [list unset ts2]
+lappend ans [list alias foo bar]
+lappend ans [list unalias bar]
+lappend ans [list xres Ileaf.popup.saveUnder True]
+lappend ans [list chdir $env(HOME)]
+lappend ans [list echo foo]
+lappend ans [list echo text]
+lappend ans [list setpath LOADEDMODULES "$module/1"]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/1"]
+lappend ans [list ERR]
+testouterr_cmd_re "sh" "load $module/2 $module/1" $ans ""
+
+unset env(TSBREAK2)
+
+
+#
+# test unload mode
+#
+
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = '$module/1:$module/2'\n"
+    send_user "\tSetup _LMFILES_ = '$modulepath/$module/1:$modulepath/$module/2'\n"
+}
+set env(LOADEDMODULES) "$module/1:$module/2"
+set env(_LMFILES_) "$modulepath/$module/1:$modulepath/$module/2"
+
+set ans [list]
+lappend ans [list unset ts1]
+lappend ans [list unset ts2]
+lappend ans [list unalias foo]
+lappend ans [list unxres Ileaf.popup.saveUnder]
+lappend ans [list echo foo]
+lappend ans [list echo text]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+testouterr_cmd_re "sh" "unload $module/1 $module/2" $ans ""
+
+set env(TSBREAK1) 1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module/1"]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/1"]
+lappend ans [list ERR]
+testouterr_cmd_re "sh" "unload $module/1 $module/2" $ans ""
+
+set ans [list]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/1"]
+lappend ans [list setpath LOADEDMODULES "$module/1"]
+lappend ans [list ERR]
+testouterr_cmd_re "sh" "unload $module/2 $module/1" $ans ""
+
+unset env(TSBREAK1)
+set env(TSBREAK2) 1
+set ans [list]
+lappend ans [list unset ts2]
+lappend ans [list unalias foo]
+lappend ans [list unxres Ileaf.popup.saveUnder]
+lappend ans [list echo foo]
+lappend ans [list echo text]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/2"]
+lappend ans [list setpath LOADEDMODULES "$module/2"]
+lappend ans [list unset ts1]
+lappend ans [list ERR]
+testouterr_cmd_re "sh" "unload $module/1 $module/2" $ans ""
+
+set ans [list]
+lappend ans [list unset ts1]
+lappend ans [list unset ts2]
+lappend ans [list unalias foo]
+lappend ans [list unxres Ileaf.popup.saveUnder]
+lappend ans [list echo foo]
+lappend ans [list echo text]
+lappend ans [list setpath LOADEDMODULES "$module/2"]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/2"]
+lappend ans [list ERR]
+testouterr_cmd_re "sh" "unload $module/2 $module/1" $ans ""
+
+unset env(TSBREAK2)
+
+
+#
+#  Cleanup
+#
+
+# restore MODULEPATH
+if { $verbose > 0 } {
+    send_user "\tRestore MODULEPATH = '$modpath'\n"
+    send_user "\tUnset LOADEDMODULES\n"
+    send_user "\tUnset _LMFILES_\n"
+}
+set env(MODULEPATH) $modpath
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+unset module
+unset modulepath
+unset ans
+
+}
