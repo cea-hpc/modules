@@ -87,6 +87,7 @@ set env(MODULEPATH) $modulepath
 set ans [list]
 lappend ans [list set ts1 ok]
 lappend ans [list setpath TSPATH "dir3 dir2"]
+lappend ans [list set tsp "dir3 dir2"]
 lappend ans [list unset ts2]
 lappend ans [list unset ts3]
 lappend ans [list alias foo bar]
@@ -154,9 +155,11 @@ testouterr_cmd "sh" "load $module/4" "ERR" ""
 set env(LOADEDMODULES) "$module/1"
 set env(_LMFILES_) "$modulepath/$module/1"
 set env(ts1) "ok"
+set env(TSPATH) "dir3 dir2"
 set ans [list]
 lappend ans [list unset ts1]
 lappend ans [list unsetpath TSPATH]
+lappend ans [list unset tsp]
 lappend ans [list set ts2 ok]
 lappend ans [list unset ts3]
 lappend ans [list unalias foo]
@@ -194,6 +197,10 @@ if {[info exists x11_warn]} {
     testouterr_cmd_re "sh" "unload $module/1" $ans $tserr1
 }
 
+# restore environment
+unset env(ts1)
+unset env(TSPATH)
+
 set env(LOADEDMODULES) "$module/2"
 set env(_LMFILES_) "$modulepath/$module/2"
 set ans [list]
@@ -230,6 +237,7 @@ append-path\t-d { } TSPATH dir1
 append-path\t-d { } TSPATH dir2
 prepend-path\t-d { } TSPATH dir3
 remove-path\t-d { } TSPATH dir1
+setenv\t\ttsp\tdir3 dir1 dir2
 $modulepathre:
 $module/1
 $module/2

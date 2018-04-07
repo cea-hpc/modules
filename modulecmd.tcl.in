@@ -2049,8 +2049,12 @@ proc add-path {pos args} {
    }
 
    set ::env($sharevar) [pjoin [array get countarr] [getPathSeparator]]
-   set ::g_stateEnvVars($var) "new"
-   set ::g_stateEnvVars($sharevar) "new"
+
+   # propagate variable setup to shell environment on load mode
+   if {[currentMode] eq "load"} {
+      set ::g_stateEnvVars($var) "new"
+      set ::g_stateEnvVars($sharevar) "new"
+   }
    return {}
 }
 
@@ -2145,10 +2149,13 @@ proc prepend-path {args} {
 
    reportDebug "prepend-path: ($args) mode=$mode"
 
-   if {$mode eq "load"} {
+   # Set the variable for later use during the modulefile evaluation
+   # for all mode except unload
+   if {$mode ne "unload"} {
       eval add-path "prepend" $args
-   }\
-   elseif {$mode eq "unload"} {
+   }
+
+   if {$mode eq "unload"} {
       eval unload-path $args
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
@@ -2163,10 +2170,13 @@ proc append-path {args} {
 
    reportDebug "append-path: ($args) mode=$mode"
 
-   if {$mode eq "load"} {
+   # Set the variable for later use during the modulefile evaluation
+   # for all mode except unload
+   if {$mode ne "unload"} {
       eval add-path "append" $args
-   }\
-   elseif {$mode eq "unload"} {
+   }
+
+   if {$mode eq "unload"} {
       eval unload-path $args
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
