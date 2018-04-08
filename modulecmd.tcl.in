@@ -1993,7 +1993,11 @@ proc unload-path {args} {
 
    # set env variable and corresponding reference counter in any case
    if {[llength $newpath] == 0} {
-      unset-env $var
+      if {[info exists ::env($var)]} {
+         # do not unset-env to avoid breaking later reference to the variable
+         # in modulefile, clear value instead
+         set ::env($var) ""
+      }
       set ::g_stateEnvVars($var) "del"
    } else {
       set ::env($var) [join $newpath $separator]
