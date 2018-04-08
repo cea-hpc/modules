@@ -1648,9 +1648,11 @@ proc setenv {var val} {
       }
    }\
    elseif {$mode eq "unload"} {
-      # Don't unset-env here ... it breaks modulefiles
-      # that use env(var) is later in the modulefile
-      #unset-env $var
+      if {[info exists ::env($var)]} {
+         # do not unset-env to avoid breaking later reference to the variable
+         # in modulefile, clear value instead
+         set ::env($var) ""
+      }
       set ::g_stateEnvVars($var) "del"
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
