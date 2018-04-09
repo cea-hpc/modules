@@ -75,12 +75,9 @@ if {[siteconfig_isStderrTty]} {
 # loaded afterward
 if { $verbose > 0 } {
     send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG_FORCE = '1'\n"
-    send_user "\tSetup _LMFILES_ = '$modulefile:$modulefile_tron'\n"
-    send_user "\tSetup LOADEDMODULES = '$module:$module_tron'\n"
 }
 set env(TESTSUITE_ENABLE_SITECONFIG_FORCE) 1
-set env(_LMFILES_) "$modulefile:$modulefile_tron"
-set env(LOADEDMODULES) "$module:$module_tron"
+setenv_loaded_module [list $module $module_tron] [list $modulefile $modulefile_tron]
 
 set ans [list]
 lappend ans [list set testsuite yes]
@@ -92,12 +89,9 @@ test_cmd_re "sh" "load $module" $ans
 # restore environment
 if { $verbose > 0 } {
     send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_FORCE\n"
-    send_user "\tUnset _LMFILES_\n"
-    send_user "\tUnset LOADEDMODULES\n"
 }
 unset env(TESTSUITE_ENABLE_SITECONFIG_FORCE)
-unset env(_LMFILES_)
-unset env(LOADEDMODULES)
+unsetenv_loaded_module
 
 } elseif {$verbose > 0} {
    send_user "\tSkip some tests as excepted siteconfig file not installed\n"

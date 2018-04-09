@@ -92,13 +92,10 @@ testouterr_cmd_re "ALL" "restore" $ans "$cderrmsg"
 #
 
 if { $verbose > 0 } {
-    send_user "\tSetup _LMFILES_ = $cdlmf_part\n"
-    send_user "\tSetup LOADEDMODULES = $cdlm_part\n"
     send_user "\tSetup MODULEPATH = $cdmodpath\n"
 }
-set env(_LMFILES_) $cdlmf_part
-set env(LOADEDMODULES) $cdlm_part
 set env(MODULEPATH) "$cdmodpath"
+setenv_loaded_module [split $cdlm_part ":"] [split $cdlmf_part ":"]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $cdlm]
@@ -112,12 +109,7 @@ testouterr_cmd_re "sh" "restore" $ans ""
 #
 
 # fake environment state: default collection restored
-if { $verbose > 0 } {
-    send_user "\tSetup _LMFILES_ = $cdlmf\n"
-    send_user "\tSetup LOADEDMODULES = $cdlm\n"
-}
-set env(_LMFILES_) "$cdlmf"
-set env(LOADEDMODULES) "$cdlm"
+setenv_loaded_module [split $cdlm ":"] [split $cdlmf ":"]
 
 set ans [list]
 lappend ans [list setpath MODULEPATH $c1modpath]
@@ -133,13 +125,10 @@ testouterr_cmd_re "ALL" "restore $coll1" $ans "$c1errmsg"
 
 # fake environment state: $coll1 collection restored
 if { $verbose > 0 } {
-    send_user "\tSetup _LMFILES_ = $c1lmf\n"
-    send_user "\tSetup LOADEDMODULES = $c1lm\n"
     send_user "\tSetup MODULEPATH = $c1modpath\n"
 }
-set env(_LMFILES_) "$c1lmf"
-set env(LOADEDMODULES) "$c1lm"
 set env(MODULEPATH) "$c1modpath"
+setenv_loaded_module [split $c1lm ":"] [split $c1lmf ":"]
 
 testouterr_cmd "ALL" "restore $coll1" "OK" ""
 
@@ -163,13 +152,10 @@ testouterr_cmd_re "ALL" "restore $coll2" $ans "$c2errmsg"
 
 # fake environment state: $coll2 collection restored
 if { $verbose > 0 } {
-    send_user "\tSetup _LMFILES_ = $c2lmf\n"
-    send_user "\tSetup LOADEDMODULES = $c2lm\n"
     send_user "\tSetup MODULEPATH = $c2modpath\n"
 }
-set env(_LMFILES_) "$c2lmf"
-set env(LOADEDMODULES) "$c2lm"
 set env(MODULEPATH) "$c2modpath"
+setenv_loaded_module [split $c2lm ":"] [split $c2lmf ":"]
 
 set ans [list]
 lappend ans [list setpath MODULEPATH $c3modpath]
@@ -235,13 +221,10 @@ testouterr_cmd_re "ALL" "restore $coll5fp" $ans "$c4errmsg"
 
 # restore environment
 if { $verbose > 0 } {
-    send_user "\tUnset _LMFILES_\n"
-    send_user "\tUnset LOADEDMODULES\n"
     send_user "\tUnset MODULEPATH\n"
 }
-unset env(_LMFILES_)
-unset env(LOADEDMODULES)
 unset env(MODULEPATH)
+unsetenv_loaded_module
 
 set ans [list]
 lappend ans [list set testsuite "yes"]
@@ -258,13 +241,10 @@ testouterr_cmd_re "sh" "restore $coll6" $ans ""
 
 # restore environment
 if { $verbose > 0 } {
-    send_user "\tSetup _LMFILES_ = ':'\n"
-    send_user "\tSetup LOADEDMODULES = ':'\n"
     send_user "\tSetup MODULEPATH = ':'\n"
 }
-set env(_LMFILES_) ":"
-set env(LOADEDMODULES) ":"
 set env(MODULEPATH) ":"
+setenv_loaded_module [list {} {}] [list {} {}]
 
 set ans [list]
 lappend ans [list set testsuite "yes"]
@@ -282,13 +262,10 @@ testouterr_cmd_re "sh" "restore $coll6" $ans ""
 
 # setup environment state
 if { $verbose > 0 } {
-    send_user "\tUnset _LMFILES_\n"
-    send_user "\tUnset LOADEDMODULES\n"
     send_user "\tUnset MODULEPATH\n"
 }
-unset env(_LMFILES_)
-unset env(LOADEDMODULES)
 unset env(MODULEPATH)
+unsetenv_loaded_module
 
 set ans [list]
 lappend ans [list set testsuite "yes"]
@@ -366,12 +343,7 @@ unset ORIG_HOME
 # test when loaded environment is inconsistent
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup LOADEDMODULES = 'foo:bar'\n"
-    send_user "\tSetup _LMFILES_ = '/path/to/foo'\n"
-}
-set env(LOADEDMODULES) "foo:bar"
-set env(_LMFILES_) "/path/to/foo"
+setenv_loaded_module [list foo bar] "/path/to/foo"
 
 testouterr_cmd "sh" "restore $coll8fp" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
 
@@ -383,15 +355,12 @@ testouterr_cmd "sh" "restore $coll8fp" "ERR" "$err_loinconsist\n  LOADEDMODULES=
 # restore environment
 # _LMFILES_ and LOADEDMODULES already restored during last test
 if { $verbose > 0 } {
-    send_user "\tUnset _LMFILES_\n"
-    send_user "\tUnset LOADEDMODULES\n"
     send_user "\tRestore MODULEPATH = $modpath\n"
     send_user "\tRestore MODULES_COLLECTION_TARGET = ''\n"
 }
 set env(MODULEPATH) $modpath
 unset env(MODULES_COLLECTION_TARGET)
-unset env(_LMFILES_)
-unset env(LOADEDMODULES)
+unsetenv_loaded_module
 
 unset ans
 

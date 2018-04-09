@@ -72,8 +72,7 @@ set mod102errun "$err_file'$mod102p'"
 #
 # set up the environment
 #
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module [list $mod11 $mod21 $mod31] [list $mod11p $mod21p $mod31p]
 
 #
 #  Swap the 1st in list
@@ -170,8 +169,7 @@ set env(MODULEPATH) $modpath
 
 
 # setup LOADEDMODULES/_LMFILES_ with an empty element
-set env(_LMFILES_) ":$mod11p:$mod21p:$mod31p"
-set env(LOADEDMODULES) ":$mod11:$mod21:$mod31"
+setenv_loaded_module [list {} $mod11 $mod21 $mod31] [list {} $mod11p $mod21p $mod31p]
 
 set ans [list]
 # empty elements are ignored but stick to the variable, they should be removed
@@ -180,8 +178,7 @@ lappend ans [list setpath _LMFILES_ ":$modulefile"]
 test_cmd_re "sh" "swap $mod32" $ans
 
 # restore LOADEDMODULES/_LMFILES_
-set env(_LMFILES_) "$mod11p:$mod21p:$mod31p"
-set env(LOADEDMODULES) "$mod11:$mod21:$mod31"
+setenv_loaded_module [list $mod11 $mod21 $mod31] [list $mod11p $mod21p $mod31p]
 
 
 #
@@ -199,8 +196,7 @@ test_cmd_re "sh" "swap $mod32 $mod32" $ans
 # Test swapping-off module not loaded or swapping-on module already loaded
 #
 
-set env(_LMFILES_) ""
-set env(LOADEDMODULES) ""
+setenv_loaded_module {} {}
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$mod21"]
@@ -209,14 +205,12 @@ lappend ans [list setpath _LMFILES_ "$mod21p"]
 # module to unload exists but is not loaded, just load
 testouterr_cmd_re "sh" "swap $mod11 $mod21" $ans ""
 
-set env(_LMFILES_) "$mod11p:$mod21p"
-set env(LOADEDMODULES) "$mod11:$mod21"
+setenv_loaded_module [list $mod11 $mod21] [list $mod11p $mod21p]
 
 # module to load is already loaded, just unload
 testouterr_cmd_re "sh" "swap $mod11 $mod21" $ans ""
 
-set env(_LMFILES_) "$mod21p"
-set env(LOADEDMODULES) "$mod21"
+setenv_loaded_module [list $mod21] [list $mod21p]
 
 # module to unload exists but is not loaded and module to load is already loaded, nothing to do
 testouterr_cmd "sh" "swap $mod11 $mod21" "OK" ""
@@ -236,62 +230,50 @@ set env(MODULEPATH) $modpath
 
 
 # setup LOADEDMODULES/_LMFILES_ with an empty element
-set env(_LMFILES_) ":$mod21p"
-set env(LOADEDMODULES) ":$mod21"
+setenv_loaded_module [list {} $mod21] [list {} $mod21p]
 
 testouterr_cmd "sh" "swap $mod11 $mod21" "OK" ""
 
 # restore LOADEDMODULES/_LMFILES_
-set env(_LMFILES_) "$mod21p"
-set env(LOADEDMODULES) "$mod21"
+setenv_loaded_module [list $mod21] [list $mod21p]
 
 
 #
 # Test to swap-off module with issue, nothing unloads
 #
 
-set env(_LMFILES_) "$mod100p"
-set env(LOADEDMODULES) "$mod100"
+setenv_loaded_module [list $mod100] [list $mod100p]
 testouterr_cmd "sh" "swap $mod100 $mod11" "ERR" "$mod100errun"
 
-set env(_LMFILES_) "$mod101p"
-set env(LOADEDMODULES) "$mod101"
+setenv_loaded_module [list $mod101] [list $mod101p]
 testouterr_cmd "sh" "swap $mod101 $mod11" "ERR" "$mod101errun"
 
-set env(_LMFILES_) "$mod102p"
-set env(LOADEDMODULES) "$mod102"
+setenv_loaded_module [list $mod102] [list $mod102p]
 testouterr_cmd "sh" "swap $mod102 $mod11" "ERR" "$mod102errun"
 
-set env(_LMFILES_) "$mod100p:$mod103p"
-set env(LOADEDMODULES) "$mod100:$mod103"
+setenv_loaded_module [list $mod100 $mod103] [list $mod100p $mod103p]
 testouterr_cmd "sh" "swap $mod103 $mod11" "ERR" "$mod100errun"
 
-set env(_LMFILES_) "$mod101p:$mod104p"
-set env(LOADEDMODULES) "$mod101:$mod104"
+setenv_loaded_module [list $mod101 $mod104] [list $mod101p $mod104p]
 testouterr_cmd "sh" "swap $mod104 $mod11" "ERR" "$mod101errun"
 
-set env(_LMFILES_) "$mod102p:$mod105p"
-set env(LOADEDMODULES) "$mod102:$mod105"
+setenv_loaded_module [list $mod102 $mod105] [list $mod102p $mod105p]
 testouterr_cmd "sh" "swap $mod105 $mod11" "ERR" "$mod102errun"
 
-set env(_LMFILES_) "$mod100p:$mod103p:$mod106p"
-set env(LOADEDMODULES) "$mod100:$mod103:$mod106"
+setenv_loaded_module [list $mod100 $mod103 $mod106] [list $mod100p $mod103p $mod106p]
 testouterr_cmd "sh" "swap $mod106 $mod11" "ERR" "$mod100errun"
 
-set env(_LMFILES_) "$mod101p:$mod104p:$mod107p"
-set env(LOADEDMODULES) "$mod101:$mod104:$mod107"
+setenv_loaded_module [list $mod101 $mod104 $mod107] [list $mod101p $mod104p $mod107p]
 testouterr_cmd "sh" "swap $mod107 $mod11" "ERR" "$mod101errun"
 
-set env(_LMFILES_) "$mod102p:$mod105p:$mod108p"
-set env(LOADEDMODULES) "$mod102:$mod105:$mod108"
+setenv_loaded_module [list $mod102 $mod105 $mod108] [list $mod102p $mod105p $mod108p]
 testouterr_cmd "sh" "swap $mod108 $mod11" "ERR" "$mod102errun"
 
 #
 # Test to swap-on module with issue, nothing loads
 #
 
-set env(_LMFILES_) "$mod11p"
-set env(LOADEDMODULES) "$mod11"
+setenv_loaded_module [list $mod11] [list $mod11p]
 
 set ans [list]
 lappend ans [list ERR]
@@ -318,8 +300,7 @@ testouterr_cmd "sh" "swap $mod11 $mod108" $ans "$mod102err"
 # Test to swap with full path modulefiles
 #
 
-set env(_LMFILES_) "$mod11p"
-set env(LOADEDMODULES) "$mod11p"
+setenv_loaded_module [list $mod11p] [list $mod11p]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod12p]
@@ -327,8 +308,7 @@ lappend ans [list setpath _LMFILES_ $mod12p]
 
 testouterr_cmd "sh" "swap $mod11p $mod12p" $ans ""
 
-set env(_LMFILES_) "$mod12p"
-set env(LOADEDMODULES) "$mod12p"
+setenv_loaded_module [list $mod12p] [list $mod12p]
 
 testouterr_cmd "sh" "swap $mod11p $mod12p" "OK" ""
 
@@ -338,8 +318,7 @@ testouterr_cmd "sh" "swap $mod11p $mod100p" "ERR" "$mod100err"
 
 
 # swap with full path modulefiles modules loaded short path
-set env(_LMFILES_) "$mod11p:$mod21p"
-set env(LOADEDMODULES) "$mod11:$mod21"
+setenv_loaded_module [list $mod11 $mod21] [list $mod11p $mod21p]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod21]
@@ -385,8 +364,7 @@ if { $verbose > 0 } {
     send_user "\tRestore MODULEPATH = '$modpath'\n"
 }
 set env(MODULEPATH) $modpath
-set env(_LMFILES_) "$mod11p:$mod21p"
-set env(LOADEDMODULES) "$mod11p:$mod21p"
+setenv_loaded_module [list $mod11p $mod21p] [list $mod11p $mod21p]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod21p]
@@ -419,8 +397,7 @@ testouterr_cmd "sh" "swap $mod1name" "ERR" $err_nomodpath
 # switch when loaded environment is inconsistent
 #
 
-set env(LOADEDMODULES) "foo:bar"
-set env(_LMFILES_) "/path/to/foo"
+setenv_loaded_module [list foo bar] "/path/to/foo"
 
 testouterr_cmd_re "sh" "switch foo $mod12" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
 
@@ -433,8 +410,7 @@ if { $verbose > 0 } {
     send_user "\tRestore MODULEPATH = '$modpath'\n"
 }
 set env(MODULEPATH) $modpath
-unset env(_LMFILES_)
-unset env(LOADEDMODULES)
+unsetenv_loaded_module
 
 unset ans
 unset ans2

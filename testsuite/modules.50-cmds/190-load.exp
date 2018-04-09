@@ -45,8 +45,7 @@ set oth11pdd "$relddmodpath.other/1.1/version"
 #
 set module ""
 set modulefile ""
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 #
 #  load
@@ -73,8 +72,7 @@ test_cmd_re "sh" "add $mod31" $ans
 #
 set module "$mod11"
 set modulefile "$mod11p"
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 #
 #  load
@@ -97,8 +95,7 @@ test_cmd_re "ALL" "load $mod31" $ans
 #
 set module "$mod11:$mod21"
 set modulefile "$mod11p:$mod21p"
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 #
 #  load
@@ -131,8 +128,7 @@ set env(MODULEPATH) $modpath
 
 
 # setup LOADEDMODULES/_LMFILES_ with an empty element
-set env(_LMFILES_) ":$mod11p:$mod21p"
-set env(LOADEDMODULES) ":$mod11:$mod21"
+setenv_loaded_module [list {} $mod11 $mod21] [list {} $mod11p $mod21p]
 
 set ans [list]
 # empty elements are ignored but stick to the variable, they should be removed
@@ -141,8 +137,7 @@ lappend ans [list setpath _LMFILES_ ":$modulefile"]
 test_cmd_re "sh" "load $mod31" $ans
 
 # restore LOADEDMODULES/_LMFILES_
-set env(_LMFILES_) "$mod11p:$mod21p"
-set env(LOADEDMODULES) "$mod11:$mod21"
+setenv_loaded_module [list $mod11 $mod21] [list $mod11p $mod21p]
 
 
 #
@@ -167,15 +162,13 @@ set env(MODULEPATH) $modpath
 
 
 # setup LOADEDMODULES/_LMFILES_ with an empty element
-set env(_LMFILES_) ":$mod11p:$mod21p"
-set env(LOADEDMODULES) ":$mod11:$mod21"
+setenv_loaded_module [list {} $mod11 $mod21] [list {} $mod11p $mod21p]
 
 set ans [list]
 test_cmd "sh" "load $mod11" "OK"
 
 # restore LOADEDMODULES/_LMFILES_
-set env(_LMFILES_) "$mod11p:$mod21p"
-set env(LOADEDMODULES) "$mod11:$mod21"
+setenv_loaded_module [list $mod11 $mod21] [list $mod11p $mod21p]
 
 
 #
@@ -183,8 +176,7 @@ set env(LOADEDMODULES) "$mod11:$mod21"
 #
 set module "$mod11:$mod21"
 set modulefile "$mod11p:$mod21p"
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 #
 #  load
@@ -264,8 +256,7 @@ testouterr_cmd "sh" "load $badmod" "ERR" $out_interr
 #
 # test full path modulefile already loaded
 #
-set env(LOADEDMODULES) $module
-set env(_LMFILES_) $modulefile
+setenv_loaded_module $module $modulefile
 
 test_cmd_re "ALL" "load $oth11p" "OK"
 test_cmd_re "sh" "load $oth11pd" "OK"
@@ -280,8 +271,7 @@ if { $verbose > 0 } {
     send_user "\tSetup MODULEPATH = '$modpath.other:$modpath'\n"
 }
 set env(MODULEPATH) "$modpath.other:$modpath"
-set env(LOADEDMODULES) $mod12p
-set env(_LMFILES_) $mod12p
+setenv_loaded_module $mod12p $mod12p
 
 test_cmd_re "sh" "load $mod12" "OK"
 test_cmd_re "sh" "load $mod1name" "OK"
@@ -290,8 +280,7 @@ test_cmd_re "sh" "load $mod1name" "OK"
 #
 # test to load full path a modulefile already loaded with short name
 #
-set env(LOADEDMODULES) $mod11
-set env(_LMFILES_) $mod11p
+setenv_loaded_module $mod11 $mod11p
 
 test_cmd_re "sh" "load $mod11p" "OK"
 test_cmd_re "sh" "load $mod11pd" "OK"
@@ -312,8 +301,7 @@ test_cmd_re "sh" "load $mod11pdd" "OK"
 # test module already loaded as full path, try to load again with short name
 # no modpath set
 #
-set env(LOADEDMODULES) $mod12p
-set env(_LMFILES_) $mod12p
+setenv_loaded_module $mod12p $mod12p
 
 testouterr_cmd_re "sh" "load $mod12" "ERR" $err_nomodpath
 testouterr_cmd_re "sh" "load $mod1name" "ERR" $err_nomodpath
@@ -323,8 +311,7 @@ testouterr_cmd_re "sh" "load $mod1name" "ERR" $err_nomodpath
 # load when loaded environment is inconsistent
 #
 
-set env(LOADEDMODULES) "foo:bar"
-set env(_LMFILES_) "/path/to/foo"
+setenv_loaded_module [list foo bar] "/path/to/foo"
 if { $verbose > 0 } {
     send_user "\tRestore MODULEPATH = '$modpath'\n"
 }
@@ -337,8 +324,7 @@ testouterr_cmd_re "sh" "load $mod12" "ERR" "$err_loinconsist\n  LOADEDMODULES=fo
 #  Cleanup
 #
 
-unset env(_LMFILES_)
-unset env(LOADEDMODULES)
+unsetenv_loaded_module
 
 unset ans
 

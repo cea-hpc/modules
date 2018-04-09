@@ -354,10 +354,7 @@ set func_r "module <- function\\\(...\\\){
 #
 
 # setup environment state
-if { $verbose > 0 } {
-    send_user "\tSetup LOADEDMODULES = foo\n"
-}
-set env(LOADEDMODULES) "foo"
+setenv_loaded_module "foo" [list]
 
 foreach shell $supported_shells {
     switch -- $shell {
@@ -413,11 +410,10 @@ if {$install_versioning eq "y"} {
 
 # setup environment state
 if { $verbose > 0 } {
-    send_user "\tUnset LOADEDMODULES\n"
     send_user "\tUnset MODULEPATH\n"
 }
-unset env(LOADEDMODULES)
 unset env(MODULEPATH)
+unsetenv_loaded_module
 
 if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalled)} {
     foreach shell $supported_shells {

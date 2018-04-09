@@ -164,8 +164,7 @@ for {set i 1} {$i <= 12} {incr i} {
     }
 
     # setup clean environment
-    set env(LOADEDMODULES) ""
-    set env(_LMFILES_) ""
+    unsetenv_loaded_module
 
     if {[info exists moderr]} {
         testouterr_cmd "sh" "load $modsym" "ERR" "$moderr"
@@ -207,8 +206,7 @@ for {set i 1} {$i <= 12} {incr i} {
     testouterr_cmd "sh" "paths $modsym" $ans_paths ""
 
     # setup environment for unload action
-    set env(_LMFILES_) "$modulefile"
-    set env(LOADEDMODULES) "$module"
+    setenv_loaded_module $module $modulefile
 
     set ans [list]
     lappend ans [list unset testsuite]
@@ -224,8 +222,7 @@ for {set i 1} {$i <= 12} {incr i} {
 
 
 # setup clean environment
-set env(LOADEDMODULES) ""
-set env(_LMFILES_) ""
+unsetenv_loaded_module
 
 # complex single load command of multiple virtual modules targeting same file
 # full path virtual target will not be honored as virtual already loaded
@@ -246,10 +243,7 @@ testouterr_cmd_re "sh" "load $modulefile_4 $module_4 $module_3" $ans ""
 
 # setup environment for more complex load tests
 set env(testsuite) $module_1
-set env(_LMFILES_) $modulefile_1
-set env(_LMFILES__modshare) "$modulefile_1:1"
-set env(LOADEDMODULES) $module_1
-set env(LOADEDMODULES_modshare) "$module_1:1"
+setenv_loaded_module $module_1 $modulefile_1
 
 # same target file load twice
 set ans [list]
@@ -296,10 +290,7 @@ testouterr_cmd "sh" "switch $module_3" $ans ""
 
 # setup environment for more complex unload tests
 set env(testsuite) $module_2
-set env(_LMFILES__modshare) "$modulefile_1:2"
-set env(_LMFILES_) "$modulefile_1:$modulefile_2"
-set env(LOADEDMODULES_modshare) "$module_1:1:$module_2:1"
-set env(LOADEDMODULES) "$module_1:$module_2"
+setenv_loaded_module [list $module_1 $module_2] [list $modulefile_1 $modulefile_2]
 
 set ans [list]
 lappend ans [list set _LMFILES__modshare "$modulefile_1:1"]
@@ -332,10 +323,7 @@ testouterr_cmd "sh" "unload $modulefile_1" $ans ""
 # this setup helps to detect corner cases however it cannot happened in the wild as full
 # path target cannot be loaded if one of the virtual module targeting it is already loaded
 set env(testsuite) $module_3
-set env(_LMFILES__modshare) "$modulefile_1:1:$modulefile_reg:1:$modulefile_4:3"
-set env(_LMFILES_) "$modulefile_4:$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"
-set env(LOADEDMODULES_modshare) "$module_4:1:$module_1:1:$module_3:1:$module_reg:1:$modulefile_4:1"
-set env(LOADEDMODULES) "$module_4:$modulefile_4:$module_1:$module_reg:$module_3"
+setenv_loaded_module [list $module_4 $modulefile_4 $module_1 $module_reg $module_3] [list $modulefile_4 $modulefile_4 $modulefile_1 $modulefile_reg $modulefile_4]
 
 # list tests
 testouterr_cmd "sh" "list -t" "" "$cur_loaded\n$module_4\n$modulefile_4\n$module_1\n$module_reg\n$module_3"
@@ -423,10 +411,7 @@ set env(MODULEPATH) $modpath
 
 # reset environment by removing the virtual target file loaded as a full path module
 set env(testsuite) $module_3
-set env(_LMFILES__modshare) "$modulefile_1:1:$modulefile_reg:1:$modulefile_4:2"
-set env(_LMFILES_) "$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"
-set env(LOADEDMODULES_modshare) "$module_4:1:$module_1:1:$module_3:1:$module_reg:1"
-set env(LOADEDMODULES) "$module_4:$module_1:$module_reg:$module_3"
+setenv_loaded_module [list $module_4 $module_1 $module_reg $module_3] [list $modulefile_4 $modulefile_1 $modulefile_reg $modulefile_4]
 
 # switch target file, when it is not also loaded as a module name
 set ans [list]
@@ -446,10 +431,7 @@ set env(MODULEPATH) $modpath
 # and virtual, virtual module targeting the regular modulefile
 
 set env(testsuite) $module_11
-set env(_LMFILES__modshare) "$modulefile_11:1"
-set env(_LMFILES_) "$modulefile_11"
-set env(LOADEDMODULES_modshare) "$module_11:1"
-set env(LOADEDMODULES) "$module_11"
+setenv_loaded_module $module_11 $modulefile_11
 
 set ans [list]
 lappend ans [list set testsuite $module_12]
@@ -473,10 +455,7 @@ testouterr_cmd_re "sh" "switch $modulefile_12" $ans ""
 
 
 set env(testsuite) $module_12
-set env(_LMFILES__modshare) "$modulefile_12:1"
-set env(_LMFILES_) "$modulefile_12"
-set env(LOADEDMODULES_modshare) "$module_12:1"
-set env(LOADEDMODULES) "$module_12"
+setenv_loaded_module $module_12 $modulefile_12
 
 set ans [list]
 lappend ans [list set testsuite $module_11]
@@ -500,10 +479,7 @@ testouterr_cmd_re "sh" "switch $modulefile_11" $ans ""
 
 
 set env(testsuite) $module_12
-set env(_LMFILES__modshare) "$modulefile_12:2"
-set env(_LMFILES_) "$modulefile_11:$modulefile_12"
-set env(LOADEDMODULES_modshare) "$module_11:1:$module_12:1"
-set env(LOADEDMODULES) "$module_11:$module_12"
+setenv_loaded_module [list $module_11 $module_12] [list $modulefile_11 $modulefile_12]
 
 set ans [list]
 lappend ans [list unset testsuite]
@@ -535,10 +511,7 @@ testouterr_cmd_re "sh" "switch $module_12" $ans ""
 
 
 set env(testsuite) $module_11
-set env(_LMFILES__modshare) "$modulefile_12:2"
-set env(_LMFILES_) "$modulefile_12:$modulefile_11"
-set env(LOADEDMODULES_modshare) "$module_11:1:$module_12:1"
-set env(LOADEDMODULES) "$module_12:$module_11"
+setenv_loaded_module [list $module_12 $module_11] [list $modulefile_12 $modulefile_11]
 
 set ans [list]
 lappend ans [list unset testsuite]
@@ -580,10 +553,7 @@ testouterr_cmd_re "sh" "switch $module_12" $ans ""
 
 
 set env(testsuite) $module_12
-set env(_LMFILES__modshare) "$modulefile_12:2"
-set env(_LMFILES_) "$modulefile_11:$modulefile_12"
-set env(LOADEDMODULES_modshare) "$module_11:1:$modulefile_12:1"
-set env(LOADEDMODULES) "$module_11:$modulefile_12"
+setenv_loaded_module [list $module_11 $modulefile_12] [list $modulefile_11 $modulefile_12]
 
 set ans [list]
 lappend ans [list unset testsuite]
@@ -615,10 +585,7 @@ testouterr_cmd_re "sh" "switch $module_12" $ans ""
 
 
 set env(testsuite) $module_11
-set env(_LMFILES__modshare) "$modulefile_12:2"
-set env(_LMFILES_) "$modulefile_12:$modulefile_11"
-set env(LOADEDMODULES_modshare) "$module_11:1:$modulefile_12:1"
-set env(LOADEDMODULES) "$modulefile_12:$module_11"
+setenv_loaded_module [list $modulefile_12 $module_11] [list $modulefile_12 $modulefile_11]
 
 set ans [list]
 lappend ans [list unset testsuite]
@@ -665,10 +632,7 @@ testouterr_cmd_re "sh" "switch $module_12" $ans ""
 
 # Clean up the environment
 unset env(testsuite)
-unset env(LOADEDMODULES)
-unset env(LOADEDMODULES_modshare)
-unset env(_LMFILES_)
-unset env(_LMFILES__modshare)
+unsetenv_loaded_module
 set env(MODULEPATH) $modpath
 
 unset datetime_re

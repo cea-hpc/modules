@@ -129,8 +129,7 @@ for {set i 1} {$i <= 10} {incr i} {
     }
 
     # setup clean environment
-    set env(LOADEDMODULES) ""
-    set env(_LMFILES_) ""
+    unsetenv_loaded_module
 
     if {[info exists moderr]} {
         testouterr_cmd "sh" "load $modsym" "ERR" "$moderr"
@@ -172,8 +171,7 @@ for {set i 1} {$i <= 10} {incr i} {
     testouterr_cmd "sh" "paths $modsym" $ans_paths ""
 
     # setup environment for unload action
-    set env(_LMFILES_) "$modulefile"
-    set env(LOADEDMODULES) "$module"
+    setenv_loaded_module $module $modulefile
 
     set ans [list]
     lappend ans [list unset testsuite]
@@ -190,8 +188,7 @@ for {set i 1} {$i <= 10} {incr i} {
 #
 
 # Clean up the environment
-unset env(LOADEDMODULES)
-unset env(_LMFILES_)
+unsetenv_loaded_module
 
 unset datetime_re
 

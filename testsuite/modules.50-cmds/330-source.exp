@@ -71,13 +71,10 @@ testouterr_cmd_re "sh" "display $module3" "OK" "$modlin\n$modulefile3re:\n\n$dis
 # unload test
 if { $verbose > 0 } {
     send_user "\tSetup PATH = '$pathnew'\n"
-    send_user "\tSetup LOADEDMODULES = '$module'\n"
-    send_user "\tSetup _LMFILES_ = '$modulefile'\n"
 }
 set env(PATH) $pathnew
-set env(LOADEDMODULES) $module
-set env(_LMFILES_) $modulefile
 set env(testsuite) "yes"
+setenv_loaded_module $module $modulefile
 
 set ans [list]
 lappend ans [list unset testsuite]
@@ -90,13 +87,10 @@ testouterr_cmd_re "ALL" "unload $module" $ans ""
 # test with relative path source
 if { $verbose > 0 } {
     send_user "\tSetup PATH = '$pathnew'\n"
-    send_user "\tSetup LOADEDMODULES = '$module3'\n"
-    send_user "\tSetup _LMFILES_ = '$modulefile3'\n"
 }
 set env(PATH) $pathnew
-set env(LOADEDMODULES) $module3
-set env(_LMFILES_) $modulefile3
 set env(testsuite) "yes"
+setenv_loaded_module $module3 $modulefile3
 
 set ans [list]
 lappend ans [list unset testsuite]
@@ -107,12 +101,7 @@ lappend ans [list unsetpath _LMFILES_]
 testouterr_cmd_re "sh" "unload $module3" $ans ""
 
 # test empty file name
-if { $verbose > 0 } {
-    send_user "\tSetup LOADEDMODULES = '$module4'\n"
-    send_user "\tSetup _LMFILES_ = '$modulefile4'\n"
-}
-set env(LOADEDMODULES) $module4
-set env(_LMFILES_) $modulefile4
+setenv_loaded_module $module4 $modulefile4
 
 set errsource "$moderr_emptyfilename'$modulefile4'\n$err_contact"
 testouterr_cmd "sh" "unload $module4" "ERR" $errsource
@@ -124,12 +113,7 @@ $err_contact"
 testouterr_cmd "sh" "load $module2" "ERR" "$errsource"
 
 # unload test with bad sourced file
-if { $verbose > 0 } {
-    send_user "\tSetup LOADEDMODULES = '$module2'\n"
-    send_user "\tSetup _LMFILES_ = '$modulefile2'\n"
-}
-set env(LOADEDMODULES) $module2
-set env(_LMFILES_) $modulefile2
+setenv_loaded_module $module2 $modulefile2
 
 testouterr_cmd "sh" "unload $module2" "ERR" "$errsource"
 
@@ -140,13 +124,10 @@ testouterr_cmd "sh" "unload $module2" "ERR" "$errsource"
 
 if { $verbose > 0 } {
     send_user "\tRestore PATH = '$path'\n"
-    send_user "\tUnset LOADEDMODULES\n"
-    send_user "\tUnset _LMFILES_\n"
 }
 set env(PATH) $path
-unset env(LOADEDMODULES)
-unset env(_LMFILES_)
 unset env(testsuite)
+unsetenv_loaded_module
 
 unset ans
 unset path

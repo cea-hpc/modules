@@ -83,8 +83,7 @@ if { $verbose > 0 } {
 set env(HOME) $ORIG_HOME
 
 # Set up the environment for test that require the module to be loaded
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 # test unloading
 testouterr_cmd "sh" "unload $module" $ansun "unload"
@@ -99,8 +98,7 @@ testouterr_cmd "sh" "purge" $ansun "purge"
 testouterr_cmd "sh" "reload" $ans "reload\nreload"
 
 # Clean up the just changed environment
-unset env(LOADEDMODULES)
-unset env(_LMFILES_)
+unsetenv_loaded_module
 
 # test help
 testouterr_cmd_re "sh" "help $module" "OK" "$modlin\n$header_help\n\nhelp\nhelp\n$modlin"

@@ -129,8 +129,7 @@ if {[info exists x11_warn]} {
 }
 
 # satisfy prereq
-set env(LOADEDMODULES) "$module/5"
-set env(_LMFILES_) "$modulepath/$module/5"
+setenv_loaded_module "$module/5" "$modulepath/$module/5"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module/5:$module/2"]
 lappend ans [list setpath _LMFILES_ "$modulepath/$module/5:$modulepath/$module/2"]
@@ -140,8 +139,7 @@ set tserr "_UNDEFINED_1001Tclloadload$module/2$module/2shsh$module$module/5$u_sy
 testouterr_cmd_re "sh" "load $module/2" $ans $tserr
 
 # restore environment
-unset env(LOADEDMODULES)
-unset env(_LMFILES_)
+unsetenv_loaded_module
 
 
 testouterr_cmd_re "sh" "load $module/3" "ERR" "$whatis\n\n$whatis"
@@ -152,8 +150,7 @@ testouterr_cmd "sh" "load $module/4" "ERR" ""
 # test unload mode
 #
 
-set env(LOADEDMODULES) "$module/1"
-set env(_LMFILES_) "$modulepath/$module/1"
+setenv_loaded_module "$module/1" "$modulepath/$module/1"
 set env(ts1) "ok"
 set env(TSPATH) "dir3 dir2"
 set ans [list]
@@ -201,8 +198,7 @@ if {[info exists x11_warn]} {
 unset env(ts1)
 unset env(TSPATH)
 
-set env(LOADEDMODULES) "$module/2"
-set env(_LMFILES_) "$modulepath/$module/2"
+setenv_loaded_module "$module/2" "$modulepath/$module/2"
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
@@ -211,18 +207,15 @@ set tserr "_UNDEFINED_1001Tclunloadunload$module/2$module/2shsh$module$module/2$
 
 testouterr_cmd_re "sh" "unload $module/2" $ans $tserr
 
-set env(LOADEDMODULES) "$module/3"
-set env(_LMFILES_) "$modulepath/$module/3"
+setenv_loaded_module "$module/3" "$modulepath/$module/3"
 testouterr_cmd_re "sh" "unload $module/3" "ERR" "$whatis\n\n$whatis"
 
-set env(LOADEDMODULES) "$module/4"
-set env(_LMFILES_) "$modulepath/$module/4"
+setenv_loaded_module "$module/4" "$modulepath/$module/4"
 testouterr_cmd "sh" "unload $module/4" "ERR" ""
 
 
 # restore environment
-unset env(LOADEDMODULES)
-unset env(_LMFILES_)
+unsetenv_loaded_module
 
 
 #

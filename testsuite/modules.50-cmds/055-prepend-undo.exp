@@ -39,8 +39,7 @@ set new_path "$ts_path:$old_path"
 #
 
 set env(PATH) "$new_path"
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 #
 #  For the different shells ...
@@ -71,8 +70,7 @@ set new_path "$ts_path:$old_path"
 #
 
 set env(PATH) "$new_path"
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 #
 #  For the different shells ...
@@ -109,8 +107,7 @@ set new_path "$ts_path:$old_path"
 # but anyway here we test that the unloading part of "append-path" also
 # leads to error
 set env(PATH) "$new_path"
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 #
 #  The tests
@@ -133,8 +130,7 @@ if { $verbose > 0 } {
     send_user "\tSetup PATH = $ts_path\n"
 }
 set env(PATH) "$ts_path"
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 set ans [list]
 lappend ans [list setpath PATH $new_path]
@@ -154,8 +150,7 @@ test_cmd_re "ALL" "unload $module" $ans
 
 set module "prepend/0.3"
 set modulefile "$modpath/$module"
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 set ts_err "$moderr_msgs: unload-path should get an environment variable name\n  In '$modulefile'\n$err_contact"
 testouterr_cmd "sh" "unload $module" "ERR" $ts_err
 
@@ -165,8 +160,7 @@ testouterr_cmd "sh" "unload $module" "ERR" $ts_err
 
 set module "prepend/0.4"
 set modulefile "$modpath/$module"
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 set ts_err "$moderr_msgs: unload-path should get a value for environment variable PATH\n  In '$modulefile'\n$err_contact"
 testouterr_cmd "sh" "unload $module" "ERR" $ts_err
 
@@ -176,8 +170,7 @@ testouterr_cmd "sh" "unload $module" "ERR" $ts_err
 
 set module "prepend/0.5"
 set modulefile "$modpath/$module"
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 set ts_err "$moderr_msgs: unload-path should get a valid environment variable name\n  In '$modulefile'\n$err_contact"
 testouterr_cmd "sh" "unload $module" "ERR" $ts_err
 
@@ -190,8 +183,7 @@ set module "prepend/3.0"
 set modulefile "$modpath/$module"
 set env(FOO_modshare) ":1"
 set env(FOO) ""
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 
 set ans [list]
 lappend ans [list unset _LMFILES__modshare]
@@ -209,10 +201,7 @@ set modulefile2 "$modpath/$module2"
 
 set env(FOO_modshare) "/path/to/dir:1::2"
 set env(FOO) "/path/to/dir:"
-set env(_LMFILES_) "$modulefile:$modulefile2"
-set env(_LMFILES__modshare) "$modulefile:1:$modulefile2:1"
-set env(LOADEDMODULES) "$module:$module2"
-set env(LOADEDMODULES_modshare) "$module:1:$module2:1"
+setenv_loaded_module [list $module $module2] [list $modulefile $modulefile2]
 
 set ans [list]
 lappend ans [list unset _LMFILES__modshare]
@@ -243,10 +232,7 @@ testouterr_cmd "sh" "unload $module" $ans ""
 
 set env(FOO_modshare) "/path/to/dir:1::2"
 set env(FOO) "/path/to/dir:"
-set env(_LMFILES_) "$modulefile2:$modulefile"
-set env(_LMFILES__modshare) "$modulefile:1:$modulefile2:1"
-set env(LOADEDMODULES) "$module2:$module"
-set env(LOADEDMODULES_modshare) "$module:1:$module2:1"
+setenv_loaded_module [list $module2 $module] [list $modulefile2 $modulefile]
 
 set ans [list]
 lappend ans [list unset _LMFILES__modshare]
@@ -284,10 +270,7 @@ set modulefile "$modpath/$module"
 
 set env(FOO_modshare) ":1:/modules/testsuite2.2/2.2:1:/path/to/dir1:1:/modules/testsuite2.2:1"
 set env(FOO) ":/modules/testsuite2.2:/modules/testsuite2.2/2.2:/path/to/dir1"
-set env(_LMFILES_) "$modulefile"
-set env(_LMFILES__modshare) "$modulefile:1"
-set env(LOADEDMODULES) "$module"
-set env(LOADEDMODULES_modshare) "$module:1"
+setenv_loaded_module [list $module] [list $modulefile]
 
 set ans [list]
 lappend ans [list set FOO_modshare "/path/to/dir1:1"]
@@ -305,10 +288,7 @@ testouterr_cmd "sh" "unload $module" $ans ""
 set module "prepend/2.4"
 set modulefile "$modpath/$module"
 
-set env(_LMFILES_) "$modulefile"
-set env(_LMFILES__modshare) "$modulefile:1"
-set env(LOADEDMODULES) "$module"
-set env(LOADEDMODULES_modshare) "$module:1"
+setenv_loaded_module $module $modulefile
 
 testouterr_cmd "sh" "unload $module" $ans ""
 
@@ -320,10 +300,7 @@ testouterr_cmd "sh" "unload $module" $ans ""
 set env(PATH) "$old_path"
 unset env(FOO)
 unset env(FOO_modshare)
-unset env(_LMFILES_)
-unset env(_LMFILES__modshare)
-unset env(LOADEDMODULES)
-unset env(LOADEDMODULES_modshare)
+unsetenv_loaded_module
 
 #
 #  Cleanup

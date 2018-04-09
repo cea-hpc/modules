@@ -79,12 +79,7 @@ testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans ""
 
 
 # test with conflicts loaded as short path
-if { $verbose > 0 } {
-    send_user "\tSetup LOADEDMODULES = '$module_tron:$module_set1'\n"
-    send_user "\tSetup _LMFILES_ = '$modulefile_tron:$modulefile_set1'\n"
-}
-set env(LOADEDMODULES) "$module_tron:$module_set1"
-set env(_LMFILES_) "$modulefile_tron:$modulefile_set1"
+setenv_loaded_module [list $module_tron $module_set1] [list $modulefile_tron $modulefile_set1]
 
 testouterr_cmd_re "sh" "load $module1 $module2 $module3" "ERR" "$err_conflict1re\n$err_conflict2\n$err_conflict3"
 testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_conflictf1re\n$err_conflictf2re\n$err_conflictf3re"
@@ -101,13 +96,10 @@ testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err
 
 # test with conflicts loaded as full path
 if { $verbose > 0 } {
-    send_user "\tSetup LOADEDMODULES = '$modulefile_tron:$modulefile_set1'\n"
-    send_user "\tSetup _LMFILES_ = '$modulefile_tron:$modulefile_set1'\n"
     send_user "\tRestore MODULEPATH = '$modpath'\n"
 }
-set env(LOADEDMODULES) "$modulefile_tron:$modulefile_set1"
-set env(_LMFILES_) "$modulefile_tron:$modulefile_set1"
 set env(MODULEPATH) $modpath
+setenv_loaded_module [list $modulefile_tron $modulefile_set1] [list $modulefile_tron $modulefile_set1]
 
 testouterr_cmd_re "sh" "load $module1 $module2 $module3" "ERR" "$err_conflict1re\n$err_conflict2\n$err_conflict3"
 testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_conflictf1re\n$err_conflictf2re\n$err_conflictf3re"
@@ -133,13 +125,10 @@ testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans "$err_
 
 # restore environment
 if { $verbose > 0 } {
-    send_user "\tUnset _LMFILES_\n"
-    send_user "\tUnset LOADEDMODULES\n"
     send_user "\tRestore MODULEPATH = '$modpath'\n"
 }
-unset env(_LMFILES_)
-unset env(LOADEDMODULES)
 set env(MODULEPATH) $modpath
+unsetenv_loaded_module
 
 unset err_conflict1
 unset err_conflict1re

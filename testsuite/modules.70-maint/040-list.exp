@@ -36,8 +36,7 @@ set ts_csh_num "$header\n 1) $module  "
 #  Set up the environment pointing to the single module file being load
 #
 
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 
 #
 #  The tests
@@ -67,14 +66,12 @@ set env(MODULEPATH) $modpath
 
 
 # setup LOADEDMODULES/_LMFILES_ with an empty element
-set env(_LMFILES_) ":$modulefile"
-set env(LOADEDMODULES) ":$module"
+setenv_loaded_module [list {} $module] [list {} $modulefile]
 
 testouterr_cmd "sh" "--terse list" "OK" "$ts_csh"
 
 # restore LOADEDMODULES/_LMFILES_
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 
 
 #
@@ -85,8 +82,7 @@ set module "$modpath/loc_rc3/1.0"
 set modulefile $module
 set ts_csh "$header\n$module"
 
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 
 testouterr_cmd "csh" "-t list" "OK" "$ts_csh"
 
@@ -98,8 +94,7 @@ set module "foo"
 set modulefile "/path/to/foo"
 set ts_csh "$header\n$module"
 
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 
 testouterr_cmd "csh" "-t list" "OK" "$ts_csh"
 
@@ -107,8 +102,7 @@ testouterr_cmd "csh" "-t list" "OK" "$ts_csh"
 # list when loaded environment is inconsistent
 #
 
-set env(LOADEDMODULES) "foo:bar"
-set env(_LMFILES_) "/path/to/foo"
+setenv_loaded_module [list foo bar] "/path/to/foo"
 
 testouterr_cmd_re "sh" "list" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
 
@@ -116,8 +110,7 @@ testouterr_cmd_re "sh" "list" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n
 #  Cleanup
 #
 
-unset env(LOADEDMODULES)
-unset env(_LMFILES_)
+unsetenv_loaded_module
 
 unset ts_csh
 unset ts_csh_num

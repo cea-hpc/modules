@@ -49,8 +49,7 @@ set new_path "$old_path:$ts_path"
 #  Set up the environment for reversal ...
 #
 
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 #
 #  For the different shells ...
@@ -72,8 +71,7 @@ test_cmd "ALL" "unload $module" $ans
 # no error, remove-path ignored in unload mode
 set module "remove/0.3"
 set modulefile "$modpath/$module"
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 testouterr_cmd "sh" "unload $module" $ans ""
 
 #
@@ -83,8 +81,7 @@ testouterr_cmd "sh" "unload $module" $ans ""
 # no error, remove-path ignored in unload mode
 set module "remove/0.4"
 set modulefile "$modpath/$module"
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 testouterr_cmd "sh" "unload $module" $ans ""
 
 #
@@ -94,8 +91,7 @@ testouterr_cmd "sh" "unload $module" $ans ""
 # no error, remove-path ignored in unload mode
 set module "remove/0.5"
 set modulefile "$modpath/$module"
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 testouterr_cmd "sh" "unload $module" $ans ""
 
 #
@@ -107,8 +103,7 @@ set modulefile "$modpath/$module"
 
 set env(FOO_modshare) "/path/to/dir1:1"
 set env(FOO) "/path/to/dir1"
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
@@ -122,9 +117,7 @@ testouterr_cmd "sh" "unload $module" $ans ""
 
 set module "remove/2.4"
 set modulefile "$modpath/$module"
-
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 testouterr_cmd "sh" "unload $module" $ans ""
 
@@ -132,10 +125,9 @@ testouterr_cmd "sh" "unload $module" $ans ""
 #  Clean up the environment
 #
 
-unset env(_LMFILES_)
-unset env(LOADEDMODULES)
 unset env(FOO_modshare)
 unset env(FOO)
+unsetenv_loaded_module
 
 #
 #  Cleanup

@@ -106,12 +106,7 @@ unset env(TSBREAK2)
 # test unload mode
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup LOADEDMODULES = '$module/1:$module/2'\n"
-    send_user "\tSetup _LMFILES_ = '$modulepath/$module/1:$modulepath/$module/2'\n"
-}
-set env(LOADEDMODULES) "$module/1:$module/2"
-set env(_LMFILES_) "$modulepath/$module/1:$modulepath/$module/2"
+setenv_loaded_module [list "$module/1" "$module/2"] [list "$modulepath/$module/1" "$modulepath/$module/2"]
 
 set ans [list]
 lappend ans [list unset ts1]
@@ -174,12 +169,9 @@ unset env(TSBREAK2)
 # restore MODULEPATH
 if { $verbose > 0 } {
     send_user "\tRestore MODULEPATH = '$modpath'\n"
-    send_user "\tUnset LOADEDMODULES\n"
-    send_user "\tUnset _LMFILES_\n"
 }
 set env(MODULEPATH) $modpath
-unset env(LOADEDMODULES)
-unset env(_LMFILES_)
+unsetenv_loaded_module
 
 unset module
 unset modulepath

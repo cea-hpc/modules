@@ -45,8 +45,7 @@ set ts_csh "$header$module.$version                                             
 #  Set up the environment pointing to the single module file being load
 #
 
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module/$version
+setenv_loaded_module $module/$version $modulefile
 
 #
 #  The tests
@@ -62,8 +61,7 @@ testouterr_cmd_re "csh" "--long list" "OK" "$ts_csh"
 set ts_csh "$header$module2.$version2                             $taglist2         \[0-9:\/ ]*"
 append ts_csh "\n$module3.$version3                             $taglist3             \[0-9:\/ ]*"
 
-set env(_LMFILES_) "$modulefile2:$modulefile3"
-set env(LOADEDMODULES) "$module2/$version2:$module3/$version3"
+setenv_loaded_module [list $module2/$version2 $module3/$version3] [list $modulefile2 $modulefile3]
 
 #
 #  The tests
@@ -81,8 +79,7 @@ set modulere "$modpathre/loc_rc3/1.0"
 set modulefile $module
 set ts_csh "$header$modulere\\s+\[0-9:\/ ]*"
 
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 
 testouterr_cmd_re "csh" "-l list" "OK" "$ts_csh"
 
@@ -96,8 +93,7 @@ set modulefile "/path/to/foo"
 set modulefile $module
 set ts_csh "$header$module\\s+"
 
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 
 testouterr_cmd_re "csh" "-l list" "OK" "$ts_csh"
 
@@ -106,8 +102,7 @@ testouterr_cmd_re "csh" "-l list" "OK" "$ts_csh"
 #  Cleanup
 #
 
-unset env(LOADEDMODULES)
-unset env(_LMFILES_)
+unsetenv_loaded_module
 
 unset header
 unset ts_csh

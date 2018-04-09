@@ -1103,3 +1103,53 @@ proc restore_file_perms {name} {
     # restore file original permissions
     file attributes $name -permissions $file_orig_perms($name)
 }
+
+#
+# Change environment setup in consistent way
+#
+
+proc unsetenv_var {var} {
+    if {[info exists ::env($var)]} {
+        if { $::verbose > 0 } {
+            send_user "\tUnset $var\n"
+        }
+        unset ::env($var)
+    }
+}
+
+proc unsetenv_path_var {var} {
+    unsetenv_var $var
+    # unset reference counter variable
+    unsetenv_var "${var}_modshare"
+}
+
+proc setenv_var {var val} {
+    if { $::verbose > 0 } {
+        send_user "\tSetup $var = '$val'\n"
+    }
+    set ::env($var) $val
+}
+
+proc setenv_path_var {var args} {
+    setenv_var $var [join $args ":"]
+    # set reference counter variable
+    array set refcnt {}
+    foreach arg $args {
+        if {![info exist refcnt($arg)]} {
+            set refcnt($arg) 1
+        } else {
+            incr refcnt($arg)
+        }
+    }
+    setenv_var "${var}_modshare" [join [array get refcnt] ":"]
+}
+
+proc unsetenv_loaded_module {} {
+    unsetenv_path_var _LMFILES_
+    unsetenv_path_var LOADEDMODULES
+}
+
+proc setenv_loaded_module {modlist modfilelist} {
+    eval setenv_path_var _LMFILES_ $modfilelist
+    eval setenv_path_var LOADEDMODULES $modlist
+}

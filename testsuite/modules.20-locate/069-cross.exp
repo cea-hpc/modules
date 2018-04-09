@@ -105,20 +105,20 @@ set modulepathre_14 "$modulepathre_2"
 
 # loading tests
 set modsym_15 "lcross/1"
-set module_15 "cross/2.0:lcross/2:lcross/1"
-set modulefile_15 "$modpath3/cross/2.0:$modpath2/lcross/2:$modpath1/lcross/1"
+set module_15 [list cross/2.0 lcross/2 lcross/1]
+set modulefile_15 [list $modpath3/cross/2.0 $modpath2/lcross/2 $modpath1/lcross/1]
 
 set modsym_16 "lcross/3"
-set module_16 "cross/4.0:lcross/4:lcross/3"
-set modulefile_16 "$modpath1/cross/4.0:$modpath2/lcross/4:$modpath3/lcross/3"
+set module_16 [list cross/4.0 lcross/4 lcross/3]
+set modulefile_16 [list $modpath1/cross/4.0 $modpath2/lcross/4 $modpath3/lcross/3]
 
 set modsym_17 "lcross/5"
-set module_17 "cross/6.0:lcross/6:lcross/5"
-set modulefile_17 "$modpath2/cross/6.0:$modpath1/lcross/6:$modpath2/lcross/5"
+set module_17 [list cross/6.0 lcross/6 lcross/5]
+set modulefile_17 [list $modpath2/cross/6.0 $modpath1/lcross/6 $modpath2/lcross/5]
 
 set modsym_18 "lcross/7"
-set module_18 "cross/1.0:lcross/8:lcross/7"
-set modulefile_18 "$modpath2/cross/1.0:$modpath3/lcross/8:$modpath2/lcross/7"
+set module_18 [list cross/1.0 lcross/8 lcross/7]
+set modulefile_18 [list $modpath2/cross/1.0 $modpath3/lcross/8 $modpath2/lcross/7]
 
 set modsym_19 "lcross/10"
 # first directory wins default
@@ -318,9 +318,11 @@ if { $verbose > 0 } {
 # init proc to define all tests for one module case
 proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     set modsym [set "::modsym_${i}"]
-    set module [set "::module_${i}"]
+    set modulelist [set "::module_${i}"]
+    set module [join $modulelist ":"]
     if {[info exists "::modulefile_${i}"]} {
-        set modulefile [set "::modulefile_${i}"]
+        set modulefilelist [set "::modulefile_${i}"]
+        set modulefile [join $modulefilelist ":"]
         if {[info exists "::modulefilere_${i}"]} {
             set modulefilere [set "::modulefilere_${i}"]
         }
@@ -331,12 +333,12 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
         set modulepath [set "::modulepath_${i}"]
         set modulepathre [set "::modulepathre_${i}"]
         set modulefile "$modulepath/$module"
+        set modulefilelist $modulefile
         set modulefilere "$modulepathre/$module"
     }
 
     # setup environment with no loaded module
-    set ::env(_LMFILES_) ""
-    set ::env(LOADEDMODULES) ""
+    unsetenv_loaded_module
 
     set ans [list]
     lappend ans [list set testsuite "yes"]
@@ -366,8 +368,7 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     }
 
     # setup environment with targeted module loaded
-    set ::env(_LMFILES_) "$modulefile"
-    set ::env(LOADEDMODULES) "$module"
+    setenv_loaded_module $modulelist $modulefilelist
 
     set ans [list]
     lappend ans [list unset testsuite]
@@ -439,8 +440,7 @@ for {set i 42} {$i <= 49} {incr i} {
 #
 
 # Clean up the environment
-unset env(LOADEDMODULES)
-unset env(_LMFILES_)
+unsetenv_loaded_module
 if { $verbose > 0 } {
     send_user "\tRestore MODULEPATH = $modpath\n"
 }

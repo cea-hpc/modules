@@ -32,8 +32,7 @@ set modBp "$modpath/$modB"
 #
 set module ""
 set modulefile ""
-set env(_LMFILES_) "$modulefile"
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 #
 #  load
@@ -56,8 +55,7 @@ testouterr_cmd_re "ALL" "load $modA" $ans "$moderr"
 #
 # set-up a loaded environment
 #
-set env(_LMFILES_) "/some/path/foobar/1.0:$modulefile"
-set env(LOADEDMODULES) "foobar/1.0:$module"
+setenv_loaded_module [list "foobar/1.0" $module] [list "/some/path/foobar/1.0" $modulefile]
 set module "foobar/1.0"
 set modulefile "/some/path/foobar/1.0"
 set moderr "modA unload\nmodB unload";
@@ -77,8 +75,7 @@ testouterr_cmd_re "ALL" "unload $modA" $ans "$moderr"
 #  Cleanup
 #
 
-unset env(_LMFILES_)
-unset env(LOADEDMODULES)
+unsetenv_loaded_module
 unset moderr
 
 unset ans

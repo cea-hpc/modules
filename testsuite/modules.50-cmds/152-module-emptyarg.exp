@@ -102,23 +102,20 @@ testouterr_cmd_re "sh" "load $module/avail" $ans "^.+$"
 
 # wrong arg number if command does not accept any argument
 foreach cmd [list list purge reload aliases savelist] {
-    set env(LOADEDMODULES) "$module/$cmd"
-    set env(_LMFILES_) "$modulepath/$module/$cmd"
+    setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     testouterr_cmd "sh" "unload $module/$cmd" "ERR" "$moderr_msgs: Unexpected number of args for '$cmd' command\n  In '$modulepath/$module/$cmd'\n$err_contact"
 }
 
 # on most module commands, empty arg leads to error
 foreach cmd [list load unload] {
-    set env(LOADEDMODULES) "$module/$cmd"
-    set env(_LMFILES_) "$modulepath/$module/$cmd"
+    setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     # test both empty names {} and "" on same module command
     testouterr_cmd "sh" "unload $module/$cmd" "ERR" "$err_emptymodname\n$err_emptymodname"
 }
 
 # for some module commands, error is not fatal and modulefile is unloaded
 foreach cmd [list display test swap] {
-    set env(LOADEDMODULES) "$module/$cmd"
-    set env(_LMFILES_) "$modulepath/$module/$cmd"
+    setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     set ans [list]
     lappend ans [list unsetpath LOADEDMODULES]
     lappend ans [list unsetpath _LMFILES_]
@@ -126,29 +123,25 @@ foreach cmd [list display test swap] {
     testouterr_cmd "sh" "unload $module/$cmd" $ans $err_emptymodname
 }
 # switch: an empty second arg leads to one name rule
-set env(LOADEDMODULES) "$module/swap2"
-set env(_LMFILES_) "$modulepath/$module/swap2"
+setenv_loaded_module "$module/swap2" "$modulepath/$module/swap2"
 testouterr_cmd_re "sh" "unload $module/swap2" $ans "$err_path'bar'"
 foreach cmd [list use unuse] {
-    set env(LOADEDMODULES) "$module/$cmd"
-    set env(_LMFILES_) "$modulepath/$module/$cmd"
+    setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     testouterr_cmd "sh" "unload $module/$cmd" $ans $err_emptydirname
 }
 
 # or error is reported as modulefile error rather global error
 foreach cmd [list save restore saveshow saverm] {
-    set env(LOADEDMODULES) "$module/$cmd"
-    set env(_LMFILES_) "$modulepath/$module/$cmd"
+    setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     testouterr_cmd "sh" "unload $module/$cmd" "ERR" "$moderr_emptycollname'$modulepath/$module/$cmd'\n$err_contact"
 }
-set env(LOADEDMODULES) "$module/source"
+setenv_loaded_module "$module/source" "$modulepath/$module/source"
 set env(_LMFILES_) "$modulepath/$module/source"
 testouterr_cmd "sh" "unload $module/source" "ERR" "$moderr_emptyfilename'$modulepath/$module/source'\n$err_contact"
 
 # empty string currently understood like wildcard
 foreach cmd [list whatis apropos] {
-    set env(LOADEDMODULES) "$module/$cmd"
-    set env(_LMFILES_) "$modulepath/$module/$cmd"
+    setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     set ans [list]
     lappend ans [list ERR]
     lappend ans [list unset _LMFILES__modshare]
@@ -158,16 +151,14 @@ foreach cmd [list whatis apropos] {
     # error rendered as some evaluated modules produce error
     testouterr_cmd "sh" "unload $module/$cmd" $ans ""
 }
-set env(LOADEDMODULES) "$module/avail"
-set env(_LMFILES_) "$modulepath/$module/avail"
+setenv_loaded_module "$module/avail" "$modulepath/$module/avail"
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 testouterr_cmd_re "sh" "unload $module/avail" $ans "^.+$"
 
 # restore environment
-unset env(LOADEDMODULES)
-unset env(_LMFILES_)
+unsetenv_loaded_module
 
 
 #

@@ -148,8 +148,7 @@ proc multi_test_case {args} {
     }
 
     # setup clean environment
-    set ::env(LOADEDMODULES) ""
-    set ::env(_LMFILES_) ""
+    unsetenv_loaded_module
 
     if {[info exists errlo]} {
         if {$erri == 3} {
@@ -183,8 +182,7 @@ proc multi_test_case {args} {
     testouterr_cmd_re "sh" "source $allmodulefile" $ans_src "$errlo"
 
     # setup environment for unload action
-    set ::env(_LMFILES_) [join $modulefile ":"]
-    set ::env(LOADEDMODULES) [join $module ":"]
+    setenv_loaded_module $module $modulefile
 
     lappend ans_unlo [list unsetpath LOADEDMODULES]
     lappend ans_unlo [list unsetpath _LMFILES_]
@@ -223,8 +221,7 @@ multi_test_case b4 g1 g2
 #
 
 # Clean up the environment
-unset env(LOADEDMODULES)
-unset env(_LMFILES_)
+unsetenv_loaded_module
 
 unset help_pre
 unset help_noproc

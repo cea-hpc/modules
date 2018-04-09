@@ -41,8 +41,7 @@ lappend ans [list unsetpath _LMFILES_]
 #  Set up the environment pointing to the single module file being load
 #
 
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) $module
+setenv_loaded_module $module $modulefile
 
 #
 #  The tests
@@ -55,8 +54,7 @@ test_cmd "csh" "pu" $ans
 
 
 # setup LOADEDMODULES/_LMFILES_ with an empty element
-set env(_LMFILES_) ":$modulefile"
-set env(LOADEDMODULES) ":$module"
+setenv_loaded_module [list {} $module] [list {} $modulefile]
 
 set ans [list]
 lappend ans [list unset testsuite]
@@ -67,16 +65,14 @@ lappend ans [list setpath _LMFILES_ ""]
 test_cmd "sh" "purge" $ans
 
 # restore LOADEDMODULES/_LMFILES_
-set env(_LMFILES_) $modulefile
-set env(LOADEDMODULES) "$module"
+setenv_loaded_module $module $modulefile
 
 
 #
 # purge when loaded environment is inconsistent
 #
 
-set env(LOADEDMODULES) "foo:bar"
-set env(_LMFILES_) "/path/to/foo"
+setenv_loaded_module [list foo bar] "/path/to/foo"
 
 testouterr_cmd_re "sh" "purge" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
 
@@ -85,8 +81,7 @@ testouterr_cmd_re "sh" "purge" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\
 #  Cleanup
 #
 
-unset env(LOADEDMODULES)
-unset env(_LMFILES_)
+unsetenv_loaded_module
 
 unset ans
 
