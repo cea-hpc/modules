@@ -463,10 +463,25 @@ proc startPager {} {
 # Use a slave TCL interpreter to execute modulefiles
 #
 
-proc unset-env {var} {
+proc unset-env {var {internal 0}} {
+   set mode [currentMode]
    if {[info exists ::env($var)]} {
-      reportDebug "unset-env:  $var"
-      unset ::env($var)
+      reportDebug "unset-env: $var (internal=$internal, mode=$mode)"
+      # do not unset-env to avoid breaking later reference to the variable
+      # in modulefile, clear value instead
+      if {!$internal} {
+         set ::env($var) ""
+      # internal variables (like ref counter var) are purely unset
+      } else {
+         unset ::env($var)
+         set intwasset 1
+      }
+   }
+   # propagate deletion in any case if variable is public and for internal
+   # one only if variable was set
+   if {($mode eq "load" || $mode eq "unload") && (!$internal ||\
+      [info exists intwasset])} {
+      set ::g_stateEnvVars($var) "del"
    }
 }
 
@@ -1633,27 +1648,15 @@ proc setenv {var val} {
    if {$mode ne "unload"} {
       set ::env($var) $val
       # clean any previously defined reference counter array
-      set sharevar [getModshareVarName $var]
-      if {[info exists ::env($sharevar)]} {
-         unset-env $sharevar
-         set sharevarunset 1
-      }
+      unset-env [getModshareVarName $var] 1
    }
 
    # propagate variable setup to shell environment on load mode
    if {$mode eq "load"} {
       set ::g_stateEnvVars($var) "new"
-      if {[info exists sharevarunset]} {
-         set ::g_stateEnvVars($sharevar) "del"
-      }
    }\
    elseif {$mode eq "unload"} {
-      if {[info exists ::env($var)]} {
-         # do not unset-env to avoid breaking later reference to the variable
-         # in modulefile, clear value instead
-         set ::env($var) ""
-      }
-      set ::g_stateEnvVars($var) "del"
+      unset-env $var
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "setenv\t\t$var\t$val"
@@ -1685,23 +1688,16 @@ proc unsetenv {var {val {}}} {
    reportDebug "unsetenv: ($var,$val) mode = $mode"
 
    if {$mode eq "load"} {
-      if {[info exists ::env($var)]} {
-         unset-env $var
-      }
-      set ::g_stateEnvVars($var) "del"
+      unset-env $var
       # clean any existing reference counter array
-      set sharevar [getModshareVarName $var]
-      if {[info exists ::env($sharevar)]} {
-         unset-env $sharevar
-         set ::g_stateEnvVars($sharevar) "del"
-      }
+      unset-env [getModshareVarName $var] 1
    }\
    elseif {$mode eq "unload"} {
       if {$val ne ""} {
          set ::env($var) $val
          set ::g_stateEnvVars($var) "new"
       } else {
-         set ::g_stateEnvVars($var) "del"
+         unset-env $var
       }
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
@@ -1995,12 +1991,7 @@ proc unload-path {args} {
 
    # set env variable and corresponding reference counter in any case
    if {[llength $newpath] == 0} {
-      if {[info exists ::env($var)]} {
-         # do not unset-env to avoid breaking later reference to the variable
-         # in modulefile, clear value instead
-         set ::env($var) ""
-      }
-      set ::g_stateEnvVars($var) "del"
+      unset-env $var
    } else {
       set ::env($var) [join $newpath $separator]
       set ::g_stateEnvVars($var) "new"
@@ -2011,8 +2002,7 @@ proc unload-path {args} {
       set ::env($sharevar) [pjoin [array get countarr] [getPathSeparator]]
       set ::g_stateEnvVars($sharevar) "new"
    } else {
-      unset-env $sharevar
-      set ::g_stateEnvVars($sharevar) "del"
+      unset-env $sharevar 1
    }
    return {}
 }
