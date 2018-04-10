@@ -40,10 +40,7 @@ set use	"unuse"
 # Put a new entry to unuse to the MODULEPATH
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $path:$modpath\n"
-}
-set env(MODULEPATH) "$path:$modpath"
+setenv_path_var MODULEPATH $path $modpath
 
 
 #
@@ -64,20 +61,14 @@ test_cmd_re "ALL" "$use $path" $ans
 # Insert an empty dir element in MODULEPATH, should be ignored
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = ${path}::$modpath\n"
-}
-set env(MODULEPATH) "${path}::$modpath"
+setenv_path_var MODULEPATH $path {} $modpath
 
 set ans [list]
 # empty dir elements are ignored but stick to the variable, they should be removed
 lappend ans [list setpath MODULEPATH ":$modpath"]
 test_cmd_re "sh" "$use $path" $ans
 
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $path:$modpath\n"
-}
-set env(MODULEPATH) "$path:$modpath"
+setenv_path_var MODULEPATH $path $modpath
 
 #
 # test with relative-path directory
@@ -105,10 +96,7 @@ testouterr_cmd "ALL" "$use" "OK" "$path_list_header\n  $path\n  $modpath"
 # test removing dir enabled multiple times
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH_modshare = $path:2:$modpath:1\n"
-}
-set env(MODULEPATH_modshare) "$path:2:$modpath:1"
+setenv_var MODULEPATH_modshare "$path:2:$modpath:1"
 
 # dir not removed if ref counter > 1, should be changed in next major version
 # as commands sends from the command-line should by-pass any ref counter
@@ -117,17 +105,11 @@ lappend ans [list set MODULEPATH_modshare "$path:1:$modpath:1"]
 lappend ans [list set MODULEPATH "$path:$modpath"]
 testouterr_cmd "sh" "$use $path" $ans "$warn_msgs: Did not unuse $path"
 
-if { $verbose > 0 } {
-    send_user "\tUnset MODULEPATH_modshare\n"
-}
-unset env(MODULEPATH_modshare)
+unsetenv_var MODULEPATH_modshare
 
 
 # list paths with no paths set
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = ''\n"
-}
-set ::env(MODULEPATH) ""
+setenv_var MODULEPATH ""
 
 testouterr_cmd "ALL" "$use" "OK" "$no_path_list"
 
@@ -135,10 +117,7 @@ testouterr_cmd "ALL" "$use" "OK" "$no_path_list"
 # Set empty MODULEPATH with just empty dir element, that should be ignored
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = ':'\n"
-}
-set ::env(MODULEPATH) ":"
+setenv_var MODULEPATH ":"
 
 testouterr_cmd "sh" "$use" "OK" "$no_path_list"
 testouterr_cmd "sh" "$use " "ERR" $err_emptydirname
@@ -148,10 +127,7 @@ testouterr_cmd "sh" "$use " "ERR" $err_emptydirname
 # Cleanup
 #
 
-if { $verbose > 0 } {
-    send_user "\tResetting MODULEPATH\n"
-}
-set env(MODULEPATH) "$modpath"
+setenv_path_var MODULEPATH $modpath
 
 unset path
 unset tsdirname

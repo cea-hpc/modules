@@ -49,21 +49,13 @@ testouterr_cmd "ALL" "$use $badpath" "ERR" "$bad_use"
 # test with uninitialized MODULEPATH
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = ''\n"
-}
-
-set ORIG $::env(MODULEPATH)
-set ::env(MODULEPATH) ""
+unsetenv_path_var MODULEPATH
 
 set ans [list]
 lappend ans [list setpath MODULEPATH $path]
 test_cmd_re "ALL" "$use $path" $ans
 
-if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = $ORIG\n"
-}
-set ::env(MODULEPATH) $ORIG
+setenv_path_var MODULEPATH $modpath
 
 #
 # test with already loaded path
@@ -85,4 +77,3 @@ unset badpath
 unset bad_use
 unset loaded_path
 unset ans
-unset ORIG

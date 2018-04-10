@@ -75,10 +75,7 @@ proc test_stderr_content {modfile content {procwarn 0}} {
 
 
 # setup specific environment
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = '$modulepath'\n"
-}
-set env(MODULEPATH) $modulepath
+setenv_path_var MODULEPATH $modulepath
 
 #
 # test load mode
@@ -338,11 +335,10 @@ testouterr_cmd_re "sh" "whatis $module" "ERR" $whatis
 
 # restore MODULEPATH
 if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = '$modpath'\n"
     send_user "\tDelete $env(HOME)/.module\n"
 }
-set env(MODULEPATH) $modpath
 file delete $env(HOME)/.module
+setenv_path_var MODULEPATH $modpath
 
 unset module
 unset modulepath

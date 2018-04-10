@@ -70,12 +70,7 @@ testouterr_cmd "ALL" "$use $badpath" "ERR" "$bad_use"
 # test with uninitialized MODULEPATH
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = ''\n"
-}
-
-set ORIG $::env(MODULEPATH)
-set ::env(MODULEPATH) ""
+unsetenv_path_var MODULEPATH
 
 set ans [list]
 lappend ans [list setpath MODULEPATH $path]
@@ -84,10 +79,7 @@ test_cmd_re "ALL" "$use $path" $ans
 # list currently enabled paths
 testouterr_cmd "ALL" "$use" "OK" "$no_path_list"
 
-if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = $ORIG\n"
-}
-set ::env(MODULEPATH) $ORIG
+setenv_path_var MODULEPATH $modpath
 
 #
 # test with already loaded path
@@ -114,14 +106,10 @@ test_cmd_re "ALL" "$use $loaded_relpath_wdot" $ans
 # List enabled paths with 2 paths set and 1 empty element which should be ignored
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = '$mod_path2'\n"
-}
-set ORIG $::env(MODULEPATH)
-set ::env(MODULEPATH) "$mod_path2"
+setenv_path_var MODULEPATH $mod_path2
 
 # list currently enabled paths
-testouterr_cmd "ALL" "$use" "OK" "$path_list_header\n  $path\n  $ORIG"
+testouterr_cmd "ALL" "$use" "OK" "$path_list_header\n  $path\n  $modpath"
 
 #
 # Test variable resolution
@@ -131,10 +119,7 @@ testouterr_cmd "ALL" "$use" "OK" "$path_list_header\n  $path\n  $ORIG"
 set var_path "/apps/\$MODULES_OS/\$MODULES_MACHINE/\$MODULES_OS"
 set os $tcl_platform(os)
 set machine $tcl_platform(machine)
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = '$var_path'\n"
-}
-set ::env(MODULEPATH) "$var_path"
+setenv_path_var MODULEPATH $var_path
 
 # tests when variable are defined or not
 # Currenlty if variable is not defined, directory level is omitted. Should
@@ -147,10 +132,7 @@ set ::env(MODULES_MACHINE) $machine
 testouterr_cmd "sh" "$use" "OK" "$path_list_header\n  /apps/$os/$machine/$os"
 
 
-if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = $ORIG\n"
-}
-set ::env(MODULEPATH) $ORIG
+setenv_path_var MODULEPATH $modpath
 
 #
 #
@@ -174,7 +156,6 @@ unset bad_use
 unset loaded_path
 unset loaded_relpath
 unset loaded_relpath_wdot
-unset ORIG
 unset ans
 unset path_list_header
 unset no_path_list

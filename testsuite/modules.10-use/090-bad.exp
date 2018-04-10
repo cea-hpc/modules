@@ -26,7 +26,6 @@
 
 set module "loc_rc6"
 
-set orig_modpath $::env(MODULEPATH)
 set file_modpath $::env(TESTSUITEDIR)/systest
 
 set hide_perms "ugo-rx"
@@ -35,10 +34,7 @@ set hide_perms "ugo-rx"
 # Test global access to the modulefiles when modulepath is a regular file
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = '$file_modpath'\n"
-}
-set ::env(MODULEPATH) "$file_modpath"
+setenv_path_var MODULEPATH $file_modpath
 
 # nothing found
 testouterr_cmd "sh" "whatis" "OK" ""
@@ -68,14 +64,10 @@ testouterr_cmd "sh" "unuse $file_modpath" $ans ""
 # Cleanup
 #
 
-if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = $orig_modpath\n"
-}
-set ::env(MODULEPATH) $orig_modpath
+setenv_path_var MODULEPATH $modpath
 
 unset hide_perms
 
-unset orig_modpath
 unset file_modpath
 unset ans
 

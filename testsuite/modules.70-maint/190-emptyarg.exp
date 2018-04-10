@@ -33,10 +33,7 @@ set modulefile2 "$modpath/$module2"
 # setup specific environment (with current path as modulepath and a module
 # loaded with full path name) to check passed empty argument is not mismatched
 # with something else due to these conditions
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = '$modpath:[pwd]'\n"
-}
-set env(MODULEPATH) "$modpath:[pwd]"
+setenv_path_var MODULEPATH $modpath [pwd]
 setenv_loaded_module $module1 $modulefile1
 
 
@@ -93,10 +90,7 @@ testouterr_cmd "sh" "remove-path -d   " "ERR" "$error_msgs: unload-path should g
 testouterr_cmd "sh" "remove-path FOO " $ans ""
 
 # restore MODULEPATH
-if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = '$modpath'\n"
-}
-set env(MODULEPATH) $modpath
+setenv_path_var MODULEPATH $modpath
 
 # empty string currently understood like wildcard
 foreach cmd [list whatis apropos] {

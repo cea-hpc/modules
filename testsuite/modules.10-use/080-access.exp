@@ -35,31 +35,23 @@ if {!$is_file_perms_editable} {
 
 set module "loc_rc6"
 
-set orig_modpath $::env(MODULEPATH)
-
 set hide_perms "ugo-rx"
 
 #
 # Test enabling modulepath when access not granted to it
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = ''\n"
-}
-set ::env(MODULEPATH) ""
+unsetenv_path_var MODULEPATH
 
-change_file_perms $orig_modpath $hide_perms
+change_file_perms $modpath $hide_perms
 
 # normal enabling, as no directory access
-lappend ans [list set MODULEPATH_modshare "$orig_modpath:1"]
-lappend ans [list set MODULEPATH $orig_modpath]
-testouterr_cmd "sh" "use $orig_modpath" $ans ""
+lappend ans [list set MODULEPATH_modshare "$modpath:1"]
+lappend ans [list set MODULEPATH $modpath]
+testouterr_cmd "sh" "use $modpath" $ans ""
 
 
-if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = $orig_modpath\n"
-}
-set ::env(MODULEPATH) $orig_modpath
+setenv_path_var MODULEPATH $modpath
 
 
 #
@@ -112,9 +104,9 @@ testouterr_cmd "sh" "avail -t $module" "OK" ""
 # normal disabling, as no directory access
 set ans [list]
 lappend ans [list unsetpath MODULEPATH]
-testouterr_cmd "sh" "unuse $orig_modpath" $ans ""
+testouterr_cmd "sh" "unuse $modpath" $ans ""
 
-restore_file_perms $orig_modpath
+restore_file_perms $modpath
 
 
 #
@@ -123,7 +115,6 @@ restore_file_perms $orig_modpath
 
 unset hide_perms
 
-unset orig_modpath
 unset ans
 
 unset module

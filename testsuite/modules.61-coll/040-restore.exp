@@ -67,10 +67,7 @@ testouterr_cmd "ALL" "restore $badcontfp" "ERR" "$badcontfperrmsg"
 #
 
 # setup an empty environment
-if { $verbose > 0 } {
-    send_user "\tUnset MODULEPATH\n"
-}
-unset env(MODULEPATH)
+unsetenv_path_var MODULEPATH
 
 lappend ans [list set _LMFILES__modshare "(.*)"]
 lappend ans [list set LOADEDMODULES_modshare "(.*)"]
@@ -91,10 +88,7 @@ testouterr_cmd_re "ALL" "restore" $ans "$cderrmsg"
 # of this environment already loaded (default version comparison)
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $cdmodpath\n"
-}
-set env(MODULEPATH) "$cdmodpath"
+eval setenv_path_var MODULEPATH [split $cdmodpath ":"]
 setenv_loaded_module [split $cdlm_part ":"] [split $cdlmf_part ":"]
 
 set ans [list]
@@ -124,10 +118,7 @@ testouterr_cmd_re "ALL" "restore $coll1" $ans "$c1errmsg"
 #
 
 # fake environment state: $coll1 collection restored
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $c1modpath\n"
-}
-set env(MODULEPATH) "$c1modpath"
+eval setenv_path_var MODULEPATH [split $c1modpath ":"]
 setenv_loaded_module [split $c1lm ":"] [split $c1lmf ":"]
 
 testouterr_cmd "ALL" "restore $coll1" "OK" ""
@@ -151,10 +142,7 @@ testouterr_cmd_re "ALL" "restore $coll2" $ans "$c2errmsg"
 #
 
 # fake environment state: $coll2 collection restored
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $c2modpath\n"
-}
-set env(MODULEPATH) "$c2modpath"
+eval setenv_path_var MODULEPATH [split $c2modpath ":"]
 setenv_loaded_module [split $c2lm ":"] [split $c2lmf ":"]
 
 set ans [list]
@@ -220,10 +208,7 @@ testouterr_cmd_re "ALL" "restore $coll5fp" $ans "$c4errmsg"
 #
 
 # restore environment
-if { $verbose > 0 } {
-    send_user "\tUnset MODULEPATH\n"
-}
-unset env(MODULEPATH)
+unsetenv_path_var MODULEPATH
 unsetenv_loaded_module
 
 set ans [list]
@@ -240,10 +225,7 @@ testouterr_cmd_re "sh" "restore $coll6" $ans ""
 #
 
 # restore environment
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = ':'\n"
-}
-set env(MODULEPATH) ":"
+setenv_path_var MODULEPATH {} {}
 setenv_loaded_module [list {} {}] [list {} {}]
 
 set ans [list]
@@ -261,10 +243,7 @@ testouterr_cmd_re "sh" "restore $coll6" $ans ""
 #
 
 # setup environment state
-if { $verbose > 0 } {
-    send_user "\tUnset MODULEPATH\n"
-}
-unset env(MODULEPATH)
+unsetenv_path_var MODULEPATH
 unsetenv_loaded_module
 
 set ans [list]
@@ -280,10 +259,7 @@ testouterr_cmd_re "sh" "restore $coll7fp" $ans ""
 # starting with a defined MODULEPATH
 #
 
-if { $verbose > 0 } {
-    send_user "\tMODULEPATH = '$modpath'\n"
-}
-set env(MODULEPATH) $modpath
+setenv_path_var MODULEPATH $modpath
 
 set ans [list]
 lappend ans [list set testsuite "yes"]
@@ -298,10 +274,7 @@ testouterr_cmd_re "sh" "restore $coll7fp" $ans ""
 # test restoring collection with a modulepath and modulefiles loaded as fullpath
 #
 
-if { $verbose > 0 } {
-    send_user "\tUnset MODULEPATH\n"
-}
-unset env(MODULEPATH)
+unsetenv_path_var MODULEPATH
 
 set ans [list]
 lappend ans [list set testsuite "yes"]
@@ -355,11 +328,10 @@ testouterr_cmd "sh" "restore $coll8fp" "ERR" "$err_loinconsist\n  LOADEDMODULES=
 # restore environment
 # _LMFILES_ and LOADEDMODULES already restored during last test
 if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = $modpath\n"
     send_user "\tRestore MODULES_COLLECTION_TARGET = ''\n"
 }
-set env(MODULEPATH) $modpath
 unset env(MODULES_COLLECTION_TARGET)
+setenv_path_var MODULEPATH $modpath
 unsetenv_loaded_module
 
 unset ans

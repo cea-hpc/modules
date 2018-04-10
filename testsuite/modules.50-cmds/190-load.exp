@@ -114,17 +114,11 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 test_cmd_re "ALL" "load $mod31" $ans
 
 # setup MODULEPATH with a trailing slash and an empty dir element
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = :$modpath/\n"
-}
-set env(MODULEPATH) ":$modpath/"
+setenv_path_var MODULEPATH {} "$modpath/"
 test_cmd_re "sh" "load $mod31" $ans
 
 # restore MODULEPATH
-if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = $modpath\n"
-}
-set env(MODULEPATH) $modpath
+setenv_path_var MODULEPATH $modpath
 
 
 # setup LOADEDMODULES/_LMFILES_ with an empty element
@@ -148,17 +142,11 @@ setenv_loaded_module [list $mod11 $mod21] [list $mod11p $mod21p]
 test_cmd "ALL" "load $mod11" "OK"
 
 # setup MODULEPATH with a trailing slash and an empty dir element
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = :$modpath/\n"
-}
-set env(MODULEPATH) ":$modpath/"
+setenv_path_var MODULEPATH {} "$modpath/"
 test_cmd "sh" "load $mod11" "OK"
 
 # restore MODULEPATH
-if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = $modpath\n"
-}
-set env(MODULEPATH) $modpath
+setenv_path_var MODULEPATH $modpath
 
 
 # setup LOADEDMODULES/_LMFILES_ with an empty element
@@ -267,10 +255,7 @@ test_cmd_re "sh" "load $oth11pdd" "OK"
 # test module already loaded as full path, try to load again with short name
 # and modpath used
 #
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = '$modpath.other:$modpath'\n"
-}
-set env(MODULEPATH) "$modpath.other:$modpath"
+setenv_path_var MODULEPATH "$modpath.other" $modpath
 setenv_loaded_module $mod12p $mod12p
 
 test_cmd_re "sh" "load $mod12" "OK"
@@ -287,10 +272,7 @@ test_cmd_re "sh" "load $mod11pd" "OK"
 test_cmd_re "sh" "load $mod11pdd" "OK"
 
 # unset MODULEPATH
-if { $verbose > 0 } {
-    send_user "\tUnset MODULEPATH\n"
-}
-unset env(MODULEPATH)
+unsetenv_path_var MODULEPATH
 
 test_cmd_re "sh" "load $mod11p" "OK"
 test_cmd_re "sh" "load $mod11pd" "OK"
@@ -312,10 +294,7 @@ testouterr_cmd_re "sh" "load $mod1name" "ERR" $err_nomodpath
 #
 
 setenv_loaded_module [list foo bar] "/path/to/foo"
-if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = '$modpath'\n"
-}
-set env(MODULEPATH) $modpath
+setenv_path_var MODULEPATH $modpath
 
 testouterr_cmd_re "sh" "load $mod12" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
 

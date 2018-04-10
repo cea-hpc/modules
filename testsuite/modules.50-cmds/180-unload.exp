@@ -95,10 +95,7 @@ testouterr_cmd "sh" "unload $modulefile_1_reld" $ans ""
 testouterr_cmd "sh" "unload $modulefile_1_reldd" $ans ""
 
 # setup MODULEPATH with a trailing slash and an empty dir element
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = :$modpath/\n"
-}
-set env(MODULEPATH) ":$modpath/"
+setenv_path_var MODULEPATH {} "$modpath/"
 testouterr_cmd "sh" "unload $modulefile_1" $ans ""
 
 
@@ -118,10 +115,7 @@ setenv_loaded_module [list $module_2 $module_1] [list $modulefile_2 $modulefile_
 
 
 # unset MODULEPATH
-if { $verbose > 0 } {
-    send_user "\tUnset MODULEPATH\n"
-}
-unset env(MODULEPATH)
+unsetenv_path_var MODULEPATH
 
 set ans [list]
 lappend ans [list unsetpath testsuite]
@@ -186,10 +180,7 @@ testouterr_cmd "sh" "unload $module_3_reldd" "OK" ""
 
 
 # set up the environment
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = '$modpath.other:$modpath'\n"
-}
-set env(MODULEPATH) "$modpath.other:$modpath"
+setenv_path_var MODULEPATH "$modpath.other" $modpath
 setenv_loaded_module $modulefile_2 $modulefile_2
 
 set ans [list]
@@ -202,10 +193,7 @@ testouterr_cmd "sh" "unload $module_2" $ans ""
 testouterr_cmd "sh" "unload $modulename_1" $ans ""
 
 # same test without MODULEPATH set anymore
-if { $verbose > 0 } {
-    send_user "\tUnset MODULEPATH\n"
-}
-unset env(MODULEPATH)
+unsetenv_path_var MODULEPATH
 testouterr_cmd "sh" "unload $module_2" "ERR" $err_nomodpath
 testouterr_cmd "sh" "unload $modulename_1" "ERR" $err_nomodpath
 
@@ -224,10 +212,7 @@ testouterr_cmd_re "sh" "unload foo" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo
 #
 
 # restore environment
-if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = '$modpath'\n"
-}
-set env(MODULEPATH) $modpath
+setenv_path_var MODULEPATH $modpath
 unsetenv_loaded_module
 
 unset ans

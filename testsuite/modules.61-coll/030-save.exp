@@ -66,10 +66,7 @@ if { $verbose > 0 } {
 set env(HOME) "$hometestcoll"
 
 # setup an empty environment state
-if { $verbose > 0 } {
-    send_user "\tUnset MODULEPATH\n"
-}
-unset env(MODULEPATH)
+unsetenv_path_var MODULEPATH
 
 testouterr_cmd "ALL" "save" "ERR" "$emptyenverrmsg"
 
@@ -81,11 +78,10 @@ testouterr_cmd "ALL" "save" "ERR" "$emptyenverrmsg"
 
 # setup environment state
 if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $cdmodpath\n"
     send_user "\tSetup MODULES_COLLECTION_PIN_VERSION = 0\n"
 }
-set env(MODULEPATH) "$cdmodpath"
 set env(MODULES_COLLECTION_PIN_VERSION) "0"
+eval setenv_path_var MODULEPATH [split $cdmodpath ":"]
 setenv_loaded_module [split $cdlm ":"] [split $cdlmf ":"]
 
 # test only sh shell as this test does not produce shell output
@@ -105,11 +101,10 @@ testoutfile_cmd "sh" "save" "OK" "$hometestdotmod/default" "$cdcontpin"
 
 # setup environment state
 if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $c1modpath\n"
     send_user "\tUnset MODULES_COLLECTION_PIN_VERSION\n"
 }
-set env(MODULEPATH) "$c1modpath"
 unset env(MODULES_COLLECTION_PIN_VERSION)
+eval setenv_path_var MODULEPATH [split $c1modpath ":"]
 setenv_loaded_module [split $c1lm ":"] [split $c1lmf ":"]
 
 # test only sh shell as this test does not produce shell output
@@ -120,10 +115,7 @@ testoutfile_cmd "sh" "save $coll1" "OK" "$hometestdotmod/$coll1" "$c1cont1"
 #
 
 # setup environment state
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $c2modpath\n"
-}
-set env(MODULEPATH) "$c2modpath"
+eval setenv_path_var MODULEPATH [split $c2modpath ":"]
 setenv_loaded_module [split $c2lm ":"] [split $c2lmf ":"]
 
 # test only sh shell as this test does not produce shell output
@@ -159,10 +151,7 @@ testoutfile_cmd "sh" "save $hometestdotmod/$coll3" "OK" "$hometestdotmod/$coll3"
 #
 
 # setup environment state
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $c4modpath\n"
-}
-set env(MODULEPATH) "$c4modpath"
+eval setenv_path_var MODULEPATH [split $c4modpath ":"]
 unsetenv_loaded_module
 
 # test only sh shell as this test does not produce shell output
@@ -175,10 +164,7 @@ testoutfile_cmd "sh" "save $coll4" "OK" "$hometestdotmod/$coll4f" "$c4cont"
 #
 
 # setup environment state
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $c6modpath\n"
-}
-set env(MODULEPATH) $c6modpath
+eval setenv_path_var MODULEPATH [split $c6modpath ":"]
 setenv_loaded_module [split $c6lm ":"] [split $c6lmf ":"]
 
 # test only sh shell as this test does not produce shell output
@@ -190,10 +176,7 @@ testoutfile_cmd "sh" "save $coll6" "OK" "$hometestdotmod/$coll6f" "$c6cont"
 #
 
 # setup environment state
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = ':$c6modpath'\n"
-}
-set env(MODULEPATH) ":$c6modpath"
+eval setenv_path_var MODULEPATH [split ":$c6modpath" ":"]
 setenv_loaded_module [split $c6lm ":"] [split $c6lmf ":"]
 
 # test only sh shell as this test does not produce shell output
@@ -205,10 +188,7 @@ testoutfile_cmd "sh" "save $coll6" "OK" "$hometestdotmod/$coll6f" "$c6cont"
 #
 
 # setup environment state
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $c7modpath\n"
-}
-set env(MODULEPATH) $c7modpath
+eval setenv_path_var MODULEPATH [split $c7modpath ":"]
 setenv_loaded_module [split $c7lm ":"] [split $c7lmf ":"]
 
 # test only sh shell as this test does not produce shell output
@@ -220,10 +200,7 @@ testoutfile_cmd "sh" "save $coll7" "OK" "$hometestdotmod/$coll7f" "$c7cont"
 #
 
 # setup environment state
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $c8modpath\n"
-}
-set env(MODULEPATH) $c8modpath
+eval setenv_path_var MODULEPATH [split $c8modpath ":"]
 setenv_loaded_module [split $c8lm ":"] [split $c8lmf ":"]
 
 # test only sh shell as this test does not produce shell output
@@ -264,11 +241,10 @@ testouterr_cmd "sh" "save" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _
 
 # restore environment
 if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = $modpath\n"
     send_user "\tUnset MODULES_COLLECTION_TARGET\n"
 }
-set env(MODULEPATH) $modpath
 unset env(MODULES_COLLECTION_TARGET)
+setenv_path_var MODULEPATH $modpath
 unsetenv_loaded_module
 
 unset baddotmod

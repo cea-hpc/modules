@@ -127,17 +127,11 @@ testouterr_cmd_re "sh" "aliases" "OK" "$alias_header\n$alias_list\n\n$version_he
 testouterr_cmd_re "sh" "al" "OK" "$alias_header\n$alias_list\n\n$version_header\n$version_list"
 
 # setup MODULEPATH with a trailing slash and an empty dir element
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = :$modpath/\n"
-}
-set env(MODULEPATH) ":$modpath/"
+setenv_path_var MODULEPATH {} "$modpath/"
 testouterr_cmd_re "sh" "aliases" "OK" "$alias_header\n$alias_list\n\n$version_header\n$version_list"
 
 # restore MODULEPATH
-if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = $modpath\n"
-}
-set env(MODULEPATH) $modpath
+setenv_path_var MODULEPATH $modpath
 
 
 #
@@ -252,10 +246,7 @@ unset env(MODULERCFILE)
 
 # setup environment state
 set modpath1 "$env(TESTSUITEDIR)/modulefiles.other"
-if { $verbose > 0 } {
-    send_user "\tSetup MODULEPATH = $modpath1\n"
-}
-set env(MODULEPATH) "$modpath1"
+setenv_path_var MODULEPATH $modpath1
 
 testouterr_cmd "sh" "aliases" "OK" ""
 
@@ -265,10 +256,7 @@ testouterr_cmd "sh" "aliases" "OK" ""
 #
 
 # restore environment
-if { $verbose > 0 } {
-    send_user "\tRestore MODULEPATH = $modpath\n"
-}
-set env(MODULEPATH) $modpath
+setenv_path_var MODULEPATH $modpath
 
 unset modpath1
 unset alias_header
