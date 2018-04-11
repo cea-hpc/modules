@@ -21,11 +21,8 @@
 ##############################################################################
 
 if {[info exists env(FOO)]} {
-    if { $verbose > 0 } {
-        send_user "\tUnset FOO\n"
-    }
     set ORIG_FOO $env(FOO)
-    unset env(FOO)
+    unsetenv_var FOO
 }
 
 set path1 "/path/to/dir1"
@@ -37,20 +34,14 @@ lappend ans [list unsetpath FOO]
 testouterr_cmd_re "sh" "remove-path FOO $path1" $ans ""
 
 
-if { $verbose > 0 } {
-    send_user "\tSetup FOO = '$path1'\n"
-}
-set env(FOO) $path1
+setenv_path_var FOO $path1
 
 set ans [list]
 lappend ans [list unsetpath FOO]
 testouterr_cmd_re "sh" "remove-path FOO $path1" $ans ""
 
 
-if { $verbose > 0 } {
-    send_user "\tSetup FOO = '$path1:$path2'\n"
-}
-set env(FOO) "$path1:$path2"
+setenv_path_var FOO $path1 $path2
 
 set ans [list]
 lappend ans [list setpath FOO "$path1"]
@@ -61,14 +52,12 @@ testouterr_cmd_re "sh" "remove-path --delim=: FOO $path2" $ans ""
 
 set ans [list]
 lappend ans [list set FOO "$path1:$path2"]
-lappend ans [list set FOO_modshare "$path1:1:$path2:1"]
+lappend ans [list set FOO_modshare "$path2:1:$path1:1"]
 testouterr_cmd_re "sh" "remove-path FOO $path3" $ans ""
 
 
-if { $verbose > 0 } {
-    send_user "\tSetup FOO = '$path1,$path2'\n"
-}
-set env(FOO) "$path1,$path2"
+unsetenv_var FOO_modshare
+setenv_var FOO "$path1,$path2"
 
 set ans [list]
 lappend ans [list setpath FOO "$path1"]
@@ -77,10 +66,7 @@ testouterr_cmd_re "sh" "remove-path --delim , FOO $path2" $ans ""
 testouterr_cmd_re "sh" "remove-path --delim=, FOO $path2" $ans ""
 
 
-if { $verbose > 0 } {
-    send_user "\tSetup FOO = ':$path1:$path2'\n"
-}
-set env(FOO) ":$path1:$path2"
+setenv_path_var FOO {} $path1 $path2
 
 set ans [list]
 lappend ans [list setpath FOO "$path1:$path2"]
@@ -100,12 +86,7 @@ testouterr_cmd_re "sh" "remove-path --delim= FOO /path/to" "ERR" "$error_msgs: u
 #
 
 set path1 "/path/to/dir1"
-if { $verbose > 0 } {
-    send_user "\tSetup FOO_modshare = ':1:/modules/testsuite2.2/2.2:1:$path1:1:/modules/testsuite2.2:1'\n"
-    send_user "\tSetup FOO = '$path1:/modules/testsuite2.2:/modules/testsuite2.2/2.2:'\n"
-}
-set env(FOO_modshare) ":1:/modules/testsuite2.2/2.2:1:$path1:1:/modules/testsuite2.2:1"
-set env(FOO) "$path1:/modules/testsuite2.2:/modules/testsuite2.2/2.2:"
+setenv_path_var FOO $path1 "/modules/testsuite2.2" "/modules/testsuite2.2/2.2" {}
 
 set ans [list]
 lappend ans [list set FOO "$path1"]
@@ -114,12 +95,8 @@ testouterr_cmd_re "sh" "remove-path FOO /modules/testsuite2.2:/modules/testsuite
 testouterr_cmd_re "sh" "remove-path FOO /modules/testsuite2.2 /modules/testsuite2.2/2.2:" $ans ""
 
 # with specific delim
-if { $verbose > 0 } {
-    send_user "\tSetup FOO_modshare = ':1:http://foobar.com:1:http://foobar.net:1:http://foobar.io:1:http://foobar.org:1'\n"
-    send_user "\tSetup FOO = ',http://foobar.com,http://foobar.io,http://foobar.org,http://foobar.net'\n"
-}
-set env(FOO_modshare) ":1:http\\://foobar.com:1:http\\://foobar.net:1:http\\://foobar.io:1:http\\://foobar.org:1"
-set env(FOO) ",http://foobar.com,http://foobar.io,http://foobar.org,http://foobar.net"
+setenv_var FOO_modshare ":1:http\\://foobar.com:1:http\\://foobar.net:1:http\\://foobar.io:1:http\\://foobar.org:1"
+setenv_var FOO ",http://foobar.com,http://foobar.io,http://foobar.org,http://foobar.net"
 
 set ans [list]
 lappend ans [list set FOO "http://foobar.org,http://foobar.net"]
@@ -132,12 +109,7 @@ testouterr_cmd_re "sh" "remove-path -d , FOO ,http://foobar.com http://foobar.io
 # Remove path added in duplication mode
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup FOO_modshare = '$path1:2:/foo:1'\n"
-    send_user "\tSetup FOO = '$path1:/foo:$path1'\n"
-}
-set env(FOO_modshare) "$path1:2:/foo:1"
-set env(FOO) "$path1:/foo:$path1"
+setenv_path_var FOO $path1 "/foo" $path1
 
 set ans [list]
 lappend ans [list set FOO "$path1:/foo"]
@@ -161,12 +133,8 @@ testouterr_cmd_re "sh" "remove-path --index FOO 1" $ans ""
 # Remove path on DYLD-specific variables
 #
 
-if { $verbose > 0 } {
-    send_user "\tSetup MODULES_MODSHARE_DYLD_FOO = '$path1:2'\n"
-    send_user "\tSetup DYLD_FOO = '$path1'\n"
-}
-set env(MODULES_MODSHARE_DYLD_FOO) "$path1:2"
-set env(DYLD_FOO) $path1
+setenv_var MODULES_MODSHARE_DYLD_FOO "$path1:2"
+setenv_var DYLD_FOO $path1
 
 set ans [list]
 # path-variable handling not effective on OSX with DYLD variables when System
@@ -181,10 +149,7 @@ if {$sip_enabled} {
 }
 testouterr_cmd_re "sh" "remove-path DYLD_FOO $path1" $ans ""
 
-if { $verbose > 0 } {
-    send_user "\tSetup MODULES_MODSHARE_DYLD_FOO = '$path1:1'\n"
-}
-set env(MODULES_MODSHARE_DYLD_FOO) "$path1:1"
+setenv_var MODULES_MODSHARE_DYLD_FOO "$path1:1"
 
 set ans [list]
 lappend ans [list unset DYLD_FOO]
@@ -198,18 +163,15 @@ testouterr_cmd_re "sh" "remove-path DYLD_FOO $path1" $ans ""
 
 # Clean up the environment
 if {[info exists ORIG_FOO]} {
-    if { $verbose > 0 } {
-        send_user "\tRestore FOO = '$ORIG_FOO'\n"
-    }
-    set env(FOO) $ORIG_FOO
+    setenv_var FOO $ORIG_FOO
     unset ORIG_FOO
 } else {
-    unset env(FOO)
+    unsetenv_var FOO
 }
-unset env(FOO_modshare)
+unsetenv_var FOO_modshare
 
-unset env(MODULES_MODSHARE_DYLD_FOO)
-unset env(DYLD_FOO)
+unsetenv_var MODULES_MODSHARE_DYLD_FOO
+unsetenv_var DYLD_FOO
 
 unset ans
 

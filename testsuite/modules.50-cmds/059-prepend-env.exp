@@ -37,7 +37,7 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 testouterr_cmd "sh" "load $module" $ans ""
 
 # test with value set to variable prior to load
-set env(TS1) "no"
+setenv_var TS1 "no"
 set ans [list]
 lappend ans [list setpath TS1 "yes:no"]
 lappend ans [list set TS2 "yes:no"]
@@ -51,8 +51,8 @@ testouterr_cmd_re "sh" "load $module" $ans ""
 #
 
 # test with module loaded
-set env(TS1) "yes"
-set env(TS2) "yes"
+setenv_path_var TS1 "yes"
+setenv_var TS2 "yes"
 setenv_loaded_module $module $modulefile
 
 set ans [list]
@@ -63,8 +63,8 @@ lappend ans [list unsetpath _LMFILES_]
 testouterr_cmd "sh" "unload $module" $ans ""
 
 # test with module loaded but vanished env vars
-unset env(TS1)
-unset env(TS2)
+unsetenv_path_var TS1
+unsetenv_var TS2
 
 # raise an error
 set tserr "$moderr_msgs: can't read \"env(TS1)\": no such variable
@@ -93,15 +93,15 @@ $modlin"
 testouterr_cmd_re "sh" "display $module" "" $tserr
 
 # test with module loaded
-set env(TS1) "yes"
-set env(TS2) "yes"
+setenv_path_var TS1 "yes"
+setenv_var TS2 "yes"
 setenv_loaded_module $module $modulefile
 
 testouterr_cmd_re "sh" "display $module" "" $tserr
 
 # restore environment
-unset env(TS1)
-unset env(TS2)
+unsetenv_path_var TS1
+unsetenv_var TS2
 unsetenv_loaded_module
 
 
@@ -119,15 +119,15 @@ $modlin"
 testouterr_cmd_re "sh" "help $module" "" $tserr
 
 # test with module loaded
-set env(TS1) "yes"
-set env(TS2) "yes"
+setenv_path_var TS1 "yes"
+setenv_var TS2 "yes"
 setenv_loaded_module $module $modulefile
 
 testouterr_cmd_re "sh" "help $module" "" $tserr
 
 # restore environment
-unset env(TS1)
-unset env(TS2)
+unsetenv_path_var TS1
+unsetenv_var TS2
 unsetenv_loaded_module
 
 
@@ -145,15 +145,15 @@ $modlin"
 testouterr_cmd_re "sh" "test $module" "" $tserr
 
 # test with module previously loaded
-set env(TS1) "yes"
-set env(TS2) "yes"
+setenv_path_var TS1 "yes"
+setenv_var TS2 "yes"
 setenv_loaded_module $module $modulefile
 
 testouterr_cmd_re "sh" "test $module" "" $tserr
 
 # restore environment
-unset env(TS1)
-unset env(TS2)
+unsetenv_path_var TS1
+unsetenv_var TS2
 unsetenv_loaded_module
 
 
