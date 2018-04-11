@@ -2272,17 +2272,25 @@ proc prereq {args} {
 
    if {$mode eq "load"} {
       if {![eval is-loaded $args]} {
-         set errMsg "WARNING: $currentModule cannot be loaded due to\
-             missing prereq."
-         # adapt error message when multiple modules are specified
-         if {[llength $args] > 1} {
-            set errMsg "$errMsg\nHINT: at least one of the following\
-               modules must be loaded first: $args"
+         if {![info exists ::env(MODULE_PREREQ_AUTOLOAD)]} {
+            set errMsg "WARNING: $currentModule cannot be loaded due to\
+                missing prereq."
+            # adapt error message when multiple modules are specified
+            if {[llength $args] > 1} {
+               set errMsg "$errMsg\nHINT: at least one of the following\
+                  modules must be loaded first: $args"
+            } else {
+               set errMsg "$errMsg\nHINT: the following module must be\
+                  loaded first: $args"
+            }
+            error $errMsg
          } else {
-            set errMsg "$errMsg\nHINT: the following module must be\
-               loaded first: $args"
+            reportWarning "loading prereq module [lindex $args 0]"
+            eval cmdModuleLoad [lindex $args 0]
+            if {$mode eq "load"} {
+               renderSettings
+            }
          }
-         error $errMsg
       }
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
