@@ -73,9 +73,20 @@ $err_contact"
 
 testouterr_cmd "sh" "unload $module" "ERR" $tserr
 
+# test with module loaded but env var transformed as standard var (no path var)
+# standard var is transformed as path var through unload evaluation
+setenv_var TS1 "no"
+
+set ans [list]
+lappend ans [list setpath TS1 "no"]
+lappend ans [list unset TS2]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd "sh" "unload $module" $ans ""
 
 # restore environment
 unsetenv_loaded_module
+unsetenv_var TS1
 
 
 #
