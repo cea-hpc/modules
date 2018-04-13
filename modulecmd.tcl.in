@@ -463,6 +463,17 @@ proc startPager {} {
 # Use a slave TCL interpreter to execute modulefiles
 #
 
+proc set-env {var val} {
+   set mode [currentMode]
+   reportDebug "set-env: $var=$val (mode=$mode)"
+   set ::env($var) $val
+
+   # propagate variable setup to shell environment on load and unload mode
+   if {$mode eq "load" || $mode eq "unload"} {
+      set ::g_stateEnvVars($var) "new"
+   }
+}
+
 proc unset-env {var {internal 0}} {
    set mode [currentMode]
    if {[info exists ::env($var)]} {
@@ -1649,14 +1660,10 @@ proc setenv {var val} {
    # Set the variable for later use during the modulefile evaluation
    # for all mode except unload
    if {$mode ne "unload"} {
-      set ::env($var) $val
+      set-env $var $val
    }
 
-   # propagate variable setup to shell environment on load mode
-   if {$mode eq "load"} {
-      set ::g_stateEnvVars($var) "new"
-   }\
-   elseif {$mode eq "unload"} {
+   if {$mode eq "unload"} {
       unset-env $var
    }\
    elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
@@ -1696,8 +1703,7 @@ proc unsetenv {var {val {}}} {
    }\
    elseif {$mode eq "unload"} {
       if {$val ne ""} {
-         set ::env($var) $val
-         set ::g_stateEnvVars($var) "new"
+         set-env $var $val
       } else {
          unset-env $var
       }
@@ -1995,14 +2001,12 @@ proc unload-path {args} {
    if {[llength $newpath] == 0} {
       unset-env $var
    } else {
-      set ::env($var) [join $newpath $separator]
-      set ::g_stateEnvVars($var) "new"
+      set-env $var [join $newpath $separator]
    }
 
    set sharevar [getModshareVarName $var]
    if {[array size countarr] > 0} {
-      set ::env($sharevar) [pjoin [array get countarr] [getPathSeparator]]
-      set ::g_stateEnvVars($sharevar) "new"
+      set-env $sharevar [pjoin [array get countarr] [getPathSeparator]]
    } else {
       unset-env $sharevar 1
    }
@@ -2022,20 +2026,25 @@ proc add-path {pos args} {
       set path_list [lreverse $path_list]
    }
 
+   if {[info exists ::env($var)]} {
+      set val $::env($var)
+   } else {
+      set val ""
+   }
+
    foreach dir $path_list {
       if {![info exists countarr($dir)] || $allow_dup} {
          # ignore env var set empty if no empty entry found in reference
          # counter array (sometimes var is cleared by setting it empty not
          # unsetting it)
-         if {[info exists ::env($var)] && ($::env($var) ne "" ||\
-            [info exists countarr()])} {
+         if {$val ne "" || [info exists countarr()]} {
             if {$pos eq "prepend"} {
-               set ::env($var) "$dir$separator$::env($var)"
+               set val "$dir$separator$val"
             } else {
-               set ::env($var) "$::env($var)$separator$dir"
+               set val "$val$separator$dir"
             }
          } else {
-            set ::env($var) "$dir"
+            set val $dir
          }
       }
       if {[info exists countarr($dir)]} {
@@ -2043,16 +2052,11 @@ proc add-path {pos args} {
       } else {
          set countarr($dir) 1
       }
-      reportDebug "add-path: env($var) = $::env($var)"
    }
 
-   set ::env($sharevar) [pjoin [array get countarr] [getPathSeparator]]
+   set-env $var $val
+   set-env $sharevar [pjoin [array get countarr] [getPathSeparator]]
 
-   # propagate variable setup to shell environment on load mode
-   if {[currentMode] eq "load"} {
-      set ::g_stateEnvVars($var) "new"
-      set ::g_stateEnvVars($sharevar) "new"
-   }
    return {}
 }
 
