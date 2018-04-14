@@ -10,13 +10,13 @@
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
-#   Command:		load
-#   Modulefiles:	setenv/0.8
+#   Command:		load, unload
+#   Modulefiles:	setenv/0.8, setenv/0.7.*
 #   Sub-Command:
 #
 #   Comment:	%C{
 #			Tests the 'setenv' module subcommand for all allowed
-#			shell types when variable is previously associated to
+#			shell types when variable is also associated to
 #           a reference counter array.
 #		}C%
 #
@@ -30,9 +30,13 @@
 
 set module "setenv/0.8"
 set modulefile "$modpath/$module"
+set module2 "setenv/0.7.1"
+set modulefile2 "$modpath/$module2"
+set module3 "setenv/0.7.2"
+set modulefile3 "$modpath/$module3"
 
 #
-#  For the different shells ...
+#  test load mode
 #
 
 lappend ans [list set _LMFILES__modshare "$modulefile:1"]
@@ -42,19 +46,83 @@ lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
 lappend ans [list set testsuite yes]
 
-
-#
-#  The tests
-#
-
 test_cmd "ALL" "load $module" $ans
+
+# test with variable to set already defined prior load
+setenv_var TS1 "no"
+
+set ans [list]
+lappend ans [list unset TS1_modshare]
+lappend ans [list set TS1 maybe]
+lappend ans [list setpath LOADEDMODULES $module2]
+lappend ans [list setpath _LMFILES_ $modulefile2]
+
+# setenv after append-path: an unset order for ref counter variable is produced
+test_cmd "sh" "load $module2" $ans
+
+set ans [list]
+lappend ans [list set TS1_modshare "yes:1:maybe:1"]
+lappend ans [list set TS1 "maybe:yes"]
+lappend ans [list setpath LOADEDMODULES $module3]
+lappend ans [list setpath _LMFILES_ $modulefile3]
+
+# append-path after setenv: an set order for ref counter variable is produced
+test_cmd "sh" "load $module3" $ans
+
+
+#
+#  test unload mode
+#
+
+setenv_var testsuite "yes"
+setenv_loaded_module $module $modulefile
+
+set ans [list]
+lappend ans [list unsetpath testsuite]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+test_cmd "sh" "unload $module" $ans
+
+# test with variable to set already defined prior unload but with diff value
+setenv_var TS1 "no"
+setenv_loaded_module $module2 $modulefile2
+
+set ans [list]
+lappend ans [list unsetpath TS1]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+# setenv after append-path: an unset order for ref counter variable is produced
+# as ref counter variable is set right after append-path due to initial value of TS1
+test_cmd "sh" "unload $module2" $ans
+
+setenv_loaded_module $module3 $modulefile3
+
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+# append-path after setenv: no mention of ref counter variable as setenv order clears
+# initial value of TS1 
+test_cmd "sh" "unload $module3" $ans
 
 
 #
 #  Cleanup
 #
 
+# restore environment
+unsetenv_loaded_module
+unsetenv_var testsuite
+unsetenv_var TS1
+
 unset ans
 
 unset modulefile
 unset module
+unset modulefile2
+unset module2
+unset modulefile3
+unset module3
