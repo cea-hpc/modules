@@ -2193,10 +2193,13 @@ proc remove-path {args} {
 
    reportDebug "remove-path: ($args) mode=$mode"
 
-   if {$mode eq "load"} {
+   # Set the variable for later use during the modulefile evaluation
+   # for all mode except unload
+   if {$mode ne "unload"} {
       eval unload-path $args
-   }\
-   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
+   }
+
+   if {$mode eq "display" && !$::g_inhibit_dispreport} {
       report "remove-path\t$args"
    }
    return {}

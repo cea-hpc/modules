@@ -1,0 +1,235 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/04/14
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, display, help, test
+#   Modulefiles:	remove/5.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Check the effect of 'remove-path' command on $env() array
+#           variable through the different modulefile evaluation mode
+#		}C%
+#
+##############################################################################
+
+set module "remove/5.0"
+set modulefile "$modpath/$module"
+set modulefilere "$modpathre/$module"
+
+#
+#  test load mode
+#
+
+# raise an error, var not set
+set tserr "$moderr_msgs: can't read \"env(TS1)\": no such variable
+  In '$modulefile'
+$err_contact"
+
+testouterr_cmd "sh" "load $module" "ERR" $tserr
+
+# test with value set to variable prior to load (diff value than removed one)
+setenv_var TS1 "no"
+set ans [list]
+lappend ans [list setpath TS1 "no"]
+lappend ans [list set TS2 "no"]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+testouterr_cmd_re "sh" "load $module" $ans ""
+
+# test with value set to variable prior to load (value is removed one)
+setenv_var TS1 "yes"
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list set TS2 ""]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+testouterr_cmd_re "sh" "load $module" $ans ""
+
+# test with value set to variable (as path var) prior to load (value is removed one)
+setenv_path_var TS1 "yes"
+set ans [list]
+lappend ans [list unsetpath TS1]
+lappend ans [list set TS2 ""]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+testouterr_cmd_re "sh" "load $module" $ans ""
+
+
+#
+#  test unload mode
+#
+
+# test with module loaded but vanished env vars
+unsetenv_path_var TS1
+setenv_loaded_module $module $modulefile
+
+# raise an error
+testouterr_cmd "sh" "unload $module" "ERR" $tserr
+
+# test with value set to variable prior to unload (diff value than removed one)
+setenv_var TS1 "no"
+set ans [list]
+lappend ans [list unset TS2]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd "sh" "unload $module" $ans ""
+
+# test with value set to variable prior to unload (value is removed one)
+setenv_var TS1 "yes"
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list unset TS2]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+# test with value set to variable (as path var) prior to load (value is removed one)
+setenv_path_var TS1 "yes"
+set ans [list]
+lappend ans [list unsetpath TS1]
+lappend ans [list unset TS2]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+# restore environment
+unsetenv_loaded_module
+unsetenv_path_var TS1
+
+
+#
+#  test display mode
+#
+
+# raise an error, var not set
+set tserr "$modlin
+$modulefilere:
+
+remove-path\tTS1 yes
+$moderr_msgs: can't read \"env\\\(TS1\\\)\": no such variable
+  In '$modulefile'
+$err_contact
+$modlin"
+testouterr_cmd_re "sh" "display $module" "ERR" $tserr
+
+# test with value set to variable prior to display (diff value than removed one)
+setenv_var TS1 "no"
+set tserr "$modlin
+$modulefilere:
+
+remove-path\tTS1 yes
+setenv\t\tTS2\tno
+$modlin"
+testouterr_cmd_re "sh" "display $module" "" $tserr
+
+# test with value set to variable prior to load (value is removed one)
+setenv_var TS1 "yes"
+set tserr "$modlin
+$modulefilere:
+
+remove-path\tTS1 yes
+setenv\t\tTS2\t
+$modlin"
+testouterr_cmd_re "sh" "display $module" "" $tserr
+
+# test with value set to variable (as path var) prior to load (value is removed one)
+setenv_path_var TS1 "yes"
+set tserr "$modlin
+$modulefilere:
+
+remove-path\tTS1 yes
+setenv\t\tTS2\t
+$modlin"
+testouterr_cmd_re "sh" "display $module" "" $tserr
+
+# restore environment
+unsetenv_path_var TS1
+
+
+#
+#  test help mode
+#
+
+# raise an error, var not set
+set tserr "$modlin
+Module Specific Help for $modulefilere:
+
+$moderr_msgs: can't read \"env\\\(TS1\\\)\": no such variable
+  In '$modulefile'
+$err_contact
+$modlin"
+testouterr_cmd_re "sh" "help $module" "ERR" $tserr
+
+# test with value set to variable prior to load (diff value than removed one)
+setenv_var TS1 "no"
+set tserr "$modlin
+Module Specific Help for $modulefilere:
+
+$warn_msgs: Unable to find ModulesHelp in $modulefilere.
+$modlin"
+testouterr_cmd_re "sh" "help $module" "" $tserr
+
+# test with value set to variable prior to load (value is removed one)
+setenv_var TS1 "yes"
+testouterr_cmd_re "sh" "help $module" "" $tserr
+
+# test with value set to variable (as path var) prior to load (value is removed one)
+setenv_path_var TS1 "yes"
+testouterr_cmd_re "sh" "help $module" "" $tserr
+
+# restore environment
+unsetenv_path_var TS1
+
+
+#
+#  test test mode
+#
+
+# raise an error, var not set
+set tserr "$modlin
+Module Specific Test for $modulefilere:
+
+$moderr_msgs: can't read \"env\\\(TS1\\\)\": no such variable
+  In '$modulefile'
+$err_contact
+$modlin"
+testouterr_cmd_re "sh" "test $module" "ERR" $tserr
+
+# test with value set to variable prior to load (diff value than removed one)
+setenv_var TS1 "no"
+set tserr "$modlin
+Module Specific Test for $modulefilere:
+
+$warn_msgs: Unable to find ModulesTest in $modulefilere.
+$modlin"
+testouterr_cmd_re "sh" "test $module" "" $tserr
+
+# test with value set to variable prior to load (value is removed one)
+setenv_var TS1 "yes"
+testouterr_cmd_re "sh" "test $module" "" $tserr
+
+# test with value set to variable (as path var) prior to load (value is removed one)
+setenv_path_var TS1 "yes"
+testouterr_cmd_re "sh" "test $module" "" $tserr
+
+# restore environment
+unsetenv_path_var TS1
+
+
+#
+#  Cleanup
+#
+
+unset tserr
+unset ans
+
+unset modulefilere
+unset modulefile
+unset module
