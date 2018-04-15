@@ -476,18 +476,19 @@ proc set-env {var val} {
 
 proc unset-env {var {internal 0}} {
    set mode [currentMode]
-   if {[info exists ::env($var)]} {
-      reportDebug "unset-env: $var (internal=$internal, mode=$mode)"
-      # do not unset-env to avoid breaking later reference to the variable
-      # in modulefile, clear value instead
-      if {!$internal} {
-         set ::env($var) ""
-      # internal variables (like ref counter var) are purely unset
-      } else {
-         unset ::env($var)
-         set intwasset 1
-      }
+   reportDebug "unset-env: $var (internal=$internal, mode=$mode)"
+
+   # clear value instead of unset it not to break variable later reference
+   # in modulefile. clear whether variable set or not to get a later usage
+   # consistent behavior whatever env is setup
+   if {!$internal} {
+      set ::env($var) ""
+   # internal variables (like ref counter var) are purely unset if they exists
+   } elseif {[info exists ::env($var)]} {
+      unset ::env($var)
+      set intwasset 1
    }
+
    # propagate deletion in any case if variable is public and for internal
    # one only if variable was set
    if {($mode eq "load" || $mode eq "unload") && (!$internal ||\

@@ -66,12 +66,12 @@ testouterr_cmd "sh" "unload $module" $ans ""
 unsetenv_path_var TS1
 unsetenv_var TS2
 
-# raise an error
-set tserr "$moderr_msgs: can't read \"env(TS1)\": no such variable
-  In '$modulefile'
-$err_contact"
-
-testouterr_cmd "sh" "unload $module" "ERR" $tserr
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list unset TS2]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd "sh" "unload $module" $ans ""
 
 # test with module loaded but env var transformed as standard var (no path var)
 # standard var is transformed as path var through unload evaluation

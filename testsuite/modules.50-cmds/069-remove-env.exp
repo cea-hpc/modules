@@ -29,12 +29,13 @@ set modulefilere "$modpathre/$module"
 #  test load mode
 #
 
-# raise an error, var not set
-set tserr "$moderr_msgs: can't read \"env(TS1)\": no such variable
-  In '$modulefile'
-$err_contact"
-
-testouterr_cmd "sh" "load $module" "ERR" $tserr
+# test with value not set to variable prior to load
+set ans [list]
+lappend ans [list unset TS1]
+lappend ans [list set TS2 ""]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+testouterr_cmd_re "sh" "load $module" $ans ""
 
 # test with value set to variable prior to load (diff value than removed one)
 setenv_var TS1 "no"
@@ -73,6 +74,9 @@ unsetenv_path_var TS1
 setenv_loaded_module $module $modulefile
 
 # raise an error
+set tserr "$moderr_msgs: can't read \"env(TS1)\": no such variable
+  In '$modulefile'
+$err_contact"
 testouterr_cmd "sh" "unload $module" "ERR" $tserr
 
 # test with value set to variable prior to unload (diff value than removed one)
@@ -108,16 +112,14 @@ unsetenv_path_var TS1
 #  test display mode
 #
 
-# raise an error, var not set
+# test with value not set to variable prior to display
 set tserr "$modlin
 $modulefilere:
 
 remove-path\tTS1 yes
-$moderr_msgs: can't read \"env\\\(TS1\\\)\": no such variable
-  In '$modulefile'
-$err_contact
+setenv\t\tTS2\t
 $modlin"
-testouterr_cmd_re "sh" "display $module" "ERR" $tserr
+testouterr_cmd_re "sh" "display $module" "" $tserr
 
 # test with value set to variable prior to display (diff value than removed one)
 setenv_var TS1 "no"
@@ -129,7 +131,7 @@ setenv\t\tTS2\tno
 $modlin"
 testouterr_cmd_re "sh" "display $module" "" $tserr
 
-# test with value set to variable prior to load (value is removed one)
+# test with value set to variable prior to display (value is removed one)
 setenv_var TS1 "yes"
 set tserr "$modlin
 $modulefilere:
@@ -139,7 +141,7 @@ setenv\t\tTS2\t
 $modlin"
 testouterr_cmd_re "sh" "display $module" "" $tserr
 
-# test with value set to variable (as path var) prior to load (value is removed one)
+# test with value set to variable (as path var) prior to display (value is removed one)
 setenv_path_var TS1 "yes"
 set tserr "$modlin
 $modulefilere:
@@ -157,18 +159,7 @@ unsetenv_path_var TS1
 #  test help mode
 #
 
-# raise an error, var not set
-set tserr "$modlin
-Module Specific Help for $modulefilere:
-
-$moderr_msgs: can't read \"env\\\(TS1\\\)\": no such variable
-  In '$modulefile'
-$err_contact
-$modlin"
-testouterr_cmd_re "sh" "help $module" "ERR" $tserr
-
-# test with value set to variable prior to load (diff value than removed one)
-setenv_var TS1 "no"
+# test with value not set to variable prior to help
 set tserr "$modlin
 Module Specific Help for $modulefilere:
 
@@ -176,11 +167,15 @@ $warn_msgs: Unable to find ModulesHelp in $modulefilere.
 $modlin"
 testouterr_cmd_re "sh" "help $module" "" $tserr
 
-# test with value set to variable prior to load (value is removed one)
+# test with value set to variable prior to help (diff value than removed one)
+setenv_var TS1 "no"
+testouterr_cmd_re "sh" "help $module" "" $tserr
+
+# test with value set to variable prior to help (value is removed one)
 setenv_var TS1 "yes"
 testouterr_cmd_re "sh" "help $module" "" $tserr
 
-# test with value set to variable (as path var) prior to load (value is removed one)
+# test with value set to variable (as path var) prior to help (value is removed one)
 setenv_path_var TS1 "yes"
 testouterr_cmd_re "sh" "help $module" "" $tserr
 
@@ -192,18 +187,7 @@ unsetenv_path_var TS1
 #  test test mode
 #
 
-# raise an error, var not set
-set tserr "$modlin
-Module Specific Test for $modulefilere:
-
-$moderr_msgs: can't read \"env\\\(TS1\\\)\": no such variable
-  In '$modulefile'
-$err_contact
-$modlin"
-testouterr_cmd_re "sh" "test $module" "ERR" $tserr
-
-# test with value set to variable prior to load (diff value than removed one)
-setenv_var TS1 "no"
+# test with value not set to variable prior to test
 set tserr "$modlin
 Module Specific Test for $modulefilere:
 
@@ -211,11 +195,15 @@ $warn_msgs: Unable to find ModulesTest in $modulefilere.
 $modlin"
 testouterr_cmd_re "sh" "test $module" "" $tserr
 
-# test with value set to variable prior to load (value is removed one)
+# test with value set to variable prior to test (diff value than removed one)
+setenv_var TS1 "no"
+testouterr_cmd_re "sh" "test $module" "" $tserr
+
+# test with value set to variable prior to test (value is removed one)
 setenv_var TS1 "yes"
 testouterr_cmd_re "sh" "test $module" "" $tserr
 
-# test with value set to variable (as path var) prior to load (value is removed one)
+# test with value set to variable (as path var) prior to test (value is removed one)
 setenv_path_var TS1 "yes"
 testouterr_cmd_re "sh" "test $module" "" $tserr
 
