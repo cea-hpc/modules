@@ -83,9 +83,11 @@ setenv_path_var MODULEPATH $modulepath
 
 set ans [list]
 lappend ans [list set ts1 ok]
+lappend ans [list set tsu ""]
 lappend ans [list setpath TSPATH "dir3 dir2"]
 lappend ans [list set tsp "dir3 dir2"]
 lappend ans [list unset ts2]
+lappend ans [list unset tsc]
 lappend ans [list unset ts3]
 lappend ans [list alias foo bar]
 lappend ans [list unalias bar]
@@ -148,10 +150,16 @@ testouterr_cmd "sh" "load $module/4" "ERR" ""
 #
 
 setenv_loaded_module "$module/1" "$modulepath/$module/1"
-set env(ts1) "ok"
-set env(TSPATH) "dir3 dir2"
+setenv_var ts1 "ok"
+setenv_var tsc ""
+setenv_var tsu ""
+setenv_var TSPATH "dir3 dir2"
+setenv_var TSPATH_modshare "dir3:1:dir2:1" 
+setenv_var tsp "dir3 dir2"
 set ans [list]
 lappend ans [list unset ts1]
+lappend ans [list unset tsc]
+lappend ans [list unset tsu]
 lappend ans [list unsetpath TSPATH]
 lappend ans [list unset tsp]
 lappend ans [list unset ts2]
@@ -192,8 +200,11 @@ if {[info exists x11_warn]} {
 }
 
 # restore environment
-unset env(ts1)
-unset env(TSPATH)
+unsetenv_var ts1
+unsetenv_var tsc
+unsetenv_var tsu
+unsetenv_path_var TSPATH
+unsetenv_var tsp
 
 setenv_loaded_module "$module/2" "$modulepath/$module/2"
 set ans [list]
@@ -223,6 +234,9 @@ set tserr1 "chdir\t\t$env(TESTSUITEDIR)
 setenv\t\tts1\tok
 unsetenv\tts2
 unsetenv\tts2\tok
+setenv\t\ttsc\tok
+unsetenv\ttsc
+setenv\t\ttsu\t
 append-path\t-d { } TSPATH dir1
 append-path\t-d { } TSPATH dir2
 prepend-path\t-d { } TSPATH dir3

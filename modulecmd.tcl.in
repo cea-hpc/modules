@@ -1698,10 +1698,13 @@ proc unsetenv {var {val {}}} {
    # clean any existing reference counter array
    unset-env [getModshareVarName $var] 1
 
-   if {$mode eq "load"} {
+   # Set the variable for later use during the modulefile evaluation
+   # for all mode except unload
+   if {$mode ne "unload"} {
       unset-env $var
-   }\
-   elseif {$mode eq "unload"} {
+   }
+
+   if {$mode eq "unload"} {
       if {$val ne ""} {
          set-env $var $val
       } else {
