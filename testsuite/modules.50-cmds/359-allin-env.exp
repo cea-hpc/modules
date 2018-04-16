@@ -1,0 +1,346 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/04/16
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload, display, test, help, whatis
+#   Modulefiles:    allenvchg
+#   Sub-Command:    append-path, prepend-path, setenv, remove-path,
+#                   unsetenv, getenv
+#
+#   Comment:	%C{
+#           Test all environment variable change modulefile commands against
+#           the different modes
+#		}C%
+#
+##############################################################################
+
+set modulepath "$modpath.allin"
+set modulepathre "$modpathre.allin"
+set module "allenvchg"
+set modulefile "$modulepath/$module"
+
+
+proc display_stderr_content {modfile content {premodlin 1}} {
+    if {$content ne ""} {
+        append content "\n"
+    }
+
+    if {$premodlin} {
+        set header "$::modlin\n"
+    } else {
+        set header ""
+    }
+
+    return "$header$modfile:\n\n$content$::modlin"
+}
+
+proc help_stderr_content {modfile content {procwarn 0} {premodlin 1}} {
+    if {$content ne ""} {
+        append content "\n"
+    }
+
+    if {$procwarn} {
+        append content "WARNING: Unable to find ModulesHelp in $modfile.\n"
+    }
+
+    if {$premodlin} {
+        set header "$::modlin\n"
+    } else {
+        set header ""
+    }
+
+    return "${header}Module Specific Help for $modfile:\n\n$content$::modlin"
+}
+
+proc test_stderr_content {modfile content {procwarn 0} {premodlin 1}} {
+    if {$content ne ""} {
+        append content "\n"
+    }
+
+    if {$procwarn} {
+        append content "WARNING: Unable to find ModulesTest in $modfile.\n"
+    } else {
+        append content "Test result: PASS\n"
+    }
+
+    if {$premodlin} {
+        set header "$::modlin\n"
+    } else {
+        set header ""
+    }
+
+    return "${header}Module Specific Test for $modfile:\n\n$content$::modlin"
+}
+
+
+# setup specific environment
+setenv_path_var MODULEPATH $modulepath
+
+#
+# test load mode
+#
+
+set tsall ",dir2,dir2:dir1,,altered,dir2,altered"
+
+set ans [list]
+lappend ans [list unset ts1]
+lappend ans [list set ts2 "dir2"]
+lappend ans [list set ts3 "dir2:dir1"]
+lappend ans [list set ts4 ""]
+lappend ans [list setpath TSPATH dir2]
+lappend ans [list set ts5 "altered"]
+lappend ans [list set ts6 "dir2"]
+lappend ans [list set ts7 "altered"]
+lappend ans [list setpath LOADEDMODULES "$module/1:$module/2"]
+lappend ans [list setpath _LMFILES_ "$modulefile/1:$modulefile/2"]
+lappend ans [list set tsall $tsall]
+# env changes spread to next loaded modulefiles
+testouterr_cmd_re "sh" "load $module/1 $module/2" $ans ""
+
+# test with value set to variable prior to load
+setenv_var ts2 "dir2"
+setenv_var ts3 "dir2:dir1"
+setenv_var ts4 ""
+setenv_path_var TSPATH "dir2"
+setenv_var ts5 "altered"
+setenv_var ts6 "dir2"
+setenv_var ts7 "altered"
+setenv_var tsall $tsall
+
+testouterr_cmd_re "sh" "load $module/1 $module/2" $ans ""
+
+
+#
+# test unload mode
+#
+
+# test with module loaded
+setenv_loaded_module [list "$module/1" "$module/2"] [list "$modulefile/1" "$modulefile/2"]
+
+set ans [list]
+lappend ans [list unset ts1]
+lappend ans [list unset ts2]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset ts3]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset ts4]
+lappend ans [list unset TSPATH]
+lappend ans [list unset ts5]
+lappend ans [list unset ts6]
+lappend ans [list unset ts7]
+lappend ans [list unset tsall]
+lappend ans [list unset _LMFILES__modshare]
+lappend ans [list unset LOADEDMODULES_modshare]
+lappend ans [list unset TSPATH_modshare]
+testouterr_cmd "sh" "unload $module/1 $module/2" $ans ""
+
+# test with module loaded but vanished env vars
+unsetenv_var ts2 
+unsetenv_var ts3
+unsetenv_var ts4
+unsetenv_path_var TSPATH
+unsetenv_var ts5
+unsetenv_var ts6
+unsetenv_var ts7
+unsetenv_var tsall
+
+set ans [list]
+lappend ans [list unset ts1]
+lappend ans [list unset ts2]
+lappend ans [list unset ts3]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset ts4]
+lappend ans [list unset TSPATH]
+lappend ans [list unset ts5]
+lappend ans [list unset ts6]
+lappend ans [list unset ts7]
+lappend ans [list unset tsall]
+lappend ans [list unset LOADEDMODULES_modshare]
+lappend ans [list unset _LMFILES__modshare]
+testouterr_cmd "sh" "unload $module/1 $module/2" $ans ""
+
+# restore environment
+unsetenv_loaded_module
+
+
+#
+# test display mode
+#
+
+# test without module loaded
+set tsdisp "append-path\tTSPATH dir1
+prepend-path\tTSPATH dir2
+setenv\t\tts1\tdir2:dir1
+remove-path\tTSPATH dir1
+setenv\t\tts2\tdir2
+setenv\t\tts3\tdir2:dir1
+unsetenv\tts1
+setenv\t\tts4\t
+setenv\t\tts5\t\\\$ts1
+remove-path\tTSPATH dir1
+setenv\t\tts6\tdir2
+setenv\t\tts7\t\\\$ts5
+module-whatis\t,dir2,dir2:dir1,,\\\$ts1altered,dir2,\\\$ts5"
+set tserr [display_stderr_content "$modulefile/1" $tsdisp]
+set tsdisp "setenv\t\ttsall\t,dir2,dir2:dir1,,\\\$ts1altered,dir2,\\\$ts5
+module-whatis\t,dir2,dir2:dir1,,\\\$ts1altered,dir2,\\\$ts5"
+append tserr "\n[display_stderr_content $modulefile/2 $tsdisp 0]"
+testouterr_cmd_re "sh" "display $module/1 $module/2" "" $tserr
+
+# test with module loaded
+setenv_loaded_module [list "$module/1" "$module/2"] [list "$modulefile/1" "$modulefile/2"]
+setenv_var ts2 "dir2"
+setenv_var ts3 "dir2:dir1"
+setenv_var ts4 ""
+setenv_path_var TSPATH "dir2"
+setenv_var ts5 "altered"
+setenv_var ts6 "dir2"
+setenv_var ts7 "altered"
+setenv_var tsall $tsall
+
+testouterr_cmd_re "sh" "display $module/1 $module/2" "" $tserr
+
+# restore environment
+unsetenv_loaded_module
+unsetenv_var ts2 
+unsetenv_var ts3
+unsetenv_var ts4
+unsetenv_path_var TSPATH
+unsetenv_var ts5
+unsetenv_var ts6
+unsetenv_var ts7
+unsetenv_var tsall
+
+
+#
+# test help mode
+#
+
+# test without module loaded
+set tserr [help_stderr_content "$modulefile/1" $tsall]
+append tserr "\n[help_stderr_content $modulefile/2 $tsall 0 0]"
+testouterr_cmd_re "sh" "help $module/1 $module/2" "" $tserr
+
+# test with module loaded
+setenv_loaded_module [list "$module/1" "$module/2"] [list "$modulefile/1" "$modulefile/2"]
+setenv_var ts2 "dir2"
+setenv_var ts3 "dir2:dir1"
+setenv_var ts4 ""
+setenv_path_var TSPATH "dir2"
+setenv_var ts5 "altered"
+setenv_var ts6 "dir2"
+setenv_var ts7 "altered"
+setenv_var tsall $tsall
+
+testouterr_cmd_re "sh" "help $module/1 $module/2" "" $tserr
+
+# restore environment
+unsetenv_loaded_module
+unsetenv_var ts2 
+unsetenv_var ts3
+unsetenv_var ts4
+unsetenv_path_var TSPATH
+unsetenv_var ts5
+unsetenv_var ts6
+unsetenv_var ts7
+unsetenv_var tsall
+
+
+#
+# test test mode
+#
+
+# test without module loaded
+set tserr [test_stderr_content "$modulefile/1" $tsall]
+append tserr "\n[test_stderr_content $modulefile/2 $tsall 0 0]"
+testouterr_cmd_re "sh" "test $module/1 $module/2" "" $tserr
+
+# test with module loaded
+setenv_loaded_module [list "$module/1" "$module/2"] [list "$modulefile/1" "$modulefile/2"]
+setenv_var ts2 "dir2"
+setenv_var ts3 "dir2:dir1"
+setenv_var ts4 ""
+setenv_path_var TSPATH "dir2"
+setenv_var ts5 "altered"
+setenv_var ts6 "dir2"
+setenv_var ts7 "altered"
+setenv_var tsall $tsall
+
+testouterr_cmd_re "sh" "test $module/1 $module/2" "" $tserr
+
+# restore environment
+unsetenv_loaded_module
+unsetenv_var ts2 
+unsetenv_var ts3
+unsetenv_var ts4
+unsetenv_path_var TSPATH
+unsetenv_var ts5
+unsetenv_var ts6
+unsetenv_var ts7
+unsetenv_var tsall
+
+
+#
+# test whatis mode
+#
+
+# test without module loaded
+set whatis "$modlin $modulepathre $modlin\n\\s+$module/1: $tsall\n\\s+$module/2: $tsall"
+testouterr_cmd_re "sh" "whatis $module" "" $whatis
+
+# test with module loaded
+setenv_loaded_module [list "$module/1" "$module/2"] [list "$modulefile/1" "$modulefile/2"]
+setenv_var ts2 "dir2"
+setenv_var ts3 "dir2:dir1"
+setenv_var ts4 ""
+setenv_path_var TSPATH "dir2"
+setenv_var ts5 "altered"
+setenv_var ts6 "dir2"
+setenv_var ts7 "altered"
+setenv_var tsall $tsall
+
+set whatis "$modlin $modulepathre $modlin\n\\s+$module/1: $tsall\n\\s+$module/2: $tsall"
+testouterr_cmd_re "sh" "whatis $module" "" $whatis
+
+# restore environment
+unsetenv_loaded_module
+unsetenv_var ts2 
+unsetenv_var ts3
+unsetenv_var ts4
+unsetenv_path_var TSPATH
+unsetenv_var ts5
+unsetenv_var ts6
+unsetenv_var ts7
+unsetenv_var tsall
+
+
+#
+#  Cleanup
+#
+
+# restore MODULEPATH
+setenv_path_var MODULEPATH $modpath
+
+unset module
+unset modulefile
+unset modulepath
+unset modulepathre
+unset whatis
+unset tsdisp
+unset tserr
+unset tsall
+unset ans
+
+# remove procs
+rename display_stderr_content {}
+rename help_stderr_content {}
+rename test_stderr_content {}

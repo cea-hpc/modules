@@ -1,0 +1,50 @@
+#%Module1.0
+
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		allenvchg/%M%
+#   Revision:		%I%
+#   First Edition:	2018/04/16
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite modulefile
+#   Command:        append-path, prepend-path, setenv, remove-path,
+#                   unsetenv, getenv
+#
+#   Invocation:
+#   Result:	%R{
+#		}R%
+#   Comment:	%C{
+#           Test all environment variable change modulefile commands against
+#           the different modes
+#		}C%
+#
+##############################################################################
+
+append-path TSPATH dir1
+prepend-path TSPATH dir2
+setenv ts1 $env(TSPATH)
+remove-path TSPATH dir1
+setenv ts2 $env(TSPATH)
+setenv ts3 $env(ts1)
+unsetenv ts1
+setenv ts4 $env(ts1)
+setenv ts5 [getenv ts1]
+remove-path TSPATH dir1
+setenv ts6 $env(TSPATH)
+set env(ts5) "$env(ts5)altered"
+setenv ts7 [getenv ts5]
+
+set tsall "$env(ts1),$env(ts2),$env(ts3),$env(ts4),$env(ts5),$env(ts6),$env(ts7)"
+module-whatis $tsall
+proc ModulesHelp {} {
+    puts stderr $::tsall
+}
+proc ModulesTest {} {
+    puts stderr $::tsall
+    return 1
+}
