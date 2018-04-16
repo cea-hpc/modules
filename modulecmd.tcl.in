@@ -463,6 +463,15 @@ proc startPager {} {
 # Use a slave TCL interpreter to execute modulefiles
 #
 
+proc get-env {var {valifunset ""}} {
+   # return current value if exists and not cleared
+   if {[info exists ::env($var)] && ![info exists ::g_clearedEnvVars($var)]} {
+      return $::env($var)
+   } else {
+      return $valifunset
+   }
+}
+
 proc set-env {var val} {
    set mode [currentMode]
    reportDebug "set-env: $var=$val (mode=$mode)"
@@ -1036,11 +1045,7 @@ proc resolvStringWithEnv {0str} {
       for {set 0i 1} {${0i} < [llength ${0match_list}]} {incr 0i 2} {
          set 0varname [lindex ${0match_list} ${0i}]
          if {![info exists ${0varname}]} {
-            if {[info exists ::env(${0varname})]} {
-               set ${0varname} $::env(${0varname})
-            } else {
-               set ${0varname} ""
-            }
+            set ${0varname} [get-env ${0varname}]
          }
       }
       # resolv variable reference with values (now in local scope)
@@ -1685,13 +1690,7 @@ proc getenv {var {valifundef "_UNDEFINED_"}} {
    reportDebug "getenv: ($var) mode = $mode"
 
    if {$mode ne "display"} {
-      # return current value if exists and not cleared
-      if {[info exists ::env($var)] &&\
-         ![info exists ::g_clearedEnvVars($var)]} {
-         set val $::env($var)
-      } else {
-         set val $valifundef
-      }
+      set val [get-env $var $valifundef]
    } elseif {!$::g_inhibit_dispreport} {
       set val "\$$var"
    } else {
@@ -1933,14 +1932,10 @@ proc unload-path {args} {
    }
 
    # save initial variable content to match index arguments
-   if {[info exists ::env($var)]} {
-      set dir_list [split $::env($var) $separator]
-      # detect if empty env value means empty path entry
-      if {[llength $dir_list] == 0 && [info exists countarr()]} {
-         lappend dir_list {}
-      }
-   } else {
-      set dir_list [list]
+   set dir_list [split [get-env $var] $separator]
+   # detect if empty env value means empty path entry
+   if {[llength $dir_list] == 0 && [info exists countarr()]} {
+      lappend dir_list {}
    }
 
    # build list of index to remove from variable
@@ -2040,11 +2035,7 @@ proc add-path {pos args} {
       set path_list [lreverse $path_list]
    }
 
-   if {[info exists ::env($var)]} {
-      set val $::env($var)
-   } else {
-      set val ""
-   }
+   set val [get-env $var]
 
    foreach dir $path_list {
       if {![info exists countarr($dir)] || $allow_dup} {
@@ -2562,34 +2553,26 @@ proc popCommandName {} {
 
 # return list of loaded modules by parsing LOADEDMODULES env variable
 proc getLoadedModuleList {{filter_empty 1}} {
-   if {[info exists ::env(LOADEDMODULES)]} {
-      set modlist [list]
-      foreach mod [split $::env(LOADEDMODULES) [getPathSeparator]] {
-         # ignore empty element
-         if {$mod ne "" || !$filter_empty} {
-            lappend modlist $mod
-         }
+   set modlist [list]
+   foreach mod [split [get-env LOADEDMODULES] [getPathSeparator]] {
+      # ignore empty element
+      if {$mod ne "" || !$filter_empty} {
+         lappend modlist $mod
       }
-      return $modlist
-   } else {
-      return {}
    }
+   return $modlist
 }
 
 # return list of loaded module files by parsing _LMFILES_ env variable
 proc getLoadedModuleFileList {} {
-   if {[info exists ::env(_LMFILES_)]} {
-      set modfilelist [list]
-      foreach modfile [split $::env(_LMFILES_) [getPathSeparator]] {
-         # ignore empty element
-         if {$modfile ne ""} {
-            lappend modfilelist $modfile
-         }
+   set modfilelist [list]
+   foreach modfile [split [get-env _LMFILES_] [getPathSeparator]] {
+      # ignore empty element
+      if {$modfile ne ""} {
+         lappend modfilelist $modfile
       }
-      return $modfilelist
-   } else {
-      return {}
    }
+   return $modfilelist
 }
 
 # return list of module paths by parsing MODULEPATH env variable
@@ -4872,23 +4855,9 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
    return $curr_mod_list
 }
 
-# get collection target currently set if any.
-# a target is a domain on which a collection is only valid.
-# when a target is set, only the collections made for that target
-# will be available to list and restore, and saving will register
-# the target footprint
-proc getCollectionTarget {} {
-   if {[info exists ::env(MODULES_COLLECTION_TARGET)]} {
-      return $::env(MODULES_COLLECTION_TARGET)
-   } else {
-      return ""
-   }
-}
-
 # should modulefile version be pinned when saving collection?
 proc pinVersionInCollection {} {
-   return [expr {[info exists ::env(MODULES_COLLECTION_PIN_VERSION)] &&\
-      $::env(MODULES_COLLECTION_PIN_VERSION) eq "1"}]
+   return [expr {[get-env MODULES_COLLECTION_PIN_VERSION] eq "1"}]
 }
 
 # return saved collections found in user directory which corresponds to
@@ -4901,7 +4870,11 @@ proc findCollections {} {
    }
 
    # find saved collections (matching target suffix)
-   set colltarget [getCollectionTarget]
+   # a target is a domain on which a collection is only valid.
+   # when a target is set, only the collections made for that target
+   # will be available to list and restore, and saving will register
+   # the target footprint
+   set colltarget [get-env MODULES_COLLECTION_TARGET]
    if {$colltarget ne ""} {
       append coll_search ".$colltarget"
    }
@@ -4939,7 +4912,7 @@ proc getCollectionFilename {coll} {
       set collfile "$::env(HOME)/.module/$coll"
       # if a target is set, append the suffix corresponding
       # to this target to the collection file name
-      set colltarget [getCollectionTarget]
+      set colltarget [get-env MODULES_COLLECTION_TARGET]
       if {$colltarget ne ""} {
          append collfile ".$colltarget"
          # add knowledge of collection target on description
@@ -5586,7 +5559,7 @@ proc cmdModuleSaveshow {{coll {default}}} {
 proc cmdModuleSavelist {show_oneperline show_mtime} {
    # if a target is set, only list collection matching this
    # target (means having target as suffix in their name)
-   set colltarget [getCollectionTarget]
+   set colltarget [get-env MODULES_COLLECTION_TARGET]
    if {$colltarget ne ""} {
       set suffix ".$colltarget"
       set targetdesc " (for target \"$colltarget\")"
