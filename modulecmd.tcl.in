@@ -1678,17 +1678,19 @@ proc getenv {var} {
 
    reportDebug "getenv: ($var) mode = $mode"
 
-   if {$mode eq "load" || $mode eq "unload"} {
+   if {$mode ne "display"} {
       if {[info exists ::env($var)]} {
-         return $::env($var)
+         set val $::env($var)
       } else {
-         return "_UNDEFINED_"
+         set val "_UNDEFINED_"
       }
-   }\
-   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      return "\$$var"
+   } elseif {!$::g_inhibit_dispreport} {
+      set val "\$$var"
+   } else {
+      set val {}
    }
-   return {}
+
+   return $val
 }
 
 proc unsetenv {var {val {}}} {

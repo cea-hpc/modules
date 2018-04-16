@@ -1,0 +1,181 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/04/15
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, unload, display, help, test
+#   Modulefiles:	getenv/0.6
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Check the effect of 'getenv' command on value transmission to
+#           variable through the different modulefile evaluation mode
+#		}C%
+#
+##############################################################################
+
+set module "getenv/0.6"
+set modulefile "$modpath/$module"
+set modulefilere "$modpathre/$module"
+
+#
+#  test load mode
+#
+
+set ans [list]
+lappend ans [list set TS2 "_UNDEFINED_"]
+lappend ans [list set TS3 "_UNDEFINED_"]
+lappend ans [list unset TS4]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+testouterr_cmd "sh" "load $module" $ans ""
+
+# test with value set to variable prior to load
+setenv_var TS1 "no"
+set ans [list]
+lappend ans [list set TS2 "no"]
+lappend ans [list set TS3 "no"]
+lappend ans [list unset TS4]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+testouterr_cmd "sh" "load $module" $ans ""
+
+
+#
+#  test unload mode
+#
+
+# test with module loaded
+setenv_var TS1 "yes"
+setenv_var TS2 "yes"
+setenv_var TS3 "yes"
+setenv_loaded_module $module $modulefile
+
+set ans [list]
+lappend ans [list unset TS2]
+lappend ans [list unset TS3]
+lappend ans [list set TS4 "yes"]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd "sh" "unload $module" $ans ""
+
+# test with module loaded but vanished env vars
+unsetenv_var TS1
+unsetenv_var TS2
+unsetenv_var TS3
+
+set ans [list]
+lappend ans [list unset TS2]
+lappend ans [list unset TS3]
+lappend ans [list set TS4 "_UNDEFINED_"]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd "sh" "unload $module" $ans ""
+
+
+# restore environment
+unsetenv_loaded_module
+
+
+#
+#  test display mode
+#
+
+# test without module loaded
+set tserr "$modlin
+$modulefilere:
+
+setenv\t\tTS2\t\\\$TS1
+setenv\t\tTS3\t\\\$TS1
+unsetenv\tTS4\t\\\$TS1
+$modlin"
+testouterr_cmd_re "sh" "display $module" "" $tserr
+
+# test with module loaded
+setenv_var TS1 "yes"
+setenv_var TS2 "yes"
+setenv_var TS3 "yes"
+setenv_loaded_module $module $modulefile
+
+testouterr_cmd_re "sh" "display $module" "" $tserr
+
+# restore environment
+unsetenv_var TS1
+unsetenv_var TS2
+unsetenv_var TS3
+unsetenv_loaded_module
+
+
+#
+#  test help mode
+#
+
+set tserr "$modlin
+Module Specific Help for $modulefilere:
+
+$warn_msgs: Unable to find ModulesHelp in $modulefilere.
+$modlin"
+
+# test without module loaded
+testouterr_cmd_re "sh" "help $module" "" $tserr
+
+# test with module loaded
+setenv_var TS1 "yes"
+setenv_var TS2 "yes"
+setenv_var TS3 "yes"
+setenv_loaded_module $module $modulefile
+
+testouterr_cmd_re "sh" "help $module" "" $tserr
+
+# restore environment
+unsetenv_var TS1
+unsetenv_var TS2
+unsetenv_var TS3
+unsetenv_loaded_module
+
+
+#
+#  test test mode
+#
+
+set tserr "$modlin
+Module Specific Test for $modulefilere:
+
+$warn_msgs: Unable to find ModulesTest in $modulefilere.
+$modlin"
+
+# test without module loaded
+testouterr_cmd_re "sh" "test $module" "" $tserr
+
+# test with module previously loaded
+setenv_var TS1 "yes"
+setenv_var TS2 "yes"
+setenv_var TS3 "yes"
+setenv_loaded_module $module $modulefile
+
+testouterr_cmd_re "sh" "test $module" "" $tserr
+
+# restore environment
+unsetenv_var TS1
+unsetenv_var TS2
+unsetenv_var TS3
+unsetenv_loaded_module
+
+
+#
+#  Cleanup
+#
+
+unset tserr
+unset ans
+
+unset modulefilere
+unset modulefile
+unset module
