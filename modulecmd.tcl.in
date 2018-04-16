@@ -468,6 +468,11 @@ proc set-env {var val} {
    reportDebug "set-env: $var=$val (mode=$mode)"
    set ::env($var) $val
 
+   # variable is not cleared anymore if set again
+   if {[info exists ::g_clearedEnvVars($var)]} {
+      unset ::g_clearedEnvVars($var)
+   }
+
    # propagate variable setup to shell environment on load and unload mode
    if {$mode eq "load" || $mode eq "unload"} {
       set ::g_stateEnvVars($var) "new"
@@ -483,6 +488,7 @@ proc unset-env {var {internal 0}} {
    # consistent behavior whatever env is setup
    if {!$internal} {
       set ::env($var) ""
+      set ::g_clearedEnvVars($var) 1
    # internal variables (like ref counter var) are purely unset if they exists
    } elseif {[info exists ::env($var)]} {
       unset ::env($var)
@@ -1679,7 +1685,9 @@ proc getenv {var {valifundef "_UNDEFINED_"}} {
    reportDebug "getenv: ($var) mode = $mode"
 
    if {$mode ne "display"} {
-      if {[info exists ::env($var)]} {
+      # return current value if exists and not cleared
+      if {[info exists ::env($var)] &&\
+         ![info exists ::g_clearedEnvVars($var)]} {
          set val $::env($var)
       } else {
          set val $valifundef
@@ -2998,8 +3006,8 @@ proc runModulerc {} {
 # for each module loaded or unloaded in order to be able to restore the
 # correct set in case of failure
 proc pushSettings {} {
-   foreach var {env g_Aliases g_stateEnvVars g_stateAliases g_newXResources\
-      g_delXResources} {
+   foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
+      g_newXResources g_delXResources} {
       eval "lappend ::g_SAVE_$var \[array get ::$var\]"
    }
    # save non-array variable and indication if it was set
@@ -3013,15 +3021,16 @@ proc pushSettings {} {
 }
 
 proc popSettings {} {
-   foreach var {env g_Aliases g_stateEnvVars g_stateAliases g_newXResources\
-      g_delXResources g_changeDir g_stdoutPuts g_return_text} {
+   foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
+      g_newXResources g_delXResources g_changeDir g_stdoutPuts\
+      g_return_text} {
       eval "set ::g_SAVE_$var \[lrange \$::g_SAVE_$var 0 end-1\]"
    }
 }
 
 proc restoreSettings {} {
-   foreach var {env g_Aliases g_stateEnvVars g_stateAliases g_newXResources\
-      g_delXResources} {
+   foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
+      g_newXResources g_delXResources} {
       # clear current $var arrays
       if {[info exists ::$var]} {
          eval "unset ::$var; array set ::$var {}"
