@@ -34,44 +34,44 @@ set modulefilere "$modpathre/$module"
 #  The tests when dependent env var is not set
 #
 
-lappend ans [list set _LMFILES__modshare "$modulefile:1"]
-lappend ans [list set LOADEDMODULES_modshare "$module:1"]
-lappend ans [list set _LMFILES_ $modulefile]
-lappend ans [list set LOADEDMODULES $module]
 lappend ans [list set testsuite _UNDEFINED_]
+lappend ans [list set testsuite2 ""]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 # test loading
 testouterr_cmd "sh" "load $module" $ans ""
 
 # test displaying
-testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nsetenv\t\ttestsuite\t\\\$TEST\n$modlin"
+testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nsetenv\t\ttestsuite\t\\\$TEST\nsetenv\t\ttestsuite2\t\\\$TEST2\n$modlin"
 
 #
 #  The tests when dependent env var is set
 #
 
 set ans [list]
-lappend ans [list set _LMFILES__modshare "$modulefile:1"]
-lappend ans [list set LOADEDMODULES_modshare "$module:1"]
-lappend ans [list set _LMFILES_ $modulefile]
-lappend ans [list set LOADEDMODULES $module]
 lappend ans [list set testsuite yes]
+lappend ans [list set testsuite2 yes]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
 
 # Set up the environment for test that require the module to be loaded
-set env(TEST) "yes"
+setenv_var TEST "yes"
+setenv_var TEST2 "yes"
 
 # test loading
 testouterr_cmd "sh" "load $module" $ans ""
 
 # test displaying
-testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nsetenv\t\ttestsuite\t\\\$TEST\n$modlin"
+testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nsetenv\t\ttestsuite\t\\\$TEST\nsetenv\t\ttestsuite2\t\\\$TEST2\n$modlin"
 
 #
 #  Cleanup
 #
 
 # Clean up the environment
-unset env(TEST)
+unsetenv_var TEST
+unsetenv_var TEST2
 
 unset ans
 

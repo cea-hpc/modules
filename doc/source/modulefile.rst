@@ -132,6 +132,11 @@ the *modulefile* is being loaded.
  then when unloading a module, it will set *variable* to *value*. The
  **unsetenv** command changes the process' environment like **setenv**.
 
+**getenv** variable [value]
+
+ Returns value of environment *variable*. If *variable* is not defined *value*
+ is returned if set *_UNDEFINED_* is returned elsewhere.
+
 **append-path** [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
  See **prepend-path**.
