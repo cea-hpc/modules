@@ -158,6 +158,8 @@ Modules Specific Tcl Commands
 **remove-path**
  
  Modules 4 provides path element counting feature which increases a reference counter each time a given path entry is added to a given environment variable. As consequence a path entry element is removed from a path-like variable only if the related element counter is equal to 1. If this counter is greater than 1, path element is kept in variable and reference counter is decreased by 1.
+
+ When unloading a modulefile, **remove-path** command is not applied to environment variable on Modules 4, whereas on compatibility version it is processed the exact same way than when loading modulefile.
  
 **exit**
  
