@@ -153,6 +153,8 @@ Modules Specific Tcl Commands
  
  Modules 4 supports adding or removing empty path element to a path-like variable, whereas compatibility version looses track of this path element when the path-like variable is modified afterward. Empty path element enables to set a leading colon character *:*, which has a specific meaning on some regular environment variable like **MANPATH** or **LD_LIBRARY_PATH**.
 
+ When adding a path element to the **MANPATH** environment variable, Modules 4 is treating this variable like any other whereas a special treatment was applied on compatibility version: a default MANPATH value, set at configure time, was appended in case **MANPATH** variable was unset.
+
 **remove-path**
  
  Modules 4 provides path element counting feature which increases a reference counter each time a given path entry is added to a given environment variable. As consequence a path entry element is removed from a path-like variable only if the related element counter is equal to 1. If this counter is greater than 1, path element is kept in variable and reference counter is decreased by 1.
