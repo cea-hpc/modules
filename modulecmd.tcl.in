@@ -488,6 +488,11 @@ proc set-env {var val} {
    }
 }
 
+proc clear-to-unset-env {var} {
+   set ::env($var) ""
+   set ::g_clearedEnvVars($var) 1
+}
+
 proc unset-env {var {internal 0}} {
    set mode [currentMode]
    reportDebug "unset-env: $var (internal=$internal, mode=$mode)"
@@ -496,8 +501,7 @@ proc unset-env {var {internal 0}} {
    # in modulefile. clear whether variable set or not to get a later usage
    # consistent behavior whatever env is setup
    if {!$internal} {
-      set ::env($var) ""
-      set ::g_clearedEnvVars($var) 1
+      clear-to-unset-env $var
    # internal variables (like ref counter var) are purely unset if they exists
    } elseif {[info exists ::env($var)]} {
       unset ::env($var)
@@ -2202,6 +2206,14 @@ proc remove-path {args} {
    # for all mode except unload
    if {$mode ne "unload"} {
       eval unload-path $args
+   } else {
+      # clear variable if it does not exist on unload mode for later use
+      # during the modulefile evaluation
+      lassign [eval parsePathCommandArgs "unload-path" $args] separator\
+         allow_dup idx_val var path_list
+      if {![info exists ::env($var)]} {
+         clear-to-unset-env $var
+      }
    }
 
    if {$mode eq "display" && !$::g_inhibit_dispreport} {

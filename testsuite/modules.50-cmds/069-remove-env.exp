@@ -73,11 +73,11 @@ testouterr_cmd_re "sh" "load $module" $ans ""
 unsetenv_path_var TS1
 setenv_loaded_module $module $modulefile
 
-# raise an error
-set tserr "$moderr_msgs: can't read \"env(TS1)\": no such variable
-  In '$modulefile'
-$err_contact"
-testouterr_cmd "sh" "unload $module" "ERR" $tserr
+set ans [list]
+lappend ans [list unset TS2]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd "sh" "unload $module" $ans ""
 
 # test with value set to variable prior to unload (diff value than removed one)
 setenv_var TS1 "no"

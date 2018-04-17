@@ -68,31 +68,31 @@ test_cmd "ALL" "unload $module" $ans
 # Try bad argument list: missing variable name
 #
 
-# no error, remove-path ignored in unload mode
 set module "remove/0.3"
 set modulefile "$modpath/$module"
 setenv_loaded_module $module $modulefile
-testouterr_cmd "sh" "unload $module" $ans ""
+set ts_err "$moderr_msgs: unload-path should get an environment variable name\n  In '$modulefile'\n$err_contact"
+testouterr_cmd "sh" "unload $module" "ERR" $ts_err
 
 #
 # Try bad argument list: missing variable value
 #
 
-# no error, remove-path ignored in unload mode
 set module "remove/0.4"
 set modulefile "$modpath/$module"
 setenv_loaded_module $module $modulefile
-testouterr_cmd "sh" "unload $module" $ans ""
+set ts_err "$moderr_msgs: unload-path should get a value for environment variable PATH\n  In '$modulefile'\n$err_contact"
+testouterr_cmd "sh" "unload $module" "ERR" $ts_err
 
 #
 # Try bad argument list: empty variable name
 #
 
-# no error, remove-path ignored in unload mode
 set module "remove/0.5"
 set modulefile "$modpath/$module"
 setenv_loaded_module $module $modulefile
-testouterr_cmd "sh" "unload $module" $ans ""
+set ts_err "$moderr_msgs: unload-path should get a valid environment variable name\n  In '$modulefile'\n$err_contact"
+testouterr_cmd "sh" "unload $module" "ERR" $ts_err
 
 #
 # Remove multiple paths passed as one string
@@ -136,6 +136,7 @@ unsetenv_loaded_module
 unset new_path
 unset ts_path
 unset old_path
+unset ts_err
 
 unset ans
 
