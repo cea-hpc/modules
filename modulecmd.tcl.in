@@ -522,8 +522,10 @@ proc unset-env {var {internal 0}} {
    }
 }
 
-proc execute-modulefile {modfile {must_have_cookie 1}} {
+proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    pushModuleFile $modfile
+   pushModuleName $modname
+   pushSpecifiedName $modspec
 
    # skip modulefile if interpretation has been inhibited
    if {$::g_inhibit_interp} {
@@ -664,6 +666,8 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
       }
    }]
 
+   popSpecifiedName
+   popModuleName
    popModuleFile
 
    reportDebug "exiting $modfile"
@@ -672,8 +676,11 @@ proc execute-modulefile {modfile {must_have_cookie 1}} {
 
 # Smaller subset than main module load... This function runs modulerc and
 # .version files
-proc execute-modulerc {modfile} {
+proc execute-modulerc {modfile modname modspec} {
    pushModuleFile $modfile
+   # push name to be found by module-alias and version
+   pushModuleName $modname
+   pushSpecifiedName $modspec
    set ::ModulesVersion {}
    # does not report commands from rc file on display mode
    set ::g_inhibit_dispreport 1
@@ -767,6 +774,8 @@ proc execute-modulerc {modfile} {
    # re-enable command report on display mode
    set ::g_inhibit_dispreport 0
 
+   popSpecifiedName
+   popModuleName
    popModuleFile
 
    return $::g_rcfilesSourced($modfile)
@@ -4226,12 +4235,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    array set mod_list {}
    foreach elt [lsort [array names found_list]] {
       if {[lindex $found_list($elt) 0] eq "modulerc"} {
-         # push name to be found by module-alias and version
-         pushSpecifiedName $elt
-         pushModuleName $elt
-         execute-modulerc $dir/$elt
-         popModuleName
-         popSpecifiedName
+         execute-modulerc $dir/$elt $elt $elt
       # add other entry kind to the result list
       } elseif {[string match $mod* $elt]} {
          set mod_list($elt) $found_list($elt)
@@ -5130,17 +5134,13 @@ proc cmdModuleDisplay {args} {
    foreach mod $args {
       lassign [getPathToModule $mod] modfile modname
       if {$modfile ne ""} {
-         pushSpecifiedName $mod
-         pushModuleName $modname
          # only one separator lines between 2 modules
          if {$first_report} {
             displaySeparatorLine
             set first_report 0
          }
          report "$modfile:\n"
-         execute-modulefile $modfile
-         popModuleName
-         popSpecifiedName
+         execute-modulefile $modfile $modname $mod
          displaySeparatorLine
       }
    }
@@ -5324,11 +5324,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          # interpret every modulefiles obtained to get their whatis text
          foreach elt [lsort -dictionary [array names interp_list]] {
             set ::g_whatis {}
-            pushSpecifiedName $elt
-            pushModuleName $elt
-            execute-modulefile $interp_list($elt)
-            popModuleName
-            popSpecifiedName
+            execute-modulefile $interp_list($elt) $elt $elt
 
             # treat whatis as a multi-line text
             if {$search eq "" || [regexp -nocase $search $::g_whatis]} {
@@ -5623,15 +5619,11 @@ proc cmdModuleSource {args} {
          reportErrorAndExit "File name empty"
       } elseif {[file exists $absfpath]} {
          pushMode "load"
-         pushSpecifiedName $absfpath
-         pushModuleName $absfpath
          # relax constraint of having a magic cookie at the start of the
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
          # the initialization modulerc file
-         execute-modulefile $absfpath 0
-         popModuleName
-         popSpecifiedName
+         execute-modulefile $absfpath $absfpath $absfpath 0
          popMode
       } else {
          reportErrorAndExit "File $fpath does not exist"
@@ -5647,15 +5639,11 @@ proc cmdModuleUnsource {args} {
          reportErrorAndExit "File name empty"
       } elseif {[file exists $absfpath]} {
          pushMode "unload"
-         pushSpecifiedName $absfpath
-         pushModuleName $absfpath
          # relax constraint of having a magic cookie at the start of the
          # modulefile to execute as sourced files may need more flexibility
          # as they may be managed outside of the modulefile environment like
          # the initialization modulerc file
-         execute-modulefile $absfpath 0
-         popModuleName
-         popSpecifiedName
+         execute-modulefile $absfpath $absfpath $absfpath 0
          popMode
       } else {
          reportErrorAndExit "File $fpath does not exist"
@@ -5681,11 +5669,9 @@ proc cmdModuleLoad {args} {
          set currentModule $modname
 
          if {$::g_force || ![isModuleLoaded $currentModule]} {
-            pushSpecifiedName $mod
-            pushModuleName $currentModule
             pushSettings
 
-            if {[execute-modulefile $modfile]} {
+            if {[execute-modulefile $modfile $currentModule $mod]} {
                restoreSettings
                set ret 1
             } else {
@@ -5697,8 +5683,6 @@ proc cmdModuleLoad {args} {
             }
 
             popSettings
-            popModuleName
-            popSpecifiedName
          } else {
             reportDebug "$modname ($modfile) already loaded"
          }
@@ -5723,11 +5707,9 @@ proc cmdModuleUnload {match args} {
          set currentModule $modname
 
          if {[isModuleLoaded $currentModule]} {
-            pushSpecifiedName $mod
-            pushModuleName $currentModule
             pushSettings
 
-            if {[execute-modulefile $modfile]} {
+            if {[execute-modulefile $modfile $currentModule $mod]} {
                restoreSettings
                set ret 1
             } else {
@@ -5743,8 +5725,6 @@ proc cmdModuleUnload {match args} {
             }
 
             popSettings
-            popModuleName
-            popSpecifiedName
          } else {
             reportDebug "$modname ($modfile) is not loaded"
          }
@@ -6152,17 +6132,13 @@ proc cmdModuleTest {args} {
    foreach mod $args {
       lassign [getPathToModule $mod] modfile modname
       if {$modfile ne ""} {
-         pushSpecifiedName $mod
-         pushModuleName $modname
          # only one separator lines between 2 modules
          if {$first_report} {
             displaySeparatorLine
             set first_report 0
          }
          report "Module Specific Test for $modfile:\n"
-         execute-modulefile $modfile
-         popModuleName
-         popSpecifiedName
+         execute-modulefile $modfile $modname $mod
          displaySeparatorLine
       }
    }
@@ -6176,17 +6152,13 @@ proc cmdModuleHelp {args} {
       lassign [getPathToModule $arg] modfile modname
 
       if {$modfile ne ""} {
-         pushSpecifiedName $arg
-         pushModuleName $modname
          # only one separator lines between 2 modules
          if {$first_report} {
             displaySeparatorLine
             set first_report 0
          }
          report "Module Specific Help for $modfile:\n"
-         execute-modulefile $modfile
-         popModuleName
-         popSpecifiedName
+         execute-modulefile $modfile $modname $arg
          displaySeparatorLine
       }
    }
