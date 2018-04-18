@@ -522,6 +522,43 @@ proc unset-env {var {internal 0}} {
    }
 }
 
+# Initialize list of interp alias commands to define for given evaluation mode
+proc initModfileModeAliases {mode aliasesVN} {
+   global g_modfilePerModeAliases
+   upvar #0 $aliasesVN aliases
+
+   if {![info exists g_modfilePerModeAliases]} {
+      set ::g_modfileBaseAliases [list setenv setenv unsetenv unsetenv\
+         getenv getenv system system chdir chdir append-path append-path\
+         prepend-path prepend-path remove-path remove-path prereq prereq\
+         conflict conflict is-loaded is-loaded is-saved is-saved is-used\
+         is-used is-avail is-avail module module module-info\
+         module-info module-whatis module-whatis set-alias set-alias\
+         unset-alias unset-alias uname uname x-resource x-resource exit\
+         exitModfileCmd module-version module-version module-alias\
+         module-alias module-virtual module-virtual module-trace module-trace\
+         module-verbosity module-verbosity module-user module-user module-log\
+         module-log reportInternalBug reportInternalBug reportWarning\
+         reportWarning reportError reportError raiseErrorCount\
+         raiseErrorCount report report isWin isWin puts putsModfileCmd\
+         readModuleContent readModuleContent]
+
+      # list of alias commands whose target procedure is adapted according to
+      # the evaluation mode
+      set ::g_modfileEvalModes {load unload display help test whatis}
+      array set g_modfilePerModeAliases {}
+   }
+
+   # initialize list with all commands not dependent of the evaluation mode
+   array set aliases $::g_modfileBaseAliases
+
+   # add alias commands whose target command vary depending on the eval mode
+   set modeidx [lsearch -exact $::g_modfileEvalModes $mode]
+   foreach alias [array names g_modfilePerModeAliases] {
+      set aliases($alias) [lindex $g_modfilePerModeAliases($alias) $modeidx]
+   }
+}
+
 proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    pushModuleFile $modfile
    pushModuleName $modname
@@ -545,24 +582,14 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
       # commands that should be renamed before aliases setup
       array set ::g_modfileRenameCmds [list puts _puts]
 
-      # list interpreter alias commands to define
-      array set ::g_modfileAliases [list setenv setenv unsetenv unsetenv\
-         getenv getenv system system chdir chdir append-path append-path\
-         prepend-path prepend-path remove-path remove-path prereq prereq\
-         conflict conflict is-loaded is-loaded is-saved is-saved is-used\
-         is-used is-avail is-avail module module module-info\
-         module-info module-whatis module-whatis set-alias set-alias\
-         unset-alias unset-alias uname uname x-resource x-resource exit\
-         exitModfileCmd module-version module-version module-alias\
-         module-alias module-virtual module-virtual module-trace module-trace\
-         module-verbosity module-verbosity module-user module-user module-log\
-         module-log reportInternalBug reportInternalBug reportWarning\
-         reportWarning reportError reportError raiseErrorCount\
-         raiseErrorCount report report isWin isWin puts putsModfileCmd\
-         readModuleContent readModuleContent]
-
       # alias commands where interpreter ref should be passed as argument
       array set ::g_modfileAliasesPassItrp [list puts 1]
+   }
+   # evaluation mode-specific configuration
+   set dumpCommandsVN "g_modfile${mode}Commands"
+   set aliasesVN "g_modfile${mode}Aliases"
+   if {![info exists ::$aliasesVN]} {
+      initModfileModeAliases $mode $aliasesVN
    }
 
    # dedicate an interpreter per mode and per level of interpretation to have
@@ -589,8 +616,8 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
 
    # reset interp state command before each interpretation
    resetInterpState $itrp $fresh g_modfileVars g_modfileArrayVars\
-      g_modfileUntrackVars g_modfileProcs g_modfileAliases\
-      g_modfileAliasesPassItrp g_modfileRenameCmds g_modfileCommands
+      g_modfileUntrackVars g_modfileProcs $aliasesVN\
+      g_modfileAliasesPassItrp g_modfileRenameCmds $dumpCommandsVN
 
    # reset modulefile-specific variable before each interpretation
    interp eval $itrp set ::ModulesCurrentModulefile $modfile
@@ -821,7 +848,7 @@ proc dumpInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
 }
 
 # Define commands to be known by slave interpreter.
-proc initInterpCommands {itrp fresh aliasesVN aliasesPassItrpVN renameCmdsVN}{
+proc initInterpCommands {itrp fresh aliasesVN aliasesPassItrpVN renameCmdsVN} {
    upvar #0 $aliasesVN aliases
    upvar #0 $aliasesPassItrpVN aliasesPassItrp
    upvar #0 $renameCmdsVN renameCmds
