@@ -820,33 +820,14 @@ proc dumpInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
    reportDebug "saving for $itrpkind proc list [array names dumpProcs]"
 }
 
-# Restore initial setup of slave interpreter passed as argument based on
-# global structure previously filled with initial list of defined procedure
-# and values of global variable.
-proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
-   dumpProcsVN aliasesVN aliasesPassItrpVN renameCmdsVN dumpCommandsVN} {
-   upvar #0 $dumpVarsVN dumpVars
-   upvar #0 $dumpArrayVarsVN dumpArrayVars
-   upvar #0 $untrackVarsVN untrackVars
-   upvar #0 $dumpProcsVN dumpProcs
+# Define commands to be known by slave interpreter.
+proc initInterpCommands {itrp fresh aliasesVN aliasesPassItrpVN renameCmdsVN}{
    upvar #0 $aliasesVN aliases
    upvar #0 $aliasesPassItrpVN aliasesPassItrp
    upvar #0 $renameCmdsVN renameCmds
-   upvar #0 $dumpCommandsVN dumpCommands
 
-   # look at list of defined procedures and delete those not part of the
-   # initial state list. do not check if they have been altered as no vital
-   # procedures lied there. note that if a Tcl command has been overridden
-   # by a proc, it will be removed here and command will also disappear
-   foreach var [$itrp eval {info procs}] {
-      if {![info exists dumpProcs($var)]} {
-         reportDebug "removing on $itrp proc $var"
-         $itrp eval [list rename $var {}]
-      }
-   }
-
-   # rename some commands on first time before aliases defined below
-   # overwrite them
+   # rename some commands on freshly created interp before aliases defined
+   # below overwrite them
    if {$fresh} {
       foreach cmd [array names renameCmds] {
          $itrp eval rename $cmd $renameCmds($cmd)
@@ -862,6 +843,32 @@ proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
          interp alias $itrp $alias {} $aliases($alias)
       }
    }
+}
+
+# Restore initial setup of slave interpreter passed as argument based on
+# global structure previously filled with initial list of defined procedure
+# and values of global variable.
+proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
+   dumpProcsVN aliasesVN aliasesPassItrpVN renameCmdsVN dumpCommandsVN} {
+   upvar #0 $dumpVarsVN dumpVars
+   upvar #0 $dumpArrayVarsVN dumpArrayVars
+   upvar #0 $untrackVarsVN untrackVars
+   upvar #0 $dumpProcsVN dumpProcs
+   upvar #0 $dumpCommandsVN dumpCommands
+
+   # look at list of defined procedures and delete those not part of the
+   # initial state list. do not check if they have been altered as no vital
+   # procedures lied there. note that if a Tcl command has been overridden
+   # by a proc, it will be removed here and command will also disappear
+   foreach var [$itrp eval {info procs}] {
+      if {![info exists dumpProcs($var)]} {
+         reportDebug "removing on $itrp proc $var"
+         $itrp eval [list rename $var {}]
+      }
+   }
+
+   # rename some commands and set aliases on interpreter
+   initInterpCommands $itrp $fresh $aliasesVN $aliasesPassItrpVN $renameCmdsVN
 
    # dump interpreter command list here on first time as aliases should be
    # set prior to be found on this list for correct match
@@ -875,17 +882,7 @@ proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
       reportDebug "missing command(s), recreating interp $itrp"
       interp delete $itrp
       interp create $itrp
-      # rename some commands and set aliases again on fresh interpreter
-      foreach cmd [array names renameCmds] {
-         $itrp eval rename $cmd $renameCmds($cmd)
-      }
-      foreach alias [array names aliases] {
-         if {[info exists aliasesPassItrp($alias)]} {
-            interp alias $itrp $alias {} $aliases($alias) $itrp
-         } else {
-            interp alias $itrp $alias {} $aliases($alias)
-         }
-      }
+      initInterpCommands $itrp 1 $aliasesVN $aliasesPassItrpVN $renameCmdsVN
    }
 
    # check every global variables currently set and correct them to restore
