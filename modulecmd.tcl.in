@@ -574,9 +574,11 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
       interp create $itrp
 
       # dump initial interpreter state to restore it before each modulefile
-      # interpreation
-      dumpInterpState $itrp g_modfileVars g_modfileArrayVars\
-         g_modfileUntrackVars g_modfileProcs
+      # interpretation. use same dump state for all levels
+      if {![info exists ::g_modfileVars]} {
+         dumpInterpState $itrp g_modfileVars g_modfileArrayVars\
+            g_modfileUntrackVars g_modfileProcs
+      }
 
       # interp has just been created
       set fresh 1
@@ -722,9 +724,11 @@ proc execute-modulerc {modfile modname modspec} {
          interp create $itrp
 
          # dump initial interpreter state to restore it before each modulerc
-         # interpreation
-         dumpInterpState $itrp g_modrcVars g_modrcArrayVars\
-            g_modrcUntrackVars g_modrcProcs
+         # interpreation. use same dump state for all levels
+         if {![info exists ::g_modrcVars]} {
+            dumpInterpState $itrp g_modrcVars g_modrcArrayVars\
+               g_modrcUntrackVars g_modrcProcs
+         }
 
          # interp has just been created
          set fresh 1
@@ -794,10 +798,11 @@ proc dumpInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
    upvar #0 $untrackVarsVN untrackVars
    upvar #0 $dumpProcsVN dumpProcs
 
+   regexp {^__[a-z]+} $itrp itrpkind
    # save name and value for any other global variables
    foreach var [$itrp eval {info globals}] {
       if {![info exists untrackVars($var)]} {
-         reportDebug "saving for $itrp var $var"
+         reportDebug "saving for $itrpkind var $var"
          if {[$itrp eval array exists ::$var]} {
             set dumpVars($var) [$itrp eval array get ::$var]
             set dumpArrayVars($var) 1
@@ -811,7 +816,7 @@ proc dumpInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
    foreach var [$itrp eval {info procs}] {
       set dumpProcs($var) 1
    }
-   reportDebug "saving for $itrp proc list [array names dumpProcs]"
+   reportDebug "saving for $itrpkind proc list [array names dumpProcs]"
 }
 
 # Restore initial setup of slave interpreter passed as argument based on
