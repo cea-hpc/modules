@@ -566,10 +566,11 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
 
    # dedicate an interpreter per level of interpretation to have in case of
    # cascaded interpretations a specific interpreter per level
-   set itrp "__modfile[info level]"
+   set itrp "__modfile_[info level]"
 
    # create modulefile interpreter at first interpretation
    if {![interp exists $itrp]} {
+      reportDebug "creating interp $itrp"
       interp create $itrp
 
       # dump initial interpreter state to restore it before each modulefile
@@ -712,11 +713,12 @@ proc execute-modulerc {modfile modname modspec} {
 
       # dedicate an interpreter per level of interpretation to have in case of
       # cascaded interpretations a specific interpreter per level
-      set itrp "__modrc[info level]"
+      set itrp "__modrc_[info level]"
 
       reportDebug "sourcing $modfile"
       # create modulerc interpreter at first interpretation
       if {![interp exists $itrp]} {
+         reportDebug "creating interp $itrp"
          interp create $itrp
 
          # dump initial interpreter state to restore it before each modulerc
@@ -864,7 +866,7 @@ proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
    # means that at least one command has been altered so we need to recreate
    # interpreter to guaranty proper functioning
    } elseif {$dumpCommands ne [$itrp eval {info commands}]} {
-      reportDebug "missing command(s), recreating $itrp"
+      reportDebug "missing command(s), recreating interp $itrp"
       interp delete $itrp
       interp create $itrp
       # rename some commands and set aliases again on fresh interpreter
