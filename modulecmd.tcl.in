@@ -526,14 +526,15 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    pushModuleFile $modfile
    pushModuleName $modname
    pushSpecifiedName $modspec
+   set mode [currentMode]
 
    # skip modulefile if interpretation has been inhibited
    if {$::g_inhibit_interp} {
-      reportDebug "skipping $modfile"
+      reportDebug "skipping $modfile (mode=$mode)"
       return 1
    }
 
-   reportDebug "sourcing $modfile"
+   reportDebug "sourcing $modfile (mode=$mode)"
 
    if {![info exists ::g_modfileUntrackVars]} {
       # list variable that should not be tracked for saving
@@ -564,9 +565,9 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
       array set ::g_modfileAliasesPassItrp [list puts 1]
    }
 
-   # dedicate an interpreter per level of interpretation to have in case of
-   # cascaded interpretations a specific interpreter per level
-   set itrp "__modfile_[info level]"
+   # dedicate an interpreter per mode and per level of interpretation to have
+   # a dedicated interpreter in case of cascaded multi-mode interpretations
+   set itrp "__modfile_${mode}_[info level]"
 
    # create modulefile interpreter at first interpretation
    if {![interp exists $itrp]} {
@@ -574,7 +575,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
       interp create $itrp
 
       # dump initial interpreter state to restore it before each modulefile
-      # interpretation. use same dump state for all levels
+      # interpretation. use same dump state for all modes/levels
       if {![info exists ::g_modfileVars]} {
          dumpInterpState $itrp g_modfileVars g_modfileArrayVars\
             g_modfileUntrackVars g_modfileProcs
@@ -673,7 +674,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    popModuleName
    popModuleFile
 
-   reportDebug "exiting $modfile"
+   reportDebug "exiting $modfile (mode=$mode)"
    return $errorVal
 }
 
