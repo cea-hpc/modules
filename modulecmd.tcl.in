@@ -546,7 +546,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
 
    if {![info exists g_modfilePerModeAliases]} {
       set ::g_modfileBaseAliases [list setenv setenv unsetenv unsetenv\
-         getenv getenv system system chdir chdir append-path append-path\
+         getenv getenv chdir chdir append-path append-path\
          prepend-path prepend-path remove-path remove-path prereq prereq\
          conflict conflict is-loaded is-loaded is-saved is-saved is-used\
          is-used is-avail is-avail module module module-info\
@@ -563,7 +563,9 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
       # list of alias commands whose target procedure is adapted according to
       # the evaluation mode
       set ::g_modfileEvalModes {load unload display help test whatis}
-      array set g_modfilePerModeAliases {}
+      array set g_modfilePerModeAliases {
+system         {system         system         reportCmd      nop            nop            nop           }
+      }
    }
 
    # alias commands where interpreter ref should be passed as argument
@@ -2481,12 +2483,6 @@ proc system {mycmd args} {
       } else {
           # exit status was 0
           set status 0
-      }
-   } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      if {[llength $args] == 0} {
-         report "system\t\t$mycmd"
-      } else {
-         report "system\t\t$mycmd $args"
       }
    }
 
