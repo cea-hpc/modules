@@ -340,6 +340,19 @@ proc reportIssue {issuetype issuemsg {issuefile {}}} {
    }
 }
 
+# report defined command (used in display evaluation mode)
+proc reportCmd {cmd args} {
+   if {[string length $cmd] < 8} {
+      set extratab "\t"
+   } else {
+      set extratab ""
+   }
+   report "$cmd$extratab\t[join $args { }]"
+
+   # empty string returns if command result is another command input
+   return {}
+}
+
 proc reportVersion {} {
    report "Modules Release @MODULES_RELEASE@@MODULES_BUILD@\
       (@MODULES_BUILD_DATE@)"
@@ -562,7 +575,11 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
    # add alias commands whose target command vary depending on the eval mode
    set modeidx [lsearch -exact $::g_modfileEvalModes $mode]
    foreach alias [array names g_modfilePerModeAliases] {
-      set aliases($alias) [lindex $g_modfilePerModeAliases($alias) $modeidx]
+      if {[set aliases($alias) [lindex $g_modfilePerModeAliases($alias)\
+         $modeidx]] eq "reportCmd"} {
+         # in case target procedure is reportCmd pass cmd name as first arg
+         set aliasesPassArg($alias) $alias
+      }
    }
 }
 
