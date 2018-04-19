@@ -485,6 +485,11 @@ proc startPager {} {
 # dummy proc to disable modulefile commands on some evaluation modes
 proc nop {args} {}
 
+# dummy proc for commands available on other Modules flavor but not here
+proc nimp {cmd args} {
+   reportWarning "'$cmd' command not implemented"
+}
+
 proc get-env {var {valifunset ""}} {
    # return current value if exists and not cleared
    if {[info exists ::env($var)] && ![info exists ::g_clearedEnvVars($var)]} {
@@ -577,9 +582,10 @@ system         {system         system         reportCmd      nop            nop 
    # add alias commands whose target command vary depending on the eval mode
    set modeidx [lsearch -exact $::g_modfileEvalModes $mode]
    foreach alias [array names g_modfilePerModeAliases] {
-      if {[set aliases($alias) [lindex $g_modfilePerModeAliases($alias)\
-         $modeidx]] eq "reportCmd"} {
-         # in case target procedure is reportCmd pass cmd name as first arg
+      set aliastarget [set aliases($alias) [lindex\
+         $g_modfilePerModeAliases($alias) $modeidx]]
+      # some target procedures need command name as first arg
+      if {$aliastarget eq "reportCmd" || $aliastarget eq "nimp"} {
          set aliasesPassArg($alias) $alias
       }
    }
