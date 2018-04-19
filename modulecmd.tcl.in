@@ -553,7 +553,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
       set ::g_modfileBaseAliases [list setenv setenv unsetenv unsetenv\
          getenv getenv append-path append-path\
          prepend-path prepend-path remove-path remove-path\
-         conflict conflict is-loaded is-loaded is-saved is-saved is-used\
+         is-loaded is-loaded is-saved is-saved is-used\
          is-used is-avail is-avail module module module-info\
          module-info set-alias set-alias\
          unset-alias unset-alias uname uname x-resource x-resource exit\
@@ -568,6 +568,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
       set ::g_modfileEvalModes {load unload display help test whatis}
       array set g_modfilePerModeAliases {
 chdir          {chdir          nop            reportCmd      nop            nop            nop           }
+conflict       {conflict       nop            reportCmd      nop            nop            nop           }
 module-log     {nimp           nimp           reportCmd      nop            nop            nop           }
 module-trace   {nimp           nimp           reportCmd      nop            nop            nop           }
 module-user    {nimp           nimp           reportCmd      nop            nop            nop           }
@@ -2305,28 +2306,21 @@ proc is-loaded {args} {
 }
 
 proc conflict {args} {
-   set mode [currentMode]
+   reportDebug "$args"
    set currentModule [currentModuleName]
 
-   reportDebug "($args) mode = $mode"
-
-   if {$mode eq "load"} {
-      foreach mod $args {
-         # If the current module is already loaded, we can proceed
-         if {![is-loaded $currentModule]} {
-            # otherwise if the conflict module is loaded, we cannot
-            if {[is-loaded $mod]} {
-               set errMsg "WARNING: $currentModule cannot be loaded due\
-                  to a conflict."
-               set errMsg "$errMsg\nHINT: Might try \"module unload\
-                  $mod\" first."
-               error $errMsg
-            }
+   foreach mod $args {
+      # If the current module is already loaded, we can proceed
+      if {![is-loaded $currentModule]} {
+         # otherwise if the conflict module is loaded, we cannot
+         if {[is-loaded $mod]} {
+            set errMsg "WARNING: $currentModule cannot be loaded due to a\
+               conflict."
+            set errMsg "$errMsg\nHINT: Might try \"module unload $mod\"\
+               first."
+            error $errMsg
          }
       }
-   }\
-   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "conflict\t$args"
    }
 
    return {}
