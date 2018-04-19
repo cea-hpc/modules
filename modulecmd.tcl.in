@@ -526,9 +526,10 @@ proc unset-env {var {internal 0}} {
 }
 
 # Initialize list of interp alias commands to define for given evaluation mode
-proc initModfileModeAliases {mode aliasesVN} {
+proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
    global g_modfilePerModeAliases
    upvar #0 $aliasesVN aliases
+   upvar #0 $aliasesPassArgVN aliasesPassArg
 
    if {![info exists g_modfilePerModeAliases]} {
       set ::g_modfileBaseAliases [list setenv setenv unsetenv unsetenv\
@@ -551,6 +552,9 @@ proc initModfileModeAliases {mode aliasesVN} {
       set ::g_modfileEvalModes {load unload display help test whatis}
       array set g_modfilePerModeAliases {}
    }
+
+   # alias commands where interpreter ref should be passed as argument
+   array set aliasesPassArg [list puts $itrp]
 
    # initialize list with all commands not dependent of the evaluation mode
    array set aliases $::g_modfileBaseAliases
@@ -584,20 +588,18 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
 
       # commands that should be renamed before aliases setup
       array set ::g_modfileRenameCmds [list puts _puts]
-
-      # alias commands where interpreter ref should be passed as argument
-      array set ::g_modfileAliasesPassItrp [list puts 1]
    }
-   # evaluation mode-specific configuration
-   set dumpCommandsVN "g_modfile${mode}Commands"
-   set aliasesVN "g_modfile${mode}Aliases"
-   if {![info exists ::$aliasesVN]} {
-      initModfileModeAliases $mode $aliasesVN
-   }
-
    # dedicate an interpreter per mode and per level of interpretation to have
    # a dedicated interpreter in case of cascaded multi-mode interpretations
    set itrp "__modfile_${mode}_[info level]"
+
+   # evaluation mode-specific configuration
+   set dumpCommandsVN "g_modfile${mode}Commands"
+   set aliasesVN "g_modfile${mode}Aliases"
+   set aliasesPassArgVN "g_modfile${mode}AliasesPassArg"
+   if {![info exists ::$aliasesVN]} {
+      initModfileModeAliases $itrp $mode $aliasesVN $aliasesPassArgVN
+   }
 
    # create modulefile interpreter at first interpretation
    if {![interp exists $itrp]} {
@@ -619,8 +621,8 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
 
    # reset interp state command before each interpretation
    resetInterpState $itrp $fresh g_modfileVars g_modfileArrayVars\
-      g_modfileUntrackVars g_modfileProcs $aliasesVN\
-      g_modfileAliasesPassItrp g_modfileRenameCmds $dumpCommandsVN
+      g_modfileUntrackVars g_modfileProcs $aliasesVN $aliasesPassArgVN\
+      g_modfileRenameCmds $dumpCommandsVN
 
    # reset modulefile-specific variable before each interpretation
    interp eval $itrp set ::ModulesCurrentModulefile $modfile
@@ -851,9 +853,9 @@ proc dumpInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
 }
 
 # Define commands to be known by slave interpreter.
-proc initInterpCommands {itrp fresh aliasesVN aliasesPassItrpVN renameCmdsVN} {
+proc initInterpCommands {itrp fresh aliasesVN aliasesPassArgVN renameCmdsVN} {
    upvar #0 $aliasesVN aliases
-   upvar #0 $aliasesPassItrpVN aliasesPassItrp
+   upvar #0 $aliasesPassArgVN aliasesPassArg
    upvar #0 $renameCmdsVN renameCmds
 
    # rename some commands on freshly created interp before aliases defined
@@ -867,8 +869,8 @@ proc initInterpCommands {itrp fresh aliasesVN aliasesPassItrpVN renameCmdsVN} {
    # set interpreter alias commands each time to guaranty them being
    # defined and not overridden by modulefile or modulerc content
    foreach alias [array names aliases] {
-      if {[info exists aliasesPassItrp($alias)]} {
-         interp alias $itrp $alias {} $aliases($alias) $itrp
+      if {[info exists aliasesPassArg($alias)]} {
+         interp alias $itrp $alias {} $aliases($alias) $aliasesPassArg($alias)
       } else {
          interp alias $itrp $alias {} $aliases($alias)
       }
@@ -879,7 +881,7 @@ proc initInterpCommands {itrp fresh aliasesVN aliasesPassItrpVN renameCmdsVN} {
 # global structure previously filled with initial list of defined procedure
 # and values of global variable.
 proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
-   dumpProcsVN aliasesVN aliasesPassItrpVN renameCmdsVN dumpCommandsVN} {
+   dumpProcsVN aliasesVN aliasesPassArgVN renameCmdsVN dumpCommandsVN} {
    upvar #0 $dumpVarsVN dumpVars
    upvar #0 $dumpArrayVarsVN dumpArrayVars
    upvar #0 $untrackVarsVN untrackVars
@@ -898,7 +900,7 @@ proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
    }
 
    # rename some commands and set aliases on interpreter
-   initInterpCommands $itrp $fresh $aliasesVN $aliasesPassItrpVN $renameCmdsVN
+   initInterpCommands $itrp $fresh $aliasesVN $aliasesPassArgVN $renameCmdsVN
 
    # dump interpreter command list here on first time as aliases should be
    # set prior to be found on this list for correct match
@@ -912,7 +914,7 @@ proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
       reportDebug "missing command(s), recreating interp $itrp"
       interp delete $itrp
       interp create $itrp
-      initInterpCommands $itrp 1 $aliasesVN $aliasesPassItrpVN $renameCmdsVN
+      initInterpCommands $itrp 1 $aliasesVN $aliasesPassArgVN $renameCmdsVN
    }
 
    # check every global variables currently set and correct them to restore
