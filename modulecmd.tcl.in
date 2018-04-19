@@ -555,7 +555,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
          prepend-path prepend-path remove-path remove-path prereq prereq\
          conflict conflict is-loaded is-loaded is-saved is-saved is-used\
          is-used is-avail is-avail module module module-info\
-         module-info module-whatis module-whatis set-alias set-alias\
+         module-info set-alias set-alias\
          unset-alias unset-alias uname uname x-resource x-resource exit\
          exitModfileCmd module-version module-version module-alias\
          module-alias module-virtual module-virtual reportInternalBug\
@@ -572,6 +572,7 @@ module-log     {nimp           nimp           reportCmd      nop            nop 
 module-trace   {nimp           nimp           reportCmd      nop            nop            nop           }
 module-user    {nimp           nimp           reportCmd      nop            nop            nop           }
 module-verbosity {nimp         nimp           reportCmd      nop            nop            nop           }
+module-whatis  {nop            nop            reportCmd      nop            nop            module-whatis }
 system         {system         system         reportCmd      nop            nop            nop           }
       }
    }
@@ -1078,17 +1079,10 @@ proc module-info {what {more {}}} {
 }
 
 proc module-whatis {args} {
-   set mode [currentMode]
    set message [join $args " "]
+   reportDebug "$message"
+   lappend ::g_whatis $message
 
-   reportDebug "$message  mode=$mode"
-
-   if {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "module-whatis\t$message"
-   }\
-   elseif {$mode eq "whatis"} {
-      lappend ::g_whatis $message
-   }
    return {}
 }
 
