@@ -558,17 +558,19 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
          module-info module-whatis module-whatis set-alias set-alias\
          unset-alias unset-alias uname uname x-resource x-resource exit\
          exitModfileCmd module-version module-version module-alias\
-         module-alias module-virtual module-virtual module-trace module-trace\
-         module-verbosity module-verbosity module-user module-user module-log\
-         module-log reportInternalBug reportInternalBug reportWarning\
-         reportWarning reportError reportError raiseErrorCount\
-         raiseErrorCount report report isWin isWin puts putsModfileCmd\
-         readModuleContent readModuleContent]
+         module-alias module-virtual module-virtual reportInternalBug\
+         reportInternalBug reportWarning reportWarning reportError\
+         reportError raiseErrorCount raiseErrorCount report report isWin\
+         isWin puts putsModfileCmd readModuleContent readModuleContent]
 
       # list of alias commands whose target procedure is adapted according to
       # the evaluation mode
       set ::g_modfileEvalModes {load unload display help test whatis}
       array set g_modfilePerModeAliases {
+module-log     {nimp           nimp           reportCmd      nop            nop            nop           }
+module-trace   {nimp           nimp           reportCmd      nop            nop            nop           }
+module-user    {nimp           nimp           reportCmd      nop            nop            nop           }
+module-verbosity {nimp         nimp           reportCmd      nop            nop            nop           }
 system         {system         system         reportCmd      nop            nop            nop           }
       }
    }
@@ -972,26 +974,6 @@ proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
 ########################################################################
 # commands run from inside a module file
 #
-
-# Dummy procedures for commands available on C-version but not
-# implemented here. These dummy procedures enables support for
-# modulefiles using these commands while warning users these
-# commands have no effect.
-proc module-log {args} {
-   reportWarning "'module-log' command not implemented"
-}
-
-proc module-verbosity {args} {
-   reportWarning "'module-verbosity' command not implemented"
-}
-
-proc module-user {args} {
-   reportWarning "'module-user' command not implemented"
-}
-
-proc module-trace {args} {
-   reportWarning "'module-trace' command not implemented"
-}
 
 proc module-info {what {more {}}} {
    set mode [currentMode]
