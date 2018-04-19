@@ -552,7 +552,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
    if {![info exists g_modfilePerModeAliases]} {
       set ::g_modfileBaseAliases [list setenv setenv unsetenv unsetenv\
          getenv getenv append-path append-path\
-         prepend-path prepend-path remove-path remove-path prereq prereq\
+         prepend-path prepend-path remove-path remove-path\
          conflict conflict is-loaded is-loaded is-saved is-saved is-used\
          is-used is-avail is-avail module module module-info\
          module-info set-alias set-alias\
@@ -573,6 +573,7 @@ module-trace   {nimp           nimp           reportCmd      nop            nop 
 module-user    {nimp           nimp           reportCmd      nop            nop            nop           }
 module-verbosity {nimp         nimp           reportCmd      nop            nop            nop           }
 module-whatis  {nop            nop            reportCmd      nop            nop            module-whatis }
+prereq         {prereq         nop            reportCmd      nop            nop            nop           }
 system         {system         system         reportCmd      nop            nop            nop           }
       }
    }
@@ -2332,28 +2333,20 @@ proc conflict {args} {
 }
 
 proc prereq {args} {
-   set mode [currentMode]
-   set currentModule [currentModuleName]
+   reportDebug "$args"
 
-   reportDebug "($args) mode = $mode"
-
-   if {$mode eq "load"} {
-      if {![eval is-loaded $args]} {
-         set errMsg "WARNING: $currentModule cannot be loaded due to\
-             missing prereq."
-         # adapt error message when multiple modules are specified
-         if {[llength $args] > 1} {
-            set errMsg "$errMsg\nHINT: at least one of the following\
-               modules must be loaded first: $args"
-         } else {
-            set errMsg "$errMsg\nHINT: the following module must be\
-               loaded first: $args"
-         }
-         error $errMsg
+   if {![eval is-loaded $args]} {
+      set errMsg "WARNING: [currentModuleName] cannot be loaded due to\
+          missing prereq."
+      # adapt error message when multiple modules are specified
+      if {[llength $args] > 1} {
+         set errMsg "$errMsg\nHINT: at least one of the following modules\
+            must be loaded first: $args"
+      } else {
+         set errMsg "$errMsg\nHINT: the following module must be loaded\
+            first: $args"
       }
-   }\
-   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "prereq\t\t$args"
+      error $errMsg
    }
 
    return {}
