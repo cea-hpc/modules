@@ -555,8 +555,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
          prepend-path prepend-path remove-path remove-path\
          is-loaded is-loaded is-saved is-saved is-used\
          is-used is-avail is-avail module module module-info\
-         module-info set-alias set-alias\
-         unset-alias unset-alias uname uname x-resource x-resource exit\
+         module-info uname uname x-resource x-resource exit\
          exitModfileCmd module-version module-version module-alias\
          module-alias module-virtual module-virtual reportInternalBug\
          reportInternalBug reportWarning reportWarning reportError\
@@ -575,7 +574,9 @@ module-user    {nimp           nimp           reportCmd      nop            nop 
 module-verbosity {nimp         nimp           reportCmd      nop            nop            nop           }
 module-whatis  {nop            nop            reportCmd      nop            nop            module-whatis }
 prereq         {prereq         nop            reportCmd      nop            nop            nop           }
+set-alias      {set-alias      set-alias-un   reportCmd      nop            nop            nop           }
 system         {system         system         reportCmd      nop            nop            nop           }
+unset-alias    {unset-alias    nop            reportCmd      nop            nop            nop           }
       }
    }
 
@@ -2260,35 +2261,24 @@ proc remove-path {args} {
 }
 
 proc set-alias {alias what} {
-   set mode [currentMode]
+   reportDebug "alias='$alias', val='$what'"
 
-   reportDebug "($alias, $what) mode=$mode"
-   if {$mode eq "load"} {
-      set ::g_Aliases($alias) $what
-      set ::g_stateAliases($alias) "new"
-   }\
-   elseif {$mode eq "unload"} {
-      set ::g_Aliases($alias) {}
-      set ::g_stateAliases($alias) "del"
-   }\
-   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "set-alias\t$alias\t$what"
-   }
+   set ::g_Aliases($alias) $what
+   set ::g_stateAliases($alias) "new"
 
    return {}
 }
 
-proc unset-alias {alias} {
-   set mode [currentMode]
+# undo set-alias in unload mode
+proc set-alias-un {alias what} {
+   return [unset-alias $alias]
+}
 
-   reportDebug "($alias) mode=$mode"
-   if {$mode eq "load"} {
-      set ::g_Aliases($alias) {}
-      set ::g_stateAliases($alias) "del"
-   }\
-   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "unset-alias\t$alias"
-   }
+proc unset-alias {alias} {
+   reportDebug "alias='$alias'"
+
+   set ::g_Aliases($alias) {}
+   set ::g_stateAliases($alias) "del"
 
    return {}
 }
