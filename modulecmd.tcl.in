@@ -551,7 +551,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
 
    if {![info exists g_modfilePerModeAliases]} {
       set ::g_modfileBaseAliases [list setenv setenv unsetenv unsetenv\
-         getenv getenv chdir chdir append-path append-path\
+         getenv getenv append-path append-path\
          prepend-path prepend-path remove-path remove-path prereq prereq\
          conflict conflict is-loaded is-loaded is-saved is-saved is-used\
          is-used is-avail is-avail module module module-info\
@@ -567,6 +567,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
       # the evaluation mode
       set ::g_modfileEvalModes {load unload display help test whatis}
       array set g_modfilePerModeAliases {
+chdir          {chdir          nop            reportCmd      nop            nop            nop           }
 module-log     {nimp           nimp           reportCmd      nop            nop            nop           }
 module-trace   {nimp           nimp           reportCmd      nop            nop            nop           }
 module-user    {nimp           nimp           reportCmd      nop            nop            nop           }
@@ -1786,23 +1787,14 @@ proc unsetenv {var {val {}}} {
 }
 
 proc chdir {dir} {
-   set mode [currentMode]
-   set currentModule [currentModuleName]
+   reportDebug "$dir"
 
-   reportDebug "($dir) mode = $mode"
-
-   if {$mode eq "load"} {
-      if {[file exists $dir] && [file isdirectory $dir]} {
-         set ::g_changeDir $dir
-      } else {
-         # report issue but does not treat it as an error to have the
-         # same behavior as C-version
-         reportWarning "Cannot chdir to '$dir' for '$currentModule'"
-      }
-   } elseif {$mode eq "unload"} {
-      # No operation here unable to undo a syscall.
-   } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "chdir\t\t$dir"
+   if {[file exists $dir] && [file isdirectory $dir]} {
+      set ::g_changeDir $dir
+   } else {
+      # report issue but does not treat it as an error to have the
+      # same behavior as C-version
+      reportWarning "Cannot chdir to '$dir' for '[currentModuleName]'"
    }
 
    return {}
