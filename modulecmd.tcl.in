@@ -551,8 +551,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
 
    if {![info exists g_modfilePerModeAliases]} {
       set ::g_modfileBaseAliases [list\
-         getenv getenv append-path append-path\
-         prepend-path prepend-path remove-path remove-path\
+         getenv getenv\
          is-loaded is-loaded is-saved is-saved is-used\
          is-used is-avail is-avail module module module-info\
          module-info uname uname x-resource x-resource exit\
@@ -566,6 +565,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
       # the evaluation mode
       set ::g_modfileEvalModes {load unload display help test whatis}
       array set g_modfilePerModeAliases {
+append-path    {append-path    remove-path    append-path    append-path    append-path    append-path   }
 chdir          {chdir          nop            reportCmd      nop            nop            nop           }
 conflict       {conflict       nop            reportCmd      nop            nop            nop           }
 module-log     {nimp           nimp           reportCmd      nop            nop            nop           }
@@ -573,7 +573,9 @@ module-trace   {nimp           nimp           reportCmd      nop            nop 
 module-user    {nimp           nimp           reportCmd      nop            nop            nop           }
 module-verbosity {nimp         nimp           reportCmd      nop            nop            nop           }
 module-whatis  {nop            nop            reportCmd      nop            nop            module-whatis }
+prepend-path   {prepend-path   remove-path    prepend-path   prepend-path   prepend-path   prepend-path  }
 prereq         {prereq         nop            reportCmd      nop            nop            nop           }
+remove-path    {remove-path    remove-path-un remove-path    remove-path    remove-path    remove-path   }
 set-alias      {set-alias      set-alias-un   reportCmd      nop            nop            nop           }
 setenv         {setenv         setenv-un      setenv         setenv         setenv         setenv        }
 system         {system         system         reportCmd      nop            nop            nop           }
@@ -2191,70 +2193,53 @@ proc parsePathCommandArgs {cmd args} {
 }
 
 proc prepend-path {args} {
-   set mode [currentMode]
-
-   reportDebug "($args) mode=$mode"
+   reportDebug "$args"
 
    # Set the variable for later use during the modulefile evaluation
-   # for all mode except unload
-   if {$mode ne "unload"} {
-      eval add-path "prepend" $args
-   }
+   eval add-path "prepend" $args
 
-   if {$mode eq "unload"} {
-      eval unload-path $args
-   }\
-   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "prepend-path\t$args"
+   if {[currentMode] eq "display"} {
+      reportCmd prepend-path $args
    }
 
    return {}
 }
 
 proc append-path {args} {
-   set mode [currentMode]
-
-   reportDebug "($args) mode=$mode"
+   reportDebug "$args"
 
    # Set the variable for later use during the modulefile evaluation
-   # for all mode except unload
-   if {$mode ne "unload"} {
-      eval add-path "append" $args
-   }
+   eval add-path "append" $args
 
-   if {$mode eq "unload"} {
-      eval unload-path $args
-   }\
-   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "append-path\t$args"
+   if {[currentMode] eq "display"} {
+      reportCmd append-path $args
    }
 
    return {}
 }
 
 proc remove-path {args} {
-   set mode [currentMode]
-
-   reportDebug "($args) mode=$mode"
+   reportDebug "$args"
 
    # Set the variable for later use during the modulefile evaluation
-   # for all mode except unload
-   if {$mode ne "unload"} {
-      eval unload-path $args
-   } else {
-      # clear variable if it does not exist on unload mode for later use
-      # during the modulefile evaluation
-      lassign [eval parsePathCommandArgs "unload-path" $args] separator\
-         allow_dup idx_val var path_list
-      if {![info exists ::env($var)]} {
-         clear-to-unset-env $var
-      }
+   eval unload-path $args
+
+   if {[currentMode] eq "display"} {
+      reportCmd remove-path $args
    }
 
-   if {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "remove-path\t$args"
-   }
    return {}
+}
+
+# undo remove-path in unload mode
+proc remove-path-un {args} {
+   # clear variable if it does not exist on unload mode for later use
+   # during the modulefile evaluation
+   lassign [eval parsePathCommandArgs "unload-path" $args] separator\
+      allow_dup idx_val var path_list
+   if {![info exists ::env($var)]} {
+      clear-to-unset-env $var
+   }
 }
 
 proc set-alias {alias what} {
