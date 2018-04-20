@@ -550,7 +550,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
    upvar #0 $aliasesPassArgVN aliasesPassArg
 
    if {![info exists g_modfilePerModeAliases]} {
-      set ::g_modfileBaseAliases [list setenv setenv unsetenv unsetenv\
+      set ::g_modfileBaseAliases [list\
          getenv getenv append-path append-path\
          prepend-path prepend-path remove-path remove-path\
          is-loaded is-loaded is-saved is-saved is-used\
@@ -575,8 +575,10 @@ module-verbosity {nimp         nimp           reportCmd      nop            nop 
 module-whatis  {nop            nop            reportCmd      nop            nop            module-whatis }
 prereq         {prereq         nop            reportCmd      nop            nop            nop           }
 set-alias      {set-alias      set-alias-un   reportCmd      nop            nop            nop           }
+setenv         {setenv         setenv-un      setenv         setenv         setenv         setenv        }
 system         {system         system         reportCmd      nop            nop            nop           }
 unset-alias    {unset-alias    nop            reportCmd      nop            nop            nop           }
+unsetenv       {unsetenv       unsetenv-un    unsetenv       unsetenv       unsetenv       unsetenv      }
       }
    }
 
@@ -1714,26 +1716,24 @@ proc getModshareVarName {var} {
 }
 
 proc setenv {var val} {
-   set mode [currentMode]
-
-   reportDebug "($var,$val) mode = $mode"
+   reportDebug "var='$var', val='$val'"
 
    # clean any previously defined reference counter array
    unset-env [getModshareVarName $var] 1
 
    # Set the variable for later use during the modulefile evaluation
-   # for all mode except unload
-   if {$mode ne "unload"} {
-      set-env $var $val
+   set-env $var $val
+
+   if {[currentMode] eq "display"} {
+      reportCmd setenv $var $val
    }
 
-   if {$mode eq "unload"} {
-      unset-env $var
-   }\
-   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "setenv\t\t$var\t$val"
-   }
    return {}
+}
+
+# undo setenv in unload mode
+proc setenv-un {var val} {
+   return [unsetenv $var]
 }
 
 proc getenv {var {valifundef "_UNDEFINED_"}} {
@@ -1753,34 +1753,31 @@ proc getenv {var {valifundef "_UNDEFINED_"}} {
 }
 
 proc unsetenv {var {val {}}} {
-   set mode [currentMode]
-
-   reportDebug "($var,$val) mode = $mode"
+   reportDebug "var='$var', val='$val'"
 
    # clean any existing reference counter array
    unset-env [getModshareVarName $var] 1
 
    # Set the variable for later use during the modulefile evaluation
-   # for all mode except unload
-   if {$mode ne "unload"} {
-      unset-env $var
-   }
+   unset-env $var
 
-   if {$mode eq "unload"} {
-      if {$val ne ""} {
-         set-env $var $val
+   if {[currentMode] eq "display"} {
+      if {$val eq ""} {
+         reportCmd unsetenv $var
       } else {
-         unset-env $var
-      }
-   }\
-   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      if {$val ne ""} {
-         report "unsetenv\t$var\t$val"
-      } else {
-         report "unsetenv\t$var"
+         reportCmd unsetenv $var $val
       }
    }
    return {}
+}
+
+# undo unsetenv in unload mode
+proc unsetenv-un {var {val {}}} {
+   if {$val ne ""} {
+      return [setenv $var $val]
+   } else {
+      return [unsetenv $var]
+   }
 }
 
 proc chdir {dir} {
