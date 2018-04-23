@@ -353,6 +353,11 @@ proc reportCmd {cmd args} {
    return {}
 }
 
+# report defined command (called as an execution trace)
+proc reportCmdTrace {cmdstring args} {
+   eval reportCmd $cmdstring
+}
+
 proc reportVersion {} {
    report "Modules Release @MODULES_RELEASE@@MODULES_BUILD@\
       (@MODULES_BUILD_DATE@)"
@@ -544,10 +549,11 @@ proc unset-env {var {internal 0}} {
 }
 
 # Initialize list of interp alias commands to define for given evaluation mode
-proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
+proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN tracesVN} {
    global g_modfilePerModeAliases
    upvar #0 $aliasesVN aliases
    upvar #0 $aliasesPassArgVN aliasesPassArg
+   upvar #0 $tracesVN traces
 
    if {![info exists g_modfilePerModeAliases]} {
       set ::g_modfileBaseAliases [list\
@@ -556,7 +562,8 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN} {
          is-used is-avail is-avail module module module-info\
          module-info uname uname x-resource x-resource exit\
          exitModfileCmd module-version module-version module-alias\
-         module-alias module-virtual module-virtual reportInternalBug\
+         module-alias module-virtual module-virtual\
+         reportCmdTrace reportCmdTrace reportInternalBug\
          reportInternalBug reportWarning reportWarning reportError\
          reportError raiseErrorCount raiseErrorCount report report isWin\
          isWin puts putsModfileCmd readModuleContent readModuleContent]
@@ -598,6 +605,10 @@ unsetenv       {unsetenv       unsetenv-un    unsetenv       unsetenv       unse
       # some target procedures need command name as first arg
       if {$aliastarget eq "reportCmd" || $aliastarget eq "nimp"} {
          set aliasesPassArg($alias) $alias
+      # associate a trace command if per-mode alias command is not reportCmd
+      # in display mode
+      } elseif {$mode eq "display"} {
+         set traces($alias) "reportCmdTrace"
       }
    }
 }
@@ -633,8 +644,9 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    set dumpCommandsVN "g_modfile${mode}Commands"
    set aliasesVN "g_modfile${mode}Aliases"
    set aliasesPassArgVN "g_modfile${mode}AliasesPassArg"
+   set tracesVN "g_modfile${mode}Traces"
    if {![info exists ::$aliasesVN]} {
-      initModfileModeAliases $itrp $mode $aliasesVN $aliasesPassArgVN
+      initModfileModeAliases $itrp $mode $aliasesVN $aliasesPassArgVN $tracesVN
    }
 
    # create modulefile interpreter at first interpretation
@@ -658,7 +670,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    # reset interp state command before each interpretation
    resetInterpState $itrp $fresh g_modfileVars g_modfileArrayVars\
       g_modfileUntrackVars g_modfileProcs $aliasesVN $aliasesPassArgVN\
-      g_modfileRenameCmds $dumpCommandsVN
+      $tracesVN g_modfileRenameCmds $dumpCommandsVN
 
    # reset modulefile-specific variable before each interpretation
    interp eval $itrp set ::ModulesCurrentModulefile $modfile
@@ -779,6 +791,9 @@ proc execute-modulerc {modfile modname modspec} {
 
          # alias commands where interpreter ref should be passed as argument
          array set ::g_modrcAliasesPassItrp [list]
+
+         # trace commands that should be associated to aliases
+         array set ::g_modrcAliasesTraces [list]
       }
 
       # dedicate an interpreter per level of interpretation to have in case of
@@ -807,7 +822,8 @@ proc execute-modulerc {modfile modname modspec} {
       # reset interp state command before each interpretation
       resetInterpState $itrp $fresh g_modrcVars g_modrcArrayVars\
          g_modrcUntrackVars g_modrcProcs g_modrcAliases\
-         g_modrcAliasesPassItrp g_modrcRenameCmds g_modrcCommands
+         g_modrcAliasesPassItrp g_modrcAliasesTraces g_modrcRenameCmds\
+         g_modrcCommands
 
       interp eval $itrp set ::ModulesCurrentModulefile $modfile
       interp eval $itrp set ::g_debug $::g_debug
@@ -888,9 +904,11 @@ proc dumpInterpState {itrp dumpVarsVN dumpArrayVarsVN untrackVarsVN\
 }
 
 # Define commands to be known by slave interpreter.
-proc initInterpCommands {itrp fresh aliasesVN aliasesPassArgVN renameCmdsVN} {
+proc initInterpCommands {itrp fresh aliasesVN aliasesPassArgVN tracesVN\
+   renameCmdsVN} {
    upvar #0 $aliasesVN aliases
    upvar #0 $aliasesPassArgVN aliasesPassArg
+   upvar #0 $tracesVN traces
    upvar #0 $renameCmdsVN renameCmds
 
    # rename some commands on freshly created interp before aliases defined
@@ -910,13 +928,19 @@ proc initInterpCommands {itrp fresh aliasesVN aliasesPassArgVN renameCmdsVN} {
          interp alias $itrp $alias {} $aliases($alias)
       }
    }
+
+   foreach alias [array names traces] {
+      interp eval $itrp [list trace add execution $alias leave\
+         $traces($alias)]
+   }
 }
 
 # Restore initial setup of slave interpreter passed as argument based on
 # global structure previously filled with initial list of defined procedure
 # and values of global variable.
 proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
-   dumpProcsVN aliasesVN aliasesPassArgVN renameCmdsVN dumpCommandsVN} {
+   dumpProcsVN aliasesVN aliasesPassArgVN tracesVN renameCmdsVN\
+   dumpCommandsVN} {
    upvar #0 $dumpVarsVN dumpVars
    upvar #0 $dumpArrayVarsVN dumpArrayVars
    upvar #0 $untrackVarsVN untrackVars
@@ -935,7 +959,8 @@ proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
    }
 
    # rename some commands and set aliases on interpreter
-   initInterpCommands $itrp $fresh $aliasesVN $aliasesPassArgVN $renameCmdsVN
+   initInterpCommands $itrp $fresh $aliasesVN $aliasesPassArgVN $tracesVN\
+      $renameCmdsVN
 
    # dump interpreter command list here on first time as aliases should be
    # set prior to be found on this list for correct match
@@ -949,7 +974,8 @@ proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
       reportDebug "missing command(s), recreating interp $itrp"
       interp delete $itrp
       interp create $itrp
-      initInterpCommands $itrp 1 $aliasesVN $aliasesPassArgVN $renameCmdsVN
+      initInterpCommands $itrp 1 $aliasesVN $aliasesPassArgVN $tracesVN\
+         $renameCmdsVN
    }
 
    # check every global variables currently set and correct them to restore
@@ -1726,10 +1752,6 @@ proc setenv {var val} {
    # Set the variable for later use during the modulefile evaluation
    set-env $var $val
 
-   if {[currentMode] eq "display"} {
-      reportCmd setenv $var $val
-   }
-
    return {}
 }
 
@@ -1759,13 +1781,6 @@ proc unsetenv {var {val {}}} {
    # Set the variable for later use during the modulefile evaluation
    unset-env $var
 
-   if {[currentMode] eq "display"} {
-      if {$val eq ""} {
-         reportCmd unsetenv $var
-      } else {
-         reportCmd unsetenv $var $val
-      }
-   }
    return {}
 }
 
@@ -2194,10 +2209,6 @@ proc prepend-path {args} {
    # Set the variable for later use during the modulefile evaluation
    eval add-path "prepend" $args
 
-   if {[currentMode] eq "display"} {
-      reportCmd prepend-path $args
-   }
-
    return {}
 }
 
@@ -2207,10 +2218,6 @@ proc append-path {args} {
    # Set the variable for later use during the modulefile evaluation
    eval add-path "append" $args
 
-   if {[currentMode] eq "display"} {
-      reportCmd append-path $args
-   }
-
    return {}
 }
 
@@ -2219,10 +2226,6 @@ proc remove-path {args} {
 
    # Set the variable for later use during the modulefile evaluation
    eval unload-path $args
-
-   if {[currentMode] eq "display"} {
-      reportCmd remove-path $args
-   }
 
    return {}
 }
