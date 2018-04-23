@@ -568,12 +568,9 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN tracesVN} {
    upvar #0 $tracesVN traces
 
    if {![info exists g_modfilePerModeAliases]} {
-      set ::g_modfileBaseAliases [list\
-         getenv getenv\
-         is-loaded is-loaded is-saved is-saved is-used\
-         is-used is-avail is-avail module module module-info\
-         module-info uname uname x-resource x-resource exit\
-         exitModfileCmd\
+      set ::g_modfileBaseAliases [list getenv getenv is-loaded is-loaded\
+         is-saved is-saved is-used is-used is-avail is-avail uname uname\
+         module module module-info module-info exit exitModfileCmd\
          reportCmdTrace reportCmdTrace reportInternalBug\
          reportInternalBug reportWarning reportWarning reportError\
          reportError raiseErrorCount raiseErrorCount report report isWin\
@@ -602,6 +599,7 @@ setenv         {setenv         setenv-un      setenv         setenv         sete
 system         {system         system         reportCmd      nop            nop            nop           }
 unset-alias    {unset-alias    nop            reportCmd      nop            nop            nop           }
 unsetenv       {unsetenv       unsetenv-un    unsetenv       unsetenv       unsetenv       unsetenv      }
+x-resource     {x-resource     x-resource     reportCmd      nop            nop            nop           }
       }
    }
 
@@ -2321,8 +2319,6 @@ proc prereq {args} {
 }
 
 proc x-resource {resource {value {}}} {
-   set mode [currentMode]
-
    reportDebug "($resource, $value)"
 
    # sometimes x-resource value may be provided within resource name
@@ -2349,21 +2345,16 @@ proc x-resource {resource {value {}}} {
    }
 
    # check current environment can handle X11 resource edition elsewhere exit
-   if {($mode eq "load" || $mode eq "unload") &&\
-      [catch {runCommand xrdb -query} errMsg]} {
+   if {[catch {runCommand xrdb -query} errMsg]} {
       error "WARNING: X11 resources cannot be edited, issue spotted\n$errMsg"
    }
 
    # if a resource does hold an empty value in g_newXResources or
    # g_delXResources arrays, it means this is a resource file to parse
-   if {$mode eq "load"} {
+   if {[currentMode] eq "load"} {
       set ::g_newXResources($resource) $value
-   }\
-   elseif {$mode eq "unload"} {
+   } else {
       set ::g_delXResources($resource) $value
-   }\
-   elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-      report "x-resource\t$resource\t$value"
    }
 
    return {}
