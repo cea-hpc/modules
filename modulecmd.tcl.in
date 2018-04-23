@@ -573,8 +573,8 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN tracesVN} {
          is-loaded is-loaded is-saved is-saved is-used\
          is-used is-avail is-avail module module module-info\
          module-info uname uname x-resource x-resource exit\
-         exitModfileCmd module-alias\
-         module-alias module-virtual module-virtual\
+         exitModfileCmd\
+         module-virtual module-virtual\
          reportCmdTrace reportCmdTrace reportInternalBug\
          reportInternalBug reportWarning reportWarning reportError\
          reportError raiseErrorCount raiseErrorCount report report isWin\
@@ -587,6 +587,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN tracesVN} {
 append-path    {append-path    remove-path    append-path    append-path    append-path    append-path   }
 chdir          {chdir          nop            reportCmd      nop            nop            nop           }
 conflict       {conflict       nop            reportCmd      nop            nop            nop           }
+module-alias   {module-alias   module-alias   module-alias   module-alias   module-alias   module-alias  }
 module-log     {nimp           nimp           reportCmd      nop            nop            nop           }
 module-trace   {nimp           nimp           reportCmd      nop            nop            nop           }
 module-user    {nimp           nimp           reportCmd      nop            nop            nop           }
@@ -1439,10 +1440,6 @@ proc module-alias {args} {
    if {[setModuleResolution $alias $mod]} {
       set ::g_moduleAlias($alias) $mod
       set ::g_sourceAlias($alias) $::ModulesCurrentModulefile
-   }
-
-   if {[currentMode] eq "display" && !$::g_inhibit_dispreport} {
-      report "module-alias\t$args"
    }
 
    return {}
