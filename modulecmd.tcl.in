@@ -347,7 +347,19 @@ proc reportCmd {cmd args} {
    } else {
       set extratab ""
    }
-   report "$cmd$extratab\t[join $args { }]"
+   # only brace empty arguments or those containing whitespace
+   set cmdargs ""
+   foreach cmdarg $args {
+      if {$cmdargs != ""} {
+         append cmdargs " "
+      }
+      if {$cmdarg eq "" || [string first " " $cmdarg] > -1} {
+         append cmdargs "{$cmdarg}"
+      } else {
+         append cmdargs $cmdarg
+      }
+   }
+   report "$cmd$extratab\t$cmdargs"
 
    # empty string returns if command result is another command input
    return {}
