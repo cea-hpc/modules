@@ -573,7 +573,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN tracesVN} {
          is-loaded is-loaded is-saved is-saved is-used\
          is-used is-avail is-avail module module module-info\
          module-info uname uname x-resource x-resource exit\
-         exitModfileCmd module-version module-version module-alias\
+         exitModfileCmd module-alias\
          module-alias module-virtual module-virtual\
          reportCmdTrace reportCmdTrace reportInternalBug\
          reportInternalBug reportWarning reportWarning reportError\
@@ -591,6 +591,7 @@ module-log     {nimp           nimp           reportCmd      nop            nop 
 module-trace   {nimp           nimp           reportCmd      nop            nop            nop           }
 module-user    {nimp           nimp           reportCmd      nop            nop            nop           }
 module-verbosity {nimp         nimp           reportCmd      nop            nop            nop           }
+module-version {module-version module-version module-version module-version module-version module-version}
 module-whatis  {nop            nop            reportCmd      nop            nop            module-whatis }
 prepend-path   {prepend-path   remove-path    prepend-path   prepend-path   prepend-path   prepend-path  }
 prereq         {prereq         nop            reportCmd      nop            nop            nop           }
@@ -1410,7 +1411,7 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}} {
 # directory will apply to modules of the same name found in other
 # directories.
 proc module-version {args} {
-   reportDebug "executing module-version $args"
+   reportDebug "$args"
    lassign [getModuleNameVersion [lindex $args 0] 1] mod modname modversion
 
    # go for registration only if valid modulename
@@ -1426,9 +1427,6 @@ proc module-version {args} {
       }
    }
 
-   if {[currentMode] eq "display" && !$::g_inhibit_dispreport} {
-      report "module-version\t$args"
-   }
    return {}
 }
 
