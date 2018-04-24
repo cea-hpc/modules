@@ -570,11 +570,11 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN tracesVN} {
    if {![info exists g_modfilePerModeAliases]} {
       set ::g_modfileBaseAliases [list getenv getenv is-loaded is-loaded\
          is-saved is-saved is-used is-used is-avail is-avail uname uname\
-         module module module-info module-info exit exitModfileCmd\
-         reportCmdTrace reportCmdTrace reportInternalBug\
-         reportInternalBug reportWarning reportWarning reportError\
-         reportError raiseErrorCount raiseErrorCount report report isWin\
-         isWin puts putsModfileCmd readModuleContent readModuleContent]
+         module-info module-info exit exitModfileCmd reportCmdTrace\
+         reportCmdTrace reportInternalBug reportInternalBug reportWarning\
+         reportWarning reportError reportError raiseErrorCount\
+         raiseErrorCount report report isWin isWin puts putsModfileCmd\
+         readModuleContent readModuleContent]
 
       # list of alias commands whose target procedure is adapted according to
       # the evaluation mode
@@ -583,6 +583,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN tracesVN} {
 append-path    {append-path    remove-path    append-path    append-path    append-path    append-path   }
 chdir          {chdir          nop            reportCmd      nop            nop            nop           }
 conflict       {conflict       nop            reportCmd      nop            nop            nop           }
+module         {module         module         reportCmd      nop            nop            nop           }
 module-alias   {module-alias   module-alias   module-alias   module-alias   module-alias   module-alias  }
 module-log     {nimp           nimp           reportCmd      nop            nop            nop           }
 module-trace   {nimp           nimp           reportCmd      nop            nop            nop           }
@@ -1563,13 +1564,9 @@ proc module {command args} {
                set ret 0
                if {$topcall || $mode eq "load"} {
                   set ret [eval cmdModuleLoad $args]
-               }\
-               elseif {$mode eq "unload"} {
+               } else {
                   # on unload mode, unload mods in reverse order
                   set ret [eval cmdModuleUnload "match" [lreverse $args]]
-               }\
-               elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-                  report "module load\t$args"
                }
                # sub-module interpretation failed, raise error
                if {$ret && !$topcall} {
@@ -1578,16 +1575,7 @@ proc module {command args} {
             }
          }
          {unload} {
-            set ret 0
-            if {$topcall || $mode eq "load"} {
-               set ret [eval cmdModuleUnload "match" $args]
-            }\
-            elseif {$mode eq "unload"} {
-               set ret [eval cmdModuleUnload "match" $args]
-            }\
-            elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-               report "module unload\t$args"
-            }
+            set ret [eval cmdModuleUnload "match" $args]
             # sub-module interpretation failed, raise error
             if {$ret && !$topcall} {
                set errormsg "SUB_FAILED"
@@ -1599,27 +1587,19 @@ proc module {command args} {
          {use} {
             if {$topcall || $mode eq "load"} {
                eval cmdModuleUse $args
-            } elseif {$mode eq "unload"} {
+            } else {
                eval cmdModuleUnuse $args
-            } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-               report "module use\t$args"
             }
          }
          {unuse} {
-            if {$topcall || $mode eq "load" || $mode eq "unload"} {
-               eval cmdModuleUnuse $args
-            } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-               report "module unuse\t$args"
-            }
+            eval cmdModuleUnuse $args
          }
          {source} {
             if {$topcall || $mode eq "load"} {
                eval cmdModuleSource $args
-            } elseif {$mode eq "unload"} {
+            } else {
                # on unload mode, unsource script in reverse order
                eval cmdModuleUnsource [lreverse $args]
-            } elseif {$mode eq "display" && !$::g_inhibit_dispreport} {
-               report "module source\t$args"
             }
          }
          {switch} {

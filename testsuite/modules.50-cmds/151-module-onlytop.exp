@@ -26,8 +26,21 @@ foreach subcmd [list append-path prepend-path remove-path autoinit help is-loade
     set modulefilere "$modpathre/$module"
     set moderr "$moderr_msgs: module: Command '$subcmd' not supported\n  In '$modulefilere'\n$err_contact"
 
+    switch -- $subcmd {
+        {append-path} - {prepend-path} - {remove-path} {
+            set subcmdargs " FOO bar"
+        }
+        {is-loaded} - {is-saved} - {is-used} - {is-avail} - {info-loaded} - {path} - {paths} {
+            set subcmdargs " bar"
+        }
+        default {
+            set subcmdargs ""
+        }
+    }
+
     testouterr_cmd_re "sh" "load $module" "ERR" "$moderr"
-    testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$moderr\n$modlin"
+    # no subcommand check on display, so no error
+    testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nmodule\t\t$subcmd$subcmdargs\nmodule\t\thelp\n$modlin"
 }
 
 set module "modbad/foo"
@@ -35,14 +48,14 @@ set modulefilere "$modpathre/$module"
 set moderr "$moderr_msgs: module: Invalid command 'foo'\n  In '$modulefilere'\n$err_contact"
 
 testouterr_cmd_re "sh" "load $module" "ERR" "$moderr"
-testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$moderr\n$modlin"
+testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nmodule\t\tfoo\nmodule\t\thelp\n$modlin"
 
 set module "modbad/empty"
 set modulefilere "$modpathre/$module"
 set moderr "$moderr_msgs: module: Command 'help' not supported\n  In '$modulefilere'\n$err_contact"
 
 testouterr_cmd_re "sh" "load $module" "ERR" "$moderr"
-testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$moderr\n$modlin"
+testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nmodule\t\t{}\nmodule\t\thelp\n$modlin"
 
 
 #
@@ -50,6 +63,7 @@ testouterr_cmd_re "sh" "display $module" "ERR" "$modlin\n$modulefilere:\n\n$mode
 #
 
 unset subcmd
+unset subcmdargs
 
 unset moderr
 unset modulefilere
