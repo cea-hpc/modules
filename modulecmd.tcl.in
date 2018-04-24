@@ -29,7 +29,6 @@ set g_return_false 0 ;# False value is rendered if == 1
 set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
-set g_inhibit_dispreport 0 ;# Display-mode reporting disabled if == 1
 set g_force 0 ;# Path element reference counting if == 0
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 set flag_default_dir 1 ;# Report default directories
@@ -643,8 +642,8 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    if {![info exists ::g_modfileUntrackVars]} {
       # list variable that should not be tracked for saving
       array set ::g_modfileUntrackVars [list g_debug 1 g_inhibit_interp 1\
-         g_inhibit_errreport 1 g_inhibit_dispreport 1\
-         ModulesCurrentModulefile 1 must_have_cookie 1 modcontent 1 env 1]
+         g_inhibit_errreport 1 ModulesCurrentModulefile 1 must_have_cookie 1\
+         modcontent 1 env 1]
 
       # commands that should be renamed before aliases setup
       array set ::g_modfileRenameCmds [list puts _puts]
@@ -690,7 +689,6 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    interp eval $itrp set ::g_debug $::g_debug
    interp eval $itrp set ::g_inhibit_interp $::g_inhibit_interp
    interp eval $itrp set ::g_inhibit_errreport $::g_inhibit_errreport
-   interp eval $itrp set ::g_inhibit_dispreport $::g_inhibit_dispreport
    interp eval $itrp set must_have_cookie $must_have_cookie
 
    set errorVal [interp eval $itrp {
@@ -779,8 +777,6 @@ proc execute-modulerc {modfile modname modspec} {
    pushModuleName $modname
    pushSpecifiedName $modspec
    set ::ModulesVersion {}
-   # does not report commands from rc file on display mode
-   set ::g_inhibit_dispreport 1
 
    set modname [file dirname [currentModuleName]]
 
@@ -788,8 +784,7 @@ proc execute-modulerc {modfile modname modspec} {
       if {![info exists ::g_modrcUntrackVars]} {
          # list variable that should not be tracked for saving
          array set ::g_modrcUntrackVars [list g_debug 1 g_inhibit_errreport 1\
-            g_inhibit_dispreport 1 ModulesCurrentModulefile 1\
-            ModulesVersion 1 modcontent 1 env 1]
+            ModulesCurrentModulefile 1 ModulesVersion 1 modcontent 1 env 1]
 
          # commands that should be renamed before aliases setup
          array set ::g_modrcRenameCmds [list]
@@ -841,7 +836,6 @@ proc execute-modulerc {modfile modname modspec} {
       interp eval $itrp set ::ModulesCurrentModulefile $modfile
       interp eval $itrp set ::g_debug $::g_debug
       interp eval $itrp set ::g_inhibit_errreport $::g_inhibit_errreport
-      interp eval $itrp set ::g_inhibit_dispreport $::g_inhibit_dispreport
       interp eval $itrp {set ::ModulesVersion {}}
 
       set errorVal [interp eval $itrp {
@@ -873,9 +867,6 @@ proc execute-modulerc {modfile modname modspec} {
       # Keep track of rc files we already sourced so we don't run them again
       set ::g_rcfilesSourced($modfile) $::ModulesVersion
    }
-
-   # re-enable command report on display mode
-   set ::g_inhibit_dispreport 0
 
    popSpecifiedName
    popModuleName
