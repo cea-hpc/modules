@@ -2337,7 +2337,7 @@ proc conflict {args} {
 
    foreach mod $args {
       if {$g_orig_load_control == 0} {
-         # build conflict list to register in _LMCONFLICT_ after
+         # build conflict list to register in MODULES_LMCONFLICT after
          # successful module load
          if { ![info exists ModulesCurrentConflict($currentModule)]\
             || [lsearch -exact $ModulesCurrentConflict($currentModule) \
@@ -3894,8 +3894,8 @@ proc cacheCurrentModules {} {
 
    if {$g_orig_load_control == 0} {
       # cache declared conflict of loaded modules
-      if {[info exists env(_LMCONFLICT_)]} {
-         foreach modconflict [split $env(_LMCONFLICT_) [getPathSeparator]] {
+      if {[info exists env(MODULES_LMCONFLICT)]} {
+         foreach modconflict [split $env(MODULES_LMCONFLICT) [getPathSeparator]] {
             set modlist [split $modconflict $g_def_separator_lvl2]
             # test that conflict module list is correct
             if {[llength $modlist] >= 2} {
@@ -5873,7 +5873,7 @@ proc cmdModuleLoad {args} {
                      # declare the conflict of this module
                      if {[info exists \
                         ModulesCurrentConflict($currentModule)]} {
-                        add-path "append" _LMCONFLICT_ \
+                        add-path "append" MODULES_LMCONFLICT \
                            "$currentModule$g_def_separator_lvl2[join \
                            $ModulesCurrentConflict($currentModule) \
                            $g_def_separator_lvl2]"
@@ -5929,7 +5929,7 @@ proc cmdModuleUnload {match args} {
                if {$g_orig_load_control == 0} {
                   # unset conflict declared for this module
                   if {[info exists g_lmConflict($currentModule)]} {
-                     unload-path _LMCONFLICT_ \
+                     unload-path MODULES_LMCONFLICT \
                         "$currentModule$g_def_separator_lvl2[join \
                         $g_lmConflict($currentModule) \
                         $g_def_separator_lvl2]"
