@@ -51,6 +51,7 @@ set ans [list]
 lappend ans [list set TEST $module_2]
 lappend ans [list setpath LOADEDMODULES "$module_1:$module_2"]
 lappend ans [list setpath _LMFILES_ "$modulefile_1:$modulefile_2"]
+lappend ans [list setpath MODULES_LMCONFLICT "$module_2&plain/dir2"]
 
 # switch, the one argument form with an already loaded module that does not
 # share same root, but has a middle element equal to the name to switch
@@ -65,10 +66,13 @@ set locate_msg "$err_path'pl'"
 testouterr_cmd "sh" "swap pl" "ERR" "$locate_msg"
 
 
+# if $module_3 were really loaded this should not be possible due to its
+# defined conflict but this test does not aim to that
 set ans [list]
 lappend ans [list set TEST $module_4]
 lappend ans [list setpath LOADEDMODULES "$module_3:$module_4"]
 lappend ans [list setpath _LMFILES_ "$modulefile_3:$modulefile_4"]
+lappend ans [list setpath MODULES_LMCONFLICT "$module_4&plain/dir2"]
 
 # two modules already loaded sharing same root than module to swap, closest
 # should be returned
@@ -82,6 +86,7 @@ set ans [list]
 lappend ans [list set TEST $module_4]
 lappend ans [list setpath LOADEDMODULES "$module_3:$module_4"]
 lappend ans [list setpath _LMFILES_ "$modulefile_3:$modulefile_4"]
+lappend ans [list setpath MODULES_LMCONFLICT "$module_4&plain/dir2"]
 
 # one module already loaded sharing same root than module to swap, a module to
 # unload is specified on command line should unload it and not closest, so here
@@ -96,6 +101,7 @@ set ans [list]
 lappend ans [list set TEST $module_4]
 lappend ans [list setpath LOADEDMODULES "$module_3:$module_4"]
 lappend ans [list setpath _LMFILES_ "$modulefile_3:$modulefile_4"]
+lappend ans [list setpath MODULES_LMCONFLICT "$module_4&plain/dir2"]
 
 # two modules already loaded sharing same root than module to swap and equality
 # in term of distance to this swap name, lastly loaded should be swapped-out
