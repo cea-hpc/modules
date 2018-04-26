@@ -2378,7 +2378,7 @@ proc prereq {args} {
    reportDebug "$args"
 
    if {$g_orig_load_control == 0} {
-      # build prereq list to register in _LMPREREQ_
+      # build prereq list to register in MODULES_LMPREREQ
       # after successful module load. sets of optional
       # prereq are registered as a list
       if { ![info exists ModulesCurrentPrereq($currentModule)]\
@@ -3922,8 +3922,8 @@ proc cacheCurrentModules {} {
       }
 
       # cache declared prereq of loaded modules
-      if {[info exists env(_LMPREREQ_)]} {
-         foreach modprereq [split $env(_LMPREREQ_) [getPathSeparator]] {
+      if {[info exists env(MODULES_LMPREREQ)]} {
+         foreach modprereq [split $env(MODULES_LMPREREQ) [getPathSeparator]] {
             set modlist [split $modprereq $g_def_separator_lvl2]
             # test that prereq module list is correct
             if {[llength $modlist] >= 2} {
@@ -6082,7 +6082,7 @@ proc cmdModuleLoad {args} {
                            append lmprereq $g_def_separator_lvl2[join \
                               $prereq $g_def_separator_lvl3]
                         }
-                        add-path "append" _LMPREREQ_ $lmprereq
+                        add-path "append" MODULES_LMPREREQ $lmprereq
                         set g_lmPrereq($currentModule) \
                            $ModulesCurrentPrereq($currentModule)
                      }
@@ -6175,7 +6175,7 @@ proc cmdModuleUnload {match args} {
                            append lmprereq $g_def_separator_lvl2[join \
                               $prereq $g_def_separator_lvl3]
                         }
-                        unload-path _LMPREREQ_ $lmprereq
+                        unload-path MODULES_LMPREREQ $lmprereq
                         unset g_lmPrereq($currentModule)
                      }
 
