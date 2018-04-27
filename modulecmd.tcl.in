@@ -3860,38 +3860,47 @@ proc getAbsolutePath {path} {
 
 # split string while ignore any separator character that is espaced
 proc psplit {str sep} {
-   set previdx -1
-   set idx [string first $sep $str]
-   while {$idx != -1} {
-      # look ahead if found separator is escaped
-      if {[string index $str [expr {$idx-1}]] ne "\\"} {
-         # unescape any separator character when adding to list
-         lappend res [charUnescaped [string range $str [expr {$previdx+1}]\
-            [expr {$idx-1}]] $sep]
-         set previdx $idx
+   # use standard split if no sep character found
+   if {[string first "\\$sep" $str] == -1} {
+      set res [split $str $sep]
+   } else {
+      set previdx -1
+      set idx [string first $sep $str]
+      while {$idx != -1} {
+         # look ahead if found separator is escaped
+         if {[string index $str [expr {$idx-1}]] ne "\\"} {
+            # unescape any separator character when adding to list
+            lappend res [charUnescaped [string range $str [expr {$previdx+1}]\
+               [expr {$idx-1}]] $sep]
+            set previdx $idx
+         }
+         set idx [string first $sep $str [expr {$idx+1}]]
       }
-      set idx [string first $sep $str [expr {$idx+1}]]
-   }
 
-   lappend res [charUnescaped [string range $str [expr {$previdx+1}] end]\
-      $sep]
+      lappend res [charUnescaped [string range $str [expr {$previdx+1}] end]\
+         $sep]
+   }
 
    return $res
 }
 
 # join list while escape any character equal to separator
 proc pjoin {lst sep} {
-   set res ""
-
-   foreach elt $lst {
-      # preserve empty entries
-      if {[info exists not_first]} {
-         append res $sep
-      } else {
-         set not_first 1
+   # use standard join if no sep character found
+   if {[string first $sep $lst] == -1} {
+      set res [join $lst $sep]
+   } else {
+      set res ""
+      foreach elt $lst {
+         # preserve empty entries
+         if {[info exists not_first]} {
+            append res $sep
+         } else {
+            set not_first 1
+         }
+         # escape any separator character when adding to string
+         append res [charEscaped $elt $sep]
       }
-      # escape any separator character when adding to string
-      append res [charEscaped $elt $sep]
    }
 
    return $res
