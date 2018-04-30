@@ -256,16 +256,17 @@ proc reportDebug {message {nonewline ""}} {
 
 # regular procedure to use once error report is initialized
 proc __reportDebug {message {nonewline ""} {showcaller 1}} {
-   if {$::g_debug} {
-      # display caller name as prefix
-      if {$showcaller && [info level] > 1} {
-         set prefix "[lindex [info level -1] 0]: "
-      } else {
-         set prefix ""
-      }
-      report "DEBUG $prefix$message" "$nonewline"
+   # display caller name as prefix
+   if {$showcaller && [info level] > 1} {
+      set prefix "[lindex [info level -1] 0]: "
+   } else {
+      set prefix ""
    }
+   report "DEBUG $prefix$message" "$nonewline"
 }
+
+# alternative procedure used when debug is disabled
+proc __reportDebugNop {args} {}
 
 proc reportWarning {message {nonewline ""}} {
    if {!$::g_inhibit_errreport} {
@@ -397,7 +398,12 @@ proc initErrorReport {} {
    # replace report procedures used to bufferize messages until error report
    # being initialized by regular report procedures
    rename ::reportDebug {}
-   rename ::__reportDebug ::reportDebug
+   if {$::g_debug} {
+      rename ::__reportDebug ::reportDebug
+   } else {
+      # set a disabled version if debug is disabled
+      rename ::__reportDebugNop ::reportDebug
+   }
    rename ::reportErrorAndExit {}
    rename ::__reportErrorAndExit ::reportErrorAndExit
    rename ::report {}
