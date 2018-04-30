@@ -595,10 +595,10 @@ prepend-path   {prepend-path   remove-path    prepend-path   prepend-path   prep
 prereq         {prereq         nop            reportCmd      nop            nop            nop           }
 remove-path    {remove-path    remove-path-un remove-path    remove-path    remove-path    edit-path-wh  }
 set-alias      {set-alias      set-alias-un   reportCmd      nop            nop            nop           }
-setenv         {setenv         setenv-un      setenv         setenv         setenv         setenv        }
+setenv         {setenv         setenv-un      setenv         setenv         setenv         setenv-wh     }
 system         {system         system         reportCmd      nop            nop            nop           }
 unset-alias    {unset-alias    nop            reportCmd      nop            nop            nop           }
-unsetenv       {unsetenv       unsetenv-un    unsetenv       unsetenv       unsetenv       unsetenv      }
+unsetenv       {unsetenv       unsetenv-un    unsetenv       unsetenv       unsetenv       setenv-wh     }
 x-resource     {x-resource     x-resource     reportCmd      nop            nop            nop           }
       }
    }
@@ -1730,6 +1730,17 @@ proc setenv {var val} {
 # undo setenv in unload mode
 proc setenv-un {var val} {
    return [unsetenv $var]
+}
+
+# optimized setenv/unsetenv for whatis mode: init env variable with an empty
+# value if undefined. do not care about value, just avoid variable to be
+# undefined for later use during the modulefile evaluation
+proc setenv-wh {var args} {
+   if {![info exists ::env($var)]} {
+      reportDebug "var='$var', val=''"
+      set ::env($var) ""
+   }
+   return {}
 }
 
 proc getenv {var {valifundef "_UNDEFINED_"}} {
