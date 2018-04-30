@@ -579,7 +579,7 @@ proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN tracesVN} {
       # the evaluation mode
       set ::g_modfileEvalModes {load unload display help test whatis}
       array set g_modfilePerModeAliases {
-append-path    {append-path    remove-path    append-path    append-path    append-path    append-path   }
+append-path    {append-path    remove-path    append-path    append-path    append-path    edit-path-wh  }
 chdir          {chdir          nop            reportCmd      nop            nop            nop           }
 conflict       {conflict       nop            reportCmd      nop            nop            nop           }
 module         {module         module         reportCmd      nop            nop            nop           }
@@ -591,9 +591,9 @@ module-verbosity {nimp         nimp           reportCmd      nop            nop 
 module-version {module-version module-version module-version module-version module-version module-version}
 module-virtual {module-virtual module-virtual module-virtual module-virtual module-virtual module-virtual}
 module-whatis  {nop            nop            reportCmd      nop            nop            module-whatis }
-prepend-path   {prepend-path   remove-path    prepend-path   prepend-path   prepend-path   prepend-path  }
+prepend-path   {prepend-path   remove-path    prepend-path   prepend-path   prepend-path   edit-path-wh  }
 prereq         {prereq         nop            reportCmd      nop            nop            nop           }
-remove-path    {remove-path    remove-path-un remove-path    remove-path    remove-path    remove-path   }
+remove-path    {remove-path    remove-path-un remove-path    remove-path    remove-path    edit-path-wh  }
 set-alias      {set-alias      set-alias-un   reportCmd      nop            nop            nop           }
 setenv         {setenv         setenv-un      setenv         setenv         setenv         setenv        }
 system         {system         system         reportCmd      nop            nop            nop           }
@@ -2211,6 +2211,23 @@ proc remove-path-un {args} {
    if {![info exists ::env($var)]} {
       clear-to-unset-env $var
    }
+}
+
+# optimized *-path for whatis mode: init env variable with an empty value if
+# undefined. do not care about value, just avoid variable to be undefined for
+# later use during the modulefile evaluation
+proc edit-path-wh {args} {
+   reportDebug "$args"
+
+   # get variable name
+   lassign [eval parsePathCommandArgs "edit-path-wh" $args] separator\
+      allow_dup idx_val var path_list
+
+   if {![info exists ::env($var)]} {
+      set ::env($var) ""
+   }
+
+   return {}
 }
 
 proc set-alias {alias what} {
