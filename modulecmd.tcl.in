@@ -783,102 +783,95 @@ proc execute-modulerc {modfile modname modspec} {
    pushModuleName $modname
    pushSpecifiedName $modspec
    set ::ModulesVersion {}
-
    set modname [file dirname [currentModuleName]]
 
-   if {![info exists ::g_rcfilesSourced($modfile)]} {
-      if {![info exists ::g_modrcUntrackVars]} {
-         # list variable that should not be tracked for saving
-         array set ::g_modrcUntrackVars [list g_debug 1 g_inhibit_errreport 1\
-            ModulesCurrentModulefile 1 ModulesVersion 1 modcontent 1 env 1]
+   if {![info exists ::g_modrcUntrackVars]} {
+      # list variable that should not be tracked for saving
+      array set ::g_modrcUntrackVars [list g_debug 1 g_inhibit_errreport 1\
+         ModulesCurrentModulefile 1 ModulesVersion 1 modcontent 1 env 1]
 
-         # commands that should be renamed before aliases setup
-         array set ::g_modrcRenameCmds [list]
+      # commands that should be renamed before aliases setup
+      array set ::g_modrcRenameCmds [list]
 
-         # list interpreter alias commands to define
-         array set ::g_modrcAliases [list uname uname system system chdir\
-            nop module-version module-version module-alias module-alias\
-            module-virtual module-virtual module nop module-info module-info\
-            module-trace nop module-verbosity nop module-user nop module-log\
-            nop reportInternalBug reportInternalBug setModulesVersion\
-            setModulesVersion readModuleContent readModuleContent]
+      # list interpreter alias commands to define
+      array set ::g_modrcAliases [list uname uname system system chdir\
+         nop module-version module-version module-alias module-alias\
+         module-virtual module-virtual module nop module-info module-info\
+         module-trace nop module-verbosity nop module-user nop module-log\
+         nop reportInternalBug reportInternalBug setModulesVersion\
+         setModulesVersion readModuleContent readModuleContent]
 
-         # alias commands where interpreter ref should be passed as argument
-         array set ::g_modrcAliasesPassItrp [list]
+      # alias commands where interpreter ref should be passed as argument
+      array set ::g_modrcAliasesPassItrp [list]
 
-         # trace commands that should be associated to aliases
-         array set ::g_modrcAliasesTraces [list]
+      # trace commands that should be associated to aliases
+      array set ::g_modrcAliasesTraces [list]
+   }
+
+   # dedicate an interpreter per level of interpretation to have in case of
+   # cascaded interpretations a specific interpreter per level
+   set itrp "__modrc_[info level]"
+
+   reportDebug "sourcing $modfile"
+   # create modulerc interpreter at first interpretation
+   if {![interp exists $itrp]} {
+      reportDebug "creating interp $itrp"
+      interp create $itrp
+
+      # dump initial interpreter state to restore it before each modulerc
+      # interpreation. use same dump state for all levels
+      if {![info exists ::g_modrcVars]} {
+         dumpInterpState $itrp g_modrcVars g_modrcArrayVars\
+            g_modrcUntrackVars g_modrcProcs
       }
 
-      # dedicate an interpreter per level of interpretation to have in case of
-      # cascaded interpretations a specific interpreter per level
-      set itrp "__modrc_[info level]"
+      # interp has just been created
+      set fresh 1
+   } else {
+      set fresh 0
+   }
 
-      reportDebug "sourcing $modfile"
-      # create modulerc interpreter at first interpretation
-      if {![interp exists $itrp]} {
-         reportDebug "creating interp $itrp"
-         interp create $itrp
+   # reset interp state command before each interpretation
+   resetInterpState $itrp $fresh g_modrcVars g_modrcArrayVars\
+      g_modrcUntrackVars g_modrcProcs g_modrcAliases g_modrcAliasesPassItrp\
+      g_modrcAliasesTraces g_modrcRenameCmds g_modrcCommands
 
-         # dump initial interpreter state to restore it before each modulerc
-         # interpreation. use same dump state for all levels
-         if {![info exists ::g_modrcVars]} {
-            dumpInterpState $itrp g_modrcVars g_modrcArrayVars\
-               g_modrcUntrackVars g_modrcProcs
-         }
+   interp eval $itrp set ::ModulesCurrentModulefile $modfile
+   interp eval $itrp set ::g_debug $::g_debug
+   interp eval $itrp set ::g_inhibit_errreport $::g_inhibit_errreport
+   interp eval $itrp {set ::ModulesVersion {}}
 
-         # interp has just been created
-         set fresh 1
+   set errorVal [interp eval $itrp {
+      set modcontent [readModuleContent $::ModulesCurrentModulefile]
+      if {$modcontent eq ""} {
+         # simply skip rc file, no exit on error here
+         return 1
+      }
+      info script $::ModulesCurrentModulefile
+      if [catch {eval $modcontent} errorMsg] {
+         reportInternalBug $errorMsg $::ModulesCurrentModulefile
+         return 1
       } else {
-         set fresh 0
-      }
-
-      # reset interp state command before each interpretation
-      resetInterpState $itrp $fresh g_modrcVars g_modrcArrayVars\
-         g_modrcUntrackVars g_modrcProcs g_modrcAliases\
-         g_modrcAliasesPassItrp g_modrcAliasesTraces g_modrcRenameCmds\
-         g_modrcCommands
-
-      interp eval $itrp set ::ModulesCurrentModulefile $modfile
-      interp eval $itrp set ::g_debug $::g_debug
-      interp eval $itrp set ::g_inhibit_errreport $::g_inhibit_errreport
-      interp eval $itrp {set ::ModulesVersion {}}
-
-      set errorVal [interp eval $itrp {
-         set modcontent [readModuleContent $::ModulesCurrentModulefile]
-         if {$modcontent eq ""} {
-            # simply skip rc file, no exit on error here
-            return 1
+         # pass ModulesVersion value to master interp
+         if {[info exists ::ModulesVersion]} {
+            setModulesVersion $::ModulesVersion
          }
-         info script $::ModulesCurrentModulefile
-         if [catch {eval $modcontent} errorMsg] {
-            reportInternalBug $errorMsg $::ModulesCurrentModulefile
-            return 1
-         } else {
-            # pass ModulesVersion value to master interp
-            if {[info exists ::ModulesVersion]} {
-               setModulesVersion $::ModulesVersion
-            }
-            return 0
-         }
-      }]
-
-      # default version set via ModulesVersion variable in .version file
-      # override previously defined default version for modname
-      if {[file tail $modfile] eq ".version" && $::ModulesVersion ne ""} {
-         setModuleResolution "$modname/default" $modname/$::ModulesVersion\
-            "default"
+         return 0
       }
+   }]
 
-      # Keep track of rc files we already sourced so we don't run them again
-      set ::g_rcfilesSourced($modfile) $::ModulesVersion
+   # default version set via ModulesVersion variable in .version file
+   # override previously defined default version for modname
+   if {[file tail $modfile] eq ".version" && $::ModulesVersion ne ""} {
+      setModuleResolution "$modname/default" $modname/$::ModulesVersion\
+         "default"
    }
 
    popSpecifiedName
    popModuleName
    popModuleFile
 
-   return $::g_rcfilesSourced($modfile)
+   return $::ModulesVersion
 }
 
 # Save list of the defined procedure and the global variables with their
@@ -4225,7 +4218,7 @@ proc findModules {dir {mod {}} {fetch_mtime 0} {fetch_hidden 0}} {
 proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    global g_sourceAlias g_sourceVersion g_sourceVirtual g_resolvedPath
    global g_rcAlias g_moduleAlias g_rcVersion g_moduleVersion
-   global g_rcVirtual g_moduleVirtual
+   global g_rcVirtual g_moduleVirtual g_rcfilesSourced
 
    reportDebug "get '$mod' in $dir (fetch_mtime=$fetch_mtime, search=$search,\
       fetch_hidden=$fetch_hidden)"
@@ -4266,7 +4259,11 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    array set mod_list {}
    foreach elt [lsort [array names found_list]] {
       if {[lindex $found_list($elt) 0] eq "modulerc"} {
-         execute-modulerc $dir/$elt $elt $elt
+         if {![info exists g_rcfilesSourced($dir/$elt)]} {
+            execute-modulerc $dir/$elt $elt $elt
+            # Keep track of already sourced rc files not to run them again
+            set g_rcfilesSourced($dir/$elt) 1
+         }
       # add other entry kind to the result list
       } elseif {[string match $mod* $elt]} {
          set mod_list($elt) $found_list($elt)
