@@ -783,7 +783,6 @@ proc execute-modulerc {modfile modname modspec} {
    pushModuleName $modname
    pushSpecifiedName $modspec
    set ::ModulesVersion {}
-   set modname [file dirname [currentModuleName]]
 
    if {![info exists ::g_modrcUntrackVars]} {
       # list variable that should not be tracked for saving
@@ -862,7 +861,8 @@ proc execute-modulerc {modfile modname modspec} {
 
    # default version set via ModulesVersion variable in .version file
    # override previously defined default version for modname
-   if {[file tail $modfile] eq ".version" && $::ModulesVersion ne ""} {
+   lassign [getModuleNameVersion] mod modname modversion
+   if {$modversion eq ".version" && $::ModulesVersion ne ""} {
       setModuleResolution "$modname/default" $modname/$::ModulesVersion\
          "default"
    }
