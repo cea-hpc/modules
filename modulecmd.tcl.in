@@ -1547,6 +1547,12 @@ proc module {command args} {
    # skip command processing if error already spotted
    if {![info exists errormsg]} {
       pushCommandName $command
+
+      if {$topcall} {
+         # Find and execute any global rc file found
+         runModulerc
+      }
+
       switch -- $command {
          {load} {
             # no error raised on empty argument list to cope with
@@ -6415,10 +6421,6 @@ if {[catch {
 
    # no modulefile is currently being interpreted
    pushModuleFile {}
-
-   # Find and execute any .modulerc file found in the module directories
-   # defined in env(MODULESPATH)
-   runModulerc
 
    # eval needed to pass otherargv as list to module proc
    eval module "{$command}" $otherargv
