@@ -102,13 +102,15 @@ if [ ${BASH_VERSINFO:-0} -ge 3 ] && [[ $- =~ i ]] &&
 fi
 
 @setbinpath@if [[ ! ":$PATH:" =~ ':@bindir@:' ]]; then
-@setbinpath@   PATH=@bindir@${PATH:+:}$PATH; export PATH
+@setbinpath@@prependbinpath@   PATH=@bindir@${PATH:+:}$PATH; export PATH
+@setbinpath@@appendbinpath@   PATH=$PATH${PATH:+:}@bindir@; export PATH
 @setbinpath@fi
 @setbinpath@
 @setmanpath@@usemanpath@manpath=`manpath 2>/dev/null`
 @setmanpath@@notusemanpath@manpath=${MANPATH:-}
 @setmanpath@if [[ ! ":$manpath:" =~ ':@mandir@:' ]]; then
-@setmanpath@   MANPATH=@mandir@${manpath:+:}$manpath; export MANPATH
+@setmanpath@@prependmanpath@   MANPATH=@mandir@${manpath:+:}$manpath; export MANPATH
+@setmanpath@@appendmanpath@   MANPATH=$manpath${manpath:+:}@mandir@; export MANPATH
 @setmanpath@fi
 @setmanpath@
 # restore shell debugging options if disabled

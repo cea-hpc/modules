@@ -202,9 +202,17 @@ instance ``--disable-set-manpath``):
 --enable-set-manpath  Prepend man page directory defined by the ``--mandir``
                       option to the MANPATH environment variable in the shell
                       initialization scripts. (default=yes)
+--enable-append-manpath
+                      Append rather prepend man page directory to the MANPATH
+                      environment variable when the ``--enable-set-manpath``
+                      option is enabled. (default=no)
 --enable-set-binpath  Prepend binary directory defined by the ``--bindir``
                       option to the PATH environment variable in the shell
                       initialization scripts. (default=yes)
+--enable-append-binpath
+                      Append rather prepend binary directory to the PATH
+                      environment variable when the ``--enable-set-binpath``
+                      option is enabled. (default=no)
 --enable-dotmodulespath
                       Set the module paths defined by ``--with-modulepath``
                       option in a ``.modulespath`` file (following C version

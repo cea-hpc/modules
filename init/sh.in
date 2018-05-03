@@ -101,14 +101,16 @@ BASH_ENV=@initdir@/bash; export BASH_ENV
 
 @setbinpath@case ":$PATH:" in
 @setbinpath@   *:@bindir@:*) ;;
-@setbinpath@   *) PATH=@bindir@${PATH:+:}$PATH; export PATH
+@setbinpath@@prependbinpath@   *) PATH=@bindir@${PATH:+:}$PATH; export PATH
+@setbinpath@@appendbinpath@   *) PATH=$PATH${PATH:+:}@bindir@; export PATH
 @setbinpath@esac
 @setbinpath@
 @setmanpath@@usemanpath@manpath=`manpath 2>/dev/null`
 @setmanpath@@notusemanpath@manpath=${MANPATH:-}
 @setmanpath@case ":$manpath:" in
 @setmanpath@   *:@mandir@:*) ;;
-@setmanpath@   *) MANPATH=@mandir@${manpath:+:}$manpath; export MANPATH
+@setmanpath@@prependmanpath@   *) MANPATH=@mandir@${manpath:+:}$manpath; export MANPATH
+@setmanpath@@appendmanpath@   *) MANPATH=$manpath${manpath:+:}@mandir@; export MANPATH
 @setmanpath@esac
 @setmanpath@
 # restore shell debugging options if disabled

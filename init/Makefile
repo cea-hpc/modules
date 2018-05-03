@@ -55,10 +55,24 @@ ifeq ($(setmanpath),y)
 else
   setmanpathre := /@setmanpath@/d
 endif
+ifeq ($(appendmanpath),y)
+  appendmanpathre := s|@appendmanpath@||g
+  prependmanpathre := /@prependmanpath@/d
+else
+  appendmanpathre := /@appendmanpath@/d
+  prependmanpathre := s|@prependmanpath@||g
+endif
 ifeq ($(setbinpath),y)
   setbinpathre := s|@setbinpath@||g
 else
   setbinpathre := /@setbinpath@/d
+endif
+ifeq ($(appendbinpath),y)
+  appendbinpathre := s|@appendbinpath@||g
+  prependbinpathre := /@prependbinpath@/d
+else
+  appendbinpathre := /@appendbinpath@/d
+  prependbinpathre := s|@prependbinpath@||g
 endif
 ifeq ($(compatversion),y)
   compatversionre := s|@compatversion@||g
@@ -110,7 +124,11 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@bindir@|$(bindir)|g' \
 	-e 's|@mandir@|$(mandir)|g' \
 	-e '$(setmanpathre)' \
+	-e '$(appendmanpathre)' \
+	-e '$(prependmanpathre)' \
 	-e '$(setbinpathre)' \
+	-e '$(appendbinpathre)' \
+	-e '$(prependbinpathre)' \
 	-e '$(compatversionre)' \
 	-e '$(notcompatversionre)' \
 	-e '$(usemanpathre)' \

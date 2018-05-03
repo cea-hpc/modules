@@ -40,7 +40,8 @@ set -xg ENV @initdir@/profile.sh
 set -xg BASH_ENV @initdir@/bash
 
 @setbinpath@if not contains @bindir@ $PATH
-@setbinpath@   set -xg PATH @bindir@ $PATH
+@setbinpath@@prependbinpath@   set -xg PATH @bindir@ $PATH
+@setbinpath@@appendbinpath@   set -xg PATH $PATH @bindir@
 @setbinpath@end
 @setbinpath@
 @setmanpath@@usemanpath@set manpath (manpath ^/dev/null)
@@ -49,6 +50,7 @@ set -xg BASH_ENV @initdir@/bash
 @setmanpath@   if [ -z $manpath ]
 @setmanpath@      set -xg MANPATH @mandir@
 @setmanpath@   else
-@setmanpath@      set -xg MANPATH @mandir@:$manpath
+@setmanpath@@prependmanpath@      set -xg MANPATH @mandir@:$manpath
+@setmanpath@@appendmanpath@      set -xg MANPATH $manpath:@mandir@
 @setmanpath@   end
 @setmanpath@end
