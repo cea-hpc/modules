@@ -656,7 +656,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    }
    # dedicate an interpreter per mode and per level of interpretation to have
    # a dedicated interpreter in case of cascaded multi-mode interpretations
-   set itrp "__modfile_${mode}_[info level]"
+   set itrp "__modfile_${mode}_[getEvalModuleStackDepth]"
 
    # evaluation mode-specific configuration
    set dumpCommandsVN "g_modfile${mode}Commands"
@@ -809,7 +809,7 @@ proc execute-modulerc {modfile modname modspec} {
 
    # dedicate an interpreter per level of interpretation to have in case of
    # cascaded interpretations a specific interpreter per level
-   set itrp "__modrc_[info level]"
+   set itrp "__modrc_[getEvalModuleStackDepth]"
 
    reportDebug "sourcing $modfile"
    # create modulerc interpreter at first interpretation
@@ -1484,7 +1484,7 @@ proc module {command args} {
       show_mtime show_filter args
 
    # guess if called from top level
-   set topcall [expr {[info level] == 1}]
+   set topcall [expr {[getEvalModuleStackDepth] == 0}]
    if {$topcall} {
       set msgprefix ""
    } else {
@@ -2506,6 +2506,11 @@ proc pushModuleName {moduleName} {
 
 proc popModuleName {} {
    set ::g_moduleNameStack [lrange $::g_moduleNameStack 0 end-1]
+}
+
+# get number of either modulefile/modulerc currently being evaluated
+proc getEvalModuleStackDepth {} {
+   return [llength $::g_moduleNameStack]
 }
 
 set g_moduleFileStack {}
