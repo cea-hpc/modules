@@ -566,7 +566,7 @@ proc unset-env {var {internal 0}} {
 }
 
 # Initialize list of interp alias commands to define for given evaluation mode
-proc initModfileModeAliases {itrp mode aliasesVN aliasesPassArgVN tracesVN} {
+proc initModfileModeAliases {mode aliasesVN aliasesPassArgVN tracesVN} {
    global g_modfilePerModeAliases
    upvar #0 $aliasesVN aliases
    upvar #0 $aliasesPassArgVN aliasesPassArg
@@ -610,7 +610,7 @@ x-resource     {x-resource     x-resource     reportCmd      nop            nop 
    }
 
    # alias commands where interpreter ref should be passed as argument
-   array set aliasesPassArg [list puts $itrp]
+   array set aliasesPassArg [list puts __itrp__]
 
    # initialize list with all commands not dependent of the evaluation mode
    array set aliases $::g_modfileBaseAliases
@@ -664,7 +664,7 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    set aliasesPassArgVN "g_modfile${mode}AliasesPassArg"
    set tracesVN "g_modfile${mode}Traces"
    if {![info exists ::$aliasesVN]} {
-      initModfileModeAliases $itrp $mode $aliasesVN $aliasesPassArgVN $tracesVN
+      initModfileModeAliases $mode $aliasesVN $aliasesPassArgVN $tracesVN
    }
 
    # create modulefile interpreter at first interpretation
@@ -800,8 +800,8 @@ proc execute-modulerc {modfile modname modspec} {
          nop reportInternalBug reportInternalBug setModulesVersion\
          setModulesVersion readModuleContent readModuleContent]
 
-      # alias commands where interpreter ref should be passed as argument
-      array set ::g_modrcAliasesPassItrp [list]
+      # alias commands where an argument should be passed
+      array set ::g_modrcAliasesPassArg [list]
 
       # trace commands that should be associated to aliases
       array set ::g_modrcAliasesTraces [list]
@@ -832,7 +832,7 @@ proc execute-modulerc {modfile modname modspec} {
 
    # reset interp state command before each interpretation
    resetInterpState $itrp $fresh g_modrcVars g_modrcArrayVars\
-      g_modrcUntrackVars g_modrcProcs g_modrcAliases g_modrcAliasesPassItrp\
+      g_modrcUntrackVars g_modrcProcs g_modrcAliases g_modrcAliasesPassArg\
       g_modrcAliasesTraces g_modrcRenameCmds g_modrcCommands
 
    interp eval $itrp set ::ModulesCurrentModulefile $modfile
@@ -926,7 +926,12 @@ proc initInterpCommands {itrp fresh aliasesVN aliasesPassArgVN tracesVN\
    # defined and not overridden by modulefile or modulerc content
    foreach alias [array names aliases] {
       if {[info exists aliasesPassArg($alias)]} {
-         interp alias $itrp $alias {} $aliases($alias) $aliasesPassArg($alias)
+         set aliasarg $aliasesPassArg($alias)
+         # pass current itrp reference on special keyword
+         if {$aliasarg eq "__itrp__"} {
+            set aliasarg $itrp
+         }
+         interp alias $itrp $alias {} $aliases($alias) $aliasarg
       } else {
          interp alias $itrp $alias {} $aliases($alias)
       }
