@@ -647,9 +647,8 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
 
    if {![info exists ::g_modfileUntrackVars]} {
       # list variable that should not be tracked for saving
-      array set ::g_modfileUntrackVars [list g_debug 1 g_inhibit_interp 1\
-         g_inhibit_errreport 1 ModulesCurrentModulefile 1 must_have_cookie 1\
-         modcontent 1 env 1]
+      array set ::g_modfileUntrackVars [list ModulesCurrentModulefile 1\
+         must_have_cookie 1 modcontent 1 env 1]
 
       # commands that should be renamed before aliases setup
       array set ::g_modfileRenameCmds [list puts _puts]
@@ -692,9 +691,6 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
 
    # reset modulefile-specific variable before each interpretation
    interp eval $itrp set ::ModulesCurrentModulefile $modfile
-   interp eval $itrp set ::g_debug $::g_debug
-   interp eval $itrp set ::g_inhibit_interp $::g_inhibit_interp
-   interp eval $itrp set ::g_inhibit_errreport $::g_inhibit_errreport
    interp eval $itrp set must_have_cookie $must_have_cookie
 
    set errorVal [interp eval $itrp {
@@ -786,8 +782,8 @@ proc execute-modulerc {modfile modname modspec} {
 
    if {![info exists ::g_modrcUntrackVars]} {
       # list variable that should not be tracked for saving
-      array set ::g_modrcUntrackVars [list g_debug 1 g_inhibit_errreport 1\
-         ModulesCurrentModulefile 1 ModulesVersion 1 modcontent 1 env 1]
+      array set ::g_modrcUntrackVars [list ModulesCurrentModulefile 1\
+         ModulesVersion 1 modcontent 1 env 1]
 
       # commands that should be renamed before aliases setup
       array set ::g_modrcRenameCmds [list]
@@ -836,8 +832,6 @@ proc execute-modulerc {modfile modname modspec} {
       g_modrcAliasesTraces g_modrcRenameCmds g_modrcCommands
 
    interp eval $itrp set ::ModulesCurrentModulefile $modfile
-   interp eval $itrp set ::g_debug $::g_debug
-   interp eval $itrp set ::g_inhibit_errreport $::g_inhibit_errreport
    interp eval $itrp {set ::ModulesVersion {}}
 
    set errorVal [interp eval $itrp {
