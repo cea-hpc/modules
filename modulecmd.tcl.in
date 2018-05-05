@@ -3908,7 +3908,7 @@ endfunction(module)}
 proc cacheCurrentModules {} {
    global g_orig_load_control g_def_separator_lvl2 g_lmConflict
    global env
-   global g_def_separator_lvl3 g_lmPrereq g_auto_resolve_dep g_lmSticky
+   global g_def_separator_lvl3 g_lmPrereq g_auto_resolve_dep g_lmUasked
 
    # parse loaded modules information only once, global arrays are updated
    # afterwards when module commands update loaded modules state
@@ -3960,10 +3960,10 @@ proc cacheCurrentModules {} {
       }
 
       if {$g_auto_resolve_dep != 0} {
-         # cache declared stickyness of loaded modules
-         if {[info exists env(_LMSTICKY_)]} {
-            foreach modsticky [split $env(_LMSTICKY_) [getPathSeparator]] {
-               set g_lmSticky($modsticky) 1
+         # cache loaded modules asked by user
+         if {[info exists env(MODULES_LMUASKED)]} {
+            foreach moduasked [split $env(MODULES_LMUASKED) [getPathSeparator]] {
+               set g_lmUasked($moduasked) 1
             }
          }
       }
@@ -5031,12 +5031,12 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
 
    if {$g_auto_resolve_dep==0} {
       set loadedmodules [getLoadedModuleList]
-   } elseif {$g_auto_resolve_dep!=0 && [info exists env(_LMSTICKY_)]} {
-      # only save sticky loaded modules when dependency
+   } elseif {$g_auto_resolve_dep!=0 && [info exists env(MODULES_LMUASKED)]} {
+      # only save loaded modules asked by user when dependency
       # resolving is enabled since loading these modules
       # when restoring collection will automatically load
       # the other modules (which are dependencies)
-      set loadedmodules [split $env(_LMSTICKY_) [getPathSeparator]]
+      set loadedmodules [split $env(MODULES_LMUASKED) [getPathSeparator]]
    } else {
       set loadedmodules {}
    }
@@ -5182,12 +5182,12 @@ proc reloadDepLoadedModuleList {modulename} {
 
       if {$g_auto_resolve_dep==0 && [info exists env(LOADEDMODULES)]} {
          set loadedmodules $env(LOADEDMODULES)
-      } elseif {$g_auto_resolve_dep!=0 && [info exists env(_LMSTICKY_)]} {
-         # only reload sticky loaded modules when dependency
+      } elseif {$g_auto_resolve_dep!=0 && [info exists env(MODULES_LMUASKED)]} {
+         # only reload loaded modules asked by user when dependency
          # resolving is enabled since unloading and loading
          # these modules will automatically unload and load
          # other loaded modules (which are dependencies)
-         set loadedmodules $env(_LMSTICKY_)
+         set loadedmodules $env(MODULES_LMUASKED)
       }
       if {[info exists loadedmodules]} {
          foreach lmmod [split $loadedmodules [getPathSeparator]] {
@@ -5735,12 +5735,12 @@ proc cmdModuleSwitch {old {new {}}} {
             && [info exists env(LOADEDMODULES)]} {
             set loadedmodules $env(LOADEDMODULES)
          } elseif {$g_auto_resolve_dep!=0 \
-            && [info exists env(_LMSTICKY_)]} {
-            # only reload sticky loaded modules when dependency
+            && [info exists env(MODULES_LMUASKED)]} {
+            # only reload loaded modules asked by user when dependency
             # resolving is enabled since unloading and loading
             # these modules will automatically unload and load
             # other loaded modules (which are dependencies)
-            set loadedmodules $env(_LMSTICKY_)
+            set loadedmodules $env(MODULES_LMUASKED)
          }
          if {[info exists loadedmodules]} {
             foreach mod [split $loadedmodules [getPathSeparator]] {
@@ -6072,7 +6072,7 @@ proc cmdModuleLoad {args} {
    global g_def_separator_lvl2 g_lmConflict ModulesCurrentConflict
    global env g_orig_load_control
    global g_def_separator_lvl3 g_lmPrereq ModulesCurrentPrereq
-   global g_lmSticky g_auto_resolve_dep
+   global g_lmUasked g_auto_resolve_dep
 
    if {$g_orig_load_control == 0 && $g_auto_resolve_dep != 0} {
       # check if stickiness defined
@@ -6195,12 +6195,12 @@ proc cmdModuleLoad {args} {
                            $ModulesCurrentPrereq($currentModule)
                      }
 
-                     # declare stickiness of this module, even if
-                     # not sticky to ensure this module will not be
+                     # declare module as asked by user, even if it is
+                     # not the case to ensure this module will not be
                      # reloaded by prereq-reloading mechanism
                      if {$g_auto_resolve_dep != 0} {
-                        add-path "append" _LMSTICKY_ $currentModule
-                        set g_lmSticky($currentModule) 1
+                        add-path "append" MODULES_LMUASKED $currentModule
+                        set g_lmUasked($currentModule) 1
                      }
 
                      # Reload all modules declaring a prereq on
@@ -6213,11 +6213,11 @@ proc cmdModuleLoad {args} {
                      # whereas prereq-module fails to load.
                      reloadDepLoadedModuleList $currentModule
 
-                     # unset stickyness if module is not sticky now
-                     # that prereq-reloading phase is finished
+                     # undeclare module asked by user if it is not the case
+                     # now that prereq-reloading phase is finished
                      if {$g_auto_resolve_dep != 0 && $sticky == 0} {
-                        unload-path _LMSTICKY_ $currentModule
-                        unset g_lmSticky($currentModule)
+                        unload-path MODULES_LMUASKED $currentModule
+                        unset g_lmUasked($currentModule)
                      }
                   }
                }
@@ -6238,7 +6238,7 @@ proc cmdModuleLoad {args} {
 
 proc cmdModuleUnload {match args} {
    global g_orig_load_control g_def_separator_lvl2 g_lmConflict
-   global g_def_separator_lvl3 g_lmPrereq g_lmSticky
+   global g_def_separator_lvl3 g_lmPrereq g_lmUasked
    global env g_auto_resolve_dep g_loadedModules
    reportDebug "unloading $args (match=$match)"
 
@@ -6324,7 +6324,7 @@ proc cmdModuleUnload {match args} {
                                     set lmdep [getActiveDepLoadedModuleList \
                                        $loadedmod]
                                     if {![info exists \
-                                       g_lmSticky($loadedmod)] \
+                                       g_lmUasked($loadedmod)] \
                                        && [llength $lmdep]==0} {
                                        lappend mod_to_unload $loadedmod
                                     }
@@ -6351,11 +6351,11 @@ proc cmdModuleUnload {match args} {
                         }
                      }
 
-                     # unset stickiness declared for this module
+                     # undeclare module as asked by user
                      if {$g_auto_resolve_dep != 0 \
-                        && [info exists g_lmSticky($currentModule)]} {
-                        unload-path _LMSTICKY_ $currentModule
-                        unset g_lmSticky($currentModule)
+                        && [info exists g_lmUasked($currentModule)]} {
+                        unload-path MODULES_LMUASKED $currentModule
+                        unset g_lmUasked($currentModule)
                      }
 
                      # Reload all modules declaring a prereq on
@@ -6389,12 +6389,12 @@ proc cmdModulePurge {} {
 
    if {$g_auto_resolve_dep==0} {
       set loadedmodules [getLoadedModuleList]
-   } elseif {$g_auto_resolve_dep!=0 && [info exists env(_LMSTICKY_)]} {
-      # only purge sticky loaded modules when dependency
+   } elseif {$g_auto_resolve_dep!=0 && [info exists env(MODULES_LMUASKED)]} {
+      # only purge loaded modules asked by user when dependency
       # resolving is enabled since unloading and loading
       # these modules will automatically unload and load
       # other loaded modules (which are dependencies)
-      set loadedmodules [split $env(_LMSTICKY_) [getPathSeparator]]
+      set loadedmodules [split $env(MODULES_LMUASKED) [getPathSeparator]]
    } else {
       set loadedmodules {}
    }
@@ -6408,12 +6408,12 @@ proc cmdModuleReload {} {
 
    if {$g_auto_resolve_dep==0} {
       set list [getLoadedModuleList]
-   } elseif {$g_auto_resolve_dep!=0 && [info exists env(_LMSTICKY_)]} {
-      # only reload sticky loaded modules when dependency
+   } elseif {$g_auto_resolve_dep!=0 && [info exists env(MODULES_LMUASKED)]} {
+      # only reload loaded modules asked by user when dependency
       # resolving is enabled since unloading and loading
       # these modules will automatically unload and load
       # other loaded modules (which are dependencies)
-      set list [split $env(_LMSTICKY_) [getPathSeparator]]
+      set list [split $env(MODULES_LMUASKED) [getPathSeparator]]
    } else {
       set list {}
    }
