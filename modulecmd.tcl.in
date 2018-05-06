@@ -40,6 +40,8 @@ set g_pager_opts "@pageropts@" ;# Options to pass to the pager command
 
 set g_siteconfig "@etcdir@/siteconfig.tcl" ;# Site configuration
 
+set g_auto_handling 1 ;# Automated modules handling if 1
+
 # Used to tell if a machine is running Windows or not
 proc isWin {} {
    return [expr {$::tcl_platform(platform) eq "windows"}]
@@ -106,14 +108,6 @@ if {[info exists env(MODULECONTACT)]} {
    # Or change this to your support email address...
    set contact "root@localhost"
 }
-
-# Set to 1 to preserve original load control behavior
-# (original conflict and prereq management)
-set g_orig_load_control 1
-
-# Set to 1 to automatically try to resolve modulefile dependencies
-# This behavior requires g_orig_load_control to be disabled.
-set g_auto_resolve_dep 0
 
 # Set some directories to ignore when looking for modules.
 set ignoreDir(CVS) 1
@@ -1463,8 +1457,6 @@ proc module-virtual {args} {
 }
 
 proc module {command args} {
-   global g_auto_resolve_dep
-
    set mode [currentMode]
 
    # resolve command if alias or shortcut name used
@@ -1576,7 +1568,7 @@ proc module {command args} {
             # initadd command that may expect this behavior
             if {[llength $args] > 0} {
                set ret 0
-               if {$g_auto_resolve_dep && $topcall} {
+               if {$::g_auto_handling && $topcall} {
                   set ret [eval cmdModuleLoad --stick $args]
                } elseif {$topcall || $mode eq "load"} {
                   set ret [eval cmdModuleLoad $args]
@@ -2341,12 +2333,12 @@ proc is-loading {modulelist} {
 }
 
 proc conflict {args} {
-   global ModulesCurrentConflict g_orig_load_control
+   global ModulesCurrentConflict
    reportDebug "$args"
    set currentModule [currentModuleName]
 
    foreach mod $args {
-      if {$g_orig_load_control == 0} {
+      if {$::g_auto_handling} {
          # build conflict list to register in MODULES_LMCONFLICT after
          # successful module load
          if { ![info exists ModulesCurrentConflict($currentModule)]\
@@ -2366,7 +2358,7 @@ proc conflict {args} {
                first."
             error $errMsg
          # if the conflict module is loading, we cannot proceed either
-         } elseif {$g_orig_load_control == 0 && [is-loading $mod]} {
+         } elseif {$::g_auto_handling && [is-loading $mod]} {
             set errMsg "WARNING: $currentModule cannot be loaded due\
                to a conflict."
             set errMsg "$errMsg\nHINT: Conflict with $mod\
@@ -2380,12 +2372,12 @@ proc conflict {args} {
 }
 
 proc prereq {args} {
-   global ModulesCurrentPrereq g_orig_load_control g_auto_resolve_dep
+   global ModulesCurrentPrereq
    set currentModule [currentModuleName]
 
    reportDebug "$args"
 
-   if {$g_orig_load_control == 0} {
+   if {$::g_auto_handling} {
       # build prereq list to register in MODULES_LMPREREQ
       # after successful module load. sets of optional
       # prereq are registered as a list
@@ -2397,7 +2389,7 @@ proc prereq {args} {
    }
 
    # if dependency resolving is enabled try to load prereq
-   if {$g_auto_resolve_dep!=0 && ![eval is-loaded $args]} {
+   if {$::g_auto_handling && ![eval is-loaded $args]} {
       set imax [llength $args]
       set prereqloaded 0
       # if prereq list specified, try to load first then
@@ -3906,9 +3898,9 @@ endfunction(module)}
 }
 
 proc cacheCurrentModules {} {
-   global g_orig_load_control g_def_separator_lvl2 g_lmConflict
+   global g_def_separator_lvl2 g_lmConflict
    global env
-   global g_def_separator_lvl3 g_lmPrereq g_auto_resolve_dep g_lmUasked
+   global g_def_separator_lvl3 g_lmPrereq g_lmUasked
 
    # parse loaded modules information only once, global arrays are updated
    # afterwards when module commands update loaded modules state
@@ -3932,7 +3924,7 @@ proc cacheCurrentModules {} {
       }
    }
 
-   if {$g_orig_load_control == 0} {
+   if {$::g_auto_handling} {
       # cache declared conflict of loaded modules
       if {[info exists env(MODULES_LMCONFLICT)]} {
          foreach modconflict [split $env(MODULES_LMCONFLICT) [getPathSeparator]] {
@@ -3959,12 +3951,10 @@ proc cacheCurrentModules {} {
          }
       }
 
-      if {$g_auto_resolve_dep != 0} {
-         # cache loaded modules asked by user
-         if {[info exists env(MODULES_LMUASKED)]} {
-            foreach moduasked [split $env(MODULES_LMUASKED) [getPathSeparator]] {
-               set g_lmUasked($moduasked) 1
-            }
+      # cache loaded modules asked by user
+      if {[info exists env(MODULES_LMUASKED)]} {
+         foreach moduasked [split $env(MODULES_LMUASKED) [getPathSeparator]] {
+            set g_lmUasked($moduasked) 1
          }
       }
    }
@@ -5026,12 +5016,12 @@ proc getMovementBetweenList {from to} {
 # provided and looked at prior to module search
 proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
    {helper_list {}}} {
-   global env g_auto_resolve_dep
+   global env
    reportDebug "called."
 
-   if {$g_auto_resolve_dep==0} {
+   if {!$::g_auto_handling} {
       set loadedmodules [getLoadedModuleList]
-   } elseif {$g_auto_resolve_dep!=0 && [info exists env(MODULES_LMUASKED)]} {
+   } elseif {[info exists env(MODULES_LMUASKED)]} {
       # only save loaded modules asked by user when dependency
       # resolving is enabled since loading these modules
       # when restoring collection will automatically load
@@ -5171,7 +5161,7 @@ proc getActiveDepLoadedModuleList {modulename} {
 # as they may take benefit from their prereq availability if it
 # is newly loaded or unavailability if it is newly unloaded.
 proc reloadDepLoadedModuleList {modulename} {
-   global env g_auto_resolve_dep
+   global env
 
    # build list of loaded module declaring a prereq onto module
    set prereq_list [getDepLoadedModuleList $modulename]
@@ -5180,37 +5170,25 @@ proc reloadDepLoadedModuleList {modulename} {
       # reloaded to satisfy the prereq they have registered
       set uplist {}
 
-      if {$g_auto_resolve_dep==0 && [info exists env(LOADEDMODULES)]} {
-         set loadedmodules $env(LOADEDMODULES)
-      } elseif {$g_auto_resolve_dep!=0 && [info exists env(MODULES_LMUASKED)]} {
-         # only reload loaded modules asked by user when dependency
-         # resolving is enabled since unloading and loading
-         # these modules will automatically unload and load
-         # other loaded modules (which are dependencies)
-         set loadedmodules $env(MODULES_LMUASKED)
-      }
-      if {[info exists loadedmodules]} {
-         foreach lmmod [split $loadedmodules [getPathSeparator]] {
+      # only reload loaded modules asked by user when dependency
+      # resolving is enabled since unloading and loading
+      # these modules will automatically unload and load
+      # other loaded modules (which are dependencies)
+      if {[info exists env(MODULES_LMUASKED)]} {
+         foreach lmmod [split $env(MODULES_LMUASKED) [getPathSeparator]] {
             if {[lsearch -exact $prereq_list $lmmod] != -1} {
                lappend uplist $lmmod
             }
          }
       }
 
-
       # unload module list in reverse loaded order
       foreach upmod [lreverse $uplist] {
          cmdModuleUnload "match" $upmod
       }
       # then load module list again
-      if {$g_auto_resolve_dep==0} {
-         foreach upmod $uplist {
-            cmdModuleLoad $upmod
-         }
-      } else {
-         foreach upmod $uplist {
-            cmdModuleLoad --stick $upmod
-         }
+      foreach upmod $uplist {
+         cmdModuleLoad --stick $upmod
       }
    }
 }
@@ -5706,7 +5684,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 }
 
 proc cmdModuleSwitch {old {new {}}} {
-   global env g_orig_load_control g_auto_resolve_dep
+   global env
 
    # if a single name is provided it matches for the module to load and in
    # this case the module to unload is searched to find the closest match
@@ -5720,7 +5698,7 @@ proc cmdModuleSwitch {old {new {}}} {
 
    reportDebug "old='$old' new='$new'"
 
-   if {$g_orig_load_control == 0} {
+   if {$::g_auto_handling} {
       lassign [getPathToModule $old {} $unload_match] oldfile oldname
       if {$oldfile != ""} {
          # build list of loaded module declaring
@@ -5731,19 +5709,12 @@ proc cmdModuleSwitch {old {new {}}} {
          # to satisfy the prereq they have registered
          set uplist {}
 
-         if {$g_auto_resolve_dep==0 \
-            && [info exists env(LOADEDMODULES)]} {
-            set loadedmodules $env(LOADEDMODULES)
-         } elseif {$g_auto_resolve_dep!=0 \
-            && [info exists env(MODULES_LMUASKED)]} {
-            # only reload loaded modules asked by user when dependency
-            # resolving is enabled since unloading and loading
-            # these modules will automatically unload and load
-            # other loaded modules (which are dependencies)
-            set loadedmodules $env(MODULES_LMUASKED)
-         }
-         if {[info exists loadedmodules]} {
-            foreach mod [split $loadedmodules [getPathSeparator]] {
+         # only reload loaded modules asked by user when dependency
+         # resolving is enabled since unloading and loading
+         # these modules will automatically unload and load
+         # other loaded modules (which are dependencies)
+         if {[info exists env(MODULES_LMUASKED)]} {
+            foreach mod [split $env(MODULES_LMUASKED) [getPathSeparator]] {
                if {$mod != $oldname && [lsearch -exact\
                   $prereq_list $mod] != -1} {
                   lappend uplist $mod
@@ -5757,23 +5728,13 @@ proc cmdModuleSwitch {old {new {}}} {
          }
          # attempt load only if unload succeed
          if {![cmdModuleUnload $unload_match $old]} {
-            if {$g_auto_resolve_dep == 0} {
-               cmdModuleLoad $new
-            } else {
-               cmdModuleLoad --stick $new
-            }
+            cmdModuleLoad --stick $new
          }
          # load again every module with prereq onto old after
          # load of new. these module loads may fail if prereq
          # are not satisfied anymore
-         if {$g_auto_resolve_dep == 0} {
-            foreach mod $uplist {
-               cmdModuleLoad $mod
-            }
-         } else {
-            foreach mod $uplist {
-               cmdModuleLoad --stick $mod
-            }
+         foreach mod $uplist {
+            cmdModuleLoad --stick $mod
          }
       }
    } else {
@@ -5824,7 +5785,6 @@ proc cmdModuleSave {{coll {default}}} {
 }
 
 proc cmdModuleRestore {{coll {default}}} {
-   global g_auto_resolve_dep
    reportDebug "$coll"
 
    # get coresponding filename
@@ -5916,10 +5876,10 @@ proc cmdModuleRestore {{coll {default}}} {
 
    # load modules
    if {[llength $mod_to_load] > 0} {
-      if {$g_auto_resolve_dep == 0} {
-         eval cmdModuleLoad $mod_to_load
-      } else {
+      if {$::g_auto_handling} {
          eval cmdModuleLoad --stick $mod_to_load
+      } else {
+         eval cmdModuleLoad $mod_to_load
       }
    }
 
@@ -6070,11 +6030,11 @@ proc cmdModuleUnsource {args} {
 
 proc cmdModuleLoad {args} {
    global g_def_separator_lvl2 g_lmConflict ModulesCurrentConflict
-   global env g_orig_load_control
+   global env
    global g_def_separator_lvl3 g_lmPrereq ModulesCurrentPrereq
-   global g_lmUasked g_auto_resolve_dep
+   global g_lmUasked
 
-   if {$g_orig_load_control == 0 && $g_auto_resolve_dep != 0} {
+   if {$::g_auto_handling} {
       # check if stickiness defined
       set stickyarg [lsearch -exact $args "--stick"]
       if {$stickyarg != -1} {
@@ -6108,7 +6068,7 @@ proc cmdModuleLoad {args} {
 
             set conflict_list {}
             set loading_conflict_list {}
-            if {$g_orig_load_control == 0} {
+            if {$::g_auto_handling} {
                # check if any loaded module has declared a conflict
                foreach conflictmod [array names g_lmConflict] {
                   # skip currentModule own auto-conflict if
@@ -6171,7 +6131,7 @@ proc cmdModuleLoad {args} {
                   # update cache arrays
                   setLoadedModule $currentModule $modfile
 
-                  if {$g_orig_load_control == 0} {
+                  if {$::g_auto_handling} {
                      # declare the conflict of this module
                      if {[info exists \
                         ModulesCurrentConflict($currentModule)]} {
@@ -6198,10 +6158,8 @@ proc cmdModuleLoad {args} {
                      # declare module as asked by user, even if it is
                      # not the case to ensure this module will not be
                      # reloaded by prereq-reloading mechanism
-                     if {$g_auto_resolve_dep != 0} {
-                        add-path "append" MODULES_LMUASKED $currentModule
-                        set g_lmUasked($currentModule) 1
-                     }
+                     add-path "append" MODULES_LMUASKED $currentModule
+                     set g_lmUasked($currentModule) 1
 
                      # Reload all modules declaring a prereq on
                      # currentModule. Only modules with optional
@@ -6215,7 +6173,7 @@ proc cmdModuleLoad {args} {
 
                      # undeclare module asked by user if it is not the case
                      # now that prereq-reloading phase is finished
-                     if {$g_auto_resolve_dep != 0 && $sticky == 0} {
+                     if {$sticky == 0} {
                         unload-path MODULES_LMUASKED $currentModule
                         unset g_lmUasked($currentModule)
                      }
@@ -6237,9 +6195,9 @@ proc cmdModuleLoad {args} {
 }
 
 proc cmdModuleUnload {match args} {
-   global g_orig_load_control g_def_separator_lvl2 g_lmConflict
+   global g_def_separator_lvl2 g_lmConflict
    global g_def_separator_lvl3 g_lmPrereq g_lmUasked
-   global env g_auto_resolve_dep g_loadedModules
+   global env g_loadedModules
    reportDebug "unloading $args (match=$match)"
 
    set ret 0
@@ -6251,7 +6209,7 @@ proc cmdModuleUnload {match args} {
          set currentModule $modname
 
          if {[isModuleLoaded $currentModule]} {
-            if {$g_orig_load_control == 0} {
+            if {$::g_auto_handling} {
                # check if any loaded module has declared a prereq
                set prereq_list [getActiveDepLoadedModuleList \
                   $currentModule]
@@ -6282,7 +6240,7 @@ proc cmdModuleUnload {match args} {
                   # update cache arrays
                   unsetLoadedModule $currentModule $modfile
 
-                  if {$g_orig_load_control == 0} {
+                  if {$::g_auto_handling} {
                      # unset conflict declared for this module
                      if {[info exists g_lmConflict($currentModule)]} {
                         unload-path MODULES_LMCONFLICT \
@@ -6308,8 +6266,7 @@ proc cmdModuleUnload {match args} {
                      # ordered list of prereq modules that have been
                      # loaded automatically and that can now be
                      # unloaded automatically
-                     if {$g_auto_resolve_dep!=0 \
-                        && [info exists modprereq]} {
+                     if {[info exists modprereq]} {
                         set lmlist [array names g_loadedModules]
                         set imax [llength $lmlist]
                         set mod_to_unload {}
@@ -6352,8 +6309,7 @@ proc cmdModuleUnload {match args} {
                      }
 
                      # undeclare module as asked by user
-                     if {$g_auto_resolve_dep != 0 \
-                        && [info exists g_lmUasked($currentModule)]} {
+                     if {[info exists g_lmUasked($currentModule)]} {
                         unload-path MODULES_LMUASKED $currentModule
                         unset g_lmUasked($currentModule)
                      }
@@ -6384,12 +6340,12 @@ proc cmdModuleUnload {match args} {
 }
 
 proc cmdModulePurge {} {
-   global env g_auto_resolve_dep
+   global env
    reportDebug "called."
 
-   if {$g_auto_resolve_dep==0} {
+   if {!$::g_auto_handling} {
       set loadedmodules [getLoadedModuleList]
-   } elseif {$g_auto_resolve_dep!=0 && [info exists env(MODULES_LMUASKED)]} {
+   } elseif {[info exists env(MODULES_LMUASKED)]} {
       # only purge loaded modules asked by user when dependency
       # resolving is enabled since unloading and loading
       # these modules will automatically unload and load
@@ -6403,12 +6359,12 @@ proc cmdModulePurge {} {
 }
 
 proc cmdModuleReload {} {
-   global env g_auto_resolve_dep
+   global env
    reportDebug "called."
 
-   if {$g_auto_resolve_dep==0} {
+   if {!$::g_auto_handling} {
       set list [getLoadedModuleList]
-   } elseif {$g_auto_resolve_dep!=0 && [info exists env(MODULES_LMUASKED)]} {
+   } elseif {[info exists env(MODULES_LMUASKED)]} {
       # only reload loaded modules asked by user when dependency
       # resolving is enabled since unloading and loading
       # these modules will automatically unload and load
@@ -6421,13 +6377,13 @@ proc cmdModuleReload {} {
    foreach mod $rlist {
       cmdModuleUnload "match" $mod
    }
-   if {$g_auto_resolve_dep == 0} {
+   if {$::g_auto_handling} {
       foreach mod $list {
-         cmdModuleLoad $mod
+         cmdModuleLoad --stick $mod
       }
    } else {
       foreach mod $list {
-         cmdModuleLoad --stick $mod
+         cmdModuleLoad $mod
       }
    }
 }
