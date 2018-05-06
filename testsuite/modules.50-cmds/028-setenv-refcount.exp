@@ -39,9 +39,11 @@ set modulefile3 "$modpath/$module3"
 #  test load mode
 #
 
+lappend ans [list set MODULES_LMUASKED_modshare "$module:1"]
 lappend ans [list set _LMFILES__modshare "$modulefile:1"]
 lappend ans [list set LOADEDMODULES_modshare "$module:1"]
 lappend ans [list unset testsuite_modshare]
+lappend ans [list set MODULES_LMUASKED $module]
 lappend ans [list set _LMFILES_ $modulefile]
 lappend ans [list set LOADEDMODULES $module]
 lappend ans [list set testsuite yes]
@@ -56,6 +58,7 @@ lappend ans [list unset TS1_modshare]
 lappend ans [list set TS1 maybe]
 lappend ans [list setpath LOADEDMODULES $module2]
 lappend ans [list setpath _LMFILES_ $modulefile2]
+lappend ans [list setpath MODULES_LMUASKED $module2]
 
 # setenv after append-path: an unset order for ref counter variable is produced
 test_cmd "sh" "load $module2" $ans
@@ -65,6 +68,7 @@ lappend ans [list set TS1_modshare "yes:1:maybe:1"]
 lappend ans [list set TS1 "maybe:yes"]
 lappend ans [list setpath LOADEDMODULES $module3]
 lappend ans [list setpath _LMFILES_ $modulefile3]
+lappend ans [list setpath MODULES_LMUASKED $module3]
 
 # append-path after setenv: an set order for ref counter variable is produced
 test_cmd "sh" "load $module3" $ans
@@ -81,6 +85,7 @@ set ans [list]
 lappend ans [list unsetpath testsuite]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMUASKED]
 
 test_cmd "sh" "unload $module" $ans
 
@@ -92,6 +97,7 @@ set ans [list]
 lappend ans [list unsetpath TS1]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMUASKED]
 
 # setenv after append-path: an unset order for ref counter variable is produced
 # as ref counter variable is set right after append-path due to initial value of TS1
@@ -103,6 +109,7 @@ set ans [list]
 lappend ans [list unset TS1]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMUASKED]
 
 # append-path after setenv: no mention of ref counter variable as setenv order clears
 # initial value of TS1 

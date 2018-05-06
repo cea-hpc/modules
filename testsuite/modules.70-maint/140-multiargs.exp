@@ -161,7 +161,9 @@ proc multi_test_case {args} {
         if {$erri == 1} {
             lappend ans_lo [list setpath LOADEDMODULES [join $module ":"]]
             lappend ans_lo [list setpath _LMFILES_ [join $modulefile ":"]]
+            lappend ans_lo [list setpath MODULES_LMUASKED [join $module ":"]]
         } else {
+            lappend ans_lo [list setpath MODULES_LMUASKED [join $module ":"]]
             lappend ans_lo [list setpath _LMFILES_ [join $modulefile ":"]]
             lappend ans_lo [list setpath LOADEDMODULES [join $module ":"]]
         }
@@ -171,6 +173,7 @@ proc multi_test_case {args} {
         set errlo ""
         lappend ans_lo [list setpath LOADEDMODULES [join $module ":"]]
         lappend ans_lo [list setpath _LMFILES_ [join $modulefile ":"]]
+        lappend ans_lo [list setpath MODULES_LMUASKED [join $module ":"]]
     }
 
     testouterr_cmd_re "sh" "load $modsym" $ans_lo "$errlo"
@@ -187,6 +190,7 @@ proc multi_test_case {args} {
 
     lappend ans_unlo [list unsetpath LOADEDMODULES]
     lappend ans_unlo [list unsetpath _LMFILES_]
+    lappend ans_unlo [list unsetpath MODULES_LMUASKED]
 
     # bad mod is stuck loaded
     testouterr_cmd_re "sh" "unload $modsym" $ans_unlo ""

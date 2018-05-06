@@ -48,6 +48,7 @@ setenv_loaded_module $module $modulefile
 lappend ans [list setpath PATH $old_path]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMUASKED]
 
 #
 #  The tests
@@ -136,6 +137,7 @@ set ans [list]
 lappend ans [list setpath PATH $new_path]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMUASKED]
 
 #
 #  The tests
@@ -186,9 +188,11 @@ set env(FOO) ""
 setenv_loaded_module $module $modulefile
 
 set ans [list]
+lappend ans [list unset MODULES_LMUASKED_modshare]
 lappend ans [list unset _LMFILES__modshare]
 lappend ans [list unset LOADEDMODULES_modshare]
 lappend ans [list unset FOO]
+lappend ans [list unset MODULES_LMUASKED]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset FOO_modshare]
@@ -204,9 +208,11 @@ set env(FOO) "/path/to/dir:"
 setenv_loaded_module [list $module $module2] [list $modulefile $modulefile2]
 
 set ans [list]
+lappend ans [list unset MODULES_LMUASKED_modshare]
 lappend ans [list unset _LMFILES__modshare]
 lappend ans [list unset LOADEDMODULES_modshare]
 lappend ans [list unset FOO]
+lappend ans [list unset MODULES_LMUASKED]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset FOO_modshare]
@@ -218,6 +224,7 @@ lappend ans [list set FOO_modshare ":1"]
 lappend ans [list set FOO ""]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list setpath MODULES_LMUASKED $module]
 
 testouterr_cmd "sh" "unload $module2" $ans ""
 
@@ -226,6 +233,7 @@ lappend ans [list set FOO_modshare "/path/to/dir:1::1"]
 lappend ans [list set FOO "/path/to/dir:"]
 lappend ans [list setpath LOADEDMODULES $module2]
 lappend ans [list setpath _LMFILES_ $modulefile2]
+lappend ans [list setpath MODULES_LMUASKED $module2]
 
 testouterr_cmd "sh" "unload $module" $ans ""
 
@@ -235,9 +243,11 @@ set env(FOO) "/path/to/dir:"
 setenv_loaded_module [list $module2 $module] [list $modulefile2 $modulefile]
 
 set ans [list]
+lappend ans [list unset MODULES_LMUASKED_modshare]
 lappend ans [list unset _LMFILES__modshare]
 lappend ans [list unset LOADEDMODULES_modshare]
 lappend ans [list unset FOO]
+lappend ans [list unset MODULES_LMUASKED]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset FOO_modshare]
@@ -249,6 +259,7 @@ lappend ans [list set FOO_modshare ":1"]
 lappend ans [list set FOO ""]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list setpath MODULES_LMUASKED $module]
 
 testouterr_cmd "sh" "unload $module2" $ans ""
 
@@ -257,6 +268,7 @@ lappend ans [list set FOO_modshare "/path/to/dir:1::1"]
 lappend ans [list set FOO "/path/to/dir:"]
 lappend ans [list setpath LOADEDMODULES $module2]
 lappend ans [list setpath _LMFILES_ $modulefile2]
+lappend ans [list setpath MODULES_LMUASKED $module2]
 
 testouterr_cmd "sh" "unload $module" $ans ""
 
@@ -277,6 +289,7 @@ lappend ans [list set FOO_modshare "/path/to/dir1:1"]
 lappend ans [list set FOO "/path/to/dir1"]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMUASKED]
 
 testouterr_cmd "sh" "unload $module" $ans ""
 

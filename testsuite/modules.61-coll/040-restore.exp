@@ -69,16 +69,18 @@ testouterr_cmd "ALL" "restore $badcontfp" "ERR" "$badcontfperrmsg"
 # setup an empty environment
 unsetenv_path_var MODULEPATH
 
-lappend ans [list set _LMFILES__modshare "(.*)"]
-lappend ans [list set LOADEDMODULES_modshare "(.*)"]
-lappend ans "(.*)"
-lappend ans [list set MODULEPATH_modshare "(.*)"]
-lappend ans "(.*)"
-lappend ans [list set _LMFILES_ $cdlmf]
+lappend ans [list set MODULES_LMUASKED_modshare "(.*)"]
 lappend ans [list set LOADEDMODULES $cdlm]
+lappend ans [list set _LMFILES_ $cdlmf]
 lappend ans "(.*)"
+lappend ans "(.*)"
+lappend ans "(.*)"
+lappend ans [list set MODULES_LMUASKED $cdlm]
 lappend ans "(.*)"
 lappend ans [list set MODULEPATH $cdmodpath]
+lappend ans [list set LOADEDMODULES_modshare "(.*)"]
+lappend ans [list set _LMFILES__modshare "(.*)"]
+lappend ans [list set MODULEPATH_modshare "(.*)"]
 
 testouterr_cmd_re "ALL" "restore" $ans "$cderrmsg"
 
@@ -94,6 +96,7 @@ setenv_loaded_module [split $cdlm_part ":"] [split $cdlmf_part ":"]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $cdlm]
 lappend ans [list setpath _LMFILES_ $cdlmf]
+lappend ans [list setpath MODULES_LMUASKED $cdlm]
 
 testouterr_cmd_re "sh" "restore" $ans ""
 
@@ -109,6 +112,7 @@ set ans [list]
 lappend ans [list setpath MODULEPATH $c1modpath]
 lappend ans [list setpath LOADEDMODULES $c1lm]
 lappend ans [list setpath _LMFILES_ $c1lmf]
+lappend ans [list setpath MODULES_LMUASKED $c1lm]
 
 testouterr_cmd_re "ALL" "restore $coll1" $ans "$c1errmsg"
 
@@ -132,6 +136,7 @@ testouterr_cmd "ALL" "restore $coll1" "OK" ""
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $c2lm]
 lappend ans [list setpath _LMFILES_ $c2lmf]
+lappend ans [list setpath MODULES_LMUASKED $c2lm]
 
 testouterr_cmd_re "ALL" "restore $coll2" $ans "$c2errmsg"
 
@@ -158,6 +163,7 @@ testouterr_cmd_re "ALL" "restore $coll3" $ans "$c3errmsg"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $c1lm]
 lappend ans [list setpath _LMFILES_ $c1lmf]
+lappend ans [list setpath MODULES_LMUASKED $c1lm]
 
 testouterr_cmd_re "ALL" "restore $coll1fp" $ans "$c1errmsgf2"
 
@@ -182,11 +188,13 @@ testouterr_cmd_re "ALL" "restore $coll1fp" $ans "$c1errmsgf2"
 #
 
 set ans [list]
+lappend ans [list unset MODULES_LMUASKED_modshare]
 lappend ans [list unset _LMFILES__modshare]
 lappend ans [list unset LOADEDMODULES_modshare]
 lappend ans "(.*)"
 lappend ans "(.*)"
 lappend ans "(.*)"
+lappend ans [list unset MODULES_LMUASKED]
 lappend ans [list unset _LMFILES_]
 lappend ans [list unset LOADEDMODULES]
 lappend ans "(.*)"
@@ -216,6 +224,7 @@ lappend ans [list set testsuite "yes"]
 lappend ans [list setpath LOADEDMODULES $c6lm]
 lappend ans [list setpath _LMFILES_ $c6lmf]
 lappend ans [list setpath MODULEPATH $c6modpath]
+lappend ans [list setpath MODULES_LMUASKED $c6lm]
 
 testouterr_cmd_re "sh" "restore $coll6" $ans ""
 
@@ -234,6 +243,7 @@ lappend ans [list setpath LOADEDMODULES "::$c6lm"]
 lappend ans [list setpath _LMFILES_ "::$c6lmf"]
 # empty dir elements are ignored but stick to the variable, they should be removed
 lappend ans [list setpath MODULEPATH "::$c6modpath"]
+lappend ans [list setpath MODULES_LMUASKED "::$c6lm"]
 
 testouterr_cmd_re "sh" "restore $coll6" $ans ""
 
@@ -250,6 +260,7 @@ set ans [list]
 lappend ans [list set testsuite "yes"]
 lappend ans [list setpath LOADEDMODULES $c7lm]
 lappend ans [list setpath _LMFILES_ $c7lmf]
+lappend ans [list setpath MODULES_LMUASKED $c7lm]
 
 testouterr_cmd_re "sh" "restore $coll7fp" $ans ""
 
@@ -266,6 +277,7 @@ lappend ans [list set testsuite "yes"]
 lappend ans [list setpath LOADEDMODULES $c7lm]
 lappend ans [list setpath _LMFILES_ $c7lmf]
 lappend ans [list unsetpath MODULEPATH]
+lappend ans [list setpath MODULES_LMUASKED $c7lm]
 
 testouterr_cmd_re "sh" "restore $coll7fp" $ans ""
 
@@ -281,6 +293,7 @@ lappend ans [list set testsuite "yes"]
 lappend ans [list setpath LOADEDMODULES $c8lm]
 lappend ans [list setpath _LMFILES_ $c8lmf]
 lappend ans [list setpath MODULEPATH $c8modpath]
+lappend ans [list setpath MODULES_LMUASKED $c8lm]
 
 testouterr_cmd_re "sh" "restore $coll8fp" $ans ""
 

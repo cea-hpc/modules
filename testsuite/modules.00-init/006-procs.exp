@@ -1151,9 +1151,15 @@ proc setenv_path_var {var args} {
 proc unsetenv_loaded_module {} {
     unsetenv_path_var _LMFILES_
     unsetenv_path_var LOADEDMODULES
+    unsetenv_path_var MODULES_LMUASKED
 }
 
-proc setenv_loaded_module {modlist modfilelist} {
+proc setenv_loaded_module {modlist modfilelist {askedmodlist {}}} {
     eval setenv_path_var _LMFILES_ $modfilelist
     eval setenv_path_var LOADEDMODULES $modlist
+    if {$askedmodlist ne {}} {
+        eval setenv_path_var MODULES_LMUASKED $askedmodlist
+    } else {
+        eval setenv_path_var MODULES_LMUASKED $modlist
+    }
 }
