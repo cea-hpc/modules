@@ -242,6 +242,11 @@ instance ``--disable-set-manpath``):
                       to Modules version is added to the shared modulepath and
                       enables to switch from one Modules version to another.
                       (default=no)
+--enable-auto-handling
+                      Set modulecmd.tcl to automatically apply automated
+                      modulefiles handling actions, like loading the
+                      pre-requisites of a modulefile when loading this
+                      modulefile. (default=no)
 
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for

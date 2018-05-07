@@ -85,6 +85,12 @@ else
   setnotversioning :=
 endif
 
+ifeq ($(autohandling),y)
+  setautohandling := 1
+else
+  setautohandling := 0
+endif
+
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@baseprefix@|$(baseprefix)|g' \
@@ -97,6 +103,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' \
 	-e 's|@pager@|$(pager)|g' \
 	-e 's|@pageropts@|$(pageropts)|g' \
+	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@VERSIONING@|$(setversioning)|g' \
 	-e 's|@NOTVERSIONING@|$(setnotversioning)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \

@@ -30,8 +30,8 @@ arglist="TCLSH SPHINXBUILD PS BASENAME RMDIR_IGN_NON_EMPTY VERSION \
 baseprefix prefix bindir libexecdir etcdir initdir datarootdir mandir docdir \
 modulefilesdir setmanpath appendmanpath setbinpath appendbinpath \
 setdotmodulespath docinstall examplemodulefiles builddoc gitworktree \
-usemanpath compatversion EXEEXT versioning pager pageropts modulepath \
-loadedmodules quarantinevars"
+usemanpath compatversion EXEEXT versioning autohandling pager pageropts \
+modulepath loadedmodules quarantinevars"
 compatarglist=
 
 # flags to know if argument has been specified on command-line
@@ -51,6 +51,7 @@ examplemodulefiles=y
 compatversion=y
 EXEEXT=
 versioning=n
+autohandling=n
 loadedmodules=
 quarantinevars=
 TCLSH=tclsh
@@ -145,6 +146,10 @@ Optional Features:
                           versioning enabled Modules installation, containing
                           modulefiles that enable to switch from one Modules
                           version to another [no]
+  --enable-auto-handling  set modulecmd.tcl to automatically apply automated
+                          modulefiles handling actions, like loading the
+                          pre-requisites of a modulefile when loading this
+                          modulefile [no]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -299,6 +304,8 @@ for arg in "$@"; do
       defcompatversion=0 ;;
    --enable-versioning*|--disable-versioning)
       versioning=$(get_feature_value "$arg") ;;
+   --enable-auto-handling*|--disable-auto-handling)
+      autohandling=$(get_feature_value "$arg") ;;
    --with-tclsh=*|--without-tclsh)
       tclshbin=$(get_package_value "$arg") ;;
    --with-pager=*|--without-pager)
