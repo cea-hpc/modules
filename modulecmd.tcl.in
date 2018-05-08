@@ -60,10 +60,10 @@ proc getPathSeparator {} {
    return $::g_def_separator
 }
 
-# second level separator, used to serialize conflict and prereq info
-set g_def_separator_lvl2 "&"
-# third level separator, used to serialize prereq info
-set g_def_separator_lvl3 "|"
+# Sub level separator to serialize a second level of info in env var
+set ::g_sub1_separator "&"
+# Sub sub level separator to serialize a third level of info in env var
+set ::g_sub2_separator "|"
 
 # Detect if terminal is attached to stderr message channel
 proc isStderrTty {} {
@@ -3898,9 +3898,9 @@ endfunction(module)}
 }
 
 proc cacheCurrentModules {} {
-   global g_def_separator_lvl2 g_lmConflict
+   global g_lmConflict
    global env
-   global g_def_separator_lvl3 g_lmPrereq g_lmUasked
+   global g_lmPrereq g_lmUasked
 
    # parse loaded modules information only once, global arrays are updated
    # afterwards when module commands update loaded modules state
@@ -3928,7 +3928,7 @@ proc cacheCurrentModules {} {
       # cache declared conflict of loaded modules
       if {[info exists env(MODULES_LMCONFLICT)]} {
          foreach modconflict [split $env(MODULES_LMCONFLICT) [getPathSeparator]] {
-            set modlist [split $modconflict $g_def_separator_lvl2]
+            set modlist [split $modconflict $::g_sub1_separator]
             # test that conflict module list is correct
             if {[llength $modlist] >= 2} {
                set g_lmConflict([lindex $modlist 0]) [lrange $modlist 1 end]
@@ -3939,12 +3939,12 @@ proc cacheCurrentModules {} {
       # cache declared prereq of loaded modules
       if {[info exists env(MODULES_LMPREREQ)]} {
          foreach modprereq [split $env(MODULES_LMPREREQ) [getPathSeparator]] {
-            set modlist [split $modprereq $g_def_separator_lvl2]
+            set modlist [split $modprereq $::g_sub1_separator]
             # test that prereq module list is correct
             if {[llength $modlist] >= 2} {
                set lmprereq {}
                foreach prereq [lrange $modlist 1 end] {
-                  lappend lmprereq [split $prereq $g_def_separator_lvl3]
+                  lappend lmprereq [split $prereq $::g_sub2_separator]
                }
                set g_lmPrereq([lindex $modlist 0]) $lmprereq
             }
@@ -6029,9 +6029,9 @@ proc cmdModuleUnsource {args} {
 }
 
 proc cmdModuleLoad {args} {
-   global g_def_separator_lvl2 g_lmConflict ModulesCurrentConflict
+   global g_lmConflict ModulesCurrentConflict
    global env
-   global g_def_separator_lvl3 g_lmPrereq ModulesCurrentPrereq
+   global g_lmPrereq ModulesCurrentPrereq
    global g_lmUasked
 
    if {$::g_auto_handling} {
@@ -6136,9 +6136,9 @@ proc cmdModuleLoad {args} {
                      if {[info exists \
                         ModulesCurrentConflict($currentModule)]} {
                         add-path "append" MODULES_LMCONFLICT \
-                           "$currentModule$g_def_separator_lvl2[join \
+                           "$currentModule$::g_sub1_separator[join \
                            $ModulesCurrentConflict($currentModule) \
-                           $g_def_separator_lvl2]"
+                           $::g_sub1_separator]"
                         set g_lmConflict($currentModule) \
                            $ModulesCurrentConflict($currentModule)
                      }
@@ -6147,8 +6147,8 @@ proc cmdModuleLoad {args} {
                      if {[info exists ModulesCurrentPrereq($currentModule)]} {
                         set lmprereq "$currentModule"
                         foreach prereq $ModulesCurrentPrereq($currentModule) {
-                           append lmprereq $g_def_separator_lvl2[join \
-                              $prereq $g_def_separator_lvl3]
+                           append lmprereq $::g_sub1_separator[join \
+                              $prereq $::g_sub2_separator]
                         }
                         add-path "append" MODULES_LMPREREQ $lmprereq
                         set g_lmPrereq($currentModule) \
@@ -6195,8 +6195,8 @@ proc cmdModuleLoad {args} {
 }
 
 proc cmdModuleUnload {match args} {
-   global g_def_separator_lvl2 g_lmConflict
-   global g_def_separator_lvl3 g_lmPrereq g_lmUasked
+   global g_lmConflict
+   global g_lmPrereq g_lmUasked
    global env g_loadedModules
    reportDebug "unloading $args (match=$match)"
 
@@ -6244,9 +6244,9 @@ proc cmdModuleUnload {match args} {
                      # unset conflict declared for this module
                      if {[info exists g_lmConflict($currentModule)]} {
                         unload-path MODULES_LMCONFLICT \
-                           "$currentModule$g_def_separator_lvl2[join \
+                           "$currentModule$::g_sub1_separator[join \
                            $g_lmConflict($currentModule) \
-                           $g_def_separator_lvl2]"
+                           $::g_sub1_separator]"
                         unset g_lmConflict($currentModule)
                      }
 
@@ -6255,8 +6255,8 @@ proc cmdModuleUnload {match args} {
                         set modprereq $g_lmPrereq($currentModule)
                         set lmprereq "$currentModule"
                         foreach prereq $g_lmPrereq($currentModule) {
-                           append lmprereq $g_def_separator_lvl2[join \
-                              $prereq $g_def_separator_lvl3]
+                           append lmprereq $::g_sub1_separator[join \
+                              $prereq $::g_sub2_separator]
                         }
                         unload-path MODULES_LMPREREQ $lmprereq
                         unset g_lmPrereq($currentModule)
