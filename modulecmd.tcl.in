@@ -2688,6 +2688,24 @@ proc getLoadedModuleConflictList {} {
    return $modconlist
 }
 
+# return list of loaded module declared prereq by parsing MODULES_LMPREREQ
+proc getLoadedModulePrereqList {} {
+   set modprelist [list]
+   foreach modpreser [split [get-env MODULES_LMPREREQ] [getPathSeparator]] {
+      set prelist [split $modpreser $::g_sub1_separator]
+      # ignore empty element (1 is meaningless as first elt is loaded mod)
+      if {[llength $prelist] > 1} {
+         set modpre {}
+         foreach pre $prelist {
+            lappend modpre [split $pre $::g_sub2_separator]
+         }
+
+         lappend modprelist $modpre
+      }
+   }
+   return $modprelist
+}
+
 # return list of module paths by parsing MODULEPATH env variable
 # behavior param enables to exit in error when no MODULEPATH env variable
 # is set. by default an empty list is returned if no MODULEPATH set
@@ -3944,18 +3962,8 @@ proc cacheCurrentModules {} {
       }
 
       # cache declared prereq of loaded modules
-      if {[info exists env(MODULES_LMPREREQ)]} {
-         foreach modprereq [split $env(MODULES_LMPREREQ) [getPathSeparator]] {
-            set modlist [split $modprereq $::g_sub1_separator]
-            # test that prereq module list is correct
-            if {[llength $modlist] >= 2} {
-               set lmprereq {}
-               foreach prereq [lrange $modlist 1 end] {
-                  lappend lmprereq [split $prereq $::g_sub2_separator]
-               }
-               set g_lmPrereq([lindex $modlist 0]) $lmprereq
-            }
-         }
+      foreach modpre [getLoadedModulePrereqList] {
+         set g_lmPrereq([lindex $modpre 0]) [lrange $modpre 1 end]
       }
 
       # cache loaded modules asked by user
