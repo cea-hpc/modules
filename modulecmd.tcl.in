@@ -2675,6 +2675,19 @@ proc getLoadedModuleFileList {} {
    return $modfilelist
 }
 
+# return list of loaded module declared conflict by parsing MODULES_LMCONFLICT
+proc getLoadedModuleConflictList {} {
+   set modconlist [list]
+   foreach modconser [split [get-env MODULES_LMCONFLICT] [getPathSeparator]] {
+      set conlist [split $modconser $::g_sub1_separator]
+      # ignore empty element (1 is meaningless as first elt is loaded mod)
+      if {[llength $conlist] > 1} {
+         lappend modconlist $conlist
+      }
+   }
+   return $modconlist
+}
+
 # return list of module paths by parsing MODULEPATH env variable
 # behavior param enables to exit in error when no MODULEPATH env variable
 # is set. by default an empty list is returned if no MODULEPATH set
@@ -3926,14 +3939,8 @@ proc cacheCurrentModules {} {
 
    if {$::g_auto_handling} {
       # cache declared conflict of loaded modules
-      if {[info exists env(MODULES_LMCONFLICT)]} {
-         foreach modconflict [split $env(MODULES_LMCONFLICT) [getPathSeparator]] {
-            set modlist [split $modconflict $::g_sub1_separator]
-            # test that conflict module list is correct
-            if {[llength $modlist] >= 2} {
-               set g_lmConflict([lindex $modlist 0]) [lrange $modlist 1 end]
-            }
-         }
+      foreach modcon [getLoadedModuleConflictList] {
+         set g_lmConflict([lindex $modcon 0]) [lrange $modcon 1 end]
       }
 
       # cache declared prereq of loaded modules
