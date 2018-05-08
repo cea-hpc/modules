@@ -2706,6 +2706,18 @@ proc getLoadedModulePrereqList {} {
    return $modprelist
 }
 
+# return list of loaded module asked by user by parsing MODULES_LMUASKED
+proc getLoadedModuleUserAskedList {} {
+   set moduaskedlist [list]
+   foreach mod [split [get-env MODULES_LMUASKED] [getPathSeparator]] {
+      # ignore empty element
+      if {$mod ne ""} {
+         lappend moduaskedlist $mod
+      }
+   }
+   return $moduaskedlist
+}
+
 # return list of module paths by parsing MODULEPATH env variable
 # behavior param enables to exit in error when no MODULEPATH env variable
 # is set. by default an empty list is returned if no MODULEPATH set
@@ -3930,7 +3942,6 @@ endfunction(module)}
 
 proc cacheCurrentModules {} {
    global g_lmConflict
-   global env
    global g_lmPrereq g_lmUasked
 
    # parse loaded modules information only once, global arrays are updated
@@ -3967,10 +3978,8 @@ proc cacheCurrentModules {} {
       }
 
       # cache loaded modules asked by user
-      if {[info exists env(MODULES_LMUASKED)]} {
-         foreach moduasked [split $env(MODULES_LMUASKED) [getPathSeparator]] {
-            set g_lmUasked($moduasked) 1
-         }
+      foreach mod [getLoadedModuleUserAskedList] {
+         set g_lmUasked($mod) 1
       }
    }
 }
@@ -5031,19 +5040,15 @@ proc getMovementBetweenList {from to} {
 # provided and looked at prior to module search
 proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
    {helper_list {}}} {
-   global env
    reportDebug "called."
 
-   if {!$::g_auto_handling} {
-      set loadedmodules [getLoadedModuleList]
-   } elseif {[info exists env(MODULES_LMUASKED)]} {
-      # only save loaded modules asked by user when dependency
-      # resolving is enabled since loading these modules
-      # when restoring collection will automatically load
-      # the other modules (which are dependencies)
-      set loadedmodules [split $env(MODULES_LMUASKED) [getPathSeparator]]
+   # only save loaded modules asked by user when dependency resolving is
+   # enabled since loading these modules when restoring collection will
+   # automatically load the other modules (which are dependencies)
+   if {$::g_auto_handling} {
+      set loadedmodules [getLoadedModuleUserAskedList]
    } else {
-      set loadedmodules {}
+      set loadedmodules [getLoadedModuleList]
    }
 
    set curr_mod_list {}
@@ -5176,8 +5181,6 @@ proc getActiveDepLoadedModuleList {modulename} {
 # as they may take benefit from their prereq availability if it
 # is newly loaded or unavailability if it is newly unloaded.
 proc reloadDepLoadedModuleList {modulename} {
-   global env
-
    # build list of loaded module declaring a prereq onto module
    set prereq_list [getDepLoadedModuleList $modulename]
    if {[llength $prereq_list] > 0} {
@@ -5185,15 +5188,12 @@ proc reloadDepLoadedModuleList {modulename} {
       # reloaded to satisfy the prereq they have registered
       set uplist {}
 
-      # only reload loaded modules asked by user when dependency
-      # resolving is enabled since unloading and loading
-      # these modules will automatically unload and load
-      # other loaded modules (which are dependencies)
-      if {[info exists env(MODULES_LMUASKED)]} {
-         foreach lmmod [split $env(MODULES_LMUASKED) [getPathSeparator]] {
-            if {[lsearch -exact $prereq_list $lmmod] != -1} {
-               lappend uplist $lmmod
-            }
+      # only reload loaded modules asked by user when dependency resolving is
+      # enabled since unloading and loading these modules will automatically
+      # unload and load other loaded modules (which are dependencies)
+      foreach lmmod [getLoadedModuleUserAskedList] {
+         if {[lsearch -exact $prereq_list $lmmod] != -1} {
+            lappend uplist $lmmod
          }
       }
 
@@ -5699,8 +5699,6 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 }
 
 proc cmdModuleSwitch {old {new {}}} {
-   global env
-
    # if a single name is provided it matches for the module to load and in
    # this case the module to unload is searched to find the closest match
    # (loaded module that shares at least the same root name)
@@ -5724,16 +5722,13 @@ proc cmdModuleSwitch {old {new {}}} {
          # to satisfy the prereq they have registered
          set uplist {}
 
-         # only reload loaded modules asked by user when dependency
-         # resolving is enabled since unloading and loading
-         # these modules will automatically unload and load
-         # other loaded modules (which are dependencies)
-         if {[info exists env(MODULES_LMUASKED)]} {
-            foreach mod [split $env(MODULES_LMUASKED) [getPathSeparator]] {
-               if {$mod != $oldname && [lsearch -exact\
-                  $prereq_list $mod] != -1} {
-                  lappend uplist $mod
-               }
+         # only reload loaded modules asked by user when dependency resolving
+         # is enabled since unloading and loading these modules will
+         # automatically unload and load other loaded modules (which are
+         # dependencies)
+         foreach mod [getLoadedModuleUserAskedList] {
+            if {$mod != $oldname && [lsearch -exact $prereq_list $mod]!=-1} {
+               lappend uplist $mod
             }
          }
 
@@ -6045,7 +6040,6 @@ proc cmdModuleUnsource {args} {
 
 proc cmdModuleLoad {args} {
    global g_lmConflict ModulesCurrentConflict
-   global env
    global g_lmPrereq ModulesCurrentPrereq
    global g_lmUasked
 
@@ -6355,39 +6349,32 @@ proc cmdModuleUnload {match args} {
 }
 
 proc cmdModulePurge {} {
-   global env
    reportDebug "called."
 
-   if {!$::g_auto_handling} {
-      set loadedmodules [getLoadedModuleList]
-   } elseif {[info exists env(MODULES_LMUASKED)]} {
-      # only purge loaded modules asked by user when dependency
-      # resolving is enabled since unloading and loading
-      # these modules will automatically unload and load
-      # other loaded modules (which are dependencies)
-      set loadedmodules [split $env(MODULES_LMUASKED) [getPathSeparator]]
+   # only purge loaded modules asked by user when dependency resolving is
+   # enabled since unloading and loading these modules will automatically
+   # unload and load other loaded modules (which are dependencies)
+   if {$::g_auto_handling} {
+      set loadedmodules [getLoadedModuleUserAskedList]
    } else {
-      set loadedmodules {}
+      set loadedmodules [getLoadedModuleList]
    }
 
    eval cmdModuleUnload "match" [lreverse $loadedmodules]
 }
 
 proc cmdModuleReload {} {
-   global env
    reportDebug "called."
 
-   if {!$::g_auto_handling} {
-      set list [getLoadedModuleList]
-   } elseif {[info exists env(MODULES_LMUASKED)]} {
-      # only reload loaded modules asked by user when dependency
-      # resolving is enabled since unloading and loading
-      # these modules will automatically unload and load
-      # other loaded modules (which are dependencies)
-      set list [split $env(MODULES_LMUASKED) [getPathSeparator]]
+   # only reload loaded modules asked by user when dependency resolving is
+   # enabled since unloading and loading these modules will automatically
+   # unload and load other loaded modules (which are dependencies)
+   if {$::g_auto_handling} {
+      set list [getLoadedModuleUserAskedList]
    } else {
-      set list {}
+      set list [getLoadedModuleList]
    }
+
    set rlist [lreverse $list]
    foreach mod $rlist {
       cmdModuleUnload "match" $mod
