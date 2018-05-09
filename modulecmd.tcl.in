@@ -2333,21 +2333,15 @@ proc is-loading {modulelist} {
 }
 
 proc conflict {args} {
-   global ModulesCurrentConflict
    reportDebug "$args"
    set currentModule [currentModuleName]
 
-   foreach mod $args {
-      if {$::g_auto_handling} {
-         # build conflict list to register in MODULES_LMCONFLICT after
-         # successful module load
-         if { ![info exists ModulesCurrentConflict($currentModule)]\
-            || [lsearch -exact $ModulesCurrentConflict($currentModule) \
-            $mod] == -1} {
-            lappend ModulesCurrentConflict($currentModule) $mod
-         }
-      }
+   if {$::g_auto_handling} {
+      # register conflict list
+      eval setLoadedConflict $currentModule $args
+   }
 
+   foreach mod $args {
       # If the current module is already loaded, we can proceed
       if {![is-loaded $currentModule]} {
          # otherwise if the conflict module is loaded, we cannot
@@ -3094,6 +3088,59 @@ proc getLoadedMatchingName {name {behavior "returnlast"}} {
    reportDebug "'$ret' matches '$name'"
 
    return $ret
+}
+
+proc setLoadedConflict {mod args} {
+   global g_loadedModuleConflict
+
+   foreach con $args {
+      if {![info exists g_loadedModuleConflict($mod)] || [lsearch -exact\
+         $g_loadedModuleConflict($mod) $con] == -1} {
+         lappend g_loadedModuleConflict($mod) $con
+      }
+   }
+}
+
+proc unsetLoadedConflict {mod} {
+   if {[info exists ::g_loadedModuleConflict($mod)]} {
+      unset ::g_loadedModuleConflict($mod)
+   }
+}
+
+proc getLoadedConflict {mod {serialized 0}} {
+   set ret {}
+
+   if {[info exists ::g_loadedModuleConflict($mod)]} {
+      if {$serialized} {
+         # get conflict info as a string that can be registered in an env var
+         set ret [join [concat [list $mod] $::g_loadedModuleConflict($mod)]\
+            $::g_sub1_separator]
+      } else {
+         set ret $::g_loadedModuleConflict($mod)
+      }
+   }
+
+   return $ret
+}
+
+proc doesModuleConflict {mod} {
+   set does 0
+   set modconlist {}
+
+   # check if any loaded module has declared a conflict
+   foreach modcon [array names ::g_loadedModuleConflict] {
+      foreach withmod $::g_loadedModuleConflict($modcon) {
+         if {[string first "$withmod/" "$mod/"] == 0} {
+            lappend modconlist $modcon
+            set does 1
+            break
+         }
+      }
+   }
+
+   reportDebug "'$mod' conflicts with '$modconlist'"
+
+   return [list $does $modconlist]
 }
 
 # runs the global RC files if they exist
@@ -3941,7 +3988,6 @@ endfunction(module)}
 }
 
 proc cacheCurrentModules {} {
-   global g_lmConflict
    global g_lmPrereq g_lmUasked
 
    # parse loaded modules information only once, global arrays are updated
@@ -3969,7 +4015,7 @@ proc cacheCurrentModules {} {
    if {$::g_auto_handling} {
       # cache declared conflict of loaded modules
       foreach modcon [getLoadedModuleConflictList] {
-         set g_lmConflict([lindex $modcon 0]) [lrange $modcon 1 end]
+         eval setLoadedConflict $modcon
       }
 
       # cache declared prereq of loaded modules
@@ -6039,7 +6085,6 @@ proc cmdModuleUnsource {args} {
 }
 
 proc cmdModuleLoad {args} {
-   global g_lmConflict ModulesCurrentConflict
    global g_lmPrereq ModulesCurrentPrereq
    global g_lmUasked
 
@@ -6074,64 +6119,26 @@ proc cmdModuleLoad {args} {
          set currentModule $modname
 
          if {$::g_force || ![isModuleLoaded $currentModule]} {
-
-            set conflict_list {}
-            set loading_conflict_list {}
             if {$::g_auto_handling} {
-               # check if any loaded module has declared a conflict
-               foreach conflictmod [array names g_lmConflict] {
-                  # skip currentModule own auto-conflict if
-                  # already loaded and g_force is enabled
-                  if {$conflictmod != $currentModule} {
-                     set isconflict 0
-                     set imax [llength $g_lmConflict($conflictmod)]
-                     for {set i 0} {$i<$imax && $isconflict==0} {incr i 1} {
-                        set withmod [lindex $g_lmConflict($conflictmod) $i]
-                        if {[string first "$withmod/" \
-                           "$currentModule/"] == 0} {
-                           set isconflict 1
-                           lappend conflict_list $conflictmod
-                        }
-                     }
-                  }
-               }
-               # also check if any loading module has declared a conflict
-               foreach conflictmod [array names ModulesCurrentConflict] {
-                  # skip currentModule own auto-conflict if
-                  # already loaded and g_force is enabled
-                  if {$conflictmod != $currentModule} {
-                     set isconflict 0
-                     set imax [llength $ModulesCurrentConflict($conflictmod)]
-                     for {set i 0} {$i<$imax && $isconflict==0} {incr i 1} {
-                        set withmod [lindex \
-                           $ModulesCurrentConflict($conflictmod) $i]
-                        if {[string first "$withmod/" \
-                           "$currentModule/"] == 0} {
-                           set isconflict 1
-                           lappend loading_conflict_list $conflictmod
-                        }
-                     }
-                  }
-               }
+               lassign [doesModuleConflict $currentModule] doescon modconlist
+            } else {
+               set doescon 0
+               set modconlist {}
             }
 
-            if {[llength $conflict_list] > 0} {
+            if {$doescon} {
                # report an error instead of loading module
                # if a conflict has been detected
                reportError "WARNING: $currentModule cannot be loaded due\
                   to a conflict.\nHINT: Might try \"module unload\
-                  [join $conflict_list]\" first."
-            } elseif {[llength $loading_conflict_list] > 0} {
-               # also report an error instead of loading module
-               # if a conflict among loading modules has been detected
-               reportError "WARNING: $currentModule cannot be loaded due\
-                  to a conflict.\nHINT: Conflict with $currentModule is\
-                  set in [join $loading_conflict_list]."
+                  [join $modconlist]\" first."
             } else {
                pushSettings
 
                if {[execute-modulefile $modfile $currentModule $mod]} {
                   restoreSettings
+                  # unregister properties accumulated during evaluation
+                  unsetLoadedConflict $currentModule
                   set ret 1
                } else {
                   add-path "append" LOADEDMODULES $currentModule
@@ -6141,15 +6148,10 @@ proc cmdModuleLoad {args} {
                   setLoadedModule $currentModule $modfile
 
                   if {$::g_auto_handling} {
-                     # declare the conflict of this module
-                     if {[info exists \
-                        ModulesCurrentConflict($currentModule)]} {
-                        add-path "append" MODULES_LMCONFLICT \
-                           "$currentModule$::g_sub1_separator[join \
-                           $ModulesCurrentConflict($currentModule) \
-                           $::g_sub1_separator]"
-                        set g_lmConflict($currentModule) \
-                           $ModulesCurrentConflict($currentModule)
+                     # register declared conflict in environment
+                     if {[set modcon [getLoadedConflict $currentModule 1]] ne\
+                        ""} {
+                        add-path "append" MODULES_LMCONFLICT $modcon
                      }
 
                      # declare the prereq of this module
@@ -6204,7 +6206,6 @@ proc cmdModuleLoad {args} {
 }
 
 proc cmdModuleUnload {match args} {
-   global g_lmConflict
    global g_lmPrereq g_lmUasked
    global env g_loadedModules
    reportDebug "unloading $args (match=$match)"
@@ -6250,14 +6251,12 @@ proc cmdModuleUnload {match args} {
                   unsetLoadedModule $currentModule $modfile
 
                   if {$::g_auto_handling} {
-                     # unset conflict declared for this module
-                     if {[info exists g_lmConflict($currentModule)]} {
-                        unload-path MODULES_LMCONFLICT \
-                           "$currentModule$::g_sub1_separator[join \
-                           $g_lmConflict($currentModule) \
-                           $::g_sub1_separator]"
-                        unset g_lmConflict($currentModule)
+                     # unregister declared conflict
+                     if {[set modcon [getLoadedConflict $currentModule 1]] ne\
+                        ""} {
+                        unload-path MODULES_LMCONFLICT $modcon
                      }
+                     unsetLoadedConflict $currentModule
 
                      # unset prereq declared for this module
                      if {[info exists g_lmPrereq($currentModule)]} {
