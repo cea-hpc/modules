@@ -2366,20 +2366,12 @@ proc conflict {args} {
 }
 
 proc prereq {args} {
-   global ModulesCurrentPrereq
+   reportDebug "$args"
    set currentModule [currentModuleName]
 
-   reportDebug "$args"
-
    if {$::g_auto_handling} {
-      # build prereq list to register in MODULES_LMPREREQ
-      # after successful module load. sets of optional
-      # prereq are registered as a list
-      if { ![info exists ModulesCurrentPrereq($currentModule)]\
-         || [lsearch -exact $ModulesCurrentPrereq($currentModule) \
-         $args] == -1} {
-         lappend ModulesCurrentPrereq($currentModule) $args
-      }
+      # register prereq list (sets of optional prereq are registered as list)
+      setLoadedPrereq $currentModule $args
    }
 
    # if dependency resolving is enabled try to load prereq
@@ -2398,7 +2390,7 @@ proc prereq {args} {
    }
 
    if {![eval is-loaded $args]} {
-      set errMsg "WARNING: [currentModuleName] cannot be loaded due to\
+      set errMsg "WARNING: $currentModule cannot be loaded due to\
           missing prereq."
       # adapt error message when multiple modules are specified
       if {[llength $args] > 1} {
@@ -3142,6 +3134,42 @@ proc doesModuleConflict {mod} {
 
    return [list $does $modconlist]
 }
+
+proc setLoadedPrereq {mod args} {
+   global g_loadedModulePrereq
+
+   foreach pre $args {
+      if {![info exists g_loadedModulePrereq($mod)] || [lsearch -exact\
+         $g_loadedModulePrereq($mod) $pre] == -1} {
+         lappend g_loadedModulePrereq($mod) $pre
+      }
+   }
+}
+
+proc unsetLoadedPrereq {mod} {
+   if {[info exists ::g_loadedModulePrereq($mod)]} {
+      unset ::g_loadedModulePrereq($mod)
+   }
+}
+
+proc getLoadedPrereq {mod {serialized 0}} {
+   set ret {}
+
+   if {[info exists ::g_loadedModulePrereq($mod)]} {
+      if {$serialized} {
+         # get prereq info as a string that can be registered in an env var
+         foreach pre $::g_loadedModulePrereq($mod) {
+            lappend modpre [join $pre $::g_sub2_separator]
+         }
+         set ret [join [concat [list $mod] $modpre] $::g_sub1_separator]
+      } else {
+         set ret $::g_loadedModulePrereq($mod)
+      }
+   }
+
+   return $ret
+}
+
 
 # runs the global RC files if they exist
 proc runModulerc {} {
@@ -3988,7 +4016,7 @@ endfunction(module)}
 }
 
 proc cacheCurrentModules {} {
-   global g_lmPrereq g_lmUasked
+   global g_lmUasked
 
    # parse loaded modules information only once, global arrays are updated
    # afterwards when module commands update loaded modules state
@@ -4020,7 +4048,7 @@ proc cacheCurrentModules {} {
 
       # cache declared prereq of loaded modules
       foreach modpre [getLoadedModulePrereqList] {
-         set g_lmPrereq([lindex $modpre 0]) [lrange $modpre 1 end]
+         eval setLoadedPrereq $modpre
       }
 
       # cache loaded modules asked by user
@@ -5132,17 +5160,17 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
 # get list of loaded modules having directly a prereq onto
 # modulename or having a prereq onto dependencies of modulename
 proc getDepLoadedModuleList {modulename {dep_list {}}} {
-   global g_lmPrereq g_debug
+   global g_loadedModulePrereq g_debug
 
    if {$g_debug} {
       report "DEBUG getDepLoadedModuleList: $modulename"
    }
 
-   foreach prereqmod [array names g_lmPrereq] {
+   foreach prereqmod [array names g_loadedModulePrereq] {
       set isprereq 0
-      set imax [llength $g_lmPrereq($prereqmod)]
+      set imax [llength $g_loadedModulePrereq($prereqmod)]
       for {set i 0} {$i<$imax && $isprereq==0} {incr i 1} {
-         set withmod [lindex $g_lmPrereq($prereqmod) $i]
+         set withmod [lindex $g_loadedModulePrereq($prereqmod) $i]
          set jmax [llength $withmod]
          if {$jmax > 1} {
             for {set j 0} {$j<$jmax && $isprereq==0} {incr j 1} {
@@ -5171,7 +5199,7 @@ proc getDepLoadedModuleList {modulename {dep_list {}}} {
 # get list of loaded modules having a direct
 # and active dependency onto modulename
 proc getActiveDepLoadedModuleList {modulename} {
-   global g_loadedModules g_lmPrereq g_debug
+   global g_loadedModules g_loadedModulePrereq g_debug
 
    if {$g_debug} {
       report "DEBUG getActiveDepLoadedModuleList: $modulename"
@@ -5182,11 +5210,11 @@ proc getActiveDepLoadedModuleList {modulename} {
    set kmax [llength $lmlist]
 
    # check if any loaded module has declared a prereq
-   foreach prereqmod [array names g_lmPrereq] {
+   foreach prereqmod [array names g_loadedModulePrereq] {
       set isprereq 0
-      set imax [llength $g_lmPrereq($prereqmod)]
+      set imax [llength $g_loadedModulePrereq($prereqmod)]
       for {set i 0} {$i<$imax && $isprereq==0} {incr i 1} {
-         set withmod [lindex $g_lmPrereq($prereqmod) $i]
+         set withmod [lindex $g_loadedModulePrereq($prereqmod) $i]
          set jmax [llength $withmod]
          # check if modulename is part of a multiple-module-prereq
          # registered for a loaded module. if so, check if another module
@@ -6085,7 +6113,6 @@ proc cmdModuleUnsource {args} {
 }
 
 proc cmdModuleLoad {args} {
-   global g_lmPrereq ModulesCurrentPrereq
    global g_lmUasked
 
    if {$::g_auto_handling} {
@@ -6139,6 +6166,7 @@ proc cmdModuleLoad {args} {
                   restoreSettings
                   # unregister properties accumulated during evaluation
                   unsetLoadedConflict $currentModule
+                  unsetLoadedPrereq $currentModule
                   set ret 1
                } else {
                   add-path "append" LOADEDMODULES $currentModule
@@ -6155,15 +6183,9 @@ proc cmdModuleLoad {args} {
                      }
 
                      # declare the prereq of this module
-                     if {[info exists ModulesCurrentPrereq($currentModule)]} {
-                        set lmprereq "$currentModule"
-                        foreach prereq $ModulesCurrentPrereq($currentModule) {
-                           append lmprereq $::g_sub1_separator[join \
-                              $prereq $::g_sub2_separator]
-                        }
-                        add-path "append" MODULES_LMPREREQ $lmprereq
-                        set g_lmPrereq($currentModule) \
-                           $ModulesCurrentPrereq($currentModule)
+                     if {[set modpre [getLoadedPrereq $currentModule 1]] ne\
+                        ""} {
+                        add-path "append" MODULES_LMPREREQ $modpre
                      }
 
                      # declare module as asked by user, even if it is
@@ -6206,7 +6228,7 @@ proc cmdModuleLoad {args} {
 }
 
 proc cmdModuleUnload {match args} {
-   global g_lmPrereq g_lmUasked
+   global g_lmUasked
    global env g_loadedModules
    reportDebug "unloading $args (match=$match)"
 
@@ -6259,26 +6281,22 @@ proc cmdModuleUnload {match args} {
                      unsetLoadedConflict $currentModule
 
                      # unset prereq declared for this module
-                     if {[info exists g_lmPrereq($currentModule)]} {
-                        set modprereq $g_lmPrereq($currentModule)
-                        set lmprereq "$currentModule"
-                        foreach prereq $g_lmPrereq($currentModule) {
-                           append lmprereq $::g_sub1_separator[join \
-                              $prereq $::g_sub2_separator]
-                        }
-                        unload-path MODULES_LMPREREQ $lmprereq
-                        unset g_lmPrereq($currentModule)
+                     if {[llength [set modpre [getLoadedPrereq $currentModule]]]\
+                        > 0} {
+                        unload-path MODULES_LMPREREQ [getLoadedPrereq\
+                           $currentModule 1]
                      }
+                     unsetLoadedPrereq $currentModule
 
                      # when dependency resolving is enabled, build
                      # ordered list of prereq modules that have been
                      # loaded automatically and that can now be
                      # unloaded automatically
-                     if {[info exists modprereq]} {
+                     if {[info exists modpre]} {
                         set lmlist [array names g_loadedModules]
                         set imax [llength $lmlist]
                         set mod_to_unload {}
-                        foreach prereqlist $modprereq {
+                        foreach prereqlist $modpre {
                            foreach prereq $prereqlist {
                               set prereqchecked 0
                               for {set i 0} {$i<$imax \
