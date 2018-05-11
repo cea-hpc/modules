@@ -1568,10 +1568,10 @@ proc module {command args} {
             # initadd command that may expect this behavior
             if {[llength $args] > 0} {
                set ret 0
-               if {$::g_auto_handling && $topcall} {
-                  set ret [eval cmdModuleLoad --stick $args]
-               } elseif {$topcall || $mode eq "load"} {
-                  set ret [eval cmdModuleLoad $args]
+               if {$topcall} {
+                  set ret [eval cmdModuleLoad 1 $args]
+               } elseif {$mode eq "load"} {
+                  set ret [eval cmdModuleLoad 0 $args]
                } else {
                   # on unload mode, unload mods in reverse order
                   set ret [eval cmdModuleUnload "match" [lreverse $args]]
@@ -2378,7 +2378,7 @@ proc prereq {args} {
       # try next if load of first module not successful
       for {set i 0} {$i<$imax && $prereqloaded==0} {incr i 1} {
          set arg [lindex $args $i]
-         cmdModuleLoad $arg
+         cmdModuleLoad 0 $arg
          if {[is-loaded $arg]} {
             set prereqloaded 1
          }
@@ -5066,10 +5066,10 @@ proc displayElementList {header hstyle one_per_line display_idx args} {
    report "$displist" -nonewline
 }
 
-# build list of what to undo then do to move
-# from an initial list to a target list
-proc getMovementBetweenList {from to} {
-   reportDebug "from($from) to($to)"
+# build list of what to undo then do to move from an initial list to a target
+# list, eventually checking element presence in extra from/to lists
+proc getMovementBetweenList {from to {extfrom {}} {extto {}}} {
+   reportDebug "from($from) to($to) with extfrom($extfrom) extto($extto)"
 
    set undo {}
    set do {}
@@ -5086,8 +5086,11 @@ proc getMovementBetweenList {from to} {
    for {set i 0} {$i < $imax} {incr i} {
       set to_obj [lindex $to $i]
       set from_obj [lindex $from $i]
-
-      if {$to_obj ne $from_obj} {
+      # check from/to element presence in extra from/to list
+      set in_extfrom [expr {[lsearch -exact $extfrom $from_obj] != -1}]
+      set in_extto [expr {[lsearch -exact $extto $to_obj] != -1}]
+      # are elts the sames and are both part of or missing from extra lists
+      if {$to_obj ne $from_obj || $in_extfrom != $in_extto} {
          set list_equal 0
       }
       if {$list_equal == 0} {
@@ -5110,23 +5113,16 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
    {helper_list {}}} {
    reportDebug "called."
 
-   # only save loaded modules asked by user when dependency resolving is
-   # enabled since loading these modules when restoring collection will
-   # automatically load the other modules (which are dependencies)
-   if {$::g_auto_handling} {
-      set loadedmodules [getLoadedModuleUserAskedList]
-   } else {
-      set loadedmodules [getLoadedModuleList]
-   }
-
    set curr_mod_list {}
+   set curr_uasked_list {}
+   set lmuaskedlist [getLoadedModuleUserAskedList]
    set modpathlist [getModulePathList]
-   foreach mod $loadedmodules {
+   foreach mod [getLoadedModuleList] {
       # if mod found in a previous LOADEDMODULES list use simplified
       # version of this module found in relative helper list (previously
       # computed simplified list)
       if {[set helper_idx [lsearch -exact $helper_raw_list $mod]] != -1} {
-         lappend curr_mod_list [lindex $helper_list $helper_idx]
+         set simplemod [lindex $helper_list $helper_idx]
       # look through modpaths for a simplified mod name if not full path
       } elseif {![isModuleFullPath $mod] && [llength $modpathlist] > 0} {
          set modfile [getModulefileFromLoadedModule $mod]
@@ -5142,13 +5138,17 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
                set parentmod "."
             }
          }
-         lappend curr_mod_list $simplemod
       } else {
-         lappend curr_mod_list $mod
+         set simplemod $mod
+      }
+      lappend curr_mod_list $simplemod
+      # record user asked module list in simplified version form
+      if {[lsearch -exact $lmuaskedlist $mod] != -1} {
+         lappend curr_uasked_list $simplemod
       }
    }
 
-   return $curr_mod_list
+   return [list $curr_mod_list $curr_uasked_list]
 }
 
 # get list of loaded modules having directly a prereq onto
@@ -5271,7 +5271,7 @@ proc reloadDepLoadedModuleList {modulename} {
       }
       # then load module list again
       foreach upmod $uplist {
-         cmdModuleLoad --stick $upmod
+         cmdModuleLoad 1 $upmod
       }
    }
 }
@@ -5347,7 +5347,7 @@ proc getCollectionFilename {coll} {
 }
 
 # generate collection content based on provided path and module lists
-proc formatCollectionContent {path_list mod_list} {
+proc formatCollectionContent {path_list mod_list uasked_list} {
    set content ""
 
    # start collection content with modulepaths
@@ -5359,7 +5359,13 @@ proc formatCollectionContent {path_list mod_list} {
 
    # then add modules
    foreach mod $mod_list {
-      append content "module load $mod" "\n"
+      # mark modules not asked by user to restore the user asked state
+      if {[lsearch -exact $uasked_list $mod] == -1} {
+         set opt "--notuasked "
+      } else {
+         set opt ""
+      }
+      append content "module load $opt$mod" "\n"
    }
 
    return $content
@@ -5370,6 +5376,7 @@ proc readCollectionContent {collfile colldesc} {
    # init lists (maybe coll does not set mod to load)
    set path_list {}
    set mod_list {}
+   set uasked_list {}
 
    # read file
    if {[catch {
@@ -5412,14 +5419,20 @@ proc readCollectionContent {collfile colldesc} {
             }
          }
       } elseif {[regexp {module load (.*)$} $fline match modarg] == 1} {
-         # manage multiple modules specified on a
-         # single line with "split", for instance:
-         # module load mod1 mod2 mod3
-         set mod_list [concat $mod_list [split $modarg]]
+         # manage multiple modules specified on a single line with "split",
+         # for instance: module load mod1 mod2 mod3
+         set arglist [split $modarg]
+         # make a list of modules that were directly asked by user
+         set cleanlist [lsearch -all -inline -not -exact $arglist\
+            "--notuasked"]
+         if {[llength $arglist] == [llength $cleanlist]} {
+            set uasked_list [concat $uasked_list $cleanlist]
+         }
+         set mod_list [concat $mod_list $cleanlist]
       }
    }
 
-   return [list $path_list $mod_list]
+   return [list $path_list $mod_list $uasked_list]
 }
 
 # analyze arg list passed to a module cmd to set listing-related options
@@ -5806,19 +5819,19 @@ proc cmdModuleSwitch {old {new {}}} {
          }
          # attempt load only if unload succeed
          if {![cmdModuleUnload $unload_match $old]} {
-            cmdModuleLoad --stick $new
+            cmdModuleLoad 1 $new
          }
          # load again every module with prereq onto old after
          # load of new. these module loads may fail if prereq
          # are not satisfied anymore
          foreach mod $uplist {
-            cmdModuleLoad --stick $mod
+            cmdModuleLoad 1 $mod
          }
       }
    } else {
       # attempt load only if unload succeed
       if {![cmdModuleUnload $unload_match $old]} {
-         cmdModuleLoad $new
+         cmdModuleLoad 1 $new
       }
    }
 }
@@ -5830,11 +5843,12 @@ proc cmdModuleSave {{coll {default}}} {
    # version pinning is enabled
    if {[pinVersionInCollection]} {
       set curr_mod_list [getLoadedModuleList]
+      set curr_uasked_list [getLoadedModuleUserAskedList]
    } else {
-      set curr_mod_list [getSimplifiedLoadedModuleList]
+      lassign [getSimplifiedLoadedModuleList] curr_mod_list curr_uasked_list
    }
    set save [formatCollectionContent [getModulePathList "returnempty" 0]\
-      $curr_mod_list]
+      $curr_mod_list $curr_uasked_list]
 
    if { [string length $save] == 0} {
       reportErrorAndExit "Nothing to save in a collection"
@@ -5874,7 +5888,7 @@ proc cmdModuleRestore {{coll {default}}} {
 
    # read collection
    lassign [readCollectionContent $collfile $colldesc] coll_path_list\
-      coll_mod_list
+      coll_mod_list coll_uasked_list
 
    # collection should at least define a path or a mod
    if {[llength $coll_path_list] == 0 && [llength $coll_mod_list] == 0} {
@@ -5886,16 +5900,18 @@ proc cmdModuleRestore {{coll {default}}} {
    # get current loaded module list in simplified and raw versions
    # these lists may be used later on, see below
    set curr_mod_list_raw [getLoadedModuleList]
-   set curr_mod_list [getSimplifiedLoadedModuleList]
+   set curr_uasked_list_raw [getLoadedModuleUserAskedList]
+   lassign [getSimplifiedLoadedModuleList] curr_mod_list curr_uasked_list
 
    # determine what module to unload to restore collection
    # from current situation with preservation of the load order
-   lassign [getMovementBetweenList $curr_mod_list $coll_mod_list] \
-      mod_to_unload mod_to_load
+   lassign [getMovementBetweenList $curr_mod_list $coll_mod_list\
+      $curr_uasked_list $coll_uasked_list] mod_to_unload mod_to_load
    # determine unload movement with raw loaded list in case versions are
    # pinning in saved collection
-   lassign [getMovementBetweenList $curr_mod_list_raw $coll_mod_list] \
-      mod_to_unload_raw mod_to_load_raw
+   lassign [getMovementBetweenList $curr_mod_list_raw $coll_mod_list\
+      $curr_uasked_list_raw $coll_uasked_list] mod_to_unload_raw\
+      mod_to_load_raw
    if {[llength $mod_to_unload] > [llength $mod_to_unload_raw]} {
       set mod_to_unload $mod_to_unload_raw
    }
@@ -5925,18 +5941,20 @@ proc cmdModuleRestore {{coll {default}}} {
    # unload modules. these helper lists may help to learn the
    # simplified counterpart of a loaded module if it was already loaded
    # before starting to unload modules
-   set curr_mod_list [getSimplifiedLoadedModuleList\
-      $curr_mod_list_raw $curr_mod_list]
+   lassign [getSimplifiedLoadedModuleList $curr_mod_list_raw $curr_mod_list]\
+      curr_mod_list curr_uasked_list
    set curr_mod_list_raw [getLoadedModuleList]
+   set curr_uasked_list_raw [getLoadedModuleUserAskedList]
 
    # determine what module to load to restore collection
    # from current situation with preservation of the load order
-   lassign [getMovementBetweenList $curr_mod_list $coll_mod_list] \
-      mod_to_unload mod_to_load
+   lassign [getMovementBetweenList $curr_mod_list $coll_mod_list\
+      $curr_uasked_list $coll_uasked_list] mod_to_unload mod_to_load
    # determine load movement with raw loaded list in case versions are
    # pinning in saved collection
-   lassign [getMovementBetweenList $curr_mod_list_raw $coll_mod_list] \
-      mod_to_unload_raw mod_to_load_raw
+   lassign [getMovementBetweenList $curr_mod_list_raw $coll_mod_list\
+      $curr_uasked_list_raw $coll_uasked_list] mod_to_unload_raw\
+      mod_to_load_raw
    if {[llength $mod_to_load] > [llength $mod_to_load_raw]} {
       set mod_to_load $mod_to_load_raw
    }
@@ -5952,15 +5970,17 @@ proc cmdModuleRestore {{coll {default}}} {
       eval cmdModuleUse --append $path_to_use
    }
 
-   # load modules
-   if {[llength $mod_to_load] > 0} {
+   # load modules with user asked state preserved
+   foreach mod $mod_to_load {
       if {$::g_auto_handling} {
-         eval cmdModuleLoad --stick $mod_to_load
+         if {[lsearch -exact $coll_uasked_list $mod] != -1} {
+            cmdModuleLoad 1 $mod
+         }
       } else {
-         eval cmdModuleLoad $mod_to_load
+         cmdModuleLoad [expr {[lsearch -exact $coll_uasked_list $mod] != -1}]\
+            $mod
       }
    }
-
 }
 
 proc cmdModuleSaverm {{coll {default}}} {
@@ -5999,7 +6019,7 @@ proc cmdModuleSaveshow {{coll {default}}} {
 
    # read collection
    lassign [readCollectionContent $collfile $colldesc] coll_path_list\
-      coll_mod_list
+      coll_mod_list coll_uasked_list
 
    # collection should at least define a path or a mod
    if {[llength $coll_path_list] == 0 && [llength $coll_mod_list] == 0} {
@@ -6008,7 +6028,8 @@ proc cmdModuleSaveshow {{coll {default}}} {
 
    displaySeparatorLine
    report "$collfile:\n"
-   report [formatCollectionContent $coll_path_list $coll_mod_list]
+   report [formatCollectionContent $coll_path_list $coll_mod_list\
+      $coll_uasked_list]
    displaySeparatorLine
 }
 
@@ -6106,24 +6127,10 @@ proc cmdModuleUnsource {args} {
    }
 }
 
-proc cmdModuleLoad {args} {
+proc cmdModuleLoad {uasked args} {
    global g_lmUasked
 
-   if {$::g_auto_handling} {
-      # check if stickiness defined
-      set stickyarg [lsearch -exact $args "--stick"]
-      if {$stickyarg != -1} {
-         set sticky 1
-         set args [lreplace $args $stickyarg $stickyarg]
-      } else {
-         set sticky 0
-      }
-      set sticky_debug_msg " (sticky=$sticky)"
-   } else {
-      set sticky_debug_msg ""
-   }
-
-   reportDebug "loading $args$sticky_debug_msg"
+   reportDebug "loading $args (uasked=$uasked)"
 
    set ret 0
    pushMode "load"
@@ -6200,7 +6207,7 @@ proc cmdModuleLoad {args} {
 
                   # undeclare module asked by user if it is not the case
                   # now that prereq-reloading phase is finished
-                  if {$sticky == 0} {
+                  if {!$uasked} {
                      unload-path MODULES_LMUASKED $currentModule
                      unset g_lmUasked($currentModule)
                   }
@@ -6378,11 +6385,12 @@ proc cmdModulePurge {} {
 proc cmdModuleReload {} {
    reportDebug "called."
 
+   set lmuaskedlist [getLoadedModuleUserAskedList]
    # only reload loaded modules asked by user when dependency resolving is
    # enabled since unloading and loading these modules will automatically
    # unload and load other loaded modules (which are dependencies)
    if {$::g_auto_handling} {
-      set list [getLoadedModuleUserAskedList]
+      set list $lmuaskedlist
    } else {
       set list [getLoadedModuleList]
    }
@@ -6391,14 +6399,9 @@ proc cmdModuleReload {} {
    foreach mod $rlist {
       cmdModuleUnload "match" $mod
    }
-   if {$::g_auto_handling} {
-      foreach mod $list {
-         cmdModuleLoad --stick $mod
-      }
-   } else {
-      foreach mod $list {
-         cmdModuleLoad $mod
-      }
+   foreach mod $list {
+      # reload module with user asked property preserved
+      cmdModuleLoad [expr {[lsearch -exact $lmuaskedlist $mod] != -1}] $mod
    }
 }
 
