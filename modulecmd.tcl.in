@@ -4041,7 +4041,15 @@ proc cacheCurrentModules {} {
          }
 
          # cache loaded modules asked by user
-         foreach mod [getLoadedModuleUserAskedList] {
+         set uaskedlist [getLoadedModuleUserAskedList]
+         # no user asked found means all modules are user asked to make env
+         # setup on a previous Modules version still functionnal after an
+         # update to a Modules version introducing 'user asked' state
+         if {[llength $uaskedlist] == 0 && [llength $modlist] > 0} {
+            set uaskedlist $modlist
+            add-path "append" MODULES_LMUASKED $modlist
+         }
+         foreach mod $uaskedlist {
             set g_lmUasked($mod) 1
          }
 
