@@ -38,6 +38,11 @@ if { $verbose > 0 } {
 # empty argument list on load command does not lead to error (nop)
 testouterr_cmd "sh" "load" "OK" ""
 
+# check first arg is split internally for argument list passed as a single string
+lappend ans [list setpath LOADEDMODULES "loc_dv2/1.0"]
+lappend ans [list setpath _LMFILES_ "$modpath/loc_dv2/1.0"]
+testouterr_cmd "sh" "NOCMDSPLITload loc_dv2/1.0" $ans ""
+
 # unexpected number of arguments leads to error code
 testouterr_cmd "ALL" "unload" "ERR" "${bad_arg1}unload${bad_arg2}\n$err_typehelp"
 
@@ -85,3 +90,4 @@ testouterr_cmd "sh" "info-loaded" "ERR" "${bad_arg1}info-loaded${bad_arg2}\n$err
 
 unset bad_arg1
 unset bad_arg2
+unset ans

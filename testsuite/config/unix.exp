@@ -120,6 +120,14 @@ proc modulecmd_xxx_ {command} {
 	  unresolved "internal testsuite error: no module command specified"
 	}
 
+    # check if asked not to split passed command line
+    if {[string first "NOCMDSPLIT" $command] == 0} {
+        set nocmdsplit 1
+        set command [string range $command 10 end]
+    } else {
+        set nocmdsplit 0
+    }
+
 	default_shell 
 	default_modulecmd
 	default_tclsh
@@ -136,7 +144,11 @@ proc modulecmd_xxx_ {command} {
 #
 # now need to capture the exit return code.
 	if [catch {
-		set comp_output [eval exec $TCLSH $MODULECMD $shell [split $command { }] 2> test321.err > test321.out ]
+        if {$nocmdsplit} {
+            set comp_output [exec $TCLSH $MODULECMD $shell $command 2> test321.err > test321.out ]
+        } else {
+            set comp_output [eval exec $TCLSH $MODULECMD $shell [split $command { }] 2> test321.err > test321.out ]
+        }
 	} ] {
 		set comp_exit [lindex $errorCode 2]
 	} else {

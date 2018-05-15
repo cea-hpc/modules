@@ -108,7 +108,7 @@ it now returns a value. False in case of error, true if everything goes well.
 As a consequence, returned value of a module sub-command can be checked. For
 instance in Python::
 
-    if module('load foo'):
+    if module('load', 'foo'):
       # success
     else:
       # failure
@@ -153,7 +153,7 @@ with same arguments and properties as if called from within a modulefile:
 
 The ``is-loaded`` sub-command returns a boolean value. Small Python example::
 
-    if module('is-loaded app'):
+    if module('is-loaded', 'app'):
       print 'app is loaded'
     else:
       print 'app not loaded'
