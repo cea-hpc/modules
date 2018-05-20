@@ -347,19 +347,23 @@ proc shell_unset {test_shell var {re_mode 0}} {
     return $answer
 }
 
-proc shell_alias {test_shell var val {re_mode 0}} {
+proc shell_alias {test_shell var val {re_mode 0} {escval 1}} {
     if {$re_mode} {
         set esc "\\"
     } else {
         set esc ""
     }
 
+    if {$escval} {
+        set val [shell_val $test_shell $val $re_mode]
+    }
+
     switch -- $test_shell {
         {sh} - {bash} - {ksh} - {zsh} {
-            set answer "alias $var='$val';"
+            set answer "alias $var=$val;"
         }
         {csh} - {tcsh} - {fish} {
-            set answer "alias $var '$val';"
+            set answer "alias $var $val;"
         }
         {cmd} {
             set answer "doskey $var=$val"

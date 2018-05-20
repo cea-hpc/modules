@@ -15,7 +15,7 @@
 #   Sub-Command:
 #
 #   Comment:	%C{
-#			Tests the 'set-alias' substition of $1 and $*
+#			Tests the 'set-alias' substition of $1 and $* and special chars
 #		}C%
 #
 ##############################################################################
@@ -28,15 +28,15 @@
 
 set module "alias/1.0"
 set modulefile "$modpath/$module"
-set alias_sh {ls \$1 \$2 \| grep \$\*}
-set alias_csh {ls \\!\\!:1 \\!\\!:2 \| grep \\!\*}
-set alias_cmd {ls $1 $2 | grep $*}
+set alias {ls $1 $2 | grep $*}
+set alias_csh {ls !!:1 !!:2 | grep !*}
+
 
 #
 #  For the different shells ...
 #
 
-lappend ans [list alias testsuite $alias_sh]
+lappend ans [list alias testsuite $alias]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 
@@ -44,7 +44,7 @@ lappend ans2 [list alias testsuite $alias_csh]
 lappend ans2 [list setpath LOADEDMODULES $module]
 lappend ans2 [list setpath _LMFILES_ $modulefile]
 
-lappend ans3 [list alias testsuite $alias_cmd]
+lappend ans3 [list alias testsuite $alias]
 lappend ans3 [list setpath LOADEDMODULES $module]
 lappend ans3 [list setpath _LMFILES_ $modulefile]
 
@@ -60,11 +60,50 @@ foreach sh $supported_shells {
     if {$sh eq "cmd"} {
         test_cmd "$sh" "load $module" $ans3
     } elseif {[lsearch -exact $csh_shells $sh] >= 0} {
-        test_cmd_re "$sh" "load $module" $ans2
+        test_cmd "$sh" "load $module" $ans2
     } else {
-        test_cmd_re "$sh" "load $module" $ans
+        test_cmd "$sh" "load $module" $ans
     }
 }
+
+
+#
+# Test special characters handling
+#
+
+set module "alias/3.0"
+set modulefile "$modpath/$module"
+
+set ans [list]
+lappend ans [list alias testsuite {echo $(grep "report \"Modules " modulecmd.tcl | tr -d \\ | awk '{print $3}')}]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+
+set ans2 [list]
+lappend ans2 [list alias testsuite {echo `grep "report "'"'"Modules " modulecmd.tcl | tr -d \\ | awk '{print $3}'`}]
+lappend ans2 [list setpath LOADEDMODULES $module]
+lappend ans2 [list setpath _LMFILES_ $modulefile]
+
+set ans3 [list]
+lappend ans3 [list alias testsuite {echo (grep "report \"Modules " modulecmd.tcl | tr -d \\ | awk '{print $3}')}]
+lappend ans3 [list setpath LOADEDMODULES $module]
+lappend ans3 [list setpath _LMFILES_ $modulefile]
+
+
+foreach sh $supported_shells {
+    switch -- $sh {
+        {sh} - {bash} - {ksh} - {zsh} {
+            test_cmd $sh "load $module" $ans
+        }
+        {csh} - {tcsh} {
+            test_cmd $sh "load $module" $ans2
+        }
+        {fish} {
+            test_cmd $sh "load $module" $ans3
+        }
+    }
+}
+
 
 #
 #  Cleanup
@@ -77,7 +116,6 @@ unset ans3
 
 unset modulefile
 unset module
-unset alias_sh
+unset alias
 unset alias_csh
-unset alias_cmd
 

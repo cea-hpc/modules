@@ -41,6 +41,15 @@ foreach shell $shell_list {
    testall_cmd "$shell" "module use $contrib_modpath\; module load null\; module info-loaded null" "null" "" 0
 }
 
+# ensure tools used in complex shell alias definition are available
+if {[find_bin grep] ne "" && [find_bin tr] ne "" && [find_bin awk] ne ""} {
+   foreach shell $shell_list {
+      testall_cmd_re "$shell" "module load $testsuite_modpath/alias/3.0\; testsuite" "Release" ".*" 0
+   }
+} elseif {$verbose > 0} {
+   send_user "\tSkipping shell alias definition tests\n"
+}
+
 foreach shell $othlang_list {
    testall_cmd_re "$shell" "--version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
    testall_cmd_re "$shell" "foo" "^\$" "$bad_cmd\n$type_help.*" 1
