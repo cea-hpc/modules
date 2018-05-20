@@ -3150,26 +3150,28 @@ proc renderSettings {} {
    foreach var [array names g_stateAliases] {
       switch -- $g_stateAliases($var) {
          {new} {
+            set val $::g_Aliases($var)
+            # convert $n in !!:n and $* in !* on csh (like on compat version)
+            if {$::g_shellType eq "csh"} {
+               regsub -all {([^\\]|^)\$([0-9]+)} $val {\1!!:\2} val
+               regsub -all {([^\\]|^)\$\*} $val {\1!*} val
+            }
+            # unescape \$ after now csh-specific conversion is over
+            regsub -all {\\\$} $val {$} val
             switch -- $::g_shellType {
                {csh} {
-                  # set val [charEscaped $::g_Aliases($var)]
-                  set val $::g_Aliases($var)
-                  # Convert $n -> \!\!:n
-                  regsub -all {\$([0-9]+)} $val {\\!\\!:\1} val
-                  # Convert $* -> \!*
-                  regsub -all {\$\*} $val {\\!*} val
-                  puts stdout "alias $var '$val';"
+                  set val [charEscaped $val]
+                  puts stdout "alias $var $val;"
                }
                {sh} {
-                  set val $::g_Aliases($var)
-                  puts stdout "alias $var='$val';"
+                  set val [charEscaped $val]
+                  puts stdout "alias $var=$val;"
                }
                {fish} {
-                  set val $::g_Aliases($var)
-                  puts stdout "alias $var '$val';"
+                  set val [charEscaped $val]
+                  puts stdout "alias $var $val;"
                }
                {cmd} {
-                  set val $::g_Aliases($var)
                   puts stdout "doskey $var=$val"
                }
             }
