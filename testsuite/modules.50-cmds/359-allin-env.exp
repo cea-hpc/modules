@@ -88,7 +88,7 @@ setenv_path_var MODULEPATH $modulepath
 # test load mode
 #
 
-set tsall ",dir2,dir2:dir1,,_UNDEFINED_altered,dir2,_UNDEFINED_altered"
+set tsall ",dir2,dir2:dir1,,_UNDEFINED_altered,dir2,_UNDEFINED_altered,ok8,ok9"
 
 set ans [list]
 lappend ans [list unset ts1]
@@ -99,6 +99,10 @@ lappend ans [list setpath TSPATH dir2]
 lappend ans [list set ts5 "_UNDEFINED_altered"]
 lappend ans [list set ts6 "dir2"]
 lappend ans [list set ts7 "_UNDEFINED_altered"]
+lappend ans [list set ts8 "ok8"]
+lappend ans [list set ts9 "ok9"]
+lappend ans [list setpath TSPATH2 ok8]
+lappend ans [list setpath TSPATH3 "ok8:ok9"]
 lappend ans [list setpath LOADEDMODULES "$module/1:$module/2"]
 lappend ans [list setpath _LMFILES_ "$modulefile/1:$modulefile/2"]
 lappend ans [list set tsall $tsall]
@@ -113,6 +117,10 @@ setenv_path_var TSPATH "dir2"
 setenv_var ts5 "_UNDEFINED_altered"
 setenv_var ts6 "dir2"
 setenv_var ts7 "_UNDEFINED_altered"
+setenv_var ts8 "ok8"
+setenv_var ts9 "ok9"
+setenv_path_var TSPATH2 "ok8"
+setenv_path_var TSPATH3 "ok8:ok9"
 setenv_var tsall $tsall
 
 testouterr_cmd_re "sh" "load $module/1 $module/2" $ans ""
@@ -126,17 +134,23 @@ testouterr_cmd_re "sh" "load $module/1 $module/2" $ans ""
 setenv_loaded_module [list "$module/1" "$module/2"] [list "$modulefile/1" "$modulefile/2"]
 
 set ans [list]
+lappend ans [list unset TSPATH2_modshare]
 lappend ans [list unset ts1]
 lappend ans [list unset ts2]
 lappend ans [list unset _LMFILES_]
-lappend ans [list unset ts3]
 lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset ts3]
 lappend ans [list unset ts4]
 lappend ans [list unset TSPATH]
 lappend ans [list unset ts5]
 lappend ans [list unset ts6]
+lappend ans [list unset TSPATH2]
 lappend ans [list unset ts7]
+lappend ans [list set TSPATH3 ok8]
+lappend ans [list unset ts8]
 lappend ans [list unset tsall]
+lappend ans [list unset ts9]
+lappend ans [list set TSPATH3_modshare "ok8:1"]
 lappend ans [list unset _LMFILES__modshare]
 lappend ans [list unset LOADEDMODULES_modshare]
 lappend ans [list unset TSPATH_modshare]
@@ -150,22 +164,30 @@ unsetenv_path_var TSPATH
 unsetenv_var ts5
 unsetenv_var ts6
 unsetenv_var ts7
+unsetenv_var ts8
+unsetenv_var ts9
+unsetenv_path_var TSPATH2
+unsetenv_path_var TSPATH3
 unsetenv_var tsall
 
 set ans [list]
 lappend ans [list unset ts1]
 lappend ans [list unset ts2]
-lappend ans [list unset ts3]
-lappend ans [list unset LOADEDMODULES]
 lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset ts3]
 lappend ans [list unset ts4]
 lappend ans [list unset TSPATH]
 lappend ans [list unset ts5]
 lappend ans [list unset ts6]
 lappend ans [list unset ts7]
+lappend ans [list unset TSPATH2]
+lappend ans [list unset TSPATH3]
+lappend ans [list unset ts8]
 lappend ans [list unset tsall]
-lappend ans [list unset LOADEDMODULES_modshare]
+lappend ans [list unset ts9]
 lappend ans [list unset _LMFILES__modshare]
+lappend ans [list unset LOADEDMODULES_modshare]
 testouterr_cmd "sh" "unload $module/1 $module/2" $ans ""
 
 # restore environment
@@ -189,10 +211,14 @@ setenv\t\tts5 \\\$ts1
 remove-path\tTSPATH dir1
 setenv\t\tts6 dir2
 setenv\t\tts7 \\\$ts5
-module-whatis\t,dir2,dir2:dir1,,\\\$ts1altered,dir2,\\\$ts5"
+setenv\t\tts8 ok8
+setenv\t\tts9 ok9
+append-path\tTSPATH2 ok8
+append-path\tTSPATH3 ok8 \\\$ts9
+module-whatis\t,dir2,dir2:dir1,,\\\$ts1altered,dir2,\\\$ts5,ok8,ok9"
 set tserr [display_stderr_content "$modulefile/1" $tsdisp]
-set tsdisp "setenv\t\ttsall ,dir2,dir2:dir1,,\\\$ts1altered,dir2,\\\$ts5
-module-whatis\t,dir2,dir2:dir1,,\\\$ts1altered,dir2,\\\$ts5"
+set tsdisp "setenv\t\ttsall ,dir2,dir2:dir1,,\\\$ts1altered,dir2,\\\$ts5,ok8,ok9
+module-whatis\t,dir2,dir2:dir1,,\\\$ts1altered,dir2,\\\$ts5,ok8,ok9"
 append tserr "\n[display_stderr_content $modulefile/2 $tsdisp 0]"
 testouterr_cmd_re "sh" "display $module/1 $module/2" "" $tserr
 
@@ -205,6 +231,10 @@ setenv_path_var TSPATH "dir2"
 setenv_var ts5 "_UNDEFINED_altered"
 setenv_var ts6 "dir2"
 setenv_var ts7 "_UNDEFINED_altered"
+setenv_var ts8 "ok8"
+setenv_var ts9 "ok9"
+setenv_path_var TSPATH2 "ok8"
+setenv_path_var TSPATH3 "ok8:ok9"
 setenv_var tsall $tsall
 
 testouterr_cmd_re "sh" "display $module/1 $module/2" "" $tserr
@@ -218,6 +248,10 @@ unsetenv_path_var TSPATH
 unsetenv_var ts5
 unsetenv_var ts6
 unsetenv_var ts7
+unsetenv_var ts8
+unsetenv_var ts9
+unsetenv_path_var TSPATH2
+unsetenv_path_var TSPATH3
 unsetenv_var tsall
 
 
@@ -239,6 +273,10 @@ setenv_path_var TSPATH "dir2"
 setenv_var ts5 "_UNDEFINED_altered"
 setenv_var ts6 "dir2"
 setenv_var ts7 "_UNDEFINED_altered"
+setenv_var ts8 "ok8"
+setenv_var ts9 "ok9"
+setenv_path_var TSPATH2 "ok8"
+setenv_path_var TSPATH3 "ok8:ok9"
 setenv_var tsall $tsall
 
 testouterr_cmd_re "sh" "help $module/1 $module/2" "" $tserr
@@ -252,6 +290,10 @@ unsetenv_path_var TSPATH
 unsetenv_var ts5
 unsetenv_var ts6
 unsetenv_var ts7
+unsetenv_var ts8
+unsetenv_var ts9
+unsetenv_path_var TSPATH2
+unsetenv_path_var TSPATH3
 unsetenv_var tsall
 
 
@@ -273,6 +315,10 @@ setenv_path_var TSPATH "dir2"
 setenv_var ts5 "_UNDEFINED_altered"
 setenv_var ts6 "dir2"
 setenv_var ts7 "_UNDEFINED_altered"
+setenv_var ts8 "ok8"
+setenv_var ts9 "ok9"
+setenv_path_var TSPATH2 "ok8"
+setenv_path_var TSPATH3 "ok8:ok9"
 setenv_var tsall $tsall
 
 testouterr_cmd_re "sh" "test $module/1 $module/2" "" $tserr
@@ -286,6 +332,10 @@ unsetenv_path_var TSPATH
 unsetenv_var ts5
 unsetenv_var ts6
 unsetenv_var ts7
+unsetenv_var ts8
+unsetenv_var ts9
+unsetenv_path_var TSPATH2
+unsetenv_path_var TSPATH3
 unsetenv_var tsall
 
 
@@ -294,8 +344,8 @@ unsetenv_var tsall
 #
 
 # *setenv and *-path cmds only init var if undefined with empty value
-set tsallwh1 ",,,,altered,,"
-set tsallwh2 ",dir2,dir2:dir1,,_UNDEFINED_alteredaltered,dir2,_UNDEFINED_altered"
+set tsallwh1 ",,,,altered,,,,"
+set tsallwh2 ",dir2,dir2:dir1,,_UNDEFINED_alteredaltered,dir2,_UNDEFINED_altered,ok8,ok9"
 
 # test without module loaded
 set whatis "$modlin $modulepathre $modlin\n\\s+$module/1: $tsallwh1\n\\s+$module/2: "
@@ -310,6 +360,10 @@ setenv_path_var TSPATH "dir2"
 setenv_var ts5 "_UNDEFINED_altered"
 setenv_var ts6 "dir2"
 setenv_var ts7 "_UNDEFINED_altered"
+setenv_var ts8 "ok8"
+setenv_var ts9 "ok9"
+setenv_path_var TSPATH2 "ok8"
+setenv_path_var TSPATH3 "ok8:ok9"
 setenv_var tsall $tsall
 
 set whatis "$modlin $modulepathre $modlin\n\\s+$module/1: $tsallwh2\n\\s+$module/2: $tsall"
@@ -324,6 +378,10 @@ unsetenv_path_var TSPATH
 unsetenv_var ts5
 unsetenv_var ts6
 unsetenv_var ts7
+unsetenv_var ts8
+unsetenv_var ts9
+unsetenv_path_var TSPATH2
+unsetenv_path_var TSPATH3
 unsetenv_var tsall
 
 

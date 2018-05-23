@@ -537,20 +537,23 @@ proc set-env {var val} {
    }
 }
 
-proc clear-to-unset-env {var} {
-   set ::env($var) ""
-   set ::g_clearedEnvVars($var) 1
+proc reset-to-unset-env {var {val {}}} {
+   set ::env($var) $val
+   # set var as cleared if val is empty
+   if {$val eq ""} {
+      set ::g_clearedEnvVars($var) 1
+   }
 }
 
-proc unset-env {var {internal 0}} {
+proc unset-env {var {internal 0} {val {}}} {
    set mode [currentMode]
-   reportDebug "$var (internal=$internal, mode=$mode)"
+   reportDebug "$var (internal=$internal, val=$val, mode=$mode)"
 
    # clear value instead of unset it not to break variable later reference
    # in modulefile. clear whether variable set or not to get a later usage
    # consistent behavior whatever env is setup
    if {!$internal} {
-      clear-to-unset-env $var
+      reset-to-unset-env $var $val
    # internal variables (like ref counter var) are purely unset if they exists
    } elseif {[info exists ::env($var)]} {
       unset ::env($var)
@@ -1734,7 +1737,17 @@ proc setenv {var val} {
 
 # undo setenv in unload mode
 proc setenv-un {var val} {
-   return [unsetenv $var]
+   reportDebug "var='$var', val='$val'"
+
+   # clean any existing reference counter array
+   unset-env [getModshareVarName $var] 1
+
+   # Add variable to the list of variable to unset in shell output code but
+   # set it in interp context as done on load mode for later use during the
+   # modulefile evaluation
+   unset-env $var 0 $val
+
+   return {}
 }
 
 # optimized setenv/unsetenv for whatis mode: init env variable with an empty
@@ -2225,7 +2238,7 @@ proc remove-path-un {args} {
    lassign [eval parsePathCommandArgs "unload-path" $args] separator\
       allow_dup idx_val var path_list
    if {![info exists ::env($var)]} {
-      clear-to-unset-env $var
+      reset-to-unset-env $var
    }
 }
 
