@@ -36,6 +36,8 @@ set module_7 "modvirt/3.0"
 set modulefile_7 "$modulefile_5"
 set module_8 "modvirt/dir0/sub1/4.0"
 set modulefile_8 "$modulefile_5"
+set module_9 "moddalias/dir1/1"
+set modulefile_9 "$modpath/$module_9"
 
 
 #
@@ -210,6 +212,19 @@ testouterr_cmd "sh" "unload modvirt/dir0" $ans ""
 testouterr_cmd "sh" "unload modvirt" $ans ""
 
 
+# set up the environment
+set env(_LMFILES_) "$modulefile_9"
+set env(LOADEDMODULES) "$module_9"
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+
+testouterr_cmd "sh" "unload $module_9" $ans ""
+testouterr_cmd "sh" "unload moddalias/dir1" $ans ""
+testouterr_cmd "sh" "unload moddalias" $ans ""
+
+
 #
 #  Cleanup
 #
@@ -235,3 +250,5 @@ unset module_7
 unset modulefile_7
 unset module_8
 unset modulefile_8
+unset module_9
+unset modulefile_9
