@@ -122,7 +122,11 @@ On compatibility version, paths composing the **MODULEPATH** environment variabl
 **unuse**
  
  Modules 4 provides path element counting feature which increases a reference counter each time a given path entry is added to a given environment variable. This feature also applies to the **MODULEPATH** environment variable. As consequence a modulepath entry element is removed from the modulepath enabled list only if the related element counter is equal to 1. When unusing a modulepath if its reference counter is greater than 1, modulepath is kept enabled and reference counter is decreased by 1.
- 
+
+**whatis**
+
+ On Modules 4, environment variable edition commands (*setenv*, *unsetenv*, *append-path*, *prepend-path* and *remove-path*) do no set variable to the defined value on the modulefile evaluation context during a **whatis** evaluation. Instead environment variables are initialized with an empty value if undefined, to avoid raising error when attempting access to an undefined element during the modulefile evaluation.
+
 **initadd**
 
 **initprepend**
