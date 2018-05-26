@@ -2928,10 +2928,14 @@ proc getModuleFromLoadedModulefile {modfile {idx "all"}} {
    return $ret
 }
 
-proc setLoadedModule {mod modfile} {
+proc setLoadedModule {mod modfile uasked} {
    set ::g_loadedModules($mod) $modfile
    # a loaded modfile may correspond to multiple loaded virtual modules
    lappend ::g_loadedModuleFiles($modfile) $mod
+   # record if mod has been asked by user
+   if {$uasked} {
+      set ::g_loadedModuleUasked($mod) 1
+   }
 }
 
 proc unsetLoadedModule {mod modfile} {
@@ -2942,6 +2946,9 @@ proc unsetLoadedModule {mod modfile} {
    } else {
       set ::g_loadedModuleFiles($modfile) [replaceFromList\
          $::g_loadedModuleFiles($modfile) $mod]
+   }
+   if {[info exists ::g_loadedModuleUasked($mod)]} {
+      unset ::g_loadedModuleUasked($mod)
    }
 }
 
@@ -3168,6 +3175,19 @@ proc getLoadedPrereq {mod {serialized 0}} {
    return $ret
 }
 
+proc isModuleUserAsked {mod} {
+   return [info exists ::g_loadedModuleUasked($mod)]
+}
+
+proc setModuleUserAsked {mod} {
+   set ::g_loadedModuleUasked($mod) 1
+}
+
+proc unsetModuleUserAsked {mod} {
+   if {[info exists ::g_loadedModuleUasked($mod)]} {
+      unset ::g_loadedModuleUasked($mod)
+   }
+}
 
 # runs the global RC files if they exist
 proc runModulerc {} {
@@ -4014,8 +4034,6 @@ endfunction(module)}
 }
 
 proc cacheCurrentModules {} {
-   global g_lmUasked
-
    # parse loaded modules information only once, global arrays are updated
    # afterwards when module commands update loaded modules state
    if {![info exists ::g_lm_info_cached]} {
@@ -4023,10 +4041,20 @@ proc cacheCurrentModules {} {
       set i 0
       set modfilelist [getLoadedModuleFileList]
       set modlist [getLoadedModuleList]
+      set uaskedlist [getLoadedModuleUserAskedList]
 
       if {[llength $modlist] == [llength $modfilelist]} {
+         # no user asked found means all modules are user asked to make env
+         # setup on a previous Modules version still functionnal after an
+         # update to a Modules version introducing 'user asked' state
+         if {[llength $uaskedlist] == 0 && [llength $modlist] > 0} {
+            set uaskedlist $modlist
+            add-path "append" MODULES_LMUASKED $modlist
+         }
+
          foreach mod $modlist {
-            setLoadedModule $mod [lindex $modfilelist $i]
+            setLoadedModule $mod [lindex $modfilelist $i] [expr {[lsearch\
+               -exact $uaskedlist $mod] != -1}]
             incr i
          }
 
@@ -4038,19 +4066,6 @@ proc cacheCurrentModules {} {
          # cache declared prereq of loaded modules
          foreach modpre [getLoadedModulePrereqList] {
             eval setLoadedPrereq $modpre
-         }
-
-         # cache loaded modules asked by user
-         set uaskedlist [getLoadedModuleUserAskedList]
-         # no user asked found means all modules are user asked to make env
-         # setup on a previous Modules version still functionnal after an
-         # update to a Modules version introducing 'user asked' state
-         if {[llength $uaskedlist] == 0 && [llength $modlist] > 0} {
-            set uaskedlist $modlist
-            add-path "append" MODULES_LMUASKED $modlist
-         }
-         foreach mod $uaskedlist {
-            set g_lmUasked($mod) 1
          }
 
          set ::g_lm_info_cached 1
@@ -6144,8 +6159,6 @@ proc cmdModuleUnsource {args} {
 }
 
 proc cmdModuleLoad {uasked args} {
-   global g_lmUasked
-
    reportDebug "loading $args (uasked=$uasked)"
 
    set ret 0
@@ -6188,7 +6201,7 @@ proc cmdModuleLoad {uasked args} {
                   # allow duplicate modfile entries for virtual modules
                   add-path "append" --duplicates _LMFILES_ $modfile
                   # update cache arrays
-                  setLoadedModule $modname $modfile
+                  setLoadedModule $modname $modfile $uasked
 
                   # register declared conflict in environment
                   if {[set modcon [getLoadedConflict $modname 1]] ne ""} {
@@ -6204,7 +6217,7 @@ proc cmdModuleLoad {uasked args} {
                   # not the case to ensure this module will not be
                   # reloaded by prereq-reloading mechanism
                   add-path "append" MODULES_LMUASKED $modname
-                  set g_lmUasked($modname) 1
+                  setModuleUserAsked $modname
 
                   if {$::g_auto_handling} {
                      # Reload all modules declaring a prereq on
@@ -6222,7 +6235,7 @@ proc cmdModuleLoad {uasked args} {
                   # now that prereq-reloading phase is finished
                   if {!$uasked} {
                      unload-path MODULES_LMUASKED $modname
-                     unset g_lmUasked($modname)
+                     unsetModuleUserAsked $modname
                   }
                }
 
@@ -6241,7 +6254,6 @@ proc cmdModuleLoad {uasked args} {
 }
 
 proc cmdModuleUnload {match args} {
-   global g_lmUasked
    global env g_loadedModules
    reportDebug "unloading $args (match=$match)"
 
@@ -6278,6 +6290,9 @@ proc cmdModuleUnload {match args} {
                   set lmidx [lsearch -exact [getLoadedModuleList 0] $modname]
                   unload-path LOADEDMODULES $modname
                   unload-path --index _LMFILES_ $lmidx
+                  if {[isModuleUserAsked $modname]} {
+                     unload-path MODULES_LMUASKED $modname
+                  }
                   # update cache arrays
                   unsetLoadedModule $modname $modfile
 
@@ -6312,8 +6327,7 @@ proc cmdModuleUnload {match args} {
                                     "$loadedmod/"] == 0} {
                                     set lmdep [getActiveDepLoadedModuleList \
                                        $loadedmod]
-                                    if {![info exists \
-                                       g_lmUasked($loadedmod)] \
+                                    if {![isModuleUserAsked $loadedmod]\
                                        && [llength $lmdep]==0} {
                                        lappend mod_to_unload $loadedmod
                                     }
@@ -6339,12 +6353,6 @@ proc cmdModuleUnload {match args} {
                            }
                         }
                      }
-                  }
-
-                  # undeclare module as asked by user
-                  if {[info exists g_lmUasked($modname)]} {
-                     unload-path MODULES_LMUASKED $modname
-                     unset g_lmUasked($modname)
                   }
 
                   if {$::g_auto_handling} {
