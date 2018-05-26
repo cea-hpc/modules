@@ -6160,11 +6160,9 @@ proc cmdModuleLoad {uasked args} {
             set modname $loadedmodname
          }
 
-         set currentModule $modname
-
-         if {$::g_force || ![isModuleLoaded $currentModule]} {
+         if {$::g_force || ![isModuleLoaded $modname]} {
             if {$::g_auto_handling} {
-               lassign [doesModuleConflict $currentModule] doescon modconlist
+               lassign [doesModuleConflict $modname] doescon modconlist
             } else {
                set doescon 0
                set modconlist {}
@@ -6173,59 +6171,58 @@ proc cmdModuleLoad {uasked args} {
             if {$doescon} {
                # report an error instead of loading module
                # if a conflict has been detected
-               reportError "WARNING: $currentModule cannot be loaded due\
+               reportError "WARNING: $modname cannot be loaded due\
                   to a conflict.\nHINT: Might try \"module unload\
                   [join $modconlist]\" first."
             } else {
                pushSettings
 
-               if {[execute-modulefile $modfile $currentModule $mod]} {
+               if {[execute-modulefile $modfile $modname $mod]} {
                   restoreSettings
                   # unregister properties accumulated during evaluation
-                  unsetLoadedConflict $currentModule
-                  unsetLoadedPrereq $currentModule
+                  unsetLoadedConflict $modname
+                  unsetLoadedPrereq $modname
                   set ret 1
                } else {
-                  add-path "append" LOADEDMODULES $currentModule
+                  add-path "append" LOADEDMODULES $modname
                   # allow duplicate modfile entries for virtual modules
                   add-path "append" --duplicates _LMFILES_ $modfile
                   # update cache arrays
-                  setLoadedModule $currentModule $modfile
+                  setLoadedModule $modname $modfile
 
                   # register declared conflict in environment
-                  if {[set modcon [getLoadedConflict $currentModule 1]] ne\
-                     ""} {
+                  if {[set modcon [getLoadedConflict $modname 1]] ne ""} {
                      add-path "append" MODULES_LMCONFLICT $modcon
                   }
 
                   # declare the prereq of this module
-                  if {[set modpre [getLoadedPrereq $currentModule 1]] ne ""} {
+                  if {[set modpre [getLoadedPrereq $modname 1]] ne ""} {
                      add-path "append" MODULES_LMPREREQ $modpre
                   }
 
                   # declare module as asked by user, even if it is
                   # not the case to ensure this module will not be
                   # reloaded by prereq-reloading mechanism
-                  add-path "append" MODULES_LMUASKED $currentModule
-                  set g_lmUasked($currentModule) 1
+                  add-path "append" MODULES_LMUASKED $modname
+                  set g_lmUasked($modname) 1
 
                   if {$::g_auto_handling} {
                      # Reload all modules declaring a prereq on
-                     # currentModule. Only modules with optional
-                     # prereq are concerned, elsewhere currentModule
+                     # modname. Only modules with optional
+                     # prereq are concerned, elsewhere modname
                      # should have been loaded already.
                      # Unlike cmdModuleSwitch, unload of the modules
                      # declaring a prereq is performed after their
                      # prereq-module load, to avoid reloading modules
                      # whereas prereq-module fails to load.
-                     reloadDepLoadedModuleList $currentModule
+                     reloadDepLoadedModuleList $modname
                   }
 
                   # undeclare module asked by user if it is not the case
                   # now that prereq-reloading phase is finished
                   if {!$uasked} {
-                     unload-path MODULES_LMUASKED $currentModule
-                     unset g_lmUasked($currentModule)
+                     unload-path MODULES_LMUASKED $modname
+                     unset g_lmUasked($modname)
                   }
                }
 
@@ -6254,13 +6251,10 @@ proc cmdModuleUnload {match args} {
       # resolve by also looking at matching loaded module
       lassign [getPathToModule $mod {} $match] modfile modname
       if {$modfile ne ""} {
-         set currentModule $modname
-
-         if {[isModuleLoaded $currentModule]} {
+         if {[isModuleLoaded $modname]} {
             if {$::g_auto_handling} {
                # check if any loaded module has declared a prereq
-               set prereq_list [getActiveDepLoadedModuleList \
-                  $currentModule]
+               set prereq_list [getActiveDepLoadedModuleList $modname]
             } else {
                set prereq_list {}
             }
@@ -6268,40 +6262,36 @@ proc cmdModuleUnload {match args} {
             if {[llength $prereq_list] > 0} {
                # report an error instead of unloading module
                # if a prereq has been detected
-               reportError "WARNING: $currentModule cannot be unloaded\
+               reportError "WARNING: $modname cannot be unloaded\
                   due to a prereq.\nHINT: Might try \"module unload\
                   [join $prereq_list]\" first."
             } else {
                pushSettings
 
-               if {[execute-modulefile $modfile $currentModule $mod]} {
+               if {[execute-modulefile $modfile $modname $mod]} {
                   restoreSettings
                   set ret 1
                } else {
                   # get module position in loaded list to remove corresponding
                   # loaded modulefile (entry at same position in _LMFILES_)
                   # need the unfiltered loaded module list to get correct index
-                  set lmidx [lsearch -exact [getLoadedModuleList 0]\
-                     $currentModule]
-                  unload-path LOADEDMODULES $currentModule
+                  set lmidx [lsearch -exact [getLoadedModuleList 0] $modname]
+                  unload-path LOADEDMODULES $modname
                   unload-path --index _LMFILES_ $lmidx
                   # update cache arrays
-                  unsetLoadedModule $currentModule $modfile
+                  unsetLoadedModule $modname $modfile
 
                   # unregister declared conflict
-                  if {[set modcon [getLoadedConflict $currentModule 1]] ne\
-                     ""} {
+                  if {[set modcon [getLoadedConflict $modname 1]] ne ""} {
                      unload-path MODULES_LMCONFLICT $modcon
                   }
-                  unsetLoadedConflict $currentModule
+                  unsetLoadedConflict $modname
 
                   # unset prereq declared for this module
-                  if {[llength [set modpre [getLoadedPrereq $currentModule]]]\
-                     > 0} {
-                     unload-path MODULES_LMPREREQ [getLoadedPrereq\
-                        $currentModule 1]
+                  if {[llength [set modpre [getLoadedPrereq $modname]]] > 0} {
+                     unload-path MODULES_LMPREREQ [getLoadedPrereq $modname 1]
                   }
-                  unsetLoadedPrereq $currentModule
+                  unsetLoadedPrereq $modname
 
                   if {$::g_auto_handling} {
                      # when dependency resolving is enabled, build
@@ -6352,21 +6342,21 @@ proc cmdModuleUnload {match args} {
                   }
 
                   # undeclare module as asked by user
-                  if {[info exists g_lmUasked($currentModule)]} {
-                     unload-path MODULES_LMUASKED $currentModule
-                     unset g_lmUasked($currentModule)
+                  if {[info exists g_lmUasked($modname)]} {
+                     unload-path MODULES_LMUASKED $modname
+                     unset g_lmUasked($modname)
                   }
 
                   if {$::g_auto_handling} {
                      # Reload all modules declaring a prereq on
-                     # currentModule. Only modules with optional
-                     # prereq are concerned, elsewhere currentModule
+                     # modname. Only modules with optional
+                     # prereq are concerned, elsewhere modname
                      # would not have been unloaded.
                      # Unlike cmdModuleSwitch, unload of the modules
                      # declaring a prereq is performed after their
                      # prereq-module unload, to avoid reloading modules
                      # whereas prereq-module fails to unload.
-                     reloadDepLoadedModuleList $currentModule
+                     reloadDepLoadedModuleList $modname
                   }
                }
                popSettings
