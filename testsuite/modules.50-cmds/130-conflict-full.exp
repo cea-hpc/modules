@@ -43,9 +43,8 @@ set modulefile_troff "$modpath/$module_troff"
 #
 
 # additional message on Tcl-version as 'module-trace' is not implemented
-set err_conflict "$warn_msgs: 'module-trace' command not implemented\n"
-append err_conflict "$warn_msgs: $module cannot be loaded due to a conflict.\n"
-append err_conflict "HINT: Might try \"module unload trace/all_on\" first."
+set err_con "$warn_msgs: 'module-trace' command not implemented\n"
+append err_con [err_conflict $module "trace/all_on"]
 
 #
 #  The tests
@@ -55,7 +54,7 @@ lappend ans [list setpath MODULES_LMUASKED $module_tron]
 lappend ans [list setpath _LMFILES_ $modulefile_tron]
 lappend ans [list setpath LOADEDMODULES $module_tron]
 lappend ans [list ERR]
-testouterr_cmd_re "ALL" "load $module_tron $module" $ans "$err_conflict"
+testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_con
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module_troff:$module"]
@@ -108,7 +107,7 @@ unsetenv_loaded_module
 #  Cleanup
 #
 
-unset err_conflict
+unset err_con
 
 unset ans
 

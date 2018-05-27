@@ -42,8 +42,7 @@ set modulefile_troff "$modpath/$module_troff"
 #  Error messages
 #
 
-set err_prereq "$warn_msgs: $module cannot be loaded due to missing prereq.\n"
-append err_prereq "HINT: the following module must be loaded first: trace/all_on"
+set err_pre [err_prereq $module "trace/all_on"]
 set err_trace "$warn_msgs: 'module-trace' command not implemented"
 
 #
@@ -68,14 +67,14 @@ if {$install_autohandling eq "y"} {
     lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
     testouterr_cmd_re "ALL" "load $module_troff $module" $ans $err_trace
 } else {
-    testouterr_cmd "ALL" "load $module" "ERR" $err_prereq
+    testouterr_cmd "ALL" "load $module" "ERR" $err_pre
 
     set ans [list]
     lappend ans [list setpath MODULES_LMUASKED $module_troff]
     lappend ans [list setpath _LMFILES_ $modulefile_troff]
     lappend ans [list setpath LOADEDMODULES $module_troff]
     lappend ans [list ERR]
-    testouterr_cmd_re "ALL" "load $module_troff $module" $ans $err_prereq
+    testouterr_cmd_re "ALL" "load $module_troff $module" $ans $err_pre
 }
 
 set ans [list]
@@ -90,7 +89,7 @@ testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace
 #  Cleanup
 #
 
-unset err_prereq
+unset err_pre
 unset err_trace
 
 unset ans

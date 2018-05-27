@@ -42,8 +42,7 @@ set modulefile_troff "$modpath/$module_troff"
 #  Error messages
 #
 
-set err_prereq "$warn_msgs: $module cannot be loaded due to missing prereq.\n"
-append err_prereq "HINT: the following module must be loaded first: trace"
+set err_pre [err_prereq $module trace]
 set err_trace "$warn_msgs: 'module-trace' command not implemented"
 
 #
@@ -60,7 +59,7 @@ if {$install_autohandling eq "y"} {
     lappend ans [list setpath MODULES_LMPREREQ "$module&trace"]
     testouterr_cmd_re "ALL" "load $module" $ans $err_trace
 } else {
-    testouterr_cmd "ALL" "load $module" "ERR" $err_prereq
+    testouterr_cmd "ALL" "load $module" "ERR" $err_pre
 }
 
 set ans [list]
@@ -85,8 +84,7 @@ testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace
 
 set module "prereq/orlist"
 set modulefile "$modpath/$module"
-set err_prereq "$warn_msgs: $module cannot be loaded due to missing prereq.\n"
-append err_prereq "HINT: at least one of the following modules must be loaded first: trace setenv loc_dv1"
+set err_pre [err_prereqor $module trace setenv loc_dv1]
 
 # prereq is loaded automatically when autohandling is enabled (first in or list)
 if {$install_autohandling eq "y"} {
@@ -98,7 +96,7 @@ if {$install_autohandling eq "y"} {
     lappend ans [list setpath MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
     testouterr_cmd_re "ALL" "load $module" $ans $err_trace
 } else {
-    testouterr_cmd "ALL" "load $module" "ERR" $err_prereq
+    testouterr_cmd "ALL" "load $module" "ERR" $err_pre
 }
 
 set ans [list]
@@ -113,7 +111,7 @@ testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace
 #  Cleanup
 #
 
-unset err_prereq
+unset err_pre
 unset err_trace
 
 unset ans
