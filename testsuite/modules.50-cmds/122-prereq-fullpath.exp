@@ -56,19 +56,40 @@ append err_prereqf2 "HINT: the following module must be loaded first: trace"
 set err_prereqf2re [regsub -all "\(\[.+?\]\)" $err_prereqf2 {\\\1}]
 set err_prereqf3 "$warn_msgs: $modulefile3 cannot be loaded due to missing prereq.\n"
 append err_prereqf3 "HINT: the following module must be loaded first: ../setenv/1.0"
+set err_trace "$warn_msgs: 'module-trace' command not implemented"
 
 
 #
 #  The tests
 #
 
-testouterr_cmd "sh" "load $module1 $module2 $module3" "ERR" "$err_prereq1\n$err_prereq2\n$err_prereq3"
-testouterr_cmd "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_prereqf1\n$err_prereqf2\n$err_prereqf3"
+# prereq are loaded automatically when autohandling is enabled
+if {$install_autohandling eq "y"} {
+    set ans [list]
+    lappend ans [list set testsuite yes]
+    lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$module1:$module_tron:$module2:$module3"]
+    lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile_tron:$modulefile2:$modulefile3"]
+    lappend ans [list setpath MODULES_LMUASKED "$module1:$module2:$module3"]
+    lappend ans [list setpath MODULES_LMPREREQ "$module1&$modulefile_set1:$module2&trace:$module3&../$module_set1"]
+    testouterr_cmd_re "sh" "load $module1 $module2 $module3" $ans $err_trace
+
+    set ans [list]
+    lappend ans [list set testsuite yes]
+    lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$modulefile1:$module_tron:$modulefile2:$modulefile3"]
+    lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile_tron:$modulefile2:$modulefile3"]
+    lappend ans [list setpath MODULES_LMUASKED "$modulefile1:$modulefile2:$modulefile3"]
+    lappend ans [list setpath MODULES_LMPREREQ "$modulefile1&$modulefile_set1:$modulefile2&trace:$modulefile3&../$module_set1"]
+    testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans $err_trace
+} else {
+    testouterr_cmd "sh" "load $module1 $module2 $module3" "ERR" "$err_prereq1\n$err_prereq2\n$err_prereq3"
+    testouterr_cmd "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_prereqf1\n$err_prereqf2\n$err_prereqf3"
+}
 
 
 # test with prereqs loaded as short path
 setenv_loaded_module [list $module_tron $module_set1] [list $modulefile_tron $modulefile_set1]
 
+set ans [list]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES "$module_tron:$module_set1:$module1:$module2:$module3"]
 lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile2:$modulefile3"]
@@ -116,6 +137,11 @@ testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans ""
 unsetenv_path_var MODULEPATH
 
 set ans [list]
+if {$install_autohandling eq "y"} {
+    lappend ans [list ERR]
+    # cannot find prereq module, raise currently a module error
+    set err_prereqf2re "$moderr_msgs: No module path defined\n  In '$modulefile2'\n$err_contact"
+}
 lappend ans [list set LOADEDMODULES_modshare "(.*)"]
 lappend ans [list set _LMFILES__modshare "(.*)"]
 lappend ans [list set MODULES_LMPREREQ "$modulefile1&$modulefile_set1:$modulefile3&../$module_set1"]
@@ -125,7 +151,9 @@ lappend ans [list set LOADEDMODULES "$modulefile_tron:$modulefile_set1:$modulefi
 lappend ans [list set _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile3"]
 lappend ans [list set MODULES_LMPREREQ_modshare "(.*)"]
 lappend ans [list set MODULES_LMUASKED "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile3"]
-lappend ans [list ERR]
+if {$install_autohandling ne "y"} {
+    lappend ans [list ERR]
+}
 testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans "$err_prereqf2re"
 
 
@@ -144,6 +172,7 @@ unset err_prereqf1
 unset err_prereqf2
 unset err_prereqf2re
 unset err_prereqf3
+unset err_trace
 
 unset ans
 

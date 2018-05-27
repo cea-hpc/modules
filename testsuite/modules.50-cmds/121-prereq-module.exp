@@ -44,19 +44,32 @@ set modulefile_troff "$modpath/$module_troff"
 
 set err_prereq "$warn_msgs: $module cannot be loaded due to missing prereq.\n"
 append err_prereq "HINT: the following module must be loaded first: trace"
+set err_trace "$warn_msgs: 'module-trace' command not implemented"
 
 #
 #  The tests
 #
 
-testouterr_cmd "ALL" "load $module" "ERR" "$err_prereq"
+# prereq is loaded automatically when autohandling is enabled
+if {$install_autohandling eq "y"} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
+    lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+    lappend ans [list setpath MODULES_LMUASKED "$module"]
+    lappend ans [list set testsuite yes]
+    lappend ans [list setpath MODULES_LMPREREQ "$module&trace"]
+    testouterr_cmd_re "ALL" "load $module" $ans $err_trace
+} else {
+    testouterr_cmd "ALL" "load $module" "ERR" $err_prereq
+}
 
+set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module_troff:$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile"]
 lappend ans [list setpath MODULES_LMUASKED "$module_troff:$module"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMPREREQ "$module&trace"]
-test_cmd_re "ALL" "load $module_troff $module" $ans
+testouterr_cmd_re "ALL" "load $module_troff $module" $ans ""
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
@@ -64,7 +77,7 @@ lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list setpath MODULES_LMUASKED "$module_tron:$module"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMPREREQ "$module&trace"]
-test_cmd_re "ALL" "load $module_tron $module" $ans
+testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace
 
 #
 # Tests playing with OR prereq list
@@ -75,7 +88,18 @@ set modulefile "$modpath/$module"
 set err_prereq "$warn_msgs: $module cannot be loaded due to missing prereq.\n"
 append err_prereq "HINT: at least one of the following modules must be loaded first: trace setenv loc_dv1"
 
-testouterr_cmd "ALL" "load $module" "ERR" "$err_prereq"
+# prereq is loaded automatically when autohandling is enabled (first in or list)
+if {$install_autohandling eq "y"} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
+    lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+    lappend ans [list setpath MODULES_LMUASKED "$module"]
+    lappend ans [list set testsuite yes]
+    lappend ans [list setpath MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
+    testouterr_cmd_re "ALL" "load $module" $ans $err_trace
+} else {
+    testouterr_cmd "ALL" "load $module" "ERR" $err_prereq
+}
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
@@ -83,13 +107,14 @@ lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list setpath MODULES_LMUASKED "$module_tron:$module"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
-test_cmd_re "ALL" "load $module_tron $module" $ans
+testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace
 
 #
 #  Cleanup
 #
 
 unset err_prereq
+unset err_trace
 
 unset ans
 

@@ -44,18 +44,39 @@ set modulefile_troff "$modpath/$module_troff"
 
 set err_prereq "$warn_msgs: $module cannot be loaded due to missing prereq.\n"
 append err_prereq "HINT: the following module must be loaded first: trace/all_on"
+set err_trace "$warn_msgs: 'module-trace' command not implemented"
 
 #
 #  The tests
 #
 
-testouterr_cmd "ALL" "load $module" "ERR" "$err_prereq"
+# prereq is loaded automatically when autohandling is enabled
+if {$install_autohandling eq "y"} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
+    lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+    lappend ans [list setpath MODULES_LMUASKED "$module"]
+    lappend ans [list set testsuite yes]
+    lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
+    testouterr_cmd_re "ALL" "load $module" $ans $err_trace
 
-lappend ans [list setpath MODULES_LMUASKED $module_troff]
-lappend ans [list setpath _LMFILES_ $modulefile_troff]
-lappend ans [list setpath LOADEDMODULES $module_troff]
-lappend ans [list ERR]
-testouterr_cmd_re "ALL" "load $module_troff $module" $ans "$err_prereq"
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES "$module_troff:$module_tron:$module"]
+    lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile_tron:$modulefile"]
+    lappend ans [list setpath MODULES_LMUASKED "$module_troff:$module"]
+    lappend ans [list set testsuite yes]
+    lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
+    testouterr_cmd_re "ALL" "load $module_troff $module" $ans $err_trace
+} else {
+    testouterr_cmd "ALL" "load $module" "ERR" $err_prereq
+
+    set ans [list]
+    lappend ans [list setpath MODULES_LMUASKED $module_troff]
+    lappend ans [list setpath _LMFILES_ $modulefile_troff]
+    lappend ans [list setpath LOADEDMODULES $module_troff]
+    lappend ans [list ERR]
+    testouterr_cmd_re "ALL" "load $module_troff $module" $ans $err_prereq
+}
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
@@ -63,13 +84,14 @@ lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list setpath MODULES_LMUASKED "$module_tron:$module"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
-test_cmd_re "ALL" "load $module_tron $module" $ans
+testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace
 
 #
 #  Cleanup
 #
 
 unset err_prereq
+unset err_trace
 
 unset ans
 
