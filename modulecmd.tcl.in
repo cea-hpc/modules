@@ -2936,6 +2936,8 @@ proc setLoadedModule {mod modfile uasked} {
    if {$uasked} {
       set ::g_loadedModuleUasked($mod) 1
    }
+   # build dependency chain
+   setModuleDependency $mod
 }
 
 proc unsetLoadedModule {mod modfile} {
@@ -2950,6 +2952,8 @@ proc unsetLoadedModule {mod modfile} {
    if {[info exists ::g_loadedModuleUasked($mod)]} {
       unset ::g_loadedModuleUasked($mod)
    }
+   # update dependencies
+   unsetModuleDependency $mod
 }
 
 # return the currently loaded module whose name is the closest to the
@@ -3186,6 +3190,129 @@ proc setModuleUserAsked {mod} {
 proc unsetModuleUserAsked {mod} {
    if {[info exists ::g_loadedModuleUasked($mod)]} {
       unset ::g_loadedModuleUasked($mod)
+   }
+}
+
+# build dependency chain between loaded modules based on registered prereqs
+proc setModuleDependency {mod} {
+   set modlist [getLoadedModuleList]
+   set deplist {}
+
+   foreach prereq [getLoadedPrereq $mod] {
+      # get corresponding loaded module for each element of the prereq order
+      set lmprelist {}
+      foreach modpre $prereq {
+         set lmfound {}
+         foreach lmmod $modlist {
+            if {[string first "$modpre/" "$lmmod/"] == 0} {
+               set lmfound $lmmod
+               break
+            }
+         }
+
+         # register an unmet dependency if no loaded mod matches
+         if {$lmfound eq ""} {
+            reportDebug "set an unmet dep on '$modpre' for '$mod'"
+            lappend ::g_moduleUnmetDep($mod) $modpre
+            lappend ::g_unmetDepHash($modpre) $mod
+         # add matching mod elsewhere
+         } else {
+            lappend lmprelist $lmfound
+         }
+      }
+
+      switch -- [llength $lmprelist] {
+         {0} {}
+         {1} {
+            set lmmod [lindex $lmprelist 0]
+            lappend deplist $lmmod
+            # set 'is depended by' relations
+            lappend ::g_dependHash($lmmod) $mod
+         }
+         default {
+            lappend deplist $lmprelist
+            # many modules in prereq list, means they all set an optional dep
+            foreach lmmod $lmprelist {
+               lappend ::g_dependHash($lmmod) [list $mod 1]
+            }
+         }
+      }
+   }
+
+   # update eventual registered unmet dependencies
+   foreach modpre [array names ::g_unmetDepHash] {
+      if {[string first "$modpre/" "$mod/"] == 0} {
+         reportDebug "refresh deps targetting '$modpre'"
+         foreach lmmod $::g_unmetDepHash($modpre) {
+            # refresh actual dependencies of targetting mod
+            unsetModuleDependency $lmmod
+            setModuleDependency $lmmod
+         }
+      }
+   }
+
+   # set 'depends on' relation
+   reportDebug "set deps '$deplist' for '$mod'"
+   set ::g_moduleDepend($mod) $deplist
+}
+
+# update dependency chain when unloading module
+proc unsetModuleDependency {mod} {
+   foreach lmmodlist $::g_moduleDepend($mod) {
+      if {[llength $lmmodlist] > 1} {
+         set manymod 1
+      } else {
+         set manymod 0
+      }
+
+      # unset 'is depended by' mod relations
+      foreach lmmod $lmmodlist {
+         if {[llength $::g_dependHash($lmmod)] == 1} {
+            unset ::g_dependHash($lmmod)
+         } else {
+            if {$manymod} {
+               set hashdep [list $mod 1]
+            } else {
+               set hashdep $mod
+            }
+            set ::g_dependHash($lmmod) [replaceFromList\
+               $::g_dependHash($lmmod) $hashdep]
+         }
+      }
+   }
+
+   # unset mod's 'depends on' relation
+   reportDebug "unset deps for '$mod'"
+   unset ::g_moduleDepend($mod)
+
+   # unset eventual registered unmet dependencies
+   if {[info exists ::g_moduleUnmetDep($mod)]} {
+      foreach ummod $::g_moduleUnmetDep($mod) {
+         if {[llength $::g_unmetDepHash($ummod)] == 1} {
+            unset ::g_unmetDepHash($ummod)
+         } else {
+            set ::g_unmetDepHash($ummod) [replaceFromList\
+               $::g_unmetDepHash($ummod) $mod]
+         }
+      }
+      reportDebug "unset unmet deps for '$mod'"
+      unset ::g_moduleUnmetDep($mod)
+   }
+
+   # unset mod's 'is depended by' relations
+   if {[info exists ::g_dependHash($mod)]} {
+      reportDebug "refresh deps targetting '$mod'"
+      set hashdeplist $::g_dependHash($mod)
+      foreach hashdep $hashdeplist {
+         if {[llength $hashdep] > 1} {
+            set lmmod [lindex $hashdep 0]
+         } else {
+            set lmmod $hashdep
+         }
+         # refresh actual dependencies of targetting mod
+         unsetModuleDependency $lmmod
+         setModuleDependency $lmmod
+      }
    }
 }
 
@@ -4052,20 +4179,21 @@ proc cacheCurrentModules {} {
             add-path "append" MODULES_LMUASKED $modlist
          }
 
-         foreach mod $modlist {
-            setLoadedModule $mod [lindex $modfilelist $i] [expr {[lsearch\
-               -exact $uaskedlist $mod] != -1}]
-            incr i
-         }
-
          # cache declared conflict of loaded modules
          foreach modcon [getLoadedModuleConflictList] {
             eval setLoadedConflict $modcon
          }
 
-         # cache declared prereq of loaded modules
+         # cache declared prereq of loaded modules, prior to setLoadedModule
+         # which triggers dependency chain build
          foreach modpre [getLoadedModulePrereqList] {
             eval setLoadedPrereq $modpre
+         }
+
+         foreach mod $modlist {
+            setLoadedModule $mod [lindex $modfilelist $i] [expr {[lsearch\
+               -exact $uaskedlist $mod] != -1}]
+            incr i
          }
 
          set ::g_lm_info_cached 1
