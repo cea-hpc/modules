@@ -3316,98 +3316,48 @@ proc unsetModuleDependency {mod} {
    }
 }
 
-# get list of loaded modules having directly a prereq onto
-# modulename or having a prereq onto dependencies of modulename
-proc getDepLoadedModuleList {modulename {dep_list {}}} {
-   global g_loadedModulePrereq g_debug
+# gets the list of all loaded modules which are dependent of passed mod
+# ordered by load position. strong argument controls whether only the direct
+# and active dependent modules should be returned only or the full dep tree
+proc getDependentLoadedModuleList {mod {strong 1}} {
+   reportDebug "get loaded mod dependent of '$mod' (strong=$strong)"
 
-   if {$g_debug} {
-      report "DEBUG getDepLoadedModuleList: $modulename"
-   }
+   set deplist {}
+   if {[info exists ::g_dependHash($mod)]} {
+      set fulllist $::g_dependHash($mod)
+      for {set i 0} {$i < [llength $fulllist]} {incr i 1} {
+         set depmod [lindex $fulllist $i]
 
-   foreach prereqmod [array names g_loadedModulePrereq] {
-      set isprereq 0
-      set imax [llength $g_loadedModulePrereq($prereqmod)]
-      for {set i 0} {$i<$imax && $isprereq==0} {incr i 1} {
-         set withmod [lindex $g_loadedModulePrereq($prereqmod) $i]
-         set jmax [llength $withmod]
-         if {$jmax > 1} {
-            for {set j 0} {$j<$jmax && $isprereq==0} {incr j 1} {
-               set optmod [lindex $withmod $j]
-               if {[string first "$optmod/" "$modulename/"] == 0} {
-                  set isprereq 1
-               }
+         # skip optional dependency if only looking for strong ones
+         if {[llength $depmod] > 1} {
+            if {$strong} {
+               continue
+            } else {
+               set depmod [lindex $depmod 0]
             }
-         } elseif {[string first "$withmod/" "$modulename/"] == 0} {
-            set isprereq 1
          }
 
-         if {$isprereq == 1 && [lsearch -exact $dep_list \
-            $prereqmod] == -1} {
-            # add module with a prereq on modulename to the list
-            lappend dep_list $prereqmod
-            # then add recursively dependencies of this dependent mod
-            set dep_list [getDepLoadedModuleList $prereqmod $dep_list]
+         if {[lsearch -exact $deplist $depmod] == -1} {
+            # get dependent mod of dep mod when looking at full dep tree
+            if {!$strong && [info exists ::g_dependHash($depmod)]} {
+               set fulllist [concat $fulllist $::g_dependHash($depmod)]
+            }
+            lappend deplist $depmod
          }
       }
    }
 
-   return $dep_list
-}
-
-# get list of loaded modules having a direct
-# and active dependency onto modulename
-proc getActiveDepLoadedModuleList {modulename} {
-   global g_loadedModules g_loadedModulePrereq g_debug
-
-   if {$g_debug} {
-      report "DEBUG getActiveDepLoadedModuleList: $modulename"
-   }
-
-   set dep_list {}
-   set lmlist [array names g_loadedModules]
-   set kmax [llength $lmlist]
-
-   # check if any loaded module has declared a prereq
-   foreach prereqmod [array names g_loadedModulePrereq] {
-      set isprereq 0
-      set imax [llength $g_loadedModulePrereq($prereqmod)]
-      for {set i 0} {$i<$imax && $isprereq==0} {incr i 1} {
-         set withmod [lindex $g_loadedModulePrereq($prereqmod) $i]
-         set jmax [llength $withmod]
-         # check if modulename is part of a multiple-module-prereq
-         # registered for a loaded module. if so, check if another module
-         # from this multiple-module-prereq list is currently loaded
-         if {$jmax > 1} {
-            set isoptprereq 0
-            set otheroptisloaded 0
-            for {set j 0} {$j<$jmax && $otheroptisloaded==0} {incr j 1} {
-               set optmod [lindex $withmod $j]
-               if {[string first "$optmod/" "$modulename/"] == 0} {
-                  set isoptprereq 1
-               } else {
-                  for {set k 0} {$k<$kmax && $otheroptisloaded==0} \
-                     {incr k 1} {
-                     set loadedmod [lindex $lmlist $k]
-                     if {[string first "$optmod/" "$loadedmod/"] == 0} {
-                        set otheroptisloaded 1
-                     }
-                  }
-               }
-            }
-            if {$isoptprereq==1 && $otheroptisloaded==0} {
-               set isprereq 1
-               lappend dep_list $prereqmod
-            }
-         # check if module is registered as a prereq for a loaded module
-         } elseif {[string first "$withmod/" "$modulename/"] == 0} {
-            set isprereq 1
-            lappend dep_list $prereqmod
+   # sort complete result list to match loaded module order
+   set sortlist {}
+   if {[llength $deplist] > 0} {
+      foreach lmmod [getLoadedModuleList] {
+         if {[lsearch -exact $deplist $lmmod] != -1} {
+            lappend sortlist $lmmod
          }
       }
    }
-
-   return $dep_list
+   reportDebug "got '$sortlist'"
+   return $sortlist
 }
 
 # runs the global RC files if they exist
@@ -5925,7 +5875,7 @@ proc cmdModuleSwitch {old {new {}}} {
       if {$oldfile != ""} {
          # build list of loaded module declaring
          # a prereq onto old module
-         set prereq_list [getDepLoadedModuleList $oldname]
+         set prereq_list [getDependentLoadedModuleList $oldname 0]
 
          # build ordered list of modules that need to be reloaded
          # to satisfy the prereq they have registered
@@ -6260,7 +6210,7 @@ proc cmdModuleUnsource {args} {
 # is newly loaded or unavailability if it is newly unloaded.
 proc reloadDepLoadedModuleList {modulename} {
    # build list of loaded module declaring a prereq onto module
-   set prereq_list [getDepLoadedModuleList $modulename]
+   set prereq_list [getDependentLoadedModuleList $modulename 0]
    if {[llength $prereq_list] > 0} {
       # build ordered list of modules that need to be
       # reloaded to satisfy the prereq they have registered
@@ -6394,7 +6344,7 @@ proc cmdModuleUnload {match args} {
          if {[isModuleLoaded $modname]} {
             if {$::g_auto_handling} {
                # check if any loaded module has declared a prereq
-               set prereq_list [getActiveDepLoadedModuleList $modname]
+               set prereq_list [getDependentLoadedModuleList $modname]
             } else {
                set prereq_list {}
             }
@@ -6453,7 +6403,7 @@ proc cmdModuleUnload {match args} {
                                  set loadedmod [lindex $lmlist $i]
                                  if {[string first "$prereq/" \
                                     "$loadedmod/"] == 0} {
-                                    set lmdep [getActiveDepLoadedModuleList \
+                                    set lmdep [getDependentLoadedModuleList \
                                        $loadedmod]
                                     if {![isModuleUserAsked $loadedmod]\
                                        && [llength $lmdep]==0} {
