@@ -2702,6 +2702,19 @@ proc getLoadedModuleUserAskedList {} {
    return $moduaskedlist
 }
 
+# sort passed module list following module loaded order
+proc sortPerModuleLoadedOrder {modlist} {
+   set sortlist {}
+   if {[llength $modlist] > 0} {
+      foreach lmmod [getLoadedModuleList] {
+         if {[lsearch -exact $modlist $lmmod] != -1} {
+            lappend sortlist $lmmod
+         }
+      }
+   }
+   return $sortlist
+}
+
 # return list of module paths by parsing MODULEPATH env variable
 # behavior param enables to exit in error when no MODULEPATH env variable
 # is set. by default an empty list is returned if no MODULEPATH set
@@ -3348,14 +3361,7 @@ proc getDependentLoadedModuleList {mod {strong 1}} {
    }
 
    # sort complete result list to match loaded module order
-   set sortlist {}
-   if {[llength $deplist] > 0} {
-      foreach lmmod [getLoadedModuleList] {
-         if {[lsearch -exact $deplist $lmmod] != -1} {
-            lappend sortlist $lmmod
-         }
-      }
-   }
+   set sortlist [sortPerModuleLoadedOrder $deplist]
    reportDebug "got '$sortlist'"
    return $sortlist
 }
@@ -3386,14 +3392,7 @@ proc getUnloadableLoadedModuleList {modlist} {
    }
 
    # sort complete result list to match loaded module order
-   set sortlist {}
-   if {[llength $deplist] > 0} {
-      foreach lmmod [getLoadedModuleList] {
-         if {[lsearch -exact $deplist $lmmod] != -1} {
-            lappend sortlist $lmmod
-         }
-      }
-   }
+   set sortlist [sortPerModuleLoadedOrder $deplist]
    reportDebug "got '$sortlist'"
    return $sortlist
 }
