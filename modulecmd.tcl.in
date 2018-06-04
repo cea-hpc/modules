@@ -3360,6 +3360,44 @@ proc getDependentLoadedModuleList {mod {strong 1}} {
    return $sortlist
 }
 
+# gets the list of loaded modules which are required by passed mod
+proc getRequiredLoadedModuleList {mod} {
+   set deplist {}
+   foreach lmmodlist $::g_moduleDepend($mod) {
+      foreach lmmod $lmmodlist {
+         lappend deplist $lmmod
+      }
+   }
+   return $deplist
+}
+
+# finds among passed module list those that can be unloaded: they have been
+# loaded automatically and are not depended (mandatory or optionally) by other
+# module
+proc getUnloadableLoadedModuleList {modlist} {
+   reportDebug "get unloadable mods among '$modlist'"
+
+   set deplist {}
+   foreach lmmod $modlist {
+      if {![isModuleUserAsked $lmmod] && ![info exists\
+         ::g_dependHash($lmmod)]} {
+         lappend deplist $lmmod
+      }
+   }
+
+   # sort complete result list to match loaded module order
+   set sortlist {}
+   if {[llength $deplist] > 0} {
+      foreach lmmod [getLoadedModuleList] {
+         if {[lsearch -exact $deplist $lmmod] != -1} {
+            lappend sortlist $lmmod
+         }
+      }
+   }
+   reportDebug "got '$sortlist'"
+   return $sortlist
+}
+
 # runs the global RC files if they exist
 proc runModulerc {} {
    set rclist {}
@@ -6362,6 +6400,9 @@ proc cmdModuleUnload {match args} {
                   restoreSettings
                   set ret 1
                } else {
+                  # get requirements before this information disappears
+                  set reqlist [getRequiredLoadedModuleList $modname]
+
                   # get module position in loaded list to remove corresponding
                   # loaded modulefile (entry at same position in _LMFILES_)
                   # need the unfiltered loaded module list to get correct index
@@ -6387,49 +6428,11 @@ proc cmdModuleUnload {match args} {
                   unsetLoadedPrereq $modname
 
                   if {$::g_auto_handling} {
-                     # when dependency resolving is enabled, build
-                     # ordered list of prereq modules that have been
-                     # loaded automatically and that can now be
-                     # unloaded automatically
-                     if {[info exists modpre]} {
-                        set lmlist [array names g_loadedModules]
-                        set imax [llength $lmlist]
-                        set mod_to_unload {}
-                        foreach prereqlist $modpre {
-                           foreach prereq $prereqlist {
-                              set prereqchecked 0
-                              for {set i 0} {$i<$imax \
-                                 && $prereqchecked==0} {incr i 1} {
-                                 set loadedmod [lindex $lmlist $i]
-                                 if {[string first "$prereq/" \
-                                    "$loadedmod/"] == 0} {
-                                    set lmdep [getDependentLoadedModuleList \
-                                       $loadedmod]
-                                    if {![isModuleUserAsked $loadedmod]\
-                                       && [llength $lmdep]==0} {
-                                       lappend mod_to_unload $loadedmod
-                                    }
-                                    set prereqchecked 1
-                                 }
-                              }
-                           }
-                        }
-                        set unloadlist {}
-                        if {[info exists env(LOADEDMODULES)]} {
-                           foreach lmmod [split $env(LOADEDMODULES) \
-                              [getPathSeparator]] {
-                              if {[lsearch -exact $mod_to_unload \
-                                 $lmmod] != -1} {
-                                 lappend unloadlist $lmmod
-                              }
-                           }
-                        }
-                        # unload automatically loaded dependencies
-                        if {[llength $unloadlist] > 0} {
-                           foreach unmod [lreverse $unloadlist] {
-                              cmdModuleUnload "match" $unmod
-                           }
-                        }
+                     # unload modules that have been automatically loaded and
+                     # that are not required anymore now mod has been unloaded
+                     foreach unmod [lreverse [getUnloadableLoadedModuleList\
+                        $reqlist]] {
+                        cmdModuleUnload "match" $unmod
                      }
                   }
 
