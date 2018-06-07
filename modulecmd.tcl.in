@@ -6035,9 +6035,9 @@ proc cmdModuleRestore {{coll {default}}} {
    lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
       path_to_unuse path_to_use
 
-   # unload modules
+   # unload modules one by one (no dependency auto unload)
    if {[llength $mod_to_unload] > 0} {
-      eval cmdModuleUnload "match" 1 [lreverse $mod_to_unload]
+      eval cmdModuleUnload "match" 0 [lreverse $mod_to_unload]
    }
    # unuse paths
    if {[llength $path_to_unuse] > 0} {
@@ -6085,16 +6085,10 @@ proc cmdModuleRestore {{coll {default}}} {
       eval cmdModuleUse --append $path_to_use
    }
 
-   # load modules with user asked state preserved
+   # load modules one by one with user asked state preserved
    foreach mod $mod_to_load {
-      if {$::g_auto_handling} {
-         if {[lsearch -exact $coll_uasked_list $mod] != -1} {
-            cmdModuleLoad 1 $mod
-         }
-      } else {
-         cmdModuleLoad [expr {[lsearch -exact $coll_uasked_list $mod] != -1}]\
-            $mod
-      }
+      cmdModuleLoad [expr {[lsearch -exact $coll_uasked_list $mod] != -1}]\
+         $mod
    }
 }
 
@@ -6464,36 +6458,21 @@ proc cmdModuleUnload {match autounload args} {
 proc cmdModulePurge {} {
    reportDebug "called."
 
-   # only purge loaded modules asked by user when dependency resolving is
-   # enabled since unloading and loading these modules will automatically
-   # unload and load other loaded modules (which are dependencies)
-   if {$::g_auto_handling} {
-      set loadedmodules [getLoadedModuleUserAskedList]
-   } else {
-      set loadedmodules [getLoadedModuleList]
-   }
-
-   eval cmdModuleUnload "match" 1 [lreverse $loadedmodules]
+   # unload one by one to ensure same behavior whatever auto_handling state
+   eval cmdModuleUnload "match" 0 [lreverse [getLoadedModuleList]]
 }
 
 proc cmdModuleReload {} {
    reportDebug "called."
 
    set lmuaskedlist [getLoadedModuleUserAskedList]
-   # only reload loaded modules asked by user when dependency resolving is
-   # enabled since unloading and loading these modules will automatically
-   # unload and load other loaded modules (which are dependencies)
-   if {$::g_auto_handling} {
-      set list $lmuaskedlist
-   } else {
-      set list [getLoadedModuleList]
-   }
+   set lmlist [getLoadedModuleList]
 
-   set rlist [lreverse $list]
-   foreach mod $rlist {
-      cmdModuleUnload "match" 1 $mod
+   # unload one by one to ensure same behavior whatever auto_handling state
+   foreach mod [lreverse $lmlist] {
+      cmdModuleUnload "match" 0 $mod
    }
-   foreach mod $list {
+   foreach mod $lmlist {
       # reload module with user asked property preserved
       cmdModuleLoad [expr {[lsearch -exact $lmuaskedlist $mod] != -1}] $mod
    }
