@@ -6213,27 +6213,6 @@ proc cmdModuleUnsource {args} {
    }
 }
 
-# Reload all modules that have declared a prereq on mod as they may take
-# benefit from their prereq availability if it is newly loaded or
-# unavailability if it is newly unloaded.
-proc reloadDepLoadedModuleList {mod} {
-   # build list of loaded module declaring a prereq onto mod
-   set deplist [getDependentLoadedModuleList $mod 0]
-   if {[llength $deplist] > 0} {
-      set lmuaskedlist [getLoadedModuleUserAskedList]
-
-      # unload module one by one in reverse loaded order
-      foreach depmod [lreverse $deplist] {
-         cmdModuleUnload "match" 0 $depmod
-      }
-      # then load module list again with user asked property preserved
-      foreach depmod $deplist {
-         cmdModuleLoad [expr {[lsearch -exact $lmuaskedlist $depmod] != -1}]\
-            $depmod
-      }
-   }
-}
-
 proc cmdModuleLoad {uasked args} {
    reportDebug "loading $args (uasked=$uasked)"
 
@@ -6294,16 +6273,15 @@ proc cmdModuleLoad {uasked args} {
                      add-path "append" MODULES_LMUASKED $modname
                   }
 
+                  # Reload all modules that have declared a prereq on mod as
+                  # they may take benefit from their prereq unavailability if
+                  # it is newly unloaded. Perform reload after modname unload
+                  # to ensure first this action succeed before proceeding.
                   if {$::g_auto_handling} {
-                     # Reload all modules declaring a prereq on
-                     # modname. Only modules with optional
-                     # prereq are concerned, elsewhere modname
-                     # should have been loaded already.
-                     # Unlike cmdModuleSwitch, unload of the modules
-                     # declaring a prereq is performed after their
-                     # prereq-module load, to avoid reloading modules
-                     # whereas prereq-module fails to load.
-                     reloadDepLoadedModuleList $modname
+                     set deplist [getDependentLoadedModuleList $modname 0]
+                     if {[llength $deplist] > 0} {
+                        eval cmdModuleReload $deplist
+                     }
                   }
                }
 
@@ -6352,8 +6330,9 @@ proc cmdModuleUnload {match autounload args} {
                   restoreSettings
                   set ret 1
                } else {
-                  # get requirements before this information disappears
+                  # get requirements/deps before this information disappears
                   set reqlist [getRequiredLoadedModuleList $modname]
+                  set deplist [getDependentLoadedModuleList $modname 0]
 
                   # get module position in loaded list to remove corresponding
                   # loaded modulefile (entry at same position in _LMFILES_)
@@ -6388,16 +6367,12 @@ proc cmdModuleUnload {match autounload args} {
                      }
                   }
 
-                  if {$::g_auto_handling} {
-                     # Reload all modules declaring a prereq on
-                     # modname. Only modules with optional
-                     # prereq are concerned, elsewhere modname
-                     # would not have been unloaded.
-                     # Unlike cmdModuleSwitch, unload of the modules
-                     # declaring a prereq is performed after their
-                     # prereq-module unload, to avoid reloading modules
-                     # whereas prereq-module fails to unload.
-                     reloadDepLoadedModuleList $modname
+                  # Reload all modules that have declared a prereq on mod as
+                  # they may adapt now their prereq is unavailable as it has
+                  # just been unloaded. Perform reload after modname unload to
+                  # ensure first this action succeed before proceeding.
+                  if {$::g_auto_handling && [llength $deplist] > 0} {
+                     eval cmdModuleReload $deplist
                   }
                }
                popSettings
@@ -6421,11 +6396,16 @@ proc cmdModulePurge {} {
    eval cmdModuleUnload "match" 0 [lreverse [getLoadedModuleList]]
 }
 
-proc cmdModuleReload {} {
-   reportDebug "called."
+proc cmdModuleReload {args} {
+   # reload all loaded modules if no module list passed
+   if {[llength $args] == 0} {
+      set lmlist [getLoadedModuleList]
+   } else {
+      set lmlist $args
+   }
+   reportDebug "reloading $lmlist"
 
    set lmuaskedlist [getLoadedModuleUserAskedList]
-   set lmlist [getLoadedModuleList]
 
    # unload one by one to ensure same behavior whatever auto_handling state
    foreach mod [lreverse $lmlist] {
