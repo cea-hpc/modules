@@ -3193,6 +3193,8 @@ proc getLoadedPrereq {mod {serialized 0}} {
 }
 
 proc isModuleUserAsked {mod} {
+   cacheCurrentModules
+
    return [info exists ::g_loadedModuleUasked($mod)]
 }
 
@@ -5339,7 +5341,6 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
 
    set curr_mod_list {}
    set curr_uasked_list {}
-   set lmuaskedlist [getLoadedModuleUserAskedList]
    set modpathlist [getModulePathList]
    foreach mod [getLoadedModuleList] {
       # if mod found in a previous LOADEDMODULES list use simplified
@@ -5367,7 +5368,7 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
       }
       lappend curr_mod_list $simplemod
       # record user asked module list in simplified version form
-      if {[lsearch -exact $lmuaskedlist $mod] != -1} {
+      if {[isModuleUserAsked $mod]} {
          lappend curr_uasked_list $simplemod
       }
    }
@@ -5902,10 +5903,11 @@ proc cmdModuleSwitch {old {new {}}} {
       if {$oldfile != ""} {
          # build list of loaded module declaring a prereq onto old module
          set deplist [getDependentLoadedModuleList $oldname 0]
-         set lmuaskedlist [getLoadedModuleUserAskedList]
 
          # unload one by one every module having a prereq onto old
          foreach depmod [lreverse $deplist] {
+            # save user asked state before it vanishes
+            set isuasked($depmod) [isModuleUserAsked $depmod]
             cmdModuleUnload "match" 0 $depmod
          }
          # attempt load only if unload succeed
@@ -5916,8 +5918,7 @@ proc cmdModuleSwitch {old {new {}}} {
          # onto old after load of new. these module loads may fail if prereq
          # are not satisfied anymore
          foreach depmod $deplist {
-            cmdModuleLoad [expr {[lsearch -exact $lmuaskedlist $depmod]\
-               != -1}] $depmod
+            cmdModuleLoad $isuasked($depmod) $depmod
          }
       }
    } else {
@@ -6405,15 +6406,15 @@ proc cmdModuleReload {args} {
    }
    reportDebug "reloading $lmlist"
 
-   set lmuaskedlist [getLoadedModuleUserAskedList]
-
    # unload one by one to ensure same behavior whatever auto_handling state
    foreach mod [lreverse $lmlist] {
+      # save user asked state before it vanishes
+      set isuasked($mod) [isModuleUserAsked $mod]
       cmdModuleUnload "match" 0 $mod
    }
    foreach mod $lmlist {
       # reload module with user asked property preserved
-      cmdModuleLoad [expr {[lsearch -exact $lmuaskedlist $mod] != -1}] $mod
+      cmdModuleLoad $isuasked($mod) $mod
    }
 }
 
