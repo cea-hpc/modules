@@ -5900,37 +5900,24 @@ proc cmdModuleSwitch {old {new {}}} {
    if {$::g_auto_handling} {
       lassign [getPathToModule $old {} $unload_match] oldfile oldname
       if {$oldfile != ""} {
-         # build list of loaded module declaring
-         # a prereq onto old module
-         set prereq_list [getDependentLoadedModuleList $oldname 0]
+         # build list of loaded module declaring a prereq onto old module
+         set deplist [getDependentLoadedModuleList $oldname 0]
+         set lmuaskedlist [getLoadedModuleUserAskedList]
 
-         # build ordered list of modules that need to be reloaded
-         # to satisfy the prereq they have registered
-         set uplist {}
-
-         # only reload loaded modules asked by user when dependency resolving
-         # is enabled since unloading and loading these modules will
-         # automatically unload and load other loaded modules (which are
-         # dependencies)
-         foreach mod [getLoadedModuleUserAskedList] {
-            if {$mod != $oldname && [lsearch -exact $prereq_list $mod]!=-1} {
-               lappend uplist $mod
-            }
-         }
-
-         # unload every module having a prereq onto old
-         foreach mod [lreverse $uplist] {
-            cmdModuleUnload "match" 1 $mod
+         # unload one by one every module having a prereq onto old
+         foreach depmod [lreverse $deplist] {
+            cmdModuleUnload "match" 0 $depmod
          }
          # attempt load only if unload succeed
          if {![cmdModuleUnload $unload_match 1 $old]} {
             cmdModuleLoad 1 $new
          }
-         # load again every module with prereq onto old after
-         # load of new. these module loads may fail if prereq
+         # load again every module (user asked property preserved) with prereq
+         # onto old after load of new. these module loads may fail if prereq
          # are not satisfied anymore
-         foreach mod $uplist {
-            cmdModuleLoad 1 $mod
+         foreach depmod $deplist {
+            cmdModuleLoad [expr {[lsearch -exact $lmuaskedlist $depmod]\
+               != -1}] $depmod
          }
       }
    } else {
