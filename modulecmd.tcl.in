@@ -3196,16 +3196,6 @@ proc isModuleUserAsked {mod} {
    return [info exists ::g_loadedModuleUasked($mod)]
 }
 
-proc setModuleUserAsked {mod} {
-   set ::g_loadedModuleUasked($mod) 1
-}
-
-proc unsetModuleUserAsked {mod} {
-   if {[info exists ::g_loadedModuleUasked($mod)]} {
-      unset ::g_loadedModuleUasked($mod)
-   }
-}
-
 # build dependency chain between loaded modules based on registered prereqs
 proc setModuleDependency {mod} {
    set modlist [getLoadedModuleList]
@@ -6236,33 +6226,23 @@ proc cmdModuleUnsource {args} {
    }
 }
 
-# Reload all modules that have declared a prereq on modulename
-# as they may take benefit from their prereq availability if it
-# is newly loaded or unavailability if it is newly unloaded.
-proc reloadDepLoadedModuleList {modulename} {
-   # build list of loaded module declaring a prereq onto module
-   set prereq_list [getDependentLoadedModuleList $modulename 0]
-   if {[llength $prereq_list] > 0} {
-      # build ordered list of modules that need to be
-      # reloaded to satisfy the prereq they have registered
-      set uplist {}
+# Reload all modules that have declared a prereq on mod as they may take
+# benefit from their prereq availability if it is newly loaded or
+# unavailability if it is newly unloaded.
+proc reloadDepLoadedModuleList {mod} {
+   # build list of loaded module declaring a prereq onto mod
+   set deplist [getDependentLoadedModuleList $mod 0]
+   if {[llength $deplist] > 0} {
+      set lmuaskedlist [getLoadedModuleUserAskedList]
 
-      # only reload loaded modules asked by user when dependency resolving is
-      # enabled since unloading and loading these modules will automatically
-      # unload and load other loaded modules (which are dependencies)
-      foreach lmmod [getLoadedModuleUserAskedList] {
-         if {[lsearch -exact $prereq_list $lmmod] != -1} {
-            lappend uplist $lmmod
-         }
+      # unload module one by one in reverse loaded order
+      foreach depmod [lreverse $deplist] {
+         cmdModuleUnload "match" 0 $depmod
       }
-
-      # unload module list in reverse loaded order
-      foreach upmod [lreverse $uplist] {
-         cmdModuleUnload "match" 1 $upmod
-      }
-      # then load module list again
-      foreach upmod $uplist {
-         cmdModuleLoad 1 $upmod
+      # then load module list again with user asked property preserved
+      foreach depmod $deplist {
+         cmdModuleLoad [expr {[lsearch -exact $lmuaskedlist $depmod] != -1}]\
+            $depmod
       }
    }
 }
@@ -6322,11 +6302,10 @@ proc cmdModuleLoad {uasked args} {
                      add-path "append" MODULES_LMPREREQ $modpre
                   }
 
-                  # declare module as asked by user, even if it is
-                  # not the case to ensure this module will not be
-                  # reloaded by prereq-reloading mechanism
-                  add-path "append" MODULES_LMUASKED $modname
-                  setModuleUserAsked $modname
+                  # declare module as asked by user if it is the case
+                  if {$uasked} {
+                     add-path "append" MODULES_LMUASKED $modname
+                  }
 
                   if {$::g_auto_handling} {
                      # Reload all modules declaring a prereq on
@@ -6338,13 +6317,6 @@ proc cmdModuleLoad {uasked args} {
                      # prereq-module load, to avoid reloading modules
                      # whereas prereq-module fails to load.
                      reloadDepLoadedModuleList $modname
-                  }
-
-                  # undeclare module asked by user if it is not the case
-                  # now that prereq-reloading phase is finished
-                  if {!$uasked} {
-                     unload-path MODULES_LMUASKED $modname
-                     unsetModuleUserAsked $modname
                   }
                }
 
