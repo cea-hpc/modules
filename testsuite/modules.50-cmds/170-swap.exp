@@ -87,7 +87,6 @@ set modulefile "$mod21p:$mod31p:$mod12p"
 
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
-lappend ans [list setpath MODULES_LMUASKED $module]
 
 #
 #  The tests
@@ -118,7 +117,6 @@ set modulefile "$mod11p:$mod31p:$mod22p"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
-lappend ans [list setpath MODULES_LMUASKED $module]
 
 #
 #  The tests
@@ -143,7 +141,6 @@ set modulefile "$mod11p:$mod21p:$mod32p"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
-lappend ans [list setpath MODULES_LMUASKED $module]
 
 #
 #  The tests
@@ -172,7 +169,6 @@ set ans [list]
 # empty elements are ignored but stick to the variable, they should be removed
 lappend ans [list setpath LOADEDMODULES ":$module"]
 lappend ans [list setpath _LMFILES_ ":$modulefile"]
-lappend ans [list setpath MODULES_LMUASKED ":$module"]
 test_cmd_re "sh" "swap $mod32" $ans
 
 # restore LOADEDMODULES/_LMFILES_
@@ -186,7 +182,6 @@ setenv_loaded_module [list $mod11 $mod21 $mod31] [list $mod11p $mod21p $mod31p]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$mod11:$mod21:$mod31:$mod32"]
 lappend ans [list setpath _LMFILES_ "$mod11p:$mod21p:$mod31p:$mod32p"]
-lappend ans [list setpath MODULES_LMUASKED "$mod11:$mod21:$mod31:$mod32"]
 
 # module to unload is not loaded and closest module (mod31) should not be unloaded
 test_cmd_re "sh" "swap $mod32 $mod32" $ans
@@ -200,7 +195,6 @@ setenv_loaded_module {} {}
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$mod21"]
 lappend ans [list setpath _LMFILES_ "$mod21p"]
-lappend ans [list setpath MODULES_LMUASKED "$mod21"]
 
 # module to unload exists but is not loaded, just load
 testouterr_cmd_re "sh" "swap $mod11 $mod21" $ans ""
@@ -271,7 +265,6 @@ setenv_loaded_module [list $mod11] [list $mod11p]
 
 set ans [list]
 lappend ans [list ERR]
-lappend ans [list unsetpath MODULES_LMUASKED]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath LOADEDMODULES]
 
@@ -279,7 +272,6 @@ set ans2 [list]
 lappend ans2 [list ERR]
 lappend ans2 [list unsetpath LOADEDMODULES]
 lappend ans2 [list unsetpath _LMFILES_]
-lappend ans2 [list unsetpath MODULES_LMUASKED]
 
 
 testouterr_cmd "sh" "swap $mod11 $mod100" $ans "$mod100err"
@@ -301,7 +293,6 @@ setenv_loaded_module [list $mod11p] [list $mod11p]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod12p]
 lappend ans [list setpath _LMFILES_ $mod12p]
-lappend ans [list setpath MODULES_LMUASKED $mod12p]
 
 testouterr_cmd "sh" "swap $mod11p $mod12p" $ans ""
 
@@ -320,20 +311,17 @@ setenv_loaded_module [list $mod11 $mod21] [list $mod11p $mod21p]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod21]
 lappend ans [list setpath _LMFILES_ $mod21p]
-lappend ans [list setpath MODULES_LMUASKED $mod21]
 testouterr_cmd "sh" "swap $mod11p $mod21p" $ans ""
 
 # one name rule
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod21:$mod12p]
 lappend ans [list setpath _LMFILES_ $mod21p:$mod12p]
-lappend ans [list setpath MODULES_LMUASKED $mod21:$mod12p]
 testouterr_cmd_re "sh" "swap $mod12p" $ans ""
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod21:$mod11p]
 lappend ans [list setpath _LMFILES_ $mod21p:$mod11p]
-lappend ans [list setpath MODULES_LMUASKED $mod21:$mod11p]
 testouterr_cmd_re "sh" "swap $mod11p" $ans ""
 
 # same test without MODULEPATH set anymore
@@ -342,20 +330,17 @@ unsetenv_path_var MODULEPATH
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod21]
 lappend ans [list setpath _LMFILES_ $mod21p]
-lappend ans [list setpath MODULES_LMUASKED $mod21]
 testouterr_cmd "sh" "swap $mod11p $mod21p" $ans ""
 
 # one name rule
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod11:$mod21:$mod12p]
 lappend ans [list setpath _LMFILES_ $mod11p:$mod21p:$mod12p]
-lappend ans [list setpath MODULES_LMUASKED $mod11:$mod21:$mod12p]
 testouterr_cmd_re "sh" "swap $mod12p" $ans ""
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod21:$mod11p]
 lappend ans [list setpath _LMFILES_ $mod21p:$mod11p]
-lappend ans [list setpath MODULES_LMUASKED $mod21:$mod11p]
 testouterr_cmd_re "sh" "swap $mod11p" $ans ""
 
 
@@ -366,7 +351,6 @@ setenv_loaded_module [list $mod11p $mod21p] [list $mod11p $mod21p]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod21p]
 lappend ans [list setpath _LMFILES_ $mod21p]
-lappend ans [list setpath MODULES_LMUASKED $mod21p]
 testouterr_cmd "sh" "swap $mod11 $mod21" $ans ""
 testouterr_cmd "sh" "swap $mod1name $mod2name" $ans ""
 
@@ -374,7 +358,6 @@ testouterr_cmd "sh" "swap $mod1name $mod2name" $ans ""
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod21p:$mod12]
 lappend ans [list setpath _LMFILES_ $mod21p:$mod12p]
-lappend ans [list setpath MODULES_LMUASKED $mod21p:$mod12]
 testouterr_cmd_re "sh" "swap $mod12" $ans ""
 testouterr_cmd_re "sh" "swap $mod1name" $ans ""
 

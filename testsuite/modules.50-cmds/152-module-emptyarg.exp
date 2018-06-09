@@ -53,7 +53,6 @@ foreach cmd [list display test swap] {
     set ans [list]
     lappend ans [list setpath LOADEDMODULES "$module/$cmd"]
     lappend ans [list setpath _LMFILES_ "$modulepath/$module/$cmd"]
-    lappend ans [list setpath MODULES_LMUASKED "$module/$cmd"]
     lappend ans [list ERR]
     testouterr_cmd "sh" "load $module/$cmd" $ans $err_emptymodname
 }
@@ -61,14 +60,12 @@ foreach cmd [list display test swap] {
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module/swap2"]
 lappend ans [list setpath _LMFILES_ "$modulepath/$module/swap2"]
-lappend ans [list setpath MODULES_LMUASKED "$module/swap2"]
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "load $module/swap2" $ans "$err_path'bar'"
 foreach cmd [list use unuse] {
     set ans [list]
     lappend ans [list setpath LOADEDMODULES "$module/$cmd"]
     lappend ans [list setpath _LMFILES_ "$modulepath/$module/$cmd"]
-    lappend ans [list setpath MODULES_LMUASKED "$module/$cmd"]
     lappend ans [list ERR]
     testouterr_cmd "sh" "load $module/$cmd" $ans $err_emptydirname
 }
@@ -82,10 +79,8 @@ testouterr_cmd "sh" "load $module/source" "ERR" "$moderr_emptyfilename'$modulepa
 # empty string currently understood like wildcard
 foreach cmd [list whatis apropos] {
     set ans [list]
-    lappend ans [list set MODULES_LMUASKED_modshare "$module/$cmd:1"]
     lappend ans [list set _LMFILES__modshare "$modulepath/$module/$cmd:1"]
     lappend ans [list set LOADEDMODULES_modshare "$module/$cmd:1"]
-    lappend ans [list set MODULES_LMUASKED "$module/$cmd"]
     lappend ans [list set _LMFILES_ "$modulepath/$module/$cmd"]
     lappend ans [list set LOADEDMODULES "$module/$cmd"]
     testouterr_cmd "sh" "load $module/$cmd" $ans ""
@@ -93,7 +88,6 @@ foreach cmd [list whatis apropos] {
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module/avail"]
 lappend ans [list setpath _LMFILES_ "$modulepath/$module/avail"]
-lappend ans [list setpath MODULES_LMUASKED "$module/avail"]
 testouterr_cmd_re "sh" "load $module/avail" $ans "^.+$"
 
 
@@ -120,7 +114,6 @@ foreach cmd [list display test swap] {
     set ans [list]
     lappend ans [list unsetpath LOADEDMODULES]
     lappend ans [list unsetpath _LMFILES_]
-    lappend ans [list unsetpath MODULES_LMUASKED]
     lappend ans [list ERR]
     testouterr_cmd "sh" "unload $module/$cmd" $ans $err_emptymodname
 }
@@ -145,10 +138,8 @@ testouterr_cmd "sh" "unload $module/source" "ERR" "$moderr_emptyfilename'$module
 foreach cmd [list whatis apropos] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     set ans [list]
-    lappend ans [list unset MODULES_LMUASKED_modshare]
     lappend ans [list unset _LMFILES__modshare]
     lappend ans [list unset LOADEDMODULES_modshare]
-    lappend ans [list unset MODULES_LMUASKED]
     lappend ans [list unset _LMFILES_]
     lappend ans [list unset LOADEDMODULES]
     testouterr_cmd "sh" "unload $module/$cmd" $ans ""
@@ -157,7 +148,6 @@ setenv_loaded_module "$module/avail" "$modulepath/$module/avail"
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath MODULES_LMUASKED]
 testouterr_cmd_re "sh" "unload $module/avail" $ans "^.+$"
 
 # restore environment

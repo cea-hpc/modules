@@ -37,38 +37,37 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "ac:ad:ae"]
 lappend ans [list setpath _LMFILES_ "$mp/ac:$mp/ad:$mp/ae"]
 lappend ans [list setpath MODULES_LMPREREQ "ad&ac:ae&ad"]
-lappend ans [list setpath MODULES_LMUASKED "ae"]
+lappend ans [list setpath MODULES_LMNOTUASKED "ac:ad"]
 testouterr_cmd_re "sh" "load ae" $ans ""
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "ac:ad:ae:af"]
 lappend ans [list setpath _LMFILES_ "$mp/ac:$mp/ad:$mp/ae:$mp/af"]
 lappend ans [list setpath MODULES_LMPREREQ "ad&ac:ae&ad:af&ae|ab"]
-lappend ans [list setpath MODULES_LMUASKED "af"]
+lappend ans [list setpath MODULES_LMNOTUASKED "ac:ad:ae"]
 testouterr_cmd_re "sh" "load af" $ans ""
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "ac:ad:ae:aa:ab:bf"]
 lappend ans [list setpath _LMFILES_ "$mp/ac:$mp/ad:$mp/ae:$mp/aa:$mp/ab:$mp/bf"]
 lappend ans [list setpath MODULES_LMPREREQ "ad&ac:ae&ad:ab&aa:bf&ae&ab"]
-lappend ans [list setpath MODULES_LMUASKED "bf"]
+lappend ans [list setpath MODULES_LMNOTUASKED "ac:ad:ae:aa:ab"]
 testouterr_cmd_re "sh" "load bf" $ans ""
 
-setenv_loaded_module [list aa ab] [list "$mp/aa" "$mp/ab"] [list ab]
+setenv_loaded_module [list aa ab] [list "$mp/aa" "$mp/ab"] [list aa]
 setenv_path_var MODULES_LMPREREQ "ab&aa"
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa:ab:af"]
 lappend ans [list setpath _LMFILES_ "$mp/aa:$mp/ab:$mp/af"]
 lappend ans [list setpath MODULES_LMPREREQ "ab&aa:af&ae|ab"]
-lappend ans [list setpath MODULES_LMUASKED "ab:af"]
 testouterr_cmd_re "sh" "load af" $ans ""
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa:ab:ac:ad:ae:bf"]
 lappend ans [list setpath _LMFILES_ "$mp/aa:$mp/ab:$mp/ac:$mp/ad:$mp/ae:$mp/bf"]
 lappend ans [list setpath MODULES_LMPREREQ "ab&aa:ad&ac:ae&ad:bf&ae&ab"]
-lappend ans [list setpath MODULES_LMUASKED "ab:bf"]
+lappend ans [list setpath MODULES_LMNOTUASKED "aa:ac:ad:ae"]
 testouterr_cmd_re "sh" "load bf" $ans ""
 
 unsetenv_path_var MODULES_LMPREREQ
@@ -78,35 +77,35 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa:ab:ai"]
 lappend ans [list setpath _LMFILES_ "$mp/aa:$mp/ab:$mp/ai"]
 lappend ans [list setpath MODULES_LMPREREQ "ab&aa:ai&ab|ah"]
-lappend ans [list setpath MODULES_LMUASKED "ai"]
+lappend ans [list setpath MODULES_LMNOTUASKED "aa:ab"]
 testouterr_cmd_re "sh" "load ai" $ans ""
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa:ab:ag:ah:bi"]
 lappend ans [list setpath _LMFILES_ "$mp/aa:$mp/ab:$mp/ag:$mp/ah:$mp/bi"]
 lappend ans [list setpath MODULES_LMPREREQ "ab&aa:ag&aa:ah&ag:bi&ab&ah"]
-lappend ans [list setpath MODULES_LMUASKED "bi"]
+lappend ans [list setpath MODULES_LMNOTUASKED "aa:ab:ag:ah"]
 testouterr_cmd_re "sh" "load bi" $ans ""
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa:aj:ak"]
 lappend ans [list setpath _LMFILES_ "$mp/aa:$mp/aj:$mp/ak"]
 lappend ans [list setpath MODULES_LMPREREQ "aj&aa|ac:ak&ac|aa"]
-lappend ans [list setpath MODULES_LMUASKED "aj:ak"]
+lappend ans [list setpath MODULES_LMNOTUASKED "aa"]
 testouterr_cmd_re "sh" "load aj ak" $ans ""
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "ac:ak:aj"]
 lappend ans [list setpath _LMFILES_ "$mp/ac:$mp/ak:$mp/aj"]
-lappend ans [list setpath MODULES_LMUASKED "ak:aj"]
 lappend ans [list setpath MODULES_LMPREREQ "ak&ac|aa:aj&aa|ac"]
+lappend ans [list setpath MODULES_LMNOTUASKED "ac"]
 testouterr_cmd_re "sh" "load ak aj" $ans ""
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa:ac:bj:bk"]
 lappend ans [list setpath _LMFILES_ "$mp/aa:$mp/ac:$mp/bj:$mp/bk"]
 lappend ans [list setpath MODULES_LMPREREQ "bj&aa&ac:bk&ac&aa"]
-lappend ans [list setpath MODULES_LMUASKED "bj:bk"]
+lappend ans [list setpath MODULES_LMNOTUASKED "aa:ac"]
 testouterr_cmd_re "sh" "load bj bk" $ans ""
 
 
@@ -115,171 +114,167 @@ testouterr_cmd_re "sh" "load bj bk" $ans ""
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
-lappend ans [list unsetpath MODULES_LMUASKED]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 
-setenv_loaded_module [list ac ad ae] [list "$mp/ac" "$mp/ad" "$mp/ae"] [list ae]
+setenv_loaded_module [list ac ad ae] [list "$mp/ac" "$mp/ad" "$mp/ae"] [list ac ad]
 setenv_path_var MODULES_LMPREREQ "ad&ac" "ae&ad"
 testouterr_cmd_re "sh" "unload ae" $ans ""
 
-setenv_loaded_module [list ac ad ae af] [list "$mp/ac" "$mp/ad" "$mp/ae" "$mp/af"] [list af]
+setenv_loaded_module [list ac ad ae af] [list "$mp/ac" "$mp/ad" "$mp/ae" "$mp/af"] [list ac ad ae]
 setenv_path_var MODULES_LMPREREQ "ad&ac" "ae&ad" "af&ae|ab"
 testouterr_cmd_re "sh" "unload af" $ans ""
 
-setenv_loaded_module [list ac ad ae aa ab bf] [list "$mp/ac" "$mp/ad" "$mp/ae" "$mp/aa" "$mp/ab" "$mp/bf"] [list bf]
+setenv_loaded_module [list ac ad ae aa ab bf] [list "$mp/ac" "$mp/ad" "$mp/ae" "$mp/aa" "$mp/ab" "$mp/bf"] [list ac ad ae aa ab]
 setenv_path_var MODULES_LMPREREQ "ad&ac" "ae&ad" "ab&aa" "bf&ae&ab"
 testouterr_cmd_re "sh" "unload bf" $ans ""
 
-setenv_loaded_module [list aa ab ai] [list "$mp/aa" "$mp/ab" "$mp/ai"] [list ai]
+setenv_loaded_module [list aa ab ai] [list "$mp/aa" "$mp/ab" "$mp/ai"] [list aa ab]
 setenv_path_var MODULES_LMPREREQ "ab&aa" "ai&ab|ah"
 testouterr_cmd_re "sh" "unload ai" $ans ""
 
-setenv_loaded_module [list aa ab ag ah bi] [list "$mp/aa" "$mp/ab" "$mp/ag" "$mp/ah" "$mp/bi"] [list bi]
+setenv_loaded_module [list aa ab ag ah bi] [list "$mp/aa" "$mp/ab" "$mp/ag" "$mp/ah" "$mp/bi"] [list aa ab ag ah]
 setenv_path_var MODULES_LMPREREQ "ab&aa" "ag&aa" "ah&ag" "bi&ab&ah"
 testouterr_cmd_re "sh" "unload bi" $ans ""
 
-setenv_loaded_module [list aa ac aj ak] [list "$mp/aa" "$mp/ac" "$mp/aj" "$mp/ak"] [list aj ak]
+setenv_loaded_module [list aa ac aj ak] [list "$mp/aa" "$mp/ac" "$mp/aj" "$mp/ak"] [list aa ac]
 setenv_path_var MODULES_LMPREREQ "aj&aa|ac" "ak&ac|aa"
 testouterr_cmd_re "sh" "unload aj ak" $ans ""
 
-setenv_loaded_module [list aa aj ak] [list "$mp/aa" "$mp/aj" "$mp/ak"] [list aj ak]
+setenv_loaded_module [list aa aj ak] [list "$mp/aa" "$mp/aj" "$mp/ak"] [list aa]
 setenv_path_var MODULES_LMPREREQ "aj&aa|ac" "ak&ac|aa"
 testouterr_cmd_re "sh" "unload aj ak" $ans ""
 
-setenv_loaded_module [list ac aj ak] [list "$mp/ac" "$mp/aj" "$mp/ak"] [list aj ak]
+setenv_loaded_module [list ac aj ak] [list "$mp/ac" "$mp/aj" "$mp/ak"] [list ac]
 setenv_path_var MODULES_LMPREREQ "aj&aa|ac" "ak&ac|aa"
 testouterr_cmd_re "sh" "unload aj ak" $ans ""
 
-setenv_loaded_module [list aa ac bj bk] [list "$mp/aa" "$mp/ac" "$mp/bj" "$mp/bk"] [list bj bk]
+setenv_loaded_module [list aa ac bj bk] [list "$mp/aa" "$mp/ac" "$mp/bj" "$mp/bk"] [list aa ac]
 setenv_path_var MODULES_LMPREREQ "bj&aa&ac" "bk&ac&aa"
 testouterr_cmd_re "sh" "unload bj bk" $ans ""
 
 
 # unload tests where some deps have been loaded explicitely
 
-setenv_loaded_module [list ac ad ae] [list "$mp/ac" "$mp/ad" "$mp/ae"] [list ad ae]
+setenv_loaded_module [list ac ad ae] [list "$mp/ac" "$mp/ad" "$mp/ae"] [list ac]
 setenv_path_var MODULES_LMPREREQ "ad&ac" "ae&ad"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "ac:ad"]
 lappend ans [list setpath _LMFILES_ "$mp/ac:$mp/ad"]
-lappend ans [list setpath MODULES_LMUASKED "ad"]
 lappend ans [list setpath MODULES_LMPREREQ "ad&ac"]
 testouterr_cmd_re "sh" "unload ae" $ans ""
 
-setenv_loaded_module [list ac ad ae] [list "$mp/ac" "$mp/ad" "$mp/ae"] [list ac ae]
+setenv_loaded_module [list ac ad ae] [list "$mp/ac" "$mp/ad" "$mp/ae"] [list ad]
 setenv_path_var MODULES_LMPREREQ "ad&ac" "ae&ad"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "ac"]
 lappend ans [list setpath _LMFILES_ "$mp/ac"]
-lappend ans [list setpath MODULES_LMUASKED "ac"]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 testouterr_cmd_re "sh" "unload ae" $ans ""
 
-setenv_loaded_module [list aa ab ag ah ai] [list "$mp/aa" "$mp/ab" "$mp/ag" "$mp/ah" "$mp/ai"] [list aa ai]
+setenv_loaded_module [list aa ab ag ah ai] [list "$mp/aa" "$mp/ab" "$mp/ag" "$mp/ah" "$mp/ai"] [list ab ag ah]
 setenv_path_var MODULES_LMPREREQ "ab&aa" "ag&aa" "ah&ag" "ai&ab|ah"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa"]
 lappend ans [list setpath _LMFILES_ "$mp/aa"]
-lappend ans [list setpath MODULES_LMUASKED "aa"]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 testouterr_cmd_re "sh" "unload ai" $ans ""
 
-setenv_loaded_module [list aa ab ag ah ai] [list "$mp/aa" "$mp/ab" "$mp/ag" "$mp/ah" "$mp/ai"] [list ab ai]
+setenv_loaded_module [list aa ab ag ah ai] [list "$mp/aa" "$mp/ab" "$mp/ag" "$mp/ah" "$mp/ai"] [list aa ag ah]
 setenv_path_var MODULES_LMPREREQ "ab&aa" "ag&aa" "ah&ag" "ai&ab|ah"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa:ab"]
 lappend ans [list setpath _LMFILES_ "$mp/aa:$mp/ab"]
-lappend ans [list setpath MODULES_LMUASKED "ab"]
+lappend ans [list setpath MODULES_LMNOTUASKED "aa"]
 lappend ans [list setpath MODULES_LMPREREQ "ab&aa"]
 testouterr_cmd_re "sh" "unload ai" $ans ""
 
-setenv_loaded_module [list aa ab ag ah bi] [list "$mp/aa" "$mp/ab" "$mp/ag" "$mp/ah" "$mp/bi"] [list ab bi]
+setenv_loaded_module [list aa ab ag ah bi] [list "$mp/aa" "$mp/ab" "$mp/ag" "$mp/ah" "$mp/bi"] [list aa ag ah]
 setenv_path_var MODULES_LMPREREQ "ab&aa" "ag&aa" "ah&ag" "bi&ab&ah"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa:ab"]
 lappend ans [list setpath _LMFILES_ "$mp/aa:$mp/ab"]
-lappend ans [list setpath MODULES_LMUASKED "ab"]
+lappend ans [list setpath MODULES_LMNOTUASKED "aa"]
 lappend ans [list setpath MODULES_LMPREREQ "ab&aa"]
 testouterr_cmd_re "sh" "unload bi" $ans ""
 
-setenv_loaded_module [list aa ab ag ah bi] [list "$mp/aa" "$mp/ab" "$mp/ag" "$mp/ah" "$mp/bi"] [list ag bi]
+setenv_loaded_module [list aa ab ag ah bi] [list "$mp/aa" "$mp/ab" "$mp/ag" "$mp/ah" "$mp/bi"] [list aa ab ah]
 setenv_path_var MODULES_LMPREREQ "ab&aa" "ag&aa" "ah&ag" "bi&ab&ah"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa:ag"]
 lappend ans [list setpath _LMFILES_ "$mp/aa:$mp/ag"]
-lappend ans [list setpath MODULES_LMUASKED "ag"]
+lappend ans [list setpath MODULES_LMNOTUASKED "aa"]
 lappend ans [list setpath MODULES_LMPREREQ "ag&aa"]
 testouterr_cmd_re "sh" "unload bi" $ans ""
 
-setenv_loaded_module [list aa ab ag ah bi] [list "$mp/aa" "$mp/ab" "$mp/ag" "$mp/ah" "$mp/bi"] [list ah bi]
+setenv_loaded_module [list aa ab ag ah bi] [list "$mp/aa" "$mp/ab" "$mp/ag" "$mp/ah" "$mp/bi"] [list aa ab ag]
 setenv_path_var MODULES_LMPREREQ "ab&aa" "ag&aa" "ah&ag" "bi&ab&ah"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa:ag:ah"]
 lappend ans [list setpath _LMFILES_ "$mp/aa:$mp/ag:$mp/ah"]
-lappend ans [list setpath MODULES_LMUASKED "ah"]
+lappend ans [list setpath MODULES_LMNOTUASKED "aa:ag"]
 lappend ans [list setpath MODULES_LMPREREQ "ag&aa:ah&ag"]
 testouterr_cmd_re "sh" "unload bi" $ans ""
 
-setenv_loaded_module [list aa ac aj ak] [list "$mp/aa" "$mp/ac" "$mp/aj" "$mp/ak"] [list aj ak]
+setenv_loaded_module [list aa ac aj ak] [list "$mp/aa" "$mp/ac" "$mp/aj" "$mp/ak"] [list aa ac]
 setenv_path_var MODULES_LMPREREQ "aj&aa|ac" "ak&ac|aa"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa:ac:aj"]
 lappend ans [list setpath _LMFILES_ "$mp/aa:$mp/ac:$mp/aj"]
-lappend ans [list setpath MODULES_LMUASKED "aj"]
 lappend ans [list setpath MODULES_LMPREREQ "aj&aa|ac"]
 testouterr_cmd_re "sh" "unload ak" $ans ""
 
-setenv_loaded_module [list aa ac aj ak] [list "$mp/aa" "$mp/ac" "$mp/aj" "$mp/ak"] [list aa aj ak]
+setenv_loaded_module [list aa ac aj ak] [list "$mp/aa" "$mp/ac" "$mp/aj" "$mp/ak"] [list ac]
 setenv_path_var MODULES_LMPREREQ "aj&aa|ac" "ak&ac|aa"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa"]
 lappend ans [list setpath _LMFILES_ "$mp/aa"]
-lappend ans [list setpath MODULES_LMUASKED "aa"]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 testouterr_cmd_re "sh" "unload aj ak" $ans ""
 
-setenv_loaded_module [list aa ac aj ak] [list "$mp/aa" "$mp/ac" "$mp/aj" "$mp/ak"] [list ac aj ak]
+setenv_loaded_module [list aa ac aj ak] [list "$mp/aa" "$mp/ac" "$mp/aj" "$mp/ak"] [list aa]
 setenv_path_var MODULES_LMPREREQ "aj&aa|ac" "ak&ac|aa"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "ac"]
 lappend ans [list setpath _LMFILES_ "$mp/ac"]
-lappend ans [list setpath MODULES_LMUASKED "ac"]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 testouterr_cmd_re "sh" "unload aj ak" $ans ""
 
-setenv_loaded_module [list aa ac aj ak] [list "$mp/aa" "$mp/ac" "$mp/aj" "$mp/ak"] [list aa ac aj ak]
+setenv_loaded_module [list aa ac aj ak] [list "$mp/aa" "$mp/ac" "$mp/aj" "$mp/ak"]
 setenv_path_var MODULES_LMPREREQ "aj&aa|ac" "ak&ac|aa"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa:ac"]
 lappend ans [list setpath _LMFILES_ "$mp/aa:$mp/ac"]
-lappend ans [list setpath MODULES_LMUASKED "aa:ac"]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 testouterr_cmd_re "sh" "unload aj ak" $ans ""
 
-setenv_loaded_module [list aa ac bj bk] [list "$mp/aa" "$mp/ac" "$mp/bj" "$mp/bk"] [list aa bj bk]
+setenv_loaded_module [list aa ac bj bk] [list "$mp/aa" "$mp/ac" "$mp/bj" "$mp/bk"] [list ac]
 setenv_path_var MODULES_LMPREREQ "bj&aa&ac" "bk&ac&aa"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa"]
 lappend ans [list setpath _LMFILES_ "$mp/aa"]
-lappend ans [list setpath MODULES_LMUASKED "aa"]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 testouterr_cmd_re "sh" "unload bj bk" $ans ""
 
-setenv_loaded_module [list aa ac bj bk] [list "$mp/aa" "$mp/ac" "$mp/bj" "$mp/bk"] [list ac bj bk]
+setenv_loaded_module [list aa ac bj bk] [list "$mp/aa" "$mp/ac" "$mp/bj" "$mp/bk"] [list aa]
 setenv_path_var MODULES_LMPREREQ "bj&aa&ac" "bk&ac&aa"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "ac"]
 lappend ans [list setpath _LMFILES_ "$mp/ac"]
-lappend ans [list setpath MODULES_LMUASKED "ac"]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 testouterr_cmd_re "sh" "unload bj bk" $ans ""
 
-setenv_loaded_module [list aa ac bj bk] [list "$mp/aa" "$mp/ac" "$mp/bj" "$mp/bk"] [list aa ac bj bk]
+setenv_loaded_module [list aa ac bj bk] [list "$mp/aa" "$mp/ac" "$mp/bj" "$mp/bk"]
 setenv_path_var MODULES_LMPREREQ "bj&aa&ac" "bk&ac&aa"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "aa:ac"]
 lappend ans [list setpath _LMFILES_ "$mp/aa:$mp/ac"]
-lappend ans [list setpath MODULES_LMUASKED "aa:ac"]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 testouterr_cmd_re "sh" "unload bj bk" $ans ""
 

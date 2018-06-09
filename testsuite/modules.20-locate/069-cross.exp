@@ -105,39 +105,39 @@ set modulepathre_14 "$modulepathre_2"
 
 # loading tests
 set modsym_15 "lcross/1"
-set moduasked_15 "lcross/1"
+set modnuasked_15 [list cross/2.0 lcross/2]
 set module_15 [list cross/2.0 lcross/2 lcross/1]
 set modulefile_15 [list $modpath3/cross/2.0 $modpath2/lcross/2 $modpath1/lcross/1]
 
 set modsym_16 "lcross/3"
-set moduasked_16 "lcross/3"
+set modnuasked_16 [list cross/4.0 lcross/4]
 set module_16 [list cross/4.0 lcross/4 lcross/3]
 set modulefile_16 [list $modpath1/cross/4.0 $modpath2/lcross/4 $modpath3/lcross/3]
 
 set modsym_17 "lcross/5"
-set moduasked_17 "lcross/5"
+set modnuasked_17 [list cross/6.0 lcross/6]
 set module_17 [list cross/6.0 lcross/6 lcross/5]
 set modulefile_17 [list $modpath2/cross/6.0 $modpath1/lcross/6 $modpath2/lcross/5]
 
 set modsym_18 "lcross/7"
-set moduasked_18 "lcross/7"
+set modnuasked_18 [list cross/1.0 lcross/8]
 set module_18 [list cross/1.0 lcross/8 lcross/7]
 set modulefile_18 [list $modpath2/cross/1.0 $modpath3/lcross/8 $modpath2/lcross/7]
 
 set modsym_19 "lcross/10"
-set moduasked_19 "lcross/10"
+set modnuasked_19 "cross/4.0"
 # first directory wins default
 set module_19 "cross/4.0:lcross/10"
 set modulefile_19 "$modpath1/cross/4.0:$modpath1/lcross/10"
 
 set modsym_20 "lcross/11"
-set moduasked_20 "lcross/11"
+set modnuasked_20 "cross/4.0"
 # first directory wins default
 set module_20 "cross/4.0:lcross/11"
 set modulefile_20 "$modpath1/cross/4.0:$modpath2/lcross/11"
 
 set modsym_21 "lcross/12"
-set moduasked_21 "lcross/12"
+set modnuasked_21 "cross/4.0"
 # first directory wins default
 set module_21 "cross/4.0:lcross/12"
 set modulefile_21 "$modpath1/cross/4.0:$modpath3/lcross/12"
@@ -324,10 +324,10 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     set modsym [set "::modsym_${i}"]
     set modulelist [set "::module_${i}"]
     set module [join $modulelist ":"]
-    if {[info exists "::moduasked_${i}"]} {
-        set moduasked [set "::moduasked_${i}"]
+    if {[info exists "::modnuasked_${i}"]} {
+        set modnuasked [join [set "::modnuasked_${i}"] ":"]
     } else {
-        set moduasked $module
+        set modnuasked {}
     }
     if {[info exists "::modulefile_${i}"]} {
         set modulefilelist [set "::modulefile_${i}"]
@@ -353,7 +353,9 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     lappend ans [list set testsuite "yes"]
     lappend ans [list setpath LOADEDMODULES "$module"]
     lappend ans [list setpath _LMFILES_ "$modulefile"]
-    lappend ans [list setpath MODULES_LMUASKED "$moduasked"]
+    if {$modnuasked ne ""} {
+        lappend ans [list setpath MODULES_LMNOTUASKED "$modnuasked"]
+    }
     testouterr_cmd_re "sh" "load $modsym" $ans ""
 
     if {$test_shows} {
@@ -378,13 +380,15 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     }
 
     # setup environment with targeted module loaded
-    setenv_loaded_module $modulelist $modulefilelist
+    setenv_loaded_module $modulelist $modulefilelist $modnuasked
 
     set ans [list]
     lappend ans [list unset testsuite]
     lappend ans [list unsetpath LOADEDMODULES]
     lappend ans [list unsetpath _LMFILES_]
-    lappend ans [list unsetpath MODULES_LMUASKED]
+    if {$modnuasked ne ""} {
+        lappend ans [list unsetpath MODULES_LMNOTUASKED]
+    }
     testouterr_cmd_re "sh" "unload $modsym" $ans ""
 }
 
@@ -465,8 +469,8 @@ unset disp_post
 for {set i 1} {$i <= 49} {incr i} {
     unset "modsym_${i}"
     unset "module_${i}"
-    if {[info exists "moduasked_${i}"]} {
-        unset "moduasked_${i}"
+    if {[info exists "modnuasked_${i}"]} {
+        unset "modnuasked_${i}"
     }
     if {[info exists "::modulefile_${i}"]} {
         unset "modulefile_${i}"

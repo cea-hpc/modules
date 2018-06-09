@@ -176,7 +176,6 @@ for {set i 1} {$i <= 12} {incr i} {
         lappend ans [list set testsuite $module]
         lappend ans [list setpath LOADEDMODULES $module]
         lappend ans [list setpath _LMFILES_ $modulefile]
-        lappend ans [list setpath MODULES_LMUASKED $module]
 
         testouterr_cmd "sh" "load $modsym" $ans ""
         testouterr_cmd_re "sh" "display $modsym" "OK" "$disp_pre$modulefilere:\n\n$disp_wi$module$disp_set$module$disp_post"
@@ -213,7 +212,6 @@ for {set i 1} {$i <= 12} {incr i} {
     lappend ans [list unset testsuite]
     lappend ans [list unsetpath LOADEDMODULES]
     lappend ans [list unsetpath _LMFILES_]
-    lappend ans [list unsetpath MODULES_LMUASKED]
 
     if {[info exists moderr]} {
         testouterr_cmd "sh" "unload $modsym" "ERR" "$moderr"
@@ -232,7 +230,6 @@ set ans [list]
 lappend ans [list set testsuite $module_3]
 lappend ans [list setpath LOADEDMODULES "$module_4:$module_1:$module_reg:$module_3"]
 lappend ans [list setpath _LMFILES_ "$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"]
-lappend ans [list setpath MODULES_LMUASKED "$module_4:$module_1:$module_reg:$module_3"]
 
 testouterr_cmd_re "sh" "load $module_4 $modulefile_4 $module_1 $module_reg $module_3" $ans ""
 
@@ -240,7 +237,6 @@ set ans [list]
 lappend ans [list set testsuite $module_3]
 lappend ans [list setpath LOADEDMODULES "$modulefile_4:$module_4:$module_3"]
 lappend ans [list setpath _LMFILES_ "$modulefile_4:$modulefile_4:$modulefile_4"]
-lappend ans [list setpath MODULES_LMUASKED "$modulefile_4:$module_4:$module_3"]
 
 # full path target loaded as is will not impact the afterward load of virtual modules targeting it
 testouterr_cmd_re "sh" "load $modulefile_4 $module_4 $module_3" $ans ""
@@ -251,10 +247,8 @@ setenv_loaded_module $module_1 $modulefile_1
 
 # same target file load twice
 set ans [list]
-lappend ans [list set MODULES_LMUASKED_modshare "$module_1:1:$module_2:1"]
 lappend ans [list set _LMFILES__modshare "$modulefile_1:2"]
 lappend ans [list set LOADEDMODULES_modshare "$module_1:1:$module_2:1"]
-lappend ans [list set MODULES_LMUASKED "$module_1:$module_2"]
 lappend ans [list set _LMFILES_ "$modulefile_1:$modulefile_2"]
 lappend ans [list set LOADEDMODULES "$module_1:$module_2"]
 lappend ans [list set testsuite $module_2]
@@ -266,7 +260,6 @@ set ans [list]
 lappend ans [list set testsuite $module_3]
 lappend ans [list setpath LOADEDMODULES "$module_1:$module_3"]
 lappend ans [list setpath _LMFILES_ "$modulefile_1:$modulefile_3"]
-lappend ans [list setpath MODULES_LMUASKED "$module_1:$module_3"]
 
 testouterr_cmd_re "sh" "load $module_3" $ans ""
 
@@ -276,10 +269,8 @@ testouterr_cmd "sh" "load $modpath/$module_3" "ERR" "$err_file'$modpath/$module_
 
 # switch to same target file
 set ans [list]
-lappend ans [list set MODULES_LMUASKED_modshare "$module_2:1"]
 lappend ans [list set _LMFILES__modshare "$modulefile_2:1"]
 lappend ans [list set LOADEDMODULES_modshare "$module_2:1"]
-lappend ans [list set MODULES_LMUASKED "$module_2"]
 lappend ans [list set _LMFILES_ $modulefile_2]
 lappend ans [list set LOADEDMODULES "$module_2"]
 lappend ans [list set testsuite $module_2]
@@ -288,10 +279,8 @@ testouterr_cmd "sh" "switch $module_2" $ans ""
 
 # switch to other target from same modname
 set ans [list]
-lappend ans [list set MODULES_LMUASKED_modshare "$module_3:1"]
 lappend ans [list set _LMFILES__modshare "$modulefile_3:1"]
 lappend ans [list set LOADEDMODULES_modshare "$module_3:1"]
-lappend ans [list set MODULES_LMUASKED "$module_3"]
 lappend ans [list set _LMFILES_ $modulefile_3]
 lappend ans [list set LOADEDMODULES "$module_3"]
 lappend ans [list set testsuite $module_3]
@@ -304,10 +293,8 @@ set env(testsuite) $module_2
 setenv_loaded_module [list $module_1 $module_2] [list $modulefile_1 $modulefile_2]
 
 set ans [list]
-lappend ans [list set MODULES_LMUASKED_modshare "$module_2:1"]
 lappend ans [list set _LMFILES__modshare "$modulefile_1:1"]
 lappend ans [list set LOADEDMODULES_modshare "$module_2:1"]
-lappend ans [list set MODULES_LMUASKED "$module_2"]
 lappend ans [list set _LMFILES_ $modulefile_1]
 lappend ans [list set LOADEDMODULES "$module_2"]
 lappend ans [list unset testsuite]
@@ -315,10 +302,8 @@ lappend ans [list unset testsuite]
 testouterr_cmd "sh" "unload $module_1" $ans ""
 
 set ans [list]
-lappend ans [list set MODULES_LMUASKED_modshare "$module_1:1"]
 lappend ans [list set _LMFILES__modshare "$modulefile_1:1"]
 lappend ans [list set LOADEDMODULES_modshare "$module_1:1"]
-lappend ans [list set MODULES_LMUASKED "$module_1"]
 lappend ans [list set _LMFILES_ $modulefile_1]
 lappend ans [list set LOADEDMODULES "$module_1"]
 lappend ans [list unset testsuite]
@@ -373,14 +358,12 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$modulefile_4:$module_1:$module_reg:$module_3"]
 lappend ans [list setpath _LMFILES_ "$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"]
-lappend ans [list setpath MODULES_LMUASKED "$modulefile_4:$module_1:$module_reg:$module_3"]
 testouterr_cmd_re "sh" "unload $module_4" $ans ""
 
 set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_4:$modulefile_4:$module_1:$module_reg"]
 lappend ans [list setpath _LMFILES_ "$modulefile_4:$modulefile_4:$modulefile_1:$modulefile_reg"]
-lappend ans [list setpath MODULES_LMUASKED "$module_4:$modulefile_4:$module_1:$module_reg"]
 testouterr_cmd_re "sh" "unload loc_virt1" $ans ""
 
 # switch tests
@@ -388,28 +371,24 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$modulefile_4:$module_1:$module_reg:$module_3"]
 lappend ans [list setpath _LMFILES_ "$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"]
-lappend ans [list setpath MODULES_LMUASKED "$modulefile_4:$module_1:$module_reg:$module_3"]
 testouterr_cmd_re "sh" "switch $module_4 $module_3" $ans ""
 
 set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_4:$modulefile_4:$module_reg:$module_3"]
 lappend ans [list setpath _LMFILES_ "$modulefile_4:$modulefile_4:$modulefile_reg:$modulefile_4"]
-lappend ans [list setpath MODULES_LMUASKED "$module_4:$modulefile_4:$module_reg:$module_3"]
 testouterr_cmd_re "sh" "switch $module_1 $module_4" $ans ""
 
 set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_4:$modulefile_4:$module_1:$module_reg"]
 lappend ans [list setpath _LMFILES_ "$modulefile_4:$modulefile_4:$modulefile_1:$modulefile_reg"]
-lappend ans [list setpath MODULES_LMUASKED "$module_4:$modulefile_4:$module_1:$module_reg"]
 testouterr_cmd_re "sh" "switch loc_virt1 $module_reg" $ans ""
 
 set ans [list]
 lappend ans [list set testsuite $module_4]
 lappend ans [list setpath LOADEDMODULES "$modulefile_4:$module_1:$module_reg:$module_3:$module_4"]
 lappend ans [list setpath _LMFILES_ "$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4:$modulefile_4"]
-lappend ans [list setpath MODULES_LMUASKED "$modulefile_4:$module_1:$module_reg:$module_3:$module_4"]
 testouterr_cmd_re "sh" "switch $module_4" $ans ""
 
 # switch target file, when it is also loaded as a module name
@@ -417,7 +396,6 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_4:$module_1:$module_reg:$module_3"]
 lappend ans [list setpath _LMFILES_ "$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"]
-lappend ans [list setpath MODULES_LMUASKED "$module_4:$module_1:$module_reg:$module_3"]
 testouterr_cmd_re "sh" "switch $modulefile_4" $ans ""
 
 # same test without modulepath defined
@@ -426,7 +404,6 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_4:$module_1:$module_reg:$module_3"]
 lappend ans [list setpath _LMFILES_ "$modulefile_4:$modulefile_1:$modulefile_reg:$modulefile_4"]
-lappend ans [list setpath MODULES_LMUASKED "$module_4:$module_1:$module_reg:$module_3"]
 testouterr_cmd_re "sh" "switch $modulefile_4" $ans ""
 
 # restore modulepath
@@ -441,7 +418,6 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_4:$module_1:$module_reg"]
 lappend ans [list setpath _LMFILES_ "$modulefile_4:$modulefile_1:$modulefile_reg"]
-lappend ans [list setpath MODULES_LMUASKED "$module_4:$module_1:$module_reg"]
 testouterr_cmd_re "sh" "switch $modulefile_4" $ans ""
 
 # same test without modulepath defined
@@ -461,7 +437,6 @@ set ans [list]
 lappend ans [list set testsuite $module_12]
 lappend ans [list setpath LOADEDMODULES "$module_11:$module_12"]
 lappend ans [list setpath _LMFILES_ "$modulefile_11:$modulefile_12"]
-lappend ans [list setpath MODULES_LMUASKED "$module_11:$module_12"]
 testouterr_cmd_re "sh" "load $module_12" $ans ""
 
 testouterr_cmd "sh" "load $modulefile_12" "OK" ""
@@ -470,14 +445,12 @@ set ans [list]
 lappend ans [list set testsuite $module_12]
 lappend ans [list setpath LOADEDMODULES "$module_12"]
 lappend ans [list setpath _LMFILES_ "$modulefile_12"]
-lappend ans [list setpath MODULES_LMUASKED "$module_12"]
 testouterr_cmd_re "sh" "switch $module_12" $ans ""
 
 set ans [list]
 lappend ans [list set testsuite $modulefile_12]
 lappend ans [list setpath LOADEDMODULES "$modulefile_12"]
 lappend ans [list setpath _LMFILES_ "$modulefile_12"]
-lappend ans [list setpath MODULES_LMUASKED "$modulefile_12"]
 testouterr_cmd_re "sh" "switch $modulefile_12" $ans ""
 
 
@@ -488,7 +461,6 @@ set ans [list]
 lappend ans [list set testsuite $module_11]
 lappend ans [list setpath LOADEDMODULES "$module_12:$module_11"]
 lappend ans [list setpath _LMFILES_ "$modulefile_12:$modulefile_11"]
-lappend ans [list setpath MODULES_LMUASKED "$module_12:$module_11"]
 testouterr_cmd_re "sh" "load $module_11" $ans ""
 
 testouterr_cmd "sh" "load $modulefile_11" "OK" ""
@@ -497,14 +469,12 @@ set ans [list]
 lappend ans [list set testsuite $module_11]
 lappend ans [list setpath LOADEDMODULES "$module_11"]
 lappend ans [list setpath _LMFILES_ "$modulefile_11"]
-lappend ans [list setpath MODULES_LMUASKED "$module_11"]
 testouterr_cmd_re "sh" "switch $module_11" $ans ""
 
 set ans [list]
 lappend ans [list set testsuite $modulefile_11]
 lappend ans [list setpath LOADEDMODULES "$modulefile_11"]
 lappend ans [list setpath _LMFILES_ "$modulefile_11"]
-lappend ans [list setpath MODULES_LMUASKED "$modulefile_11"]
 testouterr_cmd_re "sh" "switch $modulefile_11" $ans ""
 
 
@@ -515,14 +485,12 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_12"]
 lappend ans [list setpath _LMFILES_ "$modulefile_12"]
-lappend ans [list setpath MODULES_LMUASKED "$module_12"]
 testouterr_cmd_re "sh" "unload $module_11" $ans ""
 
 set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_11"]
 lappend ans [list setpath _LMFILES_ "$modulefile_11"]
-lappend ans [list setpath MODULES_LMUASKED "$module_11"]
 testouterr_cmd_re "sh" "unload $module_12" $ans ""
 testouterr_cmd_re "sh" "unload $modulefile_11" $ans ""
 testouterr_cmd_re "sh" "unload loc_virt2" $ans ""
@@ -533,14 +501,12 @@ set ans [list]
 lappend ans [list set testsuite $module_11]
 lappend ans [list setpath LOADEDMODULES "$module_12:$module_11"]
 lappend ans [list setpath _LMFILES_ "$modulefile_12:$modulefile_11"]
-lappend ans [list setpath MODULES_LMUASKED "$module_12:$module_11"]
 testouterr_cmd_re "sh" "switch $module_11" $ans ""
 
 set ans [list]
 lappend ans [list set testsuite $module_12]
 lappend ans [list setpath LOADEDMODULES "$module_11:$module_12"]
 lappend ans [list setpath _LMFILES_ "$modulefile_11:$modulefile_12"]
-lappend ans [list setpath MODULES_LMUASKED "$module_11:$module_12"]
 testouterr_cmd_re "sh" "switch $module_12" $ans ""
 
 
@@ -551,14 +517,12 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_12"]
 lappend ans [list setpath _LMFILES_ "$modulefile_12"]
-lappend ans [list setpath MODULES_LMUASKED "$module_12"]
 testouterr_cmd_re "sh" "unload $module_11" $ans ""
 
 set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_11"]
 lappend ans [list setpath _LMFILES_ "$modulefile_11"]
-lappend ans [list setpath MODULES_LMUASKED "$module_11"]
 testouterr_cmd_re "sh" "unload $module_12" $ans ""
 
 # remove lastly loaded match
@@ -566,7 +530,6 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_12"]
 lappend ans [list setpath _LMFILES_ "$modulefile_12"]
-lappend ans [list setpath MODULES_LMUASKED "$module_12"]
 testouterr_cmd_re "sh" "unload $modulefile_11" $ans ""
 testouterr_cmd_re "sh" "unload loc_virt2" $ans ""
 
@@ -574,21 +537,18 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_11"]
 lappend ans [list setpath _LMFILES_ "$modulefile_11"]
-lappend ans [list setpath MODULES_LMUASKED "$module_11"]
 testouterr_cmd_re "sh" "switch $modulefile_11" $ans ""
 
 set ans [list]
 lappend ans [list set testsuite $module_11]
 lappend ans [list setpath LOADEDMODULES "$module_12:$module_11"]
 lappend ans [list setpath _LMFILES_ "$modulefile_12:$modulefile_11"]
-lappend ans [list setpath MODULES_LMUASKED "$module_12:$module_11"]
 testouterr_cmd_re "sh" "switch $module_11" $ans ""
 
 set ans [list]
 lappend ans [list set testsuite $module_12]
 lappend ans [list setpath LOADEDMODULES "$module_11:$module_12"]
 lappend ans [list setpath _LMFILES_ "$modulefile_11:$modulefile_12"]
-lappend ans [list setpath MODULES_LMUASKED "$module_11:$module_12"]
 testouterr_cmd_re "sh" "switch $module_12" $ans ""
 
 
@@ -599,14 +559,12 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$modulefile_12"]
 lappend ans [list setpath _LMFILES_ "$modulefile_12"]
-lappend ans [list setpath MODULES_LMUASKED "$modulefile_12"]
 testouterr_cmd_re "sh" "unload $module_11" $ans ""
 
 set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_11"]
 lappend ans [list setpath _LMFILES_ "$modulefile_11"]
-lappend ans [list setpath MODULES_LMUASKED "$module_11"]
 testouterr_cmd_re "sh" "unload $module_12" $ans ""
 testouterr_cmd_re "sh" "unload $modulefile_11" $ans ""
 testouterr_cmd_re "sh" "unload loc_virt2" $ans ""
@@ -617,14 +575,12 @@ set ans [list]
 lappend ans [list set testsuite $module_11]
 lappend ans [list setpath LOADEDMODULES "$modulefile_12:$module_11"]
 lappend ans [list setpath _LMFILES_ "$modulefile_12:$modulefile_11"]
-lappend ans [list setpath MODULES_LMUASKED "$modulefile_12:$module_11"]
 testouterr_cmd_re "sh" "switch $module_11" $ans ""
 
 set ans [list]
 lappend ans [list set testsuite $module_12]
 lappend ans [list setpath LOADEDMODULES "$module_11:$module_12"]
 lappend ans [list setpath _LMFILES_ "$modulefile_11:$modulefile_12"]
-lappend ans [list setpath MODULES_LMUASKED "$module_11:$module_12"]
 testouterr_cmd_re "sh" "switch $module_12" $ans ""
 
 
@@ -635,14 +591,12 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$modulefile_12"]
 lappend ans [list setpath _LMFILES_ "$modulefile_12"]
-lappend ans [list setpath MODULES_LMUASKED "$modulefile_12"]
 testouterr_cmd_re "sh" "unload $module_11" $ans ""
 
 set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_11"]
 lappend ans [list setpath _LMFILES_ "$modulefile_11"]
-lappend ans [list setpath MODULES_LMUASKED "$module_11"]
 testouterr_cmd_re "sh" "unload $module_12" $ans ""
 
 # remove lastly loaded match
@@ -650,7 +604,6 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$modulefile_12"]
 lappend ans [list setpath _LMFILES_ "$modulefile_12"]
-lappend ans [list setpath MODULES_LMUASKED "$modulefile_12"]
 testouterr_cmd_re "sh" "unload $modulefile_11" $ans ""
 testouterr_cmd_re "sh" "unload loc_virt2" $ans ""
 
@@ -658,21 +611,18 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_11"]
 lappend ans [list setpath _LMFILES_ "$modulefile_11"]
-lappend ans [list setpath MODULES_LMUASKED "$module_11"]
 testouterr_cmd_re "sh" "switch $modulefile_11" $ans ""
 
 set ans [list]
 lappend ans [list set testsuite $module_11]
 lappend ans [list setpath LOADEDMODULES "$modulefile_12:$module_11"]
 lappend ans [list setpath _LMFILES_ "$modulefile_12:$modulefile_11"]
-lappend ans [list setpath MODULES_LMUASKED "$modulefile_12:$module_11"]
 testouterr_cmd_re "sh" "switch $module_11" $ans ""
 
 set ans [list]
 lappend ans [list set testsuite $module_12]
 lappend ans [list setpath LOADEDMODULES "$module_11:$module_12"]
 lappend ans [list setpath _LMFILES_ "$modulefile_11:$modulefile_12"]
-lappend ans [list setpath MODULES_LMUASKED "$module_11:$module_12"]
 testouterr_cmd_re "sh" "switch $module_12" $ans ""
 
 
