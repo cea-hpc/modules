@@ -1570,7 +1570,11 @@ proc module {command args} {
             # initadd command that may expect this behavior
             if {[llength $args] > 0} {
                set ret 0
-               if {$topcall} {
+               # if top command is source, consider module load commands made
+               # within sourced file evaluation as top load command
+               if {$topcall || ([getEvalModuleStackDepth] == 1 && (
+                  [aboveCommandName] eq "source" || [aboveCommandName] eq\
+                  "autoinit"))} {
                   set ret [eval cmdModuleLoad 1 $args]
                } elseif {$mode eq "load"} {
                   set ret [eval cmdModuleLoad 0 $args]
@@ -2624,6 +2628,10 @@ set g_commandNameStack {}
 
 proc currentCommandName {} {
    return [lindex $::g_commandNameStack end]
+}
+
+proc aboveCommandName {} {
+   return [lindex $::g_commandNameStack end-1]
 }
 
 proc pushCommandName {commandName} {
