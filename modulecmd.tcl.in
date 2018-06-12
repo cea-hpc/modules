@@ -6224,16 +6224,9 @@ proc cmdModuleLoad {uasked args} {
          }
 
          if {$::g_force || ![isModuleLoaded $modname]} {
-            if {$::g_auto_handling} {
-               lassign [doesModuleConflict $modname] doescon modconlist
-            } else {
-               set doescon 0
-               set modconlist {}
-            }
-
+            # error if loading module violates a registered conflict
+            lassign [doesModuleConflict $modname] doescon modconlist
             if {$doescon} {
-               # report an error instead of loading module
-               # if a conflict has been detected
                reportError "WARNING: $modname cannot be loaded due\
                   to a conflict.\nHINT: Might try \"module unload\
                   [join $modconlist]\" first."
