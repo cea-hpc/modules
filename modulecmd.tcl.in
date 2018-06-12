@@ -6299,16 +6299,9 @@ proc cmdModuleUnload {match autounload args} {
       lassign [getPathToModule $mod {} $match] modfile modname
       if {$modfile ne ""} {
          if {[isModuleLoaded $modname]} {
-            if {$::g_auto_handling} {
-               # check if any loaded module has declared a prereq
-               set prereq_list [getDependentLoadedModuleList $modname]
-            } else {
-               set prereq_list {}
-            }
-
+            # error if unloading module violates a registered prereq
+            set prereq_list [getDependentLoadedModuleList $modname]
             if {[llength $prereq_list] > 0} {
-               # report an error instead of unloading module
-               # if a prereq has been detected
                reportError "WARNING: $modname cannot be unloaded\
                   due to a prereq.\nHINT: Might try \"module unload\
                   [join $prereq_list]\" first."
