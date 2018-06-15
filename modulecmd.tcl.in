@@ -589,7 +589,7 @@ proc initModfileModeAliases {mode aliasesVN aliasesPassArgVN tracesVN} {
          reportCmdTrace reportInternalBug reportInternalBug reportWarning\
          reportWarning reportError reportError raiseErrorCount\
          raiseErrorCount report report isWin isWin puts putsModfileCmd\
-         readModuleContent readModuleContent is-loading is-loading]
+         readModuleContent readModuleContent]
 
       # list of alias commands whose target procedure is adapted according to
       # the evaluation mode
@@ -2309,33 +2309,16 @@ proc is-loaded {args} {
    return [expr {[llength $args] == 0 && [llength [getLoadedModuleList]] > 0}]
 }
 
-proc is-loading {modulelist} {
-   global g_modeStack g_moduleNameStack g_debug
+proc is-loading {args} {
+   reportDebug "$args"
 
-   if {$g_debug} {
-      report "DEBUG is-loading: $modulelist"
-   }
-
-   if {[llength $modulelist] > 0} {
-      if {[info exists g_modeStack] && [info exists g_moduleNameStack]} {
-         foreach arg $modulelist {
-            set arg "$arg/"
-            # skip current moduleName by avoiding last
-            for {set i 0} {$i < [expr {[llength $g_moduleNameStack] - 1}]} \
-               {incr i 1} {
-               set modname "[lindex $g_moduleNameStack $i]/"
-               set modmode [lindex $g_modeStack $i]
-               if {[string first $arg $modname] == 0 && $modmode == "load"} {
-                  return 1
-               }
-            }
-         }
-         return 0
-      } else {
-         return 0
+   foreach mod $args {
+      if {[getLoadedMatchingName $mod "returnfirst" 1] ne ""} {
+         return 1
       }
    }
-   return 1
+   # is something else loading whatever it is?
+   return [expr {[llength $args] == 0 && [llength [getLoadingModuleList]] >1}]
 }
 
 proc conflict {args} {
@@ -2355,8 +2338,10 @@ proc conflict {args} {
             set errMsg "$errMsg\nHINT: Might try \"module unload $mod\"\
                first."
             error $errMsg
-         # if the conflict module is loading, we cannot proceed either
-         } elseif {[is-loading $mod]} {
+         # if the conflict module is loading and it does not correspond to
+         # currently evaluated module, we cannot proceed either
+         } elseif {[string first "$mod/" "$currentModule/" ] != 0 &&\
+            [is-loading $mod]} {
             set errMsg "WARNING: $currentModule cannot be loaded due\
                to a conflict."
             set errMsg "$errMsg\nHINT: Conflict with $mod\
@@ -2642,6 +2627,27 @@ proc popCommandName {} {
    set ::g_commandNameStack [lrange $::g_commandNameStack 0 end-1]
 }
 
+# return list of currently loading modules in stack
+proc getLoadingModuleList {} {
+   set modlist [list]
+   for {set i 0} {$i < [llength $::g_moduleNameStack]} {incr i 1} {
+      if {[lindex $::g_modeStack $i] eq "load"} {
+         lappend modlist [lindex $::g_moduleNameStack $i]
+      }
+   }
+   return $modlist
+}
+
+# return list of currently loading modulefiles in stack
+proc getLoadingModuleFileList {} {
+   set modlist [list]
+   for {set i 0} {$i < [llength $::g_moduleFileStack]} {incr i 1} {
+      if {[lindex $::g_modeStack $i] eq "load"} {
+         lappend modlist [lindex $::g_moduleFileStack $i]
+      }
+   }
+   return $modlist
+}
 
 # return list of loaded modules by parsing LOADEDMODULES env variable
 proc getLoadedModuleList {{filter_empty 1}} {
@@ -2949,6 +2955,29 @@ proc getModuleFromLoadedModulefile {modfile {idx "all"}} {
    return $ret
 }
 
+proc isModulefileLoading {modfile} {
+   return [expr {[lsearch -exact [getLoadingModuleFileList] $modfile] != -1}]
+}
+
+proc getModuleFromLoadingModulefile {modfile {idx "all"}} {
+   set ret {}
+
+   if {[isModulefileLoading $modfile]} {
+      set loadingmodlist [getLoadingModuleList]
+      foreach i [lsearch -all -exact [getLoadingModuleFileList] $modfile] {
+         lappend modlist [lindex $loadingmodlist $i]
+      }
+
+      if {$idx eq "all"} {
+         set ret $modlist
+      } else {
+         set ret [lindex $modlist $idx]
+      }
+   }
+
+   return $ret
+}
+
 proc setLoadedModule {mod modfile uasked} {
    set ::g_loadedModules($mod) $modfile
    # a loaded modfile may correspond to multiple loaded virtual modules
@@ -3048,9 +3077,21 @@ proc getLoadedWithClosestName {name} {
 
 # return the currently loaded module whose name is equal or include the name
 # passed as argument. if no loaded module match, an empty string is returned.
-proc getLoadedMatchingName {name {behavior "returnlast"}} {
+# look at currently loading modules instead of loaded if loading == 1
+proc getLoadedMatchingName {name {behavior "returnlast"} {loading 0}} {
    set ret {}
    set retmax 0
+
+   # use loading-specific procedures instead of loaded-specific ones
+   if {$loading} {
+      set isModulefileLoaded isModulefileLoading
+      set getModuleFromLoadedModulefile getModuleFromLoadingModulefile
+      set getLoadedModuleList getLoadingModuleList
+   } else {
+      set isModulefileLoaded isModulefileLoaded
+      set getModuleFromLoadedModulefile getModuleFromLoadedModulefile
+      set getLoadedModuleList getLoadedModuleList
+   }
 
    # if module is passed as full modulefile path name, look at lmfile names
    # to return the eventual exact match
@@ -3058,27 +3099,27 @@ proc getLoadedMatchingName {name {behavior "returnlast"}} {
       set mod [getAbsolutePath $name]
       # if module is loaded with its full path name loadedmodules entry is
       # equivalent to _lmfiles_ corresponding entry so only check _lmfiles_
-      if {[isModulefileLoaded $mod]} {
+      if {[$isModulefileLoaded $mod]} {
          # a loaded modfile may correspond to multiple loaded virtual modules
          switch -- $behavior {
             {returnlast} {
-               # the last loaded module will be returned
-               set ret [getModuleFromLoadedModulefile $mod end]
+               # the last loaded/loading module will be returned
+               set ret [$getModuleFromLoadedModulefile $mod end]
             }
             {returnfirst} {
-               # the first loaded module will be returned
-               set ret [getModuleFromLoadedModulefile $mod 0]
+               # the first loaded/loading module will be returned
+               set ret [$getModuleFromLoadedModulefile $mod 0]
             }
             {returnall} {
-               # all loaded modules will be returned
-               set ret [getModuleFromLoadedModulefile $mod]
+               # all loaded/loading modules will be returned
+               set ret [$getModuleFromLoadedModulefile $mod]
             }
          }
       }
    } elseif {$name ne ""} {
-      # compare name to each currently loaded module name, if multiple mod
-      # match name:
-      foreach mod [getLoadedModuleList] {
+      # compare name to each currently loaded/loading module name, if multiple
+      # mod match name:
+      foreach mod [$getLoadedModuleList] {
          # if module loaded as fullpath but test name not, try to get loaded
          # mod short name (with currently used modulepaths) to compare it
          if {[isModuleFullPath $mod] && [set modname\
