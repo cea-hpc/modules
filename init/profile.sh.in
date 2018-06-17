@@ -1,4 +1,12 @@
-shell=$(@BASENAME@ $(@PS@ -p $$ -ocomm=))
+# get current shell name by querying shell variables or looking at parent
+# process name
+if [ -n "${BASH:-}" ]; then
+   shell=${BASH##*/}
+elif [ -n "${ZSH_NAME:-}" ]; then
+   shell=$ZSH_NAME
+else
+   shell=$(@BASENAME@ $(@PS@ -p $$ -ocomm=))
+fi
 
 if [ -f @initdir@/$shell ]; then
    . @initdir@/$shell
