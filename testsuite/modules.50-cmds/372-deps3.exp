@@ -1,0 +1,45 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/06/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload
+#   Modulefiles:
+#   Sub-Command:    prereq, conflict
+#
+#   Comment:	%C{
+#           Test dependency handling consistency whatever the auto-handling
+#           mode enablement state
+#		}C%
+#
+##############################################################################
+
+set mp "$modpath.deps"
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# is-loading conflict check
+testouterr_cmd "sh" "load mt" "ERR" "[err_conflictw ms mt]"
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_loaded_module
+
+unset mp
+unset ans
+
