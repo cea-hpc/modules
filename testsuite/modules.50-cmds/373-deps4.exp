@@ -1,0 +1,148 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/06/06
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload
+#   Modulefiles:
+#   Sub-Command:    prereq, conflict
+#
+#   Comment:	%C{
+#           Test automatic resolution of modulefile dependencies when the
+#           auto-handling mode is enabled (dependent modules handling)
+#		}C%
+#
+##############################################################################
+
+# skip tests if auto-handling is disabled
+if {$install_autohandling ne "y"} {
+    send_user "\tskipping dependency resolution tests as auto-handling mode is disabled\n"
+} else {
+
+set mp "$modpath.deps"
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# test correct dependency resolution
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "ca:cc:cd:ce:cf:cg"]
+lappend ans [list setpath _LMFILES_ "$mp/ca:$mp/cc:$mp/cd:$mp/ce:$mp/cf:$mp/cg"]
+lappend ans [list setpath MODULES_LMPREREQ "cc&ca|cb:cd&cc:ce&cd:cf&cc:cg&cf"]
+lappend ans [list setpath MODULES_LMNOTUASKED "ca:cc:cd:cf"]
+set tserr [list "load ca" "load cc" "load cd" "load ce" "load cf" "load cg"]
+testouterr_cmd_re "sh" "load ce cg" $ans [join $tserr "\n"]
+
+# set environment with above result
+setenv_loaded_module [list ca cc cd ce cf cg] [list "$mp/ca" "$mp/cc" "$mp/cd" "$mp/ce" "$mp/cf" "$mp/cg"] [list ca cc cd cf]
+setenv_path_var MODULES_LMPREREQ "cc&ca|cb" "cd&cc" "ce&cd" "cf&cc" "cg&cf"
+
+# load optional prereq module (alternative module was loaded automatically)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "ca:cb:cc:cd:ce:cf:cg"]
+lappend ans [list setpath _LMFILES_ "$mp/ca:$mp/cb:$mp/cc:$mp/cd:$mp/ce:$mp/cf:$mp/cg"]
+# LMPREREQ and LMNOTUASKED are updated as dependencies are reloaded
+lappend ans [list setpath MODULES_LMPREREQ "cc&ca|cb:cd&cc:ce&cd:cf&cc:cg&cf"]
+lappend ans [list setpath MODULES_LMNOTUASKED "ca:cc:cd:cf"]
+set tserr [list "load cb" "unload cg" "unload cf" "unload ce" "unload cd" "unload cc" "load cc" "load cd" "load ce" "load cf" "load cg"]
+testouterr_cmd_re "sh" "load cb" $ans [join $tserr "\n"]
+
+# set environment where every module has been asked by user
+setenv_loaded_module [list ca cc cd ce cf cg] [list "$mp/ca" "$mp/cc" "$mp/cd" "$mp/ce" "$mp/cf" "$mp/cg"]
+setenv_path_var MODULES_LMPREREQ "cc&ca|cb" "cd&cc" "ce&cd" "cf&cc" "cg&cf"
+
+# load optional prereq module (every module loaded by user)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "ca:cb:cc:cd:ce:cf:cg"]
+lappend ans [list setpath _LMFILES_ "$mp/ca:$mp/cb:$mp/cc:$mp/cd:$mp/ce:$mp/cf:$mp/cg"]
+# LMPREREQ is updated as dependencies are reloaded
+lappend ans [list setpath MODULES_LMPREREQ "cc&ca|cb:cd&cc:ce&cd:cf&cc:cg&cf"]
+set tserr [list "load cb" "unload cg" "unload cf" "unload ce" "unload cd" "unload cc" "load cc" "load cd" "load ce" "load cf" "load cg"]
+testouterr_cmd_re "sh" "load cb" $ans [join $tserr "\n"]
+
+
+# test with alternative prereq already loaded (asked by user)
+setenv_loaded_module [list cb] [list "$mp/cb"]
+unsetenv_path_var MODULES_LMPREREQ
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "cb:cc:cd:ce:cf:cg"]
+lappend ans [list setpath _LMFILES_ "$mp/cb:$mp/cc:$mp/cd:$mp/ce:$mp/cf:$mp/cg"]
+lappend ans [list setpath MODULES_LMPREREQ "cc&ca|cb:cd&cc:ce&cd:cf&cc:cg&cf"]
+lappend ans [list setpath MODULES_LMNOTUASKED "cc:cd:cf"]
+set tserr [list "load cc" "load cd" "load ce" "load cf" "load cg"]
+testouterr_cmd_re "sh" "load ce cg" $ans [join $tserr "\n"]
+
+# set environment with above result
+setenv_loaded_module [list cb cc cd ce cf cg] [list "$mp/cb" "$mp/cc" "$mp/cd" "$mp/ce" "$mp/cf" "$mp/cg"] [list cc cd cf]
+setenv_path_var MODULES_LMPREREQ "cc&ca|cb" "cd&cc" "ce&cd" "cf&cc" "cg&cf"
+
+# load optional first-in-list prereq module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "cb:ca:cc:cd:ce:cf:cg"]
+lappend ans [list setpath _LMFILES_ "$mp/cb:$mp/ca:$mp/cc:$mp/cd:$mp/ce:$mp/cf:$mp/cg"]
+# LMPREREQ and LMNOTUASKED are updated as dependencies are reloaded
+lappend ans [list setpath MODULES_LMPREREQ "cc&ca|cb:cd&cc:ce&cd:cf&cc:cg&cf"]
+lappend ans [list setpath MODULES_LMNOTUASKED "cc:cd:cf"]
+set tserr [list "load ca" "unload cg" "unload cf" "unload ce" "unload cd" "unload cc" "load cc" "load cd" "load ce" "load cf" "load cg"]
+testouterr_cmd_re "sh" "load ca" $ans [join $tserr "\n"]
+
+# set environment where every module has been asked by user
+setenv_loaded_module [list cb cc cd ce cf cg] [list "$mp/cb" "$mp/cc" "$mp/cd" "$mp/ce" "$mp/cf" "$mp/cg"]
+setenv_path_var MODULES_LMPREREQ "cc&ca|cb" "cd&cc" "ce&cd" "cf&cc" "cg&cf"
+
+# load optional first-in-list prereq module (every module loaded by user)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "cb:ca:cc:cd:ce:cf:cg"]
+lappend ans [list setpath _LMFILES_ "$mp/cb:$mp/ca:$mp/cc:$mp/cd:$mp/ce:$mp/cf:$mp/cg"]
+# LMPREREQ is updated as dependencies are reloaded
+lappend ans [list setpath MODULES_LMPREREQ "cc&ca|cb:cd&cc:ce&cd:cf&cc:cg&cf"]
+set tserr [list "load ca" "unload cg" "unload cf" "unload ce" "unload cd" "unload cc" "load cc" "load cd" "load ce" "load cf" "load cg"]
+testouterr_cmd_re "sh" "load ca" $ans [join $tserr "\n"]
+
+
+# set environment with both optional prereq loaded
+setenv_loaded_module [list ca cb cc cd ce cf cg] [list "$mp/ca" "$mp/cb" "$mp/cc" "$mp/cd" "$mp/ce" "$mp/cf" "$mp/cg"] [list ca cc cd cf]
+setenv_path_var MODULES_LMPREREQ "cc&ca|cb" "cd&cc" "ce&cd" "cf&cc" "cg&cf"
+
+# unload optional first-in-list prereq module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "cb:cc:cd:ce:cf:cg"]
+lappend ans [list setpath _LMFILES_ "$mp/cb:$mp/cc:$mp/cd:$mp/ce:$mp/cf:$mp/cg"]
+# LMPREREQ and LMNOTUASKED are updated as dependencies are reloaded
+lappend ans [list setpath MODULES_LMPREREQ "cc&ca|cb:cd&cc:ce&cd:cf&cc:cg&cf"]
+lappend ans [list setpath MODULES_LMNOTUASKED "cc:cd:cf"]
+set tserr [list "unload ca" "unload cg" "unload cf" "unload ce" "unload cd" "unload cc" "load cc" "load cd" "load ce" "load cf" "load cg"]
+testouterr_cmd_re "sh" "unload ca" $ans [join $tserr "\n"]
+
+# unload optional second-in-list prereq module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "ca:cc:cd:ce:cf:cg"]
+lappend ans [list setpath _LMFILES_ "$mp/ca:$mp/cc:$mp/cd:$mp/ce:$mp/cf:$mp/cg"]
+# LMPREREQ and LMNOTUASKED are updated as dependencies are reloaded
+lappend ans [list setpath MODULES_LMPREREQ "cc&ca|cb:cd&cc:ce&cd:cf&cc:cg&cf"]
+lappend ans [list setpath MODULES_LMNOTUASKED "ca:cc:cd:cf"]
+set tserr [list "unload cb" "unload cg" "unload cf" "unload ce" "unload cd" "unload cc" "load cc" "load cd" "load ce" "load cf" "load cg"]
+testouterr_cmd_re "sh" "unload cb" $ans [join $tserr "\n"]
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_loaded_module
+
+unset mp
+unset ans
+
+}
