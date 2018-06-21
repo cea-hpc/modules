@@ -31,6 +31,8 @@ set c3errmsg ""
 set c4errmsg "unload $c2mod6\nunload $c2mod5\nunload $c2mod4"
 set badcontfp "$homewithcoll/.Xresources"
 set badcontfperrmsg "$error_msgs: $badcontfp is not a valid collection"
+set c9errmsg "load $c9mod1\nload $c9mod2\nload $c9mod3"
+set c9errmsg2 "unload $c9mod3\nunload $c9mod2\nload $c9mod2\nload $c9mod3"
 
 
 # set HOME to location containing collections
@@ -286,6 +288,59 @@ testouterr_cmd_re "sh" "restore $coll8fp" $ans ""
 
 
 #
+# test restoring collection with some modulefiles loaded not asked by user
+#
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c9lm]
+lappend ans [list setpath _LMFILES_ $c9lmf]
+lappend ans [list setpath MODULEPATH $c9modpath]
+lappend ans [list setpath MODULES_LMNOTUASKED $c9lmnua]
+
+testouterr_cmd_re "sh" "restore $coll9fp" $ans $c9errmsg
+
+
+#
+# test restoring collection with some modulefiles loaded not asked by user
+#
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c9lm]
+lappend ans [list setpath _LMFILES_ $c9lmf]
+lappend ans [list setpath MODULEPATH $c9modpath]
+lappend ans [list setpath MODULES_LMNOTUASKED $c9lmnua]
+
+testouterr_cmd_re "sh" "restore $coll10fp" $ans $c9errmsg
+
+
+#
+# test restoring collection with some modulefiles loaded not asked by user
+# from a situation where all modulefiles where loaded asked by user
+#
+
+eval setenv_path_var MODULEPATH [split $c9modpath ":"]
+setenv_loaded_module [split $c9lm ":"] [split $c9lmf ":"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c9lm]
+lappend ans [list setpath _LMFILES_ $c9lmf]
+lappend ans [list setpath MODULES_LMNOTUASKED $c9lmnua]
+
+testouterr_cmd_re "sh" "restore $coll9fp" $ans $c9errmsg2
+
+
+#
+# test restoring collection with some modulefiles loaded not asked by user
+# from a situation where not user asked information is already correct
+#
+
+eval setenv_path_var MODULEPATH [split $c9modpath ":"]
+setenv_loaded_module [split $c9lm ":"] [split $c9lmf ":"] [split $c9lmnua ":"]
+
+testouterr_cmd_re "sh" "restore $coll9fp" "" ""
+
+
+#
 # test restoring nonexistent default collection when
 # MODULES_COLLECTION_TARGET is set
 #
@@ -345,6 +400,8 @@ unset c2errmsg
 unset c1errmsgf2
 unset c3errmsg
 unset c4errmsg
+unset c9errmsg
+unset c9errmsg2
 unset badcontfp
 unset badcontfperrmsg
 
