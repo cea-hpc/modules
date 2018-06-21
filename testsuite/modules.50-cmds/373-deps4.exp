@@ -133,6 +133,53 @@ set tserr [list "unload cb" "unload cg" "unload cf" "unload ce" "unload cd" "unl
 testouterr_cmd_re "sh" "unload cb" $ans [join $tserr "\n"]
 
 
+# restore environment
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_loaded_module
+
+# test load of first-operational-in-list prereq module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "dd:df:dg"]
+lappend ans [list setpath _LMFILES_ "$mp/dd:$mp/df:$mp/dg"]
+lappend ans [list setpath MODULES_LMNOTUASKED "dd:df"]
+lappend ans [list setpath MODULES_LMCONFLICT "dg&db"]
+lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de:dg&df"]
+lappend ans [list ERR]
+set tserr [list [err_conflictw da df] "$error_msgs: [err_conflict db dg]" "load dc" "load dd" "load df" "load dg"]
+testouterr_cmd_re "sh" "load dg" $ans [join $tserr "\n"]
+
+# test with alternative prereq already loaded (asked by user)
+setenv_loaded_module [list de] [list "$mp/de"]
+
+# test load of first-operational-in-list prereq module with alternative prereq already loaded
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "de:df:dg"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/df:$mp/dg"]
+lappend ans [list setpath MODULES_LMNOTUASKED "df"]
+lappend ans [list setpath MODULES_LMCONFLICT "dg&db"]
+lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de:dg&df"]
+set tserr [list "load df" "load dg"]
+testouterr_cmd_re "sh" "load dg" $ans [join $tserr "\n"]
+
+# set environment where every module has been asked by user
+setenv_loaded_module [list de df dg] [list "$mp/de" "$mp/df" "$mp/dg"]
+setenv_path_var MODULES_LMPREREQ "df&da|db|dc|dd|de" "dg&df"
+setenv_path_var MODULES_LMCONFLICT "dg&db"
+
+# attempt to unload first-operational-in-list prereq module
+testouterr_cmd_re "sh" "unload de" "ERR" "$error_msgs: [err_prerequn de df]"
+
+
+# tests with prereq suite fully loaded
+setenv_loaded_module [list dd df dg] [list "$mp/dd" "$mp/df" "$mp/dg"] [list dd df]
+setenv_path_var MODULES_LMPREREQ "df&da|db|dc|dd|de" "dg&df"
+setenv_path_var MODULES_LMCONFLICT "dg&db"
+
+# attempt to load broken/conflicting prereq alternative
+testouterr_cmd_re "sh" "load da" "ERR" [err_conflict da df]
+testouterr_cmd_re "sh" "load db" "ERR" "$error_msgs: [err_conflict db dg]"
+testouterr_cmd_re "sh" "load dc" "ERR" "load dc"
+
 #
 #  Cleanup
 #
@@ -140,6 +187,7 @@ testouterr_cmd_re "sh" "unload cb" $ans [join $tserr "\n"]
 # restore environment
 setenv_path_var MODULEPATH $modpath
 unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
 unsetenv_loaded_module
 
 unset mp
