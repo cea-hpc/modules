@@ -50,17 +50,15 @@ set err_trace "$warn_msgs: 'module-trace' command not implemented"
 #
 
 # prereq is loaded automatically when autohandling is enabled
-if {$install_autohandling eq "y"} {
-    set ans [list]
-    lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
-    lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
-    lappend ans [list set testsuite yes]
-    lappend ans [list setpath MODULES_LMPREREQ "$module&trace"]
-    lappend ans [list setpath MODULES_LMNOTUASKED $module_tron]
-    testouterr_cmd_re "ALL" "load $module" $ans $err_trace
-} else {
-    testouterr_cmd "ALL" "load $module" "ERR" $err_pre
-}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath MODULES_LMPREREQ "$module&trace"]
+lappend ans [list setpath MODULES_LMNOTUASKED $module_tron]
+testouterr_cmd_re "ALL" "load --auto $module" $ans $err_trace
+
+testouterr_cmd "ALL" "load --no-auto $module" "ERR" $err_pre
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module_troff:$module"]
@@ -85,17 +83,15 @@ set modulefile "$modpath/$module"
 set err_pre [err_prereqor $module trace setenv loc_dv1]
 
 # prereq is loaded automatically when autohandling is enabled (first in or list)
-if {$install_autohandling eq "y"} {
-    set ans [list]
-    lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
-    lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
-    lappend ans [list set testsuite yes]
-    lappend ans [list setpath MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
-    lappend ans [list setpath MODULES_LMNOTUASKED $module_tron]
-    testouterr_cmd_re "ALL" "load $module" $ans $err_trace
-} else {
-    testouterr_cmd "ALL" "load $module" "ERR" $err_pre
-}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
+lappend ans [list setpath MODULES_LMNOTUASKED $module_tron]
+testouterr_cmd_re "ALL" "load --auto $module" $ans $err_trace
+
+testouterr_cmd "ALL" "load --no-auto $module" "ERR" $err_pre
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]

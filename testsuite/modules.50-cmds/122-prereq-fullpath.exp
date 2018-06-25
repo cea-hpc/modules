@@ -58,26 +58,24 @@ set err_trace "$warn_msgs: 'module-trace' command not implemented"
 #
 
 # prereq are loaded automatically when autohandling is enabled
-if {$install_autohandling eq "y"} {
-    set ans [list]
-    lappend ans [list set testsuite yes]
-    lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$module1:$module_tron:$module2:$module3"]
-    lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile_tron:$modulefile2:$modulefile3"]
-    lappend ans [list setpath MODULES_LMPREREQ "$module1&$modulefile_set1:$module2&trace:$module3&../$module_set1"]
-    lappend ans [list setpath MODULES_LMNOTUASKED "$modulefile_set1:$module_tron"]
-    testouterr_cmd_re "sh" "load $module1 $module2 $module3" $ans $err_trace
+set ans [list]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$module1:$module_tron:$module2:$module3"]
+lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile_tron:$modulefile2:$modulefile3"]
+lappend ans [list setpath MODULES_LMPREREQ "$module1&$modulefile_set1:$module2&trace:$module3&../$module_set1"]
+lappend ans [list setpath MODULES_LMNOTUASKED "$modulefile_set1:$module_tron"]
+testouterr_cmd_re "sh" "load --auto $module1 $module2 $module3" $ans $err_trace
 
-    set ans [list]
-    lappend ans [list set testsuite yes]
-    lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$modulefile1:$module_tron:$modulefile2:$modulefile3"]
-    lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile_tron:$modulefile2:$modulefile3"]
-    lappend ans [list setpath MODULES_LMPREREQ "$modulefile1&$modulefile_set1:$modulefile2&trace:$modulefile3&../$module_set1"]
-    lappend ans [list setpath MODULES_LMNOTUASKED "$modulefile_set1:$module_tron"]
-    testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans $err_trace
-} else {
-    testouterr_cmd "sh" "load $module1 $module2 $module3" "ERR" "$err_pre1\n$err_pre2\n$err_pre3"
-    testouterr_cmd "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_pref1\n$err_pref2\n$err_pref3"
-}
+set ans [list]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$modulefile1:$module_tron:$modulefile2:$modulefile3"]
+lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile_tron:$modulefile2:$modulefile3"]
+lappend ans [list setpath MODULES_LMPREREQ "$modulefile1&$modulefile_set1:$modulefile2&trace:$modulefile3&../$module_set1"]
+lappend ans [list setpath MODULES_LMNOTUASKED "$modulefile_set1:$module_tron"]
+testouterr_cmd_re "sh" "load --auto $modulefile1 $modulefile2 $modulefile3" $ans $err_trace
+
+testouterr_cmd "sh" "load --no-auto $module1 $module2 $module3" "ERR" "$err_pre1\n$err_pre2\n$err_pre3"
+testouterr_cmd "sh" "load --no-auto $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_pref1\n$err_pref2\n$err_pref3"
 
 
 # test with prereqs loaded as short path
@@ -127,11 +125,6 @@ testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans ""
 unsetenv_path_var MODULEPATH
 
 set ans [list]
-if {$install_autohandling eq "y"} {
-    lappend ans [list ERR]
-    # cannot find prereq module, raise currently a module error
-    set err_pref2re "$moderr_msgs: No module path defined\n  In '$modulefile2'\n$err_contact"
-}
 lappend ans [list set LOADEDMODULES_modshare "(.*)"]
 lappend ans [list set _LMFILES__modshare "(.*)"]
 lappend ans [list set MODULES_LMPREREQ "$modulefile1&$modulefile_set1:$modulefile3&../$module_set1"]
@@ -139,10 +132,21 @@ lappend ans [list set testsuite yes]
 lappend ans [list set LOADEDMODULES "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile3"]
 lappend ans [list set _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile3"]
 lappend ans [list set MODULES_LMPREREQ_modshare "(.*)"]
-if {$install_autohandling ne "y"} {
-    lappend ans [list ERR]
-}
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans "$err_pref2re"
+lappend ans [list ERR]
+testouterr_cmd_re "sh" "load --no-auto $modulefile1 $modulefile2 $modulefile3" $ans "$err_pref2re"
+
+set ans [list]
+lappend ans [list ERR]
+# cannot find prereq module, raise currently a module error
+set err_pref2re "$moderr_msgs: No module path defined\n  In '$modulefile2'\n$err_contact"
+lappend ans [list set LOADEDMODULES_modshare "(.*)"]
+lappend ans [list set _LMFILES__modshare "(.*)"]
+lappend ans [list set MODULES_LMPREREQ "$modulefile1&$modulefile_set1:$modulefile3&../$module_set1"]
+lappend ans [list set testsuite yes]
+lappend ans [list set LOADEDMODULES "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile3"]
+lappend ans [list set _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile1:$modulefile3"]
+lappend ans [list set MODULES_LMPREREQ_modshare "(.*)"]
+testouterr_cmd_re "sh" "load --auto $modulefile1 $modulefile2 $modulefile3" $ans "$err_pref2re"
 
 
 #
