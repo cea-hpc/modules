@@ -40,8 +40,6 @@ set g_pager_opts "@pageropts@" ;# Options to pass to the pager command
 
 set g_siteconfig "@etcdir@/siteconfig.tcl" ;# Site configuration
 
-set g_auto_handling @autohandling@ ;# Automated modules handling if 1
-
 # Used to tell if a machine is running Windows or not
 proc isWin {} {
    return [expr {$::tcl_platform(platform) eq "windows"}]
@@ -99,6 +97,29 @@ proc getTtyColumns {} {
    }
 
    return $::g_tty_columns
+}
+
+# Get automated module handling mode
+proc getAutoHandling {} {
+   if {![info exists ::g_auto_handling]} {
+      # default value set at configure time
+      set auto_handling @autohandling@ ;# Automated modules handling if 1
+
+      # overriden value coming from environment
+      if {[info exists ::env(MODULES_AUTO_HANDLING)]} {
+         # ignore non-valid values
+         switch -- $::env(MODULES_AUTO_HANDLING) {
+            {0} - {1} {
+               set auto_handling $::env(MODULES_AUTO_HANDLING)
+            }
+         }
+      }
+
+      set ::g_auto_handling $auto_handling
+      reportDebug "auto_handling set to '$auto_handling'"
+   }
+
+   return $::g_auto_handling
 }
 
 # Use MODULECONTACT variable to set your support email address
@@ -2362,7 +2383,7 @@ proc prereq {args} {
    setLoadedPrereq $currentModule $args
 
    # if dependency resolving is enabled try to load prereq
-   if {$::g_auto_handling && ![eval is-loaded $args]} {
+   if {[getAutoHandling] && ![eval is-loaded $args]} {
       set imax [llength $args]
       set prereqloaded 0
       # if prereq list specified, try to load first then
@@ -5933,7 +5954,7 @@ proc cmdModuleSwitch {old {new {}}} {
 
    reportDebug "old='$old' new='$new'"
 
-   if {$::g_auto_handling} {
+   if {[getAutoHandling]} {
       lassign [getPathToModule $old {} $unload_match] oldfile oldname
       if {$oldfile != ""} {
          # build list of loaded module declaring a prereq onto old module
@@ -6307,7 +6328,7 @@ proc cmdModuleLoad {uasked args} {
                   # they may take benefit from their prereq unavailability if
                   # it is newly unloaded. Perform reload after modname unload
                   # to ensure first this action succeed before proceeding.
-                  if {$::g_auto_handling} {
+                  if {[getAutoHandling]} {
                      set deplist [getDependentLoadedModuleList $modname 0]
                      if {[llength $deplist] > 0} {
                         eval cmdModuleReload $deplist
@@ -6381,7 +6402,7 @@ proc cmdModuleUnload {match autounload args} {
                   }
                   unsetLoadedPrereq $modname
 
-                  if {$::g_auto_handling && $autounload} {
+                  if {[getAutoHandling] && $autounload} {
                      # unload modules that have been automatically loaded and
                      # that are not required anymore now mod has been unloaded
                      foreach unmod [lreverse [getUnloadableLoadedModuleList\
@@ -6394,7 +6415,7 @@ proc cmdModuleUnload {match autounload args} {
                   # they may adapt now their prereq is unavailable as it has
                   # just been unloaded. Perform reload after modname unload to
                   # ensure first this action succeed before proceeding.
-                  if {$::g_auto_handling && [llength $deplist] > 0} {
+                  if {[getAutoHandling] && [llength $deplist] > 0} {
                      eval cmdModuleReload $deplist
                   }
                }

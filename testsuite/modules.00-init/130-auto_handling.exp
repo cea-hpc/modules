@@ -1,0 +1,80 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	2018/06/25
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check auto_handling-related switches and configs.
+#		}C%
+#
+##############################################################################
+
+set module "prereq/full"
+set modulefile "$modpath/$module"
+set module_tron "trace/all_on"
+set modulefile_tron "$modpath/$module_tron"
+
+set err_pre [err_prereq $module $module_tron]
+set err_trace "$warn_msgs: 'module-trace' command not implemented"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
+lappend ans [list setpath MODULES_LMNOTUASKED $module_tron]
+
+
+#
+#  The tests
+#
+
+# test auto_handling set at configure time
+if {$install_autohandling eq "y"} {
+    testouterr_cmd_re "sh" "load $module" $ans $err_trace
+} else {
+    testouterr_cmd "sh" "load $module" "ERR" $err_pre
+}
+
+# disable auto_handling with environment variable
+setenv_var MODULES_AUTO_HANDLING 0
+testouterr_cmd "sh" "load $module" "ERR" $err_pre
+
+# enable auto_handling with environment variable
+setenv_var MODULES_AUTO_HANDLING 1
+testouterr_cmd_re "sh" "load $module" $ans $err_trace
+
+# bad environment variable value should not interfer
+setenv_var MODULES_AUTO_HANDLING foo
+if {$install_autohandling eq "y"} {
+    testouterr_cmd_re "sh" "load $module" $ans $err_trace
+} else {
+    testouterr_cmd "sh" "load $module" "ERR" $err_pre
+}
+
+
+#
+#  Cleanup
+#
+
+unsetenv_var MODULES_AUTO_HANDLING
+
+unset err_pre
+unset err_trace
+
+unset ans
+
+unset modulefile
+unset module
+unset modulefile_tron
+unset module_tron
