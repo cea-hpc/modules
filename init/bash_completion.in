@@ -98,19 +98,20 @@ _module() {
         search show source swap switch test unload unuse use whatis"
 
     opts="-D -h -V --debug --help --version"
+    load_opts="--auto --no-auto"
     list_opts="-l -t --long --terse"
     path_opts="-d --delim --duplicates"
     rm_path_opts="-d --delim --index"
     avail_opts="-d -L -l -t --default --latest --long --terse"
 
     case "$prev" in
-    add|load)       COMPREPLY=( $(compgen -W "$(_module_not_yet_loaded)" -- "$cur") );;
+    add|load)       COMPREPLY=( $(compgen -W "$load_opts $(_module_not_yet_loaded)" -- "$cur") );;
     avail)          COMPREPLY=( $(compgen -W "$avail_opts $(_module_avail)" -- "$cur") );;
     list|savelist)  COMPREPLY=( $(compgen -W "$list_opts" -- "$cur") );;
     restore|save|saveshow|saverm|is-saved)
                     COMPREPLY=( $(compgen -W "$(_module_savelist)" -- "$cur") );;
     rm|remove|unload|switch|swap)
-                    COMPREPLY=( $(IFS=: compgen -W "${LOADEDMODULES}" -- "$cur") );;
+                    COMPREPLY=( $(IFS=: compgen -W "$load_opts ${LOADEDMODULES}" -- "$cur") );;
     unuse|is-used)  COMPREPLY=( $(IFS=: compgen -W "${MODULEPATH}" -- "$cur") );;
     use|-a|--append)   ;;               # let readline handle the completion
     display|help|show|test|whatis|is-loaded|is-avail|info-loaded)

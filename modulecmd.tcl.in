@@ -115,6 +115,11 @@ proc getAutoHandling {} {
          }
       }
 
+      # overriden value coming the command-line
+      if {[info exists ::asked_auto_handling]} {
+         set auto_handling $::asked_auto_handling
+      }
+
       set ::g_auto_handling $auto_handling
       reportDebug "auto_handling set to '$auto_handling'"
    }
@@ -6928,6 +6933,8 @@ Switches:
   -L | --latest   Only show latest versions available
   -a | --append   Append directory to MODULEPATH
   -p | --prepend  Prepend directory to MODULEPATH
+  --auto          Enable automated module handling mode
+  --no-auto       Disable automated module handling mode
 
 Options:
   -h | --help     This usage info
@@ -7008,6 +7015,12 @@ if {[catch {
             }
             {--no-pager} {
                set asked_pager 0
+            }
+            {--auto} {
+               set asked_auto_handling 1
+            }
+            {--no-auto} {
+               set asked_auto_handling 0
             }
             {-t} - {--terse} - {-l} - {--long} - {--default} - {-L} \
             - {--latest} {

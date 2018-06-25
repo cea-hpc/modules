@@ -46,13 +46,28 @@ if {$install_autohandling eq "y"} {
     testouterr_cmd "sh" "load $module" "ERR" $err_pre
 }
 
+# overriden configuration with command-line option
+testouterr_cmd_re "sh" "load --auto $module" $ans $err_trace
+testouterr_cmd "sh" "load --no-auto $module" "ERR" $err_pre
+
+
 # disable auto_handling with environment variable
 setenv_var MODULES_AUTO_HANDLING 0
 testouterr_cmd "sh" "load $module" "ERR" $err_pre
 
+# overriden configuration with command-line option
+testouterr_cmd_re "sh" "load --auto $module" $ans $err_trace
+testouterr_cmd "sh" "load --no-auto $module" "ERR" $err_pre
+
+
 # enable auto_handling with environment variable
 setenv_var MODULES_AUTO_HANDLING 1
 testouterr_cmd_re "sh" "load $module" $ans $err_trace
+
+# overriden configuration with command-line option
+testouterr_cmd_re "sh" "load --auto $module" $ans $err_trace
+testouterr_cmd "sh" "load --no-auto $module" "ERR" $err_pre
+
 
 # bad environment variable value should not interfer
 setenv_var MODULES_AUTO_HANDLING foo
@@ -61,6 +76,10 @@ if {$install_autohandling eq "y"} {
 } else {
     testouterr_cmd "sh" "load $module" "ERR" $err_pre
 }
+
+# overriden configuration with command-line option
+testouterr_cmd_re "sh" "load --auto $module" $ans $err_trace
+testouterr_cmd "sh" "load --no-auto $module" "ERR" $err_pre
 
 
 #
