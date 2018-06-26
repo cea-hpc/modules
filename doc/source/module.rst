@@ -594,6 +594,43 @@ ENVIRONMENT
  results from commands like **lsb_release**, **hostname**, **dnsdomainname**,
  etc.
 
+**MODULES_LMCONFLICT**
+
+ A colon separated list of the **conflict** statements defined by all loaded
+ *modulefiles*. Each element in this list starts by the name of the loaded
+ *modulefile* declaring the conflict followed by the name of all modulefiles
+ it declares a conflict with. These loaded modulefile and conflicting
+ modulefile names are separated by the ampersand character.
+
+ This environment variable is intended for **module** command internal
+ use to get knowledge of the conflicts declared by the loaded *modulefiles*
+ in order to keep environment consistent when a conflicting module is asked
+ for load afterward.
+
+**MODULES_LMNOTUASKED**
+
+ A colon separated list of all loaded *modulefiles* that were not explicitly
+ asked for load from the command-line.
+
+ This environment variable is intended for **module** command internal
+ use to distinguish the *modulefiles* that have been loaded automatically
+ from modulefiles that have been asked by users.
+
+**MODULES_LMPREREQ**
+
+ A colon separated list of the **prereq** statements defined by all loaded
+ *modulefiles*. Each element in this list starts by the name of the loaded
+ *modulefile* declaring the pre-requirement followed by the name of all
+ modulefiles it declares a prereq with. These loaded modulefile and
+ pre-required modulefile names are separated by the ampersand character. When
+ a **prereq** statement is composed of multiple modulefiles, these modulefile
+ names are separated by the pipe character.
+
+ This environment variable is intended for **module** command internal
+ use to get knowledge of the pre-requirement declared by the loaded
+ *modulefiles* in order to keep environment consistent when a pre-required
+ module is asked for unload afterward.
+
 **MODULES_PAGER**
 
  Text viewer for use to paginate message output if error output stream is
