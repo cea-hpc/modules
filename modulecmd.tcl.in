@@ -29,7 +29,6 @@ set g_return_false 0 ;# False value is rendered if == 1
 set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
-set g_force 0 ;# Path element reference counting if == 0
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 set flag_default_dir 1 ;# Report default directories
 set flag_default_mf 1 ;# Report default modulefiles and version alias
@@ -1971,7 +1970,7 @@ proc getReferenceCountArray {var separator} {
                }
             }
 
-            if {!$::g_force && [array size fixers]} {
+            if {[array size fixers]} {
                reportWarning "\$$var does not agree with \$$sharevar counter.\
                   The following directories' usage counters were adjusted to\
                   match. Note that this may mean that module unloading may\
@@ -2062,7 +2061,7 @@ proc unload-path {args} {
       set found_idx_list [lsearch -all -exact $dir_list $dir]
 
       # remove all found entries
-      if {$::g_force || $newcount <= 0} {
+      if {$newcount <= 0} {
          # only remove passed position in --index mode
          if {$idx_val} {
             lappend del_idx_list $idx
@@ -2355,25 +2354,22 @@ proc conflict {args} {
    eval setLoadedConflict $currentModule $args
 
    foreach mod $args {
-      # If the current module is already loaded, we can proceed
-      if {![is-loaded $currentModule]} {
-         # otherwise if the conflict module is loaded, we cannot
-         if {[is-loaded $mod]} {
-            set errMsg "WARNING: $currentModule cannot be loaded due to a\
-               conflict."
-            set errMsg "$errMsg\nHINT: Might try \"module unload $mod\"\
-               first."
-            error $errMsg
-         # if the conflict module is loading and it does not correspond to
-         # currently evaluated module, we cannot proceed either
-         } elseif {[string first "$mod/" "$currentModule/" ] != 0 &&\
-            [is-loading $mod]} {
-            set errMsg "WARNING: $currentModule cannot be loaded due\
-               to a conflict."
-            set errMsg "$errMsg\nHINT: Conflict with $mod\
-               is set in $currentModule."
-            error $errMsg
-         }
+      # otherwise if the conflict module is loaded, we cannot
+      if {[is-loaded $mod]} {
+         set errMsg "WARNING: $currentModule cannot be loaded due to a\
+            conflict."
+         set errMsg "$errMsg\nHINT: Might try \"module unload $mod\"\
+            first."
+         error $errMsg
+      # if the conflict module is loading and it does not correspond to
+      # currently evaluated module, we cannot proceed either
+      } elseif {[string first "$mod/" "$currentModule/" ] != 0 &&\
+         [is-loading $mod]} {
+         set errMsg "WARNING: $currentModule cannot be loaded due\
+            to a conflict."
+         set errMsg "$errMsg\nHINT: Conflict with $mod\
+            is set in $currentModule."
+         error $errMsg
       }
    }
 
@@ -6293,7 +6289,7 @@ proc cmdModuleLoad {uasked args} {
             set modname $loadedmodname
          }
 
-         if {$::g_force || ![isModuleLoaded $modname]} {
+         if {![isModuleLoaded $modname]} {
             # error if loading module violates a registered conflict
             lassign [doesModuleConflict $modname] doescon modconlist
             if {$doescon} {
