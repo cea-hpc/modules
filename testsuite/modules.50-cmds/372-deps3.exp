@@ -43,6 +43,18 @@ setenv_path_var MODULES_LMCONFLICT "c&c"
 setenv_path_var MODULES_LMPREREQ "b&c"
 testouterr_cmd "sh" "unload c" "ERR" "$error_msgs: [err_prerequn c b]"
 
+# restore environment
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_loaded_module
+
+# check warning raised when using --auto/--no-auto from modulefile
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "mu"]
+lappend ans [list setpath _LMFILES_ "$mp/mu"]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+testouterr_cmd "sh" "load mu" $ans "$warn_msgs: Unsupported option '--auto'\n$warn_msgs: Unsupported option '--auto'\n$warn_msgs: Unsupported option '--no-auto'"
 
 #
 #  Cleanup
@@ -50,9 +62,6 @@ testouterr_cmd "sh" "unload c" "ERR" "$error_msgs: [err_prerequn c b]"
 
 # restore environment
 setenv_path_var MODULEPATH $modpath
-unsetenv_path_var MODULES_LMCONFLICT
-unsetenv_path_var MODULES_LMPREREQ
-unsetenv_loaded_module
 
 unset mp
 unset ans

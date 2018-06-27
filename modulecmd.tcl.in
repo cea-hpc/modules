@@ -1513,9 +1513,9 @@ proc module {command args} {
 
    reportDebug "cmd='$command', args='$args' (mode=$mode)"
 
-   # parse listing specific options, do that globally to ignore these
-   # options on commands not related to listing (exclude them from arg list)
-   lassign [eval parseListCommandArgs $command $args] show_oneperline\
+   # parse options, do that globally to ignore options not related to a given
+   # module sub-command (exclude them from arg list)
+   lassign [eval parseModuleCommandArgs $command $args] show_oneperline\
       show_mtime show_filter args
 
    # guess if called from top level
@@ -5602,8 +5602,8 @@ proc readCollectionContent {collfile colldesc} {
    return [list $path_list $mod_list $nuasked_list]
 }
 
-# analyze arg list passed to a module cmd to set listing-related options
-proc parseListCommandArgs {cmd args} {
+# analyze arg list passed to a module cmd to set options
+proc parseModuleCommandArgs {cmd args} {
    set show_oneperline 0
    set show_mtime 0
    set show_filter ""
@@ -5630,6 +5630,9 @@ proc parseListCommandArgs {cmd args} {
          }
          {-L} - {--latest} {
             set show_filter "onlylatest"
+         }
+         {--auto} - {--no-auto} {
+            reportWarning "Unsupported option '$arg'"
          }
          default {
             lappend otherargs $arg
