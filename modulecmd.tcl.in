@@ -126,6 +126,23 @@ proc getAutoHandling {} {
    return $::g_auto_handling
 }
 
+# Get force mode
+proc getForce {} {
+   if {![info exists ::g_force]} {
+      set force 0 ;# By-pass dependency consistency
+
+      # overriden value coming the command-line
+      if {[info exists ::asked_force]} {
+         set force $::asked_force
+      }
+
+      set ::g_force $force
+      reportDebug "force set to '$force'"
+   }
+
+   return $::g_force
+}
+
 # Use MODULECONTACT variable to set your support email address
 if {[info exists env(MODULECONTACT)]} {
    set contact $env(MODULECONTACT)
@@ -2356,20 +2373,30 @@ proc conflict {args} {
    foreach mod $args {
       # otherwise if the conflict module is loaded, we cannot
       if {[is-loaded $mod]} {
-         set errMsg "WARNING: $currentModule cannot be loaded due to a\
-            conflict."
-         set errMsg "$errMsg\nHINT: Might try \"module unload $mod\"\
-            first."
-         error $errMsg
+         # still proceed if force mode enabled
+         if {[getForce]} {
+            reportWarning "$currentModule conflicts with $mod"
+         } else {
+            set errMsg "WARNING: $currentModule cannot be loaded due to a\
+               conflict."
+            set errMsg "$errMsg\nHINT: Might try \"module unload $mod\"\
+               first."
+            error $errMsg
+         }
       # if the conflict module is loading and it does not correspond to
       # currently evaluated module, we cannot proceed either
       } elseif {[string first "$mod/" "$currentModule/" ] != 0 &&\
          [is-loading $mod]} {
-         set errMsg "WARNING: $currentModule cannot be loaded due\
-            to a conflict."
-         set errMsg "$errMsg\nHINT: Conflict with $mod\
-            is set in $currentModule."
-         error $errMsg
+         # still proceed if force mode enabled
+         if {[getForce]} {
+            reportWarning "$currentModule conflicts with $mod"
+         } else {
+            set errMsg "WARNING: $currentModule cannot be loaded due\
+               to a conflict."
+            set errMsg "$errMsg\nHINT: Conflict with $mod\
+               is set in $currentModule."
+            error $errMsg
+         }
       }
    }
 
@@ -2399,17 +2426,22 @@ proc prereq {args} {
    }
 
    if {![eval is-loaded $args]} {
-      set errMsg "WARNING: $currentModule cannot be loaded due to\
-          missing prereq."
-      # adapt error message when multiple modules are specified
-      if {[llength $args] > 1} {
-         set errMsg "$errMsg\nHINT: at least one of the following modules\
-            must be loaded first: $args"
+      # still proceed if force mode enabled
+      if {[getForce]} {
+         reportWarning "$currentModule requires [join $args { or }] loaded"
       } else {
-         set errMsg "$errMsg\nHINT: the following module must be loaded\
-            first: $args"
+         set errMsg "WARNING: $currentModule cannot be loaded due to\
+             missing prereq."
+         # adapt error message when multiple modules are specified
+         if {[llength $args] > 1} {
+            set errMsg "$errMsg\nHINT: at least one of the following modules\
+               must be loaded first: $args"
+         } else {
+            set errMsg "$errMsg\nHINT: the following module must be loaded\
+               first: $args"
+         }
+         error $errMsg
       }
-      error $errMsg
    }
 
    return {}
@@ -5627,7 +5659,7 @@ proc parseModuleCommandArgs {cmd args} {
          {-L} - {--latest} {
             set show_filter "onlylatest"
          }
-         {--auto} - {--no-auto} {
+         {--auto} - {--no-auto} - {-f} - {--force} {
             reportWarning "Unsupported option '$arg'"
          }
          default {
@@ -6292,11 +6324,21 @@ proc cmdModuleLoad {uasked args} {
          if {![isModuleLoaded $modname]} {
             # error if loading module violates a registered conflict
             lassign [doesModuleConflict $modname] doescon modconlist
-            if {$doescon} {
-               reportError "WARNING: $modname cannot be loaded due\
-                  to a conflict.\nHINT: Might try \"module unload\
+            if {[getForce] && $doescon} {
+               # still proceed if force mode enabled
+               set proceed 1
+               reportWarning "$modname conflicts with [join $modconlist\
+                  {, }]"
+            } elseif {$doescon} {
+               set proceed 0
+               reportError "WARNING: $modname cannot be loaded due to a\
+                  conflict.\nHINT: Might try \"module unload\
                   [join $modconlist]\" first."
             } else {
+               set proceed 1
+            }
+
+            if {$proceed} {
                pushSettings
 
                if {[execute-modulefile $modfile $modname $mod]} {
@@ -6367,11 +6409,21 @@ proc cmdModuleUnload {match autounload args} {
          if {[isModuleLoaded $modname]} {
             # error if unloading module violates a registered prereq
             set prereq_list [getDependentLoadedModuleList $modname]
-            if {[llength $prereq_list] > 0} {
-               reportError "WARNING: $modname cannot be unloaded\
-                  due to a prereq.\nHINT: Might try \"module unload\
+            if {[getForce] && [llength $prereq_list] > 0} {
+               # still proceed if force mode enabled
+               set proceed 1
+               reportWarning "$modname is required by [join $prereq_list\
+                  {, }]"
+            } elseif {[llength $prereq_list] > 0} {
+               set proceed 0
+               reportError "WARNING: $modname cannot be unloaded due to a\
+                  prereq.\nHINT: Might try \"module unload\
                   [join $prereq_list]\" first."
             } else {
+               set proceed 1
+            }
+
+            if {$proceed} {
                pushSettings
 
                if {[execute-modulefile $modfile $modname $mod]} {
@@ -6934,6 +6986,7 @@ Switches:
   -p | --prepend  Prepend directory to MODULEPATH
   --auto          Enable automated module handling mode
   --no-auto       Disable automated module handling mode
+  -f | --force    By-pass dependency consistency
 
 Options:
   -h | --help     This usage info
@@ -7021,6 +7074,9 @@ if {[catch {
             {--no-auto} {
                set asked_auto_handling 0
             }
+            {-f} - {--force} {
+               set asked_force 1
+            }
             {-t} - {--terse} - {-l} - {--long} - {--default} - {-L} \
             - {--latest} {
                # command-specific switches that can for compatibility be
@@ -7047,9 +7103,8 @@ if {[catch {
                set ddelimarg 1
                lappend otherargv $arg
             }
-            {-f} - {--force} - {--human} - {-v} - {--verbose} - {-s} -\
-               {--silent} - {-c} - {--create} - {-i} - {--icase} -\
-               {--userlvl=*} {
+            {--human} - {-v} - {--verbose} - {-s} - {--silent} - {-c} -\
+               {--create} - {-i} - {--icase} - {--userlvl=*} {
                # ignore C-version specific option, no error only warning
                reportWarning "Unsupported option '$arg'"
             }
