@@ -3246,11 +3246,25 @@ proc doesModuleConflict {mod} {
 
    # check if any loaded module has declared a conflict
    foreach modcon [array names ::g_loadedModuleConflict] {
-      foreach withmod $::g_loadedModuleConflict($modcon) {
-         if {[string first "$withmod/" "$mod/"] == 0} {
-            lappend modconlist $modcon
-            set does 1
-            break
+      # look if some loaded modules correspond to conflict defined by mod
+      if {$modcon eq $mod} {
+         foreach withmod $::g_loadedModuleConflict($modcon) {
+            # skip own reflexive conflic and those already known
+            if {[string first "$withmod/" "$mod/"] == -1 && [set lmmod\
+               [getLoadedMatchingName $withmod "returnfirst"]] ne "" &&\
+               [lsearch -exact $modconlist $lmmod] == -1} {
+               lappend modconlist $lmmod
+               set does 1
+            }
+         }
+      # other loaded module declared conflicts (skipping those already known)
+      } elseif {[lsearch -exact $modconlist $modcon] == -1} {
+         foreach withmod $::g_loadedModuleConflict($modcon) {
+            if {[string first "$withmod/" "$mod/"] == 0} {
+               lappend modconlist $modcon
+               set does 1
+               break
+            }
          }
       }
    }
@@ -3301,6 +3315,40 @@ proc isModuleUserAsked {mod} {
    return [info exists ::g_loadedModuleUasked($mod)]
 }
 
+# register conflict violation state between loaded modules
+proc setModuleConflictViolation {mod modconlist} {
+   reportDebug "set conflict violation state for '$mod'"
+   set ::g_conflictViolation($mod) $modconlist
+   # also update violation state for loaded mod conflicting with mod
+   foreach lmmod $modconlist {
+      # skip if already registered
+      if {![info exists ::g_conflictViolation($lmmod)] || [lsearch -exact\
+         $::g_conflictViolation($lmmod) $mod] == -1} {
+         reportDebug "set/update conflict violation state for '$lmmod'"
+         lappend ::g_conflictViolation($lmmod) $mod
+      }
+   }
+}
+
+# unregister conflict violation state between modules
+proc unsetModuleConflictViolation {mod} {
+   if {[info exists ::g_conflictViolation($mod)]} {
+      # also update violation state for loaded mod conflicting with mod
+      foreach lmmod $::g_conflictViolation($mod) {
+         set convio [replaceFromList\
+            $::g_conflictViolation($lmmod) $mod]
+         reportDebug "unset/update conflict violation state for '$lmmod'"
+         if {[llength $convio] == 0} {
+            unset ::g_conflictViolation($lmmod)
+         } else {
+            set ::g_conflictViolation($lmmod) $convio
+         }
+      }
+      reportDebug "unset conflict violation state for '$mod'"
+      unset ::g_conflictViolation($mod)
+   }
+}
+
 # build dependency chain between loaded modules based on registered prereqs
 proc setModuleDependency {mod} {
    set modlist [getLoadedModuleList]
@@ -3330,7 +3378,11 @@ proc setModuleDependency {mod} {
       }
 
       switch -- [llength $lmprelist] {
-         {0} {}
+         {0} {
+            # prereq not satisfied
+            reportDebug "set prereq violation state for '$mod'"
+            set ::g_prereqViolation($mod) 1
+         }
          {1} {
             set lmmod [lindex $lmprelist 0]
             lappend deplist $lmmod
@@ -3345,6 +3397,12 @@ proc setModuleDependency {mod} {
             }
          }
       }
+   }
+
+   # conflict not satisfied
+   lassign [doesModuleConflict $mod] doescon modconlist
+   if {$doescon} {
+      setModuleConflictViolation $mod $modconlist
    }
 
    # update eventual registered unmet dependencies
@@ -3392,6 +3450,13 @@ proc unsetModuleDependency {mod} {
    # unset mod's 'depends on' relation
    reportDebug "unset deps for '$mod'"
    unset ::g_moduleDepend($mod)
+
+   # unset eventual violation states
+   if {[info exists ::g_prereqViolation($mod)]} {
+      reportDebug "unset prereq violation state for '$mod'"
+      unset ::g_prereqViolation($mod)
+   }
+   unsetModuleConflictViolation $mod
 
    # unset eventual registered unmet dependencies
    if {[info exists ::g_moduleUnmetDep($mod)]} {
