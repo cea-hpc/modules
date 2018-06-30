@@ -3489,11 +3489,55 @@ proc unsetModuleDependency {mod} {
    }
 }
 
+# returns if any loaded module (if passed mod is empty) or passed mod and all
+# its requirement chain satisfy their loading constraints (prereq & conflict)
+proc areModuleConstraintsSatisfied {{mod {}}} {
+   set ret 1
+
+   # check if any loaded module violates its prereq or conflict constraints
+   if {$mod eq ""} {
+      if {[array size ::g_conflictViolation] > 0 || [array size\
+         ::g_prereqViolation] > 0} {
+         set ret 0
+      }
+   } else {
+      set fulllist [list $mod]
+      for {set i 0} {$i < [llength $fulllist]} {incr i 1} {
+         set depmod [lindex $fulllist $i]
+
+         # check if depmod violates its prereq or conflict constraints
+         if {[info exists ::g_conflictViolation($depmod)] || [info exists\
+            ::g_prereqViolation($depmod)]} {
+            # found violation among the requirement chain of mod so the
+            # constraint of mod are not satisfied
+            set ret 0
+            break
+         }
+         # add requirements of depmod to the module to check list
+         if {[info exists ::g_moduleDepend($depmod)]} {
+            foreach lmmodlist $::g_moduleDepend($depmod) {
+               foreach lmmod $lmmodlist {
+                  # skip already added module
+                  if {[lsearch -exact $fulllist $lmmod] == -1} {
+                     lappend fulllist $lmmod
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   return $ret
+}
+
 # gets the list of all loaded modules which are dependent of passed mod
 # ordered by load position. strong argument controls whether only the direct
-# and active dependent modules should be returned only or the full dep tree
-proc getDependentLoadedModuleList {mod {strong 1}} {
-   reportDebug "get loaded mod dependent of '$mod' (strong=$strong)"
+# and active dependent modules should be returned only or the full dep tree.
+# sat_constraint argument controls whether only the loaded module satisfying
+# their constraint should be part or not of the resulting list
+proc getDependentLoadedModuleList {mod {strong 1} {sat_constraint 0}} {
+   reportDebug "get loaded mod dependent of '$mod' (strong=$strong,\
+      sat_constraint=$sat_constraint)"
 
    set deplist {}
    if {[info exists ::g_dependHash($mod)]} {
@@ -3510,7 +3554,9 @@ proc getDependentLoadedModuleList {mod {strong 1}} {
             }
          }
 
-         if {[lsearch -exact $deplist $depmod] == -1} {
+         # skip already added mod or mod violating constraints if asked
+         if {[lsearch -exact $deplist $depmod] == -1 && (!$sat_constraint ||\
+            [areModuleConstraintsSatisfied $depmod])} {
             # get dependent mod of dep mod when looking at full dep tree
             if {!$strong && [info exists ::g_dependHash($depmod)]} {
                set fulllist [concat $fulllist $::g_dependHash($depmod)]
@@ -6058,8 +6104,9 @@ proc cmdModuleSwitch {old {new {}}} {
    if {[getAutoHandling]} {
       lassign [getPathToModule $old {} $unload_match] oldfile oldname
       if {$oldfile != ""} {
-         # build list of loaded module declaring a prereq onto old module
-         set deplist [getDependentLoadedModuleList $oldname 0]
+         # build list of loaded module satisfying their constraints and
+         # declaring a prereq onto old module
+         set deplist [getDependentLoadedModuleList $oldname 0 1]
 
          # unload one by one every module having a prereq onto old
          foreach depmod [lreverse $deplist] {
@@ -6439,8 +6486,9 @@ proc cmdModuleLoad {uasked args} {
                   # they may take benefit from their prereq unavailability if
                   # it is newly unloaded. Perform reload after modname unload
                   # to ensure first this action succeed before proceeding.
+                  # Avoid modules not satisfying their constraint.
                   if {[getAutoHandling]} {
-                     set deplist [getDependentLoadedModuleList $modname 0]
+                     set deplist [getDependentLoadedModuleList $modname 0 1]
                      if {[llength $deplist] > 0} {
                         eval cmdModuleReload $deplist
                      }
@@ -6497,7 +6545,7 @@ proc cmdModuleUnload {match autounload args} {
                } else {
                   # get requirements/deps before this information disappears
                   set reqlist [getRequiredLoadedModuleList $modname]
-                  set deplist [getDependentLoadedModuleList $modname 0]
+                  set deplist [getDependentLoadedModuleList $modname 0 1]
 
                   # get module position in loaded list to remove corresponding
                   # loaded modulefile (entry at same position in _LMFILES_)
@@ -6535,7 +6583,8 @@ proc cmdModuleUnload {match autounload args} {
                   # Reload all modules that have declared a prereq on mod as
                   # they may adapt now their prereq is unavailable as it has
                   # just been unloaded. Perform reload after modname unload to
-                  # ensure first this action succeed before proceeding.
+                  # ensure first this action succeed before proceeding. Avoid
+                  # modules not satisfying their constraint.
                   if {[getAutoHandling] && [llength $deplist] > 0} {
                      eval cmdModuleReload $deplist
                   }
