@@ -3493,6 +3493,7 @@ proc unsetModuleDependency {mod} {
 # its requirement chain satisfy their loading constraints (prereq & conflict)
 proc areModuleConstraintsSatisfied {{mod {}}} {
    set ret 1
+   cacheCurrentModules
 
    # check if any loaded module violates its prereq or conflict constraints
    if {$mod eq ""} {
@@ -6135,6 +6136,11 @@ proc cmdModuleSwitch {old {new {}}} {
 
 proc cmdModuleSave {{coll {default}}} {
    reportDebug "$coll"
+
+   if {![areModuleConstraintsSatisfied]} {
+      reportErrorAndExit "Cannot save collection, some module constraints are\
+         not satistied"
+   }
 
    # format collection content, version number of modulefile are saved if
    # version pinning is enabled
