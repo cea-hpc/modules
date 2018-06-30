@@ -134,8 +134,8 @@ the *modulefile* is being loaded.
 
 **getenv** variable
 
-Returns value of environment *variable*. If *variable* is not defined
-*_UNDEFINED_* is returned.
+ Returns value of environment *variable*. If *variable* is not defined
+ *_UNDEFINED_* is returned.
 
 **append-path** [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
