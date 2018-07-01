@@ -135,7 +135,8 @@ the *modulefile* is being loaded.
 **getenv** variable
 
  Returns value of environment *variable*. If *variable* is not defined
- *_UNDEFINED_* is returned.
+ *_UNDEFINED_* is returned. **getenv** command should be preferred over Tcl
+ global variable **env** to query environment variables.
 
 **append-path** [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
