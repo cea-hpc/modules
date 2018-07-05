@@ -1622,7 +1622,7 @@ proc module {command args} {
                   set ret [eval cmdModuleLoad 0 $args]
                } else {
                   # on unload mode, unload mods in reverse order
-                  set ret [eval cmdModuleUnload "match" 1 [lreverse $args]]
+                  set ret [eval cmdModuleUnload "match" 1 0 [lreverse $args]]
                }
                # sub-module interpretation failed, raise error
                if {$ret && !$topcall} {
@@ -1631,7 +1631,7 @@ proc module {command args} {
             }
          }
          {unload} {
-            set ret [eval cmdModuleUnload "match" 1 $args]
+            set ret [eval cmdModuleUnload "match" 1 0 $args]
             # sub-module interpretation failed, raise error
             if {$ret && !$topcall} {
                set errormsg "SUB_FAILED"
@@ -6113,10 +6113,12 @@ proc cmdModuleSwitch {old {new {}}} {
          foreach depmod [lreverse $deplist] {
             # save user asked state before it vanishes
             set isuasked($depmod) [isModuleUserAsked $depmod]
-            cmdModuleUnload "match" 0 $depmod
+            # force unload even if requiring mods are not part of the unload
+            # list (violation state) as modules are loaded again just after
+            cmdModuleUnload "match" 0 1 $depmod
          }
          # attempt load only if unload succeed
-         if {![cmdModuleUnload $unload_match 1 $old]} {
+         if {![cmdModuleUnload $unload_match 1 0 $old]} {
             cmdModuleLoad 1 $new
          }
          # load again every module (user asked property preserved) with prereq
@@ -6128,7 +6130,7 @@ proc cmdModuleSwitch {old {new {}}} {
       }
    } else {
       # attempt load only if unload succeed
-      if {![cmdModuleUnload $unload_match 1 $old]} {
+      if {![cmdModuleUnload $unload_match 1 0 $old]} {
          cmdModuleLoad 1 $new
       }
    }
@@ -6225,7 +6227,7 @@ proc cmdModuleRestore {{coll {default}}} {
 
    # unload modules one by one (no dependency auto unload)
    if {[llength $mod_to_unload] > 0} {
-      eval cmdModuleUnload "match" 0 [lreverse $mod_to_unload]
+      eval cmdModuleUnload "match" 0 0 [lreverse $mod_to_unload]
    }
    # unuse paths
    if {[llength $path_to_unuse] > 0} {
@@ -6515,9 +6517,9 @@ proc cmdModuleLoad {uasked args} {
    return $ret
 }
 
-proc cmdModuleUnload {match auto args} {
+proc cmdModuleUnload {match auto force args} {
    global env g_loadedModules
-   reportDebug "unloading $args (match=$match, auto=$auto)"
+   reportDebug "unloading $args (match=$match, auto=$auto, force=$force)"
 
    set ret 0
    pushMode "unload"
@@ -6528,7 +6530,7 @@ proc cmdModuleUnload {match auto args} {
          if {[isModuleLoaded $modname]} {
             # error if unloading module violates a registered prereq
             set prereq_list [getDependentLoadedModuleList $modname]
-            if {[getForce] && [llength $prereq_list] > 0} {
+            if {([getForce] || $force) && [llength $prereq_list] > 0} {
                # still proceed if force mode enabled
                set proceed 1
                reportWarning "$modname is required by [join $prereq_list\
@@ -6582,7 +6584,7 @@ proc cmdModuleUnload {match auto args} {
                      # that are not required anymore now mod has been unloaded
                      foreach unmod [lreverse [getUnloadableLoadedModuleList\
                         $reqlist]] {
-                        cmdModuleUnload "match" 1 $unmod
+                        cmdModuleUnload "match" 1 0 $unmod
                      }
                   }
 
@@ -6613,7 +6615,8 @@ proc cmdModulePurge {} {
    reportDebug "called."
 
    # unload one by one to ensure same behavior whatever auto_handling state
-   eval cmdModuleUnload "match" 0 [lreverse [getLoadedModuleList]]
+   # force it to handle loaded modules in violation state
+   eval cmdModuleUnload "match" 0 1 [lreverse [getLoadedModuleList]]
 }
 
 proc cmdModuleReload {args} {
@@ -6629,7 +6632,9 @@ proc cmdModuleReload {args} {
    foreach mod [lreverse $lmlist] {
       # save user asked state before it vanishes
       set isuasked($mod) [isModuleUserAsked $mod]
-      cmdModuleUnload "match" 0 $mod
+      # force unload even if requiring mods are not part of the unload list
+      # (violation state) as modules are loaded again just after
+      cmdModuleUnload "match" 0 1 $mod
    }
    foreach mod $lmlist {
       # reload module with user asked property preserved
