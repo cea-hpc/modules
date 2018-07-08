@@ -3535,36 +3535,61 @@ proc areModuleConstraintsSatisfied {{mod {}}} {
 # ordered by load position. strong argument controls whether only the direct
 # and active dependent modules should be returned only or the full dep tree.
 # sat_constraint argument controls whether only the loaded module satisfying
-# their constraint should be part or not of the resulting list
-proc getDependentLoadedModuleList {mod {strong 1} {sat_constraint 0}} {
+# their constraint should be part or not of the resulting list.
+# being_unload argument controls whether loaded modules in conflict with mod
+# should be added to the dependent list as mod is currently being unloaded
+# and these conflicting loaded modules should be refreshed.
+proc getDependentLoadedModuleList {mod {strong 1} {sat_constraint 0}\
+   {being_unload 0}} {
    reportDebug "get loaded mod dependent of '$mod' (strong=$strong,\
-      sat_constraint=$sat_constraint)"
+      sat_constraint=$sat_constraint, being_unload=$being_unload)"
 
    set deplist {}
    if {[info exists ::g_dependHash($mod)]} {
       set fulllist $::g_dependHash($mod)
-      for {set i 0} {$i < [llength $fulllist]} {incr i 1} {
-         set depmod [lindex $fulllist $i]
+   } else {
+      set fulllist {}
+   }
 
-         # skip optional dependency if only looking for strong ones
-         if {[llength $depmod] > 1} {
-            if {$strong} {
-               continue
-            } else {
-               set depmod [lindex $depmod 0]
-            }
-         }
+   # invite modules in violation with mod to be part of the dependent list
+   # with their own dependent modules as mod is being unloaded. Achieve so
+   # by faking that conflict violation is gone
+   if {$being_unload} {
+      lassign [doesModuleConflict $mod] doescon modconlist
+      if {$doescon} {
+         unsetModuleConflictViolation $mod
+         set fulllist [concat $fulllist $modconlist]
+      }
+   } else {
+      set doescon 0
+   }
 
-         # skip already added mod or mod violating constraints if asked
-         if {[lsearch -exact $deplist $depmod] == -1 && (!$sat_constraint ||\
-            [areModuleConstraintsSatisfied $depmod])} {
-            # get dependent mod of dep mod when looking at full dep tree
-            if {!$strong && [info exists ::g_dependHash($depmod)]} {
-               set fulllist [concat $fulllist $::g_dependHash($depmod)]
-            }
-            lappend deplist $depmod
+   for {set i 0} {$i < [llength $fulllist]} {incr i 1} {
+      set depmod [lindex $fulllist $i]
+
+      # skip optional dependency if only looking for strong ones
+      if {[llength $depmod] > 1} {
+         if {$strong} {
+            continue
+         } else {
+            set depmod [lindex $depmod 0]
          }
       }
+
+      # skip already added mod or mod violating constraints if asked
+      if {[lsearch -exact $deplist $depmod] == -1 && (!$sat_constraint ||\
+         [areModuleConstraintsSatisfied $depmod])} {
+         # get dependent mod of dep mod when looking at full dep tree
+         if {!$strong && [info exists ::g_dependHash($depmod)]} {
+            set fulllist [concat $fulllist $::g_dependHash($depmod)]
+         }
+         lappend deplist $depmod
+      }
+   }
+
+   # restore conflict violation if any
+   if {$being_unload && $doescon} {
+      setModuleConflictViolation $mod $modconlist
    }
 
    # sort complete result list to match loaded module order
@@ -6553,7 +6578,7 @@ proc cmdModuleUnload {match auto force args} {
                } else {
                   # get requirements/deps before this information disappears
                   set reqlist [getRequiredLoadedModuleList $modname]
-                  set deplist [getDependentLoadedModuleList $modname 0 1]
+                  set deplist [getDependentLoadedModuleList $modname 0 1 1]
 
                   # get module position in loaded list to remove corresponding
                   # loaded modulefile (entry at same position in _LMFILES_)
