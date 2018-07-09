@@ -2770,8 +2770,9 @@ proc getLoadedModuleNotUserAskedList {} {
    return $nuaskedlist
 }
 
-# sort passed module list following module loaded order
-proc sortPerModuleLoadedOrder {modlist} {
+# sort passed module list following both loaded and dependency orders
+proc sortModulePerLoadedAndDepOrder {modlist} {
+   # sort per loaded order
    set sortlist {}
    if {[llength $modlist] > 0} {
       foreach lmmod [getLoadedModuleList] {
@@ -2780,6 +2781,39 @@ proc sortPerModuleLoadedOrder {modlist} {
          }
       }
    }
+
+   # then refine sort with dependencies between loaded modules: a dependent
+   # module should be placed prior the loaded module requiring it
+   set i 0
+   set imax [llength $sortlist]
+   while {$i < $imax} {
+      set mod [lindex $sortlist $i]
+      set jmin $imax
+
+      if {[info exists ::g_moduleDepend($mod)]} {
+         # goes over all dependend modules to find the first one in the loaded
+         # order list located after requiring mod
+         foreach lmmodlist $::g_moduleDepend($mod) {
+            foreach lmmod $lmmodlist {
+               set j [lsearch -exact $sortlist $lmmod]
+               if {$j > $i && $j < $jmin} {
+                  set jmin $j
+                  set jminmod $lmmod
+               }
+            }
+         }
+      }
+
+      # move first dependent module found after currently inspected mod right
+      # before it
+      if {$jmin != $imax} {
+         set sortlist [linsert [lreplace $sortlist $jmin $jmin] $i $jminmod]
+      # or go to next element in list if current element has not been changed
+      } else {
+         incr i
+      }
+   }
+
    return $sortlist
 }
 
@@ -3592,8 +3626,8 @@ proc getDependentLoadedModuleList {mod {strong 1} {sat_constraint 0}\
       setModuleConflictViolation $mod $modconlist
    }
 
-   # sort complete result list to match loaded module order
-   set sortlist [sortPerModuleLoadedOrder $deplist]
+   # sort complete result list to match both loaded and dependency orders
+   set sortlist [sortModulePerLoadedAndDepOrder $deplist]
    reportDebug "got '$sortlist'"
    return $sortlist
 }
@@ -3623,8 +3657,8 @@ proc getUnloadableLoadedModuleList {modlist} {
       }
    }
 
-   # sort complete result list to match loaded module order
-   set sortlist [sortPerModuleLoadedOrder $deplist]
+   # sort complete result list to match both loaded and dependency orders
+   set sortlist [sortModulePerLoadedAndDepOrder $deplist]
    reportDebug "got '$sortlist'"
    return $sortlist
 }
