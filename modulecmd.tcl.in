@@ -3585,14 +3585,26 @@ proc getDependentLoadedModuleList {mod {strong 1} {sat_constraint 0}\
       set fulllist {}
    }
 
-   # invite modules in violation with mod to be part of the dependent list
-   # with their own dependent modules as mod is being unloaded. Achieve so
-   # by faking that conflict violation is gone
    if {$being_unload} {
+      # invite modules in violation with mod to be part of the dependent list
+      # with their own dependent modules as mod is being unloaded. Achieve so
+      # by faking that conflict violation is gone
       lassign [doesModuleConflict $mod] doescon modconlist
       if {$doescon} {
          unsetModuleConflictViolation $mod
          set fulllist [concat $fulllist $modconlist]
+      }
+      # set module requiring mod in prereq violation state as mod is being
+      # unloaded.
+      if {[info exists ::g_dependHash($mod)]} {
+         foreach depmod $::g_dependHash($mod) {
+            # skip optional prereq link or module already in violation state
+            if {[llength $depmod] == 1 && ![info exists\
+               ::g_prereqViolation($depmod)]} {
+               set ::g_prereqViolation($depmod) 1
+               lappend previolist $depmod
+            }
+         }
       }
    } else {
       set doescon 0
@@ -3624,6 +3636,12 @@ proc getDependentLoadedModuleList {mod {strong 1} {sat_constraint 0}\
    # restore conflict violation if any
    if {$being_unload && $doescon} {
       setModuleConflictViolation $mod $modconlist
+   }
+   # clean prereq violation set for this search if any
+   if {[info exists previolist]} {
+      foreach previo $previolist {
+         unset ::g_prereqViolation($previo)
+      }
    }
 
    # sort complete result list to match both loaded and dependency orders
