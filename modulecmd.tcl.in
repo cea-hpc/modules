@@ -6705,6 +6705,12 @@ proc cmdModuleReload {args} {
    }
    reportDebug "reloading $lmlist"
 
+   # no reload of all loaded modules attempt if constraints are violated
+   if {[llength $args] == 0 && ![areModuleConstraintsSatisfied]} {
+      reportErrorAndExit "Cannot reload modules, some of their constraints\
+         are not satistied"
+   }
+
    # unload one by one to ensure same behavior whatever auto_handling state
    foreach mod [lreverse $lmlist] {
       # save user asked state before it vanishes
