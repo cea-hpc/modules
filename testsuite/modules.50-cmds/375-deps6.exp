@@ -10,7 +10,7 @@
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
-#   Command:        load, unload, purge
+#   Command:        load, unload, purge, reload
 #   Modulefiles:
 #   Sub-Command:    prereq, conflict
 #
@@ -95,6 +95,9 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 set tserr [list "unload f5" "unload f7" "unload f6" "unload f3" "unload f1"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
 
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
+
+
 # define situation where also optional module are loaded
 setenv_loaded_module [list f1 f6 f7 f5 f4 f2 f3] [list "$mp/f1" "$mp/f6" "$mp/f7" "$mp/f5" "$mp/f4" "$mp/f2" "$mp/f3"] [list f1 f6 f3]
 setenv_path_var MODULES_LMPREREQ "f6&f3|f4" "f7&f6" "f3&f1|f2"
@@ -127,6 +130,8 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 # FIXME: should not warn about f4 being unloaded as f6 is unloaded right after
 set tserr [list "unload f3" "unload f2" [err_prerequnf f4 f6] "unload f4" "unload f5" "unload f7" "unload f6" "unload f1"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
+
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
 
 
 # restore empty environment
@@ -200,6 +205,8 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 set tserr [list "unload f7" "unload f6" "unload f3" "unload f1" "unload f5"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
 
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
+
 
 # define situation where also optional module are loaded
 setenv_loaded_module [list f5 f1 f6 f7 f4 f2 f3] [list "$mp/f5" "$mp/f1" "$mp/f6" "$mp/f7" "$mp/f4" "$mp/f2" "$mp/f3"] [list f1 f6 f3]
@@ -232,6 +239,8 @@ lappend ans [list unsetpath MODULES_LMCONFLICT]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 set tserr [list "unload f3" "unload f2" [err_prerequnf f4 f6] "unload f4" "unload f7" "unload f6" "unload f1" "unload f5"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
+
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
 
 
 # restore empty environment
@@ -272,6 +281,8 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 set tserr [list "unload f5" "unload f7" "unload f6" "unload f4" "unload f3" "unload f2" "unload f1"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
 
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
+
 
 # restore empty environment
 unsetenv_path_var MODULES_LMPREREQ
@@ -306,6 +317,8 @@ lappend ans [list unsetpath MODULES_LMCONFLICT]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 set tserr [list "unload f5" "unload f7" "unload f6" "unload f3"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
+
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
 
 
 # restore empty environment
@@ -351,6 +364,8 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 set tserr [list "unload f7" "unload f6"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
 
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
+
 
 # restore empty environment
 unsetenv_path_var MODULES_LMPREREQ
@@ -394,6 +409,8 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 set tserr [list "unload f5" "unload f7" "unload f6"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
 
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
+
 
 # restore empty environment
 unsetenv_path_var MODULES_LMPREREQ
@@ -431,6 +448,8 @@ lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 set tserr [list "unload f10"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
+
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
 
 
 # restore empty environment
@@ -512,6 +531,8 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 set tserr [list "unload f15" "unload f12" "unload f17" "unload f16" "unload f14" "unload f13" "unload f11"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
 
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
+
 
 # define situation where dependencies are loaded after requiring module and its conflict, both forced to be loaded
 setenv_loaded_module [list f20 f21 f18 f19] [list "$mp/f20" "$mp/f21" "$mp/f18" "$mp/f19"]
@@ -548,6 +569,8 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 set tserr [list [err_prerequnf f18 f20] "unload f18" [err_prerequnf f19 f20] "unload f19" "unload f21" "unload f20"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
 
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
+
 
 # similar situation than above with reflexive conflict addition
 setenv_loaded_module [list f22/1 f21 f18 f19] [list "$mp/f22/1" "$mp/f21" "$mp/f18" "$mp/f19"]
@@ -582,6 +605,8 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 # FIXME: should not warn about f18 and f19 being unloaded as f22/1 is unloaded right after
 set tserr [list "unload f22/2" [err_prerequnf f19 f22/1] "unload f19" [err_prerequnf f18 f22/1] "unload f18" "unload f21" "unload f22/1"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
+
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
 
 
 setenv_loaded_module [list f22/1 f18 f19 f22/2] [list "$mp/f22/1" "$mp/f18" "$mp/f19" "$mp/f22/2"]
@@ -645,6 +670,8 @@ lappend ans [list unsetpath MODULES_LMNOTUASKED]
 set tserr [list "unload f28" "unload f27" "unload f26" "unload f25"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
 
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
+
 
 setenv_loaded_module [list f25 f23 f26 f27 f28] [list "$mp/f25" "$mp/f23" "$mp/f26" "$mp/f27" "$mp/f28"] [list f25 f26 f27]
 setenv_path_var MODULES_LMPREREQ "f26&f24|f23" "f27&f25|f23" "f28&f26&f27"
@@ -707,6 +734,8 @@ lappend ans [list unsetpath MODULES_LMCONFLICT]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
 set tserr [list "unload f23" "unload f29" "unload f28" "unload f27" "unload f25" "unload f26" "unload f24"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
+
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
 
 
 # test simple situation when a requirement is forced to be unloaded
