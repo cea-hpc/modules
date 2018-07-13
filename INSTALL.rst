@@ -23,8 +23,6 @@ the tools to be found on your system:
 * bash
 * make
 * sed
-* grep
-* cut
 * runtest
 
 When also installing the bundled compatibility version of Modules (enabled
@@ -33,6 +31,7 @@ by default), these additional tools are needed:
 * autoconf
 * automake
 * autopoint
+* grep
 * gcc
 * tcl-devel >= 8.4
 
