@@ -337,8 +337,6 @@ case "$kernelname" in
 esac
 check_requirement $make
 check_requirement sed
-check_requirement grep
-check_requirement cut
 check_requirement runtest "Install \`dejagnu' if you want to run the \
 testsuite"
 check_requirement manpath 'Will rely on MANPATH to get enabled man directories'
@@ -405,8 +403,8 @@ if [ -d '.git' ]; then
   fi
 # elsewhere fetch modules version from version.inc file
 elif [ -r ${progdir}/version.inc ]; then
-  release=$(grep '^MODULES_RELEASE ' ${progdir}/version.inc | cut -d ' ' -f 3)
-  build=$(grep '^MODULES_BUILD ' ${progdir}/version.inc | cut -d ' ' -f 3)
+  release=$(sed -n '/^MODULES_RELEASE/{s/.*= //p;q;}' ${progdir}/version.inc)
+  build=$(sed -n '/^MODULES_BUILD/{s/.*= //p;q;}' ${progdir}/version.inc)
 fi
 VERSION=$release$build
 

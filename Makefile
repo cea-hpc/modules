@@ -69,8 +69,8 @@ MODULES_RELEASE_SUFFIX :=
 else
 MODULES_RELEASE_SUFFIX := $(subst $(MODULES_RELEASE_BASE)-,,$(MODULES_RELEASE))
 endif
-MODULES_LAST_RPM_VERSREL := $(shell grep -A 1 '%changelog' \
-	contrib/rpm/environment-modules.spec.in | grep '^* ' | grep -Eo '\S+$$')
+MODULES_LAST_RPM_VERSREL := $(shell sed -n '/^%changelog/ {n;s/^\*.* - //p;q;}' \
+	contrib/rpm/environment-modules.spec.in)
 
 MODULES_LAST_RPM_RELEASE := $(subst $(MODULES_RELEASE_BASE)-,,$(MODULES_LAST_RPM_VERSREL))
 ifneq ($(MODULES_RELEASE_SUFFIX),)
