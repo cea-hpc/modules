@@ -2713,6 +2713,11 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
                   {directory} {
                      # Move to default element in directory
                      set mod "$mod/[lindex $mod_list($mod) 1]"
+                     # restart search if default element is hidden and hidden
+                     # elements were not searched
+                     if {!$fetch_hidden && [isModuleHidden $mod]} {
+                        return [getPathToModule $mod $indir]
+                     }
                   }
                   {modulefile} {
                      # If mod was a file in this path, return that file
