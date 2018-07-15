@@ -64,40 +64,11 @@ MODULES_BUILD := +$(GIT_CURRENT_BRANCH)$(subst $(GIT_CURRENT_TAG),,$(GIT_CURRENT
 endif
 
 # determine RPM release
-# retrieve all parts of the release number and increase minor release number
-MODULES_RELEASE_BASE := $(firstword $(subst -, ,$(MODULES_RELEASE)))
-ifeq ($(MODULES_RELEASE),$(MODULES_RELEASE_BASE))
-MODULES_RELEASE_SUFFIX :=
-else
-MODULES_RELEASE_SUFFIX := $(subst $(MODULES_RELEASE_BASE)-,,$(MODULES_RELEASE))
-endif
+# use last release if we currently sat on tag, append build number to it elsewhere
 MODULES_LAST_RPM_VERSREL := $(shell sed -n '/^%changelog/ {n;s/^\*.* - //p;q;}' \
 	contrib/rpm/environment-modules.spec.in)
-
-MODULES_LAST_RPM_RELEASE := $(subst $(MODULES_RELEASE_BASE)-,,$(MODULES_LAST_RPM_VERSREL))
-ifneq ($(MODULES_RELEASE_SUFFIX),)
-MODULES_LAST_RPM_RELEASE := $(subst .$(MODULES_RELEASE_SUFFIX),,$(MODULES_LAST_RPM_RELEASE))
-endif
-
-# use last release if we currently sat on tag
-ifeq ($(GIT_CURRENT_TAG),$(GIT_CURRENT_DESC))
-MODULES_RPM_RELEASE := $(MODULES_LAST_RPM_RELEASE)
-else
-MODULES_LAST_RPM_RELEASE_P1 := $(firstword $(subst ., ,$(MODULES_LAST_RPM_RELEASE)))
-MODULES_LAST_RPM_RELEASE_P2 := $(subst $(MODULES_LAST_RPM_RELEASE_P1).,,$(MODULES_LAST_RPM_RELEASE))
-
-ifeq ($(MODULES_LAST_RPM_RELEASE_P2),)
-MODULES_RPM_RELEASE_P2 := 1
-else
-MODULES_RPM_RELEASE_P2 := $(shell echo $$(($(MODULES_LAST_RPM_RELEASE_P2)+1)))
-endif
-
-MODULES_RPM_RELEASE := $(MODULES_LAST_RPM_RELEASE_P1).$(MODULES_RPM_RELEASE_P2)
-ifneq ($(MODULES_RELEASE_SUFFIX),)
-MODULES_RPM_RELEASE := $(MODULES_RPM_RELEASE).$(MODULES_RELEASE_SUFFIX)
-endif
-MODULES_RPM_RELEASE := $(MODULES_RPM_RELEASE)$(subst -,.,$(MODULES_BUILD))
-endif
+MODULES_LAST_RPM_RELEASE := $(lastword $(subst -, ,$(MODULES_LAST_RPM_VERSREL)))
+MODULES_RPM_RELEASE := $(MODULES_LAST_RPM_RELEASE)$(subst +,.,$(subst -,.,$(MODULES_BUILD)))
 
 else
 # source version definitions shared across the Makefiles of this project
