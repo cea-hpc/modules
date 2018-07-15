@@ -248,6 +248,16 @@ testouterr_cmd "sh" "save" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _
 
 
 #
+# test when current environment has unsatisfied constraint
+#
+
+setenv_loaded_module [list trace/all_on conflict/full] [list $c9modpath/trace/all_on $c9modpath/conflict/full]
+setenv_path_var MODULES_LMCONFLICT "conflict/full&trace/all_on"
+
+testouterr_cmd "sh" "save" "ERR" "$error_msgs: Cannot save collection, some module constraints are not satistied"
+
+
+#
 # Cleanup
 #
 
@@ -257,6 +267,7 @@ if { $verbose > 0 } {
 }
 unset env(MODULES_COLLECTION_TARGET)
 setenv_path_var MODULEPATH $modpath
+unsetenv_path_var MODULES_LMCONFLICT
 unsetenv_loaded_module
 
 unset baddotmod
