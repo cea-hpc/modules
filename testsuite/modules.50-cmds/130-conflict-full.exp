@@ -10,7 +10,7 @@
 #   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
 #
 #   Description:	Testuite testsequence
-#   Command:		load
+#   Command:		load, unload, purge, reload
 #   Modulefiles:	conflict/full, trace/all_on, trace/all_off
 #   Sub-Command:
 #
@@ -43,8 +43,8 @@ set modulefile_troff "$modpath/$module_troff"
 #
 
 # additional message on Tcl-version as 'module-trace' is not implemented
-set err_con "$warn_msgs: 'module-trace' command not implemented\n"
-append err_con [err_conflict $module "trace/all_on"]
+set err_trace "$warn_msgs: 'module-trace' command not implemented"
+set err_con "$err_trace\n[err_conflict $module trace/all_on]"
 
 #
 #  The tests
@@ -69,11 +69,88 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 lappend ans [list setpath MODULES_LMCONFLICT "$module&$module_tron"]
 test_cmd_re "ALL" "load $module" $ans
 
+
+# test situations where auto_handling is disabled and some constraints are unsatisfied
+# force module load even if conflicting module is loaded
+setenv_loaded_module [list $module_tron] [list $modulefile_tron]
+set ans [list]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list setpath MODULES_LMCONFLICT "$module&$module_tron"]
+set tserr [list [err_conflictf $module $module_tron]]
+testouterr_cmd_re "sh" "load --no-auto --force $module" $ans [join $tserr "\n"]
+
+# from this situation where conflict has been forced
+setenv_loaded_module [list $module_tron $module $module_troff] [list $modulefile_tron $modulefile $modulefile_troff]
+setenv_path_var MODULES_LMCONFLICT "$module&$module_tron"
+
+# unload of a conflicting module
+# no reload of the other conflict module as auto_handling is disabled
+set ans [list]
+lappend ans [list unset testsuite]
+lappend ans [list setpath LOADEDMODULES "$module_tron:$module_troff"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_troff"]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+testouterr_cmd_re "sh" "unload --no-auto $module" $ans ""
+
+# unload of the other conflicting module
+# no reload of the other conflict module as auto_handling is disabled
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module:$module_troff"]
+lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_troff"]
+testouterr_cmd_re "sh" "unload --no-auto $module_tron" $ans $err_trace
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset testsuite]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+testouterr_cmd "sh" "purge" $ans $err_trace
+
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
+
+# from this situation where conflict has been forced (opposite order)
+setenv_loaded_module [list $module $module_tron $module_troff] [list $modulefile $modulefile_tron $modulefile_troff]
+setenv_path_var MODULES_LMCONFLICT "$module&$module_tron"
+
+# unload of a conflicting module
+# no reload of the other conflict module as auto_handling is disabled
+set ans [list]
+lappend ans [list unset testsuite]
+lappend ans [list setpath LOADEDMODULES "$module_tron:$module_troff"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile_troff"]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+testouterr_cmd_re "sh" "unload --no-auto $module" $ans ""
+
+# unload of the other conflicting module
+# no reload of the other conflict module as auto_handling is disabled
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module:$module_troff"]
+lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_troff"]
+testouterr_cmd_re "sh" "unload --no-auto $module_tron" $ans $err_trace
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset testsuite]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+testouterr_cmd "sh" "purge" $ans $err_trace
+
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
+
+
 #
 #  Cleanup
 #
 
+# restore environment
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_loaded_module
+
 unset err_con
+unset err_trace
+unset tserr
 
 unset ans
 
