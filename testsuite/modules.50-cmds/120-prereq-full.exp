@@ -10,7 +10,7 @@
 #   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
 #
 #   Description:	Testuite testsequence
-#   Command:		load
+#   Command:		load, unload, purge, reload
 #   Modulefiles:	prereq/full, trace/all_on, trace/all_off
 #   Sub-Command:
 #
@@ -81,12 +81,66 @@ lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
 testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace
 
+
+# test situations where auto_handling is disabled and some constraints are unsatisfied
+# force module load without prereq loaded
+set ans [list]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath LOADEDMODULES "$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile"]
+lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
+set tserr [err_prereqf $module $module_tron]
+testouterr_cmd "sh" "load --no-auto --force $module" $ans $tserr
+
+# force unload of a prereq
+setenv_loaded_module [list $module_tron $module] [list $modulefile_tron $modulefile]
+setenv_path_var MODULES_LMPREREQ "$module&$module_tron"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile"]
+set tserr [list [err_prerequnf $module_tron $module] $err_trace]
+testouterr_cmd "sh" "unload --no-auto --force $module_tron" $ans [join $tserr "\n"]
+
+
+# from this situation where prereq is not loaded
+setenv_loaded_module [list $module] [list $modulefile]
+
+# load prereq after will not trigger reload of dependent module when auto_handling is disabled
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module:$module_tron"]
+lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_tron"]
+testouterr_cmd_re "sh" "load --no-auto $module_tron" $ans $err_trace
+
+set ans [list]
+lappend ans [list unset testsuite]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+testouterr_cmd "sh" "purge" $ans ""
+
+testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
+
+# force unload of a prereq loaded after dependent module (loaded in force mode)
+# here again reload of dependent module will not be triggered as auto_handling is disabled
+setenv_loaded_module [list $module $module_tron] [list $modulefile $modulefile_tron]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile"]
+set tserr [list [err_prerequnf $module_tron $module] $err_trace]
+testouterr_cmd "sh" "unload --no-auto --force $module_tron" $ans [join $tserr "\n"]
+
+
 #
 #  Cleanup
 #
 
+# restore environment
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_loaded_module
+
 unset err_pre
 unset err_trace
+unset tserr
 
 unset ans
 
