@@ -156,6 +156,16 @@ switches are accepted:
 
  Do not pipe message output into a pager.
 
+**--auto**
+
+ On **load**, **unload** and **switch** sub-commands, enable automated module
+ handling mode. See also **MODULES_AUTO_HANDLING** section.
+
+**--no-auto**
+
+ On **load**, **unload** and **switch** sub-commands, disable automated module
+ handling mode. See also **MODULES_AUTO_HANDLING** section.
+
 **--terse**, **-t**
 
  Display **avail**, **list** and **savelist** output in short format.
@@ -190,7 +200,7 @@ Module Sub-Commands
 
  See **load**.
 
-**load** modulefile...
+**load** [--auto|--no-auto] modulefile...
 
  Load *modulefile* into the shell environment.
 
@@ -198,7 +208,7 @@ Module Sub-Commands
 
  See **unload**.
 
-**unload** modulefile...
+**unload** [--auto|--no-auto] modulefile...
 
  Remove *modulefile* from the shell environment.
 
@@ -206,7 +216,7 @@ Module Sub-Commands
 
  See **switch**.
 
-**switch** [modulefile1] modulefile2
+**switch** [--auto|--no-auto] [modulefile1] modulefile2
 
  Switch loaded *modulefile1* with *modulefile2*. If *modulefile1* is not
  specified, then it is assumed to be the currently loaded module with the
@@ -562,6 +572,40 @@ ENVIRONMENT
  The location of the master Modules package file directory containing module
  command initialization scripts, the executable program **modulecmd.tcl**,
  and a directory containing a collection of master *modulefiles*.
+
+**MODULES_AUTO_HANDLING**
+
+ If set to **1**, enable automated module handling mode. If set to **0**
+ disable automated module handling mode. Other values are ignored.
+
+ Automated module handling mode consists in additional actions triggered when
+ loading or unloading a *modulefile* to satisfy the constraints it declares.
+ When loading a *modulefile*, following actions are triggered:
+
+ * Load of the *modulefiles* declared as a **prereq** of the loading
+   *modulefile*.
+
+ * Reload of the modulefiles declaring an optional **prereq** onto loaded
+   *modulefile* or declaring a **prereq** onto a *modulefile* part of this
+   reloading batch. A **prereq** *modulefile* is considered optional if the
+   **prereq** definition order is made of multiple modulefiles and at least
+   one alternative *modulefile* is loaded.
+
+ When unloading a *modulefile*, following actions are triggered:
+
+ * Unload of the **prereq** modulefiles that have been automatically loaded
+   and are not required by any other loaded *modulefiles*.
+
+ * Reload of the modulefiles declaring an optional **prereq** onto unloaded
+   *modulefile* or declaring a **prereq** onto a *modulefile* part of this
+   reloading batch.
+
+ Automated module handling mode enablement is defined in the following order
+ of preference: **--auto**/**--no-auto** command line switches,
+ then **MODULES_AUTO_HANDLING** environment variable, then the default set in
+ **modulecmd.tcl** script configuration. Which means **MODULES_AUTO_HANDLING**
+ overrides default configuration and **--auto**/**--no-auto** command line
+ switches override every other ways to enable or disable this mode.
 
 **MODULES_CMD**
 

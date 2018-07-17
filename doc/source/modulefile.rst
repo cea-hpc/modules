@@ -261,6 +261,9 @@ the *modulefile* is being loaded.
  requires a basic set of applications loaded, then a core *modulefile*
  would contain the necessary **module load** commands.
 
+ Command line switches **--auto** and **--no-auto** are ignored when passed
+ to a **module** command set in a *modulefile*.
+
 **module-info** option [info-args]
 
  Provide information about the **modulecmd.tcl** program's state. Some of the
