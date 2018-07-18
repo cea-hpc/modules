@@ -166,6 +166,15 @@ switches are accepted:
  On **load**, **unload** and **switch** sub-commands, disable automated module
  handling mode. See also **MODULES_AUTO_HANDLING** section.
 
+**--force**, **-f**
+
+ On **load**, **unload** and **switch** sub-commands, by-pass any unsatisfied
+ modulefile constraint corresponding to the declared **prereq** and
+ **conflict**. Which means for instance that a *modulefile* will be loaded
+ even if it comes in conflict with another loaded *modulefile* or that a
+ *modulefile* will be unloaded even if it is required as a prereq by another
+ *modulefile*.
+
 **--terse**, **-t**
 
  Display **avail**, **list** and **savelist** output in short format.
@@ -200,7 +209,7 @@ Module Sub-Commands
 
  See **load**.
 
-**load** [--auto|--no-auto] modulefile...
+**load** [--auto|--no-auto] [-f] modulefile...
 
  Load *modulefile* into the shell environment.
 
@@ -208,7 +217,7 @@ Module Sub-Commands
 
  See **unload**.
 
-**unload** [--auto|--no-auto] modulefile...
+**unload** [--auto|--no-auto] [-f] modulefile...
 
  Remove *modulefile* from the shell environment.
 
@@ -216,7 +225,7 @@ Module Sub-Commands
 
  See **switch**.
 
-**switch** [--auto|--no-auto] [modulefile1] modulefile2
+**switch** [--auto|--no-auto] [-f] [modulefile1] modulefile2
 
  Switch loaded *modulefile1* with *modulefile2*. If *modulefile1* is not
  specified, then it is assumed to be the currently loaded module with the
@@ -294,6 +303,10 @@ Module Sub-Commands
 
  Unload then load all loaded *modulefiles*.
 
+ No unload then load is performed and an error is returned if the loaded
+ *modulefiles* have unsatisfied constraint corresponding to the **prereq**
+ and **conflict** they declare.
+
 **purge**
 
  Unload all loaded *modulefiles*.
@@ -346,6 +359,10 @@ Module Sub-Commands
  the bare module name is recorded. If **MODULES_COLLECTION_PIN_VERSION** is
  set to **1**, module version is always recorded even if it is the default
  version.
+
+ No *collection* is recorded and an error is returned if the loaded
+ *modulefiles* have unsatisfied constraint corresponding to the **prereq**
+ and **conflict** they declare.
 
 **restore** [collection]
 
@@ -585,20 +602,24 @@ ENVIRONMENT
  * Load of the *modulefiles* declared as a **prereq** of the loading
    *modulefile*.
 
- * Reload of the modulefiles declaring an optional **prereq** onto loaded
-   *modulefile* or declaring a **prereq** onto a *modulefile* part of this
-   reloading batch. A **prereq** *modulefile* is considered optional if the
-   **prereq** definition order is made of multiple modulefiles and at least
-   one alternative *modulefile* is loaded.
+ * Reload of the modulefiles declaring a **prereq** onto loaded *modulefile*
+   or declaring a **prereq** onto a *modulefile* part of this reloading batch.
 
  When unloading a *modulefile*, following actions are triggered:
 
  * Unload of the **prereq** modulefiles that have been automatically loaded
    and are not required by any other loaded *modulefiles*.
 
- * Reload of the modulefiles declaring an optional **prereq** onto unloaded
-   *modulefile* or declaring a **prereq** onto a *modulefile* part of this
-   reloading batch.
+ * Reload of the modulefiles declaring a **conflict** or an optional
+   **prereq** onto unloaded *modulefile* or declaring a **prereq** onto a
+   *modulefile* part of this reloading batch. A **prereq** *modulefile* is
+   considered optional if the **prereq** definition order is made of multiple
+   modulefiles and at least one alternative *modulefile* is loaded.
+
+ In case a loaded *modulefile* has some of its declared constraints
+ unsatisfied (pre-required modulefile not loaded or conflicting modulefile
+ loaded for instance), this loaded *modulefile* is excluded from the automatic
+ reload actions described above.
 
  Automated module handling mode enablement is defined in the following order
  of preference: **--auto**/**--no-auto** command line switches,
