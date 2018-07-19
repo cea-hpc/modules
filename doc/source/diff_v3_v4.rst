@@ -25,8 +25,6 @@ Package Initialization
 Command line switches
 ^^^^^^^^^^^^^^^^^^^^^
 
-**--force**, **-f**
-
 **--human**
 
 **--verbose**, **-v**
@@ -50,7 +48,11 @@ Command line switches
 **-h**
  
  This command line switch is short version of **--help** switch on Modules 4 whereas it is short version of **--human** switch on compatibility version.
+
+**--force**, **-f**
  
+ This command line switch was not supported starting Modules version ``4.0`` but reintroduced starting version ``4.2`` with a different meaning: instead of enabling an active dependency resolution mechanism ``--force`` command line switch now enables to by-pass dependency consistency when loading or unloading a *modulefile*.
+
 
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
@@ -273,6 +275,12 @@ Command line switches
 
  These command line switches appeared on version ``4.1`` and are not supported on compatibility version.
 
+**--auto**
+
+**--no-auto**
+
+ These command line switches appeared on version ``4.2`` and are not supported on compatibility version.
+
 
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
@@ -375,6 +383,16 @@ Environment
 **<VAR>_modquar**
 
  These environment variables appeared on version ``4.1`` and are not supported on compatibility version.
+
+**MODULES_AUTO_HANDLING**
+
+**MODULES_LMCONFLICT**
+
+**MODULES_LMNOTUASKED**
+
+**MODULES_LMPREREQ**
+
+ These environment variables appeared on version ``4.2`` and are not supported on compatibility version.
 
 
 Modules Specific Tcl Commands
