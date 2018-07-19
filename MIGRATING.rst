@@ -8,6 +8,45 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
+Migrating from v4.1 to v4.2
+===========================
+
+This new version is backward-compatible with v4.1 and primarily fixes bugs and
+adds new features.
+
+New features
+------------
+
+Version 4.2 introduces new functionalities that are described in this section.
+
+Environment variable change through modulefile evaluation context
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+All environment variable edition commands (``setenv``, ``unsetenv``,
+``append-path``, ``prepend-path`` and ``remove-path``) have been updated to:
+
+* Reflect environment variable value change on the environment of the current
+  modulefile Tcl interpreter. So using ``$env(VAR)`` will return the currently
+  defined value for environment variable ``VAR``, not the one found prior
+  modulefile evaluation.
+* Clear environment variable content instead of unsetting it on the
+  environment of the current modulefile Tcl interpreter to avoid raising
+  error about accessing an undefined element in ``$env()``. Code is still
+  produced to purely unset environment variable in shell environment.
+
+Exception is made for the ``whatis`` evaluation mode: environment variables
+targeted by variable edition commands are not set to the defined value in the
+evaluation context during this ``whatis`` evaluation. These variables are
+only initialized to an empty value if undefined. This exception is made to
+save performances on this global evaluation mode.
+
+Further reading
+---------------
+
+To get a complete list of the changes between Modules v4.1 and v4.2,
+please read the :ref:`NEWS` document.
+
+
 Migrating from v4.0 to v4.1
 ===========================
 
