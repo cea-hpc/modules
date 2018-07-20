@@ -19,6 +19,173 @@ New features
 
 Version 4.2 introduces new functionalities that are described in this section.
 
+Modulefile conflict constraints consistency
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With the **conflict** modulefile command, a given modulefile can list the
+other modulefiles it conflicts with. To load this modulefile, the modulefiles
+it conflicts with cannot be loaded.
+
+This constraint was until now satisfied when loading the modulefile declaring
+the **conflict** but it vanished as soon as this modulefile was loaded. In the
+following example ``a`` modulefile declares a conflict with ``b``::
+
+    $ module load b a
+    WARNING: a cannot be loaded due to a conflict.
+    HINT: Might try "module unload b" first.
+    $ module list
+    Currently Loaded Modulefiles:
+     1) b
+    $ module purge
+    $ module load a b
+    $ module list
+    Currently Loaded Modulefiles:
+     1) a   2) b
+
+Consistency of the declared **conflict** is now ensured to satisfy this
+constraint even after the load of the modulefile declaring it. This is
+achieved by keeping track of the conflict constraints of the loaded
+modulefiles in an environment variable called ``MODULES_LMCONFLICT``::
+
+    $ module load a b
+    ERROR: WARNING: b cannot be loaded due to a conflict.
+    HINT: Might try "module unload a" first.
+    $ module list
+    Currently Loaded Modulefiles:
+     1) a
+
+An environment variable is used to keep track of this conflict information to
+proceed the same way than used to keep track of the loaded modulefiles with
+the ``LOADEDMODULES`` environment variable.
+
+Modulefile prereq constraints consistency
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With the **prereq** modulefile command, a given modulefile can list the
+other modulefiles it pre-requires. To load this modulefile, the modulefiles it
+pre-requires must be loaded prior its own load.
+
+This constraint was until now satisfied when loading the modulefile declaring
+the **prereq** but, as for the declared **conflict**, it vanished as soon as
+this modulefile was loaded. In the following example ``c`` modulefile declares
+a prereq on ``a``::
+
+    $ module load c
+    WARNING: c cannot be loaded due to missing prereq.
+    HINT: the following module must be loaded first: a
+    $ module list
+    No Modulefiles Currently Loaded.
+    $ module load a c
+    $ module list
+    Currently Loaded Modulefiles:
+     1) a   2) c
+    $ module unload a
+    $ module list
+    Currently Loaded Modulefiles:
+     1) c
+
+Consistency of the declared **prereq** is now ensured to satisfy this
+constraint even after the load of the modulefile declaring it. This is
+achieved, like for the conflict consistency, by keeping track of the prereq
+constraints of the loaded modulefiles in an environment variable called
+``MODULES_LMPREREQ``::
+
+    $ module load a c
+    $ module list
+    Currently Loaded Modulefiles:
+     1) a   2) c
+    $ module unload a
+    ERROR: WARNING: a cannot be unloaded due to a prereq.
+    HINT: Might try "module unload c" first.
+    $ module list
+    Currently Loaded Modulefiles:
+     1) a   2) c
+
+By-passing module defined constraints
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ability to by-pass a **conflict** or a **prereq** constraint defined by
+modulefiles is introduced with the ``--force`` command line switch (``-f`` for
+short notation) for the **load**, **unload** and **switch** sub-commands.
+
+With this new command line switch, a given modulefile is loaded even if it
+conflicts with other loaded modulefiles or even if the modulefiles it
+pre-requires are not loaded. Some example reusing the same modulefiles ``a``,
+``b`` and ``c`` than above::
+
+    $ module load b
+    $ module load --force a
+    WARNING: a conflicts with b
+    $ module list
+    Currently Loaded Modulefiles:
+     1) b   2) a
+    $ module purge
+    $ module load --force c
+    WARNING: c requires a loaded
+    $ module list
+    Currently Loaded Modulefiles:
+     1) c
+
+``--force`` also enables to unload a modulefile required by another loaded
+modulefiles::
+
+    $ module load a c
+    $ module list
+    Currently Loaded Modulefiles:
+     1) a   2) c
+    $ module unload --force a
+    WARNING: a is required by c
+    $ module list
+    Currently Loaded Modulefiles:
+     1) c
+
+In a situation where some of the loaded modulefiles have unsatisfied
+constraints corresponding to the **prereq** and **conflict** they declare, the
+**save** and **reload** sub-commands do not perform and return an error.
+
+Automated module handling mode
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+An automatic management of the dependencies between modulefiles has been added
+and it is called *automated module handling mode*. This new mode consists in
+additional actions triggered when loading or unloading a modulefile to satisfy
+the constraints it declares.
+
+When loading a modulefile, following actions are triggered:
+
+* Load of the modulefiles declared as a **prereq** of the loading modulefile.
+
+* Reload of the modulefiles declaring a **prereq** onto loaded modulefile or
+  declaring a **prereq** onto a modulefile part of this reloading batch.
+
+When unloading a modulefile, following actions are triggered:
+
+* Unload of the **prereq** modulefiles that have been automatically loaded and
+  are not required by any other loaded modulefiles. ``MODULES_LMNOTUASKED``
+  environment variable helps to keep track of these automatically loaded
+  modulefiles and to distinguish them from modulefiles asked by user.
+
+* Reload of the modulefiles declaring a **conflict** or an optional **prereq**
+  onto unloaded modulefile or declaring a **prereq** onto a modulefile part of
+  this reloading batch. A **prereq** modulefile is considered optional if the
+  **prereq** definition order is made of multiple modulefiles and at least one
+  alternative modulefile is loaded.
+
+In case a loaded modulefile has some of its declared constraints unsatisfied
+(pre-required modulefile not loaded or conflicting modulefile loaded for
+instance), this loaded modulefile is excluded from the automatic reload
+actions described above.
+
+This new feature can be controlled at build time with the
+``--enable-auto-handling`` configure option. This default configuration can be
+superseded at run-time with the ``MODULES_AUTO_HANDLING`` environment variable
+or the command line switches ``--auto`` and ``--no-auto``.
+
+By default, automated module handling mode is disabled and will stay so until
+the next major release version (5.0) where it will be enabled by default. This
+new feature is currently considered experimental and the set of triggered
+actions will be refined over the next feature releases.
+
 Environment variable change through modulefile evaluation context
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
