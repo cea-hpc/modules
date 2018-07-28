@@ -33,7 +33,7 @@ Where the ``modulecmd`` outputs valid shell commands to *stdout* which manipulat
 I put the ``module`` command in a script and I run the script... it doesn't change my environment?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A child process (script) can not change the parent process environment. A ``module load`` in a script only affects the environement for the script itself. The only way you can have a script change the current environment is to *source* the script which reads it into the current process.
+A child process (script) can not change the parent process environment. A ``module load`` in a script only affects the environment for the script itself. The only way you can have a script change the current environment is to *source* the script which reads it into the current process.
 
 sh:
 
@@ -50,7 +50,7 @@ csh:
 How do I capture the module command output?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This ties in with the very first question. Since the :ref:`module(1)` command is essentially an *eval* the visible output to the screen must necessarily be sent to *stderr*. It becomes a matter on how to capture output from *stderr* for the various shells. The following examples just show how to spool the output from the **avail** command to a file. This also works for the various other module commands like **list**, **display**, etc. There are also various tricks for piping *stderr* to another program.
+This ties in with the very first question. Since the :ref:`module(1)` command is essentially an *eval*, the visible output to the screen must necessarily be sent to *stderr*. It becomes a matter on how to capture output from *stderr* for the various shells. The following examples just show how to spool the output from the **avail** command to a file. This also works for the various other module commands like **list**, **display**, etc. There are also various tricks for piping *stderr* to another program.
 
 sh:
 
