@@ -752,15 +752,25 @@ set tserr [list [err_prerequnf f23 f26] "unload f23"]
 testouterr_cmd_re "sh" "unload --force f23" $ans [join $tserr "\n"]
 
 
+# check warning raised when using --force from modulefile
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_loaded_module
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "mv"]
+lappend ans [list setpath _LMFILES_ "$mp/mv"]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+testouterr_cmd "sh" "load mv" $ans "$warn_msgs: Unsupported option '--force'\n$warn_msgs: Unsupported option '--force'\n$warn_msgs: Unsupported option '--force'"
+
+
 #
 #  Cleanup
 #
 
 # restore environment
 setenv_path_var MODULEPATH $modpath
-unsetenv_path_var MODULES_LMPREREQ
-unsetenv_path_var MODULES_LMCONFLICT
-unsetenv_loaded_module
 
 unsetenv_var MODULES_AUTO_HANDLING
 
