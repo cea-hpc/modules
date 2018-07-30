@@ -3576,9 +3576,10 @@ proc areModuleConstraintsSatisfied {{mod {}}} {
 # should be added to the dependent list as mod is currently being unloaded
 # and these conflicting loaded modules should be refreshed.
 proc getDependentLoadedModuleList {mod {strong 1} {sat_constraint 0}\
-   {being_unload 0}} {
+   {being_unload 0} {being_reload 0}} {
    reportDebug "get loaded mod dependent of '$mod' (strong=$strong,\
-      sat_constraint=$sat_constraint, being_unload=$being_unload)"
+      sat_constraint=$sat_constraint, being_unload=$being_unload,\
+      being_reload=$being_reload)"
 
    set deplist {}
    if {[info exists ::g_dependHash($mod)]} {
@@ -3597,8 +3598,8 @@ proc getDependentLoadedModuleList {mod {strong 1} {sat_constraint 0}\
          set fulllist [concat $fulllist $modconlist]
       }
       # set module requiring mod in prereq violation state as mod is being
-      # unloaded.
-      if {[info exists ::g_dependHash($mod)]} {
+      # unloaded, unless being reloaded afterward
+      if {!$being_reload && [info exists ::g_dependHash($mod)]} {
          foreach depmod $::g_dependHash($mod) {
             # skip optional prereq link or module already in violation state
             if {[llength $depmod] == 1 && ![info exists\
@@ -6185,8 +6186,9 @@ proc cmdModuleSwitch {old {new {}}} {
       lassign [getPathToModule $old {} $unload_match] oldfile oldname
       if {$oldfile != ""} {
          # build list of loaded module satisfying their constraints and
-         # declaring a prereq onto old module
-         set deplist [getDependentLoadedModuleList $oldname 0 1]
+         # declaring a prereq onto old module or taking advantage of mod
+         # unload
+         set deplist [getDependentLoadedModuleList $oldname 0 1 1 1]
 
          # unload one by one every module having a prereq onto old
          foreach depmod [lreverse $deplist] {

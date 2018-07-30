@@ -10,7 +10,7 @@
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
-#   Command:        load, unload, purge, reload
+#   Command:        load, unload, switch, purge, reload
 #   Modulefiles:
 #   Sub-Command:    prereq, conflict
 #
@@ -496,6 +496,15 @@ lappend ans [list setpath LOADEDMODULES "f11:f13:f14:f16:f17:f12:f15"]
 lappend ans [list setpath _LMFILES_ "$mp/f11:$mp/f13:$mp/f14:$mp/f16:$mp/f17:$mp/f12:$mp/f15"]
 set tserr [list "load f15"]
 testouterr_cmd_re "sh" "load f15" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "f11:f15:f12:f13:f16:f17"]
+lappend ans [list setpath _LMFILES_ "$mp/f11:$mp/f15:$mp/f12:$mp/f13:$mp/f16:$mp/f17"]
+lappend ans [list setpath MODULES_LMNOTUASKED "f11:f13:f16"]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list setpath MODULES_LMPREREQ "f13&f11|f12:f16&f14|f15:f17&f13&f16"]
+set tserr [list "unload f17" "unload f16" "unload f13" "unload f12" "unload f14" "load f15" "load f12" "load f13" "load f16" "load f17"]
+testouterr_cmd_re "sh" "switch f14 f15" $ans [join $tserr "\n"]
 
 # define situation loaded where one dependency chain is in conflict with the other and both chains have optional modules loaded afterward
 setenv_loaded_module [list f11 f13 f14 f16 f17 f12 f15] [list "$mp/f11" "$mp/f13" "$mp/f14" "$mp/f16" "$mp/f17" "$mp/f12" "$mp/f15"] [list f11 f13 f14 f16]
