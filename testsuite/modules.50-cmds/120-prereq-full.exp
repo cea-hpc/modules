@@ -10,7 +10,7 @@
 #   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
 #
 #   Description:	Testuite testsequence
-#   Command:		load, unload, purge, reload
+#   Command:		load, unload, switch, purge, reload
 #   Modulefiles:	prereq/full, trace/all_on, trace/all_off
 #   Sub-Command:
 #
@@ -58,6 +58,9 @@ lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
 lappend ans [list setpath MODULES_LMNOTUASKED $module_tron]
 testouterr_cmd_re "ALL" "load --auto $module" $ans $err_trace
 
+# switch sub-command should obtain same result here
+testouterr_cmd_re "sh" "switch --auto $module" $ans $err_trace
+
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module_troff:$module_tron:$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile_tron:$modulefile"]
@@ -67,6 +70,9 @@ lappend ans [list setpath MODULES_LMNOTUASKED $module_tron]
 testouterr_cmd_re "ALL" "load --auto $module_troff $module" $ans $err_trace
 
 testouterr_cmd "ALL" "load --no-auto $module" "ERR" $err_pre
+
+# switch sub-command should obtain same result here
+testouterr_cmd "sh" "switch --no-auto $module" "ERR" $err_pre
 
 set ans [list]
 lappend ans [list setpath _LMFILES_ $modulefile_troff]
@@ -92,6 +98,9 @@ lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
 set tserr [err_prereqf $module $module_tron]
 testouterr_cmd "sh" "load --no-auto --force $module" $ans $tserr
 
+# switch sub-command should obtain same result here
+testouterr_cmd "sh" "switch --no-auto --force $module" $ans $tserr
+
 # force unload of a prereq
 setenv_loaded_module [list $module_tron $module] [list $modulefile_tron $modulefile]
 setenv_path_var MODULES_LMPREREQ "$module&$module_tron"
@@ -101,6 +110,37 @@ lappend ans [list setpath _LMFILES_ "$modulefile"]
 set tserr [list [err_prerequnf $module_tron $module] $err_trace]
 testouterr_cmd "sh" "unload --no-auto --force $module_tron" $ans [join $tserr "\n"]
 
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module:$module_troff"]
+lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_troff"]
+testouterr_cmd_re "sh" "switch --no-auto --force $module_tron $module_troff" $ans [join $tserr "\n"]
+
+# switch raise error on unload phase
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module_tron:$module:$module_troff"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile:$modulefile_troff"]
+lappend ans [list ERR]
+set tserr "$error_msgs: [err_prerequn $module_tron $module]"
+testouterr_cmd_re "sh" "switch --no-auto $module_tron $module_troff" $ans $tserr
+
+set ans [list]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath _LMFILES_ "$modulefile_troff"]
+lappend ans [list setpath LOADEDMODULES "$module_troff"]
+lappend ans [list unset testsuite]
+lappend ans [list ERR]
+# dependent module cannot be reloaded now its prereq has gone missing
+set tserr [list $err_trace [err_prereq $module $module_tron]]
+testouterr_cmd_re "sh" "switch --auto $module_tron $module_troff" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath LOADEDMODULES "$module_troff:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile"]
+lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
+# dependent module is forced to be reloaded with its prereq missing
+set tserr [list $err_trace [err_prereqf $module $module_tron]]
+testouterr_cmd_re "sh" "switch --auto --force $module_tron $module_troff" $ans [join $tserr "\n"]
 
 # from this situation where prereq is not loaded
 setenv_loaded_module [list $module] [list $modulefile]
@@ -110,6 +150,19 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module:$module_tron"]
 lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_tron"]
 testouterr_cmd_re "sh" "load --no-auto $module_tron" $ans $err_trace
+
+# switch sub-command should obtain same result here
+testouterr_cmd_re "sh" "switch --no-auto $module_tron" $ans $err_trace
+testouterr_cmd_re "sh" "switch --no-auto --force $module_tron" $ans $err_trace
+
+# in auto mode, requiring module is reloaded
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
+testouterr_cmd_re "sh" "switch --auto $module_tron" $ans $err_trace
+testouterr_cmd_re "sh" "switch --auto --force $module_tron" $ans $err_trace
 
 set ans [list]
 lappend ans [list unset testsuite]
@@ -129,6 +182,23 @@ lappend ans [list setpath _LMFILES_ "$modulefile"]
 set tserr [list [err_prerequnf $module_tron $module] $err_trace]
 testouterr_cmd "sh" "unload --no-auto --force $module_tron" $ans [join $tserr "\n"]
 
+# set situation where a module has been loaded without its prerequirement
+setenv_loaded_module [list $module_troff $module] [list $modulefile_troff $modulefile]
+# load missing prereq to clear violation
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module:$module_tron"]
+lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_tron"]
+set tserr [list $err_trace]
+testouterr_cmd_re "sh" "switch --no-auto $module_troff $module_tron" $ans [join $tserr "\n"]
+testouterr_cmd_re "sh" "switch --no-auto --force $module_troff $module_tron" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
+testouterr_cmd_re "sh" "switch --auto $module_troff $module_tron" $ans [join $tserr "\n"]
+testouterr_cmd_re "sh" "switch --auto --force $module_troff $module_tron" $ans [join $tserr "\n"]
 
 #
 #  Cleanup

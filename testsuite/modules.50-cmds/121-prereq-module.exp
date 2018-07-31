@@ -10,7 +10,7 @@
 #   Authors:		Jens Hamisch, Jens.Hamisch@Strawberry.COM
 #
 #   Description:	Testuite testsequence
-#   Command:		load
+#   Command:		load, switch
 #   Modulefiles:	prereq/module, trace/all_on, trace/all_off
 #   Sub-Command:
 #
@@ -37,6 +37,9 @@ set modulefile_tron "$modpath/$module_tron"
 
 set module_troff "trace/all_off"
 set modulefile_troff "$modpath/$module_troff"
+
+set module_set "setenv/1.0"
+set modulefile_set "$modpath/$module_set"
 
 #
 #  Error messages
@@ -100,9 +103,29 @@ lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
 testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace
 
+# set situation where a module has been loaded with its prerequirement
+setenv_loaded_module [list $module_set $module_troff $module] [list $modulefile_set $modulefile_troff $modulefile]
+setenv_path_var MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"
+set ans [list]
+lappend ans [list unset testsuite]
+lappend ans [list setpath LOADEDMODULES "$module_troff:$module:$module_tron"]
+lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile:$modulefile_tron"]
+testouterr_cmd_re "sh" "switch --no-auto $module_set $module_tron" $ans $err_trace
+
+set ans [list]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath LOADEDMODULES "$module_troff:$module_tron:$module"]
+lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile_tron:$modulefile"]
+lappend ans [list setpath MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
+testouterr_cmd_re "sh" "switch --auto $module_set $module_tron" $ans $err_trace
+
 #
 #  Cleanup
 #
+
+# restore environment
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_loaded_module
 
 unset err_pre
 unset err_trace
@@ -115,3 +138,5 @@ unset modulefile_tron
 unset module_tron
 unset modulefile_troff
 unset module_troff
+unset modulefile_set
+unset module_set
