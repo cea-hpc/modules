@@ -178,6 +178,25 @@ testouterr_cmd_re "sh" "load da" "ERR" [err_conflict da df]
 testouterr_cmd_re "sh" "load db" "ERR" "$error_msgs: [err_conflict db dg]"
 testouterr_cmd_re "sh" "load dc" "ERR" "load dc"
 
+
+# tests with one module missing from prereq suite
+setenv_loaded_module [list df dg] [list "$mp/df" "$mp/dg"]
+setenv_path_var MODULES_LMPREREQ "df&da|db|dc|dd|de" "dg&df"
+setenv_path_var MODULES_LMCONFLICT "dg&db"
+
+# attempt to load broken/conflicting module solving missing prereq requirement
+testouterr_cmd_re "sh" "load da" "ERR" [err_conflict da df]
+testouterr_cmd_re "sh" "load db" "ERR" "$error_msgs: [err_conflict db dg]"
+testouterr_cmd_re "sh" "load dc" "ERR" "load dc"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "dd:df:dg"]
+lappend ans [list setpath _LMFILES_ "$mp/dd:$mp/df:$mp/dg"]
+lappend ans [list setpath MODULES_LMCONFLICT "dg&db"]
+lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de:dg&df"]
+set tserr [list "load dd" "unload dg" "unload df" "load df" "load dg"]
+testouterr_cmd_re "sh" "load dd" $ans [join $tserr "\n"]
+
+
 #
 #  Cleanup
 #
