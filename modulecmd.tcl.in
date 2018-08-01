@@ -6203,11 +6203,15 @@ proc cmdModuleSwitch {old {new {}}} {
             cmdModuleLoad 1 $new
          }
          # load again every module (user asked property preserved) with prereq
-         # onto old after load of new. these module loads may fail if prereq
-         # are not satisfied anymore
+         # onto old after load of new. these module loads are made with auto
+         # handling mode disabled to avoid disturbances from missing prereq
+         # (like old mod) reloaded automatically, so these module loads may
+         # fail as prereq may not be satisfied anymore
+         set ::g_auto_handling 0
          foreach depmod $deplist {
             cmdModuleLoad $isuasked($depmod) $depmod
          }
+         set ::g_auto_handling 1
       }
    } else {
       # attempt load only if unload succeed
