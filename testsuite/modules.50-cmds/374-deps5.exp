@@ -1,0 +1,384 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/06/24
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        switch
+#   Modulefiles:
+#   Sub-Command:    prereq, conflict
+#
+#   Comment:	%C{
+#           Test automatic resolution of modulefile dependencies on switch
+#           command when the auto-handling mode is enabled (dependent modules
+#           handling)
+#		}C%
+#
+##############################################################################
+
+# enable auto_handling with environment variable
+setenv_var MODULES_AUTO_HANDLING 1
+
+set mp "$modpath.deps"
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# dependency chain loaded with first-operational-in-list prereq module loaded
+setenv_loaded_module [list dd df dg] [list "$mp/dd" "$mp/df" "$mp/dg"] [list dd df]
+setenv_path_var MODULES_LMPREREQ "df&da|db|dc|dd|de" "dg&df"
+setenv_path_var MODULES_LMCONFLICT "dg&db"
+
+# switch first-operational-in-list prereq module by second-operational-in-list
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "de:df:dg"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/df:$mp/dg"]
+lappend ans [list setpath MODULES_LMCONFLICT "dg&db"]
+lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de:dg&df"]
+lappend ans [list setpath MODULES_LMNOTUASKED "df"]
+set tserr [list "unload dg" "unload df" "unload dd" "load de" "load df" "load dg"]
+testouterr_cmd_re "sh" "switch dd de" $ans [join $tserr "\n"]
+
+
+# dependency chain loaded with second-operational-in-list prereq module loaded
+setenv_loaded_module [list de df dg] [list "$mp/de" "$mp/df" "$mp/dg"] [list de df]
+setenv_path_var MODULES_LMPREREQ "df&da|db|dc|dd|de" "dg&df"
+setenv_path_var MODULES_LMCONFLICT "dg&db"
+
+# switch second-operational-in-list prereq module by first-operational-in-list
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "dd:df:dg"]
+lappend ans [list setpath _LMFILES_ "$mp/dd:$mp/df:$mp/dg"]
+lappend ans [list setpath MODULES_LMCONFLICT "dg&db"]
+lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de:dg&df"]
+lappend ans [list setpath MODULES_LMNOTUASKED "df"]
+set tserr [list "unload dg" "unload df" "unload de" "load dd" "load df" "load dg"]
+testouterr_cmd_re "sh" "switch de dd" $ans [join $tserr "\n"]
+
+# switch second-operational-in-list prereq module by broken or conflicting module
+set ans [list]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath _LMFILES_ "$mp/da"]
+lappend ans [list setpath LOADEDMODULES "da"]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list setpath MODULES_LMCONFLICT "da&df"]
+lappend ans [list ERR]
+# should get better error message
+set tserr [list "unload dg" "unload df" "unload de" "load da" "$error_msgs: [err_conflict df da]" [err_prereq dg df]]
+testouterr_cmd_re "sh" "switch de da" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de"]
+lappend ans [list setpath _LMFILES_ "$mp/db:$mp/df"]
+lappend ans [list setpath LOADEDMODULES "db:df"]
+lappend ans [list setpath MODULES_LMNOTUASKED "df"]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "unload de" "load db" "load df" [err_conflict dg db]]
+testouterr_cmd_re "sh" "switch de db" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "unload de" "load dc" [err_prereqor df da db dc dd de] [err_prereq dg df]]
+testouterr_cmd_re "sh" "switch de dc" $ans [join $tserr "\n"]
+
+
+# dependency chain loaded with second-operational-in-list prereq module loaded and an individual module loaded
+setenv_loaded_module [list de df dg dh] [list "$mp/de" "$mp/df" "$mp/dg" "$mp/dh"] [list de df]
+setenv_path_var MODULES_LMPREREQ "df&da|db|dc|dd|de" "dg&df"
+setenv_path_var MODULES_LMCONFLICT "dg&db"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "dh"]
+lappend ans [list setpath _LMFILES_ "$mp/dh"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "unload de" "load ea" [err_prereq dg df]]
+testouterr_cmd_re "sh" "switch df ea" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "dh:eb"]
+lappend ans [list setpath _LMFILES_ "$mp/dh:$mp/eb"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath MODULES_LMCONFLICT "eb&dg"]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "unload de" "load eb" "$error_msgs: [err_conflict dg eb]"]
+testouterr_cmd_re "sh" "switch df eb" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "dh"]
+lappend ans [list setpath _LMFILES_ "$mp/dh"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "unload de" "load ea" [err_prereq ec ea] [err_prereq dg df]]
+testouterr_cmd_re "sh" "switch df ec" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "dh:eb:ed"]
+lappend ans [list setpath _LMFILES_ "$mp/dh:$mp/eb:$mp/ed"]
+lappend ans [list setpath MODULES_LMPREREQ "ed&eb"]
+lappend ans [list setpath MODULES_LMCONFLICT "eb&dg"]
+lappend ans [list setpath MODULES_LMNOTUASKED "eb"]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "unload de" "load eb" "load ed" "$error_msgs: [err_conflict dg eb]"]
+testouterr_cmd_re "sh" "switch df ed" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list setpath _LMFILES_ "$mp/dh:$mp/ee"]
+lappend ans [list setpath LOADEDMODULES "dh:ee"]
+lappend ans [list setpath MODULES_LMCONFLICT "ee&de"]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "unload de" "load ee" [err_prereq dg df]]
+testouterr_cmd_re "sh" "switch df ee" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath MODULES_LMNOTUASKED "ee"]
+lappend ans [list setpath MODULES_LMCONFLICT "ee&de"]
+lappend ans [list setpath MODULES_LMPREREQ "ef&ee"]
+lappend ans [list setpath _LMFILES_ "$mp/dh:$mp/ee:$mp/ef"]
+lappend ans [list setpath LOADEDMODULES "dh:ee:ef"]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "unload de" "load ee" "load ef" [err_prereq dg df]]
+testouterr_cmd_re "sh" "switch df ef" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "dh"]
+lappend ans [list setpath _LMFILES_ "$mp/dh"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "unload de" [err_conflict eg dh] [err_prereq dg df]]
+testouterr_cmd_re "sh" "switch df eg" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list setpath _LMFILES_ "$mp/dh"]
+lappend ans [list setpath LOADEDMODULES "dh"]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "unload de" "load ea"]
+testouterr_cmd_re "sh" "switch dg ea" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "dh:eb"]
+lappend ans [list setpath _LMFILES_ "$mp/dh:$mp/eb"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath MODULES_LMCONFLICT "eb&dg"]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list "unload dg" "unload df" "unload de" "load eb"]
+testouterr_cmd_re "sh" "switch dg eb" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list setpath _LMFILES_ "$mp/dh"]
+lappend ans [list setpath LOADEDMODULES "dh"]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "unload de" "load ea" [err_prereq ec ea]]
+testouterr_cmd_re "sh" "switch dg ec" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "dh:eb:ed"]
+lappend ans [list setpath _LMFILES_ "$mp/dh:$mp/eb:$mp/ed"]
+lappend ans [list setpath MODULES_LMPREREQ "ed&eb"]
+lappend ans [list setpath MODULES_LMCONFLICT "eb&dg"]
+lappend ans [list setpath MODULES_LMNOTUASKED "eb"]
+set tserr [list "unload dg" "unload df" "unload de" "load eb" "load ed"]
+testouterr_cmd_re "sh" "switch dg ed" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "dh:ee"]
+lappend ans [list setpath _LMFILES_ "$mp/dh:$mp/ee"]
+lappend ans [list setpath MODULES_LMCONFLICT "ee&de"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list "unload dg" "unload df" "unload de" "load ee"]
+testouterr_cmd_re "sh" "switch dg ee" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "dh:ee:ef"]
+lappend ans [list setpath _LMFILES_ "$mp/dh:$mp/ee:$mp/ef"]
+lappend ans [list setpath MODULES_LMCONFLICT "ee&de"]
+lappend ans [list setpath MODULES_LMPREREQ "ef&ee"]
+lappend ans [list setpath MODULES_LMNOTUASKED "ee"]
+set tserr [list "unload dg" "unload df" "unload de" "load ee" "load ef"]
+testouterr_cmd_re "sh" "switch dg ef" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list setpath _LMFILES_ "$mp/dh"]
+lappend ans [list setpath LOADEDMODULES "dh"]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "unload de" [err_conflict eg dh]]
+testouterr_cmd_re "sh" "switch dg eg" $ans [join $tserr "\n"]
+
+
+# dependency chain loaded with second-operational-in-list prereq module loaded and an individual module loaded (everything user asked)
+setenv_loaded_module [list de df dg dh] [list "$mp/de" "$mp/df" "$mp/dg" "$mp/dh"]
+setenv_path_var MODULES_LMPREREQ "df&da|db|dc|dd|de" "dg&df"
+setenv_path_var MODULES_LMCONFLICT "dg&db"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "de:dh"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/dh"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "load ea" [err_prereq dg df]]
+testouterr_cmd_re "sh" "switch df ea" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "de:dh:eb"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/dh:$mp/eb"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath MODULES_LMCONFLICT "eb&dg"]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "load eb" "$error_msgs: [err_conflict dg eb]"]
+testouterr_cmd_re "sh" "switch df eb" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "de:dh"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/dh"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "load ea" [err_prereq ec ea] [err_prereq dg df]]
+testouterr_cmd_re "sh" "switch df ec" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "de:dh:eb:ed"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/dh:$mp/eb:$mp/ed"]
+lappend ans [list setpath MODULES_LMPREREQ "ed&eb"]
+lappend ans [list setpath MODULES_LMCONFLICT "eb&dg"]
+lappend ans [list setpath MODULES_LMNOTUASKED "eb"]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" "load eb" "load ed" "$error_msgs: [err_conflict dg eb]"]
+testouterr_cmd_re "sh" "switch df ed" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "de:dh"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/dh"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" [err_conflict ee de] [err_prereq dg df]]
+testouterr_cmd_re "sh" "switch df ee" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "de:dh"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/dh"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" [err_conflict ee de] [err_prereq ef ee] [err_prereq dg df]]
+testouterr_cmd_re "sh" "switch df ef" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "de:dh"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/dh"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list "unload dg" "unload df" [err_conflict eg dh] [err_prereq dg df]]
+testouterr_cmd_re "sh" "switch df eg" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/df:$mp/dh"]
+lappend ans [list setpath LOADEDMODULES "de:df:dh"]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list "unload dg" "load ea"]
+testouterr_cmd_re "sh" "switch dg ea" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "de:df:dh:eb"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/df:$mp/dh:$mp/eb"]
+lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de"]
+lappend ans [list setpath MODULES_LMCONFLICT "eb&dg"]
+set tserr [list "unload dg" "load eb"]
+testouterr_cmd_re "sh" "switch dg eb" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/df:$mp/dh"]
+lappend ans [list setpath LOADEDMODULES "de:df:dh"]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list "unload dg" "load ea" [err_prereq ec ea]]
+testouterr_cmd_re "sh" "switch dg ec" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "de:df:dh:eb:ed"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/df:$mp/dh:$mp/eb:$mp/ed"]
+lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de:ed&eb"]
+lappend ans [list setpath MODULES_LMCONFLICT "eb&dg"]
+lappend ans [list setpath MODULES_LMNOTUASKED "eb"]
+set tserr [list "unload dg" "load eb" "load ed"]
+testouterr_cmd_re "sh" "switch dg ed" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/df:$mp/dh"]
+lappend ans [list setpath LOADEDMODULES "de:df:dh"]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list "unload dg" [err_conflict ee de]]
+testouterr_cmd_re "sh" "switch dg ee" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/df:$mp/dh"]
+lappend ans [list setpath LOADEDMODULES "de:df:dh"]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list "unload dg" [err_conflict ee de] [err_prereq ef ee]]
+testouterr_cmd_re "sh" "switch dg ef" $ans [join $tserr "\n"]
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de"]
+lappend ans [list setpath _LMFILES_ "$mp/de:$mp/df:$mp/dh"]
+lappend ans [list setpath LOADEDMODULES "de:df:dh"]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list "unload dg" [err_conflict eg dh]]
+testouterr_cmd_re "sh" "switch dg eg" $ans [join $tserr "\n"]
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_loaded_module
+
+unsetenv_var MODULES_AUTO_HANDLING
+
+unset mp
+unset ans
