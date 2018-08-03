@@ -1,0 +1,30 @@
+platform: x64
+
+environment:
+  RUNTESTFLAGS: -v
+
+  matrix:
+    - BUILD_PLATFORM: msys
+      CMD_DIR: C:\msys64\usr\bin
+    - BUILD_PLATFORM: cygwin
+      CMD_DIR: C:\cygwin64\bin
+
+install:
+  # install dependencies, make and sed are already installed in msys2 and cygwin environments
+  # also install shells and script interpreter for test purpose
+  # no availability of R on MSYS2 platform
+  - if "%BUILD_PLATFORM%" == "msys" (%CMD_DIR%\bash -lc "pacman --noconfirm --noprogressbar -S tcl dejagnu python ruby cmake zsh tcsh mksh fish")
+  - if "%BUILD_PLATFORM%" == "cygwin" (%CMD_DIR%\bash -lc "/setup-x86_64.exe -qnNdO -P tcl,dejagnu,ruby,cmake,zsh,tcsh,mksh,fish,R")
+
+build_script:
+  - path %CMD_DIR%;%PATH%
+  - bash -c "./configure --disable-compat-version && make && make install"
+
+test_script:
+  - path %CMD_DIR%;%PATH%
+  - bash -c "make test"
+  - if "%BUILD_PLATFORM%" == "msys" (bash -c "make testinstall")
+  # must add /usr/lib/lapack to PATH for /usr/lib/R/library/stats/libs/stats.dll
+  - if "%BUILD_PLATFORM%" == "cygwin" (bash -c "PATH=/usr/lib/lapack:$PATH make testinstall")
+
+# vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
