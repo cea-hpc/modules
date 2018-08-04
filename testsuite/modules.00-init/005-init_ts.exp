@@ -101,14 +101,23 @@ proc err_prereqf {mod args} {
 }
 
 # get current terminal width
-switch -- $tcl_platform(os) {
-    {SunOS} {
-        catch {regexp {columns = (\d+);} [exec stty] match term_cols} errMsg
+proc getTtyCols {} {
+    set nbcols {}
+
+    switch -- $::tcl_platform(os) {
+        {SunOS} {
+            catch {regexp {columns = (\d+);} [exec stty] match nbcols} errMsg
+        }
+        default {
+            catch {set nbcols [lindex [exec stty size] 1]} errMsg
+        }
     }
-    default {
-        catch {set term_cols [lindex [exec stty size] 1]} errMsg
-    }
+    return $nbcols
 }
+if {[set nbcols [getTtyCols]] ne {}} {
+    set term_cols $nbcols
+}
+unset nbcols
 
 # check SIP is enabled or not on OS X
 if {$tcl_platform(os) eq "Darwin"} {
