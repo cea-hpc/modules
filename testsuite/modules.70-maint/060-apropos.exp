@@ -51,26 +51,26 @@ set ts_7  "           bad2/proc: erroneous module test"
 
 # expect a break message
 # error found in interpreted module, so an error code is rendered
-testouterr_cmd_re "csh" "apropos Whatis" "ERR" "$header\n$ts_1\n$ts_1a\n$ts_2\n$ts_4"
+testouterr_cmd_re "csh" "apropos Whatis" "ERR" "$err_fullsearchnl$header\n$ts_1\n$ts_1a\n$ts_2\n$ts_4"
 # different behavior than C-version: on Tcl-version -i/--icase option is ignored
 # but search is always case insensitive
-testouterr_cmd_re "csh" "apropos WHATIS" "ERR" "$header\n$ts_1\n$ts_1a\n$ts_2\n$ts_4"
-testouterr_cmd_re "csh" "-i apropos WHATIS" "ERR" "$warn_opt'-i'\n$header\n$ts_1\n$ts_1a\n$ts_2\n$ts_4"
-testouterr_cmd_re "csh" "--icase apropos WHATIS" "ERR" "$warn_opt'--icase'\n$header\n$ts_1\n$ts_1a\n$ts_2\n$ts_4"
-testouterr_cmd "csh" "apropos sdlhasdh" "ERR" ""
+testouterr_cmd_re "csh" "apropos WHATIS" "ERR" "$err_fullsearchnl$header\n$ts_1\n$ts_1a\n$ts_2\n$ts_4"
+testouterr_cmd_re "csh" "-i apropos WHATIS" "ERR" "$warn_opt'-i'\n$err_fullsearchnl$header\n$ts_1\n$ts_1a\n$ts_2\n$ts_4"
+testouterr_cmd_re "csh" "--icase apropos WHATIS" "ERR" "$warn_opt'--icase'\n$err_fullsearchnl$header\n$ts_1\n$ts_1a\n$ts_2\n$ts_4"
+testouterr_cmd "csh" "apropos sdlhasdh" "ERR" "$err_fullsearch"
 
 # display all whatis lines as soon as one match search
-testouterr_cmd_re "csh" "apropos token" "ERR" "$header\n$ts_1\n$ts_1a"
+testouterr_cmd_re "csh" "apropos token" "ERR" "$err_fullsearchnl$header\n$ts_1\n$ts_1a"
 
 # command nickname tests
-testouterr_cmd_re "csh" "keyword token" "ERR" "$header\n$ts_1\n$ts_1a"
-testouterr_cmd_re "csh" "search token" "ERR" "$header\n$ts_1\n$ts_1a"
+testouterr_cmd_re "csh" "keyword token" "ERR" "$err_fullsearchnl$header\n$ts_1\n$ts_1a"
+testouterr_cmd_re "csh" "search token" "ERR" "$err_fullsearchnl$header\n$ts_1\n$ts_1a"
 
 #
 # test with erroneous modulefile
 # should not produce error message
 #
-testouterr_cmd_re "csh" "apropos erroneous" "ERR" "$header\n$ts_5\n$ts_6\n$ts_7"
+testouterr_cmd_re "csh" "apropos erroneous" "ERR" "$err_fullsearchnl$header\n$ts_5\n$ts_6\n$ts_7"
 
 # same test in debug mode, should produce error message
 testouterr_cmd_re "csh" "-D apropos erroneous" "ERR" "(DEBUG .*)+\n$moderr_msgs:.*$header\n$ts_5\n$ts_6\n$ts_7\n(DEBUG .*)+"
