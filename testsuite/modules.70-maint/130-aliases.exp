@@ -24,6 +24,19 @@
 #  Test variables
 #
 
+# no symlink modules if symbolic link no supported on filesystem
+if {$is_symlink_supported} {
+    set symlink_alias "
+symlink/1 -> symlink/1.2
+symlink/bar -> symlink/1.2"
+    set symlink_version "
+symlink/default -> symlink/1.2
+symlink/new -> symlink/1.2"
+} else {
+    set symlink_alias ""
+    set symlink_version ""
+}
+
 set alias_header "$modlin Aliases $modlin"
 set alias_list "averssort/1 -> verssort/1
 averssort/1.2.4 -> verssort/1.2.4
@@ -40,9 +53,7 @@ loc_rcv1/bar -> loc_rcv1/1.2
 loc_tr/al1 -> loc_tr/next
 loc_tr/al2 -> loc_tr/foo
 loc_tr/al3 -> loc_tr/al2
-loc_tr/al4 -> loc_tr/exp
-symlink/1 -> symlink/1.2
-symlink/bar -> symlink/1.2
+loc_tr/al4 -> loc_tr/exp$symlink_alias
 tr2_loc/al1 -> tr_loc/trunstable
 tr2_loc/al2 -> tr_loc/trbar
 tr2_loc/al3 -> tr_loc/al2
@@ -99,9 +110,7 @@ loc_tr/trbar -> loc_tr/3.0
 loc_tr/trexp -> loc_tr/3.0
 loc_tr/trreg -> loc_tr/3.0
 loc_tr/trunstable -> loc_tr/2.0
-loc_tr/unstable -> loc_tr/2.0
-symlink/default -> symlink/1.2
-symlink/new -> symlink/1.2
+loc_tr/unstable -> loc_tr/2.0$symlink_version
 tr2_loc/default -> tr2_loc/al3
 tr2_loc/tr2bar -> tr2_loc/al2
 tr2_loc/tr2exp -> tr2_loc/al3
@@ -142,6 +151,19 @@ setenv_path_var MODULEPATH $modpath
 # setup environment state
 set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
 
+# no symlink modules if symbolic link no supported on filesystem
+if {$is_symlink_supported} {
+    set symlink_alias "
+symlink/1 -> symlink/1.2
+symlink/bar -> symlink/1.2"
+    set symlink_version "
+symlink/default -> symlink/1.2
+symlink/new -> symlink/1.2"
+} else {
+    set symlink_alias ""
+    set symlink_version ""
+}
+
 set alias_list "averssort/1 -> verssort/1
 averssort/1.2.4 -> verssort/1.2.4
 averssort/1.10 -> verssort/1.10
@@ -158,9 +180,7 @@ loc_tr/al1 -> loc_tr/next
 loc_tr/al2 -> loc_tr/foo
 loc_tr/al3 -> loc_tr/al2
 loc_tr/al4 -> loc_tr/exp
-sym_foo -> loc_rc1/foo
-symlink/1 -> symlink/1.2
-symlink/bar -> symlink/1.2
+sym_foo -> loc_rc1/foo$symlink_alias
 tr2_loc/al1 -> tr_loc/trunstable
 tr2_loc/al2 -> tr_loc/trbar
 tr2_loc/al3 -> tr_loc/al2
@@ -219,9 +239,7 @@ loc_tr/trexp -> loc_tr/3.0
 loc_tr/trreg -> loc_tr/3.0
 loc_tr/trunstable -> loc_tr/2.0
 loc_tr/unstable -> loc_tr/2.0
-sym_foo/special -> sym_foo
-symlink/default -> symlink/1.2
-symlink/new -> symlink/1.2
+sym_foo/special -> sym_foo$symlink_version
 tr2_loc/default -> tr2_loc/al3
 tr2_loc/tr2bar -> tr2_loc/al2
 tr2_loc/tr2exp -> tr2_loc/al3
