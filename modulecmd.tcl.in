@@ -4402,11 +4402,15 @@ def module(*arguments):
                _mlre[_mlv] = os.environ[_mlrv]
             else:
                _mlre[_mlv] = ''
-   _mlstatus = True}
+   ns = {}}
          append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
             '$::argv0', 'python'\] + list(arguments),\
-            stdout=subprocess.PIPE, env=_mlre).communicate()\[0\])\n"
-         append fdef {   return _mlstatus}
+            stdout=subprocess.PIPE, env=_mlre).communicate()\[0\], ns)\n"
+         append fdef {   if '_mlstatus' in ns:
+      _mlstatus = ns['_mlstatus']
+   else:
+      _mlstatus = True
+   return _mlstatus}
       }
       {ruby} {
          set fdef {class ENVModule
