@@ -167,6 +167,8 @@ if {$new_perms eq $orig_perms} {
     set is_file_perms_editable 0
 } else {
     set is_file_perms_editable 1
+
+    # check if file is readable in a locked directory
     if {[catch {
         set fid [open $test_perms_file r]
         close $fid
@@ -176,6 +178,19 @@ if {$new_perms eq $orig_perms} {
         set is_locked_dir_file_readable 1
     }
     file attributes $test_perms_dir -permissions $orig_perms
+
+    # check if file is still readable if locked
+    set orig_perms [file attributes $test_perms_file -permissions]
+    file attributes $test_perms_file -permissions "ugo-rx"
+    if {[catch {
+        set fid [open $test_perms_file r]
+        close $fid
+    }]} {
+        set is_locked_file_readable 0
+    } else {
+        set is_locked_file_readable 1
+    }
+    file attributes $test_perms_file -permissions $orig_perms
 }
 unset test_perms_dir
 unset test_perms_file
