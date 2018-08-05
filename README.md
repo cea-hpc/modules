@@ -1,6 +1,7 @@
 Modules, provides dynamic modification of a user's environment
 ==============================================================
-[![Build Status](https://travis-ci.org/cea-hpc/modules.svg?branch=master)](https://travis-ci.org/cea-hpc/modules)
+[![Linux/OS X Build Status](https://travis-ci.org/cea-hpc/modules.svg?branch=master)](https://travis-ci.org/cea-hpc/modules)
+[![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/cea-hpc/modules?svg=true&branch=master)](https://ci.appveyor.com/project/cea-hpc/modules)
 [![Coverage Status](https://codecov.io/gh/cea-hpc/modules/branch/master/graph/badge.svg)](https://codecov.io/gh/cea-hpc/modules)
 [![Documentation Status](https://readthedocs.org/projects/modules/badge/?version=latest)](https://modules.readthedocs.io/en/latest/?badge=latest)
 
