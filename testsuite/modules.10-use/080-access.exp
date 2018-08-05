@@ -59,11 +59,13 @@ setenv_path_var MODULEPATH $modpath
 # granted on this modulepath
 #
 
-# nothing found
-testouterr_cmd "sh" "whatis" "OK" ""
-testouterr_cmd "sh" "avail" "OK" ""
-testouterr_cmd "sh" "aliases" "OK" ""
-
+# no test if files or dirs in a locked directory are still readable on this system
+if {!$is_locked_dir_file_readable} {
+    # nothing found
+    testouterr_cmd "sh" "whatis" "OK" ""
+    testouterr_cmd "sh" "avail" "OK" ""
+    testouterr_cmd "sh" "aliases" "OK" ""
+}
 
 #
 # Test access to modulefile when access not granted on modulepath
@@ -82,7 +84,7 @@ if {$is_locked_dir_file_readable} {
     lappend ans [list set testsuite yes]
 
     testouterr_cmd "sh" "load $module" $ans ""
-    testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$lmfre:\n\nmodule-whatis\t$lm\nsetenv\t\ttestsuite\tyes\n$modlin"
+    testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$lmfre:\n\nmodule-whatis\t$lm\nsetenv\t\ttestsuite yes\n$modlin"
     testouterr_cmd_re "sh" "whatis $module" "OK" "$modlin $modpathre $modlin\n\\s+$module/0.9: $module/0.9\n\\s+$lm: $lm"
 
     unset lm
@@ -93,8 +95,8 @@ if {$is_locked_dir_file_readable} {
     testouterr_cmd "sh" "load $module" "ERR" "$err_path'$module'"
     testouterr_cmd "sh" "display $module" "ERR" "$err_path'$module'"
     testouterr_cmd "sh" "whatis $module" "ERR" "$err_path'$module'"
+    testouterr_cmd "sh" "avail -t $module" "OK" ""
 }
-testouterr_cmd "sh" "avail -t $module" "OK" ""
 
 
 #
