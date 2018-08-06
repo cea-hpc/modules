@@ -1666,7 +1666,10 @@ proc module {command args} {
             }
          }
          {switch} {
-            eval cmdModuleSwitch $args
+            # pass 'user asked state' to switch procedure
+            eval cmdModuleSwitch [expr {$topcall || (\
+               [getEvalModuleStackDepth] == 1 && ([aboveCommandName] eq\
+               "source" || [aboveCommandName] eq "autoinit"))}] $args
          }
          {display} {
             eval cmdModuleDisplay $args
@@ -6178,7 +6181,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    }
 }
 
-proc cmdModuleSwitch {old {new {}}} {
+proc cmdModuleSwitch {uasked old {new {}}} {
    # if a single name is provided it matches for the module to load and in
    # this case the module to unload is searched to find the closest match
    # (loaded module that shares at least the same root name)
@@ -6189,7 +6192,7 @@ proc cmdModuleSwitch {old {new {}}} {
       set unload_match "match"
    }
 
-   reportDebug "old='$old' new='$new'"
+   reportDebug "old='$old' new='$new' (uasked=$uasked)"
 
    if {[getAutoHandling]} {
       lassign [getPathToModule $old {} $unload_match] oldfile oldname
@@ -6209,7 +6212,7 @@ proc cmdModuleSwitch {old {new {}}} {
          }
          # attempt load only if unload succeed
          if {![cmdModuleUnload $unload_match 1 0 $old]} {
-            cmdModuleLoad 1 $new
+            cmdModuleLoad $uasked $new
          }
          # load again every module (user asked property preserved) with prereq
          # onto old after load of new. these module loads are made with auto
@@ -6225,7 +6228,7 @@ proc cmdModuleSwitch {old {new {}}} {
    } else {
       # attempt load only if unload succeed
       if {![cmdModuleUnload $unload_match 1 0 $old]} {
-         cmdModuleLoad 1 $new
+         cmdModuleLoad $uasked $new
       }
    }
 }
