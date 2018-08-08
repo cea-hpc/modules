@@ -5878,6 +5878,28 @@ proc parseModuleCommandArgs {cmd args} {
    return [list $show_oneperline $show_mtime $show_filter $otherargs]
 }
 
+# unload phase of a list of modules reload process
+proc reloadModuleListUnloadPhase {lmlist} {
+   # unload one by one to ensure same behavior whatever auto_handling state
+   foreach mod [lreverse $lmlist] {
+      # save user asked state before it vanishes
+      set isuasked($mod) [isModuleUserAsked $mod]
+      # force unload even if requiring mods are not part of the unload list
+      # (violation state) as modules are loaded again just after
+      cmdModuleUnload "match" 0 1 $mod
+   }
+   return [array get isuasked]
+}
+
+# load phase of a list of modules reload process
+proc reloadModuleListLoadPhase {lmlist isuaskedlist} {
+   array set isuasked $isuaskedlist
+   foreach mod $lmlist {
+      # reload module with user asked property preserved
+      cmdModuleLoad $isuasked($mod) $mod
+   }
+}
+
 ########################################################################
 # command line commands
 #
@@ -6203,26 +6225,20 @@ proc cmdModuleSwitch {uasked old {new {}}} {
          set deplist [getDependentLoadedModuleList $oldname 0 1 1 1]
 
          # unload one by one every module having a prereq onto old
-         foreach depmod [lreverse $deplist] {
-            # save user asked state before it vanishes
-            set isuasked($depmod) [isModuleUserAsked $depmod]
-            # force unload even if requiring mods are not part of the unload
-            # list (violation state) as modules are loaded again just after
-            cmdModuleUnload "match" 0 1 $depmod
-         }
+         array set isuasked [reloadModuleListUnloadPhase $deplist]
+
          # attempt load only if unload succeed
          if {![cmdModuleUnload $unload_match 1 0 $old]} {
             cmdModuleLoad $uasked $new
          }
+
          # load again every module (user asked property preserved) with prereq
          # onto old after load of new. these module loads are made with auto
          # handling mode disabled to avoid disturbances from missing prereq
          # (like old mod) reloaded automatically, so these module loads may
          # fail as prereq may not be satisfied anymore
          set ::g_auto_handling 0
-         foreach depmod $deplist {
-            cmdModuleLoad $isuasked($depmod) $depmod
-         }
+         reloadModuleListLoadPhase $deplist [array get isuasked]
          set ::g_auto_handling 1
       }
    } else {
@@ -6731,18 +6747,9 @@ proc cmdModuleReload {args} {
          are not satistied"
    }
 
-   # unload one by one to ensure same behavior whatever auto_handling state
-   foreach mod [lreverse $lmlist] {
-      # save user asked state before it vanishes
-      set isuasked($mod) [isModuleUserAsked $mod]
-      # force unload even if requiring mods are not part of the unload list
-      # (violation state) as modules are loaded again just after
-      cmdModuleUnload "match" 0 1 $mod
-   }
-   foreach mod $lmlist {
-      # reload module with user asked property preserved
-      cmdModuleLoad $isuasked($mod) $mod
-   }
+   # run unload then load-again phases
+   array set isuasked [reloadModuleListUnloadPhase $lmlist]
+   reloadModuleListLoadPhase $lmlist [array get isuasked]
 }
 
 proc cmdModuleAliases {} {
