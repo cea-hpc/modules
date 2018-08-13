@@ -5894,10 +5894,16 @@ proc reloadModuleListUnloadPhase {lmlist} {
 # load phase of a list of modules reload process
 proc reloadModuleListLoadPhase {lmlist isuaskedlist} {
    array set isuasked $isuaskedlist
+
+   # loads are made with auto handling mode disabled to avoid disturbances
+   # from a missing prereq automatically reloaded, so these module loads may
+   # fail as prereq may not be satisfied anymore
+   set ::g_auto_handling 0
    foreach mod $lmlist {
       # reload module with user asked property preserved
       cmdModuleLoad $isuasked($mod) $mod
    }
+   set ::g_auto_handling 1
 }
 
 ########################################################################
@@ -6233,13 +6239,8 @@ proc cmdModuleSwitch {uasked old {new {}}} {
          }
 
          # load again every module (user asked property preserved) with prereq
-         # onto old after load of new. these module loads are made with auto
-         # handling mode disabled to avoid disturbances from missing prereq
-         # (like old mod) reloaded automatically, so these module loads may
-         # fail as prereq may not be satisfied anymore
-         set ::g_auto_handling 0
+         # onto old after load of new.
          reloadModuleListLoadPhase $deplist [array get isuasked]
-         set ::g_auto_handling 1
       }
    } else {
       # attempt load only if unload succeed
