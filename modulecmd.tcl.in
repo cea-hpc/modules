@@ -6574,6 +6574,26 @@ proc cmdModuleLoad {uasked args} {
             if {$proceed} {
                pushSettings
 
+               # temporary fake mod is loaded to get its dependent modules
+               append ::env(LOADEDMODULES) [getPathSeparator]$modname
+               append ::env(_LMFILES_) [getPathSeparator]$modfile
+               setLoadedModule $modname $modfile $uasked
+               set deplist [getDependentLoadedModuleList $modname 0 1]
+               set ::env(LOADEDMODULES) [string range $::env(LOADEDMODULES)\
+                  0 end-[string length [getPathSeparator]$modname]]
+               set ::env(_LMFILES_) [string range $::env(_LMFILES_) 0\
+                  end-[string length [getPathSeparator]$modfile]]
+               unsetLoadedModule $modname $modfile
+
+               # Reload all modules that have declared a prereq on mod as they
+               # may take benefit from their prereq availability if it is
+               # newly loaded. First perform unload phase of the reload, prior
+               # mod load to ensure these dependent modules are unloaded with
+               # the same loaded prereq as when they were loaded
+               if {[getAutoHandling] && [llength $deplist] > 0} {
+                  array set isuasked [reloadModuleListUnloadPhase $deplist]
+               }
+
                if {[execute-modulefile $modfile $modname $mod]} {
                   restoreSettings
                   # unregister properties accumulated during evaluation
@@ -6603,16 +6623,10 @@ proc cmdModuleLoad {uasked args} {
                      add-path "append" MODULES_LMNOTUASKED $modname
                   }
 
-                  # Reload all modules that have declared a prereq on mod as
-                  # they may take benefit from their prereq unavailability if
-                  # it is newly unloaded. Perform reload after modname unload
-                  # to ensure first this action succeed before proceeding.
-                  # Avoid modules not satisfying their constraint.
-                  if {[getAutoHandling]} {
-                     set deplist [getDependentLoadedModuleList $modname 0 1]
-                     if {[llength $deplist] > 0} {
-                        eval cmdModuleReload $deplist
-                     }
+                  # Load phase of dependent module reloading. These modules
+                  # can adapt now that mod is seen loaded.
+                  if {[getAutoHandling] && [llength $deplist] > 0} {
+                     reloadModuleListLoadPhase $deplist [array get isuasked]
                   }
                }
 
@@ -6660,13 +6674,24 @@ proc cmdModuleUnload {match auto force args} {
             if {$proceed} {
                pushSettings
 
+               set deplist [getDependentLoadedModuleList $modname 0 1 1]
+
+               # Reload all modules that have declared a prereq on mod as they
+               # may adapt now their prereq is unavailable as it has just been
+               # unloaded. First perform unload phase of the reload, prior mod
+               # unload to ensure these dependent modules are unloaded with
+               # the same loade prereq as when they were loaded. Avoid modules
+               # not satisfying their constraint.
+               if {[getAutoHandling] && $auto && [llength $deplist] > 0} {
+                  array set isuasked [reloadModuleListUnloadPhase $deplist]
+               }
+
                if {[execute-modulefile $modfile $modname $mod]} {
                   restoreSettings
                   set ret 1
                } else {
-                  # get requirements/deps before this information disappears
+                  # get requirements before this information disappears
                   set reqlist [getRequiredLoadedModuleList $modname]
-                  set deplist [getDependentLoadedModuleList $modname 0 1 1]
 
                   # get module position in loaded list to remove corresponding
                   # loaded modulefile (entry at same position in _LMFILES_)
@@ -6699,17 +6724,16 @@ proc cmdModuleUnload {match auto force args} {
                         $reqlist]] {
                         cmdModuleUnload "match" 1 0 $unmod
                      }
-                  }
 
-                  # Reload all modules that have declared a prereq on mod as
-                  # they may adapt now their prereq is unavailable as it has
-                  # just been unloaded. Perform reload after modname unload to
-                  # ensure first this action succeed before proceeding. Avoid
-                  # modules not satisfying their constraint.
-                  if {[getAutoHandling] && $auto && [llength $deplist] > 0} {
-                     eval cmdModuleReload $deplist
+                     # Load phase of dependent module reloading. These modules
+                     # can adapt now mod is not loaded anymore.
+                     if {[llength $deplist] > 0} {
+                        reloadModuleListLoadPhase $deplist [array get\
+                           isuasked]
+                     }
                   }
                }
+
                popSettings
             }
          } else {
