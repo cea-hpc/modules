@@ -3576,18 +3576,20 @@ proc areModuleConstraintsSatisfied {{mod {}}} {
 }
 
 # gets the list of all loaded modules which are dependent of passed mod
-# ordered by load position. strong argument controls whether only the direct
-# and active dependent modules should be returned only or the full dep tree.
-# sat_constraint argument controls whether only the loaded module satisfying
-# their constraint should be part or not of the resulting list.
-# being_unload argument controls whether loaded modules in conflict with mod
-# should be added to the dependent list as mod is currently being unloaded
-# and these conflicting loaded modules should be refreshed.
-proc getDependentLoadedModuleList {mod {strong 1} {sat_constraint 0}\
-   {being_unload 0} {being_reload 0}} {
+# ordered by load position. strong argument controls whether only the active
+# dependent modules should be returned or also those that are optional. direct
+# argument controls if only dependent module directly requiring passed mod
+# should be returned or its full dependent tree. sat_constraint argument
+# controls whether only the loaded module satisfying their constraint should
+# be part or not of the resulting list. being_unload argument controls whether
+# loaded modules in conflict with mod should be added to the dependent list as
+# mod is currently being unloaded and these conflicting loaded modules should
+# be refreshed.
+proc getDependentLoadedModuleList {mod {strong 1} {direct 1} {sat_constraint\
+   0} {being_unload 0} {being_reload 0}} {
    reportDebug "get loaded mod dependent of '$mod' (strong=$strong,\
-      sat_constraint=$sat_constraint, being_unload=$being_unload,\
-      being_reload=$being_reload)"
+      direct=$direct, sat_constraint=$sat_constraint,\
+      being_unload=$being_unload, being_reload=$being_reload)"
 
    set deplist {}
    if {[info exists ::g_dependHash($mod)]} {
@@ -3637,7 +3639,7 @@ proc getDependentLoadedModuleList {mod {strong 1} {sat_constraint 0}\
       if {[lsearch -exact $deplist $depmod] == -1 && (!$sat_constraint ||\
          [areModuleConstraintsSatisfied $depmod])} {
          # get dependent mod of dep mod when looking at full dep tree
-         if {!$strong && [info exists ::g_dependHash($depmod)]} {
+         if {!$direct && [info exists ::g_dependHash($depmod)]} {
             set fulllist [concat $fulllist $::g_dependHash($depmod)]
          }
          lappend deplist $depmod
@@ -6228,7 +6230,7 @@ proc cmdModuleSwitch {uasked old {new {}}} {
          # build list of loaded module satisfying their constraints and
          # declaring a prereq onto old module or taking advantage of mod
          # unload
-         set deplist [getDependentLoadedModuleList $oldname 0 1 1 1]
+         set deplist [getDependentLoadedModuleList $oldname 0 0 1 1 1]
 
          # unload one by one every module having a prereq onto old
          array set isuasked [reloadModuleListUnloadPhase $deplist]
@@ -6579,7 +6581,7 @@ proc cmdModuleLoad {uasked args} {
                append ::env(LOADEDMODULES) [getPathSeparator]$modname
                append ::env(_LMFILES_) [getPathSeparator]$modfile
                setLoadedModule $modname $modfile $uasked
-               set deplist [getDependentLoadedModuleList $modname 0 1]
+               set deplist [getDependentLoadedModuleList $modname 0 0 1]
                set ::env(LOADEDMODULES) [string range $::env(LOADEDMODULES)\
                   0 end-[string length [getPathSeparator]$modname]]
                set ::env(_LMFILES_) [string range $::env(_LMFILES_) 0\
@@ -6675,7 +6677,7 @@ proc cmdModuleUnload {match auto force args} {
             if {$proceed} {
                pushSettings
 
-               set deplist [getDependentLoadedModuleList $modname 0 1 1]
+               set deplist [getDependentLoadedModuleList $modname 0 0 1 1]
 
                # Reload all modules that have declared a prereq on mod as they
                # may adapt now their prereq is unavailable as it has just been
