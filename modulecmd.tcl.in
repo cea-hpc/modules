@@ -3663,33 +3663,31 @@ proc getDependentLoadedModuleList {mod {strong 1} {direct 1} {sat_constraint\
    return $sortlist
 }
 
-# gets the list of loaded modules which are required by passed mod
-proc getRequiredLoadedModuleList {mod} {
+# finds passed mod requirements that can be unloaded: they have been loaded
+# automatically and are not depended (mandatory or optionally) by other module
+proc getUnloadableLoadedModuleList {mod} {
+   reportDebug "get unloadable mods once '$mod' unloaded"
+
+   # gets the list of loaded modules which are required by passed mod
    set deplist {}
    foreach lmmodlist $::g_moduleDepend($mod) {
       foreach lmmod $lmmodlist {
          lappend deplist $lmmod
       }
    }
-   return $deplist
-}
 
-# finds among passed module list those that can be unloaded: they have been
-# loaded automatically and are not depended (mandatory or optionally) by other
-# module
-proc getUnloadableLoadedModuleList {modlist} {
-   reportDebug "get unloadable mods among '$modlist'"
-
-   set deplist {}
-   foreach lmmod $modlist {
-      if {![isModuleUserAsked $lmmod] && ![info exists\
-         ::g_dependHash($lmmod)]} {
-         lappend deplist $lmmod
+   # get those required module that have been automatically loaded and are
+   # only required by passed mod
+   set unmodlist {}
+   foreach lmmod $deplist {
+      if {![isModuleUserAsked $lmmod] && [llength\
+         $::g_dependHash($lmmod)] == 1} {
+         lappend unmodlist $lmmod
       }
    }
 
    # sort complete result list to match both loaded and dependency orders
-   set sortlist [sortModulePerLoadedAndDepOrder $deplist]
+   set sortlist [sortModulePerLoadedAndDepOrder $unmodlist]
    reportDebug "got '$sortlist'"
    return $sortlist
 }
@@ -6677,25 +6675,28 @@ proc cmdModuleUnload {match auto force args} {
             if {$proceed} {
                pushSettings
 
-               set deplist [getDependentLoadedModuleList $modname 0 0 1 1]
+               if {[getAutoHandling] && $auto} {
+                  # compute lists of modules to update (dependent to reload or
+                  # useless requirement to unload) due to modname unload
+                  # prior that to access requirement info before it disappears
+                  set urumodlist [getUnloadableLoadedModuleList $modname]
+                  set deplist [getDependentLoadedModuleList $modname 0 0 1 1]
 
-               # Reload all modules that have declared a prereq on mod as they
-               # may adapt now their prereq is unavailable as it has just been
-               # unloaded. First perform unload phase of the reload, prior mod
-               # unload to ensure these dependent modules are unloaded with
-               # the same loade prereq as when they were loaded. Avoid modules
-               # not satisfying their constraint.
-               if {[getAutoHandling] && $auto && [llength $deplist] > 0} {
-                  array set isuasked [reloadModuleListUnloadPhase $deplist]
+                  # Reload all modules that have declared a prereq on mod as
+                  # they may adapt now their prereq is unavailable as it has
+                  # just been unloaded. First perform unload phase of the
+                  # reload, prior mod unload to ensure these dependent modules
+                  # are unloaded with the same loade prereq as when they were
+                  # loaded. Avoid modules not satisfying their constraint.
+                  if {[llength $deplist] > 0} {
+                     array set isuasked [reloadModuleListUnloadPhase $deplist]
+                  }
                }
 
                if {[execute-modulefile $modfile $modname $mod]} {
                   restoreSettings
                   set ret 1
                } else {
-                  # get requirements before this information disappears
-                  set reqlist [getRequiredLoadedModuleList $modname]
-
                   # get module position in loaded list to remove corresponding
                   # loaded modulefile (entry at same position in _LMFILES_)
                   # need the unfiltered loaded module list to get correct index
@@ -6723,8 +6724,7 @@ proc cmdModuleUnload {match auto force args} {
                   if {[getAutoHandling] && $auto} {
                      # unload modules that have been automatically loaded and
                      # that are not required anymore now mod has been unloaded
-                     foreach unmod [lreverse [getUnloadableLoadedModuleList\
-                        $reqlist]] {
+                     foreach unmod [lreverse $urumodlist] {
                         cmdModuleUnload "match" 1 0 $unmod
                      }
 

@@ -324,6 +324,21 @@ lappend ans [list unsetpath MODULES_LMCONFLICT]
 testouterr_cmd_re "sh" "unload g5" $ans ""
 
 
+# test situation where an automatically loaded prereq (h1) of a module currently being unloaded (h2)
+# is also a prereq of a module (h4) optionally dependent of the module being unloaded, this prereq
+# (h1) should not be considered unloadable as it is still needed by the dependent module (h4)
+setenv_loaded_module [list h1 h2 h3 h4] [list "$mp/h1" "$mp/h2" "$mp/h3" "$mp/h4"] [list h1]
+setenv_path_var MODULES_LMPREREQ "h2&h1" "h4&h1&h2|h3"
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "h1:h3:h4"]
+lappend ans [list setpath _LMFILES_ "$mp/h1:$mp/h3:$mp/h4"]
+lappend ans [list setpath MODULES_LMPREREQ "h4&h1&h2|h3"]
+set tserr [list "unload h4" "unload h2" "load h4"]
+testouterr_cmd_re "sh" "unload h2" $ans [join $tserr "\n"]
+
+
 #
 #  Cleanup
 #
@@ -331,7 +346,6 @@ testouterr_cmd_re "sh" "unload g5" $ans ""
 # restore environment
 setenv_path_var MODULEPATH $modpath
 unsetenv_path_var MODULES_LMPREREQ
-unsetenv_path_var MODULES_LMCONFLICT
 unsetenv_path_var FOO
 unsetenv_loaded_module
 
