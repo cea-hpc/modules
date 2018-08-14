@@ -339,6 +339,32 @@ set tserr [list "unload h4" "unload h2" "load h4"]
 testouterr_cmd_re "sh" "unload h2" $ans [join $tserr "\n"]
 
 
+# test situation where a useless requirement module is also a requirement of another useless requirement module
+setenv_loaded_module [list h10 h11 h12] [list "$mp/h10" "$mp/h11" "$mp/h12"] [list h10 h11]
+setenv_path_var MODULES_LMPREREQ "h11&h10" "h12&h11&h10"
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list "unload h12" "unload h11" "unload h10"]
+testouterr_cmd_re "sh" "unload h12" $ans [join $tserr "\n"]
+
+
+# test situation where useless requirement modules are interconnected but everything should be unloaded when top module is unloaded
+setenv_loaded_module [list h20 h21 h22 h23 h24 h25] [list "$mp/h20" "$mp/h21" "$mp/h22" "$mp/h23" "$mp/h24" "$mp/h25"] [list h20 h21 h22 h23 h24]
+setenv_path_var MODULES_LMPREREQ "h21&h20" "h22&h21" "h23&h21" "h24&h23" "h25&h21&h22&h24"
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list "unload h25" "unload h24" "unload h23" "unload h22" "unload h21" "unload h20"]
+testouterr_cmd_re "sh" "unload h25" $ans [join $tserr "\n"]
+
+
 #
 #  Cleanup
 #

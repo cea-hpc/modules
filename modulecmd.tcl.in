@@ -3663,26 +3663,49 @@ proc getDependentLoadedModuleList {mod {strong 1} {direct 1} {sat_constraint\
    return $sortlist
 }
 
-# finds passed mod requirements that can be unloaded: they have been loaded
-# automatically and are not depended (mandatory or optionally) by other module
+# finds required modules that can be unloaded if passed mod is unloaded: they
+# have been loaded automatically and are not depended (mandatory or
+# optionally) by other module
 proc getUnloadableLoadedModuleList {mod} {
    reportDebug "get unloadable mods once '$mod' unloaded"
-
-   # gets the list of loaded modules which are required by passed mod
-   set deplist {}
-   foreach lmmodlist $::g_moduleDepend($mod) {
-      foreach lmmod $lmmodlist {
-         lappend deplist $lmmod
-      }
-   }
-
-   # get those required module that have been automatically loaded and are
-   # only required by passed mod
    set unmodlist {}
-   foreach lmmod $deplist {
-      if {![isModuleUserAsked $lmmod] && [llength\
-         $::g_dependHash($lmmod)] == 1} {
-         lappend unmodlist $lmmod
+
+   # search over all list of unloaded modules, starting with passed mod
+   set fulllist [list $mod]
+   for {set i 0} {$i < [llength $fulllist]} {incr i 1} {
+      set depmod [lindex $fulllist $i]
+      # gets the list of loaded modules which are required by depmod
+      set deplist {}
+      foreach lmmodlist $::g_moduleDepend($depmod) {
+         foreach lmmod $lmmodlist {
+            if {[lsearch -exact $unmodlist $lmmod] == -1} {
+               lappend deplist $lmmod
+            }
+         }
+      }
+
+      # get those required module that have been automatically loaded and are
+      # only required by modules currently being unloaded
+      foreach lmmod $deplist {
+         if {![isModuleUserAsked $lmmod]} {
+            set add_to_unmodlist 1
+            # look at modules dependent of lmmod, if they are all modules
+            # being unloaded, lmmod can be added to unload list
+            foreach depmod $::g_dependHash($lmmod) {
+               if {[llength $depmod] > 1} {
+                  set depmod [lindex $depmod 0]
+               }
+               if {[lsearch -exact $fulllist $depmod] == -1} {
+                  set add_to_unmodlist 0
+                  break
+               }
+            }
+            if {$add_to_unmodlist} {
+               lappend unmodlist $lmmod
+               # look afterward if lmmod has in turns unloadable requirements
+               lappend fulllist $lmmod
+            }
+         }
       }
    }
 
@@ -6725,7 +6748,7 @@ proc cmdModuleUnload {match auto force args} {
                      # unload modules that have been automatically loaded and
                      # that are not required anymore now mod has been unloaded
                      foreach unmod [lreverse $urumodlist] {
-                        cmdModuleUnload "match" 1 0 $unmod
+                        cmdModuleUnload "match" 0 0 $unmod
                      }
 
                      # Load phase of dependent module reloading. These modules
