@@ -365,6 +365,90 @@ set tserr [list "unload h25" "unload h24" "unload h23" "unload h22" "unload h21"
 testouterr_cmd_re "sh" "unload h25" $ans [join $tserr "\n"]
 
 
+# test situations where candidate useless requirement modules still hold an optional dependency link
+# useless requirement module candidate is still optional requirement of another module, no unload
+setenv_loaded_module [list h30 h31 h32 h34 h35] [list "$mp/h30" "$mp/h31" "$mp/h32" "$mp/h34" "$mp/h35"] [list h30 h31]
+setenv_path_var MODULES_LMPREREQ "h31&h30" "h32&h31" "h35&h34|h31"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "h30:h31:h34:h35"]
+lappend ans [list setpath _LMFILES_ "$mp/h30:$mp/h31:$mp/h34:$mp/h35"]
+lappend ans [list setpath MODULES_LMPREREQ "h31&h30:h35&h34|h31"]
+set tserr [list "unload h32"]
+testouterr_cmd_re "sh" "unload h32" $ans [join $tserr "\n"]
+
+# useless requirement module candidate is still optional requirement of another module, no unload
+# but main module was also optional requirement, so dependent is reloaded
+setenv_loaded_module [list h30 h31 h32 h34 h36] [list "$mp/h30" "$mp/h31" "$mp/h32" "$mp/h34" "$mp/h36"] [list h30 h31]
+setenv_path_var MODULES_LMPREREQ "h31&h30" "h32&h31" "h36&h34|h30|h32"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "h30:h34:h36"]
+lappend ans [list setpath _LMFILES_ "$mp/h30:$mp/h34:$mp/h36"]
+lappend ans [list setpath MODULES_LMPREREQ "h36&h34|h30|h32"]
+lappend ans [list setpath MODULES_LMNOTUASKED "h30"]
+set tserr [list "unload h36" "unload h32" "unload h31" "load h36"]
+testouterr_cmd_re "sh" "unload h32" $ans [join $tserr "\n"]
+
+# useless requirement module candidates are both still optional requirement of another module, no unload
+setenv_loaded_module [list h30 h31 h32 h34 h37] [list "$mp/h30" "$mp/h31" "$mp/h32" "$mp/h34" "$mp/h37"] [list h30 h31]
+setenv_path_var MODULES_LMPREREQ "h31&h30" "h32&h31" "h37&h34|h30|h31"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "h30:h31:h34:h37"]
+lappend ans [list setpath _LMFILES_ "$mp/h30:$mp/h31:$mp/h34:$mp/h37"]
+lappend ans [list setpath MODULES_LMPREREQ "h31&h30:h37&h34|h30|h31"]
+set tserr [list "unload h32"]
+testouterr_cmd_re "sh" "unload h32" $ans [join $tserr "\n"]
+
+
+# test situations where unload of useless requirement modules triggers reload of conflicting module
+# unload of a useless requirement module solves a conflict violation
+setenv_loaded_module [list h30 h31 h32 h33] [list "$mp/h30" "$mp/h31" "$mp/h32" "$mp/h33"] [list h30 h31]
+setenv_path_var MODULES_LMPREREQ "h31&h30" "h32&h31"
+setenv_path_var MODULES_LMCONFLICT "h33&h31"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "h33"]
+lappend ans [list setpath _LMFILES_ "$mp/h33"]
+lappend ans [list setpath MODULES_LMCONFLICT "h33&h31"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list "unload h33" "unload h32" "unload h31" "unload h30" "load h33"]
+testouterr_cmd_re "sh" "unload h32" $ans [join $tserr "\n"]
+
+# unload of two useless requirement modules solves a conflict violation
+setenv_loaded_module [list h30 h31 h32 h38] [list "$mp/h30" "$mp/h31" "$mp/h32" "$mp/h38"] [list h30 h31]
+setenv_path_var MODULES_LMCONFLICT "h38&h30&h31"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "h38"]
+lappend ans [list setpath _LMFILES_ "$mp/h38"]
+lappend ans [list setpath MODULES_LMCONFLICT "h38&h30&h31"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list "unload h38" "unload h32" "unload h31" "unload h30" "load h38"]
+testouterr_cmd_re "sh" "unload h32" $ans [join $tserr "\n"]
+
+# unload of a useless requirement module and main module solves a conflict violation (just one reload)
+setenv_loaded_module [list h30 h31 h32 h39] [list "$mp/h30" "$mp/h31" "$mp/h32" "$mp/h39"] [list h30 h31]
+setenv_path_var MODULES_LMCONFLICT "h39&h31&h32"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "h39"]
+lappend ans [list setpath _LMFILES_ "$mp/h39"]
+lappend ans [list setpath MODULES_LMCONFLICT "h39&h31&h32"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list "unload h39" "unload h32" "unload h31" "unload h30" "load h39"]
+testouterr_cmd_re "sh" "unload h32" $ans [join $tserr "\n"]
+
+# unload of a useless requirement module and main module reduce a conflict violation but one conflicting module is still loaded (no reload)
+setenv_loaded_module [list h30 h31 h32 h40 h34] [list "$mp/h30" "$mp/h31" "$mp/h32" "$mp/h40" "$mp/h34"] [list h30 h31]
+setenv_path_var MODULES_LMCONFLICT "h40&h31&h32&h34"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "h40:h34"]
+lappend ans [list setpath _LMFILES_ "$mp/h40:$mp/h34"]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list "unload h32" "unload h31" "unload h30"]
+testouterr_cmd_re "sh" "unload h32" $ans [join $tserr "\n"]
+
+
 #
 #  Cleanup
 #
@@ -372,6 +456,7 @@ testouterr_cmd_re "sh" "unload h25" $ans [join $tserr "\n"]
 # restore environment
 setenv_path_var MODULEPATH $modpath
 unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
 unsetenv_path_var FOO
 unsetenv_loaded_module
 
