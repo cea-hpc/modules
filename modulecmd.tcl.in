@@ -3585,14 +3585,11 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
       being_unload=$being_unload, being_reload=$being_reload)"
 
    set deplist {}
-   set fulllist {}
-   set testlist $modlist
+   set fulllist $modlist
    foreach mod $modlist {
       foreach depmod [getDirectDependentList $mod $strong] {
          # no duplicates or modules from query list
-         if {[appendNoDupToList testlist $depmod]} {
-            lappend fulllist $depmod
-         }
+         appendNoDupToList fulllist $depmod
       }
    }
 
@@ -3606,9 +3603,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
             unsetModuleConflictViolation $mod
             set conunvioarr($mod) $modconlist
             foreach conmod $modconlist {
-               if {[appendNoDupToList testlist $conmod]} {
-                  lappend fulllist $conmod
-               }
+               appendNoDupToList fulllist $conmod
             }
          }
 
@@ -3626,7 +3621,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
       }
    }
 
-   for {set i 0} {$i < [llength $fulllist]} {incr i 1} {
+   for {set i [llength $modlist]} {$i < [llength $fulllist]} {incr i 1} {
       set depmod [lindex $fulllist $i]
 
       # skip already added mod or mod violating constraints if asked
@@ -3634,9 +3629,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
          # get dependent mod of dep mod when looking at full dep tree
          if {!$direct} {
             foreach depdepmod [getDirectDependentList $depmod $strong] {
-               if {[appendNoDupToList testlist $depdepmod]} {
-                  lappend fulllist $depdepmod
-               }
+               appendNoDupToList fulllist $depdepmod
             }
          }
          lappend deplist $depmod
