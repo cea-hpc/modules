@@ -3252,9 +3252,7 @@ proc getLoadedMatchingName {name {behavior "returnlast"} {loading 0}} {
 }
 
 proc setLoadedConflict {mod args} {
-   foreach con $args {
-      appendNoDupToList ::g_loadedModuleConflict($mod) $con
-   }
+   eval appendNoDupToList ::g_loadedModuleConflict($mod) $args
 }
 
 proc unsetLoadedConflict {mod} {
@@ -3313,9 +3311,7 @@ proc doesModuleConflict {mod} {
 }
 
 proc setLoadedPrereq {mod args} {
-   foreach pre $args {
-      appendNoDupToList ::g_loadedModulePrereq($mod) $pre
-   }
+   eval appendNoDupToList ::g_loadedModulePrereq($mod) $args
 }
 
 proc unsetLoadedPrereq {mod} {
@@ -3542,9 +3538,7 @@ proc areModuleConstraintsSatisfied {{mod {}}} {
          # add requirements of depmod to the module to check list
          if {[info exists ::g_moduleDepend($depmod)]} {
             foreach lmmodlist $::g_moduleDepend($depmod) {
-               foreach lmmod $lmmodlist {
-                  appendNoDupToList fulllist $lmmod
-               }
+               eval appendNoDupToList fulllist $lmmodlist
             }
          }
       }
@@ -3587,10 +3581,8 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
    set deplist {}
    set fulllist $modlist
    foreach mod $modlist {
-      foreach depmod [getDirectDependentList $mod $strong] {
-         # no duplicates or modules from query list
-         appendNoDupToList fulllist $depmod
-      }
+      # no duplicates or modules from query list
+      eval appendNoDupToList fulllist [getDirectDependentList $mod $strong]
    }
 
    if {$being_unload} {
@@ -3602,9 +3594,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
          if {$doescon} {
             unsetModuleConflictViolation $mod
             set conunvioarr($mod) $modconlist
-            foreach conmod $modconlist {
-               appendNoDupToList fulllist $conmod
-            }
+            eval appendNoDupToList fulllist $modconlist
          }
 
          # set module strongly requiring mods in prereq violation state as
@@ -3628,9 +3618,8 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
       if {!$sat_constraint || [areModuleConstraintsSatisfied $depmod]} {
          # get dependent mod of dep mod when looking at full dep tree
          if {!$direct} {
-            foreach depdepmod [getDirectDependentList $depmod $strong] {
-               appendNoDupToList fulllist $depdepmod
-            }
+            eval appendNoDupToList fulllist [getDirectDependentList $depmod\
+               $strong]
          }
          lappend deplist $depmod
       }
@@ -4742,12 +4731,14 @@ proc notInList {lst elt} {
    return [expr {[lsearch -exact $lst $elt] == -1}]
 }
 
-proc appendNoDupToList {lstname elt} {
+proc appendNoDupToList {lstname args} {
    set ret 0
    upvar $lstname lst
-   if {![info exists lst] || [notInList $lst $elt]} {
-      lappend lst $elt
-      set ret 1
+   foreach elt $args {
+      if {![info exists lst] || [notInList $lst $elt]} {
+         lappend lst $elt
+         set ret 1
+      }
    }
    return $ret
 }
@@ -5117,9 +5108,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # alias match passed $mod
    set matching_alias [array names g_moduleAlias -glob $mod*]
    if {[info exists matching_versalias]} {
-      foreach versalias $matching_versalias {
-         appendNoDupToList matching_alias $versalias
-      }
+      eval appendNoDupToList matching_alias $matching_versalias
    }
    foreach alias $matching_alias {
       if {($dir ne "" && [string first "$dir/" $g_sourceAlias($alias)] == 0)\
@@ -5150,9 +5139,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # virtual mod match passed $mod
    set matching_virtual [array names g_moduleVirtual -glob $mod*]
    if {[info exists matching_versvirt]} {
-      foreach versvirt $matching_versvirt {
-         appendNoDupToList matching_virtual $versvirt
-      }
+      eval appendNoDupToList matching_virtual $matching_versvirt
    }
    foreach virt $matching_virtual {
       if {($dir ne "" && [string first "$dir/" $g_sourceVirtual($virt)] == 0)\
