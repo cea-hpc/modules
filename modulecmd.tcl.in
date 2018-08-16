@@ -3252,13 +3252,8 @@ proc getLoadedMatchingName {name {behavior "returnlast"} {loading 0}} {
 }
 
 proc setLoadedConflict {mod args} {
-   global g_loadedModuleConflict
-
    foreach con $args {
-      if {![info exists g_loadedModuleConflict($mod)] || [notInList\
-         $g_loadedModuleConflict($mod) $con]} {
-         lappend g_loadedModuleConflict($mod) $con
-      }
+      appendNoDupToList ::g_loadedModuleConflict($mod) $con
    }
 }
 
@@ -3295,9 +3290,8 @@ proc doesModuleConflict {mod} {
          foreach withmod $::g_loadedModuleConflict($modcon) {
             # skip own reflexive conflic and those already known
             if {[string first "$withmod/" "$mod/"] == -1 && [set lmmod\
-               [getLoadedMatchingName $withmod "returnfirst"]] ne "" &&\
-               [notInList $modconlist $lmmod]} {
-               lappend modconlist $lmmod
+               [getLoadedMatchingName $withmod "returnfirst"]] ne ""} {
+               appendNoDupToList modconlist $lmmod
                set does 1
             }
          }
@@ -3319,13 +3313,8 @@ proc doesModuleConflict {mod} {
 }
 
 proc setLoadedPrereq {mod args} {
-   global g_loadedModulePrereq
-
    foreach pre $args {
-      if {![info exists g_loadedModulePrereq($mod)] || [notInList\
-         $g_loadedModulePrereq($mod) $pre]} {
-         lappend g_loadedModulePrereq($mod) $pre
-      }
+      appendNoDupToList ::g_loadedModulePrereq($mod) $pre
    }
 }
 
@@ -3365,11 +3354,8 @@ proc setModuleConflictViolation {mod modconlist} {
    set ::g_conflictViolation($mod) $modconlist
    # also update violation state for loaded mod conflicting with mod
    foreach lmmod $modconlist {
-      # skip if already registered
-      if {![info exists ::g_conflictViolation($lmmod)] || [notInList\
-         $::g_conflictViolation($lmmod) $mod]} {
+      if {[appendNoDupToList ::g_conflictViolation($lmmod) $mod]} {
          reportDebug "set/update conflict violation state for '$lmmod'"
-         lappend ::g_conflictViolation($lmmod) $mod
       }
    }
 }
@@ -3557,10 +3543,7 @@ proc areModuleConstraintsSatisfied {{mod {}}} {
          if {[info exists ::g_moduleDepend($depmod)]} {
             foreach lmmodlist $::g_moduleDepend($depmod) {
                foreach lmmod $lmmodlist {
-                  # skip already added module
-                  if {[notInList $fulllist $lmmod]} {
-                     lappend fulllist $lmmod
-                  }
+                  appendNoDupToList fulllist $lmmod
                }
             }
          }
@@ -3607,9 +3590,8 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
    foreach mod $modlist {
       foreach depmod [getDirectDependentList $mod $strong] {
          # no duplicates or modules from query list
-         if {[notInList $testlist $depmod]} {
+         if {[appendNoDupToList testlist $depmod]} {
             lappend fulllist $depmod
-            lappend testlist $depmod
          }
       }
    }
@@ -3624,10 +3606,8 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
             unsetModuleConflictViolation $mod
             set conunvioarr($mod) $modconlist
             foreach conmod $modconlist {
-               # no duplicates or modules from query list
-               if {[notInList $testlist $conmod]} {
+               if {[appendNoDupToList testlist $conmod]} {
                   lappend fulllist $conmod
-                  lappend testlist $conmod
                }
             }
          }
@@ -3654,10 +3634,8 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
          # get dependent mod of dep mod when looking at full dep tree
          if {!$direct} {
             foreach depdepmod [getDirectDependentList $depmod $strong] {
-               # no duplicates or modules from query list
-               if {[notInList $testlist $depdepmod]} {
+               if {[appendNoDupToList testlist $depdepmod]} {
                   lappend fulllist $depdepmod
-                  lappend testlist $depdepmod
                }
             }
          }
@@ -4773,6 +4751,16 @@ proc notInList {lst elt} {
    return [expr {[lsearch -exact $lst $elt] == -1}]
 }
 
+proc appendNoDupToList {lstname elt} {
+   set ret 0
+   upvar $lstname lst
+   if {![info exists lst] || [notInList $lst $elt]} {
+      lappend lst $elt
+      set ret 1
+   }
+   return $ret
+}
+
 proc replaceFromList {list1 item {item2 {}}} {
     while {[set xi [lsearch -exact $list1 $item]] >= 0} {
        if {[string length $item2] == 0} {
@@ -5139,9 +5127,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    set matching_alias [array names g_moduleAlias -glob $mod*]
    if {[info exists matching_versalias]} {
       foreach versalias $matching_versalias {
-         if {[notInList $matching_alias $versalias]} {
-            lappend matching_alias $versalias
-         }
+         appendNoDupToList matching_alias $versalias
       }
    }
    foreach alias $matching_alias {
@@ -5174,9 +5160,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    set matching_virtual [array names g_moduleVirtual -glob $mod*]
    if {[info exists matching_versvirt]} {
       foreach versvirt $matching_versvirt {
-         if {[notInList $matching_virtual $versvirt]} {
-            lappend matching_virtual $versvirt
-         }
+         appendNoDupToList matching_virtual $versvirt
       }
    }
    foreach virt $matching_virtual {
