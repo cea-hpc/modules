@@ -39,7 +39,7 @@ if not args:
 # Return environment after a command
 def getenv(cmd = ':'):
     env = {}
-    p = Popen(cmd + ";env", shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd + ";env", shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     (stdout, stderr) = p.communicate()
     if p.returncode != 0:
         print("EROR: Could not execute initscript:")
