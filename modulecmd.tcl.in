@@ -2118,7 +2118,7 @@ proc unload-path {args} {
       set nbelem [llength $dir_list]
       # rebuild list of element without indexes set for deletion
       for {set i 0} {$i < $nbelem} {incr i} {
-         if {[lsearch -exact $del_idx_list $i] == -1} {
+         if {[notInList $del_idx_list $i]} {
             lappend newpath [lindex $dir_list $i]
          }
       }
@@ -2576,7 +2576,7 @@ proc is-used {args} {
       # transform given path in an absolute path to compare with dirs
       # registered in the MODULEPATH env var which are returned absolute.
       set abspath [getAbsolutePath $path]
-      if {[lsearch -exact $modpathlist $abspath] >= 0} {
+      if {[isInList $modpathlist $abspath]} {
          return 1
       }
    }
@@ -2786,7 +2786,7 @@ proc sortModulePerLoadedAndDepOrder {modlist} {
    set sortlist {}
    if {[llength $modlist] > 0} {
       foreach lmmod [getLoadedModuleList] {
-         if {[lsearch -exact $modlist $lmmod] != -1} {
+         if {[isInList $modlist $lmmod]} {
             lappend sortlist $lmmod
          }
       }
@@ -3054,7 +3054,7 @@ proc getModuleFromLoadedModulefile {modfile {idx "all"}} {
 }
 
 proc isModulefileLoading {modfile} {
-   return [expr {[lsearch -exact [getLoadingModuleFileList] $modfile] != -1}]
+   return [isInList [getLoadingModuleFileList] $modfile]
 }
 
 proc getModuleFromLoadingModulefile {modfile {idx "all"}} {
@@ -3255,8 +3255,8 @@ proc setLoadedConflict {mod args} {
    global g_loadedModuleConflict
 
    foreach con $args {
-      if {![info exists g_loadedModuleConflict($mod)] || [lsearch -exact\
-         $g_loadedModuleConflict($mod) $con] == -1} {
+      if {![info exists g_loadedModuleConflict($mod)] || [notInList\
+         $g_loadedModuleConflict($mod) $con]} {
          lappend g_loadedModuleConflict($mod) $con
       }
    }
@@ -3296,13 +3296,13 @@ proc doesModuleConflict {mod} {
             # skip own reflexive conflic and those already known
             if {[string first "$withmod/" "$mod/"] == -1 && [set lmmod\
                [getLoadedMatchingName $withmod "returnfirst"]] ne "" &&\
-               [lsearch -exact $modconlist $lmmod] == -1} {
+               [notInList $modconlist $lmmod]} {
                lappend modconlist $lmmod
                set does 1
             }
          }
       # other loaded module declared conflicts (skipping those already known)
-      } elseif {[lsearch -exact $modconlist $modcon] == -1} {
+      } elseif {[notInList $modconlist $modcon]} {
          foreach withmod $::g_loadedModuleConflict($modcon) {
             if {[string first "$withmod/" "$mod/"] == 0} {
                lappend modconlist $modcon
@@ -3322,8 +3322,8 @@ proc setLoadedPrereq {mod args} {
    global g_loadedModulePrereq
 
    foreach pre $args {
-      if {![info exists g_loadedModulePrereq($mod)] || [lsearch -exact\
-         $g_loadedModulePrereq($mod) $pre] == -1} {
+      if {![info exists g_loadedModulePrereq($mod)] || [notInList\
+         $g_loadedModulePrereq($mod) $pre]} {
          lappend g_loadedModulePrereq($mod) $pre
       }
    }
@@ -3366,8 +3366,8 @@ proc setModuleConflictViolation {mod modconlist} {
    # also update violation state for loaded mod conflicting with mod
    foreach lmmod $modconlist {
       # skip if already registered
-      if {![info exists ::g_conflictViolation($lmmod)] || [lsearch -exact\
-         $::g_conflictViolation($lmmod) $mod] == -1} {
+      if {![info exists ::g_conflictViolation($lmmod)] || [notInList\
+         $::g_conflictViolation($lmmod) $mod]} {
          reportDebug "set/update conflict violation state for '$lmmod'"
          lappend ::g_conflictViolation($lmmod) $mod
       }
@@ -3558,7 +3558,7 @@ proc areModuleConstraintsSatisfied {{mod {}}} {
             foreach lmmodlist $::g_moduleDepend($depmod) {
                foreach lmmod $lmmodlist {
                   # skip already added module
-                  if {[lsearch -exact $fulllist $lmmod] == -1} {
+                  if {[notInList $fulllist $lmmod]} {
                      lappend fulllist $lmmod
                   }
                }
@@ -3607,7 +3607,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
    foreach mod $modlist {
       foreach depmod [getDirectDependentList $mod $strong] {
          # no duplicates or modules from query list
-         if {[lsearch -exact $testlist $depmod] == -1} {
+         if {[notInList $testlist $depmod]} {
             lappend fulllist $depmod
             lappend testlist $depmod
          }
@@ -3625,7 +3625,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
             set conunvioarr($mod) $modconlist
             foreach conmod $modconlist {
                # no duplicates or modules from query list
-               if {[lsearch -exact $testlist $conmod] == -1} {
+               if {[notInList $testlist $conmod]} {
                   lappend fulllist $conmod
                   lappend testlist $conmod
                }
@@ -3655,7 +3655,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
          if {!$direct} {
             foreach depdepmod [getDirectDependentList $depmod $strong] {
                # no duplicates or modules from query list
-               if {[lsearch -exact $testlist $depdepmod] == -1} {
+               if {[notInList $testlist $depdepmod]} {
                   lappend fulllist $depdepmod
                   lappend testlist $depdepmod
                }
@@ -3699,7 +3699,7 @@ proc getUnloadableLoadedModuleList {mod} {
       set deplist {}
       foreach lmmodlist $::g_moduleDepend($depmod) {
          foreach lmmod $lmmodlist {
-            if {[lsearch -exact $unmodlist $lmmod] == -1} {
+            if {[notInList $unmodlist $lmmod]} {
                lappend deplist $lmmod
             }
          }
@@ -3713,7 +3713,7 @@ proc getUnloadableLoadedModuleList {mod} {
             # look at modules dependent of lmmod, if they are all modules
             # being unloaded, lmmod can be added to unload list
             foreach depmod [getDirectDependentList $lmmod] {
-               if {[lsearch -exact $fulllist $depmod] == -1} {
+               if {[notInList $fulllist $depmod]} {
                   set add_to_unmodlist 0
                   break
                }
@@ -4765,6 +4765,14 @@ if {[info commands lassign] eq ""} {
    }
 }
 
+proc isInList {lst elt} {
+   return [expr {[lsearch -exact $lst $elt] != -1}]
+}
+
+proc notInList {lst elt} {
+   return [expr {[lsearch -exact $lst $elt] == -1}]
+}
+
 proc replaceFromList {list1 item {item2 {}}} {
     while {[set xi [lsearch -exact $list1 $item]] >= 0} {
        if {[string length $item2] == 0} {
@@ -5037,7 +5045,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
 
    # if search for global or user rc alias only, no dir lookup is performed
    # and aliases from g_rcAlias are returned
-   if {[lsearch -exact $search "rc_alias_only"] >= 0} {
+   if {[isInList $search "rc_alias_only"]} {
       set add_rc_defs 1
       array set found_list {}
    } else {
@@ -5049,12 +5057,11 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
       set findmod [lindex $parentlist 0]
       # if searched mod is an empty or flat element append wildcard character
       # to match anything starting with mod
-      if {[lsearch -exact $search "wild"] >= 0 &&\
-         [llength $parentlist] <= 1} {
+      if {[isInList $search "wild"] && [llength $parentlist] <= 1} {
          append findmod "*"
       }
       # add alias/version definitions from global or user rc to result
-      if {[lsearch -exact $search "rc_defs_included"] >= 0} {
+      if {[isInList $search "rc_defs_included"]} {
          set add_rc_defs 1
       } else {
          set add_rc_defs 0
@@ -5132,7 +5139,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    set matching_alias [array names g_moduleAlias -glob $mod*]
    if {[info exists matching_versalias]} {
       foreach versalias $matching_versalias {
-         if {[lsearch -exact $matching_alias $versalias] == -1} {
+         if {[notInList $matching_alias $versalias]} {
             lappend matching_alias $versalias
          }
       }
@@ -5167,7 +5174,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    set matching_virtual [array names g_moduleVirtual -glob $mod*]
    if {[info exists matching_versvirt]} {
       foreach versvirt $matching_versvirt {
-         if {[lsearch -exact $matching_virtual $versvirt] == -1} {
+         if {[notInList $matching_virtual $versvirt]} {
             lappend matching_virtual $versvirt
          }
       }
@@ -5653,8 +5660,8 @@ proc getMovementBetweenList {from to {extfrom {}} {extto {}}} {
       set to_obj [lindex $to $i]
       set from_obj [lindex $from $i]
       # check from/to element presence in extra from/to list
-      set in_extfrom [expr {[lsearch -exact $extfrom $from_obj] != -1}]
-      set in_extto [expr {[lsearch -exact $extto $to_obj] != -1}]
+      set in_extfrom [isInList $extfrom $from_obj]
+      set in_extto [isInList $extto $to_obj]
       # are elts the sames and are both part of or missing from extra lists
       if {$to_obj ne $from_obj || $in_extfrom != $in_extto} {
          set list_equal 0
@@ -5800,7 +5807,7 @@ proc formatCollectionContent {path_list mod_list nuasked_list} {
    # then add modules
    foreach mod $mod_list {
       # mark modules not asked by user to restore the user asked state
-      if {[lsearch -exact $nuasked_list $mod] != -1} {
+      if {[isInList $nuasked_list $mod]} {
          set opt "--notuasked "
       } else {
          set opt ""
@@ -6432,8 +6439,7 @@ proc cmdModuleRestore {{coll {default}}} {
 
    # load modules one by one with user asked state preserved
    foreach mod $mod_to_load {
-      cmdModuleLoad [expr {[lsearch -exact $coll_nuasked_list $mod] == -1}]\
-         $mod
+      cmdModuleLoad [notInList $coll_nuasked_list $mod] $mod
    }
 }
 
@@ -6953,9 +6959,9 @@ proc cmdModuleUnuse {args} {
          # with previous behavior where relative paths were registered in
          # MODULEPATH given path is first checked against current path list
          set abspath [getAbsolutePath $path]
-         if {[lsearch -exact $modpathlist $path] >= 0} {
+         if {[isInList $modpathlist $path]} {
             set unusepath $path
-         } elseif {[lsearch -exact $modpathlist $abspath] >= 0} {
+         } elseif {[isInList $modpathlist $abspath]} {
             set unusepath $abspath
          } else {
             set unusepath ""
@@ -6970,7 +6976,7 @@ proc cmdModuleUnuse {args} {
 
             # refresh path list after unload
             set modpathlist [getModulePathList "returnempty" 0 0]
-            if {[lsearch -exact $modpathlist $unusepath] >= 0} {
+            if {[isInList $modpathlist $unusepath]} {
                reportWarning "Did not unuse $unusepath"
             }
          }
