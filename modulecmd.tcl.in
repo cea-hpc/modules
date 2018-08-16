@@ -6584,24 +6584,28 @@ proc cmdModuleLoad {uasked args} {
             if {$proceed} {
                pushSettings
 
-               # temporary fake mod is loaded to get its dependent modules
-               append ::env(LOADEDMODULES) [getPathSeparator]$modname
-               append ::env(_LMFILES_) [getPathSeparator]$modfile
-               setLoadedModule $modname $modfile $uasked
-               set drmodlist [getDependentLoadedModuleList $modname 0 0 1]
-               set ::env(LOADEDMODULES) [string range $::env(LOADEDMODULES)\
-                  0 end-[string length [getPathSeparator]$modname]]
-               set ::env(_LMFILES_) [string range $::env(_LMFILES_) 0\
-                  end-[string length [getPathSeparator]$modfile]]
-               unsetLoadedModule $modname $modfile
+               if {[getAutoHandling]} {
+                  # temporary fake mod is loaded to get its dependent modules
+                  append ::env(LOADEDMODULES) [getPathSeparator]$modname
+                  append ::env(_LMFILES_) [getPathSeparator]$modfile
+                  setLoadedModule $modname $modfile $uasked
+                  set drmodlist [getDependentLoadedModuleList $modname 0 0 1]
+                  set ::env(LOADEDMODULES) [string range $::env(LOADEDMODULES)\
+                     0 end-[string length [getPathSeparator]$modname]]
+                  set ::env(_LMFILES_) [string range $::env(_LMFILES_) 0\
+                     end-[string length [getPathSeparator]$modfile]]
+                  unsetLoadedModule $modname $modfile
 
-               # Reload all modules that have declared a prereq on mod as they
-               # may take benefit from their prereq availability if it is
-               # newly loaded. First perform unload phase of the reload, prior
-               # mod load to ensure these dependent modules are unloaded with
-               # the same loaded prereq as when they were loaded
-               if {[getAutoHandling] && [llength $drmodlist] > 0} {
-                  array set isuasked [reloadModuleListUnloadPhase $drmodlist]
+                  # Reload all modules that have declared a prereq on mod as
+                  # they may take benefit from their prereq availability if it
+                  # is newly loaded. First perform unload phase of the reload,
+                  # prior mod load to ensure these dependent modules are
+                  # unloaded with the same loaded prereq as when they were
+                  # loaded
+                  if {[llength $drmodlist] > 0} {
+                     array set isuasked [reloadModuleListUnloadPhase\
+                        $drmodlist]
+                  }
                }
 
                if {[execute-modulefile $modfile $modname $mod]} {
