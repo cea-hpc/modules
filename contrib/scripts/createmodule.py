@@ -105,7 +105,7 @@ for key in env1.keys():
         continue
     #Working directory change
     if key == 'PWD':
-	chdir=os.path.normpath(env2[key])
+        chdir=os.path.normpath(env2[key])
         pathnames.append(chdir)
         del env2[key]
         continue
