@@ -6588,7 +6588,7 @@ proc cmdModuleLoad {uasked args} {
                append ::env(LOADEDMODULES) [getPathSeparator]$modname
                append ::env(_LMFILES_) [getPathSeparator]$modfile
                setLoadedModule $modname $modfile $uasked
-               set deplist [getDependentLoadedModuleList $modname 0 0 1]
+               set drmodlist [getDependentLoadedModuleList $modname 0 0 1]
                set ::env(LOADEDMODULES) [string range $::env(LOADEDMODULES)\
                   0 end-[string length [getPathSeparator]$modname]]
                set ::env(_LMFILES_) [string range $::env(_LMFILES_) 0\
@@ -6600,8 +6600,8 @@ proc cmdModuleLoad {uasked args} {
                # newly loaded. First perform unload phase of the reload, prior
                # mod load to ensure these dependent modules are unloaded with
                # the same loaded prereq as when they were loaded
-               if {[getAutoHandling] && [llength $deplist] > 0} {
-                  array set isuasked [reloadModuleListUnloadPhase $deplist]
+               if {[getAutoHandling] && [llength $drmodlist] > 0} {
+                  array set isuasked [reloadModuleListUnloadPhase $drmodlist]
                }
 
                if {[execute-modulefile $modfile $modname $mod]} {
@@ -6635,8 +6635,8 @@ proc cmdModuleLoad {uasked args} {
 
                   # Load phase of dependent module reloading. These modules
                   # can adapt now that mod is seen loaded.
-                  if {[getAutoHandling] && [llength $deplist] > 0} {
-                     reloadModuleListLoadPhase $deplist [array get isuasked]
+                  if {[getAutoHandling] && [llength $drmodlist] > 0} {
+                     reloadModuleListLoadPhase $drmodlist [array get isuasked]
                   }
                }
 
@@ -6691,7 +6691,7 @@ proc cmdModuleUnload {match auto force args} {
                   set urumodlist [getUnloadableLoadedModuleList $modname]
                   # get dependent list of all unloaded modules (also useless
                   # requirements)
-                  set deplist [getDependentLoadedModuleList [concat\
+                  set drmodlist [getDependentLoadedModuleList [concat\
                      $urumodlist [list $modname]] 0 0 1 1]
 
                   # Reload all modules that have declared a prereq on mod as
@@ -6700,8 +6700,9 @@ proc cmdModuleUnload {match auto force args} {
                   # reload, prior mod unload to ensure these dependent modules
                   # are unloaded with the same loade prereq as when they were
                   # loaded. Avoid modules not satisfying their constraint.
-                  if {[llength $deplist] > 0} {
-                     array set isuasked [reloadModuleListUnloadPhase $deplist]
+                  if {[llength $drmodlist] > 0} {
+                     array set isuasked [reloadModuleListUnloadPhase\
+                        $drmodlist]
                   }
                }
 
@@ -6742,8 +6743,8 @@ proc cmdModuleUnload {match auto force args} {
 
                      # Load phase of dependent module reloading. These modules
                      # can adapt now mod is not loaded anymore.
-                     if {[llength $deplist] > 0} {
-                        reloadModuleListLoadPhase $deplist [array get\
+                     if {[llength $drmodlist] > 0} {
+                        reloadModuleListLoadPhase $drmodlist [array get\
                            isuasked]
                      }
                   }
