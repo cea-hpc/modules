@@ -3667,9 +3667,9 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
 # optionally) by other module
 proc getUnloadableLoadedModuleList {mod} {
    reportDebug "get unloadable mods once '$mod' unloaded"
-   set unmodlist {}
 
-   # search over all list of unloaded modules, starting with passed mod
+   # search over all list of unloaded modules, starting with passed mod, then
+   # adding in turns unloadable requirements
    set fulllist [list $mod]
    for {set i 0} {$i < [llength $fulllist]} {incr i 1} {
       set depmod [lindex $fulllist $i]
@@ -3677,7 +3677,7 @@ proc getUnloadableLoadedModuleList {mod} {
       set deplist {}
       foreach lmmodlist $::g_moduleDepend($depmod) {
          foreach lmmod $lmmodlist {
-            if {[notInList $unmodlist $lmmod]} {
+            if {[notInList $fulllist $lmmod]} {
                lappend deplist $lmmod
             }
          }
@@ -3697,8 +3697,6 @@ proc getUnloadableLoadedModuleList {mod} {
                }
             }
             if {$add_to_unmodlist} {
-               lappend unmodlist $lmmod
-               # look afterward if lmmod has in turns unloadable requirements
                lappend fulllist $lmmod
             }
          }
@@ -3706,7 +3704,7 @@ proc getUnloadableLoadedModuleList {mod} {
    }
 
    # sort complete result list to match both loaded and dependency orders
-   set sortlist [sortModulePerLoadedAndDepOrder $unmodlist]
+   set sortlist [sortModulePerLoadedAndDepOrder [lrange $fulllist 1 end]]
    reportDebug "got '$sortlist'"
    return $sortlist
 }
