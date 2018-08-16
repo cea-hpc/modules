@@ -42,7 +42,7 @@ def getenv(cmd = ':'):
     p = Popen(cmd + ";env", shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     (stdout, stderr) = p.communicate()
     if p.returncode != 0:
-        print("EROR: Could not execute initscript:")
+        print("ERROR: Could not execute initscript:")
         print("%s returned exit code %d" % (cmd, p.returncode))
         print(stderr)
         exit(1)
