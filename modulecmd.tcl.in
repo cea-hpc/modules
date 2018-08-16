@@ -3517,15 +3517,10 @@ proc unsetModuleDependency {mod} {
    }
 
    # unset mod's 'is depended by' relations
-   if {[info exists ::g_dependHash($mod)]} {
+   set hashdeplist [getDirectDependentList $mod]
+   if {[llength $hashdeplist] > 0} {
       reportDebug "refresh deps targetting '$mod'"
-      set hashdeplist $::g_dependHash($mod)
-      foreach hashdep $hashdeplist {
-         if {[llength $hashdep] > 1} {
-            set lmmod [lindex $hashdep 0]
-         } else {
-            set lmmod $hashdep
-         }
+      foreach lmmod $hashdeplist {
          # refresh actual dependencies of targetting mod
          unsetModuleDependency $lmmod
          setModuleDependency $lmmod
@@ -3575,6 +3570,21 @@ proc areModuleConstraintsSatisfied {{mod {}}} {
    return $ret
 }
 
+# return list of loaded modules declaring a prereq on passed mod with
+# distinction made with strong prereqs (no alternative loaded) or weak
+proc getDirectDependentList {mod {strong 0}} {
+   set deplist {}
+   if {[info exists ::g_dependHash($mod)]} {
+      foreach depmod $::g_dependHash($mod) {
+         # skip optional dependency if only looking for strong ones
+         if {[llength $depmod] == 1 || !$strong} {
+            lappend deplist [lindex $depmod 0]
+         }
+      }
+   }
+   return $deplist
+}
+
 # gets the list of all loaded modules which are dependent of passed modlist
 # ordered by load position. strong argument controls whether only the active
 # dependent modules should be returned or also those that are optional. direct
@@ -3595,22 +3605,11 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
    set fulllist {}
    set testlist $modlist
    foreach mod $modlist {
-      if {[info exists ::g_dependHash($mod)]} {
-         foreach depmod $::g_dependHash($mod) {
-            # skip optional dependency if only looking for strong ones
-            if {[llength $depmod] > 1} {
-               if {$strong} {
-                  continue
-               } else {
-                  set depmod [lindex $depmod 0]
-               }
-            }
-
-            # no duplicates or modules from query list
-            if {[lsearch -exact $testlist $depmod] == -1} {
-               lappend fulllist $depmod
-               lappend testlist $depmod
-            }
+      foreach depmod [getDirectDependentList $mod $strong] {
+         # no duplicates or modules from query list
+         if {[lsearch -exact $testlist $depmod] == -1} {
+            lappend fulllist $depmod
+            lappend testlist $depmod
          }
       }
    }
@@ -3633,15 +3632,12 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
             }
          }
 
-         # set module requiring mods in prereq violation state as mods are
-         # being unloaded, unless being reloaded afterward
-         if {!$being_reload && [info exists ::g_dependHash($mod)]} {
-            foreach depmod $::g_dependHash($mod) {
-               # skip opt prereq link, module already in violation state or
-               # those from the query list
-               if {[llength $depmod] == 1 && ![info exists\
-                  ::g_prereqViolation($depmod)] && [lsearch -exact $modlist\
-                  $depmod] == -1} {
+         # set module strongly requiring mods in prereq violation state as
+         # mods are being unloaded, unless being reloaded afterward
+         if {!$being_reload} {
+            foreach depmod [getDirectDependentList $mod 1] {
+               if {![info exists ::g_prereqViolation($depmod)] && [lsearch\
+                  -exact $modlist $depmod] == -1} {
                   set ::g_prereqViolation($depmod) 1
                   lappend previolist $depmod
                }
@@ -3656,17 +3652,8 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
       # skip already added mod or mod violating constraints if asked
       if {!$sat_constraint || [areModuleConstraintsSatisfied $depmod]} {
          # get dependent mod of dep mod when looking at full dep tree
-         if {!$direct && [info exists ::g_dependHash($depmod)]} {
-            foreach depdepmod $::g_dependHash($depmod) {
-               # skip optional dependency if only looking for strong ones
-               if {[llength $depdepmod] > 1} {
-                  if {$strong} {
-                     continue
-                  } else {
-                     set depdepmod [lindex $depdepmod 0]
-                  }
-               }
-
+         if {!$direct} {
+            foreach depdepmod [getDirectDependentList $depmod $strong] {
                # no duplicates or modules from query list
                if {[lsearch -exact $testlist $depdepmod] == -1} {
                   lappend fulllist $depdepmod
@@ -3725,10 +3712,7 @@ proc getUnloadableLoadedModuleList {mod} {
             set add_to_unmodlist 1
             # look at modules dependent of lmmod, if they are all modules
             # being unloaded, lmmod can be added to unload list
-            foreach depmod $::g_dependHash($lmmod) {
-               if {[llength $depmod] > 1} {
-                  set depmod [lindex $depmod 0]
-               }
+            foreach depmod [getDirectDependentList $lmmod] {
                if {[lsearch -exact $fulllist $depmod] == -1} {
                   set add_to_unmodlist 0
                   break
