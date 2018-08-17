@@ -38,7 +38,13 @@ testouterr_cmd "sh" "load b" "ERR" "$error_msgs: [err_conflict b a]"
 setenv_loaded_module [list c b] [list "$mp/c" "$mp/b"] [list c]
 setenv_path_var MODULES_LMCONFLICT "c&c"
 setenv_path_var MODULES_LMPREREQ "b&c"
-testouterr_cmd "sh" "unload c" "ERR" "$error_msgs: [err_prerequn c b]"
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+testouterr_cmd "sh" "unload c" $ans ""
 
 unsetenv_path_var MODULES_LMCONFLICT
 unsetenv_path_var MODULES_LMPREREQ

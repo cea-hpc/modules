@@ -165,7 +165,13 @@ setenv_path_var MODULES_LMPREREQ "df&da|db|dc|dd|de" "dg&df"
 setenv_path_var MODULES_LMCONFLICT "dg&db"
 
 # attempt to unload first-operational-in-list prereq module
-testouterr_cmd_re "sh" "unload de" "ERR" "$error_msgs: [err_prerequn de df]"
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr [list "unload dg" "unload df" "unload de"]
+testouterr_cmd_re "sh" "unload de" $ans [join $tserr "\n"]
 
 
 # tests with prereq suite fully loaded
@@ -242,7 +248,7 @@ testouterr_cmd_re "sh" "switch g1 g2" $ans ""
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "g4"]
 lappend ans [list setpath _LMFILES_ "$mp/g4"]
-testouterr_cmd_re "sh" "unload --force g1" $ans [err_prerequnf g1 g4]
+testouterr_cmd_re "sh" "unload --force --no-auto g1" $ans [err_prerequnf g1 g4]
 
 # set loaded situation where a prereq violation exists
 setenv_loaded_module [list g4] [list "$mp/g4"]

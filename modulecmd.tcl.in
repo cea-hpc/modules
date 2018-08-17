@@ -6670,43 +6670,56 @@ proc cmdModuleUnload {match auto force args} {
       if {$modfile ne ""} {
          if {[isModuleLoaded $modname]} {
             # error if unloading module violates a registered prereq
+            # and auto handling mode is disabled
             set prereq_list [getDependentLoadedModuleList $modname]
-            if {([getForce] || $force) && [llength $prereq_list] > 0} {
+            if {[llength $prereq_list] == 0 || ([getAutoHandling] && $auto)} {
+               set proceed 1
+            } elseif {[getForce] || $force} {
                # still proceed if force mode enabled
                set proceed 1
                reportWarning "$modname is required by [join $prereq_list\
                   {, }]"
-            } elseif {[llength $prereq_list] > 0} {
+            } else {
                set proceed 0
                reportError "WARNING: $modname cannot be unloaded due to a\
                   prereq.\nHINT: Might try \"module unload\
                   [join $prereq_list]\" first."
-            } else {
-               set proceed 1
             }
 
             if {$proceed} {
                pushSettings
 
                if {[getAutoHandling] && $auto} {
-                  # compute lists of modules to update (dependent to reload or
-                  # useless requirement to unload) due to modname unload
-                  # prior that to access requirement info before it disappears
-                  set urumodlist [getUnloadableLoadedModuleList $modname]
-                  # get dependent list of all unloaded modules (also useless
-                  # requirements)
-                  set drmodlist [getDependentLoadedModuleList [concat\
-                     $urumodlist [list $modname]] 0 0 1 1]
+                  # compute lists of modules to update due to modname unload
+                  # prior unload to get requirement info before it vanishes
 
-                  # Reload all modules that have declared a prereq on mod as
-                  # they may adapt now their prereq is unavailable as it has
-                  # just been unloaded. First perform unload phase of the
-                  # reload, prior mod unload to ensure these dependent modules
-                  # are unloaded with the same loade prereq as when they were
+                  # DU: Dependent to Unload (modules actively requiring
+                  # modname or a module part of this DU batch)
+                  set dumodlist [getDependentLoadedModuleList $modname 1 0]
+                  # URU: Useless Requirement to Unload (autoloaded
+                  # requirements of modname or DU modules not required by any
+                  # remaining modules)
+                  set urumodlist [getUnloadableLoadedModuleList [concat\
+                     $dumodlist [list $modname]]]
+                  # DR: Dependent to Reload (modules optionnaly dependent or
+                  # in conflict with modname, DU or URU modules + modules
+                  # dependent of a module part of this DR batch)
+                  set drmodlist [getDependentLoadedModuleList [concat\
+                     $urumodlist $dumodlist [list $modname]] 0 0 1 1]
+
+                  # Reload of all DR modules, as they may adapt from the mod
+                  # unloads happening here. First perform unload phase of the
+                  # reload, prior mod unloads to ensure these dependent mods
+                  # are unloaded with the same loaded prereq as when they were
                   # loaded. Avoid modules not satisfying their constraint.
                   if {[llength $drmodlist] > 0} {
                      array set isuasked [reloadModuleListUnloadPhase\
                         $drmodlist]
+                  }
+
+                  # DU modules unload prior main mod unload
+                  foreach unmod [lreverse $dumodlist] {
+                     cmdModuleUnload "match" 0 0 $unmod
                   }
                }
 
@@ -6739,14 +6752,12 @@ proc cmdModuleUnload {match auto force args} {
                   unsetLoadedPrereq $modname
 
                   if {[getAutoHandling] && $auto} {
-                     # unload modules that have been automatically loaded and
-                     # that are not required anymore now mod has been unloaded
+                     # URU modules unload now DU+main mods are unloaded
                      foreach unmod [lreverse $urumodlist] {
                         cmdModuleUnload "match" 0 0 $unmod
                      }
 
-                     # Load phase of dependent module reloading. These modules
-                     # can adapt now mod is not loaded anymore.
+                     # DR modules load phase now DU+URU+main mods are unloaded
                      if {[llength $drmodlist] > 0} {
                         reloadModuleListLoadPhase $drmodlist [array get\
                            isuasked]
