@@ -7,6 +7,29 @@ This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
 
+Modules 4.1.4 (2018-08-20)
+--------------------------
+
+* Doc: fix typo on ``getenv`` command description in modulefile(4) man page
+  and clarify this command should be preferred over ``::env`` variable to
+  query environment variable value in modulefile.
+* Init: fix ``bash`` and ``zsh`` completion scripts to enable Extended Regular
+  Expression (ERE) on ``sed`` command with ``-E`` argument (rather ``-r``) for
+  compatibility with OS X's and BSDs' sed. (fix issue#178)
+* Handle default version sets on an hidden modulefile (were not found
+  previously). (fix issue#177)
+* Init: fix ``ksh`` initialization script for ksh88 compatibility. (fix
+  issue#159)
+* Install: use ``sed`` command rather ``grep`` and ``cut`` in ``configure``
+  and ``Makefile`` scripts. (fix issue#175 with contribution from Michael
+  Sternberg)
+* Fix typo, tab indentation and pipe opening mode on ``createmodule.py``
+  utility script. (contribution from Jan Synacek)
+* Check ``ModulesVersion`` value set from ``.version`` rc file to ensure this
+  value refers to a version name in current directory. Report error if a
+  nested value is detected and ignore this value. (fix issue#176)
+
+
 Modules 4.1.3 (2018-06-18)
 --------------------------
 
