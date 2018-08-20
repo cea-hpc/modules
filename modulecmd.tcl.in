@@ -911,8 +911,13 @@ proc execute-modulerc {modfile modname modspec} {
    # override previously defined default version for modname
    lassign [getModuleNameVersion] mod modname modversion
    if {$modversion eq ".version" && $::ModulesVersion ne ""} {
-      setModuleResolution "$modname/default" $modname/$::ModulesVersion\
+      # ModulesVersion should target an element in current directory
+      if {[string first "/" $::ModulesVersion] == -1} {
+         setModuleResolution "$modname/default" $modname/$::ModulesVersion\
          "default"
+      } else {
+         reportError "Invalid ModulesVersion '$::ModulesVersion' defined"
+      }
    }
 
    popSpecifiedName

@@ -508,8 +508,9 @@ will be sourced. Otherwise the file *.version* is looked up in the directory.
 If the *.version* file exists, it is opened and interpreted as Tcl code and
 takes precedence over a *.modulerc* file in the same directory. If the Tcl
 variable **ModulesVersion** is set by the *.version* file, **modulecmd.tcl**
-will use the name as if it specifies a *modulefile* in the directory. This
-will become the default *modulefile* in this case.
+will use the name as if it specifies a *modulefile* in this directory. This
+will become the default *modulefile* in this case. **ModulesVersion** cannot
+refer to a *modulefile* located in a different directory.
 
 If **ModulesVersion** is a directory, the search begins anew down that
 directory. If the name does not match any files located in the current
