@@ -710,8 +710,13 @@ proc execute-modulerc {modfile} {
       # default version set via ModulesVersion variable in .version file
       # override previously defined default version for modname
       if {[file tail $modfile] eq ".version" && $::ModulesVersion ne ""} {
-         setModuleResolution "$modname/default" $modname/$::ModulesVersion\
-            "default"
+         # ModulesVersion should target an element in current directory
+         if {[string first "/" $::ModulesVersion] == -1} {
+            setModuleResolution "$modname/default" $modname/$::ModulesVersion\
+               "default"
+         } else {
+            reportError "Invalid ModulesVersion '$::ModulesVersion' defined"
+         }
       }
 
       # Keep track of rc files we already sourced so we don't run them again
