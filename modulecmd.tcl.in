@@ -3573,10 +3573,10 @@ proc getDirectDependentList {mod {strong 0}} {
 # be added to the dependent list as these modules are currently being unloaded
 # and these conflicting loaded modules should be refreshed.
 proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
-   {sat_constraint 0} {being_unload 0} {being_reload 0}} {
+   {sat_constraint 0} {being_unload 0}} {
    reportDebug "get loaded mod dependent of '$modlist' (strong=$strong,\
       direct=$direct, sat_constraint=$sat_constraint,\
-      being_unload=$being_unload, being_reload=$being_reload)"
+      being_unload=$being_unload)"
 
    set deplist {}
    set fulllist $modlist
@@ -3599,13 +3599,11 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
 
          # set module strongly requiring mods in prereq violation state as
          # mods are being unloaded, unless being reloaded afterward
-         if {!$being_reload} {
-            foreach depmod [getDirectDependentList $mod 1] {
-               if {![info exists ::g_prereqViolation($depmod)] && [lsearch\
-                  -exact $modlist $depmod] == -1} {
-                  set ::g_prereqViolation($depmod) 1
-                  lappend previolist $depmod
-               }
+         foreach depmod [getDirectDependentList $mod 1] {
+            if {![info exists ::g_prereqViolation($depmod)] && [lsearch\
+               -exact $modlist $depmod] == -1} {
+               set ::g_prereqViolation($depmod) 1
+               lappend previolist $depmod
             }
          }
       }
@@ -6235,22 +6233,16 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    if {[getAutoHandling]} {
       lassign [getPathToModule $old {} $unload_match] oldfile oldname
       if {$oldfile != ""} {
-         # build list of loaded module satisfying their constraints and
-         # declaring a prereq onto old module or taking advantage of mod
-         # unload
-         set deplist [getDependentLoadedModuleList $oldname 0 0 1 1 1]
-
-         # unload one by one every module having a prereq onto old
-         array set isuasked [reloadModuleListUnloadPhase $deplist]
-
          # attempt load only if unload succeed
          if {![cmdModuleUnload $unload_match 1 0 $old]} {
             cmdModuleLoad $uasked $new
          }
 
-         # load again every module (user asked property preserved) with prereq
-         # onto old after load of new.
-         reloadModuleListLoadPhase $deplist [array get isuasked]
+         # cmdModuleUnload handles the DU, URU mechanisms and the unload
+         # phase of the DR mechanism. List of DR modules and their user asked
+         # state is set from cmdModuleUnload procedure to be used here for the
+         # load phase of the DR mechanism.
+         reloadModuleListLoadPhase $drmodlist [array get isuasked]
       }
    } else {
       # attempt load only if unload succeed
@@ -6696,16 +6688,40 @@ proc cmdModuleUnload {match auto force args} {
                   # DU: Dependent to Unload (modules actively requiring
                   # modname or a module part of this DU batch)
                   set dumodlist [getDependentLoadedModuleList $modname 1 0]
+
+                  # if a switch action is ongoing...
+                  if {[lindex [info level -1] 0] eq "cmdModuleSwitch"} {
+                     set swprocessing 1
+                     # do not check for URU mods coming from DU modules as
+                     # these DU modules are reloaded
+                     set uruqlist $modname
+
+                     # pass the DR module list to the calling cmdModuleSwitch
+                     # procedure to let it handle the load phase of the DR
+                     # mechanism once the switched-to module will be loaded
+                     upvar drmodlist drmodlist
+                     upvar isuasked isuasked
+                  } else {
+                     set uruqlist [concat $dumodlist [list $modname]]
+                  }
+
                   # URU: Useless Requirement to Unload (autoloaded
                   # requirements of modname or DU modules not required by any
                   # remaining modules)
-                  set urumodlist [getUnloadableLoadedModuleList [concat\
-                     $dumodlist [list $modname]]]
+                  set urumodlist [getUnloadableLoadedModuleList $uruqlist]
                   # DR: Dependent to Reload (modules optionnaly dependent or
                   # in conflict with modname, DU or URU modules + modules
                   # dependent of a module part of this DR batch)
                   set drmodlist [getDependentLoadedModuleList [concat\
                      $urumodlist $dumodlist [list $modname]] 0 0 1 1]
+
+                  # DU modules are merged into the DR list as an attempt to
+                  # reload these DU mods is made once switched-to mod loaded
+                  if {[info exists swprocessing]} {
+                     set drmodlist [sortModulePerLoadedAndDepOrder [concat\
+                        $dumodlist $drmodlist]]
+                     set dumodlist {}
+                  }
 
                   # Reload of all DR modules, as they may adapt from the mod
                   # unloads happening here. First perform unload phase of the
@@ -6758,7 +6774,10 @@ proc cmdModuleUnload {match auto force args} {
                      }
 
                      # DR modules load phase now DU+URU+main mods are unloaded
-                     if {[llength $drmodlist] > 0} {
+                     # except if a switch action is ongoing as this DR load
+                     # phase will occur after the load of the new module
+                     if {[llength $drmodlist] > 0 && ![info exists\
+                        swprocessing]} {
                         reloadModuleListLoadPhase $drmodlist [array get\
                            isuasked]
                      }
