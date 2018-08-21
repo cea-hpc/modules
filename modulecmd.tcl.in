@@ -6230,25 +6230,17 @@ proc cmdModuleSwitch {uasked old {new {}}} {
 
    reportDebug "old='$old' new='$new' (uasked=$uasked)"
 
-   if {[getAutoHandling]} {
-      lassign [getPathToModule $old {} $unload_match] oldfile oldname
-      if {$oldfile != ""} {
-         # attempt load only if unload succeed
-         if {![cmdModuleUnload $unload_match 1 0 $old]} {
-            cmdModuleLoad $uasked $new
-         }
+   # attempt load only if unload succeed
+   if {![cmdModuleUnload $unload_match 1 0 $old]} {
+      cmdModuleLoad $uasked $new
+   }
 
-         # cmdModuleUnload handles the DU, URU mechanisms and the unload
-         # phase of the DR mechanism. List of DR modules and their user asked
-         # state is set from cmdModuleUnload procedure to be used here for the
-         # load phase of the DR mechanism.
-         reloadModuleListLoadPhase $drmodlist [array get isuasked]
-      }
-   } else {
-      # attempt load only if unload succeed
-      if {![cmdModuleUnload $unload_match 1 0 $old]} {
-         cmdModuleLoad $uasked $new
-      }
+   if {[getAutoHandling] && [info exists drmodlist]} {
+      # cmdModuleUnload handles the DU, URU mechanisms and the unload
+      # phase of the DR mechanism. List of DR modules and their user asked
+      # state is set from cmdModuleUnload procedure to be used here for the
+      # load phase of the DR mechanism.
+      reloadModuleListLoadPhase $drmodlist [array get isuasked]
    }
 }
 
