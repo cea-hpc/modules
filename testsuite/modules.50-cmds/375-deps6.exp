@@ -55,7 +55,7 @@ lappend ans [list setpath LOADEDMODULES "f1:f6:f7:f5:f2:f3"]
 lappend ans [list setpath _LMFILES_ "$mp/f1:$mp/f6:$mp/f7:$mp/f5:$mp/f2:$mp/f3"]
 lappend ans [list setpath MODULES_LMNOTUASKED "f1:f6:f3"]
 lappend ans [list setpath MODULES_LMPREREQ "f6&f3|f4:f7&f6:f3&f1|f2"]
-set tserr [list [err_prerequnf f3 f6] "unload f3" "load f2" "load f3"]
+set tserr [list "unload f3" "load f2" "load f3"]
 testouterr_cmd_re "sh" "load f2" $ans [join $tserr "\n"]
 
 set ans [list]
@@ -135,8 +135,7 @@ lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
 lappend ans [list unsetpath MODULES_LMCONFLICT]
 lappend ans [list unsetpath MODULES_LMPREREQ]
-# FIXME: should not warn about f4 being unloaded as f6 is unloaded right after
-set tserr [list "unload f3" "unload f2" [err_prerequnf f4 f6] "unload f4" "unload f5" "unload f7" "unload f6" "unload f1"]
+set tserr [list "unload f3" "unload f2" "unload f4" "unload f5" "unload f7" "unload f6" "unload f1"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
 
 testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
@@ -173,7 +172,7 @@ lappend ans [list setpath LOADEDMODULES "f5:f1:f6:f7:f2:f3"]
 lappend ans [list setpath _LMFILES_ "$mp/f5:$mp/f1:$mp/f6:$mp/f7:$mp/f2:$mp/f3"]
 lappend ans [list setpath MODULES_LMNOTUASKED "f1:f6:f3"]
 lappend ans [list setpath MODULES_LMPREREQ "f6&f3|f4:f7&f6:f3&f1|f2"]
-set tserr [list [err_prerequnf f3 f6] "unload f3" "load f2" "load f3"]
+set tserr [list "unload f3" "load f2" "load f3"]
 testouterr_cmd_re "sh" "load f2" $ans [join $tserr "\n"]
 
 set ans [list]
@@ -253,7 +252,7 @@ lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
 lappend ans [list unsetpath MODULES_LMCONFLICT]
 lappend ans [list unsetpath MODULES_LMPREREQ]
-set tserr [list "unload f3" "unload f2" [err_prerequnf f4 f6] "unload f4" "unload f7" "unload f6" "unload f1" "unload f5"]
+set tserr [list "unload f3" "unload f2" "unload f4" "unload f7" "unload f6" "unload f1" "unload f5"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
 
 testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
@@ -323,7 +322,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "f6:f7:f5:f1:f3"]
 lappend ans [list setpath _LMFILES_ "$mp/f6:$mp/f7:$mp/f5:$mp/f1:$mp/f3"]
 lappend ans [list setpath MODULES_LMPREREQ "f6&f3|f4:f7&f6:f3&f1|f2"]
-set tserr [list [err_prerequnf f3 f6] "unload f3" "load f1" "load f3"]
+set tserr [list "unload f3" "load f1" "load f3"]
 testouterr_cmd_re "sh" "load f1" $ans [join $tserr "\n"]
 
 set ans [list]
@@ -590,8 +589,7 @@ lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMCONFLICT]
 lappend ans [list unsetpath MODULES_LMPREREQ]
-# FIXME: should not warn about f18 and f19 being unloaded as f20 is unloaded right after
-set tserr [list [err_prerequnf f18 f20] "unload f18" [err_prerequnf f19 f20] "unload f19" "unload f21" "unload f20"]
+set tserr [list "unload f18" "unload f19" "unload f21" "unload f20"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
 
 testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
@@ -618,8 +616,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "f22/1:f22/2:f18:f19"]
 lappend ans [list setpath _LMFILES_ "$mp/f22/1:$mp/f22/2:$mp/f18:$mp/f19"]
 lappend ans [list setpath MODULES_LMCONFLICT "f22/1&f22&f21:f22/2&f22&f21:f18&f21:f19&f21"]
-# FIXME: should not warn about prereq unload as it is reloaded right after
-set tserr [list [err_prerequnf f19 f22/1 f22/2] "unload f19" [err_prerequnf f18 f22/1 f22/2] "unload f18" "unload f21" "load f18" "load f19"]
+set tserr [list "unload f19" "unload f18" "unload f21" "load f18" "load f19"]
 testouterr_cmd_re "sh" "unload f21" $ans [join $tserr "\n"]
 
 set ans [list]
@@ -627,8 +624,7 @@ lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMCONFLICT]
 lappend ans [list unsetpath MODULES_LMPREREQ]
-# FIXME: should not warn about f18 and f19 being unloaded as f22/1 is unloaded right after
-set tserr [list "unload f22/2" [err_prerequnf f19 f22/1] "unload f19" [err_prerequnf f18 f22/1] "unload f18" "unload f21" "unload f22/1"]
+set tserr [list "unload f22/2" "unload f19" "unload f18" "unload f21" "unload f22/1"]
 testouterr_cmd_re "sh" "purge" $ans [join $tserr "\n"]
 
 testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload

@@ -6661,8 +6661,13 @@ proc cmdModuleUnload {match auto force args} {
             } elseif {[getForce] || $force} {
                # still proceed if force mode enabled
                set proceed 1
-               reportWarning "$modname is required by [join $prereq_list\
-                  {, }]"
+               # in case unload is called for a DR mechanism or a purge do not
+               # warn about prereq violation enforced as it is due to the
+               # dependent module which is already in a violation state
+               if {$auto || !$force} {
+                  reportWarning "$modname is required by [join $prereq_list\
+                     {, }]"
+               }
             } else {
                set proceed 0
                reportError "WARNING: $modname cannot be unloaded due to a\
