@@ -170,6 +170,7 @@ latex_documents = [
 # replace locations by pattern to pre-generate pages in dist
 if 'pathsubs' in tags:
     prefix = '@prefix@'
+    bindir = '@bindir@'
     libexecdir = '@libexecdir@'
     etcdir = '@etcdir@'
     initdir = '@initdir@'
@@ -177,6 +178,7 @@ if 'pathsubs' in tags:
 # or set default distributions location
 else:
     prefix = '/usr/share/Modules'
+    bindir = prefix + '/bin'
     libexecdir = prefix + '/libexec'
     etcdir = prefix + '/etc'
     initdir = prefix + '/init'
@@ -186,6 +188,9 @@ rst_epilog = '\n'
 rst_epilog += '.. |prefix| replace:: %s\n' % prefix
 rst_epilog += '.. |emph prefix| replace:: *%s*\n' % prefix
 rst_epilog += '.. |bold prefix| replace:: **%s**\n' % prefix
+rst_epilog += '.. |bindir| replace:: %s\n' % bindir
+rst_epilog += '.. |emph bindir| replace:: *%s*\n' % bindir
+rst_epilog += '.. |bold bindir| replace:: **%s**\n' % bindir
 rst_epilog += '.. |libexecdir| replace:: %s\n' % libexecdir
 rst_epilog += '.. |emph libexecdir| replace:: *%s*\n' % libexecdir
 rst_epilog += '.. |bold libexecdir| replace:: **%s**\n' % libexecdir
