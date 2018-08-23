@@ -3596,16 +3596,6 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
             set conunvioarr($mod) $modconlist
             eval appendNoDupToList fulllist $modconlist
          }
-
-         # set module strongly requiring mods in prereq violation state as
-         # mods are being unloaded, unless being reloaded afterward
-         foreach depmod [getDirectDependentList $mod 1] {
-            if {![info exists ::g_prereqViolation($depmod)] && [notInList\
-               $modlist $depmod]} {
-               set ::g_prereqViolation($depmod) 1
-               lappend previolist $depmod
-            }
-         }
       }
    }
 
@@ -3627,12 +3617,6 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
    if {[array exists conunvioarr]} {
       foreach conunvio [array names conunvioarr] {
          setModuleConflictViolation $conunvio $conunvioarr($conunvio)
-      }
-   }
-   # clean prereq violation set for this search if any
-   if {[info exists previolist]} {
-      foreach previo $previolist {
-         unset ::g_prereqViolation($previo)
       }
    }
 
