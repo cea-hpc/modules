@@ -3600,8 +3600,8 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
          # set module strongly requiring mods in prereq violation state as
          # mods are being unloaded, unless being reloaded afterward
          foreach depmod [getDirectDependentList $mod 1] {
-            if {![info exists ::g_prereqViolation($depmod)] && [lsearch\
-               -exact $modlist $depmod] == -1} {
+            if {![info exists ::g_prereqViolation($depmod)] && [notInList\
+               $modlist $depmod]} {
                set ::g_prereqViolation($depmod) 1
                lappend previolist $depmod
             }
@@ -4560,8 +4560,8 @@ proc cacheCurrentModules {} {
          }
 
          foreach mod $modlist {
-            setLoadedModule $mod [lindex $modfilelist $i] [expr {[lsearch\
-               -exact $nuaskedlist $mod] == -1}]
+            setLoadedModule $mod [lindex $modfilelist $i] [notInList\
+               $nuaskedlist $mod]
             incr i
          }
 
