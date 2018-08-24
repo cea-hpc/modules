@@ -599,22 +599,24 @@ ENVIRONMENT
  loading or unloading a *modulefile* to satisfy the constraints it declares.
  When loading a *modulefile*, following actions are triggered:
 
- * Load of the *modulefiles* declared as a **prereq** of the loading
-   *modulefile*.
+ * Requirement Load: load of the *modulefiles* declared as a **prereq** of
+   the loading *modulefile*.
 
- * Reload of the modulefiles declaring a **prereq** onto loaded *modulefile*
-   or declaring a **prereq** onto a *modulefile* part of this reloading batch.
+ * Dependent Reload: reload of the modulefiles declaring a **prereq** onto
+   loaded *modulefile* or declaring a **prereq** onto a *modulefile* part of
+   this reloading batch.
 
  When unloading a *modulefile*, following actions are triggered:
 
- * Unload of the **prereq** modulefiles that have been automatically loaded
-   and are not required by any other loaded *modulefiles*.
+ * Useless Requirement Unload: unload of the **prereq** modulefiles that have
+   been automatically loaded and are not required by any other loaded
+   *modulefiles*.
 
- * Reload of the modulefiles declaring a **conflict** or an optional
-   **prereq** onto unloaded *modulefile* or declaring a **prereq** onto a
-   *modulefile* part of this reloading batch. A **prereq** *modulefile* is
-   considered optional if the **prereq** definition order is made of multiple
-   modulefiles and at least one alternative *modulefile* is loaded.
+ * Dependent Reload: reload of the modulefiles declaring a **conflict** or an
+   optional **prereq** onto unloaded *modulefile* or declaring a **prereq**
+   onto a *modulefile* part of this reloading batch. A **prereq** *modulefile*
+   is considered optional if the **prereq** definition order is made of
+   multiple modulefiles and at least one alternative *modulefile* is loaded.
 
  In case a loaded *modulefile* has some of its declared constraints
  unsatisfied (pre-required modulefile not loaded or conflicting modulefile

@@ -153,23 +153,26 @@ the constraints it declares.
 
 When loading a modulefile, following actions are triggered:
 
-* Load of the modulefiles declared as a **prereq** of the loading modulefile.
+* Requirement Load (ReqLo): load of the modulefiles declared as a **prereq**
+  of the loading modulefile.
 
-* Reload of the modulefiles declaring a **prereq** onto loaded modulefile or
-  declaring a **prereq** onto a modulefile part of this reloading batch.
+* Dependent Reload (DepRe): reload of the modulefiles declaring a **prereq**
+  onto loaded modulefile or declaring a **prereq** onto a modulefile part of
+  this reloading batch.
 
 When unloading a modulefile, following actions are triggered:
 
-* Unload of the **prereq** modulefiles that have been automatically loaded and
-  are not required by any other loaded modulefiles. ``MODULES_LMNOTUASKED``
-  environment variable helps to keep track of these automatically loaded
-  modulefiles and to distinguish them from modulefiles asked by user.
+* Useless Requirement Unload (UReqUn): unload of the **prereq** modulefiles
+  that have been automatically loaded and are not required by any other loaded
+  modulefiles. ``MODULES_LMNOTUASKED`` environment variable helps to keep
+  track of these automatically loaded modulefiles and to distinguish them from
+  modulefiles asked by user.
 
-* Reload of the modulefiles declaring a **conflict** or an optional **prereq**
-  onto unloaded modulefile or declaring a **prereq** onto a modulefile part of
-  this reloading batch. A **prereq** modulefile is considered optional if the
-  **prereq** definition order is made of multiple modulefiles and at least one
-  alternative modulefile is loaded.
+* Dependent Reload (DepRe): reload of the modulefiles declaring a **conflict**
+  or an optional **prereq** onto unloaded modulefile or declaring a **prereq**
+  onto a modulefile part of this reloading batch. A **prereq** modulefile is
+  considered optional if the **prereq** definition order is made of multiple
+  modulefiles and at least one alternative modulefile is loaded.
 
 In case a loaded modulefile has some of its declared constraints unsatisfied
 (pre-required modulefile not loaded or conflicting modulefile loaded for
