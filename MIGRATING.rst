@@ -192,6 +192,13 @@ unloaded to then load another modulefile. Dependent modulefiles to Unload are
 merged into the Dependent modulefiles to Reload that are reloaded after the
 load of the switched-to modulefile.
 
+This automated module handling mode integrates concepts (like the Dependent
+Reload mechanism) of the Flavours_ extension, which was designed for Modules
+compatibility version. As a whole, automated module handling mode can be seen
+as a generalization and as an expansion of the Flavours_ concepts.
+
+.. _Flavours: https://sourceforge.net/projects/flavours/
+
 This new feature can be controlled at build time with the
 ``--enable-auto-handling`` configure option. This default configuration can be
 superseded at run-time with the ``MODULES_AUTO_HANDLING`` environment variable
