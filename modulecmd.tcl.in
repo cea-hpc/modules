@@ -2780,6 +2780,19 @@ proc getLoadedModuleNotUserAskedList {} {
    return $nuaskedlist
 }
 
+# return list of loaded module declared altnames by parsing MODULES_LMALTNAME
+proc getLoadedModuleAltnameList {} {
+   set modaltlist [list]
+   foreach modaltser [split [get-env MODULES_LMALTNAME] [getPathSeparator]] {
+      set altlist [split $modaltser $::g_sub1_separator]
+      # ignore empty element (1 is meaningless as first elt is loaded mod)
+      if {[llength $altlist] > 1} {
+         lappend modaltlist $altlist
+      }
+   }
+   return $modaltlist
+}
+
 # sort passed module list following both loaded and dependency orders
 proc sortModulePerLoadedAndDepOrder {modlist} {
    # sort per loaded order
@@ -3332,6 +3345,32 @@ proc getLoadedPrereq {mod {serialized 0}} {
          set ret [join [concat [list $mod] $modpre] $::g_sub1_separator]
       } else {
          set ret $::g_loadedModulePrereq($mod)
+      }
+   }
+
+   return $ret
+}
+
+proc setLoadedAltname {mod args} {
+   eval appendNoDupToList ::g_loadedModuleAltname($mod) $args
+}
+
+proc unsetLoadedAltname {mod} {
+   if {[info exists ::g_loadedModuleAltname($mod)]} {
+      unset ::g_loadedModuleAltname($mod)
+   }
+}
+
+proc getLoadedAltname {mod {serialized 0}} {
+   set ret {}
+
+   if {[info exists ::g_loadedModuleAltname($mod)]} {
+      if {$serialized} {
+         # get altname info as a string that can be registered in an env var
+         set ret [join [concat [list $mod] $::g_loadedModuleAltname($mod)]\
+            $::g_sub1_separator]
+      } else {
+         set ret $::g_loadedModuleAltname($mod)
       }
    }
 
@@ -4541,6 +4580,11 @@ proc cacheCurrentModules {} {
          # which triggers dependency chain build
          foreach modpre [getLoadedModulePrereqList] {
             eval setLoadedPrereq $modpre
+         }
+
+         # cache declared alternative names of loaded modules
+         foreach modalt [getLoadedModuleAltnameList] {
+            eval setLoadedAltname $modalt
          }
 
          foreach mod $modlist {
@@ -6605,6 +6649,14 @@ proc cmdModuleLoad {uasked args} {
                      add-path "append" MODULES_LMNOTUASKED $modname
                   }
 
+                  # declare the alternative names of this module
+                  if {[info exists ::g_resolvedHash($modname)]} {
+                     eval setLoadedAltname $modname\
+                        $::g_resolvedHash($modname)
+                     add-path "append" MODULES_LMALTNAME [getLoadedAltname\
+                        $modname 1]
+                  }
+
                   # Load phase of dependent module reloading. These modules
                   # can adapt now that mod is seen loaded.
                   if {[getAutoHandling] && [llength $deprelist] > 0} {
@@ -6748,6 +6800,13 @@ proc cmdModuleUnload {match auto force args} {
                      unload-path MODULES_LMPREREQ [getLoadedPrereq $modname 1]
                   }
                   unsetLoadedPrereq $modname
+
+                  # unset alternative names declared for this module
+                  if {[llength [set modalt [getLoadedAltname $modname]]] >0} {
+                     unload-path MODULES_LMALTNAME [getLoadedAltname $modname\
+                        1]
+                  }
+                  unsetLoadedAltname $modname
 
                   if {[getAutoHandling] && $auto} {
                      # UReqUn modules unload now DepUn+main mods are unloaded
