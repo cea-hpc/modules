@@ -162,22 +162,35 @@ When loading a modulefile, following actions are triggered:
 
 When unloading a modulefile, following actions are triggered:
 
-* Useless Requirement Unload (UReqUn): unload of the **prereq** modulefiles
-  that have been automatically loaded and are not required by any other loaded
-  modulefiles. ``MODULES_LMNOTUASKED`` environment variable helps to keep
-  track of these automatically loaded modulefiles and to distinguish them from
-  modulefiles asked by user.
-
-* Dependent Reload (DepRe): reload of the modulefiles declaring a **conflict**
-  or an optional **prereq** onto unloaded modulefile or declaring a **prereq**
-  onto a modulefile part of this reloading batch. A **prereq** modulefile is
+* Dependent Unload (DepUn): unload of the modulefiles declaring a non-optional
+  **prereq** onto unloaded modulefile or declaring a non-optional **prereq**
+  onto a modulefile part of this unloading batch. A **prereq** modulefile is
   considered optional if the **prereq** definition order is made of multiple
   modulefiles and at least one alternative modulefile is loaded.
+
+* Useless Requirement Unload (UReqUn): unload of the **prereq** modulefiles
+  that have been automatically loaded for either the unloaded modulefile, an
+  unloaded dependent modulefile or a modulefile part of this useless
+  requirement unloading batch. Modulefiles are added to this unloading batch
+  only if they are not required by any other loaded modulefiles.
+  ``MODULES_LMNOTUASKED`` environment variable helps to keep track of these
+  automatically loaded modulefiles and to distinguish them from modulefiles
+  asked by user.
+
+* Dependent Reload (DepRe): reload of the modulefiles declaring a **conflict**
+  or an optional **prereq** onto either the unloaded modulefile, an unloaded
+  dependent or an unloaded useless requirement or declaring a **prereq** onto
+  a modulefile part of this reloading batch.
 
 In case a loaded modulefile has some of its declared constraints unsatisfied
 (pre-required modulefile not loaded or conflicting modulefile loaded for
 instance), this loaded modulefile is excluded from the automatic reload
 actions described above.
+
+For the specific case of the **switch** sub-command, where a modulefile is
+unloaded to then load another modulefile. Dependent modulefiles to Unload are
+merged into the Dependent modulefiles to Reload that are reloaded after the
+load of the switched-to modulefile.
 
 This new feature can be controlled at build time with the
 ``--enable-auto-handling`` configure option. This default configuration can be
