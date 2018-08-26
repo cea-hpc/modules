@@ -195,11 +195,17 @@ setenv_loaded_module {} {}
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$mod21"]
 lappend ans [list setpath _LMFILES_ "$mod21p"]
+lappend ans [list setpath MODULES_LMALTNAME "$mod21&loc_dv2/default&loc_dv2"]
 
 # module to unload exists but is not loaded, just load
 testouterr_cmd_re "sh" "swap $mod11 $mod21" $ans ""
 
 setenv_loaded_module [list $mod11 $mod21] [list $mod11p $mod21p]
+setenv_path_var MODULES_LMALTNAME "$mod21&loc_dv2/default&loc_dv2"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$mod21"]
+lappend ans [list setpath _LMFILES_ "$mod21p"]
 
 # module to load is already loaded, just unload
 testouterr_cmd_re "sh" "swap $mod11 $mod21" $ans ""
@@ -230,6 +236,7 @@ setenv_loaded_module [list $mod21] [list $mod21p]
 # Test to swap-off module with issue, nothing unloads
 #
 
+unsetenv_path_var MODULES_LMALTNAME
 setenv_loaded_module [list $mod100] [list $mod100p]
 testouterr_cmd "sh" "swap $mod100 $mod11" "ERR" "$mod100errun"
 

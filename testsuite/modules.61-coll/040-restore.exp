@@ -71,16 +71,18 @@ testouterr_cmd "ALL" "restore $badcontfp" "ERR" "$badcontfperrmsg"
 # setup an empty environment
 unsetenv_path_var MODULEPATH
 
-lappend ans [list set _LMFILES__modshare "(.*)"]
-lappend ans [list set LOADEDMODULES_modshare "(.*)"]
-lappend ans "(.*)"
-lappend ans [list set MODULEPATH_modshare "(.*)"]
-lappend ans "(.*)"
-lappend ans [list set _LMFILES_ $cdlmf]
 lappend ans [list set LOADEDMODULES $cdlm]
+lappend ans [list set _LMFILES_ $cdlmf]
+lappend ans "(.*)"
+lappend ans [list set MODULES_LMALTNAME $cdlmalt]
+lappend ans "(.*)"
+lappend ans [list set MODULES_LMALTNAME_modshare "(.*)"]
 lappend ans "(.*)"
 lappend ans "(.*)"
 lappend ans [list set MODULEPATH $cdmodpath]
+lappend ans [list set LOADEDMODULES_modshare "(.*)"]
+lappend ans [list set _LMFILES__modshare "(.*)"]
+lappend ans [list set MODULEPATH_modshare "(.*)"]
 
 testouterr_cmd_re "ALL" "restore" $ans "$cderrmsg"
 
@@ -92,8 +94,10 @@ testouterr_cmd_re "ALL" "restore" $ans "$cderrmsg"
 
 eval setenv_path_var MODULEPATH [split $cdmodpath ":"]
 setenv_loaded_module [split $cdlm_part ":"] [split $cdlmf_part ":"]
+eval setenv_path_var MODULES_LMALTNAME [split $cdlmalt_part ":"]
 
 set ans [list]
+lappend ans [list setpath MODULES_LMALTNAME $cdlmalt]
 lappend ans [list setpath LOADEDMODULES $cdlm]
 lappend ans [list setpath _LMFILES_ $cdlmf]
 
@@ -106,8 +110,10 @@ testouterr_cmd_re "sh" "restore" $ans ""
 
 # fake environment state: default collection restored
 setenv_loaded_module [split $cdlm ":"] [split $cdlmf ":"]
+eval setenv_path_var MODULES_LMALTNAME [split $cdlmalt ":"]
 
 set ans [list]
+lappend ans [list setpath MODULES_LMALTNAME $c1lmalt]
 lappend ans [list setpath MODULEPATH $c1modpath]
 lappend ans [list setpath LOADEDMODULES $c1lm]
 lappend ans [list setpath _LMFILES_ $c1lmf]
@@ -122,6 +128,7 @@ testouterr_cmd_re "ALL" "restore $coll1" $ans "$c1errmsg"
 # fake environment state: $coll1 collection restored
 eval setenv_path_var MODULEPATH [split $c1modpath ":"]
 setenv_loaded_module [split $c1lm ":"] [split $c1lmf ":"]
+eval setenv_path_var MODULES_LMALTNAME [split $c1lmalt ":"]
 
 testouterr_cmd "ALL" "restore $coll1" "OK" ""
 
@@ -146,6 +153,7 @@ testouterr_cmd_re "ALL" "restore $coll2" $ans "$c2errmsg"
 # fake environment state: $coll2 collection restored
 eval setenv_path_var MODULEPATH [split $c2modpath ":"]
 setenv_loaded_module [split $c2lm ":"] [split $c2lmf ":"]
+eval setenv_path_var MODULES_LMALTNAME [split $c2lmalt ":"]
 
 set ans [list]
 lappend ans [list setpath MODULEPATH $c3modpath]
@@ -212,12 +220,14 @@ testouterr_cmd_re "ALL" "restore $coll5fp" $ans "$c4errmsg"
 # restore environment
 unsetenv_path_var MODULEPATH
 unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
 
 set ans [list]
 lappend ans [list set testsuite "yes"]
 lappend ans [list setpath LOADEDMODULES $c6lm]
 lappend ans [list setpath _LMFILES_ $c6lmf]
 lappend ans [list setpath MODULEPATH $c6modpath]
+lappend ans [list setpath MODULES_LMALTNAME $c6lmalt]
 
 testouterr_cmd_re "sh" "restore $coll6" $ans ""
 
@@ -236,6 +246,7 @@ lappend ans [list setpath LOADEDMODULES "::$c6lm"]
 lappend ans [list setpath _LMFILES_ "::$c6lmf"]
 # empty dir elements are ignored but stick to the variable, they should be removed
 lappend ans [list setpath MODULEPATH "::$c6modpath"]
+lappend ans [list setpath MODULES_LMALTNAME $c6lmalt]
 
 testouterr_cmd_re "sh" "restore $coll6" $ans ""
 

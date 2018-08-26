@@ -29,10 +29,13 @@ set modulefile_3 "$modpath/$module_3"
 set module_4 "plain/dir2/2.0"
 set modulefile_4 "$modpath/$module_4"
 set module_5 "modvirt/dir1/1.0"
+set module_5_alt $ovirt1alt
 set modulefile_5 "$modpath/modvirt/.common"
 set module_6 "modvirt/dir2/2.0"
+set module_6_alt $ovirt2alt
 set modulefile_6 "$modulefile_5"
 set module_7 "modvirt/3.0"
+set module_7_alt $ovirt3alt
 set modulefile_7 "$modulefile_5"
 set module_8 "modvirt/dir0/sub1/4.0"
 set modulefile_8 "$modulefile_5"
@@ -111,11 +114,13 @@ testouterr_cmd_re "sh" "swap plain" $ans ""
 # set up the environment
 set env(TEST) $module_5
 setenv_loaded_module [list $module_6 $module_5] [list $modulefile_6 $modulefile_5]
+setenv_path_var MODULES_LMALTNAME $module_6_alt $module_5_alt
 
 set ans [list]
 lappend ans [list set TEST $module_6]
 lappend ans [list setpath LOADEDMODULES "$module_5:$module_6"]
 lappend ans [list setpath _LMFILES_ "$modulefile_5:$modulefile_6"]
+lappend ans [list setpath MODULES_LMALTNAME "$module_5_alt:$module_6_alt"]
 
 testouterr_cmd_re "sh" "swap $module_6" $ans ""
 
@@ -123,6 +128,7 @@ set ans [list]
 lappend ans [list set TEST $module_7]
 lappend ans [list setpath LOADEDMODULES "$module_6:$module_7"]
 lappend ans [list setpath _LMFILES_ "$modulefile_6:$modulefile_7"]
+lappend ans [list setpath MODULES_LMALTNAME "$module_6_alt:$module_7_alt"]
 testouterr_cmd_re "sh" "swap modvirt" $ans ""
 testouterr_cmd_re "sh" "swap $module_7" $ans ""
 
@@ -130,35 +136,41 @@ set ans [list]
 lappend ans [list unset TEST]
 lappend ans [list setpath LOADEDMODULES "$module_6"]
 lappend ans [list setpath _LMFILES_ "$modulefile_6"]
+lappend ans [list setpath MODULES_LMALTNAME $module_6_alt]
 testouterr_cmd_re "sh" "swap modvirt/dir1" $ans ""
 
 set ans [list]
 lappend ans [list set TEST $module_7]
 lappend ans [list setpath LOADEDMODULES "$module_5:$module_7"]
 lappend ans [list setpath _LMFILES_ "$modulefile_5:$modulefile_7"]
+lappend ans [list setpath MODULES_LMALTNAME "$module_5_alt:$module_7_alt"]
 testouterr_cmd_re "sh" "swap modvirt/dir2" $ans ""
 
 
 # set up the environment
 set env(TEST) $module_6
 setenv_loaded_module [list $module_5 $module_6] [list $modulefile_5 $modulefile_6]
+setenv_path_var MODULES_LMALTNAME $module_5_alt $module_6_alt
 
 set ans [list]
 lappend ans [list unset TEST]
 lappend ans [list setpath LOADEDMODULES "$module_6"]
 lappend ans [list setpath _LMFILES_ "$modulefile_6"]
+lappend ans [list setpath MODULES_LMALTNAME $module_6_alt]
 testouterr_cmd_re "sh" "swap modvirt/dir1" $ans ""
 
 set ans [list]
 lappend ans [list set TEST $module_7]
 lappend ans [list setpath LOADEDMODULES "$module_5:$module_7"]
 lappend ans [list setpath _LMFILES_ "$modulefile_5:$modulefile_7"]
+lappend ans [list setpath MODULES_LMALTNAME "$module_5_alt:$module_7_alt"]
 testouterr_cmd_re "sh" "swap modvirt/dir2" $ans ""
 
 
 # set up the environment
 set env(TEST) $module_8
 setenv_loaded_module $module_8 $modulefile_8
+unsetenv_path_var MODULES_LMALTNAME
 
 set ans [list]
 lappend ans [list set TEST $module_9]
@@ -191,10 +203,13 @@ unset modulefile_3
 unset module_4
 unset modulefile_4
 unset module_5
+unset module_5_alt
 unset modulefile_5
 unset module_6
+unset module_6_alt
 unset modulefile_6
 unset module_7
+unset module_7_alt
 unset modulefile_7
 unset module_8
 unset modulefile_8

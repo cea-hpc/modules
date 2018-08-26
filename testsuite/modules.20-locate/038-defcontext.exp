@@ -40,6 +40,7 @@ lappend ans_paths_1 [list text [list $modulefile_1_loa $modulefile_1_def]]
 set modname_2 "loc_dv2"
 set module_2_loa "loc_dv2/2.0"
 set module_2_def "loc_dv2/1.0"
+set modalt_2_def loc_dv2/default&loc_dv2
 set modulefile_2_loa "$modpath/$module_2_loa"
 set modulefile_2_def "$modpath/$module_2_def"
 set modulefilere_2_def "$modpathre/$module_2_def"
@@ -70,6 +71,11 @@ for {set i 1} {$i <= 2} {incr i} {
     set module_loa [set "module_${i}_loa"]
     set modulefile_loa [set "modulefile_${i}_loa"]
     set module_def [set "module_${i}_def"]
+    if {[info exists "modalt_${i}_def"]} {
+        set modalt_def $module_def&[set "modalt_${i}_def"]
+    } else {
+        set modalt_def ""
+    }
     set modulefile_def [set "modulefile_${i}_def"]
     set modulefilere_def [set "modulefilere_${i}_def"]
     set modavail [set "modavail_${i}"]
@@ -78,10 +84,14 @@ for {set i 1} {$i <= 2} {incr i} {
 
     # setup environment with module to load
     setenv_loaded_module $module_loa $modulefile_loa
+    unsetenv_path_var MODULES_LMALTNAME
 
     set ans [list]
     lappend ans [list setpath LOADEDMODULES "$module_loa:$module_def"]
     lappend ans [list setpath _LMFILES_ "$modulefile_loa:$modulefile_def"]
+    if {$modalt_def ne ""} {
+        lappend ans [list setpath MODULES_LMALTNAME $modalt_def]
+    }
     testouterr_cmd_re "sh" "load $modname" $ans ""
 
     set ans [list]
@@ -92,6 +102,9 @@ for {set i 1} {$i <= 2} {incr i} {
     set ans [list]
     lappend ans [list setpath LOADEDMODULES "$module_def"]
     lappend ans [list setpath _LMFILES_ "$modulefile_def"]
+    if {$modalt_def ne ""} {
+        lappend ans [list setpath MODULES_LMALTNAME $modalt_def]
+    }
     testouterr_cmd_re "sh" "switch $modname $modname" $ans ""
 
     testouterr_cmd_re "sh" "display $modname" "OK" "$disp_pre$modulefilere_def:\n\n$disp_wi$module_def$disp_post"
@@ -114,6 +127,7 @@ for {set i 1} {$i <= 2} {incr i} {
 
 # Clean up the environment
 unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
 
 unset help_pre
 unset help_mid
@@ -130,6 +144,9 @@ for {set i 1} {$i <= 2} {incr i} {
     unset "module_${i}_loa"
     unset "modulefile_${i}_loa"
     unset "module_${i}_def"
+    if {[info exists "modalt_${i}_def"]} {
+        unset "modalt_${i}_def"
+    }
     unset "modulefile_${i}_def"
     unset "modulefilere_${i}_def"
     unset "modavail_${i}"
@@ -144,6 +161,7 @@ unset modname
 unset module_loa
 unset modulefile_loa
 unset module_def
+unset modalt_def
 unset modulefile_def
 unset modulefilere_def
 unset modavail
