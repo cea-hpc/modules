@@ -2395,7 +2395,7 @@ proc conflict {args} {
          }
       # if the conflict module is loading and it does not correspond to
       # currently evaluated module, we cannot proceed either
-      } elseif {[string first "$mod/" "$currentModule/" ] != 0 &&\
+      } elseif {![doesModuleMatchesName $currentModule $mod] &&\
          [is-loading $mod]} {
          # still proceed if force mode enabled
          if {[getForce]} {
@@ -3117,6 +3117,20 @@ proc unsetLoadedModule {mod modfile} {
    unsetModuleDependency $mod
 }
 
+# check if name matches passed mod name or one of its alternative name
+proc doesModuleMatchesName {mod name} {
+   cacheCurrentModules
+   set ret 0
+   # check if main or alternative names of loaded mod matches passed name
+   foreach matchmod [concat [list $mod] [getLoadedAltname $mod]] {
+      if {[string first "$name/" "$matchmod/"] == 0} {
+         set ret 1
+         break
+      }
+   }
+   return $ret
+}
+
 # return the currently loaded module whose name is the closest to the
 # name passed as argument. if no loaded module match at least one part
 # of the passed name, an empty string is returned.
@@ -3152,30 +3166,35 @@ proc getLoadedWithClosestName {name} {
          # mod short name (with currently used modulepaths) to compare it
          if {[isModuleFullPath $mod] && [set modname\
             [findModuleNameFromModulefile $mod]] ne ""} {
-            set modsplit [split $modname "/"]
+            # no alt name to retrieve if module has been loaded full path
+            set matchmodlist [list $modname]
          } else {
-            set modsplit [split $mod "/"]
+            # add alternative names of mod to the matching list
+            set matchmodlist [concat [list $mod] [getLoadedAltname $mod]]
          }
 
-         # min expr function is not supported in Tcl8.4 and earlier
-         if {[llength $namesplit] < [llength $modsplit]} {
-            set imax [llength $namesplit]
-         } else {
-            set imax [llength $modsplit]
-         }
-
-         # compare each element of the name to find closest answer
-         # in case of equality, last loaded module will be returned as it
-         # overwrites previously found value
-         for {set i 0} {$i < $imax} {incr i} {
-            if {[lindex $modsplit $i] eq [lindex $namesplit $i]} {
-               if {$i >= $retmax} {
-                  set retmax $i
-                  set ret $mod
-               }
+         foreach matchmod $matchmodlist {
+            set modsplit [split $matchmod "/"]
+            # min expr function is not supported in Tcl8.4 and earlier
+            if {[llength $namesplit] < [llength $modsplit]} {
+               set imax [llength $namesplit]
             } else {
-               # end of match, go next mod
-               break
+               set imax [llength $modsplit]
+            }
+
+            # compare each element of the name to find closest answer
+            # in case of equality, last loaded module will be returned as it
+            # overwrites previously found value
+            for {set i 0} {$i < $imax} {incr i} {
+               if {[lindex $modsplit $i] eq [lindex $namesplit $i]} {
+                  if {$i >= $retmax} {
+                     set retmax $i
+                     set ret $mod
+                  }
+               } else {
+                  # end of match, go next mod
+                  break
+               }
             }
          }
       }
@@ -3235,11 +3254,11 @@ proc getLoadedMatchingName {name {behavior "returnlast"} {loading 0}} {
          # mod short name (with currently used modulepaths) to compare it
          if {[isModuleFullPath $mod] && [set modname\
             [findModuleNameFromModulefile $mod]] ne ""} {
-            set matchmod "$modname/"
+            set matchmod $modname
          } else {
             set matchmod $mod
          }
-         if {[string first "$name/" "$matchmod/"] == 0} {
+         if {[doesModuleMatchesName $matchmod $name]} {
             switch -- $behavior {
                {returnlast} {
                   # the last loaded module will be returned
@@ -3299,8 +3318,9 @@ proc doesModuleConflict {mod} {
       # look if some loaded modules correspond to conflict defined by mod
       if {$modcon eq $mod} {
          foreach withmod $::g_loadedModuleConflict($modcon) {
-            # skip own reflexive conflic and those already known
-            if {[string first "$withmod/" "$mod/"] == -1 && [set lmmod\
+            # skip own reflexive conflict (look at mod main and alternative
+            # names) and those already known
+            if {![doesModuleMatchesName $mod $withmod] && [set lmmod\
                [getLoadedMatchingName $withmod "returnfirst"]] ne ""} {
                appendNoDupToList modconlist $lmmod
                set does 1
@@ -3309,7 +3329,8 @@ proc doesModuleConflict {mod} {
       # other loaded module declared conflicts (skipping those already known)
       } elseif {[notInList $modconlist $modcon]} {
          foreach withmod $::g_loadedModuleConflict($modcon) {
-            if {[string first "$withmod/" "$mod/"] == 0} {
+            # check if mod or one of its alt name match conflict
+            if {[doesModuleMatchesName $mod $withmod]} {
                lappend modconlist $modcon
                set does 1
                break
@@ -3425,7 +3446,7 @@ proc setModuleDependency {mod} {
       foreach modpre $prereq {
          set lmfound {}
          foreach lmmod $modlist {
-            if {[string first "$modpre/" "$lmmod/"] == 0} {
+            if {[doesModuleMatchesName $lmmod $modpre]} {
                set lmfound $lmmod
                break
             }
@@ -3472,7 +3493,7 @@ proc setModuleDependency {mod} {
 
    # update eventual registered unmet dependencies
    foreach modpre [array names ::g_unmetDepHash] {
-      if {[string first "$modpre/" "$mod/"] == 0} {
+      if {[doesModuleMatchesName $mod $modpre]} {
          reportDebug "refresh deps targetting '$modpre'"
          foreach lmmod $::g_unmetDepHash($modpre) {
             # refresh actual dependencies of targetting mod
@@ -4564,6 +4585,7 @@ proc cacheCurrentModules {} {
    # parse loaded modules information only once, global arrays are updated
    # afterwards when module commands update loaded modules state
    if {![info exists ::g_lm_info_cached]} {
+      set ::g_lm_info_cached 1
       # mark specific as well as generic modules as loaded
       set i 0
       set modfilelist [getLoadedModuleFileList]
@@ -4571,6 +4593,11 @@ proc cacheCurrentModules {} {
       set nuaskedlist [getLoadedModuleNotUserAskedList]
 
       if {[llength $modlist] == [llength $modfilelist]} {
+         # cache declared alternative names of loaded modules
+         foreach modalt [getLoadedModuleAltnameList] {
+            eval setLoadedAltname $modalt
+         }
+
          # cache declared conflict of loaded modules
          foreach modcon [getLoadedModuleConflictList] {
             eval setLoadedConflict $modcon
@@ -4582,18 +4609,12 @@ proc cacheCurrentModules {} {
             eval setLoadedPrereq $modpre
          }
 
-         # cache declared alternative names of loaded modules
-         foreach modalt [getLoadedModuleAltnameList] {
-            eval setLoadedAltname $modalt
-         }
-
          foreach mod $modlist {
             setLoadedModule $mod [lindex $modfilelist $i] [notInList\
                $nuaskedlist $mod]
             incr i
          }
 
-         set ::g_lm_info_cached 1
          reportDebug "$i loaded"
       } else {
          reportErrorAndExit "Loaded environment state is inconsistent\n \
@@ -6577,6 +6598,11 @@ proc cmdModuleLoad {uasked args} {
          }
 
          if {![isModuleLoaded $modname]} {
+            # register altname of modname prior any conflict check
+            if {[info exists ::g_resolvedHash($modname)]} {
+               eval setLoadedAltname $modname $::g_resolvedHash($modname)
+            }
+
             # error if loading module violates a registered conflict
             lassign [doesModuleConflict $modname] doescon modconlist
             if {[getForce] && $doescon} {
@@ -6625,6 +6651,7 @@ proc cmdModuleLoad {uasked args} {
                   # unregister properties accumulated during evaluation
                   unsetLoadedConflict $modname
                   unsetLoadedPrereq $modname
+                  unsetLoadedAltname $modname
                   set ret 1
                } else {
                   add-path "append" LOADEDMODULES $modname
@@ -6650,11 +6677,8 @@ proc cmdModuleLoad {uasked args} {
                   }
 
                   # declare the alternative names of this module
-                  if {[info exists ::g_resolvedHash($modname)]} {
-                     eval setLoadedAltname $modname\
-                        $::g_resolvedHash($modname)
-                     add-path "append" MODULES_LMALTNAME [getLoadedAltname\
-                        $modname 1]
+                  if {[set modalt [getLoadedAltname $modname 1]] ne ""} {
+                     add-path "append" MODULES_LMALTNAME $modalt
                   }
 
                   # Load phase of dependent module reloading. These modules
