@@ -101,8 +101,10 @@ setenv_path_var MODULEPATH $modpath
 setenv_loaded_module [list foo bar] "/path/to/foo"
 
 # error raised only if correlation between LOADEDMODULES and _LMFILES_ is attempted
-testouterr_cmd "sh" "is-loaded foo" "OK" ""
-testouterr_cmd "sh" "is-loaded /foo" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
+# but correlation is attempted most of the time with alternative names match
+set tserr "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
+testouterr_cmd "sh" "is-loaded foo" ERR $tserr
+testouterr_cmd "sh" "is-loaded /foo" ERR $tserr
 
 
 #
@@ -112,6 +114,7 @@ testouterr_cmd "sh" "is-loaded /foo" "ERR" "$err_loinconsist\n  LOADEDMODULES=fo
 # Clean up the environment
 unsetenv_loaded_module
 
+unset tserr
 unset module
 unset modname
 unset modpart

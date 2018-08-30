@@ -38,15 +38,16 @@ testouterr_cmd "ALL" "info-loaded $module" $ans ""
 
 setenv_loaded_module $module1 [list]
 
-testouterr_cmd "sh" "info-loaded foo" $ans ""
-testouterr_cmd "sh" "info-loaded $module/foo" $ans ""
-testouterr_cmd "sh" "info-loaded foo/$module" $ans ""
+set tserr "$err_loinconsist\n  LOADEDMODULES=$module1\n  _LMFILES_="
+testouterr_cmd "sh" "info-loaded foo" ERR $tserr
+testouterr_cmd "sh" "info-loaded $module/foo" ERR $tserr
+testouterr_cmd "sh" "info-loaded foo/$module" ERR $tserr
 
 set ans [list]
 lappend ans [list text $module1]
 
-testouterr_cmd "sh" "info-loaded $module" $ans ""
-testouterr_cmd "sh" "info-loaded $module1" $ans ""
+testouterr_cmd "sh" "info-loaded $module" ERR $tserr
+testouterr_cmd "sh" "info-loaded $module1" ERR $tserr
 
 
 setenv_loaded_module [list $module1 $module2] [list]
@@ -54,19 +55,20 @@ setenv_loaded_module [list $module1 $module2] [list]
 set ans [list]
 lappend ans [list text ""]
 
-testouterr_cmd "sh" "info-loaded foo" $ans ""
-testouterr_cmd "sh" "info-loaded $module/foo" $ans ""
-testouterr_cmd "sh" "info-loaded foo/$module" $ans ""
+set tserr "$err_loinconsist\n  LOADEDMODULES=$module1 $module2\n  _LMFILES_="
+testouterr_cmd "sh" "info-loaded foo" ERR $tserr
+testouterr_cmd "sh" "info-loaded $module/foo" ERR $tserr
+testouterr_cmd "sh" "info-loaded foo/$module" ERR $tserr
 
 set ans [list]
 lappend ans [list text $module1]
 
-testouterr_cmd "sh" "info-loaded $module1" $ans ""
+testouterr_cmd "sh" "info-loaded $module1" ERR $tserr
 
 set ans [list]
 lappend ans [list text [list $module1 $module2]]
 
-testouterr_cmd "ALL" "info-loaded $module" $ans ""
+testouterr_cmd "ALL" "info-loaded $module" ERR $tserr
 
 
 # test when loaded environment is inconsistent
@@ -76,8 +78,10 @@ set ans [list]
 lappend ans [list text "foo"]
 
 # error raised only if correlation between LOADEDMODULES and _LMFILES_ is attempted
-testouterr_cmd "sh" "info-loaded foo" $ans ""
-testouterr_cmd "sh" "info-loaded /foo" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
+# but correlation is attempted most of the time with alternative names match
+set tserr "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
+testouterr_cmd "sh" "info-loaded foo" ERR $tserr
+testouterr_cmd "sh" "info-loaded /foo" ERR $tserr
 
 
 #
@@ -87,6 +91,7 @@ testouterr_cmd "sh" "info-loaded /foo" "ERR" "$err_loinconsist\n  LOADEDMODULES=
 # Clean up the environment
 unsetenv_loaded_module
 
+unset tserr
 unset ans
 unset module
 unset module1
