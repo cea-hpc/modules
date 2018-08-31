@@ -1,0 +1,295 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/08/28
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload, is-loaded, info-loaded
+#   Modulefiles:
+#   Sub-Command:    prereq, conflict
+#
+#   Comment:	%C{
+#           Test resolution of modulefile alternative names
+#		}C%
+#
+##############################################################################
+
+set mp "$modpath.deps"
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# tests with a top MODULERCFILE enabled
+setenv_var MODULERCFILE "$env(TESTSUITEDIR)/etc/modulerc.altname"
+
+
+proc altname_test_case {mod args} {
+    set defnamelist [concat [list $mod] $args]
+    # determine all names that can be tested
+    set testnamelist [list]
+    foreach name $defnamelist {
+        set testname {}
+        foreach nelt [split $name /] {
+            if {$testname ne {}} {
+                append testname /
+            }
+            append testname $nelt
+            if {[lsearch -exact $testnamelist $testname] == -1} {
+                lappend testnamelist $testname
+            }
+        }
+    }
+
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES $mod]
+    lappend ans [list setpath _LMFILES_ $::mp/$mod]
+    lappend ans [list setpath MODULES_LMALTNAME [join $defnamelist &]]
+
+    foreach name $defnamelist {
+        testouterr_cmd "sh" "load $name" $ans ""
+    }
+    foreach name $testnamelist {
+        testouterr_cmd "sh" "is-loaded $name" "ERR" ""
+        testouterr_cmd "sh" "info-loaded $name" "" ""
+    }
+
+    # setup environment with targeted module loaded
+    setenv_loaded_module [list $mod] [list $::mp/$mod]
+    setenv_path_var MODULES_LMALTNAME [join $defnamelist &]
+
+    set ans [list]
+    lappend ans [list unsetpath LOADEDMODULES]
+    lappend ans [list unsetpath _LMFILES_]
+    lappend ans [list unsetpath MODULES_LMALTNAME]
+
+    set ansinfo [list [list text $mod]]
+
+    foreach name $testnamelist {
+        testouterr_cmd "sh" "unload $name" $ans ""
+        testouterr_cmd "sh" "is-loaded $name" "OK" ""
+        testouterr_cmd "sh" "info-loaded $name" $ansinfo ""
+    }
+
+    # restore environment with no loaded module
+    unsetenv_loaded_module
+    unsetenv_path_var MODULES_LMALTNAME
+} 
+
+altname_test_case alt/1 foo alt/sym
+altname_test_case alt/dir/2 altfoo
+altname_test_case alt/dir/3 alt/bar
+altname_test_case alt/dir/4 altbar/4
+altname_test_case alt/dir/5 alt/dir/sym2
+altname_test_case alt/dir/6 alt/dir/al alt/dir/default alt/dir
+
+
+# alias defined in a different module dir, alias will not be found thus registered
+# if module is loaded with its regular name
+set ans [list]
+lappend ans [list setpath LOADEDMODULES alt2/1]
+lappend ans [list setpath _LMFILES_ $mp/alt2/1]
+lappend ans [list setpath MODULES_LMALTNAME alt2/1&alt/ext]
+testouterr_cmd "sh" "load alt/ext" $ans ""
+set ans [list]
+lappend ans [list setpath LOADEDMODULES alt2/1]
+lappend ans [list setpath _LMFILES_ $mp/alt2/1]
+testouterr_cmd "sh" "load alt2/1" $ans ""
+
+setenv_loaded_module [list alt2/1] [list $mp/alt2/1]
+setenv_path_var MODULES_LMALTNAME alt2/1&alt/ext
+
+set ans [list [list text alt2/1]]
+foreach name [list alt2/1 alt/ext] {
+    testouterr_cmd "sh" "is-loaded $name" "OK" ""
+    testouterr_cmd "sh" "info-loaded $name" $ans ""
+}
+
+unsetenv_path_var MODULES_LMALTNAME
+testouterr_cmd "sh" "is-loaded alt2/1" "OK" ""
+testouterr_cmd "sh" "info-loaded alt2/1" $ans ""
+testouterr_cmd "sh" "is-loaded alt/ext" "ERR" ""
+testouterr_cmd "sh" "info-loaded alt/ext" "" ""
+
+# restore environment with no loaded module
+unsetenv_loaded_module
+
+
+# alias and symbolic version defined within modulefile: will not be found
+set ans [list]
+lappend ans [list setpath LOADEDMODULES alt/7]
+lappend ans [list setpath _LMFILES_ $mp/alt/7]
+testouterr_cmd "sh" "load alt/7" $ans ""
+testouterr_cmd "sh" "load alt/int" ERR "$err_path'alt/int'"
+testouterr_cmd "sh" "load alt/int2" ERR "$err_path'alt/int2'"
+
+
+# enable auto_handling with environment variable
+setenv_var MODULES_AUTO_HANDLING 1
+
+
+# load module whereas its alias-named prereq and its symbolic-version-named prereq are not loaded
+set ans [list]
+lappend ans [list setpath LOADEDMODULES alt/dir/2:alt/1:i1]
+lappend ans [list setpath _LMFILES_ $mp/alt/dir/2:$mp/alt/1:$mp/i1]
+lappend ans [list setpath MODULES_LMNOTUASKED alt/dir/2:alt/1]
+lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&altfoo:alt/1&foo&alt/sym]
+lappend ans [list setpath MODULES_LMPREREQ i1&altfoo&alt/sym]
+testouterr_cmd_re "sh" "load i1" $ans ""
+
+# load module whereas its alias-named prereq and its symbolic-version-named prereq are loaded
+setenv_loaded_module [list alt/dir/2 alt/1] [list $mp/alt/dir/2 $mp/alt/1] 
+setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo alt/1&foo&alt/sym
+set ans [list]
+lappend ans [list setpath LOADEDMODULES alt/dir/2:alt/1:i1]
+lappend ans [list setpath _LMFILES_ $mp/alt/dir/2:$mp/alt/1:$mp/i1]
+lappend ans [list setpath MODULES_LMPREREQ i1&altfoo&alt/sym]
+testouterr_cmd_re "sh" "load i1" $ans ""
+
+# load alternative-named prereq after its dependent module
+setenv_loaded_module [list alt/dir/2 i1] [list $mp/alt/dir/2 $mp/i1]
+setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo
+setenv_path_var MODULES_LMPREREQ i1&altfoo&alt/sym
+set ans [list]
+lappend ans [list setpath LOADEDMODULES alt/dir/2:alt/1:i1]
+lappend ans [list setpath _LMFILES_ $mp/alt/dir/2:$mp/alt/1:$mp/i1]
+lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&altfoo:alt/1&foo&alt/sym]
+lappend ans [list setpath MODULES_LMPREREQ i1&altfoo&alt/sym]
+testouterr_cmd_re "sh" "load alt/sym" $ans ""
+testouterr_cmd_re "sh" "load alt/1" $ans ""
+
+# unload module whereas its alias-named prereq and its symbolic-version-named prereq are not loaded
+setenv_loaded_module [list i1] [list $mp/i1]
+unsetenv_path_var MODULES_LMALTNAME
+setenv_path_var MODULES_LMPREREQ i1&altfoo&alt/sym
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+testouterr_cmd "sh" "unload i1" $ans ""
+
+# unload module whereas its alias-named prereq and its symbolic-version-named prereq are loaded
+setenv_loaded_module [list alt/dir/2 alt/1 i1] [list $mp/alt/dir/2 $mp/alt/1 $mp/i1] [list alt/dir/2 alt/1]
+setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo alt/1&foo&alt/sym
+setenv_path_var MODULES_LMPREREQ i1&altfoo&alt/sym
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+testouterr_cmd "sh" "unload i1" $ans ""
+
+# unload alias-named prereq
+testouterr_cmd "sh" "unload altfoo" $ans ""
+
+# unload symbolic-version-named prereq
+testouterr_cmd "sh" "unload alt/sym" $ans ""
+
+
+# load module whereas its alias-named conflict and its symbolic-version-named conflict are not loaded
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+unsetenv_path_var MODULES_LMPREREQ
+set ans [list]
+lappend ans [list setpath LOADEDMODULES i2]
+lappend ans [list setpath _LMFILES_ $mp/i2]
+lappend ans [list setpath MODULES_LMCONFLICT i2&altfoo&alt/sym]
+testouterr_cmd_re "sh" "load i2" $ans ""
+
+# load module whereas its alias-named conflict and its symbolic-version-named conflict are loaded
+setenv_loaded_module [list alt/dir/2 alt/1] [list $mp/alt/dir/2 $mp/alt/1] 
+setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo alt/1&foo&alt/sym
+testouterr_cmd_re "sh" "load i2" ERR [err_conflict i2 altfoo]
+
+# load module whose alterative name conflicts with an already loaded module
+setenv_loaded_module [list i2] [list $mp/i2]
+unsetenv_path_var MODULES_LMALTNAME
+setenv_path_var MODULES_LMCONFLICT i2&altfoo&alt/sym
+testouterr_cmd_re "sh" "load altfoo" ERR "$error_msgs: [err_conflict alt/dir/2 i2]"
+testouterr_cmd_re "sh" "load alt/dir/2" ERR "$error_msgs: [err_conflict alt/dir/2 i2]"
+
+# unload module whereas its alias-named conflict and its symbolic-version-named conflict are not loaded
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+testouterr_cmd "sh" "unload i2" $ans ""
+
+# unload module whereas its alias-named conflict and its symbolic-version-named conflict are loaded
+setenv_loaded_module [list alt/dir/2 alt/1 i2] [list $mp/alt/dir/2 $mp/alt/1 $mp/i2]
+setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo alt/1&foo&alt/sym
+setenv_path_var MODULES_LMCONFLICT i2&altfoo&alt/sym
+set ans [list]
+lappend ans [list setpath LOADEDMODULES alt/dir/2:alt/1]
+lappend ans [list setpath _LMFILES_ $mp/alt/dir/2:$mp/alt/1]
+lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&altfoo:alt/1&foo&alt/sym]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+testouterr_cmd_re "sh" "unload i2" $ans ""
+
+# unload alias-named conflict
+set ans [list]
+lappend ans [list setpath LOADEDMODULES alt/1:i2]
+lappend ans [list setpath _LMFILES_ $mp/alt/1:$mp/i2]
+lappend ans [list setpath MODULES_LMALTNAME alt/1&foo&alt/sym]
+testouterr_cmd_re "sh" "unload altfoo" $ans ""
+
+# unload symbolic-version-named conflict
+set ans [list]
+lappend ans [list setpath LOADEDMODULES alt/dir/2:i2]
+lappend ans [list setpath _LMFILES_ $mp/alt/dir/2:$mp/i2]
+lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&altfoo]
+testouterr_cmd_re "sh" "unload alt/sym" $ans ""
+
+# unload both conflicts
+set ans [list]
+lappend ans [list setpath LOADEDMODULES i2]
+lappend ans [list setpath _LMFILES_ $mp/i2]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+lappend ans [list setpath MODULES_LMCONFLICT i2&altfoo&alt/sym]
+testouterr_cmd_re "sh" "unload alt/sym altfoo" $ans ""
+
+# load module who conflicts with an alternatively named module currently loading
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+unsetenv_path_var MODULES_LMCONFLICT
+testouterr_cmd_re "sh" "load i3" ERR "$error_msgs: [err_conflict alt/8 i3]\n[err_prereq i3 alt/8]"
+
+# load module whose prereq conflicts with an alternatively named module currently loading
+testouterr_cmd_re "sh" "load i4" ERR "[err_conflictw alt/8 alt/i4]\n[err_prereq i4 alt/8]"
+
+# reflexive conflict set on an alternative name
+set ans [list]
+lappend ans [list setpath LOADEDMODULES i5/1]
+lappend ans [list setpath _LMFILES_ $mp/i5/1]
+lappend ans [list setpath MODULES_LMCONFLICT i5/1&irefcon]
+lappend ans [list setpath MODULES_LMALTNAME i5/1&irefcon]
+testouterr_cmd_re "sh" "load i5/1" $ans ""
+lappend ans [list ERR]
+testouterr_cmd_re "sh" "load i5/1 i5/2" $ans "$error_msgs: [err_conflict i5/2 i5/1]"
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+unsetenv_path_var MODULES_LMCONFLICT
+
+unsetenv_var MODULERCFILE
+unsetenv_var MODULES_AUTO_HANDLING
+
+unset mp
+unset ans
+
+# remove procs
+rename altname_test_case {}
