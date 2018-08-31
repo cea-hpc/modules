@@ -1454,6 +1454,22 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}} {
    return 1
 }
 
+# retrieve all names that resolve to passed mod
+proc getAllModuleResolvedName {mod} {
+   set namelist {}
+   # add additionnaly all the altnames set on directories, parents of mod
+   foreach modelt [split $mod /] {
+      if {[info exists modroot]} {
+         append modroot /
+      }
+      append modroot $modelt
+      if {[info exists ::g_resolvedHash($modroot)]} {
+         eval appendNoDupToList namelist $::g_resolvedHash($modroot)
+      }
+   }
+   return $namelist
+}
+
 # Specifies a default or alias version for a module that points to an 
 # existing module version Note that aliases defaults are stored by the
 # short module name (not the full path) so aliases and defaults from one
@@ -6599,9 +6615,7 @@ proc cmdModuleLoad {uasked args} {
 
          if {![isModuleLoaded $modname]} {
             # register altname of modname prior any conflict check
-            if {[info exists ::g_resolvedHash($modname)]} {
-               eval setLoadedAltname $modname $::g_resolvedHash($modname)
-            }
+            eval setLoadedAltname $modname [getAllModuleResolvedName $modname]
 
             # error if loading module violates a registered conflict
             lassign [doesModuleConflict $modname] doescon modconlist

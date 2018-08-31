@@ -95,6 +95,7 @@ set modavail_8 "$modsym_8 -> modtr/dir3/exp\\s+default:reg\\s+"
 # alias set on directory
 set modsym_9 "modtr/al5"
 set module_9 "modtr/dir4/mod4.0"
+set modalt_9 modtr/al5&modtr/fld
 set modulefile_9 "$modpath/$module_9"
 set modulefilere_9 "$modpathre/$module_9"
 set modavail_9 "$modsym_9 -> modtr/dir4\\s+fld\\s+"
@@ -102,6 +103,7 @@ set modavail_9 "$modsym_9 -> modtr/dir4\\s+fld\\s+"
 # symbol set on alias of directory
 set modsym_10 "modtr/fld"
 set module_10 "$module_9"
+set modalt_10 $modalt_9
 set modulefile_10 "$modulefile_9"
 set modulefilere_10 "$modulefilere_9"
 set modavail_10 "modtr/dir4\\s+fld\\s+"
@@ -109,7 +111,7 @@ set modavail_10 "modtr/dir4\\s+fld\\s+"
 # alias set on sub-directory
 set modsym_11 "modtr/al6"
 set module_11 "modtr/dir5/subdir/mod5.0"
-set modalt_11 modtr/dir4/al7&modtr/dir4/madj&modtr/dir5/subdir/madj
+set modalt_11 modtr/al6&modtr/sfld&modtr/dir5/sfld&modtr/dir4/al8&modtr/dir4/dadj&modtr/dir5/dadj&modtr/dir4/al7&modtr/dir4/madj&modtr/dir5/subdir/madj
 set modulefile_11 "$modpath/$module_11"
 set modulefilere_11 "$modpathre/$module_11"
 set modavail_11 "$modsym_11 -> modtr/dir5/subdir\\s+sfld\\s+"
@@ -250,6 +252,7 @@ set modwarn_26 "$modwarn_23"
 # alias set on distant deep directory
 set modsym_27 "trmod/al5"
 set module_27 "$module_9"
+set modalt_27 trmod/al5&trmod/trfld&modtr/trfld&trmod/default&trmod&modtr/default&modtr&trmod/trreg&modtr/trreg&modtr/al5&modtr/fld&modtr/reg
 set modulefile_27 "$modulefile_9"
 set modulefilere_27 "$modulefilere_9"
 set modavail_27 "$modsym_27 -> modtr/dir4\\s+default:trfld:trreg\\s+"
@@ -258,6 +261,7 @@ set modwarn_27 "$modwarn_23"
 # symbol set on alias of distant deep directory
 set modsym_28 "trmod/trfld"
 set module_28 "$module_9"
+set modalt_28 $modalt_27
 set modulefile_28 "$modulefile_9"
 set modulefilere_28 "$modulefilere_9"
 set modavail_28 "$modavail_27"
@@ -308,6 +312,7 @@ set modulefile_33 "$modulefile_4"
 set modulefilere_33 "$modulefilere_4"
 set modavail_33 "$modsym_33 -> trmod/dir3\\s+tr2fld\\s+"
 set modwarn_33 "$modwarn_23"
+set modforcewarn_33 1
 
 # symbol set on alias of distant deep directory composed of distant alias
 set modsym_34 "tr2mod/tr2fld"
@@ -317,6 +322,7 @@ set modulefile_34 "$modulefile_4"
 set modulefilere_34 "$modulefilere_4"
 set modavail_34 "$modavail_33"
 set modwarn_34 "$modwarn_23"
+set modforcewarn_34 1
 
 
 # default symbol set on alias set on symbol set on alias of alias of symbol
@@ -338,6 +344,7 @@ set modavail_36 "$modavail_35"
 # default symbol set on alias set on distant deep directory
 set modsym_37 "trmod/default"
 set module_37 "$module_9"
+set modalt_37 $modalt_27
 set modulefile_37 "$modulefile_9"
 set modulefilere_37 "$modulefilere_9"
 set modavail_37 "trmod/al5 -> modtr/dir4\\s+default:trfld:trreg\\s+"
@@ -346,6 +353,7 @@ set modwarn_37 "$modwarn_23"
 # symbol set on default symbol set on alias set on distant deep directory
 set modsym_38 "trmod/trreg"
 set module_38 "$module_9"
+set modalt_38 $modalt_27
 set modulefile_38 "$modulefile_9"
 set modulefilere_38 "$modulefilere_9"
 set modavail_38 "$modavail_37"
@@ -385,6 +393,11 @@ for {set i 1} {$i <= 38} {incr i} {
         set modwarn ""
         set modwarnnl ""
     }
+    if {[info exists "modforcewarn_${i}"]} {
+        set modforcewarn 1
+    } else {
+        set modforcewarn 0
+    }
 
     # setup clean environment
     unsetenv_loaded_module
@@ -423,7 +436,10 @@ for {set i 1} {$i <= 38} {incr i} {
     if {$modalt ne ""} {
         lappend ans [list unsetpath MODULES_LMALTNAME]
         # resolution warning is not triggered if alias/symbol are found through alternative names
-        set modwarn ""
+        # except if we work on some distant deep alias case
+        if {!$modforcewarn} {
+            set modwarn ""
+        }
     }
 
     testouterr_cmd "sh" "unload $modsym" $ans "$modwarn"
@@ -462,6 +478,9 @@ for {set i 1} {$i <= 38} {incr i} {
     if {[info exists "modwarn_${i}"]} {
         unset "modwarn_${i}"
     }
+    if {[info exists "modforcewarn_${i}"]} {
+        unset "modforcewarn_${i}"
+    }
 }
 
 unset ans
@@ -475,3 +494,4 @@ unset modulefilere
 unset modavail
 unset modwarn
 unset modwarnnl
+unset modforcewarn
