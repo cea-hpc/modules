@@ -3147,6 +3147,21 @@ proc doesModuleMatchesName {mod name} {
    return $ret
 }
 
+# check if name matches one name of passed loading mod (main or alternative)
+proc doesLoadingModuleMatchesName {mod name} {
+   set ret 0
+   # check if main or alternative names of loading mod matches passed name
+   # directly look at all resolved names structure as alternative names for
+   # loading modules are not yet registered elsewhere
+   foreach matchmod [concat [list $mod] [getAllModuleResolvedName $mod]] {
+      if {[string first "$name/" "$matchmod/"] == 0} {
+         set ret 1
+         break
+      }
+   }
+   return $ret
+}
+
 # return the currently loaded module whose name is the closest to the
 # name passed as argument. if no loaded module match at least one part
 # of the passed name, an empty string is returned.
@@ -3233,10 +3248,12 @@ proc getLoadedMatchingName {name {behavior "returnlast"} {loading 0}} {
       set isModulefileLoaded isModulefileLoading
       set getModuleFromLoadedModulefile getModuleFromLoadingModulefile
       set getLoadedModuleList getLoadingModuleList
+      set doesModuleMatchesName doesLoadingModuleMatchesName
    } else {
       set isModulefileLoaded isModulefileLoaded
       set getModuleFromLoadedModulefile getModuleFromLoadedModulefile
       set getLoadedModuleList getLoadedModuleList
+      set doesModuleMatchesName doesModuleMatchesName
    }
 
    # if module is passed as full modulefile path name, look at lmfile names
@@ -3274,7 +3291,7 @@ proc getLoadedMatchingName {name {behavior "returnlast"} {loading 0}} {
          } else {
             set matchmod $mod
          }
-         if {[doesModuleMatchesName $matchmod $name]} {
+         if {[$doesModuleMatchesName $matchmod $name]} {
             switch -- $behavior {
                {returnlast} {
                   # the last loaded module will be returned
