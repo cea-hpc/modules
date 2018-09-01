@@ -214,6 +214,9 @@ the *modulefile* is being loaded.
  example, specifying X11 as a **conflict** will stop X11/R4 and X11/R5
  from being loaded at the same time.
 
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias.
+
 **is-loaded** [modulefile...]
 
  The **is-loaded** command returns a true value if any of the listed
@@ -222,6 +225,9 @@ the *modulefile* is being loaded.
  each member acts as a boolean OR operation. If an argument for **is-loaded**
  is a directory and any *modulefile* from the directory has been loaded
  **is-loaded** would return a true value.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias.
 
 **is-saved** [collection...]
 
@@ -249,6 +255,9 @@ the *modulefile* is being loaded.
  one *modulefile*, then each member acts as a boolean OR operation. If an
  argument for **is-avail** is a directory and a *modulefile* exists in the
  directory **is-avail** would return a true value.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias.
 
 **module** [sub-command] [sub-command-args]
 
@@ -347,9 +356,10 @@ the *modulefile* is being loaded.
  **module-info loaded** modulefile
 
   Returns the names of currently loaded modules matching passed *modulefile*.
-  The parameter *modulefile* might either be a full qualified *modulefile*
+  The parameter *modulefile* might either be a fully qualified *modulefile*
   with name and version or just a directory which in case all loaded
-  *modulefiles* from the directory will be returned.
+  *modulefiles* from the directory will be returned. The parameter
+  *modulefile* may also be a symbolic modulefile name or a modulefile alias.
 
 **module-version** modulefile version-name...
 

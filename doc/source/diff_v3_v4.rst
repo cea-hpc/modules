@@ -386,6 +386,8 @@ Environment
 
 **MODULES_AUTO_HANDLING**
 
+**MODULES_LMALTNAME**
+
 **MODULES_LMCONFLICT**
 
 **MODULES_LMNOTUASKED**
@@ -397,6 +399,12 @@ Environment
 
 Modules Specific Tcl Commands
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**conflict**
+
+**prereq**
+
+ Starting with version ``4.2``, these Modules-specific Tcl commands support being called with a symbolic modulefile or a modulefile alias passed as argument.
 
 **module**
  
@@ -427,6 +435,8 @@ Modules Specific Tcl Commands
 **is-loaded**
 
  Starting with version ``4.1``, **is-loaded** supports being called with no argument passed. In this case, it returns *true* if any modulefile is currently loaded, *false* elsewhere.
+
+ Starting with version ``4.2``, **is-loaded** supports being called with a symbolic modulefile or a modulefile alias passed as argument.
 
 **is-saved**
 

@@ -673,12 +673,28 @@ ENVIRONMENT
  results from commands like **lsb_release**, **hostname**, **dnsdomainname**,
  etc.
 
+**MODULES_LMALTNAME**
+
+ A colon separated list of the alternative names set through
+ **module-version** and **module-alias** statements corresponding to all
+ loaded *modulefiles*. Each element in this list starts by the name of the
+ loaded *modulefile* followed by all alternative names resolving to it. The
+ loaded modulefile and its alternative names are separated by the ampersand
+ character.
+
+ This environment variable is intended for **module** command internal use to
+ get knowledge of the alternative names matching loaded *modulefiles* in order
+ to keep environment consistent when conflicts or pre-requirements are set
+ over these alternative designations. It also helps to find a match after
+ *modulefiles* being loaded when **unload**, **is-loaded** or **info-loaded**
+ actions are run over these names.
+
 **MODULES_LMCONFLICT**
 
  A colon separated list of the **conflict** statements defined by all loaded
  *modulefiles*. Each element in this list starts by the name of the loaded
  *modulefile* declaring the conflict followed by the name of all modulefiles
- it declares a conflict with. These loaded modulefile and conflicting
+ it declares a conflict with. These loaded modulefiles and conflicting
  modulefile names are separated by the ampersand character.
 
  This environment variable is intended for **module** command internal
@@ -700,7 +716,7 @@ ENVIRONMENT
  A colon separated list of the **prereq** statements defined by all loaded
  *modulefiles*. Each element in this list starts by the name of the loaded
  *modulefile* declaring the pre-requirement followed by the name of all
- modulefiles it declares a prereq with. These loaded modulefile and
+ modulefiles it declares a prereq with. These loaded modulefiles and
  pre-required modulefile names are separated by the ampersand character. When
  a **prereq** statement is composed of multiple modulefiles, these modulefile
  names are separated by the pipe character.
