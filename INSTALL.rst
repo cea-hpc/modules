@@ -252,6 +252,10 @@ Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for
 instance ``--without-modulepath``):
 
+--with-bin-search-path=PATHLIST
+                      List of paths to look at when searching the location of
+                      tools required to build and configure Modules
+                      (default=\ ``/usr/bin:/bin:/usr/local/bin``)
 --with-tclsh=BIN      Name or full path of Tcl interpreter shell
                       (default=\ ``tclsh``)
 --with-pager=BIN      Name or full path of default pager program to use to

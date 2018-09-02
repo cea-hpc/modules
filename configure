@@ -54,6 +54,7 @@ versioning=n
 autohandling=n
 loadedmodules=
 quarantinevars=
+binsearchpath=/usr/bin:/bin:/usr/local/bin
 TCLSH=tclsh
 SPHINXBUILD=sphinx-build
 builddoc=y
@@ -154,6 +155,10 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-bin-search-path=PATHLIST
+                          list of paths to look at when searching the location
+                          of tools required to build and configure Modules
+                          [$binsearchpath]
   --with-tclsh=BIN        name or full path of Tcl interpreter shell [tclsh]
   --with-pager=BIN        name or full path of default pager program to use to
                           paginate informational message output (can be super-
@@ -306,6 +311,8 @@ for arg in "$@"; do
       versioning=$(get_feature_value "$arg") ;;
    --enable-auto-handling*|--disable-auto-handling)
       autohandling=$(get_feature_value "$arg") ;;
+   --with-bin-search-path=*|--without-bin-search-path)
+      binsearchpath=$(get_package_value "$arg") ;;
    --with-tclsh=*|--without-tclsh)
       tclshbin=$(get_package_value "$arg") ;;
    --with-pager=*|--without-pager)
@@ -370,23 +377,23 @@ fi
 # get tclsh location from standard PATHs or /usr/local/bin
 # or validate location passed as argument
 if [ -n "$tclshbin" ]; then
-   check_requirement $tclshbin '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+   check_requirement $tclshbin '' "PATH=$binsearchpath"
 else
    # also check version-specific names in case no generic tclsh binary exists
-   check_requirement $TCLSH '' 'PATH=/usr/bin:/bin:/usr/local/bin' 'tclsh8.6' 'tclsh8.5' 'tclsh8.4'
+   check_requirement $TCLSH '' "PATH=$binsearchpath" 'tclsh8.6' 'tclsh8.5' 'tclsh8.4'
 fi
 TCLSH=$reqpath
 
 # get location of commands used 'fullpath' in init scripts
-check_requirement 'ps' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+check_requirement 'ps' '' "PATH=$binsearchpath"
 PS=$reqpath
-check_requirement 'basename' '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+check_requirement 'basename' '' "PATH=$binsearchpath"
 BASENAME=$reqpath
 
 # get pager program location from standard PATHs or /usr/local/bin
 # or validate location passed as argument
 if [ -n "$pager" ]; then
-   check_requirement $pager '' 'PATH=/usr/bin:/bin:/usr/local/bin'
+   check_requirement $pager '' "PATH=$binsearchpath"
    pager=$reqpath
 fi
 # adapt pager program settings dependings of specified args
@@ -462,7 +469,7 @@ if [ "$compatversion" = 'y' ]; then
          check_requirement autoreconf
          # specific location to find autopoint on Darwin
          if [ "$kernelname" = 'Darwin' ]; then
-            check_requirement autopoint '' 'PATH=/usr/bin:/bin:/usr/local/bin:/usr/local/opt/gettext/bin'
+            check_requirement autopoint '' "PATH=$binsearchpath:/usr/local/opt/gettext/bin"
          else
             check_requirement autopoint
          fi
