@@ -209,6 +209,53 @@ the next major release version (5.0) where it will be enabled by default. This
 new feature is currently considered experimental and the set of triggered
 actions will be refined over the next feature releases.
 
+Modulefile alias and symbolic modulefile name consistency
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With the **module-alias** and **module-version** modulefile commands,
+alternative names can be given to a modulefile. When these names are used to
+load for instance a modulefile, they are resolved to the modulefile they
+target which is then processed for the load action.
+
+Until now, the alias and symbolic version names were correctly resolved for
+the **load** and **unload** actions and also for the querying sub-commands
+(like **avail** or **whatis**). However this alternative name information
+vanishes once the modulefile it resolves to is loaded. As a consequence there
+was no consistency over these alternative designations. In the following
+example ``f`` modulefile declares a conflict on ``e`` alias which resolves to
+``d`` modulefile::
+
+    $ module load e
+    $ module list
+    Currently Loaded Modulefiles:
+     1) d
+    $ module info-loaded e
+    $ module load f
+    $ module list
+    Currently Loaded Modulefiles:
+     1) d   2) f
+
+Consistency of the alternative names set on a modulefile with **module-alias**
+and **module-version** commands is now ensured to enable modulefile commands
+**prereq**, **conflict**, **is-loaded** and **module-info loaded** using these
+alternative designations as argument. This consistency is achieved, like for
+the conflict and prereq consistencies, by keeping track of the alternative
+names of the loaded modulefiles in an environment variable called
+``MODULES_LMALTNAME``::
+
+    $ module load e
+    $ module list
+    Currently Loaded Modulefiles:
+     1) d
+    $ module info-loaded e
+    d
+    $ module load f
+    WARNING: f cannot be loaded due to a conflict.
+    HINT: Might try "module unload e" first.
+    $ module list
+    Currently Loaded Modulefiles:
+     1) d
+
 Environment variable change through modulefile evaluation context
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
