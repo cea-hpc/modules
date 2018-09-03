@@ -85,6 +85,12 @@ else
   setnotversioning :=
 endif
 
+ifeq ($(silentshdbgsupport),y)
+  setsilentshdbgsupport :=
+else
+  setsilentshdbgsupport := \#
+endif
+
 ifeq ($(autohandling),y)
   setautohandling := 1
 else
@@ -104,6 +110,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@pager@|$(pager)|g' \
 	-e 's|@pageropts@|$(pageropts)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
+	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \
 	-e 's|@VERSIONING@|$(setversioning)|g' \
 	-e 's|@NOTVERSIONING@|$(setnotversioning)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \

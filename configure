@@ -30,8 +30,8 @@ arglist="TCLSH SPHINXBUILD PS BASENAME RMDIR_IGN_NON_EMPTY VERSION \
 baseprefix prefix bindir libexecdir etcdir initdir datarootdir mandir docdir \
 modulefilesdir setmanpath appendmanpath setbinpath appendbinpath \
 setdotmodulespath docinstall examplemodulefiles builddoc gitworktree \
-usemanpath compatversion EXEEXT versioning autohandling pager pageropts \
-modulepath loadedmodules quarantinevars"
+usemanpath compatversion EXEEXT versioning silentshdbgsupport autohandling \
+pager pageropts modulepath loadedmodules quarantinevars"
 compatarglist=
 
 # flags to know if argument has been specified on command-line
@@ -51,6 +51,7 @@ examplemodulefiles=y
 compatversion=y
 EXEEXT=
 versioning=n
+silentshdbgsupport=y
 autohandling=n
 loadedmodules=
 quarantinevars=
@@ -147,6 +148,10 @@ Optional Features:
                           versioning enabled Modules installation, containing
                           modulefiles that enable to switch from one Modules
                           version to another [no]
+  --enable-silent-shell-debug-support
+                          generate code in module function definition and
+                          initialization scripts to add support for silencing
+                          shell debugging properties [yes]
   --enable-auto-handling  set modulecmd.tcl to automatically apply automated
                           modulefiles handling actions, like loading the
                           pre-requisites of a modulefile when loading this
@@ -309,6 +314,8 @@ for arg in "$@"; do
       defcompatversion=0 ;;
    --enable-versioning*|--disable-versioning)
       versioning=$(get_feature_value "$arg") ;;
+   --enable-silent-shell-debug-support*|--disable-silent-shell-debug-support)
+      silentshdbgsupport=$(get_feature_value "$arg") ;;
    --enable-auto-handling*|--disable-auto-handling)
       autohandling=$(get_feature_value "$arg") ;;
    --with-bin-search-path=*|--without-bin-search-path)

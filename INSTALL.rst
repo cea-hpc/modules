@@ -242,6 +242,10 @@ instance ``--disable-set-manpath``):
                       to Modules version is added to the shared modulepath and
                       enables to switch from one Modules version to another.
                       (default=no)
+--enable-silent-shell-debug-support
+                      Generate code in module function definition and
+                      initialization scripts to add support for silencing
+                      shell debugging properties (default=yes)
 --enable-auto-handling
                       Set modulecmd.tcl to automatically apply automated
                       modulefiles handling actions, like loading the

@@ -103,17 +103,8 @@ set func_quar_zsh "\\s*unset _mlre _mlIFS;
 \\s*IFS=' ';
 \\s*for _mlv in \\\${=MODULES_RUN_QUARANTINE:-}; do
 $end_quar_sh"
-set func_clean_ifs "\\s*if \\\[ -n \"\\\${_mlIFS\\\+x}\" \\\]; then
-\\s*IFS=\\\$_mlIFS;
-\\s*else
-\\s*unset IFS;
-\\s*fi;
-\\s*unset _mlre _mlv _mlrv _mlIFS;
-\\s*if \\\[ -n \"\\\${_mlshdbg:-}\" \\\]; then
-\\s*set -\\\$_mlshdbg;
-\\s*fi;
-\\s*unset _mlshdbg;
-\\s*return \\\$_mlstatus;"
+
+if {$install_silentshdbgsupport eq y} {
 set func_silentdbg "\\s*unset _mlshdbg;
 \\s*if \\\[ \"\\\${MODULES_SILENT_SHELL_DEBUG:-0}\" = '1' \\\]; then
 \\s*case \"\\\$-\" in
@@ -122,7 +113,23 @@ set func_silentdbg "\\s*unset _mlshdbg;
 \\s*\\\*x\\\*\\\) set \\\+x; _mlshdbg='x' ;;
 \\s*\\\*\\\) _mlshdbg='' ;;
 \\s*esac;
-\\s*fi;"
+\\s*fi;\n"
+set end_silentdbg "\\s*if \\\[ -n \"\\\${_mlshdbg:-}\" \\\]; then
+\\s*set -\\\$_mlshdbg;
+\\s*fi;
+\\s*unset _mlshdbg;\n"
+} else {
+set func_silentdbg ""
+set end_silentdbg ""
+}
+
+set func_clean_ifs "\\s*if \\\[ -n \"\\\${_mlIFS\\\+x}\" \\\]; then
+\\s*IFS=\\\$_mlIFS;
+\\s*else
+\\s*unset IFS;
+\\s*fi;
+\\s*unset _mlre _mlv _mlrv _mlIFS;
+$end_silentdbg\\s*return \\\$_mlstatus;"
 
 set func_modcmd_sh "\\s*if \\\[ -n \"\\\${_mlre:-}\" \\\]; then
 \\s*eval `eval \\\${_mlre}$install_tclsh $modulecmd_pathre sh '\"\\$\\@\"'`;
@@ -156,10 +163,10 @@ if {$is_stderr_tty} {
     set add_func_fish ""
 }
 
-set func_sh "$func_name\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n$func_modcmd_sh\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};$add_func_sh"
-set func_bash "$func_name\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n$func_modcmd_bash\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};$add_func_sh"
-set func_ksh "$func_name\\\(\\\) {\n$func_silentdbg\n$func_quar_sh\n$func_modcmd_ksh\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};$add_func_sh"
-set func_zsh "$func_name\\\(\\\) {\n$func_silentdbg\n$func_quar_zsh\n$func_modcmd_zsh\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};$add_func_sh"
+set func_sh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh\n$func_modcmd_sh\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};$add_func_sh"
+set func_bash "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh\n$func_modcmd_bash\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};$add_func_sh"
+set func_ksh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_sh\n$func_modcmd_ksh\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};$add_func_sh"
+set func_zsh "$func_name\\\(\\\) {\n$func_silentdbg$func_quar_zsh\n$func_modcmd_zsh\n\\s*_mlstatus=\\\$\\\?;\n$func_clean_ifs\n};$add_func_sh"
 set func_csh "if \\\( \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval \"`$install_tclsh $modulecmd_pathre csh \\\\!\\*:q`\"; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;
 if \\\( \\\$\\\?histchars && \\\! \\\$\\\?prompt \\\) alias module 'set _histchars = \\\$histchars; unset histchars; eval \"`$install_tclsh $modulecmd_pathre csh \\\\!\\*:q`\"; set _exit=\"\\\$status\"; set histchars = \\\$_histchars; unset _histchars; test 0 = \\\$_exit' ;
 if \\\( \\\! \\\$\\\?histchars && \\\$\\\?prompt \\\) alias module 'set _prompt=\"\\\$prompt\"; set prompt=\"\"; eval \"`$install_tclsh $modulecmd_pathre csh \\\\!\\*:q`\"; set _exit=\"\\\$status\"; set prompt=\"\\\$_prompt\"; unset _prompt; test 0 = \\\$_exit' ;

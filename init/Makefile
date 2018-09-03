@@ -88,6 +88,11 @@ else
   usemanpathre := /@usemanpath@/d
   notusemanpathre := s|@notusemanpath@||g
 endif
+ifeq ($(silentshdbgsupport),y)
+  silentshdbgsupportre := s|@silentshdbgsupport@||g
+else
+  silentshdbgsupportre := /@silentshdbgsupport@/d
+endif
 
 # comment entries if feature not enabled
 ifeq ($(versioning),y)
@@ -131,6 +136,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e '$(prependbinpathre)' \
 	-e '$(compatversionre)' \
 	-e '$(notcompatversionre)' \
+	-e '$(silentshdbgsupportre)' \
 	-e '$(usemanpathre)' \
 	-e '$(notusemanpathre)' \
 	-e $$'s|@modulerc@|$(modulerc)|g' \

@@ -225,6 +225,7 @@ if {$install_loadedmodules ne ""} {
 
 # basic test for MODULES_SILENT_SHELL_DEBUG, checking module answer is still present
 # among the debugging output
+if {$install_silentshdbgsupport eq y} {
 if {$verbose > 0} {
    send_user "\tChecking MODULES_SILENT_SHELL_DEBUG\n"
    send_user "\tSetup MODULES_SILENT_SHELL_DEBUG = '1'\n"
@@ -268,11 +269,15 @@ foreach shell $shell_sh_family {
    }
 }
 
+unset env(MODULES_SILENT_SHELL_DEBUG)
+} elseif {$verbose > 0} {
+   send_user "\tSkipping silent shell debug checks\n"
+}
+
+
 #
 #  Clean up variables used in this test case
 #
-
-unset env(MODULES_SILENT_SHELL_DEBUG)
 
 unset bad_cmd
 unset use_desc
