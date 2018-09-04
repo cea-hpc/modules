@@ -4346,35 +4346,39 @@ if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
 @silentshdbgsupport@         *) _mlshdbg='' ;;
 @silentshdbgsupport@      esac;
 @silentshdbgsupport@   fi;}
-         append fdef "
-   unset _mlre _mlIFS;
-   if \[ -n \"\${IFS+x}\" \]; then
-      _mlIFS=\$IFS;
-   fi;
-   IFS=' ';
-   for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE:-}; do"
+@quarantinesupport@         append fdef "
+@quarantinesupport@   unset _mlre _mlIFS;
+@quarantinesupport@   if \[ -n \"\${IFS+x}\" \]; then
+@quarantinesupport@      _mlIFS=\$IFS;
+@quarantinesupport@   fi;
+@quarantinesupport@   IFS=' ';
+@quarantinesupport@   for _mlv in \${${wsplit}MODULES_RUN_QUARANTINE:-}; do"
+@quarantinesupport@         append fdef {
+@quarantinesupport@      if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
+@quarantinesupport@         if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
+@quarantinesupport@            _mlre="${_mlre:-}${_mlv}_modquar='`eval 'echo ${'$_mlv'}'`' ";
+@quarantinesupport@         fi;
+@quarantinesupport@         _mlrv="MODULES_RUNENV_${_mlv}";
+@quarantinesupport@         _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
+@quarantinesupport@      fi;
+@quarantinesupport@   done;
+@quarantinesupport@   if [ -n "${_mlre:-}" ]; then}
+@quarantinesupport@         append fdef "\n      eval `eval \${${wsplit}_mlre}$tclshbin $::argv0\
+@quarantinesupport@$::g_shell '\"\$@\"'`;
+@quarantinesupport@   else
+@quarantinesupport@      eval `$tclshbin $::argv0 $::g_shell \"\$@\"`;
+@quarantinesupport@   fi;"
+@notquarantinesupport@         append fdef "
+@notquarantinesupport@   eval `$tclshbin $::argv0 $::g_shell \"\$@\"`;"
          append fdef {
-      if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
-         if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
-            _mlre="${_mlre:-}${_mlv}_modquar='`eval 'echo ${'$_mlv'}'`' ";
-         fi;
-         _mlrv="MODULES_RUNENV_${_mlv}";
-         _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
-      fi;
-   done;
-   if [ -n "${_mlre:-}" ]; then}
-         append fdef "\n      eval `eval \${${wsplit}_mlre}$tclshbin $::argv0\
-$::g_shell '\"\$@\"'`;
-   else
-      eval `$tclshbin $::argv0 $::g_shell \"\$@\"`;
-   fi;
-   _mlstatus=\$?;\n"
-         append fdef {   if [ -n "${_mlIFS+x}" ]; then
-      IFS=$_mlIFS;
-   else
-      unset IFS;
-   fi;
-   unset _mlre _mlv _mlrv _mlIFS;}
+   _mlstatus=$?;}
+@quarantinesupport@         append fdef {
+@quarantinesupport@   if [ -n "${_mlIFS+x}" ]; then
+@quarantinesupport@      IFS=$_mlIFS;
+@quarantinesupport@   else
+@quarantinesupport@      unset IFS;
+@quarantinesupport@   fi;
+@quarantinesupport@   unset _mlre _mlv _mlrv _mlIFS;}
 @silentshdbgsupport@         append fdef {
 @silentshdbgsupport@   if [ -n "${_mlshdbg:-}" ]; then
 @silentshdbgsupport@      set -$_mlshdbg;
@@ -4393,22 +4397,24 @@ $::g_shell '\"\$@\"'`;
          } else {
             set fdef "function module\n"
          }
-         append fdef {   set -l _mlre ''; set -l _mlv; set -l _mlrv;
-   for _mlv in (string split ' ' $MODULES_RUN_QUARANTINE)
-      if string match -r '^[A-Za-z_][A-Za-z0-9_]*$' $_mlv >/dev/null
-         if set -q $_mlv
-            set _mlre $_mlre$_mlv"_modquar='$$_mlv' "
-         end
-         set _mlrv "MODULES_RUNENV_$_mlv"
-         set _mlre "$_mlre$_mlv='$$_mlrv' "
-      end
-   end
-   if [ -n "$_mlre" ]
-      set _mlre "env $_mlre"
-   end}
+@quarantinesupport@         append fdef {   set -l _mlre ''; set -l _mlv; set -l _mlrv;
+@quarantinesupport@   for _mlv in (string split ' ' $MODULES_RUN_QUARANTINE)
+@quarantinesupport@      if string match -r '^[A-Za-z_][A-Za-z0-9_]*$' $_mlv >/dev/null
+@quarantinesupport@         if set -q $_mlv
+@quarantinesupport@            set _mlre $_mlre$_mlv"_modquar='$$_mlv' "
+@quarantinesupport@         end
+@quarantinesupport@         set _mlrv "MODULES_RUNENV_$_mlv"
+@quarantinesupport@         set _mlre "$_mlre$_mlv='$$_mlrv' "
+@quarantinesupport@      end
+@quarantinesupport@   end
+@quarantinesupport@   if [ -n "$_mlre" ]
+@quarantinesupport@      set _mlre "env $_mlre"
+@quarantinesupport@   end}
          # use "| source -" rather than "eval" to be able
          # to redirect stderr after stdout being evaluated
-         append fdef "\n   eval \$_mlre $tclshbin $::argv0 $::g_shell\
+@quarantinesupport@         append fdef "\n   eval \$_mlre $tclshbin $::argv0 $::g_shell\
+            (string escape -- \$argv) | source -\n"
+@notquarantinesupport@         append fdef "   eval $tclshbin $::argv0 $::g_shell\
             (string escape -- \$argv) | source -\n"
          if {[isStderrTty]} {
             append fdef {end
@@ -4420,28 +4426,32 @@ end}
          }
       }
       {tcl} {
-         set fdef "proc module {args} {\n"
-         append fdef {   set _mlre {};
-   if {[info exists ::env(MODULES_RUN_QUARANTINE)]} {
-      foreach _mlv [split $::env(MODULES_RUN_QUARANTINE) " "] {
-         if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $_mlv]} {
-            if {[info exists ::env($_mlv)]} {
-               lappend _mlre "${_mlv}_modquar=$::env($_mlv)"
-            }
-            set _mlrv "MODULES_RUNENV_${_mlv}"
-            if {[info exists ::env($_mlrv)]} {
-               lappend _mlre "${_mlv}=$::env($_mlrv)"
-            } else {
-               lappend _mlre "${_mlv}="
-            }
-         }
-      }
-      if {[llength $_mlre] > 0} {
-         set _mlre [linsert $_mlre 0 "env"]
-      }
-   }
+         set fdef "proc module {args} {"
+@quarantinesupport@         append fdef {
+@quarantinesupport@   set _mlre {};
+@quarantinesupport@   if {[info exists ::env(MODULES_RUN_QUARANTINE)]} {
+@quarantinesupport@      foreach _mlv [split $::env(MODULES_RUN_QUARANTINE) " "] {
+@quarantinesupport@         if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $_mlv]} {
+@quarantinesupport@            if {[info exists ::env($_mlv)]} {
+@quarantinesupport@               lappend _mlre "${_mlv}_modquar=$::env($_mlv)"
+@quarantinesupport@            }
+@quarantinesupport@            set _mlrv "MODULES_RUNENV_${_mlv}"
+@quarantinesupport@            if {[info exists ::env($_mlrv)]} {
+@quarantinesupport@               lappend _mlre "${_mlv}=$::env($_mlrv)"
+@quarantinesupport@            } else {
+@quarantinesupport@               lappend _mlre "${_mlv}="
+@quarantinesupport@            }
+@quarantinesupport@         }
+@quarantinesupport@      }
+@quarantinesupport@      if {[llength $_mlre] > 0} {
+@quarantinesupport@         set _mlre [linsert $_mlre 0 "env"]
+@quarantinesupport@      }
+@quarantinesupport@   }}
+      append fdef {
    set _mlstatus 1;}
-         append fdef "\n   catch {eval exec \$_mlre \"$tclshbin\"\
+@quarantinesupport@         append fdef "\n   catch {eval exec \$_mlre \"$tclshbin\"\
+            \"$::argv0\" \"$::g_shell\" \$args 2>@stderr} script\n"
+@notquarantinesupport@         append fdef "\n   catch {eval exec \"$tclshbin\"\
             \"$::argv0\" \"$::g_shell\" \$args 2>@stderr} script\n"
          append fdef {   eval $script;
    return $_mlstatus}
@@ -4451,49 +4461,57 @@ end}
          reportErrorAndExit "No autoinit mode available for 'cmd' shell"
       }
       {perl} {
-         set fdef "sub module {\n"
-         append fdef {   my $_mlre = '';
-   if (defined $ENV{'MODULES_RUN_QUARANTINE'}) {
-      foreach my $_mlv (split(' ', $ENV{'MODULES_RUN_QUARANTINE'})) {
-         if ($_mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/) {
-            if (defined $ENV{$_mlv}) {
-               $_mlre .= "${_mlv}_modquar='$ENV{$_mlv}' ";
-            }
-            my $_mlrv = "MODULES_RUNENV_$_mlv";
-            $_mlre .= "$_mlv='$ENV{$_mlrv}' ";
-        }
-      }
-      if ($_mlre ne "") {
-         $_mlre = "env $_mlre";
-      }
-   }
+         set fdef "sub module {"
+@quarantinesupport@         append fdef {
+@quarantinesupport@   my $_mlre = '';
+@quarantinesupport@   if (defined $ENV{'MODULES_RUN_QUARANTINE'}) {
+@quarantinesupport@      foreach my $_mlv (split(' ', $ENV{'MODULES_RUN_QUARANTINE'})) {
+@quarantinesupport@         if ($_mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/) {
+@quarantinesupport@            if (defined $ENV{$_mlv}) {
+@quarantinesupport@               $_mlre .= "${_mlv}_modquar='$ENV{$_mlv}' ";
+@quarantinesupport@            }
+@quarantinesupport@            my $_mlrv = "MODULES_RUNENV_$_mlv";
+@quarantinesupport@            $_mlre .= "$_mlv='$ENV{$_mlrv}' ";
+@quarantinesupport@        }
+@quarantinesupport@      }
+@quarantinesupport@      if ($_mlre ne "") {
+@quarantinesupport@         $_mlre = "env $_mlre";
+@quarantinesupport@      }
+@quarantinesupport@   }}
+         append fdef {
    my $args = '';
    if (@_ > 0) {
       $args = '"' . join('" "', @_) . '"';
    }
    my $_mlstatus = 1;}
-         append fdef "\n   eval `\${_mlre}$tclshbin $::argv0 perl \$args`;\n"
+@quarantinesupport@         append fdef "\n   eval `\${_mlre}$tclshbin $::argv0 perl \$args`;\n"
+@notquarantinesupport@         append fdef "\n   eval `$tclshbin $::argv0 perl \$args`;\n"
          append fdef {   return $_mlstatus;}
          append fdef "\n}"
       }
       {python} {
          set fdef {import re, subprocess
-def module(*arguments):
-   _mlre = os.environ.copy()
-   if 'MODULES_RUN_QUARANTINE' in os.environ:
-      for _mlv in os.environ['MODULES_RUN_QUARANTINE'].split():
-         if re.match('^[A-Za-z_][A-Za-z0-9_]*$', _mlv):
-            if _mlv in os.environ:
-               _mlre[_mlv + '_modquar'] = os.environ[_mlv]
-            _mlrv = 'MODULES_RUNENV_' + _mlv
-            if _mlrv in os.environ:
-               _mlre[_mlv] = os.environ[_mlrv]
-            else:
-               _mlre[_mlv] = ''
+def module(*arguments):}
+@quarantinesupport@         append fdef {
+@quarantinesupport@   _mlre = os.environ.copy()
+@quarantinesupport@   if 'MODULES_RUN_QUARANTINE' in os.environ:
+@quarantinesupport@      for _mlv in os.environ['MODULES_RUN_QUARANTINE'].split():
+@quarantinesupport@         if re.match('^[A-Za-z_][A-Za-z0-9_]*$', _mlv):
+@quarantinesupport@            if _mlv in os.environ:
+@quarantinesupport@               _mlre[_mlv + '_modquar'] = os.environ[_mlv]
+@quarantinesupport@            _mlrv = 'MODULES_RUNENV_' + _mlv
+@quarantinesupport@            if _mlrv in os.environ:
+@quarantinesupport@               _mlre[_mlv] = os.environ[_mlrv]
+@quarantinesupport@            else:
+@quarantinesupport@               _mlre[_mlv] = ''}
+         append fdef {
    ns = {}}
-         append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
+@quarantinesupport@         append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
             '$::argv0', 'python'\] + list(arguments),\
             stdout=subprocess.PIPE, env=_mlre).communicate()\[0\], ns)\n"
+@notquarantinesupport@         append fdef "\n   exec(subprocess.Popen(\['$tclshbin',\
+            '$::argv0', 'python'\] + list(arguments),\
+            stdout=subprocess.PIPE).communicate()\[0\], ns)\n"
          append fdef {   if '_mlstatus' in ns:
       _mlstatus = ns['_mlstatus']
    else:
@@ -4502,22 +4520,24 @@ def module(*arguments):
       }
       {ruby} {
          set fdef {class ENVModule
-   def ENVModule.module(*args)
-      _mlre = ''
-      if ENV.has_key?('MODULES_RUN_QUARANTINE') then
-         ENV['MODULES_RUN_QUARANTINE'].split(' ').each do |_mlv|
-            if _mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/ then
-               if ENV.has_key?(_mlv) then
-                  _mlre << _mlv + "_modquar='" + ENV[_mlv].to_s + "' "
-               end
-               _mlrv = 'MODULES_RUNENV_' + _mlv
-               _mlre << _mlv + "='" + ENV[_mlrv].to_s + "' "
-            end
-         end
-         unless _mlre.empty?
-            _mlre = 'env ' + _mlre
-         end
-      end
+   def ENVModule.module(*args)}
+@quarantinesupport@         append fdef {
+@quarantinesupport@      _mlre = ''
+@quarantinesupport@      if ENV.has_key?('MODULES_RUN_QUARANTINE') then
+@quarantinesupport@         ENV['MODULES_RUN_QUARANTINE'].split(' ').each do |_mlv|
+@quarantinesupport@            if _mlv =~ /^[A-Za-z_][A-Za-z0-9_]*$/ then
+@quarantinesupport@               if ENV.has_key?(_mlv) then
+@quarantinesupport@                  _mlre << _mlv + "_modquar='" + ENV[_mlv].to_s + "' "
+@quarantinesupport@               end
+@quarantinesupport@               _mlrv = 'MODULES_RUNENV_' + _mlv
+@quarantinesupport@               _mlre << _mlv + "='" + ENV[_mlrv].to_s + "' "
+@quarantinesupport@            end
+@quarantinesupport@         end
+@quarantinesupport@         unless _mlre.empty?
+@quarantinesupport@            _mlre = 'env ' + _mlre
+@quarantinesupport@         end
+@quarantinesupport@      end}
+         append fdef {
       if args[0].kind_of?(Array) then
          args = args[0]
       end
@@ -4527,7 +4547,8 @@ def module(*arguments):
          args = "\"#{args.join('" "')}\""
       end
       _mlstatus = true}
-         append fdef "\n      eval `#{_mlre}$tclshbin $::argv0 ruby #{args}`\n"
+@quarantinesupport@         append fdef "\n      eval `#{_mlre}$tclshbin $::argv0 ruby #{args}`\n"
+@notquarantinesupport@         append fdef "\n      eval `$tclshbin $::argv0 ruby #{args}`\n"
          append fdef {      return _mlstatus
    end
 end}
@@ -4536,27 +4557,31 @@ end}
          reportErrorAndExit "lisp mode autoinit not yet implemented"
       }
       {cmake} {
-         set pre_exec "\n      execute_process(COMMAND \${_mlre} $tclshbin\
+@quarantinesupport@         set pre_exec "\n      execute_process(COMMAND \${_mlre} $tclshbin\
+            $::argv0 cmake "
+@notquarantinesupport@         set pre_exec "\n      execute_process(COMMAND $tclshbin\
             $::argv0 cmake "
          set post_exec "\n         OUTPUT_FILE \${tempfile_name})\n"
          set fdef {function(module)
-   cmake_policy(SET CMP0007 NEW)
-   set(_mlre "")
-   if(DEFINED ENV{MODULES_RUN_QUARANTINE})
-      string(REPLACE " " ";" _mlv_list "$ENV{MODULES_RUN_QUARANTINE}")
-      foreach(_mlv ${_mlv_list})
-         if(${_mlv} MATCHES "^[A-Za-z_][A-Za-z0-9_]*$")
-            if(DEFINED ENV{${_mlv}})
-               set(_mlre "${_mlre}${_mlv}_modquar=$ENV{${_mlv}};")
-            endif()
-            set(_mlrv "MODULES_RUNENV_${_mlv}")
-            set(_mlre "${_mlre}${_mlv}=$ENV{${_mlrv}};")
-        endif()
-      endforeach()
-      if (NOT "${_mlre}" STREQUAL "")
-         set(_mlre "env;${_mlre}")
-      endif()
-   endif()
+   cmake_policy(SET CMP0007 NEW)}
+@quarantinesupport@         append fdef {
+@quarantinesupport@   set(_mlre "")
+@quarantinesupport@   if(DEFINED ENV{MODULES_RUN_QUARANTINE})
+@quarantinesupport@      string(REPLACE " " ";" _mlv_list "$ENV{MODULES_RUN_QUARANTINE}")
+@quarantinesupport@      foreach(_mlv ${_mlv_list})
+@quarantinesupport@         if(${_mlv} MATCHES "^[A-Za-z_][A-Za-z0-9_]*$")
+@quarantinesupport@            if(DEFINED ENV{${_mlv}})
+@quarantinesupport@               set(_mlre "${_mlre}${_mlv}_modquar=$ENV{${_mlv}};")
+@quarantinesupport@            endif()
+@quarantinesupport@            set(_mlrv "MODULES_RUNENV_${_mlv}")
+@quarantinesupport@            set(_mlre "${_mlre}${_mlv}=$ENV{${_mlrv}};")
+@quarantinesupport@        endif()
+@quarantinesupport@      endforeach()
+@quarantinesupport@      if (NOT "${_mlre}" STREQUAL "")
+@quarantinesupport@         set(_mlre "env;${_mlre}")
+@quarantinesupport@      endif()
+@quarantinesupport@   endif()}
+         append fdef {
    set(_mlstatus TRUE)
    execute_process(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
       OUTPUT_VARIABLE tempfile_name
@@ -4585,26 +4610,30 @@ end}
 endfunction(module)}
       }
       {r} {
-         set fdef "module <- function(...){\n"
-         append fdef {   mlre <- ''
-   if (!is.na(Sys.getenv('MODULES_RUN_QUARANTINE', unset=NA))) {
-      for (mlv in strsplit(Sys.getenv('MODULES_RUN_QUARANTINE'), ' ')[[1]]) {
-         if (grepl('^[A-Za-z_][A-Za-z0-9_]*$', mlv)) {
-            if (!is.na(Sys.getenv(mlv, unset=NA))) {
-               mlre <- paste0(mlre, mlv, "_modquar='", Sys.getenv(mlv), "' ")
-            }
-            mlrv <- paste0('MODULES_RUNENV_', mlv)
-            mlre <- paste0(mlre, mlv, "='", Sys.getenv(mlrv), "' ")
-         }
-      }
-      if (mlre != '') {
-         mlre <- paste0('env ', mlre)
-      }
-   }
+         set fdef "module <- function(...){"
+@quarantinesupport@         append fdef {
+@quarantinesupport@   mlre <- ''
+@quarantinesupport@   if (!is.na(Sys.getenv('MODULES_RUN_QUARANTINE', unset=NA))) {
+@quarantinesupport@      for (mlv in strsplit(Sys.getenv('MODULES_RUN_QUARANTINE'), ' ')[[1]]) {
+@quarantinesupport@         if (grepl('^[A-Za-z_][A-Za-z0-9_]*$', mlv)) {
+@quarantinesupport@            if (!is.na(Sys.getenv(mlv, unset=NA))) {
+@quarantinesupport@               mlre <- paste0(mlre, mlv, "_modquar='", Sys.getenv(mlv), "' ")
+@quarantinesupport@            }
+@quarantinesupport@            mlrv <- paste0('MODULES_RUNENV_', mlv)
+@quarantinesupport@            mlre <- paste0(mlre, mlv, "='", Sys.getenv(mlrv), "' ")
+@quarantinesupport@         }
+@quarantinesupport@      }
+@quarantinesupport@      if (mlre != '') {
+@quarantinesupport@         mlre <- paste0('env ', mlre)
+@quarantinesupport@      }
+@quarantinesupport@   }}
+         append fdef {
    arglist <- as.list(match.call())
    arglist[1] <- 'r'
    args <- paste0('"', paste0(arglist, collapse='" "'), '"')}
-         append fdef "\n   cmd <- paste(mlre, '$tclshbin', '$::argv0', args,\
+@quarantinesupport@         append fdef "\n   cmd <- paste(mlre, '$tclshbin', '$::argv0', args,\
+            sep=' ')\n"
+@notquarantinesupport@         append fdef "\n   cmd <- paste('$tclshbin', '$::argv0', args,\
             sep=' ')\n"
          append fdef {   mlstatus <- TRUE
    hndl <- pipe(cmd)
@@ -7539,29 +7568,29 @@ if {[catch {
    initErrorReport
 
    # put back quarantine variables in env, if quarantine mechanism supported
-   if {[info exists env(MODULES_RUN_QUARANTINE)] && $g_shellType ne "csh"} {
-      foreach var [split $env(MODULES_RUN_QUARANTINE) " "] {
-         # check variable name is valid
-         if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $var]} {
-            set quarvar "${var}_modquar"
-            # put back value
-            if {[info exists env($quarvar)]} {
-               reportDebug "Release '$var' environment variable from\
+   @quarantinesupport@if {[info exists env(MODULES_RUN_QUARANTINE)] && $g_shellType ne "csh"} {
+   @quarantinesupport@   foreach var [split $env(MODULES_RUN_QUARANTINE) " "] {
+   @quarantinesupport@      # check variable name is valid
+   @quarantinesupport@      if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $var]} {
+   @quarantinesupport@         set quarvar "${var}_modquar"
+   @quarantinesupport@         # put back value
+   @quarantinesupport@         if {[info exists env($quarvar)]} {
+   @quarantinesupport@            reportDebug "Release '$var' environment variable from\
                   quarantine ($env($quarvar))"
-               set env($var) $env($quarvar)
-               unset env($quarvar)
-            # or unset env var if no value found in quarantine
-            } elseif {[info exists env($var)]} {
-               reportDebug "Unset '$var' environment variable after\
+   @quarantinesupport@            set env($var) $env($quarvar)
+   @quarantinesupport@            unset env($quarvar)
+   @quarantinesupport@         # or unset env var if no value found in quarantine
+   @quarantinesupport@         } elseif {[info exists env($var)]} {
+   @quarantinesupport@            reportDebug "Unset '$var' environment variable after\
                   quarantine"
-               unset env($var)
-            }
-         } elseif {[string length $var] > 0} {
-            reportWarning "Bad variable name set in MODULES_RUN_QUARANTINE\
+   @quarantinesupport@            unset env($var)
+   @quarantinesupport@         }
+   @quarantinesupport@      } elseif {[string length $var] > 0} {
+   @quarantinesupport@         reportWarning "Bad variable name set in MODULES_RUN_QUARANTINE\
                ($var)"
-         }
-      }
-   }
+   @quarantinesupport@      }
+   @quarantinesupport@   }
+   @quarantinesupport@}
 
    if {$show_help} {
       cmdModuleHelp

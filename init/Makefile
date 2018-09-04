@@ -93,6 +93,13 @@ ifeq ($(silentshdbgsupport),y)
 else
   silentshdbgsupportre := /@silentshdbgsupport@/d
 endif
+ifeq ($(quarantinesupport),y)
+  quarantinesupportre := s|@quarantinesupport@||g
+  notquarantinesupportre := /@notquarantinesupport@/d
+else
+  quarantinesupportre := /@quarantinesupport@/d
+  notquarantinesupportre := s|@notquarantinesupport@||g
+endif
 
 # comment entries if feature not enabled
 ifeq ($(versioning),y)
@@ -137,6 +144,8 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e '$(compatversionre)' \
 	-e '$(notcompatversionre)' \
 	-e '$(silentshdbgsupportre)' \
+	-e '$(quarantinesupportre)' \
+	-e '$(notquarantinesupportre)' \
 	-e '$(usemanpathre)' \
 	-e '$(notusemanpathre)' \
 	-e $$'s|@modulerc@|$(modulerc)|g' \

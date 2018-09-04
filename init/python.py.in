@@ -1,29 +1,30 @@
 import os, re, subprocess
 
-# define modules runtine quarantine configuration
-@setquarvars@os.environ['MODULES_RUN_QUARANTINE'] = '@RUN_QUARANTINE@'
-@setquarvars@@os.environ['RUNENV_VAR'] = 'RUNENV_VAL'@
-@notsetquarvars@#os.environ['MODULES_RUN_QUARANTINE'] = 'ENVVARNAME'
-@notsetquarvars@
-# setup quarantine if defined
-_mlre = os.environ.copy()
-if 'MODULES_RUN_QUARANTINE' in os.environ:
-   for _mlv in os.environ['MODULES_RUN_QUARANTINE'].split():
-      if re.match('^[A-Za-z_][A-Za-z0-9_]*$', _mlv):
-         if _mlv in os.environ:
-            _mlre[_mlv + '_modquar'] = os.environ[_mlv]
-         _mlrv = 'MODULES_RUNENV_' + _mlv
-         if _mlrv in os.environ:
-            _mlre[_mlv] = os.environ[_mlrv]
-         else:
-            _mlre[_mlv] = ''
-
+@quarantinesupport@# define modules runtine quarantine configuration
+@quarantinesupport@@setquarvars@os.environ['MODULES_RUN_QUARANTINE'] = '@RUN_QUARANTINE@'
+@quarantinesupport@@setquarvars@@os.environ['RUNENV_VAR'] = 'RUNENV_VAL'@
+@quarantinesupport@@notsetquarvars@#os.environ['MODULES_RUN_QUARANTINE'] = 'ENVVARNAME'
+@quarantinesupport@@notsetquarvars@
+@quarantinesupport@# setup quarantine if defined
+@quarantinesupport@_mlre = os.environ.copy()
+@quarantinesupport@if 'MODULES_RUN_QUARANTINE' in os.environ:
+@quarantinesupport@   for _mlv in os.environ['MODULES_RUN_QUARANTINE'].split():
+@quarantinesupport@      if re.match('^[A-Za-z_][A-Za-z0-9_]*$', _mlv):
+@quarantinesupport@         if _mlv in os.environ:
+@quarantinesupport@            _mlre[_mlv + '_modquar'] = os.environ[_mlv]
+@quarantinesupport@         _mlrv = 'MODULES_RUNENV_' + _mlv
+@quarantinesupport@         if _mlrv in os.environ:
+@quarantinesupport@            _mlre[_mlv] = os.environ[_mlrv]
+@quarantinesupport@         else:
+@quarantinesupport@            _mlre[_mlv] = ''
+@quarantinesupport@
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
-exec(subprocess.Popen(['@TCLSH@', '@libexecdir@/modulecmd.tcl', 'python', 'autoinit'], stdout=subprocess.PIPE, env=_mlre).communicate()[0])
-
-# clean temp variable used to setup quarantine
-del _mlre
+@quarantinesupport@exec(subprocess.Popen(['@TCLSH@', '@libexecdir@/modulecmd.tcl', 'python', 'autoinit'], stdout=subprocess.PIPE, env=_mlre).communicate()[0])
+@notquarantinesupport@exec(subprocess.Popen(['@TCLSH@', '@libexecdir@/modulecmd.tcl', 'python', 'autoinit'], stdout=subprocess.PIPE).communicate()[0])
+@quarantinesupport@
+@quarantinesupport@# clean temp variable used to setup quarantine
+@quarantinesupport@del _mlre
 @compatversion@
 @compatversion@# redefine module command if compat version has been activated
 @compatversion@if 'MODULES_USE_COMPAT_VERSION' in os.environ and os.environ['MODULES_USE_COMPAT_VERSION'] == '1':

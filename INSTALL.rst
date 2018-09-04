@@ -246,6 +246,10 @@ instance ``--disable-set-manpath``):
                       Generate code in module function definition and
                       initialization scripts to add support for silencing
                       shell debugging properties (default=yes)
+--enable-quarantine-support
+                      Generate code in module function definition and
+                      initialization scripts to add support for the
+                      environment variable quarantine mechanism (default=yes)
 --enable-auto-handling
                       Set modulecmd.tcl to automatically apply automated
                       modulefiles handling actions, like loading the

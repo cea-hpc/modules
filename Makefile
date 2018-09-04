@@ -91,6 +91,14 @@ else
   setsilentshdbgsupport := \#
 endif
 
+ifeq ($(quarantinesupport),y)
+  setquarantinesupport :=
+  setnotquarantinesupport := \#
+else
+  setquarantinesupport := \#
+  setnotquarantinesupport :=
+endif
+
 ifeq ($(autohandling),y)
   setautohandling := 1
 else
@@ -111,6 +119,8 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@pageropts@|$(pageropts)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \
+	-e 's|@quarantinesupport@|$(setquarantinesupport)|g' \
+	-e 's|@notquarantinesupport@|$(setnotquarantinesupport)|g' \
 	-e 's|@VERSIONING@|$(setversioning)|g' \
 	-e 's|@NOTVERSIONING@|$(setnotversioning)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \

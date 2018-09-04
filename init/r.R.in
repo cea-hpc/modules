@@ -1,27 +1,28 @@
-# define modules runtine quarantine configuration
-@setquarvars@Sys.setenv('MODULES_RUN_QUARANTINE'='@RUN_QUARANTINE@')
-@setquarvars@@Sys.setenv('RUNENV_VAR'='RUNENV_VAL')@
-@notsetquarvars@#Sys.setenv('MODULES_RUN_QUARANTINE'='ENVVARNAME')
-@notsetquarvars@
-# setup quarantine if defined
-mlre <- ''
-if (!is.na(Sys.getenv('MODULES_RUN_QUARANTINE', unset=NA))) {
-   for (mlv in strsplit(Sys.getenv('MODULES_RUN_QUARANTINE'), ' ')[[1]]) {
-      if (grepl('^[A-Za-z_][A-Za-z0-9_]*$', mlv)) {
-         if (!is.na(Sys.getenv(mlv, unset=NA))) {
-            mlre <- paste0(mlre, mlv, "_modquar='", Sys.getenv(mlv), "' ")
-         }
-         mlrv <- paste0('MODULES_RUNENV_', mlv)
-         mlre <- paste0(mlre, mlv, "='", Sys.getenv(mlrv), "' ")
-      }
-   }
-   if (mlre != '') {
-      mlre <- paste0('env ', mlre)
-   }
-}
-
+@quarantinesupport@# define modules runtine quarantine configuration
+@quarantinesupport@@setquarvars@Sys.setenv('MODULES_RUN_QUARANTINE'='@RUN_QUARANTINE@')
+@quarantinesupport@@setquarvars@@Sys.setenv('RUNENV_VAR'='RUNENV_VAL')@
+@quarantinesupport@@notsetquarvars@#Sys.setenv('MODULES_RUN_QUARANTINE'='ENVVARNAME')
+@quarantinesupport@@notsetquarvars@
+@quarantinesupport@# setup quarantine if defined
+@quarantinesupport@mlre <- ''
+@quarantinesupport@if (!is.na(Sys.getenv('MODULES_RUN_QUARANTINE', unset=NA))) {
+@quarantinesupport@   for (mlv in strsplit(Sys.getenv('MODULES_RUN_QUARANTINE'), ' ')[[1]]) {
+@quarantinesupport@      if (grepl('^[A-Za-z_][A-Za-z0-9_]*$', mlv)) {
+@quarantinesupport@         if (!is.na(Sys.getenv(mlv, unset=NA))) {
+@quarantinesupport@            mlre <- paste0(mlre, mlv, "_modquar='", Sys.getenv(mlv), "' ")
+@quarantinesupport@         }
+@quarantinesupport@         mlrv <- paste0('MODULES_RUNENV_', mlv)
+@quarantinesupport@         mlre <- paste0(mlre, mlv, "='", Sys.getenv(mlrv), "' ")
+@quarantinesupport@      }
+@quarantinesupport@   }
+@quarantinesupport@   if (mlre != '') {
+@quarantinesupport@      mlre <- paste0('env ', mlre)
+@quarantinesupport@   }
+@quarantinesupport@}
+@quarantinesupport@
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
-cmdpipe <- pipe(paste0(mlre, '@TCLSH@ @libexecdir@/modulecmd.tcl r autoinit'))
+@quarantinesupport@cmdpipe <- pipe(paste0(mlre, '@TCLSH@ @libexecdir@/modulecmd.tcl r autoinit'))
+@notquarantinesupport@cmdpipe <- pipe(paste0('@TCLSH@ @libexecdir@/modulecmd.tcl r autoinit'))
 eval(parse(cmdpipe))
 close(cmdpipe)

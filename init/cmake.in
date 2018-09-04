@@ -1,32 +1,33 @@
-# define modules runtine quarantine configuration
-@setquarvars@set(ENV{MODULES_RUN_QUARANTINE} "@RUN_QUARANTINE@")
-@setquarvars@@set(ENV{RUNENV_VAR} "RUNENV_VAL")@
-@notsetquarvars@#set(ENV{MODULES_RUN_QUARANTINE} "ENVVARNAME")
-@notsetquarvars@
-# setup quarantine if defined
-set(_mlre "")
-if(DEFINED ENV{MODULES_RUN_QUARANTINE})
-   string(REPLACE " " ";" _mlv_list "$ENV{MODULES_RUN_QUARANTINE}")
-   foreach(_mlv ${_mlv_list})
-      if(${_mlv} MATCHES "^[A-Za-z_][A-Za-z0-9_]*$")
-         if(DEFINED ENV{${_mlv}})
-            set(_mlre "${_mlre}${_mlv}_modquar=$ENV{${_mlv}};")
-         endif()
-         set(_mlrv "MODULES_RUNENV_${_mlv}")
-         set(_mlre "${_mlre}${_mlv}=$ENV{${_mlrv}};")
-     endif()
-   endforeach()
-   if (NOT "${_mlre}" STREQUAL "")
-      set(_mlre "env;${_mlre}")
-   endif()
-endif()
-
+@quarantinesupport@# define modules runtine quarantine configuration
+@quarantinesupport@@setquarvars@set(ENV{MODULES_RUN_QUARANTINE} "@RUN_QUARANTINE@")
+@quarantinesupport@@setquarvars@@set(ENV{RUNENV_VAR} "RUNENV_VAL")@
+@quarantinesupport@@notsetquarvars@#set(ENV{MODULES_RUN_QUARANTINE} "ENVVARNAME")
+@quarantinesupport@@notsetquarvars@
+@quarantinesupport@# setup quarantine if defined
+@quarantinesupport@set(_mlre "")
+@quarantinesupport@if(DEFINED ENV{MODULES_RUN_QUARANTINE})
+@quarantinesupport@   string(REPLACE " " ";" _mlv_list "$ENV{MODULES_RUN_QUARANTINE}")
+@quarantinesupport@   foreach(_mlv ${_mlv_list})
+@quarantinesupport@      if(${_mlv} MATCHES "^[A-Za-z_][A-Za-z0-9_]*$")
+@quarantinesupport@         if(DEFINED ENV{${_mlv}})
+@quarantinesupport@            set(_mlre "${_mlre}${_mlv}_modquar=$ENV{${_mlv}};")
+@quarantinesupport@         endif()
+@quarantinesupport@         set(_mlrv "MODULES_RUNENV_${_mlv}")
+@quarantinesupport@         set(_mlre "${_mlre}${_mlv}=$ENV{${_mlrv}};")
+@quarantinesupport@     endif()
+@quarantinesupport@   endforeach()
+@quarantinesupport@   if (NOT "${_mlre}" STREQUAL "")
+@quarantinesupport@      set(_mlre "env;${_mlre}")
+@quarantinesupport@   endif()
+@quarantinesupport@endif()
+@quarantinesupport@
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
 execute_process(COMMAND mktemp -t moduleinit.cmake.XXXXXXXXXXXX
   OUTPUT_VARIABLE tempfile_name
   OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND ${_mlre} @TCLSH@ @libexecdir@/modulecmd.tcl cmake autoinit
+@quarantinesupport@execute_process(COMMAND ${_mlre} @TCLSH@ @libexecdir@/modulecmd.tcl cmake autoinit
+@notquarantinesupport@execute_process(COMMAND @TCLSH@ @libexecdir@/modulecmd.tcl cmake autoinit
   OUTPUT_FILE ${tempfile_name})
 if(EXISTS ${tempfile_name})
   include(${tempfile_name})
