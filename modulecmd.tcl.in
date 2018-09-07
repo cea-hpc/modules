@@ -4819,6 +4819,21 @@ proc pjoin {lst sep} {
    return $res
 }
 
+# Dictionary-style string comparison
+# Use dictionary sort of lsort proc to compare two strings in the "string
+# compare" fashion (returning -1, 0 or 1). Tcl dictionary-style comparison
+# enables to compare software versions (ex: "1.10" is greater than "1.8")
+proc compareVersion {str1 str2} {
+   if {$str1 eq $str2} {
+      return 0
+   # put both strings in a list, then lsort it and get first element
+   } elseif {[lindex [lsort -dictionary [list $str1 $str2]] 0] eq $str1} {
+      return -1
+   } else {
+      return 1
+   }
+}
+
 # provide a lreverse proc for Tcl8.4 and earlier
 if {[info commands lreverse] eq ""} {
    proc lreverse {l} {
@@ -4890,18 +4905,25 @@ proc checkValidModule {modfile} {
       # Check for valid module
       if {[catch {
          set fid [open $modfile r]
-         set fheader [read $fid 8]
+         # extract magic cookie (first word of modulefile)
+         set fheader [lindex [split [gets $fid]] 0]
          close $fid
       }]} {
          set check_valid "accesserr"
          set check_msg [parseAccessIssue $modfile]
       } else {
-         if {$fheader eq "\#%Module"} {
+         if {![string equal -length 8 $fheader {#%Module}]} {
+            set check_valid "invalid"
+            set check_msg "Magic cookie '#%Module' missing"
+         # check if minimum version requirement is met
+         } elseif {[string length $fheader] == 8 || [compareVersion\
+            {@MODULES_RELEASE@} [string range $fheader 8 end]] >= 0} {
             set check_valid "true"
             set check_msg ""
          } else {
             set check_valid "invalid"
-            set check_msg "Magic cookie '#%Module' missing"
+            set check_msg "Modulefile requires at least Modules version\
+               [string range $fheader 8 end]"
          }
       }
 
@@ -4927,6 +4949,9 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}} {
       set fid [open $modfile r]
       set fdata [read $fid]
       close $fid
+      # extract magic cookie (first word of modulefile)
+      set fheader [lindex [split [string range $fdata 0 [string first \n\
+         $fdata]]] 0]
    } errMsg ]} {
       if {$report_read_issue} {
          reportError [parseAccessIssue $modfile]
@@ -4935,11 +4960,17 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}} {
    }
 
    # check module validity if magic cookie is mandatory
-   if {[string first "\#%Module" $fdata] == 0 || !$must_have_cookie} {
-      return $fdata
-   } else {
+   if {$must_have_cookie && ![string equal -length 8 $fheader {#%Module}]} {
       reportInternalBug "Magic cookie '#%Module' missing" $modfile
       return {}
+   # check if minimum version requirement is met if magic cookie is mandatory
+   } elseif {$must_have_cookie && [string length $fheader] > 8 &&\
+      [compareVersion {@MODULES_RELEASE@} [string range $fheader 8 end]] <0} {
+      reportInternalBug "Modulefile requires at least Modules version [string\
+         range $fheader 8 end]" $modfile
+      return {}
+   } else {
+      return $fdata
    }
 }
 

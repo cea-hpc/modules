@@ -277,6 +277,23 @@ evaluation context during this ``whatis`` evaluation. These variables are
 only initialized to an empty value if undefined. This exception is made to
 save performances on this global evaluation mode.
 
+Express Modules compatibility of modulefile with versioned magic cookie
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Any modulefile should start with the ``#%Module`` magic cookie and sometimes
+a version number may be placed right after this string. Until now this
+version number corresponded to a modulefile format version but it was never
+checked.
+
+Starting with this new Modules release, this version number reflects the
+minimum version of Modules required to interpret the modulefile. If the
+version number is set along the magic cookie string it is now checked and the
+modulefile is interpreted only if Modules version is greater or equal to this
+version number. For instance, if a modulefile begins with the ``#%Module4.3``
+string, it can only be evaluated by Modules version 4.3 and above. Elsewhere
+the modulefile is ignored like files without the ``#%Module`` magic cookie
+set.
+
 Further reading
 ---------------
 

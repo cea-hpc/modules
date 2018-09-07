@@ -15,10 +15,11 @@ regarding the access and use of applications.
 
 A *modulefile* begins with the magic cookie, '#%Module'. A version number may
 be placed after this string. The version number is useful as the *modulefile*
-format may change. If a version number doesn't exist, then **modulecmd.tcl**
-will assume the *modulefile* is compatible with the latest version. The
-current *modulefile* version is 1.0. Files without the magic cookie will
-not be interpreted by **modulecmd.tcl**.
+format may change thus it reflects the minimum version of **modulecmd.tcl**
+required to interpret the modulefile. If a version number doesn't exist, then
+**modulecmd.tcl** will assume the *modulefile* is compatible. Files without
+the magic cookie or with a version number greater than the current version of
+**modulecmd.tcl** will not be interpreted.
 
 Each *modulefile* contains the changes to a user's environment needed to
 access an application. Tcl is a simple programming language which permits
