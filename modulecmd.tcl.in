@@ -797,9 +797,11 @@ prepend-path   {prepend-path   remove-path    prepend-path   prepend-path   prep
 prereq         {prereq         nop            reportCmd      nop            nop            nop           }
 remove-path    {remove-path    remove-path-un remove-path    remove-path    remove-path    edit-path-wh  }
 set-alias      {set-alias      set-alias-un   reportCmd      nop            nop            nop           }
+set-function   {set-function   set-function-un reportCmd     nop            nop            nop           }
 setenv         {setenv         setenv-un      setenv         setenv         setenv         setenv-wh     }
 system         {system         system         reportCmd      nop            nop            nop           }
 unset-alias    {unset-alias    nop            reportCmd      nop            nop            nop           }
+unset-function {unset-function nop            reportCmd      nop            nop            nop           }
 unsetenv       {unsetenv       unsetenv-un    unsetenv       unsetenv       unsetenv       setenv-wh     }
 x-resource     {x-resource     x-resource     reportCmd      nop            nop            nop           }
       }
@@ -2536,6 +2538,30 @@ proc unset-alias {alias} {
    return {}
 }
 
+proc set-function {function what} {
+   reportDebug "function='$function', val='$what'"
+
+   set ::g_Functions($function) $what
+   set ::g_stateFunctions($function) "new"
+
+   return {}
+}
+
+# undo set-function in unload mode
+proc set-function-un {function what} {
+   return [unset-function $function]
+}
+
+proc unset-function {function} {
+   reportDebug "function='$function'"
+
+   set ::g_Functions($function) {}
+   set ::g_stateFunctions($function) "del"
+
+   return {}
+}
+
+
 proc is-loaded {args} {
    reportDebug "$args"
 
@@ -4007,7 +4033,7 @@ proc runModulerc {} {
 # correct set in case of failure
 proc pushSettings {} {
    foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
-      g_newXResources g_delXResources} {
+      g_stateFunctions g_Functions g_newXResources g_delXResources} {
       eval "lappend ::g_SAVE_$var \[array get ::$var\]"
    }
    # save non-array variable and indication if it was set
@@ -4022,15 +4048,15 @@ proc pushSettings {} {
 
 proc popSettings {} {
    foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
-      g_newXResources g_delXResources g_changeDir g_stdoutPuts\
-      g_return_text} {
+      g_stateFunctions g_Functions g_newXResources g_delXResources\
+      g_changeDir g_stdoutPuts g_return_text} {
       eval "set ::g_SAVE_$var \[lrange \$::g_SAVE_$var 0 end-1\]"
    }
 }
 
 proc restoreSettings {} {
    foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
-      g_newXResources g_delXResources} {
+      g_stateFunctions g_Functions g_newXResources g_delXResources} {
       # clear current $var arrays
       if {[info exists ::$var]} {
          eval "unset ::$var; array set ::$var {}"
@@ -4050,18 +4076,20 @@ proc restoreSettings {} {
 }
 
 proc renderSettings {} {
-   global g_stateEnvVars g_stateAliases g_newXResources g_delXResources
+   global g_stateEnvVars g_stateAliases g_stateFunctions g_newXResources\
+      g_delXResources
 
    reportDebug "called."
 
-   # required to work on ygwin, shouldn't hurt real linux
+   # required to work on cygwin, shouldn't hurt real linux
    fconfigure stdout -translation lf
 
    # preliminaries if there is stuff to render
    if {$::g_autoInit || [array size g_stateEnvVars] > 0 ||\
       [array size g_stateAliases] > 0 || [array size g_newXResources] > 0 ||\
-      [array size g_delXResources] > 0 || [info exists ::g_changeDir] ||\
-      [info exists ::g_stdoutPuts] || [info exists ::g_return_text]} {
+      [array size g_stateFunctions] > 0 || [array size g_delXResources] > 0\
+      || [info exists ::g_changeDir] || [info exists ::g_stdoutPuts] ||\
+      [info exists ::g_return_text]} {
       switch -- $::g_shellType {
          {python} {
             puts stdout "import os"
@@ -4231,6 +4259,31 @@ proc renderSettings {} {
                }
                {cmd} {
                   puts stdout "doskey $var="
+               }
+            }
+         }
+      }
+   }
+   foreach funcname [array names g_stateFunctions] {
+      switch -- $g_stateFunctions($funcname) {
+         {new} {
+            set val $::g_Functions($funcname)
+            switch -- $::g_shellType {
+               {sh} {
+                  puts stdout "$funcname () { $val; }; export $funcname;"
+               }
+               {fish} {
+                  puts stdout "function $funcname; $val; end;"
+               }
+            }
+         }
+         {del} {
+            switch -- $::g_shellType {
+               {sh} {
+                  puts stdout "unset -f $funcname;"
+               }
+               {fish} {
+                  puts stdout "functions -e $funcname;"
                }
             }
          }
