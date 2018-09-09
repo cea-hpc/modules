@@ -431,6 +431,17 @@ the *modulefile* is being loaded.
 
  Unsets an alias with the name *alias-name* in the user's environment.
 
+**set-function** function-name function-string
+
+ Creates a function with the name *function-name* in the user's environment
+ with the function body *function-string*. For some shells, functions are not
+ possible and the command has no effect. When a *modulefile* is unloaded,
+ **set-function** becomes **unset-function**.
+
+**unset-function** function-name
+
+ Removes a function with the name *function-name* from the user's environment.
+
 **system** string
 
  Pass *string* to the Tcl built-in command **exec**\ (n). For the **exec**\

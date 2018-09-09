@@ -451,3 +451,9 @@ Modules Specific Tcl Commands
 **module-virtual**
 
  These Modules-specific Tcl commands appeared on version ``4.1`` and are not supported on compatibility version.
+
+**set-function**
+
+**unset-function**
+
+ These Modules-specific Tcl commands appeared on version ``4.2`` and are not supported on compatibility version.

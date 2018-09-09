@@ -1,0 +1,81 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/10/14
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		nanobowers <nanobowers@gmail.com>
+#
+#   Description:	Testsuite testsequence
+#   Command:		unload
+#   Modulefiles:	function/1.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the reverse 'set-function' module subcommand
+#			for all allowed shell types.
+#		}C%
+#
+##############################################################################
+
+#
+#  Variables. This test forces a module unload command. It will result in the
+#    environment variables "_LMFILES_", "LOADEDMODULES" and "testsuite" to
+#    be set up
+#
+
+set module "function/1.0"
+set modulefile "$modpath/$module"
+
+#
+#  Set up the environment for reversal ...
+#
+
+setenv_loaded_module $module $modulefile
+
+#
+#  Expected results for the different shells ...
+#
+set ans_fish [list]
+lappend ans_fish [list "functions -e testsuite;"]
+lappend ans_fish [list unsetpath LOADEDMODULES]
+lappend ans_fish [list unsetpath _LMFILES_]
+
+set ans_sh [list]
+lappend ans_sh [list "unset -f testsuite;"]
+lappend ans_sh [list unsetpath LOADEDMODULES]
+lappend ans_sh [list unsetpath _LMFILES_]
+
+set ans_empty [list]
+lappend ans_empty [list unsetpath LOADEDMODULES]
+lappend ans_empty [list unsetpath _LMFILES_]
+
+#
+#  The tests
+#
+foreach sh $supported_shells {
+    # Can only sh/bash actually unset functions?
+    if { [lsearch {sh bash zsh ksh} $sh] >= 0 } {
+        test_cmd "$sh" "unload $module" $ans_sh
+    } elseif { $sh == "fish" } {
+        test_cmd "$sh" "unload $module" $ans_fish
+    } else {
+        test_cmd "$sh" "unload $module" $ans_empty
+    }
+}
+
+#
+#  Cleanup
+#
+
+unsetenv_loaded_module
+
+unset ans_empty
+unset ans_fish
+unset ans_sh
+unset modulefile
+unset module
+
