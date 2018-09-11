@@ -101,6 +101,34 @@ if { $verbose > 0 } {
 }
 unset env(TESTSUITE_ENABLE_SITECONFIG_TERSENUM)
 
+# test displayElementList procedure with a tricky list that triggers unusual condition
+setenv_var TESTSUITE_ENABLE_SITECONFIG_TRICKYLISTDISP 1
+set ans "test:
+ 1\\) abc/def                                 22\\) abcdefgh/ij-k-lmno.pq         
+ 2\\) abcdefgh/ijklmnop                       23\\) abcdefgh/ijk-l-mnop.qr-stu    
+ 3\\) abc/defg                                24\\) abcdefgh/ijklmnop-qr.st       
+ 4\\) abcd/ef                                 25\\) abcdef/ghijklmno-pq.rs        
+ 5\\) abc/defg-hijkl.mn.op                    26\\) abcdef/ghi-jklm_no_pqrstuv    
+ 6\\) abcdefgh/ijklm.nopqrst                  27\\) abcdefgh/ijk-lm-n-opqr.st     
+ 7\\) abcdefg/hijklmnop-qr.st.uvw             28\\) abcdefgh/ijklm-n-opqr.st-uvw  
+ 8\\) abcdefgh/ijklmnopqrst-u-vwxy.zA-BCD-E   29\\) abcdef/ghijklm-nopq_r         
+ 9\\) abcdef/ghijklm-nopq.r_st.uv             30\\) abcdefg/hijkl-mn.op.qzs       
+10\\) abcdefgh/ijklmnop-q-rstu.vw-xyz-A       31\\) abcdefg/hijklmn-op.qr.stz     
+11\\) abcdefg/hijklmn-op.qr.stu               32\\) abcdefgh/ijklmn               
+12\\) abcdefg/hijkl-mn.op.qrs                 
+13\\) abcd/efgh-ij.k                          
+14\\) abcdefg/hijk-lmnop_qr.st.uvw            
+15\\) abcdef/ghijklmno-p.q.r                  
+16\\) abcdefgh/ijklmn-o-pqrs.tu               
+17\\) abcdefgh/ijklmnop-q-rstu.vw-xyz         
+18\\) abcdefg/hij-klm.nopq                    
+19\\) abcdefg/hij-kl.mn.opq                   
+20\\) abcdefgh/ijklmnopq_rstuv-w-xyzA.BC-DEF  
+21\\) abcdefgh/ijklmnopqrstuv-w-xyzA.BC       
+Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+testouterr_cmd_re "sh" "-V" "OK" $ans
+# restore environment
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TRICKYLISTDISP
 
 # test readModuleContent procedure in no error message report if issue
 # could happen when reading .modulerc/.version file if this kind of file gets
