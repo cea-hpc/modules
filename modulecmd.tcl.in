@@ -1642,11 +1642,17 @@ proc module {command args} {
                   "autoinit"))} {
                   set ret [eval cmdModuleLoad 1 $args]
                } elseif {$mode eq "load"} {
+                  # register modulefiles to load as individual prereqs
+                  foreach arg $args {
+                     setLoadedPrereq [currentModuleName] $arg
+                  }
                   set ret [eval cmdModuleLoad 0 $args]
-               } else {
-                  # on unload mode, unload mods in reverse order
+               # mods unload is handled via UReqUn mechanism when auto enabled
+               } elseif {![getAutoHandling]} {
+                  # on unload mode, unload mods in reverse order, if not user
+                  # asked and not required by other loaded mods
                   # no warn msg if mod is still required and cannot be unload
-                  set ret [eval cmdModuleUnload match 1 0 0 0 [lreverse $args]]
+                  set ret [eval cmdModuleUnload match 1 0 0 1 [lreverse $args]]
                }
                # sub-module interpretation failed, raise error
                if {$ret && !$topcall} {
