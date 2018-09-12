@@ -2729,6 +2729,16 @@ proc getLoadingModuleFileList {} {
    return $modlist
 }
 
+# return list of currently unloading modules in stack
+proc getUnloadingModuleList {} {
+   set modlist [list]
+   for {set i 0} {$i < [llength $::g_moduleNameStack]} {incr i 1} {
+      if {[lindex $::g_modeStack $i] eq "unload"} {
+         lappend modlist [lindex $::g_moduleNameStack $i]
+      }
+   }
+   return $modlist
+}
 # return list of loaded modules by parsing LOADEDMODULES env variable
 proc getLoadedModuleList {{filter_empty 1}} {
    set modlist [list]
@@ -3692,6 +3702,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
       }
    }
 
+   set unloadingmodlist [getUnloadingModuleList]
    for {set i [llength $modlist]} {$i < [llength $fulllist]} {incr i 1} {
       set depmod [lindex $fulllist $i]
 
@@ -3702,7 +3713,10 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
             eval appendNoDupToList fulllist [getDirectDependentList $depmod\
                $strong]
          }
-         lappend deplist $depmod
+         # avoid module currently unloading from result list
+         if {[notInList $unloadingmodlist $depmod]} {
+            lappend deplist $depmod
+         }
       }
    }
 
