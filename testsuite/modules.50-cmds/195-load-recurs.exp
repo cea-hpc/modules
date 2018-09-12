@@ -47,6 +47,7 @@ lappend ans [list set MODB_LOADED 1]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 lappend ans [list setpath MODULES_LMNOTUASKED "$modB"]
+lappend ans [list setpath MODULES_LMPREREQ "$modA&$modB"]
 lappend ans [list setpath MODULES_LMCONFLICT "$modA&modA"]
 
 #
@@ -58,6 +59,7 @@ testouterr_cmd_re "ALL" "load $modA" $ans "$moderr"
 # set-up a loaded environment
 #
 setenv_loaded_module [list "foobar/1.0" $module] [list "/some/path/foobar/1.0" $modulefile] [list $modB]
+setenv_path_var MODULES_LMPREREQ $modA&$modB
 set module "foobar/1.0"
 set modulefile "/some/path/foobar/1.0"
 set moderr "modA unload\nmodB unload";
@@ -67,6 +69,7 @@ lappend ans [list unset MODA_LOADED]
 lappend ans [list unset MODB_LOADED]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
 
 #
@@ -79,6 +82,7 @@ testouterr_cmd_re "ALL" "unload $modA" $ans "$moderr"
 #
 
 unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
 unset moderr
 
 unset ans

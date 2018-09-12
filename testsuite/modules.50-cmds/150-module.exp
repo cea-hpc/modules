@@ -82,6 +82,7 @@ set moderrun_11 "$moderr_msgs: unload-path cannot handle path equals to separato
 lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES "$module:$module_1"]
 lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_1"]
+lappend ans [list setpath MODULES_LMPREREQ $module_1&$module]
 lappend ans [list setpath MODULES_LMNOTUASKED $module]
 
 test_cmd_re "csh" "load $module_1" $ans
@@ -94,7 +95,7 @@ set ans [list]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES "$module:$module_2:$module_3:$module_4"]
 lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_2:$modulefile_3:$modulefile_4"]
-lappend ans [list setpath MODULES_LMPREREQ "$module_3&trace"]
+lappend ans [list setpath MODULES_LMPREREQ "$module_3&trace:$module_4&setenv&trace&$module_3"]
 lappend ans [list setpath MODULES_LMNOTUASKED "$module:$module_2:$module_3"]
 
 test_cmd_re "csh" "load $module_4" $ans
@@ -105,17 +106,20 @@ test_cmd_re "csh" "load $module_4" $ans
 
 # Set up the environment for test that require the module to be loaded
 setenv_loaded_module [list $module $module_2 $module_3 $module_4] [list $modulefile $modulefile_2 $modulefile_3 $modulefile_4] [list $module $module_2 $module_3]
+setenv_path_var MODULES_LMPREREQ $module_3&trace $module_4&setenv&trace&$module_3
 
 set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
 
 test_cmd_re "csh" "unload $module_4" $ans
 
 # Clean up the just changed environment
 unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
 
 #
 # Test load of module with issue, nothing loads
@@ -134,28 +138,36 @@ testouterr_cmd "csh" "load $module_12" "ERR" "$err_emptymodname"
 # Test unload of module with issue, nothing unloads
 #
 
-setenv_loaded_module [list $submod_5 $module_5] [list $submodfile_5 $modulefile_5]
+setenv_loaded_module [list $submod_5 $module_5] [list $submodfile_5 $modulefile_5] [list $submod_5]
+setenv_path_var MODULES_LMPREREQ $module_5&$submod_5
 testouterr_cmd "csh" "unload $module_5" "ERR" "$moderrun_5"
 
-setenv_loaded_module [list $submod_6 $module_6] [list $submodfile_6 $modulefile_6]
+setenv_loaded_module [list $submod_6 $module_6] [list $submodfile_6 $modulefile_6] [list $submod_6]
+setenv_path_var MODULES_LMPREREQ $module_6&$submod_6
 testouterr_cmd "csh" "unload $module_6" "ERR" "$moderrun_6"
 
-setenv_loaded_module [list $submod_7 $module_7] [list $submodfile_7 $modulefile_7]
+setenv_loaded_module [list $submod_7 $module_7] [list $submodfile_7 $modulefile_7] [list $submod_7]
+setenv_path_var MODULES_LMPREREQ $module_7&$submod_7
 testouterr_cmd "csh" "unload $module_7" "ERR" "$moderrun_7"
 
-setenv_loaded_module [list $submod_5 $module_5 $module_8] [list $submodfile_5 $modulefile_5 $modulefile_8]
+setenv_loaded_module [list $submod_5 $module_5 $module_8] [list $submodfile_5 $modulefile_5 $modulefile_8] [list $submod_5 $module_5]
+setenv_path_var MODULES_LMPREREQ $module_5&$submod_5 $module_8&$module_5
 testouterr_cmd "csh" "unload $module_8" "ERR" "$moderrun_5"
 
-setenv_loaded_module [list $submod_6 $module_6 $module_9] [list $submodfile_6 $modulefile_6 $modulefile_9]
+setenv_loaded_module [list $submod_6 $module_6 $module_9] [list $submodfile_6 $modulefile_6 $modulefile_9] [list $submod_6 $module_6]
+setenv_path_var MODULES_LMPREREQ $module_6&$submod_6 $module_9&$module_6
 testouterr_cmd "csh" "unload $module_9" "ERR" "$moderrun_6"
 
-setenv_loaded_module [list $submod_7 $module_7 $module_10] [list $submodfile_7 $modulefile_7 $modulefile_10]
+setenv_loaded_module [list $submod_7 $module_7 $module_10] [list $submodfile_7 $modulefile_7 $modulefile_10] [list $submod_7 $module_7]
+setenv_path_var MODULES_LMPREREQ $module_7&$submod_7 $module_10&$module_7
 testouterr_cmd "csh" "unload $module_10" "ERR" "$moderrun_7"
 
-setenv_loaded_module [list $submod_11 $module_11] [list $submodfile_11 $modulefile_11]
+setenv_loaded_module [list $submod_11 $module_11] [list $submodfile_11 $modulefile_11] [list $submod_11]
+setenv_path_var MODULES_LMPREREQ $module_11&$submod_11
 testouterr_cmd "csh" "unload $module_11" "ERR" "$moderrun_11"
 
 # Clean up the just changed environment
+unsetenv_path_var MODULES_LMPREREQ
 unsetenv_loaded_module
 
 #

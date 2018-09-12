@@ -121,41 +121,48 @@ set modulepathre_14 "$modulepathre_2"
 # loading tests
 set modsym_15 "lcross/1"
 set modnuasked_15 [list cross/2.0 lcross/2]
+set modprereq_15 [list lcross/2&cross/2.0 lcross/1&lcross/2]
 set module_15 [list cross/2.0 lcross/2 lcross/1]
 set modalt_15 $modalt_2
 set modulefile_15 [list $modpath3/cross/2.0 $modpath2/lcross/2 $modpath1/lcross/1]
 
 set modsym_16 "lcross/3"
 set modnuasked_16 [list cross/4.0 lcross/4]
+set modprereq_16 [list lcross/4&cross/4.0 lcross/3&lcross/4]
 set module_16 [list cross/4.0 lcross/4 lcross/3]
 set modulefile_16 [list $modpath1/cross/4.0 $modpath2/lcross/4 $modpath3/lcross/3]
 
 set modsym_17 "lcross/5"
 set modnuasked_17 [list cross/6.0 lcross/6]
+set modprereq_17 [list lcross/6&cross/6 lcross/5&lcross/6]
 set module_17 [list cross/6.0 lcross/6 lcross/5]
 set modalt_17 $modalt_6
 set modulefile_17 [list $modpath2/cross/6.0 $modpath1/lcross/6 $modpath2/lcross/5]
 
 set modsym_18 "lcross/7"
 set modnuasked_18 [list cross/1.0 lcross/8]
+set modprereq_18 [list lcross/8&cross/1 lcross/7&lcross/8]
 set module_18 [list cross/1.0 lcross/8 lcross/7]
 set modalt_18 $modalt_1
 set modulefile_18 [list $modpath2/cross/1.0 $modpath3/lcross/8 $modpath2/lcross/7]
 
 set modsym_19 "lcross/10"
 set modnuasked_19 "cross/4.0"
+set modprereq_19 [list lcross/10&cross]
 # first directory wins default
 set module_19 "cross/4.0:lcross/10"
 set modulefile_19 "$modpath1/cross/4.0:$modpath1/lcross/10"
 
 set modsym_20 "lcross/11"
 set modnuasked_20 "cross/4.0"
+set modprereq_20 [list lcross/11&cross]
 # first directory wins default
 set module_20 "cross/4.0:lcross/11"
 set modulefile_20 "$modpath1/cross/4.0:$modpath2/lcross/11"
 
 set modsym_21 "lcross/12"
 set modnuasked_21 "cross/4.0"
+set modprereq_21 [list lcross/12&cross]
 # first directory wins default
 set module_21 "cross/4.0:lcross/12"
 set modulefile_21 "$modpath1/cross/4.0:$modpath3/lcross/12"
@@ -378,6 +385,11 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     } else {
         set modnuasked {}
     }
+    if {[info exists "::modprereq_${i}"]} {
+        set modprereq [join [set "::modprereq_${i}"] ":"]
+    } else {
+        set modprereq {}
+    }
     if {[info exists "::modulefile_${i}"]} {
         set modulefilelist [set "::modulefile_${i}"]
         set modulefile [join $modulefilelist ":"]
@@ -397,6 +409,7 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
 
     # setup environment with no loaded module
     unsetenv_loaded_module
+    unsetenv_path_var MODULES_LMPREREQ
     unsetenv_path_var MODULES_LMALTNAME
 
     set ans [list]
@@ -405,6 +418,9 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     lappend ans [list setpath _LMFILES_ "$modulefile"]
     if {$modnuasked ne ""} {
         lappend ans [list setpath MODULES_LMNOTUASKED "$modnuasked"]
+    }
+    if {$modprereq ne ""} {
+        lappend ans [list setpath MODULES_LMPREREQ "$modprereq"]
     }
     if {$modalt ne ""} {
         lappend ans [list setpath MODULES_LMALTNAME $modalt]
@@ -434,6 +450,9 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
 
     # setup environment with targeted module loaded
     setenv_loaded_module $modulelist $modulefilelist $modnuasked
+    if {$modprereq ne ""} {
+        setenv_path_var MODULES_LMPREREQ $modprereq
+    }
     if {$modalt ne ""} {
         setenv_path_var MODULES_LMALTNAME $modalt
     }
@@ -442,6 +461,9 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     lappend ans [list unset testsuite]
     lappend ans [list unsetpath LOADEDMODULES]
     lappend ans [list unsetpath _LMFILES_]
+    if {$modprereq ne ""} {
+        lappend ans [list unsetpath MODULES_LMPREREQ]
+    }
     if {$modnuasked ne ""} {
         lappend ans [list unsetpath MODULES_LMNOTUASKED]
     }
@@ -534,6 +556,9 @@ for {set i 1} {$i <= 49} {incr i} {
     }
     if {[info exists "modnuasked_${i}"]} {
         unset "modnuasked_${i}"
+    }
+    if {[info exists "modprereq_${i}"]} {
+        unset "modprereq_${i}"
     }
     if {[info exists "::modulefile_${i}"]} {
         unset "modulefile_${i}"
