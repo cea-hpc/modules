@@ -1661,10 +1661,25 @@ proc module {command args} {
             }
          }
          {unload} {
-            set ret [eval cmdModuleUnload match 1 0 1 0 $args]
-            # sub-module interpretation failed, raise error
-            if {$ret && !$topcall} {
-               set errormsg "SUB_FAILED"
+            # if top command is source, consider module load commands made
+            # within sourced file evaluation as top load command
+            if {$topcall || ([getEvalModuleStackDepth] == 1 && (
+               [aboveCommandName] eq "source" || [aboveCommandName] eq\
+               "autoinit"))} {
+               set ret [eval cmdModuleUnload match 1 0 1 0 $args]
+            } elseif {$mode eq "load"} {
+               # unload mods only on load mode, nothing done on unload mode as
+               # the registered conflict guarantees the target module cannot
+               # be loaded unless forced
+               set ret [eval cmdModuleUnload match 0 0 1 0 $args]
+               # register modulefiles to unload as individual conflicts
+               foreach arg $args {
+                  conflict $arg
+               }
+               # sub-module interpretation failed, raise error
+               if {$ret} {
+                  set errormsg "SUB_FAILED"
+               }
             }
          }
          {reload} {
