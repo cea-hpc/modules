@@ -65,11 +65,18 @@ set modulefile "/some/path/foobar/1.0"
 set moderr "modA unload\nmodB unload";
 
 set ans [list]
+# interpretation is done sequentially not cascaded when auto_handling is enabled (change result order)
+if {$install_autohandling eq {n}} {
 lappend ans [list unset MODA_LOADED]
 lappend ans [list unset MODB_LOADED]
+}
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 lappend ans [list unsetpath MODULES_LMPREREQ]
+if {$install_autohandling eq {y}} {
+lappend ans [list unset MODA_LOADED]
+lappend ans [list unset MODB_LOADED]
+}
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
 
 #

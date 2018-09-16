@@ -76,6 +76,21 @@ setenv_path_var MODULES_LMPREREQ [join $tmpreall &]
 setenv_path_var MODULES_LMALTNAME "$mall&load/default&load"
 
 
+# interpretation is done sequentially not cascaded when auto_handling is enabled (change result order)
+# also for this use case modulefiles are not unloaded in same order (based on loaded order for
+# auto_handling), which lead to different result if unloading modules compete over same variable to set
+if {$install_autohandling eq {y}} {
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $tm00]
+lappend ans [list setpath _LMFILES_ $tp00]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list set mload t10]
+for {set t 30} {$t >= 10} {incr t -1} {
+    lappend ans [list unset "t$t"]
+}
+} else {
 set ans [list]
 lappend ans [list set mload t30]
 lappend ans [list setpath LOADEDMODULES $tm00]
@@ -86,6 +101,7 @@ for {set t 10} {$t <= 30} {incr t} {
 }
 lappend ans [list unsetpath MODULES_LMALTNAME]
 lappend ans [list unsetpath MODULES_LMPREREQ]
+}
 
 #
 #  The unload tests

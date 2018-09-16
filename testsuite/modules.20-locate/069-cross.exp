@@ -458,11 +458,17 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     }
 
     set ans [list]
-    lappend ans [list unset testsuite]
+    # unload interpretations are not cascaded if auto_handling enabled so answer order change
+    if {$::install_autohandling eq {n} || $modprereq eq {}} {
+        lappend ans [list unset testsuite]
+    }
     lappend ans [list unsetpath LOADEDMODULES]
     lappend ans [list unsetpath _LMFILES_]
     if {$modprereq ne ""} {
         lappend ans [list unsetpath MODULES_LMPREREQ]
+    }
+    if {$::install_autohandling eq {y} && $modprereq ne {}} {
+        lappend ans [list unset testsuite]
     }
     if {$modnuasked ne ""} {
         lappend ans [list unsetpath MODULES_LMNOTUASKED]
