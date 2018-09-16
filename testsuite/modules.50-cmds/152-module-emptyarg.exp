@@ -106,7 +106,8 @@ foreach cmd [list load unload] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     # if auto_handling is enabled 'module load' order is not treated through modulefile eval
     # but based on prereq definition which are nil here
-    if {$cmd eq {load} && $install_autohandling eq {y}} {
+    # 'module unload' order are ignored on unload mode
+    if {($cmd eq {load} && $install_autohandling eq {y}) || $cmd eq {unload}} {
         set ans [list]
         lappend ans [list unsetpath LOADEDMODULES]
         lappend ans [list unsetpath _LMFILES_]

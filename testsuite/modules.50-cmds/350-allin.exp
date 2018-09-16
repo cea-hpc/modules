@@ -91,14 +91,16 @@ lappend ans [list setpath TSPATH "dir3 dir2"]
 lappend ans [list set tsp "dir3 dir2"]
 lappend ans [list unset ts2]
 lappend ans [list unset tsc]
-lappend ans [list unset ts3]
+lappend ans [list set ts3 ok]
 lappend ans [list alias foo bar]
 lappend ans [list unalias bar]
 lappend ans [list xres Ileaf.popup.saveUnder True]
 lappend ans [list chdir $env(TESTSUITEDIR)]
-lappend ans [list setpath LOADEDMODULES $module/1]
-lappend ans [list setpath _LMFILES_ $modulepath/$module/1]
-lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list setpath LOADEDMODULES $module/5:$module/1]
+lappend ans [list setpath _LMFILES_ $modulepath/$module/5:$modulepath/$module/1]
+lappend ans [list setpath MODULES_LMNOTUASKED $module/5]
+lappend ans [list setpath MODULES_LMPREREQ $module/1&$module/5]
+lappend ans [list setpath MODULES_LMCONFLICT $module/1&$module/4]
 lappend ans [list ERR]
 set tserr1 "$modulepathre:
 $module/1
@@ -118,7 +120,6 @@ $modlin
 $env(HOME)/.module/default:
 
 module use --append $modulepathre
-module load --notuasked $module
 
 $modlin
 [test_stderr_content $modulepathre/$module/5 {} 1]
@@ -154,8 +155,10 @@ testouterr_cmd "sh" "load $module/4" "ERR" ""
 # test unload mode
 #
 
-setenv_loaded_module "$module/1" "$modulepath/$module/1"
+setenv_loaded_module [list $module/5 $module/1] [list $modulepath/$module/5 $modulepath/$module/1] [list $module/5]
 setenv_path_var MODULES_LMALTNAME $module/1&foo
+setenv_path_var MODULES_LMPREREQ $module/1&$module/5
+setenv_path_var MODULES_LMCONFLICT $module/1&$module/4
 setenv_var ts1 "ok"
 setenv_var tsu ""
 setenv_var TSPATH "dir3 dir2"
@@ -173,7 +176,10 @@ lappend ans [list unalias foo]
 lappend ans [list unxres Ileaf.popup.saveUnder]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
 lappend ans [list unsetpath MODULES_LMALTNAME]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
 set tserr1 "$modulepathre:
 $module/1
 $module/2
@@ -186,6 +192,7 @@ $modulepathre/$module/5:
 setenv\t\tts3 ok
 $modlin
 Currently Loaded Modulefiles:
+$module/5
 $module/1
 Named collection list:
 default
@@ -193,6 +200,7 @@ $modlin
 $env(HOME)/.module/default:
 
 module use --append $modulepathre
+module load --notuasked $module
 module load $module/1
 
 $modlin
@@ -212,6 +220,8 @@ unsetenv_path_var TSPATH
 unsetenv_var tsp
 
 unsetenv_path_var MODULES_LMALTNAME
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
 setenv_loaded_module "$module/2" "$modulepath/$module/2"
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
@@ -252,15 +262,15 @@ module\t\taliases
 module\t\tavail -t allin
 module\t\tdisplay allin/5
 module\t\tlist -t
-module\t\tload allin/5
 module\t\tsave
 module\t\trestore
 module\t\tsavelist -t
 module\t\tsaveshow
 module\t\tsaverm
+module\t\tload allin/5
 module\t\tsource ./5
 module\t\ttest allin/5
-module\t\tunload allin/5
+module\t\tunload allin/4
 module\t\tuse -a /path/to/dir
 module\t\tunuse /path/to/dir
 module-version\t/3 3.0
