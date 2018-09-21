@@ -1642,11 +1642,18 @@ proc module {command args} {
                   "autoinit"))} {
                   set ret [eval cmdModuleLoad 1 $args]
                } elseif {$mode eq "load"} {
+                  # load here if no auto mode, done through prereq elsewhere
+                  if {![getAutoHandling]} {
+                     set ret [eval cmdModuleLoad 0 $args]
+                     # ignore obtained error if force mode enabled
+                     if {[getForce]} {
+                        set ret 0
+                     }
+                  }
                   # register modulefiles to load as individual prereqs
                   foreach arg $args {
-                     setLoadedPrereq [currentModuleName] $arg
+                     prereq $arg
                   }
-                  set ret [eval cmdModuleLoad 0 $args]
                # mods unload is handled via UReqUn mechanism when auto enabled
                } elseif {![getAutoHandling]} {
                   # on unload mode, unload mods in reverse order, if not user

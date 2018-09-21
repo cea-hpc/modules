@@ -56,13 +56,15 @@ set mod_b3 "module/bad"
 set modfile_b3 "$modpath/$mod_b3"
 set modfilere_b3 "$modpathre/$mod_b3"
 set disp_b3 "module\\s+load\\s+$mod_b1"
-set errlo_b3 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modfilere_b1'\n$err_contact"
+set errsrc_b3 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modfilere_b1'\n$err_contact"
+set errlo_b3 "$errsrc_b3\n[err_prereq $mod_b3 $mod_b1]"
 
 set mod_b4 "module/err"
 set modfile_b4 "$modpath/$mod_b4"
 set modfilere_b4 "$modpathre/$mod_b4"
 set disp_b4 "module\\s+load\\s+$mod_b2"
-set errlo_b4 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$modfilere_b2'\n$err_contact"
+set errsrc_b4 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$modfilere_b2'\n$err_contact"
+set errlo_b4 "$errsrc_b4\n[err_prereq $mod_b4 $mod_b2]"
 
 
 set help_pre "$modlin"
@@ -101,6 +103,11 @@ proc multi_test_case {args} {
         if {[info exists "::errlo_${m}"]} {
             set errlo [set "::errlo_${m}"]
             set erri $i
+            if {[info exists "::errsrc_${m}"]} {
+                set errsrc [set "::errsrc_${m}"]
+            } else {
+                set errsrc [set "::errlo_${m}"]
+            }
         } else {
             lappend module $mod
             lappend modulefile $modfile
@@ -169,6 +176,7 @@ proc multi_test_case {args} {
         lappend ans_src [list ERR]
     } else {
         set errlo ""
+        set errsrc ""
         lappend ans_lo [list setpath LOADEDMODULES [join $module ":"]]
         lappend ans_lo [list setpath _LMFILES_ [join $modulefile ":"]]
     }
@@ -180,7 +188,7 @@ proc multi_test_case {args} {
 
     testouterr_cmd_re "sh" "whatis $modsym" "OK" "$whatis"
 
-    testouterr_cmd_re "sh" "source $allmodulefile" $ans_src "$errlo"
+    testouterr_cmd_re "sh" "source $allmodulefile" $ans_src "$errsrc"
 
     # setup environment for unload action
     setenv_loaded_module $module $modulefile
@@ -270,10 +278,12 @@ unset mod_b3
 unset modfile_b3
 unset modfilere_b3
 unset disp_b3
+unset errsrc_b3
 unset errlo_b3
 
 unset mod_b4
 unset modfile_b4
 unset modfilere_b4
 unset disp_b4
+unset errsrc_b4
 unset errlo_b4

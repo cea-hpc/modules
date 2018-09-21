@@ -66,12 +66,12 @@ set submodfile_7 "$modpath/$submod_7"
 set submod_11 $submod_5
 set submodfile_11 $submodfile_5
 
-set moderr_5 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$submodfile_5'\n$err_contact"
-set moderr_6 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$submodfile_6'\n$err_contact"
-set moderr_7 "$err_path'$submod_7'"
-set moderr_11 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$submodfile_11'\n$err_contact"
+set moderr_5 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$submodfile_5'\n$err_contact\n[err_prereq $module_5 $submod_5]"
+set moderr_6 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$submodfile_6'\n$err_contact\n[err_prereq $module_6 $submod_6]"
+set moderr_7 "$err_path'$submod_7'\n[err_prereq $module_7 $submod_7]"
+set moderr_11 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$submodfile_11'\n$err_contact\n[err_prereq $module_11 ../$submod_11]"
 set moderrun_5 "$moderr_msgs: unload-path cannot handle path equals to separator string\n  In '$submodfile_5'\n$err_contact"
-set moderrun_6 $moderr_6
+set moderrun_6 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$submodfile_6'\n$err_contact"
 set moderrun_7 "$err_file'$submodfile_7'"
 set moderrun_11 "$moderr_msgs: unload-path cannot handle path equals to separator string\n  In '$submodfile_11'\n$err_contact"
 
@@ -134,11 +134,11 @@ unsetenv_path_var MODULES_LMPREREQ
 testouterr_cmd "csh" "load $module_5" "ERR" "$moderr_5"
 testouterr_cmd "csh" "load $module_6" "ERR" "$moderr_6"
 testouterr_cmd "csh" "load $module_7" "ERR" "$moderr_7"
-testouterr_cmd "csh" "load $module_8" "ERR" "$moderr_5"
-testouterr_cmd "csh" "load $module_9" "ERR" "$moderr_6"
-testouterr_cmd "csh" "load $module_10" "ERR" "$moderr_7"
+testouterr_cmd "csh" "load $module_8" "ERR" "$moderr_5\n[err_prereq $module_8 $module_5]"
+testouterr_cmd "csh" "load $module_9" "ERR" "$moderr_6\n[err_prereq $module_9 $module_6]"
+testouterr_cmd "csh" "load $module_10" "ERR" "$moderr_7\n[err_prereq $module_10 $module_7]"
 testouterr_cmd "csh" "load $module_11" "ERR" "$moderr_11"
-testouterr_cmd "csh" "load $module_12" "ERR" "$err_emptymodname"
+testouterr_cmd "csh" "load $module_12" "ERR" "$err_emptymodname\n[err_prereq $module_12 {}]"
 
 #
 # Test unload of module with issue, nothing unloads if auto handling disabled
