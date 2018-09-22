@@ -1658,8 +1658,7 @@ proc module {command args} {
                } elseif {![getAutoHandling]} {
                   # on unload mode, unload mods in reverse order, if not user
                   # asked and not required by other loaded mods
-                  # no warn msg if mod is still required and cannot be unload
-                  set ret [eval cmdModuleUnload match 1 0 0 1 [lreverse $args]]
+                  set ret [eval cmdModuleUnload match 1 0 1 1 [lreverse $args]]
                }
                # sub-module interpretation failed, raise error
                if {$ret && !$topcall} {
@@ -1673,12 +1672,14 @@ proc module {command args} {
             if {$topcall || ([getEvalModuleStackDepth] == 1 && (
                [aboveCommandName] eq "source" || [aboveCommandName] eq\
                "autoinit"))} {
-               set ret [eval cmdModuleUnload match 1 0 1 0 $args]
+               set ret [eval cmdModuleUnload match 1 0 0 0 $args]
             } elseif {$mode eq "load"} {
                # unload mods only on load mode, nothing done on unload mode as
                # the registered conflict guarantees the target module cannot
                # be loaded unless forced
-               set ret [eval cmdModuleUnload match 0 0 1 0 $args]
+               # do not unload module required by others even in force mode
+               set ret [eval cmdModuleUnload match 0 0 0 1 $args]
+
                # register modulefiles to unload as individual conflicts
                foreach arg $args {
                   conflict $arg
@@ -6086,7 +6087,7 @@ proc reloadModuleListUnloadPhase {lmlist} {
       set isuasked($mod) [isModuleUserAsked $mod]
       # force unload even if requiring mods are not part of the unload list
       # (violation state) as modules are loaded again just after
-      cmdModuleUnload match 0 1 1 0 $mod
+      cmdModuleUnload match 0 1 0 0 $mod
    }
    return [array get isuasked]
 }
@@ -6423,7 +6424,7 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    reportDebug "old='$old' new='$new' (uasked=$uasked)"
 
    # attempt load only if unload succeed
-   if {![cmdModuleUnload $unload_match 1 0 1 0 $old]} {
+   if {![cmdModuleUnload $unload_match 1 0 0 0 $old]} {
       cmdModuleLoad $uasked $new
    }
 
@@ -6527,7 +6528,7 @@ proc cmdModuleRestore {{coll {default}}} {
 
    # unload modules one by one (no dependency auto unload)
    if {[llength $mod_to_unload] > 0} {
-      eval cmdModuleUnload match 0 0 1 0 [lreverse $mod_to_unload]
+      eval cmdModuleUnload match 0 0 0 0 [lreverse $mod_to_unload]
    }
    # unuse paths
    if {[llength $path_to_unuse] > 0} {
@@ -6844,9 +6845,9 @@ proc cmdModuleLoad {uasked args} {
    return $ret
 }
 
-proc cmdModuleUnload {match auto force warn nuasked args} {
+proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
    reportDebug "unloading $args (match=$match, auto=$auto, force=$force,\
-      warn=$warn, nuasked=$nuasked)"
+      onlyureq=$onlyureq, onlyndep=$onlyndep)"
 
    set ret 0
    pushMode "unload"
@@ -6856,7 +6857,7 @@ proc cmdModuleUnload {match auto force warn nuasked args} {
       if {$modfile ne ""} {
          if {![isModuleLoaded $modname]} {
             reportDebug "$modname ($modfile) is not loaded"
-         } elseif {$nuasked && [isModuleUserAsked $modname]}  {
+         } elseif {$onlyureq && [isModuleUserAsked $modname]}  {
             reportDebug "$modname ($modfile) has been asked by user"
          } else {
             # error if unloading module violates a registered prereq
@@ -6864,7 +6865,8 @@ proc cmdModuleUnload {match auto force warn nuasked args} {
             set prereq_list [getDependentLoadedModuleList $modname]
             if {[llength $prereq_list] == 0 || ([getAutoHandling] && $auto)} {
                set proceed 1
-            } elseif {[getForce] || $force} {
+            # force mode should not affect if we only look for mods w/o dep
+            } elseif {([getForce] || $force) && !$onlyndep} {
                # still proceed if force mode enabled
                set proceed 1
                # in case unload is called for a DepRe mechanism or a purge do
@@ -6876,7 +6878,8 @@ proc cmdModuleUnload {match auto force warn nuasked args} {
                }
             } else {
                set proceed 0
-               if {$warn} {
+               # no message if we tried to unload only useless requirements
+               if {!$onlyureq} {
                   reportError "WARNING: $modname cannot be unloaded due to a\
                      prereq.\nHINT: Might try \"module unload\
                      [join $prereq_list]\" first."
@@ -6941,7 +6944,7 @@ proc cmdModuleUnload {match auto force warn nuasked args} {
 
                   # DepUn modules unload prior main mod unload
                   foreach unmod [lreverse $depunlist] {
-                     cmdModuleUnload match 0 0 1 0 $unmod
+                     cmdModuleUnload match 0 0 0 0 $unmod
                   }
                }
 
@@ -6983,7 +6986,7 @@ proc cmdModuleUnload {match auto force warn nuasked args} {
                   if {[getAutoHandling] && $auto} {
                      # UReqUn modules unload now DepUn+main mods are unloaded
                      foreach unmod [lreverse $urequnlist] {
-                        cmdModuleUnload match 0 0 1 0 $unmod
+                        cmdModuleUnload match 0 0 0 0 $unmod
                      }
 
                      # DepRe modules load phase now DepUn+UReqUn+main mods are
@@ -7014,7 +7017,7 @@ proc cmdModulePurge {} {
 
    # unload one by one to ensure same behavior whatever auto_handling state
    # force it to handle loaded modules in violation state
-   eval cmdModuleUnload match 0 1 1 0 [lreverse [getLoadedModuleList]]
+   eval cmdModuleUnload match 0 1 0 0 [lreverse [getLoadedModuleList]]
 }
 
 proc cmdModuleReload {args} {
