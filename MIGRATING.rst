@@ -209,6 +209,64 @@ the next major release version (5.0) where it will be enabled by default. This
 new feature is currently considered experimental and the set of triggered
 actions will be refined over the next feature releases.
 
+Consistency of module load/unload commands in modulefile
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With the **module load** modulefile command, a given modulefile can
+automatically load a modulefile it pre-requires. Similarly with the **module
+unload** modulefile command, a given modulefile can automatically unload a
+modulefile it conflicts with.
+
+Both commands imply additional actions on the loaded environment (loading or
+unloading extra modulefiles) that should cope with the constraints defined by
+the loaded environment.
+
+Additionally **module load** and **module unload** modulefile commands express
+themselves constraints on loaded environment that should stay satisfied to
+ensure consistency.
+
+To ensure the consistency of **module load** modulefile command once the
+modulefile defining it has been loaded, this command is assimilated to a
+**prereq** command. Thus the defined constraint is recorded in the
+``MODULES_LMPREREQ`` environment variable. Same approach is used for **module
+unload** modulefile command which is assimilated to a **conflict** command.
+Thus the defined constraint is recorded in the ``MODULES_LMCONFLICT``
+environment variable.
+
+To ensure the consistency of the loaded environment, the additional actions of
+the **module load** and **module unload** modulefile commands have been
+adapted in particular situations:
+
+* When unloading modulefile, **module load** command will unload the
+  modulefile it targets only if no other loaded modulefile requires it and if
+  this target has not been explicitly loaded by user.
+
+* When unloading modulefile, **module unload** command does nothing as the
+  relative conflict registered at load time ensure environment consistency and
+  will forbid conflicting modulefile load.
+
+Please note that loading and unloading results may differ than from previous
+Modules version now that consistency is checked:
+
+* Modulefile targeted by a **module load** modulefile command may not be able
+  to load due to a registered conflict in the currently loaded environment.
+  Which in turn will break the load of the modulefile declaring the **module
+  load** command.
+
+* Modulefile targeted by a **module unload** modulefile command may not be
+  able to unload due to a registered prereq in the loaded environment. Which
+  in turn will break the load of the modulefile declaring the **module
+  unload** command.
+
+* If automated module handling mode is enabled, **module load** modulefile
+  command is interpreted when unloading modulefile as part of the Useless
+  Requirement Unload (UReqUn) mechanism not through modulefile evaluation.
+  As a consequence, an error occurring when unloading the modulefile targeted
+  by the **module load** command does not break the unload of the modulefile
+  declaring this command. Moreover unload of the **module load** targets is
+  done in the reverse loaded order, not in the **module load** command
+  definition order.
+
 Modulefile alias and symbolic modulefile name consistency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
