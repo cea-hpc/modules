@@ -111,6 +111,8 @@ On compatibility version, paths composing the **MODULEPATH** environment variabl
 
  Starting with version ``4.1``, content sent to the ``stdout`` channel during a *modulefile* interpretation is spooled to effectively transmit this content to stdout after rendering the environment changes made by this modulefile.
 
+ When the specified module to unload matches multiple loaded modules, Modules 4 unloads lastly loaded module whereas compatibility version unloads firstly loaded module.
+
 **switch**
  
  When switching on version 4 an *old* modulefile by a *new* one, no error is raised if *old* modulefile is not currently loaded. In this situation compatibility version throws an error and abort switch action.
