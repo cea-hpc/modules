@@ -45,12 +45,14 @@ set mod0_err "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modulef
 #
 
 # unload unkown module
-testouterr_cmd "sh" "unload NonExistant" "ERR" "$err_path'NonExistant'"
+# no modulefile existence check, just look if loaded, no error if not
+testouterr_cmd "sh" "unload NonExistant" OK {}
 
 # try with full path name forms
-testouterr_cmd "sh" "unload $modpath/XYZ" "ERR" "$err_file'$modpath/XYZ'"
-testouterr_cmd "sh" "unload $reldmodpath/XYZ" "ERR" "$err_file'$modpath/XYZ'"
-testouterr_cmd "sh" "unload $relddmodpath/XYZ" "ERR" "$err_file'$modpath/XYZ'"
+# no modulefile existence check, just look if loaded, no error if not
+testouterr_cmd "sh" "unload $modpath/XYZ" OK {}
+testouterr_cmd "sh" "unload $reldmodpath/XYZ" OK {}
+testouterr_cmd "sh" "unload $relddmodpath/XYZ" OK {}
 
 # set up the environment
 setenv_loaded_module $module_0 $modulefile_0
@@ -64,7 +66,8 @@ setenv_var testsuite "yes"
 setenv_loaded_module $module_1 $modulefile_1
 
 # unload passing partial name
-testouterr_cmd "sh" "unload set" "ERR" "$err_path'set'"
+# no modulefile existence check, just look if loaded, no error if not
+testouterr_cmd "sh" "unload set" OK {}
 
 # unload passing fully qualified module name
 testouterr_cmd "sh" "unload $module_1" $ans ""
@@ -124,7 +127,8 @@ lappend ans [list unsetpath _LMFILES_]
 setenv_loaded_module $module_1 $modulefile_1
 
 # unload passing partial name, modulepath not set anymore
-testouterr_cmd "sh" "unload set" "ERR" $err_nomodpath
+# no modulefile existence check, just look if loaded, no error if not
+testouterr_cmd "sh" "unload set" OK {}
 
 # unload passing fully qualified module name, modulepath not set anymore
 testouterr_cmd "sh" "unload $module_1" $ans ""
@@ -192,8 +196,9 @@ testouterr_cmd "sh" "unload $modulename_1" $ans ""
 
 # same test without MODULEPATH set anymore
 unsetenv_path_var MODULEPATH
-testouterr_cmd "sh" "unload $module_2" "ERR" $err_nomodpath
-testouterr_cmd "sh" "unload $modulename_1" "ERR" $err_nomodpath
+# no modulefile existence check, just look if loaded, no error if not
+testouterr_cmd "sh" "unload $module_2" OK {}
+testouterr_cmd "sh" "unload $modulename_1" OK {}
 
 
 #

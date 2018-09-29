@@ -56,8 +56,9 @@ testouterr_cmd "sh" "unload $module_2" "OK" ""
 setenv_loaded_module [list $module_3 $module_4] [list $modulefile_3 $modulefile_4]
 
 # unload using partial name
-testouterr_cmd "sh" "unload pl" "ERR" "$err_path'pl'"
-testouterr_cmd "sh" "unload plain/di" "ERR" "$err_path'plain/di'"
+# no modulefile existence check, just look if loaded, no error if not
+testouterr_cmd "sh" "unload pl" OK {}
+testouterr_cmd "sh" "unload plain/di" OK {}
 
 # unload a different module that shares same root name
 testouterr_cmd "sh" "unload $module_2" "OK" ""
@@ -104,8 +105,8 @@ unsetenv_path_var MODULEPATH
 setenv_loaded_module [list $module_3 $module_4] [list $modulefile_3 $modulefile_4]
 
 # unload a different module that shares same root name
-# gets error as search to solve module cannot be performed without modulepath
-testouterr_cmd "sh" "unload $module_2" "ERR" $err_nomodpath
+# no modulefile existence check, just look if loaded, no error if not
+testouterr_cmd "sh" "unload $module_2" OK {}
 
 
 set ans [list]

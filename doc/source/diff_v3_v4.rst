@@ -107,6 +107,8 @@ On compatibility version, paths composing the **MODULEPATH** environment variabl
  
  Compatibility version enables to load a *modulefile* by passing on the command-line the name of a module alias or symbolic version pointing to this modulefile. However this module alias or symbolic version name cannot be used to unload the modulefile once loaded. Modules 4 enables to pass a module alias or symbolic version name to unload a loaded modulefile referred by this name.
 
+ On versions ``4.0`` and ``4.1``, unloading an unexistent modulefile generates an *Unable to locate modulefile* error. Starting with version ``4.2``, unloading a module only looks at loaded module list and does not trigger a modulefile search. So starting version ``4.2`` the same behavior than Modules compatibility version is obtained.
+
  Starting with version ``4.1``, content sent to the ``stdout`` channel during a *modulefile* interpretation is spooled to effectively transmit this content to stdout after rendering the environment changes made by this modulefile.
 
 **switch**

@@ -2967,10 +2967,16 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
       set retlist [list "" 0 "none" "Invalid empty module name"]
    # try first to look at loaded modules if enabled to find maching module
    # or to find a closest match (used when switching with single name arg)
-   } elseif {($look_loaded eq "match" && [set lm [getLoadedMatchingName\
-      $mod]] ne "") || ($look_loaded eq "close" && [set lm\
-      [getLoadedWithClosestName $mod]] ne "")} {
-      set retlist [list [getModulefileFromLoadedModule $lm] $lm]
+   } elseif {$look_loaded ne {no}} {
+      switch -- $look_loaded {
+         {match} {set getLoadedNameProc getLoadedMatchingName}
+         {close} {set getLoadedNameProc getLoadedWithClosestName}
+      }
+      if {[set lm [$getLoadedNameProc $mod]] ne {}} {
+         set retlist [list [getModulefileFromLoadedModule $lm] $lm]
+      } else {
+         set retlist [list {} $mod notloaded]
+      }
    # Check for $mod specified as a full pathname
    } elseif {[isModuleFullPath $mod]} {
       set mod [getAbsolutePath $mod]
@@ -3082,7 +3088,8 @@ proc getPathToModule {mod {indir {}} {look_loaded "no"} {excdir {}}} {
    }
    if {[lindex $retlist 0] ne ""} {
       reportDebug "found '[lindex $retlist 0]' as '[lindex $retlist 1]'"
-   } else {
+   # no error if we look at loaded modules and passed mod not found loaded
+   } elseif {[lindex $retlist 2] ne {notloaded}} {
       eval reportIssue [lrange $retlist 2 4]
    }
    return $retlist
@@ -6853,11 +6860,9 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
    pushMode "unload"
    foreach mod $args {
       # resolve by also looking at matching loaded module
-      lassign [getPathToModule $mod {} $match] modfile modname
+      lassign [getPathToModule $mod {} $match] modfile modname errkind
       if {$modfile ne ""} {
-         if {![isModuleLoaded $modname]} {
-            reportDebug "$modname ($modfile) is not loaded"
-         } elseif {$onlyureq && [isModuleUserAsked $modname]}  {
+         if {$onlyureq && [isModuleUserAsked $modname]}  {
             reportDebug "$modname ($modfile) has been asked by user"
          } else {
             # error if unloading module violates a registered prereq
@@ -7003,6 +7008,9 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                popSettings
             }
          }
+      # no error return if module is not loaded
+      } elseif {$errkind eq {notloaded}} {
+         reportDebug "$modname is not loaded"
       } else {
          set ret 1
       }
