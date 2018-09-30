@@ -330,7 +330,13 @@ proc reportError {message {severity ERROR} {raisecnt 1}} {
       if {$raisecnt} {
          raiseErrorCount
       }
-      report "$severity: $message"
+      set message "$severity: $message"
+      # record message to report it later on if a record id is found
+      if {[currentMsgRecordId] ne {}} {
+         recordMessage $message
+      } else {
+         report $message
+      }
    }
 }
 
@@ -347,8 +353,46 @@ proc __reportErrorAndExit {message} {
 }
 
 proc reportInternalBug {message modfile} {
-   reportError "$message\n  In '$modfile'\n  Please contact <$::contact>"\
-      {Module ERROR}
+   # change line padding depending on output-kind
+   if {[currentMsgRecordId] ne {}} {
+      set pad {}
+   } else {
+      set pad {  }
+   }
+   reportError "$message\n${pad}In '$modfile'\n${pad}Please contact\
+      <$::contact>" {Module ERROR}
+}
+
+# render messages related to current record id under an header block
+proc reportMsgRecord {header} {
+   set recid [currentMsgRecordId]
+   if {[info exists ::g_msgRecord($recid)]} {
+      # blank line to separate from already produced content
+      if {[info exists ::g_already_report]} {
+         report {}
+      }
+
+      report $header
+      foreach msg $::g_msgRecord($recid) {
+         set first 1
+         set padding {  }
+         foreach line [split $msg \n] {
+            report $padding$line
+            if {$first} {
+               set padding {    }
+               set first 0
+            }
+         }
+      }
+
+      # purge message list in case same evaluation is re-done afterward
+      unset ::g_msgRecord($recid)
+   }
+}
+
+# save message for block rendering
+proc recordMessage {message} {
+   lappend ::g_msgRecord([currentMsgRecordId]) $message
 }
 
 # save message if report is not yet initialized
@@ -358,10 +402,12 @@ proc report {message {nonewline 0}} {
 
 # regular procedure to use once error report is initialized
 proc __report {message {nonewline 0}} {
-   # start pager at first call and only if enabled
-   if {$::start_pager} {
-      set ::start_pager 0
-      startPager
+   if {![info exists ::g_already_report]} {
+      set ::g_already_report 1
+      # start pager at first call and only if enabled
+      if {$::start_pager} {
+         startPager
+      }
    }
 
    # protect from issue with fd, just ignore it
@@ -2734,6 +2780,22 @@ proc pushCommandName {commandName} {
 proc popCommandName {} {
    set ::g_commandNameStack [lrange $::g_commandNameStack 0 end-1]
 }
+
+# stack of message recording unique identifiers
+set g_msgRecordIdStack {}
+
+proc currentMsgRecordId {} {
+   return [lindex $::g_msgRecordIdStack end]
+}
+
+proc pushMsgRecordId {recid} {
+   lappend ::g_msgRecordIdStack $recid
+}
+
+proc popMsgRecordId {} {
+   set ::g_msgRecordIdStack [lrange $::g_msgRecordIdStack 0 end-1]
+}
+
 
 # return list of currently loading modules in stack
 proc getLoadingModuleList {} {
@@ -6739,6 +6801,9 @@ proc cmdModuleLoad {uasked args} {
    foreach mod $args {
       lassign [getPathToModule $mod] modfile modname
       if {$modfile ne ""} {
+         # set a unique id to record messages related to this evaluation
+         pushMsgRecordId load-$modname-[getEvalModuleStackDepth]
+
          # check if passed modname correspond to an already loaded modfile
          # and get its loaded name (in case it has been loaded as full path)
          set loadedmodname [getLoadedMatchingName $modname]
@@ -6841,6 +6906,10 @@ proc cmdModuleLoad {uasked args} {
          } else {
             reportDebug "$modname ($modfile) already loaded"
          }
+
+         # report all recorded messages for this evaluation
+         reportMsgRecord "Loading $modname"
+         popMsgRecordId
       } else {
          set ret 1
       }
@@ -6860,6 +6929,9 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
       # resolve by also looking at matching loaded module
       lassign [getPathToModule $mod {} $match] modfile modname errkind
       if {$modfile ne ""} {
+         # set a unique id to record messages related to this evaluation
+         pushMsgRecordId unload-$modname-[getEvalModuleStackDepth]
+
          if {$onlyureq && [isModuleUserAsked $modname]}  {
             reportDebug "$modname ($modfile) has been asked by user"
          } else {
@@ -7006,6 +7078,10 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                popSettings
             }
          }
+
+         # report all recorded messages for this evaluation
+         reportMsgRecord "Unloading $modname"
+         popMsgRecordId
       # no error return if module is not loaded
       } elseif {$errkind eq {notloaded}} {
          reportDebug "$modname is not loaded"
