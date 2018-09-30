@@ -798,9 +798,8 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
          } elseif {$errorMsg eq "SUB_FAILED"} {
             # error counter and message already handled, just return error
             return 1
-         } elseif [regexp "^WARNING" $errorMsg] {
-            raiseErrorCount
-            report $errorMsg
+         } elseif {[string range $errorMsg 0 9] eq {GLOBALERR }} {
+            reportError [string range $errorMsg 10 end]
             return 1
          } else {
             reportInternalBug $errorMsg $::ModulesCurrentModulefile
@@ -2428,7 +2427,7 @@ proc conflict {args} {
          if {[getForce]} {
             reportWarning "$currentModule conflicts with $mod"
          } else {
-            set errMsg "WARNING: $currentModule cannot be loaded due to a\
+            set errMsg "GLOBALERR $currentModule cannot be loaded due to a\
                conflict."
             set errMsg "$errMsg\nHINT: Might try \"module unload $mod\"\
                first."
@@ -2442,7 +2441,7 @@ proc conflict {args} {
          if {[getForce]} {
             reportWarning "$currentModule conflicts with $mod"
          } else {
-            set errMsg "WARNING: $currentModule cannot be loaded due\
+            set errMsg "GLOBALERR $currentModule cannot be loaded due\
                to a conflict."
             set errMsg "$errMsg\nHINT: Conflict with $mod\
                is set in $currentModule."
@@ -2481,7 +2480,7 @@ proc prereq {args} {
       if {[getForce]} {
          reportWarning "$currentModule requires [join $args { or }] loaded"
       } else {
-         set errMsg "WARNING: $currentModule cannot be loaded due to\
+         set errMsg "GLOBALERR $currentModule cannot be loaded due to\
              missing prereq."
          # adapt error message when multiple modules are specified
          if {[llength $args] > 1} {
@@ -2526,7 +2525,11 @@ proc x-resource {resource {value {}}} {
 
    # check current environment can handle X11 resource edition elsewhere exit
    if {[catch {runCommand xrdb -query} errMsg]} {
-      error "WARNING: X11 resources cannot be edited, issue spotted\n$errMsg"
+      if {[string range $errMsg 0 9] eq {GLOBALERR }} {
+         set errMsg [string range $errMsg 10 end]
+      }
+      error "GLOBALERR X11 resources cannot be edited, issue spotted\nERROR:\
+         $errMsg"
    }
 
    # if a resource does hold an empty value in g_newXResources or
@@ -4768,7 +4771,7 @@ proc getCommandPath {cmd} {
 proc runCommand {cmd args} {
    set cmdpath [getCommandPath $cmd]
    if {$cmdpath eq ""} {
-      error "WARNING: Command '$cmd' cannot be found"
+      error "GLOBALERR Command '$cmd' cannot be found"
    } else {
       return [eval exec $cmdpath $args]
    }
