@@ -134,7 +134,7 @@ lappend ans [list unsetpath MODULES_LMNOTUASKED]
 set tserr [list {unload m3} {unload m2} {unload m1}]
 testouterr_cmd_re sh {unload --auto m1} $ans [join $tserr \n]
 # raise an error to keep consistency and no unload if auto_handling is disabled
-set tserr [list "$error_msgs: [err_prerequn m1 m2 m3]"]
+set tserr [list [err_prerequn m1 m2 m3]]
 testouterr_cmd_re sh {unload --no-auto m1} ERR [join $tserr \n]
 
 # unload test where 'module load' targets are loaded and are inter-connected
@@ -167,7 +167,7 @@ testouterr_cmd_re sh {unload --no-auto m4} $ans [join $tserr \n]
 setenv_loaded_module [list m5] [list $mp/m5]
 setenv_path_var MODULES_LMCONFLICT m5&m1
 unsetenv_path_var MODULES_LMPREREQ
-set tserr [list "$error_msgs: [err_conflict m1 m5]" [err_prereq m2 m1]]
+set tserr [list [err_conflict m1 m5] [err_prereq m2 m1]]
 testouterr_cmd_re sh {load --auto m2} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m2} ERR [join $tserr \n]
 set ans [list]
@@ -228,7 +228,7 @@ testouterr_cmd_re sh {load --force --no-auto m5} $ans [join $tserr \n]
 # load test in case 'module unload' target is loaded, user asked, and required by another loaded module
 setenv_loaded_module [list m1 m2] [list $mp/m1 $mp/m2]
 setenv_path_var MODULES_LMPREREQ m2&m1
-set tserr [list "$error_msgs: [err_prerequn m1 m2]" [err_conflict m5 m1]]
+set tserr [list [err_prerequn m1 m2] [err_conflict m5 m1]]
 testouterr_cmd_re sh {load --auto m5} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m5} ERR [join $tserr \n]
 # force mode will by-pass unload/conflict to garanty m2&m1 prereq
@@ -237,13 +237,13 @@ lappend ans [list setpath LOADEDMODULES m1:m2:m5]
 lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2:$mp/m5]
 lappend ans [list setpath MODULES_LMCONFLICT m5&m1]
 lappend ans [list ERR]
-set tserr [list "$error_msgs: [err_prerequn m1 m2]" [err_conflictf m5 m1] {load m5}]
+set tserr [list [err_prerequn m1 m2] [err_conflictf m5 m1] {load m5}]
 testouterr_cmd_re sh {load --auto --force m5} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto --force m5} $ans [join $tserr \n]
 
 # load test in case 'module unload' target is loaded, not user asked, and required by another loaded module
 setenv_loaded_module [list m1 m2] [list $mp/m1 $mp/m2] [list m1]
-set tserr [list "$error_msgs: [err_prerequn m1 m2]" [err_conflict m5 m1]]
+set tserr [list [err_prerequn m1 m2] [err_conflict m5 m1]]
 testouterr_cmd_re sh {load --auto m5} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m5} ERR [join $tserr \n]
 # force mode will by-pass unload/conflict to garanty m2&m1 prereq
@@ -252,7 +252,7 @@ lappend ans [list setpath LOADEDMODULES m1:m2:m5]
 lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2:$mp/m5]
 lappend ans [list setpath MODULES_LMCONFLICT m5&m1]
 lappend ans [list ERR]
-set tserr [list "$error_msgs: [err_prerequn m1 m2]" [err_conflictf m5 m1] {load m5}]
+set tserr [list [err_prerequn m1 m2] [err_conflictf m5 m1] {load m5}]
 testouterr_cmd_re sh {load --auto --force m5} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto --force m5} $ans [join $tserr \n]
 
@@ -355,7 +355,7 @@ lappend ans [list unsetpath MODULES_LMNOTUASKED]
 set tserr [list {unload m5} {unload m2} {unload m1} {load m5}]
 testouterr_cmd_re sh {unload --auto m1} $ans [join $tserr \n]
 # raise an error to keep consistency and no unload if auto_handling is disabled
-set tserr [list "$error_msgs: [err_prerequn m1 m2]"] 
+set tserr [list [err_prerequn m1 m2]]
 testouterr_cmd_re sh {unload --no-auto m1} ERR [join $tserr \n]
 
 
@@ -398,9 +398,9 @@ lappend ans [list setpath _LMFILES_ $mp/m6]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
 lappend ans [list ERR]
-set tserr [list {unload m2} {unload m1} "$error_msgs: [err_conflict m3 m6]"]
+set tserr [list {unload m2} {unload m1} [err_conflict m3 m6]]
 testouterr_cmd_re sh {switch --auto m2 m3} $ans [join $tserr \n]
-set tserr [list {unload m1} {unload m2} "$error_msgs: [err_conflict m3 m6]"]
+set tserr [list {unload m1} {unload m2} [err_conflict m3 m6]]
 testouterr_cmd_re sh {switch --no-auto m2 m3} $ans [join $tserr \n]
 
 set ans [list]
