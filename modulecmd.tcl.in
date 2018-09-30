@@ -320,17 +320,17 @@ proc __reportDebug {message {showcaller 1}} {
 proc __reportDebugNop {args} {}
 
 proc reportWarning {message} {
-   if {!$::g_inhibit_errreport} {
-      report "WARNING: $message"
-   }
+   reportError $message WARNING 0
 }
 
-proc reportError {message} {
+proc reportError {message {severity ERROR} {raisecnt 1}} {
    # if report disabled, also disable error raise to get a coherent
    # behavior (if no message printed, no error code change)
    if {!$::g_inhibit_errreport} {
-      raiseErrorCount
-      report "ERROR: $message"
+      if {$raisecnt} {
+         raiseErrorCount
+      }
+      report "$severity: $message"
    }
 }
 
@@ -347,13 +347,8 @@ proc __reportErrorAndExit {message} {
 }
 
 proc reportInternalBug {message modfile} {
-   # if report disabled, also disable error raise to get a coherent
-   # behavior (if no message printed, no error code change)
-   if {!$::g_inhibit_errreport} {
-      raiseErrorCount
-      report "Module ERROR: $message\n  In '$modfile'\n  Please contact\
-         <$::contact>"
-   }
+   reportError "$message\n  In '$modfile'\n  Please contact <$::contact>"\
+      {Module ERROR}
 }
 
 # save message if report is not yet initialized
