@@ -301,36 +301,36 @@ proc renderText {text} {
 
 # save message when report is not currently initialized as we do not
 # know yet if debug mode is enabled or not
-proc reportDebug {message {nonewline ""}} {
-   lappend ::errreport_buffer [list "reportDebug" $message $nonewline 0]
+proc reportDebug {message} {
+   lappend ::errreport_buffer [list reportDebug $message 0]
 }
 
 # regular procedure to use once error report is initialized
-proc __reportDebug {message {nonewline ""} {showcaller 1}} {
+proc __reportDebug {message {showcaller 1}} {
    # display caller name as prefix
    if {$showcaller && [info level] > 1} {
       set prefix "[lindex [info level -1] 0]: "
    } else {
       set prefix ""
    }
-   report "DEBUG $prefix$message" "$nonewline"
+   report "DEBUG $prefix$message"
 }
 
 # alternative procedure used when debug is disabled
 proc __reportDebugNop {args} {}
 
-proc reportWarning {message {nonewline ""}} {
+proc reportWarning {message} {
    if {!$::g_inhibit_errreport} {
-      report "WARNING: $message" "$nonewline"
+      report "WARNING: $message"
    }
 }
 
-proc reportError {message {nonewline ""}} {
+proc reportError {message} {
    # if report disabled, also disable error raise to get a coherent
    # behavior (if no message printed, no error code change)
    if {!$::g_inhibit_errreport} {
       raiseErrorCount
-      report "ERROR: $message" "$nonewline"
+      report "ERROR: $message"
    }
 }
 
@@ -357,12 +357,12 @@ proc reportInternalBug {message modfile} {
 }
 
 # save message if report is not yet initialized
-proc report {message {nonewline ""}} {
-   lappend ::errreport_buffer [list "report" $message $nonewline]
+proc report {message {nonewline 0}} {
+   lappend ::errreport_buffer [list report $message $nonewline]
 }
 
 # regular procedure to use once error report is initialized
-proc __report {message {nonewline ""}} {
+proc __report {message {nonewline 0}} {
    # start pager at first call and only if enabled
    if {$::start_pager} {
       set ::start_pager 0
@@ -371,7 +371,7 @@ proc __report {message {nonewline ""}} {
 
    # protect from issue with fd, just ignore it
    catch {
-      if {$nonewline ne ""} {
+      if {$nonewline} {
          puts -nonewline $::reportfd "$message"
       } else {
          puts $::reportfd "$message"
@@ -5796,7 +5796,7 @@ proc displayElementList {header hstyle one_per_line display_idx args} {
          append displist "\n"
       }
    }
-   report "$displist" -nonewline
+   report $displist 1
 }
 
 # build list of what to undo then do to move from an initial list to a target
