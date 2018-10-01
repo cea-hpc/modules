@@ -592,6 +592,60 @@ proc startPager {} {
    }
 }
 
+# helper procedures to format various messages
+proc getHintUnFirstMsg {modlist} {
+   return "HINT: Might try \"module unload [join $modlist]\" first."
+}
+
+proc getHintLoFirstMsg {modlist} {
+   if {[llength $modlist] > 1} {
+      set oneof {at least one of }
+      set mod modules
+   } else {
+      set oneof {}
+      set mod module
+   }
+   return "HINT: ${oneof}the following $mod must be loaded first: $modlist"
+}
+
+proc getHintLoConflictMsg {mod conlist} {
+   return "HINT: Conflict with [join $conlist] is set in $mod."
+}
+
+proc getErrConflictMsg {mod conlist {loading 0}} {
+   if {$loading} {
+      set hintmsg [getHintLoConflictMsg $mod $conlist]
+   } else {
+      set hintmsg [getHintUnFirstMsg $conlist]
+   }
+   return "$mod cannot be loaded due to a conflict.\n$hintmsg"
+}
+
+proc getWarnConflictMsg {mod conlist} {
+   return "$mod conflicts with [join $conlist {, }]"
+}
+
+proc getWarnUnPrereqMsg {mod prelist} {
+   return "$mod is required by [join $prelist {, }]"
+}
+
+proc getWarnLoPrereqMsg {mod prelist} {
+   return "$mod requires [join $prelist { or }] loaded"
+}
+
+proc getErrPrereqMsg {mod prelist {load 1}} {
+   if {$load} {
+      set un {}
+      set mis missing
+      set hintmsg [getHintLoFirstMsg $prelist]
+   } else {
+      set un un
+      set mis a
+      set hintmsg [getHintUnFirstMsg $prelist]
+   }
+   return "$mod cannot be ${un}loaded due to $mis prereq.\n$hintmsg"
+}
+
 ########################################################################
 # Use a slave TCL interpreter to execute modulefiles
 #
@@ -2471,13 +2525,9 @@ proc conflict {args} {
       if {[is-loaded $mod]} {
          # still proceed if force mode enabled
          if {[getForce]} {
-            reportWarning "$currentModule conflicts with $mod"
+            reportWarning [getWarnConflictMsg $currentModule $mod]
          } else {
-            set errMsg "GLOBALERR $currentModule cannot be loaded due to a\
-               conflict."
-            set errMsg "$errMsg\nHINT: Might try \"module unload $mod\"\
-               first."
-            error $errMsg
+            error "GLOBALERR [getErrConflictMsg $currentModule $mod]"
          }
       # if the conflict module is loading and it does not correspond to
       # currently evaluated module, we cannot proceed either
@@ -2485,13 +2535,9 @@ proc conflict {args} {
          [is-loading $mod]} {
          # still proceed if force mode enabled
          if {[getForce]} {
-            reportWarning "$currentModule conflicts with $mod"
+            reportWarning [getWarnConflictMsg $currentModule $mod]
          } else {
-            set errMsg "GLOBALERR $currentModule cannot be loaded due\
-               to a conflict."
-            set errMsg "$errMsg\nHINT: Conflict with $mod\
-               is set in $currentModule."
-            error $errMsg
+            error "GLOBALERR [getErrConflictMsg $currentModule $mod 1]"
          }
       }
    }
@@ -2524,19 +2570,9 @@ proc prereq {args} {
    if {![eval is-loaded $args]} {
       # still proceed if force mode enabled
       if {[getForce]} {
-         reportWarning "$currentModule requires [join $args { or }] loaded"
+         reportWarning [getWarnLoPrereqMsg $currentModule $args]
       } else {
-         set errMsg "GLOBALERR $currentModule cannot be loaded due to\
-             missing prereq."
-         # adapt error message when multiple modules are specified
-         if {[llength $args] > 1} {
-            set errMsg "$errMsg\nHINT: at least one of the following modules\
-               must be loaded first: $args"
-         } else {
-            set errMsg "$errMsg\nHINT: the following module must be loaded\
-               first: $args"
-         }
-         error $errMsg
+         error "GLOBALERR [getErrPrereqMsg $currentModule $args]"
       }
    }
 
@@ -6820,14 +6856,11 @@ proc cmdModuleLoad {uasked args} {
             if {[getForce] && $doescon} {
                # still proceed if force mode enabled
                set proceed 1
-               reportWarning "$modname conflicts with [join $modconlist\
-                  {, }]"
+               reportWarning [getWarnConflictMsg $modname $modconlist]
             } elseif {$doescon} {
                set proceed 0
                set ret 1
-               reportError "$modname cannot be loaded due to a\
-                  conflict.\nHINT: Might try \"module unload\
-                  [join $modconlist]\" first."
+               reportError [getErrConflictMsg $modname $modconlist]
             } else {
                set proceed 1
             }
@@ -6948,16 +6981,13 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                # not warn about prereq violation enforced as it is due to the
                # dependent module which is already in a violation state
                if {$auto || !$force} {
-                  reportWarning "$modname is required by [join $prereq_list\
-                     {, }]"
+                  reportWarning [getWarnUnPrereqMsg $modname $prereq_list]
                }
             } else {
                set proceed 0
                # no message if we tried to unload only useless requirements
                if {!$onlyureq} {
-                  reportError "$modname cannot be unloaded due to a\
-                     prereq.\nHINT: Might try \"module unload\
-                     [join $prereq_list]\" first."
+                  reportError [getErrPrereqMsg $modname $prereq_list 0]
                }
             }
 
