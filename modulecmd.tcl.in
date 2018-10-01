@@ -367,23 +367,51 @@ proc reportInternalBug {message modfile} {
 proc reportMsgRecord {header} {
    set recid [currentMsgRecordId]
    if {[info exists ::g_msgRecord($recid)]} {
+      set tty_cols [getTtyColumns]
+      set padding {  }
       # blank line to separate from already produced content
       if {[info exists ::g_already_report]} {
          report {}
       }
 
-      report $header
+      set dispmsg $header
       foreach msg $::g_msgRecord($recid) {
+         # split lines if too large for terminal
          set first 1
-         set padding {  }
+         set max_idx [expr {$tty_cols - [string length $padding]}]
+         set linelist [list]
          foreach line [split $msg \n] {
-            report $padding$line
-            if {$first} {
-               set padding {    }
-               set first 0
+            set lineadd {}
+            while {$lineadd ne $line} {
+               # no split if no whitespace found to slice
+               if {[string length $line] > $max_idx && [set cut_idx [string\
+                  last { } $line $max_idx]] != -1} {
+                  set lineadd [string range $line 0 [expr {$cut_idx-1}]]
+                  set line [string range $line [expr {$cut_idx+1}] end]
+               } else {
+                  set lineadd $line
+               }
+               lappend linelist $lineadd
+               if {$first} {
+                  set first 0
+                  incr max_idx -[string length $padding]
+               }
             }
          }
+
+         # display each line
+         set first 1
+         foreach line $linelist {
+            append dispmsg \n
+            if {$first} {
+               set first 0
+            } else {
+               append dispmsg $padding
+            }
+            append dispmsg "$padding$line"
+         }
       }
+      report $dispmsg
 
       # purge message list in case same evaluation is re-done afterward
       unset ::g_msgRecord($recid)
