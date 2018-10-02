@@ -369,10 +369,6 @@ proc reportMsgRecord {header} {
    if {[info exists ::g_msgRecord($recid)]} {
       set tty_cols [getTtyColumns]
       set padding {  }
-      # blank line to separate from already produced content
-      if {[info exists ::g_already_report]} {
-         report {}
-      }
 
       set dispmsg $header
       foreach msg $::g_msgRecord($recid) {
@@ -411,11 +407,23 @@ proc reportMsgRecord {header} {
             append dispmsg "$padding$line"
          }
       }
+      reportSeparateNextContent
       report $dispmsg
+      reportSeparateNextContent
 
       # purge message list in case same evaluation is re-done afterward
       unset ::g_msgRecord($recid)
    }
+}
+
+# separate next content produced if any
+proc reportSeparateNextContent {} {
+   lappend ::errreport_buffer [list reportSeparateNextContent]
+}
+
+# regular procedure to use once error report is initialized
+proc __reportSeparateNextContent {} {
+   set ::g_report_sep_next 1
 }
 
 # save message for block rendering
@@ -436,6 +444,10 @@ proc __report {message {nonewline 0}} {
       if {$::start_pager} {
          startPager
       }
+   # produce blank line prior message if asked to
+   } elseif {[info exists ::g_report_sep_next]} {
+      unset ::g_report_sep_next
+      report {}
    }
 
    # protect from issue with fd, just ignore it
@@ -526,6 +538,8 @@ proc initErrorReport {} {
    }
    rename ::reportErrorAndExit {}
    rename ::__reportErrorAndExit ::reportErrorAndExit
+   rename ::reportSeparateNextContent {}
+   rename ::__reportSeparateNextContent ::reportSeparateNextContent
    rename ::report {}
    rename ::__report ::report
 
@@ -5774,13 +5788,6 @@ proc displayElementList {header hstyle one_per_line display_idx args} {
 
    # display header if any provided
    if {$header ne "noheader"} {
-      # if list already displayed, separate with a blank line before header
-      if {![info exists ::g_eltlist_disp]} {
-         set ::g_eltlist_disp 1
-      } else {
-         report ""
-      }
-
       if {$hstyle eq "sepline"} {
          displaySeparatorLine $header
       } else {
@@ -5921,6 +5928,7 @@ proc displayElementList {header hstyle one_per_line display_idx args} {
       }
    }
    report $displist 1
+   reportSeparateNextContent
 }
 
 # build list of what to undo then do to move from an initial list to a target
