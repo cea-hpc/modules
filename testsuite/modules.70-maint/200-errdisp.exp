@@ -1,0 +1,59 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2018/10/02
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#		Check message block output with specific terminal width setup
+#	}C%
+#
+##############################################################################
+
+set test_cols 20
+if {![info exists term_cols]} {
+    # skip tests if current terminal witdh is unknown
+    send_user "\tskipping terminal width-specific tests\n"
+# set a specific terminal width
+} elseif {[catch {exec stty cols $test_cols}] || [getTtyCols] ne $test_cols} {
+    send_user "\tskipping terminal width-specific tests, cannot set width\n"
+} else {
+
+#
+#  test
+#
+
+setenv_path_var MODULEPATH $modpath.other
+
+# check output when terminal size is constrained
+testouterr_cmd sh {load longerrword} ERR "Loading longerrword
+  $moderr_msgs:
+    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    In
+    '$modpath.other/longerrword'
+    Please contact
+    <root@localhost>"
+
+#
+#  Cleanup
+#
+
+# restore MODULEPATH
+setenv_path_var MODULEPATH $modpath
+
+# restore terminal width
+exec stty cols $term_cols
+
+}
+
+unset test_cols
