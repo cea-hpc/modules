@@ -7089,6 +7089,10 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
             }
 
             if {$proceed} {
+               # save list of loaded mods prior loading process to determine
+               # afterward what have been automatically loaded and unloaded
+               set priorlmlist [getLoadedModuleList]
+
                pushSettings
 
                if {[getAutoHandling] && $auto} {
@@ -7145,8 +7149,15 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                   }
 
                   # DepUn modules unload prior main mod unload
-                  foreach unmod [lreverse $depunlist] {
-                     cmdModuleUnload match 0 0 0 0 $unmod
+                  if {[llength $depunlist] > 0} {
+                     foreach unmod [lreverse $depunlist] {
+                        cmdModuleUnload match 0 0 0 0 $unmod
+                     }
+                     if {[isMsgRecordIdTop]} {
+                        # reverse list to make it appear in unloading order
+                        reportInfo [join [lreverse $depunlist]] {Unloading\
+                           dependent}
+                     }
                   }
                }
 
@@ -7187,8 +7198,14 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
 
                   if {[getAutoHandling] && $auto} {
                      # UReqUn modules unload now DepUn+main mods are unloaded
-                     foreach unmod [lreverse $urequnlist] {
-                        cmdModuleUnload match 0 0 0 0 $unmod
+                     if {[llength $urequnlist] > 0} {
+                        foreach unmod [lreverse $urequnlist] {
+                           cmdModuleUnload match 0 0 0 0 $unmod
+                        }
+                        if {[isMsgRecordIdTop]} {
+                           reportInfo [join [lreverse $urequnlist]]\
+                              {Unloading useless requirement}
+                        }
                      }
 
                      # DepRe modules load phase now DepUn+UReqUn+main mods are
@@ -7198,6 +7215,21 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                         swprocessing]} {
                         reloadModuleListLoadPhase $deprelist [array get\
                            isuasked]
+                        if {[isMsgRecordIdTop]} {
+                           reportInfo [join $deprelist] {Reloading dependent}
+                        }
+                     }
+                  }
+
+                  # report automatically unloaded modules due to 'module load'
+                  # cmds in modfile when auto handling is disabled as UReqUn
+                  if {![getAutoHandling] && [isMsgRecordIdTop]} {
+                     lassign [getDiffBetweenList $priorlmlist\
+                        [concat [getLoadedModuleList] $modname]] urequnlist
+                     if {[llength $urequnlist] > 0} {
+                        # reverse list to make it appear in unloading order
+                        reportInfo [join [lreverse $urequnlist]] {Unloading\
+                           useless requirement}
                      }
                   }
                }
