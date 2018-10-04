@@ -363,6 +363,11 @@ proc reportInternalBug {message modfile} {
       <$::contact>" {Module ERROR}
 }
 
+proc reportInfo {message {title INFO}} {
+   # use reportError for conveniance but there is no error here
+   reportError $message $title 0
+}
+
 # render messages related to current record id under an header block
 proc reportMsgRecord {header} {
    set recid [currentMsgRecordId]
@@ -2874,6 +2879,11 @@ proc popMsgRecordId {} {
    set ::g_msgRecordIdStack [lrange $::g_msgRecordIdStack 0 end-1]
 }
 
+# is currently active message record id at top level
+proc isMsgRecordIdTop {} {
+   return [expr {[llength $::g_msgRecordIdStack] eq 1}]
+}
+
 
 # return list of currently loading modules in stack
 proc getLoadingModuleList {} {
@@ -5075,6 +5085,26 @@ proc replaceFromList {list1 item {item2 {}}} {
     return $list1
 }
 
+# returns elements from list1 not part of list2 and elements from list2 not
+# part of list1
+proc getDiffBetweenList {list1 list2} {
+   set res1 [list]
+   set res2 [list]
+
+   foreach elt $list1 {
+      if {[notInList $list2 $elt]} {
+         lappend res1 $elt
+      }
+   }
+   foreach elt $list2 {
+      if {[notInList $list1 $elt]} {
+         lappend res2 $elt
+      }
+   }
+
+   return [list $res1 $res2]
+}
+
 proc parseAccessIssue {modfile} {
    # retrieve and return access issue message
    if {[regexp {POSIX .* \{(.*)\}$} $::errorCode match errMsg]} {
@@ -6903,6 +6933,10 @@ proc cmdModuleLoad {uasked args} {
             }
 
             if {$proceed} {
+               # save list of loaded mods prior loading process to determine
+               # afterward what have been automatically loaded and unloaded
+               set priorlmlist [getLoadedModuleList]
+
                pushSettings
 
                if {[getAutoHandling]} {
@@ -6968,6 +7002,32 @@ proc cmdModuleLoad {uasked args} {
                   # can adapt now that mod is seen loaded.
                   if {[getAutoHandling] && [llength $deprelist] > 0} {
                      reloadModuleListLoadPhase $deprelist [array get isuasked]
+                  }
+
+                  # report for top level load what has been additionally
+                  # loaded, unloaded or reloaded when loading modname
+                  if {[isMsgRecordIdTop]} {
+                     lassign [getDiffBetweenList $priorlmlist\
+                        [getLoadedModuleList]] extraunlist extralolist
+                     # refine unloading conflict guessed list by removing
+                     # eventual DepRe modules that where not able to reload
+                     if {[getAutoHandling] && [llength $deprelist] > 0} {
+                        lassign [getDiffBetweenList $extraunlist\
+                           $deprelist] extraunlist
+                     }
+                     if {[llength $extraunlist] > 0} {
+                        # reverse list to make it appear in unloading order
+                        reportInfo [join [lreverse $extraunlist]] {Unloading\
+                           conflict}
+                     }
+                     if {[llength $extralolist] > 1} {
+                        # remove modname from list as its load was expected
+                        reportInfo [join [replaceFromList $extralolist\
+                           $modname]] {Loading requirement}
+                     }
+                     if {[getAutoHandling] && [llength $deprelist] > 0} {
+                        reportInfo [join $deprelist] {Reloading dependent}
+                     }
                   }
                }
 
