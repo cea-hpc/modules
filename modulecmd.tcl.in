@@ -6709,9 +6709,18 @@ proc cmdModuleRestore {{coll {default}}} {
    lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
       path_to_unuse path_to_use
 
+   # set a unique id to record messages related to this evaluation.
+   pushMsgRecordId restore-$coll-[getEvalModuleStackDepth]
+
    # unload modules one by one (no dependency auto unload)
    if {[llength $mod_to_unload] > 0} {
       eval cmdModuleUnload match 0 0 0 0 [lreverse $mod_to_unload]
+      if {[isMsgRecordIdTop]} {
+         # get actual name of unloaded modules
+         lassign [getDiffBetweenList $curr_mod_list_raw\
+            [getLoadedModuleList]] actual_unloaded_list
+         reportInfo [join [lreverse $actual_unloaded_list]] {Unloading module}
+      }
    }
    # unuse paths
    if {[llength $path_to_unuse] > 0} {
@@ -6763,6 +6772,15 @@ proc cmdModuleRestore {{coll {default}}} {
    foreach mod $mod_to_load {
       cmdModuleLoad [notInList $coll_nuasked_list $mod] $mod
    }
+   if {[llength $mod_to_load] > 0 && [isMsgRecordIdTop]} {
+      # get actual name of loaded modules
+      lassign [getDiffBetweenList [getLoadedModuleList] $curr_mod_list_raw]\
+         actual_loaded_list
+      reportInfo [join $actual_loaded_list] {Loading module}
+   }
+
+   reportMsgRecord "Restoring collection $colldesc"
+   popMsgRecordId
 }
 
 proc cmdModuleSaverm {{coll {default}}} {
