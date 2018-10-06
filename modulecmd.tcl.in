@@ -6593,18 +6593,31 @@ proc cmdModuleSwitch {uasked old {new {}}} {
 
    reportDebug "old='$old' new='$new' (uasked=$uasked)"
 
+   # record sumup messages from underlying unload/load actions under the same
+   # switch message record id to report (evaluation messages still go under
+   # their respective unload/load block
+   pushMsgRecordId switch-$old-$new-[getEvalModuleStackDepth]
+
    # attempt load only if unload succeed
    if {![cmdModuleUnload $unload_match 1 0 0 0 $old]} {
       cmdModuleLoad $uasked $new
    }
 
-   if {[getAutoHandling] && [info exists deprelist]} {
+   if {[getAutoHandling] && [info exists deprelist] && [llength $deprelist]\
+      > 0} {
       # cmdModuleUnload handles the DepUn, UReqUn mechanisms and the unload
       # phase of the DepRe mechanism. List of DepRe mods and their user asked
       # state is set from cmdModuleUnload procedure to be used here for the
       # load phase of the DepRe mechanism.
       reloadModuleListLoadPhase $deprelist [array get isuasked]
+      if {[isMsgRecordIdTop]} {
+         reportInfo [join $deprelist] {Reloading dependent}
+      }
    }
+
+   # report all recorded sumup messages for this evaluation
+   reportMsgRecord "Switching from $old to $new"
+   popMsgRecordId
 }
 
 proc cmdModuleSave {{coll {default}}} {
@@ -6904,8 +6917,16 @@ proc cmdModuleLoad {uasked args} {
    foreach mod $args {
       lassign [getPathToModule $mod] modfile modname
       if {$modfile ne ""} {
-         # set a unique id to record messages related to this evaluation
-         pushMsgRecordId load-$modname-[getEvalModuleStackDepth]
+         # if a switch action is ongoing...
+         if {[lindex [info level -1] 0] eq "cmdModuleSwitch"} {
+            set swprocessing 1
+            # transmit loaded mod name for switch report summary
+            uplevel 1 set new $modname
+         }
+
+         # set a unique id to record messages related to this evaluation.
+         set msgrecid load-$modname-[getEvalModuleStackDepth]
+         pushMsgRecordId $msgrecid
 
          # check if passed modname correspond to an already loaded modfile
          # and get its loaded name (in case it has been loaded as full path)
@@ -7006,6 +7027,11 @@ proc cmdModuleLoad {uasked args} {
 
                   # report for top level load what has been additionally
                   # loaded, unloaded or reloaded when loading modname
+                  # if a switch command is ongoing, these additionnal actions
+                  # are reported against this switch record id
+                  if {[info exists swprocessing]} {
+                     popMsgRecordId
+                  }
                   if {[isMsgRecordIdTop]} {
                      lassign [getDiffBetweenList $priorlmlist\
                         [getLoadedModuleList]] extraunlist extralolist
@@ -7028,6 +7054,10 @@ proc cmdModuleLoad {uasked args} {
                      if {[getAutoHandling] && [llength $deprelist] > 0} {
                         reportInfo [join $deprelist] {Reloading dependent}
                      }
+                  }
+                  # restore unload message id
+                  if {[info exists swprocessing]} {
+                     pushMsgRecordId $msgrecid
                   }
                }
 
@@ -7059,8 +7089,22 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
       # resolve by also looking at matching loaded module
       lassign [getPathToModule $mod {} $match] modfile modname errkind
       if {$modfile ne ""} {
-         # set a unique id to record messages related to this evaluation
-         pushMsgRecordId unload-$modname-[getEvalModuleStackDepth]
+         # if a switch action is ongoing...
+         if {[lindex [info level -1] 0] eq "cmdModuleSwitch"} {
+            set swprocessing 1
+
+            # pass the DepRe mod list to the calling cmdModuleSwitch
+            # procedure to let it handle the load phase of the DepRe
+            # mechanism once the switched-to module will be loaded
+            upvar deprelist deprelist
+            upvar isuasked isuasked
+
+            # transmit unloaded mod name for switch report summary
+            uplevel 1 set old $modname
+         }
+         # set a unique id to record messages related to this evaluation.
+         set msgrecid unload-$modname-[getEvalModuleStackDepth]
+         pushMsgRecordId $msgrecid
 
          if {$onlyureq && [isModuleUserAsked $modname]}  {
             reportDebug "$modname ($modfile) has been asked by user"
@@ -7103,18 +7147,10 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                   # modname or a module part of this DepUn batch)
                   set depunlist [getDependentLoadedModuleList $modname 1 0]
 
-                  # if a switch action is ongoing...
-                  if {[lindex [info level -1] 0] eq "cmdModuleSwitch"} {
-                     set swprocessing 1
-                     # do not check for UReqUn mods coming from DepUn modules
-                     # as these DepUn modules are reloaded
+                  # do not check for UReqUn mods coming from DepUn modules as
+                  # these DepUn modules are reloaded
+                  if {[info exists swprocessing]} {
                      set urequnqry $modname
-
-                     # pass the DepRe mod list to the calling cmdModuleSwitch
-                     # procedure to let it handle the load phase of the DepRe
-                     # mechanism once the switched-to module will be loaded
-                     upvar deprelist deprelist
-                     upvar isuasked isuasked
                   } else {
                      set urequnqry [concat $depunlist [list $modname]]
                   }
@@ -7153,10 +7189,17 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                      foreach unmod [lreverse $depunlist] {
                         cmdModuleUnload match 0 0 0 0 $unmod
                      }
+                     # if a switch command is ongoing, report against it
+                     if {[info exists swprocessing]} {
+                        popMsgRecordId
+                     }
                      if {[isMsgRecordIdTop]} {
                         # reverse list to make it appear in unloading order
                         reportInfo [join [lreverse $depunlist]] {Unloading\
                            dependent}
+                     }
+                     if {[info exists swprocessing]} {
+                        pushMsgRecordId $msgrecid
                      }
                   }
                }
@@ -7202,9 +7245,16 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                         foreach unmod [lreverse $urequnlist] {
                            cmdModuleUnload match 0 0 0 0 $unmod
                         }
+                        # if a switch command is ongoing, report against it
+                        if {[info exists swprocessing]} {
+                           popMsgRecordId
+                        }
                         if {[isMsgRecordIdTop]} {
                            reportInfo [join [lreverse $urequnlist]]\
                               {Unloading useless requirement}
+                        }
+                        if {[info exists swprocessing]} {
+                           pushMsgRecordId $msgrecid
                         }
                      }
 
@@ -7215,12 +7265,24 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                         swprocessing]} {
                         reloadModuleListLoadPhase $deprelist [array get\
                            isuasked]
+                        # if a switch command is ongoing, report against it
+                        if {[info exists swprocessing]} {
+                           popMsgRecordId
+                        }
                         if {[isMsgRecordIdTop]} {
                            reportInfo [join $deprelist] {Reloading dependent}
+                        }
+                        if {[info exists swprocessing]} {
+                           pushMsgRecordId $msgrecid
                         }
                      }
                   }
 
+                  # if a switch command is ongoing, these additionnal actions
+                  # are reported against this switch record id
+                  if {[info exists swprocessing]} {
+                     popMsgRecordId
+                  }
                   # report automatically unloaded modules due to 'module load'
                   # cmds in modfile when auto handling is disabled as UReqUn
                   if {![getAutoHandling] && [isMsgRecordIdTop]} {
@@ -7231,6 +7293,9 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                         reportInfo [join [lreverse $urequnlist]] {Unloading\
                            useless requirement}
                      }
+                  }
+                  if {[info exists swprocessing]} {
+                     pushMsgRecordId $msgrecid
                   }
                }
 
