@@ -6920,6 +6920,12 @@ proc cmdModuleLoad {uasked args} {
          # if a switch action is ongoing...
          if {[lindex [info level -1] 0] eq "cmdModuleSwitch"} {
             set swprocessing 1
+            # pass the DepRe mod list to the calling cmdModuleSwitch procedure
+            # to let it handle the load phase of the DepRe mechanism along
+            # with the DepRe modules set from switched off module.
+            upvar deprelist swdeprelist
+            upvar isuasked isuasked
+
             # transmit loaded mod name for switch report summary
             uplevel 1 set new $modname
          }
@@ -6981,6 +6987,17 @@ proc cmdModuleLoad {uasked args} {
                   if {[llength $deprelist] > 0} {
                      array set isuasked [reloadModuleListUnloadPhase\
                         $deprelist]
+                     if {[info exists swprocessing]} {
+                        if {[info exists swdeprelist]} {
+                           set swdeprelist [concat $deprelist $swdeprelist]
+                        } else {
+                           set swdeprelist $deprelist
+                        }
+                        # ignore missing DepRe mods during reporting if switch
+                        # ongoing as it will be reloaded from switch action
+                        lassign [getDiffBetweenList $priorlmlist $deprelist]\
+                           priorlmlist
+                     }
                   }
                }
 
@@ -7020,8 +7037,10 @@ proc cmdModuleLoad {uasked args} {
                   }
 
                   # Load phase of dependent module reloading. These modules
-                  # can adapt now that mod is seen loaded.
-                  if {[getAutoHandling] && [llength $deprelist] > 0} {
+                  # can adapt now that mod is seen loaded. Except if switch
+                  # action ongoing (DepRe load phase will occur from switch)
+                  if {[getAutoHandling] && [llength $deprelist] > 0 && ![info\
+                     exists swprocessing]} {
                      reloadModuleListLoadPhase $deprelist [array get isuasked]
                   }
 
@@ -7051,7 +7070,8 @@ proc cmdModuleLoad {uasked args} {
                         reportInfo [join [replaceFromList $extralolist\
                            $modname]] {Loading requirement}
                      }
-                     if {[getAutoHandling] && [llength $deprelist] > 0} {
+                     if {[getAutoHandling] && [llength $deprelist] > 0 &&\
+                        ![info exists swprocessing]} {
                         reportInfo [join $deprelist] {Reloading dependent}
                      }
                   }
