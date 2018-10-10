@@ -7380,6 +7380,10 @@ proc cmdModuleReload {args} {
    }
    reportDebug "reloading $lmlist"
 
+   # create a message record if for reload action to let underlying unload and
+   # load actions to know they are not the top-level action
+   pushMsgRecordId reload-[getEvalModuleStackDepth]
+
    # no reload of all loaded modules attempt if constraints are violated
    if {[llength $args] == 0 && ![areModuleConstraintsSatisfied]} {
       reportErrorAndExit "Cannot reload modules, some of their constraints\
@@ -7389,6 +7393,9 @@ proc cmdModuleReload {args} {
    # run unload then load-again phases
    array set isuasked [reloadModuleListUnloadPhase $lmlist]
    reloadModuleListLoadPhase $lmlist [array get isuasked]
+
+   # no sumup report for reload action for the moment
+   popMsgRecordId
 }
 
 proc cmdModuleAliases {} {
