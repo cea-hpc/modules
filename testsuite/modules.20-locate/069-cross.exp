@@ -382,8 +382,12 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     }
     if {[info exists "::modnuasked_${i}"]} {
         set modnuasked [join [set "::modnuasked_${i}"] ":"]
+        set msgload [msg_top_load $modsym {} [set "::modnuasked_${i}"] {}]
+        set msgunload [msg_top_unload $modsym {} [lreverse [set "::modnuasked_${i}"]] {}]
     } else {
         set modnuasked {}
+        set msgload {}
+        set msgunload {}
     }
     if {[info exists "::modprereq_${i}"]} {
         set modprereq [join [set "::modprereq_${i}"] ":"]
@@ -419,13 +423,14 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     if {$modnuasked ne ""} {
         lappend ans [list setpath MODULES_LMNOTUASKED "$modnuasked"]
     }
+
     if {$modprereq ne ""} {
         lappend ans [list setpath MODULES_LMPREREQ "$modprereq"]
     }
     if {$modalt ne ""} {
         lappend ans [list setpath MODULES_LMALTNAME $modalt]
     }
-    testouterr_cmd_re "sh" "load $modsym" $ans ""
+    testouterr_cmd_re "sh" "load $modsym" $ans $msgload
 
     if {$test_shows} {
         testouterr_cmd_re "sh" "display $modsym" "OK" "$::disp_pre$modulefilere:\n\n$::disp_wi$module$::disp_post"
@@ -476,7 +481,7 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     if {$modalt ne ""} {
         lappend ans [list unsetpath MODULES_LMALTNAME]
     }
-    testouterr_cmd_re "sh" "unload $modsym" $ans ""
+    testouterr_cmd_re "sh" "unload $modsym" $ans $msgunload
 }
 
 # initial tests

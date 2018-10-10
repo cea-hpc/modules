@@ -45,7 +45,7 @@ set spreadres ""
 # instead module is interpreted to be unloaded once main module interpretation
 # is finished. so procedure alteration spread in this case
 if {$install_autohandling eq {y}} {
-    set spreadresun {procedure \S+ has been altered}
+    set spreadresun {procedure \S+ has been altered\n\n}
 } else {
     set spreadresun {}
 }
@@ -77,7 +77,7 @@ lappend ans [list setpath _LMFILES_ "$modfile1c:$modfile1"]
 lappend ans [list setpath MODULES_LMPREREQ $mod1&$mod1c]
 lappend ans [list setpath MODULES_LMNOTUASKED $mod1c]
 
-testouterr_cmd_re "sh" "load $mod1" $ans "$spreadres"
+testouterr_cmd_re "sh" "load $mod1" $ans "$spreadres[msg_top_load $mod1 {} $mod1c {}]"
 testouterr_cmd_re "sh" "display $mod1" "OK" "$mod1disph\n$mod1dispres\n$modlin"
 testouterr_cmd_re "sh" "help $mod1" "OK" "$mod1helph\n$mod1helpres\n$modlin"
 testouterr_cmd_re "sh" "test $mod1" "OK" "$mod1testh\n$mod1testres\n$modlin"
@@ -104,7 +104,7 @@ lappend ans [list setpath MODULES_LMPREREQ $mod2&$mod2c]
 lappend ans [list setpath MODULES_LMNOTUASKED $mod2c]
 lappend ans [list set testspreadcmd yes]
 lappend ans [list set testspreadcmdsub yes]
-testouterr_cmd_re "sh" "switch $mod1 $mod2" $ans $spreadresun
+testouterr_cmd_re "sh" "switch $mod1 $mod2" $ans $spreadresun[msg_top_switch $mod1 $mod2 {} $mod1c {} $mod2c {}]
 
 testouterr_cmd "sh" "list -t" "OK" "Currently Loaded Modulefiles:\n$mod1c\n$mod1"
 # test unloading
@@ -115,7 +115,7 @@ lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
-testouterr_cmd_re "sh" "unload $mod1" $ans $spreadresun
+testouterr_cmd_re "sh" "unload $mod1" $ans $spreadresun[msg_top_unload $mod1 {} $mod1c {}]
 
 # Clean up the environment
 unsetenv_loaded_module
@@ -136,7 +136,7 @@ lappend ans [list setpath _LMFILES_ "$modfile2c:$modfile2"]
 lappend ans [list setpath MODULES_LMPREREQ $mod2&$mod2c]
 lappend ans [list setpath MODULES_LMNOTUASKED $mod2c]
 
-testouterr_cmd_re "sh" "load $mod2" $ans "$spreadres"
+testouterr_cmd_re "sh" "load $mod2" $ans "$spreadres[msg_top_load $mod2 {} $mod2c {}]"
 testouterr_cmd_re "sh" "display $mod2" "OK" "$mod2disph\n$mod2dispres\n$modlin"
 testouterr_cmd_re "sh" "help $mod2" "OK" "$mod2helph\n$mod2helpres\n$modlin"
 testouterr_cmd_re "sh" "test $mod2" "OK" "$mod2testh\n$mod2testres\n$modlin"
@@ -162,7 +162,7 @@ lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
-testouterr_cmd_re "sh" "unload $mod2" $ans "$spreadres"
+testouterr_cmd_re "sh" "unload $mod2" $ans "$spreadres[msg_top_unload $mod2 {} $mod2c {}]"
 
 # Clean up the environment
 unsetenv_loaded_module
@@ -221,7 +221,7 @@ lappend ans [list setpath _LMFILES_ "$modfile1c:$modfile1"]
 lappend ans [list setpath MODULES_LMPREREQ $mod1&$mod1c]
 lappend ans [list setpath MODULES_LMNOTUASKED $mod1c]
 
-testouterr_cmd_re "sh" "load $mod1" $ans "$spreadres"
+testouterr_cmd_re "sh" "load $mod1" $ans "$spreadres[msg_top_load $mod1 {} $mod1c {}]"
 testouterr_cmd_re "sh" "display $mod1" "OK" "$mod1disph\n$mod1dispres\n$modlin"
 testouterr_cmd_re "sh" "help $mod1" "OK" "$mod1helph\n$mod1helpres\n$modlin"
 testouterr_cmd_re "sh" "test $mod1" "OK" "$mod1testh\n$mod1testres\n$modlin"
@@ -248,7 +248,7 @@ lappend ans [list setpath MODULES_LMPREREQ $mod2&$mod2c]
 lappend ans [list setpath MODULES_LMNOTUASKED $mod2c]
 lappend ans [list set testspreadrccmd yes]
 lappend ans [list set testspreadrccmdsub yes]
-testouterr_cmd_re "sh" "switch $mod1 $mod2" $ans $spreadresun
+testouterr_cmd_re "sh" "switch $mod1 $mod2" $ans $spreadresun[msg_top_switch $mod1 $mod2 {} $mod1c {} $mod2c {}]
 
 testouterr_cmd "sh" "list -t" "OK" "Currently Loaded Modulefiles:\n$mod1c\n$mod1"
 # test unloading
@@ -264,7 +264,7 @@ if {$install_autohandling eq {y}} {
 lappend ans [list unset testspreadrcsub]
 }
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
-testouterr_cmd_re "sh" "unload $mod1" $ans $spreadresun
+testouterr_cmd_re "sh" "unload $mod1" $ans $spreadresun[msg_top_unload $mod1 {} $mod1c {}]
 
 # Clean up the environment
 unsetenv_loaded_module
@@ -285,7 +285,7 @@ lappend ans [list setpath _LMFILES_ "$modfile2c:$modfile2"]
 lappend ans [list setpath MODULES_LMPREREQ $mod2&$mod2c]
 lappend ans [list setpath MODULES_LMNOTUASKED $mod2c]
 
-testouterr_cmd_re "sh" "load $mod2" $ans "$spreadres"
+testouterr_cmd_re "sh" "load $mod2" $ans "$spreadres[msg_top_load $mod2 {} $mod2c {}]"
 testouterr_cmd_re "sh" "display $mod2" "OK" "$mod2disph\n$mod2dispres\n$modlin"
 testouterr_cmd_re "sh" "help $mod2" "OK" "$mod2helph\n$mod2helpres\n$modlin"
 testouterr_cmd_re "sh" "test $mod2" "OK" "$mod2testh\n$mod2testres\n$modlin"
@@ -316,7 +316,7 @@ if {$install_autohandling eq {y}} {
 lappend ans [list unset testspreadrccmdsub]
 }
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
-testouterr_cmd_re "sh" "unload $mod2" $ans "$spreadres"
+testouterr_cmd_re "sh" "unload $mod2" $ans "$spreadres[msg_top_unload $mod2 {} $mod2c {}]"
 
 # Clean up the environment
 unsetenv_loaded_module

@@ -66,14 +66,38 @@ set submodfile_7 "$modpath/$submod_7"
 set submod_11 $submod_5
 set submodfile_11 $submodfile_5
 
-set moderr_5 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$submodfile_5'\n$err_contact\n[err_prereq $module_5 $submod_5]"
-set moderr_6 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$submodfile_6'\n$err_contact\n[err_prereq $module_6 $submod_6]"
-set moderr_7 "$err_path'$submod_7'\n[err_prereq $module_7 $submod_7]"
-set moderr_11 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$submodfile_11'\n$err_contact\n[err_prereq $module_11 ../$submod_11]"
-set moderrun_5 "$moderr_msgs: unload-path cannot handle path equals to separator string\n  In '$submodfile_5'\n$err_contact"
-set moderrun_6 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$submodfile_6'\n$err_contact"
-set moderrun_7 "$err_file'$submodfile_7'"
-set moderrun_11 "$moderr_msgs: unload-path cannot handle path equals to separator string\n  In '$submodfile_11'\n$err_contact"
+set moderr_5 [msg_load $submod_5 "$moderr_msgs: add-path cannot handle path equals to separator string\nIn '$submodfile_5'\n$err_contactns"]\n\n[msg_load $module_5 [err_prereq $module_5 $submod_5]]
+set moderr_6 [msg_load $submod_6 "$moderr_msgs: invalid command name \"bad-command\"\nIn '$submodfile_6'\n$err_contactns"]\n\n[msg_load $module_6 [err_prereq $module_6 $submod_6]]
+set moderr_7 [msg_load $module_7 "$err_path'$submod_7'" [err_prereq $module_7 $submod_7]]
+set moderr_11 [msg_load $submodfile_11 "$moderr_msgs: add-path cannot handle path equals to separator string\nIn '$submodfile_11'\n$err_contactns"]\n\n[msg_load $module_11 [err_prereq $module_11 ../$submod_11]]
+
+# when auto handling is disabled no UReqUn are reported as they as still seen
+# loaded after the unload process due to the error
+if {$install_autohandling eq {y}} {
+    set msgtopun_5 \n\n[msg_top_unload $module_5 {} $submod_5 {}]
+    set msgtopun_6 \n\n[msg_top_unload $module_6 {} $submod_6 {}]
+    set msgtopun_7 \n\n[msg_top_unload $module_7 {} $submod_7 {}]
+    set msgtopun_8 \n\n[msg_top_unload $module_8 {} [list $module_5 $submod_5] {}]
+    set msgtopun_9 \n\n[msg_top_unload $module_9 {} [list $module_6 $submod_6] {}]
+    set msgtopun_10 \n\n[msg_top_unload $module_10 {} [list $module_7 $submod_7] {}]
+    set msgtopun_11 \n\n[msg_top_unload $module_11 {} $submod_11 {}]
+} else {
+    set msgtopun_5 {}
+    set msgtopun_6 {}
+    set msgtopun_7 {}
+    set msgtopun_8 {}
+    set msgtopun_9 {}
+    set msgtopun_10 {}
+    set msgtopun_11 {}
+}
+
+set moderrun_5 [msg_unload $submod_5 "$moderr_msgs: unload-path cannot handle path equals to separator string\nIn '$submodfile_5'\n$err_contactns"]$msgtopun_5
+set moderrun_6 [msg_unload $submod_6 "$moderr_msgs: invalid command name \"bad-command\"\nIn '$submodfile_6'\n$err_contactns"]$msgtopun_6
+set moderrun_7 [msg_unload $submod_7 "$err_file'$submodfile_7'"]$msgtopun_7
+set moderrun_8 [msg_unload $submod_5 "$moderr_msgs: unload-path cannot handle path equals to separator string\nIn '$submodfile_5'\n$err_contactns"]$msgtopun_8
+set moderrun_9 [msg_unload $submod_6 "$moderr_msgs: invalid command name \"bad-command\"\nIn '$submodfile_6'\n$err_contactns"]$msgtopun_9
+set moderrun_10 [msg_unload $submod_7 "$err_file'$submodfile_7'"]$msgtopun_10
+set moderrun_11 [msg_unload $submod_11 "$moderr_msgs: unload-path cannot handle path equals to separator string\nIn '$submodfile_11'\n$err_contactns"]$msgtopun_11
 
 #
 #  The tests
@@ -134,11 +158,11 @@ unsetenv_path_var MODULES_LMPREREQ
 testouterr_cmd "csh" "load $module_5" "ERR" "$moderr_5"
 testouterr_cmd "csh" "load $module_6" "ERR" "$moderr_6"
 testouterr_cmd "csh" "load $module_7" "ERR" "$moderr_7"
-testouterr_cmd "csh" "load $module_8" "ERR" "$moderr_5\n[err_prereq $module_8 $module_5]"
-testouterr_cmd "csh" "load $module_9" "ERR" "$moderr_6\n[err_prereq $module_9 $module_6]"
-testouterr_cmd "csh" "load $module_10" "ERR" "$moderr_7\n[err_prereq $module_10 $module_7]"
+testouterr_cmd "csh" "load $module_8" "ERR" "$moderr_5\n\n[msg_load $module_8 [err_prereq $module_8 $module_5]]"
+testouterr_cmd "csh" "load $module_9" "ERR" "$moderr_6\n\n[msg_load $module_9 [err_prereq $module_9 $module_6]]"
+testouterr_cmd "csh" "load $module_10" "ERR" "$moderr_7\n\n[msg_load $module_10 [err_prereq $module_10 $module_7]]"
 testouterr_cmd "csh" "load $module_11" "ERR" "$moderr_11"
-testouterr_cmd "csh" "load $module_12" "ERR" "$err_emptymodname\n[err_prereq $module_12 {}]"
+testouterr_cmd "csh" "load $module_12" "ERR" [msg_load $module_12 $err_emptymodname [err_prereq $module_12 {}]]
 
 #
 # Test unload of module with issue, nothing unloads if auto handling disabled
@@ -211,7 +235,7 @@ lappend ans [list setpath _LMFILES_ $submodfile_5]
 lappend ans [list setpath LOADEDMODULES $submod_5]
 lappend ans [list setpath MODULES_LMNOTUASKED $submod_5]
 lappend ans [list ERR]
-testouterr_cmd "csh" "unload $module_8" $ans "$moderrun_5"
+testouterr_cmd "csh" "unload $module_8" $ans "$moderrun_8"
 
 setenv_loaded_module [list $submod_6 $module_6 $module_9] [list $submodfile_6 $modulefile_6 $modulefile_9] [list $submod_6 $module_6]
 setenv_path_var MODULES_LMPREREQ $module_6&$submod_6 $module_9&$module_6
@@ -221,7 +245,7 @@ lappend ans [list setpath _LMFILES_ $submodfile_6]
 lappend ans [list setpath LOADEDMODULES $submod_6]
 lappend ans [list setpath MODULES_LMNOTUASKED $submod_6]
 lappend ans [list ERR]
-testouterr_cmd "csh" "unload $module_9" $ans "$moderrun_6"
+testouterr_cmd "csh" "unload $module_9" $ans "$moderrun_9"
 
 setenv_loaded_module [list $submod_7 $module_7 $module_10] [list $submodfile_7 $modulefile_7 $modulefile_10] [list $submod_7 $module_7]
 setenv_path_var MODULES_LMPREREQ $module_7&$submod_7 $module_10&$module_7
@@ -231,7 +255,7 @@ lappend ans [list setpath _LMFILES_ $submodfile_7]
 lappend ans [list setpath LOADEDMODULES $submod_7]
 lappend ans [list setpath MODULES_LMNOTUASKED $submod_7]
 lappend ans [list ERR]
-testouterr_cmd "csh" "unload $module_10" $ans "$moderrun_7"
+testouterr_cmd "csh" "unload $module_10" $ans "$moderrun_10"
 
 setenv_loaded_module [list $submod_11 $module_11] [list $submodfile_11 $modulefile_11] [list $submod_11]
 setenv_path_var MODULES_LMPREREQ $module_11&$submod_11
@@ -298,4 +322,15 @@ unset moderr_11
 unset moderrun_5
 unset moderrun_6
 unset moderrun_7
+unset moderrun_8
+unset moderrun_9
+unset moderrun_10
 unset moderrun_11
+
+unset msgtopun_5
+unset msgtopun_6
+unset msgtopun_7
+unset msgtopun_8
+unset msgtopun_9
+unset msgtopun_10
+unset msgtopun_11

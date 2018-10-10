@@ -43,16 +43,16 @@ set modulefile_set1 "$modpath/$module_set1"
 #  Error messages
 #
 
-set err_con1 [err_conflict $module1 "$modpath/setenv/1.0"]
+set err_con1 [msg_load $module1 [err_conflict $module1 "$modpath/setenv/1.0"]]
 set err_con1re [regsub -all "\(\[.+?\]\)" $err_con1 {\\\1}]
-set err_con2 [err_conflict $module2 "trace"]
-set err_con3 [err_conflict $module3 "../setenv/1.0"]
+set err_con2 [msg_load $module2 [err_conflict $module2 "trace"]]
+set err_con3 [msg_load $module3 [err_conflict $module3 "../setenv/1.0"]]
 set err_con3re [regsub -all "\(\[.+?\]\)" $err_con3 {\\\1}]
-set err_conf1 [err_conflict $modulefile1 "$modpath/setenv/1.0"]
+set err_conf1 [msg_load $modulefile1 [err_conflict $modulefile1 "$modpath/setenv/1.0"]]
 set err_conf1re [regsub -all "\(\[.+?\]\)" $err_conf1 {\\\1}]
-set err_conf2 [err_conflict $modulefile2 "trace"]
+set err_conf2 [msg_load $modulefile2 [err_conflict $modulefile2 "trace"]]
 set err_conf2re [regsub -all "\(\[.+?\]\)" $err_conf2 {\\\1}]
-set err_conf3 [err_conflict $modulefile3 "../setenv/1.0"]
+set err_conf3 [msg_load $modulefile3 [err_conflict $modulefile3 "../setenv/1.0"]]
 set err_conf3re [regsub -all "\(\[.+?\]\)" $err_conf3 {\\\1}]
 
 
@@ -77,22 +77,22 @@ testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans ""
 # test with conflicts loaded as short path
 setenv_loaded_module [list $module_tron $module_set1] [list $modulefile_tron $modulefile_set1]
 
-testouterr_cmd_re "sh" "load $module1 $module2 $module3" "ERR" "$err_con1re\n$err_con2\n$err_con3"
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_conf1re\n$err_conf2re\n$err_conf3re"
+testouterr_cmd_re "sh" "load $module1 $module2 $module3" "ERR" "$err_con1re\n\n$err_con2\n\n$err_con3"
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_conf1re\n\n$err_conf2re\n\n$err_conf3re"
 
 
 # test with conflicts loaded as short path, no more modulepath set
 unsetenv_path_var MODULEPATH
 
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_conf1re\n$err_conf2re\n$err_conf3re"
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_conf1re\n\n$err_conf2re\n\n$err_conf3re"
 
 
 # test with conflicts loaded as full path
 setenv_path_var MODULEPATH $modpath
 setenv_loaded_module [list $modulefile_tron $modulefile_set1] [list $modulefile_tron $modulefile_set1]
 
-testouterr_cmd_re "sh" "load $module1 $module2 $module3" "ERR" "$err_con1re\n$err_con2\n$err_con3"
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_conf1re\n$err_conf2re\n$err_conf3re"
+testouterr_cmd_re "sh" "load $module1 $module2 $module3" "ERR" "$err_con1re\n\n$err_con2\n\n$err_con3"
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_conf1re\n\n$err_conf2re\n\n$err_conf3re"
 
 
 # test with conflicts loaded as full path, no more modulepath set
@@ -107,7 +107,7 @@ lappend ans [list set LOADEDMODULES "$modulefile_tron:$modulefile_set1:$modulefi
 lappend ans [list set _LMFILES_ "$modulefile_tron:$modulefile_set1:$modulefile2"]
 lappend ans [list set MODULES_LMCONFLICT "$modulefile2&trace"]
 lappend ans [list ERR]
-testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans "$err_conf1re\n$err_conf3re"
+testouterr_cmd_re "sh" "load $modulefile1 $modulefile2 $modulefile3" $ans "$err_conf1re\n\n$err_conf3re"
 
 
 #

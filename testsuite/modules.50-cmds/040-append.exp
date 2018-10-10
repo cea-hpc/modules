@@ -86,13 +86,13 @@ set modulefile "$modpath/$module"
 # different behavior than C-version: on Tcl-version adding a bare colon
 # to a path produces an error since this colon cannot be distinguished
 # from the colon used for path separator
-set ts_err "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$modulefile'\n$err_contact"
+set ts_err "$moderr_msgs: add-path cannot handle path equals to separator string\nIn '$modulefile'\n$err_contactns"
 
 #
 #  The tests
 #
 
-testouterr_cmd "ALL" "load $module" "ERR" "$ts_err"
+testouterr_cmd "ALL" "load $module" "ERR" [msg_load $module $ts_err]
 
 #
 # Try bad argument list: missing variable name
@@ -100,8 +100,8 @@ testouterr_cmd "ALL" "load $module" "ERR" "$ts_err"
 
 set module "append/0.3"
 set modulefile "$modpath/$module"
-set ts_err "$moderr_msgs: add-path should get an environment variable name\n  In '$modulefile'\n$err_contact"
-testouterr_cmd "sh" "load $module" "ERR" $ts_err
+set ts_err "$moderr_msgs: add-path should get an environment variable name\nIn '$modulefile'\n$err_contactns"
+testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $ts_err]
 
 #
 # Try bad argument list: missing variable value
@@ -109,8 +109,8 @@ testouterr_cmd "sh" "load $module" "ERR" $ts_err
 
 set module "append/0.4"
 set modulefile "$modpath/$module"
-set ts_err "$moderr_msgs: add-path should get a value for environment variable PATH\n  In '$modulefile'\n$err_contact"
-testouterr_cmd "sh" "load $module" "ERR" $ts_err
+set ts_err "$moderr_msgs: add-path should get a value for environment variable PATH\nIn '$modulefile'\n$err_contactns"
+testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $ts_err]
 
 #
 # Try bad argument list: empty variable name
@@ -118,8 +118,8 @@ testouterr_cmd "sh" "load $module" "ERR" $ts_err
 
 set module "append/0.5"
 set modulefile "$modpath/$module"
-set ts_err "$moderr_msgs: add-path should get a valid environment variable name\n  In '$modulefile'\n$err_contact"
-testouterr_cmd "sh" "load $module" "ERR" $ts_err
+set ts_err "$moderr_msgs: add-path should get a valid environment variable name\nIn '$modulefile'\n$err_contactns"
+testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $ts_err]
 
 #
 # Append multiple paths passed as one string
@@ -213,7 +213,7 @@ lappend ans [list set BAR "/path/to/dir1:/path/to/dir2:/path/to/dir1"]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 
-testouterr_cmd "sh" "load $module" $ans "$warn_msgs: --index option has no effect on add-path"
+testouterr_cmd "sh" "load $module" $ans [msg_load $module "$warn_msgs: --index option has no effect on add-path"]
 
 
 # test setting a large value in variable. For csh shell family, Modules
@@ -277,8 +277,8 @@ lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 
 # loud warning message about elements in reference counter not found in referred variable
-testouterr_cmd "sh" "load $module" $ans "$warn_msgs: \$FOO does not agree with \$FOO_modshare counter. The following directories' usage counters were adjusted to match. Note that this may mean that module unloading may not work correctly.
- /path/to/dir2 /path/to/dir3"
+testouterr_cmd "sh" "load $module" $ans [msg_load $module "$warn_msgs: \$FOO does not agree with \$FOO_modshare counter. The following directories' usage counters were adjusted to match. Note that this may mean that module unloading may not work correctly.
+ /path/to/dir2 /path/to/dir3"]
 
 
 #
@@ -295,7 +295,7 @@ lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 
 # loud warning message about referred variable unset whereas reference counter defined
-testouterr_cmd "sh" "load $module" $ans "$warn_msgs: FOO_modshare exists ( /path/to/dir2:1:/path/to/dir3:2:/path/to/dir4:1 ), but FOO doesn't. Environment is corrupted."
+testouterr_cmd "sh" "load $module" $ans [msg_load $module "$warn_msgs: FOO_modshare exists ( /path/to/dir2:1:/path/to/dir3:2:/path/to/dir4:1 ), but FOO doesn't. Environment is corrupted."]
 
 
 #
@@ -329,7 +329,7 @@ lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 
 # loud warning message about referred variable unset whereas reference counter defined
-testouterr_cmd "sh" "load $module" $ans "$warn_msgs: FOO_modshare exists ( /path/to/dir1:2:/path/to/dir3 ), but FOO doesn't. Environment is corrupted."
+testouterr_cmd "sh" "load $module" $ans [msg_load $module "$warn_msgs: FOO_modshare exists ( /path/to/dir1:2:/path/to/dir3 ), but FOO doesn't. Environment is corrupted."]
 
 
 #

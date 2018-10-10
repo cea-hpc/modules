@@ -47,7 +47,6 @@ set modulefile_set "$modpath/$module_set"
 
 # additional message on Tcl-version as 'module-trace' is not implemented
 set err_trace "$warn_msgs: 'module-trace' command not implemented"
-set err_con "$err_trace\n[err_conflict $module trace/all_on]"
 
 #
 #  The tests
@@ -56,7 +55,7 @@ set err_con "$err_trace\n[err_conflict $module trace/all_on]"
 lappend ans [list setpath _LMFILES_ $modulefile_tron]
 lappend ans [list setpath LOADEDMODULES $module_tron]
 lappend ans [list ERR]
-testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_con
+testouterr_cmd_re "ALL" "load $module_tron $module" $ans [msg_load $module_tron $err_trace]\n\n[msg_load $module [err_conflict $module trace/all_on]]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module_troff:$module"]
@@ -81,8 +80,8 @@ lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list setpath MODULES_LMCONFLICT "$module&$module_tron"]
-set tserr [list [err_conflictf $module $module_tron]]
-testouterr_cmd_re "sh" "load --no-auto --force $module" $ans [join $tserr "\n"]
+set tserr [msg_load $module [err_conflictf $module $module_tron]]
+testouterr_cmd_re "sh" "load --no-auto --force $module" $ans $tserr
 
 # from this situation where conflict has been forced
 setenv_loaded_module [list $module_tron $module $module_troff] [list $modulefile_tron $modulefile $modulefile_troff]
@@ -112,14 +111,14 @@ lappend ans [list setpath LOADEDMODULES "$module_troff:$module_set:$module_tron"
 lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile_set:$modulefile_tron"]
 lappend ans [list unsetpath MODULES_LMCONFLICT]
 lappend ans [list set testsuite yes]
-testouterr_cmd_re "sh" "switch --auto $module $module_set" $ans "$err_trace\n$err_trace"
+testouterr_cmd_re "sh" "switch --auto $module $module_set" $ans [msg_unload $module_tron $err_trace]\n\n[msg_load $module_tron $err_trace]\n\n[msg_top_switch $module $module_set {} {} {} {} $module_tron]
 
 # unload of the other conflicting module
 # no reload of the other conflict module as auto_handling is disabled
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module:$module_troff"]
 lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_troff"]
-testouterr_cmd_re "sh" "unload --no-auto $module_tron" $ans $err_trace
+testouterr_cmd_re "sh" "unload --no-auto $module_tron" $ans [msg_unload $module_tron $err_trace]
 
 # switch of the other conflicting module
 # no reload in case auto_handling is disabled
@@ -127,7 +126,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module:$module_troff:$module_set"]
 lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_troff:$modulefile_set"]
 lappend ans [list set testsuite yes]
-testouterr_cmd_re "sh" "switch --no-auto $module_tron $module_set" $ans $err_trace
+testouterr_cmd_re "sh" "switch --no-auto $module_tron $module_set" $ans [msg_unload $module_tron $err_trace]
 
 # reload when case auto_handling is enabled
 set ans [list]
@@ -135,7 +134,7 @@ lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES "$module_troff:$module_set:$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile_set:$modulefile"]
 lappend ans [list setpath MODULES_LMCONFLICT "$module&$module_tron"]
-testouterr_cmd_re "sh" "switch --auto $module_tron $module_set" $ans $err_trace
+testouterr_cmd_re "sh" "switch --auto $module_tron $module_set" $ans [msg_unload $module_tron $err_trace]\n\n[msg_top_switch $module_tron $module_set {} {} {} {} $module]
 
 
 set ans [list]
@@ -143,7 +142,7 @@ lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unset testsuite]
 lappend ans [list unsetpath MODULES_LMCONFLICT]
-testouterr_cmd "sh" "purge" $ans $err_trace
+testouterr_cmd "sh" "purge" $ans [msg_unload $module_tron $err_trace]
 
 testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
 
@@ -165,14 +164,14 @@ testouterr_cmd_re "sh" "unload --no-auto $module" $ans ""
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module:$module_troff"]
 lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_troff"]
-testouterr_cmd_re "sh" "unload --no-auto $module_tron" $ans $err_trace
+testouterr_cmd_re "sh" "unload --no-auto $module_tron" $ans [msg_unload $module_tron $err_trace]
 
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unset testsuite]
 lappend ans [list unsetpath MODULES_LMCONFLICT]
-testouterr_cmd "sh" "purge" $ans $err_trace
+testouterr_cmd "sh" "purge" $ans [msg_unload $module_tron $err_trace]
 
 testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
 
@@ -184,16 +183,16 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile"]
 lappend ans [list ERR]
-set tserr [list [err_conflict $module_tron $module]]
-testouterr_cmd_re "sh" "switch --no-auto $module_troff $module_tron" $ans [join $tserr "\n"]
-testouterr_cmd_re "sh" "switch --auto $module_troff $module_tron" $ans [join $tserr "\n"]
+set tserr [msg_load $module_tron [err_conflict $module_tron $module]]
+testouterr_cmd_re "sh" "switch --no-auto $module_troff $module_tron" $ans $tserr
+testouterr_cmd_re "sh" "switch --auto $module_troff $module_tron" $ans $tserr
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module:$module_tron"]
 lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_tron"]
-set tserr [list [err_conflictf $module_tron $module] $err_trace]
-testouterr_cmd_re "sh" "switch --no-auto --force $module_troff $module_tron" $ans [join $tserr "\n"]
-testouterr_cmd_re "sh" "switch --auto --force $module_troff $module_tron" $ans [join $tserr "\n"]
+set tserr [msg_load $module_tron [err_conflictf $module_tron $module] $err_trace]
+testouterr_cmd_re "sh" "switch --no-auto --force $module_troff $module_tron" $ans $tserr
+testouterr_cmd_re "sh" "switch --auto --force $module_troff $module_tron" $ans $tserr
 
 # test situation where a conflict is declared during a switch and attempts to violate
 setenv_loaded_module [list $module_tron $module_troff] [list $modulefile_tron $modulefile_troff]
@@ -203,18 +202,18 @@ set ans [list]
 lappend ans [list setpath _LMFILES_ "$modulefile_tron"]
 lappend ans [list setpath LOADEDMODULES "$module_tron"]
 lappend ans [list ERR]
-set tserr [list [err_conflict $module $module_tron]]
-testouterr_cmd_re "sh" "switch --no-auto $module_troff $module" $ans [join $tserr "\n"]
-testouterr_cmd_re "sh" "switch --auto $module_troff $module" $ans [join $tserr "\n"]
+set tserr [msg_load $module [err_conflict $module $module_tron]]
+testouterr_cmd_re "sh" "switch --no-auto $module_troff $module" $ans $tserr
+testouterr_cmd_re "sh" "switch --auto $module_troff $module" $ans $tserr
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMCONFLICT "$module&$module_tron"]
-set tserr [list [err_conflictf $module $module_tron]]
-testouterr_cmd_re "sh" "switch --no-auto --force $module_troff $module" $ans [join $tserr "\n"]
-testouterr_cmd_re "sh" "switch --auto --force $module_troff $module" $ans [join $tserr "\n"]
+set tserr [msg_load $module [err_conflictf $module $module_tron]]
+testouterr_cmd_re "sh" "switch --no-auto --force $module_troff $module" $ans $tserr
+testouterr_cmd_re "sh" "switch --auto --force $module_troff $module" $ans $tserr
 
 
 #
@@ -225,7 +224,6 @@ testouterr_cmd_re "sh" "switch --auto --force $module_troff $module" $ans [join 
 unsetenv_path_var MODULES_LMCONFLICT
 unsetenv_loaded_module
 
-unset err_con
 unset err_trace
 unset tserr
 

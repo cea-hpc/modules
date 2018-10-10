@@ -62,12 +62,30 @@ set mod107p "$modpath/$mod107"
 set mod108 "module/lunk"
 set mod108p "$modpath/$mod108"
 
-set mod100err "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$mod100p'\n$err_contact"
-set mod101err "$moderr_msgs: invalid command name \"bad-command\"\n  In '$mod101p'\n$err_contact"
+set mod100err "$moderr_msgs: add-path cannot handle path equals to separator string\nIn '$mod100p'\n$err_contactns"
+set mod101err "$moderr_msgs: invalid command name \"bad-command\"\nIn '$mod101p'\n$err_contactns"
 set mod102err "$err_path'$mod102'"
-set mod100errun "$moderr_msgs: unload-path cannot handle path equals to separator string\n  In '$mod100p'\n$err_contact"
+set mod100errun "$moderr_msgs: unload-path cannot handle path equals to separator string\nIn '$mod100p'\n$err_contactns"
 set mod101errun $mod101err
 set mod102errun "$err_file'$mod102p'"
+
+# when auto handling is disabled no UReqUn are reported as they as still seen
+# loaded after the unload process due to the error
+if {$install_autohandling eq {y}} {
+    set msgtopsw_103 \n\n[msg_top_switch $mod103 $mod11 {} $mod100 {} {} {}]
+    set msgtopsw_104 \n\n[msg_top_switch $mod104 $mod11 {} $mod101 {} {} {}]
+    set msgtopsw_105 \n\n[msg_top_switch $mod105 $mod11 {} $mod102 {} {} {}]
+    set msgtopsw_106 \n\n[msg_top_switch $mod106 $mod11 {} [list $mod103 $mod100] {} {} {}]
+    set msgtopsw_107 \n\n[msg_top_switch $mod107 $mod11 {} [list $mod104 $mod101] {} {} {}]
+    set msgtopsw_108 \n\n[msg_top_switch $mod108 $mod11 {} [list $mod105 $mod102] {} {} {}]
+} else {
+    set msgtopsw_103 {}
+    set msgtopsw_104 {}
+    set msgtopsw_105 {}
+    set msgtopsw_106 {}
+    set msgtopsw_107 {}
+    set msgtopsw_108 {}
+}
 
 #
 # set up the environment
@@ -238,13 +256,13 @@ setenv_loaded_module [list $mod21] [list $mod21p]
 
 unsetenv_path_var MODULES_LMALTNAME
 setenv_loaded_module [list $mod100] [list $mod100p]
-testouterr_cmd "sh" "swap $mod100 $mod11" "ERR" "$mod100errun"
+testouterr_cmd "sh" "swap $mod100 $mod11" "ERR" [msg_unload $mod100 $mod100errun]
 
 setenv_loaded_module [list $mod101] [list $mod101p]
-testouterr_cmd "sh" "swap $mod101 $mod11" "ERR" "$mod101errun"
+testouterr_cmd "sh" "swap $mod101 $mod11" "ERR" [msg_unload $mod101 $mod101errun]
 
 setenv_loaded_module [list $mod102] [list $mod102p]
-testouterr_cmd "sh" "swap $mod102 $mod11" "ERR" "$mod102errun"
+testouterr_cmd "sh" "swap $mod102 $mod11" "ERR" [msg_unload $mod102 $mod102errun]
 
 setenv_loaded_module [list $mod100 $mod103] [list $mod100p $mod103p] [list $mod100]
 setenv_path_var MODULES_LMPREREQ $mod103&$mod100
@@ -258,7 +276,7 @@ lappend ans [list setpath _LMFILES_ $mod100p:$mod11p]
 lappend ans [list setpath LOADEDMODULES $mod100:$mod11]
 }
 lappend ans [list ERR]
-testouterr_cmd_re "sh" "swap $mod103 $mod11" $ans "$mod100errun"
+testouterr_cmd_re "sh" "swap $mod103 $mod11" $ans [msg_unload $mod100 $mod100errun]$msgtopsw_103
 
 setenv_loaded_module [list $mod101 $mod104] [list $mod101p $mod104p] [list $mod101]
 setenv_path_var MODULES_LMPREREQ $mod104&$mod101
@@ -269,7 +287,7 @@ lappend ans [list setpath _LMFILES_ $mod101p:$mod11p]
 lappend ans [list setpath LOADEDMODULES $mod101:$mod11]
 }
 lappend ans [list ERR]
-testouterr_cmd_re "sh" "swap $mod104 $mod11" $ans "$mod101errun"
+testouterr_cmd_re "sh" "swap $mod104 $mod11" $ans [msg_unload $mod101 $mod101errun]$msgtopsw_104
 
 setenv_loaded_module [list $mod102 $mod105] [list $mod102p $mod105p] [list $mod102]
 setenv_path_var MODULES_LMPREREQ $mod105&$mod102
@@ -280,7 +298,7 @@ lappend ans [list setpath _LMFILES_ $mod102p:$mod11p]
 lappend ans [list setpath LOADEDMODULES $mod102:$mod11]
 }
 lappend ans [list ERR]
-testouterr_cmd_re "sh" "swap $mod105 $mod11" $ans "$mod102errun"
+testouterr_cmd_re "sh" "swap $mod105 $mod11" $ans [msg_unload $mod102 $mod102errun]$msgtopsw_105
 
 setenv_loaded_module [list $mod100 $mod103 $mod106] [list $mod100p $mod103p $mod106p] [list $mod100 $mod103]
 setenv_path_var MODULES_LMPREREQ $mod103&$mod100 $mod106&$mod103
@@ -292,7 +310,7 @@ lappend ans [list setpath LOADEDMODULES $mod100:$mod11]
 lappend ans [list setpath MODULES_LMNOTUASKED $mod100]
 }
 lappend ans [list ERR]
-testouterr_cmd_re "sh" "swap $mod106 $mod11" $ans "$mod100errun"
+testouterr_cmd_re "sh" "swap $mod106 $mod11" $ans [msg_unload $mod100 $mod100errun]$msgtopsw_106
 
 setenv_loaded_module [list $mod101 $mod104 $mod107] [list $mod101p $mod104p $mod107p] [list $mod101 $mod104]
 setenv_path_var MODULES_LMPREREQ $mod104&$mod101 $mod107&$mod104
@@ -304,7 +322,7 @@ lappend ans [list setpath LOADEDMODULES $mod101:$mod11]
 lappend ans [list setpath MODULES_LMNOTUASKED $mod101]
 }
 lappend ans [list ERR]
-testouterr_cmd_re "sh" "swap $mod107 $mod11" $ans "$mod101errun"
+testouterr_cmd_re "sh" "swap $mod107 $mod11" $ans [msg_unload $mod101 $mod101errun]$msgtopsw_107
 
 setenv_loaded_module [list $mod102 $mod105 $mod108] [list $mod102p $mod105p $mod108p] [list $mod102 $mod105]
 setenv_path_var MODULES_LMPREREQ $mod105&$mod102 $mod108&$mod105
@@ -316,7 +334,7 @@ lappend ans [list setpath LOADEDMODULES $mod102:$mod11]
 lappend ans [list setpath MODULES_LMNOTUASKED $mod102]
 }
 lappend ans [list ERR]
-testouterr_cmd_re "sh" "swap $mod108 $mod11" $ans "$mod102errun"
+testouterr_cmd_re "sh" "swap $mod108 $mod11" $ans [msg_unload $mod102 $mod102errun]$msgtopsw_108
 
 #
 # Test to swap-on module with issue, nothing loads
@@ -336,15 +354,15 @@ lappend ans2 [list unsetpath LOADEDMODULES]
 lappend ans2 [list unsetpath _LMFILES_]
 
 
-testouterr_cmd "sh" "swap $mod11 $mod100" $ans "$mod100err"
-testouterr_cmd "sh" "swap $mod11 $mod101" $ans "$mod101err"
-testouterr_cmd "sh" "swap $mod11 $mod102" $ans2 "$mod102err"
-testouterr_cmd "sh" "swap $mod11 $mod103" $ans "$mod100err\n[err_prereq $mod103 $mod100]"
-testouterr_cmd "sh" "swap $mod11 $mod104" $ans "$mod101err\n[err_prereq $mod104 $mod101]"
-testouterr_cmd "sh" "swap $mod11 $mod105" $ans "$mod102err\n[err_prereq $mod105 $mod102]"
-testouterr_cmd "sh" "swap $mod11 $mod106" $ans "$mod100err\n[err_prereq $mod103 $mod100]\n[err_prereq $mod106 $mod103]"
-testouterr_cmd "sh" "swap $mod11 $mod107" $ans "$mod101err\n[err_prereq $mod104 $mod101]\n[err_prereq $mod107 $mod104]"
-testouterr_cmd "sh" "swap $mod11 $mod108" $ans "$mod102err\n[err_prereq $mod105 $mod102]\n[err_prereq $mod108 $mod105]"
+testouterr_cmd "sh" "swap $mod11 $mod100" $ans [msg_load $mod100 $mod100err]
+testouterr_cmd "sh" "swap $mod11 $mod101" $ans [msg_load $mod101 $mod101err]
+testouterr_cmd "sh" "swap $mod11 $mod102" $ans2 [msg_switch $mod11 $mod102 $mod102err]
+testouterr_cmd "sh" "swap $mod11 $mod103" $ans [msg_load $mod100 $mod100err]\n\n[msg_load $mod103 [err_prereq $mod103 $mod100]]
+testouterr_cmd "sh" "swap $mod11 $mod104" $ans [msg_load $mod101 $mod101err]\n\n[msg_load $mod104 [err_prereq $mod104 $mod101]]
+testouterr_cmd "sh" "swap $mod11 $mod105" $ans [msg_load $mod105 $mod102err [err_prereq $mod105 $mod102]]
+testouterr_cmd "sh" "swap $mod11 $mod106" $ans [msg_load $mod100 $mod100err]\n\n[msg_load $mod103 [err_prereq $mod103 $mod100]]\n\n[msg_load $mod106 [err_prereq $mod106 $mod103]]
+testouterr_cmd "sh" "swap $mod11 $mod107" $ans [msg_load $mod101 $mod101err]\n\n[msg_load $mod104 [err_prereq $mod104 $mod101]]\n\n[msg_load $mod107 [err_prereq $mod107 $mod104]]
+testouterr_cmd "sh" "swap $mod11 $mod108" $ans [msg_load $mod105 $mod102err [err_prereq $mod105 $mod102]]\n\n[msg_load $mod108 [err_prereq $mod108 $mod105]]
 
 #
 # Test to swap with full path modulefiles
@@ -363,9 +381,9 @@ setenv_loaded_module [list $mod12p] [list $mod12p]
 testouterr_cmd "sh" "swap $mod11p $mod12p" "OK" ""
 
 # inexistant modulefile to unload does not lead to error
-testouterr_cmd "sh" "swap $modpath/unknown $mod100p" "ERR" "$mod100err"
+testouterr_cmd "sh" "swap $modpath/unknown $mod100p" "ERR" [msg_load $mod100p $mod100err]
 
-testouterr_cmd "sh" "swap $mod11p $mod100p" "ERR" "$mod100err"
+testouterr_cmd "sh" "swap $mod11p $mod100p" "ERR" [msg_load $mod100p $mod100err]
 
 
 # swap with full path modulefiles modules loaded short path
@@ -497,3 +515,10 @@ unset mod102err
 unset mod100errun
 unset mod101errun
 unset mod102errun
+
+unset msgtopsw_103
+unset msgtopsw_104
+unset msgtopsw_105
+unset msgtopsw_106
+unset msgtopsw_107
+unset msgtopsw_108

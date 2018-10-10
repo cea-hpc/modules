@@ -39,45 +39,50 @@ setenv_path_var MODULEPATH $modulepath
 
 # wrong arg number if command does not accept any argument
 foreach cmd [list list purge reload aliases savelist] {
-    testouterr_cmd "sh" "load $module/$cmd" "ERR" "$moderr_msgs: Unexpected number of args for '$cmd' command\n  In '$modulepath/$module/$cmd'\n$err_contact"
+    testouterr_cmd "sh" "load $module/$cmd" "ERR" [msg_load $module/$cmd "$moderr_msgs: Unexpected number of args for '$cmd' command\nIn '$modulepath/$module/$cmd'\n$err_contactns"]
 }
 
 # on most module commands, empty arg leads to error
 # test both empty names {} and "" on same module command
 if {$install_autohandling eq {y}} {
-testouterr_cmd "sh" "load $module/load" "ERR" "$err_emptymodname\n[err_prereq $module/load {}]"
+testouterr_cmd "sh" "load $module/load" "ERR" [msg_load $module/load $err_emptymodname [err_prereq $module/load {}]]
 } else {
-testouterr_cmd "sh" "load $module/load" "ERR" "$err_emptymodname\n$err_emptymodname\n[err_prereq $module/load {}]"
+testouterr_cmd "sh" "load $module/load" "ERR" [msg_load $module/load $err_emptymodname $err_emptymodname [err_prereq $module/load {}]]
 }
-testouterr_cmd "sh" "load $module/unload" "ERR" "$err_emptymodname\n$err_emptymodname"
+testouterr_cmd "sh" "load $module/unload" "ERR" [msg_load $module/unload $err_emptymodname $err_emptymodname]
 
 # for some module commands, error is not fatal and modulefile is loaded
-foreach cmd [list display test swap] {
+foreach cmd [list display test] {
     set ans [list]
     lappend ans [list setpath LOADEDMODULES "$module/$cmd"]
     lappend ans [list setpath _LMFILES_ "$modulepath/$module/$cmd"]
     lappend ans [list ERR]
-    testouterr_cmd "sh" "load $module/$cmd" $ans $err_emptymodname
+    testouterr_cmd "sh" "load $module/$cmd" $ans [msg_load $module/$cmd $err_emptymodname]
 }
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module/swap"]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/swap"]
+lappend ans [list ERR]
+testouterr_cmd "sh" "load $module/swap" $ans [msg_switch {} bar $err_emptymodname]
 # switch: an empty second arg leads to one name rule
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module/swap2"]
 lappend ans [list setpath _LMFILES_ "$modulepath/$module/swap2"]
 lappend ans [list ERR]
-testouterr_cmd_re "sh" "load $module/swap2" $ans "$err_path'bar'"
+testouterr_cmd_re "sh" "load $module/swap2" $ans [msg_switch bar bar "$err_path'bar'"]
 foreach cmd [list use unuse] {
     set ans [list]
     lappend ans [list setpath LOADEDMODULES "$module/$cmd"]
     lappend ans [list setpath _LMFILES_ "$modulepath/$module/$cmd"]
     lappend ans [list ERR]
-    testouterr_cmd "sh" "load $module/$cmd" $ans $err_emptydirname
+    testouterr_cmd "sh" "load $module/$cmd" $ans [msg_load $module/$cmd $err_emptydirname]
 }
 
 # or error is reported as modulefile error rather global error
 foreach cmd [list save restore saveshow saverm] {
-    testouterr_cmd "sh" "load $module/$cmd" "ERR" "$moderr_emptycollname'$modulepath/$module/$cmd'\n$err_contact"
+    testouterr_cmd "sh" "load $module/$cmd" "ERR" [msg_load $module/$cmd "$moderr_emptycollname'$modulepath/$module/$cmd'\n$err_contactns"]
 }
-testouterr_cmd "sh" "load $module/source" "ERR" "$moderr_emptyfilename'$modulepath/$module/source'\n$err_contact"
+testouterr_cmd "sh" "load $module/source" "ERR" [msg_load $module/source "$moderr_emptyfilename'$modulepath/$module/source'\n$err_contactns"]
 
 # empty string currently understood like wildcard
 foreach cmd [list whatis apropos] {
@@ -101,7 +106,7 @@ testouterr_cmd_re "sh" "load $module/avail" $ans "^.+$"
 # wrong arg number if command does not accept any argument
 foreach cmd [list list purge reload aliases savelist] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
-    testouterr_cmd "sh" "unload $module/$cmd" "ERR" "$moderr_msgs: Unexpected number of args for '$cmd' command\n  In '$modulepath/$module/$cmd'\n$err_contact"
+    testouterr_cmd "sh" "unload $module/$cmd" "ERR" [msg_unload $module/$cmd "$moderr_msgs: Unexpected number of args for '$cmd' command\nIn '$modulepath/$module/$cmd'\n$err_contactns"]
 }
 
 # on most module commands, empty arg leads to error
@@ -117,35 +122,41 @@ foreach cmd [list load unload] {
         testouterr_cmd "sh" "unload $module/$cmd" $ans ""
     } else {
         # test both empty names {} and "" on same module command
-        testouterr_cmd "sh" "unload $module/$cmd" "ERR" "$err_emptymodname\n$err_emptymodname"
+        testouterr_cmd "sh" "unload $module/$cmd" "ERR" [msg_unload $module/$cmd $err_emptymodname $err_emptymodname]
     }
 }
 
 # for some module commands, error is not fatal and modulefile is unloaded
-foreach cmd [list display test swap] {
+foreach cmd [list display test] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     set ans [list]
     lappend ans [list unsetpath LOADEDMODULES]
     lappend ans [list unsetpath _LMFILES_]
     lappend ans [list ERR]
-    testouterr_cmd "sh" "unload $module/$cmd" $ans $err_emptymodname
+    testouterr_cmd "sh" "unload $module/$cmd" $ans [msg_unload $module/$cmd $err_emptymodname]
 }
+setenv_loaded_module "$module/swap" "$modulepath/$module/swap"
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list ERR]
+testouterr_cmd "sh" "unload $module/swap" $ans [msg_switch {} bar $err_emptymodname]
 # switch: an empty second arg leads to one name rule
 setenv_loaded_module "$module/swap2" "$modulepath/$module/swap2"
-testouterr_cmd_re "sh" "unload $module/swap2" $ans "$err_path'bar'"
+testouterr_cmd_re "sh" "unload $module/swap2" $ans [msg_switch bar bar "$err_path'bar'"]
 foreach cmd [list use unuse] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
-    testouterr_cmd "sh" "unload $module/$cmd" $ans $err_emptydirname
+    testouterr_cmd "sh" "unload $module/$cmd" $ans [msg_unload $module/$cmd $err_emptydirname]
 }
 
 # or error is reported as modulefile error rather global error
 foreach cmd [list save restore saveshow saverm] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
-    testouterr_cmd "sh" "unload $module/$cmd" "ERR" "$moderr_emptycollname'$modulepath/$module/$cmd'\n$err_contact"
+    testouterr_cmd "sh" "unload $module/$cmd" "ERR" [msg_unload $module/$cmd "$moderr_emptycollname'$modulepath/$module/$cmd'\n$err_contactns"]
 }
 setenv_loaded_module "$module/source" "$modulepath/$module/source"
 set env(_LMFILES_) "$modulepath/$module/source"
-testouterr_cmd "sh" "unload $module/source" "ERR" "$moderr_emptyfilename'$modulepath/$module/source'\n$err_contact"
+testouterr_cmd "sh" "unload $module/source" "ERR" [msg_unload $module/source "$moderr_emptyfilename'$modulepath/$module/source'\n$err_contactns"]
 
 # empty string currently understood like wildcard
 foreach cmd [list whatis apropos] {

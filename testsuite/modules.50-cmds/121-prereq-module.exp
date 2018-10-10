@@ -45,8 +45,9 @@ set modulefile_set "$modpath/$module_set"
 #  Error messages
 #
 
-set err_pre [err_prereq $module trace]
+set err_pre [msg_load $module [err_prereq $module trace]]
 set err_trace "$warn_msgs: 'module-trace' command not implemented"
+set err_trace_lo [msg_load $module_tron $err_trace]
 
 #
 #  The tests
@@ -59,7 +60,7 @@ lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMPREREQ "$module&trace"]
 lappend ans [list setpath MODULES_LMNOTUASKED $module_tron]
-testouterr_cmd_re "ALL" "load --auto $module" $ans $err_trace
+testouterr_cmd_re "ALL" "load --auto $module" $ans $err_trace_lo\n\n[msg_top_load $module {} $module_tron {}]
 
 testouterr_cmd "ALL" "load --no-auto $module" "ERR" $err_pre
 
@@ -75,7 +76,7 @@ lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMPREREQ "$module&trace"]
-testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace
+testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace_lo
 
 #
 # Tests playing with OR prereq list
@@ -83,7 +84,7 @@ testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace
 
 set module "prereq/orlist"
 set modulefile "$modpath/$module"
-set err_pre [err_prereqor $module trace setenv loc_dv1]
+set err_pre [msg_load $module [err_prereqor $module trace setenv loc_dv1]]
 
 # prereq is loaded automatically when autohandling is enabled (first in or list)
 set ans [list]
@@ -92,7 +93,7 @@ lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
 lappend ans [list setpath MODULES_LMNOTUASKED $module_tron]
-testouterr_cmd_re "ALL" "load --auto $module" $ans $err_trace
+testouterr_cmd_re "ALL" "load --auto $module" $ans $err_trace_lo\n\n[msg_top_load $module {} $module_tron {}]
 
 testouterr_cmd "ALL" "load --no-auto $module" "ERR" $err_pre
 
@@ -101,7 +102,7 @@ lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
-testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace
+testouterr_cmd_re "ALL" "load $module_tron $module" $ans $err_trace_lo
 
 # set situation where a module has been loaded with its prerequirement
 setenv_loaded_module [list $module_set $module_troff $module] [list $modulefile_set $modulefile_troff $modulefile]
@@ -110,14 +111,14 @@ set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list setpath LOADEDMODULES "$module_troff:$module:$module_tron"]
 lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile:$modulefile_tron"]
-testouterr_cmd_re "sh" "switch --no-auto $module_set $module_tron" $ans $err_trace
+testouterr_cmd_re "sh" "switch --no-auto $module_set $module_tron" $ans [msg_load $module_tron $err_trace]
 
 set ans [list]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES "$module_troff:$module_tron:$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile_tron:$modulefile"]
 lappend ans [list setpath MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
-testouterr_cmd_re "sh" "switch --auto $module_set $module_tron" $ans $err_trace
+testouterr_cmd_re "sh" "switch --auto $module_set $module_tron" $ans [msg_load $module_tron $err_trace]\n\n[msg_top_switch $module_set $module_tron {} {} {} {} $module]
 
 #
 #  Cleanup
@@ -129,6 +130,7 @@ unsetenv_loaded_module
 
 unset err_pre
 unset err_trace
+unset err_trace_lo
 
 unset ans
 

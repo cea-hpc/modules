@@ -62,6 +62,7 @@ set modavail_6 ""
 set modwhatis_6 ""
 set modpaths_6 [list]
 set moderr_6 "$err_file'$modulefile_6'"
+set modunerr_6 [msg_unload $module_6 $moderr_6]
 
 set modsym_7 "loc_virt1/7.0"
 set module_7 $modsym_7
@@ -71,6 +72,7 @@ set modavail_7 ""
 set modwhatis_7 ""
 set modpaths_7 [list]
 set moderr_7 "$err_file'$modulefile_7'"
+set modunerr_7 [msg_unload $module_7 $moderr_7]
 
 set modsym_8 "loc_virt1/8.0"
 set module_8 $modsym_8
@@ -82,8 +84,10 @@ set modpaths_8 [list]
 # a directory can be opened on FreeBSD, so another err message is obtained
 if {$tcl_platform(os) eq "FreeBSD"} {
     set moderr_8 "$err_magic'$modulefile_8'\n$err_contact"
+    set modunerr_8 [msg_unload $module_8 "$err_magicns'$modulefile_8'\n$err_contactns"]
 } else {
     set moderr_8 "$err_illdir'$modulefile_8'"
+    set modunerr_8 [msg_unload $module_8 $moderr_8]
 }
 
 set modsym_9 "loc_virt1/9.0"
@@ -95,8 +99,10 @@ set modwhatis_9 ""
 set modpaths_9 [list]
 if {$tcl_platform(os) eq "FreeBSD"} {
     set moderr_9 "$err_magic'$modulefile_9'\n$err_contact"
+    set modunerr_9 [msg_unload $module_9 "$err_magicns'$modulefile_9'\n$err_contactns"]
 } else {
     set moderr_9 "$err_illdir'$modulefile_9'"
+    set modunerr_9 [msg_unload $module_9 $moderr_9]
 }
 
 set modsym_10 "loc_virt1/.common"
@@ -162,6 +168,11 @@ for {set i 1} {$i <= 12} {incr i} {
     } elseif {[info exists moderr]} {
         unset moderr
     }
+    if {[info exists "modunerr_${i}"]} {
+        set modunerr [set "modunerr_${i}"]
+    } elseif {[info exists modunerr]} {
+        unset modunerr
+    }
 
     # setup clean environment
     unsetenv_loaded_module
@@ -213,7 +224,9 @@ for {set i 1} {$i <= 12} {incr i} {
     lappend ans [list unsetpath LOADEDMODULES]
     lappend ans [list unsetpath _LMFILES_]
 
-    if {[info exists moderr]} {
+    if {[info exists modunerr]} {
+        testouterr_cmd "sh" "unload $modsym" ERR $modunerr
+    } elseif {[info exists moderr]} {
         testouterr_cmd "sh" "unload $modsym" "ERR" "$moderr"
     } else {
         testouterr_cmd "sh" "unload $modsym" $ans ""
@@ -666,6 +679,9 @@ for {set i 1} {$i <= 12} {incr i} {
     if {[info exists "moderr_${i}"]} {
         unset "moderr_${i}"
     }
+    if {[info exists "modunerr_${i}"]} {
+        unset "modunerr_${i}"
+    }
 
 }
 
@@ -684,4 +700,7 @@ unset modavail
 unset modwhatis
 if {[info exists moderr]} {
     unset moderr
+}
+if {[info exists modunerr]} {
+    unset modunerr
 }

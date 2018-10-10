@@ -50,8 +50,10 @@ set err_path "$error_msgs: Unable to locate a modulefile for "
 set err_file "$error_msgs: No such file or directory on "
 set err_illdir "$error_msgs: Illegal operation on a directory on "
 set err_nomodpath "$error_msgs: No module path defined"
+set err_magicns "$moderr_msgs: Magic cookie '#%Module' missing\nIn "
 set err_magic "$moderr_msgs: Magic cookie '#%Module' missing\n  In "
-set err_contact "  Please contact <root@localhost>"
+set err_contactns "Please contact <root@localhost>"
+set err_contact "  $err_contactns"
 set err_typehelp "Try 'module --help' for more information."
 set err_loinconsist "$error_msgs: Loaded environment state is inconsistent"
 set err_emptymodname "$error_msgs: Invalid empty module name"
@@ -59,9 +61,9 @@ set err_emptycollname "$error_msgs: Invalid empty collection name"
 set err_emptydirname "$error_msgs: Directory name empty"
 set err_emptyfilename "$error_msgs: File name empty"
 set err_unsatreload "$error_msgs: Cannot reload modules, some of their constraints are not satistied"
-set moderr_emptycollname "$moderr_msgs: Invalid empty collection name\n  In "
+set moderr_emptycollname "$moderr_msgs: Invalid empty collection name\nIn "
 set moderr_emptydirname "$moderr_msgs: Directory name empty\n  In "
-set moderr_emptyfilename "$moderr_msgs: File name empty\n  In "
+set moderr_emptyfilename "$moderr_msgs: File name empty\nIn "
 
 proc err_conflict {mod args} {
     return "$::error_msgs: $mod cannot be loaded due to a conflict.
@@ -104,6 +106,140 @@ proc moderr_minverreq {modfile minver} {
     return "$::moderr_msgs: Modulefile requires at least Modules version $minver\n  In '$modfile'\n$::err_contact"
 }
 
+# helper procedures to format block message output
+proc msg_block_content {args} {
+    set msg {}
+    foreach arg $args {
+        set first 1
+        set padding {  }
+
+        set max_idx [expr {$::msg_disp_cols - [string length $padding]}]
+        set linelist [list]
+        foreach line [split $arg \n] {
+            set lineadd {}
+            while {$lineadd ne $line} {
+                # no split if no whitespace found to slice
+                if {[string length $line] > $max_idx && [set cut_idx [string\
+                    last { } $line $max_idx]] != -1} {
+                    set lineadd [string range $line 0 [expr {$cut_idx-1}]]
+                    set line [string range $line [expr {$cut_idx+1}] end]
+                } else {
+                    set lineadd $line
+                }
+                lappend linelist $lineadd
+                if {$first} {
+                    set first 0
+                    incr max_idx -[string length $padding]
+                }
+            }
+        }
+
+        # display each line
+        set first 1
+        foreach line $linelist {
+            append msg \n
+            if {$first} {
+                set first 0
+            } else {
+                append msg $padding
+            }
+            append msg "$padding$line"
+        }
+    }
+    return $msg
+}
+
+proc msg_load {mod args} {
+    set msg "Loading $mod"
+    append msg [eval msg_block_content $args]
+    return $msg
+}
+
+proc msg_unload {mod args} {
+    set msg "Unloading $mod"
+    append msg [eval msg_block_content $args]
+    return $msg
+}
+
+proc msg_switch {old new args} {
+    set msg "Switching from $old to $new"
+    append msg [eval msg_block_content $args]
+    return $msg
+}
+
+proc msg_top_load {mod unlist reqlolist deprelist args} {
+    if {[llength $unlist] > 0} {
+        lappend args "Unloading conflict: [join $unlist]"
+    }
+    if {[llength $reqlolist] > 0} {
+        lappend args "Loading requirement: [join $reqlolist]"
+    }
+    if {[llength $deprelist] > 0} {
+        lappend args "Reloading dependent: [join $deprelist]"
+    }
+    return [eval msg_load $mod $args]
+}
+
+proc msg_top_unload {mod depunlist urequnlist deprelist args} {
+    if {[llength $depunlist] > 0} {
+        lappend args "Unloading dependent: [join $depunlist]"
+    }
+    if {[llength $urequnlist] > 0} {
+        lappend args "Unloading useless requirement: [join $urequnlist]"
+    }
+    if {[llength $deprelist] > 0} {
+        lappend args "Reloading dependent: [join $deprelist]"
+    }
+    return [eval msg_unload $mod $args]
+}
+
+proc msg_top_switch {old new depunlist urequnlist unlist reqlolist deprelist args} {
+    if {[llength $depunlist] > 0} {
+        lappend args "Unloading dependent: [join $depunlist]"
+    }
+    if {[llength $urequnlist] > 0} {
+        lappend args "Unloading useless requirement: [join $urequnlist]"
+    }
+    if {[llength $unlist] > 0} {
+        lappend args "Unloading conflict: [join $unlist]"
+    }
+    if {[llength $reqlolist] > 0} {
+        lappend args "Loading requirement: [join $reqlolist]"
+    }
+    if {[llength $deprelist] > 0} {
+        lappend args "Reloading dependent: [join $deprelist]"
+    }
+    return [eval msg_switch $old $new $args]
+}
+
+proc msg_top_restore {coll target unlist lolist} {
+    set msg "Restoring collection $coll"
+    if {$target ne {}} {
+        append msg " \\\(for target \"$target\"\\\)"
+    }
+
+    if {[llength $unlist] > 0} {
+        lappend arglist "Unloading module: [join $unlist]"
+    }
+    if {[llength $lolist] > 0} {
+        lappend arglist "Loading module: [join $lolist]"
+    }
+    append msg [eval msg_block_content $arglist]
+
+    return $msg
+}
+
+# provide a lreverse proc for Tcl8.4 and earlier
+if {[info commands lreverse] eq ""} {
+   proc lreverse {l} {
+      set r [list]
+      for {set i [expr {[llength $l] - 1}]} {$i >= 0} {incr i -1} {
+         lappend r [lindex $l $i]
+      }
+      return $r
+   }
+}
+
 # get current terminal width
 proc getTtyCols {} {
     set nbcols {}
@@ -118,8 +254,18 @@ proc getTtyCols {} {
     }
     return $nbcols
 }
-if {[set nbcols [getTtyCols]] ne {}} {
+set nbcols [getTtyCols]
+if {$nbcols ne {} && $nbcols ne {0}} {
     set term_cols $nbcols
+    set msg_disp_cols $nbcols
+    if { $verbose > 0 } {
+        send_user "\tTerminal has $msg_disp_cols columns\n"
+    }
+} else {
+    set msg_disp_cols 80
+    if { $verbose > 0 } {
+        send_user "\tFail to detect terminal column number. Fallback to $msg_disp_cols columns\n"
+    }
 }
 unset nbcols
 

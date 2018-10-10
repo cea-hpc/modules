@@ -63,7 +63,7 @@ foreach field [list nodename version] {
         lappend ans [list setpath _LMFILES_ "$modulefile/$field"]
         test_cmd_re "csh" "load $module/$field" $ans
     } else {
-        testouterr_cmd "csh" "load $module/$field" "ERR" $uname_warn
+        testouterr_cmd "csh" "load $module/$field" "ERR" [msg_load $module/$field $uname_warn]
     }
 }
 
@@ -74,7 +74,7 @@ if {$domainname ne ""} {
     lappend ans [list setpath _LMFILES_ "$modulefile/domain"]
 	test_cmd_re "csh" "load $module/domain" $ans
 } else {
-    testouterr_cmd "csh" "load $module/domain" "ERR" $domainname_warn
+    testouterr_cmd "csh" "load $module/domain" "ERR" [msg_load $module/domain $domainname_warn]
 }
 
 # check internal uname value cache mechanism
@@ -86,7 +86,7 @@ lappend ans [list setpath _LMFILES_ "$modulefile/cache"]
 test_cmd_re "csh" "load $module/cache" $ans
 
 # bad uname subcommand
-testouterr_cmd "csh" "load $module/unk" "ERR" "$moderr_msgs: uname unk not supported\n  In '$modulefile/unk'\n$err_contact"
+testouterr_cmd "csh" "load $module/unk" "ERR" [msg_load $module/unk "$moderr_msgs: uname unk not supported\nIn '$modulefile/unk'\n$err_contactns"]
 
 # setup an empty path
 set ORIG_PATH $env(PATH)
@@ -106,9 +106,9 @@ foreach field [list sysname release machine] {
 
 # cannot find bin for those fields
 foreach field [list nodename version] {
-    testouterr_cmd "csh" "load $module/$field" "ERR" $uname_warn
+    testouterr_cmd "csh" "load $module/$field" "ERR" [msg_load $module/$field $uname_warn]
 }
-testouterr_cmd "csh" "load $module/domain" "ERR" $domainname_warn
+testouterr_cmd "csh" "load $module/domain" "ERR" [msg_load $module/domain $domainname_warn]
 
 
 #

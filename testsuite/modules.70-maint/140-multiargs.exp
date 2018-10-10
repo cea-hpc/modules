@@ -42,29 +42,31 @@ set modfilere_b1 "$modpathre/$mod_b1"
 set srcenv_b1 [list "set" "testsuite" "yes"]
 set disp_b1 "setenv\\s+testsuite\\s+yes"
 set whatis_b1 "erroneous module test"
-set errlo_b1 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modfilere_b1'\n$err_contact"
-set errdi_b1 "$errlo_b1\n"
+set errlo_b1 [msg_load $mod_b1 "$moderr_msgs: invalid command name \"bad-command\"\nIn '$modfilere_b1'\n$err_contactns"]
+set errsrc_b1 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modfilere_b1'\n$err_contact"
+set errdi_b1 "$errsrc_b1\n"
 
 set mod_b2 "append/0.2"
 set modfile_b2 "$modpath/$mod_b2"
 set modfilere_b2 "$modpathre/$mod_b2"
 set disp_b2 "append-path\tPATH :"
-set errlo_b2 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$modfilere_b2'\n$err_contact"
-set errdi_b2 "$errlo_b2\n"
+set errlo_b2 [msg_load $mod_b2 "$moderr_msgs: add-path cannot handle path equals to separator string\nIn '$modfilere_b2'\n$err_contactns"]
+set errsrc_b2 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$modfilere_b2'\n$err_contact"
+set errdi_b2 "$errsrc_b2\n"
 
 set mod_b3 "module/bad"
 set modfile_b3 "$modpath/$mod_b3"
 set modfilere_b3 "$modpathre/$mod_b3"
 set disp_b3 "module\\s+load\\s+$mod_b1"
-set errsrc_b3 "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modfilere_b1'\n$err_contact"
-set errlo_b3 "$errsrc_b3\n[err_prereq $mod_b3 $mod_b1]"
+set errsrc_b3 $errlo_b1
+set errlo_b3 $errlo_b1\n\n[msg_load $mod_b3 [err_prereq $mod_b3 $mod_b1]]
 
 set mod_b4 "module/err"
 set modfile_b4 "$modpath/$mod_b4"
 set modfilere_b4 "$modpathre/$mod_b4"
 set disp_b4 "module\\s+load\\s+$mod_b2"
-set errsrc_b4 "$moderr_msgs: add-path cannot handle path equals to separator string\n  In '$modfilere_b2'\n$err_contact"
-set errlo_b4 "$errsrc_b4\n[err_prereq $mod_b4 $mod_b2]"
+set errsrc_b4 $errlo_b2
+set errlo_b4 $errlo_b2\n\n[msg_load $mod_b4 [err_prereq $mod_b4 $mod_b2]]
 
 
 set help_pre "$modlin"
@@ -265,6 +267,7 @@ unset srcenv_b1
 unset disp_b1
 unset whatis_b1
 unset errlo_b1
+unset errsrc_b1
 unset errdi_b1
 
 unset mod_b2

@@ -124,14 +124,13 @@ $env(HOME)/.module/default:
 module use --append $modulepathre
 
 $modlin
-[test_stderr_content $modulepathre/$module/5 {} 1]
-$error_msgs: Directory '/path/to/dir' not found
+[test_stderr_content $modulepathre/$module/5 {} 0]
 foo"
 # if error when testing X11 setup, will get an error not a loaded module
 if {[info exists x11_warn]} {
-    testouterr_cmd_re "sh" "load $module/1" "ERR" "$tserr1\n$x11_warn"
+    testouterr_cmd_re "sh" "load $module/1" "ERR" $tserr1\n\n[msg_load $module/1 "WARNING: Unable to find ModulesTest in $modulepathre/$module/5." "$error_msgs: Directory '/path/to/dir' not found" $x11_warn]
 } else {
-    testouterr_cmd_re "sh" "load $module/1" $ans $tserr1
+    testouterr_cmd_re "sh" "load $module/1" $ans $tserr1\n\n[msg_top_load $module/1 {} $module/5 {} "WARNING: Unable to find ModulesTest in $modulepathre/$module/5." "$error_msgs: Directory '/path/to/dir' not found"]
 }
 
 # satisfy prereq
@@ -209,13 +208,13 @@ module load --notuasked $module
 module load $module/1
 
 $modlin
-[test_stderr_content $modulepathre/$module/5 {} 1]
+[test_stderr_content $modulepathre/$module/5 {} 0]
 foo"
 # if error when testing X11 setup, will get an error not a loaded module
 if {[info exists x11_warn]} {
-    testouterr_cmd_re "sh" "unload $module/1" "ERR" "$tserr1\n$x11_warn"
+    testouterr_cmd_re "sh" "unload $module/1" "ERR" $tserr1\n\n[msg_unload $module/1 "WARNING: Unable to find ModulesTest in $modulepathre/$module/5." $x11_warn]
 } else {
-    testouterr_cmd_re "sh" "unload $module/1" $ans $tserr1
+    testouterr_cmd_re "sh" "unload $module/1" $ans $tserr1\n\n[msg_top_unload $module/1 {} $module/5 {} "WARNING: Unable to find ModulesTest in $modulepathre/$module/5."]
 }
 
 # restore environment

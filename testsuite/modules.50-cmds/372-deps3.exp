@@ -27,7 +27,7 @@ set mp "$modpath.deps"
 setenv_path_var MODULEPATH $mp
 
 # is-loading conflict check
-testouterr_cmd "sh" "load mt" "ERR" "[err_conflictw ms mt]\n[err_prereq mt ms]"
+testouterr_cmd "sh" "load mt" "ERR" [msg_load ms [err_conflictw ms mt]]\n\n[msg_load mt [err_prereq mt ms]]
 
 # conflict consistency check
 set ans [list]
@@ -35,7 +35,7 @@ lappend ans [list setpath LOADEDMODULES "a"]
 lappend ans [list setpath _LMFILES_ "$mp/a"]
 lappend ans [list setpath MODULES_LMCONFLICT "a&b"]
 lappend ans [list ERR]
-testouterr_cmd "sh" "load a b" $ans [err_conflict b a]
+testouterr_cmd "sh" "load a b" $ans [msg_load b [err_conflict b a]]
 
 # prereq consistency check
 # no test possible with equal results between --auto and --no-auto modes
@@ -53,7 +53,7 @@ lappend ans [list setpath _LMFILES_ "$mp/mu"]
 lappend ans [list setpath MODULES_LMCONFLICT mu&ms]
 lappend ans [list setpath MODULES_LMPREREQ mu&ms]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
-testouterr_cmd "sh" "load mu" $ans "$warn_msgs: Unsupported option '--auto'\n$warn_msgs: Unsupported option '--auto'\n$warn_msgs: Unsupported option '--no-auto'"
+testouterr_cmd "sh" "load mu" $ans [msg_load mu "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--no-auto'"]
 
 #
 #  Cleanup
