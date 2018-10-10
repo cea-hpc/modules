@@ -7359,9 +7359,16 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
 proc cmdModulePurge {} {
    reportDebug "called."
 
-   # unload one by one to ensure same behavior whatever auto_handling state
+   # create a message record if for purge action to let underlying unload
+   # actions to know they are not the top-level action
+   pushMsgRecordId purge-[getEvalModuleStackDepth]
+
+  # unload one by one to ensure same behavior whatever auto_handling state
    # force it to handle loaded modules in violation state
    eval cmdModuleUnload match 0 1 0 0 [lreverse [getLoadedModuleList]]
+
+   # no sumup report for purge action for the moment
+   popMsgRecordId
 }
 
 proc cmdModuleReload {args} {
