@@ -352,6 +352,33 @@ string, it can only be evaluated by Modules version 4.3 and above. Elsewhere
 the modulefile is ignored like files without the ``#%Module`` magic cookie
 set.
 
+Improved module message report
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Module sub-commands like ``load``, ``unload`` or ``switch``, may perform
+multiple load or unload modulefile evaluations in a row. Also these kind of
+evaluation modes may sometimes trigger additional load or unload evaluations,
+when for instance a modulefile contains a ``module load`` command.
+
+To improve the readability of the module messages produced relatively to
+a load or an unload evaluation, these messages are now stacked under a
+*Loading* or an *Unloading* message block that gathers all the messages
+produced for a given modulefile evaluation::
+
+    $ module load --no-auto foo
+    Loading foo/1.2
+      ERROR: foo/1.2 cannot be loaded due to missing prereq.
+        HINT: the following module must be loaded first: bar/4.5
+
+In addition, foreground ``load``, ``unload``, ``switch`` and ``restore``
+actions (ie. asked on the command-line) now report a summary of the
+additional load and unload evaluations that were eventually triggered in
+the process::
+
+    $ module load --auto foo
+    Loading foo/1.2
+      Loading requirement: bar/4.5
+
 Further reading
 ---------------
 
