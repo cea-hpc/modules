@@ -64,7 +64,7 @@ lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$module1:$module_tron:
 lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile_tron:$modulefile2:$modulefile3"]
 lappend ans [list setpath MODULES_LMPREREQ "$module1&$modulefile_set1:$module2&trace:$module3&../$module_set1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "$modulefile_set1:$module_tron"]
-testouterr_cmd_re "sh" "load --auto $module1 $module2 $module3" $ans [msg_top_load $module1 {} $modulefile_set1 {}]\n\n[msg_load $module_tron $err_trace]\n\n[msg_top_load $module2 {} $module_tron {}]
+testouterr_cmd_re "sh" "load --auto $module1 $module2 $module3" $ans [regsub -all {([.+?()])} [msg_top_load $module1 {} $modulefile_set1 {}]\n\n[msg_load $module_tron $err_trace]\n\n[msg_top_load $module2 {} $module_tron {}] {\\\1}]
 
 set ans [list]
 lappend ans [list set testsuite yes]
@@ -72,7 +72,7 @@ lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$modulefile1:$module_t
 lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile_tron:$modulefile2:$modulefile3"]
 lappend ans [list setpath MODULES_LMPREREQ "$modulefile1&$modulefile_set1:$modulefile2&trace:$modulefile3&../$module_set1"]
 lappend ans [list setpath MODULES_LMNOTUASKED "$modulefile_set1:$module_tron"]
-testouterr_cmd_re "sh" "load --auto $modulefile1 $modulefile2 $modulefile3" $ans [msg_top_load $modulefile1 {} $modulefile_set1 {}]\n\n[msg_load $module_tron $err_trace]\n\n[msg_top_load $modulefile2 {} $module_tron {}]
+testouterr_cmd_re "sh" "load --auto $modulefile1 $modulefile2 $modulefile3" $ans [regsub -all {([.+?()])} [msg_top_load $modulefile1 {} $modulefile_set1 {}]\n\n[msg_load $module_tron $err_trace]\n\n[msg_top_load $modulefile2 {} $module_tron {}] {\\\1}]
 
 testouterr_cmd "sh" "load --no-auto $module1 $module2 $module3" "ERR" "$err_pre1\n\n$err_pre2\n\n$err_pre3"
 testouterr_cmd "sh" "load --no-auto $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_pref1\n\n$err_pref2\n\n$err_pref3"
@@ -138,7 +138,7 @@ testouterr_cmd_re "sh" "load --no-auto $modulefile1 $modulefile2 $modulefile3" $
 set ans [list]
 lappend ans [list ERR]
 # cannot find prereq module, raise currently a module error
-set err_pref2re [msg_load $modulefile2 "$moderr_msgs: No module path defined\nIn '$modulefile2'\n$err_contactns"]
+set err_pref2re [regsub -all {([.+?()])} [msg_load $modulefile2 "$moderr_msgs: No module path defined\nIn '$modulefile2'\n$err_contactns"] {\\\1}]
 lappend ans [list set LOADEDMODULES_modshare "(.*)"]
 lappend ans [list set _LMFILES__modshare "(.*)"]
 lappend ans [list set MODULES_LMPREREQ "$modulefile1&$modulefile_set1:$modulefile3&../$module_set1"]

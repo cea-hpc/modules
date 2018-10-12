@@ -26,6 +26,7 @@ set modulepath "$modpath.allin"
 set modulepathre "$modpathre.allin"
 set module "allenvchg"
 set modulefile "$modulepath/$module"
+set modulefilere "$modulepathre/$module"
 
 
 proc display_stderr_content {modfile content {premodlin 1}} {
@@ -216,10 +217,10 @@ setenv\t\tts9 ok9
 append-path\tTSPATH2 ok8
 append-path\tTSPATH3 ok8 \\\$ts9
 module-whatis\t,dir2,dir2:dir1,,\\\$ts1altered,dir2,\\\$ts5,ok8,ok9"
-set tserr [display_stderr_content "$modulefile/1" $tsdisp]
+set tserr [display_stderr_content "$modulefilere/1" $tsdisp]
 set tsdisp "setenv\t\ttsall ,dir2,dir2:dir1,,\\\$ts1altered,dir2,\\\$ts5,ok8,ok9
 module-whatis\t,dir2,dir2:dir1,,\\\$ts1altered,dir2,\\\$ts5,ok8,ok9"
-append tserr "\n[display_stderr_content $modulefile/2 $tsdisp 0]"
+append tserr "\n[display_stderr_content $modulefilere/2 $tsdisp 0]"
 testouterr_cmd_re "sh" "display $module/1 $module/2" "" $tserr
 
 # test with module loaded
@@ -260,8 +261,8 @@ unsetenv_var tsall
 #
 
 # test without module loaded
-set tserr [help_stderr_content "$modulefile/1" $tsall]
-append tserr "\n[help_stderr_content $modulefile/2 $tsall 0 0]"
+set tserr [help_stderr_content "$modulefilere/1" $tsall]
+append tserr "\n[help_stderr_content $modulefilere/2 $tsall 0 0]"
 testouterr_cmd_re "sh" "help $module/1 $module/2" "" $tserr
 
 # test with module loaded
@@ -302,8 +303,8 @@ unsetenv_var tsall
 #
 
 # test without module loaded
-set tserr [test_stderr_content "$modulefile/1" $tsall]
-append tserr "\n[test_stderr_content $modulefile/2 $tsall 0 0]"
+set tserr [test_stderr_content "$modulefilere/1" $tsall]
+append tserr "\n[test_stderr_content $modulefilere/2 $tsall 0 0]"
 testouterr_cmd_re "sh" "test $module/1 $module/2" "" $tserr
 
 # test with module loaded
@@ -394,6 +395,7 @@ setenv_path_var MODULEPATH $modpath
 
 unset module
 unset modulefile
+unset modulefilere
 unset modulepath
 unset modulepathre
 unset whatis

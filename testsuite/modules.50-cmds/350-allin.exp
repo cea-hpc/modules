@@ -27,6 +27,9 @@ if {$domainname ne ""} {
 set module "allin"
 set modulepath "$modpath.allin"
 set modulepathre "$modpathre.allin"
+set collpath  $env(HOME)/.module
+regsub -all {([.+?()])} $collpath {\\\1} collpathre
+regsub -all {([.+?()])} $env(TESTSUITEDIR) {\\\1} testsuitedirre
 
 set whatis "$modlin $modulepathre $modlin\n\\s+$module/1: $module"
 
@@ -95,7 +98,7 @@ lappend ans [list set ts3 ok]
 lappend ans [list alias foo bar]
 lappend ans [list unalias bar]
 lappend ans [list xres Ileaf.popup.saveUnder True]
-lappend ans [list chdir $env(TESTSUITEDIR)]
+lappend ans [list chdir $testsuitedirre]
 lappend ans [list setpath LOADEDMODULES $module/5:$module/1]
 lappend ans [list setpath _LMFILES_ $modulepath/$module/5:$modulepath/$module/1]
 lappend ans [list setpath MODULES_LMNOTUASKED $module/5]
@@ -119,7 +122,7 @@ Named collection list:
 default
 
 $modlin
-$env(HOME)/.module/default:
+$collpathre/default:
 
 module use --append $modulepathre
 
@@ -201,7 +204,7 @@ Named collection list:
 default
 
 $modlin
-$env(HOME)/.module/default:
+$collpathre/default:
 
 module use --append $modulepathre
 module load --notuasked $module
@@ -250,7 +253,7 @@ unsetenv_loaded_module
 # test display mode
 #
 
-set tserr1 "chdir\t\t$env(TESTSUITEDIR)
+set tserr1 "chdir\t\t$testsuitedirre
 setenv\t\tts1 ok
 unsetenv\tts2
 unsetenv\tts2 ok
@@ -338,11 +341,14 @@ testouterr_cmd_re "sh" "whatis $module" "ERR" $whatis
 
 # restore MODULEPATH
 if { $verbose > 0 } {
-    send_user "\tDelete $env(HOME)/.module\n"
+    send_user "\tDelete $collpath\n"
 }
-file delete $env(HOME)/.module
+file delete $collpath
 setenv_path_var MODULEPATH $modpath
 
+unset testsuitedirre
+unset collpath
+unset collpathre
 unset module
 unset modulepath
 unset modulepathre
