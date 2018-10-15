@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+#
+# MT, run specific part of the test suite
+# Copyright (C) 2018 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+# exit on error
+set -eu
+
+# print message on stderr then exit
+echo_error() {
+   echo -e "ERROR: $1" >&2
+   exit 1
+}
+
+if [ ! -e modulecmd.tcl.in ]; then
+   echo_error "Not in correct directory"
+fi
+
+if [ $# -gt 0 ]; then
+   chmod 000 testsuite/modules.*
+   chmod 755 testsuite/modules.00-init
+   chmod 000 testsuite/modules.00-init/*.exp
+   chmod 644 testsuite/modules.00-init/{005,006,010,050,080}-*.exp
+   lasti=0
+   for i in ${@}; do
+      j=${i##*/}
+      i=${i%/*}
+      chmod 755 testsuite/modules.${i}*
+      if [ "$j" != "$i" ]; then
+         if [ "$i" != "00" -a "$lasti" != "$i" ]; then
+            chmod 000 testsuite/modules.${i}*/*.exp
+         fi
+         for f in testsuite/modules.${i}*/{010,999,$j}-*.exp; do
+            if [ -e $f ]; then
+               chmod 644 $f
+            fi
+         done
+      elif [ "$i" == "00" ]; then
+         chmod 644 testsuite/modules.00-init/*.exp
+      fi
+      lasti=$i
+   done
+fi
+
+export RUNTESTFLAGS='-v -v'
+make test || true
+
+chmod 755 testsuite/modules.*
+chmod 644 testsuite/modules.*/*.exp
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
