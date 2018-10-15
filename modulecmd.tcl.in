@@ -7537,6 +7537,21 @@ proc cmdModuleUnuse {args} {
          }
 
          if {$unusepath ne ""} {
+            if {[lsearch -exact $modpathlist $unusepath] >= 0} {
+               set loadedmodlist [lreverse [getLoadedModuleList]]
+               foreach mod $loadedmodlist {
+                  set modfile [getPathToModule $mod]
+                  if { [string match $unusepath/* $modfile] } {
+                     reportWarning "Unloading $mod"
+                     set ret [eval cmdModuleUnload "match" $mod]
+                    # sub-module interpretation failed, raise error
+                    if {$ret} {
+                       set errormsg "SUB_FAILED"
+                    }
+                  }
+               }
+            }
+
             pushMode "unload"
             catch {
                unload-path MODULEPATH $unusepath
