@@ -23,8 +23,9 @@
 
 foreach subcmd [list append-path prepend-path remove-path autoinit help is-loaded is-saved is-used is-avail path paths info-loaded] {
     set module "modbad/$subcmd"
+    set modulefile "$modpath/$module"
     set modulefilere "$modpathre/$module"
-    set moderr "$moderr_msgs: module: Command '$subcmd' not supported\nIn '$modulefilere'\n$err_contactns"
+    set moderr "$moderr_msgs: module: Command '$subcmd' not supported\nIn '$modulefile'\n$err_contactns"
 
     switch -- $subcmd {
         {append-path} - {prepend-path} - {remove-path} {
@@ -38,23 +39,25 @@ foreach subcmd [list append-path prepend-path remove-path autoinit help is-loade
         }
     }
 
-    testouterr_cmd_re "sh" "load $module" "ERR" [msg_load $module $moderr]
+    testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $moderr]
     # no subcommand check on display, so no error
     testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nmodule\t\t$subcmd$subcmdargs\nmodule\t\thelp\n$modlin"
 }
 
 set module "modbad/foo"
+set modulefile "$modpath/$module"
 set modulefilere "$modpathre/$module"
-set moderr "$moderr_msgs: module: Invalid command 'foo'\nIn '$modulefilere'\n$err_contactns"
+set moderr "$moderr_msgs: module: Invalid command 'foo'\nIn '$modulefile'\n$err_contactns"
 
-testouterr_cmd_re "sh" "load $module" "ERR" [msg_load $module $moderr]
+testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $moderr]
 testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nmodule\t\tfoo\nmodule\t\thelp\n$modlin"
 
 set module "modbad/empty"
+set modulefile "$modpath/$module"
 set modulefilere "$modpathre/$module"
-set moderr "$moderr_msgs: module: Command 'help' not supported\nIn '$modulefilere'\n$err_contactns"
+set moderr "$moderr_msgs: module: Command 'help' not supported\nIn '$modulefile'\n$err_contactns"
 
-testouterr_cmd_re "sh" "load $module" "ERR" [msg_load $module $moderr]
+testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $moderr]
 testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere:\n\nmodule\t\t{}\nmodule\t\thelp\n$modlin"
 
 
@@ -66,5 +69,6 @@ unset subcmd
 unset subcmdargs
 
 unset moderr
+unset modulefile
 unset modulefilere
 unset module
