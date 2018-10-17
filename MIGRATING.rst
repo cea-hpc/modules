@@ -379,6 +379,14 @@ the process::
     Loading foo/1.2
       Loading requirement: bar/4.5
 
+New modulefile commands
+^^^^^^^^^^^^^^^^^^^^^^^
+
+2 new modulefile Tcl commands have been introduced:
+
+* **set-function**: define a shell function on sh-kind and fish shells.
+* **unset-function**: unset a shell function on sh-kind and fish shells.
+
 Further reading
 ---------------
 
@@ -494,7 +502,7 @@ instance in Python::
 New modulefile commands
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-4 new modulefile Tcl commands have are introduced:
+4 new modulefile Tcl commands have been introduced:
 
 * **is-saved**: returns true or false whether a collection, corresponding to
   currently set collection target, exists or not.
