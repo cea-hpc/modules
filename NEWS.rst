@@ -6,6 +6,181 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+Modules 4.2.0 (2018-10-18)
+--------------------------
+
+* Add ``chdir`` and ``puts`` environment settings to the per-modulefile
+  evaluation saved context. So previous values of these settings are restored
+  in case of evaluation failure.
+* Fix save and restore of ``x-resource`` environment settings on the
+  per-modulefile evaluation context.
+* Use the correct warning procedure to report the full reference counter
+  inconsistency message (so this message is fully inhibited during global
+  ``whatis`` evaluations).
+* Make ``append-path``, ``prepend-path``, ``remove-path`` and ``unsetenv``
+  commands alter ``env`` Tcl global array during ``display``, ``help``,
+  ``test`` or ``whatis`` evaluation modes. Thus an invalid argument passed to
+  these commands will now raise error on these modes. (see
+  :ref:`v42-variable-change-through-modulefile-evaluation` section in
+  MIGRATING document)
+* On ``whatis`` mode, ``append-path``, ``prepend-path``, ``remove-path``,
+  ``setenv`` and ``unsetenv`` commands initialize variables if undefined but
+  do not set them to their accurate value for performance concern.
+* Clear value instead of unsetting it during an unload mode evaluation of
+  ``setenv`` or ``*-path`` commands to avoid breaking later reference to the
+  variable in modulefile.
+* Make ``getenv`` command returns value on ``help``, ``test`` or ``whatis``
+  evaluation modes. (fix issue#188)
+* Add an argument to the ``getenv`` command to return the value of this
+  argument if the queried variable is undefined.
+* Use a different modulefile interpreter for each evaluation mode.
+* Adapt the procedure called for each modulefile command depending on the
+  evaluation mode to adapt behavior of these commands to the module command
+  currently running.
+* Report calling name and arguments for modulefile commands on ``display``
+  mode. For the commands evaluated during this mode, trigger this report at
+  the end of the evaluation.
+* Inhibit ``chdir``, ``conflict``, ``module``, ``module-log``,
+  ``module-trace``, ``module-user``, ``module-verbosity``, ``prereq``,
+  ``set-alias``, ``system``, ``unset-alias``, ``x-resource`` commands on
+  ``help``, ``test`` and ``whatis`` evaluation modes.
+* Ignore ``chdir``, ``module``, ``module-trace``, ``module-verbosity``,
+  ``module-user`` and ``module-log`` commands found during modulerc
+  evaluation.
+* Correctly restore an empty string value on sub-interpreter global variables
+  when sanitizing this interpreter between two modulefile/modulerc
+  evaluations.
+* Cache in memory results of a modulefile search to reuse it in case of rerun
+  instead of re-walking the filesystem.
+* Evaluate global rc files once module sub-command is known and registered,
+  so it can be queried during their evaluation.
+* Rename ``_moduleraw`` shell function in ``_module_raw`` to use a common
+  ``_module_`` prefix for all module-related internal shell functions.
+* Install: add ``--enable-append-binpath`` and ``--enable-append-binpath``
+  configure options to append rather prepend the bin or man directory when
+  adding them to the relative environment variable.
+* Doc: clarify documentation for module usage on scripting language like Perl
+  or Python to mention that arguments to the ``module`` function should be
+  passed as list and not as a single string.
+* When interpreting a ``setenv`` modulefile order during an unload evaluation,
+  variable is still set to be unset in generated shell code but it is set to
+  the value defined on the ``setenv`` order in the interpreter context instead
+  of being cleared.
+* Register the conflicts defined by loaded modules in the environment
+  (variable ``MODULES_LMCONFLICT``) and ensure they keep satisfied. (see
+  :ref:`v42-conflict-constraints-consistency` section in MIGRATING document)
+* Register the prereqs defined by loaded modules in the environment (variable
+  ``MODULES_LMPREREQ``) and ensure they keep satisfied. (see
+  :ref:`v42-prereq-constraints-consistency` section in MIGRATING document)
+* Introduce the automated module handling mode, which consists in additional
+  actions triggered when loading or unloading a modulefile to satisfy the
+  dependency constraints it declares. Those actions are when loading a
+  modulefile: the *Requirement Load* and the *Dependent Reload*. When
+  unloading a modulefile, *Dependent Unload*, *Useless Requirement Unload* and
+  *Dependent Reload* actions are triggered. (see
+  :ref:`v42-automated-module-handling-mode` section in MIGRATING document)
+* Track the loaded modules that have been automatically loaded (with
+  environment variable ``MODULES_LMNOTUASKED``) to distinguish them from
+  modules that have been explicitly asked by user. This information helps to
+  determine what module becomes a useless requirement once all its dependent
+  modules are unloaded.
+* Track in saved collections the loaded modules that have been automatically
+  loaded by add of a ``--notuasked`` argument to ``module load`` collection
+  lines. So this information is restored in loaded environment when collection
+  is restored. This ``--notuasked`` argument is ignored outside of a
+  collection restore context.
+* Consider modules loaded from a ``module source`` file as explicitly asked by
+  user.
+* Install: add ``--enable-auto-handling`` configure option to enable or
+  disable the automatic modulefile handling mechanism.
+* Process list of loaded modules or modules to load one by one during the
+  ``restore``, ``purge`` and ``reload`` sub-commands whatever the auto
+  handling mode is.
+* Add the ability to control whether the auto_handling mode should be enabled
+  or disabled with an environment variable called ``MODULES_AUTO_HANDLING`` or
+  from the command-line with ``--auto`` and ``--no-auto`` switches. These
+  command-line switches are ignored when called from modulefile.
+* Init: add pager-related command-line options in shell completion scripts.
+* Doc: describe ``MODULES_LMCONFLICT``, ``MODULES_LMPREREQ`` and
+  ``MODULES_LMNOTUASKED`` in module.1 man page.
+* Add ``-f`` and ``--force`` command-line switches to by-pass dependency
+  consistency during ``load``, ``unload`` or ``switch`` sub-commands. (see
+  :ref:`v42-by-passing-module-constraints` section in MIGRATING document)
+* Disallow collection ``save`` or loaded modules ``reload`` if some loaded
+  modules have some of their dependency constraints unsatisfied.
+* The *Dependent Reload* action of a ``load``, ``unload`` and ``switch``
+  sub-commands excludes modules that have unsatisfied constraints and includes
+  modules whose constraints are satisfied again (when sub-command process
+  solves a conflict for instance).
+* Doc: describe ``--force``, ``--auto`` and ``--no-auto`` command-line
+  switches and ``MODULES_AUTO_HANDLING`` variable in module.1 man page.
+* Ignore directories ``.SYNC`` (DesignSync) and ``.sos`` (SOS) when walking
+  through modulepath directory content. (contribution from Colin Marquardt)
+* Install: look for ``make`` rather ``gmake`` on MSYS2.
+* Fix ``exec()`` usage in Python module function definition to retrieve the
+  correct return status on Python3.
+* Cookbook: add the *top-priority-values* and *unload-firstly-loaded* recipes.
+* Install: add ``gcc`` to the build requirements in RPM specfile.
+* Silent any prereq violation warning message when processing *Dependent
+  Reload* mechanism or ``purge`` sub-command.
+* Doc: mention ``createmodule.sh`` and ``createmodule.py`` scripts in FAQ.
+  (fix issue#189)
+* Register all alternative names of loaded modules in environment with
+  ``MODULES_LMALTNAME`` variable. These names correspond to the symbolic
+  versions and aliases resolving to the loaded modules. Helps to consistenly
+  solve ``conflict`` or ``prereq`` constraints set over these alternative
+  names. (fix issue#143 / see
+  :ref:`v42-consistency-module-load-unload-commands` section in MIGRATING
+  document)
+* Doc: describe ``MODULES_LMALTNAME`` in module.1 man page.
+* Install: add ``--with-bin-search-path`` configure option to get in control
+  of the path list used to search the tools required to build and configure
+  Modules. (fix issue#164)
+* Install: add ``--enable-silent-shell-debug-support`` configure option to add
+  the ability to control whether or not code to support silent shell debug
+  should be added to the module function and sh-kind initialization scripts.
+  (fix issue#166)
+* Install: add ``--enable-quarantine-support`` configure option to add the
+  ability to control whether or not code to support quarantine mechanism
+  should be added to the module function and initialization scripts.
+  (fix issue#167)
+* Check version set in modulefile magic cookie. If modulefile sets a version
+  number greater than ``modulecmd.tcl`` script version, this modulefile is not
+  evaluated like when no magic cookie is set at all. (fix issue#171 / see
+  :ref:`v42-versioned-magic-cookie` section in MIGRATING document)
+* Fix uninitialized variable in procedure producing list of element output.
+  (fix issue#195)
+* Ensure the consistency of ``module load`` modulefile command once the
+  modulefile defining it has been loaded by assimilating this command to a
+  ``prereq`` command. Thus the defined constraint is recorded in the
+  ``MODULES_LMPREREQ`` environment variable. Same approach is used for
+  ``module unload`` modulefile command which is assimilated to a ``conflict``
+  command. Thus the defined constraint is recorded in the
+  ``MODULES_LMCONFLICT`` environment variable. (see
+  :ref:`v42-alias-symbolic-name-consistency` section in MIGRATING document)
+* Only look at loaded modules when unloading so unloading an nonexistent
+  modulefile does not produce an error anymore. (fix issue#199)
+* Report error raised from modulefile evaluation as ``ERROR`` rather
+  ``WARNING``, like when a conflict constraint is hit. Moreover this kind of
+  evaluation error is now silenced on global evaluation like when proceding
+  ``avail`` or ``search`` sub-commands.
+* Record messages to report them by block on when processing a ``load`` or an
+  ``unload`` modulefile evaluation to improve readability on these evaluating
+  modes that may cascade additional actions. (see
+  :ref:`v42-module-message-report` section in MIGRATING document)
+* Foreground ``load``, ``unload``, ``switch`` and ``restore`` actions (ie.
+  asked on the command-line) now report a summary of the additional load and
+  unload evaluations that were eventually triggered in the process.
+* Support ``del`` and ``remove`` aliases for ``unload`` sub-command like on
+  compatibility version. (fix issue#200 with contribution from Wenzler)
+* Correctly transmit the arguments along with the command to execute on
+  ``system`` modulefile command. (fix issue#201)
+* Contrib: add ``mt`` utility script which helps to run just specific part of
+  the test suite.
+* Introduce ``set-function`` and ``unset-function`` modulefile commands to
+  define shell function on sh-kind and fish shells. (fix issue#193 with
+  contribution from Ben Bowers)
+
 
 Modules 4.1.4 (2018-08-20)
 --------------------------
