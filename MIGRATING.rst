@@ -19,6 +19,8 @@ New features
 
 Version 4.2 introduces new functionalities that are described in this section.
 
+.. _v42-conflict-constraints-consistency:
+
 Modulefile conflict constraints consistency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -57,6 +59,8 @@ modulefiles in an environment variable called ``MODULES_LMCONFLICT``::
 An environment variable is used to keep track of this conflict information to
 proceed the same way than used to keep track of the loaded modulefiles with
 the ``LOADEDMODULES`` environment variable.
+
+.. _v42-prereq-constraints-consistency:
 
 Modulefile prereq constraints consistency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -101,6 +105,8 @@ constraints of the loaded modulefiles in an environment variable called
     Currently Loaded Modulefiles:
      1) a   2) c
 
+.. _v42-by-passing-module-constraints:
+
 By-passing module defined constraints
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -142,6 +148,8 @@ modulefiles::
 In a situation where some of the loaded modulefiles have unsatisfied
 constraints corresponding to the **prereq** and **conflict** they declare, the
 **save** and **reload** sub-commands do not perform and return an error.
+
+.. _v42-automated-module-handling-mode:
 
 Automated module handling mode
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -209,6 +217,8 @@ the next major release version (5.0) where it will be enabled by default. This
 new feature is currently considered experimental and the set of triggered
 actions will be refined over the next feature releases.
 
+.. _v42-consistency-module-load-unload-commands:
+
 Consistency of module load/unload commands in modulefile
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -267,6 +277,8 @@ Modules version now that consistency is checked:
   done in the reverse loaded order, not in the **module load** command
   definition order.
 
+.. _v42-alias-symbolic-name-consistency:
+
 Modulefile alias and symbolic modulefile name consistency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -314,6 +326,8 @@ names of the loaded modulefiles in an environment variable called
     Currently Loaded Modulefiles:
      1) d
 
+.. _v42-variable-change-through-modulefile-evaluation:
+
 Environment variable change through modulefile evaluation context
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -335,6 +349,8 @@ evaluation context during this ``whatis`` evaluation. These variables are
 only initialized to an empty value if undefined. This exception is made to
 save performances on this global evaluation mode.
 
+.. _v42-versioned-magic-cookie:
+
 Express Modules compatibility of modulefile with versioned magic cookie
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -351,6 +367,8 @@ version number. For instance, if a modulefile begins with the ``#%Module4.3``
 string, it can only be evaluated by Modules version 4.3 and above. Elsewhere
 the modulefile is ignored like files without the ``#%Module`` magic cookie
 set.
+
+.. _v42-module-message-report:
 
 Improved module message report
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
