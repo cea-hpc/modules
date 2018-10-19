@@ -6,7 +6,7 @@
 #   unload. Which was the behavior of Modules v3.2 (compatbility) version.
 #
 # Author: Xavier Delaruelle <xavier.delaruelle@cea.fr>
-# Compatibility: Modules v4.1
+# Compatibility: Modules v4.2
 #
 # Installation: put this file in the 'etc' directory of your Modules
 #   installation. Refer to the "Modulecmd startup" section in the
@@ -15,8 +15,8 @@
 # override 'getLoadedMatchingName' procedure to set behavior argument to the
 # 'returnfirst' value by default
 rename ::getLoadedMatchingName ::__getLoadedMatchingName
-proc getLoadedMatchingName {name {behavior returnfirst}} {
-   return [__getLoadedMatchingName $name $behavior]
+proc getLoadedMatchingName {name {behavior returnfirst} {loading 0}} {
+   return [__getLoadedMatchingName $name $behavior $loading]
 }
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
