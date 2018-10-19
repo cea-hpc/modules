@@ -8,7 +8,7 @@
 #   first position in path-like variable.
 #
 # Author: Xavier Delaruelle <xavier.delaruelle@cea.fr>
-# Compatibility: Modules v4.1
+# Compatibility: Modules v4.2
 #
 # Installation: put this file in the 'etc' directory of your Modules
 #   installation. Refer to the "Modulecmd startup" section in the
@@ -47,6 +47,43 @@ proc setenv {args} {
    # set non-priority value only if no top priority value already set
    } elseif {![info exists ::env(MODULES_PRIORITY_$var)]} {
       __setenv $var $val
+   }
+}
+
+# override 'setenv-un' procedure to interpret the '--top' optional argument
+# when setenv is evaluated on an unload mode
+rename ::setenv-un ::__setenv-un
+proc setenv-un {args} {
+   set topPriority 0
+   set errArgMsg "wrong # args: should be \"setenv-un ?--top? var val\""
+   switch -- [llength $args] {
+      {3} {
+         if {[lindex $args 0] eq "--top"} {
+            set topPriority 1
+         } else {
+            error $errArgMsg
+         }
+         set var [lindex $args 1]
+         set val [lindex $args 2]
+      }
+      {2} {
+         set var [lindex $args 0]
+         set val [lindex $args 1]
+      }
+      default {
+         error $errArgMsg
+      }
+   }
+
+   if {$topPriority} {
+      # define an helper variable to know a top-priority value has been set
+      if {[currentMode] ne "display"} {
+         __setenv-un MODULES_PRIORITY_$var $val
+      }
+      __setenv-un $var $val
+   # set non-priority value only if no top priority value already set
+   } elseif {![info exists ::env(MODULES_PRIORITY_$var)]} {
+      __setenv-un $var $val
    }
 }
 
