@@ -444,10 +444,10 @@ the *modulefile* is being loaded.
 
 **system** string
 
- Pass *string* to the Tcl built-in command **exec**\ (n). For the **exec**\
- (n) call **modulecmd.tcl** redirects stdout to stderr since stdout would
- be parsed by the evaluating shell. The exit status of the executed command
- is returned.
+ Run *string* command through shell. On Unix, command is passed to the
+ ``/bin/sh`` shell whereas on Windows it is passed to ``cmd.exe``.
+ **modulecmd.tcl** redirects stdout to stderr since stdout would be parsed by
+ the evaluating shell. The exit status of the executed command is returned.
 
 **uname** field
 

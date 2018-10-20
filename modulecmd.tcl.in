@@ -2733,14 +2733,24 @@ proc uname {what} {
    return $::unameCache($what)
 }
 
-proc system {mycmd args} {
-   reportDebug "$mycmd $args"
+# run shell command
+proc system {args} {
+   reportDebug $args
 
    set mode [currentMode]
    set status {}
 
    if {$mode eq "load" || $mode eq "unload"} {
-      if {[catch {eval exec >&@stderr $mycmd $args}]} {
+      # run through the appropriate shell
+      if {[isWin]} {
+         set shell cmd.exe
+         set shellarg /c
+      } else {
+         set shell /bin/sh
+         set shellarg -c
+      }
+
+      if {[catch {exec >&@stderr $shell $shellarg [join $args]}]} {
           # non-zero exit status, get it:
           set status [lindex $::errorCode 2]
       } else {
