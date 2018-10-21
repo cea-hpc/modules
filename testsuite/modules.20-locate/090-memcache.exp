@@ -1,0 +1,195 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	2018/10/21
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		display, avail
+#   Modulefiles:	use, user
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Modulefile find cache tests
+#		}C%
+#
+##############################################################################
+
+set mp $modpath.memcache
+set mpre $modpathre.memcache
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# check correct result is obtained on display
+set tsdisp "$mpre/foo/2:\n\nsetenv\t\tts ok"
+set tserr $modlin\n$tsdisp\n$modlin\n$tsdisp\n$modlin
+testouterr_cmd_re sh {display foo foo} OK $tserr
+
+# check correct result is obtained on avail
+set tsav $mpre:\nfoo/1\nfoo/2\nfoo1/1\nfoo1/2
+set tserr $tsav\n\n$tsav
+testouterr_cmd_re sh {avail -t foo foo} OK $tserr
+
+# verify if cache is taken into account on display
+set tserr "(.*)+
+DEBUG findModules: finding 'foo' in $mpre .*
+(.*)+
+DEBUG findModules: create cache entry .*
+(.*)+
+DEBUG findModules: finding 'foo' in $mpre .*
+DEBUG findModules: use cache entry .*
+(.*)+"
+testouterr_cmd_re sh {display -D foo foo} OK $tserr
+
+# verify if cache is taken into account on avail
+set tserr "(.*)+
+DEBUG findModules: finding 'foo\\*' in $mpre .*
+(.*)+
+DEBUG findModules: create cache entry .*
+(.*)+
+DEBUG findModules: finding 'foo\\*' in $mpre .*
+DEBUG findModules: use cache entry .*
+(.*)+"
+testouterr_cmd_re sh {avail -D -t foo foo} OK $tserr
+
+# test situations where cache should or should not be re-used depending
+# on consecutive similar queries
+
+set tserr "(.*)+
+DEBUG findModules: finding 'foo1\\*' in $mpre .*
+(.*)+
+DEBUG findModules: found foo1\\S* foo1\\S* foo1\\S*
+DEBUG findModules: create cache entry .*
+(.*)+
+foo1/1  foo1/2  
+(.*)+
+DEBUG findModules: finding 'foo\\*' in $mpre .*
+DEBUG checkValidModule: .*
+(.*)+
+DEBUG findModules: found foo\\S* foo\\S* foo\\S* foo\\S* foo\\S* foo\\S*
+DEBUG findModules: create cache entry .*
+(.*)+
+foo/1  foo/2  foo1/1  foo1/2  
+(.*)+"
+testerr_cmd_re sh {load -D look/1} $tserr
+
+set tserr "(.*)+
+DEBUG findModules: finding 'foo\\*' in $mpre .*
+(.*)+
+DEBUG findModules: found foo\\S* foo\\S* foo\\S* foo\\S* foo\\S* foo\\S*
+DEBUG findModules: create cache entry .*
+(.*)+
+foo/1  foo/2  foo1/1  foo1/2  
+(.*)+
+DEBUG findModules: finding 'foo1\\*' in $mpre .*
+DEBUG findModules: use cache entry .*
+DEBUG getModules: got foo1\\S* foo1\\S* foo1\\S*
+(.*)+
+foo1/1  foo1/2  
+(.*)+"
+testerr_cmd_re sh {load -D look/2} $tserr
+
+set tserr "(.*)+
+DEBUG findModules: finding '\\*\\*' in $mpre .*
+(.*)+
+DEBUG findModules: create cache entry .*
+(.*)+
+DEBUG findModules: finding 'f\\*' in $mpre .*
+DEBUG findModules: use cache entry .*
+DEBUG getModules: got foo\\S* foo\\S* foo\\S* foo\\S* foo\\S* foo\\S*
+(.*)+
+foo/1  foo/2  foo1/1  foo1/2  
+(.*)+"
+testerr_cmd_re sh {load -D look/3} $tserr
+
+set tserr "(.*)+
+DEBUG findModules: finding 'f\\*' in $mpre .*
+(.*)+
+DEBUG findModules: found foo\\S* foo\\S* foo\\S* foo\\S* foo\\S* foo\\S*
+DEBUG findModules: create cache entry .*
+(.*)+
+foo/1  foo/2  foo1/1  foo1/2  
+(.*)+
+DEBUG findModules: finding '\\*\\*' in $mpre .*
+DEBUG checkValidModule: .*
+(.*)+
+DEBUG findModules: create cache entry .*
+(.*)+"
+testerr_cmd_re sh {load -D look/4} $tserr
+
+set tserr "(.*)+
+DEBUG findModules: finding 'foo1' in $mpre .*
+(.*)+
+DEBUG findModules: found foo1\\S* foo1\\S* foo1\\S*
+DEBUG findModules: create cache entry .*
+(.*)+
+DEBUG findModules: finding 'foo' in $mpre .*
+DEBUG checkValidModule: .*
+(.*)+
+DEBUG findModules: found foo\\S* foo\\S* foo\\S*
+DEBUG findModules: create cache entry .*
+(.*)+"
+testerr_cmd_re sh {load -D look/5} $tserr
+
+set tserr "(.*)+
+DEBUG findModules: finding 'foo' in $mpre .*
+(.*)+
+DEBUG findModules: found foo\\S* foo\\S* foo\\S*
+DEBUG findModules: create cache entry .*
+(.*)+
+DEBUG findModules: finding 'foo1' in $mpre .*
+DEBUG checkValidModule: .*
+(.*)+
+DEBUG findModules: found foo1\\S* foo1\\S* foo1\\S*
+DEBUG findModules: create cache entry .*
+(.*)+"
+testerr_cmd_re sh {load -D look/6} $tserr
+
+set tserr "(.*)+
+DEBUG findModules: finding '\\*\\*' in $mpre .*
+(.*)+
+DEBUG findModules: create cache entry .*
+(.*)+
+DEBUG findModules: finding 'foo' in $mpre .*
+DEBUG findModules: use cache entry .*
+DEBUG getModules: got foo\\S* foo\\S* foo\\S*
+(.*)+"
+testerr_cmd_re sh {load -D look/7} $tserr
+
+# test with a modulename containing space and other special chars
+set tserr "(.*)+
+DEBUG findModules: finding 'sp cial\\*' in $mpre .*
+(.*)+
+DEBUG findModules: create cache entry .*
+DEBUG getModules: got {sp cial\\S*} {sp cial\\S*}
+(.*)+
+sp cial/1  
+(.*)+
+DEBUG findModules: finding 'sp cial\\*' in $mpre .*
+DEBUG findModules: use cache entry .*
+DEBUG getModules: got {sp cial\\S*} {sp cial\\S*}
+(.*)+
+sp cial/1  
+(.*)+"
+testerr_cmd_re sh {load -D look/8} $tserr
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+
+unset mp
+unset mpre
+
+unset tsdisp
+unset tserr
+
