@@ -47,11 +47,7 @@ proc isWin {} {
 # Get default path separator
 proc getPathSeparator {} {
    if {![info exists ::g_def_separator]} {
-      if {[isWin]} {
-         set ::g_def_separator {;}
-      } else {
-         set ::g_def_separator :
-      }
+      set ::g_def_separator [expr {[isWin] ? {;} : {:}}]
    }
 
    return $::g_def_separator
@@ -88,11 +84,8 @@ proc getTtyColumns {} {
          }
       }
       # default size if tty cols cannot be found
-      if {![info exists cols] || $cols eq {0}} {
-         set ::g_tty_columns 80
-      } else {
-         set ::g_tty_columns $cols
-      }
+      set ::g_tty_columns [expr {![info exists cols] || $cols eq {0} ? 80 :\
+         $cols}]
    }
 
    return $::g_tty_columns
@@ -354,11 +347,7 @@ proc __reportErrorAndExit {message} {
 
 proc reportInternalBug {message modfile} {
    # change line padding depending on output-kind
-   if {[currentMsgRecordId] ne {}} {
-      set pad {}
-   } else {
-      set pad {  }
-   }
+   set pad [expr {[currentMsgRecordId] ne {} ? {} : {  }}]
    reportError "$message\n${pad}In '$modfile'\n${pad}Please contact\
       <$::contact>" {Module ERROR}
 }
@@ -479,22 +468,15 @@ proc reportIssue {issuetype issuemsg {issuefile {}}} {
 
 # report defined command (used in display evaluation mode)
 proc reportCmd {cmd args} {
-   if {[string length $cmd] < 8} {
-      set extratab \t
-   } else {
-      set extratab {}
-   }
+   set extratab [expr {[string length $cmd] < 8 ? "\t" : {}}]
    # only brace empty arguments or those containing whitespace
    set cmdargs {}
    foreach cmdarg $args {
       if {$cmdargs ne {}} {
          append cmdargs { }
       }
-      if {$cmdarg eq {} || [string first { } $cmdarg] > -1} {
-         append cmdargs "{$cmdarg}"
-      } else {
-         append cmdargs $cmdarg
-      }
+      append cmdargs [expr {$cmdarg eq {} || [string first { } $cmdarg] > -1\
+         ? "{$cmdarg}" : $cmdarg}]
    }
    report $cmd$extratab\t$cmdargs
 
@@ -660,11 +642,8 @@ proc getHintLoConflictMsg {mod conlist} {
 }
 
 proc getErrConflictMsg {mod conlist {loading 0}} {
-   if {$loading} {
-      set hintmsg [getHintLoConflictMsg $mod $conlist]
-   } else {
-      set hintmsg [getHintUnFirstMsg $conlist]
-   }
+   set hintmsg [if {$loading} {getHintLoConflictMsg $mod $conlist}\
+      {getHintUnFirstMsg $conlist}]
    return "$mod cannot be loaded due to a conflict.\n$hintmsg"
 }
 
@@ -681,15 +660,8 @@ proc getWarnLoPrereqMsg {mod prelist} {
 }
 
 proc getErrPrereqMsg {mod prelist {load 1}} {
-   if {$load} {
-      set un {}
-      set mis missing
-      set hintmsg [getHintLoFirstMsg $prelist]
-   } else {
-      set un un
-      set mis a
-      set hintmsg [getHintUnFirstMsg $prelist]
-   }
+   lassign [if {$load} {list {} missing [getHintLoFirstMsg $prelist]}\
+      {list un a [getHintUnFirstMsg $prelist]}] un mis hintmsg
    return "$mod cannot be ${un}loaded due to $mis prereq.\n$hintmsg"
 }
 
@@ -1519,11 +1491,8 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}} {
    }
 
    # register and propagate symbols to the resolution path
-   if {[info exists g_symbolHash($mod)]} {
-      set sym_list $g_symbolHash($mod)
-   } else {
-      set sym_list {}
-   }
+   set sym_list [expr {[info exists g_symbolHash($mod)] ? $g_symbolHash($mod)\
+      : {}}]
    if {$symver ne {}} {
       # merge symbol definitions in case of alternative name
       if {[info exists modalt] && [info exists g_symbolHash($modalt)]} {
@@ -2020,13 +1989,8 @@ proc setenv-wh {var args} {
 proc getenv {var {valifundef _UNDEFINED_}} {
    reportDebug "var='$var', valifundef='$valifundef'"
 
-   if {[currentMode] ne {display}} {
-      set val [get-env $var $valifundef]
-   } else {
-      set val \$$var
-   }
-
-   return $val
+   return [expr {[currentMode] ne {display} ? [get-env $var $valifundef] :\
+      "\$$var"}]
 }
 
 proc unsetenv {var {val {}}} {
@@ -2352,11 +2316,8 @@ proc add-path {pos args} {
          # counter array (sometimes var is cleared by setting it empty not
          # unsetting it)
          if {$val ne {} || [info exists countarr()]} {
-            if {$pos eq {prepend}} {
-               set val $dir$separator$val
-            } else {
-               set val $val$separator$dir
-            }
+            set val [expr {$pos eq {prepend} ? "$dir$separator$val" :\
+               "$val$separator$dir"}]
          } else {
             set val $dir
          }
@@ -3156,11 +3117,8 @@ proc getPathToModule {mod {indir {}} {look_loaded no} {excdir {}}} {
          match {set getLoadedNameProc getLoadedMatchingName}
          close {set getLoadedNameProc getLoadedWithClosestName}
       }
-      if {[set lm [$getLoadedNameProc $mod]] ne {}} {
-         set retlist [list [getModulefileFromLoadedModule $lm] $lm]
-      } else {
-         set retlist [list {} $mod notloaded]
-      }
+      set retlist [if {[set lm [$getLoadedNameProc $mod]] ne {}} {list\
+         [getModulefileFromLoadedModule $lm] $lm} {list {} $mod notloaded}]
    # Check for $mod specified as a full pathname
    } elseif {[isModuleFullPath $mod]} {
       set mod [getAbsolutePath $mod]
@@ -3176,11 +3134,8 @@ proc getPathToModule {mod {indir {}} {look_loaded no} {excdir {}}} {
          }
       }
    } else {
-      if {$indir ne {}} {
-         set dir_list $indir
-      } else {
-         set dir_list [getModulePathList exiterronundef]
-      }
+      set dir_list [expr {$indir ne {} ? $indir : [getModulePathList\
+         exiterronundef]}]
       # remove excluded directories (already searched)
       foreach dir $excdir {
          set dir_list [replaceFromList $dir_list $dir]
@@ -3303,11 +3258,8 @@ proc getModuleFromLoadedModulefile {modfile {idx all}} {
    set ret {}
 
    if {[isModulefileLoaded $modfile]} {
-      if {$idx eq {all}} {
-         set ret $::g_loadedModuleFiles($modfile)
-      } else {
-         set ret [lindex $::g_loadedModuleFiles($modfile) $idx]
-      }
+      set ret [expr {$idx eq {all} ? $::g_loadedModuleFiles($modfile) :\
+         [lindex $::g_loadedModuleFiles($modfile) $idx]}]
    }
 
    return $ret
@@ -3326,11 +3278,7 @@ proc getModuleFromLoadingModulefile {modfile {idx all}} {
          lappend modlist [lindex $loadingmodlist $i]
       }
 
-      if {$idx eq {all}} {
-         set ret $modlist
-      } else {
-         set ret [lindex $modlist $idx]
-      }
+      set ret [expr {$idx eq {all} ? $modlist : [lindex $modlist $idx]}]
    }
 
    return $ret
@@ -3438,11 +3386,8 @@ proc getLoadedWithClosestName {name} {
          foreach matchmod $matchmodlist {
             set modsplit [split $matchmod /]
             # min expr function is not supported in Tcl8.4 and earlier
-            if {[llength $namesplit] < [llength $modsplit]} {
-               set imax [llength $namesplit]
-            } else {
-               set imax [llength $modsplit]
-            }
+            set imax [if {[llength $namesplit] < [llength $modsplit]}\
+               {llength $namesplit} {llength $modsplit}]
 
             # compare each element of the name to find closest answer
             # in case of equality, last loaded module will be returned as it
@@ -3775,22 +3720,14 @@ proc setModuleDependency {mod} {
 # update dependency chain when unloading module
 proc unsetModuleDependency {mod} {
    foreach lmmodlist $::g_moduleDepend($mod) {
-      if {[llength $lmmodlist] > 1} {
-         set manymod 1
-      } else {
-         set manymod 0
-      }
+      set manymod [expr {[llength $lmmodlist] > 1 ? 1 : 0}]
 
       # unset 'is depended by' mod relations
       foreach lmmod $lmmodlist {
          if {[llength $::g_dependHash($lmmod)] == 1} {
             unset ::g_dependHash($lmmod)
          } else {
-            if {$manymod} {
-               set hashdep [list $mod 1]
-            } else {
-               set hashdep $mod
-            }
+            set hashdep [expr {$manymod ? [list $mod 1] : $mod}]
             set ::g_dependHash($lmmod) [replaceFromList\
                $::g_dependHash($lmmod) $hashdep]
          }
@@ -4518,11 +4455,7 @@ proc renderSettings {} {
       foreach putsArgs $::g_stdoutPuts {
          eval puts $putsArgs
          # check if a finishing newline will be needed after content sent
-         if {[lindex $putsArgs 0] eq {-nonewline}} {
-            set needPutsNl 1
-         } else {
-            set needPutsNl 0
-         }
+         set needPutsNl [expr {[lindex $putsArgs 0] eq {-nonewline} ? 1 : 0}]
       }
       if {$needPutsNl} {
          puts stdout {}
@@ -4581,19 +4514,11 @@ if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
          # these variables that should have been local are unset at the end
 
          # on zsh, word splitting should be enabled explicitly
-         if {$::g_shell eq {zsh}} {
-            set wsplit =
-         } else {
-            set wsplit {}
-         }
+         set wsplit [expr {$::g_shell eq {zsh} ? {=} : {}}]
          # only redirect module from stderr to stdout when session is
          # attached to a terminal to avoid breaking non-terminal session
          # (scp, sftp, etc)
-         if {[isStderrTty]} {
-            set fname _module_raw
-         } else {
-            set fname module
-         }
+         set fname [expr {[isStderrTty] ? {_module_raw} : {module}}]
          # build quarantine mechanism in module function
          # an empty runtime variable is set even if no corresponding
          # MODULES_RUNENV_* variable found, as var cannot be unset on
@@ -4655,11 +4580,8 @@ if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
          }
       }
       fish {
-         if {[isStderrTty]} {
-            set fdef "function _module_raw\n"
-         } else {
-            set fdef "function module\n"
-         }
+         set fdef [expr {[isStderrTty] ? "function _module_raw\n" :\
+            "function module\n"}]
 @quarantinesupport@         append fdef {   set -l _mlre ''; set -l _mlv; set -l _mlrv;
 @quarantinesupport@   for _mlv in (string split ' ' $MODULES_RUN_QUARANTINE)
 @quarantinesupport@      if string match -r '^[A-Za-z_][A-Za-z0-9_]*$' $_mlv >/dev/null
@@ -4699,11 +4621,8 @@ end}
 @quarantinesupport@               lappend _mlre "${_mlv}_modquar=$::env($_mlv)"
 @quarantinesupport@            }
 @quarantinesupport@            set _mlrv "MODULES_RUNENV_${_mlv}"
-@quarantinesupport@            if {[info exists ::env($_mlrv)]} {
-@quarantinesupport@               lappend _mlre "${_mlv}=$::env($_mlrv)"
-@quarantinesupport@            } else {
-@quarantinesupport@               lappend _mlre "${_mlv}="
-@quarantinesupport@            }
+@quarantinesupport@            lappend _mlre [expr {[info exists ::env($_mlrv)] ?\
+               "${_mlv}=$::env($_mlrv)" : "${_mlv}="}]
 @quarantinesupport@         }
 @quarantinesupport@      }
 @quarantinesupport@      if {[llength $_mlre] > 0} {
@@ -4957,11 +4876,8 @@ proc cacheCurrentModules {} {
 # This proc resolves module aliases or version aliases to the real module name
 # and version.
 proc resolveModuleVersionOrAlias {name} {
-   if {[info exists ::g_moduleResolved($name)]} {
-      set ret $::g_moduleResolved($name)
-   } else {
-      set ret $name
-   }
+   set ret [expr {[info exists ::g_moduleResolved($name)] ?\
+      $::g_moduleResolved($name) : $name}]
 
    reportDebug "'$name' resolved to '$ret'"
 
@@ -5138,11 +5054,8 @@ proc appendNoDupToList {lstname args} {
 
 proc replaceFromList {list1 item {item2 {}}} {
     while {[set xi [lsearch -exact $list1 $item]] >= 0} {
-       if {[string length $item2] == 0} {
-          set list1 [lreplace $list1 $xi $xi]
-       } else {
-          set list1 [lreplace $list1 $xi $xi $item2]
-       }
+       set list1 [if {[string length $item2] == 0} {lreplace $list1 $xi $xi}\
+         {lreplace $list1 $xi $xi $item2}]
     }
 
     return $list1
@@ -5259,11 +5172,8 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}} {
 # If given module maps to default or other symbolic versions, a list of
 # those versions is returned. This takes module/version as an argument.
 proc getVersAliasList {mod} {
-   if {[info exists ::g_symbolHash($mod)]} {
-      set tag_list $::g_symbolHash($mod)
-   } else {
-      set tag_list {}
-   }
+   set tag_list [expr {[info exists ::g_symbolHash($mod)] ?\
+      $::g_symbolHash($mod) : {}}]
 
    reportDebug "'$mod' has tag list '$tag_list'"
 
@@ -5387,19 +5297,12 @@ proc findModules {dir {mod {}} {fetch_mtime 0} {fetch_hidden 0}} {
                lassign [checkValidModule $element] check_valid check_msg
                switch -- $check_valid {
                   true {
-                     if {$fetch_mtime} {
-                        set mtime [getFileMtime $element]
-                     } else {
-                        set mtime {}
-                     }
+                     set mtime [expr {$fetch_mtime ? [getFileMtime $element]\
+                        : {}}]
                      set mod_list($modulename) [list modulefile $mtime]
                      # if modfile hidden, do not reference it in parent list
-                     if {$fetch_hidden && [info exists\
-                        hidden_list($element)]} {
-                        set add_ref_to_parent 0
-                     } else {
-                        set add_ref_to_parent 1
-                     }
+                     set add_ref_to_parent [expr {$fetch_hidden && [info\
+                        exists hidden_list($element)] ? 0 : 1}]
                   }
                   default {
                      # register check error and relative message to get it in
@@ -5460,11 +5363,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          append findmod *
       }
       # add alias/version definitions from global or user rc to result
-      if {[isInList $search rc_defs_included]} {
-         set add_rc_defs 1
-      } else {
-         set add_rc_defs 0
-      }
+      set add_rc_defs [expr {[isInList $search rc_defs_included] ? 1 : 0}]
       if {!$fetch_hidden} {
          set fetch_hidden [isModuleHidden $mod]
          reportDebug "is '$mod' requiring hidden search ($fetch_hidden)"
@@ -5578,11 +5477,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
             check_msg
          switch -- $check_valid {
             true {
-               if {$fetch_mtime} {
-                  set mtime [getFileMtime $g_moduleVirtual($virt)]
-               } else {
-                  set mtime {}
-               }
+               set mtime [expr {$fetch_mtime ? [getFileMtime\
+                  $g_moduleVirtual($virt)] : {}}]
                # set mtime at index 1 like a modulefile entry
                set mod_list($virt) [list virtual $mtime\
                   $g_moduleVirtual($virt)]
@@ -5683,11 +5579,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          }
       } else {
          # get default element (defined or implicit)
-         if {[info exists g_resolvedPath($dir)]} {
-            set dfl_elt [file tail $g_resolvedPath($dir)]
-         } else {
-            set dfl_elt [lindex $elt_list end]
-         }
+         set dfl_elt [if {[info exists g_resolvedPath($dir)]} {file tail\
+            $g_resolvedPath($dir)} {lindex $elt_list end}]
          set mod_list($dir) [concat [list directory $dfl_elt] $elt_list]
       }
    }
@@ -5828,11 +5721,7 @@ proc displayTableHeader {args} {
    foreach title $args {
       if {$first} {
          set first 0
-         if {[llength $args] > 2} {
-            set col_len 39
-         } else {
-            set col_len 59
-         }
+         set col_len [expr {[llength $args] > 2 ? 39 : 59}]
       } else {
          set col_len 19
       }
@@ -5850,11 +5739,7 @@ proc displaySeparatorLine {{title {}}} {
    if {$title eq {}} {
       # adapt length if screen width is very small
       set max_rep 67
-      if {$tty_cols > $max_rep} {
-         set rep $max_rep
-      } else {
-         set rep $tty_cols
-      }
+      set rep [expr {$tty_cols > $max_rep ? $max_rep : $tty_cols}]
       report [string repeat - $rep]
    } else {
       set len  [string length $title]
@@ -6037,11 +5922,8 @@ proc getMovementBetweenList {from to {extfrom {}} {extto {}}} {
    # determine what element to undo then do
    # to restore a target list from a current list
    # with preservation of the element order
-   if {[llength $to] > [llength $from]} {
-      set imax [llength $to]
-   } else {
-      set imax [llength $from]
-   }
+   set imax [if {[llength $to] > [llength $from]} {llength $to} {llength\
+      $from}]
    set list_equal 1
    for {set i 0} {$i < $imax} {incr i} {
       set to_obj [lindex $to $i]
@@ -6194,11 +6076,7 @@ proc formatCollectionContent {path_list mod_list nuasked_list} {
    # then add modules
    foreach mod $mod_list {
       # mark modules not asked by user to restore the user asked state
-      if {[isInList $nuasked_list $mod]} {
-         set opt {--notuasked }
-      } else {
-         set opt {}
-      }
+      set opt [expr {[isInList $nuasked_list $mod] ? {--notuasked } : {}}]
       append content "module load $opt$mod" \n
    }
 
@@ -7070,11 +6948,8 @@ proc cmdModuleLoad {uasked args} {
                      array set isuasked [reloadModuleListUnloadPhase\
                         $deprelist]
                      if {[info exists swprocessing]} {
-                        if {[info exists swdeprelist]} {
-                           set swdeprelist [concat $deprelist $swdeprelist]
-                        } else {
-                           set swdeprelist $deprelist
-                        }
+                        set swdeprelist [expr {[info exists swdeprelist] ?\
+                           [concat $deprelist $swdeprelist] : $deprelist}]
                         # ignore missing DepRe mods during reporting if switch
                         # ongoing as it will be reloaded from switch action
                         lassign [getDiffBetweenList $priorlmlist $deprelist]\
@@ -7251,11 +7126,8 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
 
                   # do not check for UReqUn mods coming from DepUn modules as
                   # these DepUn modules are reloaded
-                  if {[info exists swprocessing]} {
-                     set urequnqry $modname
-                  } else {
-                     set urequnqry [concat $depunlist [list $modname]]
-                  }
+                  set urequnqry [expr {[info exists swprocessing] ? $modname\
+                     : [concat $depunlist [list $modname]]}]
 
                   # UReqUn: Useless Requirement to Unload (autoloaded
                   # requirements of modname or DepUn modules not required by
@@ -7437,11 +7309,7 @@ proc cmdModulePurge {} {
 
 proc cmdModuleReload {args} {
    # reload all loaded modules if no module list passed
-   if {[llength $args] == 0} {
-      set lmlist [getLoadedModuleList]
-   } else {
-      set lmlist $args
-   }
+   set lmlist [expr {[llength $args] == 0 ? [getLoadedModuleList] : $args}]
    reportDebug "reloading $lmlist"
 
    # create a message record if for reload action to let underlying unload and
@@ -7744,11 +7612,8 @@ proc cmdModuleInit {args} {
                            set modules [replaceFromList $modules $oldmodule]
                         }
                         set modcount [llength $modules]
-                        if {$modcount > 0} {
-                           lappend newinit $cmd$modules$comments
-                        } else {
-                           lappend newinit [string trim $cmd]
-                        }
+                        lappend newinit [expr {$modcount > 0 ?\
+                           "$cmd$modules$comments" : [string trim $cmd]}]
                         if {$oldmodcount > $modcount} {
                            set notdone 0
                         }
@@ -7985,11 +7850,8 @@ if {[catch {
    set ddelimarg 0
    # split first arg if multi-word string detected for compat with previous
    # doc on module usage with scripting language: module('load mod1 mod2')
-   if {[llength [lindex $argv 1]] > 1} {
-      set argtoparse [concat [split [lindex $argv 1]] [lrange $argv 2 end]]
-   } else {
-      set argtoparse [lrange $argv 1 end]
-   }
+   set argtoparse [if {[llength [lindex $argv 1]] > 1} {concat [split [lindex\
+      $argv 1]] [lrange $argv 2 end]} {lrange $argv 1 end}]
    foreach arg $argtoparse {
       if {[info exists ignore_next_arg]} {
          unset ignore_next_arg
