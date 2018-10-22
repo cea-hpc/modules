@@ -5455,7 +5455,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
       set findmod [lindex $parentlist 0]
       # if searched mod is an empty or flat element append wildcard character
       # to match anything starting with mod
-      if {[isInList $search wild] && [llength $parentlist] <= 1} {
+      set wild [expr {[isInList $search wild] ? 1 : 0}]
+      if {$wild && [llength $parentlist] <= 1} {
          append findmod *
       }
       # add alias/version definitions from global or user rc to result
@@ -5482,7 +5483,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
             set g_rcfilesSourced($dir/$elt) 1
          }
       # add other entry kind to the result list
-      } elseif {[string match $mod* $elt]} {
+      } elseif {($wild && [string match $mod* $elt]) || (!$wild && ([string\
+         match $mod/* $elt] || [string match $mod $elt]))} {
          set mod_list($elt) $found_list($elt)
          # list dirs to rework their definition at the end
          if {[lindex $found_list($elt) 0] eq {directory}} {
