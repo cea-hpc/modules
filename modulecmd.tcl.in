@@ -300,11 +300,11 @@ proc reportDebug {message} {
 
 # regular procedure to use once error report is initialized
 proc __reportDebug {message {showcaller 1}} {
+   # display active interp details if not the main one
+   set prefix [currentDebugMsgPrefix]
    # display caller name as prefix
    if {$showcaller && [info level] > 1} {
-      set prefix "[lindex [info level -1] 0]: "
-   } else {
-      set prefix {}
+      append prefix "[lindex [info level -1] 0]: "
    }
    report "DEBUG $prefix$message"
 }
@@ -688,7 +688,7 @@ proc get-env {var {valifunset {}}} {
 
 proc set-env {var val} {
    set mode [currentMode]
-   reportDebug "$var=$val (mode=$mode)"
+   reportDebug "$var=$val"
    set ::env($var) $val
 
    # variable is not cleared anymore if set again
@@ -712,7 +712,7 @@ proc reset-to-unset-env {var {val {}}} {
 
 proc unset-env {var {internal 0} {val {}}} {
    set mode [currentMode]
-   reportDebug "$var (internal=$internal, val=$val, mode=$mode)"
+   reportDebug "$var (internal=$internal, val=$val)"
 
    # clear value instead of unset it not to break variable later reference
    # in modulefile. clear whether variable set or not to get a later usage
@@ -806,14 +806,15 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
    pushModuleName $modname
    pushSpecifiedName $modspec
    set mode [currentMode]
+   pushDebugMsgPrefix [getEvalModuleStackDepth] $mode $modname
 
    # skip modulefile if interpretation has been inhibited
    if {$::g_inhibit_interp} {
-      reportDebug "skipping $modfile (mode=$mode)"
+      reportDebug "skipping $modfile"
       return 1
    }
 
-   reportDebug "sourcing $modfile (mode=$mode)"
+   reportDebug "sourcing $modfile"
 
    if {![info exists ::g_modfileUntrackVars]} {
       # list variable that should not be tracked for saving
@@ -932,11 +933,12 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
       }
    }]
 
+   reportDebug "exiting $modfile"
+   popDebugMsgPrefix
    popSpecifiedName
    popModuleName
    popModuleFile
 
-   reportDebug "exiting $modfile (mode=$mode)"
    return $errorVal
 }
 
@@ -948,6 +950,7 @@ proc execute-modulerc {modfile modname modspec} {
    pushModuleName $modname
    pushSpecifiedName $modspec
    set ::ModulesVersion {}
+   pushDebugMsgPrefix [getEvalModuleStackDepth] $modname
 
    if {![info exists ::g_modrcUntrackVars]} {
       # list variable that should not be tracked for saving
@@ -1035,6 +1038,7 @@ proc execute-modulerc {modfile modname modspec} {
       }
    }
 
+   popDebugMsgPrefix
    popSpecifiedName
    popModuleName
    popModuleFile
@@ -1190,7 +1194,7 @@ proc resetInterpState {itrp fresh dumpVarsVN dumpArrayVarsVN untrackVarsVN\
 proc module-info {what {more {}}} {
    set mode [currentMode]
 
-   reportDebug "$what $more  mode=$mode"
+   reportDebug "$what $more"
 
    switch -- $what {
       mode {
@@ -1662,7 +1666,7 @@ proc module {command args} {
       }
    }
 
-   reportDebug "cmd='$command', args='$args' (mode=$mode)"
+   reportDebug "cmd='$command', args='$args'"
 
    # parse options, do that globally to ignore options not related to a given
    # module sub-command (exclude them from arg list)
@@ -2876,6 +2880,21 @@ proc popMsgRecordId {} {
    set ::g_msgRecordIdStack [lrange $::g_msgRecordIdStack 0 end-1]
 }
 
+# stack of prefixes clarifying debug message entries
+set g_debugMsgPrefixStack {}
+
+proc currentDebugMsgPrefix {} {
+   return [lindex $::g_debugMsgPrefixStack end]
+}
+
+proc pushDebugMsgPrefix {args} {
+   lappend ::g_debugMsgPrefixStack "\[#[join $args :]\] "
+}
+
+proc popDebugMsgPrefix {} {
+   set ::g_debugMsgPrefixStack [lrange $::g_debugMsgPrefixStack 0 end-1]
+}
+
 # is currently active message record id at top level
 proc isMsgRecordIdTop {} {
    return [expr {[llength $::g_msgRecordIdStack] eq 1}]
@@ -3106,7 +3125,7 @@ proc isModuleVirtual {mod modfile} {
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
 proc getPathToModule {mod {indir {}} {look_loaded no} {excdir {}}} {
-   reportDebug "finding '$mod' in '$indir' (excdir='')"
+   reportDebug "finding '$mod' in '$indir' (excdir='$excdir')"
 
    if {$mod eq {}} {
       set retlist [list {} 0 none {Invalid empty module name}]
@@ -3408,7 +3427,6 @@ proc getLoadedWithClosestName {name} {
    }
 
    reportDebug "'$ret' closest to '$name'"
-
    return $ret
 }
 
@@ -3488,7 +3506,6 @@ proc getLoadedMatchingName {name {behavior returnlast} {loading 0}} {
    }
 
    reportDebug "'$ret' matches '$name'"
-
    return $ret
 }
 
@@ -3549,7 +3566,6 @@ proc doesModuleConflict {mod} {
    }
 
    reportDebug "'$mod' conflicts with '$modconlist'"
-
    return [list $does $modconlist]
 }
 
@@ -4880,7 +4896,6 @@ proc resolveModuleVersionOrAlias {name} {
       $::g_moduleResolved($name) : $name}]
 
    reportDebug "'$name' resolved to '$ret'"
-
    return $ret
 }
 
@@ -5586,7 +5601,6 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    }
 
    reportDebug "got [array names mod_list]"
-
    return [array get mod_list]
 }
 
@@ -5700,7 +5714,6 @@ proc listModules {dir mod show_mtime {filter {}} {search wild}} {
    # always dictionary-sort results
    set clean_list [lsort -dictionary $clean_list]
    reportDebug "Returning $clean_list"
-
    return $clean_list
 }
 
@@ -6187,7 +6200,6 @@ proc parseModuleCommandArgs {cmd args} {
 
    reportDebug "(show_oneperline=$show_oneperline, show_mtime=$show_mtime,\
       show_filter=$show_filter, otherargs=$otherargs)"
-
    return [list $show_oneperline $show_mtime $show_filter $otherargs]
 }
 
