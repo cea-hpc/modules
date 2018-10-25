@@ -790,12 +790,8 @@ unsetenv_path_var MODULES_LMCONFLICT
 unsetenv_loaded_module
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "mv"]
-lappend ans [list setpath _LMFILES_ "$mp/mv"]
-lappend ans [list setpath MODULES_LMCONFLICT mv&ms]
-lappend ans [list setpath MODULES_LMPREREQ mv&ms]
-lappend ans [list unsetpath MODULES_LMNOTUASKED]
-testouterr_cmd "sh" "load mv" $ans [msg_load mv "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'"]
+# confusing error messages obtained due to load then unload of same modulefile (which is thus defined as a conflict and a prereq)
+testouterr_cmd "sh" "load mv" ERR [msg_unload ms [err_prerequn ms mv]]\n\n[msg_load mv "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'" [err_conflict mv ms]]
 
 
 #

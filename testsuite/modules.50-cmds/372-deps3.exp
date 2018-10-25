@@ -47,13 +47,13 @@ unsetenv_path_var MODULES_LMPREREQ
 unsetenv_loaded_module
 
 # check warning raised when using --auto/--no-auto from modulefile
-set ans [list]
-lappend ans [list setpath LOADEDMODULES "mu"]
-lappend ans [list setpath _LMFILES_ "$mp/mu"]
-lappend ans [list setpath MODULES_LMCONFLICT mu&ms]
-lappend ans [list setpath MODULES_LMPREREQ mu&ms]
-lappend ans [list unsetpath MODULES_LMNOTUASKED]
-testouterr_cmd "sh" "load mu" $ans [msg_load mu "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--no-auto'"]
+# confusing error messages obtained due to load then unload of same modulefile (which is thus defined as a conflict and a prereq)
+if {$install_autohandling eq {y}} {
+    set tserr [msg_unload ms [err_prerequn ms mu]]\n\n[msg_load mu "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--no-auto'" [err_conflict mu ms]]
+} else {
+    set tserr [msg_unload ms [err_prerequn ms mu]]\n\n[msg_unload ms [err_prerequn ms mu]]\n\n[msg_load mu "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--no-auto'" [err_conflict mu ms]]
+}
+testouterr_cmd "sh" "load mu" ERR $tserr
 
 #
 #  Cleanup
@@ -64,4 +64,5 @@ setenv_path_var MODULEPATH $modpath
 
 unset mp
 unset ans
+unset tserr
 

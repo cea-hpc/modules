@@ -3014,13 +3014,21 @@ proc getLoadedModuleAltnameList {} {
 }
 
 # sort passed module list following both loaded and dependency orders
-proc sortModulePerLoadedAndDepOrder {modlist} {
+proc sortModulePerLoadedAndDepOrder {modlist {loading 0}} {
    # sort per loaded order
    set sortlist {}
    if {[llength $modlist] > 0} {
       foreach lmmod [getLoadedModuleList] {
          if {[isInList $modlist $lmmod]} {
             lappend sortlist $lmmod
+         }
+      }
+      # also sort eventual loading modules if asked
+      if {$loading} {
+         foreach loadingmod [lreverse [getLoadingModuleList]] {
+            if {[isInList $modlist $loadingmod]} {
+               lappend sortlist $loadingmod
+            }
          }
       }
    }
@@ -3749,7 +3757,6 @@ proc unsetModuleDependency {mod} {
          }
       }
    }
-
    # unset mod's 'depends on' relation
    reportDebug "unset deps for '$mod'"
    unset ::g_moduleDepend($mod)
@@ -3826,7 +3833,7 @@ proc areModuleConstraintsSatisfied {{mod {}}} {
 
 # return list of loaded modules declaring a prereq on passed mod with
 # distinction made with strong prereqs (no alternative loaded) or weak
-proc getDirectDependentList {mod {strong 0}} {
+proc getDirectDependentList {mod {strong 0} {loading 0}} {
    set deplist {}
    if {[info exists ::g_dependHash($mod)]} {
       foreach depmod $::g_dependHash($mod) {
@@ -3836,6 +3843,33 @@ proc getDirectDependentList {mod {strong 0}} {
          }
       }
    }
+
+   # take currently loading modules into account if asked
+   if {$loading} {
+      set modlist [getLoadedModuleList]
+      foreach loadingmod [getLoadingModuleList] {
+         foreach prereq [getLoadedPrereq $loadingmod] {
+            set lmprelist {}
+            set moddep 0
+            foreach modpre $prereq {
+               foreach lmmod $modlist {
+                  if {[doesModuleMatchesName $lmmod $modpre]} {
+                     lappend lmprelist $lmmod
+                     if {$lmmod eq $mod} {
+                        set moddep 1
+                     }
+                     break
+                  }
+               }
+            }
+            if {$moddep && (!$strong || [llength $lmprelist] == 1)} {
+               lappend deplist $loadingmod
+               break
+            }
+         }
+      }
+   }
+
    return $deplist
 }
 
@@ -3849,17 +3883,18 @@ proc getDirectDependentList {mod {strong 0}} {
 # loaded modules in conflict with one or multiple modules from modlist should
 # be added to the dependent list as these modules are currently being unloaded
 # and these conflicting loaded modules should be refreshed.
-proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
+proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {loading 1}\
    {sat_constraint 0} {being_unload 0}} {
    reportDebug "get loaded mod dependent of '$modlist' (strong=$strong,\
-      direct=$direct, sat_constraint=$sat_constraint,\
+      direct=$direct, loading=$loading, sat_constraint=$sat_constraint,\
       being_unload=$being_unload)"
 
    set deplist {}
    set fulllist $modlist
    foreach mod $modlist {
       # no duplicates or modules from query list
-      eval appendNoDupToList fulllist [getDirectDependentList $mod $strong]
+      eval appendNoDupToList fulllist [getDirectDependentList $mod $strong\
+         $loading]
    }
 
    if {$being_unload} {
@@ -3902,7 +3937,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1}\
    }
 
    # sort complete result list to match both loaded and dependency orders
-   set sortlist [sortModulePerLoadedAndDepOrder $deplist]
+   set sortlist [sortModulePerLoadedAndDepOrder $deplist $loading]
    reportDebug "got '$sortlist'"
    return $sortlist
 }
@@ -6943,7 +6978,7 @@ proc cmdModuleLoad {uasked args} {
                   append ::env(LOADEDMODULES) [getPathSeparator]$modname
                   append ::env(_LMFILES_) [getPathSeparator]$modfile
                   setLoadedModule $modname $modfile $uasked
-                  set deprelist [getDependentLoadedModuleList $modname 0 0 1]
+                  set deprelist [getDependentLoadedModuleList $modname 0 0 0 1]
                   set ::env(LOADEDMODULES) [string range $::env(LOADEDMODULES)\
                      0 end-[string length [getPathSeparator]$modname]]
                   set ::env(_LMFILES_) [string range $::env(_LMFILES_) 0\
@@ -7134,7 +7169,7 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
 
                   # DepUn: Dependent to Unload (modules actively requiring
                   # modname or a module part of this DepUn batch)
-                  set depunlist [getDependentLoadedModuleList $modname 1 0]
+                  set depunlist [getDependentLoadedModuleList $modname 1 0 0]
 
                   # do not check for UReqUn mods coming from DepUn modules as
                   # these DepUn modules are reloaded
@@ -7149,7 +7184,7 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                   # or in conflict with modname, DepUn or UReqUn modules +
                   # modules dependent of a module part of this DepRe batch)
                   set deprelist [getDependentLoadedModuleList [concat\
-                     $urequnlist $depunlist [list $modname]] 0 0 1 1]
+                     $urequnlist $depunlist [list $modname]] 0 0 0 1 1]
 
                   # DepUn mods are merged into the DepRe list as an attempt
                   # to reload these DepUn mods is made once switched-to mod
