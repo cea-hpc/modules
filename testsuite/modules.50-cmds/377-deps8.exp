@@ -326,6 +326,187 @@ testouterr_cmd_re sh {unload --force --no-auto fi} $ans {}
 
 
 #
+# duplicate definition using different modulefile commands
+#
+
+# conflict a/module unload a
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES fj]
+lappend ans [list setpath _LMFILES_ $mp/fj]
+lappend ans [list setpath MODULES_LMCONFLICT fj&fa]
+testouterr_cmd_re sh {load --auto fj} $ans {}
+testouterr_cmd_re sh {load --no-auto fj} $ans {}
+
+setenv_loaded_module [list fa] [list $mp/fa]
+set tserr [msg_load fj [err_conflict fj fa]]
+testouterr_cmd_re sh {load --auto fj} ERR $tserr
+testouterr_cmd_re sh {load --no-auto fj} ERR $tserr
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES fj]
+lappend ans [list setpath _LMFILES_ $mp/fj]
+lappend ans [list setpath MODULES_LMCONFLICT fj&fa]
+set tserr [msg_top_load fj fa {} {} [err_conflictf fj fa]]
+testouterr_cmd_re sh {load --force --auto fj} $ans $tserr
+testouterr_cmd_re sh {load --force --no-auto fj} $ans $tserr
+
+setenv_loaded_module [list fj] [list $mp/fj]
+setenv_path_var MODULES_LMCONFLICT fj&fa
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+testouterr_cmd_re sh {unload --auto fj} $ans {}
+testouterr_cmd_re sh {unload --no-auto fj} $ans {}
+
+setenv_loaded_module [list fa fj] [list $mp/fa $mp/fj]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES fa]
+lappend ans [list setpath _LMFILES_ $mp/fa]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+set tserr [msg_top_unload fj {} {} fa]
+testouterr_cmd_re sh {unload --auto fj} $ans $tserr
+testouterr_cmd_re sh {unload --no-auto fj} $ans {}
+testouterr_cmd_re sh {unload --force --auto fj} $ans $tserr
+testouterr_cmd_re sh {unload --force --no-auto fj} $ans {}
+
+
+# module unload a/conflict a
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES fk]
+lappend ans [list setpath _LMFILES_ $mp/fk]
+lappend ans [list setpath MODULES_LMCONFLICT fk&fa]
+testouterr_cmd_re sh {load --auto fk} $ans {}
+testouterr_cmd_re sh {load --no-auto fk} $ans {}
+
+setenv_loaded_module [list fa] [list $mp/fa]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES fk]
+lappend ans [list setpath _LMFILES_ $mp/fk]
+lappend ans [list setpath MODULES_LMCONFLICT fk&fa]
+set tserr [msg_top_load fk fa {} {}]
+testouterr_cmd_re sh {load --auto fk} $ans $tserr
+testouterr_cmd_re sh {load --force --auto fk} $ans $tserr
+testouterr_cmd_re sh {load --no-auto fk} $ans $tserr
+testouterr_cmd_re sh {load --force --no-auto fk} $ans $tserr
+
+setenv_loaded_module [list fk] [list $mp/fk]
+setenv_path_var MODULES_LMCONFLICT fk&fa
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+testouterr_cmd_re sh {unload --auto fk} $ans {}
+testouterr_cmd_re sh {unload --no-auto fk} $ans {}
+
+setenv_loaded_module [list fa fk] [list $mp/fa $mp/fk]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES fa]
+lappend ans [list setpath _LMFILES_ $mp/fa]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+set tserr [msg_top_unload fk {} {} fa]
+testouterr_cmd_re sh {unload --auto fk} $ans $tserr
+testouterr_cmd_re sh {unload --no-auto fk} $ans {}
+testouterr_cmd_re sh {unload --force --auto fk} $ans $tserr
+testouterr_cmd_re sh {unload --force --no-auto fk} $ans {}
+
+
+# prereq a/module load a
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES fa:fl]
+lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fl]
+lappend ans [list setpath MODULES_LMPREREQ fl&fa]
+lappend ans [list setpath MODULES_LMNOTUASKED fa]
+set tserr [msg_top_load fl {} fa {}]
+testouterr_cmd_re sh {load --auto fl} $ans $tserr
+testouterr_cmd_re sh {load --force --auto fl} $ans $tserr
+set tserr [msg_load fl [err_prereq fl fa]]
+testouterr_cmd_re sh {load --no-auto fl} ERR $tserr
+set tserr [msg_top_load fl {} fa {} [err_prereqf fl fa]]
+testouterr_cmd_re sh {load --force --no-auto fl} $ans $tserr
+
+setenv_loaded_module [list fa] [list $mp/fa]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES fa:fl]
+lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fl]
+lappend ans [list setpath MODULES_LMPREREQ fl&fa]
+testouterr_cmd_re sh {load --auto fl} $ans {}
+testouterr_cmd_re sh {load --no-auto fl} $ans {}
+
+setenv_loaded_module [list fl] [list $mp/fl]
+setenv_path_var MODULES_LMPREREQ fl&fa
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+testouterr_cmd_re sh {unload --auto fl} $ans {}
+testouterr_cmd_re sh {unload --no-auto fl} $ans {}
+
+setenv_loaded_module [list fa fl] [list $mp/fa $mp/fl] [list fa]
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [msg_top_unload fl {} fa {}]
+testouterr_cmd_re sh {unload --auto fl} $ans $tserr
+testouterr_cmd_re sh {unload --force --auto fl} $ans $tserr
+testouterr_cmd_re sh {unload --no-auto fl} $ans $tserr
+testouterr_cmd_re sh {unload --force --no-auto fl} $ans $tserr
+
+
+# module load a/prereq a
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES fa:fm]
+lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fm]
+lappend ans [list setpath MODULES_LMPREREQ fm&fa]
+lappend ans [list setpath MODULES_LMNOTUASKED fa]
+set tserr [msg_top_load fm {} fa {}]
+testouterr_cmd_re sh {load --auto fm} $ans $tserr
+testouterr_cmd_re sh {load --force --auto fm} $ans $tserr
+testouterr_cmd_re sh {load --no-auto fm} $ans $tserr
+testouterr_cmd_re sh {load --force --no-auto fm} $ans $tserr
+
+setenv_loaded_module [list fa] [list $mp/fa]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES fa:fm]
+lappend ans [list setpath _LMFILES_ $mp/fa:$mp/fm]
+lappend ans [list setpath MODULES_LMPREREQ fm&fa]
+testouterr_cmd_re sh {load --auto fm} $ans {}
+testouterr_cmd_re sh {load --no-auto fm} $ans {}
+
+setenv_loaded_module [list fm] [list $mp/fm]
+setenv_path_var MODULES_LMPREREQ fm&fa
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+testouterr_cmd_re sh {unload --auto fm} $ans {}
+testouterr_cmd_re sh {unload --no-auto fm} $ans {}
+
+setenv_loaded_module [list fa fm] [list $mp/fa $mp/fm] [list fa]
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [msg_top_unload fm {} fa {}]
+testouterr_cmd_re sh {unload --auto fm} $ans $tserr
+testouterr_cmd_re sh {unload --force --auto fm} $ans $tserr
+testouterr_cmd_re sh {unload --no-auto fm} $ans $tserr
+testouterr_cmd_re sh {unload --force --no-auto fm} $ans $tserr
+
+
+
+#
 #  Cleanup
 #
 
