@@ -275,6 +275,43 @@ lappend ans [list ERR]
 testouterr_cmd_re "sh" "load i5/1 i5/2" $ans [msg_load i5/2 [err_conflict i5/2 i5/1]]
 
 
+# 'module load' set on an alternative name
+set ans [list]
+lappend ans [list setpath LOADEDMODULES alt/dir/2:i6]
+lappend ans [list setpath _LMFILES_ $mp/alt/dir/2:$mp/i6]
+lappend ans [list setpath MODULES_LMPREREQ i6&altfoo]
+lappend ans [list setpath MODULES_LMNOTUASKED alt/dir/2]
+lappend ans [list setpath MODULES_LMALTNAME alt/dir/2&altfoo]
+testouterr_cmd_re sh {load i6} $ans [msg_top_load i6 {} alt/dir/2 {}]
+
+setenv_loaded_module [list alt/dir/2 i6] [list $mp/alt/dir/2 $mp/i6] [list alt/dir/2]
+setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo
+setenv_path_var MODULES_LMPREREQ i6&altfoo
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+testouterr_cmd_re sh {unload alt/dir/2} $ans [msg_top_unload alt/dir/2 i6 {} {}]
+
+# 'module unload' set on an alternative name
+setenv_loaded_module [list alt/dir/2] [list $mp/alt/dir/2]
+setenv_path_var MODULES_LMALTNAME alt/dir/2&altfoo
+unsetenv_path_var MODULES_LMPREREQ
+set ans [list]
+lappend ans [list setpath LOADEDMODULES i7]
+lappend ans [list setpath _LMFILES_ $mp/i7]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+lappend ans [list setpath MODULES_LMCONFLICT i7&altfoo]
+testouterr_cmd_re sh {load i7} $ans [msg_top_load i7 alt/dir/2 {} {}]
+
+setenv_loaded_module [list i7] [list $mp/i7]
+unsetenv_path_var MODULES_LMALTNAME
+setenv_path_var MODULES_LMCONFLICT i7&altfoo
+testouterr_cmd_re sh {load alt/dir/2} ERR [msg_load alt/dir/2 [err_conflict alt/dir/2 i7]]
+
+
 #
 #  Cleanup
 #
