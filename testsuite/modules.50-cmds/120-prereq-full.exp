@@ -46,7 +46,9 @@ set err_pre [msg_load $module [err_prereq $module "trace/all_on"]]
 set err_trace "$warn_msgs: 'module-trace' command not implemented"
 
 set msg_load_tron [msg_load $module_tron $err_trace]
+set msg_unload_tron [msg_unload $module_tron $err_trace]
 set msg_top_load_module [msg_top_load $module {} $module_tron {}]
+set msg_top_unload_module [msg_top_unload $module {} $module_tron {}]
 set msg_top_switch_module [msg_top_switch $module $module {} {} {} $module_tron {}]
 
 #
@@ -206,6 +208,31 @@ set tserr [msg_load $module_tron $err_trace]\n\n[msg_top_switch $module_troff $m
 testouterr_cmd_re "sh" "switch --auto $module_troff $module_tron" $ans $tserr
 testouterr_cmd_re "sh" "switch --auto --force $module_troff $module_tron" $ans $tserr
 
+
+# test empty or bad element found in MODULES_LMPREREQ control variable
+foreach badelt [list {} $module] {
+setenv_path_var MODULES_LMPREREQ $badelt
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $module_tron:$module]
+lappend ans [list setpath _LMFILES_ $modulefile_tron:$modulefile]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath MODULES_LMPREREQ $badelt:$module&$module_tron]
+lappend ans [list setpath MODULES_LMNOTUASKED $module_tron]
+testouterr_cmd_re sh "load --auto $module" $ans $msg_load_tron\n\n$msg_top_load_module
+
+setenv_loaded_module [list $module_tron $module] [list $modulefile_tron $modulefile] [list $module_tron]
+setenv_path_var MODULES_LMPREREQ $badelt $module&$module_tron
+set ans [list]
+lappend ans [list unset testsuite]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list setpath MODULES_LMPREREQ $badelt]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+testouterr_cmd_re sh "unload --auto $module" $ans $msg_unload_tron\n\n$msg_top_unload_module
+}
+
+
 #
 #  Cleanup
 #
@@ -217,9 +244,12 @@ unsetenv_loaded_module
 unset err_pre
 unset err_trace
 unset msg_load_tron
+unset msg_unload_tron
 unset msg_top_load_module
+unset msg_top_unload_module
 unset msg_top_switch_module
 unset tserr
+unset badelt
 
 unset ans
 
