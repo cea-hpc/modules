@@ -45,6 +45,11 @@ append c10errmsg "\n\n[msg_top_restore $coll10fpre {} {} [split $c9lm :]]"
 set c9errmsg2 "unload $c9mod3\nunload $c9mod2\nload $c9mod2\nload $c9mod3"
 append c9errmsg2 "\n\n[msg_top_restore $coll9fpre {} [list $c9mod3 $c9mod2] [list $c9mod2 $c9mod3]]"
 set c11errmsg "load $c11mod1\nload $c11mod2\n\n[msg_top_restore $coll11fpre {} {} [list $c11mod1 $c11mod2]]"
+if {$install_autohandling eq {y}} {
+set c12errmsg "unload $c9mod3\nunload $c9mod2\nunload $c9mod1\nload f4\nload f5\n\n[msg_load f6 [err_conflict f6 f5]]\n\n[msg_load f6 [err_conflict f6 f5]]\n\n[msg_load f7 [err_prereq f7 f6]]\n\n[msg_top_restore $coll12fpre {} [list $c9mod3 $c9mod2 $c9mod1] [list $c12mod1 $c12mod2]]"
+} else {
+set c12errmsg "unload $c9mod3\nunload $c9mod2\nunload $c9mod1\nload f4\nload f5\n\n[msg_load f6 [err_conflict f6 f5]]\n\n[msg_load f7 [err_prereq f7 f6]]\n\n[msg_top_restore $coll12fpre {} [list $c9mod3 $c9mod2 $c9mod1] [list $c12mod1 $c12mod2]]"
+}
 
 # set HOME to location containing collections
 set ORIG_HOME $env(HOME)
@@ -363,7 +368,7 @@ testouterr_cmd_re "sh" "restore $coll9fp" "" ""
 
 
 #
-# test restoring collection in which a modulefile has 'module load' depenency
+# test restoring collection in which a modulefile has 'module load' dependency
 # to another modulefile
 #
 
@@ -376,6 +381,22 @@ lappend ans [list setpath _LMFILES_ $c11lmf]
 lappend ans [list setpath MODULES_LMNOTUASKED $c11lmnua]
 lappend ans [list setpath MODULES_LMPREREQ $c11mod2&$c11mod1]
 testouterr_cmd_re sh "restore $coll11fp" $ans $c11errmsg
+
+
+#
+# test restoring collection with incompatible modulefiles saved in it (which
+# should not be possible)
+#
+
+eval setenv_path_var MODULEPATH [split $c9modpath ":"]
+setenv_loaded_module [split $c9lm ":"] [split $c9lmf ":"]
+
+set ans [list]
+lappend ans [list setpath MODULEPATH $c12modpath]
+lappend ans [list setpath LOADEDMODULES $c12lm]
+lappend ans [list setpath _LMFILES_ $c12lmf]
+lappend ans [list ERR]
+testouterr_cmd_re sh "restore $coll12fp" $ans $c12errmsg
 
 
 #
@@ -443,6 +464,7 @@ unset c9errmsg
 unset c10errmsg
 unset c9errmsg2
 unset c11errmsg
+unset c12errmsg
 unset badcontfp
 unset badcontfperrmsg
 
