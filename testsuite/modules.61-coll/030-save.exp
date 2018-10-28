@@ -220,6 +220,20 @@ testoutfile_cmd "sh" "save $coll9" "OK" "$hometestdotmod/$coll9f" "$c9cont"
 
 
 #
+# test saving collection with some modulefiles loaded not asked by user
+# and loaded by 'module load' commands
+#
+
+# setup environment state
+eval setenv_path_var MODULEPATH [split $c11modpath :]
+setenv_loaded_module [split $c11lm :] [split $c11lmf :] [split $c11lmnua :]
+setenv_path_var MODULES_LMPREREQ $c11mod2&$c11mod1
+
+# test only sh shell as this test does not produce shell output
+testoutfile_cmd sh "save $coll11" OK $hometestdotmod/$coll11f $c11cont
+
+
+#
 # test unsetting HOME
 #
 
@@ -243,6 +257,7 @@ unset ORIG_HOME
 #
 
 setenv_loaded_module [list foo bar] "/path/to/foo"
+unsetenv_path_var MODULES_LMPREREQ
 
 testouterr_cmd "sh" "save" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
 

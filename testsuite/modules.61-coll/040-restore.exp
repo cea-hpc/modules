@@ -44,7 +44,7 @@ append c9errmsg "\n\n[msg_top_restore $coll9fpre {} {} [split $c9lm :]]"
 append c10errmsg "\n\n[msg_top_restore $coll10fpre {} {} [split $c9lm :]]"
 set c9errmsg2 "unload $c9mod3\nunload $c9mod2\nload $c9mod2\nload $c9mod3"
 append c9errmsg2 "\n\n[msg_top_restore $coll9fpre {} [list $c9mod3 $c9mod2] [list $c9mod2 $c9mod3]]"
-
+set c11errmsg "load $c11mod1\nload $c11mod2\n\n[msg_top_restore $coll11fpre {} {} [list $c11mod1 $c11mod2]]"
 
 # set HOME to location containing collections
 set ORIG_HOME $env(HOME)
@@ -363,6 +363,22 @@ testouterr_cmd_re "sh" "restore $coll9fp" "" ""
 
 
 #
+# test restoring collection in which a modulefile has 'module load' depenency
+# to another modulefile
+#
+
+setenv_path_var MODULEPATH [split $c11modpath :]
+unsetenv_loaded_module
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $c11lm]
+lappend ans [list setpath _LMFILES_ $c11lmf]
+lappend ans [list setpath MODULES_LMNOTUASKED $c11lmnua]
+lappend ans [list setpath MODULES_LMPREREQ $c11mod2&$c11mod1]
+testouterr_cmd_re sh "restore $coll11fp" $ans $c11errmsg
+
+
+#
 # test restoring nonexistent default collection when
 # MODULES_COLLECTION_TARGET is set
 #
@@ -426,6 +442,7 @@ unset c5errmsg
 unset c9errmsg
 unset c10errmsg
 unset c9errmsg2
+unset c11errmsg
 unset badcontfp
 unset badcontfperrmsg
 
