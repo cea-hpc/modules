@@ -312,6 +312,29 @@ setenv_path_var MODULES_LMCONFLICT i7&altfoo
 testouterr_cmd_re sh {load alt/dir/2} ERR [msg_load alt/dir/2 [err_conflict alt/dir/2 i7]]
 
 
+# test empty or bad element found in MODULES_LMALTNAME control variable
+foreach badelt [list {} alt/dir/2] {
+setenv_path_var MODULES_LMALTNAME $badelt
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES alt/dir/2]
+lappend ans [list setpath _LMFILES_ $mp/alt/dir/2]
+lappend ans [list setpath MODULES_LMALTNAME $badelt:alt/dir/2&altfoo]
+testouterr_cmd_re sh {load alt/dir/2} $ans {}
+testouterr_cmd_re sh {load altfoo} $ans {}
+
+setenv_loaded_module [list alt/dir/2] [list $mp/alt/dir/2]
+setenv_path_var MODULES_LMALTNAME $badelt:alt/dir/2&altfoo
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list setpath MODULES_LMALTNAME $badelt]
+testouterr_cmd_re sh {unload alt/dir/2} $ans {}
+testouterr_cmd_re sh {unload altfoo} $ans {}
+}
+
+
 #
 #  Cleanup
 #
@@ -327,6 +350,7 @@ unsetenv_var MODULES_AUTO_HANDLING
 
 unset mp
 unset ans
+unset badelt
 
 # remove procs
 rename altname_test_case {}
