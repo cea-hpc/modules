@@ -210,25 +210,27 @@ testouterr_cmd_re "sh" "switch --auto --force $module_troff $module_tron" $ans $
 
 
 # test empty or bad element found in MODULES_LMPREREQ control variable
+# test empty element found in MODULES_LMNOTUASKED control variable
 foreach badelt [list {} $module] {
 setenv_path_var MODULES_LMPREREQ $badelt
 unsetenv_loaded_module
+setenv_path_var MODULES_LMNOTUASKED {}
 set ans [list]
 lappend ans [list setpath LOADEDMODULES $module_tron:$module]
 lappend ans [list setpath _LMFILES_ $modulefile_tron:$modulefile]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMPREREQ $badelt:$module&$module_tron]
-lappend ans [list setpath MODULES_LMNOTUASKED $module_tron]
+lappend ans [list setpath MODULES_LMNOTUASKED :$module_tron]
 testouterr_cmd_re sh "load --auto $module" $ans $msg_load_tron\n\n$msg_top_load_module
 
-setenv_loaded_module [list $module_tron $module] [list $modulefile_tron $modulefile] [list $module_tron]
+setenv_loaded_module [list $module_tron $module] [list $modulefile_tron $modulefile] [list {} $module_tron]
 setenv_path_var MODULES_LMPREREQ $badelt $module&$module_tron
 set ans [list]
 lappend ans [list unset testsuite]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 lappend ans [list setpath MODULES_LMPREREQ $badelt]
-lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list setpath MODULES_LMNOTUASKED {}]
 testouterr_cmd_re sh "unload --auto $module" $ans $msg_unload_tron\n\n$msg_top_unload_module
 }
 
@@ -239,6 +241,7 @@ testouterr_cmd_re sh "unload --auto $module" $ans $msg_unload_tron\n\n$msg_top_u
 
 # restore environment
 unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMNOTUASKED
 unsetenv_loaded_module
 
 unset err_pre
