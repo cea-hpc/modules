@@ -216,6 +216,30 @@ testouterr_cmd_re "sh" "switch --no-auto --force $module_troff $module" $ans $ts
 testouterr_cmd_re "sh" "switch --auto --force $module_troff $module" $ans $tserr
 
 
+# test empty or bad element found in MODULES_LMCONFLICT control variable
+foreach badelt [list {} $module] {
+setenv_path_var MODULES_LMCONFLICT $badelt
+unsetenv_loaded_module
+set ans [list]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+lappend ans [list setpath MODULES_LMCONFLICT $badelt:$module&$module_tron]
+testouterr_cmd_re sh "load $module" $ans {}
+
+setenv_loaded_module [list $module] [list $modulefile]
+setenv_path_var MODULES_LMCONFLICT $badelt $module&$module_tron
+testouterr_cmd_re sh "load $module_tron" ERR [msg_load $module_tron [err_conflict $module_tron $module]]
+
+set ans [list]
+lappend ans [list setpath MODULES_LMCONFLICT $badelt]
+lappend ans [list unset testsuite]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd_re sh "unload $module" $ans {}
+}
+
+
 #
 #  Cleanup
 #
@@ -226,6 +250,7 @@ unsetenv_loaded_module
 
 unset err_trace
 unset tserr
+unset badelt
 
 unset ans
 
