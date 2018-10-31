@@ -486,6 +486,18 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 set tserr [list "unload h52" "unload h51" "unload h50" \n[msg_top_unload h50 [list h52 h51] {} {}]]
 testouterr_cmd_re "sh" "unload h50" $ans [join $tserr "\n"]
 
+setenv_loaded_module [list h50 h51 h52 h53 h54 h55 h58 h56] [list "$mp/h50" "$mp/h51"  "$mp/h52" "$mp/h53" "$mp/h54" "$mp/h55" "$mp/h58" "$mp/h56"] [list h58]
+setenv_path_var MODULES_LMPREREQ "h51&h50" "h52&h50" "h53&h51" "h54&h51|h57" "h55&h51&h52" "h56&h52&h58"
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list "unload h56" "unload h55" "unload h54" "unload h53" "unload h52" "unload h51" "unload h50" "unload h58" \n[msg_top_unload h50 [list h56 h55 h54 h53 h52 h51] h58 {}]]
+testouterr_cmd_re "sh" "unload h50" $ans [join $tserr "\n"]
+
+# uncommon case where a requirement is loaded after a module requiring it and has been automatically loaded by some module not loaded anymore
+# (loaded from a 'module load' command in a modulefile which has been loaded in a --no-auto mode)
 setenv_loaded_module [list h50 h51 h52 h53 h54 h55 h56 h58] [list "$mp/h50" "$mp/h51"  "$mp/h52" "$mp/h53" "$mp/h54" "$mp/h55" "$mp/h56" "$mp/h58"] [list h58]
 setenv_path_var MODULES_LMPREREQ "h51&h50" "h52&h50" "h53&h51" "h54&h51|h57" "h55&h51&h52" "h56&h52&h58"
 set ans [list]
@@ -494,6 +506,17 @@ lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
 set tserr [list "unload h56" "unload h55" "unload h54" "unload h53" "unload h52" "unload h51" "unload h50" "unload h58" \n[msg_top_unload h50 [list h56 h55 h54 h53 h52 h51] h58 {}]]
+testouterr_cmd_re "sh" "unload h50" $ans [join $tserr "\n"]
+
+# h58 has been loaded in no-auto mode, thus h56 has not been reloaded when h58 has been loaded,
+# so h58 has been asked by user and it is not part of the unloading batch (UreqUn)
+setenv_loaded_module [list h50 h51 h52 h53 h54 h55 h56 h58] [list "$mp/h50" "$mp/h51"  "$mp/h52" "$mp/h53" "$mp/h54" "$mp/h55" "$mp/h56" "$mp/h58"]
+setenv_path_var MODULES_LMPREREQ "h51&h50" "h52&h50" "h53&h51" "h54&h51|h57" "h55&h51&h52" "h56&h52&h58"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES h58]
+lappend ans [list setpath _LMFILES_ $mp/h58]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr [list "unload h56" "unload h55" "unload h54" "unload h53" "unload h52" "unload h51" "unload h50" \n[msg_top_unload h50 [list h56 h55 h54 h53 h52 h51] {} {}]]
 testouterr_cmd_re "sh" "unload h50" $ans [join $tserr "\n"]
 
 setenv_loaded_module [list h50 h51 h52 h53 h57 h54 h55 h56 h58] [list "$mp/h50" "$mp/h51"  "$mp/h52" "$mp/h53" "$mp/h57" "$mp/h54" "$mp/h55" "$mp/h56" "$mp/h58"]
