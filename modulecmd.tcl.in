@@ -3321,7 +3321,7 @@ proc setLoadedModule {mod modfile uasked} {
       set ::g_loadedModuleUasked($mod) 1
    }
    # build dependency chain
-   setModuleDependency $mod
+   setModuleDependency $mod 1
 }
 
 proc unsetLoadedModule {mod modfile} {
@@ -3670,8 +3670,14 @@ proc unsetModuleConflictViolation {mod} {
 }
 
 # build dependency chain between loaded modules based on registered prereqs
-proc setModuleDependency {mod} {
+proc setModuleDependency {mod {lookprior 0}} {
    set modlist [getLoadedModuleList]
+   # only look at modules loaded prior current one to find requirements,
+   # modules loaded afterward are unmet dependencies as dependents have
+   # not been reloaded after them
+   if {$lookprior} {
+      set modlist [lrange $modlist 0 [lsearch -exact $modlist $mod]]
+   }
    set deplist {}
 
    foreach prereq [getLoadedPrereq $mod] {
@@ -3730,9 +3736,14 @@ proc setModuleDependency {mod} {
       if {[doesModuleMatchesName $mod $modpre]} {
          reportDebug "refresh deps targetting '$modpre'"
          foreach lmmod $::g_unmetDepHash($modpre) {
-            # refresh actual dependencies of targetting mod
-            unsetModuleDependency $lmmod
-            setModuleDependency $lmmod
+            if {[isInList [getDependentLoadedModuleList $lmmod 0 0] $mod]} {
+               reportDebug "skip deps refresh for '$lmmod' as dep cycle\
+                  detected with '$mod'"
+            } else {
+               # refresh actual dependencies of targetting mod
+               unsetModuleDependency $lmmod
+               setModuleDependency $lmmod
+            }
          }
       }
    }
