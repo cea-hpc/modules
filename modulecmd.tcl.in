@@ -2591,7 +2591,8 @@ proc prereq {args} {
    setLoadedPrereq $currentModule $args
 
    # if dependency resolving is enabled try to load prereq
-   if {[getAutoHandling] && ![eval is-loaded $args]} {
+   if {[getAutoHandling] && ![eval is-loaded $args] && ![eval is-loading\
+      $args]} {
       set imax [llength $args]
       set prereqloaded 0
       # if prereq list specified, try to load first then
@@ -2605,7 +2606,7 @@ proc prereq {args} {
       }
    }
 
-   if {![eval is-loaded $args]} {
+   if {![eval is-loaded $args] && ![eval is-loading $args]} {
       # still proceed if force mode enabled
       if {[getForce]} {
          reportWarning [getWarnLoPrereqMsg $currentModule $args]
