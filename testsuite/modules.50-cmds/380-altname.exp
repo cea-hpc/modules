@@ -335,6 +335,19 @@ testouterr_cmd_re sh {unload altfoo} $ans {}
 }
 
 
+# test use of is-loaded command on alternative name in modulerc
+# here to spawn a module alias when a given modulefile is seen loaded
+testouterr_cmd sh {load extloaded} ERR "$err_path'extloaded'"
+
+setenv_loaded_module [list alt2/1] [list $mp/alt2/1]
+setenv_path_var MODULES_LMALTNAME alt2/1&alt/ext
+set ans [list]
+lappend ans [list setpath LOADEDMODULES alt2/1:alt/9]
+lappend ans [list setpath _LMFILES_ $mp/alt2/1:$mp/alt/9]
+lappend ans [list setpath MODULES_LMALTNAME alt2/1&alt/ext:alt/9&extloaded]
+testouterr_cmd_re sh {load extloaded} $ans {}
+
+
 #
 #  Cleanup
 #

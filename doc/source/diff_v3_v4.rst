@@ -442,6 +442,8 @@ Modules Specific Tcl Commands
 
  Starting with version ``4.2``, **is-loaded** supports being called with a symbolic modulefile or a modulefile alias passed as argument.
 
+ This Modules-specific Tcl command was not enabled for *modulerc* evaluation starting Modules version ``4.0`` but it has been reintroduced starting version ``4.2.1``.
+
 **is-saved**
 
 **is-used**
