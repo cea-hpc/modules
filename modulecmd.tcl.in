@@ -3293,6 +3293,10 @@ proc getModuleFromLoadedModulefile {modfile {idx all}} {
    return $ret
 }
 
+proc isModuleLoading {mod} {
+   return [isInList [getLoadingModuleList] $mod]
+}
+
 proc isModulefileLoading {modfile} {
    return [isInList [getLoadingModuleFileList] $modfile]
 }
@@ -6960,7 +6964,7 @@ proc cmdModuleLoad {uasked args} {
             set modname $loadedmodname
          }
 
-         if {![isModuleLoaded $modname]} {
+         if {![isModuleLoaded $modname] && ![isModuleLoading $modname]} {
             # register altname of modname prior any conflict check
             eval setLoadedAltname $modname [getAllModuleResolvedName $modname]
 
@@ -7100,7 +7104,7 @@ proc cmdModuleLoad {uasked args} {
                popSettings
             }
          } else {
-            reportDebug "$modname ($modfile) already loaded"
+            reportDebug "$modname ($modfile) already loaded/loading"
          }
 
          # report all recorded messages for this evaluation
