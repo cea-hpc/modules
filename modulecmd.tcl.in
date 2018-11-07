@@ -3764,12 +3764,13 @@ proc unsetModuleDependency {mod} {
 
       # unset 'is depended by' mod relations
       foreach lmmod $lmmodlist {
-         if {[llength $::g_dependHash($lmmod)] == 1} {
-            unset ::g_dependHash($lmmod)
-         } else {
+         if {[info exists ::g_dependHash($lmmod)]} {
             set hashdep [expr {$manymod ? [list $mod 1] : $mod}]
             set ::g_dependHash($lmmod) [replaceFromList\
                $::g_dependHash($lmmod) $hashdep]
+            if {[llength $::g_dependHash($lmmod)] == 0} {
+               unset ::g_dependHash($lmmod)
+            }
          }
       }
    }
@@ -3787,11 +3788,12 @@ proc unsetModuleDependency {mod} {
    # unset eventual registered unmet dependencies
    if {[info exists ::g_moduleUnmetDep($mod)]} {
       foreach ummod $::g_moduleUnmetDep($mod) {
-         if {[llength $::g_unmetDepHash($ummod)] == 1} {
-            unset ::g_unmetDepHash($ummod)
-         } else {
+         if {[info exists ::g_unmetDepHash($ummod)]} {
             set ::g_unmetDepHash($ummod) [replaceFromList\
                $::g_unmetDepHash($ummod) $mod]
+            if {[llength $::g_unmetDepHash($ummod)] == 0} {
+               unset ::g_unmetDepHash($ummod)
+            }
          }
       }
       reportDebug "unset unmet deps for '$mod'"

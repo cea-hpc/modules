@@ -957,6 +957,22 @@ testouterr_cmd_re sh {unload --force --auto fu} $ans $tserr
 testouterr_cmd_re sh {unload --no-auto fu} $ans $tserr
 testouterr_cmd_re sh {unload --force --no-auto fu} $ans $tserr
 
+
+#
+# test case challenging the computation of dependencies between modules when unloading
+# with multiple unmet deps targetting same entry
+#
+
+setenv_loaded_module [list fi fia] [list $mp/fi $mp/fia]
+unsetenv_path_var MODULES_LMALTNAME
+setenv_path_var MODULES_LMPREREQ fi&fa|fb|fc&fc|fa|fb fia&fa|fb|fc&fc|fa|fb
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+testouterr_cmd_re sh {unload --auto fia fi} $ans {}
+
+
 #
 #  Cleanup
 #
