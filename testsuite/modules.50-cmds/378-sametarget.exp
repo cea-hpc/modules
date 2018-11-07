@@ -1,0 +1,367 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2018/11/05
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload
+#   Modulefiles:
+#   Sub-Command:    prereq, conflict
+#
+#   Comment:	%C{
+#           Test automatic resolution of modulefile dependencies when
+#           the multiple names provided target same module name
+#		}C%
+#
+##############################################################################
+
+# enable auto_handling with environment variable
+setenv_var MODULES_AUTO_HANDLING 1
+
+set mp $modpath.deps
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+#
+# multiple prereqs targetting same module
+#
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/1:hb]
+lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hb]
+lappend ans [list setpath MODULES_LMPREREQ hb&ha/1|ha]
+lappend ans [list setpath MODULES_LMNOTUASKED ha/1]
+set tserr "load ha/1\nload hb\n\n[msg_top_load hb {} ha/1 {}]"
+testouterr_cmd_re sh {load hb} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/1:hc]
+lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hc]
+lappend ans [list setpath MODULES_LMPREREQ hc&ha/1|ha/2|ha]
+lappend ans [list setpath MODULES_LMNOTUASKED ha/1]
+set tserr "load ha/1\nload hc\n\n[msg_top_load hc {} ha/1 {}]"
+testouterr_cmd_re sh {load hc} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/1:hd]
+lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hd]
+lappend ans [list setpath MODULES_LMPREREQ hd&ha/1&ha]
+lappend ans [list setpath MODULES_LMNOTUASKED ha/1]
+set tserr "load ha/1\nload hd\n\n[msg_top_load hd {} ha/1 {}]"
+testouterr_cmd_re sh {load hd} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/1:ha/2:he]
+lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/ha/2:$mp/he]
+lappend ans [list setpath MODULES_LMPREREQ he&ha/1&ha/2&ha]
+lappend ans [list setpath MODULES_LMNOTUASKED ha/1:ha/2]
+set tserr "load ha/1\nload ha/2\nload he\n\n[msg_top_load he {} [list ha/1 ha/2] {}]"
+testouterr_cmd_re sh {load he} $ans $tserr
+
+setenv_loaded_module [list ha/2] [list $mp/ha/2]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:hb]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hb]
+lappend ans [list setpath MODULES_LMPREREQ hb&ha/1|ha]
+set tserr "load hb"
+testouterr_cmd_re sh {load hb} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:hc]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hc]
+lappend ans [list setpath MODULES_LMPREREQ hc&ha/1|ha/2|ha]
+set tserr "load hc"
+testouterr_cmd_re sh {load hc} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:ha/1:hd]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/ha/1:$mp/hd]
+lappend ans [list setpath MODULES_LMPREREQ hd&ha/1&ha]
+lappend ans [list setpath MODULES_LMNOTUASKED ha/1]
+set tserr "load ha/1\nload hd\n\n[msg_top_load hd {} ha/1 {}]"
+testouterr_cmd_re sh {load hd} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:ha/1:he]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/ha/1:$mp/he]
+lappend ans [list setpath MODULES_LMPREREQ he&ha/1&ha/2&ha]
+lappend ans [list setpath MODULES_LMNOTUASKED ha/1]
+set tserr "load ha/1\nload he\n\n[msg_top_load he {} ha/1 {}]"
+testouterr_cmd_re sh {load he} $ans $tserr
+
+setenv_loaded_module [list ha/2 hb] [list $mp/ha/2 $mp/hb]
+setenv_path_var MODULES_LMPREREQ hb&ha/1|ha
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:hb:ha/3]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hb:$mp/ha/3]
+# ha/3 load does not reload hb as its requirements are already fulfilled by ha/2
+set tserr "load ha/3"
+testouterr_cmd_re sh {load ha} $ans $tserr
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr "unload hb\nunload ha/2\n\n[msg_top_unload ha/2 hb {} {}]"
+testouterr_cmd_re sh {unload ha} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2]
+lappend ans [list setpath _LMFILES_ $mp/ha/2]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr "unload hb"
+testouterr_cmd_re sh {unload hb} $ans $tserr
+
+setenv_loaded_module [list ha/2 hb ha/3] [list $mp/ha/2 $mp/hb $mp/ha/3]
+setenv_path_var MODULES_LMPREREQ hb&ha/1|ha
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:hb]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hb]
+# like its load, unload of ha/3 does not reload hb as its requirements are already fulfilled by ha/2
+set tserr "unload ha/3"
+testouterr_cmd_re sh {unload ha} $ans $tserr
+
+setenv_loaded_module [list ha/2 hc] [list $mp/ha/2 $mp/hc] [list ha/2]
+setenv_path_var MODULES_LMPREREQ hc&ha/1|ha/2|ha
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:hc:ha/3]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hc:$mp/ha/3]
+set tserr "load ha/3"
+testouterr_cmd_re sh {load ha} $ans $tserr
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr "unload hc\nunload ha/2\n\n[msg_top_unload ha/2 hc {} {}]"
+testouterr_cmd_re sh {unload ha} $ans $tserr
+set tserr "unload hc\nunload ha/2\n\n[msg_top_unload hc {} ha/2 {}]"
+testouterr_cmd_re sh {unload hc} $ans $tserr
+
+setenv_loaded_module [list ha/2 hd] [list $mp/ha/2 $mp/hd]
+setenv_path_var MODULES_LMPREREQ hd&ha/1&ha
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:hd:ha/3]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hd:$mp/ha/3]
+set tserr "load ha/3"
+testouterr_cmd_re sh {load ha} $ans $tserr
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr "unload hd\nunload ha/2\n\n[msg_top_unload ha/2 hd {} {}]"
+testouterr_cmd_re sh {unload ha} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2]
+lappend ans [list setpath _LMFILES_ $mp/ha/2]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr "unload hd"
+testouterr_cmd_re sh {unload hd} $ans $tserr
+
+setenv_loaded_module [list ha/2 he] [list $mp/ha/2 $mp/he]
+setenv_path_var MODULES_LMPREREQ he&ha/1&ha/2&ha
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:he:ha/3]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/he:$mp/ha/3]
+set tserr "load ha/3"
+testouterr_cmd_re sh {load ha} $ans $tserr
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr "unload he\nunload ha/2\n\n[msg_top_unload ha/2 he {} {}]"
+testouterr_cmd_re sh {unload ha} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2]
+lappend ans [list setpath _LMFILES_ $mp/ha/2]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr "unload he"
+testouterr_cmd_re sh {unload he} $ans $tserr
+
+setenv_loaded_module [list ha/1 ha/2 hb] [list $mp/ha/1 $mp/ha/2 $mp/hb]
+setenv_path_var MODULES_LMPREREQ hb&ha/1|ha
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/1:hb]
+lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hb]
+set tserr "unload ha/2"
+testouterr_cmd_re sh {unload ha} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/1:ha/2]
+lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/ha/2]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr "unload hb"
+testouterr_cmd_re sh {unload hb} $ans $tserr
+
+setenv_loaded_module [list ha/1 ha/2 hc] [list $mp/ha/1 $mp/ha/2 $mp/hc] [list ha/1]
+setenv_path_var MODULES_LMPREREQ hc&ha/1|ha/2|ha
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/1:hc]
+lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hc]
+lappend ans [list setpath MODULES_LMPREREQ hc&ha/1|ha/2|ha]
+set tserr "unload hc\nunload ha/2\nload hc\n\n[msg_top_unload ha/2 {} {} hc]"
+testouterr_cmd_re sh {unload ha} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2]
+lappend ans [list setpath _LMFILES_ $mp/ha/2]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr "unload hc\nunload ha/1\n\n[msg_top_unload hc {} ha/1 {}]"
+testouterr_cmd_re sh {unload hc} $ans $tserr
+
+setenv_loaded_module [list ha/1 ha/2 hd] [list $mp/ha/1 $mp/ha/2 $mp/hd]
+setenv_path_var MODULES_LMPREREQ hd&ha/1&ha
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/1:hd]
+lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hd]
+set tserr "unload ha/2"
+testouterr_cmd_re sh {unload ha} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/1:ha/2]
+lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/ha/2]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr "unload hd"
+testouterr_cmd_re sh {unload hd} $ans $tserr
+
+setenv_loaded_module [list ha/1 ha/2 he] [list $mp/ha/1 $mp/ha/2 $mp/he]
+setenv_path_var MODULES_LMPREREQ he&ha/1&ha/2&ha
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/1]
+lappend ans [list setpath _LMFILES_ $mp/ha/1]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr "unload he\nunload ha/2\n\n[msg_top_unload ha/2 he {} {}]"
+testouterr_cmd_re sh {unload ha} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/1:ha/2]
+lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/ha/2]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr "unload he"
+testouterr_cmd_re sh {unload he} $ans $tserr
+
+
+#
+# test case challenging the computation of dependencies between modules when unloading
+# with multiple deps targetting same entry
+#
+
+setenv_loaded_module [list ha/2 hb hc] [list $mp/ha/2 $mp/hb $mp/hc]
+setenv_path_var MODULES_LMPREREQ hb&ha/1|ha hc&ha/1|ha/2|ha
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2]
+lappend ans [list setpath _LMFILES_ $mp/ha/2]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr "unload hc\nunload hb"
+testouterr_cmd_re sh {unload hc hb} $ans $tserr
+
+
+#
+# multiple conflicts targetting same module
+#
+
+setenv_loaded_module [list ha/2] [list $mp/ha/2]
+unsetenv_path_var MODULES_LMPREREQ
+set tserr [msg_load hf [err_conflict hf ha]]
+testouterr_cmd_re sh {load hf} ERR $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:hf]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hf]
+lappend ans [list setpath MODULES_LMCONFLICT hf&ha/1&ha]
+set tserr "load hf\n\n[msg_load hf [err_conflictf hf ha]]"
+testouterr_cmd_re sh {load --force hf} $ans $tserr
+set tserr [msg_load hg [err_conflict hg ha/2]]
+testouterr_cmd_re sh {load hg} ERR $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:hg]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hg]
+lappend ans [list setpath MODULES_LMCONFLICT hg&ha/1&ha/2&ha]
+set tserr "load hg\n\n[msg_load hg [err_conflictf hg ha/2] [err_conflictf hg ha]]"
+testouterr_cmd_re sh {load --force hg} $ans $tserr
+
+setenv_loaded_module [list ha/2 hf] [list $mp/ha/2 $mp/hf]
+setenv_path_var MODULES_LMCONFLICT hf&ha/1&ha
+set tserr [msg_load ha/3 [err_conflict ha/3 hf]]
+testouterr_cmd_re sh {load ha} ERR $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:hf:ha/3]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hf:$mp/ha/3]
+set tserr "load ha/3\n\n[msg_load ha/3 [err_conflictf ha/3 hf]]"
+testouterr_cmd_re sh {load --force ha} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hf]
+lappend ans [list setpath _LMFILES_ $mp/hf]
+lappend ans [list setpath MODULES_LMCONFLICT hf&ha/1&ha]
+set tserr "unload hf\nunload ha/2\nload hf\n\n[msg_top_unload ha/2 {} {} hf]"
+testouterr_cmd_re sh {unload ha} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2]
+lappend ans [list setpath _LMFILES_ $mp/ha/2]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+set tserr "unload ha/2\nunload hf\nload ha/2\n\n[msg_top_unload hf {} {} ha/2]"
+testouterr_cmd_re sh {unload hf} $ans $tserr
+
+setenv_loaded_module [list ha/2 hg] [list $mp/ha/2 $mp/hg]
+setenv_path_var MODULES_LMCONFLICT hg&ha/1&ha/2&ha
+set tserr [msg_load ha/3 [err_conflict ha/3 hg]]
+testouterr_cmd_re sh {load ha} ERR $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:hg:ha/3]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hg:$mp/ha/3]
+set tserr "load ha/3\n\n[msg_load ha/3 [err_conflictf ha/3 hg]]"
+testouterr_cmd_re sh {load --force ha} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hg]
+lappend ans [list setpath _LMFILES_ $mp/hg]
+lappend ans [list setpath MODULES_LMCONFLICT hg&ha/1&ha/2&ha]
+set tserr "unload hg\nunload ha/2\nload hg\n\n[msg_top_unload ha/2 {} {} hg]"
+testouterr_cmd_re sh {unload ha} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2]
+lappend ans [list setpath _LMFILES_ $mp/ha/2]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+set tserr "unload ha/2\nunload hg\nload ha/2\n\n[msg_top_unload hg {} {} ha/2]"
+testouterr_cmd_re sh {unload hg} $ans $tserr
+
+setenv_loaded_module [list ha/2 hf ha/3] [list $mp/ha/2 $mp/hf $mp/ha/3]
+setenv_path_var MODULES_LMCONFLICT hf&ha/1&ha
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:hf]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hf]
+set tserr "unload ha/3"
+testouterr_cmd_re sh {unload ha} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/3:ha/2]
+lappend ans [list setpath _LMFILES_ $mp/ha/3:$mp/ha/2]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+#FIXME: hf unload should only impact conflicts loaded after it (only ha/3 should be considered as DepRe)
+set tserr "unload ha/2\nunload hf\nload ha/2\n\n[msg_top_unload hf {} {} ha/2]"
+testouterr_cmd_re sh {unload hf} $ans $tserr
+
+setenv_loaded_module [list ha/2 hg ha/3] [list $mp/ha/2 $mp/hg $mp/ha/3]
+setenv_path_var MODULES_LMCONFLICT hg&ha/1&ha/2&ha
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/2:hg]
+lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hg]
+set tserr "unload ha/3"
+testouterr_cmd_re sh {unload ha} $ans $tserr
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/3:ha/2]
+lappend ans [list setpath _LMFILES_ $mp/ha/3:$mp/ha/2]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+#FIXME: hg unload should only impact conflicts loaded after it (only ha/3 should be considered as DepRe)
+set tserr "unload ha/2\nunload hg\nload ha/2\n\n[msg_top_unload hg {} {} ha/2]"
+testouterr_cmd_re sh {unload hg} $ans $tserr
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_loaded_module
+
+unsetenv_var MODULES_AUTO_HANDLING
+
+unset mp
+unset ans
+unset tserr
