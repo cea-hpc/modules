@@ -23,35 +23,38 @@
 @quarantinesupport@eval $_mlre @TCLSH@ @libexecdir@/modulecmd.tcl fish autoinit | source -
 @notquarantinesupport@eval @TCLSH@ @libexecdir@/modulecmd.tcl fish autoinit | source -
 
+# no environment alteration if the above autoinit command failed
+if [ $status -eq 0 ]
+   if status -i
+      if [ -r @initdir@/fish_completion ]
+         source @initdir@/fish_completion
+      end
+   end
+
+@compatversion@   # no switchml definition since there is no Fish support in C version
+@compatversion@
+   # setup ENV variables to get module defined in sub-shells (works for 'sh'
+   # and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
+   # (zsh-compat) in non-interactive mode.
+   set -xg ENV @initdir@/profile.sh
+   set -xg BASH_ENV @initdir@/bash
+
+@setbinpath@   if not contains @bindir@ $PATH
+@setbinpath@@prependbinpath@      set -xg PATH @bindir@ $PATH
+@setbinpath@@appendbinpath@      set -xg PATH $PATH @bindir@
+@setbinpath@   end
+@setbinpath@
+@setmanpath@@usemanpath@   set manpath (manpath ^/dev/null)
+@setmanpath@@notusemanpath@   set manpath $MANPATH
+@setmanpath@   if not string match -q '*:@mandir@:*' :$manpath:
+@setmanpath@      if [ -z $manpath ]
+@setmanpath@         set -xg MANPATH @mandir@
+@setmanpath@      else
+@setmanpath@@prependmanpath@         set -xg MANPATH @mandir@:$manpath
+@setmanpath@@appendmanpath@         set -xg MANPATH $manpath:@mandir@
+@setmanpath@      end
+@setmanpath@   end
+end
+@quarantinesupport@
 @quarantinesupport@# clean temp variables used to setup quarantine
 @quarantinesupport@set -e _mlre; set -e _mlv; set -e _mlrv;
-@quarantinesupport@
-if status -i
-   if [ -r @initdir@/fish_completion ]
-      source @initdir@/fish_completion
-   end
-end
-
-@compatversion@# no switchml definition since there is no Fish support in C version
-@compatversion@
-# setup ENV variables to get module defined in sub-shells (works for 'sh'
-# and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
-# (zsh-compat) in non-interactive mode.
-set -xg ENV @initdir@/profile.sh
-set -xg BASH_ENV @initdir@/bash
-
-@setbinpath@if not contains @bindir@ $PATH
-@setbinpath@@prependbinpath@   set -xg PATH @bindir@ $PATH
-@setbinpath@@appendbinpath@   set -xg PATH $PATH @bindir@
-@setbinpath@end
-@setbinpath@
-@setmanpath@@usemanpath@set manpath (manpath ^/dev/null)
-@setmanpath@@notusemanpath@set manpath $MANPATH
-@setmanpath@if not string match -q '*:@mandir@:*' :$manpath:
-@setmanpath@   if [ -z $manpath ]
-@setmanpath@      set -xg MANPATH @mandir@
-@setmanpath@   else
-@setmanpath@@prependmanpath@      set -xg MANPATH @mandir@:$manpath
-@setmanpath@@appendmanpath@      set -xg MANPATH $manpath:@mandir@
-@setmanpath@   end
-@setmanpath@end

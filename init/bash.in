@@ -36,8 +36,9 @@
 @quarantinesupport@
 # define module command and surrounding initial environment (default value
 # for MODULESHOME, MODULEPATH, LOADEDMODULES and parse of init/.modulespath)
-@quarantinesupport@eval "`${_mlre:-}@TCLSH@ @libexecdir@/modulecmd.tcl bash autoinit`"
-@notquarantinesupport@eval "`@TCLSH@ @libexecdir@/modulecmd.tcl bash autoinit`"
+@quarantinesupport@_mlcode=`${_mlre:-}@TCLSH@ @libexecdir@/modulecmd.tcl bash autoinit`
+@notquarantinesupport@_mlcode=`@TCLSH@ @libexecdir@/modulecmd.tcl bash autoinit`
+_mlret=$?
 
 @quarantinesupport@# clean temp variables used to setup quarantine
 @quarantinesupport@if [ -n "${_mlIFS+x}" ]; then
@@ -47,74 +48,81 @@
 @quarantinesupport@fi;
 @quarantinesupport@unset _mlre _mlv _mlrv
 @quarantinesupport@
-@compatversion@# redefine module command if compat version has been activated
-@compatversion@if [ "${MODULES_USE_COMPAT_VERSION:-0}" = '1' ]; then
-@compatversion@   MODULES_CMD=@libexecdir@/modulecmd-compat; export MODULES_CMD
-@compatversion@   if [ -t 2 ]; then
-@compatversion@      _module_raw() { eval `@libexecdir@/modulecmd-compat bash $*`; }
-@compatversion@   else
-@compatversion@      module() { eval `@libexecdir@/modulecmd-compat bash $*`; }
-@compatversion@   fi
-@compatversion@fi
-@compatversion@
-# export functions to get them defined in sub-shells
-if [ -t 2 ]; then
-   export -f _module_raw
-fi
-export -f module
+# no environment alteration if the above autoinit command failed
+if [ $_mlret -eq 0 ]; then
+   eval "$_mlcode"
 
-@compatversion@# define function to switch between C and Tcl versions of Modules
-@compatversion@switchml() {
-@compatversion@   typeset swfound=1
+@compatversion@   # redefine module command if compat version has been activated
 @compatversion@   if [ "${MODULES_USE_COMPAT_VERSION:-0}" = '1' ]; then
-@compatversion@      typeset swname='main'
-@compatversion@      if [ -e @libexecdir@/modulecmd.tcl ]; then
-@compatversion@         typeset swfound=0
-@compatversion@         unset MODULES_USE_COMPAT_VERSION
-@compatversion@      fi
-@compatversion@   else
-@compatversion@      typeset swname='compatibility'
-@compatversion@      if [ -e @libexecdir@/modulecmd-compat ]; then
-@compatversion@         typeset swfound=0
-@compatversion@         MODULES_USE_COMPAT_VERSION=1; export MODULES_USE_COMPAT_VERSION
+@compatversion@      MODULES_CMD=@libexecdir@/modulecmd-compat; export MODULES_CMD
+@compatversion@      if [ -t 2 ]; then
+@compatversion@         _module_raw() { eval `@libexecdir@/modulecmd-compat bash $*`; }
+@compatversion@      else
+@compatversion@         module() { eval `@libexecdir@/modulecmd-compat bash $*`; }
 @compatversion@      fi
 @compatversion@   fi
 @compatversion@
-@compatversion@   # switch version only if command found
-@compatversion@   if [ $swfound -eq 0 ]; then
-@compatversion@      echo "Switching to Modules $swname version"
-@compatversion@      source @initdir@/bash
-@compatversion@   else
-@compatversion@      echo "Cannot switch to Modules $swname version, command not found"
-@compatversion@      return 1
-@compatversion@   fi
-@compatversion@}
-@compatversion@export -f switchml
-@compatversion@
-# setup ENV variables to get module defined in sub-shells (works for 'sh'
-# and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
-# (zsh-compat) in non-interactive mode.
-ENV=@initdir@/profile.sh; export ENV
-BASH_ENV=@initdir@/bash; export BASH_ENV
+   # export functions to get them defined in sub-shells
+   if [ -t 2 ]; then
+      export -f _module_raw
+   fi
+   export -f module
 
-# enable completion only in interactive mode
-if [ ${BASH_VERSINFO:-0} -ge 3 ] && [[ $- =~ i ]] &&
-   [ -r @initdir@/bash_completion ]; then
-   source @initdir@/bash_completion
+@compatversion@   # define function to switch between C and Tcl versions of Modules
+@compatversion@   switchml() {
+@compatversion@      typeset swfound=1
+@compatversion@      if [ "${MODULES_USE_COMPAT_VERSION:-0}" = '1' ]; then
+@compatversion@         typeset swname='main'
+@compatversion@         if [ -e @libexecdir@/modulecmd.tcl ]; then
+@compatversion@            typeset swfound=0
+@compatversion@            unset MODULES_USE_COMPAT_VERSION
+@compatversion@         fi
+@compatversion@      else
+@compatversion@         typeset swname='compatibility'
+@compatversion@         if [ -e @libexecdir@/modulecmd-compat ]; then
+@compatversion@            typeset swfound=0
+@compatversion@            MODULES_USE_COMPAT_VERSION=1; export MODULES_USE_COMPAT_VERSION
+@compatversion@         fi
+@compatversion@      fi
+@compatversion@
+@compatversion@      # switch version only if command found
+@compatversion@      if [ $swfound -eq 0 ]; then
+@compatversion@         echo "Switching to Modules $swname version"
+@compatversion@         source @initdir@/bash
+@compatversion@      else
+@compatversion@         echo "Cannot switch to Modules $swname version, command not found"
+@compatversion@         return 1
+@compatversion@      fi
+@compatversion@   }
+@compatversion@   export -f switchml
+@compatversion@
+   # setup ENV variables to get module defined in sub-shells (works for 'sh'
+   # and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
+   # (zsh-compat) in non-interactive mode.
+   ENV=@initdir@/profile.sh; export ENV
+   BASH_ENV=@initdir@/bash; export BASH_ENV
+
+   # enable completion only in interactive mode
+   if [ ${BASH_VERSINFO:-0} -ge 3 ] && [[ $- =~ i ]] &&
+      [ -r @initdir@/bash_completion ]; then
+      source @initdir@/bash_completion
+   fi
+@setbinpath@
+@setbinpath@   if [[ ! ":$PATH:" =~ ':@bindir@:' ]]; then
+@setbinpath@@prependbinpath@      PATH=@bindir@${PATH:+:}$PATH; export PATH
+@setbinpath@@appendbinpath@      PATH=$PATH${PATH:+:}@bindir@; export PATH
+@setbinpath@   fi
+@setmanpath@
+@setmanpath@@usemanpath@   manpath=`manpath 2>/dev/null`
+@setmanpath@@notusemanpath@   manpath=${MANPATH:-}
+@setmanpath@   if [[ ! ":$manpath:" =~ ':@mandir@:' ]]; then
+@setmanpath@@prependmanpath@      MANPATH=@mandir@${manpath:+:}$manpath; export MANPATH
+@setmanpath@@appendmanpath@      MANPATH=$manpath${manpath:+:}@mandir@; export MANPATH
+@setmanpath@   fi
 fi
 
-@setbinpath@if [[ ! ":$PATH:" =~ ':@bindir@:' ]]; then
-@setbinpath@@prependbinpath@   PATH=@bindir@${PATH:+:}$PATH; export PATH
-@setbinpath@@appendbinpath@   PATH=$PATH${PATH:+:}@bindir@; export PATH
-@setbinpath@fi
-@setbinpath@
-@setmanpath@@usemanpath@manpath=`manpath 2>/dev/null`
-@setmanpath@@notusemanpath@manpath=${MANPATH:-}
-@setmanpath@if [[ ! ":$manpath:" =~ ':@mandir@:' ]]; then
-@setmanpath@@prependmanpath@   MANPATH=@mandir@${manpath:+:}$manpath; export MANPATH
-@setmanpath@@appendmanpath@   MANPATH=$manpath${manpath:+:}@mandir@; export MANPATH
-@setmanpath@fi
-@setmanpath@
+unset _mlcode _mlret
+@silentshdbgsupport@
 @silentshdbgsupport@# restore shell debugging options if disabled
 @silentshdbgsupport@if [ -n "${_mlshdbg:-}" ]; then
 @silentshdbgsupport@   set -$_mlshdbg;
