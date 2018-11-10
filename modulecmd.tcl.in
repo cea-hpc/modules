@@ -2115,74 +2115,46 @@ proc putsModfileCmd {itrp args} {
 # path fiddling
 #
 proc getReferenceCountArray {var separator} {
+   # get reference counter set in environment
    set sharevar [getModshareVarName $var]
-   set modshareok 1
+   array set refcount {}
    if {[info exists ::env($sharevar)]} {
-      if {[info exists ::env($var)]} {
-         set modsharelist [psplit $::env($sharevar) [getPathSeparator]]
-         set temp [expr {[llength $modsharelist] % 2}]
-
-         if {$temp == 0} {
-            array set countarr $modsharelist
-
-            # sanity check the modshare list
-            array set fixers {}
-            array set usagearr {}
-
-            # do not skip a bare empty path entry that can also be found in
-            # reference counter array (sometimes var is cleared by setting it
-            # empty not unsetting it, ignore var in this case)
-            if {$::env($var) eq {} && [info exists countarr()]} {
-               set usagearr() 1
-            } else {
-               foreach dir [split $::env($var) $separator] {
-                  set usagearr($dir) 1
-               }
-            }
-            foreach path [array names countarr] {
-               if {! [info exists usagearr($path)]} {
-                  unset countarr($path)
-                  set fixers($path) 1
-               }
-            }
-
-            foreach path [array names usagearr] {
-               if {! [info exists countarr($path)]} {
-                  # if no ref count found for a path, assume it has a ref
-                  # count of 1 to be able to unload it easily if needed
-                  set countarr($path) 1
-               }
-            }
-
-            if {[array size fixers]} {
-               reportWarning "\$$var does not agree with \$$sharevar counter.\
-                  The following directories' usage counters were adjusted to\
-                  match. Note that this may mean that module unloading may\
-                  not work correctly.\n [join [array names fixers]]"
-            }
-         } else {
-            # sharevar was corrupted, odd number of elements.
-            set modshareok 0
-         }
-      # nullify modshare if a SIP-protected var is not found in context as
-      # this kind of variable is not exported to subshell on OSX when SIP
-      # is enabled
-      } elseif {([string range $var 0 4] eq {DYLD_} || [string range\
-         $var 0 2] eq {LD_}) && $::tcl_platform(os) eq {Darwin}} {
-         set modshareok 0
+      set modsharelist [psplit $::env($sharevar) [getPathSeparator]]
+      # ignore environment ref count variable if malformed
+      if {([llength $modsharelist] % 2) == 0} {
+         array set refcount $modsharelist
       } else {
-         reportWarning "$sharevar exists ( $::env($sharevar) ), but $var\
-            doesn't. Environment is corrupted."
-         set modshareok 0
+         reportDebug "Reference counter value in '$sharevar' is malformed\
+            ($modsharelist)"
       }
-   } else {
-      set modshareok 0
    }
 
-   if {$modshareok == 0 && [info exists ::env($var)]} {
-      array set countarr {}
-      foreach dir [split $::env($var) $separator] {
-         set countarr($dir) 1
+   array set countarr {}
+   if {[info exists ::env($var)]} {
+      # do not skip a bare empty path entry that can also be found in
+      # reference counter array (sometimes var is cleared by setting it
+      # empty not unsetting it, ignore var in this case)
+      if {$::env($var) eq {} && [info exists refcount()]} {
+         lappend eltlist {}
+      } else {
+         set eltlist [split $::env($var) $separator]
+      }
+
+      # just go thought the elements of the variable, which means additional
+      # elements part of the reference counter variable will be ignored
+      foreach elt $eltlist {
+         # no reference counter, means value has been set once
+         if {![info exists refcount($elt)]} {
+            set count 1
+         # bad reference counter value is ignored
+         } elseif {![string is digit -strict $refcount($elt)]} {
+            reportDebug "Reference counter value for '$elt' in '$sharevar' is\
+               erroneous ($refcount($elt))"
+            set count 1
+         } else {
+            set count $refcount($elt)
+         }
+         set countarr($elt) $count
       }
    }
 

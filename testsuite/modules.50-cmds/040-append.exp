@@ -276,15 +276,24 @@ lappend ans [list set FOO "/path/to/dir1:/path/to/dir4:/path/to/dir2"]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 
-# loud warning message about elements in reference counter not found in referred variable
-testouterr_cmd "sh" "load $module" $ans [msg_load $module "$warn_msgs: \$FOO does not agree with \$FOO_modshare counter. The following directories' usage counters were adjusted to match. Note that this may mean that module unloading may not work correctly.
- /path/to/dir2 /path/to/dir3"]
+# reference counter is automatically ajusted
+testouterr_cmd "sh" "load $module" $ans {}
+
+# test incoherent state on unload mode
+setenv_loaded_module $module $modulefile
+set ans [list]
+lappend ans [list set FOO_modshare "/path/to/dir4:1"]
+lappend ans [list set FOO "/path/to/dir4"]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd "sh" "unload $module" $ans {}
 
 
 #
 # Reference counter variable set with referred variable unset
 #
 
+unsetenv_loaded_module
 set env(FOO_modshare) "/path/to/dir2:1:/path/to/dir3:2:/path/to/dir4:1"
 unset env(FOO)
 
@@ -294,14 +303,24 @@ lappend ans [list set FOO "/path/to/dir1:/path/to/dir2"]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 
-# loud warning message about referred variable unset whereas reference counter defined
-testouterr_cmd "sh" "load $module" $ans [msg_load $module "$warn_msgs: FOO_modshare exists ( /path/to/dir2:1:/path/to/dir3:2:/path/to/dir4:1 ), but FOO doesn't. Environment is corrupted."]
+# reference counter is automatically ajusted
+testouterr_cmd "sh" "load $module" $ans {}
+
+# test incoherent state on unload mode
+setenv_loaded_module $module $modulefile
+set ans [list]
+lappend ans [list unset FOO_modshare]
+lappend ans [list unset FOO]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd "sh" "unload $module" $ans {}
 
 
 #
 # Corrupted reference counter variable with referred variable set
 #
 
+unsetenv_loaded_module
 set env(FOO_modshare) "/path/to/dir1:2:/path/to/dir3"
 set env(FOO) "/path/to/dir1"
 
@@ -314,11 +333,21 @@ lappend ans [list setpath _LMFILES_ $modulefile]
 # reference counter ignored
 testouterr_cmd "sh" "load $module" $ans ""
 
+# test incoherent state on unload mode
+setenv_loaded_module $module $modulefile
+set ans [list]
+lappend ans [list unset FOO_modshare]
+lappend ans [list unset FOO]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd "sh" "unload $module" $ans {}
+
 
 #
 # Corrupted reference counter variable with referred variable unset
 #
 
+unsetenv_loaded_module
 set env(FOO_modshare) "/path/to/dir1:2:/path/to/dir3"
 unset env(FOO)
 
@@ -328,14 +357,24 @@ lappend ans [list set FOO "/path/to/dir1:/path/to/dir2"]
 lappend ans [list setpath LOADEDMODULES $module]
 lappend ans [list setpath _LMFILES_ $modulefile]
 
-# loud warning message about referred variable unset whereas reference counter defined
-testouterr_cmd "sh" "load $module" $ans [msg_load $module "$warn_msgs: FOO_modshare exists ( /path/to/dir1:2:/path/to/dir3 ), but FOO doesn't. Environment is corrupted."]
+# reference counter is automatically ajusted
+testouterr_cmd "sh" "load $module" $ans {}
+
+# test incoherent state on unload mode
+setenv_loaded_module $module $modulefile
+set ans [list]
+lappend ans [list unset FOO_modshare]
+lappend ans [list unset FOO]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd "sh" "unload $module" $ans {}
 
 
 #
 #  Cleanup
 #
 
+unsetenv_loaded_module
 set env(PATH) $ORIG_PATH
 unset ORIG_PATH
 
