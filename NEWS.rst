@@ -6,6 +6,47 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+Modules 4.2.1 (2018-11-11)
+--------------------------
+
+* Cookbook: add the *inhibit-report-info* recipe.
+* Cookbook: port *unload-firstly-loaded* and *top-priority-values* recipes to
+  v4.2.
+* Init: fix listing of loaded modules for *fish* and *tcsh* shell completions.
+* Init: fix saved collection listing when no collection found for *bash*,
+  *zsh*, *tcsh* and *fish* shell completions.
+* Adapt ``system`` modulefile Tcl command to execute the command passed as
+  argument through shell, like it is performed on compatibility version. (fix
+  issue#205) 
+* Correctly filter modulefile search memory cache entries when using a full
+  search result to search later on a specific modulefile.
+* Prefix debug messages by information on the current modulefile or modulerc
+  interpreter if any.
+* Init: fix listing of loaded modules on unload and switch sub-commands for
+  *bash* shell completion.
+* Refrain ``module unload`` modulefile command from unloading a module
+  required by another loading module.
+* Enable ``is-loaded`` modulefile Tcl command in modulerc interpretation
+  context, like done on compatibility version. (fix issue#207)
+* Check a required module is not already loading before attempting to load it.
+  Helps to handle cyclic dependencies.
+* Compute loaded modules requirement dependency relations without cycle and
+  consider the module closing the cycle in a constraint violation state to
+  avoid reloading loops on the *Dependent Reload* mechanism.
+* Safely unset dependency reference when computing dependency relations as
+  some dependencies expressed may target same module.
+* Ensure a loaded module matching multiple entries of a same *or* ``prereq``
+  will just be considered as one module matching this requirement.
+* Init: quote prompt in *csh* and *tcsh* script with ``:q`` rather double
+  quotes to accommodate prompts with embedded newlines. (fix issue#209 with
+  contribution from Satya Mishra)
+* Init: skip shell environment alteration if ``autoinit`` command fails. (fix
+  issue#208)
+* Reword path-like variable element counter reference handling to simply
+  ignore the counter values not coherent with the content of related
+  path-like variable. (fix issue#206)
+
+
 Modules 4.2.0 (2018-10-18)
 --------------------------
 
