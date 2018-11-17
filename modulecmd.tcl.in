@@ -3823,12 +3823,32 @@ proc areModuleConstraintsSatisfied {{mod {}}} {
 
 # return list of loaded modules declaring a prereq on passed mod with
 # distinction made with strong prereqs (no alternative loaded) or weak
-proc getDirectDependentList {mod {strong 0} {loading 0}} {
+proc getDirectDependentList {mod {strong 0} {loading 0} {othmodlist {}}} {
    set deplist {}
    if {[info exists ::g_dependHash($mod)]} {
       foreach depmod $::g_dependHash($mod) {
+         set add 1
          # skip optional dependency if only looking for strong ones
-         if {[llength $depmod] == 1 || !$strong} {
+         # look at an additionally processed mod list to determine if all
+         # mods from a dependent list (composed of optional parts) are part
+         # of the search, which means mod is not optional but strong dependent
+         if {$strong && [llength $depmod] > 1} {
+            foreach lmmodlist $::g_moduleDepend([lindex $depmod 0]) {
+               if {[isInList $lmmodlist $mod]} {
+                  foreach lmmod $lmmodlist {
+                     # other mod part of the opt list is not there so mod
+                     # is considered optional
+                     if {[notInList $othmodlist $lmmod]} {
+                        set add 0
+                        break
+                     }
+                  }
+                  break
+               }
+            }
+         }
+
+         if {$add} {
             lappend deplist [lindex $depmod 0]
          }
       }
@@ -3884,7 +3904,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {loading 1}\
    foreach mod $modlist {
       # no duplicates or modules from query list
       eval appendNoDupToList fulllist [getDirectDependentList $mod $strong\
-         $loading]
+         $loading $fulllist]
    }
 
    if {$being_unload} {
@@ -3910,7 +3930,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {loading 1}\
          # get dependent mod of dep mod when looking at full dep tree
          if {!$direct} {
             eval appendNoDupToList fulllist [getDirectDependentList $depmod\
-               $strong]
+               $strong 0 $fulllist]
          }
          # avoid module currently unloading from result list
          if {[notInList $unloadingmodlist $depmod]} {

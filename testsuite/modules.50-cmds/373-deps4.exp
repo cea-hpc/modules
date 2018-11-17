@@ -694,6 +694,19 @@ set tserr [list "unload h74" "unload h63" "unload h62" "unload h61" "unload h60"
 testouterr_cmd_re "sh" "unload h61" $ans [join $tserr "\n"]
 
 
+# DepUn mechanism where all modules part of an optional prereq list are unloaded
+# so dependent module should not be skipped as none of its optional requirements are there anymore
+setenv_loaded_module [list ia ib ic id] [list $mp/ia $mp/ib $mp/ic $mp/id] [list ia ib]
+setenv_path_var MODULES_LMPREREQ ib&ia ic&ia id&ib|ic
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload id} {unload ic} {unload ib} {unload ia} \n[msg_top_unload ia [list id ic ib] {} {}]]
+testouterr_cmd_re sh {unload ia} $ans [join $tserr \n]
+
+
 #
 #  Cleanup
 #
