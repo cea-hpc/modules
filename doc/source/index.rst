@@ -87,6 +87,7 @@ automatically configured to the correct architecture.
    diff_v3_v4
    FAQ
    NEWS
+   cookbook
 
 
 License

@@ -1,0 +1,59 @@
+.. _inhibit-report-info:
+
+Inhibit output of informative messages
+======================================
+
+Since Modules v4.2, additional module load or unload triggered by the load
+or the unload of a modulefile are reported to the user to help understand
+what happened automatically. These informative messages may not be desired
+sometimes and here is a proposed way to inhibit them.
+
+Implementation
+--------------
+
+A site-specific configuration script is proposed to inhibit the output of
+the info-level messages.
+
+.. literalinclude:: ../../example/inhibit-report-info/siteconfig.tcl
+   :caption: siteconfig.tcl
+   :lines: 14-23
+
+**Compatible with Modules v4.2**
+
+Installation
+------------
+
+Create site-specific configuration directory if it does not exist yet:
+
+.. parsed-literal::
+
+   $ mkdir \ |etcdir|
+
+Then copy there the site-specific configuration script of this recipe:
+
+.. parsed-literal::
+
+   $ cp example/inhibit-report-info/siteconfig.tcl \ |etcdir|\ /
+
+Usage example
+-------------
+
+With a bare ``bar`` modulefile:
+
+.. literalinclude:: ../../example/inhibit-report-info/modulefiles/bar
+   :caption: bar
+
+And a ``foo`` modulefile that pre-requires ``bar``:
+
+.. literalinclude:: ../../example/inhibit-report-info/modulefiles/foo
+   :caption: foo
+
+Enable the modulepath where the example modulefiles are located::
+
+   $ module use example/inhibit-report-info/modulefiles
+
+Load ``foo`` with auto handling mode enabled. The info-level message
+inhibition should let ``foo`` load quiet::
+
+   $ module load --auto foo
+   $
