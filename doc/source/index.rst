@@ -88,6 +88,7 @@ automatically configured to the correct architecture.
    FAQ
    NEWS
    cookbook
+   CONTRIBUTING
 
 
 License
