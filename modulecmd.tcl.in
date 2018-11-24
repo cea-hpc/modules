@@ -5734,38 +5734,10 @@ proc parseAccessIssue {modfile} {
 proc checkValidModule {modfile} {
    reportDebug $modfile
 
-   # use cached result
-   if {[info exists ::g_modfileValid($modfile)]} {
-      return $::g_modfileValid($modfile)
-   } else {
-      # Check for valid module
-      if {[catch {
-         set fid [open $modfile r]
-         # extract magic cookie (first word of modulefile)
-         set fheader [lindex [split [gets $fid]] 0]
-         close $fid
-      }]} {
-         set check_valid accesserr
-         set check_msg [parseAccessIssue $modfile]
-      } else {
-         if {![string equal -length 8 $fheader {#%Module}]} {
-            set check_valid invalid
-            set check_msg {Magic cookie '#%Module' missing}
-         # check if minimum version requirement is met
-         } elseif {[string length $fheader] == 8 || [compareVersion\
-            {@MODULES_RELEASE@} [string range $fheader 8 end]] >= 0} {
-            set check_valid true
-            set check_msg {}
-         } else {
-            set check_valid invalid
-            set check_msg "Modulefile requires at least Modules version\
-               [string range $fheader 8 end]"
-         }
-      }
-
-      # cache result at first query
-      return [set ::g_modfileValid($modfile) [list $check_valid $check_msg]]
-   }
+   # test file only once, cache result obtained to minimize file query
+   return [expr {[info exists ::g_modfileValid($modfile)]\
+      ? $::g_modfileValid($modfile)\
+      : [set ::g_modfileValid($modfile) [readModuleContent $modfile 1 1 1]]}]
 }
 
 # get file modification time, cache it at first query, use cache afterward
@@ -5777,37 +5749,59 @@ proc getFileMtime {fpath} {
    }
 }
 
-proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}} {
+proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
+   {only_check_validity 0}} {
    reportDebug $modfile
+   set res {}
 
    # read file
    if {[catch {
       set fid [open $modfile r]
-      set fdata [read $fid]
+      # only read beginning of file if just checking validity
+      set fdata [if {$only_check_validity} {gets $fid} {read $fid}]
       close $fid
       # extract magic cookie (first word of modulefile)
-      set fheader [lindex [split [string range $fdata 0 [string first \n\
-         $fdata]]] 0]
+      set fh [lindex [split [string range $fdata 0 32]] 0]
    } errMsg ]} {
       if {$report_read_issue} {
-         reportError [parseAccessIssue $modfile]
+         set msg [parseAccessIssue $modfile]
+         if {$only_check_validity} {
+            set res [list accesserr $msg]
+         } else {
+            reportError $msg
+         }
       }
-      return {}
+   } else {
+      # check module validity if magic cookie is mandatory
+      if {$must_have_cookie && ![string equal -length 8 $fh {#%Module}]} {
+         set msg {Magic cookie '#%Module' missing}
+         if {$only_check_validity} {
+            set res [list invalid $msg]
+         } else {
+            reportInternalBug $msg $modfile
+         }
+      # check if min version requirement is met if magic cookie is mandatory
+      } elseif {$must_have_cookie && [string length $fh] > 8 &&\
+         [compareVersion {@MODULES_RELEASE@} [string range $fh 8 end]] <0} {
+         set msg "Modulefile requires at least Modules version [string range\
+            $fh 8 end]"
+         if {$only_check_validity} {
+            set res [list invalid $msg]
+         } else {
+            reportInternalBug $msg $modfile
+         }
+      } else {
+         if {$only_check_validity} {
+            # set validity information as result
+            set res [list true {}]
+         } else {
+            # set file content as result
+            set res $fdata
+         }
+      }
    }
 
-   # check module validity if magic cookie is mandatory
-   if {$must_have_cookie && ![string equal -length 8 $fheader {#%Module}]} {
-      reportInternalBug {Magic cookie '#%Module' missing} $modfile
-      return {}
-   # check if minimum version requirement is met if magic cookie is mandatory
-   } elseif {$must_have_cookie && [string length $fheader] > 8 &&\
-      [compareVersion {@MODULES_RELEASE@} [string range $fheader 8 end]] <0} {
-      reportInternalBug "Modulefile requires at least Modules version [string\
-         range $fheader 8 end]" $modfile
-      return {}
-   } else {
-      return $fdata
-   }
+   return $res
 }
 
 # If given module maps to default or other symbolic versions, a list of
