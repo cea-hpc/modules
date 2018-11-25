@@ -1825,6 +1825,9 @@ proc module {command args} {
 
    # skip command processing if error already spotted
    if {![info exists errormsg]} {
+      # define if modfile should always be fully read even for validity check
+      pushAlwaysReadFullFile [expr {[isInList [list path paths list avail\
+         aliases] $command]} ? 0 : 1]
       pushCommandName $command
 
       if {$topcall} {
@@ -2075,6 +2078,7 @@ proc module {command args} {
          }
       }
       popCommandName
+      popAlwaysReadFullFile
    }
 
    # if an error need to be raised, proceed differently depending of
@@ -3181,6 +3185,25 @@ proc isModuleEvalFailed {context mod} {
       }
    }
    return $ret
+}
+
+# stack of flag defining whether a modfile should be always fully read or not
+# even for validity check, which is useful in case a file need to be read
+# multiple times as a full read will make file content cached thus file will
+# be read only once
+set g_alwaysReadFullFileStack {}
+
+proc currentAlwaysReadFullFile {} {
+   return [lindex $::g_alwaysReadFullFileStack end]
+}
+
+proc pushAlwaysReadFullFile {alwaysReadFullFile} {
+   lappend ::g_alwaysReadFullFileStack $alwaysReadFullFile
+}
+
+proc popAlwaysReadFullFile {} {
+   set ::g_alwaysReadFullFileStack [lrange $::g_alwaysReadFullFileStack 0\
+      end-1]
 }
 
 # return list of currently loading modules in stack
@@ -5760,13 +5783,15 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
          lassign $::g_modfileContent($modfile) fh fdata
       } else {
          set fid [open $modfile r]
-         # only read beginning of file if just checking validity
-         set fdata [if {$only_check_validity} {gets $fid} {read $fid}]
+         # only read beginning of file if just checking validity and not
+         # asked to always fully read files
+         set fdata [if {$only_check_validity && ![currentAlwaysReadFullFile]}\
+            {gets $fid} {read $fid}]
          close $fid
          # extract magic cookie (first word of modulefile)
          set fh [lindex [split [string range $fdata 0 32]] 0]
          # cache full file read to minimize file operations
-         if {!$only_check_validity} {
+         if {!$only_check_validity || [currentAlwaysReadFullFile]} {
             set ::g_modfileContent($modfile) [list $fh $fdata]
          }
       }
