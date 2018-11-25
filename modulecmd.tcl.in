@@ -5756,12 +5756,20 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
 
    # read file
    if {[catch {
-      set fid [open $modfile r]
-      # only read beginning of file if just checking validity
-      set fdata [if {$only_check_validity} {gets $fid} {read $fid}]
-      close $fid
-      # extract magic cookie (first word of modulefile)
-      set fh [lindex [split [string range $fdata 0 32]] 0]
+      if {[info exists ::g_modfileContent($modfile)]} {
+         lassign $::g_modfileContent($modfile) fh fdata
+      } else {
+         set fid [open $modfile r]
+         # only read beginning of file if just checking validity
+         set fdata [if {$only_check_validity} {gets $fid} {read $fid}]
+         close $fid
+         # extract magic cookie (first word of modulefile)
+         set fh [lindex [split [string range $fdata 0 32]] 0]
+         # cache full file read to minimize file operations
+         if {!$only_check_validity} {
+            set ::g_modfileContent($modfile) [list $fh $fdata]
+         }
+      }
    } errMsg ]} {
       if {$report_read_issue} {
          set msg [parseAccessIssue $modfile]
