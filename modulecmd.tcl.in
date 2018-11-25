@@ -5772,6 +5772,16 @@ proc getFileMtime {fpath} {
    }
 }
 
+# provide a readFile proc if libenvmodule not loaded
+if {[info commands readFile] eq {}} {
+   proc readFile {filename {firstline 0}} {
+      set fid [open $filename r]
+      set fdata [if {$firstline} {gets $fid} {read $fid}]
+      close $fid
+      return $fdata
+   }
+}
+
 proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
    {only_check_validity 0}} {
    reportDebug $modfile
@@ -5782,12 +5792,10 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
       if {[info exists ::g_modfileContent($modfile)]} {
          lassign $::g_modfileContent($modfile) fh fdata
       } else {
-         set fid [open $modfile r]
          # only read beginning of file if just checking validity and not
          # asked to always fully read files
-         set fdata [if {$only_check_validity && ![currentAlwaysReadFullFile]}\
-            {gets $fid} {read $fid}]
-         close $fid
+         set fdata [readFile $modfile [expr {$only_check_validity &&\
+            ![currentAlwaysReadFullFile]}]]
          # extract magic cookie (first word of modulefile)
          set fh [lindex [split [string range $fdata 0 32]] 0]
          # cache full file read to minimize file operations
@@ -6758,9 +6766,7 @@ proc readCollectionContent {collfile colldesc} {
 
    # read file
    if {[catch {
-      set fid [open $collfile r]
-      set fdata [split [read $fid] \n]
-      close $fid
+      set fdata [split [readFile $collfile] \n]
    } errMsg ]} {
       reportErrorAndExit "Collection $colldesc cannot be read.\n$errMsg"
    }
@@ -8276,9 +8282,7 @@ proc cmdModuleAutoinit {} {
    if {![info exists ::env(MODULEPATH)] || $::env(MODULEPATH) eq {}} {
       # set modpaths defined in .modulespath config file if it exists
       if {[file readable @initdir@/.modulespath]} {
-         set fid [open @initdir@/.modulespath r]
-         set fdata [split [read $fid] \n]
-         close $fid
+         set fdata [split [readFile @initdir@/.modulespath] \n]
          foreach fline $fdata {
             if {[regexp {^\s*(.*?)\s*(#.*|)$} $fline match patharg] == 1\
                && $patharg ne {}} {
@@ -8332,9 +8336,8 @@ proc cmdModuleInit {args} {
          if {[file readable $filepath] && [file isfile $filepath]} {
             set newinit {}
             set thismatch 0
-            set fid [open $filepath r]
 
-            while {[gets $fid curline] >= 0} {
+            foreach curline [split [readFile $filepath] \n] {
                # Find module load/add command in startup file 
                set comments {}
                if {$notdone && [regexp {^([ \t]*module[ \t]+(load|add)[\
@@ -8398,13 +8401,11 @@ proc cmdModuleInit {args} {
                         lappend newinit [string trim $cmd]
                      }
                   }
-               } else {
+               } elseif {$curline ne {}} {
                   # copy the line from the old file to the new
                   lappend newinit $curline
                }
             }
-
-            close $fid
 
             if {$init_cmd ne {list} && $thismatch} {
                reportDebug "Writing $filepath"
