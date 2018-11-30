@@ -1,7 +1,7 @@
 #!/bin/bash
 set -v
 
-mkdir /apps/userenv/modules/applications/bar
+mkdir -p /apps/userenv/modules/applications/bar
 
 cat <<EOF >/apps/userenv/modules/applications/bar/1.0
 #%Module
