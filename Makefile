@@ -29,12 +29,19 @@ ifneq ($(wildcard Makefile.inc),Makefile.inc)
 endif
 include Makefile.inc
 
-all: initdir modulecmd.tcl ChangeLog README \
-	contrib/scripts/add.modules contrib/scripts/modulecmd
+INSTALL_PREREQ := modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
+	contrib/scripts/modulecmd
+TEST_PREREQ := modulecmd.tcl
+
 ifeq ($(compatversion),y)
-all: $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog
-else
+INSTALL_PREREQ += $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog
+ifeq ($(wildcard $(COMPAT_DIR)),$(COMPAT_DIR))
+TEST_PREREQ += $(COMPAT_DIR)/modulecmd
 endif
+endif
+
+all: initdir $(INSTALL_PREREQ)
+
 # skip doc build if no sphinx-build
 ifeq ($(builddoc),y)
 all: pkgdoc
@@ -216,13 +223,7 @@ uninstall-testconfig:
 	rm -f $(DESTDIR)$(initdir)/.modulespath
 	$(MAKE) -C init uninstall-testconfig DESTDIR=$(DESTDIR)
 
-ifeq ($(compatversion),y)
-install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
-	contrib/scripts/modulecmd $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog
-else
-install: modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
-	contrib/scripts/modulecmd
-endif
+install: $(INSTALL_PREREQ)
 	mkdir -p $(DESTDIR)$(libexecdir)
 	mkdir -p $(DESTDIR)$(bindir)
 	cp modulecmd.tcl $(DESTDIR)$(libexecdir)/
@@ -377,7 +378,7 @@ ifeq ($(wildcard .git) $(wildcard version.inc.in),.git version.inc.in)
 	rm -f contrib/rpm/environment-modules.spec
 endif
 ifneq ($(wildcard $(COMPAT_DIR)/Makefile),)
-	$(MAKE) -C compat clean
+	$(MAKE) -C $(COMPAT_DIR) clean
 endif
 
 distclean: clean
@@ -392,11 +393,9 @@ ifeq ($(gitworktree),y)
 endif
 endif
 
+test: $(TEST_PREREQ)
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
-test: modulecmd.tcl $(COMPAT_DIR)/modulecmd
 	$(MAKE) -C $(COMPAT_DIR) test
-else
-test: modulecmd.tcl
 endif
 	TCLSH=$(TCLSH); export TCLSH; \
 	OBJDIR=`pwd -P`; export OBJDIR; \
