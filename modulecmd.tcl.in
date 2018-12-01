@@ -553,28 +553,32 @@ proc isErrorReportInhibited {} {
 
 # init error report and output buffered messages
 proc initErrorReport {} {
-   # determine message paging configuration and enablement
-   initPager
+   # ensure init is done only once
+   if {![info exists ::g_init_error_report]} {
+      set ::g_init_error_report 1
+      # determine message paging configuration and enablement
+      initPager
 
-   # replace report procedures used to bufferize messages until error report
-   # being initialized by regular report procedures
-   rename ::reportDebug {}
-   if {$::g_debug} {
-      rename ::__reportDebug ::reportDebug
-   } else {
-      # set a disabled version if debug is disabled
-      rename ::__reportDebugNop ::reportDebug
-   }
-   rename ::reportErrorAndExit {}
-   rename ::__reportErrorAndExit ::reportErrorAndExit
-   rename ::reportSeparateNextContent {}
-   rename ::__reportSeparateNextContent ::reportSeparateNextContent
-   rename ::report {}
-   rename ::__report ::report
+      # replace report procedures used to bufferize messages until error
+      # report being initialized by regular report procedures
+      rename ::reportDebug {}
+      if {$::g_debug} {
+         rename ::__reportDebug ::reportDebug
+      } else {
+         # set a disabled version if debug is disabled
+         rename ::__reportDebugNop ::reportDebug
+      }
+      rename ::reportErrorAndExit {}
+      rename ::__reportErrorAndExit ::reportErrorAndExit
+      rename ::reportSeparateNextContent {}
+      rename ::__reportSeparateNextContent ::reportSeparateNextContent
+      rename ::report {}
+      rename ::__report ::report
 
-   # now error report is init output every message saved in buffer
-   foreach errreport $::errreport_buffer {
-      eval $errreport
+      # now error report is init output every message saved in buffer
+      foreach errreport $::errreport_buffer {
+         eval $errreport
+      }
    }
 }
 
@@ -8754,6 +8758,8 @@ if {[catch {
    # no use of reportError here to get independent from any
    # previous error report inhibition
    report "ERROR: $errMsg"
+   # init error report here in case the error raised before the regular init
+   initErrorReport
    cleanupAndExit 1
 }
 
