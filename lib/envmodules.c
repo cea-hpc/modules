@@ -60,8 +60,13 @@ Envmodules_ReadFileObjCmd(
       firstline = 0;
    } else if (objc == 3) {
       if (Tcl_GetBooleanFromObj(interp, objv[2], &firstline) != TCL_OK) {
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
+         Tcl_AppendResult(interp, "expected boolean value but got \"",
+            Tcl_GetString(objv[2]), "\"", (char *) NULL);
+#else
          Tcl_SetObjResult(interp, Tcl_ObjPrintf(
             "expected boolean value but got \"%s\"", Tcl_GetString(objv[2])));
+#endif
          Tcl_SetErrorCode(interp, "TCL", "VALUE", "BOOLEAN", NULL);
          return TCL_ERROR;
       }
@@ -75,8 +80,13 @@ Envmodules_ReadFileObjCmd(
    /* Open file. */
    if ((fid  = open(filename, O_RDONLY)) == -1) {
       Tcl_SetErrno(errno);
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
+      Tcl_AppendResult(interp, "couldn't open \"", filename, "\": ",
+         Tcl_PosixError(interp), (char *) NULL);
+#else
       Tcl_SetObjResult(interp, Tcl_ObjPrintf("couldn't open \"%s\": %s",
          filename, Tcl_PosixError(interp)));
+#endif
       return TCL_ERROR;
    }
 
@@ -96,8 +106,13 @@ Envmodules_ReadFileObjCmd(
    /* Error during read. */
    if (len == -1) {
       Tcl_SetErrno(errno);
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
+      Tcl_AppendResult(interp, "error reading \"", filename, "\": ",
+         Tcl_PosixError(interp), (char *) NULL);
+#else
       Tcl_SetObjResult(interp, Tcl_ObjPrintf("error reading \"%s\": %s",
          filename, Tcl_PosixError(interp)));
+#endif
       Tcl_DecrRefCount(res);
       close(fid);
       return TCL_ERROR;
