@@ -179,6 +179,8 @@ is displayed within brakets):
 --prefix=PREFIX       Installation root directory [``/usr/local/Modules``]
 --bindir=DIR          Directory for executables reachable by users
                       [``PREFIX/bin``]
+--libdir=DIR          Directory for object code libraries like
+                      libtclenvmodules.so [``PREFIX/lib``]
 --libexecdir=DIR      Directory for executables called by other executables
                       like modulecmd.tcl [``PREFIX/libexec``]
 --etcdir=DIR          Directory for the executable configuration scripts
@@ -240,6 +242,10 @@ instance ``--disable-set-manpath``):
                       script between the two installed version of Modules (by
                       setting-up the ``switchml`` shell function or alias).
                       (default=yes)
+--enable-libtclenvmodules
+                      Build and install the Modules Tcl extension library
+                      which provides optimized Tcl commands for the
+                      modulecmd.tcl script.
 --enable-versioning   Append Modules version to installation prefix and deploy
                       a ``versions`` modulepath shared between all versioning
                       enabled Modules installation. A modulefile corresponding
@@ -300,3 +306,12 @@ instance ``--without-modulepath``):
                       environment (each variable should be separated by space
                       character). A value can eventually be set to a
                       quarantine variable instead of emptying it. (default=no)
+--with-tcl            Directory containing the Tcl configuration script
+                      ``tclConfig.sh``. Useful to compile Modules
+                      compatibility version or Modules Tcl extension library
+                      if this file cannot be automatically found in default
+                      locations.
+--with-tclinclude     Directory containing the Tcl header files. Useful to
+                      compile Modules compatibility version or Modules Tcl
+                      extension library if these headers cannot be
+                      automatically found in default locations.

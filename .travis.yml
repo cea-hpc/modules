@@ -16,7 +16,7 @@ matrix:
     # 3 package variants on major Tcl releases mixed with 2 install variants
     # run tests in code coverage mode on first installation variant
     # for each Tcl releases
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --disable-compat-version --prefix=/tmp/modules' MAKE_TESTCOVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --disable-compat-version --disable-libtclenvmodules --prefix=/tmp/modules' MAKE_TESTCOVERAGE='y'
            EXTRA_SCRIPT_PRETEST='make install-testmodulerc install-testetcrc' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
@@ -38,7 +38,7 @@ matrix:
             - cmake3
             - r-base-core
     # install configuration file before test to trigger specific behaviors on initialization parts
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --disable-compat-version --enable-versioning --prefix=/tmp/modules --without-pager --enable-dotmodulespath' MAKE_TESTCOVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --disable-compat-version --disable-libtclenvmodules --enable-versioning --prefix=/tmp/modules --without-pager --enable-dotmodulespath' MAKE_TESTCOVERAGE='y'
            EXTRA_SCRIPT_PRETEST='make install-testmodulerc install-testsiteconfig install-testmodspath' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
@@ -61,7 +61,7 @@ matrix:
             - r-base-core
     # also enable a display on this test case to validate x-resource behavior
     # check auto handling feature on this test configuration
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --disable-compat-version --prefix=/tmp/modules --with-pager=more --with-pager-opts=-X --enable-auto-handling' MAKE_TESTCOVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --disable-compat-version --disable-libtclenvmodules --prefix=/tmp/modules --with-pager=more --with-pager-opts=-X --enable-auto-handling' MAKE_TESTCOVERAGE='y'
       before_script:
         - export DISPLAY=:99.0
         - sh -e /etc/init.d/xvfb start
@@ -86,7 +86,7 @@ matrix:
             - cmake3
             - r-base-core
 
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --prefix=/tmp/modules --enable-compat-version --enable-versioning --disable-silent-shell-debug-support --disable-quarantine-support --with-loadedmodules=null:dot --without-pager'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --prefix=/tmp/modules --enable-compat-version --with-tcl=/usr/lib/tcl8.4 --enable-versioning --disable-silent-shell-debug-support --disable-quarantine-support --with-loadedmodules=null:dot --without-pager'
            EXTRA_SCRIPT_PRETEST='make install-testmodulerc install-testsiteconfig install-testmodspath-empty' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
@@ -107,13 +107,14 @@ matrix:
             - ruby
             - cmake3
             - r-base-core
-            # compatibility version build requirements
+            # libtclenvmodules and compatibility version build requirements
             - gcc
-            - automake
             - autoconf
-            - autopoint
             - tcl8.4-dev
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --prefix=/tmp/modules --enable-compat-version --disable-quarantine-support --with-loadedmodules=null:dot --with-pager=more'
+            # compatibility version-specific build requirements
+            - automake
+            - autopoint
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --prefix=/tmp/modules --enable-compat-version --with-tcl=/usr/lib/tcl8.5 --disable-quarantine-support --with-loadedmodules=null:dot --with-pager=more'
            EXTRA_SCRIPT_PRETEST='make install-testmodulerc install-testetcrc install-testmodspath' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
@@ -134,13 +135,14 @@ matrix:
             - ruby
             - cmake3
             - r-base-core
-            # compatibility version build requirements
+            # libtclenvmodules and compatibility version build requirements
             - gcc
-            - automake
             - autoconf
-            - autopoint
             - tcl8.5-dev
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --prefix=/tmp/modules --enable-compat-version --enable-append-manpath --enable-append-binpath --with-bin-search-path=/usr/bin:/bin --disable-silent-shell-debug-support --with-loadedmodules=null:dot --with-quarantine-vars=LD_LIBRARY_PATH'
+            # compatibility version-specific build requirements
+            - automake
+            - autopoint
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --prefix=/tmp/modules --enable-compat-version --with-tcl=/usr/lib/tcl8.6 --enable-append-manpath --enable-append-binpath --with-bin-search-path=/usr/bin:/bin --disable-silent-shell-debug-support --with-loadedmodules=null:dot --with-quarantine-vars=LD_LIBRARY_PATH'
       addons:
         apt:
           sources:
@@ -160,12 +162,13 @@ matrix:
             - ruby
             - cmake3
             - r-base-core
-            # compatibility version build requirements
+            # libtclenvmodules and compatibility version build requirements
             - gcc
-            - automake
             - autoconf
-            - autopoint
             - tcl8.6-dev
+            # compatibility version-specific build requirements
+            - automake
+            - autopoint
     # install specific siteconfig file before test to trigger specific behaviors
     # content of this specific siteconfig is activated by defining a TESTSUITE_ENABLE_SITECONFIG env var
     # siteconfig is deactivated for testinstall suite, will be handled locally in this test suite
@@ -185,12 +188,16 @@ matrix:
             - ksh
             - zsh
             - fish
-            - tcl8.5
+            - tcl8.6
             - perl
             - python
             - ruby
             - cmake3
             - r-base-core
+            # libtclenvmodules build requirements
+            - gcc
+            - autoconf
+            - tcl8.6-dev
 
     # CentOS tests
     - env: OS_NAME=centos OS_VERSION=6 DOCKER_IMAGE=${OS_NAME}:${OS_NAME}${OS_VERSION} CONTAINER=${OS_NAME}${OS_VERSION}
@@ -211,7 +218,7 @@ matrix:
     - env: OS_NAME=centos OS_VERSION=6 DOCKER_IMAGE=${OS_NAME}:${OS_NAME}${OS_VERSION} CONTAINER=${OS_NAME}${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER xvfb-run"
            CONFIGURE_OPTS='--prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot --with-quarantine-vars=LD_LIBRARY_PATH'
-           EXTRA_PKGS='xorg-x11-server-utils xorg-x11-server-Xvfb automake autoconf gettext-devel gcc tcl-devel'
+           EXTRA_PKGS='xorg-x11-server-utils xorg-x11-server-Xvfb automake gettext-devel'
       sudo: required
       services:
         - docker
@@ -219,7 +226,7 @@ matrix:
     - env: OS_NAME=centos OS_VERSION=7 DOCKER_IMAGE=${OS_NAME}:${OS_NAME}${OS_VERSION} CONTAINER=${OS_NAME}${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER xvfb-run"
            CONFIGURE_OPTS='--prefix=/tmp/modules --enable-compat-version --with-loadedmodules=null:dot --with-quarantine-vars=LD_LIBRARY_PATH'
-           EXTRA_PKGS='which xorg-x11-server-utils xorg-x11-server-Xvfb automake autoconf gettext-devel gcc tcl-devel'
+           EXTRA_PKGS='which xorg-x11-server-utils xorg-x11-server-Xvfb automake gettext-devel'
       sudo: required
       services:
         - docker
@@ -236,13 +243,13 @@ matrix:
     - env: OS_NAME=opensuse OS_VERSION=leap DOCKER_IMAGE=${OS_NAME}:${OS_VERSION} CONTAINER=${OS_VERSION}
            CMD_PREFIX="docker exec --env RUNTESTFLAGS=-v $CONTAINER xvfb-run"
            CONFIGURE_OPTS='--prefix=/tmp/modules --enable-compat-version --enable-versioning --with-loadedmodules=null:dot --with-quarantine-vars=LD_LIBRARY_PATH'
-           EXTRA_PKGS='which xrdb xvfb-run autoconf automake gettext-tools-mini gcc tcl-devel'
+           EXTRA_PKGS='which xrdb xvfb-run automake gettext-tools-mini'
       sudo: required
       services:
         - docker
 
     # OSX tests
-    - env: CONFIGURE_OPTS='--prefix=/tmp/modules --disable-compat-version' MAKE_TESTCOVERAGE='y'
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules --disable-compat-version --disable-libtclenvmodules' MAKE_TESTCOVERAGE='y'
       os: osx
 
     # need to specify where to find tclConfig.sh on newer xcode release
@@ -267,11 +274,11 @@ before_install: |
       centos)
         if [ $OS_VERSION -eq 6 ]; then SPHINX_PKG='python-sphinx10' MAN_PKG='man'; else SPHINX_PKG='python-sphinx' MAN_PKG='man-db'; fi
         docker exec $CONTAINER yum install -y epel-release &&
-        docker exec $CONTAINER yum install -y tcsh zsh ksh tcl perl python ruby cmake R-core make wget perl $SPHINX_PKG git dejagnu $MAN_PKG rpm-build bzip2 $EXTRA_PKGS &&
+        docker exec $CONTAINER yum install -y tcsh zsh ksh tcl perl python ruby cmake R-core make wget perl $SPHINX_PKG git dejagnu $MAN_PKG rpm-build bzip2 autoconf gcc tcl-devel $EXTRA_PKGS &&
         docker exec $CONTAINER wget -O /etc/yum.repos.d/shells_fish_release_2.repo http://download.opensuse.org/repositories/shells:fish:release:2/CentOS_${OS_VERSION}/shells:fish:release:2.repo &&
         docker exec $CONTAINER yum install -y fish ;;
       opensuse)
-        docker exec $CONTAINER zypper install -y tcsh zsh ksh fish tcl perl python ruby cmake R-core R-core-packages make wget python-Sphinx git dejagnu man net-tools $EXTRA_PKGS ;;
+        docker exec $CONTAINER zypper install -y tcsh zsh ksh fish tcl perl python ruby cmake R-core R-core-packages make wget python-Sphinx git dejagnu man net-tools autoconf gcc tcl-devel $EXTRA_PKGS ;;
     esac
     docker cp ./. $CONTAINER:modules
   elif [ "$TRAVIS_OS_NAME" = 'osx' ]; then

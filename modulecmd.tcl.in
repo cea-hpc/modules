@@ -20,6 +20,7 @@
 
 ##########################################################################
 
+
 #
 # Some Global Variables.....
 #
@@ -38,6 +39,7 @@ set g_pager {@pager@} ;# Default command to page into, empty=disable
 set g_pager_opts {@pageropts@} ;# Options to pass to the pager command
 
 set g_siteconfig @etcdir@/siteconfig.tcl ;# Site configuration
+set g_tclextlib @libdir@/libtclenvmodules@SHLIB_SUFFIX@ ;# Tcl extension lib
 
 # Used to tell if a machine is running Windows or not
 proc isWin {} {
@@ -5772,14 +5774,13 @@ proc getFileMtime {fpath} {
    }
 }
 
-# provide a readFile proc if libenvmodule not loaded
-if {[info commands readFile] eq {}} {
-   proc readFile {filename {firstline 0}} {
-      set fid [open $filename r]
-      set fdata [if {$firstline} {gets $fid} {read $fid}]
-      close $fid
-      return $fdata
-   }
+# define proc that will be used as fallback to command provided by extension
+# library in case this library is not loaded
+proc __readFile {filename {firstline 0}} {
+   set fid [open $filename r]
+   set fdata [if {$firstline} {gets $fid} {read $fid}]
+   close $fid
+   return $fdata
 }
 
 proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
@@ -8585,6 +8586,16 @@ if {[catch {
    set show_help 0
    set show_version 0
    reportDebug "CALLING $argv0 $argv"
+
+   # Load extension library if enabled
+   @libtclenvmodules@if {[file readable $g_tclextlib]} {
+   @libtclenvmodules@   reportDebug "Load Tcl extension library ($g_tclextlib)"
+   @libtclenvmodules@   load $g_tclextlib Envmodules
+   @libtclenvmodules@}
+   # use fallback proc if extension library is not loaded
+   if {[info commands readFile] eq {}} {
+      rename ::__readFile ::readFile
+   }
 
    # source site configuration script if any
    if {[file readable $g_siteconfig]} {

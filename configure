@@ -27,18 +27,22 @@ targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 
 # argument list
 arglist="TCLSH SPHINXBUILD PS BASENAME RMDIR_IGN_NON_EMPTY VERSION \
-baseprefix prefix bindir libexecdir etcdir initdir datarootdir mandir docdir vimdatadir \
-modulefilesdir setmanpath appendmanpath setbinpath appendbinpath \
-setdotmodulespath docinstall vimaddons examplemodulefiles builddoc gitworktree \
-usemanpath compatversion EXEEXT versioning silentshdbgsupport \
-quarantinesupport autohandling pager pageropts modulepath loadedmodules \
-quarantinevars"
+baseprefix prefix bindir libdir libexecdir etcdir initdir datarootdir mandir \
+docdir vimdatadir modulefilesdir setmanpath appendmanpath setbinpath \
+appendbinpath setdotmodulespath docinstall vimaddons examplemodulefiles \
+builddoc gitworktree usemanpath compatversion EXEEXT libtclenvmodules \
+SHLIB_SUFFIX versioning silentshdbgsupport quarantinesupport \
+autohandling pager pageropts modulepath loadedmodules quarantinevars"
 compatarglist=
+libarglist=
 
 # flags to know if argument has been specified on command-line
 defdotmodulespath=1
 defcompatversion=1
 defpageropts=1
+
+# flags to know a requirement has already been checked
+checkedautoreconf=1
 
 # set argument default values
 prefix=/usr/local/Modules
@@ -52,6 +56,8 @@ vimaddons=y
 examplemodulefiles=y
 compatversion=y
 EXEEXT=
+libtclenvmodules=y
+SHLIB_SUFFIX='.so'
 versioning=n
 silentshdbgsupport=y
 quarantinesupport=y
@@ -73,6 +79,7 @@ pageropts='-eFKRX'
 # these args are initialized here but as they depend on other argument value
 # they will get their default value later (after command-line parse)
 bindir=
+libdir=
 libexecdir=
 etcdir=
 initdir=
@@ -121,6 +128,7 @@ For better control, use the options below.
 
 Fine tuning of the installation directories:
   --bindir=DIR            user executables [PREFIX/bin]
+  --libdir=DIR            object code libraries [PREFIX/lib]
   --libexecdir=DIR        program executables [PREFIX/libexec]
   --etcdir=DIR            program configurations [PREFIX/etc]
   --initdir=DIR           environment initialization scripts [PREFIX/init]
@@ -150,6 +158,9 @@ Optional Features:
   --enable-compat-version also build and install Modules compatibility (C)
                           version and enable switching capabilities between
                           the two versions [yes]
+  --enable-libtclenvmodules
+                          build and install the Modules Tcl extension library
+                          and enable its load in modulecmd.tcl [yes]
   --enable-versioning     append modules version to installation prefix and
                           deploy a \`versions' modulepath, shared between all
                           versioning enabled Modules installation, containing
@@ -197,6 +208,9 @@ Optional Packages:
                           execution environment (each variable should be
                           separated by \` '). a value can eventually be set to
                           a quarantine variable instead of emptying it. []
+  --with-tcl              directory containing the Tcl configuration script
+                          tclConfig.sh.
+  --with-tclinclude       directory containing the Tcl header files.
 
 Depending on the above configuration options the files are approximately
 placed in the following directory structure:
@@ -204,6 +218,7 @@ placed in the following directory structure:
     bin/
     etc/
     init/
+    lib/
     libexec/
     share/
       doc/
@@ -291,6 +306,8 @@ for arg in "$@"; do
       prefix="${arg#*=}" ;;
    --bindir=*)
       bindir="${arg#*=}" ;;
+   --libdir=*)
+      libdir="${arg#*=}" ;;
    --libexecdir=*)
       libexecdir="${arg#*=}" ;;
    --etcdir=*)
@@ -330,6 +347,8 @@ for arg in "$@"; do
    --enable-compat-version*|--disable-compat-version)
       compatversion=$(get_feature_value "$arg")
       defcompatversion=0 ;;
+   --enable-libtclenvmodules*|--disable-libtclenvmodules)
+      libtclenvmodules=$(get_feature_value "$arg") ;;
    --enable-versioning*|--disable-versioning)
       versioning=$(get_feature_value "$arg") ;;
    --enable-silent-shell-debug-support*|--disable-silent-shell-debug-support)
@@ -351,8 +370,20 @@ for arg in "$@"; do
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)
       loadedmodules=$(get_package_value "$arg") ;;
-    --with-quarantine-vars=*|--without-quarantine-vars)
+   --with-quarantine-vars=*|--without-quarantine-vars)
       quarantinevars=$(get_package_value "$arg") ;;
+   --with-tcl=*|--without-tcl)
+      compatarglist+="$arg " ;
+      libarglist+="$arg " ;;
+   --with-tclinclude=*|--with-tcl-inc=*)
+      # apply Tcl header specific location to corresponding configuration
+      # option of compat version and libtclenvmodules (not same option name)
+      val="${arg#*=}" ;
+      compatarglist+="--with-tcl-inc=$val " ;
+      libarglist+="--with-tclinclude=$val " ;;
+   --without-tclinclude|--without-tcl-inc)
+      compatarglist+="--without-tcl-inc " ;
+      libarglist+="--without-tclinclude " ;;
    --with-module-path=*)
       echo_warning "Option \`--with-module-path' ignored, use \`--modulepath' instead" ;;
    -h|--help)
@@ -453,9 +484,11 @@ if [ -z "$VERSION" ]; then
    echo_error "Cannot fetch modules version"
 fi
 
-# refer to binaries to build with .exe extension on Cygwin environment
+# refer to binary exes and libs to build with the appropriate extension
 case "$kernelname" in
-   CYGWIN*) EXEEXT='.exe' ;;
+   CYGWIN*) EXEEXT='.exe'; SHLIB_SUFFIX='.dll' ;;
+   MSYS_NT*) SHLIB_SUFFIX='.dll' ;;
+   Darwin) SHLIB_SUFFIX='.dylib' ;;
 esac
 
 # adapt prefix if versioning enabled
@@ -467,6 +500,7 @@ fi
 
 # set argument default values for those depending of other argument
 [ -z "$bindir" ] && bindir=$prefix/bin
+[ -z "$libdir" ] && libdir=$prefix/lib
 [ -z "$libexecdir" ] && libexecdir=$prefix/libexec
 [ -z "$etcdir" ] && etcdir=$prefix/etc
 [ -z "$initdir" ] && initdir=$prefix/init
@@ -489,12 +523,26 @@ if [ -n "$loadedmodules" -a -z "$modulepath" ]; then
    echo_warning "$featmesg"
 fi
 
+# prepare extension library sources if not yet done whether libtclenvmodules
+# is enabled or not to create consistent dist in any cases.
+if [ ! -e 'lib/configure' ]; then
+   check_requirement autoreconf
+   checkedautoreconf=0
+   echo "--- preparing extension library sources ----------"
+   pushd lib
+   autoreconf || exit 1
+   popd
+   echo "--------------------------------------------------"
+fi
+
 # check compat version sources
 if [ "$compatversion" = 'y' ]; then
    if [ ! -d 'compat' ]; then
       # extract sources from a git branch and prepare sources
       if [ -d '.git' ]; then
-         check_requirement autoreconf
+         if [ $checkedautoreconf -eq 1 ]; then
+            check_requirement autoreconf
+         fi
          # specific location to find autopoint on Darwin
          if [ "$kernelname" = 'Darwin' ]; then
             check_requirement autopoint '' "PATH=$binsearchpath:/usr/local/opt/gettext/bin"
@@ -554,6 +602,15 @@ for arg in ${arglist}; do
    translation_regexp+=('-e' "s|@${arg}@|${!arg}|g")
 done
 
+# configure extension library sources
+if [ "$libtclenvmodules" = 'y' ]; then
+   echo "--- configuring extension library sources --------"
+   pushd lib
+   ./configure $libarglist || exit 1
+   popd
+   echo "--------------------------------------------------"
+fi
+
 # configure compat version sources
 if [ "$compatversion" = 'y' ]; then
    echo "--- configuring compatibility version sources ----"
@@ -563,9 +620,9 @@ if [ "$compatversion" = 'y' ]; then
    # also pass arguments relative to installation paths to get compatibility
    # man pages set with them
    # keep versioning disabled for compat version to get expected paths defined
-   ./configure --prefix=$prefix --bindir=$bindir --libexecdir=$libexecdir \
-      --datarootdir=$datarootdir --mandir=$mandir --docdir=$docdir \
-      --with-module-path=$modulepath --disable-versioning \
+   ./configure --prefix=$prefix --bindir=$bindir --libdir=$libdir \
+      --libexecdir=$libexecdir --datarootdir=$datarootdir --mandir=$mandir \
+      --docdir=$docdir --with-module-path=$modulepath --disable-versioning \
       $compatarglist || exit 1
    popd
    echo "--------------------------------------------------"
@@ -584,3 +641,5 @@ for target in ${targetlist}; do
 done
 
 exit 0
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

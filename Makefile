@@ -40,6 +40,11 @@ TEST_PREREQ += $(COMPAT_DIR)/modulecmd
 endif
 endif
 
+ifeq ($(libtclenvmodules),y)
+INSTALL_PREREQ += lib/libtclenvmodules$(SHLIB_SUFFIX)
+TEST_PREREQ += lib/libtclenvmodules$(SHLIB_SUFFIX)
+endif
+
 all: initdir $(INSTALL_PREREQ)
 
 # skip doc build if no sphinx-build
@@ -110,6 +115,12 @@ else
   setnotquarantinesupport :=
 endif
 
+ifeq ($(libtclenvmodules),y)
+  setlibtclenvmodules :=
+else
+  setlibtclenvmodules := \#
+endif
+
 ifeq ($(autohandling),y)
   setautohandling := 1
 else
@@ -119,6 +130,7 @@ endif
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@baseprefix@|$(baseprefix)|g' \
+	-e 's|@libdir@|$(libdir)|g' \
 	-e 's|@libexecdir@|$(libexecdir)|g' \
 	-e 's|@initdir@|$(initdir)|g' \
 	-e 's|@etcdir@|$(etcdir)|g' \
@@ -132,6 +144,8 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \
 	-e 's|@quarantinesupport@|$(setquarantinesupport)|g' \
 	-e 's|@notquarantinesupport@|$(setnotquarantinesupport)|g' \
+	-e 's|@libtclenvmodules@|$(setlibtclenvmodules)|g' \
+	-e 's|@SHLIB_SUFFIX@|$(SHLIB_SUFFIX)|g' \
 	-e 's|@VERSIONING@|$(setversioning)|g' \
 	-e 's|@NOTVERSIONING@|$(setnotversioning)|g' \
 	-e 's|@MODULES_RELEASE@|$(MODULES_RELEASE)|g' \
@@ -185,6 +199,10 @@ contrib/scripts/modulecmd: contrib/scripts/modulecmd.in
 $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog:
 	$(MAKE) -C $(COMPAT_DIR) $(@F)
 
+# Tcl extension library-related rules
+lib/libtclenvmodules$(SHLIB_SUFFIX):
+	$(MAKE) -C lib $(@F)
+
 # example configs for test rules
 testsuite/example/.modulespath: testsuite/example/.modulespath.in
 	$(translate-in-script)
@@ -232,6 +250,11 @@ ifeq ($(compatversion),y)
 	cp $(COMPAT_DIR)/modulecmd$(EXEEXT) $(DESTDIR)$(libexecdir)/modulecmd-compat$(EXEEXT)
 	chmod +x $(DESTDIR)$(libexecdir)/modulecmd-compat$(EXEEXT)
 endif
+ifeq ($(libtclenvmodules),y)
+	mkdir -p $(DESTDIR)$(libdir)
+	cp lib/libtclenvmodules$(SHLIB_SUFFIX) $(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)
+	chmod +x $(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)
+endif
 	cp contrib/envml $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/envml
 	cp contrib/scripts/add.modules $(DESTDIR)$(bindir)/
@@ -276,6 +299,9 @@ uninstall:
 ifeq ($(compatversion),y)
 	rm -f $(DESTDIR)$(libexecdir)/modulecmd-compat$(EXEEXT)
 endif
+ifeq ($(libtclenvmodules),y)
+	rm -f $(DESTDIR)$(libdir)/libtclenvmodules$(SHLIB_SUFFIX)
+endif
 	rm -f $(DESTDIR)$(bindir)/envml
 	rm -f $(DESTDIR)$(bindir)/add.modules
 	rm -f $(DESTDIR)$(bindir)/modulecmd
@@ -303,6 +329,9 @@ ifeq ($(builddoc),y)
 	$(MAKE) -C doc uninstall DESTDIR=$(DESTDIR)
 endif
 	rmdir $(DESTDIR)$(libexecdir)
+ifeq ($(libtclenvmodules),y)
+	rmdir $(DESTDIR)$(libdir)
+endif
 	rmdir $(DESTDIR)$(bindir)
 	rmdir $(DESTDIR)$(datarootdir)
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(prefix) || true
@@ -315,10 +344,10 @@ dist-tar: ChangeLog README version.inc contrib/rpm/environment-modules.spec pkgd
 	cp doc/build/MIGRATING.txt  doc/build/INSTALL.txt doc/build/NEWS.txt \
 		doc/build/CONTRIBUTING.txt ./
 	tar -rf $(DIST_PREFIX).tar --transform 's,^,$(DIST_PREFIX)/,' \
-		ChangeLog README MIGRATING.txt INSTALL.txt NEWS.txt CONTRIBUTING.txt \
-		version.inc doc/build/MIGRATING.txt doc/build/diff_v3_v4.txt \
-		doc/build/INSTALL.txt doc/build/NEWS.txt doc/build/CONTRIBUTING.txt \
-		doc/build/module.1.in doc/build/modulefile.4 \
+		lib/configure lib/config.h.in ChangeLog README MIGRATING.txt INSTALL.txt \
+		NEWS.txt CONTRIBUTING.txt version.inc doc/build/MIGRATING.txt \
+		doc/build/diff_v3_v4.txt doc/build/INSTALL.txt doc/build/NEWS.txt \
+		doc/build/CONTRIBUTING.txt doc/build/module.1.in doc/build/modulefile.4 \
 		contrib/rpm/environment-modules.spec
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
 	$(MAKE) -C $(COMPAT_DIR) distdir
@@ -380,6 +409,9 @@ endif
 ifneq ($(wildcard $(COMPAT_DIR)/Makefile),)
 	$(MAKE) -C $(COMPAT_DIR) clean
 endif
+ifneq ($(wildcard lib/Makefile),)
+	$(MAKE) -C lib clean
+endif
 
 distclean: clean
 	rm -f Makefile.inc
@@ -391,6 +423,9 @@ ifeq ($(wildcard .git) $(wildcard $(COMPAT_DIR)),.git $(COMPAT_DIR))
 ifeq ($(gitworktree),y)
 	git worktree prune
 endif
+endif
+ifneq ($(wildcard lib/Makefile),)
+	$(MAKE) -C lib distclean
 endif
 
 test: $(TEST_PREREQ)
