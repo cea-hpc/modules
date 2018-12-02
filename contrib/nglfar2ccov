@@ -43,7 +43,10 @@ if {[catch {
 }
 
 # determine source file name to report coverage against
-if {[file exists "${srcfile}.in"]} {
+if {[regsub {\-test.tcl} $srcfile {.tcl} origsrcfile] == 1 && [file exists\
+   "${origsrcfile}.in"]} {
+   set targetfile "${origsrcfile}.in"
+} elseif {[file exists "${srcfile}.in"]} {
    set targetfile "${srcfile}.in"
 } else {
    set targetfile $srcfile

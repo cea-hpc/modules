@@ -11,7 +11,7 @@ NAGELFAR_RELEASE := nagelfar125
 NAGELFAR_DIST := $(NAGELFAR_RELEASE).tar.gz
 NAGELFAR_DISTSUM := 707e3c305437dce1f14103f0bd058fc9
 NAGELFAR := $(NAGELFAR_RELEASE)/nagelfar.tcl
-COVERAGE_SRCFILE := modulecmd.tcl
+COVERAGE_SRCFILE := modulecmd-test.tcl
 COVERAGE_IFILE := $(COVERAGE_SRCFILE:.tcl=.tcl_i)
 COVERAGE_LOGFILE := $(COVERAGE_SRCFILE:.tcl=.tcl_log)
 COVERAGE_MFILE := $(COVERAGE_SRCFILE:.tcl=.tcl_m)
@@ -31,7 +31,7 @@ include Makefile.inc
 
 INSTALL_PREREQ := modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
 	contrib/scripts/modulecmd
-TEST_PREREQ := modulecmd.tcl
+TEST_PREREQ := modulecmd-test.tcl
 
 ifeq ($(compatversion),y)
 INSTALL_PREREQ += $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog
@@ -393,6 +393,7 @@ ifeq ($(wildcard .git) $(wildcard CONTRIBUTING.rst),.git CONTRIBUTING.rst)
 endif
 	rm -f modulecmd.tcl
 	rm -f contrib/mtreview
+	rm -f modulecmd-test.tcl
 	rm -f contrib/scripts/add.modules
 	rm -f contrib/scripts/modulecmd
 	rm -f testsuite/example/.modulespath testsuite/example/modulerc
@@ -427,6 +428,10 @@ endif
 ifneq ($(wildcard lib/Makefile),)
 	$(MAKE) -C lib distclean
 endif
+
+# make specific modulecmd script for test to check built extension lib
+modulecmd-test.tcl: modulecmd.tcl
+	sed -e 's|$(libdir)|lib|' $< > $@
 
 test: $(TEST_PREREQ)
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
