@@ -5861,6 +5861,54 @@ proc getVersAliasList {mod} {
    return $tag_list
 }
 
+# get list of elements located in a directory passed as argument. a flag is
+# set after each element to know if it is considered hidden or not. a
+# fetch_hidden argument is there to control search of hidden elements
+proc getFilesInDirectory {dir fetch_hidden} {
+   set dir_list [list]
+
+   # try then catch any issue rather than test before trying
+   # workaround 'glob -nocomplain' which does not return permission
+   # error on Tcl 8.4, so we need to avoid registering issue if
+   # raised error is about a no match
+   if {[catch {set elt_list [glob $dir/*]} errMsg]} {
+      if {$errMsg eq "no files matched glob pattern \"$dir/*\""} {
+         set elt_list {}
+      } else {
+         # rethrow other error to catch it in caller proc
+         error $errMsg $::errorInfo $::errorCode
+      }
+   }
+
+   # Add each element in the current directory to the list
+   if {[file readable $dir/.modulerc]} {
+      lappend dir_list $dir/.modulerc 0
+   }
+   if {[file readable $dir/.version]} {
+      lappend dir_list $dir/.version 0
+   }
+   if {[info exists elt_list]} {
+      foreach elt $elt_list {
+         lappend dir_list $elt 0
+      }
+   }
+
+   # search for hidden files if asked
+   if {$fetch_hidden} {
+      foreach elt [glob -nocomplain -types hidden -directory\
+         $dir -tails *] {
+         switch -- $elt {
+            .modulerc - .version - . - .. { }
+            default {
+               lappend dir_list $dir/$elt 1
+            }
+         }
+      }
+   }
+
+   return $dir_list
+}
+
 # check if an existing findModules cache entry matches current search by
 # evaluating search ids. if an exact match cannot be found, look at saved
 # searches that contains current search (superset of looked elements), extra
@@ -5922,44 +5970,19 @@ proc findModules {dir {mod {}} {fetch_mtime 0} {fetch_hidden 0}} {
       set add_ref_to_parent 0
       if {[file isdirectory $element]} {
          if {![info exists ::ignoreDir($tail)]} {
-            # try then catch any issue rather than test before trying
-            # workaround 'glob -nocomplain' which does not return permission
-            # error on Tcl 8.4, so we need to avoid registering issue if
-            # raised error is about a no match
-            set treat_dir 1
-            if {[catch {set elt_list [glob $element/*]} errMsg]} {
-               if {$errMsg eq "no files matched glob pattern\
-                  \"$element/*\""} {
-                  set elt_list {}
-               } else {
-                  set mod_list($modulename) [list accesserr\
-                     [parseAccessIssue $element] $element]
-                  set treat_dir 0
-               }
-            }
-            if {$treat_dir} {
+            if {[catch {
+               set elt_list [getFilesInDirectory $element $fetch_hidden]
+            } errMsg]} {
+               set mod_list($modulename) [list accesserr [parseAccessIssue\
+                  $element] $element]
+            } else {
                set mod_list($modulename) [list directory]
                # Add each element in the current directory to the list
-               if {[file readable $element/.modulerc]} {
-                  lappend full_list $element/.modulerc
-               }
-               if {[file readable $element/.version]} {
-                  lappend full_list $element/.version
-               }
-               if {[llength $elt_list] > 0} {
-                  set full_list [concat $full_list $elt_list]
-               }
-               # search for hidden files if asked
-               if {$fetch_hidden} {
-                  foreach elt [glob -nocomplain -types hidden -directory\
-                     $element -tails *] {
-                     switch -- $elt {
-                        .modulerc - .version - . - .. { }
-                        default {
-                           lappend full_list $element/$elt
-                           set hidden_list($element/$elt) 1
-                        }
-                     }
+               foreach {fpelt hid} $elt_list {
+                  lappend full_list $fpelt
+                  # Flag hidden files
+                  if {$hid} {
+                     set hidden_list($fpelt) 1
                   }
                }
                set add_ref_to_parent 1
