@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([Envmodules], [0.9.0], [modules-interest@lists.sourceforge.net], , http://modules.sf.net)
+AC_INIT([Envmodules], [1.0.0], [modules-interest@lists.sourceforge.net], , http://modules.sf.net)
 AC_CONFIG_SRCDIR([envmodules.c])
 AC_CONFIG_HEADERS([config.h])
 
@@ -18,7 +18,7 @@ TEA_LOAD_TCLCONFIG
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h unistd.h])
+AC_CHECK_HEADERS([fcntl.h unistd.h errno.h limits.h sys/types.h dirent.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SSIZE_T

@@ -30,6 +30,9 @@
 MODULE_SCOPE int Envmodules_ReadFileObjCmd (ClientData dummy,
    Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
 
+MODULE_SCOPE int Envmodules_GetFilesInDirectoryObjCmd (ClientData dummy,
+   Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
+
 /* Only the _Init function is exported. */
 extern DLLEXPORT int Envmodules_Init (Tcl_Interp *interp);
 

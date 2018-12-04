@@ -21,8 +21,146 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <limits.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <string.h>
 #include "config.h"
 #include "envmodules.h"
+
+/*----------------------------------------------------------------------
+ *
+ * Envmodules_GetFilesInDirectoryObjCmd --
+ *
+ *	 This function is invoked to read the content of a directory in a more
+ *	 IO-optimized way than native Tcl commands perform by avoiding specific
+ *	 additional queries to get hidden files like .modulerc and .version.
+ *
+ * Results:
+ *	 A standard Tcl result.
+ *
+ * Side effects:
+ *	 None.
+ *
+ *---------------------------------------------------------------------*/
+
+int
+Envmodules_GetFilesInDirectoryObjCmd(
+   ClientData dummy,       /* Not used. */
+   Tcl_Interp *interp,     /* Current interpreter. */
+   int objc,               /* Number of arguments. */
+   Tcl_Obj *const objv[])  /* Argument objects. */
+{
+   int fetch_hidden;
+   const char *dir;
+   int dirlen;
+   DIR *did;
+   Tcl_Obj *ltmp, *lres;
+   struct dirent *direntry;
+   int have_modulerc = 0;
+   int have_version = 0;
+   char path[PATH_MAX];
+
+   /* Parse arguments. */
+   if (objc == 3) {
+      if (Tcl_GetBooleanFromObj(interp, objv[2], &fetch_hidden) != TCL_OK) {
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
+         Tcl_AppendResult(interp, "expected boolean value but got \"",
+            Tcl_GetString(objv[2]), "\"", (char *) NULL);
+#else
+         Tcl_SetObjResult(interp, Tcl_ObjPrintf(
+            "expected boolean value but got \"%s\"", Tcl_GetString(objv[2])));
+#endif
+         Tcl_SetErrorCode(interp, "TCL", "VALUE", "BOOLEAN", NULL);
+         return TCL_ERROR;
+      }
+   } else {
+      Tcl_WrongNumArgs(interp, 1, objv, "dir fetch_hidden");
+      return TCL_ERROR;
+   }
+
+   dir = Tcl_GetStringFromObj(objv[1], &dirlen);
+
+   /* Open directory. */
+   if ((did  = opendir(dir)) == NULL) {
+      Tcl_SetErrno(errno);
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
+      Tcl_AppendResult(interp, "couldn't open directory \"", dir, "\": ",
+         Tcl_PosixError(interp), (char *) NULL);
+#else
+      Tcl_SetObjResult(interp, Tcl_ObjPrintf(
+         "couldn't open directory \"%s\": %s", dir, Tcl_PosixError(interp)));
+#endif
+      return TCL_ERROR;
+   }
+
+   /* Read directory. */
+   ltmp = Tcl_NewListObj(0, NULL);
+   Tcl_IncrRefCount(ltmp);
+   errno = 0;
+   while ((direntry = readdir(did)) != NULL) {
+      snprintf(path, sizeof(path), "%s/%s", dir, direntry->d_name);
+      /* ignore . and .. */
+      if (!strcmp(direntry->d_name, ".") || !strcmp(direntry->d_name, "..")) {
+         continue;
+      } else if (!strcmp(direntry->d_name, ".modulerc")) {
+         if (!access(path, R_OK)) {
+            have_modulerc = 1;
+         }
+      } else if (!strcmp(direntry->d_name, ".version")) {
+         if (!access(path, R_OK)) {
+            have_version = 1;
+         }
+      } else if (direntry->d_name[0] == '.') {
+         /* add hidden file if enabled */
+         if (fetch_hidden) {
+            Tcl_ListObjAppendElement(interp, ltmp, Tcl_NewStringObj(path, -1));
+            Tcl_ListObjAppendElement(interp, ltmp, Tcl_NewIntObj(1));
+         }
+      } else {
+         Tcl_ListObjAppendElement(interp, ltmp, Tcl_NewStringObj(path, -1));
+         Tcl_ListObjAppendElement(interp, ltmp, Tcl_NewIntObj(0));
+      }
+   }
+   /* Do not treat error happening during read to send list of valid files. */
+
+   /* Close directory. */
+   if (closedir(did) == -1) {
+      Tcl_SetErrno(errno);
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
+      Tcl_AppendResult(interp, "couldn't close directory \"", dir, "\": ",
+         Tcl_PosixError(interp), (char *) NULL);
+#else
+      Tcl_SetObjResult(interp, Tcl_ObjPrintf(
+         "couldn't close directory \"%s\": %s", dir, Tcl_PosixError(interp)));
+#endif
+      Tcl_DecrRefCount(ltmp);
+      return TCL_ERROR;
+   }
+
+   /* Build result list. */
+   lres = Tcl_NewObj();
+   Tcl_IncrRefCount(lres);
+   /* Ensure .modulerc and .version are first entries in result list */
+   if (have_modulerc) {
+      snprintf(path, sizeof(path), "%s/%s", dir, ".modulerc");
+      Tcl_ListObjAppendElement(interp, lres, Tcl_NewStringObj(path, -1));
+      Tcl_ListObjAppendElement(interp, lres, Tcl_NewIntObj(0));
+   }
+   if (have_version) {
+      snprintf(path, sizeof(path), "%s/%s", dir, ".version");
+      Tcl_ListObjAppendElement(interp, lres, Tcl_NewStringObj(path, -1));
+      Tcl_ListObjAppendElement(interp, lres, Tcl_NewIntObj(0));
+   }
+   /* Then append regular elements. */
+   Tcl_ListObjAppendList(interp, lres, ltmp);
+   Tcl_DecrRefCount(ltmp);
+
+
+   Tcl_SetObjResult(interp, lres);
+   Tcl_DecrRefCount(lres);
+   return TCL_OK;
+}
 
 /*----------------------------------------------------------------------
  *
@@ -152,6 +290,9 @@ Envmodules_Init(
    /* Create the provided commands */
    Tcl_CreateObjCommand(interp, "readFile", Envmodules_ReadFileObjCmd,
       (ClientData) NULL, (Tcl_CmdDeleteProc*) NULL);
+   Tcl_CreateObjCommand(interp, "getFilesInDirectory",
+      Envmodules_GetFilesInDirectoryObjCmd, (ClientData) NULL,
+      (Tcl_CmdDeleteProc*) NULL);
 
    /* Provide the Envmodules package */
    if (Tcl_PkgProvide(interp, PACKAGE_NAME, PACKAGE_VERSION) == TCL_ERROR) {

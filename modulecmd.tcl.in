@@ -5863,8 +5863,9 @@ proc getVersAliasList {mod} {
 
 # get list of elements located in a directory passed as argument. a flag is
 # set after each element to know if it is considered hidden or not. a
-# fetch_hidden argument is there to control search of hidden elements
-proc getFilesInDirectory {dir fetch_hidden} {
+# fetch_hidden argument is there to control search of hidden elements proc
+# will be used as a fallback to command provided by extension library
+proc __getFilesInDirectory {dir fetch_hidden} {
    set dir_list [list]
 
    # try then catch any issue rather than test before trying
@@ -8619,9 +8620,10 @@ if {[catch {
    @libtclenvmodules@   reportDebug "Load Tcl extension library ($g_tclextlib)"
    @libtclenvmodules@   load $g_tclextlib Envmodules
    @libtclenvmodules@}
-   # use fallback proc if extension library is not loaded
+   # use fallback procs if extension library is not loaded
    if {[info commands readFile] eq {}} {
       rename ::__readFile ::readFile
+      rename ::__getFilesInDirectory ::getFilesInDirectory
    }
 
    # source site configuration script if any
