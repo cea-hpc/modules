@@ -25,20 +25,23 @@ the tools to be found on your system:
 * sed
 * runtest
 
-When also installing the bundled compatibility version of Modules (enabled
-by default), these additional tools are needed:
+When also installing Modules Tcl extension library or the bundled
+compatibility version of Modules (both enabled by default), these additional
+tools are needed:
 
-* autoconf
-* automake
-* autopoint
 * grep
 * gcc
 * tcl-devel >= 8.4
 
 When installing from a distribution tarball, documentation is pre-built and
-does not require additional software. When installing from a clone of the git
-repository, document has to be built and the following tools are required:
+scripts to configure Modules Tcl extension library and compatibility version
+builds are already generated. Thus no additional software is required. When
+installing from a clone of the git repository, documentation and scripts to
+prepare for compilation have to be built and the following tools are required:
 
+* autoconf
+* automake
+* autopoint
 * sphinx >= 1.0
 
 
@@ -63,8 +66,9 @@ Some explanation, step by step:
    enable in the initialization scripts (see `Build and installation options`_
    section below for a complete overview of the available options)
 
-3. Type ``make`` to adapt scripts to the configuration, build compatibility
-   version if enabled and build documentation if working from git repository.
+3. Type ``make`` to adapt scripts to the configuration, build Tcl extension
+   library and compatibility version if enabled and build documentation if
+   working from git repository.
 
 4. Optionally, type ``make test`` to run the test suite.
 
