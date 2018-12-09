@@ -1,0 +1,24 @@
+#%Module
+
+# issue unknown command if a variable is set to test effect of badly written modulepath rc file
+if {[info exists ::env(TS_BAD_COMMAND_TEST)]} {
+    badcommand
+}
+
+# regular definitions
+module-version bar/1 top
+module-alias foo/lat foo/2
+module-virtual foo/1 foo/.common
+module-alias bar/3 bar/dfl
+
+# definitions pointing to non-existent modulefile
+module-version bar/4 unk
+module-alias unk bar/4
+module-virtual foo/3 foo/unk
+
+# shorthand version notation test, cannot be used in modulepath rc file
+if {[info exists ::env(TS_BAD_SHORTHAND_VERSION)]} {
+    module-version /1 truc
+    module-alias /2 foo/2
+    module-virtual /3 foo/.common
+}

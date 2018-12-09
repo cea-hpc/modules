@@ -88,6 +88,26 @@ restore_file_perms $homemodrc
 
 
 #
+# Test usage of modulepath RC when read access not granted on this RC file
+#
+
+# lock access to modulepath rc
+set mprc "$modpath.rc"
+change_file_perms $mprc/.modulerc $hide_perms
+
+# setup specific environment
+setenv_path_var MODULEPATH $mprc
+
+# access issue on modulepath RC file is silenced
+testouterr_cmd "sh" "load bar/top" "ERR" "$err_path'bar/top'"
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+
+restore_file_perms $mprc/.modulerc
+
+
+#
 # Test usage of global RC when read access not granted on its upper directory
 #
 
@@ -164,5 +184,7 @@ unset homemodrc
 unset locate_msg
 unset locate2_msg
 unset hide_perms
+
+unset mprc
 
 }

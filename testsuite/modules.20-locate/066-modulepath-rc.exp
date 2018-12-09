@@ -1,0 +1,79 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.20-locate/%M%
+#   Revision:		%I%
+#   First Edition:	2018/12/09
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display, whatis, paths
+#   Modulefiles:	loc_rc1/1.0
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Tests the evaluation of modulepath rc file
+#		}C%
+#
+##############################################################################
+
+set mp "$modpath.rc"
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+# test regular alias/version/virtual definitions made from modulepath rc
+set ans [list]
+lappend ans [list setpath LOADEDMODULES bar/1]
+lappend ans [list setpath _LMFILES_ $mp/bar/1]
+lappend ans [list setpath MODULES_LMALTNAME bar/1&bar/top&bar/dfl&bar/3]
+testouterr_cmd sh {load bar/top} $ans {}
+testouterr_cmd sh {load bar/3} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/2]
+lappend ans [list setpath _LMFILES_ $mp/foo/.common]
+lappend ans [list setpath MODULES_LMALTNAME foo/2&foo/lat]
+testouterr_cmd sh {load foo/lat} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1]
+lappend ans [list setpath _LMFILES_ $mp/foo/.common]
+testouterr_cmd sh {load foo/1} $ans {}
+
+# test definitions pointing to non-existent modulefile
+testouterr_cmd sh {load bar/unk} ERR "$err_path'bar/4'"
+testouterr_cmd sh {load unk} ERR "$err_path'bar/4'"
+testouterr_cmd sh {load foo/3} ERR "$err_file'$mp/foo/unk'"
+
+# ensure a .version file at modulepath root is ignored
+testouterr_cmd sh {load default} ERR "$err_path'default'"
+testouterr_cmd sh {load plain/default} ERR "$err_path'plain/default'"
+
+# test use of shorthand version notation in modulepath rc
+setenv_var TS_BAD_SHORTHAND_VERSION 1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1]
+lappend ans [list setpath _LMFILES_ $mp/foo/.common]
+lappend ans [list ERR]
+testouterr_cmd sh {load foo/1} $ans "$error_msgs: Invalid modulename '/1' found\n$error_msgs: Invalid modulename '/2' found\n$error_msgs: Invalid modulename '/3' found"
+
+# test badly written modulepath rc file
+unsetenv_var TS_BAD_SHORTHAND_VERSION
+setenv_var TS_BAD_COMMAND_TEST 1
+testouterr_cmd sh {load bar/top} ERR "$moderr_msgs: invalid command name \"badcommand\"\n  In '$mp/.modulerc'\n$err_contact\n$err_path'bar/top'"
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unsetenv_var TS_BAD_COMMAND_TEST
+setenv_path_var MODULEPATH $modpath
+
+unset ans
+unset mp
+
