@@ -52,6 +52,7 @@ Envmodules_GetFilesInDirectoryObjCmd(
    Tcl_Obj *const objv[])  /* Argument objects. */
 {
    int fetch_hidden;
+   int fetch_dotversion;
    const char *dir;
    int dirlen;
    DIR *did;
@@ -62,7 +63,8 @@ Envmodules_GetFilesInDirectoryObjCmd(
    char path[PATH_MAX];
 
    /* Parse arguments. */
-   if (objc == 3) {
+   if (objc == 4) {
+      /* fetch_hidden */
       if (Tcl_GetBooleanFromObj(interp, objv[2], &fetch_hidden) != TCL_OK) {
 #if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
          Tcl_AppendResult(interp, "expected boolean value but got \"",
@@ -74,8 +76,20 @@ Envmodules_GetFilesInDirectoryObjCmd(
          Tcl_SetErrorCode(interp, "TCL", "VALUE", "BOOLEAN", NULL);
          return TCL_ERROR;
       }
+      /* fetch_dotversion */
+      if (Tcl_GetBooleanFromObj(interp, objv[3], &fetch_dotversion)!=TCL_OK) {
+#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
+         Tcl_AppendResult(interp, "expected boolean value but got \"",
+            Tcl_GetString(objv[3]), "\"", (char *) NULL);
+#else
+         Tcl_SetObjResult(interp, Tcl_ObjPrintf(
+            "expected boolean value but got \"%s\"", Tcl_GetString(objv[3])));
+#endif
+         Tcl_SetErrorCode(interp, "TCL", "VALUE", "BOOLEAN", NULL);
+         return TCL_ERROR;
+      }
    } else {
-      Tcl_WrongNumArgs(interp, 1, objv, "dir fetch_hidden");
+      Tcl_WrongNumArgs(interp, 1, objv, "dir fetch_hidden fetch_dotversion");
       return TCL_ERROR;
    }
 
@@ -108,7 +122,7 @@ Envmodules_GetFilesInDirectoryObjCmd(
             have_modulerc = 1;
          }
       } else if (!strcmp(direntry->d_name, ".version")) {
-         if (!access(path, R_OK)) {
+         if (fetch_dotversion && !access(path, R_OK)) {
             have_version = 1;
          }
       } else if (direntry->d_name[0] == '.') {

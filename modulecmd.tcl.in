@@ -1449,9 +1449,9 @@ proc getModuleNameVersion {{name {}} {name_relative_tocur 0}} {
    # check for shorthand version notation like "/version" or "./version"
    # only if we are currently interpreting a modulefile or modulerc
    } elseif {$curmod ne {} && [regexp {^\.?\/(.*)$} $name match version]} {
-      # if we cannot distinguish a module name, raise error when
-      # shorthand version notation is used
-      if {$::ModulesCurrentModulefile ne $curmod} {
+      # if we cannot distinguish a module name, raise error when shorthand
+      # version notation is used
+      if {$::ModulesCurrentModulefile ne $curmod && $curmod ne {.modulerc}} {
          # name is the name of current module directory
          set name $curmodname
       } else {
@@ -5863,9 +5863,11 @@ proc getVersAliasList {mod} {
 
 # get list of elements located in a directory passed as argument. a flag is
 # set after each element to know if it is considered hidden or not. a
-# fetch_hidden argument is there to control search of hidden elements proc
-# will be used as a fallback to command provided by extension library
-proc __getFilesInDirectory {dir fetch_hidden} {
+# fetch_hidden argument is there to control search of hidden elements. a
+# fetch_dotversion argument controls whether .version file should be looked at
+# in directory .proc will be used as a fallback to command provided by
+# extension library
+proc __getFilesInDirectory {dir fetch_hidden fetch_dotversion} {
    set dir_list [list]
 
    # try then catch any issue rather than test before trying
@@ -5885,7 +5887,7 @@ proc __getFilesInDirectory {dir fetch_hidden} {
    if {[file readable $dir/.modulerc]} {
       lappend dir_list $dir/.modulerc 0
    }
-   if {[file readable $dir/.version]} {
+   if {$fetch_dotversion && [file readable $dir/.version]} {
       lappend dir_list $dir/.version 0
    }
    if {[info exists elt_list]} {
@@ -5951,15 +5953,26 @@ proc findModules {dir {mod {}} {fetch_mtime 0} {fetch_hidden 0}} {
       return $cache_list
    }
 
-   # use catch protection to handle non-readable and non-existent dir
-   if {[catch {
-      set full_list [glob -nocomplain $dir/$mod]
-   }]} {
-      return {}
+   # skip search in top dir if directly looking to a deep element, which means
+   # findModules has already been called and top dir has already been analyzed
+   if {[file dirname $mod] eq {.}} {
+      # use catch protection to handle non-readable and non-existent dir
+      if {[catch {
+         set full_list {}
+         foreach {fpelt hid} [getFilesInDirectory $dir $fetch_hidden 0] {
+            set elt [file tail $fpelt]
+            # include any .modulerc file found at the modulepath root
+            if {$elt eq {.modulerc} || $mod eq {} || [string match $mod\
+               $elt]} {
+               lappend full_list $fpelt
+            }
+         }
+      }]} {
+         return {}
+      }
+   } else {
+      lappend full_list [file join $dir $mod]
    }
-
-   # remove trailing / needed on some platforms
-   regsub {\/$} $full_list {} full_list
 
    array set mod_list {}
    for {set i 0} {$i < [llength $full_list]} {incr i 1} {
@@ -5972,7 +5985,7 @@ proc findModules {dir {mod {}} {fetch_mtime 0} {fetch_hidden 0}} {
       if {[file isdirectory $element]} {
          if {![info exists ::ignoreDir($tail)]} {
             if {[catch {
-               set elt_list [getFilesInDirectory $element $fetch_hidden]
+               set elt_list [getFilesInDirectory $element $fetch_hidden 1]
             } errMsg]} {
                set mod_list($modulename) [list accesserr [parseAccessIssue\
                   $element] $element]
