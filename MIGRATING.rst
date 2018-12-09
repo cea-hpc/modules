@@ -8,6 +8,56 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
+Migrating from v4.2 to v4.3
+===========================
+
+This new version is backward-compatible with v4.2 and primarily fixes bugs and
+adds new features.
+
+New features
+------------
+
+Version 4.3 introduces new functionalities that are described in this section.
+
+Further I/O operations optimization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Additional work has been performed to save a significant number of filesystem
+I/O operations made to search and evaluate modulefiles.
+
+When fully read, the content of a modulefile is now cached in memory to avoid
+new I/O operations in case this modulefile should be read one more time during
+the same module command evaluation.
+
+Except for ``path``, ``paths``, ``list``, ``avail`` and ``aliases`` module
+commands always fully read a modulefile whether its full content is needed or
+just its header to verify its validity. This way modulefiles are only read
+once on commands that first check modulefile validity then read again valid
+files to get their full content.
+
+Last but not least, Modules Tcl extension library is introduced to extend the
+Tcl language in order to provide more optimized I/O commands to read a file or
+a directory content than native Tcl commands do. This library is build and
+enabled in ``modulecmd.tcl`` script with ``--enable-libtclenvmodules``
+configure argument (it is enabled by default). As this library is written in
+C, it must be compiled and ``--with-tcl`` or ``--with-tclinclude`` configure
+arguments may be used to indicate where to find Tcl development files.
+
+Modules Tcl extension library greatly reduces the number of filesystem I/O
+operations by removing unneeded ``ioctl``, ``fcntl`` and ``lstat`` system
+calls done (by Tcl ``open`` command) to read each modulefile. Directory
+content read is also improved by fetching hidden and regular files in one
+pass. Moreover ``.modulerc`` and ``.version`` read access is tested only if
+these files are found in the directory.
+
+
+Further reading
+---------------
+
+To get a complete list of the changes between Modules v4.1 and v4.2,
+please read the :ref:`NEWS` document.
+
+
 Migrating from v4.1 to v4.2
 ===========================
 

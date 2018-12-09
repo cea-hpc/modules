@@ -13,6 +13,22 @@ Modules 4.3.0 (2019-XX-XX)
   of these files, which is enabled by default, is controlled by the
   ``--enable-vim-addons`` and ``--vimdatadir`` configure options.
   (contribution from Felix Neumärker)
+* If modulefile is fully read, cache the content read and the file header
+  computed to avoid another file read if the same modulefile need to be read
+  multiple times.
+* Except for path, paths, list, avail and aliases module commands always fully
+  read a modulefile whether its full content is needed or just its header to
+  verify its validity. Proceed this way to only read file once on commands
+  that first just check modulefile validity then read again valid files to get
+  their full content.
+* Introduce Modules Tcl extension library (written in C) to extend Tcl
+  language in order to provide more optimized I/O commands to read a file or a
+  directory content than native Tcl commands do.
+* Install: add ``--libdir``, ``--enable-libtclenvmodules``, ``--with-tcl`` and
+  ``--with-tclinclude`` options to configure script to control
+  libtclenvmodules build and installation.
+* When an error is caught during modulecmd.tcl first initialization steps,
+  ensure the error report facility is initialized to render error message.
 
 
 Modules 4.2.4 (2019-04-26)
