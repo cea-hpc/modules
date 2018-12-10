@@ -90,7 +90,7 @@ Python:
 
      import os
      exec(open('\ |initdir|\ /python.py').read())
-     module('load, 'modulefile', 'modulefile', '...')
+     module('load', 'modulefile', 'modulefile', '...')
 
 Bourne Shell (sh) (and derivatives) with **autoinit** sub-command:
 
