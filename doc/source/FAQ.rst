@@ -64,6 +64,15 @@ csh: (overwrite existing file)
 
      module avail >&! spoolfile
 
+How to use the module command from Makefile?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To make use of the ``module`` command from a Makefile, the shell initialization script should first be sourced within Makefile rule to define the ``module`` function in that context. Environment variable ``MODULESHOME`` may help to locate the shell initialization script in a generic way, like done in the following example: 
+
+.. code-block:: Makefile
+
+     module_list:
+     	source $$MODULESHOME/init/bash; module list
 
 Modulefiles
 -----------
