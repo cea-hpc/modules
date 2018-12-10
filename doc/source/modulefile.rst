@@ -523,9 +523,10 @@ will be evaluated as if it was a *modulefile* to be loaded. You may place
 this file.
 
 Additionally, before seeking for *.modulerc* files in the module directory,
-the global modulerc file is sourced, too. If a named version default now
-exists for the *modulefile* to be loaded, the assigned *modulefile* now
-will be sourced. Otherwise the file *.version* is looked up in the directory.
+the global modulerc file and the *.modulerc* file found at the root of the
+modulepath directory are sourced, too. If a named version default now exists
+for the *modulefile* to be loaded, the assigned *modulefile* now will be
+sourced. Otherwise the file *.version* is looked up in the module directory.
 
 If the *.version* file exists, it is opened and interpreted as Tcl code and
 takes precedence over a *.modulerc* file in the same directory. If the Tcl

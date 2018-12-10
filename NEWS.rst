@@ -29,6 +29,10 @@ Modules 4.3.0 (2019-XX-XX)
   libtclenvmodules build and installation.
 * When an error is caught during modulecmd.tcl first initialization steps,
   ensure the error report facility is initialized to render error message.
+* When looking for modulefiles in enabled modulepaths, take ``.modulerc`` file
+  found at the root of a modulepath directory into account. Which means these
+  rc files are now evaluated like global rc files and can be used to define
+  module aliases targeting modulefiles stored in the underlying file tree.
 
 
 Modules 4.2.4 (2019-04-26)

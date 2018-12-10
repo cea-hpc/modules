@@ -19,6 +19,16 @@ New features
 
 Version 4.3 introduces new functionalities that are described in this section.
 
+Modulepath rc file
+^^^^^^^^^^^^^^^^^^
+
+A ``.modulerc`` file found at the root of an enabled modulepath directory is
+now evaluated when modulepath is walked through to locate modulefiles. This
+modulepath rc file gives for instance the ability to define module alias whose
+name does not correspond to any module directory in this modulepath. Thus this
+kind of module alias would not be found unless if it is defined at the
+modulepath global scope.
+
 Further I/O operations optimization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
