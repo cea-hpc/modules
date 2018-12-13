@@ -138,6 +138,29 @@ proc getForce {} {
    return $::g_force
 }
 
+# Get avail in depth mode
+proc getAvailInDepth {} {
+   if {![info exists ::g_avail_indepth]} {
+      set avail_indepth @availindepth@ ;# Search modulefiles in depth
+
+      # overriden value coming from environment
+      if {[info exists ::env(MODULES_AVAIL_INDEPTH)]} {
+         # ignore non-valid values
+         switch -- $::env(MODULES_AVAIL_INDEPTH) {
+            0 - 1 {
+               set avail_indepth $::env(MODULES_AVAIL_INDEPTH)
+            }
+         }
+      }
+
+      set ::g_avail_indepth $avail_indepth
+      reportDebug "avail_indepth set to '$avail_indepth'"
+   }
+
+   return $::g_avail_indepth
+}
+
+
 # Use MODULECONTACT variable to set your support email address
 if {[info exists env(MODULECONTACT)]} {
    set contact $env(MODULECONTACT)
@@ -1766,7 +1789,7 @@ proc module {command args} {
    # parse options, do that globally to ignore options not related to a given
    # module sub-command (exclude them from arg list)
    lassign [eval parseModuleCommandArgs $command $args] show_oneperline\
-      show_mtime show_filter args
+      show_mtime show_filter search_filter args
 
    # guess if called from top level
    set topcall [expr {[getEvalModuleStackDepth] == 0}]
@@ -2001,7 +2024,7 @@ proc module {command args} {
          }
          avail {
             eval cmdModuleAvail $show_oneperline $show_mtime "{$show_filter}"\
-               $args
+               "{$search_filter}" $args
          }
          aliases {
             cmdModuleAliases
@@ -5939,9 +5962,9 @@ proc findModulesInMemCache {searchid} {
 }
 
 # finds all module-related files matching mod in the module path dir
-proc findModules {dir mod fetch_mtime fetch_hidden} {
-   reportDebug "finding '$mod' in $dir (fetch_mtime=$fetch_mtime,\
-      fetch_hidden=$fetch_hidden)"
+proc findModules {dir mod indepth fetch_mtime fetch_hidden} {
+   reportDebug "finding '$mod' in $dir (indepth=$indepth,\
+      fetch_mtime=$fetch_mtime, fetch_hidden=$fetch_hidden)"
 
    # generated search id (for cache search/save) by compacting given args
    set searchid $dir:$mod:$fetch_mtime:$fetch_hidden
@@ -6062,6 +6085,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    reportDebug "get '$mod' in $dir (fetch_mtime=$fetch_mtime, search=$search,\
       fetch_hidden=$fetch_hidden)"
 
+   # perform an in depth search or not
+   set indepth [expr {[isInList $search noindepth] ? 0 : 1}]
+
    # if search for global or user rc alias only, no dir lookup is performed
    # and aliases from g_rcAlias are returned
    if {[isInList $search rc_alias_only]} {
@@ -6086,7 +6112,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          set fetch_hidden [isModuleHidden $mod]
          reportDebug "is '$mod' requiring hidden search ($fetch_hidden)"
       }
-      array set found_list [findModules $dir $findmod $fetch_mtime\
+      array set found_list [findModules $dir $findmod $indepth $fetch_mtime\
          $fetch_hidden]
    }
 
@@ -6140,7 +6166,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          # hidden modules). in case symbolic version matches passed $mod
          # look for this hidden target
          if {$mod eq $vers && !$fetch_hidden && [isModuleHidden $versmod]} {
-            array set found_list [findModules $dir $versmod $fetch_mtime 1]
+            array set found_list [findModules $dir $versmod $indepth\
+               $fetch_mtime 1]
          }
 
          # symbolic version targets a modulefile most of the time
@@ -6873,6 +6900,7 @@ proc parseModuleCommandArgs {cmd args} {
    set show_oneperline 0
    set show_mtime 0
    set show_filter {}
+   set search_filter [expr {[getAvailInDepth] ? {} : {noindepth}}]
    set otherargs {}
 
    # parse argument list
@@ -6897,6 +6925,13 @@ proc parseModuleCommandArgs {cmd args} {
          -L - --latest {
             set show_filter onlylatest
          }
+         --indepth {
+            # empty value means 'in depth' as it is default behavior
+            set search_filter {}
+         }
+         --no-indepth {
+            set search_filter noindepth
+         }
          --auto - --no-auto - -f - --force {
             reportWarning "Unsupported option '$arg'"
          }
@@ -6907,8 +6942,10 @@ proc parseModuleCommandArgs {cmd args} {
    }
 
    reportDebug "(show_oneperline=$show_oneperline, show_mtime=$show_mtime,\
-      show_filter=$show_filter, otherargs=$otherargs)"
-   return [list $show_oneperline $show_mtime $show_filter $otherargs]
+      show_filter=$show_filter, search_filter=$search_filter,\
+      otherargs=$otherargs)"
+   return [list $show_oneperline $show_mtime $show_filter $search_filter\
+      $otherargs]
 }
 
 # unload phase of a list of modules reload process
@@ -8173,7 +8210,8 @@ proc cmdModuleAliases {} {
    eval displayElementList Versions sepline 1 0 $display_list
 }
 
-proc cmdModuleAvail {show_oneperline show_mtime show_filter args} {
+proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
+   args} {
    if {[llength $args] == 0} {
       lappend args *
    }
@@ -8196,7 +8234,7 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter args} {
       # look if aliases have been defined in the global or user-specific
       # modulerc and display them if any in a dedicated list
       set display_list [listModules {} $mod $show_mtime $show_filter\
-         rc_alias_only]
+         [concat $search_filter [list rc_alias_only]]]
       if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
          set theader_shown 1
          eval displayTableHeader $theader_cols
@@ -8206,7 +8244,7 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter args} {
 
       foreach dir [getModulePathList exiterronundef] {
          set display_list [listModules $dir $mod $show_mtime $show_filter\
-            wild]
+            [concat $search_filter [list wild]]]
          if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
             set theader_shown 1
             eval displayTableHeader $theader_cols
@@ -8562,7 +8600,8 @@ Loading / Unloading commands:
 
 Listing / Searching commands:
   list            [-t|-l]           List loaded modules
-  avail   [-d|-L] [-t|-l] [mod ...] List all or matching available modules
+  avail   [-d|-L] [-t|-l] [--indepth|--no-indepth] [mod ...]
+                                    List all or matching available modules
   aliases                           List all module aliases
   whatis          [modulefile ...]  Print whatis information of modulefile(s)
   apropos | keyword | search  str   Search all name and whatis containing str
@@ -8725,7 +8764,7 @@ if {[catch {
             }
             -a - --append - -append - -p - --prepend - -prepend - --delim -\
             -delim - --delim=* - -delim=* - --duplicates - --index -\
-            --notuasked {
+            --notuasked - --indepth - --no-indepth {
                # command-specific switches interpreted later on
                lappend otherargv $arg
             }

@@ -269,6 +269,14 @@ instance ``--disable-set-manpath``):
                       modulefiles handling actions, like loading the
                       pre-requisites of a modulefile when loading this
                       modulefile. (default=no)
+--enable-avail-indepth
+                      When performing an ``avail`` sub-command, include in
+                      search results the matching modulefiles and directories
+                      and recursively the modulefiles and directories
+                      contained in these matching directories when enabled or
+                      limit search results to the matching modulefiles and
+                      directories found at the depth level expressed by the
+                      search query if disabled. (default=yes)
 
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for

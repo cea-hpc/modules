@@ -127,6 +127,12 @@ else
   setautohandling := 0
 endif
 
+ifeq ($(availindepth),y)
+  setavailindepth := 1
+else
+  setavailindepth := 0
+endif
+
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@baseprefix@|$(baseprefix)|g' \
@@ -141,6 +147,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@pager@|$(pager)|g' \
 	-e 's|@pageropts@|$(pageropts)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
+	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \
 	-e 's|@quarantinesupport@|$(setquarantinesupport)|g' \
 	-e 's|@notquarantinesupport@|$(setnotquarantinesupport)|g' \
