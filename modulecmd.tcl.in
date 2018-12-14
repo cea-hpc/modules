@@ -6368,14 +6368,12 @@ proc listModules {dir mod show_mtime filter search} {
       if {$add_to_clean_list} {
          switch -- $elt_type {
             directory {
-               if {$flag_default_dir} {
-                  if {$show_mtime} {
-                     lappend clean_list [format %-40s%-20s $elt\
-                        [join $tag_list :]]
-                  } else {
-                     lappend clean_list [join [list $elt (\
-                        [join $tag_list :] )] {}]
-                  }
+               if {$flag_default_dir && $show_mtime} {
+                  lappend clean_list [format %-40s%-20s $elt\
+                     [join $tag_list :]]
+               } elseif {$flag_default_dir && [llength $tag_list] > 0} {
+                  lappend clean_list [join [list $elt (\
+                     [join $tag_list :] )] {}]
                } else {
                   lappend clean_list $elt
                }
