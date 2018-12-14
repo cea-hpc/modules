@@ -35,8 +35,31 @@ set ts_implicit_default_sh "$header$module/$version6"
 set ts_latest_sh "$header$module/$version6"
 
 testouterr_cmd_re "sh" "avail -t $module" "OK" "$ts_sh"
+# check same result is obtain if query name has a trailing slash
+testouterr_cmd_re "sh" "avail -t $module/" "OK" "$ts_sh"
 testouterr_cmd_re "sh" "avail -t -d $module" "OK" "$ts_implicit_default_sh"
+testouterr_cmd_re "sh" "avail -t -d $module/" "OK" "$ts_implicit_default_sh"
+# check wildcard character '*' does not disturb result
+testouterr_cmd_re "sh" "avail -t -d $module/*" "OK" "$ts_implicit_default_sh"
+testouterr_cmd_re "sh" "avail -t -d $module/**" "OK" "$ts_implicit_default_sh"
+testouterr_cmd_re "sh" "avail -t -d $module*/*" "OK" "$ts_implicit_default_sh"
+testouterr_cmd_re "sh" "avail -t -d $module*/" "OK" "$ts_implicit_default_sh"
+testouterr_cmd_re "sh" "avail -t -d $module*" "OK" "$ts_implicit_default_sh"
+testouterr_cmd_re "sh" "avail -t -d $module?" "OK" ""
+testouterr_cmd_re "sh" "avail -t -d $module?/" "OK" ""
+testouterr_cmd_re "sh" "avail -t -d $module?/*" "OK" ""
+testouterr_cmd_re "sh" "avail -t -d $module?/?" "OK" ""
 testouterr_cmd_re "sh" "avail -t -L $module" "OK" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t -L $module/" "OK" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t -L $module/*" "OK" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t -L $module/**" "OK" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t -L $module*/*" "OK" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t -L $module*/" "OK" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t -L $module*" "OK" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t -L $module?" "OK" ""
+testouterr_cmd_re "sh" "avail -t -L $module?/" "OK" ""
+testouterr_cmd_re "sh" "avail -t -L $module?/*" "OK" ""
+testouterr_cmd_re "sh" "avail -t -L $module?/?" "OK" ""
 
 #
 #  tests on module aliases
@@ -47,8 +70,11 @@ set ts_implicit_default_sh "$header$aliasmod/$version6\\(@\\)"
 set ts_latest_sh "$header$aliasmod/$version6\\(@\\)"
 
 testouterr_cmd_re "sh" "avail -t $aliasmod" "OK" "$ts_sh"
+testouterr_cmd_re "sh" "avail -t $aliasmod/" "OK" "$ts_sh"
 testouterr_cmd_re "sh" "avail -t -d $aliasmod" "OK" "$ts_implicit_default_sh"
+testouterr_cmd_re "sh" "avail -t -d $aliasmod/" "OK" "$ts_implicit_default_sh"
 testouterr_cmd_re "sh" "avail -t -L $aliasmod" "OK" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t -L $aliasmod/" "OK" "$ts_latest_sh"
 
 #
 #  tests on modules mixing modulefiles and aliases
@@ -64,8 +90,11 @@ set ts_default_sh "$header$mod2/$mod2vers4"
 set ts_latest_sh "$header$mod2/$mod2vers4"
 
 testouterr_cmd_re "sh" "avail -t $mod2" "OK" "$ts_sh"
+testouterr_cmd_re "sh" "avail -t $mod2/" "OK" "$ts_sh"
 testouterr_cmd_re "sh" "avail -t -d $mod2" "OK" "$ts_default_sh"
+testouterr_cmd_re "sh" "avail -t -d $mod2/" "OK" "$ts_default_sh"
 testouterr_cmd_re "sh" "avail -t -L $mod2" "OK" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t -L $mod2/" "OK" "$ts_latest_sh"
 
 #
 #  tests on modules mixing modulefiles and symbolic versions
@@ -107,8 +136,11 @@ testouterr_cmd_re "sh" "avail -t -L $mod4" "OK" "$ts_latest_sh"
 set mod5 "emptydir"
 # empty directories are not displayed
 testouterr_cmd "sh" "avail -t $mod5" "OK" ""
+testouterr_cmd "sh" "avail -t $mod5/" "OK" ""
 testouterr_cmd "sh" "avail -t -d $mod5" "OK" ""
+testouterr_cmd "sh" "avail -t -d $mod5/" "OK" ""
 testouterr_cmd "sh" "avail -t -L $mod5" "OK" ""
+testouterr_cmd "sh" "avail -t -L $mod5/" "OK" ""
 
 #
 #  tests on deep modules, mixing modulefiles and directories
@@ -122,8 +154,14 @@ set ts_default_sh "$header$mod6/$mod6vers2"
 set ts_latest_sh "$header$mod6/$mod6vers2"
 
 testouterr_cmd_re "sh" "avail -t $mod6" "OK" "$ts_sh"
+testouterr_cmd_re "sh" "avail -t $mod6/" "OK" "$ts_sh"
 testouterr_cmd_re "sh" "avail -t -d $mod6" "OK" "$ts_default_sh"
+testouterr_cmd_re "sh" "avail -t -d $mod6/" "OK" "$ts_default_sh"
+testouterr_cmd_re "sh" "avail -t -d $mod6/*" "OK" "$ts_default_sh"
+testouterr_cmd_re "sh" "avail -t -d $mod6*/*" "OK" "$ts_default_sh"
 testouterr_cmd_re "sh" "avail -t -L $mod6" "OK" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t -L $mod6/" "OK" "$ts_latest_sh"
+testouterr_cmd_re "sh" "avail -t -L $mod6*/" "OK" "$ts_latest_sh"
 
 #
 #  tests on modules, mixing modulefiles, directories and badly set default
