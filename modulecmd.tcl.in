@@ -6338,6 +6338,18 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
       }
    }
 
+   # now all modulefiles are settled (regular, symbol, alias, virtual) only
+   # keep those found at search query depth level if 'noindepth' mode asked
+   if {!$indepth} {
+      # remove entries with more filename path separator than query pattern
+      set lastqslash [expr {[string last / $mod] + 1}]
+      foreach elt [array names mod_list] {
+         if {[string first / $elt $lastqslash] != -1} {
+            unset mod_list($elt)
+         }
+      }
+   }
+
    reportDebug "got [array names mod_list]"
    return [array get mod_list]
 }
@@ -6354,13 +6366,25 @@ proc listModules {dir mod show_mtime filter search} {
    # raised from one modulerc file
    array set mod_list [getModules $dir $mod $show_mtime $search]
 
+   # in depth search performed or not
+   set indepth [expr {[isInList $search noindepth] ? 0 : 1}]
+
+   # extract directory name specified in search query string if any
+   set querydir [string trimright $mod *]
+   set isquerydir [expr {[string index $querydir end] eq {/}}]
+   set querydir [string range $querydir 0 end-1]
+
+   # no filtering when in depth disabled and query targets modulepath root
+   set filtering [expr {$filter ne {} && ($indepth || [string first / $mod]\
+      != -1)}]
+
    # prepare results for display
    set clean_list {}
    foreach elt [array names mod_list] {
       set elt_type [lindex $mod_list($elt) 0]
 
       set add_to_clean_list 1
-      if {$filter ne {}} {
+      if {$filtering} {
          # only analyze directories or modulefile at the root in case of
          # result filtering. depending on filter kind the selection of the
          # modulefile to display will be made using the definition
@@ -6394,8 +6418,10 @@ proc listModules {dir mod show_mtime filter search} {
          }
       } else {
          set tag_list [getVersAliasList $elt]
-         # do not add a dir if it does not hold tags
-         if {$elt_type eq {directory} && [llength $tag_list] == 0} {
+         # do not add a dir if it does not hold tags and depth mode is enabled
+         # or if search query corresponds to dir: only its content is relevant
+         if {$elt_type eq {directory} && (($indepth && [llength $tag_list]\
+            == 0) || ($isquerydir && [string match $querydir $elt]))} {
             set add_to_clean_list 0
          }
       }
