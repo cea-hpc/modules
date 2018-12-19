@@ -1,0 +1,232 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.90-avail/%M%
+#   Revision:		%I%
+#   First Edition:	2018/12/18
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check the module 'avail' command in no in depth mode
+#		}C%
+#
+##############################################################################
+
+set mp "$modpath.indepth"
+set mpre "$modpathre.indepth"
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+set ts_indepth "$mp:
+mod0
+mod1/1
+mod1/2
+mod2/1(default)
+mod2/2
+mod3/1(@)
+mod5/1
+mod6/3/1/2/1
+mod7/4/1
+mod8/4/1(@)
+mod9/4/1
+mod10
+mod11/1(sym)
+mod11/2"
+
+set ts_noindepth "$mp:
+mod0
+mod1/
+mod2/
+mod3/
+mod5/
+mod6/
+mod7/
+mod8/
+mod9/
+mod10
+mod11/"
+
+# check various initialization ways
+testouterr_cmd sh {avail -t --indepth} OK $ts_indepth
+testouterr_cmd sh {avail -t --no-indepth --indepth} OK $ts_indepth
+testouterr_cmd sh {avail -t --no-indepth} OK $ts_noindepth
+testouterr_cmd sh {avail -t --indepth --no-indepth} OK $ts_noindepth
+
+if {$install_availindepth eq {y}} {
+    testouterr_cmd sh {avail -t} OK $ts_indepth
+} else {
+    testouterr_cmd sh {avail -t} OK $ts_noindepth
+}
+
+setenv_var MODULES_AVAIL_INDEPTH 0
+testouterr_cmd sh {avail -t} OK $ts_noindepth
+testouterr_cmd sh {avail -t --indepth} OK $ts_indepth
+
+setenv_var MODULES_AVAIL_INDEPTH 1
+testouterr_cmd sh {avail -t} OK $ts_indepth
+testouterr_cmd sh {avail -t --no-indepth} OK $ts_noindepth
+
+
+# enable no in depth mode for the remaining tests
+setenv_var MODULES_AVAIL_INDEPTH 0
+
+# long display
+set tserr "- Package/Alias $modlin.- Versions $modlin.- Last mod. $modlin\n$mpre:
+mod1/\\s+
+mod10\\s+\[0-9\/]{10} \[0-9:]{8}
+mod11/\\s+"
+testouterr_cmd_re sh {avail -l mod1} OK $tserr
+
+# hidden modulefile only displayed if fully qualified
+testouterr_cmd sh {avail -t mod4} OK {}
+testouterr_cmd sh {avail -t mod4/.1} OK "$mp:\nmod4/.1"
+
+# returns elements of current depth level (need a trailing / to go down)
+testouterr_cmd sh {avail -t mod1} OK "$mp:\nmod1/\nmod10\nmod11/"
+testouterr_cmd sh {avail -t mod11} OK "$mp:\nmod11/"
+testouterr_cmd sh {avail -t mod1/} OK "$mp:\nmod1/1\nmod1/2"
+
+# check depth level recognition against wildcard characters
+testouterr_cmd sh {avail -t mod1*} OK "$mp:\nmod1/\nmod10\nmod11/"
+testouterr_cmd sh {avail -t mod1**} OK "$mp:\nmod1/\nmod10\nmod11/"
+testouterr_cmd sh {avail -t mod1/*} OK "$mp:\nmod1/1\nmod1/2"
+testouterr_cmd sh {avail -t mod1/?} OK "$mp:\nmod1/1\nmod1/2"
+testouterr_cmd sh {avail -t mod1/??} OK {}
+testouterr_cmd sh {avail -t mod1*/*} OK "$mp:\nmod1/1\nmod1/2\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod1?/} OK "$mp:\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod1?/*} OK "$mp:\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod1?} OK "$mp:\nmod10\nmod11/"
+testouterr_cmd sh {avail -t mod1?*} OK "$mp:\nmod10\nmod11/"
+testouterr_cmd sh {avail -t mod1*?} OK "$mp:\nmod10\nmod11/"
+testouterr_cmd sh {avail -t mod??} OK "$mp:\nmod10\nmod11/"
+testouterr_cmd sh {avail -t mod?*?} OK "$mp:\nmod10\nmod11/"
+testouterr_cmd sh {avail -t mod??/} OK "$mp:\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod??/*} OK "$mp:\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod??/?} OK "$mp:\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod??/2} OK "$mp:\nmod11/2"
+testouterr_cmd sh {avail -t mod2?} OK {}
+testouterr_cmd sh {avail -t mod2?/} OK {}
+
+# test no in depth mode on various sub-directories
+testouterr_cmd sh {avail -t mod2/} OK "$mp:\nmod2/1(default)\nmod2/2"
+testouterr_cmd sh {avail -t mod2/default} OK "$mp:\nmod2/1(default)"
+testouterr_cmd sh {avail -t mod3/} OK "$mp:\nmod3/1(@)"
+testouterr_cmd sh {avail -t mod5/} OK "$mp:\nmod5/1"
+testouterr_cmd sh {avail -t mod6/} OK "$mp:\nmod6/3/"
+testouterr_cmd sh {avail -t mod6/3} OK "$mp:\nmod6/3/"
+testouterr_cmd sh {avail -t mod6/3/} OK "$mp:\nmod6/3/1/"
+testouterr_cmd sh {avail -t mod6/3/1/2} OK "$mp:\nmod6/3/1/2/"
+testouterr_cmd sh {avail -t mod6/3/1/2/} OK "$mp:\nmod6/3/1/2/1"
+testouterr_cmd sh {avail -t mod6/?/1/2/} OK "$mp:\nmod6/3/1/2/1"
+testouterr_cmd sh {avail -t mod6/?/2/2/} OK {}
+testouterr_cmd sh {avail -t mod6/?/2/6/7/} OK {}
+testouterr_cmd sh {avail -t mod7/} OK "$mp:\nmod7/4/"
+testouterr_cmd sh {avail -t mod7/4/} OK "$mp:\nmod7/4/1"
+testouterr_cmd sh {avail -t mod8/} OK "$mp:\nmod8/4/"
+testouterr_cmd sh {avail -t mod8/4/} OK "$mp:\nmod8/4/1(@)"
+testouterr_cmd sh {avail -t mod9/} OK "$mp:\nmod9/4/"
+testouterr_cmd sh {avail -t mod9/4/} OK "$mp:\nmod9/4/1"
+testouterr_cmd sh {avail -t mod11/sym} OK "$mp:\nmod11/1(sym)"
+
+# check impact of only latest and only default output filtering
+testouterr_cmd sh {avail -t -d} OK $ts_noindepth
+testouterr_cmd sh {avail -t -L} OK $ts_noindepth
+testouterr_cmd sh {avail -t -d mod2} OK "$mp:\nmod2/"
+testouterr_cmd sh {avail -t -L mod2} OK "$mp:\nmod2/"
+testouterr_cmd sh {avail -t -d mod2/} OK "$mp:\nmod2/1(default)"
+testouterr_cmd sh {avail -t -L mod2/} OK "$mp:\nmod2/2"
+testouterr_cmd sh {avail -t -d mod1*} OK "$mp:\nmod1/\nmod10\nmod11/"
+testouterr_cmd sh {avail -t -L mod1*} OK "$mp:\nmod1/\nmod10\nmod11/"
+testouterr_cmd sh {avail -t -d mod1*/*} OK "$mp:\nmod1/2\nmod11/2"
+testouterr_cmd sh {avail -t -L mod1*/*} OK "$mp:\nmod1/2\nmod11/2"
+testouterr_cmd sh {avail -t -d mod1?/} OK "$mp:\nmod11/2"
+testouterr_cmd sh {avail -t -L mod1?/} OK "$mp:\nmod11/2"
+testouterr_cmd sh {avail -t -d mod2?} OK {}
+testouterr_cmd sh {avail -t -L mod2?} OK {}
+testouterr_cmd sh {avail -t -d mod2?/} OK {}
+testouterr_cmd sh {avail -t -L mod2?/} OK {}
+
+# usage of no indepth mode avail in modulefile
+unsetenv_var MODULES_AVAIL_INDEPTH
+set tserr "$mp:
+mod1/
+mod10
+mod11/
+
+$mp:
+mod10
+mod11/
+
+$mp:
+mod1/1
+mod1/2
+mod10
+mod11/1(sym)
+mod11/2
+
+$mp:
+mod1/1
+mod1/2
+
+$mp:
+mod1/1
+mod1/2
+mod11/1(sym)
+mod11/2
+
+$mp:
+mod11/1(sym)
+mod11/2"
+set ts_indepth "$mp:
+mod1/1
+mod1/2
+mod10
+mod11/1(sym)
+mod11/2
+
+$tserr"
+set ts_noindepth "$mp:
+mod1/
+mod10
+mod11/
+
+$tserr"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES mod0]
+lappend ans [list setpath _LMFILES_ $mp/mod0]
+if {$install_availindepth eq {y}} {
+    testouterr_cmd sh {load mod0} $ans $ts_indepth
+    # argument passed on the command line for a load sub-command is ignored
+    # by the underlying avail commands
+    testouterr_cmd sh {load mod0 --indepth} $ans $ts_indepth
+    testouterr_cmd sh {load mod0 --no-indepth} $ans $ts_indepth
+} else {
+    testouterr_cmd sh {load mod0} $ans $ts_noindepth
+    testouterr_cmd sh {load mod0 --indepth} $ans $ts_noindepth
+    testouterr_cmd sh {load mod0 --no-indepth} $ans $ts_noindepth
+}
+
+
+#
+#  Cleanup
+#
+
+# restore MODULEPATH
+setenv_path_var MODULEPATH $modpath
+
+unset mp
+unset mpre
+unset ans
+
+unset ts_indepth
+unset ts_noindepth
+unset tserr
