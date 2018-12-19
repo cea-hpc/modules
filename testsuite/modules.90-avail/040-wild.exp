@@ -86,6 +86,34 @@ testouterr_cmd_re "csh" "avail -l -t loc_rc2/f" "OK" "$header\n$tsv1_csh1"
 set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
 testouterr_cmd_re "csh" "avail -t sym_" "OK" "$header2\n$tsa2_csh1\\(special:@\\)"
 
+#
+# wildcard character tests
+#
+
+set mp "$modpath.indepth"
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+testouterr_cmd sh {avail -t mod1*} OK "$mp:\nmod1/1\nmod1/2\nmod10\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod1**} OK "$mp:\nmod1/1\nmod1/2\nmod10\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod1/*} OK "$mp:\nmod1/1\nmod1/2"
+testouterr_cmd sh {avail -t mod1/?} OK "$mp:\nmod1/1\nmod1/2"
+testouterr_cmd sh {avail -t mod1/??} OK {}
+testouterr_cmd sh {avail -t mod1*/*} OK "$mp:\nmod1/1\nmod1/2\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod1?/} OK "$mp:\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod1?/*} OK "$mp:\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod1?} OK "$mp:\nmod10\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod1?*} OK "$mp:\nmod10\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod1*?} OK "$mp:\nmod10\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod??} OK "$mp:\nmod10\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod?*?} OK "$mp:\nmod10\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod??/} OK "$mp:\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod??/*} OK "$mp:\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod??/?} OK "$mp:\nmod11/1(sym)\nmod11/2"
+testouterr_cmd sh {avail -t mod??/2} OK "$mp:\nmod11/2"
+testouterr_cmd sh {avail -t mod2?} OK {}
+testouterr_cmd sh {avail -t mod2?/} OK {}
+
 
 #
 #  Cleanup
@@ -99,8 +127,10 @@ if {[info exists save_rc]} {
     unset env(MODULERCFILE)
 }
 
+setenv_path_var MODULEPATH $modpath
 unsetenv_var MODULES_AVAIL_INDEPTH
 
+unset mp
 unset header
 unset header2
 unset ts_csh1
