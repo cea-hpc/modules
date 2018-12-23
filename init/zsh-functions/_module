@@ -6,15 +6,18 @@
 #
 
 _module_avail() {
-   module avail -t 2>&1 | sed '
-      /^-\+/d; /^\s*$/d;
-      /->.*$/d;
-      /:$/d;
-      /:ERROR:/d;
-      s#^\(.*\)/\(.\+\)(.*default.*)#\1\n\1\/\2#;
-      s#(.*)$##g;
-      s#\s*$##g;
-      s#/*$##g;'
+   local cur="${1:-}";
+   # skip avail call if word currently being completed is an option keyword
+   if [ -z "$cur" -o "${cur:0:1}" != '-' ]; then
+      module avail -t --no-indepth $cur 2>&1 | sed '
+         /^-\+/d; /^\s*$/d;
+         /->.*$/d;
+         /:$/d;
+         /:ERROR:/d;
+         s#^\(.*\)/\(.\+\)(.*default.*)#\1\n\1\/\2#;
+         s#(.*)$##g;
+         s#\s*$##g;'
+   fi
 }
 
 _module_savelist() {
@@ -26,15 +29,24 @@ _module_savelist() {
 }
 
 _module_not_yet_loaded() {
-   _module_avail | sort | sed -E "\%^(${LOADEDMODULES//:/|})$%d"
+   _module_avail ${1:-} | sort | sed -E "\%^(${LOADEDMODULES//:/|})$%d"
 }
 
 
 _module_avail_mods() {
    local -a avail_mods;
-   avail_mods=(${$(_module_avail)})
+   local suffix=' ';
+   avail_mods=(${$(_module_avail $cur ${1:-})})
 
-   _describe -t avail-mods 'available modulefiles' avail_mods && ret=0
+   # do not append space to word completed if it is a directory (ends with /)
+   for val in $avail_mods; do
+      if [ "${val: -1:1}" = '/' ]; then
+         suffix=''
+         break
+      fi
+   done
+
+   compadd -S "$suffix" -a avail_mods && ret=0
 }
 
 _module_saved_colls() {
@@ -46,9 +58,18 @@ _module_saved_colls() {
 
 _module_notloaded_mods() {
    local -a not_yet_loaded_mods;
-   not_yet_loaded_mods=(${$(_module_not_yet_loaded)})
+   local suffix=' ';
+   not_yet_loaded_mods=(${$(_module_not_yet_loaded ${1:-})})
 
-   _describe -t avail-mods 'available modulefiles' not_yet_loaded_mods && ret=0
+   # do not append space to word completed if it is a directory (ends with /)
+   for val in $not_yet_loaded_mods; do
+      if [ "${val: -1:1}" = '/' ]; then
+         suffix=''
+         break
+      fi
+   done
+
+   compadd -S "$suffix" -a not_yet_loaded_mods && ret=0
 }
 
 _module_loaded_mods() {
@@ -136,13 +157,14 @@ _module() {
          ;;
       (arg)
          local cmd="${words[1]}"
+         local cur="${words[CURRENT]}"
          case $cmd in
             (load|add)
                _arguments \
                   '--auto[Enable automated module handling mode]' \
                   '--no-auto[Disable automated module handling mode]' \
                   '(-f --force)'{-f,--force}'[By-pass dependency consistency]' \
-                  '*::modulefile:_module_notloaded_mods' && ret=0
+                  "*::modulefile:{_module_notloaded_mods $cur}" && ret=0
                ;;
             (avail)
                _arguments \
@@ -152,7 +174,7 @@ _module() {
                   '(-L --latest)'{-L,--latest}'[Only show latest versions available]' \
                   '--indepth[Perform recursive avail search]' \
                   '--no-indepth[Perform non-recursive avail search]' \
-                  '*::modulefile:_module_avail_mods' && ret=0
+                  "*::modulefile:{_module_avail_mods $cur}" && ret=0
                ;;
             (list|savelist)
                local -a opts; opts=(
@@ -180,7 +202,7 @@ _module() {
                   '--no-auto[Disable automated module handling mode]' \
                   '(-f --force)'{-f,--force}'[By-pass dependency consistency]' \
                   '1:loaded modulefile:_module_loaded_mods' \
-                  '2:modulefile:_module_notloaded_mods' && ret=0
+                  "2:modulefile:{_module_notloaded_mods $cur}" && ret=0
                ;;
             (unuse|is-used)
                _alternative 'used-paths:modulepaths:{_module_used_paths}' \
@@ -193,7 +215,7 @@ _module() {
                   '*:modulepath:_files -/' && ret=0
                ;;
             (display|help|show|test|whatis|is-loaded|is-avail|info-loaded)
-               _alternative 'avail-mods:modulefiles:{_module_avail_mods}' \
+               _alternative "avail-mods:modulefiles:{_module_avail_mods $cur}" \
                   && ret=0
                ;;
             (append-path|prepend-path)
