@@ -73,6 +73,8 @@ _module() {
       '(-D --debug)'{-D,--debug}'[Enable debug messages]' \
       '(-h --help)'{-h,--help}'[Usage info]' \
       '(-V --version)'{-V,--version}'[Module version]' \
+      '--paginate[Pipe mesg output into a pager if stream attached to terminal]' \
+      '--no-pager[Do not pipe message output into a pager]' \
       '(-): :->cmd' \
       '(-)*:: :->arg' && ret=0
 
@@ -136,8 +138,11 @@ _module() {
          local cmd="${words[1]}"
          case $cmd in
             (load|add)
-               _alternative 'avail-mods:modulefiles:{_module_notloaded_mods}' \
-                  && ret=0
+               _arguments \
+                  '--auto[Enable automated module handling mode]' \
+                  '--no-auto[Disable automated module handling mode]' \
+                  '(-f --force)'{-f,--force}'[By-pass dependency consistency]' \
+                  '*::modulefile:_module_notloaded_mods' && ret=0
                ;;
             (avail)
                _arguments \
@@ -161,11 +166,17 @@ _module() {
                   && ret=0
                ;;
             (rm|del|remove|unload)
-               _alternative 'loaded-mods:modulefiles:{_module_loaded_mods}' \
-                  && ret=0
+               _arguments \
+                  '--auto[Enable automated module handling mode]' \
+                  '--no-auto[Disable automated module handling mode]' \
+                  '(-f --force)'{-f,--force}'[By-pass dependency consistency]' \
+                  '*::modulefile:_module_loaded_mods' && ret=0
                ;;
             (switch|swap)
                _arguments \
+                  '--auto[Enable automated module handling mode]' \
+                  '--no-auto[Disable automated module handling mode]' \
+                  '(-f --force)'{-f,--force}'[By-pass dependency consistency]' \
                   '1:loaded modulefile:_module_loaded_mods' \
                   '2:modulefile:_module_notloaded_mods' && ret=0
                ;;
