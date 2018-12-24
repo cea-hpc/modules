@@ -30,8 +30,14 @@ set module "function/1.0"
 set modulefile "$modpath/$module"
 
 # strictly speaking, this function is only valid for sh shells, not fish
-set function {eval $(echo cd $1)}
+set function_sh {eval $(echo cd $1)}
+set function2_sh {echo $1}
+set function3_sh {echo $1
+    echo $2}
 set function_fish {eval (echo cd $argv[1])}
+set function2_fish {echo $argv[1]}
+set function3_fish {echo $argv[1]
+    echo $argv[2]}
 
 #
 #  For the different shells ...
@@ -41,11 +47,19 @@ set function_fish {eval (echo cd $argv[1])}
 lappend ans_empty [list setpath LOADEDMODULES $module]
 lappend ans_empty [list setpath _LMFILES_ $modulefile]
 
-lappend ans_sh [list testsuite "() {" "$function; };" "export testsuite;"]
+lappend ans_sh [list testsuite2 "() {" "$function2_sh; };" "export testsuite2;"]
+lappend ans_sh [list testsuite3 "() {" "$function2_sh; };" "export testsuite3;"]
+lappend ans_sh [list testsuite4 "() {" "$function2_sh; };" "export testsuite4;"]
+lappend ans_sh [list testsuite "() {" "$function_sh; };" "export testsuite;"]
+lappend ans_sh [list testsuite5 "() {" "$function3_sh; };" "export testsuite5;"]
 lappend ans_sh [list setpath LOADEDMODULES $module]
 lappend ans_sh [list setpath _LMFILES_ $modulefile]
 
+lappend ans_fish [list function "testsuite2;" "$function2_fish;" "end;"]
+lappend ans_fish [list function "testsuite3;" "$function2_fish;" "end;"]
+lappend ans_fish [list function "testsuite4;" "$function2_fish;" "end;"]
 lappend ans_fish [list function "testsuite;" "$function_fish;" "end;"]
+lappend ans_fish [list function "testsuite5;" "$function3_fish;" "end;"]
 lappend ans_fish [list setpath LOADEDMODULES $module]
 lappend ans_fish [list setpath _LMFILES_ $modulefile]
 
@@ -120,7 +134,10 @@ unset ans_empty
 
 unset modulefile
 unset module
-unset function
 unset function_sh
+unset function2_sh
+unset function3_sh
 unset function_fish
+unset function2_fish
+unset function3_fish
 

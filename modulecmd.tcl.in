@@ -4275,7 +4275,8 @@ proc renderSettings {} {
    foreach funcname [array names g_stateFunctions] {
       switch -- $g_stateFunctions($funcname) {
          new {
-            set val $::g_Functions($funcname)
+            # trim function body to smoothly add a finishing ;
+            set val [string trim $::g_Functions($funcname) "; \t\n\r"]
             switch -- $::g_shellType {
                sh {
                   puts stdout "$funcname () { $val; }; export $funcname;"
