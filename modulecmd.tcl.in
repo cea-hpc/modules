@@ -5962,12 +5962,12 @@ proc findModulesInMemCache {searchid} {
 }
 
 # finds all module-related files matching mod in the module path dir
-proc findModules {dir mod indepth fetch_mtime fetch_hidden} {
-   reportDebug "finding '$mod' in $dir (indepth=$indepth,\
+proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
+   reportDebug "finding '$mod' in $dir (depthlvl=$depthlvl,\
       fetch_mtime=$fetch_mtime, fetch_hidden=$fetch_hidden)"
 
    # generated search id (for cache search/save) by compacting given args
-   set searchid $dir:$mod:$fetch_mtime:$fetch_hidden
+   set searchid $dir:$mod:$depthlvl:$fetch_mtime:$fetch_hidden
 
    # look at memory cache for a compatible result
    lassign [findModulesInMemCache $searchid] cache_searchid cache_list
@@ -6004,6 +6004,8 @@ proc findModules {dir mod indepth fetch_mtime fetch_hidden} {
 
       set tail [file tail $element]
       set modulename [getModuleNameFromModulepath $element $dir]
+      set parentname [file dirname $modulename]
+      set moddepthlvl [llength [file split $modulename]]
       set add_ref_to_parent 0
       if {[file isdirectory $element]} {
          if {![info exists ::ignoreDir($tail)]} {
@@ -6031,27 +6033,42 @@ proc findModules {dir mod indepth fetch_mtime fetch_hidden} {
                set mod_list($modulename) [list modulerc]
             }
             .version {
-               set mod_list($modulename) [list modulerc]
+               # skip .version file from different depth level than search
+               # targets if no in depth mode is enabled
+               if {$depthlvl == 0 || $moddepthlvl == $depthlvl} {
+                  set mod_list($modulename) [list modulerc]
+               }
             }
             *~ - *,v - \#*\# { }
             default {
-               lassign [checkValidModule $element] check_valid check_msg
-               switch -- $check_valid {
-                  true {
-                     set mtime [expr {$fetch_mtime ? [getFileMtime $element]\
-                        : {}}]
-                     set mod_list($modulename) [list modulefile $mtime]
-                     # if modfile hidden, do not reference it in parent list
-                     set add_ref_to_parent [expr {$fetch_hidden && [info\
-                        exists hidden_list($element)] ? 0 : 1}]
-                  }
-                  default {
-                     # register check error and relative message to get it in
-                     # case of direct access of this module element, but no
-                     # registering in parent directory structure as element
-                     # is not valid
-                     set mod_list($modulename) [list $check_valid $check_msg\
-                        $element]
+               # skip modfile in no in depth mode search if it does not relate
+               # to targeted depth level and one valid modfile has already be
+               # found for the dirs lying at other depth level
+               if {$depthlvl == 0 || $moddepthlvl == $depthlvl || ![info\
+                  exists modfile_indir($parentname)]} {
+                  lassign [checkValidModule $element] check_valid check_msg
+                  switch -- $check_valid {
+                     true {
+                        set mtime [expr {$fetch_mtime ? [getFileMtime\
+                           $element] : {}}]
+                        set mod_list($modulename) [list modulefile $mtime]
+                        # if modfile hidden, do not ref it in parent list
+                        set add_ref_to_parent [expr {$fetch_hidden && [info\
+                           exists hidden_list($element)] ? 0 : 1}]
+
+                        # a valid modfile has been found in directory
+                        if {$add_ref_to_parent} {
+                           set modfile_indir($parentname) 1
+                        }
+                     }
+                     default {
+                        # register check error and relative message to get it
+                        # in case of direct access of this module element, but
+                        # no registering in parent directory structure as
+                        # element is not valid
+                        set mod_list($modulename) [list $check_valid\
+                           $check_msg $element]
+                     }
                   }
                }
             }
@@ -6059,11 +6076,8 @@ proc findModules {dir mod indepth fetch_mtime fetch_hidden} {
       }
 
       # add reference to parent structure
-      if {$add_ref_to_parent} {
-         set parentname [file dirname $modulename]
-         if {[info exists mod_list($parentname)]} {
-            lappend mod_list($parentname) $tail
-         }
+      if {$add_ref_to_parent && [info exists mod_list($parentname)]} {
+         lappend mod_list($parentname) $tail
       }
    }
 
@@ -6112,7 +6126,11 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          set fetch_hidden [isModuleHidden $mod]
          reportDebug "is '$mod' requiring hidden search ($fetch_hidden)"
       }
-      array set found_list [findModules $dir $findmod $indepth $fetch_mtime\
+
+      # if no indepth mode search, pass the depth level of the search query
+      set depthlvl [expr {$indepth ? 0 : [llength $parentlist]}]
+
+      array set found_list [findModules $dir $findmod $depthlvl $fetch_mtime\
          $fetch_hidden]
    }
 
@@ -6166,8 +6184,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          # hidden modules). in case symbolic version matches passed $mod
          # look for this hidden target
          if {$mod eq $vers && !$fetch_hidden && [isModuleHidden $versmod]} {
-            array set found_list [findModules $dir $versmod $indepth\
-               $fetch_mtime 1]
+            array set found_list [findModules $dir $versmod 0 $fetch_mtime 1]
          }
 
          # symbolic version targets a modulefile most of the time
