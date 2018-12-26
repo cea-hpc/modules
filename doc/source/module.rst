@@ -196,6 +196,18 @@ switches are accepted:
  version of each module name (see Locating Modulefiles section in the
  :ref:`modulefile(4)` man page).
 
+**--indepth**
+
+ On **avail** sub-command, include in search results the matching modulefiles
+ and directories and recursively the modulefiles and directories contained in
+ these matching directories.
+
+**--no-indepth**
+
+ On **avail** sub-command, limit search results to the matching modulefiles
+ and directories found at the depth level expressed by the search query. Thus
+ modulefiles contained in directories part of the result are excluded.
+
 
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
@@ -246,7 +258,7 @@ Module Sub-Commands
 
  List loaded modules.
 
-**avail** [-d|-L] [-t|-l] [path...]
+**avail** [-d|-L] [-t|-l] [--indepth|--no-indepth] [path...]
 
  List all available *modulefiles* in the current **MODULEPATH**. All
  directories in the **MODULEPATH** are recursively searched for files
@@ -641,6 +653,24 @@ ENVIRONMENT
  **modulecmd.tcl** script configuration. Which means **MODULES_AUTO_HANDLING**
  overrides default configuration and **--auto**/**--no-auto** command line
  switches override every other ways to enable or disable this mode.
+
+**MODULES_AVAIL_INDEPTH**
+
+ If set to **1**, enable in depth search results for **avail** sub-command. If
+ set to **0** disable **avail** sub-command in depth mode. Other values are
+ ignored.
+
+ When in depth mode is enabled, modulefiles and directories contained in
+ directories matching search query are also included in search results. When
+ disabled these modulefiles and directories contained in matching directories
+ are excluded.
+
+ **avail** sub-command in depth mode enablement is defined in the following
+ order of preference: **--indepth**/**--no-indepth** command line switches,
+ then **MODULES_AVAIL_INDEPTH** environment variable, then the default set in
+ **modulecmd.tcl** script configuration. Which means **MODULES_AVAIL_INDEPTH**
+ overrides default configuration and **--indepth**/**--no-indepth** command
+ line switches override every other ways to enable or disable this mode.
 
 **MODULES_CMD**
 

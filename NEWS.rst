@@ -33,6 +33,20 @@ Modules 4.3.0 (2019-XX-XX)
   found at the root of a modulepath directory into account. Which means these
   rc files are now evaluated like global rc files and can be used to define
   module aliases targeting modulefiles stored in the underlying file tree.
+* Correctly get available default (-d) and latest (-L) version whether search
+  pattern is passed with an ending forward slash character or not or if it
+  contains a ``*`` wildcard character.
+* Append a forward slash character to any directory result of an avail command
+  to better distinguish these directories from regular files.
+* Introduce the ability to control whether ``avail`` command search results
+  should recursively include or not modulefiles from directories matching
+  search query by use of the ``--indepth`` and ``--no-indepth`` command-line
+  switches or the environment variable ``MODULES_AVAIL_INDEPTH``. Default
+  behavior is set at the ``./configure`` time with the
+  ``--enable-avail-indepth`` and ``--disable-avail-indepth`` switches. (fix
+  issue #150)
+* Update ``bash``, ``fish`` and ``zsh`` completion scripts to propose
+  available modulefiles in the no in depth mode.
 
 
 Modules 4.2.4 (2019-04-26)

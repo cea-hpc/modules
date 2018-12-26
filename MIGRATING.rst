@@ -60,6 +60,19 @@ content read is also improved by fetching hidden and regular files in one
 pass. Moreover ``.modulerc`` and ``.version`` read access is tested only if
 these files are found in the directory.
 
+New sub-commands, command-line switches and environment variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The **avail** sub-command gets two new command-line switches: **--indepth**
+  and **--no-indepth**. These options control whether search results should
+  recursively include or not modulefiles from directories matching search
+  query. Shell completion scripts have been updated to complete available
+  modulefiles in the no in depth mode.
+
+* The **MODULES_AVAIL_INDEPTH** environment variable defines if the **avail**
+  sub-command should include or exclude by default the modulefiles from
+  directories matching search query. Its value is superseded by the use of the
+  **--indepth** and **--no-indepth** command-line switches.
 
 Further reading
 ---------------
