@@ -37,10 +37,12 @@ mod5/1
 mod6/3/1/2/1
 mod7/4/1
 mod8/4/1(@)
+mod9/3/2(default)
 mod9/4/1
 mod10
 mod11/1(sym)
-mod11/2"
+mod11/2
+mod30/2"
 
 set ts_noindepth "$mp:
 mod0
@@ -53,7 +55,8 @@ mod7/
 mod8/
 mod9/
 mod10
-mod11/"
+mod11/
+mod30/"
 
 # check various initialization ways
 testouterr_cmd sh {avail -t --indepth} OK $ts_indepth
@@ -107,12 +110,12 @@ testouterr_cmd sh {avail -t mod1?/*} OK "$mp:\nmod11/1(sym)\nmod11/2"
 testouterr_cmd sh {avail -t mod1?} OK "$mp:\nmod10\nmod11/"
 testouterr_cmd sh {avail -t mod1?*} OK "$mp:\nmod10\nmod11/"
 testouterr_cmd sh {avail -t mod1*?} OK "$mp:\nmod10\nmod11/"
-testouterr_cmd sh {avail -t mod??} OK "$mp:\nmod10\nmod11/"
-testouterr_cmd sh {avail -t mod?*?} OK "$mp:\nmod10\nmod11/"
-testouterr_cmd sh {avail -t mod??/} OK "$mp:\nmod11/1(sym)\nmod11/2"
-testouterr_cmd sh {avail -t mod??/*} OK "$mp:\nmod11/1(sym)\nmod11/2"
-testouterr_cmd sh {avail -t mod??/?} OK "$mp:\nmod11/1(sym)\nmod11/2"
-testouterr_cmd sh {avail -t mod??/2} OK "$mp:\nmod11/2"
+testouterr_cmd sh {avail -t mod??} OK "$mp:\nmod10\nmod11/\nmod30/"
+testouterr_cmd sh {avail -t mod?*?} OK "$mp:\nmod10\nmod11/\nmod30/"
+testouterr_cmd sh {avail -t mod??/} OK "$mp:\nmod11/1(sym)\nmod11/2\nmod30/2"
+testouterr_cmd sh {avail -t mod??/*} OK "$mp:\nmod11/1(sym)\nmod11/2\nmod30/2"
+testouterr_cmd sh {avail -t mod??/?} OK "$mp:\nmod11/1(sym)\nmod11/2\nmod30/2"
+testouterr_cmd sh {avail -t mod??/2} OK "$mp:\nmod11/2\nmod30/2"
 testouterr_cmd sh {avail -t mod2?} OK {}
 testouterr_cmd sh {avail -t mod2?/} OK {}
 
@@ -133,9 +136,10 @@ testouterr_cmd sh {avail -t mod7/} OK "$mp:\nmod7/4/"
 testouterr_cmd sh {avail -t mod7/4/} OK "$mp:\nmod7/4/1"
 testouterr_cmd sh {avail -t mod8/} OK "$mp:\nmod8/4/"
 testouterr_cmd sh {avail -t mod8/4/} OK "$mp:\nmod8/4/1(@)"
-testouterr_cmd sh {avail -t mod9/} OK "$mp:\nmod9/4/"
+testouterr_cmd sh {avail -t mod9/} OK "$mp:\nmod9/3/\nmod9/4/"
 testouterr_cmd sh {avail -t mod9/4/} OK "$mp:\nmod9/4/1"
 testouterr_cmd sh {avail -t mod11/sym} OK "$mp:\nmod11/1(sym)"
+testouterr_cmd sh {avail -t mod?/3/} OK "$mp:\nmod6/3/1/\nmod9/3/2(default)"
 
 # check impact of only latest and only default output filtering
 testouterr_cmd sh {avail -t -d} OK $ts_noindepth
