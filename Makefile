@@ -121,6 +121,12 @@ else
   setlibtclenvmodules := \#
 endif
 
+ifeq ($(color),y)
+  setcolor := 1
+else
+  setcolor := 0
+endif
+
 ifeq ($(autohandling),y)
   setautohandling := 1
 else
@@ -146,6 +152,8 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' \
 	-e 's|@pager@|$(pager)|g' \
 	-e 's|@pageropts@|$(pageropts)|g' \
+	-e 's|@color@|$(setcolor)|g' \
+	-e 's|@colors@|$(colors)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \

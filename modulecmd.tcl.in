@@ -160,6 +160,86 @@ proc getAvailInDepth {} {
    return $::g_avail_indepth
 }
 
+# Initialize Select Graphic Rendition table
+proc initColors {} {
+   if {![array exists ::g_colors]} {
+      # overriden value coming from environment
+      if {[info exists ::env(MODULES_COLORS)]} {
+         if {[catch {
+            array set ::g_colors [split $::env(MODULES_COLORS) {:=}]
+         } errMsg ]} {
+            # report issue as a debug message rather warning to avoid
+            # disturbing user with a warning message in the middle of a
+            # useful output as this table will be initialized at first use
+            reportDebug "Ignore invalid value set in MODULES_COLORS\
+               ($::env(MODULES_COLORS))"
+         }
+      }
+
+      # use default color theme if no valid override set
+      if {![array exists ::g_colors]} {
+         if {[catch {
+            array set ::g_colors [split {@colors@} {:=}]
+         } errMsg ]} {
+            reportDebug "Ignore invalid default colors (@colors@)"
+            # define an empty table if no valid value set
+            array set ::g_colors {}
+         }
+      }
+
+      # check each color defined and unset invalid codes
+      foreach {elt col} [array get ::g_colors] {
+         if {![regexp {^[\d;]+$} $col]} {
+            unset ::g_colors($elt)
+            reportDebug "Ignore invalid color code for '$elt' ($col)"
+         }
+      }
+
+      reportDebug "colors set to '[array get ::g_colors]'"
+   }
+}
+
+# Get color mode
+proc getColor {} {
+   if {![info exists ::g_color]} {
+      set color @color@ ;# Color content automatically
+
+      # overriden value coming from environment
+      if {[info exists ::env(MODULES_COLOR)]} {
+         # ignore non-valid values
+         switch -- $::env(MODULES_COLOR) {
+            always {
+               set color 2
+            }
+            auto {
+               set color 1
+            }
+            never {
+               set color 0
+            }
+         }
+      }
+
+      # overriden value coming the command-line
+      if {[info exists ::asked_color]} {
+         set color $::asked_color
+      }
+
+      # disable color mode if no terminal attached except if 'always' asked
+      if {$color != 0 && (![isStderrTty] || $color == 2)} {
+         incr color -1
+      }
+
+      # initialize color theme if color mode enabled
+      initColors
+
+      set ::g_color $color
+      reportDebug "color set to '$color'"
+   }
+
+   return $::g_color
+}
+
 
 # Use MODULECONTACT variable to set your support email address
 if {[info exists env(MODULECONTACT)]} {
@@ -484,6 +564,14 @@ proc recordMessage {message {recordtop 0}} {
       [currentMsgRecordId]}]) $message
 }
 
+# Select Graphic Rendition of a string with passed sgr key (if color enabled)
+proc sgr {sgrkey str} {
+   if {[getColor] && [info exists ::g_colors($sgrkey)]} {
+      set str "\033\[$::g_colors($sgrkey)m$str\033\[0m"
+   }
+   return $str
+}
+
 # save message if report is not yet initialized
 proc report {message {nonewline 0} {immed 0}} {
    lappend ::errreport_buffer [list report $message $nonewline $immed]
@@ -581,6 +669,12 @@ proc initErrorReport {} {
       set ::g_init_error_report 1
       # determine message paging configuration and enablement
       initPager
+
+      # ask for color init now as debug mode has already fire lines to render
+      # and we want them to be reported first (not the color init lines)
+      if {$::g_debug} {
+         getColor
+      }
 
       # replace report procedures used to bufferize messages until error
       # report being initialized by regular report procedures
@@ -8700,7 +8794,9 @@ Options:
   -V | --version  Module version
   -D | --debug    Enable debug messages
   --paginate      Pipe mesg output into a pager if stream attached to terminal
-  --no-pager      Do not pipe message output into a pager}
+  --no-pager      Do not pipe message output into a pager
+  --color[=WHEN]  Colorize the output; WHEN can be 'always' (default if
+                  omitted), 'auto' or 'never'}
    }
 }
 
@@ -8790,6 +8886,19 @@ if {[catch {
             }
             -f - --force {
                set asked_force 1
+            }
+            --color* {
+               switch -- [string range $arg 8 end] {
+                  always - {} {
+                     set asked_color 2
+                  }
+                  auto {
+                     set asked_color 1
+                  }
+                  never {
+                     set asked_color 0
+                  }
+               }
             }
             -t - --terse - -l - --long - --default - -L - --latest {
                # command-specific switches that can for compatibility be

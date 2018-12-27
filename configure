@@ -32,8 +32,8 @@ docdir vimdatadir modulefilesdir setmanpath appendmanpath setbinpath \
 appendbinpath setdotmodulespath docinstall vimaddons examplemodulefiles \
 builddoc gitworktree usemanpath compatversion EXEEXT libtclenvmodules \
 SHLIB_SUFFIX versioning silentshdbgsupport quarantinesupport \
-autohandling availindepth pager pageropts modulepath loadedmodules \
-quarantinevars"
+autohandling availindepth pager pageropts color colors modulepath \
+loadedmodules quarantinevars"
 compatarglist=
 libarglist=
 
@@ -78,6 +78,8 @@ RMDIR_IGN_NON_EMPTY=rmdir
 VERSION=
 pager=less
 pageropts='-eFKRX'
+color=n
+colors='hi=1:db=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92'
 # these args are initialized here but as they depend on other argument value
 # they will get their default value later (after command-line parse)
 bindir=
@@ -183,6 +185,7 @@ Optional Features:
   --enable-avail-indepth  control whether \`avail' search results should
                           recursively include or not modulefiles from
                           directories matching search query [yes]
+  --enable-color          display some elements in color on the terminal [no]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -197,6 +200,7 @@ Optional Packages:
                           seeded at run-time by environment variable) [$pager]
   --with-pager-opts=OPTLIST
                           settings to apply to default pager program [$pageropts]
+  --with-colors=SGRLIST   FIXME [$colors]
   --with-modulepath=PATHLIST
                           default modulepaths to set in default configuration
                           file to be enabled (each path in PATHLIST should
@@ -373,6 +377,10 @@ for arg in "$@"; do
    --with-pager-opts=*|--without-pager-opts)
       pageropts=$(get_package_value "$arg")
       defpageropts=0 ;;
+   --enable-color*|--disable-color)
+      color=$(get_feature_value "$arg") ;;
+   --with-colors=*|--without-colors)
+      colors=$(get_package_value "$arg") ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)
