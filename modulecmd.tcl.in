@@ -411,24 +411,25 @@ proc __reportDebug {message {showcaller 1}} {
    if {$showcaller && [info level] > 1} {
       append prefix "[lindex [info level -1] 0]: "
    }
-   report "DEBUG $prefix$message" 0 1
+   report [sgr db "DEBUG $prefix$message"] 0 1
 }
 
 # alternative procedure used when debug is disabled
 proc __reportDebugNop {args} {}
 
 proc reportWarning {message {recordtop 0}} {
-   reportError $message $recordtop WARNING 0
+   reportError $message $recordtop WARNING wa 0
 }
 
-proc reportError {message {recordtop 0} {severity ERROR} {raisecnt 1}} {
+proc reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
+   {raisecnt 1}} {
    # if report disabled, also disable error raise to get a coherent
    # behavior (if no message printed, no error code change)
    if {!$::g_inhibit_errreport} {
       if {$raisecnt} {
          raiseErrorCount
       }
-      set message "$severity: $message"
+      set message "[sgr $sgrkey $severity]: $message"
       # record message to report it later on if a record id is found
       if {[currentMsgRecordId] ne {}} {
          recordMessage $message $recordtop
@@ -454,12 +455,12 @@ proc reportInternalBug {message modfile} {
    # change line padding depending on output-kind
    set pad [expr {[currentMsgRecordId] ne {} ? {} : {  }}]
    reportError "$message\n${pad}In '$modfile'\n${pad}Please contact\
-      <$::contact>" 0 {Module ERROR}
+      <$::contact>" 0 {Module ERROR} me
 }
 
 proc reportInfo {message {title INFO}} {
    # use reportError for conveniance but there is no error here
-   reportError $message 0 $title 0
+   reportError $message 0 $title in 0
 }
 
 # is currently active message record id at top level
@@ -2956,8 +2957,8 @@ proc x-resource {resource {value {}}} {
       if {[string range $errMsg 0 9] eq {GLOBALERR }} {
          set errMsg [string range $errMsg 10 end]
       }
-      error "GLOBALERR X11 resources cannot be edited, issue spotted\nERROR:\
-         $errMsg"
+      error "GLOBALERR X11 resources cannot be edited, issue spotted\n[sgr er\
+         ERROR]: $errMsg"
    }
 
    # if a resource does hold an empty value in g_newXResources or
@@ -8994,7 +8995,7 @@ if {[catch {
 } errMsg ]} {
    # no use of reportError here to get independent from any
    # previous error report inhibition
-   report "ERROR: $errMsg"
+   report "[sgr er ERROR]: $errMsg"
    # init error report here in case the error raised before the regular init
    initErrorReport
    cleanupAndExit 1
