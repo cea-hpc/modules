@@ -6622,7 +6622,7 @@ proc displayTableHeader {args} {
    report [join $col_list .]
 }
 
-proc displaySeparatorLine {{title {}}} {
+proc displaySeparatorLine {{title {}} {sgrkey {}}} {
    set tty_cols [getTtyColumns]
    if {$title eq {}} {
       # adapt length if screen width is very small
@@ -6630,7 +6630,7 @@ proc displaySeparatorLine {{title {}}} {
       set rep [expr {$tty_cols > $max_rep ? $max_rep : $tty_cols}]
       report [string repeat - $rep]
    } else {
-      set len  [string length $title]
+      set len [string length $title]
       # max expr function is not supported in Tcl8.4 and earlier
       if {[set lrep [expr {($tty_cols - $len - 2)/2}]] < 1} {
          set lrep 1
@@ -6638,16 +6638,17 @@ proc displaySeparatorLine {{title {}}} {
       if {[set rrep [expr {$tty_cols - $len - 2 - $lrep}]] < 1} {
          set rrep 1
       }
-      report "[string repeat - $lrep] $title [string repeat - $rrep]"
+      report "[string repeat - $lrep] [sgr $sgrkey $title] [string repeat -\
+         $rrep]"
    }
 }
 
 # get a list of elements and print them in a column or in a
 # one-per-line fashion
-proc displayElementList {header hstyle one_per_line display_idx args} {
+proc displayElementList {header sgrkey hstyle one_per_line display_idx args} {
    set elt_cnt [llength $args]
-   reportDebug "header=$header, hstyle=$hstyle, elt_cnt=$elt_cnt,\
-      one_per_line=$one_per_line, display_idx=$display_idx"
+   reportDebug "header=$header, sgrkey=$sgrkey, hstyle=$hstyle,\
+      elt_cnt=$elt_cnt, one_per_line=$one_per_line, display_idx=$display_idx"
 
    # end proc if no element are to print
    if {$elt_cnt == 0} {
@@ -6657,9 +6658,9 @@ proc displayElementList {header hstyle one_per_line display_idx args} {
    # display header if any provided
    if {$header ne {noheader}} {
       if {$hstyle eq {sepline}} {
-         displaySeparatorLine $header
+         displaySeparatorLine $header $sgrkey
       } else {
-         report $header:
+         report [sgr $sgrkey $header]:
       }
    }
 
@@ -7206,7 +7207,7 @@ proc cmdModuleList {show_oneperline show_mtime} {
          set one_per_line 0
       }
 
-      eval displayElementList noheader "{}" $one_per_line $display_idx\
+      eval displayElementList noheader "{}" "{}" $one_per_line $display_idx\
          $display_list
    }
 }
@@ -7419,7 +7420,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             }
          }
 
-         eval displayElementList $dir sepline 1 0 $display_list
+         eval displayElementList $dir mp sepline 1 0 $display_list
       }
    }
    popMode
@@ -7754,7 +7755,7 @@ proc cmdModuleSavelist {show_oneperline show_mtime} {
          }
       }
 
-      eval displayElementList noheader "{}" $one_per_line $display_idx\
+      eval displayElementList noheader "{}" "{}" $one_per_line $display_idx\
          $display_list
    }
 }
@@ -8339,13 +8340,13 @@ proc cmdModuleAliases {} {
    foreach name [lsort -dictionary [array names ::g_moduleAlias]] {
       lappend display_list "$name -> $::g_moduleAlias($name)"
    }
-   eval displayElementList Aliases sepline 1 0 $display_list
+   eval displayElementList Aliases hi sepline 1 0 $display_list
 
    set display_list {}
    foreach name [lsort -dictionary [array names ::g_moduleVersion]] {
       lappend display_list "$name -> $::g_moduleVersion($name)"
    }
-   eval displayElementList Versions sepline 1 0 $display_list
+   eval displayElementList Versions hi sepline 1 0 $display_list
 }
 
 proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
@@ -8377,8 +8378,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
          set theader_shown 1
          eval displayTableHeader $theader_cols
       }
-      eval displayElementList "{global/user modulerc}" $hstyle $one_per_line\
-         0 $display_list
+      eval displayElementList "{global/user modulerc}" hi $hstyle\
+         $one_per_line 0 $display_list
 
       foreach dir [getModulePathList exiterronundef] {
          set display_list [listModules $dir $mod $show_mtime $show_filter\
@@ -8387,7 +8388,7 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
             set theader_shown 1
             eval displayTableHeader $theader_cols
          }
-         eval displayElementList $dir $hstyle $one_per_line 0 $display_list
+         eval displayElementList $dir mp $hstyle $one_per_line 0 $display_list
       }
    }
 
