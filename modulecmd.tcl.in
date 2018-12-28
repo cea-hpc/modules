@@ -6492,6 +6492,8 @@ proc listModules {dir mod show_mtime filter search} {
 
    # prepare results for display
    set clean_list {}
+   set len_list {}
+   set max_len 0
    foreach elt [array names mod_list] {
       set elt_type [lindex $mod_list($elt) 0]
 
@@ -6588,8 +6590,19 @@ proc listModules {dir mod show_mtime filter search} {
 
    # always dictionary-sort results
    set clean_list [lsort -dictionary $clean_list]
+
+   # compute display element length list on sorted result if needed
+   if {!$show_mtime} {
+      foreach disp $clean_list {
+         lappend len_list [set len [string length $disp]]
+         if {$len > $max_len} {
+            set max_len $len
+         }
+      }
+   }
+
    reportDebug "Returning $clean_list"
-   return $clean_list
+   return [list $clean_list $len_list $max_len]
 }
 
 proc showModulePath {} {
@@ -6645,10 +6658,12 @@ proc displaySeparatorLine {{title {}} {sgrkey {}}} {
 
 # get a list of elements and print them in a column or in a
 # one-per-line fashion
-proc displayElementList {header sgrkey hstyle one_per_line display_idx args} {
-   set elt_cnt [llength $args]
+proc displayElementList {header sgrkey hstyle one_per_line display_idx\
+   display_list {len_list {}} {max_len 0}} {
+   set elt_cnt [llength $display_list]
    reportDebug "header=$header, sgrkey=$sgrkey, hstyle=$hstyle,\
-      elt_cnt=$elt_cnt, one_per_line=$one_per_line, display_idx=$display_idx"
+      elt_cnt=$elt_cnt, max_len=$max_len, one_per_line=$one_per_line,\
+      display_idx=$display_idx"
 
    # end proc if no element are to print
    if {$elt_cnt == 0} {
@@ -6668,12 +6683,12 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx args} {
    if {$one_per_line} {
       if {$display_idx} {
          set idx 1
-         foreach elt $args {
+         foreach elt $display_list {
             append displist [format {%2d) %s } $idx $elt] \n
             incr idx
          }
       } else {
-         append displist [join $args \n] \n
+         append displist [join $display_list \n] \n
       }
    # elsewhere display elements in columns
    } else {
@@ -6689,13 +6704,9 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx args} {
       # compute rows*cols grid size with optimized column number
       # the size of each column is computed to display as much column
       # as possible on each line
-      set max_len 0
-      foreach arg $args {
-         lappend elt_len [set len [expr {[string length $arg] +\
-            $elt_suffix_len}]]
-         if {$len > $max_len} {
-            set max_len $len
-         }
+      incr max_len $elt_suffix_len
+      foreach len $len_list {
+         lappend elt_len [incr len $elt_suffix_len]
       }
 
       set tty_cols [getTtyColumns]
@@ -6776,7 +6787,7 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx args} {
          }
 
       }
-      reportDebug list=$args
+      reportDebug list=$display_list
       reportDebug "rows/cols=$rows/$cols,\
          lastcol_item_cnt=[expr {int($elt_cnt % $rows)}]"
 
@@ -6786,10 +6797,10 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx args} {
             if {$index < $elt_cnt} {
                if {$display_idx} {
                   append displist [format "%2d) %-$col_width($col)s"\
-                     [expr {$index +1}] [lindex $args $index]]
+                     [expr {$index +1}] [lindex $display_list $index]]
                } else {
                   append displist [format %-$col_width($col)s\
-                     [lindex $args $index]]
+                     [lindex $display_list $index]]
                }
             }
          }
@@ -7147,6 +7158,8 @@ proc cmdModuleList {show_oneperline show_mtime} {
       report {No Modulefiles Currently Loaded.}
    } else {
       set display_list {}
+      set len_list {}
+      set max_len 0
       foreach mod $loadedmodlist {
          if {$show_oneperline} {
             lappend display_list $mod
@@ -7191,6 +7204,10 @@ proc cmdModuleList {show_oneperline show_mtime} {
                   append mod ( [join $tag_list :] )
                }
                lappend display_list $mod
+               lappend len_list [set len [string length $mod]]
+               if {$len > $max_len} {
+                  set max_len $len
+               }
             }
          }
       }
@@ -7207,8 +7224,8 @@ proc cmdModuleList {show_oneperline show_mtime} {
          set one_per_line 0
       }
 
-      eval displayElementList noheader "{}" "{}" $one_per_line $display_idx\
-         $display_list
+      displayElementList noheader {} {} $one_per_line $display_idx\
+         $display_list $len_list $max_len
    }
 }
 
@@ -7420,7 +7437,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             }
          }
 
-         eval displayElementList $dir mp sepline 1 0 $display_list
+         displayElementList $dir mp sepline 1 0 $display_list
       }
    }
    popMode
@@ -7732,6 +7749,8 @@ proc cmdModuleSavelist {show_oneperline show_mtime} {
       }
       report "Named collection list$targetdesc:"
       set display_list {}
+      set len_list {}
+      set max_len 0
       if {$show_mtime || $show_oneperline} {
          set display_idx 0
          set one_per_line 1
@@ -7752,11 +7771,15 @@ proc cmdModuleSavelist {show_oneperline show_mtime} {
             lappend display_list [format %-60s%19s $mod $filetime]
          } else {
             lappend display_list $mod
+            lappend len_list [set len [string length $mod]]
+            if {$len > $max_len} {
+               set max_len $len
+            }
          }
       }
 
-      eval displayElementList noheader "{}" "{}" $one_per_line $display_idx\
-         $display_list
+      displayElementList noheader {} {} $one_per_line $display_idx\
+         $display_list $len_list $max_len
    }
 }
 
@@ -8340,13 +8363,13 @@ proc cmdModuleAliases {} {
    foreach name [lsort -dictionary [array names ::g_moduleAlias]] {
       lappend display_list "$name -> $::g_moduleAlias($name)"
    }
-   eval displayElementList Aliases hi sepline 1 0 $display_list
+   displayElementList Aliases hi sepline 1 0 $display_list
 
    set display_list {}
    foreach name [lsort -dictionary [array names ::g_moduleVersion]] {
       lappend display_list "$name -> $::g_moduleVersion($name)"
    }
-   eval displayElementList Versions hi sepline 1 0 $display_list
+   displayElementList Versions hi sepline 1 0 $display_list
 }
 
 proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
@@ -8372,23 +8395,24 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
    foreach mod $args {
       # look if aliases have been defined in the global or user-specific
       # modulerc and display them if any in a dedicated list
-      set display_list [listModules {} $mod $show_mtime $show_filter\
-         [concat $search_filter [list rc_alias_only]]]
+      lassign [listModules {} $mod $show_mtime $show_filter [concat\
+         $search_filter [list rc_alias_only]]] display_list len_list max_len
       if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
          set theader_shown 1
          eval displayTableHeader $theader_cols
       }
-      eval displayElementList "{global/user modulerc}" hi $hstyle\
-         $one_per_line 0 $display_list
+      displayElementList {global/user modulerc} hi $hstyle $one_per_line 0\
+         $display_list $len_list $max_len
 
       foreach dir [getModulePathList exiterronundef] {
-         set display_list [listModules $dir $mod $show_mtime $show_filter\
-            [concat $search_filter [list wild]]]
+         lassign [listModules $dir $mod $show_mtime $show_filter [concat\
+            $search_filter [list wild]]] display_list len_list max_len
          if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
             set theader_shown 1
             eval displayTableHeader $theader_cols
          }
-         eval displayElementList $dir mp $hstyle $one_per_line 0 $display_list
+         displayElementList $dir mp $hstyle $one_per_line 0 $display_list\
+            $len_list $max_len
       }
    }
 
