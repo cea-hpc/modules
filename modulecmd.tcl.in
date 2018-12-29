@@ -6520,6 +6520,7 @@ proc listModules {dir mod show_mtime filter search} {
       != -1)}]
 
    # prepare results for display
+   set alias_colored [expr {[sgr al {}] ne {}}]
    set clean_list {}
    foreach elt [array names mod_list] {
       set elt_type [lindex $mod_list($elt) 0]
@@ -6599,7 +6600,10 @@ proc listModules {dir mod show_mtime filter search} {
                   lassign [formatListEltToLongDisplay $elt al " -> [lindex\
                      $mod_list($elt) 1]" $tag_list sy {}] disp dispsgr
                } else {
-                  lappend tag_list @
+                  # add a '@' tag to indicate elt is an alias if not colored
+                  if {!$alias_colored} {
+                     lappend tag_list @
+                  }
                   lassign [formatListEltToDisplay $elt al {} $tag_list sy\
                      $flag_default_mf] disp dispsgr
                }
