@@ -6467,30 +6467,52 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
 }
 
 # format an element with its tags for display in a list
-proc formatListEltToDisplay {elt eltsgr eltsuffix tag_list tagsgr show_tags} {
+proc formatListEltToDisplay {elt eltsgr eltsuffix tag_list tagsgr show_tags\
+   sgrdef} {
    set disp $elt$eltsuffix
-   set dispsgr [sgr $eltsgr $elt]$eltsuffix
-   if {$show_tags && [llength $tag_list] > 0} {
-      append disp "([join $tag_list :])"
-      append dispsgr [sgr se (]
-      foreach tag $tag_list {
-         if {![info exists colonsgr]} {
-            set colonsgr [sgr se :]
-         } else {
-            append dispsgr $colonsgr
-         }
-         append dispsgr [sgr $tagsgr $tag]
+   set dispsgr [sgr $eltsgr $elt]
+   if {$show_tags} {
+      # display default tag graphically over element name
+      if {[set defidx [lsearch -exact $tag_list default]] != -1 && $sgrdef} {
+         set tag_list [lreplace $tag_list $defidx $defidx]
+         set dispsgr [sgr de $dispsgr]
       }
-      append dispsgr [sgr se )]
+
+      # format remaining tag list
+      if {[llength $tag_list] > 0} {
+         append disp "([join $tag_list :])"
+         set tagssgr [sgr se (]
+         foreach tag $tag_list {
+            if {![info exists colonsgr]} {
+               set colonsgr [sgr se :]
+            } else {
+               append tagssgr $colonsgr
+            }
+            append tagssgr [sgr $tagsgr $tag]
+         }
+         append tagssgr [sgr se )]
+         append dispsgr $eltsuffix$tagssgr
+      } else {
+         append dispsgr $eltsuffix
+      }
+   } else {
+      append dispsgr $eltsuffix
    }
    return [list $disp $dispsgr]
 }
 
 # format an element with its tags for a long/detailled display in a list
-proc formatListEltToLongDisplay {elt eltsgr eltsuffix tag_list tagsgr mtime} {
+proc formatListEltToLongDisplay {elt eltsgr eltsuffix tag_list tagsgr mtime\
+   sgrdef} {
    set disp $elt$eltsuffix
    set displen [string length $disp]
-   set dispsgr [sgr $eltsgr $elt]$eltsuffix
+   set dispsgr [sgr $eltsgr $elt]
+   # display default tag graphically over element name
+   if {[set defidx [lsearch -exact $tag_list default]] != -1 && $sgrdef} {
+      set tag_list [lreplace $tag_list $defidx $defidx]
+      set dispsgr [sgr de $dispsgr]
+   }
+   # format remaining tag list
    if {[llength $tag_list] > 0} {
       set tagslen [string length [join $tag_list :]]
       foreach tag $tag_list {
@@ -6505,7 +6527,7 @@ proc formatListEltToLongDisplay {elt eltsgr eltsuffix tag_list tagsgr mtime} {
       set tagssgr {}
       set tagslen 0
    }
-   return [list $disp $dispsgr[string repeat { } [expr {40 -\
+   return [list $disp $dispsgr$eltsuffix[string repeat { } [expr {40 -\
       $displen}]]$tagssgr[string repeat { } [expr {20 - $tagslen}]]$mtime]
 }
 
@@ -6535,6 +6557,7 @@ proc listModules {dir mod show_mtime filter search} {
 
    # prepare results for display
    set alias_colored [expr {[sgr al {}] ne {}}]
+   set default_colored [expr {[sgr de {}] ne {}}]
    set clean_list {}
    foreach elt [array names mod_list] {
       set elt_type [lindex $mod_list($elt) 0]
@@ -6591,10 +6614,10 @@ proc listModules {dir mod show_mtime filter search} {
                if {$show_mtime} {
                   # append / char after name to clearly indicate this is a dir
                   lassign [formatListEltToLongDisplay $elt di / $tag_list sy\
-                     {}] disp dispsgr
+                     {} $default_colored] disp dispsgr
                } else {
                   lassign [formatListEltToDisplay $elt di / $tag_list sy\
-                     $flag_default_dir] disp dispsgr
+                     $flag_default_dir $default_colored] disp dispsgr
                }
             }
             modulefile - virtual {
@@ -6603,23 +6626,24 @@ proc listModules {dir mod show_mtime filter search} {
                   # to potential tags
                   lassign [formatListEltToLongDisplay $elt {} {} $tag_list sy\
                      [clock format [lindex $mod_list($elt) 1] -format\
-                     {%Y/%m/%d %H:%M:%S}]] disp dispsgr
+                     {%Y/%m/%d %H:%M:%S}] $default_colored] disp dispsgr
                } else {
                   lassign [formatListEltToDisplay $elt {} {} $tag_list sy\
-                     $flag_default_mf] disp dispsgr
+                     $flag_default_mf $default_colored] disp dispsgr
                }
             }
             alias {
                if {$show_mtime} {
                   lassign [formatListEltToLongDisplay $elt al " -> [lindex\
-                     $mod_list($elt) 1]" $tag_list sy {}] disp dispsgr
+                     $mod_list($elt) 1]" $tag_list sy {} $default_colored]\
+                     disp dispsgr
                } else {
                   # add a '@' tag to indicate elt is an alias if not colored
                   if {!$alias_colored} {
                      lappend tag_list @
                   }
                   lassign [formatListEltToDisplay $elt al {} $tag_list sy\
-                     $flag_default_mf] disp dispsgr
+                     $flag_default_mf $default_colored] disp dispsgr
                }
             }
          }
@@ -7199,6 +7223,7 @@ proc cmdModuleList {show_oneperline show_mtime} {
       report {No Modulefiles Currently Loaded.}
    } else {
       set display_list {}
+      set default_colored [expr {[sgr de {}] ne {}}]
       set len_list {}
       set max_len 0
       foreach mod $loadedmodlist {
@@ -7238,10 +7263,10 @@ proc cmdModuleList {show_oneperline show_mtime} {
 
                # add to display file modification time in addition to tags
                lassign [formatListEltToLongDisplay $mod {} {} $tag_list sy\
-                  $clock_mtime] disp dispsgr
+                  $clock_mtime $default_colored] disp dispsgr
             } else {
-               lassign [formatListEltToDisplay $mod {} {} $tag_list sy 1]\
-                  disp dispsgr
+               lassign [formatListEltToDisplay $mod {} {} $tag_list sy 1\
+                  $default_colored] disp dispsgr
                lappend len_list [set len [string length $disp]]
                if {$len > $max_len} {
                   set max_len $len
