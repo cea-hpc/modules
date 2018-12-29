@@ -6466,6 +6466,35 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    return [array get mod_list]
 }
 
+# format an element with its tags for display in a list
+proc formatListEltToDisplay {elt eltsgr eltsuffix tag_list tagsgr show_tags} {
+   set disp $elt$eltsuffix
+   set dispsgr [sgr $eltsgr $elt]$eltsuffix
+   if {$show_tags && [llength $tag_list] > 0} {
+      set tags "([join $tag_list :])"
+      append disp $tags
+      append dispsgr [sgr $tagsgr $tags]
+   }
+   return [list $disp $dispsgr]
+}
+
+# format an element with its tags for a long/detailled display in a list
+proc formatListEltToLongDisplay {elt eltsgr eltsuffix tag_list tagsgr mtime} {
+   set disp $elt$eltsuffix
+   set displen [string length $disp]
+   set dispsgr [sgr $eltsgr $elt]$eltsuffix
+   if {[llength $tag_list] > 0} {
+      set tags [join $tag_list :]
+      set tagslen [string length $tags]
+      set tagssgr [sgr $tagsgr $tags]
+   } else {
+      set tagssgr {}
+      set tagslen 0
+   }
+   return [list $disp $dispsgr[string repeat { } [expr {40 -\
+      $displen}]]$tagssgr[string repeat { } [expr {20 - $tagslen}]]$mtime]
+}
+
 # Finds all module versions for mod in the module path dir
 proc listModules {dir mod show_mtime filter search} {
    global flag_default_mf flag_default_dir
@@ -6492,8 +6521,6 @@ proc listModules {dir mod show_mtime filter search} {
 
    # prepare results for display
    set clean_list {}
-   set len_list {}
-   set max_len 0
    foreach elt [array names mod_list] {
       set elt_type [lindex $mod_list($elt) 0]
 
@@ -6541,68 +6568,65 @@ proc listModules {dir mod show_mtime filter search} {
       }
 
       if {$add_to_clean_list} {
+         set dispsgr {}
+         # ignore "version" entries as symbolic version are treated
+         # along to their relative modulefile not independently
          switch -- $elt_type {
             directory {
-               # append / char after name to clearly indicate this is a dir
-               if {$flag_default_dir && $show_mtime} {
-                  lappend clean_list [format %-40s%-20s $elt/\
-                     [join $tag_list :]]
-               } elseif {$flag_default_dir && [llength $tag_list] > 0} {
-                  lappend clean_list [join [list $elt/ (\
-                     [join $tag_list :] )] {}]
+               if {$show_mtime} {
+                  # append / char after name to clearly indicate this is a dir
+                  lassign [formatListEltToLongDisplay $elt di / $tag_list sy\
+                     {}] disp dispsgr
                } else {
-                  lappend clean_list $elt/
+                  lassign [formatListEltToDisplay $elt di / $tag_list sy\
+                     $flag_default_dir] disp dispsgr
                }
             }
             modulefile - virtual {
                if {$show_mtime} {
                   # add to display file modification time in addition
                   # to potential tags
-                  lappend clean_list [format %-40s%-20s%19s $elt\
-                     [join $tag_list :]\
-                     [clock format [lindex $mod_list($elt) 1]\
-                     -format {%Y/%m/%d %H:%M:%S}]]
-               } elseif {$flag_default_mf && [llength $tag_list] > 0} {
-                  lappend clean_list [join [list $elt (\
-                     [join $tag_list :] )] {}]
+                  lassign [formatListEltToLongDisplay $elt {} {} $tag_list sy\
+                     [clock format [lindex $mod_list($elt) 1] -format\
+                     {%Y/%m/%d %H:%M:%S}]] disp dispsgr
                } else {
-                  lappend clean_list $elt
+                  lassign [formatListEltToDisplay $elt {} {} $tag_list sy\
+                     $flag_default_mf] disp dispsgr
                }
             }
             alias {
                if {$show_mtime} {
-                  lappend clean_list [format %-40s%-20s\
-                     "$elt -> [lindex $mod_list($elt) 1]"\
-                     [join $tag_list :]]
-               } elseif {$flag_default_mf} {
-                  lappend tag_list @
-                  lappend clean_list [join [list $elt (\
-                     [join $tag_list :] )] {}]
+                  lassign [formatListEltToLongDisplay $elt al " -> [lindex\
+                     $mod_list($elt) 1]" $tag_list sy {}] disp dispsgr
                } else {
-                  lappend clean_list $elt
+                  lappend tag_list @
+                  lassign [formatListEltToDisplay $elt al {} $tag_list sy\
+                     $flag_default_mf] disp dispsgr
                }
             }
          }
-         # ignore "version" entries as symbolic version are treated
-         # along to their relative modulefile not independently
-      }
-   }
-
-   # always dictionary-sort results
-   set clean_list [lsort -dictionary $clean_list]
-
-   # compute display element length list on sorted result if needed
-   if {!$show_mtime} {
-      foreach disp $clean_list {
-         lappend len_list [set len [string length $disp]]
-         if {$len > $max_len} {
-            set max_len $len
+         if {$dispsgr ne {}} {
+            lappend clean_list $disp
+            set sgrmap($disp) $dispsgr
          }
       }
    }
 
-   reportDebug "Returning $clean_list"
-   return [list $clean_list $len_list $max_len]
+   set display_list {}
+   set len_list {}
+   set max_len 0
+   # always dictionary-sort results
+   foreach disp [lsort -dictionary $clean_list] {
+      # compute display element length list on sorted result
+      lappend display_list $sgrmap($disp)
+      lappend len_list [set len [string length $disp]]
+      if {$len > $max_len} {
+         set max_len $len
+      }
+   }
+
+   reportDebug "Returning $display_list"
+   return [list $display_list $len_list $max_len]
 }
 
 proc showModulePath {} {
@@ -6796,12 +6820,11 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
             set index [expr {$col * $rows + $row}]
             if {$index < $elt_cnt} {
                if {$display_idx} {
-                  append displist [format "%2d) %-$col_width($col)s"\
-                     [expr {$index +1}] [lindex $display_list $index]]
-               } else {
-                  append displist [format %-$col_width($col)s\
-                     [lindex $display_list $index]]
+                  append displist [format "%2d) " [expr {$index +1}]]
                }
+               # cannot use 'format' as strings may contain SGR codes
+               append displist [lindex $display_list $index][string repeat\
+                  { } [expr {$col_width($col) - [lindex $len_list $index]}]]
             }
          }
          append displist \n
