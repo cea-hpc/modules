@@ -6471,9 +6471,17 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix tag_list tagsgr show_tags} {
    set disp $elt$eltsuffix
    set dispsgr [sgr $eltsgr $elt]$eltsuffix
    if {$show_tags && [llength $tag_list] > 0} {
-      set tags "([join $tag_list :])"
-      append disp $tags
-      append dispsgr [sgr $tagsgr $tags]
+      append disp "([join $tag_list :])"
+      append dispsgr [sgr se (]
+      foreach tag $tag_list {
+         if {![info exists colonsgr]} {
+            set colonsgr [sgr se :]
+         } else {
+            append dispsgr $colonsgr
+         }
+         append dispsgr [sgr $tagsgr $tag]
+      }
+      append dispsgr [sgr se )]
    }
    return [list $disp $dispsgr]
 }
@@ -6484,9 +6492,15 @@ proc formatListEltToLongDisplay {elt eltsgr eltsuffix tag_list tagsgr mtime} {
    set displen [string length $disp]
    set dispsgr [sgr $eltsgr $elt]$eltsuffix
    if {[llength $tag_list] > 0} {
-      set tags [join $tag_list :]
-      set tagslen [string length $tags]
-      set tagssgr [sgr $tagsgr $tags]
+      set tagslen [string length [join $tag_list :]]
+      foreach tag $tag_list {
+         if {![info exists colonsgr]} {
+            set colonsgr [sgr se :]
+         } else {
+            append tagssgr $colonsgr
+         }
+         append tagssgr [sgr $tagsgr $tag]
+      }
    } else {
       set tagssgr {}
       set tagslen 0
