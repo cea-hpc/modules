@@ -7218,20 +7218,18 @@ proc cmdModuleList {show_oneperline show_mtime} {
                   set clock_mtime {}
                }
 
-               # add to display file modification time in addition
-               # to potential tags
-               lappend display_list [format %-40s%-20s%19s $mod\
-                  [join $tag_list :] $clock_mtime]
+               # add to display file modification time in addition to tags
+               lassign [formatListEltToLongDisplay $mod {} {} $tag_list sy\
+                  $clock_mtime] disp dispsgr
             } else {
-               if {[llength $tag_list]} {
-                  append mod ( [join $tag_list :] )
-               }
-               lappend display_list $mod
-               lappend len_list [set len [string length $mod]]
+               lassign [formatListEltToDisplay $mod {} {} $tag_list sy 1]\
+                  disp dispsgr
+               lappend len_list [set len [string length $disp]]
                if {$len > $max_len} {
                   set max_len $len
                }
             }
+            lappend display_list $dispsgr
          }
       }
 
