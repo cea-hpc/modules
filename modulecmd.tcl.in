@@ -7058,21 +7058,24 @@ proc getCollectionFilename {coll} {
 }
 
 # generate collection content based on provided path and module lists
-proc formatCollectionContent {path_list mod_list nuasked_list} {
+proc formatCollectionContent {path_list mod_list nuasked_list {sgr 0}} {
    set content {}
+
+   # graphically enhance module command if asked
+   set modcmd [expr {$sgr ? [sgr cm module] : {module}}]
 
    # start collection content with modulepaths
    foreach path $path_list {
       # 'module use' prepends paths by default so we clarify
       # path order here with --append flag
-      append content "module use --append $path" \n
+      append content "$modcmd use --append $path" \n
    }
 
    # then add modules
    foreach mod $mod_list {
       # mark modules not asked by user to restore the user asked state
       set opt [expr {[isInList $nuasked_list $mod] ? {--notuasked } : {}}]
-      append content "module load $opt$mod" \n
+      append content "$modcmd load $opt$mod" \n
    }
 
    return $content
@@ -7821,7 +7824,7 @@ proc cmdModuleSaveshow {{coll default}} {
    displaySeparatorLine
    report [sgr hi $collfile]:\n
    report [formatCollectionContent $coll_path_list $coll_mod_list\
-      $coll_nuasked_list]
+      $coll_nuasked_list 1]
    displaySeparatorLine
 }
 
