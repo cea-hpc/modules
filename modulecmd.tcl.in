@@ -568,7 +568,14 @@ proc recordMessage {message {recordtop 0}} {
 # Select Graphic Rendition of a string with passed sgr key (if color enabled)
 proc sgr {sgrkey str} {
    if {[getColor] && [info exists ::g_colors($sgrkey)]} {
-      set str "\033\[$::g_colors($sgrkey)m$str\033\[0m"
+      set sgrset $::g_colors($sgrkey)
+      # if render bold or faint just reset that attribute, not all
+      if {$sgrset == 1 || $sgrset == 2} {
+         set sgrreset 22
+      } else {
+         set sgrreset 0
+      }
+      set str "\033\[${sgrset}m$str\033\[${sgrreset}m"
    }
    return $str
 }
@@ -6468,9 +6475,14 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
 
 # format an element with its tags for display in a list
 proc formatListEltToDisplay {elt eltsgr eltsuffix tag_list tagsgr show_tags\
-   sgrdef} {
+   sgrdef {matchmap {}}} {
    set disp $elt$eltsuffix
-   set dispsgr [sgr $eltsgr $elt]
+   # hightlight matching substring
+   if {$matchmap ne {}} {
+      set dispsgr [sgr $eltsgr [string map $matchmap $elt]]
+   } else {
+      set dispsgr [sgr $eltsgr $elt]
+   }
    if {$show_tags} {
       # display default tag graphically over element name
       if {[set defidx [lsearch -exact $tag_list default]] != -1 && $sgrdef} {
@@ -6503,10 +6515,15 @@ proc formatListEltToDisplay {elt eltsgr eltsuffix tag_list tagsgr show_tags\
 
 # format an element with its tags for a long/detailled display in a list
 proc formatListEltToLongDisplay {elt eltsgr eltsuffix tag_list tagsgr mtime\
-   sgrdef} {
+   sgrdef {matchmap {}}} {
    set disp $elt$eltsuffix
    set displen [string length $disp]
-   set dispsgr [sgr $eltsgr $elt]
+   # hightlight matching substring
+   if {$matchmap ne {}} {
+      set dispsgr [sgr $eltsgr [string map $matchmap $elt]]
+   } else {
+      set dispsgr [sgr $eltsgr $elt]
+   }
    # display default tag graphically over element name
    if {[set defidx [lsearch -exact $tag_list default]] != -1 && $sgrdef} {
       set tag_list [lreplace $tag_list $defidx $defidx]
@@ -6529,6 +6546,16 @@ proc formatListEltToLongDisplay {elt eltsgr eltsuffix tag_list tagsgr mtime\
    }
    return [list $disp $dispsgr$eltsuffix[string repeat { } [expr {40 -\
       $displen}]]$tagssgr[string repeat { } [expr {20 - $tagslen}]]$mtime]
+}
+
+# Prepare a map list to translate later on a substring in its highlighted
+# counterpart. Translate substring after right trimming it from wildcard
+# characters. No translation map is returned if hightlight rendering is
+# disabled or if some wildcard characters persist after the trim.
+proc prepareMapToHightlightSubstr {substr} {
+   set m [string trimright $substr {*?}]
+   return [expr {[sgr hi {}] ne {} && $m ne {} && [string first * $m] == -1\
+      && [string first ? $m] == -1 ? [list $m [sgr hi $m]] : {}}]
 }
 
 # Finds all module versions for mod in the module path dir
@@ -6558,6 +6585,7 @@ proc listModules {dir mod show_mtime filter search} {
    # prepare results for display
    set alias_colored [expr {[sgr al {}] ne {}}]
    set default_colored [expr {[sgr de {}] ne {}}]
+   set matchmap [prepareMapToHightlightSubstr $mod]
    set clean_list {}
    foreach elt [array names mod_list] {
       set elt_type [lindex $mod_list($elt) 0]
@@ -6614,10 +6642,11 @@ proc listModules {dir mod show_mtime filter search} {
                if {$show_mtime} {
                   # append / char after name to clearly indicate this is a dir
                   lassign [formatListEltToLongDisplay $elt di / $tag_list sy\
-                     {} $default_colored] disp dispsgr
+                     {} $default_colored $matchmap] disp dispsgr
                } else {
                   lassign [formatListEltToDisplay $elt di / $tag_list sy\
-                     $flag_default_dir $default_colored] disp dispsgr
+                     $flag_default_dir $default_colored $matchmap] disp\
+                     dispsgr
                }
             }
             modulefile - virtual {
@@ -6626,24 +6655,25 @@ proc listModules {dir mod show_mtime filter search} {
                   # to potential tags
                   lassign [formatListEltToLongDisplay $elt {} {} $tag_list sy\
                      [clock format [lindex $mod_list($elt) 1] -format\
-                     {%Y/%m/%d %H:%M:%S}] $default_colored] disp dispsgr
+                     {%Y/%m/%d %H:%M:%S}] $default_colored $matchmap] disp\
+                     dispsgr
                } else {
                   lassign [formatListEltToDisplay $elt {} {} $tag_list sy\
-                     $flag_default_mf $default_colored] disp dispsgr
+                     $flag_default_mf $default_colored $matchmap] disp dispsgr
                }
             }
             alias {
                if {$show_mtime} {
                   lassign [formatListEltToLongDisplay $elt al " -> [lindex\
-                     $mod_list($elt) 1]" $tag_list sy {} $default_colored]\
-                     disp dispsgr
+                     $mod_list($elt) 1]" $tag_list sy {} $default_colored\
+                     $matchmap] disp dispsgr
                } else {
                   # add a '@' tag to indicate elt is an alias if not colored
                   if {!$alias_colored} {
                      lappend tag_list @
                   }
                   lassign [formatListEltToDisplay $elt al {} $tag_list sy\
-                     $flag_default_mf $default_colored] disp dispsgr
+                     $flag_default_mf $default_colored $matchmap] disp dispsgr
                }
             }
          }
