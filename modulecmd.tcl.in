@@ -7511,6 +7511,10 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
       }
    }
 
+   # prepare string translation to highlight search query string
+   set matchmodmap [prepareMapToHightlightSubstr $mod]
+   set matchsearchmap [prepareMapToHightlightSubstr $search]
+
    # interpret all modulefile we got for each modulepath
    foreach dir $dir_list {
       if {[info exists interp_save($dir)]} {
@@ -7525,8 +7529,11 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 
             # treat whatis as a multi-line text
             if {$search eq {} || [regexp -nocase $search $::g_whatis]} {
+               set eltsgr [string map $matchmodmap $elt]
                foreach line $::g_whatis {
-                  lappend display_list [format {%20s: %s} $elt $line]
+                  set linesgr [string map $matchsearchmap $line]
+                  lappend display_list "[string repeat { } [expr {20 -\
+                     [string length $elt]}]]$eltsgr: $linesgr"
                }
             }
          }
