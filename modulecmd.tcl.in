@@ -1970,7 +1970,7 @@ proc module {command args} {
       switch -- $command {
          path - paths - autoinit - help - prepend-path - append-path -\
          remove-path - is-loaded - is-saved - is-used - is-avail -\
-         info-loaded - clear {
+         info-loaded - clear - config {
             set errormsg "${msgprefix}Command '$command' not supported"
          }
       }
@@ -1985,7 +1985,7 @@ proc module {command args} {
          }
       }
       reload - aliases - list - purge - savelist - initlist - initclear -\
-      autoinit {
+      autoinit - config {
          if {[llength $args] != 0} {
             set argnberr 1
          }
@@ -2260,6 +2260,9 @@ proc module {command args} {
          clear {
             # ensure empty string is correctly passed
             eval cmdModuleClear "{$args}"
+         }
+         config {
+            cmdModuleConfig
          }
          help {
             eval cmdModuleHelp $args
@@ -8933,6 +8936,28 @@ proc cmdModuleClear {{doit {}}} {
    }
 }
 
+proc cmdModuleConfig {} {
+   reportVersion
+   reportSeparateNextContent
+   displayTableHeader hi {Config. name} 24 Value 54
+
+   set config_list [list contact $::contact auto_handling [getAutoHandling]\
+      avail_indepth [getAvailInDepth] collection_pin_version\
+      [pinVersionInCollection] collection_target [get-env\
+      MODULES_COLLECTION_TARGET <undef>] color [getColor] colors [join [array\
+      get ::g_colors] :] debug $::g_debug force [getForce] pager "$::g_pager\
+      $::g_pager_opts" path_separator [getPathSeparator] run_quarantine\
+      [get-env MODULES_RUN_QUARANTINE <undef>] silent_shell_debug [get-env\
+      MODULES_SILENT_SHELL_DEBUG <undef>] siteconfig $::g_siteconfig\
+      tcl_ext_lib $::g_tclextlib term_background [getTermBackground]\
+      term_columns [getTtyColumns]]
+
+   foreach {var val} $config_list {
+      append displist [format {%-25s %s} $var $val] \n
+   }
+   report $displist 1
+}
+
 proc cmdModuleHelp {args} {
    pushMode help
    set first_report 1
@@ -9005,6 +9030,7 @@ Other commands:
   paths           modulefile        Print path of matching available modules
   clear           [-f]              Reset Modules-specific runtime information
   source          scriptfile [...]  Execute scriptfile(s)
+  config                            Display Modules configuration
 
 Switches:
   -t | --terse    Display output in terse format
