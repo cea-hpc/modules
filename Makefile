@@ -153,7 +153,9 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@pager@|$(pager)|g' \
 	-e 's|@pageropts@|$(pageropts)|g' \
 	-e 's|@color@|$(setcolor)|g' \
-	-e 's|@colors@|$(colors)|g' \
+	-e 's|@darkbgcolors@|$(darkbgcolors)|g' \
+	-e 's|@lightbgcolors@|$(lightbgcolors)|g' \
+	-e 's|@termbg@|$(termbg)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \

@@ -160,6 +160,28 @@ proc getAvailInDepth {} {
    return $::g_avail_indepth
 }
 
+# Get terminal background color kind (dark or light)
+proc getTermBackground {} {
+   if {![info exists ::g_term_background]} {
+      set term_background @termbg@ ;# Terminal background color
+
+      # overriden value coming from environment
+      if {[info exists ::env(MODULES_TERM_BACKGROUND)]} {
+         # ignore non-valid values
+         switch -- $::env(MODULES_TERM_BACKGROUND) {
+            dark - light {
+               set term_background $::env(MODULES_TERM_BACKGROUND)
+            }
+         }
+      }
+
+      set ::g_term_background $term_background
+      reportDebug "term_background set to '$term_background'"
+   }
+
+   return $::g_term_background
+}
+
 # Initialize Select Graphic Rendition table
 proc initColors {} {
    if {![array exists ::g_colors]} {
@@ -176,12 +198,20 @@ proc initColors {} {
          }
       }
 
-      # use default color theme if no valid override set
+      # if no valid override set use default color theme for terminal
+      # background color kind (light or dark)
       if {![array exists ::g_colors]} {
+         set termbg [getTermBackground]
+         if {$termbg eq {light}} {
+            set defcolors {@lightbgcolors@}
+         } else {
+            set defcolors {@darkbgcolors@}
+         }
          if {[catch {
-            array set ::g_colors [split {@colors@} {:=}]
+            array set ::g_colors [split $defcolors {:=}]
          } errMsg ]} {
-            reportDebug "Ignore invalid default colors (@colors@)"
+            reportDebug "Ignore invalid default $termbg background colors\
+               ($defcolors)"
             # define an empty table if no valid value set
             array set ::g_colors {}
          }

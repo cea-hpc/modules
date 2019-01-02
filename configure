@@ -32,8 +32,8 @@ docdir vimdatadir modulefilesdir setmanpath appendmanpath setbinpath \
 appendbinpath setdotmodulespath docinstall vimaddons examplemodulefiles \
 builddoc gitworktree usemanpath compatversion EXEEXT libtclenvmodules \
 SHLIB_SUFFIX versioning silentshdbgsupport quarantinesupport \
-autohandling availindepth pager pageropts color colors modulepath \
-loadedmodules quarantinevars"
+autohandling availindepth pager pageropts color darkbgcolors lightbgcolors \
+termbg modulepath loadedmodules quarantinevars"
 compatarglist=
 libarglist=
 
@@ -79,7 +79,9 @@ VERSION=
 pager=less
 pageropts='-eFKRX'
 color=n
-colors='hi=1:db=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92'
+darkbgcolors='hi=1:db=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92'
+lightbgcolors='hi=1:db=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:sy=35:de=4:cm=32'
+termbg=dark
 # these args are initialized here but as they depend on other argument value
 # they will get their default value later (after command-line parse)
 bindir=
@@ -200,7 +202,12 @@ Optional Packages:
                           seeded at run-time by environment variable) [$pager]
   --with-pager-opts=OPTLIST
                           settings to apply to default pager program [$pageropts]
-  --with-colors=SGRLIST   FIXME [$colors]
+  --with-dark-background-colors=SGRLIST
+                          FIXME [$darkbgcolors]
+  --with-light-background-colors=SGRLIST
+                          FIXME [$lightbgcolors]
+  --with-terminal-background=VALUE
+                          FIXME [$termbg]
   --with-modulepath=PATHLIST
                           default modulepaths to set in default configuration
                           file to be enabled (each path in PATHLIST should
@@ -379,8 +386,16 @@ for arg in "$@"; do
       defpageropts=0 ;;
    --enable-color*|--disable-color)
       color=$(get_feature_value "$arg") ;;
-   --with-colors=*|--without-colors)
-      colors=$(get_package_value "$arg") ;;
+   --with-dark-background-colors=*|--without-dark-background-colors)
+      darkbgcolors=$(get_package_value "$arg") ;;
+   --with-light-background-colors=*|--without-light-background-colors)
+      lightbgcolors=$(get_package_value "$arg") ;;
+   --with-terminal-background=*|--without-terminal-background)
+      termbg=$(get_package_value "$arg") ;
+      allowedval=" dark light " ;
+      if [ "${allowedval// $termbg /}" = "$allowedval" ]; then
+         echo_error "Bad value for option \`--with-terminal-background', allowed values are:$allowedval"
+      fi ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)
