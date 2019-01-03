@@ -310,14 +310,13 @@ proc getContact {} {
    return $::g_contact
 }
 
-# Set some directories to ignore when looking for modules.
-set ignoreDir(CVS) 1
-set ignoreDir(RCS) 1
-set ignoreDir(SCCS) 1
-set ignoreDir(.svn) 1
-set ignoreDir(.git) 1
-set ignoreDir(.SYNC) 1
-set ignoreDir(.sos) 1
+# Some directories are ignored when looking for modules.
+proc getIgnoredDirs {} {
+   if {![info exists ::g_ignored_dirs]} {
+      set ::g_ignored_dirs {CVS RCS SCCS .svn .git .SYNC .sos}
+   }
+   return $::g_ignored_dirs
+}
 
 proc raiseErrorCount {} {
    incr ::error_count
@@ -6182,6 +6181,9 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
       lappend full_list [file join $dir $mod]
    }
 
+   foreach igndir [getIgnoredDirs] {
+      set ignored_dirs($igndir) 1
+   }
    array set mod_list {}
    for {set i 0} {$i < [llength $full_list]} {incr i 1} {
       set element [lindex $full_list $i]
@@ -6193,7 +6195,7 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
       set moddepthlvl [llength [file split $modulename]]
       set add_ref_to_parent 0
       if {[file isdirectory $element]} {
-         if {![info exists ::ignoreDir($tail)]} {
+         if {![info exists ignored_dirs($tail)]} {
             if {[catch {
                set elt_list [getFilesInDirectory $element $fetch_hidden 1]
             } errMsg]} {
