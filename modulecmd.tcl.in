@@ -205,14 +205,15 @@ proc initColors {} {
    if {![array exists ::g_colors]} {
       # overriden value coming from environment
       if {[info exists ::env(MODULES_COLORS)]} {
+         set ::g_colors_list $::env(MODULES_COLORS)
          if {[catch {
-            array set ::g_colors [split $::env(MODULES_COLORS) {:=}]
+            array set ::g_colors [split $::g_colors_list {:=}]
          } errMsg ]} {
             # report issue as a debug message rather warning to avoid
             # disturbing user with a warning message in the middle of a
             # useful output as this table will be initialized at first use
             reportDebug "Ignore invalid value set in MODULES_COLORS\
-               ($::env(MODULES_COLORS))"
+               ($::g_colors_list)"
             # fully clear array in case it was partially initialized
             unset -nocomplain ::g_colors
          }
@@ -223,15 +224,15 @@ proc initColors {} {
       if {![array exists ::g_colors]} {
          set termbg [getTermBackground]
          if {$termbg eq {light}} {
-            set defcolors {@lightbgcolors@}
+            set ::g_colors_list {@lightbgcolors@}
          } else {
-            set defcolors {@darkbgcolors@}
+            set ::g_colors_list {@darkbgcolors@}
          }
          if {[catch {
-            array set ::g_colors [split $defcolors {:=}]
+            array set ::g_colors [split $::g_colors_list {:=}]
          } errMsg ]} {
             reportDebug "Ignore invalid default $termbg background colors\
-               ($defcolors)"
+               ($::g_colors_list)"
             # define an empty table if no valid value set
             array set ::g_colors {}
          }
