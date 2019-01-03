@@ -292,12 +292,22 @@ proc getColor {} {
 }
 
 
-# Use MODULECONTACT variable to set your support email address
-if {[info exists env(MODULECONTACT)]} {
-   set contact $env(MODULECONTACT)
-} else {
-   # Or change this to your support email address...
-   set contact root@localhost
+# Get contact address for modulefile issue
+proc getContact {} {
+   if {![info exists ::g_contact]} {
+      # default value, change this to your support email address...
+      set contact root@localhost
+
+      # overriden value coming from environment
+      if {[info exists ::env(MODULECONTACT)]} {
+         set contact $::env(MODULECONTACT)
+      }
+
+      set ::g_contact $contact
+      reportDebug "contact set to '$contact'"
+   }
+
+   return $::g_contact
 }
 
 # Set some directories to ignore when looking for modules.
@@ -515,7 +525,7 @@ proc reportInternalBug {message modfile} {
    # change line padding depending on output-kind
    set pad [expr {[currentMsgRecordId] ne {} ? {} : {  }}]
    reportError "$message\n${pad}In '$modfile'\n${pad}Please contact\
-      <$::contact>" 0 {Module ERROR} me
+      <[getContact]>" 0 {Module ERROR} me
 }
 
 proc reportInfo {message {title INFO}} {
@@ -8984,7 +8994,7 @@ proc cmdModuleConfig {} {
 
    # define each attribute/fetched value pair
    set config_list [list\
-      contact [displayConfig contact {} MODULECONTACT {} var]\
+      contact [displayConfig getContact {} MODULECONTACT]\
       auto_handling [displayConfig getAutoHandling asked_auto_handling\
          MODULES_AUTO_HANDLING]\
       avail_indepth [displayConfig getAvailInDepth {} MODULES_AVAIL_INDEPTH]\
