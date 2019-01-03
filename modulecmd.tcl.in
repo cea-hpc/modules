@@ -6974,6 +6974,44 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
    reportSeparateNextContent
 }
 
+# Return conf value and from where an eventual def value has been overridden
+proc displayConfig {getlist asked_var env_var {trans {}} {gettype proc}} {
+   array set transarr $trans
+
+   # fetch value by calling proc or reading var
+   switch -- $gettype {
+      proc {
+         set val [eval $getlist]
+      }
+      var {
+         foreach get $getlist {
+            if {[info exists val]} {
+               append val { }
+            }
+            append val [set ::$get]
+         }
+      }
+   }
+
+   # get overridden value and know what has overridden it
+   if {$asked_var ne {} && [info exists ::$asked_var]} {
+      set val [set ::$asked_var]
+      set defby " (cmd-line)"
+   } elseif {$env_var ne {} && [info exists ::env($env_var)]} {
+      set val [set ::env($env_var)]
+      set defby " (env-var)"
+   } else {
+      set defby {}
+   }
+
+   # translate fetched value if translation table exists
+   if {[info exists transarr($val)]} {
+      set val $transarr($val)
+   }
+
+   return $val$defby
+}
+
 # build list of what to undo then do to move from an initial list to a target
 # list, eventually checking element presence in extra from/to lists
 proc getMovementBetweenList {from to {extfrom {}} {extto {}}} {
@@ -8941,17 +8979,35 @@ proc cmdModuleClear {{doit {}}} {
 proc cmdModuleConfig {} {
    reportVersion
    reportSeparateNextContent
-   displayTableHeader hi {Config. name} 24 Value 54
+   displayTableHeader hi {Config. name} 24 {Value (set by if default\
+      overridden)} 54
 
-   set config_list [list contact $::contact auto_handling [getAutoHandling]\
-      avail_indepth [getAvailInDepth] collection_pin_version\
-      [pinVersionInCollection] collection_target [get-env\
-      MODULES_COLLECTION_TARGET <undef>] color [getColor] colors [join [array\
-      get ::g_colors] :] debug $::g_debug force [getForce] pager "$::g_pager\
-      $::g_pager_opts" path_separator [getPathSeparator] run_quarantine\
-      [get-env MODULES_RUN_QUARANTINE <undef>] silent_shell_debug [get-env\
-      MODULES_SILENT_SHELL_DEBUG <undef>] siteconfig $::g_siteconfig\
-      tcl_ext_lib $::g_tclextlib term_background [getTermBackground]\
+   # define each attribute/fetched value pair
+   set config_list [list\
+      contact [displayConfig contact {} MODULECONTACT {} var]\
+      auto_handling [displayConfig getAutoHandling asked_auto_handling\
+         MODULES_AUTO_HANDLING]\
+      avail_indepth [displayConfig getAvailInDepth {} MODULES_AVAIL_INDEPTH]\
+      collection_pin_version [displayConfig pinVersionInCollection {}\
+         MODULES_COLLECTION_PIN_VERSION]\
+      collection_target [displayConfig {get-env MODULES_COLLECTION_TARGET\
+         <undef>} {} MODULES_COLLECTION_TARGET]\
+      color [displayConfig getColor asked_color MODULES_COLOR {0 never 1 auto\
+         2 always}]\
+      colors [displayConfig g_colors_list {} MODULES_COLORS {} var]\
+      debug $::g_debug\
+      force [displayConfig getForce asked_force {}]\
+      pager [displayConfig {g_pager g_pager_opts} {} MODULES_PAGER {} var]\
+      paginate [displayConfig use_pager asked_pager {} {} var]\
+      path_separator [getPathSeparator]\
+      run_quarantine [displayConfig {get-env MODULES_RUN_QUARANTINE <undef>}\
+         {} MODULES_RUN_QUARANTINE]\
+      silent_shell_debug [displayConfig {get-env MODULES_SILENT_SHELL_DEBUG\
+         <undef>} {} MODULES_SILENT_SHELL_DEBUG]\
+      siteconfig $::g_siteconfig\
+      tcl_ext_lib $::g_tclextlib\
+      term_background [displayConfig getTermBackground {}\
+         MODULES_TERM_BACKGROUND]\
       term_columns [getTtyColumns]]
 
    foreach {var val} $config_list {
