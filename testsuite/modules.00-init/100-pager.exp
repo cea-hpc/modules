@@ -34,7 +34,7 @@ if { $verbose > 0 } {
 
 # helper proc to generate pager test and expected debugging output
 proc pager_test_case {modarg use asked cmd opts} {
-    global MODULECMD env install_pager install_pageropts siteconfig_filere warn_msgs is_stderr_tty
+    global MODULECMD env install_pager install_pageropts siteconfig_filere warn_msgs is_stderr_tty install_termbg
 
     if {$modarg ne ""} {
         set modarg " $modarg"
@@ -57,6 +57,9 @@ proc pager_test_case {modarg use asked cmd opts} {
     } else {
         lappend ans "DEBUG initPager: no pager start \\(is_tty=$is_stderr_tty, use_pager=$use, asked_pager=$asked, cmd='$cmd', opts='$opts'\\)"
     }
+    lappend ans "DEBUG getTermBackground: term_background set to '$install_termbg'"
+    lappend ans "(DEBUG initColors: Ignore invalid default.*\\n)?DEBUG initColors: colors set to '.*'"
+    lappend ans "DEBUG getColor: color set to '0'"
     lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
 
     testouterr_cmd_re "sh" "-V -D$modarg" "" [join $ans "\n"]
