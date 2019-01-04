@@ -9025,8 +9025,18 @@ proc cmdModuleConfig {} {
          MODULES_TERM_BACKGROUND]\
       term_columns [getTtyColumns]]
 
-   foreach {var val} $config_list {
-      append displist [format {%-25s %s} $var $val] \n
+   # catch any environment variable set for modulecmd run-time execution
+   foreach runenvvar [array names ::env -glob MODULES_RUNENV_*] {
+      set runenvconf [string tolower [string range $runenvvar 8 end]]
+      lappend config_list $runenvconf [displayConfig "get-env $runenvvar" {}\
+         $runenvvar]
+   }
+
+   # transform list into array to sort keys
+   array set config $config_list
+
+   foreach var [lsort [array names config]] {
+      append displist [format {%-25s %s} $var $config($var)] \n
    }
    report $displist 1
 }
