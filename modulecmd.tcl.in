@@ -6745,10 +6745,11 @@ proc showModulePath {} {
    }
 }
 
-proc displayTableHeader {args} {
+proc displayTableHeader {sgrkey args} {
    foreach {title col_len} $args {
-      set col "- $title "
-      append col [string repeat - [expr {$col_len - [string length $col]}]]
+      set col "- [sgr $sgrkey $title] "
+      append col [string repeat - [expr {$col_len - [string length $title] -\
+         3}]]
       lappend col_list $col
    }
 
@@ -7334,7 +7335,7 @@ proc cmdModuleList {show_oneperline show_mtime} {
       }
 
       if {$show_mtime} {
-         displayTableHeader Package 39 Versions 19 {Last mod.} 19
+         displayTableHeader hi Package 39 Versions 19 {Last mod.} 19
       }
       report {Currently Loaded Modulefiles:}
       if {$show_mtime || $show_oneperline} {
@@ -7873,7 +7874,7 @@ proc cmdModuleSavelist {show_oneperline show_mtime} {
    } else {
       set list {}
       if {$show_mtime} {
-         displayTableHeader Collection 59 {Last mod.} 19
+         displayTableHeader hi Collection 59 {Last mod.} 19
       }
       report "Named collection list$targetdesc:"
       set display_list {}
@@ -8510,7 +8511,7 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
       set one_per_line 1
       set hstyle terse
       set theader_shown 0
-      set theader_cols [list Package/Alias 39 Versions 19 {Last mod.} 19]
+      set theader_cols [list hi Package/Alias 39 Versions 19 {Last mod.} 19]
    } else {
       set one_per_line 0
       set hstyle sepline
