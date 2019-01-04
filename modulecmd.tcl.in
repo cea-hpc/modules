@@ -1968,7 +1968,7 @@ proc module {command args} {
    # parse options, do that globally to ignore options not related to a given
    # module sub-command (exclude them from arg list)
    lassign [eval parseModuleCommandArgs $command $args] show_oneperline\
-      show_mtime show_filter search_filter args
+      show_mtime show_filter search_filter dump_state args
 
    # guess if called from top level
    set topcall [expr {[getEvalModuleStackDepth] == 0}]
@@ -2273,7 +2273,7 @@ proc module {command args} {
             eval cmdModuleClear "{$args}"
          }
          config {
-            cmdModuleConfig
+            cmdModuleConfig $dump_state
          }
          help {
             eval cmdModuleHelp $args
@@ -7267,6 +7267,7 @@ proc parseModuleCommandArgs {cmd args} {
    set show_mtime 0
    set show_filter {}
    set search_filter [expr {[getAvailInDepth] ? {} : {noindepth}}]
+   set dump_state 0
    set otherargs {}
 
    # parse argument list
@@ -7298,6 +7299,9 @@ proc parseModuleCommandArgs {cmd args} {
          --no-indepth {
             set search_filter noindepth
          }
+         --dump-state {
+            set dump_state 1
+         }
          --auto - --no-auto - -f - --force {
             reportWarning "Unsupported option '$arg'"
          }
@@ -7309,9 +7313,9 @@ proc parseModuleCommandArgs {cmd args} {
 
    reportDebug "(show_oneperline=$show_oneperline, show_mtime=$show_mtime,\
       show_filter=$show_filter, search_filter=$search_filter,\
-      otherargs=$otherargs)"
+      dump_state=$dump_state, otherargs=$otherargs)"
    return [list $show_oneperline $show_mtime $show_filter $search_filter\
-      $otherargs]
+      $dump_state $otherargs]
 }
 
 # unload phase of a list of modules reload process
@@ -8988,7 +8992,7 @@ proc cmdModuleClear {{doit {}}} {
    }
 }
 
-proc cmdModuleConfig {} {
+proc cmdModuleConfig {dump_state} {
    reportVersion
    reportSeparateNextContent
    displayTableHeader hi {Config. name} 24 {Value (set by if default\
@@ -9009,12 +9013,8 @@ proc cmdModuleConfig {} {
       color [displayConfig getColor asked_color MODULES_COLOR {0 never 1 auto\
          2 always}]\
       colors [displayConfig g_colors_list {} MODULES_COLORS {} var]\
-      debug $::g_debug\
-      force [displayConfig getForce asked_force {}]\
       ignored_dirs [displayConfig getIgnoredDirs {} {}]\
       pager [displayConfig {g_pager g_pager_opts} {} MODULES_PAGER {} var]\
-      paginate [displayConfig use_pager asked_pager {} {} var]\
-      path_separator [getPathSeparator]\
       run_quarantine [displayConfig {get-env MODULES_RUN_QUARANTINE <undef>}\
          {} MODULES_RUN_QUARANTINE]\
       silent_shell_debug [displayConfig {get-env MODULES_SILENT_SHELL_DEBUG\
@@ -9022,8 +9022,7 @@ proc cmdModuleConfig {} {
       siteconfig $::g_siteconfig\
       tcl_ext_lib $::g_tclextlib\
       term_background [displayConfig getTermBackground {}\
-         MODULES_TERM_BACKGROUND]\
-      term_columns [getTtyColumns]]
+         MODULES_TERM_BACKGROUND]]
 
    # catch any environment variable set for modulecmd run-time execution
    foreach runenvvar [array names ::env -glob MODULES_RUNENV_*] {
@@ -9039,6 +9038,32 @@ proc cmdModuleConfig {} {
       append displist [format {%-25s %s} $var $config($var)] \n
    }
    report $displist 1
+   reportSeparateNextContent
+
+   if {$dump_state} {
+      displayTableHeader hi {State name} 24 {Value} 54
+      # define each attribute/fetched state value pair
+      set state_list [list\
+         cmdline "$::argv0 $::argv"\
+         debug $::g_debug\
+         force [getForce]\
+         is_stderr_tty [isStderrTty]\
+         is_win [isWin]\
+         pager_started $::start_pager\
+         paginate $::use_pager\
+         path_separator [getPathSeparator]\
+         shell $::g_shell\
+         shelltype $::g_shellType\
+         subcmd $::command\
+         subcmd_args $::otherargv\
+         term_columns [getTtyColumns]]
+
+      unset displist
+      foreach {var val} $state_list {
+         append displist [format {%-25s %s} $var $val] \n
+      }
+      report $displist 1
+   }
 }
 
 proc cmdModuleHelp {args} {
@@ -9113,7 +9138,7 @@ Other commands:
   paths           modulefile        Print path of matching available modules
   clear           [-f]              Reset Modules-specific runtime information
   source          scriptfile [...]  Execute scriptfile(s)
-  config                            Display Modules configuration
+  config          [--dump-state]    Display Modules configuration
 
 Switches:
   -t | --terse    Display output in terse format
@@ -9248,7 +9273,7 @@ if {[catch {
             }
             -a - --append - -append - -p - --prepend - -prepend - --delim -\
             -delim - --delim=* - -delim=* - --duplicates - --index -\
-            --notuasked - --indepth - --no-indepth {
+            --notuasked - --indepth - --no-indepth - --dump-state {
                # command-specific switches interpreted later on
                lappend otherargv $arg
             }
