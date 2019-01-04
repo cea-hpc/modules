@@ -55,6 +55,7 @@ proc sourceSiteConfig {} {
          if {[catch {uplevel 1 source $siteconfig} errMsg]} {
             reportErrorAndExit "Site configuration source failed\n$errMsg"
          }
+         set ::g_siteconfig_loaded 1
       }
    }
 }
@@ -9052,10 +9053,12 @@ proc cmdModuleConfig {dump_state} {
          pager_started $::start_pager\
          paginate $::use_pager\
          path_separator [getPathSeparator]\
+         siteconfig_loaded [info exists ::g_siteconfig_loaded]\
          shell $::g_shell\
          shelltype $::g_shellType\
          subcmd $::command\
          subcmd_args $::otherargv\
+         tcl_ext_lib_loaded [info exists ::g_tclextlib_loaded]\
          term_columns [getTtyColumns]]
 
       unset displist
@@ -9180,6 +9183,7 @@ if {[catch {
    @libtclenvmodules@if {[file readable $g_tclextlib]} {
    @libtclenvmodules@   reportDebug "Load Tcl extension library ($g_tclextlib)"
    @libtclenvmodules@   load $g_tclextlib Envmodules
+   @libtclenvmodules@   set g_tclextlib_loaded 1
    @libtclenvmodules@}
    # use fallback procs if extension library is not loaded
    if {[info commands readFile] eq {}} {
