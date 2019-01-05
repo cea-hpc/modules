@@ -6994,30 +6994,13 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
 }
 
 # Return conf value and from where an eventual def value has been overridden
-proc displayConfig {getlist asked_var env_var {trans {}} {gettype proc}} {
+proc displayConfig {val env_var {asked_var {}} {trans {}}} {
    array set transarr $trans
-
-   # fetch value by calling proc or reading var
-   switch -- $gettype {
-      proc {
-         set val [eval $getlist]
-      }
-      var {
-         foreach get $getlist {
-            if {[info exists val]} {
-               append val { }
-            }
-            append val [set ::$get]
-         }
-      }
-   }
 
    # get overridden value and know what has overridden it
    if {$asked_var ne {} && [info exists ::$asked_var]} {
-      set val [set ::$asked_var]
       set defby " (cmd-line)"
    } elseif {$env_var ne {} && [info exists ::env($env_var)]} {
-      set val [set ::env($env_var)]
       set defby " (env-var)"
    } else {
       set defby {}
@@ -9016,35 +8999,34 @@ proc cmdModuleConfig {dump_state {name {}} {value {}}} {
 
    # define each attribute/fetched value pair
    set conflist [list\
-      contact [displayConfig getContact {} $confvar(contact)]\
-      auto_handling [displayConfig getAutoHandling asked_auto_handling\
-         $confvar(auto_handling)]\
-      avail_indepth [displayConfig getAvailInDepth {}\
-         $confvar(avail_indepth)]\
-      avail_report_dir_sym [displayConfig flag_default_dir {} {} {} var]\
-      avail_report_mfile_sym [displayConfig flag_default_mf {} {} {} var]\
-      collection_pin_version [displayConfig pinVersionInCollection {}\
+      contact [displayConfig [getContact] $confvar(contact)]\
+      auto_handling [displayConfig [getAutoHandling] $confvar(auto_handling)\
+         asked_auto_handling]\
+      avail_indepth [displayConfig [getAvailInDepth] $confvar(avail_indepth)]\
+      avail_report_dir_sym $::flag_default_dir\
+      avail_report_mfile_sym $::flag_default_mf\
+      collection_pin_version [displayConfig [pinVersionInCollection]\
          $confvar(collection_pin_version)]\
-      collection_target [displayConfig "get-env $confvar(collection_target)\
-         <undef>" {} $confvar(collection_target)]\
-      color [displayConfig getColor asked_color $confvar(color) {0 never 1\
+      collection_target [displayConfig [get-env $confvar(collection_target)\
+         <undef>] $confvar(collection_target)]\
+      color [displayConfig [getColor] $confvar(color) asked_color {0 never 1\
          auto 2 always}]\
-      colors [displayConfig g_colors_list {} $confvar(colors) {} var]\
-      ignored_dirs [displayConfig getIgnoredDirs {} {}]\
-      pager [displayConfig {g_pager g_pager_opts} {} $confvar(pager) {} var]\
-      run_quarantine [displayConfig "get-env $confvar(run_quarantine)\
-         <undef>" {} $confvar(run_quarantine)]\
-      silent_shell_debug [displayConfig "get-env $confvar(silent_shell_debug)\
-         <undef>" {} $confvar(silent_shell_debug)]\
+      colors [displayConfig $::g_colors_list $confvar(colors)]\
+      ignored_dirs [getIgnoredDirs]\
+      pager [displayConfig "$::g_pager $::g_pager_opts" $confvar(pager)]\
+      run_quarantine [displayConfig [get-env $confvar(run_quarantine)\
+         <undef>] $confvar(run_quarantine)]\
+      silent_shell_debug [displayConfig [get-env $confvar(silent_shell_debug)\
+         <undef>] $confvar(silent_shell_debug)]\
       siteconfig $::g_siteconfig\
       tcl_ext_lib $::g_tclextlib\
-      term_background [displayConfig getTermBackground {}\
+      term_background [displayConfig [getTermBackground]\
          $confvar(term_background)]]
    # catch any environment variable set for modulecmd run-time execution
    foreach runenvvar [array names ::env -glob MODULES_RUNENV_*] {
       set runenvconf [string tolower [string range $runenvvar 8 end]]
-      lappend conflist $runenvconf [displayConfig "get-env $runenvvar"\
-         {} $runenvvar]
+      lappend conflist $runenvconf [displayConfig [get-env $runenvvar]\
+         $runenvvar]
       # enable modification of runenv conf
       set confvar($runenvconf) $runenvvar
    }
