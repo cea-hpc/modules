@@ -77,7 +77,7 @@ testouterr_cmd_re "csh" "list -t -l" "OK" "$ts_csh"
 set module "$modpath/loc_rc3/1.0"
 set modulere "$modpathre/loc_rc3/1.0"
 set modulefile $module
-set ts_csh "$header$modulere\\s+\[0-9:\/ ]*"
+set ts_csh "$header$modulere\\s*\[0-9:\/ ]*"
 
 setenv_loaded_module $module $modulefile
 
@@ -97,12 +97,28 @@ setenv_loaded_module $module $modulefile
 
 testouterr_cmd_re "csh" "-l list" "OK" "$ts_csh"
 
+#
+# Test very long module name
+#
+
+set module "veryveryveryveryveryveryveryverylong/name"
+set modulefile $modpath.other2/$module
+set ts_csh "$header${module}sym\[0-9:\/ ]*"
+
+setenv_path_var MODULEPATH $modpath.other2
+setenv_path_var MODULES_LMALTNAME $module&veryveryveryveryveryveryveryverylong/sym
+setenv_loaded_module $module $modulefile
+
+testouterr_cmd_re csh {-l list} OK $ts_csh
+
 
 #
 #  Cleanup
 #
 
 unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+setenv_path_var MODULEPATH $modpath
 
 unset header
 unset ts_csh
