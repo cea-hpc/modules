@@ -1997,7 +1997,7 @@ proc module {command args} {
          }
       }
       reload - aliases - list - purge - savelist - initlist - initclear -\
-      autoinit - config {
+      autoinit {
          if {[llength $args] != 0} {
             set argnberr 1
          }
@@ -2024,6 +2024,11 @@ proc module {command args} {
       }
       prepend-path - append-path - remove-path {
          if {[llength $args] < 2} {
+            set argnberr 1
+         }
+      }
+      config {
+         if {[llength $args] != 0 && [llength $args] != 2} {
             set argnberr 1
          }
       }
@@ -2274,7 +2279,7 @@ proc module {command args} {
             eval cmdModuleClear "{$args}"
          }
          config {
-            cmdModuleConfig $dump_state
+            eval cmdModuleConfig $dump_state $args
          }
          help {
             eval cmdModuleHelp $args
@@ -8994,95 +8999,129 @@ proc cmdModuleClear {{doit {}}} {
    }
 }
 
-proc cmdModuleConfig {dump_state} {
-   reportVersion
-   reportSeparateNextContent
-   displayTableHeader hi {Config. name} 24 {Value (set by if default\
-      overridden)} 54
+proc cmdModuleConfig {dump_state {name {}} {value {}}} {
+   reportDebug "dump_state='$dump_state', name='$name', value='$value'"
+
+   array set confvar [list contact MODULECONTACT auto_handling\
+      MODULES_AUTO_HANDLING avail_indepth MODULES_AVAIL_INDEPTH\
+      collection_pin_version MODULES_COLLECTION_PIN_VERSION collection_target\
+      MODULES_COLLECTION_TARGET color MODULES_COLOR colors MODULES_COLORS\
+      pager MODULES_PAGER run_quarantine MODULES_RUN_QUARANTINE\
+      silent_shell_debug MODULES_SILENT_SHELL_DEBUG term_background\
+      MODULES_TERM_BACKGROUND]
+
+   array set confvalid [list auto_handling [list 0 1] avail_indepth [list 0\
+      1] collection_pin_version [list 0 1] color [list never auto always]\
+      silent_shell_debug [list 0 1] term_background [list dark light]]
 
    # define each attribute/fetched value pair
-   set config_list [list\
-      contact [displayConfig getContact {} MODULECONTACT]\
+   set conflist [list\
+      contact [displayConfig getContact {} $confvar(contact)]\
       auto_handling [displayConfig getAutoHandling asked_auto_handling\
-         MODULES_AUTO_HANDLING]\
-      avail_indepth [displayConfig getAvailInDepth {} MODULES_AVAIL_INDEPTH]\
+         $confvar(auto_handling)]\
+      avail_indepth [displayConfig getAvailInDepth {}\
+         $confvar(avail_indepth)]\
       avail_report_dir_sym [displayConfig flag_default_dir {} {} {} var]\
       avail_report_mfile_sym [displayConfig flag_default_mf {} {} {} var]\
       collection_pin_version [displayConfig pinVersionInCollection {}\
-         MODULES_COLLECTION_PIN_VERSION]\
-      collection_target [displayConfig {get-env MODULES_COLLECTION_TARGET\
-         <undef>} {} MODULES_COLLECTION_TARGET]\
-      color [displayConfig getColor asked_color MODULES_COLOR {0 never 1 auto\
-         2 always}]\
-      colors [displayConfig g_colors_list {} MODULES_COLORS {} var]\
+         $confvar(collection_pin_version)]\
+      collection_target [displayConfig "get-env $confvar(collection_target)\
+         <undef>" {} $confvar(collection_target)]\
+      color [displayConfig getColor asked_color $confvar(color) {0 never 1\
+         auto 2 always}]\
+      colors [displayConfig g_colors_list {} $confvar(colors) {} var]\
       ignored_dirs [displayConfig getIgnoredDirs {} {}]\
-      pager [displayConfig {g_pager g_pager_opts} {} MODULES_PAGER {} var]\
-      run_quarantine [displayConfig {get-env MODULES_RUN_QUARANTINE <undef>}\
-         {} MODULES_RUN_QUARANTINE]\
-      silent_shell_debug [displayConfig {get-env MODULES_SILENT_SHELL_DEBUG\
-         <undef>} {} MODULES_SILENT_SHELL_DEBUG]\
+      pager [displayConfig {g_pager g_pager_opts} {} $confvar(pager) {} var]\
+      run_quarantine [displayConfig "get-env $confvar(run_quarantine)\
+         <undef>" {} $confvar(run_quarantine)]\
+      silent_shell_debug [displayConfig "get-env $confvar(silent_shell_debug)\
+         <undef>" {} $confvar(silent_shell_debug)]\
       siteconfig $::g_siteconfig\
       tcl_ext_lib $::g_tclextlib\
       term_background [displayConfig getTermBackground {}\
-         MODULES_TERM_BACKGROUND]]
-
+         $confvar(term_background)]]
    # catch any environment variable set for modulecmd run-time execution
    foreach runenvvar [array names ::env -glob MODULES_RUNENV_*] {
       set runenvconf [string tolower [string range $runenvvar 8 end]]
-      lappend config_list $runenvconf [displayConfig "get-env $runenvvar" {}\
-         $runenvvar]
+      lappend conflist $runenvconf [displayConfig "get-env $runenvvar"\
+         {} $runenvvar]
+      # enable modification of runenv conf
+      set confvar($runenvconf) $runenvvar
    }
+   array set conf $conflist
 
-   # transform list into array to sort keys
-   array set config $config_list
+   # set configuration
+   if {$name ne {}} {
+      if {![info exists conf($name)]} {
+         reportErrorAndExit "Configuration key '$name' does not exist"
+      } elseif {![info exists confvar($name)]} {
+         reportErrorAndExit "Configuration key '$name' cannot be altered"
+      } elseif {[info exists confvalid($name)] && [notInList\
+         $confvalid($name) $value]} {
+         reportErrorAndExit "Valid values for configuration key '$name' are:\
+            $confvalid($name)"
+      } else {
+         # effectively set configuration variable
+         pushMode load
+         setenv $confvar($name) $value
+         popMode
+      }
+   # report configuration
+   } else {
+      reportVersion
+      reportSeparateNextContent
+      displayTableHeader hi {Config. name} 24 {Value (set by if default\
+         overridden)} 54
 
-   foreach var [lsort [array names config]] {
-      append displist [format {%-25s %s} $var $config($var)] \n
-   }
-   report $displist 1
-   reportSeparateNextContent
-
-   if {$dump_state} {
-      displayTableHeader hi {State name} 24 {Value} 54
-      # define each attribute/fetched state value pair
-      set state_list [list\
-         cmdline "$::argv0 $::argv"\
-         debug $::g_debug\
-         force [getForce]\
-         is_stderr_tty [isStderrTty]\
-         is_win [isWin]\
-         pager_started $::start_pager\
-         paginate $::use_pager\
-         path_separator [getPathSeparator]\
-         rc_loaded [expr {[info exists ::g_rc_loaded] ? $::g_rc_loaded :\
-            {<undef>}}]\
-         siteconfig_loaded [info exists ::g_siteconfig_loaded]\
-         shell $::g_shell\
-         shelltype $::g_shellType\
-         subcmd $::command\
-         subcmd_args $::otherargv\
-         tcl_ext_lib_loaded [info exists ::g_tclextlib_loaded]\
-         term_columns [getTtyColumns]]
-
-      unset displist
-      foreach {var val} $state_list {
-         append displist [format {%-25s %s} $var $val] \n
+      foreach var [lsort [array names conf]] {
+         append displist [format {%-25s %s} $var $conf($var)] \n
       }
       report $displist 1
       reportSeparateNextContent
 
-      # report environment variable set related to Modules
-      displayTableHeader hi {Env. variable} 24 {Value} 54
-      set envvar_list {}
-      foreach var [list LOADEDMODULES _LMFILES_ MODULE* *_modshare *_modquar\
-         *_module*] {
-         set envvar_list [concat $envvar_list [array names ::env -glob $var]]
+      if {$dump_state} {
+         displayTableHeader hi {State name} 24 {Value} 54
+         # define each attribute/fetched state value pair
+         set state_list [list\
+            cmdline "$::argv0 $::argv"\
+            debug $::g_debug\
+            force [getForce]\
+            is_stderr_tty [isStderrTty]\
+            is_win [isWin]\
+            pager_started $::start_pager\
+            paginate $::use_pager\
+            path_separator [getPathSeparator]\
+            rc_loaded [expr {[info exists ::g_rc_loaded] ? $::g_rc_loaded :\
+               {<undef>}}]\
+            siteconfig_loaded [info exists ::g_siteconfig_loaded]\
+            shell $::g_shell\
+            shelltype $::g_shellType\
+            subcmd $::command\
+            subcmd_args $::otherargv\
+            tcl_ext_lib_loaded [info exists ::g_tclextlib_loaded]\
+            term_columns [getTtyColumns]]
+
+         unset displist
+         foreach {var val} $state_list {
+            append displist [format {%-25s %s} $var $val] \n
+         }
+         report $displist 1
+         reportSeparateNextContent
+
+         # report environment variable set related to Modules
+         displayTableHeader hi {Env. variable} 24 {Value} 54
+         set envvar_list {}
+         foreach var [list LOADEDMODULES _LMFILES_ MODULE* *_modshare\
+            *_modquar *_module*] {
+            set envvar_list [concat $envvar_list [array names ::env -glob\
+               $var]]
+         }
+         unset displist
+         foreach var [lsort -unique $envvar_list] {
+            append displist [format {%-25s %s} $var $::env($var)] \n
+         }
+         report $displist 1
       }
-      unset displist
-      foreach var [lsort -unique $envvar_list] {
-         append displist [format {%-25s %s} $var $::env($var)] \n
-      }
-      report $displist 1
    }
 }
 
@@ -9158,7 +9197,7 @@ Other commands:
   paths           modulefile        Print path of matching available modules
   clear           [-f]              Reset Modules-specific runtime information
   source          scriptfile [...]  Execute scriptfile(s)
-  config          [--dump-state]    Display Modules configuration
+  config   [--dump-state|name val]  Display or set Modules configuration
 
 Switches:
   -t | --terse    Display output in terse format
