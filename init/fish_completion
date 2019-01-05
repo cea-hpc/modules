@@ -2,7 +2,7 @@
 
 function __fish_module_no_subcommand --description 'Test if modulecmd has yet to be given the subcommand'
    for i in (commandline -opc)
-      if contains -- $i add load rm remove del unload swap switch show display list avail is-loaded is-saved is-used is-avail info-loaded aliases use unuse refresh reload purge source whatis apropos keyword search test save restore saverm saveshow savelist initadd initprepend initrm initswitch initlist initclear path paths append-path prepend-path remove-path clear
+      if contains -- $i add load rm remove del unload swap switch show display list avail is-loaded is-saved is-used is-avail info-loaded aliases use unuse refresh reload purge source whatis apropos keyword search test save restore saverm saveshow savelist initadd initprepend initrm initswitch initlist initclear path paths append-path prepend-path remove-path clear config
          return 1
       end
    end
@@ -45,6 +45,15 @@ function __fish_module_use_savelist --description 'Test if module command should
    return 1
 end
 
+function __fish_module_use_config --description 'Test if module command should have configuration parameters as potential completion'
+   for i in (commandline -opc)
+      if contains -- $i config
+         return 0
+      end
+   end
+   return 1
+end
+
 complete -c module -n '__fish_module_use_avail' -f -a "(module avail --color=never -t --no-indepth (commandline -ct) ^&1 | sed '\
    /^-\+/d; /^\s*\$/d; \
    /->.*\$/d; \
@@ -63,6 +72,7 @@ complete -c module -n '__fish_module_use_savelist' -f -a "(module savelist --col
    /Named collection list\$/d; \
    /:\$/d; \
    /:ERROR:/d;')"
+complete -c module -n '__fish_module_use_config' -f -a "--dump-state --reset contact auto_handling avail_indepth collection_pin_version collection_target color colors pager run_quarantine silent_shell_debug term_background"
 
 complete -f -n '__fish_module_no_subcommand' -c module -a 'help' --description 'Print this or modulefile(s) help info'
 complete -f -n '__fish_module_no_subcommand' -c module -a 'avail' --description 'List all or matching available modules'
@@ -102,6 +112,7 @@ complete -f -n '__fish_module_no_subcommand' -c module -a 'append-path' --descri
 complete -f -n '__fish_module_no_subcommand' -c module -a 'prepend-path' --description 'Prepend value to environment variable'
 complete -f -n '__fish_module_no_subcommand' -c module -a 'remove-path' --description 'Remove value from environment variable'
 complete -f -n '__fish_module_no_subcommand' -c module -a 'clear' --description 'Reset Modules-specific runtime information'
+complete -f -n '__fish_module_no_subcommand' -c module -a 'config' --description 'Display or set Modules configuration'
 
 complete -c module -s V -l version --description 'Module version'
 complete -c module -s D -l debug --description 'Enable debug messages'
