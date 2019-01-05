@@ -429,8 +429,11 @@ proc renderText {text} {
 
 # save message when report is not currently initialized as we do not
 # know yet if debug mode is enabled or not
-proc reportDebug {message} {
-   lappend ::errreport_buffer [list reportDebug $message 0]
+proc reportDebug {message {showcaller 1}} {
+   # display caller name as prefix
+   set prefix [expr {$showcaller && [info level] > 1 ? "[lindex [info level\
+      -1] 0]: " : {}}]
+   lappend ::errreport_buffer [list reportDebug $prefix$message 0]
 }
 
 # regular procedure to use once error report is initialized
@@ -790,7 +793,7 @@ proc initPager {} {
          set ::g_pager_opts {}
       }
 
-      reportDebug "initPager: configure pager from MODULES_PAGER variable\
+      reportDebug "configure pager from MODULES_PAGER variable\
          (use_pager=$use_pager, cmd='$::g_pager', opts='$::g_pager_opts')"
    }
 
@@ -815,13 +818,12 @@ proc initPager {} {
    # start paging if enabled and if error stream is attached to a terminal
    set is_tty [isStderrTty]
    if {$is_tty && $use_pager} {
-      reportDebug "initPager: start pager (asked_pager=$asked,\
-         cmd='$::g_pager', opts='$::g_pager_opts')"
+      reportDebug "start pager (asked_pager=$asked, cmd='$::g_pager',\
+         opts='$::g_pager_opts')"
       set ::start_pager 1
    } else {
-      reportDebug "initPager: no pager start (is_tty=$is_tty,\
-         use_pager=$use_pager, asked_pager=$asked, cmd='$::g_pager',\
-         opts='$::g_pager_opts')"
+      reportDebug "no pager start (is_tty=$is_tty, use_pager=$use_pager,\
+         asked_pager=$asked, cmd='$::g_pager', opts='$::g_pager_opts')"
       set ::start_pager 0
    }
 }
