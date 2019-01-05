@@ -9019,10 +9019,23 @@ proc cmdModuleConfig {dump_state {name {}} {value {}}} {
 
    # set configuration
    if {$name ne {}} {
+      # check if configuration should be set or unset
+      if {$name eq {--reset}} {
+         set name $value
+         set nameunset 1
+      } else {
+         set nameunset 0
+      }
+
       if {![info exists confval($name)]} {
          reportErrorAndExit "Configuration key '$name' does not exist"
       } elseif {![info exists confvar($name)]} {
          reportErrorAndExit "Configuration key '$name' cannot be altered"
+      } elseif {$nameunset} {
+         # unset configuration variable
+         pushMode load
+         unsetenv $confvar($name)
+         popMode
       } elseif {[info exists confvalid($name)] && [notInList\
          $confvalid($name) $value]} {
          reportErrorAndExit "Valid values for configuration key '$name' are:\
@@ -9310,7 +9323,7 @@ if {[catch {
             }
             -a - --append - -append - -p - --prepend - -prepend - --delim -\
             -delim - --delim=* - -delim=* - --duplicates - --index -\
-            --notuasked - --indepth - --no-indepth - --dump-state {
+            --notuasked - --indepth - --no-indepth - --dump-state - --reset {
                # command-specific switches interpreted later on
                lappend otherargv $arg
             }
