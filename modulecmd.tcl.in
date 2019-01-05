@@ -8982,8 +8982,27 @@ proc cmdModuleClear {{doit {}}} {
    }
 }
 
-proc cmdModuleConfig {dump_state {name {}} {value {}}} {
-   reportDebug "dump_state='$dump_state', name='$name', value='$value'"
+proc cmdModuleConfig {dump_state args} {
+   # parse arguments
+   set nameunset 0
+   switch -- [llength $args] {
+      1 {
+         lassign $args name
+      }
+      2 {
+         lassign $args name value
+         # check if configuration should be set or unset
+         if {$name eq {--reset}} {
+            set name $value
+            set nameunset 1
+            unset value
+         }
+      }
+   }
+
+   reportDebug "dump_state='$dump_state', reset=$nameunset,\
+      name=[expr {[info exists name] ? "'$name'" : {<undef>}}], value=[expr\
+      {[info exists value] ? "'$value'" : {<undef>}}]"
 
    array set confvar [list contact MODULECONTACT auto_handling\
       MODULES_AUTO_HANDLING avail_indepth MODULES_AVAIL_INDEPTH\
@@ -9017,18 +9036,10 @@ proc cmdModuleConfig {dump_state {name {}} {value {}}} {
       set confvar($runenvconf) $runenvvar
    }
 
-   if {[notInList [list {} --reset] $name] && ![info exists confval($name)]} {
+   if {[info exists name] && ![info exists confval($name)]} {
       reportErrorAndExit "Configuration key '$name' does not exist"
    # set configuration
-   } elseif {$name ne {} && $value ne {}} {
-      # check if configuration should be set or unset
-      if {$name eq {--reset}} {
-         set name $value
-         set nameunset 1
-      } else {
-         set nameunset 0
-      }
-
+   } elseif {[info exists name] && ($nameunset || [info exists value])} {
       if {![info exists confvar($name)]} {
          reportErrorAndExit "Configuration key '$name' cannot be altered"
       } elseif {$nameunset} {
@@ -9060,7 +9071,7 @@ proc cmdModuleConfig {dump_state {name {}} {value {}}} {
          overridden)} 54
 
       # report all configs or just queried one
-      if {$name ne {}} {
+      if {[info exists name]} {
          set varlist [list $name]
       } else {
          set varlist [lsort [array names confval]]
