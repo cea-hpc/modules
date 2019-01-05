@@ -2028,7 +2028,7 @@ proc module {command args} {
          }
       }
       config {
-         if {[llength $args] != 0 && [llength $args] != 2} {
+         if {[llength $args] > 2} {
             set argnberr 1
          }
       }
@@ -9017,8 +9017,10 @@ proc cmdModuleConfig {dump_state {name {}} {value {}}} {
       set confvar($runenvconf) $runenvvar
    }
 
+   if {[notInList [list {} --reset] $name] && ![info exists confval($name)]} {
+      reportErrorAndExit "Configuration key '$name' does not exist"
    # set configuration
-   if {$name ne {}} {
+   } elseif {$name ne {} && $value ne {}} {
       # check if configuration should be set or unset
       if {$name eq {--reset}} {
          set name $value
@@ -9027,9 +9029,7 @@ proc cmdModuleConfig {dump_state {name {}} {value {}}} {
          set nameunset 0
       }
 
-      if {![info exists confval($name)]} {
-         reportErrorAndExit "Configuration key '$name' does not exist"
-      } elseif {![info exists confvar($name)]} {
+      if {![info exists confvar($name)]} {
          reportErrorAndExit "Configuration key '$name' cannot be altered"
       } elseif {$nameunset} {
          # unset configuration variable
@@ -9059,7 +9059,14 @@ proc cmdModuleConfig {dump_state {name {}} {value {}}} {
       displayTableHeader hi {Config. name} 24 {Value (set by if default\
          overridden)} 54
 
-      foreach var [lsort [array names confval]] {
+      # report all configs or just queried one
+      if {$name ne {}} {
+         set varlist [list $name]
+      } else {
+         set varlist [lsort [array names confval]]
+      }
+
+      foreach var $varlist {
          set valrep [displayConfig $confval($var)\
             [expr {[info exists confvar($var)] ? $confvar($var) : {}}]\
             [expr {[info exists confasked($var)] ? $confasked($var) : {}}]\
@@ -9187,7 +9194,7 @@ Other commands:
   paths           modulefile        Print path of matching available modules
   clear           [-f]              Reset Modules-specific runtime information
   source          scriptfile [...]  Execute scriptfile(s)
-  config   [--dump-state|name val]  Display or set Modules configuration
+  config [--dump-state|name [val]]  Display or set Modules configuration
 
 Switches:
   -t | --terse    Display output in terse format
