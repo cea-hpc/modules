@@ -47,6 +47,45 @@ Modules 4.3.0 (2019-XX-XX)
   issue #150)
 * Update ``bash``, ``fish`` and ``zsh`` completion scripts to propose
   available modulefiles in the no in depth mode.
+* Add the ability to graphically enhance some part of the produced output to
+  improve readability by the use of the ``--color`` command-line switch or the
+  ``MODULES_COLOR`` environment variable. Both accept the following values:
+  ``never``, ``auto`` and ``always``. When color mode is set to ``auto``,
+  output is colored if stderr is attached to a terminal. Default color mode
+  could be controlled at configure time with the ``--enable-color`` and the
+  ``--disable-color`` option, which respectively correspond to the ``auto``
+  and ``never`` color mode.
+* Control the color to apply to each element with the ``MODULES_COLORS``
+  environment variable or the ``--with-dark-background-colors`` and
+  ``--with-light-background-colors`` configure options. These variable and
+  options take as value a colon-separated list in the same fashion
+  ``LS_COLORS`` does. In this list, each element that should be highlighted is
+  associated to a Select Graphic Rendition (SGR) code.
+* Inform Modules of the terminal background color with the
+  ``MODULES_TERM_BACKGROUND`` environment variable or the
+  ``--with-terminal-background`` configure option, which helps to determine if
+  either the dark or light background colors should be used to color output in
+  case no specific color set is defined with the ``MODULES_COLORS``.
+* Color prefix tag of debug, error, warning, module error and info messages.
+* Highlight the modulefile or collection name when reporting messages for a
+  an action made over this modulefile or collection.
+* Color the modulepaths reported on a ``use`` command.
+* Highlight title of separator lines or column name of table header.
+* Color modulepaths, directories, aliases and symbols reported by the
+  ``avail``, ``aliases``, ``list``, ``whatis`` and ``search`` commands.
+* When color mode is enabled and module aliases are colored, do not associate
+  them a ``@`` tag as the color already distinguish them from regular
+  modulefile.
+* When color mode is enabled and a Select Graphic Rendition (SGR) code is set
+  for the ``default`` modulefile symbol, apply this SGR code to the modulefile
+  name instead of associating it the ``default`` symbol tag.
+* Highlight matched module search query string among ``avail``, ``whatis`` and
+  ``search`` command results.
+* Highlight the modulefile and collection full path name on ``display``,
+  ``help``, ``test`` and ``saveshow`` command reports.
+* Color modulefile Tcl commands set in a modulefile on a ``display`` command
+  report.
+* Color module commands set in a collection on a ``saveshow`` command report.
 
 
 Modules 4.2.4 (2019-04-26)

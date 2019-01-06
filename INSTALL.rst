@@ -277,6 +277,9 @@ instance ``--disable-set-manpath``):
                       limit search results to the matching modulefiles and
                       directories found at the depth level expressed by the
                       search query if disabled. (default=yes)
+--enable-color        Control if output should be colored by default or not.
+                      A value of ``yes`` equals to the ``auto`` color mode.
+                      ``no`` equals to the ``never`` color mode. (default=no)
 
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for
@@ -295,6 +298,32 @@ instance ``--without-modulepath``):
 --with-pager-opts=OPTLIST
                       Settings to apply to default pager program
                       (default=\ ``-eFKRX``)
+--with-dark-background-colors=SGRLIST
+                      Default color set to apply if terminal background color
+                      is defined to ``dark``. SGRLIST follows the same syntax
+                      than used in ``LS_COLORS``. Each element in SGRLIST is
+                      an output item associated to a Select Graphic Rendition
+                      (SGR) code. Elements in SGRLIST are separated by ``:``.
+                      Output items are designated by keys. Items able to be
+                      colorized are: highlighted element (``hi``), debug
+                      information (``db``), tag separator (``se``); Error
+                      (``er``), warning (``wa``), module error (``me``) and
+                      info (``in``) message prefixes; Modulepath (``mp``),
+                      directory (``di``), module alias (``al``), module
+                      symbolic version (``sy``) and module ``default`` version
+                      (``de``). For a complete SGR code reference, see
+                      https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters.
+                      (default=\ ``hi=1:db=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92``)
+--with-light-background-colors=SGRLIST
+                      Default color set to apply if terminal background color
+                      is defined to ``light``. Expect the same syntax than
+                      described for ``--with-dark-background-colors``.
+                      (default=\ ``hi=1:db=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:sy=35:de=4:cm=32``)
+--with-terminal-background=VALUE
+                      The terminal background color that determines the color
+                      set to apply by default between the ``dark`` background
+                      colors or the ``light`` background colors
+                      (default=\ ``dark``)
 --with-modulepath=PATHLIST
                       Default path list to setup as the default modulepaths.
                       Each path in this list should be separated by ``:``.

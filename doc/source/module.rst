@@ -156,6 +156,11 @@ switches are accepted:
 
  Do not pipe message output into a pager.
 
+**--color**\[=\ *WHEN*\]
+
+ Colorize the output. *WHEN* defaults to *always* or can be *never* or *auto*.
+ See also **MODULES_COLOR** section.
+
 **--auto**
 
  On **load**, **unload** and **switch** sub-commands, enable automated module
@@ -276,6 +281,14 @@ Module Sub-Commands
  aliases from *modulefiles* a **@** symbol is added within parenthesis
  next to their name. Aliases defined through a global or user specific
  module RC file are listed under the **global/user modulerc** section.
+
+ When colored output is enabled and a specific graphical rendition is defined
+ for module *default* version, the **default** symbol is omitted and instead
+ the defined graphical rendition is applied to the relative modulefile. When
+ colored output is enabled and a specific graphical rendition is defined for
+ module alias, the **@** symbol is omitted. The defined graphical rendition
+ applies to the module alias name. See **MODULES_COLOR** and
+ **MODULES_COLORS** sections for details on colored output.
 
 **aliases**
 
@@ -703,6 +716,53 @@ ENVIRONMENT
  results from commands like **lsb_release**, **hostname**, **dnsdomainname**,
  etc.
 
+**MODULES_COLOR**
+
+ Defines if output should be colored or not. Accepted values are *never*,
+ *auto* and *always*.
+
+ When color mode is set to *auto*, output is colored only if the standard
+ error output channel is attached to a terminal.
+
+ Colored output enablement is defined in the following order of preference:
+ **--color** command line switch, then **MODULES_COLOR** environment variable,
+ then the default set in **modulecmd.tcl** script configuration. Which means
+ **MODULES_COLOR** overrides default configuration and **--color** command
+ line switch overrides every other ways to enable or disable this mode.
+
+**MODULES_COLORS**
+
+ Specifies the colors and other attributes used to highlight various parts of
+ the output. Its value is a colon-separated list of output items associated to
+ a Select Graphic Rendition (SGR) code. It follows the same syntax than
+ **LS_COLORS**.
+
+ Output items are designated by keys. Items able to be colorized are:
+ highlighted element (*hi*), debug information (*db*), tag separator (*se*);
+ Error (*er*), warning (*wa*), module error (*me*) and info (*in*) message
+ prefixes; Modulepath (*mp*), directory (*di*), module alias (*al*), module
+ symbolic version (*sy*), module *default* version (*de*) and modulefile
+ command (*cm*).
+
+ See the Select Graphic Rendition (SGR) section in the documentation of the
+ text terminal that is used for permitted values and their meaning as
+ character attributes. These substring values are integers in decimal
+ representation and can be concatenated with semicolons. Modules takes care of
+ assembling the result into a complete SGR sequence (**\33[...m**). Common
+ values to concatenate include 1 for bold, 4 for underline, 30 to 37 for
+ foreground colors and 90 to 97 for 16-color mode foreground colors. See also
+ https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
+ for a complete SGR code reference.
+
+ No graphical rendition will be applied to an output item that could normaly
+ be colored but which is not defined in the color set. Thus if
+ **MODULES_COLORS** is defined empty, no output will be colored at all.
+
+ The color set is defined for Modules in the following order of preference:
+ **MODULES_COLORS** environment variable, then the default set in
+ **modulecmd.tcl** script configuration. Which means **MODULES_COLORS**
+ overrides default configuration.
+
 **MODULES_LMALTNAME**
 
  A colon separated list of the alternative names set through
@@ -794,6 +854,13 @@ ENVIRONMENT
  current shell session for the duration of either the module command or the
  module shell initialization script. Only applies to Bourne Shell (sh) and its
  derivatives.
+
+**MODULES_TERM_BACKGROUND**
+
+ Inform Modules of the terminal background color to determine if the color set
+ for dark background or the color set for light background should be used to
+ color output in case no specific color set is defined with the
+ **MODULES_COLORS** variable. Accepted values are **dark** and **light**.
 
 **MODULES_USE_COMPAT_VERSION**
 

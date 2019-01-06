@@ -60,6 +60,57 @@ content read is also improved by fetching hidden and regular files in one
 pass. Moreover ``.modulerc`` and ``.version`` read access is tested only if
 these files are found in the directory.
 
+Colored output
+^^^^^^^^^^^^^^
+
+The ability to graphically enhance some part of the produced output has been
+added to improve readability. Among others, error, warning and info message
+prefixes can be colored as well as modulepath, module alias and symbolic
+version.
+
+Color mode can be set to ``never``, ``auto`` or ``always``. When color mode is
+set to ``auto``, output is colored only if the standard error output channel
+is attached to a terminal.
+
+Default color mode could be controlled at configure time with the
+``--enable-color`` and the ``--disable-color`` option, which respectively
+correspond to the ``auto`` and ``never`` color mode. This default mode could
+be superseded with the ``MODULES_COLOR`` environment variable and the
+``--color`` command-line switch.
+
+Color to apply to each element can be controlled with the ``MODULES_COLORS``
+environment variable or the ``--with-dark-background-colors`` and
+``--with-light-background-colors`` configure options. These variable and
+options take as value a colon-separated list in the same fashion ``LS_COLORS``
+does. In this list, output item that should be highlighted is designated by
+a key which is associated to a `Select Graphic Rendition (SGR) code`_.
+
+.. _Select Graphic Rendition (SGR) code: https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
+
+The ``MODULES_TERM_BACKGROUND`` environment variable and the
+``--with-terminal-background`` configure option help Modules to determine if
+the color set for dark background or the color set for light background should
+be used to color output in case no specific color set is defined with the
+``MODULES_COLORS`` variable.
+
+Output items able to be colorized and their relative key are: highlighted
+element (``hi``), debug information (``db``), tag separator (``se``); Error
+(``er``), warning (``wa``), module error (``me``) and info (``in``) message
+prefixes; Modulepath (``mp``), directory (``di``), module alias (``al``),
+module symbolic version (``sy``), module ``default`` version (``de``) and
+modulefile command (``cm``).
+
+For instance the default color set for a terminal with dark background is
+defined to::
+
+    hi=1:db=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92
+
+When colored output is enabled and a specific graphical rendition is defined
+for module *default* version, the ``default`` symbol is omitted and instead
+the defined graphical rendition is applied to the relative modulefile. When
+colored output is enabled and a specific graphical rendition is defined for
+module alias, the ``@`` symbol is omitted.
+
 New sub-commands, command-line switches and environment variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
