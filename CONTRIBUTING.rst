@@ -28,7 +28,8 @@ Reporting issues
   us identify the issue.
 * Describe what actually happened. Run the ``module`` command in ``--debug``
   mode and include all the debug output obtained in your report.
-* List your Modules and Tcl versions.
+* Provide the current configuration and state of your Modules installation by
+  running the ``module config --dump-state`` command.
 * Provide the name and content of the modulefiles you try to manipulate.
 
 .. _minimal, complete, and verifiable example: https://stackoverflow.com/help/mcve
