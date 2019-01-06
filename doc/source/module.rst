@@ -605,6 +605,11 @@ ENVIRONMENT
 
  A colon separated list of all loaded *modulefiles*.
 
+**MODULECONTACT**
+
+ Email address to contact in case any issue occurs during the interpretation
+ of modulefiles.
+
 **MODULEPATH**
 
  The path that the **module** command searches when looking for
@@ -622,8 +627,8 @@ ENVIRONMENT
 
 **MODULERCFILE**
 
- Location of a global run-command file containing *modulefile* specific
- setup. See also Modulecmd startup section.
+ The location of a global run-command file containing *modulefile* specific
+ setup. See `Modulecmd startup`_ section for detailed information.
 
 **MODULESHOME**
 
