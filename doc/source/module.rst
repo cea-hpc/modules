@@ -557,6 +557,63 @@ Module Sub-Commands
  modules. See **module-info loaded** in the :ref:`modulefile(4)` man page for
  further explanation.
 
+**config** [--dump-state|name [value]|--reset name]
+
+ Gets or sets **modulecmd.tcl** options. Reports the currently set value of
+ passed option *name* or all existing options if no *name* passed. If a *name*
+ and a *value* are provided, the value of option *name* is set to *value*. If
+ command-line switch *--reset* is passed in addition to a *name*, overridden
+ overridden value for option *name* is cleared.
+
+ When a reported option value differs from default value a mention is added
+ to indicate whether the overridden value is coming from a command-line switch
+ (*cmd-line*) or from an environment variable (*env-var*).
+
+ If no value is currently set for an option *name*, the mention *<undef>* is
+ reported.
+
+ When command-line switch *--dump-state* is passed, current **modulecmd.tcl**
+ state and Modules-related environment variables are reported in addition to
+ currently set **modulecmd.tcl** options.
+
+ Existing option *names* are:
+
+ * allow_extra_siteconfig: additional site-specific configuration script
+   enablement
+ * auto_handling: automated module handling mode (defines environment variable
+   **MODULES_AUTO_HANDLING** when set)
+ * avail_indepth: **avail** sub-command in depth search mode (defines
+   **MODULES_AVAIL_INDEPTH**)
+ * avail_report_dir_sym: display symbolic versions targeting directories on
+   **avail** sub-command
+ * avail_report_mfile_sym: display symbolic versions targeting modulefiles on
+   **avail** sub-command
+ * collection_pin_version: register exact modulefile version in collection
+   (defines **MODULES_COLLECTION_PIN_VERSION**)
+ * collection_target: collection target which is valid for current system
+   (defines **MODULES_COLLECTION_TARGET**)
+ * color: colored output mode (defines **MODULES_COLOR**)
+ * colors: chosen colors to highlight output items (defines
+   **MODULES_COLORS**)
+ * contact: modulefile contact address (defines **MODULECONTACT**)
+ * extra_siteconfig: additional site-specific configuration script location
+   (defines **MODULES_SITECONFIG**)
+ * ignored_dirs: directories ignored when looking for modulefiles 
+ * pager: text viewer to paginate message output (defines **MODULES_PAGER**)
+ * rcfile: global run-command file location (defines **MODULERCFILE**)
+ * run_quarantine: environment variables to indirectly pass to
+   **modulecmd.tcl** (defines **MODULES_RUN_QUARANTINE**)
+ * silent_shell_debug: disablement of shell debugging property for the module
+   command (defines **MODULES_SILENT_SHELL_DEBUG**)
+ * siteconfig: primary site-specific configuration script location
+ * tcl_ext_lib: Modules Tcl extension library location
+ * term_background: terminal background color kind (defines
+   **MODULES_TERM_BACKGROUND**)
+
+The options *allow_extra_siteconfig*, *avail_report_dir_sym*,
+*avail_report_mfile_sym*, *ignored_dirs*, *siteconfig* and *tcl_ext_lib*
+cannot be altered.
+
 
 Modulefiles
 ^^^^^^^^^^^
