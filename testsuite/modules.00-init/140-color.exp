@@ -1,0 +1,382 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	2019/01/08
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check color-related switches and configs.
+#		}C%
+#
+##############################################################################
+
+# unset test-specific color setup disablement
+unsetenv_var MODULES_COLOR
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# check if stderr terminal attachement state is forced
+set is_stderr_tty [siteconfig_isStderrTty]
+if { $verbose > 0 } {
+    send_user "\tIs STDERR a TTY? = '$is_stderr_tty'\n"
+}
+
+# parse default color sets
+# no default colors will be set if color set is badly defined
+if {[catch {array set darkbgcolors [split $install_darkbgcolors {=:}]} errMsg ]} {
+    array set darkbgcolors {}
+}
+if {[catch {array set lightbgcolors [split $install_lightbgcolors {=:}]} errMsg ]} {
+    array set lightbgcolors {}
+}
+
+# create a specific color set for test purpose
+foreach sgrkey [list hi db se er wa me in mp di al sy de cm] {
+    set customcolors($sgrkey) {37;40}
+}
+
+proc colorstr {str sgr {re_mode 0}} {
+    # if render bold or faint just reset that attribute, not all
+    if {$sgr == 1 || $sgr == 2} {
+        set sgrreset 22
+    } else {
+        set sgrreset 0
+    }
+    if {$sgr ne {}} {
+        set str "\033\[${sgr}m$str\033\[${sgrreset}m"
+
+        if {$re_mode} {
+            # escape regexp-special characters
+            set str [regsub -all {([$.+?\\()&|\[\]])} $str {\\\1}]
+        }
+
+    }
+    return $str
+}
+
+# helper proc to generate color test and expected output
+proc color_test_case {modarg colorize {sgr {}}} {
+    if {!$::is_stderr_tty && $colorize > 0} {
+        incr colorize -1
+    }
+
+    if {$colorize} {
+        set prefix [colorstr $::error_msgs $sgr]
+    } else {
+        set prefix $::error_msgs
+    }
+
+    if {$modarg ne {}} {
+        append modarg { }
+    }
+
+    testouterr_cmd sh "${modarg}foo" ERR "$prefix: Invalid command 'foo'\n$::err_typehelp"
+}
+
+# helper proc to generate background color selection test and expected output
+proc background_test_case {bg} {
+    if {$bg eq {dark} && [info exists ::darkbgcolors(er)] && $::darkbgcolors(er) ne {}} {
+        set sgr_for_bg $::darkbgcolors(er)
+    } elseif {$bg eq {light} && [info exists ::lightbgcolors(er)] && $::lightbgcolors(er) ne {}} {
+        set sgr_for_bg $::lightbgcolors(er)
+    }
+
+    if {[info exists sgr_for_bg]} {
+        color_test_case {--color} 2 $sgr_for_bg
+    } else {
+        color_test_case {--color} 0
+    }
+}
+
+# helper proc to test element color against default and specific color sets
+proc colorset_test_case {cmd sgrstrlist experr {testifcolorset 0} {testspecifcolor 1}} {
+    # get default color set
+    if {$::install_termbg eq {dark}} {
+        array set defbgcolors [array get ::darkbgcolors]
+    } elseif {$::install_termbg eq {light}} {
+        array set defbgcolors [array get ::lightbgcolors]
+    } else {
+        array set defbgcolors {}
+    }
+    set alldefset 1
+    set sgrmap [list]
+    foreach {sgrkey strtocolor} $sgrstrlist {
+        set sgr [expr {[info exists defbgcolors($sgrkey)] ? $defbgcolors($sgrkey) : {}}]
+        if {$sgr eq {}} {
+            set alldefset 0
+        }
+        lappend sgrmap $strtocolor [colorstr $strtocolor $sgr 1]
+    }
+    if {$alldefset || !$testifcolorset} {
+        testerr_cmd_re sh $cmd [string map $sgrmap $experr]
+    }
+
+    if {$testspecifcolor} {
+        # test against specific color set
+        array set custcolors [array get ::customcolors]
+        foreach {key val} [array get custcolors] {
+            lappend custlist $key=$val
+        }
+        setenv_var MODULES_COLORS [join $custlist :]
+        set sgrmap [list]
+        foreach {sgrkey strtocolor} $sgrstrlist {
+            lappend sgrmap $strtocolor [colorstr $strtocolor $custcolors($sgrkey) 1]
+        }
+        testerr_cmd_re sh $cmd [string map $sgrmap $experr]
+    }
+
+    if {!$testifcolorset} {
+        # empty color definition in specific color set
+        foreach {sgrkey strtocolor} $sgrstrlist {
+            set custcolors($sgrkey) {}
+        }
+        set custlist [list]
+        foreach {key val} [array get custcolors] {
+            lappend custlist $key=$val
+        }
+        setenv_var MODULES_COLORS [join $custlist :]
+        testerr_cmd_re sh $cmd $experr
+
+        # element not referred in specific color set
+        foreach {sgrkey strtocolor} $sgrstrlist {
+            if {[info exists custcolors($sgrkey)]} {
+                unset custcolors($sgrkey)
+            }
+        }
+        set custlist [list]
+        foreach {key val} [array get custcolors] {
+            lappend custlist $key=$val
+        }
+        setenv_var MODULES_COLORS [join $custlist :]
+        testerr_cmd_re sh $cmd $experr
+    }
+
+    unsetenv_var MODULES_COLORS
+}
+
+
+#
+# color enablement checks
+#
+
+# ensure a color is set to check enablement
+set sgr 91
+setenv_var MODULES_COLORS er=$sgr
+
+# default configuration test
+if {$install_color eq {y}} {
+    color_test_case {} 1 $sgr
+} else {
+    color_test_case {} 0 $sgr
+}
+
+# environment variable or/and command-line switch override
+setenv_var MODULES_COLOR always
+color_test_case {} 2 $sgr
+color_test_case {--color} 2 $sgr
+color_test_case {--color=always} 2 $sgr
+color_test_case {--color=auto} 1 $sgr
+color_test_case {--color=never} 0 $sgr
+
+setenv_var MODULES_COLOR auto
+color_test_case {} 1 $sgr
+color_test_case {--color} 2 $sgr
+color_test_case {--color=always} 2 $sgr
+color_test_case {--color=auto} 1 $sgr
+color_test_case {--color=never} 0 $sgr
+
+setenv_var MODULES_COLOR never
+color_test_case {} 0 $sgr
+color_test_case {--color} 2 $sgr
+color_test_case {--color=always} 2 $sgr
+color_test_case {--color=auto} 1 $sgr
+color_test_case {--color=never} 0 $sgr
+
+# no color set, disabled
+setenv_var MODULES_COLORS {}
+setenv_var MODULES_COLOR always
+color_test_case {} 0 $sgr
+color_test_case {--color} 0 $sgr
+color_test_case {--color=always} 0 $sgr
+color_test_case {--color=auto} 0 $sgr
+color_test_case {--color=never} 0 $sgr
+
+# color key empty, disabled
+setenv_var MODULES_COLORS {er=}
+color_test_case {} 0 $sgr
+color_test_case {--color} 0 $sgr
+color_test_case {--color=always} 0 $sgr
+color_test_case {--color=auto} 0 $sgr
+color_test_case {--color=never} 0 $sgr
+
+
+#
+# defined color set applied
+#
+
+# specific bold and faint reset
+setenv_var MODULES_COLORS er=1
+color_test_case {--color} 2 1
+setenv_var MODULES_COLORS er=2
+color_test_case {--color} 2 2
+
+# background color dependent selection
+unsetenv_var MODULES_COLOR
+unsetenv_var MODULES_COLORS
+background_test_case $install_termbg
+setenv_var MODULES_TERM_BACKGROUND dark
+background_test_case dark
+setenv_var MODULES_TERM_BACKGROUND foo
+background_test_case $install_termbg
+setenv_var MODULES_TERM_BACKGROUND {}
+background_test_case $install_termbg
+setenv_var MODULES_TERM_BACKGROUND light
+background_test_case light
+# user-specific color set will override all background color selection
+setenv_var MODULES_COLORS er=1
+setenv_var MODULES_TERM_BACKGROUND dark
+color_test_case {--color} 2 1
+setenv_var MODULES_TERM_BACKGROUND foo
+color_test_case {--color} 2 1
+setenv_var MODULES_TERM_BACKGROUND {}
+color_test_case {--color} 2 1
+setenv_var MODULES_TERM_BACKGROUND light
+color_test_case {--color} 2 1
+
+# badly defined MODULES_COLORS is ignored
+setenv_var MODULES_COLORS er=1:wa
+setenv_var MODULES_TERM_BACKGROUND dark
+background_test_case dark
+setenv_var MODULES_TERM_BACKGROUND light
+background_test_case light
+
+unsetenv_var MODULES_TERM_BACKGROUND
+
+# also if it happen during first execution steps
+if {[siteconfig_isStderrTty]} {
+setenv_var TESTSUITE_ENABLE_SITECONFIG_BROKEN 1
+colorset_test_case {--color -V} [list er $error_msgs] "$error_msgs: Site configuration source failed\ninvalid command name \"unk_foo\""
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_BROKEN
+}
+
+# test of the various element on all commands that can produce a colored output
+unsetenv_var MODULES_COLOR
+unsetenv_var MODULES_COLORS
+
+# warning (wa)
+colorset_test_case {--color --create -V} [list wa WARNING] {WARNING: Unsupported option '--create'.*}
+# ensure command-line switch position has no impact
+colorset_test_case {--create -V --color} [list wa WARNING] {WARNING: Unsupported option '--create'.*}
+
+# debug information (db)
+setenv_var MODULES_COLOR always
+colorset_test_case {-D -V} [list db "DEBUG CALLING $MODULECMD sh -D -V"] "DEBUG CALLING $MODULECMD sh -D -V.*"
+
+# error (er)
+colorset_test_case {--foo foo} [list er $error_msgs] "$error_msgs: Invalid option '--foo'\n$err_typehelp"
+if {[info exists x11_warn]} {
+    colorset_test_case {load x-resource/1} [list er $error_msgs] .*[string map [list "\n" "\n\\s+"] $x11_warn]
+}
+
+# module error (me)
+colorset_test_case {load bad2/body} [list me $moderr_msgs] ".*$moderr_msgs: invalid command.*"
+
+# info (in)
+colorset_test_case {load --auto prereq/module} [list in {Loading requirement}] ".*Loading requirement: trace/all_on"
+
+# highlighted element (hi)
+colorset_test_case {saveshow testsuite/home/.module/infocmd} [list hi testsuite/home/.module/infocmd] ".*testsuite/home/.module/infocmd:.*"
+colorset_test_case {display setenv/1.0} [list hi $modpath/setenv/1.0] ".*$modpath/setenv/1.0:.*"
+colorset_test_case {help setenv/1.0} [list hi $modpath/setenv/1.0] ".*$modpath/setenv/1.0:.*"
+colorset_test_case {test setenv/1.0} [list hi $modpath/setenv/1.0] ".*$modpath/setenv/1.0:.*"
+colorset_test_case {avail -l loc_tr} [list hi Package/Alias hi Versions hi {Last mod.}] ".*- Package/Alias -.*- Versions -.*- Last mod. -.*"
+setenv_var HOME $env(TESTSUITEDIR)/home
+colorset_test_case {savelist -l} [list hi Collection hi {Last mod.}] "- Collection -.*- Last mod. -.*"
+setenv_var HOME $env(TESTSUITEDIR)
+# matched strings
+colorset_test_case {avail loc_t} [list hi loc_t] ".*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*"
+colorset_test_case {avail -l loc_t} [list hi loc_t] ".*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*"
+colorset_test_case {avail -t loc_t} [list hi loc_t] ".*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*"
+colorset_test_case {avail loc_tr} [list hi loc_tr] ".*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*"
+colorset_test_case {whatis loc_tr} [list hi loc_tr] ".*\\s+loc_tr/1.0: .*\\s+loc_tr/2.0: .*\\s+loc_tr/3.0: .*"
+colorset_test_case {search loc_tr} [list hi loc_tr] ".*: loc_tr/1.0\n.*: loc_tr/2.0\n.*: loc_tr/3.0"
+
+# modulepath (mp)
+colorset_test_case {use} [list mp $modpath] "Search path for module files \\(in search order\\):\n  $modpath"
+colorset_test_case {avail loc_tr} [list mp $modpath] ".*- $modpath -.*"
+colorset_test_case {avail -t --no-indepth loc_tr} [list mp $modpath] ".*$modpath:.*"
+colorset_test_case {avail -l --no-indepth loc_tr} [list mp $modpath] ".*$modpath:.*"
+
+# tag separator (se) / module symbolic version (sy)
+colorset_test_case {avail loc_tr} [list se ( se ) se : sy reg sy cur sy stable] ".*loc_tr.*/\\(reg\\).*loc_tr.*/1.0\\(cur:stable\\).*"
+colorset_test_case {avail -t loc_tr} [list se ( se ) se : sy reg sy cur sy stable] ".*loc_tr.*/\\(reg\\).*loc_tr.*/1.0\\(cur:stable\\).*"
+colorset_test_case {avail -l loc_tr} [list se : sy reg sy cur sy stable] ".*loc_tr.*/\\s+reg.*loc_tr.*/1.0\\s+cur:stable.*"
+
+# directory (di)
+colorset_test_case {avail --no-indepth} [list di loc_tr] ".*loc_tr/.*"
+colorset_test_case {avail -t} [list di loc_tr] ".*loc_tr/.*"
+colorset_test_case {avail -l} [list di loc_tr] ".*loc_tr/.*"
+
+# module alias (al) / module default version (de)
+colorset_test_case {avail} [list al loc_rc6/bar de loc_rc6/1.2] ".*loc_rc6/1.2.*loc_rc6/bar.*"
+colorset_test_case {avail -l} [list al loc_rc6/bar de loc_rc6/1.2] ".*loc_rc6/1.2.*loc_rc6/bar.*"
+colorset_test_case {avail -t} [list al loc_rc6/bar de loc_rc6/1.2] ".*loc_rc6/1.2.*loc_rc6/bar.*"
+# check @ and default symbols disappear when color is there
+if {($::install_termbg eq {dark} && (![info exists darkbgcolors(de)] || $darkbgcolors(de) eq {}))\
+    || ($::install_termbg eq {light} && (![info exists lightbgcolors(de)] || $lightbgcolors(de) eq {}))} {
+    colorset_test_case {avail loc_rc6} [list hi loc_rc6 se ( se ) se : sy new sy default] ".*loc_rc6/1.2.*\\(default:new\\).*loc_rc6/bar.* .*" 1 0
+} else {
+    colorset_test_case {avail loc_rc6} [list hi loc_rc6 se ( se ) sy new] ".*loc_rc6/1.2.*\\(new\\).*loc_rc6/bar.* .*" 1
+}
+
+# highlighted element (hi) /module alias (al) / module symbolic version (sy)
+colorset_test_case {aliases} [list hi Aliases hi Versions al loc_rc6/bar sy loc_rc6/default sy loc_rc6/new] ".*- Aliases -.*\nloc_rc6/bar -> .*- Versions -.*\nloc_rc6/default -> .*\nloc_rc6/new -> .*"
+
+# tag separator (se) / module symbolic version (sy) / module default version (de)
+setenv_loaded_module [list loc_tr/1.0 loc_rc6/1.2] [list $modpath/loc_tr/1.0 $modpath/loc_rc6/1.2]
+setenv_path_var MODULES_LMALTNAME loc_tr/1.0&loc_tr/cur&loc_tr/stable:loc_rc6/1.2&loc_rc6/1&loc_rc6/bar&loc_rc6/default&loc_rc6&loc_rc6/new
+colorset_test_case {list} [list se : se ( se ) sy new sy cur sy stable de loc_rc6/1.2] ".*loc_tr/1.0\\(cur:stable\\).*loc_rc6/1.2\\(new\\).*" 1
+colorset_test_case {list -l} [list se : sy new sy cur sy stable de loc_rc6/1.2] ".*loc_tr/1.0\\s+cur:stable\\s+.*loc_rc6/1.2\\s+new\\s+.*" 1
+colorset_test_case {list -l} [list hi Package hi Versions hi {Last mod.}] ".*- Package -.*- Versions -.*- Last mod. -.*"
+colorset_test_case {list -t} [list] ".*loc_tr/1.0\nloc_rc6/1.2" 0
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+
+# modulefile or collection command report (cm)
+colorset_test_case {saveshow testsuite/home/.module/infocmd} [list cm module] ".*module use --append .*\nmodule load info/command.*"
+colorset_test_case {display setenv/1.0} [list cm setenv] ".*setenv\t\ttestsuite yes.*"
+
+
+#
+#  Clean up variables used in this test case
+#
+
+# restore environment
+unsetenv_var MODULES_COLORS
+unsetenv_var MODULES_AVAIL_INDEPTH
+# ensure colored output is disabled by default
+setenv_var MODULES_COLOR never
+
+unset is_stderr_tty
+unset sgr
+unset darkbgcolors
+unset lightbgcolors
+unset customcolors
+unset sgrkey
+
+# remove procs
+rename colorstr {}
+rename color_test_case {}
+rename background_test_case {}
+rename colorset_test_case {}
+
