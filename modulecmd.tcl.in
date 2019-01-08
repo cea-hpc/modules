@@ -456,6 +456,12 @@ proc reportWarning {message {recordtop 0}} {
 
 proc reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
    {raisecnt 1}} {
+   lappend ::errreport_buffer [list reportError $message $recordtop $severity\
+      $sgrkey $raisecnt]
+}
+
+proc __reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
+   {raisecnt 1}} {
    # if report disabled, also disable error raise to get a coherent
    # behavior (if no message printed, no error code change)
    if {!$::g_inhibit_errreport} {
@@ -726,6 +732,8 @@ proc initErrorReport {} {
          # set a disabled version if debug is disabled
          rename ::__reportDebugNop ::reportDebug
       }
+      rename ::reportError {}
+      rename ::__reportError ::reportError
       rename ::reportErrorAndExit {}
       rename ::__reportErrorAndExit ::reportErrorAndExit
       rename ::reportSeparateNextContent {}
