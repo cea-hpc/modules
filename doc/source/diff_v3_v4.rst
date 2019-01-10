@@ -289,6 +289,8 @@ Command line switches
 
 **--no-indepth**
 
+**--color**
+
  These command line switches appeared on version ``4.3`` and are not supported on compatibility version.
 
 
@@ -407,6 +409,12 @@ Environment
  These environment variables appeared on version ``4.2`` and are not supported on compatibility version.
 
 **MODULES_AVAIL_INDEPTH**
+
+**MODULES_COLOR**
+
+**MODULES_COLORS**
+
+**MODULES_TERM_BACKGROUND**
 
  These environment variables appeared on version ``4.3`` and are not supported on compatibility version.
 
