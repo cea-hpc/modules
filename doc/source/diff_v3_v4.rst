@@ -285,6 +285,12 @@ Command line switches
 
  These command line switches appeared on version ``4.2`` and are not supported on compatibility version.
 
+**--indepth**
+
+**--no-indepth**
+
+ These command line switches appeared on version ``4.3`` and are not supported on compatibility version.
+
 
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
@@ -399,6 +405,10 @@ Environment
 **MODULES_LMPREREQ**
 
  These environment variables appeared on version ``4.2`` and are not supported on compatibility version.
+
+**MODULES_AVAIL_INDEPTH**
+
+ These environment variables appeared on version ``4.3`` and are not supported on compatibility version.
 
 
 Modules Specific Tcl Commands
