@@ -46,7 +46,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Modules'
-copyright = '1996-1999 John L. Furlani & Peter W. Osel, 1998-2017 R.K.Owen, 2002-2004 Mark Lakata, 2004-2017 Kent Mein, 2016-2018 Xavier Delaruelle'
+copyright = '1996-1999 John L. Furlani & Peter W. Osel, 1998-2017 R.K.Owen, 2002-2004 Mark Lakata, 2004-2017 Kent Mein, 2016-2019 Xavier Delaruelle'
 author = ''
 
 # The version info for the project you're documenting, acts as replacement for
