@@ -86,6 +86,7 @@ Modules 4.3.0 (2019-XX-XX)
 * Color modulefile Tcl commands set in a modulefile on a ``display`` command
   report.
 * Color module commands set in a collection on a ``saveshow`` command report.
+* Re-introduce ``clear`` sub-command. (fix issue #203)
 
 
 Modules 4.2.4 (2019-04-26)

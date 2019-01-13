@@ -58,12 +58,13 @@ Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
 On compatibility version, paths composing the **MODULEPATH** environment variable may contain reference to environment variable. These variable references are resolved dynamically when **MODULEPATH** is looked at during module sub-command action like **avail**. This feature was missing on Modules ``4.0`` but it has been re-introduced on Modules ``4.1``.
 
+**update**
+
+ This module sub-commands is not supported on Modules 4.
 
 **clear**
 
-**update**
- 
- These module sub-commands are not supported on Modules 4.
+ This command line switch was not supported starting Modules version ``4.0`` but reintroduced starting version ``4.3``.
 
 **refresh**
  

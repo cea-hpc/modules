@@ -125,6 +125,10 @@ New sub-commands, command-line switches and environment variables
   directories matching search query. Its value is superseded by the use of the
   **--indepth** and **--no-indepth** command-line switches.
 
+* The **clear** sub-command, which was available on Modules version 3.2, has
+  been reintroduced. This sub-command resets the Modules runtime information
+  but does not apply further changes to the environment at all.
+
 Further reading
 ---------------
 

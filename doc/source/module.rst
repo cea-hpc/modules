@@ -336,6 +336,12 @@ Module Sub-Commands
 
  Unload all loaded *modulefiles*.
 
+**clear** [string]
+
+ Force the Modules package to believe that no modules are currently loaded. A
+ confirmation is requested if no *string* is passed. *string* or typed
+ confirmation should equal to *yes* or *y* in order to proceed.
+
 **source** modulefile...
 
  Execute *modulefile* into the shell environment. *modulefile* must be
