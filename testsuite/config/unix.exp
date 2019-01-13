@@ -108,7 +108,7 @@ proc modulecmd_exit {} {
 # has to be installed in order to scan both 
 #
 
-proc modulecmd_xxx_ {command} {
+proc modulecmd_xxx_ {command {input noinput}} {
 	global MODULECMD
 	global TCLSH
 	global verbose
@@ -136,7 +136,11 @@ proc modulecmd_xxx_ {command} {
 	default_tclsh
 
 	if { ! $no_verbose && $verbose > 1 } {
-		send_user "starting $TCLSH $MODULECMD $shell $command\n"
+        if {$input eq {noinput}} {
+            send_user "starting $TCLSH $MODULECMD $shell $command\n"
+        } else {
+            send_user "starting $TCLSH $MODULECMD $shell $command << {$input}\n"
+        }
 	}
 
 # this is why I hate Tcl ... you can never count on anything to act
@@ -148,9 +152,17 @@ proc modulecmd_xxx_ {command} {
 # now need to capture the exit return code.
 	if [catch {
         if {$nocmdsplit} {
-            set comp_output [exec $TCLSH $MODULECMD $shell $command 2> test321.err > test321.out ]
+            if {$input eq {noinput}} {
+                set comp_output [exec $TCLSH $MODULECMD $shell $command 2> test321.err > test321.out ]
+            } else {
+                set comp_output [exec $TCLSH $MODULECMD $shell $command 2> test321.err > test321.out << $input]
+            }
         } else {
-            set comp_output [eval exec $TCLSH $MODULECMD $shell [split $command { }] 2> test321.err > test321.out ]
+            if {$input eq {noinput}} {
+                set comp_output [eval exec $TCLSH $MODULECMD $shell [split $command { }] 2> test321.err > test321.out ]
+            } else {
+                set comp_output [eval exec $TCLSH $MODULECMD $shell [split $command { }] 2> test321.err > test321.out << "{$input}"]
+            }
         }
 	} ] {
 		set comp_exit [lindex $errorCode 2]
@@ -173,11 +185,11 @@ proc modulecmd_xxx_ {command} {
 	catch { file delete test321.out }
 }
 
-proc modulecmd_start {command} {
+proc modulecmd_start {command {input noinput}} {
 	global no_verbose
 
 	set no_verbose 0
-	modulecmd_xxx_ "$command"
+	modulecmd_xxx_ "$command" $input
 	unset no_verbose
 }
 

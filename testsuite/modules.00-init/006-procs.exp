@@ -772,7 +772,7 @@ proc is_shell_out_list {answer} {
 # Test subprocedures
 #
 
-proc _test_sub {test_shell cmd} {
+proc _test_sub {test_shell cmd {input noinput}} {
 	global comp_output
 	global comp_error
 	global comp_exit
@@ -791,7 +791,7 @@ proc _test_sub {test_shell cmd} {
 	}
 
 	set shell $test_shell
-	modulecmd_start "$cmd"
+	modulecmd_start "$cmd" $input
 
 	if { $verbose > 1 } {
 		set ol [string length $comp_output]
@@ -1028,6 +1028,25 @@ proc testerr_cmd {test_shell cmd answer} {
     } else {
         _test_sub $test_shell "$cmd"
         if { [ _test_err $test_shell "$cmd" "$answer" ] } {
+            _test_ok $test_shell "$cmd"
+        }
+    }
+}
+
+#
+# Test procedure for full text matching with the stderr/stdout and text passed to stdin
+#
+
+proc testinouterr_cmd {test_shell cmd input answer anserr} {
+    if {$test_shell eq "ALL"} {
+        global supported_shells
+        foreach shell $supported_shells {
+            testinouterr_cmd $shell $cmd $input $answer $anserr
+        }
+    } else {
+        _test_sub $test_shell "$cmd" $input
+        if { [ _test_out $test_shell "$cmd" "$answer" ]
+        &&   [ _test_err $test_shell "$cmd" "$anserr" ] } {
             _test_ok $test_shell "$cmd"
         }
     }

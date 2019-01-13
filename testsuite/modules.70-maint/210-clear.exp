@@ -1,0 +1,109 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2019/01/13
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        clear
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test of the 'clear' command
+#		}C%
+#
+##############################################################################
+
+set mp "$modpath.other2"
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+# no module loaded
+set ans [list]
+lappend ans [list unset MODULES_LMPREREQ]
+lappend ans [list unset MODULEPATH_modshare]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset MODULES_LMNOTUASKED]
+lappend ans [list unset MODULES_LMCONFLICT]
+lappend ans [list unset MODULES_LMALTNAME]
+
+# test all valid confirmation strings
+foreach str [list y Y yes YES Yes yESfoo] {
+    testouterr_cmd sh "clear $str" $ans {}
+}
+
+# test valid confirmation passed via stdin
+foreach str [list y Y yes YES Yes yESfoo] {
+    testinouterr_cmd sh {clear} $str $ans {}
+}
+
+# basic module loaded
+setenv_loaded_module [list clear/3] [list $mp/clear/3]
+set ans [list]
+lappend ans [list unset MODULES_LMALTNAME]
+lappend ans [list unset MODULES_LMPREREQ]
+lappend ans [list unset MODULES_LMCONFLICT]
+lappend ans [list unset MODULES_LMNOTUASKED]
+lappend ans [list unset MODULEPATH_modshare]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd sh {clear y} $ans {}
+
+# advanced module-set loaded
+setenv_loaded_module [list clear/1 clear/3] [list $mp/clear/1 $mp/clear/3] [list clear/1]
+setenv_path_var MODULES_LMALTNAME clear/1&clear/foo
+setenv_path_var MODULES_LMPREREQ clear/2&clear/1
+setenv_path_var MODULES_LMCONFLICT clear/2&clear/3
+setenv_path_var FOO bar
+set ans [list]
+lappend ans [list unset MODULES_LMPREREQ]
+lappend ans [list unset LOADEDMODULES]
+lappend ans [list unset _LMFILES_]
+lappend ans [list unset MODULES_LMALTNAME]
+lappend ans [list unset MODULES_LMCONFLICT]
+lappend ans [list unset MODULES_LMCONFLICT_modshare]
+lappend ans [list unset MODULES_LMALTNAME_modshare]
+lappend ans [list unset FOO_modshare]
+lappend ans [list unset MODULES_LMNOTUASKED]
+lappend ans [list unset MODULES_LMNOTUASKED_modshare]
+lappend ans [list unset MODULES_LMPREREQ_modshare]
+lappend ans [list unset _LMFILES__modshare]
+lappend ans [list unset LOADEDMODULES_modshare]
+lappend ans [list unset MODULEPATH_modshare]
+testouterr_cmd sh {clear YES} $ans {}
+
+# test cancellation strings
+# no empty arg test not to make testsuite execution wait on an input
+foreach str [list no NO n N {} foo] {
+    testouterr_cmd sh "clear $str" {} "$info_msgs: Modules runtime information were not cleared"
+}
+
+# test cancelled confirmation passed via stdin
+foreach str [list no NO n N {} foo] {
+    testinouterr_cmd sh {clear} $str {} "$info_msgs: Modules runtime information were not cleared"
+}
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_path_var FOO
+
+unset mp
+unset str
+unset ans
