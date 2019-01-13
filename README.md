@@ -4,6 +4,7 @@ Modules, provides dynamic modification of a user's environment
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/cea-hpc/modules?svg=true&branch=master)](https://ci.appveyor.com/project/xdelaruelle/modules-a6nha/branch/master)
 [![Coverage Status](https://codecov.io/gh/cea-hpc/modules/branch/master/graph/badge.svg)](https://codecov.io/gh/cea-hpc/modules)
 [![Documentation Status](https://readthedocs.org/projects/modules/badge/?version=latest)](https://modules.readthedocs.io/en/latest/?badge=latest)
+[![Packaging status](https://repology.org/badge/tiny-repos/environment-modules.svg)](https://repology.org/metapackage/environment-modules/versions)
 
 The Modules package is a tool that simplify shell initialization and
 lets users easily modify their environment during the session with
