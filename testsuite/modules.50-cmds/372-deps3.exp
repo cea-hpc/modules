@@ -31,11 +31,16 @@ testouterr_cmd "sh" "load mt" "ERR" [msg_load ms [err_conflictw ms mt]]\n\n[msg_
 
 # conflict consistency check
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "a"]
 lappend ans [list setpath _LMFILES_ "$mp/a"]
+lappend ans [list setpath LOADEDMODULES "a"]
 lappend ans [list setpath MODULES_LMCONFLICT "a&b"]
 lappend ans [list ERR]
-testouterr_cmd "sh" "load a b" $ans [msg_load b [err_conflict b a]]
+if {$install_autohandling eq {y}} {
+    testouterr_cmd "sh" "load a b" $ans [msg_load b [err_conflict b a]]
+} else {
+    # as load is attempted to see if conflict solves, returned error is about missing prereq
+    testouterr_cmd "sh" "load a b" $ans [msg_load b [err_prereq b c]]
+}
 
 # prereq consistency check
 # no test possible with equal results between --auto and --no-auto modes

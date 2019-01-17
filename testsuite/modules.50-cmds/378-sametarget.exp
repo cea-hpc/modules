@@ -277,7 +277,8 @@ testouterr_cmd_re sh {load --force hg} $ans $tserr
 
 setenv_loaded_module [list ha/2 hf] [list $mp/ha/2 $mp/hf]
 setenv_path_var MODULES_LMCONFLICT hf&ha/1&ha
-set tserr [msg_load ha/3 [err_conflict ha/3 hf]]
+# evaluation is attempted prior conflict violation check
+set tserr "load ha/3\n\n[msg_load ha/3 [err_conflict ha/3 hf]]"
 testouterr_cmd_re sh {load ha} ERR $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/2:hf:ha/3]
@@ -299,7 +300,8 @@ testouterr_cmd_re sh {unload hf} $ans $tserr
 
 setenv_loaded_module [list ha/2 hg] [list $mp/ha/2 $mp/hg]
 setenv_path_var MODULES_LMCONFLICT hg&ha/1&ha/2&ha
-set tserr [msg_load ha/3 [err_conflict ha/3 hg]]
+# evaluation is attempted prior conflict violation check
+set tserr "load ha/3\n\n[msg_load ha/3 [err_conflict ha/3 hg]]"
 testouterr_cmd_re sh {load ha} ERR $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/2:hg:ha/3]

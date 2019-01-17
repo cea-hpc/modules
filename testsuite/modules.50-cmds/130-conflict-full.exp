@@ -180,17 +180,19 @@ setenv_loaded_module [list $module $module_troff] [list $modulefile $modulefile_
 setenv_path_var MODULES_LMCONFLICT "$module&$module_tron"
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile"]
+lappend ans [list setpath LOADEDMODULES "$module"]
 lappend ans [list ERR]
-set tserr [msg_load $module_tron [err_conflict $module_tron $module]]
+# evaluation is attempted prior conflict violation check
+set tserr [msg_load $module_tron $err_trace [err_conflict $module_tron $module]]
 testouterr_cmd_re "sh" "switch --no-auto $module_troff $module_tron" $ans $tserr
 testouterr_cmd_re "sh" "switch --auto $module_troff $module_tron" $ans $tserr
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module:$module_tron"]
 lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_tron"]
-set tserr [msg_load $module_tron [err_conflictf $module_tron $module] $err_trace]
+# evaluation is attempted prior conflict violation check
+set tserr [msg_load $module_tron $err_trace [err_conflictf $module_tron $module]]
 testouterr_cmd_re "sh" "switch --no-auto --force $module_troff $module_tron" $ans $tserr
 testouterr_cmd_re "sh" "switch --auto --force $module_troff $module_tron" $ans $tserr
 
@@ -229,7 +231,8 @@ testouterr_cmd_re sh "load $module" $ans {}
 
 setenv_loaded_module [list $module] [list $modulefile]
 setenv_path_var MODULES_LMCONFLICT $badelt $module&$module_tron
-testouterr_cmd_re sh "load $module_tron" ERR [msg_load $module_tron [err_conflict $module_tron $module]]
+# evaluation is attempted prior conflict violation check
+testouterr_cmd_re sh "load $module_tron" ERR [msg_load $module_tron $err_trace [err_conflict $module_tron $module]]
 
 set ans [list]
 lappend ans [list setpath MODULES_LMCONFLICT $badelt]
