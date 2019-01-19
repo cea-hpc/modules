@@ -60,6 +60,19 @@ An environment variable is used to keep track of this conflict information to
 proceed the same way than used to keep track of the loaded modulefiles with
 the ``LOADEDMODULES`` environment variable.
 
+In case a conflict constraint toward a modulefile is set by an already loaded
+modulefile, loading the conflicting modulefile will lead to a load evaluation
+attempt in order for this modulefile to get the chance to solve the constraint
+violation. If at the end of the load evaluation, the conflict has not been
+solved, modulefile load will be discarded.
+
+.. warning:: On versions ``4.2.0`` and ``4.2.1``, a conflict constraint set by
+   an already loaded modulefile forbade the load of the conflicting
+   modulefile. This has been changed starting version ``4.2.2`` to better cope
+   with behaviors of previous Modules version: an evaluation attempt of the
+   conflicting modulefile is made to give it the opportunity to solve this
+   conflict by using **module unload** modulefile command.
+
 .. _v42-prereq-constraints-consistency:
 
 Modulefile prereq constraints consistency
