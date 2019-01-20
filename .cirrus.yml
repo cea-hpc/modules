@@ -1,0 +1,19 @@
+task:
+  freebsd_instance:
+    matrix:
+      image: freebsd-11-2-release-amd64
+      image: freebsd-12-0-release-amd64
+  env:
+    RUNTESTFLAGS: -v
+  # need to supersede Cirrus CI-specific git clone with a regular git client
+  clone_script:
+    - pkg install -y git
+    - git clone --depth=320 --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+    - git reset --hard $CIRRUS_CHANGE_IN_REPO
+  install_script: pkg install -y bash gmake dejagnu py36-sphinx tcl86 autoconf automake gettext ksh93 zsh fish perl5 python36 ruby cmake R
+  build_script: ./configure --without-tclx --with-tcl-ver=8.6 && gmake && gmake install
+  test_script:
+    - gmake test
+    - gmake testinstall
+
+# vim:set tabstop=2 shiftwidth=2 expandtab autoindent:
