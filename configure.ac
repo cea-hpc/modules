@@ -792,8 +792,11 @@ dnl--------------------------------------------------------------------
 
 EM_PATH_TCLXCONFIG
 EM_LOAD_TCLXCONFIG
-EM_SET_TCLX
-EM_CHECK_TCLX
+dnl Skip TclX fine tuned selection if TclX not wanted
+if test x"$with_tclxconfig" != x"no" ; then
+    EM_SET_TCLX
+    EM_CHECK_TCLX
+fi
 if test x"$no_tclx" != x"true"; then
 	AH_TEMPLATE([HAS_TCLXLIBS],[
 HAS_TCLXLIBS:
