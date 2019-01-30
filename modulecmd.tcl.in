@@ -576,9 +576,17 @@ proc reportMsgRecord {header} {
          foreach line [split $msg \n] {
             set lineadd {}
             while {$lineadd ne $line} {
+               set line_max_idx $max_idx
+               # sgr tags consume no length
+               set eidx 0
+               while {[set sidx [string first "\033\[" $line $eidx]] != -1} {
+                  set eidx [string first m $line $sidx]
+                  incr line_max_idx [expr {1 + $eidx - $sidx}]
+               }
+
                # no split if no whitespace found to slice
-               if {[string length $line] > $max_idx && [set cut_idx [string\
-                  last { } $line $max_idx]] != -1} {
+               if {[string length $line] > $line_max_idx && [set cut_idx\
+                  [string last { } $line $line_max_idx]] != -1} {
                   set lineadd [string range $line 0 [expr {$cut_idx-1}]]
                   set line [string range $line [expr {$cut_idx+1}] end]
                } else {

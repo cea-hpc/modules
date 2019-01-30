@@ -356,6 +356,31 @@ unsetenv_path_var MODULES_LMALTNAME
 colorset_test_case {saveshow testsuite/home/.module/infocmd} [list cm module] ".*module use --append .*\nmodule load info/command.*"
 colorset_test_case {display setenv/1.0} [list cm setenv] ".*setenv\t\ttestsuite yes.*"
 
+#
+# block output rendering
+#
+
+set test_cols 61
+if {![info exists term_cols]} {
+    # skip tests if current terminal witdh is unknown
+    send_user "\tskipping terminal width-specific tests\n"
+# set a specific terminal width
+} elseif {[catch {exec stty cols $test_cols}] || [getTtyCols] ne $test_cols} {
+    send_user "\tskipping terminal width-specific tests, cannot set width\n"
+} else {
+
+setenv_var MODULES_COLORS er=31
+set tserr "[colorstr $error_msgs 31]: prereq/full cannot be loaded due to missing prereq.
+HINT: the following module must be loaded first:
+trace/all_on"
+testerr_cmd sh {load --color --no-auto prereq/full} [msg_load prereq/full $tserr]
+unset tserr
+unsetenv_var MODULES_COLORS
+
+# restore terminal width
+exec stty cols $term_cols
+unset test_cols
+}
 
 # test twice calls to getTermBackground and initColors procedures
 if {[siteconfig_isStderrTty]} {
