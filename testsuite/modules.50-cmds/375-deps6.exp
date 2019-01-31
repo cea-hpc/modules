@@ -794,6 +794,25 @@ set ans [list]
 testouterr_cmd "sh" "load mv" ERR [msg_unload ms [err_prerequn ms mv]]\n\n[msg_load mv "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'" [err_conflict mv ms]]
 
 
+# check ensure warning message is printed only once when force loading a reflexive conflict
+setenv_loaded_module [list refcon/1] [list $mp/refcon/1]
+setenv_path_var MODULES_LMCONFLICT refcon/1&refcon
+lappend ans [list setpath LOADEDMODULES refcon/1:refcon/2]
+lappend ans [list setpath _LMFILES_ $mp/refcon/1:$mp/refcon/2]
+lappend ans [list setpath MODULES_LMCONFLICT refcon/1&refcon:refcon/2&refcon]
+testouterr_cmd_re sh {load --force refcon/2} $ans [msg_load refcon/2 [err_conflictf refcon/2 refcon]]
+
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.altname
+setenv_loaded_module [list i5/1] [list $mp/i5/1]
+setenv_path_var MODULES_LMCONFLICT i5/1&irefcon
+setenv_path_var MODULES_LMALTNAME i5/1&irefcon
+lappend ans [list setpath LOADEDMODULES i5/1:i5/2]
+lappend ans [list setpath _LMFILES_ $mp/i5/1:$mp/i5/2]
+lappend ans [list setpath MODULES_LMCONFLICT i5/1&irefcon:i5/2&irefcon]
+lappend ans [list setpath MODULES_LMALTNAME i5/1&irefcon:i5/2&irefcon]
+testouterr_cmd_re sh {load --force i5/2} $ans [msg_load i5/2 [err_conflictf i5/2 irefcon]]
+
+
 #
 #  Cleanup
 #
@@ -801,7 +820,11 @@ testouterr_cmd "sh" "load mv" ERR [msg_unload ms [err_prerequn ms mv]]\n\n[msg_l
 # restore environment
 setenv_path_var MODULEPATH $modpath
 
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_path_var MODULES_LMALTNAME
 unsetenv_var MODULES_AUTO_HANDLING
+unsetenv_var MODULERCFILE
 
 unset mp
 unset ans

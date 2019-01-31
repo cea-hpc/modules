@@ -7030,9 +7030,11 @@ proc cmdModuleLoad {uasked args} {
                      # alternative name
                      foreach modalt [concat [getLoadedAltname $modconlist]\
                         $modconlist $moddecconlist] {
-                        if {[isInList $::report_conflict($modname) $modalt]} {
-                           set report_con 0
-                           break
+                        foreach reportmod $::report_conflict($modname) {
+                           if {[doesModuleMatchesName $modalt $reportmod]} {
+                              set report_con 0
+                              break
+                           }
                         }
                      }
                   }
