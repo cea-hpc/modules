@@ -3697,7 +3697,7 @@ proc setModuleDependency {mod {lookprior 0}} {
          0 {
             # prereq not satisfied
             reportDebug "set prereq violation state for '$mod'"
-            set ::g_prereqViolation($mod) 1
+            lappend ::g_prereqViolation($mod) $prereq
          }
          1 {
             set lmmod [lindex $lmprelist 0]
@@ -3833,6 +3833,74 @@ proc areModuleConstraintsSatisfied {{mod {}}} {
    }
 
    return $ret
+}
+
+# return list of loaded modules having an unmet requirement on passed mod
+# and their recursive dependent
+proc getUnmetDependentLoadedModuleList {mod} {
+   reportDebug "get dependent of upcoming loaded '$mod'"
+   set unmetdeplist {}
+   set depmodlist {}
+
+   # skip dependent analysis if mod has a conflict with a loaded module
+   lassign [doesModuleConflict $mod] doescon modconlist
+   if {!$doescon} {
+      foreach ummod [array names ::g_unmetDepHash] {
+         if {[doesModuleMatchesName $mod $ummod]} {
+            foreach depmod $::g_unmetDepHash($ummod) {
+               lappend depmodlist $depmod
+               # temporarily remove prereq violation of depmod if mod
+               # load solves it (no other prereq is missing)
+               if {[info exists ::g_prereqViolation($depmod)]} {
+                  foreach prereq $::g_prereqViolation($depmod) {
+                     foreach modpre $prereq {
+                        # also temporarily remove prereq violation for
+                        # requirements loaded after dependent module
+                        if {[doesModuleMatchesName $mod $modpre] ||\
+                           [is-loaded $modpre]} {
+                           # backup original violation to restore it later
+                           if {![info exists preunvioarr($depmod)]} {
+                              set preunvioarr($depmod)\
+                                 $::g_prereqViolation($depmod)
+                           }
+                           # temporarily remove matching violation
+                           set ::g_prereqViolation($depmod) [replaceFromList\
+                              $::g_prereqViolation($depmod) $prereq]
+                           if {[llength $::g_prereqViolation($depmod)] == 0} {
+                              unset ::g_prereqViolation($depmod)
+                           }
+                           break
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   # select dependent if all its constraint are now satisfied (after removing
+   # eventual prereq violation toward mod)
+   foreach depmod $depmodlist {
+      if {[areModuleConstraintsSatisfied $depmod]} {
+         appendNoDupToList unmetdeplist $depmod
+      }
+   }
+
+   # get dependent of dependent
+   set deplist [getDependentLoadedModuleList $unmetdeplist 0 0 0 1]
+
+   # restore temporarily lift prereq violation
+   if {[array exists preunvioarr]} {
+      foreach depmod [array names preunvioarr] {
+         set ::g_prereqViolation($depmod) $preunvioarr($depmod)
+      }
+   }
+
+   set sortlist [sortModulePerLoadedAndDepOrder [concat $unmetdeplist\
+      $deplist]]
+   reportDebug "got '$sortlist'"
+   return $sortlist
 }
 
 # return list of loaded modules declaring a prereq on passed mod with
@@ -6984,16 +7052,9 @@ proc cmdModuleLoad {uasked args} {
             pushSettings
 
             if {[getAutoHandling]} {
-               # temporary fake mod is loaded to get its dependent modules
-               append ::env(LOADEDMODULES) [getPathSeparator]$modname
-               append ::env(_LMFILES_) [getPathSeparator]$modfile
-               setLoadedModule $modname $modfile $uasked
-               set deprelist [getDependentLoadedModuleList $modname 0 0 0 1]
-               set ::env(LOADEDMODULES) [string range $::env(LOADEDMODULES)\
-                  0 end-[string length [getPathSeparator]$modname]]
-               set ::env(_LMFILES_) [string range $::env(_LMFILES_) 0\
-                  end-[string length [getPathSeparator]$modfile]]
-               unsetLoadedModule $modname $modfile
+               # get loaded modules holding a requirement on modname and able
+               # to be reloaded
+               set deprelist [getUnmetDependentLoadedModuleList $modname]
 
                # Reload all modules that have declared a prereq on mod as
                # they may take benefit from their prereq availability if it
