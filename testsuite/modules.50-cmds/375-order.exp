@@ -1,0 +1,308 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2019/02/01
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload
+#   Modulefiles:
+#   Sub-Command:    prereq, conflict
+#
+#   Comment:	%C{
+#           Test automatic resolution of modulefile dependencies when
+#           some constraints have been forced previously
+#		}C%
+#
+##############################################################################
+
+# enable auto_handling with environment variable
+setenv_var MODULES_AUTO_HANDLING 1
+
+set mp $modpath.deps
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+# requirement is found after its dependent
+# 1. load --force --no-auto ib
+# 2. load --no-auto ia
+setenv_loaded_module [list ib ia] [list $mp/ib $mp/ia]
+setenv_path_var MODULES_LMPREREQ ib&ia
+
+# ib should not be impacted
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ib]
+lappend ans [list setpath _LMFILES_ $mp/ib]
+set tserr [list {unload ia}]
+testouterr_cmd_re sh {unload --no-auto ia} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --auto ia} $ans [join $tserr \n]
+
+# ia should not be impacted
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ia]
+lappend ans [list setpath _LMFILES_ $mp/ia]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr [list {unload ib}]
+testouterr_cmd_re sh {unload --no-auto ib} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --auto ib} $ans [join $tserr \n]
+
+
+# requirement is found after its dependent and in autoloaded state
+# 1. load --force --no-auto ib
+# 2. load --force ie
+# 3. load --auto ic
+# 4. unload --no-auto ie
+# 5. unload --no-auto ic
+setenv_loaded_module [list ib ia] [list $mp/ib $mp/ia] [list ia]
+setenv_path_var MODULES_LMPREREQ ib&ia
+
+# ib should not be impacted
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ib]
+lappend ans [list setpath _LMFILES_ $mp/ib]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload ia}]
+testouterr_cmd_re sh {unload --no-auto ia} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --auto ia} $ans [join $tserr \n]
+
+# ia should not be impacted
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ia]
+lappend ans [list setpath _LMFILES_ $mp/ia]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr [list {unload ib}]
+testouterr_cmd_re sh {unload --no-auto ib} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --auto ib} $ans [join $tserr \n]
+
+
+# requirement is found after its dependent and in autoloaded state
+# 1. load --force --no-auto ib
+# 2. load --force ie
+# 3. load --auto ic
+# 4. unload --no-auto ie
+setenv_loaded_module [list ib ia ic] [list $mp/ib $mp/ia $mp/ic] [list ia]
+setenv_path_var MODULES_LMPREREQ ib&ia:ic&ia
+
+# ia should go UReqUn
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ib]
+lappend ans [list setpath _LMFILES_ $mp/ib]
+lappend ans [list setpath MODULES_LMPREREQ ib&ia]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload ic} {unload ia} \n[msg_top_unload ic {} ia {}]]
+testouterr_cmd_re sh {unload --auto ic} $ans [join $tserr \n]
+
+# ic should go DepUn (not ib)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ib]
+lappend ans [list setpath _LMFILES_ $mp/ib]
+lappend ans [list setpath MODULES_LMPREREQ ib&ia]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list [msg_unload ia [err_prerequn ia ic]]]
+testouterr_cmd_re sh {unload --no-auto ia} ERR [join $tserr \n]
+set tserr [list {unload ic} {unload ia} \n[msg_top_unload ia ic {} {}]]
+testouterr_cmd_re sh {unload --auto ia} $ans [join $tserr \n]
+
+
+# requirement is found after its dependent and in autoloaded state
+# 1. load --force --auto ij
+# 2. unload --force --no-auto ia
+# 3. unload --no-auto ij
+# 4. load --force ie
+# 5. load --force ia
+# 6. load --auto ij
+setenv_loaded_module [list ib ia ij] [list $mp/ib $mp/ia $mp/ij] [list ib]
+setenv_path_var MODULES_LMPREREQ ib&ia:ij&ib
+
+# ib should go UReqUn, not ia
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ia]
+lappend ans [list setpath _LMFILES_ $mp/ia]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload ij} {unload ib} \n[msg_top_unload ij {} ib {}]]
+testouterr_cmd_re sh {unload --auto ij} $ans [join $tserr \n]
+
+# ib should not be impacted
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ib:ij]
+lappend ans [list setpath _LMFILES_ $mp/ib:$mp/ij]
+set tserr [list {unload ia}]
+testouterr_cmd_re sh {unload --no-auto ia} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --auto ia} $ans [join $tserr \n]
+
+
+# requirement is found after its dependent and in autoloaded state
+# 1. load --force --auto ij
+# 2. unload --force --no-auto ia
+# 3. unload --no-auto ij
+# 4. load --force ie
+# 5. load --force --auto ic
+# 6. unload --no-auto ic
+# 7. load --auto ij
+setenv_loaded_module [list ib ia ij] [list $mp/ib $mp/ia $mp/ij] [list ib ia]
+setenv_path_var MODULES_LMPREREQ ib&ia:ij&ib
+
+# ib should go UReqUn, not ia
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ia]
+lappend ans [list setpath _LMFILES_ $mp/ia]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath MODULES_LMNOTUASKED ia]
+set tserr [list {unload ij} {unload ib} \n[msg_top_unload ij {} ib {}]]
+testouterr_cmd_re sh {unload --auto ij} $ans [join $tserr \n]
+
+# ib should not be impacted
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ib:ij]
+lappend ans [list setpath _LMFILES_ $mp/ib:$mp/ij]
+lappend ans [list setpath MODULES_LMNOTUASKED ib]
+set tserr [list {unload ia}]
+testouterr_cmd_re sh {unload --no-auto ia} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --auto ia} $ans [join $tserr \n]
+
+
+# one requirement found before and the other found after its dependent in autoloaded state
+# 1. load --force --auto if
+# 2. unload --force --no-auto ia
+# 2. load --force ie
+# 3. load --auto ic
+# 4. unload --no-auto ie
+# 5. unload --no-auto ic
+setenv_loaded_module [list ib if ia] [list $mp/ib $mp/if $mp/ia] [list ib ia]
+setenv_path_var MODULES_LMPREREQ ib&ia:if&ib&ia
+
+# ib and if should not be impacted
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ib:if]
+lappend ans [list setpath _LMFILES_ $mp/ib:$mp/if]
+lappend ans [list setpath MODULES_LMNOTUASKED ib]
+set tserr [list {unload ia}]
+testouterr_cmd_re sh {unload --no-auto ia} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --auto ia} $ans [join $tserr \n]
+
+# ia should not be impacted
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ia]
+lappend ans [list setpath _LMFILES_ $mp/ia]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath MODULES_LMNOTUASKED ia]
+set tserr [list {unload if} {unload ib} \n[msg_top_unload if {} ib {}]]
+testouterr_cmd_re sh {unload --auto if} $ans [join $tserr \n]
+
+
+# one reflexive conflict loaded after sane situation
+# 1. load --auto ii
+# 2. load --force ih/1
+setenv_loaded_module [list ih/2 ii ih/1] [list $mp/ih/2 $mp/ii $mp/ih/1] [list ih/2]
+setenv_path_var MODULES_LMPREREQ ii&ih
+setenv_path_var MODULES_LMCONFLICT ih/2&ih:ih/1&ih
+
+# ih/2 and ii should go DepRe due to conflict solve (auto mode)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ih/2:ii]
+lappend ans [list setpath _LMFILES_ $mp/ih/2:$mp/ii]
+lappend ans [list setpath MODULES_LMCONFLICT ih/2&ih]
+set tserr [list {unload ih/1}]
+testouterr_cmd_re sh {unload --no-auto ih/1} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ih/2:ii]
+lappend ans [list setpath _LMFILES_ $mp/ih/2:$mp/ii]
+lappend ans [list setpath MODULES_LMPREREQ ii&ih]
+lappend ans [list setpath MODULES_LMNOTUASKED ih/2]
+lappend ans [list setpath MODULES_LMCONFLICT ih/2&ih]
+set tserr [list {unload ii} {unload ih/2} {unload ih/1} {load ih/2} {load ii} \n[msg_top_unload ih/1 {} {} [list ih/2 ii]]]
+testouterr_cmd_re sh {unload --auto ih/1} $ans [join $tserr \n]
+
+# ih/1 and ii should go DepRe
+set tserr [list [msg_unload ih/2 [err_prerequn ih/2 ii]]]
+testouterr_cmd_re sh {unload --no-auto ih/2} ERR [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ih/1:ii]
+lappend ans [list setpath _LMFILES_ $mp/ih/1:$mp/ii]
+lappend ans [list setpath MODULES_LMPREREQ ii&ih]
+lappend ans [list setpath MODULES_LMCONFLICT ih/1&ih]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload ii} {unload ih/1} {unload ih/2} {load ih/1} {load ii} \n[msg_top_unload ih/2 {} {} [list ih/1 ii]]]
+testouterr_cmd_re sh {unload --auto ih/2} $ans [join $tserr \n]
+
+# ih/2 should go UReqUn and ih/1 DepRe (auto mode)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ih/2:ih/1]
+lappend ans [list setpath _LMFILES_ $mp/ih/2:$mp/ih/1]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr [list {unload ii}]
+testouterr_cmd_re sh {unload --no-auto ii} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ih/1]
+lappend ans [list setpath _LMFILES_ $mp/ih/1]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath MODULES_LMCONFLICT ih/1&ih]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload ih/1} {unload ii} {unload ih/2} {load ih/1} \n[msg_top_unload ii {} ih/2 ih/1]]
+testouterr_cmd_re sh {unload --auto ii} $ans [join $tserr \n]
+
+
+# one conflict prior and one reflexive conflict after
+# 1. load ig
+# 2. load --auto --force ii
+# 3. load --force ih/1
+setenv_loaded_module [list ig ih/2 ii ih/1] [list $mp/ig $mp/ih/2 $mp/ii $mp/ih/1] [list ih/2]
+setenv_path_var MODULES_LMPREREQ ii&ih
+setenv_path_var MODULES_LMCONFLICT ig&ih/2:ih/2&ih:ih/1&ih
+
+# cannot reload ih/2 after ig conflict solved since a conflict with ih/1 is still there
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ih/2:ii:ih/1]
+lappend ans [list setpath _LMFILES_ $mp/ih/2:$mp/ii:$mp/ih/1]
+lappend ans [list setpath MODULES_LMCONFLICT ih/2&ih:ih/1&ih]
+set tserr [list {unload ig}]
+testouterr_cmd_re sh {unload --auto ig} $ans [join $tserr \n]
+
+# ig, ii and ih/1 should go DepRe (auto mode)
+set tserr [list [msg_unload ih/2 [err_prerequn ih/2 ii]]]
+testouterr_cmd_re sh {unload --no-auto ih/2} ERR [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ig:ih/1:ii]
+lappend ans [list setpath _LMFILES_ $mp/ig:$mp/ih/1:$mp/ii]
+lappend ans [list setpath MODULES_LMPREREQ ii&ih]
+lappend ans [list setpath MODULES_LMCONFLICT ig&ih/2:ih/1&ih]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload ii} {unload ih/1} {unload ig} {unload ih/2} {load ig} {load ih/1} {load ii} \n[msg_top_unload ih/2 {} {} [list ig ih/1 ii]]]
+testouterr_cmd_re sh {unload --auto ih/2} $ans [join $tserr \n]
+
+# ih/2 and ii should go DepRe as conflict with ih/1 is solved
+# cannot reload ih/2 after ih/1 conflict solved since a conflict with ig is still there
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ig:ih/2:ii]
+lappend ans [list setpath _LMFILES_ $mp/ig:$mp/ih/2:$mp/ii]
+lappend ans [list setpath MODULES_LMCONFLICT ig&ih/2:ih/2&ih]
+set tserr [list {unload ih/1}]
+testouterr_cmd_re sh {unload --no-auto ih/1} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --auto ih/1} $ans [join $tserr \n]
+
+# ajouter des tests en --force?
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_var MODULES_AUTO_HANDLING
+
+unset mp
+unset ans
+unset tserr
