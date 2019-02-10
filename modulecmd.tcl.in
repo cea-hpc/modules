@@ -2995,7 +2995,7 @@ proc getLoadedModuleAltnameList {} {
 }
 
 # sort passed module list following both loaded and dependency orders
-proc sortModulePerLoadedAndDepOrder {modlist {loading 0}} {
+proc sortModulePerLoadedAndDepOrder {modlist {nporeq 0} {loading 0}} {
    # sort per loaded order
    set sortlist {}
    if {[llength $modlist] > 0} {
@@ -3016,16 +3016,18 @@ proc sortModulePerLoadedAndDepOrder {modlist {loading 0}} {
 
    # then refine sort with dependencies between loaded modules: a dependent
    # module should be placed prior the loaded module requiring it
+   set reqListVar [expr {$nporeq ? {::g_moduleNPODepend} :\
+      {::g_moduleDepend}}]
    set i 0
    set imax [llength $sortlist]
    while {$i < $imax} {
       set mod [lindex $sortlist $i]
       set jmin $imax
 
-      if {[info exists ::g_moduleDepend($mod)]} {
+      if {[info exists ${reqListVar}($mod)]} {
          # goes over all dependend modules to find the first one in the loaded
          # order list located after requiring mod
-         foreach lmmodlist $::g_moduleDepend($mod) {
+         foreach lmmodlist [set ${reqListVar}($mod)] {
             foreach lmmod $lmmodlist {
                set j [lsearch -exact $sortlist $lmmod]
                if {$j > $i && $j < $jmin} {
@@ -3858,14 +3860,23 @@ proc unsetModuleDependency {mod} {
 
 # returns if any loaded module (if passed mod is empty) or passed mod and all
 # its requirement chain satisfy their loading constraints (prereq & conflict)
-proc areModuleConstraintsSatisfied {{mod {}}} {
+proc areModuleConstraintsSatisfied {{mod {}} {nporeq 0}} {
    set ret 1
    cacheCurrentModules
+
+   # are requirements loaded after their dependent included or not
+   if {$nporeq} {
+      set reqVioVar ::g_prereqNPOViolation
+      set reqListVar ::g_moduleNPODepend
+   } else {
+      set reqVioVar ::g_prereqViolation
+      set reqListVar ::g_moduleDepend
+   }
 
    # check if any loaded module violates its prereq or conflict constraints
    if {$mod eq {}} {
       if {[array size ::g_conflictViolation] > 0 || [array size\
-         ::g_prereqViolation] > 0} {
+         $reqVioVar] > 0} {
          set ret 0
       }
    } else {
@@ -3875,15 +3886,15 @@ proc areModuleConstraintsSatisfied {{mod {}}} {
 
          # check if depmod violates its prereq or conflict constraints
          if {[info exists ::g_conflictViolation($depmod)] || [info exists\
-            ::g_prereqViolation($depmod)]} {
+            ${reqVioVar}($depmod)]} {
             # found violation among the requirement chain of mod so the
             # constraint of mod are not satisfied
             set ret 0
             break
          }
          # add requirements of depmod to the module to check list
-         if {[info exists ::g_moduleDepend($depmod)]} {
-            foreach lmmodlist $::g_moduleDepend($depmod) {
+         if {[info exists ${reqListVar}($depmod)]} {
+            foreach lmmodlist [set ${reqListVar}($depmod)] {
                eval appendNoDupToList fulllist $lmmodlist
             }
          }
@@ -3946,7 +3957,7 @@ proc getUnmetDependentLoadedModuleList {mod} {
    }
 
    # get dependent of dependent
-   set deplist [getDependentLoadedModuleList $unmetdeplist 0 0 0 1]
+   set deplist [getDependentLoadedModuleList $unmetdeplist 0 0 0 0 1]
 
    # restore temporarily lift prereq violation
    if {[array exists preunvioarr]} {
@@ -3962,18 +3973,30 @@ proc getUnmetDependentLoadedModuleList {mod} {
 }
 
 # return list of loaded modules declaring a prereq on passed mod with
-# distinction made with strong prereqs (no alternative loaded) or weak
-proc getDirectDependentList {mod {strong 0} {loading 0} {othmodlist {}}} {
+# distinction made with strong prereqs (no alternative loaded) or weak and
+# also with prereq loaded after their dependent module
+proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
+   {othmodlist {}}} {
    set deplist {}
-   if {[info exists ::g_dependHash($mod)]} {
-      foreach depmod $::g_dependHash($mod) {
+
+   # include or not requirements loaded after their dependent
+   if {$nporeq} {
+      set depListVar ::g_dependNPOHash
+      set reqListVar ::g_moduleNPODepend
+   } else {
+      set depListVar ::g_dependHash
+      set reqListVar ::g_moduleDepend
+   }
+
+   if {[info exists ${depListVar}($mod)]} {
+      foreach depmod [set ${depListVar}($mod)] {
          set add 1
          # skip optional dependency if only looking for strong ones
          # look at an additionally processed mod list to determine if all
          # mods from a dependent list (composed of optional parts) are part
          # of the search, which means mod is not optional but strong dependent
          if {$strong && [llength $depmod] > 1} {
-            foreach lmmodlist $::g_moduleDepend([lindex $depmod 0]) {
+            foreach lmmodlist [set ${reqListVar}([lindex $depmod 0])] {
                if {[isInList $lmmodlist $mod]} {
                   foreach lmmod $lmmodlist {
                      # other mod part of the opt list is not there so mod
@@ -4027,24 +4050,27 @@ proc getDirectDependentList {mod {strong 0} {loading 0} {othmodlist {}}} {
 # ordered by load position. strong argument controls whether only the active
 # dependent modules should be returned or also those that are optional. direct
 # argument controls if only dependent module directly requiring passed mods
-# should be returned or its full dependent tree. sat_constraint argument
-# controls whether only the loaded module satisfying their constraint should
-# be part or not of the resulting list. being_unload argument controls whether
-# loaded modules in conflict with one or multiple modules from modlist should
-# be added to the dependent list as these modules are currently being unloaded
-# and these conflicting loaded modules should be refreshed.
-proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {loading 1}\
-   {sat_constraint 0} {being_unload 0}} {
+# should be returned or its full dependent tree. nporeq argument tells if
+# requirement loaded after their dependent should be returned. sat_constraint
+# argument controls whether only the loaded module satisfying their constraint
+# should be part or not of the resulting list. being_unload argument controls
+# whether loaded modules in conflict with one or multiple modules from modlist
+# should be added to the dependent list as these modules are currently being
+# unloaded and these conflicting loaded modules should be refreshed.
+proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {nporeq 0}\
+   {loading 1} {sat_constraint 0} {being_unload 0}} {
    reportDebug "get loaded mod dependent of '$modlist' (strong=$strong,\
-      direct=$direct, loading=$loading, sat_constraint=$sat_constraint,\
-      being_unload=$being_unload)"
+      direct=$direct, nporeq=$nporeq, loading=$loading,\
+      sat_constraint=$sat_constraint, being_unload=$being_unload)"
 
    set deplist {}
    set fulllist $modlist
+   # look at consistent requirements for unloading modules
+   set unlonporeq [expr {$being_unload ? 0 : $nporeq}]
    foreach mod $modlist {
       # no duplicates or modules from query list
       eval appendNoDupToList fulllist [getDirectDependentList $mod $strong\
-         $loading $fulllist]
+         $unlonporeq $loading $fulllist]
    }
 
    if {$being_unload} {
@@ -4060,17 +4086,17 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {loading 1}\
          }
       }
    }
-
    set unloadingmodlist [getUnloadingModuleList]
    for {set i [llength $modlist]} {$i < [llength $fulllist]} {incr i 1} {
       set depmod [lindex $fulllist $i]
 
       # skip already added mod or mod violating constraints if asked
-      if {!$sat_constraint || [areModuleConstraintsSatisfied $depmod]} {
+      if {!$sat_constraint || [areModuleConstraintsSatisfied $depmod\
+         $nporeq]} {
          # get dependent mod of dep mod when looking at full dep tree
          if {!$direct} {
             eval appendNoDupToList fulllist [getDirectDependentList $depmod\
-               $strong 0 $fulllist]
+               $strong $nporeq 0 $fulllist]
          }
          # avoid module currently unloading from result list
          if {[notInList $unloadingmodlist $depmod]} {
@@ -4087,7 +4113,7 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {loading 1}\
    }
 
    # sort complete result list to match both loaded and dependency orders
-   set sortlist [sortModulePerLoadedAndDepOrder $deplist $loading]
+   set sortlist [sortModulePerLoadedAndDepOrder $deplist $nporeq $loading]
    reportDebug "got '$sortlist'"
    return $sortlist
 }
@@ -7334,7 +7360,8 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
 
                   # DepUn: Dependent to Unload (modules actively requiring
                   # modname or a module part of this DepUn batch)
-                  set depunlist [getDependentLoadedModuleList $modname 1 0 0]
+                  set depunlist [getDependentLoadedModuleList $modname 1 0 1\
+                     0]
 
                   # do not check for UReqUn mods coming from DepUn modules as
                   # these DepUn modules are reloaded
@@ -7349,14 +7376,14 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                   # or in conflict with modname, DepUn or UReqUn modules +
                   # modules dependent of a module part of this DepRe batch)
                   set deprelist [getDependentLoadedModuleList [concat\
-                     $urequnlist $depunlist [list $modname]] 0 0 0 1 1]
+                     $urequnlist $depunlist [list $modname]] 0 0 1 0 1 1]
 
                   # DepUn mods are merged into the DepRe list as an attempt
                   # to reload these DepUn mods is made once switched-to mod
                   # loaded
                   if {[info exists swprocessing]} {
                      set deprelist [sortModulePerLoadedAndDepOrder [concat\
-                        $depunlist $deprelist]]
+                        $depunlist $deprelist] 1]
                      set depunlist {}
                   }
 
