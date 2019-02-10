@@ -3665,12 +3665,16 @@ proc setModuleDependency {mod} {
    # only look at modules loaded prior current one to find requirements,
    # modules loaded afterward are unmet dependencies as dependents have
    # not been reloaded after them
-   set modlist [lrange $modlist 0 [lsearch -exact $modlist $mod]]
+   set modidx [lsearch -exact $modlist $mod]
+   set modnpolist [lrange $modlist [expr {$modidx + 1}] end]
+   set modlist [lrange $modlist 0 $modidx]
    set deplist {}
+   set depnpolist {}
 
    foreach prereq [getLoadedPrereq $mod] {
       # get corresponding loaded module for each element of the prereq order
       set lmprelist {}
+      set lmnpolist {}
       foreach modpre $prereq {
          set lmfound {}
          foreach lmmod $modlist {
@@ -3688,6 +3692,15 @@ proc setModuleDependency {mod} {
          # add matching mod elsewhere
          } else {
             appendNoDupToList lmprelist $lmfound
+            appendNoDupToList lmnpolist $lmfound
+         }
+
+         # look if requirement can be found in the No Particular Order list
+         foreach lmmod $modnpolist {
+            if {[doesModuleMatchesName $lmmod $modpre]} {
+               appendNoDupToList lmnpolist $lmmod
+               break
+            }
          }
       }
 
@@ -3708,6 +3721,28 @@ proc setModuleDependency {mod} {
             # many modules in prereq list, means they all set an optional dep
             foreach lmmod $lmprelist {
                lappend ::g_dependHash($lmmod) [list $mod 1]
+            }
+         }
+      }
+
+      # build 'is depended by' relations not taking loading order into account
+      switch -- [llength $lmnpolist] {
+         0 {
+            # even on No Particular Order mode, prereq is not satisfied
+            reportDebug "set NPO prereq violation state for '$mod'"
+            lappend ::g_prereqNPOViolation($mod) $prereq
+         }
+         1 {
+            set lmmod [lindex $lmnpolist 0]
+            lappend depnpolist $lmmod
+            # set 'is depended by' relations
+            lappend ::g_dependNPOHash($lmmod) $mod
+         }
+         default {
+            lappend depnpolist $lmnpolist
+            # many modules in prereq list, means they all set an optional dep
+            foreach lmmod $lmnpolist {
+               lappend ::g_dependNPOHash($lmmod) [list $mod 1]
             }
          }
       }
@@ -3739,6 +3774,8 @@ proc setModuleDependency {mod} {
    # set 'depends on' relation
    reportDebug "set deps '$deplist' for '$mod'"
    set ::g_moduleDepend($mod) $deplist
+   reportDebug "set NPO deps '$depnpolist' for '$mod'"
+   set ::g_moduleNPODepend($mod) $depnpolist
 }
 
 # update dependency chain when unloading module
@@ -3762,10 +3799,33 @@ proc unsetModuleDependency {mod} {
    reportDebug "unset deps for '$mod'"
    unset ::g_moduleDepend($mod)
 
+   foreach lmmodlist $::g_moduleNPODepend($mod) {
+      set manymod [expr {[llength $lmmodlist] > 1 ? 1 : 0}]
+
+      # unset 'is depended by' mod relations
+      foreach lmmod $lmmodlist {
+         if {[info exists ::g_dependNPOHash($lmmod)]} {
+            set hashdep [expr {$manymod ? [list $mod 1] : $mod}]
+            set ::g_dependNPOHash($lmmod) [replaceFromList\
+               $::g_dependNPOHash($lmmod) $hashdep]
+            if {[llength $::g_dependNPOHash($lmmod)] == 0} {
+               unset ::g_dependNPOHash($lmmod)
+            }
+         }
+      }
+   }
+   # unset mod's No Particular Order 'depends on' relation
+   reportDebug "unset NPO deps for '$mod'"
+   unset ::g_moduleNPODepend($mod)
+
    # unset eventual violation states
    if {[info exists ::g_prereqViolation($mod)]} {
       reportDebug "unset prereq violation state for '$mod'"
       unset ::g_prereqViolation($mod)
+   }
+   if {[info exists ::g_prereqNPOViolation($mod)]} {
+      reportDebug "unset NPO prereq violation state for '$mod'"
+      unset ::g_prereqNPOViolation($mod)
    }
    unsetModuleConflictViolation $mod
 
