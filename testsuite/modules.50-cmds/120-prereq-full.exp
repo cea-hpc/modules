@@ -181,12 +181,12 @@ testouterr_cmd "sh" "purge" $ans ""
 testouterr_cmd_re "sh" "reload" "ERR" $err_unsatreload
 
 # force unload of a prereq loaded after dependent module (loaded in force mode)
-# here again reload of dependent module will not be triggered as auto_handling is disabled
+# no impact on dependent module as prereq is loaded after
 setenv_loaded_module [list $module $module_tron] [list $modulefile $modulefile_tron]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile"]
-set tserr [msg_unload $module_tron [err_prerequnf $module_tron $module] $err_trace]
+set tserr [msg_unload $module_tron $err_trace]
 testouterr_cmd "sh" "unload --no-auto --force $module_tron" $ans $tserr
 
 # set situation where a module has been loaded without its prerequirement

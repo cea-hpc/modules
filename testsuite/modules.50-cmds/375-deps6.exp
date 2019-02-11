@@ -126,6 +126,7 @@ lappend ans [list setpath _LMFILES_ "$mp/f1:$mp/f4:$mp/f2:$mp/f3:$mp/f6:$mp/f7"]
 lappend ans [list setpath MODULES_LMNOTUASKED "f1:f3:f6"]
 lappend ans [list setpath MODULES_LMCONFLICT "f6&f5"]
 lappend ans [list setpath MODULES_LMPREREQ "f3&f1|f2:f6&f3|f4:f7&f6"]
+# vanishing f6&f5 conflict gives chance to f6 to reload and heal its not-ordered requirements (f3 and f4 were loaded after)
 set tserr [list "unload f7" "unload f6" "unload f5" "load f6" "load f7" \n[msg_top_unload f5 {} {} [list f6 f7]]]
 testouterr_cmd_re "sh" "unload f5" $ans [join $tserr "\n"]
 
@@ -243,6 +244,7 @@ lappend ans [list setpath _LMFILES_ "$mp/f1:$mp/f4:$mp/f2:$mp/f3:$mp/f6:$mp/f7"]
 lappend ans [list setpath MODULES_LMNOTUASKED "f1:f3:f6"]
 lappend ans [list setpath MODULES_LMCONFLICT "f6&f5"]
 lappend ans [list setpath MODULES_LMPREREQ "f3&f1|f2:f6&f3|f4:f7&f6"]
+# vanishing f6&f5 conflict gives chance to f6 to reload and heal its not-ordered requirements (f3 and f4 were loaded after)
 set tserr [list "unload f7" "unload f6" "unload f5" "load f6" "load f7" \n[msg_top_unload f5 {} {} [list f6 f7]]]
 testouterr_cmd_re "sh" "unload f5" $ans [join $tserr "\n"]
 
@@ -538,12 +540,13 @@ testouterr_cmd_re "sh" "unload f14" $ans [join $tserr "\n"]
 
 # unload the other side of the conflict
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "f11:f15:f13:f14:f16:f17"]
-lappend ans [list setpath _LMFILES_ "$mp/f11:$mp/f15:$mp/f13:$mp/f14:$mp/f16:$mp/f17"]
+lappend ans [list setpath LOADEDMODULES "f11:f13:f15:f14:f16:f17"]
+lappend ans [list setpath _LMFILES_ "$mp/f11:$mp/f13:$mp/f15:$mp/f14:$mp/f16:$mp/f17"]
 lappend ans [list setpath MODULES_LMNOTUASKED "f11:f13:f14:f16"]
 lappend ans [list setpath MODULES_LMPREREQ "f13&f11|f12:f16&f14|f15:f17&f13&f16"]
 lappend ans [list setpath MODULES_LMCONFLICT "f14&f12"]
-set tserr [list "unload f17" "unload f16" "unload f14" "unload f13" "unload f12" "load f13" "load f14" "load f16" "load f17" \n[msg_top_unload f12 {} {} [list f13 f14 f16 f17]]]
+# f13 is not DepRe here as f12 was loaded after f13
+set tserr [list "unload f17" "unload f16" "unload f14" "unload f12" "load f14" "load f16" "load f17" \n[msg_top_unload f12 {} {} [list f14 f16 f17]]]
 testouterr_cmd_re "sh" "unload f12" $ans [join $tserr "\n"]
 
 set ans [list]
@@ -738,12 +741,11 @@ setenv_path_var MODULES_LMPREREQ "f26&f24|f23" "f27&f25|f23" "f28&f26&f27"
 setenv_path_var MODULES_LMCONFLICT "f23&f29"
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES "f24:f25:f26:f27:f28:f29"]
-lappend ans [list setpath _LMFILES_ "$mp/f24:$mp/f25:$mp/f26:$mp/f27:$mp/f28:$mp/f29"]
-lappend ans [list setpath MODULES_LMPREREQ "f26&f24|f23:f27&f25|f23:f28&f26&f27"]
-lappend ans [list setpath MODULES_LMNOTUASKED "f24:f25:f26:f27"]
+lappend ans [list setpath LOADEDMODULES "f24:f26:f25:f27:f28:f29"]
+lappend ans [list setpath _LMFILES_ "$mp/f24:$mp/f26:$mp/f25:$mp/f27:$mp/f28:$mp/f29"]
 lappend ans [list unsetpath MODULES_LMCONFLICT]
-set tserr [list "unload f29" "unload f28" "unload f27" "unload f26" "unload f23" "load f26" "load f27" "load f28" "load f29" \n[msg_top_unload f23 {} {} [list f26 f27 f28 f29]]]
+# f26 and f27 are not part of DepRe, as f23 was loaded after them
+set tserr [list "unload f29" "unload f23" "load f29" \n[msg_top_unload f23 {} {} [list f29]]]
 testouterr_cmd_re "sh" "unload f23" $ans [join $tserr "\n"]
 
 set ans [list]
