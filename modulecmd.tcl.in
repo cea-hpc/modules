@@ -3305,7 +3305,7 @@ proc setLoadedModule {mod modfile uasked} {
       set ::g_loadedModuleUasked($mod) 1
    }
    # build dependency chain
-   setModuleDependency $mod 1
+   setModuleDependency $mod
 }
 
 proc unsetLoadedModule {mod modfile} {
@@ -3660,14 +3660,12 @@ proc unsetModuleConflictViolation {mod} {
 }
 
 # build dependency chain between loaded modules based on registered prereqs
-proc setModuleDependency {mod {lookprior 0}} {
+proc setModuleDependency {mod} {
    set modlist [getLoadedModuleList]
    # only look at modules loaded prior current one to find requirements,
    # modules loaded afterward are unmet dependencies as dependents have
    # not been reloaded after them
-   if {$lookprior} {
-      set modlist [lrange $modlist 0 [lsearch -exact $modlist $mod]]
-   }
+   set modlist [lrange $modlist 0 [lsearch -exact $modlist $mod]]
    set deplist {}
 
    foreach prereq [getLoadedPrereq $mod] {
