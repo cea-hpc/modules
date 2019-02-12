@@ -579,6 +579,19 @@ set tserr "unload gk\nunload gl\n\n[msg_top_unload gk {} gl {}]"
 testouterr_cmd_re sh {unload gk} $ans $tserr
 
 
+# check dependency structures are correctly updated when loop cycle is detected on a module
+# having multiple dependent
+setenv_loaded_module [list gs gr gq gp go] [list $mp/gs $mp/gr $mp/gq $mp/gp $mp/go] [list gp]
+setenv_path_var MODULES_LMPREREQ gq&gs|go gr&gs|go gp&gq go&gp
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr "unload gr\nunload go\nunload gp\nunload gq\nunload gs\n\n[msg_top_unload gs [list gr go gp gq] {} {}]"
+testouterr_cmd_re sh {unload gs} $ans $tserr
+
+
 #
 #  Cleanup
 #

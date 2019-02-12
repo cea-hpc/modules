@@ -3764,6 +3764,53 @@ proc setModuleDependency {mod} {
             if {[isInList [getDependentLoadedModuleList $lmmod 0 0] $mod]} {
                reportDebug "skip deps refresh for '$lmmod' as dep cycle\
                   detected with '$mod'"
+
+               # remove dependency link in no particular order structs to
+               # avoid cycle first in 'is depended by' struct
+               if {[info exists ::g_dependNPOHash($mod)]} {
+                  set depmodlist $::g_dependNPOHash($mod)
+                  for {set i 0} {$i < [llength $depmodlist]} {incr i 1} {
+                     if {[lindex [lindex $depmodlist $i] 0] eq $lmmod} {
+                        set depmodlist [lreplace $depmodlist $i $i]
+                        break
+                     }
+                  }
+                  set ::g_dependNPOHash($mod) $depmodlist
+                  reportDebug "update NPO dependent of '$mod' to\
+                     '$depmodlist'"
+               }
+               # then update 'depend on' struct
+               set lmmoddepnpolist {}
+               foreach depmodlist $::g_moduleNPODepend($lmmod) {
+                  if {[set depidx [lsearch -exact $depmodlist $mod]] != -1} {
+                     set depmodlist [lreplace $depmodlist $depidx $depidx]
+                     # implies to update consistenly alternate requirement or
+                     # violation state if no alternative loaded
+                     switch -- [llength $depmodlist] {
+                        0 {
+                           # do not know exact prereq name, so use correspond.
+                           # loaded module matching it
+                           lappend ::g_prereqNPOViolation($lmmod) $mod
+                           reportDebug "set NPO prereq violation state for\
+                              '$lmmod'"
+                        }
+                        1 {
+                           # update alternate loaded mod which became a strong
+                           # requirement
+                           set altmod [lindex $depmodlist 0]
+                           set ::g_dependNPOHash($altmod) [replaceFromList\
+                              $::g_dependNPOHash($altmod) [list $lmmod 1]\
+                              $lmmod]
+                           reportDebug "update NPO dependent of '$altmod' to\
+                              '$::g_dependNPOHash($altmod)'"
+                        }
+                     }
+                  }
+                  lappend lmmoddepnpolist $depmodlist
+               }
+               reportDebug "update NPO requirement of '$lmmod' to\
+                  '$lmmoddepnpolist'"
+               set ::g_moduleNPODepend($lmmod) $lmmoddepnpolist
             } else {
                # refresh actual dependencies of targetting mod
                unsetModuleDependency $lmmod
