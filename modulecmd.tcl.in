@@ -3686,9 +3686,9 @@ proc setModuleDependency {mod} {
             }
          }
 
-         # register an unmet dependency if no loaded mod matches
+         # register an unmet dependency/requirement if no loaded mod matches
          if {$lmfound eq {}} {
-            reportDebug "set an unmet dep on '$modpre' for '$mod'"
+            reportDebug "set an unmet requirement on '$modpre' for '$mod'"
             lappend ::g_moduleUnmetDep($mod) $modpre
             lappend ::g_unmetDepHash($modpre) $mod
          # add matching mod elsewhere
@@ -3759,7 +3759,7 @@ proc setModuleDependency {mod} {
    # update eventual registered unmet dependencies
    foreach modpre [array names ::g_unmetDepHash] {
       if {[doesModuleMatchesName $mod $modpre]} {
-         reportDebug "refresh deps targetting '$modpre'"
+         reportDebug "refresh requirements targetting '$modpre'"
          foreach lmmod $::g_unmetDepHash($modpre) {
             if {[isInList [getDependentLoadedModuleList $lmmod 0 0] $mod]} {
                reportDebug "skip deps refresh for '$lmmod' as dep cycle\
@@ -3821,9 +3821,9 @@ proc setModuleDependency {mod} {
    }
 
    # set 'depends on' relation
-   reportDebug "set deps '$deplist' for '$mod'"
+   reportDebug "set requirements of '$mod' to '$deplist'"
    set ::g_moduleDepend($mod) $deplist
-   reportDebug "set NPO deps '$depnpolist' for '$mod'"
+   reportDebug "set NPO requirements of '$mod' to '$depnpolist'"
    set ::g_moduleNPODepend($mod) $depnpolist
 }
 
@@ -3845,7 +3845,7 @@ proc unsetModuleDependency {mod} {
       }
    }
    # unset mod's 'depends on' relation
-   reportDebug "unset deps for '$mod'"
+   reportDebug "unset requirements of '$mod'"
    unset ::g_moduleDepend($mod)
 
    foreach lmmodlist $::g_moduleNPODepend($mod) {
@@ -3864,7 +3864,7 @@ proc unsetModuleDependency {mod} {
       }
    }
    # unset mod's No Particular Order 'depends on' relation
-   reportDebug "unset NPO deps for '$mod'"
+   reportDebug "unset NPO requirements of '$mod'"
    unset ::g_moduleNPODepend($mod)
 
    # unset eventual violation states
@@ -3889,14 +3889,14 @@ proc unsetModuleDependency {mod} {
             }
          }
       }
-      reportDebug "unset unmet deps for '$mod'"
+      reportDebug "unset unmet requirements for '$mod'"
       unset ::g_moduleUnmetDep($mod)
    }
 
    # unset mod's 'is depended by' relations
    set hashdeplist [getDirectDependentList $mod]
    if {[llength $hashdeplist] > 0} {
-      reportDebug "refresh deps targetting '$mod'"
+      reportDebug "refresh dependent of '$mod'"
       foreach lmmod $hashdeplist {
          # refresh actual dependencies of targetting mod
          unsetModuleDependency $lmmod
