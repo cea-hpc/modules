@@ -7186,6 +7186,7 @@ proc cmdModuleLoad {uasked args} {
                # get loaded modules holding a requirement on modname and able
                # to be reloaded
                set deprelist [getUnmetDependentLoadedModuleList $modname]
+               reportDebug "depre mod list is '$deprelist'"
 
                # Reload all modules that have declared a prereq on mod as
                # they may take benefit from their prereq availability if it
@@ -7409,6 +7410,7 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                   # modname or a module part of this DepUn batch)
                   set depunlist [getDependentLoadedModuleList $modname 1 0 1\
                      0]
+                  reportDebug "depun mod list is '$depunlist'"
 
                   # do not check for UReqUn mods coming from DepUn modules as
                   # these DepUn modules are reloaded
@@ -7419,11 +7421,14 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                   # requirements of modname or DepUn modules not required by
                   # any remaining modules)
                   set urequnlist [getUnloadableLoadedModuleList $urequnqry]
+                  reportDebug "urequn mod list is '$urequnlist'"
+
                   # DepRe: Dependent to Reload (modules optionnaly dependent
                   # or in conflict with modname, DepUn or UReqUn modules +
                   # modules dependent of a module part of this DepRe batch)
                   set deprelist [getDependentLoadedModuleList [concat\
                      $urequnlist $depunlist [list $modname]] 0 0 1 0 1 1]
+                  reportDebug "depre mod list is '$deprelist'"
 
                   # DepUn mods are merged into the DepRe list as an attempt
                   # to reload these DepUn mods is made once switched-to mod
