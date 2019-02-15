@@ -7406,8 +7406,17 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
 
                   # DepUn: Dependent to Unload (modules actively requiring
                   # modname or a module part of this DepUn batch)
-                  set depunlist [getDependentLoadedModuleList $modname 1 0 1\
+                  set depunnpolist [getDependentLoadedModuleList $modname 1 0\
+                     1 0]
+                  set depunlist [getDependentLoadedModuleList $modname 1 0 0\
                      0]
+                  # look at both regular dependencies or No Particular Order
+                  # dependencies: use NPO result if situation can be healed
+                  # with NPO dependencies, which will be part of DepRe list
+                  # to restore the correct loading order for them
+                  if {[llength $depunnpolist] <= [llength $depunlist]} {
+                     set depunlist $depunnpolist
+                  }
                   reportDebug "depun mod list is '$depunlist'"
 
                   # do not check for UReqUn mods coming from DepUn modules as
