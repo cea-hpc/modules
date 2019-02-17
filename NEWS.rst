@@ -6,6 +6,43 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+Modules 4.2.2 (2019-02-17)
+--------------------------
+
+* Correct the *Dependent Unload* mechanism when it triggers the unload of 2
+  modules making together a requirement from another module. This module is
+  now also added to the dependent modules to unload.
+* Doc: add a cookbook section in the documentation and port there the 3
+  pre-existing recipes: *inhibit-report-info*, *top-priority-values* and
+  *unload-firstly-loaded*.
+* Doc: add a CONTRIBUTING guide.
+* Doc: fix a typo on the Python initialization example in module man page.
+* Doc: add a FAQ entry to describe the use of module from Makefile. (with
+  contribution from Robert McLay)
+* Trim any white-space, newline or ``;`` characters at the beginning or end of
+  the function body passed to set-function modulefile command.
+* Init: add recognition of the ``--auto``, ``--no-auto`` and ``--force``
+  command-line switches in fish shell completion script.
+* Init: add recognition of the ``--auto``, ``--no-auto``, ``--force``,
+  ``--paginate`` and ``--no-pager`` command-line switches in zsh shell
+  completion script.
+* When the load of a modulefile is asked but a conflict is registered against
+  this modulefile by an already loaded module, the load evaluation is now
+  performed and the conflict is checked after this evaluation. If the conflict
+  is still there, this evaluation (and the evaluation of its requirements) is
+  rolled back. (fix issue#216)
+* Init: fix ``_module_not_yet_loaded`` alias in tcsh completion script to
+  handle situation when ``noclobber`` variable is set. Also ensure actual
+  ``rm`` command is called and not an alias. (fix issue#219)
+* Fix warning message when the load of a modulefile is forced over a reflexive
+  conflict (message was reported twice).
+* When looking at the dependency of a loaded module, only consider requirement
+  loaded before dependent module (holding a prior position in the loaded
+  module list) as valid. Those loaded after dependent module are considered as
+  an unmet dependency thus they are not taking part in the *Dependent Unload*,
+  the *Useless Requirement Unload* and the *Dependent Reload* mechanisms.
+
+
 Modules 4.2.1 (2018-11-11)
 --------------------------
 
