@@ -429,7 +429,7 @@ static	ErrType getEntries(	Tcl_Interp	*interp,
 {
     register Tcl_HashEntry	*entry;
     char			*end,
-				 Res="^[ \t]*([^ \t]*)[ \t]*:[ \t]*(.*)[ \t]*$";
+				 *Res="^[ \t]*([^ \t]*)[ \t]*:[ \t]*(.*)[ \t]*$";
     static Tcl_Obj		*res_obj = (Tcl_Obj *) NULL;
     static Tcl_RegExp		 res_exp = (Tcl_RegExp) NULL;
     int				 new_res;
