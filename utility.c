@@ -3094,9 +3094,11 @@ EM_RetVal ReturnValue(Tcl_Interp *interp, int retval) {
 		/* found 'EXIT' */
 		Tcl_RegExpRange(exit__expPtr, 1,
 			(CONST84 char **) &startp, (CONST84 char **) &endp);
-		if( startp != '\0')
+		if( startp && *startp != '\0')
 			result = atoi((const char *) startp);
-
+		else
+			result = 0;
+		
 		g_retval = result;
 		em_result = EM_EXIT;
 
