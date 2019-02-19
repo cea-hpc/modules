@@ -4252,7 +4252,12 @@ proc runModulerc {} {
 # correct set in case of failure
 proc pushSettings {} {
    foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
-      g_stateFunctions g_Functions g_newXResources g_delXResources} {
+      g_stateFunctions g_Functions g_newXResources g_delXResources\
+      g_loadedModules g_loadedModuleFiles g_loadedModuleUasked\
+      g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
+      g_moduleDepend g_dependHash g_moduleNPODepend g_dependNPOHash\
+      g_prereqViolation g_prereqNPOViolation g_conflictViolation\
+      g_moduleUnmetDep g_unmetDepHash} {
       eval "lappend ::g_SAVE_$var \[array get ::$var\]"
    }
    # save non-array variable and indication if it was set
@@ -4268,14 +4273,24 @@ proc pushSettings {} {
 proc popSettings {} {
    foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
       g_stateFunctions g_Functions g_newXResources g_delXResources\
-      g_changeDir g_stdoutPuts g_return_text} {
+      g_changeDir g_stdoutPuts g_return_text\
+      g_loadedModules g_loadedModuleFiles g_loadedModuleUasked\
+      g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
+      g_moduleDepend g_dependHash g_moduleNPODepend g_dependNPOHash\
+      g_prereqViolation g_prereqNPOViolation g_conflictViolation\
+      g_moduleUnmetDep g_unmetDepHash} {
       eval "set ::g_SAVE_$var \[lrange \$::g_SAVE_$var 0 end-1\]"
    }
 }
 
 proc restoreSettings {} {
    foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
-      g_stateFunctions g_Functions g_newXResources g_delXResources} {
+      g_stateFunctions g_Functions g_newXResources g_delXResources\
+      g_loadedModules g_loadedModuleFiles g_loadedModuleUasked\
+      g_loadedModuleConflict g_loadedModulePrereq g_loadedModuleAltname\
+      g_moduleDepend g_dependHash g_moduleNPODepend g_dependNPOHash\
+      g_prereqViolation g_prereqNPOViolation g_conflictViolation\
+      g_moduleUnmetDep g_unmetDepHash} {
       # clear current $var arrays
       if {[info exists ::$var]} {
          eval "unset ::$var; array set ::$var {}"
