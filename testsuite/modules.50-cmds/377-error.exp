@@ -1,0 +1,315 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2019/02/19
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload
+#   Modulefiles:
+#   Sub-Command:    prereq, conflict
+#
+#   Comment:	%C{
+#           Test situations where error raised whereas automatic loading and
+#           unloading mechanisms have been triggered.
+#		}C%
+#
+##############################################################################
+
+# enable auto_handling with environment variable
+setenv_var MODULES_AUTO_HANDLING 1
+
+set mp $modpath.deps
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+#
+# crash of main mod load having some DepRe module unloaded
+# this DepRe module info should be restored
+#
+
+# requirement info (and unmet dependency info) restored after evaluation crash
+setenv_loaded_module [list rd] [list $mp/rd]
+setenv_path_var MODULES_LMPREREQ rd&ra|rb
+setenv_path_var MODULES_LMCONFLICT rd&rf
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rb:rd:rc]
+lappend ans [list setpath _LMFILES_ $mp/rb:$mp/rd:$mp/rc]
+lappend ans [list setpath MODULES_LMPREREQ rd&ra|rb:rc&rb]
+lappend ans [list setpath MODULES_LMCONFLICT rd&rf]
+lappend ans [list setpath MODULES_LMNOTUASKED rb]
+lappend ans [list ERR]
+set tserr [list {unload rd} {load ra} {load rc} {unload rd} {load rb} {load rd} \n[msg_top_load rc {} rb {}]]
+testouterr_cmd_re sh {load ra rc} $ans [join $tserr \n]
+
+# not user asked info restored after evaluation crash
+setenv_loaded_module [list rd] [list $mp/rd] [list rd]
+setenv_path_var MODULES_LMPREREQ rd&ra|rb
+setenv_path_var MODULES_LMCONFLICT rd&rf
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rb:rd:rc]
+lappend ans [list setpath _LMFILES_ $mp/rb:$mp/rd:$mp/rc]
+lappend ans [list setpath MODULES_LMPREREQ rd&ra|rb:rc&rb]
+lappend ans [list setpath MODULES_LMNOTUASKED rb:rd]
+lappend ans [list setpath MODULES_LMCONFLICT rd&rf]
+lappend ans [list ERR]
+set tserr [list {unload rd} {load ra} {load rc} {unload rd} {load rb} {load rd} \n[msg_top_load rc {} rb {}]]
+testouterr_cmd_re sh {load ra rc} $ans [join $tserr \n]
+
+# is-loaded info restored after evaluation crash
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rd:re]
+lappend ans [list setpath _LMFILES_ $mp/rd:$mp/re]
+lappend ans [list ERR]
+set tserr [list {unload rd} {load ra} {load re} {rd loaded}]
+testouterr_cmd_re sh {load ra re} $ans [join $tserr \n]
+
+set ans [list]
+lappend ans [list ERR]
+set tserr [list {unload rd} {load ra}]
+testouterr_cmd_re sh {load ra rd} $ans [join $tserr \n]
+
+# conflict info (and conflict violation info) restored after evaluation crash
+set ans [list]
+lappend ans [list ERR]
+set tserr [list {unload rd} {load ra} {load rf} \n[msg_load rf [err_conflict rf rd]]]
+testouterr_cmd_re sh {load ra rf} $ans [join $tserr \n]
+
+# alternative name info restored after evaluation crash
+setenv_loaded_module [list rd] [list $mp/rd]
+setenv_path_var MODULES_LMPREREQ rd&ra|rb
+setenv_path_var MODULES_LMCONFLICT rd&rf
+setenv_path_var MODULES_LMALTNAME rd&foo
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rd:rg]
+lappend ans [list setpath _LMFILES_ $mp/rd:$mp/rg]
+lappend ans [list setpath MODULES_LMPREREQ rd&ra|rb:rg&foo]
+lappend ans [list ERR]
+set tserr [list {unload rd} {load ra} {load rg}]
+testouterr_cmd_re sh {load ra rg} $ans [join $tserr \n]
+
+# prereq violation info restored after evaluation crash
+setenv_loaded_module [list rh] [list $mp/rh]
+setenv_path_var MODULES_LMPREREQ rh&ra|rb&rf
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rh:rb:rc]
+lappend ans [list setpath _LMFILES_ $mp/rh:$mp/rb:$mp/rc]
+lappend ans [list setpath MODULES_LMPREREQ rh&ra|rb&rf:rc&rb]
+lappend ans [list setpath MODULES_LMNOTUASKED rb]
+lappend ans [list ERR]
+set tserr [list {load ri} {unload rh} {load rc} {load rb} \n[msg_top_load rc {} rb {}]]
+testouterr_cmd_re sh {load ri rc} $ans [join $tserr \n]
+
+# NPO requirement info restored after evaluation crash
+setenv_loaded_module [list rh rf] [list $mp/rh $mp/rf]
+setenv_path_var MODULES_LMPREREQ rh&ra|rb&rf
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rf:rb:rh:rc]
+lappend ans [list setpath _LMFILES_ $mp/rf:$mp/rb:$mp/rh:$mp/rc]
+lappend ans [list setpath MODULES_LMPREREQ rh&ra|rb&rf:rc&rb]
+lappend ans [list setpath MODULES_LMNOTUASKED rb]
+lappend ans [list ERR]
+set tserr [list {load ri} {unload rh} {load rc} {unload rh} {load rb} {load rh} \n[msg_top_load rc {} rb {}]]
+testouterr_cmd_re sh {load ri rc} $ans [join $tserr \n]
+
+
+#
+# crash of main mod unload having some DepRe module unloaded
+# this DepRe module info should be restored
+#
+
+# requirement info (and unmet dependency info) restored after evaluation crash
+# fake ra was able to be loaded
+setenv_loaded_module [list ra rf rh] [list $mp/ra $mp/rf $mp/rh]
+setenv_path_var MODULES_LMPREREQ rh&ra|rb&rf
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ra]
+lappend ans [list setpath _LMFILES_ $mp/ra]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list ERR]
+set tserr [list {unload rh} {unload ra} \n[msg_top_unload ra rh {} {}]\n {unload rh} {unload rf} \n[msg_top_unload rf rh {} {}]]
+testouterr_cmd_re sh {unload ra rf} $ans [join $tserr \n]
+
+
+#
+# crash of ReqLo mod load after other ReqLo module loaded
+# the already loaded ReqLo module info should be cleaned
+#
+
+# requirement info (and unmet dependency info) restored after evaluation crash
+setenv_loaded_module [list rh] [list $mp/rh]
+setenv_path_var MODULES_LMPREREQ rh&ra|rb&rf
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rh:rf]
+lappend ans [list setpath _LMFILES_ $mp/rh:$mp/rf]
+lappend ans [list ERR]
+set tserr [list {load rj} {load rb} {load ra} \n[msg_load rj [err_prereq rj ra]]\n {load rf}]
+testouterr_cmd_re sh {load rj rf} $ans [join $tserr \n]
+
+# conflict info (and conflict violation info) restored after evaluation crash
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rf]
+lappend ans [list setpath _LMFILES_ $mp/rf]
+lappend ans [list ERR]
+set tserr [list {load rl} {load rk} {load ra} \n[msg_load rl [err_prereq rl ra]]\n {load rf}]
+testouterr_cmd_re sh {load rl rf} $ans [join $tserr \n]
+
+
+#
+# crash of main mod load having some ReqLo module loaded
+#
+
+# conflict info (and conflict violation info) restored after evaluation crash
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ro]
+lappend ans [list setpath _LMFILES_ $mp/ro]
+lappend ans [list ERR]
+set tserr [list {load rn} {load rm} {load ro}]
+testouterr_cmd_re sh {load rn ro} $ans [join $tserr \n]
+
+
+#
+# crash of main mod unload having some DepUn module unloaded
+#
+
+# conflict info (and conflict violation info) restored after evaluation crash
+setenv_loaded_module [list rq rr ro rs] [list $mp/rq $mp/rr $mp/ro $mp/rs]
+setenv_path_var MODULES_LMPREREQ rr&rq
+setenv_path_var MODULES_LMCONFLICT rr&ro:rs&ro
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rq:rr:ro]
+lappend ans [list setpath _LMFILES_ $mp/rq:$mp/rr:$mp/ro]
+lappend ans [list setpath MODULES_LMCONFLICT rr&ro]
+lappend ans [list ERR]
+set tserr [list {unload rr} {unload rq} \n[msg_top_unload rq rr {} {}]\n {unload rs}]
+testouterr_cmd_re sh {unload rq rs} $ans [join $tserr \n]
+
+
+#
+# load module
+#
+
+# crash of a ReqLo module (independent ReqLo, middle one crashes)
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list ERR]
+set tserr [list {load rad} {load raa} {load rab} \n[msg_load rad [err_prereq rad rab]]]
+testouterr_cmd_re sh {load rad} $ans [join $tserr \n]
+
+
+# crash of a ReqLo module (linked ReqLo, middle one crashes)
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list ERR]
+set tserr [list {load rah} {load rag} {load raf} {load rae} \n[msg_load rag [err_prereq rag raf]] \n[msg_load rah [err_prereq rah rag]]]
+testouterr_cmd_re sh {load rah} $ans [join $tserr \n]
+
+
+#
+# unload module
+#
+
+# crash of a UReqUn module (independent UreqUn, middle one crashes)
+setenv_loaded_module [list raa rab rac rad] [list $mp/raa $mp/rab $mp/rac $mp/rad] [list raa rab rac]
+setenv_path_var MODULES_LMPREREQ rad&raa&rab&rac
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath _LMFILES_ $mp/rab]
+lappend ans [list setpath LOADEDMODULES rab]
+lappend ans [list setpath MODULES_LMNOTUASKED rab]
+lappend ans [list ERR]
+set tserr [list {unload rad} {unload rac} {unload rab} {unload raa} \n[msg_top_unload rad {} [list rac rab raa] {}]]
+testouterr_cmd_re sh {unload rad} $ans [join $tserr \n]
+
+# crash of a UReqUn module (linked UreqUn, middle one crashes)
+setenv_loaded_module [list rae raf rag rah] [list $mp/rae $mp/raf $mp/rag $mp/rah] [list rae raf rag]
+setenv_path_var MODULES_LMPREREQ rah&rae&raf&rag
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath _LMFILES_ $mp/raf]
+lappend ans [list setpath LOADEDMODULES raf]
+lappend ans [list setpath MODULES_LMNOTUASKED raf]
+lappend ans [list ERR]
+set tserr [list {unload rah} {unload rag} {unload raf} {unload rae} \n[msg_top_unload rah {} [list rag raf rae] {}]]
+testouterr_cmd_re sh {unload rah} $ans [join $tserr \n]
+
+
+# crash of a DepUn module (independent DepUn, middle one crashes)
+setenv_loaded_module [list rba rbb rbc rbd] [list $mp/rba $mp/rbb $mp/rbc $mp/rbd]
+setenv_path_var MODULES_LMPREREQ rbb&rba:rbc&rba:rbd&rba
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ rbc&rba]
+lappend ans [list setpath _LMFILES_ $mp/rbc]
+lappend ans [list setpath LOADEDMODULES rbc]
+lappend ans [list ERR]
+set tserr [list {unload rbd} {unload rbc} {unload rbb} {unload rba} \n[msg_top_unload rba [list rbd rbc rbb] {} {}]]
+testouterr_cmd_re sh {unload rba} $ans [join $tserr \n]
+
+# crash of a DepUn module (linked DepUn, middle one crashes)
+setenv_loaded_module [list rbe rbf rbg rbh] [list $mp/rbe $mp/rbf $mp/rbg $mp/rbh]
+setenv_path_var MODULES_LMPREREQ rbf&rbe:rbg&rbf:rbh&rbg
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ rbf&rbe:rbg&rbf]
+lappend ans [list setpath _LMFILES_ $mp/rbf:$mp/rbg]
+lappend ans [list setpath LOADEDMODULES rbf:rbg]
+lappend ans [list ERR]
+set tserr [list {unload rbh} {unload rbg} \n[msg_unload rbf [err_prerequn rbf rbg]]\n {unload rbe} \n[msg_top_unload rbe [list rbh rbg rbf] {} {}]]
+testouterr_cmd_re sh {unload rbe} $ans [join $tserr \n]
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+setenv_path_var MODULEPATH $modpath
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_var MODULES_AUTO_HANDLING
+
+unset mp
+unset ans
+unset tserr
