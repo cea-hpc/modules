@@ -23,7 +23,19 @@
 # variable equals to a fully qualified path
 set full_path $env(TESTSUITEDIR)/modulefiles.other/$version1
 setenv_var MODULE_PATH_VAR $full_path
+unsetenv_path_var MODULEPATH
+
+# use test
+set ans [list]
+lappend ans [list setpath MODULEPATH \$MODULE_PATH_VAR]
+test_cmd sh {use $MODULE_PATH_VAR} $ans
+
 setenv_path_var MODULEPATH \$MODULE_PATH_VAR
+
+# unuse test
+set ans [list]
+lappend ans [list unsetpath MODULEPATH]
+test_cmd sh {unuse $MODULE_PATH_VAR} $ans
 
 # load test
 set ans [list]
@@ -45,9 +57,21 @@ test_cmd sh {unload version} $ans
 # variable equals to a relative path
 set rel_path testsuite/modulefiles.other/$version1
 setenv_var MODULE_PATH_VAR $rel_path
-setenv_path_var MODULEPATH \$MODULE_PATH_VAR
+unsetenv_path_var MODULEPATH
 unsetenv_loaded_module
 unsetenv_var TESTSUITE
+
+# use test
+set ans [list]
+lappend ans [list setpath MODULEPATH \$MODULE_PATH_VAR]
+test_cmd sh {use $MODULE_PATH_VAR} $ans
+
+setenv_path_var MODULEPATH \$MODULE_PATH_VAR
+
+# unuse test
+set ans [list]
+lappend ans [list unsetpath MODULEPATH]
+test_cmd sh {unuse $MODULE_PATH_VAR} $ans
 
 # load test
 set ans [list]
