@@ -1831,9 +1831,45 @@ proc module {command args} {
          }
          switch {
             # pass 'user asked state' to switch procedure
-            eval cmdModuleSwitch [expr {$topcall || (\
-               [getEvalModuleStackDepth] == 1 && ([aboveCommandName] eq\
-               {source} || [aboveCommandName] eq {autoinit}))}] $args
+            set uasked [expr {$topcall || ([getEvalModuleStackDepth] == 1 &&\
+               ([aboveCommandName] eq {source} || [aboveCommandName] eq\
+               {autoinit}))}]
+            # CAUTION: it is not recommended to use the `switch` sub-command
+            # in modulefiles as this command is intended for the command-line
+            # for a 2in1 operation. Could be removed from the modulefile
+            # scope in a future release. Use `module unload` and `module load`
+            # commands in modulefiles instead.
+            eval cmdModuleSwitch $uasked $args
+            # register dependencies toward module to unload and load if
+            # switch is called from a modulefile
+            if {!$uasked && $mode eq {load}} {
+               lassign $args swunmod swlomod
+               if {$swunmod eq {}} {
+                  unset swunmod
+               }
+               if {$swlomod eq {}} {
+                  if {[info exists swunmod]} {
+                     set swlomod $swunmod
+                     unset swunmod
+                  } else {
+                     unset swlomod
+                  }
+               }
+               # temporarily disable auto handling just to record dependency
+               # not to try to load or unload them (already tried)
+               set orig_auto_handling [getAutoHandling]
+               set ::g_auto_handling 0
+               # register modulefile to unload as conflict if an unload module
+               # is mentionned on this module switch command
+               if {[info exists swunmod]} {
+                  catch {conflict $swunmod}
+               }
+               # register modulefile to load as prereq
+               if {[info exists swlomod]} {
+                  prereq $swlomod
+               }
+               set ::g_auto_handling $orig_auto_handling
+            }
          }
          display {
             eval cmdModuleDisplay $args
