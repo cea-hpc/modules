@@ -65,14 +65,20 @@ if ( $status == 0 ) then
 @setmanpath@   else
 @setmanpath@@usemanpath@      set manpath = `manpath`
 @setmanpath@@notusemanpath@      set manpath = ''
+@setmanpath@      # initialize MANPATH if not set with a value that preserves manpath
+@setmanpath@      # system configuration even after addition of paths to this variable
+@setmanpath@      # by modulefiles
+@setmanpath@      setenv MANPATH :
 @setmanpath@   endif
 @setmanpath@   if ( ":${manpath}:" !~ '*:@mandir@:*' ) then
-@setmanpath@      if ( "$manpath" == '' ) then
-@setmanpath@         setenv MANPATH @mandir@
+@setmanpath@      if ( "$MANPATH" == '' || "$MANPATH" == ':' ) then
+@setmanpath@         set mlpathsep = ''
 @setmanpath@      else
-@setmanpath@@prependmanpath@         setenv MANPATH "@mandir@:$manpath"
-@setmanpath@@appendmanpath@         setenv MANPATH "${manpath}:@mandir@"
+@setmanpath@         set mlpathsep = :
 @setmanpath@      endif
+@setmanpath@@prependmanpath@      setenv MANPATH "@mandir@$mlpathsep$MANPATH"
+@setmanpath@@appendmanpath@      setenv MANPATH "$MANPATH$mlpathsep@mandir@"
+@setmanpath@      unset mlpathsep
 @setmanpath@   endif
 @setmanpath@   unset manpath
 endif

@@ -112,12 +112,22 @@ if [ $_mlret -eq 0 ]; then
 @setbinpath@@appendbinpath@      *) PATH=$PATH${PATH:+:}@bindir@; export PATH
 @setbinpath@   esac
 @setmanpath@
-@setmanpath@@usemanpath@   manpath=`manpath 2>/dev/null`
-@setmanpath@@notusemanpath@   manpath=${MANPATH:-}
-@setmanpath@   case ":$manpath:" in
+@setmanpath@   # initialize MANPATH if not set with a value that preserves manpath system
+@setmanpath@   # configuration even after addition of paths to this variable by modulefiles
+@setmanpath@   if [ ! -n "${MANPATH+x}" ]; then
+@setmanpath@      MANPATH=:; export MANPATH
+@setmanpath@   fi
+@setmanpath@@usemanpath@   case ":`manpath 2>/dev/null`:" in
+@setmanpath@@notusemanpath@   case ":$MANPATH:" in
 @setmanpath@      *:@mandir@:*) ;;
-@setmanpath@@prependmanpath@      *) MANPATH=@mandir@${manpath:+:}$manpath; export MANPATH
-@setmanpath@@appendmanpath@      *) MANPATH=$manpath${manpath:+:}@mandir@; export MANPATH
+@setmanpath@      *) if [ "$MANPATH" = ':' ] || [ "$MANPATH" = '' ]; then
+@setmanpath@            _mlpathsep=''
+@setmanpath@         else
+@setmanpath@            _mlpathsep=:
+@setmanpath@         fi
+@setmanpath@@prependmanpath@         MANPATH=@mandir@$_mlpathsep$MANPATH; export MANPATH
+@setmanpath@@appendmanpath@         MANPATH=$MANPATH$_mlpathsep@mandir@; export MANPATH
+@setmanpath@         unset _mlpathsep
 @setmanpath@   esac
 fi
 
