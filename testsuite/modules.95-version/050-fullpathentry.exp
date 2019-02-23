@@ -1,0 +1,81 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2019/02/23
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load & unload
+#   Modulefiles:	versions/1.1, versions/1.2, versions/1.3
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Setting a full path entry in MODULEPATH using a variable reference.
+#		}C%
+#
+##############################################################################
+
+# variable equals to a fully qualified path
+set full_path $env(TESTSUITEDIR)/modulefiles.other/$version1
+setenv_var MODULE_PATH_VAR $full_path
+setenv_path_var MODULEPATH \$MODULE_PATH_VAR
+
+# load test
+set ans [list]
+lappend ans [list set TESTSUITE $version1]
+lappend ans [list setpath LOADEDMODULES version]
+lappend ans [list setpath _LMFILES_ $full_path/version]
+test_cmd sh {load version} $ans
+
+# unload test
+setenv_loaded_module [list version] [list $full_path/version]
+setenv_var TESTSUITE 1.3
+set ans [list]
+lappend ans [list unset TESTSUITE]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+test_cmd sh {unload version} $ans
+
+
+# variable equals to a relative path
+set rel_path testsuite/modulefiles.other/$version1
+setenv_var MODULE_PATH_VAR $rel_path
+setenv_path_var MODULEPATH \$MODULE_PATH_VAR
+unsetenv_loaded_module
+unsetenv_var TESTSUITE
+
+# load test
+set ans [list]
+lappend ans [list set TESTSUITE $version1]
+lappend ans [list setpath LOADEDMODULES version]
+lappend ans [list setpath _LMFILES_ $full_path/version]
+test_cmd sh {load version} $ans
+
+# unload test
+setenv_loaded_module [list version] [list $full_path/version]
+setenv_var TESTSUITE 1.3
+set ans [list]
+lappend ans [list unset TESTSUITE]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+test_cmd sh {unload version} $ans
+
+
+#
+#  Cleanup
+#
+
+# restore enviroment
+unsetenv_loaded_module
+unsetenv_var TESTSUITE
+unsetenv_var MODULE_PATH_VAR
+setenv_path_var MODULEPATH $modpath
+
+unset ans
+unset full_path
+unset rel_path

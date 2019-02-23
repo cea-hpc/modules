@@ -7731,9 +7731,12 @@ proc cmdModuleUse {args} {
                reportError {Directory name empty}
             }
             default {
-               # tranform given path in an absolute path to avoid
-               # dependency to the current work directory.
-               set path [getAbsolutePath $path]
+               # tranform given path in an absolute path to avoid dependency
+               # to the current work directory. except if this path starts
+               # with a variable reference
+               if {[string index $path 0] ne {$}} {
+                  set path [getAbsolutePath $path]
+               }
                if {[file isdirectory [resolvStringWithEnv $path]]} {
                   pushMode load
                   catch {
