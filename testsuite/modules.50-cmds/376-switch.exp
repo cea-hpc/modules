@@ -1,0 +1,524 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2019/02/24
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        load, unload, switch
+#   Modulefiles:
+#   Sub-Command:    module switch, prereq, conflict
+#
+#   Comment:	%C{
+#           Test automatic resolution of modulefile dependencies defined
+#           through 'module switch' command in modulefiles
+#		}C%
+#
+##############################################################################
+
+# CAUTION: it is not recommended to use the `switch` sub-command in
+# modulefiles as this command is intended for the command-line for a 2in1
+# operation. Could be removed from the modulefile scope in a future
+# release. Use `module unload` and `module load` commands in modulefiles
+# instead.
+
+set mp $modpath.deps
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+#
+# load tests
+#
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swc]
+lappend ans [list setpath MODULES_LMPREREQ swc&swb]
+lappend ans [list setpath MODULES_LMNOTUASKED swb]
+lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
+set tserr [list {load swc} {load swb} \n[msg_top_load swc {} swb {}]]
+testouterr_cmd_re sh {load --auto swc} $ans [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swc} $ans [join $tserr \n]
+
+setenv_loaded_module [list swa] [list $mp/swa]
+set tserr [list {load swc} {unload swa} {load swb} \n[msg_top_load swc swa swb {}]]
+testouterr_cmd_re sh {load --auto swc} $ans [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swc} $ans [join $tserr \n]
+
+setenv_loaded_module [list swb] [list $mp/swb]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swc]
+lappend ans [list setpath MODULES_LMPREREQ swc&swb]
+lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
+set tserr [list {load swc}]
+testouterr_cmd_re sh {load --auto swc} $ans [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swc} $ans [join $tserr \n]
+
+setenv_loaded_module [list swa swb] [list $mp/swa $mp/swb]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swc]
+lappend ans [list setpath MODULES_LMPREREQ swc&swb]
+lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
+set tserr [list {load swc} {unload swa} \n[msg_top_load swc swa {} {}]]
+testouterr_cmd_re sh {load --auto swc} $ans [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swc} $ans [join $tserr \n]
+
+
+# conflict against switched-on module set
+setenv_loaded_module [list swd] [list $mp/swd]
+setenv_path_var MODULES_LMCONFLICT swd&swb
+set tserr [list {load swc} {load swb} \n[msg_load swb [err_conflict swb swd]] \n[msg_load swc [err_prereq swc swb]]]
+testouterr_cmd_re sh {load --auto swc} ERR [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swc} ERR [join $tserr \n]
+
+# force load
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swd:swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swd:$mp/swb:$mp/swc]
+lappend ans [list setpath MODULES_LMPREREQ swc&swb]
+lappend ans [list setpath MODULES_LMNOTUASKED swb]
+lappend ans [list setpath MODULES_LMCONFLICT swd&swb:swc&swa]
+set tserr [list {load swc} {load swb} \n[msg_load swb [err_conflictf swb swd]] \n[msg_top_load swc {} swb {}]]
+testouterr_cmd_re sh {load --force --auto swc} $ans [join $tserr \n]
+testouterr_cmd_re sh {load --force --no-auto swc} $ans [join $tserr \n]
+
+
+# prereq on switched-off module set
+setenv_loaded_module [list swa swe] [list $mp/swa $mp/swe]
+unsetenv_path_var MODULES_LMCONFLICT
+setenv_path_var MODULES_LMPREREQ swe&swa
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ swc&swb]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swc]
+lappend ans [list setpath LOADEDMODULES swb:swc]
+lappend ans [list setpath MODULES_LMNOTUASKED swb]
+lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
+lappend ans [list ERR]
+set tserr [list {load swc} {unload swe} {unload swa} {load swb} {load swe} \n[msg_load swe [err_prereq swe swa]] \n[msg_top_load swc [list swe swa] swb {}]]
+testouterr_cmd_re sh {load --auto swc} $ans [join $tserr \n]
+set tserr [list {load swc} \n[msg_unload swa [err_prerequn swa swe]]\n {load swb} \n[msg_load swc [err_conflict swc swa]]]
+testouterr_cmd_re sh {load --no-auto swc} ERR [join $tserr \n]
+
+# force load
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb:swe:swc]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swe:$mp/swc]
+lappend ans [list setpath MODULES_LMPREREQ swe&swa:swc&swb]
+lappend ans [list setpath MODULES_LMNOTUASKED swb]
+lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
+set tserr [list {load swc} {unload swe} {unload swa} {load swb} {load swe} \n[msg_load swe [err_prereqf swe swa]] \n[msg_top_load swc swa swb {}]]
+testouterr_cmd_re sh {load --force --auto swc} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swe:swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swe:$mp/swb:$mp/swc]
+lappend ans [list setpath MODULES_LMPREREQ swe&swa:swc&swb]
+lappend ans [list setpath MODULES_LMNOTUASKED swb]
+lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
+set tserr [list {load swc} {unload swa} \n[msg_unload swa [err_prerequnf swa swe]]\n {load swb} \n[msg_top_load swc swa swb {}]]
+testouterr_cmd_re sh {load --force --no-auto swc} $ans [join $tserr \n]
+
+
+# conflict against switched-on module set and prereq on switched-off module set
+setenv_loaded_module [list swd swa swe] [list $mp/swd $mp/swa $mp/swe]
+setenv_path_var MODULES_LMCONFLICT swd&swb
+setenv_path_var MODULES_LMPREREQ swe&swa
+
+set tserr [list {load swc} {unload swe} {unload swa} {load swb} \n[msg_load swb [err_conflict swb swd]]\n {load swe} \n[msg_load swe [err_prereq swe swa]] \n[msg_load swc [err_prereq swc swb]]]
+testouterr_cmd_re sh {load --auto swc} ERR [join $tserr \n]
+# error raised from swb prereq issue, as conflict issue are analyzed after
+set tserr [list {load swc} \n[msg_unload swa [err_prerequn swa swe]]\n {load swb} \n[msg_load swb [err_conflict swb swd]] \n[msg_load swc [err_prereq swc swb]]]
+testouterr_cmd_re sh {load --no-auto swc} ERR [join $tserr \n]
+
+# force load
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swd:swb:swe:swc]
+lappend ans [list setpath _LMFILES_ $mp/swd:$mp/swb:$mp/swe:$mp/swc]
+lappend ans [list setpath MODULES_LMPREREQ swe&swa:swc&swb]
+lappend ans [list setpath MODULES_LMNOTUASKED swb]
+lappend ans [list setpath MODULES_LMCONFLICT swd&swb:swc&swa]
+set tserr [list {load swc} {unload swe} {unload swa} {load swb} \n[msg_load swb [err_conflictf swb swd]]\n {load swe} \n[msg_load swe [err_prereqf swe swa]] \n[msg_top_load swc swa swb {}]]
+testouterr_cmd_re sh {load --force --auto swc} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swd:swe:swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swd:$mp/swe:$mp/swb:$mp/swc]
+lappend ans [list setpath MODULES_LMPREREQ swe&swa:swc&swb]
+lappend ans [list setpath MODULES_LMNOTUASKED swb]
+lappend ans [list setpath MODULES_LMCONFLICT swd&swb:swc&swa]
+# error raised from swb prereq issue, as conflict issue are analyzed after
+set tserr [list {load swc} {unload swa} \n[msg_unload swa [err_prerequnf swa swe]]\n {load swb} \n[msg_load swb [err_conflictf swb swd]] \n[msg_top_load swc swa swb {}]]
+testouterr_cmd_re sh {load --force --no-auto swc} $ans [join $tserr \n]
+
+
+# switched-off module reloaded after switch
+setenv_loaded_module [list swb swc] [list $mp/swb $mp/swc] [list swb]
+setenv_path_var MODULES_LMPREREQ swc&swb
+setenv_path_var MODULES_LMCONFLICT swc&swa
+
+set tserr [list {load swa} \n[msg_load swa [err_conflict swa swc]]]
+testouterr_cmd_re sh {load --auto swa} ERR [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swa} ERR [join $tserr \n]
+
+# force load
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb:swc:swa]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swc:$mp/swa]
+set tserr [list {load swa} \n[msg_load swa [err_conflictf swa swc]]]
+testouterr_cmd_re sh {load --force --auto swa} $ans [join $tserr \n]
+testouterr_cmd_re sh {load --force --no-auto swa} $ans [join $tserr \n]
+
+
+#
+# unload tests
+#
+
+# regular situation loaded
+setenv_loaded_module [list swb swc] [list $mp/swb $mp/swc] [list swb]
+setenv_path_var MODULES_LMPREREQ swc&swb
+setenv_path_var MODULES_LMCONFLICT swc&swa
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload swc} {unload swb} \n[msg_top_unload swc {} swb {}]]
+testouterr_cmd_re sh {unload --auto swc} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+testouterr_cmd_re sh {unload --no-auto swc} $ans [join $tserr \n]
+
+# unload requirement
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload swc} {unload swb} \n[msg_top_unload swb swc {} {}]]
+testouterr_cmd_re sh {unload --auto swb} $ans [join $tserr \n]
+set tserr [list [msg_unload swb [err_prerequn swb swc]]]
+testouterr_cmd_re sh {unload --no-auto swb} ERR [join $tserr \n]
+
+
+# conflict against switched-on module set still there
+setenv_loaded_module [list swd swb swc] [list $mp/swd $mp/swb $mp/swc] [list swb]
+setenv_path_var MODULES_LMPREREQ swc&swb
+setenv_path_var MODULES_LMCONFLICT swd&swb:swc&swa
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swd]
+lappend ans [list setpath _LMFILES_ $mp/swd]
+lappend ans [list setpath MODULES_LMCONFLICT swd&swb]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload swd} {unload swc} {unload swb} {load swd} \n[msg_top_unload swc {} swb swd]]
+testouterr_cmd_re sh {unload --auto swc} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swd]
+lappend ans [list setpath _LMFILES_ $mp/swd]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list setpath MODULES_LMCONFLICT swd&swb]
+set tserr [list {unload swc} {unload swb} \n[msg_top_unload swc {} swb {}]]
+testouterr_cmd_re sh {unload --no-auto swc} $ans [join $tserr \n]
+
+# unload module conflicting with requirement
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swc]
+lappend ans [list setpath MODULES_LMPREREQ swc&swb]
+lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
+lappend ans [list setpath MODULES_LMNOTUASKED swb]
+set tserr [list {unload swc} {unload swb} {unload swd} {load swb} {load swc} \n[msg_top_unload swd {} {} [list swb swc]]]
+testouterr_cmd_re sh {unload --auto swd} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swc]
+lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
+set tserr [list {unload swd}]
+testouterr_cmd_re sh {unload --no-auto swd} $ans [join $tserr \n]
+
+# unload requirement
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swd]
+lappend ans [list setpath _LMFILES_ $mp/swd]
+lappend ans [list setpath MODULES_LMCONFLICT swd&swb]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload swd} {unload swc} {unload swb} {load swd} \n[msg_top_unload swb swc {} swd]]
+testouterr_cmd_re sh {unload --auto swb} $ans [join $tserr \n]
+
+
+# switched-off module reloaded after switch
+setenv_loaded_module [list swb swc swa] [list $mp/swb $mp/swc $mp/swa] [list swb]
+setenv_path_var MODULES_LMPREREQ swc&swb
+setenv_path_var MODULES_LMCONFLICT swc&swa
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swa]
+lappend ans [list setpath _LMFILES_ $mp/swa]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload swa} {unload swc} {unload swb} {load swa} \n[msg_top_unload swc {} swb swa]]
+testouterr_cmd_re sh {unload --auto swc} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swa]
+lappend ans [list setpath _LMFILES_ $mp/swa]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+set tserr [list {unload swc} {unload swb} \n[msg_top_unload swc {} swb {}]]
+testouterr_cmd_re sh {unload --no-auto swc} $ans [join $tserr \n]
+
+# unload conflict
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swc]
+lappend ans [list setpath MODULES_LMPREREQ swc&swb]
+lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
+set tserr [list {unload swc} {unload swa} {load swc} \n[msg_top_unload swa {} {} swc]]
+testouterr_cmd_re sh {unload --auto swa} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swc]
+set tserr [list {unload swa}]
+testouterr_cmd_re sh {unload --no-auto swa} $ans [join $tserr \n]
+
+
+# switched-on module not loaded anymore
+setenv_loaded_module [list swc] [list $mp/swc]
+setenv_path_var MODULES_LMPREREQ swc&swb
+setenv_path_var MODULES_LMCONFLICT swc&swa
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+set tserr [list {unload swc}]
+testouterr_cmd_re sh {unload --auto swc} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --no-auto swc} $ans [join $tserr \n]
+
+
+# another loaded module requires switched-on module
+setenv_loaded_module [list swb swc swf] [list $mp/swb $mp/swc $mp/swf] [list swb]
+setenv_path_var MODULES_LMPREREQ swc&swb:swf&swb
+setenv_path_var MODULES_LMCONFLICT swc&swa
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb:swf]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swf]
+lappend ans [list setpath MODULES_LMPREREQ swf&swb]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+set tserr [list {unload swc}]
+testouterr_cmd_re sh {unload --auto swc} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --no-auto swc} $ans [join $tserr \n]
+
+
+# switched-on module manually loaded
+setenv_loaded_module [list swb swc] [list $mp/swb $mp/swc]
+setenv_path_var MODULES_LMPREREQ swc&swb
+setenv_path_var MODULES_LMCONFLICT swc&swa
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb]
+lappend ans [list setpath _LMFILES_ $mp/swb]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+set tserr [list {unload swc}]
+testouterr_cmd_re sh {unload --auto swc} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --no-auto swc} $ans [join $tserr \n]
+
+
+#
+# 1-arg-form module switch
+#
+
+# load test, empty environment
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_loaded_module
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swg/2:swh]
+lappend ans [list setpath _LMFILES_ $mp/swg/2:$mp/swh]
+lappend ans [list setpath MODULES_LMPREREQ swh&swg]
+lappend ans [list setpath MODULES_LMCONFLICT swg/2&swg]
+lappend ans [list setpath MODULES_LMNOTUASKED swg/2]
+set tserr [list {load swh} {load swg/2} \n[msg_top_load swh {} swg/2 {}]]
+testouterr_cmd_re sh {load --auto swh} $ans [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swh} $ans [join $tserr \n]
+
+# load test, conflicting module loaded
+setenv_loaded_module [list swg/1] [list $mp/swg/1]
+setenv_path_var MODULES_LMCONFLICT swg/1&swg
+unsetenv_path_var MODULES_LMPREREQ
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swg/2:swh]
+lappend ans [list setpath _LMFILES_ $mp/swg/2:$mp/swh]
+lappend ans [list setpath MODULES_LMPREREQ swh&swg]
+lappend ans [list setpath MODULES_LMCONFLICT swg/2&swg]
+lappend ans [list setpath MODULES_LMNOTUASKED swg/2]
+set tserr [list {load swh} {unload swg/1} {load swg/2} \n[msg_top_load swh swg/1 swg/2 {}]]
+testouterr_cmd_re sh {load --auto swh} $ans [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swh} $ans [join $tserr \n]
+
+# load test, requiring module already loaded
+setenv_loaded_module [list swg/2] [list $mp/swg/2]
+setenv_path_var MODULES_LMCONFLICT swg/2&swg
+unsetenv_path_var MODULES_LMPREREQ
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swg/2:swh]
+lappend ans [list setpath _LMFILES_ $mp/swg/2:$mp/swh]
+lappend ans [list setpath MODULES_LMPREREQ swh&swg]
+lappend ans [list setpath MODULES_LMCONFLICT swg/2&swg]
+lappend ans [list setpath MODULES_LMNOTUASKED swg/2]
+#FIXME: swg/2 unload then load should be reported
+#set tserr [list {load swh} {unload swg/2} {load swg/2} \n[msg_top_load swh swg/2 swg/2 {}]]
+set tserr [list {load swh} {unload swg/2} {load swg/2}]
+testouterr_cmd_re sh {load --auto swh} $ans [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swh} $ans [join $tserr \n]
+
+# load test, conflicting module and requiring module loaded
+setenv_loaded_module [list swg/1 swg/2] [list $mp/swg/1 $mp/swg/2]
+setenv_path_var MODULES_LMCONFLICT swg/1&swg:swg/2&swg
+unsetenv_path_var MODULES_LMPREREQ
+
+set ans [list]
+lappend ans [list setpath _LMFILES_ $mp/swg/2:$mp/swh]
+lappend ans [list setpath LOADEDMODULES swg/2:swh]
+lappend ans [list setpath MODULES_LMPREREQ swh&swg]
+lappend ans [list setpath MODULES_LMNOTUASKED swg/2]
+lappend ans [list setpath MODULES_LMCONFLICT swg/2&swg]
+lappend ans [list ERR]
+# as swg/2 is seen as the module to unload for 'module switch swg', swg/1 goes to DepRe
+# but then as swg/2 is also seen as the module to load, swg/1 gets an error on DepRe loading phase
+set tserr [list {load swh} {unload swg/1} {unload swg/2} {load swg/2} {load swg/1} \n[msg_load swg/1 [err_conflict swg/1 swg]] \n[msg_top_load swh swg/1 {} {}]]
+testouterr_cmd_re sh {load --auto swh} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath _LMFILES_ $mp/swg/1:$mp/swh]
+lappend ans [list setpath LOADEDMODULES swg/1:swh]
+lappend ans [list setpath MODULES_LMPREREQ swh&swg]
+lappend ans [list setpath MODULES_LMCONFLICT swg/1&swg]
+lappend ans [list ERR]
+# there is an attempt to reload swg/2 as the load phase of switch targets swg default version only
+# not 'any existing mod version'
+set tserr [list {load swh} {unload swg/2} {load swg/2} \n[msg_load swg/2 [err_conflict swg/2 swg]] \n[msg_top_load swh swg/2 {} {}]]
+testouterr_cmd_re sh {load --no-auto swh} $ans [join $tserr \n]
+
+
+# unload test, regular situation loaded
+setenv_loaded_module [list swg/2 swh] [list $mp/swg/2 $mp/swh] [list swg/2]
+setenv_path_var MODULES_LMCONFLICT swg/2&swg
+setenv_path_var MODULES_LMPREREQ swh&swg
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+set tserr [list {unload swh} {unload swg/2} \n[msg_top_unload swh {} swg/2 {}]]
+testouterr_cmd_re sh {unload --auto swh} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --no-auto swh} $ans [join $tserr \n]
+
+# unload test, switched-off module reloaded after switch
+setenv_loaded_module [list swg/2 swh swg/1] [list $mp/swg/2 $mp/swh $mp/swg/1] [list swg/2]
+setenv_path_var MODULES_LMCONFLICT swg/2&swg:swg/1&swg
+setenv_path_var MODULES_LMPREREQ swh&swg
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swg/1]
+lappend ans [list setpath _LMFILES_ $mp/swg/1]
+lappend ans [list setpath MODULES_LMCONFLICT swg/1&swg]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload swg/1} {unload swh} {unload swg/2} {load swg/1} \n[msg_top_unload swh {} swg/2 swg/1]]
+testouterr_cmd_re sh {unload --auto swh} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swg/1]
+lappend ans [list setpath _LMFILES_ $mp/swg/1]
+lappend ans [list setpath MODULES_LMCONFLICT swg/1&swg]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload swh} {unload swg/2} \n[msg_top_unload swh {} swg/2 {}]]
+#FIXME: should unload swg/2
+#testouterr_cmd_re sh {unload --no-auto swh} $ans [join $tserr \n]
+
+# unload requirement
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swg/2:swh]
+lappend ans [list setpath _LMFILES_ $mp/swg/2:$mp/swh]
+lappend ans [list setpath MODULES_LMCONFLICT swg/2&swg]
+lappend ans [list setpath MODULES_LMPREREQ swh&swg]
+lappend ans [list setpath MODULES_LMNOTUASKED swg/2]
+# reload of the modulefile using 'module switch' disturb natural result: swg/1 swh
+# as reload of swh during DepRe triggers the unload of swg/1 then the load of swg/2
+set tserr [list {unload swh} {unload swg/1} {unload swg/2} {load swg/1} {load swh} {unload swg/1} {load swg/2} \n[msg_top_unload swg/2 {} {} [list swg/1 swh]]]
+testouterr_cmd_re sh {unload --auto swg/2} $ans [join $tserr \n]
+set tserr [list [msg_unload swg/2 [err_prerequn swg/2 swh]]]
+testouterr_cmd_re sh {unload --no-auto swg/2} ERR [join $tserr \n]
+
+# switched-off module loaded instead of switched-on
+setenv_loaded_module [list swh swg/1] [list $mp/swh $mp/swg/1]
+setenv_path_var MODULES_LMCONFLICT swg/1&swg
+setenv_path_var MODULES_LMPREREQ swh&swg
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swg/1]
+lappend ans [list setpath _LMFILES_ $mp/swg/1]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr [list {unload swh}]
+testouterr_cmd_re sh {unload --auto swh} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --no-auto swh} $ans [join $tserr \n]
+
+
+#
+# switch test
+#
+
+setenv_loaded_module [list swg/2 swh] [list $mp/swg/2 $mp/swh] [list swg/2]
+setenv_path_var MODULES_LMCONFLICT swg/2&swg
+setenv_path_var MODULES_LMPREREQ swh&swg
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb:swc]
+lappend ans [list setpath _LMFILES_ $mp/swb:$mp/swc]
+lappend ans [list setpath MODULES_LMPREREQ swc&swb]
+lappend ans [list setpath MODULES_LMNOTUASKED swb]
+lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
+set tserr [list {unload swh} {unload swg/2} {load swc} {load swb} \n[msg_top_switch swh swc {} swg/2 {} swb {}]]
+testouterr_cmd_re sh {switch --auto swh swc} $ans [join $tserr \n]
+testouterr_cmd_re sh {switch --no-auto swh swc} $ans [join $tserr \n]
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_loaded_module
+setenv_path_var MODULEPATH $modpath
+
+unset mp
+unset ans
+unset tserr
