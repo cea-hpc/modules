@@ -1834,15 +1834,16 @@ proc module {command args} {
             set uasked [expr {$topcall || ([getEvalModuleStackDepth] == 1 &&\
                ([aboveCommandName] eq {source} || [aboveCommandName] eq\
                {autoinit}))}]
-            # CAUTION: it is not recommended to use the `switch` sub-command
-            # in modulefiles as this command is intended for the command-line
-            # for a 2in1 operation. Could be removed from the modulefile
-            # scope in a future release. Use `module unload` and `module load`
-            # commands in modulefiles instead.
-            eval cmdModuleSwitch $uasked $args
-            # register dependencies toward module to unload and load if
-            # switch is called from a modulefile
-            if {!$uasked && $mode eq {load}} {
+            if {$uasked} {
+               eval cmdModuleSwitch $uasked $args
+            } else {
+               # CAUTION: it is not recommended to use the `switch`
+               # sub-command in modulefiles as this command is intended for
+               # the command-line for a 2in1 operation. Could be removed from
+               # the modulefile scope in a future release. Use `module unload`
+               # and `module load` commands in modulefiles instead.
+
+               # find what has been asked for unload and load
                lassign $args swunmod swlomod
                if {$swunmod eq {}} {
                   unset swunmod
@@ -1855,20 +1856,39 @@ proc module {command args} {
                      unset swlomod
                   }
                }
-               # temporarily disable auto handling just to record dependency
-               # not to try to load or unload them (already tried)
-               set orig_auto_handling [getAutoHandling]
-               set ::g_auto_handling 0
-               # register modulefile to unload as conflict if an unload module
-               # is mentionned on this module switch command
-               if {[info exists swunmod]} {
-                  catch {conflict $swunmod}
+
+               switch -- $mode {
+                  load {
+                     eval cmdModuleSwitch $uasked $args
+                     # register dependencies toward module to unload and load
+                     # temporarily disable auto handling just to record deps
+                     # not to try to load or unload them (already tried)
+                     set orig_auto_handling [getAutoHandling]
+                     set ::g_auto_handling 0
+                     # register modulefile to unload as conflict if an unload
+                     # module is mentionned on this module switch command
+                     if {[info exists swunmod]} {
+                        catch {conflict $swunmod}
+                     }
+                     # register modulefile to load as prereq
+                     if {[info exists swlomod]} {
+                        prereq $swlomod
+                     }
+                     set ::g_auto_handling $orig_auto_handling
+                  }
+                  unload {
+                     # apply same mechanisms than for 'module load' and
+                     # 'module unload' for an unload evaluation: nothing done
+                     # for switched-off module and unload of switched-on
+                     # module. If auto handling is enabled switched-on module
+                     # is handled via UReqUn mechanism
+                     if {![getAutoHandling] && [info exists swlomod]} {
+                        # unload mod if not user asked and not required by
+                        # another loaded module
+                        cmdModuleUnload match 1 0 1 1 $swlomod
+                     }
+                  }
                }
-               # register modulefile to load as prereq
-               if {[info exists swlomod]} {
-                  prereq $swlomod
-               }
-               set ::g_auto_handling $orig_auto_handling
             }
          }
          display {

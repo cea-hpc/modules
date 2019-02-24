@@ -66,6 +66,11 @@ testouterr_cmd "sh" "load $module/swap" $ans "[msg_switch {} bar $err_emptymodna
 set ans [list]
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "load $module/swap2" $ans "[msg_switch bar bar "$err_path'bar'"]\n\n[msg_load $module/swap2 [err_prereq $module/swap2 bar]]"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES "$module/swap3"]
+lappend ans [list setpath _LMFILES_ "$modulepath/$module/swap3"]
+lappend ans [list ERR]
+testouterr_cmd "sh" "load $module/swap3" $ans "[msg_switch {} {} $err_emptymodname]"
 foreach cmd [list use unuse] {
     set ans [list]
     lappend ans [list setpath LOADEDMODULES "$module/$cmd"]
@@ -135,11 +140,13 @@ setenv_loaded_module "$module/swap" "$modulepath/$module/swap"
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
-lappend ans [list ERR]
-testouterr_cmd "sh" "unload $module/swap" $ans [msg_switch {} bar $err_emptymodname]
+testouterr_cmd "sh" "unload $module/swap" $ans {}
 # switch: an empty second arg leads to one name rule
 setenv_loaded_module "$module/swap2" "$modulepath/$module/swap2"
-testouterr_cmd_re "sh" "unload $module/swap2" $ans [msg_switch bar bar "$err_path'bar'"]
+testouterr_cmd_re "sh" "unload $module/swap2" $ans {}
+setenv_loaded_module "$module/swap3" "$modulepath/$module/swap3"
+testouterr_cmd_re "sh" "unload $module/swap3" $ans {}
+lappend ans [list ERR]
 foreach cmd [list use unuse] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
     testouterr_cmd "sh" "unload $module/$cmd" $ans [msg_unload $module/$cmd $err_emptydirname]
