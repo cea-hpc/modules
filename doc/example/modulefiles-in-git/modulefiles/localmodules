@@ -1,0 +1,137 @@
+#%Module4.1
+##
+## When loaded, use a local git repo for our Modulefiles,
+## instead of the system-wide location that is typically used.
+##
+## This is useful for editing and testing Modulefiles.
+##
+## Tune to your system:
+## $specialuser, $localmoddir, $globalmodfetch, $globalmodpush
+##
+## Originally developed at:
+## github.com/scottj97/environment-modules-in-git
+
+
+eval set [array get env HOME]
+
+# Special Unix username that owns the master Modulefiles repo
+set specialuser modules
+
+# Where each user's local copy should go:
+set localmoddir $HOME/modulefiles
+
+# Where `git fetch` can find the master repo.
+# This must be a filesystem path, since it will also be used by Modules:
+set globalmodfetch /home/modules/modulefiles
+
+# Where `git push` should write to the master repo:
+set globalmodpush ssh://modules@localhost/home/modules/modulefiles
+
+
+
+proc ModulesHelp {} {
+   global localmoddir
+   puts stderr "localmodules: switch to local Git repo for Modulefiles\n"
+   puts stderr {This is useful for editing and testing Modulefiles.}
+   puts stderr {Usage:}
+   puts stderr {   $ module load localmodules}
+   puts stderr "Then edit and test modulefiles in $localmoddir"
+   puts stderr {When complete, git commit and push, then}
+   puts stderr {   $ module unload localmodules}
+}
+
+module-whatis   {switch MODULEPATH to local git repo}
+
+# Runs `system` and dies if error code is nonzero
+proc safeSystem cmd {
+   set retcode [system $cmd]
+   if {[expr {$retcode != 0}]} {
+      error "`$cmd` returned non-zero exit code: $retcode"
+   }
+}
+
+# Make sure $localmoddir is what we expect, so we don't clobber
+# anybody's work if they happen to have something unexpected here
+proc ensureProperLocalmoddir {} {
+   global localmoddir
+   global globalmodfetch
+   global globalmodpush
+
+   # Make sure it's a directory
+   if {![file isdirectory $localmoddir]} {
+      error "a file named $localmoddir already exists, and\
+         I don't want to clobber it"
+   }
+
+   # Make sure it has the expected .git remote setup
+   if {![file isdirectory [file join $localmoddir .git]]} {
+      error "expected git repo inside $localmoddir, found none"
+   }
+   safeSystem "if \[ `git -C $localmoddir remote get-url origin` !=\
+      \"$globalmodfetch\" ]; then exit 1; fi"
+   safeSystem "if \[ `git -C $localmoddir remote get-url --push origin` !=\
+      \"$globalmodpush\" ]; then exit 1; fi"
+}
+
+# No $localmoddir exists, so run `git clone` to create
+proc createLocalmoddir {} {
+   global localmoddir
+   global globalmodfetch
+   global globalmodpush
+
+   safeSystem "git clone $globalmodfetch $localmoddir"
+   safeSystem "git -C $localmoddir remote set-url --push origin $globalmodpush"
+}
+
+proc checkRepoStatus {} {
+   global localmoddir
+   safeSystem "git -C $localmoddir remote update"
+   safeSystem "git -C $localmoddir status"
+}
+
+# Special modules user not allowed to load or unload this.
+# Why? Because it would defeat the purpose of tracking changes, if the
+# changes were committed by this anonymous special user.
+eval set [array get env USER]
+if {$USER == $specialuser} {
+   error "special user $specialuser should not load this module"
+}
+
+# create directory if necessary
+if [module-info mode load] {
+   if {![file exists $localmoddir]} {
+      createLocalmoddir
+   }
+   ensureProperLocalmoddir
+}
+
+## These two work for load, but not for unload
+## (the $globalmodfetch doesn't get put back in):
+##   remove-path MODULEPATH $globalmodfetch
+##   append-path MODULEPATH $localmoddir
+
+## These two work for load, but not for unload
+## (the $globalmodfetch doesn't get put back in):
+##   module unuse $globalmodfetch
+##   module use --append $localmoddir
+
+## This method assumes that $MODULES_REPO is part
+## of MODULEPATH, e.g. in your modulerc:
+##   setenv MODULES_REPO /home/modules/modulefiles
+##   module use /\$MODULES_REPO
+
+
+if [module-info mode load] {
+   setenv MODULES_REPO $localmoddir
+}
+if [module-info mode unload] {
+   # unsetenv gets converted to setenv since we're unloading
+   unsetenv MODULES_REPO $globalmodfetch
+}
+
+if [module-info mode load] {
+   puts stderr "\nSwitched to local modulefiles in $localmoddir"
+   puts stderr {When editing and testing complete, git commit and push, then:}
+   puts stderr "   $ module unload localmodules\n"
+   checkRepoStatus
+}
