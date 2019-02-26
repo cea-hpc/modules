@@ -815,6 +815,19 @@ lappend ans [list setpath MODULES_LMALTNAME i5/1&irefcon:i5/2&irefcon]
 testouterr_cmd_re sh {load --force i5/2} $ans [msg_load i5/2 [err_conflictf i5/2 irefcon]]
 
 
+# force an is-loading conflict check
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_path_var MODULES_LMALTNAME
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ms:mt]
+lappend ans [list setpath _LMFILES_ $mp/ms:$mp/mt]
+lappend ans [list setpath MODULES_LMPREREQ mt&ms]
+lappend ans [list setpath MODULES_LMCONFLICT ms&mt]
+lappend ans [list setpath MODULES_LMNOTUASKED ms]
+testouterr_cmd_re sh {load --force mt} $ans [msg_load ms [err_conflictf ms mt]]\n\n[msg_top_load mt {} ms {} [err_conflictf mt ms]]
+
+
 #
 #  Cleanup
 #
