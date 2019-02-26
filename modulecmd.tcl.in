@@ -2742,22 +2742,24 @@ proc system {args} {
    set mode [currentMode]
    set status {}
 
-   if {$mode eq {load} || $mode eq {unload}} {
-      # run through the appropriate shell
-      if {[isWin]} {
-         set shell cmd.exe
-         set shellarg /c
-      } else {
-         set shell /bin/sh
-         set shellarg -c
-      }
+   switch -- $mode {
+      load - unload {
+         # run through the appropriate shell
+         if {[isWin]} {
+            set shell cmd.exe
+            set shellarg /c
+         } else {
+            set shell /bin/sh
+            set shellarg -c
+         }
 
-      if {[catch {exec >&@stderr $shell $shellarg [join $args]}]} {
-          # non-zero exit status, get it:
-          set status [lindex $::errorCode 2]
-      } else {
-          # exit status was 0
-          set status 0
+         if {[catch {exec >&@stderr $shell $shellarg [join $args]}]} {
+             # non-zero exit status, get it:
+             set status [lindex $::errorCode 2]
+         } else {
+             # exit status was 0
+             set status 0
+         }
       }
    }
 
