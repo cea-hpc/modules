@@ -423,7 +423,6 @@ if { $verbose > 0 } {
     send_user "\tRestore HOME = $ORIG_HOME\n"
 }
 set env(HOME) $ORIG_HOME
-unset ORIG_HOME
 
 
 #
@@ -436,17 +435,37 @@ testouterr_cmd "sh" "restore $coll8fp" "ERR" "$err_loinconsist\n  LOADEDMODULES=
 
 
 #
+# test use of restore command from a modulefile to check
+# unload and load messages produced by this command in this context
+#
+
+# set HOME to location containing collections
+setenv_var HOME $hometestcoll
+
+setenv_loaded_module [split $cdlm ":"] [split $cdlmf ":"]
+unsetenv_var MODULES_COLLECTION_TARGET
+
+set ans [list]
+lappend ans [list setpath MODULEPATH $modpath:$modpath.other]
+lappend ans [list setpath LOADEDMODULES $c2lm:$modpath.other/restore]
+lappend ans [list setpath _LMFILES_ $c2lmf:$modpath.other/restore]
+
+# restore command disturbs main module load report
+testouterr_cmd_re sh "load $modpath.other/restore" $ans "unload coll/a\nload coll/c\nload coll/a\nload coll/b\n\n[msg_top_load $modpath.other/restore loc_dv2/1.0 [list coll/c coll/b] {}]"
+
+
+#
 # Cleanup
 #
 
 # restore environment
 # _LMFILES_ and LOADEDMODULES already restored during last test
-if { $verbose > 0 } {
-    send_user "\tRestore MODULES_COLLECTION_TARGET = ''\n"
-}
-unset env(MODULES_COLLECTION_TARGET)
+unsetenv_var MODULES_COLLECTION_TARGET
 setenv_path_var MODULEPATH $modpath
 unsetenv_loaded_module
+
+setenv_var HOME $ORIG_HOME
+unset ORIG_HOME
 
 unset ans
 
