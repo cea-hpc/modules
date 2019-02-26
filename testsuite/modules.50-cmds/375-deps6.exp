@@ -827,6 +827,16 @@ lappend ans [list setpath MODULES_LMCONFLICT ms&mt]
 lappend ans [list setpath MODULES_LMNOTUASKED ms]
 testouterr_cmd_re sh {load --force mt} $ans [msg_load ms [err_conflictf ms mt]]\n\n[msg_top_load mt {} ms {} [err_conflictf mt ms]]
 
+# force an is-loading conflict check with fully qualified modulefile
+set ans [list]
+lappend ans [list setpath LOADEDMODULES $mp/msf:mtf]
+lappend ans [list setpath _LMFILES_ $mp/msf:$mp/mtf]
+lappend ans [list setpath MODULES_LMPREREQ mtf&$mp/msf]
+lappend ans [list setpath MODULES_LMCONFLICT $mp/msf&$mp/mtf]
+lappend ans [list setpath MODULES_LMNOTUASKED $mp/msf]
+#FIXME: top load messages for mtf should contain a warning to the forced conflict with $mp/msf
+testouterr_cmd_re sh {load --force mtf} $ans [msg_load $mp/msf [err_conflictf $mp/msf $mp/mtf]]\n\n[msg_top_load mtf {} $mp/msf {}]
+
 
 #
 #  Cleanup
