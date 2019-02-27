@@ -73,6 +73,27 @@ $modlin"
 testouterr_cmd_re "csh" "display $module" "OK" $disp
 
 #
+# Test system command in a simulated Windows OS environment
+#
+
+# check excepted siteconfig file is installed
+if {[siteconfig_isStderrTty]} {
+# fake Windows platform with a cmd.exe tool to execute system commands
+setenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_MODE 1
+setenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_PLATFORM 1
+
+set ans [list]
+lappend ans [list set testsuite 0]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+testouterr_cmd_re sh "load $module" $ans {}
+
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_PLATFORM
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_WINDOWS_MODE
+}
+
+
+#
 #  Cleanup
 #
 
