@@ -7534,17 +7534,10 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                      foreach unmod [lreverse $depunlist] {
                         cmdModuleUnload match 0 0 0 0 $unmod
                      }
-                     # if a switch command is ongoing, report against it
-                     if {[info exists swprocessing]} {
-                        popMsgRecordId
-                     }
                      if {[isMsgRecordIdTop]} {
                         # reverse list to make it appear in unloading order
                         reportInfo [join [lreverse $depunlist]] {Unloading\
                            dependent}
-                     }
-                     if {[info exists swprocessing]} {
-                        pushMsgRecordId $msgrecid
                      }
                   }
                }
@@ -7610,15 +7603,8 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                         swprocessing]} {
                         reloadModuleListLoadPhase $deprelist [array get\
                            isuasked]
-                        # if a switch command is ongoing, report against it
-                        if {[info exists swprocessing]} {
-                           popMsgRecordId
-                        }
                         if {[isMsgRecordIdTop]} {
                            reportInfo [join $deprelist] {Reloading dependent}
-                        }
-                        if {[info exists swprocessing]} {
-                           pushMsgRecordId $msgrecid
                         }
                      }
                   }
