@@ -1573,14 +1573,40 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}} {
 # retrieve all names that resolve to passed mod
 proc getAllModuleResolvedName {mod} {
    set namelist {}
-   # add additionnaly all the altnames set on directories, parents of mod
+
+   # get parent directories of mod
    foreach modelt [split $mod /] {
       if {[info exists modroot]} {
          append modroot /
       }
       append modroot $modelt
-      if {[info exists ::g_resolvedHash($modroot)]} {
-         eval appendNoDupToList namelist $::g_resolvedHash($modroot)
+      lappend resmodlist $modroot
+   }
+
+   # add additionnaly all the altnames set on directories, parents of mod
+   # or on distant directories whose default version resolves to mod
+   for {set i 0} {$i < [llength $resmodlist]} {incr i 1} {
+      set modelt [lindex $resmodlist $i]
+      if {[info exists ::g_resolvedHash($modelt)]} {
+         foreach resmod $::g_resolvedHash($modelt) {
+            # if modelt is not a parent directory of mod, check its resolution
+            # points to mod (directly for alias/sym or indirectly for dir
+            # whose default version bridge resolution toward mod)
+            if {[string first $modelt/ $mod/] == 0 ||\
+               $::g_moduleResolved($resmod) eq $mod || [lindex\
+               [getPathToModule $::g_moduleResolved($resmod)] 1] eq $mod} {
+               appendNoDupToList namelist $resmod
+
+               unset modroot
+               foreach reselt [split [file dirname $resmod] /] {
+                  if {[info exists modroot]} {
+                     append modroot /
+                  }
+                  append modroot $reselt
+                  appendNoDupToList resmodlist $modroot
+               }
+            }
+         }
       }
    }
    return $namelist
