@@ -510,6 +510,98 @@ testouterr_cmd_re sh {switch --no-auto swh swc} $ans [join $tserr \n]
 
 
 #
+# broken switched-off or switched-on modules
+#
+
+# switched-off module breaks when unloaded
+setenv_loaded_module [list rq] [list $mp/rq]
+
+set tserr [list {load swi} {unload rq} \n[msg_load swi [err_prereq swi swa]]]
+testouterr_cmd_re sh {load --auto swi} ERR [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swi} ERR [join $tserr \n]
+
+
+# switched-on module breaks when loaded
+unsetenv_loaded_module
+
+set tserr [list {load swj} {load ra} \n[msg_load swj [err_prereq swj ra]]]
+testouterr_cmd_re sh {load --auto swj} ERR [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swj} ERR [join $tserr \n]
+
+
+# switched-on module breaks when unloaded
+setenv_loaded_module [list ra swj] [list $mp/ra $mp/swj] [list ra]
+setenv_path_var MODULES_LMCONFLICT swj&swa
+setenv_path_var MODULES_LMPREREQ swj&ra
+
+set ans [list]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list setpath _LMFILES_ $mp/ra]
+lappend ans [list setpath LOADEDMODULES ra]
+lappend ans [list ERR]
+#FIXME: ra is reported as UreqUn whereas its unload failed
+set tserr [list {unload swj} {unload ra} \n[msg_top_unload swj {} ra {}]]
+testouterr_cmd_re sh {unload --auto swj} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ra]
+lappend ans [list setpath _LMFILES_ $mp/ra]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list {unload swj} {unload ra}]
+testouterr_cmd_re sh {unload --no-auto swj} $ans [join $tserr \n]
+
+
+# switched-off module breaks when unloaded and switched-on module breaks when loaded
+setenv_loaded_module [list rq] [list $mp/rq]
+
+set tserr [list {load swk} {unload rq} \n[msg_load swk [err_prereq swk ra]]]
+testouterr_cmd_re sh {load --auto swk} ERR [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swk} ERR [join $tserr \n]
+
+
+# switched-off module produces a module error when unloaded
+setenv_loaded_module [list swn] [list $mp/swn]
+
+set tserr [list {load swl} {unload swn} \n[msg_unload swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mp/swn'" $err_contact] \n[msg_load swl [err_prereq swl swa]]]
+testouterr_cmd_re sh {load --auto swl} ERR [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swl} ERR [join $tserr \n]
+
+
+# switched-on module produces a module error when loaded
+unsetenv_loaded_module
+
+set tserr [list {load swm} {load swn} \n[msg_load swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mp/swn'" $err_contact] \n[msg_load swm [err_prereq swm swn]]]
+testouterr_cmd_re sh {load --auto swm} ERR [join $tserr \n]
+testouterr_cmd_re sh {load --no-auto swm} ERR [join $tserr \n]
+
+
+# switched-on module produces a module error when unloaded
+setenv_loaded_module [list swn swm] [list $mp/swn $mp/swm] [list swn]
+setenv_path_var MODULES_LMCONFLICT swm&swa
+setenv_path_var MODULES_LMPREREQ swm&swn
+
+set ans [list]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list setpath _LMFILES_ $mp/swn]
+lappend ans [list setpath LOADEDMODULES swn]
+lappend ans [list ERR]
+#FIXME: swn is reported as UreqUn whereas its unload failed
+set tserr [list {unload swm} {unload swn} \n[msg_unload swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mp/swn'" $err_contact] \n[msg_top_unload swm {} swn {}]]
+testouterr_cmd_re sh {unload --auto swm} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swn]
+lappend ans [list setpath _LMFILES_ $mp/swn]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+lappend ans [list ERR]
+set tserr [list {unload swm} {unload swn} \n[msg_unload swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mp/swn'" $err_contact]]
+testouterr_cmd_re sh {unload --no-auto swm} $ans [join $tserr \n]
+
+
+#
 #  Cleanup
 #
 
