@@ -250,6 +250,52 @@ set tserr [list {unload ih/1} {unload ii} {unload ih/2} {load ih/1} \n[msg_top_u
 testouterr_cmd_re sh {unload --auto ii} $ans [join $tserr \n]
 
 
+# one reflexive conflict loaded after sane situation
+# requirement expressed with 'module load' rather 'prereq'
+# 1. load --auto iim
+# 2. load --force ih/1
+setenv_loaded_module [list ih/2 iim ih/1] [list $mp/ih/2 $mp/iim $mp/ih/1] [list ih/2]
+setenv_path_var MODULES_LMPREREQ iim&ih
+setenv_path_var MODULES_LMCONFLICT ih/2&ih:ih/1&ih
+
+# ih/2 should go UReqUn (no-auto mode)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ih/1]
+lappend ans [list setpath _LMFILES_ $mp/ih/1]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list setpath MODULES_LMCONFLICT ih/1&ih]
+set tserr [list {unload iim} {unload ih/2} \n[msg_top_unload iim {} ih/2 {}]]
+testouterr_cmd_re sh {unload --no-auto iim} $ans [join $tserr \n]
+# ih/2 should go UReqUn and ih/1 DepRe (auto mode)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ih/1]
+lappend ans [list setpath _LMFILES_ $mp/ih/1]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath MODULES_LMCONFLICT ih/1&ih]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload ih/1} {unload iim} {unload ih/2} {load ih/1} \n[msg_top_unload iim {} ih/2 ih/1]]
+testouterr_cmd_re sh {unload --auto iim} $ans [join $tserr \n]
+
+
+# one reflexive conflict loaded after sane situation, one reflexive conflict load not uasked in first position
+# requirement expressed with 'module load' rather 'prereq'
+setenv_loaded_module [list ih/0 ih/2 iim ih/1] [list $mp/ih/0 $mp/ih/2 $mp/iim $mp/ih/1] [list ih/0 ih/2]
+setenv_path_var MODULES_LMPREREQ iim&ih
+setenv_path_var MODULES_LMCONFLICT ih/0&ih:ih/2&ih:ih/1&ih
+
+# ih/0 should go UReqUn
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ih/2:ih/1]
+lappend ans [list setpath _LMFILES_ $mp/ih/2:$mp/ih/1]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath MODULES_LMNOTUASKED ih/2]
+lappend ans [list setpath MODULES_LMCONFLICT ih/2&ih:ih/1&ih]
+set tserr [list {unload iim} {unload ih/0} \n[msg_top_unload iim {} ih/0 {}]]
+testouterr_cmd_re sh {unload --no-auto iim} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --auto iim} $ans [join $tserr \n]
+
+
 # one conflict prior and one reflexive conflict after
 # 1. load ig
 # 2. load --auto --force ii

@@ -113,18 +113,10 @@ foreach cmd [list list purge reload aliases savelist] {
 # on most module commands, empty arg leads to error
 foreach cmd [list load unload] {
     setenv_loaded_module "$module/$cmd" "$modulepath/$module/$cmd"
-    # if auto_handling is enabled 'module load' order is not treated through modulefile eval
-    # but based on prereq definition which are nil here
-    # 'module unload' order are ignored on unload mode
-    if {($cmd eq {load} && $install_autohandling eq {y}) || $cmd eq {unload}} {
-        set ans [list]
-        lappend ans [list unsetpath LOADEDMODULES]
-        lappend ans [list unsetpath _LMFILES_]
-        testouterr_cmd "sh" "unload $module/$cmd" $ans ""
-    } else {
-        # test both empty names {} and "" on same module command
-        testouterr_cmd "sh" "unload $module/$cmd" "ERR" [msg_unload $module/$cmd $err_emptymodname $err_emptymodname]
-    }
+    set ans [list]
+    lappend ans [list unsetpath LOADEDMODULES]
+    lappend ans [list unsetpath _LMFILES_]
+    testouterr_cmd "sh" "unload $module/$cmd" $ans ""
 }
 
 # for some module commands, error is not fatal and modulefile is unloaded

@@ -1798,9 +1798,22 @@ proc module {command args} {
                   }
                # mods unload is handled via UReqUn mechanism when auto enabled
                } elseif {![getAutoHandling]} {
-                  # on unload mode, unload mods in reverse order, if not user
-                  # asked and not required by other loaded mods
-                  set ret [eval cmdModuleUnload match 1 0 1 1 [lreverse $args]]
+                  # on unload mode, unload mods in reverse order, if loaded
+                  # prior this mod, if not user asked and not required by
+                  # other loaded mods
+                  set urequnlist [getUnloadableLoadedModuleList\
+                     [currentModuleName]]
+                  # check mods to unload have been loaded prior current mod by
+                  # matching them to UReqUn modules
+                  foreach arg [lreverse $args] {
+                     if {[set unmod [getLoadedMatchingName $arg returnlast 0\
+                        $urequnlist]] ne {}} {
+                        lappend unmodlist $unmod
+                     }
+                  }
+                  if {[info exists unmodlist]} {
+                     set ret [eval cmdModuleUnload match 1 0 1 1 $unmodlist]
+                  }
                }
                # sub-module interpretation failed, raise error
                if {$ret && !$topcall} {
@@ -1909,9 +1922,16 @@ proc module {command args} {
                      # module. If auto handling is enabled switched-on module
                      # is handled via UReqUn mechanism
                      if {![getAutoHandling] && [info exists swlomod]} {
-                        # unload mod if not user asked and not required by
-                        # another loaded module
-                        cmdModuleUnload match 1 0 1 1 $swlomod
+                        # unload mod if it was loaded prior this mod, not user
+                        # asked and not required by another loaded module
+                        set urequnlist [getUnloadableLoadedModuleList\
+                           [currentModuleName]]
+                        # check mod to unload has been loaded prior current
+                        # mod by matching it to a UReqUn module
+                        if {[set unmod [getLoadedMatchingName $swlomod\
+                           returnlast 0 $urequnlist]] ne {}} {
+                           cmdModuleUnload match 1 0 1 1 $unmod
+                        }
                      }
                   }
                }
@@ -3511,8 +3531,10 @@ proc getLoadedWithClosestName {name} {
 
 # return the currently loaded module whose name is equal or include the name
 # passed as argument. if no loaded module match, an empty string is returned.
-# look at currently loading modules instead of loaded if loading == 1
-proc getLoadedMatchingName {name {behavior returnlast} {loading 0}} {
+# loading: look at currently loading modules instead of loaded if loading == 1
+# lmlist: only take into account passed loaded module list not all loaded mods
+proc getLoadedMatchingName {name {behavior returnlast} {loading 0} {lmlist\
+   {}}} {
    set ret {}
    set retmax 0
 
@@ -3527,6 +3549,11 @@ proc getLoadedMatchingName {name {behavior returnlast} {loading 0}} {
       set getModuleFromLoadedModulefile getModuleFromLoadedModulefile
       set getLoadedModuleList getLoadedModuleList
       set doesModuleMatchesName doesModuleMatchesName
+   }
+
+   # fetch currently loaded/loading module name is no list provided
+   if {[llength $lmlist] == 0} {
+      set lmlist [$getLoadedModuleList]
    }
 
    # if module is passed as full modulefile path name, look at lmfile names
@@ -3555,7 +3582,7 @@ proc getLoadedMatchingName {name {behavior returnlast} {loading 0}} {
    } elseif {$name ne {}} {
       # compare name to each currently loaded/loading module name, if multiple
       # mod match name:
-      foreach mod [$getLoadedModuleList] {
+      foreach mod $lmlist {
          # if module loaded as fullpath but test name not, try to get loaded
          # mod short name (with currently used modulepaths) to compare it
          if {[isModuleFullPath $mod] && [set modname\

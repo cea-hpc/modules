@@ -455,12 +455,13 @@ testouterr_cmd_re sh {unload --auto swh} $ans [join $tserr \n]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES swg/1]
 lappend ans [list setpath _LMFILES_ $mp/swg/1]
-lappend ans [list setpath MODULES_LMCONFLICT swg/1&swg]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list setpath MODULES_LMCONFLICT swg/1&swg]
+# swg/2 is unloaded even if not last swg module loaded, as only those modules
+# loaded prior swh are taken into account
 set tserr [list {unload swh} {unload swg/2} \n[msg_top_unload swh {} swg/2 {}]]
-#FIXME: should unload swg/2
-#testouterr_cmd_re sh {unload --no-auto swh} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --no-auto swh} $ans [join $tserr \n]
 
 # unload requirement
 set ans [list]
@@ -486,6 +487,22 @@ lappend ans [list setpath LOADEDMODULES swg/1]
 lappend ans [list setpath _LMFILES_ $mp/swg/1]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 set tserr [list {unload swh}]
+testouterr_cmd_re sh {unload --auto swh} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --no-auto swh} $ans [join $tserr \n]
+
+# unload test, switched-off module reloaded after switch and a second match for switched-on module loaded prior main module
+setenv_loaded_module [list swg/0 swg/2 swh swg/1] [list $mp/swg/0 $mp/swg/2 $mp/swh $mp/swg/1] [list swg/0 swg/2]
+setenv_path_var MODULES_LMCONFLICT swg/0&swg:swg/2&swg:swg/1&swg
+setenv_path_var MODULES_LMPREREQ swh&swg
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swg/2:swg/1]
+lappend ans [list setpath _LMFILES_ $mp/swg/2:$mp/swg/1]
+lappend ans [list setpath MODULES_LMNOTUASKED swg/2]
+lappend ans [list setpath MODULES_LMCONFLICT swg/2&swg:swg/1&swg]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+# first loaded prior main module is selected for unload
+set tserr [list {unload swh} {unload swg/0} \n[msg_top_unload swh {} swg/0 {}]]
 testouterr_cmd_re sh {unload --auto swh} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --no-auto swh} $ans [join $tserr \n]
 
