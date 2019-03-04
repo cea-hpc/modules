@@ -4276,6 +4276,31 @@ proc getDependentLoadedModuleList {modlist {strong 1} {direct 1} {nporeq 0}\
    return $sortlist
 }
 
+# test if passed 'mod' could be automatically unloaded or not, which means it
+# has been loaded automatically and no loaded modules require it anymore.
+# unmodlist: pass a list of modules that are going to be unloaded
+proc isModuleUnloadable {mod {unmodlist {}}} {
+   set ret 1
+   # get currently unloading modules if no specific unmodlist set
+   if {[llength $unmodlist] == 0} {
+      set unmodlist [getUnloadingModuleList]
+   }
+
+   if {[isModuleUserAsked $mod]} {
+      set ret 0
+   } else {
+      # mod is unloadable if all its dependent are unloaded or unloading
+      foreach depmod [getDirectDependentList $mod] {
+         if {[notInList $unmodlist $depmod]} {
+            set ret 0
+            break
+         }
+      }
+   }
+
+   return $ret
+}
+
 # finds required modules that can be unloaded if passed modules are unloaded:
 # they have been loaded automatically and are not depended (mandatory or
 # optionally) by other module
@@ -4300,19 +4325,8 @@ proc getUnloadableLoadedModuleList {modlist} {
       # get those required module that have been automatically loaded and are
       # only required by modules currently being unloaded
       foreach lmmod $deplist {
-         if {![isModuleUserAsked $lmmod]} {
-            set add_to_unmodlist 1
-            # look at modules dependent of lmmod, if they are all modules
-            # being unloaded, lmmod can be added to unload list
-            foreach depmod [getDirectDependentList $lmmod] {
-               if {[notInList $fulllist $depmod]} {
-                  set add_to_unmodlist 0
-                  break
-               }
-            }
-            if {$add_to_unmodlist} {
-               lappend fulllist $lmmod
-            }
+         if {[isModuleUnloadable $lmmod $fulllist]} {
+            lappend fulllist $lmmod
          }
       }
    }
@@ -7495,8 +7509,9 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
          set msgrecid unload-$modname-[getEvalModuleStackDepth]
          pushMsgRecordId $msgrecid
 
-         if {$onlyureq && [isModuleUserAsked $modname]}  {
-            reportDebug "$modname ($modfile) has been asked by user"
+         if {$onlyureq && ![isModuleUnloadable $modname]}  {
+            reportDebug "$modname ($modfile) is required by loaded module or\
+               asked by user"
          } else {
             # error if unloading module violates a registered prereq
             # and auto handling mode is disabled
@@ -7515,10 +7530,7 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                }
             } else {
                set proceed 0
-               # no message if we tried to unload only useless requirements
-               if {!$onlyureq} {
-                  reportError [getErrPrereqMsg $modname $prereq_list 0]
-               }
+               reportError [getErrPrereqMsg $modname $prereq_list 0]
             }
 
             if {$proceed} {
