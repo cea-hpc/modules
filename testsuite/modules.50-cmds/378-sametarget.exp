@@ -182,7 +182,8 @@ setenv_path_var MODULES_LMPREREQ hb&ha/1|ha
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/1:hb]
 lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hb]
-set tserr "unload ha/2"
+lappend ans [list setpath MODULES_LMPREREQ hb&ha/1|ha]
+set tserr "unload hb\nunload ha/2\nload hb\n\n[msg_top_unload ha/2 {} {} hb]"
 testouterr_cmd_re sh {unload ha} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/1:ha/2]
@@ -210,9 +211,11 @@ testouterr_cmd_re sh {unload hc} $ans $tserr
 setenv_loaded_module [list ha/1 ha/2 hd] [list $mp/ha/1 $mp/ha/2 $mp/hd]
 setenv_path_var MODULES_LMPREREQ hd&ha/1&ha
 set ans [list]
-lappend ans [list setpath LOADEDMODULES ha/1:hd]
-lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hd]
-set tserr "unload ha/2"
+lappend ans [list setpath LOADEDMODULES ha/1]
+lappend ans [list setpath _LMFILES_ $mp/ha/1]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+# ha/1 is not seen as being able to recover lost 'ha' requirement of 'hd', thus it goes DepUn
+set tserr "unload hd\nunload ha/2\n\n[msg_top_unload ha/2 hd {} {}]"
 testouterr_cmd_re sh {unload ha} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/1:ha/2]
