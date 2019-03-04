@@ -1801,14 +1801,15 @@ proc module {command args} {
                   # on unload mode, unload mods in reverse order, if loaded
                   # prior this mod, if not user asked and not required by
                   # other loaded mods
-                  set urequnlist [getUnloadableLoadedModuleList\
-                     [currentModuleName]]
-                  # check mods to unload have been loaded prior current mod by
-                  # matching them to UReqUn modules
-                  foreach arg [lreverse $args] {
-                     if {[set unmod [getLoadedMatchingName $arg returnlast 0\
-                        $urequnlist]] ne {}} {
-                        lappend unmodlist $unmod
+                  set modlist [getLoadedModuleList]
+                  set modidx [lsearch -exact $modlist [currentModuleName]]
+                  if {$modidx != 0} {
+                     set priormodlist [lrange $modlist 0 $modidx]
+                     foreach arg [lreverse $args] {
+                        if {[set unmod [getLoadedMatchingName $arg returnlast\
+                           0 $priormodlist]] ne {}} {
+                           lappend unmodlist $unmod
+                        }
                      }
                   }
                   if {[info exists unmodlist]} {
@@ -1924,13 +1925,14 @@ proc module {command args} {
                      if {![getAutoHandling] && [info exists swlomod]} {
                         # unload mod if it was loaded prior this mod, not user
                         # asked and not required by another loaded module
-                        set urequnlist [getUnloadableLoadedModuleList\
-                           [currentModuleName]]
-                        # check mod to unload has been loaded prior current
-                        # mod by matching it to a UReqUn module
-                        if {[set unmod [getLoadedMatchingName $swlomod\
-                           returnlast 0 $urequnlist]] ne {}} {
-                           cmdModuleUnload match 1 0 1 1 $unmod
+                        set modlist [getLoadedModuleList]
+                        set modidx [lsearch -exact $modlist [currentModuleName]]
+                        if {$modidx != 0} {
+                           set priormodlist [lrange $modlist 0 $modidx]
+                           if {[set unmod [getLoadedMatchingName $swlomod\
+                              returnlast 0 $priormodlist]] ne {}} {
+                              cmdModuleUnload match 1 0 1 1 $unmod
+                           }
                         }
                      }
                   }
