@@ -7493,37 +7493,48 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
    foreach mod $args {
       # resolve by also looking at matching loaded module
       lassign [getPathToModule $mod {} $match] modfile modname errkind
-      if {$modfile ne {}} {
-         # if a switch action is ongoing...
-         if {[lindex [info level -1] 0] eq {cmdModuleSwitch}} {
-            set swprocessing 1
-
-            # pass the DepRe mod list to the calling cmdModuleSwitch
-            # procedure to let it handle the load phase of the DepRe
-            # mechanism once the switched-to module will be loaded
-            upvar deprelist deprelist
-            upvar isuasked isuasked
-
-            # transmit unloaded mod name for switch report summary
-            uplevel 1 set old $modname
-         }
-         # set a unique id to record messages related to this evaluation.
-         set msgrecid unload-$modname-[getEvalModuleStackDepth]
-         pushMsgRecordId $msgrecid
-
-         if {$onlyureq && ![isModuleUnloadable $modname]}  {
-            reportDebug "$modname ($modfile) is required by loaded module or\
-               asked by user"
+      if {$modfile eq {}} {
+         # no error return if module is not loaded
+         if {$errkind eq {notloaded}} {
+            reportDebug "$modname is not loaded"
          } else {
-            # error if unloading module violates a registered prereq
-            # and auto handling mode is disabled
-            set prereq_list [getDependentLoadedModuleList $modname]
-            if {[llength $prereq_list] == 0 || ([getAutoHandling] && $auto)} {
-               set proceed 1
+            set ret 1
+         }
+         # go to next module to unload
+         continue
+      }
+
+      if {$onlyureq && ![isModuleUnloadable $modname]}  {
+         reportDebug "$modname ($modfile) is required by loaded module or\
+            asked by user"
+         continue
+      }
+
+      # if a switch action is ongoing...
+      if {[lindex [info level -1] 0] eq {cmdModuleSwitch}} {
+         set swprocessing 1
+
+         # pass the DepRe mod list to the calling cmdModuleSwitch
+         # procedure to let it handle the load phase of the DepRe
+         # mechanism once the switched-to module will be loaded
+         upvar deprelist deprelist
+         upvar isuasked isuasked
+
+         # transmit unloaded mod name for switch report summary
+         uplevel 1 set old $modname
+      }
+      # set a unique id to record messages related to this evaluation.
+      set msgrecid unload-$modname-[getEvalModuleStackDepth]
+      pushMsgRecordId $msgrecid
+
+      pushSettings
+      if {[set errCode [catch {
+         # error if unloading module violates a registered prereq
+         # and auto handling mode is disabled
+         set prereq_list [getDependentLoadedModuleList $modname]
+         if {[llength $prereq_list] > 0 && (![getAutoHandling] || !$auto)} {
             # force mode should not affect if we only look for mods w/o dep
-            } elseif {([getForce] || $force) && !$onlyndep} {
-               # still proceed if force mode enabled
-               set proceed 1
+            if {([getForce] || $force) && !$onlyndep} {
                # in case unload is called for a DepRe mechanism or a purge do
                # not warn about prereq violation enforced as it is due to the
                # dependent module which is already in a violation state
@@ -7531,181 +7542,168 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
                   reportWarning [getWarnUnPrereqMsg $modname $prereq_list]
                }
             } else {
-               set proceed 0
                reportError [getErrPrereqMsg $modname $prereq_list 0]
-            }
-
-            if {$proceed} {
-               # save list of loaded mods prior loading process to determine
-               # afterward what have been automatically loaded and unloaded
-               set priorlmlist [getLoadedModuleList]
-
-               pushSettings
-
-               if {[getAutoHandling] && $auto} {
-                  # compute lists of modules to update due to modname unload
-                  # prior unload to get requirement info before it vanishes
-
-                  # DepUn: Dependent to Unload (modules actively requiring
-                  # modname or a module part of this DepUn batch)
-                  set depunnpolist [getDependentLoadedModuleList $modname 1 0\
-                     1 0]
-                  set depunlist [getDependentLoadedModuleList $modname 1 0 0\
-                     0]
-                  # look at both regular dependencies or No Particular Order
-                  # dependencies: use NPO result if situation can be healed
-                  # with NPO dependencies, which will be part of DepRe list
-                  # to restore the correct loading order for them
-                  if {[llength $depunnpolist] <= [llength $depunlist]} {
-                     set depunlist $depunnpolist
-                  }
-                  reportDebug "depun mod list is '$depunlist'"
-
-                  # do not check for UReqUn mods coming from DepUn modules as
-                  # these DepUn modules are reloaded
-                  set urequnqry [expr {[info exists swprocessing] ? $modname\
-                     : [concat $depunlist [list $modname]]}]
-
-                  # UReqUn: Useless Requirement to Unload (autoloaded
-                  # requirements of modname or DepUn modules not required by
-                  # any remaining modules)
-                  set urequnlist [getUnloadableLoadedModuleList $urequnqry]
-                  reportDebug "urequn mod list is '$urequnlist'"
-
-                  # DepRe: Dependent to Reload (modules optionnaly dependent
-                  # or in conflict with modname, DepUn or UReqUn modules +
-                  # modules dependent of a module part of this DepRe batch)
-                  set deprelist [getDependentLoadedModuleList [concat\
-                     $urequnlist $depunlist [list $modname]] 0 0 1 0 1 1]
-                  reportDebug "depre mod list is '$deprelist'"
-
-                  # DepUn mods are merged into the DepRe list as an attempt
-                  # to reload these DepUn mods is made once switched-to mod
-                  # loaded
-                  if {[info exists swprocessing]} {
-                     set deprelist [sortModulePerLoadedAndDepOrder [concat\
-                        $depunlist $deprelist] 1]
-                     set depunlist {}
-                  }
-
-                  # Reload of all DepRe mods, as they may adapt from the mod
-                  # unloads happening here. First perform unload phase of the
-                  # reload, prior mod unloads to ensure these dependent mods
-                  # are unloaded with the same loaded prereq as when they were
-                  # loaded. Avoid modules not satisfying their constraint.
-                  if {[llength $deprelist] > 0} {
-                     array set isuasked [reloadModuleListUnloadPhase\
-                        $deprelist]
-                  }
-
-                  # DepUn modules unload prior main mod unload
-                  if {[llength $depunlist] > 0} {
-                     foreach unmod [lreverse $depunlist] {
-                        cmdModuleUnload match 0 0 0 0 $unmod
-                     }
-                     # reverse list to make it appear in unloading order
-                     reportInfo [join [lreverse $depunlist]] {Unloading\
-                        dependent}
-                  }
-               }
-
-               if {[execute-modulefile $modfile $modname $mod]} {
-                  restoreSettings
-                  set ret 1
-               } else {
-                  # get module position in loaded list to remove corresponding
-                  # loaded modulefile (entry at same position in _LMFILES_)
-                  # need the unfiltered loaded module list to get correct index
-                  set lmidx [lsearch -exact [getLoadedModuleList 0] $modname]
-                  unload-path LOADEDMODULES $modname
-                  unload-path --index _LMFILES_ $lmidx
-                  if {![isModuleUserAsked $modname]} {
-                     unload-path MODULES_LMNOTUASKED $modname
-                  }
-                  # update cache arrays
-                  unsetLoadedModule $modname $modfile
-
-                  # unregister declared conflict
-                  if {[set modcon [getLoadedConflict $modname 1]] ne {}} {
-                     unload-path MODULES_LMCONFLICT $modcon
-                  }
-                  unsetLoadedConflict $modname
-
-                  # unset prereq declared for this module
-                  if {[llength [set modpre [getLoadedPrereq $modname]]] > 0} {
-                     unload-path MODULES_LMPREREQ [getLoadedPrereq $modname 1]
-                  }
-                  unsetLoadedPrereq $modname
-
-                  # unset alternative names declared for this module
-                  if {[llength [set modalt [getLoadedAltname $modname]]] >0} {
-                     unload-path MODULES_LMALTNAME [getLoadedAltname $modname\
-                        1]
-                  }
-                  unsetLoadedAltname $modname
-
-                  if {[getAutoHandling] && $auto} {
-                     # UReqUn modules unload now DepUn+main mods are unloaded
-                     if {[llength $urequnlist] > 0} {
-                        foreach unmod [lreverse $urequnlist] {
-                           cmdModuleUnload match 0 0 0 0 $unmod
-                        }
-                        # if a switch command is ongoing, report against it
-                        if {[info exists swprocessing]} {
-                           popMsgRecordId
-                        }
-                        reportInfo [join [lreverse $urequnlist]] {Unloading\
-                           useless requirement}
-                        if {[info exists swprocessing]} {
-                           pushMsgRecordId $msgrecid
-                        }
-                     }
-
-                     # DepRe modules load phase now DepUn+UReqUn+main mods are
-                     # unloaded except if a switch action is ongoing as this
-                     # DepRe load phase will occur after the new mod load
-                     if {[llength $deprelist] > 0 && ![info exists\
-                        swprocessing]} {
-                        reloadModuleListLoadPhase $deprelist [array get\
-                           isuasked]
-                        reportInfo [join $deprelist] {Reloading dependent}
-                     }
-                  }
-
-                  # if a switch command is ongoing, these additionnal actions
-                  # are reported against this switch record id
-                  if {[info exists swprocessing]} {
-                     popMsgRecordId
-                  }
-                  # report automatically unloaded modules due to 'module load'
-                  # cmds in modfile when auto handling is disabled as UReqUn
-                  if {![getAutoHandling] && [isMsgRecordIdTop]} {
-                     lassign [getDiffBetweenList $priorlmlist\
-                        [concat [getLoadedModuleList] $modname]] urequnlist
-                     if {[llength $urequnlist] > 0} {
-                        # reverse list to make it appear in unloading order
-                        reportInfo [join [lreverse $urequnlist]] {Unloading\
-                           useless requirement}
-                     }
-                  }
-                  if {[info exists swprocessing]} {
-                     pushMsgRecordId $msgrecid
-                  }
-               }
-
-               popSettings
+               # exit treatment but no need to restore settings
+               continue
             }
          }
 
-         # report all recorded messages for this evaluation
-         reportMsgRecord "Unloading $modname"
-         popMsgRecordId
-      # no error return if module is not loaded
-      } elseif {$errkind eq {notloaded}} {
-         reportDebug "$modname is not loaded"
-      } else {
-         set ret 1
+         # save list of loaded mods prior loading process to determine
+         # afterward what have been automatically loaded and unloaded
+         set priorlmlist [getLoadedModuleList]
+
+         if {[getAutoHandling] && $auto} {
+            # compute lists of modules to update due to modname unload prior
+            # unload to get requirement info before it vanishes
+
+            # DepUn: Dependent to Unload (modules actively requiring modname
+            # or a module part of this DepUn batch)
+            set depunnpolist [getDependentLoadedModuleList $modname 1 0 1 0]
+            set depunlist [getDependentLoadedModuleList $modname 1 0 0 0]
+            # look at both regular dependencies or No Particular Order
+            # dependencies: use NPO result if situation can be healed with NPO
+            # dependencies, which will be part of DepRe list to restore the
+            # correct loading order for them
+            if {[llength $depunnpolist] <= [llength $depunlist]} {
+               set depunlist $depunnpolist
+            }
+            reportDebug "depun mod list is '$depunlist'"
+
+            # do not check for UReqUn mods coming from DepUn modules as these
+            # DepUn modules are reloaded
+            set urequnqry [expr {[info exists swprocessing] ? $modname :\
+               [concat $depunlist [list $modname]]}]
+
+            # UReqUn: Useless Requirement to Unload (autoloaded requirements
+            # of modname or DepUn modules not required by any remaining mods)
+            set urequnlist [getUnloadableLoadedModuleList $urequnqry]
+            reportDebug "urequn mod list is '$urequnlist'"
+
+            # DepRe: Dependent to Reload (modules optionnaly dependent or in
+            # conflict with modname, DepUn or UReqUn modules + modules
+            # dependent of a module part of this DepRe batch)
+            set deprelist [getDependentLoadedModuleList [concat $urequnlist\
+               $depunlist [list $modname]] 0 0 1 0 1 1]
+            reportDebug "depre mod list is '$deprelist'"
+
+            # DepUn mods are merged into the DepRe list as an attempt to
+            # reload these DepUn mods is made once switched-to mod loaded
+            if {[info exists swprocessing]} {
+               set deprelist [sortModulePerLoadedAndDepOrder [concat\
+                  $depunlist $deprelist] 1]
+               set depunlist {}
+            }
+
+            # Reload of all DepRe mods, as they may adapt from the mod unloads
+            # happening here. First perform unload phase of the reload, prior
+            # mod unloads to ensure these dependent mods are unloaded with the
+            # same loaded prereq as when they were loaded. Avoid modules not
+            # satisfying their constraint.
+            if {[llength $deprelist] > 0} {
+               array set isuasked [reloadModuleListUnloadPhase $deprelist]
+            }
+
+            # DepUn modules unload prior main mod unload
+            if {[llength $depunlist] > 0} {
+               foreach unmod [lreverse $depunlist] {
+                  cmdModuleUnload match 0 0 0 0 $unmod
+               }
+               # reverse list to make it appear in unloading order
+               reportInfo [join [lreverse $depunlist]] {Unloading dependent}
+            }
+         }
+
+         if {[execute-modulefile $modfile $modname $mod]} {
+            break
+         }
+
+         # get module position in loaded list to remove corresponding loaded
+         # modulefile (entry at same position in _LMFILES_)
+         # need the unfiltered loaded module list to get correct index
+         set lmidx [lsearch -exact [getLoadedModuleList 0] $modname]
+         unload-path LOADEDMODULES $modname
+         unload-path --index _LMFILES_ $lmidx
+         if {![isModuleUserAsked $modname]} {
+            unload-path MODULES_LMNOTUASKED $modname
+         }
+         # update cache arrays
+         unsetLoadedModule $modname $modfile
+
+         # unregister declared conflict
+         if {[set modcon [getLoadedConflict $modname 1]] ne {}} {
+            unload-path MODULES_LMCONFLICT $modcon
+         }
+         unsetLoadedConflict $modname
+
+         # unset prereq declared for this module
+         if {[llength [set modpre [getLoadedPrereq $modname]]] > 0} {
+            unload-path MODULES_LMPREREQ [getLoadedPrereq $modname 1]
+         }
+         unsetLoadedPrereq $modname
+
+         # unset alternative names declared for this module
+         if {[llength [set modalt [getLoadedAltname $modname]]] >0} {
+            unload-path MODULES_LMALTNAME [getLoadedAltname $modname 1]
+         }
+         unsetLoadedAltname $modname
+
+         if {[getAutoHandling] && $auto} {
+            # UReqUn modules unload now DepUn+main mods are unloaded
+            if {[llength $urequnlist] > 0} {
+               foreach unmod [lreverse $urequnlist] {
+                  cmdModuleUnload match 0 0 0 0 $unmod
+               }
+               # if a switch command is ongoing, report against it
+               if {[info exists swprocessing]} {
+                  popMsgRecordId
+               }
+               reportInfo [join [lreverse $urequnlist]] {Unloading useless\
+                  requirement}
+               if {[info exists swprocessing]} {
+                  pushMsgRecordId $msgrecid
+               }
+            }
+
+            # DepRe modules load phase now DepUn+UReqUn+main mods are unloaded
+            # except if a switch action is ongoing as this DepRe load phase
+            # will occur after the new mod load
+            if {[llength $deprelist] > 0 && ![info exists swprocessing]} {
+               reloadModuleListLoadPhase $deprelist [array get isuasked]
+               reportInfo [join $deprelist] {Reloading dependent}
+            }
+         }
+
+         # if a switch command is ongoing, these additionnal actions are
+         # reported against this switch record id
+         if {[info exists swprocessing]} {
+            popMsgRecordId
+         }
+         # report automatically unloaded modules due to 'module load' cmds in
+         # modfile when auto handling is disabled as UReqUn
+         if {![getAutoHandling] && [isMsgRecordIdTop]} {
+            lassign [getDiffBetweenList $priorlmlist [concat\
+               [getLoadedModuleList] $modname]] urequnlist
+            if {[llength $urequnlist] > 0} {
+               # reverse list to make it appear in unloading order
+               reportInfo [join [lreverse $urequnlist]] {Unloading useless\
+                  requirement}
+            }
+         }
+         if {[info exists swprocessing]} {
+            pushMsgRecordId $msgrecid
+         }
+      } errMsg]] != 0} {
+         # rollback settings if some evaluation went wrong
+         if {$errCode != 4} {
+            set ret 1
+            restoreSettings
+         }
       }
+      popSettings
+
+      # report all recorded messages for this evaluation
+      reportMsgRecord "Unloading $modname"
+      popMsgRecordId
    }
    popMode
 
