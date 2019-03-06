@@ -41,6 +41,24 @@ set g_pager_opts {@pageropts@} ;# Options to pass to the pager command
 set g_siteconfig @etcdir@/siteconfig.tcl ;# Site configuration
 set g_tclextlib @libdir@/libtclenvmodules@SHLIB_SUFFIX@ ;# Tcl extension lib
 
+# Source site config which can be used to define global procedures or
+# settings. We first look for the global siteconfig, then if
+# $MODULES_SITECONFIG is defined, source that file if it exists
+proc sourceSiteConfig {} {
+   lappend siteconfiglist $::g_siteconfig
+   if {[info exist ::env(MODULES_SITECONFIG)]} {
+      lappend siteconfiglist $::env(MODULES_SITECONFIG)
+   }
+   foreach siteconfig $siteconfiglist {
+      if {[file readable $siteconfig]} {
+         reportDebug "Source site configuration ($siteconfig)"
+         if {[catch {uplevel 1 source $siteconfig} errMsg]} {
+            reportErrorAndExit "Site configuration source failed\n$errMsg"
+         }
+      }
+   }
+}
+
 # Used to tell if a machine is running Windows or not
 proc isWin {} {
    return [expr {$::tcl_platform(platform) eq {windows}}]
@@ -9036,12 +9054,7 @@ if {[catch {
    }
 
    # source site configuration script if any
-   if {[file readable $g_siteconfig]} {
-      reportDebug "Source site configuration ($g_siteconfig)"
-      if {[catch {source $g_siteconfig} errMsg]} {
-         reportErrorAndExit "Site configuration source failed\n$errMsg"
-      }
-   }
+   sourceSiteConfig
 
    # Parse shell
    set g_shell [lindex $argv 0]
