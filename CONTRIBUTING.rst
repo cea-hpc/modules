@@ -127,6 +127,21 @@ Coding conventions
 
 .. _Tcl minimal escaping style: https://wiki.tcl-lang.org/page/Tcl+Minimal+Escaping+Style
 
+Emacs settings for coding conventions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is an example emacs configuration that adheres to the first two
+coding conventions.  You may wish to add this to your ``.emacs`` or
+``.emacs.d/`` to modify your tcl-mode::
+
+   (add-hook 'tcl-mode-hook
+      (lambda ()
+        (setq indent-tabs-mode nil)
+        (setq tcl-indent-level 3)
+        (setq tcl-continued-indent-level 3)
+        (font-lock-add-keywords nil '(("^[^\n]\\{79\\}\\(.*\\)$" 1
+                                       font-lock-warning-face prepend)))))
+
 Submitting installation recipes
 -------------------------------
 
