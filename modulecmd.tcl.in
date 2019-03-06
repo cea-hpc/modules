@@ -7289,191 +7289,200 @@ proc cmdModuleLoad {uasked args} {
    pushMode load
    foreach mod $args {
       lassign [getPathToModule $mod] modfile modname
-      if {$modfile ne {}} {
-         # if a switch action is ongoing...
-         if {[lindex [info level -1] 0] eq {cmdModuleSwitch}} {
-            set swprocessing 1
-            # pass the DepRe mod list to the calling cmdModuleSwitch procedure
-            # to let it handle the load phase of the DepRe mechanism along
-            # with the DepRe modules set from switched off module.
-            upvar deprelist swdeprelist
-            upvar isuasked isuasked
+      if {$modfile eq {}} {
+         set ret 1
+         # go to next module to unload
+         continue
+      }
 
-            # transmit loaded mod name for switch report summary
-            uplevel 1 set new $modname
+      # if a switch action is ongoing...
+      if {[lindex [info level -1] 0] eq {cmdModuleSwitch}} {
+         set swprocessing 1
+         # pass the DepRe mod list to the calling cmdModuleSwitch procedure to
+         # let it handle the load phase of the DepRe mechanism along with the
+         # DepRe modules set from switched off module.
+         upvar deprelist swdeprelist
+         upvar isuasked isuasked
+
+         # transmit loaded mod name for switch report summary
+         uplevel 1 set new $modname
+      }
+
+      # set a unique id to record messages related to this evaluation.
+      set msgrecid load-$modname-[getEvalModuleStackDepth]
+      pushMsgRecordId $msgrecid
+
+      # check if passed modname correspond to an already loaded modfile
+      # and get its loaded name (in case it has been loaded as full path)
+      set loadedmodname [getLoadedMatchingName $modname]
+      if {$loadedmodname ne {}} {
+         set modname $loadedmodname
+      }
+
+      pushSettings
+      if {[set errCode [catch {
+         if {[isModuleLoaded $modname] || [isModuleLoading $modname]} {
+            reportDebug "$modname ($modfile) already loaded/loading"
+            # exit treatment but no need to restore settings
+            continue
          }
 
-         # set a unique id to record messages related to this evaluation.
-         set msgrecid load-$modname-[getEvalModuleStackDepth]
-         pushMsgRecordId $msgrecid
+         # register altname of modname prior any conflict check
+         eval setLoadedAltname $modname [getAllModuleResolvedName $modname]
 
-         # check if passed modname correspond to an already loaded modfile
-         # and get its loaded name (in case it has been loaded as full path)
-         set loadedmodname [getLoadedMatchingName $modname]
-         if {$loadedmodname ne {}} {
-            set modname $loadedmodname
-         }
+         # save list of loaded mods prior loading process to determine
+         # afterward what have been automatically loaded and unloaded
+         set priorlmlist [getLoadedModuleList]
 
-         if {![isModuleLoaded $modname] && ![isModuleLoading $modname]} {
-            # register altname of modname prior any conflict check
-            eval setLoadedAltname $modname [getAllModuleResolvedName $modname]
+         if {[getAutoHandling]} {
+            # get loaded modules holding a requirement on modname and able to
+            # be reloaded
+            set deprelist [getUnmetDependentLoadedModuleList $modname]
+            reportDebug "depre mod list is '$deprelist'"
 
-            # save list of loaded mods prior loading process to determine
-            # afterward what have been automatically loaded and unloaded
-            set priorlmlist [getLoadedModuleList]
-
-            pushSettings
-
-            if {[getAutoHandling]} {
-               # get loaded modules holding a requirement on modname and able
-               # to be reloaded
-               set deprelist [getUnmetDependentLoadedModuleList $modname]
-               reportDebug "depre mod list is '$deprelist'"
-
-               # Reload all modules that have declared a prereq on mod as
-               # they may take benefit from their prereq availability if it
-               # is newly loaded. First perform unload phase of the reload,
-               # prior mod load to ensure these dependent modules are
-               # unloaded with the same loaded prereq as when they were
-               # loaded
-               if {[llength $deprelist] > 0} {
-                  array set isuasked [reloadModuleListUnloadPhase\
-                     $deprelist]
-                  if {[info exists swprocessing]} {
-                     set swdeprelist [expr {[info exists swdeprelist] ?\
-                        [concat $deprelist $swdeprelist] : $deprelist}]
-                     # ignore missing DepRe mods during reporting if switch
-                     # ongoing as it will be reloaded from switch action
-                     lassign [getDiffBetweenList $priorlmlist $deprelist]\
-                        priorlmlist
-                  }
+            # Reload all modules that have declared a prereq on mod as they
+            # may take benefit from their prereq availability if it is newly
+            # loaded. First perform unload phase of the reload, prior mod load
+            # to ensure these dependent modules are unloaded with the same
+            # loaded prereq as when they were loaded
+            if {[llength $deprelist] > 0} {
+               array set isuasked [reloadModuleListUnloadPhase $deprelist]
+               if {[info exists swprocessing]} {
+                  set swdeprelist [expr {[info exists swdeprelist] ? [concat\
+                     $deprelist $swdeprelist] : $deprelist}]
+                  # ignore missing DepRe mods during reporting if switch
+                  # ongoing as it will be reloaded from switch action
+                  lassign [getDiffBetweenList $priorlmlist $deprelist]\
+                     priorlmlist
                }
             }
+         }
 
-            if {![set ret [execute-modulefile $modfile $modname $mod]]} {
-               # raise an error if a conflict violation is detected
-               # do that after modfile evaluation to give it the chance to
-               # solve its (module unload) conflicts through its evaluation
-               lassign [doesModuleConflict $modname] doescon modconlist\
-                  moddecconlist
-               # still proceed if force mode enabled
-               if {[getForce] && $doescon} {
-                  # report warning if not already done
-                  set report_con 1
-                  if {[info exists ::report_conflict($modname)]} {
-                     # check if conflict has not been already reported with an
-                     # alternative name
-                     foreach modalt [concat [getLoadedAltname $modconlist]\
-                        $modconlist $moddecconlist] {
-                        foreach reportmod $::report_conflict($modname) {
-                           if {[doesModuleMatchesName $modalt $reportmod]} {
-                              set report_con 0
-                              break
-                           }
-                        }
+         if {[execute-modulefile $modfile $modname $mod]} {
+            break
+         }
+
+         # raise an error if a conflict violation is detected 
+         # do that after modfile evaluation to give it the chance to solve its
+         # (module unload) conflicts through its evaluation
+         lassign [doesModuleConflict $modname] doescon modconlist\
+            moddecconlist
+         # still proceed if force mode enabled
+         if {[getForce] && $doescon} {
+            # report warning if not already done
+            set report_con 1
+            if {[info exists ::report_conflict($modname)]} {
+               # check if conflict has not been already reported with an
+               # alternative name
+               foreach modalt [concat [getLoadedAltname $modconlist]\
+                  $modconlist $moddecconlist] {
+                  foreach reportmod $::report_conflict($modname) {
+                     if {[doesModuleMatchesName $modalt $reportmod]} {
+                        set report_con 0
+                        break
                      }
                   }
-                  if {$report_con} {
-                     reportWarning [getWarnConflictMsg $modname $modconlist]
-                  }
-               } elseif {$doescon} {
-                  set ret 1
-                  # report error using declared conflict name (as if it was
-                  # raised from a conflict modulefile command)
-                  if {[info exists ::loading_conflict($modname)] && [isInList\
-                     $::loading_conflict($modname) $moddecconlist]} {
-                     reportError [getErrConflictMsg $modname $moddecconlist 1]
-                  } else {
-                     reportError [getErrConflictMsg $modname $moddecconlist]
-                  }
                }
             }
-
-            if {$ret} {
-               restoreSettings
+            if {$report_con} {
+               reportWarning [getWarnConflictMsg $modname $modconlist]
+            }
+         } elseif {$doescon} {
+            # report error using declared conflict name (as if it was
+            # raised from a conflict modulefile command)
+            if {[info exists ::loading_conflict($modname)] && [isInList\
+               $::loading_conflict($modname) $moddecconlist]} {
+               reportError [getErrConflictMsg $modname $moddecconlist 1]
             } else {
-               add-path append LOADEDMODULES $modname
-               # allow duplicate modfile entries for virtual modules
-               add-path append --duplicates _LMFILES_ $modfile
-               # update cache arrays
-               setLoadedModule $modname $modfile $uasked
-
-               # register declared conflict in environment
-               if {[set modcon [getLoadedConflict $modname 1]] ne {}} {
-                  add-path append MODULES_LMCONFLICT $modcon
-               }
-
-               # declare the prereq of this module
-               if {[set modpre [getLoadedPrereq $modname 1]] ne {}} {
-                  add-path append MODULES_LMPREREQ $modpre
-               }
-
-               # declare module as not asked by user (automatically loaded
-               # as dependency) if it is the case
-               if {!$uasked} {
-                  add-path append MODULES_LMNOTUASKED $modname
-               }
-
-               # declare the alternative names of this module
-               if {[set modalt [getLoadedAltname $modname 1]] ne {}} {
-                  add-path append MODULES_LMALTNAME $modalt
-               }
-
-               # Load phase of dependent module reloading. These modules
-               # can adapt now that mod is seen loaded. Except if switch
-               # action ongoing (DepRe load phase will occur from switch)
-               if {[getAutoHandling] && [llength $deprelist] > 0 && ![info\
-                  exists swprocessing]} {
-                  reloadModuleListLoadPhase $deprelist [array get isuasked]
-               }
-
-               # report for top level load what has been additionally
-               # loaded, unloaded or reloaded when loading modname
-               # if a switch command is ongoing, these additionnal actions
-               # are reported against this switch record id
-               if {[info exists swprocessing]} {
-                  popMsgRecordId
-               }
-               if {[isMsgRecordIdTop]} {
-                  lassign [getDiffBetweenList $priorlmlist\
-                     [getLoadedModuleList]] extraunlist extralolist
-                  # refine unloading conflict guessed list by removing
-                  # eventual DepRe modules that where not able to reload
-                  if {[getAutoHandling] && [llength $deprelist] > 0} {
-                     lassign [getDiffBetweenList $extraunlist\
-                        $deprelist] extraunlist
-                  }
-                  if {[llength $extraunlist] > 0} {
-                     # reverse list to make it appear in unloading order
-                     reportInfo [join [lreverse $extraunlist]] {Unloading\
-                        conflict}
-                  }
-                  if {[llength $extralolist] > 1} {
-                     # remove modname from list as its load was expected
-                     reportInfo [join [replaceFromList $extralolist\
-                        $modname]] {Loading requirement}
-                  }
-                  if {[getAutoHandling] && [llength $deprelist] > 0 &&\
-                     ![info exists swprocessing]} {
-                     reportInfo [join $deprelist] {Reloading dependent}
-                  }
-               }
-               # restore unload message id
-               if {[info exists swprocessing]} {
-                  pushMsgRecordId $msgrecid
-               }
+               reportError [getErrConflictMsg $modname $moddecconlist]
             }
-            popSettings
-         } else {
-            reportDebug "$modname ($modfile) already loaded/loading"
+            break
          }
 
-         # report all recorded messages for this evaluation
-         reportMsgRecord "Loading $modname"
-         popMsgRecordId
-      } else {
-         set ret 1
+         add-path append LOADEDMODULES $modname
+         # allow duplicate modfile entries for virtual modules
+         add-path append --duplicates _LMFILES_ $modfile
+         # update cache arrays
+         setLoadedModule $modname $modfile $uasked
+
+         # register declared conflict in environment
+         if {[set modcon [getLoadedConflict $modname 1]] ne {}} {
+            add-path append MODULES_LMCONFLICT $modcon
+         }
+
+         # declare the prereq of this module
+         if {[set modpre [getLoadedPrereq $modname 1]] ne {}} {
+            add-path append MODULES_LMPREREQ $modpre
+         }
+
+         # declare module as not asked by user (automatically loaded as
+         # dependency) if it is the case
+         if {!$uasked} {
+            add-path append MODULES_LMNOTUASKED $modname
+         }
+
+         # declare the alternative names of this module
+         if {[set modalt [getLoadedAltname $modname 1]] ne {}} {
+            add-path append MODULES_LMALTNAME $modalt
+         }
+
+         # Load phase of dependent module reloading. These modules can adapt
+         # now that mod is seen loaded. Except if switch action ongoing (DepRe
+         # load phase will occur from switch)
+         if {[getAutoHandling] && [llength $deprelist] > 0 && ![info exists\
+            swprocessing]} {
+            reloadModuleListLoadPhase $deprelist [array get isuasked]
+         }
+
+         # report for top level load what has been additionally loaded,
+         # unloaded or reloaded when loading modname
+         # if a switch command is ongoing, these additionnal actions are
+         # reported against this switch record id
+         if {[info exists swprocessing]} {
+            popMsgRecordId
+         }
+         if {[isMsgRecordIdTop]} {
+            lassign [getDiffBetweenList $priorlmlist [getLoadedModuleList]]\
+               extraunlist extralolist
+            # refine unloading conflict guessed list by removing eventual
+            # DepRe modules that where not able to reload
+            if {[getAutoHandling] && [llength $deprelist] > 0} {
+               lassign [getDiffBetweenList $extraunlist $deprelist]\
+                  extraunlist
+            }
+            if {[llength $extraunlist] > 0} {
+               # reverse list to make it appear in unloading order
+               reportInfo [join [lreverse $extraunlist]] {Unloading conflict}
+            }
+            if {[llength $extralolist] > 1} {
+               # remove modname from list as its load was expected
+               reportInfo [join [replaceFromList $extralolist $modname]]\
+                  {Loading requirement}
+            }
+            if {[getAutoHandling] && [llength $deprelist] > 0 && ![info\
+               exists swprocessing]} {
+               reportInfo [join $deprelist] {Reloading dependent}
+            }
+         }
+         # restore unload message id
+         if {[info exists swprocessing]} {
+            pushMsgRecordId $msgrecid
+         }
+      } errMsg]] != 0} {
+         if {$errCode == 1 && $errMsg ne {}} {
+            reportError $errMsg
+         }
+         # rollback settings if some evaluation went wrong
+         if {$errCode != 4} {
+            set ret 1
+            restoreSettings
+         }
       }
+      popSettings
+
+      # report all recorded messages for this evaluation
+      reportMsgRecord "Loading $modname"
+      popMsgRecordId
    }
    popMode
 
