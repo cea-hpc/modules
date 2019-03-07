@@ -7611,7 +7611,15 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
             # DepUn modules unload prior main mod unload
             if {[llength $depunlist] > 0} {
                foreach unmod [lreverse $depunlist] {
-                  cmdModuleUnload match 0 0 0 0 $unmod
+                  if {[cmdModuleUnload match 0 0 0 0 $unmod]} {
+                     # stop if one unload fails unless force mode enabled
+                     set errMsg "Unload of dependent $unmod failed"
+                     if {[getForce] || $force} {
+                        reportWarning $errMsg
+                     } else {
+                        error $errMsg
+                     }
+                  }
                }
                # reverse list to make it appear in unloading order
                reportInfo [join [lreverse $depunlist]] {Unloading dependent}
@@ -7698,6 +7706,9 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
             pushMsgRecordId $msgrecid
          }
       } errMsg]] != 0} {
+         if {$errCode == 1 && $errMsg ne {}} {
+            reportError $errMsg
+         }
          # rollback settings if some evaluation went wrong
          if {$errCode != 4} {
             set ret 1

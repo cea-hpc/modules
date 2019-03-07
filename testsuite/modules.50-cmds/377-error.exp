@@ -281,8 +281,10 @@ lappend ans [list setpath MODULES_LMPREREQ rbc&rba]
 lappend ans [list setpath _LMFILES_ $mp/rbc]
 lappend ans [list setpath LOADEDMODULES rbc]
 lappend ans [list ERR]
-set tserr [list {unload rbd} {unload rbc} {unload rbb} {unload rba} \n[msg_top_unload rba [list rbd rbc rbb] {} {}]]
-testouterr_cmd_re sh {unload rba} $ans [join $tserr \n]
+set tserr [list {unload rbd} {unload rbc} \n[msg_unload rba [err_depun rbc]]]
+testouterr_cmd_re sh {unload rba} ERR [join $tserr \n]
+set tserr [list {unload rbd} {unload rbc} {unload rbb} {unload rba} \n[msg_top_unload rba [list rbd rbc rbb] {} {} [err_depunf rbc]]]
+testouterr_cmd_re sh {unload --force rba} $ans [join $tserr \n]
 
 # crash of a DepUn module (linked DepUn, middle one crashes)
 setenv_loaded_module [list rbe rbf rbg rbh] [list $mp/rbe $mp/rbf $mp/rbg $mp/rbh]
@@ -290,12 +292,14 @@ setenv_path_var MODULES_LMPREREQ rbf&rbe:rbg&rbf:rbh&rbg
 unsetenv_path_var MODULES_LMCONFLICT
 
 set ans [list]
-lappend ans [list setpath MODULES_LMPREREQ rbf&rbe:rbg&rbf]
-lappend ans [list setpath _LMFILES_ $mp/rbf:$mp/rbg]
-lappend ans [list setpath LOADEDMODULES rbf:rbg]
+lappend ans [list setpath MODULES_LMPREREQ rbg&rbf]
+lappend ans [list setpath _LMFILES_ $mp/rbg]
+lappend ans [list setpath LOADEDMODULES rbg]
 lappend ans [list ERR]
-set tserr [list {unload rbh} {unload rbg} \n[msg_unload rbf [err_prerequn rbf rbg]]\n {unload rbe} \n[msg_top_unload rbe [list rbh rbg rbf] {} {}]]
-testouterr_cmd_re sh {unload rbe} $ans [join $tserr \n]
+set tserr [list {unload rbh} {unload rbg} \n[msg_unload rbe [err_depun rbg]]]
+testouterr_cmd_re sh {unload rbe} ERR [join $tserr \n]
+set tserr [list {unload rbh} {unload rbg} {unload rbf} \n[msg_unload rbf [err_prerequnf rbf rbg]]\n {unload rbe} \n[msg_top_unload rbe [list rbh rbg rbf] {} {} [err_depunf rbg]]]
+testouterr_cmd_re sh {unload --force rbe} $ans [join $tserr \n]
 
 
 #
