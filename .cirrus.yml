@@ -8,7 +8,12 @@ task:
   # need to supersede Cirrus CI-specific git clone with a regular git client
   clone_script:
     - pkg install -y git
-    - git clone --depth=320 --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+    - if [ -z "$CIRRUS_PR" ]; then
+        git clone --depth=320 --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR;
+      else
+        git clone --depth=320 https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR;
+        git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR;
+      fi
     - git reset --hard $CIRRUS_CHANGE_IN_REPO
   install_script: pkg install -y bash gmake dejagnu py36-sphinx tcl86 autoconf automake gettext ksh93 zsh fish perl5 python36 ruby cmake R
   build_script: ./configure --without-tclx --with-tcl-ver=8.6 && gmake && gmake install
