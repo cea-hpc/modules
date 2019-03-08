@@ -253,22 +253,24 @@ lappend ans [list setpath _LMFILES_ $mp/rab]
 lappend ans [list setpath LOADEDMODULES rab]
 lappend ans [list setpath MODULES_LMNOTUASKED rab]
 lappend ans [list ERR]
-set tserr [list {unload rad} {unload rac} {unload rab} {unload raa} \n[msg_top_unload rad {} [list rac rab raa] {}]]
+set tserr [list {unload rad} {unload rac} {unload rab} {unload raa} \n[msg_top_unload rad {} [list rac rab raa] {} [err_urequn rab]]]
 testouterr_cmd_re sh {unload rad} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --force rad} $ans [join $tserr \n]
 
 # crash of a UReqUn module (linked UreqUn, middle one crashes)
 setenv_loaded_module [list rae raf rag rah] [list $mp/rae $mp/raf $mp/rag $mp/rah] [list rae raf rag]
-setenv_path_var MODULES_LMPREREQ rah&rae&raf&rag
+setenv_path_var MODULES_LMPREREQ rah&rag:rag&raf:raf&rae
 unsetenv_path_var MODULES_LMCONFLICT
 
 set ans [list]
-lappend ans [list unsetpath MODULES_LMPREREQ]
-lappend ans [list setpath _LMFILES_ $mp/raf]
-lappend ans [list setpath LOADEDMODULES raf]
-lappend ans [list setpath MODULES_LMNOTUASKED raf]
+lappend ans [list setpath MODULES_LMPREREQ raf&rae]
+lappend ans [list setpath _LMFILES_ $mp/rae:$mp/raf]
+lappend ans [list setpath LOADEDMODULES rae:raf]
+lappend ans [list setpath MODULES_LMNOTUASKED rae:raf]
 lappend ans [list ERR]
-set tserr [list {unload rah} {unload rag} {unload raf} {unload rae} \n[msg_top_unload rah {} [list rag raf rae] {}]]
+set tserr [list {unload rah} {unload rag} {unload raf} \n[msg_top_unload rah {} [list rag raf] {} [err_urequn raf]] ]
 testouterr_cmd_re sh {unload rah} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --force rah} $ans [join $tserr \n]
 
 
 # crash of a DepUn module (independent DepUn, middle one crashes)

@@ -4303,6 +4303,26 @@ proc isModuleUnloadable {mod {unmodlist {}}} {
    return $ret
 }
 
+# gets the list of all loaded modules which are required by passed modlist
+# ordered by load position.
+proc getRequiredLoadedModuleList {modlist} {
+   reportDebug "get mods required by '$modlist'"
+
+   # search over all list of loaded modules, starting with passed module
+   # list, then adding in turns their requirements
+   set fulllist $modlist
+   for {set i 0} {$i < [llength $fulllist]} {incr i 1} {
+      # gets the list of loaded modules which are required by depmod
+      eval appendNoDupToList fulllist $::g_moduleDepend([lindex $fulllist $i])
+   }
+
+   # sort complete result list to match both loaded and dependency orders
+   set sortlist [sortModulePerLoadedAndDepOrder [lrange $fulllist [llength\
+      $modlist] end]]
+   reportDebug "got '$sortlist'"
+   return $sortlist
+}
+
 # finds required modules that can be unloaded if passed modules are unloaded:
 # they have been loaded automatically and are not depended (mandatory or
 # optionally) by other module
@@ -7663,15 +7683,32 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
          if {[getAutoHandling] && $auto} {
             # UReqUn modules unload now DepUn+main mods are unloaded
             if {[llength $urequnlist] > 0} {
-               foreach unmod [lreverse $urequnlist] {
-                  cmdModuleUnload match 0 0 0 0 $unmod
+               set urequnlist [lreverse $urequnlist]
+               for {set i 0} {$i < [llength $urequnlist]} {incr i 1} {
+                  set unmod [lindex $urequnlist $i]
+                  if {[cmdModuleUnload match 0 0 0 0 $unmod]} {
+                     # if a switch command is ongoing, report against it
+                     if {[info exists swprocessing]} {
+                        popMsgRecordId
+                     }
+                     # just warn if UReqUn module cannot be unloaded, main
+                     # unload process continues, just the UReqUn modules that
+                     # are required by unmod (whose unload failed) are
+                     # withdrawn from UReqUn module list
+                     reportWarning "Unload of useless requirement $unmod\
+                        failed"
+                     if {[info exists swprocessing]} {
+                        pushMsgRecordId $msgrecid
+                     }
+                     lassign [getDiffBetweenList $urequnlist\
+                        [getRequiredLoadedModuleList $unmod]] urequnlist
+                  }
                }
                # if a switch command is ongoing, report against it
                if {[info exists swprocessing]} {
                   popMsgRecordId
                }
-               reportInfo [join [lreverse $urequnlist]] {Unloading useless\
-                  requirement}
+               reportInfo [join $urequnlist] {Unloading useless requirement}
                if {[info exists swprocessing]} {
                   pushMsgRecordId $msgrecid
                }
