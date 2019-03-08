@@ -54,6 +54,49 @@ testouterr_cmd_re sh {unload --no-auto ib} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --auto ib} $ans [join $tserr \n]
 
 
+# requirement is found after its dependent
+# requirement expressed with 'module load' rather 'prereq'
+# 1. load --force --no-auto ibm
+# 2. load --no-auto ia
+setenv_loaded_module [list ibm ia] [list $mp/ibm $mp/ia]
+setenv_path_var MODULES_LMPREREQ ibm&ia
+
+# ibm should not be impacted
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ibm]
+lappend ans [list setpath _LMFILES_ $mp/ibm]
+set tserr [list {unload ia}]
+testouterr_cmd_re sh {unload --no-auto ia} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --auto ia} $ans [join $tserr \n]
+
+# ia should not be impacted
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ia]
+lappend ans [list setpath _LMFILES_ $mp/ia]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr [list {unload ibm}]
+testouterr_cmd_re sh {unload --no-auto ibm} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --auto ibm} $ans [join $tserr \n]
+
+
+# requirement is found after its dependent, one dummy module loaded before
+# requirement expressed with 'module load' rather 'prereq'
+# 1. load ih/2
+# 1. load --force --no-auto ibm
+# 2. load --no-auto ia
+setenv_loaded_module [list aa ibm ia] [list $mp/aa $mp/ibm $mp/ia]
+setenv_path_var MODULES_LMPREREQ ibm&ia
+
+# ia should not be impacted
+set ans [list]
+lappend ans [list setpath LOADEDMODULES aa:ia]
+lappend ans [list setpath _LMFILES_ $mp/aa:$mp/ia]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+set tserr [list {unload ibm}]
+testouterr_cmd_re sh {unload --no-auto ibm} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --auto ibm} $ans [join $tserr \n]
+
+
 # requirement is found after its dependent and in autoloaded state
 # 1. load --force --no-auto ib
 # 2. load --force ie

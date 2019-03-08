@@ -214,6 +214,45 @@ set tserr [list [msg_unload swb [err_prerequn swb swc]]]
 testouterr_cmd_re sh {unload --no-auto swb} ERR [join $tserr \n]
 
 
+# requirement module is loaded after its dependent
+setenv_loaded_module [list swc swb] [list $mp/swc $mp/swb] [list swb]
+setenv_path_var MODULES_LMPREREQ swc&swb
+setenv_path_var MODULES_LMCONFLICT swc&swa
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swb]
+lappend ans [list setpath _LMFILES_ $mp/swb]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+set tserr [list {unload swc}]
+testouterr_cmd_re sh {unload --auto swc} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --no-auto swc} $ans [join $tserr \n]
+
+# unload requirement (which is not seen as requirement as it is loaded after)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES swc]
+lappend ans [list setpath _LMFILES_ $mp/swc]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+set tserr [list {unload swb}]
+testouterr_cmd_re sh {unload --auto swb} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --no-auto swb} $ans [join $tserr \n]
+
+
+# requirement module is loaded after its dependent, one dummy module loaded before
+setenv_loaded_module [list aa swc swb] [list $mp/aa $mp/swc $mp/swb] [list swb]
+setenv_path_var MODULES_LMPREREQ swc&swb
+setenv_path_var MODULES_LMCONFLICT swc&swa
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES aa:swb]
+lappend ans [list setpath _LMFILES_ $mp/aa:$mp/swb]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMCONFLICT]
+set tserr [list {unload swc}]
+testouterr_cmd_re sh {unload --auto swc} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --no-auto swc} $ans [join $tserr \n]
+
+
 # conflict against switched-on module set still there
 setenv_loaded_module [list swd swb swc] [list $mp/swd $mp/swb $mp/swc] [list swb]
 setenv_path_var MODULES_LMPREREQ swc&swb
