@@ -4396,6 +4396,11 @@ proc runModulerc {} {
    array set ::g_rcVirtual [array get ::g_moduleVirtual]
 }
 
+# how many settings bundle are currently saved
+proc getSavedSettingsStackDepth {} {
+   return [llength $::g_SAVE_g_loadedModules]
+}
+
 # manage settings to save as a stack to have a separate set of settings
 # for each module loaded or unloaded in order to be able to restore the
 # correct set in case of failure
@@ -4417,9 +4422,11 @@ proc pushSettings {} {
          eval "lappend ::g_SAVE_$var \[list 0 {}\]"
       }
    }
+   reportDebug "settings saved (#[getSavedSettingsStackDepth])"
 }
 
 proc popSettings {} {
+   set flushedid [getSavedSettingsStackDepth]
    foreach var {env g_clearedEnvVars g_Aliases g_stateEnvVars g_stateAliases\
       g_stateFunctions g_Functions g_newXResources g_delXResources\
       g_changeDir g_stdoutPuts g_return_text\
@@ -4430,6 +4437,7 @@ proc popSettings {} {
       g_moduleUnmetDep g_unmetDepHash} {
       eval "set ::g_SAVE_$var \[lrange \$::g_SAVE_$var 0 end-1\]"
    }
+   reportDebug "previously saved settings flushed (#$flushedid)"
 }
 
 proc restoreSettings {} {
@@ -4456,6 +4464,8 @@ proc restoreSettings {} {
          set ::$var $val
       }
    }
+   reportDebug "previously saved settings restored\
+      (#[getSavedSettingsStackDepth])"
 }
 
 proc renderSettings {} {
