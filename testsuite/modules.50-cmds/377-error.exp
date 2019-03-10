@@ -10,7 +10,7 @@
 #   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
 #
 #   Description:	Testuite testsequence
-#   Command:        load, unload
+#   Command:        load, unload, purge, reload
 #   Modulefiles:
 #   Sub-Command:    prereq, conflict
 #
@@ -302,6 +302,56 @@ set tserr [list {unload rbh} {unload rbg} \n[msg_unload rbe [err_depun rbg]]]
 testouterr_cmd_re sh {unload rbe} ERR [join $tserr \n]
 set tserr [list {unload rbh} {unload rbg} {unload rbf} \n[msg_unload rbf [err_prerequnf rbf rbg]]\n {unload rbe} \n[msg_top_unload rbe [list rbh rbg rbf] {} {} [err_depunf rbg]]]
 testouterr_cmd_re sh {unload --force rbe} $ans [join $tserr \n]
+
+
+#
+# purge
+#
+
+# crash of a module when unloading (linked modules, middle one crashes)
+setenv_loaded_module [list rca rcb rcc rcd rce] [list $mp/rca $mp/rcb $mp/rcc $mp/rcd $mp/rce] [list rca rcb rcc rcd]
+setenv_path_var MODULES_LMPREREQ rce&rcd:rcd&rcc:rcc&rcb:rcb&rca
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ rcc&rcb]
+lappend ans [list setpath _LMFILES_ $mp/rcc]
+lappend ans [list setpath LOADEDMODULES rcc]
+lappend ans [list setpath MODULES_LMNOTUASKED rcc]
+lappend ans [list ERR]
+#FIXME: no clear message about the failing module and the resulting situation
+set tserr [list {unload rce} {unload rcd} {unload rcc} {unload rcb} {unload rca}]
+testouterr_cmd_re sh {purge} $ans [join $tserr \n]
+# adding --force argument does not change a thing
+testouterr_cmd_re sh {purge --force} $ans [join $tserr \n]
+
+
+#
+# reload
+#
+
+# crash of a module when unloading and another one when loading (linked modules, middle one crashes)
+setenv_loaded_module [list rca rcb rcc rcd rce] [list $mp/rca $mp/rcb $mp/rcc $mp/rcd $mp/rce] [list rca rcb rcc rcd]
+setenv_path_var MODULES_LMPREREQ rce&rcd:rcd&rcc:rcc&rcb:rcb&rca
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ rcc&rcb:rcb&rca]
+lappend ans [list setpath _LMFILES_ $mp/rcc:$mp/rca:$mp/rcb]
+lappend ans [list setpath LOADEDMODULES rcc:rca:rcb]
+lappend ans [list setpath MODULES_LMNOTUASKED rcc:rca:rcb]
+lappend ans [list ERR]
+#FIXME: no clear message about the failing modules and the resulting situation
+set tserr [list {unload rce} {unload rcd} {unload rcc} {unload rcb} {unload rca} {load rca} {load rcb} {load rcd} {load rce} \n[msg_load rce [err_prereq rce rcd]]]
+testouterr_cmd_re sh {reload} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rcc:rca:rcb:rce]
+lappend ans [list setpath _LMFILES_ $mp/rcc:$mp/rca:$mp/rcb:$mp/rce]
+lappend ans [list setpath MODULES_LMPREREQ rcc&rcb:rcb&rca:rce&rcd]
+lappend ans [list setpath MODULES_LMNOTUASKED rcc:rca:rcb]
+set tserr [list {unload rce} {unload rcd} {unload rcc} {unload rcb} {unload rca} {load rca} {load rcb} {load rcd} {load rce} \n[msg_load rce [err_prereqf rce rcd]]]
+lappend ans [list ERR]
+testouterr_cmd_re sh {reload --force} $ans [join $tserr \n]
 
 
 #
