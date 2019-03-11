@@ -6635,14 +6635,25 @@ proc parseModuleCommandArgs {cmd args} {
 }
 
 # unload phase of a list of modules reload process
-proc reloadModuleListUnloadPhase {lmlist} {
+proc reloadModuleListUnloadPhase {lmname force errmsgtpl} {
+   upvar $lmname lmlist
    # unload one by one to ensure same behavior whatever auto_handling state
    foreach mod [lreverse $lmlist] {
       # save user asked state before it vanishes
       set isuasked($mod) [isModuleUserAsked $mod]
       # force unload even if requiring mods are not part of the unload list
       # (violation state) as modules are loaded again just after
-      cmdModuleUnload match 0 1 0 0 $mod
+      if {[cmdModuleUnload match 0 1 0 0 $mod]} {
+         # avoid failing module on load phase
+         set lmlist [replaceFromList $lmlist $mod]
+         set errMsg [string map [list _MOD_ $mod] $errmsgtpl]
+         if {$force && $errMsg ne {}} {
+            reportWarning $errMsg
+         # stop if one unload fails unless force mode enabled
+         } elseif {!$force} {
+            error $errMsg
+         }
+      }
    }
    return [array get isuasked]
 }
@@ -7376,7 +7387,8 @@ proc cmdModuleLoad {uasked args} {
             # to ensure these dependent modules are unloaded with the same
             # loaded prereq as when they were loaded
             if {[llength $deprelist] > 0} {
-               array set isuasked [reloadModuleListUnloadPhase $deprelist]
+               array set isuasked [reloadModuleListUnloadPhase deprelist\
+                  [getForce] {Reload of dependent _MOD_ failed}]
                if {[info exists swprocessing]} {
                   set swdeprelist [expr {[info exists swdeprelist] ? [concat\
                      $deprelist $swdeprelist] : $deprelist}]
@@ -7635,7 +7647,8 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
             # same loaded prereq as when they were loaded. Avoid modules not
             # satisfying their constraint.
             if {[llength $deprelist] > 0} {
-               array set isuasked [reloadModuleListUnloadPhase $deprelist]
+               array set isuasked [reloadModuleListUnloadPhase deprelist\
+                  [getForce] {Reload of dependent _MOD_ failed}]
             }
 
             # DepUn modules unload prior main mod unload
@@ -7804,7 +7817,7 @@ proc cmdModuleReload {args} {
    }
 
    # run unload then load-again phases
-   array set isuasked [reloadModuleListUnloadPhase $lmlist]
+   array set isuasked [reloadModuleListUnloadPhase lmlist 1 {}]
    reloadModuleListLoadPhase $lmlist [array get isuasked]
 
    # no sumup report for reload action for the moment
