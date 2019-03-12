@@ -103,7 +103,7 @@ lappend ans [list setpath LOADEDMODULES swb:swc]
 lappend ans [list setpath MODULES_LMNOTUASKED swb]
 lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
 lappend ans [list ERR]
-set tserr [list {load swc} {unload swe} {unload swa} {load swb} {load swe} \n[msg_load swe [err_prereq swe swa]] \n[msg_top_load swc [list swe swa] swb {}]]
+set tserr [list {load swc} {unload swe} {unload swa} {load swb} {load swe} \n[msg_load swe [err_prereq swe swa]] \n[msg_switch swa swb [err_depref swe]] \n[msg_top_load swc [list swe swa] swb {}]]
 testouterr_cmd_re sh {load --auto swc} $ans [join $tserr \n]
 set tserr [list {load swc} \n[msg_unload swa [err_prerequn swa swe]]\n {load swb} \n[msg_load swc [err_conflict swc swa]]]
 testouterr_cmd_re sh {load --no-auto swc} ERR [join $tserr \n]
@@ -132,7 +132,7 @@ setenv_loaded_module [list swd swa swe] [list $mp/swd $mp/swa $mp/swe]
 setenv_path_var MODULES_LMCONFLICT swd&swb
 setenv_path_var MODULES_LMPREREQ swe&swa
 
-set tserr [list {load swc} {unload swe} {unload swa} {load swb} \n[msg_load swb [err_conflict swb swd]]\n {load swe} \n[msg_load swe [err_prereq swe swa]] \n[msg_load swc [err_prereq swc swb]]]
+set tserr [list {load swc} {unload swe} {unload swa} {load swb} \n[msg_load swb [err_conflict swb swd]]\n {load swe} \n[msg_load swe [err_prereq swe swa]] \n[msg_switch swa swb [err_depref swe]] \n[msg_load swc [err_prereq swc swb]]]
 testouterr_cmd_re sh {load --auto swc} ERR [join $tserr \n]
 # error raised from swb prereq issue, as conflict issue are analyzed after
 set tserr [list {load swc} \n[msg_unload swa [err_prerequn swa swe]]\n {load swb} \n[msg_load swb [err_conflict swb swd]] \n[msg_load swc [err_prereq swc swb]]]
@@ -449,7 +449,7 @@ lappend ans [list setpath MODULES_LMCONFLICT swg/2&swg]
 lappend ans [list ERR]
 # as swg/2 is seen as the module to unload for 'module switch swg', swg/1 goes to DepRe
 # but then as swg/2 is also seen as the module to load, swg/1 gets an error on DepRe loading phase
-set tserr [list {load swh} {unload swg/1} {unload swg/2} {load swg/2} {load swg/1} \n[msg_load swg/1 [err_conflict swg/1 swg]] \n[msg_top_load swh swg/1 {} {}]]
+set tserr [list {load swh} {unload swg/1} {unload swg/2} {load swg/2} {load swg/1} \n[msg_load swg/1 [err_conflict swg/1 swg]] \n[msg_switch swg/2 swg/2 [err_depref swg/1]] \n[msg_top_load swh swg/1 {} {}]]
 testouterr_cmd_re sh {load --auto swh} $ans [join $tserr \n]
 set ans [list]
 lappend ans [list setpath _LMFILES_ $mp/swg/1:$mp/swh]

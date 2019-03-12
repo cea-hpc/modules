@@ -6659,7 +6659,8 @@ proc reloadModuleListUnloadPhase {lmname force errmsgtpl} {
 }
 
 # load phase of a list of modules reload process
-proc reloadModuleListLoadPhase {lmlist isuaskedlist} {
+proc reloadModuleListLoadPhase {lmname isuaskedlist force errmsgtpl} {
+   upvar $lmname lmlist
    array set isuasked $isuaskedlist
 
    # loads are made with auto handling mode disabled to avoid disturbances
@@ -6668,7 +6669,15 @@ proc reloadModuleListLoadPhase {lmlist isuaskedlist} {
    set ::g_auto_handling 0
    foreach mod $lmlist {
       # reload module with user asked property preserved
-      cmdModuleLoad $isuasked($mod) $mod
+      if {[cmdModuleLoad $isuasked($mod) $mod]} {
+         set errMsg [string map [list _MOD_ $mod] $errmsgtpl]
+         if {$force && $errMsg ne {}} {
+            reportWarning $errMsg
+         # stop if one load fails unless force mode enabled
+         } elseif {!$force} {
+            error $errMsg
+         }
+      }
    }
    set ::g_auto_handling 1
 }
@@ -6994,20 +7003,22 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    # their respective unload/load block
    pushMsgRecordId switch-$old-$new-[getEvalModuleStackDepth]
 
-   # attempt load only if unload succeed
+   # attempt load and depre reload only if unload succeed
    if {![cmdModuleUnload $unload_match 1 0 0 0 $old]} {
       cmdModuleLoad $uasked $new
-   }
 
-   if {[getAutoHandling] && [info exists deprelist] && [llength $deprelist]\
-      > 0} {
-      # cmdModuleUnload handles the DepUn, UReqUn mechanisms and the unload
-      # phase of the DepRe mechanism. List of DepRe mods and their user asked
-      # state is set from cmdModuleUnload procedure to be used here for the
-      # load phase of the DepRe mechanism.
-      reloadModuleListLoadPhase $deprelist [array get isuasked]
-      if {[isMsgRecordIdTop]} {
-         reportInfo [join $deprelist] {Reloading dependent}
+      if {[getAutoHandling] && [info exists deprelist] && [llength\
+         $deprelist] > 0} {
+         # cmdModuleUnload handles the DepUn, UReqUn mechanisms and the unload
+         # phase of the DepRe mechanism. List of DepRe mods and their user
+         # asked state is set from cmdModuleUnload procedure to be used here
+         # for the load phase of the DepRe mechanism.
+         # Try DepRe load phase: load failure will not lead to switch failure
+         reloadModuleListLoadPhase deprelist [array get isuasked]\
+            1 {Reload of dependent _MOD_ failed}
+         if {[isMsgRecordIdTop]} {
+            reportInfo [join $deprelist] {Reloading dependent}
+         }
       }
    }
 
@@ -7473,7 +7484,8 @@ proc cmdModuleLoad {uasked args} {
          # load phase will occur from switch)
          if {[getAutoHandling] && [llength $deprelist] > 0 && ![info exists\
             swprocessing]} {
-            reloadModuleListLoadPhase $deprelist [array get isuasked]
+            reloadModuleListLoadPhase deprelist [array get isuasked]\
+               [getForce] {Reload of dependent _MOD_ failed}
          }
 
          # report for top level load what has been additionally loaded,
@@ -7741,7 +7753,8 @@ proc cmdModuleUnload {match auto force onlyureq onlyndep args} {
             # except if a switch action is ongoing as this DepRe load phase
             # will occur after the new mod load
             if {[llength $deprelist] > 0 && ![info exists swprocessing]} {
-               reloadModuleListLoadPhase $deprelist [array get isuasked]
+               reloadModuleListLoadPhase deprelist [array get isuasked]\
+                  [getForce] {Reload of dependent _MOD_ failed}
                reportInfo [join $deprelist] {Reloading dependent}
             }
          }
@@ -7818,7 +7831,7 @@ proc cmdModuleReload {args} {
 
    # run unload then load-again phases
    array set isuasked [reloadModuleListUnloadPhase lmlist 1 {}]
-   reloadModuleListLoadPhase $lmlist [array get isuasked]
+   reloadModuleListLoadPhase lmlist [array get isuasked] 1 {}
 
    # no sumup report for reload action for the moment
    popMsgRecordId
