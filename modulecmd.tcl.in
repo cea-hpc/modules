@@ -6635,7 +6635,8 @@ proc parseModuleCommandArgs {cmd args} {
 }
 
 # unload phase of a list of modules reload process
-proc reloadModuleListUnloadPhase {lmname force errmsgtpl} {
+proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {Reload of\
+   _MOD_ failed}}} {
    upvar $lmname lmlist
    # unload one by one to ensure same behavior whatever auto_handling state
    foreach mod [lreverse $lmlist] {
@@ -6659,7 +6660,8 @@ proc reloadModuleListUnloadPhase {lmname force errmsgtpl} {
 }
 
 # load phase of a list of modules reload process
-proc reloadModuleListLoadPhase {lmname isuaskedlist force errmsgtpl} {
+proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl\
+   {Reload of _MOD_ failed}}} {
    upvar $lmname lmlist
    array set isuasked $isuaskedlist
 
@@ -7825,15 +7827,24 @@ proc cmdModuleReload {args} {
 
    # no reload of all loaded modules attempt if constraints are violated
    if {[llength $args] == 0 && ![areModuleConstraintsSatisfied]} {
-      reportErrorAndExit {Cannot reload modules, some of their constraints\
-         are not satistied}
+      reportError {Cannot reload modules, some of their constraints are not\
+         satistied}
+   } else {
+      pushSettings
+      if {[set errCode [catch {
+         # run unload then load-again phases
+         array set isuasked [reloadModuleListUnloadPhase lmlist]
+         reloadModuleListLoadPhase lmlist [array get isuasked]
+      } errMsg]] == 1} {
+         reportError $errMsg
+         # rollback settings if some evaluation went wrong
+         restoreSettings
+      }
+      popSettings
    }
 
-   # run unload then load-again phases
-   array set isuasked [reloadModuleListUnloadPhase lmlist 1 {}]
-   reloadModuleListLoadPhase lmlist [array get isuasked] 1 {}
-
-   # no sumup report for reload action for the moment
+   # report all recorded messages for this evaluation
+   reportMsgRecord "Reloading all loaded modules"
    popMsgRecordId
 }
 

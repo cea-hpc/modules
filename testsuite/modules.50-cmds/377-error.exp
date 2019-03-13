@@ -335,23 +335,18 @@ setenv_loaded_module [list rca rcb rcc rcd rce] [list $mp/rca $mp/rcb $mp/rcc $m
 setenv_path_var MODULES_LMPREREQ rce&rcd:rcd&rcc:rcc&rcb:rcb&rca
 unsetenv_path_var MODULES_LMCONFLICT
 
-set ans [list]
-lappend ans [list setpath MODULES_LMPREREQ rcc&rcb:rcb&rca]
-lappend ans [list setpath _LMFILES_ $mp/rcc:$mp/rca:$mp/rcb]
-lappend ans [list setpath LOADEDMODULES rcc:rca:rcb]
-lappend ans [list setpath MODULES_LMNOTUASKED rcc:rca:rcb]
-lappend ans [list ERR]
-#FIXME: no clear message about the failing modules and the resulting situation
-set tserr [list {unload rce} {unload rcd} {unload rcc} {unload rcb} {unload rca} {load rca} {load rcb} {load rcd} {load rce} \n[msg_load rce [err_prereq rce rcd]]]
-testouterr_cmd_re sh {reload} $ans [join $tserr \n]
-set ans [list]
-lappend ans [list setpath LOADEDMODULES rcc:rca:rcb:rce]
-lappend ans [list setpath _LMFILES_ $mp/rcc:$mp/rca:$mp/rcb:$mp/rce]
-lappend ans [list setpath MODULES_LMPREREQ rcc&rcb:rcb&rca:rce&rcd]
-lappend ans [list setpath MODULES_LMNOTUASKED rcc:rca:rcb]
-set tserr [list {unload rce} {unload rcd} {unload rcc} {unload rcb} {unload rca} {load rca} {load rcb} {load rcd} {load rce} \n[msg_load rce [err_prereqf rce rcd]]]
-lappend ans [list ERR]
-testouterr_cmd_re sh {reload --force} $ans [join $tserr \n]
+set tserr [list {unload rce} {unload rcd} {unload rcc} \n[msg_reload [err_reload rcc]]]
+testouterr_cmd_re sh {reload} ERR [join $tserr \n]
+testouterr_cmd_re sh {reload --force} ERR [join $tserr \n]
+
+# crash of a module when loading (linked modules, middle one crashes)
+setenv_loaded_module [list rdc rdd rde] [list $mp/rdc $mp/rdd $mp/rde] [list rdc rdd]
+setenv_path_var MODULES_LMPREREQ rdd&rdc:rde&rdd
+unsetenv_path_var MODULES_LMCONFLICT
+
+set tserr [list {unload rde} {unload rdd} {unload rdc} {load rdc} {load rdd} \n[msg_reload [err_reload rdd]]]
+testouterr_cmd_re sh {reload} ERR [join $tserr \n]
+testouterr_cmd_re sh {reload --force} ERR [join $tserr \n]
 
 
 #

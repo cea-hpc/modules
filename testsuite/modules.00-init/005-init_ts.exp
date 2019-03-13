@@ -122,6 +122,10 @@ proc err_depref {mod} {
     return "$::warn_msgs: Reload of dependent $mod failed"
 }
 
+proc err_reload {mod} {
+    return "$::error_msgs: Reload of $mod failed"
+}
+
 proc moderr_minverreq {modfile minver} {
     return "$::moderr_msgs: Modulefile requires at least Modules version $minver\n  In '$modfile'\n$::err_contact"
 }
@@ -183,6 +187,12 @@ proc msg_unload {mod args} {
 
 proc msg_switch {old new args} {
     set msg "Switching from $old to $new"
+    append msg [eval msg_block_content $args]
+    return $msg
+}
+
+proc msg_reload {args} {
+    set msg "Reloading all loaded modules"
     append msg [eval msg_block_content $args]
     return $msg
 }
