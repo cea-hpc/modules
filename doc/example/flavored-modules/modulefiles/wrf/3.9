@@ -1,0 +1,30 @@
+#%Module
+set name wrf
+set version 3.9
+
+conflict $name
+
+# source common definitions
+source [file dirname $ModulesCurrentModulefile]/../.common
+
+# builds available for following compiler and get selected one
+set buildcompiler [availForBuildModule compiler intel/17 intel/15 gcc/4.8 gcc/8 pgi/18]
+
+# builds available for following mpi and get selecled one
+set buildmpi [availForBuildModule mpi openmpi/2.0 intelmpi/17]
+
+# builds available for following lib and get selected one
+set buildjasper [availForBuildModule jasper jasper/1.900]
+# serial IO-libs only
+prereq flavor/netcdf/serial_hdf5
+set buildnetcdf [availForBuildModule netcdf netcdf/4.6]
+# serial IO-libs only
+prereq flavor/netcdf-fortran/serial_hdf5
+set buildnetcdffortran [availForBuildModule netcdf-fortran netcdf-fortran/4.4]
+
+# compute installation path based on selected toolchain and flavors
+set prefix [getInstallPrefix]
+
+
+# set software environment
+append-path PATH $prefix/WRFV3/main

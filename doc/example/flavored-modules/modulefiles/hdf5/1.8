@@ -1,0 +1,28 @@
+#%Module
+set name hdf5
+set version 1.8
+
+conflict $name
+
+# source common definitions
+source [file dirname $ModulesCurrentModulefile]/../.common
+
+# available software-specific flavors
+set flavorlist [availForFlavorModule serial parallel]
+
+# builds available for following compiler and get selected one
+set buildcompiler [availForBuildModule compiler intel/17 intel/15 gcc/4.8 gcc/8 pgi/18]
+
+
+if {[isFlavorEnabled parallel]} {
+    # builds available for following mpi and get selecled one
+    set buildmpi [availForBuildModule mpi openmpi/2.0 intelmpi/17]
+}
+
+# compute installation path based on selected toolchain and flavors
+set prefix [getInstallPrefix]
+
+
+# set software environment
+prepend-path PATH $prefix/bin
+prepend-path LD_LIBRARY_PATH $prefix/lib

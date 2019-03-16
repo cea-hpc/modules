@@ -1,0 +1,78 @@
+proc getChosenBuildModule {kind args} {
+    # default value for 'module show'
+    set ret <select_$kind>
+
+    foreach arg $args {
+        if {[is-loaded $arg]} {
+            set ret $arg
+            break
+        }
+    }
+    return $ret
+}
+
+proc availForBuildModule {kind args} {
+    # define requirement
+    eval prereq $args
+    # return loaded build module
+    return [eval getChosenBuildModule $kind $args]
+}
+
+
+proc getChosenFlavorModule {args} {
+    foreach arg $args {
+        if {[is-loaded $arg]} {
+            lappend ret [file tail $arg]
+        }
+    }
+    # default value for 'module show'
+    if {![info exists ret]} {
+        set ret <select_flavor>
+    }
+    return $ret
+}
+
+proc availForFlavorModule {args} {
+    foreach arg $args {
+        lappend flavorlist flavor/$::name/$arg
+    }
+
+    # define requirement
+    eval prereq $flavorlist
+    # return loaded flavor module
+    return [eval getChosenFlavorModule $flavorlist]
+}
+
+proc isFlavorEnabled {name} {
+    return [expr {[lsearch -exact $::flavorlist $name] != -1}]
+}
+
+proc getBuildToolchain {} {
+    foreach buildvar [info vars ::build*] {
+        if {[info exists toolchain]} {
+            append toolchain __
+        }
+        append toolchain [string map [list / --] [set $buildvar]]
+    }
+    return [expr {[info exists toolchain] ? $toolchain : {}}]
+}
+
+proc getFlavorId {} {
+    return [expr {[info exists ::flavorlist] ? [join $::flavorlist __] : {}}]
+}
+
+proc getInstallPrefix {} {
+    set toolchain [getBuildToolchain]
+    set flavor [getFlavorId]
+
+    set prefix /apps/$::name-$::version
+    if {$toolchain ne {}} {
+        append prefix /$toolchain
+    }
+    if {$flavor ne {}} {
+        append prefix /$flavor
+    }
+    return $prefix
+}
+
+# vim:set tabstop=4 shiftwidth=4 expandtab autoindent syntax=tcl:
