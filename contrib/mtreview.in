@@ -1,0 +1,169 @@
+#!@TCLSHDIR@/tclsh
+#
+# MTREVIEW, review test suite log file
+# Copyright (C) 2019 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+proc sgr {sgrcode str} {
+   return "\033\[${sgrcode}m$str\033\[0m"
+}
+
+proc diffWithIcdiff {} {
+   if {![info exists ::diff_with_icdiff]} {
+      set ::diff_with_icdiff [expr {[isTermTty] && [auto_execok icdiff] ne\
+         {}}]
+   }
+   return $::diff_with_icdiff
+}
+
+proc diffWithDiff {} {
+   if {![info exists ::diff_with_diff]} {
+      set ::diff_with_diff [expr {[auto_execok diff] ne {}}]
+   }
+   return $::diff_with_diff
+}
+
+proc getDiffCommand {} {
+   # preferably use icdiff if possible
+   if {[diffWithIcdiff]} {
+      set cmdlist [list icdiff --no-headers]
+   } else {
+      set cmdlist [list diff -u]
+      if {![catch {exec diff --color=auto /dev/null /dev/null}]} {
+         lappend cmdlist --color=auto
+      }
+   }
+   return $cmdlist
+}
+
+set usage "Usage: $argv0 file
+Review test suite log file"
+
+# parse command-line arguments
+set logfile [lindex $argv 0]
+if {[llength $argv] == 0 || $logfile eq "-h" || $logfile eq "--help"} {
+   puts stderr $usage
+   exit 0
+} elseif {[llength $argv] > 1} {
+   puts stderr $usage
+   exit 1
+}
+
+set fid [open $logfile r]
+
+set state {}
+while {[gets $fid line] >= 0} {
+   switch -- $state {
+      recres {
+         if {$res ne {}} {
+            append res \n
+         } else {
+            # trim first line
+            set line [string range $line [string first ' $line] end] 
+         }
+         append res $line
+         # end of obtained output?
+         if {[string index $line end] eq {'}} {
+            set state recexp
+            # clean content
+            set res [string range $res 1 end-1]
+         }
+      }
+      recexp {
+         if {$exp ne {}} {
+            append exp \n
+         } else {
+            # trim first line
+            set line [string range $line [string first ' $line] end] 
+         }
+         append exp $line
+         # end of expected output?
+         if {[string index $line end] eq {'}} {
+            # clean expecting content from regexp special char escaping
+            set trimstart 1
+            set trimend 1
+            if {[string index $exp 1] eq {^}} {
+               incr trimstart
+            }
+            if {[string index $exp end-1] eq {$}} {
+               incr trimend
+            }
+            set exp [string range $exp $trimstart end-$trimend]
+            set exp [regsub -all {\\([\\"'$|{}`* ()!&])} $exp {\1}]
+
+            # diff obtained and expecting output
+            if {![info exists externaldiff]} {
+               set externaldiff [expr {[diffWithIcdiff] || [diffWithDiff]}]
+            }
+            # use an external command to diff output
+            if {$externaldiff} {
+               if {![info exists diffcmdlist]} {
+                  set diffcmdlist [getDiffCommand]
+               }
+               set fidres [open mtreview_res w]
+               puts $fidres $res
+               close $fidres
+               set fidexp [open mtreview_exp w]
+               puts $fidexp $exp
+               close $fidexp
+               if {[set errCode [catch {
+                  eval exec >@stdout $diffcmdlist mtreview_exp mtreview_res
+               } errMsg]]} {
+                  # report trouble of diff command
+                  if {[diffWithDiff] && $errCode == 2} {
+                     puts "[sgr {1;31} ERROR]: $errMsg"
+                  }
+               }
+               file delete mtreview_exp mtreview_res
+            } else {
+               puts [sgr {1;31} $exp]
+               puts --
+               puts [sgr {1;32} $res]
+            }
+
+            # clear state to search for next failed test
+            set state {}
+         }
+      }
+      sumup {
+         if {[string index $line 0] eq "#"} {
+            puts $line
+         }
+      }
+      default {
+         if {![string compare -length 6 $line {FAIL: }]} {
+            set state recres
+            set res {}
+            set exp {}
+            if {![info exists testfile_printed($testfile)]} {
+               set testfile_printed($testfile) 1
+               puts [sgr {1;34;7} "=== $testfile ==="]
+            }
+            puts [sgr 7 $line]
+         } elseif {![string compare -length 8 $line {Running }]} {
+            set testfile [lindex [split $line] 1]
+         } elseif {[string match {*Summary ===} $line]} {
+            set state sumup
+            puts [sgr {1;33;7} {=== test summary ===}]
+         }
+      }
+   }
+}
+
+close $fid
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent syntax=tcl:

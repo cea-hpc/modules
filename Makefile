@@ -160,6 +160,10 @@ ChangeLog:
 README:
 	sed -e '/^\[\!\[.*\].*/d' $@.md > $@
 
+contrib/mtreview: contrib/mtreview.in version.inc
+	$(translate-in-script)
+	chmod +x $@
+
 contrib/scripts/add.modules: contrib/scripts/add.modules.in
 	$(translate-in-script)
 
@@ -333,6 +337,7 @@ ifeq ($(wildcard .git) $(wildcard NEWS.rst),.git NEWS.rst)
 	rm -f NEWS.txt
 endif
 	rm -f modulecmd.tcl
+	rm -f contrib/mtreview
 	rm -f contrib/scripts/add.modules
 	rm -f contrib/scripts/modulecmd
 	rm -f testsuite/example/.modulespath testsuite/example/modulerc
