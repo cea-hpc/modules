@@ -23,6 +23,7 @@ matrix:
           sources:
             - sourceline: 'ppa:fish-shell/release-2'
           packages:
+            - expect-dev
             - dejagnu
             - python-sphinx
             - bash
@@ -44,6 +45,7 @@ matrix:
           sources:
             - sourceline: 'ppa:fish-shell/release-2'
           packages:
+            - expect-dev
             - dejagnu
             - python-sphinx
             - bash
@@ -69,6 +71,7 @@ matrix:
           sources:
             - sourceline: 'ppa:fish-shell/release-2'
           packages:
+            - expect-dev
             - dejagnu
             - python-sphinx
             - bash
@@ -90,6 +93,7 @@ matrix:
           sources:
             - sourceline: 'ppa:fish-shell/release-2'
           packages:
+            - expect-dev
             - dejagnu
             - python-sphinx
             - bash
@@ -116,6 +120,7 @@ matrix:
           sources:
             - sourceline: 'ppa:fish-shell/release-2'
           packages:
+            - expect-dev
             - dejagnu
             - python-sphinx
             - bash
@@ -141,6 +146,7 @@ matrix:
           sources:
             - sourceline: 'ppa:fish-shell/release-2'
           packages:
+            - expect-dev
             - dejagnu
             - python-sphinx
             - bash
@@ -171,6 +177,7 @@ matrix:
           sources:
             - sourceline: 'ppa:fish-shell/release-2'
           packages:
+            - expect-dev
             - dejagnu
             - python-sphinx
             - bash
@@ -253,6 +260,7 @@ install: true
 
 before_install: |
   if [ -n "$DOCKER_IMAGE" ]; then
+    sudo apt-get install -y expect-dev
     docker pull $DOCKER_IMAGE &&
     docker run --name $CONTAINER --detach --rm -i -t -w /modules $DOCKER_IMAGE /bin/bash
     case "${OS_NAME}" in
@@ -267,7 +275,7 @@ before_install: |
     esac
     docker cp ./. $CONTAINER:modules
   elif [ "$TRAVIS_OS_NAME" = 'osx' ]; then
-    brew update && brew install dejagnu grep fish
+    brew update && brew install expect dejagnu grep fish
   else
     true
   fi
@@ -276,11 +284,11 @@ script:
   - $CMD_PREFIX ./configure $CONFIGURE_OPTS
   - $CMD_PREFIX make
   - if [ -n "$EXTRA_SCRIPT_PRETEST" ]; then $CMD_PREFIX eval $EXTRA_SCRIPT_PRETEST; fi
-  - if [ "$MAKE_TESTCOVERAGE" = 'y' ]; then $CMD_PREFIX make testcoverage; fi
-  - if [ "$MAKE_TESTCOVERAGE" != 'y' ]; then $CMD_PREFIX make test; fi
+  - if [ "$MAKE_TESTCOVERAGE" = 'y' ]; then travis_wait 15 unbuffer $CMD_PREFIX contrib/mt cov; fi
+  - if [ "$MAKE_TESTCOVERAGE" != 'y' ]; then travis_wait 15 unbuffer $CMD_PREFIX contrib/mt; fi
   - if [ -n "$EXTRA_SCRIPT_POSTTEST" ]; then $CMD_PREFIX eval $EXTRA_SCRIPT_POSTTEST; fi
   - $CMD_PREFIX make install
-  - $CMD_PREFIX make testinstall
+  - $CMD_PREFIX contrib/mt install
   - $CMD_PREFIX make uninstall
   - if [ "$OS_NAME" = 'centos' ]; then $CMD_PREFIX make srpm; fi
 

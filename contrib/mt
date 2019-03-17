@@ -18,8 +18,7 @@
 
 ##########################################################################
 
-# exit on error
-set -eu
+set -u
 
 # print message on stderr then exit
 echo_error() {
@@ -29,6 +28,26 @@ echo_error() {
 
 if [ ! -e modulecmd.tcl.in ]; then
    echo_error "Not in correct directory"
+fi
+
+# make bin, should use GNU make
+command -v gmake >/dev/null
+if [ $? -eq 0 ]; then
+   make=gmake
+else
+   make=make
+fi
+
+# make target
+target=test
+if [ $# -gt 0 ]; then
+   if [ "$1" = "cov" ]; then
+      target=testcoverage
+      shift
+   elif [ "$1" = "install" ]; then
+      target=testinstall
+      shift
+   fi
 fi
 
 if [ $# -gt 0 ]; then
@@ -58,9 +77,11 @@ if [ $# -gt 0 ]; then
 fi
 
 export RUNTESTFLAGS='-v -v'
-make test || true
+$make $target
+ret=$?
 
 chmod 755 testsuite/modules.*
 chmod 644 testsuite/modules.*/*.exp
 
+exit $ret
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:
