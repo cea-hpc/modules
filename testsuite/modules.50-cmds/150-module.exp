@@ -71,8 +71,7 @@ set moderr_6 [msg_load $submod_6 "$moderr_msgs: invalid command name \"bad-comma
 set moderr_7 [msg_load $module_7 "$err_path'$submod_7'" [err_prereq $module_7 $submod_7]]
 set moderr_11 [msg_load $submodfile_11 "$moderr_msgs: add-path cannot handle path equals to separator string\nIn '$submodfile_11'\n$err_contactns"]\n\n[msg_load $module_11 [err_prereq $module_11 ../$submod_11]]
 
-# when auto handling is disabled no UReqUn are reported as they as still seen
-# loaded after the unload process due to the error
+# when auto handling is enable UReqUn that fail to unload are reported yet still loaded
 if {$install_autohandling eq {y}} {
     set msgtopun_5 \n\n[msg_top_unload $module_5 {} $submod_5 {} [err_urequn $submod_5]]
     set msgtopun_6 \n\n[msg_top_unload $module_6 {} $submod_6 {} [err_urequn $submod_6]]
@@ -86,8 +85,10 @@ if {$install_autohandling eq {y}} {
     set msgtopun_6 {}
     set msgtopun_7 {}
     set msgtopun_8 {}
-    set msgtopun_9 {}
-    set msgtopun_10 {}
+    #FIXME: should get same UReqUn warning message than for auto mode
+    set msgtopun_8 \n\n[msg_top_unload $module_8 {} [list $module_5] {}]
+    set msgtopun_9 \n\n[msg_top_unload $module_9 {} [list $module_6] {}]
+    set msgtopun_10 \n\n[msg_top_unload $module_10 {} [list $module_7] {}]
     set msgtopun_11 {}
 }
 
@@ -165,74 +166,67 @@ testouterr_cmd "csh" "load $module_11" "ERR" "$moderr_11"
 testouterr_cmd "csh" "load $module_12" "ERR" [msg_load $module_12 $err_emptymodname [err_prereq $module_12 {}]]
 
 #
-# Test unload of module with issue, nothing unloads if auto handling disabled
+# Test unload of module with issue
 #
 
-# when auto_handling is disabled an error during a cascaded interpretation unwinds the whole process
-# whereas when auto_handling is enabled, interpretation are done sequentially and error affects only
-# the erroneous modulefile
-if {$install_autohandling eq {n}} {
-setenv_loaded_module [list $submod_5 $module_5] [list $submodfile_5 $modulefile_5] [list $submod_5]
-setenv_path_var MODULES_LMPREREQ $module_5&$submod_5
-testouterr_cmd "csh" "unload $module_5" "ERR" "$moderrun_5"
-
-setenv_loaded_module [list $submod_6 $module_6] [list $submodfile_6 $modulefile_6] [list $submod_6]
-setenv_path_var MODULES_LMPREREQ $module_6&$submod_6
-testouterr_cmd "csh" "unload $module_6" "ERR" "$moderrun_6"
-
-setenv_loaded_module [list $submod_7 $module_7] [list $submodfile_7 $modulefile_7] [list $submod_7]
-setenv_path_var MODULES_LMPREREQ $module_7&$submod_7
-testouterr_cmd "csh" "unload $module_7" "ERR" "$moderrun_7"
-
-setenv_loaded_module [list $submod_5 $module_5 $module_8] [list $submodfile_5 $modulefile_5 $modulefile_8] [list $submod_5 $module_5]
-setenv_path_var MODULES_LMPREREQ $module_5&$submod_5 $module_8&$module_5
-testouterr_cmd "csh" "unload $module_8" "ERR" "$moderrun_5"
-
-setenv_loaded_module [list $submod_6 $module_6 $module_9] [list $submodfile_6 $modulefile_6 $modulefile_9] [list $submod_6 $module_6]
-setenv_path_var MODULES_LMPREREQ $module_6&$submod_6 $module_9&$module_6
-testouterr_cmd "csh" "unload $module_9" "ERR" "$moderrun_6"
-
-setenv_loaded_module [list $submod_7 $module_7 $module_10] [list $submodfile_7 $modulefile_7 $modulefile_10] [list $submod_7 $module_7]
-setenv_path_var MODULES_LMPREREQ $module_7&$submod_7 $module_10&$module_7
-testouterr_cmd "csh" "unload $module_10" "ERR" "$moderrun_7"
-
-setenv_loaded_module [list $submod_11 $module_11] [list $submodfile_11 $modulefile_11] [list $submod_11]
-setenv_path_var MODULES_LMPREREQ $module_11&$submod_11
-testouterr_cmd "csh" "unload $module_11" "ERR" "$moderrun_11"
-} else {
 setenv_loaded_module [list $submod_5 $module_5] [list $submodfile_5 $modulefile_5] [list $submod_5]
 setenv_path_var MODULES_LMPREREQ $module_5&$submod_5
 set ans [list]
+# unload interpretations are not cascaded if auto_handling enabled so answer order change
+if {$install_autohandling eq {y}} {
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath _LMFILES_ $submodfile_5]
 lappend ans [list setpath LOADEDMODULES $submod_5]
+} else {
+lappend ans [list setpath LOADEDMODULES $submod_5]
+lappend ans [list setpath _LMFILES_ $submodfile_5]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+}
 lappend ans [list ERR]
 testouterr_cmd "csh" "unload $module_5" $ans "$moderrun_5"
 
 setenv_loaded_module [list $submod_6 $module_6] [list $submodfile_6 $modulefile_6] [list $submod_6]
 setenv_path_var MODULES_LMPREREQ $module_6&$submod_6
 set ans [list]
+if {$install_autohandling eq {y}} {
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath _LMFILES_ $submodfile_6]
 lappend ans [list setpath LOADEDMODULES $submod_6]
+} else {
+lappend ans [list setpath LOADEDMODULES $submod_6]
+lappend ans [list setpath _LMFILES_ $submodfile_6]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+}
 lappend ans [list ERR]
 testouterr_cmd "csh" "unload $module_6" $ans "$moderrun_6"
 
 setenv_loaded_module [list $submod_7 $module_7] [list $submodfile_7 $modulefile_7] [list $submod_7]
 setenv_path_var MODULES_LMPREREQ $module_7&$submod_7
 set ans [list]
+if {$install_autohandling eq {y}} {
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath _LMFILES_ $submodfile_7]
 lappend ans [list setpath LOADEDMODULES $submod_7]
+} else {
+lappend ans [list setpath LOADEDMODULES $submod_7]
+lappend ans [list setpath _LMFILES_ $submodfile_7]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+}
 lappend ans [list ERR]
 testouterr_cmd "csh" "unload $module_7" $ans "$moderrun_7"
 
 setenv_loaded_module [list $submod_5 $module_5 $module_8] [list $submodfile_5 $modulefile_5 $modulefile_8] [list $submod_5 $module_5]
 setenv_path_var MODULES_LMPREREQ $module_5&$submod_5 $module_8&$module_5
 set ans [list]
+if {$install_autohandling eq {y}} {
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath _LMFILES_ $submodfile_5]
 lappend ans [list setpath LOADEDMODULES $submod_5]
+} else {
+lappend ans [list setpath LOADEDMODULES $submod_5]
+lappend ans [list setpath _LMFILES_ $submodfile_5]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+}
 lappend ans [list setpath MODULES_LMNOTUASKED $submod_5]
 lappend ans [list ERR]
 testouterr_cmd "csh" "unload $module_8" $ans "$moderrun_8"
@@ -240,9 +234,15 @@ testouterr_cmd "csh" "unload $module_8" $ans "$moderrun_8"
 setenv_loaded_module [list $submod_6 $module_6 $module_9] [list $submodfile_6 $modulefile_6 $modulefile_9] [list $submod_6 $module_6]
 setenv_path_var MODULES_LMPREREQ $module_6&$submod_6 $module_9&$module_6
 set ans [list]
+if {$install_autohandling eq {y}} {
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath _LMFILES_ $submodfile_6]
 lappend ans [list setpath LOADEDMODULES $submod_6]
+} else {
+lappend ans [list setpath LOADEDMODULES $submod_6]
+lappend ans [list setpath _LMFILES_ $submodfile_6]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+}
 lappend ans [list setpath MODULES_LMNOTUASKED $submod_6]
 lappend ans [list ERR]
 testouterr_cmd "csh" "unload $module_9" $ans "$moderrun_9"
@@ -250,9 +250,15 @@ testouterr_cmd "csh" "unload $module_9" $ans "$moderrun_9"
 setenv_loaded_module [list $submod_7 $module_7 $module_10] [list $submodfile_7 $modulefile_7 $modulefile_10] [list $submod_7 $module_7]
 setenv_path_var MODULES_LMPREREQ $module_7&$submod_7 $module_10&$module_7
 set ans [list]
+if {$install_autohandling eq {y}} {
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath _LMFILES_ $submodfile_7]
 lappend ans [list setpath LOADEDMODULES $submod_7]
+} else {
+lappend ans [list setpath LOADEDMODULES $submod_7]
+lappend ans [list setpath _LMFILES_ $submodfile_7]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+}
 lappend ans [list setpath MODULES_LMNOTUASKED $submod_7]
 lappend ans [list ERR]
 testouterr_cmd "csh" "unload $module_10" $ans "$moderrun_10"
@@ -260,13 +266,18 @@ testouterr_cmd "csh" "unload $module_10" $ans "$moderrun_10"
 setenv_loaded_module [list $submod_11 $module_11] [list $submodfile_11 $modulefile_11] [list $submod_11]
 setenv_path_var MODULES_LMPREREQ $module_11&$submod_11
 set ans [list]
+if {$install_autohandling eq {y}} {
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath _LMFILES_ $submodfile_11]
 lappend ans [list setpath LOADEDMODULES $submod_11]
+} else {
+lappend ans [list setpath LOADEDMODULES $submod_11]
+lappend ans [list setpath _LMFILES_ $submodfile_11]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+}
 lappend ans [list ERR]
 testouterr_cmd "csh" "unload $module_11" $ans "$moderrun_11"
 
-}
 
 # Clean up the just changed environment
 unsetenv_path_var MODULES_LMPREREQ

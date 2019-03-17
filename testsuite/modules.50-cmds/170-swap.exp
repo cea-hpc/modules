@@ -69,8 +69,7 @@ set mod100errun "$moderr_msgs: unload-path cannot handle path equals to separato
 set mod101errun $mod101err
 set mod102errun "$err_file'$mod102p'"
 
-# when auto handling is disabled no UReqUn are reported as they are still seen
-# loaded after the unload process due to the error
+# when auto handling is enable UReqUn that fail to unload are reported yet still loaded
 if {$install_autohandling eq {y}} {
     set msgtopsw_103 \n\n[msg_top_switch $mod103 $mod11 {} $mod100 {} {} {} [err_urequn $mod100]]
     set msgtopsw_104 \n\n[msg_top_switch $mod104 $mod11 {} $mod101 {} {} {} [err_urequn $mod101]]
@@ -82,9 +81,9 @@ if {$install_autohandling eq {y}} {
     set msgtopsw_103 {}
     set msgtopsw_104 {}
     set msgtopsw_105 {}
-    set msgtopsw_106 {}
-    set msgtopsw_107 {}
-    set msgtopsw_108 {}
+    set msgtopsw_106 \n\n[msg_top_switch $mod106 $mod11 {} [list $mod103] {} {} {}]
+    set msgtopsw_107 \n\n[msg_top_switch $mod107 $mod11 {} [list $mod104] {} {} {}]
+    set msgtopsw_108 \n\n[msg_top_switch $mod108 $mod11 {} [list $mod105] {} {} {}]
 }
 
 #
@@ -267,13 +266,15 @@ testouterr_cmd "sh" "swap $mod102 $mod11" "ERR" [msg_unload $mod102 $mod102errun
 setenv_loaded_module [list $mod100 $mod103] [list $mod100p $mod103p] [list $mod100]
 setenv_path_var MODULES_LMPREREQ $mod103&$mod100
 set ans [list]
-# when auto_handling is disabled an error during a cascaded interpretation unwinds the whole process
-# whereas when auto_handling is enabled, interpretation are done sequentially and error affects only
-# the erroneous modulefile
+# unload interpretations are not cascaded if auto_handling enabled so answer order change
 if {$install_autohandling eq {y}} {
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath _LMFILES_ $mod100p:$mod11p]
 lappend ans [list setpath LOADEDMODULES $mod100:$mod11]
+} else {
+lappend ans [list setpath LOADEDMODULES $mod100:$mod11]
+lappend ans [list setpath _LMFILES_ $mod100p:$mod11p]
+lappend ans [list unsetpath MODULES_LMPREREQ]
 }
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "swap $mod103 $mod11" $ans [regsub -all {([.+?()])} [msg_unload $mod100 $mod100errun]$msgtopsw_103 {\\\1}]
@@ -285,6 +286,10 @@ if {$install_autohandling eq {y}} {
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath _LMFILES_ $mod101p:$mod11p]
 lappend ans [list setpath LOADEDMODULES $mod101:$mod11]
+} else {
+lappend ans [list setpath LOADEDMODULES $mod101:$mod11]
+lappend ans [list setpath _LMFILES_ $mod101p:$mod11p]
+lappend ans [list unsetpath MODULES_LMPREREQ]
 }
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "swap $mod104 $mod11" $ans [regsub -all {([.+?()])} [msg_unload $mod101 $mod101errun]$msgtopsw_104 {\\\1}]
@@ -296,6 +301,10 @@ if {$install_autohandling eq {y}} {
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath _LMFILES_ $mod102p:$mod11p]
 lappend ans [list setpath LOADEDMODULES $mod102:$mod11]
+} else {
+lappend ans [list setpath LOADEDMODULES $mod102:$mod11]
+lappend ans [list setpath _LMFILES_ $mod102p:$mod11p]
+lappend ans [list unsetpath MODULES_LMPREREQ]
 }
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "swap $mod105 $mod11" $ans [regsub -all {([.+?()])} [msg_unload $mod102 $mod102errun]$msgtopsw_105 {\\\1}]
@@ -307,8 +316,12 @@ if {$install_autohandling eq {y}} {
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath _LMFILES_ $mod100p:$mod11p]
 lappend ans [list setpath LOADEDMODULES $mod100:$mod11]
-lappend ans [list setpath MODULES_LMNOTUASKED $mod100]
+} else {
+lappend ans [list setpath LOADEDMODULES $mod100:$mod11]
+lappend ans [list setpath _LMFILES_ $mod100p:$mod11p]
+lappend ans [list unsetpath MODULES_LMPREREQ]
 }
+lappend ans [list setpath MODULES_LMNOTUASKED $mod100]
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "swap $mod106 $mod11" $ans [regsub -all {([.+?()])} [msg_unload $mod100 $mod100errun]$msgtopsw_106 {\\\1}]
 
@@ -319,8 +332,12 @@ if {$install_autohandling eq {y}} {
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath _LMFILES_ $mod101p:$mod11p]
 lappend ans [list setpath LOADEDMODULES $mod101:$mod11]
-lappend ans [list setpath MODULES_LMNOTUASKED $mod101]
+} else {
+lappend ans [list setpath LOADEDMODULES $mod101:$mod11]
+lappend ans [list setpath _LMFILES_ $mod101p:$mod11p]
+lappend ans [list unsetpath MODULES_LMPREREQ]
 }
+lappend ans [list setpath MODULES_LMNOTUASKED $mod101]
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "swap $mod107 $mod11" $ans [regsub -all {([.+?()])} [msg_unload $mod101 $mod101errun]$msgtopsw_107 {\\\1}]
 
@@ -331,8 +348,12 @@ if {$install_autohandling eq {y}} {
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath _LMFILES_ $mod102p:$mod11p]
 lappend ans [list setpath LOADEDMODULES $mod102:$mod11]
-lappend ans [list setpath MODULES_LMNOTUASKED $mod102]
+} else {
+lappend ans [list setpath LOADEDMODULES $mod102:$mod11]
+lappend ans [list setpath _LMFILES_ $mod102p:$mod11p]
+lappend ans [list unsetpath MODULES_LMPREREQ]
 }
+lappend ans [list setpath MODULES_LMNOTUASKED $mod102]
 lappend ans [list ERR]
 testouterr_cmd_re "sh" "swap $mod108 $mod11" $ans [regsub -all {([.+?()])} [msg_unload $mod102 $mod102errun]$msgtopsw_108 {\\\1}]
 

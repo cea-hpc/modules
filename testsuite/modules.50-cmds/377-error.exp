@@ -323,6 +323,57 @@ testouterr_cmd_re sh {unload rah} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --force rah} $ans [join $tserr \n]
 
 
+# crash of a UReqUn module (requirement expressed with 'module load', independent UreqUn, middle one crashes)
+setenv_loaded_module [list raam rabm racm radm] [list $mp/raam $mp/rabm $mp/racm $mp/radm] [list raam rabm racm]
+setenv_path_var MODULES_LMPREREQ radm&raam&rabm&racm
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list setpath _LMFILES_ $mp/rabm]
+lappend ans [list setpath LOADEDMODULES rabm]
+lappend ans [list setpath MODULES_LMNOTUASKED rabm]
+lappend ans [list ERR]
+set tserr [list {unload radm} {unload racm} {unload rabm} {unload raam} \n[msg_top_unload radm {} [list racm rabm raam] {} [err_urequn rabm]]]
+testouterr_cmd_re sh {unload radm} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --force radm} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath _LMFILES_ $mp/rabm]
+lappend ans [list setpath LOADEDMODULES rabm]
+lappend ans [list setpath MODULES_LMNOTUASKED rabm]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list ERR]
+#FIXME: should get same list of UReqUn and associated failed unload warning than for auto mode
+set tserr [list {unload radm} {unload raam} {unload rabm} {unload racm} \n[msg_top_unload radm {} [list racm raam] {}]]
+testouterr_cmd_re sh {unload --no-auto radm} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --no-auto --force radm} $ans [join $tserr \n]
+
+# crash of a UReqUn module (requirement expressed with 'module load', linked UreqUn, middle one crashes)
+setenv_loaded_module [list raem rafm ragm rahm] [list $mp/raem $mp/rafm $mp/ragm $mp/rahm] [list raem rafm ragm]
+setenv_path_var MODULES_LMPREREQ rahm&ragm:ragm&rafm:rafm&raem
+unsetenv_path_var MODULES_LMCONFLICT
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ rafm&raem]
+lappend ans [list setpath _LMFILES_ $mp/raem:$mp/rafm]
+lappend ans [list setpath LOADEDMODULES raem:rafm]
+lappend ans [list setpath MODULES_LMNOTUASKED raem:rafm]
+lappend ans [list ERR]
+set tserr [list {unload rahm} {unload ragm} {unload rafm} \n[msg_top_unload rahm {} [list ragm rafm] {} [err_urequn rafm]] ]
+testouterr_cmd_re sh {unload rahm} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --force rahm} $ans [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES raem:rafm]
+lappend ans [list setpath _LMFILES_ $mp/raem:$mp/rafm]
+lappend ans [list setpath MODULES_LMNOTUASKED raem:rafm]
+lappend ans [list setpath MODULES_LMPREREQ rafm&raem]
+lappend ans [list ERR]
+#FIXME: should get same list of UReqUn and associated failed unload warning than for auto mode
+set tserr [list {unload rahm} {unload ragm} {unload rafm} {unload raem} \n[msg_top_unload rahm {} [list ragm] {}] ]
+testouterr_cmd_re sh {unload --no-auto rahm} $ans [join $tserr \n]
+testouterr_cmd_re sh {unload --no-auto --force rahm} $ans [join $tserr \n]
+
+
 # crash of a DepUn module (independent DepUn, middle one crashes)
 setenv_loaded_module [list rba rbb rbc rbd] [list $mp/rba $mp/rbb $mp/rbc $mp/rbd]
 setenv_path_var MODULES_LMPREREQ rbb&rba:rbc&rba:rbd&rba
