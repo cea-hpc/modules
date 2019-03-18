@@ -262,7 +262,7 @@ before_install: |
   if [ -n "$DOCKER_IMAGE" ]; then
     sudo apt-get install -y expect-dev
     docker pull $DOCKER_IMAGE &&
-    docker run --name $CONTAINER --detach --rm -i -t -w /modules $DOCKER_IMAGE /bin/bash
+    docker run --name $CONTAINER --detach --rm -i -t -w /modules -e TRAVIS='true' $DOCKER_IMAGE /bin/bash
     case "${OS_NAME}" in
       centos)
         if [ $OS_VERSION -eq 6 ]; then SPHINX_PKG='python-sphinx10' MAN_PKG='man'; else SPHINX_PKG='python-sphinx' MAN_PKG='man-db'; fi
@@ -275,7 +275,7 @@ before_install: |
     esac
     docker cp ./. $CONTAINER:modules
   elif [ "$TRAVIS_OS_NAME" = 'osx' ]; then
-    brew update && brew install expect dejagnu grep fish
+    brew update && brew install expect md5sha1sum dejagnu grep fish
   else
     true
   fi

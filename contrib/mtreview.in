@@ -24,8 +24,9 @@ proc sgr {sgrcode str} {
 
 proc diffWithIcdiff {} {
    if {![info exists ::diff_with_icdiff]} {
-      set ::diff_with_icdiff [expr {[isTermTty] && [auto_execok icdiff] ne\
-         {}}]
+      # use local installation of icdiff, check it operates correctly
+      set ::diff_with_icdiff [expr {[auto_execok ./icdiff] ne\
+         {} && ![catch {exec ./icdiff --version}]}]
    }
    return $::diff_with_icdiff
 }
@@ -40,7 +41,15 @@ proc diffWithDiff {} {
 proc getDiffCommand {} {
    # preferably use icdiff if possible
    if {[diffWithIcdiff]} {
-      set cmdlist [list icdiff --no-headers]
+      set cmdlist [list ./icdiff --no-headers]
+      # force term size on travis CI environment
+      if {[info exists ::env(TRAVIS)]} {
+         lappend cmdlist --cols=180
+      } elseif {[info exists ::env(APPVEYOR)]} {
+         lappend cmdlist --cols=110
+      } elseif {[info exists ::env(CIRRUS_CI)]} {
+         lappend cmdlist --cols=150
+      }
    } else {
       set cmdlist [list diff -u]
       if {![catch {exec diff --color=auto /dev/null /dev/null}]} {
