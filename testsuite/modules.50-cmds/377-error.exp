@@ -288,6 +288,40 @@ set tserr [list {unload ren} {unload rem} {unload rel} {unload reh} {unload reg}
 testouterr_cmd_re sh {load reb} $ans [join $tserr \n]
 
 
+# crash in every mechanism (ReqLo, DepRe unload, DepRe load) (linked modules, middle one crashed)
+setenv_loaded_module [list rfa rfc rfd rfe rff rfg rfh] [list $mp/rfa $mp/rfc $mp/rfd $mp/rfe $mp/rff $mp/rfg $mp/rfh]
+setenv_path_var MODULES_LMPREREQ rfh&rfa|rfb&rfg:rfg&rfa|rfb&rff:rff&rfa|rfb:rfe&rfa|rfb&rfd:rfd&rfa|rfb&rfc:rfc&rfa|rfb
+unsetenv_path_var MODULES_LMCONFLICT
+
+set tserr [list {unload rfh} {unload rfg} {unload rff} {unload rfe} {unload rfd} \n[msg_load rfb [err_depre rfd]]]
+testouterr_cmd_re sh {load rfb} ERR [join $tserr \n]
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ rfd&rfa|rfb&rfc:rfk&rfj:rfb&rfk:rfc&rfa|rfb:rfe&rfa|rfb&rfd:rff&rfa|rfb:rfh&rfa|rfb&rfg]
+lappend ans [list setpath _LMFILES_ $mp/rfa:$mp/rfd:$mp/rfk:$mp/rfb:$mp/rfc:$mp/rfe:$mp/rff:$mp/rfh]
+lappend ans [list setpath LOADEDMODULES rfa:rfd:rfk:rfb:rfc:rfe:rff:rfh]
+lappend ans [list setpath MODULES_LMNOTUASKED rfk]
+lappend ans [list ERR]
+set tserr [list {unload rfh} {unload rfg} {unload rff} {unload rfe} {unload rfd} {unload rfc} {load rfb} {load rfk} {load rfj} {load rfi} \n[msg_load rfk [err_prereqf rfk rfj]]\n {load rfc} {load rfe} {load rff} {load rfg} {load rfh} \n[msg_load rfh [err_prereqf rfh rfg]] \n[msg_top_load rfb {} rfk [list rfc rfe rff rfg rfh] [err_depref rfd] [err_depref rfg]]]
+testouterr_cmd_re sh {load --force rfb} $ans [join $tserr \n]
+
+# crash in every mechanism (ReqLo, DepRe unload, DepRe load) (requirement expressed with 'module load', linked modules, middle one crashed)
+setenv_loaded_module [list rga rgc rgd rge rgf rgg rgh] [list $mp/rga $mp/rgc $mp/rgd $mp/rge $mp/rgf $mp/rgg $mp/rgh]
+setenv_path_var MODULES_LMPREREQ rgh&rga|rgb&rgg:rgg&rga|rgb&rgf:rgf&rga|rgb:rge&rga|rgb&rgd:rgd&rga|rgb&rgc:rgc&rga|rgb
+unsetenv_path_var MODULES_LMCONFLICT
+
+set tserr [list {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} \n[msg_load rgb [err_depre rgd]]]
+testouterr_cmd_re sh {load rgb} ERR [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rga:rgd:rgk:rgb:rgc:rge:rgf:rgh]
+lappend ans [list setpath _LMFILES_ $mp/rga:$mp/rgd:$mp/rgk:$mp/rgb:$mp/rgc:$mp/rge:$mp/rgf:$mp/rgh]
+lappend ans [list setpath MODULES_LMPREREQ rgd&rga|rgb&rgc:rgk&rgj:rgb&rgk:rgc&rga|rgb:rge&rga|rgb&rgd:rgf&rga|rgb:rgh&rga|rgb&rgg]
+lappend ans [list setpath MODULES_LMNOTUASKED rgk]
+lappend ans [list ERR]
+#FIXME: rgh should not reattempt reload of rgg as it has already been tried and failed
+set tserr [list {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} {unload rgc} {load rgb} {load rgk} {load rgj} {load rgi} \n[msg_load rgk [err_prereqf rgk rgj]]\n {load rgc} {load rge} {load rgf} {load rgg} {load rgh} {load rgg} \n[msg_load rgh [err_prereqf rgh rgg]] \n[msg_top_load rgb {} rgk [list rgc rge rgf rgg rgh] [err_depref rgd] [err_depref rgg]]]
+testouterr_cmd_re sh {load --force rgb} $ans [join $tserr \n]
+
+
 #
 # unload module
 #
@@ -456,6 +490,42 @@ set tserr [list {unload ren} {unload rem} {unload rel} {unload reh} {unload reg}
 testouterr_cmd_re sh {unload reb} $ans [join $tserr \n]
 
 
+# crash in every mechanism (DepUn, UReqUn, DepRe unload, DepRe load) (linked modules, middle one crashed)
+setenv_loaded_module [list rfa rfi rfj rfk rfb rfc rfd rfe rff rfg rfh rfl rfm rfn] [list $mp/rfa $mp/rfi $mp/rfj $mp/rfk $mp/rfb $mp/rfc $mp/rfd $mp/rfe $mp/rff $mp/rfg $mp/rfh $mp/rfl $mp/rfm $mp/rfn] [list rfi rfj rfk rfl rfm]
+setenv_path_var MODULES_LMPREREQ rfj&rfi:rfk&rfj:rfb&rfk:rfc&rfa|rfb:rfd&rfa|rfb&rfc:rfe&rfa|rfb&rfd:rff&rfa|rfb:rfg&rfa|rfb&rff:rfh&rfa|rfb&rfg:rfl&rfb:rfm&rfl:rfn&rfm
+unsetenv_path_var MODULES_LMCONFLICT
+
+set tserr [list {unload rfh} {unload rfg} {unload rff} {unload rfe} {unload rfd} \n[msg_unload rfb [err_depre rfd]]]
+testouterr_cmd_re sh {unload rfb} ERR [join $tserr \n]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rfa:rfi:rfj:rfd:rfm:rfc:rfe:rff:rfh]
+lappend ans [list setpath _LMFILES_ $mp/rfa:$mp/rfi:$mp/rfj:$mp/rfd:$mp/rfm:$mp/rfc:$mp/rfe:$mp/rff:$mp/rfh]
+lappend ans [list setpath MODULES_LMPREREQ rfj&rfi:rfd&rfa|rfb&rfc:rfm&rfl:rfc&rfa|rfb:rfe&rfa|rfb&rfd:rff&rfa|rfb:rfh&rfa|rfb&rfg]
+lappend ans [list setpath MODULES_LMNOTUASKED rfi:rfj:rfm]
+lappend ans [list ERR]
+set tserr [list {unload rfh} {unload rfg} {unload rff} {unload rfe} {unload rfd} {unload rfc} {unload rfn} {unload rfm} {unload rfl} \n[msg_unload rfl [err_prerequnf rfl rfm]]\n {unload rfb} {unload rfk} {unload rfj} {load rfc} {load rfe} {load rff} {load rfg} {load rfh} \n[msg_load rfh [err_prereqf rfh rfg]] \n[msg_unload rfb [err_depref rfd] [err_depunf rfm] {Unloading dependent: rfn rfm rfl} [err_urequn rfj] {Unloading useless requirement: rfk rfj} [err_depref rfg] {Reloading dependent: rfc rfe rff rfg rfh}]]
+testouterr_cmd_re sh {unload --force rfb} $ans [join $tserr \n]
+
+# crash in every mechanism (DepUn, UReqUn, DepRe unload, DepRe load) (requirement expressed with 'module load', linked modules, middle one crashed)
+setenv_loaded_module [list rga rgi rgj rgk rgb rgc rgd rge rgf rgg rgh rgl rgm rgn] [list $mp/rga $mp/rgi $mp/rgj $mp/rgk $mp/rgb $mp/rgc $mp/rgd $mp/rge $mp/rgf $mp/rgg $mp/rgh $mp/rgl $mp/rgm $mp/rgn] [list rgi rgj rgk rgl rgm]
+setenv_path_var MODULES_LMPREREQ rgj&rgi:rgk&rgj:rgb&rgk:rgc&rga|rgb:rgd&rga|rgb&rgc:rge&rga|rgb&rgd:rgf&rga|rgb:rgg&rga|rgb&rgf:rgh&rga|rgb&rgg:rgl&rgb:rgm&rgl:rgn&rgm
+unsetenv_path_var MODULES_LMCONFLICT
+
+set tserr [list {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} \n[msg_unload rgb [err_depre rgd]]]
+testouterr_cmd_re sh {unload rgb} ERR [join $tserr \n]
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ rgj&rgi:rgd&rga|rgb&rgc:rgm&rgl:rgc&rga|rgb:rge&rga|rgb&rgd:rgf&rga|rgb:rgh&rga|rgb&rgg]
+lappend ans [list setpath _LMFILES_ $mp/rga:$mp/rgi:$mp/rgj:$mp/rgd:$mp/rgm:$mp/rgc:$mp/rge:$mp/rgf:$mp/rgh]
+lappend ans [list setpath LOADEDMODULES rga:rgi:rgj:rgd:rgm:rgc:rge:rgf:rgh]
+lappend ans [list setpath MODULES_LMNOTUASKED rgi:rgj:rgm]
+lappend ans [list ERR]
+#FIXME: rgh should not reattempt reload of rgg as it has already been tried and failed
+set tserr [list {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} {unload rgc} {unload rgn} {unload rgm} {unload rgl} \n[msg_unload rgl [err_prerequnf rgl rgm]]\n {unload rgb} {unload rgk} {unload rgj} {load rgc} {load rge} {load rgf} {load rgg} {load rgh} {load rgg} \n[msg_load rgh [err_prereqf rgh rgg]] \n[msg_unload rgb [err_depref rgd] [err_depunf rgm] {Unloading dependent: rgn rgm rgl} [err_urequn rgj] {Unloading useless requirement: rgk rgj} [err_depref rgg] {Reloading dependent: rgc rge rgf rgg rgh}]]
+testouterr_cmd_re sh {unload --force rgb} $ans [join $tserr \n]
+
+
 #
 # switch
 #
@@ -518,6 +588,82 @@ lappend ans [list ERR]
 #FIXME: DepRe error message should be reported under the message block related to main switch action
 set tserr [list {unload ren} {unload rem} {unload rel} {unload reh} {unload reg} \n[msg_unload rea [err_depre reg]]]
 testouterr_cmd_re sh {switch rea reb} $ans [join $tserr \n]
+
+
+# crash in every mechanism (DepUn, UReqUn, DepRe unload, DepRe load) (linked modules, middle one crashed)
+setenv_loaded_module [list rfi rfj rfk rfb rfc rfd rfe rff rfg rfh rfl rfm rfn] [list $mp/rfi $mp/rfj $mp/rfk $mp/rfb $mp/rfc $mp/rfd $mp/rfe $mp/rff $mp/rfg $mp/rfh $mp/rfl $mp/rfm $mp/rfn] [list rfi rfj rfk rfl rfm]
+setenv_path_var MODULES_LMPREREQ rfj&rfi:rfk&rfj:rfb&rfk:rfc&rfa|rfb:rfd&rfa|rfb&rfc:rfe&rfa|rfb&rfd:rff&rfa|rfb:rfg&rfa|rfb&rff:rfh&rfa|rfb&rfg:rfl&rfb:rfm&rfl:rfn&rfm
+unsetenv_path_var MODULES_LMCONFLICT
+
+set tserr [list {unload rfn} {unload rfm} \n[msg_unload rfb [err_depre rfm]]]
+testouterr_cmd_re sh {switch rfb rfa} ERR [join $tserr \n]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rfi:rfj:rfd:rfm:rfa:rfc:rfe:rff:rfh:rfl:rfn]
+lappend ans [list setpath _LMFILES_ $mp/rfi:$mp/rfj:$mp/rfd:$mp/rfm:$mp/rfa:$mp/rfc:$mp/rfe:$mp/rff:$mp/rfh:$mp/rfl:$mp/rfn]
+lappend ans [list setpath MODULES_LMPREREQ rfj&rfi:rfd&rfa|rfb&rfc:rfm&rfl:rfc&rfa|rfb:rfe&rfa|rfb&rfd:rff&rfa|rfb:rfh&rfa|rfb&rfg:rfl&rfb:rfn&rfm]
+lappend ans [list setpath MODULES_LMNOTUASKED rfi:rfj:rfm:rfl]
+lappend ans [list ERR]
+#FIXME: DepRe error message should be reported under the message block related to main switch action
+set tserr [list {unload rfn} {unload rfm} {unload rfl} {unload rfh} {unload rfg} {unload rff} {unload rfe} {unload rfd} {unload rfc} {unload rfb} {unload rfk} {unload rfj} \n[msg_unload rfb [err_depref rfm] [err_depref rfd]]\n {load rfa} {load rfc} {load rfe} {load rff} {load rfg} {load rfh} \n[msg_load rfh [err_prereqf rfh rfg]]\n {load rfl} \n[msg_load rfl [err_prereqf rfl rfb]]\n {load rfn} \n[msg_switch rfb rfa [err_urequn rfj] {Unloading useless requirement: rfk rfj} [err_depref rfg] {Reloading dependent: rfc rfe rff rfg rfh rfl rfn}]]
+testouterr_cmd_re sh {switch --force rfb rfa} $ans [join $tserr \n]
+
+# crash in every mechanism (DepUn, UReqUn, DepRe unload, DepRe load) (requirement expressed with 'module load', linked modules, middle one crashed)
+setenv_loaded_module [list rgi rgj rgk rgb rgc rgd rge rgf rgg rgh rgl rgm rgn] [list $mp/rgi $mp/rgj $mp/rgk $mp/rgb $mp/rgc $mp/rgd $mp/rge $mp/rgf $mp/rgg $mp/rgh $mp/rgl $mp/rgm $mp/rgn] [list rgi rgj rgk rgl rgm]
+setenv_path_var MODULES_LMPREREQ rgj&rgi:rgk&rgj:rgb&rgk:rgc&rga|rgb:rgd&rga|rgb&rgc:rge&rga|rgb&rgd:rgf&rga|rgb:rgg&rga|rgb&rgf:rgh&rga|rgb&rgg:rgl&rgb:rgm&rgl:rgn&rgm
+unsetenv_path_var MODULES_LMCONFLICT
+
+set tserr [list {unload rgn} {unload rgm} \n[msg_unload rgb [err_depre rgm]]]
+testouterr_cmd_re sh {switch rgb rga} ERR [join $tserr \n]
+
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ rgj&rgi:rgd&rga|rgb&rgc:rgm&rgl:rgc&rga|rgb:rge&rga|rgb&rgd:rgf&rga|rgb:rgh&rga|rgb&rgg:rgk&rgj:rgb&rgk:rgl&rgb:rgn&rgm]
+lappend ans [list setpath _LMFILES_ $mp/rgi:$mp/rgj:$mp/rgd:$mp/rgm:$mp/rga:$mp/rgc:$mp/rge:$mp/rgf:$mp/rgh:$mp/rgk:$mp/rgb:$mp/rgl:$mp/rgn]
+lappend ans [list setpath LOADEDMODULES rgi:rgj:rgd:rgm:rga:rgc:rge:rgf:rgh:rgk:rgb:rgl:rgn]
+lappend ans [list setpath MODULES_LMNOTUASKED rgi:rgj:rgm:rgk:rgb:rgl]
+lappend ans [list ERR]
+#FIXME: DepRe load phase reload requirement expressed with 'module load', does not happen with 'prereq'
+#FIXME: DepRe error message should be reported under the message block related to main switch action
+#FIXME: rgh should not reattempt reload of rgg as it has already been tried and failed
+set tserr [list {unload rgn} {unload rgm} {unload rgl} {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} {unload rgc} {unload rgb} {unload rgk} {unload rgj} \n[msg_unload rgb [err_depref rgm] [err_depref rgd]]\n {load rga} {load rgc} {load rge} {load rgf} {load rgg} {load rgh} {load rgg} \n[msg_load rgh [err_prereqf rgh rgg]]\n {load rgl} {load rgb} {load rgk} {load rgn} \n[msg_switch rgb rga [err_urequn rgj] {Unloading useless requirement: rgk rgj} [err_depref rgg] {Reloading dependent: rgc rge rgf rgg rgh rgl rgn}]]
+testouterr_cmd_re sh {switch --force rgb rga} $ans [join $tserr \n]
+
+# crash in every mechanism (ReqLo, DepRe unload, DepRe load) (linked modules, middle one crashed)
+setenv_loaded_module [list rfa rfc rfd rfe rff rfg rfh] [list $mp/rfa $mp/rfc $mp/rfd $mp/rfe $mp/rff $mp/rfg $mp/rfh]
+setenv_path_var MODULES_LMPREREQ rfh&rfa|rfb&rfg:rfg&rfa|rfb&rff:rff&rfa|rfb:rfe&rfa|rfb&rfd:rfd&rfa|rfb&rfc:rfc&rfa|rfb
+unsetenv_path_var MODULES_LMCONFLICT
+
+#FIXME: DepRe error message should be reported under the message block related to main switch action
+set tserr [list {unload rfh} {unload rfg} {unload rff} {unload rfe} {unload rfd} \n[msg_unload rfa [err_depre rfd]]]
+testouterr_cmd_re sh {switch rfa rfb} ERR [join $tserr \n]
+set ans [list]
+lappend ans [list setpath MODULES_LMPREREQ rfd&rfa|rfb&rfc:rfk&rfj:rfb&rfk:rfc&rfa|rfb:rfe&rfa|rfb&rfd:rff&rfa|rfb:rfh&rfa|rfb&rfg]
+lappend ans [list setpath _LMFILES_ $mp/rfd:$mp/rfk:$mp/rfb:$mp/rfc:$mp/rfe:$mp/rff:$mp/rfh]
+lappend ans [list setpath LOADEDMODULES rfd:rfk:rfb:rfc:rfe:rff:rfh]
+lappend ans [list setpath MODULES_LMNOTUASKED rfk]
+lappend ans [list ERR]
+#FIXME: DepRe error message should be reported under the message block related to main switch action
+set tserr [list {unload rfh} {unload rfg} {unload rff} {unload rfe} {unload rfd} {unload rfc} {unload rfa} \n[msg_unload rfa [err_depref rfd]]\n {load rfb} {load rfk} {load rfj} {load rfi} \n[msg_load rfk [err_prereqf rfk rfj]]\n {load rfc} {load rfe} {load rff} {load rfg} {load rfh} \n[msg_load rfh [err_prereqf rfh rfg]] \n[msg_switch rfa rfb {Loading requirement: rfk} [err_depref rfg] {Reloading dependent: rfc rfe rff rfg rfh}]]
+testouterr_cmd_re sh {switch --force rfa rfb} $ans [join $tserr \n]
+
+# crash in every mechanism (ReqLo, DepRe unload, DepRe load) (linked modules, middle one crashed)
+setenv_loaded_module [list rga rgc rgd rge rgf rgg rgh] [list $mp/rga $mp/rgc $mp/rgd $mp/rge $mp/rgf $mp/rgg $mp/rgh]
+setenv_path_var MODULES_LMPREREQ rgh&rga|rgb&rgg:rgg&rga|rgb&rgf:rgf&rga|rgb:rge&rga|rgb&rgd:rgd&rga|rgb&rgc:rgc&rga|rgb
+unsetenv_path_var MODULES_LMCONFLICT
+
+#FIXME: DepRe error message should be reported under the message block related to main switch action
+set tserr [list {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} \n[msg_unload rga [err_depre rgd]]]
+testouterr_cmd_re sh {switch rga rgb} ERR [join $tserr \n]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES rgd:rgk:rgb:rgc:rge:rgf:rgh]
+lappend ans [list setpath _LMFILES_ $mp/rgd:$mp/rgk:$mp/rgb:$mp/rgc:$mp/rge:$mp/rgf:$mp/rgh]
+lappend ans [list setpath MODULES_LMPREREQ rgd&rga|rgb&rgc:rgk&rgj:rgb&rgk:rgc&rga|rgb:rge&rga|rgb&rgd:rgf&rga|rgb:rgh&rga|rgb&rgg]
+lappend ans [list setpath MODULES_LMNOTUASKED rgk]
+lappend ans [list ERR]
+#FIXME: DepRe error message should be reported under the message block related to main switch action
+#FIXME: rgh should not reattempt reload of rgg as it has already been tried and failed
+set tserr [list {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} {unload rgc} {unload rga} \n[msg_unload rga [err_depref rgd]]\n {load rgb} {load rgk} {load rgj} {load rgi} \n[msg_load rgk [err_prereqf rgk rgj]]\n {load rgc} {load rge} {load rgf} {load rgg} {load rgh} {load rgg} \n[msg_load rgh [err_prereqf rgh rgg]] \n[msg_switch rga rgb {Loading requirement: rgk} [err_depref rgg] {Reloading dependent: rgc rge rgf rgg rgh}]]
+testouterr_cmd_re sh {switch --force rga rgb} $ans [join $tserr \n]
 
 
 #
