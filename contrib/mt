@@ -76,9 +76,20 @@ if [ $# -gt 0 ]; then
    done
 fi
 
-export RUNTESTFLAGS='-v -v'
+$make contrib/mtreview
+export RUNTESTFLAGS='-v -v >/dev/null 2>&1'
 $make $target
 ret=$?
+
+# highlight failed tests
+if [ "$target" = 'testinstall' ]; then
+   contrib/mtreview install.log
+else
+   if [ -e compat/modules.log ]; then
+      contrib/mtreview compat/modules.log
+   fi
+   contrib/mtreview modules.log
+fi
 
 chmod 755 testsuite/modules.*
 chmod 644 testsuite/modules.*/*.exp
