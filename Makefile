@@ -391,7 +391,7 @@ testinstall:
 # install enhanced diff tool (to review test results)
 icdiff:
 	wget $(ICDIFF_DLSRC)$@ || true
-	echo "$(ICDIFF_CHECKSUM)  $@" | md5sum -c --status || \
+	echo "$(ICDIFF_CHECKSUM)  $@" | md5sum --status -c - || \
 		md5 -c $(ICDIFF_CHECKSUM) $@
 	chmod +x $@
 
@@ -399,7 +399,7 @@ icdiff:
 # download from alt. source if correct tarball not retrieved from primary location
 $(NAGELFAR):
 	wget $(NAGELFAR_DLSRC1)$(NAGELFAR_DIST) || true
-	echo "$(NAGELFAR_DISTSUM)  $(NAGELFAR_DIST)" | md5sum -c --status || \
+	echo "$(NAGELFAR_DISTSUM)  $(NAGELFAR_DIST)" | md5sum --status -c - || \
 		wget -O $(NAGELFAR_DIST) $(NAGELFAR_DLSRC2)$(NAGELFAR_DIST)
 	tar xzf $(NAGELFAR_DIST)
 	rm $(NAGELFAR_DIST)
