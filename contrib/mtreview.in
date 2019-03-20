@@ -86,10 +86,10 @@ while {[gets $fid line] >= 0} {
          }
          append res $line
          # end of obtained output?
-         if {[string index $line end] eq {'}} {
+         if {[string range $line end-2 end] eq {'#>}} {
             set state recexp
             # clean content
-            set res [string range $res 1 end-1]
+            set res [string range $res 1 end-3]
          }
       }
       recexp {
@@ -101,14 +101,14 @@ while {[gets $fid line] >= 0} {
          }
          append exp $line
          # end of expected output?
-         if {[string index $line end] eq {'}} {
+         if {[string range $line end-2 end] eq {'#>}} {
             # clean expecting content from regexp special char escaping
             set trimstart 1
-            set trimend 1
+            set trimend 3
             if {[string index $exp 1] eq {^}} {
                incr trimstart
             }
-            if {[string index $exp end-1] eq {$}} {
+            if {[string index $exp end-3] eq {$}} {
                incr trimend
             }
             set exp [string range $exp $trimstart end-$trimend]
