@@ -28,11 +28,13 @@ man: $(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4
 endif
 
 txt: $(BUILD_DIR)/diff_v3_v4.txt $(BUILD_DIR)/MIGRATING.txt \
-	$(BUILD_DIR)/INSTALL.txt $(BUILD_DIR)/NEWS.txt
+	$(BUILD_DIR)/INSTALL.txt $(BUILD_DIR)/NEWS.txt \
+	$(BUILD_DIR)/CONTRIBUTING.txt
 
 html: $(BUILD_DIR)/module.html $(BUILD_DIR)/modulefile.html \
 	$(BUILD_DIR)/diff_v3_v4.html $(BUILD_DIR)/MIGRATING.html \
-	$(BUILD_DIR)/INSTALL.html $(BUILD_DIR)/NEWS.html
+	$(BUILD_DIR)/INSTALL.html $(BUILD_DIR)/NEWS.html \
+	$(BUILD_DIR)/CONTRIBUTING.html
 
 all: man txt
 
@@ -89,6 +91,7 @@ ifeq ($(docinstall),y)
 	cp $(BUILD_DIR)/MIGRATING.txt $(DESTDIR)$(docdir)/
 	cp $(BUILD_DIR)/INSTALL.txt $(DESTDIR)$(docdir)/
 	cp $(BUILD_DIR)/NEWS.txt $(DESTDIR)$(docdir)/
+	cp $(BUILD_DIR)/CONTRIBUTING.txt $(DESTDIR)$(docdir)/
 	cp example.txt $(DESTDIR)$(docdir)/
 endif
 	cp $(BUILD_DIR)/module.1 $(DESTDIR)$(mandir)/man1/
@@ -104,6 +107,7 @@ ifeq ($(docinstall),y)
 	rm -f $(DESTDIR)$(docdir)/MIGRATING.txt
 	rm -f $(DESTDIR)$(docdir)/INSTALL.txt
 	rm -f $(DESTDIR)$(docdir)/NEWS.txt
+	rm -f $(DESTDIR)$(docdir)/CONTRIBUTING.txt
 	rm -f $(DESTDIR)$(docdir)/example.txt
 	rmdir $(DESTDIR)$(docdir)
 endif
