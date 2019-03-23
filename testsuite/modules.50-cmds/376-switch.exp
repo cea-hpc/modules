@@ -28,6 +28,7 @@
 # instead.
 
 set mp $modpath.deps
+set mpre $modpathre.deps
 
 # setup specific environment
 setenv_path_var MODULEPATH $mp
@@ -620,7 +621,7 @@ testouterr_cmd_re sh {load --no-auto swk} ERR [join $tserr \n]
 # switched-off module produces a module error when unloaded
 setenv_loaded_module [list swn] [list $mp/swn]
 
-set tserr [list {load swl} {unload swn} \n[msg_unload swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mp/swn'" $err_contact] \n[msg_load swl [err_prereq swl swa]]]
+set tserr [list {load swl} {unload swn} \n[msg_unload swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mpre/swn'" $err_contact] \n[msg_load swl [err_prereq swl swa]]]
 testouterr_cmd_re sh {load --auto swl} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swl} ERR [join $tserr \n]
 
@@ -628,7 +629,7 @@ testouterr_cmd_re sh {load --no-auto swl} ERR [join $tserr \n]
 # switched-on module produces a module error when loaded
 unsetenv_loaded_module
 
-set tserr [list {load swm} {load swn} \n[msg_load swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mp/swn'" $err_contact] \n[msg_load swm [err_prereq swm swn]]]
+set tserr [list {load swm} {load swn} \n[msg_load swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mpre/swn'" $err_contact] \n[msg_load swm [err_prereq swm swn]]]
 testouterr_cmd_re sh {load --auto swm} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swm} ERR [join $tserr \n]
 
@@ -645,7 +646,7 @@ lappend ans [list setpath _LMFILES_ $mp/swn]
 lappend ans [list setpath LOADEDMODULES swn]
 lappend ans [list ERR]
 #FIXME: swn is reported as UreqUn whereas its unload failed
-set tserr [list {unload swm} {unload swn} \n[msg_unload swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mp/swn'" $err_contact] \n[msg_top_unload swm {} swn {} [err_urequn swn]]]
+set tserr [list {unload swm} {unload swn} \n[msg_unload swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mpre/swn'" $err_contact] \n[msg_top_unload swm {} swn {} [err_urequn swn]]]
 testouterr_cmd_re sh {unload --auto swm} $ans [join $tserr \n]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES swn]
@@ -653,7 +654,7 @@ lappend ans [list setpath _LMFILES_ $mp/swn]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMCONFLICT]
 lappend ans [list ERR]
-set tserr [list {unload swm} {unload swn} \n[msg_unload swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mp/swn'" $err_contact]]
+set tserr [list {unload swm} {unload swn} \n[msg_unload swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mpre/swn'" $err_contact]]
 testouterr_cmd_re sh {unload --no-auto swm} $ans [join $tserr \n]
 
 
@@ -668,5 +669,6 @@ unsetenv_loaded_module
 setenv_path_var MODULEPATH $modpath
 
 unset mp
+unset mpre
 unset ans
 unset tserr
