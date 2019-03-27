@@ -590,7 +590,7 @@ lappend ans [list setpath _LMFILES_ $mp/rfa:$mp/rfi:$mp/rfj:$mp/rfd:$mp/rfm:$mp/
 lappend ans [list setpath MODULES_LMPREREQ rfj&rfi:rfd&rfa|rfb&rfc:rfm&rfl:rfc&rfa|rfb:rfe&rfa|rfb&rfd:rff&rfa|rfb:rfh&rfa|rfb&rfg]
 lappend ans [list setpath MODULES_LMNOTUASKED rfi:rfj:rfm]
 lappend ans [list ERR]
-set tserr [list {unload rfh} {unload rfg} {unload rff} {unload rfe} {unload rfd} {unload rfc} {unload rfn} {unload rfm} {unload rfl} \n[msg_unload rfl [err_prerequnf rfl rfm]]\n {unload rfb} {unload rfk} {unload rfj} {load rfc} {load rfe} {load rff} {load rfg} {load rfh} \n[msg_load rfh [err_prereqf rfh rfg]] \n[msg_unload rfb [err_depref rfd] [err_depunf rfm] {Unloading dependent: rfn rfm rfl} [err_urequn rfj] {Unloading useless requirement: rfk rfj} [err_depref rfg] {Reloading dependent: rfc rfe rff rfg rfh}]]
+set tserr [list {unload rfh} {unload rfg} {unload rff} {unload rfe} {unload rfd} {unload rfc} {unload rfn} {unload rfm} {unload rfl} \n[msg_unload rfl [err_prerequnf rfl rfm]]\n {unload rfb} {unload rfk} {unload rfj} {load rfc} {load rfe} {load rff} {load rfg} {load rfh} \n[msg_load rfh [err_prereqf rfh rfg]] \n[msg_top_unload rfb [list rfn rfm rfl] [list rfk rfj] [list rfc rfe rff rfg rfh] [err_depref rfd] [err_depunf rfm] [err_urequn rfj]]]
 testouterr_cmd_re sh {unload --force rfb} $ans [join $tserr \n]
 
 # crash in every mechanism (DepUn, UReqUn, DepRe unload, DepRe load) (requirement expressed with 'module load', linked modules, middle one crashed)
@@ -608,7 +608,7 @@ lappend ans [list setpath LOADEDMODULES rga:rgi:rgj:rgd:rgm:rgc:rge:rgf:rgh]
 lappend ans [list setpath MODULES_LMNOTUASKED rgi:rgj:rgm]
 lappend ans [list ERR]
 #FIXME: rgh should not reattempt reload of rgg as it has already been tried and failed
-set tserr [list {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} {unload rgc} {unload rgn} {unload rgm} {unload rgl} \n[msg_unload rgl [err_prerequnf rgl rgm]]\n {unload rgb} {unload rgk} {unload rgj} {load rgc} {load rge} {load rgf} {load rgg} {load rgh} {load rgg} \n[msg_load rgh [err_prereqf rgh rgg]] \n[msg_unload rgb [err_depref rgd] [err_depunf rgm] {Unloading dependent: rgn rgm rgl} [err_urequn rgj] {Unloading useless requirement: rgk rgj} [err_depref rgg] {Reloading dependent: rgc rge rgf rgg rgh}]]
+set tserr [list {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} {unload rgc} {unload rgn} {unload rgm} {unload rgl} \n[msg_unload rgl [err_prerequnf rgl rgm]]\n {unload rgb} {unload rgk} {unload rgj} {load rgc} {load rge} {load rgf} {load rgg} {load rgh} {load rgg} \n[msg_load rgh [err_prereqf rgh rgg]] \n[msg_top_unload rgb [list rgn rgm rgl] [list rgk rgj] [list rgc rge rgf rgg rgh] [err_depref rgd] [err_depunf rgm] [err_urequn rgj] [err_depref rgg]]]
 testouterr_cmd_re sh {unload --force rgb} $ans [join $tserr \n]
 
 
@@ -727,7 +727,7 @@ lappend ans [list setpath MODULES_LMPREREQ rfj&rfi:rfd&rfa|rfb&rfc:rfm&rfl:rfc&r
 lappend ans [list setpath MODULES_LMNOTUASKED rfi:rfj:rfm:rfl]
 lappend ans [list ERR]
 #FIXME: DepRe error message should be reported under the message block related to main switch action
-set tserr [list {unload rfn} {unload rfm} {unload rfl} {unload rfh} {unload rfg} {unload rff} {unload rfe} {unload rfd} {unload rfc} {unload rfb} {unload rfk} {unload rfj} \n[msg_unload rfb [err_depref rfm] [err_depref rfd]]\n {load rfa} {load rfc} {load rfe} {load rff} {load rfg} {load rfh} \n[msg_load rfh [err_prereqf rfh rfg]]\n {load rfl} \n[msg_load rfl [err_prereqf rfl rfb]]\n {load rfn} \n[msg_switch rfb rfa [err_urequn rfj] {Unloading useless requirement: rfk rfj} [err_depref rfg] {Reloading dependent: rfc rfe rff rfg rfh rfl rfn}]]
+set tserr [list {unload rfn} {unload rfm} {unload rfl} {unload rfh} {unload rfg} {unload rff} {unload rfe} {unload rfd} {unload rfc} {unload rfb} {unload rfk} {unload rfj} \n[msg_unload rfb [err_depref rfm] [err_depref rfd]]\n {load rfa} {load rfc} {load rfe} {load rff} {load rfg} {load rfh} \n[msg_load rfh [err_prereqf rfh rfg]]\n {load rfl} \n[msg_load rfl [err_prereqf rfl rfb]]\n {load rfn} \n[msg_top_switch rfb rfa {} [list rfk rfj] {} {} [list rfc rfe rff rfg rfh rfl rfn] [err_urequn rfj] [err_depref rfg]]]
 testouterr_cmd_re sh {switch --force rfb rfa} $ans [join $tserr \n]
 
 # crash in every mechanism (DepUn, UReqUn, DepRe unload, DepRe load) (requirement expressed with 'module load', linked modules, middle one crashed)
@@ -747,7 +747,7 @@ lappend ans [list ERR]
 #FIXME: DepRe load phase reload requirement expressed with 'module load', does not happen with 'prereq'
 #FIXME: DepRe error message should be reported under the message block related to main switch action
 #FIXME: rgh should not reattempt reload of rgg as it has already been tried and failed
-set tserr [list {unload rgn} {unload rgm} {unload rgl} {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} {unload rgc} {unload rgb} {unload rgk} {unload rgj} \n[msg_unload rgb [err_depref rgm] [err_depref rgd]]\n {load rga} {load rgc} {load rge} {load rgf} {load rgg} {load rgh} {load rgg} \n[msg_load rgh [err_prereqf rgh rgg]]\n {load rgl} {load rgb} {load rgk} {load rgn} \n[msg_switch rgb rga [err_urequn rgj] {Unloading useless requirement: rgk rgj} [err_depref rgg] {Reloading dependent: rgc rge rgf rgg rgh rgl rgn}]]
+set tserr [list {unload rgn} {unload rgm} {unload rgl} {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} {unload rgc} {unload rgb} {unload rgk} {unload rgj} \n[msg_unload rgb [err_depref rgm] [err_depref rgd]]\n {load rga} {load rgc} {load rge} {load rgf} {load rgg} {load rgh} {load rgg} \n[msg_load rgh [err_prereqf rgh rgg]]\n {load rgl} {load rgb} {load rgk} {load rgn} \n[msg_top_switch rgb rga {} [list rgk rgj] {} {} [list rgc rge rgf rgg rgh rgl rgn] [err_urequn rgj] [err_depref rgg]]]
 testouterr_cmd_re sh {switch --force rgb rga} $ans [join $tserr \n]
 
 # crash in every mechanism (ReqLo, DepRe unload, DepRe load) (linked modules, middle one crashed)
@@ -765,7 +765,7 @@ lappend ans [list setpath LOADEDMODULES rfd:rfk:rfb:rfc:rfe:rff:rfh]
 lappend ans [list setpath MODULES_LMNOTUASKED rfk]
 lappend ans [list ERR]
 #FIXME: DepRe error message should be reported under the message block related to main switch action
-set tserr [list {unload rfh} {unload rfg} {unload rff} {unload rfe} {unload rfd} {unload rfc} {unload rfa} \n[msg_unload rfa [err_depref rfd]]\n {load rfb} {load rfk} {load rfj} {load rfi} \n[msg_load rfk [err_prereqf rfk rfj]]\n {load rfc} {load rfe} {load rff} {load rfg} {load rfh} \n[msg_load rfh [err_prereqf rfh rfg]] \n[msg_switch rfa rfb {Loading requirement: rfk} [err_depref rfg] {Reloading dependent: rfc rfe rff rfg rfh}]]
+set tserr [list {unload rfh} {unload rfg} {unload rff} {unload rfe} {unload rfd} {unload rfc} {unload rfa} \n[msg_unload rfa [err_depref rfd]]\n {load rfb} {load rfk} {load rfj} {load rfi} \n[msg_load rfk [err_prereqf rfk rfj]]\n {load rfc} {load rfe} {load rff} {load rfg} {load rfh} \n[msg_load rfh [err_prereqf rfh rfg]] \n[msg_top_switch rfa rfb {} {} {} rfk [list rfc rfe rff rfg rfh] [err_depref rfg]]]
 testouterr_cmd_re sh {switch --force rfa rfb} $ans [join $tserr \n]
 
 # crash in every mechanism (ReqLo, DepRe unload, DepRe load) (linked modules, middle one crashed)
@@ -784,7 +784,7 @@ lappend ans [list setpath MODULES_LMNOTUASKED rgk]
 lappend ans [list ERR]
 #FIXME: DepRe error message should be reported under the message block related to main switch action
 #FIXME: rgh should not reattempt reload of rgg as it has already been tried and failed
-set tserr [list {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} {unload rgc} {unload rga} \n[msg_unload rga [err_depref rgd]]\n {load rgb} {load rgk} {load rgj} {load rgi} \n[msg_load rgk [err_prereqf rgk rgj]]\n {load rgc} {load rge} {load rgf} {load rgg} {load rgh} {load rgg} \n[msg_load rgh [err_prereqf rgh rgg]] \n[msg_switch rga rgb {Loading requirement: rgk} [err_depref rgg] {Reloading dependent: rgc rge rgf rgg rgh}]]
+set tserr [list {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} {unload rgc} {unload rga} \n[msg_unload rga [err_depref rgd]]\n {load rgb} {load rgk} {load rgj} {load rgi} \n[msg_load rgk [err_prereqf rgk rgj]]\n {load rgc} {load rge} {load rgf} {load rgg} {load rgh} {load rgg} \n[msg_load rgh [err_prereqf rgh rgg]] \n[msg_top_switch rga rgb {} {} {} rgk [list rgc rge rgf rgg rgh] [err_depref rgg]]]
 testouterr_cmd_re sh {switch --force rga rgb} $ans [join $tserr \n]
 
 
