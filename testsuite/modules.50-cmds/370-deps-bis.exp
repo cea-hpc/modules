@@ -124,7 +124,12 @@ lappend ans [list unsetpath _LMFILES_]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
 lappend ans [list unsetpath MODULES_LMCONFLICT]
 lappend ans [list unsetpath MODULES_LMPREREQ]
+if {$auto_handling} {
 testouterr_cmd "sh" "unload mr" $ans [msg_top_unload mr {} [list mj mb mc] {}]
+} else {
+# different UreqUn unload order, as it follows requirement definition in modulefile instead of reverse effective loaded order
+testouterr_cmd "sh" "unload mr" $ans [msg_top_unload mr {} [list mb mc mj] {}]
+}
 
 
 # check broken module does not spread its prereq/conflict defs to next evaluated module
