@@ -111,7 +111,7 @@ lappend ans [list setpath MODULES_LMPREREQ gc&gb:gb&gc]
 # FIXME: gc is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gb is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
 lappend ans [list setpath MODULES_LMNOTUASKED gc]
-set tserr "unload gc\nload gc\nload gb\n\n[msg_top_load gb {} {} gc]"
+set tserr "unload gc\nload gc\nload gb\n\n[msg_top_load gb {} gc {}]"
 testouterr_cmd_re sh {load gb} $ans $tserr
 testouterr_cmd_re sh {load --force gb} $ans $tserr
 
@@ -121,10 +121,10 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES gb:gc]
 lappend ans [list setpath _LMFILES_ $mp/gb:$mp/gc]
 lappend ans [list setpath MODULES_LMPREREQ gb&gc:gc&gb]
-# FIXME: gc is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gb is loaded
+# FIXME: gb is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gc is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
 lappend ans [list setpath MODULES_LMNOTUASKED gb]
-set tserr "unload gb\nload gb\nload gc\n\n[msg_top_load gc {} {} gb]"
+set tserr "unload gb\nload gb\nload gc\n\n[msg_top_load gc {} gb {}]"
 testouterr_cmd_re sh {load gc} $ans $tserr
 testouterr_cmd_re sh {load --force gc} $ans $tserr
 
@@ -207,8 +207,7 @@ lappend ans [list setpath LOADEDMODULES gb:gy:gc]
 lappend ans [list setpath _LMFILES_ $mp/gb:$mp/gy:$mp/gc]
 lappend ans [list setpath MODULES_LMPREREQ gb&gc:gy&gb:gc&gb]
 lappend ans [list setpath MODULES_LMNOTUASKED gb]
-#FIXME: should report gy as DepRe
-set tserr "unload gy\nload gb\nload gy\nload gc\n\n[msg_top_load gc {} gb {}]"
+set tserr "unload gy\nload gb\nload gy\nload gc\n\n[msg_top_load gc {} gb gy]"
 testouterr_cmd_re sh {load gc} $ans $tserr
 
 setenv_loaded_module [list gc gb gy] [list $mp/gc $mp/gb $mp/gy] [list gc]
@@ -275,7 +274,7 @@ lappend ans [list setpath MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
 # FIXME: gf is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gd is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
 lappend ans [list setpath MODULES_LMNOTUASKED gf:ge]
-set tserr "unload gf\nload gf\nload ge\nload gd\n\n[msg_top_load gd {} ge gf]"
+set tserr "unload gf\nload gf\nload ge\nload gd\n\n[msg_top_load gd {} [list gf ge] {}]"
 testouterr_cmd_re sh {load gd} $ans $tserr
 testouterr_cmd_re sh {load --force gd} $ans $tserr
 set ans [list]
@@ -306,15 +305,13 @@ lappend ans [list setpath MODULES_LMPREREQ ge&gf:gd&ge:gf&gd]
 # FIXME: ge is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gf is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
 lappend ans [list setpath MODULES_LMNOTUASKED ge:gd]
-set tserr "unload ge\nload ge\nload gd\nload gf\n\n[msg_top_load gf {} gd ge]"
+set tserr "unload ge\nload ge\nload gd\nload gf\n\n[msg_top_load gf {} [list ge gd] {}]"
 testouterr_cmd_re sh {load gf} $ans $tserr
 testouterr_cmd_re sh {load --force gf} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ge:gd:gf]
 lappend ans [list setpath _LMFILES_ $mp/ge:$mp/gd:$mp/gf]
 lappend ans [list setpath MODULES_LMPREREQ ge&gf:gd&ge:gf&gd]
-# FIXME: ge is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gf is loaded
-# thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
 lappend ans [list setpath MODULES_LMNOTUASKED gd]
 set tserr "load gd\nload gf\n\n[msg_top_load gf {} gd {}]"
 testouterr_cmd_re sh {load --no-auto gf} $ans $tserr
@@ -415,16 +412,14 @@ lappend ans [list setpath LOADEDMODULES ge:gd:gw:gf]
 lappend ans [list setpath _LMFILES_ $mp/ge:$mp/gd:$mp/gw:$mp/gf]
 lappend ans [list setpath MODULES_LMPREREQ ge&gf:gd&ge:gw&gd:gf&gd]
 lappend ans [list setpath MODULES_LMNOTUASKED ge:gd]
-#FIXME: should report gw as DepRe
-set tserr "unload gw\nload ge\nload gd\nload gw\nload gf\n\n[msg_top_load gf {} [list ge gd] {}]"
+set tserr "unload gw\nload ge\nload gd\nload gw\nload gf\n\n[msg_top_load gf {} [list ge gd] gw]"
 testouterr_cmd_re sh {load gf} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES gd:gw:gf:ge]
 lappend ans [list setpath _LMFILES_ $mp/gd:$mp/gw:$mp/gf:$mp/ge]
 lappend ans [list setpath MODULES_LMPREREQ gd&ge:gw&gd:gf&gd:ge&gf]
 lappend ans [list setpath MODULES_LMNOTUASKED gd:gf]
-#FIXME: should report gw as DepRe
-set tserr "unload gw\nload gd\nload gw\nload gf\nload ge\n\n[msg_top_load ge {} [list gd gf] {}]"
+set tserr "unload gw\nload gd\nload gw\nload gf\nload ge\n\n[msg_top_load ge {} [list gd gf] gw]"
 testouterr_cmd_re sh {load ge} $ans $tserr
 
 setenv_loaded_module [list gf ge gd gw] [list $mp/gf $mp/ge $mp/gd $mp/gw] [list gf ge]
@@ -488,7 +483,7 @@ lappend ans [list setpath LOADEDMODULES gi:gh:gg:gj]
 lappend ans [list setpath _LMFILES_ $mp/gi:$mp/gh:$mp/gg:$mp/gj]
 lappend ans [list setpath MODULES_LMPREREQ gh&gj|gi:gg&gh:gj&gg]
 lappend ans [list setpath MODULES_LMNOTUASKED gh:gg]
-set tserr "unload gg\nunload gh\nload gh\nload gg\nload gj\n\n[msg_top_load gj {} {} [list gh gg]]"
+set tserr "unload gg\nunload gh\nload gh\nload gg\nload gj\n\n[msg_top_load gj {} [list gh gg] {}]"
 testouterr_cmd_re sh {load gj} $ans $tserr
 
 setenv_loaded_module [list gj gh gg] [list $mp/gj $mp/gh $mp/gg] [list gj gh]
@@ -549,7 +544,7 @@ lappend ans [list setpath MODULES_LMPREREQ gm&gn|gk:gl&gm:gk&gl]
 # FIXME: gm is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gl is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
 lappend ans [list setpath MODULES_LMNOTUASKED gn:gm:gl]
-set tserr "unload gm\nload gm\nload gl\nload gk\n\n[msg_top_load gk {} gl gm]"
+set tserr "unload gm\nload gm\nload gl\nload gk\n\n[msg_top_load gk {} [list gm gl] {}]"
 testouterr_cmd_re sh {load gk} $ans $tserr
 
 setenv_loaded_module [list gn gm gl gk] [list $mp/gn $mp/gm $mp/gl $mp/gk] [list gl]
