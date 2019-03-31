@@ -312,11 +312,11 @@ proc __reportDebug {message {showcaller 1}} {
 # alternative procedure used when debug is disabled
 proc __reportDebugNop {args} {}
 
-proc reportWarning {message} {
-   reportError $message WARNING 0
+proc reportWarning {message {recordtop 0}} {
+   reportError $message $recordtop WARNING 0
 }
 
-proc reportError {message {severity ERROR} {raisecnt 1}} {
+proc reportError {message {recordtop 0} {severity ERROR} {raisecnt 1}} {
    # if report disabled, also disable error raise to get a coherent
    # behavior (if no message printed, no error code change)
    if {!$::g_inhibit_errreport} {
@@ -326,7 +326,7 @@ proc reportError {message {severity ERROR} {raisecnt 1}} {
       set message "$severity: $message"
       # record message to report it later on if a record id is found
       if {[currentMsgRecordId] ne {}} {
-         recordMessage $message
+         recordMessage $message $recordtop
       } else {
          report $message
       }
@@ -349,12 +349,12 @@ proc reportInternalBug {message modfile} {
    # change line padding depending on output-kind
    set pad [expr {[currentMsgRecordId] ne {} ? {} : {  }}]
    reportError "$message\n${pad}In '$modfile'\n${pad}Please contact\
-      <$::contact>" {Module ERROR}
+      <$::contact>" 0 {Module ERROR}
 }
 
 proc reportInfo {message {title INFO}} {
    # use reportError for conveniance but there is no error here
-   reportError $message $title 0
+   reportError $message 0 $title 0
 }
 
 # is currently active message record id at top level
@@ -448,8 +448,9 @@ proc __reportSeparateNextContent {} {
 }
 
 # save message for block rendering
-proc recordMessage {message} {
-   lappend ::g_msgRecord([currentMsgRecordId]) $message
+proc recordMessage {message {recordtop 0}} {
+   lappend ::g_msgRecord([expr {$recordtop ? [topMsgRecordId] :\
+      [currentMsgRecordId]}]) $message
 }
 
 # save message if report is not yet initialized
@@ -6705,7 +6706,7 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {Reload of\
          set lmlist [replaceFromList $lmlist $mod]
          set errMsg [string map [list _MOD_ $mod] $errmsgtpl]
          if {$force} {
-            reportWarning $errMsg
+            reportWarning $errMsg 1
          # stop if one unload fails unless force mode enabled
          } else {
             error $errMsg
@@ -6730,7 +6731,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl\
       if {[cmdModuleLoad $context $isuasked($mod) $mod]} {
          set errMsg [string map [list _MOD_ $mod] $errmsgtpl]
          if {$force} {
-            reportWarning $errMsg
+            reportWarning $errMsg 1
          # stop if one load fails unless force mode enabled
          } else {
             error $errMsg
@@ -7549,7 +7550,7 @@ proc cmdModuleLoad {context uasked args} {
          reportModuleEval
       } errMsg]] != 0} {
          if {$errCode == 1 && $errMsg ne {}} {
-            reportError $errMsg
+            reportError $errMsg 1
          }
          # rollback settings if some evaluation went wrong
          if {$errCode != 4} {
@@ -7702,7 +7703,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                      # stop if one unload fails unless force mode enabled
                      set errMsg "Unload of dependent $unmod failed"
                      if {[getForce] || $force} {
-                        reportWarning $errMsg
+                        reportWarning $errMsg 1
                      } else {
                         error $errMsg
                      }
@@ -7756,19 +7757,12 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                for {set i 0} {$i < [llength $urequnlist]} {incr i 1} {
                   set unmod [lindex $urequnlist $i]
                   if {[cmdModuleUnload urequn match 0 0 0 0 $unmod]} {
-                     # if a switch command is ongoing, report against it
-                     if {[info exists swprocessing]} {
-                        popMsgRecordId
-                     }
                      # just warn if UReqUn module cannot be unloaded, main
                      # unload process continues, just the UReqUn modules that
                      # are required by unmod (whose unload failed) are
                      # withdrawn from UReqUn module list
                      reportWarning "Unload of useless requirement $unmod\
-                        failed"
-                     if {[info exists swprocessing]} {
-                        pushMsgRecordId $msgrecid
-                     }
+                        failed" 1
                      lassign [getDiffBetweenList $urequnlist\
                         [getRequiredLoadedModuleList $unmod]] urequnlist
                   }
@@ -7788,7 +7782,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          reportModuleEval
       } errMsg]] != 0} {
          if {$errCode == 1 && $errMsg ne {}} {
-            reportError $errMsg
+            reportError $errMsg 1
          }
          # rollback settings if some evaluation went wrong
          if {$errCode != 4} {
