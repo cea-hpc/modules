@@ -7436,10 +7436,6 @@ proc cmdModuleLoad {context uasked args} {
          # register altname of modname prior any conflict check
          eval setLoadedAltname $modname [getAllModuleResolvedName $modname]
 
-         # save list of loaded mods prior loading process to determine
-         # afterward what have been automatically loaded and unloaded
-         set priorlmlist [getLoadedModuleList]
-
          if {[getAutoHandling]} {
             # get loaded modules holding a requirement on modname and able to
             # be reloaded
@@ -7457,10 +7453,6 @@ proc cmdModuleLoad {context uasked args} {
                if {[info exists swprocessing]} {
                   set swdeprelist [expr {[info exists swdeprelist] ? [concat\
                      $deprelist $swdeprelist] : $deprelist}]
-                  # ignore missing DepRe mods during reporting if switch
-                  # ongoing as it will be reloaded from switch action
-                  lassign [getDiffBetweenList $priorlmlist $deprelist]\
-                     priorlmlist
                }
             }
          }
@@ -7639,10 +7631,6 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                continue
             }
          }
-
-         # save list of loaded mods prior loading process to determine
-         # afterward what have been automatically loaded and unloaded
-         set priorlmlist [getLoadedModuleList]
 
          if {[getAutoHandling] && $auto} {
             # compute lists of modules to update due to modname unload prior
