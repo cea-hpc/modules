@@ -428,9 +428,8 @@ lappend ans [list setpath LOADEDMODULES rabm]
 lappend ans [list setpath MODULES_LMNOTUASKED rabm]
 lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list ERR]
-#FIXME: should get same list of UReqUn and associated failed unload warning than for auto mode
 # different UreqUn unload order, as it follows requirement definition in modulefile instead of reverse effective loaded order
-set tserr [list {unload radm} {unload raam} {unload rabm} {unload racm} \n[msg_top_unload radm {} [list raam racm] {}]]
+set tserr [list {unload radm} {unload raam} {unload rabm} {unload racm} \n[msg_top_unload radm {} [list raam racm] {} [err_urequn rabm]]]
 testouterr_cmd_re sh {unload --no-auto radm} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --no-auto --force radm} $ans [join $tserr \n]
 
@@ -454,8 +453,8 @@ lappend ans [list setpath _LMFILES_ $mp/raem:$mp/rafm]
 lappend ans [list setpath MODULES_LMNOTUASKED raem:rafm]
 lappend ans [list setpath MODULES_LMPREREQ rafm&raem]
 lappend ans [list ERR]
-#FIXME: should get same list of UReqUn and associated failed unload warning than for auto mode
-set tserr [list {unload rahm} {unload ragm} {unload rafm} {unload raem} \n[msg_top_unload rahm {} [list ragm] {}] ]
+# raem is evaluated as rafm breaks after the 'module load raem' command
+set tserr [list {unload rahm} {unload ragm} {unload rafm} {unload raem} \n[msg_top_unload rahm {} [list ragm] {} [err_urequn rafm]] ]
 testouterr_cmd_re sh {unload --no-auto rahm} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --no-auto --force rahm} $ans [join $tserr \n]
 

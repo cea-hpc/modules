@@ -1836,12 +1836,13 @@ proc module {command args} {
                      foreach arg [lreverse $args] {
                         if {[set unmod [getLoadedMatchingName $arg returnlast\
                            0 $priormodlist]] ne {}} {
-                           lappend unmodlist $unmod
+                           if {[cmdModuleUnload urequn match 1 0 1 1\
+                              $unmod]} {
+                              reportWarning "Unload of useless requirement\
+                                 $unmod failed" 1
+                           }
                         }
                      }
-                  }
-                  if {[info exists unmodlist]} {
-                     eval cmdModuleUnload urequn match 1 0 1 1 $unmodlist
                   }
                }
                # sub-module interpretation failed, raise error
@@ -1959,7 +1960,11 @@ proc module {command args} {
                            set priormodlist [lrange $modlist 0 $modidx]
                            if {[set unmod [getLoadedMatchingName $swlomod\
                               returnlast 0 $priormodlist]] ne {}} {
-                              cmdModuleUnload urequn match 1 0 1 1 $unmod
+                              if {[cmdModuleUnload urequn match 1 0 1 1\
+                                 $unmod]} {
+                                 reportWarning "Unload of useless requirement\
+                                    $unmod failed" 1
+                              }
                            }
                         }
                      }
