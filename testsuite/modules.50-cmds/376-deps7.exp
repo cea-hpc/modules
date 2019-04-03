@@ -148,7 +148,8 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
 set tserr [list {unload m4} {unload m2} {unload m1} \n[msg_top_unload m4 {} [list m2 m1] {}]]
 testouterr_cmd_re sh {unload --auto m4} $ans [join $tserr \n]
-#FIXME even if unload order vary, it is reported in the reverse loaded order
+# module unload is recorded prior its evaluation start, that is why even if m1 finishes to unload prior m2,
+# it is reported after m2 as m2 unload has started prior m1 unload
 set tserr [list {unload m1} {unload m2} {unload m4} \n[msg_top_unload m4 {} [list m2 m1] {}]]
 testouterr_cmd_re sh {unload --no-auto m4} $ans [join $tserr \n]
 
