@@ -306,7 +306,7 @@ proc __reportDebug {message {showcaller 1}} {
    if {$showcaller && [info level] > 1} {
       append prefix "[lindex [info level -1] 0]: "
    }
-   report "DEBUG $prefix$message"
+   report "DEBUG $prefix$message" 0 1
 }
 
 # alternative procedure used when debug is disabled
@@ -444,7 +444,13 @@ proc reportSeparateNextContent {} {
 
 # regular procedure to use once error report is initialized
 proc __reportSeparateNextContent {} {
-   set ::g_report_sep_next 1
+   # hold or apply
+   if {[isReportHeld]} {
+      lappend ::g_holdReport([currentReportHoldId]) [list\
+         reportSeparateNextContent]
+   } else {
+      set ::g_report_sep_next 1
+   }
 }
 
 # save message for block rendering
@@ -454,30 +460,36 @@ proc recordMessage {message {recordtop 0}} {
 }
 
 # save message if report is not yet initialized
-proc report {message {nonewline 0}} {
-   lappend ::errreport_buffer [list report $message $nonewline]
+proc report {message {nonewline 0} {immed 0}} {
+   lappend ::errreport_buffer [list report $message $nonewline $immed]
 }
 
 # regular procedure to use once error report is initialized
-proc __report {message {nonewline 0}} {
-   if {![info exists ::g_already_report]} {
-      set ::g_already_report 1
-      # start pager at first call and only if enabled
-      if {$::start_pager} {
-         startPager
+proc __report {message {nonewline 0} {immed 0}} {
+   # hold or print output
+   if {!$immed && [isReportHeld]} {
+      lappend ::g_holdReport([currentReportHoldId]) [list report $message\
+         $nonewline]
+   } else {
+      if {![info exists ::g_already_report]} {
+         set ::g_already_report 1
+         # start pager at first call and only if enabled
+         if {$::start_pager} {
+            startPager
+         }
+      # produce blank line prior message if asked to
+      } elseif {[info exists ::g_report_sep_next]} {
+         unset ::g_report_sep_next
+         report {}
       }
-   # produce blank line prior message if asked to
-   } elseif {[info exists ::g_report_sep_next]} {
-      unset ::g_report_sep_next
-      report {}
-   }
 
-   # protect from issue with fd, just ignore it
-   catch {
-      if {$nonewline} {
-         puts -nonewline $::reportfd $message
-      } else {
-         puts $::reportfd $message
+      # protect from issue with fd, just ignore it
+      catch {
+         if {$nonewline} {
+            puts -nonewline $::reportfd $message
+         } else {
+            puts $::reportfd $message
+         }
       }
    }
 }
@@ -561,6 +573,20 @@ proc initErrorReport {} {
    # now error report is init output every message saved in buffer
    foreach errreport $::errreport_buffer {
       eval $errreport
+   }
+}
+
+# drop or report held messages
+proc releaseHeldReport {args} {
+   foreach {holdid action} $args {
+      if {[info exists ::g_holdReport($holdid)]} {
+         if {$action eq {report}} {
+            foreach repcall $::g_holdReport($holdid) {
+               eval $repcall
+            }
+         }
+         unset ::g_holdReport($holdid)
+      }
    }
 }
 
@@ -2716,11 +2742,35 @@ proc prereq {args} {
       # try next if load of first module not successful
       for {set i 0} {$i<$imax && $prereqloaded==0} {incr i 1} {
          set arg [lindex $args $i]
-         cmdModuleLoad reqlo 0 $arg
+
+         # hold output of each evaluation until they are all done to drop
+         # those that failed if one succeed
+         set curholdid load-$i-$arg
+         pushReportHoldId $curholdid
+         if {[catch {cmdModuleLoad reqlo 0 $arg} errorMsg]} {
+            # if an error is raised, release output and rethrow the error
+            # (could be raised if no modulepath defined for instance)
+            popReportHoldId
+            lappend holdidlist $curholdid report
+            eval releaseHeldReport $holdidlist
+            error $errorMsg
+         }
+         popReportHoldId
+
          if {[is-loaded $arg]} {
             set prereqloaded 1
+            # set previous reports to be dropped as this one succeed
+            if {[info exists holdidlist]} {
+               foreach {holdid action} $holdidlist {
+                  lappend newholdidlist $holdid drop
+               }
+               set holdidlist $newholdidlist
+            }
          }
+         lappend holdidlist $curholdid report
       }
+      # output held messages
+      eval releaseHeldReport $holdidlist
    }
 
    if {![eval is-loaded $args] && ![eval is-loading $args]} {
@@ -2984,6 +3034,26 @@ proc pushCommandName {commandName} {
 proc popCommandName {} {
    set ::g_commandNameStack [lrange $::g_commandNameStack 0 end-1]
 }
+
+# stack of report holder unique identifiers
+set g_reportHoldIdStack {}
+
+proc isReportHeld {} {
+   return [expr {[llength $::g_reportHoldIdStack] > 0}]
+}
+
+proc currentReportHoldId {} {
+   return [lindex $::g_reportHoldIdStack end]
+}
+
+proc pushReportHoldId {holdid} {
+   lappend ::g_reportHoldIdStack $holdid
+}
+
+proc popReportHoldId {} {
+   set ::g_reportHoldIdStack [lrange $::g_reportHoldIdStack 0 end-1]
+}
+
 
 # stack of message recording unique identifiers
 set g_msgRecordIdStack {}

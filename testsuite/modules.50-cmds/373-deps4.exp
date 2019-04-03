@@ -143,7 +143,8 @@ lappend ans [list setpath MODULES_LMNOTUASKED "dd:df"]
 lappend ans [list setpath MODULES_LMCONFLICT "dg&db"]
 lappend ans [list setpath MODULES_LMPREREQ "df&da|db|dc|dd|de:dg&df"]
 lappend ans [list ERR]
-set tserr [list [msg_load da [err_conflictw da df]] "\nload db" \n[msg_load db [err_conflict db dg]] "\nload dc" "load dd" "load df" "load dg" \n[msg_top_load dg {} [list dd df] {}]]
+# as da, db and dc are not valid requirement, their load attempt output is dropped
+set tserr [list "load dd" "load df" "load dg" \n[msg_top_load dg {} [list dd df] {}]]
 testouterr_cmd_re "sh" "load dg" $ans [join $tserr "\n"]
 
 # test with alternative prereq already loaded (asked by user)
