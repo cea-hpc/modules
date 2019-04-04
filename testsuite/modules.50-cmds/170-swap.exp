@@ -245,13 +245,13 @@ setenv_loaded_module [list $mod21] [list $mod21p]
 
 unsetenv_path_var MODULES_LMALTNAME
 setenv_loaded_module [list $mod100] [list $mod100p]
-testouterr_cmd "sh" "swap $mod100 $mod11" "ERR" [msg_unload $mod100 $mod100errun]
+testouterr_cmd "sh" "swap $mod100 $mod11" "ERR" [msg_unload $mod100 $mod100errun]\n\n[msg_switch $mod100 $mod11 [err_swoff $mod100]]
 
 setenv_loaded_module [list $mod101] [list $mod101p]
-testouterr_cmd "sh" "swap $mod101 $mod11" "ERR" [msg_unload $mod101 $mod101errun]
+testouterr_cmd "sh" "swap $mod101 $mod11" "ERR" [msg_unload $mod101 $mod101errun]\n\n[msg_switch $mod101 $mod11 [err_swoff $mod101]]
 
 setenv_loaded_module [list $mod102] [list $mod102p]
-testouterr_cmd "sh" "swap $mod102 $mod11" "ERR" [msg_unload $mod102 $mod102errun]
+testouterr_cmd "sh" "swap $mod102 $mod11" "ERR" [msg_unload $mod102 $mod102errun]\n\n[msg_switch $mod102 $mod11 [err_swoff $mod102]]
 
 setenv_loaded_module [list $mod100 $mod103] [list $mod100p $mod103p] [list $mod100]
 setenv_path_var MODULES_LMPREREQ $mod103&$mod100
@@ -365,15 +365,15 @@ lappend ans2 [list unsetpath LOADEDMODULES]
 lappend ans2 [list unsetpath _LMFILES_]
 
 
-testouterr_cmd "sh" "swap $mod11 $mod100" $ans [msg_load $mod100 $mod100err]
-testouterr_cmd "sh" "swap $mod11 $mod101" $ans [msg_load $mod101 $mod101err]
+testouterr_cmd "sh" "swap $mod11 $mod100" $ans [msg_load $mod100 $mod100err]\n\n[msg_switch $mod11 $mod100 [err_swon $mod100]]
+testouterr_cmd "sh" "swap $mod11 $mod101" $ans [msg_load $mod101 $mod101err]\n\n[msg_switch $mod11 $mod101 [err_swon $mod101]]
 testouterr_cmd "sh" "swap $mod11 $mod102" $ans2 [msg_switch $mod11 $mod102 $mod102err]
-testouterr_cmd "sh" "swap $mod11 $mod103" $ans [msg_load $mod100 $mod100err]\n\n[msg_load $mod103 [err_prereq $mod103 $mod100]]
-testouterr_cmd "sh" "swap $mod11 $mod104" $ans [msg_load $mod101 $mod101err]\n\n[msg_load $mod104 [err_prereq $mod104 $mod101]]
-testouterr_cmd "sh" "swap $mod11 $mod105" $ans [msg_load $mod105 $mod102err [err_prereq $mod105 $mod102]]
-testouterr_cmd "sh" "swap $mod11 $mod106" $ans [msg_load $mod100 $mod100err]\n\n[msg_load $mod103 [err_prereq $mod103 $mod100]]\n\n[msg_load $mod106 [err_prereq $mod106 $mod103]]
-testouterr_cmd "sh" "swap $mod11 $mod107" $ans [msg_load $mod101 $mod101err]\n\n[msg_load $mod104 [err_prereq $mod104 $mod101]]\n\n[msg_load $mod107 [err_prereq $mod107 $mod104]]
-testouterr_cmd "sh" "swap $mod11 $mod108" $ans [msg_load $mod105 $mod102err [err_prereq $mod105 $mod102]]\n\n[msg_load $mod108 [err_prereq $mod108 $mod105]]
+testouterr_cmd "sh" "swap $mod11 $mod103" $ans [msg_load $mod100 $mod100err]\n\n[msg_load $mod103 [err_prereq $mod103 $mod100]]\n\n[msg_switch $mod11 $mod103 [err_swon $mod103]]
+testouterr_cmd "sh" "swap $mod11 $mod104" $ans [msg_load $mod101 $mod101err]\n\n[msg_load $mod104 [err_prereq $mod104 $mod101]]\n\n[msg_switch $mod11 $mod104 [err_swon $mod104]]
+testouterr_cmd "sh" "swap $mod11 $mod105" $ans [msg_load $mod105 $mod102err [err_prereq $mod105 $mod102]]\n\n[msg_switch $mod11 $mod105 [err_swon $mod105]]
+testouterr_cmd "sh" "swap $mod11 $mod106" $ans [msg_load $mod100 $mod100err]\n\n[msg_load $mod103 [err_prereq $mod103 $mod100]]\n\n[msg_load $mod106 [err_prereq $mod106 $mod103]]\n\n[msg_switch $mod11 $mod106 [err_swon $mod106]]
+testouterr_cmd "sh" "swap $mod11 $mod107" $ans [msg_load $mod101 $mod101err]\n\n[msg_load $mod104 [err_prereq $mod104 $mod101]]\n\n[msg_load $mod107 [err_prereq $mod107 $mod104]]\n\n[msg_switch $mod11 $mod107 [err_swon $mod107]]
+testouterr_cmd "sh" "swap $mod11 $mod108" $ans [msg_load $mod105 $mod102err [err_prereq $mod105 $mod102]]\n\n[msg_load $mod108 [err_prereq $mod108 $mod105]]\n\n[msg_switch $mod11 $mod108 [err_swon $mod108]]
 
 #
 # Test to swap with full path modulefiles
@@ -392,9 +392,9 @@ setenv_loaded_module [list $mod12p] [list $mod12p]
 testouterr_cmd "sh" "swap $mod11p $mod12p" "OK" ""
 
 # inexistant modulefile to unload does not lead to error
-testouterr_cmd "sh" "swap $modpath/unknown $mod100p" "ERR" [msg_load $mod100p $mod100err]
+testouterr_cmd "sh" "swap $modpath/unknown $mod100p" "ERR" [msg_load $mod100p $mod100err]\n\n[msg_switch $modpath/unknown $mod100p [err_swon $mod100p]]
 
-testouterr_cmd "sh" "swap $mod11p $mod100p" "ERR" [msg_load $mod100p $mod100err]
+testouterr_cmd "sh" "swap $mod11p $mod100p" "ERR" [msg_load $mod100p $mod100err]\n\n[msg_switch $mod11p $mod100p [err_swon $mod100p]]
 
 
 # swap with full path modulefiles modules loaded short path

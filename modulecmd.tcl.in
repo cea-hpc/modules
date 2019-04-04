@@ -7616,6 +7616,13 @@ proc cmdModuleLoad {context uasked args} {
          if {$errCode == 1 && $errMsg ne {}} {
             reportError $errMsg [expr {![info exists errlocalreport]}]
          }
+         # report switched-on module load failure under switch info block
+         # unless the above reportError call already put a mesg to this block
+         if {$errCode != 4 && [info exists swprocessing] && ($errMsg eq {} ||\
+            [info exists errlocalreport])} {
+            # warn as this issue does not lead to a rollback of switch action
+            reportWarning "Load of switched-on $modname failed" 1
+         }
          # rollback settings if some evaluation went wrong
          if {$errCode != 4} {
             set ret 1
@@ -7850,6 +7857,12 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       } errMsg]] != 0} {
          if {$errCode == 1 && $errMsg ne {}} {
             reportError $errMsg [expr {![info exists errlocalreport]}]
+         }
+         # report switched-off module unload failure under switch info block
+         # unless the above reportError call already put a mesg to this block
+         if {$errCode != 4 && [info exists swprocessing] && ($errMsg eq {} ||\
+            [info exists errlocalreport])} {
+            reportError "Unload of switched-off $modname failed" 1
          }
          # rollback settings if some evaluation went wrong
          if {$errCode != 4 && ![info exists errharmless]} {
