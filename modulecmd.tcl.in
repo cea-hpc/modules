@@ -7699,9 +7699,15 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                   reportWarning [getWarnUnPrereqMsg $modname $prereq_list]
                }
             } else {
-               reportError [getErrPrereqMsg $modname $prereq_list 0]
-               # exit treatment but no need to restore settings
-               continue
+               set errlocalreport 1
+               # exit treatment but no need to set return code to error if
+               # called from a 'module unload' command in a modulefile in a
+               # load evaluation mode, as set conflict will raise error at end
+               # of modulefile evaluation
+               if {$onlyndep} {
+                  set errharmless 1
+               }
+               error [getErrPrereqMsg $modname $prereq_list 0]
             }
          }
 
@@ -7843,15 +7849,16 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
          reportModuleEval
       } errMsg]] != 0} {
          if {$errCode == 1 && $errMsg ne {}} {
-            reportError $errMsg 1
+            reportError $errMsg [expr {![info exists errlocalreport]}]
          }
          # rollback settings if some evaluation went wrong
-         if {$errCode != 4} {
+         if {$errCode != 4 && ![info exists errharmless]} {
             set ret 1
             restoreSettings
             # remove from successfully evaluated module list
             registerModuleEval $context $modname 1
          }
+         unset -nocomplain errlocalreport errharmless
       }
       popSettings
 
