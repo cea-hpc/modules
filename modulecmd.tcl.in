@@ -7568,13 +7568,10 @@ proc cmdModuleLoad {context uasked args} {
          } elseif {$doescon} {
             # report error using declared conflict name (as if it was
             # raised from a conflict modulefile command)
-            if {[info exists ::loading_conflict($modname)] && [isInList\
-               $::loading_conflict($modname) $moddecconlist]} {
-               reportError [getErrConflictMsg $modname $moddecconlist 1]
-            } else {
-               reportError [getErrConflictMsg $modname $moddecconlist]
-            }
-            break
+            set errlocalreport 1
+            error [getErrConflictMsg $modname $moddecconlist [expr {[info\
+               exists ::loading_conflict($modname)] && [isInList\
+               $::loading_conflict($modname) $moddecconlist]}]]
          }
 
          add-path append LOADEDMODULES $modname
@@ -7617,7 +7614,7 @@ proc cmdModuleLoad {context uasked args} {
          reportModuleEval
       } errMsg]] != 0} {
          if {$errCode == 1 && $errMsg ne {}} {
-            reportError $errMsg 1
+            reportError $errMsg [expr {![info exists errlocalreport]}]
          }
          # rollback settings if some evaluation went wrong
          if {$errCode != 4} {
@@ -7626,6 +7623,7 @@ proc cmdModuleLoad {context uasked args} {
             # remove from successfully evaluated module list
             registerModuleEval $context $modname 1
          }
+         unset -nocomplain errlocalreport
       }
       popSettings
 
