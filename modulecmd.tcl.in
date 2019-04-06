@@ -1938,46 +1938,23 @@ proc module {command args} {
                # the modulefile scope in a future release. Use `module unload`
                # and `module load` commands in modulefiles instead.
 
-               # find what has been asked for unload and load
-               lassign $args swunmod swlomod
-               if {$swunmod eq {}} {
-                  unset swunmod
-               }
-               if {$swlomod eq {}} {
-                  if {[info exists swunmod]} {
-                     set swlomod $swunmod
-                     unset swunmod
-                  } else {
-                     unset swlomod
-                  }
-               }
-
                switch -- $mode {
                   load {
                      eval cmdModuleSwitch $uasked $args
-                     # register dependencies toward module to unload and load
-                     # temporarily disable auto handling just to record deps
-                     # not to try to load or unload them (already tried)
-                     set orig_auto_handling [getAutoHandling]
-                     set ::g_auto_handling 0
-                     # register modulefile to unload as conflict if an unload
-                     # module is mentionned on this module switch command
-                     if {[info exists swunmod]} {
-                        catch {conflict $swunmod}
-                     }
-                     # register modulefile to load as prereq
-                     if {[info exists swlomod]} {
-                        prereq $swlomod
-                     }
-                     set ::g_auto_handling $orig_auto_handling
                   }
                   unload {
+                     # find what has been asked for unload and load
+                     lassign $args swunmod swlomod
+                     if {$swlomod eq {} && $swunmod ne {}} {
+                        set swlomod $swunmod
+                     }
+
                      # apply same mechanisms than for 'module load' and
                      # 'module unload' for an unload evaluation: nothing done
                      # for switched-off module and unload of switched-on
                      # module. If auto handling is enabled switched-on module
                      # is handled via UReqUn mechanism
-                     if {![getAutoHandling] && [info exists swlomod]} {
+                     if {![getAutoHandling] && $swlomod ne {}} {
                         # unload mod if it was loaded prior this mod, not user
                         # asked and not required by another loaded module
                         set modlist [getLoadedModuleList]
@@ -7129,6 +7106,9 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    } else {
       set unload_match match
    }
+   # save orig names to register them as deps if called from modulefile
+   set argnew $new
+   set argold [expr {$new eq $old ? {} : $old}]
 
    reportDebug "old='$old' new='$new' (uasked=$uasked)"
 
@@ -7137,8 +7117,21 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    # their respective unload/load block
    pushMsgRecordId switch-$old-$new-[getEvalModuleStackDepth]
 
+   set ret [cmdModuleUnload swunload $unload_match 1 0 0 0 $old]
+
+   # register modulefile to unload as conflict if an unload module is
+   # mentionned on this module switch command set in a modulefile
+   set orig_auto_handling [getAutoHandling]
+   if {!$uasked && $argold ne {}} {
+      # temporarily disable auto handling just to record deps, not to try to
+      # load or unload them (already tried)
+      set ::g_auto_handling 0
+      catch {conflict $argold}
+      set ::g_auto_handling $orig_auto_handling
+   }
+
    # attempt load and depre reload only if unload succeed
-   if {![cmdModuleUnload swunload $unload_match 1 0 0 0 $old]} {
+   if {!$ret} {
       cmdModuleLoad swload $uasked $new
 
       if {[getAutoHandling] && [info exists deprelist] && [llength\
@@ -7159,6 +7152,13 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    # report all recorded sumup messages for this evaluation
    reportMsgRecord "Switching from $old to $new"
    popMsgRecordId
+
+   # register modulefile to load as prereq when called from modulefile
+   if {!$uasked && !$ret && $argnew ne {}} {
+      set ::g_auto_handling 0
+      prereq $argnew
+      set ::g_auto_handling $orig_auto_handling
+   }
 }
 
 proc cmdModuleSave {{coll default}} {
