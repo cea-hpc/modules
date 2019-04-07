@@ -133,6 +133,11 @@ else:
 # so a file named "default.css" will overwrite the builtin "default.css".
 #html_static_path = ['_static']
 
+# ensure quotes and dashes are preserved and not converted to lang-specific
+# entities (fix issue#250). `html_use_smartypants` option is for Sphinx <1.6
+# and `smartquotes` option is for Sphinx >=1.6.
+html_use_smartypants = False
+smartquotes = False
 
 # -- Options for HTMLHelp output ------------------------------------------
 
