@@ -134,10 +134,14 @@ else:
 #html_static_path = ['_static']
 
 # ensure quotes and dashes are preserved and not converted to lang-specific
-# entities (fix issue#250). `html_use_smartypants` option is for Sphinx <1.6
-# and `smartquotes` option is for Sphinx >=1.6.
-html_use_smartypants = False
-smartquotes = False
+# entities (fix issue#250). done by disabling `html_use_smartypants` on Sphinx
+# version older than 1.6 and by disabling `smartquotes` on newer versions.
+from sphinx import __version__ as sphinx_version
+sphinx_version_parts = [int(i) for i in sphinx_version.split('.')]
+if sphinx_version_parts[0] <= 1 and sphinx_version_parts[1] < 6:
+    html_use_smartypants = False
+else:
+    smartquotes = False
 
 # -- Options for HTMLHelp output ------------------------------------------
 
