@@ -719,6 +719,10 @@ proc getErrPrereqMsg {mod prelist {load 1}} {
    return "$mod cannot be ${un}loaded due to $mis prereq.\n$hintmsg"
 }
 
+proc getErrReqLoMsg {prelist} {
+   return "Load of requirement [join $prelist { or }] failed"
+}
+
 ########################################################################
 # Use a slave TCL interpreter to execute modulefiles
 #
@@ -2751,11 +2755,21 @@ proc prereq {args} {
    }
 
    if {![eval is-loaded $args] && ![eval is-loading $args]} {
-      # still proceed if force mode enabled
-      if {[getForce]} {
-         reportWarning [getWarnLoPrereqMsg $currentModule $args]
+      # provide more appropriate message if reqlo was attempted
+      if {[eval isModuleEvaluated reqlo $args]} {
+         set msg [getErrReqLoMsg $args]
+         if {[getForce]} {
+            reportWarning $msg
+         } else {
+            error "GLOBALERR $msg"
+         }
       } else {
-         error "GLOBALERR [getErrPrereqMsg $currentModule $args]"
+         # still proceed if force mode enabled
+         if {[getForce]} {
+            reportWarning [getWarnLoPrereqMsg $currentModule $args]
+         } else {
+            error "GLOBALERR [getErrPrereqMsg $currentModule $args]"
+         }
       }
    }
 
@@ -3095,6 +3109,24 @@ proc registerModuleEval {context mod {unset 0}} {
    if {!$unset && !$contextset} {
       lappend ::g_moduleEval($recid) [list $context $mod]
    }
+}
+
+# record module evaluation attempt and corresponding context
+proc registerModuleEvalAttempt {context mod} {
+   set ::g_moduleEvalAttempt($mod) $context
+}
+
+# are modules passed as argument evaluated in passed context
+proc isModuleEvaluated {context args} {
+   set ret 1
+   foreach mod $args {
+      if {![info exists ::g_moduleEvalAttempt($mod)] || \
+         $::g_moduleEvalAttempt($mod) ne $context} {
+         set ret 0
+         break
+      }
+   }
+   return $ret
 }
 
 # return list of currently loading modules in stack
@@ -7463,6 +7495,9 @@ proc cmdModuleLoad {context uasked args} {
    set ret 0
    pushMode load
    foreach mod $args {
+      # record evaluation attempt on specified module name
+      registerModuleEvalAttempt [expr {$context eq {swload} &&\
+         ![isMsgRecordIdTop] ? {reqlo} : $context}] $mod
       lassign [getPathToModule $mod] modfile modname
       if {$modfile eq {}} {
          set ret 1
@@ -7492,6 +7527,9 @@ proc cmdModuleLoad {context uasked args} {
       # set a unique id to record messages related to this evaluation.
       set msgrecid load-$modname-[getEvalModuleStackDepth]
       pushMsgRecordId $msgrecid
+
+      # record evaluation attempt on actual module name
+      registerModuleEvalAttempt $context $modname
 
       # check if passed modname correspond to an already loaded modfile
       # and get its loaded name (in case it has been loaded as full path)

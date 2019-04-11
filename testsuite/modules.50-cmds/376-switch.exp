@@ -77,7 +77,7 @@ testouterr_cmd_re sh {load --no-auto swc} $ans [join $tserr \n]
 # conflict against switched-on module set
 setenv_loaded_module [list swd] [list $mp/swd]
 setenv_path_var MODULES_LMCONFLICT swd&swb
-set tserr [list {load swc} {load swb} \n[msg_load swb [err_conflict swb swd]] \n[msg_load swc [err_swon swb] [err_prereq swc swb]]]
+set tserr [list {load swc} {load swb} \n[msg_load swb [err_conflict swb swd]] \n[msg_load swc [err_swon swb] [err_reqlo swb]]]
 testouterr_cmd_re sh {load --auto swc} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swc} ERR [join $tserr \n]
 
@@ -133,7 +133,7 @@ setenv_loaded_module [list swd swa swe] [list $mp/swd $mp/swa $mp/swe]
 setenv_path_var MODULES_LMCONFLICT swd&swb
 setenv_path_var MODULES_LMPREREQ swe&swa
 
-set tserr [list {load swc} {unload swe} {unload swa} {load swb} \n[msg_load swb [err_conflict swb swd]]\n {load swe} \n[msg_load swe [err_prereq swe swa]] \n[msg_load swc [err_swon swb] [err_depref swe] [err_prereq swc swb]]]
+set tserr [list {load swc} {unload swe} {unload swa} {load swb} \n[msg_load swb [err_conflict swb swd]]\n {load swe} \n[msg_load swe [err_prereq swe swa]] \n[msg_load swc [err_swon swb] [err_depref swe] [err_reqlo swb]]]
 testouterr_cmd_re sh {load --auto swc} ERR [join $tserr \n]
 set tserr [list {load swc} \n[msg_unload swa [err_prerequn swa swe]] \n[msg_load swc [err_swoff swa] [err_conflict swc swa]]]
 testouterr_cmd_re sh {load --no-auto swc} ERR [join $tserr \n]
@@ -577,7 +577,7 @@ testouterr_cmd_re sh {load --no-auto swi} ERR [join $tserr \n]
 # switched-on module breaks when loaded
 unsetenv_loaded_module
 
-set tserr [list {load swj} {load ra} \n[msg_load swj [err_swon ra] [err_prereq swj ra]]]
+set tserr [list {load swj} {load ra} \n[msg_load swj [err_swon ra] [err_reqlo ra]]]
 testouterr_cmd_re sh {load --auto swj} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swj} ERR [join $tserr \n]
 
@@ -623,7 +623,7 @@ testouterr_cmd_re sh {load --no-auto swl} ERR [join $tserr \n]
 # switched-on module produces a module error when loaded
 unsetenv_loaded_module
 
-set tserr [list {load swm} {load swn} \n[msg_load swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mpre/swn'" $err_contact] \n[msg_load swm [err_swon swn] [err_prereq swm swn]]]
+set tserr [list {load swm} {load swn} \n[msg_load swn "$moderr_msgs: invalid command name \"bad\"" "  In '$mpre/swn'" $err_contact] \n[msg_load swm [err_swon swn] [err_reqlo swn]]]
 testouterr_cmd_re sh {load --auto swm} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swm} ERR [join $tserr \n]
 
