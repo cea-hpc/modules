@@ -723,6 +723,10 @@ proc getErrReqLoMsg {prelist} {
    return "Load of requirement [join $prelist { or }] failed"
 }
 
+proc getReqNotLoadedMsg {prelist} {
+   return "Requirement [join $prelist { or }] is not loaded"
+}
+
 ########################################################################
 # Use a slave TCL interpreter to execute modulefiles
 #
@@ -2758,20 +2762,37 @@ proc prereq {args} {
    }
 
    if {![eval is-loaded $args] && ![eval is-loading $args]} {
-      # provide more appropriate message if reqlo was attempted
-      if {[eval isModuleEvaluated reqlo $args]} {
+      set retisreqlo [eval isModuleEvaluated reqlo $args]
+      # report message on currently evaluated module message block
+      if {![set retiseval [eval isModuleEvaluated any $args]] ||\
+         [currentMsgRecordId] ne [topMsgRecordId]} {
+
+         # provide more appropriate message if an evaluation was attempted
+         if {$retiseval} {
+            set msg [getReqNotLoadedMsg $args]
+         } elseif {[getForce]} {
+            set msg [getWarnLoPrereqMsg $currentModule $args]
+         } else {
+            set msg [getErrPrereqMsg $currentModule $args]
+         }
+         # still proceed if force mode enabled
+         if {[getForce]} {
+            reportWarning $msg
+         # no error raise if done later
+         } elseif {$retisreqlo} {
+            reportError $msg
+         } else {
+            error "GLOBALERR $msg"
+         }
+      }
+
+      # raise reqlo-specific msg to top level if attempted
+      if {$retisreqlo} {
          set msg [getErrReqLoMsg $args]
          if {[getForce]} {
             reportWarning $msg 1
          } else {
             error "GLOBALERRTOP $msg"
-         }
-      } else {
-         # still proceed if force mode enabled
-         if {[getForce]} {
-            reportWarning [getWarnLoPrereqMsg $currentModule $args]
-         } else {
-            error "GLOBALERR [getErrPrereqMsg $currentModule $args]"
          }
       }
    }
@@ -3123,8 +3144,8 @@ proc registerModuleEvalAttempt {context mod} {
 proc isModuleEvaluated {context args} {
    set ret 1
    foreach mod $args {
-      if {![info exists ::g_moduleEvalAttempt($mod)] || \
-         $::g_moduleEvalAttempt($mod) ne $context} {
+      if {![info exists ::g_moduleEvalAttempt($mod)] || ($context ne {any} &&\
+         [notInList $::g_moduleEvalAttempt($mod) $context])} {
          set ret 0
          break
       }
