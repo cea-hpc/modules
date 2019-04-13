@@ -313,7 +313,7 @@ lappend ans [list setpath LOADEDMODULES "f3:f6:f7:f5"]
 lappend ans [list setpath _LMFILES_ "$mp/f3:$mp/f6:$mp/f7:$mp/f5"]
 lappend ans [list setpath MODULES_LMCONFLICT "f6&f5"]
 lappend ans [list setpath MODULES_LMPREREQ "f3&f1|f2:f6&f3|f4:f7&f6"]
-set tserr [list "load f3" \n[msg_load f3 [err_prereqf f3 f1 f2]] "\nload f6" "load f7" "load f5" \n[msg_load f5 [err_conflictf f5 f6]]]
+set tserr [list "load f3" \n[msg_load f3 [err_reqmisf f1 f2]] "\nload f6" "load f7" "load f5" \n[msg_load f5 [err_conflictf f5 f6]]]
 testouterr_cmd_re "sh" "load -f --no-auto f3 f6 f7 f5" $ans [join $tserr "\n"]
 
 # define this situation as loaded
@@ -350,7 +350,7 @@ lappend ans [list setpath LOADEDMODULES "f6:f7"]
 lappend ans [list setpath _LMFILES_ "$mp/f6:$mp/f7"]
 lappend ans [list setpath MODULES_LMCONFLICT "f6&f5"]
 lappend ans [list setpath MODULES_LMPREREQ "f6&f3|f4:f7&f6"]
-set tserr [list "load f6" \n[msg_load f6 [err_prereqf f6 f3 f4]] "\nload f7"]
+set tserr [list "load f6" \n[msg_load f6 [err_reqmisf f3 f4]] "\nload f7"]
 testouterr_cmd_re "sh" "load --no-auto --force f6 f7" $ans [join $tserr "\n"]
 
 # define this situation as loaded
@@ -362,7 +362,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "f6:f7:f3"]
 lappend ans [list setpath _LMFILES_ "$mp/f6:$mp/f7:$mp/f3"]
 lappend ans [list setpath MODULES_LMPREREQ "f6&f3|f4:f7&f6:f3&f1|f2"]
-set tserr [list "load f3" \n[msg_load f3 [err_prereqf f3 f1 f2]]]
+set tserr [list "load f3" \n[msg_load f3 [err_reqmisf f1 f2]]]
 testouterr_cmd_re "sh" "load --no-auto --force f3" $ans [join $tserr "\n"]
 
 set ans [list]
@@ -396,7 +396,7 @@ lappend ans [list setpath LOADEDMODULES "f6:f7:f5"]
 lappend ans [list setpath _LMFILES_ "$mp/f6:$mp/f7:$mp/f5"]
 lappend ans [list setpath MODULES_LMCONFLICT "f6&f5"]
 lappend ans [list setpath MODULES_LMPREREQ "f6&f3|f4:f7&f6"]
-set tserr [list "load f6" \n[msg_load f6 [err_prereqf f6 f3 f4]] "\nload f7" "load f5" \n[msg_load f5 [err_conflictf f5 f6]]]
+set tserr [list "load f6" \n[msg_load f6 [err_reqmisf f3 f4]] "\nload f7" "load f5" \n[msg_load f5 [err_conflictf f5 f6]]]
 testouterr_cmd_re "sh" "load --no-auto --force f6 f7 f5" $ans [join $tserr "\n"]
 
 # define this situation as loaded
@@ -408,7 +408,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "f6:f7:f5:f3"]
 lappend ans [list setpath _LMFILES_ "$mp/f6:$mp/f7:$mp/f5:$mp/f3"]
 lappend ans [list setpath MODULES_LMPREREQ "f6&f3|f4:f7&f6:f3&f1|f2"]
-set tserr [list "load f3" \n[msg_load f3 [err_prereqf f3 f1 f2]]]
+set tserr [list "load f3" \n[msg_load f3 [err_reqmisf f1 f2]]]
 testouterr_cmd_re "sh" "load --no-auto --force f3" $ans [join $tserr "\n"]
 
 set ans [list]
@@ -440,7 +440,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "f10"]
 lappend ans [list setpath _LMFILES_ "$mp/f10"]
 lappend ans [list setpath MODULES_LMPREREQ "f10&f8&f9"]
-set tserr [list "load f10" \n[msg_load f10 [err_prereqf f10 f8] [err_prereqf f10 f9]]]
+set tserr [list "load f10" \n[msg_load f10 [err_reqmisf f8] [err_reqmisf f9]]]
 testouterr_cmd_re "sh" "load --no-auto --force f10" $ans [join $tserr "\n"]
 
 # define this situation as loaded

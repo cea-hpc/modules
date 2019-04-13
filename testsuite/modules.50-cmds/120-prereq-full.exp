@@ -101,7 +101,7 @@ lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES "$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile"]
 lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
-set tserr [msg_load $module [err_prereqf $module $module_tron]]
+set tserr [msg_load $module [err_reqmisf $module_tron]]
 testouterr_cmd "sh" "load --no-auto --force $module" $ans $tserr
 
 # switch sub-command should obtain same result here
@@ -141,7 +141,7 @@ lappend ans [list setpath LOADEDMODULES "$module_troff:$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile_troff:$modulefile"]
 lappend ans [list setpath MODULES_LMPREREQ "$module&$module_tron"]
 # dependent module is forced to be reloaded with its prereq missing
-set tserr [msg_unload $module_tron $err_trace]\n\n[msg_load $module [err_prereqf $module $module_tron]]\n\n[msg_top_switch $module_tron $module_troff {} {} {} {} $module]
+set tserr [msg_unload $module_tron $err_trace]\n\n[msg_load $module [err_reqmisf $module_tron]]\n\n[msg_top_switch $module_tron $module_troff {} {} {} {} $module]
 testouterr_cmd_re "sh" "switch --auto --force $module_tron $module_troff" $ans $tserr
 
 # from this situation where prereq is not loaded

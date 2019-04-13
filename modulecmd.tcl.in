@@ -709,10 +709,6 @@ proc getWarnUnPrereqMsg {mod prelist} {
    return "$mod is required by [join $prelist {, }]"
 }
 
-proc getWarnLoPrereqMsg {mod prelist} {
-   return "$mod requires [join $prelist { or }] loaded"
-}
-
 proc getErrPrereqMsg {mod prelist {load 1}} {
    lassign [if {$load} {list {} missing [getHintLoFirstMsg $prelist]}\
       {list un a [getHintUnFirstMsg $prelist]}] un mis hintmsg
@@ -2767,14 +2763,9 @@ proc prereq {args} {
       if {![set retiseval [eval isModuleEvaluated any $args]] ||\
          [currentMsgRecordId] ne [topMsgRecordId]} {
 
-         # provide more appropriate message if an evaluation was attempted
-         if {$retiseval} {
-            set msg [getReqNotLoadedMsg $args]
-         } elseif {[getForce]} {
-            set msg [getWarnLoPrereqMsg $currentModule $args]
-         } else {
-            set msg [getErrPrereqMsg $currentModule $args]
-         }
+         # more appropriate msg if an evaluation was attempted or is by-passed
+         set msg [expr {$retiseval || [getForce] ? [getReqNotLoadedMsg $args]\
+            : [getErrPrereqMsg $currentModule $args]}]
          # still proceed if force mode enabled
          if {[getForce]} {
             reportWarning $msg
