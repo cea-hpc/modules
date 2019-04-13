@@ -978,6 +978,9 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
          } elseif {$errorMsg eq {SUB_FAILED}} {
             # error counter and message already handled, just return error
             return 1
+         } elseif {[string range $errorMsg 0 12] eq {GLOBALERRTOP }} {
+            reportError [string range $errorMsg 13 end] 1
+            return 1
          } elseif {[string range $errorMsg 0 9] eq {GLOBALERR }} {
             reportError [string range $errorMsg 10 end]
             return 1
@@ -2759,9 +2762,9 @@ proc prereq {args} {
       if {[eval isModuleEvaluated reqlo $args]} {
          set msg [getErrReqLoMsg $args]
          if {[getForce]} {
-            reportWarning $msg
+            reportWarning $msg 1
          } else {
-            error "GLOBALERR $msg"
+            error "GLOBALERRTOP $msg"
          }
       } else {
          # still proceed if force mode enabled
