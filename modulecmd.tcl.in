@@ -1843,7 +1843,7 @@ proc module {command args} {
                if {$topcall || ([getEvalModuleStackDepth] == 1 && (
                   [aboveCommandName] eq {source} || [aboveCommandName] eq\
                   {autoinit}))} {
-                  set ret [eval cmdModuleLoad main 1 $args]
+                  set ret [eval cmdModuleLoad load 1 $args]
                } elseif {$mode eq {load}} {
                   # load here if no auto mode, done through prereq elsewhere
                   if {![getAutoHandling]} {
@@ -1890,7 +1890,7 @@ proc module {command args} {
             if {$topcall || ([getEvalModuleStackDepth] == 1 && (
                [aboveCommandName] eq {source} || [aboveCommandName] eq\
                {autoinit}))} {
-               set ret [eval cmdModuleUnload main match 1 0 0 0 $args]
+               set ret [eval cmdModuleUnload unload match 1 0 0 0 $args]
             } elseif {$mode eq {load}} {
                # unload mods only on load mode, nothing done on unload mode as
                # the registered conflict guarantees the target module cannot
@@ -6792,7 +6792,7 @@ proc parseModuleCommandArgs {cmd args} {
 
 # unload phase of a list of modules reload process
 proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {Reload of\
-   _MOD_ failed}} {context main}} {
+   _MOD_ failed}} {context unload}} {
    upvar $lmname lmlist
    # unload one by one to ensure same behavior whatever auto_handling state
    foreach mod [lreverse $lmlist] {
@@ -6817,7 +6817,7 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {Reload of\
 
 # load phase of a list of modules reload process
 proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl\
-   {Reload of _MOD_ failed}} {context main}} {
+   {Reload of _MOD_ failed}} {context load}} {
    upvar $lmname lmlist
    array set isuasked $isuaskedlist
 
@@ -7944,7 +7944,7 @@ proc cmdModulePurge {} {
 
   # unload one by one to ensure same behavior whatever auto_handling state
    # force it to handle loaded modules in violation state
-   eval cmdModuleUnload main match 0 1 0 0 [lreverse [getLoadedModuleList]]
+   eval cmdModuleUnload unload match 0 1 0 0 [lreverse [getLoadedModuleList]]
 
    # no sumup report for purge action for the moment
    popMsgRecordId
