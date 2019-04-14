@@ -104,7 +104,7 @@ lappend ans [list setpath LOADEDMODULES swb:swc]
 lappend ans [list setpath MODULES_LMNOTUASKED swb]
 lappend ans [list setpath MODULES_LMCONFLICT swc&swa]
 lappend ans [list ERR]
-set tserr [list {load swc} {unload swe} {unload swa} {load swb} {load swe} \n[msg_load swe [err_prereq swe swa]] \n[msg_top_load swc [list swa] swb {} [err_depref swe]]]
+set tserr [list {load swc} {unload swe} {unload swa} {load swb} {load swe} \n[msg_load swe [err_reqmis swa]] \n[msg_top_load swc [list swa] swb {} [err_depref swe]]]
 testouterr_cmd_re sh {load --auto swc} $ans [join $tserr \n]
 set tserr [list {load swc} \n[msg_unload swa [err_prerequn swa swe]] \n[msg_load swc [err_swoff swa] [err_conflict swc swa]]]
 testouterr_cmd_re sh {load --no-auto swc} ERR [join $tserr \n]
@@ -133,7 +133,7 @@ setenv_loaded_module [list swd swa swe] [list $mp/swd $mp/swa $mp/swe]
 setenv_path_var MODULES_LMCONFLICT swd&swb
 setenv_path_var MODULES_LMPREREQ swe&swa
 
-set tserr [list {load swc} {unload swe} {unload swa} {load swb} \n[msg_load swb [err_conflict swb swd]]\n {load swe} \n[msg_load swe [err_prereq swe swa]] \n[msg_load swc [err_swon swb] [err_depref swe] [err_reqlo swb]]]
+set tserr [list {load swc} {unload swe} {unload swa} {load swb} \n[msg_load swb [err_conflict swb swd]]\n {load swe} \n[msg_load swe [err_reqmis swa]] \n[msg_load swc [err_swon swb] [err_depref swe] [err_reqlo swb]]]
 testouterr_cmd_re sh {load --auto swc} ERR [join $tserr \n]
 set tserr [list {load swc} \n[msg_unload swa [err_prerequn swa swe]] \n[msg_load swc [err_swoff swa] [err_conflict swc swa]]]
 testouterr_cmd_re sh {load --no-auto swc} ERR [join $tserr \n]

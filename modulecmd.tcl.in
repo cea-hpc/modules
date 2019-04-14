@@ -2761,7 +2761,7 @@ proc prereq {args} {
       set retisreqlo [eval isModuleEvaluated reqlo $args]
       # report message on currently evaluated module message block
       if {![set retiseval [eval isModuleEvaluated any $args]] ||\
-         [currentMsgRecordId] ne [topMsgRecordId]} {
+         [currentMsgRecordId] ne [topMsgRecordId] || !$retisreqlo} {
 
          # more appropriate msg if an evaluation was attempted or is by-passed
          set msg [expr {$retiseval || [getForce] ? [getReqNotLoadedMsg $args]\
@@ -3128,7 +3128,7 @@ proc registerModuleEval {context mod {unset 0}} {
 
 # record module evaluation attempt and corresponding context
 proc registerModuleEvalAttempt {context mod} {
-   set ::g_moduleEvalAttempt($mod) $context
+   appendNoDupToList ::g_moduleEvalAttempt($mod) $context
 }
 
 # are modules passed as argument evaluated in passed context
@@ -7701,6 +7701,9 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
    set ret 0
    pushMode unload
    foreach mod $args {
+      # record evaluation attempt on specified module name
+      registerModuleEvalAttempt [expr {$context eq {swunload} &&\
+         ![isMsgRecordIdTop] ? {conun} : $context}] $mod
       # resolve by also looking at matching loaded module
       lassign [getPathToModule $mod {} $match] modfile modname errkind
       if {$modfile eq {}} {
@@ -7741,6 +7744,9 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       # set a unique id to record messages related to this evaluation.
       set msgrecid unload-$modname-[getEvalModuleStackDepth]
       pushMsgRecordId $msgrecid
+
+      # record evaluation attempt on actual module name
+      registerModuleEvalAttempt $context $modname
 
       pushSettings
       if {[set errCode [catch {
