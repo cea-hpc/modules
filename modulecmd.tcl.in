@@ -705,10 +705,6 @@ proc getWarnConflictMsg {mod conlist} {
    return "$mod conflicts with [join $conlist {, }]"
 }
 
-proc getWarnUnPrereqMsg {mod prelist} {
-   return "$mod is required by [join $prelist {, }]"
-}
-
 proc getErrPrereqMsg {mod prelist {load 1}} {
    lassign [if {$load} {list {} missing [getHintLoFirstMsg $prelist]}\
       {list un a [getHintUnFirstMsg $prelist]}] un mis hintmsg
@@ -721,6 +717,11 @@ proc getErrReqLoMsg {prelist} {
 
 proc getReqNotLoadedMsg {prelist} {
    return "Requirement [join $prelist { or }] is not loaded"
+}
+
+proc getDepLoadedMsg {prelist} {
+   set is [expr {[llength $prelist] > 1 ? {are} : {is}}]
+   return "Dependent [join $prelist { and }] $is loaded"
 }
 
 ########################################################################
@@ -7760,7 +7761,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                # not warn about prereq violation enforced as it is due to the
                # dependent module which is already in a violation state
                if {$auto || !$force} {
-                  reportWarning [getWarnUnPrereqMsg $modname $prereq_list]
+                  reportWarning [getDepLoadedMsg $prereq_list]
                }
             } else {
                set errlocalreport 1
@@ -7771,7 +7772,9 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                if {$onlyndep} {
                   set errharmless 1
                }
-               error [getErrPrereqMsg $modname $prereq_list 0]
+               error [expr {[eval isModuleEvaluated any $prereq_list] ?\
+                  [getDepLoadedMsg $prereq_list] : [getErrPrereqMsg $modname\
+                  $prereq_list 0]}]
             }
          }
 

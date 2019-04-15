@@ -83,7 +83,7 @@ lappend ans [list setpath LOADEDMODULES "f1:f6:f7:f5"]
 lappend ans [list setpath _LMFILES_ "$mp/f1:$mp/f6:$mp/f7:$mp/f5"]
 lappend ans [list setpath MODULES_LMNOTUASKED "f1:f6"]
 lappend ans [list setpath MODULES_LMPREREQ "f6&f3|f4:f7&f6"]
-set tserr [list "unload f3" \n[msg_unload f3 [err_prerequnf f3 f6]]]
+set tserr [list "unload f3" \n[msg_unload f3 [err_deplof f6]]]
 testouterr_cmd_re "sh" "unload -f --no-auto f3" $ans [join $tserr "\n"]
 
 set ans [list]
@@ -201,7 +201,7 @@ lappend ans [list setpath LOADEDMODULES "f5:f1:f6:f7"]
 lappend ans [list setpath _LMFILES_ "$mp/f5:$mp/f1:$mp/f6:$mp/f7"]
 lappend ans [list setpath MODULES_LMNOTUASKED "f1:f6"]
 lappend ans [list setpath MODULES_LMPREREQ "f6&f3|f4:f7&f6"]
-set tserr [list "unload f3" \n[msg_unload f3 [err_prerequnf f3 f6]]]
+set tserr [list "unload f3" \n[msg_unload f3 [err_deplof f6]]]
 testouterr_cmd_re "sh" "unload -f --no-auto f3" $ans [join $tserr "\n"]
 
 set ans [list]
@@ -717,7 +717,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "f25:f26:f27:f28"]
 lappend ans [list setpath _LMFILES_ "$mp/f25:$mp/f26:$mp/f27:$mp/f28"]
 lappend ans [list unsetpath MODULES_LMCONFLICT]
-set tserr [list "unload f23" \n[msg_unload f23 [err_prerequnf f23 f26]]]
+set tserr [list "unload f23" \n[msg_unload f23 [err_deplof f26]]]
 testouterr_cmd_re "sh" "unload --force --no-auto f23" $ans [join $tserr "\n"]
 
 setenv_loaded_module [list f24 f26 f25 f27 f28 f29] [list "$mp/f24" "$mp/f26" "$mp/f25" "$mp/f27" "$mp/f28" "$mp/f29"] [list f24 f26 f25 f27]
@@ -794,7 +794,7 @@ unsetenv_loaded_module
 
 set ans [list]
 # confusing error messages obtained due to load then unload of same modulefile (which is thus defined as a conflict and a prereq)
-testouterr_cmd "sh" "load mv" ERR [msg_unload ms [err_prerequn ms mv]]\n\n[msg_load mv "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'" [err_conflict mv ms]]
+testouterr_cmd "sh" "load mv" ERR [msg_unload ms [err_deplo mv]]\n\n[msg_load mv "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'" [err_conflict mv ms]]
 
 
 # check ensure warning message is printed only once when force loading a reflexive conflict
