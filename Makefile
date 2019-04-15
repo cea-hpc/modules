@@ -190,6 +190,12 @@ else
   setwa277 := 0
 endif
 
+ifeq ($(avicase),y)
+  AVICASE := 1
+else
+  AVICASE := 0
+endif
+
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@baseprefix@|$(baseprefix)|g' \
@@ -212,6 +218,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@implicitdefault@|$(setimplicitdefault)|g' \
 	-e 's|@searchmatch@|$(searchmatch)|g' \
 	-e 's|@wa277@|$(setwa277)|g' \
+	-e 's|@AVICASE@|$(AVICASE)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \

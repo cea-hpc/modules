@@ -33,7 +33,7 @@ appendbinpath setdotmodulespath docinstall vimaddons examplemodulefiles \
 builddoc gitworktree usemanpath compatversion EXEEXT libtclenvmodules \
 SHLIB_SUFFIX versioning silentshdbgsupport setshellstartup quarantinesupport \
 autohandling availindepth implicitdefault initconfin pager pageropts \
-verbosity color darkbgcolors lightbgcolors termbg lockedconfigs \
+verbosity color darkbgcolors lightbgcolors termbg lockedconfigs avicase \
 unloadmatchorder searchmatch modulepath loadedmodules quarantinevars wa277"
 compatarglist=
 libarglist=
@@ -91,6 +91,7 @@ termbg=dark
 lockedconfigs=
 unloadmatchorder=returnlast
 searchmatch=starts_with
+avicase=n
 # these args are initialized here but as they depend on other argument value
 # they will get their default value later (after command-line parse)
 bindir=
@@ -210,6 +211,8 @@ Optional Features:
                           color mode. \`no' equals to the \`never' color mode
                           [no]
   --enable-wa-277         activate workaround for Tcsh history issue [no]
+  --enable-icase-avail    Enable module avail to perform case insensitive
+                          search
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -489,6 +492,8 @@ for arg in "$@"; do
       if [ "${allowedval// $searchmatch /}" = "$allowedval" ]; then
          echo_error "Bad value for option \`--with-search-match', allowed values are:$allowedval"
       fi ;;
+   --enable-icase-avail*|--disable-icase-avail)
+      avicase=$(get_feature_value "$arg") ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)
