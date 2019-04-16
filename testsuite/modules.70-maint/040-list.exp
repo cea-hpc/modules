@@ -101,10 +101,44 @@ setenv_loaded_module [list foo bar] "/path/to/foo"
 testouterr_cmd_re "sh" "list" "ERR" "$err_loinconsist\n  LOADEDMODULES=foo bar\n  _LMFILES_=/path/to/foo"
 
 #
+# test specific terminal width when one loaded module name fill whole width
+#
+
+set module loc_dv1/1.0
+setenv_loaded_module $module $modpath/$module
+
+set test_cols 16
+if {![info exists term_cols]} {
+    # skip tests if current terminal witdh is unknown
+    send_user "\tskipping terminal width-specific tests\n"
+# set a specific terminal width
+} elseif {[catch {exec stty cols $test_cols}] || [getTtyCols] ne $test_cols} {
+    send_user "\tskipping terminal width-specific tests, cannot set width\n"
+} else {
+
+testouterr_cmd sh list OK "$header\n 1) $module  "
+
+# test with slightly bigger width
+exec stty cols 17
+testouterr_cmd sh list OK "$header\n 1) $module  "
+
+# test with slightly smaller width
+exec stty cols 15
+testouterr_cmd sh list OK "$header\n 1) $module  "
+
+# restore terminal width
+exec stty cols $term_cols
+
+}
+
+
+#
 #  Cleanup
 #
 
 unsetenv_loaded_module
+
+unset test_cols
 
 unset ts_csh
 unset ts_csh_num
