@@ -724,6 +724,10 @@ proc getDepLoadedMsg {prelist} {
    return "Dependent [join $prelist { and }] $is loaded"
 }
 
+proc getErrConUnMsg {conlist} {
+   return "Unload of conflicting [join $conlist { and }] failed"
+}
+
 ########################################################################
 # Use a slave TCL interpreter to execute modulefiles
 #
@@ -7594,6 +7598,7 @@ proc cmdModuleLoad {context uasked args} {
          # (module unload) conflicts through its evaluation
          lassign [doesModuleConflict $modname] doescon modconlist\
             moddecconlist
+         set retisconun [eval isModuleEvaluated conun $modconlist]
          # still proceed if force mode enabled
          if {[getForce] && $doescon} {
             # report warning if not already done
@@ -7614,13 +7619,25 @@ proc cmdModuleLoad {context uasked args} {
             if {$report_con} {
                reportWarning [getWarnConflictMsg $modname $modconlist]
             }
+            # raise conun-specific msg to top level if attempted
+            if {$retisconun} {
+               reportWarning [getErrConUnMsg $modconlist] 1
+            }
          } elseif {$doescon} {
             # report error using declared conflict name (as if it was
             # raised from a conflict modulefile command)
-            set errlocalreport 1
-            error [getErrConflictMsg $modname $moddecconlist [expr {[info\
-               exists ::loading_conflict($modname)] && [isInList\
+            set conmsg [getErrConflictMsg $modname $moddecconlist [expr\
+               {[info exists ::loading_conflict($modname)] && [isInList\
                $::loading_conflict($modname) $moddecconlist]}]]
+
+            if {$retisconun} {
+               reportError $conmsg
+               # raise conun-specific msg to top level if attempted
+               error [getErrConUnMsg $modconlist]
+            } else {
+               set errlocalreport 1
+               error $conmsg
+            }
          }
 
          add-path append LOADEDMODULES $modname
