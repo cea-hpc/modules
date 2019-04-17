@@ -2681,29 +2681,24 @@ proc conflict {args} {
    eval setLoadedConflict $currentModule $args
 
    foreach mod $args {
-      # otherwise if the conflict module is loaded, we cannot
-      if {[is-loaded $mod]} {
-         # still proceed if force mode enabled
-         if {[getForce]} {
-            reportWarning [getWarnConflictMsg $currentModule $mod]
-            # indicate message has already been reported
-            lappend ::report_conflict($currentModule) $mod
-         } else {
-            error "GLOBALERR [getErrConflictMsg $currentModule $mod]"
-         }
       # if the conflict module is loading and it does not correspond to
-      # currently evaluated module, we cannot proceed either
-      } elseif {![doesModuleMatchesName $currentModule $mod] &&\
-         [is-loading $mod]} {
+      # currently evaluated module, we cannot proceed
+      set isloading [expr {![doesModuleMatchesName $currentModule $mod] &&\
+         [is-loading $mod]}]
+      # if the conflicting module is loaded, we cannot either
+      if {[is-loaded $mod] || $isloading} {
          # still proceed if force mode enabled
          if {[getForce]} {
             reportWarning [getWarnConflictMsg $currentModule $mod]
             # indicate message has already been reported
             lappend ::report_conflict($currentModule) $mod
          } else {
-            # indicate message should be the loading variant
-            lappend ::loading_conflict($currentModule) $mod
-            error "GLOBALERR [getErrConflictMsg $currentModule $mod 1]"
+            if {$isloading} {
+               # indicate message should be the loading variant
+               lappend ::loading_conflict($currentModule) $mod
+            }
+            error "GLOBALERR [getErrConflictMsg $currentModule $mod\
+               $isloading]"
          }
       }
    }
