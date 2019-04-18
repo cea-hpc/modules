@@ -691,18 +691,9 @@ proc getHintLoFirstMsg {modlist} {
    return "HINT: ${oneof}the following $mod must be loaded first: $modlist"
 }
 
-proc getHintLoConflictMsg {mod conlist} {
-   return "HINT: Conflict with [join $conlist] is set in $mod."
-}
-
-proc getErrConflictMsg {mod conlist {loading 0}} {
-   set hintmsg [if {$loading} {getHintLoConflictMsg $mod $conlist}\
-      {getHintUnFirstMsg $conlist}]
-   return "$mod cannot be loaded due to a conflict.\n$hintmsg"
-}
-
-proc getWarnConflictMsg {mod conlist} {
-   return "$mod conflicts with [join $conlist {, }]"
+proc getErrConflictMsg {mod conlist} {
+   return "$mod cannot be loaded due to a conflict.\n[getHintUnFirstMsg\
+      $conlist]"
 }
 
 proc getErrPrereqMsg {mod prelist {load 1}} {
@@ -726,6 +717,12 @@ proc getDepLoadedMsg {prelist} {
 
 proc getErrConUnMsg {conlist} {
    return "Unload of conflicting [join $conlist { and }] failed"
+}
+
+proc getConIsLoadedMsg {conlist {loading 0}} {
+   set is [expr {[llength $conlist] > 1 ? {are} : {is}}]
+   set loaded [expr {$loading ? {loading} : {loaded}}]
+   return "Conflicting [join $conlist { and }] $is $loaded"
 }
 
 ########################################################################
@@ -2691,18 +2688,26 @@ proc conflict {args} {
          [is-loading $mod]}]
       # if the conflicting module is loaded, we cannot either
       if {[is-loaded $mod] || $isloading} {
-         # still proceed if force mode enabled
-         if {[getForce]} {
-            reportWarning [getWarnConflictMsg $currentModule $mod]
-            # indicate message has already been reported
-            lappend ::report_conflict($currentModule) $mod
-         } else {
-            if {$isloading} {
-               # indicate message should be the loading variant
-               lappend ::loading_conflict($currentModule) $mod
+         set retisconun [eval isModuleEvaluated conun $mod]
+         # report message on currently evaluated module message block
+         if {![set retiseval [eval isModuleEvaluated any $mod]] ||\
+            [currentMsgRecordId] ne [topMsgRecordId] || !$retisconun} {
+            # more appropriate msg if an eval was attempted or is by-passed
+            set msg [expr {$retiseval || [getForce] ? [getConIsLoadedMsg\
+               $mod $isloading] : [getErrConflictMsg $currentModule $mod]}]
+
+            # still proceed if force mode enabled
+            if {[getForce]} {
+               reportWarning $msg
+               # indicate message has already been reported
+               lappend ::report_conflict($currentModule) $mod
+            } else {
+               if {$isloading} {
+                  # indicate message should be the loading variant
+                  lappend ::loading_conflict($currentModule) $mod
+               }
+               error "GLOBALERR $msg"
             }
-            error "GLOBALERR [getErrConflictMsg $currentModule $mod\
-               $isloading]"
          }
       }
    }
@@ -7599,6 +7604,18 @@ proc cmdModuleLoad {context uasked args} {
          lassign [doesModuleConflict $modname] doescon modconlist\
             moddecconlist
          set retisconun [eval isModuleEvaluated conun $modconlist]
+         if {![set retiseval [eval isModuleEvaluated any $modconlist]] ||\
+            [currentMsgRecordId] ne [topMsgRecordId] || !$retisconun} {
+            set isloading [expr {[info exists ::loading_conflict($modname)]\
+               && [isInList $::loading_conflict($modname) $moddecconlist]}]
+            # more appropriate msg if an evaluation was attempted or is
+            # by-passed. error is reported using declared conflict name (as if
+            # it was raised raised from a conflict modulefile command)
+            set conmsg [expr {$retiseval || [getForce] ? [getConIsLoadedMsg\
+               $moddecconlist $isloading] : [getErrConflictMsg $modname\
+               $moddecconlist]}]
+         }
+
          # still proceed if force mode enabled
          if {[getForce] && $doescon} {
             # report warning if not already done
@@ -7616,24 +7633,20 @@ proc cmdModuleLoad {context uasked args} {
                   }
                }
             }
-            if {$report_con} {
-               reportWarning [getWarnConflictMsg $modname $modconlist]
+            if {$report_con && [info exists conmsg]} {
+               reportWarning $conmsg
             }
             # raise conun-specific msg to top level if attempted
             if {$retisconun} {
-               reportWarning [getErrConUnMsg $modconlist] 1
+               reportWarning [getErrConUnMsg $moddecconlist] 1
             }
          } elseif {$doescon} {
-            # report error using declared conflict name (as if it was
-            # raised from a conflict modulefile command)
-            set conmsg [getErrConflictMsg $modname $moddecconlist [expr\
-               {[info exists ::loading_conflict($modname)] && [isInList\
-               $::loading_conflict($modname) $moddecconlist]}]]
-
             if {$retisconun} {
-               reportError $conmsg
+               if {[info exists conmsg]} {
+                  reportError $conmsg
+               }
                # raise conun-specific msg to top level if attempted
-               error [getErrConUnMsg $modconlist]
+               error [getErrConUnMsg $moddecconlist]
             } else {
                set errlocalreport 1
                error $conmsg
