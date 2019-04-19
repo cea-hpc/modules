@@ -182,7 +182,7 @@ setenv_path_var MODULES_LMCONFLICT "dg&db"
 
 # attempt to load broken/conflicting prereq alternative
 # dependent modules are unloaded prior "da" load but cannot be reloaded as "da" declares a conflict on them
-set tserr [list "unload dg" "unload df" "load da" "load df" \n[msg_load df [err_conflict df da]] \n[msg_load da [err_depre df]]]
+set tserr [list "unload dg" "unload df" "load da" "load df" \n[msg_load df [err_conlo da]] \n[msg_load da [err_depre df]]]
 testouterr_cmd_re "sh" "load da" ERR [join $tserr "\n"]
 set tserr [list "load db" \n[msg_load db [err_conflict db dg]]]
 testouterr_cmd_re "sh" "load db" "ERR" [join $tserr "\n"]
@@ -204,7 +204,7 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list setpath MODULES_LMCONFLICT "da&df"]
 lappend ans [list ERR]
 # dependent modules are unloaded prior "da" load but cannot be reloaded as "da" declares a conflict on them
-set tserr [list "unload dg" "unload df" "load da" "load df" \n[msg_load df [err_conflict df da]] \n[msg_load da [err_depre df]]]
+set tserr [list "unload dg" "unload df" "load da" "load df" \n[msg_load df [err_conlo da]] \n[msg_load da [err_depre df]]]
 testouterr_cmd_re "sh" "load da" ERR [join $tserr "\n"]
 set tserr [list "load db" \n[msg_load db [err_conflict db dg]]]
 testouterr_cmd_re "sh" "load db" "ERR" [join $tserr "\n"]
@@ -285,7 +285,7 @@ lappend ans [list setpath LOADEDMODULES "g1:g2:g3:g4"]
 lappend ans [list setpath _LMFILES_ "$mp/g1:$mp/g2:$mp/g3:$mp/g4"]
 lappend ans [list setpath MODULES_LMPREREQ "g4&g1|g2|g3"]
 lappend ans [list setpath MODULES_LMCONFLICT "g3&g2"]
-testouterr_cmd_re "sh" "load --force g3" $ans [msg_top_load g3 {} {} g4 [err_conflictf g3 g2]]
+testouterr_cmd_re "sh" "load --force g3" $ans [msg_top_load g3 {} {} g4 [err_conlof g2]]
 
 # set loaded situation where a conflict violation exists
 setenv_loaded_module [list g1 g2 g3 g4] [list "$mp/g1" "$mp/g2" "$mp/g3" "$mp/g4"]

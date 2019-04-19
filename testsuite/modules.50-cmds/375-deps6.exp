@@ -37,7 +37,7 @@ lappend ans [list setpath _LMFILES_ "$mp/f1:$mp/f3:$mp/f6:$mp/f7:$mp/f5"]
 lappend ans [list setpath MODULES_LMNOTUASKED "f1:f3:f6"]
 lappend ans [list setpath MODULES_LMCONFLICT "f6&f5"]
 lappend ans [list setpath MODULES_LMPREREQ "f3&f1|f2:f6&f3|f4:f7&f6"]
-set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nload f5" \n[msg_load f5 [err_conflictf f5 f6]]]
+set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nload f5" \n[msg_load f5 [err_conlof f6]]]
 testouterr_cmd_re "sh" "load --force f7 f5" $ans [join $tserr "\n"]
 
 # define this situation as loaded
@@ -155,7 +155,7 @@ lappend ans [list setpath _LMFILES_ "$mp/f5:$mp/f1:$mp/f3:$mp/f6:$mp/f7"]
 lappend ans [list setpath MODULES_LMNOTUASKED "f1:f3:f6"]
 lappend ans [list setpath MODULES_LMCONFLICT "f6&f5"]
 lappend ans [list setpath MODULES_LMPREREQ "f3&f1|f2:f6&f3|f4:f7&f6"]
-set tserr [list "load f5" "load f1" "load f3" "load f6" \n[msg_load f6 [err_conflictf f6 f5]] "\nload f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}]]
+set tserr [list "load f5" "load f1" "load f3" "load f6" \n[msg_load f6 [err_conlof f5]] "\nload f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}]]
 testouterr_cmd_re "sh" "load --force f5 f7" $ans [join $tserr "\n"]
 
 # define this situation as loaded
@@ -273,7 +273,7 @@ lappend ans [list setpath _LMFILES_ "$mp/f1:$mp/f2:$mp/f3:$mp/f4:$mp/f6:$mp/f7:$
 lappend ans [list setpath MODULES_LMNOTUASKED "f1:f3:f6"]
 lappend ans [list setpath MODULES_LMCONFLICT "f6&f5"]
 lappend ans [list setpath MODULES_LMPREREQ "f3&f1|f2:f6&f3|f4:f7&f6"]
-set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nunload f7" "unload f6" "unload f3" "load f2" "load f3" "load f6" "load f7" \n[msg_top_load f2 {} {} [list f3 f6 f7]] "\nunload f7" "unload f6" "load f4" "load f6" "load f7" \n[msg_top_load f4 {} {} [list f6 f7]] "\nload f5" \n[msg_load f5 [err_conflictf f5 f6]]]
+set tserr [list "load f1" "load f3" "load f6" "load f7" \n[msg_top_load f7 {} [list f1 f3 f6] {}] "\nunload f7" "unload f6" "unload f3" "load f2" "load f3" "load f6" "load f7" \n[msg_top_load f2 {} {} [list f3 f6 f7]] "\nunload f7" "unload f6" "load f4" "load f6" "load f7" \n[msg_top_load f4 {} {} [list f6 f7]] "\nload f5" \n[msg_load f5 [err_conlof f6]]]
 testouterr_cmd_re "sh" "load --force f7 f2 f4 f5" $ans [join $tserr "\n"]
 
 # define this situation as loaded
@@ -313,7 +313,7 @@ lappend ans [list setpath LOADEDMODULES "f3:f6:f7:f5"]
 lappend ans [list setpath _LMFILES_ "$mp/f3:$mp/f6:$mp/f7:$mp/f5"]
 lappend ans [list setpath MODULES_LMCONFLICT "f6&f5"]
 lappend ans [list setpath MODULES_LMPREREQ "f3&f1|f2:f6&f3|f4:f7&f6"]
-set tserr [list "load f3" \n[msg_load f3 [err_reqmisf f1 f2]] "\nload f6" "load f7" "load f5" \n[msg_load f5 [err_conflictf f5 f6]]]
+set tserr [list "load f3" \n[msg_load f3 [err_reqmisf f1 f2]] "\nload f6" "load f7" "load f5" \n[msg_load f5 [err_conlof f6]]]
 testouterr_cmd_re "sh" "load -f --no-auto f3 f6 f7 f5" $ans [join $tserr "\n"]
 
 # define this situation as loaded
@@ -396,7 +396,7 @@ lappend ans [list setpath LOADEDMODULES "f6:f7:f5"]
 lappend ans [list setpath _LMFILES_ "$mp/f6:$mp/f7:$mp/f5"]
 lappend ans [list setpath MODULES_LMCONFLICT "f6&f5"]
 lappend ans [list setpath MODULES_LMPREREQ "f6&f3|f4:f7&f6"]
-set tserr [list "load f6" \n[msg_load f6 [err_reqmisf f3 f4]] "\nload f7" "load f5" \n[msg_load f5 [err_conflictf f5 f6]]]
+set tserr [list "load f6" \n[msg_load f6 [err_reqmisf f3 f4]] "\nload f7" "load f5" \n[msg_load f5 [err_conlof f6]]]
 testouterr_cmd_re "sh" "load --no-auto --force f6 f7 f5" $ans [join $tserr "\n"]
 
 # define this situation as loaded
@@ -493,7 +493,7 @@ setenv_path_var MODULES_LMCONFLICT "f14&f12"
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "f11:f13:f14:f16:f17:f12"]
 lappend ans [list setpath _LMFILES_ "$mp/f11:$mp/f13:$mp/f14:$mp/f16:$mp/f17:$mp/f12"]
-set tserr [list "load f12" \n[msg_load f12 [err_conflictf f12 f14]]]
+set tserr [list "load f12" \n[msg_load f12 [err_conlof f14]]]
 testouterr_cmd_re "sh" "load --force f12" $ans [join $tserr "\n"]
 
 set ans [list]
@@ -734,7 +734,7 @@ lappend ans [list setpath _LMFILES_ "$mp/f24:$mp/f25:$mp/f29:$mp/f23:$mp/f26:$mp
 lappend ans [list setpath MODULES_LMPREREQ "f26&f24|f23:f27&f25|f23:f28&f26&f27"]
 lappend ans [list setpath MODULES_LMNOTUASKED "f24:f25:f26:f27"]
 lappend ans [list setpath MODULES_LMCONFLICT "f23&f29"]
-set tserr [list "unload f28" "unload f27" "unload f26" "load f23" "load f26" "load f27" "load f28" \n[msg_top_load f23 {} {} [list f26 f27 f28] [err_conflictf f23 f29]]]
+set tserr [list "unload f28" "unload f27" "unload f26" "load f23" "load f26" "load f27" "load f28" \n[msg_top_load f23 {} {} [list f26 f27 f28] [err_conlof f29]]]
 testouterr_cmd_re "sh" "load --force f23" $ans [join $tserr "\n"]
 
 setenv_loaded_module [list f24 f26 f25 f27 f28 f29 f23] [list "$mp/f24" "$mp/f26" "$mp/f25" "$mp/f27" "$mp/f28" "$mp/f29" "$mp/f23"] [list f24 f26 f25 f27]
@@ -794,7 +794,7 @@ unsetenv_loaded_module
 
 set ans [list]
 # confusing error messages obtained due to load then unload of same modulefile (which is thus defined as a conflict and a prereq)
-testouterr_cmd "sh" "load mv" ERR [msg_unload ms [err_deplo mv]]\n\n[msg_load mv "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'" [err_conflict mv ms]]
+testouterr_cmd "sh" "load mv" ERR [msg_unload ms [err_deplo mv]]\n\n[msg_load mv "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'" "$warn_msgs: Unsupported option '--force'" [err_conun ms]]
 
 
 # check ensure warning message is printed only once when force loading a reflexive conflict
@@ -803,7 +803,7 @@ setenv_path_var MODULES_LMCONFLICT refcon/1&refcon
 lappend ans [list setpath LOADEDMODULES refcon/1:refcon/2]
 lappend ans [list setpath _LMFILES_ $mp/refcon/1:$mp/refcon/2]
 lappend ans [list setpath MODULES_LMCONFLICT refcon/1&refcon:refcon/2&refcon]
-testouterr_cmd_re sh {load --force refcon/2} $ans [msg_load refcon/2 [err_conflictf refcon/2 refcon]]
+testouterr_cmd_re sh {load --force refcon/2} $ans [msg_load refcon/2 [err_conlof refcon]]
 
 setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/modulerc.altname
 setenv_loaded_module [list i5/1] [list $mp/i5/1]
@@ -813,7 +813,7 @@ lappend ans [list setpath LOADEDMODULES i5/1:i5/2]
 lappend ans [list setpath _LMFILES_ $mp/i5/1:$mp/i5/2]
 lappend ans [list setpath MODULES_LMCONFLICT i5/1&irefcon:i5/2&irefcon]
 lappend ans [list setpath MODULES_LMALTNAME i5/1&irefcon:i5/2&irefcon]
-testouterr_cmd_re sh {load --force i5/2} $ans [msg_load i5/2 [err_conflictf i5/2 irefcon]]
+testouterr_cmd_re sh {load --force i5/2} $ans [msg_load i5/2 [err_conlof irefcon]]
 
 
 # force an is-loading conflict check
@@ -826,7 +826,7 @@ lappend ans [list setpath _LMFILES_ $mp/ms:$mp/mt]
 lappend ans [list setpath MODULES_LMPREREQ mt&ms]
 lappend ans [list setpath MODULES_LMCONFLICT ms&mt]
 lappend ans [list setpath MODULES_LMNOTUASKED ms]
-testouterr_cmd_re sh {load --force mt} $ans [msg_load ms [err_conflictf ms mt]]\n\n[msg_top_load mt {} ms {} [err_conflictf mt ms]]
+testouterr_cmd_re sh {load --force mt} $ans [msg_load ms [err_conloif mt]]\n\n[msg_top_load mt {} ms {} [err_conlof ms]]
 
 # force an is-loading conflict check with fully qualified modulefile
 set ans [list]
@@ -836,7 +836,7 @@ lappend ans [list setpath MODULES_LMPREREQ mtf&$mp/msf]
 lappend ans [list setpath MODULES_LMCONFLICT $mp/msf&$mp/mtf]
 lappend ans [list setpath MODULES_LMNOTUASKED $mp/msf]
 #FIXME: top load messages for mtf should contain a warning to the forced conflict with $mp/msf
-testouterr_cmd_re sh {load --force mtf} $ans [msg_load $mpre/msf [err_conflictf $mpre/msf $mpre/mtf]]\n\n[msg_load mtf "Loading requirement: $mpre/msf"]
+testouterr_cmd_re sh {load --force mtf} $ans [msg_load $mpre/msf [err_conloif $mpre/mtf]]\n\n[msg_load mtf "Loading requirement: $mpre/msf"]
 
 
 #

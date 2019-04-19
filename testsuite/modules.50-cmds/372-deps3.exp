@@ -27,10 +27,10 @@ set mp "$modpath.deps"
 setenv_path_var MODULEPATH $mp
 
 # is-loading conflict check
-testouterr_cmd "sh" "load mt" "ERR" [msg_load ms [err_conflictw ms mt]]\n\n[msg_load mt [err_reqlo ms]]
+testouterr_cmd "sh" "load mt" "ERR" [msg_load ms [err_conloi mt]]\n\n[msg_load mt [err_reqlo ms]]
 
 # is-loading conflict check with fully qualified modulefile
-testouterr_cmd "sh" "load mtf" "ERR" [msg_load $mp/msf [err_conflictw $mp/msf $mp/mtf]]\n\n[msg_load mtf [err_reqlo $mp/msf]]
+testouterr_cmd "sh" "load mtf" "ERR" [msg_load $mp/msf [err_conloi $mp/mtf]]\n\n[msg_load mtf [err_reqlo $mp/msf]]
 
 # conflict consistency check
 set ans [list]
@@ -39,7 +39,7 @@ lappend ans [list setpath LOADEDMODULES "a"]
 lappend ans [list setpath MODULES_LMCONFLICT "a&b"]
 lappend ans [list ERR]
 if {$install_autohandling eq {y}} {
-    testouterr_cmd "sh" "load a b" $ans [msg_load b [err_conflict b a]]
+    testouterr_cmd "sh" "load a b" $ans [msg_load b [err_conlo a]]
 } else {
     # as load is attempted to see if conflict solves, returned error is about missing prereq
     testouterr_cmd "sh" "load a b" $ans [msg_load b [err_prereq b c]]
@@ -57,9 +57,9 @@ unsetenv_loaded_module
 # check warning raised when using --auto/--no-auto from modulefile
 # confusing error messages obtained due to load then unload of same modulefile (which is thus defined as a conflict and a prereq)
 if {$install_autohandling eq {y}} {
-    set tserr [msg_unload ms [err_deplo mu]]\n\n[msg_load mu "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--no-auto'" [err_conflict mu ms]]
+    set tserr [msg_unload ms [err_deplo mu]]\n\n[msg_load mu "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--no-auto'" [err_conun ms]]
 } else {
-    set tserr [msg_unload ms [err_deplo mu]]\n\n[msg_unload ms [err_deplo mu]]\n\n[msg_load mu "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--auto'" [err_swoff ms] "$warn_msgs: Unsupported option '--no-auto'" [err_conflict mu ms]]
+    set tserr [msg_unload ms [err_deplo mu]]\n\n[msg_unload ms [err_deplo mu]]\n\n[msg_load mu "$warn_msgs: Unsupported option '--auto'" "$warn_msgs: Unsupported option '--auto'" [err_swoff ms] "$warn_msgs: Unsupported option '--no-auto'" [err_conun ms]]
 }
 testouterr_cmd "sh" "load mu" ERR $tserr
 

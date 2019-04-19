@@ -73,7 +73,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/1:una]
 lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/una]
 lappend ans [list setpath MODULES_LMCONFLICT una&ha]
-set tserr "load una\nunload ha/2\n\n[msg_top_load una ha/2 {} {} [err_conflictf una ha]]"
+set tserr "load una\nunload ha/2\n\n[msg_top_load una ha/2 {} {} [err_conlof ha]]"
 testouterr_cmd_re sh {load --force --no-auto una} $ans $tserr
 testouterr_cmd_re sh {load --force --auto una} $ans $tserr
 
@@ -111,7 +111,7 @@ lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/una:$mp/unb]
 lappend ans [list setpath MODULES_LMPREREQ unb&una]
 lappend ans [list setpath MODULES_LMCONFLICT una&ha]
 lappend ans [list setpath MODULES_LMNOTUASKED una]
-set tserr "load unb\nload una\nunload ha/2\n\n[msg_load una [err_conflictf una ha]]\n\n[msg_top_load unb ha/2 una {}]"
+set tserr "load unb\nload una\nunload ha/2\n\n[msg_load una [err_conlof ha]]\n\n[msg_top_load unb ha/2 una {}]"
 testouterr_cmd_re sh {load --force --auto unb} $ans $tserr
 
 setenv_loaded_module [list ha/1 una unb] [list $mp/ha/1 $mp/una $mp/unb] [list una]
@@ -155,16 +155,20 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/1:unc]
 lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/unc]
 lappend ans [list setpath MODULES_LMCONFLICT unc&ha]
-# conflict is reported twice as it is declared twice
-set tserr "load unc\nunload ha/2\n\n[msg_top_load unc ha/2 {} {} [err_conflictf unc ha] [err_conflictf unc ha]]"
+# conflict is reported once even if declared twice as warning reported is detected when attempting to warn a second time
+# warning report detection is made as these messages could be silenced when shouted from "conflict" command, so the cmdModuleLoad
+# procedure must shout it if it was silenced
+set tserr "load unc\nunload ha/2\n\n[msg_top_load unc ha/2 {} {} [err_conlof ha]]"
 testouterr_cmd_re sh {load --force --auto unc} $ans $tserr
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/1:und]
 lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/und]
 lappend ans [list setpath MODULES_LMCONFLICT und&ha]
-# conflict is reported twice as it is declared twice
-set tserr "load und\nunload ha/2\n\n[msg_top_load und ha/2 {} {} [err_conflictf und ha] [err_conflictf und ha]]"
+# conflict is reported once even if declared twice as warning reported is detected when attempting to warn a second time
+# warning report detection is made as these messages could be silenced when shouted from "conflict" command, so the cmdModuleLoad
+# procedure must shout it if it was silenced
+set tserr "load und\nunload ha/2\n\n[msg_top_load und ha/2 {} {} [err_conlof ha]]"
 testouterr_cmd_re sh {load --force --auto und} $ans $tserr
 
 

@@ -178,7 +178,7 @@ lappend ans [list setpath LOADEDMODULES m5:m1:m2]
 lappend ans [list setpath _LMFILES_ $mp/m5:$mp/m1:$mp/m2]
 lappend ans [list setpath MODULES_LMPREREQ m2&m1]
 lappend ans [list setpath MODULES_LMNOTUASKED m1]
-set tserr [list {load m1} \n[msg_load m1 [err_conflictf m1 m5]] "\nload m2" \n[msg_top_load m2 {} m1 {}]]
+set tserr [list {load m1} \n[msg_load m1 [err_conlof m5]] "\nload m2" \n[msg_top_load m2 {} m1 {}]]
 testouterr_cmd_re sh {load --force --auto m2} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --force --no-auto m2} $ans [join $tserr \n]
 
@@ -232,7 +232,7 @@ testouterr_cmd_re sh {load --force --no-auto m5} $ans [join $tserr \n]
 setenv_loaded_module [list m1 m2] [list $mp/m1 $mp/m2]
 setenv_path_var MODULES_LMPREREQ m2&m1
 # evaluation is attempted prior conflict violation check
-set tserr [list [msg_unload m1 [err_prerequn m1 m2]] "\nload m5" \n[msg_load m5 [err_conflict m5 m1]]]
+set tserr [list [msg_unload m1 [err_prerequn m1 m2]] "\nload m5" \n[msg_load m5 [err_conun m1]]]
 testouterr_cmd_re sh {load --auto m5} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m5} ERR [join $tserr \n]
 # force mode will by-pass unload/conflict to garanty m2&m1 prereq
@@ -241,14 +241,14 @@ lappend ans [list setpath LOADEDMODULES m1:m2:m5]
 lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2:$mp/m5]
 lappend ans [list setpath MODULES_LMCONFLICT m5&m1]
 lappend ans [list ERR]
-set tserr [list [msg_unload m1 [err_prerequn m1 m2]] "\nload m5" \n[msg_load m5 [err_conflictf m5 m1]]]
+set tserr [list [msg_unload m1 [err_prerequn m1 m2]] "\nload m5" \n[msg_load m5 [err_conunf m1]]]
 testouterr_cmd_re sh {load --auto --force m5} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto --force m5} $ans [join $tserr \n]
 
 # load test in case 'module unload' target is loaded, not user asked, and required by another loaded module
 setenv_loaded_module [list m1 m2] [list $mp/m1 $mp/m2] [list m1]
 # evaluation is attempted prior conflict violation check
-set tserr [list [msg_unload m1 [err_prerequn m1 m2]] "\nload m5" \n[msg_load m5 [err_conflict m5 m1]]]
+set tserr [list [msg_unload m1 [err_prerequn m1 m2]] "\nload m5" \n[msg_load m5 [err_conun m1]]]
 testouterr_cmd_re sh {load --auto m5} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto m5} ERR [join $tserr \n]
 # force mode will by-pass unload/conflict to garanty m2&m1 prereq
@@ -257,7 +257,7 @@ lappend ans [list setpath LOADEDMODULES m1:m2:m5]
 lappend ans [list setpath _LMFILES_ $mp/m1:$mp/m2:$mp/m5]
 lappend ans [list setpath MODULES_LMCONFLICT m5&m1]
 lappend ans [list ERR]
-set tserr [list [msg_unload m1 [err_prerequn m1 m2]] "\nload m5" \n[msg_load m5 [err_conflictf m5 m1]]]
+set tserr [list [msg_unload m1 [err_prerequn m1 m2]] "\nload m5" \n[msg_load m5 [err_conunf m1]]]
 testouterr_cmd_re sh {load --auto --force m5} $ans [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto --force m5} $ans [join $tserr \n]
 

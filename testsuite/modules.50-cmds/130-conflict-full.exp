@@ -55,7 +55,8 @@ set err_trace "$warn_msgs: 'module-trace' command not implemented"
 lappend ans [list setpath _LMFILES_ $modulefile_tron]
 lappend ans [list setpath LOADEDMODULES $module_tron]
 lappend ans [list ERR]
-testouterr_cmd_re "ALL" "load $module_tron $module" $ans [msg_load $module_tron $err_trace]\n\n[msg_load $module [err_conflict $module trace/all_on]]
+# trace/all_on is seen evaluated during conflict/full load attempt, as it was loaded on the same "module load" command order
+testouterr_cmd_re "ALL" "load $module_tron $module" $ans [msg_load $module_tron $err_trace]\n\n[msg_load $module [err_conlo trace/all_on]]
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module_troff:$module"]
@@ -80,7 +81,7 @@ lappend ans [list set testsuite yes]
 lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list setpath MODULES_LMCONFLICT "$module&$module_tron"]
-set tserr [msg_load $module [err_conflictf $module $module_tron]]
+set tserr [msg_load $module [err_conlof $module_tron]]
 testouterr_cmd_re "sh" "load --no-auto --force $module" $ans $tserr
 
 # from this situation where conflict has been forced
@@ -192,7 +193,7 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES "$module:$module_tron"]
 lappend ans [list setpath _LMFILES_ "$modulefile:$modulefile_tron"]
 # evaluation is attempted prior conflict violation check
-set tserr [msg_load $module_tron $err_trace [err_conflictf $module_tron $module]]
+set tserr [msg_load $module_tron $err_trace [err_conlof $module]]
 testouterr_cmd_re "sh" "switch --no-auto --force $module_troff $module_tron" $ans $tserr
 testouterr_cmd_re "sh" "switch --auto --force $module_troff $module_tron" $ans $tserr
 
@@ -213,7 +214,7 @@ lappend ans [list setpath LOADEDMODULES "$module_tron:$module"]
 lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMCONFLICT "$module&$module_tron"]
-set tserr [msg_load $module [err_conflictf $module $module_tron]]
+set tserr [msg_load $module [err_conlof $module_tron]]
 testouterr_cmd_re "sh" "switch --no-auto --force $module_troff $module" $ans $tserr
 testouterr_cmd_re "sh" "switch --auto --force $module_troff $module" $ans $tserr
 
