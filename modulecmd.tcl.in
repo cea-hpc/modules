@@ -2702,10 +2702,6 @@ proc conflict {args} {
                # indicate message has already been reported
                lappend ::report_conflict($currentModule) $mod
             } else {
-               if {$isloading} {
-                  # indicate message should be the loading variant
-                  lappend ::loading_conflict($currentModule) $mod
-               }
                error "GLOBALERR $msg"
             }
          }
@@ -7609,14 +7605,12 @@ proc cmdModuleLoad {context uasked args} {
          set retisconun [eval isModuleEvaluated conun $modconlist]
          if {![set retiseval [eval isModuleEvaluated any $modconlist]] ||\
             [currentMsgRecordId] ne [topMsgRecordId] || !$retisconun} {
-            set isloading [expr {[info exists ::loading_conflict($modname)]\
-               && [isInList $::loading_conflict($modname) $moddecconlist]}]
             # more appropriate msg if an evaluation was attempted or is
             # by-passed. error is reported using declared conflict name (as if
             # it was raised raised from a conflict modulefile command)
             set conmsg [expr {$retiseval || [getForce] ? [getConIsLoadedMsg\
-               $moddecconlist $isloading] : [getErrConflictMsg $modname\
-               $moddecconlist]}]
+               $moddecconlist [is-loading $modconlist]] : [getErrConflictMsg\
+               $modname $moddecconlist]}]
          }
 
          # still proceed if force mode enabled
