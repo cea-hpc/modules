@@ -111,7 +111,7 @@ lappend ans [list setpath MODULES_LMPREREQ gc&gb:gb&gc]
 # FIXME: gc is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gb is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
 lappend ans [list setpath MODULES_LMNOTUASKED gc]
-set tserr "unload gc\nload gc\nload gb\n\n[msg_top_load gb {} gc {}]"
+set tserr "unload gc\nload gc\nload gb\n\n[msg_top_load gb {} gc [list gc {}]]"
 testouterr_cmd_re sh {load gb} $ans $tserr
 testouterr_cmd_re sh {load --force gb} $ans $tserr
 
@@ -124,7 +124,7 @@ lappend ans [list setpath MODULES_LMPREREQ gb&gc:gc&gb]
 # FIXME: gb is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gc is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
 lappend ans [list setpath MODULES_LMNOTUASKED gb]
-set tserr "unload gb\nload gb\nload gc\n\n[msg_top_load gc {} gb {}]"
+set tserr "unload gb\nload gb\nload gc\n\n[msg_top_load gc {} gb [list gb {}]]"
 testouterr_cmd_re sh {load gc} $ans $tserr
 testouterr_cmd_re sh {load --force gc} $ans $tserr
 
@@ -274,7 +274,7 @@ lappend ans [list setpath MODULES_LMPREREQ gf&gd:ge&gf:gd&ge]
 # FIXME: gf is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gd is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
 lappend ans [list setpath MODULES_LMNOTUASKED gf:ge]
-set tserr "unload gf\nload gf\nload ge\nload gd\n\n[msg_top_load gd {} [list gf ge] {}]"
+set tserr "unload gf\nload gf\nload ge\nload gd\n\n[msg_top_load gd {} [list gf ge] [list gf {}]]"
 testouterr_cmd_re sh {load gd} $ans $tserr
 testouterr_cmd_re sh {load --force gd} $ans $tserr
 set ans [list]
@@ -305,7 +305,7 @@ lappend ans [list setpath MODULES_LMPREREQ ge&gf:gd&ge:gf&gd]
 # FIXME: ge is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gf is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
 lappend ans [list setpath MODULES_LMNOTUASKED ge:gd]
-set tserr "unload ge\nload ge\nload gd\nload gf\n\n[msg_top_load gf {} [list ge gd] {}]"
+set tserr "unload ge\nload ge\nload gd\nload gf\n\n[msg_top_load gf {} [list ge gd] [list ge {}]]"
 testouterr_cmd_re sh {load gf} $ans $tserr
 testouterr_cmd_re sh {load --force gf} $ans $tserr
 set ans [list]
@@ -483,7 +483,7 @@ lappend ans [list setpath LOADEDMODULES gi:gh:gg:gj]
 lappend ans [list setpath _LMFILES_ $mp/gi:$mp/gh:$mp/gg:$mp/gj]
 lappend ans [list setpath MODULES_LMPREREQ gh&gj|gi:gg&gh:gj&gg]
 lappend ans [list setpath MODULES_LMNOTUASKED gh:gg]
-set tserr "unload gg\nunload gh\nload gh\nload gg\nload gj\n\n[msg_top_load gj {} [list gh gg] {}]"
+set tserr "unload gg\nunload gh\nload gh\nload gg\nload gj\n\n[msg_top_load gj {} [list gh gg] [list [list gg gh] {}]]"
 testouterr_cmd_re sh {load gj} $ans $tserr
 
 setenv_loaded_module [list gj gh gg] [list $mp/gj $mp/gh $mp/gg] [list gj gh]
@@ -544,7 +544,7 @@ lappend ans [list setpath MODULES_LMPREREQ gm&gn|gk:gl&gm:gk&gl]
 # FIXME: gm is unloaded as it is seen part of DepRe, but it is loaded via ReqLo mechanism when gl is loaded
 # thus it is wrongly marked 'not user asked'. A "dep" evaluation mode prior effective load should correct this.
 lappend ans [list setpath MODULES_LMNOTUASKED gn:gm:gl]
-set tserr "unload gm\nload gm\nload gl\nload gk\n\n[msg_top_load gk {} [list gm gl] {}]"
+set tserr "unload gm\nload gm\nload gl\nload gk\n\n[msg_top_load gk {} [list gm gl] [list gm {}]]"
 testouterr_cmd_re sh {load gk} $ans $tserr
 
 setenv_loaded_module [list gn gm gl gk] [list $mp/gn $mp/gm $mp/gl $mp/gk] [list gl]
