@@ -3099,7 +3099,7 @@ proc popDebugMsgPrefix {} {
 
 # gather for the current top evaluation the information on all evaluations
 # happening under its umbrella
-proc registerModuleEval {context mod {unset 0}} {
+proc registerModuleEval {context mod {unset 0} {failedcontext {}}} {
    set recid [topMsgRecordId]
    set contextset 0
 
@@ -3126,11 +3126,21 @@ proc registerModuleEval {context mod {unset 0}} {
    if {!$unset && !$contextset} {
       lappend ::g_moduleEval($recid) [list $context $mod]
    }
+
+   # add mod to failed evaluation list
+   if {$unset} {
+      lappend ::g_moduleFailedEval($recid) $failedcontext $mod
+   }
 }
 
 # record module evaluation attempt and corresponding context
 proc registerModuleEvalAttempt {context mod} {
    appendNoDupToList ::g_moduleEvalAttempt($mod) $context
+}
+
+proc unregisterModuleEvalAttempt {context mod} {
+   set ::g_moduleEvalAttempt($mod) [replaceFromList\
+      $::g_moduleEvalAttempt($mod) $context]
 }
 
 # are modules passed as argument evaluated in passed context
@@ -3143,6 +3153,21 @@ proc isModuleEvaluated {context args} {
          {any} && [notInList $::g_moduleEvalAttempt($modres) $context])} {
          set ret 0
          break
+      }
+   }
+   return $ret
+}
+
+# was passed mod already evaluated for context and failed
+proc isModuleEvalFailed {context mod} {
+   set ret 0
+   set recid [topMsgRecordId]
+   if {[info exists ::g_moduleFailedEval($recid)]} {
+      foreach {curcon curmod} $::g_moduleFailedEval($recid) {
+         if {$context eq $curcon && $mod eq $curmod} {
+            set ret 1
+            break
+         }
       }
    }
    return $ret
@@ -7532,6 +7557,13 @@ proc cmdModuleLoad {context uasked args} {
          continue
       }
 
+      if {[isModuleEvalFailed load $modname]} {
+         reportDebug "$modname ($modfile) load was already tried and failed"
+         # nullify this evaluation attempt to avoid duplicate issue report
+         unregisterModuleEvalAttempt $context $mod
+         continue
+      }
+
       # if a switch action is ongoing...
       if {[info exists swprocessing]} {
          # pass the DepRe mod list to the calling cmdModuleSwitch procedure to
@@ -7705,7 +7737,7 @@ proc cmdModuleLoad {context uasked args} {
          set ret 1
          restoreSettings
          # remove from successfully evaluated module list
-         registerModuleEval $context $modname 1
+         registerModuleEval $context $modname 1 load
          unset -nocomplain errlocalreport
       }
       popSettings
@@ -7753,6 +7785,13 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       if {$onlyureq && ![isModuleUnloadable $modname]}  {
          reportDebug "$modname ($modfile) is required by loaded module or\
             asked by user"
+         continue
+      }
+
+      if {[isModuleEvalFailed unload $modname]} {
+         reportDebug "$modname ($modfile) unload was already tried and failed"
+         # nullify this evaluation attempt to avoid duplicate issue report
+         unregisterModuleEvalAttempt $context $mod
          continue
       }
 
@@ -7955,7 +7994,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
             set ret 1
             restoreSettings
             # remove from successfully evaluated module list
-            registerModuleEval $context $modname 1
+            registerModuleEval $context $modname 1 unload
          }
          unset -nocomplain errlocalreport errharmless
       }
