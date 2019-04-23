@@ -7514,9 +7514,17 @@ proc cmdModuleLoad {context uasked args} {
    set ret 0
    pushMode load
    foreach mod $args {
+      # if a switch action is ongoing...
+      if {$context eq {swload}} {
+         set swprocessing 1
+         # context is ReqLo if switch is called from a modulefile
+         if {![isMsgRecordIdTop]} {
+            set context reqlo
+         }
+      }
+
       # record evaluation attempt on specified module name
-      registerModuleEvalAttempt [expr {$context eq {swload} &&\
-         ![isMsgRecordIdTop] ? {reqlo} : $context}] $mod
+      registerModuleEvalAttempt $context $mod
       lassign [getPathToModule $mod] modfile modname
       if {$modfile eq {}} {
          set ret 1
@@ -7525,14 +7533,7 @@ proc cmdModuleLoad {context uasked args} {
       }
 
       # if a switch action is ongoing...
-      if {$context eq {swload}} {
-         set swprocessing 1
-
-         # context is ReqLo if switch is called from a modulefile
-         if {![isMsgRecordIdTop]} {
-            set context reqlo
-         }
-
+      if {[info exists swprocessing]} {
          # pass the DepRe mod list to the calling cmdModuleSwitch procedure to
          # let it handle the load phase of the DepRe mechanism along with the
          # DepRe modules set from switched off module.
@@ -7725,9 +7726,17 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
    set ret 0
    pushMode unload
    foreach mod $args {
+      # if a switch action is ongoing...
+      if {$context eq {swunload}} {
+         set swprocessing 1
+         # context is ConUn if switch is called from a modulefile
+         if {![isMsgRecordIdTop]} {
+            set context conun
+         }
+      }
+
       # record evaluation attempt on specified module name
-      registerModuleEvalAttempt [expr {$context eq {swunload} &&\
-         ![isMsgRecordIdTop] ? {conun} : $context}] $mod
+      registerModuleEvalAttempt $context $mod
       # resolve by also looking at matching loaded module
       lassign [getPathToModule $mod {} $match] modfile modname errkind
       if {$modfile eq {}} {
@@ -7748,14 +7757,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       }
 
       # if a switch action is ongoing...
-      if {$context eq {swunload}} {
-         set swprocessing 1
-
-         # context is ConUn if switch is called from a modulefile
-         if {![isMsgRecordIdTop]} {
-            set context conun
-         }
-
+      if {[info exists swprocessing]} {
          # pass the DepRe mod list to the calling cmdModuleSwitch
          # procedure to let it handle the load phase of the DepRe
          # mechanism once the switched-to module will be loaded
