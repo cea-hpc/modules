@@ -3143,15 +3143,15 @@ proc unregisterModuleEvalAttempt {context mod} {
       $::g_moduleEvalAttempt($mod) $context]
 }
 
-# are modules passed as argument evaluated in passed context
+# is at least one module passed as argument evaluated in passed context
 proc isModuleEvaluated {context args} {
-   set ret 1
+   set ret 0
    foreach mod $args {
       # get actual module name if mod refers to an alias or symver
       set modres [resolveModuleVersionOrAlias $mod]
-      if {![info exists ::g_moduleEvalAttempt($modres)] || ($context ne\
-         {any} && [notInList $::g_moduleEvalAttempt($modres) $context])} {
-         set ret 0
+      if {[info exists ::g_moduleEvalAttempt($modres)] && ($context eq\
+         {any} || [isInList $::g_moduleEvalAttempt($modres) $context])} {
+         set ret 1
          break
       }
    }
