@@ -1848,8 +1848,10 @@ proc module {command args} {
                   set ret [eval cmdModuleLoad load 1 $args]
                } elseif {$mode eq {load}} {
                   # load here if no auto mode, done through prereq elsewhere
-                  if {![getAutoHandling] && ![eval is-loaded $args] && ![eval\
-                     is-loading $args]} {
+                  # inhibited if currently in DepRe context
+                  if {![getAutoHandling] && [currentModuleEvalContext] ne\
+                     {depre} && ![eval is-loaded $args] && ![eval is-loading\
+                     $args]} {
                      set ret [eval cmdModuleLoad reqlo 0 $args]
                      # ignore obtained error if force mode enabled
                      if {[getForce]} {
@@ -3131,6 +3133,11 @@ proc registerModuleEval {context mod {unset 0} {failedcontext {}}} {
    if {$unset} {
       lappend ::g_moduleFailedEval($recid) $failedcontext $mod
    }
+}
+
+# get context of currently evaluated module
+proc currentModuleEvalContext {} {
+   return [lindex $::g_moduleEvalAttempt([currentModuleName]) end]
 }
 
 # record module evaluation attempt and corresponding context

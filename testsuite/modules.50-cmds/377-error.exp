@@ -733,13 +733,12 @@ set tserr [list {unload rgn} {unload rgm} \n[msg_switch rgb rga [err_depreun rgm
 testouterr_cmd_re sh {switch rgb rga} ERR [join $tserr \n]
 
 set ans [list]
-lappend ans [list setpath LOADEDMODULES rgi:rgj:rgd:rgm:rga:rgc:rge:rgf:rgh:rgk:rgb:rgl:rgn]
-lappend ans [list setpath _LMFILES_ $mp/rgi:$mp/rgj:$mp/rgd:$mp/rgm:$mp/rga:$mp/rgc:$mp/rge:$mp/rgf:$mp/rgh:$mp/rgk:$mp/rgb:$mp/rgl:$mp/rgn]
-lappend ans [list setpath MODULES_LMPREREQ rgj&rgi:rgd&rga|rgb&rgc:rgm&rgl:rgc&rga|rgb:rge&rga|rgb&rgd:rgf&rga|rgb:rgh&rga|rgb&rgg:rgk&rgj:rgb&rgk:rgl&rgb:rgn&rgm]
-lappend ans [list setpath MODULES_LMNOTUASKED rgi:rgj:rgm:rgk:rgb:rgl]
+lappend ans [list setpath LOADEDMODULES rgi:rgj:rgd:rgm:rga:rgc:rge:rgf:rgh:rgl:rgn]
+lappend ans [list setpath _LMFILES_ $mp/rgi:$mp/rgj:$mp/rgd:$mp/rgm:$mp/rga:$mp/rgc:$mp/rge:$mp/rgf:$mp/rgh:$mp/rgl:$mp/rgn]
+lappend ans [list setpath MODULES_LMPREREQ rgj&rgi:rgd&rga|rgb&rgc:rgm&rgl:rgc&rga|rgb:rge&rga|rgb&rgd:rgf&rga|rgb:rgh&rga|rgb&rgg:rgl&rgb:rgn&rgm]
+lappend ans [list setpath MODULES_LMNOTUASKED rgi:rgj:rgm:rgl]
 lappend ans [list ERR]
-#FIXME: DepRe load phase reload requirement expressed with 'module load', does not happen with 'prereq'
-set tserr [list {unload rgn} {unload rgm} {unload rgl} {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} {unload rgc} {unload rgb} {unload rgk} {unload rgj} {load rga} {load rgc} {load rge} {load rgf} {load rgg} {load rgh} \n[msg_load rgh [err_reqmisf rgg]]\n {load rgl} {load rgb} {load rgk} {load rgn} \n[msg_switch rgb rga [err_depreunf rgm] [err_depreunf rgd] [err_urequn rgj] [err_depref rgg] {Unloading dependent: rgn rgl rgh rgg rgf rge rgc} {Unloading useless requirement: rgk} {Reloading dependent: rgc rge rgf rgh rgl rgn} {Loading requirement: rgk rgb}]]
+set tserr [list {unload rgn} {unload rgm} {unload rgl} {unload rgh} {unload rgg} {unload rgf} {unload rge} {unload rgd} {unload rgc} {unload rgb} {unload rgk} {unload rgj} {load rga} {load rgc} {load rge} {load rgf} {load rgg} {load rgh} \n[msg_load rgh [err_reqmisf rgg]]\n {load rgl} \n[msg_load rgl [err_reqmisf rgb]]\n {load rgn} \n[msg_switch rgb rga [err_depreunf rgm] [err_depreunf rgd] [err_urequn rgj] [err_depref rgg] {Unloading dependent: rgn rgl rgh rgg rgf rge rgc} {Unloading useless requirement: rgk} {Reloading dependent: rgc rge rgf rgh rgl rgn}]]
 testouterr_cmd_re sh {switch --force rgb rga} $ans [join $tserr \n]
 
 # crash in every mechanism (ReqLo, DepRe unload, DepRe load) (linked modules, middle one crashed)
