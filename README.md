@@ -63,12 +63,14 @@ automatically configured to the correct architecture.
 Getting things running
 ----------------------
 
-To learn how to install modules see `INSTALL.txt` for Unix system or
-`INSTALL-win.txt` for Windows
+The simplest way to build and install Modules on a Unix system is:
 
-To have things running efficiently you will need a lot of additional setup.
-For an example take a look at `doc/example.txt` which explains how things
-have been setup at the University of Minnesota computer science department.
+    $ ./configure
+    $ make
+    $ make install
+
+To learn the details on how to install modules see `INSTALL.txt` for Unix
+system or `INSTALL-win.txt` for Windows.
 
 
 Requirements
