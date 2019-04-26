@@ -6,6 +6,81 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+Modules 4.2.4 (2019-04-26)
+--------------------------
+
+* Better track each module evaluation and the context associated to it in
+  order to report a more accurate information on the additional modules
+  loaded or unloaded when proceeding the main evaluation request. (fix issue
+  #244, #245, #246, #247 and #248)
+* Doc: preserve quotes and dashes when making HTML docs. (fix issue #250 with
+  contribution from Riccardo Coccioli)
+* Fix hanging ``list`` sub-command when terminal width is equal to the single
+  column text width to be printed. (contribution from Jesper Dahlberg)
+* During an additional evaluation triggered by an automated module handling
+  mechanism, ensure warning and error messages are reported under the message
+  block of the main evaluation. (fix issue #252)
+* During the unload of a module when the automated module handling mode is
+  disabled, report a warning message for each unload of a useless requirement
+  that fails as done when the automated module handling mode is enabled. (fix
+  issue #253)
+* When multiple modules are listed on a ``prereq`` command, drop the output of
+  those modules that fails to load (by the *Requirement Load* automated
+  mechanism) to only keep the output of the module whose load succeed. (fix
+  issue #254)
+* Fix ``switch`` sub-command when the switched-off module cannot be unloaded
+  when other loaded modules depend on it. Whole switch process is failed and
+  no load of the switched-on module is attempted. (fix issue #251)
+* When switching modules, report failure of switched-off module unload or
+  switched-on module load under the message block of the switch action. A
+  failed switched-off module unload is reported as an error, as it aborts the
+  switch evaluation, whereas a failed switched-on module load is reported as a
+  warning. (fix issue #255)
+* When a module requirement is seen missing but the load of this module was
+  attempted, report a more specific error or warning message to let user
+  understand that the load of the requirement was attempted but failed. (fix
+  issue #257)
+* When loading a module, report any missing requirement on the message
+  reporting block corresponding to this module load. This warning or error
+  message comes in addition to the eventual *Requirement Load* message
+  reported under the message block of the main evaluation. (fix issue #258)
+* When unloading a module which has some dependent module still loaded,
+  produce a more specific error or warning message if an evaluation of these
+  dependent modules has been realized or if the unload of the required module
+  is forced. (fix issue #259)
+* When a conflicting module is seen loaded but the unload of this module was
+  attempted, report a *Conflict Unload* error or warning message toward the
+  main evaluation message block. (fix issue #261)
+* When loading a module, report any loaded conflict on the message reporting
+  block corresponding to this module load. This warning or error message comes
+  in addition to the eventual *Conflict Unload* message reported under the
+  message block of the main evaluation. (fix issue #261)
+* Correctly report loading state of conflicting module. (fix issue #262)
+* Adapt warning, error and info messages relative to the *Dependent Reload*
+  mechanism to distinguish the unload phase from the load (reload) phase of
+  this mechanism. In the automated module handling summary report, unloaded
+  modules via this mechanism are reported in the *Unloading dependent* list
+  and modules reloaded afterward are reported against the *Reloading
+  dependent* list. (fix issue #263)
+* When the automated module handling mode is disabled, do not attempt to load
+  a requirement expressed in a modulefile with a ``module load`` command, if
+  this requirement is already loaded or loading.
+* Skip load or unload evaluation of a module whose respectively load or unload
+  was already attempted but failed. If this second evaluation attempt occurs
+  within the same main evaluation frame. (fix issue #264)
+* When reloading modules through the *Dependent Reload* automated mechanism,
+  prevent modules to automatically load of other modules with the ``module
+  load`` modulefile command, as it is done for the ``prereq`` command. (fix
+  issue #265)
+* Raise an error when an invalid option is set on ``append-path``,
+  ``prepend-path`` or ``remove-path`` modulefile command. (fix issue #249)
+* Zsh initializes by default the ``MANPATH`` environment variable to an empty
+  value when it starts. To preserve ``manpath`` system configuration even
+  after addition to this variable by modulefiles, set ``MANPATH`` variable to
+  ``:`` if found empty. (improve fix for issue #224)
+* Doc: provide a short installation guideline in README file. (fix issue #230)
+
+ 
 Modules 4.2.3 (2019-03-23)
 --------------------------
 
