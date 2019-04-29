@@ -249,13 +249,13 @@ ifeq ($(compatversion),y)
 	cp $(COMPAT_DIR)/NEWS $(DESTDIR)$(docdir)/NEWS-compat
 endif
 endif
-ifeq ($(vimplugin),y)
-	mkdir -p $(DESTDIR)$(vimplugindir)/ftdetect
-	mkdir -p $(DESTDIR)$(vimplugindir)/ftplugin
-	mkdir -p $(DESTDIR)$(vimplugindir)/syntax
-	cp  contrib/vim/ftdetect/modulefile.vim  $(DESTDIR)$(vimplugindir)/ftdetect
-	cp  contrib/vim/ftplugin/modulefile.vim  $(DESTDIR)$(vimplugindir)/ftplugin
-	cp  contrib/vim/syntax/modulefile.vim    $(DESTDIR)$(vimplugindir)/syntax
+ifeq ($(vimaddons),y)
+	mkdir -p $(DESTDIR)$(vimdatadir)/ftdetect
+	mkdir -p $(DESTDIR)$(vimdatadir)/ftplugin
+	mkdir -p $(DESTDIR)$(vimdatadir)/syntax
+	cp  contrib/vim/ftdetect/modulefile.vim  $(DESTDIR)$(vimdatadir)/ftdetect
+	cp  contrib/vim/ftplugin/modulefile.vim  $(DESTDIR)$(vimdatadir)/ftplugin
+	cp  contrib/vim/syntax/modulefile.vim    $(DESTDIR)$(vimdatadir)/syntax
 endif
 	$(MAKE) -C init install DESTDIR=$(DESTDIR)
 ifeq ($(builddoc),y)
@@ -279,14 +279,14 @@ endif
 	rm -f $(DESTDIR)$(bindir)/add.modules
 	rm -f $(DESTDIR)$(bindir)/modulecmd
 	rm -f $(DESTDIR)$(bindir)/mkroot
-ifeq ($(vimplugin),y)
-	rm -f $(DESTDIR)$(vimplugindir)/ftdetect/modulefile.vim
-	rm -f $(DESTDIR)$(vimplugindir)/ftplugin/modulefile.vim
-	rm -f $(DESTDIR)$(vimplugindir)/syntax/modulefile.vim
-	-rmdir $(DESTDIR)$(vimplugindir)/ftdetect
-	-rmdir $(DESTDIR)$(vimplugindir)/ftplugin
-	-rmdir $(DESTDIR)$(vimplugindir)/syntax
-	-rmdir -p $(DESTDIR)$(vimplugindir)
+ifeq ($(vimaddons),y)
+	rm -f $(DESTDIR)$(vimdatadir)/ftdetect/modulefile.vim
+	rm -f $(DESTDIR)$(vimdatadir)/ftplugin/modulefile.vim
+	rm -f $(DESTDIR)$(vimdatadir)/syntax/modulefile.vim
+	-rmdir $(DESTDIR)$(vimdatadir)/ftdetect
+	-rmdir $(DESTDIR)$(vimdatadir)/ftplugin
+	-rmdir $(DESTDIR)$(vimdatadir)/syntax
+	-rmdir -p $(DESTDIR)$(vimdatadir)
 endif
 ifeq ($(docinstall),y)
 	rm -f $(addprefix $(DESTDIR)$(docdir)/,ChangeLog README COPYING.GPLv2)

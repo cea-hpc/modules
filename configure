@@ -27,9 +27,9 @@ targetlist="${progdir}/Makefile.inc ${progdir}/site.exp"
 
 # argument list
 arglist="TCLSH SPHINXBUILD PS BASENAME RMDIR_IGN_NON_EMPTY VERSION \
-baseprefix prefix bindir libexecdir etcdir initdir datarootdir mandir docdir vimplugindir \
+baseprefix prefix bindir libexecdir etcdir initdir datarootdir mandir docdir vimdatadir \
 modulefilesdir setmanpath appendmanpath setbinpath appendbinpath \
-setdotmodulespath docinstall vimplugin examplemodulefiles builddoc gitworktree \
+setdotmodulespath docinstall vimaddons examplemodulefiles builddoc gitworktree \
 usemanpath compatversion EXEEXT versioning silentshdbgsupport \
 quarantinesupport autohandling pager pageropts modulepath loadedmodules \
 quarantinevars"
@@ -48,7 +48,7 @@ setbinpath=y
 appendbinpath=n
 setdotmodulespath=n
 docinstall=y
-vimplugin=y
+vimaddons=y
 examplemodulefiles=y
 compatversion=y
 EXEEXT=
@@ -79,7 +79,7 @@ initdir=
 datarootdir=
 mandir=
 docdir=
-vimplugindir=
+vimdatadir=
 modulefilesdir=
 modulepath=
 
@@ -127,7 +127,7 @@ Fine tuning of the installation directories:
   --datarootdir=DIR       read-only arch.-independent data root [PREFIX/share]
   --mandir=DIR            man documentation [DATAROOTDIR/man]
   --docdir=DIR            documentation root [DATAROOTDIR/doc]
-  --vimplugindir=DIR      vim plugin directory [DATAROOTDIR/vim/vimfiles]
+  --vimdatadir=DIR        Vim addons directory [DATAROOTDIR/vim/vimfiles]
   --modulefilesdir=DIR    system modulefiles [PREFIX/modulefiles]
 
 Optional Features:
@@ -142,8 +142,8 @@ Optional Features:
   --enable-doc-install    install documentation files in the documentation
                           directory defined with \'docdir' (no impact on
                           man pages installation) [yes]
-  --enable-vimplugin      install vim plugin files in the directory
-                          defined with \'vimplugindir' [yes]
+  --enable-vim-addons     install Vim addon files in the directory defined
+                          with \'vimdatadir' [yes]
   --enable-example-modulefiles
                           install in 'modulefilesdir' some modulefiles
                           provided as examples [yes]
@@ -303,8 +303,8 @@ for arg in "$@"; do
       mandir="${arg#*=}" ;;
    --docdir=*)
       docdir="${arg#*=}" ;;
-   --vimplugindir=*)
-      vimplugindir="${arg#*=}" ;;
+   --vimdatadir=*)
+      vimdatadir="${arg#*=}" ;;
    --modulefilesdir=*)
       modulefilesdir="${arg#*=}" ;;
    --enable-set-manpath*|--disable-set-manpath)
@@ -321,8 +321,8 @@ for arg in "$@"; do
    --enable-doc-install*|--disable-doc-install)
       docinstall=$(get_feature_value "$arg")
       defdocinstall=0 ;;
-   --enable-vimplugin*|--disable-vimplugin)
-      vimplugin=$(get_feature_value "$arg")
+   --enable-vim-addons*|--disable-vim-addons)
+      vimaddons=$(get_feature_value "$arg")
       defvimplugin=0 ;;
    --enable-example-modulefiles*|--disable-example-modulefiles)
       examplemodulefiles=$(get_feature_value "$arg")
@@ -473,7 +473,7 @@ fi
 [ -z "$datarootdir" ] && datarootdir=$prefix/share
 [ -z "$mandir" ] && mandir=$datarootdir/man
 [ -z "$docdir" ] && docdir=$datarootdir/doc
-[ -z "$vimplugindir" ] && vimplugindir=$datarootdir/vim/vimfiles
+[ -z "$vimdatadir" ] && vimdatadir=$datarootdir/vim/vimfiles
 [ -z "$modulefilesdir" ] && modulefilesdir=$prefix/modulefiles
 # default modulepath based on MODULE_VERSION if versioning enabled
 [ -z "$modulepath" -a "$versioning" = 'y' ] && modulepath=${modulefilesdir/#$prefix/$baseprefix\/\$MODULE_VERSION}
