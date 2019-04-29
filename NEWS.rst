@@ -6,6 +6,15 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+Modules 4.3.0 (2019-XX-XX)
+--------------------------
+
+* Introduce Vim addon files to highlight the modulefile syntax. Installation
+  of these files, which is enabled by default, is controlled by the
+  ``--enable-vim-addons`` and ``--vimdatadir`` configure options.
+  (contribution from Felix Neumärker)
+
+
 Modules 4.2.4 (2019-04-26)
 --------------------------
 

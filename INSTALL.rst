@@ -191,7 +191,9 @@ is displayed within brakets):
 --docdir=DIR          Directory to host documentation other than man
                       pages like README, license file, etc
                       [``DATAROOTDIR/doc``]
---modulefilesdir=DIR  Directory or main modulefiles also called system
+--vimdatadir=DIR      Directory to host Vim addon files
+                      [``DATAROOTDIR/vim/vimfiles``]
+--modulefilesdir=DIR  Directory of main modulefiles also called system
                       modulefiles [``PREFIX/modulefiles``]
 
 Optional Features (the default for each option is displayed within
@@ -225,6 +227,8 @@ instance ``--disable-set-manpath``):
                       case of installation process handled via a package
                       manager which handles by itself the installation of
                       this kind of documents. (default=yes)
+--enable-vim-addons   Install the Vim addon files in the Vim addons directory
+                      defined with the ``--vimdatadir`` option. (default=yes)
 --enable-example-modulefiles
                       Install some modulefiles provided as example in the
                       system modulefiles directory defined with the
