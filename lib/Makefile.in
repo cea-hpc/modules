@@ -5,6 +5,10 @@ CFLAGS_WARNING=@CFLAGS_WARNING@
 
 CC=@TCL_CC@
 CFLAGS=@CFLAGS@@TCL_INCLUDE_SPEC@
+# apply specific flags if code coverage asked
+ifeq ($(COVERAGE),y)
+CFLAGS += -coverage -O0
+endif
 LDFLAGS=@LDFLAGS@
 LD=@TCL_SHLIB_LD@ ${CFLAGS}
 
@@ -13,6 +17,7 @@ libtclenvmodules@TCL_SHLIB_SUFFIX@: envmodules.c
 
 clean:
 	rm -f libtclenvmodules.so
+	rm -f envmodules.c.gcov envmodules.gcda envmodules.gcno
 
 distclean: clean
 	rm -f config.log config.status
