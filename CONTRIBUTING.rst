@@ -87,11 +87,11 @@ submit.
 
 Run ``make testcoverage`` which will automatically setup the `Nagelfar`_ Tcl
 code coverage tool in your ``modules`` development directory. Then the full
-testsuite will be run in coverage mode and a ``modulecmd.tcl_m`` annotated
-script will be produced::
+testsuite will be run in coverage mode and a ``modulecmd-test.tcl_m``
+annotated script will be produced::
 
    make testcoverage
-   # then open modulecmd.tcl_m and look for ';# Not covered' lines
+   # then open modulecmd-test.tcl_m and look for ';# Not covered' lines
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
 
