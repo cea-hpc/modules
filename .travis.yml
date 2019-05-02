@@ -16,7 +16,7 @@ matrix:
     # 3 package variants on major Tcl releases mixed with 2 install variants
     # run tests in code coverage mode on first installation variant
     # for each Tcl releases
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --disable-compat-version --disable-libtclenvmodules --prefix=/tmp/modules' MAKE_TESTCOVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.4 --disable-compat-version --disable-libtclenvmodules --prefix=/tmp/modules' COVERAGE='y'
            EXTRA_SCRIPT_PRETEST='make install-testmodulerc install-testetcrc' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
@@ -38,7 +38,7 @@ matrix:
             - cmake3
             - r-base-core
     # install configuration file before test to trigger specific behaviors on initialization parts
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --disable-compat-version --disable-libtclenvmodules --enable-versioning --prefix=/tmp/modules --without-pager --enable-dotmodulespath' MAKE_TESTCOVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.5 --disable-compat-version --disable-libtclenvmodules --enable-versioning --prefix=/tmp/modules --without-pager --enable-dotmodulespath' COVERAGE='y'
            EXTRA_SCRIPT_PRETEST='make install-testmodulerc install-testsiteconfig install-testmodspath' EXTRA_SCRIPT_POSTTEST='make uninstall-testconfig'
       addons:
         apt:
@@ -61,7 +61,7 @@ matrix:
             - r-base-core
     # also enable a display on this test case to validate x-resource behavior
     # check auto handling feature on this test configuration
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --disable-compat-version --disable-libtclenvmodules --prefix=/tmp/modules --with-pager=more --with-pager-opts=-X --enable-auto-handling' MAKE_TESTCOVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --disable-compat-version --disable-libtclenvmodules --prefix=/tmp/modules --with-pager=more --with-pager-opts=-X --enable-auto-handling' COVERAGE='y'
       before_script:
         - export DISPLAY=:99.0
         - sh -e /etc/init.d/xvfb start
@@ -172,7 +172,7 @@ matrix:
     # install specific siteconfig file before test to trigger specific behaviors
     # content of this specific siteconfig is activated by defining a TESTSUITE_ENABLE_SITECONFIG env var
     # siteconfig is deactivated for testinstall suite, will be handled locally in this test suite
-    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --prefix=/tmp/modules --disable-compat-version' MAKE_TESTCOVERAGE='y'
+    - env: CONFIGURE_OPTS='--with-tclsh=tclsh8.6 --prefix=/tmp/modules --disable-compat-version' COVERAGE='y'
            EXTRA_SCRIPT_PRETEST='make install-testsiteconfig-1 && export TESTSUITE_ENABLE_SITECONFIG=1'
            EXTRA_SCRIPT_POSTTEST='unset TESTSUITE_ENABLE_SITECONFIG'
       addons:
@@ -249,7 +249,7 @@ matrix:
         - docker
 
     # OSX tests
-    - env: CONFIGURE_OPTS='--prefix=/tmp/modules --disable-compat-version --disable-libtclenvmodules' MAKE_TESTCOVERAGE='y'
+    - env: CONFIGURE_OPTS='--prefix=/tmp/modules --disable-compat-version --disable-libtclenvmodules' COVERAGE='y'
       os: osx
 
     # need to specify where to find tclConfig.sh on newer xcode release
@@ -291,8 +291,7 @@ script:
   - $CMD_PREFIX ./configure $CONFIGURE_OPTS
   - $CMD_PREFIX make
   - if [ -n "$EXTRA_SCRIPT_PRETEST" ]; then $CMD_PREFIX eval $EXTRA_SCRIPT_PRETEST; fi
-  - if [ "$MAKE_TESTCOVERAGE" = 'y' ]; then travis_wait 15 unbuffer $CMD_PREFIX contrib/mt cov; fi
-  - if [ "$MAKE_TESTCOVERAGE" != 'y' ]; then travis_wait 15 unbuffer $CMD_PREFIX contrib/mt; fi
+  - travis_wait 15 unbuffer $CMD_PREFIX contrib/mt
   - if [ -n "$EXTRA_SCRIPT_POSTTEST" ]; then $CMD_PREFIX eval $EXTRA_SCRIPT_POSTTEST; fi
   - $CMD_PREFIX make install
   - $CMD_PREFIX contrib/mt install
@@ -301,7 +300,7 @@ script:
 
 # report code coverage results
 after_success: |
-  [ "$MAKE_TESTCOVERAGE" = 'y' ] &&
+  [ "$COVERAGE" = 'y' ] &&
   contrib/nglfar2ccov modulecmd-test.tcl &&
   bash <(curl -s https://codecov.io/bash) -s coverage
 

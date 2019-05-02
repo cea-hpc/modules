@@ -2,7 +2,7 @@
 	install-testsiteconfig-1 install-testmodulerc install-testetcrc \
 	install-testmodspath install-testmodspath-empty uninstall-testconfig \
 	uninstall dist dist-tar dist-gzip dist-bzip2 srpm clean distclean test \
-	testinstall instrument testcoverage
+	testinstall testsyntax
 
 # definitions for code coverage
 NAGELFAR_DLSRC1 := http://downloads.sourceforge.net/nagelfar/
@@ -11,10 +11,9 @@ NAGELFAR_RELEASE := nagelfar125
 NAGELFAR_DIST := $(NAGELFAR_RELEASE).tar.gz
 NAGELFAR_DISTSUM := 707e3c305437dce1f14103f0bd058fc9
 NAGELFAR := $(NAGELFAR_RELEASE)/nagelfar.tcl
-COVERAGE_SRCFILE := modulecmd-test.tcl
-COVERAGE_IFILE := $(COVERAGE_SRCFILE:.tcl=.tcl_i)
-COVERAGE_LOGFILE := $(COVERAGE_SRCFILE:.tcl=.tcl_log)
-COVERAGE_MFILE := $(COVERAGE_SRCFILE:.tcl=.tcl_m)
+
+# specific modulecmd script for test
+MODULECMDTEST := modulecmd-test.tcl
 
 # definitions for enhanced diff tool (to review test results)
 ICDIFF_DLSRC := https://raw.githubusercontent.com/jeffkaufman/icdiff/release-1.9.2/
@@ -31,7 +30,7 @@ include Makefile.inc
 
 INSTALL_PREREQ := modulecmd.tcl ChangeLog README contrib/scripts/add.modules \
 	contrib/scripts/modulecmd
-TEST_PREREQ := modulecmd-test.tcl
+TEST_PREREQ := $(MODULECMDTEST)
 
 ifeq ($(compatversion),y)
 INSTALL_PREREQ += $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog
@@ -43,6 +42,10 @@ endif
 ifeq ($(libtclenvmodules),y)
 INSTALL_PREREQ += lib/libtclenvmodules$(SHLIB_SUFFIX)
 TEST_PREREQ += lib/libtclenvmodules$(SHLIB_SUFFIX)
+endif
+
+ifeq ($(COVERAGE),y)
+TEST_PREREQ += $(NAGELFAR)
 endif
 
 all: initdir $(INSTALL_PREREQ)
@@ -388,7 +391,7 @@ srpm: dist-bzip2
 
 clean:
 	rm -f *.log *.sum
-	rm -f $(COVERAGE_IFILE) $(COVERAGE_LOGFILE) $(COVERAGE_MFILE)
+	rm -f $(MODULECMDTEST)_i $(MODULECMDTEST)_log $(MODULECMDTEST)_m
 	rm -rf coverage
 ifeq ($(wildcard .git) $(wildcard contrib/gitlog2changelog.py),.git contrib/gitlog2changelog.py)
 	rm -f ChangeLog
@@ -410,7 +413,7 @@ ifeq ($(wildcard .git) $(wildcard CONTRIBUTING.rst),.git CONTRIBUTING.rst)
 endif
 	rm -f modulecmd.tcl
 	rm -f contrib/mtreview
-	rm -f modulecmd-test.tcl
+	rm -f $(MODULECMDTEST)
 	rm -f contrib/scripts/add.modules
 	rm -f contrib/scripts/modulecmd
 	rm -f testsuite/example/.modulespath testsuite/example/modulerc
@@ -446,10 +449,26 @@ ifneq ($(wildcard lib/Makefile),)
 	$(MAKE) -C lib distclean
 endif
 
-# make specific modulecmd script for test to check built extension lib
-modulecmd-test.tcl: modulecmd.tcl
-	sed -e 's|$(libdir)|lib|' $< > $@
+# prepare for code coverage run
+ifeq ($(COVERAGE),y)
+$(MODULECMDTEST): $(NAGELFAR)
+endif
 
+# make specific modulecmd script for test to check built extension lib
+# if coverage asked, instrument script and clear previous coverage log
+$(MODULECMDTEST): modulecmd.tcl
+	sed -e 's|$(libdir)|lib|' $< > $@
+ifeq ($(COVERAGE),y)
+	rm -f $(MODULECMDTEST)_log
+	$(NAGELFAR) -instrument $@
+endif
+
+# if coverage enabled, run tests on instrumented file to create coverage log
+ifeq ($(COVERAGE),y)
+export MODULECMD = $(MODULECMDTEST)_i
+endif
+
+# if coverage enabled create markup file for better read coverage result
 test: $(TEST_PREREQ)
 ifeq ($(compatversion) $(wildcard $(COMPAT_DIR)),y $(COMPAT_DIR))
 	$(MAKE) -C $(COMPAT_DIR) test
@@ -458,6 +477,9 @@ endif
 	OBJDIR=`pwd -P`; export OBJDIR; \
 	TESTSUITEDIR=`cd testsuite;pwd -P`; export TESTSUITEDIR; \
 	runtest --srcdir $$TESTSUITEDIR --objdir $$OBJDIR $(RUNTESTFLAGS) --tool modules
+ifeq ($(COVERAGE),y)
+	$(NAGELFAR) -markup $(MODULECMDTEST)
+endif
 
 testinstall:
 	OBJDIR=`pwd -P`; export OBJDIR; \
@@ -481,23 +503,5 @@ $(NAGELFAR):
 	tar xzf $(NAGELFAR_DIST)
 	rm $(NAGELFAR_DIST)
 
-# instrument source file for code coverage
-%.tcl_i: %.tcl $(NAGELFAR)
-	$(NAGELFAR) -instrument $<
-
-# prepare for code coverage run and make sure coverage log is clear
-instrument: $(COVERAGE_IFILE)
-	rm -f $(COVERAGE_LOGFILE)
-
-# run tests on instrumented file to create coverage log
-$(COVERAGE_LOGFILE): $(COVERAGE_IFILE)
-	MODULECMD=./$< $(MAKE) test
-
-# create markup file for better read coverage result
-%.tcl_m: %.tcl_log $(NAGELFAR)
-	$(NAGELFAR) -markup $*.tcl
-
-testcoverage: instrument $(COVERAGE_MFILE)
-
-testsyntax: $(NAGELFAR) $(COVERAGE_SRCFILE)
-	$(NAGELFAR) -len 78 $(COVERAGE_SRCFILE)
+testsyntax: $(MODULECMDTEST) $(NAGELFAR)
+	$(NAGELFAR) -len 78 $<

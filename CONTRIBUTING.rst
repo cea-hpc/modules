@@ -85,12 +85,12 @@ Generating a report of lines that do not have test coverage can indicate where
 to start contributing or what your tests should cover for the code changes you
 submit.
 
-Run ``make testcoverage`` which will automatically setup the `Nagelfar`_ Tcl
-code coverage tool in your ``modules`` development directory. Then the full
-testsuite will be run in coverage mode and a ``modulecmd-test.tcl_m``
+Run ``make test COVERAGE=y`` which will automatically setup the `Nagelfar`_
+Tcl code coverage tool in your ``modules`` development directory. Then the
+full testsuite will be run in coverage mode and a ``modulecmd-test.tcl_m``
 annotated script will be produced::
 
-   make testcoverage
+   make test COVERAGE=y
    # then open modulecmd-test.tcl_m and look for ';# Not covered' lines
 
 .. _Nagelfar: http://nagelfar.sourceforge.net/
