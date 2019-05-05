@@ -1,0 +1,56 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.00-init/%M%
+#   Revision:		%I%
+#   First Edition:	2019/05/05
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		load, display
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Tests startup of the modulecmd script when access to its
+#           external files is forbidden
+#       }C%
+#
+##############################################################################
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+set ans [list]
+
+# restrict read access to Tcl extension library
+if {[info exists tclextlib_file]} {
+    change_file_perms $tclextlib_file ugo-rx
+    lappend ans "DEBUG CALLING $MODULECMD sh --no-pager -D -V(\\nDEBUG Source site configuration \\($siteconfig_filere\\))?"
+    lappend ans "DEBUG initPager: no pager start \\(is_tty=[siteconfig_isStderrTty], mod_cmd='', use_pager=0, asked_pager=0, cmd='$install_pager', opts='$install_pageropts'\\)"
+    lappend ans "DEBUG getTermBackground: term_background set to '$install_termbg'"
+    lappend ans "(DEBUG initColors: Ignore invalid default.*\\n)?DEBUG initColors: colors set to '.*'"
+    lappend ans "DEBUG getColor: color set to '0'"
+    lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+    testouterr_cmd_re sh {--no-pager -D -V} {} [join $ans \n]
+    restore_file_perms $tclextlib_file
+}
+
+#
+# Cleanup
+#
+
+unset ans
+
+}
