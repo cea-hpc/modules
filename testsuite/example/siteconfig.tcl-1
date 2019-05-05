@@ -97,4 +97,16 @@ if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_TWICEINITCOLORS)]} {
     initColors
 }
 
+# test clear sub-command confirmation message without waiting indefinitely
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_EXITONGETSSTDIN)]} {
+    rename ::gets ::__gets
+    proc gets {fid} {
+        if {$fid eq {stdin}} {
+            exit 0
+        } else {
+            return [__gets $fid]
+        }
+    }
+}
+
 }
