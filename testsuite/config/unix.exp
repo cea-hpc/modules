@@ -123,47 +123,28 @@ proc modulecmd_xxx_ {command {input noinput}} {
 	  unresolved "internal testsuite error: no module command specified"
 	}
 
-    # check if asked not to split passed command line
-    if {[string first "NOCMDSPLIT" $command] == 0} {
-        set nocmdsplit 1
-        set command [string range $command 10 end]
-    } else {
-        set nocmdsplit 0
-    }
-
-	default_shell 
+	default_shell
 	default_modulecmd
 	default_tclsh
 
+    set cmdlist [list exec $TCLSH $MODULECMD $shell]
+    # check if asked not to split passed command line
+    if {[string first "NOCMDSPLIT" $command] == 0} {
+        lappend cmdlist [string range $command 10 end]
+    } else {
+        eval lappend cmdlist [split $command { }]
+    }
+    lappend cmdlist 2> test321.err > test321.out
+    if {$input ne {noinput}} {
+        lappend cmdlist << $input
+    }
+
 	if { ! $no_verbose && $verbose > 1 } {
-        if {$input eq {noinput}} {
-            send_user "starting $TCLSH $MODULECMD $shell $command\n"
-        } else {
-            send_user "starting $TCLSH $MODULECMD $shell $command << {$input}\n"
-        }
+        send_user "starting [lrange $cmdlist 1 end]\n"
 	}
 
-# this is why I hate Tcl ... you can never count on anything to act
-# in a consistent fashion from one version to the next.
-# This used to work until 8.4
-#   catch {set comp_output [eval exec $MODULECMD $shell [split $command { }]]
-#	} comp_error
-#
-# now need to capture the exit return code.
 	if [catch {
-        if {$nocmdsplit} {
-            if {$input eq {noinput}} {
-                set comp_output [exec $TCLSH $MODULECMD $shell $command 2> test321.err > test321.out ]
-            } else {
-                set comp_output [exec $TCLSH $MODULECMD $shell $command 2> test321.err > test321.out << $input]
-            }
-        } else {
-            if {$input eq {noinput}} {
-                set comp_output [eval exec $TCLSH $MODULECMD $shell [split $command { }] 2> test321.err > test321.out ]
-            } else {
-                set comp_output [eval exec $TCLSH $MODULECMD $shell [split $command { }] 2> test321.err > test321.out << "{$input}"]
-            }
-        }
+        set comp_output [eval $cmdlist]
 	} ] {
 		set comp_exit [lindex $errorCode 2]
 	} else {

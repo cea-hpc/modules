@@ -780,7 +780,11 @@ proc _test_sub {test_shell cmd {input noinput}} {
 	global verbose
 
 	if { $verbose > 0 } {
-		send_user "   ...  Testing 'modulecmd $test_shell $cmd'\n"
+        set cmdreport "modulecmd $test_shell $cmd"
+        if {$input ne {noinput}} {
+            append cmdreport " << $input"
+        }
+		send_user "   ...  Testing '$cmdreport'\n"
 	}
 	set comp_output ""
 	set comp_error ""
@@ -1045,9 +1049,9 @@ proc testinouterr_cmd {test_shell cmd input answer anserr} {
         }
     } else {
         _test_sub $test_shell "$cmd" $input
-        if { [ _test_out $test_shell "$cmd" "$answer" ]
-        &&   [ _test_err $test_shell "$cmd" "$anserr" ] } {
-            _test_ok $test_shell "$cmd"
+        if { [ _test_out $test_shell "$cmd << $input" "$answer" ]
+        &&   [ _test_err $test_shell "$cmd << $input" "$anserr" ] } {
+            _test_ok $test_shell "$cmd << $input"
         }
     }
 }
