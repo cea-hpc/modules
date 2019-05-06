@@ -8883,8 +8883,8 @@ proc cmdModuleTest {args} {
 
 proc cmdModuleClear {{doit {}}} {
    reportDebug "($doit)"
-   # fetch confirmation if no arg passed
-   if {$doit eq {}} {
+   # fetch confirmation if no arg passed and force mode disabled
+   if {$doit eq {} && ![getForce]} {
       # ask for it if stdin is attached to a terminal
       if {![catch {fconfigure stdin -mode}]} {
          report "Are you sure you want to clear all loaded modules!? \[n\] " 1
@@ -8895,8 +8895,8 @@ proc cmdModuleClear {{doit {}}} {
       set doit [gets stdin]
    }
 
-   # should be confirmed to proceed
-   if {[string equal -nocase -length 1 $doit y]} {
+   # should be confirmed or forced to proceed
+   if {[string equal -nocase -length 1 $doit y] || [getForce]} {
       set vartoclear [list LOADEDMODULES MODULES_LMALTNAME MODULES_LMCONFLICT\
          MODULES_LMNOTUASKED MODULES_LMPREREQ _LMFILES_]
 
@@ -8985,7 +8985,7 @@ Other commands:
   is-used         [dir ...]         Is any of the dir(s) enabled in MODULEPATH
   path            modulefile        Print modulefile path
   paths           modulefile        Print path of matching available modules
-  clear                             Reset Modules-specific runtime information
+  clear           [-f]              Reset Modules-specific runtime information
   source          scriptfile [...]  Execute scriptfile(s)
 
 Switches:
@@ -8997,7 +8997,7 @@ Switches:
   -p | --prepend  Prepend directory to MODULEPATH
   --auto          Enable automated module handling mode
   --no-auto       Disable automated module handling mode
-  -f | --force    By-pass dependency consistency
+  -f | --force    By-pass dependency consistency or confirmation dialog
 
 Options:
   -h | --help     This usage info

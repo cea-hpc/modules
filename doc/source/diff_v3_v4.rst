@@ -64,7 +64,7 @@ On compatibility version, paths composing the **MODULEPATH** environment variabl
 
 **clear**
 
- This command line switch was not supported starting Modules version ``4.0`` but reintroduced starting version ``4.3``.
+ This command line switch was not supported starting Modules version ``4.0`` but reintroduced starting version ``4.3``. It now takes into account the **--force** command-line switch to skip confirmation dialog.
 
 **refresh**
  

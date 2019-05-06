@@ -180,6 +180,8 @@ switches are accepted:
  *modulefile* will be unloaded even if it is required as a prereq by another
  *modulefile*.
 
+ On **clear** sub-command, skip the confirmation dialog and proceed.
+
 **--terse**, **-t**
 
  Display **avail**, **list** and **savelist** output in short format.
@@ -336,11 +338,11 @@ Module Sub-Commands
 
  Unload all loaded *modulefiles*.
 
-**clear** [string]
+**clear** [-f]
 
  Force the Modules package to believe that no modules are currently loaded. A
- confirmation is requested if no *string* is passed. *string* or typed
- confirmation should equal to *yes* or *y* in order to proceed.
+ confirmation is requested if command-line switch *-f* (or *--force*) is not
+ passed. Typed confirmation should equal to *yes* or *y* in order to proceed.
 
 **source** modulefile...
 

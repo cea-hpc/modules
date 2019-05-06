@@ -127,7 +127,9 @@ New sub-commands, command-line switches and environment variables
 
 * The **clear** sub-command, which was available on Modules version 3.2, has
   been reintroduced. This sub-command resets the Modules runtime information
-  but does not apply further changes to the environment at all.
+  but does not apply further changes to the environment at all. This
+  sub-command now leverages the **--force** command-line switch to skip its
+  confirmation dialog.
 
 Further reading
 ---------------

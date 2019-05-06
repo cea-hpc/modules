@@ -87,6 +87,8 @@ Modules 4.3.0 (2019-XX-XX)
   report.
 * Color module commands set in a collection on a ``saveshow`` command report.
 * Re-introduce ``clear`` sub-command. (fix issue #203)
+* Leverage ``--force`` command-line switch on ``clear`` sub-command to skip
+  confirmation dialog. (fix issue #268)
 
 
 Modules 4.2.4 (2019-04-26)

@@ -117,6 +117,7 @@ _module() {
     opts="-D -h -V --debug --help --version --paginate --no-pager --color --color="
     load_opts="--auto --no-auto --force -f"
     list_opts="-l -t --long --terse"
+    clear_opts="--force -f"
     path_opts="-d --delim --duplicates"
     rm_path_opts="-d --delim --index"
     avail_opts="-d -L -l -t --default --latest --long --terse --indepth --no-indepth"
@@ -125,6 +126,7 @@ _module() {
     add|load)       _module_comgen_words_and_files "$load_opts $(_module_not_yet_loaded $cur)" "$cur";;
     avail)          _module_comgen_words_and_files "$avail_opts $(_module_avail $cur)" "$cur";;
     list|savelist)  COMPREPLY=( $(compgen -W "$list_opts" -- "$cur") );;
+    clear)  COMPREPLY=( $(compgen -W "$clear_opts" -- "$cur") );;
     restore|save|saveshow|saverm|is-saved)
                     COMPREPLY=( $(compgen -W "$(_module_savelist)" -- "$cur") );;
     rm|del|remove|unload|switch|swap)
@@ -133,7 +135,7 @@ _module() {
     use|-a|--append)   ;;               # let readline handle the completion
     display|help|show|test|whatis|is-loaded|is-avail|info-loaded)
                     _module_comgen_words_and_files "$(_module_avail $cur)" "$cur";;
-    -h|--help|-V|--version|aliases|apropos|keyword|purge|refresh|reload|search|source|clear)
+    -h|--help|-V|--version|aliases|apropos|keyword|purge|refresh|reload|search|source)
                     ;;
     append-path|prepend-path)
                     COMPREPLY=( $(compgen -W "$path_opts" -- "$cur") );;
