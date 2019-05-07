@@ -42,7 +42,8 @@ _mlret=$?
 
 @quarantinesupport@# clean temp variables used to setup quarantine
 @quarantinesupport@if [ -n "${_mlIFS+x}" ]; then
-@quarantinesupport@   IFS=$_mlIFS; unset _mlIFS;
+@quarantinesupport@   IFS=$_mlIFS;
+@quarantinesupport@   unset _mlIFS;
 @quarantinesupport@else
 @quarantinesupport@   unset IFS;
 @quarantinesupport@fi;
@@ -54,7 +55,8 @@ if [ $_mlret -eq 0 ]; then
 
 @compatversion@   # redefine module command if compat version has been activated
 @compatversion@   if [ "${MODULES_USE_COMPAT_VERSION:-0}" = '1' ]; then
-@compatversion@      MODULES_CMD=@libexecdir@/modulecmd-compat; export MODULES_CMD
+@compatversion@      MODULES_CMD=@libexecdir@/modulecmd-compat
+@compatversion@      export MODULES_CMD
 @compatversion@      if [ -t 2 ]; then
 @compatversion@         _module_raw() { eval `@libexecdir@/modulecmd-compat ksh $*`; }
 @compatversion@      else
@@ -75,7 +77,8 @@ if [ $_mlret -eq 0 ]; then
 @compatversion@         typeset swname='compatibility'
 @compatversion@         if [ -e @libexecdir@/modulecmd-compat ]; then
 @compatversion@            typeset swfound=0
-@compatversion@            MODULES_USE_COMPAT_VERSION=1; export MODULES_USE_COMPAT_VERSION
+@compatversion@            MODULES_USE_COMPAT_VERSION=1
+@compatversion@            export MODULES_USE_COMPAT_VERSION
 @compatversion@         fi
 @compatversion@      fi
 @compatversion@
@@ -92,27 +95,32 @@ if [ $_mlret -eq 0 ]; then
    # setup ENV variables to get module defined in sub-shells (works for 'sh'
    # and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and 'ksh'
    # (zsh-compat) in non-interactive mode.
-   ENV=@initdir@/profile.sh; export ENV
-   BASH_ENV=@initdir@/bash; export BASH_ENV
+   ENV=@initdir@/profile.sh
+   export ENV
+   BASH_ENV=@initdir@/bash
+   export BASH_ENV
 
    # setup FPATH to get module defined in 'ksh' interactive and non-interactive
    # sub-shells. only set in ksh init script to avoid side effect default FPATH
    # set for 'zsh' shell when it starts.
    _mlinstr=":$FPATH:"
    if [ "${_mlinstr#*:@initdir@/ksh-functions:}" = "$_mlinstr" ]; then
-      FPATH=$FPATH${FPATH:+:}@initdir@/ksh-functions; export FPATH
+      FPATH=$FPATH${FPATH:+:}@initdir@/ksh-functions
+      export FPATH
    fi
 @setbinpath@
 @setbinpath@   _mlinstr=":$PATH:"
 @setbinpath@   if [ "${_mlinstr#*:@bindir@:}" = "$_mlinstr" ]; then
-@setbinpath@@prependbinpath@      PATH=@bindir@${PATH:+:}$PATH; export PATH
-@setbinpath@@appendbinpath@      PATH=$PATH${PATH:+:}@bindir@; export PATH
+@setbinpath@@prependbinpath@      PATH=@bindir@${PATH:+:}$PATH
+@setbinpath@@appendbinpath@      PATH=$PATH${PATH:+:}@bindir@
+@setbinpath@      export PATH
 @setbinpath@   fi
 @setmanpath@
 @setmanpath@   # initialize MANPATH if not set with a value that preserves manpath system
 @setmanpath@   # configuration even after addition of paths to this variable by modulefiles
 @setmanpath@   if [ ! -n "${MANPATH+x}" ]; then
-@setmanpath@      MANPATH=:; export MANPATH
+@setmanpath@      MANPATH=:
+@setmanpath@      export MANPATH
 @setmanpath@   fi
 @setmanpath@@usemanpath@   _mlinstr=":`manpath 2>/dev/null`:"
 @setmanpath@@notusemanpath@   _mlinstr=":$MANPATH:"
@@ -122,8 +130,9 @@ if [ $_mlret -eq 0 ]; then
 @setmanpath@      else
 @setmanpath@         _mlpathsep=:
 @setmanpath@      fi
-@setmanpath@@prependmanpath@      MANPATH=@mandir@$_mlpathsep$MANPATH; export MANPATH
-@setmanpath@@appendmanpath@      MANPATH=$MANPATH$_mlpathsep@mandir@; export MANPATH
+@setmanpath@@prependmanpath@      MANPATH=@mandir@$_mlpathsep$MANPATH
+@setmanpath@@appendmanpath@      MANPATH=$MANPATH$_mlpathsep@mandir@
+@setmanpath@      export MANPATH
 @setmanpath@      unset _mlpathsep
 @setmanpath@   fi
    unset _mlinstr
