@@ -22,6 +22,7 @@ from __future__ import print_function
 from optparse import OptionParser
 import os,sys,re
 from subprocess import *
+import platform
 
 # Handle options
 usage = "Usage: %prog [-p prefix] <initscript> [args]"
@@ -36,10 +37,19 @@ if not args:
     parser.print_usage()
     exit(1)
 
+# Determine if running environment is based on cmd.exe or not
+def iscmdshell():
+    return True if platform.system() == 'Windows' else False
+
 # Return environment after a command
 def getenv(cmd = ':'):
     env = {}
-    p = Popen(cmd + ";env", shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    if iscmdshell():
+        # ':' command not supported by cmd.exe
+        cmd = (cmd if cmd != ':' else '@echo off') + " & set"
+    else:
+        cmd = cmd + ";env"
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     (stdout, stderr) = p.communicate()
     if p.returncode != 0:
         print("ERROR: Could not execute initscript:")
@@ -55,6 +65,8 @@ def getenv(cmd = ':'):
         if skip:
             if line == '}':
                 skip = False
+            continue
+        elif iscmdshell() and line.find('=') == -1:
             continue
         try:
             (var,value) = line.split('=',1)
@@ -73,7 +85,13 @@ def getenv(cmd = ':'):
 env1=getenv()
 
 #Record environment after sourcing the initscript
-env2=getenv(". " + " ".join(args))
+if iscmdshell():
+    if len(args)>1:
+        env2=getenv('"' + args[0] + '" ' + " ".join(args[1:]))
+    else:
+        env2=getenv('"' + args[0] + '"')
+else:
+    env2=getenv(". " + " ".join(args))
 
 # Initialize our variables for storing modifications
 chdir = None
@@ -198,7 +216,12 @@ def formatline(item, key, value=None):
     if value is not None:
         print("\t"*(3-(len(key)+1)/8), end=' ')
         if prefix is not None:
-            print(value.replace(prefix,'$prefix'))
+            # Prefer usage of regular expression to perform a none
+            # case-sensitive substitution (cygwin vs cmd.exe)
+            if iscmdshell():
+                print(re.sub('(?i)' + re.escape(prefix), '$prefix', value))
+            else:
+                print(value.replace(prefix,'$prefix'))
         else:
             print(value)
 
