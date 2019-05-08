@@ -131,6 +131,10 @@ New sub-commands, command-line switches and environment variables
   sub-command now leverages the **--force** command-line switch to skip its
   confirmation dialog.
 
+* The **MODULES_SITECONFIG** environment variable defines an additional
+  siteconfig script which is loaded if it exists after the siteconfig script
+  configured at build time in ``modulecmd.tcl``.
+
 Further reading
 ---------------
 

@@ -102,10 +102,13 @@ Bourne Shell (sh) (and derivatives) with **autoinit** sub-command:
 Modulecmd startup
 ^^^^^^^^^^^^^^^^^
 
-Upon invocation **modulecmd.tcl** sources if it exists a site-specific
-configuration script located in |emph etcdir|\ */siteconfig.tcl*. This Tcl
-script enables to supersede any global variable or procedure definition of
-**modulecmd.tcl**.
+Upon invocation **modulecmd.tcl** sources a site-specific configuration
+script if it exists. The location for this script is
+|emph etcdir|\ */siteconfig.tcl*. An additional siteconfig script may be
+specified with the *$MODULES_SITECONFIG* environment variable and will be
+loaded if it exists after |emph etcdir|\ */siteconfig.tcl*. Siteconfig is a
+Tcl script that enables to supersede any global variable or procedure
+definition of **modulecmd.tcl**.
 
 Afterward, **modulecmd.tcl** sources rc files which contain global,
 user and *modulefile* specific setups. These files are interpreted as
@@ -862,6 +865,11 @@ ENVIRONMENT
  current shell session for the duration of either the module command or the
  module shell initialization script. Only applies to Bourne Shell (sh) and its
  derivatives.
+
+**MODULES_SITECONFIG**
+
+ Location of a site-specific configuration script to source into
+ **modulecmd.tcl**. See also Modulecmd startup section.
 
 **MODULES_TERM_BACKGROUND**
 

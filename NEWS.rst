@@ -92,6 +92,11 @@ Modules 4.3.0 (2019-XX-XX)
 * Init: improve readability of variable definition operations by writing one
   definition operation per line rather having multiple commands on a single
   line like ``VAR=val; export VAR``. (fix issue #225)
+* Add the ability to define a site-specific configuration file with an
+  environment variable: ``MODULES_SITECONFIG``. When set, the script file
+  pointed by the variable is sourced (if readable) after the site-specific
+  configuration file initially defined in ``modulecmd.tcl``. (contribution
+  from Ben Bowers, fix issue #234)
 
 
 Modules 4.2.4 (2019-04-26)
