@@ -47,7 +47,7 @@ files to get their full content.
 
 Last but not least, Modules Tcl extension library is introduced to extend the
 Tcl language in order to provide more optimized I/O commands to read a file or
-a directory content than native Tcl commands do. This library is build and
+a directory content than native Tcl commands do. This library is built and
 enabled in ``modulecmd.tcl`` script with ``--enable-libtclenvmodules``
 configure argument (it is enabled by default). As this library is written in
 C, it must be compiled and ``--with-tcl`` or ``--with-tclinclude`` configure
