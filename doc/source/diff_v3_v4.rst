@@ -415,6 +415,8 @@ Environment
 
 **MODULES_COLORS**
 
+**MODULES_SITECONFIG**
+
 **MODULES_TERM_BACKGROUND**
 
  These environment variables appeared on version ``4.3`` and are not supported on compatibility version.

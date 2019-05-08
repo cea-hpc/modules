@@ -19,8 +19,30 @@
 #
 ##############################################################################
 
+proc test_getSiteConfig {siteconfig isvalid} {
+    set siteconfigre [regsub -all "\(\[.+?\]\)" $siteconfig {\\\1}]
+    set siteconfigdbg [expr {$isvalid ? "DEBUG sourceSiteConfig: Source site configuration \\($siteconfigre\\)\\n" : {}}]
+    set mainconfigdbg [expr {[file readable $::siteconfig_file] ? "DEBUG sourceSiteConfig: Source site configuration \\($::siteconfig_filere\\)\\n" : {}}]
+
+    set ans [list]
+    if {$isvalid} {
+        lappend ans "someUserProc"
+    }
+    lappend ans "DEBUG CALLING $::MODULECMD sh --no-pager -D -V"
+    lappend ans "(DEBUG Load Tcl extension library \\(.+\\)\\n)?$mainconfigdbg${siteconfigdbg}DEBUG initPager: no pager start \\(is_tty=$::is_stderr_tty, mod_cmd='', use_pager=0, asked_pager=0, cmd='$::install_pager', opts='$::install_pageropts'\\)"
+    lappend ans "DEBUG getTermBackground: term_background set to '$::install_termbg'"
+    lappend ans "(DEBUG initColors: Ignore invalid default.*\\n)?DEBUG initColors: colors set to '.*'"
+    lappend ans "DEBUG getColor: color set to '0'"
+    lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+
+    setenv_var MODULES_SITECONFIG $siteconfig
+    testouterr_cmd_re sh {--no-pager -D -V} {} [join $ans \n]
+    unsetenv_var MODULES_SITECONFIG
+}
+
 # check excepted siteconfig file is installed
-if {[siteconfig_isStderrTty]} {
+set is_stderr_tty [siteconfig_isStderrTty]
+if {$is_stderr_tty} {
 
 # no procedure superseding test, already handled in 100-pager tests
 
@@ -32,7 +54,7 @@ set env(TESTSUITE_ENABLE_SITECONFIG_DEBUG) 1
 
 set ans [list]
 lappend ans "DEBUG CALLING $MODULECMD sh -V"
-lappend ans "(DEBUG Load Tcl extension library \\(.+\\)\\n)?DEBUG Source site configuration \\($siteconfig_filere\\)"
+lappend ans "(DEBUG Load Tcl extension library \\(.+\\)\\n)?DEBUG sourceSiteConfig: Source site configuration \\($siteconfig_filere\\)"
 lappend ans "DEBUG initPager: start pager \\(asked_pager=-, cmd='$install_pager', opts='$install_pageropts'\\)"
 lappend ans "DEBUG getTermBackground: term_background set to '$install_termbg'"
 lappend ans "(DEBUG initColors: Ignore invalid default.*\\n)?DEBUG initColors: colors set to '.*'"
@@ -243,6 +265,23 @@ unset modulefile
 unset ORIG_PATH
 
 } elseif {$verbose > 0} {
-   send_user "\tSkip tests as excepted siteconfig file not installed\n"
+    send_user "\tSkip tests relying on an excepted siteconfig file installed\n"
 }
 
+# test siteconfig override using MODULES_SITECONFIG
+# when set to an unexistent file
+test_getSiteConfig /path/to/unexistent/file 0
+test_getSiteConfig {} 0
+# when set to a valid Tcl script
+test_getSiteConfig $env(TESTSUITEDIR)/example/siteconfig.tcl-2 1
+test_getSiteConfig testsuite/example/siteconfig.tcl-2 1
+
+
+#
+#  Clean up variables used in this test case
+#
+
+unset is_stderr_tty
+
+# remove test procedure
+rename test_getSiteConfig {}
