@@ -916,6 +916,12 @@ FILES
 
  The **MODULESHOME** directory.
 
+|bold etcdir|\ **/siteconfig.tcl**
+
+ The site-specific configuration script of **modulecmd.tcl**. An additional
+ configuration script could be defined using the **MODULES_SITECONFIG**
+ environment variable.
+
 |bold prefix|\ **/etc/rc**
 
  The system-wide modules rc file. The location of this file can be changed

@@ -97,6 +97,8 @@ Modules 4.3.0 (2019-XX-XX)
   pointed by the variable is sourced (if readable) after the site-specific
   configuration file initially defined in ``modulecmd.tcl``. (contribution
   from Ben Bowers, fix issue #234)
+* Doc: add description in the module.1 man page of ``MODULERCFILE`` in the
+  environment section and ``siteconfig.tcl`` in the files section.
 
 
 Modules 4.2.4 (2019-04-26)
