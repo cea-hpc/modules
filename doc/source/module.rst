@@ -620,6 +620,11 @@ ENVIRONMENT
  **MODULEPATH** value. If an environment variable referred in a path element
  is not defined, its reference is converted to an empty string.
 
+**MODULERCFILE**
+
+ Location of a global run-command file containing *modulefile* specific
+ setup. See also Modulecmd startup section.
+
 **MODULESHOME**
 
  The location of the master Modules package file directory containing module
