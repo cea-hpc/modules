@@ -47,10 +47,7 @@ if {$is_stderr_tty} {
 # no procedure superseding test, already handled in 100-pager tests
 
 # test variable superseding
-if { $verbose > 0 } {
-    send_user "\tSetup TESTSUITE_ENABLE_SITECONFIG_DEBUG = '1'\n"
-}
-set env(TESTSUITE_ENABLE_SITECONFIG_DEBUG) 1
+setenv_var TESTSUITE_ENABLE_SITECONFIG_DEBUG 1
 
 set ans [list]
 lappend ans "DEBUG CALLING $MODULECMD sh -V"
@@ -62,11 +59,13 @@ lappend ans "DEBUG getColor: color set to '0'"
 lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
 testouterr_cmd_re "sh" "-V" "" [join $ans "\n"]
 
+# test variable superseding of regular siteconfig file by additional siteconfig file
+setenv_var MODULES_SITECONFIG testsuite/example/siteconfig.tcl-2
+testouterr_cmd_re sh {-V} {} {Modules Release [0-9a-zA-Z\.\+\-]+ \([0-9\-]{10}\)}
+
 # restore environment
-if { $verbose > 0 } {
-    send_user "\tUnset TESTSUITE_ENABLE_SITECONFIG_DEBUG\n"
-}
-unset env(TESTSUITE_ENABLE_SITECONFIG_DEBUG)
+unsetenv_var MODULES_SITECONFIG
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_DEBUG
 
 
 # test broken siteconfig file
