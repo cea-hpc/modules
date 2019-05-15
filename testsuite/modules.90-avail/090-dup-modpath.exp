@@ -1,0 +1,37 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.90-avail/%M%
+#   Revision:		%I%
+#   First Edition:	2019/05/15
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:		avail
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#			Check the module 'avail' command when MODULEPATH variable
+#           hold duplicate path entries
+#		}C%
+#
+##############################################################################
+
+# set MODULEPATH with multiple entries all pointing to the same directory
+setenv_path_var MODULEPATH $modpath:$modpath:$modpath/test/..
+
+# single entry should be reported
+testouterr_cmd sh {avail -t help/2.0} OK "$modpath:\nhelp/2.0"
+testouterr_cmd sh use OK "Search path for module files (in search order):\n  $modpath"
+
+#
+#  Cleanup
+#
+
+# restore MODULEPATH
+setenv_path_var MODULEPATH $modpath
+
