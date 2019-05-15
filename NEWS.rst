@@ -99,6 +99,9 @@ Modules 4.3.0 (2019-XX-XX)
   from Ben Bowers, fix issue #234)
 * Doc: add description in the module.1 man page of ``MODULERCFILE`` in the
   environment section and ``siteconfig.tcl`` in the files section.
+* Correctly escape ``?`` character in shell alias. (fix issue #275)
+* When resolving the enabled list of modulepaths, ensure resolved path
+  entries are unique. (fix issue #274)
 
 
 Modules 4.2.4 (2019-04-26)
