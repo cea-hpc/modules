@@ -55,7 +55,11 @@ proc sourceSiteConfig {} {
          if {[catch {uplevel 1 source $siteconfig} errMsg]} {
             reportErrorAndExit "Site configuration source failed\n$errMsg"
          }
-         set ::g_siteconfig_loaded 1
+         if {$siteconfig eq $::g_siteconfig} {
+            set ::g_siteconfig_loaded 1
+         } else {
+            set ::g_extra_siteconfig_loaded 1
+         }
       }
    }
 }
@@ -9016,9 +9020,9 @@ proc cmdModuleConfig {dump_state args} {
       MODULES_AUTO_HANDLING avail_indepth MODULES_AVAIL_INDEPTH\
       collection_pin_version MODULES_COLLECTION_PIN_VERSION collection_target\
       MODULES_COLLECTION_TARGET color MODULES_COLOR colors MODULES_COLORS\
-      pager MODULES_PAGER rcfile MODULERCFILE run_quarantine\
-      MODULES_RUN_QUARANTINE silent_shell_debug MODULES_SILENT_SHELL_DEBUG\
-      term_background MODULES_TERM_BACKGROUND]
+      extra_siteconfig MODULES_SITECONFIG pager MODULES_PAGER rcfile\
+      MODULERCFILE run_quarantine MODULES_RUN_QUARANTINE silent_shell_debug\
+      MODULES_SILENT_SHELL_DEBUG term_background MODULES_TERM_BACKGROUND]
 
    array set confvalid [list auto_handling [list 0 1] avail_indepth [list 0\
       1] collection_pin_version [list 0 1] color [list never auto always]\
@@ -9030,7 +9034,8 @@ proc cmdModuleConfig {dump_state args} {
       $::flag_default_dir avail_report_mfile_sym $::flag_default_mf\
       collection_pin_version [pinVersionInCollection] collection_target\
       [get-env $confvar(collection_target) <undef>] color [getColor] colors\
-      $::g_colors_list ignored_dirs [getIgnoredDirs] pager "$::g_pager\
+      $::g_colors_list extra_siteconfig [get-env $confvar(extra_siteconfig)\
+      <undef>] ignored_dirs [getIgnoredDirs] pager "$::g_pager\
       $::g_pager_opts" rcfile [get-env $confvar(rcfile) <undef>]\
       run_quarantine [get-env $confvar(run_quarantine) <undef>]\
       silent_shell_debug [get-env $confvar(silent_shell_debug) <undef>]\
@@ -9102,6 +9107,7 @@ proc cmdModuleConfig {dump_state args} {
          set state_list [list\
             cmdline "$::argv0 $::argv"\
             debug $::g_debug\
+            extra_siteconfig_loaded [info exists ::g_extra_siteconfig_loaded]\
             force [getForce]\
             is_stderr_tty [isStderrTty]\
             is_win [isWin]\
