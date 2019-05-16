@@ -348,6 +348,10 @@ Starting with version ``4.1``, **module** function for all scripting languages, 
 **info-loaded**
 
  These module sub-commands appeared on version ``4.1`` and are not supported on compatibility version.
+
+**config**
+
+ This module sub-command appeared on version ``4.3`` and is not supported on compatibility version.
  
 **avail**
 
