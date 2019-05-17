@@ -280,6 +280,9 @@ instance ``--disable-set-manpath``):
 --enable-color        Control if output should be colored by default or not.
                       A value of ``yes`` equals to the ``auto`` color mode.
                       ``no`` equals to the ``never`` color mode. (default=no)
+--enable-extra-siteconfig
+                      Allow the addition a site-specific configuration script
+                      controlled with an environment variable. (default=yes)
 
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for

@@ -142,6 +142,12 @@ else
   setavailindepth := 0
 endif
 
+ifeq ($(extrasiteconfig),y)
+  setextrasiteconfig := 1
+else
+  setextrasiteconfig := 0
+endif
+
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@baseprefix@|$(baseprefix)|g' \
@@ -159,6 +165,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@darkbgcolors@|$(darkbgcolors)|g' \
 	-e 's|@lightbgcolors@|$(lightbgcolors)|g' \
 	-e 's|@termbg@|$(termbg)|g' \
+	-e 's|@extrasiteconfig@|$(setextrasiteconfig)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \

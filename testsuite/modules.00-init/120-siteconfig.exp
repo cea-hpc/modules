@@ -59,12 +59,14 @@ lappend ans "DEBUG getColor: color set to '0'"
 lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
 testouterr_cmd_re "sh" "-V" "" [join $ans "\n"]
 
-# test variable superseding of regular siteconfig file by additional siteconfig file
-setenv_var MODULES_SITECONFIG testsuite/example/siteconfig.tcl-2
-testouterr_cmd_re sh {-V} {} {Modules Release [0-9a-zA-Z\.\+\-]+ \([0-9\-]{10}\)}
+# test variable superseding of regular siteconfig file by additional siteconfig file if enabled
+if {$install_extrasiteconfig eq {y}} {
+    setenv_var MODULES_SITECONFIG testsuite/example/siteconfig.tcl-2
+    testouterr_cmd_re sh {-V} {} {Modules Release [0-9a-zA-Z\.\+\-]+ \([0-9\-]{10}\)}
+    unsetenv_var MODULES_SITECONFIG
+}
 
 # restore environment
-unsetenv_var MODULES_SITECONFIG
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_DEBUG
 
 
@@ -253,6 +255,15 @@ testouterr_cmd sh clear {} {Are you sure you want to clear all loaded modules!? 
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXITONGETSSTDIN
 
 
+# test extra siteconfig disablement
+setenv_var TESTSUITE_ENABLE_SITECONFIG_NOEXTRASITECONFIG 1
+
+test_getSiteConfig testsuite/example/siteconfig.tcl-2 0
+
+# restore environment
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_NOEXTRASITECONFIG
+
+
 #
 #  Clean up variables used in this test case
 #
@@ -271,9 +282,9 @@ unset ORIG_PATH
 # when set to an unexistent file
 test_getSiteConfig /path/to/unexistent/file 0
 test_getSiteConfig {} 0
-# when set to a valid Tcl script
-test_getSiteConfig $env(TESTSUITEDIR)/example/siteconfig.tcl-2 1
-test_getSiteConfig testsuite/example/siteconfig.tcl-2 1
+# when set to a valid Tcl script (depends if extra siteconfig is allowed)
+test_getSiteConfig $env(TESTSUITEDIR)/example/siteconfig.tcl-2 [expr {$install_extrasiteconfig eq {y}}]
+test_getSiteConfig testsuite/example/siteconfig.tcl-2 [expr {$install_extrasiteconfig eq {y}}]
 
 
 #

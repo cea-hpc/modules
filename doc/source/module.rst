@@ -105,10 +105,10 @@ Modulecmd startup
 Upon invocation **modulecmd.tcl** sources a site-specific configuration
 script if it exists. The location for this script is
 |emph etcdir|\ */siteconfig.tcl*. An additional siteconfig script may be
-specified with the *$MODULES_SITECONFIG* environment variable and will be
-loaded if it exists after |emph etcdir|\ */siteconfig.tcl*. Siteconfig is a
-Tcl script that enables to supersede any global variable or procedure
-definition of **modulecmd.tcl**.
+specified with the *$MODULES_SITECONFIG* environment variable, if allowed by
+**modulecmd.tcl** configuration, and will be loaded if it exists after
+|emph etcdir|\ */siteconfig.tcl*. Siteconfig is a Tcl script that enables to
+supersede any global variable or procedure definition of **modulecmd.tcl**.
 
 Afterward, **modulecmd.tcl** sources rc files which contain global,
 user and *modulefile* specific setups. These files are interpreted as

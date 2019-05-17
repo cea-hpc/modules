@@ -33,7 +33,7 @@ appendbinpath setdotmodulespath docinstall vimaddons examplemodulefiles \
 builddoc gitworktree usemanpath compatversion EXEEXT libtclenvmodules \
 SHLIB_SUFFIX versioning silentshdbgsupport quarantinesupport \
 autohandling availindepth pager pageropts color darkbgcolors lightbgcolors \
-termbg modulepath loadedmodules quarantinevars"
+termbg extrasiteconfig modulepath loadedmodules quarantinevars"
 compatarglist=
 libarglist=
 
@@ -82,6 +82,7 @@ color=n
 darkbgcolors='hi=1:db=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92'
 lightbgcolors='hi=1:db=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:sy=35:de=4:cm=32'
 termbg=dark
+extrasiteconfig=y
 # these args are initialized here but as they depend on other argument value
 # they will get their default value later (after command-line parse)
 bindir=
@@ -190,6 +191,9 @@ Optional Features:
   --enable-color          control colored output. \`yes' equals to the \`auto'
                           color mode. \`no' equals to the \`never' color mode
                           [no]
+  --enable-extra-siteconfig
+                          allow the addition a site-specific configuration
+                          script controlled with an environment variable [yes]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -408,6 +412,8 @@ for arg in "$@"; do
       if [ "${allowedval// $termbg /}" = "$allowedval" ]; then
          echo_error "Bad value for option \`--with-terminal-background', allowed values are:$allowedval"
       fi ;;
+   --enable-extra-siteconfig*|--disable-extra-siteconfig)
+      extrasiteconfig=$(get_feature_value "$arg") ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)

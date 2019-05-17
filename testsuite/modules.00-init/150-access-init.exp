@@ -55,12 +55,15 @@ if {[file readable $siteconfig_file] && [file owned $siteconfig_file]} {
 }
 
 # restrict read access to additional site-specific configuration script
-set addsiteconfig_file $env(TESTSUITEDIR)/example/siteconfig.tcl-2
-setenv_var MODULES_SITECONFIG $addsiteconfig_file
-change_file_perms $addsiteconfig_file ugo-rx
-testouterr_cmd_re sh {-V} {} "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
-restore_file_perms $addsiteconfig_file
-unsetenv_var MODULES_SITECONFIG
+if {$install_extrasiteconfig eq {y}} {
+    set addsiteconfig_file $env(TESTSUITEDIR)/example/siteconfig.tcl-2
+    setenv_var MODULES_SITECONFIG $addsiteconfig_file
+    change_file_perms $addsiteconfig_file ugo-rx
+    testouterr_cmd_re sh {-V} {} "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+    restore_file_perms $addsiteconfig_file
+    unsetenv_var MODULES_SITECONFIG
+    unset addsiteconfig_file
+}
 
 # restrict read access to MODULERCFILE
 set modulerc_file $env(TESTSUITEDIR)/etc/modulerc
@@ -76,7 +79,6 @@ unsetenv_var MODULERCFILE
 #
 
 unset ans
-unset addsiteconfig_file
 unset modulerc_file
 
 }

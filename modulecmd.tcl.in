@@ -39,6 +39,7 @@ set g_pager {@pager@} ;# Default command to page into, empty=disable
 set g_pager_opts {@pageropts@} ;# Options to pass to the pager command
 
 set g_siteconfig @etcdir@/siteconfig.tcl ;# Site configuration
+set g_extrasiteconfig @extrasiteconfig@ ;# Allow an extra siteconfig
 set g_tclextlib @libdir@/libtclenvmodules@SHLIB_SUFFIX@ ;# Tcl extension lib
 
 # Source site config which can be used to define global procedures or
@@ -50,6 +51,11 @@ proc sourceSiteConfig {} {
       lappend siteconfiglist $::env(MODULES_SITECONFIG)
    }
    foreach siteconfig $siteconfiglist {
+      # look if extra siteconfig is allowed after primary siteconfig eval
+      if {$siteconfig ne $::g_siteconfig && !$::g_extrasiteconfig} {
+         break
+      }
+
       if {[file readable $siteconfig]} {
          reportDebug "Source site configuration ($siteconfig)"
          if {[catch {uplevel 1 source $siteconfig} errMsg]} {
@@ -9029,11 +9035,12 @@ proc cmdModuleConfig {dump_state args} {
       silent_shell_debug [list 0 1] term_background [list dark light]]
 
    # define each attribute/fetched value pair
-   array set confval [list contact [getContact] auto_handling\
-      [getAutoHandling] avail_indepth [getAvailInDepth] avail_report_dir_sym\
-      $::flag_default_dir avail_report_mfile_sym $::flag_default_mf\
-      collection_pin_version [pinVersionInCollection] collection_target\
-      [get-env $confvar(collection_target) <undef>] color [getColor] colors\
+   array set confval [list contact [getContact] allow_extra_siteconfig\
+      $::g_extrasiteconfig auto_handling [getAutoHandling] avail_indepth\
+      [getAvailInDepth] avail_report_dir_sym $::flag_default_dir\
+      avail_report_mfile_sym $::flag_default_mf collection_pin_version\
+      [pinVersionInCollection] collection_target [get-env\
+      $confvar(collection_target) <undef>] color [getColor] colors\
       $::g_colors_list extra_siteconfig [get-env $confvar(extra_siteconfig)\
       <undef>] ignored_dirs [getIgnoredDirs] pager "$::g_pager\
       $::g_pager_opts" rcfile [get-env $confvar(rcfile) <undef>]\

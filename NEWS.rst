@@ -102,6 +102,10 @@ Modules 4.3.0 (2019-XX-XX)
 * Correctly escape ``?`` character in shell alias. (fix issue #275)
 * When resolving the enabled list of modulepaths, ensure resolved path
   entries are unique. (fix issue #274)
+* Install: add to the configure script the ``--enable-extra-siteconfig`` and
+  ``--disable-extra-siteconfig`` options to allow or forbid the definition of
+  a site-specific configuration script controlled with the
+  ``MODULES_SITECONFIG`` environment variable.
 
 
 Modules 4.2.4 (2019-04-26)
