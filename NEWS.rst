@@ -109,6 +109,8 @@ Modules 4.3.0 (2019-XX-XX)
 * Install: provide at installation time a bare site-specific configuration
   script in designated `etcdir` if no pre-existing `siteconfig.tcl` file is
   found at designated location.
+* Introduce the ``config`` sub-command to get and set ``modulecmd.tcl``
+  options and to report its current state.
 
 
 Modules 4.2.4 (2019-04-26)

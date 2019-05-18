@@ -111,6 +111,40 @@ the defined graphical rendition is applied to the relative modulefile. When
 colored output is enabled and a specific graphical rendition is defined for
 module alias, the ``@`` symbol is omitted.
 
+Configure modulecmd with config sub-command
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The **config** sub-command has been added to `module` to help getting or
+setting the **modulecmd.tcl** options. With no additional command-line
+argument, this sub-command reports the current value of all existing options
+with a mention to indicate if this value has been overridden from a
+command-line switch or from an environment variable.
+
+See the description of this sub-command in the :ref:`module(1)` man page for a
+complete reference on existing configuration options.
+
+Most of the options can be altered by passing the option name and a value to
+the sub-command. Setting an option by this mean overrides its default value,
+set at installation time in **modulecmd.tcl** script, by defining the
+environment variable which supersedes this default.::
+
+    $ module config auto_handling 1
+    $ module config auto_handling
+    Modules Release 4.3.0 (2019-XX-XX)
+    
+    - Config. name ---------.- Value (set by if default overridden) ---------------
+    auto_handling             1 (env-var)
+
+When command-line switch ``--reset`` and an option name is passed to the
+**config** sub-command, it restores default value for configuration option by
+unsetting related environment variable.
+
+With command-line switch ``--dump-state``, the **config** sub-command reports,
+in addition to currently set options, the current state of **modulecmd.tcl**
+script and Modules-related environment variables. Providing the output of the
+``module config --dump-state`` command when submitting an issue to the Modules
+project will help to analyze the situation.
+
 New sub-commands, command-line switches and environment variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -136,6 +170,9 @@ New sub-commands, command-line switches and environment variables
   configured at build time in ``modulecmd.tcl``. This ability is enabled by
   default and could be disabled with the ``--disable-extra-siteconfig``
   configure option.
+
+* The **config** sub-command has been introduced. See `Configure modulecmd
+  with config sub-command`_ section for detailed information.
 
 Further reading
 ---------------
