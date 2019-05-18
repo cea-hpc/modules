@@ -106,6 +106,9 @@ Modules 4.3.0 (2019-XX-XX)
   ``--disable-extra-siteconfig`` options to allow or forbid the definition of
   a site-specific configuration script controlled with the
   ``MODULES_SITECONFIG`` environment variable.
+* Install: provide at installation time a bare site-specific configuration
+  script in designated `etcdir` if no pre-existing `siteconfig.tcl` file is
+  found at designated location.
 
 
 Modules 4.2.4 (2019-04-26)

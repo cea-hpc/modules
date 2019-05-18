@@ -271,6 +271,7 @@ uninstall-testconfig:
 install: $(INSTALL_PREREQ)
 	mkdir -p $(DESTDIR)$(libexecdir)
 	mkdir -p $(DESTDIR)$(bindir)
+	mkdir -p $(DESTDIR)$(etcdir)
 	cp modulecmd.tcl $(DESTDIR)$(libexecdir)/
 	chmod +x $(DESTDIR)$(libexecdir)/modulecmd.tcl
 ifeq ($(compatversion),y)
@@ -290,6 +291,9 @@ endif
 	chmod +x $(DESTDIR)$(bindir)/modulecmd
 	cp contrib/scripts/mkroot $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/mkroot
+ifneq ($(wildcard $(DESTDIR)$(etcdir)/siteconfig.tcl),$(DESTDIR)$(etcdir)/siteconfig.tcl)
+	cp siteconfig.tcl $(DESTDIR)$(etcdir)/siteconfig.tcl
+endif
 ifeq ($(docinstall),y)
 	mkdir -p $(DESTDIR)$(docdir)
 	cp COPYING.GPLv2 $(DESTDIR)$(docdir)/
