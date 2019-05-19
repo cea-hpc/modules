@@ -1,0 +1,269 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2019/05/19
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:        config
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test of the 'config' command
+#		}C%
+#
+##############################################################################
+
+# set default configuration
+unsetenv_var MODULES_COLOR
+unsetenv_var MODULERCFILE
+
+set version_report "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+set config_header "- Config. name $modlin.- Value \\(set by if default overridden\\) $modlin"
+set state_header "- State name $modlin.- Value $modlin"
+set envvar_header "- Env. variable $modlin.- Value $modlin"
+
+array set configdfl [list\
+    allow_extra_siteconfig    [expr {$install_extrasiteconfig eq {y}}]\
+    auto_handling             [expr {$install_autohandling eq {y}}]\
+    avail_indepth             [expr {$install_availindepth eq {y}}]\
+    avail_report_dir_sym      1\
+    avail_report_mfile_sym    1\
+    collection_pin_version    0\
+    collection_target         <undef>\
+    color                     never\
+    colors                    [expr {$install_termbg eq {dark} ? $install_darkbgcolors : $install_lightbgcolors}]\
+    contact                   root@localhost\
+    extra_siteconfig          <undef>\
+    ignored_dirs              {CVS RCS SCCS .svn .git .SYNC .sos}\
+    pager                     "$install_pager $install_pageropts"\
+    rcfile                    <undef>\
+    run_quarantine            <undef>\
+    silent_shell_debug        <undef>\
+    siteconfig                $siteconfig_filere\
+    tcl_ext_lib               lib/libtclenvmodules$install_shlib_suffix\
+    term_background           $install_termbg\
+]
+
+array set configvar [list\
+    auto_handling             MODULES_AUTO_HANDLING\
+    avail_indepth             MODULES_AVAIL_INDEPTH\
+    collection_pin_version    MODULES_COLLECTION_PIN_VERSION\
+    collection_target         MODULES_COLLECTION_TARGET\
+    color                     MODULES_COLOR\
+    colors                    MODULES_COLORS\
+    contact                   MODULECONTACT\
+    extra_siteconfig          MODULES_SITECONFIG\
+    pager                     MODULES_PAGER\
+    rcfile                    MODULERCFILE\
+    run_quarantine            MODULES_RUN_QUARANTINE\
+    silent_shell_debug        MODULES_SILENT_SHELL_DEBUG\
+    term_background           MODULES_TERM_BACKGROUND\
+]
+
+array set configvalid [list\
+    auto_handling             {0 1}\
+    avail_indepth             {0 1}\
+    collection_pin_version    {0 1}\
+    color                     {never auto always}\
+    silent_shell_debug        {0 1}\
+    term_background           {dark light}\
+]
+
+set statelist [list cmdline debug extra_siteconfig_loaded force is_stderr_tty is_win machine os pager_started paginate path_separator rc_loaded siteconfig_loaded shell shelltype subcmd subcmd_args tcl_ext_lib_loaded tcl_version term_columns]
+
+
+# single config parameter report
+foreach param [array names configdfl] {
+    testouterr_cmd_re sh "config $param" OK "$version_report\n\n$config_header\n$param\\s+$configdfl($param)"
+}
+
+# test full config report
+set tserr "$version_report\n\n$config_header"
+foreach param [lsort [array names configdfl]] {
+    append tserr "\n$param\\s+$configdfl($param)"
+}
+testouterr_cmd_re ALL config OK $tserr
+
+# unknown parameter report
+testouterr_cmd_re sh {config foo} ERR "$error_msgs: Configuration option 'foo' does not exist"
+
+# try set unknown parameter
+testouterr_cmd_re sh {config foo bar} ERR "$error_msgs: Configuration option 'foo' does not exist"
+
+# try set parameter that could not be altered
+foreach param [array names configdfl] {
+    if {![info exists configvar($param)]} {
+        testouterr_cmd_re sh "config $param foo" ERR "$error_msgs: Configuration option '$param' cannot be altered"
+        testouterr_cmd_re sh "config --reset $param" ERR "$error_msgs: Configuration option '$param' cannot be altered"
+    }
+}
+
+# set parameter that could be altered and whose value is checked
+foreach param [array names configvalid] {
+    # valid value tests
+    foreach val $configvalid($param) {
+        set ans [list [list set $configvar($param) $val]]
+        testouterr_cmd_re sh "config $param $val" $ans {}
+    }
+    # invalid value test
+    testouterr_cmd_re sh "config $param foo" ERR "$error_msgs: Valid values for configuration option '$param' are: $configvalid($param)"
+    # reset to default
+    set ans [list [list unset $configvar($param)]]
+    testouterr_cmd_re sh "config --reset $param" $ans {}
+}
+
+# set parameter that could be altered and whose value is not checked
+foreach param [array names configvar] {
+    if {![info exists configvalid($param)]} {
+        set ans [list [list set $configvar($param) foo]]
+        testouterr_cmd_re sh "config $param foo" $ans {}
+        # reset to default
+        set ans [list [list unset $configvar($param)]]
+        testouterr_cmd_re sh "config --reset $param" $ans {}
+    }
+}
+
+# set parameter with an empty value
+set ans [list [list set $configvar(rcfile) {}]]
+testouterr_cmd_re sh "config rcfile " $ans {}
+# report parameter set with an empty value
+setenv_var $configvar(rcfile) {}
+testouterr_cmd_re sh "config rcfile" OK "$version_report\n\n$config_header\nrcfile\\s+ \\(env-var\\)"
+
+
+# check full config report when all parameters have been changed
+array set configset [array get configdfl]
+foreach param [array names configvar] {
+    # ensure valid value is set for colors and pager
+    if {$param eq {colors}} {
+        set val err=31
+    } elseif {$param eq {pager}} {
+        set val $configdfl(pager)
+    } elseif {[info exists configvalid($param)]} {
+        set val [lindex $configvalid($param) 0]
+    } else {
+        set val foo
+    }
+    set configset($param) $val
+    setenv_var $configvar($param) $val
+}
+# also set volatile config option
+set configset(runenv_foo) foo
+setenv_var MODULES_RUNENV_FOO foo
+
+set tserr "$version_report\n\n$config_header"
+foreach param [lsort [array names configset]] {
+    append tserr "\n$param\\s+$configset($param)"
+    if {[info exists configvar($param)] || $param eq {runenv_foo}} {
+        append tserr " \\(env-var\\)"
+    }
+}
+testouterr_cmd_re sh config OK $tserr
+
+# check full config report when all parameters have been changed, by cmd-line when possible
+set tserr "$version_report\n\n$config_header"
+foreach param [lsort [array names configset]] {
+    append tserr "\n$param\\s+$configset($param)"
+    if {$param eq {auto_handling} || $param eq {color}} {
+        append tserr " \\(cmd-line\\)"
+    } elseif {[info exists configvar($param)] || $param eq {runenv_foo}} {
+        append tserr " \\(env-var\\)"
+    }
+}
+testouterr_cmd_re sh {config --no-auto --color=never} OK $tserr
+
+
+# report current state
+set tserr "$version_report\n\n$config_header"
+foreach param [lsort [array names configset]] {
+    append tserr "\n$param\\s+$configset($param)"
+    if {[info exists configvar($param)] || $param eq {runenv_foo}} {
+        append tserr " \\(env-var\\)"
+    }
+}
+append tserr "\n\n$state_header"
+foreach param $statelist {
+    append tserr "\n$param\\s+.*"
+}
+append tserr "\n\n$envvar_header"
+set envvar_list [list]
+foreach var [list LOADEDMODULES _LMFILES_ MODULE* *_modshare *_modquar *_module*] {
+    set envvar_list [concat $envvar_list [array names env -glob $var]]
+}
+foreach envvar [lsort -unique $envvar_list] {
+    append tserr "\n$envvar\\s+$env($envvar)"
+}
+testouterr_cmd_re sh {config --dump-state} OK $tserr
+
+# report current state with some module loaded
+setenv_loaded_module [list trace/all_on prereq/full] [list $modpath/trace/all_on $modpath/prereq/full] [list trace/all_on]
+setenv_path_var MODULES_LMPREREQ prereq/full&trace/all_on
+set tserr "$version_report\n\n$config_header"
+foreach param [lsort [array names configset]] {
+    append tserr "\n$param\\s+$configset($param)"
+    if {[info exists configvar($param)] || $param eq {runenv_foo}} {
+        append tserr " \\(env-var\\)"
+    }
+}
+append tserr "\n\n$state_header"
+foreach param $statelist {
+    append tserr "\n$param\\s+.*"
+}
+append tserr "\n\n$envvar_header"
+set envvar_list [list]
+foreach var [list LOADEDMODULES _LMFILES_ MODULE* *_modshare *_modquar *_module*] {
+    set envvar_list [concat $envvar_list [array names env -glob $var]]
+}
+foreach envvar [lsort -unique $envvar_list] {
+    append tserr "\n$envvar\\s+$env($envvar)"
+}
+testouterr_cmd_re sh {config --dump-state} OK $tserr
+
+
+# bad argument number
+testouterr_cmd_re sh "config --reset auto_handling 0" ERR "$error_msgs: Unexpected number of args for 'config' command\n$err_typehelp"
+testouterr_cmd_re sh "config --dump-state --reset auto_handling 0" ERR "$error_msgs: Unexpected number of args for 'config' command\n$err_typehelp"
+
+# --dump-state ignored in some cases
+set ans [list [list unset $configvar(auto_handling)]]
+testouterr_cmd_re sh "config --dump-state --reset auto_handling" $ans {}
+set ans [list [list set $configvar(auto_handling) 0]]
+testouterr_cmd_re sh "config --dump-state auto_handling 0" $ans {}
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMPREREQ
+foreach param [array names configvar] {
+    unsetenv_var $configvar($param)
+}
+unsetenv_var MODULES_RUNENV_FOO
+setenv_var MODULES_COLOR never
+setenv_var MODULERCFILE $env(TESTSUITEDIR)/etc/empty
+
+unset version_report
+unset config_header
+unset state_header
+unset envvar_header
+unset configdfl
+unset configvar
+unset configvalid
+unset statelist
+
+unset tserr
+unset param
+unset envvar
+unset envvar_list
+unset val
+unset ans
