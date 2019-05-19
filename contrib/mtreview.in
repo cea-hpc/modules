@@ -155,6 +155,9 @@ while {[gets $fid line] >= 0} {
       }
       default {
          if {![string compare -length 6 $line {FAIL: }]} {
+            if {![info exists failure_found]} {
+               set failure_found 1
+            }
             set state recres
             set res {}
             set exp {}
@@ -174,5 +177,7 @@ while {[gets $fid line] >= 0} {
 }
 
 close $fid
+
+exit [info exists failure_found]
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent syntax=tcl:

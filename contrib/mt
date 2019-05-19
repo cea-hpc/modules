@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # MT, run specific part of the test suite
-# Copyright (C) 2018 Xavier Delaruelle
+# Copyright (C) 2018-2019 Xavier Delaruelle
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -93,13 +93,24 @@ $make $target
 ret=$?
 
 # highlight failed tests
-if [ "$target" = 'testinstall' ]; then
-   contrib/mtreview install.log
-else
-   if [ -e compat/modules.log ]; then
-      contrib/mtreview compat/modules.log
+retreview=0
+for log in compat/$testserie.log $testserie.log; do
+   if [ -e $log ]; then
+      contrib/mtreview $log
+      retreview+=$?
    fi
-   contrib/mtreview modules.log
+done
+
+# testsuite failed but no failure found by mtreview
+if [ $ret -ne 0 ] && [ $retreview -eq 0 ]; then
+   for log in compat/$testserie.log $testserie.log; do
+      # output full log content as review did not found the issue
+      if [ -e $log ]; then
+         echo "### $log ####################################"
+         cat $log
+         echo "##############################################################"
+      fi
+   done
 fi
 
 exit $ret
