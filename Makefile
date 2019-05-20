@@ -374,6 +374,10 @@ endif
 	chmod +x $(DESTDIR)$(bindir)/modulecmd
 	cp script/mkroot $(DESTDIR)$(bindir)/
 	chmod +x $(DESTDIR)$(bindir)/mkroot
+ifeq ($(windowssupport),y)
+	cp windows/*.cmd $(DESTDIR)$(bindir)/
+	chmod +x $(DESTDIR)$(bindir)/*.cmd
+endif
 ifneq ($(wildcard $(DESTDIR)$(etcdir)/siteconfig.tcl),$(DESTDIR)$(etcdir)/siteconfig.tcl)
 	cp siteconfig.tcl $(DESTDIR)$(etcdir)/siteconfig.tcl
 endif
@@ -420,6 +424,10 @@ endif
 	rm -f $(DESTDIR)$(bindir)/add.modules
 	rm -f $(DESTDIR)$(bindir)/modulecmd
 	rm -f $(DESTDIR)$(bindir)/mkroot
+ifeq ($(windowssupport),y)
+	rm -f $(DESTDIR)$(bindir)/module.cmd
+	rm -f $(DESTDIR)$(bindir)/moduleinit.cmd
+endif
 ifeq ($(vimaddons),y)
 	rm -f $(DESTDIR)$(vimdatadir)/ftdetect/modulefile.vim
 	rm -f $(DESTDIR)$(vimdatadir)/ftplugin/modulefile.vim
