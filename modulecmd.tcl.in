@@ -6254,11 +6254,18 @@ proc modMatchAtDepth {indepth querydepth modmatch modlist} {
          set cmpmod [join [lrange [split $mod /] 0 $querydepth] /]
       }
 
-      if {[string match $modmatch $cmpmod]} {
+      if {[modMatch $modmatch $cmpmod]} {
          lappend reslist $mod
       }
    }
    return $reslist
+}
+
+# check passed module name match pattern in a case sensitive or insensitive
+# manner depending on current icase mode
+proc modMatch {pattern mod} {
+   return [expr {$::g_avail_icase ? [string match -nocase $pattern $mod] :\
+      [string match $pattern $mod]}]
 }
 
 # check if an existing findModules cache entry matches current search by
@@ -6301,18 +6308,6 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
       reportDebug "use cache entry '$cache_searchid'"
       return $cache_list
    }
-   # icase only if isomething to search is provided
-   if {![string equal $mod "**"] && $::g_avail_icase} {
-      set regex_mod ""
-      for {set i 0} {$i < [string length $mod] - 1} {incr i} {
-         append regex_mod "\["
-         append regex_mod [string toupper [string index $mod $i]]
-         append regex_mod [string tolower [string index $mod $i]]
-         append regex_mod "\]"
-      }
-      set mod $regex_mod*
-      reportDebug "ICASE search performed with $mod"
-   }
 
    # skip search in top dir if directly looking to a deep element, which means
    # findModules has already been called and top dir has already been analyzed
@@ -6323,8 +6318,7 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
          foreach {fpelt hid} [getFilesInDirectory $dir $fetch_hidden 0] {
             set elt [file tail $fpelt]
             # include any .modulerc file found at the modulepath root
-            if {$elt eq {.modulerc} || $mod eq {} || [string match $mod\
-               $elt]} {
+            if {$elt eq {.modulerc} || $mod eq {} || [modMatch $mod $elt]} {
                lappend full_list $fpelt
             }
          }
@@ -6506,20 +6500,11 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
             set g_rcfilesSourced($dir/$elt) 1
          }
       # add other entry kind to the result list
-      # if ICASE search performed, we need to match accordingly => -nocase
-      } elseif {($wild && $::g_avail_icase && [string match -nocase $mod*\
-         $elt]) || (!$wild && ([string match -nocase $mod/* $elt] || [string\
-         match -nocase $mod $elt]))} {
-         set mod_list($elt) $found_list($elt)
-         # list dirs to rework their definition at the end
-         if {[lindex $found_list($elt) 0] eq {directory}} {
-            set dir_list($elt) 1
-         }
       # also add dirname to results if query name finishes with trailing slash
       } elseif {($wild && [llength [modMatchAtDepth $indepth $querydepth\
-         $modmatch [list $elt]]]) || (!$wild && ([string match $mod/* $elt]\
-         || [string match $mod $elt])) || ($isquerydir && $elt_type eq\
-         {directory} && [string match $querydir $elt])} {
+         $modmatch [list $elt]]]) || (!$wild && ([modMatch $mod/* $elt]\
+         || [modMatch $mod $elt])) || ($isquerydir && $elt_type eq\
+         {directory} && [modMatch $querydir $elt])} {
          set mod_list($elt) $found_list($elt)
          # list dirs to rework their definition at the end
          if {$elt_type eq {directory}} {
@@ -6561,8 +6546,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
             if {[lindex $found_list($versmod) 0] eq {directory}} {
                set dir_list($versmod) 1
                foreach elt [array names found_list] {
-                  if {![info exists mod_list($elt)] && [string match\
-                     $versmod/* $elt]} {
+                  if {![info exists mod_list($elt)] && [modMatch $versmod/*\
+                     $elt]} {
                      set mod_list($elt) $found_list($elt)
                      # list dirs to rework their definition at the end
                      if {[lindex $found_list($elt) 0] eq {directory}} {
@@ -6923,7 +6908,7 @@ proc listModules {dir mod show_mtime filter search} {
          # do not add a dir if it does not hold tags and depth mode is enabled
          # or if search query corresponds to dir: only its content is relevant
          if {$elt_type eq {directory} && (($indepth && [llength $tag_list]\
-            == 0) || ($isquerydir && [string match $querydir $elt]))} {
+            == 0) || ($isquerydir && [modMatch $querydir $elt]))} {
             set add_to_clean_list 0
          }
       }
