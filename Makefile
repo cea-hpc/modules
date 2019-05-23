@@ -166,6 +166,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@lightbgcolors@|$(lightbgcolors)|g' \
 	-e 's|@termbg@|$(termbg)|g' \
 	-e 's|@extrasiteconfig@|$(setextrasiteconfig)|g' \
+	-e 's|@unloadmatchorder@|$(unloadmatchorder)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \

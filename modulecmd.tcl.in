@@ -302,6 +302,29 @@ proc getColor {} {
    return $::g_color
 }
 
+# Unload matching module loaded first or loaded last
+proc getUnloadMatchOrder {} {
+   if {![info exists ::g_unload_match_order]} {
+      # default value set at configure time
+      set unload_match_order @unloadmatchorder@
+
+      # overriden value coming from environment
+      if {[info exists ::env(MODULES_UNLOAD_MATCH_ORDER)]} {
+         # ignore non-valid values
+         switch -- $::env(MODULES_UNLOAD_MATCH_ORDER) {
+            returnfirst - returnlast {
+               set unload_match_order $::env(MODULES_UNLOAD_MATCH_ORDER)
+            }
+         }
+      }
+
+      set ::g_unload_match_order $unload_match_order
+      reportDebug "unload_match_order set to '$unload_match_order'"
+   }
+
+   return $::g_unload_match_order
+}
+
 
 # Get contact address for modulefile issue
 proc getContact {} {
@@ -2107,8 +2130,8 @@ proc module {command args} {
                   if {$modidx != 0} {
                      set priormodlist [lrange $modlist 0 $modidx]
                      foreach arg [lreverse $args] {
-                        if {[set unmod [getLoadedMatchingName $arg returnlast\
-                           0 $priormodlist]] ne {}} {
+                        if {[set unmod [getLoadedMatchingName $arg {} 0\
+                           $priormodlist]] ne {}} {
                            if {[cmdModuleUnload urequn match 1 0 1 1\
                               $unmod]} {
                               reportWarning "Unload of useless requirement\
@@ -2208,8 +2231,8 @@ proc module {command args} {
                         set modidx [lsearch -exact $modlist [currentModuleName]]
                         if {$modidx != 0} {
                            set priormodlist [lrange $modlist 0 $modidx]
-                           if {[set unmod [getLoadedMatchingName $swlomod\
-                              returnlast 0 $priormodlist]] ne {}} {
+                           if {[set unmod [getLoadedMatchingName $swlomod {}\
+                              0 $priormodlist]] ne {}} {
                               if {[cmdModuleUnload urequn match 1 0 1 1\
                                  $unmod]} {
                                  reportWarning "Unload of useless requirement\
@@ -3992,10 +4015,13 @@ proc getLoadedWithClosestName {name} {
 # passed as argument. if no loaded module match, an empty string is returned.
 # loading: look at currently loading modules instead of loaded if loading == 1
 # lmlist: only take into account passed loaded module list not all loaded mods
-proc getLoadedMatchingName {name {behavior returnlast} {loading 0} {lmlist\
-   {}}} {
+proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
    set ret {}
    set retmax 0
+   # get default behavior from unload_match_order config
+   if {$behavior eq {}} {
+      set behavior [getUnloadMatchOrder]
+   }
 
    # use loading-specific procedures instead of loaded-specific ones
    if {$loading} {
@@ -4239,8 +4265,11 @@ proc setModuleDependency {mod} {
    # not been reloaded after them
    set modidx [lsearch -exact $modlist $mod]
    set modnpolist [lrange $modlist [expr {$modidx + 1}] end]
-   # reverse list to get closest match
-   set modlist [lreverse [lrange $modlist 0 $modidx]]
+   set modlist [lrange $modlist 0 $modidx]
+   # reverse list to get closest match if returning lastly loaded module
+   if {[getUnloadMatchOrder] eq {returnlast}} {
+      set modlist [lreverse $modlist]
+   }
    set deplist {}
    set depnpolist {}
 
@@ -4635,8 +4664,11 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
 
    # take currently loading modules into account if asked
    if {$loading} {
-      # reverse list to get closest match
-      set modlist [lreverse [getLoadedModuleList]]
+      set modlist [getLoadedModuleList]
+      # reverse list to get closest match if returning lastly loaded module
+      if {[getUnloadMatchOrder] eq {returnlast}} {
+         set modlist [lreverse $modlist]
+      }
       foreach loadingmod [getLoadingModuleList] {
          foreach prereq [getLoadedPrereq $loadingmod] {
             set lmprelist {}
@@ -9028,11 +9060,13 @@ proc cmdModuleConfig {dump_state args} {
       MODULES_COLLECTION_TARGET color MODULES_COLOR colors MODULES_COLORS\
       extra_siteconfig MODULES_SITECONFIG pager MODULES_PAGER rcfile\
       MODULERCFILE run_quarantine MODULES_RUN_QUARANTINE silent_shell_debug\
-      MODULES_SILENT_SHELL_DEBUG term_background MODULES_TERM_BACKGROUND]
+      MODULES_SILENT_SHELL_DEBUG term_background MODULES_TERM_BACKGROUND\
+      unload_match_order MODULES_UNLOAD_MATCH_ORDER]
 
    array set confvalid [list auto_handling [list 0 1] avail_indepth [list 0\
       1] collection_pin_version [list 0 1] color [list never auto always]\
-      silent_shell_debug [list 0 1] term_background [list dark light]]
+      silent_shell_debug [list 0 1] term_background [list dark light]\
+      unload_match_order [list returnlast returnfirst]]
 
    # define each attribute/fetched value pair
    array set confval [list contact [getContact] allow_extra_siteconfig\
@@ -9047,7 +9081,7 @@ proc cmdModuleConfig {dump_state args} {
       run_quarantine [get-env $confvar(run_quarantine) <undef>]\
       silent_shell_debug [get-env $confvar(silent_shell_debug) <undef>]\
       siteconfig $::g_siteconfig tcl_ext_lib $::g_tclextlib term_background\
-      [getTermBackground]]
+      [getTermBackground] unload_match_order [getUnloadMatchOrder]]
 
    # catch any environment variable set for modulecmd run-time execution
    foreach runenvvar [array names ::env -glob MODULES_RUNENV_*] {

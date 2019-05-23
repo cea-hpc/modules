@@ -33,7 +33,8 @@ appendbinpath setdotmodulespath docinstall vimaddons examplemodulefiles \
 builddoc gitworktree usemanpath compatversion EXEEXT libtclenvmodules \
 SHLIB_SUFFIX versioning silentshdbgsupport quarantinesupport \
 autohandling availindepth pager pageropts color darkbgcolors lightbgcolors \
-termbg extrasiteconfig modulepath loadedmodules quarantinevars"
+termbg extrasiteconfig unloadmatchorder modulepath loadedmodules \
+quarantinevars"
 compatarglist=
 libarglist=
 
@@ -83,6 +84,7 @@ darkbgcolors='hi=1:db=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:d
 lightbgcolors='hi=1:db=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:sy=35:de=4:cm=32'
 termbg=dark
 extrasiteconfig=y
+unloadmatchorder=returnlast
 # these args are initialized here but as they depend on other argument value
 # they will get their default value later (after command-line parse)
 bindir=
@@ -224,6 +226,11 @@ Optional Packages:
                           terminal background color which determines the color
                           set to apply by default between the \`dark' background
                           colors or the \`light' background colors [$termbg]
+  --with-unload-match-order=VALUE
+                          when unloading a module if multiple loaded modules
+                          match the request, unload module loaded first
+                          (\`returnfirst') or module loaded last (\`returnlast')
+                          [$unloadmatchorder]
   --with-modulepath=PATHLIST
                           default modulepaths to set in default configuration
                           file to be enabled (each path in PATHLIST should
@@ -414,6 +421,12 @@ for arg in "$@"; do
       fi ;;
    --enable-extra-siteconfig*|--disable-extra-siteconfig)
       extrasiteconfig=$(get_feature_value "$arg") ;;
+   --with-unload-match-order*|--without-unload-match-order)
+      unloadmatchorder=$(get_package_value "$arg") ;
+      allowedval=" returnlast returnfirst " ;
+      if [ "${allowedval// $unloadmatchorder /}" = "$allowedval" ]; then
+         echo_error "Bad value for option \`--with-unload-match-order', allowed values are:$allowedval"
+      fi ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)
