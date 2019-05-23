@@ -609,6 +609,8 @@ Module Sub-Commands
  * tcl_ext_lib: Modules Tcl extension library location
  * term_background: terminal background color kind (defines
    **MODULES_TERM_BACKGROUND**)
+ * unload_match_order: unload firstly loaded or lastly loaded module matching
+   request (defines **MODULES_UNLOAD_MATCH_ORDER**)
 
 The options *allow_extra_siteconfig*, *avail_report_dir_sym*,
 *avail_report_mfile_sym*, *ignored_dirs*, *siteconfig* and *tcl_ext_lib*
@@ -944,6 +946,12 @@ ENVIRONMENT
  for dark background or the color set for light background should be used to
  color output in case no specific color set is defined with the
  **MODULES_COLORS** variable. Accepted values are **dark** and **light**.
+
+**MODULES_UNLOAD_MATCH_ORDER**
+
+ When a module unload request matches multiple loaded modules, unload firstly
+ loaded module or lastly loaded module. Accepted values are **returnfirst**
+ and **returnlast**.
 
 **MODULES_USE_COMPAT_VERSION**
 

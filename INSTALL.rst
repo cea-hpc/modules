@@ -327,6 +327,11 @@ instance ``--without-modulepath``):
                       set to apply by default between the ``dark`` background
                       colors or the ``light`` background colors
                       (default=\ ``dark``)
+--with-unload-match-order=VALUE
+                      When unloading a module if multiple loaded modules match
+                      the request, unload module loaded first
+                      (``returnfirst``) or module loaded last (``returnlast``)
+                      (default=\ ``returnlast``)
 --with-modulepath=PATHLIST
                       Default path list to setup as the default modulepaths.
                       Each path in this list should be separated by ``:``.

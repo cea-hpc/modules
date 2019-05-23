@@ -112,7 +112,7 @@ On compatibility version, paths composing the **MODULEPATH** environment variabl
 
  Starting with version ``4.1``, content sent to the ``stdout`` channel during a *modulefile* interpretation is spooled to effectively transmit this content to stdout after rendering the environment changes made by this modulefile.
 
- When the specified module to unload matches multiple loaded modules, Modules 4 unloads lastly loaded module whereas compatibility version unloads firstly loaded module.
+ When the specified module to unload matches multiple loaded modules, Modules 4 unloads lastly loaded module whereas compatibility version unloads firstly loaded module. A configuration option ``unload_match_order`` has been introduced in version ``4.3`` and it enables to restore the behavior of compatibility version when it is set to ``returnfirst``.
 
 **switch**
  
@@ -422,6 +422,8 @@ Environment
 **MODULES_SITECONFIG**
 
 **MODULES_TERM_BACKGROUND**
+
+**MODULES_UNLOAD_MATCH_ORDER**
 
  These environment variables appeared on version ``4.3`` and are not supported on compatibility version.
 
