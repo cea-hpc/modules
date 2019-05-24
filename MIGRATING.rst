@@ -174,6 +174,15 @@ New sub-commands, command-line switches and environment variables
 * The **config** sub-command has been introduced. See `Configure modulecmd
   with config sub-command`_ section for detailed information.
 
+* The **MODULES_UNLOAD_MATCH_ORDER** environment variable sets whether the
+  firstly or the lastly loaded module should be selected for unload when
+  multiple loaded modules match unload request. Configure option
+  ``--with-unload-match-order`` defines this setting which can be superseded
+  by the environment variable. By default, lastly loaded module is selected
+  and it is recommanded to keep this behavior when used modulefiles express
+  dependencies between each other.
+
+
 Further reading
 ---------------
 

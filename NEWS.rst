@@ -113,6 +113,14 @@ Modules 4.3.0 (2019-XX-XX)
   options and to report its current state.
 * Contrib: update ``createmodule.py`` script to support execution from the
   *cmd* shell. (contribution from Jacques Raphanel, fix issue #270)
+* Add the ability to configure when unloading a module and multiple loaded
+  modules match request if firstly loaded module should be choosen or lastly
+  loaded module. Configure option ``--with-unload-match-order`` defines this
+  setting which can be superseded with the ``MODULES_UNLOAD_MATCH_ORDER``
+  environment variable. This variable can be set with the option
+  ``unload_match_order`` on the ``config`` sub-command. By default, lastly
+  loaded module is selected. It is recommanded to keep this behavior when the
+  modulefiles used express dependencies between each other.
 
 
 Modules 4.2.4 (2019-04-26)
