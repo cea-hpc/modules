@@ -107,10 +107,12 @@ Modules 4.3.0 (2019-XX-XX)
   a site-specific configuration script controlled with the
   ``MODULES_SITECONFIG`` environment variable.
 * Install: provide at installation time a bare site-specific configuration
-  script in designated `etcdir` if no pre-existing `siteconfig.tcl` file is
-  found at designated location.
+  script in designated ``etcdir`` if no pre-existing ``siteconfig.tcl`` file
+  is found at designated location.
 * Introduce the ``config`` sub-command to get and set ``modulecmd.tcl``
   options and to report its current state.
+* Contrib: update ``createmodule.py`` script to support execution from the
+  *cmd* shell. (contribution from Jacques Raphanel, fix issue #270)
 
 
 Modules 4.2.4 (2019-04-26)
