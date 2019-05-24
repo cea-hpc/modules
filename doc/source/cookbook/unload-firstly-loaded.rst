@@ -11,8 +11,14 @@ restore the behavior of the v3 version.
 Implementation
 --------------
 
-A site-specific configuration script is proposed to select firstly loaded
-module matching name rather lastly loaded.
+Starting version v4.3, an ``unload_match_order`` configuration option is
+introduced to control whether firstly loaded module or lastly loaded module
+should be selected for the unload. To select firstly loaded module::
+
+   $ module config unload_match_order returnfirst
+
+For older v4 versions, a site-specific configuration script is proposed to
+select firstly loaded module matching name rather lastly loaded.
 
 .. literalinclude:: ../../example/unload-firstly-loaded/siteconfig.tcl
    :caption: siteconfig.tcl
@@ -20,8 +26,8 @@ module matching name rather lastly loaded.
 
 **Compatible with Modules v4.2**
 
-Installation
-------------
+Installation (only for version older than v4.3)
+-----------------------------------------------
 
 Create site-specific configuration directory if it does not exist yet:
 
