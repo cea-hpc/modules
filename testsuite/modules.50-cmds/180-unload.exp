@@ -86,23 +86,32 @@ testouterr_cmd "sh" "remove $modulename_1" $ans ""
 # set up the environment
 setenv_loaded_module [list $module_2 $module_1] [list $modulefile_2 $modulefile_1]
 
-set ans [list]
-lappend ans [list unsetpath testsuite]
-lappend ans [list setpath LOADEDMODULES $module_2]
-lappend ans [list setpath _LMFILES_ $modulefile_2]
+set anslast [list]
+lappend anslast [list unsetpath testsuite]
+lappend anslast [list setpath LOADEDMODULES $module_2]
+lappend anslast [list setpath _LMFILES_ $modulefile_2]
+set ansfirst [list]
+lappend ansfirst [list unset testsuite]
+lappend ansfirst [list setpath LOADEDMODULES $module_1]
+lappend ansfirst [list setpath _LMFILES_ $modulefile_1]
 
-# unload with just module name, last matching loaded will be unloaded
-# even if before that the real default is loaded
-testouterr_cmd "sh" "unload $modulename_1" $ans ""
+# unload with just module name, last or first matching loaded will be unloaded
+# (depends on unload_match_order setting) even if before that the real default is loaded
+testouterr_cmd sh "unload $modulename_1" [expr {$install_unloadmatchorder eq {returnlast} ? $anslast : $ansfirst}] {}
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnfirst
+testouterr_cmd sh "unload $modulename_1" $ansfirst {}
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
+testouterr_cmd sh "unload $modulename_1" $anslast {}
+unsetenv_var MODULES_UNLOAD_MATCH_ORDER
 
 # unload with full path module file
-testouterr_cmd "sh" "unload $modulefile_1" $ans ""
-testouterr_cmd "sh" "unload $modulefile_1_reld" $ans ""
-testouterr_cmd "sh" "unload $modulefile_1_reldd" $ans ""
+testouterr_cmd "sh" "unload $modulefile_1" $anslast ""
+testouterr_cmd "sh" "unload $modulefile_1_reld" $anslast ""
+testouterr_cmd "sh" "unload $modulefile_1_reldd" $anslast ""
 
 # setup MODULEPATH with a trailing slash and an empty dir element
 setenv_path_var MODULEPATH {} "$modpath/"
-testouterr_cmd "sh" "unload $modulefile_1" $ans ""
+testouterr_cmd "sh" "unload $modulefile_1" $anslast ""
 
 
 # setup LOADEDMODULES/_LMFILES_ with an empty element
@@ -143,19 +152,28 @@ testouterr_cmd "sh" "unload $modulename_1" $ans ""
 # set up the environment
 setenv_loaded_module [list $module_2 $module_1] [list $modulefile_2 $modulefile_1]
 
-set ans [list]
-lappend ans [list unsetpath testsuite]
-lappend ans [list setpath LOADEDMODULES $module_2]
-lappend ans [list setpath _LMFILES_ $modulefile_2]
+set anslast [list]
+lappend anslast [list unsetpath testsuite]
+lappend anslast [list setpath LOADEDMODULES $module_2]
+lappend anslast [list setpath _LMFILES_ $modulefile_2]
+set ansfirst [list]
+lappend ansfirst [list unset testsuite]
+lappend ansfirst [list setpath LOADEDMODULES $module_1]
+lappend ansfirst [list setpath _LMFILES_ $modulefile_1]
 
-# unload with just module name, modulepath not set anymore, last matching
-# loaded will be unloaded even if before that the real default is loaded
-testouterr_cmd "sh" "unload $modulename_1" $ans ""
+# unload with just module name, modulepath not set anymore, last or first matching
+# loaded will be unloaded (depends on unload_match_order setting) even if before that the real default is loaded
+testouterr_cmd sh "unload $modulename_1" [expr {$install_unloadmatchorder eq {returnlast} ? $anslast : $ansfirst}] {}
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnfirst
+testouterr_cmd sh "unload $modulename_1" $ansfirst {}
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
+testouterr_cmd sh "unload $modulename_1" $anslast {}
+unsetenv_var MODULES_UNLOAD_MATCH_ORDER
 
 # unload with full path module file
-testouterr_cmd "sh" "unload $modulefile_1" $ans ""
-testouterr_cmd "sh" "unload $modulefile_1_reld" $ans ""
-testouterr_cmd "sh" "unload $modulefile_1_reldd" $ans ""
+testouterr_cmd "sh" "unload $modulefile_1" $anslast ""
+testouterr_cmd "sh" "unload $modulefile_1_reld" $anslast ""
+testouterr_cmd "sh" "unload $modulefile_1_reldd" $anslast ""
 
 
 # set up the environment
@@ -222,6 +240,8 @@ unsetenv_var testsuite
 unsetenv_loaded_module
 
 unset ans
+unset ansfirst
+unset anslast
 
 unset module_0
 unset modulefile_0

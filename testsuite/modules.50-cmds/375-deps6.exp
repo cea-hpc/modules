@@ -638,12 +638,21 @@ setenv_loaded_module [list f22/1 f18 f19 f22/2] [list "$mp/f22/1" "$mp/f18" "$mp
 setenv_path_var MODULES_LMPREREQ "f22/1&f18&f19" "f22/2&f18&f19"
 setenv_path_var MODULES_LMCONFLICT "f22/1&f22&f21" "f18&f21" "f19&f21" "f22/2&f22&f21"
 
-set ans [list]
-lappend ans [list setpath LOADEDMODULES "f18:f19:f22/1"]
-lappend ans [list setpath _LMFILES_ "$mp/f18:$mp/f19:$mp/f22/1"]
-lappend ans [list setpath MODULES_LMPREREQ "f22/1&f18&f19"]
-lappend ans [list setpath MODULES_LMCONFLICT "f18&f21:f19&f21:f22/1&f22&f21"]
-set tserr [list "unload f22/1" "unload f22/2" "load f22/1" \n[msg_top_unload f22/2 {} {} f22/1]]
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES "f18:f19:f22/1"]
+    lappend ans [list setpath _LMFILES_ "$mp/f18:$mp/f19:$mp/f22/1"]
+    lappend ans [list setpath MODULES_LMPREREQ "f22/1&f18&f19"]
+    lappend ans [list setpath MODULES_LMCONFLICT "f18&f21:f19&f21:f22/1&f22&f21"]
+    set tserr [list "unload f22/1" "unload f22/2" "load f22/1" \n[msg_top_unload f22/2 {} {} f22/1]]
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES "f18:f19:f22/2"]
+    lappend ans [list setpath _LMFILES_ "$mp/f18:$mp/f19:$mp/f22/2"]
+    lappend ans [list setpath MODULES_LMPREREQ "f22/2&f18&f19"]
+    lappend ans [list setpath MODULES_LMCONFLICT "f18&f21:f19&f21:f22/2&f22&f21"]
+    set tserr [list "unload f22/2" "unload f22/1" "load f22/2" \n[msg_top_unload f22/1 {} {} f22/2]]
+}
 testouterr_cmd_re "sh" "unload f22" $ans [join $tserr "\n"]
 
 

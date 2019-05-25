@@ -113,11 +113,19 @@ testouterr_cmd_re sh {unload hb} $ans $tserr
 
 setenv_loaded_module [list ha/2 hb ha/3] [list $mp/ha/2 $mp/hb $mp/ha/3]
 setenv_path_var MODULES_LMPREREQ hb&ha/1|ha
-set ans [list]
-lappend ans [list setpath LOADEDMODULES ha/2:hb]
-lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hb]
-# like its load, unload of ha/3 does not reload hb as its requirements are already fulfilled by ha/2
-set tserr "unload ha/3"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/2:hb]
+    lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hb]
+    # like its load, unload of ha/3 does not reload hb as its requirements are already fulfilled by ha/2
+    set tserr "unload ha/3"
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/3:hb]
+    lappend ans [list setpath _LMFILES_ $mp/ha/3:$mp/hb]
+    lappend ans [list setpath MODULES_LMPREREQ hb&ha/1|ha]
+    set tserr "unload hb\nunload ha/2\nload hb\n\n[msg_top_unload ha/2 {} {} hb]"
+}
 testouterr_cmd_re sh {unload ha} $ans $tserr
 
 setenv_loaded_module [list ha/2 hc] [list $mp/ha/2 $mp/hc] [list ha/2]
@@ -179,11 +187,20 @@ testouterr_cmd_re sh {unload he} $ans $tserr
 
 setenv_loaded_module [list ha/1 ha/2 hb] [list $mp/ha/1 $mp/ha/2 $mp/hb]
 setenv_path_var MODULES_LMPREREQ hb&ha/1|ha
-set ans [list]
-lappend ans [list setpath LOADEDMODULES ha/1:hb]
-lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hb]
-lappend ans [list setpath MODULES_LMPREREQ hb&ha/1|ha]
-set tserr "unload hb\nunload ha/2\nload hb\n\n[msg_top_unload ha/2 {} {} hb]"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/1:hb]
+    lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hb]
+    lappend ans [list setpath MODULES_LMPREREQ hb&ha/1|ha]
+    set tserr "unload hb\nunload ha/2\nload hb\n\n[msg_top_unload ha/2 {} {} hb]"
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/2]
+    lappend ans [list setpath _LMFILES_ $mp/ha/2]
+    lappend ans [list unsetpath MODULES_LMPREREQ]
+    # ha/2 is not seen as being able to recover lost 'ha/1|ha' requirement of 'hb', thus it goes DepUn
+    set tserr "unload hb\nunload ha/1\n\n[msg_top_unload ha/1 hb {} {}]"
+}
 testouterr_cmd_re sh {unload ha} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/1:ha/2]
@@ -194,11 +211,20 @@ testouterr_cmd_re sh {unload hb} $ans $tserr
 
 setenv_loaded_module [list ha/1 ha/2 hc] [list $mp/ha/1 $mp/ha/2 $mp/hc] [list ha/1]
 setenv_path_var MODULES_LMPREREQ hc&ha/1|ha/2|ha
-set ans [list]
-lappend ans [list setpath LOADEDMODULES ha/1:hc]
-lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hc]
-lappend ans [list setpath MODULES_LMPREREQ hc&ha/1|ha/2|ha]
-set tserr "unload hc\nunload ha/2\nload hc\n\n[msg_top_unload ha/2 {} {} hc]"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/1:hc]
+    lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hc]
+    lappend ans [list setpath MODULES_LMPREREQ hc&ha/1|ha/2|ha]
+    set tserr "unload hc\nunload ha/2\nload hc\n\n[msg_top_unload ha/2 {} {} hc]"
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/2:hc]
+    lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hc]
+    lappend ans [list setpath MODULES_LMPREREQ hc&ha/1|ha/2|ha]
+    lappend ans [list unsetpath MODULES_LMNOTUASKED]
+    set tserr "unload hc\nunload ha/1\nload hc\n\n[msg_top_unload ha/1 {} {} hc]"
+}
 testouterr_cmd_re sh {unload ha} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/2]
@@ -210,12 +236,20 @@ testouterr_cmd_re sh {unload hc} $ans $tserr
 
 setenv_loaded_module [list ha/1 ha/2 hd] [list $mp/ha/1 $mp/ha/2 $mp/hd]
 setenv_path_var MODULES_LMPREREQ hd&ha/1&ha
-set ans [list]
-lappend ans [list setpath LOADEDMODULES ha/1]
-lappend ans [list setpath _LMFILES_ $mp/ha/1]
-lappend ans [list unsetpath MODULES_LMPREREQ]
-# ha/1 is not seen as being able to recover lost 'ha' requirement of 'hd', thus it goes DepUn
-set tserr "unload hd\nunload ha/2\n\n[msg_top_unload ha/2 hd {} {}]"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/1]
+    lappend ans [list setpath _LMFILES_ $mp/ha/1]
+    lappend ans [list unsetpath MODULES_LMPREREQ]
+    # ha/1 is not seen as being able to recover lost 'ha' requirement of 'hd', thus it goes DepUn
+    set tserr "unload hd\nunload ha/2\n\n[msg_top_unload ha/2 hd {} {}]"
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/2]
+    lappend ans [list setpath _LMFILES_ $mp/ha/2]
+    lappend ans [list unsetpath MODULES_LMPREREQ]
+    set tserr "unload hd\nunload ha/1\n\n[msg_top_unload ha/1 hd {} {}]"
+}
 testouterr_cmd_re sh {unload ha} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/1:ha/2]
@@ -226,11 +260,19 @@ testouterr_cmd_re sh {unload hd} $ans $tserr
 
 setenv_loaded_module [list ha/1 ha/2 he] [list $mp/ha/1 $mp/ha/2 $mp/he]
 setenv_path_var MODULES_LMPREREQ he&ha/1&ha/2&ha
-set ans [list]
-lappend ans [list setpath LOADEDMODULES ha/1]
-lappend ans [list setpath _LMFILES_ $mp/ha/1]
-lappend ans [list unsetpath MODULES_LMPREREQ]
-set tserr "unload he\nunload ha/2\n\n[msg_top_unload ha/2 he {} {}]"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/1]
+    lappend ans [list setpath _LMFILES_ $mp/ha/1]
+    lappend ans [list unsetpath MODULES_LMPREREQ]
+    set tserr "unload he\nunload ha/2\n\n[msg_top_unload ha/2 he {} {}]"
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/2]
+    lappend ans [list setpath _LMFILES_ $mp/ha/2]
+    lappend ans [list unsetpath MODULES_LMPREREQ]
+    set tserr "unload he\nunload ha/1\n\n[msg_top_unload ha/1 he {} {}]"
+}
 testouterr_cmd_re sh {unload ha} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/1:ha/2]
@@ -326,10 +368,17 @@ testouterr_cmd_re sh {unload hg} $ans $tserr
 
 setenv_loaded_module [list ha/2 hf ha/3] [list $mp/ha/2 $mp/hf $mp/ha/3]
 setenv_path_var MODULES_LMCONFLICT hf&ha/1&ha
-set ans [list]
-lappend ans [list setpath LOADEDMODULES ha/2:hf]
-lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hf]
-set tserr "unload ha/3"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/2:hf]
+    lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hf]
+    set tserr "unload ha/3"
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES hf:ha/3]
+    lappend ans [list setpath _LMFILES_ $mp/hf:$mp/ha/3]
+    set tserr "unload ha/2"
+}
 testouterr_cmd_re sh {unload ha} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/3:ha/2]
@@ -341,10 +390,17 @@ testouterr_cmd_re sh {unload hf} $ans $tserr
 
 setenv_loaded_module [list ha/2 hg ha/3] [list $mp/ha/2 $mp/hg $mp/ha/3]
 setenv_path_var MODULES_LMCONFLICT hg&ha/1&ha/2&ha
-set ans [list]
-lappend ans [list setpath LOADEDMODULES ha/2:hg]
-lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hg]
-set tserr "unload ha/3"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/2:hg]
+    lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/hg]
+    set tserr "unload ha/3"
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES hg:ha/3]
+    lappend ans [list setpath _LMFILES_ $mp/hg:$mp/ha/3]
+    set tserr "unload ha/2"
+}
 testouterr_cmd_re sh {unload ha} $ans $tserr
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ha/3:ha/2]

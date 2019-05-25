@@ -328,13 +328,23 @@ setenv_path_var MODULES_LMPREREQ iim&ih
 setenv_path_var MODULES_LMCONFLICT ih/0&ih:ih/2&ih:ih/1&ih
 
 # ih/2 should go UReqUn (closest requirement to unloading module)
-set ans [list]
-lappend ans [list setpath LOADEDMODULES ih/0:ih/1]
-lappend ans [list setpath _LMFILES_ $mp/ih/0:$mp/ih/1]
-lappend ans [list unsetpath MODULES_LMPREREQ]
-lappend ans [list setpath MODULES_LMNOTUASKED ih/0]
-lappend ans [list setpath MODULES_LMCONFLICT ih/0&ih:ih/1&ih]
-set tserr [list {unload iim} {unload ih/2} \n[msg_top_unload iim {} ih/2 {}]]
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ih/0:ih/1]
+    lappend ans [list setpath _LMFILES_ $mp/ih/0:$mp/ih/1]
+    lappend ans [list unsetpath MODULES_LMPREREQ]
+    lappend ans [list setpath MODULES_LMNOTUASKED ih/0]
+    lappend ans [list setpath MODULES_LMCONFLICT ih/0&ih:ih/1&ih]
+    set tserr [list {unload iim} {unload ih/2} \n[msg_top_unload iim {} ih/2 {}]]
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ih/2:ih/1]
+    lappend ans [list setpath _LMFILES_ $mp/ih/2:$mp/ih/1]
+    lappend ans [list unsetpath MODULES_LMPREREQ]
+    lappend ans [list setpath MODULES_LMNOTUASKED ih/2]
+    lappend ans [list setpath MODULES_LMCONFLICT ih/2&ih:ih/1&ih]
+    set tserr [list {unload iim} {unload ih/0} \n[msg_top_unload iim {} ih/0 {}]]
+}
 testouterr_cmd_re sh {unload --no-auto iim} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --auto iim} $ans [join $tserr \n]
 

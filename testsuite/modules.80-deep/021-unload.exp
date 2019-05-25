@@ -64,13 +64,23 @@ testouterr_cmd "sh" "unload plain/di" OK {}
 testouterr_cmd "sh" "unload $module_2" "OK" ""
 
 
-set ans [list]
-lappend ans [list unset TEST]
-lappend ans [list setpath LOADEDMODULES "$module_3"]
-lappend ans [list setpath _LMFILES_ "$modulefile_3"]
+set anslast [list]
+lappend anslast [list unset TEST]
+lappend anslast [list setpath LOADEDMODULES $module_3]
+lappend anslast [list setpath _LMFILES_ $modulefile_3]
+set ansfirst [list]
+lappend ansfirst [list unset TEST]
+lappend ansfirst [list setpath LOADEDMODULES $module_4]
+lappend ansfirst [list setpath _LMFILES_ $modulefile_4]
 
-# unload root name, last matching loaded will be unloaded
-testouterr_cmd "sh" "unload plain" $ans ""
+# unload root name, last or first matching loaded will be unloaded depending on
+# unload_match_order chosen behavior
+testouterr_cmd sh {unload plain} [expr {$install_unloadmatchorder eq {returnlast} ? $anslast : $ansfirst}] {}
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnfirst
+testouterr_cmd sh {unload plain} $ansfirst {}
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
+testouterr_cmd sh {unload plain} $anslast {}
+unsetenv_var MODULES_UNLOAD_MATCH_ORDER
 
 
 set ans [list]
@@ -88,14 +98,23 @@ testouterr_cmd "sh" "unload plain/dir2" $ans ""
 # set up the environment
 setenv_loaded_module [list $module_2 $module_3] [list $modulefile_2 $modulefile_3]
 
-set ans [list]
-lappend ans [list unset TEST]
-lappend ans [list setpath LOADEDMODULES "$module_2"]
-lappend ans [list setpath _LMFILES_ "$modulefile_2"]
+set anslast [list]
+lappend anslast [list unset TEST]
+lappend anslast [list setpath LOADEDMODULES $module_2]
+lappend anslast [list setpath _LMFILES_ $modulefile_2]
+set ansfirst [list]
+lappend ansfirst [list unset TEST]
+lappend ansfirst [list setpath LOADEDMODULES $module_3]
+lappend ansfirst [list setpath _LMFILES_ $modulefile_3]
 
-# unload root name, last matching loaded will be unloaded
-# even if before that the real default is loaded
-testouterr_cmd "sh" "unload plain" $ans ""
+# unload root name, last or first matching loaded will be unloaded depending on
+# unload_match_order chosen behavior
+testouterr_cmd sh {unload plain} [expr {$install_unloadmatchorder eq {returnlast} ? $anslast : $ansfirst}] {}
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnfirst
+testouterr_cmd sh {unload plain} $ansfirst {}
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
+testouterr_cmd sh {unload plain} $anslast {}
+unsetenv_var MODULES_UNLOAD_MATCH_ORDER
 
 
 # unset MODULEPATH and retake the above tests, should get same result
@@ -109,13 +128,23 @@ setenv_loaded_module [list $module_3 $module_4] [list $modulefile_3 $modulefile_
 testouterr_cmd "sh" "unload $module_2" OK {}
 
 
-set ans [list]
-lappend ans [list unset TEST]
-lappend ans [list setpath LOADEDMODULES "$module_3"]
-lappend ans [list setpath _LMFILES_ "$modulefile_3"]
+set anslast [list]
+lappend anslast [list unset TEST]
+lappend anslast [list setpath LOADEDMODULES $module_3]
+lappend anslast [list setpath _LMFILES_ $modulefile_3]
+set ansfirst [list]
+lappend ansfirst [list unset TEST]
+lappend ansfirst [list setpath LOADEDMODULES $module_4]
+lappend ansfirst [list setpath _LMFILES_ $modulefile_4]
 
-# unload root name, last matching loaded will be unloaded
-testouterr_cmd "sh" "unload plain" $ans ""
+# unload root name, last or first matching loaded will be unloaded depending on
+# unload_match_order chosen behavior
+testouterr_cmd sh {unload plain} [expr {$install_unloadmatchorder eq {returnlast} ? $anslast : $ansfirst}] {}
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnfirst
+testouterr_cmd sh {unload plain} $ansfirst {}
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
+testouterr_cmd sh {unload plain} $anslast {}
+unsetenv_var MODULES_UNLOAD_MATCH_ORDER
 
 
 set ans [list]
@@ -133,14 +162,23 @@ testouterr_cmd "sh" "unload plain/dir2" $ans ""
 # set up the environment
 setenv_loaded_module [list $module_2 $module_3] [list $modulefile_2 $modulefile_3]
 
-set ans [list]
-lappend ans [list unset TEST]
-lappend ans [list setpath LOADEDMODULES "$module_2"]
-lappend ans [list setpath _LMFILES_ "$modulefile_2"]
+set anslast [list]
+lappend anslast [list unset TEST]
+lappend anslast [list setpath LOADEDMODULES $module_2]
+lappend anslast [list setpath _LMFILES_ $modulefile_2]
+set ansfirst [list]
+lappend ansfirst [list unset TEST]
+lappend ansfirst [list setpath LOADEDMODULES $module_3]
+lappend ansfirst [list setpath _LMFILES_ $modulefile_3]
 
-# unload root name, last matching loaded will be unloaded
-# even if before that the real default is loaded
-testouterr_cmd "sh" "unload plain" $ans ""
+# unload root name, last or first matching loaded will be unloaded depending on
+# unload_match_order chosen behavior
+testouterr_cmd sh {unload plain} [expr {$install_unloadmatchorder eq {returnlast} ? $anslast : $ansfirst}] {}
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnfirst
+testouterr_cmd sh {unload plain} $ansfirst {}
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
+testouterr_cmd sh {unload plain} $anslast {}
+unsetenv_var MODULES_UNLOAD_MATCH_ORDER
 
 
 # set up the environment
@@ -237,6 +275,8 @@ testouterr_cmd "sh" "unload badmodvers" $ans ""
 unsetenv_loaded_module
 
 unset ans
+unset ansfirst
+unset anslast
 
 unset module_1
 unset modulefile_1

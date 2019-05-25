@@ -39,17 +39,32 @@ testouterr_cmd_re sh {load --auto un/2} $ans $tserr
 
 setenv_loaded_module [list un/1 un/2] [list $mp/un/1 $mp/un/2]
 setenv_path_var MODULES_LMCONFLICT un/1&un:un/2&un
-set tserr "load un/3\nunload un/2\n\n[msg_top_load un/3 {} {} {} [err_conflict un/3 un/1]]"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set tserr "load un/3\nunload un/2\n\n[msg_top_load un/3 {} {} {} [err_conflict un/3 un/1]]"
+} else {
+    set tserr "load un/3\nunload un/1\n\n[msg_top_load un/3 {} {} {} [err_conflict un/3 un/2]]"
+}
 testouterr_cmd_re sh {load --no-auto un/3} ERR $tserr
 testouterr_cmd_re sh {load --auto un/3} ERR $tserr
-
-set ans [list]
-lappend ans [list setpath LOADEDMODULES un/1]
-lappend ans [list setpath _LMFILES_ $mp/un/1]
-lappend ans [list setpath MODULES_LMCONFLICT un/1&un]
-set tserr "unload un/2"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES un/1]
+    lappend ans [list setpath _LMFILES_ $mp/un/1]
+    lappend ans [list setpath MODULES_LMCONFLICT un/1&un]
+    set tserr "unload un/2"
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES un/2]
+    lappend ans [list setpath _LMFILES_ $mp/un/2]
+    lappend ans [list setpath MODULES_LMCONFLICT un/2&un]
+    set tserr "unload un/1"
+}
 testouterr_cmd_re sh {unload --no-auto un} $ans $tserr
-set tserr "unload un/1\nunload un/2\nload un/1\n\n[msg_top_unload un/2 {} {} un/1]"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set tserr "unload un/1\nunload un/2\nload un/1\n\n[msg_top_unload un/2 {} {} un/1]"
+} else {
+    set tserr "unload un/2\nunload un/1\nload un/2\n\n[msg_top_unload un/1 {} {} un/2]"
+}
 testouterr_cmd_re sh {unload --auto un} $ans $tserr
 
 
@@ -65,15 +80,27 @@ testouterr_cmd_re sh {load --no-auto una} $ans $tserr
 testouterr_cmd_re sh {load --auto una} $ans $tserr
 
 setenv_loaded_module [list ha/1 ha/2] [list $mp/ha/1 $mp/ha/2]
-set tserr "load una\nunload ha/2\n\n[msg_top_load una {} {} {} [err_conflict una ha]]"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set tserr "load una\nunload ha/2\n\n[msg_top_load una {} {} {} [err_conflict una ha]]"
+} else {
+    set tserr "load una\nunload ha/1\n\n[msg_top_load una {} {} {} [err_conflict una ha]]"
+}
 testouterr_cmd_re sh {load --no-auto una} ERR $tserr
 testouterr_cmd_re sh {load --auto una} ERR $tserr
 
-set ans [list]
-lappend ans [list setpath LOADEDMODULES ha/1:una]
-lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/una]
-lappend ans [list setpath MODULES_LMCONFLICT una&ha]
-set tserr "load una\nunload ha/2\n\n[msg_top_load una ha/2 {} {} [err_conlof ha]]"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/1:una]
+    lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/una]
+    lappend ans [list setpath MODULES_LMCONFLICT una&ha]
+    set tserr "load una\nunload ha/2\n\n[msg_top_load una ha/2 {} {} [err_conlof ha]]"
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/2:una]
+    lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/una]
+    lappend ans [list setpath MODULES_LMCONFLICT una&ha]
+    set tserr "load una\nunload ha/1\n\n[msg_top_load una ha/1 {} {} [err_conlof ha]]"
+}
 testouterr_cmd_re sh {load --force --no-auto una} $ans $tserr
 testouterr_cmd_re sh {load --force --auto una} $ans $tserr
 
@@ -102,16 +129,30 @@ set tserr "load unb\nload una\nunload ha/1\n\n[msg_top_load unb ha/1 una {}]"
 testouterr_cmd_re sh {load --auto unb} $ans $tserr
 
 setenv_loaded_module [list ha/1 ha/2] [list $mp/ha/1 $mp/ha/2]
-set tserr "load unb\nload una\nunload ha/2\n\n[msg_load una [err_conflict una ha]]\n\n[msg_top_load unb {} {} {} [err_reqlo una]]"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set tserr "load unb\nload una\nunload ha/2\n\n[msg_load una [err_conflict una ha]]\n\n[msg_top_load unb {} {} {} [err_reqlo una]]"
+} else {
+    set tserr "load unb\nload una\nunload ha/1\n\n[msg_load una [err_conflict una ha]]\n\n[msg_top_load unb {} {} {} [err_reqlo una]]"
+}
 testouterr_cmd_re sh {load --auto unb} ERR $tserr
 
-set ans [list]
-lappend ans [list setpath LOADEDMODULES ha/1:una:unb]
-lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/una:$mp/unb]
-lappend ans [list setpath MODULES_LMPREREQ unb&una]
-lappend ans [list setpath MODULES_LMCONFLICT una&ha]
-lappend ans [list setpath MODULES_LMNOTUASKED una]
-set tserr "load unb\nload una\nunload ha/2\n\n[msg_load una [err_conlof ha]]\n\n[msg_top_load unb ha/2 una {}]"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/1:una:unb]
+    lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/una:$mp/unb]
+    lappend ans [list setpath MODULES_LMPREREQ unb&una]
+    lappend ans [list setpath MODULES_LMCONFLICT una&ha]
+    lappend ans [list setpath MODULES_LMNOTUASKED una]
+    set tserr "load unb\nload una\nunload ha/2\n\n[msg_load una [err_conlof ha]]\n\n[msg_top_load unb ha/2 una {}]"
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/2:una:unb]
+    lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/una:$mp/unb]
+    lappend ans [list setpath MODULES_LMPREREQ unb&una]
+    lappend ans [list setpath MODULES_LMCONFLICT una&ha]
+    lappend ans [list setpath MODULES_LMNOTUASKED una]
+    set tserr "load unb\nload una\nunload ha/1\n\n[msg_load una [err_conlof ha]]\n\n[msg_top_load unb ha/1 una {}]"
+}
 testouterr_cmd_re sh {load --force --auto unb} $ans $tserr
 
 setenv_loaded_module [list ha/1 una unb] [list $mp/ha/1 $mp/una $mp/unb] [list una]
@@ -147,28 +188,54 @@ setenv_loaded_module [list ha/1 ha/2] [list $mp/ha/1 $mp/ha/2]
 set tserr "load unc\n\n[msg_load unc [err_conflict unc ha]]"
 testouterr_cmd_re sh {load --no-auto unc} ERR $tserr
 testouterr_cmd_re sh {load --auto unc} ERR $tserr
-set tserr "load und\nunload ha/2\n\n[msg_load und [err_conflict und ha]]"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set tserr "load und\nunload ha/2\n\n[msg_load und [err_conflict und ha]]"
+} else {
+    set tserr "load und\nunload ha/1\n\n[msg_load und [err_conflict und ha]]"
+}
 testouterr_cmd_re sh {load --no-auto und} ERR $tserr
 testouterr_cmd_re sh {load --auto und} ERR $tserr
 
-set ans [list]
-lappend ans [list setpath LOADEDMODULES ha/1:unc]
-lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/unc]
-lappend ans [list setpath MODULES_LMCONFLICT unc&ha]
-# conflict is reported once even if declared twice as warning reported is detected when attempting to warn a second time
-# warning report detection is made as these messages could be silenced when shouted from "conflict" command, so the cmdModuleLoad
-# procedure must shout it if it was silenced
-set tserr "load unc\nunload ha/2\n\n[msg_top_load unc ha/2 {} {} [err_conlof ha]]"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/1:unc]
+    lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/unc]
+    lappend ans [list setpath MODULES_LMCONFLICT unc&ha]
+    # conflict is reported once even if declared twice as warning reported is detected when attempting to warn a second time
+    # warning report detection is made as these messages could be silenced when shouted from "conflict" command, so the cmdModuleLoad
+    # procedure must shout it if it was silenced
+    set tserr "load unc\nunload ha/2\n\n[msg_top_load unc ha/2 {} {} [err_conlof ha]]"
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/2:unc]
+    lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/unc]
+    lappend ans [list setpath MODULES_LMCONFLICT unc&ha]
+    # conflict is reported once even if declared twice as warning reported is detected when attempting to warn a second time
+    # warning report detection is made as these messages could be silenced when shouted from "conflict" command, so the cmdModuleLoad
+    # procedure must shout it if it was silenced
+    set tserr "load unc\nunload ha/1\n\n[msg_top_load unc ha/1 {} {} [err_conlof ha]]"
+}
 testouterr_cmd_re sh {load --force --auto unc} $ans $tserr
 
-set ans [list]
-lappend ans [list setpath LOADEDMODULES ha/1:und]
-lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/und]
-lappend ans [list setpath MODULES_LMCONFLICT und&ha]
-# conflict is reported once even if declared twice as warning reported is detected when attempting to warn a second time
-# warning report detection is made as these messages could be silenced when shouted from "conflict" command, so the cmdModuleLoad
-# procedure must shout it if it was silenced
-set tserr "load und\nunload ha/2\n\n[msg_top_load und ha/2 {} {} [err_conlof ha]]"
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/1:und]
+    lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/und]
+    lappend ans [list setpath MODULES_LMCONFLICT und&ha]
+    # conflict is reported once even if declared twice as warning reported is detected when attempting to warn a second time
+    # warning report detection is made as these messages could be silenced when shouted from "conflict" command, so the cmdModuleLoad
+    # procedure must shout it if it was silenced
+    set tserr "load und\nunload ha/2\n\n[msg_top_load und ha/2 {} {} [err_conlof ha]]"
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ha/2:und]
+    lappend ans [list setpath _LMFILES_ $mp/ha/2:$mp/und]
+    lappend ans [list setpath MODULES_LMCONFLICT und&ha]
+    # conflict is reported once even if declared twice as warning reported is detected when attempting to warn a second time
+    # warning report detection is made as these messages could be silenced when shouted from "conflict" command, so the cmdModuleLoad
+    # procedure must shout it if it was silenced
+    set tserr "load und\nunload ha/1\n\n[msg_top_load und ha/1 {} {} [err_conlof ha]]"
+}
 testouterr_cmd_re sh {load --force --auto und} $ans $tserr
 
 

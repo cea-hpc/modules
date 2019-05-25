@@ -531,14 +531,24 @@ setenv_loaded_module [list swg/0 swg/2 swh swg/1] [list $mp/swg/0 $mp/swg/2 $mp/
 setenv_path_var MODULES_LMCONFLICT swg/0&swg:swg/2&swg:swg/1&swg
 setenv_path_var MODULES_LMPREREQ swh&swg
 
-set ans [list]
-lappend ans [list setpath LOADEDMODULES swg/0:swg/1]
-lappend ans [list setpath _LMFILES_ $mp/swg/0:$mp/swg/1]
-lappend ans [list setpath MODULES_LMNOTUASKED swg/0]
-lappend ans [list setpath MODULES_LMCONFLICT swg/0&swg:swg/1&swg]
-lappend ans [list unsetpath MODULES_LMPREREQ]
-# closest requirement to unloading module is selected for unload
-set tserr [list {unload swh} {unload swg/2} \n[msg_top_unload swh {} swg/2 {}]]
+if {$install_unloadmatchorder eq {returnlast}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES swg/0:swg/1]
+    lappend ans [list setpath _LMFILES_ $mp/swg/0:$mp/swg/1]
+    lappend ans [list setpath MODULES_LMNOTUASKED swg/0]
+    lappend ans [list setpath MODULES_LMCONFLICT swg/0&swg:swg/1&swg]
+    lappend ans [list unsetpath MODULES_LMPREREQ]
+    set tserr [list {unload swh} {unload swg/2} \n[msg_top_unload swh {} swg/2 {}]]
+} else {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES swg/2:swg/1]
+    lappend ans [list setpath _LMFILES_ $mp/swg/2:$mp/swg/1]
+    lappend ans [list setpath MODULES_LMNOTUASKED swg/2]
+    lappend ans [list setpath MODULES_LMCONFLICT swg/2&swg:swg/1&swg]
+    lappend ans [list unsetpath MODULES_LMPREREQ]
+    set tserr [list {unload swh} {unload swg/0} \n[msg_top_unload swh {} swg/0 {}]]
+}
+# closest or farest requirement to unloading module is selected for unload (depending on unload_match_order setting)
 testouterr_cmd_re sh {unload --auto swh} $ans [join $tserr \n]
 testouterr_cmd_re sh {unload --no-auto swh} $ans [join $tserr \n]
 
