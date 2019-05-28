@@ -325,6 +325,29 @@ proc getUnloadMatchOrder {} {
    return $::g_unload_match_order
 }
 
+# Implicitly set a default version for modules with none defined
+proc getImplicitDefault {} {
+   if {![info exists ::g_implicit_default]} {
+      # default value set at configure time
+      set implicit_default @implicitdefault@
+
+      # overriden value coming from environment
+      if {[info exists ::env(MODULES_IMPLICIT_DEFAULT)]} {
+         # ignore non-valid values
+         switch -- $::env(MODULES_IMPLICIT_DEFAULT) {
+            0 - 1 {
+               set implicit_default $::env(MODULES_IMPLICIT_DEFAULT)
+            }
+         }
+      }
+
+      set ::g_implicit_default $implicit_default
+      reportDebug "implicit_default set to '$implicit_default'"
+   }
+
+   return $::g_implicit_default
+}
+
 
 # Get contact address for modulefile issue
 proc getContact {} {
@@ -3782,12 +3805,18 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
                      }
                   }
                   directory {
-                     # Move to default element in directory
-                     set mod $mod/[lindex $mod_list($mod) 1]
-                     # restart search if default element is hidden and hidden
-                     # elements were not searched
-                     if {!$fetch_hidden && [isModuleHidden $mod]} {
-                        return [getPathToModule $mod $indir $report_issue]
+                     # is implicit default disabled and none explicitly set?
+                     if {[lindex $mod_list($mod) 1] eq {}} {
+                        set retlist [list {} $mod none "No default version\
+                           defined for '$mod'"]
+                     } else {
+                        # Move to default element in directory
+                        set mod $mod/[lindex $mod_list($mod) 1]
+                        # restart search if default element is hidden and
+                        # hidden elements were not searched
+                        if {!$fetch_hidden && [isModuleHidden $mod]} {
+                           return [getPathToModule $mod $indir $report_issue]
+                        }
                      }
                   }
                   modulefile {
@@ -6349,6 +6378,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # perform an in depth search or not
    set indepth [expr {[isInList $search noindepth] ? 0 : 1}]
 
+   # set a default if none defined on directory entries
+   set implicitdfl [getImplicitDefault]
+
    # if search for global or user rc alias only, no dir lookup is performed
    # and aliases from g_rcAlias are returned
    if {[isInList $search rc_alias_only]} {
@@ -6583,10 +6615,12 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
             if {[llength $elt_list] == 0} {
                unset mod_list($dir)
             } else {
-               # change default by last element if empty dir was default
+               # change default if empty dir was default
                set dfl_elt [lindex $mod_list($dir) 1]
                if {$dfl_elt eq $dir_name} {
-                  set dfl_elt [lindex $elt_list end]
+                  # by last element if implicit default is enabled
+                  set dfl_elt [expr {$implicitdfl ? [lindex $elt_list end] :\
+                     {}}]
                }
                set mod_list($dir) [concat [list directory $dfl_elt]\
                   $elt_list]
@@ -6595,9 +6629,14 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
             }
          }
       } else {
-         # get default element (defined or implicit)
-         set dfl_elt [if {[info exists g_resolvedPath($dir)]} {file tail\
-            $g_resolvedPath($dir)} {lindex $elt_list end}]
+         # get default element (defined or implicit if enabled)
+         if {[info exists g_resolvedPath($dir)]} {
+            set dfl_elt [file tail $g_resolvedPath($dir)]
+         } elseif {$implicitdfl} {
+            set dfl_elt [lindex $elt_list end]
+         } else {
+            set dfl_elt {}
+         }
          set mod_list($dir) [concat [list directory $dfl_elt] $elt_list]
       }
    }
@@ -6754,7 +6793,9 @@ proc listModules {dir mod show_mtime filter search} {
             }
             # switch to selected modulefile to display
             append elt /$elt_vers
-            # verify it exists elsewhere skip result for this directory
+            # verify it exists elsewhere skip result for this directory (also
+            # help to skip directories without explicit default set and
+            # disabled implicit default)
             if {![info exists mod_list($elt)]} {
                continue
             }
@@ -9064,12 +9105,14 @@ proc cmdModuleConfig {dump_state args} {
       extra_siteconfig MODULES_SITECONFIG pager MODULES_PAGER rcfile\
       MODULERCFILE run_quarantine MODULES_RUN_QUARANTINE silent_shell_debug\
       MODULES_SILENT_SHELL_DEBUG term_background MODULES_TERM_BACKGROUND\
-      unload_match_order MODULES_UNLOAD_MATCH_ORDER]
+      unload_match_order MODULES_UNLOAD_MATCH_ORDER implicit_default\
+      MODULES_IMPLICIT_DEFAULT]
 
    array set confvalid [list auto_handling [list 0 1] avail_indepth [list 0\
       1] collection_pin_version [list 0 1] color [list never auto always]\
       silent_shell_debug [list 0 1] term_background [list dark light]\
-      unload_match_order [list returnlast returnfirst]]
+      unload_match_order [list returnlast returnfirst] implicit_default\
+      [list 0 1]]
 
    # define each attribute/fetched value pair
    array set confval [list contact [getContact] allow_extra_siteconfig\
@@ -9084,7 +9127,8 @@ proc cmdModuleConfig {dump_state args} {
       run_quarantine [get-env $confvar(run_quarantine) <undef>]\
       silent_shell_debug [get-env $confvar(silent_shell_debug) <undef>]\
       siteconfig $::g_siteconfig tcl_ext_lib $::g_tclextlib term_background\
-      [getTermBackground] unload_match_order [getUnloadMatchOrder]]
+      [getTermBackground] unload_match_order [getUnloadMatchOrder]\
+      implicit_default [getImplicitDefault]]
 
    # catch any environment variable set for modulecmd run-time execution
    foreach runenvvar [array names ::env -glob MODULES_RUNENV_*] {

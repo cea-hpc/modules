@@ -148,6 +148,12 @@ else
   setextrasiteconfig := 0
 endif
 
+ifeq ($(implicitdefault),y)
+  setimplicitdefault := 1
+else
+  setimplicitdefault := 0
+endif
+
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@baseprefix@|$(baseprefix)|g' \
@@ -167,6 +173,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@termbg@|$(termbg)|g' \
 	-e 's|@extrasiteconfig@|$(setextrasiteconfig)|g' \
 	-e 's|@unloadmatchorder@|$(unloadmatchorder)|g' \
+	-e 's|@implicitdefault@|$(setimplicitdefault)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \
