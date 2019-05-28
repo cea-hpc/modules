@@ -277,6 +277,13 @@ instance ``--disable-set-manpath``):
                       limit search results to the matching modulefiles and
                       directories found at the depth level expressed by the
                       search query if disabled. (default=yes)
+--enable-implicit-default
+                      Define an implicit default version, for modules with
+                      none explicitly defined, to select when the name of the
+                      module to evaluate is passed without the mention of a
+                      specific version. When this option is disabled the name
+                      of the module passed for evaluation should be fully
+                      qualified elsewhere an error is returned. (default=yes)
 --enable-color        Control if output should be colored by default or not.
                       A value of ``yes`` equals to the ``auto`` color mode.
                       ``no`` equals to the ``never`` color mode. (default=no)

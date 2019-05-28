@@ -545,11 +545,15 @@ difference is that *.version* only applies to the current directory, and the
 *.modulerc* applies to the current directory and all subdirectories. Changes
 made in these files will affect the subsequently interpreted *modulefile*.
 
-If no default version may be figured out, then the highest numerically
-sorted *modulefile*, virtual module or module alias under the directory will
-be used. The dictionary comparison method of the **lsort**\ (n) Tcl command is
-used to achieve this sort. If highest numerically sorted element is an alias,
-search continues on its *modulefile* target.
+If no default version may be figured out, an implicit default is selected when
+this behavior is enabled (see **MODULES_IMPLICIT_DEFAULT** in
+:ref:`module(1)`). If disabled, module names should be fully qualified when no
+explicit default is defined for them, elsewhere no default version is found
+and an error is returned. If enabled, then the highest numerically sorted
+*modulefile*, virtual module or module alias under the directory will be used.
+The dictionary comparison method of the **lsort**\ (n) Tcl command is used to
+achieve this sort. If highest numerically sorted element is an alias, search
+continues on its *modulefile* target.
 
 For example, it is possible for a user to have a directory named X11 which
 simply contains a *.version* file specifying which version of X11 is to

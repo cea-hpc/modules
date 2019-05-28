@@ -196,9 +196,10 @@ switches are accepted:
 **--default**, **-d**
 
  On **avail** sub-command, display only the default version of each module
- name. Default version is either the explicitly set default version or
- the highest numerically sorted *modulefile* if no default version set
- (see Locating Modulefiles section in the :ref:`modulefile(4)` man page).
+ name. Default version is the explicitly set default version or also the
+ implicit default version if **config** option *implicit_default* is enabled
+ (see Locating Modulefiles section in the :ref:`modulefile(4)` man page for
+ further details on implicit default version).
 
 **--latest**, **-L**
 
@@ -391,10 +392,12 @@ Module Sub-Commands
  If **MODULES_COLLECTION_TARGET** is set, a suffix equivalent to the value
  of this variable will be appended to the *collection* file name.
 
- By default, if loaded modulefile corresponds to the default module version,
- the bare module name is recorded. If **MODULES_COLLECTION_PIN_VERSION** is
- set to **1**, module version is always recorded even if it is the default
- version.
+ By default, if loaded modulefile corresponds to the explicitly defined
+ default module version, the bare module name is recorded. If **config**
+ option *implicit_default* is enabled, the bare module name is also recorded
+ for the implicit default module version. If
+ **MODULES_COLLECTION_PIN_VERSION** is set to **1**, module version is always
+ recorded even if it is the default version.
 
  No *collection* is recorded and an error is returned if the loaded
  *modulefiles* have unsatisfied constraint corresponding to the **prereq**
@@ -418,6 +421,10 @@ Module Sub-Commands
  the same **LOADEDMODULES** root than collection and currently used module
  paths are unused to get the same **MODULEPATH** root. Then missing module
  paths are used and missing modulefiles are loaded.
+
+ If a module, without a default version explicitly defined, is recorded in a
+ *collection* by its bare name: loading this module when restoring the
+ collection will fail if **config** option *implicit_default* is disabled.
 
 **saverm** [collection]
 
@@ -598,7 +605,9 @@ Module Sub-Commands
  * contact: modulefile contact address (defines **MODULECONTACT**)
  * extra_siteconfig: additional site-specific configuration script location
    (defines **MODULES_SITECONFIG**)
- * ignored_dirs: directories ignored when looking for modulefiles 
+ * ignored_dirs: directories ignored when looking for modulefiles
+ * implicit_default: set an implicit default version for modules (defines
+   **MODULES_IMPLICIT_DEFAULT**)
  * pager: text viewer to paginate message output (defines **MODULES_PAGER**)
  * rcfile: global run-command file location (defines **MODULERCFILE**)
  * run_quarantine: environment variables to indirectly pass to
@@ -773,7 +782,8 @@ ENVIRONMENT
 
  If set to **1**, register exact version number of modulefiles when saving a
  collection. Elsewhere modulefile version number is omitted if it corresponds
- to the implicit or explicitly set default version.
+ to the explicitly set default version and also to the implicit default when
+ **config** option *implicit_default* is enabled.
 
 **MODULES_COLLECTION_TARGET**
 
@@ -842,6 +852,29 @@ ENVIRONMENT
  **MODULES_COLORS** environment variable, then the default set in
  **modulecmd.tcl** script configuration. Which means **MODULES_COLORS**
  overrides default configuration.
+
+**MODULES_IMPLICIT_DEFAULT**
+
+ Defines (if set to **1**) or not (if set to **0**) an implicit default
+ version for modules without a default version explicitly defined (see
+ Locating Modulefiles section in the :ref:`modulefile(4)` man page).
+
+ Without either an explicit or implicit default version defined a module must
+ be fully qualified (version should be specified in addition to its name) to
+ get:
+
+ * targeted by module **load**, **switch**, **display**, **help**, **test**
+   and **path** sub-commands.
+
+ * restored from a collection, unless already loaded in collection-specified
+   order.
+
+ * automatically loaded by automated module handling mechanisms (see
+   **MODULES_AUTO_HANDLING** section) when declared as module requirement,
+   with **prereq** or **module load** modulefile commands.
+
+ An error is returned in the above situations if either no explicit or
+ implicit default version is defined.
 
 **MODULES_LMALTNAME**
 
