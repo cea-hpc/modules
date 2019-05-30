@@ -1907,7 +1907,8 @@ proc getAllModuleResolvedName {mod} {
             # whose default version bridge resolution toward mod)
             if {[string first $modelt/ $mod/] == 0 ||\
                $::g_moduleResolved($resmod) eq $mod || [lindex\
-               [getPathToModule $::g_moduleResolved($resmod)] 1] eq $mod} {
+               [getPathToModule $::g_moduleResolved($resmod) {} 0] 1] eq\
+                  $mod} {
                appendNoDupToList namelist $resmod
 
                unset modroot
@@ -3698,11 +3699,13 @@ proc isModuleVirtual {mod modfile} {
    return [expr {[string first $mod $modfile end-[string length $mod]] == -1}]
 }
 
-# Return the full pathname and modulename to the module.  
+# Return the full pathname and modulename to the module.
 # Resolve aliases and default versions if the module name is something like
 # "name/version" or just "name" (find default version).
-proc getPathToModule {mod {indir {}} {look_loaded no} {excdir {}}} {
-   reportDebug "finding '$mod' in '$indir' (excdir='$excdir')"
+proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
+   {excdir {}}} {
+   reportDebug "finding '$mod' in '$indir' (report_issue=$report_issue,\
+      look_loaded=$look_loaded, excdir='$excdir')"
 
    if {$mod eq {}} {
       set retlist [list {} 0 none {Invalid empty module name}]
@@ -3775,7 +3778,7 @@ proc getPathToModule {mod {indir {}} {look_loaded no} {excdir {}}} {
                      # elsewhere restart search on new modulename, constrained
                      # to specified dir if set
                      } else {
-                        return [getPathToModule $newmod $indir]
+                        return [getPathToModule $newmod $indir $report_issue]
                      }
                   }
                   directory {
@@ -3784,7 +3787,7 @@ proc getPathToModule {mod {indir {}} {look_loaded no} {excdir {}}} {
                      # restart search if default element is hidden and hidden
                      # elements were not searched
                      if {!$fetch_hidden && [isModuleHidden $mod]} {
-                        return [getPathToModule $mod $indir]
+                        return [getPathToModule $mod $indir $report_issue]
                      }
                   }
                   modulefile {
@@ -3811,7 +3814,7 @@ proc getPathToModule {mod {indir {}} {look_loaded no} {excdir {}}} {
             lappend excdir $dir
             # look for this name in the other module paths, so restart
             # directory search from first dir in list to ensure precedence
-            return [getPathToModule $mod $indir no $excdir]
+            return [getPathToModule $mod $indir $report_issue no $excdir]
          }
       }
    }
@@ -3824,7 +3827,7 @@ proc getPathToModule {mod {indir {}} {look_loaded no} {excdir {}}} {
    if {[lindex $retlist 0] ne {}} {
       reportDebug "found '[lindex $retlist 0]' as '[lindex $retlist 1]'"
    # no error if we look at loaded modules and passed mod not found loaded
-   } elseif {[lindex $retlist 2] ne {notloaded}} {
+   } elseif {[lindex $retlist 2] ne {notloaded} && $report_issue} {
       eval reportIssue [lrange $retlist 2 4]
    }
    return $retlist
@@ -7124,7 +7127,7 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
          set simplemod $mod
          # simplify to parent name as long as it resolves to current mod
          while {$parentmod ne {.}} {
-            lassign [getPathToModule $parentmod $modpathlist] parentfile
+            lassign [getPathToModule $parentmod $modpathlist 0] parentfile
             if {$parentfile eq $modfile} {
                set simplemod $parentmod
                set parentmod [file dirname $parentmod]
@@ -7534,7 +7537,7 @@ proc cmdModulePaths {mod} {
             alias - version {
                # resolve alias target
                set aliastarget [lindex $mod_list($elt) 1]
-               lassign [getPathToModule $aliastarget $target_dir_list]\
+               lassign [getPathToModule $aliastarget $target_dir_list 0]\
                   modfile modname
                # add module target as result instead of alias
                if {$modfile ne {} && ![info exists mod_list($modname)]} {
@@ -7606,7 +7609,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                # resolve alias target
                set elt_target [lindex $mod_list($elt) 1]
                if {![info exists full_list($elt_target)]} {
-                  lassign [getPathToModule $elt_target $dir]\
+                  lassign [getPathToModule $elt_target $dir 0]\
                      modfile modname issuetype issuemsg
                   # add module target as result instead of alias
                   if {$modfile ne {} && ![info exists mod_list($modname)]} {
@@ -7653,7 +7656,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 
    # find target of aliases in all modulepath except the one already tried
    foreach elt [array names extra_search] {
-      lassign [getPathToModule $elt {} no [lindex $extra_search($elt) 0]]\
+      lassign [getPathToModule $elt {} 0 no [lindex $extra_search($elt) 0]]\
          modfile modname issuetype issuemsg issuefile
       # found target so append it to results in corresponding modulepath
       if {$modfile ne {}} {
@@ -8327,7 +8330,7 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
       # record evaluation attempt on specified module name
       registerModuleEvalAttempt $context $mod
       # resolve by also looking at matching loaded module
-      lassign [getPathToModule $mod {} $match] modfile modname errkind
+      lassign [getPathToModule $mod {} 1 $match] modfile modname errkind
       if {$modfile eq {}} {
          # no error return if module is not loaded
          if {$errkind eq {notloaded}} {
