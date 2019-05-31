@@ -7896,6 +7896,10 @@ proc cmdModuleRestore {{coll default}} {
       reportErrorAndExit "$colldesc is not a valid collection"
    }
 
+   # forcibly enable implicit_default to restore colls saved in this mode
+   set ::g_implicit_default 1
+   reportDebug "implicit_default forcibly set to '1'"
+
    # fetch what is currently loaded
    set curr_path_list [getModulePathList returnempty 0]
    # get current loaded module list in simplified and raw versions
@@ -7966,6 +7970,10 @@ proc cmdModuleRestore {{coll default}} {
    # proceed as well for modulepath
    lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
       path_to_unuse path_to_use
+
+   # reset implicit_default to restore behavior defined
+   unset ::g_implicit_default
+   reportDebug "implicit_default unset"
 
    # use paths
    if {[llength $path_to_use] > 0} {
