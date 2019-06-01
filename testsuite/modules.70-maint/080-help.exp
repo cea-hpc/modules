@@ -27,6 +27,9 @@
 #
 ##############################################################################
 
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
 #
 #  The affected module file
 #
@@ -118,9 +121,16 @@ testouterr_cmd_re "sh" "help $modulefile_3_reldd" "ERR" "$out_interr_3"
 # test on unexistant modulefile
 testouterr_cmd "sh" "help $module_4" "ERR" "$out_err_4"
 
+# check error when implicit default is disabled
+setenv_var MODULES_IMPLICIT_DEFAULT 0
+testouterr_cmd sh "help $module_3" ERR "$err_nodefault'$module_3'"
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
 #
 #  Cleanup
 #
+
+unsetenv_var MODULES_IMPLICIT_DEFAULT
 
 unset module
 unset modulefile

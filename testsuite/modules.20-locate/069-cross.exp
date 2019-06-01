@@ -94,6 +94,7 @@ set modsym_11 "cross"
 set module_11 "cross/4.0"
 set modulepath_11 "$modpath1"
 set modulepathre_11 "$modpath1re"
+set nodefault_11 "$err_nodefault'$modsym_11'"
 
 # alias set from top (MODULERCFILE)
 set modsym_12 "cross/top"
@@ -152,6 +153,7 @@ set modprereq_19 [list lcross/10&cross]
 # first directory wins default
 set module_19 "cross/4.0:lcross/10"
 set modulefile_19 "$modpath1/cross/4.0:$modpath1/lcross/10"
+set nodefault_19 [msg_load $modsym_19 "$err_nodefault'$modsym_11'" [err_reqlo $modsym_11]]
 
 set modsym_20 "lcross/11"
 set modnuasked_20 "cross/4.0"
@@ -159,6 +161,7 @@ set modprereq_20 [list lcross/11&cross]
 # first directory wins default
 set module_20 "cross/4.0:lcross/11"
 set modulefile_20 "$modpath1/cross/4.0:$modpath2/lcross/11"
+set nodefault_20 [msg_load $modsym_20 "$err_nodefault'$modsym_11'" [err_reqlo $modsym_11]]
 
 set modsym_21 "lcross/12"
 set modnuasked_21 "cross/4.0"
@@ -166,11 +169,13 @@ set modprereq_21 [list lcross/12&cross]
 # first directory wins default
 set module_21 "cross/4.0:lcross/12"
 set modulefile_21 "$modpath1/cross/4.0:$modpath3/lcross/12"
+set nodefault_21 [msg_load $modsym_21 "$err_nodefault'$modsym_11'" [err_reqlo $modsym_11]]
 
 set modsym_22 "dcross/dir1"
 set module_22 "dcross/dir1/1.0"
 set modulepath_22 "$modpath1"
 set modulepathre_22 "$modpath1re"
+set nodefault_22 "$err_nodefault'$modsym_22'"
 
 set modsym_23 "dcross/d31"
 set module_23 "dcross/dir3/1.0"
@@ -290,6 +295,7 @@ set module_40 "vcross/4.0"
 set modulefile_40 "$modpath1/vcross/.base"
 set modulefilere_40 "$modpath1re/vcross/.base"
 set modulepathre_40 "$modpath1re"
+set nodefault_40 "$err_nodefault'$modsym_40'"
 
 # working with deep virtual modules
 set modsym_41 "dvcross/dir1"
@@ -297,6 +303,7 @@ set module_41 "dvcross/dir1/1.0"
 set modulefile_41 "$modpath1/dvcross/.base"
 set modulefilere_41 "$modpath1re/dvcross/.base"
 set modulepathre_41 "$modpath1re"
+set nodefault_41 "$err_nodefault'$modsym_41'"
 
 set modsym_42 "dvcross/d31"
 set module_42 "dvcross/dir3/1.0"
@@ -410,6 +417,11 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
         set modulefilelist $modulefile
         set modulefilere "$modulepathre/$module"
     }
+    if {[info exists "::nodefault_${i}"]} {
+        set nodefault [set "::nodefault_${i}"]
+    } else {
+        set nodefault {}
+    }
 
     # setup environment with no loaded module
     unsetenv_loaded_module
@@ -430,12 +442,26 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
     if {$modalt ne ""} {
         lappend ans [list setpath MODULES_LMALTNAME $modalt]
     }
-    testouterr_cmd_re "sh" "load $modsym" $ans $msgload
+    if {$nodefault eq {}} {
+        testouterr_cmd_re "sh" "load $modsym" $ans $msgload
+    } else {
+        testouterr_cmd_re "sh" "load $modsym" [if_implicitdefault $ans ERR] [if_implicitdefault $msgload $nodefault]
+    }
 
     if {$test_shows} {
-        testouterr_cmd_re "sh" "display $modsym" "OK" "$::disp_pre$modulefilere:\n\n$::disp_wi$module$::disp_post"
-        testouterr_cmd_re "sh" "help $modsym" "OK" "$::help_pre$modulefilere$::help_post"
-        testouterr_cmd_re "sh" "test $modsym" "OK" "$::test_pre$modulefilere$::test_post"
+        set displayerr "$::disp_pre$modulefilere:\n\n$::disp_wi$module$::disp_post"
+        set helperr "$::help_pre$modulefilere$::help_post"
+        set testerr "$::test_pre$modulefilere$::test_post"
+
+        if {$nodefault eq {}} {
+            testouterr_cmd_re "sh" "display $modsym" "OK" $displayerr
+            testouterr_cmd_re "sh" "help $modsym" "OK" $helperr
+            testouterr_cmd_re "sh" "test $modsym" "OK" $testerr
+        } else {
+            testouterr_cmd_re "sh" "display $modsym" [if_implicitdefault OK ERR] [if_implicitdefault $displayerr $nodefault]
+            testouterr_cmd_re "sh" "help $modsym" [if_implicitdefault OK ERR] [if_implicitdefault $helperr $nodefault]
+            testouterr_cmd_re "sh" "test $modsym" [if_implicitdefault OK ERR] [if_implicitdefault $testerr $nodefault]
+        }
     }
 
     if {$test_whatis} {
@@ -447,7 +473,11 @@ proc cross_test_case {i {test_whatis 1} {test_paths 1} {test_shows 1}} {
         lappend ans [list text $modulefile]
     }
     if {$test_shows} {
-        testouterr_cmd "sh" "path $modsym" $ans ""
+        if {$nodefault eq {}} {
+            testouterr_cmd "sh" "path $modsym" $ans ""
+        } else {
+            testouterr_cmd "sh" "path $modsym" [if_implicitdefault $ans [list [list text {}]]] [if_implicitdefault {} $nodefault]
+        }
     }
     if {$test_paths} {
         testouterr_cmd "sh" "paths $modsym" $ans ""
@@ -582,6 +612,9 @@ for {set i 1} {$i <= 49} {incr i} {
     } else {
         unset "modulepath_${i}"
         unset "modulepathre_${i}"
+    }
+    if {[info exists "nodefault_${i}"]} {
+        unset "nodefault_${i}"
     }
 }
 

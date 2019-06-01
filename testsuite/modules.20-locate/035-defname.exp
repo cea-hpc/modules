@@ -47,7 +47,7 @@ lappend ans [list set LOADEDMODULES_modshare "$module_2:1"]
 lappend ans [list set _LMFILES_ $modulefile_2]
 lappend ans [list set LOADEDMODULES $module_2]
 
-test_cmd "sh" "load $module" $ans
+test_cmd "sh" "load $module" [if_implicitdefault $ans ERR]
 
 #
 # Test load of version-name 'default'
@@ -65,7 +65,7 @@ test_cmd "sh" "load $module_1" $ans
 # Test display of true default version
 #
 
-testouterr_cmd_re "sh" "display $module" "OK" "$modlin\n$modulefilere_2:\n\nmodule-whatis\t{$modwhatis}\n$modlin"
+testouterr_cmd_re "sh" "display $module" [if_implicitdefault OK ERR] [if_implicitdefault "$modlin\n$modulefilere_2:\n\nmodule-whatis\t{$modwhatis}\n$modlin" "$err_nodefault'$module'"]
 
 #
 # Test display of version-name 'default'

@@ -60,7 +60,12 @@ lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMPREREQ "$module&trace"]
 lappend ans [list setpath MODULES_LMNOTUASKED $module_tron]
-testouterr_cmd_re "ALL" "load --auto $module" $ans $err_trace_lo\n\n[msg_top_load $module {} $module_tron {}]
+if {$install_implicitdefault eq {y}} {
+    set tserr $err_trace_lo\n\n[msg_top_load $module {} $module_tron {}]
+} else {
+    set tserr [msg_load $module $err_nodefault'trace' [err_reqlo trace]]
+}
+testouterr_cmd_re "ALL" "load --auto $module" [if_implicitdefault $ans ERR] $tserr
 
 testouterr_cmd "ALL" "load --no-auto $module" "ERR" $err_pre
 
@@ -93,7 +98,12 @@ lappend ans [list setpath _LMFILES_ "$modulefile_tron:$modulefile"]
 lappend ans [list set testsuite yes]
 lappend ans [list setpath MODULES_LMPREREQ "$module&trace|setenv|loc_dv1"]
 lappend ans [list setpath MODULES_LMNOTUASKED $module_tron]
-testouterr_cmd_re "ALL" "load --auto $module" $ans $err_trace_lo\n\n[msg_top_load $module {} $module_tron {}]
+if {$install_implicitdefault eq {y}} {
+    set tserr $err_trace_lo\n\n[msg_top_load $module {} $module_tron {}]
+} else {
+    set tserr [msg_load $module $err_nodefault'trace' $err_nodefault'setenv' $err_nodefault'loc_dv1' [err_reqlo trace setenv loc_dv1]]
+}
+testouterr_cmd_re "ALL" "load --auto $module" [if_implicitdefault $ans ERR] $tserr
 
 testouterr_cmd "ALL" "load --no-auto $module" "ERR" $err_pre
 
@@ -133,6 +143,7 @@ unset err_trace
 unset err_trace_lo
 
 unset ans
+unset tserr
 
 unset modulefile
 unset module

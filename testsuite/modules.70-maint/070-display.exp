@@ -20,6 +20,9 @@
 #
 ##############################################################################
 
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
 #
 #  Test variables
 #
@@ -243,6 +246,14 @@ testouterr_cmd_re "csh" "display --no-auto $module_1" "OK" "$out_pat"
 testouterr_cmd_re "csh" "display --force $module_1" "OK" "$out_pat"
 
 #
+# check error when implicit default is disabled
+#
+
+setenv_var MODULES_IMPLICIT_DEFAULT 0
+testouterr_cmd sh "display $module_1" ERR "$err_nodefault'$module_1'"
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+#
 # display when loaded environment is inconsistent
 #
 
@@ -256,6 +267,7 @@ testouterr_cmd_re "csh" "display $module_4" "OK" "$out_pat_4"
 #
 
 unsetenv_loaded_module
+unsetenv_var MODULES_IMPLICIT_DEFAULT
 
 unset test_cols
 

@@ -20,6 +20,9 @@
 #
 ##############################################################################
 
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
 #
 #  Test variables
 #
@@ -52,11 +55,20 @@ set ans [list]
 lappend ans [list text ""]
 testouterr_cmd "ALL" "path $module_2" $ans $err_locmod
 
+#
+# check error when implicit default is disabled
+#
+
+setenv_var MODULES_IMPLICIT_DEFAULT 0
+testouterr_cmd sh "path $module_1" $ans "$err_nodefault'$module_1'"
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
 
 #
 #  Cleanup
 #
 
+unsetenv_var MODULES_IMPLICIT_DEFAULT
 unset ans
 
 unset module_1

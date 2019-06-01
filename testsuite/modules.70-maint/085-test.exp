@@ -20,6 +20,9 @@
 #
 ##############################################################################
 
+# ensure avail tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
 set module "test/1.2"
 set modulefile "$modpathre/$module"
 set modulefile_full "$modpath/$module"
@@ -92,9 +95,16 @@ testouterr_cmd_re "sh" "test $modulefile5_reldd" "ERR" "$modlin\n$lin_test$modul
 # test on unexistant modulefile
 testouterr_cmd "sh" "test $module6" "ERR" "$mod6_err"
 
+# check error when implicit default is disabled
+setenv_var MODULES_IMPLICIT_DEFAULT 0
+testouterr_cmd sh "test $module5" ERR "$err_nodefault'$module5'"
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
 #
 #  Cleanup
 #
+
+unsetenv_var MODULES_IMPLICIT_DEFAULT
 
 unset module
 unset modulefile

@@ -201,8 +201,8 @@ lappend ans [list set testsuite yes]
 lappend ans [list set MODULES_LMALTNAME $rlm5&loc_rc1/foo]
 
 # another implicit default is chosen
-testouterr_cmd "sh" "load $m5" $ans ""
-testouterr_cmd_re "sh" "display $m5" "OK" "$modlin\n$rlmf5re:\n\nmodule-whatis\t$rlm5\nsetenv\t\ttestsuite yes\n$modlin"
+testouterr_cmd "sh" "load $m5" [if_implicitdefault $ans ERR] [if_implicitdefault {} "$err_nodefault'$m5'"]
+testouterr_cmd_re "sh" "display $m5" [if_implicitdefault OK ERR] [if_implicitdefault "$modlin\n$rlmf5re:\n\nmodule-whatis\t$rlm5\nsetenv\t\ttestsuite yes\n$modlin" "$err_nodefault'$m6'"]
 testouterr_cmd_re "sh" "whatis $m5" "OK" "$pheader\n\\s+$rlm5: $rlm5"
 testouterr_cmd_re "sh" "avail -t $m5" "OK" "$theader\n$rlm5\\(\[a-z:\]+\\)"
 
@@ -231,8 +231,8 @@ restore_file_perms $lmf5
 change_file_perms $lmf7 $hide_perms
 
 # shout error as if we were trying to access the alias directly
-testouterr_cmd "sh" "load $m7" "ERR" "$access_msg '$lmf7'"
-testouterr_cmd "sh" "display $m7" "ERR" "$access_msg '$lmf7'"
+testouterr_cmd "sh" "load $m7" "ERR" [if_implicitdefault "$access_msg '$lmf7'" "$err_nodefault'$m7'"]
+testouterr_cmd "sh" "display $m7" "ERR" [if_implicitdefault "$access_msg '$lmf7'" "$err_nodefault'$m7'"]
 # no error on whatis/avail, other versions are listed
 testouterr_cmd_re "sh" "whatis $m7" "OK" "$pheader\n\\s+$m7/1.2: $m7/1.2"
 # alias defined so it appears even if access to target modulefile is denied
@@ -282,8 +282,8 @@ lappend ans [list set LOADEDMODULES $rlm10]
 lappend ans [list set testsuite yes]
 
 # another implicit default is chosen
-testouterr_cmd "sh" "load $m10" $ans ""
-testouterr_cmd_re "sh" "display $m10" "OK" "$modlin\n$rlmf10re:\n\nmodule-whatis\t$rlm10\nsetenv\t\ttestsuite yes\n$modlin"
+testouterr_cmd "sh" "load $m10" [if_implicitdefault $ans ERR] [if_implicitdefault {} "$err_nodefault'$m10'"]
+testouterr_cmd_re "sh" "display $m10" [if_implicitdefault OK ERR] [if_implicitdefault "$modlin\n$rlmf10re:\n\nmodule-whatis\t$rlm10\nsetenv\t\ttestsuite yes\n$modlin" "$err_nodefault'$m10'"]
 testouterr_cmd_re "sh" "whatis $m10" "OK" "$pheader\n\\s+$m10/1.0: $m10/1.0\n\\s+$m10/2.0: $m10/2.0\n\\s+$m10/3.0: $m10/3.0"
 testouterr_cmd_re "sh" "avail -t $m10" "OK" "$theader\n$m10/1.0\n$m10/2.0\n$m10/3.0"
 
@@ -514,8 +514,8 @@ lappend ans [list set LOADEDMODULES $rlm26]
 lappend ans [list set testsuite yes]
 
 # another implicit default is chosen
-testouterr_cmd "sh" "load $m26" $ans ""
-testouterr_cmd_re "sh" "display $m26" "OK" "$modlin\n$rlmf26re:\n\nmodule-whatis\t$rlm26\nsetenv\t\ttestsuite yes\n$modlin"
+testouterr_cmd "sh" "load $m26" [if_implicitdefault $ans ERR] [if_implicitdefault {} "$err_nodefault'$m26'"]
+testouterr_cmd_re "sh" "display $m26" [if_implicitdefault OK ERR] [if_implicitdefault "$modlin\n$rlmf26re:\n\nmodule-whatis\t$rlm26\nsetenv\t\ttestsuite yes\n$modlin" "$err_nodefault'$m26'"]
 testouterr_cmd_re "sh" "whatis $m26" "OK" "$pheader\n\\s+$rlm26: $rlm26"
 testouterr_cmd_re "sh" "avail -t $m26" "OK" "$theader\n$rlm26"
 

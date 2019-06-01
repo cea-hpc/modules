@@ -97,11 +97,11 @@ foreach mod [list mcookie mcookierc] resmod [list mcookie/4 mcookierc/5] tserr [
     if {$tserr ne ""} {
         lappend ans [list ERR]
     }
-    testouterr_cmd "sh" "load $mod" $ans $tserr
+    testouterr_cmd "sh" "load $mod" [if_implicitdefault $ans ERR] $tserr[if_implicitdefault {} [expr {$tserr ne {} ? "\n" : {}}]$err_nodefault'$mod']
     testouterr_cmd_re "sh" "avail -t $mod" "" "$modpathre:\n$mod.*"
     testouterr_cmd "sh" "whatis $mod" "" ""
     set anspa [list [list text $modpath/$resmod]]
-    testouterr_cmd "sh" "path $mod" $anspa $tserr
+    testouterr_cmd "sh" "path $mod" [if_implicitdefault $anspa [list [list text {}]]] $tserr[if_implicitdefault {} [expr {$tserr ne {} ? "\n" : {}}]$err_nodefault'$mod']
 }
 
 #

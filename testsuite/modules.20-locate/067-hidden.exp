@@ -30,6 +30,7 @@ set module_1 ".hidden/1.0"
 set modulefile_1 "$modpath/$module_1"
 set modulefilere_1 "$modpathre/$module_1"
 set modavail_1 "$module_1\\s+$datetime_re"
+set nodefault_1 "$err_nodefault'$modsym_1'"
 
 set modsym_2 ".hidden/1.0"
 set module_2 "$module_1"
@@ -65,6 +66,7 @@ set modulefilere_6 "$modpathre/$module_6"
 set modavail_6 "$modavail_5\n$module_6\\s+$datetime_re"
 set modwhatis_6 "\\s+$module_3: $module_3\n\\s+$module_6: $module_6"
 set modpaths_6 [list $modulefile_3 $modulefile_6]
+set nodefault_6 "$err_nodefault'$modsym_6'"
 
 set modsym_7 "loc_rc8/.subdir/4.0"
 set module_7 "$modsym_7"
@@ -77,6 +79,7 @@ set module_8 "$module_7"
 set modulefile_8 "$modpath/$module_8"
 set modulefilere_8 "$modpathre/$module_8"
 set modavail_8 "$modavail_7"
+set nodefault_8 "$err_nodefault'$modsym_8'"
 
 set modsym_9 "loc_rc9"
 set module_9 "loc_rc9/.1.0"
@@ -148,6 +151,11 @@ for {set i 1} {$i <= 11} {incr i} {
     } elseif {[info exists moderr]} {
         unset moderr
     }
+    if {[info exists "::nodefault_${i}"]} {
+        set nodefault [set "::nodefault_${i}"]
+    } else {
+        set nodefault {}
+    }
 
     # setup clean environment
     unsetenv_loaded_module
@@ -167,10 +175,21 @@ for {set i 1} {$i <= 11} {incr i} {
             lappend ans [list setpath MODULES_LMALTNAME $modalt]
         }
 
-        testouterr_cmd "sh" "load $modsym" $ans ""
-        testouterr_cmd_re "sh" "display $modsym" "OK" "$disp_pre$modulefilere:\n\n$disp_wi$module$disp_post"
-        testouterr_cmd_re "sh" "help $modsym" "OK" "$help_pre$modulefilere$help_post"
-        testouterr_cmd_re "sh" "test $modsym" "OK" "$test_pre$modulefilere$test_post"
+        set displayerr "$disp_pre$modulefilere:\n\n$disp_wi$module$disp_post"
+        set helperr "$help_pre$modulefilere$help_post"
+        set testerr "$test_pre$modulefilere$test_post"
+
+        if {$nodefault eq {}} {
+            testouterr_cmd "sh" "load $modsym" $ans ""
+            testouterr_cmd_re "sh" "display $modsym" "OK" $displayerr
+            testouterr_cmd_re "sh" "help $modsym" "OK" $helperr
+            testouterr_cmd_re "sh" "test $modsym" "OK" $testerr
+        } else {
+            testouterr_cmd "sh" "load $modsym" [if_implicitdefault $ans ERR] [if_implicitdefault {} $nodefault]
+            testouterr_cmd_re "sh" "display $modsym" [if_implicitdefault OK ERR] [if_implicitdefault $displayerr $nodefault]
+            testouterr_cmd_re "sh" "help $modsym" [if_implicitdefault OK ERR] [if_implicitdefault $helperr $nodefault]
+            testouterr_cmd_re "sh" "test $modsym" [if_implicitdefault OK ERR] [if_implicitdefault $testerr $nodefault]
+        }
     }
 
     if {$modavail eq ""} {
@@ -190,7 +209,11 @@ for {set i 1} {$i <= 11} {incr i} {
         testouterr_cmd "sh" "path $modsym" $ans "$moderr"
     } else {
         lappend ans [list text $modulefile]
-        testouterr_cmd "sh" "path $modsym" $ans ""
+        if {$nodefault eq {}} {
+            testouterr_cmd "sh" "path $modsym" $ans ""
+        } else {
+            testouterr_cmd "sh" "path $modsym" [if_implicitdefault $ans [list [list text {}]]] [if_implicitdefault {} $nodefault]
+        }
     }
 
     testouterr_cmd "sh" "paths $modsym" $ans_paths ""
@@ -236,6 +259,10 @@ unset header_long
 unset avail_pre
 unset whatis_pre
 
+unset displayerr
+unset helperr
+unset testerr
+
 for {set i 1} {$i <= 11} {incr i} {
     unset "modsym_${i}"
     unset "module_${i}"
@@ -254,6 +281,9 @@ for {set i 1} {$i <= 11} {incr i} {
     if {[info exists "moderr_${i}"]} {
         unset "moderr_${i}"
     }
+    if {[info exists "nodefault_${i}"]} {
+        unset "nodefault_${i}"
+    }
 
 }
 
@@ -268,6 +298,7 @@ unset modulefile
 unset modulefilere
 unset modavail
 unset modwhatis
+unset nodefault
 if {[info exists moderr]} {
     unset moderr
 }

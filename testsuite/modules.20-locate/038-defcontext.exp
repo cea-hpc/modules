@@ -38,6 +38,7 @@ set modavail_1 "$module_1_loa\n$module_1_def"
 set modwhatis_1 "\\s+$module_1_loa: $module_1_loa\n\\s+$module_1_def: $module_1_def"
 set ans_paths_1 [list]
 lappend ans_paths_1 [list text [list $modulefile_1_loa $modulefile_1_def]]
+set nodefault_1 "$err_nodefault'loc_dv1'"
 
 # module explicitely set default version
 set modname_2 "loc_dv2"
@@ -84,6 +85,11 @@ for {set i 1} {$i <= 2} {incr i} {
     set modavail [set "modavail_${i}"]
     set modwhatis [set "modwhatis_${i}"]
     set ans_paths [set "ans_paths_${i}"]
+    if {[info exists "nodefault_${i}"]} {
+        set nodefault [set "nodefault_${i}"]
+    } else {
+        set nodefault ""
+    }
 
     # setup environment with module to load
     setenv_loaded_module $module_loa $modulefile_loa
@@ -95,12 +101,16 @@ for {set i 1} {$i <= 2} {incr i} {
     if {$modalt_def ne ""} {
         lappend ans [list setpath MODULES_LMALTNAME $modalt_def]
     }
-    testouterr_cmd_re "sh" "load $modname" $ans ""
+    if {$nodefault eq {}} {
+        testouterr_cmd_re "sh" "load $modname" $ans ""
+    } else {
+        testouterr_cmd_re "sh" "load $modname" [if_implicitdefault $ans ERR] [if_implicitdefault {} $nodefault]
+    }
 
-    set ans [list]
-    lappend ans [list unsetpath LOADEDMODULES]
-    lappend ans [list unsetpath _LMFILES_]
-    testouterr_cmd_re "sh" "unload $modname" $ans ""
+    set ansun [list]
+    lappend ansun [list unsetpath LOADEDMODULES]
+    lappend ansun [list unsetpath _LMFILES_]
+    testouterr_cmd_re "sh" "unload $modname" $ansun ""
 
     set ans [list]
     lappend ans [list setpath LOADEDMODULES "$module_def"]
@@ -108,18 +118,37 @@ for {set i 1} {$i <= 2} {incr i} {
     if {$modalt_def ne ""} {
         lappend ans [list setpath MODULES_LMALTNAME $modalt_def]
     }
-    testouterr_cmd_re "sh" "switch $modname $modname" $ans ""
+    if {$nodefault eq {}} {
+        testouterr_cmd_re "sh" "switch $modname $modname" $ans ""
+    } else {
+        lappend ansun [list ERR]
+        testouterr_cmd_re "sh" "switch $modname $modname" [if_implicitdefault $ans $ansun] [if_implicitdefault {} [msg_switch $module_loa $modname $nodefault]]
+    }
 
-    testouterr_cmd_re "sh" "display $modname" "OK" "$disp_pre$modulefilere_def:\n\n$disp_wi$module_def$disp_post"
-    testouterr_cmd_re "sh" "help $modname" "OK" "$help_pre$modulefilere_def$help_mid$modulefilere_def$help_post"
-    testouterr_cmd_re "sh" "test $modname" "OK" "$test_pre$modulefilere_def$test_mid$modulefilere_def$test_post"
+    set displayerr "$disp_pre$modulefilere_def:\n\n$disp_wi$module_def$disp_post"
+    set helperr "$help_pre$modulefilere_def$help_mid$modulefilere_def$help_post"
+    set testerr "$test_pre$modulefilere_def$test_mid$modulefilere_def$test_post"
+
+    if {$nodefault eq {}} {
+        testouterr_cmd_re "sh" "display $modname" "OK" $displayerr
+        testouterr_cmd_re "sh" "help $modname" "OK" $helperr
+        testouterr_cmd_re "sh" "test $modname" "OK" $testerr
+    } else {
+        testouterr_cmd_re "sh" "display $modname" [if_implicitdefault OK ERR] [if_implicitdefault $displayerr $nodefault]
+        testouterr_cmd_re "sh" "help $modname" [if_implicitdefault OK ERR] [if_implicitdefault $helperr $nodefault]
+        testouterr_cmd_re "sh" "test $modname" [if_implicitdefault OK ERR] [if_implicitdefault $testerr $nodefault]
+    }
 
     testouterr_cmd_re "sh" "avail -t $modname" "OK" "$modpathre:\n$modavail"
     testouterr_cmd_re "sh" "whatis $modname" "OK" "$modlin $modpathre $modlin\n$modwhatis"
 
     set ans [list]
     lappend ans [list text $modulefile_def]
-    testouterr_cmd "sh" "path $modname" $ans ""
+    if {$nodefault eq {}} {
+        testouterr_cmd "sh" "path $modname" $ans ""
+    } else {
+        testouterr_cmd "sh" "path $modname" [if_implicitdefault $ans [list [list text {}]]] [if_implicitdefault {} $nodefault]
+    }
     testouterr_cmd "sh" "paths $modname" $ans_paths ""
 }
 
@@ -143,6 +172,10 @@ unset disp_pre
 unset disp_wi
 unset disp_post
 
+unset displayerr
+unset helperr
+unset testerr
+
 for {set i 1} {$i <= 2} {incr i} {
     unset "modname_${i}"
     unset "module_${i}_loa"
@@ -156,9 +189,13 @@ for {set i 1} {$i <= 2} {incr i} {
     unset "modavail_${i}"
     unset "modwhatis_${i}"
     unset "ans_paths_${i}"
+    if {[info exists "nodefault_${i}"]} {
+        unset "nodefault_${i}"
+    }
 }
 
 unset ans
+unset ansun
 
 unset i
 unset modname
@@ -171,3 +208,4 @@ unset modulefilere_def
 unset modavail
 unset modwhatis
 unset ans_paths
+unset nodefault

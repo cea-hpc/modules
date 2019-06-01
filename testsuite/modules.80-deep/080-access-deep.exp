@@ -149,8 +149,8 @@ restore_file_perms $lmf3
 change_file_perms $lmf4 $hide_perms
 
 # shout error as if we were trying to access the symbol directly
-testouterr_cmd "sh" "load $m4" "ERR" "$access_msg '$lmf4'"
-testouterr_cmd "sh" "display $m4" "ERR" "$access_msg '$lmf4'"
+testouterr_cmd "sh" "load $m4" "ERR" [if_implicitdefault "$access_msg '$lmf4'" "$err_nodefault'$m4'"]
+testouterr_cmd "sh" "display $m4" "ERR" [if_implicitdefault "$access_msg '$lmf4'" "$err_nodefault'$m4'"]
 # no error on whatis/avail, other versions are listed
 testouterr_cmd_re "sh" "whatis $m4" "OK" "$pheader\n\\s+$m4/dir2/2.0: $m4/dir2/2.0"
 testouterr_cmd_re "sh" "avail -t $m4" "OK" "$theader\n$m4/dir2/2.0"
@@ -173,8 +173,8 @@ lappend ans [list set LOADEDMODULES $rlm5]
 lappend ans [list set MODULES_LMCONFLICT "$rlm5&$m5"]
 
 # another implicit default is chosen
-testouterr_cmd "sh" "load $m5" $ans ""
-testouterr_cmd_re "sh" "display $m5" "OK" "$modlin\n$rlmfre5:\n\nmodule-whatis\t$rlm5\nconflict\tplain/dir2\nsetenv\t\tTEST $rlm5\n$modlin"
+testouterr_cmd "sh" "load $m5" [if_implicitdefault $ans ERR] [if_implicitdefault {} "$err_nodefault'$m5'"]
+testouterr_cmd_re "sh" "display $m5" [if_implicitdefault OK ERR] [if_implicitdefault "$modlin\n$rlmfre5:\n\nmodule-whatis\t$rlm5\nconflict\tplain/dir2\nsetenv\t\tTEST $rlm5\n$modlin" "$err_nodefault'$m5'"]
 testouterr_cmd_re "sh" "whatis $m5" "OK" "$pheader\n\\s+$rlm5: $rlm5"
 testouterr_cmd_re "sh" "avail -t $m5" "OK" "$theader\n$rlm5"
 
@@ -203,8 +203,8 @@ restore_file_perms $lmf5
 change_file_perms $lmf7 $hide_perms
 
 # shout error as if we were trying to access the alias directly
-testouterr_cmd "sh" "load $m7" "ERR" "$access_msg '$lmf7'"
-testouterr_cmd "sh" "display $m7" "ERR" "$access_msg '$lmf7'"
+testouterr_cmd "sh" "load $m7" "ERR" [if_implicitdefault "$access_msg '$lmf7'" "$err_nodefault'$m7'"]
+testouterr_cmd "sh" "display $m7" "ERR" [if_implicitdefault "$access_msg '$lmf7'" "$err_nodefault'$m7'"]
 # no error on whatis/avail, other versions are listed
 testouterr_cmd_re "sh" "whatis $m7" "OK" "$pheader\n\\s+$m7/dir1/1.0: $m7/dir1/1.0\n\\s+$m7/dir2/2.0: $m7/dir2/2.0"
 # alias defined so it appears even if access to target modulefile is denied
@@ -254,8 +254,8 @@ lappend ans [list set _LMFILES_ $rlmf10]
 lappend ans [list set LOADEDMODULES $rlm10]
 
 # another implicit default is chosen
-testouterr_cmd "sh" "load $m10" $ans ""
-testouterr_cmd_re "sh" "display $m10" "OK" "$modlin\n$rlmfre10:\n\nmodule-whatis\t$rlm10\nsetenv\t\tTEST $rlm10\n$modlin"
+testouterr_cmd "sh" "load $m10" [if_implicitdefault $ans ERR] [if_implicitdefault {} "$err_nodefault'$m10'"]
+testouterr_cmd_re "sh" "display $m10" [if_implicitdefault OK ERR] [if_implicitdefault "$modlin\n$rlmfre10:\n\nmodule-whatis\t$rlm10\nsetenv\t\tTEST $rlm10\n$modlin" "$err_nodefault'$m10'"]
 testouterr_cmd_re "sh" "whatis $m10" "OK" "$pheader\n\\s+$m10/dir2/1.0: $m10/dir2/1.0\n\\s+$m10/dir2/2.0: $m10/dir2/2.0"
 testouterr_cmd_re "sh" "avail -t $m10" "OK" "$theader\n$m10/dir2/1.0\n$m10/dir2/2.0"
 
@@ -407,8 +407,8 @@ lappend ans [list set MODULES_LMALTNAME "$lm21&modsym/dir2/3.0"]
 lappend ans [list set MODULES_LMCONFLICT "$lm21&$m21"]
 
 # implicit default is not impacted
-testouterr_cmd "sh" "load $m21" $ans ""
-testouterr_cmd_re "sh" "display $m21" "OK" "$modlin\n$lmfre21:\n\nmodule-whatis\t$lm21\nconflict\t$m21\nsetenv\t\tTEST $lm21\n$modlin"
+testouterr_cmd "sh" "load $m21" [if_implicitdefault $ans ERR] [if_implicitdefault {} "$err_nodefault'$m21'"]
+testouterr_cmd_re "sh" "display $m21" [if_implicitdefault OK ERR] [if_implicitdefault "$modlin\n$lmfre21:\n\nmodule-whatis\t$lm21\nconflict\t$m21\nsetenv\t\tTEST $lm21\n$modlin" "$err_nodefault'$m21'"]
 testouterr_cmd_re "sh" "whatis $m21" "OK" "$pheader\n\\s+$lm21: $lm21"
 testouterr_cmd_re "sh" "avail -t $m21" "OK" "$theader\n$lm21\\(3.0\\)"
 

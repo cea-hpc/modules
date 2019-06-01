@@ -451,7 +451,14 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES $mod21p:$mod12]
 lappend ans [list setpath _LMFILES_ $mod21p:$mod12p]
 testouterr_cmd_re "sh" "swap $mod12" $ans ""
-testouterr_cmd_re "sh" "swap $mod1name" $ans ""
+
+if {$install_implicitdefault ne {y}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES $mod21p]
+    lappend ans [list setpath _LMFILES_ $mod21p]
+    lappend ans [list ERR]
+}
+testouterr_cmd_re "sh" "swap $mod1name" $ans [if_implicitdefault {} [msg_switch $mod11p $mod1name $err_nodefault'$mod1name']]
 
 # same test without MODULEPATH set anymore
 unsetenv_path_var MODULEPATH

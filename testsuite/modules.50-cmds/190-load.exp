@@ -218,7 +218,10 @@ set badmod "bad"
 set out_interr "$moderr_msgs: invalid command name \"bad-command\"\n  In '$modpath/$badmod/.modulerc'\n$err_contact"
 append out_interr \n\n[msg_load $badmod/before "$moderr_msgs: invalid command name \"bad-command\"\nIn '$modpath/$badmod/before'\n$err_contactns"]
 
+# ensure load tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
 testouterr_cmd "ALL" "load $badmod" "ERR2" "$out_interr"
+unsetenv_var MODULES_IMPLICIT_DEFAULT
 
 # try with other full path name forms (./ and ../)
 set badmod "$reldmodpath/bad/before"
@@ -257,9 +260,13 @@ test_cmd_re "sh" "load $oth11pdd" "OK"
 #
 setenv_path_var MODULEPATH "$modpath.other" $modpath
 setenv_loaded_module $mod12p $mod12p
+# ensure load tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
 
 test_cmd_re "sh" "load $mod12" "OK"
 test_cmd_re "sh" "load $mod1name" "OK"
+
+unsetenv_var MODULES_IMPLICIT_DEFAULT
 
 
 #

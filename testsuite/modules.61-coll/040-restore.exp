@@ -50,6 +50,7 @@ set c12errmsg "unload $c9mod3\nunload $c9mod2\nunload $c9mod1\nload f4\nload f5\
 } else {
 set c12errmsg "unload $c9mod3\nunload $c9mod2\nunload $c9mod1\nload f4\nload f5\n\n[msg_load f6 [err_conlo f5]]\n\n[msg_load f7 [err_reqmis f6]]\n\n[msg_top_restore $coll12fpre {} [list $c9mod3 $c9mod2 $c9mod1] [list $c12mod1 $c12mod2]]"
 }
+set c13errmsg "load $cdmod4\n\n[msg_top_restore $coll13fpre {} {} [split $c13lm :]]"
 
 # set HOME to location containing collections
 set ORIG_HOME $env(HOME)
@@ -131,8 +132,8 @@ eval setenv_path_var MODULES_LMALTNAME [split $cdlmalt ":"]
 set ans [list]
 lappend ans [list setpath MODULES_LMALTNAME $c1lmalt]
 lappend ans [list setpath MODULEPATH $c1modpath]
-lappend ans [list setpath LOADEDMODULES $c1lm]
-lappend ans [list setpath _LMFILES_ $c1lmf]
+lappend ans [list setpath LOADEDMODULES $c1lm $c1lmnodefault]
+lappend ans [list setpath _LMFILES_ $c1lmf $c1lmfnodefault]
 
 testouterr_cmd_re "ALL" "restore $coll1" $ans "$c1errmsg"
 
@@ -238,14 +239,25 @@ unsetenv_path_var MODULEPATH
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMALTNAME
 
-set ans [list]
-lappend ans [list set testsuite "yes"]
-lappend ans [list setpath LOADEDMODULES $c6lm]
-lappend ans [list setpath _LMFILES_ $c6lmf]
-lappend ans [list setpath MODULEPATH $c6modpath]
-lappend ans [list setpath MODULES_LMALTNAME $c6lmalt]
-
-testouterr_cmd_re "sh" "restore $coll6" $ans [msg_top_restore $coll6 target {} [split $c6lm :]]
+if {$install_implicitdefault eq {y}} {
+    set ans [list]
+    lappend ans [list set testsuite "yes"]
+    lappend ans [list setpath LOADEDMODULES $c6lm]
+    lappend ans [list setpath _LMFILES_ $c6lmf]
+    lappend ans [list setpath MODULEPATH $c6modpath]
+    lappend ans [list setpath MODULES_LMALTNAME $c6lmalt]
+    set c6errmsg [msg_top_restore $coll6 target {} [split $c6lm :]]
+} else {
+    set ans [list]
+    lappend ans [list set testsuite "yes"]
+    lappend ans [list setpath LOADEDMODULES $c6lmnodefault]
+    lappend ans [list setpath _LMFILES_ $c6lmfnodefault]
+    lappend ans [list setpath MODULEPATH $c6modpath]
+    lappend ans [list setpath MODULES_LMALTNAME $c6lmalt]
+    lappend ans [list ERR]
+    set c6errmsg [msg_top_restore $coll6 target {} [split $c6lmnodefault :] $err_nodefault'dvcross']
+}
+testouterr_cmd_re "sh" "restore $coll6" $ans $c6errmsg
 
 
 #
@@ -256,15 +268,27 @@ testouterr_cmd_re "sh" "restore $coll6" $ans [msg_top_restore $coll6 target {} [
 setenv_path_var MODULEPATH {} {}
 setenv_loaded_module [list {} {}] [list {} {}]
 
-set ans [list]
-lappend ans [list set testsuite "yes"]
-lappend ans [list setpath LOADEDMODULES "::$c6lm"]
-lappend ans [list setpath _LMFILES_ "::$c6lmf"]
-# empty dir elements are ignored but stick to the variable, they should be removed
-lappend ans [list setpath MODULEPATH "::$c6modpath"]
-lappend ans [list setpath MODULES_LMALTNAME $c6lmalt]
-
-testouterr_cmd_re "sh" "restore $coll6" $ans [msg_top_restore $coll6 target {} [split $c6lm :]]
+if {$install_implicitdefault eq {y}} {
+    set ans [list]
+    lappend ans [list set testsuite "yes"]
+    lappend ans [list setpath LOADEDMODULES "::$c6lm"]
+    lappend ans [list setpath _LMFILES_ "::$c6lmf"]
+    # empty dir elements are ignored but stick to the variable, they should be removed
+    lappend ans [list setpath MODULEPATH "::$c6modpath"]
+    lappend ans [list setpath MODULES_LMALTNAME $c6lmalt]
+    set c6errmsg [msg_top_restore $coll6 target {} [split $c6lm :]]
+} else {
+    set ans [list]
+    lappend ans [list set testsuite "yes"]
+    lappend ans [list setpath LOADEDMODULES "::$c6lmnodefault"]
+    lappend ans [list setpath _LMFILES_ "::$c6lmfnodefault"]
+    # empty dir elements are ignored but stick to the variable, they should be removed
+    lappend ans [list setpath MODULEPATH "::$c6modpath"]
+    lappend ans [list setpath MODULES_LMALTNAME $c6lmalt]
+    lappend ans [list ERR]
+    set c6errmsg [msg_top_restore $coll6 target {} [split $c6lmnodefault :] $err_nodefault'dvcross']
+}
+testouterr_cmd_re "sh" "restore $coll6" $ans $c6errmsg
 
 
 #
@@ -455,12 +479,39 @@ testouterr_cmd_re sh "load $modpath.other/restore" $ans "unload coll/a\nload col
 
 
 #
+# restore with implicit_default disabled a collection containing an explicit default
+# expressed with pin_version disabled
+#
+
+setenv_var MODULES_IMPLICIT_DEFAULT 0
+unsetenv_var MODULEPATH
+unsetenv_loaded_module
+
+set ans [list]
+lappend ans [list set LOADEDMODULES $c13lm]
+lappend ans [list set _LMFILES_ $c13lmf]
+lappend ans "(.*)"
+lappend ans [list set MODULES_LMALTNAME $c13lmalt]
+lappend ans "(.*)"
+lappend ans [list set MODULES_LMALTNAME_modshare "(.*)"]
+lappend ans "(.*)"
+lappend ans "(.*)"
+lappend ans [list set MODULEPATH $c13modpath]
+lappend ans [list set LOADEDMODULES_modshare "(.*)"]
+lappend ans [list set _LMFILES__modshare "(.*)"]
+lappend ans [list set MODULEPATH_modshare "(.*)"]
+
+testouterr_cmd_re sh "restore $coll13fp" $ans $c13errmsg
+
+
+#
 # Cleanup
 #
 
 # restore environment
 # _LMFILES_ and LOADEDMODULES already restored during last test
 unsetenv_var MODULES_COLLECTION_TARGET
+unsetenv_var MODULES_IMPLICIT_DEFAULT
 setenv_path_var MODULEPATH $modpath
 unsetenv_loaded_module
 
@@ -479,11 +530,13 @@ unset c1errmsgf2
 unset c3errmsg
 unset c4errmsg
 unset c5errmsg
+unset c6errmsg
 unset c9errmsg
 unset c10errmsg
 unset c9errmsg2
 unset c11errmsg
 unset c12errmsg
+unset c13errmsg
 unset badcontfp
 unset badcontfperrmsg
 

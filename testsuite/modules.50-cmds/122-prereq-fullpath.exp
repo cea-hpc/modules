@@ -58,21 +58,45 @@ set err_trace "$warn_msgs: 'module-trace' command not implemented"
 #
 
 # prereq are loaded automatically when autohandling is enabled
-set ans [list]
-lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$module1:$module_tron:$module2:$module3"]
-lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile_tron:$modulefile2:$modulefile3"]
-lappend ans [list setpath MODULES_LMPREREQ "$module1&$modulefile_set1:$module2&trace:$module3&../$module_set1"]
-lappend ans [list setpath MODULES_LMNOTUASKED "$modulefile_set1:$module_tron"]
-testouterr_cmd_re "sh" "load --auto $module1 $module2 $module3" $ans [regsub -all {([.+?()])} [msg_top_load $module1 {} $modulefile_set1 {}]\n\n[msg_load $module_tron $err_trace]\n\n[msg_top_load $module2 {} $module_tron {}] {\\\1}]
+if {$install_implicitdefault eq {y}} {
+    set ans [list]
+    lappend ans [list set testsuite yes]
+    lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$module1:$module_tron:$module2:$module3"]
+    lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile_tron:$modulefile2:$modulefile3"]
+    lappend ans [list setpath MODULES_LMPREREQ "$module1&$modulefile_set1:$module2&trace:$module3&../$module_set1"]
+    lappend ans [list setpath MODULES_LMNOTUASKED "$modulefile_set1:$module_tron"]
+    set tserr [regsub -all {([.+?()])} [msg_top_load $module1 {} $modulefile_set1 {}]\n\n[msg_load $module_tron $err_trace]\n\n[msg_top_load $module2 {} $module_tron {}] {\\\1}]
+} else {
+    set ans [list]
+    lappend ans [list setpath MODULES_LMPREREQ "$module1&$modulefile_set1:$module3&../$module_set1"]
+    lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile3"]
+    lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$module1:$module3"]
+    lappend ans [list setpath MODULES_LMNOTUASKED "$modulefile_set1"]
+    lappend ans [list set testsuite yes]
+    lappend ans [list ERR]
+    set tserr [regsub -all {([.+?()])} [msg_top_load $module1 {} $modulefile_set1 {}]\n\n[msg_load $module2 $err_nodefault'trace' [err_reqlo trace]] {\\\1}]
+}
+testouterr_cmd_re "sh" "load --auto $module1 $module2 $module3" $ans $tserr
 
-set ans [list]
-lappend ans [list set testsuite yes]
-lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$modulefile1:$module_tron:$modulefile2:$modulefile3"]
-lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile_tron:$modulefile2:$modulefile3"]
-lappend ans [list setpath MODULES_LMPREREQ "$modulefile1&$modulefile_set1:$modulefile2&trace:$modulefile3&../$module_set1"]
-lappend ans [list setpath MODULES_LMNOTUASKED "$modulefile_set1:$module_tron"]
-testouterr_cmd_re "sh" "load --auto $modulefile1 $modulefile2 $modulefile3" $ans [regsub -all {([.+?()])} [msg_top_load $modulefile1 {} $modulefile_set1 {}]\n\n[msg_load $module_tron $err_trace]\n\n[msg_top_load $modulefile2 {} $module_tron {}] {\\\1}]
+if {$install_implicitdefault eq {y}} {
+    set ans [list]
+    lappend ans [list set testsuite yes]
+    lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$modulefile1:$module_tron:$modulefile2:$modulefile3"]
+    lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile_tron:$modulefile2:$modulefile3"]
+    lappend ans [list setpath MODULES_LMPREREQ "$modulefile1&$modulefile_set1:$modulefile2&trace:$modulefile3&../$module_set1"]
+    lappend ans [list setpath MODULES_LMNOTUASKED "$modulefile_set1:$module_tron"]
+    set tserr [regsub -all {([.+?()])} [msg_top_load $modulefile1 {} $modulefile_set1 {}]\n\n[msg_load $module_tron $err_trace]\n\n[msg_top_load $modulefile2 {} $module_tron {}] {\\\1}]
+} else {
+    set ans [list]
+    lappend ans [list setpath MODULES_LMPREREQ "$modulefile1&$modulefile_set1:$modulefile3&../$module_set1"]
+    lappend ans [list setpath _LMFILES_ "$modulefile_set1:$modulefile1:$modulefile3"]
+    lappend ans [list setpath LOADEDMODULES "$modulefile_set1:$modulefile1:$modulefile3"]
+    lappend ans [list set testsuite yes]
+    lappend ans [list setpath MODULES_LMNOTUASKED "$modulefile_set1"]
+    lappend ans [list ERR]
+    set tserr [regsub -all {([.+?()])} [msg_top_load $modulefile1 {} $modulefile_set1 {}]\n\n[msg_load $modulefile2 $err_nodefault'trace' [err_reqlo trace]] {\\\1}]
+}
+testouterr_cmd_re "sh" "load --auto $modulefile1 $modulefile2 $modulefile3" $ans $tserr
 
 testouterr_cmd "sh" "load --no-auto $module1 $module2 $module3" "ERR" "$err_pre1\n\n$err_pre2\n\n$err_pre3"
 testouterr_cmd "sh" "load --no-auto $modulefile1 $modulefile2 $modulefile3" "ERR" "$err_pref1\n\n$err_pref2\n\n$err_pref3"
@@ -167,6 +191,7 @@ unset err_pref3
 unset err_trace
 
 unset ans
+unset tserr
 
 unset modulefile1
 unset module1
