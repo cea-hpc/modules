@@ -114,13 +114,23 @@ Modules 4.3.0 (2019-XX-XX)
 * Contrib: update ``createmodule.py`` script to support execution from the
   *cmd* shell. (contribution from Jacques Raphanel, fix issue #270)
 * Add the ability to configure when unloading a module and multiple loaded
-  modules match request if firstly loaded module should be choosen or lastly
+  modules match request if firstly loaded module should be chosen or lastly
   loaded module. Configure option ``--with-unload-match-order`` defines this
   setting which can be superseded with the ``MODULES_UNLOAD_MATCH_ORDER``
   environment variable. This variable can be set with the option
   ``unload_match_order`` on the ``config`` sub-command. By default, lastly
-  loaded module is selected. It is recommanded to keep this behavior when the
+  loaded module is selected. It is recommended to keep this behavior when the
   modulefiles used express dependencies between each other.
+* Add the ability to configure whether an implicit default version should be
+  defined for modules with no default version explicitly defined. When
+  enabled, which stays the default behavior, a module version is automatically
+  selected (latest one) when the generic name of the module is passed. When
+  implicit default selection is disabled, the name of modules to evaluate
+  should be fully qualified elsewhere an error is returned. This option is set
+  at ``./configure`` time with the ``--enable-implicit-default`` and
+  ``--disable-implicit-default`` options. It could be superseded with the
+  ``MODULES_IMPLICIT_DEFAULT`` environment variable, that could be set with
+  ``config`` module sub-command through the ``implicit_default`` option.
 
 
 Modules 4.2.4 (2019-04-26)

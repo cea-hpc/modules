@@ -182,6 +182,16 @@ New sub-commands, command-line switches and environment variables
   and it is recommanded to keep this behavior when used modulefiles express
   dependencies between each other.
 
+* The **MODULES_IMPLICIT_DEFAULT** environment variable sets whether an
+  implicit default version should be defined for modules with no default
+  version explicitly defined. When enabled, which is the default behavior, a
+  module version is automatically selected (latest one) when the generic
+  name of the module is passed. When implicit default is disabled and no
+  default version is explicitly defined for a module, the name of this module
+  to evaluate should be fully qualified elsewhere an error is returned.
+  Configure option ``--enable-implicit-default`` defines this setting which
+  can be superseded by the environment variable.
+
 
 Further reading
 ---------------
