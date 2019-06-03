@@ -348,11 +348,12 @@ Module Sub-Commands
  confirmation is requested if command-line switch *-f* (or *--force*) is not
  passed. Typed confirmation should equal to *yes* or *y* in order to proceed.
 
-**source** modulefile...
+**source** scriptfile...
 
- Execute *modulefile* into the shell environment. *modulefile* must be
- specified with a fully qualified path. Once executed *modulefile* is not
- marked loaded in shell environment which differ from **load** sub-command.
+ Execute *scriptfile* into the shell environment. *scriptfile* must be written
+ with *modulefile* syntax and specified with a fully qualified path. Once
+ executed *scriptfile* is not marked loaded in shell environment which differ
+ from **load** sub-command.
 
 **whatis** [modulefile...]
 
