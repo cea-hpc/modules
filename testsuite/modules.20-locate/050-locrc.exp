@@ -165,6 +165,15 @@ testouterr_cmd_re "sh" "display loc_rc2" [if_implicitdefault OK ERR] [if_implici
 
 testouterr_cmd_re "sh" "whatis loc_rc6/bar" "OK" "$what_7"
 
+# test lock effect of the implicit_default configuration
+if {[is_config_locked implicit_default]} {
+    setenv_var MODULES_IMPLICIT_DEFAULT 1
+    testouterr_cmd_re "sh" "display loc_rc2" [if_implicitdefault OK ERR] [if_implicitdefault $disp_6 "$err_nodefault'loc_rc2'"]
+    setenv_var MODULES_IMPLICIT_DEFAULT 0
+    testouterr_cmd_re "sh" "display loc_rc2" [if_implicitdefault OK ERR] [if_implicitdefault $disp_6 "$err_nodefault'loc_rc2'"]
+    unsetenv_var MODULES_IMPLICIT_DEFAULT
+}
+
 # test working on an alias targeting an implicit default, when another version of the
 # targeted module is loaded, this loaded module should not influence alias resolution
 setenv_loaded_module $module_8 $modulefile_8

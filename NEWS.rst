@@ -130,8 +130,9 @@ Modules 4.3.0 (2019-XX-XX)
 * Install: add to the configure script the ``--with-locked-configs`` option to
   ignore environment variable superseding of Modules configurations defined in
   ``modulecmd.tcl`` script. Lockable configuration option are
-  ``extra_siteconfig``. Currently locked options are reported through the
-  ``locked_configs`` option on the ``config`` sub-command.
+  ``extra_siteconfig`` and ``implicit_default``. Currently locked options are
+  reported through the ``locked_configs`` option on the ``config``
+  sub-command.
 
 
 Modules 4.2.4 (2019-04-26)

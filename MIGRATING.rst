@@ -190,7 +190,9 @@ New sub-commands, command-line switches and environment variables
   default version is explicitly defined for a module, the name of this module
   to evaluate should be fully qualified elsewhere an error is returned.
   Configure option ``--enable-implicit-default`` defines this setting which
-  can be superseded by the environment variable.
+  can be superseded by the environment variable. This superseding mechanism
+  can be disabled with configure option
+  ``--with-locked-configs=implicit_default``.
 
 
 Further reading

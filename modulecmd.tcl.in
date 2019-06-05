@@ -353,7 +353,8 @@ proc getImplicitDefault {} {
       set implicit_default @implicitdefault@
 
       # overriden value coming from environment
-      if {[info exists ::env(MODULES_IMPLICIT_DEFAULT)]} {
+      if {[info exists ::env(MODULES_IMPLICIT_DEFAULT)] && ![isConfigLocked\
+         implicit_default]} {
          # ignore non-valid values
          switch -- $::env(MODULES_IMPLICIT_DEFAULT) {
             0 - 1 {
@@ -9143,7 +9144,7 @@ proc cmdModuleConfig {dump_state args} {
       unload_match_order [list returnlast returnfirst] implicit_default\
       [list 0 1]]
 
-   array set conflockable [list extra_siteconfig 1]
+   array set conflockable [list extra_siteconfig 1 implicit_default 1]
 
    # define each attribute/fetched value pair
    array set confval [list contact [getContact] auto_handling\

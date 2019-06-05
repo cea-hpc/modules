@@ -875,6 +875,11 @@ ENVIRONMENT
  An error is returned in the above situations if either no explicit or
  implicit default version is defined.
 
+ This environment variable supersedes the value of the configuration option
+ *implicit_default* set in **modulecmd.tcl** script. This environment variable
+ is ignored if *implicit_default* has been declared locked in *locked_configs*
+ configuration option.
+
 **MODULES_LMALTNAME**
 
  A colon separated list of the alternative names set through

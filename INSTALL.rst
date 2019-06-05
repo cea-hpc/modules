@@ -334,8 +334,9 @@ instance ``--without-modulepath``):
 --with-locked-configs=CONFIGLIST
                       Ignore environment variable superseding value for the
                       listed configuration options. Accepted option names
-                      in CONFIGLIST are ``extra_siteconfig``. Multiple names
-                      should be separated by whitespace character. (default=)
+                      in CONFIGLIST are ``extra_siteconfig`` and
+                      ``implicit_default`` (each option name should be separated
+                      by whitespace character). (default=no)
 --with-unload-match-order=VALUE
                       When unloading a module if multiple loaded modules match
                       the request, unload module loaded first
