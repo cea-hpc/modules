@@ -142,12 +142,6 @@ else
   setavailindepth := 0
 endif
 
-ifeq ($(extrasiteconfig),y)
-  setextrasiteconfig := 1
-else
-  setextrasiteconfig := 0
-endif
-
 ifeq ($(implicitdefault),y)
   setimplicitdefault := 1
 else
@@ -171,7 +165,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@darkbgcolors@|$(darkbgcolors)|g' \
 	-e 's|@lightbgcolors@|$(lightbgcolors)|g' \
 	-e 's|@termbg@|$(termbg)|g' \
-	-e 's|@extrasiteconfig@|$(setextrasiteconfig)|g' \
+	-e 's|@lockedconfigs@|$(lockedconfigs)|g' \
 	-e 's|@unloadmatchorder@|$(unloadmatchorder)|g' \
 	-e 's|@implicitdefault@|$(setimplicitdefault)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \

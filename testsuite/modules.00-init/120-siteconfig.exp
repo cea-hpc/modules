@@ -19,17 +19,19 @@
 #
 ##############################################################################
 
-proc test_getSiteConfig {siteconfig isvalid} {
+proc test_getSiteConfig {siteconfig isvalid islocked} {
     set siteconfigre [regsub -all "\(\[.+?\]\)" $siteconfig {\\\1}]
-    set siteconfigdbg [expr {$isvalid ? "DEBUG sourceSiteConfig: Source site configuration \\($siteconfigre\\)\\n" : {}}]
+    set siteconfigdbg [expr {$isvalid && !$islocked ? "DEBUG sourceSiteConfig: Source site configuration \\($siteconfigre\\)\\n" : {}}]
+    set getextrasiteconfigre [expr {!$islocked ? $siteconfigre : {}}]
     set mainconfigdbg [expr {[file readable $::siteconfig_file] ? "DEBUG sourceSiteConfig: Source site configuration \\($::siteconfig_filere\\)\\n" : {}}]
 
     set ans [list]
-    if {$isvalid} {
+    if {$isvalid && !$islocked} {
         lappend ans "someUserProc"
     }
-    lappend ans "DEBUG CALLING $::MODULECMD sh --no-pager -D -V"
-    lappend ans "(DEBUG Load Tcl extension library \\(.+\\)\\n)?$mainconfigdbg${siteconfigdbg}DEBUG initPager: no pager start \\(is_tty=$::is_stderr_tty, mod_cmd='', use_pager=0, asked_pager=0, cmd='$::install_pager', opts='$::install_pageropts'\\)"
+    lappend ans "DEBUG CALLING $::MODULECMD sh --no-pager -D -V(\\nDEBUG Load Tcl extension library \\(.+\\))?"
+    lappend ans "${mainconfigdbg}DEBUG getExtraSiteconfig: extra_siteconfig set to '$getextrasiteconfigre'"
+    lappend ans "${siteconfigdbg}DEBUG initPager: no pager start \\(is_tty=$::is_stderr_tty, mod_cmd='', use_pager=0, asked_pager=0, cmd='$::install_pager', opts='$::install_pageropts'\\)"
     lappend ans "DEBUG getTermBackground: term_background set to '$::install_termbg'"
     lappend ans "(DEBUG initColors: Ignore invalid default.*\\n)?DEBUG initColors: colors set to '.*'"
     lappend ans "DEBUG getColor: color set to '0'"
@@ -52,6 +54,7 @@ setenv_var TESTSUITE_ENABLE_SITECONFIG_DEBUG 1
 set ans [list]
 lappend ans "DEBUG CALLING $MODULECMD sh -V"
 lappend ans "(DEBUG Load Tcl extension library \\(.+\\)\\n)?DEBUG sourceSiteConfig: Source site configuration \\($siteconfig_filere\\)"
+lappend ans "DEBUG getExtraSiteconfig: extra_siteconfig set to ''"
 lappend ans "DEBUG initPager: start pager \\(asked_pager=-, cmd='$install_pager', opts='$install_pageropts'\\)"
 lappend ans "DEBUG getTermBackground: term_background set to '$install_termbg'"
 lappend ans "(DEBUG initColors: Ignore invalid default.*\\n)?DEBUG initColors: colors set to '.*'"
@@ -60,7 +63,7 @@ lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
 testouterr_cmd_re "sh" "-V" "" [join $ans "\n"]
 
 # test variable superseding of regular siteconfig file by additional siteconfig file if enabled
-if {$install_extrasiteconfig eq {y}} {
+if {![is_config_locked extra_siteconfig]} {
     setenv_var MODULES_SITECONFIG testsuite/example/siteconfig.tcl-2
     testouterr_cmd_re sh {-V} {} {Modules Release [0-9a-zA-Z\.\+\-]+ \([0-9\-]{10}\)}
     unsetenv_var MODULES_SITECONFIG
@@ -258,7 +261,7 @@ unsetenv_var TESTSUITE_ENABLE_SITECONFIG_EXITONGETSSTDIN
 # test extra siteconfig disablement
 setenv_var TESTSUITE_ENABLE_SITECONFIG_NOEXTRASITECONFIG 1
 
-test_getSiteConfig testsuite/example/siteconfig.tcl-2 0
+test_getSiteConfig testsuite/example/siteconfig.tcl-2 0 1
 
 # restore environment
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_NOEXTRASITECONFIG
@@ -280,11 +283,11 @@ unset ORIG_PATH
 
 # test siteconfig override using MODULES_SITECONFIG
 # when set to an unexistent file
-test_getSiteConfig /path/to/unexistent/file 0
-test_getSiteConfig {} 0
+test_getSiteConfig /path/to/unexistent/file 0 [is_config_locked extra_siteconfig]
+test_getSiteConfig {} 0 [is_config_locked extra_siteconfig]
 # when set to a valid Tcl script (depends if extra siteconfig is allowed)
-test_getSiteConfig $env(TESTSUITEDIR)/example/siteconfig.tcl-2 [expr {$install_extrasiteconfig eq {y}}]
-test_getSiteConfig testsuite/example/siteconfig.tcl-2 [expr {$install_extrasiteconfig eq {y}}]
+test_getSiteConfig $env(TESTSUITEDIR)/example/siteconfig.tcl-2 1 [is_config_locked extra_siteconfig]
+test_getSiteConfig testsuite/example/siteconfig.tcl-2 1 [is_config_locked extra_siteconfig]
 
 
 #

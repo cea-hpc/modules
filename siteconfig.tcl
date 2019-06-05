@@ -8,5 +8,5 @@
 
 # uncomment the following line to forbid the definition of an extra
 # site-specific configuration script
-#set g_extrasiteconfig 0
+#appendNoDupToList g_lockedconfigs extra_siteconfig
 

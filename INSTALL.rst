@@ -287,9 +287,6 @@ instance ``--disable-set-manpath``):
 --enable-color        Control if output should be colored by default or not.
                       A value of ``yes`` equals to the ``auto`` color mode.
                       ``no`` equals to the ``never`` color mode. (default=no)
---enable-extra-siteconfig
-                      Allow the addition a site-specific configuration script
-                      controlled with an environment variable. (default=yes)
 
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for
@@ -334,6 +331,11 @@ instance ``--without-modulepath``):
                       set to apply by default between the ``dark`` background
                       colors or the ``light`` background colors
                       (default=\ ``dark``)
+--with-locked-configs=CONFIGLIST
+                      Ignore environment variable superseding value for the
+                      listed configuration options. Accepted option names
+                      in CONFIGLIST are ``extra_siteconfig``. Multiple names
+                      should be separated by whitespace character. (default=)
 --with-unload-match-order=VALUE
                       When unloading a module if multiple loaded modules match
                       the request, unload module loaded first

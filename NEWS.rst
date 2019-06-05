@@ -102,10 +102,6 @@ Modules 4.3.0 (2019-XX-XX)
 * Correctly escape ``?`` character in shell alias. (fix issue #275)
 * When resolving the enabled list of modulepaths, ensure resolved path
   entries are unique. (fix issue #274)
-* Install: add to the configure script the ``--enable-extra-siteconfig`` and
-  ``--disable-extra-siteconfig`` options to allow or forbid the definition of
-  a site-specific configuration script controlled with the
-  ``MODULES_SITECONFIG`` environment variable.
 * Install: provide at installation time a bare site-specific configuration
   script in designated ``etcdir`` if no pre-existing ``siteconfig.tcl`` file
   is found at designated location.
@@ -131,6 +127,11 @@ Modules 4.3.0 (2019-XX-XX)
   ``--disable-implicit-default`` options. It could be superseded with the
   ``MODULES_IMPLICIT_DEFAULT`` environment variable, that could be set with
   ``config`` module sub-command through the ``implicit_default`` option.
+* Install: add to the configure script the ``--with-locked-configs`` option to
+  ignore environment variable superseding of Modules configurations defined in
+  ``modulecmd.tcl`` script. Lockable configuration option are
+  ``extra_siteconfig``. Currently locked options are reported through the
+  ``locked_configs`` option on the ``config`` sub-command.
 
 
 Modules 4.2.4 (2019-04-26)

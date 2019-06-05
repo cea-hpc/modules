@@ -39,23 +39,38 @@ set g_pager {@pager@} ;# Default command to page into, empty=disable
 set g_pager_opts {@pageropts@} ;# Options to pass to the pager command
 
 set g_siteconfig @etcdir@/siteconfig.tcl ;# Site configuration
-set g_extrasiteconfig @extrasiteconfig@ ;# Allow an extra siteconfig
 set g_tclextlib @libdir@/libtclenvmodules@SHLIB_SUFFIX@ ;# Tcl extension lib
+set g_lockedconfigs {@lockedconfigs@} ;# Locked config options
 
-# Source site config which can be used to define global procedures or
-# settings. We first look for the global siteconfig, then if
-# $MODULES_SITECONFIG is defined, source that file if it exists
-proc sourceSiteConfig {} {
-   lappend siteconfiglist $::g_siteconfig
-   if {[info exist ::env(MODULES_SITECONFIG)]} {
-      lappend siteconfiglist $::env(MODULES_SITECONFIG)
-   }
-   foreach siteconfig $siteconfiglist {
-      # look if extra siteconfig is allowed after primary siteconfig eval
-      if {$siteconfig ne $::g_siteconfig && !$::g_extrasiteconfig} {
-         break
+proc isConfigLocked {option} {
+   return [expr {[lsearch -exact $::g_lockedconfigs $option] != -1}]
+}
+
+# Get extra site configuration script
+proc getExtraSiteconfig {} {
+   if {![info exists ::g_extra_siteconfig]} {
+      # value coming from environment if allowed
+      if {[info exists ::env(MODULES_SITECONFIG)] && ![isConfigLocked\
+         extra_siteconfig]} {
+         set extra_siteconfig $::env(MODULES_SITECONFIG)
+      } else {
+         set extra_siteconfig {}
       }
 
+      set ::g_extra_siteconfig $extra_siteconfig
+      reportDebug "extra_siteconfig set to '$extra_siteconfig'"
+   }
+
+   return $::g_extra_siteconfig
+}
+
+# Source site config which can be used to define global procedures or
+# settings. We first look for the global siteconfig, then if an extra
+# siteconfig is defined and allowed, source that file if it exists
+proc sourceSiteConfig {} {
+   lappend siteconfiglist $::g_siteconfig
+   for {set i 0} {$i < [llength $siteconfiglist]} {incr i} {
+      set siteconfig [lindex $siteconfiglist $i]
       if {[file readable $siteconfig]} {
          reportDebug "Source site configuration ($siteconfig)"
          if {[catch {uplevel 1 source $siteconfig} errMsg]} {
@@ -66,6 +81,12 @@ proc sourceSiteConfig {} {
          } else {
             set ::g_extra_siteconfig_loaded 1
          }
+      }
+      # check on extra_siteconfig after initial siteconfig loaded in case
+      # it inhibits this extra load
+      if {$siteconfig eq $::g_siteconfig && [set extra_siteconfig\
+         [getExtraSiteconfig]] ne {}} {
+         lappend siteconfiglist $extra_siteconfig
       }
    }
 }
@@ -7088,13 +7109,13 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
 }
 
 # Return conf value and from where an eventual def value has been overridden
-proc displayConfig {val env_var {asked_var {}} {trans {}}} {
+proc displayConfig {val env_var {asked_var {}} {trans {}} {locked 0}} {
    array set transarr $trans
 
    # get overridden value and know what has overridden it
    if {$asked_var ne {} && [info exists ::$asked_var]} {
       set defby " (cmd-line)"
-   } elseif {$env_var ne {} && [info exists ::env($env_var)]} {
+   } elseif {$env_var ne {} && !$locked && [info exists ::env($env_var)]} {
       set defby " (env-var)"
    } else {
       set defby {}
@@ -9122,16 +9143,18 @@ proc cmdModuleConfig {dump_state args} {
       unload_match_order [list returnlast returnfirst] implicit_default\
       [list 0 1]]
 
+   array set conflockable [list extra_siteconfig 1]
+
    # define each attribute/fetched value pair
-   array set confval [list contact [getContact] allow_extra_siteconfig\
-      $::g_extrasiteconfig auto_handling [getAutoHandling] avail_indepth\
-      [getAvailInDepth] avail_report_dir_sym $::flag_default_dir\
-      avail_report_mfile_sym $::flag_default_mf collection_pin_version\
-      [pinVersionInCollection] collection_target [get-env\
-      $confvar(collection_target) <undef>] color [getColor] colors\
-      $::g_colors_list extra_siteconfig [get-env $confvar(extra_siteconfig)\
-      <undef>] ignored_dirs [getIgnoredDirs] pager "$::g_pager\
-      $::g_pager_opts" rcfile [get-env $confvar(rcfile) <undef>]\
+   array set confval [list contact [getContact] auto_handling\
+      [getAutoHandling] avail_indepth [getAvailInDepth] avail_report_dir_sym\
+      $::flag_default_dir avail_report_mfile_sym $::flag_default_mf\
+      collection_pin_version [pinVersionInCollection] collection_target\
+      [get-env $confvar(collection_target) <undef>] color [getColor] colors\
+      $::g_colors_list extra_siteconfig [expr {[getExtraSiteconfig] ne {} ?\
+      [getExtraSiteconfig] : {<undef>}}] ignored_dirs [getIgnoredDirs]\
+      locked_configs $::g_lockedconfigs pager "$::g_pager $::g_pager_opts"\
+      rcfile [get-env $confvar(rcfile) <undef>]\
       run_quarantine [get-env $confvar(run_quarantine) <undef>]\
       silent_shell_debug [get-env $confvar(silent_shell_debug) <undef>]\
       siteconfig $::g_siteconfig tcl_ext_lib $::g_tclextlib term_background\
@@ -9191,7 +9214,9 @@ proc cmdModuleConfig {dump_state args} {
          set valrep [displayConfig $confval($var)\
             [expr {[info exists confvar($var)] ? $confvar($var) : {}}]\
             [expr {[info exists confasked($var)] ? $confasked($var) : {}}]\
-            [expr {[info exists confvtrans($var)] ? $confvtrans($var) : {}}]]
+            [expr {[info exists confvtrans($var)] ? $confvtrans($var) : {}}]\
+            [expr {[info exists conflockable($var)] && [isConfigLocked\
+            $var]}]]
          append displist [format {%-25s %s} $var $valrep] \n
       }
       report $displist 1

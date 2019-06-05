@@ -586,8 +586,6 @@ Module Sub-Commands
 
  Existing option *names* are:
 
- * allow_extra_siteconfig: additional site-specific configuration script
-   enablement
  * auto_handling: automated module handling mode (defines environment variable
    **MODULES_AUTO_HANDLING** when set)
  * avail_indepth: **avail** sub-command in depth search mode (defines
@@ -609,6 +607,7 @@ Module Sub-Commands
  * ignored_dirs: directories ignored when looking for modulefiles
  * implicit_default: set an implicit default version for modules (defines
    **MODULES_IMPLICIT_DEFAULT**)
+ * locked_configs: configuration options that cannot be superseded
  * pager: text viewer to paginate message output (defines **MODULES_PAGER**)
  * rcfile: global run-command file location (defines **MODULERCFILE**)
  * run_quarantine: environment variables to indirectly pass to
@@ -622,9 +621,8 @@ Module Sub-Commands
  * unload_match_order: unload firstly loaded or lastly loaded module matching
    request (defines **MODULES_UNLOAD_MATCH_ORDER**)
 
-The options *allow_extra_siteconfig*, *avail_report_dir_sym*,
-*avail_report_mfile_sym*, *ignored_dirs*, *siteconfig* and *tcl_ext_lib*
-cannot be altered.
+The options *avail_report_dir_sym*, *avail_report_mfile_sym*, *ignored_dirs*,
+*locked_configs*, *siteconfig* and *tcl_ext_lib* cannot be altered.
 
 
 Modulefiles
@@ -973,6 +971,9 @@ ENVIRONMENT
 
  Location of a site-specific configuration script to source into
  **modulecmd.tcl**. See also Modulecmd startup section.
+
+ This environment variable is ignored if *extra_siteconfig* has been declared
+ locked in *locked_configs* configuration option.
 
 **MODULES_TERM_BACKGROUND**
 

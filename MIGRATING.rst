@@ -168,8 +168,8 @@ New sub-commands, command-line switches and environment variables
 * The **MODULES_SITECONFIG** environment variable defines an additional
   siteconfig script which is loaded if it exists after the siteconfig script
   configured at build time in ``modulecmd.tcl``. This ability is enabled by
-  default and could be disabled with the ``--disable-extra-siteconfig``
-  configure option.
+  default and could be disabled with configure option
+  ``--with-locked-configs=extra_siteconfig``.
 
 * The **config** sub-command has been introduced. See `Configure modulecmd
   with config sub-command`_ section for detailed information.
