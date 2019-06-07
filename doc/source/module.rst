@@ -575,7 +575,8 @@ Module Sub-Commands
 
  When a reported option value differs from default value a mention is added
  to indicate whether the overridden value is coming from a command-line switch
- (*cmd-line*) or from an environment variable (*env-var*).
+ (*cmd-line*) or from an environment variable (*env-var*). When a reported
+ option value is locked and cannot be altered a (*locked*) mention is added.
 
  If no value is currently set for an option *name*, the mention *<undef>* is
  reported.

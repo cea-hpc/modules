@@ -92,13 +92,13 @@ set statelist [list cmdline debug extra_siteconfig_loaded force is_stderr_tty is
 
 # single config parameter report
 foreach param [array names configdfl] {
-    testouterr_cmd_re sh "config $param" OK "$version_report\n\n$config_header\n$param\\s+$configdfl($param)"
+    testouterr_cmd_re sh "config $param" OK "$version_report\n\n$config_header\n$param\\s+$configdfl($param)[if_configlocked $param { \(locked\)}]"
 }
 
 # test full config report
 set tserr "$version_report\n\n$config_header"
 foreach param [lsort [array names configdfl]] {
-    append tserr "\n$param\\s+$configdfl($param)"
+    append tserr "\n$param\\s+$configdfl($param)[if_configlocked $param { \(locked\)}]"
 }
 testouterr_cmd_re ALL config OK $tserr
 
@@ -172,7 +172,7 @@ setenv_var MODULES_RUNENV_FOO foo
 set tserr "$version_report\n\n$config_header"
 foreach param [lsort [array names configset]] {
     if {[info exists configlockable($param)] && [is_config_locked $param]} {
-        append tserr "\n$param\\s+$configdfl($param)"
+        append tserr "\n$param\\s+$configdfl($param) \\(locked\\)"
     } else {
         append tserr "\n$param\\s+$configset($param)"
         if {[info exists configvar($param)] || $param eq {runenv_foo}} {
@@ -186,7 +186,7 @@ testouterr_cmd_re sh config OK $tserr
 set tserr "$version_report\n\n$config_header"
 foreach param [lsort [array names configset]] {
     if {[info exists configlockable($param)] && [is_config_locked $param]} {
-        append tserr "\n$param\\s+$configdfl($param)"
+        append tserr "\n$param\\s+$configdfl($param) \\(locked\\)"
     } else {
         append tserr "\n$param\\s+$configset($param)"
         if {$param eq {auto_handling} || $param eq {color}} {
@@ -203,7 +203,7 @@ testouterr_cmd_re sh {config --no-auto --color=never} OK $tserr
 set tserr "$version_report\n\n$config_header"
 foreach param [lsort [array names configset]] {
     if {[info exists configlockable($param)] && [is_config_locked $param]} {
-        append tserr "\n$param\\s+$configdfl($param)"
+        append tserr "\n$param\\s+$configdfl($param) \\(locked\\)"
     } else {
         append tserr "\n$param\\s+$configset($param)"
         if {[info exists configvar($param)] || $param eq {runenv_foo}} {
@@ -231,7 +231,7 @@ setenv_path_var MODULES_LMPREREQ prereq/full&trace/all_on
 set tserr "$version_report\n\n$config_header"
 foreach param [lsort [array names configset]] {
     if {[info exists configlockable($param)] && [is_config_locked $param]} {
-        append tserr "\n$param\\s+$configdfl($param)"
+        append tserr "\n$param\\s+$configdfl($param) \\(locked\\)"
     } else {
         append tserr "\n$param\\s+$configset($param)"
         if {[info exists configvar($param)] || $param eq {runenv_foo}} {
