@@ -121,23 +121,23 @@ foreach param [array names configvalid] {
     # valid value tests
     foreach val $configvalid($param) {
         set ans [list [list set $configvar($param) $val]]
-        testouterr_cmd_re sh "config $param $val" $ans {}
+        testouterr_cmd_re sh "config $param $val" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
     }
     # invalid value test
-    testouterr_cmd_re sh "config $param foo" ERR "$error_msgs: Valid values for configuration option '$param' are: $configvalid($param)"
+    testouterr_cmd_re sh "config $param foo" ERR [if_configlocked $param [err_conflocked $param] "$error_msgs: Valid values for configuration option '$param' are: $configvalid($param)"]
     # reset to default
     set ans [list [list unset $configvar($param)]]
-    testouterr_cmd_re sh "config --reset $param" $ans {}
+    testouterr_cmd_re sh "config --reset $param" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
 }
 
 # set parameter that could be altered and whose value is not checked
 foreach param [array names configvar] {
     if {![info exists configvalid($param)]} {
         set ans [list [list set $configvar($param) foo]]
-        testouterr_cmd_re sh "config $param foo" $ans {}
+        testouterr_cmd_re sh "config $param foo" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
         # reset to default
         set ans [list [list unset $configvar($param)]]
-        testouterr_cmd_re sh "config --reset $param" $ans {}
+        testouterr_cmd_re sh "config --reset $param" [if_configlocked $param ERR $ans] [if_configlocked $param [err_conflocked $param] {}]
     }
 }
 

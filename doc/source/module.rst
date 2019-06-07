@@ -622,7 +622,9 @@ Module Sub-Commands
    request (defines **MODULES_UNLOAD_MATCH_ORDER**)
 
 The options *avail_report_dir_sym*, *avail_report_mfile_sym*, *ignored_dirs*,
-*locked_configs*, *siteconfig* and *tcl_ext_lib* cannot be altered.
+*locked_configs*, *siteconfig* and *tcl_ext_lib* cannot be altered. Moreover
+all options referred in *locked_configs* value are locked thus they cannot be
+altered.
 
 
 Modulefiles

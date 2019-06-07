@@ -9176,6 +9176,8 @@ proc cmdModuleConfig {dump_state args} {
    } elseif {[info exists name] && ($nameunset || [info exists value])} {
       if {![info exists confvar($name)]} {
          reportErrorAndExit "Configuration option '$name' cannot be altered"
+      } elseif {[info exists conflockable($name)] && [isConfigLocked $name]} {
+         reportErrorAndExit "Configuration option '$name' is locked"
       } elseif {$nameunset} {
          # unset configuration variable
          pushMode load

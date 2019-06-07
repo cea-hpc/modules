@@ -181,12 +181,20 @@ proc err_reload {mod} {
     return "$::error_msgs: Reload of $mod failed"
 }
 
+proc err_conflocked {option} {
+    return "$::error_msgs: Configuration option '$option' is locked"
+}
+
 proc moderr_minverreq {modfile minver} {
     return "$::moderr_msgs: Modulefile requires at least Modules version $minver\n  In '$modfile'\n$::err_contact"
 }
 
 proc if_implicitdefault {then {else {}}} {
     return [expr {$::install_implicitdefault eq {y} ? $then : $else}]
+}
+
+proc if_configlocked {option then {else {}}} {
+    return [expr {[is_config_locked $option] ? $then : $else}]
 }
 
 proc is_config_locked {option} {
