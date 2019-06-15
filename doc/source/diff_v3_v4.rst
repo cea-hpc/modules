@@ -292,6 +292,10 @@ Command line switches
 
 **--color**
 
+**--starts-with**, **-S**
+
+**--contains**, **-C**
+
  These command line switches appeared on version ``4.3`` and are not supported on compatibility version.
 
 
@@ -420,6 +424,8 @@ Environment
 **MODULES_COLORS**
 
 **MODULES_IMPLICIT_DEFAULT**
+
+**MODULES_SEARCH_MATCH**
 
 **MODULES_SITECONFIG**
 

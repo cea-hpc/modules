@@ -342,6 +342,11 @@ instance ``--without-modulepath``):
                       the request, unload module loaded first
                       (``returnfirst``) or module loaded last (``returnlast``)
                       (default=\ ``returnlast``)
+--with-search-match=VALUE
+                      When searching for a module with ``avail`` sub-command,
+                      match query string against module name start
+                      (``starts_with``) or any part of module name string
+                      (``contains``). (default=\ ``starts_with``)
 --with-modulepath=PATHLIST
                       Default path list to setup as the default modulepaths.
                       Each path in this list should be separated by ``:``.

@@ -207,6 +207,16 @@ switches are accepted:
  version of each module name (see Locating Modulefiles section in the
  :ref:`modulefile(4)` man page).
 
+**--starts-with**, **-S**
+
+ On **avail** sub-command, return modules whose name starts with search query
+ string.
+
+**--contains**, **-C**
+
+ On **avail** sub-command, return modules whose fully qualified name contains
+ search query string.
+
 **--indepth**
 
  On **avail** sub-command, include in search results the matching modulefiles
@@ -269,7 +279,7 @@ Module Sub-Commands
 
  List loaded modules.
 
-**avail** [-d|-L] [-t|-l] [--indepth|--no-indepth] [path...]
+**avail** [-d|-L] [-t|-l] [-S|-C] [--indepth|--no-indepth] [path...]
 
  List all available *modulefiles* in the current **MODULEPATH**. All
  directories in the **MODULEPATH** are recursively searched for files
@@ -615,6 +625,7 @@ Module Sub-Commands
    **modulecmd.tcl** (defines **MODULES_RUN_QUARANTINE**)
  * silent_shell_debug: disablement of shell debugging property for the module
    command (defines **MODULES_SILENT_SHELL_DEBUG**)
+ * search_match: module search match style (defines **MODULES_SEARCH_MATCH**)
  * siteconfig: primary site-specific configuration script location
  * tcl_ext_lib: Modules Tcl extension library location
  * term_background: terminal background color kind (defines
@@ -967,6 +978,21 @@ ENVIRONMENT
 
  Original values of these environment variables set in quarantine are passed
  to **modulecmd.tcl** via **<VAR>_modquar** variables.
+
+**MODULES_SEARCH_MATCH**
+
+ When searching for modules with **avail** sub-command, defines the way query
+ string should match against available module names. With **starts_with**
+ value, returned modules are those whose name begins by search query string.
+ When set to **contains**, any modules whose fully qualified name contains
+ search query string are returned.
+
+ Module search match style is defined in the following order of preference:
+ **--starts-with** and **--contains** command line switches, then
+ **MODULES_SEARCH_MATCH** environment variable, then the default set in
+ **modulecmd.tcl** script configuration. Which means **MODULES_SEARCH_MATCH**
+ overrides default configuration and **--starts-with**/**--contains** command
+ line switches overrides every other ways to set search match style.
 
 **MODULES_SILENT_SHELL_DEBUG**
 
