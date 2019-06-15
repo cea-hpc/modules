@@ -18,7 +18,7 @@ _module_avail() {
     local cur="${1:-}"
     # skip avail call if word currently being completed is an option keyword
     if [ -z "$cur" -o "${cur:0:1}" != '-' ]; then
-        module avail --color=never -t --no-indepth $cur 2>&1 | sed '
+        module avail --color=never -t -S --no-indepth $cur 2>&1 | sed '
             /^-\+/d; /^\s*$/d;
             /->.*$/d;
             /:$/d;
@@ -121,11 +121,12 @@ _module() {
     clear_opts="--force -f"
     path_opts="-d --delim --duplicates"
     rm_path_opts="-d --delim --index"
-    avail_opts="-d -L -l -t --default --latest --long --terse --indepth --no-indepth"
+    avail_opts="-C -d -L -l -S -t --contains --default --latest --long\
+        --starts-with --terse --indepth --no-indepth"
     config_opts="--dump-state --reset contact auto_handling avail_indepth\
         collection_pin_version collection_target color colors extra_siteconfig\
         implicit_default locked_configs pager rcfile run_quarantine\
-        silent_shell_debug term_background unload_match_order"
+        search_match silent_shell_debug term_background unload_match_order"
 
     case "$prev" in
     add|load)       _module_comgen_words_and_files "$load_opts $(_module_not_yet_loaded $cur)" "$cur";;

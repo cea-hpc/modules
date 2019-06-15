@@ -33,7 +33,7 @@ appendbinpath setdotmodulespath docinstall vimaddons examplemodulefiles \
 builddoc gitworktree usemanpath compatversion EXEEXT libtclenvmodules \
 SHLIB_SUFFIX versioning silentshdbgsupport quarantinesupport \
 autohandling availindepth implicitdefault pager pageropts color darkbgcolors \
-lightbgcolors termbg lockedconfigs unloadmatchorder modulepath \
+lightbgcolors termbg lockedconfigs unloadmatchorder searchmatch modulepath \
 loadedmodules quarantinevars"
 compatarglist=
 libarglist=
@@ -86,6 +86,7 @@ lightbgcolors='hi=1:db=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:sy=35:
 termbg=dark
 lockedconfigs=
 unloadmatchorder=returnlast
+searchmatch=starts_with
 # these args are initialized here but as they depend on other argument value
 # they will get their default value later (after command-line parse)
 bindir=
@@ -238,6 +239,11 @@ Optional Packages:
                           match the request, unload module loaded first
                           (\`returnfirst') or module loaded last (\`returnlast')
                           [$unloadmatchorder]
+  --with-search-match=VALUE
+                          when searching for a module, query string should
+                          match the begining of module name (\`starts_with')
+                          or any part of module name (\`contains')
+                          [$searchmatch]
   --with-modulepath=PATHLIST
                           default modulepaths to set in default configuration
                           file to be enabled (each path in PATHLIST should
@@ -441,6 +447,12 @@ for arg in "$@"; do
       allowedval=" returnlast returnfirst " ;
       if [ "${allowedval// $unloadmatchorder /}" = "$allowedval" ]; then
          echo_error "Bad value for option \`--with-unload-match-order', allowed values are:$allowedval"
+      fi ;;
+   --with-search-match*|--without-search-match)
+      searchmatch=$(get_package_value "$arg") ;
+      allowedval=" starts_with contains " ;
+      if [ "${allowedval// $searchmatch /}" = "$allowedval" ]; then
+         echo_error "Bad value for option \`--with-search-match', allowed values are:$allowedval"
       fi ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;

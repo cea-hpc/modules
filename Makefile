@@ -168,6 +168,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@lockedconfigs@|$(lockedconfigs)|g' \
 	-e 's|@unloadmatchorder@|$(unloadmatchorder)|g' \
 	-e 's|@implicitdefault@|$(setimplicitdefault)|g' \
+	-e 's|@searchmatch@|$(searchmatch)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \

@@ -370,6 +370,29 @@ proc getImplicitDefault {} {
    return $::g_implicit_default
 }
 
+# Module name search matching style
+proc getSearchMatch {} {
+   if {![info exists ::g_search_match]} {
+      # default value set at configure time
+      set search_match @searchmatch@
+
+      # overriden value coming from environment
+      if {[info exists ::env(MODULES_SEARCH_MATCH)]} {
+         # ignore non-valid values
+         switch -- $::env(MODULES_SEARCH_MATCH) {
+            starts_with - contains {
+               set search_match $::env(MODULES_SEARCH_MATCH)
+            }
+         }
+      }
+
+      set ::g_search_match $search_match
+      reportDebug "search_match set to '$search_match'"
+   }
+
+   return $::g_search_match
+}
+
 
 # Get contact address for modulefile issue
 proc getContact {} {
@@ -2056,7 +2079,7 @@ proc module {command args} {
    # parse options, do that globally to ignore options not related to a given
    # module sub-command (exclude them from arg list)
    lassign [eval parseModuleCommandArgs $command $args] show_oneperline\
-      show_mtime show_filter search_filter dump_state args
+      show_mtime show_filter search_filter search_match dump_state args
 
    # guess if called from top level
    set topcall [expr {[getEvalModuleStackDepth] == 0}]
@@ -2296,7 +2319,7 @@ proc module {command args} {
          }
          avail {
             eval cmdModuleAvail $show_oneperline $show_mtime "{$show_filter}"\
-               "{$search_filter}" $args
+               "{$search_filter}" "{$search_match}" $args
          }
          aliases {
             cmdModuleAliases
@@ -6429,7 +6452,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # set a default if none defined on directory entries
    set implicitdfl [getImplicitDefault]
 
-   set modmatch "$mod*"
+   # match passed name against any part of avail module names
+   set contains [expr {[isInList $search contains] ? 1 : 0}]
+   set modmatch [expr {$contains ? "*$mod*" : "$mod*"}]
 
    # if search for global or user rc alias only, no dir lookup is performed
    # and aliases from g_rcAlias are returned
@@ -6437,18 +6462,25 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
       set add_rc_defs 1
       array set found_list {}
    } else {
-      # find modules by searching with first path element if mod is a deep
+      # find modules by (1) searching with first path element if mod is a deep
       # modulefile (elt1/etl2/vers) in order to catch all .modulerc and
       # .version files of module-related parent directories in case we need
-      # to translate an alias or a version
+      # to translate an alias or a version (2) retrieving all elements first
+      # to then look at fully qualified file names containing searched string
       set parentlist [split $mod /]
-      set findmod [lindex $parentlist 0]
-      # if searched mod is an empty or flat element append wildcard character
-      # to match anything starting with mod
       set wild [expr {[isInList $search wild] ? 1 : 0}]
-      if {$wild && [llength $parentlist] <= 1} {
-         append findmod *
+
+      if {$contains} {
+         set findmod *
+      } else {
+         set findmod [lindex $parentlist 0]
+         # if searched mod is an empty or flat element append wildcard character
+         # to match anything starting with mod
+         if {$wild && [llength $parentlist] <= 1} {
+            append findmod *
+         }
       }
+
       # add alias/version definitions from global or user rc to result
       set add_rc_defs [expr {[isInList $search rc_defs_included] ? 1 : 0}]
       if {!$fetch_hidden} {
@@ -7413,6 +7445,7 @@ proc parseModuleCommandArgs {cmd args} {
    set show_mtime 0
    set show_filter {}
    set search_filter [expr {[getAvailInDepth] ? {} : {noindepth}}]
+   set search_match [getSearchMatch]
    set dump_state 0
    set otherargs {}
 
@@ -7438,6 +7471,12 @@ proc parseModuleCommandArgs {cmd args} {
          -L - --latest {
             set show_filter onlylatest
          }
+         -C - --contains {
+            set search_match contains
+         }
+         -S - --starts-with {
+            set search_match starts_with
+         }
          --indepth {
             # empty value means 'in depth' as it is default behavior
             set search_filter {}
@@ -7459,9 +7498,9 @@ proc parseModuleCommandArgs {cmd args} {
 
    reportDebug "(show_oneperline=$show_oneperline, show_mtime=$show_mtime,\
       show_filter=$show_filter, search_filter=$search_filter,\
-      dump_state=$dump_state, otherargs=$otherargs)"
+      search_match=$search_match, dump_state=$dump_state, otherargs=$otherargs)"
    return [list $show_oneperline $show_mtime $show_filter $search_filter\
-      $dump_state $otherargs]
+      $search_match $dump_state $otherargs]
 }
 
 # unload phase of a list of modules reload process
@@ -7621,7 +7660,7 @@ proc cmdModulePaths {mod} {
    set dir_list [getModulePathList exiterronundef]
    foreach dir $dir_list {
       array unset mod_list
-      array set mod_list [getModules $dir $mod 0 rc_defs_included]
+      array set mod_list [getModules $dir $mod 0 [list rc_defs_included]]
 
       # prepare list of dirs for alias/symbol target search, will first search
       # in currently looked dir, then in other dirs following precedence order
@@ -8753,7 +8792,7 @@ proc cmdModuleAliases {} {
 }
 
 proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
-   args} {
+   search_match args} {
    if {[llength $args] == 0} {
       lappend args *
    }
@@ -8776,7 +8815,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
       # look if aliases have been defined in the global or user-specific
       # modulerc and display them if any in a dedicated list
       lassign [listModules {} $mod $show_mtime $show_filter [concat\
-         $search_filter [list rc_alias_only]]] display_list len_list max_len
+         $search_filter [list $search_match rc_alias_only]]] display_list\
+         len_list max_len
       if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
          set theader_shown 1
          eval displayTableHeader $theader_cols
@@ -8786,7 +8826,8 @@ proc cmdModuleAvail {show_oneperline show_mtime show_filter search_filter\
 
       foreach dir [getModulePathList exiterronundef] {
          lassign [listModules $dir $mod $show_mtime $show_filter [concat\
-            $search_filter [list wild]]] display_list len_list max_len
+            $search_filter [list $search_match wild]]] display_list len_list\
+            max_len
          if {[llength $display_list] > 0 && $show_mtime && !$theader_shown} {
             set theader_shown 1
             eval displayTableHeader $theader_cols
@@ -9176,13 +9217,13 @@ proc cmdModuleConfig {dump_state args} {
       MODULERCFILE run_quarantine MODULES_RUN_QUARANTINE silent_shell_debug\
       MODULES_SILENT_SHELL_DEBUG term_background MODULES_TERM_BACKGROUND\
       unload_match_order MODULES_UNLOAD_MATCH_ORDER implicit_default\
-      MODULES_IMPLICIT_DEFAULT]
+      MODULES_IMPLICIT_DEFAULT search_match MODULES_SEARCH_MATCH]
 
    array set confvalid [list auto_handling [list 0 1] avail_indepth [list 0\
       1] collection_pin_version [list 0 1] color [list never auto always]\
       silent_shell_debug [list 0 1] term_background [list dark light]\
       unload_match_order [list returnlast returnfirst] implicit_default\
-      [list 0 1]]
+      [list 0 1] search_match [list starts_with contains]]
 
    array set conflockable [list extra_siteconfig 1 implicit_default 1]
 
@@ -9200,7 +9241,7 @@ proc cmdModuleConfig {dump_state args} {
       silent_shell_debug [get-env $confvar(silent_shell_debug) <undef>]\
       siteconfig $::g_siteconfig tcl_ext_lib $::g_tclextlib term_background\
       [getTermBackground] unload_match_order [getUnloadMatchOrder]\
-      implicit_default [getImplicitDefault]]
+      implicit_default [getImplicitDefault] search_match [getSearchMatch]]
 
    # catch any environment variable set for modulecmd run-time execution
    foreach runenvvar [array names ::env -glob MODULES_RUNENV_*] {
@@ -9346,7 +9387,7 @@ Loading / Unloading commands:
 
 Listing / Searching commands:
   list            [-t|-l]           List loaded modules
-  avail   [-d|-L] [-t|-l] [--indepth|--no-indepth] [mod ...]
+  avail   [-d|-L] [-t|-l] [-S|-C] [--indepth|--no-indepth] [mod ...]
                                     List all or matching available modules
   aliases                           List all module aliases
   whatis          [modulefile ...]  Print whatis information of modulefile(s)
@@ -9394,6 +9435,9 @@ Switches:
   -l | --long     Display output in long format
   -d | --default  Only show default versions available
   -L | --latest   Only show latest versions available
+  -S | --starts-with
+                  Search modules whose name begins with query string
+  -C | --contains Search modules whose name contains query string
   -a | --append   Append directory to MODULEPATH
   -p | --prepend  Prepend directory to MODULEPATH
   --auto          Enable automated module handling mode
@@ -9507,7 +9551,8 @@ if {[catch {
                   }
                }
             }
-            -t - --terse - -l - --long - --default - -L - --latest {
+            -t - --terse - -l - --long - --default - -L - --latest - -S -\
+            --starts-with - -C - --contains {
                # command-specific switches that can for compatibility be
                # passed before the command name, so add them to a specific
                # arg list to ensure command name as first position argument

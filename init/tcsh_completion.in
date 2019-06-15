@@ -3,7 +3,7 @@
 #
 
 alias _module_avail '\\
-    @TCLSH@ @libexecdir@/modulecmd.tcl tcsh avail --color=never -t |& sed '"'"'\\
+    @TCLSH@ @libexecdir@/modulecmd.tcl tcsh avail --color=never -t -S |& sed '"'"'\\
         /^-\+/d; /^\s*$/d; \\
         /->.*$/d; \\
         /:$/d; \\
@@ -46,10 +46,10 @@ set module_opts = "-D -h -V --debug --help --version --paginate --no-pager --col
 set module_load_opts = "--auto --no-auto --force -f"
 set module_list_opts = "-l -t --long --terse"
 set module_clear_opts = "--force -f"
-set module_avail_opts = "-d -L -l -t --default --latest --long --terse --indepth --no-indepth"
+set module_avail_opts = "-C -d -L -l -S -t --contains --default --latest --long --starts-with --terse --indepth --no-indepth"
 set module_path_opts = "-d --delim --duplicates"
 set module_rm_path_opts = "-d --delim --index"
-set module_config_opts = "--dump-state --reset contact auto_handling avail_indepth collection_pin_version collection_target color colors extra_siteconfig implicit_default locked_configs pager rcfile run_quarantine silent_shell_debug term_background unload_match_order"
+set module_config_opts = "--dump-state --reset contact auto_handling avail_indepth collection_pin_version collection_target color colors extra_siteconfig implicit_default locked_configs pager rcfile run_quarantine search_match silent_shell_debug term_background unload_match_order"
 
 complete module 'n/help/`_module_avail`/' \
         'n/add/`_module_not_yet_loaded; echo ${module_load_opts}`/' \
@@ -88,6 +88,7 @@ complete module 'n/help/`_module_avail`/' \
         'n/apropos/n/' \
         'n/search/n/' \
         'n/keyword/n/' \
+        'n/paths/`_module_avail`/' \
         'n/source/n/' \
         'n/initadd/n/' \
         'n/initprepend/n/' \
