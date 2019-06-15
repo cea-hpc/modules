@@ -140,6 +140,15 @@ Modules 4.3.0 (2019-XX-XX)
   ``remove-path`` modulefile commands to consider every arguments found after
   the variable name as variable values and not command option even if argument
   starts with ``-`` character. (fix issue #278)
+* Introduce the ability to control the module search match. Search query
+  string should match module name start or any part of module fully qualified
+  name. Default search match behavior is set at ``./configure`` time with the
+  ``--with-search-match`` option. It could be superseded with the
+  ``MODULES_SEARCH_MATCH`` environment variable, that could be set with
+  ``config`` module sub-command through the ``search_match`` option.
+  Command-line switches ``--starts-with`` (``-S``) and ``--contains`` (``-C``)
+  for ``avail`` module sub-command enable to supersede defined search match
+  configuration.
 
 
 Modules 4.2.4 (2019-04-26)

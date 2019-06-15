@@ -194,6 +194,16 @@ New sub-commands, command-line switches and environment variables
   can be disabled with configure option
   ``--with-locked-configs=implicit_default``.
 
+* The **MODULES_SEARCH_MATCH** environment variable defines the matching style
+  to perform when searching for available modules. With **starts_with** value,
+  modules whose name begins by search query string are returned. When search
+  match style is set to **contains**, modules returned are those whose fully
+  qualified name contains search query string. Configure option
+  ``--with-search-match`` defines this setting which can be superseded by the
+  environment variable, which in turns can be superseded by the
+  **--starts-with** and **--contains** command-line switches of **avail**
+  module sub-commands.
+
 
 Further reading
 ---------------
