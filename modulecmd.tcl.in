@@ -2785,39 +2785,42 @@ proc parsePathCommandArgs {cmd args} {
    set allow_dup 0
    set idx_val 0
    foreach arg $args {
-      switch -glob -- $arg {
-         --index {
-            if {$cmd eq {add-path}} {
-               reportWarning "--index option has no effect on $cmd"
-            } else {
-               set idx_val 1
+      # everything passed after variable name is considered a value
+      if {[info exists var]} {
+         # set multiple passed values in a list
+         lappend val_raw_list $arg
+      } else {
+         switch -glob -- $arg {
+            --index {
+               if {$cmd eq {add-path}} {
+                  reportWarning "--index option has no effect on $cmd"
+               } else {
+                  set idx_val 1
+               }
             }
-         }
-         --duplicates {
-            if {$cmd eq {unload-path}} {
-               reportWarning "--duplicates option has no effect on $cmd"
-            } else {
-               set allow_dup 1
+            --duplicates {
+               if {$cmd eq {unload-path}} {
+                  reportWarning "--duplicates option has no effect on $cmd"
+               } else {
+                  set allow_dup 1
+               }
             }
-         }
-         -d - -delim - --delim {
-            set next_is_delim 1
-         }
-         --delim=* {
-            set delim [string range $arg 8 end]
-         }
-         -* {
-            error "invalid option '$arg' for $cmd"
-         }
-         default {
-            if {$next_is_delim} {
-               set delim $arg
-               set next_is_delim 0
-            } elseif {![info exists var]} {
-               set var $arg
-            } else {
-               # set multiple passed values in a list
-               lappend val_raw_list $arg
+            -d - -delim - --delim {
+               set next_is_delim 1
+            }
+            --delim=* {
+               set delim [string range $arg 8 end]
+            }
+            -* {
+               error "invalid option '$arg' for $cmd"
+            }
+            default {
+               if {$next_is_delim} {
+                  set delim $arg
+                  set next_is_delim 0
+               } else {
+                  set var $arg
+               }
             }
          }
       }

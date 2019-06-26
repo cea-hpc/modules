@@ -95,6 +95,23 @@ set ts_err "$moderr_msgs: unload-path should get a valid environment variable na
 testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 
 #
+# Try command switches passed after variable name
+#
+
+setenv_path_var testsuite --delim=,
+setenv_path_var testsuite2 , foo
+set module "remove/1.8"
+set modulefile "$modpath/$module"
+setenv_loaded_module $module $modulefile
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd_re "sh" "unload $module" $ans {}
+unsetenv_path_var testsuite
+unsetenv_path_var testsuite2
+
+
+#
 # Remove multiple paths passed as one string
 #
 

@@ -133,6 +133,13 @@ Modules 4.3.0 (2019-XX-XX)
   ``extra_siteconfig`` and ``implicit_default``. Currently locked options are
   reported through the ``locked_configs`` option on the ``config``
   sub-command.
+* Right trim '#' characters from the fetched modulefile magic cookie string
+  to ensure a correct compatibility version comparison. Useful when modulefile
+  first line is equal to ``#%Module4.3##############``.
+* Fix argument parsing for the ``append-path``, ``prepend-path`` and
+  ``remove-path`` modulefile commands to consider every arguments found after
+  the variable name as variable values and not command option even if argument
+  starts with ``-`` character. (fix issue #278)
 
 
 Modules 4.2.4 (2019-04-26)
