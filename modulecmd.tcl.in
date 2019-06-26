@@ -5742,7 +5742,7 @@ proc checkValidModule {modfile} {
       if {[catch {
          set fid [open $modfile r]
          # extract magic cookie (first word of modulefile)
-         set fheader [lindex [split [gets $fid]] 0]
+         set fheader [string trimright [lindex [split [gets $fid]] 0] #]
          close $fid
       }]} {
          set check_valid accesserr
@@ -5786,8 +5786,8 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}} {
       set fdata [read $fid]
       close $fid
       # extract magic cookie (first word of modulefile)
-      set fheader [lindex [split [string range $fdata 0 [string first \n\
-         $fdata]]] 0]
+      set fheader [string trimright [lindex [split [string range $fdata 0\
+         [string first \n $fdata]]] 0] #]
    } errMsg ]} {
       if {$report_read_issue} {
          reportError [parseAccessIssue $modfile]

@@ -60,8 +60,8 @@ foreach mod $modlist tserr $tserrlist tswherr $tswherrlist tspaerr $tspaerrlist 
 }
 
 # create temporary modulefiles whose magic cookie matches current version
-set tmpmodfilelist [list $modpath/mcookie/.modulerc $modpath/mcookie/2 $modpath/mcookie/3 $modpath/mcookie/4 $modpath/mcookierc/5]
-foreach f $tmpmodfilelist r [list $release $release $majorrel " 99" $majorrel] {
+set tmpmodfilelist [list $modpath/mcookie/.modulerc $modpath/mcookie/2 $modpath/mcookie/3 $modpath/mcookie/4 $modpath/mcookierc/5 $modpath/mcookie/0 $modpath/mcookie/0.2]
+foreach f $tmpmodfilelist r [list $release $release $majorrel " 99" $majorrel "$release#########################" "99###########"] {
     if { $verbose > 0 } {
         send_user "\tCreate test modulefile $f\n"
     }
@@ -71,8 +71,8 @@ foreach f $tmpmodfilelist r [list $release $release $majorrel " 99" $majorrel] {
 }
 
 # test over temporarily created modfiles some of them matching minimal version requirement
-set modlist [list mcookie/2 mcookie/3 mcookie/4 mcookierc/5]
-set tserrlist [list "" "" "" [moderr_minverreq $modpath/mcookierc/.modulerc 99]]
+set modlist [list mcookie/2 mcookie/3 mcookie/4 mcookierc/5 mcookie/0]
+set tserrlist [list "" "" "" [moderr_minverreq $modpath/mcookierc/.modulerc 99] ""]
 foreach mod $modlist tserr $tserrlist {
     set ans [list]
     lappend ans [list setpath LOADEDMODULES $mod]
@@ -87,6 +87,15 @@ foreach mod $modlist tserr $tserrlist {
     set anspa [list [list text $modpath/$mod]]
     testouterr_cmd "sh" "path $mod" $anspa $tserr
     testouterr_cmd "sh" "paths $mod" $anspa $tserr
+}
+# test over temporarily created modfiles none matching minimal version requirement
+foreach mod [list mcookie/0.2] tserr [list [moderr_minverreq $modpath/mcookie/0.2 99]] {
+    testouterr_cmd "sh" "load $mod" ERR $tserr
+    testouterr_cmd "sh" "source $modpath/$mod" "" ""
+    testouterr_cmd "sh" "avail -t $mod" "" ""
+    testouterr_cmd "sh" "whatis $mod" ERR $tserr
+    testouterr_cmd "sh" "path $mod" "" $tserr
+    testouterr_cmd "sh" "paths $mod" "" ""
 }
 
 # recheck generic modname now some valid modulefiles have been created there
