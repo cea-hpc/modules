@@ -149,6 +149,20 @@ set modulefile "$modpath/$module"
 set ts_err "$moderr_msgs: add-path should get a valid environment variable name\nIn '$modulefile'\n$err_contactns"
 testouterr_cmd "sh" "load $module" "ERR" [msg_load $module $ts_err]
 
+#
+# Try command switches passed after variable name
+#
+
+set module "prepend/1.10"
+set modulefile "$modpath/$module"
+set ans [list]
+lappend ans [list setpath testsuite --delim=,:http://foobar.com]
+lappend ans [list setpath testsuite2 -d:,:http://foobar.com]
+lappend ans [list setpath testsuite3 -Lfoo:bar]
+lappend ans [list setpath LOADEDMODULES $module]
+lappend ans [list setpath _LMFILES_ $modulefile]
+testouterr_cmd_re "sh" "load $module" $ans {}
+
 
 #
 # Try prepending empty string and check reference counter

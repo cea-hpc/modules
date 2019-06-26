@@ -145,6 +145,25 @@ set ts_err "$moderr_msgs: unload-path should get a valid environment variable na
 testouterr_cmd "sh" "unload $module" "ERR" [msg_unload $module $ts_err]
 
 #
+# Try command switches passed after variable name
+#
+
+set module "append/1.8"
+set modulefile "$modpath/$module"
+setenv_loaded_module $module $modulefile
+setenv_path_var testsuite --delim=,
+setenv_path_var testsuite2 , foo
+set ans [list]
+lappend ans [list unsetpath testsuite]
+lappend ans [list setpath testsuite2 foo]
+lappend ans [list unset testsuite3]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd_re "sh" "unload $module" $ans {}
+unsetenv_path_var testsuite
+unsetenv_path_var testsuite2
+
+#
 # Append multiple paths passed as one string
 #
 
