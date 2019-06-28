@@ -65,26 +65,128 @@ if {[info exists env(MODULERCFILE)]} {
 #  test on regular modulefiles
 #
 
-testouterr_cmd_re "csh" "avail -t un" "OK" "$header\n$ts_csh1\n$ts_csh2\n$ts_csh3\n$ts_csh4\n$ts_csh5\n$ts_csh6\n$ts_csh7\n$ts_csh8\n$ts_csh9\n$ts_csh10\n$ts_csh11\n$ts_csh12"
+set tserr_starts $header\n$ts_csh1\n$ts_csh2\n$ts_csh3\n$ts_csh4\n$ts_csh5\n$ts_csh6\n$ts_csh7\n$ts_csh8\n$ts_csh9\n$ts_csh10\n$ts_csh11\n$ts_csh12
+set tserr_contains $header\ninfo/name\n$ts_csh1\n$ts_csh2\n$ts_csh3\n$ts_csh4\n$ts_csh5\n$ts_csh6\n$ts_csh7\n$ts_csh8
+
+if {$::install_searchmatch eq {contains}} {
+    testouterr_cmd_re csh {avail -t name} OK $tserr_contains
+} else {
+    testouterr_cmd_re csh {avail -t un} OK $tserr_starts
+}
+testouterr_cmd_re csh {avail -t -S un} OK $tserr_starts
+testouterr_cmd_re csh {avail -t --starts-with un} OK $tserr_starts
+testouterr_cmd_re csh {avail -t -C name} OK $tserr_contains
+testouterr_cmd_re csh {avail -t --contains name} OK $tserr_contains
+# no module starting with 'name' > nothing found
+testouterr_cmd_re csh {avail -t -S name} OK {}
+
+# test search match option set from environment variable
+setenv_var MODULES_SEARCH_MATCH starts_with
+testouterr_cmd_re csh {avail -t un} OK $tserr_starts
+testouterr_cmd_re csh {avail -t -S un} OK $tserr_starts
+testouterr_cmd_re csh {avail -t -C name} OK $tserr_contains
+setenv_var MODULES_SEARCH_MATCH contains
+testouterr_cmd_re csh {avail -t name} OK $tserr_contains
+testouterr_cmd_re csh {avail -t -C name} OK $tserr_contains
+testouterr_cmd_re csh {avail -t -S un} OK $tserr_starts
+setenv_var MODULES_SEARCH_MATCH bad
+if {$::install_searchmatch eq {contains}} {
+    testouterr_cmd_re csh {avail -t name} OK $tserr_contains
+} else {
+    testouterr_cmd_re csh {avail -t un} OK $tserr_starts
+}
+unsetenv_var MODULES_SEARCH_MATCH
 
 #
 #  test on module alias
 #
 
-testouterr_cmd_re "csh" "avail -t avers" "OK" "$header\n$tsa1_csh1\\(@\\)\n$tsa1_csh2\\(@\\)\n$tsa1_csh3\\(@\\)"
+set tserr_starts $header\n$tsa1_csh1\\(@\\)\n$tsa1_csh2\\(@\\)\n$tsa1_csh3\\(@\\)
+set tserr_contains $header\n$tsa1_csh1\\(@\\)\n$tsa1_csh2\\(@\\)\n$tsa1_csh3\\(@\\)\nverssort/1\nverssort/1.2.1\nverssort/1.2.4\nverssort/1.8-2015-12-01\nverssort/1.8-2016-02-01\nverssort/1.10
+if {$::install_searchmatch eq {contains}} {
+    testouterr_cmd_re csh {avail -t rsso} OK $tserr_contains
+} else {
+    testouterr_cmd_re csh {avail -t avers} OK $tserr_starts
+}
+testouterr_cmd_re csh {avail -t -S avers} OK $tserr_starts
+testouterr_cmd_re csh {-S avail -t avers} OK $tserr_starts
+testouterr_cmd_re csh {avail -t -C rsso} OK $tserr_contains
+testouterr_cmd_re csh {-C avail -t rsso} OK $tserr_contains
 
 #
 #  test on symbolic version
 #
 
-testouterr_cmd_re "csh" "avail -l -t loc_rc2/f" "OK" "$header\n$tsv1_csh1"
+set tserr_starts $header\n$tsv1_csh1
+set tserr_contains $tserr_starts
+if {$::install_searchmatch eq {contains}} {
+    testouterr_cmd_re csh {avail -l -t _rc2/f} OK $tserr_contains
+} else {
+    testouterr_cmd_re csh {avail -l -t loc_rc2/f} OK $tserr_starts
+}
+testouterr_cmd_re csh {avail -C -S -l -t loc_rc2/f} OK $tserr_starts
+testouterr_cmd_re csh {--contains avail -S -l -t loc_rc2/f} OK $tserr_starts
+testouterr_cmd_re csh {avail -S -C -l -t _rc2/f} OK $tserr_contains
+testouterr_cmd_re csh {--starts-with avail -C -l -t _rc2/f} OK $tserr_contains
+testouterr_cmd_re csh {-S --contains avail -l -t loc_rc2/f} OK $tserr_contains
+
+#
+# test on hidden modulefile
+#
+
+testouterr_cmd_re csh {avail -C -t idde} OK {}
+testouterr_cmd_re csh {avail -C -t rc8/foo} OK {}
+set tserr_contains $header\ninfo/specified\\(foo\\)\ninforc/foo\\(@\\)\nloc_rc1/1.0\\(foo\\)\nloc_rc2/1.0\\(bar:blah:foo\\)\nloc_tr/3.0\\(bar:default:exp:foo:reg:tr2bar:tr2exp:trbar:trexp:trreg\\)\nmodbad/foo
+testouterr_cmd_re csh {avail -C -t foo} OK $tserr_contains
+testouterr_cmd_re csh {avail -S -t foo} OK {}
+set tserr_starts $header\nloc_rc8/.2.0\\(foo\\)
+set tserr_contains $tserr_starts
+testouterr_cmd_re csh {avail -S -t loc_rc8/foo} OK $tserr_starts
+testouterr_cmd_re csh {avail -C -t loc_rc8/foo} OK $tserr_contains
+
+#
+# test on virtual modulefile
+#
+
+setenv_var MODULEPATH $modpath.deep
+set tserr_contains $modpathre.deep:\nmodvirt/1.0\\(@\\)\nmodvirt/3.0\nmodvirt/dir0/sub1/4.0\nmodvirt/dir0/sub1/5.0\\(@\\)\nmodvirt/dir0/sub1/6.0\nmodvirt/dir1/1.0\nmodvirt/dir1/2.0\\(@\\)\nmodvirt/dir2/2.0\nmodvirt/dir2/3.0\\(@\\)
+testouterr_cmd_re csh {avail -C -t virt} OK $tserr_contains
+set tserr_contains $modpathre.deep:\nmodtr/dir5/subdir/\\(dadj:sfld\\)\nmodtr/dir5/subdir/mod5.0\\(madj\\)\nmodvirt/dir0/sub1/4.0\nmodvirt/dir0/sub1/5.0\\(@\\)\nmodvirt/dir0/sub1/6.0
+testouterr_cmd_re csh {avail -C -t sub} OK $tserr_contains
+set tserr_contains $modpathre.deep:\nmodvirt/dir0/sub1/4.0\nmodvirt/dir0/sub1/5.0\\(@\\)\nmodvirt/dir0/sub1/6.0
+testouterr_cmd_re csh {avail -C -t dir0/su} OK $tserr_contains
+
+
+#
+# test on directories
+#
+
+set tserr_contains $modpathre.deep:\nmodtr/dir4/\\(default:fld:reg:trfld:trreg\\)\nmodtr/dir4/al7\\(madj:@\\)\nmodtr/dir4/al8\\(dadj:@\\)\nmodtr/dir4/mod4.0
+testouterr_cmd_re csh {avail -C -t modtr/dir4} OK $tserr_contains
+set tserr_contains $modpathre.deep:\nmodtr/dir4/\\(default:fld:reg:trfld:trreg\\)\nmodtr/dir4/al7\\(madj:@\\)\nmodtr/dir4/al8\\(dadj:@\\)\nmodtr/dir4/mod4.0
+testouterr_cmd_re csh {avail -C -t dir4} OK $tserr_contains
+set tserr_contains $modpathre.deep:\nmodtr/dir1/1.0\\(cur:stable\\)\nmodtr/dir2/2.0\\(next:tr2unstable:trunstable:unstable\\)\nmodtr/dir3/al2\\(bar:default:exp:reg:tr2bar:trbar:@\\)\nmodtr/dir3/al3\\(default:exp:reg:@\\)\nmodtr/dir4/\\(default:fld:reg:trfld:trreg\\)\nmodtr/dir4/al7\\(madj:@\\)\nmodtr/dir4/al8\\(dadj:@\\)\nmodtr/dir4/mod4.0\nmodtr/dir5/subdir/\\(dadj:sfld\\)\nmodtr/dir5/subdir/mod5.0\\(madj\\)
+testouterr_cmd_re csh {avail -C -t tr/dir} OK $tserr_contains
+set tserr_contains $modpathre.deep:\nmodulerc/dir2/1.0/\\(default\\)\nmodulerc/dir2/1.0/rc1\\(default\\)\nmodulerc/dir2/1.0/rc2
+testouterr_cmd_re csh {avail -C -t rc/dir2/1} OK $tserr_contains
+
 
 #
 #  test on module alias set from global modulerc
 #
 
-set env(MODULERCFILE) "$env(TESTSUITEDIR)/etc/modulerc"
-testouterr_cmd_re "csh" "avail -t sym_" "OK" "$header2\n$tsa2_csh1\\(special:@\\)"
+setenv_var MODULEPATH $modpath
+setenv_var MODULERCFILE "$env(TESTSUITEDIR)/etc/modulerc"
+set tserr_starts $header2\n$tsa2_csh1\\(special:@\\)
+set tserr_contains $tserr_starts
+if {$::install_searchmatch eq {contains}} {
+    testouterr_cmd_re csh {avail -t _foo} OK $tserr_contains
+} else {
+    testouterr_cmd_re csh {avail -t sym_} OK $tserr_starts
+}
+testouterr_cmd_re csh {avail -t -C _foo} OK $tserr_contains
+testouterr_cmd_re csh {avail -t -S sym_} OK $tserr_starts
+
 
 #
 # wildcard character tests
@@ -93,6 +195,7 @@ testouterr_cmd_re "csh" "avail -t sym_" "OK" "$header2\n$tsa2_csh1\\(special:@\\
 set mp "$modpath.indepth"
 # setup specific environment
 setenv_path_var MODULEPATH $mp
+setenv_var MODULES_SEARCH_MATCH starts_with
 
 testouterr_cmd sh {avail -t mod1*} OK "$mp:\nmod1/1\nmod1/2\nmod10\nmod11/1(sym)\nmod11/2"
 testouterr_cmd sh {avail -t mod1**} OK "$mp:\nmod1/1\nmod1/2\nmod10\nmod11/1(sym)\nmod11/2"
@@ -114,6 +217,9 @@ testouterr_cmd sh {avail -t mod??/2} OK "$mp:\nmod11/2\nmod30/2"
 testouterr_cmd sh {avail -t mod2?} OK {}
 testouterr_cmd sh {avail -t mod2?/} OK {}
 
+testouterr_cmd sh {avail -C -t od?/?/} OK $mp:\nmod6/3/1/2/1\nmod7/4/1\nmod8/4/1(@)\nmod9/3/2(default)\nmod9/4/1
+testouterr_cmd sh {avail -C -t 3?/1} OK {}
+testouterr_cmd sh {avail -C -t 3*/1} OK $mp:\nmod3/1(@)\nmod6/3/1/2/1
 
 #
 #  Cleanup
@@ -150,3 +256,6 @@ unset tsa1_csh2
 unset tsa1_csh3
 unset tsa2_csh1
 unset tsv1_csh1
+
+unset tserr_starts
+unset tserr_contains

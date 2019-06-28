@@ -42,7 +42,8 @@ mod9/4/1
 mod10
 mod11/1(sym)
 mod11/2
-mod30/2"
+mod30/2
+modv/1(default)"
 
 set ts_noindepth "$mp:
 mod0
@@ -56,7 +57,8 @@ mod8/
 mod9/
 mod10
 mod11/
-mod30/"
+mod30/
+modv/"
 
 # check various initialization ways
 testouterr_cmd sh {avail -t --indepth} OK $ts_indepth
@@ -158,6 +160,12 @@ testouterr_cmd sh {avail -t -d mod2?} OK {}
 testouterr_cmd sh {avail -t -L mod2?} OK {}
 testouterr_cmd sh {avail -t -d mod2?/} OK {}
 testouterr_cmd sh {avail -t -L mod2?/} OK {}
+
+# test no in depth mode and contains search match mode
+testouterr_cmd sh {avail -t -C od2/} OK "$mp:\nmod2/1(default)\nmod2/2"
+testouterr_cmd sh {avail -t -C 1} OK "$mp:\nmod1/\nmod10\nmod11/"
+testouterr_cmd sh {avail -t -C ul} OK {}
+testouterr_cmd sh {avail -t -C 6/3/1} OK "$mp:\nmod6/3/1/"
 
 # usage of no indepth mode avail in modulefile
 unsetenv_var MODULES_AVAIL_INDEPTH
