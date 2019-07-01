@@ -6006,6 +6006,12 @@ proc compareVersion {str1 str2} {
    }
 }
 
+# Return number of occurences of passed character in passed string
+proc countChar {str char} {
+   return [expr {[string length $str] - [string length [string map [list\
+      $char {}] $str]]}]
+}
+
 # provide a lreverse proc for Tcl8.4 and earlier
 if {[info commands lreverse] eq {}} {
    proc lreverse {l} {
@@ -6234,6 +6240,22 @@ proc __getFilesInDirectory {dir fetch_hidden fetch_dotversion} {
    return $dir_list
 }
 
+# Filter-out modules whose name does not match query at expected depth level
+# when indepth search is disabled
+proc modMatchAtDepth {indepth querydepth modmatch modlist} {
+   set reslist [list]
+   foreach mod $modlist {
+      # match against the subpart of mod corresponding to search depth level
+      set cmpmod [expr {$indepth ? $mod : [join [lrange [split $mod /] 0\
+         $querydepth] /]}]
+
+      if {[string match $modmatch $cmpmod]} {
+         lappend reslist $mod
+      }
+   }
+   return $reslist
+}
+
 # check if an existing findModules cache entry matches current search by
 # evaluating search ids. if an exact match cannot be found, look at saved
 # searches that contains current search (superset of looked elements), extra
@@ -6407,6 +6429,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # set a default if none defined on directory entries
    set implicitdfl [getImplicitDefault]
 
+   set modmatch "$mod*"
+
    # if search for global or user rc alias only, no dir lookup is performed
    # and aliases from g_rcAlias are returned
    if {[isInList $search rc_alias_only]} {
@@ -6443,6 +6467,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    set querydir [string trimright $mod *]
    set isquerydir [expr {[string index $querydir end] eq {/}}]
    set querydir [string range $querydir 0 end-1]
+   set querydepth [countChar $mod /]
 
    array set dir_list {}
    array set mod_list {}
@@ -6456,9 +6481,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          }
       # add other entry kind to the result list
       # also add dirname to results if query name finishes with trailing slash
-      } elseif {($wild && [string match $mod* $elt]) || (!$wild && ([string\
-         match $mod/* $elt] || [string match $mod $elt])) || ($isquerydir\
-         && $elt_type eq {directory} && [string match $querydir $elt])} {
+      } elseif {($wild && [llength [modMatchAtDepth $indepth $querydepth\
+         $modmatch [list $elt]]]) || (!$wild && ([string match $mod/* $elt]\
+         || [string match $mod $elt])) || ($isquerydir && $elt_type eq\
+         {directory} && [string match $querydir $elt])} {
          set mod_list($elt) $found_list($elt)
          # list dirs to rework their definition at the end
          if {$elt_type eq {directory}} {
@@ -6471,7 +6497,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # directory (skip versions not registered from this directory except if
    # global or user rc definitions should be included)) if they match passed
    # $mod (as for regular modulefiles)
-   foreach vers [array names g_moduleVersion -glob $mod*] {
+   foreach vers [modMatchAtDepth $indepth $querydepth $modmatch [array names\
+      g_moduleVersion]] {
       set versmod $g_moduleVersion($vers)
       if {($dir ne {} && [string first $dir/ $g_sourceVersion($vers)] == 0)\
          || ($add_rc_defs && [info exists g_rcVersion($vers)])} {
@@ -6510,7 +6537,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # global or user rc definitions should be included) if they match passed
    # $mod (as for regular modulefiles) or if a symbolic versions targeting
    # alias match passed $mod
-   set matching_alias [array names g_moduleAlias -glob $mod*]
+   set matching_alias [modMatchAtDepth $indepth $querydepth $modmatch [array\
+      names g_moduleAlias]]
    if {[info exists matching_versalias]} {
       eval appendNoDupToList matching_alias $matching_versalias
    }
@@ -6541,7 +6569,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # global or user rc definitions should be included) if they match passed
    # $mod (as for regular modulefiles) or if a symbolic versions targeting
    # virtual mod match passed $mod
-   set matching_virtual [array names g_moduleVirtual -glob $mod*]
+   set matching_virtual [modMatchAtDepth $indepth $querydepth $modmatch\
+      [array names g_moduleVirtual]]
    if {[info exists matching_versvirt]} {
       eval appendNoDupToList matching_virtual $matching_versvirt
    }
@@ -6620,7 +6649,13 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # this treatment happen at the end to find all directory entries in
    # result list (alias and virtual included)
    foreach dir [lsort [array names dir_list]] {
-      set elt_list [lsort -dictionary [lrange $mod_list($dir) 1 end]]
+      # remove dir elements that have been excluded from result list
+      set elt_list [list]
+      foreach elt [lsort -dictionary [lrange $mod_list($dir) 1 end]] {
+         if {[info exists mod_list($dir/$elt)]} {
+            lappend elt_list $elt
+         }
+      }
       # remove dir from list if it is empty
       if {[llength $elt_list] == 0} {
          unset mod_list($dir)
@@ -6671,9 +6706,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # keep those found at search query depth level if 'noindepth' mode asked
    if {!$indepth} {
       # remove entries with more filename path separator than query pattern
-      set lastqslash [expr {[string last / $mod] + 1}]
       foreach elt [array names mod_list] {
-         if {[string first / $elt $lastqslash] != -1} {
+         if {[countChar $elt /] > $querydepth} {
             unset mod_list($elt)
          }
       }
