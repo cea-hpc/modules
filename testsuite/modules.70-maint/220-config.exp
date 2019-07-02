@@ -224,7 +224,7 @@ foreach var [list LOADEDMODULES _LMFILES_ MODULE* *_modshare *_modquar *_module*
     set envvar_list [concat $envvar_list [array names env -glob $var]]
 }
 foreach envvar [lsort -unique $envvar_list] {
-    append tserr "\n$envvar\\s+$env($envvar)"
+    append tserr "\n[regsub -all {([\\${}*?()+])} $envvar {\\\1}]\\s+[regsub -all {([\\${}*?()+])} $env($envvar) {\\\1}]"
 }
 testouterr_cmd_re sh {config --dump-state} OK $tserr
 
@@ -252,10 +252,9 @@ foreach var [list LOADEDMODULES _LMFILES_ MODULE* *_modshare *_modquar *_module*
     set envvar_list [concat $envvar_list [array names env -glob $var]]
 }
 foreach envvar [lsort -unique $envvar_list] {
-    append tserr "\n$envvar\\s+$env($envvar)"
+    append tserr "\n[regsub -all {([\\${}*?()+])} $envvar {\\\1}]\\s+[regsub -all {([\\${}*?()+])} $env($envvar) {\\\1}]"
 }
 testouterr_cmd_re sh {config --dump-state} OK $tserr
-
 
 # bad argument number
 testouterr_cmd_re sh "config --reset auto_handling 0" ERR "$error_msgs: Unexpected number of args for 'config' command\n$err_typehelp"

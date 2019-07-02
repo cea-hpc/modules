@@ -61,13 +61,8 @@ proc colorstr {str sgr {re_mode 0}} {
         set sgrreset 0
     }
     if {$sgr ne {}} {
-        set str "\033\[${sgr}m$str\033\[${sgrreset}m"
-
-        if {$re_mode} {
-            # escape regexp-special characters
-            set str [regsub -all {([$.+?\\()&|\[\]])} $str {\\\1}]
-        }
-
+        set str [expr {$re_mode ? "\033\\\[${sgr}m$str\033\\\[${sgrreset}m"\
+            : "\033\[${sgr}m$str\033\[${sgrreset}m"}]
     }
     return $str
 }
@@ -304,9 +299,9 @@ colorset_test_case {load --auto prereq/module} [list in {Loading requirement}] "
 
 # highlighted element (hi)
 colorset_test_case {saveshow testsuite/home/.module/infocmd} [list hi testsuite/home/.module/infocmd] ".*testsuite/home/.module/infocmd:.*"
-colorset_test_case {display setenv/1.0} [list hi $modpath/setenv/1.0] ".*$modpath/setenv/1.0:.*"
-colorset_test_case {help setenv/1.0} [list hi $modpath/setenv/1.0] ".*$modpath/setenv/1.0:.*"
-colorset_test_case {test setenv/1.0} [list hi $modpath/setenv/1.0] ".*$modpath/setenv/1.0:.*"
+colorset_test_case {display setenv/1.0} [list hi $modpathre/setenv/1.0] ".*$modpathre/setenv/1.0:.*"
+colorset_test_case {help setenv/1.0} [list hi $modpathre/setenv/1.0] ".*$modpathre/setenv/1.0:.*"
+colorset_test_case {test setenv/1.0} [list hi $modpathre/setenv/1.0] ".*$modpathre/setenv/1.0:.*"
 colorset_test_case {avail -l loc_tr} [list hi Package/Alias hi Versions hi {Last mod.}] ".*- Package/Alias -.*- Versions -.*- Last mod. -.*"
 setenv_var HOME $env(TESTSUITEDIR)/home
 colorset_test_case {savelist -l} [list hi Collection hi {Last mod.}] "- Collection -.*- Last mod. -.*"
@@ -320,14 +315,14 @@ colorset_test_case {whatis loc_tr} [list hi loc_tr] ".*\\s+loc_tr/1.0: .*\\s+loc
 colorset_test_case {search loc_tr} [list hi loc_tr] ".*: loc_tr/1.0\n.*: loc_tr/2.0\n.*: loc_tr/3.0"
 
 # modulepath (mp)
-colorset_test_case {use} [list mp $modpath] "Search path for module files \\(in search order\\):\n  $modpath"
-colorset_test_case {avail loc_tr} [list mp $modpath] ".*- $modpath -.*"
-colorset_test_case {avail -t --no-indepth loc_tr} [list mp $modpath] ".*$modpath:.*"
-colorset_test_case {avail -l --no-indepth loc_tr} [list mp $modpath] ".*$modpath:.*"
+colorset_test_case {use} [list mp $modpathre] "Search path for module files \\(in search order\\):\n  $modpathre"
+colorset_test_case {avail loc_tr} [list mp $modpathre] ".*- $modpathre -.*"
+colorset_test_case {avail -t --no-indepth loc_tr} [list mp $modpathre] ".*$modpathre:.*"
+colorset_test_case {avail -l --no-indepth loc_tr} [list mp $modpathre] ".*$modpathre:.*"
 
 # tag separator (se) / module symbolic version (sy)
-colorset_test_case {avail loc_tr} [list se ( se ) se : sy reg sy cur sy stable] ".*loc_tr.*/\\(reg\\).*loc_tr.*/1.0\\(cur:stable\\).*"
-colorset_test_case {avail -t loc_tr} [list se ( se ) se : sy reg sy cur sy stable] ".*loc_tr.*/\\(reg\\).*loc_tr.*/1.0\\(cur:stable\\).*"
+colorset_test_case {avail loc_tr} [list se \\( se \\) se : sy reg sy cur sy stable] ".*loc_tr.*/\\(reg\\).*loc_tr.*/1.0\\(cur:stable\\).*"
+colorset_test_case {avail -t loc_tr} [list se \\( se \\) se : sy reg sy cur sy stable] ".*loc_tr.*/\\(reg\\).*loc_tr.*/1.0\\(cur:stable\\).*"
 colorset_test_case {avail -l loc_tr} [list se : sy reg sy cur sy stable] ".*loc_tr.*/\\s+reg.*loc_tr.*/1.0\\s+cur:stable.*"
 
 # directory (di)
@@ -342,11 +337,11 @@ colorset_test_case {avail -t} [list al loc_rc6/bar de loc_rc6/1.2] ".*loc_rc6/1.
 # check @ and default symbols disappear when color is there
 if {($::install_termbg eq {dark} && (![info exists darkbgcolors(de)] || $darkbgcolors(de) eq {}))\
     || ($::install_termbg eq {light} && (![info exists lightbgcolors(de)] || $lightbgcolors(de) eq {}))} {
-    colorset_test_case {avail loc_rc6} [list hi loc_rc6 se ( se ) se : sy new sy default] ".*loc_rc6/1.2.*\\(default:new\\).*loc_rc6/bar.* .*" 1 0
-    colorset_test_case {avail -C _rc6} [list hi _rc6 se ( se ) se : sy new sy default] ".*loc_rc6/1.2.*\\(default:new\\).*loc_rc6/bar.* .*" 1 0
+    colorset_test_case {avail loc_rc6} [list hi loc_rc6 se \\( se \\) se : sy new sy default] ".*loc_rc6/1.2.*\\(default:new\\).*loc_rc6/bar.* .*" 1 0
+    colorset_test_case {avail -C _rc6} [list hi _rc6 se \\( se \\) se : sy new sy default] ".*loc_rc6/1.2.*\\(default:new\\).*loc_rc6/bar.* .*" 1 0
 } else {
-    colorset_test_case {avail loc_rc6} [list hi loc_rc6 se ( se ) sy new] ".*loc_rc6/1.2.*\\(new\\).*loc_rc6/bar.* .*" 1
-    colorset_test_case {avail -C _rc6} [list hi _rc6 se ( se ) sy new] ".*loc_rc6/1.2.*\\(new\\).*loc_rc6/bar.* .*" 1
+    colorset_test_case {avail loc_rc6} [list hi loc_rc6 se \\( se \\) sy new] ".*loc_rc6/1.2.*\\(new\\).*loc_rc6/bar.* .*" 1
+    colorset_test_case {avail -C _rc6} [list hi _rc6 se \\( se \\) sy new] ".*loc_rc6/1.2.*\\(new\\).*loc_rc6/bar.* .*" 1
 }
 
 # highlighted element (hi) /module alias (al) / module symbolic version (sy)
@@ -355,7 +350,7 @@ colorset_test_case {aliases} [list hi Aliases hi Versions al loc_rc6/bar sy loc_
 # tag separator (se) / module symbolic version (sy) / module default version (de)
 setenv_loaded_module [list loc_tr/1.0 loc_rc6/1.2] [list $modpath/loc_tr/1.0 $modpath/loc_rc6/1.2]
 setenv_path_var MODULES_LMALTNAME loc_tr/1.0&loc_tr/cur&loc_tr/stable:loc_rc6/1.2&loc_rc6/1&loc_rc6/bar&loc_rc6/default&loc_rc6&loc_rc6/new
-colorset_test_case {list} [list se : se ( se ) sy new sy cur sy stable de loc_rc6/1.2] ".*loc_tr/1.0\\(cur:stable\\).*loc_rc6/1.2\\(new\\).*" 1
+colorset_test_case {list} [list se : se \\( se \\) sy new sy cur sy stable de loc_rc6/1.2] ".*loc_tr/1.0\\(cur:stable\\).*loc_rc6/1.2\\(new\\).*" 1
 colorset_test_case {list -l} [list se : sy new sy cur sy stable de loc_rc6/1.2] ".*loc_tr/1.0\\s+cur:stable\\s+.*loc_rc6/1.2\\s+new\\s+.*" 1
 colorset_test_case {list -l} [list hi Package hi Versions hi {Last mod.}] ".*- Package -.*- Versions -.*- Last mod. -.*"
 colorset_test_case {list -t} [list] ".*loc_tr/1.0\nloc_rc6/1.2" 0
