@@ -393,6 +393,29 @@ proc getSearchMatch {} {
    return $::g_search_match
 }
 
+# Define or not shell startup file to initialize module
+proc getSetShellStartup {} {
+   if {![info exists ::g_set_shell_startup]} {
+      # default value set at configure time
+      set set_shell_startup @setshellstartup@
+
+      # overriden value coming from environment
+      if {[info exists ::env(MODULES_SET_SHELL_STARTUP)]} {
+         # ignore non-valid values
+         switch -- $::env(MODULES_SET_SHELL_STARTUP) {
+            0 - 1 {
+               set set_shell_startup $::env(MODULES_SET_SHELL_STARTUP)
+            }
+         }
+      }
+
+      set ::g_set_shell_startup $set_shell_startup
+      reportDebug "set_shell_startup set to '$set_shell_startup'"
+   }
+
+   return $::g_set_shell_startup
+}
+
 
 # Get contact address for modulefile issue
 proc getContact {} {
@@ -8977,6 +9000,15 @@ proc cmdModuleAutoinit {} {
       cmdModuleSource @initdir@/modulerc
    }
 
+   # define Modules init script as shell startup file
+   if {[getSetShellStartup] && [isInList [list sh csh fish] $::g_shellType]} {
+      # setup ENV variables to get module defined in sub-shells (works for
+      # 'sh' and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and
+      # 'ksh' (zsh-compat) in non-interactive mode.
+      setenv ENV @initdir@/profile.sh
+      setenv BASH_ENV @initdir@/bash
+   }
+
    popMode
 }
 
@@ -9217,13 +9249,15 @@ proc cmdModuleConfig {dump_state args} {
       MODULERCFILE run_quarantine MODULES_RUN_QUARANTINE silent_shell_debug\
       MODULES_SILENT_SHELL_DEBUG term_background MODULES_TERM_BACKGROUND\
       unload_match_order MODULES_UNLOAD_MATCH_ORDER implicit_default\
-      MODULES_IMPLICIT_DEFAULT search_match MODULES_SEARCH_MATCH]
+      MODULES_IMPLICIT_DEFAULT search_match MODULES_SEARCH_MATCH\
+      set_shell_startup MODULES_SET_SHELL_STARTUP]
 
    array set confvalid [list auto_handling [list 0 1] avail_indepth [list 0\
       1] collection_pin_version [list 0 1] color [list never auto always]\
       silent_shell_debug [list 0 1] term_background [list dark light]\
       unload_match_order [list returnlast returnfirst] implicit_default\
-      [list 0 1] search_match [list starts_with contains]]
+      [list 0 1] search_match [list starts_with contains] set_shell_startup\
+      [list 0 1]]
 
    array set conflockable [list extra_siteconfig 1 implicit_default 1]
 
@@ -9241,7 +9275,8 @@ proc cmdModuleConfig {dump_state args} {
       silent_shell_debug [get-env $confvar(silent_shell_debug) <undef>]\
       siteconfig $::g_siteconfig tcl_ext_lib $::g_tclextlib term_background\
       [getTermBackground] unload_match_order [getUnloadMatchOrder]\
-      implicit_default [getImplicitDefault] search_match [getSearchMatch]]
+      implicit_default [getImplicitDefault] search_match [getSearchMatch]\
+      set_shell_startup [getSetShellStartup]]
 
    # catch any environment variable set for modulecmd run-time execution
    foreach runenvvar [array names ::env -glob MODULES_RUNENV_*] {

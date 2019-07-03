@@ -148,6 +148,12 @@ else
   setimplicitdefault := 0
 endif
 
+ifeq ($(setshellstartup),y)
+  setsetshellstartup := 1
+else
+  setsetshellstartup := 0
+endif
+
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@baseprefix@|$(baseprefix)|g' \
@@ -172,6 +178,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \
+	-e 's|@setshellstartup@|$(setsetshellstartup)|g' \
 	-e 's|@quarantinesupport@|$(setquarantinesupport)|g' \
 	-e 's|@notquarantinesupport@|$(setnotquarantinesupport)|g' \
 	-e 's|@libtclenvmodules@|$(setlibtclenvmodules)|g' \
