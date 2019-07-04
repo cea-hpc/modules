@@ -1,0 +1,39 @@
+#%Module1.0 # -*- mode: tcl; -*-
+
+proc ModulesTest { } {
+    set retcode 1  ;# default: 1 meaning PASS
+
+    puts stderr "Running ModulesTest for directory existence..."
+    if { [file isdirectory $::env(TESTDIR)] } {
+        puts stderr "Is a directory: $::env(TESTDIR)"
+    } else {
+        puts stderr "ERROR: Is not a directory: $::env(TESTDIR)"
+        set retcode 0
+    }
+    puts stderr "Running ModulesTest for directory existence...done"
+
+    puts stderr "Running ModulesTest for directory permissions..."
+    set cmd { cd $::env(TESTDIR) }
+    if { [catch $cmd errmsg] } {
+        puts stderr "ERROR: Was not able to enter directory $::env(TESTDIR): ${errmsg}"
+        set retcode 0
+    } else {
+        puts stderr "Was able to enter directory $::env(TESTDIR)"
+    }
+    puts stderr "Running ModulesTest for directory permissions...done"
+
+    puts stderr "Running ModulesTest for file creation..."
+    set cmd { open $::env(TESTFILE) w }
+    if { [catch $cmd errmsg] } {
+        puts stderr "ERROR: Was not able to create file $::env(TESTFILE): ${errmsg}"
+        set retcode 0
+    } else {
+        puts stderr "Was able to create file $::env(TESTFILE)"
+    }
+    puts stderr "Running ModulesTest for file creation...done"
+
+    return ${retcode}
+}
+
+setenv TESTDIR  /tmp/$::env(USER)/testdir
+setenv TESTFILE $::env(TESTDIR)/testfile
