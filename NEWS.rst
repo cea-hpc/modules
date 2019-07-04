@@ -149,6 +149,15 @@ Modules 4.3.0 (2019-XX-XX)
   Command-line switches ``--starts-with`` (``-S``) and ``--contains`` (``-C``)
   for ``avail`` module sub-command enable to supersede defined search match
   configuration.
+* Introduce the ability not to set the shell startup file that ensure
+  ``module`` command is defined once shell has been initialized. Setting shell
+  startup file currently means defining ``ENV`` and ``BASH_ENV`` environment
+  variables to the Modules bourne shell initialization script. ``./configure``
+  options ``--enable-set-shell-startup`` and ``--disable-set-shell-startup``
+  define if shell startup should be set or not by default. It could be
+  superseded with the ``MODULES_SET_SHELL_STARTUP`` environment variable, that
+  could be set with ``config`` module sub-command through the
+  ``set_shell_startup`` option.
 
 
 Modules 4.2.4 (2019-04-26)

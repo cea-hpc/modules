@@ -204,6 +204,14 @@ New sub-commands, command-line switches and environment variables
   **--starts-with** and **--contains** command-line switches of **avail**
   module sub-commands.
 
+* The **MODULES_SET_SHELL_STARTUP** environment variable controls whether or
+  not shell startup file should be set to ensure ``module`` command is defined
+  once shell has been initialized. When enabled, the ``ENV`` and ``BASH_ENV``
+  environment variables are set, when ``module`` function is defined, to the
+  Modules bourne shell initialization script. Configure options
+  ``--enable-set-shell-startup`` and ``--disable-set-shell-startup`` define
+  this setting which can be superseded by the environment variable.
+
 
 Further reading
 ---------------
