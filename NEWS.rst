@@ -158,6 +158,8 @@ Modules 4.3.0 (2019-XX-XX)
   superseded with the ``MODULES_SET_SHELL_STARTUP`` environment variable, that
   could be set with ``config`` module sub-command through the
   ``set_shell_startup`` option.
+* Cookbook: add the *test-modulefiles* recipe. (fix issue #182 with
+  contribution from Colin Marquardt)
 
 
 Modules 4.2.4 (2019-04-26)
