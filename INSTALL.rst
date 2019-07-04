@@ -260,6 +260,10 @@ instance ``--disable-set-manpath``):
                       Generate code in module function definition and
                       initialization scripts to add support for silencing
                       shell debugging properties (default=yes)
+--enable-set-shell-startup
+                      Set when module function is defined the shell startup
+                      file to ensure that the module function is still defined
+                      in sub-shells. (default=yes)
 --enable-quarantine-support
                       Generate code in module function definition and
                       initialization scripts to add support for the

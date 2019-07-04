@@ -626,6 +626,8 @@ Module Sub-Commands
  * silent_shell_debug: disablement of shell debugging property for the module
    command (defines **MODULES_SILENT_SHELL_DEBUG**)
  * search_match: module search match style (defines **MODULES_SEARCH_MATCH**)
+ * set_shell_startup: ensure module command definition by setting shell
+   startup file (defines **MODULES_SET_SHELL_STARTUP**)
  * siteconfig: primary site-specific configuration script location
  * tcl_ext_lib: Modules Tcl extension library location
  * term_background: terminal background color kind (defines
@@ -993,6 +995,14 @@ ENVIRONMENT
  **modulecmd.tcl** script configuration. Which means **MODULES_SEARCH_MATCH**
  overrides default configuration and **--starts-with**/**--contains** command
  line switches overrides every other ways to set search match style.
+
+**MODULES_SET_SHELL_STARTUP**
+
+ If set to **1**, defines when **module** command initializes the shell
+ startup file to ensure that the **module** command is still defined in
+ sub-shells. Setting shell startup file means defining the **ENV** and
+ **BASH_ENV** environment variable to the Modules bourne shell initialization
+ script. If set to **0**, shell startup file is not defined.
 
 **MODULES_SILENT_SHELL_DEBUG**
 
