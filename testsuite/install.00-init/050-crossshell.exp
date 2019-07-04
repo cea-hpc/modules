@@ -22,6 +22,7 @@
 
 set bad_cmd "$error_msgs: Invalid command 'foo'"
 
+set bash_nf "module: command not found"
 if {$tcl_platform(os) eq "SunOS"} {
    set cmd_nf "module: not found \\\[No such file or directory\\\]"
 } elseif {$tcl_platform(os) eq "FreeBSD"} {
@@ -29,7 +30,7 @@ if {$tcl_platform(os) eq "SunOS"} {
 } elseif {$sh_kind eq "dash"} {
    set cmd_nf "module: not found"
 } else {
-   set cmd_nf "module: command not found"
+   set cmd_nf $bash_nf
 }
 if {$tcl_platform(os) eq "Darwin" || [string match "CYGWIN*" $tcl_platform(os)] || [string match "MSYS_NT*" $tcl_platform(os)]} {
    set ksh_nf "module: not found"
@@ -88,9 +89,13 @@ foreach subshell $shell_list {
                }
             }
          }
-         # propagate in any cases as BASH_ENV is set everywhere
+         # propagate in any cases as BASH_ENV is set everywhere when set_shell_startup is enabled
          bash {
-            testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+            if {$install_setshellstartup eq {y} || $shell eq {basheu}} {
+               testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+            } else {
+               testall_cmd_re "$shell" "module --version" "^\$" "$bash_nf\$" 127
+            }
          }
          ksh {
             testall_cmd_re "$shell" "module --version" "^\$" "$ksh_nf\$" 127
@@ -138,9 +143,13 @@ foreach subshell $shell_list {
                }
             }
          }
-         # propagate in any cases as BASH_ENV is set everywhere
+         # propagate in any cases as BASH_ENV is set everywhere when set_shell_startup is enabled
          bash {
-            testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+            if {$install_setshellstartup eq {y} || $shell eq {basheu}} {
+               testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+            } else {
+               testall_cmd_re "$shell" "module --version" "^\$" "$bash_nf\$" 127
+            }
          }
          ksh {
             testall_cmd_re "$shell" "module --version" "^\$" "$ksh_nf\$" 127
@@ -166,6 +175,7 @@ foreach subshell $shell_list {
 #
 
 unset bad_cmd
+unset bash_nf
 unset cmd_nf
 unset ksh_nf
 unset zsh_nf

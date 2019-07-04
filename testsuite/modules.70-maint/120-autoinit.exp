@@ -465,56 +465,67 @@ set func_r "module <- function\\\(...\\\){
 # setup environment state
 setenv_loaded_module "foo" [list]
 
-foreach shell $supported_shells {
-    switch -- $shell {
-        {lisp} {
-            testouterr_cmd "lisp" "autoinit" "ERR" "$err_lisp"
-        }
-        {cmd} {
-            testouterr_cmd "cmd" "autoinit" "ERR" "$err_cmd"
-        }
-        default {
-            set ans [list]
-            lappend ans [list [set "func_$shell"]]
-            if {$install_versioning eq "y"} {
-                lappend ans [list set MODULE_VERSION_STACK "(.*)"]
-                lappend ans [list set MODULES_CMD $modulecmd_path]
-                lappend ans [list set MODULESHOME $moduleshome]
-                lappend ans [list set MODULE_VERSION "(.*)"]
-            } else {
-                lappend ans [list set MODULES_CMD $modulecmd_path]
-                lappend ans [list set MODULESHOME $moduleshome]
-            }
+# check various set_shell_startup configs
+foreach set_shell_startup [list {} 0 1] {
+    setenv_var MODULES_SET_SHELL_STARTUP $set_shell_startup
 
-            test_cmd_re $shell "autoinit" $ans
+    foreach shell $supported_shells {
+        switch -- $shell {
+            {lisp} {
+                testouterr_cmd "lisp" "autoinit" "ERR" "$err_lisp"
+            }
+            {cmd} {
+                testouterr_cmd "cmd" "autoinit" "ERR" "$err_cmd"
+            }
+            default {
+                set ans [list]
+                lappend ans [list [set "func_$shell"]]
+                if {$install_versioning eq "y"} {
+                    lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+                    lappend ans [list set MODULES_CMD $modulecmd_path]
+                    if {[is_real_shell $shell] && ($env(MODULES_SET_SHELL_STARTUP) eq {1} || ($env(MODULES_SET_SHELL_STARTUP) ne {0} && $install_setshellstartup eq {y}))} {
+                        lappend ans [list set ENV $install_initdir/profile.sh]
+                        lappend ans [list set BASH_ENV $install_initdir/bash]
+                    }
+                    lappend ans [list set MODULESHOME $moduleshome]
+                    lappend ans [list set MODULE_VERSION "(.*)"]
+                } else {
+                    lappend ans [list set MODULES_CMD $modulecmd_path]
+                    if {[is_real_shell $shell] && ($env(MODULES_SET_SHELL_STARTUP) eq {1} || ($env(MODULES_SET_SHELL_STARTUP) ne {0} && $install_setshellstartup eq {y}))} {
+                        lappend ans [list set ENV $install_initdir/profile.sh]
+                        lappend ans [list set BASH_ENV $install_initdir/bash]
+                    }
+                    lappend ans [list set MODULESHOME $moduleshome]
+                }
+
+                test_cmd_re $shell "autoinit" $ans
+            }
         }
     }
+
+    unsetenv_var MODULES_SET_SHELL_STARTUP
 }
 
 # test versioning autoinit when MODULE_VERSION is already defined
 if {$install_versioning eq "y"} {
     # setup environment state
-    if { $verbose > 0 } {
-        send_user "\tSetup MODULE_VERSION = 'vers'\n"
-        send_user "\tSetup MODULE_VERSION_STACK = 'vers'\n"
-    }
-    set env(MODULE_VERSION) "vers"
-    set env(MODULE_VERSION_STACK) "vers"
+    setenv_var MODULE_VERSION "vers"
+    setenv_var MODULE_VERSION_STACK "vers"
 
     set ans [list]
     lappend ans [list [set "func_sh"]]
     lappend ans [list set MODULES_CMD $modulecmd_path]
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set ENV $install_initdir/profile.sh]
+        lappend ans [list set BASH_ENV $install_initdir/bash]
+    }
     lappend ans [list set MODULESHOME $moduleshome]
 
     test_cmd_re "sh" "autoinit" $ans
 
     # setup environment state
-    if { $verbose > 0 } {
-        send_user "\tUnset MODULE_VERSION\n"
-        send_user "\tUnset MODULE_VERSION_STACK\n"
-    }
-    unset env(MODULE_VERSION)
-    unset env(MODULE_VERSION_STACK)
+    unsetenv_var MODULE_VERSION
+    unsetenv_var MODULE_VERSION_STACK
 }
 
 # setup environment state
@@ -538,6 +549,10 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
                     }
                     lappend ans [list set MODULES_CMD $modulecmd_path]
+                    if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
+                        lappend ans [list set ENV $install_initdir/profile.sh]
+                        lappend ans [list set BASH_ENV $install_initdir/bash]
+                    }
                     lappend ans [list set LOADEDMODULES ""]
                     lappend ans [list set MODULESHOME $moduleshome]
                     lappend ans [list set MODULEPATH ""]
@@ -549,7 +564,13 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
                     }
                     lappend ans [list set MODULES_CMD $modulecmd_path]
+                    if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
+                        lappend ans [list set ENV $install_initdir/profile.sh]
+                    }
                     lappend ans [list set MODULEPATH_modshare "(.*)"]
+                    if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
+                        lappend ans [list set BASH_ENV $install_initdir/bash]
+                    }
                     lappend ans [list set LOADEDMODULES ""]
                     lappend ans [list set MODULESHOME $moduleshome]
                     lappend ans [list set MODULEPATH "$install_modulepath:$install_prefix/test/modulefiles:$install_prefix/test/etc"]
@@ -563,7 +584,13 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                         lappend ans [list set MODULE_VERSION_STACK "(.*)"]
                     }
                     lappend ans [list set MODULES_CMD $modulecmd_path]
+                    if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
+                        lappend ans [list set ENV $install_initdir/profile.sh]
+                    }
                     lappend ans [list set MODULEPATH_modshare "$install_modulepath:1"]
+                    if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
+                        lappend ans [list set BASH_ENV $install_initdir/bash]
+                    }
                     lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
                     lappend ans [list set LOADEDMODULES "null"]
                     lappend ans [list set MODULESHOME $moduleshome]
@@ -650,3 +677,5 @@ unset func_python
 unset func_ruby
 unset func_cmake
 unset func_r
+
+unset set_shell_startup
