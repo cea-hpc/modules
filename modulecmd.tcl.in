@@ -2115,9 +2115,15 @@ proc module {command args} {
       switch -- $command {
          path - paths - autoinit - help - prepend-path - append-path -\
          remove-path - is-loaded - is-saved - is-used - is-avail -\
-         info-loaded - clear - config {
+         info-loaded - clear {
             set errormsg "${msgprefix}Command '$command' not supported"
          }
+      }
+      # other commands can only be called from modulefile evaluated from
+      # command acting as top-level context (source and autoinit)
+      if {([getEvalModuleStackDepth] > 1 || [notInList [list source autoinit]\
+         [currentCommandName]]) && $command eq {config}} {
+         set errormsg "${msgprefix}Command '$command' not supported"
       }
    }
 
