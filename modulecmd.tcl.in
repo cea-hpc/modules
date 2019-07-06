@@ -9292,6 +9292,14 @@ proc cmdModuleConfig {dump_state args} {
       set confvar($runenvconf) $runenvvar
    }
 
+   # list variable caching config value once set
+   array set confcachevar [list contact ::g_contact extra_siteconfig\
+      ::g_extra_siteconfig auto_handling ::g_auto_handling avail_indepth\
+      ::g_avail_indepth term_background ::g_term_background colors ::g_colors\
+      color ::g_color unload_match_order ::g_unload_match_order\
+      implicit_default ::g_implicit_default search_match ::g_search_match\
+      set_shell_startup ::g_set_shell_startup]
+
    if {[info exists name] && ![info exists confval($name)]} {
       reportErrorAndExit "Configuration option '$name' does not exist"
    # set configuration
@@ -9314,6 +9322,10 @@ proc cmdModuleConfig {dump_state args} {
          pushMode load
          setenv $confvar($name) $value
          popMode
+      }
+      # clear cached value for config if any
+      if {[info exists confcachevar($name)]} {
+         unset $confcachevar($name)
       }
    # report configuration
    } else {
