@@ -79,7 +79,11 @@ if {$install_setbinpath eq "y"} {
    if {$install_examplemodulefiles eq "y" && $install_loadedmodules eq "" \
       && $modfilesdir_in_modpath} {
       foreach shell $shell_list {
-         testall_cmd "$shell" "envml null printenv LOADEDMODULES" "null" "" 0
+         if {$shell eq {bash} || $shell eq {basheu} || [is_set_shell_startup_enabled]} {
+            testall_cmd "$shell" "envml null printenv LOADEDMODULES" "null" "" 0
+         } else {
+            testall_cmd "$shell" "envml null printenv LOADEDMODULES" "" "envml: module command not found..." 1
+         }
       }
    }
 

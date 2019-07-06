@@ -35,6 +35,14 @@ proc find_bin {name} {
    return $path
 }
 
+# provide a lassign proc for Tcl8.4 and earlier
+if {[info commands lassign] eq ""} {
+   proc lassign {values args} {
+      uplevel 1 [list foreach $args [linsert $values end {}] break]
+      lrange $values [llength $args] end
+   }
+}
+
 
 if {$verbose > 0} {
    send_user "\tInitializing the testsuite ...\n"
@@ -240,6 +248,28 @@ proc siteconfig_isStderrTty {} {
    }]
    interp delete _siteconfig
    return $is_stderr_tty
+}
+
+# determine overridden configuration in installed initdir modulerc
+set initmodulerc_file "$install_initdir/modulerc"
+set fid [open $initmodulerc_file]
+while {[gets $fid line] >= 0} {
+   if {[string first {module config } $line] == 0} {
+      lassign [lrange [split $line] 2 3] configname configval
+      set initmodulerc_$configname $configval
+   }
+}
+close $fid
+unset fid
+unset line
+
+# check configuration enablement between ./configure option and init modulerc
+proc is_set_shell_startup_enabled {} {
+   if {[info exists ::initmodulerc_set_shell_startup]} {
+      return $::initmodulerc_set_shell_startup
+   } else {
+      return [expr {$::install_setshellstartup eq {y} ? {1} : {0}}]
+   }
 }
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

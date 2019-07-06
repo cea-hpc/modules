@@ -54,22 +54,27 @@ if {[file readable $env(TESTSUITEDIR)/example/.modulespath]} {
 }
 
 set insmodrc [file readable $install_initdir/modulerc]
-set modrc_exinstalled 0
+if {$insmodrc} {
+    set fid [open $install_initdir/modulerc r]
+    set insmodrcdata [split [read $fid] "\n"]
+    close $fid
+}
 if {[file readable $env(TESTSUITEDIR)/example/modulerc]} {
     set fid [open $env(TESTSUITEDIR)/example/modulerc r]
     set exmodrcdata [split [read $fid] "\n"]
     close $fid
-    if {$insmodrc} {
-        set fid [open $install_initdir/modulerc r]
-        set insmodrcdata [split [read $fid] "\n"]
-        set insmodrc 1
-        close $fid
-    } else {
-        set insmodrcdata ""
-    }
-    if {$exmodrcdata eq $insmodrcdata} {
-        set modrc_exinstalled 1
-    }
+}
+if {[file readable $env(TESTSUITEDIR)/example/modulerc-1]} {
+    set fid [open $env(TESTSUITEDIR)/example/modulerc-1 r]
+    set exmodrc1data [split [read $fid] "\n"]
+    close $fid
+}
+set modrc_exinstalled 0
+set modrc1_exinstalled 0
+if {[info exists insmodrcdata] && [info exists exmodrcdata] && $exmodrcdata eq $insmodrcdata} {
+    set modrc_exinstalled 1
+} elseif {[info exists insmodrcdata] && [info exists exmodrc1data] && $exmodrc1data eq $insmodrcdata} {
+    set modrc1_exinstalled 1
 }
 
 # check if stderr terminal attachement state is forced
@@ -532,7 +537,7 @@ if {$install_versioning eq "y"} {
 unsetenv_loaded_module
 unsetenv_path_var MODULEPATH
 
-if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalled)} {
+if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalled || $modrc1_exinstalled)} {
     foreach shell $supported_shells {
         switch -- $shell {
             {lisp} {
@@ -598,6 +603,23 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION "(.*)"]
                     }
+                } elseif {!$insmodspath && $modrc1_exinstalled} {
+                    lappend ans [list set _LMFILES__modshare "$install_modulefilesdir/null:1"]
+                    lappend ans [list set LOADEDMODULES_modshare "null:1"]
+                    if {$install_versioning eq "y"} {
+                        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+                    }
+                    lappend ans [list set MODULES_CMD $modulecmd_path]
+                    lappend ans [list set MODULEPATH_modshare "$install_modulepath:1"]
+                    lappend ans [list set MODULES_SET_SHELL_STARTUP 0]
+                    lappend ans [list set MODULES_AUTO_HANDLING 0]
+                    lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
+                    lappend ans [list set LOADEDMODULES "null"]
+                    lappend ans [list set MODULESHOME $moduleshome]
+                    lappend ans [list set MODULEPATH "$install_modulepath"]
+                    if {$install_versioning eq "y"} {
+                        lappend ans [list set MODULE_VERSION "(.*)"]
+                    }
                 }
 
                 test_cmd_re $shell "autoinit" $ans
@@ -630,6 +652,9 @@ if {[info exists exmodspathdata]} {
 if {[info exists exmodrcdata]} {
     unset exmodrcdata
 }
+if {[info exists exmodrc1data]} {
+    unset exmodrc1data
+}
 if {[info exists insmodspathdata]} {
     unset insmodspathdata
 }
@@ -640,6 +665,7 @@ if {[info exists insmodrcdata]} {
 unset insmodrc
 unset modspath_exinstalled
 unset modrc_exinstalled
+unset modrc1_exinstalled
 
 unset shell
 unset ans

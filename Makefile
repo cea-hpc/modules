@@ -1,8 +1,8 @@
 .PHONY: doc pkgdoc initdir install install-testsiteconfig \
-	install-testsiteconfig-1 install-testmodulerc install-testetcrc \
-	install-testmodspath install-testmodspath-empty uninstall-testconfig \
-	uninstall dist dist-tar dist-gzip dist-bzip2 srpm clean distclean test \
-	testinstall testsyntax
+	install-testsiteconfig-1 install-testmodulerc install-testmodulerc-1 \
+	install-testetcrc install-testmodspath install-testmodspath-empty \
+	uninstall-testconfig uninstall dist dist-tar dist-gzip dist-bzip2 srpm \
+	clean distclean test testinstall testsyntax
 
 # definitions for code coverage
 NAGELFAR_DLSRC1 := http://downloads.sourceforge.net/nagelfar/
@@ -247,6 +247,9 @@ testsuite/example/.modulespath: testsuite/example/.modulespath.in
 testsuite/example/modulerc: testsuite/example/modulerc.in
 	$(translate-in-script)
 
+testsuite/example/modulerc-1: testsuite/example/modulerc-1.in
+	$(translate-in-script)
+
 install-testsiteconfig: testsuite/example/siteconfig.tcl
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(etcdir)/
@@ -258,6 +261,10 @@ install-testsiteconfig-1: testsuite/example/siteconfig.tcl-1
 install-testmodulerc: testsuite/example/modulerc
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
 	cp $^ $(DESTDIR)$(initdir)/
+
+install-testmodulerc-1: testsuite/example/modulerc-1
+	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
+	cp $^ $(DESTDIR)$(initdir)/modulerc
 
 install-testetcrc: testsuite/etc/empty
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
@@ -437,7 +444,7 @@ endif
 	rm -f $(MODULECMDTEST)
 	rm -f contrib/scripts/add.modules
 	rm -f contrib/scripts/modulecmd
-	rm -f testsuite/example/.modulespath testsuite/example/modulerc
+	rm -f testsuite/example/.modulespath testsuite/example/modulerc testsuite/example/modulerc-1
 	rm -f modules-*.tar modules-*.tar.gz modules-*.tar.bz2
 	rm -f modules-*.srpm
 	$(MAKE) -C init clean
