@@ -99,9 +99,6 @@ Modules 4.3.0 (2019-XX-XX)
   from Ben Bowers, fix issue #234)
 * Doc: add description in the module.1 man page of ``MODULERCFILE`` in the
   environment section and ``siteconfig.tcl`` in the files section.
-* Correctly escape ``?`` character in shell alias. (fix issue #275)
-* When resolving the enabled list of modulepaths, ensure resolved path
-  entries are unique. (fix issue #274)
 * Install: provide at installation time a bare site-specific configuration
   script in designated ``etcdir`` if no pre-existing ``siteconfig.tcl`` file
   is found at designated location.
@@ -133,13 +130,6 @@ Modules 4.3.0 (2019-XX-XX)
   ``extra_siteconfig`` and ``implicit_default``. Currently locked options are
   reported through the ``locked_configs`` option on the ``config``
   sub-command.
-* Right trim '#' characters from the fetched modulefile magic cookie string
-  to ensure a correct compatibility version comparison. Useful when modulefile
-  first line is equal to ``#%Module4.3##############``.
-* Fix argument parsing for the ``append-path``, ``prepend-path`` and
-  ``remove-path`` modulefile commands to consider every arguments found after
-  the variable name as variable values and not command option even if argument
-  starts with ``-`` character. (fix issue #278)
 * Introduce the ability to control the module search match. Search query
   string should match module name start or any part of module fully qualified
   name. Default search match behavior is set at ``./configure`` time with the
@@ -160,6 +150,25 @@ Modules 4.3.0 (2019-XX-XX)
   ``set_shell_startup`` option.
 * Cookbook: add the *test-modulefiles* recipe. (fix issue #182 with
   contribution from Colin Marquardt)
+
+
+Modules 4.2.5 (2019-07-08)
+--------------------------
+
+* Correctly escape ``?`` character in shell alias. (fix issue #275)
+* When resolving the enabled list of modulepaths, ensure resolved path
+  entries are unique. (fix issue #274)
+* Right trim '#' characters from the fetched modulefile magic cookie string
+  to ensure a correct compatibility version comparison. Useful when modulefile
+  first line is equal to ``#%Module4.2##############``.
+* Fix argument parsing for the ``append-path``, ``prepend-path`` and
+  ``remove-path`` modulefile commands to consider every arguments found after
+  the variable name as variable values and not command option even if argument
+  starts with ``-`` character. (fix issue #278)
+* Fix automatic loading of modulefiles when multiple module names are set on a
+  single ``module load`` modulefile command. When auto_handling mode was
+  disabled, the load of not loaded modules was not achieved as soon as some
+  modules on this list were already loaded. (fix issue #281)
 
 
 Modules 4.2.4 (2019-04-26)
