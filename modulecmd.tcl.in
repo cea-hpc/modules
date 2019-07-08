@@ -1850,12 +1850,19 @@ proc module {command args} {
                   # load here if no auto mode, done through prereq elsewhere
                   # inhibited if currently in DepRe context
                   if {![getAutoHandling] && [currentModuleEvalContext] ne\
-                     {depre} && ![eval is-loaded $args] && ![eval is-loading\
-                     $args]} {
-                     set ret [eval cmdModuleLoad reqlo 0 $args]
-                     # ignore obtained error if force mode enabled
-                     if {[getForce]} {
-                        set ret 0
+                     {depre}} {
+                     # attempt load of not already loaded modules
+                     foreach arg $args {
+                        if {![is-loaded $arg] && ![is-loading $arg]} {
+                           lappend modlist $arg
+                        }
+                     }
+                     if {[info exists modlist]} {
+                        set ret [eval cmdModuleLoad reqlo 0 $modlist]
+                        # ignore obtained error if force mode enabled
+                        if {[getForce]} {
+                           set ret 0
+                        }
                      }
                   }
                   # register modulefiles to load as individual prereqs
