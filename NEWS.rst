@@ -6,6 +6,25 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+Modules 4.2.5 (2019-07-08)
+--------------------------
+
+* Correctly escape ``?`` character in shell alias. (fix issue #275)
+* When resolving the enabled list of modulepaths, ensure resolved path
+  entries are unique. (fix issue #274)
+* Right trim '#' characters from the fetched modulefile magic cookie string
+  to ensure a correct compatibility version comparison. Useful when modulefile
+  first line is equal to ``#%Module4.2##############``.
+* Fix argument parsing for the ``append-path``, ``prepend-path`` and
+  ``remove-path`` modulefile commands to consider every arguments found after
+  the variable name as variable values and not command option even if argument
+  starts with ``-`` character. (fix issue #278)
+* Fix automatic loading of modulefiles when multiple module names are set on a
+  single ``module load`` modulefile command. When auto_handling mode was
+  disabled, the load of not loaded modules was not achieved as soon as some
+  modules on this list were already loaded. (fix issue #281)
+
+
 Modules 4.2.4 (2019-04-26)
 --------------------------
 
