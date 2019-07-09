@@ -268,7 +268,7 @@ install-testmodulerc-1: testsuite/example/modulerc-1
 
 install-testetcrc: testsuite/etc/empty
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(prefix)/etc/rc
+	cp $^ $(DESTDIR)$(etcdir)/rc
 
 install-testmodspath: testsuite/example/.modulespath
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
@@ -279,7 +279,7 @@ install-testmodspath-empty: testsuite/example/.modulespath-empty
 	cp $^ $(DESTDIR)$(initdir)/.modulespath
 
 uninstall-testconfig:
-	rm -f $(DESTDIR)$(prefix)/etc/rc
+	rm -f $(DESTDIR)$(etcdir)/rc
 	rm -f $(DESTDIR)$(etcdir)/siteconfig.tcl
 	rm -f $(DESTDIR)$(initdir)/modulerc
 	rm -f $(DESTDIR)$(initdir)/.modulespath

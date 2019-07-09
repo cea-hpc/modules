@@ -117,7 +117,7 @@ user and *modulefile* specific setups. These files are interpreted as
 Upon invocation of **modulecmd.tcl** module run-command files are sourced
 in the following order:
 
-1. Global RC file as specified by *$MODULERCFILE* or |emph prefix|\ */etc/rc*.
+1. Global RC file as specified by *$MODULERCFILE* or |emph etcdir|\ */rc*.
    If *$MODULERCFILE* points to a directory, the *modulerc* file in this
    directory is used as global RC file.
 
@@ -1071,7 +1071,7 @@ FILES
  configuration script could be defined using the **MODULES_SITECONFIG**
  environment variable.
 
-|bold prefix|\ **/etc/rc**
+|bold etcdir|\ **/rc**
 
  The system-wide modules rc file. The location of this file can be changed
  using the **MODULERCFILE** environment variable as described above.
