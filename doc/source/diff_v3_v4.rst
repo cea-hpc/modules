@@ -19,7 +19,7 @@ This section describes the features of the compatibility version that are not su
 Package Initialization
 ^^^^^^^^^^^^^^^^^^^^^^
 
-**MODULESBEGINENV** environment snapshot functionality is not supported on version 4. Modules collection mechanism should be preferred to save and restore sets of enabled modulepaths and loaded modulefiles. Modules 4 also introduce a system configuration file *etc/modulerc*, located in Modules installation directory. This *modulerc* file is sourced by Modules shell initialization scripts and helps to setup the initial environment right after initializing the **module** command.
+**MODULESBEGINENV** environment snapshot functionality is not supported on version 4. Modules collection mechanism should be preferred to save and restore sets of enabled modulepaths and loaded modulefiles. Modules 4 also introduces a system configuration file *init/modulerc*, located in Modules installation directory. Starting version ``4.3``, this file could also be *etc/initrc*. This *modulerc*/*initrc* file is sourced by Modules shell initialization scripts and helps to setup the initial environment right after initializing the **module** command.
 
 
 Command line switches

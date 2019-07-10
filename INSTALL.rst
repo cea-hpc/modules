@@ -133,25 +133,27 @@ necessarily mandatory as it depends of the kind of setup you want to achieve.
 
 3. Define module paths to enable by default. Edit ``modulerc`` configuration
    file or ``.modulespath`` if you have chosen ``--enable-dotmodulespath`` at
-   configure time. Add there all the modulefile directories you want to
-   activate by default at Modules initialization time.
-
-   If you use ``.modulespath`` configuration file, add one line mentioning
-   each modulefile directory::
+   configure time. If you have set ``--with-initconf-in`` to ``etcdir`` to
+   install these Modules initialization configurations in the configuration
+   directory designated by the ``--etcdir`` option, these configuration files
+   are respectively named ``initrc`` and ``modulespath``. If you use
+   ``.modulespath`` (or ``modulespath``) configuration file, add one line
+   mentioning each modulefile directory::
 
        /path/to/regular/modulefiles
        /path/to/other/modulefiles
 
-   If you use ``modulerc`` configuration file, add one line mentioning each
-   modulefile directory prefixed by the ``module use`` command::
+   If you use ``modulerc`` (or ``initrc``) configuration file, add one line
+   mentioning each modulefile directory prefixed by the ``module use``
+   command::
 
        module use /path/to/regular/modulefiles
        module use /path/to/other/modulefiles
 
-4. Define modulefiles to load by default. Edit ``modulerc`` configuration file
-   (modulefiles to load cannot be specified in ``.modulespath`` file). Add
-   there all the modulefiles you want to load by default at Modules
-   initialization time.
+4. Define modulefiles to load by default. Edit ``modulerc`` (or ``initrc``)
+   configuration file. Modulefiles to load cannot be specified in
+   ``.modulespath`` (or ``modulespath``) file. Add there all the modulefiles
+   you want to load by default at Modules initialization time.
 
    Add one line mentioning each modulefile to load prefixed by the
    ``module load`` command::
@@ -159,8 +161,9 @@ necessarily mandatory as it depends of the kind of setup you want to achieve.
        module load foo
        module load bar
 
-   In fact you can add to the ``modulerc`` configuration file any kind of
-   supported module command.
+   In fact you can add to the ``modulerc`` (or ``initrc``) configuration file
+   any kind of supported module command, like ``module config`` commands to
+   tune ``module``'s default behaviors.
 
 If you go through the above steps you should have a valid setup tuned to your
 needs. After that you still have to write modulefiles to get something to
@@ -220,12 +223,16 @@ instance ``--disable-set-manpath``):
                       Append rather prepend binary directory to the PATH
                       environment variable when the ``--enable-set-binpath``
                       option is enabled. (default=no)
---enable-dotmodulespath
+--enable-dotmodulespath, --enable-modulespath
                       Set the module paths defined by ``--with-modulepath``
                       option in a ``.modulespath`` file (following C version
                       fashion) within the initialization directory defined by
                       the ``--initdir`` option rather than within the
-                      ``modulerc`` file. (default=no)
+                      ``modulerc`` file. Or respectively, if option
+                      ``--with-initconf-in`` has been set to ``etcdir``, in a
+                      ``modulespath`` file within the configuration directory
+                      defined by the ``--etcdir`` option rather than within
+                      the ``initrc`` file. (default=no)
 --enable-doc-install  Install the documentation files in the documentation
                       directory defined with the ``--docdir`` option. This
                       feature has no impact on manual pages installation.
@@ -300,6 +307,10 @@ instance ``--without-modulepath``):
                       List of paths to look at when searching the location of
                       tools required to build and configure Modules
                       (default=\ ``/usr/bin:/bin:/usr/local/bin``)
+--with-initconf-in=VALUE
+                      Location where to install Modules initialization
+                      configuration files. Either ``initdir`` or ``etcdir``
+                      (default=\ ``initdir``)
 --with-tclsh=BIN      Name or full path of Tcl interpreter shell
                       (default=\ ``tclsh``)
 --with-pager=BIN      Name or full path of default pager program to use to
@@ -356,18 +367,22 @@ instance ``--without-modulepath``):
                       Each path in this list should be separated by ``:``.
                       Defined value is registered in the ``modulerc`` or
                       ``.modulespath`` configuration file, depending on the
-                      ``--enable-dotmodulespath`` option. This value is read
-                      at initialization time to populate the MODULEPATH
-                      environment variable. By default, this modulepath is
-                      composed of the directory set for the system modulefiles
-                      (default=\ ``PREFIX/modulefiles`` or
+                      ``--enable-dotmodulespath`` option. These files are
+                      respectively called ``initrc`` and ``modulespath`` if
+                      ``--with-initconf-in`` is set to ``etcdir``. The path
+                      list value is read at initialization time to populate
+                      the MODULEPATH environment variable. By default, this
+                      modulepath is composed of the directory set for the
+                      system modulefiles (default=\ ``PREFIX/modulefiles`` or
                       ``BASEPREFIX/$MODULE_VERSION/modulefiles`` if versioning
                       installation mode enabled)
 --with-loadedmodules=MODLIST
                       Default modulefiles to load at Modules initialization
                       time. Each modulefile in this list should be separated
                       by ``:``. Defined value is registered in the
-                      ``modulerc`` configuration file. (default=no)
+                      ``modulerc`` configuration file or in the ``initrc``
+                      file if ``--with-initconf-in`` is set to ``etcdir``.
+                      (default=no)
 --with-quarantine-vars=<VARNAME[=VALUE] ...>
                       Environment variables to put in quarantine when running
                       the module command to ensure it a sane execution
