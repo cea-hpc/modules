@@ -18,16 +18,6 @@ include ../Makefile.inc
 # source version definitions shared across the Makefiles of this project
 include ../version.inc
 
-# kind of config file to use: modulerc or .modulespath
-ifeq ($(setdotmodulespath),y)
-  # both configuration files will be installed and in this case default init
-  # scripts will use .modulespath prior to modulerc. If .modulespath sets a
-  # module path then modulerc will be ignored
-  ALL_CONFIG := .modulespath modulerc
-else
-  ALL_CONFIG := modulerc
-endif
-
 # generate 'module use' commands to put in modulerc from modulepath
 modulerc := $(addprefix \\\nmodule use --append {,$(subst :,} ,$(modulepath)}))
 # generate 'module load' commands to put in modulerc from loadedmodules
@@ -43,9 +33,24 @@ endif
 
 ALL_SHELLS = $(SH_LIKE) $(CSH_LIKE) $(OTHER)
 
-all: $(ALL_SHELLS) $(ALL_CONFIG) $(EXAMPLE_MODFILES_SRCDIR)/modules
+all: $(ALL_SHELLS) modulerc $(EXAMPLE_MODFILES_SRCDIR)/modules
 ifeq ($(versioning),y)
 all: $(EXAMPLE_MODFILES_SRCDIR)/version
+endif
+ifeq ($(setdotmodulespath),y)
+  # both configuration files will be installed and in this case default init
+  # scripts will use .modulespath prior to modulerc. If .modulespath sets a
+  # module path then modulerc will be ignored
+all: .modulespath
+endif
+
+# define init configs location
+ifeq ($(initconfin),etcdir)
+  modulespath := $(etcdir)/modulespath
+  initrc := $(etcdir)/initrc
+else
+  modulespath := $(initdir)/.modulespath
+  initrc := $(initdir)/modulerc
 endif
 
 # if enabled translate to keep text after markup elsewhere remove the
@@ -220,8 +225,11 @@ ifeq ($(compatversion),y)
 else
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/switchml
 endif
-	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_CONFIG))
-	cp -R -P $(ALL_CONFIG) $(DESTDIR)$(initdir)/
+	rm -f $(DESTDIR)$(modulespath) $(DESTDIR)$(initrc)
+	cp -R -P modulerc $(DESTDIR)$(initrc)
+ifeq ($(setdotmodulespath),y)
+	cp -R -P .modulespath $(DESTDIR)$(modulespath)
+endif
 ifeq ($(examplemodulefiles),y)
 	cp $(addprefix $(EXAMPLE_MODFILES_SRCDIR)/,$(EXAMPLE_MODFILES)) $(DESTDIR)$(modulefilesdir)/
 endif
@@ -237,7 +245,7 @@ ifeq ($(compatversion),y)
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/switchml
 endif
 	rm -f $(DESTDIR)$(initdir)/zsh-functions/_module
-	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_CONFIG))
+	rm -f $(DESTDIR)$(modulespath) $(DESTDIR)$(initrc)
 	$(RMDIR_IGN_NON_EMPTY) $(DESTDIR)$(modulefilesdir) || true
 	@if [ -d $(DESTDIR)$(modulefilesdir) ]; then echo; echo "WARNING: $(DESTDIR)$(modulefilesdir) is not empty so skip removal" >&2; echo; fi
 	rmdir $(DESTDIR)$(initdir)/ksh-functions

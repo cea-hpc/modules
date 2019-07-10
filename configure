@@ -32,9 +32,9 @@ docdir vimdatadir modulefilesdir setmanpath appendmanpath setbinpath \
 appendbinpath setdotmodulespath docinstall vimaddons examplemodulefiles \
 builddoc gitworktree usemanpath compatversion EXEEXT libtclenvmodules \
 SHLIB_SUFFIX versioning silentshdbgsupport setshellstartup quarantinesupport \
-autohandling availindepth implicitdefault pager pageropts color darkbgcolors \
-lightbgcolors termbg lockedconfigs unloadmatchorder searchmatch modulepath \
-loadedmodules quarantinevars"
+autohandling availindepth implicitdefault initconfin pager pageropts color\
+darkbgcolors lightbgcolors termbg lockedconfigs unloadmatchorder searchmatch \
+modulepath loadedmodules quarantinevars"
 compatarglist=
 libarglist=
 
@@ -79,6 +79,7 @@ PS=ps
 BASENAME=basename
 RMDIR_IGN_NON_EMPTY=rmdir
 VERSION=
+initconfin=initdir
 pager=less
 pageropts='-eFKRX'
 color=n
@@ -158,7 +159,9 @@ Optional Features:
   --enable-set-binpath    set bindir to PATH in init scripts [yes]
   --enable-append-binpath append rather prepend bindir to PATH [no]
   --enable-dotmodulespath configure modules path in .modulespath file rather
-                          than modulerc file [no]
+                          than modulerc file (or respectively in modulespath
+                          file rather initrc file if \`--with-initconf-in' is
+                          set to 'etcdir') [no]
   --enable-doc-install    install documentation files in the documentation
                           directory defined with \'docdir' (no impact on
                           man pages installation) [yes]
@@ -211,6 +214,10 @@ Optional Packages:
                           list of paths to look at when searching the location
                           of tools required to build and configure Modules
                           [$binsearchpath]
+  --with-initconf-in=VALUE
+                          location where to install Modules initialization
+                          configuration files. Either \`initdir' or \`etcdir'
+                          [initdir]
   --with-tclsh=BIN        name or full path of Tcl interpreter shell [tclsh]
   --with-pager=BIN        name or full path of default pager program to use to
                           paginate informational message output (can be super-
@@ -422,6 +429,12 @@ for arg in "$@"; do
       implicitdefault=$(get_feature_value "$arg") ;;
    --with-bin-search-path=*|--without-bin-search-path)
       binsearchpath=$(get_package_value "$arg") ;;
+   --with-initconf-in=*|--without-initconf-in)
+      initconfin=$(get_package_value "$arg") ;
+      allowedval=" initdir etcdir " ;
+      if [ "${allowedval// $initconfin /}" = "$allowedval" ]; then
+         echo_error "Bad value for option \`--with-initconf-in', allowed values are:$allowedval"
+      fi ;;
    --with-tclsh=*|--without-tclsh)
       tclshbin=$(get_package_value "$arg") ;;
    --with-pager=*|--without-pager)

@@ -95,6 +95,15 @@ endif
 include version.inc
 endif
 
+# define init configs location
+ifeq ($(initconfin),etcdir)
+  modulespath := $(etcdir)/modulespath
+  initrc := $(etcdir)/initrc
+else
+  modulespath := $(initdir)/.modulespath
+  initrc := $(initdir)/modulerc
+endif
+
 # comment entries if feature not enabled
 ifeq ($(versioning),y)
   setversioning :=
@@ -260,11 +269,11 @@ install-testsiteconfig-1: testsuite/example/siteconfig.tcl-1
 
 install-testmodulerc: testsuite/example/modulerc
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(initdir)/
+	cp $^ $(DESTDIR)$(initrc)
 
 install-testmodulerc-1: testsuite/example/modulerc-1
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(initdir)/modulerc
+	cp $^ $(DESTDIR)$(initrc)
 
 install-testetcrc: testsuite/etc/empty
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
@@ -272,17 +281,17 @@ install-testetcrc: testsuite/etc/empty
 
 install-testmodspath: testsuite/example/.modulespath
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(initdir)/
+	cp $^ $(DESTDIR)$(modulespath)
 
 install-testmodspath-empty: testsuite/example/.modulespath-empty
 	$(MAKE) -C init install-testconfig DESTDIR=$(DESTDIR)
-	cp $^ $(DESTDIR)$(initdir)/.modulespath
+	cp $^ $(DESTDIR)$(modulespath)
 
 uninstall-testconfig:
 	rm -f $(DESTDIR)$(etcdir)/rc
 	rm -f $(DESTDIR)$(etcdir)/siteconfig.tcl
-	rm -f $(DESTDIR)$(initdir)/modulerc
-	rm -f $(DESTDIR)$(initdir)/.modulespath
+	rm -f $(DESTDIR)$(initrc)
+	rm -f $(DESTDIR)$(modulespath)
 	$(MAKE) -C init uninstall-testconfig DESTDIR=$(DESTDIR)
 
 install: $(INSTALL_PREREQ)
