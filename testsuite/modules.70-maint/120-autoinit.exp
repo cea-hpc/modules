@@ -35,14 +35,15 @@ set modulecmd_pathre [regsub -all "\(\[.+?\]\)" $modulecmd_path {\\\1}]
 set moduleshome $install_prefix
 
 # compare init config files to determine if we can guess expected setup
-set insmodspath [file readable $install_initdir/.modulespath]
+set modspath [expr {[file exists $install_etcdir/modulespath] ? "$install_etcdir/modulespath" : "$install_initdir/.modulespath"}]
+set insmodspath [file readable $modspath]
 set modspath_exinstalled 0
 if {[file readable $env(TESTSUITEDIR)/example/.modulespath]} {
     set fid [open $env(TESTSUITEDIR)/example/.modulespath r]
     set exmodspathdata [split [read $fid] "\n"]
     close $fid
     if {$insmodspath} {
-        set fid [open $install_initdir/.modulespath r]
+        set fid [open $modspath r]
         set insmodspathdata [split [read $fid] "\n"]
         close $fid
     } else {
@@ -53,9 +54,10 @@ if {[file readable $env(TESTSUITEDIR)/example/.modulespath]} {
     }
 }
 
-set insmodrc [file readable $install_initdir/modulerc]
+set modrc [expr {[file exists $install_etcdir/initrc] ? "$install_etcdir/initrc" : "$install_initdir/modulerc"}]
+set insmodrc [file readable $modrc]
 if {$insmodrc} {
-    set fid [open $install_initdir/modulerc r]
+    set fid [open $modrc r]
     set insmodrcdata [split [read $fid] "\n"]
     close $fid
 }
@@ -666,6 +668,8 @@ unset insmodrc
 unset modspath_exinstalled
 unset modrc_exinstalled
 unset modrc1_exinstalled
+unset modrc
+unset modspath
 
 unset shell
 unset ans
