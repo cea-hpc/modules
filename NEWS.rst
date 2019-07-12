@@ -150,6 +150,25 @@ Modules 4.3.0 (2019-XX-XX)
   ``set_shell_startup`` option.
 * Cookbook: add the *test-modulefiles* recipe. (fix issue #182 with
   contribution from Colin Marquardt)
+* Fix location of global RC file to ``@etcdir@/rc`` instead of
+  ``@prefix@/etc/rc`` to cope with ``@etcdir@`` specific setup (``@etcdir@``
+  defaults to ``@prefix@/etc``).
+* Take into account Modules initialization configurations found in ``etc``
+  directory if they exist rather in ``init`` directory. If ``initrc``
+  configuration file is found in ``etcdir`` then it is preferred over
+  ``modulerc`` file in ``initdir``. Following the same trend, ``modulespath``
+  configuration file is found in ``etcdir`` then it is preferred over
+  ``.modulespath`` file in ``initdir``.
+* Introduce the ability to install the Modules initialization configuration
+  files in the ``etcdir`` rather than in the ``initdir``. A new configure
+  option is introduced for this task: ``--with-initconf-in``. Accepted values
+  for this option are: ``etcdir`` or ``initdir`` (default).
+* Add the ``--enable-modulespath`` configure option, which is an alias for the
+  ``--enable-dotmodulespath`` option as ``.modulespath`` configuration file is
+  named ``modulespath`` when installed in ``etcdic``.
+* Install: update RPM spec file to disable ``set_shell_startup`` option by
+  default, set ``/etc/environment-modules`` as configuration directory and
+  store Modules initialization configuration files in it.
 
 
 Modules 4.2.5 (2019-07-08)

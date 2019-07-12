@@ -212,6 +212,16 @@ New sub-commands, command-line switches and environment variables
   ``--enable-set-shell-startup`` and ``--disable-set-shell-startup`` define
   this setting which can be superseded by the environment variable.
 
+* When initializing the ``module`` command in a shell session, initialization
+  configuration files stored in the defined configuration directory are taken
+  into account if present instead of the configuration files stored in the
+  initialization script directory. When they are stored in the configuration
+  directory, these configuration files are named ``initrc`` and
+  ``modulespath`` instead of respectively ``modulerc`` and ``.modulespath``.
+  The location of the installation of those files can be controlled with
+  configure option ``--with-initconf-in``, which accepts ``etcdir`` and
+  ``initdir`` values.
+
 
 Further reading
 ---------------
