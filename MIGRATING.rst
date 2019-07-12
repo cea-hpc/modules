@@ -135,6 +135,10 @@ environment variable which supersedes this default.::
     - Config. name ---------.- Value (set by if default overridden) ---------------
     auto_handling             1 (env-var)
 
+Setting options with ``module config`` could be done in the Modules
+initialization RC file to change default value of options when ``module``
+command is initialized.
+
 When command-line switch ``--reset`` and an option name is passed to the
 **config** sub-command, it restores default value for configuration option by
 unsetting related environment variable.
