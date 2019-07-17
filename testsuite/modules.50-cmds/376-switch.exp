@@ -587,7 +587,7 @@ testouterr_cmd_re sh {switch --no-auto swh swc} $ans [join $tserr \n]
 # switched-off module breaks when unloaded
 setenv_loaded_module [list rq] [list $mp/rq]
 
-set tserr [list {load swi} {unload rq} \n[msg_load swi [err_swoff rq] [err_conun rq]]]
+set tserr [list {load swi} {unload rq} \n[msg_unload rq $err_evalabort] \n[msg_load swi [err_swoff rq] [err_conun rq]]]
 testouterr_cmd_re sh {load --auto swi} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swi} ERR [join $tserr \n]
 
@@ -595,7 +595,7 @@ testouterr_cmd_re sh {load --no-auto swi} ERR [join $tserr \n]
 # switched-on module breaks when loaded
 unsetenv_loaded_module
 
-set tserr [list {load swj} {load ra} \n[msg_load swj [err_swon ra] [err_reqlo ra]]]
+set tserr [list {load swj} {load ra} \n[msg_load ra $err_evalabort] \n[msg_load swj [err_swon ra] [err_reqlo ra]]]
 testouterr_cmd_re sh {load --auto swj} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swj} ERR [join $tserr \n]
 
@@ -611,7 +611,7 @@ lappend ans [list unsetpath MODULES_LMCONFLICT]
 lappend ans [list setpath _LMFILES_ $mp/ra]
 lappend ans [list setpath LOADEDMODULES ra]
 lappend ans [list ERR]
-set tserr [list {unload swj} {unload ra} \n[msg_top_unload swj {} {} {} [err_urequn ra]]]
+set tserr [list {unload swj} {unload ra} \n[msg_unload ra $err_evalabort] \n[msg_top_unload swj {} {} {} [err_urequn ra]]]
 testouterr_cmd_re sh {unload --auto swj} $ans [join $tserr \n]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES ra]
@@ -625,7 +625,7 @@ testouterr_cmd_re sh {unload --no-auto swj} $ans [join $tserr \n]
 # switched-off module breaks when unloaded and switched-on module breaks when loaded
 setenv_loaded_module [list rq] [list $mp/rq]
 
-set tserr [list {load swk} {unload rq} \n[msg_load swk [err_swoff rq] [err_conun rq]]]
+set tserr [list {load swk} {unload rq} \n[msg_unload rq $err_evalabort] \n[msg_load swk [err_swoff rq] [err_conun rq]]]
 testouterr_cmd_re sh {load --auto swk} ERR [join $tserr \n]
 testouterr_cmd_re sh {load --no-auto swk} ERR [join $tserr \n]
 
