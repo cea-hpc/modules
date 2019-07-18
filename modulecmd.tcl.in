@@ -668,8 +668,7 @@ proc reportModuleEval {} {
    set evalid [currentEvalId]
    array set contexttitle {conun {Unloading conflict} reqlo {Loading\
       requirement} depre {Reloading dependent} depun {Unloading dependent}\
-      urequn {Unloading useless requirement} unmo {Unloading module} lomo\
-      {Loading module}}
+      urequn {Unloading useless requirement}}
 
    if {[info exists ::g_moduleEval($evalid)]} {
       foreach contextevallist $::g_moduleEval($evalid) {
@@ -8085,12 +8084,12 @@ proc cmdModuleRestore {{coll default}} {
    lassign [getMovementBetweenList $curr_path_list $coll_path_list] \
       path_to_unuse path_to_use
 
-   # set a unique id to record messages related to this evaluation.
-   pushMsgRecordId restore-$coll-[getEvalModuleStackDepth]
+   # create an eval id to track successful/failed module evaluations
+   pushMsgRecordId restore-$coll-[getEvalModuleStackDepth] 0
 
    # unload modules one by one (no dependency auto unload)
    if {[llength $mod_to_unload] > 0} {
-      eval cmdModuleUnload unmo match 0 0 0 0 [lreverse $mod_to_unload]
+      eval cmdModuleUnload unload match 0 0 0 0 [lreverse $mod_to_unload]
    }
    # unuse paths
    if {[llength $path_to_unuse] > 0} {
@@ -8144,12 +8143,10 @@ proc cmdModuleRestore {{coll default}} {
 
    # load modules one by one with user asked state preserved
    foreach mod $mod_to_load {
-      cmdModuleLoad lomo [notInList $coll_nuasked_list $mod] $mod
+      cmdModuleLoad load [notInList $coll_nuasked_list $mod] $mod
    }
 
-   reportModuleEval
-   reportMsgRecord "Restoring collection [sgr hi $colldesc]"
-   popMsgRecordId
+   popMsgRecordId 0
 }
 
 proc cmdModuleSaverm {{coll default}} {

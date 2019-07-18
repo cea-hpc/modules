@@ -24,33 +24,20 @@ set cbadnerrmsg "$error_msgs: Collection $collbadn cannot be found"
 set cbadfperrmsg "$error_msgs: Collection $collbadfp cannot be found"
 set cbadterrmsg "$error_msgs: Collection $colld (for target \"$colltarget\") cannot be found"
 set cderrmsg "load $cdmod4"
-append cderrmsg "\n\n[msg_top_restore $colld {} {} [split $cdlm :]]"
 set c1errmsg "load $c1mod5\nload $c1mod6"
-append c1errmsg "\n\n[msg_top_restore $coll1 {} $cdmod5 [list $c1mod5 $c1mod6]]"
 set c2errmsg "unload $c1mod6\nunload $c1mod5\nunload $cdmod4\nload $c2mod4\nload $c2mod5\nload $c2mod6"
-append c2errmsg "\n\n[msg_top_restore $coll2 {} [list $c1mod6 $c1mod5 $cdmod4] [list $c2mod4 $c2mod5 $c2mod6]]"
 set c1errmsgf2 "unload $c2mod6\nunload $c2mod5\nunload $c2mod4\nload $cdmod4\nload $c1mod5\nload $c1mod6"
-append c1errmsgf2 "\n\n[msg_top_restore $coll1fpre {} [list $c2mod6 $c2mod5 $c2mod4] [list $cdmod4 $c1mod5 $c1mod6]]"
 set c3errmsg ""
 set c4errmsg "unload $c2mod6\nunload $c2mod5\nunload $c2mod4"
 set c5errmsg $c4errmsg
-append c4errmsg "\n\n[msg_top_restore $coll4 target [lreverse [split $c2lm :]] {}]"
-append c5errmsg "\n\n[msg_top_restore $coll5fpre {} [lreverse [split $c2lm :]] {}]"
 set badcontfp "$homewithcoll/.Xresources"
 set badcontfperrmsg "$error_msgs: $badcontfp is not a valid collection"
 set c9errmsg "load $c9mod1\nload $c9mod2\nload $c9mod3"
 set c10errmsg $c9errmsg
-append c9errmsg "\n\n[msg_top_restore $coll9fpre {} {} [split $c9lm :]]"
-append c10errmsg "\n\n[msg_top_restore $coll10fpre {} {} [split $c9lm :]]"
 set c9errmsg2 "unload $c9mod3\nunload $c9mod2\nload $c9mod2\nload $c9mod3"
-append c9errmsg2 "\n\n[msg_top_restore $coll9fpre {} [list $c9mod3 $c9mod2] [list $c9mod2 $c9mod3]]"
-set c11errmsg "load $c11mod1\nload $c11mod2\n\n[msg_top_restore $coll11fpre {} {} [list $c11mod1 $c11mod2]]"
-if {$install_autohandling eq {y}} {
-set c12errmsg "unload $c9mod3\nunload $c9mod2\nunload $c9mod1\nload f4\nload f5\n\n[msg_load f6 [err_conlo f5]]\n\n[msg_load f7 [err_reqmis f6]]\n\n[msg_top_restore $coll12fpre {} [list $c9mod3 $c9mod2 $c9mod1] [list $c12mod1 $c12mod2]]"
-} else {
-set c12errmsg "unload $c9mod3\nunload $c9mod2\nunload $c9mod1\nload f4\nload f5\n\n[msg_load f6 [err_conlo f5]]\n\n[msg_load f7 [err_reqmis f6]]\n\n[msg_top_restore $coll12fpre {} [list $c9mod3 $c9mod2 $c9mod1] [list $c12mod1 $c12mod2]]"
-}
-set c13errmsg "load $cdmod4\n\n[msg_top_restore $coll13fpre {} {} [split $c13lm :]]"
+set c11errmsg "load $c11mod1\nload $c11mod2"
+set c12errmsg "unload $c9mod3\nunload $c9mod2\nunload $c9mod1\nload f4\nload f5\n\n[msg_load f6 [err_conlo f5]]\n\n[msg_load f7 [err_reqmis f6]]"
+set c13errmsg "load $cdmod4"
 
 # set HOME to location containing collections
 set ORIG_HOME $env(HOME)
@@ -118,7 +105,7 @@ lappend ans [list setpath MODULES_LMALTNAME $cdlmalt]
 lappend ans [list setpath LOADEDMODULES $cdlm]
 lappend ans [list setpath _LMFILES_ $cdlmf]
 
-testouterr_cmd_re "sh" "restore" $ans [msg_top_restore $colld {} $cdmod5n/2.0 $cdmod5]
+testouterr_cmd_re "sh" "restore" $ans {}
 
 
 #
@@ -246,7 +233,7 @@ if {$install_implicitdefault eq {y}} {
     lappend ans [list setpath _LMFILES_ $c6lmf]
     lappend ans [list setpath MODULEPATH $c6modpath]
     lappend ans [list setpath MODULES_LMALTNAME $c6lmalt]
-    set c6errmsg [msg_top_restore $coll6 target {} [split $c6lm :]]
+    set c6errmsg {}
 } else {
     set ans [list]
     lappend ans [list set testsuite "yes"]
@@ -255,7 +242,7 @@ if {$install_implicitdefault eq {y}} {
     lappend ans [list setpath MODULEPATH $c6modpath]
     lappend ans [list setpath MODULES_LMALTNAME $c6lmalt]
     lappend ans [list ERR]
-    set c6errmsg [msg_top_restore $coll6 target {} [split $c6lmnodefault :] $err_nodefault'dvcross']
+    set c6errmsg $err_nodefault'dvcross'
 }
 testouterr_cmd_re "sh" "restore $coll6" $ans $c6errmsg
 
@@ -276,7 +263,7 @@ if {$install_implicitdefault eq {y}} {
     # empty dir elements are ignored but stick to the variable, they should be removed
     lappend ans [list setpath MODULEPATH "::$c6modpath"]
     lappend ans [list setpath MODULES_LMALTNAME $c6lmalt]
-    set c6errmsg [msg_top_restore $coll6 target {} [split $c6lm :]]
+    set c6errmsg {}
 } else {
     set ans [list]
     lappend ans [list set testsuite "yes"]
@@ -286,7 +273,7 @@ if {$install_implicitdefault eq {y}} {
     lappend ans [list setpath MODULEPATH "::$c6modpath"]
     lappend ans [list setpath MODULES_LMALTNAME $c6lmalt]
     lappend ans [list ERR]
-    set c6errmsg [msg_top_restore $coll6 target {} [split $c6lmnodefault :] $err_nodefault'dvcross']
+    set c6errmsg $err_nodefault'dvcross'
 }
 testouterr_cmd_re "sh" "restore $coll6" $ans $c6errmsg
 
@@ -304,7 +291,7 @@ lappend ans [list set testsuite "yes"]
 lappend ans [list setpath LOADEDMODULES $c7lm]
 lappend ans [list setpath _LMFILES_ $c7lmf]
 
-testouterr_cmd_re "sh" "restore $coll7fp" $ans [regsub -all "\(\[.+?\]\)" [msg_top_restore $coll7fp {} {} [split $c7lm :]] {\\\1}]
+testouterr_cmd_re "sh" "restore $coll7fp" $ans {}
 
 
 #
@@ -320,7 +307,7 @@ lappend ans [list setpath LOADEDMODULES $c7lm]
 lappend ans [list setpath _LMFILES_ $c7lmf]
 lappend ans [list unsetpath MODULEPATH]
 
-testouterr_cmd_re "sh" "restore $coll7fp" $ans [regsub -all "\(\[.+?\]\)" [msg_top_restore $coll7fp {} {} [split $c7lm :]] {\\\1}]
+testouterr_cmd_re "sh" "restore $coll7fp" $ans {}
 
 
 #
@@ -335,7 +322,7 @@ lappend ans [list setpath LOADEDMODULES $c8lm]
 lappend ans [list setpath _LMFILES_ $c8lmf]
 lappend ans [list setpath MODULEPATH $c8modpath]
 
-testouterr_cmd_re "sh" "restore $coll8fp" $ans [regsub -all "\(\[.+?\]\)" [msg_top_restore $coll8fp {} {} [split $c8lm :]] {\\\1}]
+testouterr_cmd_re "sh" "restore $coll8fp" $ans {}
 
 
 #
@@ -474,8 +461,7 @@ lappend ans [list setpath MODULEPATH $modpath:$modpath.other]
 lappend ans [list setpath LOADEDMODULES $c2lm:$modpath.other/restore]
 lappend ans [list setpath _LMFILES_ $c2lmf:$modpath.other/restore]
 
-# restore command disturbs main module load report
-testouterr_cmd_re sh "load $modpath.other/restore" $ans "unload coll/a\nload coll/c\nload coll/a\nload coll/b\n\n[msg_load $modpathre.other/restore {Unloading module: loc_dv2/1.0 coll/a} {Loading module: coll/c coll/a coll/b}]"
+testouterr_cmd_re sh "load $modpath.other/restore" $ans "unload coll/a\nload coll/c\nload coll/a\nload coll/b"
 
 
 #
