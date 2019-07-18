@@ -7559,8 +7559,8 @@ proc parseModuleCommandArgs {cmd args} {
 }
 
 # unload phase of a list of modules reload process
-proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {Reload of\
-   _MOD_ failed}} {context unload}} {
+proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
+   unload}} {
    upvar $lmname lmlist
    # unload one by one to ensure same behavior whatever auto_handling state
    foreach mod [lreverse $lmlist] {
@@ -7573,7 +7573,9 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {Reload of\
          set lmlist [replaceFromList $lmlist $mod]
          set errMsg [string map [list _MOD_ $mod] $errmsgtpl]
          if {$force} {
-            reportWarning $errMsg 1
+            if {$errMsg ne {}} {
+               reportWarning $errMsg 1
+            }
          # stop if one unload fails unless force mode enabled
          } else {
             error $errMsg
@@ -7584,8 +7586,8 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {Reload of\
 }
 
 # load phase of a list of modules reload process
-proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl\
-   {Reload of _MOD_ failed}} {context load}} {
+proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl {}}\
+   {context load}} {
    upvar $lmname lmlist
    array set isuasked $isuaskedlist
 
@@ -7598,7 +7600,9 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl\
       if {[cmdModuleLoad $context $isuasked($mod) $mod]} {
          set errMsg [string map [list _MOD_ $mod] $errmsgtpl]
          if {$force} {
-            reportWarning $errMsg 1
+            if {$errMsg ne {}} {
+               reportWarning $errMsg 1
+            }
          # stop if one load fails unless force mode enabled
          } else {
             error $errMsg
@@ -8794,9 +8798,8 @@ proc cmdModuleReload {args} {
    set lmlist [expr {[llength $args] == 0 ? [getLoadedModuleList] : $args}]
    reportDebug "reloading $lmlist"
 
-   # create a message record if for reload action to let underlying unload and
-   # load actions to know they are not the top-level action
-   pushMsgRecordId reload-[getEvalModuleStackDepth]
+   # create an eval id to track successful/failed module evaluations
+   pushMsgRecordId reload-[getEvalModuleStackDepth] 0
 
    # no reload of all loaded modules attempt if constraints are violated
    if {[llength $args] == 0 && ![areModuleConstraintsSatisfied]} {
@@ -8809,16 +8812,13 @@ proc cmdModuleReload {args} {
          array set isuasked [reloadModuleListUnloadPhase lmlist]
          reloadModuleListLoadPhase lmlist [array get isuasked]
       } errMsg]] == 1} {
-         reportError $errMsg
          # rollback settings if some evaluation went wrong
          restoreSettings
       }
       popSettings
    }
 
-   # report all recorded messages for this evaluation
-   reportMsgRecord "Reloading all loaded modules"
-   popMsgRecordId
+   popMsgRecordId 0
 }
 
 proc cmdModuleAliases {} {
