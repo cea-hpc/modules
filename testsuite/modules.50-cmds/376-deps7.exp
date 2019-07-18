@@ -467,9 +467,6 @@ lappend ans [list unsetpath MODULES_LMPREREQ]
 lappend ans [list unsetpath MODULES_LMNOTUASKED]
 set tserr [list {unload m6} {unload m2} {unload m1}]
 testouterr_cmd_re sh {purge --auto} $ans [join $tserr \n]
-# unload order differs between auto and no-auto mode as 'module load' target is unloaded
-# when modulefile is interpreted on no-auto mode
-set tserr [list {unload m6} {unload m1} {unload m2}]
 testouterr_cmd_re sh {purge --no-auto} $ans [join $tserr \n]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES m1:m2:m6]
@@ -479,9 +476,6 @@ lappend ans [list setpath MODULES_LMPREREQ m2&m1]
 lappend ans [list setpath MODULES_LMNOTUASKED m1]
 set tserr [list {unload m6} {unload m2} {unload m1} {load m1} {load m2} {load m6}]
 testouterr_cmd_re sh {reload --auto} $ans [join $tserr \n]
-# unload order differs between auto and no-auto mode as 'module load' target is unloaded
-# when modulefile is interpreted on no-auto mode
-set tserr [list {unload m6} {unload m1} {unload m2} {load m1} {load m2} {load m6}]
 testouterr_cmd_re sh {reload --no-auto} $ans [join $tserr \n]
 
 
