@@ -665,14 +665,14 @@ proc isMsgRecordIdTop {} {
 # record messages on the eventual additional module evaluations that have
 # occurred during the current evaluation
 proc reportModuleEval {} {
-   set recid [currentMsgRecordId]
+   set evalid [currentEvalId]
    array set contexttitle {conun {Unloading conflict} reqlo {Loading\
       requirement} depre {Reloading dependent} depun {Unloading dependent}\
       urequn {Unloading useless requirement} unmo {Unloading module} lomo\
       {Loading module}}
 
-   if {[info exists ::g_moduleEval($recid)]} {
-      foreach contextevallist $::g_moduleEval($recid) {
+   if {[info exists ::g_moduleEval($evalid)]} {
+      foreach contextevallist $::g_moduleEval($evalid) {
          set modlist [lassign $contextevallist context]
          # skip context with no description title
          if {[info exists contexttitle($context)]} {
@@ -680,7 +680,7 @@ proc reportModuleEval {} {
          }
       }
       # purge list in case same evaluation is re-done afterward
-      unset ::g_moduleEval($recid)
+      unset ::g_moduleEval($evalid)
    }
 }
 
@@ -3446,23 +3446,38 @@ proc popReportHoldId {} {
 }
 
 
-# stack of message recording unique identifiers
+# stack of message recording/eval unique identifiers
+set g_evalIdStack {}
 set g_msgRecordIdStack {}
 
 proc currentMsgRecordId {} {
    return [lindex $::g_msgRecordIdStack end]
 }
 
+proc currentEvalId {} {
+   return [lindex $::g_evalIdStack end]
+}
+
 proc topMsgRecordId {} {
    return [lindex $::g_msgRecordIdStack 0]
 }
 
-proc pushMsgRecordId {recid} {
-   lappend ::g_msgRecordIdStack $recid
+proc topEvalId {} {
+   return [lindex $::g_evalIdStack 0]
 }
 
-proc popMsgRecordId {} {
-   set ::g_msgRecordIdStack [lrange $::g_msgRecordIdStack 0 end-1]
+proc pushMsgRecordId {recid {setmsgid 1}} {
+   lappend ::g_evalIdStack $recid
+   if {$setmsgid} {
+      lappend ::g_msgRecordIdStack $recid
+   }
+}
+
+proc popMsgRecordId {{setmsgid 1}} {
+   set ::g_evalIdStack [lrange $::g_evalIdStack 0 end-1]
+   if {$setmsgid} {
+      set ::g_msgRecordIdStack [lrange $::g_msgRecordIdStack 0 end-1]
+   }
 }
 
 # stack of prefixes clarifying debug message entries
@@ -3483,22 +3498,22 @@ proc popDebugMsgPrefix {} {
 # gather for the current top evaluation the information on all evaluations
 # happening under its umbrella
 proc registerModuleEval {context mod {unset 0} {failedcontext {}}} {
-   set recid [topMsgRecordId]
+   set evalid [topEvalId]
    set contextset 0
 
    # add mod to existing evaluation context list
-   if {[info exists ::g_moduleEval($recid)]} {
-      for {set i 0} {$i < [llength $::g_moduleEval($recid)]} {incr i 1} {
-         set contextevallist [lindex $::g_moduleEval($recid) $i]
+   if {[info exists ::g_moduleEval($evalid)]} {
+      for {set i 0} {$i < [llength $::g_moduleEval($evalid)]} {incr i 1} {
+         set contextevallist [lindex $::g_moduleEval($evalid) $i]
          if {[lindex $contextevallist 0] eq $context} {
             if {$unset} {
                set contextevallist [replaceFromList $contextevallist $mod]
             } else {
                lappend contextevallist $mod
             }
-            set ::g_moduleEval($recid) [expr {[llength $contextevallist] > 1\
-               ? [lreplace $::g_moduleEval($recid) $i $i $contextevallist]\
-               : [lreplace $::g_moduleEval($recid) $i $i]}]
+            set ::g_moduleEval($evalid) [expr {[llength $contextevallist] > 1\
+               ? [lreplace $::g_moduleEval($evalid) $i $i $contextevallist]\
+               : [lreplace $::g_moduleEval($evalid) $i $i]}]
             set contextset 1
             break
          }
@@ -3507,12 +3522,12 @@ proc registerModuleEval {context mod {unset 0} {failedcontext {}}} {
 
    # add mod to new evaluation context list
    if {!$unset && !$contextset} {
-      lappend ::g_moduleEval($recid) [list $context $mod]
+      lappend ::g_moduleEval($evalid) [list $context $mod]
    }
 
    # add mod to failed evaluation list
    if {$unset} {
-      lappend ::g_moduleFailedEval($recid) $failedcontext $mod
+      lappend ::g_moduleFailedEval($evalid) $failedcontext $mod
    }
 }
 
@@ -3549,9 +3564,9 @@ proc isModuleEvaluated {context args} {
 # was passed mod already evaluated for context and failed
 proc isModuleEvalFailed {context mod} {
    set ret 0
-   set recid [topMsgRecordId]
-   if {[info exists ::g_moduleFailedEval($recid)]} {
-      foreach {curcon curmod} $::g_moduleFailedEval($recid) {
+   set evalid [topEvalId]
+   if {[info exists ::g_moduleFailedEval($evalid)]} {
+      foreach {curcon curmod} $::g_moduleFailedEval($evalid) {
          if {$context eq $curcon && $mod eq $curmod} {
             set ret 1
             break
