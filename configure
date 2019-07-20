@@ -32,9 +32,9 @@ docdir vimdatadir modulefilesdir setmanpath appendmanpath setbinpath \
 appendbinpath setdotmodulespath docinstall vimaddons examplemodulefiles \
 builddoc gitworktree usemanpath compatversion EXEEXT libtclenvmodules \
 SHLIB_SUFFIX versioning silentshdbgsupport setshellstartup quarantinesupport \
-autohandling availindepth implicitdefault initconfin pager pageropts color\
-darkbgcolors lightbgcolors termbg lockedconfigs unloadmatchorder searchmatch \
-modulepath loadedmodules quarantinevars"
+autohandling availindepth implicitdefault initconfin pager pageropts \
+verbosity color darkbgcolors lightbgcolors termbg lockedconfigs \
+unloadmatchorder searchmatch modulepath loadedmodules quarantinevars"
 compatarglist=
 libarglist=
 
@@ -82,6 +82,7 @@ VERSION=
 initconfin=initdir
 pager=less
 pageropts='-eFKRX'
+verbosity=normal
 color=n
 darkbgcolors='hi=1:db=2:se=2:er=91:wa=93:me=95:in=94:mp=1;94:di=94:al=96:sy=95:de=4:cm=92'
 lightbgcolors='hi=1:db=2:se=2:er=31:wa=33:me=35:in=34:mp=1;34:di=34:al=36:sy=35:de=4:cm=32'
@@ -225,6 +226,8 @@ Optional Packages:
                           seeded at run-time by environment variable) [$pager]
   --with-pager-opts=OPTLIST
                           settings to apply to default pager program [$pageropts]
+  --with-verbosity=VALUE  specify default message verbosity. accepted values
+                          are \`normal' and \`debug' [$verbosity]
   --with-dark-background-colors=SGRLIST
                           default color set to apply if terminal background
                           color is defined to \`dark'. Each element in SGRLIST
@@ -443,6 +446,12 @@ for arg in "$@"; do
    --with-pager-opts=*|--without-pager-opts)
       pageropts=$(get_package_value "$arg")
       defpageropts=0 ;;
+   --with-verbosity=*|--without-verbosity)
+      verbosity=$(get_package_value "$arg")
+      allowedval=" normal debug " ;
+      if [ "${allowedval// $verbosity /}" = "$allowedval" ]; then
+         echo_error "Bad value for option \`--with-verbosity', allowed values are:$allowedval"
+      fi ;;
    --enable-color*|--disable-color)
       color=$(get_feature_value "$arg") ;;
    --with-dark-background-colors=*|--without-dark-background-colors)

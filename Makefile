@@ -176,6 +176,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' \
 	-e 's|@pager@|$(pager)|g' \
 	-e 's|@pageropts@|$(pageropts)|g' \
+	-e 's|@verbosity@|$(verbosity)|g' \
 	-e 's|@color@|$(setcolor)|g' \
 	-e 's|@darkbgcolors@|$(darkbgcolors)|g' \
 	-e 's|@lightbgcolors@|$(lightbgcolors)|g' \

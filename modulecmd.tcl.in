@@ -24,7 +24,6 @@
 #
 # Some Global Variables.....
 #
-set g_debug 0 ;# Set to 1 to enable debugging
 set error_count 0 ;# Start with 0 errors
 set g_return_false 0 ;# False value is rendered if == 1
 set g_autoInit 0
@@ -414,6 +413,46 @@ proc getSetShellStartup {} {
    }
 
    return $::g_set_shell_startup
+}
+
+# Return existing verbosity levels
+proc getVerbosityLevelList {} {
+   if {![info exists ::g_verbosity_level_list]} {
+      set ::g_verbosity_level_list [list normal debug]
+   }
+   return $::g_verbosity_level_list
+}
+
+# Get verbosity level
+proc getVerbosity {} {
+   if {![info exists ::g_verbosity]} {
+      # default value set at configure time
+      set verbosity @verbosity@ ;# Verbosity level
+
+      # overriden value coming from environment
+      if {[info exists ::env(MODULES_VERBOSITY)]} {
+         # ignore non-valid values
+         if {[isInList [getVerbosityLevelList] $::env(MODULES_VERBOSITY)]} {
+            set verbosity $::env(MODULES_VERBOSITY)
+         }
+      }
+
+      # overriden value coming the command-line
+      if {[info exists ::asked_verbosity]} {
+         set verbosity $::asked_verbosity
+      }
+
+      set ::g_verbosity $verbosity
+      reportDebug "verbosity set to '$verbosity'"
+   }
+
+   return $::g_verbosity
+}
+
+# Is currently set verbosity level is equal or higher than level passed as arg
+proc isVerbosityLevel {name} {
+   return [expr {[lsearch -exact [getVerbosityLevelList] [getVerbosity]] >=\
+      [lsearch -exact [getVerbosityLevelList] $name]}]
 }
 
 
@@ -858,7 +897,7 @@ proc reportVersion {} {
 
 # disable error reporting (non-critical report only) unless debug enabled
 proc inhibitErrorReport {} {
-   if {!$::g_debug} {
+   if {![isVerbosityLevel debug]} {
       set ::g_inhibit_errreport 1
    }
 }
@@ -881,14 +920,14 @@ proc initErrorReport {} {
 
       # ask for color init now as debug mode has already fire lines to render
       # and we want them to be reported first (not the color init lines)
-      if {$::g_debug} {
+      if {[isVerbosityLevel debug]} {
          getColor
       }
 
       # replace report procedures used to bufferize messages until error
       # report being initialized by regular report procedures
       rename ::reportDebug {}
-      if {$::g_debug} {
+      if {[isVerbosityLevel debug]} {
          rename ::__reportDebug ::reportDebug
       } else {
          # set a disabled version if debug is disabled
@@ -9289,14 +9328,14 @@ proc cmdModuleConfig {dump_state args} {
       MODULES_SILENT_SHELL_DEBUG term_background MODULES_TERM_BACKGROUND\
       unload_match_order MODULES_UNLOAD_MATCH_ORDER implicit_default\
       MODULES_IMPLICIT_DEFAULT search_match MODULES_SEARCH_MATCH\
-      set_shell_startup MODULES_SET_SHELL_STARTUP]
+      set_shell_startup MODULES_SET_SHELL_STARTUP verbosity MODULES_VERBOSITY]
 
    array set confvalid [list auto_handling [list 0 1] avail_indepth [list 0\
       1] collection_pin_version [list 0 1] color [list never auto always]\
       silent_shell_debug [list 0 1] term_background [list dark light]\
       unload_match_order [list returnlast returnfirst] implicit_default\
       [list 0 1] search_match [list starts_with contains] set_shell_startup\
-      [list 0 1]]
+      [list 0 1] verbosity [getVerbosityLevelList]]
 
    array set conflockable [list extra_siteconfig 1 implicit_default 1]
 
@@ -9315,7 +9354,7 @@ proc cmdModuleConfig {dump_state args} {
       siteconfig $::g_siteconfig tcl_ext_lib $::g_tclextlib term_background\
       [getTermBackground] unload_match_order [getUnloadMatchOrder]\
       implicit_default [getImplicitDefault] search_match [getSearchMatch]\
-      set_shell_startup [getSetShellStartup]]
+      set_shell_startup [getSetShellStartup] verbosity [getVerbosity]]
 
    # catch any environment variable set for modulecmd run-time execution
    foreach runenvvar [array names ::env -glob MODULES_RUNENV_*] {
@@ -9331,7 +9370,7 @@ proc cmdModuleConfig {dump_state args} {
       ::g_avail_indepth term_background ::g_term_background colors ::g_colors\
       color ::g_color unload_match_order ::g_unload_match_order\
       implicit_default ::g_implicit_default search_match ::g_search_match\
-      set_shell_startup ::g_set_shell_startup]
+      set_shell_startup ::g_set_shell_startup verbosity ::g_verbosity]
 
    if {[info exists name] && ![info exists confval($name)]} {
       reportErrorAndExit "Configuration option '$name' does not exist"
@@ -9364,7 +9403,7 @@ proc cmdModuleConfig {dump_state args} {
    } else {
       # some configuration may be overridden from the command-line
       array set confasked [list auto_handling asked_auto_handling color\
-         asked_color]
+         asked_color verbosity asked_verbosity]
       # internal conf value may be map to a public value
       array set confvtrans [list color [list 0 never 1 auto 2 always]]
 
@@ -9397,7 +9436,6 @@ proc cmdModuleConfig {dump_state args} {
          # define each attribute/fetched state value pair
          set state_list [list\
             cmdline "$::argv0 $::argv"\
-            debug $::g_debug\
             extra_siteconfig_loaded [info exists ::g_extra_siteconfig_loaded]\
             force [getForce]\
             is_stderr_tty [isStderrTty]\
@@ -9601,7 +9639,7 @@ if {[catch {
       } else {
          switch -glob -- $arg {
             -D - --debug {
-               set g_debug 1
+               set asked_verbosity debug
             }
             --help - -h {
                set show_help 1
