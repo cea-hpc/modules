@@ -418,7 +418,7 @@ proc getSetShellStartup {} {
 # Return existing verbosity levels
 proc getVerbosityLevelList {} {
    if {![info exists ::g_verbosity_level_list]} {
-      set ::g_verbosity_level_list [list silent normal debug]
+      set ::g_verbosity_level_list [list silent normal verbose debug]
    }
    return $::g_verbosity_level_list
 }
@@ -785,6 +785,9 @@ proc reportMsgRecord {header} {
 
       # purge message list in case same evaluation is re-done afterward
       unset ::g_msgRecord($recid)
+   # report header in verbose mode if no other specific msg to output
+   } elseif {[isVerbosityLevel verbose]} {
+      report $header
    }
 }
 
@@ -9580,6 +9583,7 @@ Options:
   -h | --help     This usage info
   -V | --version  Module version
   -D | --debug    Enable debug messages
+  -v | --verbose  Enable verbose messages
   -s | --silent   Turn off error, warning and informational messages
   --paginate      Pipe mesg output into a pager if stream attached to terminal
   --no-pager      Do not pipe message output into a pager
@@ -9653,6 +9657,9 @@ if {[catch {
             -s - --silent {
                set asked_verbosity silent
             }
+            -v - --verbose {
+               set asked_verbosity verbose
+            }
             --help - -h {
                set show_help 1
             }
@@ -9713,8 +9720,7 @@ if {[catch {
                set ddelimarg 1
                lappend otherargv $arg
             }
-            --human - -v - --verbose - -c - --create - -i - --icase -\
-            --userlvl=* {
+            --human - -c - --create - -i - --icase - --userlvl=* {
                # ignore C-version specific option, no error only warning
                reportWarning "Unsupported option '$arg'"
             }
