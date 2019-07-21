@@ -89,7 +89,7 @@ array set configvalid [list\
     silent_shell_debug        {0 1}\
     term_background           {dark light}\
     unload_match_order        {returnlast returnfirst}\
-    verbosity                 {normal debug}\
+    verbosity                 {silent normal debug}\
 ]
 
 array set configlockable [list\
@@ -168,7 +168,11 @@ foreach param [array names configvar] {
     } elseif {$param eq {pager}} {
         set val $configdfl(pager)
     } elseif {[info exists configvalid($param)]} {
-        set val [lindex $configvalid($param) 0]
+        if {$param eq {verbosity}} {
+            set val [lindex $configvalid($param) 1]
+        } else {
+            set val [lindex $configvalid($param) 0]
+        }
     } else {
         set val foo
     }
@@ -198,15 +202,19 @@ foreach param [lsort [array names configset]] {
     if {[info exists configlockable($param)] && [is_config_locked $param]} {
         append tserr "\n$param\\s+$configdfl($param) \\(locked\\)"
     } else {
-        append tserr "\n$param\\s+$configset($param)"
-        if {$param eq {auto_handling} || $param eq {color}} {
-            append tserr " \\(cmd-line\\)"
-        } elseif {[info exists configvar($param)] || $param eq {runenv_foo}} {
-            append tserr " \\(env-var\\)"
+        if {$param eq {verbosity}} {
+            append tserr "\n$param\\s+silent \\(cmd-line\\)"
+        } else {
+            append tserr "\n$param\\s+$configset($param)"
+            if {[lsearch -exact [list auto_handling color] $param] != -1} {
+                append tserr " \\(cmd-line\\)"
+            } elseif {[info exists configvar($param)] || $param eq {runenv_foo}} {
+                append tserr " \\(env-var\\)"
+            }
         }
     }
 }
-testouterr_cmd_re sh {config --no-auto --color=never} OK $tserr
+testouterr_cmd_re sh {config --silent --no-auto --color=never} OK $tserr
 
 
 # report current state

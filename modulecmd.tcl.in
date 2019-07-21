@@ -418,7 +418,7 @@ proc getSetShellStartup {} {
 # Return existing verbosity levels
 proc getVerbosityLevelList {} {
    if {![info exists ::g_verbosity_level_list]} {
-      set ::g_verbosity_level_list [list normal debug]
+      set ::g_verbosity_level_list [list silent normal debug]
    }
    return $::g_verbosity_level_list
 }
@@ -666,7 +666,8 @@ proc __reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
       # record message to report it later on if a record id is found
       if {[currentMsgRecordId] ne {}} {
          recordMessage $message $recordtop
-      } else {
+      # skip message report if silent
+      } elseif {[isVerbosityLevel normal]} {
          report $message
       }
    }
@@ -726,57 +727,61 @@ proc reportModuleEval {} {
 proc reportMsgRecord {header} {
    set recid [currentMsgRecordId]
    if {[info exists ::g_msgRecord($recid)]} {
-      set tty_cols [getTtyColumns]
-      set padding {  }
+      # skip message report if silent
+      if {[isVerbosityLevel normal]} {
+         set tty_cols [getTtyColumns]
+         set padding {  }
 
-      set dispmsg $header
-      foreach msg $::g_msgRecord($recid) {
-         # split lines if too large for terminal
-         set first 1
-         set max_idx [expr {$tty_cols - [string length $padding]}]
-         set linelist [list]
-         foreach line [split $msg \n] {
-            set lineadd {}
-            while {$lineadd ne $line} {
-               set line_max_idx $max_idx
-               # sgr tags consume no length
-               set eidx 0
-               while {[set sidx [string first "\033\[" $line $eidx]] != -1} {
-                  set eidx [string first m $line $sidx]
-                  incr line_max_idx [expr {1 + $eidx - $sidx}]
-               }
+         set dispmsg $header
+         foreach msg $::g_msgRecord($recid) {
+            # split lines if too large for terminal
+            set first 1
+            set max_idx [expr {$tty_cols - [string length $padding]}]
+            set linelist [list]
+            foreach line [split $msg \n] {
+               set lineadd {}
+               while {$lineadd ne $line} {
+                  set line_max_idx $max_idx
+                  # sgr tags consume no length
+                  set eidx 0
+                  while {[set sidx [string first "\033\[" $line $eidx]] !=\
+                     -1} {
+                     set eidx [string first m $line $sidx]
+                     incr line_max_idx [expr {1 + $eidx - $sidx}]
+                  }
 
-               # no split if no whitespace found to slice
-               if {[string length $line] > $line_max_idx && [set cut_idx\
-                  [string last { } $line $line_max_idx]] != -1} {
-                  set lineadd [string range $line 0 [expr {$cut_idx-1}]]
-                  set line [string range $line [expr {$cut_idx+1}] end]
-               } else {
-                  set lineadd $line
+                  # no split if no whitespace found to slice
+                  if {[string length $line] > $line_max_idx && [set cut_idx\
+                     [string last { } $line $line_max_idx]] != -1} {
+                     set lineadd [string range $line 0 [expr {$cut_idx-1}]]
+                     set line [string range $line [expr {$cut_idx+1}] end]
+                  } else {
+                     set lineadd $line
+                  }
+                  lappend linelist $lineadd
+                  if {$first} {
+                     set first 0
+                     incr max_idx -[string length $padding]
+                  }
                }
-               lappend linelist $lineadd
+            }
+
+            # display each line
+            set first 1
+            foreach line $linelist {
+               append dispmsg \n
                if {$first} {
                   set first 0
-                  incr max_idx -[string length $padding]
+               } else {
+                  append dispmsg $padding
                }
+               append dispmsg $padding$line
             }
          }
-
-         # display each line
-         set first 1
-         foreach line $linelist {
-            append dispmsg \n
-            if {$first} {
-               set first 0
-            } else {
-               append dispmsg $padding
-            }
-            append dispmsg $padding$line
-         }
+         reportSeparateNextContent
+         report $dispmsg
+         reportSeparateNextContent
       }
-      reportSeparateNextContent
-      report $dispmsg
-      reportSeparateNextContent
 
       # purge message list in case same evaluation is re-done afterward
       unset ::g_msgRecord($recid)
@@ -2675,7 +2680,10 @@ proc putsModfileCmd {itrp args} {
       lappend ::g_stdoutPuts $args
    # if it targets stderr call report, which knows what channel to use
    } elseif {[info exists reportArgs]} {
-      eval report $reportArgs
+      # report message only if not silent
+      if {[isVerbosityLevel normal]} {
+         eval report $reportArgs
+      }
    # pass to real puts command if not related to stdout and do that in modfile
    # interpreter context to get access to eventual specific channel
    } else {
@@ -9572,6 +9580,7 @@ Options:
   -h | --help     This usage info
   -V | --version  Module version
   -D | --debug    Enable debug messages
+  -s | --silent   Turn off error, warning and informational messages
   --paginate      Pipe mesg output into a pager if stream attached to terminal
   --no-pager      Do not pipe message output into a pager
   --color[=WHEN]  Colorize the output; WHEN can be 'always' (default if
@@ -9641,6 +9650,9 @@ if {[catch {
             -D - --debug {
                set asked_verbosity debug
             }
+            -s - --silent {
+               set asked_verbosity silent
+            }
             --help - -h {
                set show_help 1
             }
@@ -9701,8 +9713,8 @@ if {[catch {
                set ddelimarg 1
                lappend otherargv $arg
             }
-            --human - -v - --verbose - -s - --silent - -c - --create - -i -\
-            --icase - --userlvl=* {
+            --human - -v - --verbose - -c - --create - -i - --icase -\
+            --userlvl=* {
                # ignore C-version specific option, no error only warning
                reportWarning "Unsupported option '$arg'"
             }
@@ -9768,9 +9780,11 @@ if {[catch {
    # eval needed to pass otherargv as list to module proc
    eval module "{$command}" $otherargv
 } errMsg ]} {
-   # no use of reportError here to get independent from any
-   # previous error report inhibition
-   report "[sgr er ERROR]: $errMsg"
+   # no use of reportError here to get independent from any previous error
+   # report inhibition. report error only if not silent
+   if {[isVerbosityLevel normal]} {
+      report "[sgr er ERROR]: $errMsg"
+   }
    # init error report here in case the error raised before the regular init
    initErrorReport
    cleanupAndExit 1

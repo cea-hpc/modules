@@ -9,11 +9,10 @@ _module_avail() {
    local cur="${1:-}";
    # skip avail call if word currently being completed is an option keyword
    if [ -z "$cur" -o "${cur:0:1}" != '-' ]; then
-      module avail --color=never -t -S --no-indepth $cur 2>&1 | sed '
+      module avail --color=never -s -t -S --no-indepth $cur 2>&1 | sed '
          /^-\+/d; /^\s*$/d;
          /->.*$/d;
          /:$/d;
-         /:ERROR:/d;
          s#^\(.*\)/\(.\+\)(.*default.*)#\1\n\1\/\2#;
          s#(.*)$##g;
          s#\s*$##g;'
@@ -21,11 +20,10 @@ _module_avail() {
 }
 
 _module_savelist() {
-   module savelist --color=never -t 2>&1 | sed '
+   module savelist --color=never -s -t 2>&1 | sed '
       /No named collection\.$/d;
       /Named collection list$/d;
-      /:$/d;
-      /:ERROR:/d;'
+      /:$/d;'
 }
 
 _module_not_yet_loaded() {
@@ -92,6 +90,7 @@ _module() {
 
    _arguments -C \
       '(-D --debug)'{-D,--debug}'[Enable debug messages]' \
+      '(-s --silent)'{-s,--silent}'[Turn off error, warning and informational messages]' \
       '(-h --help)'{-h,--help}'[Usage info]' \
       '(-V --version)'{-V,--version}'[Module version]' \
       '--paginate[Pipe mesg output into a pager if stream attached to terminal]' \

@@ -18,11 +18,10 @@ _module_avail() {
     local cur="${1:-}"
     # skip avail call if word currently being completed is an option keyword
     if [ -z "$cur" -o "${cur:0:1}" != '-' ]; then
-        module avail --color=never -t -S --no-indepth $cur 2>&1 | sed '
+        module avail --color=never -s -t -S --no-indepth $cur 2>&1 | sed '
             /^-\+/d; /^\s*$/d;
             /->.*$/d;
             /:$/d;
-            /:ERROR:/d;
             s#^\(.*\)/\(.\+\)(.*default.*)#\1\n\1\/\2#;
             s#(.*)$##g;
             s#\s*$##g;'
@@ -30,11 +29,10 @@ _module_avail() {
 }
 
 _module_savelist() {
-    module savelist --color=never -t 2>&1 | sed '
+    module savelist --color=never -s -t 2>&1 | sed '
         /No named collection\.$/d;
         /Named collection list$/d;
-        /:$/d;
-        /:ERROR:/d;'
+        /:$/d;'
 }
 
 _module_not_yet_loaded() {
@@ -115,7 +113,8 @@ _module() {
         savelist saveshow saverm search show source swap switch test unload\
         unuse use whatis"
 
-    opts="-D -h -V --debug --help --version --paginate --no-pager --color --color="
+    opts="-D -h -s -V --debug --help --silent --version --paginate --no-pager\
+        --color --color="
     load_opts="--auto --no-auto --force -f"
     list_opts="-l -t --long --terse"
     clear_opts="--force -f"

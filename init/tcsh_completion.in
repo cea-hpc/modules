@@ -3,33 +3,30 @@
 #
 
 alias _module_avail '\\
-    @TCLSH@ @libexecdir@/modulecmd.tcl tcsh avail --color=never -t -S |& sed '"'"'\\
+    @TCLSH@ @libexecdir@/modulecmd.tcl tcsh avail --color=never -s -t -S |& sed '"'"'\\
         /^-\+/d; /^\s*$/d; \\
         /->.*$/d; \\
         /:$/d; \\
-        /:ERROR:/d; \\
         s#^\(.*\)/\(.\+\)(.*default.*)#\1\n\1\/\2#; \\
         s#(.*)$##g; \\
         s#\s*$##g; \\
         s#/*$##g; '"'"
 
 alias _module_loaded '\\
-    @TCLSH@ @libexecdir@/modulecmd.tcl tcsh list --color=never -t |& sed '"'"'\\
+    @TCLSH@ @libexecdir@/modulecmd.tcl tcsh list --color=never -s -t |& sed '"'"'\\
         /No Modulefiles Currently Loaded\.$/d; \\
         /^-\+/d; /^\s*$/d; \\
         /->.*$/d; \\
         /:$/d; \\
-        /:ERROR:/d; \\
         s#^\(.*\)/\(.\+\)(.*default.*)#\1\n\1\/\2#; \\
         s#(.*)$##g; \\
         s#/*$##g; '"'"
 
 alias _module_savelist '\\
-    @TCLSH@ @libexecdir@/modulecmd.tcl tcsh savelist --color=never -t |& sed '"'"'\\
+    @TCLSH@ @libexecdir@/modulecmd.tcl tcsh savelist --color=never -s -t |& sed '"'"'\\
         /No named collection\.$/d; \\
         /Named collection list$/d; \\
-        /:$/d; \\
-        /:ERROR:/d; '"'"
+        /:$/d; '"'"
 
 alias _module_not_yet_loaded '\\
         mkfifo /tmp/modules_tcsh_completion.$$.p1 /tmp/modules_tcsh_completion.$$.p2 && \\
@@ -42,7 +39,7 @@ alias _module_modulepath 'echo ${MODULEPATH} | sed '"'"'s/:/\n/g;'"'"' '
 
 set module_cmds = "add apropos aliases avail append-path clear config del display help initadd initclear initlist initprepend initrm is-loaded is-saved is-used is-avail info-loaded keyword list load path paths purge prepend-path refresh reload restore rm remove remove-path save savelist saveshow saverm search show source swap switch test unload unuse use whatis"
 
-set module_opts = "-D -h -V --debug --help --version --paginate --no-pager --color --color="
+set module_opts = "-D -h -s -V --debug --help --silent --version --paginate --no-pager --color --color="
 set module_load_opts = "--auto --no-auto --force -f"
 set module_list_opts = "-l -t --long --terse"
 set module_clear_opts = "--force -f"
