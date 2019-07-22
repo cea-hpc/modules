@@ -114,7 +114,7 @@ module alias, the ``@`` symbol is omitted.
 Configure modulecmd with config sub-command
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The **config** sub-command has been added to `module` to help getting or
+The **config** sub-command has been added to ``module`` to help getting or
 setting the **modulecmd.tcl** options. With no additional command-line
 argument, this sub-command reports the current value of all existing options
 with a mention to indicate if this value has been overridden from a
@@ -149,8 +149,36 @@ script and Modules-related environment variables. Providing the output of the
 ``module config --dump-state`` command when submitting an issue to the Modules
 project will help to analyze the situation.
 
-New sub-commands, command-line switches and environment variables
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Control module command verbosity
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ability to control message verbosity has been added so ``module`` command
+can be configured whether it should display more or less information.
+Available verbosity levels from the least to the most verbose are:
+
+* ``silent``: turn off error, warning and informational messages but does not
+  affect module command output result.
+* ``concise``: enable error and warning messages but disable informational
+  messages.
+* ``normal``: turn on informational messages, like a report of the additional
+  module evaluations triggered by loading or unloading modules, aborted
+  evaluation issues or a report of each module evaluation occurring during a
+  **restore** or **source** sub-commands.
+* ``verbose``: add additional informational messages, like a systematic report
+  of the loading or unloading module evaluations.
+* ``debug``: print debugging messages about module command execution.
+
+Default verbosity level can be controlled at configure time with the
+``--with-verbosity`` option, which could be passed any of the above level
+names. This default verbosity level could be superseded with the
+``MODULES_VERBOSITY`` environment variable, which could be set through the
+**config** sub-command with the ``verbosity`` option. Command-line switches
+**--silent**, **--verbose** and **--debug** supersede in turns any other
+verbosity configuration to respectively set module command silent, verbose or
+in debug mode.
+
+Other new sub-commands, command-line switches and environment variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * The **avail** sub-command gets two new command-line switches: **--indepth**
   and **--no-indepth**. These options control whether search results should
@@ -175,15 +203,12 @@ New sub-commands, command-line switches and environment variables
   default and could be disabled with configure option
   ``--with-locked-configs=extra_siteconfig``.
 
-* The **config** sub-command has been introduced. See `Configure modulecmd
-  with config sub-command`_ section for detailed information.
-
 * The **MODULES_UNLOAD_MATCH_ORDER** environment variable sets whether the
   firstly or the lastly loaded module should be selected for unload when
   multiple loaded modules match unload request. Configure option
   ``--with-unload-match-order`` defines this setting which can be superseded
   by the environment variable. By default, lastly loaded module is selected
-  and it is recommanded to keep this behavior when used modulefiles express
+  and it is recommended to keep this behavior when used modulefiles express
   dependencies between each other.
 
 * The **MODULES_IMPLICIT_DEFAULT** environment variable sets whether an
@@ -206,7 +231,7 @@ New sub-commands, command-line switches and environment variables
   ``--with-search-match`` defines this setting which can be superseded by the
   environment variable, which in turns can be superseded by the
   **--starts-with** and **--contains** command-line switches of **avail**
-  module sub-commands.
+  module sub-command.
 
 * The **MODULES_SET_SHELL_STARTUP** environment variable controls whether or
   not shell startup file should be set to ensure ``module`` command is defined
@@ -230,7 +255,7 @@ New sub-commands, command-line switches and environment variables
 Further reading
 ---------------
 
-To get a complete list of the changes between Modules v4.1 and v4.2,
+To get a complete list of the changes between Modules v4.2 and v4.3,
 please read the :ref:`NEWS` document.
 
 

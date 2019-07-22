@@ -169,6 +169,31 @@ Modules 4.3.0 (2019-XX-XX)
 * Install: update RPM spec file to disable ``set_shell_startup`` option by
   default, set ``/etc/environment-modules`` as configuration directory and
   store Modules initialization configuration files in it.
+* Report an error when a module load or unload evaluation aborts due to the
+  use of the ``break`` or ``exit`` modulefile commands. This error
+  notification clarifies that module evaluation failed. (fix issue #267)
+* Remove the message block display output for the ``reload``, ``purge`` and
+  ``restore`` sub-commands to preserve this output style for modulefile
+  evaluation modes (load, unload and switch) and thus clarify understanding.
+* When unloading a module that contains a ``module load`` or ``module switch``
+  modulefile command, inhibit the unload performed of the useless requirement
+  when auto_handling mode is disabled if currently performing a ``purge``,
+  ``reload`` or ``restore`` sub-command. As the unload sequence is determined
+  and managed from these top commands.
+* Add ability to control module command message verbosity with configuration
+  option. Introduced verbosity levels from the least to the most verbose are
+  ``silent``, ``concise``, ``normal``, ``verbose`` and ``debug``. This option
+  could be set at ``./configure`` time with ``--with-verbosity`` option.
+  It could be superseded with the ``MODULES_VERBOSITY`` environment variable,
+  that could be set with ``config`` module sub-command through the
+  ``verbosity`` option. Silent, verbose and debug verbosity modes can be set
+  at the command-line level respectively with ``--silent``/``-s``,
+  ``--verbose``/``-v`` and ``--debug``/``-D`` command-line switches. (fix
+  issue #204)
+* When verbosity level is ``normal`` or higher, reports every module loads or
+  unloads performed to ``restore`` a collection or ``source`` a scriptfile,
+  even if there is no specific message to output for these module evaluations.
+  Clarifies what module evaluations have been triggered by these sub-commands.
 
 
 Modules 4.2.5 (2019-07-08)
