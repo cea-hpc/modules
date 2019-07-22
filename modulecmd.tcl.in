@@ -785,8 +785,10 @@ proc reportMsgRecord {header} {
 
       # purge message list in case same evaluation is re-done afterward
       unset ::g_msgRecord($recid)
-   # report header in verbose mode if no other specific msg to output
-   } elseif {[isVerbosityLevel verbose]} {
+   # report header if no other specific msg to output in verbose mode or in
+   # normal verbosity mode if currently processing a restore cmd
+   } elseif {[isVerbosityLevel verbose] || ([isVerbosityLevel normal] &&\
+      [isInList [list restore] [currentCommandName]])} {
       report $header
    }
 }
