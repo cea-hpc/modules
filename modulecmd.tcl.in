@@ -418,7 +418,7 @@ proc getSetShellStartup {} {
 # Return existing verbosity levels
 proc getVerbosityLevelList {} {
    if {![info exists ::g_verbosity_level_list]} {
-      set ::g_verbosity_level_list [list silent normal verbose debug]
+      set ::g_verbosity_level_list [list silent concise normal verbose debug]
    }
    return $::g_verbosity_level_list
 }
@@ -667,7 +667,7 @@ proc __reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
       if {[currentMsgRecordId] ne {}} {
          recordMessage $message $recordtop
       # skip message report if silent
-      } elseif {[isVerbosityLevel normal]} {
+      } elseif {[isVerbosityLevel concise]} {
          report $message
       }
    }
@@ -693,8 +693,10 @@ proc reportInternalBug {message modfile} {
 }
 
 proc reportInfo {message {title INFO}} {
-   # use reportError for conveniance but there is no error here
-   reportError $message 0 $title in 0
+   if {[isVerbosityLevel normal]} {
+      # use reportError for conveniance but there is no error here
+      reportError $message 0 $title in 0
+   }
 }
 
 # is currently active message record id at top level
@@ -728,7 +730,7 @@ proc reportMsgRecord {header} {
    set recid [currentMsgRecordId]
    if {[info exists ::g_msgRecord($recid)]} {
       # skip message report if silent
-      if {[isVerbosityLevel normal]} {
+      if {[isVerbosityLevel concise]} {
          set tty_cols [getTtyColumns]
          set padding {  }
 
@@ -1196,8 +1198,8 @@ proc initModfileModeAliases {mode aliasesVN aliasesPassArgVN tracesVN} {
          module-info module-info exit exitModfileCmd reportCmdTrace\
          reportCmdTrace reportInternalBug reportInternalBug reportWarning\
          reportWarning reportError reportError raiseErrorCount\
-         raiseErrorCount report report isWin isWin puts putsModfileCmd\
-         readModuleContent readModuleContent]
+         raiseErrorCount report report isVerbosityLevel isVerbosityLevel\
+         isWin isWin puts putsModfileCmd readModuleContent readModuleContent]
 
       # list of alias commands whose target procedure is adapted according to
       # the evaluation mode
@@ -1366,8 +1368,9 @@ proc execute-modulefile {modfile modname modspec {must_have_cookie 1}} {
             || $::errorInfo eq {}))} {
             raiseErrorCount
             unset errorMsg
-            # report load/unload evaluation break
-            if {[module-info mode load] || [module-info mode unload]} {
+            # report load/unload evaluation break if verbosity level >= normal
+            if {([module-info mode load] || [module-info mode unload]) &&\
+               [isVerbosityLevel normal]} {
                reportError {Module evaluation aborted}
             }
             return 1
@@ -2687,7 +2690,7 @@ proc putsModfileCmd {itrp args} {
    # if it targets stderr call report, which knows what channel to use
    } elseif {[info exists reportArgs]} {
       # report message only if not silent
-      if {[isVerbosityLevel normal]} {
+      if {[isVerbosityLevel concise]} {
          eval report $reportArgs
       }
    # pass to real puts command if not related to stdout and do that in modfile
@@ -9795,7 +9798,7 @@ if {[catch {
 } errMsg ]} {
    # no use of reportError here to get independent from any previous error
    # report inhibition. report error only if not silent
-   if {[isVerbosityLevel normal]} {
+   if {[isVerbosityLevel concise]} {
       report "[sgr er ERROR]: $errMsg"
    }
    # init error report here in case the error raised before the regular init
