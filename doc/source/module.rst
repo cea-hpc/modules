@@ -150,6 +150,15 @@ switches are accepted:
  Debug mode. Causes **module** to print debugging messages about its
  progress.
 
+**--verbose**, **-v**
+
+ Enable verbose messages during **module** command execution.
+
+**--silent**, **-s**
+
+ Turn off error, warning and informational messages. **module** command output
+ result is not affected by silent mode.
+
 **--paginate**
 
  Pipe all message output into *less* (or if set, *$MODULES_PAGER*) if error
@@ -634,6 +643,7 @@ Module Sub-Commands
    **MODULES_TERM_BACKGROUND**)
  * unload_match_order: unload firstly loaded or lastly loaded module matching
    request (defines **MODULES_UNLOAD_MATCH_ORDER**)
+ * verbosity: module command verbosity level (defines **MODULES_VERBOSITY**)
 
 The options *avail_report_dir_sym*, *avail_report_mfile_sym*, *ignored_dirs*,
 *locked_configs*, *siteconfig* and *tcl_ext_lib* cannot be altered. Moreover
@@ -1039,6 +1049,30 @@ ENVIRONMENT
  at initialization scripts running time. Modules package compatibility
  version should be installed along with main version for this environment
  variable to have any effect.
+
+**MODULES_VERBOSITY**
+
+ Defines the verbosity level of the module command. Available verbosity levels
+ from the least to the most verbose are:
+
+ * silent: turn off error, warning and informational messages but does not
+   affect module command output result.
+ * concise: enable error and warning messages but disable informational
+   messages.
+ * normal: turn on informational messages, like a report of the additional
+   module evaluations triggered by loading or unloading modules, aborted
+   evaluation issues or a report of each module evaluation occurring during a
+   **restore** or **source** sub-commands.
+ * verbose: add additional informational messages, like a systematic report of
+   the loading or unloading module evaluations.
+ * debug: print debugging messages about module command execution.
+
+ Module command verbosity is defined in the following order of preference:
+ **--silent**, **--verbose** and **--debug** command line switches, then
+ **MODULES_VERBOSITY** environment variable, then the default set in
+ **modulecmd.tcl** script configuration. Which means **MODULES_VERBOSITY**
+ overrides default configuration and **--silent**/**--verbose**/**--debug**
+ command line switches overrides every other ways to set verbosity level.
 
 **_LMFILES_**
 

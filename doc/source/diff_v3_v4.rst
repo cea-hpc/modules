@@ -27,10 +27,6 @@ Command line switches
 
 **--human**
 
-**--verbose**, **-v**
-
-**--silent**, **-s**
-
 **--create**, **-c**
 
 **--icase**, **-i**
@@ -42,6 +38,10 @@ Command line switches
 **--ter**
 
 **--lon**
+
+**--sil**
+
+**--verb**
  
  These intermediate-form command line switches are not supported on Modules 4. Short or long switch name should be used instead.
  
@@ -52,6 +52,12 @@ Command line switches
 **--force**, **-f**
  
  This command line switch was not supported starting Modules version ``4.0`` but reintroduced starting version ``4.2`` with a different meaning: instead of enabling an active dependency resolution mechanism ``--force`` command line switch now enables to by-pass dependency consistency when loading or unloading a *modulefile*.
+
+**--verbose**, **-v**
+
+**--silent**, **-s**
+
+ These command line switches were not supported starting Modules version ``4.0`` but reintroduced starting version ``4.3``. However, reintroduced **--silent** switch does not redirect stderr channel to ``/dev/null`` if stderr is found not to be a tty.
 
 
 Module Sub-Commands
@@ -434,6 +440,8 @@ Environment
 **MODULES_TERM_BACKGROUND**
 
 **MODULES_UNLOAD_MATCH_ORDER**
+
+**MODULES_VERBOSITY**
 
  These environment variables appeared on version ``4.3`` and are not supported on compatibility version.
 
