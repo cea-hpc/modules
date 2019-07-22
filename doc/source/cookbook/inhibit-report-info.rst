@@ -11,8 +11,15 @@ sometimes and here is a proposed way to inhibit them.
 Implementation
 --------------
 
-A site-specific configuration script is proposed to inhibit the output of
-the info-level messages.
+Starting version v4.3, a ``verbosity`` configuration option is introduced to
+increase or decrease the variety of the messages produced by the ``module``
+command. To inhibit the output of the info-level messages, the ``concise``
+verbosity level should be selected::
+
+   $ module config verbosity concise
+
+For v4.2 versions, a site-specific configuration script is proposed to inhibit
+the output of the info-level messages.
 
 .. literalinclude:: ../../example/inhibit-report-info/siteconfig.tcl
    :caption: siteconfig.tcl
@@ -20,8 +27,8 @@ the info-level messages.
 
 **Compatible with Modules v4.2**
 
-Installation
-------------
+Installation (only for version older than v4.3)
+-----------------------------------------------
 
 Create site-specific configuration directory if it does not exist yet:
 
