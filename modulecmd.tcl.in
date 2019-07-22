@@ -786,9 +786,10 @@ proc reportMsgRecord {header} {
       # purge message list in case same evaluation is re-done afterward
       unset ::g_msgRecord($recid)
    # report header if no other specific msg to output in verbose mode or in
-   # normal verbosity mode if currently processing a restore cmd
-   } elseif {[isVerbosityLevel verbose] || ([isVerbosityLevel normal] &&\
-      [isInList [list restore] [currentCommandName]])} {
+   # normal verbosity mode if currently processing a cmd which triggers
+   # multiple module evaluations that cannot be guessed by the user
+   } elseif {[isVerbosityLevel verbose] || ([isVerbosityLevel normal] && (\
+      [ongoingCommandName restore] || [ongoingCommandName source]))} {
       report $header
    }
 }
@@ -3480,6 +3481,10 @@ proc pushCommandName {commandName} {
 
 proc popCommandName {} {
    set ::g_commandNameStack [lrange $::g_commandNameStack 0 end-1]
+}
+
+proc ongoingCommandName {commandName} {
+   return [expr {[lsearch -exact $::g_commandNameStack $commandName] != -1}]
 }
 
 # stack of report holder unique identifiers
