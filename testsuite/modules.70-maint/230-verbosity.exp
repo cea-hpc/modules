@@ -1,0 +1,233 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2019/07/24
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test impact of the different verbosity level
+#		}C%
+#
+##############################################################################
+
+# ensure tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# debug mode is not tested here as debug tests are spread all along the
+# existing test scripts
+
+set err_trace "$warn_msgs: 'module-trace' command not implemented"
+
+set ans [list]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath LOADEDMODULES setenv/1.0:trace/all_on:prereq/module:module/meta]
+lappend ans [list setpath _LMFILES_ $modpath/setenv/1.0:$modpath/trace/all_on:$modpath/prereq/module:$modpath/module/meta]
+lappend ans [list setpath MODULES_LMPREREQ prereq/module&trace:module/meta&setenv&trace&prereq/module]
+lappend ans [list setpath MODULES_LMNOTUASKED setenv/1.0:trace/all_on:prereq/module]
+
+# test the different verbosity level with command-line switch option if available
+testouterr_cmd_re sh {load -s module/meta} $ans {}
+setenv_var MODULES_VERBOSITY concise
+testouterr_cmd_re sh {load module/meta} $ans [msg_load trace/all_on $err_trace]
+setenv_var MODULES_VERBOSITY normal
+testouterr_cmd_re sh {load module/meta} $ans [msg_load trace/all_on $err_trace]\n\n[msg_top_load module/meta {} {setenv/1.0 trace/all_on prereq/module} {}]
+testouterr_cmd_re sh {load -v module/meta} $ans [msg_load setenv/1.0]\n\n[msg_load trace/all_on $err_trace]\n\n[msg_load prereq/module]\n\n[msg_top_load module/meta {} {setenv/1.0 trace/all_on prereq/module} {}]
+
+# for the other tests, just set the MODULES_VERBOSITY variable to selected verbosity level
+foreach verbosity [list silent concise normal verbose] {
+    setenv_var MODULES_VERBOSITY $verbosity
+
+    testouterr_cmd_re sh {display setenv/1.0} OK "$modlin\n$modpathre/setenv/1.0:\n\nsetenv\t\ttestsuite yes\n$modlin"
+
+    set tserr [expr {$verbosity eq {silent} ? {} : "$warn_msgs: Unable to find ModulesHelp in $modpathre/setenv/1.0.\n"}]
+    testouterr_cmd_re sh {help setenv/1.0} OK "$modlin\nModule Specific Help for $modpathre/setenv/1.0:\n\n$tserr$modlin"
+    set tserr [expr {$verbosity eq {silent} ? {} : "Help_out\nHelp_err\n"}]
+    testouterr_cmd_re sh {help help/2.0} OK "$modlin\nModule Specific Help for $modpathre/help/2.0:\n\n$tserr$modlin"
+
+    set tserr [expr {$verbosity eq {silent} ? {} : "$warn_msgs: Unable to find ModulesTest in $modpathre/setenv/1.0.\n"}]
+    testouterr_cmd_re sh {test setenv/1.0} OK "$modlin\nModule Specific Test for $modpathre/setenv/1.0:\n\n$tserr$modlin"
+    set tserr [expr {$verbosity eq {silent} ? {} : "Test_err\n"}]
+    testouterr_cmd_re sh {test test/2.0} ERR "$modlin\nModule Specific Test for $modpathre/test/2.0:\n\n${tserr}Test result: FAIL\n$modlin"
+
+    testouterr_cmd sh {use} OK "Search path for module files (in search order):\n  $modpath"
+    set tserr [expr {$verbosity eq {silent} ? {} : "$error_msgs: Directory '/unknown' not found"}]
+    testouterr_cmd_re sh {use /unknown} ERR $tserr
+
+    testouterr_cmd sh {avail -S -t setenv/1.0} OK "$modpath:\nsetenv/1.0"
+    testouterr_cmd_re sh {whatis loc_rc1/1.0} OK "$modlin $modpathre $modlin\n\\s+loc_rc1/1.0: loc_rc1/1.0"
+    testouterr_cmd_re sh {search loc_rc1/1.0} ERR "$modlin $modpathre $modlin\n\\s+loc_rc1/1.0: loc_rc1/1.0"
+
+    set ans [list [list text $modpath/setenv/1.0]]
+    testouterr_cmd sh {path setenv/1.0} $ans {}
+    testouterr_cmd sh {paths setenv/1.0} $ans {}
+
+    set ans [list]
+    lappend ans [list set testsuite yes]
+    lappend ans [list setpath LOADEDMODULES setenv/1.0]
+    lappend ans [list setpath _LMFILES_ $modpath/setenv/1.0]
+    set tserr [expr {$verbosity eq {verbose} ? [msg_load setenv/1.0] : {}}]
+    testouterr_cmd sh {load setenv/1.0} $ans $tserr
+
+    set tserr [expr {$verbosity eq {silent} ? {} : "$err_path'unknown'"}]
+    testouterr_cmd sh {load unknown} ERR $tserr
+
+    set tserr [expr {$verbosity eq {silent} ? {} : [msg_load bad2/body "$moderr_msgs: invalid command name \"bad-command\"\nIn '$modpath/bad2/body'\n$err_contactns"]}]
+    testouterr_cmd sh {load bad2/body} ERR $tserr
+
+    # usage of break command in modulefile
+    set tserr [expr {$verbosity eq {silent} || $verbosity eq {concise} ? {} : [msg_load break/2.0 $err_evalabort]}]
+    testouterr_cmd_re sh {load break/2.0} ERR $tserr
+    # usage of exit command in modulefile
+    set tserr [expr {$verbosity eq {silent} || $verbosity eq {concise} ? {} : [msg_load exit/2.0 $err_evalabort]}]
+    testouterr_cmd_re sh {load exit/2.0} ERR $tserr
+
+    # usage of puts command in modulefile toward stdout and stderr
+    set ans [list]
+    lappend ans [list set testsuite "ok"]
+    lappend ans [list setpath LOADEDMODULES puts/1]
+    lappend ans [list setpath _LMFILES_ $modpath/puts/1]
+    lappend ans [list out "stdout"]
+    lappend ans [list out "stderr"]
+    lappend ans [list out "stdoutstderrtextout1"]
+    lappend ans [list out "textout2textout3"]
+    if {$verbosity eq {silent}} {
+        set tserr {}
+    } elseif {$verbosity eq {concise} || $verbosity eq {normal}} {
+        set tserr texterr1\ntexterr2texterr3
+    } elseif {$verbosity eq {verbose}} {
+        set tserr texterr1\ntexterr2texterr3\n[msg_load puts/1]
+    }
+    testouterr_cmd_re sh {load puts/1} $ans $tserr
+
+    set ans [list]
+    lappend ans [list set testsuite yes]
+    lappend ans [list setpath LOADEDMODULES setenv/1.0:trace/all_on:prereq/module]
+    lappend ans [list setpath _LMFILES_ $modpath/setenv/1.0:$modpath/trace/all_on:$modpath/prereq/module]
+    lappend ans [list setpath MODULES_LMPREREQ prereq/module&trace]
+    if {$verbosity eq {silent}} {
+        set tserr {}
+    } elseif {$verbosity eq {concise}} {
+        set tserr [msg_load trace/all_on $err_trace]
+    } elseif {$verbosity eq {normal} || $verbosity eq {verbose}} {
+        set tserr [msg_load setenv/1.0]\n\n[msg_load trace/all_on $err_trace]\n\n[msg_load prereq/module]
+    }
+    testouterr_cmd_re sh "source $modpath/module/meta" $ans $tserr
+
+    set coll $env(TESTSUITEDIR)/home/.module/default
+    set collre [regsub -all "\(\[.+?\]\)" $coll {\\\1}]
+
+    set ans [list]
+    lappend ans [list set testsuite yes]
+    lappend ans [list setpath LOADEDMODULES loc_rc1/1.0:load/15:verssort/1.10:coll/a:loc_dv2/1.0]
+    lappend ans [list setpath _LMFILES_ $modpath/loc_rc1/1.0:$modpath/load/15:$modpath/verssort/1.10:$modpath/coll/a:$modpath/loc_dv2/1.0]
+    lappend ans [list setpath MODULES_LMALTNAME loc_rc1/1.0&loc_rc1/foo:loc_dv2/1.0&loc_dv2/default&loc_dv2]
+    lappend ans [list unset mload]
+    lappend ans [list set t15 t15]
+    lappend ans [list set MODULE_VERSION 1.10]
+    if {$verbosity eq {silent}} {
+        set tserr {}
+    } elseif {$verbosity eq {concise}} {
+        set tserr {load coll/a}
+    } elseif {$verbosity eq {normal} || $verbosity eq {verbose}} {
+        set tserr "[msg_load loc_rc1/1.0]\n[msg_load load/15]\n[msg_load verssort/1.10]\nload coll/a\n[msg_load coll/a]\n[msg_load loc_dv2/1.0]"
+    }
+    testouterr_cmd_re sh "restore $coll" $ans $tserr
+    set tserr "$modlin\n$collre:\n\nmodule use --append $modpathre\nmodule load loc_rc1/1.0\nmodule load load/15\nmodule load verssort/1.10\nmodule load coll/a\nmodule load loc_dv2/1.0\n\n$modlin"
+    testouterr_cmd_re sh "saveshow $coll" OK $tserr
+}
+
+# load some modules to test other sub-commands
+setenv_loaded_module [list setenv/1.0 trace/all_on prereq/module module/meta] [list $modpath/setenv/1.0 $modpath/trace/all_on $modpath/prereq/module $modpath/module/meta] [list setenv/1.0 trace/all_on prereq/module]
+setenv_path_var MODULES_LMPREREQ prereq/module&trace module/meta&setenv&trace&prereq/module
+
+foreach verbosity [list silent concise normal verbose] {
+    setenv_var MODULES_VERBOSITY $verbosity
+    testouterr_cmd sh {is-loaded setenv/1.0} OK {}
+    testouterr_cmd sh {is-loaded setenv/2.0} ERR {}
+    testouterr_cmd sh {list -t} OK "Currently Loaded Modulefiles:\nsetenv/1.0\ntrace/all_on\nprereq/module\nmodule/meta"
+
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES trace/all_on:prereq/module:setenv/0.6:module/meta]
+    lappend ans [list setpath _LMFILES_ $modpath/trace/all_on:$modpath/prereq/module:$modpath/setenv/0.6:$modpath/module/meta]
+    lappend ans [list setpath MODULES_LMPREREQ prereq/module&trace:module/meta&setenv&trace&prereq/module]
+    lappend ans [list setpath MODULES_LMNOTUASKED trace/all_on:prereq/module]
+    lappend ans [list unset testsuite]
+    lappend ans [list set TS1 yes]
+    lappend ans [list set TS2 yes]
+    if {$verbosity eq {silent} || $verbosity eq {concise}} {
+        set tserr {}
+    } elseif {$verbosity eq {normal}} {
+        set tserr [msg_top_switch setenv/1.0 setenv/0.6 {} {} {} {} module/meta]
+    } elseif {$verbosity eq {verbose}} {
+        set tserr [msg_unload module/meta]\n[msg_unload setenv/1.0]\n[msg_load setenv/0.6]\n[msg_load module/meta]\n\n[msg_top_switch setenv/1.0 setenv/0.6 {} {} {} {} module/meta]
+    }
+    testouterr_cmd_re sh {switch --auto setenv/0.6} $ans $tserr
+
+    set ans [list]
+    lappend ans [list unsetpath LOADEDMODULES]
+    lappend ans [list unsetpath _LMFILES_]
+    lappend ans [list unsetpath MODULES_LMPREREQ]
+    lappend ans [list unset testsuite]
+    lappend ans [list unsetpath MODULES_LMNOTUASKED]
+    if {$verbosity eq {silent}} {
+        set tserr {}
+    } elseif {$verbosity eq {concise}} {
+        set tserr [msg_unload trace/all_on $err_trace]
+    } elseif {$verbosity eq {normal}} {
+        set tserr [msg_unload trace/all_on $err_trace]\n\n[msg_top_unload module/meta {} {prereq/module trace/all_on setenv/1.0} {}]
+    } elseif {$verbosity eq {verbose}} {
+        set tserr [msg_unload prereq/module]\n\n[msg_unload trace/all_on $err_trace]\n\n[msg_unload setenv/1.0]\n\n[msg_top_unload module/meta {} {prereq/module trace/all_on setenv/1.0} {}]
+    }
+    testouterr_cmd_re sh {unload --auto module/meta} $ans $tserr
+
+    if {$verbosity eq {silent}} {
+        set tserr {}
+    } elseif {$verbosity eq {concise} || $verbosity eq {normal}} {
+        set tserr [msg_unload trace/all_on $err_trace]
+    } elseif {$verbosity eq {verbose}} {
+        set tserr [msg_unload module/meta]\n[msg_unload prereq/module]\n\n[msg_unload trace/all_on $err_trace]\n\n[msg_unload setenv/1.0]
+    }
+    testouterr_cmd_re sh {purge} $ans $tserr
+
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES setenv/1.0:trace/all_on:prereq/module:module/meta]
+    lappend ans [list setpath _LMFILES_ $modpath/setenv/1.0:$modpath/trace/all_on:$modpath/prereq/module:$modpath/module/meta]
+    lappend ans [list setpath MODULES_LMPREREQ prereq/module&trace:module/meta&setenv&trace&prereq/module]
+    lappend ans [list setpath MODULES_LMNOTUASKED setenv/1.0:trace/all_on:prereq/module]
+    lappend ans [list set testsuite yes]
+    if {$verbosity eq {silent}} {
+        set tserr {}
+    } elseif {$verbosity eq {concise} || $verbosity eq {normal}} {
+        set tserr [msg_unload trace/all_on $err_trace]\n\n[msg_load trace/all_on $err_trace]
+    } elseif {$verbosity eq {verbose}} {
+        set tserr [msg_unload module/meta]\n[msg_unload prereq/module]\n\n[msg_unload trace/all_on $err_trace]\n\n[msg_unload setenv/1.0]\n[msg_load setenv/1.0]\n\n[msg_load trace/all_on $err_trace]\n\n[msg_load prereq/module]\n[msg_load module/meta]
+    }
+    testouterr_cmd_re sh {reload} $ans $tserr
+}
+
+
+#
+#  Cleanup
+#
+
+unsetenv_path_var MODULES_VERBOSITY
+unsetenv_path_var MODULES_IMPLICIT_DEFAULT
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_loaded_module
+
+unset ans
+unset coll
+unset collre
+unset err_trace
+unset tserr
+unset verbosity
