@@ -286,7 +286,19 @@ proc getColor {} {
    if {![info exists ::g_color]} {
       set color @color@ ;# Color content automatically
 
-      # overriden value coming from environment
+      # overriden value coming from environment via standard variable
+      if {[info exists ::env(CLICOLOR)]} {
+         if {$::env(CLICOLOR) eq {0}} {
+            set color 0
+         } else {
+            set color 1
+         }
+      } elseif {[info exists ::env(CLICOLOR_FORCE)] && $::env(CLICOLOR_FORCE)\
+         ne {0}} {
+         set color 2
+      }
+
+      # overriden value coming from environment via Modules-specific variable
       if {[info exists ::env(MODULES_COLOR)]} {
          # ignore non-valid values
          switch -- $::env(MODULES_COLOR) {

@@ -75,8 +75,8 @@ is attached to a terminal.
 Default color mode could be controlled at configure time with the
 ``--enable-color`` and the ``--disable-color`` option, which respectively
 correspond to the ``auto`` and ``never`` color mode. This default mode could
-be superseded with the ``MODULES_COLOR`` environment variable and the
-``--color`` command-line switch.
+be superseded with the ``CLICOLOR``, ``CLICOLOR_FORCE`` and ``MODULES_COLOR``
+environment variables and the ``--color`` command-line switch.
 
 Color to apply to each element can be controlled with the ``MODULES_COLORS``
 environment variable or the ``--with-dark-background-colors`` and
@@ -110,6 +110,13 @@ for module *default* version, the ``default`` symbol is omitted and instead
 the defined graphical rendition is applied to the relative modulefile. When
 colored output is enabled and a specific graphical rendition is defined for
 module alias, the ``@`` symbol is omitted.
+
+``CLICOLOR`` and ``CLICOLOR_FORCE`` environment variables are also honored to
+define color mode. The ``never`` mode is set if ``CLICOLOR`` equals to ``0``.
+If ``CLICOLOR`` is set to another value, it corresponds to the ``auto`` mode.
+The ``always`` mode is set if ``CLICOLOR_FORCE`` is set to a value different
+than ``0``. Color mode set with these two variables is superseded by mode set
+with ``MODULES_COLOR`` environment variable.
 
 Configure modulecmd with config sub-command
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

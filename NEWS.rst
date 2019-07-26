@@ -194,6 +194,8 @@ Modules 4.3.0 (2019-XX-XX)
   unloads performed to ``restore`` a collection or ``source`` a scriptfile,
   even if there is no specific message to output for these module evaluations.
   Clarifies what module evaluations have been triggered by these sub-commands.
+* Also honor the ``CLICOLOR`` and ``CLICOLOR_FORCE`` environment variables to
+  define color mode. (fix issue #279)
 
 
 Modules 4.2.5 (2019-07-08)

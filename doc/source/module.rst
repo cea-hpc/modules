@@ -841,9 +841,18 @@ ENVIRONMENT
 
  Colored output enablement is defined in the following order of preference:
  **--color** command line switch, then **MODULES_COLOR** environment variable,
- then the default set in **modulecmd.tcl** script configuration. Which means
- **MODULES_COLOR** overrides default configuration and **--color** command
- line switch overrides every other ways to enable or disable this mode.
+ then **CLICOLOR** and **CLICOLOR_FORCE** environment variables, then the
+ default set in **modulecmd.tcl** script configuration. Which means
+ **MODULES_COLOR** overrides default configuration and the
+ **CLICOLOR**/**CLICOLOR_FORCE** variables. **--color** command line switch
+ overrides every other ways to enable or disable this mode.
+
+ **CLICOLOR** and **CLICOLOR_FORCE** environment variables are also honored to
+ define color mode. The *never* mode is set if **CLICOLOR** equals to **0**.
+ If **CLICOLOR** is set to another value, it corresponds to the *auto* mode.
+ The *always* mode is set if **CLICOLOR_FORCE** is set to a value different
+ than **0**. Color mode set with these two variables is superseded by mode set
+ with **MODULES_COLOR** environment variable.
 
 **MODULES_COLORS**
 
