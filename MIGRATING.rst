@@ -137,7 +137,7 @@ environment variable which supersedes this default.::
 
     $ module config auto_handling 1
     $ module config auto_handling
-    Modules Release 4.3.0 (2019-XX-XX)
+    Modules Release 4.3.0 (2019-07-26)
     
     - Config. name ---------.- Value (set by if default overridden) ---------------
     auto_handling             1 (env-var)

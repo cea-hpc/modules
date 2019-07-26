@@ -6,7 +6,7 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
-Modules 4.3.0 (2019-XX-XX)
+Modules 4.3.0 (2019-07-26)
 --------------------------
 
 * Introduce Vim addon files to highlight the modulefile syntax. Installation
