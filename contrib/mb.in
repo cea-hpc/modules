@@ -1,0 +1,172 @@
+#!@TCLSHDIR@/tclsh
+#
+# MB, make bench between modulecmd versions
+# Copyright (C) 2019 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+set benchrep 20
+set curdir [pwd]
+
+# time test run for a given modulecmd version
+proc bench {tag args} {
+   return [expr {round([lindex [split [time {eval exec ./modulecmd.$tag sh\
+      $args >>& /dev/null} $::benchrep]] 0] / 1000)}]
+}
+
+# run test for each modulecmd version
+proc runtest {test} {
+   # set environment for test
+   if {[info exists ::testenvlist($test)]} {
+      foreach {var val} $::testenvlist($test) {
+         set ::env($var) $val
+      }
+   }
+
+   lappend cmdlist $test
+   if {[info exists ::testarglist($test)]} {
+      set cmdlist [concat $cmdlist $::testarglist($test)]
+   }
+
+   foreach tag $::taglist {
+      lappend ::timeres($test) $tag [eval bench $tag $cmdlist]
+   }
+
+   # clean test environment
+   if {[info exists ::testenvlist($test)]} {
+      foreach {var val} $::testenvlist($test) {
+         unset ::env($var)
+      }
+   }
+}
+
+# fetch information from git repository to save workspace and get available
+# modulecmd releases to compare. script will exit on first git command if it
+# not called from a git repository
+set headcommit [exec git rev-parse --short=8 HEAD]
+array set headref_list [exec git show-ref --heads --abbrev=8]
+set headref [expr {[info exists headref_list($headcommit)] ?\
+   [string range $headref_list($headcommit) 11 end] : $headcommit}]
+
+set needstash [expr {[exec git status --porcelain --untracked-files=no] ne\
+   {}}]
+
+# only keep last bugfix version of each minor release
+# drop releases older than 4.1
+set exclbef 4.1
+array set tagarray [list]
+foreach tag [exec git tag --list v*] {
+   if {[string compare $tag v$exclbef] == 1} {
+      set majmin [join [lrange [split $tag .] 0 1] .]
+      if {![info exists tagarray($majmin)] || [string compare $tag\
+         $tagarray($majmin)] == 1} {
+         set tagarray($majmin) $tag
+      }
+   }
+}
+
+# add compat version to tag list
+if {[file exists compat]} {
+   lappend taglist v3.2
+}
+foreach tag [lsort [array names tagarray]] {
+   lappend taglist $tagarray($tag)
+}
+lappend taglist $headref
+
+# save workspace
+if {$needstash} {
+   exec git stash
+}
+
+# check what tag need to be built
+foreach tag $taglist {
+   if {![file exists modulecmd.$tag]} {
+      lappend tagtobuildlist $tag
+   }
+}
+
+# build modulecmd and associated libtclenvmodules for each tag
+if {[info exists tagtobuildlist]} {
+   # clean current workspace to build clean configuration
+   catch {file delete modulecmd-test.tcl modulecmd.tcl\
+      lib/libtclenvmodules.so compat/modulecmd}
+
+   foreach tag $tagtobuildlist {
+      # build compat version
+      if {$tag eq {v3.2}} {
+         exec make -C compat modulecmd
+         file rename compat/modulecmd modulecmd.$tag
+      } else {
+         exec git checkout $tag 2>@1
+         set buildtarget [expr {[string index $tag 0] ne {v} || [string\
+            compare $tag v4.3] == 1 ? {modulecmd-test.tcl} : {modulecmd.tcl}}]
+         exec make SHLIB_SUFFIX=.so.$tag $buildtarget
+         file rename $buildtarget modulecmd.$tag
+         file attributes modulecmd.$tag -permissions ugo+x
+         if {[file exists lib/envmodules.c]} {
+            exec make lib/libtclenvmodules.so
+            file rename lib/libtclenvmodules.so lib/libtclenvmodules.so.$tag
+         }
+      }
+   }
+}
+
+
+# configure environment for tests
+catch {unset env(LOADEDMODULES)}
+catch {unset env(LOADEDMODULES_modshare)}
+catch {unset env(_LMFILES_)}
+catch {unset env(_LMFILES__modshare)}
+catch {unset env(MODULEPATH_modshare)}
+
+# define bench tests and their arguments and environment
+set modpath $curdir/testsuite/modulefiles
+set testlist [list help avail whatis apropos load list unload]
+array set testarglist [list load load/all unload load/all]
+array set testenvlist [list avail [list MODULEPATH $modpath.deep:$modpath.deps] load [list MODULEPATH $modpath] list [list MODULEPATH $modpath LOADEDMODULES load/10:load/11:load/12:load/13:load/14:load/15:load/16:load/17:load/18:load/19:load/20:load/21:load/22:load/23:load/24:load/25:load/26:load/27:load/28:load/29:load/30:load/all _LMFILES_ $modpath/load/10:$modpath/load/11:$modpath/load/12:$modpath/load/13:$modpath/load/14:$modpath/load/15:$modpath/load/16:$modpath/load/17:$modpath/load/18:$modpath/load/19:$modpath/load/20:$modpath/load/21:$modpath/load/22:$modpath/load/23:$modpath/load/24:$modpath/load/25:$modpath/load/26:$modpath/load/27:$modpath/load/28:$modpath/load/29:$modpath/load/30:$modpath/load/all MODULES_LMALTNAME load/all&load/default&load]]
+set testenvlist(whatis) $testenvlist(avail)
+set testenvlist(apropos) $testenvlist(avail)
+set testenvlist(unload) $testenvlist(list)
+
+# output header
+foreach elt [concat [list {}] $taglist] {
+   append tooutput [format "%9s |" $elt]
+}
+puts $tooutput
+puts [string repeat {----------+} [expr {[llength $taglist]+1}]]
+
+# run each bench and output result
+foreach test $testlist {
+   set tooutput [format "%9s |" $test]
+   runtest $test
+   foreach {tag res} $::timeres($test) {
+      append tooutput [format "%9s |" $res]
+   }
+   puts $tooutput
+}
+
+# clean built files
+foreach tag $taglist {
+   catch {file delete modulecmd.$tag lib/libtclenvmodules.so.$tag}
+}
+
+# restore workspace if saved
+if {$needstash} {
+   exec git stash pop
+}
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent syntax=tcl:

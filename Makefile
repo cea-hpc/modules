@@ -236,6 +236,10 @@ contrib/mtreview: contrib/mtreview.in version.inc
 	$(translate-in-script)
 	chmod +x $@
 
+contrib/mb: contrib/mb.in version.inc
+	$(translate-in-script)
+	chmod +x $@
+
 contrib/scripts/add.modules: contrib/scripts/add.modules.in
 	$(translate-in-script)
 
@@ -451,6 +455,7 @@ ifeq ($(wildcard .git) $(wildcard CONTRIBUTING.rst),.git CONTRIBUTING.rst)
 endif
 	rm -f modulecmd.tcl
 	rm -f contrib/mtreview
+	rm -f contrib/mb
 	rm -f $(MODULECMDTEST)
 	rm -f contrib/scripts/add.modules
 	rm -f contrib/scripts/modulecmd
