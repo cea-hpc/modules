@@ -34,8 +34,8 @@ if {!$is_file_perms_editable} {
 
 set ans [list]
 
-# restrict read access to Tcl extension library
 if {[info exists tclextlib_file]} {
+    # restrict read access to Tcl extension library
     change_file_perms $tclextlib_file ugo-rx
     lappend ans "DEBUG CALLING $MODULECMD sh --no-pager -D -V(\\nDEBUG sourceSiteConfig: Source site configuration \\($siteconfig_filere\\))?"
     lappend ans "DEBUG getExtraSiteconfig: extra_siteconfig set to ''"
@@ -47,6 +47,19 @@ if {[info exists tclextlib_file]} {
     lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
     testouterr_cmd_re sh {--no-pager -D -V} {} [join $ans \n]
     restore_file_perms $tclextlib_file
+
+    # replace Tcl extension library by a non lib file
+    file rename $tclextlib_file $tclextlib_file.orig
+    file copy lib/envmodules.c $tclextlib_file
+    if {$tcl_platform(os) eq {Darwin}} {
+        set tserr "$error_msgs: dlopen\\\($tclextlib_file,.*"
+    } else {
+        set tserr "$error_msgs: couldn't load file \"$tclextlib_file\":.*"
+    }
+    testouterr_cmd_re sh {-V} {} $tserr
+    file delete $tclextlib_file
+    file rename $tclextlib_file.orig $tclextlib_file
+    unset tserr
 }
 
 # restrict read access to site-specific configuration script
