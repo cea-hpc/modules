@@ -77,6 +77,54 @@ proc isConfigLocked {option} {
    return [expr {[lsearch -exact $::g_configs(locked_configs) $option] != -1}]
 }
 
+# Get configuration option value
+proc getConf {option {valifundef {}}} {
+   if {![info exists ::g_configs($option)]} {
+      # fetch option properties (including its default value)
+      lassign $::g_config_defs($option) envvar value islockable validvallist\
+         intvallist initproc
+
+      # ensure option is not locked before superseding its default value
+      if {!$islockable || ![isConfigLocked $option]} {
+         # call specific proc to initialize config option if any
+         if {$initproc ne {}} {
+            set value [$initproc $envvar $value $validvallist $intvallist]
+         } else {
+            # overriden value coming from environment
+            if {$envvar ne {} && [info exists ::env($envvar)]} {
+               # ignore non-valid values
+               if {[llength $validvallist] == 0 || [isInList $validvallist\
+                  $::env($envvar)]} {
+                  set value $::env($envvar)
+               }
+            }
+
+            # overriden value coming the command-line
+            if {[info exists ::asked_$option]} {
+               set value [set ::asked_$option]
+            }
+
+            # convert value to its internal representation
+            if {[llength $intvallist] > 0} {
+               set value [lindex $intvallist [lsearch -exact $validvallist\
+                  $value]]
+            }
+         }
+      }
+
+      # return passed value if undefined and no value record
+      if {$value eq {<undef>}} {
+         set value $valifundef
+      } else {
+         set ::g_configs($option) $value
+         reportDebug "$option set to '$value'"
+      }
+      return $value
+   } else {
+      return $::g_configs($option)
+   }
+}
+
 # Get extra site configuration script
 proc getExtraSiteconfig {} {
    if {![info exists ::g_configs(extra_siteconfig)]} {
