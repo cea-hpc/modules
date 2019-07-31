@@ -30,15 +30,15 @@ set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
-set flag_default_dir 1 ;# Report default directories
-set flag_default_mf 1 ;# Report default modulefiles and version alias
+set g_configs(avail_report_dir_sym) 1 ;# Report default directories
+set g_configs(avail_report_mfile_sym) 1 ;# Report default modulefiles and version alias
 set reportfd stderr ;# File descriptor to use to report messages
 
-set g_pager {@pager@ @pageropts@} ;# Default command to page into, empty=disable
+set g_configs(pager) {@pager@ @pageropts@} ;# Default command to page into, empty=disable
 
-set g_siteconfig @etcdir@/siteconfig.tcl ;# Site configuration
-set g_tclextlib @libdir@/libtclenvmodules@SHLIB_SUFFIX@ ;# Tcl extension lib
-set g_lockedconfigs {@lockedconfigs@} ;# Locked config options
+set g_configs(siteconfig) @etcdir@/siteconfig.tcl ;# Site configuration
+set g_configs(tcl_ext_lib) @libdir@/libtclenvmodules@SHLIB_SUFFIX@ ;# Tcl extension lib
+set g_configs(locked_configs) {@lockedconfigs@} ;# Locked config options
 
 # Configuration option properties (superseding environment variable, default
 # value, is configuration lockable to default value, valid value list?,
@@ -74,12 +74,12 @@ array set g_config_defs [list\
 ]
 
 proc isConfigLocked {option} {
-   return [expr {[lsearch -exact $::g_lockedconfigs $option] != -1}]
+   return [expr {[lsearch -exact $::g_configs(locked_configs) $option] != -1}]
 }
 
 # Get extra site configuration script
 proc getExtraSiteconfig {} {
-   if {![info exists ::g_extra_siteconfig]} {
+   if {![info exists ::g_configs(extra_siteconfig)]} {
       # value coming from environment if allowed
       if {[info exists ::env(MODULES_SITECONFIG)] && ![isConfigLocked\
          extra_siteconfig]} {
@@ -88,18 +88,18 @@ proc getExtraSiteconfig {} {
          set extra_siteconfig {}
       }
 
-      set ::g_extra_siteconfig $extra_siteconfig
+      set ::g_configs(extra_siteconfig) $extra_siteconfig
       reportDebug "extra_siteconfig set to '$extra_siteconfig'"
    }
 
-   return $::g_extra_siteconfig
+   return $::g_configs(extra_siteconfig)
 }
 
 # Source site config which can be used to define global procedures or
 # settings. We first look for the global siteconfig, then if an extra
 # siteconfig is defined and allowed, source that file if it exists
 proc sourceSiteConfig {} {
-   lappend siteconfiglist $::g_siteconfig
+   lappend siteconfiglist $::g_configs(siteconfig)
    for {set i 0} {$i < [llength $siteconfiglist]} {incr i} {
       set siteconfig [lindex $siteconfiglist $i]
       if {[file readable $siteconfig]} {
@@ -107,7 +107,7 @@ proc sourceSiteConfig {} {
          if {[catch {uplevel 1 source $siteconfig} errMsg]} {
             reportErrorAndExit "Site configuration source failed\n$errMsg"
          }
-         if {$siteconfig eq $::g_siteconfig} {
+         if {$siteconfig eq $::g_configs(siteconfig)} {
             set ::g_siteconfig_loaded 1
          } else {
             set ::g_extra_siteconfig_loaded 1
@@ -115,7 +115,7 @@ proc sourceSiteConfig {} {
       }
       # check on extra_siteconfig after initial siteconfig loaded in case
       # it inhibits this extra load
-      if {$siteconfig eq $::g_siteconfig && [set extra_siteconfig\
+      if {$siteconfig eq $::g_configs(siteconfig) && [set extra_siteconfig\
          [getExtraSiteconfig]] ne {}} {
          lappend siteconfiglist $extra_siteconfig
       }
@@ -176,7 +176,7 @@ proc getTtyColumns {} {
 
 # Get automated module handling mode
 proc getAutoHandling {} {
-   if {![info exists ::g_auto_handling]} {
+   if {![info exists ::g_configs(auto_handling)]} {
       # default value set at configure time
       set auto_handling @autohandling@ ;# Automated modules handling if 1
 
@@ -195,11 +195,11 @@ proc getAutoHandling {} {
          set auto_handling $::asked_auto_handling
       }
 
-      set ::g_auto_handling $auto_handling
+      set ::g_configs(auto_handling) $auto_handling
       reportDebug "auto_handling set to '$auto_handling'"
    }
 
-   return $::g_auto_handling
+   return $::g_configs(auto_handling)
 }
 
 # Get force mode
@@ -221,7 +221,7 @@ proc getForce {} {
 
 # Get avail in depth mode
 proc getAvailInDepth {} {
-   if {![info exists ::g_avail_indepth]} {
+   if {![info exists ::g_configs(avail_indepth)]} {
       set avail_indepth @availindepth@ ;# Search modulefiles in depth
 
       # overriden value coming from environment
@@ -234,16 +234,16 @@ proc getAvailInDepth {} {
          }
       }
 
-      set ::g_avail_indepth $avail_indepth
+      set ::g_configs(avail_indepth) $avail_indepth
       reportDebug "avail_indepth set to '$avail_indepth'"
    }
 
-   return $::g_avail_indepth
+   return $::g_configs(avail_indepth)
 }
 
 # Get terminal background color kind (dark or light)
 proc getTermBackground {} {
-   if {![info exists ::g_term_background]} {
+   if {![info exists ::g_configs(term_background)]} {
       set term_background @termbg@ ;# Terminal background color
 
       # overriden value coming from environment
@@ -256,16 +256,16 @@ proc getTermBackground {} {
          }
       }
 
-      set ::g_term_background $term_background
+      set ::g_configs(term_background) $term_background
       reportDebug "term_background set to '$term_background'"
    }
 
-   return $::g_term_background
+   return $::g_configs(term_background)
 }
 
 # Initialize Select Graphic Rendition table
 proc initColors {} {
-   if {![info exists ::g_colors_list]} {
+   if {![info exists ::g_configs(colors)]} {
       # overriden value coming from environment
       if {[info exists ::env(MODULES_COLORS)]} {
          set colors_list $::env(MODULES_COLORS)
@@ -310,16 +310,16 @@ proc initColors {} {
             lappend clean_colors_list $elt=$col
          }
       }
-      set ::g_colors_list [join $clean_colors_list :]
-      array set ::g_colors [split $::g_colors_list {:=}]
+      set ::g_configs(colors) [join $clean_colors_list :]
+      array set ::g_colors [split $::g_configs(colors) {:=}]
 
-      reportDebug "colors set to '$::g_colors_list'"
+      reportDebug "colors set to '$::g_configs(colors)'"
    }
 }
 
 # Get color mode
 proc getColor {} {
-   if {![info exists ::g_color]} {
+   if {![info exists ::g_configs(color)]} {
       set color @color@ ;# Color content automatically
 
       # overriden value coming from environment via standard variable
@@ -363,16 +363,16 @@ proc getColor {} {
       # initialize color theme if color mode enabled
       initColors
 
-      set ::g_color $color
+      set ::g_configs(color) $color
       reportDebug "color set to '$color'"
    }
 
-   return $::g_color
+   return $::g_configs(color)
 }
 
 # Unload matching module loaded first or loaded last
 proc getUnloadMatchOrder {} {
-   if {![info exists ::g_unload_match_order]} {
+   if {![info exists ::g_configs(unload_match_order)]} {
       # default value set at configure time
       set unload_match_order @unloadmatchorder@
 
@@ -386,16 +386,16 @@ proc getUnloadMatchOrder {} {
          }
       }
 
-      set ::g_unload_match_order $unload_match_order
+      set ::g_configs(unload_match_order) $unload_match_order
       reportDebug "unload_match_order set to '$unload_match_order'"
    }
 
-   return $::g_unload_match_order
+   return $::g_configs(unload_match_order)
 }
 
 # Implicitly set a default version for modules with none defined
 proc getImplicitDefault {} {
-   if {![info exists ::g_implicit_default]} {
+   if {![info exists ::g_configs(implicit_default)]} {
       # default value set at configure time
       set implicit_default @implicitdefault@
 
@@ -410,16 +410,16 @@ proc getImplicitDefault {} {
          }
       }
 
-      set ::g_implicit_default $implicit_default
+      set ::g_configs(implicit_default) $implicit_default
       reportDebug "implicit_default set to '$implicit_default'"
    }
 
-   return $::g_implicit_default
+   return $::g_configs(implicit_default)
 }
 
 # Module name search matching style
 proc getSearchMatch {} {
-   if {![info exists ::g_search_match]} {
+   if {![info exists ::g_configs(search_match)]} {
       # default value set at configure time
       set search_match @searchmatch@
 
@@ -433,16 +433,16 @@ proc getSearchMatch {} {
          }
       }
 
-      set ::g_search_match $search_match
+      set ::g_configs(search_match) $search_match
       reportDebug "search_match set to '$search_match'"
    }
 
-   return $::g_search_match
+   return $::g_configs(search_match)
 }
 
 # Define or not shell startup file to initialize module
 proc getSetShellStartup {} {
-   if {![info exists ::g_set_shell_startup]} {
+   if {![info exists ::g_configs(set_shell_startup)]} {
       # default value set at configure time
       set set_shell_startup @setshellstartup@
 
@@ -456,11 +456,11 @@ proc getSetShellStartup {} {
          }
       }
 
-      set ::g_set_shell_startup $set_shell_startup
+      set ::g_configs(set_shell_startup) $set_shell_startup
       reportDebug "set_shell_startup set to '$set_shell_startup'"
    }
 
-   return $::g_set_shell_startup
+   return $::g_configs(set_shell_startup)
 }
 
 # Return existing verbosity levels
@@ -473,7 +473,7 @@ proc getVerbosityLevelList {} {
 
 # Get verbosity level
 proc getVerbosity {} {
-   if {![info exists ::g_verbosity]} {
+   if {![info exists ::g_configs(verbosity)]} {
       # default value set at configure time
       set verbosity @verbosity@ ;# Verbosity level
 
@@ -490,11 +490,11 @@ proc getVerbosity {} {
          set verbosity $::asked_verbosity
       }
 
-      set ::g_verbosity $verbosity
+      set ::g_configs(verbosity) $verbosity
       reportDebug "verbosity set to '$verbosity'"
    }
 
-   return $::g_verbosity
+   return $::g_configs(verbosity)
 }
 
 # Is currently set verbosity level is equal or higher than level passed as arg
@@ -506,7 +506,7 @@ proc isVerbosityLevel {name} {
 # Workaroung issue #277 about Tcsh history not coping with default module
 # alias definition
 proc getWa277 {} {
-   if {![info exists ::g_wa_277]} {
+   if {![info exists ::g_configs(wa_277)]} {
       # default value set at configure time
       set wa_277 @wa277@
 
@@ -520,17 +520,17 @@ proc getWa277 {} {
          }
       }
 
-      set ::g_wa_277 $wa_277
+      set ::g_configs(wa_277) $wa_277
       reportDebug "wa_277 set to '$wa_277'"
    }
 
-   return $::g_wa_277
+   return $::g_configs(wa_277)
 }
 
 
 # Get contact address for modulefile issue
 proc getContact {} {
-   if {![info exists ::g_contact]} {
+   if {![info exists ::g_configs(contact)]} {
       # default value, change this to your support email address...
       set contact root@localhost
 
@@ -539,19 +539,19 @@ proc getContact {} {
          set contact $::env(MODULECONTACT)
       }
 
-      set ::g_contact $contact
+      set ::g_configs(contact) $contact
       reportDebug "contact set to '$contact'"
    }
 
-   return $::g_contact
+   return $::g_configs(contact)
 }
 
 # Some directories are ignored when looking for modules.
 proc getIgnoredDirs {} {
-   if {![info exists ::g_ignored_dirs]} {
-      set ::g_ignored_dirs {CVS RCS SCCS .svn .git .SYNC .sos}
+   if {![info exists ::g_configs(ignored_dirs)]} {
+      set ::g_configs(ignored_dirs) {CVS RCS SCCS .svn .git .SYNC .sos}
    }
-   return $::g_ignored_dirs
+   return $::g_configs(ignored_dirs)
 }
 
 proc raiseErrorCount {} {
@@ -1064,7 +1064,7 @@ proc cleanupAndExit {code} {
 
 # init configuration for output paging to prepare for startup
 proc initPager {} {
-   set pager $::g_pager
+   set pager $::g_configs(pager)
 
    # default pager enablement depends of pager command value
    if {[isInList [list {} cat] [file tail [lindex $pager 0]]]} {
@@ -1094,7 +1094,7 @@ proc initPager {} {
          (use_pager=$::use_pager, cmd='$pager')"
    }
 
-   set ::g_pager $pager
+   set ::g_configs(pager) $pager
 
    # paging may have been enabled or disabled from the command-line
    if {[info exists ::asked_pager]} {
@@ -1135,7 +1135,7 @@ proc initPager {} {
 # start pager pipe process with defined configuration
 proc startPager {} {
    if {[catch {
-      set ::reportfd [open "|$::g_pager >@stderr 2>@stderr" w]
+      set ::reportfd [open "|$::g_configs(pager) >@stderr 2>@stderr" w]
       fconfigure $::reportfd -buffering line -blocking 1 -buffersize 65536
    } errMsg]} {
       reportWarning $errMsg
@@ -7072,7 +7072,8 @@ proc prepareMapToHightlightSubstr {substr} {
 
 # Finds all module versions for mod in the module path dir
 proc listModules {dir mod show_mtime filter search} {
-   global flag_default_mf flag_default_dir
+   set flag_default_dir $::g_configs(avail_report_dir_sym)
+   set flag_default_mf $::g_configs(avail_report_mfile_sym)
 
    reportDebug "get '$mod' in $dir (show_mtime=$show_mtime, filter=$filter,\
       search=$search)"
@@ -7773,7 +7774,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl {}}\
    # loads are made with auto handling mode disabled to avoid disturbances
    # from a missing prereq automatically reloaded, so these module loads may
    # fail as prereq may not be satisfied anymore
-   set ::g_auto_handling 0
+   set ::g_configs(auto_handling) 0
    foreach mod $lmlist {
       # reload module with user asked property preserved
       if {[cmdModuleLoad $context $isuasked($mod) $mod]} {
@@ -7788,7 +7789,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl {}}\
          }
       }
    }
-   set ::g_auto_handling 1
+   set ::g_configs(auto_handling) 1
 }
 
 ########################################################################
@@ -8166,9 +8167,9 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    if {!$uasked && $argold ne {}} {
       # temporarily disable auto handling just to record deps, not to try to
       # load or unload them (already tried)
-      set ::g_auto_handling 0
+      set ::g_configs(auto_handling) 0
       catch {conflict $argold}
-      set ::g_auto_handling $orig_auto_handling
+      set ::g_configs(auto_handling) $orig_auto_handling
    }
 
    # attempt load and depre reload only if unload succeed
@@ -8196,9 +8197,9 @@ proc cmdModuleSwitch {uasked old {new {}}} {
 
    # register modulefile to load as prereq when called from modulefile
    if {!$uasked && !$ret && $argnew ne {}} {
-      set ::g_auto_handling 0
+      set ::g_configs(auto_handling) 0
       prereq $argnew
-      set ::g_auto_handling $orig_auto_handling
+      set ::g_configs(auto_handling) $orig_auto_handling
    }
 }
 
@@ -8267,7 +8268,7 @@ proc cmdModuleRestore {{coll default}} {
    }
 
    # forcibly enable implicit_default to restore colls saved in this mode
-   set ::g_implicit_default 1
+   set ::g_configs(implicit_default) 1
    reportDebug "implicit_default forcibly set to '1'"
 
    # fetch what is currently loaded
@@ -8342,7 +8343,7 @@ proc cmdModuleRestore {{coll default}} {
       path_to_unuse path_to_use
 
    # reset implicit_default to restore behavior defined
-   unset ::g_implicit_default
+   unset ::g_configs(implicit_default)
    reportDebug "implicit_default unset"
 
    # use paths
@@ -9509,16 +9510,16 @@ proc cmdModuleConfig {dump_state args} {
    # define each attribute/fetched value pair
    array set confval [list contact [getContact] auto_handling\
       [getAutoHandling] avail_indepth [getAvailInDepth] avail_report_dir_sym\
-      $::flag_default_dir avail_report_mfile_sym $::flag_default_mf\
+      $::g_configs(avail_report_dir_sym) avail_report_mfile_sym $::g_configs(avail_report_mfile_sym)\
       collection_pin_version [pinVersionInCollection] collection_target\
       [get-env $confvar(collection_target) <undef>] color [getColor] colors\
-      $::g_colors_list extra_siteconfig [expr {[getExtraSiteconfig] ne {} ?\
+      $::g_configs(colors) extra_siteconfig [expr {[getExtraSiteconfig] ne {} ?\
       [getExtraSiteconfig] : {<undef>}}] ignored_dirs [getIgnoredDirs]\
-      locked_configs $::g_lockedconfigs pager $::g_pager\
+      locked_configs $::g_configs(locked_configs) pager $::g_configs(pager)\
       rcfile [get-env $confvar(rcfile) <undef>]\
       run_quarantine [get-env $confvar(run_quarantine) <undef>]\
       silent_shell_debug [get-env $confvar(silent_shell_debug) <undef>]\
-      siteconfig $::g_siteconfig tcl_ext_lib $::g_tclextlib term_background\
+      siteconfig $::g_configs(siteconfig) tcl_ext_lib $::g_configs(tcl_ext_lib) term_background\
       [getTermBackground] unload_match_order [getUnloadMatchOrder]\
       implicit_default [getImplicitDefault] search_match [getSearchMatch]\
       set_shell_startup [getSetShellStartup] verbosity [getVerbosity] wa_277\
@@ -9534,15 +9535,6 @@ proc cmdModuleConfig {dump_state args} {
       set conflockable($runenvconf) {}
       set confvtrans($runenvconf) {}
    }
-
-   # list variable caching config value once set
-   array set confcachevar [list contact ::g_contact extra_siteconfig\
-      ::g_extra_siteconfig auto_handling ::g_auto_handling avail_indepth\
-      ::g_avail_indepth term_background ::g_term_background colors ::g_colors\
-      color ::g_color unload_match_order ::g_unload_match_order\
-      implicit_default ::g_implicit_default search_match ::g_search_match\
-      set_shell_startup ::g_set_shell_startup verbosity ::g_verbosity wa_277\
-      ::g_wa_277]
 
    if {[info exists name] && ![info exists confval($name)]} {
       reportErrorAndExit "Configuration option '$name' does not exist"
@@ -9568,8 +9560,8 @@ proc cmdModuleConfig {dump_state args} {
          popMode
       }
       # clear cached value for config if any
-      if {[info exists confcachevar($name)]} {
-         unset $confcachevar($name)
+      if {[info exists ::g_configs($name)]} {
+         unset ::g_configs($name)
       }
    # report configuration
    } else {
@@ -9760,9 +9752,9 @@ if {[catch {
    reportDebug "CALLING $argv0 $argv"
 
    # Load extension library if enabled
-   @libtclenvmodules@if {[file readable $g_tclextlib]} {
-   @libtclenvmodules@   reportDebug "Load Tcl extension library ($g_tclextlib)"
-   @libtclenvmodules@   load $g_tclextlib Envmodules
+   @libtclenvmodules@if {[file readable $g_configs(tcl_ext_lib)]} {
+   @libtclenvmodules@   reportDebug "Load Tcl extension library ($g_configs(tcl_ext_lib))"
+   @libtclenvmodules@   load $g_configs(tcl_ext_lib) Envmodules
    @libtclenvmodules@   set g_tclextlib_loaded 1
    @libtclenvmodules@}
    # use fallback procs if extension library is not loaded
