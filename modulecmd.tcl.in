@@ -7411,11 +7411,11 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
 }
 
 # Return conf value and from where an eventual def value has been overridden
-proc displayConfig {val env_var {asked_var {}} {trans {}} {locked 0}} {
+proc displayConfig {val env_var {asked 0} {trans {}} {locked 0}} {
    array set transarr $trans
 
    # get overridden value and know what has overridden it
-   if {$asked_var ne {} && [info exists ::$asked_var]} {
+   if {$asked} {
       set defby " (cmd-line)"
    } elseif {$env_var ne {} && !$locked && [info exists ::env($env_var)]} {
       set defby " (env-var)"
@@ -9570,10 +9570,6 @@ proc cmdModuleConfig {dump_state args} {
       }
    # report configuration
    } else {
-      # some configuration may be overridden from the command-line
-      array set confasked [list auto_handling asked_auto_handling color\
-         asked_color verbosity asked_verbosity]
-
       reportVersion
       reportSeparateNextContent
       displayTableHeader hi {Config. name} 24 {Value (set by if default\
@@ -9587,10 +9583,9 @@ proc cmdModuleConfig {dump_state args} {
       }
 
       foreach var $varlist {
-         set valrep [displayConfig $confval($var) $confvar($var) [expr {[info\
-            exists confasked($var)] ? $confasked($var) : {}}]\
-            $confvtrans($var) [expr {$conflockable($var) eq {1} &&\
-            [isConfigLocked $var]}]]
+         set valrep [displayConfig $confval($var) $confvar($var) [info exists\
+            ::asked_$var] $confvtrans($var) [expr {$conflockable($var) eq {1}\
+            && [isConfigLocked $var]}]]
          append displist [format {%-25s %s} $var $valrep] \n
       }
       report $displist 1
