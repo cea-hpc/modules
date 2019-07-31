@@ -266,51 +266,55 @@ proc getTermBackground {} {
 
 # Initialize Select Graphic Rendition table
 proc initColors {} {
-   if {![array exists ::g_colors]} {
+   if {![info exists ::g_colors_list]} {
       # overriden value coming from environment
       if {[info exists ::env(MODULES_COLORS)]} {
-         set ::g_colors_list $::env(MODULES_COLORS)
+         set colors_list $::env(MODULES_COLORS)
          if {[catch {
-            array set ::g_colors [split $::g_colors_list {:=}]
+            # test overriden value could be set to a dummy array variable
+            array set test_colors [split $colors_list {:=}]
          } errMsg ]} {
             # report issue as a debug message rather warning to avoid
             # disturbing user with a warning message in the middle of a
             # useful output as this table will be initialized at first use
             reportDebug "Ignore invalid value set in MODULES_COLORS\
-               ($::g_colors_list)"
-            # fully clear array in case it was partially initialized
-            unset -nocomplain ::g_colors
+               ($colors_list)"
+            unset colors_list
          }
       }
 
       # if no valid override set use default color theme for terminal
       # background color kind (light or dark)
-      if {![array exists ::g_colors]} {
+      if {![info exists colors_list]} {
          set termbg [getTermBackground]
          if {$termbg eq {light}} {
-            set ::g_colors_list {@lightbgcolors@}
+            set colors_list {@lightbgcolors@}
          } else {
-            set ::g_colors_list {@darkbgcolors@}
+            set colors_list {@darkbgcolors@}
          }
          if {[catch {
-            array set ::g_colors [split $::g_colors_list {:=}]
+            array set test_colors [split $colors_list {:=}]
          } errMsg ]} {
             reportDebug "Ignore invalid default $termbg background colors\
-               ($::g_colors_list)"
-            # define an empty table if no valid value set
-            array set ::g_colors {}
+               ($colors_list)"
+            # define an empty list if no valid value set
+            set colors_list {}
          }
       }
 
       # check each color defined and unset invalid codes
-      foreach {elt col} [array get ::g_colors] {
+      set clean_colors_list {}
+      foreach {elt col} [split $colors_list {:=}] {
          if {![regexp {^[\d;]+$} $col]} {
-            unset ::g_colors($elt)
             reportDebug "Ignore invalid color code for '$elt' ($col)"
+         } else {
+            lappend clean_colors_list $elt=$col
          }
       }
+      set ::g_colors_list [join $clean_colors_list :]
+      array set ::g_colors [split $::g_colors_list {:=}]
 
-      reportDebug "colors set to '[array get ::g_colors]'"
+      reportDebug "colors set to '$::g_colors_list'"
    }
 }
 
