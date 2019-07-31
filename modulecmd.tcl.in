@@ -41,6 +41,39 @@ set g_siteconfig @etcdir@/siteconfig.tcl ;# Site configuration
 set g_tclextlib @libdir@/libtclenvmodules@SHLIB_SUFFIX@ ;# Tcl extension lib
 set g_lockedconfigs {@lockedconfigs@} ;# Locked config options
 
+# Configuration option properties (superseding environment variable, default
+# value, is configuration lockable to default value, valid value list?,
+# internal value representation?, proc to call to initialize option value
+array set g_config_defs [list\
+   contact {MODULECONTACT root@localhost 0}\
+   auto_handling {MODULES_AUTO_HANDLING @autohandling@ 0 {0 1}}\
+   avail_indepth {MODULES_AVAIL_INDEPTH @availindepth@ 0 {0 1}}\
+   avail_report_dir_sym {{} 1 0}\
+   avail_report_mfile_sym {{} 1 0}\
+   collection_pin_version {MODULES_COLLECTION_PIN_VERSION 0 0 {0 1}}\
+   collection_target {MODULES_COLLECTION_TARGET <undef> 0}\
+   color {MODULES_COLOR @color@ 0 {never auto always} {0 1 2}}\
+   colors {MODULES_COLORS {} 0}\
+   extra_siteconfig {MODULES_SITECONFIG <undef> 1 {}}\
+   ignored_dirs {{} {CVS RCS SCCS .svn .git .SYNC .sos} 0}\
+   locked_configs {{} {@lockedconfigs@} 0}\
+   pager {MODULES_PAGER {} 0}\
+   rcfile {MODULERCFILE <undef> 0}\
+   run_quarantine {MODULES_RUN_QUARANTINE <undef> 0}\
+   silent_shell_debug {MODULES_SILENT_SHELL_DEBUG <undef> 0 {0 1}}\
+   siteconfig {{} @etcdir@/siteconfig.tcl 0}\
+   tcl_ext_lib {{} @libdir@/libtclenvmodules@SHLIB_SUFFIX@ 0}\
+   term_background {MODULES_TERM_BACKGROUND @termbg@ 0 {dark light}}\
+   unload_match_order {MODULES_UNLOAD_MATCH_ORDER @unloadmatchorder@ 0\
+      {returnlast returnfirst}}\
+   implicit_default {MODULES_IMPLICIT_DEFAULT @implicitdefault@ 1 {0 1}}\
+   search_match {MODULES_SEARCH_MATCH @searchmatch@ 0 {starts_with contains}}\
+   set_shell_startup {MODULES_SET_SHELL_STARTUP @setshellstartup@ 0 {0 1}}\
+   verbosity {MODULES_VERBOSITY @verbosity@ 0 {silent concise normal verbose\
+      debug}}\
+   wa_277 {MODULES_WA_277 @wa277@ 0 {0 1}}\
+]
+
 proc isConfigLocked {option} {
    return [expr {[lsearch -exact $::g_lockedconfigs $option] != -1}]
 }
@@ -9460,26 +9493,15 @@ proc cmdModuleConfig {dump_state args} {
       name=[expr {[info exists name] ? "'$name'" : {<undef>}}], value=[expr\
       {[info exists value] ? "'$value'" : {<undef>}}]"
 
-   array set confvar [list contact MODULECONTACT auto_handling\
-      MODULES_AUTO_HANDLING avail_indepth MODULES_AVAIL_INDEPTH\
-      collection_pin_version MODULES_COLLECTION_PIN_VERSION collection_target\
-      MODULES_COLLECTION_TARGET color MODULES_COLOR colors MODULES_COLORS\
-      extra_siteconfig MODULES_SITECONFIG pager MODULES_PAGER rcfile\
-      MODULERCFILE run_quarantine MODULES_RUN_QUARANTINE silent_shell_debug\
-      MODULES_SILENT_SHELL_DEBUG term_background MODULES_TERM_BACKGROUND\
-      unload_match_order MODULES_UNLOAD_MATCH_ORDER implicit_default\
-      MODULES_IMPLICIT_DEFAULT search_match MODULES_SEARCH_MATCH\
-      set_shell_startup MODULES_SET_SHELL_STARTUP verbosity MODULES_VERBOSITY\
-      wa_277 MODULES_WA_277]
-
-   array set confvalid [list auto_handling [list 0 1] avail_indepth [list 0\
-      1] collection_pin_version [list 0 1] color [list never auto always]\
-      silent_shell_debug [list 0 1] term_background [list dark light]\
-      unload_match_order [list returnlast returnfirst] implicit_default\
-      [list 0 1] search_match [list starts_with contains] set_shell_startup\
-      [list 0 1] verbosity [getVerbosityLevelList] wa_277 [list 0 1]]
-
-   array set conflockable [list extra_siteconfig 1 implicit_default 1]
+   foreach option [array names ::g_config_defs] {
+      lassign $::g_config_defs($option) confvar($option) defval\
+         conflockable($option) confvalid($option) vtrans
+      set confvtrans($option) {}
+      for {set i 0} {$i < [llength $vtrans]} {incr i} {
+         lappend confvtrans($option) [lindex $vtrans $i] [lindex\
+            $confvalid($option) $i]
+      }
+   }
 
    # define each attribute/fetched value pair
    array set confval [list contact [getContact] auto_handling\
@@ -9505,6 +9527,9 @@ proc cmdModuleConfig {dump_state args} {
       set confval($runenvconf) [get-env $runenvvar]
       # enable modification of runenv conf
       set confvar($runenvconf) $runenvvar
+      set confvalid($runenvconf) {}
+      set conflockable($runenvconf) {}
+      set confvtrans($runenvconf) {}
    }
 
    # list variable caching config value once set
@@ -9520,16 +9545,16 @@ proc cmdModuleConfig {dump_state args} {
       reportErrorAndExit "Configuration option '$name' does not exist"
    # set configuration
    } elseif {[info exists name] && ($nameunset || [info exists value])} {
-      if {![info exists confvar($name)]} {
+      if {$confvar($name) eq {}} {
          reportErrorAndExit "Configuration option '$name' cannot be altered"
-      } elseif {[info exists conflockable($name)] && [isConfigLocked $name]} {
+      } elseif {$conflockable($name) eq {1} && [isConfigLocked $name]} {
          reportErrorAndExit "Configuration option '$name' is locked"
       } elseif {$nameunset} {
          # unset configuration variable
          pushMode load
          unsetenv $confvar($name)
          popMode
-      } elseif {[info exists confvalid($name)] && [notInList\
+      } elseif {[llength $confvalid($name)] > 0 && [notInList\
          $confvalid($name) $value]} {
          reportErrorAndExit "Valid values for configuration option '$name'\
             are: $confvalid($name)"
@@ -9548,8 +9573,6 @@ proc cmdModuleConfig {dump_state args} {
       # some configuration may be overridden from the command-line
       array set confasked [list auto_handling asked_auto_handling color\
          asked_color verbosity asked_verbosity]
-      # internal conf value may be map to a public value
-      array set confvtrans [list color [list 0 never 1 auto 2 always]]
 
       reportVersion
       reportSeparateNextContent
@@ -9564,12 +9587,10 @@ proc cmdModuleConfig {dump_state args} {
       }
 
       foreach var $varlist {
-         set valrep [displayConfig $confval($var)\
-            [expr {[info exists confvar($var)] ? $confvar($var) : {}}]\
-            [expr {[info exists confasked($var)] ? $confasked($var) : {}}]\
-            [expr {[info exists confvtrans($var)] ? $confvtrans($var) : {}}]\
-            [expr {[info exists conflockable($var)] && [isConfigLocked\
-            $var]}]]
+         set valrep [displayConfig $confval($var) $confvar($var) [expr {[info\
+            exists confasked($var)] ? $confasked($var) : {}}]\
+            $confvtrans($var) [expr {$conflockable($var) eq {1} &&\
+            [isConfigLocked $var]}]]
          append displist [format {%-25s %s} $var $valrep] \n
       }
       report $displist 1
