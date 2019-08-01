@@ -346,29 +346,6 @@ proc getColor {} {
    return $::g_configs(color)
 }
 
-# Define or not shell startup file to initialize module
-proc getSetShellStartup {} {
-   if {![info exists ::g_configs(set_shell_startup)]} {
-      # default value set at configure time
-      set set_shell_startup @setshellstartup@
-
-      # overriden value coming from environment
-      if {[info exists ::env(MODULES_SET_SHELL_STARTUP)]} {
-         # ignore non-valid values
-         switch -- $::env(MODULES_SET_SHELL_STARTUP) {
-            0 - 1 {
-               set set_shell_startup $::env(MODULES_SET_SHELL_STARTUP)
-            }
-         }
-      }
-
-      set ::g_configs(set_shell_startup) $set_shell_startup
-      reportDebug "set_shell_startup set to '$set_shell_startup'"
-   }
-
-   return $::g_configs(set_shell_startup)
-}
-
 # Return existing verbosity levels
 proc getVerbosityLevelList {} {
    if {![info exists ::g_verbosity_level_list]} {
@@ -9139,7 +9116,8 @@ proc cmdModuleAutoinit {} {
    }
 
    # define Modules init script as shell startup file
-   if {[getSetShellStartup] && [isInList [list sh csh fish] $::g_shellType]} {
+   if {[getConf set_shell_startup] && [isInList [list sh csh fish]\
+      $::g_shellType]} {
       # setup ENV variables to get module defined in sub-shells (works for
       # 'sh' and 'ksh' in interactive mode and 'sh' (zsh-compat), 'bash' and
       # 'ksh' (zsh-compat) in non-interactive mode.
@@ -9404,7 +9382,7 @@ proc cmdModuleConfig {dump_state args} {
       siteconfig $::g_configs(siteconfig) tcl_ext_lib $::g_configs(tcl_ext_lib) term_background\
       [getConf term_background] unload_match_order [getConf unload_match_order]\
       implicit_default [getConf implicit_default] search_match [getConf search_match]\
-      set_shell_startup [getSetShellStartup] verbosity [getVerbosity] wa_277\
+      set_shell_startup [getConf set_shell_startup] verbosity [getVerbosity] wa_277\
       [getWa277]]
 
    # catch any environment variable set for modulecmd run-time execution
