@@ -576,14 +576,6 @@ proc getWa277 {} {
 }
 
 
-# Some directories are ignored when looking for modules.
-proc getIgnoredDirs {} {
-   if {![info exists ::g_configs(ignored_dirs)]} {
-      set ::g_configs(ignored_dirs) {CVS RCS SCCS .svn .git .SYNC .sos}
-   }
-   return $::g_configs(ignored_dirs)
-}
-
 proc raiseErrorCount {} {
    incr ::error_count
 }
@@ -6594,7 +6586,7 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
       lappend full_list [file join $dir $mod]
    }
 
-   foreach igndir [getIgnoredDirs] {
+   foreach igndir [getConf ignored_dirs] {
       set ignored_dirs($igndir) 1
    }
    array set mod_list {}
@@ -9544,7 +9536,7 @@ proc cmdModuleConfig {dump_state args} {
       collection_pin_version [pinVersionInCollection] collection_target\
       [get-env $confvar(collection_target) <undef>] color [getColor] colors\
       $::g_configs(colors) extra_siteconfig [expr {[getExtraSiteconfig] ne {} ?\
-      [getExtraSiteconfig] : {<undef>}}] ignored_dirs [getIgnoredDirs]\
+      [getExtraSiteconfig] : {<undef>}}] ignored_dirs [getConf ignored_dirs]\
       locked_configs $::g_configs(locked_configs) pager $::g_configs(pager)\
       rcfile [get-env $confvar(rcfile) <undef>]\
       run_quarantine [get-env $confvar(run_quarantine) <undef>]\
