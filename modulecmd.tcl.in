@@ -346,29 +346,6 @@ proc getColor {} {
    return $::g_configs(color)
 }
 
-# Unload matching module loaded first or loaded last
-proc getUnloadMatchOrder {} {
-   if {![info exists ::g_configs(unload_match_order)]} {
-      # default value set at configure time
-      set unload_match_order @unloadmatchorder@
-
-      # overriden value coming from environment
-      if {[info exists ::env(MODULES_UNLOAD_MATCH_ORDER)]} {
-         # ignore non-valid values
-         switch -- $::env(MODULES_UNLOAD_MATCH_ORDER) {
-            returnfirst - returnlast {
-               set unload_match_order $::env(MODULES_UNLOAD_MATCH_ORDER)
-            }
-         }
-      }
-
-      set ::g_configs(unload_match_order) $unload_match_order
-      reportDebug "unload_match_order set to '$unload_match_order'"
-   }
-
-   return $::g_configs(unload_match_order)
-}
-
 # Implicitly set a default version for modules with none defined
 proc getImplicitDefault {} {
    if {![info exists ::g_configs(implicit_default)]} {
@@ -4255,7 +4232,7 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
    set retmax 0
    # get default behavior from unload_match_order config
    if {$behavior eq {}} {
-      set behavior [getUnloadMatchOrder]
+      set behavior [getConf unload_match_order]
    }
 
    # use loading-specific procedures instead of loaded-specific ones
@@ -4502,7 +4479,7 @@ proc setModuleDependency {mod} {
    set modnpolist [lrange $modlist [expr {$modidx + 1}] end]
    set modlist [lrange $modlist 0 $modidx]
    # reverse list to get closest match if returning lastly loaded module
-   if {[getUnloadMatchOrder] eq {returnlast}} {
+   if {[getConf unload_match_order] eq {returnlast}} {
       set modlist [lreverse $modlist]
    }
    set deplist {}
@@ -4909,7 +4886,7 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
    if {$loading} {
       set modlist [getLoadedModuleList]
       # reverse list to get closest match if returning lastly loaded module
-      if {[getUnloadMatchOrder] eq {returnlast}} {
+      if {[getConf unload_match_order] eq {returnlast}} {
          set modlist [lreverse $modlist]
       }
       foreach loadingmod [getLoadingModuleList] {
@@ -9472,7 +9449,7 @@ proc cmdModuleConfig {dump_state args} {
       run_quarantine [get-env $confvar(run_quarantine) <undef>]\
       silent_shell_debug [get-env $confvar(silent_shell_debug) <undef>]\
       siteconfig $::g_configs(siteconfig) tcl_ext_lib $::g_configs(tcl_ext_lib) term_background\
-      [getConf term_background] unload_match_order [getUnloadMatchOrder]\
+      [getConf term_background] unload_match_order [getConf unload_match_order]\
       implicit_default [getImplicitDefault] search_match [getSearchMatch]\
       set_shell_startup [getSetShellStartup] verbosity [getVerbosity] wa_277\
       [getWa277]]
