@@ -239,28 +239,6 @@ proc getForce {} {
    return $::g_force
 }
 
-# Get avail in depth mode
-proc getAvailInDepth {} {
-   if {![info exists ::g_configs(avail_indepth)]} {
-      set avail_indepth @availindepth@ ;# Search modulefiles in depth
-
-      # overriden value coming from environment
-      if {[info exists ::env(MODULES_AVAIL_INDEPTH)]} {
-         # ignore non-valid values
-         switch -- $::env(MODULES_AVAIL_INDEPTH) {
-            0 - 1 {
-               set avail_indepth $::env(MODULES_AVAIL_INDEPTH)
-            }
-         }
-      }
-
-      set ::g_configs(avail_indepth) $avail_indepth
-      reportDebug "avail_indepth set to '$avail_indepth'"
-   }
-
-   return $::g_configs(avail_indepth)
-}
-
 # Get terminal background color kind (dark or light)
 proc getTermBackground {} {
    if {![info exists ::g_configs(term_background)]} {
@@ -7674,7 +7652,7 @@ proc parseModuleCommandArgs {cmd args} {
    set show_oneperline 0
    set show_mtime 0
    set show_filter {}
-   set search_filter [expr {[getAvailInDepth] ? {} : {noindepth}}]
+   set search_filter [expr {[getConf avail_indepth] ? {} : {noindepth}}]
    set search_match [getSearchMatch]
    set dump_state 0
    set otherargs {}
@@ -9505,7 +9483,7 @@ proc cmdModuleConfig {dump_state args} {
 
    # define each attribute/fetched value pair
    array set confval [list contact [getConf contact] auto_handling\
-      [getConf auto_handling] avail_indepth [getAvailInDepth] avail_report_dir_sym\
+      [getConf auto_handling] avail_indepth [getConf avail_indepth] avail_report_dir_sym\
       $::g_configs(avail_report_dir_sym) avail_report_mfile_sym $::g_configs(avail_report_mfile_sym)\
       collection_pin_version [pinVersionInCollection] collection_target\
       [get-env $confvar(collection_target) <undef>] color [getColor] colors\
