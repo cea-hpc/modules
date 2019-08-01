@@ -576,24 +576,6 @@ proc getWa277 {} {
 }
 
 
-# Get contact address for modulefile issue
-proc getContact {} {
-   if {![info exists ::g_configs(contact)]} {
-      # default value, change this to your support email address...
-      set contact root@localhost
-
-      # overriden value coming from environment
-      if {[info exists ::env(MODULECONTACT)]} {
-         set contact $::env(MODULECONTACT)
-      }
-
-      set ::g_configs(contact) $contact
-      reportDebug "contact set to '$contact'"
-   }
-
-   return $::g_configs(contact)
-}
-
 # Some directories are ignored when looking for modules.
 proc getIgnoredDirs {} {
    if {![info exists ::g_configs(ignored_dirs)]} {
@@ -809,7 +791,7 @@ proc reportInternalBug {message modfile} {
    # change line padding depending on output-kind
    set pad [expr {[currentMsgRecordId] ne {} ? {} : {  }}]
    reportError "$message\n${pad}In '$modfile'\n${pad}Please contact\
-      <[getContact]>" 0 {Module ERROR} me
+      <[getConf contact]>" 0 {Module ERROR} me
 }
 
 proc reportInfo {message {title INFO}} {
@@ -9556,7 +9538,7 @@ proc cmdModuleConfig {dump_state args} {
    }
 
    # define each attribute/fetched value pair
-   array set confval [list contact [getContact] auto_handling\
+   array set confval [list contact [getConf contact] auto_handling\
       [getAutoHandling] avail_indepth [getAvailInDepth] avail_report_dir_sym\
       $::g_configs(avail_report_dir_sym) avail_report_mfile_sym $::g_configs(avail_report_mfile_sym)\
       collection_pin_version [pinVersionInCollection] collection_target\
