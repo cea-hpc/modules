@@ -346,30 +346,6 @@ proc getColor {} {
    return $::g_configs(color)
 }
 
-# Implicitly set a default version for modules with none defined
-proc getImplicitDefault {} {
-   if {![info exists ::g_configs(implicit_default)]} {
-      # default value set at configure time
-      set implicit_default @implicitdefault@
-
-      # overriden value coming from environment
-      if {[info exists ::env(MODULES_IMPLICIT_DEFAULT)] && ![isConfigLocked\
-         implicit_default]} {
-         # ignore non-valid values
-         switch -- $::env(MODULES_IMPLICIT_DEFAULT) {
-            0 - 1 {
-               set implicit_default $::env(MODULES_IMPLICIT_DEFAULT)
-            }
-         }
-      }
-
-      set ::g_configs(implicit_default) $implicit_default
-      reportDebug "implicit_default set to '$implicit_default'"
-   }
-
-   return $::g_configs(implicit_default)
-}
-
 # Module name search matching style
 proc getSearchMatch {} {
    if {![info exists ::g_configs(search_match)]} {
@@ -6601,7 +6577,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    set indepth [expr {[isInList $search noindepth] ? 0 : 1}]
 
    # set a default if none defined on directory entries
-   set implicitdfl [getImplicitDefault]
+   set implicitdfl [getConf implicit_default]
 
    # match passed name against any part of avail module names
    set contains [expr {[isInList $search contains] ? 1 : 0}]
@@ -7836,7 +7812,7 @@ proc cmdModulePaths {mod} {
 
       # forcibly enable implicit_default to resolve alias target when it
       # points to a directory
-      set ::g_implicit_default 1
+      set ::g_configs(implicit_default) 1
       reportDebug "implicit_default forcibly set to '1'"
 
       # build list of modulefile to print
@@ -7862,7 +7838,7 @@ proc cmdModulePaths {mod} {
       }
 
       # reset implicit_default to restore behavior defined
-      unset ::g_implicit_default
+      unset ::g_configs(implicit_default)
       reportDebug "implicit_default unset"
    }
 
@@ -7912,7 +7888,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 
       # forcibly enable implicit_default to resolve alias target when it
       # points to a directory
-      set ::g_implicit_default 1
+      set ::g_configs(implicit_default) 1
       reportDebug "implicit_default forcibly set to '1'"
 
       # build list of modulefile to interpret
@@ -7961,7 +7937,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
       }
 
       # reset implicit_default to restore behavior defined
-      unset ::g_implicit_default
+      unset ::g_configs(implicit_default)
       reportDebug "implicit_default unset"
 
       # in case during modulepath lookup we find an alias target we were
@@ -7983,7 +7959,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 
    # forcibly enable implicit_default to resolve alias target when it points
    # to a directory
-   set ::g_implicit_default 1
+   set ::g_configs(implicit_default) 1
    reportDebug "implicit_default forcibly set to '1'"
 
    # find target of aliases in all modulepath except the one already tried
@@ -8012,7 +7988,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    }
 
    # reset implicit_default to restore behavior defined
-   unset ::g_implicit_default
+   unset ::g_configs(implicit_default)
    reportDebug "implicit_default unset"
 
    # prepare string translation to highlight search query string
@@ -9450,7 +9426,7 @@ proc cmdModuleConfig {dump_state args} {
       silent_shell_debug [get-env $confvar(silent_shell_debug) <undef>]\
       siteconfig $::g_configs(siteconfig) tcl_ext_lib $::g_configs(tcl_ext_lib) term_background\
       [getConf term_background] unload_match_order [getConf unload_match_order]\
-      implicit_default [getImplicitDefault] search_match [getSearchMatch]\
+      implicit_default [getConf implicit_default] search_match [getSearchMatch]\
       set_shell_startup [getSetShellStartup] verbosity [getVerbosity] wa_277\
       [getWa277]]
 
