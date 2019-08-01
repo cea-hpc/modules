@@ -346,45 +346,11 @@ proc getColor {} {
    return $::g_configs(color)
 }
 
-# Return existing verbosity levels
-proc getVerbosityLevelList {} {
-   if {![info exists ::g_verbosity_level_list]} {
-      set ::g_verbosity_level_list [list silent concise normal verbose debug]
-   }
-   return $::g_verbosity_level_list
-}
-
-# Get verbosity level
-proc getVerbosity {} {
-   if {![info exists ::g_configs(verbosity)]} {
-      # default value set at configure time
-      set verbosity @verbosity@ ;# Verbosity level
-
-      # overriden value coming from environment
-      if {[info exists ::env(MODULES_VERBOSITY)]} {
-         # ignore non-valid values
-         if {[isInList [getVerbosityLevelList] $::env(MODULES_VERBOSITY)]} {
-            set verbosity $::env(MODULES_VERBOSITY)
-         }
-      }
-
-      # overriden value coming the command-line
-      if {[info exists ::asked_verbosity]} {
-         set verbosity $::asked_verbosity
-      }
-
-      set ::g_configs(verbosity) $verbosity
-      reportDebug "verbosity set to '$verbosity'"
-   }
-
-   return $::g_configs(verbosity)
-}
-
 # Is currently set verbosity level is equal or higher than level passed as arg
 proc isVerbosityLevel {name} {
    return [expr {[lsearch -exact [lindex $::g_config_defs(verbosity) 3]\
-      [getVerbosity]] >= [lsearch -exact [lindex $::g_config_defs(verbosity)\
-      3] $name]}]
+      [getConf verbosity]] >= [lsearch -exact [lindex\
+      $::g_config_defs(verbosity) 3] $name]}]
 }
 
 # Workaroung issue #277 about Tcsh history not coping with default module
@@ -9383,7 +9349,7 @@ proc cmdModuleConfig {dump_state args} {
       siteconfig $::g_configs(siteconfig) tcl_ext_lib $::g_configs(tcl_ext_lib) term_background\
       [getConf term_background] unload_match_order [getConf unload_match_order]\
       implicit_default [getConf implicit_default] search_match [getConf search_match]\
-      set_shell_startup [getConf set_shell_startup] verbosity [getVerbosity] wa_277\
+      set_shell_startup [getConf set_shell_startup] verbosity [getConf verbosity] wa_277\
       [getWa277]]
 
    # catch any environment variable set for modulecmd run-time execution
