@@ -346,29 +346,6 @@ proc getColor {} {
    return $::g_configs(color)
 }
 
-# Module name search matching style
-proc getSearchMatch {} {
-   if {![info exists ::g_configs(search_match)]} {
-      # default value set at configure time
-      set search_match @searchmatch@
-
-      # overriden value coming from environment
-      if {[info exists ::env(MODULES_SEARCH_MATCH)]} {
-         # ignore non-valid values
-         switch -- $::env(MODULES_SEARCH_MATCH) {
-            starts_with - contains {
-               set search_match $::env(MODULES_SEARCH_MATCH)
-            }
-         }
-      }
-
-      set ::g_configs(search_match) $search_match
-      reportDebug "search_match set to '$search_match'"
-   }
-
-   return $::g_configs(search_match)
-}
-
 # Define or not shell startup file to initialize module
 proc getSetShellStartup {} {
    if {![info exists ::g_configs(set_shell_startup)]} {
@@ -7584,7 +7561,7 @@ proc parseModuleCommandArgs {cmd args} {
    set show_mtime 0
    set show_filter {}
    set search_filter [expr {[getConf avail_indepth] ? {} : {noindepth}}]
-   set search_match [getSearchMatch]
+   set search_match [getConf search_match]
    set dump_state 0
    set otherargs {}
 
@@ -9426,7 +9403,7 @@ proc cmdModuleConfig {dump_state args} {
       silent_shell_debug [get-env $confvar(silent_shell_debug) <undef>]\
       siteconfig $::g_configs(siteconfig) tcl_ext_lib $::g_configs(tcl_ext_lib) term_background\
       [getConf term_background] unload_match_order [getConf unload_match_order]\
-      implicit_default [getConf implicit_default] search_match [getSearchMatch]\
+      implicit_default [getConf implicit_default] search_match [getConf search_match]\
       set_shell_startup [getSetShellStartup] verbosity [getVerbosity] wa_277\
       [getWa277]]
 
