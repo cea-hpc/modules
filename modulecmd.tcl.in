@@ -239,28 +239,6 @@ proc getForce {} {
    return $::g_force
 }
 
-# Get terminal background color kind (dark or light)
-proc getTermBackground {} {
-   if {![info exists ::g_configs(term_background)]} {
-      set term_background @termbg@ ;# Terminal background color
-
-      # overriden value coming from environment
-      if {[info exists ::env(MODULES_TERM_BACKGROUND)]} {
-         # ignore non-valid values
-         switch -- $::env(MODULES_TERM_BACKGROUND) {
-            dark - light {
-               set term_background $::env(MODULES_TERM_BACKGROUND)
-            }
-         }
-      }
-
-      set ::g_configs(term_background) $term_background
-      reportDebug "term_background set to '$term_background'"
-   }
-
-   return $::g_configs(term_background)
-}
-
 # Initialize Select Graphic Rendition table
 proc initColors {} {
    if {![info exists ::g_configs(colors)]} {
@@ -283,7 +261,7 @@ proc initColors {} {
       # if no valid override set use default color theme for terminal
       # background color kind (light or dark)
       if {![info exists colors_list]} {
-         set termbg [getTermBackground]
+         set termbg [getConf term_background]
          if {$termbg eq {light}} {
             set colors_list {@lightbgcolors@}
          } else {
@@ -9494,7 +9472,7 @@ proc cmdModuleConfig {dump_state args} {
       run_quarantine [get-env $confvar(run_quarantine) <undef>]\
       silent_shell_debug [get-env $confvar(silent_shell_debug) <undef>]\
       siteconfig $::g_configs(siteconfig) tcl_ext_lib $::g_configs(tcl_ext_lib) term_background\
-      [getTermBackground] unload_match_order [getUnloadMatchOrder]\
+      [getConf term_background] unload_match_order [getUnloadMatchOrder]\
       implicit_default [getImplicitDefault] search_match [getSearchMatch]\
       set_shell_startup [getSetShellStartup] verbosity [getVerbosity] wa_277\
       [getWa277]]
