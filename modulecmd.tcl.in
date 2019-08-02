@@ -30,7 +30,6 @@ set g_autoInit 0
 set g_inhibit_interp 0 ;# Modulefile interpretation disabled if == 1
 set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
-set g_configs(avail_report_mfile_sym) 1 ;# Report default modulefiles and version alias
 set reportfd stderr ;# File descriptor to use to report messages
 
 set g_configs(pager) {@pager@ @pageropts@} ;# Default command to page into, empty=disable
@@ -6878,7 +6877,7 @@ proc prepareMapToHightlightSubstr {substr} {
 # Finds all module versions for mod in the module path dir
 proc listModules {dir mod show_mtime filter search} {
    set flag_default_dir [getConf avail_report_dir_sym] ;# Report default dirs
-   set flag_default_mf $::g_configs(avail_report_mfile_sym)
+   set flag_default_mf [getConf avail_report_mfile_sym] ;# Report modfile syms
 
    reportDebug "get '$mod' in $dir (show_mtime=$show_mtime, filter=$filter,\
       search=$search)"
@@ -9317,7 +9316,7 @@ proc cmdModuleConfig {dump_state args} {
    # define each attribute/fetched value pair
    array set confval [list contact [getConf contact] auto_handling\
       [getConf auto_handling] avail_indepth [getConf avail_indepth] avail_report_dir_sym\
-      [getConf avail_report_dir_sym] avail_report_mfile_sym $::g_configs(avail_report_mfile_sym)\
+      [getConf avail_report_dir_sym] avail_report_mfile_sym [getConf avail_report_mfile_sym]\
       collection_pin_version [pinVersionInCollection] collection_target\
       [get-env $confvar(collection_target) <undef>] color [getColor] colors\
       $::g_configs(colors) extra_siteconfig [getConf extra_siteconfig <undef>]\
