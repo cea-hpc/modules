@@ -124,24 +124,6 @@ proc getConf {option {valifundef {}}} {
    }
 }
 
-# Get extra site configuration script
-proc getExtraSiteconfig {} {
-   if {![info exists ::g_configs(extra_siteconfig)]} {
-      # value coming from environment if allowed
-      if {[info exists ::env(MODULES_SITECONFIG)] && ![isConfigLocked\
-         extra_siteconfig]} {
-         set extra_siteconfig $::env(MODULES_SITECONFIG)
-      } else {
-         set extra_siteconfig {}
-      }
-
-      set ::g_configs(extra_siteconfig) $extra_siteconfig
-      reportDebug "extra_siteconfig set to '$extra_siteconfig'"
-   }
-
-   return $::g_configs(extra_siteconfig)
-}
-
 # Source site config which can be used to define global procedures or
 # settings. We first look for the global siteconfig, then if an extra
 # siteconfig is defined and allowed, source that file if it exists
@@ -162,9 +144,9 @@ proc sourceSiteConfig {} {
       }
       # check on extra_siteconfig after initial siteconfig loaded in case
       # it inhibits this extra load
-      if {$siteconfig eq $::g_configs(siteconfig) && [set extra_siteconfig\
-         [getExtraSiteconfig]] ne {}} {
-         lappend siteconfiglist $extra_siteconfig
+      if {$siteconfig eq $::g_configs(siteconfig) && [getConf\
+         extra_siteconfig] ne {}} {
+         lappend siteconfiglist [getConf extra_siteconfig]
       }
    }
 }
@@ -9339,8 +9321,8 @@ proc cmdModuleConfig {dump_state args} {
       $::g_configs(avail_report_dir_sym) avail_report_mfile_sym $::g_configs(avail_report_mfile_sym)\
       collection_pin_version [pinVersionInCollection] collection_target\
       [get-env $confvar(collection_target) <undef>] color [getColor] colors\
-      $::g_configs(colors) extra_siteconfig [expr {[getExtraSiteconfig] ne {} ?\
-      [getExtraSiteconfig] : {<undef>}}] ignored_dirs [getConf ignored_dirs]\
+      $::g_configs(colors) extra_siteconfig [getConf extra_siteconfig <undef>]\
+      ignored_dirs [getConf ignored_dirs]\
       locked_configs [getConf locked_configs] pager $::g_configs(pager)\
       rcfile [get-env $confvar(rcfile) <undef>]\
       run_quarantine [get-env $confvar(run_quarantine) <undef>]\
