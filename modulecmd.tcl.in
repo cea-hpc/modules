@@ -34,7 +34,6 @@ set reportfd stderr ;# File descriptor to use to report messages
 
 set g_configs(pager) {@pager@ @pageropts@} ;# Default command to page into, empty=disable
 
-set g_configs(siteconfig) @etcdir@/siteconfig.tcl ;# Site configuration
 set g_configs(tcl_ext_lib) @libdir@/libtclenvmodules@SHLIB_SUFFIX@ ;# Tcl extension lib
 
 # Configuration option properties (superseding environment variable, default
@@ -126,7 +125,7 @@ proc getConf {option {valifundef {}}} {
 # settings. We first look for the global siteconfig, then if an extra
 # siteconfig is defined and allowed, source that file if it exists
 proc sourceSiteConfig {} {
-   lappend siteconfiglist $::g_configs(siteconfig)
+   lappend siteconfiglist [getConf siteconfig]
    for {set i 0} {$i < [llength $siteconfiglist]} {incr i} {
       set siteconfig [lindex $siteconfiglist $i]
       if {[file readable $siteconfig]} {
@@ -134,7 +133,7 @@ proc sourceSiteConfig {} {
          if {[catch {uplevel 1 source $siteconfig} errMsg]} {
             reportErrorAndExit "Site configuration source failed\n$errMsg"
          }
-         if {$siteconfig eq $::g_configs(siteconfig)} {
+         if {$siteconfig eq [getConf siteconfig]} {
             set ::g_siteconfig_loaded 1
          } else {
             set ::g_extra_siteconfig_loaded 1
@@ -142,7 +141,7 @@ proc sourceSiteConfig {} {
       }
       # check on extra_siteconfig after initial siteconfig loaded in case
       # it inhibits this extra load
-      if {$siteconfig eq $::g_configs(siteconfig) && [getConf\
+      if {$siteconfig eq [getConf siteconfig] && [getConf\
          extra_siteconfig] ne {}} {
          lappend siteconfiglist [getConf extra_siteconfig]
       }
@@ -9320,7 +9319,7 @@ proc cmdModuleConfig {dump_state args} {
       rcfile [getConf rcfile <undef>]\
       run_quarantine [getConf run_quarantine <undef>]\
       silent_shell_debug [getConf silent_shell_debug <undef>]\
-      siteconfig $::g_configs(siteconfig) tcl_ext_lib $::g_configs(tcl_ext_lib) term_background\
+      siteconfig [getConf siteconfig] tcl_ext_lib $::g_configs(tcl_ext_lib) term_background\
       [getConf term_background] unload_match_order [getConf unload_match_order]\
       implicit_default [getConf implicit_default] search_match [getConf search_match]\
       set_shell_startup [getConf set_shell_startup] verbosity [getConf verbosity] wa_277\
