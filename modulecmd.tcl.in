@@ -9318,7 +9318,7 @@ proc cmdModuleConfig {dump_state args} {
       ignored_dirs [getConf ignored_dirs]\
       locked_configs [getConf locked_configs] pager $::g_configs(pager)\
       rcfile [getConf rcfile <undef>]\
-      run_quarantine [get-env $confvar(run_quarantine) <undef>]\
+      run_quarantine [getConf run_quarantine <undef>]\
       silent_shell_debug [getConf silent_shell_debug <undef>]\
       siteconfig $::g_configs(siteconfig) tcl_ext_lib $::g_configs(tcl_ext_lib) term_background\
       [getConf term_background] unload_match_order [getConf unload_match_order]\
@@ -9693,8 +9693,8 @@ if {[catch {
    initErrorReport
 
    # put back quarantine variables in env, if quarantine mechanism supported
-   @quarantinesupport@if {[info exists env(MODULES_RUN_QUARANTINE)] && $g_shellType ne {csh}} {
-   @quarantinesupport@   foreach var [split $env(MODULES_RUN_QUARANTINE)] {
+   @quarantinesupport@if {[getConf run_quarantine] ne {} && $g_shellType ne {csh}} {
+   @quarantinesupport@   foreach var [split [getConf run_quarantine]] {
    @quarantinesupport@      # check variable name is valid
    @quarantinesupport@      if {[regexp {^[A-Za-z_][A-Za-z0-9_]*$} $var]} {
    @quarantinesupport@         set quarvar ${var}_modquar
