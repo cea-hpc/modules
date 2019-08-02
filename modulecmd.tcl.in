@@ -38,7 +38,6 @@ set g_configs(pager) {@pager@ @pageropts@} ;# Default command to page into, empt
 
 set g_configs(siteconfig) @etcdir@/siteconfig.tcl ;# Site configuration
 set g_configs(tcl_ext_lib) @libdir@/libtclenvmodules@SHLIB_SUFFIX@ ;# Tcl extension lib
-set g_configs(locked_configs) {@lockedconfigs@} ;# Locked config options
 
 # Configuration option properties (superseding environment variable, default
 # value, is configuration lockable to default value, valid value list?,
@@ -74,7 +73,7 @@ array set g_config_defs [list\
 ]
 
 proc isConfigLocked {option} {
-   return [expr {[lsearch -exact $::g_configs(locked_configs) $option] != -1}]
+   return [expr {[lsearch -exact [getConf locked_configs] $option] != -1}]
 }
 
 # Get configuration option value
@@ -9342,7 +9341,7 @@ proc cmdModuleConfig {dump_state args} {
       [get-env $confvar(collection_target) <undef>] color [getColor] colors\
       $::g_configs(colors) extra_siteconfig [expr {[getExtraSiteconfig] ne {} ?\
       [getExtraSiteconfig] : {<undef>}}] ignored_dirs [getConf ignored_dirs]\
-      locked_configs $::g_configs(locked_configs) pager $::g_configs(pager)\
+      locked_configs [getConf locked_configs] pager $::g_configs(pager)\
       rcfile [get-env $confvar(rcfile) <undef>]\
       run_quarantine [get-env $confvar(run_quarantine) <undef>]\
       silent_shell_debug [get-env $confvar(silent_shell_debug) <undef>]\
