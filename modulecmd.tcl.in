@@ -4951,13 +4951,13 @@ proc runModulerc {} {
 
    reportDebug running...
 
-   if {[info exists ::env(MODULERCFILE)]} {
+   if {[set rcfile [getConf rcfile]] ne {}} {
       # if MODULERCFILE is a dir, look at a modulerc file in it
-      if {[file isdirectory $::env(MODULERCFILE)]\
-         && [file isfile $::env(MODULERCFILE)/modulerc]} {
-         lappend rclist $::env(MODULERCFILE)/modulerc
-      } elseif {[file isfile $::env(MODULERCFILE)]} {
-         lappend rclist $::env(MODULERCFILE)
+      if {[file isdirectory $rcfile]\
+         && [file isfile $rcfile/modulerc]} {
+         lappend rclist $rcfile/modulerc
+      } elseif {[file isfile $rcfile]} {
+         lappend rclist $rcfile
       }
    }
    if {[file isfile @etcdir@/rc]} {
@@ -9317,7 +9317,7 @@ proc cmdModuleConfig {dump_state args} {
       $::g_configs(colors) extra_siteconfig [getConf extra_siteconfig <undef>]\
       ignored_dirs [getConf ignored_dirs]\
       locked_configs [getConf locked_configs] pager $::g_configs(pager)\
-      rcfile [get-env $confvar(rcfile) <undef>]\
+      rcfile [getConf rcfile <undef>]\
       run_quarantine [get-env $confvar(run_quarantine) <undef>]\
       silent_shell_debug [getConf silent_shell_debug <undef>]\
       siteconfig $::g_configs(siteconfig) tcl_ext_lib $::g_configs(tcl_ext_lib) term_background\
