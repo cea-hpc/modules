@@ -7322,11 +7322,6 @@ proc getSimplifiedLoadedModuleList {{helper_raw_list {}}\
    return [list $curr_mod_list $curr_nuasked_list]
 }
 
-# should modulefile version be pinned when saving collection?
-proc pinVersionInCollection {} {
-   return [expr {[get-env MODULES_COLLECTION_PIN_VERSION] eq {1}}]
-}
-
 # return saved collections found in user directory which corresponds to
 # enabled collection target if any set.
 proc findCollections {} {
@@ -8017,7 +8012,7 @@ proc cmdModuleSave {{coll default}} {
 
    # format collection content, version number of modulefile are saved if
    # version pinning is enabled
-   if {[pinVersionInCollection]} {
+   if {[getConf collection_pin_version]} {
       set curr_mod_list [getLoadedModuleList]
       set curr_nuasked_list [getLoadedModuleNotUserAskedList]
    } else {
@@ -9317,7 +9312,7 @@ proc cmdModuleConfig {dump_state args} {
    array set confval [list contact [getConf contact] auto_handling\
       [getConf auto_handling] avail_indepth [getConf avail_indepth] avail_report_dir_sym\
       [getConf avail_report_dir_sym] avail_report_mfile_sym [getConf avail_report_mfile_sym]\
-      collection_pin_version [pinVersionInCollection] collection_target\
+      collection_pin_version [getConf collection_pin_version] collection_target\
       [get-env $confvar(collection_target) <undef>] color [getColor] colors\
       $::g_configs(colors) extra_siteconfig [getConf extra_siteconfig <undef>]\
       ignored_dirs [getConf ignored_dirs]\
