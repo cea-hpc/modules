@@ -148,6 +148,12 @@ else
   setlibtclenvmodules := \#
 endif
 
+ifneq ($(pageropts),)
+  pagercmd := $(pager) $(pageropts)
+else
+  pagercmd := $(pager)
+endif
+
 ifeq ($(color),y)
   setcolor := auto
 else
@@ -195,8 +201,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@VERSION@|$(VERSION)|g' \
 	-e 's|@TCLSHDIR@/tclsh|$(TCLSH)|g' \
 	-e 's|@TCLSH@|$(TCLSH)|g' \
-	-e 's|@pager@|$(pager)|g' \
-	-e 's|@pageropts@|$(pageropts)|g' \
+	-e 's|@pagercmd@|$(pagercmd)|g' \
 	-e 's|@verbosity@|$(verbosity)|g' \
 	-e 's|@color@|$(setcolor)|g' \
 	-e 's|@darkbgcolors@|$(darkbgcolors)|g' \
