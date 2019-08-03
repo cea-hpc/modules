@@ -45,7 +45,7 @@ array set g_config_defs [list\
    avail_report_mfile_sym {{} 1 0}\
    collection_pin_version {MODULES_COLLECTION_PIN_VERSION 0 0 {0 1}}\
    collection_target {MODULES_COLLECTION_TARGET <undef> 0}\
-   color {MODULES_COLOR @color@ 0 {never auto always} {0 1 2}}\
+   color {MODULES_COLOR @color@ 0 {never auto always} {0 1 2} initConfColor}\
    colors {MODULES_COLORS {} 0}\
    extra_siteconfig {MODULES_SITECONFIG <undef> 1 {}}\
    ignored_dirs {{} {CVS RCS SCCS .svn .git .SYNC .sos} 0}\
@@ -269,57 +269,48 @@ proc initColors {} {
    }
 }
 
-# Get color mode
-proc getColor {} {
-   if {![info exists ::g_configs(color)]} {
-      set color @color@ ;# Color content automatically
-
-      # overriden value coming from environment via standard variable
-      if {[info exists ::env(CLICOLOR)]} {
-         if {$::env(CLICOLOR) eq {0}} {
-            set color 0
-         } else {
-            set color 1
-         }
-      } elseif {[info exists ::env(CLICOLOR_FORCE)] && $::env(CLICOLOR_FORCE)\
-         ne {0}} {
-         set color 2
+# Initialize color configuration value
+proc initConfColor {envvar value validvallist intvallist} {
+   # overriden value coming from environment via standard variable
+   if {[info exists ::env(CLICOLOR)]} {
+      if {$::env(CLICOLOR) eq {0}} {
+         set value never
+      } else {
+         set value auto
       }
-
-      # overriden value coming from environment via Modules-specific variable
-      if {[info exists ::env(MODULES_COLOR)]} {
-         # ignore non-valid values
-         switch -- $::env(MODULES_COLOR) {
-            always {
-               set color 2
-            }
-            auto {
-               set color 1
-            }
-            never {
-               set color 0
-            }
-         }
-      }
-
-      # overriden value coming the command-line
-      if {[info exists ::asked_color]} {
-         set color $::asked_color
-      }
-
-      # disable color mode if no terminal attached except if 'always' asked
-      if {$color != 0 && (![isStderrTty] || $color == 2)} {
-         incr color -1
-      }
-
-      # initialize color theme if color mode enabled
-      initColors
-
-      set ::g_configs(color) $color
-      reportDebug "color set to '$color'"
+   } elseif {[info exists ::env(CLICOLOR_FORCE)] && $::env(CLICOLOR_FORCE)\
+      ne {0}} {
+      set value always
    }
 
-   return $::g_configs(color)
+   # overriden value coming from environment via Modules-specific variable
+   if {$envvar ne {} && [info exists ::env($envvar)]} {
+      # ignore non-valid values
+      if {[llength $validvallist] == 0 || [isInList $validvallist\
+         $::env($envvar)]} {
+         set value $::env($envvar)
+      }
+   }
+
+   # overriden value coming the command-line
+   if {[info exists ::asked_color]} {
+      set value [set ::asked_color]
+   }
+
+   # convert value to its internal representation
+   if {[llength $intvallist] > 0} {
+      set value [lindex $intvallist [lsearch -exact $validvallist $value]]
+   }
+
+   # disable color mode if no terminal attached except if 'always' asked
+   if {$value != 0 && (![isStderrTty] || $value == 2)} {
+      incr value -1
+   }
+
+   # initialize color theme if color mode enabled
+   initColors
+
+   return $value
 }
 
 # Is currently set verbosity level is equal or higher than level passed as arg
@@ -692,7 +683,7 @@ proc recordMessage {message {recordtop 0}} {
 
 # Select Graphic Rendition of a string with passed sgr key (if color enabled)
 proc sgr {sgrkey str} {
-   if {[getColor] && [info exists ::g_colors($sgrkey)]} {
+   if {[getConf color] && [info exists ::g_colors($sgrkey)]} {
       set sgrset $::g_colors($sgrkey)
       # if render bold or faint just reset that attribute, not all
       if {$sgrset == 1 || $sgrset == 2} {
@@ -809,7 +800,7 @@ proc initErrorReport {} {
       # ask for color init now as debug mode has already fire lines to render
       # and we want them to be reported first (not the color init lines)
       if {[isVerbosityLevel debug]} {
-         getColor
+         getConf color
       }
 
       # replace report procedures used to bufferize messages until error
@@ -9310,7 +9301,7 @@ proc cmdModuleConfig {dump_state args} {
       [getConf auto_handling] avail_indepth [getConf avail_indepth] avail_report_dir_sym\
       [getConf avail_report_dir_sym] avail_report_mfile_sym [getConf avail_report_mfile_sym]\
       collection_pin_version [getConf collection_pin_version] collection_target\
-      [getConf collection_target <undef>] color [getColor] colors\
+      [getConf collection_target <undef>] color [getConf color] colors\
       $::g_configs(colors) extra_siteconfig [getConf extra_siteconfig <undef>]\
       ignored_dirs [getConf ignored_dirs]\
       locked_configs [getConf locked_configs] pager $::g_configs(pager)\
@@ -9625,16 +9616,11 @@ if {[catch {
                set asked_force 1
             }
             --color* {
-               switch -- [string range $arg 8 end] {
-                  always - {} {
-                     set asked_color 2
-                  }
-                  auto {
-                     set asked_color 1
-                  }
-                  never {
-                     set asked_color 0
-                  }
+               set asked_color [string range $arg 8 end]
+               if {$asked_color eq {}} {
+                  set asked_color always
+               } elseif {[notInList [lindex $::g_config_defs(color) 3] $asked_color]} {
+                  unset asked_color
                }
             }
             -t - --terse - -l - --long - --default - -L - --latest - -S -\

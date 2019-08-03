@@ -149,9 +149,9 @@ else
 endif
 
 ifeq ($(color),y)
-  setcolor := 1
+  setcolor := auto
 else
-  setcolor := 0
+  setcolor := never
 endif
 
 ifeq ($(autohandling),y)
