@@ -9232,30 +9232,13 @@ proc cmdModuleConfig {dump_state args} {
    foreach option [array names ::g_config_defs] {
       lassign $::g_config_defs($option) confvar($option) defval\
          conflockable($option) confvalid($option) vtrans
+      set confval($option) [getConf $option <undef>]
       set confvtrans($option) {}
       for {set i 0} {$i < [llength $vtrans]} {incr i} {
          lappend confvtrans($option) [lindex $vtrans $i] [lindex\
             $confvalid($option) $i]
       }
    }
-
-   # define each attribute/fetched value pair
-   array set confval [list contact [getConf contact] auto_handling\
-      [getConf auto_handling] avail_indepth [getConf avail_indepth] avail_report_dir_sym\
-      [getConf avail_report_dir_sym] avail_report_mfile_sym [getConf avail_report_mfile_sym]\
-      collection_pin_version [getConf collection_pin_version] collection_target\
-      [getConf collection_target <undef>] color [getConf color] colors\
-      [getConf colors] extra_siteconfig [getConf extra_siteconfig <undef>]\
-      ignored_dirs [getConf ignored_dirs]\
-      locked_configs [getConf locked_configs] pager [getConf pager]\
-      rcfile [getConf rcfile <undef>]\
-      run_quarantine [getConf run_quarantine <undef>]\
-      silent_shell_debug [getConf silent_shell_debug <undef>]\
-      siteconfig [getConf siteconfig] tcl_ext_lib [getConf tcl_ext_lib] term_background\
-      [getConf term_background] unload_match_order [getConf unload_match_order]\
-      implicit_default [getConf implicit_default] search_match [getConf search_match]\
-      set_shell_startup [getConf set_shell_startup] verbosity [getConf verbosity] wa_277\
-      [getConf wa_277]]
 
    # catch any environment variable set for modulecmd run-time execution
    foreach runenvvar [array names ::env -glob MODULES_RUNENV_*] {
