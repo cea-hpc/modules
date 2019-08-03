@@ -46,7 +46,7 @@ array set g_config_defs [list\
    collection_pin_version {MODULES_COLLECTION_PIN_VERSION 0 0 {0 1}}\
    collection_target {MODULES_COLLECTION_TARGET <undef> 0}\
    color {MODULES_COLOR @color@ 0 {never auto always} {0 1 2} initConfColor}\
-   colors {MODULES_COLORS {} 0}\
+   colors {MODULES_COLORS {} 0 {} {} initConfColors}\
    extra_siteconfig {MODULES_SITECONFIG <undef> 1 {}}\
    ignored_dirs {{} {CVS RCS SCCS .svn .git .SYNC .sos} 0}\
    locked_configs {{} {@lockedconfigs@} 0}\
@@ -216,57 +216,56 @@ proc getForce {} {
 }
 
 # Initialize Select Graphic Rendition table
-proc initColors {} {
-   if {![info exists ::g_configs(colors)]} {
-      # overriden value coming from environment
-      if {[info exists ::env(MODULES_COLORS)]} {
-         set colors_list $::env(MODULES_COLORS)
-         if {[catch {
-            # test overriden value could be set to a dummy array variable
-            array set test_colors [split $colors_list {:=}]
-         } errMsg ]} {
-            # report issue as a debug message rather warning to avoid
-            # disturbing user with a warning message in the middle of a
-            # useful output as this table will be initialized at first use
-            reportDebug "Ignore invalid value set in MODULES_COLORS\
-               ($colors_list)"
-            unset colors_list
-         }
+proc initConfColors {envvar value validvallist intvallist} {
+   # overriden value coming from environment
+   if {[info exists ::env($envvar)]} {
+      set colors_list $::env($envvar)
+      if {[catch {
+         # test overriden value could be set to a dummy array variable
+         array set test_colors [split $colors_list {:=}]
+      } errMsg ]} {
+         # report issue as a debug message rather warning to avoid
+         # disturbing user with a warning message in the middle of a
+         # useful output as this table will be initialized at first use
+         reportDebug "Ignore invalid value set in $envvar ($colors_list)"
+         unset colors_list
       }
-
-      # if no valid override set use default color theme for terminal
-      # background color kind (light or dark)
-      if {![info exists colors_list]} {
-         set termbg [getConf term_background]
-         if {$termbg eq {light}} {
-            set colors_list {@lightbgcolors@}
-         } else {
-            set colors_list {@darkbgcolors@}
-         }
-         if {[catch {
-            array set test_colors [split $colors_list {:=}]
-         } errMsg ]} {
-            reportDebug "Ignore invalid default $termbg background colors\
-               ($colors_list)"
-            # define an empty list if no valid value set
-            set colors_list {}
-         }
-      }
-
-      # check each color defined and unset invalid codes
-      set clean_colors_list {}
-      foreach {elt col} [split $colors_list {:=}] {
-         if {![regexp {^[\d;]+$} $col]} {
-            reportDebug "Ignore invalid color code for '$elt' ($col)"
-         } else {
-            lappend clean_colors_list $elt=$col
-         }
-      }
-      set ::g_configs(colors) [join $clean_colors_list :]
-      array set ::g_colors [split $::g_configs(colors) {:=}]
-
-      reportDebug "colors set to '$::g_configs(colors)'"
    }
+
+   # if no valid override set use default color theme for terminal
+   # background color kind (light or dark)
+   if {![info exists colors_list]} {
+      if {[getConf term_background] eq {light}} {
+         set colors_list {@lightbgcolors@}
+      } else {
+         set colors_list {@darkbgcolors@}
+      }
+      if {[catch {
+         array set test_colors [split $colors_list {:=}]
+      } errMsg ]} {
+         reportDebug "Ignore invalid default [getConf term_background]\
+            background colors ($colors_list)"
+         # define an empty list if no valid value set
+         set colors_list {}
+      }
+   }
+
+   # check each color defined and unset invalid codes
+   set value {}
+   foreach {elt col} [split $colors_list {:=}] {
+      if {![regexp {^[\d;]+$} $col]} {
+         reportDebug "Ignore invalid color code for '$elt' ($col)"
+      } else {
+         lappend value $elt=$col
+      }
+   }
+   set value [join $value :]
+
+   # set SGR table as an array to easily access rendition for each key
+   array unset ::g_colors
+   array set ::g_colors [split $value {:=}]
+
+   return $value
 }
 
 # Initialize color configuration value
@@ -308,7 +307,7 @@ proc initConfColor {envvar value validvallist intvallist} {
    }
 
    # initialize color theme if color mode enabled
-   initColors
+   getConf colors
 
    return $value
 }
@@ -9302,7 +9301,7 @@ proc cmdModuleConfig {dump_state args} {
       [getConf avail_report_dir_sym] avail_report_mfile_sym [getConf avail_report_mfile_sym]\
       collection_pin_version [getConf collection_pin_version] collection_target\
       [getConf collection_target <undef>] color [getConf color] colors\
-      $::g_configs(colors) extra_siteconfig [getConf extra_siteconfig <undef>]\
+      [getConf colors] extra_siteconfig [getConf extra_siteconfig <undef>]\
       ignored_dirs [getConf ignored_dirs]\
       locked_configs [getConf locked_configs] pager $::g_configs(pager)\
       rcfile [getConf rcfile <undef>]\
