@@ -29,13 +29,23 @@ proc test_getSiteConfig {siteconfig isvalid islocked} {
     if {$isvalid && !$islocked} {
         lappend ans "someUserProc"
     }
-    lappend ans "DEBUG CALLING $::MODULECMD sh --no-pager -D -V(\\nDEBUG Load Tcl extension library \\(.+\\))?"
-    lappend ans "${mainconfigdbg}DEBUG getExtraSiteconfig: extra_siteconfig set to '$getextrasiteconfigre'"
-    lappend ans "${siteconfigdbg}DEBUG initPager: no pager start \\(is_tty=$::is_stderr_tty, mod_cmd='', use_pager=0, asked_pager=0, cmd='$::install_pager $::install_pageropts'\\)"
-    lappend ans "DEBUG getVerbosity: verbosity set to 'debug'"
-    lappend ans "DEBUG getTermBackground: term_background set to '$::install_termbg'"
-    lappend ans "(DEBUG initColors: Ignore invalid default.*\\n)?DEBUG initColors: colors set to '.*'"
-    lappend ans "DEBUG getColor: color set to '0'"
+    lappend ans "DEBUG CALLING $::MODULECMD sh --no-pager -D -V"
+    if {$::install_libtclenvmodules ne {n}} {
+        lappend ans "DEBUG setConf: tcl_ext_lib set to '$::tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?"
+    }
+    lappend ans "DEBUG setConf: siteconfig set to '$::siteconfig_filere'"
+    lappend ans "${mainconfigdbg}DEBUG setConf: locked_configs set to '$::install_lockedconfigs'"
+    if {[info exists ::env(TESTSUITE_ENABLE_SITECONFIG_NOEXTRASITECONFIG)]} {
+        lappend ans "DEBUG setConf: locked_configs set to 'extra_siteconfig'"
+    } elseif {!$islocked} {
+        lappend ans "DEBUG setConf: extra_siteconfig set to '$getextrasiteconfigre'"
+    }
+    lappend ans "${siteconfigdbg}DEBUG setConf: pager set to '$::install_pagercmd'"
+    lappend ans "DEBUG initPager: no pager start \\(is_tty=$::is_stderr_tty, mod_cmd='', use_pager=0, asked_use_pager=0, cmd='$::install_pagercmd'\\)"
+    lappend ans "DEBUG setConf: verbosity set to 'debug'"
+    lappend ans "DEBUG setConf: term_background set to '$::install_termbg'"
+    lappend ans "(DEBUG initConfColors: Ignore invalid default.*\\n)?DEBUG setConf: colors set to '.*'"
+    lappend ans "DEBUG setConf: color set to '0'"
     lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
 
     setenv_var MODULES_SITECONFIG $siteconfig
@@ -54,13 +64,16 @@ setenv_var TESTSUITE_ENABLE_SITECONFIG_DEBUG 1
 
 set ans [list]
 lappend ans "DEBUG CALLING $MODULECMD sh -V"
-lappend ans "(DEBUG Load Tcl extension library \\(.+\\)\\n)?DEBUG sourceSiteConfig: Source site configuration \\($siteconfig_filere\\)"
-lappend ans "DEBUG getExtraSiteconfig: extra_siteconfig set to ''"
-lappend ans "DEBUG initPager: start pager \\(asked_pager=-, cmd='$install_pager $install_pageropts'\\)"
-lappend ans "DEBUG getVerbosity: verbosity set to 'debug'"
-lappend ans "DEBUG getTermBackground: term_background set to '$install_termbg'"
-lappend ans "(DEBUG initColors: Ignore invalid default.*\\n)?DEBUG initColors: colors set to '.*'"
-lappend ans "DEBUG getColor: color set to '0'"
+lappend ans "DEBUG setConf: tcl_ext_lib set to '$tclextlib_file'(\\nDEBUG Load Tcl extension library \\(.+\\))?"
+lappend ans "DEBUG setConf: siteconfig set to '$siteconfig_filere'"
+lappend ans "DEBUG sourceSiteConfig: Source site configuration \\($siteconfig_filere\\)"
+lappend ans "DEBUG setConf: locked_configs set to '$install_lockedconfigs'"
+lappend ans "DEBUG setConf: pager set to '$install_pagercmd'"
+lappend ans "DEBUG initPager: start pager \\(asked_use_pager=-, cmd='$install_pagercmd'\\)"
+lappend ans "DEBUG setConf: verbosity set to 'debug'"
+lappend ans "DEBUG setConf: term_background set to '$install_termbg'"
+lappend ans "(DEBUG initConfColors: Ignore invalid default.*\\n)?DEBUG setConf: colors set to '.*'"
+lappend ans "DEBUG setConf: color set to '0'"
 lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
 testouterr_cmd_re "sh" "-V" "" [join $ans "\n"]
 

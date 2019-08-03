@@ -30,6 +30,9 @@ set config_header "- Config. name $modlin.- Value \\(set by if default overridde
 set state_header "- State name $modlin.- Value $modlin"
 set envvar_header "- Env. variable $modlin.- Value $modlin"
 
+set valid_darkbgcolors [expr {([llength [split $install_darkbgcolors {:=}]] % 2) == 0 ? $install_darkbgcolors : {}}]
+set valid_lightbgcolors [expr {([llength [split $install_lightbgcolors {:=}]] % 2) == 0 ? $install_lightbgcolors : {}}]
+
 array set configdfl [list\
     auto_handling             [expr {$install_autohandling eq {y}}]\
     avail_indepth             [expr {$install_availindepth eq {y}}]\
@@ -38,13 +41,13 @@ array set configdfl [list\
     collection_pin_version    0\
     collection_target         <undef>\
     color                     never\
-    colors                    [expr {$install_termbg eq {dark} ? $install_darkbgcolors : $install_lightbgcolors}]\
+    colors                    [expr {$install_termbg eq {dark} ? $valid_darkbgcolors : $valid_lightbgcolors}]\
     contact                   root@localhost\
     extra_siteconfig          <undef>\
     ignored_dirs              {CVS RCS SCCS .svn .git .SYNC .sos}\
     implicit_default          [expr {$install_implicitdefault eq {y}}]\
     locked_configs            $install_lockedconfigs\
-    pager                     "$install_pager $install_pageropts"\
+    pager                     "$install_pagercmd"\
     rcfile                    <undef>\
     run_quarantine            <undef>\
     search_match              $install_searchmatch\
@@ -309,6 +312,9 @@ unset configvar
 unset configvalid
 unset configlockable
 unset statelist
+
+unset valid_darkbgcolors
+unset valid_lightbgcolors
 
 unset tserr
 unset param
