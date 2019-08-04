@@ -108,13 +108,34 @@ proc getConf {option {valifundef {}}} {
       if {$value eq {<undef>}} {
          set value $valifundef
       } else {
-         set ::g_configs($option) $value
-         reportDebug "$option set to '$value'"
+         setConf $option $value
       }
       return $value
    } else {
       return $::g_configs($option)
    }
+}
+
+# Set configuration option value
+proc setConf {option value} {
+   set ::g_configs($option) $value
+   reportDebug "$option set to '$value'"
+}
+
+# Unset configuration option value if it is set
+proc unsetConf {option} {
+   if {[info exists ::g_configs($option)]} {
+      unset ::g_configs($option)
+      reportDebug "$option unset"
+   }
+}
+
+# Append each passed value to the existing config option value list
+proc lappendConf {option args} {
+   # retrieve current value through getConf to initialize it if still undef
+   set value [getConf $option]
+   eval appendNoDupToList value $args
+   setConf $option $value
 }
 
 # Source site config which can be used to define global procedures or
@@ -7504,7 +7525,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl {}}\
    # loads are made with auto handling mode disabled to avoid disturbances
    # from a missing prereq automatically reloaded, so these module loads may
    # fail as prereq may not be satisfied anymore
-   set ::g_configs(auto_handling) 0
+   setConf auto_handling 0
    foreach mod $lmlist {
       # reload module with user asked property preserved
       if {[cmdModuleLoad $context $isuasked($mod) $mod]} {
@@ -7519,7 +7540,7 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl {}}\
          }
       }
    }
-   set ::g_configs(auto_handling) 1
+   setConf auto_handling 1
 }
 
 ########################################################################
@@ -7638,8 +7659,7 @@ proc cmdModulePaths {mod} {
 
       # forcibly enable implicit_default to resolve alias target when it
       # points to a directory
-      set ::g_configs(implicit_default) 1
-      reportDebug "implicit_default forcibly set to '1'"
+      setConf implicit_default 1
 
       # build list of modulefile to print
       foreach elt [array names mod_list] {
@@ -7664,8 +7684,7 @@ proc cmdModulePaths {mod} {
       }
 
       # reset implicit_default to restore behavior defined
-      unset ::g_configs(implicit_default)
-      reportDebug "implicit_default unset"
+      unsetConf implicit_default
    }
 
    # sort results if any and remove duplicates
@@ -7714,8 +7733,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 
       # forcibly enable implicit_default to resolve alias target when it
       # points to a directory
-      set ::g_configs(implicit_default) 1
-      reportDebug "implicit_default forcibly set to '1'"
+      setConf implicit_default 1
 
       # build list of modulefile to interpret
       foreach elt [array names mod_list] {
@@ -7763,8 +7781,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
       }
 
       # reset implicit_default to restore behavior defined
-      unset ::g_configs(implicit_default)
-      reportDebug "implicit_default unset"
+      unsetConf implicit_default
 
       # in case during modulepath lookup we find an alias target we were
       # looking for in previous modulepath, remove this element from global
@@ -7785,8 +7802,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 
    # forcibly enable implicit_default to resolve alias target when it points
    # to a directory
-   set ::g_configs(implicit_default) 1
-   reportDebug "implicit_default forcibly set to '1'"
+   setConf implicit_default 1
 
    # find target of aliases in all modulepath except the one already tried
    foreach elt [array names extra_search] {
@@ -7814,8 +7830,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    }
 
    # reset implicit_default to restore behavior defined
-   unset ::g_configs(implicit_default)
-   reportDebug "implicit_default unset"
+   unsetConf implicit_default
 
    # prepare string translation to highlight search query string
    set matchmodmap [prepareMapToHightlightSubstr $mod]
@@ -7897,9 +7912,9 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    if {!$uasked && $argold ne {}} {
       # temporarily disable auto handling just to record deps, not to try to
       # load or unload them (already tried)
-      set ::g_configs(auto_handling) 0
+      setConf auto_handling 0
       catch {conflict $argold}
-      set ::g_configs(auto_handling) $orig_auto_handling
+      setConf auto_handling $orig_auto_handling
    }
 
    # attempt load and depre reload only if unload succeed
@@ -7927,9 +7942,9 @@ proc cmdModuleSwitch {uasked old {new {}}} {
 
    # register modulefile to load as prereq when called from modulefile
    if {!$uasked && !$ret && $argnew ne {}} {
-      set ::g_configs(auto_handling) 0
+      setConf auto_handling 0
       prereq $argnew
-      set ::g_configs(auto_handling) $orig_auto_handling
+      setConf auto_handling $orig_auto_handling
    }
 }
 
@@ -7998,8 +8013,7 @@ proc cmdModuleRestore {{coll default}} {
    }
 
    # forcibly enable implicit_default to restore colls saved in this mode
-   set ::g_configs(implicit_default) 1
-   reportDebug "implicit_default forcibly set to '1'"
+   setConf implicit_default 1
 
    # fetch what is currently loaded
    set curr_path_list [getModulePathList returnempty 0]
@@ -8073,8 +8087,7 @@ proc cmdModuleRestore {{coll default}} {
       path_to_unuse path_to_use
 
    # reset implicit_default to restore behavior defined
-   unset ::g_configs(implicit_default)
-   reportDebug "implicit_default unset"
+   unsetConf implicit_default
 
    # use paths
    if {[llength $path_to_use] > 0} {
@@ -9275,9 +9288,7 @@ proc cmdModuleConfig {dump_state args} {
          popMode
       }
       # clear cached value for config if any
-      if {[info exists ::g_configs($name)]} {
-         unset ::g_configs($name)
-      }
+      unsetConf $name
    # report configuration
    } else {
       reportVersion
