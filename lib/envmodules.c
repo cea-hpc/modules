@@ -309,11 +309,7 @@ Envmodules_Init(
       (Tcl_CmdDeleteProc*) NULL);
 
    /* Provide the Envmodules package */
-   if (Tcl_PkgProvide(interp, PACKAGE_NAME, PACKAGE_VERSION) == TCL_ERROR) {
-      return TCL_ERROR;
-   }
-
-   return TCL_OK;
+   return Tcl_PkgProvide(interp, PACKAGE_NAME, PACKAGE_VERSION);
 }
 
 /* vim:set tabstop=3 shiftwidth=3 expandtab autoindent: */
