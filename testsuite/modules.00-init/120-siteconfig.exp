@@ -269,6 +269,17 @@ test_getSiteConfig testsuite/example/siteconfig.tcl-2 0 1
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_NOEXTRASITECONFIG
 
 
+# test tcl ext lib load on an incompatible interp if available
+if {[file executable ./tclsh83]} {
+    setenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBLOAD83 1
+    testouterr_cmd sh -V ERR "$error_msgs: Site configuration source failed\nversion conflict for package \"Tcl\": have 8.3, need 8.4"
+    # restore environment
+    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBLOAD83
+} elseif {$verbose > 0} {
+    send_user "\tSkip tcl ext lib load tests with tclsh83 as it is not available\n"
+}
+
+
 #
 #  Clean up variables used in this test case
 #
