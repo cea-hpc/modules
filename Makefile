@@ -12,6 +12,13 @@ NAGELFAR_DIST := $(NAGELFAR_RELEASE).tar.gz
 NAGELFAR_DISTSUM := 707e3c305437dce1f14103f0bd058fc9
 NAGELFAR := $(NAGELFAR_RELEASE)/nagelfar.tcl
 
+# definition for old Tcl interpreter for coverage testing
+TCL_DLSRC := http://downloads.sourceforge.net/tcl/
+TCL_RELEASE83 := tcl8.3.5
+TCL_DIST83 := $(TCL_RELEASE83)-src.tar.gz
+TCL_DISTSUM83 := 5cb79f8b90cf1322cb1286b9fe67f7a2
+TCLSH83 := $(TCL_RELEASE83)/unix/tclsh
+
 # specific modulecmd script for test
 MODULECMDTEST := modulecmd-test.tcl
 
@@ -46,6 +53,11 @@ endif
 
 ifeq ($(COVERAGE),y)
 TEST_PREREQ += $(NAGELFAR)
+endif
+
+# install old Tcl interpreters to test coverage
+ifeq ($(COVERAGE_OLDTCL),y)
+TEST_PREREQ += tclsh83
 endif
 
 all: initdir $(INSTALL_PREREQ)
@@ -482,6 +494,8 @@ distclean: clean
 	rm -f site.exp
 	rm -f icdiff
 	rm -rf $(NAGELFAR_RELEASE)
+	rm -rf $(TCL_RELEASE83)
+	rm -f tclsh83
 ifeq ($(wildcard .git) $(wildcard $(COMPAT_DIR)),.git $(COMPAT_DIR))
 	rm -rf $(COMPAT_DIR)
 ifeq ($(gitworktree),y)
@@ -536,6 +550,18 @@ icdiff:
 	echo "$(ICDIFF_CHECKSUM)  $@" | md5sum --status -c - || \
 		md5 -c $(ICDIFF_CHECKSUM) $@
 	chmod +x $@
+
+# install old Tcl interpreter (for code coverage purpose)
+tclsh83:
+	wget $(TCL_DLSRC)$(TCL_DIST83) || true
+	echo "$(TCL_DISTSUM83)  $(TCL_DIST83)" | md5sum --status -c - || \
+		md5 -c $(TCL_DISTSUM83) $@
+	tar xzf $(TCL_DIST83)
+	cd $(TCL_RELEASE83)/unix && bash configure --disable-shared && make
+	echo '#!/bin/bash' >$@
+	echo 'exec $(TCLSH83) $${@}' >>$@
+	chmod +x $@
+	rm $(TCL_DIST83)
 
 # install code coverage tool
 # download from alt. source if correct tarball not retrieved from primary location
