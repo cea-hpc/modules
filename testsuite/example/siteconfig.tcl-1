@@ -121,4 +121,15 @@ if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBLOAD83)]} {
     exec ./tclsh83 << "load $g_tclextlib Envmodules"
 }
 
+# test tcl ext lib procedures against erroneous calls
+if {[info exists env(TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBBADCALL)]} {
+    set badcalllist [list readFile {readFile foo bar} getFilesInDirectory\
+        {getFilesInDirectory foo bar 1} {getFilesInDirectory foo 1 bar}]
+    foreach badcall $badcalllist {
+        if {[catch {[eval $badcall]} errMsg]} {
+            reportError $errMsg
+        }
+    }
+}
+
 }

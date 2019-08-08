@@ -270,13 +270,30 @@ unsetenv_var TESTSUITE_ENABLE_SITECONFIG_NOEXTRASITECONFIG
 
 
 # test tcl ext lib load on an incompatible interp if available
-if {[file executable ./tclsh83]} {
+if {[info exists tclextlib_file] && [file executable ./tclsh83]} {
     setenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBLOAD83 1
     testouterr_cmd sh -V ERR "$error_msgs: Site configuration source failed\nversion conflict for package \"Tcl\": have 8.3, need 8.4"
     # restore environment
     unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBLOAD83
 } elseif {$verbose > 0} {
-    send_user "\tSkip tcl ext lib load tests with tclsh83 as it is not available\n"
+    send_user "\tSkip tcl ext lib load tests with tclsh83 as either ext lib or tclsh83 is not available\n"
+}
+
+# test tcl ext lib procedures against erroneous calls
+if {[info exists tclextlib_file]} {
+    setenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBBADCALL 1
+    set ans [list]
+    lappend ans "$error_msgs: wrong # args: should be \"readFile filename \\?firstline\\?\""
+    lappend ans "$error_msgs: expected boolean value but got \"bar\""
+    lappend ans "$error_msgs: wrong # args: should be \"getFilesInDirectory dir fetch_hidden fetch_dotversion\""
+    lappend ans "$error_msgs: expected boolean value but got \"bar\""
+    lappend ans "$error_msgs: expected boolean value but got \"bar\""
+    lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+    testouterr_cmd_re sh -V OK [join $ans \n]
+
+    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBBADCALL
+} elseif {$verbose > 0} {
+    send_user "\tSkip tcl ext lib erroneous procedure calls as ext lib is not available\n"
 }
 
 
