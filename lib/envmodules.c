@@ -66,25 +66,11 @@ Envmodules_GetFilesInDirectoryObjCmd(
    if (objc == 4) {
       /* fetch_hidden */
       if (Tcl_GetBooleanFromObj(interp, objv[2], &fetch_hidden) != TCL_OK) {
-#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
-         Tcl_AppendResult(interp, "expected boolean value but got \"",
-            Tcl_GetString(objv[2]), "\"", (char *) NULL);
-#else
-         Tcl_SetObjResult(interp, Tcl_ObjPrintf(
-            "expected boolean value but got \"%s\"", Tcl_GetString(objv[2])));
-#endif
          Tcl_SetErrorCode(interp, "TCL", "VALUE", "BOOLEAN", NULL);
          return TCL_ERROR;
       }
       /* fetch_dotversion */
       if (Tcl_GetBooleanFromObj(interp, objv[3], &fetch_dotversion)!=TCL_OK) {
-#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
-         Tcl_AppendResult(interp, "expected boolean value but got \"",
-            Tcl_GetString(objv[3]), "\"", (char *) NULL);
-#else
-         Tcl_SetObjResult(interp, Tcl_ObjPrintf(
-            "expected boolean value but got \"%s\"", Tcl_GetString(objv[3])));
-#endif
          Tcl_SetErrorCode(interp, "TCL", "VALUE", "BOOLEAN", NULL);
          return TCL_ERROR;
       }
@@ -212,13 +198,6 @@ Envmodules_ReadFileObjCmd(
       firstline = 0;
    } else if (objc == 3) {
       if (Tcl_GetBooleanFromObj(interp, objv[2], &firstline) != TCL_OK) {
-#if TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION < 5
-         Tcl_AppendResult(interp, "expected boolean value but got \"",
-            Tcl_GetString(objv[2]), "\"", (char *) NULL);
-#else
-         Tcl_SetObjResult(interp, Tcl_ObjPrintf(
-            "expected boolean value but got \"%s\"", Tcl_GetString(objv[2])));
-#endif
          Tcl_SetErrorCode(interp, "TCL", "VALUE", "BOOLEAN", NULL);
          return TCL_ERROR;
       }
