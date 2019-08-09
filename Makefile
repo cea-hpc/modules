@@ -49,6 +49,9 @@ endif
 ifeq ($(libtclenvmodules),y)
 INSTALL_PREREQ += lib/libtclenvmodules$(SHLIB_SUFFIX)
 TEST_PREREQ += lib/libtclenvmodules$(SHLIB_SUFFIX)
+ifeq ($(COVERAGE),y)
+TEST_PREREQ += lib/libtestutil-closedir$(SHLIB_SUFFIX)
+endif
 endif
 
 ifeq ($(COVERAGE),y)
@@ -264,6 +267,9 @@ $(COMPAT_DIR)/modulecmd$(EXEEXT) $(COMPAT_DIR)/ChangeLog:
 
 # Tcl extension library-related rules
 lib/libtclenvmodules$(SHLIB_SUFFIX):
+	$(MAKE) -C lib $(@F)
+
+lib/libtestutil-closedir$(SHLIB_SUFFIX):
 	$(MAKE) -C lib $(@F)
 
 # example configs for test rules

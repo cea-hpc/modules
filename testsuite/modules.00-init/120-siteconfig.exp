@@ -296,6 +296,21 @@ if {[info exists tclextlib_file]} {
     send_user "\tSkip tcl ext lib erroneous procedure calls as ext lib is not available\n"
 }
 
+# test tcl ext lib procedures against a failed closedir call
+if {[info exists closedirlib_file]} {
+    setenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBFAILEDCLOSEDIR 1
+    setenv_var LD_PRELOAD $closedirlib_file
+    set ans [list]
+    lappend ans "$error_msgs: couldn't close directory \"$modpathre\": Success"
+    lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+    testouterr_cmd_re sh -V OK [join $ans \n]
+
+    unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBFAILEDCLOSEDIR
+    unsetenv_var LD_PRELOAD
+} elseif {$verbose > 0} {
+    send_user "\tSkip tcl ext lib erroneous procedure calls as ext lib is not available\n"
+}
+
 
 #
 #  Clean up variables used in this test case

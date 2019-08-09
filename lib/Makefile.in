@@ -5,18 +5,23 @@ CFLAGS_WARNING=@CFLAGS_WARNING@
 
 CC=@TCL_CC@
 CFLAGS=@CFLAGS@ @TCL_INCLUDE_SPEC@
-# apply specific flags if code coverage asked
-ifeq ($(COVERAGE),y)
-CFLAGS += -coverage -O0
-endif
 LDFLAGS=@LDFLAGS@
 LD=@TCL_SHLIB_LD@ ${CFLAGS}
 
+# apply specific flags to libtclenvmodules build if code coverage asked
+ifeq ($(COVERAGE),y)
+CFLAGS_COVERAGE=-coverage -O0
+endif
+
 libtclenvmodules@TCL_SHLIB_SUFFIX@: envmodules.c
-	$(LD) $< -o $@ @TCL_STUB_LIB_SPEC@
+	$(LD) ${CFLAGS_COVERAGE} $< -o $@ @TCL_STUB_LIB_SPEC@
+
+libtestutil-closedir@SHLIB_SUFFIX@: testutil-closedir.c
+	$(LD) $< -o $@
 
 clean:
-	rm -f libtclenvmodules.so
+	rm -f libtclenvmodules@TCL_SHLIB_SUFFIX@
+	rm -f libtestutil-closedir@SHLIB_SUFFIX@
 	rm -f envmodules.c.gcov envmodules.gcda envmodules.gcno
 
 distclean: clean
