@@ -7649,9 +7649,9 @@ proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
          set lmlist [replaceFromList $lmlist $mod]
          set errMsg [string map [list _MOD_ $mod] $errmsgtpl]
          if {$force} {
-            if {$errMsg ne {}} {
-               reportWarning $errMsg 1
-            }
+            # errMsg will always be set as force mode could not be enabled
+            # for reload sub-cmd which provides an empty msg template
+            reportWarning $errMsg 1
          # stop if one unload fails unless force mode enabled
          } else {
             error $errMsg
@@ -7676,9 +7676,9 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl {}}\
       if {[cmdModuleLoad $context $isuasked($mod) $mod]} {
          set errMsg [string map [list _MOD_ $mod] $errmsgtpl]
          if {$force} {
-            if {$errMsg ne {}} {
-               reportWarning $errMsg 1
-            }
+            # errMsg will always be set as force mode could not be enabled
+            # for reload sub-cmd which provides an empty msg template
+            reportWarning $errMsg 1
          # stop if one load fails unless force mode enabled
          } else {
             error $errMsg
