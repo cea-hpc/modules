@@ -71,6 +71,9 @@ foreach verbosity [list silent concise normal verbose] {
     testouterr_cmd sh {path setenv/1.0} $ans {}
     testouterr_cmd sh {paths setenv/1.0} $ans {}
 
+    set tserr [expr {$verbosity eq {silent} ? {} : "$error_msgs: Unknown shell type '(unk)'"}]
+    testouterr_cmd unk {unknown} ERR $tserr
+
     set ans [list]
     lappend ans [list set testsuite yes]
     lappend ans [list setpath LOADEDMODULES setenv/1.0]
@@ -215,16 +218,27 @@ foreach verbosity [list silent concise normal verbose] {
     testouterr_cmd_re sh {reload} $ans $tserr
 }
 
+unsetenv_path_var MODULES_LMPREREQ
+unsetenv_loaded_module
+
+# test MODULES_VERBOSITY set to an invalid value
+setenv_var MODULES_VERBOSITY foo
+set ans [list]
+lappend ans [list set testsuite yes]
+lappend ans [list setpath LOADEDMODULES setenv/1.0]
+lappend ans [list setpath _LMFILES_ $modpath/setenv/1.0]
+set tserr [expr {$install_verbosity eq {verbose} ? [msg_load setenv/1.0] : {}}]
+testouterr_cmd sh {load setenv/1.0} $ans $tserr
+set tserr [expr {$install_verbosity eq {silent} ? {} : "$err_path'unknown'"}]
+testouterr_cmd sh {load unknown} ERR $tserr
+
 
 #
 #  Cleanup
 #
 
-unsetenv_path_var MODULES_VERBOSITY
-unsetenv_path_var MODULES_IMPLICIT_DEFAULT
-unsetenv_path_var MODULES_LMPREREQ
-unsetenv_loaded_module
-
+unsetenv_var MODULES_VERBOSITY
+unsetenv_var MODULES_IMPLICIT_DEFAULT
 unset ans
 unset coll
 unset collre
