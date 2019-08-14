@@ -40,6 +40,7 @@ set c9errmsg2 "unload $c9mod3\nUnloading $c9mod3\nunload $c9mod2\nUnloading $c9m
 set c11errmsg "load $c11mod1\nLoading $c11mod1\nload $c11mod2\nLoading $c11mod2"
 set c12errmsg "unload $c9mod3\nUnloading $c9mod3\nunload $c9mod2\nUnloading $c9mod2\nunload $c9mod1\nUnloading $c9mod1\nload f4\nLoading f4\nload f5\nLoading f5\n\n[msg_load f6 [err_conlo f5]]\n\n[msg_load f7 [err_reqmis f6]]"
 set c13errmsg $cderrmsg
+set c14errmsg "unload m2\nUnloading m2\nload m3\nLoading m3"
 
 # set HOME to location containing collections
 set ORIG_HOME $env(HOME)
@@ -491,7 +492,31 @@ lappend ans [list set _LMFILES__modshare "(.*)"]
 lappend ans [list set MODULEPATH_modshare "(.*)"]
 
 testouterr_cmd_re sh "restore $coll13fp" $ans $c13errmsg
+
+unsetenv_var MODULES_IMPLICIT_DEFAULT
 }
+
+#
+# a module is loaded as well as its requirement declared with 'module load'
+# and which was automatically loaded when main module was loaded. collection
+# is then restored, main module is not part of collection but its requirement is
+#
+
+setenv_path_var MODULEPATH $modpath.deps
+setenv_loaded_module [list m1 m2] [list $modpath.deps/m1 $modpath.deps/m2] [list m1]
+setenv_path_var MODULES_LMPREREQ m2&m1
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES m1:m3]
+lappend ans [list setpath _LMFILES_ $modpath.deps/m1:$modpath.deps/m3]
+lappend ans [list setpath MODULES_LMPREREQ m3&m1]
+
+# whether auto_handling is enabled or disabled should not impact result
+setenv_var MODULES_AUTO_HANDLING 0
+testouterr_cmd_re sh "restore $coll14fp" $ans $c14errmsg
+setenv_var MODULES_AUTO_HANDLING 1
+testouterr_cmd_re sh "restore $coll14fp" $ans $c14errmsg
+unsetenv_var MODULES_AUTO_HANDLING
 
 
 #
@@ -501,7 +526,7 @@ testouterr_cmd_re sh "restore $coll13fp" $ans $c13errmsg
 # restore environment
 # _LMFILES_ and LOADEDMODULES already restored during last test
 unsetenv_var MODULES_COLLECTION_TARGET
-unsetenv_var MODULES_IMPLICIT_DEFAULT
+unsetenv_path_var MODULES_LMPREREQ
 setenv_path_var MODULEPATH $modpath
 unsetenv_loaded_module
 
@@ -529,6 +554,7 @@ unset c9errmsg2
 unset c11errmsg
 unset c12errmsg
 unset c13errmsg
+unset c14errmsg
 unset badcontfp
 unset badcontfperrmsg
 
