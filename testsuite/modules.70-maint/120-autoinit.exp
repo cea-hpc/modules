@@ -768,6 +768,75 @@ if {!$insmodspath && $initrc_exinstalled && $modrc eq "$install_etcdir/initrc"} 
 }
 
 
+# test precedence of etc/modulespath over init/.modulespath if we are purely testing
+# (as tests will modify the installation)
+if {$insmodspath && $modspath_exinstalled && $modspath eq "$install_etcdir/modulespath"} {
+    # create a simple init/.modulespath
+    set fid [open $install_initdir/.modulespath w]
+    puts $fid {/unk}
+    close $fid
+
+    set ans [list]
+    lappend ans [list [set "func_sh"]]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+    }
+    lappend ans [list set MODULES_CMD $modulecmd_path]
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set ENV $install_initdir/profile.sh]
+    }
+    lappend ans [list set MODULEPATH_modshare "(.*)"]
+    if {$install_setshellstartup eq {y}} {
+        lappend ans [list set BASH_ENV $install_initdir/bash]
+    }
+    lappend ans [list set LOADEDMODULES ""]
+    lappend ans [list set MODULESHOME $moduleshome]
+    lappend ans [list set MODULEPATH "$install_modulepath:$install_prefix/test/modulefiles:$install_prefix/test/etc"]
+    if {$install_versioning eq "y"} {
+        lappend ans [list set MODULE_VERSION "(.*)"]
+    }
+
+    # etc/modulespath is prefered over init/.modulespath
+    testouterr_cmd_re sh autoinit $ans {}
+
+    # cannot test access if cannot change file permission
+    if {!$is_file_perms_editable} {
+        send_user "\tskipping access tests as file permissions cannot be changed\n"
+    # cannot test access if superuser privileges are in use
+    } elseif {$tcl_platform(user) eq "root"} {
+        send_user "\tskipping access tests as tests are run by superuser\n"
+    # cannot test access if restricted file permissions have no effect
+    } elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+        send_user "\tskipping access tests as locked files or directories are still readable\n"
+    } else {
+        # same if init/.modulespath cannot be read
+        change_file_perms $install_initdir/.modulespath ugo-rx
+        testouterr_cmd_re sh autoinit $ans {}
+        restore_file_perms $install_initdir/.modulespath
+
+        # init/.modulespath ignored even if etc/modulespath locked
+        change_file_perms $install_etcdir/modulespath ugo-rx
+        set ans [list]
+        lappend ans [list [set "func_sh"]]
+        lappend ans [list set MODULES_CMD $modulecmd_path]
+        if {$install_setshellstartup eq {y}} {
+            lappend ans [list set ENV $install_initdir/profile.sh]
+        }
+        if {$install_setshellstartup eq {y}} {
+            lappend ans [list set BASH_ENV $install_initdir/bash]
+        }
+        lappend ans [list set LOADEDMODULES {}]
+        lappend ans [list set MODULESHOME $moduleshome]
+        lappend ans [list set MODULEPATH {}]
+        testouterr_cmd_re sh autoinit $ans {}
+        restore_file_perms $install_etcdir/modulespath
+    }
+
+    # remove temporary init/modulerc
+    file delete $install_initdir/.modulespath
+}
+
+
 # restore environment state
 setenv_path_var MODULEPATH $modpath
 
