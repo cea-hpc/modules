@@ -55,6 +55,7 @@ if {[file readable $env(TESTSUITEDIR)/example/.modulespath]} {
 }
 
 set modrc [expr {[file exists $install_etcdir/initrc] ? "$install_etcdir/initrc" : "$install_initdir/modulerc"}]
+set modrcre [regsub -all "\(\[.+?\]\)" $modrc {\\\1}]
 set insmodrc [file readable $modrc]
 if {$insmodrc} {
     set fid [open $modrc r]
@@ -71,13 +72,22 @@ if {[file readable $env(TESTSUITEDIR)/example/modulerc-1]} {
     set exmodrc1data [split [read $fid] "\n"]
     close $fid
 }
+if {[file readable $env(TESTSUITEDIR)/example/initrc]} {
+    set fid [open $env(TESTSUITEDIR)/example/initrc r]
+    set exinitrcdata [split [read $fid] "\n"]
+    close $fid
+}
 set modrc_exinstalled 0
 set modrc1_exinstalled 0
+set initrc_exinstalled 0
 if {[info exists insmodrcdata] && [info exists exmodrcdata] && $exmodrcdata eq $insmodrcdata} {
     set modrc_exinstalled 1
 } elseif {[info exists insmodrcdata] && [info exists exmodrc1data] && $exmodrc1data eq $insmodrcdata} {
     set modrc1_exinstalled 1
+} elseif {[info exists insmodrcdata] && [info exists exinitrcdata] && $exinitrcdata eq $insmodrcdata} {
+    set initrc_exinstalled 1
 }
+set tserr_initrc_exinstalled "load m1\nload m2\n\n[msg_top_load m2 {} m1 {}]\n\nunload m2\n[msg_unload m2]\nunload m1\n[msg_unload m1]\n[msg_unload mj]\nload m1\n[msg_load m1]\nload m3\n[msg_load m3]\n$err_path'unk'\n$moderr_msgs: Collection unk cannot be found\n  In '$modrcre'\n$err_contact"
 
 # check if stderr terminal attachement state is forced
 set is_stderr_tty [siteconfig_isStderrTty]
@@ -535,20 +545,30 @@ if {$install_versioning eq "y"} {
     unsetenv_var MODULE_VERSION_STACK
 }
 
+# create a temporary collection used in initrc example
+setenv_path_var MODULEPATH $modpath.deps
+setenv_path_var MODULES_LMPREREQ m3&m1
+setenv_loaded_module [list m1 m3] [list $modpath.deps/m1 $modpath.deps/m3] [list m1]
+testouterr_cmd sh "save $env(TESTSUITEDIR)/coll14" OK {}
+
 # setup environment state
 unsetenv_loaded_module
 unsetenv_path_var MODULEPATH
+unsetenv_path_var MODULES_LMPREREQ
 
-if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalled || $modrc1_exinstalled)} {
+if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalled || $modrc1_exinstalled || $initrc_exinstalled)} {
     foreach shell $supported_shells {
         switch -- $shell {
             {lisp} {
-                testouterr_cmd "lisp" "autoinit" "ERR" "$err_lisp"
+                set tserr [expr {!$insmodspath && $initrc_exinstalled ? "$tserr_initrc_exinstalled\n$err_lisp" : $err_lisp}]
+                set ans ERR
             }
             {cmd} {
-                testouterr_cmd "cmd" "autoinit" "ERR" "$err_cmd"
+                set tserr [expr {!$insmodspath && $initrc_exinstalled ? "$tserr_initrc_exinstalled\n$err_cmd" : $err_cmd}]
+                set ans ERR
             }
             default {
+                set tserr .*
                 set ans [list]
                 lappend ans [list [set "func_$shell"]]
                 if {!$insmodspath && !$insmodrc} {
@@ -622,11 +642,43 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     if {$install_versioning eq "y"} {
                         lappend ans [list set MODULE_VERSION "(.*)"]
                     }
+                } elseif {!$insmodspath && $initrc_exinstalled} {
+                    if {$shell eq {python}} {
+                        set ans (.*)
+                    } else {
+                        set ans [list]
+                        lappend ans [list ERR]
+                        lappend ans [list [set "func_$shell"]]
+                        lappend ans [list set MODULES_LMPREREQ m3&m1]
+                        lappend ans [list set MODULESHOME $moduleshome]
+                        lappend ans [list set LOADEDMODULES m1:m3]
+                        lappend ans [list set _LMFILES_ $modpath.deps/m1:$modpath.deps/m3]
+                        if {$install_versioning eq "y"} {
+                            lappend ans [list set MODULE_VERSION "(.*)"]
+                        }
+                        lappend ans [list set MODULES_CMD $modulecmd_path]
+                        if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
+                            lappend ans [list set BASH_ENV $install_initdir/bash]
+                        }
+                        lappend ans [list set MODULES_LMNOTUASKED m1]
+                        if {$install_versioning eq "y"} {
+                            lappend ans [list set MODULE_VERSION_STACK "(.*)"]
+                        }
+                        if {[is_real_shell $shell] && $install_setshellstartup eq {y}} {
+                            lappend ans [list set ENV $install_initdir/profile.sh]
+                        }
+                        lappend ans [list set MODULES_LMNOTUASKED_modshare m1:1]
+                        lappend ans [list set MODULES_LMPREREQ_modshare m3&m1:1]
+                        lappend ans [list set MODULEPATH $modpath.deps]
+                        lappend ans [list set LOADEDMODULES_modshare (.*)]
+                        lappend ans [list set _LMFILES__modshare (.*)]
+                        lappend ans [list set MODULEPATH_modshare $modpath.deps:1]
+                    }
+                    set tserr $tserr_initrc_exinstalled
                 }
-
-                test_cmd_re $shell "autoinit" $ans
             }
         }
+        testouterr_cmd_re $shell autoinit $ans $tserr
     }
 } else {
     send_user "\tskipping autoinit tests as installed configuration unknown\n"
@@ -635,6 +687,8 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
 # restore environment state
 setenv_path_var MODULEPATH $modpath
 
+# remove temporary collection created for test
+file delete $env(TESTSUITEDIR)/coll14
 
 #
 #  Cleanup
@@ -657,6 +711,9 @@ if {[info exists exmodrcdata]} {
 if {[info exists exmodrc1data]} {
     unset exmodrc1data
 }
+if {[info exists exinitrcdata]} {
+    unset exinitrcdata
+}
 if {[info exists insmodspathdata]} {
     unset insmodspathdata
 }
@@ -668,11 +725,17 @@ unset insmodrc
 unset modspath_exinstalled
 unset modrc_exinstalled
 unset modrc1_exinstalled
+unset initrc_exinstalled
+unset tserr_initrc_exinstalled
 unset modrc
+unset modrcre
 unset modspath
 
 unset shell
 unset ans
+if {[info exists tserr]} {
+    unset tserr
+}
 
 unset err_lisp
 unset err_cmd
