@@ -150,23 +150,23 @@ Links
 
 Web site:
 
-    http://modules.sourceforge.net
+> http://modules.sourceforge.net
 
 Online documentation:
 
-    https://modules.readthedocs.io
+> https://modules.readthedocs.io
 
 GitHub source respository:
 
-    https://github.com/cea-hpc/modules
+> https://github.com/cea-hpc/modules
 
 GitHub Issue tracking system:
 
-    https://github.com/cea-hpc/modules/issues
+> https://github.com/cea-hpc/modules/issues
 
 SourceForge project page:
 
-    http://sourceforge.net/projects/modules/
+> http://sourceforge.net/projects/modules/
 
 
 Authors
