@@ -89,6 +89,7 @@ automatically configured to the correct architecture.
    NEWS
    cookbook
    CONTRIBUTING
+   design
 
 
 License
