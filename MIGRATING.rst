@@ -8,6 +8,30 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
+Migrating from v4.3 to v4.4
+===========================
+
+This new version is backward-compatible with v4.3 and primarily fixes bugs and
+adds new features.
+
+.. warning:: Modules configuration option handling has been reworked
+   internally to provide a unified way for all options to get initialized,
+   retrieved or set. Existing site-specific configuration script should be
+   reviewed to make use of the new ``getConf``, ``setConf``, ``unsetConf``
+   and ``lappendConf`` procedures to manipulate configuration options.
+
+New features
+------------
+
+Version 4.4 introduces new functionalities that are described in this section.
+
+Further reading
+---------------
+
+To get a complete list of the changes between Modules v4.3 and v4.4,
+please read the :ref:`NEWS` document.
+
+
 Migrating from v4.2 to v4.3
 ===========================
 

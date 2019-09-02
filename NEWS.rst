@@ -6,6 +6,19 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+Modules 4.4.0 (2019-XX-XX)
+--------------------------
+
+* Rework internal handling of configuration options to gather all option
+  definitions in a global array and use the same initialization and retrieval
+  procedure, named ``getConf``, for all these options.
+* Add the ``setConf``, ``unsetConf`` and ``lappendConf`` procedures to provide
+  unified ways to set the value of configuration option. These procedures
+  should be used in site configuration files to override configuration option
+  value instead of directly setting corresponding option variable as it was
+  done in previous Modules releases.
+
+
 Modules 4.3.1 (2019-09-21)
 --------------------------
 
