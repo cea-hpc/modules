@@ -25,6 +25,35 @@ New features
 
 Version 4.4 introduces new functionalities that are described in this section.
 
+Specify modules in a case insensitive manner
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ability to match module name in a case insensitive manner has been added.
+This feature can be enabled at different level with the following values set
+to the ``icase`` configuration option:
+
+* ``never``: a case sensitive match is applied in any cases
+* ``search``: a case insensitive match is applied to the ``avail``, ``whatis``
+  and ``paths`` sub-commands
+* ``always``: a case insensitive match is applied to search contexts and also
+  to the other module sub-commands and modulefile Tcl commands for the module
+  specification they receive as argument.
+
+It can help for instance to load a module without knowing the case used to
+name its relative modulefile::
+
+    $ module config icase always
+    $ module load -v mysoftware
+    Loading MySoftware/1.0
+
+Insensitive case match activation can be controlled at configure time with
+the ``--with-icase`` option, which could be passed any of the above activation
+levels. This option could be superseded with the ``MODULES_ICASE`` environment
+variable, which could be set through the **config** sub-command with the
+``icase`` option. Command-line switch **--icase** supersedes in turns any
+other icase configurations. When this command-line switch is passed, ``icase``
+mode equals ``always``.
+
 Further reading
 ---------------
 
