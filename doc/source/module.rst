@@ -238,6 +238,10 @@ switches are accepted:
  and directories found at the depth level expressed by the search query. Thus
  modulefiles contained in directories part of the result are excluded.
 
+**--icase**, **-i**
+
+ Match module specification arguments in a case insensitive manner.
+
 
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
@@ -624,6 +628,7 @@ Module Sub-Commands
  * contact: modulefile contact address (defines **MODULECONTACT**)
  * extra_siteconfig: additional site-specific configuration script location
    (defines **MODULES_SITECONFIG**)
+ * icase: enable case insensitive match (defines **MODULES_ICASE**)
  * ignored_dirs: directories ignored when looking for modulefiles
  * implicit_default: set an implicit default version for modules (defines
    **MODULES_IMPLICIT_DEFAULT**)
@@ -887,6 +892,24 @@ ENVIRONMENT
  **MODULES_COLORS** environment variable, then the default set in
  **modulecmd.tcl** script configuration. Which means **MODULES_COLORS**
  overrides default configuration.
+
+**MODULES_ICASE**
+
+ When module specification are passed as argument to module sub-commands or
+ modulefile Tcl commands, defines the case sensitiveness to apply to match
+ them. When **MODULES_ICASE** is set to **never**, a case sensitive match is
+ applied in any cases. When set to **search**, a case insensitive match is
+ applied to the **avail**, **whatis** and **paths** sub-commands. When set to
+ **always**, a case insensitive match is also applied to the other module
+ sub-commands and modulefile Tcl commands for the module specification they
+ receive as argument.
+
+ Case sensitiveness behavior is defined in the following order of preference:
+ **--icase** command line switch, which corresponds to the **always** mode,
+ then **MODULES_ICASE** environment variable, then the default set in
+ **modulecmd.tcl** script configuration. Which means **MODULES_ICASE**
+ overrides default configuration and **--icase** command line switch overrides
+ every other ways to set case sensitiveness behavior.
 
 **MODULES_IMPLICIT_DEFAULT**
 

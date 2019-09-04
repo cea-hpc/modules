@@ -29,8 +29,6 @@ Command line switches
 
 **--create**, **-c**
 
-**--icase**, **-i**
-
 **--userlvl** lvl, **-u** lvl
  
  These command line switches are not supported on Modules 4. When these options are passed on the command-line, it produces an *Unsupported option* warning and command is ran with the unsupported switches ignored.
@@ -58,6 +56,10 @@ Command line switches
 **--silent**, **-s**
 
  These command line switches were not supported starting Modules version ``4.0`` but reintroduced starting version ``4.3``. However, reintroduced **--silent** switch does not redirect stderr channel to ``/dev/null`` if stderr is found not to be a tty.
+
+**--icase**, **-i**
+
+ This command line switch was not supported starting Modules version ``4.0`` but reintroduced starting version ``4.4``. When **--icase** switch is now set it applies to search query string and module specificiation on all sub-commands and modulefile Tcl commands.
 
 
 Module Sub-Commands
@@ -450,6 +452,10 @@ Environment
 **MODULES_WA_277**
 
  These environment variables appeared on version ``4.3`` and are not supported on compatibility version.
+
+**MODULES_ICASE**
+
+ These environment variables appeared on version ``4.4`` and are not supported on compatibility version.
 
 
 Modules Specific Tcl Commands

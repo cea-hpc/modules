@@ -371,6 +371,13 @@ instance ``--without-modulepath``):
                       match query string against module name start
                       (``starts_with``) or any part of module name string
                       (``contains``). (default=\ ``starts_with``)
+--with-icase=VALUE    Apply a case insensitive match to module specification
+                      on ``avail``, ``whatis`` and ``paths`` sub-commands
+                      (when set to ``search``) or on all module sub-commands
+                      and modulefile Tcl commands for the module specification
+                      they receive as argument (when set to ``always``). Case
+                      insensitive match is disabled when this option is set to
+                      ``never``. (default=\ ``never``)
 --with-modulepath=PATHLIST
                       Default path list to setup as the default modulepaths.
                       Each path in this list should be separated by ``:``.
