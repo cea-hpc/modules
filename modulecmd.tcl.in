@@ -46,7 +46,7 @@ array set g_config_defs [list\
    color {MODULES_COLOR @color@ 0 {never auto always} {0 1 2} initConfColor}\
    colors {MODULES_COLORS {} 0 {} {} initConfColors}\
    extra_siteconfig {MODULES_SITECONFIG <undef> 1 {}}\
-   avail_icase {{} @AVICASE@ 0 {0 1}}\
+   icase {MODULES_ICASE @icase@ 0 {never search always}}\
    ignored_dirs {{} {CVS RCS SCCS .svn .git .SYNC .sos} 0}\
    locked_configs {{} {@lockedconfigs@} 0}\
    pager {MODULES_PAGER {@pagercmd@} 0}\
@@ -337,6 +337,17 @@ proc isVerbosityLevel {name} {
    return [expr {[lsearch -exact [lindex $::g_config_defs(verbosity) 3]\
       [getConf verbosity]] >= [lsearch -exact [lindex\
       $::g_config_defs(verbosity) 3] $name]}]
+}
+
+# Is match performed in a case sensitive or insensitive manner
+proc isIcase {} {
+   # depending on current sub-command, list values that equal to a case
+   # insensitive match enablement
+   lappend enabledValList always
+   if {[isInList [list avail whatis search paths] [currentCommandName]]} {
+      lappend enabledValList search
+   }
+   return [isInList $enabledValList [getConf icase]]
 }
 
 
@@ -6262,7 +6273,7 @@ proc modMatchAtDepth {indepth querydepth modmatch modlist} {
 # check passed module name match pattern in a case sensitive or insensitive
 # manner depending on current icase mode
 proc modMatch {pattern mod} {
-   return [expr {[getConf avail_icase] ? [string match -nocase $pattern $mod] :\
+   return [expr {[isIcase] ? [string match -nocase $pattern $mod] :\
       [string match $pattern $mod]}]
 }
 
@@ -9594,7 +9605,7 @@ if {[catch {
                lappend otherargv $arg
             }
             -i - --icase {
-               set asked_avail_icase 1
+               set asked_icase always
             }
             --human - -c - --create - --userlvl=* {
                # ignore C-version specific option, no error only warning

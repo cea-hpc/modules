@@ -33,7 +33,7 @@ appendbinpath setdotmodulespath docinstall vimaddons examplemodulefiles \
 builddoc gitworktree usemanpath compatversion EXEEXT libtclenvmodules \
 SHLIB_SUFFIX versioning silentshdbgsupport setshellstartup quarantinesupport \
 autohandling availindepth implicitdefault initconfin pager pageropts \
-verbosity color darkbgcolors lightbgcolors termbg lockedconfigs avicase \
+verbosity color darkbgcolors lightbgcolors termbg lockedconfigs icase \
 unloadmatchorder searchmatch modulepath loadedmodules quarantinevars wa277"
 compatarglist=
 libarglist=
@@ -91,7 +91,7 @@ termbg=dark
 lockedconfigs=
 unloadmatchorder=returnlast
 searchmatch=starts_with
-avicase=n
+icase=never
 # these args are initialized here but as they depend on other argument value
 # they will get their default value later (after command-line parse)
 bindir=
@@ -211,8 +211,6 @@ Optional Features:
                           color mode. \`no' equals to the \`never' color mode
                           [no]
   --enable-wa-277         activate workaround for Tcsh history issue [no]
-  --enable-icase-avail    Enable module avail to perform case insensitive
-                          search
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -266,6 +264,11 @@ Optional Packages:
                           match the begining of module name (\`starts_with')
                           or any part of module name (\`contains')
                           [$searchmatch]
+  --with-icase=VALUE      apply a case insensitive match to module
+                          specification on search-like sub-commands
+                          (\`search'), on all sub-commands and modulefile Tcl
+                          commands (\`always') or disable case insensitive
+                          match (\`never') [$icase]
   --with-modulepath=PATHLIST
                           default modulepaths to set in default configuration
                           file to be enabled (each path in PATHLIST should
@@ -492,8 +495,12 @@ for arg in "$@"; do
       if [ "${allowedval// $searchmatch /}" = "$allowedval" ]; then
          echo_error "Bad value for option \`--with-search-match', allowed values are:$allowedval"
       fi ;;
-   --enable-icase-avail*|--disable-icase-avail)
-      avicase=$(get_feature_value "$arg") ;;
+   --with-icase*|--without-icase)
+      icase=$(get_package_value "$arg") ;
+      allowedval=" never search always " ;
+      if [ "${allowedval// $icase /}" = "$allowedval" ]; then
+         echo_error "Bad value for option \`--with-icase', allowed values are:$allowedval"
+      fi ;;
    --with-modulepath=*|--without-modulepath)
       modulepath=$(get_package_value "$arg") ;;
    --with-loadedmodules=*|--without-loadedmodules)
