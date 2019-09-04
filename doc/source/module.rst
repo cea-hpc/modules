@@ -1014,7 +1014,7 @@ ENVIRONMENT
  **MODULES_SEARCH_MATCH** environment variable, then the default set in
  **modulecmd.tcl** script configuration. Which means **MODULES_SEARCH_MATCH**
  overrides default configuration and **--starts-with**/**--contains** command
- line switches overrides every other ways to set search match style.
+ line switches override every other ways to set search match style.
 
 **MODULES_SET_SHELL_STARTUP**
 
