@@ -32,9 +32,6 @@ set g_inhibit_errreport 0 ;# Non-critical error reporting disabled if == 1
 set CSH_LIMIT 4000 ;# Workaround for commandline limits in csh
 set reportfd stderr ;# File descriptor to use to report messages
 
-set g_avail_icase @AVICASE@ ;# Set to 1 to enable case insensitive module available/search
-set g_load_icase @AVICASE@ ;# Set to 1 to enable case insensitive module load/add/unload/rm
-
 # Configuration option properties (superseding environment variable, default
 # value, is configuration lockable to default value, valid value list?,
 # internal value representation?, proc to call to initialize option value
@@ -49,6 +46,7 @@ array set g_config_defs [list\
    color {MODULES_COLOR @color@ 0 {never auto always} {0 1 2} initConfColor}\
    colors {MODULES_COLORS {} 0 {} {} initConfColors}\
    extra_siteconfig {MODULES_SITECONFIG <undef> 1 {}}\
+   avail_icase {{} @AVICASE@ 0 {0 1}}\
    ignored_dirs {{} {CVS RCS SCCS .svn .git .SYNC .sos} 0}\
    locked_configs {{} {@lockedconfigs@} 0}\
    pager {MODULES_PAGER {@pagercmd@} 0}\
@@ -6264,7 +6262,7 @@ proc modMatchAtDepth {indepth querydepth modmatch modlist} {
 # check passed module name match pattern in a case sensitive or insensitive
 # manner depending on current icase mode
 proc modMatch {pattern mod} {
-   return [expr {$::g_avail_icase ? [string match -nocase $pattern $mod] :\
+   return [expr {[getConf avail_icase] ? [string match -nocase $pattern $mod] :\
       [string match $pattern $mod]}]
 }
 
@@ -9596,7 +9594,7 @@ if {[catch {
                lappend otherargv $arg
             }
             -i - --icase {
-               set ::g_avail_icase 1
+               set asked_avail_icase 1
             }
             --human - -c - --create - --userlvl=* {
                # ignore C-version specific option, no error only warning
