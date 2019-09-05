@@ -1,0 +1,512 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2019/09/05
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test impact of the different icase mode level
+#		}C%
+#
+##############################################################################
+
+if {[file exists $modpath.2/ICASE/prereq]} {
+    send_user "\tskipping icase tests as underlying filesystem is case-insensitive\n"
+} else {
+
+# ensure avail -t tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure last matching element is returned when unloading modules
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
+
+set mp $modpath.2
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+#
+# check option enablement
+#
+
+set tserra0 {}
+set tserrw0 $err_path'NOCASE2'
+set tserra1 "$mp:\nnocase2"
+set tserrw1 "$modlin $mpre $modlin\n\\s+nocase2: nocase2"
+set ans0 ERR
+set tserrl0 $tserrw0
+set ans1 [list]
+lappend ans1 [list setpath LOADEDMODULES nocase2]
+lappend ans1 [list setpath _LMFILES_ $mp/nocase2]
+set ansp0 {}
+set ansp1 [list [list text $mp/nocase2]]
+
+setenv_var MODULES_ICASE never
+testouterr_cmd sh {avail -t NOCASE2} OK $tserra0
+testouterr_cmd sh {whatis NOCASE2} ERR $tserrw0
+testouterr_cmd sh {paths NOCASE2} $ansp0 {}
+testouterr_cmd sh {load NOCASE2} $ans0 $tserrl0
+
+setenv_var MODULES_ICASE search
+testouterr_cmd sh {avail -t NOCASE2} OK $tserra1
+testouterr_cmd_re sh {whatis NOCASE2} OK $tserrw1
+testouterr_cmd sh {paths NOCASE2} $ansp1 {}
+testouterr_cmd sh {load NOCASE2} $ans0 $tserrl0
+
+setenv_var MODULES_ICASE always
+testouterr_cmd sh {avail -t NOCASE2} OK $tserra1
+testouterr_cmd_re sh {whatis NOCASE2} OK $tserrw1
+testouterr_cmd sh {paths NOCASE2} $ansp1 {}
+testouterr_cmd sh {load NOCASE2} $ans1 {}
+
+# default option value
+setenv_var MODULES_ICASE badvalue
+switch -- $install_icase {
+    never {
+        testouterr_cmd sh {avail -t NOCASE2} OK $tserra0
+        testouterr_cmd sh {whatis NOCASE2} ERR $tserrw0
+        testouterr_cmd sh {paths NOCASE2} $ansp0 {}
+        testouterr_cmd sh {load NOCASE2} $ans0 $tserrl0
+    }
+    search {
+        testouterr_cmd sh {avail -t NOCASE2} OK $tserra1
+        testouterr_cmd_re sh {whatis NOCASE2} OK $tserrw1
+        testouterr_cmd sh {paths NOCASE2} $ansp1 {}
+        testouterr_cmd sh {load NOCASE2} $ans0 $tserrl0
+    }
+    always {
+        testouterr_cmd sh {avail -t NOCASE2} OK $tserra1
+        testouterr_cmd_re sh {whatis NOCASE2} OK $tserrw1
+        testouterr_cmd sh {paths NOCASE2} $ansp1 {}
+        testouterr_cmd sh {load NOCASE2} $ans1 {}
+    }
+}
+unsetenv_var MODULES_ICASE
+switch -- $install_icase {
+    never {
+        testouterr_cmd sh {avail -t NOCASE2} OK $tserra0
+        testouterr_cmd sh {whatis NOCASE2} ERR $tserrw0
+        testouterr_cmd sh {paths NOCASE2} $ansp0 {}
+        testouterr_cmd sh {load NOCASE2} $ans0 $tserrl0
+    }
+    search {
+        testouterr_cmd sh {avail -t NOCASE2} OK $tserra1
+        testouterr_cmd_re sh {whatis NOCASE2} OK $tserrw1
+        testouterr_cmd sh {paths NOCASE2} $ansp1 {}
+        testouterr_cmd sh {load NOCASE2} $ans0 $tserrl0
+    }
+    always {
+        testouterr_cmd sh {avail -t NOCASE2} OK $tserra1
+        testouterr_cmd_re sh {whatis NOCASE2} OK $tserrw1
+        testouterr_cmd sh {paths NOCASE2} $ansp1 {}
+        testouterr_cmd sh {load NOCASE2} $ans1 {}
+    }
+}
+
+# option passed via command-line switch
+testouterr_cmd sh {avail --icase -t NOCASE2} OK $tserra1
+testouterr_cmd sh {avail -i -t NOCASE2} OK $tserra1
+testouterr_cmd_re sh {whatis --icase NOCASE2} OK $tserrw1
+testouterr_cmd sh {paths -i NOCASE2} $ansp1 {}
+testouterr_cmd sh {load --icase NOCASE2} $ans1 {}
+testouterr_cmd sh {load -i NOCASE2} $ans1 {}
+
+
+# disable icase by default to check when it is off and when it is on with -i
+setenv_var MODULES_ICASE never
+
+#
+# check consistent effect over the different module kind on search context
+#
+
+testouterr_cmd sh {avail -i -t noCASE/aL} OK "$mp:\nnocase/alias(@)"
+testouterr_cmd sh {avail -i -t noCASE/VE} OK "$mp:\nnocase/1(vers)"
+testouterr_cmd sh {avail -i -t NOCASE/REGular} OK "$mp:\nnocase/regular"
+testouterr_cmd sh {avail -i -t nOcAsE/vi} OK "$mp:\nnocase/virt"
+testouterr_cmd sh {avail -i -t NOCASE/Dee} OK "$mp:\nnocase/deep/(dirsym)\nnocase/deep/3"
+testouterr_cmd sh {avail -i -t NOcaSe2} OK "$mp:\nnocase2"
+testouterr_cmd sh {avail -i -t NOcase3} OK "$mp:\nnocase3(@)"
+testouterr_cmd_re sh {whatis -i -t noCASE/aL} OK "$modlin $mpre $modlin\n\\s+nocase/1: nocase/1"
+testouterr_cmd sh {paths -i noCASE/VE} [list [list text $mp/nocase/1]] {}
+# aliases with an icase target
+testouterr_cmd_re sh {whatis -i nOcAsE5} OK "$modlin $mpre $modlin\n\\s+nocase/virt: nocase/virt"
+testouterr_cmd_re sh {whatis -i nOcAsE6} OK "$modlin $mpre $modlin\n\\s+nocase/virt: nocase/virt"
+# hidden modulefile
+testouterr_cmd sh {paths -i noCASE/.hiDden} [list [list text $mp/nocase/.hidden]] {}
+testouterr_cmd_re sh {whatis -i noCASE/.hiDden} OK "$modlin $mpre $modlin\n\\s+nocase/.hidden: nocase/.hidden"
+
+# add a bit of wildcard characters in specification
+testouterr_cmd sh {avail -i -t nOcAsE/vi?} OK "$mp:\nnocase/virt"
+testouterr_cmd_re sh {whatis -i -t noCASE/a*L} OK "$modlin $mpre $modlin\n\\s+nocase/1: nocase/1"
+testouterr_cmd sh {paths -i noCASE/V*E?} [list [list text $mp/nocase/1]] {}
+
+# wild search
+# FIXME: regvers symbol does not appear on nocase/regular module
+testouterr_cmd sh {avail -i -t NOcaSe} OK "$mp:\nnocase/1(vers)\nnocase/alias(@)\nnocase/deep/(dirsym)\nnocase/deep/3\nnocase/ialias(@)\nnocase/regular\nnocase/virt\nnocase2\nnocase3(@)\nnocase5(@)\nnocase6(@)\nnocase7/conflictim1\nnocase7/conflictim2\nnocase7/prereqim1\nnocase7/prereqim2\nnocase8(@)\nnocase9(@)"
+testouterr_cmd_re sh {whatis -i nOcAsE} OK "$modlin $mpre $modlin\n\\s+nocase/1: nocase/1\n\\s+nocase/deep/3: nocase/deep/3\n\\s+nocase/regular: nocase/regular\n\\s+nocase/virt: nocase/virt"
+
+# contains search match
+testouterr_cmd sh {avail -i -t -C SE/DeE} OK "$mp:\nnocase/deep/(dirsym)\nnocase/deep/3"
+testouterr_cmd sh {avail -i -t -C SE/DiR} OK "$mp:\nnocase/deep/(dirsym)\nnocase/deep/3"
+testouterr_cmd sh {avail -i -t -C se/VErs} OK "$mp:\nnocase/1(vers)"
+
+# no-indepth search
+testouterr_cmd sh {avail -i -t --no-indepth NOcaSe} OK "$mp:\nnocase/\nnocase2\nnocase3(@)\nnocase5(@)\nnocase6(@)\nnocase7/\nnocase8(@)\nnocase9(@)"
+testouterr_cmd sh {avail -i -t --no-indepth NOcaSe/} OK "$mp:\nnocase/1(vers)\nnocase/alias(@)\nnocase/deep/(dirsym)\nnocase/ialias(@)\nnocase/regular\nnocase/virt"
+testouterr_cmd sh {avail -i -t --no-indepth NOCASE/Dee} OK "$mp:\nnocase/deep/(dirsym)"
+testouterr_cmd sh {avail -i -t --no-indepth NOCASE/DiR} OK "$mp:\nnocase/deep/(dirsym)"
+
+
+#
+# check consistent effect over the different module kind on other contexts
+#
+
+set ans [list]
+lappend ans [list setpath MODULES_LMALTNAME nocase/1&nocase3&nocase/alias&nocase/vers]
+lappend ans [list setpath LOADEDMODULES nocase/1]
+lappend ans [list setpath _LMFILES_ $mp/nocase/1]
+
+testouterr_cmd sh {load -i noCASE/aLias} $ans {}
+testouterr_cmd sh {load -i noCASE/VErs} $ans {}
+
+set ans [list]
+lappend ans [list setpath MODULES_LMALTNAME nocase/regular&nocase3&nocase/regvers]
+lappend ans [list setpath LOADEDMODULES nocase/regular]
+lappend ans [list setpath _LMFILES_ $mp/nocase/regular]
+
+testouterr_cmd sh {load -i NOcaSE/regular} $ans {}
+
+# FIXME: indirect alternative names, expressed in a icase manner, are missing from alt names
+testouterr_cmd sh {load -i NoCaSE/regverS} $ans {}
+testouterr_cmd sh {load -i NoCaSE/regversVERS} $ans {}
+
+set ans [list]
+lappend ans [list setpath MODULES_LMALTNAME nocase/deep/3&nocase3&nocase/dirsym]
+lappend ans [list setpath LOADEDMODULES nocase/deep/3]
+lappend ans [list setpath _LMFILES_ $mp/nocase/deep/3]
+
+testouterr_cmd sh {load -i NOCASE/DeeP} $ans {}
+
+set ans [list]
+lappend ans [list setpath MODULES_LMALTNAME nocase/virt&nocase3&nocase/ialias]
+lappend ans [list setpath LOADEDMODULES nocase/virt]
+lappend ans [list setpath _LMFILES_ $mp/nocase/1]
+
+testouterr_cmd sh {load -i Nocase/viRT} $ans {}
+testouterr_cmd sh {load -i NoCaSE} $ans {}
+testouterr_cmd sh {load -i Nocase3} $ans {}
+# FIXME: indirect alternative names, expressed in a icase manner, are missing from alt names
+testouterr_cmd sh {load -i nocase5} $ans {}
+testouterr_cmd sh {load -i NOcaSE6} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES nocase2]
+lappend ans [list setpath _LMFILES_ $mp/nocase2]
+
+testouterr_cmd sh {load -i NocasE2} $ans {}
+
+testouterr_cmd_re sh {help -i NocasE3} OK "$modlin\nModule Specific Help for $mpre/nocase/1:\n\n$warn_msgs: Unable to find ModulesHelp in $mpre/nocase/1.\n$modlin"
+testouterr_cmd_re sh {display -i nocASE/aliAS} OK "$modlin\n$mpre/nocase/1:\n\nmodule-whatis\tnocase/1\n$modlin"
+testouterr_cmd_re sh {test -i NOCAse/1} OK "$modlin\nModule Specific Test for $mpre/nocase/1:\n\n$warn_msgs: Unable to find ModulesTest in $mpre/nocase/1.\n$modlin"
+testouterr_cmd sh {path -i NOCAse/vIRt} [list [list text $mp/nocase/1]] {}
+testouterr_cmd sh {path -i NOCAse6} [list [list text $mp/nocase/1]] {}
+testouterr_cmd sh {is-avail -i NOCAse/veRS} OK {}
+testouterr_cmd sh {is-avail -i NOCAse/veR} ERR {}
+testouterr_cmd sh {is-avail -i NOCAse6} OK {}
+
+
+# test sub-commands working over the loaded environment
+setenv_loaded_module [list nocase/1] [list $mp/nocase/1]
+setenv_path_var MODULES_LMALTNAME nocase/1&nocase3&nocase/alias&nocase/vers
+
+testouterr_cmd sh {is-loaded -i Nocase/1} OK {}
+testouterr_cmd sh {is-loaded -i nOcaSE/veRS} OK {}
+testouterr_cmd sh {is-loaded -i NOcase/ALias} OK {}
+
+set ans [list [list text nocase/1]]
+testouterr_cmd sh {info-loaded -i Nocase} $ans {}
+testouterr_cmd sh {info-loaded -i nOcaSE/veRS} $ans {}
+testouterr_cmd sh {info-loaded -i NOcase/ALias} $ans {}
+
+testouterr_cmd sh {load -i NOcase/1} OK {}
+testouterr_cmd sh {load -i NOcaSE/veRS} OK {}
+testouterr_cmd sh {load -i NOcaSE/ALias} OK {}
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+testouterr_cmd sh {unload -i NOcaSE/1} $ans {}
+testouterr_cmd sh {unload -i nocASE} $ans {}
+testouterr_cmd sh {unload -i noCase/aLIAS} $ans {}
+
+set ans [list]
+lappend ans [list setpath MODULES_LMALTNAME nocase/virt&nocase3&nocase/ialias]
+lappend ans [list setpath LOADEDMODULES nocase/virt]
+lappend ans [list setpath _LMFILES_ $mp/nocase/1]
+testouterr_cmd sh {switch -i NOcaSE} $ans {}
+testouterr_cmd sh {switch -i NOCASE nocase/viRT} $ans {}
+testouterr_cmd sh {switch -i noCAse/ViRt} $ans {}
+testouterr_cmd sh {switch -i noCASE3} $ans {}
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+
+# test in modulefile
+set ans [list]
+lappend ans [list setpath LOADEDMODULES nocase/1:icase/prereq]
+lappend ans [list setpath _LMFILES_ $mp/nocase/1:$mp/icase/prereq]
+lappend ans [list setpath MODULES_LMNOTUASKED nocase/1]
+lappend ans [list setpath MODULES_LMPREREQ icase/prereq&NoCase/VERS]
+lappend ans [list setpath MODULES_LMALTNAME nocase/1&nocase3&nocase/alias&nocase/vers]
+testouterr_cmd_re sh {load --icase --auto icase/prereq} $ans [msg_top_load icase/prereq {} nocase/1 {}]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES icase/conflict]
+lappend ans [list setpath _LMFILES_ $mp/icase/conflict]
+lappend ans [list setpath MODULES_LMCONFLICT icase/conflict&NOCASE]
+testouterr_cmd_re sh {load --icase icase/conflict} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES nocase/1:icase/load]
+lappend ans [list setpath _LMFILES_ $mp/nocase/1:$mp/icase/load]
+lappend ans [list setpath MODULES_LMNOTUASKED nocase/1]
+lappend ans [list setpath MODULES_LMPREREQ icase/load&noCASE/alIAS]
+lappend ans [list setpath MODULES_LMALTNAME nocase/1&nocase3&nocase/alias&nocase/vers]
+testouterr_cmd_re sh {load --icase --auto icase/load} $ans [msg_top_load icase/load {} nocase/1 {}]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES icase/unload]
+lappend ans [list setpath _LMFILES_ $mp/icase/unload]
+lappend ans [list setpath MODULES_LMCONFLICT icase/unload&NOcase]
+testouterr_cmd_re sh {load --icase icase/unload} $ans {}
+
+testouterr_cmd_re sh {load --icase --auto icase/loadi} ERR [msg_load icase/loadi $err_path'--icase' [err_reqlo --icase]]
+testouterr_cmd_re sh {load --auto icase/loadi} ERR [msg_load icase/loadi $err_path'--icase' [err_reqlo --icase]]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES icase/isloaded]
+lappend ans [list setpath _LMFILES_ $mp/icase/isloaded]
+lappend ans [list set ts 0]
+testouterr_cmd_re sh {load --icase icase/isloaded} $ans {}
+
+set ans [list]
+lappend ans [list set ts {}]
+lappend ans [list set ts2 nocase]
+lappend ans [list set ts3 nocase]
+lappend ans [list setpath LOADEDMODULES icase/info]
+lappend ans [list setpath _LMFILES_ $mp/icase/info]
+testouterr_cmd_re sh {load --icase icase/info} $ans {}
+
+setenv_loaded_module [list nocase/1] [list $mp/nocase/1]
+setenv_path_var MODULES_LMALTNAME nocase/1&nocase3&nocase/alias&nocase/vers
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES nocase/1:icase/prereq]
+lappend ans [list setpath _LMFILES_ $mp/nocase/1:$mp/icase/prereq]
+lappend ans [list setpath MODULES_LMPREREQ icase/prereq&NoCase/VERS]
+testouterr_cmd_re sh {load --icase --auto icase/prereq} $ans {}
+
+testouterr_cmd_re sh {load --icase icase/conflict} ERR [msg_load icase/conflict [err_conflict icase/conflict NOCASE]]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES nocase/1:icase/load]
+lappend ans [list setpath _LMFILES_ $mp/nocase/1:$mp/icase/load]
+lappend ans [list setpath MODULES_LMPREREQ icase/load&noCASE/alIAS]
+testouterr_cmd_re sh {load --icase --auto icase/load} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES icase/unload]
+lappend ans [list setpath _LMFILES_ $mp/icase/unload]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+lappend ans [list setpath MODULES_LMCONFLICT icase/unload&NOcase]
+testouterr_cmd_re sh {load --icase icase/unload} $ans [msg_top_load icase/unload nocase/1 {} {}]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES nocase/1:icase/isloaded]
+lappend ans [list setpath _LMFILES_ $mp/nocase/1:$mp/icase/isloaded]
+lappend ans [list set ts 1]
+testouterr_cmd_re sh {load --icase icase/isloaded} $ans {}
+
+set ans [list]
+lappend ans [list set ts nocase/1]
+lappend ans [list set ts2 nocase]
+lappend ans [list set ts3 nocase]
+lappend ans [list setpath LOADEDMODULES nocase/1:icase/info]
+lappend ans [list setpath _LMFILES_ $mp/nocase/1:$mp/icase/info]
+testouterr_cmd_re sh {load --icase icase/info} $ans {}
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+
+# self conflict
+set ans [list]
+lappend ans [list setpath LOADEDMODULES icase/conflicts]
+lappend ans [list setpath _LMFILES_ $mp/icase/conflicts]
+lappend ans [list setpath MODULES_LMCONFLICT icase/conflicts&Icase]
+testouterr_cmd_re sh {load --icase icase/conflicts} $ans {}
+
+setenv_loaded_module [list icase/isloaded] [list $mp/icase/isloaded]
+testouterr_cmd_re sh {load --icase icase/conflicts} ERR [msg_load icase/conflicts [err_conflict icase/conflicts Icase]]
+unsetenv_loaded_module
+
+# conflict over an alias name
+setenv_loaded_module [list nocase/1] [list $mp/nocase/1]
+setenv_path_var MODULES_LMALTNAME nocase/1&nocase3&nocase/alias&nocase/vers
+testouterr_cmd_re sh {load --icase icase/conflicta} ERR [msg_load icase/conflicta [err_conflict icase/conflicta NOcase3]]
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+
+# loaded module conflict with loading prereq
+setenv_loaded_module [list icase/conflicta] [list $mp/icase/conflicta]
+setenv_path_var MODULES_LMCONFLICT icase/conflicta&NOcase3
+testouterr_cmd_re sh {load --icase --auto icase/load} ERR [msg_load nocase/1 [err_conflict nocase/1 icase/conflicta]]\n\n[msg_load icase/load [err_reqlo noCASE/alIAS]]
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMCONFLICT
+
+# loading prereq conflict with its dependent
+testouterr_cmd_re sh {load --icase --auto icase/prereqc} ERR [msg_load icase/conflictp [err_conflict icase/conflictp ICase/PREreqC]]\n\n[msg_load icase/prereqc [err_reqlo icASE/conflictP]]
+
+
+#
+# check situation with multiple modulefiles corresponding to same icase module
+#
+
+# when loading, multiple matches if icase enabled, no match if disabled
+set ans [list]
+lappend ans [list setpath LOADEDMODULES icase/z]
+lappend ans [list setpath _LMFILES_ $mp/icase/z]
+testouterr_cmd_re sh {load --icase ICaSE} $ans {}
+testouterr_cmd_re sh {load ICaSE} ERR $err_path'ICaSE'
+
+# when loading, multiple matches if icase enabled, one match if disabled
+set ans [list]
+lappend ans [list setpath LOADEDMODULES iCaSe/1]
+lappend ans [list setpath _LMFILES_ $mp/iCaSe/1]
+testouterr_cmd_re sh {load --icase iCaSe} $ans {}
+testouterr_cmd_re sh {load iCaSe} $ans {}
+
+# when auto loading prereq, multiple matches if icase enabled, no match if disabled
+set ans [list]
+lappend ans [list setpath LOADEDMODULES icase/z:nocase7/prereqim1]
+lappend ans [list setpath _LMFILES_ $mp/icase/z:$mp/nocase7/prereqim1]
+lappend ans [list setpath MODULES_LMPREREQ nocase7/prereqim1&ICase]
+lappend ans [list setpath MODULES_LMNOTUASKED icase/z]
+testouterr_cmd_re sh {load --auto --icase nocase7/prereqim1} $ans [msg_top_load nocase7/prereqim1 {} icase/z {}]
+testouterr_cmd_re sh {load --auto nocase7/prereqim1} ERR [msg_load nocase7/prereqim1 $err_path'ICase' [err_reqlo ICase]]
+
+# when auto loading prereq, multiple matches if icase enabled, one match if disabled
+set ans [list]
+lappend ans [list setpath LOADEDMODULES iCaSe/1:nocase7/prereqim2]
+lappend ans [list setpath _LMFILES_ $mp/iCaSe/1:$mp/nocase7/prereqim2]
+lappend ans [list setpath MODULES_LMPREREQ nocase7/prereqim2&iCaSe]
+lappend ans [list setpath MODULES_LMNOTUASKED iCaSe/1]
+testouterr_cmd_re sh {load --auto --icase nocase7/prereqim2} $ans [msg_top_load nocase7/prereqim2 {} iCaSe/1 {}]
+testouterr_cmd_re sh {load --auto nocase7/prereqim2} $ans [msg_top_load nocase7/prereqim2 {} iCaSe/1 {}]
+
+setenv_loaded_module [list icase/z ICASE/1 iCaSe/1] [list $mp/icase/z $mp/ICASE/1 $mp/iCaSe/1]
+# when unloading, multiple matches if icase enabled, no match if disabled
+set ans [list]
+lappend ans [list setpath LOADEDMODULES icase/z:ICASE/1]
+lappend ans [list setpath _LMFILES_ $mp/icase/z:$mp/ICASE/1]
+testouterr_cmd_re sh {unload --icase ICaSE} $ans {}
+testouterr_cmd_re sh {unload ICaSE} OK {}
+# when unloading, multiple matches if icase enabled, one match if disabled
+# CORNER CASE: lastly matching module will be returned even if an exact match is there
+testouterr_cmd_re sh {unload --icase ICASE} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES icase/z:iCaSe/1]
+lappend ans [list setpath _LMFILES_ $mp/icase/z:$mp/iCaSe/1]
+testouterr_cmd_re sh {unload ICASE} $ans {}
+
+# when checking conflict, multiple matches if icase enabled, no match if disabled
+set ans [list]
+lappend ans [list setpath LOADEDMODULES icase/z:ICASE/1:iCaSe/1:nocase7/conflictim1]
+lappend ans [list setpath _LMFILES_ $mp/icase/z:$mp/ICASE/1:$mp/iCaSe/1:$mp/nocase7/conflictim1]
+lappend ans [list setpath MODULES_LMCONFLICT nocase7/conflictim1&ICase]
+testouterr_cmd_re sh {load nocase7/conflictim1} $ans {}
+testouterr_cmd_re sh {load --icase nocase7/conflictim1} ERR [msg_load nocase7/conflictim1 [err_conflict nocase7/conflictim1 ICase]]
+
+# when checking conflict, multiple matches if icase enabled, one match if disabled
+testouterr_cmd_re sh {load nocase7/conflictim2} ERR [msg_load nocase7/conflictim2 [err_conflict nocase7/conflictim2 iCaSe]]
+testouterr_cmd_re sh {load --icase nocase7/conflictim2} ERR [msg_load nocase7/conflictim2 [err_conflict nocase7/conflictim2 iCaSe]]
+
+unsetenv_loaded_module
+
+# module to load is an alias which resolves to multiple matches if icase enabled, no match if disabled
+set ans [list]
+lappend ans [list setpath LOADEDMODULES iCaSe2/1]
+lappend ans [list setpath _LMFILES_ $mp/iCaSe2/1]
+# FIXME: nocase8 does not appear among module altname, overridden by nocase9
+lappend ans [list setpath MODULES_LMALTNAME iCaSe2/1&nocase9]
+testouterr_cmd_re sh {load --icase nocase8} $ans {}
+testouterr_cmd_re sh {load nocase8} ERR $err_path'ICaSE2'
+# module to load is an alias which resolves to multiple matches if icase enabled, one match if disabled
+set ans [list]
+lappend ans [list setpath LOADEDMODULES iCaSe2/1]
+lappend ans [list setpath _LMFILES_ $mp/iCaSe2/1]
+lappend ans [list setpath MODULES_LMALTNAME iCaSe2/1&nocase9]
+testouterr_cmd_re sh {load --icase nocase9} $ans {}
+testouterr_cmd_re sh {load nocase9} $ans {}
+
+
+#
+# icase only affects module specification
+#
+
+testouterr_cmd sh "is-used --icase [string toupper $mp]" ERR {}
+
+set ORIG_HOME $env(HOME)
+setenv_var HOME $env(HOME)/home
+testouterr_cmd sh "restore --icase COLL1" ERR "$error_msgs: Collection COLL1 cannot be found"
+setenv_var HOME $ORIG_HOME
+
+# icase always apply to search query string
+testouterr_cmd_re sh {search NOCASE2} OK "\n$tserrw1"
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+unsetenv_var MODULES_SEARCH_MATCH
+unsetenv_var MODULES_AVAIL_INDEPTH
+unsetenv_var MODULES_ICASE
+unsetenv_var MODULES_UNLOAD_MATCH_ORDER
+setenv_path_var MODULEPATH $modpath
+
+unset mp
+unset mpre
+unset tserra0
+unset tserra1
+unset tserrw0
+unset tserrw1
+unset ans
+unset ans0
+unset tserrl0
+unset ans1
+unset ansp0
+unset ansp1
+unset ORIG_HOME
+
+}
