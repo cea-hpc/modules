@@ -395,9 +395,10 @@ Module Sub-Commands
 
 **search** string
 
- Seeks through the **module-whatis** informations of all *modulefiles*
- for the specified *string*. All *module-whatis* informations matching
- the *string* will be displayed. *string* may contain wildcard characters.
+ Seeks through the **module-whatis** informations of all *modulefiles* for the
+ specified *string*. All *module-whatis* informations matching the *string* in
+ a case insensitive manner will be displayed. *string* may contain wildcard
+ characters.
 
 **test** modulefile...
 
