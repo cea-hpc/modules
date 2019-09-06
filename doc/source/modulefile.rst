@@ -28,10 +28,15 @@ and the *modulefile* writer's needs. If support for extended tcl (tclX)
 has been configured for your installation of the Modules package, you may
 use all the extended commands provided by tclX, too.
 
-A typical *modulefiles* is a simple bit of code that set or add entries
-to the **PATH**, **MANPATH**, or other environment variables. Tcl has
-conditional statements that are evaluated when the *modulefile* is
-loaded. This is very effective for managing path or environment changes
+A typical *modulefile* is a simple bit of code that set or add entries
+to the **PATH**, **MANPATH**, or other environment variables. A Modulefile is
+evaluated against current **modulecmd.tcl**'s mode which leads to specific
+evaluation results. For instance if the *modulefile* sets a value to an
+environment variable, this variable is set when modulefile is loaded and unset
+when modulefile is unloaded.
+
+Tcl has conditional statements that are evaluated when the *modulefile* is
+interpreted. This is very effective for managing path or environment changes
 due to different OS releases or architectures. The user environment
 information is encapsulated into a single *modulefile* kept in a central
 location. The same *modulefile* is used by every user on any machine. So,
