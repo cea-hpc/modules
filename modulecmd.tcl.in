@@ -6252,22 +6252,34 @@ proc __getFilesInDirectory {dir fetch_hidden fetch_dotversion} {
 }
 
 # Filter-out modules whose name does not match query at expected depth level
-# when indepth search is disabled
-proc modMatchAtDepth {indepth querydepth modmatch modlist} {
-   set reslist [list]
-   foreach mod $modlist {
-      # match against the subpart of mod corresponding to search depth level
+# when indepth search is disabled. Define procedure on the fly to adapt its
+# code to indepth and icase configuration options
+proc defineModMatchAtDepthProc {indepth querydepth icase} {
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs modMatchAtDepth] eq {} || $::g_modMatchAtDepth_defctx ne\
+      "$indepth-$querydepth-$icase"} {
+      set nocasearg [expr {$icase ? {-nocase} : {}}]
       if {$indepth} {
-         set cmpmod $mod
+         set body "set reslist \[list\]
+            foreach mod \$modlist \{
+               if \{\[string match $nocasearg \$modmatch \$mod\]\} \{
+                  lappend reslist \$mod
+               \}
+            \}
+            return \$reslist"
       } else {
-         set cmpmod [join [lrange [split $mod /] 0 $querydepth] /]
+         set body "set reslist \[list\]
+            foreach mod \$modlist \{
+               set cmpmod \[join \[lrange \[split \$mod /\] 0 $querydepth\] /\]
+               if \{\[string match $nocasearg \$modmatch \$cmpmod\]\} \{
+                  lappend reslist \$mod
+               \}
+            \}
+            return \$reslist"
       }
-
-      if {[modMatch $modmatch $cmpmod]} {
-         lappend reslist $mod
-      }
+      proc modMatchAtDepth {modmatch modlist} $body
+      set ::g_modMatchAtDepth_defctx $indepth-$querydepth-$icase
    }
-   return $reslist
 }
 
 # Define procedure to compare module name against pattern. Adapt procedure
@@ -6507,6 +6519,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    set icase [isIcase]
 
    defineModMatchProc $icase
+   defineModMatchAtDepthProc $indepth $querydepth $icase
 
    array set dir_list {}
    array set mod_list {}
@@ -6520,10 +6533,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          }
       # add other entry kind to the result list
       # also add dirname to results if query name finishes with trailing slash
-      } elseif {($wild && [llength [modMatchAtDepth $indepth $querydepth\
-         $modmatch [list $elt]]]) || (!$wild && ([modMatch $mod/* $elt]\
-         || [modMatch $mod $elt])) || ($isquerydir && $elt_type eq\
-         {directory} && [modMatch $querydir $elt])} {
+      } elseif {($wild && [llength [modMatchAtDepth $modmatch [list $elt]]])\
+         || (!$wild && ([modMatch $mod/* $elt] || [modMatch $mod $elt])) ||\
+         ($isquerydir && $elt_type eq {directory} && [modMatch $querydir\
+         $elt])} {
          set mod_list($elt) $found_list($elt)
          # list dirs to rework their definition at the end
          if {$elt_type eq {directory}} {
@@ -6536,8 +6549,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # directory (skip versions not registered from this directory except if
    # global or user rc definitions should be included)) if they match passed
    # $mod (as for regular modulefiles)
-   foreach vers [modMatchAtDepth $indepth $querydepth $modmatch [array names\
-      g_moduleVersion]] {
+   foreach vers [modMatchAtDepth $modmatch [array names g_moduleVersion]] {
       set versmod $g_moduleVersion($vers)
       if {($dir ne {} && [string first $dir/ $g_sourceVersion($vers)] == 0)\
          || ($add_rc_defs && [info exists g_rcVersion($vers)])} {
@@ -6590,8 +6602,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # global or user rc definitions should be included) if they match passed
    # $mod (as for regular modulefiles) or if a symbolic versions targeting
    # alias match passed $mod
-   set matching_alias [modMatchAtDepth $indepth $querydepth $modmatch [array\
-      names g_moduleAlias]]
+   set matching_alias [modMatchAtDepth $modmatch [array names g_moduleAlias]]
    if {[info exists matching_versalias]} {
       eval appendNoDupToList matching_alias $matching_versalias
    }
@@ -6622,8 +6633,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    # global or user rc definitions should be included) if they match passed
    # $mod (as for regular modulefiles) or if a symbolic versions targeting
    # virtual mod match passed $mod
-   set matching_virtual [modMatchAtDepth $indepth $querydepth $modmatch\
-      [array names g_moduleVirtual]]
+   set matching_virtual [modMatchAtDepth $modmatch [array names\
+      g_moduleVirtual]]
    if {[info exists matching_versvirt]} {
       eval appendNoDupToList matching_virtual $matching_versvirt
    }
