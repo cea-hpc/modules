@@ -6270,11 +6270,16 @@ proc modMatchAtDepth {indepth querydepth modmatch modlist} {
    return $reslist
 }
 
-# check passed module name match pattern in a case sensitive or insensitive
-# manner depending on current icase mode
-proc modMatch {pattern mod} {
-   return [expr {[isIcase] ? [string match -nocase $pattern $mod] :\
-      [string match $pattern $mod]}]
+# Define procedure to compare module name against pattern. Adapt procedure
+# code whether icase is enabled or disabled
+proc defineModMatchProc {icase} {
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs modMatch] eq {} || $::g_modMatch_defctx ne $icase} {
+      set body [expr {$icase ? {return [string match -nocase $pattern $mod]}\
+         : {return [string match $pattern $mod]}}]
+      proc modMatch {pattern mod} $body
+      set ::g_modMatch_defctx $icase
+   }
 }
 
 # check if an existing findModules cache entry matches current search by
@@ -6317,6 +6322,8 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
       reportDebug "use cache entry '$cache_searchid'"
       return $cache_list
    }
+
+   defineModMatchProc [isIcase]
 
    # skip search in top dir if directly looking to a deep element, which means
    # findModules has already been called and top dir has already been analyzed
@@ -6497,6 +6504,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    set isquerydir [expr {[string index $querydir end] eq {/}}]
    set querydir [string range $querydir 0 end-1]
    set querydepth [countChar $mod /]
+   set icase [isIcase]
+
+   defineModMatchProc $icase
 
    array set dir_list {}
    array set mod_list {}
