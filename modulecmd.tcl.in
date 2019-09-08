@@ -1878,6 +1878,8 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}} {
 # retrieve all names that resolve to passed mod
 proc getAllModuleResolvedName {mod} {
    set namelist {}
+   set icase [isIcase]
+   defineModStartEqProc $icase
 
    # get parent directories of mod
    foreach modelt [split $mod /] {
@@ -1897,10 +1899,9 @@ proc getAllModuleResolvedName {mod} {
             # if modelt is not a parent directory of mod, check its resolution
             # points to mod (directly for alias/sym or indirectly for dir
             # whose default version bridge resolution toward mod)
-            if {[string first $modelt/ $mod/] == 0 ||\
-               $::g_moduleResolved($resmod) eq $mod || [lindex\
-               [getPathToModule $::g_moduleResolved($resmod) {} 0] 1] eq\
-                  $mod} {
+            if {[modStartEq $mod $modelt] || $::g_moduleResolved($resmod) eq\
+               $mod || [lindex [getPathToModule $::g_moduleResolved($resmod)\
+               {} 0] 1] eq $mod} {
                appendNoDupToList namelist $resmod
 
                unset modroot
@@ -2970,6 +2971,7 @@ proc is-loading {args} {
 proc conflict {args} {
    reportDebug $args
    set currentModule [currentModuleName]
+   defineModStartEqProc [isIcase]
 
    # register conflict list
    eval setLoadedConflict $currentModule $args
@@ -3976,13 +3978,26 @@ proc unsetLoadedModule {mod modfile} {
    unsetModuleDependency $mod
 }
 
+# Define procedure to check if passed name equals passed module name or its
+# generic name. Adapt procedure code whether icase is enabled or disabled
+proc defineModStartEqProc {icase} {
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs modStartEq] eq {} || $::g_modStartEq_defctx ne $icase} {
+      set nocasearg [expr {$icase ? {-nocase} : {}}]
+      set body "return \[string equal $nocasearg -length \[string length\
+         \$name/] \$name/ \$mod/\]"
+      proc modStartEq {mod name} $body
+      set ::g_modStartEq_defctx $icase
+   }
+}
+
 # check if name matches passed mod name or one of its alternative name
 proc doesModuleMatchesName {mod name} {
    cacheCurrentModules
    set ret 0
    # check if main or alternative names of loaded mod matches passed name
    foreach matchmod [concat [list $mod] [getLoadedAltname $mod]] {
-      if {[string first $name/ $matchmod/] == 0} {
+      if {[modStartEq $matchmod $name]} {
          set ret 1
          break
       }
@@ -3997,7 +4012,7 @@ proc doesLoadingModuleMatchesName {mod name} {
    # directly look at all resolved names structure as alternative names for
    # loading modules are not yet registered elsewhere
    foreach matchmod [concat [list $mod] [getAllModuleResolvedName $mod]] {
-      if {[string first $name/ $matchmod/] == 0} {
+      if {[modStartEq $matchmod $name]} {
          set ret 1
          break
       }
@@ -4130,6 +4145,7 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
          }
       }
    } elseif {$name ne {}} {
+      defineModStartEqProc [isIcase]
       # compare name to each currently loaded/loading module name, if multiple
       # mod match name:
       foreach mod $lmlist {
@@ -4195,6 +4211,7 @@ proc doesModuleConflict {mod} {
    set does 0
    set modconlist {}
    set moddecconlist {}
+   defineModStartEqProc [isIcase]
 
    # check if any loaded module has declared a conflict
    foreach modcon [array names ::g_loadedModuleConflict] {
@@ -4325,6 +4342,7 @@ proc unsetModuleConflictViolation {mod} {
 # build dependency chain between loaded modules based on registered prereqs
 proc setModuleDependency {mod} {
    set modlist [getLoadedModuleList]
+   defineModStartEqProc [isIcase]
    # only look at modules loaded prior current one to find requirements,
    # modules loaded afterward are unmet dependencies as dependents have
    # not been reloaded after them
@@ -4628,6 +4646,7 @@ proc getUnmetDependentLoadedModuleList {mod} {
    reportDebug "get dependent of upcoming loaded '$mod'"
    set unmetdeplist {}
    set depmodlist {}
+   defineModStartEqProc [isIcase]
 
    # skip dependent analysis if mod has a conflict with a loaded module
    lassign [doesModuleConflict $mod] doescon modconlist
@@ -4738,6 +4757,7 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
    # take currently loading modules into account if asked
    if {$loading} {
       set modlist [getLoadedModuleList]
+      defineModStartEqProc [isIcase]
       # reverse list to get closest match if returning lastly loaded module
       if {[getConf unload_match_order] eq {returnlast}} {
          set modlist [lreverse $modlist]
@@ -8425,6 +8445,7 @@ proc cmdModuleLoad {context uasked args} {
 
          # still proceed if force mode enabled
          if {[getForce] && $doescon} {
+            defineModStartEqProc [isIcase]
             # report warning if not already done
             set report_con 1
             if {[info exists ::report_conflict($modname)]} {
