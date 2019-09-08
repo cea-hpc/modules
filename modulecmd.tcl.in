@@ -3779,6 +3779,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          set dir_list [replaceFromList $dir_list $dir]
       }
 
+      set icase [isIcase]
       # modparent is the the modulename minus the module version.
       lassign [getModuleNameVersion $mod] mod modparent modversion
       set modroot [lindex [split $mod /] 0]
@@ -3801,6 +3802,18 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          # directory that should be analyzed to get default mod in it
          while {$prevmod ne $mod} {
             set prevmod $mod
+
+            # if no exact match found but icase mode is enabled then search if
+            # an icase match exists, select dictionary highest version if
+            # multiple icase matches are returned
+            if {![info exists mod_list($mod)] && $icase} {
+               foreach elt [lsort -dictionary -decreasing [array names mod_list]] {
+                  if {[string equal -nocase $mod $elt]} {
+                     set mod $elt
+                     break
+                  }
+               }
+            }
 
             if {[info exists mod_list($mod)]} {
                switch -- [lindex $mod_list($mod) 0] {
