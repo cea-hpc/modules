@@ -481,11 +481,29 @@ testouterr_cmd_re "sh" "switch foo $mod12" "ERR" "$err_loinconsist\n  LOADEDMODU
 
 
 #
-#  Cleanup
+# switch using one name rule against loaded module alternative name
 #
 
 setenv_path_var MODULEPATH $modpath
+setenv_loaded_module [list verssort/1] [list $modpath/verssort/1]
+setenv_path_var MODULES_LMALTNAME verssort/1&&averssort/1
+
+if {$install_implicitdefault eq {y}} {
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES verssort/1.10]
+    lappend ans [list setpath _LMFILES_ $modpath/verssort/1.10]
+    lappend ans [list set MODULE_VERSION 1.10]
+    lappend ans [list setpath MODULES_LMALTNAME verssort/1.10&averssort/1.10]
+    testouterr_cmd sh {switch averssort} $ans {}
+}
+
+
+#
+#  Cleanup
+#
+
 unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
 
 unset ans
 unset ans2
