@@ -1551,7 +1551,7 @@ proc module-info {what {more {}}} {
          }
       }
       alias {
-         set ret [resolveModuleVersionOrAlias $more]
+         set ret [resolveModuleVersionOrAlias $more [isIcase]]
          if {$ret ne $more} {
             return $ret
          } else {
@@ -1581,7 +1581,7 @@ proc module-info {what {more {}}} {
       }
       version {
          lassign [getModuleNameVersion $more 1] mod
-         return [resolveModuleVersionOrAlias $mod]
+         return [resolveModuleVersionOrAlias $mod [isIcase]]
       }
       loaded {
          lassign [getModuleNameVersion $more 1] mod
@@ -1894,6 +1894,19 @@ proc getAllModuleResolvedName {mod} {
    # or on distant directories whose default version resolves to mod
    for {set i 0} {$i < [llength $resmodlist]} {incr i 1} {
       set modelt [lindex $resmodlist $i]
+      # if no exact match found but icase mode is enabled then search if an icase
+      # match exists, select dictionary highest version if multiple icase matches
+      # are returned
+      if {![info exists ::g_resolvedHash($modelt)] && $icase} {
+         foreach elt [lsort -dictionary -decreasing [array names\
+            ::g_resolvedHash]] {
+            if {[string equal -nocase $modelt $elt]} {
+               set modelt $elt
+               break
+            }
+         }
+      }
+
       if {[info exists ::g_resolvedHash($modelt)]} {
          foreach resmod $::g_resolvedHash($modelt) {
             # if modelt is not a parent directory of mod, check its resolution
@@ -3464,9 +3477,10 @@ proc unregisterModuleEvalAttempt {context mod} {
 # is at least one module passed as argument evaluated in passed context
 proc isModuleEvaluated {context args} {
    set ret 0
+   set icase [isIcase]
    foreach mod $args {
       # get actual module name if mod refers to an alias or symver
-      set modres [resolveModuleVersionOrAlias $mod]
+      set modres [resolveModuleVersionOrAlias $mod $icase]
       if {[info exists ::g_moduleEvalAttempt($modres)] && ($context eq\
          {any} || [isInList $::g_moduleEvalAttempt($modres) $context])} {
          set ret 1
@@ -3820,7 +3834,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
             if {[info exists mod_list($mod)]} {
                switch -- [lindex $mod_list($mod) 0] {
                   alias - version {
-                     set newmod [resolveModuleVersionOrAlias $mod]
+                     set newmod [resolveModuleVersionOrAlias $mod $icase]
                      # continue search on newmod if module from same root and
                      # not hidden (if hidden search disabled) as mod_list
                      # already contains everything related to this root module
@@ -5921,7 +5935,20 @@ proc cacheCurrentModules {} {
 
 # This proc resolves module aliases or version aliases to the real module name
 # and version.
-proc resolveModuleVersionOrAlias {name} {
+proc resolveModuleVersionOrAlias {name icase} {
+   # if no exact match found but icase mode is enabled then search if an icase
+   # match exists, select dictionary highest version if multiple icase matches
+   # are returned
+   if {![info exists ::g_moduleResolved($name)] && $icase} {
+      foreach elt [lsort -dictionary -decreasing [array names\
+         ::g_moduleResolved]] {
+         if {[string equal -nocase $name $elt]} {
+            set name $elt
+            break
+         }
+      }
+   }
+
    if {[info exists ::g_moduleResolved($name)]} {
       set ret $::g_moduleResolved($name)
    } else {
