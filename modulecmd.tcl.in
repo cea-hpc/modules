@@ -3991,6 +3991,29 @@ proc defineModStartEqProc {icase} {
    }
 }
 
+# Define procedure to get how many parts between passed name and mod are equal
+# Adapt procedure code whether icase is enabled or disabled
+proc defineModStartNbProc {icase} {
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs modStartNb] eq {} || $::g_modStartNb_defctx ne $icase} {
+      set nocasearg [expr {$icase ? {-nocase} : {}}]
+      # min expr function is not supported in Tcl8.4 and earlier
+      set body "set modsplit \[split \$mod /\]
+         set imax \[if \{\[llength \$namesplit\] < \[llength \$modsplit\]\}\
+            \{llength \$namesplit\} \{llength \$modsplit\}\]
+         for \{set i 0\} \{\$i < \$imax\} \{incr i\} \{
+            if \{!\[string equal $nocasearg \[lindex \$modsplit \$i] \[lindex\
+               \$namesplit \$i\]\]\} \{
+               incr i -1
+               break
+            \}
+         \}
+         return \$i"
+      proc modStartNb {mod namesplit} $body
+      set ::g_modStartNb_defctx $icase
+   }
+}
+
 # check if name matches passed mod name or one of its alternative name
 proc doesModuleMatchesName {mod name} {
    cacheCurrentModules
@@ -4050,6 +4073,7 @@ proc getLoadedWithClosestName {name} {
 
    if {[info exists namesplit]} {
       cacheCurrentModules
+      defineModStartNbProc [isIcase]
       # compare name to each currently loaded module name
       foreach mod [getLoadedModuleList] {
          # if module loaded as fullpath but test name not, try to get loaded
@@ -4063,25 +4087,14 @@ proc getLoadedWithClosestName {name} {
             set matchmodlist [concat [list $mod] [getLoadedAltname $mod]]
          }
 
+         # compare each element of the name to find closest answer. in case of
+         # equality, last loaded module will be returned as it overwrites
+         # previously found value
          foreach matchmod $matchmodlist {
-            set modsplit [split $matchmod /]
-            # min expr function is not supported in Tcl8.4 and earlier
-            set imax [if {[llength $namesplit] < [llength $modsplit]}\
-               {llength $namesplit} {llength $modsplit}]
-
-            # compare each element of the name to find closest answer
-            # in case of equality, last loaded module will be returned as it
-            # overwrites previously found value
-            for {set i 0} {$i < $imax} {incr i} {
-               if {[lindex $modsplit $i] eq [lindex $namesplit $i]} {
-                  if {$i >= $retmax} {
-                     set retmax $i
-                     set ret $mod
-                  }
-               } else {
-                  # end of match, go next mod
-                  break
-               }
+            if {[set i [modStartNb $matchmod $namesplit]] >= $retmax} {
+               set retmax $i
+               set ret $mod
+               break
             }
          }
       }
