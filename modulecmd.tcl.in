@@ -1893,20 +1893,7 @@ proc getAllModuleResolvedName {mod} {
    # add additionnaly all the altnames set on directories, parents of mod
    # or on distant directories whose default version resolves to mod
    for {set i 0} {$i < [llength $resmodlist]} {incr i 1} {
-      set modelt [lindex $resmodlist $i]
-      # if no exact match found but icase mode is enabled then search if an icase
-      # match exists, select dictionary highest version if multiple icase matches
-      # are returned
-      if {![info exists ::g_resolvedHash($modelt)] && $icase} {
-         foreach elt [lsort -dictionary -decreasing [array names\
-            ::g_resolvedHash]] {
-            if {[string equal -nocase $modelt $elt]} {
-               set modelt $elt
-               break
-            }
-         }
-      }
-
+      set modelt [arrayKeyEq ::g_resolvedHash [lindex $resmodlist $i] $icase]
       if {[info exists ::g_resolvedHash($modelt)]} {
          foreach resmod $::g_resolvedHash($modelt) {
             # if modelt is not a parent directory of mod, check its resolution
@@ -3817,20 +3804,8 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          # loop to resolve correct modulefile in case specified mod is a
          # directory that should be analyzed to get default mod in it
          while {$prevmod ne $mod} {
+            set mod [arrayKeyEq mod_list $mod $icase]
             set prevmod $mod
-
-            # if no exact match found but icase mode is enabled then search if
-            # an icase match exists, select dictionary highest version if
-            # multiple icase matches are returned
-            if {![info exists mod_list($mod)] && $icase} {
-               foreach elt [lsort -dictionary -decreasing [array names mod_list]] {
-                  if {[string equal -nocase $mod $elt]} {
-                     set mod $elt
-                     break
-                  }
-               }
-            }
-
             if {[info exists mod_list($mod)]} {
                switch -- [lindex $mod_list($mod) 0] {
                   alias - version {
@@ -5936,19 +5911,7 @@ proc cacheCurrentModules {} {
 # This proc resolves module aliases or version aliases to the real module name
 # and version.
 proc resolveModuleVersionOrAlias {name icase} {
-   # if no exact match found but icase mode is enabled then search if an icase
-   # match exists, select dictionary highest version if multiple icase matches
-   # are returned
-   if {![info exists ::g_moduleResolved($name)] && $icase} {
-      foreach elt [lsort -dictionary -decreasing [array names\
-         ::g_moduleResolved]] {
-         if {[string equal -nocase $name $elt]} {
-            set name $elt
-            break
-         }
-      }
-   }
-
+   set name [arrayKeyEq ::g_moduleResolved $name $icase]
    if {[info exists ::g_moduleResolved($name)]} {
       set ret $::g_moduleResolved($name)
    } else {
@@ -6023,6 +5986,25 @@ proc getAbsolutePath {path} {
 
    # return cleaned absolute path
    return $abspath
+}
+
+# if no exact match found but icase mode is enabled then search if an icase
+# match exists among all array key elements, select dictionary highest version
+# if multiple icase matches are returned
+proc arrayKeyEq {arrname name icase} {
+   if {$icase} {
+      upvar $arrname arr
+      if {![info exists arr($name)]} {
+         foreach elt [lsort -dictionary -decreasing [array names arr]] {
+            if {[string equal -nocase $name $elt]} {
+               reportDebug "key '$elt' in array '$arrname' matches '$name'"
+               set name $elt
+               break
+            }
+         }
+      }
+   }
+   return $name
 }
 
 # split string while ignore any separator character that is espaced
