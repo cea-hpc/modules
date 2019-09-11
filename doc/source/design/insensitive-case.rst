@@ -57,3 +57,11 @@ Specification
             - ``cmdModuleLoad``
 
 - Note that whatis specification passed as argument to the ``search`` sub-command is always matched in a case insensitive manner
+
+Corner cases
+------------
+
+- When looking for the best match among loaded modules to select one module to unload, lastly loaded module, or firstly loaded module depending on ``unload_match_order`` configuration, will be returned
+    - When insensitive case is enabled, last or first icase match will be returned even if an exact match is present among the loaded module list
+    - This behavior has an impact in case multiple available modules correspond to the same insensitive case string
+        - For instance *iCaSe* and *IcAsE* modules
