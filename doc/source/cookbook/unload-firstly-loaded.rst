@@ -41,6 +41,14 @@ Then copy there the site-specific configuration script of this recipe:
 
    $ cp example/unload-firstly-loaded/siteconfig.tcl \ |etcdir|\ /
 
+.. note::
+
+   Defined location for the site-specific configuration script may vary from
+   one installation to another. To determine the expected location for this
+   file on your setup, check the ``modulecmd.tcl`` script::
+
+       $ grep '^set g_siteconfig ' $MODULES_CMD
+
 Usage example
 -------------
 
