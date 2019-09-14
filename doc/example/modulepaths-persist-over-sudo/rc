@@ -1,0 +1,15 @@
+#%Module
+
+# ensure MODULEPATH is always defined, use content of .modulespath config file
+# to initialize it if not defined
+if {![is-used] && [file readable /usr/share/Modules/init/.modulespath]} {
+    set fid [open /usr/share/Modules/init/.modulespath r]
+    set fdata [split [read $fid] \n]
+    close $fid
+    foreach fline $fdata {
+        if {[regexp {^\s*(.*?)\s*(#.*|)$} $fline match patharg] == 1\
+            && $patharg ne {}} {
+            eval module use --append [split $patharg :]
+        }
+    }
+}
