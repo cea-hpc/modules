@@ -73,6 +73,13 @@ users, copy there the site-specific configuration script of this recipe:
 
    $ cp example/ensure-user-qualify-modules/siteconfig.tcl \ |etcdir|\ /
 
+If you currently use Modules version 4.3, copy the configuration script
+specific to this version:
+
+.. parsed-literal::
+
+   $ cp example/ensure-user-qualify-modules/siteconfig.tcl-4.3 \ |etcdir|\ /siteconfig.tcl
+
 .. note::
 
    Defined location for the site-specific configuration script may vary from
