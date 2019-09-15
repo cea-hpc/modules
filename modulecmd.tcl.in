@@ -467,6 +467,30 @@ proc isVerbosityLevel {name} {
       [lsearch -exact [getVerbosityLevelList] $name]}]
 }
 
+# Workaroung issue #277 about Tcsh history not coping with default module
+# alias definition
+proc getWa277 {} {
+   if {![info exists ::g_wa_277]} {
+      # default value set at configure time
+      set wa_277 @wa277@
+
+      # overriden value coming from environment
+      if {[info exists ::env(MODULES_WA_277)]} {
+         # ignore non-valid values
+         switch -- $::env(MODULES_WA_277) {
+            0 - 1 {
+               set wa_277 $::env(MODULES_WA_277)
+            }
+         }
+      }
+
+      set ::g_wa_277 $wa_277
+      reportDebug "wa_277 set to '$wa_277'"
+   }
+
+   return $::g_wa_277
+}
+
 
 # Get contact address for modulefile issue
 proc getContact {} {
@@ -5643,7 +5667,10 @@ proc renderAutoinit {} {
          set post_hi {set histchars = $_histchars; unset _histchars;}
          set pre_pr {set _prompt=$prompt:q; set prompt="";}
          set post_pr {set prompt=$_prompt:q; unset _prompt;}
-         set eval_cmd "eval \"`$tclshbin $::argv0 $::g_shell \\!*:q`\";"
+         # apply workaround for Tcsh history if set
+         set eval_cmd [expr {[getWa277] ? "eval `$tclshbin $::argv0\
+            $::g_shell \\!*`;" :  "eval \"`$tclshbin $::argv0 $::g_shell\
+            \\!*:q`\";"}]
          set pre_ex {set _exit="$status";}
          set post_ex {test 0 = $_exit}
 
@@ -9356,14 +9383,15 @@ proc cmdModuleConfig {dump_state args} {
       MODULES_SILENT_SHELL_DEBUG term_background MODULES_TERM_BACKGROUND\
       unload_match_order MODULES_UNLOAD_MATCH_ORDER implicit_default\
       MODULES_IMPLICIT_DEFAULT search_match MODULES_SEARCH_MATCH\
-      set_shell_startup MODULES_SET_SHELL_STARTUP verbosity MODULES_VERBOSITY]
+      set_shell_startup MODULES_SET_SHELL_STARTUP verbosity MODULES_VERBOSITY\
+      wa_277 MODULES_WA_277]
 
    array set confvalid [list auto_handling [list 0 1] avail_indepth [list 0\
       1] collection_pin_version [list 0 1] color [list never auto always]\
       silent_shell_debug [list 0 1] term_background [list dark light]\
       unload_match_order [list returnlast returnfirst] implicit_default\
       [list 0 1] search_match [list starts_with contains] set_shell_startup\
-      [list 0 1] verbosity [getVerbosityLevelList]]
+      [list 0 1] verbosity [getVerbosityLevelList] wa_277 [list 0 1]]
 
    array set conflockable [list extra_siteconfig 1 implicit_default 1]
 
@@ -9382,7 +9410,8 @@ proc cmdModuleConfig {dump_state args} {
       siteconfig $::g_siteconfig tcl_ext_lib $::g_tclextlib term_background\
       [getTermBackground] unload_match_order [getUnloadMatchOrder]\
       implicit_default [getImplicitDefault] search_match [getSearchMatch]\
-      set_shell_startup [getSetShellStartup] verbosity [getVerbosity]]
+      set_shell_startup [getSetShellStartup] verbosity [getVerbosity] wa_277\
+      [getWa277]]
 
    # catch any environment variable set for modulecmd run-time execution
    foreach runenvvar [array names ::env -glob MODULES_RUNENV_*] {
@@ -9398,7 +9427,8 @@ proc cmdModuleConfig {dump_state args} {
       ::g_avail_indepth term_background ::g_term_background colors ::g_colors\
       color ::g_color unload_match_order ::g_unload_match_order\
       implicit_default ::g_implicit_default search_match ::g_search_match\
-      set_shell_startup ::g_set_shell_startup verbosity ::g_verbosity]
+      set_shell_startup ::g_set_shell_startup verbosity ::g_verbosity wa_277\
+      ::g_wa_277]
 
    if {[info exists name] && ![info exists confval($name)]} {
       reportErrorAndExit "Configuration option '$name' does not exist"

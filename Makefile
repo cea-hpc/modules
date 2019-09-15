@@ -178,6 +178,12 @@ else
   setsetshellstartup := 0
 endif
 
+ifeq ($(wa277),y)
+  setwa277 := 1
+else
+  setwa277 := 0
+endif
+
 define translate-in-script
 sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@baseprefix@|$(baseprefix)|g' \
@@ -200,6 +206,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@unloadmatchorder@|$(unloadmatchorder)|g' \
 	-e 's|@implicitdefault@|$(setimplicitdefault)|g' \
 	-e 's|@searchmatch@|$(searchmatch)|g' \
+	-e 's|@wa277@|$(setwa277)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \
