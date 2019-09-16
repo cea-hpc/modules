@@ -1,0 +1,35 @@
+#Common modulefile for fooB
+#Expects the following variables to have been set
+#   version: the version of fooB, defaults to last component of module tag
+
+if [info exists version]==0 {
+   set version [file tail [module-info version [module-info name] ] ]
+}
+
+proc ModulesHelp { } {
+   global version
+   puts stderr "
+FooB: A simple example of modulefile code reuse, revisited
+Version $version
+
+This our second visit to simple example of code reuse in modulefiles.
+Because the all of the differences between the different fooB versions
+modulefiles is contained in the version number, we replace the stub
+modulefiles for the two versions with symlinks to a generic version
+file, and infer the version from the tag given to the module command.
+
+The generic modulefile, .generic, does not appear in 'module avail' 
+commands because of the leading period (.).  Indeed, this generic modulefile
+does is not even 'bar' specific, and typically we actually put the file
+in an utilities directory outside the MODULEPATH and symlink to it from
+multiple packages.
+
+"
+}
+module-whatis "fooB version $version"
+    
+conflict fooB
+set rootdir /software/fooB/$version
+prepend-path PATH $rootdir/bin
+prepend-path MANPATH $rootdir/share/man
+prepend-path LD_LIBRARY_PATH $rootdir/lib
