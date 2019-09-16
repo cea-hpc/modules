@@ -644,6 +644,7 @@ Module Sub-Commands
  * unload_match_order: unload firstly loaded or lastly loaded module matching
    request (defines **MODULES_UNLOAD_MATCH_ORDER**)
  * verbosity: module command verbosity level (defines **MODULES_VERBOSITY**)
+ * wa_277: workaround for Tcsh history issue (defines **MODULES_WA_277**)
 
 The options *avail_report_dir_sym*, *avail_report_mfile_sym*, *ignored_dirs*,
 *locked_configs*, *siteconfig* and *tcl_ext_lib* cannot be altered. Moreover
@@ -1082,6 +1083,18 @@ ENVIRONMENT
  **modulecmd.tcl** script configuration. Which means **MODULES_VERBOSITY**
  overrides default configuration and **--silent**/**--verbose**/**--debug**
  command line switches overrides every other ways to set verbosity level.
+
+**MODULES_WA_277**
+
+ If set to **1** prior to Modules package initialization, enables workaround
+ for Tcsh history issue (see https://github.com/cea-hpc/modules/issues/277).
+ This issue leads to erroneous history entries under Tcsh shell. When
+ workaround is enabled, an alternative *module* alias is defined which fixes
+ the history mechanism issue. However the alternative definition of the
+ *module* alias weakens shell evaluation of the code produced by modulefiles.
+ Characters with special meaning for Tcsh shell (like *{* and *}*) may not be
+ used anymore in shell alias definition elsewhere the evaluation of the code
+ produced by modulefiles will return a syntax error.
 
 **_LMFILES_**
 

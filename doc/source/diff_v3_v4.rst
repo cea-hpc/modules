@@ -443,6 +443,8 @@ Environment
 
 **MODULES_VERBOSITY**
 
+**MODULES_WA_277**
+
  These environment variables appeared on version ``4.3`` and are not supported on compatibility version.
 
 

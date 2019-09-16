@@ -298,6 +298,11 @@ instance ``--disable-set-manpath``):
 --enable-color        Control if output should be colored by default or not.
                       A value of ``yes`` equals to the ``auto`` color mode.
                       ``no`` equals to the ``never`` color mode. (default=no)
+--enable-wa-277       Activate workaround for issue #277 related to Tcsh
+                      history mechanism which does not cope well with default
+                      module alias definition. Note that enabling this
+                      workaround solves Tcsh history issue but weakens
+                      shell evaluation of the code produced by modulefiles.
 
 Optional Packages (the default for each option is displayed within
 parenthesis, to disable an option replace ``with`` by ``without`` for
