@@ -1,0 +1,55 @@
+#Common modulefile for bar
+#Expects the following variables to have been set
+#   version: the version of bar, 
+#      defaults to last component of module tag
+#   threadingmodel: one of 'nothreads', 'openmp' or 'pthreads'
+#   licensefile: or will default based on version
+
+if [info exists version]==0 {
+   set version [file tail [module-info version [module-info name] ] ]
+}
+
+#Default to nothreads
+if [info exists threadingmodel]==0 {
+   set threadingmodel nothreads
+}
+
+#Default licensefile based on version
+if [info exists licensefile]==0  {
+   if [string equal $version 1.0] {
+      set licensefile /somepath/to/version1/licenseFile.lic
+   } else {
+      set licensefile /a/completely/different/licenseFile.lic
+   }
+}
+
+proc ModulesHelp { } {
+   global version threadingmodel licensefile
+
+   set threadstr $threadingmodel
+   if [ string equal $threadingmodel nothreads ] {
+      set threadstr {no threading support}
+   }
+   puts stderr "
+Bar: Not so simple modulefile example
+Version $version
+Threading Model: $threadstr
+
+This is a more complicated example of code reuse in modulefiles.
+We have multiple versions of bar on the system, and each version
+comes with multiple variants for different threading support modules.
+Plus we assume that the env var BAR_LICENSE_FILE needs to be set
+differently depending on the bar version.
+
+Using license file: $licensefile
+
+"
+}
+module-whatis "bar version $version with threading $threadingmodel"
+    
+conflict bar
+set rootdir /software/bar/$version/$threadingmodel
+prepend-path PATH $rootdir/bin
+prepend-path MANPATH $rootdir/share/man
+prepend-path LD_LIBRARY_PATH $rootdir/lib
+setenv BAR_LICENSE_FILE $licensefile
