@@ -317,30 +317,6 @@ proc isVerbosityLevel {name} {
       $::g_config_defs(verbosity) 3] $name]}]
 }
 
-# Workaroung issue #277 about Tcsh history not coping with default module
-# alias definition
-proc getWa277 {} {
-   if {![info exists ::g_configs(wa_277)]} {
-      # default value set at configure time
-      set wa_277 @wa277@
-
-      # overriden value coming from environment
-      if {[info exists ::env(MODULES_WA_277)]} {
-         # ignore non-valid values
-         switch -- $::env(MODULES_WA_277) {
-            0 - 1 {
-               set wa_277 $::env(MODULES_WA_277)
-            }
-         }
-      }
-
-      set ::g_configs(wa_277) $wa_277
-      reportDebug "wa_277 set to '$wa_277'"
-   }
-
-   return $::g_configs(wa_277)
-}
-
 
 proc raiseErrorCount {} {
    incr ::error_count
@@ -5483,7 +5459,7 @@ proc renderAutoinit {} {
          set pre_pr {set _prompt=$prompt:q; set prompt="";}
          set post_pr {set prompt=$_prompt:q; unset _prompt;}
          # apply workaround for Tcsh history if set
-         set eval_cmd [expr {[getWa277] ? "eval `$tclshbin $::argv0\
+         set eval_cmd [expr {[getConf wa_277] ? "eval `$tclshbin $::argv0\
             $::g_shell \\!*`;" :  "eval \"`$tclshbin $::argv0 $::g_shell\
             \\!*:q`\";"}]
          set pre_ex {set _exit="$status";}
@@ -9279,7 +9255,7 @@ proc cmdModuleConfig {dump_state args} {
       [getConf term_background] unload_match_order [getConf unload_match_order]\
       implicit_default [getConf implicit_default] search_match [getConf search_match]\
       set_shell_startup [getConf set_shell_startup] verbosity [getConf verbosity] wa_277\
-      [getWa277]]
+      [getConf wa_277]]
 
    # catch any environment variable set for modulecmd run-time execution
    foreach runenvvar [array names ::env -glob MODULES_RUNENV_*] {
