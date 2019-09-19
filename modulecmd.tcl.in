@@ -7838,6 +7838,11 @@ proc cmdModulePaths {mod} {
       set target_dir_list [concat [list $dir] [replaceFromList $dir_list\
          $dir]]
 
+      # forcibly enable implicit_default to resolve alias target when it
+      # points to a directory
+      set ::g_implicit_default 1
+      reportDebug "implicit_default forcibly set to '1'"
+
       # build list of modulefile to print
       foreach elt [array names mod_list] {
          switch -- [lindex $mod_list($elt) 0] {
@@ -7859,6 +7864,10 @@ proc cmdModulePaths {mod} {
             }
          }
       }
+
+      # reset implicit_default to restore behavior defined
+      unset ::g_implicit_default
+      reportDebug "implicit_default unset"
    }
 
    # sort results if any and remove duplicates
@@ -7905,6 +7914,11 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
       array unset interp_list
       array set interp_list {}
 
+      # forcibly enable implicit_default to resolve alias target when it
+      # points to a directory
+      set ::g_implicit_default 1
+      reportDebug "implicit_default forcibly set to '1'"
+
       # build list of modulefile to interpret
       foreach elt [array names mod_list] {
          switch -- [lindex $mod_list($elt) 0] {
@@ -7950,6 +7964,10 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          }
       }
 
+      # reset implicit_default to restore behavior defined
+      unset ::g_implicit_default
+      reportDebug "implicit_default unset"
+
       # in case during modulepath lookup we find an alias target we were
       # looking for in previous modulepath, remove this element from global
       # search list
@@ -7966,6 +7984,11 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          set interp_save($dir) [array get interp_list]
       }
    }
+
+   # forcibly enable implicit_default to resolve alias target when it points
+   # to a directory
+   set ::g_implicit_default 1
+   reportDebug "implicit_default forcibly set to '1'"
 
    # find target of aliases in all modulepath except the one already tried
    foreach elt [array names extra_search] {
@@ -7991,6 +8014,10 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
          set err_list($modname) [list $issuetype $issuemsg $issuefile]
       }
    }
+
+   # reset implicit_default to restore behavior defined
+   unset ::g_implicit_default
+   reportDebug "implicit_default unset"
 
    # prepare string translation to highlight search query string
    set matchmodmap [prepareMapToHightlightSubstr $mod]
