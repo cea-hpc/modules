@@ -42,7 +42,7 @@ set modalt_2 "loc_dv7/default&loc_dv7"
 set modulefile_2 "$modpath/$module_2"
 set modulefilere_2 "$modpathre/$module_2"
 # symbol set on directory, so directory appear on avail
-set modavail_2 "loc_dv7/2.0/\\s+default\\s+"
+set modavail_2 "loc_dv7/2.0/\\s+default\\s+\nloc_dv7/2.0/1.0\\s+$datetime_re"
 set nodefault_2 "$err_nodefault'loc_dv7/2.0'"
 
 # default symbol set by using '.version' file using module-version cmd
@@ -120,24 +120,19 @@ for {set i 1} {$i <= 4} {incr i} {
         testouterr_cmd_re "sh" "display $modsym" "OK" $displayerr
         testouterr_cmd_re "sh" "help $modsym" "OK" $helperr
         testouterr_cmd_re "sh" "test $modsym" "OK" $testerr
-        testouterr_cmd_re "sh" "whatis $modsym" "OK" $whatiserr
     } else {
         testouterr_cmd "sh" "load $modsym" [if_implicitdefault $ans ERR] [if_implicitdefault {} $nodefault]
         testouterr_cmd_re "sh" "display $modsym" [if_implicitdefault OK ERR] [if_implicitdefault $displayerr $nodefault]
         testouterr_cmd_re "sh" "help $modsym" [if_implicitdefault OK ERR] [if_implicitdefault $helperr $nodefault]
         testouterr_cmd_re "sh" "test $modsym" [if_implicitdefault OK ERR] [if_implicitdefault $testerr $nodefault]
-        testouterr_cmd_re "sh" "whatis $modsym" [if_implicitdefault OK ERR] [if_implicitdefault $whatiserr $nodefault]
     }
 
     testouterr_cmd_re "sh" "avail -l $modsym" "OK" "$avail_pre\n$modavail"
+    testouterr_cmd_re "sh" "whatis $modsym" "OK" $whatiserr
 
     set ans [list]
     lappend ans [list text $modulefile]
-    if {$nodefault eq {}} {
-        testouterr_cmd "sh" "paths $modsym" $ans ""
-    } else {
-        testouterr_cmd "sh" "paths $modsym" [if_implicitdefault $ans [list [list text {}]]] {}
-    }
+    testouterr_cmd "sh" "paths $modsym" $ans ""
 }
 
 # test on erroneous modules
