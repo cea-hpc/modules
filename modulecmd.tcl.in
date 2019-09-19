@@ -6713,6 +6713,20 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          # symbolic version targets a modulefile most of the time
          if {[info exists found_list($versmod)]} {
             set mod_list($versmod) $found_list($versmod)
+            # in case target is a directory add its content to the result list
+            if {[lindex $found_list($versmod) 0] eq {directory}} {
+               set dir_list($versmod) 1
+               foreach elt [array names found_list] {
+                  if {![info exists mod_list($elt)] && [string match\
+                     $versmod/* $elt]} {
+                     set mod_list($elt) $found_list($elt)
+                     # list dirs to rework their definition at the end
+                     if {[lindex $found_list($elt) 0] eq {directory}} {
+                        set dir_list($elt) 1
+                     }
+                  }
+               }
+            }
          # but sometimes they may target an alias
          } elseif {[info exists g_moduleAlias($versmod)]} {
             lappend matching_versalias $versmod
