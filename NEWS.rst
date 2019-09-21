@@ -6,6 +6,62 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+Modules 4.3.1 (2019-09-21)
+--------------------------
+
+* Contrib: add ``mb`` script to bench Modules versions.
+* Correct ``modulecmd.tcl`` script startup to correctly report error in case
+  Tcl extension library fails to load. (fix issue #284)
+* Install: fix typo on ``CFLAGS`` definition in ``lib/Makefile``. (fix issue
+  #287 with contribution from Felix Neumärker)
+* Remove useless code in Modules Tcl extension library
+* Make URLs in README correctly rendered in HTML. (contribution from Per
+  Persson)
+* Doc: clarify modulefile evaluation modes in modulefile.4 man page. (fix
+  issue #289)
+* When looking at the closest match among loaded modules when switching module
+  with just a single module argument specified, load the information on the
+  currently set environment to get the alternative names of loaded modules
+  prior to look at closest module match. (fix issue #290)
+* Doc: describe the way to determine the site-specific configuration script
+  location in cookbook recipes implying the installation of such a file. (fix
+  issue #266)
+* Doc: add *Log module command* recipe to cookbook. (fix issue #283)
+* Doc: add *Expose procedures and variables to modulefiles* recipe to
+  cookbook.
+* Doc: add *Make defined modulepaths persist over sudo* recipe to cookbook.
+* Doc: add *Ensure user fully qualify the modules they use* recipe to
+  cookbook.
+* Introduce the ``wa_277`` configuration option to workaround an issue with
+  Tcsh history mechanism. Default ``module`` alias definition for Tcsh hits
+  an issue with shell history mechanism: erroneous history entries are
+  recorded each time the ``module`` command is called. When ``wa_277`` option
+  is enabled (which sets the ``MODULES_WA_277`` environment variable to *1*),
+  an alternative module alias is defined which fixes the history mechanism
+  issue. However the alternative definition of the module alias weakens shell
+  evaluation of the code produced by modulefiles. Characters with special
+  meaning for Tcsh shell (like *{* and *}*) may not be used anymore in shell
+  alias definition elsewhere the evaluation of the code produced by
+  modulefiles will return a syntax error. (fix issue #277)
+* Doc: add *Tips for Code Reuse in Modulefiles* recipe to cookbook.
+  (contribution from Tom Payerle)
+* Fix the ``whatis`` and ``paths`` sub-command results for module symbolic
+  versions targeting a directory when ``implicit_default`` configuration
+  option is disabled. No error is returned and same result is now obtained
+  whether the symbolic name or its target is used as argument for those two
+  sub-commands. (fix issue #294)
+* Fix the ``whatis`` and ``paths`` sub-command results for module aliases
+  targeting a directory when ``implicit_default`` configuration option is
+  disabled. No error is returned and same result is now obtained whether the
+  alias name or its target is used as argument for those two sub-commands.
+  (fix issue #295)
+* Rework all the ternary operator expressions in ``modulecmd.tcl`` that may
+  result in a *nan* value (whatever the case used to write this string) as the
+  ``expr`` Tcl command raises an error when it returns such a value, which
+  breaks Modules as soon as a modulefile, an alias or a symbolic version is
+  named *nan*. (fix issue #296)
+
+
 Modules 4.3.0 (2019-07-26)
 --------------------------
 

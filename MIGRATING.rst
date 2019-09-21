@@ -258,6 +258,16 @@ Other new sub-commands, command-line switches and environment variables
   configure option ``--with-initconf-in``, which accepts ``etcdir`` and
   ``initdir`` values.
 
+* The **MODULES_WA_277** environment variable helps to define an alternative
+  ``module`` alias on Tcsh shell when set to *1*. It workarounds an issue on
+  Tcsh history mechanism occurring with default ``module`` command alias:
+  erroneous history entries are recorded each time the ``module`` command is
+  called. However the alternative definition of the module alias weakens shell
+  evaluation of the code produced by modulefiles. Characters with special
+  meaning for Tcsh shell (like *{* and *}*) may not be used anymore in shell
+  alias definition elsewhere the evaluation of the code produced by
+  modulefiles will return a syntax error.
+
 
 Further reading
 ---------------
