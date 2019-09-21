@@ -925,8 +925,11 @@ proc reportCmd {cmd args} {
       if {$cmdargs ne {}} {
          append cmdargs { }
       }
-      append cmdargs [expr {$cmdarg eq {} || [string first { } $cmdarg] > -1\
-         ? "{$cmdarg}" : $cmdarg}]
+      if {$cmdarg eq {} || [string first { } $cmdarg] > -1} {
+         append cmdargs "{$cmdarg}"
+      } else {
+         append cmdargs $cmdarg
+      }
    }
    report [sgr cm $cmd]$extratab\t$cmdargs
 
@@ -1991,8 +1994,11 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}} {
    }
 
    # register and propagate symbols to the resolution path
-   set sym_list [expr {[info exists g_symbolHash($mod)] ? $g_symbolHash($mod)\
-      : {}}]
+   if {[info exists g_symbolHash($mod)]} {
+      set sym_list $g_symbolHash($mod)
+   } else {
+      set sym_list {}
+   }
    if {$symver ne {}} {
       # merge symbol definitions in case of alternative name
       if {[info exists modalt] && [info exists g_symbolHash($modalt)]} {
@@ -2615,8 +2621,11 @@ proc setenv-wh {var args} {
 proc getenv {var {valifundef _UNDEFINED_}} {
    reportDebug "var='$var', valifundef='$valifundef'"
 
-   return [expr {[currentMode] ne {display} ? [get-env $var $valifundef] :\
-      "\$$var"}]
+   if {[currentMode] ne {display}} {
+      return [get-env $var $valifundef]
+   } else {
+      return "\$$var"
+   }
 }
 
 proc unsetenv {var {val {}}} {
@@ -4086,14 +4095,15 @@ proc isModulefileLoaded {modfile} {
 }
 
 proc getModuleFromLoadedModulefile {modfile {idx all}} {
-   set ret {}
-
    if {[isModulefileLoaded $modfile]} {
-      set ret [expr {$idx eq {all} ? $::g_loadedModuleFiles($modfile) :\
-         [lindex $::g_loadedModuleFiles($modfile) $idx]}]
+      if {$idx eq {all}} {
+         return $::g_loadedModuleFiles($modfile)
+      } else {
+         return [lindex $::g_loadedModuleFiles($modfile) $idx]
+      }
+   } else {
+      return {}
    }
-
-   return $ret
 }
 
 proc isModuleLoading {mod} {
@@ -4105,18 +4115,20 @@ proc isModulefileLoading {modfile} {
 }
 
 proc getModuleFromLoadingModulefile {modfile {idx all}} {
-   set ret {}
-
    if {[isModulefileLoading $modfile]} {
       set loadingmodlist [getLoadingModuleList]
       foreach i [lsearch -all -exact [getLoadingModuleFileList] $modfile] {
          lappend modlist [lindex $loadingmodlist $i]
       }
 
-      set ret [expr {$idx eq {all} ? $modlist : [lindex $modlist $idx]}]
+      if {$idx eq {all}} {
+         return $modlist
+      } else {
+         return [lindex $modlist $idx]
+      }
+   } else {
+      return {}
    }
-
-   return $ret
 }
 
 proc setLoadedModule {mod modfile uasked} {
@@ -4671,7 +4683,11 @@ proc unsetModuleDependency {mod} {
       # unset 'is depended by' mod relations
       foreach lmmod $lmmodlist {
          if {[info exists ::g_dependHash($lmmod)]} {
-            set hashdep [expr {$manymod ? [list $mod 1] : $mod}]
+            if {$manymod} {
+               set hashdep [list $mod 1]
+            } else {
+               set hashdep $mod
+            }
             set ::g_dependHash($lmmod) [replaceFromList\
                $::g_dependHash($lmmod) $hashdep]
             if {[llength $::g_dependHash($lmmod)] == 0} {
@@ -4690,7 +4706,11 @@ proc unsetModuleDependency {mod} {
       # unset 'is depended by' mod relations
       foreach lmmod $lmmodlist {
          if {[info exists ::g_dependNPOHash($lmmod)]} {
-            set hashdep [expr {$manymod ? [list $mod 1] : $mod}]
+            if {$manymod} {
+               set hashdep [list $mod 1]
+            } else {
+               set hashdep $mod
+            }
             set ::g_dependNPOHash($lmmod) [replaceFromList\
                $::g_dependNPOHash($lmmod) $hashdep]
             if {[llength $::g_dependNPOHash($lmmod)] == 0} {
@@ -6052,8 +6072,11 @@ proc cacheCurrentModules {} {
 # This proc resolves module aliases or version aliases to the real module name
 # and version.
 proc resolveModuleVersionOrAlias {name} {
-   set ret [expr {[info exists ::g_moduleResolved($name)] ?\
-      $::g_moduleResolved($name) : $name}]
+   if {[info exists ::g_moduleResolved($name)]} {
+      set ret $::g_moduleResolved($name)
+   } else {
+      set ret $name
+   }
 
    reportDebug "'$name' resolved to '$ret'"
    return $ret
@@ -6365,11 +6388,13 @@ proc readModuleContent {modfile {report_read_issue 0} {must_have_cookie 1}\
 # If given module maps to default or other symbolic versions, a list of
 # those versions is returned. This takes module/version as an argument.
 proc getVersAliasList {mod} {
-   set tag_list [expr {[info exists ::g_symbolHash($mod)] ?\
-      $::g_symbolHash($mod) : {}}]
+   if {[info exists ::g_symbolHash($mod)]} {
+      set tag_list $::g_symbolHash($mod)
+   } else {
+      set tag_list {}
+   }
 
    reportDebug "'$mod' has tag list '$tag_list'"
-
    return $tag_list
 }
 
@@ -6428,8 +6453,11 @@ proc modMatchAtDepth {indepth querydepth modmatch modlist} {
    set reslist [list]
    foreach mod $modlist {
       # match against the subpart of mod corresponding to search depth level
-      set cmpmod [expr {$indepth ? $mod : [join [lrange [split $mod /] 0\
-         $querydepth] /]}]
+      if {$indepth} {
+         set cmpmod $mod
+      } else {
+         set cmpmod [join [lrange [split $mod /] 0 $querydepth] /]
+      }
 
       if {[string match $modmatch $cmpmod]} {
          lappend reslist $mod
@@ -6879,8 +6907,11 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
                set dfl_elt [lindex $mod_list($dir) 1]
                if {$dfl_elt eq $dir_name} {
                   # by last element if implicit default is enabled
-                  set dfl_elt [expr {$implicitdfl ? [lindex $elt_list end] :\
-                     {}}]
+                  if {$implicitdfl} {
+                     set dfl_elt [lindex $elt_list end]
+                  } else {
+                     set dfl_elt {}
+                  }
                }
                set mod_list($dir) [concat [list directory $dfl_elt]\
                   $elt_list]
@@ -8078,7 +8109,11 @@ proc cmdModuleSwitch {uasked old {new {}}} {
    }
    # save orig names to register them as deps if called from modulefile
    set argnew $new
-   set argold [expr {$new eq $old ? {} : $old}]
+   if {$new eq $old} {
+      set argold {}
+   } else {
+      set argold $old
+   }
 
    reportDebug "old='$old' new='$new' (uasked=$uasked)"
 
@@ -8523,8 +8558,11 @@ proc cmdModuleLoad {context uasked args} {
                array set isuasked [reloadModuleListUnloadPhase deprelist\
                   [getForce] {Unload of dependent _MOD_ failed} depun]
                if {[info exists swprocessing]} {
-                  set swdeprelist [expr {[info exists swdeprelist] ? [concat\
-                     $deprelist $swdeprelist] : $deprelist}]
+                  if {[info exists swdeprelist]} {
+                     set swdeprelist [concat $deprelist $swdeprelist]
+                  } else {
+                     set swdeprelist $deprelist
+                  }
                }
             }
          }
@@ -8768,8 +8806,11 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
 
             # do not check for UReqUn mods coming from DepUn modules as these
             # DepUn modules are reloaded
-            set urequnqry [expr {[info exists swprocessing] ? $modname :\
-               [concat $depunlist [list $modname]]}]
+            if {[info exists swprocessing]} {
+               set urequnqry $modname
+            } else {
+               set urequnqry [concat $depunlist [list $modname]]
+            }
 
             # UReqUn: Useless Requirement to Unload (autoloaded requirements
             # of modname or DepUn modules not required by any remaining mods)
@@ -8930,7 +8971,11 @@ proc cmdModulePurge {} {
 
 proc cmdModuleReload {args} {
    # reload all loaded modules if no module list passed
-   set lmlist [expr {[llength $args] == 0 ? [getLoadedModuleList] : $args}]
+   if {[llength $args] == 0} {
+      set lmlist [getLoadedModuleList]
+   } else {
+      set lmlist $args
+   }
    reportDebug "reloading $lmlist"
 
    # create an eval id to track successful/failed module evaluations

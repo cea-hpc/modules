@@ -1,0 +1,122 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.50-cmds/%M%
+#   Revision:		%I%
+#   First Edition:	2019/09/21
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test use of 'NaN' string in various contexts
+#		}C%
+#
+##############################################################################
+
+set mp "$modpath.2"
+set mpre "$modpathre.2"
+
+# ensure tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES nanbar/nan]
+lappend ans [list setpath _LMFILES_ $mp/nanbar/nan]
+testouterr_cmd sh {load nanbar} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES nanfoo/1]
+lappend ans [list setpath _LMFILES_ $mp/nanfoo/1]
+lappend ans [list setpath MODULES_LMALTNAME nanfoo/1&nanfoo/nan]
+testouterr_cmd sh {load nanfoo} $ans {}
+
+testouterr_cmd sh {switch NaN nanfoo/1} $ans {}
+
+testouterr_cmd sh {avail -t nanbar} OK "$mp:\nnanbar/1\nnanbar/2\nnanbar/nan"
+testouterr_cmd sh {avail -t NaN} OK "$mp:\nNaN"
+testouterr_cmd sh {avail -t nanfoo} OK "$mp:\nnanfoo/1(nan)"
+testouterr_cmd_re sh {show nanbar/1} OK "$modlin\n$mpre/nanbar/1:\n\nsetenv\t\tnan {}\n$modlin"
+testouterr_cmd_re sh {show nanbar/2} OK "$modlin\n$mpre/nanbar/2:\n\nsetenv\t\tts \\\$FOO\nprereq\t\tNaN\n$modlin"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES nanfoo/1:NaN:nanbar/2]
+lappend ans [list setpath _LMFILES_ $mp/nanfoo/1:$mp/NaN:$mp/nanbar/2]
+lappend ans [list set ts nan]
+lappend ans [list setpath MODULES_LMPREREQ NaN&nanfoo:nanbar/2&NaN]
+lappend ans [list setpath MODULES_LMNOTUASKED nanfoo/1:NaN]
+lappend ans [list setpath MODULES_LMALTNAME nanfoo/1&nanfoo/nan]
+testouterr_cmd_re sh {load --auto nanbar/2} $ans [msg_top_load nanbar/2 {} {nanfoo/1 NaN} {}]
+
+
+setenv_loaded_module [list nanfoo/1] [list $mp/nanfoo/1]
+setenv_path_var MODULES_LMALTNAME nanfoo/1&nanfoo/nan
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES nanfoo/1:NaN:nanbar/2]
+lappend ans [list setpath _LMFILES_ $mp/nanfoo/1:$mp/NaN:$mp/nanbar/2]
+lappend ans [list set ts nan]
+lappend ans [list setpath MODULES_LMPREREQ NaN&nanfoo:nanbar/2&NaN]
+lappend ans [list setpath MODULES_LMNOTUASKED NaN]
+testouterr_cmd_re sh {load --auto nanbar/2} $ans [msg_top_load nanbar/2 {} {NaN} {}]
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+
+setenv_loaded_module [list nanfoo/1 NaN nanbar/2] [list $mp/nanfoo/1 $mp/NaN $mp/nanbar/2] [list nanfoo/1 NaN]
+setenv_path_var MODULES_LMALTNAME nanfoo/1&nanfoo/nan
+setenv_path_var MODULES_LMPREREQ NaN&nanfoo:nanbar/2&NaN
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+lappend ans [list unset ts]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+lappend ans [list unsetpath MODULES_LMALTNAME]
+testouterr_cmd sh {unload --auto nanbar/2} $ans [msg_top_unload nanbar/2 {} {NaN nanfoo/1} {}]
+
+setenv_loaded_module [list nanfoo/1 NaN nanbar/2] [list $mp/nanfoo/1 $mp/NaN $mp/nanbar/2] [list NaN]
+setenv_path_var MODULES_LMALTNAME nanfoo/1&nanfoo/nan
+setenv_path_var MODULES_LMPREREQ NaN&nanfoo:nanbar/2&NaN
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES nanfoo/1]
+lappend ans [list setpath _LMFILES_ $mp/nanfoo/1]
+lappend ans [list unset ts]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+lappend ans [list unsetpath MODULES_LMNOTUASKED]
+testouterr_cmd sh {unload --auto nanbar/2} $ans [msg_top_unload nanbar/2 {} {NaN} {}]
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+unsetenv_var MODULES_AVAIL_INDEPTH
+unsetenv_var MODULES_SEARCH_MATCH
+setenv_path_var MODULEPATH $modpath
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMALTNAME
+unsetenv_path_var MODULES_LMPREREQ
+
+unset mp
+unset mpre
+unset ans
