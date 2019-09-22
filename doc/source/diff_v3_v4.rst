@@ -453,6 +453,8 @@ Environment
 
  These environment variables appeared on version ``4.3`` and are not supported on compatibility version.
 
+**MODULES_EXTENDED_DEFAULT**
+
 **MODULES_ICASE**
 
  These environment variables appeared on version ``4.4`` and are not supported on compatibility version.

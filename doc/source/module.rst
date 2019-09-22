@@ -627,6 +627,8 @@ Module Sub-Commands
  * colors: chosen colors to highlight output items (defines
    **MODULES_COLORS**)
  * contact: modulefile contact address (defines **MODULECONTACT**)
+ * extended_default: allow partial module version specification (defines
+   **MODULES_EXTENDED_DEFAULT**)
  * extra_siteconfig: additional site-specific configuration script location
    (defines **MODULES_SITECONFIG**)
  * icase: enable case insensitive match (defines **MODULES_ICASE**)
@@ -893,6 +895,22 @@ ENVIRONMENT
  **MODULES_COLORS** environment variable, then the default set in
  **modulecmd.tcl** script configuration. Which means **MODULES_COLORS**
  overrides default configuration.
+
+**MODULES_EXTENDED_DEFAULT**
+
+ If set to **1**, a specified module version is matched against starting
+ portion of existing module versions, where portion is a substring separated
+ from the rest of the version string by a ``.`` or a ``-`` character. For
+ example specified modules ``mod/1`` and ``mod/1.2`` will match existing
+ modulefile ``mod/1.2.3``.
+
+ In case multiple modulefiles match specified module version and a single
+ module has to be selected, explicitly set default version is returned if it
+ is part of matching modulefiles. Elsewhere implicit default among matching
+ modulefiles is returned if defined (see **MODULES_IMPLICIT_DEFAULT** section)
+
+ This environment variable supersedes the value of the configuration option
+ *extended_default* set in **modulecmd.tcl** script.
 
 **MODULES_ICASE**
 

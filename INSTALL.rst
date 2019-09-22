@@ -295,6 +295,10 @@ instance ``--disable-set-manpath``):
                       specific version. When this option is disabled the name
                       of the module passed for evaluation should be fully
                       qualified elsewhere an error is returned. (default=yes)
+--enable-extended-default
+                      Allow to specify module versions by their starting part,
+                      i.e. substring separated from the rest of the version
+                      string by a ``.`` or ``-`` character. (default=no)
 --enable-color        Control if output should be colored by default or not.
                       A value of ``yes`` equals to the ``auto`` color mode.
                       ``no`` equals to the ``never`` color mode. (default=no)
