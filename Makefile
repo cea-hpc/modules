@@ -178,6 +178,12 @@ else
   setimplicitdefault := 0
 endif
 
+ifeq ($(extendeddefault),y)
+  setextendeddefault := 1
+else
+  setextendeddefault := 0
+endif
+
 ifeq ($(setshellstartup),y)
   setsetshellstartup := 1
 else
@@ -210,6 +216,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@lockedconfigs@|$(lockedconfigs)|g' \
 	-e 's|@unloadmatchorder@|$(unloadmatchorder)|g' \
 	-e 's|@implicitdefault@|$(setimplicitdefault)|g' \
+	-e 's|@extendeddefault@|$(setextendeddefault)|g' \
 	-e 's|@searchmatch@|$(searchmatch)|g' \
 	-e 's|@wa277@|$(setwa277)|g' \
 	-e 's|@icase@|$(icase)|g' \
