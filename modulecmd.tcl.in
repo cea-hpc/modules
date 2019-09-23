@@ -3784,6 +3784,8 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
       }
 
       set icase [isIcase]
+      defineArrayKeyMatchProc $icase [getConf extended_default] [getConf\
+         implicit_default]
       # modparent is the the modulename minus the module version.
       lassign [getModuleNameVersion $mod] mod modparent modversion
       set modroot [lindex [split $mod /] 0]
@@ -3805,7 +3807,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          # loop to resolve correct modulefile in case specified mod is a
          # directory that should be analyzed to get default mod in it
          while {$prevmod ne $mod} {
-            set mod [arrayKeyEq mod_list $mod $icase]
+            set mod [arrayKeyMatch mod_list $mod]
             set prevmod $mod
             if {[info exists mod_list($mod)]} {
                switch -- [lindex $mod_list($mod) 0] {
@@ -6006,6 +6008,139 @@ proc arrayKeyEq {arrname name icase} {
       }
    }
    return $name
+}
+
+# Define procedure to compare module names set as array keys against pattern.
+# Adapt procedure code whether icase and extended_default are enabled or
+# disabled
+proc defineArrayKeyMatchProc {icase extdfl impdfl} {
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs arrayKeyMatch] eq {} || $::g_arrayKeyMatch_defctx ne\
+      "$icase-$extdfl-$impdfl"} {
+      if {!$icase && !$extdfl} {
+         set body {return $name}
+      # define proc with extended_default match enabled, in case multiple
+      # modules match query, check directory default and return it if it is
+      # part of match list, elsewhere return highest result
+      } elseif {$extdfl && !$icase && $impdfl} {
+         set body {upvar $arrname arr
+            if {![info exists arr($name)]} {
+               set mlist [array names arr -glob "$name\[-.\]*"]
+               if {[llength $mlist] == 1} {
+                  set match [lindex $mlist 0]
+               } elseif {[llength $mlist] > 1} {
+                  set pname [file dirname $name]
+                  if {[info exists arr($pname)]} {
+                     set dfl $pname/[lindex $arr($pname) 1]
+                  }
+                  if {[info exists dfl] && [isInList $mlist $dfl]} {
+                     set match $dfl
+                  } else {
+                     set match [lindex [lsort -dictionary $mlist] end]
+                  }
+               }
+               if {[info exists match]} {
+                  reportDebug "key '$match' in array '$arrname' matches '$name'"
+                  set name $match
+               }
+            }
+            return $name
+         }
+      } elseif {$extdfl && !$icase && !$impdfl} {
+         set body {upvar $arrname arr
+            if {![info exists arr($name)]} {
+               set mlist [array names arr -glob "$name\[-.\]*"]
+               if {[llength $mlist] >= 1} {
+                  # must have a default part of result even if only one result
+                  set pname [file dirname $name]
+                  if {[info exists arr($pname)]} {
+                     set dfl $pname/[lindex $arr($pname) 1]
+                  }
+                  if {[info exists dfl] && [isInList $mlist $dfl]} {
+                     reportDebug "key '$dfl' in array '$arrname' matches '$name'"
+                     set name $dfl
+                  } else {
+                     # raise error as no default part of result
+                     upvar retlist retlist
+                     set retlist [list {} $name none "No default version\
+                        defined for '$name'"]
+                  }
+               }
+            }
+            return $name
+         }
+      } elseif {$extdfl && $icase && $impdfl} {
+         set body {upvar $arrname arr
+            # check name eventual icase match
+            set name [arrayKeyEq arr $name 1]
+            if {![info exists arr($name)]} {
+               set mlist {}
+               foreach elt [array names arr] {
+                  if {[string match -nocase "$name\[-.\]*" $elt]} {
+                     lappend mlist $elt
+                  }
+               }
+               if {[llength $mlist] == 1} {
+                  set match [lindex $mlist 0]
+               } elseif {[llength $mlist] > 1} {
+                  # get corresponding icase parent directory
+                  set pname [arrayKeyEq arr [file dirname $name] 1]
+                  if {[info exists arr($pname)]} {
+                     set dfl $pname/[lindex $arr($pname) 1]
+                  }
+                  if {[info exists dfl] && [isInList $mlist $dfl]} {
+                     set match $dfl
+                  } else {
+                     set match [lindex [lsort -dictionary $mlist] end]
+                  }
+               }
+               if {[info exists match]} {
+                  reportDebug "key '$match' in array '$arrname' matches '$name'"
+                  set name $match
+               }
+            }
+            return $name
+         }
+      } elseif {$extdfl && $icase && !$impdfl} {
+         set body {upvar $arrname arr
+            # check name eventual icase match
+            set name [arrayKeyEq arr $name 1]
+            if {![info exists arr($name)]} {
+               set mlist {}
+               foreach elt [array names arr] {
+                  if {[string match -nocase "$name\[-.\]*" $elt]} {
+                     lappend mlist $elt
+                  }
+               }
+               if {[llength $mlist] >= 1} {
+                  # must have a default part of result even if only one result
+                  # get corresponding icase parent directory
+                  set pname [arrayKeyEq arr [file dirname $name] 1]
+                  if {[info exists arr($pname)]} {
+                     set dfl $pname/[lindex $arr($pname) 1]
+                  }
+                  if {[info exists dfl] && [isInList $mlist $dfl]} {
+                     reportDebug "key '$dfl' in array '$arrname' matches '$name'"
+                     set name $dfl
+                  } else {
+                     # raise error as no default part of result
+                     upvar retlist retlist
+                     set retlist [list {} $name none "No default version\
+                        defined for '$name'"]
+                  }
+               }
+            }
+            return $name
+         }
+      } else {
+         set body {upvar $arrname arr
+            return [arrayKeyEq arr $name 1]
+         }
+      }
+
+      proc arrayKeyMatch {arrname name} $body
+      set ::g_arrayKeyMatch_defctx $icase-$extdfl-$impdfl
+   }
 }
 
 # split string while ignore any separator character that is espaced
