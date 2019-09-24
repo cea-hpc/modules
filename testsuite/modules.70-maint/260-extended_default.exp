@@ -1,0 +1,551 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2019/09/05
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test impact of the extended_default option
+#		}C%
+#
+##############################################################################
+
+# ensure avail -t tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure last matching element is returned when unloading modules
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
+
+set mp $modpath.2
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+#
+# check option enablement
+#
+
+set ans [list [list text $mp/extdfl2/3.10.2]]
+set tserr $err_path'extdfl2/3'
+
+switch -- $install_extendeddefault {
+    n {testouterr_cmd sh {path extdfl2/3} OK $tserr}
+    y {testouterr_cmd sh {path extdfl2/3} $ans {}}
+}
+
+setenv_var MODULES_EXTENDED_DEFAULT 0
+testouterr_cmd sh {path extdfl2/3} OK $tserr
+
+setenv_var MODULES_EXTENDED_DEFAULT 1
+testouterr_cmd sh {path extdfl2/3} $ans {}
+
+setenv_var MODULES_EXTENDED_DEFAULT badvalue
+switch -- $install_extendeddefault {
+    n {testouterr_cmd sh {path extdfl2/3} OK $tserr}
+    y {testouterr_cmd sh {path extdfl2/3} $ans {}}
+}
+
+
+# enable extended_default for next tests
+setenv_var MODULES_EXTENDED_DEFAULT 1
+
+#
+# check consistent effect over the one module selection context
+#
+
+# test over different kind of module versions
+array set exactmatch [list extdfl/1.1.0 1 extdfl/2.0 1]
+foreach {query match} [list extdfl/1 extdfl/1.3.1 extdfl/1.0 extdfl/1.0.2 extdfl/1.0.0 extdfl/1.0.0-beta extdfl/1.1 extdfl/1.1.0-beta extdfl/1.1.0 extdfl/1.1.0 extdfl/1.2 extdfl/1.2.10 extdfl/1.3 extdfl/1.3.1 extdfl/1.4 extdfl/1.4.5 extdfl/2 extdfl/2.0.1 extdfl/2.0 extdfl/2.0 extdfl2/3.0 extdfl2/3.0.15 extdfl2/3 extdfl2/3.10.2 extdfl2/3.1 extdfl2/3.1.7 extdfl2/3.9 extdfl2/3.9.2 extdfl2/3.09 extdfl2/3.09.3 extdfl3/1 extdfl3/1.3/4 extdflb ERR extdflb.4 ERR extdflc ERR] {
+    if {$match eq {ERR}} {
+        set ans ERR
+        set tserr $err_path'$query'
+    } else {
+        set ans [list]
+        lappend ans [list setpath LOADEDMODULES $match]
+        lappend ans [list setpath _LMFILES_ $mp/$match]
+        if {$match eq {extdfl/1.3.1}} {
+            lappend ans [list setpath MODULES_LMALTNAME $match&extdfl/default&extdfl]
+        }
+        set tserr {}
+    }
+    testouterr_cmd sh "load $query" $ans $tserr
+    # test icase match
+    set upquery [string toupper $query]
+    testouterr_cmd sh "load -i $upquery" $ans [string map [list $query $upquery] $tserr]
+
+    # test when result is not an explicit default (if implicit default can be disabled)
+    if {![is_config_locked implicit_default]} {
+        setenv_var MODULES_IMPLICIT_DEFAULT 0
+        if {$match ne {ERR} && $match ne {extdfl/1.3.1} && ![info exists exactmatch($query)]} {
+            set ans ERR
+            set tserr $err_nodefault'$query'
+        }
+        testouterr_cmd sh "load $query" $ans $tserr
+        testouterr_cmd sh "load -i $upquery" $ans [string map [list $query $upquery] $tserr]
+        setenv_var MODULES_IMPLICIT_DEFAULT 1
+    }
+}
+
+
+# test over the different sub-commands triggering the one module selection context
+testouterr_cmd_re sh {help extdfl2/3} OK "$modlin\nModule Specific Help for $mpre/extdfl2/3.10.2:\n\n$warn_msgs: Unable to find ModulesHelp in $mpre/extdfl2/3.10.2.\n$modlin"
+testouterr_cmd_re sh {display extdfl2/3} OK "$modlin\n$mpre/extdfl2/3.10.2:\n\nmodule-whatis\textdfl2/3.10.2\n$modlin"
+testouterr_cmd_re sh {test extdfl2/3} OK "$modlin\nModule Specific Test for $mpre/extdfl2/3.10.2:\n\n$warn_msgs: Unable to find ModulesTest in $mpre/extdfl2/3.10.2.\n$modlin"
+testouterr_cmd sh {path extdfl2/3} [list [list text $mp/extdfl2/3.10.2]] {}
+testouterr_cmd sh {is-avail extdfl2/3.10} OK {}
+testouterr_cmd sh {is-avail extdfl2/3.11} ERR {}
+
+# test sub-commands working over the loaded environment
+setenv_loaded_module [list extdfl2/3.10.2] [list $mp/extdfl2/3.10.2]
+
+testouterr_cmd sh {load extdfl2/3} OK {}
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd sh {unload extdfl2/3} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.9.2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.9.2]
+testouterr_cmd sh {switch extdfl2/3 extdfl2/3.9} $ans {}
+testouterr_cmd sh {switch -i Extdfl2/3 extDfl2/3.9} $ans {}
+testouterr_cmd sh {switch extdfl2/3.9} $ans {}
+
+setenv_loaded_module [list extdfl2/3.10.2 extdfl2/3.1.3] [list $mp/extdfl2/3.10.2 $mp/extdfl2/3.1.3]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3]
+testouterr_cmd sh {unload extdfl2/3.10} $ans {}
+testouterr_cmd sh {unload -i eXtdFl2/3.10} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.10.2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.10.2]
+testouterr_cmd sh {unload extdfl2/3} $ans {}
+
+setenv_loaded_module [list extdfl2/3.1.3 extdfl2/3.10.2] [list $mp/extdfl2/3.1.3 $mp/extdfl2/3.10.2]
+
+# even if extdfl2/3.1.3 is loaded, asking load of extdfl2/3.1 will trigger load of extdfl2/3.1.7
+# which is seen as the 3.1 default. See #228 for details
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3:extdfl2/3.10.2:extdfl2/3.1.7]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl2/3.10.2:$mp/extdfl2/3.1.7]
+testouterr_cmd_re sh {load extdfl2/3.1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.10.2:extdfl2/3.1.7]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.10.2:$mp/extdfl2/3.1.7]
+testouterr_cmd_re sh {switch extdfl2/3.1} $ans {}
+testouterr_cmd_re sh {switch -i ExtDfl2/3.1} $ans {}
+
+setenv_loaded_module [list extdflb.4.1/1] [list $mp/extdflb.4.1/1]
+
+testouterr_cmd sh {unload extdflb.4} OK {}
+testouterr_cmd sh {unload -i extdflb.4} OK {}
+testouterr_cmd_re sh {switch extdflb.4} ERR [msg_switch extdflb.4 extdflb.4 $err_path'extdflb.4']
+testouterr_cmd_re sh {switch -i extdflb.4} ERR [msg_switch extdflb.4 extdflb.4 $err_path'extdflb.4']
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdflb.4.1/1:extdflb.4.0]
+lappend ans [list setpath _LMFILES_ $mp/extdflb.4.1/1:$mp/extdflb.4.0]
+testouterr_cmd_re sh {switch extdflb.4.0} $ans {}
+testouterr_cmd_re sh {switch -i ExtDflb.4.0} $ans {}
+
+unsetenv_loaded_module
+
+# check icase mechanism at version level
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/2.rc.2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/2.rc.2]
+testouterr_cmd sh {load -i extdfl2/2.rC} $ans {}
+
+setenv_loaded_module [list extdfl2/2.rc.1] [list $mp/extdfl2/2.rc.1]
+
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd sh {unload -i extdfl2/2.rC} $ans {}
+
+setenv_loaded_module [list extdfl2/2.rc.1 extdfl2/3.10.2] [list $mp/extdfl2/2.rc.1 $mp/extdfl2/3.10.2]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.10.2:extdfl2/2.rc.2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.10.2:$mp/extdfl2/2.rc.2]
+testouterr_cmd_re sh {switch -i extdfl2/2.RC} $ans {}
+
+unsetenv_loaded_module
+
+
+#
+# check consistent effect over the module compatibility check context
+#
+
+testouterr_cmd sh {is-loaded extdfl2/3} ERR {}
+testouterr_cmd sh {info-loaded extdfl2/3} OK {}
+
+setenv_loaded_module [list extdfl2/3.10.2] [list $mp/extdfl2/3.10.2]
+
+testouterr_cmd sh {is-loaded extdfl2/3} OK {}
+testouterr_cmd sh {is-loaded -i EXtdfl2/3} OK {}
+testouterr_cmd sh {is-loaded extdfl2/3.10} OK {}
+testouterr_cmd sh {is-loaded extdfl2/3.1} ERR {}
+
+set ans [list [list text extdfl2/3.10.2]]
+testouterr_cmd sh {info-loaded extdfl2/3} $ans {}
+testouterr_cmd sh {info-loaded -i exTDfl2/3} $ans {}
+
+unsetenv_loaded_module
+
+# test in modulefile
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/prereq]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/prereq]
+lappend ans [list setpath MODULES_LMNOTUASKED extdfl2/3.1.7]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/prereq&extdfl2/3.1]
+testouterr_cmd_re sh {load --auto extdfl6/prereq} $ans [msg_top_load extdfl6/prereq {} extdfl2/3.1.7 {}]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/prereqi]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/prereqi]
+lappend ans [list setpath MODULES_LMNOTUASKED extdfl2/3.1.7]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/prereqi&Extdfl2/3.1]
+testouterr_cmd_re sh {load --icase --auto extdfl6/prereqi} $ans [msg_top_load extdfl6/prereqi {} extdfl2/3.1.7 {}]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl6/conflict]
+lappend ans [list setpath _LMFILES_ $mp/extdfl6/conflict]
+lappend ans [list setpath MODULES_LMCONFLICT extdfl6/conflict&extdfl2/3]
+testouterr_cmd_re sh {load extdfl6/conflict} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/load]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/load]
+lappend ans [list setpath MODULES_LMNOTUASKED extdfl2/3.1.7]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/load&extdfl2/3.1]
+testouterr_cmd_re sh {load --auto extdfl6/load} $ans [msg_top_load extdfl6/load {} extdfl2/3.1.7 {}]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl6/unload]
+lappend ans [list setpath _LMFILES_ $mp/extdfl6/unload]
+lappend ans [list setpath MODULES_LMCONFLICT extdfl6/unload&extdfl2/3]
+testouterr_cmd_re sh {load extdfl6/unload} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl6/isloaded]
+lappend ans [list setpath _LMFILES_ $mp/extdfl6/isloaded]
+lappend ans [list set ts 0]
+testouterr_cmd_re sh {load extdfl6/isloaded} $ans {}
+
+set ans [list]
+lappend ans [list set ts {}]
+lappend ans [list setpath LOADEDMODULES extdfl6/info]
+lappend ans [list setpath _LMFILES_ $mp/extdfl6/info]
+testouterr_cmd_re sh {load extdfl6/info} $ans {}
+
+setenv_loaded_module [list extdfl2/3.1.7] [list $mp/extdfl2/3.1.7]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/prereq]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/prereq]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/prereq&extdfl2/3.1]
+testouterr_cmd_re sh {load --auto extdfl6/prereq} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/prereqi]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/prereqi]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/prereqi&Extdfl2/3.1]
+testouterr_cmd_re sh {load --icase --auto extdfl6/prereqi} $ans {}
+
+testouterr_cmd_re sh {load extdfl6/conflict} ERR [msg_load extdfl6/conflict [err_conflict extdfl6/conflict extdfl2/3]]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/load]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/load]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/load&extdfl2/3.1]
+testouterr_cmd_re sh {load --auto extdfl6/load} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl6/unload]
+lappend ans [list setpath _LMFILES_ $mp/extdfl6/unload]
+lappend ans [list setpath MODULES_LMCONFLICT extdfl6/unload&extdfl2/3]
+testouterr_cmd_re sh {load extdfl6/unload} $ans [msg_top_load extdfl6/unload extdfl2/3.1.7 {} {}]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/isloaded]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/isloaded]
+lappend ans [list set ts 1]
+testouterr_cmd_re sh {load extdfl6/isloaded} $ans {}
+
+set ans [list]
+lappend ans [list set ts extdfl2/3.1.7]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7:extdfl6/info]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7:$mp/extdfl6/info]
+testouterr_cmd_re sh {load extdfl6/info} $ans {}
+
+# check when non-implicit default is loaded
+setenv_loaded_module [list extdfl2/3.1.3] [list $mp/extdfl2/3.1.3]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3:extdfl6/prereq]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/prereq]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/prereq&extdfl2/3.1]
+testouterr_cmd_re sh {load --auto extdfl6/prereq} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3:extdfl6/prereqi]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/prereqi]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/prereqi&Extdfl2/3.1]
+testouterr_cmd_re sh {load --icase --auto extdfl6/prereqi} $ans {}
+
+testouterr_cmd_re sh {load extdfl6/conflict} ERR [msg_load extdfl6/conflict [err_conflict extdfl6/conflict extdfl2/3]]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3:extdfl6/load]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/load]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/load&extdfl2/3.1]
+testouterr_cmd_re sh {load --auto extdfl6/load} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl6/unload]
+lappend ans [list setpath _LMFILES_ $mp/extdfl6/unload]
+lappend ans [list setpath MODULES_LMCONFLICT extdfl6/unload&extdfl2/3]
+testouterr_cmd_re sh {load extdfl6/unload} $ans [msg_top_load extdfl6/unload extdfl2/3.1.3 {} {}]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3:extdfl6/isloaded]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/isloaded]
+lappend ans [list set ts 1]
+testouterr_cmd_re sh {load extdfl6/isloaded} $ans {}
+
+set ans [list]
+lappend ans [list set ts extdfl2/3.1.3]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.3:extdfl6/info]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.3:$mp/extdfl6/info]
+testouterr_cmd_re sh {load extdfl6/info} $ans {}
+
+# check when non-explicit default is loaded
+setenv_loaded_module [list extdfl/1.3.7] [list $mp/extdfl/1.3.7]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl6/prereq2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/prereq2]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/prereq2&extdfl/1.3]
+testouterr_cmd_re sh {load --auto extdfl6/prereq2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl6/prereqi2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/prereqi2]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/prereqi2&Extdfl/1.3]
+testouterr_cmd_re sh {load --icase --auto extdfl6/prereqi2} $ans {}
+
+testouterr_cmd_re sh {load extdfl6/conflict2} ERR [msg_load extdfl6/conflict2 [err_conflict extdfl6/conflict2 extdfl/1]]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl6/load2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/load2]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/load2&extdfl/1.3]
+testouterr_cmd_re sh {load --auto extdfl6/load2} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl6/unload2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl6/unload2]
+lappend ans [list setpath MODULES_LMCONFLICT extdfl6/unload2&extdfl/1]
+testouterr_cmd_re sh {load extdfl6/unload2} $ans [msg_top_load extdfl6/unload2 extdfl/1.3.7 {} {}]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl6/isloaded2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/isloaded2]
+lappend ans [list set ts 1]
+testouterr_cmd_re sh {load extdfl6/isloaded2} $ans {}
+
+set ans [list]
+lappend ans [list set ts extdfl/1.3.7]
+lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:extdfl6/info2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl6/info2]
+testouterr_cmd_re sh {load extdfl6/info2} $ans {}
+
+unsetenv_loaded_module
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/1.3.1:extdfl6/prereq2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl6/prereq2]
+lappend ans [list setpath MODULES_LMNOTUASKED extdfl/1.3.1]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/prereq2&extdfl/1.3]
+testouterr_cmd_re sh {load --auto extdfl6/prereq2} $ans [msg_top_load extdfl6/prereq2 {} extdfl/1.3.1 {}]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/1.3.1:extdfl6/prereqi2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl6/prereqi2]
+lappend ans [list setpath MODULES_LMNOTUASKED extdfl/1.3.1]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/prereqi2&Extdfl/1.3]
+testouterr_cmd_re sh {load --icase --auto extdfl6/prereqi2} $ans [msg_top_load extdfl6/prereqi2 {} extdfl/1.3.1 {}]
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/1.3.1:extdfl6/load2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl6/load2]
+lappend ans [list setpath MODULES_LMNOTUASKED extdfl/1.3.1]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+lappend ans [list setpath MODULES_LMPREREQ extdfl6/load2&extdfl/1.3]
+testouterr_cmd_re sh {load --auto extdfl6/load2} $ans [msg_top_load extdfl6/load2 {} extdfl/1.3.1 {}]
+
+
+# self conflict
+setenv_loaded_module [list extdfl7/1.1] [list $mp/extdfl7/1.1]
+setenv_path_var MODULES_LMCONFLICT extdfl7/1.1&extdfl7/1
+testouterr_cmd_re sh {load extdfl7/1.3} ERR [msg_load extdfl7/2.1 [err_conflict extdfl7/2.1 extdfl7/1.1]]
+
+# conflict over an alias name
+setenv_loaded_module [list extdfl7/2.1] [list $mp/extdfl7/2.1]
+setenv_path_var MODULES_LMCONFLICT extdfl7/2.1&extdfl7/2
+setenv_path_var MODULES_LMALTNAME extdfl7/2.1&extdfl7/1.3
+testouterr_cmd_re sh {load extdfl7/1.1} ERR [msg_load extdfl7/1.1 [err_conflict extdfl7/1.1 extdfl7/1]]
+
+# conflict over a symbolic version name
+setenv_loaded_module [list extdfl7/3.1] [list $mp/extdfl7/3.1]
+setenv_path_var MODULES_LMCONFLICT extdfl7/3.1&extdfl7/3
+unsetenv_path_var MODULES_LMALTNAME
+testouterr_cmd_re sh {load extdfl7/3.0} ERR [msg_load extdfl7/2.10 [err_conflict extdfl7/2.10 extdfl7/3.1]]
+
+setenv_loaded_module [list extdfl7/2.10] [list $mp/extdfl7/2.10]
+setenv_path_var MODULES_LMCONFLICT extdfl7/2.10&extdfl7/2
+setenv_path_var MODULES_LMALTNAME extdfl7/2.10&extdfl7/3.0
+testouterr_cmd_re sh {load extdfl7/3.1} ERR [msg_load extdfl7/3.1 [err_conflict extdfl7/3.1 extdfl7/3]]
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMCONFLICT
+unsetenv_path_var MODULES_LMALTNAME
+
+# loaded module conflict with loading prereq
+setenv_loaded_module [list extdfl7/4.1] [list $mp/extdfl7/4.1]
+setenv_path_var MODULES_LMCONFLICT extdfl7/4.1&extdfl7/1
+testouterr_cmd_re sh {load --auto extdfl6/load3} ERR [msg_load extdfl7/2.1 [err_conflict extdfl7/2.1 extdfl7/4.1]]\n\n[msg_load extdfl6/load3 [err_reqlo extdfl7/1]]
+
+unsetenv_loaded_module
+unsetenv_path_var MODULES_LMCONFLICT
+
+# loading prereq conflict with its dependent
+testouterr_cmd_re sh {load --icase --auto extDFL7/6} ERR [msg_load extdfl7/5.1 [err_conflict extdfl7/5.1 extDfl7/6]]\n\n[msg_load extdfl7/6.1 [err_reqlo Extdfl7/5]]
+
+# when unloading, ensure exact match is selected
+setenv_loaded_module [list extdfl2/3.0.2 extdfl2/3.0.15] [list $mp/extdfl2/3.0.2 $mp/extdfl2/3.0.15]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.0.15]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.0.15]
+testouterr_cmd sh {unload extdfl2/3.0.2} $ans {}
+
+unsetenv_loaded_module
+
+# test prereq/conflict when their target is not an explicit default (if implicit default can be disabled)
+if {![is_config_locked implicit_default]} {
+    setenv_var MODULES_IMPLICIT_DEFAULT 0
+
+    testouterr_cmd_re sh {load --auto extdfl6/prereq} ERR [msg_load extdfl6/prereq $err_nodefault'extdfl2/3.1' [err_reqlo extdfl2/3.1]]
+
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES extdfl/1.3.1:extdfl6/prereq2]
+    lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1:$mp/extdfl6/prereq2]
+    lappend ans [list setpath MODULES_LMNOTUASKED extdfl/1.3.1]
+    lappend ans [list setpath MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+    lappend ans [list setpath MODULES_LMPREREQ extdfl6/prereq2&extdfl/1.3]
+    testouterr_cmd_re sh {load --auto extdfl6/prereq2} $ans [msg_top_load extdfl6/prereq2 {} extdfl/1.3.1 {}]
+
+    setenv_loaded_module [list extdfl2/3.1.7] [list $mp/extdfl2/3.1.7]
+    testouterr_cmd_re sh {load extdfl6/conflict} ERR [msg_load extdfl6/conflict [err_conflict extdfl6/conflict extdfl2/3]]
+
+    setenv_var MODULES_IMPLICIT_DEFAULT 1
+}
+
+unsetenv_loaded_module
+
+
+#
+# check effect over module identification context
+#
+
+set ans [list]
+lappend ans [list set ts1 extdfl7/7]
+lappend ans [list set ts2 extdfl7/7]
+lappend ans [list setpath LOADEDMODULES extdfl7/7.1]
+lappend ans [list setpath _LMFILES_ $mp/extdfl7/7.1]
+# FIXME: alias or symver targeting an extended_default is resolved but alternative names are not registered in environment
+testouterr_cmd sh {load extdfl7/8.1} $ans {}
+testouterr_cmd sh {load extdfl7/8.2} $ans {}
+
+
+#
+# check consistent effect over the module search context
+#
+
+testouterr_cmd sh {avail -t extdfl2/3} OK "$mp:\nextdfl2/3.0.0\nextdfl2/3.0.2\nextdfl2/3.0.15\nextdfl2/3.1.3\nextdfl2/3.1.7\nextdfl2/3.9.2\nextdfl2/3.09.3\nextdfl2/3.010.1\nextdfl2/3.10.2"
+testouterr_cmd sh {avail -t extdfl2/3.11} OK {}
+
+set ans [list]
+lappend ans [list text $mp/extdfl2/3.0.0]
+lappend ans [list text $mp/extdfl2/3.0.2]
+lappend ans [list text $mp/extdfl2/3.0.15]
+lappend ans [list text $mp/extdfl2/3.1.3]
+lappend ans [list text $mp/extdfl2/3.1.7]
+lappend ans [list text $mp/extdfl2/3.9.2]
+lappend ans [list text $mp/extdfl2/3.09.3]
+lappend ans [list text $mp/extdfl2/3.010.1]
+lappend ans [list text $mp/extdfl2/3.10.2]
+testouterr_cmd sh {paths extdfl2/3} $ans {}
+testouterr_cmd sh {paths extdfl2/3.11} OK {}
+
+testouterr_cmd_re sh {whatis extdfl2/3} OK "$modlin $mpre $modlin
+\\s+extdfl2/3.0.0: extdfl2/3.0.0
+\\s+extdfl2/3.0.2: extdfl2/3.0.2
+\\s+extdfl2/3.0.15: extdfl2/3.0.15
+\\s+extdfl2/3.1.3: extdfl2/3.1.3
+\\s+extdfl2/3.1.7: extdfl2/3.1.7
+\\s+extdfl2/3.9.2: extdfl2/3.9.2
+\\s+extdfl2/3.09.3: extdfl2/3.09.3
+\\s+extdfl2/3.010.1: extdfl2/3.010.1
+\\s+extdfl2/3.10.2: extdfl2/3.10.2"
+testouterr_cmd sh {whatis extdfl2/3.11} ERR $err_path'extdfl2/3.11'
+
+# no indepth tests
+testouterr_cmd sh {avail -t --no-indepth extdfl3/1} OK "$mp:\nextdfl3/1.0\nextdfl3/1.00(@)\nextdfl3/1.1/(1.2)\nextdfl3/1.3/"
+testouterr_cmd sh {avail -t --no-indepth -i Extdfl3/1} OK "$mp:\nextdfl3/1.0\nextdfl3/1.00(@)\nextdfl3/1.1/(1.2)\nextdfl3/1.3/"
+testouterr_cmd sh {avail -t --no-indepth extdfl3/2} OK {}
+testouterr_cmd sh {avail -t --no-indepth -i extDfl3/2} OK {}
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+unsetenv_var MODULES_SEARCH_MATCH
+unsetenv_var MODULES_AVAIL_INDEPTH
+unsetenv_var MODULES_EXTENDED_DEFAULT
+unsetenv_var MODULES_UNLOAD_MATCH_ORDER
+setenv_path_var MODULEPATH $modpath
+
+unset mp
+unset mpre
+unset ans
+unset tserr
+unset query
+unset upquery
+unset match
+unset exactmatch
