@@ -32,13 +32,20 @@ Specification
     - not possible with ``+`` as it is used by variant specification
     - set of version for testsuite: version number 1.0.0-alpha, 1.0.0-alpha.1, 1.0.0-alpha.beta, 1.0.0-beta, 1.0.2, 1.1.0, 1.0.0, 1.1.0-beta
 
+- Does not apply to the root part of module name
+    - e.g. *foo.2* or *foo-bar*
+
 - If ``implicit_default`` is disabled
     - it makes ``extended_default`` inoperant if queried version does not include a defined default
+    - even if only one modulefile matches query
     - with situation described above query soft/1 returns soft/1.1
     - but query soft/2 returns an error as no default is found among version 2 modulefiles
 
 - Contexts where it could be used
     - :ref:`module_version_specification_to_return_all_matching_modules`
+        - on specification that are processed as a wild search, ``extended_default`` has no impact
+            - as a wildcard character ``*`` is appended to specification
+            - affects ``avail`` sub-command
     - :ref:`module_version_specification_to_select_one_module`
     - :ref:`module_version_specification_to_check_compatibility`
 
