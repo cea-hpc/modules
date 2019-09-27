@@ -6025,6 +6025,8 @@ proc defineArrayKeyMatchProc {icase extdfl impdfl} {
       } elseif {$extdfl && !$icase && $impdfl} {
          set body {upvar $arrname arr
             if {![info exists arr($name)]} {
+               # root modules have been filtered out through getModules
+               # no need to ensure name contains a / character
                set mlist [array names arr -glob "$name\[-.\]*"]
                if {[llength $mlist] == 1} {
                   set match [lindex $mlist 0]
@@ -6049,6 +6051,8 @@ proc defineArrayKeyMatchProc {icase extdfl impdfl} {
       } elseif {$extdfl && !$icase && !$impdfl} {
          set body {upvar $arrname arr
             if {![info exists arr($name)]} {
+               # root modules have been filtered out through getModules
+               # no need to ensure name contains a / character
                set mlist [array names arr -glob "$name\[-.\]*"]
                if {[llength $mlist] >= 1} {
                   # must have a default part of result even if only one result
@@ -6076,6 +6080,8 @@ proc defineArrayKeyMatchProc {icase extdfl impdfl} {
             if {![info exists arr($name)]} {
                set mlist {}
                foreach elt [array names arr] {
+                  # root modules have been filtered out through getModules
+                  # no need to ensure name contains a / character
                   if {[string match -nocase "$name\[-.\]*" $elt]} {
                      lappend mlist $elt
                   }
@@ -6108,6 +6114,8 @@ proc defineArrayKeyMatchProc {icase extdfl impdfl} {
             if {![info exists arr($name)]} {
                set mlist {}
                foreach elt [array names arr] {
+                  # root modules have been filtered out through getModules
+                  # no need to ensure name contains a / character
                   if {[string match -nocase "$name\[-.\]*" $elt]} {
                      lappend mlist $elt
                   }
@@ -6474,14 +6482,21 @@ proc defineModMatchAtDepthProc {indepth querydepth icase} {
 }
 
 # Define procedure to compare module name against pattern. Adapt procedure
-# code whether icase is enabled or disabled
-proc defineModMatchProc {icase} {
+# code whether icase and extended_default are enabled or disabled
+proc defineModMatchProc {icase extdfl} {
    # define proc if not done yet or if it was defined for another context
-   if {[info procs modMatch] eq {} || $::g_modMatch_defctx ne $icase} {
-      set body [expr {$icase ? {return [string match -nocase $pattern $mod]}\
-         : {return [string match $pattern $mod]}}]
+   if {[info procs modMatch] eq {} || $::g_modMatch_defctx ne "$icase-$extdfl"} {
+      set nocasearg [expr {$icase ? { -nocase} : {}}]
+      if {$extdfl} {
+         # filter out root modules from extended_default match
+         set body "return \[expr \{\[string match$nocasearg \$pattern \$mod\]\
+            || (\[string first / \$pattern\] != -1 && \[string match$nocasearg\
+            \$pattern\\\[-.\\\]* \$mod\])\}\]"
+      } else {
+         set body "return \[string match$nocasearg \$pattern \$mod\]"
+      }
       proc modMatch {pattern mod} $body
-      set ::g_modMatch_defctx $icase
+      set ::g_modMatch_defctx $icase-$extdfl
    }
 }
 
@@ -6526,7 +6541,7 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
       return $cache_list
    }
 
-   defineModMatchProc [isIcase]
+   defineModMatchProc [isIcase] [getConf extended_default]
 
    # skip search in top dir if directly looking to a deep element, which means
    # findModules has already been called and top dir has already been analyzed
@@ -6709,7 +6724,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    set querydepth [countChar $mod /]
    set icase [isIcase]
 
-   defineModMatchProc $icase
+   defineModMatchProc $icase [getConf extended_default]
    defineModMatchAtDepthProc $indepth $querydepth $icase
 
    array set dir_list {}
