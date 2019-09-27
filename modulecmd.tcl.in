@@ -6518,20 +6518,39 @@ proc modMatchAtDepthProcIndepthIcase {querydepth modmatch modlist} {
 # Define procedure to compare module name against pattern. Adapt procedure
 # code whether icase and extended_default are enabled or disabled
 proc defineModMatchProc {icase extdfl} {
-   # define proc if not done yet or if it was defined for another context
-   if {[info procs modMatch] eq {} || $::g_modMatch_defctx ne "$icase-$extdfl"} {
-      set nocasearg [expr {$icase ? { -nocase} : {}}]
-      if {$extdfl} {
-         # filter out root modules from extended_default match
-         set body "return \[expr \{\[string match$nocasearg \$pattern \$mod\]\
-            || (\[string first / \$pattern\] != -1 && \[string match$nocasearg\
-            \$pattern\\\[-.\\\]* \$mod\])\}\]"
-      } else {
-         set body "return \[string match$nocasearg \$pattern \$mod\]"
-      }
-      proc modMatch {pattern mod} $body
-      set ::g_modMatch_defctx $icase-$extdfl
+   set procname modMatchProc
+   if {$icase} {
+      append procname Icase
    }
+   if {$extdfl} {
+      append procname Extdfl
+   }
+
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs modMatch] eq {} || $::g_modMatch_proc ne $procname} {
+      if {[info exists ::g_modMatch_proc]} {
+         rename ::modMatch ::$::g_modMatch_proc
+      }
+      rename ::$procname ::modMatch
+      set ::g_modMatch_proc $procname
+   }
+}
+
+# alternative definitions of modMatch proc
+proc modMatchProc {pattern mod} {
+   return [string match $pattern $mod]
+}
+proc modMatchProcIcase {pattern mod} {
+   return [string match -nocase $pattern $mod]
+}
+proc modMatchProcExtdfl {pattern mod} {
+   return [expr {[string match $pattern $mod] || ([string first / $pattern]\
+      != -1 && [string match $pattern\[-.\]* $mod])}]
+}
+proc modMatchProcIcaseExtdfl {pattern mod} {
+   # filter out root modules from extended_default match
+   return [expr {[string match -nocase $pattern $mod] || ([string first /\
+      $pattern] != -1 && [string match -nocase $pattern\[-.\]* $mod])}]
 }
 
 # check if an existing findModules cache entry matches current search by
