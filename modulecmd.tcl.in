@@ -3998,24 +3998,46 @@ proc modStartEqProcIcase {mod name} {
 # Define procedure to get how many parts between passed name and mod are equal
 # Adapt procedure code whether icase is enabled or disabled
 proc defineModStartNbProc {icase} {
-   # define proc if not done yet or if it was defined for another context
-   if {[info procs modStartNb] eq {} || $::g_modStartNb_defctx ne $icase} {
-      set nocasearg [expr {$icase ? {-nocase} : {}}]
-      # min expr function is not supported in Tcl8.4 and earlier
-      set body "set modsplit \[split \$mod /\]
-         set imax \[if \{\[llength \$namesplit\] < \[llength \$modsplit\]\}\
-            \{llength \$namesplit\} \{llength \$modsplit\}\]
-         for \{set i 0\} \{\$i < \$imax\} \{incr i\} \{
-            if \{!\[string equal $nocasearg \[lindex \$modsplit \$i] \[lindex\
-               \$namesplit \$i\]\]\} \{
-               incr i -1
-               break
-            \}
-         \}
-         return \$i"
-      proc modStartNb {mod namesplit} $body
-      set ::g_modStartNb_defctx $icase
+   set procname modStartNbProc
+   if {$icase} {
+      append procname Icase
    }
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs modStartNb] eq {} || $::g_modStartNb_proc ne $procname} {
+      if {[info exists ::g_modStartNb_proc]} {
+         rename ::modStartNb ::$::g_modStartNb_proc
+      }
+      rename ::$procname ::modStartNb
+      set ::g_modStartNb_proc $procname
+   }
+}
+
+# alternative definitions of modStartNb proc
+proc modStartNbProc {mod namesplit} {
+   set modsplit [split $mod /]
+   # min expr function is not supported in Tcl8.4 and earlier
+   set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
+      $namesplit} {llength $modsplit}]
+   for {set i 0} {$i < $imax} {incr i} {
+      if {![string equal [lindex $modsplit $i] [lindex $namesplit $i]]} {
+         incr i -1
+         break
+      }
+   }
+   return $i
+}
+proc modStartNbProcIcase {mod namesplit} {
+   set modsplit [split $mod /]
+   set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
+      $namesplit} {llength $modsplit}]
+   for {set i 0} {$i < $imax} {incr i} {
+      if {![string equal -nocase [lindex $modsplit $i] [lindex $namesplit\
+         $i]]} {
+         incr i -1
+         break
+      }
+   }
+   return $i
 }
 
 # check if name matches passed mod name or one of its alternative name
