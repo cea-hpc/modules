@@ -3973,14 +3973,26 @@ proc unsetLoadedModule {mod modfile} {
 # Define procedure to check if passed name equals passed module name or its
 # generic name. Adapt procedure code whether icase is enabled or disabled
 proc defineModStartEqProc {icase} {
-   # define proc if not done yet or if it was defined for another context
-   if {[info procs modStartEq] eq {} || $::g_modStartEq_defctx ne $icase} {
-      set nocasearg [expr {$icase ? {-nocase} : {}}]
-      set body "return \[string equal $nocasearg -length \[string length\
-         \$name/] \$name/ \$mod/\]"
-      proc modStartEq {mod name} $body
-      set ::g_modStartEq_defctx $icase
+   set procname modStartEqProc
+   if {$icase} {
+      append procname Icase
    }
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs modStartEq] eq {} || $::g_modStartEq_proc ne $procname} {
+      if {[info exists ::g_modStartEq_proc]} {
+         rename ::modStartEq ::$::g_modStartEq_proc
+      }
+      rename ::$procname ::modStartEq
+      set ::g_modStartEq_proc $procname
+   }
+}
+
+# alternative definitions of modStartEq proc
+proc modStartEqProc {mod name} {
+   return [string equal -length [string length $name/] $name/ $mod/]
+}
+proc modStartEqProcIcase {mod name} {
+   return [string equal -nocase -length [string length $name/] $name/ $mod/]
 }
 
 # Define procedure to get how many parts between passed name and mod are equal
