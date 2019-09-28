@@ -1880,7 +1880,7 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}} {
 proc getAllModuleResolvedName {mod} {
    set namelist {}
    set icase [isIcase]
-   defineModStartEqProc $icase
+   defineModStartEqProc $icase [getConf extended_default]
 
    # get parent directories of mod
    foreach modelt [split $mod /] {
@@ -2972,7 +2972,7 @@ proc is-loading {args} {
 proc conflict {args} {
    reportDebug $args
    set currentModule [currentModuleName]
-   defineModStartEqProc [isIcase]
+   defineModStartEqProc [isIcase] [getConf extended_default]
 
    # register conflict list
    eval setLoadedConflict $currentModule $args
@@ -3971,9 +3971,13 @@ proc unsetLoadedModule {mod modfile} {
 }
 
 # Define procedure to check if passed name equals passed module name or its
-# generic name. Adapt procedure code whether icase is enabled or disabled
-proc defineModStartEqProc {icase} {
+# generic name. Adapt procedure code whether icase and extended_default are
+# enabled or disabled
+proc defineModStartEqProc {icase extdfl} {
    set procname modStartEqProc
+   if {$extdfl} {
+      append procname Extdfl
+   }
    if {$icase} {
       append procname Icase
    }
@@ -3994,11 +3998,25 @@ proc modStartEqProc {mod name} {
 proc modStartEqProcIcase {mod name} {
    return [string equal -nocase -length [string length $name/] $name/ $mod/]
 }
+proc modStartEqProcExtdfl {mod name} {
+   # filter out root modules from extended_default match
+   return [expr {[string equal -length [string length $name/] $name/ $mod/]\
+      || ([string first / $name] != -1 && [string match $name\[-.\]* $mod])}]
+}
+proc modStartEqProcExtdflIcase {mod name} {
+   return [expr {[string equal -nocase -length [string length $name/] $name/\
+      $mod/] || ([string first / $name] != -1 && [string match -nocase\
+      $name\[-.\]* $mod])}]
+}
 
 # Define procedure to get how many parts between passed name and mod are equal
-# Adapt procedure code whether icase is enabled or disabled
-proc defineModStartNbProc {icase} {
+# Adapt procedure code whether icase and extended_default are enabled or
+# disabled
+proc defineModStartNbProc {icase extdfl} {
    set procname modStartNbProc
+   if {$extdfl} {
+      append procname Extdfl
+   }
    if {$icase} {
       append procname Icase
    }
@@ -4035,6 +4053,44 @@ proc modStartNbProcIcase {mod namesplit} {
          $i]]} {
          incr i -1
          break
+      }
+   }
+   return $i
+}
+proc modStartNbProcExtdfl {mod namesplit} {
+   set modsplit [split $mod /]
+   # min expr function is not supported in Tcl8.4 and earlier
+   set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
+      $namesplit} {llength $modsplit}]
+   for {set i 0} {$i < $imax} {incr i} {
+      if {![string equal [lindex $modsplit $i] [lindex $namesplit $i]]} {
+         # apply an extended default match if last element of name and only if
+         # name is deeper than 1
+         if {($i + 1) < [llength $namesplit] || [llength $namesplit] == 1 ||\
+            ![string match [lindex $namesplit $i]\[-.\]* [lindex $modsplit\
+            $i]]} {
+            incr i -1
+            break
+         }
+      }
+   }
+   return $i
+}
+proc modStartNbProcExtdflIcase {mod namesplit} {
+   set modsplit [split $mod /]
+   # min expr function is not supported in Tcl8.4 and earlier
+   set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
+      $namesplit} {llength $modsplit}]
+   for {set i 0} {$i < $imax} {incr i} {
+      if {![string equal -nocase [lindex $modsplit $i] [lindex $namesplit\
+         $i]]} {
+         # apply an extended default match if last element of name
+         if {($i + 1) < [llength $namesplit] || [llength $namesplit] == 1 ||\
+            ![string match -nocase [lindex $namesplit $i]\[-.\]* [lindex\
+            $modsplit $i]]} {
+            incr i -1
+            break
+         }
       }
    }
    return $i
@@ -4099,7 +4155,7 @@ proc getLoadedWithClosestName {name} {
 
    if {[info exists namesplit]} {
       cacheCurrentModules
-      defineModStartNbProc [isIcase]
+      defineModStartNbProc [isIcase] [getConf extended_default]
       # compare name to each currently loaded module name
       foreach mod [getLoadedModuleList] {
          # if module loaded as fullpath but test name not, try to get loaded
@@ -4184,7 +4240,7 @@ proc getLoadedMatchingName {name {behavior {}} {loading 0} {lmlist {}}} {
          }
       }
    } elseif {$name ne {}} {
-      defineModStartEqProc [isIcase]
+      defineModStartEqProc [isIcase] [getConf extended_default]
       # compare name to each currently loaded/loading module name, if multiple
       # mod match name:
       foreach mod $lmlist {
@@ -4250,7 +4306,7 @@ proc doesModuleConflict {mod} {
    set does 0
    set modconlist {}
    set moddecconlist {}
-   defineModStartEqProc [isIcase]
+   defineModStartEqProc [isIcase] [getConf extended_default]
 
    # check if any loaded module has declared a conflict
    foreach modcon [array names ::g_loadedModuleConflict] {
@@ -4381,7 +4437,7 @@ proc unsetModuleConflictViolation {mod} {
 # build dependency chain between loaded modules based on registered prereqs
 proc setModuleDependency {mod} {
    set modlist [getLoadedModuleList]
-   defineModStartEqProc [isIcase]
+   defineModStartEqProc [isIcase] [getConf extended_default]
    # only look at modules loaded prior current one to find requirements,
    # modules loaded afterward are unmet dependencies as dependents have
    # not been reloaded after them
@@ -4685,7 +4741,7 @@ proc getUnmetDependentLoadedModuleList {mod} {
    reportDebug "get dependent of upcoming loaded '$mod'"
    set unmetdeplist {}
    set depmodlist {}
-   defineModStartEqProc [isIcase]
+   defineModStartEqProc [isIcase] [getConf extended_default]
 
    # skip dependent analysis if mod has a conflict with a loaded module
    lassign [doesModuleConflict $mod] doescon modconlist
@@ -4796,7 +4852,7 @@ proc getDirectDependentList {mod {strong 0} {nporeq 0} {loading 0}\
    # take currently loading modules into account if asked
    if {$loading} {
       set modlist [getLoadedModuleList]
-      defineModStartEqProc [isIcase]
+      defineModStartEqProc [isIcase] [getConf extended_default]
       # reverse list to get closest match if returning lastly loaded module
       if {[getConf unload_match_order] eq {returnlast}} {
          set modlist [lreverse $modlist]
@@ -8722,7 +8778,7 @@ proc cmdModuleLoad {context uasked args} {
 
          # still proceed if force mode enabled
          if {[getForce] && $doescon} {
-            defineModStartEqProc [isIcase]
+            defineModStartEqProc [isIcase] [getConf extended_default]
             # report warning if not already done
             set report_con 1
             if {[info exists ::report_conflict($modname)]} {
