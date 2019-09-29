@@ -27,13 +27,13 @@ Specification
     - query soft/1 returns soft/1.1
     - query soft/2 returns soft/2.2
 
-- Characters considered as version number separator
+- Character considered as version number separator: ``.``
     - list: ``.`` and ``-``
+    - ``-`` was also considered initially, but cannot determine in all case the highest version specified after this character (may find a hash name, strings like *rc*, *alpha*, *beta*, etc)
     - not possible with ``+`` as it is used by variant specification
-    - set of version for testsuite: version number 1.0.0-alpha, 1.0.0-alpha.1, 1.0.0-alpha.beta, 1.0.0-beta, 1.0.2, 1.1.0, 1.0.0, 1.1.0-beta
 
 - Does not apply to the root part of module name
-    - e.g. *foo.2* or *foo-bar*
+    - e.g. *foo.2*
 
 - If ``implicit_default`` is disabled
     - it makes ``extended_default`` inoperant if queried version does not include a defined default

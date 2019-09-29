@@ -4001,12 +4001,12 @@ proc modStartEqProcIcase {mod name} {
 proc modStartEqProcExtdfl {mod name} {
    # filter out root modules from extended_default match
    return [expr {[string equal -length [string length $name/] $name/ $mod/]\
-      || ([string first / $name] != -1 && [string match $name\[-.\]* $mod])}]
+      || ([string first / $name] != -1 && [string match $name.* $mod])}]
 }
 proc modStartEqProcExtdflIcase {mod name} {
    return [expr {[string equal -nocase -length [string length $name/] $name/\
       $mod/] || ([string first / $name] != -1 && [string match -nocase\
-      $name\[-.\]* $mod])}]
+      $name.* $mod])}]
 }
 
 # Define procedure to get how many parts between passed name and mod are equal
@@ -4067,7 +4067,7 @@ proc modStartNbProcExtdfl {mod namesplit} {
          # apply an extended default match if last element of name and only if
          # name is deeper than 1
          if {($i + 1) < [llength $namesplit] || [llength $namesplit] == 1 ||\
-            ![string match [lindex $namesplit $i]\[-.\]* [lindex $modsplit\
+            ![string match [lindex $namesplit $i].* [lindex $modsplit\
             $i]]} {
             incr i -1
             break
@@ -4086,8 +4086,8 @@ proc modStartNbProcExtdflIcase {mod namesplit} {
          $i]]} {
          # apply an extended default match if last element of name
          if {($i + 1) < [llength $namesplit] || [llength $namesplit] == 1 ||\
-            ![string match -nocase [lindex $namesplit $i]\[-.\]* [lindex\
-            $modsplit $i]]} {
+            ![string match -nocase [lindex $namesplit $i].* [lindex $modsplit\
+            $i]]} {
             incr i -1
             break
          }
@@ -6138,7 +6138,7 @@ proc arrayKeyMatchProcExtdflImpdfl {arrname name} {
    if {![info exists arr($name)]} {
       # root modules have been filtered out through getModules
       # no need to ensure name contains a / character
-      set mlist [array names arr -glob "$name\[-.\]*"]
+      set mlist [array names arr -glob $name.*]
       if {[llength $mlist] == 1} {
          set match [lindex $mlist 0]
       } elseif {[llength $mlist] > 1} {
@@ -6164,7 +6164,7 @@ proc arrayKeyMatchProcExtdfl {arrname name} {
    if {![info exists arr($name)]} {
       # root modules have been filtered out through getModules
       # no need to ensure name contains a / character
-      set mlist [array names arr -glob "$name\[-.\]*"]
+      set mlist [array names arr -glob $name.*]
       if {[llength $mlist] >= 1} {
          # must have a default part of result even if only one result
          set pname [file dirname $name]
@@ -6193,7 +6193,7 @@ proc arrayKeyMatchProcExtdflImpdflIcase {arrname name} {
       foreach elt [array names arr] {
          # root modules have been filtered out through getModules
          # no need to ensure name contains a / character
-         if {[string match -nocase "$name\[-.\]*" $elt]} {
+         if {[string match -nocase $name.* $elt]} {
             lappend mlist $elt
          }
       }
@@ -6227,7 +6227,7 @@ proc arrayKeyMatchProcExtdflIcase {arrname name} {
       foreach elt [array names arr] {
          # root modules have been filtered out through getModules
          # no need to ensure name contains a / character
-         if {[string match -nocase "$name\[-.\]*" $elt]} {
+         if {[string match -nocase $name.* $elt]} {
             lappend mlist $elt
          }
       }
@@ -6650,12 +6650,12 @@ proc modMatchProcIcase {pattern mod} {
 }
 proc modMatchProcExtdfl {pattern mod} {
    return [expr {[string match $pattern $mod] || ([string first / $pattern]\
-      != -1 && [string match $pattern\[-.\]* $mod])}]
+      != -1 && [string match $pattern.* $mod])}]
 }
 proc modMatchProcIcaseExtdfl {pattern mod} {
    # filter out root modules from extended_default match
    return [expr {[string match -nocase $pattern $mod] || ([string first /\
-      $pattern] != -1 && [string match -nocase $pattern\[-.\]* $mod])}]
+      $pattern] != -1 && [string match -nocase $pattern.* $mod])}]
 }
 
 # check if an existing findModules cache entry matches current search by

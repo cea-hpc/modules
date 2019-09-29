@@ -585,8 +585,7 @@ The equivalent *.modulerc* would look like:
 If the extended default mechanism is enabled (see
 **MODULES_EXTENDED_DEFAULT** in :ref:`module(1)`) the module version specified
 is matched against starting portion of existing module versions, where portion
-is a substring separated from the rest of version string by a ``.`` or a ``-``
-character.
+is a substring separated from the rest of version string by a ``.`` character.
 
 If user names a *modulefile* that cannot be found in the first *modulepath*
 directory, *modulefile* will be searched in next *modulepath* directory

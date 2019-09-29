@@ -900,9 +900,9 @@ ENVIRONMENT
 
  If set to **1**, a specified module version is matched against starting
  portion of existing module versions, where portion is a substring separated
- from the rest of the version string by a ``.`` or a ``-`` character. For
- example specified modules ``mod/1`` and ``mod/1.2`` will match existing
- modulefile ``mod/1.2.3``.
+ from the rest of the version string by a ``.`` character. For example
+ specified modules ``mod/1`` and ``mod/1.2`` will match existing  modulefile
+ ``mod/1.2.3``.
 
  In case multiple modulefiles match specified module version and a single
  module has to be selected, explicitly set default version is returned if it
