@@ -2011,6 +2011,8 @@ proc module {command args} {
 
    # guess if called from top level
    set topcall [expr {[getEvalModuleStackDepth] == 0}]
+   set tryhelpmsg [expr {$topcall ? "\nTry 'module --help' for more\
+      information." : {}}]
    if {$topcall} {
       set msgprefix {}
    } else {
@@ -2021,14 +2023,14 @@ proc module {command args} {
          path - paths - autoinit - help - prepend-path - append-path -\
          remove-path - is-loaded - is-saved - is-used - is-avail -\
          info-loaded - clear {
-            set errormsg "${msgprefix}Command '$command' not supported"
+            error "${msgprefix}Command '$command' not supported$tryhelpmsg"
          }
       }
       # other commands can only be called from modulefile evaluated from
       # command acting as top-level context (source and autoinit)
       if {([getEvalModuleStackDepth] > 1 || [notInList [list source autoinit]\
          [currentCommandName]]) && $command eq {config}} {
-         set errormsg "${msgprefix}Command '$command' not supported"
+         error "${msgprefix}Command '$command' not supported$tryhelpmsg"
       }
    }
 
@@ -2078,75 +2080,175 @@ proc module {command args} {
       }
    }
    if {[info exists argnberr]} {
-      set errormsg "Unexpected number of args for '$command' command"
+      error "Unexpected number of args for '$command' command$tryhelpmsg"
    }
 
-   # skip command processing if error already spotted
-   if {![info exists errormsg]} {
-      # define if modfile should always be fully read even for validity check
-      pushAlwaysReadFullFile [expr {[isInList [list path paths list avail\
-         aliases] $command]} ? 0 : 1]
-      pushCommandName $command
+   # define if modfile should always be fully read even for validity check
+   pushAlwaysReadFullFile [expr {[isInList [list path paths list avail\
+      aliases] $command]} ? 0 : 1]
+   pushCommandName $command
 
-      if {$topcall} {
-         # Find and execute any global rc file found
-         runModulerc
-      }
+   if {$topcall} {
+      # Find and execute any global rc file found
+      runModulerc
+   }
 
-      switch -- $command {
-         load {
-            # ignore flag used in collection to track non-user asked state
-            set args [replaceFromList $args --notuasked]
-            # no error raised on empty argument list to cope with
-            # initadd command that may expect this behavior
-            if {[llength $args] > 0} {
-               set ret 0
-               # if top command is source, consider module load commands made
-               # within sourced file evaluation as top load command
-               if {$topcall || ([getEvalModuleStackDepth] == 1 && (
-                  [aboveCommandName] eq {source} || [aboveCommandName] eq\
-                  {autoinit}))} {
-                  set ret [eval cmdModuleLoad load 1 $args]
-               } elseif {$mode eq {load}} {
-                  # load here if no auto mode, done through prereq elsewhere
-                  # inhibited if currently in DepRe context
-                  if {![getConf auto_handling] && [currentModuleEvalContext]\
-                     ne {depre}} {
-                     # attempt load of not already loaded modules
-                     foreach arg $args {
-                        if {![is-loaded $arg] && ![is-loading $arg]} {
-                           lappend modlist $arg
-                        }
-                     }
-                     if {[info exists modlist]} {
-                        set ret [eval cmdModuleLoad reqlo 0 $modlist]
-                        # ignore obtained error if force mode enabled
-                        if {[getForce]} {
-                           set ret 0
-                        }
-                     }
-                  }
-                  # register modulefiles to load as individual prereqs
+   switch -- $command {
+      load {
+         # ignore flag used in collection to track non-user asked state
+         set args [replaceFromList $args --notuasked]
+         # no error raised on empty argument list to cope with
+         # initadd command that may expect this behavior
+         if {[llength $args] > 0} {
+            set ret 0
+            # if top command is source, consider module load commands made
+            # within sourced file evaluation as top load command
+            if {$topcall || ([getEvalModuleStackDepth] == 1 && (
+               [aboveCommandName] eq {source} || [aboveCommandName] eq\
+               {autoinit}))} {
+               set ret [eval cmdModuleLoad load 1 $args]
+            } elseif {$mode eq {load}} {
+               # load here if no auto mode, done through prereq elsewhere
+               # inhibited if currently in DepRe context
+               if {![getConf auto_handling] && [currentModuleEvalContext] ne\
+                  {depre}} {
+                  # attempt load of not already loaded modules
                   foreach arg $args {
-                     prereq $arg
+                     if {![is-loaded $arg] && ![is-loading $arg]} {
+                        lappend modlist $arg
+                     }
                   }
-               # mods unload is handled via UReqUn mechanism when auto enabled
-               # also unloads are triggered by ongoing reload, purge or
-               # restore commands
-               } elseif {![getConf auto_handling] && [notInList [list purge\
-                  reload restore] [aboveCommandName]]} {
-                  # on unload mode, unload mods in reverse order, if loaded
-                  # prior this mod, if not user asked and not required by
-                  # other loaded mods
-                  set modlist [getLoadedModuleList]
-                  set modidx [lsearch -exact $modlist [currentModuleName]]
-                  if {$modidx != 0} {
-                     set priormodlist [lrange $modlist 0 $modidx]
-                     foreach arg [lreverse $args] {
-                        if {[set unmod [getLoadedMatchingName $arg {} 0\
+                  if {[info exists modlist]} {
+                     set ret [eval cmdModuleLoad reqlo 0 $modlist]
+                     # ignore obtained error if force mode enabled
+                     if {[getForce]} {
+                        set ret 0
+                     }
+                  }
+               }
+               # register modulefiles to load as individual prereqs
+               foreach arg $args {
+                  prereq $arg
+               }
+            # mods unload is handled via UReqUn mechanism when auto enabled
+            # also unloads are triggered by ongoing reload, purge or
+            # restore commands
+            } elseif {![getConf auto_handling] && [notInList [list purge\
+               reload restore] [aboveCommandName]]} {
+               # on unload mode, unload mods in reverse order, if loaded
+               # prior this mod, if not user asked and not required by
+               # other loaded mods
+               set modlist [getLoadedModuleList]
+               set modidx [lsearch -exact $modlist [currentModuleName]]
+               if {$modidx != 0} {
+                  set priormodlist [lrange $modlist 0 $modidx]
+                  foreach arg [lreverse $args] {
+                     if {[set unmod [getLoadedMatchingName $arg {} 0\
+                        $priormodlist]] ne {}} {
+                        if {[cmdModuleUnload urequn match 1 0 1 1 $unmod]} {
+                           reportWarning "Unload of useless requirement\
+                              $unmod failed" 1
+                        }
+                     }
+                  }
+               }
+            }
+            # sub-module interpretation failed, raise error
+            if {$ret && !$topcall} {
+               error SUB_FAILED
+            }
+         }
+      }
+      unload {
+         # if top command is source, consider module load commands made
+         # within sourced file evaluation as top load command
+         if {$topcall || ([getEvalModuleStackDepth] == 1 && (
+            [aboveCommandName] eq {source} || [aboveCommandName] eq\
+            {autoinit}))} {
+            set ret [eval cmdModuleUnload unload match 1 0 0 0 $args]
+         } elseif {$mode eq {load}} {
+            # unload mods only on load mode, nothing done on unload mode as
+            # the registered conflict guarantees the target module cannot
+            # be loaded unless forced
+            # do not unload module required by others even in force mode
+            set ret [eval cmdModuleUnload conun match 0 0 0 1 $args]
+
+            # register modulefiles to unload as individual conflicts
+            foreach arg $args {
+               # do not break on error yet, go through the whole modfile
+               # evaluation in case conflict is solved later on
+               catch {conflict $arg}
+            }
+            # sub-module interpretation failed, raise error
+            if {$ret} {
+               error SUB_FAILED
+            }
+         }
+      }
+      reload {
+         cmdModuleReload
+      }
+      use {
+         if {$topcall || $mode eq {load}} {
+            eval cmdModuleUse $args
+         } else {
+            eval cmdModuleUnuse $args
+         }
+      }
+      unuse {
+         eval cmdModuleUnuse $args
+      }
+      source {
+         if {$topcall || $mode eq {load}} {
+            eval cmdModuleSource $args
+         } else {
+            # on unload mode, unsource script in reverse order
+            eval cmdModuleUnsource [lreverse $args]
+         }
+      }
+      switch {
+         # pass 'user asked state' to switch procedure
+         set uasked [expr {$topcall || ([getEvalModuleStackDepth] == 1 &&\
+            ([aboveCommandName] eq {source} || [aboveCommandName] eq\
+            {autoinit}))}]
+         if {$uasked} {
+            eval cmdModuleSwitch $uasked $args
+         } else {
+            # CAUTION: it is not recommended to use the `switch`
+            # sub-command in modulefiles as this command is intended for
+            # the command-line for a 2in1 operation. Could be removed from
+            # the modulefile scope in a future release. Use `module unload`
+            # and `module load` commands in modulefiles instead.
+
+            switch -- $mode {
+               load {
+                  eval cmdModuleSwitch $uasked $args
+               }
+               unload {
+                  # find what has been asked for unload and load
+                  lassign $args swunmod swlomod
+                  if {$swlomod eq {} && $swunmod ne {}} {
+                     set swlomod $swunmod
+                  }
+
+                  # apply same mechanisms than for 'module load' and
+                  # 'module unload' for an unload evaluation: nothing done
+                  # for switched-off module and unload of switched-on
+                  # module. If auto handling is enabled switched-on module
+                  # is handled via UReqUn mechanism. Also unloads are
+                  # triggered by ongoing reload, purge or restore commands
+                  if {![getConf auto_handling] && $swlomod ne {} &&\
+                     [notInList [list purge reload restore]\
+                     [aboveCommandName]]} {
+                     # unload mod if it was loaded prior this mod, not user
+                     # asked and not required by another loaded module
+                     set modlist [getLoadedModuleList]
+                     set modidx [lsearch -exact $modlist [currentModuleName]]
+                     if {$modidx != 0} {
+                        set priormodlist [lrange $modlist 0 $modidx]
+                        if {[set unmod [getLoadedMatchingName $swlomod {} 0\
                            $priormodlist]] ne {}} {
-                           if {[cmdModuleUnload urequn match 1 0 1 1\
-                              $unmod]} {
+                           if {[cmdModuleUnload urequn match 1 0 1 1 $unmod]} {
                               reportWarning "Unload of useless requirement\
                                  $unmod failed" 1
                            }
@@ -2154,224 +2256,108 @@ proc module {command args} {
                      }
                   }
                }
-               # sub-module interpretation failed, raise error
-               if {$ret && !$topcall} {
-                  set errormsg SUB_FAILED
-               }
             }
-         }
-         unload {
-            # if top command is source, consider module load commands made
-            # within sourced file evaluation as top load command
-            if {$topcall || ([getEvalModuleStackDepth] == 1 && (
-               [aboveCommandName] eq {source} || [aboveCommandName] eq\
-               {autoinit}))} {
-               set ret [eval cmdModuleUnload unload match 1 0 0 0 $args]
-            } elseif {$mode eq {load}} {
-               # unload mods only on load mode, nothing done on unload mode as
-               # the registered conflict guarantees the target module cannot
-               # be loaded unless forced
-               # do not unload module required by others even in force mode
-               set ret [eval cmdModuleUnload conun match 0 0 0 1 $args]
-
-               # register modulefiles to unload as individual conflicts
-               foreach arg $args {
-                  # do not break on error yet, go through the whole modfile
-                  # evaluation in case conflict is solved later on
-                  catch {conflict $arg}
-               }
-               # sub-module interpretation failed, raise error
-               if {$ret} {
-                  set errormsg SUB_FAILED
-               }
-            }
-         }
-         reload {
-            cmdModuleReload
-         }
-         use {
-            if {$topcall || $mode eq {load}} {
-               eval cmdModuleUse $args
-            } else {
-               eval cmdModuleUnuse $args
-            }
-         }
-         unuse {
-            eval cmdModuleUnuse $args
-         }
-         source {
-            if {$topcall || $mode eq {load}} {
-               eval cmdModuleSource $args
-            } else {
-               # on unload mode, unsource script in reverse order
-               eval cmdModuleUnsource [lreverse $args]
-            }
-         }
-         switch {
-            # pass 'user asked state' to switch procedure
-            set uasked [expr {$topcall || ([getEvalModuleStackDepth] == 1 &&\
-               ([aboveCommandName] eq {source} || [aboveCommandName] eq\
-               {autoinit}))}]
-            if {$uasked} {
-               eval cmdModuleSwitch $uasked $args
-            } else {
-               # CAUTION: it is not recommended to use the `switch`
-               # sub-command in modulefiles as this command is intended for
-               # the command-line for a 2in1 operation. Could be removed from
-               # the modulefile scope in a future release. Use `module unload`
-               # and `module load` commands in modulefiles instead.
-
-               switch -- $mode {
-                  load {
-                     eval cmdModuleSwitch $uasked $args
-                  }
-                  unload {
-                     # find what has been asked for unload and load
-                     lassign $args swunmod swlomod
-                     if {$swlomod eq {} && $swunmod ne {}} {
-                        set swlomod $swunmod
-                     }
-
-                     # apply same mechanisms than for 'module load' and
-                     # 'module unload' for an unload evaluation: nothing done
-                     # for switched-off module and unload of switched-on
-                     # module. If auto handling is enabled switched-on module
-                     # is handled via UReqUn mechanism. Also unloads are
-                     # triggered by ongoing reload, purge or restore commands
-                     if {![getConf auto_handling] && $swlomod ne {} &&\
-                        [notInList [list purge reload restore]\
-                        [aboveCommandName]]} {
-                        # unload mod if it was loaded prior this mod, not user
-                        # asked and not required by another loaded module
-                        set modlist [getLoadedModuleList]
-                        set modidx [lsearch -exact $modlist [currentModuleName]]
-                        if {$modidx != 0} {
-                           set priormodlist [lrange $modlist 0 $modidx]
-                           if {[set unmod [getLoadedMatchingName $swlomod {}\
-                              0 $priormodlist]] ne {}} {
-                              if {[cmdModuleUnload urequn match 1 0 1 1\
-                                 $unmod]} {
-                                 reportWarning "Unload of useless requirement\
-                                    $unmod failed" 1
-                              }
-                           }
-                        }
-                     }
-                  }
-               }
-            }
-         }
-         display {
-            eval cmdModuleDisplay $args
-         }
-         avail {
-            eval cmdModuleAvail $show_oneperline $show_mtime "{$show_filter}"\
-               "{$search_filter}" "{$search_match}" $args
-         }
-         aliases {
-            cmdModuleAliases
-         }
-         path {
-            eval cmdModulePath $args
-         }
-         paths {
-            eval cmdModulePaths $args
-         }
-         list {
-            cmdModuleList $show_oneperline $show_mtime
-         }
-         whatis {
-            if {$args ne {}} {
-               foreach arg $args {
-                  cmdModuleWhatIs $arg
-               }
-            } else {
-               cmdModuleWhatIs
-            }
-         }
-         search {
-            eval cmdModuleApropos $args
-         }
-         purge {
-            eval cmdModulePurge
-         }
-         save {
-            eval cmdModuleSave $args
-         }
-         restore {
-            eval cmdModuleRestore $args
-         }
-         saverm {
-            eval cmdModuleSaverm $args
-         }
-         saveshow {
-            eval cmdModuleSaveshow $args
-         }
-         savelist {
-            cmdModuleSavelist $show_oneperline $show_mtime
-         }
-         initadd {
-            eval cmdModuleInit add $args
-         }
-         initprepend {
-            eval cmdModuleInit prepend $args
-         }
-         initswitch {
-            eval cmdModuleInit switch $args
-         }
-         initrm {
-            eval cmdModuleInit rm $args
-         }
-         initlist {
-            eval cmdModuleInit list $args
-         }
-         initclear {
-            eval cmdModuleInit clear $args
-         }
-         autoinit {
-            cmdModuleAutoinit
-         }
-         clear {
-            # ensure empty string is correctly passed
-            eval cmdModuleClear "{$args}"
-         }
-         config {
-            eval cmdModuleConfig $dump_state $args
-         }
-         help {
-            eval cmdModuleHelp $args
-         }
-         test {
-            eval cmdModuleTest $args
-         }
-         prepend-path - append-path - remove-path - is-loaded - is-saved -\
-         is-used - is-avail {
-            eval cmdModuleResurface $command $args
-         }
-         info-loaded {
-            eval cmdModuleResurface module-info loaded $args
-         }
-         default {
-            set errormsg "${msgprefix}Invalid command '$command'"
          }
       }
-      popCommandName
-      popAlwaysReadFullFile
+      display {
+         eval cmdModuleDisplay $args
+      }
+      avail {
+         eval cmdModuleAvail $show_oneperline $show_mtime "{$show_filter}"\
+            "{$search_filter}" "{$search_match}" $args
+      }
+      aliases {
+         cmdModuleAliases
+      }
+      path {
+         eval cmdModulePath $args
+      }
+      paths {
+         eval cmdModulePaths $args
+      }
+      list {
+         cmdModuleList $show_oneperline $show_mtime
+      }
+      whatis {
+         if {$args ne {}} {
+            foreach arg $args {
+               cmdModuleWhatIs $arg
+            }
+         } else {
+            cmdModuleWhatIs
+         }
+      }
+      search {
+         eval cmdModuleApropos $args
+      }
+      purge {
+         eval cmdModulePurge
+      }
+      save {
+         eval cmdModuleSave $args
+      }
+      restore {
+         eval cmdModuleRestore $args
+      }
+      saverm {
+         eval cmdModuleSaverm $args
+      }
+      saveshow {
+         eval cmdModuleSaveshow $args
+      }
+      savelist {
+         cmdModuleSavelist $show_oneperline $show_mtime
+      }
+      initadd {
+         eval cmdModuleInit add $args
+      }
+      initprepend {
+         eval cmdModuleInit prepend $args
+      }
+      initswitch {
+         eval cmdModuleInit switch $args
+      }
+      initrm {
+         eval cmdModuleInit rm $args
+      }
+      initlist {
+         eval cmdModuleInit list $args
+      }
+      initclear {
+         eval cmdModuleInit clear $args
+      }
+      autoinit {
+         cmdModuleAutoinit
+      }
+      clear {
+         # ensure empty string is correctly passed
+         eval cmdModuleClear "{$args}"
+      }
+      config {
+         eval cmdModuleConfig $dump_state $args
+      }
+      help {
+         eval cmdModuleHelp $args
+      }
+      test {
+         eval cmdModuleTest $args
+      }
+      prepend-path - append-path - remove-path - is-loaded - is-saved -\
+      is-used - is-avail {
+         eval cmdModuleResurface $command $args
+      }
+      info-loaded {
+         eval cmdModuleResurface module-info loaded $args
+      }
+      default {
+         error "${msgprefix}Invalid command '$command'$tryhelpmsg"
+      }
    }
+   popCommandName
+   popAlwaysReadFullFile
 
-   # if an error need to be raised, proceed differently depending of
-   # call level: if called from top level render errors then raise error
-   # elsewhere call is made from a modulefile or modulerc and error
-   # will be managed from execute-modulefile or execute-modulerc
-   if {[info exists errormsg]} {
-      if {$topcall} {
-         reportErrorAndExit "$errormsg\nTry 'module --help'\
-            for more information."
-      } else {
-         error $errormsg
-      }
    # if called from top level render settings if any
-   } elseif {$topcall} {
+   if {$topcall} {
       renderSettings
    }
 
@@ -10062,7 +10048,9 @@ if {[catch {
    pushModuleFile {}
 
    # eval needed to pass otherargv as list to module proc
-   eval module "{$command}" $otherargv
+   if {[catch {eval module "{$command}" $otherargv} errMsg]} {
+      reportErrorAndExit $errMsg
+   }
 } errMsg ]} {
    # no use of reportError here to get independent from any previous error
    # report inhibition. report error only if not silent
