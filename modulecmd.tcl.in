@@ -2009,6 +2009,12 @@ proc module {command args} {
    lassign [eval parseModuleCommandArgs $command $args] show_oneperline\
       show_mtime show_filter search_filter search_match dump_state args
 
+   # parse module version specification
+   if {[isInList [list avail paths whatis load unload switch help test\
+      display path is-avail] $command]} {
+      set args [eval parseModuleVersionSpecifier $args]
+   }
+
    # guess if called from top level
    set topcall [expr {[getEvalModuleStackDepth] == 0}]
    set tryhelpmsg [expr {$topcall ? "\nTry 'module --help' for more\
@@ -2935,6 +2941,8 @@ proc unset-function {function} {
 
 proc is-loaded {args} {
    reportDebug $args
+   # parse module version specification
+   set args [eval parseModuleVersionSpecifier $args]
 
    foreach mod $args {
       if {[getLoadedMatchingName $mod returnfirst] ne {}} {
@@ -2961,6 +2969,9 @@ proc conflict {args} {
    reportDebug $args
    set currentModule [currentModuleName]
    defineModStartEqProc [isIcase] [getConf extended_default]
+
+   # parse module version specification
+   set args [eval parseModuleVersionSpecifier $args]
 
    # register conflict list
    eval setLoadedConflict $currentModule $args
@@ -2998,6 +3009,9 @@ proc conflict {args} {
 proc prereq {args} {
    reportDebug $args
    set currentModule [currentModuleName]
+
+   # parse module version specification
+   set args [eval parseModuleVersionSpecifier $args]
 
    # register prereq list (sets of optional prereq are registered as list)
    setLoadedPrereq $currentModule $args
@@ -7880,6 +7894,71 @@ proc parseModuleCommandArgs {cmd args} {
       search_match=$search_match, dump_state=$dump_state, otherargs=$otherargs)"
    return [list $show_oneperline $show_mtime $show_filter $search_filter\
       $search_match $dump_state $otherargs]
+}
+
+# when advanced_version_spec option is enabled, parse argument list to set in
+# a global context version specification of modules passed as argument
+proc parseModuleVersionSpecifier {args} {
+   if {[getConf advanced_version_spec]} {
+      # skip arg parse if proc was already call with same arg set by an upper
+      # proc. check all args to ensure current arglist does not deviate from
+      # what was previously parsed
+      foreach arg $args {
+         if {![info exists ::g_moduleVersSpec($arg)]} {
+            set need_parse 1
+            break
+         }
+      }
+
+      if {[info exists need_parse]} {
+         set arglist [list]
+         foreach arg $args {
+            # extract module name and version specifier from arg
+            set curverslist [lassign [split $arg @] curmod]
+            # preserve empty argument
+            if {$curmod ne {} || $arg eq {}} {
+               # save previous module version spec and transformed arg if any
+               if {[info exists modarglist]} {
+                  set modarg [join $modarglist]
+                  if {[info exists modname]} {
+                     reportDebug "Set module name '$modname' and version\
+                        specifier '$modspec' for argument '$modarg'"
+                     set ::g_moduleVersSpec($modarg) [list $modname $modspec]
+                     # rework args to have 1 str element for whole module spec
+                     lappend arglist $modarg
+                  } elseif {$modspec ne {}} {
+                     error "No module name defined in argument '$modarg'"
+                  }
+                  unset modarglist
+               }
+               set modname $curmod
+               set modspec {}
+            }
+
+            set modspec [lindex $curverslist end]
+            lappend modarglist $arg
+         }
+         # transform last args
+         if {[info exists modarglist]} {
+            set modarg [join $modarglist]
+            if {[info exists modname]} {
+               reportDebug "Set module name '$modname' and version specifier\
+                  '$modspec' for argument '$modarg'"
+               set ::g_moduleVersSpec($modarg) [list $modname $modspec]
+               # rework args to have 1 string element for whole module spec
+               lappend arglist $modarg
+            } elseif {$modspec ne {}} {
+               error "No module name defined in argument '$modarg'"
+            }
+         }
+      } else {
+         set arglist $args
+      }
+   } else {
+      set arglist $args
+   }
+
+   return $arglist
 }
 
 # unload phase of a list of modules reload process
