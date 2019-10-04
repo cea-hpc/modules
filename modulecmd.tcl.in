@@ -3785,6 +3785,9 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          set dir_list [replaceFromList $dir_list $dir]
       }
 
+      # extract specified module name from name and version spec
+      lassign [getModuleVersSpec $mod] mod versspec
+
       set icase [isIcase]
       defineArrayKeyMatchProc $icase [getConf extended_default] [getConf\
          implicit_default]
@@ -4102,6 +4105,10 @@ proc modStartNbProcExtdflIcase {mod namesplit} {
 proc doesModuleMatchesName {mod name} {
    cacheCurrentModules
    set ret 0
+
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $name] name versspec
+
    # check if main or alternative names of loaded mod matches passed name
    foreach matchmod [concat [list $mod] [getLoadedAltname $mod]] {
       if {[modStartEq $matchmod $name]} {
@@ -4115,6 +4122,10 @@ proc doesModuleMatchesName {mod name} {
 # check if name matches one name of passed loading mod (main or alternative)
 proc doesLoadingModuleMatchesName {mod name} {
    set ret 0
+
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $name] name versspec
+
    # check if main or alternative names of loading mod matches passed name
    # directly look at all resolved names structure as alternative names for
    # loading modules are not yet registered elsewhere
@@ -4152,6 +4163,9 @@ proc getLoadedWithClosestName {name} {
          }
       }
    } else {
+      # extract specified module name from name and version spec
+      lassign [getModuleVersSpec $name] name versspec
+
       set namesplit [split $name /]
    }
 
