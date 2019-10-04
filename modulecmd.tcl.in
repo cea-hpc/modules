@@ -2987,6 +2987,9 @@ proc conflict {args} {
          # report message on currently evaluated module message block
          if {![set retiseval [eval isModuleEvaluated any $mod]] ||\
             [currentMsgRecordId] ne [topMsgRecordId] || !$retisconun} {
+            # extract specified module name from name and version spec
+            lassign [getModuleVersSpec $mod] mod versspec
+
             # more appropriate msg if an eval was attempted or is by-passed
             set msg [expr {$retiseval || [getForce] ? [getConIsLoadedMsg\
                $mod $isloading] : [getErrConflictMsg $currentModule $mod]}]
@@ -3469,6 +3472,9 @@ proc isModuleEvaluated {context args} {
    set ret 0
    set icase [isIcase]
    foreach mod $args {
+      # extract specified module name from name and version spec
+      lassign [getModuleVersSpec $mod] mod versspec
+
       # get actual module name if mod refers to an alias or symver
       set modres [resolveModuleVersionOrAlias $mod $icase]
       if {[info exists ::g_moduleEvalAttempt($modres)] && ($context eq\
@@ -5994,12 +6000,22 @@ proc cacheCurrentModules {} {
 
          # cache declared conflict of loaded modules
          foreach modcon [getLoadedModuleConflictList] {
+            # parse module version specification to record translation
+            foreach modconelt [lrange $modcon 1 end] {
+               eval parseModuleVersionSpecifier $modconelt
+            }
             eval setLoadedConflict $modcon
          }
 
          # cache declared prereq of loaded modules, prior to setLoadedModule
          # which triggers dependency chain build
          foreach modpre [getLoadedModulePrereqList] {
+            # parse module version specification to record translation
+            foreach modpreeltlist [lrange $modpre 1 end] {
+               foreach modpreelt $modpreeltlist {
+                  eval parseModuleVersionSpecifier $modpreelt
+               }
+            }
             eval setLoadedPrereq $modpre
          }
 
