@@ -6828,6 +6828,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    reportDebug "get '$mod' in $dir (fetch_mtime=$fetch_mtime, search=$search,\
       fetch_hidden=$fetch_hidden)"
 
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $mod] mod versspec
+
    # perform an in depth search or not
    set indepth [expr {[isInList $search noindepth] ? 0 : 1}]
 
@@ -7245,6 +7248,9 @@ proc listModules {dir mod show_mtime filter search} {
    # as we treat a full directory content do not exit on an error
    # raised from one modulerc file
    array set mod_list [getModules $dir $mod $show_mtime $search]
+
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $mod] mod
 
    # in depth search performed or not
    set indepth [expr {[isInList $search noindepth] ? 0 : 1}]
@@ -7961,6 +7967,20 @@ proc parseModuleVersionSpecifier {args} {
    return $arglist
 }
 
+# get extracted module name and version spec from passed argument if parsed
+proc getModuleVersSpec {modarg} {
+   if {[info exists ::g_moduleVersSpec($modarg)]} {
+      lassign $::g_moduleVersSpec($modarg) modname modvers
+      if {$modvers ne {}} {
+         append modname /$modvers
+      }
+   } else {
+      set modname $modarg
+      set modvers {}
+   }
+   return [list $modname $modvers]
+}
+
 # unload phase of a list of modules reload process
 proc reloadModuleListUnloadPhase {lmname {force 0} {errmsgtpl {}} {context\
    unload}} {
@@ -8190,6 +8210,10 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    # to mix with valid search results
    inhibitErrorReport
 
+   # extract specified module name from name and version spec
+   set modraw $mod
+   lassign [getModuleVersSpec $mod] mod versspec
+
    lappend searchmod rc_defs_included
    if {$mod eq {}} {
       lappend searchmod wild
@@ -8199,7 +8223,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    set dir_list [getModulePathList exiterronundef]
    foreach dir $dir_list {
       array unset mod_list
-      array set mod_list [getModules $dir $mod 0 $searchmod]
+      array set mod_list [getModules $dir $modraw 0 $searchmod]
       array unset interp_list
       array set interp_list {}
 
