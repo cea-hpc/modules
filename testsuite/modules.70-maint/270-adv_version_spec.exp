@@ -195,6 +195,133 @@ setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 
 #
+# check consistent effect over the one module selection context
+#
+
+# test over existing module
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.1.7]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.1.7]
+testouterr_cmd sh {load extdfl2@3.1.7} $ans {}
+testouterr_cmd sh "load $mp/extdfl2 @3.1.7" ERR "$err_file'$mp/extdfl2 @3.1.7'"
+testouterr_cmd sh "load $mp/extdfl2/3.1.7 @12" ERR "$err_file'$mp/extdfl2/3.1.7 @12'"
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl3/1.1/3]
+lappend ans [list setpath _LMFILES_ $mp/extdfl3/1.1/3]
+lappend ans [list setpath MODULES_LMALTNAME extdfl3/1.1/3&extdfl3/1.2&extdfl3/1.00&extdfl3/1.3/3]
+testouterr_cmd sh {load extdfl3@1.1} $ans {}
+testouterr_cmd sh {load extdfl3@1.1/3} $ans {}
+
+# test over already loaded module
+setenv_loaded_module [list extdfl2/3.1.7] [list $mp/extdfl2/3.1.7]
+testouterr_cmd sh {load extdfl2@3.1.7} OK {}
+testouterr_cmd sh "load $mp/extdfl2 @3.1.7" ERR "$err_file'$mp/extdfl2 @3.1.7'"
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd sh {unload extdfl2@3.1.7} $ans {}
+testouterr_cmd sh "unload $mp/extdfl2 @3.1.7" OK {}
+
+setenv_loaded_module [list $mp/extdfl2/3.1.7] [list $mp/extdfl2/3.1.7]
+testouterr_cmd sh {unload extdfl2@3.1.7} $ans {}
+testouterr_cmd sh "load $mp/extdfl2 @3.1.7" ERR "$err_file'$mp/extdfl2 @3.1.7'"
+
+testouterr_cmd sh {unload extdfl3@1.1} OK {}
+testouterr_cmd sh {unload extdfl3@1.1/3} OK {}
+setenv_loaded_module [list $mp/extdfl3/1.1/3] [list $mp/extdfl3/1.1/3]
+testouterr_cmd sh {unload extdfl3@1.1} $ans {}
+testouterr_cmd sh {unload extdfl3@1.1/3} $ans {}
+testouterr_cmd sh {unload extdfl3/1.1@3} $ans {}
+
+setenv_loaded_module [list $mp/extdfl2/3.1.7] [list $mp/extdfl2/3.1.7]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl3/1.1/3]
+lappend ans [list setpath _LMFILES_ $mp/extdfl3/1.1/3]
+lappend ans [list setpath MODULES_LMALTNAME extdfl3/1.1/3&extdfl3/1.2&extdfl3/1.00&extdfl3/1.3/3]
+testouterr_cmd sh {switch extdfl2@3.1.7 extdfl3@1.1} $ans {}
+unsetenv_loaded_module
+
+# test other sub-cmds concerned by context
+testouterr_cmd_re sh {help extdfl2@3.10.2} OK "$modlin\nModule Specific Help for $mpre/extdfl2/3.10.2:\n\n$warn_msgs: Unable to find ModulesHelp in $mpre/extdfl2/3.10.2.\n$modlin"
+testouterr_cmd_re sh {display extdfl2@3.10.2} OK "$modlin\n$mpre/extdfl2/3.10.2:\n\nmodule-whatis\textdfl2/3.10.2\n$modlin"
+testouterr_cmd_re sh {test extdfl2@3.10.2} OK "$modlin\nModule Specific Test for $mpre/extdfl2/3.10.2:\n\n$warn_msgs: Unable to find ModulesTest in $mpre/extdfl2/3.10.2.\n$modlin"
+testouterr_cmd sh {path extdfl2@3.10.2} [list [list text $mp/extdfl2/3.10.2]] {}
+testouterr_cmd sh {is-avail extdfl2@3.10.2} OK {}
+testouterr_cmd sh {is-avail extdfl2@3.11} ERR {}
+
+# test unknown module
+testouterr_cmd sh {load unknown@1.4.5} ERR $err_path'unknown/1.4.5'
+testouterr_cmd sh {load extdfl2 @12} ERR "$err_path'extdfl2/12'"
+testouterr_cmd sh "load $mp/unknown @1.4.5" ERR "$err_file'$mp/unknown @1.4.5'"
+testouterr_cmd sh "load $mp/extdfl2@12" ERR "$err_file'$mp/extdfl2@12'"
+
+# test various modulefile kind: alias, symver, virtual, directory hidden
+testouterr_cmd sh {path extdfl3@1.00} [list [list text $mp/extdfl3/1.1/3]] {}
+testouterr_cmd sh {path extdfl7 @3.0} [list [list text $mp/extdfl7/2.10]] {}
+testouterr_cmd sh {path nocase @virt} [list [list text $mp/nocase/1]] {}
+testouterr_cmd sh {path extdfl3@1.1} [list [list text $mp/extdfl3/1.1/3]] {}
+testouterr_cmd sh {path extdfl @.1.3.4} [list [list text $mp/extdfl/.1.3.4]] {}
+
+# test mod@vers where a modulefile mod@vers exist
+testouterr_cmd sh {load advvers@2.1} ERR $err_path'advvers/2.1'
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers@2.1]
+lappend ans [list setpath _LMFILES_ $mp/advvers@2.1]
+testouterr_cmd sh {load advvers@2.1} $ans {}
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# test explicit default enabled
+testouterr_cmd sh {load extdfl@1.4} ERR "$err_path'extdfl/1.4'"
+setenv_var MODULES_EXTENDED_DEFAULT 1
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/1.4.5]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.4.5]
+testouterr_cmd sh {load extdfl@1.4} $ans {}
+
+# test implicit default disabled
+if {![is_config_locked implicit_default]} {
+    setenv_var MODULES_IMPLICIT_DEFAULT 0
+    testouterr_cmd sh {load extdfl@1.4} ERR $err_nodefault'extdfl/1.4'
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES extdfl/1.3.1]
+    lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1]
+    lappend ans [list setpath MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+    testouterr_cmd sh {load extdfl@1.3} $ans {}
+    testouterr_cmd sh {load extdfl @1} $ans {}
+    setenv_var MODULES_IMPLICIT_DEFAULT 1
+}
+unsetenv_var MODULES_EXTENDED_DEFAULT
+
+# test icase
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/1.4.5]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.4.5]
+testouterr_cmd sh {load -i extDfl@1.4.5} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/2.rc.1]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/2.rc.1]
+testouterr_cmd sh {load -i extdfl2@2.RC.1} $ans {}
+
+# check effect over [module-info specified] call
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers/1.2]
+lappend ans [list setpath _LMFILES_ $mp/advvers/1.2]
+lappend ans [list set ts advvers@1.2]
+testouterr_cmd sh {load advvers@1.2} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers/1.2]
+lappend ans [list setpath _LMFILES_ $mp/advvers/1.2]
+lappend ans [list set ts "advvers @1.2"]
+testouterr_cmd sh {load advvers @1.2} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers/1.2]
+lappend ans [list setpath _LMFILES_ $mp/advvers/1.2]
+lappend ans [list set ts "advvers@1.0 @1.2"]
+testouterr_cmd sh {load advvers@1.0 @1.2} $ans {}
+
+
+#
 #  Cleanup
 #
 
