@@ -94,6 +94,8 @@ foreach cmd [list whatis apropos] {
     lappend ans [list set LOADEDMODULES_modshare "$module/$cmd:1"]
     lappend ans [list set _LMFILES_ "$modulepath/$module/$cmd"]
     lappend ans [list set LOADEDMODULES "$module/$cmd"]
+    # other evaluated modulefiles lead to an error result on stdout
+    lappend ans [list ERR]
     testouterr_cmd_re "sh" "load $module/$cmd" $ans {^.+$}
 }
 set ans [list]
@@ -163,6 +165,8 @@ foreach cmd [list whatis apropos] {
     lappend ans [list unset LOADEDMODULES_modshare]
     lappend ans [list unset _LMFILES_]
     lappend ans [list unset LOADEDMODULES]
+    # other evaluated modulefiles lead to an error result on stdout
+    lappend ans [list ERR]
     testouterr_cmd_re "sh" "unload $module/$cmd" $ans {^.+$}
 }
 setenv_loaded_module "$module/avail" "$modulepath/$module/avail"
