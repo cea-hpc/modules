@@ -206,6 +206,10 @@ Modules Specific Tcl Commands
   
   During a **switch** sub-command, *unload* then *load* is returned instead of *switch1* then *switch2* then *switch3*. However if **mode** is tested against *switch* value, true will be returned.
   
+ **module-info name**
+
+  If the module name passed to the command-line has been specified as a full path name, the **module-info name** used in modulefile returns this file base name on compatibility version whereas it returns on Modules 4+ the full path name as it is identified by this name once loaded.
+
  **module-info version**
   
   Declared aliases or symbolic versions are not registered anymore if they introduce a resolution loop. As a result **module-info version** does not return an ``*undef*`` string value as it does not face resolution loop situation anymore.
