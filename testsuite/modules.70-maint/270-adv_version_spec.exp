@@ -446,14 +446,14 @@ setenv_path_var MODULES_LMCONFLICT "advvers2/3.0&advvers @1.6"
 testouterr_cmd sh {load advvers@1.6} ERR [msg_load advvers/1.6 [err_conflict advvers/1.6 advvers2/3.0]]
 unsetenv_path_var MODULES_LMCONFLICT
 setenv_loaded_module [list advvers/1.6] [list $mp/advvers/1.6]
-testouterr_cmd sh {load advvers2@3.0} ERR [msg_load advvers2/3.0 [err_conflict advvers2/3.0 advvers/1.6]]
+testouterr_cmd sh {load advvers2@3.0} ERR [msg_load advvers2/3.0 [err_conflict advvers2/3.0 advvers @1.6]]
 
 # conflict loaded but conflicting module load forced
 set ans [list]
 lappend ans [list setpath LOADEDMODULES advvers/1.6:advvers2/3.0]
 lappend ans [list setpath _LMFILES_ $mp/advvers/1.6:$mp/advvers2/3.0]
 lappend ans [list setpath MODULES_LMCONFLICT "advvers2/3.0&advvers @1.6"]
-testouterr_cmd_re sh {load --force advvers2@3.0} $ans [msg_load advvers2/3.0 [err_conlof advvers/1.6]]
+testouterr_cmd_re sh {load --force advvers2@3.0} $ans [msg_load advvers2/3.0 [err_conlof "advvers @1.6"]]
 
 # then unload conflict
 setenv_loaded_module [list advvers/1.6 advvers2/3.0] [list $mp/advvers/1.6 $mp/advvers2/3.0]
@@ -467,7 +467,7 @@ unsetenv_loaded_module
 unsetenv_path_var MODULES_LMCONFLICT
 
 # loading module raise conflict
-testouterr_cmd_re sh {load --auto advvers2@3.1} ERR [msg_load advvers/1.7 [err_conflict advvers/1.7 advvers2/3.1]]\n\n[msg_load advvers2/3.1 [err_reqlo advvers@1.7]]
+testouterr_cmd_re sh {load --auto advvers2@3.1} ERR [msg_load advvers/1.7 [err_conflict advvers/1.7 advvers2 @3.1]]\n\n[msg_load advvers2/3.1 [err_reqlo advvers@1.7]]
 
 # conflict loaded but successful attempt to unload it
 setenv_loaded_module [list advvers/1.6] [list $mp/advvers/1.6]
@@ -489,7 +489,7 @@ lappend ans [list setpath _LMFILES_ $mp/advvers2/3.3]
 lappend ans [list setpath MODULES_LMCONFLICT "advvers2/3.3&advvers@1.6&advvers @1.8&advvers @1.5 @1.7"]
 testouterr_cmd sh {load --auto advvers2 @3.3} $ans {}
 setenv_loaded_module [list advvers/1.7] [list $mp/advvers/1.7]
-testouterr_cmd sh {load --auto advvers2 @3.3} ERR [msg_load advvers2/3.3 [err_conflict advvers2/3.3 advvers/1.7]]
+testouterr_cmd sh {load --auto advvers2 @3.3} ERR [msg_load advvers2/3.3 [err_conflict advvers2/3.3 advvers @1.5 @1.7]]
 setenv_loaded_module [list advvers2/3.3] [list $mp/advvers/3.3]
 setenv_path_var MODULES_LMCONFLICT "advvers2/3.3&advvers@1.6&advvers @1.8&advvers @1.5 @1.7"
 testouterr_cmd sh {load --auto advvers@1.7} ERR [msg_load advvers/1.7 [err_conflict advvers/1.7 advvers2/3.3]]
@@ -538,6 +538,9 @@ set ans [list]
 lappend ans [list setpath LOADEDMODULES advvers2/5.1:advvers2/5.2:advvers2/5.3:advvers2/5.0]
 lappend ans [list setpath _LMFILES_ $mp/advvers2/5.1:$mp/advvers2/5.2:$mp/advvers2/5.3:$mp/advvers2/5.0]
 testouterr_cmd_re sh {load --force --auto advvers2@5.0} $ans [msg_load advvers2/5.0 [err_conlof advvers2/5.3]]
+
+setenv_path_var MODULES_LMCONFLICT "advvers2/5.3&advvers2 @5.0&advvers2@5.1:advvers2/5.2&advvers2 @5.0"
+testouterr_cmd_re sh {load --force --auto advvers2@5.0} $ans [msg_load advvers2/5.0 [err_conlof advvers2/5.2 advvers2/5.3]]
 
 # another set with more complex prereq definition
 setenv_loaded_module [list advvers2/6.0 advvers2/6.1 advvers2/6.2 advvers2/6.3 advvers2/6.5 advvers2/6.4 advvers2/6.7 advvers2/6.6] [list $mp/advvers2/6.0 $mp/advvers2/6.1 $mp/advvers2/6.2 $mp/advvers2/6.3 $mp/advvers2/6.5 $mp/advvers2/6.4 $mp/advvers2/6.7 $mp/advvers2/6.6] [list advvers2/6.0 advvers2/6.1 advvers2/6.5 advvers2/6.7]
@@ -599,7 +602,7 @@ lappend ans [list setpath LOADEDMODULES advvers/deep/1/1.2:advvers2/8.2.1]
 lappend ans [list setpath _LMFILES_ $mp/advvers/deep/1/1.2:$mp/advvers2/8.2.1]
 lappend ans [list setpath MODULES_LMPREREQ "advvers2/8.2.1&advvers@deep/1"]
 testouterr_cmd_re sh {load --auto advvers2@8.2.1} $ans {}
-testouterr_cmd sh {load --auto advvers2@8.2.2} ERR [msg_load advvers2/8.2.2 [err_conflict advvers2/8.2.2 advvers/deep/1]]
+testouterr_cmd sh {load --auto advvers2@8.2.2} ERR [msg_load advvers2/8.2.2 [err_conflict advvers2/8.2.2 advvers @deep/1]]
 unsetenv_loaded_module
 
 # test mod@vers where a modulefile mod@vers exist
@@ -630,12 +633,12 @@ lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/extdfl/1.4.5:$mp/advver
 lappend ans [list setpath MODULES_LMPREREQ "advvers2/8.4.1&extdfl @1.3&extdfl @1.4"]
 testouterr_cmd_re sh {load --auto advvers2@8.4.1} $ans {}
 
-testouterr_cmd_re sh {load --auto advvers2@8.4.2} ERR [msg_load advvers2/8.4.2 [err_conflict advvers2/8.4.2 extdfl/1.3]]
+testouterr_cmd_re sh {load --auto advvers2@8.4.2} ERR [msg_load advvers2/8.4.2 [err_conflict advvers2/8.4.2 extdfl @1.3]]
 
 # test implicit default disabled
 if {![is_config_locked implicit_default]} {
     setenv_var MODULES_IMPLICIT_DEFAULT 0
-    testouterr_cmd_re sh {load --auto advvers2@8.4.2} ERR [msg_load advvers2/8.4.2 [err_conflict advvers2/8.4.2 extdfl/1.3]]
+    testouterr_cmd_re sh {load --auto advvers2@8.4.2} ERR [msg_load advvers2/8.4.2 [err_conflict advvers2/8.4.2 extdfl @1.3]]
     unsetenv_loaded_module
 
     testouterr_cmd_re sh {load --auto advvers2@8.4.1} ERR [msg_load advvers2/8.4.1 $err_nodefault'extdfl/1.4' [err_prereq advvers2/8.4.1 "extdfl @1.4"]]
@@ -659,7 +662,7 @@ lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/advvers2/8.5.1]
 lappend ans [list setpath MODULES_LMPREREQ advvers2/8.5.1&ExtDfl@1.3.7]
 testouterr_cmd_re sh {load -i --auto advvers2@8.5.1} $ans {}
 
-testouterr_cmd_re sh {load -i --auto advvers2@8.5.2} ERR [msg_load advvers2/8.5.2 [err_conflict advvers2/8.5.2 EXTDFL/1.3.7]]
+testouterr_cmd_re sh {load -i --auto advvers2@8.5.2} ERR [msg_load advvers2/8.5.2 [err_conflict advvers2/8.5.2 EXTDFL@1.3.7]]
 unsetenv_loaded_module
 
 
