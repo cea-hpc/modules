@@ -6690,6 +6690,14 @@ proc modMatchProcIcaseExtdfl {pattern mod} {
       $pattern] != -1 && [string match -nocase $pattern.* $mod])}]
 }
 
+# Check module name equals pattern
+proc modEq {pattern mod} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $pattern] pattern versspec
+
+   return [expr {$pattern eq $mod}]
+}
+
 # check if an existing findModules cache entry matches current search by
 # evaluating search ids. if an exact match cannot be found, look at saved
 # searches that contains current search (superset of looked elements), extra
@@ -6966,7 +6974,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          # found previously as not searched (except if we already look for
          # hidden modules). in case symbolic version matches passed $mod
          # look for this hidden target
-         if {$mod eq $vers && !$fetch_hidden && [isModuleHidden $versmod]} {
+         if {[modEq $mod $vers] && !$fetch_hidden && [isModuleHidden\
+            $versmod]} {
             array set found_list [findModules $dir $versmod 0 $fetch_mtime 1]
          }
 
@@ -8240,10 +8249,6 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    # to mix with valid search results
    inhibitErrorReport
 
-   # extract specified module name from name and version spec
-   set modraw $mod
-   lassign [getModuleVersSpec $mod] mod versspec
-
    lappend searchmod rc_defs_included
    if {$mod eq {}} {
       lappend searchmod wild
@@ -8253,7 +8258,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    set dir_list [getModulePathList exiterronundef]
    foreach dir $dir_list {
       array unset mod_list
-      array set mod_list [getModules $dir $modraw 0 $searchmod]
+      array set mod_list [getModules $dir $mod 0 $searchmod]
       array unset interp_list
       array set interp_list {}
 
@@ -8288,10 +8293,10 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
                      # if module target not found in current modulepath add to
                      # list for global search after initial modulepath lookup
                      if {[string first {Unable to locate} $issuemsg] == 0} {
-                        set extra_search($modname) [list $dir [expr {$elt eq\
-                           $mod}]]
+                        set extra_search($modname) [list $dir [modEq $mod\
+                           $elt]]
                      # register resolution error if alias name matches search
-                     } elseif {$elt eq $mod} {
+                     } elseif {[modEq $mod $elt]} {
                         set err_list($modname) [list $issuetype $issuemsg]
                      }
                   }
@@ -8299,7 +8304,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
             }
             invalid - accesserr {
                # register any error occuring on element matching search
-               if {$elt eq $mod} {
+               if {[modEq $mod $elt]} {
                   set err_list($elt) $mod_list($elt)
                }
             }
