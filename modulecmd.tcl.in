@@ -6688,12 +6688,47 @@ proc modMatchProcIcaseExtdfl {pattern mod} {
       $pattern] != -1 && [string match -nocase $pattern.* $mod])}]
 }
 
-# Check module name equals pattern
-proc modEq {pattern mod} {
+# Define procedure to check module name equals pattern. Adapt procedure
+# code whether icase and extended_default are enabled or disabled
+proc defineModEqProc {icase extdfl} {
+   set procname modEqProc
+   if {$icase} {
+      append procname Icase
+   }
+   if {$extdfl} {
+      append procname Extdfl
+   }
+
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs modEq] eq {} || $::g_modEq_proc ne $procname} {
+      if {[info exists ::g_modEq_proc]} {
+         rename ::modEq ::$::g_modEq_proc
+      }
+      rename ::$procname ::modEq
+      set ::g_modEq_proc $procname
+   }
+}
+
+# alternative definitions of modEq proc
+proc modEqProc {pattern mod} {
    # extract specified module name from name and version spec
    lassign [getModuleVersSpec $pattern] pattern versspec
-
-   return [expr {$pattern eq $mod}]
+   return [string equal $pattern $mod]
+}
+proc modEqProcIcase {pattern mod} {
+   lassign [getModuleVersSpec $pattern] pattern versspec
+   return [string equal -nocase $pattern $mod]
+}
+proc modEqProcExtdfl {pattern mod} {
+   lassign [getModuleVersSpec $pattern] pattern versspec
+   return [expr {[string equal $pattern $mod] || ([string first / $pattern]\
+      != -1 && [string match $pattern.* $mod])}]
+}
+proc modEqProcIcaseExtdfl {pattern mod} {
+   lassign [getModuleVersSpec $pattern] pattern versspec
+   # filter out root modules from extended_default match
+   return [expr {[string equal -nocase $pattern $mod] || ([string first /\
+      $pattern] != -1 && [string match -nocase $pattern.* $mod])}]
 }
 
 # check if an existing findModules cache entry matches current search by
@@ -6925,6 +6960,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
 
    defineModMatchProc $icase [getConf extended_default]
    defineModMatchAtDepthProc $indepth $icase
+   defineModEqProc $icase [getConf extended_default]
 
    array set dir_list {}
    array set mod_list {}
@@ -8246,6 +8282,8 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    # disable error reporting to avoid modulefile errors
    # to mix with valid search results
    inhibitErrorReport
+
+   defineModMatchProc [isIcase] [getConf extended_default]
 
    lappend searchmod rc_defs_included
    if {$mod eq {}} {

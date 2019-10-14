@@ -530,6 +530,37 @@ testouterr_cmd sh {avail -t --no-indepth -i extDfl3/2} OK {}
 
 
 #
+# test access issues
+#
+
+# cannot test access if cannot change file permission
+if {!$is_file_perms_editable} {
+    send_user "\tskipping access tests as file permissions cannot be changed\n"
+# cannot test access if superuser privileges are in use
+} elseif {$tcl_platform(user) eq "root"} {
+    send_user "\tskipping access tests as tests are run by superuser\n"
+# cannot test access if restricted file permissions have no effect
+} elseif {$is_locked_dir_file_readable && $is_locked_file_readable} {
+    send_user "\tskipping access tests as locked files or directories are still readable\n"
+} else {
+
+set hide_perms "ugo-rx"
+
+change_file_perms $mp/extdfl/1.4.5 $hide_perms
+testouterr_cmd sh {whatis extdfl/1.4} ERR "$error_msgs: Permission denied on '$mp/extdfl/1.4.5'"
+restore_file_perms $mp/extdfl/1.4.5
+
+setenv_path_var MODULEPATH $modpath.2:$modpath
+change_file_perms $modpath/loc_rc6/0.9 $hide_perms
+testouterr_cmd sh {whatis -i extdfl7/CROSS} ERR "$error_msgs: Permission denied on '$modpath/loc_rc6/0.9'"
+restore_file_perms $modpath/loc_rc6/0.9
+
+unset hide_perms
+
+}
+
+
+#
 #  Cleanup
 #
 
