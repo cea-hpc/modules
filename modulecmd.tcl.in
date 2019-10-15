@@ -3796,16 +3796,12 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          set dir_list [replaceFromList $dir_list $dir]
       }
 
-      # extract specified module name from name and version spec
-      lassign [getModuleVersSpec $mod] mod versspec
       # extract one module name from query
       lassign [getModuleVersSpec $mod] modqe versspec
 
       set icase [isIcase]
       defineArrayKeyMatchProc $icase [getConf extended_default] [getConf\
          implicit_default]
-      # modparent is the the modulename minus the module version.
-      lassign [getModuleNameVersion $mod] mod modparent modversion
       set modroot [lindex [split $modqe /] 0]
       # determine if we need to get hidden modules
       set fetch_hidden [isModuleSpecHidden $mod]
@@ -6167,12 +6163,20 @@ proc defineArrayKeyMatchProc {icase extdfl impdfl} {
 
 # alternative definitions of arrayKeyMatch proc
 proc arrayKeyMatchProc {arrname name} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $name] name versspec
+   set name [string trimright $name /]
+
    return $name
 }
 # define proc with extended_default match enabled, in case multiple
 # modules match query, check directory default and return it if it is
 # part of match list, elsewhere return highest result
 proc arrayKeyMatchProcExtdflImpdfl {arrname name} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $name] name versspec
+   set name [string trimright $name /]
+
    upvar $arrname arr
    if {![info exists arr($name)]} {
       # root modules have been filtered out through getModules
@@ -6199,6 +6203,10 @@ proc arrayKeyMatchProcExtdflImpdfl {arrname name} {
    return $name
 }
 proc arrayKeyMatchProcExtdfl {arrname name} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $name] name versspec
+   set name [string trimright $name /]
+
    upvar $arrname arr
    if {![info exists arr($name)]} {
       # root modules have been filtered out through getModules
@@ -6224,6 +6232,10 @@ proc arrayKeyMatchProcExtdfl {arrname name} {
    return $name
 }
 proc arrayKeyMatchProcExtdflImpdflIcase {arrname name} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $name] name versspec
+   set name [string trimright $name /]
+
    upvar $arrname arr
    # check name eventual icase match
    set name [arrayKeyEq arr $name 1]
@@ -6258,6 +6270,10 @@ proc arrayKeyMatchProcExtdflImpdflIcase {arrname name} {
    return $name
 }
 proc arrayKeyMatchProcExtdflIcase {arrname name} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $name] name versspec
+   set name [string trimright $name /]
+
    upvar $arrname arr
    # check name eventual icase match
    set name [arrayKeyEq arr $name 1]
@@ -6291,6 +6307,10 @@ proc arrayKeyMatchProcExtdflIcase {arrname name} {
    return $name
 }
 proc arrayKeyMatchProcIcase {arrname name} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $name] name versspec
+   set name [string trimright $name /]
+
    upvar $arrname arr
    return [arrayKeyEq arr $name 1]
 }
