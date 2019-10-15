@@ -4007,17 +4007,29 @@ proc defineModStartEqProc {icase extdfl} {
 
 # alternative definitions of modStartEq proc
 proc modStartEqProc {mod name} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $name] name versspec
+
    return [string equal -length [string length $name/] $name/ $mod/]
 }
 proc modStartEqProcIcase {mod name} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $name] name versspec
+
    return [string equal -nocase -length [string length $name/] $name/ $mod/]
 }
 proc modStartEqProcExtdfl {mod name} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $name] name versspec
+
    # filter out root modules from extended_default match
    return [expr {[string equal -length [string length $name/] $name/ $mod/]\
       || ([string first / $name] != -1 && [string match $name.* $mod])}]
 }
 proc modStartEqProcExtdflIcase {mod name} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $name] name versspec
+
    return [expr {[string equal -nocase -length [string length $name/] $name/\
       $mod/] || ([string first / $name] != -1 && [string match -nocase\
       $name.* $mod])}]
@@ -4115,9 +4127,6 @@ proc doesModuleMatchesName {mod name} {
    cacheCurrentModules
    set ret 0
 
-   # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $name] name versspec
-
    # check if main or alternative names of loaded mod matches passed name
    foreach matchmod [concat [list $mod] [getLoadedAltname $mod]] {
       if {[modStartEq $matchmod $name]} {
@@ -4131,9 +4140,6 @@ proc doesModuleMatchesName {mod name} {
 # check if name matches one name of passed loading mod (main or alternative)
 proc doesLoadingModuleMatchesName {mod name} {
    set ret 0
-
-   # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $name] name versspec
 
    # check if main or alternative names of loading mod matches passed name
    # directly look at all resolved names structure as alternative names for
