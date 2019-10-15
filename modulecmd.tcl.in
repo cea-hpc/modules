@@ -3725,6 +3725,13 @@ proc isSameModuleRoot {mod1 mod2} {
    return [expr {[lindex $mod1split 0] eq [lindex $mod2split 0]}]
 }
 
+# test if one module name from module specification is hidden
+proc isModuleSpecHidden {mod} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $mod] mod versspec
+   return [isModuleHidden $mod]
+}
+
 # test if one element in module name has a leading "dot" making this module
 # a hidden module
 proc isModuleHidden {mod} {
@@ -3799,7 +3806,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
       lassign [getModuleNameVersion $mod] mod modparent modversion
       set modroot [lindex [split $mod /] 0]
       # determine if we need to get hidden modules
-      set fetch_hidden [isModuleHidden $mod]
+      set fetch_hidden [isModuleSpecHidden $mod]
 
       # Now search for $mod in module paths
       foreach dir $dir_list {
@@ -6955,7 +6962,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
       # add alias/version definitions from global or user rc to result
       set add_rc_defs [expr {[isInList $search rc_defs_included] ? 1 : 0}]
       if {!$fetch_hidden} {
-         set fetch_hidden [isModuleHidden $mod]
+         set fetch_hidden [isModuleSpecHidden $mod]
          reportDebug "is '$mod' requiring hidden search ($fetch_hidden)"
       }
 
