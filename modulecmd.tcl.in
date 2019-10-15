@@ -6954,6 +6954,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    reportDebug "get '$mod' in $dir (fetch_mtime=$fetch_mtime, search=$search,\
       fetch_hidden=$fetch_hidden)"
 
+   # extract one module name from query
+   lassign [getModuleVersSpec $mod] modqe versspec
+
    # perform an in depth search or not
    set indepth [expr {[isInList $search noindepth] ? 0 : 1}]
 
@@ -6974,7 +6977,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
       # .version files of module-related parent directories in case we need
       # to translate an alias or a version (2) retrieving all elements first
       # to then look at fully qualified file names containing searched string
-      set parentlist [split $mod /]
+      set parentlist [split $modqe /]
       set wild [expr {[isInList $search wild] ? 1 : 0}]
 
       if {$contains} {
@@ -7003,10 +7006,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    }
 
    # check search query string corresponds to directory
-   set querydir [string trimright $mod *]
+   set querydir [string trimright $modqe *]
    set isquerydir [expr {[string index $querydir end] eq {/}}]
    set querydir [string range $querydir 0 end-1]
-   set querydepth [countChar $mod /]
+   set querydepth [countChar $modqe /]
    set icase [isIcase]
 
    defineModMatchProc $icase [getConf extended_default]
