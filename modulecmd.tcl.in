@@ -6695,17 +6695,49 @@ proc defineModMatchProc {icase extdfl} {
 }
 
 # alternative definitions of modMatch proc
-proc modMatchProc {pattern mod} {
+proc modMatchProc {pattern mod {trspec 0} {psuf {}}} {
+   # extract specified module name from name and version spec
+   if {$trspec} {
+      lassign [getModuleVersSpec $pattern] pattern versspec
+   }
+   if {$psuf ne {}} {
+      append pattern $psuf
+   }
+
    return [string match $pattern $mod]
 }
-proc modMatchProcIcase {pattern mod} {
+proc modMatchProcIcase {pattern mod {trspec 0} {psuf {}}} {
+   # extract specified module name from name and version spec
+   if {$trspec} {
+      lassign [getModuleVersSpec $pattern] pattern versspec
+   }
+   if {$psuf ne {}} {
+      append pattern $psuf
+   }
+
    return [string match -nocase $pattern $mod]
 }
-proc modMatchProcExtdfl {pattern mod} {
+proc modMatchProcExtdfl {pattern mod {trspec 0} {psuf {}}} {
+   # extract specified module name from name and version spec
+   if {$trspec} {
+      lassign [getModuleVersSpec $pattern] pattern versspec
+   }
+   if {$psuf ne {}} {
+      append pattern $psuf
+   }
+
    return [expr {[string match $pattern $mod] || ([string first / $pattern]\
       != -1 && [string match $pattern.* $mod])}]
 }
-proc modMatchProcIcaseExtdfl {pattern mod} {
+proc modMatchProcIcaseExtdfl {pattern mod {trspec 0} {psuf {}}} {
+   # extract specified module name from name and version spec
+   if {$trspec} {
+      lassign [getModuleVersSpec $pattern] pattern versspec
+   }
+   if {$psuf ne {}} {
+      append pattern $psuf
+   }
+
    # filter out root modules from extended_default match
    return [expr {[string match -nocase $pattern $mod] || ([string first /\
       $pattern] != -1 && [string match -nocase $pattern.* $mod])}]
@@ -6922,9 +6954,6 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    reportDebug "get '$mod' in $dir (fetch_mtime=$fetch_mtime, search=$search,\
       fetch_hidden=$fetch_hidden)"
 
-   # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $mod] mod versspec
-
    # perform an in depth search or not
    set indepth [expr {[isInList $search noindepth] ? 0 : 1}]
 
@@ -6997,9 +7026,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
       # add other entry kind to the result list
       # also add dirname to results if query name finishes with trailing slash
       } elseif {($wild && [llength [modMatchAtDepth $querydepth $contains\
-         $mod [list $elt]]]) || (!$wild && ([modMatch $mod/* $elt] || [modMatch\
-         $mod $elt])) || ($isquerydir && $elt_type eq {directory} &&\
-         [modMatch $querydir $elt])} {
+         $mod [list $elt]]]) || (!$wild && ([modMatch $mod $elt 1 /*] ||\
+         [modMatch $mod $elt 1])) || ($isquerydir && $elt_type eq {directory}\
+         && [modMatch $querydir $elt])} {
          set mod_list($elt) $found_list($elt)
          # list dirs to rework their definition at the end
          if {$elt_type eq {directory}} {
