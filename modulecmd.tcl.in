@@ -4057,7 +4057,11 @@ proc defineModStartNbProc {icase extdfl} {
 }
 
 # alternative definitions of modStartNb proc
-proc modStartNbProc {mod namesplit} {
+proc modStartNbProc {mod nametosplit} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $nametosplit] nametosplit versspec
+   set namesplit [split $nametosplit /]
+
    set modsplit [split $mod /]
    # min expr function is not supported in Tcl8.4 and earlier
    set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
@@ -4070,7 +4074,11 @@ proc modStartNbProc {mod namesplit} {
    }
    return $i
 }
-proc modStartNbProcIcase {mod namesplit} {
+proc modStartNbProcIcase {mod nametosplit} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $nametosplit] nametosplit versspec
+   set namesplit [split $nametosplit /]
+
    set modsplit [split $mod /]
    set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
       $namesplit} {llength $modsplit}]
@@ -4083,7 +4091,11 @@ proc modStartNbProcIcase {mod namesplit} {
    }
    return $i
 }
-proc modStartNbProcExtdfl {mod namesplit} {
+proc modStartNbProcExtdfl {mod nametosplit} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $nametosplit] nametosplit versspec
+   set namesplit [split $nametosplit /]
+
    set modsplit [split $mod /]
    # min expr function is not supported in Tcl8.4 and earlier
    set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
@@ -4102,7 +4114,11 @@ proc modStartNbProcExtdfl {mod namesplit} {
    }
    return $i
 }
-proc modStartNbProcExtdflIcase {mod namesplit} {
+proc modStartNbProcExtdflIcase {mod nametosplit} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $nametosplit] nametosplit versspec
+   set namesplit [split $nametosplit /]
+
    set modsplit [split $mod /]
    # min expr function is not supported in Tcl8.4 and earlier
    set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
@@ -4165,7 +4181,7 @@ proc getLoadedWithClosestName {name} {
       # if module is passed as full modulefile path name, get corresponding
       # short name from used modulepaths
       if {[set shortname [findModuleNameFromModulefile $fullname]] ne {}} {
-         set namesplit [split $shortname /]
+         set nametosplit $shortname
       # or look at lmfile names to return the eventual exact match
       } else {
          # module may be loaded with its full path name
@@ -4178,13 +4194,10 @@ proc getLoadedWithClosestName {name} {
          }
       }
    } else {
-      # extract specified module name from name and version spec
-      lassign [getModuleVersSpec $name] name versspec
-
-      set namesplit [split $name /]
+      set nametosplit $name
    }
 
-   if {[info exists namesplit]} {
+   if {[info exists nametosplit]} {
       cacheCurrentModules
       defineModStartNbProc [isIcase] [getConf extended_default]
       # compare name to each currently loaded module name
@@ -4204,7 +4217,7 @@ proc getLoadedWithClosestName {name} {
          # equality, last loaded module will be returned as it overwrites
          # previously found value
          foreach matchmod $matchmodlist {
-            if {[set i [modStartNb $matchmod $namesplit]] >= $retmax} {
+            if {[set i [modStartNb $matchmod $nametosplit]] >= $retmax} {
                set retmax $i
                set ret $mod
                break
