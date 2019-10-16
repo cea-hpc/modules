@@ -3470,9 +3470,6 @@ proc isModuleEvaluated {context args} {
    set ret 0
    set icase [isIcase]
    foreach mod $args {
-      # extract specified module name from name and version spec
-      lassign [getModuleVersSpec $mod] mod versspec
-
       # get actual module name if mod refers to an alias or symver
       set modres [resolveModuleVersionOrAlias $mod $icase]
       if {[info exists ::g_moduleEvalAttempt($modres)] && ($context eq\
@@ -6139,6 +6136,9 @@ proc getAbsolutePath {path} {
 # match exists among all array key elements, select dictionary highest version
 # if multiple icase matches are returned
 proc arrayKeyEq {arrname name icase} {
+   # extract specified module name from name and version spec
+   lassign [getModuleVersSpec $name] name versspec
+
    if {$icase} {
       upvar $arrname arr
       if {![info exists arr($name)]} {
