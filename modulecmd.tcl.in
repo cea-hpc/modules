@@ -4033,13 +4033,9 @@ proc modStartEqProcExtdflIcase {mod name} {
 }
 
 # Define procedure to get how many parts between passed name and mod are equal
-# Adapt procedure code whether icase and extended_default are enabled or
-# disabled
-proc defineModStartNbProc {icase extdfl} {
+# Adapt procedure code whether icase is enabled or disabled
+proc defineModStartNbProc {icase} {
    set procname modStartNbProc
-   if {$extdfl} {
-      append procname Extdfl
-   }
    if {$icase} {
       append procname Icase
    }
@@ -4054,83 +4050,51 @@ proc defineModStartNbProc {icase extdfl} {
 }
 
 # alternative definitions of modStartNb proc
-proc modStartNbProc {mod nametosplit} {
-   # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $nametosplit] nametosplit versspec
-   set namesplit [split $nametosplit /]
-
-   set modsplit [split $mod /]
-   # min expr function is not supported in Tcl8.4 and earlier
-   set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
-      $namesplit} {llength $modsplit}]
-   for {set i 0} {$i < $imax} {incr i} {
-      if {![string equal [lindex $modsplit $i] [lindex $namesplit $i]]} {
-         incr i -1
-         break
+proc modStartNbProc {mod name} {
+   # first compare against name's parent chunk by chunk
+   set modname [getModuleNameFromVersSpec $name]
+   if {$modname eq {.}} {
+      set i -1
+      set imax -1
+   } else {
+      set namesplit [split $modname /]
+      set modsplit [split $mod /]
+      # min expr function is not supported in Tcl8.4 and earlier
+      set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
+         $namesplit} {llength $modsplit}]
+      for {set i 0} {$i < $imax} {incr i} {
+         if {![string equal [lindex $modsplit $i] [lindex $namesplit $i]]} {
+            incr i -1
+            break
+         }
       }
+   }
+   # if name's parent matches check if full name also matches
+   if {$i == $imax && [modStartEq $mod $name]} {
+      incr i
    }
    return $i
 }
-proc modStartNbProcIcase {mod nametosplit} {
-   # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $nametosplit] nametosplit versspec
-   set namesplit [split $nametosplit /]
-
-   set modsplit [split $mod /]
-   set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
-      $namesplit} {llength $modsplit}]
-   for {set i 0} {$i < $imax} {incr i} {
-      if {![string equal -nocase [lindex $modsplit $i] [lindex $namesplit\
-         $i]]} {
-         incr i -1
-         break
-      }
-   }
-   return $i
-}
-proc modStartNbProcExtdfl {mod nametosplit} {
-   # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $nametosplit] nametosplit versspec
-   set namesplit [split $nametosplit /]
-
-   set modsplit [split $mod /]
-   # min expr function is not supported in Tcl8.4 and earlier
-   set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
-      $namesplit} {llength $modsplit}]
-   for {set i 0} {$i < $imax} {incr i} {
-      if {![string equal [lindex $modsplit $i] [lindex $namesplit $i]]} {
-         # apply an extended default match if last element of name and only if
-         # name is deeper than 1
-         if {($i + 1) < [llength $namesplit] || [llength $namesplit] == 1 ||\
-            ![string match [lindex $namesplit $i].* [lindex $modsplit\
+proc modStartNbProcIcase {mod name} {
+   set modname [getModuleNameFromVersSpec $name]
+   if {$modname eq {.}} {
+      set i -1
+      set imax -1
+   } else {
+      set namesplit [split $modname /]
+      set modsplit [split $mod /]
+      set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
+         $namesplit} {llength $modsplit}]
+      for {set i 0} {$i < $imax} {incr i} {
+         if {![string equal -nocase [lindex $modsplit $i] [lindex $namesplit\
             $i]]} {
             incr i -1
             break
          }
       }
    }
-   return $i
-}
-proc modStartNbProcExtdflIcase {mod nametosplit} {
-   # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $nametosplit] nametosplit versspec
-   set namesplit [split $nametosplit /]
-
-   set modsplit [split $mod /]
-   # min expr function is not supported in Tcl8.4 and earlier
-   set imax [if {[llength $namesplit] < [llength $modsplit]} {llength\
-      $namesplit} {llength $modsplit}]
-   for {set i 0} {$i < $imax} {incr i} {
-      if {![string equal -nocase [lindex $modsplit $i] [lindex $namesplit\
-         $i]]} {
-         # apply an extended default match if last element of name
-         if {($i + 1) < [llength $namesplit] || [llength $namesplit] == 1 ||\
-            ![string match -nocase [lindex $namesplit $i].* [lindex $modsplit\
-            $i]]} {
-            incr i -1
-            break
-         }
-      }
+   if {$i == $imax && [modStartEq $mod $name]} {
+      incr i
    }
    return $i
 }
@@ -4196,7 +4160,9 @@ proc getLoadedWithClosestName {name} {
 
    if {[info exists nametosplit]} {
       cacheCurrentModules
-      defineModStartNbProc [isIcase] [getConf extended_default]
+      set icase [isIcase]
+      defineModStartNbProc $icase
+      defineModStartEqProc $icase [getConf extended_default]
       # compare name to each currently loaded module name
       foreach mod [getLoadedModuleList] {
          # if module loaded as fullpath but test name not, try to get loaded
@@ -8151,6 +8117,19 @@ proc getModuleVersSpec {modarg} {
       set modvers {}
    }
    return [list $modname $modvers]
+}
+
+# get module name from module name and version spec if parsed
+proc getModuleNameFromVersSpec {modarg} {
+   if {[info exists ::g_moduleVersSpec($modarg)]} {
+      lassign $::g_moduleVersSpec($modarg) modname modvers
+      if {$modvers eq {}} {
+         set modname [file dirname $modname]
+      }
+   } else {
+      set modname [file dirname $modarg]
+   }
+   return $modname
 }
 
 # unload phase of a list of modules reload process
