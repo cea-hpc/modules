@@ -3799,7 +3799,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
       }
 
       # extract one module name from query
-      lassign [getModuleVersSpec $mod] modqe versspec
+      set modqe [getOneModuleFromVersSpec $mod]
 
       set icase [isIcase]
       defineArrayKeyMatchProc $icase [getConf extended_default] [getConf\
@@ -6887,7 +6887,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
       fetch_hidden=$fetch_hidden)"
 
    # extract one module name from query
-   lassign [getModuleVersSpec $mod] modqe versspec
+   set modqe [getOneModuleFromVersSpec $mod]
 
    # perform an in depth search or not
    set indepth [expr {[isInList $search noindepth] ? 0 : 1}]
@@ -7310,7 +7310,7 @@ proc listModules {dir mod show_mtime filter search} {
    array set mod_list [getModules $dir $mod $show_mtime $search]
 
    # extract one module name from query
-   lassign [getModuleVersSpec $mod] modqe versspec
+   set modqe [getOneModuleFromVersSpec $mod]
 
    # in depth search performed or not
    set indepth [expr {[isInList $search noindepth] ? 0 : 1}]
@@ -8068,6 +8068,20 @@ proc getAllModulesFromVersSpec {modarg} {
    lappend modlist $mod
 
    return $modlist
+}
+
+# translate module name version spec to return one module mentionned
+proc getOneModuleFromVersSpec {modarg} {
+   if {[info exists ::g_moduleVersSpec($modarg)]} {
+      lassign $::g_moduleVersSpec($modarg) mod modvers
+      if {$modvers ne {}} {
+         append mod /$modvers
+      }
+   } else {
+      set mod $modarg
+   }
+
+   return $mod
 }
 
 # unload phase of a list of modules reload process
