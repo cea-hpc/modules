@@ -6629,76 +6629,6 @@ proc modMatchAtDepthProcIndepthIcase {querydepth contains modspec modlist} {
    return $reslist
 }
 
-# Define procedure to compare module name against pattern. Adapt procedure
-# code whether icase and extended_default are enabled or disabled
-proc defineModMatchProc {icase extdfl} {
-   set procname modMatchProc
-   if {$icase} {
-      append procname Icase
-   }
-   if {$extdfl} {
-      append procname Extdfl
-   }
-
-   # define proc if not done yet or if it was defined for another context
-   if {[info procs modMatch] eq {} || $::g_modMatch_proc ne $procname} {
-      if {[info exists ::g_modMatch_proc]} {
-         rename ::modMatch ::$::g_modMatch_proc
-      }
-      rename ::$procname ::modMatch
-      set ::g_modMatch_proc $procname
-   }
-}
-
-# alternative definitions of modMatch proc
-proc modMatchProc {pattern mod {trspec 0} {psuf {}}} {
-   # extract specified module name from name and version spec
-   if {$trspec} {
-      lassign [getModuleVersSpec $pattern] pattern versspec
-   }
-   if {$psuf ne {}} {
-      append pattern $psuf
-   }
-
-   return [string match $pattern $mod]
-}
-proc modMatchProcIcase {pattern mod {trspec 0} {psuf {}}} {
-   # extract specified module name from name and version spec
-   if {$trspec} {
-      lassign [getModuleVersSpec $pattern] pattern versspec
-   }
-   if {$psuf ne {}} {
-      append pattern $psuf
-   }
-
-   return [string match -nocase $pattern $mod]
-}
-proc modMatchProcExtdfl {pattern mod {trspec 0} {psuf {}}} {
-   # extract specified module name from name and version spec
-   if {$trspec} {
-      lassign [getModuleVersSpec $pattern] pattern versspec
-   }
-   if {$psuf ne {}} {
-      append pattern $psuf
-   }
-
-   return [expr {[string match $pattern $mod] || ([string first / $pattern]\
-      != -1 && [string match $pattern.* $mod])}]
-}
-proc modMatchProcIcaseExtdfl {pattern mod {trspec 0} {psuf {}}} {
-   # extract specified module name from name and version spec
-   if {$trspec} {
-      lassign [getModuleVersSpec $pattern] pattern versspec
-   }
-   if {$psuf ne {}} {
-      append pattern $psuf
-   }
-
-   # filter out root modules from extended_default match
-   return [expr {[string match -nocase $pattern $mod] || ([string first /\
-      $pattern] != -1 && [string match -nocase $pattern.* $mod])}]
-}
-
 # Define procedure to check module name equals pattern. Adapt procedure
 # code whether icase and extended_default are enabled or disabled
 proc defineModEqProc {icase extdfl} {
@@ -6721,58 +6651,67 @@ proc defineModEqProc {icase extdfl} {
 }
 
 # alternative definitions of modEq proc
-proc modEqProc {pattern mod {test equal}} {
+proc modEqProc {pattern mod {test equal} {trspec 1} {psuf {}}} {
    # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $pattern] pattern versspec
-   if {$test eq {eqstart}} {
-      set test equal
-      append pattern /
-      append mod /
-      set len [string length $pattern]
-   } else {
-      set len -1
+   if {$trspec} {
+      lassign [getModuleVersSpec $pattern] pattern versspec
    }
-   return [string $test -length $len $pattern $mod]
-}
-proc modEqProcIcase {pattern mod {test equal}} {
-   lassign [getModuleVersSpec $pattern] pattern versspec
-   if {$test eq {eqstart}} {
-      set test equal
-      append pattern /
-      append mod /
-      set len [string length $pattern]
-   } else {
-      set len -1
+   if {$psuf ne {}} {
+      append pattern $psuf
    }
-   return [string $test -nocase -length $len $pattern $mod]
-}
-proc modEqProcExtdfl {pattern mod {test equal}} {
-   lassign [getModuleVersSpec $pattern] pattern versspec
    if {$test eq {eqstart}} {
-      set test equal
-      set suf /
-      set len [string length $pattern$suf]
+      set ret [string equal -length [string length $pattern/] $pattern/ $mod/]
    } else {
-      set suf {}
-      set len -1
+      set ret [string $test $pattern $mod]
    }
-   return [expr {[string $test -length $len $pattern$suf $mod$suf] ||\
-      ([string first / $pattern] != -1 && [string match $pattern.* $mod])}]
+   return $ret
 }
-proc modEqProcIcaseExtdfl {pattern mod {test equal}} {
-   lassign [getModuleVersSpec $pattern] pattern versspec
+proc modEqProcIcase {pattern mod {test equal} {trspec 1} {psuf {}}} {
+   if {$trspec} {
+      lassign [getModuleVersSpec $pattern] pattern versspec
+   }
+   if {$psuf ne {}} {
+      append pattern $psuf
+   }
    if {$test eq {eqstart}} {
-      set test equal
-      set suf /
-      set len [string length $pattern$suf]
+      set ret [string equal -nocase -length [string length $pattern/]\
+         $pattern/ $mod/]
    } else {
-      set suf {}
-      set len -1
+      set ret [string $test -nocase $pattern $mod]
+   }
+   return $ret
+}
+proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
+   if {$trspec} {
+      lassign [getModuleVersSpec $pattern] pattern versspec
+   }
+   if {$psuf ne {}} {
+      append pattern $psuf
+   }
+   if {$test eq {eqstart}} {
+      set ret [string equal -length [string length $pattern/] $pattern/ $mod/]
+   } else {
+      set ret [string $test $pattern $mod]
+   }
+   return [expr {$ret || ([string first / $pattern] != -1 && [string match\
+      $pattern.* $mod])}]
+}
+proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
+   if {$trspec} {
+      lassign [getModuleVersSpec $pattern] pattern versspec
+   }
+   if {$psuf ne {}} {
+      append pattern $psuf
+   }
+   if {$test eq {eqstart}} {
+      set ret [string equal -nocase -length [string length $pattern/]\
+         $pattern/ $mod/]
+   } else {
+      set ret [string $test -nocase $pattern $mod]
    }
    # filter out root modules from extended_default match
-   return [expr {[string $test -nocase -length $len $pattern$suf $mod$suf] ||\
-      ([string first / $pattern] != -1 && [string match -nocase $pattern.*\
-      $mod])}]
+   return [expr {$ret || ([string first / $pattern] != -1 && [string match\
+      -nocase $pattern.* $mod])}]
 }
 
 # check if an existing findModules cache entry matches current search by
@@ -6825,7 +6764,8 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
          foreach {fpelt hid} [getFilesInDirectory $dir $fetch_hidden 0] {
             set elt [file tail $fpelt]
             # include any .modulerc file found at the modulepath root
-            if {$elt eq {.modulerc} || $mod eq {} || [modMatch $mod $elt]} {
+            if {$elt eq {.modulerc} || $mod eq {} || [modEq $mod $elt match\
+               0]} {
                lappend full_list $fpelt
             }
          }
@@ -6956,7 +6896,6 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
    set icase [isIcase]
 
    # define module name and version comparison procs
-   defineModMatchProc $icase [getConf extended_default]
    defineModMatchAtDepthProc $indepth $icase
    defineModEqProc $icase [getConf extended_default]
 
@@ -7018,9 +6957,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
       # add other entry kind to the result list
       # also add dirname to results if query name finishes with trailing slash
       } elseif {($wild && [llength [modMatchAtDepth $querydepth $contains\
-         $mod [list $elt]]]) || (!$wild && ([modMatch $mod $elt 1 /*] ||\
-         [modMatch $mod $elt 1])) || ($isquerydir && $elt_type eq {directory}\
-         && [modMatch $querydir $elt])} {
+         $mod [list $elt]]]) || (!$wild && ([modEq $mod $elt match 1 /*] ||\
+         [modEq $mod $elt match])) || ($isquerydir && $elt_type eq\
+         {directory} && [modEq $querydir $elt match 0])} {
          set mod_list($elt) $found_list($elt)
          # list dirs to rework their definition at the end
          if {$elt_type eq {directory}} {
@@ -7063,8 +7002,8 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
             if {[lindex $found_list($versmod) 0] eq {directory}} {
                set dir_list($versmod) 1
                foreach elt [array names found_list] {
-                  if {![info exists mod_list($elt)] && [modMatch $versmod/*\
-                     $elt]} {
+                  if {![info exists mod_list($elt)] && [modEq $versmod/* $elt\
+                     match 0]} {
                      set mod_list($elt) $found_list($elt)
                      # list dirs to rework their definition at the end
                      if {[lindex $found_list($elt) 0] eq {directory}} {
@@ -7428,7 +7367,7 @@ proc listModules {dir mod show_mtime filter search} {
          # do not add a dir if it does not hold tags and depth mode is enabled
          # or if search query corresponds to dir: only its content is relevant
          if {$elt_type eq {directory} && (($indepth && [llength $tag_list]\
-            == 0) || ($isquerydir && [modMatch $querydir $elt]))} {
+            == 0) || ($isquerydir && [modEq $querydir $elt match 0]))} {
             set add_to_clean_list 0
          }
       }
@@ -8343,7 +8282,7 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    # to mix with valid search results
    inhibitErrorReport
 
-   defineModMatchProc [isIcase] [getConf extended_default]
+   defineModEqProc [isIcase] [getConf extended_default]
 
    lappend searchmod rc_defs_included
    if {$mod eq {}} {
