@@ -3723,10 +3723,15 @@ proc isSameModuleRoot {mod1 mod2} {
 }
 
 # test if one module name from module specification is hidden
-proc isModuleSpecHidden {mod} {
-   # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $mod] mod versspec
-   return [isModuleHidden $mod]
+proc isModuleSpecHidden {modspec} {
+   set ret 0
+   foreach mod [getAllModulesFromVersSpec $modspec] {
+      if {[isModuleHidden $mod]} {
+         set ret 1
+         break
+      }
+   }
+   return $ret
 }
 
 # test if one element in module name has a leading "dot" making this module
@@ -8051,6 +8056,18 @@ proc getModuleNameFromVersSpec {modarg} {
       set modname [file dirname $modarg]
    }
    return $modname
+}
+
+# translate module name version spec to return all modules mentionned
+proc getAllModulesFromVersSpec {modarg} {
+   if {[info exists ::g_moduleVersSpec($modarg)]} {
+      set mod [join $::g_moduleVersSpec($modarg) /]
+   } else {
+      set mod $modarg
+   }
+   lappend modlist $mod
+
+   return $modlist
 }
 
 # unload phase of a list of modules reload process
