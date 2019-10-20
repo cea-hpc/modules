@@ -6634,6 +6634,113 @@ proc modMatchAtDepthProcIndepthIcase {querydepth contains modspec modlist} {
    return $reslist
 }
 
+# Define procedure to check module version equals pattern. Adapt procedure
+# code whether icase and extended_default are enabled or disabled
+proc defineModVersCmpProc {icase extdfl} {
+   set procname modVersCmpProc
+   if {$icase} {
+      append procname Icase
+   }
+   if {$extdfl} {
+      append procname Extdfl
+   }
+
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs modVersCmp] eq {} || $::g_modVersCmp_proc ne $procname} {
+      if {[info exists ::g_modVersCmp_proc]} {
+         rename ::modVersCmp ::$::g_modVersCmp_proc
+      }
+      rename ::$procname ::modVersCmp
+      set ::g_modVersCmp_proc $procname
+   }
+}
+
+# alternative definitions of modVersCmp proc
+proc modVersCmpProc {cmpspec versspec modvers test {psuf {}}} {
+   set ret 0
+   switch -- $cmpspec {
+      in {
+         foreach vers $versspec {
+            append vers $psuf
+            if {$test eq {eqstart}} {
+               set ret [string equal -length [string length $vers/] $vers/\
+                  $modvers/]
+            } else {
+               set ret [string $test $vers $modvers]
+            }
+            if {$ret} {
+               break
+            }
+         }
+      }
+   }
+   return $ret
+}
+proc modVersCmpProcIcase {cmpspec versspec modvers test {psuf {}}} {
+   set ret 0
+   switch -- $cmpspec {
+      in {
+         foreach vers $versspec {
+            append vers $psuf
+            if {$test eq {eqstart}} {
+               set ret [string equal -nocase -length [string length $vers/]\
+                  $vers/ $modvers/]
+            } else {
+               set ret [string $test -nocase $vers $modvers]
+            }
+            if {$ret} {
+               break
+            }
+         }
+      }
+   }
+   return $ret
+}
+proc modVersCmpProcExtdfl {cmpspec versspec modvers test {psuf {}}} {
+   set ret 0
+   switch -- $cmpspec {
+      in {
+         foreach vers $versspec {
+            append vers $psuf
+            if {$test eq {eqstart}} {
+               set ret [string equal -length [string length $vers/] $vers/\
+                  $modvers/]
+            } else {
+               set ret [string $test $vers $modvers]
+            }
+            set ret [expr {$ret || [string match $vers.* $modvers]}]
+            if {$ret} {
+               break
+            }
+         }
+      }
+   }
+   return $ret
+}
+proc modVersCmpProcIcaseExtdfl {cmpspec versspec modvers test {psuf {}}} {
+   set ret 0
+   switch -- $cmpspec {
+      in {
+         # check if one version in list matches
+         foreach vers $versspec {
+            append vers $psuf
+            if {$test eq {eqstart}} {
+               set ret [string equal -nocase -length [string length $vers/]\
+                  $vers/ $modvers/]
+            } else {
+               set ret [string $test -nocase $vers $modvers]
+            }
+            set ret [expr {$ret || [string match -nocase $vers.* $modvers]}]
+            if {$ret} {
+               break
+            }
+         }
+      }
+   }
+   return $ret
+}
+
+
 # Define procedure to check module name equals pattern. Adapt procedure
 # code whether icase and extended_default are enabled or disabled
 proc defineModEqProc {icase extdfl} {
@@ -6653,70 +6760,118 @@ proc defineModEqProc {icase extdfl} {
       rename ::$procname ::modEq
       set ::g_modEq_proc $procname
    }
+
+   # also define modVersCmp which is called by modEq
+   defineModVersCmpProc $icase $extdfl
 }
 
 # alternative definitions of modEq proc
 proc modEqProc {pattern mod {test equal} {trspec 1} {psuf {}}} {
    # extract specified module name from name and version spec
    if {$trspec} {
-      lassign [getModuleFromVersSpec $pattern] pattern
-   }
-   if {$psuf ne {}} {
-      append pattern $psuf
-   }
-   if {$test eq {eqstart}} {
-      set ret [string equal -length [string length $pattern/] $pattern/ $mod/]
+      lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec
    } else {
-      set ret [string $test $pattern $mod]
+      set pmod $pattern
+   }
+   # specified module can be translated in a simple module name/version
+   if {$pmod ne {}} {
+      if {$psuf ne {}} {
+         append pmod $psuf
+      }
+      if {$test eq {eqstart}} {
+         set ret [string equal -length [string length $pmod/] $pmod/ $mod/]
+      } else {
+         set ret [string $test $pmod $mod]
+      }
+   # for more complex specification, first check if module name matches
+   } elseif {[string equal -length [string length $pmodname/] $pmodname/\
+      $mod/]} {
+      # then compare versions
+      set modvers [string range $mod [string length $pmodname/] end]
+      set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
+   } else {
+      set ret 0
    }
    return $ret
 }
 proc modEqProcIcase {pattern mod {test equal} {trspec 1} {psuf {}}} {
    if {$trspec} {
-      lassign [getModuleFromVersSpec $pattern] pattern
-   }
-   if {$psuf ne {}} {
-      append pattern $psuf
-   }
-   if {$test eq {eqstart}} {
-      set ret [string equal -nocase -length [string length $pattern/]\
-         $pattern/ $mod/]
+      lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec
    } else {
-      set ret [string $test -nocase $pattern $mod]
+      set pmod $pattern
+   }
+   if {$pmod ne {}} {
+      if {$psuf ne {}} {
+         append pmod $psuf
+      }
+      if {$test eq {eqstart}} {
+         set ret [string equal -nocase -length [string length $pmod/] $pmod/\
+            $mod/]
+      } else {
+         set ret [string $test -nocase $pmod $mod]
+      }
+   } elseif {[string equal -nocase -length [string length $pmodname/]\
+      $pmodname/ $mod/]} {
+      set modvers [string range $mod [string length $pmodname/] end]
+      set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
+   } else {
+      set ret 0
    }
    return $ret
 }
 proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
    if {$trspec} {
-      lassign [getModuleFromVersSpec $pattern] pattern
-   }
-   if {$psuf ne {}} {
-      append pattern $psuf
-   }
-   if {$test eq {eqstart}} {
-      set ret [string equal -length [string length $pattern/] $pattern/ $mod/]
+      lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec
    } else {
-      set ret [string $test $pattern $mod]
+      set pmod $pattern
    }
-   return [expr {$ret || ([string first / $pattern] != -1 && [string match\
-      $pattern.* $mod])}]
+   if {$pmod ne {}} {
+      if {$psuf ne {}} {
+         append pmod $psuf
+      }
+      if {$test eq {eqstart}} {
+         set ret [string equal -length [string length $pmod/] $pmod/ $mod/]
+      } else {
+         set ret [string $test $pmod $mod]
+      }
+      set ret [expr {$ret || ([string first / $pmod] != -1 && [string match\
+         $pmod.* $mod])}]
+   } elseif {[string equal -length [string length $pmodname/] $pmodname/\
+      $mod/]} {
+      set modvers [string range $mod [string length $pmodname/] end]
+      set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
+   } else {
+      set ret 0
+   }
+   return $ret
 }
 proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
    if {$trspec} {
-      lassign [getModuleFromVersSpec $pattern] pattern
-   }
-   if {$psuf ne {}} {
-      append pattern $psuf
-   }
-   if {$test eq {eqstart}} {
-      set ret [string equal -nocase -length [string length $pattern/]\
-         $pattern/ $mod/]
+      lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec
    } else {
-      set ret [string $test -nocase $pattern $mod]
+      set pmod $pattern
    }
-   # filter out root modules from extended_default match
-   return [expr {$ret || ([string first / $pattern] != -1 && [string match\
-      -nocase $pattern.* $mod])}]
+   if {$pmod ne {}} {
+      if {$psuf ne {}} {
+         append pmod $psuf
+      }
+      if {$test eq {eqstart}} {
+         set ret [string equal -nocase -length [string length $pmod/] $pmod/\
+            $mod/]
+      } else {
+         set ret [string $test -nocase $pmod $mod]
+      }
+      # filter out root modules from extended_default match
+      set ret [expr {$ret || ([string first / $pmod] != -1 && [string match\
+         -nocase $pmod.* $mod])}]
+   } elseif {[string equal -nocase -length [string length $pmodname/]\
+      $pmodname/ $mod/]} {
+      set modvers [string range $mod [string length $pmodname/] end]
+      set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
+   } else {
+      set ret 0
+   }
+   return $ret
 }
 
 # check if an existing findModules cache entry matches current search by
@@ -8078,6 +8233,14 @@ proc getModuleFromVersSpec {modarg} {
       set mod $modarg
    }
    return [list $mod]
+}
+
+proc getModuleVersSpec {modarg} {
+   if {[info exists ::g_moduleVersSpec($modarg)]} {
+      return $::g_moduleVersSpec($modarg)
+   } else {
+      return [list $modarg {} {} {}]
+   }
 }
 
 # get module name from module name and version spec if parsed
