@@ -7987,9 +7987,17 @@ proc parseModuleVersionSpecifier {args} {
                if {[info exists modarglist]} {
                   set modarg [join $modarglist]
                   if {[info exists modname]} {
-                     reportDebug "Set module name '$modname' and version\
-                        specifier '$modspec' for argument '$modarg'"
-                     set ::g_moduleVersSpec($modarg) [list $modname $modspec]
+                     if {$versspec eq {}} {
+                        set mod $modname
+                        set modname [file dirname $modname]
+                     } else {
+                        set mod $modname/$versspec
+                     }
+                     reportDebug "Set module '$mod', module name '$modname',\
+                        version cmp '$cmpspec' and version(s) '$versspec' for\
+                        argument '$modarg'"
+                     set ::g_moduleVersSpec($modarg) [list $mod $modname\
+                        $cmpspec $versspec]
                      # rework args to have 1 str element for whole module spec
                      lappend arglist $modarg
                   } elseif {$modspec ne {}} {
@@ -8006,15 +8014,25 @@ proc parseModuleVersionSpecifier {args} {
             if {[string first / $modspec] != -1} {
                error "Invalid version specifier '$modspec'"
             }
+            set cmpspec eq
+            set versspec $modspec
             lappend modarglist $arg
          }
          # transform last args
          if {[info exists modarglist]} {
             set modarg [join $modarglist]
             if {[info exists modname]} {
-               reportDebug "Set module name '$modname' and version specifier\
-                  '$modspec' for argument '$modarg'"
-               set ::g_moduleVersSpec($modarg) [list $modname $modspec]
+               if {$versspec eq {}} {
+                  set mod $modname
+                  set modname [file dirname $modname]
+               } else {
+                  set mod $modname/$versspec
+               }
+               reportDebug "Set module '$mod', module name '$modname',\
+                  version cmp '$cmpspec' and version(s) '$versspec' for\
+                  argument '$modarg'"
+               set ::g_moduleVersSpec($modarg) [list $mod $modname $cmpspec\
+                  $versspec]
                # rework args to have 1 string element for whole module spec
                lappend arglist $modarg
             } elseif {$modspec ne {}} {
@@ -8034,10 +8052,7 @@ proc parseModuleVersionSpecifier {args} {
 # get extracted module name from passed argument if parsed
 proc getModuleFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      lassign $::g_moduleVersSpec($modarg) mod modvers
-      if {$modvers ne {}} {
-         append mod /$modvers
-      }
+      lassign $::g_moduleVersSpec($modarg) mod
    } else {
       set mod $modarg
    }
@@ -8047,10 +8062,7 @@ proc getModuleFromVersSpec {modarg} {
 # get module name from module name and version spec if parsed
 proc getModuleNameFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      lassign $::g_moduleVersSpec($modarg) modname modvers
-      if {$modvers eq {}} {
-         set modname [file dirname $modname]
-      }
+      lassign $::g_moduleVersSpec($modarg) mod modname
    } else {
       set modname [file dirname $modarg]
    }
@@ -8060,7 +8072,7 @@ proc getModuleNameFromVersSpec {modarg} {
 # translate module name version spec to return all modules mentionned
 proc getAllModulesFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      set mod [join $::g_moduleVersSpec($modarg) /]
+      lassign $::g_moduleVersSpec($modarg) mod
    } else {
       set mod $modarg
    }
@@ -8072,10 +8084,7 @@ proc getAllModulesFromVersSpec {modarg} {
 # translate module name version spec to return one module mentionned
 proc getOneModuleFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      lassign $::g_moduleVersSpec($modarg) mod modvers
-      if {$modvers ne {}} {
-         append mod /$modvers
-      }
+      lassign $::g_moduleVersSpec($modarg) mod
    } else {
       set mod $modarg
    }
