@@ -6057,7 +6057,7 @@ proc getAbsolutePath {path} {
 # if multiple icase matches are returned
 proc arrayKeyEq {arrname name icase} {
    # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $name] name versspec
+   lassign [getModuleFromVersSpec $name] name
 
    if {$icase} {
       upvar $arrname arr
@@ -6103,7 +6103,7 @@ proc defineArrayKeyMatchProc {icase extdfl impdfl} {
 # alternative definitions of arrayKeyMatch proc
 proc arrayKeyMatchProc {arrname name} {
    # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $name] name versspec
+   lassign [getModuleFromVersSpec $name] name
    set name [string trimright $name /]
 
    return $name
@@ -6113,7 +6113,7 @@ proc arrayKeyMatchProc {arrname name} {
 # part of match list, elsewhere return highest result
 proc arrayKeyMatchProcExtdflImpdfl {arrname name} {
    # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $name] name versspec
+   lassign [getModuleFromVersSpec $name] name
    set name [string trimright $name /]
 
    upvar $arrname arr
@@ -6143,7 +6143,7 @@ proc arrayKeyMatchProcExtdflImpdfl {arrname name} {
 }
 proc arrayKeyMatchProcExtdfl {arrname name} {
    # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $name] name versspec
+   lassign [getModuleFromVersSpec $name] name
    set name [string trimright $name /]
 
    upvar $arrname arr
@@ -6172,7 +6172,7 @@ proc arrayKeyMatchProcExtdfl {arrname name} {
 }
 proc arrayKeyMatchProcExtdflImpdflIcase {arrname name} {
    # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $name] name versspec
+   lassign [getModuleFromVersSpec $name] name
    set name [string trimright $name /]
 
    upvar $arrname arr
@@ -6210,7 +6210,7 @@ proc arrayKeyMatchProcExtdflImpdflIcase {arrname name} {
 }
 proc arrayKeyMatchProcExtdflIcase {arrname name} {
    # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $name] name versspec
+   lassign [getModuleFromVersSpec $name] name
    set name [string trimright $name /]
 
    upvar $arrname arr
@@ -6247,7 +6247,7 @@ proc arrayKeyMatchProcExtdflIcase {arrname name} {
 }
 proc arrayKeyMatchProcIcase {arrname name} {
    # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $name] name versspec
+   lassign [getModuleFromVersSpec $name] name
    set name [string trimright $name /]
 
    upvar $arrname arr
@@ -6581,7 +6581,7 @@ proc defineModMatchAtDepthProc {indepth icase} {
 # alternative definitions of modMatchAtDepth proc
 proc modMatchAtDepthProc {querydepth contains modspec modlist} {
    # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $modspec] modmatch versspec
+   lassign [getModuleFromVersSpec $modspec] modmatch
    set modmatch [expr {$contains ? "*$modmatch*" : "$modmatch*"}]
 
    set reslist [list]
@@ -6595,7 +6595,7 @@ proc modMatchAtDepthProc {querydepth contains modspec modlist} {
 }
 proc modMatchAtDepthProcIcase {querydepth contains modspec modlist} {
    # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $modspec] modmatch versspec
+   lassign [getModuleFromVersSpec $modspec] modmatch
    set modmatch [expr {$contains ? "*$modmatch*" : "$modmatch*"}]
 
    set reslist [list]
@@ -6609,7 +6609,7 @@ proc modMatchAtDepthProcIcase {querydepth contains modspec modlist} {
 }
 proc modMatchAtDepthProcIndepth {querydepth contains modspec modlist} {
    # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $modspec] modmatch versspec
+   lassign [getModuleFromVersSpec $modspec] modmatch
    set modmatch [expr {$contains ? "*$modmatch*" : "$modmatch*"}]
 
    set reslist [list]
@@ -6622,7 +6622,7 @@ proc modMatchAtDepthProcIndepth {querydepth contains modspec modlist} {
 }
 proc modMatchAtDepthProcIndepthIcase {querydepth contains modspec modlist} {
    # extract specified module name from name and version spec
-   lassign [getModuleVersSpec $modspec] modmatch versspec
+   lassign [getModuleFromVersSpec $modspec] modmatch
    set modmatch [expr {$contains ? "*$modmatch*" : "$modmatch*"}]
 
    set reslist [list]
@@ -6659,7 +6659,7 @@ proc defineModEqProc {icase extdfl} {
 proc modEqProc {pattern mod {test equal} {trspec 1} {psuf {}}} {
    # extract specified module name from name and version spec
    if {$trspec} {
-      lassign [getModuleVersSpec $pattern] pattern versspec
+      lassign [getModuleFromVersSpec $pattern] pattern
    }
    if {$psuf ne {}} {
       append pattern $psuf
@@ -6673,7 +6673,7 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {psuf {}}} {
 }
 proc modEqProcIcase {pattern mod {test equal} {trspec 1} {psuf {}}} {
    if {$trspec} {
-      lassign [getModuleVersSpec $pattern] pattern versspec
+      lassign [getModuleFromVersSpec $pattern] pattern
    }
    if {$psuf ne {}} {
       append pattern $psuf
@@ -6688,7 +6688,7 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {psuf {}}} {
 }
 proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
    if {$trspec} {
-      lassign [getModuleVersSpec $pattern] pattern versspec
+      lassign [getModuleFromVersSpec $pattern] pattern
    }
    if {$psuf ne {}} {
       append pattern $psuf
@@ -6703,7 +6703,7 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
 }
 proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
    if {$trspec} {
-      lassign [getModuleVersSpec $pattern] pattern versspec
+      lassign [getModuleFromVersSpec $pattern] pattern
    }
    if {$psuf ne {}} {
       append pattern $psuf
@@ -8031,18 +8031,17 @@ proc parseModuleVersionSpecifier {args} {
    return $arglist
 }
 
-# get extracted module name and version spec from passed argument if parsed
-proc getModuleVersSpec {modarg} {
+# get extracted module name from passed argument if parsed
+proc getModuleFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      lassign $::g_moduleVersSpec($modarg) modname modvers
+      lassign $::g_moduleVersSpec($modarg) mod modvers
       if {$modvers ne {}} {
-         append modname /$modvers
+         append mod /$modvers
       }
    } else {
-      set modname $modarg
-      set modvers {}
+      set mod $modarg
    }
-   return [list $modname $modvers]
+   return [list $mod]
 }
 
 # get module name from module name and version spec if parsed
