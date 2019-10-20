@@ -7977,6 +7977,7 @@ proc parseModuleVersionSpecifier {args} {
       }
 
       if {[info exists need_parse]} {
+         set invalidversspec 0
          set arglist [list]
          foreach arg $args {
             # extract module name and version specifier from arg
@@ -7991,7 +7992,12 @@ proc parseModuleVersionSpecifier {args} {
                         set mod $modname
                         set modname [file dirname $modname]
                      } else {
-                        set mod $modname/$versspec
+                        set modname [string trimright $modname /]
+                        if {$cmpspec eq {in}} {
+                           set mod {}
+                        } else {
+                           set mod $modname/$versspec
+                        }
                      }
                      reportDebug "Set module '$mod', module name '$modname',\
                         version cmp '$cmpspec' and version(s) '$versspec' for\
@@ -8012,10 +8018,20 @@ proc parseModuleVersionSpecifier {args} {
             set modspec [lindex $curverslist end]
             # no deep version specification allowed
             if {[string first / $modspec] != -1} {
+               set invalidversspec 1
+            # ',' separates multiple versions
+            } elseif {[string first , $modspec] != -1} {
+               set cmpspec in
+               set versspec [split $modspec ,]
+               # empty element in list is erroneous
+               set invalidversspec [expr {[lsearch -exact $versspec {}] != -1}]
+            } else {
+               set cmpspec eq
+               set versspec $modspec
+            }
+            if {$invalidversspec} {
                error "Invalid version specifier '$modspec'"
             }
-            set cmpspec eq
-            set versspec $modspec
             lappend modarglist $arg
          }
          # transform last args
@@ -8026,7 +8042,12 @@ proc parseModuleVersionSpecifier {args} {
                   set mod $modname
                   set modname [file dirname $modname]
                } else {
-                  set mod $modname/$versspec
+                  set modname [string trimright $modname /]
+                  if {$cmpspec eq {in}} {
+                     set mod {}
+                  } else {
+                     set mod $modname/$versspec
+                  }
                }
                reportDebug "Set module '$mod', module name '$modname',\
                   version cmp '$cmpspec' and version(s) '$versspec' for\
@@ -8072,11 +8093,18 @@ proc getModuleNameFromVersSpec {modarg} {
 # translate module name version spec to return all modules mentionned
 proc getAllModulesFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      lassign $::g_moduleVersSpec($modarg) mod
+      lassign $::g_moduleVersSpec($modarg) mod modname cmpspec versspec
+      if {$mod eq {} && $cmpspec ne {eq}} {
+         foreach vers $versspec {
+            lappend modlist $modname/$vers
+         }
+      } else {
+         # add empty mod specification if cmpspec is 'eq'
+         lappend modlist $mod
+      }
    } else {
-      set mod $modarg
+      lappend modlist $modarg
    }
-   lappend modlist $mod
 
    return $modlist
 }
@@ -8084,7 +8112,10 @@ proc getAllModulesFromVersSpec {modarg} {
 # translate module name version spec to return one module mentionned
 proc getOneModuleFromVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
-      lassign $::g_moduleVersSpec($modarg) mod
+      lassign $::g_moduleVersSpec($modarg) mod modname cmpspec versspec
+      if {$mod eq {} && $cmpspec ne {eq}} {
+         set mod $modname/[lindex $versspec 0]
+      }
    } else {
       set mod $modarg
    }
