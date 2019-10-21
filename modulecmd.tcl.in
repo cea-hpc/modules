@@ -6769,7 +6769,8 @@ proc defineModEqProc {icase extdfl} {
 proc modEqProc {pattern mod {test equal} {trspec 1} {psuf {}}} {
    # extract specified module name from name and version spec
    if {$trspec} {
-      lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec
+      lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
+         pmodnamere
    } else {
       set pmod $pattern
    }
@@ -6783,20 +6784,25 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {psuf {}}} {
       } else {
          set ret [string $test $pmod $mod]
       }
-   # for more complex specification, first check if module name matches
-   } elseif {[string equal -length [string length $pmodname/] $pmodname/\
-      $mod/]} {
-      # then compare versions
-      set modvers [string range $mod [string length $pmodname/] end]
-      set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
    } else {
-      set ret 0
+      # for more complex specification, first check if module name matches
+      # use a regexp test if module name contains wildcard characters
+      if {($pmodnamere ne {} && $test eq {match} && [regexp (^$pmodnamere)/\
+         $mod/ rematch pmodname]) || [string equal -length [string length\
+         $pmodname/] $pmodname/ $mod/]} {
+         # then compare versions
+         set modvers [string range $mod [string length $pmodname/] end]
+         set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
+      } else {
+         set ret 0
+      }
    }
    return $ret
 }
 proc modEqProcIcase {pattern mod {test equal} {trspec 1} {psuf {}}} {
    if {$trspec} {
-      lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec
+      lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
+         pmodnamere
    } else {
       set pmod $pattern
    }
@@ -6810,18 +6816,25 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {psuf {}}} {
       } else {
          set ret [string $test -nocase $pmod $mod]
       }
-   } elseif {[string equal -nocase -length [string length $pmodname/]\
-      $pmodname/ $mod/]} {
-      set modvers [string range $mod [string length $pmodname/] end]
-      set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
    } else {
-      set ret 0
+      # for more complex specification, first check if module name matches
+      # use a regexp test if module name contains wildcard characters
+      if {($pmodnamere ne {} && $test eq {match} && [regexp -nocase\
+         (^$pmodnamere)/ $mod/ rematch pmodname]) || [string equal -nocase\
+         -length [string length $pmodname/] $pmodname/ $mod/]} {
+         # then compare versions
+         set modvers [string range $mod [string length $pmodname/] end]
+         set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
+      } else {
+         set ret 0
+      }
    }
    return $ret
 }
 proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
    if {$trspec} {
-      lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec
+      lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
+         pmodnamere
    } else {
       set pmod $pattern
    }
@@ -6836,18 +6849,25 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
       }
       set ret [expr {$ret || ([string first / $pmod] != -1 && [string match\
          $pmod.* $mod])}]
-   } elseif {[string equal -length [string length $pmodname/] $pmodname/\
-      $mod/]} {
-      set modvers [string range $mod [string length $pmodname/] end]
-      set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
    } else {
-      set ret 0
+      # for more complex specification, first check if module name matches
+      # use a regexp test if module name contains wildcard characters
+      if {($pmodnamere ne {} && $test eq {match} && [regexp (^$pmodnamere)/\
+         $mod/ rematch pmodname]) || [string equal -length [string length\
+         $pmodname/] $pmodname/ $mod/]} {
+         # then compare versions
+         set modvers [string range $mod [string length $pmodname/] end]
+         set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
+      } else {
+         set ret 0
+      }
    }
    return $ret
 }
 proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
    if {$trspec} {
-      lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec
+      lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
+         pmodnamere
    } else {
       set pmod $pattern
    }
@@ -6864,12 +6884,18 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
       # filter out root modules from extended_default match
       set ret [expr {$ret || ([string first / $pmod] != -1 && [string match\
          -nocase $pmod.* $mod])}]
-   } elseif {[string equal -nocase -length [string length $pmodname/]\
-      $pmodname/ $mod/]} {
-      set modvers [string range $mod [string length $pmodname/] end]
-      set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
    } else {
-      set ret 0
+      # for more complex specification, first check if module name matches
+      # use a regexp test if module name contains wildcard characters
+      if {($pmodnamere ne {} && $test eq {match} && [regexp -nocase\
+         (^$pmodnamere)/ $mod/ rematch pmodname]) || [string equal -nocase\
+         -length [string length $pmodname/] $pmodname/ $mod/]} {
+         # then compare versions
+         set modvers [string range $mod [string length $pmodname/] end]
+         set ret [modVersCmp $cmpspec $versspec $modvers $test $psuf]
+      } else {
+         set ret 0
+      }
    }
    return $ret
 }
@@ -8154,11 +8180,18 @@ proc parseModuleVersionSpecifier {args} {
                            set mod $modname/$versspec
                         }
                      }
-                     reportDebug "Set module '$mod', module name '$modname',\
-                        version cmp '$cmpspec' and version(s) '$versspec' for\
-                        argument '$modarg'"
+                     # save a regexp-ready version of modname (apply
+                     # non-greedy quantifier to '*', to avoid matching final
+                     # '/' in string comparison
+                     set modnamere [string map {. \\. + \\+ * .*? ? .} $modname]
+                     if {$modname eq $modnamere} {
+                        set modnamere {}
+                     }
+                     reportDebug "Set module '$mod', module name '$modname'\
+                        (re: $modnamere), version cmp '$cmpspec' and\
+                        version(s) '$versspec' for argument '$modarg'"
                      set ::g_moduleVersSpec($modarg) [list $mod $modname\
-                        $cmpspec $versspec]
+                        $cmpspec $versspec $modnamere]
                      # rework args to have 1 str element for whole module spec
                      lappend arglist $modarg
                   } elseif {$modspec ne {}} {
@@ -8204,11 +8237,15 @@ proc parseModuleVersionSpecifier {args} {
                      set mod $modname/$versspec
                   }
                }
-               reportDebug "Set module '$mod', module name '$modname',\
-                  version cmp '$cmpspec' and version(s) '$versspec' for\
-                  argument '$modarg'"
+               set modnamere [string map {. \\. + \\+ * .*? ? .} $modname]
+               if {$modname eq $modnamere} {
+                  set modnamere {}
+               }
+               reportDebug "Set module '$mod', module name '$modname' (re:\
+                  $modnamere), version cmp '$cmpspec' and version(s)\
+                  '$versspec' for argument '$modarg'"
                set ::g_moduleVersSpec($modarg) [list $mod $modname $cmpspec\
-                  $versspec]
+                  $versspec $modnamere]
                # rework args to have 1 string element for whole module spec
                lappend arglist $modarg
             } elseif {$modspec ne {}} {
@@ -8239,7 +8276,7 @@ proc getModuleVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
       return $::g_moduleVersSpec($modarg)
    } else {
-      return [list $modarg {} {} {}]
+      return [list $modarg {} {} {} {}]
    }
 }
 
