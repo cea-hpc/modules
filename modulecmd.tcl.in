@@ -6782,9 +6782,23 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {psuf {}}} {
       if {$test eq {eqstart}} {
          set ret [string equal -length [string length $pmod/] $pmod/ $mod/]
       } else {
+         # contains test
+         if {$test eq {matchin}} {
+            set test match
+            set pmod *$pmod
+         }
          set ret [string $test $pmod $mod]
       }
    } else {
+      # contains test
+      if {$test eq {matchin}} {
+         set test match
+         if {$pmodnamere ne {}} {
+            set pmodnamere .*$pmodnamere
+         } else {
+            set pmodnamere .*$pmodname
+         }
+      }
       # for more complex specification, first check if module name matches
       # use a regexp test if module name contains wildcard characters
       if {($pmodnamere ne {} && $test eq {match} && [regexp (^$pmodnamere)/\
@@ -6814,9 +6828,23 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {psuf {}}} {
          set ret [string equal -nocase -length [string length $pmod/] $pmod/\
             $mod/]
       } else {
+         # contains test
+         if {$test eq {matchin}} {
+            set test match
+            set pmod *$pmod
+         }
          set ret [string $test -nocase $pmod $mod]
       }
    } else {
+      # contains test
+      if {$test eq {matchin}} {
+         set test match
+         if {$pmodnamere ne {}} {
+            set pmodnamere .*$pmodnamere
+         } else {
+            set pmodnamere .*$pmodname
+         }
+      }
       # for more complex specification, first check if module name matches
       # use a regexp test if module name contains wildcard characters
       if {($pmodnamere ne {} && $test eq {match} && [regexp -nocase\
@@ -6845,11 +6873,25 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
       if {$test eq {eqstart}} {
          set ret [string equal -length [string length $pmod/] $pmod/ $mod/]
       } else {
+         # contains test
+         if {$test eq {matchin}} {
+            set test match
+            set pmod *$pmod
+         }
          set ret [string $test $pmod $mod]
       }
       set ret [expr {$ret || ([string first / $pmod] != -1 && [string match\
          $pmod.* $mod])}]
    } else {
+      # contains test
+      if {$test eq {matchin}} {
+         set test match
+         if {$pmodnamere ne {}} {
+            set pmodnamere .*$pmodnamere
+         } else {
+            set pmodnamere .*$pmodname
+         }
+      }
       # for more complex specification, first check if module name matches
       # use a regexp test if module name contains wildcard characters
       if {($pmodnamere ne {} && $test eq {match} && [regexp (^$pmodnamere)/\
@@ -6879,12 +6921,26 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
          set ret [string equal -nocase -length [string length $pmod/] $pmod/\
             $mod/]
       } else {
+         # contains test
+         if {$test eq {matchin}} {
+            set test match
+            set pmod *$pmod
+         }
          set ret [string $test -nocase $pmod $mod]
       }
       # filter out root modules from extended_default match
       set ret [expr {$ret || ([string first / $pmod] != -1 && [string match\
          -nocase $pmod.* $mod])}]
    } else {
+      # contains test
+      if {$test eq {matchin}} {
+         set test match
+         if {$pmodnamere ne {}} {
+            set pmodnamere .*$pmodnamere
+         } else {
+            set pmodnamere .*$pmodname
+         }
+      }
       # for more complex specification, first check if module name matches
       # use a regexp test if module name contains wildcard characters
       if {($pmodnamere ne {} && $test eq {match} && [regexp -nocase\
