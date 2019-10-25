@@ -6075,18 +6075,11 @@ proc arrayKeyEq {arrname name icase} {
 }
 
 # Define procedure to compare module names set as array keys against pattern.
-# Adapt procedure code whether icase and extended_default are enabled or
-# disabled
+# Adapt procedure code whether implicit_default is enabled or disabled
 proc defineArrayKeyMatchProc {icase extdfl impdfl} {
    set procname arrayKeyMatchProc
-   if {$extdfl} {
-      append procname Extdfl
-      if {$impdfl} {
-         append procname Impdfl
-      }
-   }
-   if {$icase} {
-      append procname Icase
+   if {$impdfl} {
+      append procname Impdfl
    }
 
    # define proc if not done yet or if it was defined for another context
@@ -6098,68 +6091,79 @@ proc defineArrayKeyMatchProc {icase extdfl impdfl} {
       rename ::$procname ::arrayKeyMatch
       set ::g_arrayKeyMatch_proc $procname
    }
+
+   # also define modEq which is called by arrayKeyMatch
+   defineModEqProc $icase $extdfl
 }
 
 # alternative definitions of arrayKeyMatch proc
+proc arrayKeyMatchProcImpdfl {arrname name} {
+   set icase [isIcase]
+   upvar $arrname arr
+
+   # extract single module specified if any
+   lassign [getModuleVersSpec $name] mod modname
+   # check name eventual icase match
+   set mod [arrayKeyEq arr [string trimright $mod /] $icase]
+
+   if {$mod ne {} && [info exists arr($mod)]} {
+      set match $mod
+   } else {
+      set mlist {}
+      foreach elt [array names arr] {
+         if {[modEq $name $elt]} {
+            lappend mlist $elt
+         }
+      }
+      if {[llength $mlist] == 1} {
+         set match [lindex $mlist 0]
+      # in case multiple modules match query, check directory default and
+      # return it if it is part of match list, elsewhere return highest result
+      } elseif {[llength $mlist] > 1} {
+         # get corresponding icase parent directory
+         set pname [arrayKeyEq arr $modname $icase]
+         if {[info exists arr($pname)]} {
+            set dfl $pname/[lindex $arr($pname) 1]
+         }
+         if {[info exists dfl] && [isInList $mlist $dfl]} {
+            set match $dfl
+         } else {
+            set match [lindex [lsort -dictionary $mlist] end]
+         }
+      }
+   }
+   if {[info exists match]} {
+      reportDebug "key '$match' in array '$arrname' matches '$name'"
+      set name $match
+   }
+   return $name
+}
 proc arrayKeyMatchProc {arrname name} {
-   # extract specified module name from name and version spec
-   lassign [getModuleFromVersSpec $name] name
-   set name [string trimright $name /]
-
-   return $name
-}
-# define proc with extended_default match enabled, in case multiple
-# modules match query, check directory default and return it if it is
-# part of match list, elsewhere return highest result
-proc arrayKeyMatchProcExtdflImpdfl {arrname name} {
-   # extract specified module name from name and version spec
-   lassign [getModuleFromVersSpec $name] name
-   set name [string trimright $name /]
-
+   set icase [isIcase]
    upvar $arrname arr
-   if {![info exists arr($name)]} {
-      # root modules have been filtered out through getModules
-      # no need to ensure name contains a / character
-      set mlist [array names arr -glob $name.*]
-      if {[llength $mlist] == 1} {
-         set match [lindex $mlist 0]
-      } elseif {[llength $mlist] > 1} {
-         set pname [file dirname $name]
+
+   lassign [getModuleVersSpec $name] mod modname
+   # check name eventual icase match
+   set mod [arrayKeyEq arr [string trimright $mod /] $icase]
+
+   if {$mod ne {} && [info exists arr($mod)]} {
+      set match $mod
+   } else {
+      set mlist {}
+      foreach elt [array names arr] {
+         if {[modEq $name $elt]} {
+            lappend mlist $elt
+         }
+      }
+      # must have a default part of result even if only one result
+      if {[llength $mlist] >= 1} {
+         # get corresponding icase parent directory
+         set pname [arrayKeyEq arr $modname $icase]
          if {[info exists arr($pname)]} {
             set dfl $pname/[lindex $arr($pname) 1]
          }
          if {[info exists dfl] && [isInList $mlist $dfl]} {
             set match $dfl
-         } else {
-            set match [lindex [lsort -dictionary $mlist] end]
-         }
-      }
-      if {[info exists match]} {
-         reportDebug "key '$match' in array '$arrname' matches '$name'"
-         set name $match
-      }
-   }
-   return $name
-}
-proc arrayKeyMatchProcExtdfl {arrname name} {
-   # extract specified module name from name and version spec
-   lassign [getModuleFromVersSpec $name] name
-   set name [string trimright $name /]
-
-   upvar $arrname arr
-   if {![info exists arr($name)]} {
-      # root modules have been filtered out through getModules
-      # no need to ensure name contains a / character
-      set mlist [array names arr -glob $name.*]
-      if {[llength $mlist] >= 1} {
-         # must have a default part of result even if only one result
-         set pname [file dirname $name]
-         if {[info exists arr($pname)]} {
-            set dfl $pname/[lindex $arr($pname) 1]
-         }
-         if {[info exists dfl] && [isInList $mlist $dfl]} {
-            reportDebug "key '$dfl' in array '$arrname' matches '$name'"
-            set name $dfl
          } else {
             # raise error as no default part of result
             upvar retlist retlist
@@ -6168,90 +6172,11 @@ proc arrayKeyMatchProcExtdfl {arrname name} {
          }
       }
    }
-   return $name
-}
-proc arrayKeyMatchProcExtdflImpdflIcase {arrname name} {
-   # extract specified module name from name and version spec
-   lassign [getModuleFromVersSpec $name] name
-   set name [string trimright $name /]
-
-   upvar $arrname arr
-   # check name eventual icase match
-   set name [arrayKeyEq arr $name 1]
-   if {![info exists arr($name)]} {
-      set mlist {}
-      foreach elt [array names arr] {
-         # root modules have been filtered out through getModules
-         # no need to ensure name contains a / character
-         if {[string match -nocase $name.* $elt]} {
-            lappend mlist $elt
-         }
-      }
-      if {[llength $mlist] == 1} {
-         set match [lindex $mlist 0]
-      } elseif {[llength $mlist] > 1} {
-         # get corresponding icase parent directory
-         set pname [arrayKeyEq arr [file dirname $name] 1]
-         if {[info exists arr($pname)]} {
-            set dfl $pname/[lindex $arr($pname) 1]
-         }
-         if {[info exists dfl] && [isInList $mlist $dfl]} {
-            set match $dfl
-         } else {
-            set match [lindex [lsort -dictionary $mlist] end]
-         }
-      }
-      if {[info exists match]} {
-         reportDebug "key '$match' in array '$arrname' matches '$name'"
-         set name $match
-      }
+   if {[info exists match]} {
+      reportDebug "key '$match' in array '$arrname' matches '$name'"
+      set name $match
    }
    return $name
-}
-proc arrayKeyMatchProcExtdflIcase {arrname name} {
-   # extract specified module name from name and version spec
-   lassign [getModuleFromVersSpec $name] name
-   set name [string trimright $name /]
-
-   upvar $arrname arr
-   # check name eventual icase match
-   set name [arrayKeyEq arr $name 1]
-   if {![info exists arr($name)]} {
-      set mlist {}
-      foreach elt [array names arr] {
-         # root modules have been filtered out through getModules
-         # no need to ensure name contains a / character
-         if {[string match -nocase $name.* $elt]} {
-            lappend mlist $elt
-         }
-      }
-      if {[llength $mlist] >= 1} {
-         # must have a default part of result even if only one result
-         # get corresponding icase parent directory
-         set pname [arrayKeyEq arr [file dirname $name] 1]
-         if {[info exists arr($pname)]} {
-            set dfl $pname/[lindex $arr($pname) 1]
-         }
-         if {[info exists dfl] && [isInList $mlist $dfl]} {
-            reportDebug "key '$dfl' in array '$arrname' matches '$name'"
-            set name $dfl
-         } else {
-            # raise error as no default part of result
-            upvar retlist retlist
-            set retlist [list {} $name none "No default version\
-               defined for '$name'"]
-         }
-      }
-   }
-   return $name
-}
-proc arrayKeyMatchProcIcase {arrname name} {
-   # extract specified module name from name and version spec
-   lassign [getModuleFromVersSpec $name] name
-   set name [string trimright $name /]
-
-   upvar $arrname arr
-   return [arrayKeyEq arr $name 1]
 }
 
 # split string while ignore any separator character that is espaced
@@ -8293,7 +8218,7 @@ proc getModuleVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
       return $::g_moduleVersSpec($modarg)
    } else {
-      return [list $modarg {} {} {} {}]
+      return [list $modarg [file dirname $modarg] {} {} {}]
    }
 }
 

@@ -101,8 +101,8 @@ testouterr_cmd sh {load extdfl @1.3.7 @2.0} $ans {}
 testouterr_cmd sh {load extdfl@1.3.7 @2.0} $ans {}
 testouterr_cmd sh {load extdfl@1.3.7@2.0} $ans {}
 
-testouterr_cmd sh {load extdfl/1@2.0} ERR $err_path'extdfl/1/2.0'
-testouterr_cmd sh {load extdfl/1 @2.0} ERR $err_path'extdfl/1/2.0'
+testouterr_cmd sh {load extdfl/1@2.0} ERR $err_path'extdfl/1@2.0'
+testouterr_cmd sh {load extdfl/1 @2.0} ERR "$err_path'extdfl/1 @2.0'"
 
 set ans [list]
 lappend ans [list setpath LOADEDMODULES extdfl/2.0:extdfl/1.2.3]
@@ -136,7 +136,7 @@ testouterr_cmd sh {path extdfl/@1.3.7} [list [list text $mp/extdfl/1.3.7]] {}
 testouterr_cmd sh {path extdfl/ @1.3.7} [list [list text $mp/extdfl/1.3.7]] {}
 testouterr_cmd sh {path extdfl@/} ERR $err_specvers'/'
 testouterr_cmd sh {path extdfl@/1.3.7} ERR $err_specvers'/1.3.7'
-testouterr_cmd sh {path "extdfl @1.3.7"} OK $err_path'"extdfl/1.3.7"'
+testouterr_cmd sh {path "extdfl @1.3.7"} OK "$err_path'\"extdfl @1.3.7\"'"
 
 
 #
@@ -267,8 +267,8 @@ testouterr_cmd sh {is-avail extdfl2@3.10.2} OK {}
 testouterr_cmd sh {is-avail extdfl2@3.11} ERR {}
 
 # test unknown module
-testouterr_cmd sh {load unknown@1.4.5} ERR $err_path'unknown/1.4.5'
-testouterr_cmd sh {load extdfl2 @12} ERR "$err_path'extdfl2/12'"
+testouterr_cmd sh {load unknown@1.4.5} ERR $err_path'unknown@1.4.5'
+testouterr_cmd sh {load extdfl2 @12} ERR "$err_path'extdfl2 @12'"
 testouterr_cmd sh "load $mp/unknown @1.4.5" ERR "$err_file'$mp/unknown @1.4.5'"
 testouterr_cmd sh "load $mp/extdfl2@12" ERR "$err_file'$mp/extdfl2@12'"
 
@@ -279,19 +279,19 @@ testouterr_cmd sh {path nocase @virt} [list [list text $mp/nocase/1]] {}
 testouterr_cmd sh {path extdfl3@1.1} [list [list text $mp/extdfl3/1.1/3]] {}
 testouterr_cmd sh {path extdfl @.1.3.4} [list [list text $mp/extdfl/.1.3.4]] {}
 # version specified over an alias which targets a module/version modulefile
-testouterr_cmd sh {path advvers3 @1.2} OK $err_path'advvers3/1.2'
+testouterr_cmd sh {path advvers3 @1.2} OK "$err_path'advvers3 @1.2'"
 
 
 # wildcard characters have no effect
-testouterr_cmd sh {path ext*l @1.3} {} $err_path'ext*l/1.3'
-testouterr_cmd sh {path ext?fl @1.3} {} $err_path'ext?fl/1.3'
-testouterr_cmd sh {path extdfl @1.3.?} {} $err_path'extdfl/1.3.?'
-testouterr_cmd sh {path extdfl @1.3.*} {} $err_path'extdfl/1.3.*'
-testouterr_cmd sh {path e+?.* @1.4.5} OK $err_path'e+?.*/1.4.5'
+testouterr_cmd sh {path ext*l @1.3} {} "$err_path'ext*l @1.3'"
+testouterr_cmd sh {path ext?fl @1.3} {} "$err_path'ext?fl @1.3'"
+testouterr_cmd sh {path extdfl @1.3.?} {} "$err_path'extdfl @1.3.?'"
+testouterr_cmd sh {path extdfl @1.3.*} {} "$err_path'extdfl @1.3.*'"
+testouterr_cmd sh {path e+?.* @1.4.5} OK "$err_path'e+?.* @1.4.5'"
 testouterr_cmd sh {path e+t.fl @1.4.5} [list [list text $mp/e+t.fl/1.4.5]] {}
 
 # test mod@vers where a modulefile mod@vers exist
-testouterr_cmd sh {load advvers@2.1} ERR $err_path'advvers/2.1'
+testouterr_cmd sh {load advvers@2.1} ERR $err_path'advvers@2.1'
 setenv_var MODULES_ADVANCED_VERSION_SPEC 0
 set ans [list]
 lappend ans [list setpath LOADEDMODULES advvers@2.1]
@@ -300,7 +300,7 @@ testouterr_cmd sh {load advvers@2.1} $ans {}
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 # test explicit default enabled
-testouterr_cmd sh {load extdfl@1.4} ERR "$err_path'extdfl/1.4'"
+testouterr_cmd sh {load extdfl@1.4} ERR "$err_path'extdfl@1.4'"
 setenv_var MODULES_EXTENDED_DEFAULT 1
 set ans [list]
 lappend ans [list setpath LOADEDMODULES extdfl/1.4.5]
@@ -310,7 +310,7 @@ testouterr_cmd sh {load extdfl@1.4} $ans {}
 # test implicit default disabled
 if {![is_config_locked implicit_default]} {
     setenv_var MODULES_IMPLICIT_DEFAULT 0
-    testouterr_cmd sh {load extdfl@1.4} ERR $err_nodefault'extdfl/1.4'
+    testouterr_cmd sh {load extdfl@1.4} ERR $err_nodefault'extdfl@1.4'
     set ans [list]
     lappend ans [list setpath LOADEDMODULES extdfl/1.3.1]
     lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1]
@@ -596,7 +596,7 @@ testouterr_cmd_re sh {load advvers2@7.0} $ans {}
 unsetenv_loaded_module
 
 # test unknown module
-testouterr_cmd sh {load --auto advvers2@8.1.1} ERR [msg_load advvers2/8.1.1 $err_path'unknown/1.4.5' [err_prereq advvers2/8.1.1 unknown@1.4.5]]
+testouterr_cmd sh {load --auto advvers2@8.1.1} ERR [msg_load advvers2/8.1.1 $err_path'unknown@1.4.5' [err_prereq advvers2/8.1.1 unknown@1.4.5]]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES advvers2/8.1.2]
 lappend ans [list setpath _LMFILES_ $mp/advvers2/8.1.2]
@@ -617,9 +617,9 @@ testouterr_cmd sh {load --auto advvers2@8.2.2} ERR [msg_load advvers2/8.2.2 "Mod
 unsetenv_loaded_module
 
 # test mod@vers where a modulefile mod@vers exist
-testouterr_cmd_re sh {load --auto advvers2@8.3.1} ERR [msg_load advvers2/8.3.1 $err_path'advvers/2.1' [err_prereq advvers2/8.3.1 advvers@2.1]]
+testouterr_cmd_re sh {load --auto advvers2@8.3.1} ERR [msg_load advvers2/8.3.1 $err_path'advvers@2.1' [err_prereq advvers2/8.3.1 advvers@2.1]]
 setenv_loaded_module [list advvers@2.1] [list $mp/advvers@2.1]
-testouterr_cmd_re sh {load --auto advvers2@8.3.1} ERR [msg_load advvers2/8.3.1 $err_path'advvers/2.1' [err_prereq advvers2/8.3.1 advvers@2.1]]
+testouterr_cmd_re sh {load --auto advvers2@8.3.1} ERR [msg_load advvers2/8.3.1 $err_path'advvers@2.1' [err_prereq advvers2/8.3.1 advvers@2.1]]
 set ans [list]
 lappend ans [list setpath LOADEDMODULES advvers@2.1:advvers2/8.3.2]
 lappend ans [list setpath _LMFILES_ $mp/advvers@2.1:$mp/advvers2/8.3.2]
@@ -652,7 +652,7 @@ if {![is_config_locked implicit_default]} {
     testouterr_cmd_re sh {load --auto advvers2@8.4.2} ERR [msg_load advvers2/8.4.2 [err_conflict advvers2/8.4.2 extdfl @1.3]]
     unsetenv_loaded_module
 
-    testouterr_cmd_re sh {load --auto advvers2@8.4.1} ERR [msg_load advvers2/8.4.1 $err_nodefault'extdfl/1.4' [err_prereq advvers2/8.4.1 "extdfl @1.4"]]
+    testouterr_cmd_re sh {load --auto advvers2@8.4.1} ERR [msg_load advvers2/8.4.1 "$err_nodefault'extdfl @1.4'" [err_prereq advvers2/8.4.1 "extdfl @1.4"]]
     setenv_var MODULES_IMPLICIT_DEFAULT 1
 }
 unsetenv_loaded_module
