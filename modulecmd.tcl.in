@@ -6655,7 +6655,7 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {psuf {}}} {
    # extract specified module name from name and version spec
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
-         pmodnamere
+         pmodnamere pmodescglob
    } else {
       set pmod $pattern
    }
@@ -6701,7 +6701,7 @@ proc modEqProc {pattern mod {test equal} {trspec 1} {psuf {}}} {
 proc modEqProcIcase {pattern mod {test equal} {trspec 1} {psuf {}}} {
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
-         pmodnamere
+         pmodnamere pmodescglob
    } else {
       set pmod $pattern
    }
@@ -6747,7 +6747,7 @@ proc modEqProcIcase {pattern mod {test equal} {trspec 1} {psuf {}}} {
 proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
-         pmodnamere
+         pmodnamere pmodescglob
    } else {
       set pmod $pattern
    }
@@ -6765,8 +6765,15 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
          }
          set ret [string $test $pmod $mod]
       }
-      set ret [expr {$ret || ([string first / $pmod] != -1 && [string match\
-         $pmod.* $mod])}]
+      # try the extended default match if not root module
+      if {!$ret && [string first / $pmod] != -1} {
+         if {$test eq {match}} {
+            set pmodextdfl $pmod.*
+         } else {
+            set pmodextdfl $pmodescglob.*
+         }
+         set ret [string match $pmodextdfl $mod]
+      }
    } else {
       # contains test
       if {$test eq {matchin}} {
@@ -6794,7 +6801,7 @@ proc modEqProcExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
 proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
    if {$trspec} {
       lassign [getModuleVersSpec $pattern] pmod pmodname cmpspec versspec\
-         pmodnamere
+         pmodnamere pmodescglob
    } else {
       set pmod $pattern
    }
@@ -6813,9 +6820,15 @@ proc modEqProcIcaseExtdfl {pattern mod {test equal} {trspec 1} {psuf {}}} {
          }
          set ret [string $test -nocase $pmod $mod]
       }
-      # filter out root modules from extended_default match
-      set ret [expr {$ret || ([string first / $pmod] != -1 && [string match\
-         -nocase $pmod.* $mod])}]
+      # try the extended default match if not root module
+      if {!$ret && [string first / $pmod] != -1} {
+         if {$test eq {match}} {
+            set pmodextdfl $pmod.*
+         } else {
+            set pmodextdfl $pmodescglob.*
+         }
+         set ret [string match -nocase $pmodextdfl $mod]
+      }
    } else {
       # contains test
       if {$test eq {matchin}} {
@@ -8129,11 +8142,14 @@ proc parseModuleVersionSpecifier {args} {
                      if {$modname eq $modnamere} {
                         set modnamere {}
                      }
-                     reportDebug "Set module '$mod', module name '$modname'\
-                        (re: $modnamere), version cmp '$cmpspec' and\
-                        version(s) '$versspec' for argument '$modarg'"
+                     # save a glob-special-chars escaped version of mod
+                     set modescglob [string map {* \\* ? \\?} $mod]
+                     reportDebug "Set module '$mod' (escglob '$modescglob'),\
+                        module name '$modname' (re '$modnamere'), version cmp\
+                        '$cmpspec' and version(s) '$versspec' for argument\
+                        '$modarg'"
                      set ::g_moduleVersSpec($modarg) [list $mod $modname\
-                        $cmpspec $versspec $modnamere]
+                        $cmpspec $versspec $modnamere $modescglob]
                      # rework args to have 1 str element for whole module spec
                      lappend arglist $modarg
                   } elseif {$modspec ne {}} {
@@ -8183,11 +8199,13 @@ proc parseModuleVersionSpecifier {args} {
                if {$modname eq $modnamere} {
                   set modnamere {}
                }
-               reportDebug "Set module '$mod', module name '$modname' (re:\
-                  $modnamere), version cmp '$cmpspec' and version(s)\
-                  '$versspec' for argument '$modarg'"
+               # save a glob-special-chars escaped version of mod
+               set modescglob [string map {* \\* ? \\?} $mod]
+               reportDebug "Set module '$mod' (escglob '$modescglob'), module\
+                  name '$modname' (re '$modnamere'), version cmp '$cmpspec'\
+                  and version(s) '$versspec' for argument '$modarg'"
                set ::g_moduleVersSpec($modarg) [list $mod $modname $cmpspec\
-                  $versspec $modnamere]
+                  $versspec $modnamere $modescglob]
                # rework args to have 1 string element for whole module spec
                lappend arglist $modarg
             } elseif {$modspec ne {}} {
@@ -8218,7 +8236,8 @@ proc getModuleVersSpec {modarg} {
    if {[info exists ::g_moduleVersSpec($modarg)]} {
       return $::g_moduleVersSpec($modarg)
    } else {
-      return [list $modarg [file dirname $modarg] {} {} {}]
+      return [list $modarg [file dirname $modarg] {} {} {} [string map {* \\*\
+         ? \\?} $modarg]]
    }
 }
 
