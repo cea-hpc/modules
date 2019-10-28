@@ -6593,8 +6593,8 @@ proc modVersCmpProcExtdfl {cmpspec versspec modvers test {psuf {}}} {
             } else {
                set ret [string $test $vers $modvers]
             }
-            set ret [expr {$ret || [string match $vers.* $modvers]}]
-            if {$ret} {
+            if {$ret || [string match $vers.* $modvers]} {
+               set ret 1
                break
             }
          }
@@ -6615,8 +6615,9 @@ proc modVersCmpProcIcaseExtdfl {cmpspec versspec modvers test {psuf {}}} {
             } else {
                set ret [string $test -nocase $vers $modvers]
             }
-            set ret [expr {$ret || [string match -nocase $vers.* $modvers]}]
-            if {$ret} {
+            # try the extended default match
+            if {$ret || [string match -nocase $vers.* $modvers]} {
+               set ret 1
                break
             }
          }
