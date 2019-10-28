@@ -1881,6 +1881,7 @@ proc setModuleResolution {mod target {symver {}} {override_res_path 1}} {
 # retrieve all names that resolve to passed mod
 proc getAllModuleResolvedName {mod} {
    set namelist {}
+   set resmodlist {}
    set icase [isIcase]
    defineModEqProc $icase [getConf extended_default]
 
@@ -2983,10 +2984,11 @@ proc conflict {args} {
          [is-loading $mod]}]
       # if the conflicting module is loaded, we cannot either
       if {[is-loaded $mod] || $isloading} {
-         set retisconun [eval isModuleEvaluated conun $mod]
+         set retisconun [eval isModuleEvaluated conun $currentModule $mod]
          # report message on currently evaluated module message block
-         if {![set retiseval [eval isModuleEvaluated any $mod]] ||\
-            [currentMsgRecordId] ne [topMsgRecordId] || !$retisconun} {
+         if {![set retiseval [eval isModuleEvaluated any $currentModule\
+            $mod]] || [currentMsgRecordId] ne [topMsgRecordId] ||\
+            !$retisconun} {
             # more appropriate msg if an eval was attempted or is by-passed
             set msg [expr {$retiseval || [getForce] ? [getConIsLoadedMsg\
                [list $mod] $isloading] : [getErrConflictMsg $currentModule\
@@ -3058,10 +3060,10 @@ proc prereq {args} {
    }
 
    if {![eval is-loaded $args] && ![eval is-loading $args]} {
-      set retisreqlo [eval isModuleEvaluated reqlo $args]
+      set retisreqlo [eval isModuleEvaluated reqlo $currentModule $args]
       # report message on currently evaluated module message block
-      if {![set retiseval [eval isModuleEvaluated any $args]] ||\
-         [currentMsgRecordId] ne [topMsgRecordId] || !$retisreqlo} {
+      if {![set retiseval [eval isModuleEvaluated any $currentModule $args]]\
+         || [currentMsgRecordId] ne [topMsgRecordId] || !$retisreqlo} {
 
          # more appropriate msg if an evaluation was attempted or is by-passed
          set msg [expr {$retiseval || [getForce] ? [getReqNotLoadedMsg $args]\
@@ -3466,15 +3468,31 @@ proc unregisterModuleEvalAttempt {context mod} {
 }
 
 # is at least one module passed as argument evaluated in passed context
-proc isModuleEvaluated {context args} {
+proc isModuleEvaluated {context exclmod args} {
    set ret 0
    set icase [isIcase]
-   foreach mod $args {
-      # get actual module name if mod refers to an alias or symver
-      set modres [resolveModuleVersionOrAlias $mod $icase]
-      if {[info exists ::g_moduleEvalAttempt($modres)] && ($context eq\
-         {any} || [isInList $::g_moduleEvalAttempt($modres) $context])} {
-         set ret 1
+   # look at all evaluated mod except excluded one (currently evaluated mod)
+   foreach evalmod [lsearch -all -inline -not [array names\
+      ::g_moduleEvalAttempt] $exclmod] {
+      set evalmatch 0
+      # test arguments against all names of evaluated module
+      foreach mod [concat [list $evalmod] [getAllModuleResolvedName\
+         $evalmod]] {
+         foreach name $args {
+            if {[modEq $name $mod eqstart]} {
+               set evalmatch 1
+               if {$context eq {any} || [isInList\
+                  $::g_moduleEvalAttempt($evalmod) $context]} {
+                  set ret 1
+               }
+               break
+            }
+         }
+         if {$evalmatch} {
+            break
+         }
+      }
+      if {$ret} {
          break
       }
    }
@@ -9155,9 +9173,10 @@ proc cmdModuleLoad {context uasked args} {
          # (module unload) conflicts through its evaluation
          lassign [doesModuleConflict $modname] doescon modconlist\
             moddecconlist
-         set retisconun [eval isModuleEvaluated conun $modconlist]
-         if {![set retiseval [eval isModuleEvaluated any $modconlist]] ||\
-            [currentMsgRecordId] ne [topMsgRecordId] || !$retisconun} {
+         set retisconun [eval isModuleEvaluated conun $modname $modconlist]
+         if {![set retiseval [eval isModuleEvaluated any $modname\
+            $modconlist]] || [currentMsgRecordId] ne [topMsgRecordId] ||\
+            !$retisconun} {
             # more appropriate msg if an evaluation was attempted or is
             # by-passed. error is reported using declared conflict name (as if
             # it was raised raised from a conflict modulefile command)
@@ -9358,9 +9377,9 @@ proc cmdModuleUnload {context match auto force onlyureq onlyndep args} {
                if {$onlyndep} {
                   set errharmless 1
                }
-               error [expr {[eval isModuleEvaluated any $prereq_list] ?\
-                  [getDepLoadedMsg $prereq_list] : [getErrPrereqMsg $modname\
-                  $prereq_list 0]}]
+               error [expr {[eval isModuleEvaluated any $modname\
+                  $prereq_list] ? [getDepLoadedMsg $prereq_list] :\
+                  [getErrPrereqMsg $modname $prereq_list 0]}]
             }
          }
 

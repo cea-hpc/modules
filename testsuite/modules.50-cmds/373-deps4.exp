@@ -703,6 +703,12 @@ set tserr [list {unload id} {unload ic} {unload ib} {unload ia} \n[msg_top_unloa
 testouterr_cmd_re sh {unload ia} $ans [join $tserr \n]
 
 
+# test module evaluation detection when conflict is expressed against bare module name
+testouterr_cmd sh {load con2/2.1} ERR [msg_load con1/1.1 [err_conloi con2/2.1]]\n\n[msg_load con2/2.1 [err_reqlo con1/1.1]]
+testouterr_cmd sh {load con2/2.2} ERR [msg_load con2/2.2 [err_conlo con1]]
+testouterr_cmd sh {load con2/2.3} ERR [msg_load con1/1.2 [err_conloi con2]]\n\n[msg_load con2/2.3 [err_reqlo con1/1.2]]
+
+
 #
 #  Cleanup
 #
