@@ -3802,7 +3802,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
       set modqe [getOneModuleFromVersSpec $mod]
 
       set icase [isIcase]
-      defineArrayKeyMatchProc $icase [getConf extended_default] [getConf\
+      defineGetEqArrayKeyProc $icase [getConf extended_default] [getConf\
          implicit_default]
       set modroot [lindex [split $modqe /] 0]
       # determine if we need to get hidden modules
@@ -3823,7 +3823,7 @@ proc getPathToModule {mod {indir {}} {report_issue 1} {look_loaded no}\
          # loop to resolve correct modulefile in case specified mod is a
          # directory that should be analyzed to get default mod in it
          while {$prevmod ne $mod} {
-            set mod [arrayKeyMatch mod_list $mod]
+            set mod [getEqArrayKey mod_list $mod]
             set prevmod $mod
             if {[info exists mod_list($mod)]} {
                switch -- [lindex $mod_list($mod) 0] {
@@ -6073,28 +6073,28 @@ proc getArrayKey {arrname name icase} {
 
 # Define procedure to compare module names set as array keys against pattern.
 # Adapt procedure code whether implicit_default is enabled or disabled
-proc defineArrayKeyMatchProc {icase extdfl impdfl} {
-   set procname arrayKeyMatchProc
+proc defineGetEqArrayKeyProc {icase extdfl impdfl} {
+   set procname getEqArrayKeyProc
    if {$impdfl} {
       append procname Impdfl
    }
 
    # define proc if not done yet or if it was defined for another context
-   if {[info procs arrayKeyMatch] eq {} || $::g_arrayKeyMatch_proc ne\
+   if {[info procs getEqArrayKey] eq {} || $::g_getEqArrayKey_proc ne\
       $procname} {
-      if {[info exists ::g_arrayKeyMatch_proc]} {
-         rename ::arrayKeyMatch ::$::g_arrayKeyMatch_proc
+      if {[info exists ::g_getEqArrayKey_proc]} {
+         rename ::getEqArrayKey ::$::g_getEqArrayKey_proc
       }
-      rename ::$procname ::arrayKeyMatch
-      set ::g_arrayKeyMatch_proc $procname
+      rename ::$procname ::getEqArrayKey
+      set ::g_getEqArrayKey_proc $procname
    }
 
-   # also define modEq which is called by arrayKeyMatch
+   # also define modEq which is called by getEqArrayKey
    defineModEqProc $icase $extdfl
 }
 
-# alternative definitions of arrayKeyMatch proc
-proc arrayKeyMatchProcImpdfl {arrname name} {
+# alternative definitions of getEqArrayKey proc
+proc getEqArrayKeyProcImpdfl {arrname name} {
    set icase [isIcase]
    upvar $arrname arr
 
@@ -6135,7 +6135,7 @@ proc arrayKeyMatchProcImpdfl {arrname name} {
    }
    return $name
 }
-proc arrayKeyMatchProc {arrname name} {
+proc getEqArrayKeyProc {arrname name} {
    set icase [isIcase]
    upvar $arrname arr
 
