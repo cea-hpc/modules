@@ -1896,7 +1896,7 @@ proc getAllModuleResolvedName {mod} {
    # add additionnaly all the altnames set on directories, parents of mod
    # or on distant directories whose default version resolves to mod
    for {set i 0} {$i < [llength $resmodlist]} {incr i 1} {
-      set modelt [arrayKeyEq ::g_resolvedHash [lindex $resmodlist $i] $icase]
+      set modelt [getArrayKey ::g_resolvedHash [lindex $resmodlist $i] $icase]
       if {[info exists ::g_resolvedHash($modelt)]} {
          foreach resmod $::g_resolvedHash($modelt) {
             # if modelt is not a parent directory of mod, check its resolution
@@ -5975,7 +5975,7 @@ proc cacheCurrentModules {} {
 # This proc resolves module aliases or version aliases to the real module name
 # and version.
 proc resolveModuleVersionOrAlias {name icase} {
-   set name [arrayKeyEq ::g_moduleResolved $name $icase]
+   set name [getArrayKey ::g_moduleResolved $name $icase]
    if {[info exists ::g_moduleResolved($name)]} {
       set ret $::g_moduleResolved($name)
    } else {
@@ -6055,10 +6055,7 @@ proc getAbsolutePath {path} {
 # if no exact match found but icase mode is enabled then search if an icase
 # match exists among all array key elements, select dictionary highest version
 # if multiple icase matches are returned
-proc arrayKeyEq {arrname name icase} {
-   # extract specified module name from name and version spec
-   lassign [getModuleFromVersSpec $name] name
-
+proc getArrayKey {arrname name icase} {
    if {$icase} {
       upvar $arrname arr
       if {![info exists arr($name)]} {
@@ -6104,7 +6101,7 @@ proc arrayKeyMatchProcImpdfl {arrname name} {
    # extract single module specified if any
    lassign [getModuleVersSpec $name] mod modname
    # check name eventual icase match
-   set mod [arrayKeyEq arr [string trimright $mod /] $icase]
+   set mod [getArrayKey arr [string trimright $mod /] $icase]
 
    if {$mod ne {} && [info exists arr($mod)]} {
       set match $mod
@@ -6121,7 +6118,7 @@ proc arrayKeyMatchProcImpdfl {arrname name} {
       # return it if it is part of match list, elsewhere return highest result
       } elseif {[llength $mlist] > 1} {
          # get corresponding icase parent directory
-         set pname [arrayKeyEq arr $modname $icase]
+         set pname [getArrayKey arr $modname $icase]
          if {[info exists arr($pname)]} {
             set dfl $pname/[lindex $arr($pname) 1]
          }
@@ -6144,7 +6141,7 @@ proc arrayKeyMatchProc {arrname name} {
 
    lassign [getModuleVersSpec $name] mod modname
    # check name eventual icase match
-   set mod [arrayKeyEq arr [string trimright $mod /] $icase]
+   set mod [getArrayKey arr [string trimright $mod /] $icase]
 
    if {$mod ne {} && [info exists arr($mod)]} {
       set match $mod
@@ -6158,7 +6155,7 @@ proc arrayKeyMatchProc {arrname name} {
       # must have a default part of result even if only one result
       if {[llength $mlist] >= 1} {
          # get corresponding icase parent directory
-         set pname [arrayKeyEq arr $modname $icase]
+         set pname [getArrayKey arr $modname $icase]
          if {[info exists arr($pname)]} {
             set dfl $pname/[lindex $arr($pname) 1]
          }
