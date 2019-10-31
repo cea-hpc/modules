@@ -8140,32 +8140,7 @@ proc parseModuleVersionSpecifier {args} {
                if {[info exists modarglist]} {
                   set modarg [join $modarglist]
                   if {[info exists modname]} {
-                     if {$versspec eq {}} {
-                        set mod $modname
-                        set modname [file dirname $modname]
-                     } else {
-                        set modname [string trimright $modname /]
-                        if {$cmpspec eq {in}} {
-                           set mod {}
-                        } else {
-                           set mod $modname/$versspec
-                        }
-                     }
-                     # save a regexp-ready version of modname (apply
-                     # non-greedy quantifier to '*', to avoid matching final
-                     # '/' in string comparison
-                     set modnamere [string map {. \\. + \\+ * .*? ? .} $modname]
-                     if {$modname eq $modnamere} {
-                        set modnamere {}
-                     }
-                     # save a glob-special-chars escaped version of mod
-                     set modescglob [string map {* \\* ? \\?} $mod]
-                     reportDebug "Set module '$mod' (escglob '$modescglob'),\
-                        module name '$modname' (re '$modnamere'), version cmp\
-                        '$cmpspec' and version(s) '$versspec' for argument\
-                        '$modarg'"
-                     set ::g_moduleVersSpec($modarg) [list $mod $modname\
-                        $cmpspec $versspec $modnamere $modescglob]
+                     setModuleVersSpec $modarg $modname $cmpspec $versspec
                      # rework args to have 1 str element for whole module spec
                      lappend arglist $modarg
                   } elseif {$modspec ne {}} {
@@ -8200,28 +8175,7 @@ proc parseModuleVersionSpecifier {args} {
          if {[info exists modarglist]} {
             set modarg [join $modarglist]
             if {[info exists modname]} {
-               if {$versspec eq {}} {
-                  set mod $modname
-                  set modname [file dirname $modname]
-               } else {
-                  set modname [string trimright $modname /]
-                  if {$cmpspec eq {in}} {
-                     set mod {}
-                  } else {
-                     set mod $modname/$versspec
-                  }
-               }
-               set modnamere [string map {. \\. + \\+ * .*? ? .} $modname]
-               if {$modname eq $modnamere} {
-                  set modnamere {}
-               }
-               # save a glob-special-chars escaped version of mod
-               set modescglob [string map {* \\* ? \\?} $mod]
-               reportDebug "Set module '$mod' (escglob '$modescglob'), module\
-                  name '$modname' (re '$modnamere'), version cmp '$cmpspec'\
-                  and version(s) '$versspec' for argument '$modarg'"
-               set ::g_moduleVersSpec($modarg) [list $mod $modname $cmpspec\
-                  $versspec $modnamere $modescglob]
+               setModuleVersSpec $modarg $modname $cmpspec $versspec
                # rework args to have 1 string element for whole module spec
                lappend arglist $modarg
             } elseif {$modspec ne {}} {
@@ -8236,6 +8190,35 @@ proc parseModuleVersionSpecifier {args} {
    }
 
    return $arglist
+}
+
+proc setModuleVersSpec {modarg modname cmpspec versspec} {
+   if {$versspec eq {}} {
+      set mod $modname
+      set modname [file dirname $modname]
+   } else {
+      set modname [string trimright $modname /]
+      if {$cmpspec eq {in}} {
+         set mod {}
+      } else {
+         set mod $modname/$versspec
+      }
+   }
+   # save a regexp-ready version of modname (apply
+   # non-greedy quantifier to '*', to avoid matching final
+   # '/' in string comparison
+   set modnamere [string map {. \\. + \\+ * .*? ? .} $modname]
+   if {$modname eq $modnamere} {
+      set modnamere {}
+   }
+   # save a glob-special-chars escaped version of mod
+   set modescglob [string map {* \\* ? \\?} $mod]
+
+   reportDebug "Set module '$mod' (escglob '$modescglob'),  module name\
+      '$modname' (re '$modnamere'), version cmp '$cmpspec' and version(s)\
+      '$versspec' for argument '$modarg'"
+   set ::g_moduleVersSpec($modarg) [list $mod $modname $cmpspec $versspec\
+      $modnamere $modescglob]
 }
 
 # get extracted module name from passed argument if parsed
