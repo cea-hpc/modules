@@ -65,3 +65,11 @@ Corner cases
     - When insensitive case is enabled, last or first icase match will be returned even if an exact match is present among the loaded module list
     - This behavior has an impact in case multiple available modules correspond to the same insensitive case string
         - For instance *iCaSe* and *IcAsE* modules
+
+- When ``icase`` is enabled on all contexts and multiple directories match same icase module name
+    - for instance following modules exist: *ICASE/1.1*, *icase/1.2*, *iCaSe/1.3* and *iCaSe/1.4*
+    - a ``module avail -i icase`` will sort *iCaSe/1.4* as the highest entry
+    - however a ``module load -i icase`` command will load *icase/1.2*
+        - as *icase* directory matches query
+    - and also ``module load -i ICase`` command will load *icase/1.2*
+        - as no directory *ICase* exists, result is returned from highest directory: *icase*
