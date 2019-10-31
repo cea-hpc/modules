@@ -60,12 +60,18 @@ Specification
     - version specified could be text, like if symbolic version names are used
     - should benefit from extended default specification
         - to just express version with their major release number for instance
-    - FIXME: soft@vers,vers, or soft@vers,,vers
-        - consider empty string as default, raise error or ignore?
+    - an empty string among list is considered as a specification error
+        - for instance *soft@vers,vers,* or *soft@vers,,vers*
 
 - when using extended default syntax
     - version selection is performed same way for *@vers* than for */vers*
     - described in extended default design
+
+- when ``icase`` is enabled for selection context and multiple directories match module name
+    - for instance query is *ICase@1.1,1.2,1.4* and following modules exist: *ICASE/1.1*, *icase/1.2*, *iCaSe/1.3* and *iCaSe/1.4*
+    - as no *ICase* directory exists, and a version in highest directory *icase* matches query (*1.2*), *icase/1.2* is returned
+    - if query is *iCaSe@1.1,1.2,1.4*, *iCaSe/1.4* will be selected as *iCaSe* directory matches query module name
+    - if query is *ICase@1.1,1.4* or *icase@1.1,1.4*, as no version match in highest directory *iCaSe/1.4* will be selected
 
 - in case of deep modulefiles
     - specified version is matched at the level directly under specified module name
@@ -79,14 +85,14 @@ Specification
 
 - in case version is specified multiple times
     - lastly mentionned (read from left to right) value is retained (it overwrite previous values)
-    - like *module@1.8 @2.0*
+    - like *module@1.8 @2.0* or *module@1.8@2.0*
     - exception made for fully qualified modulefile where an @vers is added
     - like in *soft/1.8@1.10" or "soft/1.8 @1.10*
         this *@* version specifier should be ignored as it cannot overwrite qualified modulefile name
 
 - in case modulefile is named *module@vers* in filesystem
-    - FIXME: what to do? consider it like a module/vers? or ignore it
-        - what to do with *module@sub@vers*?
+    - it is not found when option ``advanced_version_spec`` is enabled
+    - as it is translated to *module/vers*
 
 - when special characters like *?* or \* are used in version name or value
     - they are treated literally, no wildcard meaning is applied
@@ -99,7 +105,8 @@ Specification
 - if version range or list does not contain a defined default
     - in a selection context
         - highest version is returned if ``implicit_default`` is enabled
-        - nothing returned if ``implicit_default`` is disabled
+        - error returned if ``implicit_default`` is disabled
+            - even if version range or list specifies non-existent modules and only one existent module
     - in a compatibility expression context
         - range or list is matched against loaded environment whether the ``implicit_default`` state
         - when no match found and evaluation are triggered, selection context applies
@@ -149,3 +156,13 @@ Specification
         - whereas ``prereq soft@1.8 soft@1.9 soft@1.10`` will lead to a tentative load
             - of *soft/1.8*, then *soft/1.9* if it failed then *soft/1.8* if it also failed
 
+Corner cases
+------------
+
+- When ``icase`` is enabled on all contexts and multiple directories match same icase module name
+    - for instance following modules exist: *ICASE/1.1*, *icase/1.2*, *iCaSe/1.3* and *iCaSe/1.4*
+    - a ``module avail -i icase`` will sort *iCaSe/1.4* as the highest entry
+    - however a ``module load -i icase@1.1,1.2,1.4`` command will load *icase/1.2*
+        - as *icase* directory matches query and version *1.2* is found in *icase* directory
+    - but a ``module load -i icase@1.1,1.4`` command will load *iCaSe/1.4*
+        - as no version *1.1* nor *1.4* is found in *icase* directory
