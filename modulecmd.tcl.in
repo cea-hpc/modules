@@ -4295,11 +4295,13 @@ proc doesModuleConflict {mod} {
          foreach withmod $::g_loadedModuleConflict($modcon) {
             # skip own reflexive conflict (look at mod main and alternative
             # names) and those already known
-            if {![doesModuleMatchesName $mod $withmod] && ([set lmmod\
-               [getLoadedMatchingName $withmod returnfirst]] ne {} || [set\
-               lmmod [getLoadedMatchingName $withmod returnfirst 1]] ne {})} {
-               appendNoDupToList modconlist $lmmod
-               # also collect conflict declared name
+            if {![doesModuleMatchesName $mod $withmod] && ([set lmmodlist\
+               [getLoadedMatchingName $withmod returnall]] ne {} || [set\
+               lmmodlist [getLoadedMatchingName $withmod returnall 1]] ne {})} {
+               # multiple loaded module may match conflict declared name
+               foreach lmmod $lmmodlist {
+                  appendNoDupToList modconlist $lmmod
+               }
                appendNoDupToList moddecconlist $withmod
                set does 1
             }
