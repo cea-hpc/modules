@@ -186,10 +186,14 @@ if {![is_config_locked implicit_default]} {
 }
 unsetenv_var MODULES_EXTENDED_DEFAULT
 
-# test icase
-testouterr_cmd_re sh {whatis -i extDfl@1.4.5} OK "$modlin $mpre $modlin
-\\s+extdfl/1.4.5: extdfl/1.4.5"
-testouterr_cmd sh {avail -t -i extdfl2@2.RC.1} OK "$mp:\nextdfl2/2.rc.1"
+if {$is_filesystem_icase} {
+    send_user "\tskipping icase tests as underlying filesystem is case-insensitive\n"
+} else {
+    # test icase
+    testouterr_cmd_re sh {whatis -i extDfl@1.4.5} OK "$modlin $mpre $modlin
+    \\s+extdfl/1.4.5: extdfl/1.4.5"
+    testouterr_cmd sh {avail -t -i extdfl2@2.RC.1} OK "$mp:\nextdfl2/2.rc.1"
+}
 
 # contains and no-indepth tests
 testouterr_cmd sh {avail -t -C deep @3} OK "$mp:\nnocase/deep/3"
@@ -321,16 +325,20 @@ if {![is_config_locked implicit_default]} {
 }
 unsetenv_var MODULES_EXTENDED_DEFAULT
 
-# test icase
-set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.4.5]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.4.5]
-testouterr_cmd sh {load -i extDfl@1.4.5} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/2.rc.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/2.rc.1]
-lappend ans [list setpath MODULES_LMALTNAME extdfl2/2.rc.1&extdfl2/vicase]
-testouterr_cmd sh {load -i extdfl2@2.RC.1} $ans {}
+if {$is_filesystem_icase} {
+    send_user "\tskipping icase tests as underlying filesystem is case-insensitive\n"
+} else {
+    # test icase
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES extdfl/1.4.5]
+    lappend ans [list setpath _LMFILES_ $mp/extdfl/1.4.5]
+    testouterr_cmd sh {load -i extDfl@1.4.5} $ans {}
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES extdfl2/2.rc.1]
+    lappend ans [list setpath _LMFILES_ $mp/extdfl2/2.rc.1]
+    lappend ans [list setpath MODULES_LMALTNAME extdfl2/2.rc.1&extdfl2/vicase]
+    testouterr_cmd sh {load -i extdfl2@2.RC.1} $ans {}
+}
 
 # check effect over [module-info specified] call
 set ans [list]
@@ -658,23 +666,27 @@ if {![is_config_locked implicit_default]} {
 unsetenv_loaded_module
 unsetenv_var MODULES_EXTENDED_DEFAULT
 
+if {$is_filesystem_icase} {
+    send_user "\tskipping icase tests as underlying filesystem is case-insensitive\n"
+} else {
 # test icase
-set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:advvers2/8.5.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/advvers2/8.5.1]
-lappend ans [list setpath MODULES_LMNOTUASKED extdfl/1.3.7]
-lappend ans [list setpath MODULES_LMPREREQ advvers2/8.5.1&ExtDfl@1.3.7]
-testouterr_cmd_re sh {load -i --auto advvers2@8.5.1} $ans [msg_top_load advvers2/8.5.1 {} extdfl/1.3.7 {}]
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:advvers2/8.5.1]
+    lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/advvers2/8.5.1]
+    lappend ans [list setpath MODULES_LMNOTUASKED extdfl/1.3.7]
+    lappend ans [list setpath MODULES_LMPREREQ advvers2/8.5.1&ExtDfl@1.3.7]
+    testouterr_cmd_re sh {load -i --auto advvers2@8.5.1} $ans [msg_top_load advvers2/8.5.1 {} extdfl/1.3.7 {}]
 
-setenv_loaded_module [list extdfl/1.3.7] [list $mp/extdfl/1.3.7]
-set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:advvers2/8.5.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/advvers2/8.5.1]
-lappend ans [list setpath MODULES_LMPREREQ advvers2/8.5.1&ExtDfl@1.3.7]
-testouterr_cmd_re sh {load -i --auto advvers2@8.5.1} $ans {}
+    setenv_loaded_module [list extdfl/1.3.7] [list $mp/extdfl/1.3.7]
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:advvers2/8.5.1]
+    lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/advvers2/8.5.1]
+    lappend ans [list setpath MODULES_LMPREREQ advvers2/8.5.1&ExtDfl@1.3.7]
+    testouterr_cmd_re sh {load -i --auto advvers2@8.5.1} $ans {}
 
-testouterr_cmd_re sh {load -i --auto advvers2@8.5.2} ERR [msg_load advvers2/8.5.2 [err_conflict advvers2/8.5.2 EXTDFL@1.3.7]]
-unsetenv_loaded_module
+    testouterr_cmd_re sh {load -i --auto advvers2@8.5.2} ERR [msg_load advvers2/8.5.2 [err_conflict advvers2/8.5.2 EXTDFL@1.3.7]]
+    unsetenv_loaded_module
+}
 
 
 #

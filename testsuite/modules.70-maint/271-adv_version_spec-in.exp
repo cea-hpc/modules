@@ -190,16 +190,20 @@ if {![is_config_locked implicit_default]} {
 }
 unsetenv_var MODULES_EXTENDED_DEFAULT
 
-# test icase
-testouterr_cmd_re sh {whatis -i extDfl@1.4.5,1.3.7} OK "$modlin $mpre $modlin
+if {$is_filesystem_icase} {
+    send_user "\tskipping icase tests as underlying filesystem is case-insensitive\n"
+} else {
+    # test icase
+    testouterr_cmd_re sh {whatis -i extDfl@1.4.5,1.3.7} OK "$modlin $mpre $modlin
 \\s+extdfl/1.3.7: extdfl/1.3.7
 \\s+extdfl/1.4.5: extdfl/1.4.5"
-testouterr_cmd sh {avail -t -i extdfl2@2.RC.1,2.rC.2} OK "$mp:\nextdfl2/2.rc.1\nextdfl2/2.rc.2"
-testouterr_cmd sh {avail -t icase3@1.1,1.2,1.4} OK "$mp:\nicase3/1.2"
-testouterr_cmd sh {avail -t -i icase3@1.1,1.2,1.4} OK "$mp:\nICASE3/1.1\nicase3/1.2\niCaSe3/1.4"
-testouterr_cmd sh {avail -t -i iCaSe3@1.1,1.2,1.4} OK "$mp:\nICASE3/1.1\nicase3/1.2\niCaSe3/1.4"
-testouterr_cmd sh {avail -t -i ICase3@1.1,1.2,1.4} OK "$mp:\nICASE3/1.1\nicase3/1.2\niCaSe3/1.4"
-testouterr_cmd sh {avail -t -i ICase3@vErs.1,VeRS.1} OK "$mp:\nICASE3/VERS.1\nICASE3/vers.1"
+    testouterr_cmd sh {avail -t -i extdfl2@2.RC.1,2.rC.2} OK "$mp:\nextdfl2/2.rc.1\nextdfl2/2.rc.2"
+    testouterr_cmd sh {avail -t icase3@1.1,1.2,1.4} OK "$mp:\nicase3/1.2"
+    testouterr_cmd sh {avail -t -i icase3@1.1,1.2,1.4} OK "$mp:\nICASE3/1.1\nicase3/1.2\niCaSe3/1.4"
+    testouterr_cmd sh {avail -t -i iCaSe3@1.1,1.2,1.4} OK "$mp:\nICASE3/1.1\nicase3/1.2\niCaSe3/1.4"
+    testouterr_cmd sh {avail -t -i ICase3@1.1,1.2,1.4} OK "$mp:\nICASE3/1.1\nicase3/1.2\niCaSe3/1.4"
+    testouterr_cmd sh {avail -t -i ICase3@vErs.1,VeRS.1} OK "$mp:\nICASE3/VERS.1\nICASE3/vers.1"
+}
 
 # contains and no-indepth tests
 testouterr_cmd sh {avail -t -C deep @2,3} OK "$mp:\nnocase/deep/2\nnocase/deep/3"
@@ -358,40 +362,44 @@ if {![is_config_locked implicit_default]} {
 }
 unsetenv_var MODULES_EXTENDED_DEFAULT
 
-# test icase
-set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.4.5]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.4.5]
-testouterr_cmd sh {load -i extDfl@1.3.7,1.4.5} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl2/2.rc.2]
-lappend ans [list setpath _LMFILES_ $mp/extdfl2/2.rc.2]
-testouterr_cmd sh {load -i extdfl2@2.rC.2,2.RC.1} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES icase3/1.2]
-lappend ans [list setpath _LMFILES_ $mp/icase3/1.2]
-testouterr_cmd sh {load -i icase3@1.1,1.2,1.4} $ans {}
-testouterr_cmd sh {load -i ICase3@1.1,1.2,1.4} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES iCaSe3/1.4]
-lappend ans [list setpath _LMFILES_ $mp/iCaSe3/1.4]
-testouterr_cmd sh {load -i iCaSe3@1.1,1.2,1.4} $ans {}
-testouterr_cmd sh {load -i icase3@1.1,1.4} $ans {}
-setenv_var MODULES_EXTENDED_DEFAULT 1
-testouterr_cmd sh {load -i iCaSe3@1.1,1.2,1.4} $ans {}
-testouterr_cmd sh {load -i iCaSe3@1,2} $ans {}
-set ans [list]
-lappend ans [list setpath LOADEDMODULES icase3/1.2]
-lappend ans [list setpath _LMFILES_ $mp/icase3/1.2]
-testouterr_cmd sh {load -i ICase3@1.1,1.2,1.4} $ans {}
-testouterr_cmd sh {load -i ICase3@1,2} $ans {}
-unsetenv_var MODULES_EXTENDED_DEFAULT
-set ans [list]
-lappend ans [list setpath LOADEDMODULES ICASE3/vers.1]
-lappend ans [list setpath _LMFILES_ $mp/ICASE3/vers.1]
-testouterr_cmd sh {load -i iCaSe3@vers.1,VERS.1} $ans {}
-testouterr_cmd sh {load -i iCaSe3@vErs.1,VeRS.1} $ans {}
-testouterr_cmd sh {load -i ICASE3@vErs.1,VeRS.1} $ans {}
+if {$is_filesystem_icase} {
+    send_user "\tskipping icase tests as underlying filesystem is case-insensitive\n"
+} else {
+    # test icase
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES extdfl/1.4.5]
+    lappend ans [list setpath _LMFILES_ $mp/extdfl/1.4.5]
+    testouterr_cmd sh {load -i extDfl@1.3.7,1.4.5} $ans {}
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES extdfl2/2.rc.2]
+    lappend ans [list setpath _LMFILES_ $mp/extdfl2/2.rc.2]
+    testouterr_cmd sh {load -i extdfl2@2.rC.2,2.RC.1} $ans {}
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES icase3/1.2]
+    lappend ans [list setpath _LMFILES_ $mp/icase3/1.2]
+    testouterr_cmd sh {load -i icase3@1.1,1.2,1.4} $ans {}
+    testouterr_cmd sh {load -i ICase3@1.1,1.2,1.4} $ans {}
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES iCaSe3/1.4]
+    lappend ans [list setpath _LMFILES_ $mp/iCaSe3/1.4]
+    testouterr_cmd sh {load -i iCaSe3@1.1,1.2,1.4} $ans {}
+    testouterr_cmd sh {load -i icase3@1.1,1.4} $ans {}
+    setenv_var MODULES_EXTENDED_DEFAULT 1
+    testouterr_cmd sh {load -i iCaSe3@1.1,1.2,1.4} $ans {}
+    testouterr_cmd sh {load -i iCaSe3@1,2} $ans {}
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES icase3/1.2]
+    lappend ans [list setpath _LMFILES_ $mp/icase3/1.2]
+    testouterr_cmd sh {load -i ICase3@1.1,1.2,1.4} $ans {}
+    testouterr_cmd sh {load -i ICase3@1,2} $ans {}
+    unsetenv_var MODULES_EXTENDED_DEFAULT
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES ICASE3/vers.1]
+    lappend ans [list setpath _LMFILES_ $mp/ICASE3/vers.1]
+    testouterr_cmd sh {load -i iCaSe3@vers.1,VERS.1} $ans {}
+    testouterr_cmd sh {load -i iCaSe3@vErs.1,VeRS.1} $ans {}
+    testouterr_cmd sh {load -i ICASE3@vErs.1,VeRS.1} $ans {}
+}
 
 # check effect over [module-info specified] call
 set ans [list]
@@ -810,23 +818,27 @@ if {![is_config_locked implicit_default]} {
 unsetenv_loaded_module
 unsetenv_var MODULES_EXTENDED_DEFAULT
 
-# test icase
-set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:advvers5/8.5.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/advvers5/8.5.1]
-lappend ans [list setpath MODULES_LMNOTUASKED extdfl/1.3.7]
-lappend ans [list setpath MODULES_LMPREREQ advvers5/8.5.1&ExtDfl@1.3.7,1.2.3]
-testouterr_cmd_re sh {load -i --auto advvers5@8.5.1} $ans [msg_top_load advvers5/8.5.1 {} extdfl/1.3.7 {}]
+if {$is_filesystem_icase} {
+    send_user "\tskipping icase tests as underlying filesystem is case-insensitive\n"
+} else {
+    # test icase
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:advvers5/8.5.1]
+    lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/advvers5/8.5.1]
+    lappend ans [list setpath MODULES_LMNOTUASKED extdfl/1.3.7]
+    lappend ans [list setpath MODULES_LMPREREQ advvers5/8.5.1&ExtDfl@1.3.7,1.2.3]
+    testouterr_cmd_re sh {load -i --auto advvers5@8.5.1} $ans [msg_top_load advvers5/8.5.1 {} extdfl/1.3.7 {}]
 
-setenv_loaded_module [list extdfl/1.3.7] [list $mp/extdfl/1.3.7]
-set ans [list]
-lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:advvers5/8.5.1]
-lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/advvers5/8.5.1]
-lappend ans [list setpath MODULES_LMPREREQ advvers5/8.5.1&ExtDfl@1.3.7,1.2.3]
-testouterr_cmd_re sh {load -i --auto advvers5@8.5.1} $ans {}
+    setenv_loaded_module [list extdfl/1.3.7] [list $mp/extdfl/1.3.7]
+    set ans [list]
+    lappend ans [list setpath LOADEDMODULES extdfl/1.3.7:advvers5/8.5.1]
+    lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.7:$mp/advvers5/8.5.1]
+    lappend ans [list setpath MODULES_LMPREREQ advvers5/8.5.1&ExtDfl@1.3.7,1.2.3]
+    testouterr_cmd_re sh {load -i --auto advvers5@8.5.1} $ans {}
 
-testouterr_cmd_re sh {load -i --auto advvers5@8.5.2} ERR [msg_load advvers5/8.5.2 [err_conflict advvers5/8.5.2 EXTDFL@1.3.7,1.2.3]]
-unsetenv_loaded_module
+    testouterr_cmd_re sh {load -i --auto advvers5@8.5.2} ERR [msg_load advvers5/8.5.2 [err_conflict advvers5/8.5.2 EXTDFL@1.3.7,1.2.3]]
+    unsetenv_loaded_module
+}
 
 
 #
