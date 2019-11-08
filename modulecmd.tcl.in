@@ -6259,6 +6259,13 @@ proc compareVersion {str1 str2} {
    }
 }
 
+# Is provided string a version number: consider first element of string if
+# '.' character used in it. [0-9af] on this first part is considered valid
+# anything else could be used in latter elements
+proc isVersion {str} {
+   return [string is xdigit -strict [lindex [split $str .] 0]]
+}
+
 # Return number of occurences of passed character in passed string
 proc countChar {str char} {
    return [expr {[string length $str] - [string length [string map [list\
@@ -6575,6 +6582,26 @@ proc modVersCmpProc {cmpspec versspec modvers test {psuf {}}} {
             }
          }
       }
+      ge {
+         # as we work here on a version range: psuf suffix is ignored, checks
+         # are always extended_default-enabled (as 1.2 includes 1.2.12 for
+         # instance) and equal, eqstart and match tests are equivalent
+         set ret [expr {[isVersion $modvers] && ([compareVersion $modvers\
+            $versspec] != -1 || [string match $versspec.* $modvers])}]
+      }
+      le {
+         # 'ge' comment also applies here
+         set ret [expr {[isVersion $modvers] && ([compareVersion $versspec\
+            $modvers] != -1 || [string match $versspec.* $modvers])}]
+      }
+      be {
+         # 'ge' comment also applies here
+         lassign $versspec lovers hivers
+         set ret [expr {[isVersion $modvers] && ([compareVersion $modvers\
+            $lovers] != -1 || [string match $lovers.* $modvers]) &&\
+            ([compareVersion $hivers $modvers] != -1 || [string match\
+            $hivers.* $modvers])}]
+      }
    }
    return $ret
 }
@@ -6594,6 +6621,21 @@ proc modVersCmpProcIcase {cmpspec versspec modvers test {psuf {}}} {
                break
             }
          }
+      }
+      ge {
+         set ret [expr {[isVersion $modvers] && ([compareVersion $modvers\
+            $versspec] != -1 || [string match -nocase $versspec.* $modvers])}]
+      }
+      le {
+         set ret [expr {[isVersion $modvers] && ([compareVersion $versspec\
+            $modvers] != -1 || [string match -nocase $versspec.* $modvers])}]
+      }
+      be {
+         lassign $versspec lovers hivers
+         set ret [expr {[isVersion $modvers] && ([compareVersion $modvers\
+            $lovers] != -1 || [string match $lovers.* $modvers]) &&\
+            ([compareVersion $hivers $modvers] != -1 || [string match -nocase\
+            $hivers.* $modvers])}]
       }
    }
    return $ret
@@ -6615,6 +6657,21 @@ proc modVersCmpProcExtdfl {cmpspec versspec modvers test {psuf {}}} {
                break
             }
          }
+      }
+      ge {
+         set ret [expr {[isVersion $modvers] && ([compareVersion $modvers\
+            $versspec] != -1 || [string match $versspec.* $modvers])}]
+      }
+      le {
+         set ret [expr {[isVersion $modvers] && ([compareVersion $versspec\
+            $modvers] != -1 || [string match $versspec.* $modvers])}]
+      }
+      be {
+         lassign $versspec lovers hivers
+         set ret [expr {[isVersion $modvers] && ([compareVersion $modvers\
+            $lovers] != -1 || [string match $lovers.* $modvers]) &&\
+            ([compareVersion $hivers $modvers] != -1 || [string match\
+            $hivers.* $modvers])}]
       }
    }
    return $ret
@@ -6638,6 +6695,21 @@ proc modVersCmpProcIcaseExtdfl {cmpspec versspec modvers test {psuf {}}} {
                break
             }
          }
+      }
+      ge {
+         set ret [expr {[isVersion $modvers] && ([compareVersion $modvers\
+            $versspec] != -1 || [string match -nocase $versspec.* $modvers])}]
+      }
+      le {
+         set ret [expr {[isVersion $modvers] && ([compareVersion $versspec\
+            $modvers] != -1 || [string match -nocase $versspec.* $modvers])}]
+      }
+      be {
+         lassign $versspec lovers hivers
+         set ret [expr {[isVersion $modvers] && ([compareVersion $modvers\
+            $lovers] != -1 || [string match $lovers.* $modvers]) &&\
+            ([compareVersion $hivers $modvers] != -1 || [string match -nocase\
+            $hivers.* $modvers])}]
       }
    }
    return $ret
@@ -8132,6 +8204,7 @@ proc parseModuleVersionSpecifier {args} {
 
       if {[info exists need_parse]} {
          set invalidversspec 0
+         set invalidversrange 0
          set arglist [list]
          foreach arg $args {
             # extract module name and version specifier from arg
@@ -8155,21 +8228,52 @@ proc parseModuleVersionSpecifier {args} {
             }
 
             set modspec [lindex $curverslist end]
-            # no deep version specification allowed
-            if {[string first / $modspec] != -1} {
+            set versspecislist [expr {[string first , $modspec] != -1}]
+            set versspecisrange [expr {[string first : $modspec] != -1}]
+            # no deep version specification allowed nor list/range mix
+            if {[string first / $modspec] != -1 || ($versspecislist &&\
+               $versspecisrange)} {
                set invalidversspec 1
             # ',' separates multiple versions
-            } elseif {[string first , $modspec] != -1} {
+            } elseif {$versspecislist} {
                set cmpspec in
                set versspec [split $modspec ,]
                # empty element in list is erroneous
                set invalidversspec [expr {[lsearch -exact $versspec {}] != -1}]
+            # ':' separates range elements
+            } elseif {$versspecisrange} {
+               set versspec [split $modspec :]
+               set lovers [lindex $versspec 0]
+               set hivers [lindex $versspec 1]
+               if {[llength $versspec] != 2 || ($lovers eq {} && $hivers eq\
+                  {})} {
+                  set invalidversspec 1
+               } elseif {($lovers ne {} && ![isVersion $lovers]) || ($hivers\
+                  ne {} && ![isVersion $hivers])} {
+                  set invalidversrange 1
+               # greater or equal
+               } elseif {$hivers eq {}} {
+                  set cmpspec ge
+                  set versspec $lovers
+               # lower or equal
+               } elseif {$lovers eq {}} {
+                  set cmpspec le
+                  set versspec $hivers
+               # between or equal
+               } elseif {[compareVersion $lovers $hivers] == 1} {
+                  set invalidversrange 1
+               } else {
+                  set cmpspec be
+               }
             } else {
                set cmpspec eq
                set versspec $modspec
             }
             if {$invalidversspec} {
                error "Invalid version specifier '$modspec'"
+            }
+            if {$invalidversrange} {
+               error "Invalid version range '$modspec'"
             }
             lappend modarglist $arg
          }
@@ -8200,7 +8304,7 @@ proc setModuleVersSpec {modarg modname cmpspec versspec} {
       set modname [file dirname $modname]
    } else {
       set modname [string trimright $modname /]
-      if {$cmpspec eq {in}} {
+      if {$cmpspec ne {eq}} {
          set mod {}
       } else {
          set mod $modname/$versspec
