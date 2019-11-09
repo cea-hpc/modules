@@ -3593,7 +3593,8 @@ proc getLoadedModuleFileList {} {
 proc getLoadedModuleConflictList {} {
    set modconlist [list]
    foreach modconser [split [get-env MODULES_LMCONFLICT] [getPathSeparator]] {
-      set conlist [split $modconser $::g_sub1_separator]
+      # recover range specifier ':' from its serialized form '<'
+      set conlist [split [string map {< :} $modconser] $::g_sub1_separator]
       # ignore empty element (1 is meaningless as first elt is loaded mod)
       if {[llength $conlist] > 1} {
          lappend modconlist $conlist
@@ -3606,7 +3607,8 @@ proc getLoadedModuleConflictList {} {
 proc getLoadedModulePrereqList {} {
    set modprelist [list]
    foreach modpreser [split [get-env MODULES_LMPREREQ] [getPathSeparator]] {
-      set prelist [split $modpreser $::g_sub1_separator]
+      # recover range specifier ':' from its serialized form '<'
+      set prelist [split [string map {< :} $modpreser] $::g_sub1_separator]
       # ignore empty element (1 is meaningless as first elt is loaded mod)
       if {[llength $prelist] > 1} {
          set modpre {}
@@ -4271,8 +4273,9 @@ proc getLoadedConflict {mod {serialized 0}} {
    if {[info exists ::g_loadedModuleConflict($mod)]} {
       if {$serialized} {
          # get conflict info as a string that can be registered in an env var
-         set ret [join [concat [list $mod] $::g_loadedModuleConflict($mod)]\
-            $::g_sub1_separator]
+         # translate range specifier ':' into '<' to distinguish from path sep
+         set ret [string map {: <} [join [concat [list $mod]\
+            $::g_loadedModuleConflict($mod)] $::g_sub1_separator]]
       } else {
          set ret $::g_loadedModuleConflict($mod)
       }
@@ -4343,7 +4346,9 @@ proc getLoadedPrereq {mod {serialized 0}} {
          foreach pre $::g_loadedModulePrereq($mod) {
             lappend modpre [join $pre $::g_sub2_separator]
          }
-         set ret [join [concat [list $mod] $modpre] $::g_sub1_separator]
+         # translate range specifier ':' into '<' to distinguish from path sep
+         set ret [string map {: <} [join [concat [list $mod] $modpre]\
+            $::g_sub1_separator]]
       } else {
          set ret $::g_loadedModulePrereq($mod)
       }
