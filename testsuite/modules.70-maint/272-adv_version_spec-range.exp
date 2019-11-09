@@ -1,0 +1,254 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2019/11/08
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test impact of range version specifier
+#		}C%
+#
+##############################################################################
+
+# ensure avail -t tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure last matching element is returned when unloading modules
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
+
+set mp $modpath.2
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+#
+# check option enablement
+#
+
+set ans [list [list text $mp/extdfl/1.3.1]]
+set tserr $err_path'extdfl@:2.0'
+
+switch -- $install_advversspec {
+    n {testouterr_cmd sh {path extdfl@:2.0} OK $tserr}
+    y {testouterr_cmd sh {path extdfl@:2.0} $ans {}}
+}
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+testouterr_cmd sh {path extdfl@:2.0} OK $tserr
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+testouterr_cmd sh {path extdfl@:2.0} $ans {}
+
+setenv_var MODULES_ADVANCED_VERSION_SPEC badvalue
+switch -- $install_advversspec {
+    n {testouterr_cmd sh {path extdfl@:2.0} OK $tserr}
+    y {testouterr_cmd sh {path extdfl@:2.0} $ans {}}
+}
+
+
+# enable advanced version spec for next tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+#
+# check version spec parsing
+#
+
+testouterr_cmd sh {load @::1} ERR "$err_specvers'::1'"
+testouterr_cmd sh {load @::} ERR "$err_specvers'::'"
+testouterr_cmd sh {load @1::} ERR "$err_specvers'1::'"
+testouterr_cmd sh {load mod@::1} ERR "$err_specvers'::1'"
+testouterr_cmd sh {load mod@::} ERR "$err_specvers'::'"
+testouterr_cmd sh {load mod@1::} ERR "$err_specvers'1::'"
+testouterr_cmd sh {load mod@1,:,} ERR "$err_specvers'1,:,'"
+testouterr_cmd sh {load mod@,:} ERR "$err_specvers',:'"
+testouterr_cmd sh {load mod@1.3:1.2} ERR "$err_rangevers'1.3:1.2'"
+testouterr_cmd sh {load mod@,<} ERR "$err_specvers',<'"
+testouterr_cmd sh {load mod@:<} ERR "$err_rangevers':<'"
+testouterr_cmd sh {load mod@1/1:2} ERR "$err_specvers'1/1:2'"
+testouterr_cmd sh {load mod@1/:2/} ERR "$err_specvers'1/:2/'"
+testouterr_cmd sh {load mod@.1:} ERR "$err_rangevers'.1:'"
+testouterr_cmd sh {load mod@:foo} ERR "$err_rangevers':foo'"
+
+set ans [list [list text $mp/advvers4/2.1]]
+testouterr_cmd sh {path advvers5@8.foo:} $ans {}
+testouterr_cmd sh {path advvers5@8._:} $ans {}
+testouterr_cmd sh {path advvers5@8..:} $ans {}
+set ans [list [list text $mp/advvers5/8.5.2]]
+testouterr_cmd sh {path advvers5@8.5:8.5} $ans {}
+testouterr_cmd sh {path advvers5@8.5: @:8.5} $ans {}
+testouterr_cmd sh {path advvers5@8.5: @8.5:8.5} $ans {}
+set ans [list [list text $mp/extdfl7/10a]]
+testouterr_cmd sh {path extdfl7@10:} $ans {}
+testouterr_cmd sh {path extdfl7@10a:} $ans {}
+testouterr_cmd sh {path extdfl7@10g:} ERR "$err_rangevers'10g:'"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/1.3.1]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+testouterr_cmd sh {load extdfl@1.2.3:} $ans {}
+testouterr_cmd sh {load extdfl @1.2:} $ans {}
+testouterr_cmd sh {load extdfl @:1.3.1} $ans {}
+testouterr_cmd sh {load extdfl @:1.3.7} $ans {}
+testouterr_cmd sh {load extdfl @1.2:1.3} $ans {}
+testouterr_cmd sh {load extdfl @1.2.3:1.3.7} $ans {}
+testouterr_cmd sh {load extdfl @:2.0.1} $ans {}
+testouterr_cmd sh {load extdfl @:2.0} $ans {}
+testouterr_cmd sh {load extdfl @1.2:2} $ans {}
+testouterr_cmd sh {load extdfl @1.2<} ERR "$err_path'extdfl @1.2<'"
+testouterr_cmd sh {load extdfl @<2.0} ERR "$err_path'extdfl @<2.0'"
+testouterr_cmd sh {load extdfl @1.2<2} ERR "$err_path'extdfl @1.2<2'"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/2.0.1]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1]
+testouterr_cmd sh {load extdfl @1.3.7:2.0.1} $ans {}
+testouterr_cmd sh {load extdfl @1.3.7:2.0} $ans {}
+testouterr_cmd sh {load extdfl @1.3.7:} $ans {}
+testouterr_cmd sh {load extdfl @1.4:2} $ans {}
+
+testouterr_cmd sh {load extdfl/1@1.2.3:} ERR $err_path'extdfl/1@1.2.3:'
+testouterr_cmd sh {load extdfl/1 @:1.2.3} ERR "$err_path'extdfl/1 @:1.2.3'"
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/2.0.1:extdfl/1.4.5]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1:$mp/extdfl/1.4.5]
+testouterr_cmd_re sh {load extdfl@:1.3.7 @1.3.7: extdfl@1.3.7:1.4.5} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/2.0.1:extdfl2/3.1.7]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1:$mp/extdfl2/3.1.7]
+testouterr_cmd_re sh {load extdfl@1.3.7: extdfl2@3.0:3.1} $ans {}
+
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/2.0.1:extdfl2/3.10.2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/2.0.1:$mp/extdfl2/3.10.2]
+testouterr_cmd_re sh {load extdfl@1.1.10,1.3.7 @2: extdfl2 @3:} $ans {}
+
+# unconventional spec
+testouterr_cmd sh {path extdfl/@1.2:} [list [list text $mp/extdfl/1.3.1]] {}
+testouterr_cmd sh {path extdfl/ @1.2:1.3} [list [list text $mp/extdfl/1.3.1]] {}
+
+
+#
+# check consistent effect over the module search context
+#
+
+# test all sub-cmd concerned by context
+testouterr_cmd sh {avail -t extdfl @1.3:1.4} OK "$mp:\nextdfl/1.3.1(default)\nextdfl/1.3.7\nextdfl/1.4.5"
+testouterr_cmd_re sh {whatis extdfl@1.3.7:1.4.5} OK "$modlin $mpre $modlin
+\\s+extdfl/1.3.7: extdfl/1.3.7
+\\s+extdfl/1.4.5: extdfl/1.4.5"
+testouterr_cmd sh {paths extdfl @1.3.7:1.4.5} [list [list text $mp/extdfl/1.3.7] [list text $mp/extdfl/1.4.5]] {}
+
+# test various modulefile kind: alias, symver, virtual, directory hidden
+testouterr_cmd sh {avail -t extdfl3@1.00:} OK "$mp:\nextdfl3/1.00(@)\nextdfl3/1.1/(1.2)\nextdfl3/1.1/3\nextdfl3/1.3/3(@)\nextdfl3/1.3/4"
+testouterr_cmd sh {avail -t extdfl7 @3.0:3.1} OK "$mp:\nextdfl7/2.10(3.0)\nextdfl7/3.1"
+testouterr_cmd sh {avail -t extdfl7 @8:} OK "$mp:\nextdfl7/8.1(@)\nextdfl7/9.1\nextdfl7/10a"
+testouterr_cmd sh {avail -t extdfl @.1.3.4:} ERR "$err_rangevers'.1.3.4:'"
+
+# test unknown module
+testouterr_cmd sh {avail -t unknown @1.2:1.4} OK {}
+testouterr_cmd_re sh {whatis unknown@:1.4.5} ERR "$err_path'unknown@:1.4.5'"
+testouterr_cmd sh {paths unknown @1.2.10:} OK {}
+
+# wildcard character
+testouterr_cmd sh {avail -t ext*l @1.3:1.4} OK "$mp:\nextdfl/1.3.1(default)\nextdfl/1.3.7\nextdfl/1.4.5"
+testouterr_cmd sh {avail -t ext?fl @1.3:} OK "$mp:\nextdfl/1.3.1(default)\nextdfl/1.3.7\nextdfl/1.4.5\nextdfl/2.0\nextdfl/2.0.1"
+testouterr_cmd sh {avail -t e+?.* @:1.4} OK "$mp:\ne+t.fl/1.3.1\ne+t.fl/1.3.7\ne+t.fl/1.4.5"
+
+# additionnal version tests
+testouterr_cmd sh {avail -t extdfl8 @1.33:} OK "$mp:\nextdfl8/1.33"
+testouterr_cmd sh {avail -t extdfl8 @:1.3} OK "$mp:\nextdfl8/1.3.1\nextdfl8/1.3.7"
+testouterr_cmd sh {avail -t extdfl8 @1.3:1.4} OK "$mp:\nextdfl8/1.3.1\nextdfl8/1.3.7\nextdfl8/1.4.5"
+
+# test extended default enabled
+set tserr "$modlin $mpre $modlin
+\\s+extdfl/1.3.1: extdfl/1.3.1
+\\s+extdfl/1.3.7: extdfl/1.3.7
+\\s+extdfl/1.4.5: extdfl/1.4.5"
+testouterr_cmd_re sh {whatis extdfl@1.3:1.4} OK $tserr
+set ans [list [list text $mp/extdfl/1.4.5] [list text $mp/extdfl/2.0] [list text $mp/extdfl/2.0.1]]
+testouterr_cmd sh {paths extdfl @1.4:} $ans {}
+setenv_var MODULES_EXTENDED_DEFAULT 1
+testouterr_cmd_re sh {whatis extdfl@1.3:1.4} OK $tserr
+testouterr_cmd sh {paths extdfl @1.4:} $ans {}
+
+# test implicit default disabled
+if {![is_config_locked implicit_default]} {
+    setenv_var MODULES_IMPLICIT_DEFAULT 0
+    testouterr_cmd_re sh {whatis extdfl@1.3:1.4} OK $tserr
+    testouterr_cmd sh {paths extdfl @1.4:} $ans {}
+    setenv_var MODULES_IMPLICIT_DEFAULT 1
+}
+unsetenv_var MODULES_EXTENDED_DEFAULT
+
+if {$is_filesystem_icase} {
+    send_user "\tskipping icase tests as underlying filesystem is case-insensitive\n"
+} else {
+    # test icase
+    testouterr_cmd_re sh {whatis -i extDfl@1.3.7:1.4.5} OK "$modlin $mpre $modlin
+\\s+extdfl/1.3.7: extdfl/1.3.7
+\\s+extdfl/1.4.5: extdfl/1.4.5"
+    testouterr_cmd sh {avail -t -i extdfl2@:2.rC} OK "$mp:\nextdfl2/2.rc.1\nextdfl2/2.rc.2"
+    testouterr_cmd sh {avail -t icase3@:1.4} OK "$mp:\nicase3/1.2"
+    testouterr_cmd sh {avail -t -i icase3@1:} OK "$mp:\nICASE3/1.1\nicase3/1.2\niCaSe3/1.3\niCaSe3/1.4"
+    testouterr_cmd sh {avail -t -i iCaSe3@1.1:} OK "$mp:\nICASE3/1.1\nicase3/1.2\niCaSe3/1.3\niCaSe3/1.4"
+    testouterr_cmd sh {avail -t -i ICase3@1.1:1.4} OK "$mp:\nICASE3/1.1\nicase3/1.2\niCaSe3/1.3\niCaSe3/1.4"
+    testouterr_cmd sh {avail -t -i ICase3@vErs.1:} ERR  "$err_rangevers'vErs.1:'"
+}
+
+# contains and no-indepth tests
+testouterr_cmd sh {avail -t -C deep @:3} OK "$mp:\nnocase/deep/2\nnocase/deep/3"
+testouterr_cmd sh {avail -t --no-indepth extdfl @1.2:1.4} OK "$mp:\nextdfl/1.2.3\nextdfl/1.2.10\nextdfl/1.3.1(default)\nextdfl/1.3.7\nextdfl/1.4.5"
+testouterr_cmd sh {avail -t --no-indepth -C deep @2:} OK {}
+
+# test mod@deep/vers
+testouterr_cmd sh {avail -t extdfl3@1.3/3:} ERR $err_specvers'1.3/3:'
+testouterr_cmd_re sh {whatis extdfl3@1.3/3:1.3/4} ERR $err_specvers'1.3/3:1.3/4'
+
+# test mod@vers where a modulefile mod@vers exist
+testouterr_cmd sh {avail -t advvers@2.1:2.2} OK {}
+testouterr_cmd sh {whatis advvers@2.1:2.2} ERR "$err_path'advvers@2.1:2.2'"
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+testouterr_cmd sh {avail -t advvers@2.1:} OK {}
+testouterr_cmd sh {whatis advvers@:2.2} ERR "$err_path'advvers@:2.2'"
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+unsetenv_var MODULES_SEARCH_MATCH
+unsetenv_var MODULES_AVAIL_INDEPTH
+unsetenv_var MODULES_EXTENDED_DEFAULT
+unsetenv_var MODULES_UNLOAD_MATCH_ORDER
+setenv_path_var MODULEPATH $modpath
+
+unset mp
+unset mpre
+unset ans
+unset tserr
