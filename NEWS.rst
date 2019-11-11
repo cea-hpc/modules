@@ -22,7 +22,8 @@ Modules 4.4.0 (2019-XX-XX)
   ``--with-icase`` option. It could be superseded with the ``MODULES_ICASE``
   environment variable, that could be set with ``config`` module sub-command
   through the ``icase`` option. Command-line switch ``--icase`` (``-i``)
-  enables to supersede defined case sensitiveness configuration.
+  enables to supersede defined case sensitiveness configuration. (fix issue
+  #212 with contribution from Eric Deveaud)
 
 
 Modules 4.3.1 (2019-09-21)
