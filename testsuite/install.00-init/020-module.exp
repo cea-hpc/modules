@@ -95,6 +95,20 @@ foreach shell $othlang_list {
    testall_cmd "$shell" "use,$contrib_modpath:unload,null:list,-t" "" "$no_loaded" 0
 }
 
+# ensure advanced_version_spec is efficient on all shells
+set loadunloadout "Loading advvers6/1.3\n  Loading requirement: advvers7/1.0\nUnloading advvers7/1.0\n  Unloading dependent: advvers6/1.3"
+if {![is_config_locked implicit_default]} {
+   foreach shell $shell_list {
+      testall_cmd $shell "module use $testsuite_modpath.2\; module config implicit_default 1\; module config verbosity normal\; module config advanced_version_spec 1\; module load --auto advvers6@1.3\; module unload --auto advvers7@1.0" {} $loadunloadout 0
+   }
+   foreach shell $othlang_list {
+      testall_cmd $shell "use,$testsuite_modpath.2:config,implicit_default,1:config,verbosity,normal:config,advanced_version_spec,1:load,--auto,advvers6@1.3:unload,--auto,advvers7@1.0" {} $loadunloadout 0
+   }
+} elseif {$verbose > 0} {
+   send_user "\tSkipping advanced_version_spec tests as implicit_default config is locked\n"
+}
+
+
 #
 #  Clean up variables used in this test case
 #
@@ -104,5 +118,6 @@ unset env(_LMFILES_)
 
 unset bad_cmd
 unset anstxt
+unset loadunloadout
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

@@ -234,6 +234,12 @@ testouterr_cmd sh {avail -t advvers@2.1:} OK {}
 testouterr_cmd sh {whatis advvers@:2.2} ERR "$err_path'advvers@:2.2'"
 setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
+# test @major:major.minor
+testouterr_cmd sh {avail -t extdfl2 @3:3.1} OK "$mp:\nextdfl2/3.0.0\nextdfl2/3.0.2\nextdfl2/3.0.15\nextdfl2/3.1.3\nextdfl2/3.1.7"
+# test major version number mixing alpha and numerical characters
+testouterr_cmd sh {avail -t extdfl7@9:10} OK "$mp:\nextdfl7/9.1"
+testouterr_cmd sh {avail -t extdfl7@9:11} OK "$mp:\nextdfl7/9.1\nextdfl7/10a"
+
 
 #
 # check consistent effect over the one module selection context
@@ -514,6 +520,13 @@ lappend ans [list setpath LOADEDMODULES advvers7/0.9:advvers6/1.3]
 lappend ans [list setpath _LMFILES_ $mp/advvers7/0.9:$mp/advvers6/1.3]
 lappend ans [list setpath MODULES_LMPREREQ advvers6/1.3&advvers7@<1.0]
 testouterr_cmd_re sh {load --auto advvers7@0.9} $ans [msg_top_load advvers7/0.9 {} {} advvers6/1.3]
+# with adv_version_spec disabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers6/1.3:advvers7/1.0]
+lappend ans [list setpath _LMFILES_ $mp/advvers6/1.3:$mp/advvers7/1.0]
+testouterr_cmd_re sh {load --auto advvers7/1.0} $ans {}
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 unsetenv_loaded_module
 unsetenv_path_var MODULES_LMPREREQ
 
@@ -535,6 +548,15 @@ testouterr_cmd_re sh {unload --auto advvers7@1.0} $ans [msg_top_unload advvers7/
 
 # unload prereq in no-auto mode
 testouterr_cmd_re sh {unload --no-auto advvers7@1.0} ERR [msg_unload advvers7/1.0 [err_prerequn advvers7/1.0 advvers6/1.3]]
+
+# with adv_version_spec disabled
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers7/1.0]
+lappend ans [list setpath _LMFILES_ $mp/advvers7/1.0]
+lappend ans [list unsetpath MODULES_LMPREREQ]
+testouterr_cmd sh {unload --auto advvers6/1.3} $ans {}
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
 
 # force prereq unload
 set ans [list]
@@ -584,6 +606,28 @@ lappend ans [list setpath MODULES_LMNOTUASKED advvers6/1.6]
 lappend ans [list ERR]
 testouterr_cmd_re sh {load --auto advvers7@1.3.2} $ans [msg_top_load advvers7/1.3.2 {} advvers6/1.6 {}]
 
+# requirement expressed with @major:major.minor (check if >major.minor versions are avoided)
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl2/3.9.2:advvers6/3.0]
+lappend ans [list setpath _LMFILES_ $mp/extdfl2/3.9.2:$mp/advvers6/3.0]
+lappend ans [list setpath MODULES_LMPREREQ "advvers6/3.0&extdfl2@3<3.9"]
+lappend ans [list setpath MODULES_LMNOTUASKED extdfl2/3.9.2]
+testouterr_cmd_re sh {load --auto advvers6@3.0} $ans [msg_top_load advvers6/3.0 {} extdfl2/3.9.2 {}]
+
+# test major version number mixing alpha and numerical characters
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl7/9.1:advvers6/3.1]
+lappend ans [list setpath _LMFILES_ $mp/extdfl7/7.0:$mp/advvers6/3.1]
+lappend ans [list setpath MODULES_LMPREREQ "advvers6/3.1&extdfl7@<10"]
+lappend ans [list setpath MODULES_LMNOTUASKED extdfl7/9.1]
+testouterr_cmd_re sh {load --auto advvers6@3.1} $ans [msg_top_load advvers6/3.1 {} extdfl7/9.1 {}]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl7/10a:advvers6/3.2]
+lappend ans [list setpath _LMFILES_ $mp/extdfl7/10a:$mp/advvers6/3.2]
+lappend ans [list setpath MODULES_LMPREREQ "advvers6/3.2&extdfl7@<11"]
+lappend ans [list setpath MODULES_LMNOTUASKED extdfl7/10a]
+testouterr_cmd_re sh {load --auto advvers6@3.2} $ans [msg_top_load advvers6/3.2 {} extdfl7/10a {}]
+
 
 # conflict not loaded
 set ans [list]
@@ -602,6 +646,17 @@ setenv_loaded_module [list advvers6/1.6] [list $mp/advvers6/1.6]
 testouterr_cmd sh {load advvers7@3.0} ERR [msg_load advvers7/3.0 [err_conflict advvers7/3.0 advvers6 @1.0:1.6]]
 setenv_loaded_module [list advvers6/1.2] [list $mp/advvers6/1.2]
 testouterr_cmd sh {load advvers7@3.0} ERR [msg_load advvers7/3.0 [err_conflict advvers7/3.0 advvers6 @1.0:1.6]]
+
+# conflict loaded with advanced_version_spec disabled
+setenv_loaded_module [list advvers7/3.0] [list $mp/advvers7/3.0]
+setenv_path_var MODULES_LMCONFLICT "advvers7/3.0&advvers6 @1.1<1.6"
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+set ans [list]
+lappend ans [list setpath LOADEDMODULES advvers7/3.0:advvers6/1.6]
+lappend ans [list setpath _LMFILES_ $mp/advvers7/3.0:$mp/advvers6/1.6]
+testouterr_cmd_re sh {load advvers6/1.6} $ans {}
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+unsetenv_path_var MODULES_LMCONFLICT
 
 # conflict loaded but conflicting module load forced
 setenv_loaded_module [list advvers6/1.6] [list $mp/advvers6/1.6]
