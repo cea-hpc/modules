@@ -51,9 +51,18 @@ Specification
 - version could be specified as range
     - *soft@:vers* or *soft@vers:* or *soft@vers1:vers2*
     - Tcl-dictionarily determine what is between specified range
-    - version specified could be text, like if symbolic version names are used
-    - should benefit from extended default specification
-        - to just express version with their major release number for instance
+    - ``extended_default`` is always considered *on* when matching range
+        - as *2.10* is included in *@1:3* whatever the configuration
+    - to be specified in a range or compared to a range, version major element should match an hexadecimal number
+        - which also means be only composed by [0-9af] characters
+        - for instance *10a*, *1.2.3*, *1.foo*, *10.2.good* are versions valid for range comparison
+        - but *10g*, *default*, *foo.2*, *.1.3.4* are versions invalid for range comparison
+    - a version range using in its definition version invalid for range comparison raises error
+        - for instance *@bar:foo*
+    - existing module versions invalid for range comparison are ignored
+        - which means versions *10g*, *default*, *.1.13.4* or *new* are excluded from result for a *@1.10:* range query
+    - when range is defined as *@major:major.minor*, version matching *major* version but above *major.minor* are excluded
+        - for instance *@1:1.10* will matches *1.0* and *1.8* but not *1.12*
 
 - version could be specified as list
     - soft@vers,vers,vers
@@ -62,6 +71,8 @@ Specification
         - to just express version with their major release number for instance
     - an empty string among list is considered as a specification error
         - for instance *soft@vers,vers,* or *soft@vers,,vers*
+    - version specifier cannot mix list and range in the same expression (error raised elsewhere)
+        - like *soft@1.2,1.4:1.6,1.8*
 
 - when using extended default syntax
     - version selection is performed same way for *@vers* than for */vers*
@@ -78,24 +89,26 @@ Specification
         - not below levels
         - for instance soft@vers, will match *soft/vers*, not *soft/deep/vers*
         - to specify version for deep modules:*"soft/deep@vers*
-        - or even: *soft@deep/vers*
-            - as frontier between module name and version should not be imposed by module tool
+        - to ease version comparison deep version cannot be specified after the *@* character like *soft@deep/vers*
+            - such specification will raise an error
 
-- whatever the syntax, should keep in mind *soft* or *soft/vers* could be module aliases
+- advanced version specifier cannot be used with full path modulefile
+    - when a full path modulefile is specified any advanced version set afterward is treated literally
+    - for instance */path/to/modulefiles/mymod@1.2* will lead to the access of file *mymod@1.2* in directory */path/to/modulefiles*
 
 - in case version is specified multiple times
-    - lastly mentionned (read from left to right) value is retained (it overwrite previous values)
+    - lastly mentioned (read from left to right) value is retained (it overwrite previous values)
     - like *module@1.8 @2.0* or *module@1.8@2.0*
-    - exception made for fully qualified modulefile where an @vers is added
-    - like in *soft/1.8@1.10" or "soft/1.8 @1.10*
-        this *@* version specifier should be ignored as it cannot overwrite qualified modulefile name
+    - beware of version specified over a fully qualified modulefile like in *soft/1.8@1.10" or "soft/1.8 @1.10*
+        - it resolves to *soft/1.8/1.10* as advanced version specified is treated as an additional directory level
 
 - in case modulefile is named *module@vers* in filesystem
     - it is not found when option ``advanced_version_spec`` is enabled
     - as it is translated to *module/vers*
 
 - when special characters like *?* or \* are used in version name or value
-    - they are treated literally, no wildcard meaning is applied
+    - they are evaluated as Tcl glob pattern on return all matching modules context
+    - they are treated literally on single module selection and compatibility check context, no wildcard meaning is applied
     - like currently done when specifying module version on command-line
         - which leads to errors as no corresponding module is found::
 
@@ -130,7 +143,7 @@ Specification
     - it should not impact triggers and actions
     - but consist in an overall change of procedures comparing queries against loaded environment
         - procedures like ``doesModuleConflict``
-    - also adapting ``getModules`` to restrict version possibilites to what has been specified
+    - also adapting ``getModules`` to restrict version possibilities to what has been specified
         - for instance with query *soft@1,2* should only return versions matching
 
 - prereq/conflict persistency
@@ -155,6 +168,9 @@ Specification
                 - in case ``implicit_default`` is disabled an explicit default should be part of the list or range for the triggered evaluation to succeed
         - whereas ``prereq soft@1.8 soft@1.9 soft@1.10`` will lead to a tentative load
             - of *soft/1.8*, then *soft/1.9* if it failed then *soft/1.8* if it also failed
+    - one module version specification may match multiple loaded modules
+        - like ``conflict soft@1.8,1.9,1.10`` matches loaded modules *soft/1.8* and *soft/1.10*
+        - similar to situations where requirement or conflict is expressed over module generic name, like *soft*, and multiple versions of module are loaded
 
 Corner cases
 ------------
