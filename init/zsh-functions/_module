@@ -167,6 +167,7 @@ _module() {
                   '--auto[Enable automated module handling mode]' \
                   '--no-auto[Disable automated module handling mode]' \
                   '(-f --force)'{-f,--force}'[By-pass dependency consistency]' \
+                  '(-i --icase)'{-i,--icase}'[Case insensitive match]' \
                   "*::modulefile:{_module_notloaded_mods $cur}" && ret=0
                ;;
             (avail)
@@ -175,6 +176,7 @@ _module() {
                   '(-t --terse)'{-t,--terse}'[Display output in terse format]' \
                   '(-d --default)'{-d,--default}'[Only show default versions available]' \
                   '(-L --latest)'{-L,--latest}'[Only show latest versions available]' \
+                  '(-i --icase)'{-i,--icase}'[Case insensitive match]' \
                   '(-S --starts-with)'{-S,--starts-with}'[Search modules whose name begins with query string]' \
                   '(-C --contains)'{-C,--contains}'[Search modules whose name contains query string]' \
                   '--indepth[Perform recursive avail search]' \
@@ -203,6 +205,7 @@ _module() {
                   '--auto[Enable automated module handling mode]' \
                   '--no-auto[Disable automated module handling mode]' \
                   '(-f --force)'{-f,--force}'[By-pass dependency consistency]' \
+                  '(-i --icase)'{-i,--icase}'[Case insensitive match]' \
                   '*::modulefile:_module_loaded_mods' && ret=0
                ;;
             (switch|swap)
@@ -210,6 +213,7 @@ _module() {
                   '--auto[Enable automated module handling mode]' \
                   '--no-auto[Disable automated module handling mode]' \
                   '(-f --force)'{-f,--force}'[By-pass dependency consistency]' \
+                  '(-i --icase)'{-i,--icase}'[Case insensitive match]' \
                   '1:loaded modulefile:_module_loaded_mods' \
                   "2:modulefile:{_module_notloaded_mods $cur}" && ret=0
                ;;
@@ -223,9 +227,10 @@ _module() {
                   '(-p --prepend)'{-p,--prepend}'[Prepend directory to MODULEPATH]' \
                   '*:modulepath:_files -/' && ret=0
                ;;
-            (display|help|show|test|whatis|is-loaded|is-avail|info-loaded)
-               _alternative "avail-mods:modulefiles:{_module_avail_mods $cur}" \
-                  && ret=0
+            (display|help|show|test|whatis|path|paths|is-loaded|is-avail|info-loaded)
+               _arguments \
+                  '(-i --icase)'{-i,--icase}'[Case insensitive match]' \
+                  "*::modulefile:{_module_avail_mods $cur}" && ret=0
                ;;
             (append-path|prepend-path)
                _arguments \

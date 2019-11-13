@@ -40,10 +40,11 @@ alias _module_modulepath 'echo ${MODULEPATH} | sed '"'"'s/:/\n/g;'"'"' '
 set module_cmds = "add apropos aliases avail append-path clear config del display help initadd initclear initlist initprepend initrm is-loaded is-saved is-used is-avail info-loaded keyword list load path paths purge prepend-path refresh reload restore rm remove remove-path save savelist saveshow saverm search show source swap switch test unload unuse use whatis"
 
 set module_opts = "-D -h -s -v -V --debug --help --silent --verbose --version --paginate --no-pager --color --color="
-set module_load_opts = "--auto --no-auto --force -f"
+set module_load_opts = "--auto --no-auto --force -f --icase -i"
 set module_list_opts = "-l -t --long --terse"
 set module_clear_opts = "--force -f"
-set module_avail_opts = "-C -d -L -l -S -t --contains --default --latest --long --starts-with --terse --indepth --no-indepth"
+set module_avail_opts = "-C -d -i -L -l -S -t --contains --default --icase --latest --long --starts-with --terse --indepth --no-indepth"
+set module_mfile_opts = "-i --icase"
 set module_path_opts = "-d --delim --duplicates"
 set module_rm_path_opts = "-d --delim --index"
 set module_config_opts = "--dump-state --reset advanced_version_spec auto_handling avail_indepth collection_pin_version collection_target color colors contact extended_default extra_siteconfig home icase implicit_default locked_configs pager rcfile run_quarantine search_match set_shell_startup silent_shell_debug term_background unload_match_order verbosity wa_277"
@@ -59,14 +60,14 @@ complete module 'n/help/`_module_avail`/' \
         'N/swap/`_module_not_yet_loaded; echo ${module_load_opts}`/' \
         'n/switch/`_module_loaded; echo ${module_load_opts}`/' \
         'N/switch/`_module_not_yet_loaded; echo ${module_load_opts}`/' \
-        'n/show/`_module_avail`/' \
-        'n/display/`_module_avail`/' \
-        'n/test/`_module_avail`/' \
+        'n/show/`_module_avail; echo ${module_mfile_opts}`/' \
+        'n/display/`_module_avail; echo ${module_mfile_opts}`/' \
+        'n/test/`_module_avail; echo ${module_mfile_opts}`/' \
         "n/list/(${module_list_opts})/" \
         'n/avail/`_module_avail; echo ${module_avail_opts}`/' \
-        'n/is-avail/`_module_avail`/' \
-        'n/is-loaded/`_module_avail`/' \
-        'n/info-loaded/`_module_avail`/' \
+        'n/is-avail/`_module_avail; echo ${module_mfile_opts}`/' \
+        'n/is-loaded/`_module_avail; echo ${module_mfile_opts}`/' \
+        'n/info-loaded/`_module_avail; echo ${module_mfile_opts}`/' \
         'n/restore/`_module_savelist`/' \
         "n/savelist/(${module_list_opts})/" \
         'n/saveshow/`_module_savelist`/' \
@@ -81,11 +82,12 @@ complete module 'n/help/`_module_avail`/' \
         'n/purge/n/' \
         'n/refresh/n/' \
         'n/reload/n/' \
-        'n/whatis/`_module_avail`/' \
+        'n/whatis/`_module_avail; echo ${module_mfile_opts}`/' \
         'n/apropos/n/' \
         'n/search/n/' \
         'n/keyword/n/' \
-        'n/paths/`_module_avail`/' \
+        'n/paths/`_module_avail; echo ${module_mfile_opts}`/' \
+        'n/path/`_module_avail; echo ${module_mfile_opts}`/' \
         'n/source/n/' \
         'n/initadd/n/' \
         'n/initprepend/n/' \
