@@ -9,6 +9,8 @@ documents those changes that are of interest to users and admins.
 Modules 4.4.0 (2019-XX-XX)
 --------------------------
 
+* Doc: add *Return file basename on module-info name for full path modulefile*
+  recipe to cookbook. (fix issue #297)
 * Rework internal handling of configuration options to gather all option
   definitions in a global array and use the same initialization and retrieval
   procedure, named ``getConf``, for all these options.
