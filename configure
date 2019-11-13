@@ -32,10 +32,10 @@ docdir vimdatadir modulefilesdir setmanpath appendmanpath setbinpath \
 appendbinpath setdotmodulespath docinstall vimaddons examplemodulefiles \
 builddoc gitworktree usemanpath compatversion EXEEXT libtclenvmodules \
 SHLIB_SUFFIX versioning silentshdbgsupport setshellstartup quarantinesupport \
-autohandling availindepth implicitdefault extendeddefault initconfin pager \
-pageropts verbosity color darkbgcolors lightbgcolors termbg lockedconfigs \
-icase unloadmatchorder searchmatch modulepath loadedmodules quarantinevars \
-wa277 advversspec"
+autohandling availindepth implicitdefault extendeddefault moduleshome \
+initconfin pager pageropts verbosity color darkbgcolors lightbgcolors termbg \
+lockedconfigs icase unloadmatchorder searchmatch modulepath loadedmodules \
+quarantinevars wa277 advversspec"
 compatarglist=
 libarglist=
 
@@ -107,6 +107,7 @@ mandir=
 docdir=
 vimdatadir=
 modulefilesdir=
+moduleshome=
 modulepath=
 
 # git branch to use to build compat version
@@ -226,6 +227,8 @@ Optional Packages:
                           list of paths to look at when searching the location
                           of tools required to build and configure Modules
                           [$binsearchpath]
+  --with-moduleshome      location of the master Modules package file
+                          directory [$prefix]
   --with-initconf-in=VALUE
                           location where to install Modules initialization
                           configuration files. Either \`initdir' or \`etcdir'
@@ -455,6 +458,8 @@ for arg in "$@"; do
       wa277=$(get_feature_value "$arg") ;;
    --with-bin-search-path=*|--without-bin-search-path)
       binsearchpath=$(get_package_value "$arg") ;;
+   --with-moduleshome=*|--without-moduleshome)
+      moduleshome=$(get_package_value "$arg") ;;
    --with-initconf-in=*|--without-initconf-in)
       initconfin=$(get_package_value "$arg") ;
       allowedval=" initdir etcdir " ;
@@ -655,6 +660,7 @@ fi
 [ -z "$docdir" ] && docdir=$datarootdir/doc
 [ -z "$vimdatadir" ] && vimdatadir=$datarootdir/vim/vimfiles
 [ -z "$modulefilesdir" ] && modulefilesdir=$prefix/modulefiles
+[ -z "$moduleshome" ] && moduleshome=$prefix
 # default modulepath based on MODULE_VERSION if versioning enabled
 [ -z "$modulepath" -a "$versioning" = 'y' ] && modulepath=${modulefilesdir/#$prefix/$baseprefix\/\$MODULE_VERSION}
 [ -z "$modulepath" ] && modulepath=$modulefilesdir

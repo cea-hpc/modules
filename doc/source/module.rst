@@ -631,6 +631,8 @@ Module Sub-Commands
    **MODULES_EXTENDED_DEFAULT**)
  * extra_siteconfig: additional site-specific configuration script location
    (defines **MODULES_SITECONFIG**)
+ * home: location of Modules package master directory (defines
+   **MODULESHOME**)
  * icase: enable case insensitive match (defines **MODULES_ICASE**)
  * ignored_dirs: directories ignored when looking for modulefiles
  * implicit_default: set an implicit default version for modules (defines

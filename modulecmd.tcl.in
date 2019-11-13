@@ -46,6 +46,7 @@ array set g_config_defs [list\
    color {MODULES_COLOR @color@ 0 {never auto always} {0 1 2} initConfColor}\
    colors {MODULES_COLORS {} 0 {} {} initConfColors}\
    extra_siteconfig {MODULES_SITECONFIG <undef> 1 {}}\
+   home {MODULESHOME @moduleshome@ 0}\
    icase {MODULES_ICASE @icase@ 0 {never search always}}\
    ignored_dirs {{} {CVS RCS SCCS .svn .git .SYNC .sos} 0}\
    locked_configs {{} {@lockedconfigs@} 0}\
@@ -9863,9 +9864,6 @@ proc cmdModuleAutoinit {} {
    # initialize env variables around module command
    pushMode load
 
-   # default MODULESHOME
-   setenv MODULESHOME @prefix@
-
    # register command location
    setenv MODULES_CMD [getAbsolutePath $::argv0]
 
@@ -9908,6 +9906,9 @@ proc cmdModuleAutoinit {} {
          cmdModuleSource $initrc
       }
    }
+
+   # default MODULESHOME
+   setenv MODULESHOME [getConf home]
 
    # define Modules init script as shell startup file
    if {[getConf set_shell_startup] && [isInList [list sh csh fish]\
