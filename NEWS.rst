@@ -26,6 +26,18 @@ Modules 4.4.0 (2019-XX-XX)
   through the ``icase`` option. Command-line switch ``--icase`` (``-i``)
   enables to supersede defined case sensitiveness configuration. (fix issue
   #212 with contribution from Eric Deveaud)
+* Introduce the extended default mechanism, to help selecting a module when
+  only the first numbers in its version are specified. Starting portion of the
+  version, part separated from the rest of the version string by a ``.``
+  character, will get matched to the appropriate complete version name. In
+  case multiple versions match partial version specified and only one module
+  should be returned, default version (implicit or explicit) among matches is
+  returned. In case ``implicit_default`` option is disabled and no explicit
+  default is found among matches, an error is returned. This mechanism is
+  enabled through a new configuration option named ``extended_default`` (which
+  defines ``MODULES_EXTENDED_DEFAULT`` environment variable when set). It may
+  be enabled by default in ``modulecmd.tcl`` script with option
+  ``--enable-extended-default`` passed to the ``./configure`` script.
 
 
 Modules 4.3.1 (2019-09-21)

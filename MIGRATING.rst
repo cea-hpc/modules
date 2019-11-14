@@ -54,6 +54,69 @@ variable, which could be set through the **config** sub-command with the
 other icase configurations. When this command-line switch is passed, ``icase``
 mode equals ``always``.
 
+Extended default
+^^^^^^^^^^^^^^^^
+
+The extended default mechanism has been introduced to help selecting a module
+when only the first numbers in its version are specified. Starting portion of
+the version, part separated from the rest of the version string by a ``.``
+character, could be used to refer to a more precise version number.
+
+This mechanism is activated through the new configuration option
+``extended_default``. It enables to refer to a module named ``foo/1.2.3`` as
+``foo/1.2`` or ``foo/1``::
+
+    $ module config extended_default 1
+    $ module load -v foo/1
+    Loading foo/1.2.3
+
+When multiple versions match partial version specified and only one module
+should be selected, the default version (whether implicitly or explicitly
+defined) among matches is returned. The following example shows that
+``foo/1.1.1``, the *foo* module default version, is selected when it matches
+query. Elsewhere the highest version (also called the latest version or the
+implicit default) among matching modules is returned::
+
+    $ module av foo
+    --------------- /path/to/modulefiles ---------------
+    foo/1.1.1(default)  foo/1.2.1  foo/1.10
+    foo/1.1.10          foo/1.2.3
+    $ module load -v foo/1.1
+    Loading foo/1.1.1
+    $ module purge
+    $ module load -v foo/1.2
+    Loading foo/1.2.3
+    $ module purge
+    $ module load -v foo/1
+    Loading foo/1.1.1
+
+In case ``implicit_default`` option is disabled and no explicit default is
+found among matches, an error is returned::
+
+    $ module config implicit_default 0
+    $ module load -v foo/1.2
+    ERROR: No default version defined for 'foo/1.2'
+
+When it is enabled, extended default applies everywhere a module could be
+specified, which means it could be used with any module sub-command or any
+modulefile Tcl command receiving a module specification as argument. It may
+help for instance to declare dependencies between modules::
+
+    $ module show bar/3
+    ----------------------------------------------------------
+    /path/to/modulefiles/bar/3.4:
+
+    prereq		foo/1.2
+    ----------------------------------------------------------
+    $ module load --auto bar/3
+    Loading bar/3.4
+      Loading requirement: foo/1.2.3
+
+Extended default activation can be controlled at configure time with the
+``--enable-extended-default`` option. This option could be superseded with the
+``MODULES_EXTENDED_DEFAULT`` environment variable, which could be set through
+the **config** sub-command with the ``extended_default`` option.
+
 Further reading
 ---------------
 
