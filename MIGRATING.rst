@@ -117,6 +117,98 @@ Extended default activation can be controlled at configure time with the
 ``MODULES_EXTENDED_DEFAULT`` environment variable, which could be set through
 the **config** sub-command with the ``extended_default`` option.
 
+Advanced module version specifiers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ability to specify finer constraints on module version has been added to
+Modules. It enables to filter the module selection to a given version list or
+range by specifying after the module name a version constraint prefixed by the
+``@`` character.
+
+This new feature leverages the `version specifier syntax`_ of the `Spack`_
+package manager as this syntax covers all the needs for a fine-grained
+selection of module versions. It copes very well with command-line typing, by
+avoiding characters having a special meaning on shells. Moreover the users of
+Spack that also are users of Modules may already be familiar with this syntax.
+
+.. _version specifier syntax: https://spack.readthedocs.io/en/stable/basic_usage.html#version-specifier
+.. _Spack: https://github.com/spack/spack
+
+The mechanism introduced here is called *advanced module version specifier*
+and it can be activated through the new configuration option
+``advanced_version_spec``. Constraints can be expressed to refine the
+selection of module version to:
+
+* a single version with the ``@version`` syntax, for instance ``foo@1.2.3``
+  syntax will select module ``foo/1.2.3``
+* a list of versions with the ``@version1,version2,...`` syntax, for instance
+  ``foo@1.2.3,1.10`` will match modules ``foo/1.2.3`` and ``foo/1.10``
+* a range of versions with the ``@version1:``, ``@:version2`` and
+  ``@version1:version2`` syntaxes, for instance ``foo@1.2:`` will select all
+  versions of module ``foo`` greater than or equal to ``1.2``, ``foo@:1.3``
+  will select all versions less than or equal to ``1.3`` and ``foo@1.2:1.3``
+  matches all versions between ``1.2`` and ``1.3`` including ``1.2`` and
+  ``1.3`` version
+
+This new feature enables for instance to list available versions of module
+``foo`` higher or equal to ``1.2``::
+
+    $ module config advanced_version_spec 1
+    $ module av foo
+    --------------- /path/to/modulefiles ---------------
+    foo/1.1.1(default)  foo/1.2.1  foo/1.10
+    foo/1.1.10          foo/1.2.3
+    $ module av foo@1.2:
+    --------------- /path/to/modulefiles ---------------
+    foo/1.2.1  foo/1.2.3  foo/1.10
+
+Then choose to load for instance a version higher than or equal to ``1.2`` and
+less than or equal to ``1.3``. Default version is selected if it corresponds
+to a version included in the range, elsewhere the highest version (also called
+latest version or implicit default) is selected::
+
+    $ module load -v foo@1.2:1.3
+    Loading foo/1.2.3
+
+In case ``implicit_default`` option is disabled and no explicit default is
+found among version specifier matches, an error is returned::
+
+    $ module config implicit_default 0
+    $ module load -v foo@1.2:1.3
+    ERROR: No default version defined for 'foo@1.2:1.3'
+
+When advanced module version specifier is enabled, it applies everywhere a
+module could be specified, which means it could be used with any module
+sub-command or any modulefile Tcl command receiving a module specification
+as argument. It may help for instance to declare smoother dependencies between
+modules::
+
+    $ module show bar@:2
+    ----------------------------------------------------------
+    /home/xa/devel/modules/mp6/bar/2.3:
+
+    prereq          foo@1.1.10,1.2.1
+    ----------------------------------------------------------
+    $ module load --auto bar@:2
+    Loading bar/2.3
+      Loading requirement: foo/1.2.1
+
+Advanced specification of single version or list of versions may benefit from
+the activation of the `Extended default`_ mechanism (range of versions
+natively handles abbreviated versions)::
+
+    $ module config extended_default 1
+    $ module load -v foo@1.2
+    Loading foo/1.2.3
+    $ module unload -v foo @1.2,1.5
+    Unloading foo/1.2.3
+
+Advanced module version specifier activation can be controlled at configure
+time with the ``--enable-advanced-version-spec`` option. This option could be
+superseded with the ``MODULES_ADVANCED_VERSION_SPEC`` environment variable,
+which could be set through the **config** sub-command with the
+``advanced_version_spec`` option.
+
 Further reading
 ---------------
 
