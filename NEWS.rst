@@ -53,8 +53,22 @@ Modules 4.4.0 (2019-XX-XX)
   (which  defines ``MODULES_ADVANCED_VERSION_SPEC`` environment variable when
   set). It may be enabled by default in ``modulecmd.tcl`` script with option
   ``--enable-advanced-version-spec`` passed to the ``./configure`` script.
+* Conflict defined with a generic module name or an advanced version specifier
+  may match multiple loaded modules (generally in case multiple loaded modules
+  share same root name). Loaded environment analysis has been fixed to bind
+  conflict to all loaded modules matching it. As a result the *Dependent
+  Reload* mechanism is not triggered when one loaded module matching conflict
+  is removed if another loaded module still match the conflict.
+* Doc: add *Module selection contexts*, *Insensitive case*, *Extended default*
+  and *Advanced module version specifiers* design notes.
+* Make ``MODULESHOME`` environment variable controllable through the
+  ``config`` sub-command with ``home`` configuration option. A
+  ``--with-moduleshome`` argument is also added to the ./configure script to
+  set specific default value for this option at installation time. (fix issue
+  #292)
 
 .. _Spack: https://github.com/spack/spack
+
 
 Modules 4.3.1 (2019-09-21)
 --------------------------
