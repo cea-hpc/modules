@@ -38,7 +38,23 @@ Modules 4.4.0 (2019-XX-XX)
   defines ``MODULES_EXTENDED_DEFAULT`` environment variable when set). It may
   be enabled by default in ``modulecmd.tcl`` script with option
   ``--enable-extended-default`` passed to the ``./configure`` script.
+* Introduce the advanced module version specifiers mechanism to specify finer
+  constraints on module version. This new feature enables to filter the module
+  selection to a given version list or range by specifying after the module
+  name a version constraint prefixed by the ``@`` character. It leverages the
+  version specifier syntax of the `Spack`_ package manager. A single version
+  can be specified with the ``@version`` syntax, a list of versions with
+  ``@version1,version2,...``, a greater than or equal to range with
+  ``@version1:`` syntax, a less than or equal to range with ``@:version2`` and
+  an in between or equal to range with ``@version1:version2`` syntax. In case
+  ``implicit_default`` option is disabled and no explicit default is found
+  among version specifier matches, an error is returned. This mechanism is
+  enabled through a new configuration option named ``advanced_version_spec``
+  (which  defines ``MODULES_ADVANCED_VERSION_SPEC`` environment variable when
+  set). It may be enabled by default in ``modulecmd.tcl`` script with option
+  ``--enable-advanced-version-spec`` passed to the ``./configure`` script.
 
+.. _Spack: https://github.com/spack/spack
 
 Modules 4.3.1 (2019-09-21)
 --------------------------

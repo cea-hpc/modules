@@ -148,7 +148,7 @@ selection of module version to:
   versions of module ``foo`` greater than or equal to ``1.2``, ``foo@:1.3``
   will select all versions less than or equal to ``1.3`` and ``foo@1.2:1.3``
   matches all versions between ``1.2`` and ``1.3`` including ``1.2`` and
-  ``1.3`` version
+  ``1.3`` versions
 
 This new feature enables for instance to list available versions of module
 ``foo`` higher or equal to ``1.2``::
@@ -185,7 +185,7 @@ modules::
 
     $ module show bar@:2
     ----------------------------------------------------------
-    /home/xa/devel/modules/mp6/bar/2.3:
+    /path/to/modulefiles/bar/2.3:
 
     prereq          foo@1.1.10,1.2.1
     ----------------------------------------------------------
