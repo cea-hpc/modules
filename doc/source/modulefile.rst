@@ -221,7 +221,8 @@ the *modulefile* is being loaded.
  from being loaded at the same time.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias.
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
 
 **is-loaded** [modulefile...]
 
@@ -233,7 +234,8 @@ the *modulefile* is being loaded.
  **is-loaded** would return a true value.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias.
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
 
 **is-saved** [collection...]
 
@@ -263,7 +265,8 @@ the *modulefile* is being loaded.
  directory **is-avail** would return a true value.
 
  The parameter *modulefile* may also be a symbolic modulefile name or a
- modulefile alias.
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
 
 **module** [sub-command] [sub-command-args]
 
@@ -608,6 +611,42 @@ except if it is explicitly named. By inheritance, a symbolic version-name
 assigned to a hidden *modulefile* is displayed or taken into account only
 if explicitly named. Module alias targeting a hidden *modulefile* appears
 like any other module alias.
+
+
+Advanced module version specifiers
+----------------------------------
+
+When the advanced module version specifiers mechanism is enabled (see
+**MODULES_ADVANCED_VERSION_SPEC** in :ref:`module(1)`), the specification of
+modulefile passed on Modules specific Tcl commands changes. After the module
+name a version constraint prefixed by the ``@`` character may be added. It
+could be directly appended to the module name or separated from it with a
+space character.
+
+Constraints can be expressed to refine the selection of module version to:
+
+* a single version with the ``@version`` syntax, for instance ``foo@1.2.3``
+  syntax will select module ``foo/1.2.3``
+* a list of versions with the ``@version1,version2,...`` syntax, for instance
+  ``foo@1.2.3,1.10`` will match modules ``foo/1.2.3`` and ``foo/1.10``
+* a range of versions with the ``@version1:``, ``@:version2`` and
+  ``@version1:version2`` syntaxes, for instance ``foo@1.2:`` will select all
+  versions of module ``foo`` greater than or equal to ``1.2``, ``foo@:1.3``
+  will select all versions less than or equal to ``1.3`` and ``foo@1.2:1.3``
+  matches all versions between ``1.2`` and ``1.3`` including ``1.2`` and
+  ``1.3`` versions
+
+Advanced specification of single version or list of versions may benefit from
+the activation of the extended default mechanism (see
+**MODULES_EXTENDED_DEFAULT** in :ref:`module(1)`) to use an abbreviated
+notation like ``@1`` to refer to more precise version numbers like ``1.2.3``.
+Range of versions on its side natively handles abbreviated versions.
+
+In order to be specified in a range of versions or compared to a range of
+versions, the version major element should corresponds to a number. For
+instance ``10a``, ``1.2.3``, ``1.foo`` are versions valid for range
+comparison whereas ``default`` or ``foo.2`` versions are invalid for range
+comparison.
 
 
 Modulefile Specific Help

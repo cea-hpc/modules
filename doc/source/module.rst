@@ -251,6 +251,10 @@ Module Sub-Commands
  Print the usage of each sub-command. If an argument is given, print the
  Module-specific help information for the *modulefile*.
 
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
 **add** modulefile...
 
  See **load**.
@@ -259,6 +263,10 @@ Module Sub-Commands
 
  Load *modulefile* into the shell environment.
 
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
 **rm** modulefile...
 
  See **unload**.
@@ -266,6 +274,10 @@ Module Sub-Commands
 **unload** [--auto|--no-auto] [-f] modulefile...
 
  Remove *modulefile* from the shell environment.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
 
 **swap** [modulefile1] modulefile2
 
@@ -277,6 +289,10 @@ Module Sub-Commands
  specified, then it is assumed to be the currently loaded module with the
  same root name as *modulefile2*.
 
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
 **show** modulefile...
 
  See **display**.
@@ -287,6 +303,10 @@ Module Sub-Commands
  will list the full path of the *modulefile* and the environment changes
  the *modulefile* will make if loaded. (Note: It will not display any
  environment changes found within conditional statements.)
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
 
 **list** [-t|-l]
 
@@ -318,6 +338,10 @@ Module Sub-Commands
  module alias, the **@** symbol is omitted. The defined graphical rendition
  applies to the module alias name. See **MODULES_COLOR** and
  **MODULES_COLORS** sections for details on colored output.
+
+ The parameter *path* may also refer to a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
 
 **aliases**
 
@@ -385,6 +409,10 @@ Module Sub-Commands
  expressed using wildcard characters. If no *modulefile* is specified,
  all **module-whatis** lines will be shown.
 
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
 **apropos** string
 
  See **search**.
@@ -404,6 +432,10 @@ Module Sub-Commands
 
  Execute and display results of the Module-specific tests for the
  *modulefile*.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
 
 **save** [collection]
 
@@ -533,9 +565,17 @@ Module Sub-Commands
 
  Print path to *modulefile*.
 
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
 **paths** modulefile
 
  Print path of available *modulefiles* matching argument.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
 
 **append-path** [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
@@ -562,6 +602,10 @@ Module Sub-Commands
  value elsewhere. See **is-loaded** in the :ref:`modulefile(4)` man page for
  further explanation.
 
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
+
 **is-saved** [collection...]
 
  Returns a true value if any of the listed *collections* exists or if any
@@ -581,6 +625,10 @@ Module Sub-Commands
  Returns a true value if any of the listed *modulefiles* exists in enabled
  **MODULEPATH**. Returns a false value elsewhere. See **is-avail** in the
  :ref:`modulefile(4)` man page for further explanation.
+
+ The parameter *modulefile* may also be a symbolic modulefile name or a
+ modulefile alias. It may also leverage a specific syntax to finely select
+ module version (see `Advanced module version specifiers`_ section below).
 
 **info-loaded** modulefile
 
@@ -611,8 +659,11 @@ Module Sub-Commands
 
  Existing option *names* are:
 
- * auto_handling: automated module handling mode (defines environment variable
-   **MODULES_AUTO_HANDLING** when set)
+ * advanced_version_spec: advanced module version specification to finely
+   select modulefiles (defines environment variable
+   **MODULES_ADVANCED_VERSION_SPEC** when set
+ * auto_handling: automated module handling mode (defines
+   **MODULES_AUTO_HANDLING**)
  * avail_indepth: **avail** sub-command in depth search mode (defines
    **MODULES_AVAIL_INDEPTH**)
  * avail_report_dir_sym: display symbolic versions targeting directories on
@@ -673,6 +724,41 @@ may change depending upon the current state of the environment.
 Environment variables are unset when unloading a *modulefile*. Thus, it is
 possible to **load** a *modulefile* and then **unload** it without having
 the environment variables return to their prior state.
+
+
+Advanced module version specifiers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When the advanced module version specifiers mechanism is enabled (see
+**MODULES_ADVANCED_VERSION_SPEC**), the specification of modulefile passed on
+Modules sub-commands changes. After the module name a version constraint
+prefixed by the ``@`` character may be added. It could be directly appended to
+the module name or separated from it with a space character.
+
+Constraints can be expressed to refine the selection of module version to:
+
+* a single version with the ``@version`` syntax, for instance ``foo@1.2.3``
+  syntax will select module ``foo/1.2.3``
+* a list of versions with the ``@version1,version2,...`` syntax, for instance
+  ``foo@1.2.3,1.10`` will match modules ``foo/1.2.3`` and ``foo/1.10``
+* a range of versions with the ``@version1:``, ``@:version2`` and
+  ``@version1:version2`` syntaxes, for instance ``foo@1.2:`` will select all
+  versions of module ``foo`` greater than or equal to ``1.2``, ``foo@:1.3``
+  will select all versions less than or equal to ``1.3`` and ``foo@1.2:1.3``
+  matches all versions between ``1.2`` and ``1.3`` including ``1.2`` and
+  ``1.3`` versions
+
+Advanced specification of single version or list of versions may benefit from
+the activation of the extended default mechanism (see
+**MODULES_EXTENDED_DEFAULT**) to use an abbreviated notation like ``@1`` to
+refer to more precise version numbers like ``1.2.3``. Range of versions on its
+side natively handles abbreviated versions.
+
+In order to be specified in a range of versions or compared to a range of
+versions, the version major element should corresponds to a number. For
+instance ``10a``, ``1.2.3``, ``1.foo`` are versions valid for range
+comparison whereas ``default`` or ``foo.2`` versions are invalid for range
+comparison.
 
 
 Collections
@@ -739,6 +825,17 @@ ENVIRONMENT
  The location of the master Modules package file directory containing module
  command initialization scripts, the executable program **modulecmd.tcl**,
  and a directory containing a collection of master *modulefiles*.
+
+**MODULES_ADVANCED_VERSION_SPEC**
+
+ If set to **1**, enable advanced module version specifiers (see `Advanced
+ module version specifiers`_ section). If set to **0**, disable advanced
+ module version specifiers.
+
+ Advanced module version specifiers enablement is defined in the following
+ order of preference: **MODULES_ADVANCED_VERSION_SPEC** environment variable
+ then the default set in **modulecmd.tcl** script configuration. Which means
+ **MODULES_ADVANCED_VERSION_SPEC** overrides default configuration.
 
 **MODULES_AUTO_HANDLING**
 
