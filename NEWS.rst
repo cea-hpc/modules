@@ -6,7 +6,7 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
-Modules 4.4.0 (2019-XX-XX)
+Modules 4.4.0 (2019-11-17)
 --------------------------
 
 * Doc: add *Return file basename on module-info name for full path modulefile*
