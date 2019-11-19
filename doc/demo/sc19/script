@@ -1,0 +1,153 @@
+# --------------------------------------------------------
+# Demonstration of some new features coming in Modules v4+
+# --------------------------------------------------------
+
+
+# config sub-command: get and set Modules configuration
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+module config
+module config color
+
+module av
+
+# ^ color mode is disabled ^
+
+module config color auto
+module config color
+
+module av
+# ^ color mode is now enabled ^
+
+# automated module handling mode: solving dependencies
+# between modules consistently and automatically
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+module show appA
+module show toolchain/b libY libX
+
+# loading appA with backward-compatible config will
+# ask for requirements to be loaded manually
+
+module load appA
+
+# enabling auto_handling will trigger automated mechanisms
+# to satisfy the dependencies expressed
+
+module config auto_handling 1
+module load appA
+
+# ^ requirements have been loaded automatically ^
+
+module unload appA
+
+# ^ automatically loaded requirements have been unloaded automatically ^
+
+module load appA
+module unload toolchain
+
+# ^ unloading a dependency automatically unloads dependent modules ^
+
+module list
+module load appA
+module switch libX/1.0
+
+# ^ Replacing a dependency by another reloads dependent modules ^
+
+# module insensitive case match
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+module av
+
+module config icase
+module av appb
+# ^ match is case-sensitive by default ^
+
+# enable insensitive case match for search
+module config icase search
+module av appb
+
+module show appB
+module load appB
+# ^ requirement is not found as it is expressed in a case insensitive manner ^
+
+# icase match can even be enabled for all context
+
+module config icase always
+module show appb
+module load appb
+
+# extended default: abbreviated specification of module versions
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+module av appC
+
+module load -v appC/1
+# ^ by default, exact version should be specified to get module ^
+
+module config extended_default 1
+module load -v appC/1
+# ^ with extended default enabled, module version can be abbreviated ^
+
+module purge
+module load -v appC/2
+# ^ among possibilities, default version is selected if part of them ^
+
+module purge
+module load -v appC/2.2
+# ^ if no default version among possibilities, latest version is selected ^
+
+# extended default may also be used within modulefiles
+module purge
+module show appC/3
+module load appC/3
+
+# advanced module version specifiers: smooth module version
+# specification leveraging Spack's syntax
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+module av appC
+module config advanced_version_spec 1
+
+# specify a single version
+module av appC@1
+
+# get versions higher than or equal to
+module av appC@2.2:
+
+# get versions in between
+module av appc@2.2:2.4
+
+# get versions less than or equal to
+module av appC@:2.0
+
+# get versions among list
+module av appC@2.2,3.6
+
+# advanced version specifiers apply to all commands when enabled
+
+module purge
+module load -v appC@2:
+
+# ^ on a selection context, default version is retained if part of results ^
+
+module purge
+module load -v appC@2.2:2.4
+
+# ^ if no default among results, highest version is selected ^
+
+module purge
+
+# advanced version specifiers also apply within modulefile
+# could be used to specify smooth dependencies between modules
+
+module show appD@:1
+module load appD@:1
+
+module purge
+module show appD@2,3
+module load appD@2,3
+
+# -------------------------
+# Thanks for your attention
+# -------------------------
+
