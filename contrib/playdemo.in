@@ -1,0 +1,71 @@
+#!@TCLSHDIR@/tclsh
+#
+# PLAYDEMO, play demos recorded with asciinema
+# Copyright (C) 2019 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+set demoparentpath [file normalize [file dirname $argv0]/../doc/demo]
+set usage "Usage: $argv0 demo \[rep\] \[speed\]
+Play designated demo rep times at given speed"
+
+# parse command-line arguments
+lassign $argv demoname demorep demospeed
+if {$demoname eq "-h" || $demoname eq "--help"} {
+   puts stderr $usage
+   exit 0
+} elseif {[llength $argv] > 3} {
+   puts stderr $usage
+   exit 1
+}
+
+# verify args
+if {$demorep eq {}} {
+   set demorep 1
+} elseif {![string is integer -strict $demorep]} {
+   puts stderr $usage
+   exit 1
+}
+if {$demospeed eq {}} {
+   set demospeed 1
+} elseif {![string is integer -strict $demospeed]} {
+   puts stderr $usage
+   exit 1
+}
+
+# check demo exists
+set demopath $demoparentpath/$demoname
+if {![file isdirectory $demopath] || ![file readable $demopath]} {
+   puts stderr "ERROR: $demoname does not exist or is not readable"
+   exit 1
+}
+
+# verify asciinema availability
+set asciinemapath [lindex [auto_execok asciinema] 0]
+if {$asciinemapath eq {}} {
+   puts stderr "ERROR: command 'asciinema' cannot be found"
+   exit 1
+}
+
+# repeat demo play
+for {set i 0} {$i < $demorep} {incr i} {
+   # play each file of the demo
+   foreach demofile [lsort [glob $demopath/*.cast]] {
+      exec $asciinemapath play -s $demospeed $demofile >@stdout 2>@stderr
+   }
+}
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent syntax=tcl:

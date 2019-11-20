@@ -283,6 +283,10 @@ contrib/mb: contrib/mb.in version.inc
 	$(translate-in-script)
 	chmod +x $@
 
+contrib/playdemo: contrib/playdemo.in version.inc
+	$(translate-in-script)
+	chmod +x $@
+
 contrib/scripts/add.modules: contrib/scripts/add.modules.in
 	$(translate-in-script)
 
@@ -509,6 +513,7 @@ endif
 	rm -f modulecmd.tcl
 	rm -f contrib/mtreview
 	rm -f contrib/mb
+	rm -f contrib/playdemo
 	rm -f $(MODULECMDTEST)
 	rm -f contrib/scripts/add.modules
 	rm -f contrib/scripts/modulecmd
