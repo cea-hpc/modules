@@ -416,6 +416,38 @@ set tserr "unload ha/3\nunload ha/2\nunload hg\nload ha/2\nload ha/3\n\n[msg_top
 testouterr_cmd_re sh {unload hg} $ans $tserr
 
 
+# test dependency resolution applies the same against a non default version loaded
+# whether module load/prereq is used to declared and whatever the auto_handling module enabled
+setenv_loaded_module [list ha/1] [list $mp/ha/1]
+unsetenv_path_var MODULES_LMCONFLICT
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/1:haa]
+lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/haa]
+lappend ans [list setpath MODULES_LMPREREQ haa&ha]
+testouterr_cmd_re sh {load --auto haa} $ans {}
+testouterr_cmd_re sh {load --no-auto haa} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES ha/1:hab]
+lappend ans [list setpath _LMFILES_ $mp/ha/1:$mp/hab]
+lappend ans [list setpath MODULES_LMPREREQ hab&ha]
+testouterr_cmd_re sh {load --auto hab} $ans {}
+testouterr_cmd_re sh {load --no-auto hab} $ans {}
+
+setenv_loaded_module [list hac/2] [list $mp/hac/2]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hac/2:had]
+lappend ans [list setpath _LMFILES_ $mp/hac/2:$mp/had]
+lappend ans [list setpath MODULES_LMPREREQ had&hac]
+testouterr_cmd_re sh {load --auto had} $ans {}
+testouterr_cmd_re sh {load --no-auto had} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES hac/2:hae]
+lappend ans [list setpath _LMFILES_ $mp/hac/2:$mp/hae]
+lappend ans [list setpath MODULES_LMPREREQ hae&hac]
+testouterr_cmd_re sh {load --auto hae} $ans {}
+testouterr_cmd_re sh {load --no-auto hae} $ans {}
+
+
 #
 #  Cleanup
 #
