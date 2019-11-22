@@ -743,9 +743,9 @@ ENVIRONMENT
 SEE ALSO
 --------
 
-:ref:`module(1)`, :manpage:`Tcl(n)`, :manpage:`TclX(n)`, :manpage:`xrdb(1)`,
-:manpage:`exec(n)`, :manpage:`uname(1)`, :manpage:`domainname(1)`,
-:manpage:`tclvars(n)`, :manpage:`lsort(n)`
+:ref:`module(1)`, :ref:`ml(1)`, :manpage:`Tcl(n)`, :manpage:`TclX(n)`,
+:manpage:`xrdb(1)`, :manpage:`exec(n)`, :manpage:`uname(1)`,
+:manpage:`domainname(1)`, :manpage:`tclvars(n)`, :manpage:`lsort(n)`
 
 
 NOTES

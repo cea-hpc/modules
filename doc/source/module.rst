@@ -60,6 +60,11 @@ Initialization may also be performed by calling the :subcmd:`autoinit`
 sub-command of the :file:`modulecmd.tcl` program. Evaluation into the shell of
 the result of this command defines the :command:`module` alias or function.
 
+A :command:`ml` alias or function may also be defined at initialization time
+if enabled (see :envvar:`MODULES_ML` section). :command:`ml` is a handy
+frontend leveraging all :command:`module` command capabilities with less
+character typed. See :ref:`ml(1)` for detailed information.
+
 
 Examples of initialization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -463,6 +468,8 @@ Module Sub-Commands
  * ``implicit_default``: set an implicit default version for modules (defines
    :envvar:`MODULES_IMPLICIT_DEFAULT`)
  * ``locked_configs``: configuration options that cannot be superseded
+ * ``ml``: define :command:`ml` command at initialization time (defines
+   :envvar:`MODULES_ML`)
  * ``pager``: text viewer to paginate message output (defines
    :envvar:`MODULES_PAGER`)
  * ``rcfile``: global run-command file location (defines
@@ -1377,6 +1384,21 @@ ENVIRONMENT
 
     .. versionadded:: 4.2
 
+.. envvar:: MODULES_ML
+
+ If set to ``1``, define :command:`ml` command when initializing Modules (see
+ `Package Initialization`_ section). If set to ``0``, :command:`ml` command is
+ not defined.
+
+ :command:`ml` command enablement is defined in the following order of
+ preference: :envvar:`MODULES_ML` environment variable then the default set in
+ :file:`modulecmd.tcl` script configuration. Which means :envvar:`MODULES_ML`
+ overrides default configuration.
+
+ .. only:: html
+
+    .. versionadded:: 4.5
+
 .. envvar:: MODULES_PAGER
 
  Text viewer for use to paginate message output if error output stream is
@@ -1630,5 +1652,5 @@ FILES
 SEE ALSO
 --------
 
-:ref:`modulefile(4)`
+:ref:`ml(1)`, :ref:`modulefile(4)`
 

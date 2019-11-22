@@ -268,6 +268,7 @@ Compatibility version does not support *fish*, *lisp*, *tcl* and *R* as code out
 
 On version 4 and for *sh*, *bash*, *ksh*, *zsh* and *fish* shells, text output, like listing from the :subcmd:`avail` command, is redirected from *stderr* to *stdout* after shell command evaluation if shell is in interactive mode. Starting version ``4.1``, this content redirection occurs if shell session is attached to a terminal.
 
+Starting version ``4.5``, a new alias or function called :command:`ml` may be defined at initialization time, to provide a handy frontend to the :command:`module` command.
 
 Modulecmd startup
 ^^^^^^^^^^^^^^^^^
@@ -462,6 +463,10 @@ Environment
 :envvar:`MODULES_ICASE`
 
  These environment variables appeared on version ``4.4`` and are not supported on compatibility version.
+
+:envvar:`MODULES_ML``
+
+ These environment variables appeared on version ``4.5`` and are not supported on compatibility version.
 
 
 Modules Specific Tcl Commands

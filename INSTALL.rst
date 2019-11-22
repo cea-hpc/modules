@@ -304,6 +304,8 @@ instance ``--disable-set-manpath``):
                       enables to finely select module versions by specifying
                       after the module name a version constraint prefixed by
                       the ``@`` character. (default=no)
+--enable-ml           Define the ``ml`` command, a handy frontend to the
+                      module command, when Modules initializes. (default=yes)
 --enable-color        Control if output should be colored by default or not.
                       A value of ``yes`` equals to the ``auto`` color mode.
                       ``no`` equals to the ``never`` color mode. (default=no)
