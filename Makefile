@@ -190,6 +190,12 @@ else
   setadvversspec := 0
 endif
 
+ifeq ($(ml),y)
+  setml := 1
+else
+  setml := 0
+endif
+
 ifeq ($(setshellstartup),y)
   setsetshellstartup := 1
 else
@@ -231,6 +237,7 @@ sed -e 's|@prefix@|$(prefix)|g' \
 	-e 's|@autohandling@|$(setautohandling)|g' \
 	-e 's|@availindepth@|$(setavailindepth)|g' \
 	-e 's|@silentshdbgsupport@|$(setsilentshdbgsupport)|g' \
+	-e 's|@ml@|$(setml)|g' \
 	-e 's|@setshellstartup@|$(setsetshellstartup)|g' \
 	-e 's|@quarantinesupport@|$(setquarantinesupport)|g' \
 	-e 's|@notquarantinesupport@|$(setnotquarantinesupport)|g' \
