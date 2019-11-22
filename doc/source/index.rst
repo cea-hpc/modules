@@ -76,6 +76,7 @@ automatically configured to the correct architecture.
    :maxdepth: 2
    :caption: Man pages
 
+   ml
    module
    modulefile
 

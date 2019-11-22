@@ -22,7 +22,7 @@ ifneq ($(builddoc),y)
   $(error No 'sphinx-build' command defined, cannot build documentation)
 endif
 
-man: $(BUILD_DIR)/module.1 $(BUILD_DIR)/modulefile.4
+man: $(BUILD_DIR)/module.1 $(BUILD_DIR)/ml.1 $(BUILD_DIR)/modulefile.4
 ifeq ($(compatversion),y)
 man: $(COMPAT_MAN_DIR)/module.1 $(COMPAT_MAN_DIR)/modulefile.4
 endif
@@ -31,10 +31,10 @@ txt: $(BUILD_DIR)/diff_v3_v4.txt $(BUILD_DIR)/MIGRATING.txt \
 	$(BUILD_DIR)/INSTALL.txt $(BUILD_DIR)/NEWS.txt \
 	$(BUILD_DIR)/CONTRIBUTING.txt
 
-html: $(BUILD_DIR)/module.html $(BUILD_DIR)/modulefile.html \
-	$(BUILD_DIR)/diff_v3_v4.html $(BUILD_DIR)/MIGRATING.html \
-	$(BUILD_DIR)/INSTALL.html $(BUILD_DIR)/NEWS.html \
-	$(BUILD_DIR)/CONTRIBUTING.html
+html: $(BUILD_DIR)/module.html $(BUILD_DIR)/ml.html \
+	$(BUILD_DIR)/modulefile.html $(BUILD_DIR)/diff_v3_v4.html \
+	$(BUILD_DIR)/MIGRATING.html $(BUILD_DIR)/INSTALL.html \
+	$(BUILD_DIR)/NEWS.html $(BUILD_DIR)/CONTRIBUTING.html
 
 all: man txt
 
@@ -71,6 +71,9 @@ $(BUILD_DIR)/%.txt: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
 $(BUILD_DIR)/%.4: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
 	$(SPHINXBUILD) $(SPHINXOPTS) -t pathsubs -b man "$(SOURCE_DIR)" "$(BUILD_DIR)"
 
+$(BUILD_DIR)/%.1: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
+	$(SPHINXBUILD) $(SPHINXOPTS) -t pathsubs -b man "$(SOURCE_DIR)" "$(BUILD_DIR)"
+
 $(BUILD_DIR)/%.1.in: $(SOURCE_DIR)/%.rst $(SOURCE_DIR)/version.py
 	$(SPHINXBUILD) $(SPHINXOPTS) -t pathsubs -b man "$(SOURCE_DIR)" "$(BUILD_DIR)"
 	mv $(BUILD_DIR)/module.1 $@
@@ -95,6 +98,7 @@ ifeq ($(docinstall),y)
 	cp example.txt $(DESTDIR)$(docdir)/
 endif
 	cp $(BUILD_DIR)/module.1 $(DESTDIR)$(mandir)/man1/
+	cp $(BUILD_DIR)/ml.1 $(DESTDIR)$(mandir)/man1/
 	cp $(BUILD_DIR)/modulefile.4 $(DESTDIR)$(mandir)/man4/
 ifeq ($(compatversion),y)
 	cp $(COMPAT_MAN_DIR)/module.1 $(DESTDIR)$(mandir)/man1/module-compat.1
@@ -112,6 +116,7 @@ ifeq ($(docinstall),y)
 	rmdir $(DESTDIR)$(docdir)
 endif
 	rm -f $(DESTDIR)$(mandir)/man1/module.1
+	rm -f $(DESTDIR)$(mandir)/man1/ml.1
 	rm -f $(DESTDIR)$(mandir)/man4/modulefile.4
 ifeq ($(compatversion),y)
 	rm -f $(DESTDIR)$(mandir)/man1/module-compat.1

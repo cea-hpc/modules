@@ -9,6 +9,7 @@ SYNOPSIS
 
 **module** [*switches*] [*sub-command* [*sub-command-args*]]
 
+.. _module DESCRIPTION:
 
 DESCRIPTION
 -----------
@@ -989,6 +990,8 @@ EXIT STATUS
 The :command:`module` command exits with ``0`` if its execution succeed.
 Otherwise ``1`` is returned.
 
+
+.. _module ENVIRONMENT:
 
 ENVIRONMENT
 -----------

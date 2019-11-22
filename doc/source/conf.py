@@ -228,6 +228,7 @@ rst_epilog += '.. |file modulefilesdir| replace:: :file:`%s`\n' % modulefilesdir
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('module', 'module', u'command interface to the Modules package', [], 1),
+    ('ml', 'ml', u'handy command interface to the Modules package', [], 1),
     ('modulefile', 'modulefile', u'files containing Tcl code for the Modules package', [], 4)
 ]
 
