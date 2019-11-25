@@ -1978,34 +1978,28 @@ proc module-virtual {args} {
 
 proc module {command args} {
    set mode [currentMode]
+   reportDebug "cmd='$command', args='$args'"
 
-   # resolve command if alias or shortcut name used
-   switch -regexp -- $command {
-      {^(add|lo)}              {set command "load"}
-      {^(rm|del|unlo|remove$)} {set command "unload"}
-      {^(ref|rel)}             {set command "reload"}
-      {^sw}                    {set command "switch"}
-      {^(di|show)}             {set command "display"}
-      {^av}                    {set command "avail"}
-      {^al}                    {set command "aliases"}
-      {^li}                    {set command "list"}
-      {^wh}                    {set command "whatis"}
-      {^(apropos|keyword)$}    {set command "search"}
-      {^pu}                    {set command "purge"}
-      {^init(a|lo)}            {set command "initadd"}
-      {^initp}                 {set command "initprepend"}
-      {^initsw}                {set command "initswitch"}
-      {^init(rm|unlo)$}        {set command "initrm"}
-      {^initl}                 {set command "initlist"}
-      {^$} {
-         # default command is help if empty string supplied
-         set command help
-         # clear other args if no command name supplied
-         set args {}
-      }
+   # guess if called from top level
+   set topcall [expr {[getEvalModuleStackDepth] == 0}]
+   set tryhelpmsg [expr {$topcall ? "\nTry 'module --help' for more\
+      information." : {}}]
+   if {$topcall} {
+      set msgprefix {}
+   } else {
+      set msgprefix {module: }
    }
 
-   reportDebug "cmd='$command', args='$args'"
+   # resolve and check command name
+   lassign [parseModuleCommandName $command help] command cmdvalid cmdempty
+   # clear other args if no command name supplied
+   if {$cmdempty} {
+      set args {}
+   }
+   # raise error if supplied command is not known
+   if {!$cmdvalid} {
+      error "${msgprefix}Invalid command '$command'$tryhelpmsg"
+   }
 
    # parse options, do that globally to ignore options not related to a given
    # module sub-command (exclude them from arg list)
@@ -2018,15 +2012,7 @@ proc module {command args} {
       set args [eval parseModuleVersionSpecifier $args]
    }
 
-   # guess if called from top level
-   set topcall [expr {[getEvalModuleStackDepth] == 0}]
-   set tryhelpmsg [expr {$topcall ? "\nTry 'module --help' for more\
-      information." : {}}]
-   if {$topcall} {
-      set msgprefix {}
-   } else {
-      set msgprefix {module: }
-
+   if {!$topcall} {
       # some commands can only be called from top level, not within modulefile
       switch -- $command {
          path - paths - autoinit - help - prepend-path - append-path -\
@@ -2357,9 +2343,6 @@ proc module {command args} {
       }
       info-loaded {
          eval cmdModuleResurface module-info loaded $args
-      }
-      default {
-         error "${msgprefix}Invalid command '$command'$tryhelpmsg"
       }
    }
    popCommandName
@@ -8267,6 +8250,44 @@ proc readCollectionContent {collfile colldesc} {
    }
 
    return [list $path_list $mod_list $nuasked_list]
+}
+
+# analyze/translate command name passed to module
+proc parseModuleCommandName {command defaultcmd} {
+   set cmdempty 0
+
+   # resolve command if alias or shortcut name used
+   switch -regexp -- $command {
+      {^(add|lo)}              {set command "load"}
+      {^(rm|del|unlo|remove$)} {set command "unload"}
+      {^(ref|rel)}             {set command "reload"}
+      {^sw}                    {set command "switch"}
+      {^(di|show)}             {set command "display"}
+      {^av}                    {set command "avail"}
+      {^al}                    {set command "aliases"}
+      {^li}                    {set command "list"}
+      {^wh}                    {set command "whatis"}
+      {^(apropos|keyword)$}    {set command "search"}
+      {^pu}                    {set command "purge"}
+      {^init(a|lo)}            {set command "initadd"}
+      {^initp}                 {set command "initprepend"}
+      {^initsw}                {set command "initswitch"}
+      {^init(rm|unlo)$}        {set command "initrm"}
+      {^initl}                 {set command "initlist"}
+      {^$} {
+         # if empty string supplied translate to default command
+         set command $defaultcmd
+         set cmdempty 1
+      }
+   }
+
+   set cmdvalid [isInList [list load unload reload use unuse source switch\
+      display avail aliases path paths list whatis search purge save restore\
+      saverm saveshow savelist initadd initprepend initswitch initrm initlist\
+      initclear autoinit clear config help test prepend-path append-path\
+      remove-path is-loaded is-saved is-used is-avail info-loaded] $command]
+
+   return [list $command $cmdvalid $cmdempty]
 }
 
 # analyze arg list passed to a module cmd to set options
