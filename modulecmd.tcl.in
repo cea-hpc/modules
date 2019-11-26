@@ -10662,9 +10662,18 @@ if {[catch {
                # also ignore argument value
                set ignore_next_arg 1
             }
+            {-} - {--} - {--*} {
+               reportErrorAndExit "Invalid option '$arg'\nTry 'module --help'\
+                  for more information."
+            }
             -* {
-                reportErrorAndExit "Invalid option '$arg'\nTry\
-                  'module --help' for more information."
+               # spare argument if ml command is called
+               if {[lindex $otherargv 0] ne {ml}} {
+                  reportErrorAndExit "Invalid option '$arg'\nTry 'module\
+                     --help' for more information."
+               } else {
+                  lappend otherargv $arg
+               }
             }
             default {
                lappend otherargv $arg
@@ -10675,6 +10684,12 @@ if {[catch {
 
    set command [lindex $otherargv 0]
    set otherargv [concat [lreplace $otherargv 0 0] $extraargv]
+   # call ml frontend if it is asked command
+   if {$command eq {ml}} {
+      set execcmdlist [concat [list ml] $otherargv]
+   } else {
+      set execcmdlist [concat [list module $command] $otherargv]
+   }
 
    # now options are known initialize error report (start pager if enabled)
    initErrorReport
@@ -10705,7 +10720,11 @@ if {[catch {
    @quarantinesupport@}
 
    if {$show_help} {
-      cmdModuleHelp
+      if {$command eq {ml}} {
+         cmdMlHelp
+      } else {
+         cmdModuleHelp
+      }
       cleanupAndExit 0
    }
    if {$show_version} {
@@ -10717,7 +10736,7 @@ if {[catch {
    pushModuleFile {}
 
    # eval needed to pass otherargv as list to module proc
-   if {[catch {eval module "{$command}" $otherargv} errMsg]} {
+   if {[catch {eval $execcmdlist} errMsg]} {
       reportErrorAndExit $errMsg
    }
 } errMsg ]} {
