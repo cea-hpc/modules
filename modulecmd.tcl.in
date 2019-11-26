@@ -5604,6 +5604,10 @@ alias module '$pre_hi $eval_cmd $pre_ex $post_hi $post_ex' ;
 if ( ! \$?histchars && \$?prompt )\
 alias module '$pre_pr $eval_cmd $pre_ex $post_pr $post_ex' ;
 if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
+         if {[getConf ml]} {
+            append fdef {
+alias ml 'module ml \!*' ;}
+         }
       }
       sh {
          # Considering the diversity of ways local variables are handled
@@ -5677,6 +5681,10 @@ if ( ! \$?histchars && ! \$?prompt ) alias module '$eval_cmd' ;"
          if {[isStderrTty]} {
             append fdef "\nmodule() { _module_raw \"\$@\" 2>&1; };"
          }
+         if {[getConf ml]} {
+            append fdef {
+ml() { module ml "$@"; };}
+         }
       }
       fish {
          set fdef [expr {[isStderrTty] ? "function _module_raw\n" :\
@@ -5708,6 +5716,12 @@ end}
          } else {
             append fdef end
          }
+         if {[getConf ml]} {
+            append fdef {
+function ml
+   module ml $argv
+end}
+         }
       }
       tcl {
          set fdef "proc module {args} {"
@@ -5737,6 +5751,12 @@ end}
          append fdef {   eval $script;
    return $_mlstatus}
          append fdef "\n}"
+         if {[getConf ml]} {
+            append fdef {
+proc ml {args} {
+   return [eval module ml $args]
+}}
+         }
       }
       cmd {
          reportErrorAndExit {No autoinit mode available for 'cmd' shell}
@@ -5769,6 +5789,12 @@ end}
 @notquarantinesupport@         append fdef "\n   eval `$tclshbin $::argv0 perl \$args`;\n"
          append fdef {   return $_mlstatus;}
          append fdef "\n}"
+         if {[getConf ml]} {
+            append fdef {
+sub ml {
+   return module('ml', @_);
+}}
+         }
       }
       python {
          set fdef {import re, subprocess
@@ -5798,6 +5824,12 @@ def module(*arguments):}
    else:
       _mlstatus = True
    return _mlstatus}
+         if {[getConf ml]} {
+            append fdef {
+def ml(*arguments):
+   return module('ml', *arguments)
+}
+         }
       }
       ruby {
          set fdef {class ENVModule
@@ -5831,7 +5863,14 @@ def module(*arguments):}
 @quarantinesupport@         append fdef "\n      eval `#{_mlre}$tclshbin $::argv0 ruby #{args}`\n"
 @notquarantinesupport@         append fdef "\n      eval `$tclshbin $::argv0 ruby #{args}`\n"
          append fdef {      return _mlstatus
-   end
+   end}
+         if {[getConf ml]} {
+            append fdef {
+   def ENVModule.ml(*args)
+      return ENVModule.module('ml', *args)
+   end}
+         }
+         append fdef {
 end}
       }
       lisp {
@@ -5889,6 +5928,13 @@ end}
    endif()
    set(module_result ${_mlstatus} PARENT_SCOPE)
 endfunction(module)}
+         if {[getConf ml]} {
+            append fdef {
+function(ml)
+   module(ml ${ARGV})
+   set(module_result ${module_result} PARENT_SCOPE)
+endfunction(ml)}
+         }
       }
       r {
          set fdef "module <- function(...){"
@@ -5922,7 +5968,12 @@ endfunction(module)}
    close(hndl)
    invisible(mlstatus)}
          append fdef "\n}"
-
+         if {[getConf ml]} {
+            append fdef {
+ml <- function(...){
+   module('ml', ...)
+}}
+         }
       }
    }
 
