@@ -2356,6 +2356,67 @@ proc module {command args} {
    return {}
 }
 
+proc ml {args} {
+   # ml cannot be called within modulefile, top level only
+   if {[getEvalModuleStackDepth] > 0} {
+      error {Command 'ml' not supported}
+   }
+
+   # determine if first argument is a known module sub-command
+   lassign [parseModuleCommandName [lindex $args 0] list] command cmdvalid\
+      cmdempty
+
+   # consider empty string supplied as first argument as module name
+   if {$cmdempty && [llength $args] > 0} {
+      set cmdvalid 0
+   }
+
+   # directly call module procedure if sub-command spotted as first argument
+   # or no argument supplied
+   if {$cmdvalid} {
+      eval module $command [lrange $args 1 end]
+   } else {
+      # no need to look for option arguments as they have already been parsed
+      # in main procedure (error has already been raised for badly written
+      # argument like '-' or '--')
+
+      # parse specified module and get list of mods to unload and mods to load
+      lassign [eval parseModuleVersionSpecifier 1 $args] modunlist modlolist
+
+      # define if modfile should always be fully read even for validity check
+      pushAlwaysReadFullFile 1
+      pushCommandName ml
+
+      # Find and execute any global rc file found
+      runModulerc
+
+      set ret 0
+      pushSettings
+
+      # first unload specified modules
+      if {[llength $modunlist] > 0} {
+         set ret [eval cmdModuleUnload unload match 1 0 0 0 $modunlist]
+      }
+      # then load other modules unless unload phase failed
+      if {!$ret && [llength $modlolist] > 0} {
+         set ret [eval cmdModuleLoad load 1 $modlolist]
+      }
+
+      # rollback changes if any load or unload failed
+      if {$ret} {
+         restoreSettings
+      }
+      popSettings
+
+      popCommandName
+      popAlwaysReadFullFile
+
+      renderSettings
+   }
+
+   return {}
+}
+
 proc getModshareVarName {var} {
    # specific modshare variable for DYLD-related variables as a suffixed
    # variable will lead to warning messages with this tool
