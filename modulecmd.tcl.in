@@ -2009,7 +2009,7 @@ proc module {command args} {
    # parse module version specification
    if {[isInList [list avail paths whatis load unload switch help test\
       display path is-avail] $command]} {
-      set args [eval parseModuleVersionSpecifier $args]
+      set args [eval parseModuleVersionSpecifier 0 $args]
    }
 
    if {!$topcall} {
@@ -2928,7 +2928,7 @@ proc unset-function {function} {
 proc is-loaded {args} {
    reportDebug $args
    # parse module version specification
-   set args [eval parseModuleVersionSpecifier $args]
+   set args [eval parseModuleVersionSpecifier 0 $args]
 
    foreach mod $args {
       if {[getLoadedMatchingName $mod returnfirst] ne {}} {
@@ -2957,7 +2957,7 @@ proc conflict {args} {
    defineModEqProc [isIcase] [getConf extended_default]
 
    # parse module version specification
-   set args [eval parseModuleVersionSpecifier $args]
+   set args [eval parseModuleVersionSpecifier 0 $args]
 
    # register conflict list
    eval setLoadedConflict $currentModule $args
@@ -2999,7 +2999,7 @@ proc prereq {args} {
    set currentModule [currentModuleName]
 
    # parse module version specification
-   set args [eval parseModuleVersionSpecifier $args]
+   set args [eval parseModuleVersionSpecifier 0 $args]
 
    # register prereq list (sets of optional prereq are registered as list)
    setLoadedPrereq $currentModule $args
@@ -6002,7 +6002,7 @@ proc cacheCurrentModules {} {
          foreach modcon [getLoadedModuleConflictList] {
             # parse module version specification to record translation
             foreach modconelt [lrange $modcon 1 end] {
-               eval parseModuleVersionSpecifier $modconelt
+               eval parseModuleVersionSpecifier 0 $modconelt
             }
             eval setLoadedConflict $modcon
          }
@@ -6013,7 +6013,7 @@ proc cacheCurrentModules {} {
             # parse module version specification to record translation
             foreach modpreeltlist [lrange $modpre 1 end] {
                foreach modpreelt $modpreeltlist {
-                  eval parseModuleVersionSpecifier $modpreelt
+                  eval parseModuleVersionSpecifier 0 $modpreelt
                }
             }
             eval setLoadedPrereq $modpre
@@ -8406,8 +8406,9 @@ proc parseModuleCommandArgs {cmd args} {
 }
 
 # when advanced_version_spec option is enabled, parse argument list to set in
-# a global context version specification of modules passed as argument
-proc parseModuleVersionSpecifier {args} {
+# a global context version specification of modules passed as argument.
+# specification may vary whether it comes from the ml or another command.
+proc parseModuleVersionSpecifier {mlspec args} {
    if {[getConf advanced_version_spec]} {
       # skip arg parse if proc was already call with same arg set by an upper
       # proc. check all args to ensure current arglist does not deviate from
@@ -8422,7 +8423,9 @@ proc parseModuleVersionSpecifier {args} {
       if {[info exists need_parse]} {
          set invalidversspec 0
          set invalidversrange 0
+         set mlunload 0
          set arglist [list]
+         set unarglist [list]
          foreach arg $args {
             # extract module name and version specifier from arg
             set curverslist [lassign [split $arg @] curmod]
@@ -8431,14 +8434,28 @@ proc parseModuleVersionSpecifier {args} {
                # save previous module version spec and transformed arg if any
                if {[info exists modarglist]} {
                   set modarg [join $modarglist]
-                  if {[info exists modname]} {
+                  if {[info exists modname] && ($modname ne {} || $modspec eq {})} {
                      setModuleVersSpec $modarg $modname $cmpspec $versspec
                      # rework args to have 1 str element for whole module spec
-                     lappend arglist $modarg
+                     # append to unload list if ml spec and - prefix used
+                     if {$mlunload} {
+                        lappend unarglist $modarg
+                     } else {
+                        lappend arglist $modarg
+                     }
                   } elseif {$modspec ne {}} {
                      error "No module name defined in argument '$modarg'"
                   }
                   unset modarglist
+               }
+               if {$mlspec} {
+                  if {[string index $curmod 0] eq {-}} {
+                     set arg [string range $arg 1 end]
+                     set curmod [string range $curmod 1 end]
+                     set mlunload 1
+                  } else {
+                     set mlunload 0
+                  }
                }
                set modname $curmod
                set modspec {}
@@ -8497,10 +8514,15 @@ proc parseModuleVersionSpecifier {args} {
          # transform last args
          if {[info exists modarglist]} {
             set modarg [join $modarglist]
-            if {[info exists modname]} {
+            if {[info exists modname] && ($modname ne {} || $modspec eq {})} {
                setModuleVersSpec $modarg $modname $cmpspec $versspec
                # rework args to have 1 string element for whole module spec
-               lappend arglist $modarg
+               # append to unload list if ml spec and - prefix used
+               if {$mlunload} {
+                  lappend unarglist $modarg
+               } else {
+                  lappend arglist $modarg
+               }
             } elseif {$modspec ne {}} {
                error "No module name defined in argument '$modarg'"
             }
@@ -8508,11 +8530,25 @@ proc parseModuleVersionSpecifier {args} {
       } else {
          set arglist $args
       }
+   } elseif {$mlspec} {
+      set unarglist [list]
+      set arglist [list]
+      foreach arg $args {
+         if {[string index $arg 0] eq {-}} {
+            lappend unarglist [string range $arg 1 end]
+         } else {
+            lappend arglist $arg
+         }
+      }
    } else {
       set arglist $args
    }
 
-   return $arglist
+   if {$mlspec} {
+      return [list $unarglist $arglist]
+   } else {
+      return $arglist
+   }
 }
 
 proc setModuleVersSpec {modarg modname cmpspec versspec} {
