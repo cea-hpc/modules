@@ -62,6 +62,8 @@ Module commands return the empty string. Some commands behave differently
 when a *modulefile* is loaded or unloaded. The command descriptions assume
 the *modulefile* is being loaded.
 
+.. _break:
+
 **break**
 
  This is not a Modules-specific command, it's actually part of Tcl, which
@@ -95,9 +97,13 @@ the *modulefile* is being loaded.
       }
       break
 
+.. _chdir:
+
 **chdir** directory
 
  Set the current working directory to *directory*.
+
+.. _continue:
 
 **continue**
 
@@ -108,6 +114,8 @@ the *modulefile* is being loaded.
  the command line. The **continue** command will only have this effect if
  not used within a Tcl loop though.
 
+.. _exit:
+
 **exit** [N]
 
  This is not a modules specific command but another overloaded Tcl command
@@ -116,6 +124,8 @@ the *modulefile* is being loaded.
  additional ones on the command line. This module and the subsequent
  modules will not be listed as loaded. No environment commands will be
  performed in the current module.
+
+.. _setenv:
 
 **setenv** variable value
 
@@ -132,11 +142,15 @@ the *modulefile* is being loaded.
  will unset the environment *variable* - the previous value cannot be
  restored! (Unless you handle it explicitly ... see below.)
 
+.. _unsetenv:
+
 **unsetenv** variable [value]
 
  Unsets environment *variable*. However, if there is an optional *value*,
  then when unloading a module, it will set *variable* to *value*. The
  **unsetenv** command changes the process' environment like **setenv**.
+
+.. _getenv:
 
 **getenv** variable [value]
 
@@ -145,9 +159,13 @@ the *modulefile* is being loaded.
  should be preferred over Tcl global variable **env** to query environment
  variables.
 
+.. _append-path:
+
 **append-path** [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
  See **prepend-path**.
+
+.. _prepend-path:
 
 **prepend-path** [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
@@ -173,6 +191,8 @@ the *modulefile* is being loaded.
  If *value* corresponds to the concatenation of multiple elements separated by
  colon, or *delimiter*, character, each element is treated separately.
 
+.. _remove-path:
+
 **remove-path** [-d C|--delim C|--delim=C] [--index] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in
@@ -194,9 +214,13 @@ the *modulefile* is being loaded.
  If *value* corresponds to the concatenation of multiple elements separated by
  colon, or *delimiter*, character, each element is treated separately.
 
+.. _prereq:
+
 **prereq** modulefile...
 
  See **conflict**.
+
+.. _conflict:
 
 **conflict** modulefile...
 
@@ -224,6 +248,8 @@ the *modulefile* is being loaded.
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+.. _is-loaded:
+
 **is-loaded** [modulefile...]
 
  The **is-loaded** command returns a true value if any of the listed
@@ -237,6 +263,8 @@ the *modulefile* is being loaded.
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+.. _is-saved:
+
 **is-saved** [collection...]
 
  The **is-saved** command returns a true value if any of the listed
@@ -249,12 +277,16 @@ the *modulefile* is being loaded.
  *collection* argument is provided, a true value will only be returned if
  a collection matching currently set target exists.
 
+.. _is-used:
+
 **is-used** [directory...]
 
  The **is-used** command returns a true value if any of the listed
  *directories* has been enabled in **MODULEPATH** or if any *directory* is
  enabled in case no argument is provided. If a list contains more than one
  *directory*, then each member acts as a boolean OR operation.
+
+.. _is-avail:
 
 **is-avail** modulefile...
 
@@ -267,6 +299,8 @@ the *modulefile* is being loaded.
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+.. _module:
 
 **module** [sub-command] [sub-command-args]
 
@@ -281,6 +315,8 @@ the *modulefile* is being loaded.
 
  Command line switches **--auto**, **--no-auto** and **--force** are ignored
  when passed to a **module** command set in a *modulefile*.
+
+.. _module-info:
 
 **module-info** option [info-args]
 
@@ -370,6 +406,8 @@ the *modulefile* is being loaded.
   *modulefiles* from the directory will be returned. The parameter
   *modulefile* may also be a symbolic modulefile name or a modulefile alias.
 
+.. _module-version:
+
 **module-version** modulefile version-name...
 
  Assigns the symbolic *version-name* to the *modulefile*. This command
@@ -391,6 +429,8 @@ the *modulefile* is being loaded.
 
  * another *modulefile* alias
 
+.. _module-alias:
+
 **module-alias** name modulefile
 
  Assigns the *modulefile* to the alias *name*. This command should be
@@ -405,6 +445,8 @@ the *modulefile* is being loaded.
 
  * another *modulefile* alias
 
+.. _module-virtual:
+
 **module-virtual** name modulefile
 
  Assigns the *modulefile* to the virtual module *name*. This command should be
@@ -417,6 +459,8 @@ the *modulefile* is being loaded.
  The parameter *modulefile* corresponds to the relative or absolute file
  location of a *modulefile*.
 
+.. _module-whatis:
+
 **module-whatis** string
 
  Defines a string which is displayed in case of the invocation of the
@@ -428,6 +472,8 @@ the *modulefile* is being loaded.
  than one word specified. Words are defined to be separated by whitespace
  characters (space, tab, cr).
 
+.. _set-alias:
+
 **set-alias** alias-name alias-string
 
  Sets an alias or function with the name *alias-name* in the user's
@@ -435,9 +481,13 @@ the *modulefile* is being loaded.
  possible and the command has no effect. When a *modulefile* is unloaded,
  **set-alias** becomes **unset-alias**.
 
+.. _unset-alias:
+
 **unset-alias** alias-name
 
  Unsets an alias with the name *alias-name* in the user's environment.
+
+.. _set-function:
 
 **set-function** function-name function-string
 
@@ -446,9 +496,13 @@ the *modulefile* is being loaded.
  possible and the command has no effect. When a *modulefile* is unloaded,
  **set-function** becomes **unset-function**.
 
+.. _unset-function:
+
 **unset-function** function-name
 
  Removes a function with the name *function-name* from the user's environment.
+
+.. _system:
 
 **system** string
 
@@ -456,6 +510,8 @@ the *modulefile* is being loaded.
  ``/bin/sh`` shell whereas on Windows it is passed to ``cmd.exe``.
  **modulecmd.tcl** redirects stdout to stderr since stdout would be parsed by
  the evaluating shell. The exit status of the executed command is returned.
+
+.. _uname:
 
 **uname** field
 
@@ -479,6 +535,8 @@ the *modulefile* is being loaded.
  * version: the operating system version
 
  * machine: a standard name that identifies the system's hardware
+
+.. _x-resource:
 
 **x-resource** [resource-string|filename]
 
