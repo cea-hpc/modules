@@ -246,6 +246,8 @@ switches are accepted:
 Module Sub-Commands
 ^^^^^^^^^^^^^^^^^^^
 
+.. _help:
+
 **help** [modulefile...]
 
  Print the usage of each sub-command. If an argument is given, print the
@@ -255,9 +257,13 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+.. _add:
+
 **add** modulefile...
 
  See **load**.
+
+.. _load:
 
 **load** [--auto|--no-auto] [-f] modulefile...
 
@@ -267,9 +273,13 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+.. _rm:
+
 **rm** modulefile...
 
  See **unload**.
+
+.. _unload:
 
 **unload** [--auto|--no-auto] [-f] modulefile...
 
@@ -279,9 +289,13 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+.. _swap:
+
 **swap** [modulefile1] modulefile2
 
  See **switch**.
+
+.. _switch:
 
 **switch** [--auto|--no-auto] [-f] [modulefile1] modulefile2
 
@@ -293,9 +307,13 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+.. _show:
+
 **show** modulefile...
 
  See **display**.
+
+.. _display:
 
 **display** modulefile...
 
@@ -308,9 +326,13 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+.. _list:
+
 **list** [-t|-l]
 
  List loaded modules.
+
+.. _avail:
 
 **avail** [-d|-L] [-t|-l] [-S|-C] [--indepth|--no-indepth] [path...]
 
@@ -343,12 +365,16 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+.. _aliases:
+
 **aliases**
 
  List all available symbolic version-names and aliases in the current
  **MODULEPATH**.  All directories in the **MODULEPATH** are recursively
  searched in the same manner than for the **avail** sub-command. Only the
  symbolic version-names and aliases found in the search are displayed.
+
+.. _use:
 
 **use** [-a|--append] directory...
 
@@ -359,6 +385,8 @@ Module Sub-Commands
  Reference counter environment variable **MODULEPATH_modshare** is
  also set to increase the number of times *directory* has been added to
  **MODULEPATH**.
+
+.. _unuse:
 
 **unuse** directory...
 
@@ -373,9 +401,13 @@ Module Sub-Commands
  equal to 1 or not defined. Elsewhere *directory* is kept and reference
  counter is decreased by 1.
 
+.. _refresh:
+
 **refresh**
 
  See **reload**.
+
+.. _reload:
 
 **reload**
 
@@ -385,9 +417,13 @@ Module Sub-Commands
  *modulefiles* have unsatisfied constraint corresponding to the **prereq**
  and **conflict** they declare.
 
+.. _purge:
+
 **purge**
 
  Unload all loaded *modulefiles*.
+
+.. _clear:
 
 **clear** [-f]
 
@@ -395,12 +431,16 @@ Module Sub-Commands
  confirmation is requested if command-line switch *-f* (or *--force*) is not
  passed. Typed confirmation should equal to *yes* or *y* in order to proceed.
 
+.. _source:
+
 **source** scriptfile...
 
  Execute *scriptfile* into the shell environment. *scriptfile* must be written
  with *modulefile* syntax and specified with a fully qualified path. Once
  executed *scriptfile* is not marked loaded in shell environment which differ
  from **load** sub-command.
+
+.. _whatis:
 
 **whatis** [modulefile...]
 
@@ -413,13 +453,19 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+.. _apropos:
+
 **apropos** string
 
  See **search**.
 
+.. _keyword:
+
 **keyword** string
 
  See **search**.
+
+.. _search-cmd:
 
 **search** string
 
@@ -427,6 +473,8 @@ Module Sub-Commands
  specified *string*. All *module-whatis* informations matching the *string* in
  a case insensitive manner will be displayed. *string* may contain wildcard
  characters.
+
+.. _test:
 
 **test** modulefile...
 
@@ -436,6 +484,8 @@ Module Sub-Commands
  The parameter *modulefile* may also be a symbolic modulefile name or a
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
+
+.. _save:
 
 **save** [collection]
 
@@ -460,6 +510,8 @@ Module Sub-Commands
  *modulefiles* have unsatisfied constraint corresponding to the **prereq**
  and **conflict** they declare.
 
+.. _restore:
+
 **restore** [collection]
 
  Restore the environment state as defined in *collection*. If *collection*
@@ -483,12 +535,16 @@ Module Sub-Commands
  *collection* by its bare name: loading this module when restoring the
  collection will fail if **config** option *implicit_default* is disabled.
 
+.. _saverm:
+
 **saverm** [collection]
 
  Delete the *collection* file under the user's collection directory. If
  *collection* name is not specified, then it is assumed to be the *default*
  collection. If **MODULES_COLLECTION_TARGET** is set, a suffix equivalent to
  the value of this variable will be appended to the *collection* file name.
+
+.. _saveshow:
 
 **saveshow** [collection]
 
@@ -499,11 +555,15 @@ Module Sub-Commands
  is set, a suffix equivalent to the value of this variable will be appended
  to the *collection* file name.
 
+.. _savelist:
+
 **savelist** [-t|-l]
 
  List collections that are currently saved under the user's collection
  directory. If **MODULES_COLLECTION_TARGET** is set, only collections
  matching the target suffix will be displayed.
+
+.. _initadd:
 
 **initadd** modulefile...
 
@@ -540,26 +600,38 @@ Module Sub-Commands
  the **init** sub-commands to work properly. If the **module load** line is
  found in multiple shell initialization files, all of the lines are changed.
 
+.. _initprepend:
+
 **initprepend** modulefile...
 
  Does the same as **initadd** but prepends the given modules to the
  beginning of the list.
 
+.. _initrm:
+
 **initrm** modulefile...
 
  Remove *modulefile* from the shell's initialization files.
+
+.. _initswitch:
 
 **initswitch** modulefile1 modulefile2
 
  Switch *modulefile1* with *modulefile2* in the shell's initialization files.
 
+.. _initlist:
+
 **initlist**
 
  List all of the *modulefiles* loaded from the shell's initialization file.
 
+.. _initclear:
+
 **initclear**
 
  Clear all of the *modulefiles* from the shell's initialization files.
+
+.. _path:
 
 **path** modulefile
 
@@ -569,6 +641,8 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+.. _paths:
+
 **paths** modulefile
 
  Print path of available *modulefiles* matching argument.
@@ -577,11 +651,15 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+.. _append-path:
+
 **append-path** [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
  Append *value* to environment *variable*. The *variable* is a colon, or
  *delimiter*, separated list. See **append-path** in the :ref:`modulefile(4)`
  man page for further explanation.
+
+.. _prepend-path:
 
 **prepend-path** [-d C|--delim C|--delim=C] [--duplicates] variable value...
 
@@ -589,11 +667,15 @@ Module Sub-Commands
  *delimiter*, separated list. See **prepend-path** in the :ref:`modulefile(4)`
  man page for further explanation.
 
+.. _remove-path:
+
 **remove-path** [-d C|--delim C|--delim=C] [--index] variable value...
 
  Remove *value* from the colon, or *delimiter*, separated list in environment
  *variable*. See **remove-path** in the :ref:`modulefile(4)` man page for
  further explanation.
+
+.. _is-loaded:
 
 **is-loaded** [modulefile...]
 
@@ -606,6 +688,8 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+.. _is-saved:
+
 **is-saved** [collection...]
 
  Returns a true value if any of the listed *collections* exists or if any
@@ -613,12 +697,16 @@ Module Sub-Commands
  elsewhere. See **is-saved** in the :ref:`modulefile(4)` man page for further
  explanation.
 
+.. _is-used:
+
 **is-used** [directory...]
 
  Returns a true value if any of the listed *directories* has been enabled in
  **MODULEPATH** or if any *directory* is enabled in case no argument is
  provided. Returns a false value elsewhere. See **is-used** in the
  :ref:`modulefile(4)` man page for further explanation.
+
+.. _is-avail:
 
 **is-avail** modulefile...
 
@@ -630,12 +718,16 @@ Module Sub-Commands
  modulefile alias. It may also leverage a specific syntax to finely select
  module version (see `Advanced module version specifiers`_ section below).
 
+.. _info-loaded:
+
 **info-loaded** modulefile
 
  Returns the names of currently loaded modules matching passed *modulefile*.
  Returns an empty string if passed *modulefile* does not match any loaded
  modules. See **module-info loaded** in the :ref:`modulefile(4)` man page for
  further explanation.
+
+.. _config:
 
 **config** [--dump-state|name [value]|--reset name]
 
@@ -791,14 +883,21 @@ The **module** command exits with **0** if its execution succeed. Elsewhere
 ENVIRONMENT
 -----------
 
+.. _LOADEDMODULES:
+
+
 **LOADEDMODULES**
 
  A colon separated list of all loaded *modulefiles*.
+
+.. _MODULECONTACT:
 
 **MODULECONTACT**
 
  Email address to contact in case any issue occurs during the interpretation
  of modulefiles.
+
+.. _MODULEPATH:
 
 **MODULEPATH**
 
@@ -815,16 +914,22 @@ ENVIRONMENT
  **MODULEPATH** value. If an environment variable referred in a path element
  is not defined, its reference is converted to an empty string.
 
+.. _MODULERCFILE:
+
 **MODULERCFILE**
 
  The location of a global run-command file containing *modulefile* specific
  setup. See `Modulecmd startup`_ section for detailed information.
+
+.. _MODULESHOME:
 
 **MODULESHOME**
 
  The location of the master Modules package file directory containing module
  command initialization scripts, the executable program **modulecmd.tcl**,
  and a directory containing a collection of master *modulefiles*.
+
+.. _MODULES_ADVANCED_VERSION_SPEC:
 
 **MODULES_ADVANCED_VERSION_SPEC**
 
@@ -836,6 +941,8 @@ ENVIRONMENT
  order of preference: **MODULES_ADVANCED_VERSION_SPEC** environment variable
  then the default set in **modulecmd.tcl** script configuration. Which means
  **MODULES_ADVANCED_VERSION_SPEC** overrides default configuration.
+
+.. _MODULES_AUTO_HANDLING:
 
 **MODULES_AUTO_HANDLING**
 
@@ -889,6 +996,8 @@ ENVIRONMENT
  overrides default configuration and **--auto**/**--no-auto** command line
  switches override every other ways to enable or disable this mode.
 
+.. _MODULES_AVAIL_INDEPTH:
+
 **MODULES_AVAIL_INDEPTH**
 
  If set to **1**, enable in depth search results for **avail** sub-command. If
@@ -907,9 +1016,13 @@ ENVIRONMENT
  overrides default configuration and **--indepth**/**--no-indepth** command
  line switches override every other ways to enable or disable this mode.
 
+.. _MODULES_CMD:
+
 **MODULES_CMD**
 
  The location of the active module command script.
+
+.. _MODULES_COLLECTION_PIN_VERSION:
 
 **MODULES_COLLECTION_PIN_VERSION**
 
@@ -917,6 +1030,8 @@ ENVIRONMENT
  collection. Elsewhere modulefile version number is omitted if it corresponds
  to the explicitly set default version and also to the implicit default when
  **config** option *implicit_default* is enabled.
+
+.. _MODULES_COLLECTION_TARGET:
 
 **MODULES_COLLECTION_TARGET**
 
@@ -938,6 +1053,8 @@ ENVIRONMENT
  For example, the **MODULES_COLLECTION_TARGET** variable may be set with
  results from commands like **lsb_release**, **hostname**, **dnsdomainname**,
  etc.
+
+.. _MODULES_COLOR:
 
 **MODULES_COLOR**
 
@@ -961,6 +1078,8 @@ ENVIRONMENT
  The *always* mode is set if **CLICOLOR_FORCE** is set to a value different
  than **0**. Color mode set with these two variables is superseded by mode set
  with **MODULES_COLOR** environment variable.
+
+.. _MODULES_COLORS:
 
 **MODULES_COLORS**
 
@@ -995,6 +1114,8 @@ ENVIRONMENT
  **modulecmd.tcl** script configuration. Which means **MODULES_COLORS**
  overrides default configuration.
 
+.. _MODULES_EXTENDED_DEFAULT:
+
 **MODULES_EXTENDED_DEFAULT**
 
  If set to **1**, a specified module version is matched against starting
@@ -1010,6 +1131,8 @@ ENVIRONMENT
 
  This environment variable supersedes the value of the configuration option
  *extended_default* set in **modulecmd.tcl** script.
+
+.. _MODULES_ICASE:
 
 **MODULES_ICASE**
 
@@ -1028,6 +1151,8 @@ ENVIRONMENT
  **modulecmd.tcl** script configuration. Which means **MODULES_ICASE**
  overrides default configuration and **--icase** command line switch overrides
  every other ways to set case sensitiveness behavior.
+
+.. _MODULES_IMPLICIT_DEFAULT:
 
 **MODULES_IMPLICIT_DEFAULT**
 
@@ -1057,6 +1182,8 @@ ENVIRONMENT
  is ignored if *implicit_default* has been declared locked in *locked_configs*
  configuration option.
 
+.. _MODULES_LMALTNAME:
+
 **MODULES_LMALTNAME**
 
  A colon separated list of the alternative names set through
@@ -1073,6 +1200,8 @@ ENVIRONMENT
  *modulefiles* being loaded when **unload**, **is-loaded** or **info-loaded**
  actions are run over these names.
 
+.. _MODULES_LMCONFLICT:
+
 **MODULES_LMCONFLICT**
 
  A colon separated list of the **conflict** statements defined by all loaded
@@ -1086,6 +1215,8 @@ ENVIRONMENT
  in order to keep environment consistent when a conflicting module is asked
  for load afterward.
 
+.. _MODULES_LMNOTUASKED:
+
 **MODULES_LMNOTUASKED**
 
  A colon separated list of all loaded *modulefiles* that were not explicitly
@@ -1094,6 +1225,8 @@ ENVIRONMENT
  This environment variable is intended for **module** command internal
  use to distinguish the *modulefiles* that have been loaded automatically
  from modulefiles that have been asked by users.
+
+.. _MODULES_LMPREREQ:
 
 **MODULES_LMPREREQ**
 
@@ -1110,6 +1243,8 @@ ENVIRONMENT
  *modulefiles* in order to keep environment consistent when a pre-required
  module is asked for unload afterward.
 
+.. _MODULES_PAGER:
+
 **MODULES_PAGER**
 
  Text viewer for use to paginate message output if error output stream is
@@ -1124,10 +1259,14 @@ ENVIRONMENT
  If **MODULES_PAGER** variable is set to an empty string or to the value
  *cat*, pager will not be launched.
 
+.. _MODULES_RUNENV_<VAR>:
+
 **MODULES_RUNENV_<VAR>**
 
  Value to set to environment variable *<VAR>* for **modulecmd.tcl** run-time
  execution if *<VAR>* is referred in **MODULES_RUN_QUARANTINE**.
+
+.. _MODULES_RUN_QUARANTINE:
 
 **MODULES_RUN_QUARANTINE**
 
@@ -1141,6 +1280,8 @@ ENVIRONMENT
 
  Original values of these environment variables set in quarantine are passed
  to **modulecmd.tcl** via **<VAR>_modquar** variables.
+
+.. _MODULES_SEARCH_MATCH:
 
 **MODULES_SEARCH_MATCH**
 
@@ -1157,6 +1298,8 @@ ENVIRONMENT
  overrides default configuration and **--starts-with**/**--contains** command
  line switches override every other ways to set search match style.
 
+.. _MODULES_SET_SHELL_STARTUP:
+
 **MODULES_SET_SHELL_STARTUP**
 
  If set to **1**, defines when **module** command initializes the shell
@@ -1165,12 +1308,16 @@ ENVIRONMENT
  **BASH_ENV** environment variable to the Modules bourne shell initialization
  script. If set to **0**, shell startup file is not defined.
 
+.. _MODULES_SILENT_SHELL_DEBUG:
+
 **MODULES_SILENT_SHELL_DEBUG**
 
  If set to **1**, disable any *xtrace* or *verbose* debugging property set on
  current shell session for the duration of either the module command or the
  module shell initialization script. Only applies to Bourne Shell (sh) and its
  derivatives.
+
+.. _MODULES_SITECONFIG:
 
 **MODULES_SITECONFIG**
 
@@ -1180,6 +1327,8 @@ ENVIRONMENT
  This environment variable is ignored if *extra_siteconfig* has been declared
  locked in *locked_configs* configuration option.
 
+.. _MODULES_TERM_BACKGROUND:
+
 **MODULES_TERM_BACKGROUND**
 
  Inform Modules of the terminal background color to determine if the color set
@@ -1187,11 +1336,15 @@ ENVIRONMENT
  color output in case no specific color set is defined with the
  **MODULES_COLORS** variable. Accepted values are **dark** and **light**.
 
+.. _MODULES_UNLOAD_MATCH_ORDER:
+
 **MODULES_UNLOAD_MATCH_ORDER**
 
  When a module unload request matches multiple loaded modules, unload firstly
  loaded module or lastly loaded module. Accepted values are **returnfirst**
  and **returnlast**.
+
+.. _MODULES_USE_COMPAT_VERSION:
 
 **MODULES_USE_COMPAT_VERSION**
 
@@ -1200,6 +1353,8 @@ ENVIRONMENT
  at initialization scripts running time. Modules package compatibility
  version should be installed along with main version for this environment
  variable to have any effect.
+
+.. _MODULES_VERBOSITY:
 
 **MODULES_VERBOSITY**
 
@@ -1225,6 +1380,8 @@ ENVIRONMENT
  overrides default configuration and **--silent**/**--verbose**/**--debug**
  command line switches overrides every other ways to set verbosity level.
 
+.. _MODULES_WA_277:
+
 **MODULES_WA_277**
 
  If set to **1** prior to Modules package initialization, enables workaround
@@ -1237,14 +1394,20 @@ ENVIRONMENT
  used anymore in shell alias definition elsewhere the evaluation of the code
  produced by modulefiles will return a syntax error.
 
+.. _LMFILES:
+
 **_LMFILES_**
 
  A colon separated list of the full pathname for all loaded *modulefiles*.
+
+.. _<VAR>_modquar:
 
 **<VAR>_modquar**
 
  Value of environment variable *<VAR>* passed to **modulecmd.tcl** in order
  to restore *<VAR>* to this value once started.
+
+.. _<VAR>_modshare:
 
 **<VAR>_modshare**
 
