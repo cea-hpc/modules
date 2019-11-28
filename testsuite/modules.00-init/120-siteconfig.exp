@@ -46,7 +46,7 @@ proc test_getSiteConfig {siteconfig isvalid islocked} {
     lappend ans "DEBUG setConf: term_background set to '$::install_termbg'"
     lappend ans "(DEBUG initConfColors: Ignore invalid default.*\\n)?DEBUG setConf: colors set to '.*'"
     lappend ans "DEBUG setConf: color set to '0'"
-    lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+    lappend ans $::vers_reportre
 
     setenv_var MODULES_SITECONFIG $siteconfig
     testouterr_cmd_re sh {--no-pager -D -V} {} [join $ans \n]
@@ -74,13 +74,13 @@ lappend ans "DEBUG setConf: verbosity set to 'debug'"
 lappend ans "DEBUG setConf: term_background set to '$install_termbg'"
 lappend ans "(DEBUG initConfColors: Ignore invalid default.*\\n)?DEBUG setConf: colors set to '.*'"
 lappend ans "DEBUG setConf: color set to '0'"
-lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+lappend ans $vers_reportre
 testouterr_cmd_re "sh" "-V" "" [join $ans "\n"]
 
 # test variable superseding of regular siteconfig file by additional siteconfig file if enabled
 if {![is_config_locked extra_siteconfig]} {
     setenv_var MODULES_SITECONFIG testsuite/example/siteconfig.tcl-2
-    testouterr_cmd_re sh {-V} {} {Modules Release [0-9a-zA-Z\.\+\-]+ \([0-9\-]{10}\)}
+    testouterr_cmd_re sh {-V} {} $vers_reportre
     unsetenv_var MODULES_SITECONFIG
 }
 
@@ -137,7 +137,7 @@ lappend ans " 1\\\) elt1 "
 lappend ans " 2\\\) elt2 "
 lappend ans " 3\\\) elt3 "
 lappend ans {}
-lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+lappend ans $vers_reportre
 testouterr_cmd_re "sh" "-V" "OK" [join $ans "\n"]
 
 # restore environment
@@ -171,7 +171,7 @@ set ans "test:
 20\\) abcdefgh/ijklmnopq_rstuv-w-xyzA.BC-DEF  
 21\\) abcdefgh/ijklmnopqrstuv-w-xyzA.BC       
 
-Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+$vers_reportre"
 testouterr_cmd_re "sh" "-V" "OK" $ans
 # restore environment
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TRICKYLISTDISP
@@ -186,7 +186,7 @@ if { $verbose > 0 } {
 set env(TESTSUITE_ENABLE_SITECONFIG_READMODNOREPORT) 1
 
 set ans [list]
-lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+lappend ans $vers_reportre
 testouterr_cmd_re "sh" "-V" "OK" [join $ans "\n"]
 
 # restore environment
@@ -210,7 +210,7 @@ lappend ans ""
 lappend ans ""
 lappend ans ""
 lappend ans "bar1 bar2"
-lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+lappend ans $vers_reportre
 testouterr_cmd_re "sh" "-V" "OK" [join $ans "\n"]
 
 # restore environment
@@ -257,7 +257,7 @@ setenv_var TESTSUITE_ENABLE_SITECONFIG_GETDIFFBETWEENLIST 1
 
 set ans [list]
 lappend ans "{foo foo2} {bar bar2}"
-lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+lappend ans $vers_reportre
 testouterr_cmd_re sh -V OK [join $ans \n]
 
 # restore environment
@@ -301,7 +301,7 @@ if {[info exists tclextlib_file]} {
     lappend ans "$error_msgs: wrong # args: should be \"getFilesInDirectory dir fetch_hidden fetch_dotversion\""
     lappend ans "$error_msgs: expected boolean value but got \"bar\""
     lappend ans "$error_msgs: expected boolean value but got \"bar\""
-    lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+    lappend ans $vers_reportre
     testouterr_cmd_re sh -V OK [join $ans \n]
 
     unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBBADCALL
@@ -315,7 +315,7 @@ if {[info exists closedirlib_file]} {
     setenv_var LD_PRELOAD $closedirlib_file
     set ans [list]
     lappend ans "$error_msgs: couldn't close directory \"$modpathre\": Success"
-    lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+    lappend ans $vers_reportre
     testouterr_cmd_re sh -V OK [join $ans \n]
 
     unsetenv_var TESTSUITE_ENABLE_SITECONFIG_TCLEXTLIBFAILEDCLOSEDIR
@@ -332,7 +332,7 @@ lappend ans 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0
 lappend ans 1 0 1 1 0 1 1 0 1 1 0 1
 lappend ans 1 0 0 1 0 0 1 0 0 1 0 0
 lappend ans 1 0 1 1 0 1 1 0 1 1 0 1
-lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+lappend ans $vers_reportre
 testouterr_cmd_re sh -V OK [join $ans \n]
 unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_MODEQ
@@ -343,7 +343,7 @@ set ans [list]
 lappend ans -1 0 -1 -1 0 -1 -1 0 0 -1 0 0
 lappend ans 1 0 0 1 0 0 1 0 1 1 0 1
 lappend ans 1 0 0 1 0 0 1 0 1 1 0 1
-lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+lappend ans $vers_reportre
 testouterr_cmd_re sh -V OK [join $ans \n]
 unsetenv_var TESTSUITE_ENABLE_SITECONFIG_REDEFONTHEFLYPROCS
 

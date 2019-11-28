@@ -47,7 +47,7 @@ if {[info exists tclextlib_file]} {
     lappend ans "DEBUG setConf: term_background set to '$install_termbg'"
     lappend ans "(DEBUG initConfColors: Ignore invalid default.*\\n)?DEBUG setConf: colors set to '.*'"
     lappend ans "DEBUG setConf: color set to '0'"
-    lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+    lappend ans $vers_reportre
     testouterr_cmd_re sh {--no-pager -D -V} {} [join $ans \n]
     restore_file_perms $tclextlib_file
 
@@ -68,7 +68,7 @@ if {[info exists tclextlib_file]} {
 # restrict read access to site-specific configuration script
 if {[file readable $siteconfig_file] && [file owned $siteconfig_file]} {
     change_file_perms $siteconfig_file ugo-rx
-    testouterr_cmd_re sh {-V} {} "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+    testouterr_cmd_re sh {-V} {} $vers_reportre
     restore_file_perms $siteconfig_file
 }
 
@@ -77,7 +77,7 @@ if {![is_config_locked extra_siteconfig]} {
     set addsiteconfig_file $env(TESTSUITEDIR)/example/siteconfig.tcl-2
     setenv_var MODULES_SITECONFIG $addsiteconfig_file
     change_file_perms $addsiteconfig_file ugo-rx
-    testouterr_cmd_re sh {-V} {} "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+    testouterr_cmd_re sh {-V} {} $vers_reportre
     restore_file_perms $addsiteconfig_file
     unsetenv_var MODULES_SITECONFIG
     unset addsiteconfig_file
