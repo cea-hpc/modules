@@ -1,0 +1,239 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:		modules.70-maint/%M%
+#   Revision:		%I%
+#   First Edition:	2019/11/28
+#   Last Mod.:		%U%, %G%
+#
+#   Authors:		Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:	Testuite testsequence
+#   Command:
+#   Modulefiles:
+#   Sub-Command:
+#
+#   Comment:	%C{
+#           Test 'ml' sub-command
+#		}C%
+#
+##############################################################################
+
+# ensure avail -t tests have implicit default enabled
+setenv_var MODULES_IMPLICIT_DEFAULT 1
+
+# ensure regular avail search match is set for these tests
+setenv_var MODULES_SEARCH_MATCH starts_with
+
+# ensure avail tests are made using in depth mode
+setenv_var MODULES_AVAIL_INDEPTH 1
+
+# ensure last matching element is returned when unloading modules
+setenv_var MODULES_UNLOAD_MATCH_ORDER returnlast
+
+set mp $modpath.2
+set mpre [regsub -all "\(\[.+?\]\)" $mp {\\\1}]
+
+# setup specific environment
+setenv_path_var MODULEPATH $mp
+
+
+# call sub-cmd if first arg is a known sub-cmd
+testouterr_cmd sh {ml path extdfl} [list [list text $mp/extdfl/1.3.1]] {}
+testouterr_cmd sh {ml avail -t extdfl/1.3.1} OK "$mp:\nextdfl/1.3.1(default)"
+testouterr_cmd sh {ml av -t extdfl/1.3.1} OK "$mp:\nextdfl/1.3.1(default)"
+
+# try to load a module named load: sub-command call has higher priority
+set ans [list]
+lappend ans [list setpath LOADEDMODULES extdfl/1.3.1]
+lappend ans [list setpath _LMFILES_ $mp/extdfl/1.3.1]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+testouterr_cmd sh {ml load extdfl} $ans {}
+testouterr_cmd sh {ml lo extdfl} $ans {}
+
+# default is 'list'
+set tserr $no_loaded
+testouterr_cmd sh {ml} OK $tserr
+
+# trigger usage message
+set tserr "$vers_reportre\nUsage: ml .*See 'module --help' to get available commands and options."
+testouterr_cmd_re sh {ml -h} OK $tserr
+testouterr_cmd_re sh {ml --help} OK $tserr
+
+# basic load test
+testouterr_cmd sh {ml extdfl} $ans {}
+
+# basic tests over a loaded module
+setenv_loaded_module [list extdfl/1.3.1] [list $mp/extdfl/1.3.1]
+testouterr_cmd sh {ml} OK "$cur_loaded\n 1) extdfl/1.3.1(default)  "
+# long and short list-specific option are considered as module name
+testouterr_cmd sh {ml -t} OK {}
+testouterr_cmd sh {ml --terse} OK {}
+testouterr_cmd sh {ml extdfl} OK {}
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd sh {ml -extdfl} $ans {}
+testouterr_cmd sh {ml -extdfl/1.3.1} $ans {}
+unsetenv_loaded_module
+
+# test version report
+testouterr_cmd_re sh {ml -V} OK $vers_reportre
+testouterr_cmd_re sh {ml --version} OK $vers_reportre
+
+# empty args
+set tserr $err_path'""'
+testouterr_cmd sh {ml } ERR $err_emptymodname
+testouterr_cmd sh {ml ""} ERR $tserr
+testouterr_cmd sh {ml "" ""} ERR $tserr\n$tserr
+testouterr_cmd sh {ml "" foo} ERR $tserr
+
+# badly written commands
+testouterr_cmd sh {ml -} ERR "$error_msgs: Invalid option '-'\n$err_typehelp"
+testouterr_cmd sh {ml - foo} ERR "$error_msgs: Invalid option '-'\n$err_typehelp"
+testouterr_cmd sh {ml --} ERR "$error_msgs: Invalid option '--'\n$err_typehelp"
+testouterr_cmd sh {ml --bar} ERR "$error_msgs: Invalid option '--bar'\n$err_typehelp"
+
+# enable advanced version spec for next tests
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+
+# adv version spec
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/2]
+lappend ans [list setpath _LMFILES_ $mp/foo/2]
+testouterr_cmd sh {ml foo@2:3 -bar@1:2} $ans {}
+testouterr_cmd sh {ml foo @2} $ans {}
+testouterr_cmd sh {ml -foo @2} OK {}
+setenv_loaded_module [list foo/2] [list $mp/foo/2]
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd sh {ml -foo @2} $ans {}
+testouterr_cmd sh {ml -foo @1} OK {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/2:foo/1:baz/2]
+lappend ans [list setpath _LMFILES_ $mp/foo/2:$mp/foo/1:$mp/baz/2]
+testouterr_cmd_re sh {ml foo @1 -bar@2 baz -qux @1:3} $ans {}
+setenv_loaded_module [list foo/1 bar/2 qux/1] [list $mp/foo/1 $mp/bar/2 $mp/qux/1]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1:baz/2]
+lappend ans [list setpath _LMFILES_ $mp/foo/1:$mp/baz/2]
+testouterr_cmd_re sh {ml foo @1 -bar@2 baz -qux @1:3} $ans {}
+unsetenv_loaded_module
+
+# badly written adv version spec
+testouterr_cmd sh {ml foo -@1.2} ERR "$err_specmodname'@1.2'"
+testouterr_cmd sh {ml foo@3:2} ERR "$err_rangevers'3:2'"
+testouterr_cmd sh {ml @3} ERR "$err_specmodname'@3'"
+testouterr_cmd sh {ml @3 foo} ERR "$err_specmodname'@3'"
+testouterr_cmd sh {ml foo@2,} ERR "$err_specvers'2,'"
+testouterr_cmd sh {ml foo@2, bar} ERR "$err_specvers'2,'"
+testouterr_cmd sh {ml } ERR $err_emptymodname
+testouterr_cmd sh {ml  bar} ERR $err_emptymodname
+
+# disabled advanced version spec
+setenv_var MODULES_ADVANCED_VERSION_SPEC 0
+testouterr_cmd sh {ml foo@2:3 -bar@3:4} ERR "$err_path'foo@2:3'"
+testouterr_cmd sh {ml foo @1.2} ERR "$err_path'@1.2'"
+
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+
+# ml is not a modulefile command
+testouterr_cmd sh {load mlinmod} ERR [msg_load mlinmod "$moderr_msgs: invalid command name \"ml\"\nIn '$mp/mlinmod'\n$err_contactns"]
+
+# load only command
+set ans [list]
+lappend ans [list setpath LOADEDMODULES bar/2]
+lappend ans [list setpath _LMFILES_ $mp/bar/2]
+testouterr_cmd sh {ml -v bar} $ans [msg_load bar/2]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES bar/2:foo/1]
+lappend ans [list setpath _LMFILES_ $mp/bar/2:$mp/foo/1]
+testouterr_cmd_re sh {ml bar foo/1 -v} $ans [msg_load bar/2]\n[msg_load foo/1]
+
+# unload only command
+testouterr_cmd sh {ml -v -bar} OK {}
+setenv_loaded_module [list foo/1 bar/2] [list $mp/foo/1 $mp/bar/2]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1]
+lappend ans [list setpath _LMFILES_ $mp/foo/1]
+testouterr_cmd sh {ml -v -bar} $ans [msg_unload bar/2]
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd sh {ml -bar -foo/1 -v} $ans [msg_unload bar/2]\n[msg_unload foo/1]
+
+# mixed unload/load command: order matters among load and among unload
+# but unloads are always treated prior loads
+setenv_loaded_module [list foo/1] [list $mp/foo/1]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES bar/2:baz/2]
+lappend ans [list setpath _LMFILES_ $mp/bar/2:$mp/baz/2]
+testouterr_cmd_re sh {ml bar -foo/1 -v baz} $ans [msg_unload foo/1]\n[msg_load bar/2]\n[msg_load baz/2]
+testouterr_cmd_re sh {ml -v -foo/1 bar baz} $ans [msg_unload foo/1]\n[msg_load bar/2]\n[msg_load baz/2]
+testouterr_cmd_re sh {ml -v bar baz -foo/1} $ans [msg_unload foo/1]\n[msg_load bar/2]\n[msg_load baz/2]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES baz/2:bar/2]
+lappend ans [list setpath _LMFILES_ $mp/baz/2:$mp/bar/2]
+testouterr_cmd_re sh {ml -v baz bar -foo/1} $ans [msg_unload foo/1]\n[msg_load baz/2]\n[msg_load bar/2]
+setenv_loaded_module [list foo/1 qux/2] [list $mp/foo/1 $mp/qux/2]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES bar/2:baz/2]
+lappend ans [list setpath _LMFILES_ $mp/bar/2:$mp/baz/2]
+testouterr_cmd_re sh {ml --verbose bar -qux baz -foo/1} $ans [msg_unload qux/2]\n[msg_unload foo/1]\n[msg_load bar/2]\n[msg_load baz/2]
+
+# module not found error handling checks
+setenv_loaded_module [list foo/1] [list $mp/foo/1]
+testouterr_cmd sh {ml -foo/12} OK {}
+set ans [list]
+lappend ans [list unsetpath LOADEDMODULES]
+lappend ans [list unsetpath _LMFILES_]
+testouterr_cmd sh {ml -foo/12 -foo/1} $ans {}
+testouterr_cmd sh {ml -foo/1 -foo/12} $ans {}
+set ans [list]
+lappend ans [list setpath LOADEDMODULES foo/1:bar/2]
+lappend ans [list setpath _LMFILES_ $mp/foo/1:$mp/bar/2]
+testouterr_cmd_re sh {ml -foo/12 bar} $ans {}
+testouterr_cmd sh {ml bar/12} ERR $err_path'bar/12'
+testouterr_cmd sh {ml bar/12 bar/2} ERR $err_path'bar/12'
+testouterr_cmd sh {ml bar/2 bar/12} ERR $err_path'bar/12'
+testouterr_cmd sh {ml -foo/1 bar/12} ERR $err_path'bar/12'
+
+# broken evaluation error handling checks
+setenv_loaded_module [list foo/1 foo/0.1] [list $mp/foo/1 $mp/foo/0.1]
+testouterr_cmd sh {ml -foo/0.1} ERR [msg_unload foo/0.1 $err_evalabort]
+testouterr_cmd sh {ml -foo/0.1 -foo/1} ERR [msg_unload foo/0.1 $err_evalabort]
+testouterr_cmd sh {ml -foo/0.1 bar/1} ERR [msg_unload foo/0.1 $err_evalabort]
+testouterr_cmd sh {ml bar/0.1} ERR [msg_load bar/0.1 $err_evalabort]
+testouterr_cmd sh {ml bar/0.1 bar/1} ERR [msg_load bar/0.1 $err_evalabort]
+testouterr_cmd sh {ml bar/1 bar/0.1} ERR [msg_load bar/0.1 $err_evalabort]
+testouterr_cmd sh {ml -foo/1 bar/0.1} ERR [msg_load bar/0.1 $err_evalabort]
+
+# bad command error handling checks
+setenv_loaded_module [list foo/0.2] [list $mp/foo/0.2]
+testouterr_cmd sh {ml -foo/0.2} ERR [msg_unload foo/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/foo/0.2'\n$err_contactns"]
+testouterr_cmd sh {ml -foo/0.2 -foo/1} ERR [msg_unload foo/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/foo/0.2'\n$err_contactns"]
+testouterr_cmd sh {ml -foo/0.2 bar/1} ERR [msg_unload foo/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/foo/0.2'\n$err_contactns"]
+testouterr_cmd sh {ml bar/0.2} ERR [msg_load bar/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/bar/0.2'\n$err_contactns"]
+testouterr_cmd sh {ml bar/0.2 bar/1} ERR [msg_load bar/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/bar/0.2'\n$err_contactns"]
+testouterr_cmd sh {ml bar/1 bar/0.2} ERR [msg_load bar/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/bar/0.2'\n$err_contactns"]
+testouterr_cmd sh {ml -foo/1 bar/0.2} ERR [msg_load bar/0.2 "$moderr_msgs: invalid command name \"badcmd\"\nIn '$mp/bar/0.2'\n$err_contactns"]
+
+
+#
+#  Cleanup
+#
+
+# restore environment
+unsetenv_loaded_module
+unsetenv_var MODULES_IMPLICIT_DEFAULT
+unsetenv_var MODULES_SEARCH_MATCH
+unsetenv_var MODULES_AVAIL_INDEPTH
+unsetenv_var MODULES_UNLOAD_MATCH_ORDER
+setenv_path_var MODULEPATH $modpath
+
+unset mp
+unset mpre
+unset ans
+unset tserr
