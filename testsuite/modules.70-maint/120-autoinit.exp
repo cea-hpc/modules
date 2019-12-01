@@ -321,8 +321,7 @@ set func_ruby "class ENVModule
 \\s*_mlstatus = true
 \\s*eval `#{_mlre}$install_tclsh $modulecmd_pathre ruby #{args}`
 \\s*return _mlstatus
-\\s*end
-end"
+\\s*end"
 set func_cmake "function\\\(module\\\)
 \\s*cmake_policy\\\(SET CMP0007 NEW\\\)
 \\s*set\\\(_mlre \"\"\\\)
@@ -434,8 +433,7 @@ set func_ruby "class ENVModule
 \\s*_mlstatus = true
 \\s*eval `$install_tclsh $modulecmd_pathre ruby #{args}`
 \\s*return _mlstatus
-\\s*end
-end"
+\\s*end"
 set func_cmake "function\\\(module\\\)
 \\s*cmake_policy\\\(SET CMP0007 NEW\\\)
 \\s*set\\\(_mlstatus TRUE\\\)
@@ -476,6 +474,53 @@ set func_r "module <- function\\\(...\\\){
 \\s*invisible\\\(mlstatus\\\)
 }"
 }
+
+if {$install_ml eq {y} && (!$modrc1_exinstalled || $modspath_exinstalled)} {
+append func_sh "
+\\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
+append func_bash "
+\\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
+append func_ksh "
+\\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
+append func_zsh "
+\\s*ml\\\(\\\) { module ml \"\\\$\\\@\"; };"
+append func_csh "
+\\s*alias ml 'module ml \\\\!\\\*' ;"
+append func_tcsh "
+\\s*alias ml 'module ml \\\\!\\\*' ;"
+append func_fish "
+\\s*function ml
+\\s*module ml \\\$argv
+\\s*end"
+append func_tcl "
+\\s*proc ml {args} {
+\\s*return \\\[eval module ml \\\$args\\\]
+\\s*}"
+append func_perl "
+\\s*sub ml {
+\\s*return module\\\('ml', \\\@_\\\);
+\\s*}"
+append func_python "
+\\s*def ml\\\(\\\*arguments\\\):
+\\s*return module\\\('ml', \\\*arguments\\\)
+"
+append func_ruby "
+\\s*def ENVModule.ml\\\(\\\*args\\\)
+\\s*return ENVModule.module\\\('ml', \\\*args\\\)
+\\s*end"
+append func_cmake "
+\\s*function\\\(ml\\\)
+\\s*module\\\(ml \\\${ARGV}\\\)
+\\s*set\\\(module_result \\\${module_result} PARENT_SCOPE\\\)
+\\s*endfunction\\\(ml\\\)"
+append func_r "
+\\s*ml <- function\\\(...\\\){
+\\s*module\\\('ml', ...\\\)
+\\s*}"
+}
+
+append func_ruby {
+end}
 
 #
 #  test autoinit command for the different shells
@@ -635,6 +680,7 @@ if {(!$insmodspath || $modspath_exinstalled) && (!$insmodrc || $modrc_exinstalle
                     }
                     lappend ans [list set MODULES_CMD $modulecmd_path]
                     lappend ans [list set MODULEPATH_modshare "$install_modulepath:1"]
+                    lappend ans [list set MODULES_ML 0]
                     lappend ans [list set MODULES_SET_SHELL_STARTUP 0]
                     lappend ans [list set MODULES_AUTO_HANDLING 0]
                     lappend ans [list set _LMFILES_ "$install_modulefilesdir/null"]
