@@ -38,12 +38,23 @@ exec(open(initfile).read())
 
 # execute command list
 code = 0
+runml = 0
 for cmd in cmdlist.split(':'):
+   # call ml procedure instead of module
+   if cmd == 'ml':
+      runml = 1
+      ret = 1
    # if command equals to NOARG string, means call with no arg passed
-   if cmd == 'NOARG':
-      ret = module()
+   elif cmd == 'NOARG':
+      if runml == 0:
+         ret = module()
+      else:
+         ret = ml()
    else:
-      ret = module(*cmd.split(','))
+      if runml == 0:
+         ret = module(*cmd.split(','))
+      else:
+         ret = ml(*cmd.split(','))
    if ret == 0:
       code = 1
    elif ret != 1:

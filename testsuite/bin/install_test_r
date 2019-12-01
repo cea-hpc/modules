@@ -41,13 +41,26 @@ source(initfile)
 
 # execute command list
 code <- 0
+runml <- FALSE
 for (cmd in cmdlist) {
+   # call ml procedure instead of module
+   if (cmd == 'ml') {
+      runml <- TRUE
+      ret <- TRUE
    # if command equals to NOARG string, means call with no arg passed
-   if (cmd == 'NOARG') {
-      ret <- do.call(module, list())
+   } else if (cmd == 'NOARG') {
+      if (identical(runml, FALSE)) {
+         ret <- do.call(module, list())
+      } else {
+         ret <- do.call(ml, list())
+      }
    } else {
       # append ',' to take into account eventual empty string arg
-      ret <- do.call(module, as.list(strsplit(paste0(cmd,',',collapse='')[[1]], ',')[[1]]))
+      if (identical(runml, FALSE)) {
+         ret <- do.call(module, as.list(strsplit(paste0(cmd,',',collapse='')[[1]], ',')[[1]]))
+      } else {
+         ret <- do.call(ml, as.list(strsplit(paste0(cmd,',',collapse='')[[1]], ',')[[1]]))
+      }
    }
    if (identical(ret, FALSE)) {
       code <- 1

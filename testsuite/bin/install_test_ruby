@@ -41,17 +41,30 @@ require initfile
 
 # execute command list
 code = 0
+runml = 0
 cmdlist.each do |cmd|
+   # call ml procedure instead of module
+   if cmd == 'ml' then
+      runml = 1
+      ret = true
    # if command equals to NOARG string, means call with no arg passed
-   if cmd == 'NOARG' then
-      ret = ENVModule.module()
-   else
+   elsif cmd == 'NOARG' then
+      if runml == 0 then
+         ret = ENVModule.module()
+      else
+         ret = ENVModule.ml()
+      end
+   elsif
       arglist = cmd.split(/,/, -1)
       # empty arg list, means one empty arg
       if arglist.length == 0 then
          arglist.push('')
       end
-      ret = ENVModule.module(arglist)
+      if runml == 0 then
+         ret = ENVModule.module(arglist)
+      else
+         ret = ENVModule.ml(arglist)
+      end
    end
    if ret == false then
       code = 1

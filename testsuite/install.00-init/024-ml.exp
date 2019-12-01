@@ -1,0 +1,127 @@
+##############################################################################
+#   Modules Revision 3.0
+#   Providing a flexible user environment
+#
+#   File:       modules.00-init/%M%
+#   Revision:       %I%
+#   First Edition:  2019/11/29
+#   Last Mod.:      %U%, %G%
+#
+#   Authors:        Xavier Delaruelle, xavier.delaruelle@cea.fr
+#
+#   Description:    Testuite testsequence
+#   Command:
+#   Sub-Command:
+#
+#   Comment:    %C{
+#           Check basic set of ml commands on all shells
+#       }C%
+#
+##############################################################################
+
+
+if {$install_ml ne {y}} {
+    send_user "\tSkipping ml command tests, as it is disabled\n"
+} else {
+set bad_cmd "$error_msgs: Unable to locate a modulefile for 'foo'"
+
+#
+# The tests
+#
+
+if {$verbose > 0} {
+   send_user "\tChecking basic set of ml commands\n"
+}
+
+foreach shell $shell_list {
+   testall_cmd_re "$shell" "ml --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+   testall_cmd "$shell" "ml foo" "" "$bad_cmd" 1
+   testall_cmd "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml list -t" "" "$cur_loaded\nnull" 0
+   testall_cmd "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "" "$no_loaded" 0
+   testall_cmd "$shell" "ml is-loaded unk" "" "" 1
+   testall_cmd "$shell" "ml use $contrib_modpath\; ml null\; ml is-loaded null" "" "" 0
+   testall_cmd "$shell" "ml info-loaded unk" "" "" 0
+   testall_cmd "$shell" "ml use $contrib_modpath\; ml load null\; ml info-loaded null" "null" "" 0
+}
+
+# ensure tools used in complex shell alias definition are available
+if {[find_bin grep] ne "" && [find_bin tr] ne "" && [find_bin awk] ne ""} {
+   foreach shell $shell_list {
+      if {$shell eq {csh} || $shell eq {tcsh}} {
+         # alias evaluation leads to a syntax error if wa_277 is enabled
+         testall_cmd_re "$shell" "ml $testsuite_modpath/alias/3.0\; testsuite; ts2" [expr {$install_wa277 eq {y} ? {} : "Release\nhttp://an.example.web\\?&param=one"}] ".*" [expr {$install_wa277 eq {y} ? 1 : 0}]
+      } else {
+         testall_cmd_re "$shell" "ml $testsuite_modpath/alias/3.0\; testsuite; ts2" "Release\nhttp://an.example.web\\?&param=one" ".*" 0
+      }
+   }
+} elseif {$verbose > 0} {
+   send_user "\tSkipping shell alias definition tests\n"
+}
+
+foreach shell $othlang_list {
+   testall_cmd_re "$shell" "ml:--version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
+   testall_cmd_re "$shell" "ml:foo" "^\$" "$bad_cmd.*" 1
+   testall_cmd "$shell" "ml:use,$contrib_modpath:purge:null:list,-t" "" "$cur_loaded\nnull" 0
+   testall_cmd "$shell" "ml:use,$contrib_modpath:purge:null:-null:list,-t" "" "$no_loaded" 0
+   testall_cmd_re "$shell" "ml:is-loaded,unk" "" ".*" 1
+   testall_cmd "$shell" "ml:use,$contrib_modpath:load,null:is-loaded,null" "" "" 0
+   testall_cmd_re "$shell" "ml:info-loaded,unk" "" "" 0
+
+   switch -- $shell {
+      {cmake} {
+         set anstxt "-- null"
+      }
+      {r} {
+         set anstxt "\[1\] \"null\""
+      }
+      default {
+         set anstxt "null"
+      }
+   }
+   testall_cmd "$shell" "ml:use,$contrib_modpath:load,null:info-loaded,null" $anstxt "" 0
+}
+
+
+# test unload of previously loaded modulefile
+if { $verbose > 0 } {
+    send_user "\tSetup LOADEDMODULES = 'null'\n"
+    send_user "\tSetup _LMFILES_ = '$contrib_modpath/null'\n"
+}
+set env(LOADEDMODULES) "null"
+set env(_LMFILES_) "$contrib_modpath/null"
+
+foreach shell $shell_list {
+   testall_cmd "$shell" "ml use $contrib_modpath\; ml -null\; ml" "" "$no_loaded" 0
+}
+
+foreach shell $othlang_list {
+   testall_cmd "$shell" "ml:use,$contrib_modpath:unload,null:list" "" "$no_loaded" 0
+}
+
+# ensure advanced_version_spec is efficient on all shells
+set loadunloadout "Loading advvers6/1.3\n  Loading requirement: advvers7/1.0\nUnloading advvers7/1.0\n  Unloading dependent: advvers6/1.3"
+if {![is_config_locked implicit_default]} {
+   foreach shell $shell_list {
+      testall_cmd $shell "ml use $testsuite_modpath.2\; ml config implicit_default 1\; ml config verbosity normal\; ml config advanced_version_spec 1\; ml --auto advvers6@1.3\; ml --auto -advvers7@1.0" {} $loadunloadout 0
+   }
+   foreach shell $othlang_list {
+      testall_cmd $shell "ml:use,$testsuite_modpath.2:config,implicit_default,1:config,verbosity,normal:config,advanced_version_spec,1:--auto,advvers6@1.3:--auto,-advvers7@1.0" {} $loadunloadout 0
+   }
+} elseif {$verbose > 0} {
+   send_user "\tSkipping advanced_version_spec tests as implicit_default config is locked\n"
+}
+
+
+#
+#  Clean up variables used in this test case
+#
+
+unset env(LOADEDMODULES)
+unset env(_LMFILES_)
+
+unset bad_cmd
+unset anstxt
+unset loadunloadout
+}
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

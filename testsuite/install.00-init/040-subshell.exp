@@ -23,19 +23,27 @@
 
 set bad_cmd "$error_msgs: Invalid command 'foo'"
 set zsh_nf "command not found: module"
+set zsh_nf_ml "command not found: ml"
 set tcsh_nf "module: Command not found."
+set tcsh_nf_ml "ml: Command not found."
 if {$tcl_platform(os) eq "SunOS"} {
    set csh_nf "module: Command not found"
+   set csh_nf_ml "ml: Command not found"
 } else {
    set csh_nf $tcsh_nf
+   set csh_nf_ml $tcsh_nf_ml
 }
 set fish_nf "fish: Unknown command '?module"
+set fish_nf_ml "fish: Unknown command '?ml"
 if {$tcl_platform(os) eq "SunOS"} {
    set sh_nf "module: not found \\\[No such file or directory\\\]"
+   set sh_nf_ml "ml: not found \\\[No such file or directory\\\]"
 } elseif {$tcl_platform(os) eq "FreeBSD"} {
    set sh_nf "eval: module: not found"
+   set sh_nf_ml "eval: ml: not found"
 } else {
    set sh_nf "module: not found"
+   set sh_nf_ml "ml: not found"
 }
 
 #
@@ -55,24 +63,36 @@ foreach shell $shell_list {
          testall_cmd_re "$shell" "module foo" "^\$" "$zsh_nf\$" 127
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\$" 252
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\$" 123
+         if {$install_ml eq {y}} {
+            testall_cmd_re "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "^\$" ".*$zsh_nf_ml\n.*$zsh_nf_ml\n.*$zsh_nf_ml\n.*$zsh_nf_ml\n.*$zsh_nf_ml\$" 123
+         }
       }
       csh {
          testall_cmd_re "$shell" "module --version" "^\$" "$csh_nf\$" 1
          testall_cmd_re "$shell" "module foo" "^\$" "$csh_nf\$" 1
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$csh_nf\n.*$csh_nf\n.*$csh_nf\n.*$csh_nf\$" 4
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$csh_nf\n.*$csh_nf\n.*$csh_nf\n.*$csh_nf\n.*$csh_nf\$" 5
+         if {$install_ml eq {y}} {
+            testall_cmd_re "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "^\$" ".*$csh_nf_ml\n.*$csh_nf_ml\n.*$csh_nf_ml\n.*$csh_nf_ml\n.*$csh_nf_ml\$" 5
+         }
       }
       tcsh {
          testall_cmd_re "$shell" "module --version" "^\$" "$tcsh_nf\$" 1
          testall_cmd_re "$shell" "module foo" "^\$" "$tcsh_nf\$" 1
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\$" 4
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\$" 5
+         if {$install_ml eq {y}} {
+            testall_cmd_re "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "^\$" ".*$tcsh_nf_ml\n.*$tcsh_nf_ml\n.*$tcsh_nf_ml\n.*$tcsh_nf_ml\n.*$tcsh_nf_ml\$" 5
+         }
       }
       fish {
          testall_cmd_re "$shell" "module --version" "^\$" "$fish_nf.*\$" 127
          testall_cmd_re "$shell" "module foo" "^\$" "$fish_nf.*\$" 127
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*\$" 252
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*\$" 123
+         if {$install_ml eq {y}} {
+            testall_cmd_re "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "^\$" ".*$fish_nf_ml.*$fish_nf_ml.*$fish_nf_ml.*$fish_nf_ml.*$fish_nf_ml.*\$" 123
+         }
       }
       default {
          if {$shell eq "sh" && $sh_strict} {
@@ -80,11 +100,17 @@ foreach shell $shell_list {
             testall_cmd_re "$shell" "module foo" "^\$" "$sh_nf\$" 127
             testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$sh_nf\n.*$sh_nf\n.*$sh_nf\n.*$sh_nf\$" 252
             testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$sh_nf\n.*$sh_nf\n.*$sh_nf\n.*$sh_nf\n.*$sh_nf\$" 123
+            if {$install_ml eq {y}} {
+               testall_cmd_re "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "^\$" ".*$sh_nf_ml\n.*$sh_nf_ml\n.*$sh_nf_ml\n.*$sh_nf_ml\n.*$sh_nf_ml\$" 123
+            }
          } else {
             testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
             testall_cmd "$shell" "module foo" "" "$bad_cmd\n$type_help" 1
             testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "" "$cur_loaded\nnull" 0
             testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "" "$no_loaded" 0
+            if {$install_ml eq {y}} {
+               testall_cmd "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "" "$no_loaded" 0
+            }
          }
       }
    }
@@ -103,24 +129,36 @@ foreach shell $shell_list {
          testall_cmd_re "$shell" "module foo" "^\$" "$zsh_nf\$" 127
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\$" 252
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\n.*$zsh_nf\$" 123
+         if {$install_ml eq {y}} {
+            testall_cmd_re "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "^\$" ".*$zsh_nf_ml\n.*$zsh_nf_ml\n.*$zsh_nf_ml\n.*$zsh_nf_ml\n.*$zsh_nf_ml\$" 123
+         }
       }
       csh {
          testall_cmd_re "$shell" "module --version" "^\$" "$csh_nf\$" 1
          testall_cmd_re "$shell" "module foo" "^\$" "$csh_nf\$" 1
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$csh_nf\n.*$csh_nf\n.*$csh_nf\n.*$csh_nf\$" 4
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$csh_nf\n.*$csh_nf\n.*$csh_nf\n.*$csh_nf\n.*$csh_nf\$" 5
+         if {$install_ml eq {y}} {
+            testall_cmd_re "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "^\$" ".*$csh_nf_ml\n.*$csh_nf_ml\n.*$csh_nf_ml\n.*$csh_nf_ml\n.*$csh_nf_ml\$" 5
+         }
       }
       tcsh {
          testall_cmd_re "$shell" "module --version" "^\$" "$tcsh_nf\$" 1
          testall_cmd_re "$shell" "module foo" "^\$" "$tcsh_nf\$" 1
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\$" 4
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\n.*$tcsh_nf\$" 5
+         if {$install_ml eq {y}} {
+            testall_cmd_re "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "^\$" ".*$tcsh_nf_ml\n.*$tcsh_nf_ml\n.*$tcsh_nf_ml\n.*$tcsh_nf_ml\n.*$tcsh_nf_ml\$" 5
+         }
       }
       fish {
          testall_cmd_re "$shell" "module --version" "^\$" "$fish_nf.*\$" 127
          testall_cmd_re "$shell" "module foo" "^\$" "$fish_nf.*\$" 127
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*\$" 252
          testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*$fish_nf.*\$" 123
+         if {$install_ml eq {y}} {
+            testall_cmd_re "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "^\$" ".*$fish_nf_ml.*$fish_nf_ml.*$fish_nf_ml.*$fish_nf_ml.*$fish_nf_ml.*\$" 123
+         }
       }
       default {
          if {$shell eq "sh" && $sh_strict} {
@@ -128,11 +166,17 @@ foreach shell $shell_list {
             testall_cmd_re "$shell" "module foo" "^\$" "$sh_nf\$" 127
             testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "^\$" ".*$sh_nf\n.*$sh_nf\n.*$sh_nf\n.*$sh_nf\$" 252
             testall_cmd_re "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "^\$" ".*$sh_nf\n.*$sh_nf\n.*$sh_nf\n.*$sh_nf\n.*$sh_nf\$" 123
+            if {$install_ml eq {y}} {
+               testall_cmd_re "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "^\$" ".*$sh_nf_ml\n.*$sh_nf_ml\n.*$sh_nf_ml\n.*$sh_nf_ml\n.*$sh_nf_ml\$" 123
+            }
          } else {
             testall_cmd_re "$shell" "module --version" "^\$" "^Modules Release \\S+ (\\S+)\$" 0
             testall_cmd "$shell" "module foo" "" "$bad_cmd\n$type_help" 1
             testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module list -t" "" "$cur_loaded\nnull" 0
             testall_cmd "$shell" "module use $contrib_modpath\; module purge\; module load null\; module unload null\; module list -t" "" "$no_loaded" 0
+            if {$install_ml eq {y}} {
+               testall_cmd "$shell" "ml use $contrib_modpath\; ml purge\; ml null\; ml -null\; ml" "" "$no_loaded" 0
+            }
          }
       }
    }
@@ -149,6 +193,11 @@ unset csh_nf
 unset tcsh_nf
 unset fish_nf
 unset sh_nf
+unset zsh_nf_ml
+unset csh_nf_ml
+unset tcsh_nf_ml
+unset fish_nf_ml
+unset sh_nf_ml
 unset shell_level
 
 # vim:set tabstop=3 shiftwidth=3 expandtab autoindent:

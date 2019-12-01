@@ -44,18 +44,31 @@ require $initfile;
 
 # execute command list
 my $code = 0;
+my $runml = 0;
 foreach my $cmd (@cmdlist) {
    my $ret;
+   # call ml procedure instead of module
+   if ($cmd eq 'ml') {
+      $runml = 1;
+      $ret = 1;
    # if command equals to NOARG string, means call with no arg passed
-   if ($cmd eq 'NOARG') {
-      $ret = &module();
+   } elsif ($cmd eq 'NOARG') {
+      if ($runml == 0) {
+         $ret = &module();
+      } else {
+         $ret = &ml();
+      }
    } else {
       my @arglist = split(/,/, $cmd, -1);
       # empty arg list, means one empty arg
       if (@arglist == 0) {
          push @arglist, "";
       }
-      $ret = &module(@arglist);
+      if ($runml == 0) {
+         $ret = &module(@arglist);
+      } else {
+         $ret = &ml(@arglist);
+      }
    }
    if (!($ret & ~$ret) && length($ret) > 0 && $ret == 0) {
       $code = 1;
