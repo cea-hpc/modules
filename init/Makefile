@@ -220,6 +220,7 @@ install: all
 	cp fish_completion $(DESTDIR)$(initdir)/
 	cp -r zsh-functions $(DESTDIR)$(initdir)/
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/module
+	cp ksh $(DESTDIR)$(initdir)/ksh-functions/ml
 ifeq ($(compatversion),y)
 	cp ksh $(DESTDIR)$(initdir)/ksh-functions/switchml
 else
@@ -241,6 +242,7 @@ endif
 uninstall:
 	rm -f $(addprefix $(DESTDIR)$(initdir)/,$(ALL_SHELLS) fish_completion)
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/module
+	rm -f $(DESTDIR)$(initdir)/ksh-functions/ml
 ifeq ($(compatversion),y)
 	rm -f $(DESTDIR)$(initdir)/ksh-functions/switchml
 endif
