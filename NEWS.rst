@@ -21,6 +21,16 @@ Modules 4.5.0 (2020-XX-XX)
 * Doc: alphabetically sort module sub-commands, command-line switches,
   environment variables and modulefile Tcl commands in :ref:`module(1)` and
   :ref:`modulefile(4)` documents.
+* Introduce the ``ml`` command, a handy frontend to the ``module`` command.
+  ``ml`` reduces the number of characters to type to trigger ``module``. With
+  no argument ``ml`` is equivalent to ``module list``, ``ml mod`` corresponds
+  to ``module load mod`` and ``ml -mod`` means ``module unload mod``. Multiple
+  modules to either load or unload can be combined on a single command. ``ml``
+  accepts all command-line switches and sub-commands accepted by ``module``
+  command. ``ml`` command is defined by default. Its definition can be
+  controlled at ``./configure`` time with ``--enable-ml`` option or later on
+  with ``ml`` configuration option (which defines ``MODULES_ML`` environment
+  variable when set).
 
 
 Modules 4.4.1 (2020-01-03)

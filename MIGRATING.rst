@@ -8,6 +8,60 @@ Modules. It provides an overview of the new features and changed behaviors
 that will be encountered when upgrading.
 
 
+Migrating from v4.4 to v4.5
+===========================
+
+This new version is backward-compatible with v4.4 and primarily fixes bugs and
+adds new features.
+
+New features
+------------
+
+Version 4.5 introduces new functionalities that are described in this section.
+
+ml command
+^^^^^^^^^^
+
+The ``ml`` command is added to Modules. ``ml`` is a frontend to the ``module``
+command that reduces the number of characters to type to trigger module
+actions.
+
+With no argument provided ``ml`` is equivalent to ``module list``, ``ml foo``
+corresponds to ``module load foo`` and ``ml -foo`` means ``module unload
+foo``::
+
+    $ ml foo
+    $ ml
+    Currently Loaded Modulefiles:
+     1) foo/2
+    $ ml -foo
+    $ ml
+    No Modulefiles Currently Loaded.
+
+Multiple modules to either load or unload can be combined on a single command.
+The unloads are first processed then the loads.
+
+``ml`` accepts all command-line switches and sub-commands accepted by
+``module`` command::
+
+    $ ml avail -t foo
+    foo/1
+    foo/2
+
+This handy interface has been originally developed by the `Lmod`_ project.
+Having this command line interface also supported on Modules helps to provide
+a similar user experience whatever the module implementation used.
+
+.. _Lmod: https://github.com/TACC/Lmod
+
+
+Further reading
+---------------
+
+To get a complete list of the changes between Modules v4.3 and v4.4,
+please read the :ref:`NEWS` document.
+
+
 Migrating from v4.3 to v4.4
 ===========================
 
