@@ -7765,6 +7765,24 @@ proc formatListEltToLongDisplay {elt eltsgr eltsuffix tag_list tagsgr mtime\
       $nbws1]$tagssgr[string repeat { } $nbws2]$mtime]
 }
 
+proc formatArrayValToJson {vallist} {
+   return [expr {[llength $vallist] > 0 ? "\[ \"[join $vallist {", "}]\" \]"\
+      : {[]}}]
+}
+
+# format an element with its tags for a json display in a list
+proc formatListEltToJsonDisplay {elt args} {
+   set disp "\"$elt\": \{ \"name\": \"$elt\""
+   foreach {key vtype val} $args {
+      append disp ", \"$key\": "
+      append disp [expr {$vtype eq {a} ? [formatArrayValToJson $val] :\
+         "\"$val\""}]
+   }
+   append disp "\}"
+
+   return $disp
+}
+
 # Prepare a map list to translate later on a substring in its highlighted
 # counterpart. Translate substring into all module it specifies in case of an
 # advanced version specification. Each string obtained is right trimmed from
@@ -7815,6 +7833,9 @@ proc listModules {dir mod show_mtime filter search} {
    # query in order to get its content structure with details on default and
    # latest elements which are required information for the result to display.
    array set mod_list [getModules $dir $mod $show_mtime $search 0 $filtering]
+
+   # output is JSON format
+   set json [isReportFormat json]
 
    # prepare results for display
    set alias_colored [expr {[sgr al {}] ne {}}]
@@ -7879,7 +7900,10 @@ proc listModules {dir mod show_mtime filter search} {
          # along to their relative modulefile not independently
          switch -- $elt_type {
             directory {
-               if {$show_mtime} {
+               if {$json} {
+                  set dispsgr [formatListEltToJsonDisplay $elt type s\
+                     directory symbols a $tag_list]
+               } elseif {$show_mtime} {
                   # append / char after name to clearly indicate this is a dir
                   lassign [formatListEltToLongDisplay $elt di / $tag_list sy\
                      {} $default_colored $matchmap] disp dispsgr
@@ -7890,7 +7914,11 @@ proc listModules {dir mod show_mtime filter search} {
                }
             }
             modulefile - virtual {
-               if {$show_mtime} {
+               if {$json} {
+                  set dispsgr [formatListEltToJsonDisplay $elt type s\
+                     modulefile symbols a $tag_list pathname s [lindex\
+                     $mod_list($elt) 2]]
+               } elseif {$show_mtime} {
                   # add to display file modification time in addition
                   # to potential tags
                   lassign [formatListEltToLongDisplay $elt {} {} $tag_list sy\
@@ -7903,7 +7931,10 @@ proc listModules {dir mod show_mtime filter search} {
                }
             }
             alias {
-               if {$show_mtime} {
+               if {$json} {
+                  set dispsgr [formatListEltToJsonDisplay $elt type s alias\
+                     symbols a $tag_list target s [lindex $mod_list($elt) 1]]
+               } elseif {$show_mtime} {
                   lassign [formatListEltToLongDisplay $elt al " -> [lindex\
                      $mod_list($elt) 1]" $tag_list sy {} $default_colored\
                      $matchmap] disp dispsgr
@@ -7918,22 +7949,33 @@ proc listModules {dir mod show_mtime filter search} {
             }
          }
          if {$dispsgr ne {}} {
-            lappend clean_list $disp
-            set sgrmap($disp) $dispsgr
+            if {$json} {
+               lappend clean_list $dispsgr
+            } else {
+               lappend clean_list $disp
+               set sgrmap($disp) $dispsgr
+            }
          }
       }
    }
 
-   set display_list {}
    set len_list {}
    set max_len 0
-   # always dictionary-sort results
-   foreach disp [lsort -dictionary $clean_list] {
-      # compute display element length list on sorted result
-      lappend display_list $sgrmap($disp)
-      lappend len_list [set len [string length $disp]]
-      if {$len > $max_len} {
-         set max_len $len
+   if {$json} {
+      upvar 0 clean_list display_list
+      if {![info exists display_list]} {
+         set display_list {}
+      }
+   } else {
+      set display_list {}
+      # always dictionary-sort results
+      foreach disp [lsort -dictionary $clean_list] {
+         # compute display element length list on sorted result
+         lappend display_list $sgrmap($disp)
+         lappend len_list [set len [string length $disp]]
+         if {$len > $max_len} {
+            set max_len $len
+         }
       }
    }
 
@@ -7998,18 +8040,24 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
    if {$elt_cnt == 0} {
       return
    }
+   # output is JSON format
+   set json [isReportFormat json]
 
    # display header if any provided
    if {$header ne {noheader}} {
-      if {$hstyle eq {sepline}} {
+      if {$json} {
+         report "\"$header\": \{"
+      } elseif {$hstyle eq {sepline}} {
          displaySeparatorLine $header $sgrkey
       } else {
          report [sgr $sgrkey $header]:
       }
    }
 
+   if {$json} {
+      set displist [join $display_list ,\n]
    # display one element per line
-   if {$one_per_line} {
+   } elseif {$one_per_line} {
       if {$display_idx} {
          set idx 1
          foreach elt $display_list {
@@ -8134,6 +8182,9 @@ proc displayElementList {header sgrkey hstyle one_per_line display_idx\
          }
          append displist \n
       }
+   }
+   if {$json && $header ne {noheader}} {
+      append displist "\n\}"
    }
    report $displist 1
    reportSeparateNextContent
@@ -10654,7 +10705,7 @@ Loading / Unloading commands:
 
 Listing / Searching commands:
   list            [-t|-l]           List loaded modules
-  avail   [-d|-L] [-t|-l] [-S|-C] [--indepth|--no-indepth] [mod ...]
+  avail   [-d|-L] [-t|-l|-j] [-S|-C] [--indepth|--no-indepth] [mod ...]
                                     List all or matching available modules
   aliases                           List all module aliases
   whatis          [modulefile ...]  Print whatis information of modulefile(s)
