@@ -9468,18 +9468,24 @@ proc cmdModuleSavelist {show_oneperline show_mtime} {
       set targetdesc {}
    }
 
+   set json [isReportFormat json]
+
    reportDebug "list collections for target \"$colltarget\""
 
    set coll_list [findCollections]
 
    if { [llength $coll_list] == 0} {
-      report "No named collection$targetdesc."
+      if {!$json} {
+         report "No named collection$targetdesc."
+      }
    } else {
       set list {}
-      if {$show_mtime} {
-         displayTableHeader hi Collection 59 {Last mod.} 19
+      if {!$json} {
+         if {$show_mtime} {
+            displayTableHeader hi Collection 59 {Last mod.} 19
+         }
+         report "Named collection list$targetdesc:"
       }
-      report "Named collection list$targetdesc:"
       set display_list {}
       set len_list {}
       set max_len 0
@@ -9494,10 +9500,12 @@ proc cmdModuleSavelist {show_oneperline show_mtime} {
       foreach coll [lsort -dictionary $coll_list] {
          # remove target suffix from names to display
          regsub $suffix$ [file tail $coll] {} mod
-
+         if {$json} {
+            lappend display_list [formatListEltToJsonDisplay $mod target s\
+               $colltarget pathname s $coll]
          # no need to test mod consistency as findCollections does not return
          # collection whose name starts with "."
-         if {$show_mtime} {
+         } elseif {$show_mtime} {
             set filetime [clock format [getFileMtime $coll]\
                -format {%Y/%m/%d %H:%M:%S}]
             lappend display_list [format %-60s%19s $mod $filetime]
@@ -10727,7 +10735,7 @@ Collection of modules handling commands:
   restore         [collection|file] Restore module list from collection or file
   saverm          [collection]      Remove saved collection
   saveshow        [collection|file] Display information about collection
-  savelist        [-t|-l]           List all saved collections
+  savelist        [-t|-l|-j]        List all saved collections
   is-saved        [collection ...]  Test if any of the collection(s) exists
 
 Shell's initialization files handling commands:
