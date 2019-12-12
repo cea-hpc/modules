@@ -8840,9 +8840,12 @@ proc reloadModuleListLoadPhase {lmname isuaskedlist {force 0} {errmsgtpl {}}\
 #
 proc cmdModuleList {show_oneperline show_mtime} {
    set loadedmodlist [getLoadedModuleList]
+   set json [isReportFormat json]
 
    if {[llength $loadedmodlist] == 0} {
-      report {No Modulefiles Currently Loaded.}
+      if {!$json} {
+         report {No Modulefiles Currently Loaded.}
+      }
    } else {
       set display_list {}
       set default_colored [expr {[sgr de {}] ne {}}]
@@ -8874,7 +8877,10 @@ proc cmdModuleList {show_oneperline show_mtime} {
                }
             }
 
-            if {$show_mtime} {
+            if {$json} {
+               set dispsgr [formatListEltToJsonDisplay $mod type s modulefile\
+                  symbols a $tag_list pathname s $modfile]
+            } elseif {$show_mtime} {
                if {[info exists mtime]} {
                   set clock_mtime [clock format $mtime -format\
                      {%Y/%m/%d %H:%M:%S}]
@@ -8898,10 +8904,12 @@ proc cmdModuleList {show_oneperline show_mtime} {
          }
       }
 
-      if {$show_mtime} {
-         displayTableHeader hi Package 39 Versions 19 {Last mod.} 19
+      if {!$json} {
+         if {$show_mtime} {
+            displayTableHeader hi Package 39 Versions 19 {Last mod.} 19
+         }
+         report {Currently Loaded Modulefiles:}
       }
-      report {Currently Loaded Modulefiles:}
       if {$show_mtime || $show_oneperline} {
          set display_idx 0
          set one_per_line 1
@@ -10704,7 +10712,7 @@ Loading / Unloading commands:
   switch | swap   [mod1] mod2       Unload mod1 and load mod2
 
 Listing / Searching commands:
-  list            [-t|-l]           List loaded modules
+  list            [-t|-l|-j]        List loaded modules
   avail   [-d|-L] [-t|-l|-j] [-S|-C] [--indepth|--no-indepth] [mod ...]
                                     List all or matching available modules
   aliases                           List all module aliases
