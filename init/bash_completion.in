@@ -116,13 +116,15 @@ _module() {
     opts="-D -h -s -v -V --debug --help --silent --verbose --version\
         --paginate --no-pager --color --color="
     load_opts="--auto --no-auto --force -f -i --icase"
-    list_opts="-l -t --long --terse"
+    list_opts="-j -l -t --json --long --terse"
     clear_opts="--force -f"
     path_opts="-d --delim --duplicates"
     rm_path_opts="-d --delim --index"
-    avail_opts="-C -d -i -L -l -S -t --contains --default --icase --latest\
-        --long --starts-with --terse --indepth --no-indepth"
+    avail_opts="-C -d -j -i -L -l -S -t --contains --default --icase --json\
+        --latest --long --starts-with --terse --indepth --no-indepth"
     mfile_opts="-i --icase"
+    search_opts="-j --json"
+    whatis_opts="-i -j --icase --json"
     config_opts="--dump-state --reset advanced_version_spec auto_handling\
         avail_indepth collection_pin_version collection_target color colors\
         contact extended_default extra_siteconfig home icase implicit_default\
@@ -141,8 +143,12 @@ _module() {
                     COMPREPLY=( $(compgen -W "$load_opts ${LOADEDMODULES//:/ }" -- "$cur") );;
     unuse|is-used)  COMPREPLY=( $(IFS=: compgen -W "${MODULEPATH}" -- "$cur") );;
     use|-a|--append)   ;;               # let readline handle the completion
-    display|help|show|test|whatis|path|paths|is-loaded|is-avail|info-loaded)
+    display|help|show|test|path|paths|is-loaded|is-avail|info-loaded)
                     _module_comgen_words_and_files "$mfile_opts $(_module_avail $cur)" "$cur";;
+    whatis)
+                    _module_comgen_words_and_files "$whatis_opts $(_module_avail $cur)" "$cur";;
+    apropos|keyword|search)
+                    COMPREPLY=( $(compgen -W "$search_opts" -- "$cur") );;
     config|--reset) COMPREPLY=( $(compgen -W "$config_opts" -- "$cur") );;
     -h|--help|-V|--version|aliases|apropos|keyword|purge|refresh|reload|search|source)
                     ;;
