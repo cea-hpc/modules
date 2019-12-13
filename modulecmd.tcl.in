@@ -9018,6 +9018,8 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
    # to mix with valid search results
    inhibitErrorReport
 
+   set json [isReportFormat json]
+
    defineModEqProc [isIcase] [getConf extended_default]
 
    lappend searchmod rc_defs_included
@@ -9152,11 +9154,16 @@ proc cmdModuleSearch {{mod {}} {search {}}} {
 
             # treat whatis as a multi-line text
             if {$search eq {} || [regexp -nocase $search $::g_whatis]} {
-               set eltsgr [string map $matchmodmap $elt]
-               foreach line $::g_whatis {
-                  set linesgr [string map $matchsearchmap $line]
-                  lappend display_list "[string repeat { } [expr {20 -\
-                     [string length $elt]}]]$eltsgr: $linesgr"
+               if {$json} {
+                  lappend display_list [formatListEltToJsonDisplay $elt\
+                     whatis a $::g_whatis]
+               } else {
+                  set eltsgr [string map $matchmodmap $elt]
+                  foreach line $::g_whatis {
+                     set linesgr [string map $matchsearchmap $line]
+                     lappend display_list "[string repeat { } [expr {20 -\
+                        [string length $elt]}]]$eltsgr: $linesgr"
+                  }
                }
             }
          }
@@ -10724,8 +10731,9 @@ Listing / Searching commands:
   avail   [-d|-L] [-t|-l|-j] [-S|-C] [--indepth|--no-indepth] [mod ...]
                                     List all or matching available modules
   aliases                           List all module aliases
-  whatis          [modulefile ...]  Print whatis information of modulefile(s)
-  apropos | keyword | search  str   Search all name and whatis containing str
+  whatis  [-j]    [modulefile ...]  Print whatis information of modulefile(s)
+  apropos | keyword | search [-j] str
+                                    Search all name and whatis containing str
   is-loaded       [modulefile ...]  Test if any of the modulefile(s) are loaded
   is-avail        modulefile [...]  Is any of the modulefile(s) available
   info-loaded     modulefile        Get full name of matching loaded module(s)
