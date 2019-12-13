@@ -242,6 +242,15 @@ switches are accepted:
 
     .. versionadded:: 4.3
 
+.. option:: --json, -j
+
+ Display :subcmd:`avail`, :subcmd:`list`, :subcmd:`savelist`, :subcmd:`whatis`
+ and :subcmd:`search` output in JSON format.
+
+ .. only:: html
+
+    .. versionadded:: 4.5
+
 .. option:: --latest, -L
 
  On :subcmd:`avail` sub-command, display only the highest numerically sorted
@@ -368,11 +377,11 @@ Module Sub-Commands
 
     .. versionadded:: 4.1
 
-.. subcmd:: apropos string
+.. subcmd:: apropos [-j] string
 
  See :subcmd:`search`.
 
-.. subcmd:: avail [-d|-L] [-t|-l] [-S|-C] [--indepth|--no-indepth] [path...]
+.. subcmd:: avail [-d|-L] [-t|-l|-j] [-S|-C] [--indepth|--no-indepth] [path...]
 
  List all available *modulefiles* in the current :envvar:`MODULEPATH`. All
  directories in the :envvar:`MODULEPATH` are recursively searched for files
@@ -644,11 +653,11 @@ Module Sub-Commands
 
     .. versionadded:: 4.1
 
-.. subcmd:: keyword string
+.. subcmd:: keyword [-j] string
 
  See :subcmd:`search`.
 
-.. subcmd:: list [-t|-l]
+.. subcmd:: list [-t|-l|-j]
 
  List loaded modules.
 
@@ -783,7 +792,7 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
-.. subcmd:: savelist [-t|-l]
+.. subcmd:: savelist [-t|-l|-j]
 
  List collections that are currently saved under the user's collection
  directory. If :envvar:`MODULES_COLLECTION_TARGET` is set, only collections
@@ -818,7 +827,7 @@ Module Sub-Commands
 
     .. versionadded:: 4.0
 
-.. subcmd:: search string
+.. subcmd:: search [-j] string
 
  Seeks through the :mfcmd:`module-whatis` informations of all *modulefiles*
  for the specified *string*. All *module-whatis* informations matching the
@@ -904,7 +913,7 @@ Module Sub-Commands
  :envvar:`MODULEPATH_modshare<\<VAR\>_modshare>` is also set to increase the
  number of times *directory* has been added to :envvar:`MODULEPATH`.
 
-.. subcmd:: whatis [modulefile...]
+.. subcmd:: whatis [-j] [modulefile...]
 
  Display the information set up by the :mfcmd:`module-whatis` commands inside
  the specified *modulefiles*. These specified *modulefiles* may be
