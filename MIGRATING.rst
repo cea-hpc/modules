@@ -54,6 +54,45 @@ a similar user experience whatever the module implementation used.
 
 .. _Lmod: https://github.com/TACC/Lmod
 
+JSON format output
+^^^^^^^^^^^^^^^^^^
+
+The ``-j`` and ``--json`` command line switches are added for the ``avail``,
+``list``, ``savelist``, ``whatis`` and ``search`` module sub-commands. When
+set, the output result of these sub-commands is rendered in `JSON`_ format::
+
+    $ module avail --json bar | python -mjson.tool
+    {
+        "/path/to/modulefiles": {
+            "bar/2.3": {
+                "name": "bar/2.3",
+                "pathname": "/path/to/modulefiles/bar/2.3",
+                "symbols": [
+                    "default"
+                ],
+                "type": "modulefile"
+            },
+            "bar/3.4": {
+                "name": "bar/3.4",
+                "pathname": "/path/to/modulefiles/bar/3.4",
+                "symbols": [],
+                "type": "modulefile"
+            }
+        }
+    }
+    $ ml whatis -j foo/1.2.3 | python -mjson.tool
+    {
+        "/path/to/modulefiles": {
+            "foo/1.2.3": {
+                "name": "foo/1.2.3",
+                "whatis": [
+                    "The foo/1.2.3 modulefile"
+                ]
+            }
+        }
+    }
+
+.. _JSON: https://tools.ietf.org/html/rfc8259
 
 Further reading
 ---------------

@@ -35,6 +35,11 @@ Modules 4.5.0 (2020-XX-XX)
   form fully match sub-command, not only its minimal abbreviated form. As an
   example, ``lod`` or ``loda`` do not match anymore the ``load``
   sub-command, ``lo`` or ``loa`` still do.
+* Add the ``-j``/``--json`` command line switches to the ``avail``, ``list``,
+  ``savelist``, ``whatis`` and ``search`` module sub-commands to render their
+  output in `JSON`_ format. (fix issue #303)
+
+.. _JSON: https://tools.ietf.org/html/rfc8259
 
 
 Modules 4.4.1 (2020-01-03)
