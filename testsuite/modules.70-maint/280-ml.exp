@@ -67,15 +67,24 @@ testouterr_cmd sh {ml extdfl} $ans {}
 # basic tests over a loaded module
 setenv_loaded_module [list extdfl/1.3.1] [list $mp/extdfl/1.3.1]
 testouterr_cmd sh {ml} OK "$cur_loaded\n 1) extdfl/1.3.1(default)  "
-# long and short list-specific option are considered as module name
-testouterr_cmd sh {ml -t} OK {}
-testouterr_cmd sh {ml --terse} OK {}
 testouterr_cmd sh {ml extdfl} OK {}
 set ans [list]
 lappend ans [list unsetpath LOADEDMODULES]
 lappend ans [list unsetpath _LMFILES_]
 testouterr_cmd sh {ml -extdfl} $ans {}
 testouterr_cmd sh {ml -extdfl/1.3.1} $ans {}
+
+# command line switches prevail over module to unload
+testouterr_cmd sh {ml -t} OK "$cur_loaded\nextdfl/1.3.1"
+testouterr_cmd sh {ml -t -f} OK "$cur_loaded\nextdfl/1.3.1"
+testouterr_cmd sh {ml --terse} OK "$cur_loaded\nextdfl/1.3.1"
+setenv_loaded_module [list t f] [list $mp/t $mp/f]
+set ans [list]
+lappend ans [list setpath LOADEDMODULES t:f:extdfl/1.3.1]
+lappend ans [list setpath _LMFILES_ $mp/t:$mp/f:$mp/extdfl/1.3.1]
+lappend ans [list setpath MODULES_LMALTNAME extdfl/1.3.1&extdfl/default&extdfl]
+testouterr_cmd_re sh {ml extdfl -t} $ans {}
+testouterr_cmd_re sh {ml -f extdfl -t} $ans {}
 unsetenv_loaded_module
 
 # test version report

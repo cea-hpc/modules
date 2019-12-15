@@ -2362,26 +2362,37 @@ proc ml {args} {
       error {Command 'ml' not supported}
    }
 
+   # filter out all known options from argument list to guess command name
+   # without them in the way
+   lassign [eval parseModuleCommandArgs ml $args] show_oneperline\
+      show_mtime show_filter search_filter search_match dump_state fargs
+
    # determine if first argument is a known module sub-command
-   lassign [parseModuleCommandName [lindex $args 0] list] command cmdvalid\
+   lassign [parseModuleCommandName [lindex $fargs 0] list] command cmdvalid\
       cmdempty
 
-   # consider empty string supplied as first argument as module name
-   if {$cmdempty && [llength $args] > 0} {
-      set cmdvalid 0
+   if {$cmdempty} {
+      # consider empty string supplied as first argument as module name
+      if {[llength $fargs] > 0} {
+         set cmdvalid 0
+      }
+      set margs $args
+   } else {
+      # first argument was command name
+      set margs [lrange $args 1 end]
    }
 
    # directly call module procedure if sub-command spotted as first argument
    # or no argument supplied
    if {$cmdvalid} {
-      eval module $command [lrange $args 1 end]
+      eval module $command $margs
    } else {
       # no need to look for option arguments as they have already been parsed
       # in main procedure (error has already been raised for badly written
       # argument like '-' or '--')
 
       # parse specified module and get list of mods to unload and mods to load
-      lassign [eval parseModuleVersionSpecifier 1 $args] modunlist modlolist
+      lassign [eval parseModuleVersionSpecifier 1 $fargs] modunlist modlolist
 
       # define if modfile should always be fully read even for validity check
       pushAlwaysReadFullFile 1
