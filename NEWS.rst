@@ -31,6 +31,10 @@ Modules 4.5.0 (2020-XX-XX)
   controlled at ``./configure`` time with ``--enable-ml`` option or later on
   with ``ml`` configuration option (which defines ``MODULES_ML`` environment
   variable when set).
+* Fix module sub-command abbreviation match to ensure passed abbreviated
+  form fully match sub-command, not only its minimal abbreviated form. As an
+  example, ``lod`` or ``loda`` do not match anymore the ``load``
+  sub-command, ``lo`` or ``loa`` still do.
 
 
 Modules 4.4.1 (2020-01-03)

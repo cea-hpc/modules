@@ -8380,27 +8380,31 @@ proc parseModuleCommandName {command defaultcmd} {
    set cmdempty 0
 
    # resolve command if alias or shortcut name used
-   switch -regexp -- $command {
-      {^(add|lo)}              {set command "load"}
-      {^(rm|del|unlo|remove$)} {set command "unload"}
-      {^(ref|rel)}             {set command "reload"}
-      {^sw}                    {set command "switch"}
-      {^(di|show)}             {set command "display"}
-      {^av}                    {set command "avail"}
-      {^al}                    {set command "aliases"}
-      {^li}                    {set command "list"}
-      {^wh}                    {set command "whatis"}
-      {^(apropos|keyword)$}    {set command "search"}
-      {^pu}                    {set command "purge"}
-      {^init(a|lo)}            {set command "initadd"}
-      {^initp}                 {set command "initprepend"}
-      {^initsw}                {set command "initswitch"}
-      {^init(rm|unlo)$}        {set command "initrm"}
-      {^initl}                 {set command "initlist"}
-      {^$} {
+   switch -- $command {
+      add               {set command load}
+      rm - remove       {set command unload}
+      show              {set command display}
+      apropos - keyword {set command search}
+      {} {
          # if empty string supplied translate to default command
          set command $defaultcmd
          set cmdempty 1
+      }
+      default {
+         # specific match for shortcut names
+         set cmdlen [string length $command]
+         foreach {match minlen sccmd} {load 2 load unload 4 unload delete 3\
+            unload refresh 3 reload reload 3 reload switch 2 switch swap 2\
+            switch display 2 display available 2 avail aliases 2 aliases list\
+            2 list whatis 2 whatis purge 2 purge initadd 5 initadd initload 6\
+            initadd initprepend 5 initprepend initswitch 6 initswitch\
+            initswap 6 initswitch initunload 8 initrm initlist 5 initlist} {
+            if {$cmdlen >= $minlen && [string equal -length $cmdlen $command\
+               $match]} {
+               set command $sccmd
+               break
+            }
+         }
       }
    }
 
