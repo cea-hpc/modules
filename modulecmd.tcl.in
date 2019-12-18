@@ -3476,6 +3476,11 @@ proc popMsgRecordId {{setmsgid 1}} {
    }
 }
 
+proc clearAllMsgRecordId {} {
+   set ::g_evalIdStack {}
+   set ::g_msgRecordIdStack {}
+}
+
 # stack of prefixes clarifying debug message entries
 set g_debugMsgPrefixStack {}
 
@@ -11018,11 +11023,11 @@ if {[catch {
       reportErrorAndExit $errMsg
    }
 } errMsg ]} {
-   # no use of reportError here to get independent from any previous error
-   # report inhibition. report error only if not silent
-   if {[isVerbosityLevel concise]} {
-      report "[sgr er ERROR]: $errMsg"
-   }
+   # re-enable error report in case it was previously inhibited
+   reenableErrorReport
+   # remove any message record id to render next error
+   clearAllMsgRecordId
+   reportError $errMsg
    # init error report here in case the error raised before the regular init
    initErrorReport
    cleanupAndExit 1
