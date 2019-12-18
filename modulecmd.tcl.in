@@ -537,13 +537,18 @@ proc __reportError {message {recordtop 0} {severity ERROR} {sgrkey er}\
       if {$raisecnt} {
          raiseErrorCount
       }
-      set message "[sgr $sgrkey $severity]: $message"
+      set msgsgr "[sgr $sgrkey $severity]: $message"
       # record message to report it later on if a record id is found
       if {[currentMsgRecordId] ne {}} {
-         recordMessage $message $recordtop
+         recordMessage $msgsgr $recordtop
       # skip message report if silent
       } elseif {[isVerbosityLevel concise]} {
-         report $message
+         # save error messages to render them all together in JSON format
+         if {[isReportFormat json]} {
+            lappend ::g_report_erralist $severity $message
+         } else {
+            report $msgsgr
+         }
       }
    }
 }
@@ -866,6 +871,18 @@ proc releaseHeldReport {args} {
 proc cleanupAndExit {code} {
    # finish output document if json format enabled
    if {[isReportFormat json]} {
+      # render error messages all together
+      if {[info exists ::g_report_erralist]} {
+         # ignite report first to get eventual error message from report
+         # initialization in order 'foreach' got all messages prior firing
+         report "\"errors\": \[" 1
+         foreach {sev msg} $::g_report_erralist {
+            # split message in lines
+            lappend dispmsglist "\n{ \"severity\": \"$sev\", \"message\": \[\
+               \"[join [split [charEscaped $msg \"] \n] {", "}]\" \] }"
+         }
+         report "[join $dispmsglist ,] \]"
+      }
       # inhibit next content separator if output is ending
       if {[info exists ::g_report_sep_next]} {
          unset ::g_report_sep_next
