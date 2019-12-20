@@ -1,0 +1,88 @@
+#
+# Common stuff for "foo" modulefiles
+# Part of "Compiler and other package dependencies" cookbook
+# Using "homebrewed flavors" strategy
+#
+# This file expects the following Tcl variables to have been
+# previously set:
+#	version: version of foo
+
+# Declare the path where the packages are installed
+# The reference to the environmental variable is a hack
+# for this example; normally one would hard code a path
+set rootdir $::env(MOD_GIT_ROOTDIR)
+set swroot $rootdir/doc/example/compiler-etc-dependencies/fake-sw-root
+
+# Also get location of and load common procedures
+# This is a hack for the cookbook examples, in production
+# one should either
+# 1) declare the procedures in a site config file (preferred)
+# 2) hardcode the path to $tcllibdir and common_utilities.tcl
+set tcllibdir $rootdir/doc/example/compiler-etc-dependencies/tcllib
+source $tcllibdir/common_utilities.tcl
+
+proc ModulesHelp { } {
+   global version
+   puts stderr "
+foo: Test/fake version of foo $version
+
+For testing packages depending on compilers/MPI
+
+"
+}
+
+module-whatis "Fake foo $version"
+
+# Figure out what compiler we have loaded
+# Will default to and load default compiler if none loaded
+set ctag [ GetLoadedCompiler 1 1 1 ]
+
+# Figure out what MPI we have loaded
+# We do NOT want to default to intelmpi if intel compiler loaded
+set mtag [ GetLoadedMPI ]
+# Set mtag it nompi if no MPI library found loaded
+if { $mtag eq {} } { set mtag nompi }
+# Set mtag to intelmpi if intelmpi/default found loaded
+if { $mtag eq {intelmpi/default} } { set mtag intelmpi }
+
+# Compute the installation prefix
+set pkgroot $swroot/foo
+set vroot $pkgroot/$version
+set prefix $vroot/$ctag/$mtag
+
+# Make sure there is a build for this foo version/compiler/MPI library
+# I.e. that the prefix exists
+if ![ file exists $prefix ] {
+   # Not built for this compiler/MPI, alert user and abort
+   PrintLoadError "
+foo/$version does not appear to be built for compiler $ctag and MPI $mtag
+
+Please select a different openmpi version or different compiler/MPI library combination.
+"
+}
+
+# We need to prereq the compiler to allow autohandling to work
+prereq $ctag
+# and the MPI library if used
+if { $mtag ne {nompi} } {
+   # We currently require one to load intelmpi to use Intel MPI with 
+   # intel compilers. So we prereq on intelmpi as well
+   # But if not, we could place the prereq below in an if-then block
+   # so is only executed if mtag != intelmpi
+   prereq $mtag
+}
+
+# Set environment variables
+setenv FOO_DIR $prefix
+
+set bindir $prefix/bin
+set libdir $prefix/lib
+set incdir $prefix/include
+
+prepend-path PATH            $bindir
+prepend-path LIBRARY_PATH    $libdir
+prepend-path LD_LIBRARY_PATH $libdir
+prepend-path CPATH           $incdir
+
+conflict foo
+

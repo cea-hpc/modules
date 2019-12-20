@@ -1,0 +1,69 @@
+#
+# Common stuff for "foo" modulefiles
+# Part of "Compiler and other package dependencies" cookbook
+# Using "modulerc based" strategy
+#
+# This file expects the following Tcl variables to have been
+# previously set:
+#	version: version of foo
+#	compilerTag: compiler was built for
+#	mpiTag: mpi was built for
+
+# Declare the path where the packages are installed
+# The reference to the environmental variable is a hack
+# for this example; normally one would hard code a path
+set rootdir $::env(MOD_GIT_ROOTDIR)
+set swroot $rootdir/doc/example/compiler-etc-dependencies/fake-sw-root
+
+# Also get location of and load common procedures
+# This is a hack for the cookbook examples, in production
+# one should either
+# 1) declare the procedures in a site config file (preferred)
+# 2) hardcode the path to $tcllibdir and common_utilities.tcl
+set tcllibdir $rootdir/doc/example/compiler-etc-dependencies/tcllib
+source $tcllibdir/common_utilities.tcl
+
+proc ModulesHelp { } {
+   global version compilerTag mpiTag
+   puts stderr "
+foo: Test/fake version of foo $version
+
+For testing packages depending on compilers/MPI
+
+Foo: $version
+Compiler: $compilerTag
+MPI: $mpiTag
+
+"
+}
+
+module-whatis "Fake foo $version ($compilerTag, $mpiTag)"
+
+# Make sure loaded compiler and MPI match what we want.
+# And load them if not already loaded
+LoadedCompilerMatches $compilerTag 1 1
+# But don't load intelmpi if compiler is intel
+LoadedMpiMatches $mpiTag 1 1 1
+# For Env Modules 3.x, set requireIt to false
+#LoadedCompilerMatches $compilerTag 0 1
+#LoadedMpiMatches $mpiTag 0 1 1
+
+# Compute the installation prefix
+set pkgroot $swroot/foo
+set vroot $pkgroot/$version
+set prefix $vroot/$compilerTag/$mpiTag
+
+# Set environment variables
+setenv FOO_DIR $prefix
+
+set bindir $prefix/bin
+set libdir $prefix/lib
+set incdir $prefix/include
+
+prepend-path PATH            $bindir
+prepend-path LIBRARY_PATH    $libdir
+prepend-path LD_LIBRARY_PATH $libdir
+prepend-path CPATH           $incdir
+
+conflict foo
+

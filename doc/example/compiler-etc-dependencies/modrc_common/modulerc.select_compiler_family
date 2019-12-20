@@ -1,0 +1,61 @@
+#%Module########################################################################
+##
+## Choose compiler family
+##
+## This check if any compiler was previously "module loaded", or if no compiler
+## previously loaded, will use the default compiler.  Either way, it will check
+## if there is a subdirectory matching the compiler family name, and if so
+## will default to that.
+##
+## If no subdirectory matching compiler family name is found, we just return
+## without defaulting.  The modulecmd will default based on its internal rules,
+## and it is up to the resulting module file to either load an appropriate 
+## compiler if no compiler is loaded or to abort with appropriate error
+## messages if it wants an incompatible compiler.
+## 
+## Usage:
+## In most cases, can simply symlink .modulerc to this file
+##
+## In more complicated cases, .modulerc can source this file, and can
+## then test the variable _did_default, which will be true if we set
+## a default for modules for the next level, or false otherwise (in which
+## case your .modulerc can set one)
+##
+
+# Source some required Tcl procedures here.  Hack for cookbook
+# making use of environmental variable for location.
+# In production, this should ideally be in a site config file.
+# At minimum, hardcode the path
+set rootdir $::env(MOD_GIT_ROOTDIR)
+set tcllibdir $rootdir/doc/example/compiler-etc-dependencies/tcllib
+source $tcllibdir/common_utilities.tcl
+
+set moduledir [file dirname $ModulesCurrentModulefile]
+set baseComponent [ file tail $moduledir ]
+
+# Get the currently loaded compiler, or default comp.  Don't module load/prereq it
+set fullCompilerTag [ GetLoadedCompiler 1 1 ]
+set tmpCompTag [ GetPackageFamilyVersion $fullCompilerTag ]
+set compilerFamily [ lindex $tmpCompTag 0 ]
+set compFamList "$compilerFamily"
+
+# Allow either gnu or gcc for GCC compilers
+if { $compilerFamily eq {gcc} || $compilerFamily  eq {gnu} } {
+   set compFamList "gnu gcc"
+}
+
+# _did_default will be true if we actually default something
+# Useful in case a .modulerc sources us, and wants to set a default if we
+# did not
+set _did_default false
+
+if { $compilerFamily ne {} } {
+   # Default to the family of currently loaded compiler
+   set firstChild [ FirstChildModuleInList $compFamList ]
+   if { $firstChild ne {} } {
+      # Compiler family found, so default to it
+      module-version $baseComponent/$firstChild default
+      set _did_default true
+   }
+} 
+

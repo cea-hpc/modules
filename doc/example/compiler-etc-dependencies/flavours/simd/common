@@ -1,0 +1,33 @@
+#
+# Part of "Compiler and other package dependencies" cookbook
+#
+# Common stuff for "simd" modulefiles
+# Using "flavours" strategy
+#
+# This file expects the following Tcl variable to have been previously defined:
+#	simd: The level of simd support, eg. avx, avx2, sse4.1
+
+# Initialise "flavours"
+package require flavours
+flavours init
+
+proc ModulesHelp { } {
+   global simd
+   puts stderr "
+This is a dummy modulefile to indicate that the CPU vectorization
+should be set to '$simd' where possible.
+
+Part of cookbook
+	Handling Compiler and other Package Dependencies
+
+"
+}
+
+module-whatis "CPU Vectorization support level: $simd"
+
+#Even in production, this modulefile would not do anything
+conflict simd
+
+# Reload any modules with this as a prerequisite
+flavours cleanup
+

@@ -1,0 +1,38 @@
+#%Module########################################################################
+##
+## Default to lowest SIMD support available
+##
+## Defaults to first of sse4.1, avx, or avx2 found
+## 
+## Usage:
+## In most cases, can simply symlink .modulerc to this file
+##
+## In more complicated cases, .modulerc can source this file, and can
+## then test the variable _did_default, which will be true if we set
+## a default for modules for the next level, or false otherwise (in which
+## case your .modulerc can set one)
+##
+
+# Source some required Tcl procedures here.  Hack for cookbook
+# making use of environmental variable for location.
+# In production, this should ideally be in a site config file.
+# At minimum, hardcode the path
+set rootdir $::env(MOD_GIT_ROOTDIR)
+set tcllibdir $rootdir/doc/example/compiler-etc-dependencies/tcllib
+source $tcllibdir/common_utilities.tcl
+
+set moduledir [file dirname $ModulesCurrentModulefile]
+set baseComponent [ file tail $moduledir ]
+
+# _did_default will be true if we actually default something
+# Useful in case a .modulerc sources us, and wants to set a default if we
+# did not
+set _did_default false
+
+set simdList {sse4.1 avx avx2}
+set firstChild [ FirstChildModuleInList $simdList ]
+if { $firstChild ne {} } {
+   module-version $baseComponent/$firstChild default
+   set _did_default true
+} 
+
