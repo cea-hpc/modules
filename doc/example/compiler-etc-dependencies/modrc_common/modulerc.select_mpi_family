@@ -1,0 +1,95 @@
+#%Module########################################################################
+##
+## Choose MPI family
+##
+## This check if any MPI lib was previously "module loaded"
+##
+## If no MPI library was previously module loaded (and intel compiler suite
+## was not loaded, see below) and nompiFlag is set (default is set), then
+## if a "nompi" subdirectory exists, we will default to that.
+## If nompiFlag is not set, then we just return w/out setting any default
+## (allowing modulecmd to default on its own.  It is the responsibility
+## and the resulting modulefile to lado/require the MPI lib it needs or err
+## as appropriate).
+##
+## If an MPI library was loaded, then we check for a subdirectory named after
+## the family of the loaded MPI library, and if such exists, default to that.
+## If it does not exist, we return w/out defaulting, allowing modulecmd to
+## default according to its own rules.  The resulting modulefile is responsible
+## for aborting/complaining about the MPI library mismatch.
+##
+## Special handling is needed for intel MPI, as it does not get explicitly
+## loaded if the Intel compiler suite is being used.  So if no MPI library
+## is loaded, we check to see if an Intel compiler was loaded.  If so, we
+## check for an "intelmpi" or similar subdirectory, and if found default to
+## that.  If not found, we proceed as above for the no MPI library case
+## (defaulting to "nompi" if found and nompiFlag set, or just returning w/out
+## defaulting otherwise).
+## 
+## Usage:
+## In most cases, can simply symlink .modulerc to this file
+##
+## In more complicated cases, .modulerc can source this file, and can
+## then test the variable _did_default, which will be true if we set
+## a default for modules for the next level, or false otherwise (in which
+## case your .modulerc can set one)
+##
+
+# Source some required Tcl procedures here.  Hack for cookbook
+# making use of environmental variable for location.
+# In production, this should ideally be in a site config file.
+# At minimum, hardcode the path
+set rootdir $::env(MOD_GIT_ROOTDIR)
+set tcllibdir $rootdir/doc/example/compiler-etc-dependencies/tcllib
+source $tcllibdir/common_utilities.tcl
+
+#Default nompiFlag to set
+if ![info exists nompiFlag] { set nompiFlag true }
+
+# _did_default will be true if we actually default something
+# Useful in case a .modulerc sources us, and wants to set a default if we
+# did not
+set _did_default false
+
+set moduledir [file dirname $ModulesCurrentModulefile]
+set baseComponent [ file tail $moduledir ]
+
+# Get the currently loaded MPI library
+set fullMpiTag [ GetLoadedMPI 0 ]
+set tmpMpiTag [ GetPackageFamilyVersion $fullMpiTag ]
+set mpiFamily [ lindex $tmpMpiTag 0 ]
+
+if { $mpiFamily eq {} } {
+   # No MPI module loaded
+   # What compiler is loaded (default from path if needed, but not GetDefaultCompiler)
+   set fullComp [ GetLoadedCompiler 1 0 ]
+   set tmpComp [ GetPackageFamilyVersion $fullComp ]
+   set compFam [ lindex $tmpComp 0 ]
+   if { $compFam eq {intel} } {
+      # OK, no MPI explicitly loaded, but using Intel compiler
+      # So set mpiFamily to first found in list below
+      set mpiList {intelmpi impi intel intelmpi-mt impi-mt intel-mp}
+      set mpiFamily [ FirstChildModuleInList $mpiList ]
+   }
+}
+
+if { $mpiFamily eq {} } {
+   # No MPI lib was explicitly loaded, and if intel compiler was loaded,
+   # did not find a subdir matching intelmpi or one of its variants
+   # Looks for a "nompi" dir if $nompiFlag is set
+   if { $nompiFlag } {
+      if [ ChildModuleExists nompi ] { 
+         # nompi subdir exists, default to it
+         module-version $baseComponent/nompi default
+         set _did_default true
+      }
+   }
+} else {
+   # Either MPI lib was explicitly loaded, or implied intelmpi 
+   # Default to the subdir named after MPI family, if it exists
+   if [ ChildModuleExists $mpiFamily ] {
+      module-version $baseComponent/$mpiFamily default
+      set _did_default true
+   }
+} 
+

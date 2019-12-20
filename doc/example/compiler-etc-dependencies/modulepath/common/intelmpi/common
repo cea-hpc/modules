@@ -1,0 +1,43 @@
+##
+## Common stuff for intelmpi
+## For "modulepath based" strategy
+##
+## This is largely a placeholder modulefile
+## But does change modulepath
+## 
+## Expects the following Tcl variables to have been previously defined:
+##	version: defaults to 'default'
+##	compilerTag:
+
+if ![info exists version] { set version default }
+
+
+proc ModulesHelp { } {
+   global version compilerTag
+   puts stderr "
+This is a dummy modulefile to indicate that you wish to use the
+Intel MPI libraries that shipped with the Intel compiler suite
+you are using.
+
+Version: $version
+Compiler: $compilerTag
+
+Part of cookbook
+	Handling Compiler and other Package Dependencies
+
+"
+}
+
+module-whatis "Use intelmpi with intel compiler $version ($compilerTag)"
+
+#Even in production, this modulefile would not do anything
+conflict intelmpi
+prereq intel
+
+#Add the proper modulepath
+#In production this should be hard-coded, but using $gitroot for cookbook
+set gitroot $::env(MOD_GIT_ROOTDIR)
+set modpathroot $gitroot/doc/example/compiler-etc-dependencies/modulepath
+set newmodpath $modpathroot/CompilerMPI/$compilerTag/intelmpi/$version
+module use $newmodpath
+

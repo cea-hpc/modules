@@ -1,0 +1,66 @@
+# Common modulefile for mvapich
+# Using "homebrewed flavors" strategy
+# Expects the following variables to have been
+# previously defined:
+#	version: version of mvapich
+
+# Declare the path where the packages are installed
+# The reference to the environmental variable is a hack
+# for this example; normally one would hard code a path
+set rootdir $::env(MOD_GIT_ROOTDIR)
+set swroot $rootdir/doc/example/compiler-etc-dependencies/fake-sw-root
+
+#Also get location of and load common procedures
+#This is a hack for the cookbook examples, in production
+#one should either
+#1) declare the procedures in a site config file (preferred)
+#2) hardcode the path to $tcllibdir and common_utilities.tcl
+set tcllibdir $rootdir/doc/example/compiler-etc-dependencies/tcllib
+source $tcllibdir/common_utilities.tcl
+
+proc ModulesHelp { } {
+   global version
+   puts stderr "
+openmpi: Test/fake version of Mvapich $version
+
+For testing packages depending on compilers/MPI
+
+"
+}
+
+module-whatis "Fake mvapich 4.0"
+
+#Figure out what compiler we have loaded
+set ctag [ GetLoadedCompiler 1 1 1 ]
+
+#Compute the installation prefix
+set pkgroot $swroot/mvapich
+set vroot $pkgroot/$version
+set prefix $vroot/$ctag
+
+#Make sure there is a build for this openmpi version/compiler
+#I.e. that the prefix exists
+if ![ file exists $prefix ] {
+   #Not built for this compiler, alert user and abort
+   PrintLoadError "
+mvapich/$version does not appear to be built for compiler $ctag
+
+Please select a different mvapich version or different compiler.
+"
+}
+
+#We need to prereq the compiler to allow autohandling to work
+prereq $ctag
+
+# Set environment variables
+setenv MPI_DIR $prefix
+
+set bindir $prefix/bin
+set libdir $prefix/lib
+set incdir $prefix/include
+
+prepend-path PATH            $bindir
+prepend-path LIBRARY_PATH    $libdir
+prepend-path LD_LIBRARY_PATH $libdir
+prepend-path CPATH           $incdir
+

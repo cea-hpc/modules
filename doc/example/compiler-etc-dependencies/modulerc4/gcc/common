@@ -1,0 +1,40 @@
+## Example modulefiles for compiler-etc-dependency cookbook
+##
+## Common stuff for gcc
+##
+## Expects version to have been previously set
+
+
+proc ModulesHelp { } {
+   global version
+
+   puts stderr "
+This is the fake GNU compiler suite modulefile for the cookbook
+	Handling Compiler and other Package Dependencies
+
+It does not actually do anything
+
+gcc version: $version
+
+"
+}
+
+module-whatis "Fake Gnu $version for cookbook"
+
+#Find the software root.  In production, you should 
+#hardcode to your real software root
+set gitroot $::env(MOD_GIT_ROOTDIR)
+set swroot $gitroot/doc/example/compiler-etc-dependencies/fake-sw-root
+
+set pkgroot $swroot/gcc
+set vroot $pkgroot/$version
+set bindir $vroot/bin
+
+prepend-path PATH $bindir
+
+# don't load multiple versions of this module (or other compilers)
+conflict gcc
+conflict gnu
+conflict pgi
+conflict intel
+

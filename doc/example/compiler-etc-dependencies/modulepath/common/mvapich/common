@@ -1,0 +1,59 @@
+# Common modulefile for mvapich
+# Using "modulepath" strategy
+# Expects the following variables to have been
+# previously defined:
+#	version: version of mvapich
+#	compilerTag: compiler being used with
+
+# Declare the path where the packages are installed
+# The reference to the environmental variable is a hack
+# for this example; normally one would hard code a path
+set rootdir $::env(MOD_GIT_ROOTDIR)
+set swroot $rootdir/doc/example/compiler-etc-dependencies/fake-sw-root
+
+proc ModulesHelp { } {
+   global version compilerTag
+   puts stderr "
+mvapich: Test/fake version of mvapich $version
+
+For testing packages depending on compilers/MPI
+Version: $version
+Compiler: $compilerTag
+
+"
+}
+
+module-whatis "Fake mvapich $version (for $compilerTag)"
+
+#Find the software root.  In production, you should 
+#hardcode to your real software root
+set gitroot $::env(MOD_GIT_ROOTDIR)
+set swroot $gitroot/doc/example/compiler-etc-dependencies/fake-sw-root
+
+#Compute the installation prefix
+set pkgroot $swroot/mvapich
+set vroot $pkgroot/$version
+set prefix $vroot/$compilerTag
+
+#We need to prereq the compiler to allow autohandling to work
+prereq $compilerTag
+
+# Set environment variables
+setenv MPI_DIR $prefix
+
+set bindir $prefix/bin
+set libdir $prefix/lib
+set incdir $prefix/include
+
+prepend-path PATH            $bindir
+prepend-path LIBRARY_PATH    $libdir
+prepend-path LD_LIBRARY_PATH $libdir
+prepend-path CPATH           $incdir
+
+
+#Add the proper modulepath
+#In production this should be hard-coded, but using $gitroot for cookbook
+set modpathroot $gitroot/doc/example/compiler-etc-dependencies/modulepath
+set newmodpath $modpathroot/CompilerMPI/$compilerTag/mvapich/$version
+module use $newmodpath
+

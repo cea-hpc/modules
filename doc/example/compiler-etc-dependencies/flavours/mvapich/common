@@ -1,0 +1,53 @@
+#
+# Part of "Compiler and other package dependencies" cookbook
+#
+# Common stuff for "mvapich" modulefiles
+# Using "flavours" strategy
+#
+# Expects the following Tcl variables to have been previously set:
+#	version: version of mvapich compiler collection
+#
+
+
+# Initialise "flavours"
+package require flavours
+flavours init
+
+proc ModulesHelp { } {
+   global version
+   puts stderr "
+mvapich: Test/fake version of mvapich $version
+
+For testing packages depending on compilers/MPI
+
+"
+}
+
+module-whatis "Fake mvapich $version"
+
+# Construct flavour name
+flavours prereq -class compiler
+flavours conflict mvapich
+
+# Declare the path where the packages are installed
+# The reference to the environmental variable is a hack
+# for this example; normally one would hard code a path
+set rootdir $::env(MOD_GIT_ROOTDIR)
+set swroot $rootdir/doc/example/compiler-etc-dependencies/fake-sw-root
+
+flavours root     $swroot/mvapich/$version
+flavours revision 1
+flavours commit
+
+# Set environment variables
+setenv MPI_DIR [flavours path]
+
+# Prepend to environment variables (paths relative to
+# the directory containing the flavour)
+flavours prepend-path PATH            bin
+flavours prepend-path LIBRARY_PATH    lib
+flavours prepend-path LD_LIBRARY_PATH lib
+flavours prepend-path CPATH           include
+
+# Reload any modules with this as a prerequisite
+flavours cleanup
