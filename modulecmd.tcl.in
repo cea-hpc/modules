@@ -7109,13 +7109,14 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
    return $found_list
 }
 
-proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
+proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
+   {ext_filter 0}} {
    global g_sourceAlias g_sourceVersion g_sourceVirtual g_resolvedPath
    global g_rcAlias g_moduleAlias g_rcVersion g_moduleVersion
    global g_rcVirtual g_moduleVirtual g_rcfilesSourced
 
    reportDebug "get '$mod' in $dir (fetch_mtime=$fetch_mtime, search=$search,\
-      fetch_hidden=$fetch_hidden)"
+      fetch_hidden=$fetch_hidden, ext_filter=$ext_filter)"
 
    # extract one module name from query
    set modqe [getOneModuleFromVersSpec $mod]
@@ -7201,7 +7202,27 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}} {
          # list dirs to rework their definition at the end
          if {$elt_type eq {directory}} {
             set dir_list($elt) 1
+         # track directory elements to recompose directory entries later on in
+         # case they are not part of the result (but needed for filtering
+         # occurring upstream)
+         } elseif {$ext_filter} {
+            set direlt $elt
+            while {[set pardir [file dirname $direlt]] ne {.}} {
+               if {![info exists mod_list($pardir)]} {
+                  lappend misdir_list($pardir) [file tail $direlt]
+               }
+               set direlt $pardir
+            }
          }
+      }
+   }
+
+   # recompose directory entries if they have been filtered out above
+   # by search query but some modulefiles stored in them have been matched
+   foreach misdir [array names misdir_list] {
+      if {![info exists mod_list($misdir)]} {
+         set mod_list($misdir) [concat [list directory] $misdir_list($misdir)]
+         set dir_list($misdir) 1
       }
    }
 
@@ -7536,11 +7557,6 @@ proc listModules {dir mod show_mtime filter search} {
    reportDebug "get '$mod' in $dir (show_mtime=$show_mtime, filter=$filter,\
       search=$search)"
 
-   # get module list
-   # as we treat a full directory content do not exit on an error
-   # raised from one modulerc file
-   array set mod_list [getModules $dir $mod $show_mtime $search]
-
    # extract one module name from query
    set modqe [getOneModuleFromVersSpec $mod]
 
@@ -7555,6 +7571,13 @@ proc listModules {dir mod show_mtime filter search} {
    # no filtering when in depth disabled and query targets modulepath root
    set filtering [expr {$filter ne {} && ($indepth || [string first / $modqe]\
       != -1)}]
+
+   # get module list
+   # process full dir content but do not exit when err raised from a modulerc.
+   # when filtering, ask to get directory even if it does not match search
+   # query in order to get its content structure with details on default and
+   # latest elements which are required information for the result to display.
+   array set mod_list [getModules $dir $mod $show_mtime $search 0 $filtering]
 
    # prepare results for display
    set alias_colored [expr {[sgr al {}] ne {}}]
