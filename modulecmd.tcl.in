@@ -7440,7 +7440,9 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
          }
       } else {
          # get default element (defined or implicit if enabled)
-         if {[info exists g_resolvedPath($dir)]} {
+         # ignore explicit default if it does not match query
+         if {[info exists g_resolvedPath($dir)] && [llength [modMatchAtDepth\
+            $querydepth $mtest $mod [list $g_resolvedPath($dir)]]]} {
             set dfl_elt [file tail $g_resolvedPath($dir)]
          } elseif {$implicitdfl} {
             set dfl_elt [lindex $elt_list end]

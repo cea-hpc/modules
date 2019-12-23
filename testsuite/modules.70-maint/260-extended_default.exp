@@ -537,12 +537,27 @@ testouterr_cmd sh {avail -t -L extdfl7/7} OK "$mp:\nextdfl7/7.1"
 testouterr_cmd sh {avail -t -d extdfl7/7} OK "$mp:\nextdfl7/7.1"
 testouterr_cmd sh {avail -t -L extdfl3/1} OK "$mp:\nextdfl3/1.1/3\nextdfl3/1.3/4"
 testouterr_cmd sh {avail -t -d extdfl3/1} OK "$mp:\nextdfl3/1.1/3\nextdfl3/1.3/4"
+testouterr_cmd sh {avail -t -L extdfl/1.4} OK "$mp:\nextdfl/1.4.5"
+testouterr_cmd sh {avail -t -d extdfl/1.4} OK "$mp:\nextdfl/1.4.5"
+if {![is_config_locked implicit_default]} {
+    setenv_var MODULES_IMPLICIT_DEFAULT 0
+    testouterr_cmd sh {avail -t -d extdfl7/7} OK {}
+    testouterr_cmd sh {avail -t -d extdfl/1.4} OK {}
+    setenv_var MODULES_IMPLICIT_DEFAULT 1
+}
 # mix with no-indepth tests
 testouterr_cmd sh {avail -t --no-indepth -L extdfl7/7} OK "$mp:\nextdfl7/7.1"
 testouterr_cmd sh {avail -t --no-indepth -d extdfl7/7} OK "$mp:\nextdfl7/7.1"
 testouterr_cmd sh {avail -t --no-indepth -L extdfl3/1} OK "$mp:\nextdfl3/1.3/"
 testouterr_cmd sh {avail -t --no-indepth -d extdfl3/1} OK "$mp:\nextdfl3/1.3/"
-
+testouterr_cmd sh {avail -t --no-indepth -L extdfl/1.4} OK "$mp:\nextdfl/1.4.5"
+testouterr_cmd sh {avail -t --no-indepth -d extdfl/1.4} OK "$mp:\nextdfl/1.4.5"
+if {![is_config_locked implicit_default]} {
+    setenv_var MODULES_IMPLICIT_DEFAULT 0
+    testouterr_cmd sh {avail -t --no-indepth -d extdfl7/7} OK {}
+    testouterr_cmd sh {avail -t --no-indepth -d extdfl/1.4} OK {}
+    setenv_var MODULES_IMPLICIT_DEFAULT 1
+}
 
 
 #
