@@ -27,6 +27,11 @@ set mpre "$modpathre.indepth"
 setenv_path_var MODULEPATH $mp
 
 set ts_indepth "$mp:
+deepA/4/1/(ds)
+deepA/4/1/2/1
+deepA/4/1/2/3
+deepA/4/1/3/1(default)
+deepA/4/1/3/2
 mod0
 mod1/1
 mod1/2
@@ -46,6 +51,7 @@ mod30/2
 modv/1(default)"
 
 set ts_noindepth "$mp:
+deepA/
 mod0
 mod1/
 mod2/
@@ -160,6 +166,11 @@ testouterr_cmd sh {avail -t -d mod2?} OK {}
 testouterr_cmd sh {avail -t -L mod2?} OK {}
 testouterr_cmd sh {avail -t -d mod2?/} OK {}
 testouterr_cmd sh {avail -t -L mod2?/} OK {}
+testouterr_cmd sh {avail -t */*/} OK "$mp:\ndeepA/4/1/(ds)\nmod6/3/1/\nmod7/4/1\nmod8/4/1(@)\nmod9/3/2(default)\nmod9/4/1"
+testouterr_cmd sh {avail -t -d */*/} OK [if_implicitdefault "$mp:\ndeepA/4/1/(ds)\nmod6/3/1/\nmod7/4/1\nmod8/4/1(@)\nmod9/3/2(default)\nmod9/4/1" "$mp:\nmod9/3/2(default)"]
+testouterr_cmd sh {avail -t -L */*/} OK "$mp:\ndeepA/4/1/(ds)\nmod6/3/1/\nmod7/4/1\nmod8/4/1(@)\nmod9/3/2(default)\nmod9/4/1"
+testouterr_cmd sh {avail -t -d deepA/4/1/3/} OK "$mp:\ndeepA/4/1/3/1(default)"
+testouterr_cmd sh {avail -t -L deepA/4/1/3/} OK "$mp:\ndeepA/4/1/3/2"
 
 # test no in depth mode and contains search match mode
 testouterr_cmd sh {avail -t -C od2/} OK "$mp:\nmod2/1(default)\nmod2/2"
