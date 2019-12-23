@@ -7335,7 +7335,12 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
                set mod_list($virt) [list virtual $mtime\
                   $g_moduleVirtual($virt)]
 
-               set add_ref_to_parent 1
+               set parentname [file dirname $virt]
+               # create an entry in result list for parent directory if it
+               # matches query or required an upstream filtering processing
+               set add_ref_to_parent [expr {$ext_filter || [llength\
+                  [modMatchAtDepth $querydepth $mtest $mod [list\
+                  $parentname]]]}]
             }
             default {
                # register check error and relative message to get it in
@@ -7357,7 +7362,6 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
 
          # add reference to this virtual mod in parent structure
          if {$add_ref_to_parent} {
-            set parentname [file dirname $virt]
             set elt [file tail $virt]
 
             # initialize virtual parent structure if it does not exist
