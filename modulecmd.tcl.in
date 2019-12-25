@@ -7546,13 +7546,23 @@ proc formatListEltToLongDisplay {elt eltsgr eltsuffix tag_list tagsgr mtime\
 }
 
 # Prepare a map list to translate later on a substring in its highlighted
-# counterpart. Translate substring after right trimming it from wildcard
-# characters. No translation map is returned if hightlight rendering is
-# disabled or if some wildcard characters persist after the trim.
+# counterpart. Translate substring into all module it specifies in case of an
+# advanced version specification. Each string obtained is right trimmed from
+# wildcard. No highlight is set for strings still containing wildcard chars
+# after right trim operation. No highlist map is returned at all if hightlight
+# rendering is disabled.
 proc prepareMapToHightlightSubstr {substr} {
-   set m [string trimright $substr {*?}]
-   return [expr {[sgr hi {}] ne {} && $m ne {} && [string first * $m] == -1\
-      && [string first ? $m] == -1 ? [list $m [sgr hi $m]] : {}}]
+   set maplist {}
+   if {[sgr hi {}] ne {}} {
+      foreach m [getAllModulesFromVersSpec $substr] {
+         set m [string trimright $m {*?}]
+         if {$m ne {} && [string first * $m] == -1 && [string first ? $m] ==\
+            -1} {
+            lappend maplist $m [sgr hi $m]
+         }
+      }
+   }
+   return $maplist
 }
 
 # Finds all module versions for mod in the module path dir

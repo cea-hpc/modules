@@ -342,6 +342,17 @@ colorset_test_case {avail -t loc_t} [list hi loc_t] ".*loc_tr.*loc_tr.*loc_tr.*l
 colorset_test_case {avail loc_tr} [list hi loc_tr] ".*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*loc_tr.*"
 colorset_test_case {whatis loc_tr} [list hi loc_tr] ".*\\s+loc_tr/1.0: .*\\s+loc_tr/2.0: .*\\s+loc_tr/3.0: .*"
 colorset_test_case {search loc_tr} [list hi loc_tr] ".*: loc_tr/1.0\n.*: loc_tr/2.0\n.*: loc_tr/3.0"
+# matched strings expressed with the advanced version specifiers
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+colorset_test_case {avail loc_tr@1} [list hi loc_tr/1] ".*loc_tr/1.0.*"
+colorset_test_case {avail loc_tr@1,2} [list hi loc_tr/1 hi loc_tr/2] ".*loc_tr/1.0.*loc_tr/2.0.*"
+colorset_test_case {avail loc_tr@1:3} [list hi loc_tr/1 hi loc_tr/3] ".*loc_tr/1.0.*loc_tr/3.0.*"
+colorset_test_case {avail loc_tr@1.0:} [list hi loc_tr/1.0] ".*loc_tr/1.0.*"
+colorset_test_case {avail loc_tr@:2.0} [list hi loc_tr/2.0] ".*loc_tr/2.0.*"
+colorset_test_case {whatis loc_tr@1.0} [list hi loc_tr/1.0] ".*\\s+loc_tr/1.0:.*"
+colorset_test_case {whatis loc_tr@:2} [list hi loc_tr/2] ".*\\s+loc_tr/1.0: .*\\s+loc_tr/2.0: .*"
+colorset_test_case {whatis loc_tr@1:3.0} [list hi loc_tr/1 hi loc_tr/3.0] ".*\\s+loc_tr/1.0: .*\\s+loc_tr/3.0: .*"
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
 
 # modulepath (mp)
 colorset_test_case {use} [list mp $modpathre] "Search path for module files \\(in search order\\):\n  $modpathre"
