@@ -19,6 +19,7 @@
 ##########################################################################
 
 set benchrep 20
+set profprocnb 10
 set curdir [pwd]
 
 # time test run for a given modulecmd version
@@ -27,8 +28,13 @@ proc bench {tag args} {
       $args >>& /dev/null} $::benchrep]] 0] / 1000)}]
 }
 
+# profile given modulecmd version test run
+proc profile {tag args} {
+   return [eval exec contrib/mlprof report$::profprocnb $tag $args]
+}
+
 # run test for each modulecmd version
-proc runtest {test} {
+proc runtest {mode test} {
    # set environment for test
    if {[info exists ::testenvlist($test)]} {
       foreach {var val} $::testenvlist($test) {
@@ -42,7 +48,7 @@ proc runtest {test} {
    }
 
    foreach tag $::taglist {
-      lappend ::timeres($test) $tag [eval bench $tag $cmdlist]
+      lappend ::testres($test) $tag [eval $mode $tag $cmdlist]
    }
 
    # clean test environment
@@ -51,6 +57,12 @@ proc runtest {test} {
          unset ::env($var)
       }
    }
+}
+
+# fetch args
+switch -- [lindex $argv 0] {
+   profile { set mode profile }
+   default { set mode bench }
 }
 
 # fetch information from git repository to save workspace and get available
@@ -65,8 +77,8 @@ set needstash [expr {[exec git status --porcelain --untracked-files=no] ne\
    {}}]
 
 # only keep last bugfix version of each minor release
-# drop releases older than 4.1
-set exclbef 4.1
+# drop releases older than 4.1 (or older than 4.2 if profile mode)
+set exclbef [expr {$mode eq {profile} ? {4.3} : {4.1}}]
 array set tagarray [list]
 foreach tag [exec git tag --list v*] {
    if {[string compare $tag v$exclbef] == 1} {
@@ -79,7 +91,7 @@ foreach tag [exec git tag --list v*] {
 }
 
 # add compat version to tag list
-if {[file exists compat]} {
+if {[file exists compat] && $mode eq {bench}} {
    lappend taglist v3.2
 }
 foreach tag [lsort [array names tagarray]] {
@@ -142,19 +154,47 @@ set testenvlist(whatis) $testenvlist(avail)
 set testenvlist(apropos) $testenvlist(avail)
 set testenvlist(unload) $testenvlist(list)
 
-# output header
-foreach elt [concat [list {}] $taglist] {
-   append tooutput [format "%9s |" $elt]
+# adapt output table to test mode
+if {$mode eq {profile}} {
+   set collen 45
+   set colsep {----------------------------------------------+}
+} else {
+   set collen 9
+   set colsep {----------+}
 }
+set linesep ----------+[string repeat $colsep [llength $taglist]]
+
+# output header
+append tooutput [format "%9s |" {}]
+foreach elt $taglist {
+   append tooutput [format "%${collen}s |" $elt]
+}
+append tooutput \n$linesep
 puts $tooutput
-puts [string repeat {----------+} [expr {[llength $taglist]+1}]]
 
 # run each bench and output result
 foreach test $testlist {
-   set tooutput [format "%9s |" $test]
-   runtest $test
-   foreach {tag res} $::timeres($test) {
-      append tooutput [format "%9s |" $res]
+   runtest $mode $test
+   if {$mode eq {profile}} {
+      set tooutput {}
+      set nbprofres [expr {$profprocnb + 1}]
+      for {set i 0} {$i < $nbprofres} {incr i 1} {
+         append tooutput [format "%9s |" [expr {$i == 0 ? $test : {}}]]
+         foreach {tag res} $::testres($test) {
+            set procname [lindex $res [expr {$i * 3}]]
+            set nbcalls [lindex $res [expr {$i * 3 + 1}]]
+            set runtime [lindex $res [expr {$i * 3 + 2}]]
+            append tooutput [format "%29s: %6d %7d |" $procname $nbcalls\
+               $runtime]
+         }
+         append tooutput \n
+      }
+      append tooutput $linesep
+   } else {
+      set tooutput [format "%9s |" $test]
+      foreach {tag res} $::testres($test) {
+         append tooutput [format "%${collen}s |" $res]
+      }
    }
    puts $tooutput
 }
