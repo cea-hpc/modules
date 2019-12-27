@@ -279,7 +279,11 @@ contrib/mtreview: contrib/mtreview.in version.inc
 	$(translate-in-script)
 	chmod +x $@
 
-contrib/mb: contrib/mb.in version.inc
+contrib/mb: contrib/mb.in version.inc contrib/mlprof
+	$(translate-in-script)
+	chmod +x $@
+
+contrib/mlprof: contrib/mlprof.in version.inc
 	$(translate-in-script)
 	chmod +x $@
 
@@ -513,6 +517,7 @@ endif
 	rm -f modulecmd.tcl
 	rm -f contrib/mtreview
 	rm -f contrib/mb
+	rm -f contrib/mlprof
 	rm -f contrib/playdemo
 	rm -f $(MODULECMDTEST)
 	rm -f contrib/scripts/add.modules

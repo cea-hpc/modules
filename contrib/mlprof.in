@@ -1,0 +1,77 @@
+#!@TCLSHDIR@/tclsh
+#
+# MLPROF, profile a given modulecmd execution
+# Copyright (C) 2019 Xavier Delaruelle
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+##########################################################################
+
+# how to report collected data
+set mode [lindex $argv 0]
+# get modulecmd version to run
+set tag [lindex $argv 1]
+
+# fix arguments to run modulecmd.tcl via source command
+set argv [lrange [lreplace $argv 1 1 sh] 1 end]
+
+# inhibit exit command to get through the whole modulecmd.tcl script and
+# and finish here to compute profiling result
+rename ::exit ::__exit
+proc exit {args} {}
+# also inhibit puts to ensure nothing is printed during execution
+rename ::puts ::__puts
+proc puts {args} {}
+
+# initialize profiling
+package require profiler
+profiler::init
+
+# run modulecmd with profiling enabled
+source modulecmd.$tag
+
+# restore puts command to output profiling result
+rename ::puts {}
+rename ::__puts ::puts
+
+if {[string equal -length 6 $mode report]} {
+   # number of proc timing to return
+   set nbproc [string range $mode 6 end]
+   if {![string is integer $nbproc]} {
+      set nbproc 10
+   }
+   # post-process profiling data
+   set totalruntime 0
+   set totalcall 0
+   foreach {procname profdata} [::profiler::dump] {
+      array unset procprof
+      array set procprof $profdata
+      set procname [string trimleft $procname :]
+      # compute proc inner runtime (substracting descendent proc runtime)
+      set runtime [expr {$procprof(totalRuntime) - $procprof(descendantTime)}]
+      incr totalruntime $runtime
+      incr totalcall $procprof(callCount)
+      lappend profres [list $procname $procprof(callCount) $runtime]
+   }
+   # record total runtime
+   lappend profres [list Total $totalcall $totalruntime]
+
+   # output total time and timing of the 10 biggest procs
+   puts [eval concat [lrange [lsort -integer -decreasing -index 2 $profres] 0\
+      [expr {$nbproc + 1}]]]
+} else {
+   puts [profiler::print]
+}
+
+# vim:set tabstop=3 shiftwidth=3 expandtab autoindent syntax=tcl:
