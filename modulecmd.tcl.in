@@ -6529,20 +6529,20 @@ proc defineModMatchAtDepthProc {indepth icase} {
 }
 
 # alternative definitions of modMatchAtDepth proc
-proc modMatchAtDepthProc {querydepth test modspec modlist} {
+proc modMatchAtDepthProc {querydepth test modlist} {
    set reslist [list]
    foreach mod $modlist {
       set cmpmod [join [lrange [split $mod /] 0 $querydepth] /]
-      if {[modEq $modspec $cmpmod $test 1 *]} {
+      if {[modEqStatic $cmpmod $test *]} {
          lappend reslist $mod
       }
    }
    return $reslist
 }
-proc modMatchAtDepthProcIndepth {querydepth test modspec modlist} {
+proc modMatchAtDepthProcIndepth {querydepth test modlist} {
    set reslist [list]
    foreach mod $modlist {
-      if {[modEq $modspec $mod $test 1 *]} {
+      if {[modEqStatic $mod $test *]} {
          lappend reslist $mod
       }
    }
@@ -6721,6 +6721,85 @@ proc modVersCmpProcIcaseExtdfl {cmpspec versspec modvers test {psuf {}}} {
    return $ret
 }
 
+# Setup a hardwire version of modEq procedure called modEqStatic. This
+# optimized procedure already knows the module pattern to compare to, whose
+# specification has already been resolved at procedure definition time, which
+# saves lot of processing time.
+proc defineModEqStaticProc {icase extdfl modspec} {
+   set procprops $icase:$extdfl:$modspec
+
+   # define proc if not done yet or if it was defined for another context
+   if {[info procs modEqStatic] eq {} || $::g_modEqStatic_procprops ne\
+      $procprops} {
+      if {[info exists ::g_modEqStatic_procprops]} {
+         rename ::modEqStatic {}
+      } else {
+         # also define modVersCmp which is called by modEqStatic
+         defineModVersCmpProc $icase $extdfl
+      }
+      set ::g_modEqStatic_procprops $procprops
+
+      # define optimized procedure
+      lassign [getModuleVersSpec $modspec] pmod pmodname cmpspec versspec\
+         pmodnamere pmodescglob
+      set nocasearg [expr {$icase ? {-nocase } : {}}]
+      set pmodnameslen [string length $pmodname/]
+      if {$pmod ne {} || $modspec eq {}} {
+         set procbody "
+            set pmod {$pmod}
+            if {\$psuf ne {}} {
+               append pmod \$psuf
+            }
+            if {\$test eq {eqstart}} {
+               set ret \[string equal $nocasearg-length \[string length\
+                  \$pmod/\] \$pmod/ \$mod/\]
+            } else {
+               if {\$test eq {matchin}} {
+                  set test match
+                  set pmod *\$pmod
+               }
+               set ret \[string \$test $nocasearg\$pmod \$mod\]
+            }"
+         if {$extdfl} {
+            append procbody "
+               if {!\$ret && \[string first / \$pmod\] != -1} {
+                  if {\$test eq {match}} {
+                     set pmodextdfl \$pmod.*
+                  } else {
+                     set pmodextdfl $pmodescglob.*
+                  }
+                  set ret \[string match $nocasearg\$pmodextdfl \$mod\]
+               }"
+         }
+      } else {
+         set procbody "
+            set pmodname {$pmodname}
+            set pmodnamere {$pmodnamere}
+            if {\$test eq {matchin}} {
+               set test match
+               if {\$pmodnamere ne {}} {
+                  set pmodnamere .*\$pmodnamere
+               } else {
+                  set pmodnamere .*$pmodname
+               }
+            }
+            if {(\$pmodnamere ne {} && \$test eq {match} && \[regexp\
+               $nocasearg (^\$pmodnamere)/ \$mod/ rematch pmodname\]) ||\
+               \[string equal $nocasearg -length $pmodnameslen $pmodname/\
+               \$mod/\]} {
+               set modvers \[string range \$mod \[string length \$pmodname/\]\
+                  end\]
+               set ret \[modVersCmp {$cmpspec} {$versspec} \$modvers \$test\
+                  \$psuf\]
+            } else {
+               set ret 0
+            }"
+      }
+      append procbody "
+         return \$ret"
+      proc modEqStatic {mod {test equal} {psuf {}}} $procbody
+   }
+}
 
 # Define procedure to check module name equals pattern. Adapt procedure
 # code whether icase and extended_default are enabled or disabled
@@ -7136,6 +7215,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    # define module name and version comparison procs
    defineModMatchAtDepthProc $indepth $icase
    defineModEqProc $icase [getConf extended_default]
+   defineModEqStaticProc $icase [getConf extended_default] $mod
 
    # if search for global or user rc alias only, no dir lookup is performed
    # and aliases from g_rcAlias are returned
@@ -7194,10 +7274,10 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
          }
       # add other entry kind to the result list
       # also add dirname to results if query name finishes with trailing slash
-      } elseif {($wild && [llength [modMatchAtDepth $querydepth $mtest $mod\
-         [list $elt]]]) || (!$wild && ([modEq $mod $elt match 1 /*] || [modEq\
-         $mod $elt match])) || ($isquerydir && $elt_type eq {directory} &&\
-         [modEq $querydir $elt match 0])} {
+      } elseif {($wild && [llength [modMatchAtDepth $querydepth $mtest\
+         [list $elt]]]) || (!$wild && ([modEqStatic $elt match /*] ||\
+         [modEqStatic $elt match])) || ($isquerydir && $elt_type eq\
+         {directory} && [modEq $querydir $elt match 0])} {
          set mod_list($elt) $found_list($elt)
          # list dirs to rework their definition at the end
          if {$elt_type eq {directory}} {
@@ -7230,7 +7310,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    # directory (skip versions not registered from this directory except if
    # global or user rc definitions should be included)) if they match passed
    # $mod (as for regular modulefiles)
-   foreach vers [modMatchAtDepth $querydepth $mtest $mod [array names\
+   foreach vers [modMatchAtDepth $querydepth $mtest [array names\
       g_moduleVersion]] {
       set versmod $g_moduleVersion($vers)
       if {($dir ne {} && [string first $dir/ $g_sourceVersion($vers)] == 0)\
@@ -7248,7 +7328,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
          # found previously as not searched (except if we already look for
          # hidden modules). in case symbolic version matches passed $mod
          # look for this hidden target
-         if {[modEq $mod $vers] && !$fetch_hidden && [isModuleHidden\
+         if {[modEqStatic $vers] && !$fetch_hidden && [isModuleHidden\
             $versmod]} {
             array set found_list [findModules $dir $versmod 0 $fetch_mtime 1]
          }
@@ -7285,7 +7365,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    # global or user rc definitions should be included) if they match passed
    # $mod (as for regular modulefiles) or if a symbolic versions targeting
    # alias match passed $mod
-   set matching_alias [modMatchAtDepth $querydepth $mtest $mod [array\
+   set matching_alias [modMatchAtDepth $querydepth $mtest [array\
       names g_moduleAlias]]
    if {[info exists matching_versalias]} {
       eval appendNoDupToList matching_alias $matching_versalias
@@ -7317,7 +7397,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    # global or user rc definitions should be included) if they match passed
    # $mod (as for regular modulefiles) or if a symbolic versions targeting
    # virtual mod match passed $mod
-   set matching_virtual [modMatchAtDepth $querydepth $mtest $mod\
+   set matching_virtual [modMatchAtDepth $querydepth $mtest\
       [array names g_moduleVirtual]]
    if {[info exists matching_versvirt]} {
       eval appendNoDupToList matching_virtual $matching_versvirt
@@ -7339,7 +7419,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
                # create an entry in result list for parent directory if it
                # matches query or required an upstream filtering processing
                set add_ref_to_parent [expr {$ext_filter || [llength\
-                  [modMatchAtDepth $querydepth $mtest $mod [list\
+                  [modMatchAtDepth $querydepth $mtest [list\
                   $parentname]]]}]
             }
             default {
@@ -7442,7 +7522,7 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
          # get default element (defined or implicit if enabled)
          # ignore explicit default if it does not match query
          if {[info exists g_resolvedPath($dir)] && [llength [modMatchAtDepth\
-            $querydepth $mtest $mod [list $g_resolvedPath($dir)]]]} {
+            $querydepth $mtest [list $g_resolvedPath($dir)]]]} {
             set dfl_elt [file tail $g_resolvedPath($dir)]
          } elseif {$implicitdfl} {
             set dfl_elt [lindex $elt_list end]
