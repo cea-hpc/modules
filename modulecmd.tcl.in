@@ -7071,6 +7071,8 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
       return $cache_list
    }
 
+   defineModEqStaticProc [isIcase] [getConf extended_default] $mod
+
    # skip search in top dir if directly looking to a deep element, which means
    # findModules has already been called and top dir has already been analyzed
    if {[file dirname $mod] eq {.}} {
@@ -7080,8 +7082,8 @@ proc findModules {dir mod depthlvl fetch_mtime fetch_hidden} {
          foreach {fpelt hid} [getFilesInDirectory $dir $fetch_hidden 0] {
             set elt [file tail $fpelt]
             # include any .modulerc file found at the modulepath root
-            if {$elt eq {.modulerc} || $mod eq {} || [modEq $mod $elt match\
-               0]} {
+            if {$elt eq {.modulerc} || $mod eq {} || [modEqStatic $elt\
+               match]} {
                lappend full_list $fpelt
             }
          }
@@ -7219,11 +7221,6 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    set querydir [string range $querydir 0 end-1]
    set querydepth [countChar $modqe /]
 
-   # define module name and version comparison procs
-   defineModMatchAtDepthProc $indepth $querydepth $mtest
-   defineModEqProc $icase [getConf extended_default]
-   defineModEqStaticProc $icase [getConf extended_default] $mod
-
    # if search for global or user rc alias only, no dir lookup is performed
    # and aliases from g_rcAlias are returned
    if {[isInList $search rc_alias_only]} {
@@ -7262,6 +7259,11 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
       array set found_list [findModules $dir $findmod $depthlvl $fetch_mtime\
          $fetch_hidden]
    }
+
+   # define module name and version comparison procs
+   defineModMatchAtDepthProc $indepth $querydepth $mtest
+   defineModEqProc $icase [getConf extended_default]
+   defineModEqStaticProc $icase [getConf extended_default] $mod
 
    array set dir_list {}
    array set mod_list {}
