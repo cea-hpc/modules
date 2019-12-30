@@ -7200,6 +7200,15 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    reportDebug "get '$mod' in $dir (fetch_mtime=$fetch_mtime, search=$search,\
       fetch_hidden=$fetch_hidden, ext_filter=$ext_filter)"
 
+   # generated search id (for cache search/save) by compacting given args
+   set searchid $dir:$mod:$fetch_mtime:$search:$fetch_hidden:$ext_filter
+
+   # look at memory cache for a compatible result
+   if {[info exists ::g_gotModulesMemCache($searchid)]} {
+      reportDebug "use cache entry '$searchid'"
+      return $::g_gotModulesMemCache($searchid)
+   }
+
    # extract one module name from query
    set modqe [getOneModuleFromVersSpec $mod]
 
@@ -7544,7 +7553,13 @@ proc getModules {dir {mod {}} {fetch_mtime 0} {search {}} {fetch_hidden 0}\
    }
 
    reportDebug "got [array names mod_list]"
-   return [array get mod_list]
+
+   # cache search results
+   reportDebug "create cache entry '$searchid'"
+   set got_list [array get mod_list]
+   set ::g_gotModulesMemCache($searchid) $got_list
+
+   return $got_list
 }
 
 # format an element with its tags for display in a list
