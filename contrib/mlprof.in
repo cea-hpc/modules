@@ -36,6 +36,59 @@ proc puts {args} {}
 
 # initialize profiling
 package require profiler
+
+# Rewrite profProc procedure of profiler Tcllib module as original procedure
+# reset procedure it profiles each time it is defined, which does not suit
+# our needs as modulecmd.tcl as several procedures that are rewritten along
+# the process. So here pre-existing statistic counters are not reset during
+# proc profiling initialization.
+rename ::profiler::profProc ::profiler::__profProc
+proc ::profiler::profProc {name arglist body} {
+   # save pre-existing counters for proc name
+   variable callCount
+   variable compileTime
+   variable totalRuntime
+   variable descendantTime
+   variable statTime
+   variable enabled
+   variable paused
+
+   # Get the fully qualified name of the proc
+   set ns [uplevel [list namespace current]]
+   # If the proc call did not happen at the global context and it did not
+   # have an absolute namespace qualifier, we have to prepend the current
+   # namespace to the command name
+   if { ![string equal $ns "::"] } {
+      if { ![string match "::*" $name] } {
+         set name "${ns}::${name}"
+      }
+   }
+   if { ![string match "::*" $name] } {
+      set name "::$name"
+   }
+
+   # Set up accounting for this procedure
+   # Change for mlprof: keep existing stats if any
+   if {![info exists callCount($name)]} {
+      set callCount($name) 0
+      set compileTime($name) 0
+      set totalRuntime($name) 0
+      set descendantTime($name) 0
+      set statTime($name) {}
+   }
+   set enabled($name) [expr {!$paused}]
+
+   if {[package vsatisfies [package provide Tcl] 8.4]} {
+       uplevel 1 [list ::_oldProc $name $arglist $body]
+       trace add execution $name {enter leave} \
+          [list ::profiler::TraceHandler $name]
+   } else {
+       uplevel 1 [list ::_oldProc ${name}ORIG $arglist $body]
+       uplevel 1 [list interp alias {} $name {} ::profiler::Handler $name]
+   }
+   return
+}
+
 profiler::init
 
 # run modulecmd with profiling enabled
