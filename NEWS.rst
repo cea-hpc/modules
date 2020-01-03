@@ -6,6 +6,48 @@ Release notes
 This file describes changes in recent versions of Modules. It primarily
 documents those changes that are of interest to users and admins.
 
+Modules 4.4.1 (2020-01-03)
+--------------------------
+
+* Fix error and warning messages relative to dependency management to enclose
+  dependency specification in single quotes to clearly distinguish
+  specification from each other.
+* Skip output of module loading message if module is already loaded.
+* Doc: add demonstration material played at SC19 to promote the new features
+  of Modules.
+* Contrib: add ``playdemo`` script to play recorded demonstration cast.
+* Doc: add a web anchor to each modulefile Tcl command, module sub-command
+  and module environment variable documentation.
+* Install: update RPM spec file to enable build on ``el8``.
+* Doc: fix RST syntax for bullet lists in design docs. (fix issue #306)
+* In case ``module avail`` query does not match a directory but only its
+  contained elements (for instance ``module av mod/7`` matches ``mod/7.1`` and
+  ``mod/7.2`` but not ``mod/``), fix query processing to correctly return
+  latest or default element in case ``--latest`` or ``--default`` flags are
+  set.
+* In case a ``module avail`` query performed in a no-indepth mode with
+  ``--latest`` or ``--default`` flags either enabled or disabled, fix query
+  processing to return directory elements if they are part of result.
+* When a ``module avail`` query performed in no-indepth mode targets a virtual
+  module, fix result to filter-out the directory holding the virtual module
+  from result.
+* Fix ``module avail --default`` queries when modulefile default version does
+  not match query: select latest version from modulefiles matching query
+  unless ``implicit_default`` configuration is disabled in which case no
+  default version is returned.
+* Improve highlighting of module ``avail`` and ``whatis`` search result by
+  coloring module names matching search query expressed with the advanced
+  version specifiers. ``name@1,3`` or ``name@1:3`` queries now highlight
+  ``name/1`` and ``name/3`` strings found in search result.
+* Contrib: add the ``mlprof`` script which wraps ``modulecmd.tcl`` to collect
+  profiling information on its execution.
+* Contrib: adapt ``mb`` script to profile ``modulecmd.tcl`` run tests rather
+  bench them when ``profile`` argument is passed to the script.
+* Improve overall performances of module names and versions comparison by
+  introducing optimized procedures and caching in memory module search
+  results.
+
+
 Modules 4.4.0 (2019-11-17)
 --------------------------
 
