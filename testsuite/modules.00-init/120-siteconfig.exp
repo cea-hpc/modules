@@ -324,6 +324,19 @@ if {[info exists closedirlib_file]} {
     send_user "\tSkip tcl ext lib erroneous procedure calls as ext lib is not available\n"
 }
 
+# specific tests to improve modEq procs coverage
+setenv_var TESTSUITE_ENABLE_SITECONFIG_MODEQ 1
+setenv_var MODULES_ADVANCED_VERSION_SPEC 1
+set ans [list]
+lappend ans 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0
+lappend ans 1 0 1 1 0 1 1 0 1 1 0 1
+lappend ans 1 0 0 1 0 0 1 0 0 1 0 0
+lappend ans 1 0 1 1 0 1 1 0 1 1 0 1
+lappend ans "Modules Release \[0-9a-zA-Z\.\+\\-\]+ \\(\[0-9\-\]{10}\\)"
+testouterr_cmd_re sh -V OK [join $ans \n]
+unsetenv_var MODULES_ADVANCED_VERSION_SPEC
+unsetenv_var TESTSUITE_ENABLE_SITECONFIG_MODEQ
+
 
 #
 #  Clean up variables used in this test case
