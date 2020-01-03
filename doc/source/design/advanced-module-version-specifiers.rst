@@ -192,6 +192,11 @@ Specification
     - :ref:`module_version_specification_to_select_one_module`
     - :ref:`module_version_specification_to_check_compatibility`
 
+.. note:: Advanced version specifier does not apply for the moment to the
+   :ref:`module_identification_to_select_one_module` context. Adding support
+   for this context will require a significant rework on module alias and
+   symbolic version registering and resolving code.
+
 - impact of advanced version specifier implementation over code
 
     - question especially over ``auto_handling`` code like conflict and prereq handling
