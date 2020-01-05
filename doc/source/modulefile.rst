@@ -8,18 +8,18 @@ DESCRIPTION
 -----------
 
 *modulefiles* are written in the Tool Command Language, **Tcl**\ (n) and are
-interpreted by the **modulecmd.tcl** program via the :ref:`module(1)` user
+interpreted by the :file:`modulecmd.tcl` program via the :ref:`module(1)` user
 interface. *modulefiles* can be loaded, unloaded, or switched on-the-fly
 while the user is working; and can be used to implement site policies
 regarding the access and use of applications.
 
 A *modulefile* begins with the magic cookie, '#%Module'. A version number may
 be placed after this string. The version number is useful as the *modulefile*
-format may change thus it reflects the minimum version of **modulecmd.tcl**
+format may change thus it reflects the minimum version of :file:`modulecmd.tcl`
 required to interpret the modulefile. If a version number doesn't exist, then
-**modulecmd.tcl** will assume the *modulefile* is compatible. Files without
+:file:`modulecmd.tcl` will assume the *modulefile* is compatible. Files without
 the magic cookie or with a version number greater than the current version of
-**modulecmd.tcl** will not be interpreted.
+:file:`modulecmd.tcl` will not be interpreted.
 
 Each *modulefile* contains the changes to a user's environment needed to
 access an application. Tcl is a simple programming language which permits
@@ -30,7 +30,7 @@ use all the extended commands provided by tclX, too.
 
 A typical *modulefile* is a simple bit of code that set or add entries
 to the **PATH**, **MANPATH**, or other environment variables. A Modulefile is
-evaluated against current **modulecmd.tcl**'s mode which leads to specific
+evaluated against current :file:`modulecmd.tcl`'s mode which leads to specific
 evaluation results. For instance if the *modulefile* sets a value to an
 environment variable, this variable is set when modulefile is loaded and unset
 when modulefile is unloaded.
@@ -320,8 +320,8 @@ the *modulefile* is being loaded.
 
 **module-info** option [info-args]
 
- Provide information about the **modulecmd.tcl** program's state. Some of the
- information is specific to the internals of **modulecmd.tcl**. *option*
+ Provide information about the :file:`modulecmd.tcl` program's state. Some of the
+ information is specific to the internals of :file:`modulecmd.tcl`. *option*
  is the type of information to be provided, and *info-args* are any
  arguments needed.
 
@@ -333,18 +333,18 @@ the *modulefile* is being loaded.
 
  **module-info mode** [modetype]
 
-  Returns the current **modulecmd.tcl**'s mode as a string if no *modetype*
+  Returns the current :file:`modulecmd.tcl`'s mode as a string if no *modetype*
   is given.
 
-  Returns 1 if **modulecmd.tcl**'s mode is *modetype*. *modetype* can be:
+  Returns 1 if :file:`modulecmd.tcl`'s mode is *modetype*. *modetype* can be:
   load, unload, remove, switch, display, help, test or whatis.
 
  **module-info command** [commandname]
 
-  Returns the currently running **modulecmd.tcl**'s command as a string
+  Returns the currently running :file:`modulecmd.tcl`'s command as a string
   if no *commandname* is given.
 
-  Returns 1 if **modulecmd.tcl**'s command is *commandname*. *commandname*
+  Returns 1 if :file:`modulecmd.tcl`'s command is *commandname*. *commandname*
   can be: load, unload, reload, source, switch, display, avail, aliases,
   list, whatis, search, purge, restore, help or test.
 
@@ -360,11 +360,11 @@ the *modulefile* is being loaded.
 
  **module-info shell** [shellname]
 
-  Return the current shell under which **modulecmd.tcl** was invoked if
+  Return the current shell under which :file:`modulecmd.tcl` was invoked if
   no *shellname* is given. The current shell is the first parameter of
-  **modulecmd.tcl**, which is normally hidden by the **module** alias.
+  :file:`modulecmd.tcl`, which is normally hidden by the **module** alias.
 
-  If a *shellname* is given, returns 1 if **modulecmd.tcl**'s current shell
+  If a *shellname* is given, returns 1 if :file:`modulecmd.tcl`'s current shell
   is *shellname*, returns 0 otherwise. *shellname* can be: sh, bash, ksh,
   zsh, csh, tcsh, fish, tcl, perl, python, ruby, lisp, cmake, r.
 
@@ -372,10 +372,10 @@ the *modulefile* is being loaded.
 
   Return the family of the shell under which *modulefile* was invoked if no
   *shelltypename* is given. As of **module-info shell** this depends on the
-  first parameter of **modulecmd.tcl**. The output reflects a shell type
-  determining the shell syntax of the commands produced by **modulecmd.tcl**.
+  first parameter of :file:`modulecmd.tcl`. The output reflects a shell type
+  determining the shell syntax of the commands produced by :file:`modulecmd.tcl`.
 
-  If a *shelltypename* is given, returns 1 if **modulecmd.tcl**'s current
+  If a *shelltypename* is given, returns 1 if :file:`modulecmd.tcl`'s current
   shell type is *shelltypename*, returns 0 otherwise. *shelltypename*
   can be: sh, csh, fish, tcl, perl, python, ruby, lisp, cmake, r.
 
@@ -411,12 +411,12 @@ the *modulefile* is being loaded.
 **module-version** modulefile version-name...
 
  Assigns the symbolic *version-name* to the *modulefile*. This command
- should be placed in one of the **modulecmd.tcl** rc files in order to
+ should be placed in one of the :file:`modulecmd.tcl` rc files in order to
  provide shorthand invocations of frequently used *modulefile* names.
 
  The special *version-name* default specifies the default version to be
  used for module commands, if no specific version is given. This replaces
- the definitions made in the *.version* file in former **modulecmd.tcl**
+ the definitions made in the :file:`.version` file in former :file:`modulecmd.tcl`
  releases.
 
  The parameter *modulefile* may be either
@@ -434,7 +434,7 @@ the *modulefile* is being loaded.
 **module-alias** name modulefile
 
  Assigns the *modulefile* to the alias *name*. This command should be
- placed in one of the **modulecmd.tcl** rc files in order to provide
+ placed in one of the :file:`modulecmd.tcl` rc files in order to provide
  shorthand invocations of frequently used *modulefile* names.
 
  The parameter *modulefile* may be either
@@ -466,7 +466,7 @@ the *modulefile* is being loaded.
  Defines a string which is displayed in case of the invocation of the
  **module whatis** command. There may be more than one **module-whatis**
  line in a *modulefile*. This command takes no actions in case of **load**,
- **display**, etc. invocations of **modulecmd.tcl**.
+ **display**, etc. invocations of :file:`modulecmd.tcl`.
 
  The *string* parameter has to be enclosed in double-quotes if there's more
  than one word specified. Words are defined to be separated by whitespace
@@ -508,7 +508,7 @@ the *modulefile* is being loaded.
 
  Run *string* command through shell. On Unix, command is passed to the
  ``/bin/sh`` shell whereas on Windows it is passed to ``cmd.exe``.
- **modulecmd.tcl** redirects stdout to stderr since stdout would be parsed by
+ :file:`modulecmd.tcl` redirects stdout to stderr since stdout would be parsed by
  the evaluating shell. The exit status of the executed command is returned.
 
 .. _uname:
@@ -583,21 +583,21 @@ Every directory in **MODULEPATH** is searched to find the
 *modulefile*. A directory in **MODULEPATH** can have an arbitrary number
 of sub-directories. If the user names a *modulefile* to be loaded which
 is actually a directory, the directory is opened and a search begins for
-an actual *modulefile*. First, **modulecmd.tcl** looks for a file with
-the name *.modulerc* in the directory. If this file exists, its contents
+an actual *modulefile*. First, :file:`modulecmd.tcl` looks for a file with
+the name :file:`.modulerc` in the directory. If this file exists, its contents
 will be evaluated as if it was a *modulefile* to be loaded. You may place
 **module-version**, **module-alias** and **module-virtual** commands inside
 this file.
 
-Additionally, before seeking for *.modulerc* files in the module directory,
-the global modulerc file and the *.modulerc* file found at the root of the
+Additionally, before seeking for :file:`.modulerc` files in the module directory,
+the global modulerc file and the :file:`.modulerc` file found at the root of the
 modulepath directory are sourced, too. If a named version default now exists
 for the *modulefile* to be loaded, the assigned *modulefile* now will be
-sourced. Otherwise the file *.version* is looked up in the module directory.
+sourced. Otherwise the file :file:`.version` is looked up in the module directory.
 
-If the *.version* file exists, it is opened and interpreted as Tcl code and
-takes precedence over a *.modulerc* file in the same directory. If the Tcl
-variable **ModulesVersion** is set by the *.version* file, **modulecmd.tcl**
+If the :file:`.version` file exists, it is opened and interpreted as Tcl code and
+takes precedence over a :file:`.modulerc` file in the same directory. If the Tcl
+variable **ModulesVersion** is set by the :file:`.version` file, :file:`modulecmd.tcl`
 will use the name as if it specifies a *modulefile* in this directory. This
 will become the default *modulefile* in this case. **ModulesVersion** cannot
 refer to a *modulefile* located in a different directory.
@@ -607,9 +607,9 @@ directory. If the name does not match any files located in the current
 directory, the search continues through the remaining directories in
 **MODULEPATH**.
 
-Every *.version* and *.modulerc* file found is interpreted as Tcl code. The
-difference is that *.version* only applies to the current directory, and the
-*.modulerc* applies to the current directory and all subdirectories. Changes
+Every :file:`.version` and :file:`.modulerc` file found is interpreted as Tcl code. The
+difference is that :file:`.version` only applies to the current directory, and the
+:file:`.modulerc` applies to the current directory and all subdirectories. Changes
 made in these files will affect the subsequently interpreted *modulefile*.
 
 If no default version may be figured out, an implicit default is selected when
@@ -623,7 +623,7 @@ achieve this sort. If highest numerically sorted element is an alias, search
 continues on its *modulefile* target.
 
 For example, it is possible for a user to have a directory named X11 which
-simply contains a *.version* file specifying which version of X11 is to
+simply contains a :file:`.version` file specifying which version of X11 is to
 be loaded. Such a file would look like:
 
 .. code-block:: tcl
@@ -634,7 +634,7 @@ be loaded. Such a file would look like:
      ##
      set ModulesVersion "R4"
 
-The equivalent *.modulerc* would look like:
+The equivalent :file:`.modulerc` would look like:
 
 .. code-block:: tcl
 
@@ -657,7 +657,7 @@ first looking at the *modulefiles* in the *modulepath* where this alias or
 symbol is defined. If not found, resolution looks at the other *modulepaths*
 in their definition order.
 
-When locating *modulefiles*, if a *.modulerc*, a *.version*, a directory
+When locating *modulefiles*, if a :file:`.modulerc`, a :file:`.version`, a directory
 or a *modulefile* cannot be read during the search it is simply ignored
 with no error message produced. Visibility of *modulefiles* can thus be
 adapted to the rights the user has been granted. Exception is made when
@@ -734,7 +734,7 @@ Modulefile Display
 
 The **module display modulefile** command will detail all changes that
 will be made to the environment. After displaying all of the environment
-changes **modulecmd.tcl** will call the **ModulesDisplay** subroutine. The
+changes :file:`modulecmd.tcl` will call the **ModulesDisplay** subroutine. The
 **ModulesDisplay** subroutine is a good place to put additional descriptive
 information about the *modulefile*.
 

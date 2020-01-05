@@ -43,20 +43,20 @@ shell-specific initialization script is sourced into the shell. The script
 creates the **module** command as either an alias or function and creates
 Modules environment variables.
 
-The **module** alias or function executes the **modulecmd.tcl** program
+The **module** alias or function executes the :file:`modulecmd.tcl` program
 located in |emph libexecdir| and has the shell evaluate the command's
-output. The first argument to **modulecmd.tcl** specifies the type of shell.
+output. The first argument to :file:`modulecmd.tcl` specifies the type of shell.
 
 The initialization scripts are kept in |emph initdir|\ */<shell>* where
 *<shell>* is the name of the sourcing shell. For example, a C Shell user
 sources the |emph initdir|\ */csh* script. The sh, csh, tcsh, bash, ksh,
-zsh and fish shells are supported by **modulecmd.tcl**. In addition,
+zsh and fish shells are supported by :file:`modulecmd.tcl`. In addition,
 python, perl, ruby, tcl, cmake, r and lisp "shells" are supported which
 writes the environment changes to stdout as python, perl, ruby, tcl, lisp,
 r or cmake code.
 
 Initialization may also be performed by calling the **autoinit** sub-command
-of the **modulecmd.tcl** program. Evaluation into the shell of the result
+of the :file:`modulecmd.tcl` program. Evaluation into the shell of the result
 of this command defines the **module** alias or function.
 
 
@@ -102,28 +102,28 @@ Bourne Shell (sh) (and derivatives) with **autoinit** sub-command:
 Modulecmd startup
 ^^^^^^^^^^^^^^^^^
 
-Upon invocation **modulecmd.tcl** sources a site-specific configuration
+Upon invocation :file:`modulecmd.tcl` sources a site-specific configuration
 script if it exists. The location for this script is
 |emph etcdir|\ */siteconfig.tcl*. An additional siteconfig script may be
 specified with the *$MODULES_SITECONFIG* environment variable, if allowed by
-**modulecmd.tcl** configuration, and will be loaded if it exists after
+:file:`modulecmd.tcl` configuration, and will be loaded if it exists after
 |emph etcdir|\ */siteconfig.tcl*. Siteconfig is a Tcl script that enables to
-supersede any global variable or procedure definition of **modulecmd.tcl**.
+supersede any global variable or procedure definition of :file:`modulecmd.tcl`.
 
-Afterward, **modulecmd.tcl** sources rc files which contain global,
+Afterward, :file:`modulecmd.tcl` sources rc files which contain global,
 user and *modulefile* specific setups. These files are interpreted as
 *modulefiles*. See :ref:`modulefile(4)` for detailed information.
 
-Upon invocation of **modulecmd.tcl** module run-command files are sourced
+Upon invocation of :file:`modulecmd.tcl` module run-command files are sourced
 in the following order:
 
 1. Global RC file as specified by *$MODULERCFILE* or |emph etcdir|\ */rc*.
-   If *$MODULERCFILE* points to a directory, the *modulerc* file in this
+   If *$MODULERCFILE* points to a directory, the :file:`modulerc` file in this
    directory is used as global RC file.
 
-2. User specific module RC file *$HOME/.modulerc*
+2. User specific module RC file :file:`$HOME/.modulerc`
 
-3. All *.modulerc* and *.version* files found during modulefile seeking.
+3. All :file:`.modulerc` and :file:`.version` files found during modulefile seeking.
 
 
 Command line switches
@@ -491,7 +491,7 @@ Module Sub-Commands
 
  Record the currently set **MODULEPATH** directory list and the currently
  loaded *modulefiles* in a *collection* file under the user's collection
- directory *$HOME/.module*. If *collection* name is not specified, then
+ directory :file:`$HOME/.module`. If *collection* name is not specified, then
  it is assumed to be the *default* collection. If *collection* is a fully
  qualified path, it is saved at this location rather than under the user's
  collection directory.
@@ -572,27 +572,27 @@ Module Sub-Commands
 
  C Shell
 
-  *.modules*, *.cshrc*, *.csh_variables* and *.login*
+  :file:`.modules`, :file:`.cshrc`, :file:`.csh_variables` and :file:`.login`
 
  TENEX C Shell
 
-  *.modules*, *.tcshrc*, *.cshrc*, *.csh_variables* and *.login*
+  :file:`.modules`, :file:`.tcshrc`, :file:`.cshrc`, :file:`.csh_variables` and :file:`.login`
 
  Bourne and Korn Shells
 
-  *.modules*, *.profile*
+  :file:`.modules`, :file:`.profile`
 
  GNU Bourne Again Shell
 
-  *.modules*, *.bash_profile*, *.bash_login*, *.profile* and *.bashrc*
+  :file:`.modules`, :file:`.bash_profile`, :file:`.bash_login`, :file:`.profile` and :file:`.bashrc`
 
  Z Shell
 
-  *.modules*, *.zshrc*, *.zshenv* and *.zlogin*
+  :file:`.modules`, :file:`.zshrc`, :file:`.zshenv` and :file:`.zlogin`
 
  Friendly Interactive Shell
 
-  *.modules*, *.config/fish/config.fish*
+  :file:`.modules`, :file:`.config/fish/config.fish`
 
  If a **module load** line is found in any of these files, the *modulefiles*
  are appended to any existing list of *modulefiles*. The **module load**
@@ -731,7 +731,7 @@ Module Sub-Commands
 
 **config** [--dump-state|name [value]|--reset name]
 
- Gets or sets **modulecmd.tcl** options. Reports the currently set value of
+ Gets or sets :file:`modulecmd.tcl` options. Reports the currently set value of
  passed option *name* or all existing options if no *name* passed. If a *name*
  and a *value* are provided, the value of option *name* is set to *value*. If
  command-line switch *--reset* is passed in addition to a *name*, overridden
@@ -745,9 +745,9 @@ Module Sub-Commands
  If no value is currently set for an option *name*, the mention *<undef>* is
  reported.
 
- When command-line switch *--dump-state* is passed, current **modulecmd.tcl**
+ When command-line switch *--dump-state* is passed, current :file:`modulecmd.tcl`
  state and Modules-related environment variables are reported in addition to
- currently set **modulecmd.tcl** options.
+ currently set :file:`modulecmd.tcl` options.
 
  Existing option *names* are:
 
@@ -784,7 +784,7 @@ Module Sub-Commands
  * pager: text viewer to paginate message output (defines **MODULES_PAGER**)
  * rcfile: global run-command file location (defines **MODULERCFILE**)
  * run_quarantine: environment variables to indirectly pass to
-   **modulecmd.tcl** (defines **MODULES_RUN_QUARANTINE**)
+   :file:`modulecmd.tcl` (defines **MODULES_RUN_QUARANTINE**)
  * silent_shell_debug: disablement of shell debugging property for the module
    command (defines **MODULES_SILENT_SHELL_DEBUG**)
  * search_match: module search match style (defines **MODULES_SEARCH_MATCH**)
@@ -809,7 +809,7 @@ Modulefiles
 ^^^^^^^^^^^
 
 *modulefiles* are written in the Tool Command Language (Tcl) and are
-interpreted by **modulecmd.tcl**. *modulefiles* can use conditional
+interpreted by :file:`modulecmd.tcl`. *modulefiles* can use conditional
 statements. Thus the effect a *modulefile* will have on the environment
 may change depending upon the current state of the environment.
 
@@ -857,7 +857,7 @@ Collections
 ^^^^^^^^^^^
 
 Collections describe a sequence of **module use** then **module load**
-commands that are interpreted by **modulecmd.tcl** to set the user
+commands that are interpreted by :file:`modulecmd.tcl` to set the user
 environment as described by this sequence. When a collection is activated,
 with the **restore** sub-command, module paths and loaded modules are
 unused or unloaded if they are not part or if they are not ordered the
@@ -865,7 +865,7 @@ same way as in the collection.
 
 Collections are generated by the **save** sub-command that dumps the current
 user environment state in terms of module paths and loaded modules. By
-default collections are saved under the *$HOME/.module* directory.
+default collections are saved under the :file:`$HOME/.module` directory.
 
 Collections may be valid for a given target if they are suffixed. In this
 case these collections can only be restored if their suffix correspond to
@@ -926,7 +926,7 @@ ENVIRONMENT
 **MODULESHOME**
 
  The location of the master Modules package file directory containing module
- command initialization scripts, the executable program **modulecmd.tcl**,
+ command initialization scripts, the executable program :file:`modulecmd.tcl`,
  and a directory containing a collection of master *modulefiles*.
 
 .. _MODULES_ADVANCED_VERSION_SPEC:
@@ -939,7 +939,7 @@ ENVIRONMENT
 
  Advanced module version specifiers enablement is defined in the following
  order of preference: **MODULES_ADVANCED_VERSION_SPEC** environment variable
- then the default set in **modulecmd.tcl** script configuration. Which means
+ then the default set in :file:`modulecmd.tcl` script configuration. Which means
  **MODULES_ADVANCED_VERSION_SPEC** overrides default configuration.
 
 .. _MODULES_AUTO_HANDLING:
@@ -992,7 +992,7 @@ ENVIRONMENT
  Automated module handling mode enablement is defined in the following order
  of preference: **--auto**/**--no-auto** command line switches,
  then **MODULES_AUTO_HANDLING** environment variable, then the default set in
- **modulecmd.tcl** script configuration. Which means **MODULES_AUTO_HANDLING**
+ :file:`modulecmd.tcl` script configuration. Which means **MODULES_AUTO_HANDLING**
  overrides default configuration and **--auto**/**--no-auto** command line
  switches override every other ways to enable or disable this mode.
 
@@ -1012,7 +1012,7 @@ ENVIRONMENT
  **avail** sub-command in depth mode enablement is defined in the following
  order of preference: **--indepth**/**--no-indepth** command line switches,
  then **MODULES_AVAIL_INDEPTH** environment variable, then the default set in
- **modulecmd.tcl** script configuration. Which means **MODULES_AVAIL_INDEPTH**
+ :file:`modulecmd.tcl` script configuration. Which means **MODULES_AVAIL_INDEPTH**
  overrides default configuration and **--indepth**/**--no-indepth** command
  line switches override every other ways to enable or disable this mode.
 
@@ -1067,7 +1067,7 @@ ENVIRONMENT
  Colored output enablement is defined in the following order of preference:
  **--color** command line switch, then **MODULES_COLOR** environment variable,
  then **CLICOLOR** and **CLICOLOR_FORCE** environment variables, then the
- default set in **modulecmd.tcl** script configuration. Which means
+ default set in :file:`modulecmd.tcl` script configuration. Which means
  **MODULES_COLOR** overrides default configuration and the
  **CLICOLOR**/**CLICOLOR_FORCE** variables. **--color** command line switch
  overrides every other ways to enable or disable this mode.
@@ -1111,7 +1111,7 @@ ENVIRONMENT
 
  The color set is defined for Modules in the following order of preference:
  **MODULES_COLORS** environment variable, then the default set in
- **modulecmd.tcl** script configuration. Which means **MODULES_COLORS**
+ :file:`modulecmd.tcl` script configuration. Which means **MODULES_COLORS**
  overrides default configuration.
 
 .. _MODULES_EXTENDED_DEFAULT:
@@ -1130,7 +1130,7 @@ ENVIRONMENT
  modulefiles is returned if defined (see **MODULES_IMPLICIT_DEFAULT** section)
 
  This environment variable supersedes the value of the configuration option
- *extended_default* set in **modulecmd.tcl** script.
+ *extended_default* set in :file:`modulecmd.tcl` script.
 
 .. _MODULES_ICASE:
 
@@ -1148,7 +1148,7 @@ ENVIRONMENT
  Case sensitiveness behavior is defined in the following order of preference:
  **--icase** command line switch, which corresponds to the **always** mode,
  then **MODULES_ICASE** environment variable, then the default set in
- **modulecmd.tcl** script configuration. Which means **MODULES_ICASE**
+ :file:`modulecmd.tcl` script configuration. Which means **MODULES_ICASE**
  overrides default configuration and **--icase** command line switch overrides
  every other ways to set case sensitiveness behavior.
 
@@ -1178,7 +1178,7 @@ ENVIRONMENT
  implicit default version is defined.
 
  This environment variable supersedes the value of the configuration option
- *implicit_default* set in **modulecmd.tcl** script. This environment variable
+ *implicit_default* set in :file:`modulecmd.tcl` script. This environment variable
  is ignored if *implicit_default* has been declared locked in *locked_configs*
  configuration option.
 
@@ -1253,7 +1253,7 @@ ENVIRONMENT
 
  Paging command and options are defined for Modules in the following order of
  preference: **MODULES_PAGER** environment variable, then the default set in
- **modulecmd.tcl** script configuration. Which means **MODULES_PAGER**
+ :file:`modulecmd.tcl` script configuration. Which means **MODULES_PAGER**
  overrides default configuration.
 
  If **MODULES_PAGER** variable is set to an empty string or to the value
@@ -1263,7 +1263,7 @@ ENVIRONMENT
 
 **MODULES_RUNENV_<VAR>**
 
- Value to set to environment variable *<VAR>* for **modulecmd.tcl** run-time
+ Value to set to environment variable *<VAR>* for :file:`modulecmd.tcl` run-time
  execution if *<VAR>* is referred in **MODULES_RUN_QUARANTINE**.
 
 .. _MODULES_RUN_QUARANTINE:
@@ -1271,15 +1271,15 @@ ENVIRONMENT
 **MODULES_RUN_QUARANTINE**
 
  A space separated list of environment variable names that should be passed
- indirectly to **modulecmd.tcl** to protect its run-time environment from
+ indirectly to :file:`modulecmd.tcl` to protect its run-time environment from
  side-effect coming from their current definition.
 
  Each variable found in **MODULES_RUN_QUARANTINE** will have its value emptied
  or set to the value of the corresponding **MODULES_RUNENV_<VAR>** variable
- when defining **modulecmd.tcl** run-time environment.
+ when defining :file:`modulecmd.tcl` run-time environment.
 
  Original values of these environment variables set in quarantine are passed
- to **modulecmd.tcl** via **<VAR>_modquar** variables.
+ to :file:`modulecmd.tcl` via **<VAR>_modquar** variables.
 
 .. _MODULES_SEARCH_MATCH:
 
@@ -1294,7 +1294,7 @@ ENVIRONMENT
  Module search match style is defined in the following order of preference:
  **--starts-with** and **--contains** command line switches, then
  **MODULES_SEARCH_MATCH** environment variable, then the default set in
- **modulecmd.tcl** script configuration. Which means **MODULES_SEARCH_MATCH**
+ :file:`modulecmd.tcl` script configuration. Which means **MODULES_SEARCH_MATCH**
  overrides default configuration and **--starts-with**/**--contains** command
  line switches override every other ways to set search match style.
 
@@ -1322,7 +1322,7 @@ ENVIRONMENT
 **MODULES_SITECONFIG**
 
  Location of a site-specific configuration script to source into
- **modulecmd.tcl**. See also Modulecmd startup section.
+ :file:`modulecmd.tcl`. See also Modulecmd startup section.
 
  This environment variable is ignored if *extra_siteconfig* has been declared
  locked in *locked_configs* configuration option.
@@ -1376,7 +1376,7 @@ ENVIRONMENT
  Module command verbosity is defined in the following order of preference:
  **--silent**, **--verbose** and **--debug** command line switches, then
  **MODULES_VERBOSITY** environment variable, then the default set in
- **modulecmd.tcl** script configuration. Which means **MODULES_VERBOSITY**
+ :file:`modulecmd.tcl` script configuration. Which means **MODULES_VERBOSITY**
  overrides default configuration and **--silent**/**--verbose**/**--debug**
  command line switches overrides every other ways to set verbosity level.
 
@@ -1404,7 +1404,7 @@ ENVIRONMENT
 
 **<VAR>_modquar**
 
- Value of environment variable *<VAR>* passed to **modulecmd.tcl** in order
+ Value of environment variable *<VAR>* passed to :file:`modulecmd.tcl` in order
  to restore *<VAR>* to this value once started.
 
 .. _<VAR>_modshare:
@@ -1427,7 +1427,7 @@ FILES
 
 |bold etcdir|\ **/siteconfig.tcl**
 
- The site-specific configuration script of **modulecmd.tcl**. An additional
+ The site-specific configuration script of :file:`modulecmd.tcl`. An additional
  configuration script could be defined using the **MODULES_SITECONFIG**
  environment variable.
 
@@ -1436,11 +1436,11 @@ FILES
  The system-wide modules rc file. The location of this file can be changed
  using the **MODULERCFILE** environment variable as described above.
 
-**$HOME/.modulerc**
+:file:`$HOME/.modulerc`
 
  The user specific modules rc file.
 
-**$HOME/.module**
+:file:`$HOME/.module`
 
  The user specific collection directory.
 
