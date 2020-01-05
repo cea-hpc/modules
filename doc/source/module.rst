@@ -207,13 +207,13 @@ switches are accepted:
  On **avail** sub-command, display only the default version of each module
  name. Default version is the explicitly set default version or also the
  implicit default version if the configuration option *implicit_default* is enabled
- (see Locating Modulefiles section in the :ref:`modulefile(4)` man page for
+ (see :ref:`Locating Modulefiles` section in the :ref:`modulefile(4)` man page for
  further details on implicit default version).
 
 **--latest**, **-L**
 
  On **avail** sub-command, display only the highest numerically sorted
- version of each module name (see Locating Modulefiles section in the
+ version of each module name (see :ref:`Locating Modulefiles` section in the
  :ref:`modulefile(4)` man page).
 
 **--starts-with**, **-S**
@@ -1158,7 +1158,7 @@ ENVIRONMENT
 
  Defines (if set to **1**) or not (if set to **0**) an implicit default
  version for modules without a default version explicitly defined (see
- Locating Modulefiles section in the :ref:`modulefile(4)` man page).
+ :ref:`Locating Modulefiles` section in the :ref:`modulefile(4)` man page).
 
  Without either an explicit or implicit default version defined a module must
  be fully qualified (version should be specified in addition to its name) to
